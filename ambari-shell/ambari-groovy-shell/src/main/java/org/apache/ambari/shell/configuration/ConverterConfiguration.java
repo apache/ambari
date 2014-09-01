@@ -20,6 +20,7 @@ package org.apache.ambari.shell.configuration;
 import org.apache.ambari.groovy.client.AmbariClient;
 import org.apache.ambari.shell.converter.BlueprintConverter;
 import org.apache.ambari.shell.converter.HostConverter;
+import org.apache.ambari.shell.converter.ServiceConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -138,5 +139,10 @@ public class ConverterConfiguration {
   @Bean
   Converter hostConverter() {
     return new HostConverter(client);
+  }
+
+  @Bean
+  Converter serviceConverter() {
+    return new ServiceConverter(client);
   }
 }

@@ -21,7 +21,7 @@
     {{view overriddenSCP.viewClass serviceConfigBinding="overriddenSCP" categoryConfigsBinding="view.categoryConfigs"}}
     {{#if overriddenSCP.supportsFinal}}
       <a href="#" data-toggle="tooltip"
-        {{bindAttr class=":btn :btn-small :btn-final overriddenSCP.isFinal:active" disabled="overriddenSCP.isNotEditable"}}
+        {{bindAttr class=":btn :btn-small :btn-final overriddenSCP.isFinal:active overriddenSCP.hideFinalIcon:hidden" disabled="overriddenSCP.isNotEditable"}}
         {{action "toggleFinalFlag" overriddenSCP target="view"}}
         {{translateAttr data-original-title="services.service.config.final"}}>
         <i class="icon-lock"></i>

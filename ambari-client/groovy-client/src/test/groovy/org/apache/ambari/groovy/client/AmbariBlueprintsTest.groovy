@@ -17,10 +17,13 @@
  */
 package org.apache.ambari.groovy.client
 
+import groovy.json.JsonSlurper
 import groovy.util.logging.Slf4j
 
 @Slf4j
 class AmbariBlueprintsTest extends AbstractAmbariClientTest {
+
+  def slurper = new JsonSlurper()
 
   private enum Scenario {
     CLUSTERS, NO_CLUSTERS, BLUEPRINT_EXISTS, NO_BLUEPRINT, HOSTS, NO_HOSTS
@@ -136,6 +139,98 @@ class AmbariBlueprintsTest extends AbstractAmbariClientTest {
 
     then:
     [:] == result
+  }
+
+  def "test validate blueprint"() {
+    given:
+    def json = getClass().getClassLoader().getResourceAsStream("blueprint.json").text
+
+    when:
+    ambari.validateBlueprint(json)
+
+    then:
+    noExceptionThrown()
+  }
+
+  def "test validate blueprint no slaves_"() {
+    given:
+    def json = getClass().getClassLoader().getResourceAsStream("hdp-multinode-default2.json").text
+
+    when:
+    ambari.validateBlueprint(json)
+
+    then:
+    thrown(InvalidBlueprintException)
+  }
+
+  def "test validate blueprint with uppercase SLAVE_"() {
+    given:
+    def json = getClass().getClassLoader().getResourceAsStream("hdp-multinode-default.json").text
+
+    when:
+    ambari.validateBlueprint(json)
+
+    then:
+    notThrown(InvalidBlueprintException)
+  }
+
+  def "test validate blueprint for null json"() {
+    when:
+    ambari.validateBlueprint(null)
+
+    then:
+    thrown(InvalidBlueprintException)
+  }
+
+  def "test add blueprint with configuration"() {
+    given:
+    def json = getClass().getClassLoader().getResourceAsStream("blueprint.json").text
+    ambari.metaClass.postBlueprint = { String blueprint -> return }
+
+    when:
+    def config = [
+      "yarn-site": ["property-key": "property-value", "yarn.nodemanager.local-dirs": "/mnt/fs1/,/mnt/fs2/"],
+      "hdfs-site": ["dfs.datanode.data.dir": "/mnt/fs1/,/mnt/fs2/"]
+    ]
+    def blueprint = ambari.addBlueprint(json, config)
+
+    then:
+    def expected = slurper.parseText(getClass().getClassLoader().getResourceAsStream("blueprint-config.json").text)
+    def actual = slurper.parseText(blueprint)
+    actual == expected
+  }
+
+  def "test add blueprint with existing configuration"() {
+    given:
+    def json = getClass().getClassLoader().getResourceAsStream("multi-node-hdfs-yarn.json").text
+    ambari.metaClass.postBlueprint = { String blueprint -> return }
+
+    when:
+    def config = [
+      "yarn-site": ["property-key": "property-value", "yarn.nodemanager.local-dirs": "apple"],
+      "hdfs-site": ["dfs.datanode.data.dir": "/mnt/fs1/,/mnt/fs2/"],
+      "core-site": ["fs.defaultFS": "localhost:9000"]
+    ]
+    def blueprint = ambari.addBlueprint(json, config)
+
+    then:
+    def expected = slurper.parseText(getClass().getClassLoader().getResourceAsStream("multi-node-hdfs-yarn-config.json").text)
+    def actual = slurper.parseText(blueprint)
+    actual == expected
+  }
+
+  def "test add blueprint with empty configuration"() {
+    given:
+    def json = getClass().getClassLoader().getResourceAsStream("blueprint.json").text
+    ambari.metaClass.postBlueprint = { String blueprint -> return }
+
+    when:
+    def blueprint = ambari.addBlueprint(json, [:])
+
+    then:
+    def expected = slurper.parseText(json)
+    def actual = slurper.parseText(blueprint)
+    actual == expected
   }
 
   def protected String selectResponseJson(Map resourceRequestMap, String scenarioStr) {

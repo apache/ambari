@@ -1,0 +1,61 @@
+{
+    "Blueprints": {
+        "blueprint_name": "single-node-hdfs-yarn",
+        "stack_version": "2.0",
+        "stack_name": "HDP"
+    },
+    "configurations": [
+        {
+            "yarn-site": {
+                "property-key": "property-value",
+                "yarn.nodemanager.local-dirs": "/mnt/fs1/,/mnt/fs2/"
+            }
+        },
+        {
+            "hdfs-site": {
+                "dfs.datanode.data.dir": "/mnt/fs1/,/mnt/fs2/"
+            }
+        }
+    ],
+    "host_groups": [
+        {
+            "name": "host_group_1",
+            "components": [
+                {
+                    "name": "NAMENODE"
+                },
+                {
+                    "name": "SECONDARY_NAMENODE"
+                },
+                {
+                    "name": "DATANODE"
+                },
+                {
+                    "name": "HDFS_CLIENT"
+                },
+                {
+                    "name": "RESOURCEMANAGER"
+                },
+                {
+                    "name": "NODEMANAGER"
+                },
+                {
+                    "name": "YARN_CLIENT"
+                },
+                {
+                    "name": "HISTORYSERVER"
+                },
+                {
+                    "name": "MAPREDUCE2_CLIENT"
+                },
+                {
+                    "name": "ZOOKEEPER_SERVER"
+                },
+                {
+                    "name": "ZOOKEEPER_CLIENT"
+                }
+            ],
+            "cardinality": "1"
+        }
+    ]
+}

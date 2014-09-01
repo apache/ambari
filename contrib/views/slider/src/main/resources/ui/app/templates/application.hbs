@@ -21,6 +21,7 @@
 </div>
 {{#if App.viewEnabled}}
   {{outlet}}
+  {{outlet bs-tooltip-box}}
 {{else}}
   {{#each error in App.viewErrors}}
     <h3>{{error}}</h3>

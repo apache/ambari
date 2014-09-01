@@ -2103,7 +2103,10 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         new HashMap<String, Map<String, Map<String, Set<String>>>>();
     Set<State> seenNewStates = new HashSet<State>();
     Map<ServiceComponentHost, State> directTransitionScHosts = new HashMap<ServiceComponentHost, State>();
-    Set<String> maintenanceClusters = new HashSet<String>();
+
+    // We don't expect batch requests for different clusters, that's why
+    // nothing bad should happen if value is overwritten few times
+    String maintenanceCluster = null;
 
     // Determine operation level
     Resource.Type reqOpLvl;
@@ -2199,8 +2202,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
               "maintenance state to one of " + EnumSet.of(MaintenanceState.OFF, MaintenanceState.ON));
           } else {
             sch.setMaintenanceState(newMaint);
-
-            maintenanceClusters.add(sch.getClusterName());
+            maintenanceCluster = sch.getClusterName();
           }
         }
       }
@@ -2339,9 +2341,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       }
     }
 
-    if (maintenanceClusters.size() > 0) {
+    if (maintenanceCluster != null) {
       try {
-        maintenanceStateHelper.createRequests(this, requestProperties, maintenanceClusters);
+        maintenanceStateHelper.createRequests(this, requestProperties, maintenanceCluster);
       } catch (Exception e) {
         LOG.warn("Could not send maintenance status to Nagios (" + e.getMessage() + ")");
       }

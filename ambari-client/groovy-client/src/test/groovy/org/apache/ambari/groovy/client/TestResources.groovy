@@ -23,6 +23,8 @@ enum TestResources {
   CONFIGURATIONS("http://localhost:8080/api/v1/clusters/MySingleNodeCluster/configurations"),
   BLUEPRINTS("http://localhost:8080/api/v1/blueprints"),
   BLUEPRINT("http://localhost:8080/api/v1/blueprints/single-node-hdfs-yarn"),
+  BLUEPRINT_MULTI("http://localhost:8080/api/v1/blueprints/hdp-multinode-default"),
+  BLUEPRINT_MULTI2("http://localhost:8080/api/v1/blueprints/hdp-multinode-default2"),
   INEXISTENT_BLUEPRINT("http://localhost:8080/api/v1/blueprints/inexistent-blueprint"),
   HOSTS("http://localhost:8080/api/v1/hosts"),
   TASKS("http://localhost:8080/api/v1/clusters/MySingleNodeCluster/requests/1"),

@@ -59,9 +59,39 @@ class AmbariHostsTest extends AbstractAmbariClientTest {
     ] == result
   }
 
+  def "install host components to a host from an existing valid blueprint"() {
+    given:
+    mockResponses(Scenario.CLUSTERS.name())
+    ambari.metaClass.addComponentToHost = { String host, String component -> return null }
+    ambari.metaClass.setComponentState = { String host, String component, String state -> return 10 }
+
+    when:
+    def result = ambari.installComponentsToHost("amb0", "hdp-multinode-default", "slave_1")
+
+    then:
+    [
+      "HBASE_REGIONSERVER": 10,
+      "NODEMANAGER"       : 10,
+      "DATANODE"          : 10,
+      "GANGLIA_MONITOR"   : 10
+    ] == result
+  }
+
+  def "install host components to a host from an existing valid blueprint but invalid group"() {
+    given:
+    mockResponses(Scenario.CLUSTERS.name())
+    ambari.metaClass.addComponentToHost = { String host, String component -> return null }
+    ambari.metaClass.setComponentState = { String host, String component, String state -> return null }
+
+    when:
+    def result = ambari.installComponentsToHost("amb0", "hdp-multinode-default", "slave_2")
+
+    then:
+    [:] == result
+  }
+
   def protected String selectResponseJson(Map resourceRequestMap, String scenarioStr) {
     def thePath = resourceRequestMap.get("path");
-    def query = resourceRequestMap.get("query");
     def Scenario scenario = Scenario.valueOf(scenarioStr)
     def json = null
     if (thePath == TestResources.CLUSTERS.uri()) {
@@ -71,6 +101,8 @@ class AmbariHostsTest extends AbstractAmbariClientTest {
       }
     } else if (thePath == TestResources.HOST_COMPONENTS.uri()) {
       json = "host-components.json"
+    } else if (thePath == TestResources.BLUEPRINT_MULTI.uri) {
+      json = "hdp-multinode-default.json"
     } else {
       log.error("Unsupported resource path: {}", thePath)
     }

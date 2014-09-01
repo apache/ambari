@@ -51,7 +51,7 @@
 
           <td>
             {{#link-to 'slider_app.summary' slider}}
-              {{slider.name}}
+              <span {{bs-bind-popover view.popover}}>{{slider.name}}</span>
             {{/link-to}}
           </td>
 

@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.ambari.groovy.client.AmbariClient;
+import org.apache.ambari.groovy.client.InvalidHostGroupHostAssociation;
 import org.apache.ambari.shell.completion.Blueprint;
 import org.apache.ambari.shell.completion.Host;
 import org.apache.ambari.shell.flash.FlashService;
@@ -148,7 +149,7 @@ public class ClusterCommands implements CommandMarker {
    * @return prints the auto assignments
    */
   @CliCommand(value = "cluster autoAssign", help = "Automatically assigns hosts to different host groups base on the provided strategy")
-  public String autoAssign() {
+  public String autoAssign() throws InvalidHostGroupHostAssociation {
     Map<String, List<String>> assignments = client.recommendAssignments(context.getFocusValue());
     if (!assignments.isEmpty()) {
       hostGroups = assignments;

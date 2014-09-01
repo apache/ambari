@@ -707,7 +707,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, {
     var hostsCount = masterComponents.filterProperty('component', componentName).length;
     return stringUtils.pluralize(hostsCount,
       masterComponents.findProperty('component', componentName).hostName,
-      hostsCount + ' ' + Em.I18n.t('installer.step8.hosts'));
+        hostsCount + ' ' + Em.I18n.t('installer.step8.hosts'));
   },
 
   /**
@@ -850,24 +850,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, {
     }, this);
 
     if (!configsMap.length) return;
-    var configData = configsMap.map(function (siteConfigObject) {
-      return JSON.stringify({
-        Clusters: {
-          desired_config: {
-            type: siteConfigObject.type,
-            tag: siteConfigObject.tag,
-            properties: siteConfigObject.properties,
-            properties_attributes: siteConfigObject.properties_attributes
-          }
-        }
-      });
-    }, this).toString();
-    this.addRequestToAjaxQueue({
-      name: 'wizard.step8.apply_configuration_to_cluster',
-      data: {
-        data: '[' + configData + ']'
-      }
-    });
+    this.applyConfigurationsToCluster(configsMap);
   },
   /**
    * Prepare <code>ajaxQueue</code> and start to execute it
@@ -991,7 +974,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, {
           this.updateConfigurations(this.get('wizardController').getDBProperty('fileNamesToUpdate'));
         }
         this.createConfigurations();
-        this.applyConfigurationsToCluster();
+        this.applyConfigurationsToCluster(this.get('serviceConfigTags'));
       }
       this.createComponents();
       this.registerHostsToCluster();
@@ -1433,7 +1416,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, {
     selectedServices.forEach(function (service) {
       Object.keys(service.get('configTypes')).forEach(function (type) {
         if (!this.get('serviceConfigTags').someProperty('type', type)) {
-          var serviceVersionNotes = Em.I18n.t('dashboard.configHistory.table.notes.default').format(service.get('serviceName'));
+          var serviceVersionNotes = Em.I18n.t('dashboard.configHistory.table.notes.default').format(service.get('displayName'));
           if (!App.supports.capacitySchedulerUi && service.get('serviceName') === 'MAPREDUCE' && (type === 'capacity-scheduler' || type === 'mapred-queue-acls')) {
             return;
           } else if (type === 'core-site') {
@@ -1462,26 +1445,31 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, {
    * Send <code>serviceConfigTags</code> to server
    * Queued request
    * One request for each service config tag
+   * @param serviceConfigTags
    * @method applyConfigurationsToCluster
    */
-  applyConfigurationsToCluster: function () {
-    var configData = this.get('serviceConfigTags').map(function (_serviceConfig) {
-      return JSON.stringify({
-        Clusters: {
-          desired_config: {
-            type: _serviceConfig.type,
-            tag: _serviceConfig.tag,
-            properties: _serviceConfig.properties,
-            properties_attributes: _serviceConfig.properties_attributes,
-            service_config_version_note: _serviceConfig.service_config_version_note
-          }
+  applyConfigurationsToCluster: function (serviceConfigTags) {
+    var selectedServices = this.get('selectedServices');
+    var allConfigData = [];
+    selectedServices.forEach(function (service) {
+      var serviceConfigData = [];
+      Object.keys(service.get('configTypesRendered')).forEach(function (type) {
+        var serviceConfigTag = serviceConfigTags.findProperty('type', type);
+        if (serviceConfigTag) {
+          serviceConfigData.pushObject(serviceConfigTag);
         }
-      });
-    }, this).toString();
+      }, this);
+      allConfigData.pushObject(JSON.stringify({
+        Clusters: {
+          desired_config: serviceConfigData
+        }
+      }));
+    }, this);
+
     this.addRequestToAjaxQueue({
-      name: 'wizard.step8.apply_configuration_to_cluster',
+      name: 'common.across.services.configurations',
       data: {
-        data: '[' + configData + ']'
+        data: '[' + allConfigData.toString() + ']'
       }
     });
   },
@@ -1603,19 +1591,12 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, {
       hcatUser = this.get('configs').someProperty('name', 'hcat_user') ? this.get('configs').findProperty('name', 'hcat_user').value : null,
       isGLUSTERFSSelected = installedAndSelectedServices.someProperty('serviceName', 'GLUSTERFS');
 
-    // screen out the GLUSTERFS-specific core-site.xml entries when they are not needed
-    if (!isGLUSTERFSSelected) {
-      coreSiteObj = coreSiteObj.filter(function (_config) {
-        return !_config.name.contains("fs.glusterfs");
-      });
-    }
-
     coreSiteObj.forEach(function (_coreSiteObj) {
       // exclude some configs if service wasn't selected
       if (
         (isOozieSelected || (_coreSiteObj.name != 'hadoop.proxyuser.' + oozieUser + '.hosts' && _coreSiteObj.name != 'hadoop.proxyuser.' + oozieUser + '.groups')) &&
-          (isHiveSelected || (_coreSiteObj.name != 'hadoop.proxyuser.' + hiveUser + '.hosts' && _coreSiteObj.name != 'hadoop.proxyuser.' + hiveUser + '.groups')) &&
-          (isHcatSelected || (_coreSiteObj.name != 'hadoop.proxyuser.' + hcatUser + '.hosts' && _coreSiteObj.name != 'hadoop.proxyuser.' + hcatUser + '.groups'))) {
+        (isHiveSelected || (_coreSiteObj.name != 'hadoop.proxyuser.' + hiveUser + '.hosts' && _coreSiteObj.name != 'hadoop.proxyuser.' + hiveUser + '.groups')) &&
+        (isHcatSelected || (_coreSiteObj.name != 'hadoop.proxyuser.' + hcatUser + '.hosts' && _coreSiteObj.name != 'hadoop.proxyuser.' + hcatUser + '.groups'))) {
         coreSiteProperties[_coreSiteObj.name] = App.config.escapeXMLCharacters(_coreSiteObj.value);
       }
       if (isGLUSTERFSSelected && _coreSiteObj.name == "fs.default.name") {

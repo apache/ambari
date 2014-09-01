@@ -25,6 +25,7 @@ angular.module('ambariAdminConsole')
     $scope.form.submitted = true;
     if ($scope.form.$valid){
       $scope.group.save().then(function() {
+        uiAlert.success('Created group ' + $scope.group.group_name);
         $location.path('/groups');
       })
       .catch(function(data) {

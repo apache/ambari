@@ -561,7 +561,7 @@ public class ConfigGroupResourceProvider extends
       configGroup.setDescription(request.getDescription());
       configGroup.setTag(request.getTag());
 
-      configLogger.info("Persisting updated Config group, "
+      configLogger.info("Persisting updated Config group"
         + ", clusterName = " + configGroup.getClusterName()
         + ", id = " + configGroup.getId()
         + ", tag = " + configGroup.getTag()

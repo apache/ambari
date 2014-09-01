@@ -835,8 +835,6 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
 
     // TODO additional validation?
 
-    // TODO if all components reach a common state, should service state be
-    // modified?
     Cluster cluster = clusters.getCluster(clusterNames.iterator().next());
 
     return getManagementController().createAndPersistStages(cluster, requestProperties, null, null, changedComps, changedScHosts,

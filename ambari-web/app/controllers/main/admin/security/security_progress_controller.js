@@ -274,28 +274,41 @@ App.MainAdminSecurityProgressController = Em.Controller.extend({
    * form query data and apply security configurations to server
    */
   applyConfigurationsToCluster: function () {
-    var configData = [];
-    this.get('serviceConfigTags').forEach(function (_serviceConfig) {
-      var Clusters = {
-        Clusters: {
-          desired_config: {
-            type: _serviceConfig.siteName,
-            tag: _serviceConfig.newTagName,
-            properties: _serviceConfig.configs
-          }
-        }
+    var configData = this.get('serviceConfigTags').map(function (_serviceConfig) {
+      return {
+        type: _serviceConfig.siteName,
+        tag: _serviceConfig.newTagName,
+        properties: _serviceConfig.configs,
+        service_config_version_note: Em.I18n.t('admin.security.step4.save.configuration.note')
       };
-      configData.pushObject(JSON.stringify(Clusters));
     }, this);
 
-    var data = {
-      configData: '[' + configData.toString() + ']'
-    };
+    var selectedServices = this.get('secureServices');
+    var allConfigData = [];
+    selectedServices.forEach(function (service) {
+      var stackService = App.StackService.find(service.serviceName);
+      if (stackService) {
+        var serviceConfigData = [];
+        Object.keys(stackService.get('configTypesRendered')).forEach(function (type) {
+          var serviceConfigTag = configData.findProperty('type', type);
+          if (serviceConfigTag) {
+            serviceConfigData.pushObject(serviceConfigTag);
+          }
+        }, this);
+        allConfigData.pushObject(JSON.stringify({
+          Clusters: {
+            desired_config: serviceConfigData
+          }
+        }));
+      }
+    }, this);
 
     App.ajax.send({
-      name: 'admin.security.apply_configurations',
+      name: 'common.across.services.configurations',
       sender: this,
-      data: data,
+      data: {
+        data: '[' + allConfigData.toString() + ']'
+      },
       success: 'applyConfigurationToClusterSuccessCallback',
       error: 'applyConfigurationToClusterErrorCallback'
     });

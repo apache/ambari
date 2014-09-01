@@ -151,6 +151,9 @@ App.ServiceConfigProperty = Ember.Object.extend({
   isEditable: true, // by default a config property is editable
   isNotEditable: Ember.computed.not('isEditable'),
   isFinal: false,
+  hideFinalIcon: function () {
+    return (!this.get('isFinal'))&& this.get('isNotEditable');
+  }.property('isFinal', 'isNotEditable'),
   defaultIsFinal: false,
   supportsFinal: false,
   isVisible: true,
@@ -168,6 +171,8 @@ App.ServiceConfigProperty = Ember.Object.extend({
   group: null, // Contain group related to this property. Set only when isOriginalSCP is false.
   isUserProperty: null, // This property was added by user. Hence they get removal actions etc.
   isOverridable: true,
+  isComparison: false,
+  hasCompareDiffs: false,
   showLabel: true,
   error: false,
   warn: false,

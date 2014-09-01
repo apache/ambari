@@ -26,7 +26,7 @@
     <form class="form-horizontal" autocomplete="off">
 
       {{#each view.filteredCategoryConfigs}}
-        <div {{bindAttr class=":entry-row isOverridden:overridden-property isComparison:overridden-property"}}>
+        <div {{bindAttr class=":entry-row isOverridden:overridden-property hasCompareDiffs:overridden-property"}}>
           {{#if showLabel}}
             <span {{bindAttr class="errorMessage:error: :control-group :control-label-span"}}>
               <label class="control-label">
@@ -56,7 +56,7 @@
               {{/if}}
               {{#if supportsFinal}}
                 <a href="#" data-toggle="tooltip"
-                  {{bindAttr class=":btn :btn-small :btn-final isFinal:active" disabled="isNotEditable"}}
+                  {{bindAttr class=":btn :btn-small :btn-final isFinal:active hideFinalIcon:hidden" disabled="isNotEditable"}}
                   {{action "toggleFinalFlag" this target="view"}}
                   {{translateAttr data-original-title="services.service.config.final"}}>
                   <i class="icon-lock"></i>

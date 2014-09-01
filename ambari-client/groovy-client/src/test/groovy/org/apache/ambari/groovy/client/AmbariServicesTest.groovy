@@ -17,10 +17,13 @@
  */
 package org.apache.ambari.groovy.client
 
+import groovy.json.JsonSlurper
 import groovy.util.logging.Slf4j
 
 @Slf4j
 class AmbariServicesTest extends AbstractAmbariClientTest {
+
+  def slurper = new JsonSlurper()
 
   private enum Scenario {
     SERVICES, NO_SERVICES, NO_SERVICE_COMPONENTS
@@ -112,6 +115,66 @@ class AmbariServicesTest extends AbstractAmbariClientTest {
 
     then:
     !result
+  }
+
+  def "test stop all services"() {
+    given:
+    def context
+    ambari.metaClass.getClusterName = { return "cluster" }
+    ambari.getAmbari().metaClass.put = { Map request ->
+      context = request
+    }
+    ambari.getSlurper().metaClass.parseText { String text -> return ["Requests": ["id": 1]] }
+
+    when:
+    def id = ambari.stopAllServices()
+
+    then:
+    1 == id
+    context.path == "http://localhost:8080/api/v1/clusters/cluster/services"
+    def body = slurper.parseText(context.body)
+    body.RequestInfo.context == "Stop All Services"
+    body.ServiceInfo.state == "INSTALLED"
+  }
+
+  def "test start service ZOOKEEPER"() {
+    given:
+    def context
+    ambari.metaClass.getClusterName = { return "cluster" }
+    ambari.getAmbari().metaClass.put = { Map request ->
+      context = request
+    }
+    ambari.getSlurper().metaClass.parseText { String text -> return ["Requests": ["id": 1]] }
+
+    when:
+    def id = ambari.startService("ZOOKEEPER")
+
+    then:
+    1 == id
+    context.path == "http://localhost:8080/api/v1/clusters/cluster/services/ZOOKEEPER"
+    def body = slurper.parseText(context.body)
+    body.RequestInfo.context == "Starting ZOOKEEPER"
+    body.ServiceInfo.state == "STARTED"
+  }
+
+  def "test stop service ZOOKEEPER"() {
+    given:
+    def context
+    ambari.metaClass.getClusterName = { return "cluster" }
+    ambari.getAmbari().metaClass.put = { Map request ->
+      context = request
+    }
+    ambari.getSlurper().metaClass.parseText { String text -> return ["Requests": ["id": 1]] }
+
+    when:
+    def id = ambari.stopService("ZOOKEEPER")
+
+    then:
+    1 == id
+    context.path == "http://localhost:8080/api/v1/clusters/cluster/services/ZOOKEEPER"
+    def body = slurper.parseText(context.body)
+    body.RequestInfo.context == "Stopping ZOOKEEPER"
+    body.ServiceInfo.state == "INSTALLED"
   }
 
   def private String selectResponseJson(Map resourceRequestMap, String scenarioStr) {

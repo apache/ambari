@@ -45,6 +45,7 @@ exports.config = {
           'vendor/scripts/common/bs-basic.min.js',
           'vendor/scripts/common/bs-button.min.js',
           'vendor/scripts/common/bs-modal.min.js',
+          'vendor/scripts/common/bs-popover.min.js',
           'vendor/scripts/common/ember-i18n-1.4.1.js',
           'vendor/scripts/common/bootstrap.js'
         ]
@@ -97,6 +98,7 @@ exports.config = {
               'vendor/scripts/common/bs-basic.min.js',
               'vendor/scripts/common/bs-button.min.js',
               'vendor/scripts/common/bs-modal.min.js',
+              'vendor/scripts/common/bs-popover.min.js',
               'vendor/scripts/common/ember-i18n-1.4.1.js',
               'vendor/scripts/common/bootstrap.js'
             ]

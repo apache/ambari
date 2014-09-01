@@ -32,6 +32,7 @@ angular.module('ambariAdminConsole')
         'Users/active': !!$scope.user.active,
         'Users/admin': !!$scope.user.admin
       }).then(function() {
+        uiAlert.success('Created user ' + $scope.user.user_name);
         $location.path('/users');
       }).catch(function(data) {;
         data = data.data;

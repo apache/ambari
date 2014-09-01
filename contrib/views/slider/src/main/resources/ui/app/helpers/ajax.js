@@ -106,6 +106,7 @@ var urls = {
 
   'components_hosts': {
     real: 'clusters/{clusterName}/hosts?host_components/HostRoles/component_name={componentName}&minimal_response=true',
+    mock:'/data/resource/components_hosts.json',
     headers: {
       Accept : "text/plain; charset=utf-8",
       "Content-Type": "text/plain; charset=utf-8"
@@ -114,6 +115,7 @@ var urls = {
 
   'cluster_name': {
     real: 'clusters',
+    mock:'/data/resource/cluster_name.json',
     headers: {
       Accept : "text/plain; charset=utf-8",
       "Content-Type": "text/plain; charset=utf-8"

@@ -78,7 +78,7 @@ App.supports = {
   views: true,
   flume: true,
   databaseConnection: true,
-  configHistory: false,
+  configHistory: true,
   serverRecommendValidate: true,
   downloadClientConfigs: true,
   abortRequests: true

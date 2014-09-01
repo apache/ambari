@@ -203,11 +203,13 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, {
       hiddenWidgetsBinding: 'parentView.hiddenWidgets',
       visibleWidgetsBinding: 'parentView.visibleWidgets',
       valueBinding: '',
-      didInsertElement: function() {
-        $(".add-widgets-dropdown-list").click(function( event ) {
-          event.stopPropagation();
-        });
-      },
+      widgetCheckbox: Em.Checkbox.extend({
+        didInsertElement: function() {
+          $('.checkbox').click(function(event) {
+            event.stopPropagation();
+          });
+        }
+      }),
       closeFilter:function () {
       },
       applyFilter:function() {

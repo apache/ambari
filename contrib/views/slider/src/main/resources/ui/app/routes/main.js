@@ -16,6 +16,18 @@
  * limitations under the License.
  */
 
+App.ApplicationRoute = Ember.Route.extend({
+  renderTemplate: function() {
+    this.render();
+    var controller = this.controllerFor('tooltip-box');
+    this.render("bs-tooltip-box", {
+      outlet: "bs-tooltip-box",
+      controller: controller,
+      into: "application"
+    });
+  }
+});
+
 App.IndexRoute = Ember.Route.extend({
 
   model: function () {

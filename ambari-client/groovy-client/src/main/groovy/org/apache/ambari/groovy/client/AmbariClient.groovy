@@ -23,6 +23,7 @@ import groovy.util.logging.Slf4j
 import groovyx.net.http.ContentType
 import groovyx.net.http.HttpResponseException
 import groovyx.net.http.RESTClient
+import org.apache.commons.io.IOUtils
 import org.apache.http.NoHttpResponseException
 import org.apache.http.client.ClientProtocolException
 import java.net.ConnectException
@@ -37,6 +38,7 @@ class AmbariClient {
 
   private static final int PAD = 30
   private static final int OK_RESPONSE = 200
+  private static final String SLAVE = "slave_"
   boolean debugEnabled = false;
   def RESTClient ambari
   def slurper = new JsonSlurper()
@@ -89,6 +91,203 @@ class AmbariClient {
       }
     }
     return clusterName
+  }
+
+  /**
+   * Adds a registered host to the cluster.
+   *
+   * @param hostName new node's hostname
+   * @throws HttpResponseException if the node is not registered with ambari
+   */
+  def addHost(String hostName) throws HttpResponseException {
+    if (debugEnabled) {
+      println "[DEBUG] POST ${ambari.getUri()}clusters/${getClusterName()}/hosts/$hostName"
+    }
+    ambari.post(path: "clusters/${getClusterName()}/hosts/$hostName", { it })
+  }
+
+  /**
+   * Decommission and remove a host from the cluster.
+   * NOTE: this is a synchronous call, it wont return until all
+   * requests are finished
+   *
+   * Steps:
+   *  1, decommission services
+   *  2, stop services
+   *  3, delete host components
+   *  4, delete host
+   *  5, restart services
+   *
+   * @param hostName host to be deleted
+   */
+  def removeHost(String hostName) {
+    def components = getHostComponentsMap(hostName).keySet() as List
+
+    // decommission
+    if (components.contains("NODEMANAGER")) {
+      decommissionNodeManager(hostName)
+    }
+    if (components.contains("DATANODE")) {
+      decommissionDataNode(hostName)
+    }
+
+    // stop services
+    def requests = stopComponentsOnHost(hostName, components)
+    waitForRequestsToFinish(requests.values() as List)
+
+    // delete host components
+    deleteHostComponents(hostName, components)
+
+    // delete host
+    deleteHost(hostName)
+
+    // restart zookeper
+    def id = restartServiceComponents("ZOOKEEPER", ["ZOOKEEPER_SERVER"])
+    waitForRequestsToFinish([id])
+
+    // restart nagios
+    if (getServiceComponentsMap().containsKey("NAGIOS")) {
+      id = restartServiceComponents("NAGIOS", ["NAGIOS_SERVER"])
+      waitForRequestsToFinish([id])
+    }
+  }
+
+  /**
+   * Does not return until all the requests are finished.
+   * @param requestIds ids of the requests
+   */
+  def waitForRequestsToFinish(List<Integer> requestIds) {
+    def stopped = false
+    while (!stopped) {
+      def state = true
+      for (int id : requestIds) {
+        if (getRequestProgress(id) != 100.0) {
+          state = false;
+          break;
+        }
+      }
+      stopped = state
+      Thread.sleep(2000)
+    }
+  }
+
+  /**
+   * Decommission the data node on a given host.
+   *
+   * @return id of the request to keep track its progress
+   */
+  def int decommissionDataNode(String host) {
+    decommission(host, "DATANODE", "HDFS", "NAMENODE")
+  }
+
+  /**
+   * Decommission the node manager on a given host.
+   *
+   * @return id of the request to keep track its progress
+   */
+  def int decommissionNodeManager(String host) {
+    decommission(host, "NODEMANAGER", "YARN", "RESOURCEMANAGER")
+  }
+
+  /**
+   * Decommission a host component on a given host.
+   *
+   * @param host hostName where the component is installed to
+   * @param slaveName slave to be decommissioned
+   * @param serviceName where the slave belongs to
+   * @param componentName where the slave belongs to
+   * @return id of the request to keep track its progress
+   */
+  def int decommission(String host, String slaveName, String serviceName, String componentName) {
+    def requestInfo = [
+      command   : "DECOMMISSION",
+      context   : "Decommission $slaveName",
+      parameters: ["slave_type": slaveName, "excluded_hosts": host]
+    ]
+    def filter = [
+      ["service_name": serviceName, "component_name": componentName]
+    ]
+    Map bodyMap = [
+      "RequestInfo"              : requestInfo,
+      "Requests/resource_filters": filter
+    ]
+    ambari.post(path: "clusters/${getClusterName()}/requests", body: new JsonBuilder(bodyMap).toPrettyString(), {
+      getRequestId(it)
+    })
+  }
+
+  /**
+   * Deletes the components from the host.
+   */
+  def deleteHostComponents(String hostName, List<String> components) {
+    components.each {
+      ambari.delete(path: "clusters/${getClusterName()}/hosts/$hostName/host_components/$it")
+    }
+  }
+
+  /**
+   * Deletes the host from the cluster.
+   */
+  def deleteHost(String hostName) {
+    ambari.delete(path: "clusters/${getClusterName()}/hosts/$hostName")
+  }
+
+  /**
+   * Install all the components from a given blueprint's host group. The services must be installed
+   * in order to install its components. It is recommended to use the same blueprint's host group from which
+   * the cluster was created.
+   *
+   * @param hostName components will be installed on this host
+   * @param blueprint id of the blueprint
+   * @param hostGroup host group of the blueprint
+   * @return map of the component names and their request id since its an async call
+   */
+  def Map<String, Integer> installComponentsToHost(String hostName, String blueprint, String hostGroup) throws HttpResponseException {
+    def bpMap = getBlueprint(blueprint)
+    def components = bpMap?.host_groups?.find { it.name.equals(hostGroup) }?.components?.collect { it.name }
+    if (components) {
+      return installComponentsToHost(hostName, components)
+    } else {
+      return [:]
+    }
+  }
+
+  /**
+   * Installs the given components to the given host.
+   * Only existing service components can be installed.
+   *
+   * @param hostName host to install the component to
+   * @param components components to be installed
+   * @throws HttpResponseException in case the component's service is not installed
+   * @return map of the component names and their request id since its an async call
+   */
+  def Map<String, Integer> installComponentsToHost(String hostName, List<String> components) throws HttpResponseException {
+    def resp = [:]
+    components.each {
+      addComponentToHost(hostName, it)
+      resp << [(it): setComponentState(hostName, it, "INSTALLED")]
+    }
+    resp
+  }
+
+  /**
+   * Starts the given components on a host.
+   *
+   * @return map of the component names and their request id since its an async call
+   * @throws HttpResponseException in case the component is not found
+   */
+  def Map<String, Integer> startComponentsOnHost(String hostName, List<String> components) throws HttpResponseException {
+    setComponentsState(hostName, components, "STARTED")
+  }
+
+  /**
+   * Stops the given components on a host.
+   *
+   * @return map of the component names and their request id since its an async call
+   * @throws HttpResponseException in case the component is not found
+   */
+  def Map<String, Integer> stopComponentsOnHost(String hostName, List<String> components) throws HttpResponseException {
+    setComponentsState(hostName, components, "INSTALLED")
   }
 
   /**
@@ -178,27 +377,34 @@ class AmbariClient {
    * @param blueprint id of the blueprint
    * @return recommended assignments
    */
-  def Map<String, List<String>> recommendAssignments(String blueprint) {
+  def Map<String, List<String>> recommendAssignments(String blueprint) throws InvalidHostGroupHostAssociation {
     def result = [:]
     def hostNames = getHostNames().keySet() as List
     def groups = getBlueprint(blueprint)?.host_groups?.collect { ["name": it.name, "cardinality": it.cardinality] }
     if (hostNames && groups) {
       def groupSize = groups.size()
       def hostSize = hostNames.size()
-      if (hostSize == groupSize) {
-        def i = 0
-        result = groups.collectEntries { [(it.name): [hostNames[i++]]] }
-      } else if (groupSize == 2 && hostSize > 2) {
-        def grouped = groups.groupBy { it.cardinality }
-        if (grouped["1"] && grouped["1"].size() == 1) {
-          groups.each {
-            if (it["cardinality"] == "1") {
-              result << [(it["name"]): [hostNames[0]]]
-            } else {
-              result << [(it["name"]): hostNames.subList(1, hostSize)]
-            }
-          }
+      if (hostSize == 1 && groupSize == 1) {
+        result = [(groups[0].name): [hostNames[0]]]
+      } else if (hostSize >= groupSize) {
+        int i = 0
+        groups.findAll { !it.name.toLowerCase().startsWith(SLAVE) }.each {
+          result << [(it.name): [hostNames[i++]]]
         }
+        def slaves = groups.findAll { it.name.toLowerCase().startsWith(SLAVE) }
+        if (slaves) {
+          int k = 0
+          for (int j = i; j < hostSize; j++) {
+            result[slaves[k].name] = result[slaves[k].name] ?: []
+            result[slaves[k].name] << hostNames[j]
+            result << [(slaves[k].name): result[slaves[k++].name]]
+            k = k == slaves.size ? 0 : k
+          }
+        } else {
+          throw new InvalidHostGroupHostAssociation("At least one '$SLAVE' is required", groupSize)
+        }
+      } else {
+        throw new InvalidHostGroupHostAssociation("At least $groupSize host is required", groupSize)
       }
     }
     return result
@@ -228,11 +434,49 @@ class AmbariClient {
    * Adds a blueprint to the Ambari server. Exception is thrown if fails.
    *
    * @param json blueprint as json
+   * @return blueprint json
    * @throws HttpResponseException in case of error
    */
-  def void addBlueprint(String json) throws HttpResponseException {
+  def String addBlueprint(String json) throws HttpResponseException {
+    addBlueprint(json, [:])
+  }
+
+  /**
+   * Adds a blueprint with the desired configurations.
+   * 
+   * @param json blueprint to be added
+   * @param configurations blueprint will be extended with these configurations
+   * @return the extended blueprint as json
+   */
+  def String addBlueprint(String json, Map<String, Map<String, String>> configurations) throws HttpResponseException {
     if (json) {
-      postBlueprint(json)
+      def text = slurper.parseText(json)
+      def bpMap = extendBlueprintConfiguration(text, configurations)
+      def builder = new JsonBuilder(bpMap)
+      def resultJson = builder.toPrettyString()
+      postBlueprint(resultJson)
+      resultJson
+    }
+  }
+
+  /**
+   * Only validates the multinode blueprints, at least 1 slave host group must exist.
+   * Throws an exception if the blueprint is not valid.
+   *
+   * @param json blueprint json
+   * @throws InvalidBlueprintException if the blueprint is not valid
+   */
+  def void validateBlueprint(String json) throws InvalidBlueprintException {
+    if (json) {
+      def bpMap = slurper.parseText(json)
+      if (bpMap?.host_groups?.size > 1) {
+        def find = bpMap.host_groups.find { it.name.toLowerCase().startsWith(SLAVE) }
+        if (!find) {
+          throw new InvalidBlueprintException("At least one '$SLAVE' host group is required.")
+        }
+      }
+    } else {
+      throw new InvalidBlueprintException("No blueprint specified")
     }
   }
 
@@ -246,6 +490,8 @@ class AmbariClient {
     addBlueprint(getResourceContent("blueprints/single-node-hdfs-yarn"))
     addBlueprint(getResourceContent("blueprints/lambda-architecture"))
     addBlueprint(getResourceContent("blueprints/warmup"))
+    addBlueprint(getResourceContent("blueprints/hdp-singlenode-default"))
+    addBlueprint(getResourceContent("blueprints/hdp-multinode-default"))
   }
 
   /**
@@ -301,6 +547,24 @@ class AmbariClient {
   }
 
   /**
+   * Modify an existing configuration. Be ware you'll have to provide the whole configuration
+   * otherwise properties might get lost.
+   *
+   * @param type type of the configuration e.g capacity-scheduler
+   * @param properties properties to be used
+   */
+  def modifyConfiguration(String type, Map<String, String> properties) {
+    Map bodyMap = [
+      "Clusters": ["desired_config": ["type": type, "tag": "version${System.currentTimeMillis()}", "properties": properties]]
+    ]
+    def Map<String, ?> putRequestMap = [:]
+    putRequestMap.put('requestContentType', ContentType.URLENC)
+    putRequestMap.put('path', "clusters/${getClusterName()}")
+    putRequestMap.put('body', new JsonBuilder(bodyMap).toPrettyString());
+    ambari.put(putRequestMap)
+  }
+
+  /**
    * Returns a pre-formatted String of the clusters.
    *
    * @return pre-formatted cluster list
@@ -322,18 +586,18 @@ class AmbariClient {
   }
 
   /**
-   * Returns the install progress state. If the install failed -1 returned.
+   * Returns the requests progress.
    *
    * @param request request id; default is 1
    * @return progress in percentage
    */
-  def BigDecimal getInstallProgress(request = 1) {
+  def BigDecimal getRequestProgress(request = 1) {
     def response = getAllResources("requests/$request", "Requests")
-    def String status = response.Requests?.request_status
+    def String status = response?.Requests?.request_status
     if (status && status.equals("FAILED")) {
       return new BigDecimal(-1)
     }
-    return response.Requests?.progress_percent
+    return response?.Requests?.progress_percent
   }
 
   /**
@@ -358,12 +622,23 @@ class AmbariClient {
   }
 
   /**
-   * Returns the available host names and its states.
+   * Returns the available host names and their states. It also
+   * contains hosts which are not part of the cluster, but are connected
+   * to ambari.
    *
    * @return hostname state association
    */
   def Map<String, String> getHostNames() {
     getHosts().items.collectEntries { [(it.Hosts.host_name): it.Hosts.host_status] }
+  }
+
+  /**
+   * Returns the names of the hosts which have the given state. It also
+   * contains hosts which are not part of the cluster, but are connected
+   * to ambari.
+   */
+  def Map<String, String> getHostNamesByState(String state) {
+    getHostNames().findAll { it.value == state }
   }
 
   /**
@@ -458,7 +733,7 @@ class AmbariClient {
    */
   def Map<String, String> getHostComponentsMap(host) {
     def result = getHostComponents(host)?.items?.collectEntries { [(it.HostRoles.component_name): it.HostRoles.state] }
-    result ?: new HashMap()
+    result ?: [:]
   }
 
   /**
@@ -472,11 +747,11 @@ class AmbariClient {
     return getRawResource(resourceRequestMap)
   }
 
-/**
- * Returns a map with service configurations. The keys are the service names, values are maps with <propertyName, propertyValue> entries
- *
- * @return a Map with entries of format <servicename, Map<property, value>>
- */
+  /**
+   * Returns a map with service configurations. The keys are the service names, values are maps with <propertyName, propertyValue> entries
+   *
+   * @return a Map with entries of format <servicename, Map<property, value>>
+   */
   def Map<String, Map<String, String>> getServiceConfigMap() {
     def Map<String, Integer> serviceToTags = new HashMap<>()
 
@@ -499,14 +774,44 @@ class AmbariClient {
     return finalMap
   }
 
-  def startAllServices() {
+  /**
+   * Starts all the services.
+   *
+   * @return id of the request since its an async call
+   */
+  def int startAllServices() {
     log.debug("Starting all services ...")
-    manageAllServices("Start All Services", "STARTED")
+    manageService("Start All Services", "STARTED")
   }
 
-  def stopAllServices() {
+  /**
+   * Stops all the services.
+   *
+   * @return id of the request since its an async call
+   */
+  def int stopAllServices() {
     log.debug("Stopping all services ...")
-    manageAllServices("Stop All Services", "INSTALLED")
+    manageService("Stop All Services", "INSTALLED")
+  }
+
+  /**
+   * Starts the given service.
+   *
+   * @param service name of the service
+   * @return id of the request
+   */
+  def int startService(String service) {
+    manageService("Starting $service", "STARTED", service)
+  }
+
+  /**
+   * Stops the given service.
+   *
+   * @param service name of the service
+   * @return id of the request
+   */
+  def int stopService(String service) {
+    manageService("Stopping $service", "INSTALLED", service)
   }
 
   def boolean servicesStarted() {
@@ -515,6 +820,61 @@ class AmbariClient {
 
   def boolean servicesStopped() {
     return servicesStatus(false)
+  }
+
+  /**
+   * Returns the public hostnames of the hosts which the host components are installed to.
+   */
+  def List<String> getPublicHostNames(String hostComponent) {
+    def hosts = getInternalHostNames(hostComponent)
+    if (hosts) {
+      return hosts.collect() { resolveInternalHostName(it) }
+    } else {
+      return []
+    }
+  }
+
+  /**
+   * Returns the internal hostnames of the hosts which the host components are installed to.
+   */
+  def List<String> getInternalHostNames(String hostComponent) {
+    def hosts = []
+    getClusterHosts().each {
+      if (getHostComponentsMap(it).keySet().contains(hostComponent)) {
+        hosts << it
+      }
+    }
+    hosts
+  }
+
+  /**
+   * Restarts the given components of a service.
+   */
+  def int restartServiceComponents(String service, List<String> components) {
+    def filter = components.collect {
+      ["service_name": service, "component_name": it, "hosts": getInternalHostNames(it).join(",")]
+    }
+    Map bodyMap = [
+      "RequestInfo"              : [command: "RESTART", context: "Restart $service components $components"],
+      "Requests/resource_filters": filter
+    ]
+    ambari.post(path: "clusters/${getClusterName()}/requests", body: new JsonBuilder(bodyMap).toPrettyString(), {
+      getRequestId(it)
+    })
+  }
+
+  /**
+   * Returns the names of the hosts which are in the cluster.
+   */
+  def List<String> getClusterHosts() {
+    slurp("clusters/${getClusterName()}")?.hosts?.Hosts?.host_name
+  }
+
+  /**
+   * Resolves an internal hostname to a public one.
+   */
+  def String resolveInternalHostName(String internalHostName) {
+    slurp("clusters/${getClusterName()}/hosts/$internalHostName")?.Hosts?.public_host_name
   }
 
   def private boolean servicesStatus(boolean starting) {
@@ -528,19 +888,24 @@ class AmbariClient {
     return allInState;
   }
 
-  def private manageAllServices(String context, String state) {
+  def private manageService(String context, String state, String service = "") {
     Map bodyMap = [
       RequestInfo: [context: context],
       ServiceInfo: [state: state]
     ]
     JsonBuilder builder = new JsonBuilder(bodyMap)
+    def path = "${ambari.getUri()}clusters/${getClusterName()}/services"
+    if (service) {
+      path += "/$service"
+    }
     def Map<String, ?> putRequestMap = [:]
     putRequestMap.put('requestContentType', ContentType.URLENC)
-    putRequestMap.put('path', "${ambari.getUri()}" + "clusters/${getClusterName()}/services")
+    putRequestMap.put('path', path)
     putRequestMap.put('query', ['params/run_smoke_test': 'false'])
     putRequestMap.put('body', builder.toPrettyString());
 
-    ambari.put(putRequestMap)
+    def reponse = ambari.put(putRequestMap)
+    slurper.parseText(reponse.getAt("responseData")?.getAt("str"))?.Requests?.id
   }
 
   private def processServiceVersions(Map<String, Integer> serviceToVersions, String service, def version) {
@@ -617,7 +982,7 @@ class AmbariClient {
    */
   private getSlurpedResource(Map resourceRequestMap) {
     def rawResource = getRawResource(resourceRequestMap)
-    def slurpedResource = (rawResource) ? slurper.parseText(rawResource) : null
+    def slurpedResource = (rawResource != null) ? slurper.parseText(rawResource) : rawResource
     return slurpedResource
   }
 
@@ -716,6 +1081,38 @@ class AmbariClient {
     getAllResources("services", "ServiceInfo")
   }
 
+  private def addComponentToHost(String hostName, String component) {
+    if (debugEnabled) {
+      println "[DEBUG] POST ${ambari.getUri()}clusters/${getClusterName()}/hosts/$hostName/host_components"
+    }
+    ambari.post(path: "clusters/${getClusterName()}/hosts/$hostName/host_components/${component.toUpperCase()}", { it })
+  }
+
+  private def Map<String, Integer> setComponentsState(String hostName, List<String> components, String state)
+    throws HttpResponseException {
+    def resp = [:]
+    components.each {
+      resp << [(it): setComponentState(hostName, it, state)]
+    }
+    return resp
+  }
+
+  private def setComponentState(String hostName, String component, String state) {
+    if (debugEnabled) {
+      println "[DEBUG] PUT ${ambari.getUri()}clusters/${getClusterName()}/hosts/$hostName/host_components/$component"
+    }
+    Map bodyMap = [
+      HostRoles  : [state: state.toUpperCase()],
+      RequestInfo: [context: "${component.toUpperCase()} ${state.toUpperCase()}"]
+    ]
+    def Map<String, ?> putRequestMap = [:]
+    putRequestMap.put('requestContentType', ContentType.URLENC)
+    putRequestMap.put('path', "clusters/${getClusterName()}/hosts/$hostName/host_components/${component.toUpperCase()}")
+    putRequestMap.put('body', new JsonBuilder(bodyMap).toPrettyString());
+    def reponse = ambari.put(putRequestMap)
+    slurper.parseText(reponse.getAt("responseData")?.getAt("str"))?.Requests?.id
+  }
+
   /**
    * Returns the properties of the host components as a Map parsed from the Ambari response json.
    *
@@ -728,6 +1125,45 @@ class AmbariClient {
 
   private String getResourceContent(name) {
     getClass().getClassLoader().getResourceAsStream(name)?.text
+  }
+
+  private def extendBlueprintConfiguration(Map blueprintMap, Map newConfigs) {
+    def configurations = blueprintMap.configurations
+    if (!configurations) {
+      if (newConfigs) {
+        def conf = []
+        newConfigs.each { conf << [(it.key): it.value] }
+        blueprintMap << ["configurations": conf]
+      }
+      return blueprintMap
+    }
+    newConfigs.each {
+      def site = it.key
+      def index = indexOfConfig(configurations, site)
+      if (index == -1) {
+        configurations << ["$site": it.value]
+      } else {
+        def existingConf = configurations.get(index)
+        existingConf."$site" << it.value
+      }
+    }
+    blueprintMap
+  }
+
+  private int indexOfConfig(List<Map> configurations, String site) {
+    def index = 0
+    for (Map conf : configurations) {
+      if (conf.containsKey(site)) {
+        return index;
+      }
+      index++
+    }
+    return -1;
+  }
+
+  private def int getRequestId(def responseDecorator) {
+    def resp = IOUtils.toString(new InputStreamReader(responseDecorator.entity.content.wrappedStream))
+    slurper.parseText(resp)?.Requests?.id
   }
 
 }

@@ -278,7 +278,9 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
     };
     var unrelatedServices = this.get('unrelatedServicesMap')[this.get('content.reassign.component_name')];
     if (unrelatedServices) {
-      var list = App.Service.find().mapProperty("serviceName").filter(function(s){return !unrelatedServices.contains(s)}).join(',');
+      var list = App.Service.find().mapProperty("serviceName").filter(function (s) {
+        return !unrelatedServices.contains(s)
+      }).join(',');
       data.context = "Stop required services";
       data.urlParams = "ServiceInfo/service_name.in(" + list + ")";
     } else {
@@ -398,17 +400,11 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
     });
   },
 
-  configsSitesCount: null,
-
-  configsSitesNumber: null,
-
   onLoadConfigs: function (data) {
     var componentName = this.get('content.reassign.component_name');
     var targetHostName = this.get('content.reassignHosts.target');
     var configs = {};
     var secureConfigs = [];
-    this.set('configsSitesNumber', data.items.length);
-    this.set('configsSitesCount', 0);
 
     data.items.forEach(function (item) {
       configs[item.type] = item.properties;
@@ -434,18 +430,46 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
    * @param configs
    */
   saveConfigsToServer: function (configs) {
-    for (var site in configs) {
-      App.ajax.send({
-        name: 'reassign.save_configs',
-        sender: this,
-        data: {
-          siteName: site,
-          properties: configs[site]
-        },
-        success: 'onSaveConfigs',
-        error: 'onTaskError'
-      });
-    }
+    var componentName = this.get('content.reassign.component_name');
+    var tagName = 'version' + (new Date).getTime();
+    var configData = Object.keys(configs).map(function (_siteName) {
+      return {
+        type: _siteName,
+        tag: tagName,
+        properties: configs[_siteName],
+        service_config_version_note: Em.I18n.t('services.reassign.step4.save.configuration.note').format(App.format.role(componentName))
+      }
+    });
+
+    var installedServices = App.Service.find();
+    var allConfigData = [];
+    installedServices.forEach(function (service) {
+      var stackService = App.StackService.find().findProperty('serviceName', service.get('serviceName'));
+      if (stackService) {
+        var serviceConfigData = [];
+        Object.keys(stackService.get('configTypesRendered')).forEach(function (type) {
+          var serviceConfigTag = configData.findProperty('type', type);
+          if (serviceConfigTag) {
+            serviceConfigData.pushObject(serviceConfigTag);
+          }
+        }, this);
+        allConfigData.pushObject(JSON.stringify({
+          Clusters: {
+            desired_config: serviceConfigData
+          }
+        }));
+      }
+    }, this);
+
+    App.ajax.send({
+      name: 'common.across.services.configurations',
+      sender: this,
+      data: {
+        data: '[' + allConfigData.toString() + ']'
+      },
+      success: 'onSaveConfigs',
+      error: 'onTaskError'
+    });
   },
 
   /**
@@ -551,10 +575,7 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
   },
 
   onSaveConfigs: function () {
-    this.set('configsSitesCount', this.get('configsSitesCount') + 1);
-    if (this.get('configsSitesCount') === this.get('configsSitesNumber')) {
-      this.onTaskCompleted();
-    }
+    this.onTaskCompleted();
   },
 
   startZooKeeperServers: function () {
@@ -570,7 +591,9 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
   startServices: function () {
     var unrelatedServices = this.get('unrelatedServicesMap')[this.get('content.reassign.component_name')];
     if (unrelatedServices) {
-      var list = App.Service.find().mapProperty("serviceName").filter(function(s){return !unrelatedServices.contains(s)}).join(',');
+      var list = App.Service.find().mapProperty("serviceName").filter(function (s) {
+        return !unrelatedServices.contains(s)
+      }).join(',');
       var conf = {
         name: 'common.services.update',
         sender: this,
@@ -579,7 +602,7 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
           "ServiceInfo": {
             "state": "STARTED"
           },
-          urlParams: "ServiceInfo/service_name.in("+list+")"},
+          urlParams: "ServiceInfo/service_name.in(" + list + ")"},
         success: 'startPolling',
         error: 'onTaskError'
       };

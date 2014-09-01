@@ -74,7 +74,8 @@ angular.module('ambariAdminConsole')
         } else {
           View.createInstance($scope.instance)
           .then(function(data) {
-            $location.path('/views');
+            uiAlert.success('Created View Instance ' + $scope.instance.instance_name);
+            $location.path('/views/' + $scope.instance.view_name + '/versions/' + $scope.instance.version + '/instances/' + $scope.instance.instance_name + '/edit');
           })
           .catch(function(data) {
             uiAlert.danger(data.data.status, data.data.message);

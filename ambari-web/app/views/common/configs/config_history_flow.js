@@ -47,14 +47,6 @@ App.ConfigHistoryFlowView = Em.View.extend({
     return this.get('controller.selectedService.serviceName');
   }.property('controller.selectedService.serviceName'),
 
-  selectedConfigGroupName: function () {
-    return this.get('controller.selectedConfigGroup.displayName');
-  }.property('controller.selectedConfigGroup.displayName'),
-
-  isDefaultConfigGroupSelected: function () {
-    return this.get('controller.selectedConfigGroup.isDefault');
-  }.property('controller.selectedConfigGroup.isDefault'),
-
   displayedServiceVersion: function () {
     return this.get('serviceVersions').findProperty('isDisplayed');
   }.property('serviceVersions.@each.isDisplayed'),
@@ -79,28 +71,24 @@ App.ConfigHistoryFlowView = Em.View.extend({
   serviceVersions: function () {
     var serviceVersions;
     var allServiceVersions = App.ServiceConfigVersion.find().filterProperty('serviceName', this.get('serviceName'));
-    if (this.get('isDefaultConfigGroupSelected')) {
-      // filtered all versions which belong to default group
-      serviceVersions = allServiceVersions.filterProperty('groupName', null);
-      serviceVersions.forEach( function (version) {
-        version.set('isDisabled', false);
+    var defaultGroup = Em.I18n.t('dashboard.configHistory.table.configGroup.default');
+    if (this.get('controller.selectedConfigGroup.isDefault')) {
+      allServiceVersions.forEach(function (version) {
+        version.set('isDisabled', ! (version.get('groupName') == defaultGroup));
       });
-    }else {
+      serviceVersions = allServiceVersions.filterProperty('groupName', defaultGroup);
+    } else {
       // filter out default group(should be grayedOut) and current selectedGroup versions
-      var defaultServiceVersions = allServiceVersions.filterProperty('groupName', null);
-      defaultServiceVersions.forEach( function (version) {
-        version.set('isDisabled', true);
-      });
-      var selectedServiceVersions = allServiceVersions.filterProperty('groupName', this.get('selectedConfigGroupName'));
-      selectedServiceVersions.forEach( function (version) {
-        version.set('isDisabled', false);
-      });
-      serviceVersions = selectedServiceVersions.concat(defaultServiceVersions) ;
+      allServiceVersions.forEach(function (version) {
+        version.set('isDisabled', !(version.get('groupName') === this.get('controller.selectedConfigGroup.name')));
+      }, this);
+      serviceVersions = allServiceVersions.filterProperty('groupName', defaultGroup).concat(allServiceVersions.filterProperty('groupName', this.get('controller.selectedConfigGroup.name')));
     }
     return serviceVersions.sort(function (a, b) {
       return Em.get(a, 'createTime') - Em.get(b, 'createTime');
     });
-  }.property('serviceName', 'selectedConfigGroupName', 'isDefaultConfigGroupSelected'),
+  }.property('serviceName', 'controller.selectedConfigGroup.name'),
+
   /**
    * service versions which in viewport and visible to user
    */
@@ -147,28 +135,79 @@ App.ConfigHistoryFlowView = Em.View.extend({
   willInsertElement: function () {
     var serviceVersions = this.get('serviceVersions');
     var startIndex = 0;
+    var currentIndex = 0;
 
     serviceVersions.setEach('isDisplayed', false);
-    //set the correct version to display
-    var allCurrent = serviceVersions.filterProperty('isCurrent');
-    if (this.get('isDefaultConfigGroupSelected')) {
-      // display current in default group
-      allCurrent.findProperty('groupName', null).set('isDisplayed', true);
-    }else {
-      // display current in selected group
-      var current = allCurrent.findProperty('groupName', this.get('selectedConfigGroupName'));
-      current ? current.set('isDisplayed', true) : allCurrent.findProperty('groupName', null).set('isDisplayed', true);
-    }
+    // display current in default group
+    serviceVersions.forEach(function (serviceVersion, index) {
+      // find current in default group
+      if (serviceVersion.get('isCurrent') && serviceVersion.get('groupName') == Em.I18n.t('dashboard.configHistory.table.configGroup.default')){
+        serviceVersion.set('isDisplayed', true);
+        currentIndex = index;
+      }
+    });
 
-    if (serviceVersions.length > 0) {
-      if (serviceVersions.length > this.VERSIONS_IN_FLOW) {
-        startIndex = serviceVersions.length - this.VERSIONS_IN_FLOW;
+    // show current version as the last one
+    if (currentIndex + 1 > this.VERSIONS_IN_FLOW) {
+      startIndex = currentIndex + 1 - this.VERSIONS_IN_FLOW;
+    }
+    this.set('startIndex', startIndex);
+    this.adjustFlowView();
+    this.keepInfoBarAtTop();
+  },
+
+  onChangeConfigGroup: function () {
+    var serviceVersions = this.get('serviceVersions');
+    var displayedVersionGroupName = this.get('displayedServiceVersion.configGroupName');
+    var selectedGroupName = this.get('controller.selectedConfigGroup.name');
+    var startIndex = 0;
+    var currentIndex = 0;
+
+    // switch to other config group
+    if ( selectedGroupName != displayedVersionGroupName ) {
+      serviceVersions.setEach('isDisplayed', false);
+      //display the version belongs to current group
+      if (this.get('controller.selectedConfigGroup.isDefault')) {
+        // display current in default group
+        serviceVersions.forEach(function (serviceVersion, index) {
+          // find current in default group
+          if (serviceVersion.get('isCurrent') && serviceVersion.get('groupName') == Em.I18n.t('dashboard.configHistory.table.configGroup.default')){
+
+            serviceVersion.set('isDisplayed', true);
+            currentIndex = index;
+          }
+        });
+      }else {
+        // display current in selected group
+        serviceVersions.forEach(function (serviceVersion, index) {
+          // find current in selected group
+          if (serviceVersion.get('isCurrent') && serviceVersion.get('groupName') == selectedGroupName){
+            serviceVersion.set('isDisplayed', true);
+
+            currentIndex = index;
+          }
+        });
+        // no current version for selected group, show default group current version
+        if (currentIndex == 0) {
+          serviceVersions.forEach(function (serviceVersion, index) {
+            // find current in default group
+            if (serviceVersion.get('isCurrent') && serviceVersion.get('groupName') == Em.I18n.t('dashboard.configHistory.table.configGroup.default')){
+              serviceVersion.set('isDisplayed', true);
+
+              currentIndex = index;
+            }
+          });
+        }
+      }
+      // show current version as the last one
+      if (currentIndex + 1 > this.VERSIONS_IN_FLOW) {
+        startIndex = currentIndex + 1 - this.VERSIONS_IN_FLOW;
       }
       this.set('startIndex', startIndex);
       this.adjustFlowView();
+      this.keepInfoBarAtTop();
     }
-    this.keepInfoBarAtTop();
-  },
+  }.observes('controller.selectedConfigGroup.name'),
 
   /**
    * initialize event to keep info bar position at the top of the page
@@ -218,7 +257,7 @@ App.ConfigHistoryFlowView = Em.View.extend({
       serviceVersion.set('first', (index === startIndex));
     });
     this.set('showLeftArrow', (startIndex !== 0));
-    this.set('showRightArrow', (this.get('serviceVersions.length') > this.VERSIONS_IN_FLOW) && ((startIndex + this.VERSIONS_IN_FLOW) !== this.get('serviceVersions.length')));
+    this.set('showRightArrow', (this.get('serviceVersions.length') > this.VERSIONS_IN_FLOW) && ((startIndex + this.VERSIONS_IN_FLOW) < this.get('serviceVersions.length')));
   },
 
   /**
@@ -238,7 +277,6 @@ App.ConfigHistoryFlowView = Em.View.extend({
       }
     });
     this.shiftFlowOnSwitch(versionIndex);
-
     this.get('controller').loadSelectedVersion(version);
   },
 
@@ -252,6 +290,22 @@ App.ConfigHistoryFlowView = Em.View.extend({
     this.set('controller.compareServiceVersion', event.context);
     this.set('compareServiceVersion', event.context);
     this.get('controller').onConfigGroupChange();
+  },
+  removeCompareVersionBar: function () {
+    var displayedVersion = this.get('displayedServiceVersion.version');
+    var versionIndex = 0;
+
+    this.set('compareServiceVersion', null);
+    this.get('serviceVersions').forEach(function (serviceVersion, index) {
+      if (serviceVersion.get('version') === displayedVersion) {
+        serviceVersion.set('isDisplayed', true);
+        versionIndex = index;
+      } else {
+        serviceVersion.set('isDisplayed', false);
+      }
+    });
+    this.shiftFlowOnSwitch(versionIndex);
+    this.get('controller').loadSelectedVersion(displayedVersion);
   },
   /**
    * revert config values to chosen version and apply reverted configs to server

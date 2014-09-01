@@ -20,27 +20,12 @@
   <h2>{{view.title}}</h2>
 
   <div class="alert alert-info">{{{view.label}}}</div>
-  {{#if anyGeneralErrors}}
-    <div class="alert alert-error">
-      <ul>
-        {{#if errorMessage}}
-          <li>{{errorMessage}}</li>
-        {{/if}}
-        {{#each msg in controller.generalErrorMessages}}
-            <li>{{msg}}</li>
-        {{/each}}
-      </ul>
-    </div>
-  {{/if}}
-
-  {{#if anyGeneralWarnings}}
-    <div class="alert alert-warning">
-      <ul>
-        {{#each msg in controller.generalWarningMessages}}
-            <li>{{msg}}</li>
-        {{/each}}
-      </ul>
-    </div>
+  {{#if anyGeneralIssues}}
+  <div class="alert alert-error">
+    {{t installer.step6.validationSlavesAndClients.hasIssues}}
+    <a href="javascript:void(null);" {{action openSlavesAndClientsIssues target="controller"}}>{{t installer.step6.validationSlavesAndClients.click}}</a>
+    {{t installer.step6.validationSlavesAndClients.forDetails}}
+  </div>
   {{/if}}
 
   <div class="pre-scrollable">

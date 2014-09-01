@@ -20,6 +20,7 @@ limitations under the License.
 
 from resource_management import *
 import status_params
+import os
 
 # server configurations
 config = Script.get_config()
@@ -185,6 +186,15 @@ else:
 
 # Hive security
 hive_authorization_enabled = config['configurations']['hive-site']['hive.security.authorization.enabled']
+
+mysql_jdbc_driver_jar = "/usr/share/java/mysql-connector-java.jar"
+
+# There are other packages that contain /usr/share/java/mysql-connector-java.jar (like libmysql-java),
+# trying to install mysql-connector-java upon them can cause packages to conflict.
+if os.path.exists(mysql_jdbc_driver_jar):
+  hive_exclude_packages = ['mysql-connector-java']
+else:  
+  hive_exclude_packages = []
 
 import functools
 #create partial functions with common arguments for every HdfsDirectory call

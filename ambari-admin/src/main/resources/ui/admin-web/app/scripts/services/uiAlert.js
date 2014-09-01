@@ -29,6 +29,7 @@ angular.module('angularAlert',[])
       'left': '50%',
       'z-index': '10000',
       'opacity': '1',
+      'padding': '20px',
       WebkitTransition : 'all .5s ease-in-out',
       MozTransition    : 'all .5s ease-in-out',
       MsTransition     : 'all .5s ease-in-out',
@@ -46,9 +47,25 @@ angular.module('angularAlert',[])
     }
 
     elem.addClass('alert-' + (type ? type : 'info') );
+    $('<button type="button" class="close"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>')
+      .appendTo(elem)
+      .css({
+        'position': 'absolute',
+        'top': '0',
+        'right': '5px',
+        'outline': 'none'
+      }).on('click', function() {
+        var alert = $(this).parent()[0];
+        for(var i = 0; i < alerts.length; i++){
+          if(alert === alerts[i][0]){
+            alert.remove();
+            alerts.splice(i, 1);
+            resetAlertsPositions();
+            break;
+          }
+        }
+      });
     elem.appendTo('body');
-
-    // return elem;
     alerts.push(elem);
     resetAlertsPositions();
   };
