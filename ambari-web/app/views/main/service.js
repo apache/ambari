@@ -24,6 +24,7 @@ App.MainServiceView = Em.View.extend({
     this.addToolTip();
   },
   addToolTip: function() {
+    /* istanbul ignore next */
     if (this.get('controller.isAllServicesInstalled')) {
       App.tooltip($('.add-service-button a'), {title: Em.I18n.t('services.nothingToAdd')});
     }
