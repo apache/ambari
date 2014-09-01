@@ -42,6 +42,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   customConfig: [],
   isApplyingChanges: false,
   saveConfigsFlag: true,
+  isCompareMode: false,
   compareServiceVersion: null,
   // contain Service Config Property, when user proceed from Select Config Group dialog
   overrideToAdd: null,
@@ -130,6 +131,11 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     {
       attributeName: 'isFinal',
       caption: 'common.combobox.dropdown.final'
+    },
+    {
+      attributeName: 'hasCompareDiffs',
+      caption: 'common.combobox.dropdown.changed',
+      dependentOn: 'isCompareMode'
     }
   ],
 
@@ -143,18 +149,23 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
    */
   heapsizeRegExp: /_heapsize|_newsize|_maxnewsize$/,
 
-/**
+  /**
    * Dropdown menu items in filter combobox
    */
   filterColumns: function () {
-    return this.get('propertyFilters').map(function(filter) {
-      return Ember.Object.create({
-        attributeName: filter.attributeName,
-        name: this.t(filter.caption),
-        selected: false
-      })
+    var filterColumns = [];
+
+    this.get('propertyFilters').forEach(function(filter) {
+      if (Em.isNone(filter.dependentOn) || this.get(filter.dependentOn)) {
+        filterColumns.push(Ember.Object.create({
+          attributeName: filter.attributeName,
+          name: this.t(filter.caption),
+          selected: false
+        }));
+      }
     }, this);
-  }.property('propertyFilters'),
+    return filterColumns;
+  }.property('propertyFilters', 'isCompareMode'),
 
   /**
    * clear and set properties to default value
@@ -512,12 +523,14 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
       this.getCompareVersionConfigs(compareServiceVersion).done(function (json) {
         self.initCompareConfig(allConfigs, json);
         self.set('compareServiceVersion', null);
+        self.set('isCompareMode', true);
         dfd.resolve(true);
       }).fail(function () {
           self.set('compareServiceVersion', null);
           dfd.resolve(true);
         });
     } else {
+      self.set('isCompareMode', false);
       allConfigs.setEach('isComparison', false);
       dfd.resolve(false);
     }

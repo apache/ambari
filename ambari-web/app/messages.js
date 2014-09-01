@@ -2256,6 +2256,7 @@ Em.I18n.translations = {
   'common.combobox.placeholder': 'Filter...',
   'common.combobox.dropdown.overridden': 'Overridden properties',
   'common.combobox.dropdown.final': 'Final properties',
+  'common.combobox.dropdown.changed': 'Changed properties',
 
   'quick.links.error.label': 'Hostname is undefined',
   'quick.links.publicHostName': '{0} ({1})',
