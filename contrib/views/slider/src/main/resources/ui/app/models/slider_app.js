@@ -99,38 +99,25 @@ App.SliderApp = DS.Model.extend({
 
   jmx: DS.attr('object'),
 
-  /**
-   * Global configs
-   * @type {{key: string, value: *}[]}
-   */
-  globals: function() {
-    var c = this.get('configs.global');
-    return this.mapObject(c);
-  }.property('configs.@each'),
+  // Config categories, that should be hidden on app page
+  hiddenCategories: ['yarn-site', 'global'],
 
   /**
-   * HBase-Site configs
-   * @type {{key: string, value: *}[]}
+   * Configs grouped to categories by site-objects
+   * @type {Array}
    */
-  hbaseSite: function() {
-    var c = this.get('configs.hbase-site');
-    return this.mapObject(c);
-  }.property('configs.@each'),
-
-  /**
-   * Configs which are not in global or hbase-site
-   * @type {{key: string, value: *}[]}
-   */
-  otherConfigs: function() {
-    var c = this.get('configs'),
-      ret = [],
-      self = this;
-    if (Ember.typeOf(c) !== 'object') return [];
-    Ember.keys(c).forEach(function(key) {
-      if (['hbase-site', 'global'].contains(key)) return;
-      ret = ret.concat(self.mapObject(c[key]));
-    });
-    return ret;
+  configsByCategories: function () {
+    var configs = this.get('configs'),
+        hiddenCategories = this.get('hiddenCategories'),
+        groupedConfigs = [];
+    Ember.keys(configs).forEach(function (site) {
+      groupedConfigs.push({
+        name: site,
+        configs: this.mapObject(configs[site]),
+        isVisible: !hiddenCategories.contains(site)
+      });
+    }, this);
+    return groupedConfigs;
   }.property('configs.@each'),
 
   /**
