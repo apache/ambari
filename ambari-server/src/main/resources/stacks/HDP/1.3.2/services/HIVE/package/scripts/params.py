@@ -74,6 +74,10 @@ hive_dbroot = config['configurations']['hive-env']['hive_dbroot']
 hive_log_dir = config['configurations']['hive-env']['hive_log_dir']
 hive_pid_dir = status_params.hive_pid_dir
 hive_pid = status_params.hive_pid
+#Default conf dir for client
+hive_config_dir = hive_conf_dir
+if 'role' in config and config['role'] in ["HIVE_SERVER", "HIVE_METASTORE"]:
+  hive_config_dir = hive_server_conf_dir
 
 #hive-site
 hive_database_name = config['configurations']['hive-env']['hive_database_name']

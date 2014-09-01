@@ -26,7 +26,7 @@ class TestHiveClient(RMFTestCase):
     self.executeScript("2.0.6/services/HIVE/package/scripts/hive_client.py",
                        classname = "HiveClient",
                        command = "configure",
-                       config_file="default.json"
+                       config_file="default_client.json"
     )
 
     self.assertResourceCalled('Directory', '/etc/hive/conf',
@@ -55,7 +55,7 @@ class TestHiveClient(RMFTestCase):
       environment = {'no_proxy': 'c6401.ambari.apache.org'}
     )
     self.assertResourceCalled('File', '/etc/hive/conf/hive-env.sh',
-      content = InlineTemplate(self.getConfig()['configurations']['hive-env']['content'], conf_dir="/etc/hive/conf"),
+      content = InlineTemplate(self.getConfig()['configurations']['hive-env']['content']),
       owner = 'hive',
       group = 'hadoop',
     )
@@ -89,7 +89,7 @@ class TestHiveClient(RMFTestCase):
     self.executeScript("2.0.6/services/HIVE/package/scripts/hive_client.py",
                        classname = "HiveClient",
                        command = "configure",
-                       config_file="secured.json"
+                       config_file="secured_client.json"
     )
 
     self.assertResourceCalled('Directory', '/etc/hive/conf',
@@ -118,7 +118,7 @@ class TestHiveClient(RMFTestCase):
       environment = {'no_proxy': 'c6401.ambari.apache.org'}
     )
     self.assertResourceCalled('File', '/etc/hive/conf/hive-env.sh',
-      content = InlineTemplate(self.getConfig()['configurations']['hive-env']['content'], conf_dir="/etc/hive/conf"),
+      content = InlineTemplate(self.getConfig()['configurations']['hive-env']['content']),
       owner = 'hive',
       group = 'hadoop',
     )

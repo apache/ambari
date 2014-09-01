@@ -18,8 +18,8 @@
     }, 
     "commandType": "EXECUTION_COMMAND", 
     "roleParams": {}, 
-    "serviceName": "OOZIE", 
-    "role": "OOZIE_SERVICE_CHECK", 
+    "serviceName": "HIVE",
+    "role": "HIVE_SERVER",
     "commandParams": {
         "command_timeout": "300", 
         "service_package_folder": "OOZIE",

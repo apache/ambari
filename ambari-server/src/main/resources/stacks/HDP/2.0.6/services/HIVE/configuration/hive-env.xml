@@ -114,7 +114,7 @@ export HADOOP_CLIENT_OPTS="-Xmx${HADOOP_HEAPSIZE}m $HADOOP_CLIENT_OPTS"
 HADOOP_HOME=${HADOOP_HOME:-{{hadoop_home}}}
 
 # Hive Configuration Directory can be controlled by:
-export HIVE_CONF_DIR={{conf_dir}}
+export HIVE_CONF_DIR={{hive_config_dir}}
 
 # Folder containing extra ibraries required for hive compilation/execution can be controlled by:
 if [ "${HIVE_AUX_JARS_PATH}" != "" ]; then

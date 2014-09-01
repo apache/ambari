@@ -40,21 +40,19 @@ def hive(name=None):
     )
     params.HdfsDirectory(None, action="create")
   if name == 'metastore' or name == 'hiveserver2':
-    hive_config_dir = params.hive_server_conf_dir
     config_file_mode = 0600
     jdbc_connector()
   else:
-    hive_config_dir = params.hive_conf_dir
     config_file_mode = 0644
 
-  Directory(hive_config_dir,
+  Directory(params.hive_config_dir,
             owner=params.hive_user,
             group=params.user_group,
             recursive=True
   )
 
   XmlConfig("mapred-site.xml",
-            conf_dir=hive_config_dir,
+            conf_dir=params.hive_config_dir,
             configurations=params.config['configurations']['mapred-site'],
             configuration_attributes=params.config['configuration_attributes']['mapred-site'],
             owner=params.hive_user,
@@ -62,7 +60,7 @@ def hive(name=None):
             mode=config_file_mode)
 
   XmlConfig("hive-site.xml",
-            conf_dir=hive_config_dir,
+            conf_dir=params.hive_config_dir,
             configurations=params.config['configurations']['hive-site'],
             configuration_attributes=params.config['configuration_attributes']['hive-site'],
             owner=params.hive_user,
@@ -85,7 +83,7 @@ def hive(name=None):
   File(format("{hive_config_dir}/hive-env.sh"),
        owner=params.hive_user,
        group=params.user_group,
-       content=InlineTemplate(params.hive_env_sh_template, conf_dir=hive_config_dir)
+       content=InlineTemplate(params.hive_env_sh_template)
   )
 
   if name == 'metastore':
