@@ -211,6 +211,9 @@ App.UpdateController = Em.Controller.extend({
             realUrl.replace('<parameters>', '') +
             (paginationProps.length > 0 ? '&' + paginationProps.substring(0, paginationProps.length - 1) : '') +
             (sortProps.length > 0 ? '&' + sortProps.substring(0, sortProps.length - 1) : '');
+          if (App.get('testMode')) {
+            realUrl = testUrl;
+          }
           App.HttpClient.get(realUrl, App.hostsMapper, {
             complete: callback,
             doGetAsPost: true,

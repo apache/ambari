@@ -900,7 +900,7 @@ var urls = {
   },
   'cluster.load_repositories': {
     'real': '/stacks/{stackName}/versions/{stackVersion}/operating_systems?fields=repositories/*',
-    'mock': '',
+    'mock': '/data/stacks/HDP-2.1/operating_systems.json',
     'format': function (data) {
       return {
         data: data.data
@@ -1705,14 +1705,14 @@ var urls = {
   },
   'views.info': {
     'real': '/views',
-    'mock':''
+    'mock': '/data/views/views.json'
   },
   /**
    * Get all instances of all views across versions
    */
   'views.instances': {
     'real': '/views?fields=versions/instances/ViewInstanceInfo,versions/ViewVersionInfo/label',
-    'mock':''
+    'mock': '/data/views/instances.json'
   },
   'host.host_component.flume.metrics': {
     'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/FLUME_HANDLER?fields=metrics/flume/flume/{flumeComponent}/*',
@@ -1764,7 +1764,7 @@ var urls = {
   },
   'hosts.for_quick_links': {
     'real': '/clusters/{clusterName}/hosts?Hosts/host_name.in({masterHosts})&fields=Hosts/public_host_name,host_components/HostRoles/component_name{urlParams}&minimal_response=true',
-    'mock': ''
+    'mock': '/data/hosts/quick_links.json'
   },
   'hosts.confirmed.install': {
     'real': '/hosts?fields=Hosts/cpu_count,Hosts/disk_info,Hosts/total_mem&minimal_response=true',
