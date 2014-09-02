@@ -19,14 +19,11 @@
   <schemaVersion>2.0</schemaVersion>
   <services>
     <service>
-      <name>HBASE</name>
-      <comment>Non-relational distributed database and centralized service for configuration management &amp;
-        synchronization
-      </comment>
-      <version>0.98.0.2.1</version>
+      <name>FLUME</name>
+      <comment>Data management and processing platform</comment>
+      <version>1.4.0.2.1</version>
       
       <requiredServices>
-        <service>ZOOKEEPER</service>
         <service>GLUSTERFS</service>
       </requiredServices>      
     </service>

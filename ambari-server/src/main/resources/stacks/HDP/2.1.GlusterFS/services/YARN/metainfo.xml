@@ -53,6 +53,10 @@
         </osSpecific>
       </osSpecifics>
 
+      <requiredServices>
+        <service>GLUSTERFS</service>
+      </requiredServices>
+
       <configuration-dependencies>
         <config-type>yarn-site</config-type>
         <config-type>capacity-scheduler</config-type>
@@ -61,7 +65,7 @@
         <config-type>yarn-log4j</config-type>
       </configuration-dependencies>
     </service>
- <service>
+    <service>
       <name>MAPREDUCE2</name>
       <comment>Apache Hadoop NextGen MapReduce (YARN)</comment>
       <version>2.1.0.2.0.6.0</version>
@@ -120,6 +124,10 @@
       </commandScript>
 
       <configuration-dir>configuration-mapred</configuration-dir>
+
+      <requiredServices>
+        <service>YARN</service>
+      </requiredServices>
 
       <configuration-dependencies>
         <config-type>core-site</config-type>
