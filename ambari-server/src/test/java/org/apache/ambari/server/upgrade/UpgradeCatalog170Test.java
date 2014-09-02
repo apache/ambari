@@ -297,6 +297,9 @@ public class UpgradeCatalog170Test {
         Collections.singletonMap("min_user_id", "1000"), false, false);
     expectLastCall();
 
+    upgradeCatalog.updateConfigurationProperties("sqoop-env", Collections.singletonMap("sqoop_user", "sqoop"), false, false);
+    expectLastCall();
+
     expect(dbAccessor.executeSelect("SELECT role_name, user_id FROM user_roles")).andReturn(userRolesResultSet).once();
     expect(entityManager.getTransaction()).andReturn(trans).anyTimes();
     expect(entityManager.getCriteriaBuilder()).andReturn(cb).anyTimes();
