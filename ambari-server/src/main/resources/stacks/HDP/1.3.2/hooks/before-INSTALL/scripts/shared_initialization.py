@@ -26,110 +26,23 @@ def setup_users():
   Creates users before cluster installation
   """
   import params
-
-  Group(params.user_group,
-         ignore_failures = params.ignore_groupsusers_create
-  )
-  Group(params.smoke_user_group,
-         ignore_failures = params.ignore_groupsusers_create
-  )
-  Group(params.proxyuser_group,
-         ignore_failures = params.ignore_groupsusers_create
-  )
-  User(params.smoke_user,
-       gid=params.user_group,
-       groups=[params.proxyuser_group],
-       ignore_failures = params.ignore_groupsusers_create
-  )
   
-  smoke_user_dirs = format(
-    "/tmp/hadoop-{smoke_user},/tmp/hsperfdata_{smoke_user},/home/{smoke_user},/tmp/{smoke_user},/tmp/sqoop-{smoke_user}")
-  set_uid(params.smoke_user, smoke_user_dirs)
-
-  if params.has_hbase_masters:
-    User(params.hbase_user,
-         gid = params.user_group,
-         groups=[params.user_group],
-         ignore_failures = params.ignore_groupsusers_create
-    )
-    hbase_user_dirs = format(
-      "/home/{hbase_user},/tmp/{hbase_user},/usr/bin/{hbase_user},/var/log/{hbase_user},{hbase_tmp_dir}")
-    set_uid(params.hbase_user, hbase_user_dirs)
-
-  if params.has_nagios:
-    Group(params.nagios_group,
-         ignore_failures = params.ignore_groupsusers_create
-    )
-    User(params.nagios_user,
-         gid=params.nagios_group,
-         ignore_failures = params.ignore_groupsusers_create
-    )
-
-  if params.has_oozie_server:
-    User(params.oozie_user,
-         gid = params.user_group,
-         ignore_failures = params.ignore_groupsusers_create
-    )
-
-  if params.has_hcat_server_host:
-    User(params.webhcat_user,
-         gid = params.user_group,
-         ignore_failures = params.ignore_groupsusers_create
-    )
-    User(params.hcat_user,
-         gid = params.user_group,
-         ignore_failures = params.ignore_groupsusers_create
-    )
-
-  if params.has_hive_server_host:
-    User(params.hive_user,
-         gid = params.user_group,
-         ignore_failures = params.ignore_groupsusers_create
-    )
-
-  if params.has_ganglia_server:
-    Group(params.gmetad_user,
-         ignore_failures = params.ignore_groupsusers_create
-    )
-    Group(params.gmond_user,
-         ignore_failures = params.ignore_groupsusers_create
-    )
-    User(params.gmond_user,
-         gid=params.user_group,
-         groups=[params.gmond_user],
-         ignore_failures = params.ignore_groupsusers_create
-    )
-    User(params.gmetad_user,
-         gid=params.user_group,
-         groups=[params.gmetad_user],
-         ignore_failures = params.ignore_groupsusers_create
-    )
-  
-  if params.has_namenode:
-    User(params.hdfs_user,
-          gid=params.user_group,
-          groups=[params.user_group],
-          ignore_failures = params.ignore_groupsusers_create
-    )
-  if params.has_jt:
-    User(params.mapred_user,
-         gid=params.user_group,
-         groups=[params.user_group],
-         ignore_failures = params.ignore_groupsusers_create
+  for group in params.group_list:
+    Group(group,
+        ignore_failures = params.ignore_groupsusers_create
     )
     
-  if params.has_zk_host:
-    User(params.zk_user,
-         gid=params.user_group,
-         ignore_failures = params.ignore_groupsusers_create
+  for user in params.user_list: 
+    User(user,
+        gid = params.user_to_gid_dict[user],
+        groups = params.user_to_groups_dict[user],
+        ignore_failures = params.ignore_groupsusers_create        
     )
+  
+  set_uid(params.smoke_user, params.smoke_user_dirs)
 
-  if params.has_sqoop_client:
-    User(params.sqoop_user,
-         gid=params.user_group,
-         groups=[params.user_group],
-         ignore_failures=params.ignore_groupsusers_create
-    )
+  if params.has_hbase_masters:
+    set_uid(params.hbase_user, params.hbase_user_dirs)
 
 def set_uid(user, user_dirs):
   """

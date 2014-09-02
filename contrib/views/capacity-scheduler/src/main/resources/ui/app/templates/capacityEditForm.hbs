@@ -18,12 +18,12 @@
 
 <form {{bind-attr class=":form-inline :capacity-edit-form " }} role="form">
   <div {{bind-attr class=":form-group" }}>
-    <label  class="control-label">Capacity: </label>
+    <label  class="control-label capacity-edit">Capacity: </label>
     {{capacity-input class='input-sm' value=this.capacity totalCapacity=view.totalCapacity queue=this maxVal=100}}
     
   </div>
   <div {{bind-attr class=":form-group this.isValid::has-error" }}>
-    <label class="control-label">Maximum capacity: </label>
+    <label class="control-label max-capacity-edit">Max. Capacity: </label>
     {{max-capacity-input class='input-sm' value=this.maximum_capacity totalCapacity=view.totalCapacity queue=this maxVal=100}}
     {{#each this.errors.maximum_capacity}}
       <span class="help-block">

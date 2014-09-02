@@ -768,6 +768,12 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
     updateConfigurationProperties("yarn-env",
         Collections.singletonMap("min_user_id", "1000"), false,
         false);
+
+    updateConfigurationProperties("sqoop-env", Collections.singletonMap("sqoop_user", "sqoop"), false, false);
+
+    updateConfigurationProperties("hadoop-env",
+            Collections.singletonMap("hadoop_root_logger", "INFO,RFA"), false,
+            false);
   }
 
   /**

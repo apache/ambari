@@ -40,6 +40,8 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_P
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_REPO_INFO;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_NAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_VERSION;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.USER_LIST;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.GROUP_LIST;
 
 import java.io.File;
 import java.io.IOException;
@@ -107,6 +109,7 @@ import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.OperatingSystemInfo;
 import org.apache.ambari.server.state.PropertyInfo;
+import org.apache.ambari.server.state.PropertyInfo.PropertyType;
 import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
@@ -1626,6 +1629,14 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
     String packageList = gson.toJson(packages);
     hostParams.put(PACKAGE_LIST, packageList);
+    
+    Set<String> userSet = configHelper.getPropertyValuesWithPropertyType(stackId, PropertyType.USER, cluster);
+    String userList = gson.toJson(userSet);
+    hostParams.put(USER_LIST, userList);
+    
+    Set<String> groupSet = configHelper.getPropertyValuesWithPropertyType(stackId, PropertyType.GROUP, cluster);
+    String groupList = gson.toJson(groupSet);
+    hostParams.put(GROUP_LIST, groupList);
 
     if (configs.getServerDBName().equalsIgnoreCase(Configuration
       .ORACLE_DB_NAME)) {

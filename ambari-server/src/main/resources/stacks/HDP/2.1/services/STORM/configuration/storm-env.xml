@@ -24,6 +24,7 @@
   <property>
     <name>storm_user</name>
     <value>storm</value>
+    <property-type>USER</property-type>
     <description></description>
   </property>
   <property>

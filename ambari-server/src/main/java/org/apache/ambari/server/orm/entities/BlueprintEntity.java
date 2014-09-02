@@ -172,7 +172,7 @@ public class BlueprintEntity {
    * @throws IllegalArgumentException if blueprint contains invalid information
    */
   public Map<String, Map<String, Collection<String>>> validateConfigurations(
-      AmbariMetaInfo stackInfo, PropertyInfo.PropertyType type) {
+      AmbariMetaInfo stackInfo, boolean validatePasswords) {
 
     String stackName = getStackName();
     String stackVersion = getStackVersion();
@@ -203,7 +203,7 @@ public class BlueprintEntity {
                 stackName, stackVersion, service);
 
             for (PropertyInfo propertyInfo : serviceRequirements.values()) {
-              if (propertyInfo.getType() == type) {
+              if (! (validatePasswords ^ propertyInfo.getPropertyTypes().contains(PropertyInfo.PropertyType.PASSWORD))) {
                 String configCategory = propertyInfo.getFilename();
                 if (configCategory.endsWith(".xml")) {
                   configCategory = configCategory.substring(0, configCategory.indexOf(".xml"));

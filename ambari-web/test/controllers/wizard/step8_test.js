@@ -1287,7 +1287,7 @@ describe('App.WizardStep8Controller', function () {
       it('should call addRequestToAjaxQueue', function() {
         var serviceConfigTags = [
             {
-              type: 'type1',
+              type: 'hdfs',
               tag: 'tag1',
               properties: [
                 {},
@@ -1297,15 +1297,19 @@ describe('App.WizardStep8Controller', function () {
           ],
           data = '['+JSON.stringify({
             Clusters: {
-              desired_config: {
-                type: serviceConfigTags[0].type,
-                tag: serviceConfigTags[0].tag,
-                properties: serviceConfigTags[0].properties
-              }
+              desired_config: [serviceConfigTags[0]]
             }
           })+']';
-        installerStep8Controller.reopen({serviceConfigTags: serviceConfigTags});
-        installerStep8Controller.applyConfigurationsToCluster();
+        installerStep8Controller.reopen({
+          selectedServices: [
+              Em.Object.create({
+                isSelected: true,
+                isInstalled: false,
+                configTypesRendered: {hdfs:'tag1'}
+              })
+            ]
+        });
+        installerStep8Controller.applyConfigurationsToCluster(serviceConfigTags);
         expect(installerStep8Controller.addRequestToAjaxQueue.args[0][0].data).to.eql({data: data});
       });
     });

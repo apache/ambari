@@ -59,6 +59,9 @@ public class StackConfigurationResourceProvider extends
 
   public static final String PROPERTY_DESCRIPTION_PROPERTY_ID = PropertyHelper
       .getPropertyId("StackConfigurations", "property_description");
+  
+  public static final String PROPERTY_PROPERTY_TYPE_PROPERTY_ID = PropertyHelper
+      .getPropertyId("StackConfigurations", "property_type");
 
   public static final String PROPERTY_TYPE_PROPERTY_ID = PropertyHelper
       .getPropertyId("StackConfigurations", "type");
@@ -124,6 +127,9 @@ public class StackConfigurationResourceProvider extends
 
       setResourceProperty(resource, PROPERTY_DESCRIPTION_PROPERTY_ID,
           response.getPropertyDescription(), requestedIds);
+      
+      setResourceProperty(resource, PROPERTY_PROPERTY_TYPE_PROPERTY_ID, 
+          response.getPropertyType(), requestedIds);
       
       setResourceProperty(resource, PROPERTY_TYPE_PROPERTY_ID,
           response.getType(), requestedIds);

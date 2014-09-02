@@ -65,20 +65,26 @@ describe('App.StackService', function () {
   describe('#configTypesRendered', function () {
     ss.set('configTypes', {
       'core-site': {},
-      'hdfs-site': {}
+      'hdfs-site': {},
+      'oozie-site': {}
     });
     it('service name is "SERVICE"', function () {
       ss.set('serviceName', 'SERVICE');
       ss.propertyDidChange('configTypesRendered');
-      expect(ss.get('configTypesRendered')).to.eql({'hdfs-site': {}});
+      expect(ss.get('configTypesRendered')).to.eql({'core-site': {},'hdfs-site': {}, 'oozie-site': {}});
     });
     it('service name is "GLUSTERFS"', function () {
       ss.set('serviceName', 'GLUSTERFS');
       ss.propertyDidChange('configTypesRendered');
-      expect(ss.get('configTypesRendered')).to.eql({'hdfs-site': {}});
+      expect(ss.get('configTypesRendered')).to.eql({'core-site': {},'hdfs-site': {}, 'oozie-site': {}});
     });
     it('service name is "HDFS"', function () {
       ss.set('serviceName', 'HDFS');
+      ss.propertyDidChange('configTypesRendered');
+      expect(ss.get('configTypesRendered')).to.eql({'core-site': {}, 'hdfs-site': {}, 'oozie-site': {}});
+    });
+    it('service name is "FALCON"', function () {
+      ss.set('serviceName', 'FALCON');
       ss.propertyDidChange('configTypesRendered');
       expect(ss.get('configTypesRendered')).to.eql({'core-site': {}, 'hdfs-site': {}});
     });

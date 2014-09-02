@@ -25,6 +25,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   name: 'mainServiceInfoConfigsController',
   isHostsConfigsPage: false,
   forceTransition: false,
+  isRecommendedLoaded: true,
   dataIsLoaded: false,
   stepConfigs: [], //contains all field properties that are viewed in this service
   selectedService: null,

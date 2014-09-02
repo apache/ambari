@@ -1763,6 +1763,19 @@ module.exports =
     },
     {
       "id": "puppet var",
+      "name": "hadoop_root_logger",
+      "displayName": "Hadoop Root Logger",
+      "description": "Hadoop logging options",
+      "defaultValue": "INFO,RFA",
+      "displayType": "string",
+      "isOverridable": false,
+      "isVisible": true,
+      "serviceName": "HDFS",
+      "filename": "hadoop-env.xml",
+      "category": "Advanced hadoop-env"
+    },
+    {
+      "id": "puppet var",
       "name": "security_enabled",
       "displayName": "Hadoop Security",
       "description": "Enable hadoop security",

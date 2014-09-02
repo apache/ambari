@@ -170,7 +170,7 @@ App.QuickViewLinks = Em.View.extend({
             return !(item.host_components.someProperty('metrics.hbase.master.IsActiveMaster', 'true') || item.host_components.someProperty('metrics.hbase.master.IsActiveMaster', 'false')) ;
           });
         }
-        if (masterComponents) {
+        if (masterComponents.length > 0) {
           if (App.singleNodeInstall) {
             hosts[0] = App.singleNodeAlias;
           } else if (masterComponents.length > 1) {

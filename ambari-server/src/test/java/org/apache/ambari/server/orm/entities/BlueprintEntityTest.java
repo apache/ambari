@@ -19,6 +19,7 @@
 package org.apache.ambari.server.orm.entities;
 
 import com.google.gson.Gson;
+
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.junit.Test;
@@ -28,6 +29,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
@@ -87,7 +89,9 @@ public class BlueprintEntityTest {
     prop.setFilename("core-site.xml");
     prop.setName("super.secret.password");
     prop.setRequireInput(true);
-    prop.setType(PropertyInfo.PropertyType.PASSWORD);
+    Set<PropertyInfo.PropertyType> propertyTypes = new HashSet<PropertyInfo.PropertyType>();
+    propertyTypes.add(PropertyInfo.PropertyType.PASSWORD);
+    prop.setPropertyTypes(propertyTypes);
     prop.setValue(null);
     requiredProps.put("super.secret.password", prop);
 
@@ -131,7 +135,7 @@ public class BlueprintEntityTest {
     replay(metaInfo);
 
     Map<String, Map<String, Collection<String>>> missingProps = entity.validateConfigurations(
-        metaInfo, PropertyInfo.PropertyType.PASSWORD);
+        metaInfo, true);
 
     assertTrue(missingProps.isEmpty());
 
@@ -147,7 +151,9 @@ public class BlueprintEntityTest {
     prop.setFilename("core-site.xml");
     prop.setName("super.secret.password");
     prop.setRequireInput(true);
-    prop.setType(PropertyInfo.PropertyType.PASSWORD);
+    Set<PropertyInfo.PropertyType> propertyTypes = new HashSet<PropertyInfo.PropertyType>();
+    propertyTypes.add(PropertyInfo.PropertyType.PASSWORD);
+    prop.setPropertyTypes(propertyTypes);
     prop.setValue(null);
     requiredProps.put("super.secret.password", prop);
 
@@ -192,7 +198,7 @@ public class BlueprintEntityTest {
     replay(metaInfo);
 
     Map<String, Map<String, Collection<String>>> missingProps = entity.validateConfigurations(
-        metaInfo, PropertyInfo.PropertyType.PASSWORD);
+        metaInfo, true);
 
     assertTrue(missingProps.isEmpty());
 
@@ -208,14 +214,18 @@ public class BlueprintEntityTest {
     prop.setFilename("core-site.xml");
     prop.setName("super.secret.password");
     prop.setRequireInput(true);
-    prop.setType(PropertyInfo.PropertyType.PASSWORD);
+    Set<PropertyInfo.PropertyType> propertyTypes = new HashSet<PropertyInfo.PropertyType>();
+    propertyTypes.add(PropertyInfo.PropertyType.PASSWORD);
+    prop.setPropertyTypes(propertyTypes);
     prop.setValue(null);
 
     PropertyInfo prop2 = new PropertyInfo();
     prop2.setFilename("global.xml");
     prop2.setName("another.super.secret.password");
     prop2.setRequireInput(true);
-    prop2.setType(PropertyInfo.PropertyType.PASSWORD);
+    Set<PropertyInfo.PropertyType> propertyTypes2 = new HashSet<PropertyInfo.PropertyType>();
+    propertyTypes2.add(PropertyInfo.PropertyType.PASSWORD);
+    prop2.setPropertyTypes(propertyTypes2);
     prop2.setValue(" ");
 
     requiredProps.put("super.secret.password", prop);
@@ -261,7 +271,7 @@ public class BlueprintEntityTest {
     replay(metaInfo);
 
     Map<String, Map<String, Collection<String>>> missingProps = entity.validateConfigurations(
-        metaInfo, PropertyInfo.PropertyType.PASSWORD);
+        metaInfo, true);
 
     assertEquals(1, missingProps.size());
     Map<String, Collection<String>> typeProps = missingProps.get("hg1");

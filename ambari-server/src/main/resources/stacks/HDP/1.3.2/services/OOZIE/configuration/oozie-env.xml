@@ -24,6 +24,7 @@
   <property>
     <name>oozie_user</name>
     <value>oozie</value>
+    <property-type>USER</property-type>
     <description>Oozie User.</description>
   </property>
   <property>

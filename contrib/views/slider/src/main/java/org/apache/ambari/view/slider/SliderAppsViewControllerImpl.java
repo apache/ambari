@@ -744,7 +744,7 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
       createArgs.template = appConfigJsonFile;
       createArgs.resources = resourcesJsonFile;
       createArgs.image = new Path(hdfsLocation
-                                  + "/slider/agent/slider-agent.tar.gz");
+                                  + "/user/yarn/agent/slider-agent.tar.gz");
 
       ClassLoader currentClassLoader = Thread.currentThread()
           .getContextClassLoader();

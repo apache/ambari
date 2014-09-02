@@ -48,6 +48,7 @@ public class ConfigurationService {
       "  \"RequestInfo\" : {\n" +
       "    \"command\" : \"REFRESHQUEUES\",\n" +
       "    \"context\" : \"Refresh YARN Capacity Scheduler\"\n" +
+      "    \"parameters/forceRefreshConfigTags\" : \"capacity-scheduler\"\n" +
       "  },\n" +
       "  \"Requests/resource_filters\": [{\n" +
       "    \"service_name\" : \"YARN\",\n" +

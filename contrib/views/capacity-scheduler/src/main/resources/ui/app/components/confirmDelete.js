@@ -48,7 +48,7 @@ App.ClickElsewhereMixin = Ember.Mixin.create({
   }
 });
 
-App.ComfirmDeleteComponent = Em.Component.extend(App.ClickElsewhereMixin,{
+App.ConfirmDeleteComponent = Em.Component.extend(App.ClickElsewhereMixin,{
   confirm:false,
   onClickElsewhere:function () {
     this.set('confirm',false);

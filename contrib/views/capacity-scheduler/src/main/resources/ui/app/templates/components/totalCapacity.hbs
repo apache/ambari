@@ -22,22 +22,22 @@
     <strong>Capacity</strong>
     <a href="#" {{action 'toggleEdit'}} class="text-right"> 
       {{#if view.isEdit}}
-        <i class="fa fa-edit">Hide edit</i> 
+        <div class="edit-link">Hide Edit</div>
       {{else}}
-        <i class="fa fa-edit">Show edit</i> 
+        <div class="edit-link">Show Edit</div>
       {{/if}}
     </a>
   </div>
   </div>
   <div class="panel-body total">
-    TOTAL
-    {{capacity-bar capacityValue=totalCapacity maxCapacityValue=totalCapacity warn=leafQueues.firstObject.overCapacity}}
+<div class="control-label queue-label">TOTAL</div>
+{{capacity-bar capacityValue=totalCapacity maxCapacityValue=totalCapacity warn=leafQueues.firstObject.overCapacity}}
   </div>
   <div class="panel-body queues">
     {{#each leafQueues}}
       <div {{bind-attr class=":queue-capacity this.isCurrent:active"}}>
         <p>
-          {{this.name}} {{#if isCurrent}} <span class="label label-default">Current</span> {{/if}}
+          <div class="control-label queue-label">{{this.name}}</div>
         </p>
         {{capacity-bar capacityValue=this.capacity maxCapacityValue=this.maximum_capacity warn=this.overCapacity}}
         {{render "capacityEditForm" this}}
@@ -47,13 +47,6 @@
       <div {{bind-attr class=":queue-capacity :new-queue this.isCurrent:active"}} >
         <div class="input-row row" >
           <div class="col-md-5">
-            <div class="input-group">
-              {{view view.newQueueNameField value=this.name queue=this placeholder="Enter queue name..."}}
-              <span class="input-group-btn">
-                <button {{action "deleteQueue" this}} {{bind-attr class=":btn :btn-danger"}} type="button">Cancel</button>
-                <button {{action "createQueue" this}} {{bind-attr class=":btn :btn-default this.isValid::disabled"}} type="button">Create</button>
-              </span>
-            </div>
             {{#each this.errors.path}}
               <p class="help-block red">{{this.message}}</p>
             {{/each}}
@@ -63,10 +56,5 @@
         {{render "capacityEditForm" this}}
       </div>
     {{/each}}
-    {{#if currentQueue.parentPath}}
-    <div class="queue-capacity" >
-      <button {{action "addQueue" currentQueue.parentPath}} {{bind-attr class=":btn :btn-default :btn-block hasNew:disabled"}}><i class="fa fa-plus"></i>  Add queue</button>
-    </div>
-    {{/if}}
   </div>
 </div>

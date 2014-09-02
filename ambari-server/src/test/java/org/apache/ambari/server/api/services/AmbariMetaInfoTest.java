@@ -1422,10 +1422,10 @@ public class AmbariMetaInfoTest {
     PropertyInfo passwordProperty = null;
     for (PropertyInfo propertyInfo : propertyInfoList) {
       if (propertyInfo.isRequireInput()
-          && propertyInfo.getType().equals(PropertyInfo.PropertyType.PASSWORD)) {
+          && propertyInfo.getPropertyTypes().contains(PropertyInfo.PropertyType.PASSWORD)) {
         passwordProperty = propertyInfo;
       } else {
-        Assert.assertEquals(PropertyInfo.PropertyType.DEFAULT, propertyInfo.getType());
+        Assert.assertTrue(propertyInfo.getPropertyTypes().isEmpty());
       }
     }
     Assert.assertNotNull(passwordProperty);

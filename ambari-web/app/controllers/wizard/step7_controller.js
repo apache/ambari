@@ -43,6 +43,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
 
   slaveHostToGroup: null,
 
+  isRecommendedLoaded: false,
   /**
    * used in services_config.js view to mark a config with security icon
    */
@@ -232,6 +233,8 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
    * @method clearStep
    */
   clearStep: function () {
+    this.set('isSubmitDisabled', true);
+    this.set('isRecommendedLoaded', false);
     this.get('stepConfigs').clear();
     this.set('filter', '');
     this.get('filterColumns').setEach('selected', false);
@@ -721,25 +724,16 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
     }
     //STEP 6: Distribute configs by service and wrap each one in App.ServiceConfigProperty (configs -> serviceConfigs)
     var self = this;
-    if (App.get('supports.serverRecommendValidate')) {
-      this.loadServerSideConfigsRecommendations().always(function() {
-        self.setStepConfigs(configs, storedConfigs);
-        self.checkHostOverrideInstaller();
-        self.activateSpecialConfigs();
-        self.selectProperService();
-        if (self.get('content.skipConfigStep')) {
-          App.router.send('next');
-        }
-      });
-    } else {
-      this.setStepConfigs(configs, storedConfigs);
-      this.checkHostOverrideInstaller();
-      this.activateSpecialConfigs();
-      this.selectProperService();
-      if (this.get('content.skipConfigStep')) {
+    this.loadServerSideConfigsRecommendations().always(function() {
+      self.set('isRecommendedLoaded', true);
+      self.setStepConfigs(configs, storedConfigs);
+      self.checkHostOverrideInstaller();
+      self.activateSpecialConfigs();
+      self.selectProperService();
+      if (self.get('content.skipConfigStep')) {
         App.router.send('next');
       }
-    }
+    });
   },
   /**
    * If <code>App.supports.hostOverridesInstaller</code> is enabled should load config groups

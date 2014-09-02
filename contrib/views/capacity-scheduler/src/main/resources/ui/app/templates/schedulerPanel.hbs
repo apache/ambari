@@ -19,12 +19,12 @@
 <div class="panel panel-default panel-capacity">
   <div class="panel-heading">
     <div class="panel-title">
-      Scheduler
+      <strong>Scheduler</strong>
       <a href="#" {{action 'toggleEditScheduler'}} class="text-right"> 
         {{#if isEditScheduler}}
-          <small><i class="fa fa-edit"> Hide edit</i> </small>
+                <div class="edit-link">Hide Edit</div>
         {{else}}
-          <small><i class="fa fa-edit"> Show edit</i> </small>
+                <div class="edit-link">Show Edit</div>
         {{/if}}
       </a>
     </div>
@@ -32,8 +32,8 @@
   <div class="panel-body">
     <form class="form-horizontal" role="form">
       <div class="form-group">
-        <label class="col-xs-6 col-lg-6 col-md-7 col-sm-6 control-label">Maximum apps</label>
-        <div class="col-xs-6 col-lg-6 col-md-5 col-sm-6">
+        <label class="col-xs-4 control-label">Maximum Apps</label>
+        <div class="col-xs-8">
         {{#if isEditScheduler}}
           {{int-input value=scheduler.maximum_applications class="input-sm"}}
         {{else}}
@@ -42,8 +42,8 @@
         </div>
       </div>
       <div class="form-group">
-        <label class="col-xs-6 col-lg-6 col-md-7 col-sm-6 control-label">Minimum AM resourse</label>
-        <div class="col-xs-6 col-lg-6 col-md-5 col-sm-6">
+        <label class="col-xs-4 control-label">Minimum AM Resource</label>
+        <div class="col-xs-8">
         {{#if isEditScheduler}}
           <div class="input-group">
             {{int-input value=scheduler.maximum_am_resource_percent class="input-sm" maxVal=100}}

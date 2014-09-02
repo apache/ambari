@@ -24,10 +24,15 @@ import org.w3c.dom.Element;
 
 import javax.xml.bind.annotation.XmlAnyElement;
 import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlList;
+
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class PropertyInfo {
   private String name;
@@ -36,7 +41,9 @@ public class PropertyInfo {
   private String filename;
   private boolean deleted;
   private boolean requireInput;
-  private PropertyType type = PropertyType.DEFAULT;
+  
+  private Set<PropertyType> propertyTypes = new HashSet<PropertyType>();
+
   @XmlAnyElement
   private List<Element> propertyAttributes = new ArrayList<Element>();
 
@@ -72,9 +79,19 @@ public class PropertyInfo {
     this.filename = filename;
   }
   
+  @XmlElement(name = "property-type")
+  @XmlList
+  public Set<PropertyType> getPropertyTypes() {
+    return propertyTypes;
+  }
+
+  public void setPropertyTypes(Set<PropertyType> propertyTypes) {
+    this.propertyTypes = propertyTypes;
+  }
+  
   public StackConfigurationResponse convertToResponse() {
     return new StackConfigurationResponse(getName(), getValue(),
-      getDescription() , getFilename(), isRequireInput(), getType().name(), getAttributesMap());
+      getDescription() , getFilename(), isRequireInput(), getPropertyTypes(), getAttributesMap());
   }
 
   public boolean isDeleted() {
@@ -100,14 +117,6 @@ public class PropertyInfo {
 
   public void setRequireInput(boolean requireInput) {
     this.requireInput = requireInput;
-  }
-
-  public PropertyType getType() {
-    return type;
-  }
-
-  public void setType(PropertyType type) {
-    this.type = type;
   }
 
   @Override
@@ -155,7 +164,8 @@ public class PropertyInfo {
   }
 
   public enum PropertyType {
-    DEFAULT,
-    PASSWORD
+    PASSWORD,
+    USER,
+    GROUP
   }
 }

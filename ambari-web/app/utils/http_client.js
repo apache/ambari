@@ -140,7 +140,7 @@ App.HttpClient = Em.Object.create({
     }
     var client = this,
       request = function () {
-        if (data.doGetAsPost) {
+        if (data.doGetAsPost && !App.get('testMode')) {
           client.getAsPostRequest(url, data, mapper, errorHandler);
         }
         else {
