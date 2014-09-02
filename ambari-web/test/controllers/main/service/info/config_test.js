@@ -382,14 +382,14 @@ describe("App.MainServiceInfoConfigsController", function () {
 
   describe("#doCancel", function () {
     beforeEach(function () {
-      sinon.stub(mainServiceInfoConfigsController, "loadStep", Em.K);
+      sinon.stub(Em.run, 'once', Em.K);
     });
     afterEach(function () {
-      mainServiceInfoConfigsController.loadStep.restore();
+      Em.run.once.restore();
     });
-    it("trigger loadStep", function () {
+    it("trigger onConfigGroupChange", function () {
       mainServiceInfoConfigsController.doCancel();
-      expect(mainServiceInfoConfigsController.loadStep.calledOnce).to.equal(true);
+      expect(Em.run.once.calledWith(mainServiceInfoConfigsController, "onConfigGroupChange")).to.equal(true);
     });
   });
 
