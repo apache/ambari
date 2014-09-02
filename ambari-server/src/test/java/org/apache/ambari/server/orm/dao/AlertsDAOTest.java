@@ -21,6 +21,7 @@ package org.apache.ambari.server.orm.dao;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -104,6 +105,7 @@ public class AlertsDAOTest {
         history.setAlertLabel(definition.getDefinitionName() + " " + i);
         history.setAlertText(definition.getDefinitionName() + " " + i);
         history.setAlertTimestamp(calendar.getTimeInMillis());
+        history.setHostName("h1");
 
         history.setAlertState(AlertState.OK);
         if (i == 0 || i == 5) {
@@ -260,5 +262,17 @@ public class AlertsDAOTest {
     history = dao.findAll(clusterId, endDate, startDate);
     assertNotNull(history);
     assertEquals(0, history.size());
+  }
+  
+  @Test
+  public void testFindCurrentByHostAndName() throws Exception {
+    AlertCurrentEntity entity = dao.findCurrentByHostAndName(clusterId.longValue(), "h2", "Alert Definition 1");
+    assertNull(entity);
+    
+    entity = dao.findCurrentByHostAndName(clusterId.longValue(), "h1", "Alert Definition 1");
+    
+    assertNotNull(entity);
+    assertNotNull(entity.getAlertHistory());
+    assertNotNull(entity.getAlertHistory().getAlertDefinition());
   }
 }

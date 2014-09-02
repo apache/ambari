@@ -22,6 +22,7 @@ import org.codehaus.jackson.annotate.JsonProperty;
  * An alert represents a problem or notice for a cluster.
  */
 public class Alert {
+  private String cluster = null;
   private String name = null;
   private String instance = null;
   private String service = null;
@@ -30,6 +31,7 @@ public class Alert {
   private AlertState state = AlertState.UNKNOWN;
   private String label = null;
   private String text = null;
+  private long timestamp = 0L;
   
  
   /**
@@ -162,7 +164,23 @@ public class Alert {
   public void setState(AlertState state) {
     this.state = state;
   }
-
+  
+  @JsonProperty("timestamp")
+  public void setTimestamp(long ts) {
+    timestamp = ts;
+  }
+  
+  @JsonProperty("timestamp")
+  public long getTimestamp() {
+    return timestamp;
+  }
+  
+  /**
+   * @return
+   */
+  public String getCluster() {
+    return cluster;
+  }
   
   @Override
   public int hashCode() {
@@ -224,6 +242,7 @@ public class Alert {
     sb.append('}');
     return sb.toString();
   }
+
   
 
 }

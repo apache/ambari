@@ -20,6 +20,7 @@ limitations under the License.
 
 import logging
 import re
+import time
 import traceback
 
 logger = logging.getLogger()
@@ -78,6 +79,7 @@ class BaseAlert(object):
     data['cluster'] = self.cluster
     data['service'] = self._find_value('serviceName')
     data['component'] = self._find_value('componentName')
+    data['timestamp'] = long(time.time() * 1000)
     
     self.collector.put(self.cluster, data)
   

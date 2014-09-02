@@ -287,7 +287,7 @@ public class AlertDefinitionDAOTest {
     history.setAlertState(AlertState.OK);
     history.setAlertText("Alert Text");
     history.setAlertTimestamp(calendar.getTimeInMillis());
-    alertsDao.create(history);
+//    alertsDao.create(history);
 
     AlertCurrentEntity current = new AlertCurrentEntity();
     current.setAlertHistory(history);

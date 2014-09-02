@@ -60,6 +60,7 @@ import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.alert.AlertDefinition;
 import org.apache.ambari.server.state.alert.AlertDefinitionHash;
+import org.apache.ambari.server.state.cluster.AlertDataManager;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.host.HostHealthyHeartbeatEvent;
 import org.apache.ambari.server.state.host.HostRegistrationRequestEvent;
@@ -114,6 +115,9 @@ public class HeartBeatHandler {
 
   @Inject
   private AlertDefinitionHash alertDefinitionHash;
+  
+  @Inject
+  private AlertDataManager alertManager;
 
   private Map<String, Long> hostResponseIds = new ConcurrentHashMap<String, Long>();
 
@@ -231,6 +235,15 @@ public class HeartBeatHandler {
           throws AmbariException {
     if (null == hostname || null == heartbeat) {
       return;
+    }
+    
+    if (null != heartbeat.getAlerts()) {
+      for (Alert alert : heartbeat.getAlerts()) {
+        if (null == alert.getHost())
+          alert.setHost(hostname);
+        Cluster cluster = clusterFsm.getCluster(alert.getCluster());
+        alertManager.add(cluster.getClusterId(), alert);
+      }
     }
 
     for (Cluster cluster : clusterFsm.getClustersForHost(hostname)) {

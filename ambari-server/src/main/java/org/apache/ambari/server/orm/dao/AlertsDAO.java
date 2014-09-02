@@ -239,6 +239,20 @@ public class AlertsDAO {
 
     return daoUtils.selectList(query);
   }
+  
+  @RequiresSession
+  public AlertCurrentEntity findCurrentByHostAndName(long clusterId, String hostName,
+      String alertName) {
+    
+    TypedQuery<AlertCurrentEntity> query = entityManagerProvider.get().createNamedQuery(
+        "AlertCurrentEntity.findByHostAndName", AlertCurrentEntity.class);
+
+    query.setParameter("clusterId", Long.valueOf(clusterId));
+    query.setParameter("hostName", hostName);
+    query.setParameter("definitionName", alertName);
+
+    return daoUtils.selectOne(query);
+  }
 
   /**
    * Removes alert history and current alerts for the specified alert defintiion

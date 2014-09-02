@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.orm.entities;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -48,6 +49,7 @@ import org.apache.ambari.server.state.MaintenanceState;
     @NamedQuery(name = "AlertCurrentEntity.findAll", query = "SELECT alert FROM AlertCurrentEntity alert"),
     @NamedQuery(name = "AlertCurrentEntity.findByService", query = "SELECT alert FROM AlertCurrentEntity alert JOIN alert.alertHistory history WHERE history.clusterId = :clusterId AND history.serviceName = :serviceName"),
     @NamedQuery(name = "AlertCurrentEntity.findByHost", query = "SELECT alert FROM AlertCurrentEntity alert JOIN alert.alertHistory history WHERE history.clusterId = :clusterId AND history.hostName = :hostName"),
+    @NamedQuery(name = "AlertCurrentEntity.findByHostAndName", query = "SELECT alert FROM AlertCurrentEntity alert JOIN alert.alertHistory history WHERE history.clusterId = :clusterId AND history.alertDefinition.definitionName = :definitionName AND history.hostName = :hostName"),
     @NamedQuery(name = "AlertCurrentEntity.removeByHistoryId", query = "DELETE FROM AlertCurrentEntity alert WHERE alert.alertHistory.alertId = :historyId"),
     @NamedQuery(name = "AlertCurrentEntity.removeByDefinitionId", query = "DELETE FROM AlertCurrentEntity alert WHERE alert.alertDefinition.definitionId = :definitionId") })
 public class AlertCurrentEntity {
@@ -70,7 +72,7 @@ public class AlertCurrentEntity {
   /**
    * Unidirectional one-to-one association to {@link AlertHistoryEntity}
    */
-  @OneToOne
+  @OneToOne(cascade = { CascadeType.PERSIST })
   @JoinColumn(name = "history_id", unique = true, nullable = false)
   private AlertHistoryEntity alertHistory;
 

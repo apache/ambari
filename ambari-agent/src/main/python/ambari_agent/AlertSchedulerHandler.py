@@ -57,8 +57,6 @@ class AlertSchedulerHandler():
       except:
         logger.critical("Could not create the cache directory {0}".format(cachedir))
         pass
-    
-
 
     self.__scheduler = Scheduler(AlertSchedulerHandler.APS_CONFIG)
     self.__in_minutes = in_minutes
