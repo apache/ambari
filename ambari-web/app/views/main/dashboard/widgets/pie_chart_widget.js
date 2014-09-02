@@ -68,8 +68,11 @@ App.PieChartDashboardWidgetView = App.DashboardWidgetView.extend({
 
   calc: function() {
     this.set('hiddenInfo', this.calcHiddenInfo());
-    this.set('isPieExist', this.calcIsPieExists());
-    this.set('dataForPieChart', this.calcDataForPieChart());
+    var isPieExists = this.calcIsPieExists();
+    this.set('isPieExist', isPieExists);
+    if (isPieExists) {
+      this.set('dataForPieChart', this.calcDataForPieChart());
+    }
   },
 
   didInsertElement: function() {
