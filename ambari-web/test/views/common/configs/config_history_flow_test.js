@@ -20,7 +20,7 @@ var App = require('app');
 require('views/common/configs/config_history_flow');
 
 
-describe('App.ConfigHistoryFlowView', function () {
+describe.skip('App.ConfigHistoryFlowView', function () {
 
   var view = App.ConfigHistoryFlowView.create({
     controller: Em.Object.create({

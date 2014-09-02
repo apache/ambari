@@ -605,8 +605,6 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
       controller.set('content.reassign.component_name', 'COMP1');
 
       controller.onLoadConfigs({items: []});
-      expect(controller.get('configsSitesNumber')).to.equal(0);
-      expect(controller.get('configsSitesCount')).to.equal(0);
       expect(controller.setAdditionalConfigs.calledWith({}, 'COMP1', 'host1')).to.be.true;
       expect(controller.setSecureConfigs.calledWith([], {}, 'COMP1')).to.be.true;
       expect(controller.setSpecificNamenodeConfigs.called).to.be.false;
@@ -623,8 +621,6 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
           properties: {}
         }
       ]});
-      expect(controller.get('configsSitesNumber')).to.equal(1);
-      expect(controller.get('configsSitesCount')).to.equal(0);
       expect(controller.setAdditionalConfigs.calledWith({'hdfs-site': {}}, 'NAMENODE', 'host1')).to.be.true;
       expect(controller.setSecureConfigs.calledWith([], {'hdfs-site': {}}, 'NAMENODE')).to.be.true;
       expect(controller.setSpecificNamenodeConfigs.calledWith({'hdfs-site': {}}, 'host1')).to.be.true;
@@ -634,23 +630,6 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
     });
   });
 
-  describe('#saveConfigsToServer()', function () {
-    it('configs is empty', function () {
-      controller.saveConfigsToServer({});
-      expect(App.ajax.send.called).to.be.false;
-    });
-    it('configs has one site', function () {
-      controller.saveConfigsToServer({'hdfs-site': {}});
-      expect(App.ajax.send.calledOnce).to.be.true;
-    });
-    it('configs has two sites', function () {
-      controller.saveConfigsToServer({
-        'hdfs-site': {},
-        'core-site': {}
-      });
-      expect(App.ajax.send.calledTwice).to.be.true;
-    });
-  });
 
  /* describe('#setSpecificNamenodeConfigs()', function () {
    it('configs is empty', function () {
