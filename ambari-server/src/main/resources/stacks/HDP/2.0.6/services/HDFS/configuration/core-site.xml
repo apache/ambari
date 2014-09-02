@@ -89,6 +89,17 @@
     <description>Defines the maximum number of retries for IPC connections.</description>
   </property>
 
+  <property>
+    <name>ipc.server.tcpnodelay</name>
+    <value>true</value>
+    <description>Turn on/off Nagle's algorithm for the TCP socket
+      connection on
+      the server. Setting to true disables the algorithm and may
+      decrease latency
+      with a cost of more/smaller packets.
+    </description>
+  </property>
+
   <!-- Web Interface Configuration -->
   <property>
     <name>mapreduce.jobtracker.webinterface.trusted</name>
