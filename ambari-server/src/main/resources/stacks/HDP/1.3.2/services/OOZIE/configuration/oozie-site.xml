@@ -217,7 +217,7 @@
   <property require-input = "true">
     <name>oozie.service.JPAService.jdbc.password</name>
     <value> </value>
-    <type>PASSWORD</type>
+    <property-type>PASSWORD</property-type>
     <description>
       DB user password.
 

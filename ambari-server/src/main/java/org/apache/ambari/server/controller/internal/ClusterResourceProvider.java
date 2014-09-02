@@ -454,7 +454,7 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
                                           String defaultPassword) {
 
     Map<String, Map<String, Collection<String>>> missingPasswords = blueprint.validateConfigurations(
-        stackInfo, PropertyInfo.PropertyType.PASSWORD);
+        stackInfo, true);
 
     Iterator<Map.Entry<String, Map<String, Collection<String>>>> iter;
     for(iter = missingPasswords.entrySet().iterator(); iter.hasNext(); ) {

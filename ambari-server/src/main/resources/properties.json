@@ -247,6 +247,7 @@
         "StackConfigurations/property_description",
         "StackConfigurations/type",
         "StackConfigurations/final",
+        "StackConfigurations/property_type",
         "_"
     ],
     "StackServiceComponent":[
@@ -454,6 +455,7 @@
         "StackLevelConfigurations/property_description",
         "StackLevelConfigurations/type",
         "StackLevelConfigurations/final",
+        "StackConfigurations/property_type",
         "_"
     ]
 }

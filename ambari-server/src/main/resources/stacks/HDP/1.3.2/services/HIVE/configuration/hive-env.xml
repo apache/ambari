@@ -71,6 +71,7 @@
   <property>
     <name>hive_user</name>
     <value>hive</value>
+    <property-type>USER</property-type>
     <description>Hive User.</description>
   </property>
 
@@ -89,11 +90,13 @@
   <property>
     <name>hcat_user</name>
     <value>hcat</value>
+    <property-type>USER</property-type>
     <description>HCat User.</description>
   </property>
   <property>
     <name>webhcat_user</name>
     <value>hcat</value>
+    <property-type>USER</property-type>
     <description>WebHCat User.</description>
   </property>
   

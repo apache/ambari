@@ -54,6 +54,7 @@
   <property>
     <name>mapred_user</name>
     <value>mapred</value>
+    <property-type>USER</property-type>
     <description>MapReduce User.</description>
   </property>
 

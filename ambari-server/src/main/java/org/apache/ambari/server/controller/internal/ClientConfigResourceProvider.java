@@ -22,6 +22,7 @@ import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 import com.google.inject.persist.Transactional;
+
 import org.apache.ambari.server.*;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
@@ -29,6 +30,7 @@ import org.apache.ambari.server.controller.*;
 import org.apache.ambari.server.controller.spi.*;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.state.*;
+import org.apache.ambari.server.state.PropertyInfo.PropertyType;
 import org.apache.ambari.server.utils.StageUtils;
 
 import java.io.File;
@@ -36,7 +38,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.*;
-import java.util.List;
 import java.util.concurrent.TimeoutException;
 
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.*;
@@ -241,6 +242,14 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
       }
       String packageList = gson.toJson(packages);
       hostLevelParams.put(PACKAGE_LIST, packageList);
+      
+      Set<String> userSet = configHelper.getPropertyValuesWithPropertyType(stackId, PropertyType.USER, cluster);
+      String userList = gson.toJson(userSet);
+      hostLevelParams.put(USER_LIST, userList);
+      
+      Set<String> groupSet = configHelper.getPropertyValuesWithPropertyType(stackId, PropertyType.GROUP, cluster);
+      String groupList = gson.toJson(groupSet);
+      hostLevelParams.put(GROUP_LIST, groupList);
 
       String jsonConfigurations = null;
       Map<String, Object> commandParams = new HashMap<String, Object>();

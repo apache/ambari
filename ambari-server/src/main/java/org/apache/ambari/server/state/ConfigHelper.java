@@ -46,6 +46,7 @@ import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
+import org.apache.ambari.server.state.PropertyInfo.PropertyType;
 import org.apache.ambari.server.upgrade.UpgradeCatalog170;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -432,6 +433,33 @@ public class ConfigHelper {
         }
       }
       
+    }
+    
+    return result;
+  }
+  
+  public Set<String> getPropertyValuesWithPropertyType(StackId stackId, PropertyType propertyType, Cluster cluster) throws AmbariException {
+    StackInfo stack = ambariMetaInfo.getStackInfo(stackId.getStackName(),
+        stackId.getStackVersion());
+    
+    Set<String> result = new HashSet<String>();
+
+    for(Service service : cluster.getServices().values()) {
+      Set<PropertyInfo> stackProperties = ambariMetaInfo.getProperties(stack.getName(), stack.getVersion(), service.getName());
+      
+      for (PropertyInfo stackProperty : stackProperties) {
+        if(stackProperty.getPropertyTypes().contains(propertyType)) {
+          result.add(stackProperty.getValue());
+        }
+      }
+    }
+    
+    Set<PropertyInfo> stackProperties = ambariMetaInfo.getStackProperties(stack.getName(), stack.getVersion());
+    
+    for (PropertyInfo stackProperty : stackProperties) {
+      if(stackProperty.getPropertyTypes().contains(propertyType)) {
+        result.add(stackProperty.getValue());
+      }
     }
     
     return result;

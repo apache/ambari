@@ -20,14 +20,17 @@ package org.apache.ambari.server.controller;
 
 
 import java.util.Map;
+import java.util.Set;
+
+import org.apache.ambari.server.state.PropertyInfo.PropertyType;
 
 public class StackLevelConfigurationResponse extends StackConfigurationResponse {
   public StackLevelConfigurationResponse(String propertyName,
       String propertyValue, String propertyDescription, String type,
-      Boolean isRequired, String propertyType,
+      Boolean isRequired, Set<PropertyType> propertyTypes,
       Map<String, String> propertyAttributes) {
     super(propertyName, propertyValue, propertyDescription, type, isRequired,
-        propertyType, propertyAttributes);
+        propertyTypes, propertyAttributes);
   }
   
   public StackLevelConfigurationResponse(String propertyName, String propertyValue, String propertyDescription,

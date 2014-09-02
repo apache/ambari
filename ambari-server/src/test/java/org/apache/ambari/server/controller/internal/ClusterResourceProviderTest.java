@@ -328,7 +328,7 @@ public class ClusterResourceProviderTest {
     expect(blueprint.getStackName()).andReturn(stackName);
     expect(blueprint.getStackVersion()).andReturn(stackVersion);
     expect(blueprint.getConfigurations()).andReturn(configurations);
-    expect(blueprint.validateConfigurations(metaInfo, PropertyInfo.PropertyType.PASSWORD)).andReturn(
+    expect(blueprint.validateConfigurations(metaInfo, true)).andReturn(
         Collections.<String, Map<String, Collection<String>>>emptyMap());
 
     expect(metaInfo.getComponentDependencies("test", "1.23", "service1", "component1")).
@@ -765,7 +765,7 @@ public class ClusterResourceProviderTest {
     expect(blueprint.getStackName()).andReturn(stackName);
     expect(blueprint.getStackVersion()).andReturn(stackVersion);
     expect(blueprint.getConfigurations()).andReturn(Collections.<BlueprintConfigEntity>singletonList(blueprintConfig));
-    expect(blueprint.validateConfigurations(metaInfo, PropertyInfo.PropertyType.PASSWORD)).andReturn(allMissingPasswords);
+    expect(blueprint.validateConfigurations(metaInfo, true)).andReturn(allMissingPasswords);
 
     expect(metaInfo.getComponentDependencies("test", "1.23", "service1", "component1")).
         andReturn(Collections.<DependencyInfo>emptyList());
@@ -1550,7 +1550,7 @@ public class ClusterResourceProviderTest {
     expect(blueprint.getStackName()).andReturn(stackName);
     expect(blueprint.getStackVersion()).andReturn(stackVersion);
     expect(blueprint.getConfigurations()).andReturn(Collections.<BlueprintConfigEntity>singletonList(blueprintConfig));
-    expect(blueprint.validateConfigurations(metaInfo, PropertyInfo.PropertyType.PASSWORD)).andReturn(allMissingPasswords);
+    expect(blueprint.validateConfigurations(metaInfo, true)).andReturn(allMissingPasswords);
 
     expect(metaInfo.getComponentDependencies("test", "1.23", "service1", "component1")).
         andReturn(Collections.<DependencyInfo>emptyList());
@@ -1959,7 +1959,7 @@ public class ClusterResourceProviderTest {
     expect(blueprint.getStackName()).andReturn(stackName);
     expect(blueprint.getStackVersion()).andReturn(stackVersion);
     expect(blueprint.getConfigurations()).andReturn(Collections.<BlueprintConfigEntity>singletonList(blueprintConfig));
-    expect(blueprint.validateConfigurations(metaInfo, PropertyInfo.PropertyType.PASSWORD)).andReturn(
+    expect(blueprint.validateConfigurations(metaInfo, true)).andReturn(
         Collections.<String, Map<String, Collection<String>>>emptyMap());
 
     expect(metaInfo.getComponentDependencies("test", "1.23", "service1", "component1")).
@@ -2227,7 +2227,7 @@ public class ClusterResourceProviderTest {
     expect(blueprint.getStackName()).andReturn(stackName);
     expect(blueprint.getStackVersion()).andReturn(stackVersion);
     expect(blueprint.getConfigurations()).andReturn(configurations).times(2);
-    expect(blueprint.validateConfigurations(metaInfo, PropertyInfo.PropertyType.PASSWORD)).andReturn(
+    expect(blueprint.validateConfigurations(metaInfo, true)).andReturn(
         Collections.<String, Map<String, Collection<String>>>emptyMap());
 
     expect(metaInfo.getComponentDependencies("test", "1.23", "service1", "component1")).

@@ -20,6 +20,8 @@ limitations under the License.
 from resource_management import *
 from resource_management.core.system import System
 import os
+import json
+import collections
 
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
@@ -70,23 +72,13 @@ hadoop_pid_dir_prefix = config['configurations']['hadoop-env']['hadoop_pid_dir_p
 #users and groups
 hbase_user = config['configurations']['hbase-env']['hbase_user']
 nagios_user = config['configurations']['nagios-env']['nagios_user']
-oozie_user = config['configurations']['oozie-env']['oozie_user']
-webhcat_user = config['configurations']['hive-env']['hcat_user']
-hcat_user = config['configurations']['hive-env']['hcat_user']
-hive_user = config['configurations']['hive-env']['hive_user']
 smoke_user =  config['configurations']['hadoop-env']['smokeuser']
-mapred_user = config['configurations']['mapred-env']['mapred_user']
-hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
-zk_user = config['configurations']['zookeeper-env']['zk_user']
 gmetad_user = config['configurations']['ganglia-env']["gmetad_user"]
 gmond_user = config['configurations']['ganglia-env']["gmond_user"]
-sqoop_user = config['configurations']['sqoop-env']['sqoop_user']
 
 user_group = config['configurations']['hadoop-env']['user_group']
 proxyuser_group =  config['configurations']['hadoop-env']['proxyuser_group']
 nagios_group = config['configurations']['nagios-env']['nagios_group']
-smoke_user_group =  "users"
-mapred_tt_group = default("/configurations/mapred-site/mapreduce.tasktracker.group", user_group)
 
 #hosts
 hostname = config["hostname"]
@@ -129,7 +121,22 @@ if has_ganglia_server:
 hbase_tmp_dir = config['configurations']['hbase-site']['hbase.tmp.dir']
 ignore_groupsusers_create = default("/configurations/hadoop-env/ignore_groupsusers_create", False)
 
-
+smoke_user_dirs = format("/tmp/hadoop-{smoke_user},/tmp/hsperfdata_{smoke_user},/home/{smoke_user},/tmp/{smoke_user},/tmp/sqoop-{smoke_user}")
+if has_hbase_masters:
+  hbase_user_dirs = format("/home/{hbase_user},/tmp/{hbase_user},/usr/bin/{hbase_user},/var/log/{hbase_user},{hbase_tmp_dir}")
 #repo params
 repo_info = config['hostLevelParams']['repo_info']
 service_repo_info = default("/hostLevelParams/service_repo_info",None)
+
+user_to_groups_dict = collections.defaultdict(lambda:[user_group])
+user_to_groups_dict[smoke_user] = [proxyuser_group]
+if has_ganglia_server:
+  user_to_groups_dict[gmond_user] = [gmond_user]
+  user_to_groups_dict[gmetad_user] = [gmetad_user]
+
+user_to_gid_dict = collections.defaultdict(lambda:user_group)
+if has_nagios:
+  user_to_gid_dict[nagios_user] = nagios_group
+
+user_list = json.loads(config['hostLevelParams']['user_list'])
+group_list = json.loads(config['hostLevelParams']['group_list'])

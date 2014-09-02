@@ -20,6 +20,9 @@ package org.apache.ambari.server.controller;
 
 
 import java.util.Map;
+import java.util.Set;
+
+import org.apache.ambari.server.state.PropertyInfo.PropertyType;
 
 public class StackConfigurationResponse {
 
@@ -52,13 +55,13 @@ public class StackConfigurationResponse {
    */
   public StackConfigurationResponse(String propertyName, String propertyValue,
                                     String propertyDescription, String type,
-                                    Boolean isRequired, String propertyType, Map<String, String> propertyAttributes) {
+                                    Boolean isRequired, Set<PropertyType> propertyTypes, Map<String, String> propertyAttributes) {
     setPropertyName(propertyName);
     setPropertyValue(propertyValue);
     setPropertyDescription(propertyDescription);
     setType(type);
     setRequired(isRequired);
-    setPropertyType(propertyType);
+    setPropertyType(propertyTypes);
     setPropertyAttributes(propertyAttributes);
   }
 
@@ -71,7 +74,7 @@ public class StackConfigurationResponse {
   private String type;
   private Map<String, String> propertyAttributes;
   private Boolean isRequired;
-  private String propertyType;
+  private Set<PropertyType> propertyTypes;
 
   public String getStackName() {
     return stackName;
@@ -171,11 +174,11 @@ public class StackConfigurationResponse {
    * Get type of property as set in the stack definition.
    * @return Property type.
    */
-  public String getPropertyType() {
-    return propertyType;
+  public Set<PropertyType> getPropertyType() {
+    return propertyTypes;
   }
 
-  public void setPropertyType(String propertyType) {
-    this.propertyType = propertyType;
+  public void setPropertyType(Set<PropertyType> propertyTypes) {
+    this.propertyTypes = propertyTypes;
   }
 }

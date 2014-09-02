@@ -94,7 +94,6 @@ hdfs_user = status_params.hdfs_user
 user_group = config['configurations']['hadoop-env']['user_group']
 proxyuser_group =  config['configurations']['hadoop-env']['proxyuser_group']
 nagios_group = config['configurations']['nagios-env']['nagios_group']
-smoke_user_group = "users"
 
 #hadoop params
 hadoop_conf_dir = "/etc/hadoop/conf"

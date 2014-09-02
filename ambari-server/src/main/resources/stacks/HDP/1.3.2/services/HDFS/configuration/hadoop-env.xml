@@ -59,6 +59,7 @@
   <property>
     <name>proxyuser_group</name>
     <value>users</value>
+    <property-type>GROUP</property-type>
     <description>Proxy user group.</description>
   </property>
 
@@ -76,6 +77,7 @@
   <property>
     <name>hdfs_user</name>
     <value>hdfs</value>
+    <property-type>USER</property-type>
     <description>User to run HDFS as</description>
   </property>
   <property>
@@ -86,11 +88,13 @@
   <property>
     <name>smokeuser</name>
     <value>ambari-qa</value>
+    <property-type>USER</property-type>
     <description>User executing service checks</description>
   </property>
   <property>
     <name>user_group</name>
     <value>hadoop</value>
+    <property-type>GROUP</property-type>
     <description>Proxy user group.</description>
   </property>
   

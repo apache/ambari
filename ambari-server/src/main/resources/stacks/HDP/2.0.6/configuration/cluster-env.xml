@@ -39,11 +39,13 @@
     <property>
         <name>smokeuser</name>
         <value>ambari-qa</value>
+        <property-type>USER</property-type>
         <description>User executing service checks</description>
     </property>
     <property>
         <name>user_group</name>
         <value>hadoop</value>
+        <property-type>GROUP</property-type>
         <description>Hadoop user group.</description>
     </property>
 </configuration>

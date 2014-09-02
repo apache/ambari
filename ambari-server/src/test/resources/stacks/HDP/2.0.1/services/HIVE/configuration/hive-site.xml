@@ -46,7 +46,7 @@ limitations under the License.
   <property require-input="true">
     <name>javax.jdo.option.ConnectionPassword</name>
     <value></value>
-    <type>PASSWORD</type>
+    <property-type>PASSWORD</property-type>
     <description>password to use against metastore database</description>
   </property>
 

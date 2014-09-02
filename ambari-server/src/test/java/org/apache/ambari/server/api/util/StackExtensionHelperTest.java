@@ -585,7 +585,7 @@ public class StackExtensionHelperTest {
     assertEquals(null, propertyInfo.getFilename());
     assertEquals(false, propertyInfo.isDeleted());
     assertEquals(false, propertyInfo.isRequireInput());
-    assertEquals(PropertyInfo.PropertyType.DEFAULT, propertyInfo.getType());
+    assertTrue(propertyInfo.getPropertyTypes().isEmpty());
 
     propertyInfo = properties.get(1);
     assertEquals("yarn.scheduler.capacity.maximum-am-resource-percent", propertyInfo.getName());
@@ -596,7 +596,7 @@ public class StackExtensionHelperTest {
     assertEquals(null, propertyInfo.getFilename());
     assertEquals(true, propertyInfo.isDeleted());
     assertEquals(false, propertyInfo.isRequireInput());
-    assertEquals(PropertyInfo.PropertyType.DEFAULT, propertyInfo.getType());
+    assertTrue(propertyInfo.getPropertyTypes().isEmpty());
 
     propertyInfo = properties.get(2);
     assertEquals("yarn.scheduler.capacity.root.queues", propertyInfo.getName());
@@ -606,7 +606,7 @@ public class StackExtensionHelperTest {
     assertEquals(null, propertyInfo.getFilename());
     assertEquals(false, propertyInfo.isDeleted());
     assertEquals(true, propertyInfo.isRequireInput());
-    assertEquals(PropertyInfo.PropertyType.DEFAULT, propertyInfo.getType());
+    assertTrue(propertyInfo.getPropertyTypes().isEmpty());
   }
 
   @Test

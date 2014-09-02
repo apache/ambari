@@ -20,6 +20,7 @@ package org.apache.ambari.server.controller.internal;
 
 import com.google.gson.Gson;
 import com.google.inject.Inject;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.DuplicateResourceException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
@@ -557,7 +558,7 @@ public class BlueprintResourceProvider extends BaseBlueprintProcessor {
               blueprint.getBlueprintName());
         }
         Map<String, Map<String, Collection<String>>> missingProperties = blueprint.validateConfigurations(
-            stackInfo, PropertyInfo.PropertyType.DEFAULT);
+            stackInfo, false);
 
         if (! missingProperties.isEmpty()) {
           throw new IllegalArgumentException("Required configurations are missing from the specified host groups: " +
