@@ -25,16 +25,16 @@
         </div>
       {{else}}
         <div {{bind-attr class=":add-queue needRefresh:col-md-5:col-md-6 :col-sm-6" }} >
-          <button {{action askPath}} {{bind-attr class=":btn :btn-default :btn-block hasNewQueue:disabled"}} ><i class="fa fa-plus"></i> Add queue</button>
+          <button {{action askPath}} {{bind-attr class=":btn :btn-default :btn-block hasNewQueue:disabled"}} ><i class="fa fa-plus"></i> Add Queue</button>
         </div>
         <div  {{bind-attr class=":add-queue needRefresh:col-md-7:col-md-6 :col-sm-6" }} >
           <div class="btn-group btn-group-justified btn-group-save">
             <div class="btn-group">
             {{#if needRestart}}
-              <button {{action saveConfig 'restart'}} {{bind-attr class=":btn :btn-save :btn-success canNotSave:disabled"}} ><i class="fa fa-fw fa fa-cogs"></i> Save and restart</button>
+              <button {{action saveConfig 'restart'}} {{bind-attr class=":btn :btn-save :btn-success canNotSave:disabled"}} ><i class="fa fa-fw fa fa-cogs"></i> Save and Restart</button>
               {{else}}
               {{#if needRefresh}}
-              <button {{action saveConfig 'refresh'}} {{bind-attr class=":btn :btn-save :btn-success canNotSave:disabled"}} ><i class="fa fa-fw fa-refresh"></i> Save and refresh</button>
+              <button {{action saveConfig 'refresh'}} {{bind-attr class=":btn :btn-save :btn-success canNotSave:disabled"}} ><i class="fa fa-fw fa-refresh"></i> Save and Refresh</button>
               {{else}}
               <button {{action saveConfig}} {{bind-attr class=":btn :btn-save :btn-success canNotSave:disabled"}} ><i class="fa fa-save"></i> Save</button>
               {{/if}}
@@ -45,9 +45,9 @@
                   <span class="caret"></span>
                 </button>
                 <ul class="dropdown-menu pull-right" role="menu">
-                  <li><a href="#" {{action saveConfig 'restart'}}><i class="fa fa-fw fa fa-cogs"></i> Save and restart ResourceManager</a></li>
-                  <li><a href="#" {{action saveConfig 'refresh'}}><i class="fa fa-fw fa-refresh"></i> Save and refresh Queues</a></li>
-                  <li><a href="#" {{action saveConfig}}><i class="fa fa-fw fa-save"></i> Save only</a></li>
+                  <li><a href="#" {{action saveConfig 'restart'}}><i class="fa fa-fw fa fa-cogs"></i> Save and Restart ResourceManager</a></li>
+                  <li><a href="#" {{action saveConfig 'refresh'}}><i class="fa fa-fw fa-refresh"></i> Save and Refresh Queues</a></li>
+                  <li><a href="#" {{action saveConfig}}><i class="fa fa-fw fa-save"></i> Save Only</a></li>
                 </ul>
             </div>
           </div>

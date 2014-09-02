@@ -21,19 +21,19 @@
 
     <parameter>
         <name>ambari.server.url</name>
-        <description>Target Ambari URL</description>
+        <description>Ambari Server REST API cluster URL (for example: http://ambari.server:8080/api/v1/clusters/c1)</description>
         <required>true</required>
     </parameter>
 
     <parameter>
         <name>ambari.server.username</name>
-        <description>Target Ambari username</description>
+        <description>Ambari administrator username (for example: admin)</description>
         <required>true</required>
     </parameter>
 
     <parameter>
         <name>ambari.server.password</name>
-        <description>Target Ambari password</description>
+        <description>Ambari administrator password (for example: admin)</description>
         <required>true</required>
         <!-- <hidden>true</hidden> -->
     </parameter>

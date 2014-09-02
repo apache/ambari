@@ -16,17 +16,19 @@
 * limitations under the License.
 }}
 
-<div class="well">
+<div class="well-queue">
   
   <div class="row queue-heading-row">
       <div class="col-md-12">
           {{#if content.isNew}}
             <div class="input-group">
-              {{focus-input value=content.name class="form-control" classBinding="content.isValid::input-error" action="createQ" revert="delQ" placeholder="Enter queue name..."}}
+            <h3>
+              {{focus-input value=content.name length="250" class="form-control" classBinding="content.isValid::input-error" action="createQ" revert="delQ" placeholder="Enter Queue Name"}}
               <span class="input-group-btn">
                 <button {{action "delQ" content target="controllers.queues"}} {{bind-attr class=":btn :btn-danger"}} type="button">Cancel</button>
-                <button {{action "createQ" content target="controllers.queues"}} {{bind-attr class=":btn :btn-default content.isValid::disabled"}} type="button">Create</button>
+                <button {{action "createQ" content target="controllers.queues"}} {{bind-attr class=":btn :btn-success content.isValid::disabled"}} type="button">Create</button>
               </span>
+            </h3>
             </div>
             {{else}}
               {{#unless isRenaming}}
@@ -39,17 +41,19 @@
                     </a>
                   </small>
                   <small>
-                    {{comfirm-delete action="delQ" param=content}}
+                    {{confirm-delete action="delQ" param=content}}
                   </small>
                   {{/unless}}
                 </h3>
               {{else}}
               <div class="input-group">
-                {{focus-input value=content.name class="form-control" action="renameQ" revert="renameQ" classBinding="content.isValid::input-error" placeholder="Enter queue name..."}}
+                <h3>
+                {{focus-input value=content.name length="250" class="form-control" action="renameQ" revert="renameQ" classBinding="content.isValid::input-error" placeholder="Enter Queue Name"}}
                 <span class="input-group-btn">
                   <button {{action "renameQ" 'cancel'}} {{bind-attr class=":btn :btn-danger"}} type="button">Cancel</button>
-                  <button {{action "renameQ" 'rename'}} {{bind-attr class=":btn :btn-default content.isValid::disabled"}} type="button">Rename</button>
+                  <button {{action "renameQ" 'rename'}} {{bind-attr class=":btn :btn-success content.isValid::disabled"}} type="button">Rename</button>
                 </span>
+                </h3>
               </div>
               {{/unless}}
           {{/if}}
@@ -86,12 +90,12 @@
       <div class="panel panel-default panel-capacity">
         <div class="panel-heading">
           <div class="panel-title">
-            Access control
+            <strong>Access Control</strong>
             <a href="#" {{action 'toggleEditACL'}} class="text-right"> 
               {{#if isEditACL}}
-                <small><i class="fa fa-edit">  Hide edit</i> </small>
+                <div class="edit-link">Hide Edit</div>
               {{else}}
-                <small><i class="fa fa-edit">Show edit</i> </small>
+                <div class="edit-link">Show Edit</div>
               {{/if}}
             </a>
           </div>
@@ -101,8 +105,8 @@
           {{#if isEditACL}}
 
             <div class="form-group row">
-              <label class="col-lg-6 col-md-6 col-sm-4 col-xs-5 control-label">Administer Queue ACL</label>
-              <div class="col-lg-6 col-md-6 col-sm-8 col-xs-7">
+              <label class="col-lg-4 col-xs-4 control-label">Administer Queue ACL</label>
+              <div class="col-lg-6 col-md-6 col-sm-8 col-xs-7 control-value">
                 <div class="btn-group btn-group-xs" data-toggle="buttons">
                   {{radio-button label="Anyone" selectionBinding="acl_administer_queue" value="*"}}
                   {{radio-button label="Custom" selectionBinding="acl_administer_queue" value="custom"}}
@@ -117,8 +121,8 @@
             {{/unless}}
 
             <div class="form-group row">
-              <label class="col-lg-6 col-md-6 col-sm-4 col-xs-5 control-label">Administer Jobs ACL</label>
-              <div class="col-lg-6 col-md-6 col-sm-8 col-xs-7">
+              <label class="col-lg-4 col-xs-4 control-label">Administer Jobs ACL</label>
+              <div class="col-lg-6 col-md-6 col-sm-8 col-xs-7 control-value">
                 <div class="btn-group btn-group-xs" data-toggle="buttons">
                   {{radio-button label="Anyone" selectionBinding="acl_administer_jobs" value="*"}}
                   {{radio-button label="Custom" selectionBinding="acl_administer_jobs" value="custom"}}
@@ -134,8 +138,8 @@
 
 
             <div class="form-group row">
-              <label class="col-lg-6 col-md-6 col-sm-4 col-xs-5 control-label">Submit Applications ACL</label>
-              <div class="col-lg-6 col-md-6 col-sm-8 col-xs-7">
+              <label class="col-lg-4 col-xs-4 control-label">Submit Apps ACL</label>
+              <div class="col-lg-6 col-md-6 col-sm-8 col-xs-7 control-value">
                 <div class="btn-group btn-group-xs" data-toggle="buttons">
                   {{radio-button label="Anyone" selectionBinding="acl_submit_applications" value="*"}}
                   {{radio-button label="Custom" selectionBinding="acl_submit_applications" value="custom"}}
@@ -151,8 +155,8 @@
             
           {{else}}
             <div class="form-group">
-              <label class="col-lg-6 col-md-6 col-sm-6 col-xs-6 control-label">Administer Queue ACL</label>
-              <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6">
+              <label class="col-lg-4 col-xs-4 control-label">Administer Queue ACL</label>
+              <div class="col-lg-8 col-xs-8 control-value">
                <p class="form-control-static">
                 {{escapeACL content.acl_administer_queue}}
                </p> 
@@ -160,8 +164,8 @@
             </div>
 
             <div class="form-group">
-              <label class="col-lg-6 col-md-6 col-sm-6 col-xs-6 control-label">Administer Jobs ACL</label>
-              <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6">
+              <label class="col-lg-4 col-xs-4 control-label">Administer Jobs ACL</label>
+              <div class="col-lg-8 col-xs-8 control-value">
                <p class="form-control-static">
                 {{escapeACL content.acl_administer_jobs}}
                </p> 
@@ -169,8 +173,8 @@
             </div>
 
             <div class="form-group">
-              <label class="col-lg-6 col-md-6 col-sm-6 col-xs-6 control-label">Submit Applications ACL</label>
-              <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6">
+              <label class="col-lg-4 col-xs-4 control-label">Submit Apps ACL</label>
+              <div class="col-lg-8 col-xs-8 control-value">
                <p class="form-control-static">
                 {{escapeACL content.acl_submit_applications}}
                </p> 
@@ -186,12 +190,12 @@
       <div class="panel panel-default panel-capacity">
         <div class="panel-heading">
           <div class="panel-title">
-            Resource Allocation
+            <strong>Resource Allocation</strong>
             <a href="#" {{action 'toggleEditRA'}} class="text-right"> 
               {{#if isEditRA}}
-                <small><i class="fa fa-edit">  Hide edit</i> </small>
+                <div class="edit-link">Hide Edit</div>
               {{else}}
-                <small><i class="fa fa-edit">Show edit</i> </small>
+                <div class="edit-link">Show Edit</div>
               {{/if}}
             </a>
           </div>
@@ -199,8 +203,8 @@
         <div class="panel-body">
           <form class="form-horizontal" role="form">
             <div class="form-group">
-              <label class="col-lg-6 col-md-6 col-sm-6 col-xs-6 control-label">User Limit Factor</label>
-              <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6">
+              <label class="col-lg-4 col-xs-4 control-label">User Limit Factor</label>
+              <div class="col-lg-8 col-xs-8 ">
               {{#if isEditRA}}
                 {{int-input value=content.user_limit_factor class="input-sm"}}
               {{else}}
@@ -209,8 +213,8 @@
               </div>
             </div>
             <div class="form-group">
-              <label class="col-lg-6 col-md-6 col-sm-6 col-xs-6 control-label">Minimum User Limit</label>
-              <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6">
+              <label class="col-lg-4 col-xs-4 control-label">Minimum User Limit</label>
+              <div class="col-lg-8 col-xs-8">
                 {{#if isEditRA}}  
                   <div class="input-group">
                     {{int-input value=content.minimum_user_limit_percent class="input-sm" maxVal=100}}
