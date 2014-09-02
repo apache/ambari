@@ -133,7 +133,6 @@
       
       <requiredServices>
         <service>HDFS</service>
-        <service>TEZ</service>
       </requiredServices>
 
       <configuration-dependencies>

@@ -15,7 +15,11 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
-
+{{#if view.showSaveWarning}}
+    <div class="row-fluid">
+        <div class="span12 alert alert-warning">{{t services.service.config.exitPopup.body}}</div>
+    </div>
+{{/if}}
 <div class="row-fluid">
     <div class="span1">{{t common.notes}}</div>
     <div class="span10">{{view view.notesArea}}</div>

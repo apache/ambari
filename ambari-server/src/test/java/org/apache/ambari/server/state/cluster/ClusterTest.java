@@ -64,6 +64,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigFactory;
+import org.apache.ambari.server.state.ConfigImpl;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostHealthStatus;
@@ -808,6 +809,27 @@ public class ClusterTest {
 
     assertEquals("Configurations should be rolled back to a:c ", "c", configProperties.get("a"));
 
+    //check config with empty cluster
+
+    Config config4 = new ConfigImpl("hdfs-site");
+    config4.setProperties(new HashMap<String, String>() {{
+      put("a", "b");
+    }});
+
+    ConfigGroup configGroup2 =
+        configGroupFactory.createNew(c1, "test group 2", "HDFS", "descr", Collections.singletonMap("hdfs-site", config4),
+            Collections.<String, Host>emptyMap());
+
+    configGroup2.persist();
+    c1.addConfigGroup(configGroup2);
+
+    scvResponse = c1.createServiceConfigVersion("HDFS", "admin", "test note", configGroup2);
+    assertEquals("SCV 5 should be created", Long.valueOf(5), scvResponse.getVersion());
+
+    activeServiceConfigVersions = c1.getActiveServiceConfigVersions();
+    Assert.assertEquals("Three service config versions should be active, for default and test groups",
+        3, activeServiceConfigVersions.get("HDFS").size());
+    assertEquals("Five total scvs", 5, c1.getServiceConfigVersions().size());
 
   }
 

@@ -35,13 +35,28 @@ App.ConfigHistoryFlowView = Em.View.extend({
   showFullList: false,
   compareServiceVersion: null,
 
+  /**
+   * In reason of absence of properties dynamic values support which passed to an action,
+   * used property map to get latest values of properties for action
+   */
+  serviceVersionsReferences: {
+    displayed: Em.Object.create({
+      isReference: true,
+      property: 'displayedServiceVersion'
+    }),
+    compare: Em.Object.create({
+      isReference: true,
+      property: 'compareServiceVersion'
+    })
+  },
+
   showCompareVersionBar: function() {
     return !Em.isNone(this.get('compareServiceVersion'));
   }.property('compareServiceVersion'),
 
   isSaveDisabled: function () {
-    return (this.get('controller.isSubmitDisabled') || !this.get('controller.versionLoaded'));
-  }.property('controller.isSubmitDisabled', 'controller.versionLoaded'),
+    return (this.get('controller.isSubmitDisabled') || !this.get('controller.versionLoaded') || !this.get('controller.isPropertiesChanged')) ;
+  }.property('controller.isSubmitDisabled', 'controller.versionLoaded', 'controller.isPropertiesChanged'),
 
   serviceName: function () {
     return this.get('controller.selectedService.serviceName');
@@ -103,6 +118,12 @@ App.ConfigHistoryFlowView = Em.View.extend({
     return !this.get('controller.versionLoaded');
   }.property('controller.versionLoaded'),
 
+  /**
+   * enable discard to manipulate version only after it's loaded and any property is changed
+   */
+  isDiscardDisabled: function () {
+    return !this.get('controller.versionLoaded') || !this.get('controller.isPropertiesChanged');
+  }.property('controller.versionLoaded','controller.isPropertiesChanged'),
   /**
    * list of service versions
    * by default 6 is number of items in short list
@@ -319,8 +340,10 @@ App.ConfigHistoryFlowView = Em.View.extend({
       serviceName: this.get('displayedServiceVersion.serviceName'),
       notes:''
     });
-    var versionText = event.context ? event.context.get('versionText') : this.get('displayedServiceVersion.versionText');
-    var configGroupName = this.get('displayedServiceVersion.configGroupName');
+    if (serviceConfigVersion.get('isReference')) {
+      serviceConfigVersion = this.get(serviceConfigVersion.get('property'));
+    }
+    var versionText = serviceConfigVersion.get('versionText');
     return App.ModalPopup.show({
       header: Em.I18n.t('dashboard.configHistory.info-bar.makeCurrent.popup.title'),
       serviceConfigNote: Em.I18n.t('services.service.config.configHistory.makeCurrent.message').format(versionText),
@@ -405,6 +428,7 @@ App.ConfigHistoryFlowView = Em.View.extend({
       },
       onDiscard: function () {
         this.hide();
+        self.get('controller').loadStep();
       },
       onCancel: function () {
         this.hide();

@@ -37,7 +37,7 @@ App.SliderAppController = Ember.ObjectController.extend({
       status = this.get('model.status');
     if ('RUNNING' === status) {
       actions.pushObject({
-        title: 'Freeze',
+        title: 'Stop',
         action: 'freeze',
         confirm: true
       });
@@ -52,7 +52,7 @@ App.SliderAppController = Ember.ObjectController.extend({
     if ('FROZEN' === status) {
       actions.pushObjects([
         {
-          title: 'Thaw',
+          title: 'Start',
           action: 'thaw',
           confirm: false
         },

@@ -135,7 +135,7 @@ class TestHiveMetastore(RMFTestCase):
       environment = {'no_proxy': 'c6401.ambari.apache.org'},
     )
     self.assertResourceCalled('File', '/etc/hive/conf.server/hive-env.sh',
-      content = InlineTemplate(self.getConfig()['configurations']['hive-env']['content'], conf_dir="/etc/hive/conf.server"),
+      content = InlineTemplate(self.getConfig()['configurations']['hive-env']['content']),
       owner = 'hive',
       group = 'hadoop',
     )
@@ -205,7 +205,7 @@ class TestHiveMetastore(RMFTestCase):
       environment = {'no_proxy': 'c6401.ambari.apache.org'},
     )
     self.assertResourceCalled('File', '/etc/hive/conf.server/hive-env.sh',
-      content = InlineTemplate(self.getConfig()['configurations']['hive-env']['content'], conf_dir="/etc/hive/conf.server"),
+      content = InlineTemplate(self.getConfig()['configurations']['hive-env']['content']),
       owner = 'hive',
       group = 'hadoop',
     )

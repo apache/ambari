@@ -22,8 +22,8 @@
     }, 
     "commandType": "EXECUTION_COMMAND", 
     "roleParams": {}, 
-    "serviceName": "YARN", 
-    "role": "YARN_CLIENT", 
+    "serviceName": "HIVE",
+    "role": "HIVE_SERVER",
     "commandParams": {
         "command_timeout": "600", 
         "service_package_folder": "YARN",

@@ -95,7 +95,7 @@ public class ConfigImpl implements Config {
 
   @Override
   public synchronized Long getVersion() {
-    if (this.version == null) {
+    if (this.version == null && cluster != null) {
       this.version = cluster.getNextConfigVersion(type);
     }
     return version;
