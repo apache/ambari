@@ -938,6 +938,19 @@ module.exports =
     },
     {
       "id": "puppet var",
+      "name": "hadoop_root_logger",
+      "displayName": "Hadoop Root Logger",
+      "description": "Hadoop logging options",
+      "defaultValue": "INFO,RFA",
+      "displayType": "string",
+      "isOverridable": false,
+      "isVisible": true,
+      "serviceName": "HDFS",
+      "filename": "hadoop-env.xml",
+      "category": "Advanced hadoop-env"
+    },
+    {
+      "id": "puppet var",
       "name": "namenode_opt_maxnewsize",
       "displayName": "NameNode maximum new generation size",
       "description": "",

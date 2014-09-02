@@ -769,6 +769,10 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
         false);
 
     updateConfigurationProperties("sqoop-env", Collections.singletonMap("sqoop_user", "sqoop"), false, false);
+
+    updateConfigurationProperties("hadoop-env",
+            Collections.singletonMap("hadoop_root_logger", "INFO,RFA"), false,
+            false);
   }
 
   /**

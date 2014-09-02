@@ -106,6 +106,7 @@ hadoop_pid_dir_prefix = status_params.hadoop_pid_dir_prefix
 hadoop_bin = "/usr/lib/hadoop/sbin"
 
 hdfs_log_dir_prefix = config['configurations']['hadoop-env']['hdfs_log_dir_prefix']
+hadoop_root_logger = config['configurations']['hadoop-env']['hadoop_root_logger']
 
 dfs_domain_socket_path = config['configurations']['hdfs-site']['dfs.domain.socket.path']
 dfs_domain_socket_dir = os.path.dirname(dfs_domain_socket_path)

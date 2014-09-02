@@ -300,6 +300,10 @@ public class UpgradeCatalog170Test {
     upgradeCatalog.updateConfigurationProperties("sqoop-env", Collections.singletonMap("sqoop_user", "sqoop"), false, false);
     expectLastCall();
 
+    upgradeCatalog.updateConfigurationProperties("hadoop-env",
+            Collections.singletonMap("hadoop_root_logger", "INFO,RFA"), false, false);
+    expectLastCall();
+
     expect(dbAccessor.executeSelect("SELECT role_name, user_id FROM user_roles")).andReturn(userRolesResultSet).once();
     expect(entityManager.getTransaction()).andReturn(trans).anyTimes();
     expect(entityManager.getCriteriaBuilder()).andReturn(cb).anyTimes();

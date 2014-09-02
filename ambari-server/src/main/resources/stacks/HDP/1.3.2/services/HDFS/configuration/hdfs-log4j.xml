@@ -45,6 +45,7 @@
 # limitations under the License.
 
 # Define some default values that can be overridden by system properties
+# To change daemon root logger use hadoop_root_logger in hadoop-env
 hadoop.root.logger=INFO,console
 hadoop.log.dir=.
 hadoop.log.file=hadoop.log
