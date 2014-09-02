@@ -88,8 +88,8 @@
                   </button>
                   <ul class="dropdown-menu">
                     {{#each serviceVersion in view.dropDownList}}
-                        <li class="pointer dropdown-submenu">
-                            <div class="row-fluid version-in-dropdown" {{action switchVersion serviceVersion target="view"}}>
+                        <li {{bindAttr class=":pointer :dropdown-submenu serviceVersion.isDisplayed:not-allowed"}}>
+                            <div class="row-fluid version-in-dropdown " {{action switchVersion serviceVersion target="view"}}>
                                 <div class="span2">{{serviceVersion.versionText}}</div>
                                 <div class="span6">{{serviceVersion.modifiedDate}}</div>
                                 <div class="span3">{{serviceVersion.author}}</div>

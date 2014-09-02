@@ -5120,16 +5120,31 @@ ul.inline li {
       font-size: 13px;
       li {
         line-height: 30px;
+        .icon-caret-right {
+          font-size: 18px;
+          margin-right: 20px;
+        }
       }
       li:hover {
         background-color: #666666;
         background-image: linear-gradient(to bottom, #666666, #555555);
-        color: white;
+        color: #ffffff;
       }
-      .icon-caret-right {
-        font-size: 18px;
-        margin-right: 20px;
+      li.not-allowed {
+        // the version which is displayed
+        cursor: not-allowed;
+        color: #808080;
+        .icon-caret-right,
+        .dropdown-menu {
+          display: none;
+        }
       }
+      li.not-allowed:hover {
+        background-color: #ffffff;
+        background-image: none;
+        color: #808080;
+      }
+
       div.row-fluid, a {
         padding-left: 10px;
       }

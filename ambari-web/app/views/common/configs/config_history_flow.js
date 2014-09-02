@@ -126,7 +126,7 @@ App.ConfigHistoryFlowView = Em.View.extend({
    * by default 6 is number of items in short list
    */
   dropDownList: function () {
-    var serviceVersions = this.get('serviceVersions').without(this.get('displayedServiceVersion')).slice(0).reverse();
+    var serviceVersions = this.get('serviceVersions').slice(0).reverse();
     if (this.get('showFullList')) {
       return serviceVersions;
     }
@@ -282,6 +282,7 @@ App.ConfigHistoryFlowView = Em.View.extend({
    * switch configs view version to chosen
    */
   switchVersion: function (event) {
+    if (event.context.get("isDisplayed"))  return;
     var version = event.context.get('version');
     var versionIndex = 0;
 
