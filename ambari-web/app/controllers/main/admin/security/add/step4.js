@@ -179,7 +179,10 @@ App.MainAdminSecurityAddStep4Controller = App.MainAdminSecurityProgressControlle
    * callback on failed deletion of component
    */
   onDeleteError: function () {
+    var deleteAtsCommand = this.get('commands').findProperty('name', 'DELETE_ATS');
     console.warn('Error: Can\'t delete APP_TIMELINE_SERVER');
+    deleteAtsCommand.set('isError', true);
+    deleteAtsCommand.set('isSuccess', false);
   },
 
   /**

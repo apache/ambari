@@ -171,7 +171,11 @@ App.MainAdminSecurityProgressController = Em.Controller.extend({
             command.set('isSuccess', true);
           } else {
             var timeLineServer = App.HostComponent.find().findProperty('componentName', 'APP_TIMELINE_SERVER');
-            this.deleteComponents('APP_TIMELINE_SERVER', timeLineServer.get('hostName'));
+            if (timeLineServer) {
+              this.deleteComponents('APP_TIMELINE_SERVER', timeLineServer.get('hostName'));
+            } else {
+              this.onDeleteComplete();
+            }
           }
         }
         return true;
