@@ -108,8 +108,10 @@ App.ClusterController = Em.Controller.extend({
   },
 
   loadClusterNameSuccessCallback: function (data) {
-    App.set('clusterName', data.items[0].Clusters.cluster_name);
-    App.set('currentStackVersion', data.items[0].Clusters.version);
+    if (data.items && data.items.length > 0) {
+      App.set('clusterName', data.items[0].Clusters.cluster_name);
+      App.set('currentStackVersion', data.items[0].Clusters.version);
+    }
   },
 
   loadClusterNameErrorCallback: function (request, ajaxOptions, error) {

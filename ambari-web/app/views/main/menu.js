@@ -36,27 +36,30 @@ App.MainMenuView = Em.CollectionView.extend({
 
       if (App.router.get('clusterController.isLoaded')) {
 
-        result.push(
-          { label:Em.I18n.t('menu.item.dashboard'), routing:'dashboard', active:'active'},
-          { label:Em.I18n.t('menu.item.services'), routing:'services'},
-          { label:Em.I18n.t('menu.item.hosts'), routing:'hosts'}
-        );
+        if (App.get('clusterName')) {
 
-        if (App.supports.mirroring && App.Service.find().findProperty('serviceName', 'FALCON')) {
-          result.push({ label:Em.I18n.t('menu.item.mirroring'), routing:'mirroring'});
+          result.push(
+            { label:Em.I18n.t('menu.item.dashboard'), routing:'dashboard', active:'active'},
+            { label:Em.I18n.t('menu.item.services'), routing:'services'},
+            { label:Em.I18n.t('menu.item.hosts'), routing:'hosts'}
+          );
+
+          if (App.supports.mirroring && App.Service.find().findProperty('serviceName', 'FALCON')) {
+            result.push({ label:Em.I18n.t('menu.item.mirroring'), routing:'mirroring'});
+          }
+
+          if (!App.get('isHadoop2Stack')) {
+            result.push({ label:Em.I18n.t('menu.item.jobs'), routing:'apps'});
+          }
+
+          if (App.get('isAdmin')) {
+            result.push({ label:Em.I18n.t('menu.item.admin'), routing:'admin'});
+          }
+
         }
-
-        if (!App.get('isHadoop2Stack')) {
-          result.push({ label:Em.I18n.t('menu.item.jobs'), routing:'apps'});
-        }
-
-        if (App.get('isAdmin')) {
-          result.push({ label:Em.I18n.t('menu.item.admin'), routing:'admin'});
-        }
-
       }
 
-      if (App.supports.views) {
+      if (App.get('supports.views')) {
         result.push({ label:Em.I18n.t('menu.item.views'), routing:'views.index', isView:true, views: this.get('views').filterProperty('visible')});
       }
 
@@ -76,7 +79,7 @@ App.MainMenuView = Em.CollectionView.extend({
    *    Syncs navigation menu with requested URL
    */
   renderOnRoute: function () {
-    if (App.router.get('clusterController.isLoaded')) {
+    if (App.get('clusterName') && App.router.get('clusterController.isLoaded')) {
       var last_url = App.router.location.lastSetURL || location.href.replace(/^[^#]*#/, '');
       if (last_url.substr(1, 4) !== 'main' || !this._childViews) {
         return;

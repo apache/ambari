@@ -30,11 +30,17 @@ module.exports = Em.Route.extend({
           if (App.get('testMode')) {
             router.get('mainController').initialize();
           } else {
-            App.router.get('mainController').checkServerClientVersion().done(function () {
-              App.router.get('clusterController').loadClientServerClockDistance().done(function () {
-                router.get('mainController').initialize();
+            if (App.get('clusterName')) {
+              App.router.get('mainController').checkServerClientVersion().done(function () {
+                App.router.get('clusterController').loadClientServerClockDistance().done(function () {
+                  router.get('mainController').initialize();
+                });
               });
-            });
+            }
+            else {
+              App.router.get('clusterController').set('isLoaded', true);
+              App.router.get('mainViewsController').loadAmbariViews();
+            }
           }
         });
         // TODO: redirect to last known state

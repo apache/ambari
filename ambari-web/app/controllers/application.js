@@ -23,6 +23,10 @@ App.ApplicationController = Em.Controller.extend(App.UserPref, {
 
   name: 'applicationController',
 
+  clusterExists: function() {
+    return !Em.isNone(App.router.get('clusterController.clusterName'));
+  }.property('App.router.clusterController.clusterName'),
+
   clusterName: function () {
     return (App.router.get('clusterController.clusterName') || 'My Cluster');
   }.property('App.router.clusterController.clusterName'),
