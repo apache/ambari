@@ -28,7 +28,7 @@ angular.module('ambariAdminConsole')
   }
 
   loadUserInfo();  
-  $scope.user = {};
+  $scope.user;
   $scope.isCurrentUser = true;
   $scope.dataLoaded = false;
 

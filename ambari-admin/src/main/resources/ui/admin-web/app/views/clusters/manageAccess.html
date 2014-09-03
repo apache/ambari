@@ -41,7 +41,7 @@
           <div class="" ng-switch="isEditMode">
             <textarea ng-switch-when="true" name="" id="" cols="30" rows="4" class="form-control permission-user-input" ng-model="permissionsEdit[permission.PermissionInfo.permission_name].USER"></textarea>
             <div class="well" ng-switch-default>
-              <span ng-repeat="user in permission.USER">
+              <span ng-repeat="user in permission.USER | orderBy:identity">
                 <link-to route="users.show" id="{{user}}" >{{user}}</link-to>
                 {{$last ? '' :', '}}
               </span>
@@ -50,7 +50,7 @@
         </td>
         <td>
           <div class="" ng-switch="isEditMode">
-            <textarea ng-switch-when="true" name="" id="" cols="30" rows="4" class="form-control permission-group-input" ng-model="permissionsEdit[permission.PermissionInfo.permission_name].GROUP"></textarea>
+            <textarea ng-switch-when="true" name="" id="" cols="30" rows="4" class="form-control permission-group-input" ng-model="permissionsEdit[permission.PermissionInfo.permission_name].GROUP | orderBy:identity"></textarea>
             <div class="well" ng-switch-default>
               <span ng-repeat="group in permission.GROUP">
                 <link-to route="groups.edit" id="{{group}}">{{group}}</link-to>

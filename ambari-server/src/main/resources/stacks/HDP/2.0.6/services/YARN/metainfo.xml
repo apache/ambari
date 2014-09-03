@@ -30,7 +30,7 @@
           <name>RESOURCEMANAGER</name>
           <displayName>ResourceManager</displayName>
           <category>MASTER</category>
-          <cardinality>1-2</cardinality>
+          <cardinality>1</cardinality>
           <commandScript>
             <script>scripts/resourcemanager.py</script>
             <scriptType>PYTHON</scriptType>

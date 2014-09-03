@@ -41,6 +41,7 @@
        <component>
          <name>RESOURCEMANAGER</name>
          <category>MASTER</category>
+         <cardinality>1-2</cardinality>
           <configuration-dependencies>
             <config-type>capacity-scheduler</config-type>
           </configuration-dependencies>
