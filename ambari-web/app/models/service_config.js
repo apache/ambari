@@ -48,8 +48,8 @@ App.ServiceConfig = Ember.Object.extend({
   }.property('configs.@each.isValid', 'configs.@each.isVisible', 'configCategories.@each.slaveErrorCount', 'configs.@each.overrideErrorTrigger'),
 
   isPropertiesChanged: function() {
-    return this.get('configs').someProperty('isNotDefaultValue', true);
-  }.property('configs.@each.isNotDefaultValue')
+    return this.get('configs').someProperty('isNotDefaultValue') || this.get('configs').someProperty('isOverrideChanged');
+  }.property('configs.@each.isNotDefaultValue', 'configs.@each.isOverrideChanged')
 });
 
 App.ServiceConfigCategory = Ember.Object.extend({
@@ -172,6 +172,7 @@ App.ServiceConfigProperty = Ember.Object.extend({
   parentSCP: null, // This is the main SCP which is overridden by this. Set only when isOriginalSCP is false.
   selectedHostOptions : null, // contain array of hosts configured with overridden value
   overrides : null,
+  overrideValues: [],
   group: null, // Contain group related to this property. Set only when isOriginalSCP is false.
   isUserProperty: null, // This property was added by user. Hence they get removal actions etc.
   isOverridable: true,
@@ -216,6 +217,10 @@ App.ServiceConfigProperty = Ember.Object.extend({
     var overrides = this.get('overrides');
     return (overrides != null && overrides.get('length')>0) || !this.get('isOriginalSCP');
   }.property('overrides', 'overrides.length', 'isOriginalSCP'),
+  isOverrideChanged: function () {
+    if (Em.isNone(this.get('overrides')) && this.get('overrideValues.length') === 0) return false;
+    return JSON.stringify(this.get('overrides').mapProperty('value')) !== JSON.stringify(this.get('overrideValues'));
+  }.property('isOverridden', 'overrides.@each.isNotDefaultValue'),
   isRemovable: function() {
     var isOriginalSCP = this.get('isOriginalSCP');
     var isUserProperty = this.get('isUserProperty');

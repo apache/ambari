@@ -107,11 +107,11 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   savedSiteNameToServerServiceConfigDataMap: {},
 
   isSubmitDisabled: function () {
-    return (!(this.stepConfigs.everyProperty('errorCount', 0)) || this.get('isApplyingChanges'));
+    return (!(this.get('stepConfigs').everyProperty('errorCount', 0)) || this.get('isApplyingChanges'));
   }.property('stepConfigs.@each.errorCount', 'isApplyingChanges'),
 
   isPropertiesChanged: function(){
-    return this.stepConfigs.someProperty('isPropertiesChanged', true)
+    return this.get('stepConfigs').someProperty('isPropertiesChanged', true);
   }.property('stepConfigs.@each.isPropertiesChanged'),
 
   slaveComponentGroups: null,
@@ -1033,7 +1033,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
         serviceConfigProperty.set('overrides', parentOverridesArray);
       }
       parentOverridesArray.pushObject(newSCP);
-      console.debug("createOverrideProperty(): Added:", newSCP, " to main-property:", serviceConfigProperty)
+      serviceConfigProperty.set('overrideValues', parentOverridesArray.mapProperty('value'));
+      console.debug("createOverrideProperty(): Added override to main-property:", serviceConfigProperty.get('name'));
     }, this);
   },
 
