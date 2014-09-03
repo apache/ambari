@@ -19,6 +19,7 @@
 
 angular.module('ambariAdminConsole')
 .controller('ViewsEditCtrl', ['$scope', '$routeParams' , 'View', 'uiAlert', 'PermissionLoader', 'PermissionSaver', 'ConfirmationModal', '$location', function($scope, $routeParams, View, uiAlert, PermissionLoader, PermissionSaver, ConfirmationModal, $location) {
+  $scope.identity = angular.identity;
   $scope.isConfigurationEmpty = true;
   function reloadViewInfo(){
     // Load instance data, after View permissions meta loaded

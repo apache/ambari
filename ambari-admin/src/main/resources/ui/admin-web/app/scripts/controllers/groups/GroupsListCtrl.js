@@ -30,7 +30,7 @@ angular.module('ambariAdminConsole')
   $scope.pageChanged = function() {
     loadGroups();
   };
-  $scope.usersPerPageChanges = function() {
+  $scope.groupsPerPageChanges = function() {
     loadGroups();
   };
 

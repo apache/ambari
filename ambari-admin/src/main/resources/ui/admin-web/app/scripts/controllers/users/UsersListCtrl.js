@@ -30,7 +30,7 @@ angular.module('ambariAdminConsole')
     $scope.loadUsers();
   };
   $scope.usersPerPageChanges = function() {
-    $scope.loadUsers();
+    $scope.resetPagination();
   };
 
   $scope.loadUsers = function(){

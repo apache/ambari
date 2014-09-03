@@ -19,6 +19,7 @@
 
 angular.module('ambariAdminConsole')
 .controller('ClustersManageAccessCtrl', ['$scope', 'Cluster', '$routeParams', 'uiAlert', 'PermissionLoader', 'PermissionSaver', function($scope, Cluster, $routeParams, uiAlert, PermissionLoader, PermissionSaver) {
+  $scope.identity = angular.identity;
   function reloadClusterData(){
     PermissionLoader.getClusterPermissions({
       clusterId: $routeParams.id

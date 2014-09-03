@@ -117,7 +117,7 @@
             <div class="" ng-switch="editPermissionDisabled">
               <textarea name="" id="" cols="30" rows="4" class="form-control permission-textarea-user" ng-model="permissionsEdit[permission.PermissionInfo.permission_name].USER" ng-switch-when="false"></textarea>
               <div class="well" ng-switch-when="true">
-                <span ng-repeat="user in permission.USER">
+                <span ng-repeat="user in permission.USER | orderBy:identity">
                   <link-to route="users.show" id="{{user}}">{{user}}</link-to>
                   {{$last ? '' :', '}}
                 </span>
@@ -128,7 +128,7 @@
             <div class="" ng-switch="editPermissionDisabled">
               <textarea name="" id="" cols="30" rows="4" class="form-control permission-textarea-group" ng-model="permissionsEdit[permission.PermissionInfo.permission_name].GROUP" ng-switch-when="false"></textarea>
               <div class="well" ng-switch-when="true">
-                <span ng-repeat="group in permission.GROUP">
+                <span ng-repeat="group in permission.GROUP | orderBy:identity">
                   <link-to route="groups.edit" id="{{group}}" >{{group}}</link-to>
                   {{$last ? '' :', '}}
                 </span>
