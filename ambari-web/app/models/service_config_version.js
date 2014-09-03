@@ -51,11 +51,11 @@ App.ServiceConfigVersion = DS.Model.extend({
   makeCurrentButtonText: function() {
     return Em.I18n.t('dashboard.configHistory.info-bar.revert.versionButton').format(this.get('versionText'));
   }.property('versionText'),
-  modifiedDate: function () {
+  createdDate: function () {
     return dateUtil.dateFormat(this.get('createTime'));
   }.property('createTime'),
-  shortModifiedDate: function () {
-    return dateUtil.dateFormat(this.get('createTime'), 'MMM DD, YYYY');
+  timeSinceCreated: function () {
+    return $.timeago(this.get('createTime'));
   }.property('createTime'),
   /**
    * determine whether ServiceConfigVersion is requested from server
