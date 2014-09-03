@@ -291,7 +291,6 @@ module.exports = function (grunt) {
       ],
       dist: [
         'emberTemplates',
-        'imagemin',
         'svgmin',
         'htmlmin'
       ]
