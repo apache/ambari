@@ -14,7 +14,9 @@
         "jdk_name": "jdk-7u45-linux-x64.tar.gz", 
         "ambari_db_rca_username": "mapred", 
         "java_home": "/usr/jdk64/jdk1.7.0_45",
-        "db_name": "ambari"
+        "db_name": "ambari",
+        "group_list": "[\"hadoop\",\"nobody\",\"users\",\"nagios\"]",
+        "user_list": "[\"hive\",\"oozie\",\"nobody\",\"nagios\",\"ambari-qa\",\"flume\",\"hdfs\",\"storm\",\"mapred\",\"hbase\",\"tez\",\"zookeeper\",\"falcon\",\"sqoop\",\"yarn\",\"hcat\"]"
     }, 
     "commandType": "EXECUTION_COMMAND", 
     "roleParams": {}, 
@@ -30,7 +32,6 @@
         "xml_configs_list":[{"hdfs-site.xml":"hdfs-site"}],
         "env_configs_list":[{"hadoop-env.sh":"hadoop-env"},{"log4j.properties":"hdfs-log4j,yarn-log4j"}],
         "output_file":"HDFS_CLIENT-configs.tar.gz"
-
     },
     "taskId": 152, 
     "public_hostname": "c6401.ambari.apache.org", 

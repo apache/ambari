@@ -17,7 +17,9 @@
         "jdk_name": "jdk-7u45-linux-x64.tar.gz", 
         "ambari_db_rca_username": "mapred", 
         "java_home": "/usr/jdk64/jdk1.7.0_45", 
-        "mysql_jdbc_url": "http://c6401.ambari.apache.org:8080/resources//mysql-connector-java.jar"
+        "mysql_jdbc_url": "http://c6401.ambari.apache.org:8080/resources//mysql-connector-java.jar",
+        "group_list": "[\"hadoop\",\"nobody\",\"users\",\"nagios\"]",
+        "user_list": "[\"hive\",\"oozie\",\"nobody\",\"nagios\",\"ambari-qa\",\"flume\",\"hdfs\",\"storm\",\"mapred\",\"hbase\",\"tez\",\"zookeeper\",\"falcon\",\"sqoop\",\"yarn\",\"hcat\"]"
     }, 
     "commandType": "EXECUTION_COMMAND", 
     "roleParams": {}, 
