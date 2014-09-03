@@ -27,7 +27,7 @@ from resource_management.core.source import DownloadSource
 from resource_management.core.source import Template
 from resource_management.core.source import InlineTemplate
 
-from ambari_jinja2 import UndefinedError, TemplateNotFound
+from jinja2 import UndefinedError, TemplateNotFound
 import urllib2
 import os
 

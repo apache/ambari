@@ -72,7 +72,7 @@ class StaticFile(Source):
 
 
 try:
-  from ambari_jinja2 import Environment as JinjaEnvironment, BaseLoader, TemplateNotFound, FunctionLoader, StrictUndefined
+  from jinja2 import Environment as JinjaEnvironment, BaseLoader, TemplateNotFound, FunctionLoader, StrictUndefined
 except ImportError:
   class Template(Source):
     def __init__(self, name, variables=None, env=None):
