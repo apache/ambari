@@ -17,9 +17,5 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import socket
-
-from stack_advisor import StackAdvisor
-
 class HDP133StackAdvisor(HDP132StackAdvisor):
   pass

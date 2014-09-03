@@ -17,10 +17,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import socket
-
-from stack_advisor import StackAdvisor
-
 class HDP21StackAdvisor(HDP206StackAdvisor):
 
   def recommendServiceConfigurations(self, service):
@@ -58,35 +54,45 @@ class HDP21StackAdvisor(HDP206StackAdvisor):
                    "-server -Xmx" + str(int(0.8 * clusterData["amMemory"]))
                    + "m -Djava.net.preferIPv4Stack=true -XX:+UseNUMA -XX:+UseParallelGC")
 
-  def isNotPreferableOnAmbariServerHost(self, component):
-    componentName = component["StackServiceComponents"]["component_name"]
-    service = ['STORM_UI_SERVER', 'DRPC_SERVER', 'STORM_REST_API', 'NIMBUS', 'GANGLIA_SERVER', 'NAGIOS_SERVER']
-    return componentName in service
+  def getNotPreferableOnServerComponents(self):
+    return ['STORM_UI_SERVER', 'DRPC_SERVER', 'STORM_REST_API', 'NIMBUS', 'GANGLIA_SERVER', 'NAGIOS_SERVER']
 
-  def isNotValuable(self, component):
-    componentName = component["StackServiceComponents"]["component_name"]
-    service = ['JOURNALNODE', 'ZKFC', 'GANGLIA_MONITOR', 'APP_TIMELINE_SERVER']
-    return componentName in service
+  def getNotValuableComponents(self):
+    return ['JOURNALNODE', 'ZKFC', 'GANGLIA_MONITOR', 'APP_TIMELINE_SERVER']
 
-  def selectionScheme(self, componentName):
-    scheme = super(HDP21StackAdvisor, self).selectionScheme(componentName)
-    if scheme is None:
-      return {
+  def selectionSchemes(self):
+    return {
+      'NAMENODE': {"else": 0},
+      'SECONDARY_NAMENODE': {"else": 1},
+      'HBASE_MASTER': {6: 0, 31: 2, "else": 3},
+
+      'HISTORYSERVER': {31: 1, "else": 2},
+      'RESOURCEMANAGER': {31: 1, "else": 2},
+
+      'OOZIE_SERVER': {6: 1, 31: 2, "else": 3},
+
+      'HIVE_SERVER': {6: 1, 31: 2, "else": 4},
+      'HIVE_METASTORE': {6: 1, 31: 2, "else": 4},
+      'WEBHCAT_SERVER': {6: 1, 31: 2, "else": 4},
+      }
+
+  def selectionScheme(self):
+    parentSchemes = super(HDP21StackAdvisor, self).selectionSchemes()
+    childSchemes = {
         'APP_TIMELINE_SERVER': {31: 1, "else": 2},
         'FALCON_SERVER': {6: 1, 31: 2, "else": 3}
-        }.get(componentName, None)
-    else:
-      return scheme
+    }
+    parentSchemes.update(childSchemes)
+    return parentSchemes
 
-  def validateServiceConfigurations(self, serviceName):
-    validator = super(HDP21StackAdvisor, self).validateServiceConfigurations(serviceName)
-    if validator is None:
-      return {
-        "HIVE": ["hive-site", self.validateHiveConfigurations],
-        "TEZ": ["tez-site", self.validateTezConfigurations]
-      }.get(serviceName, None)
-    else:
-      return validator
+  def getServiceConfigurationValidators(self):
+    parentValidators = super(HDP21StackAdvisor, self).getServiceConfigurationValidators()
+    childValidators = {
+      "HIVE": ["hive-site", self.validateHiveConfigurations],
+      "TEZ": ["tez-site", self.validateTezConfigurations]
+    }
+    parentValidators.update(childValidators)
+    return parentValidators
 
   def validateHiveConfigurations(self, properties, recommendedDefaults):
     validationItems = [ {"config-name": 'hive.tez.container.size', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'hive.tez.container.size')},

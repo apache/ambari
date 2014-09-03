@@ -18,169 +18,19 @@ limitations under the License.
 """
 
 import re
-import socket
 import sys
 
-from stack_advisor import StackAdvisor
+from stack_advisor import DefaultStackAdvisor
 
-class HDP206StackAdvisor(StackAdvisor):
+class HDP206StackAdvisor(DefaultStackAdvisor):
 
-  def recommendComponentLayout(self, services, hosts):
-    """
-    Returns Services object with hostnames array populated for components
-    If hostnames are populated for some components (partial blueprint) - these components will not be processed
-    """
-    stackName = services["Versions"]["stack_name"]
-    stackVersion = services["Versions"]["stack_version"]
-    hostsList = [host["Hosts"]["host_name"] for host in hosts["items"]]
-    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
-
-    recommendations = {
-      "Versions": {"stack_name": stackName, "stack_version": stackVersion},
-      "hosts": hostsList,
-      "services": servicesList,
-      "recommendations": {
-        "blueprint": {
-          "host_groups": [ ]
-        },
-        "blueprint_cluster_binding": {
-          "host_groups": [ ]
-        }
-      }
-    }
-
-    hostsComponentsMap = {}
-
-    #extend 'hostsComponentsMap' with MASTER components
-    for service in services["services"]:
-      masterComponents = [component for component in service["components"] if isMaster(component)]
-      for component in masterComponents:
-        componentName = component["StackServiceComponents"]["component_name"]
-        hostsForComponent = []
-
-        if isAlreadyPopulated(component):
-          hostsForComponent = component["StackServiceComponents"]["hostnames"]
-        else:
-          availableHosts = hostsList
-          if len(hostsList) > 1 and self.isNotPreferableOnAmbariServerHost(component):
-            availableHosts = [hostName for hostName in hostsList if not isLocalHost(hostName)]
-
-          if isMasterWithMultipleInstances(component):
-            hostsCount = defaultNoOfMasterHosts(component)
-            if hostsCount > 1: # get first 'hostsCount' available hosts
-              if len(availableHosts) < hostsCount:
-                hostsCount = len(availableHosts)
-              hostsForComponent = availableHosts[:hostsCount]
-            else:
-              hostsForComponent = [self.getHostForComponent(component, availableHosts)]
-          else:
-            hostsForComponent = [self.getHostForComponent(component, availableHosts)]
-
-        #extend 'hostsComponentsMap' with 'hostsForComponent'
-        for hostName in hostsForComponent:
-          if hostName not in hostsComponentsMap:
-            hostsComponentsMap[hostName] = []
-          hostsComponentsMap[hostName].append( { "name":componentName } )
-
-    #extend 'hostsComponentsMap' with Slave and Client Components
-    componentsListList = [service["components"] for service in services["services"]]
-    componentsList = [item for sublist in componentsListList for item in sublist]
-    usedHostsListList = [component["StackServiceComponents"]["hostnames"] for component in componentsList if not self.isNotValuable(component)]
-    utilizedHosts = [item for sublist in usedHostsListList for item in sublist]
-    freeHosts = [hostName for hostName in hostsList if hostName not in utilizedHosts]
-
-    for service in services["services"]:
-      slaveClientComponents = [component for component in service["components"] if isSlave(component) or isClient(component)]
-      for component in slaveClientComponents:
-        componentName = component["StackServiceComponents"]["component_name"]
-        hostsForComponent = []
-
-        if isAlreadyPopulated(component):
-          hostsForComponent = component["StackServiceComponents"]["hostnames"]
-        elif component["StackServiceComponents"]["cardinality"] == "ALL":
-          hostsForComponent = hostsList
-        else:
-          if len(freeHosts) == 0:
-            hostsForComponent = hostsList[-1:]
-          else: # len(freeHosts) >= 1
-            hostsForComponent = freeHosts
-            if isClient(component):
-              hostsForComponent = freeHosts[0:1]
-
-        #extend 'hostsComponentsMap' with 'hostsForComponent'
-        for hostName in hostsForComponent:
-          if hostName not in hostsComponentsMap:
-            hostsComponentsMap[hostName] = []
-          hostsComponentsMap[hostName].append( { "name": componentName } )
-
-    #prepare 'host-group's from 'hostsComponentsMap'
-    host_groups = recommendations["recommendations"]["blueprint"]["host_groups"]
-    bindings = recommendations["recommendations"]["blueprint_cluster_binding"]["host_groups"]
-    index = 0
-    for key in hostsComponentsMap.keys():
-      index += 1
-      host_group_name = "host-group-{0}".format(index)
-      host_groups.append( { "name": host_group_name, "components": hostsComponentsMap[key] } )
-      bindings.append( { "name": host_group_name, "hosts": [{ "fqdn": socket.getfqdn(key) }] } )
-
-    return recommendations
-  pass
-
-  def getHostForComponent(self, component, hostsList):
-    componentName = component["StackServiceComponents"]["component_name"]
-    scheme = self.defineSelectionScheme(componentName)
-
-    if len(hostsList) == 1:
-      return hostsList[0]
-    else:
-      for key in scheme.keys():
-        if isinstance(key, ( int, long )):
-          if len(hostsList) < key:
-            return hostsList[scheme[key]]
-      return hostsList[scheme['else']]
-
-  def defineSelectionScheme(self, componentName):
-    scheme = self.selectionScheme(componentName)
-    if scheme is None:
-      scheme = {"else": 0}
-    return scheme
-
-  def selectionScheme(self, componentName):
-    return {
-      'NAMENODE': {"else": 0},
-      'SECONDARY_NAMENODE': {"else": 1},
-      'HBASE_MASTER': {6: 0, 31: 2, "else": 3},
-
-      'HISTORYSERVER': {31: 1, "else": 2},
-      'RESOURCEMANAGER': {31: 1, "else": 2},
-
-      'OOZIE_SERVER': {6: 1, 31: 2, "else": 3},
-
-      'HIVE_SERVER': {6: 1, 31: 2, "else": 4},
-      'HIVE_METASTORE': {6: 1, 31: 2, "else": 4},
-      'WEBHCAT_SERVER': {6: 1, 31: 2, "else": 4},
-      }.get(componentName, None)
-
-  def isNotPreferableOnAmbariServerHost(self, component):
-    componentName = component["StackServiceComponents"]["component_name"]
-    service = ['GANGLIA_SERVER', 'NAGIOS_SERVER']
-    return componentName in service
-
-  def validateComponentLayout(self, services, hosts):
+  def getLayoutValidationItems(self, services, hosts):
     """Returns array of Validation objects about issues with hostnames components assigned to"""
-    stackName = services["Versions"]["stack_name"]
-    stackVersion = services["Versions"]["stack_version"]
-
-    validations = {
-      "Versions": {"stack_name": stackName, "stack_version": stackVersion},
-      "items": [ ]
-    }
-    items = validations["items"]
+    items = []
 
     # Validating NAMENODE and SECONDARY_NAMENODE are on different hosts if possible
     hostsList = [host["Hosts"]["host_name"] for host in hosts["items"]]
     hostsCount = len(hostsList)
-    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
 
     componentsListList = [service["components"] for service in services["services"]]
     componentsList = [item for sublist in componentsListList for item in sublist]
@@ -204,10 +54,6 @@ class HDP206StackAdvisor(StackAdvisor):
            componentHostsCount = len(component["StackServiceComponents"]["hostnames"])
          cardinality = str(component["StackServiceComponents"]["cardinality"])
          # cardinality types: null, 1+, 1-2, 1, ALL
-         hostsMax = -sys.maxint - 1
-         hostsMin = sys.maxint
-         hostsMin = 0
-         hostsMax = 0
          if "+" in cardinality:
            hostsMin = int(cardinality[:-1])
            hostsMax = sys.maxint
@@ -232,54 +78,13 @@ class HDP206StackAdvisor(StackAdvisor):
     for host in nonUsedHostsList:
       items.append( { "type": 'host-component', "level": 'ERROR', "message": 'Host is not used', "host": str(host) } )
 
-    return validations
-  pass
+    return items
 
-  def isNotValuable(self, component):
-    componentName = component["StackServiceComponents"]["component_name"]
-    service = ['JOURNALNODE', 'ZKFC', 'GANGLIA_MONITOR']
-    return componentName in service
-
-  def recommendConfigurations(self, services, hosts):
-    stackName = services["Versions"]["stack_name"]
-    stackVersion = services["Versions"]["stack_version"]
-    hostsList = [host["Hosts"]["host_name"] for host in hosts["items"]]
-    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
-    components = [component["StackServiceComponents"]["component_name"]
-                  for service in services["services"]
-                  for component in service["components"]]
-
-    clusterData = self.getClusterData(servicesList, hosts, components)
-
-    recommendations = {
-      "Versions": {"stack_name": stackName, "stack_version": stackVersion},
-      "hosts": hostsList,
-      "services": servicesList,
-      "recommendations": {
-        "blueprint": {
-          "configurations": {},
-          "host_groups": []
-        },
-        "blueprint_cluster_binding": {
-          "host_groups": []
-        }
-      }
-    }
-
-    configurations = recommendations["recommendations"]["blueprint"]["configurations"]
-
-    for service in servicesList:
-      calculation = self.recommendServiceConfigurations(service)
-      if calculation is not None:
-        calculation(configurations, clusterData)
-
-    return recommendations
-
-  def recommendServiceConfigurations(self, service):
+  def getServiceConfiguratorDict(self):
     return {
       "YARN": self.recommendYARNConfigurations,
       "MAPREDUCE2": self.recommendMapReduce2Configurations
-    }.get(service, None)
+    }
 
   def putProperty(self, config, configType):
     config[configType] = {"properties": {}}
@@ -379,17 +184,9 @@ class HDP206StackAdvisor(StackAdvisor):
 
     return cluster
 
-
-  def validateConfigurations(self, services, hosts):
+  def getConfigurationsValidationItems(self, services, hosts):
     """Returns array of Validation objects about issues with configuration values provided in services"""
-    stackName = services["Versions"]["stack_name"]
-    stackVersion = services["Versions"]["stack_version"]
-
-    validations = {
-      "Versions": {"stack_name": stackName, "stack_version": stackVersion},
-      "items": [ ]
-    }
-    items = validations["items"]
+    items = []
 
     recommendations = self.recommendConfigurations(services, hosts)
     recommendedDefaults = recommendations["recommendations"]["blueprint"]["configurations"]
@@ -406,22 +203,24 @@ class HDP206StackAdvisor(StackAdvisor):
           if siteProperties is not None:
             resultItems = method(siteProperties, recommendedDefaults[siteName]["properties"])
             items.extend(resultItems)
-    return validations
-    pass
+    return items
 
-  def validateServiceConfigurations(self, serviceName):
+  def getServiceConfigurationValidators(self):
     return {
       "MAPREDUCE2": ["mapred-site", self.validateMapReduce2Configurations],
       "YARN": ["yarn-site", self.validateYARNConfigurations]
-    }.get(serviceName, None)
+    }
+
+  def validateServiceConfigurations(self, serviceName):
+    return self.getServiceConfigurationValidators().get(serviceName, None)
 
   def toConfigurationValidationProblems(self, validationProblems, siteName):
     result = []
     for validationProblem in validationProblems:
       validationItem = validationProblem.get("item", None)
       if validationItem is not None:
-        problem = { "type": 'configuration', "level": validationItem["level"], "message": validationItem["message"],
-                  "config-type": siteName, "config-name": validationProblem["config-name"] }
+        problem = {"type": 'configuration', "level": validationItem["level"], "message": validationItem["message"],
+                   "config-type": siteName, "config-name": validationProblem["config-name"] }
         result.append(problem)
     return result
 
@@ -476,6 +275,36 @@ class HDP206StackAdvisor(StackAdvisor):
                         {"config-name": 'yarn.scheduler.maximum-allocation-mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'yarn.scheduler.maximum-allocation-mb')} ]
     return self.toConfigurationValidationProblems(validationItems, "yarn-site")
 
+  def getMastersWithMultipleInstances(self):
+    return ['ZOOKEEPER_SERVER', 'HBASE_MASTER']
+
+  def getNotValuableComponents(self):
+    return ['JOURNALNODE', 'ZKFC', 'GANGLIA_MONITOR']
+
+  def getNotPreferableOnServerComponents(self):
+    return ['GANGLIA_SERVER', 'NAGIOS_SERVER']
+
+  def getCardinalitiesDict(self):
+    return {
+      'ZOOKEEPER_SERVER': {"min": 3},
+      'HBASE_MASTER': {"min": 1},
+      }
+
+  def selectionSchemes(self):
+    return {
+      'NAMENODE': {"else": 0},
+      'SECONDARY_NAMENODE': {"else": 1},
+      'HBASE_MASTER': {6: 0, 31: 2, "else": 3},
+
+      'HISTORYSERVER': {31: 1, "else": 2},
+      'RESOURCEMANAGER': {31: 1, "else": 2},
+
+      'OOZIE_SERVER': {6: 1, 31: 2, "else": 3},
+
+      'HIVE_SERVER': {6: 1, 31: 2, "else": 4},
+      'HIVE_METASTORE': {6: 1, 31: 2, "else": 4},
+      'WEBHCAT_SERVER': {6: 1, 31: 2, "else": 4},
+      }
 
 # Validation helper methods
 def getSiteProperties(configurations, siteName):
@@ -520,44 +349,3 @@ def formatXmxSizeToBytes(value):
     modifier == 'p': 1024 * 1024 * 1024 * 1024 * 1024
     }[1]
   return to_number(value) * m
-
-
-# Recommendation helper methods
-def isAlreadyPopulated(component):
-  if component["StackServiceComponents"]["hostnames"] is not None:
-    return len(component["StackServiceComponents"]["hostnames"]) > 0
-  return False
-
-def isClient(component):
-  return component["StackServiceComponents"]["component_category"] == 'CLIENT'
-
-def isSlave(component):
-  componentName = component["StackServiceComponents"]["component_name"]
-  isSlave = component["StackServiceComponents"]["component_category"] == 'SLAVE'
-  return isSlave
-
-def isMaster(component):
-  componentName = component["StackServiceComponents"]["component_name"]
-  isMaster = component["StackServiceComponents"]["is_master"]
-  return isMaster
-
-def isLocalHost(hostName):
-  return socket.getfqdn(hostName) == socket.getfqdn()
-
-def isMasterWithMultipleInstances(component):
-  componentName = component["StackServiceComponents"]["component_name"]
-  masters = ['ZOOKEEPER_SERVER', 'HBASE_MASTER']
-  return componentName in masters
-
-def defaultNoOfMasterHosts(component):
-  componentName = component["StackServiceComponents"]["component_name"]
-  return cardinality(componentName)[min]
-
-
-# Helper dictionaries
-def cardinality(componentName):
-  return {
-    'ZOOKEEPER_SERVER': {min: 3},
-    'HBASE_MASTER': {min: 1},
-    }.get(componentName, {min:1, max:1})
-

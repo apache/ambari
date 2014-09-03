@@ -38,40 +38,41 @@ class TestStackAdvisorInitialization(TestCase):
     instantiate_stack_advisor_method = getattr(self.stack_advisor, instantiate_stack_advisor_method_name)
     stack_advisor = instantiate_stack_advisor_method("XYZ", "1.0.1", ["1.0.0"])
     self.assertEquals("XYZ101StackAdvisor", stack_advisor.__class__.__name__)
-    services = {"Versions":
-                  {
-                    "stack_name":"XYZ",
-                    "stack_version":"1.0.1"
-                  },
-                "services":[
-                  {
-                    "StackServices":{
-                      "service_name":"YARN"
-                    },
-                    "components":[
-                      {
-                        "StackServiceComponents": {
-                          "component_name": "RESOURCEMANAGER"
-                        }
-                      },
-                      {
-                        "StackServiceComponents": {
-                          "component_name": "APP_TIMELINE_SERVER"
-                        }
-                      },
-                      {
-                        "StackServiceComponents": {
-                          "component_name":"YARN_CLIENT"
-                        }
-                      },
-                      {
-                        "StackServiceComponents": {
-                          "component_name": "NODEMANAGER"
-                        }
-                      }
-                    ]
-                  }
-                ]
+    services = {
+      "Versions":
+        {
+          "stack_name":"XYZ",
+          "stack_version":"1.0.1"
+        },
+      "services":[
+        {
+          "StackServices":{
+            "service_name":"YARN"
+          },
+          "components":[
+            {
+              "StackServiceComponents": {
+                "component_name": "RESOURCEMANAGER"
+              }
+            },
+            {
+              "StackServiceComponents": {
+                "component_name": "APP_TIMELINE_SERVER"
+              }
+            },
+            {
+              "StackServiceComponents": {
+                "component_name":"YARN_CLIENT"
+              }
+            },
+            {
+              "StackServiceComponents": {
+                "component_name": "NODEMANAGER"
+              }
+            }
+          ]
+        }
+      ]
     }
     hosts= {
       "items": [
@@ -84,10 +85,258 @@ class TestStackAdvisorInitialization(TestCase):
     '''Check that value is populated from child class, not parent'''
     self.assertEquals("-Xmx101m", yarn_configs["yarn.nodemanager.resource.memory-mb"])
 
-  def test_stackAdvisorSuperClassIsFoundAndReturnedAsDefaultImpl(self):
+  def test_stackAdvisorDefaultImpl(self):
     instantiate_stack_advisor_method_name = 'instantiateStackAdvisor'
     instantiate_stack_advisor_method = getattr(self.stack_advisor, instantiate_stack_advisor_method_name)
     '''Not existent stack - to return default implementation'''
     default_stack_advisor = instantiate_stack_advisor_method("HDP1", "2.0.6", [])
-    self.assertEquals("StackAdvisor", default_stack_advisor.__class__.__name__)
-
+    self.assertEquals("DefaultStackAdvisor", default_stack_advisor.__class__.__name__)
+    services = {
+      "Versions":
+        {
+          "stack_name":"HDP1",
+          "stack_version":"2.0.6"
+        },
+      "services" : [
+        {
+          "StackServices" : {
+            "service_name" : "GANGLIA",
+            "service_version" : "3.5.0",
+          },
+          "components" : [
+            {
+              "StackServiceComponents" : {
+                "cardinality" : "ALL",
+                "component_name" : "GANGLIA_MONITOR",
+                "is_master" : False,
+                "hostnames" : [ ]
+              }
+            },
+            {
+              "StackServiceComponents" : {
+                "cardinality" : "1",
+                "component_name" : "GANGLIA_SERVER",
+                "is_master" : True,
+                "hostnames" : [ ]
+              }
+            }
+          ]
+        },
+        {
+          "StackServices" : {
+            "service_name" : "HBASE",
+            "service_version" : "0.98.0.2.1"
+          },
+          "components" : [
+            {
+              "StackServiceComponents" : {
+                "cardinality" : "1+",
+                "component_name" : "HBASE_CLIENT",
+                "is_master" : False,
+                "hostnames" : [ ]
+              }
+            },
+            {
+              "StackServiceComponents" : {
+                "cardinality" : "1+",
+                "component_name" : "HBASE_MASTER",
+                "is_master" : True,
+                "hostnames" : [ ]
+              }
+            },
+            {
+              "StackServiceComponents" : {
+                "cardinality" : "1+",
+                "component_name" : "HBASE_REGIONSERVER",
+                "is_master" : False,
+                "hostnames" : [ ]
+              }
+            }
+          ]
+        },
+        {
+          "StackServices" : {
+            "service_name" : "HDFS",
+            "service_version" : "2.4.0.2.1"
+          },
+          "components" : [
+            {
+              "StackServiceComponents" : {
+                "cardinality" : "1+",
+                "component_name" : "DATANODE",
+                "is_master" : False,
+                "hostnames" : [ ]
+              }
+            }, {
+              "StackServiceComponents" : {
+                "cardinality" : "1+",
+                "component_name" : "HDFS_CLIENT",
+                "is_master" : False,
+                "hostnames" : [ ]
+              }
+            }, {
+              "StackServiceComponents" : {
+                "cardinality" : "0+",
+                "component_name" : "JOURNALNODE",
+                "is_master" : False,
+                "hostnames" : [ ]
+              }
+            },
+            {
+              "StackServiceComponents" : {
+                "cardinality" : "1-2",
+                "component_name" : "NAMENODE",
+                "is_master" : True,
+                "hostnames" : [ ]
+              }
+            },
+            {
+              "StackServiceComponents" : {
+                "cardinality" : "1",
+                "component_name" : "SECONDARY_NAMENODE",
+                "is_master" : True,
+                "hostnames" : [ ]
+              }
+            },
+            {
+              "StackServiceComponents" : {
+                "cardinality" : "0+",
+                "component_name" : "ZKFC",
+                "is_master" : False,
+                "hostnames" : [ ]
+              }
+            }
+          ]
+        },
+        {
+          "StackServices" : {
+            "service_name" : "PIG",
+            "service_version" : "0.12.1.2.1"
+          },
+          "components" : [
+            {
+              "StackServiceComponents" : {
+                "cardinality" : "0+",
+                "component_name" : "PIG",
+                "is_master" : False,
+                "hostnames" : [ ]
+              }
+            }
+          ]
+        },
+        {
+          "StackServices" : {
+            "service_name" : "TEZ",
+            "service_version" : "0.4.0.2.1"
+          },
+          "components" : [
+            {
+              "StackServiceComponents" : {
+                "cardinality" : "0+",
+                "component_name" : "TEZ_CLIENT",
+                "is_master" : False,
+                "hostnames" : [ ]
+              }
+            }
+          ]
+        },
+        {
+          "StackServices" : {
+            "service_name" : "ZOOKEEPER",
+            "service_version" : "3.4.5.2.1",
+          },
+          "components" : [
+            {
+              "StackServiceComponents" : {
+                "cardinality" : "1+",
+                "component_category" : "CLIENT",
+                "component_name" : "ZOOKEEPER_CLIENT",
+                "is_master" : False,
+                "hostnames" : [ ]
+              }
+            },
+            {
+              "StackServiceComponents" : {
+                "cardinality" : "1+",
+                "component_name" : "ZOOKEEPER_SERVER",
+                "is_master" : True,
+                "hostnames" : [ ]
+             }
+           }
+          ]
+        }
+      ],
+      "configurations" : {}
+    }
+    hosts= {
+      "items": [
+        {"Hosts": {"host_name": "host1"}},
+        {"Hosts": {"host_name": "host2"}}
+      ]
+    }
+    actualValidateConfigResponse = default_stack_advisor.validateConfigurations(services, hosts)
+    actualValidateLayoutResponse = default_stack_advisor.validateComponentLayout(services, hosts)
+    expectedValidationResponse = {
+      "Versions": {"stack_name": "HDP1", "stack_version": "2.0.6"},
+      "items": []
+    }
+    self.assertEquals(actualValidateConfigResponse, expectedValidationResponse)
+    self.assertEquals(actualValidateLayoutResponse, expectedValidationResponse)
+    actualRecommendConfigResponse = default_stack_advisor.recommendConfigurations(services, hosts)
+    expectedRecommendConfigResponse = {
+      "Versions": {"stack_name": "HDP1", "stack_version": "2.0.6"},
+      "hosts": ["host1", "host2"],
+      "services": ['GANGLIA', 'HBASE', 'HDFS', 'PIG', 'TEZ', 'ZOOKEEPER'],
+      "recommendations": {
+        "blueprint": {
+          "configurations": {},
+          "host_groups": []
+        },
+        "blueprint_cluster_binding": {
+          "host_groups": []
+        }
+      }
+    }
+    self.assertEquals(actualRecommendConfigResponse, expectedRecommendConfigResponse)
+    actualRecommendLayoutResponse = default_stack_advisor.recommendComponentLayout(services, hosts)
+    expectedRecommendLayoutResponse = {
+      "Versions": {"stack_name": "HDP1", "stack_version": "2.0.6"},
+      "hosts": ["host1", "host2"],
+      "services": ['GANGLIA', 'HBASE', 'HDFS', 'PIG', 'TEZ', 'ZOOKEEPER'],
+      "recommendations": {
+        "blueprint": {
+          "host_groups": [
+            {
+              "name": "host-group-1",
+              "components": [
+                {"name": "GANGLIA_SERVER"},
+                {"name": "NAMENODE"},
+                {"name": "ZOOKEEPER_SERVER"}
+              ]
+            },
+            {
+              "name": "host-group-2",
+              "components": [
+                {"name": "HBASE_MASTER"},
+                {"name": "SECONDARY_NAMENODE"},
+                {"name": "ZOOKEEPER_CLIENT"}
+              ]
+            }
+          ]
+        },
+        "blueprint_cluster_binding":
+          {
+            "host_groups": [
+              {
+                "name": "host-group-1",
+                "hosts": [{"fqdn": "host2"}]
+              },
+              {
+                "name": "host-group-2",
+                "hosts": [{"fqdn": "host1"}]
+              }
+            ]
+          }
+      }
+    }
+    self.assertEquals(actualRecommendLayoutResponse, expectedRecommendLayoutResponse)

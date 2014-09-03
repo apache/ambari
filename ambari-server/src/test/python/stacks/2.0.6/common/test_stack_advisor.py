@@ -35,7 +35,7 @@ class TestHDP206StackAdvisor(TestCase):
       stack_advisor_impl = imp.load_module('stack_advisor_impl', fp, hdp206StackAdvisorPath, ('.py', 'rb', imp.PY_SOURCE))
     clazz = getattr(stack_advisor_impl, hdp206StackAdvisorClassName)
     self.stackAdvisor = clazz()
-    
+
   def test_recommendationCardinalityALL(self):
     servicesInfo = [
       {
