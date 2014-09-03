@@ -981,8 +981,17 @@ App.MainHostDetailsController = Em.Controller.extend({
                   "slave_type": slaveType,
                   "excluded_hosts": hostNames,
                   "mark_draining_only": "true"
+                },
+                'operation_level': {
+                  level: "HOST_COMPONENT",
+                  cluster_name: App.get('clusterName'),
+                  host_name: hostNames,
+                  service_name: serviceName
                 }
-              }
+              },
+              "Requests/resource_filters": [
+                {"service_name": serviceName, "component_name": componentName}
+              ]
             }
           }
         ]
