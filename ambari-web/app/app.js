@@ -66,11 +66,6 @@ module.exports = Em.Application.create({
       stringUtils.compareVersions(this.get('currentStackVersionNumber'), "2.0") === 0)
   }.property('currentStackVersionNumber'),
 
-  isHadoop21Stack: function () {
-    return (stringUtils.compareVersions(this.get('currentStackVersionNumber'), "2.1") === 1 ||
-      stringUtils.compareVersions(this.get('currentStackVersionNumber'), "2.1") === 0)
-  }.property('currentStackVersionNumber'),
-
   /**
    * If NameNode High Availability is enabled
    * Based on <code>clusterStatus.isInstalled</code>, stack version, <code>SNameNode</code> availability
@@ -89,9 +84,13 @@ module.exports = Em.Application.create({
    * @type {bool}
    */
   isRMHaEnabled: function () {
-    if (!this.get('isHadoop2Stack')) return false;
-    return this.HostComponent.find().filterProperty('componentName', 'RESOURCEMANAGER').length > 1;
-  }.property('router.clusterController.isLoaded', 'isHadoop2Stack'),
+    var result = false;
+    var rmStackComponent = App.StackServiceComponent.find().findProperty('componentName','RESOURCEMANAGER');
+    if (rmStackComponent && rmStackComponent.get('isMultipleAllowed')) {
+      result = this.HostComponent.find().filterProperty('componentName', 'RESOURCEMANAGER').length > 1;
+    }
+    return result;
+  }.property('router.clusterController.isLoaded'),
 
   /**
    * Object with utility functions for list of service names with similar behavior

@@ -55,7 +55,7 @@ App.MainAdminServiceAccountsController = App.MainServiceInfoConfigsController.ex
       }
     }
     this.setServiceConfigTags(loadedClusterSiteToTagMap);
-    App.router.get('configurationController').getConfigsByTags(this.get('serviceConfigTags')).done(function(configGroups){
+    App.router.get('configurationController').getConfigsByTags(this.get('serviceConfigTags')).done(function (configGroups) {
       var configSet = App.config.mergePreDefinedWithLoaded(configGroups, [], self.get('serviceConfigTags'), serviceName);
 
       var misc_configs = configSet.configs.filterProperty('serviceName', self.get('selectedService')).filterProperty('category', 'Users and Groups').filterProperty('isVisible', true);
@@ -64,7 +64,7 @@ App.MainAdminServiceAccountsController = App.MainServiceInfoConfigsController.ex
 
       var sortOrder = self.get('configs').filterProperty('serviceName', self.get('selectedService')).filterProperty('category', 'Users and Groups').filterProperty('isVisible', true).mapProperty('name');
 
-      //stack, with version lower than 2.1, doesn't have Falcon service
+
       self.setProxyUserGroupLabel(misc_configs);
 
       self.set('users', self.sortByOrder(sortOrder, misc_configs));
@@ -120,8 +120,17 @@ App.MainAdminServiceAccountsController = App.MainServiceInfoConfigsController.ex
    */
   setProxyUserGroupLabel: function (misc_configs) {
     var proxyUserGroup = misc_configs.findProperty('name', 'proxyuser_group');
-    if (proxyUserGroup && !App.get('isHadoop21Stack')) {
-      proxyUserGroup.set('displayName', "Proxy group for Hive, WebHCat and Oozie");
+    //stack, with version lower than 2.1, doesn't have Falcon service
+    if (proxyUserGroup) {
+      var proxyServices = ['HIVE', 'WEBHCAT', 'OOZIE', 'FALCON'];
+      var services = Em.A([]);
+      proxyServices.forEach(function (serviceName) {
+        var stackService = App.StackService.find(serviceName);
+        if (stackService) {
+          services.push(stackService.get('displayName'));
+        }
+      }, this);
+      proxyUserGroup.set('displayName', "Proxy group for " + stringUtils.getFormattedStringFromArray(services));
     }
   }
 });

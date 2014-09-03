@@ -194,29 +194,5 @@ describe('App.MainAdminServiceAccountsController', function () {
       controller.setProxyUserGroupLabel(misc_configs);
       expect(misc_configs.findProperty('name', 'proxyuser_group')).to.be.undefined;
     });
-    it('proxyuser_group config defined and isHadoop21Stack is true', function () {
-      var misc_configs = [Em.Object.create({
-        name: 'proxyuser_group',
-        displayName: 'test'
-      })];
-      sinon.stub(App, 'get', function(){
-        return true;
-      });
-      controller.setProxyUserGroupLabel(misc_configs);
-      expect(misc_configs.findProperty('name', 'proxyuser_group').get('displayName')).to.equal('test');
-      App.get.restore();
-    });
-    it('proxyuser_group config defined and isHadoop21Stack is false', function () {
-      var misc_configs = [Em.Object.create({
-        name: 'proxyuser_group',
-        displayName: 'test'
-      })];
-      sinon.stub(App, 'get', function(){
-        return false;
-      });
-      controller.setProxyUserGroupLabel(misc_configs);
-      expect(misc_configs.findProperty('name', 'proxyuser_group').get('displayName')).to.equal('Proxy group for Hive, WebHCat and Oozie');
-      App.get.restore();
-    });
   })
 });
