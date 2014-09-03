@@ -84,21 +84,18 @@ App.ConfigHistoryFlowView = Em.View.extend({
   }.property('displayedServiceVersion'),
 
   serviceVersions: function () {
-    var serviceVersions;
     var allServiceVersions = App.ServiceConfigVersion.find().filterProperty('serviceName', this.get('serviceName'));
-    var defaultGroup = Em.I18n.t('dashboard.configHistory.table.configGroup.default');
-    if (this.get('controller.selectedConfigGroup.isDefault')) {
-      allServiceVersions.forEach(function (version) {
-        version.set('isDisabled', ! (version.get('groupName') == defaultGroup));
-      });
-      serviceVersions = allServiceVersions.filterProperty('groupName', defaultGroup);
-    } else {
-      // filter out default group(should be grayedOut) and current selectedGroup versions
-      allServiceVersions.forEach(function (version) {
-        version.set('isDisabled', !(version.get('groupName') === this.get('controller.selectedConfigGroup.name')));
-      }, this);
-      serviceVersions = allServiceVersions.filterProperty('groupName', defaultGroup).concat(allServiceVersions.filterProperty('groupName', this.get('controller.selectedConfigGroup.name')));
-    }
+    var groupName = this.get('controller.selectedConfigGroup.isDefault') ? 'default'
+        : this.get('controller.selectedConfigGroup.name');
+
+    allServiceVersions.forEach(function (version) {
+      version.set('isDisabled', !(version.get('groupName') === groupName));
+    }, this);
+
+    var serviceVersions = allServiceVersions.filter(function(s) {
+      return s.get('groupName') == groupName || s.get('groupName') == 'default';
+    });
+
     return serviceVersions.sort(function (a, b) {
       return Em.get(a, 'createTime') - Em.get(b, 'createTime');
     });
@@ -109,7 +106,7 @@ App.ConfigHistoryFlowView = Em.View.extend({
    */
   visibleServiceVersion: function () {
     return this.get('serviceVersions').slice(this.get('startIndex'), (this.get('startIndex') + this.VERSIONS_IN_FLOW));
-  }.property('startIndex'),
+  }.property('startIndex', 'serviceVersions'),
 
   /**
    * enable actions to manipulate version only after it's loaded
