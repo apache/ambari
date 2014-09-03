@@ -112,8 +112,8 @@ App.ConfigHistoryFlowView = Em.View.extend({
    * enable actions to manipulate version only after it's loaded
    */
   versionActionsDisabled: function () {
-    return !this.get('controller.versionLoaded');
-  }.property('controller.versionLoaded'),
+    return !this.get('controller.versionLoaded') || this.get('dropDownList.length') === 0;
+  }.property('controller.versionLoaded', 'dropDownList.length'),
 
   /**
    * enable discard to manipulate version only after it's loaded and any property is changed
