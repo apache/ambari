@@ -614,7 +614,7 @@ module.exports = Em.Route.extend({
           mainServiceInfoConfigsController.showSavePopup(router.get('location.lastSetURL').replace('configs', 'summary'));
           return false;
         }
-        var parent = event.view._parentView;
+        var parent = event.view.get('_parentView');
         parent.deactivateChildViews();
         event.view.set('active', "active");
         router.transitionTo(event.context);
