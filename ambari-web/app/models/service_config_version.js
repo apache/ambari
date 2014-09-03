@@ -35,11 +35,12 @@ App.ServiceConfigVersion = DS.Model.extend({
   service: DS.belongsTo('App.Service'),
   index: DS.attr('number'),
   isCurrent: DS.attr('boolean'),
+  isDisplayed: DS.attr('boolean'),
   currentTooltip: function () {
     return Em.I18n.t('dashboard.configHistory.table.current.tooltip').format(this.get('displayName'), this.get('configGroupName'));
   }.property('displayName', 'configGroupName'),
   configGroupName: function () {
-    return this.get('groupName') == Em.I18n.t('dashboard.configHistory.table.configGroup.default') ? (this.get('displayName') + ' ' + Em.I18n.t('common.default')) : this.get('groupName');
+    return (this.get('groupName') === 'default') ? (this.get('displayName') + ' ' + Em.I18n.t('common.default')) : this.get('groupName');
   }.property('groupName'),
   briefNotes: function () {
     return (typeof this.get('notes') === 'string') ? this.get('notes').slice(0, 100) : "";

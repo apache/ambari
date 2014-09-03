@@ -45,6 +45,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   saveConfigsFlag: true,
   isCompareMode: false,
   compareServiceVersion: null,
+  preSelectedConfigVersion: null,
   // contain Service Config Property, when user proceed from Select Config Group dialog
   overrideToAdd: null,
   //latest version of service config versions
@@ -286,10 +287,13 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
    * @param params
    */
   loadServiceConfigVersionsSuccess: function (data, opt, params) {
-    var self = this;
     App.serviceConfigVersionsMapper.map(data);
-    self.set('currentVersion', data.items.filterProperty('group_id', -1).findProperty('is_current').service_config_version);
-    self.loadSelectedVersion();
+    if (this.get('preSelectedConfigVersion')) {
+      this.set('currentVersion', this.get('preSelectedConfigVersion.version'));
+    } else {
+      this.set('currentVersion', data.items.filterProperty('group_id', -1).findProperty('is_current').service_config_version);
+    }
+    this.loadSelectedVersion();
   },
 
   /**
@@ -450,7 +454,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
       configSiteTags: []
     });
     if (!selectedConfigGroup) {
-      selectedConfigGroup = defaultConfigGroup;
+      selectedConfigGroup = configGroups.findProperty('name', this.get('preSelectedConfigVersion.groupName')) || defaultConfigGroup;
     }
 
     this.get('configGroups').sort(function (configGroupA, configGroupB) {
@@ -458,6 +462,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     });
     this.get('configGroups').unshift(defaultConfigGroup);
     this.set('selectedConfigGroup', selectedConfigGroup);
+    this.set('preSelectedConfigVersion', null);
   },
 
   onConfigGroupChange: function () {

@@ -149,7 +149,8 @@ module.exports = Em.Route.extend({
     }),
     goToServiceConfigs: function (router, event) {
       router.get('mainServiceItemController').set('routeToConfigs', true);
-      router.transitionTo('main.services.service.configs', App.Service.find(event.context));
+      router.get('mainServiceInfoConfigsController').set('preSelectedConfigVersion', event.context);
+      router.transitionTo('main.services.service.configs', App.Service.find(event.context.get('serviceName')));
       router.get('mainServiceItemController').set('routeToConfigs', false);
     }
   }),

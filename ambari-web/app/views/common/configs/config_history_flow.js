@@ -154,16 +154,16 @@ App.ConfigHistoryFlowView = Em.View.extend({
     var serviceVersions = this.get('serviceVersions');
     var startIndex = 0;
     var currentIndex = 0;
+    var selectedVersion = this.get('controller.currentVersion');
 
     serviceVersions.setEach('isDisplayed', false);
-    // display current in default group
+
     serviceVersions.forEach(function (serviceVersion, index) {
-      // find current in default group
-      if (serviceVersion.get('isCurrent') && serviceVersion.get('groupName') == Em.I18n.t('dashboard.configHistory.table.configGroup.default')){
+      if (selectedVersion === serviceVersion.get('version')) {
         serviceVersion.set('isDisplayed', true);
         currentIndex = index;
       }
-    });
+    }, this);
 
     // show current version as the last one
     if (currentIndex + 1 > this.VERSIONS_IN_FLOW) {
