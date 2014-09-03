@@ -58,12 +58,12 @@ public class OsFamily {
       osMap.put("centos5", new HashSet<String>());
       osMap.put("centos6", new HashSet<String>());
       osMap.put("suse11", new HashSet<String>());
-      osMap.put("debian12", new HashSet<String>());
+      osMap.put("ubuntu12", new HashSet<String>());
       
       Collections.addAll(osMap.get("centos5"), "centos5", "redhat5", "oraclelinux5", "rhel5");
       Collections.addAll(osMap.get("centos6"), "centos6", "redhat6", "oraclelinux6", "rhel6");
       Collections.addAll(osMap.get("suse11"), "suse11", "sles11", "opensuse11");
-      Collections.addAll(osMap.get("debian12"), "ubuntu12");
+      Collections.addAll(osMap.get("ubuntu12"), "ubuntu12");
     }
   }
 

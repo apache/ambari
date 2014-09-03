@@ -164,7 +164,7 @@ public interface Host {
    * Get the os Family: 
    * redhat5: for centos5, rhel5, oraclelinux5 ..
    * redhat6: for centos6, rhel6, oraclelinux6 ..
-   * debian12 : for ubuntu12
+   * ubuntu12 : for ubuntu12
    * suse11: for sles11, suse11 ..
    * 
    * @return the osFamily

@@ -509,7 +509,6 @@ public class AmbariMetaInfoTest {
     Assert.assertTrue(metaInfo.isOsSupported("suse11"));
     Assert.assertTrue(metaInfo.isOsSupported("sles11"));
     Assert.assertTrue(metaInfo.isOsSupported("ubuntu12"));
-    Assert.assertTrue(metaInfo.isOsSupported("debian12"));
     Assert.assertFalse(metaInfo.isOsSupported("windows"));
   }
 

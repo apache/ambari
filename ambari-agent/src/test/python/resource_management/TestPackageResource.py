@@ -28,8 +28,8 @@ from resource_management.core import shell
 class TestPackageResource(TestCase):
   @patch.object(shell, "call")
   @patch.object(shell, "checked_call")
-  @patch.object(System, "os_family", new = 'debian')
-  def test_action_install_debian_update(self, shell_mock, call_mock):
+  @patch.object(System, "os_family", new = 'ubuntu')
+  def test_action_install_ubuntu_update(self, shell_mock, call_mock):
     call_mock.return_value= (1, None)
     with Environment('/') as env:
       Package("some_package",
@@ -45,8 +45,8 @@ class TestPackageResource(TestCase):
   
   @patch.object(shell, "call")
   @patch.object(shell, "checked_call")
-  @patch.object(System, "os_family", new = 'debian')
-  def test_action_install_debian(self, shell_mock, call_mock):
+  @patch.object(System, "os_family", new = 'ubuntu')
+  def test_action_install_ubuntu(self, shell_mock, call_mock):
     call_mock.side_effect = [(1, None), (0, None)]
     with Environment('/') as env:
       Package("some_package",

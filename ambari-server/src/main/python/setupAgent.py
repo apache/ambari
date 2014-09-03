@@ -54,7 +54,7 @@ def installAgent(projectVersion):
   # The command doesn't work with file mask ambari-agent*.rpm, so rename it on agent host
   if OSCheck.is_suse_family():
     Command = ["zypper", "--no-gpg-checks", "install", "-y", "ambari-agent-" + projectVersion]
-  elif OSCheck.is_debian_family():
+  elif OSCheck.is_ubuntu_family():
     # add * to end of version in case of some test releases
     Command = ["apt-get", "install", "-y", "--allow-unauthenticated", "ambari-agent=" + projectVersion + "*"]
   else:
@@ -111,7 +111,7 @@ def findNearestAgentPackageVersion(projectVersion):
   if OSCheck.is_suse_family():
     Command = ["bash", "-c", "zypper --no-gpg-checks -q search -s --match-exact ambari-agent | grep '" + projectVersion +
                                  "' | cut -d '|' -f 4 | head -n1 | sed -e 's/-\w[^:]*//1' "]
-  elif OSCheck.is_debian_family():
+  elif OSCheck.is_ubuntu_family():
     if projectVersion == "  ":
       Command = ["bash", "-c", "apt-cache -q show ambari-agent |grep 'Version\:'|cut -d ' ' -f 2|tr -d '\\n'|sed -s 's/[-|~][A-Za-z0-9]*//'"]
     else:
@@ -124,7 +124,7 @@ def findNearestAgentPackageVersion(projectVersion):
 
 
 def isAgentPackageAlreadyInstalled(projectVersion):
-    if OSCheck.is_debian_family():
+    if OSCheck.is_ubuntu_family():
       Command = ["bash", "-c", "dpkg-query -W -f='${Status} ${Version}\n' ambari-agent | grep -v deinstall | grep " + projectVersion]
     else:
       Command = ["bash", "-c", "rpm -qa | grep ambari-agent-"+projectVersion]
@@ -139,7 +139,7 @@ def getAvaliableAgentPackageVersions():
   if OSCheck.is_suse_family():
     Command = ["bash", "-c",
         "zypper --no-gpg-checks -q search -s --match-exact ambari-agent | grep ambari-agent | sed -re 's/\s+/ /g' | cut -d '|' -f 4 | tr '\\n' ', ' | sed -s 's/[-|~][A-Za-z0-9]*//g'"]
-  elif OSCheck.is_debian_family():
+  elif OSCheck.is_ubuntu_family():
     Command = ["bash", "-c",
         "apt-cache -q show ambari-agent|grep 'Version\:'|cut -d ' ' -f 2| tr '\\n' ', '|sed -s 's/[-|~][A-Za-z0-9]*//g'"]
   else:

@@ -79,7 +79,7 @@
           </packages>
         </osSpecific>
         <osSpecific>
-          <osFamily>debian12</osFamily>
+          <osFamily>ubuntu12</osFamily>
           <packages>
             <package>
               <name>python-rrdtool</name>

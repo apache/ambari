@@ -40,9 +40,9 @@ class TestUtils(TestCase):
   def test_get_postgre_hba_dir(self, popenMock, os_path_is_fine_mock,
                                get_ubuntu_pg_version_mock):
     p = MagicMock()
-    utils.PG_HBA_INIT_FILES['debian'] = '/tmp'
+    utils.PG_HBA_INIT_FILES['ubuntu'] = '/tmp'
     get_ubuntu_pg_version_mock.return_value = '9.1'
-    self.assertEqual('/tmp/9.1/main', utils.get_postgre_hba_dir('debian'))
+    self.assertEqual('/tmp/9.1/main', utils.get_postgre_hba_dir('ubuntu'))
 
     # ## Tests depends on postgres version ###
     # 1) PGDATA=/var/lib/pgsql/data
@@ -78,7 +78,7 @@ class TestUtils(TestCase):
     utils.PG_STATUS_RUNNING_DEFAULT = "red_running"
     get_ubuntu_pg_version_mock.return_value = '9.1'
 
-    self.assertEqual('9.1/main', utils.get_postgre_running_status('debian'))
+    self.assertEqual('9.1/main', utils.get_postgre_running_status('ubuntu'))
     self.assertEqual('red_running', utils.get_postgre_running_status('redhat'))
 
   @patch('os.path.isfile')

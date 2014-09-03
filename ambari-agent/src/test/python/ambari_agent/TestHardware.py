@@ -196,10 +196,10 @@ lo        Link encap:Local Loopback
     self.assertEquals(result['operatingsystem'], 'some_type_of_os')
     self.assertEquals(result['osfamily'], 'redhat')
 
-    get_os_family_mock.return_value = "debian"
+    get_os_family_mock.return_value = "ubuntu"
     result = Facter().facterInfo()
     self.assertEquals(result['operatingsystem'], 'some_type_of_os')
-    self.assertEquals(result['osfamily'], 'debian')
+    self.assertEquals(result['osfamily'], 'ubuntu')
 
     get_os_family_mock.return_value = "suse"
     result = Facter().facterInfo()

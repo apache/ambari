@@ -542,15 +542,15 @@ class TestBootstrap(TestCase):
   @patch.object(SSH, "__init__")
   @patch.object(SSH, "run")
   @patch.object(HostLog, "write")
-  def test_checkSudoPackageDebian(self, write_mock, run_mock, init_mock, server_family_mock):
+  def test_checkSudoPackageUbuntu(self, write_mock, run_mock, init_mock, server_family_mock):
     shared_state = SharedState("root", "sshkey_file", "scriptDir", "bootdir",
-                               "setupAgentFile", "ambariServer", "debian12",
+                               "setupAgentFile", "ambariServer", "ubuntu12",
                                None, "8440")
     bootstrap_obj = Bootstrap("hostname", shared_state)
     expected = 42
     init_mock.return_value = None
     run_mock.return_value = expected
-    server_family_mock.return_value = ["debian", "12"]
+    server_family_mock.return_value = ["ubuntu", "12"]
     res = bootstrap_obj.checkSudoPackage()
     self.assertEquals(res, expected)
     command = str(init_mock.call_args[0][3])

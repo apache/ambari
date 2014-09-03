@@ -53,7 +53,7 @@ class HostInfo:
 
   # List of live services checked for on the host, takes a map of plan strings
   DEFAULT_LIVE_SERVICES = [
-    {OSConst.REDHAT_FAMILY: "ntpd", OSConst.SUSE_FAMILY: "ntp", OSConst.DEBIAN_FAMILY: "ntp"}
+    {OSConst.REDHAT_FAMILY: "ntpd", OSConst.SUSE_FAMILY: "ntp", OSConst.UBUNTU_FAMILY: "ntp"}
   ]
 
   # Set of default users (need to be replaced with the configured user names)

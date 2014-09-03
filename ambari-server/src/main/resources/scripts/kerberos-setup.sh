@@ -253,7 +253,7 @@ getEnvironmentCMD () {
   version=`python -c 'import sys; sys.path.append("/usr/lib/python2.6/site-packages/"); from ambari_commons import OSCheck; print OSCheck.get_os_major_version()'`
   os=$os$version;
   case $os in
-  'debian12' )
+  'ubuntu12' )
     pkgmgr='apt-get'
     inst_cmd="env DEBIAN_FRONTEND=noninteractive /usr/bin/$pkgmgr --allow-unauthenticated --assume-yes install -f "
     client_packages="krb5-user libpam-krb5 libpam-ccreds auth-client-config"
@@ -325,7 +325,7 @@ checkSSH () {
 installRngtools () {
   $inst_cmd $rng_tools
   echo $inst_cmd $rng_utils
-  if [ $os == 'debian12' ] || [ $os == 'suse11' ]; then
+  if [ $os == 'ubuntu12' ] || [ $os == 'suse11' ]; then
     echo "HRNGDEVICE=/dev/urandom" >> /etc/default/rng-tools
     /etc/init.d/rng-tools start || true
   elif [ $os == 'redhat5' ]; then

@@ -37,7 +37,7 @@ gmond_apps = [x.strip() for x in gmond_apps]
 gmond_allowed_apps = ["Application1", "Application2", "Application3"]
 gmond_apps = set(gmond_apps) & set(gmond_allowed_apps)
 
-if System.get_instance().os_family == "debian":
+if System.get_instance().os_family == "ubuntu":
   gmond_service_name = "ganglia-monitor"
   modules_dir = "/usr/lib/ganglia"
 else:
@@ -148,7 +148,7 @@ elif  System.get_instance().os_family == "redhat":
   rrd_py_path = '/var/www/cgi-bin'
   dwoo_path = '/var/lib/ganglia/dwoo'
   web_user = "apache"
-elif  System.get_instance().os_family == "debian":
+elif  System.get_instance().os_family == "ubuntu":
   rrd_py_path = '/usr/lib/cgi-bin'
   ganglia_web_path = '/usr/share/ganglia-webfrontend'
   dwoo_path = '/var/lib/ganglia/dwoo'

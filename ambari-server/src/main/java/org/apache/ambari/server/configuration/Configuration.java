@@ -285,7 +285,7 @@ public class Configuration {
   private static final String SERVER_CONNECTION_MAX_IDLE_TIME =
       "server.connection.max.idle.millis";
 
-  private static final String UBUNTU_OS = "debian12";
+  private static final String UBUNTU_OS = "ubuntu12";
 
   /**
    * Default for repo validation suffixes.

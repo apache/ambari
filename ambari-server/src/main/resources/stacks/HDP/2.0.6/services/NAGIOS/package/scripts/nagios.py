@@ -81,9 +81,9 @@ def nagios():
     group = params.nagios_group,
     mode = 0664)
   
-  if System.get_instance().os_family == "debian":
-    Link(params.debian_stylesheets_desired_location,
-         to = params.debian_stylesheets_real_location
+  if System.get_instance().os_family == "ubuntu":
+    Link(params.ubuntu_stylesheets_desired_location,
+         to = params.ubuntu_stylesheets_real_location
     )
   
   
@@ -104,7 +104,7 @@ def set_web_permisssions():
 
   if System.get_instance().os_family == "suse":
     command = format("usermod -G {nagios_group} wwwrun")
-  elif System.get_instance().os_family == "debian":
+  elif System.get_instance().os_family == "ubuntu":
     command = format("usermod -G {nagios_group} www-data") # check -a ???
   elif System.get_instance().os_family == "redhat":
     command = format("usermod -a -G {nagios_group} apache")

@@ -125,7 +125,7 @@ public class AmbariMetaInfo {
   // all the supported OS'es
   private static final List<String> ALL_SUPPORTED_OS = Arrays.asList(
       "centos5", "redhat5", "centos6", "redhat6", "oraclelinux5",
-      "oraclelinux6", "suse11", "sles11", "ubuntu12", "debian12");
+      "oraclelinux6", "suse11", "sles11", "ubuntu12");
 
   private final ActionDefinitionManager adManager = new ActionDefinitionManager();
   private String serverVersion = "undefined";

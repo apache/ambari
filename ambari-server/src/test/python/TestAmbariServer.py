@@ -1033,7 +1033,7 @@ class TestAmbariServer(TestCase):
 
 
     get_os_type_mock.return_value = OSConst.OS_UBUNTU
-    get_os_family_mock.return_value = OSConst.DEBIAN_FAMILY
+    get_os_family_mock.return_value = OSConst.UBUNTU_FAMILY
 
     firewall_obj = Firewall().getFirewallObject()
     p.communicate.return_value = ("Status: active", "err")

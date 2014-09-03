@@ -606,7 +606,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, {
   loadRepoInfoSuccessCallback: function (data) {
     var allRepos = [];
     data.items.forEach(function (os) {
-      if (!App.get('supports.ubuntu') && os.OperatingSystems.os_type == 'debian12') return; // @todo: remove after Ubuntu support confirmation
+      if (!App.get('supports.ubuntu') && os.OperatingSystems.os_type == 'ubuntu12') return; // @todo: remove after Ubuntu support confirmation
       os.repositories.forEach(function (repository) {
         allRepos.push(Em.Object.create({
           base_url: repository.Repositories.base_url,

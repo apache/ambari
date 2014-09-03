@@ -8300,7 +8300,7 @@ public class AmbariManagementControllerTest {
 
     // variation #1: url with trailing slash, suffix preceding slash
     backingProperties.setProperty(Configuration.REPO_SUFFIX_KEY_UBUNTU, "/repodata/repomd.xml");
-    Assert.assertTrue(baseUrl.endsWith("/") && configuration.getRepoValidationSuffixes("debian12")[0].startsWith("/"));
+    Assert.assertTrue(baseUrl.endsWith("/") && configuration.getRepoValidationSuffixes("ubuntu12")[0].startsWith("/"));
     request.setBaseUrl(baseUrl);
     controller.updateRespositories(requests);
     Assert.assertEquals(baseUrl, repo.getBaseUrl());
@@ -8328,7 +8328,7 @@ public class AmbariManagementControllerTest {
 
     // variation #5: multiple suffix tests
     backingProperties.setProperty(Configuration.REPO_SUFFIX_KEY_UBUNTU, "/foo/bar.xml,/repodata/repomd.xml");
-    Assert.assertTrue(configuration.getRepoValidationSuffixes("debian12").length > 1);
+    Assert.assertTrue(configuration.getRepoValidationSuffixes("ubuntu12").length > 1);
     request.setBaseUrl(baseUrl);
     controller.updateRespositories(requests);
     Assert.assertEquals(baseUrl, repo.getBaseUrl());

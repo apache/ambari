@@ -161,7 +161,7 @@ class Bootstrap(threading.Thread):
     self.host_log = HostLog(log_file)
     self.daemon = True
 
-    if self.is_debian():
+    if self.is_ubuntu():
       self.AMBARI_REPO_FILENAME = self.AMBARI_REPO_FILENAME + ".list"
     else:
       self.AMBARI_REPO_FILENAME = self.AMBARI_REPO_FILENAME + ".repo"
@@ -196,8 +196,8 @@ class Bootstrap(threading.Thread):
         return True
     return False
 
-  def is_debian(self):
-    if self.getServerFamily()[0] == "debian":
+  def is_ubuntu(self):
+    if self.getServerFamily()[0] == "ubuntu":
       return True
     return False
 
@@ -205,7 +205,7 @@ class Bootstrap(threading.Thread):
     """ Ambari repo file for Ambari."""
     if self.is_suse():
       return "/etc/zypp/repos.d"
-    elif self.is_debian():
+    elif self.is_ubuntu():
       return "/etc/apt/sources.list.d"
     else:
       return "/etc/yum.repos.d"
@@ -305,8 +305,8 @@ class Bootstrap(threading.Thread):
     retcode2 = ssh.run()
     self.host_log.write("\n")
 
-    # Update repo cache for debian OS
-    if self.is_debian():
+    # Update repo cache for ubuntu OS
+    if self.is_ubuntu():
       self.host_log.write("==========================\n")
       self.host_log.write("Update apt cache of repository...")
       command = self.getAptUpdateCommand()
@@ -419,7 +419,7 @@ class Bootstrap(threading.Thread):
     self.host_log.write("==========================\n")
     self.host_log.write("Checking 'sudo' package on remote host...")
     params = self.shared_state
-    if self.getServerFamily()[0] == "debian":
+    if self.getServerFamily()[0] == "ubuntu":
       command = "dpkg --get-selections|grep -e '^sudo\s*install'"
     else:
       command = "rpm -qa | grep -e '^sudo\-'"

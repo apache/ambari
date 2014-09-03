@@ -51,7 +51,7 @@ repos_dirs = {
 }
 
 
-class DebianRepositoryProvider(Provider):
+class UbuntuRepositoryProvider(Provider):
   package_type = "deb"
   repo_dir = "/etc/apt/sources.list.d"
   update_cmd = 'apt-get update -qq -o Dir::Etc::sourcelist="sources.list.d/{repo_file_name}" -o APT::Get::List-Cleanup="0"'
