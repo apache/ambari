@@ -25,6 +25,7 @@ import org.apache.ambari.server.view.configuration.ResourceConfig;
 import org.apache.ambari.server.view.configuration.ResourceConfigTest;
 import org.apache.ambari.server.view.configuration.ViewConfig;
 import org.apache.ambari.server.view.configuration.ViewConfigTest;
+import org.apache.ambari.view.ViewDefinition;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -55,7 +56,9 @@ public class ViewEntityTest {
     properties.put("p3", "v3");
 
     Configuration ambariConfig = new Configuration(properties);
-    ViewEntity viewEntity = new ViewEntity(viewConfig, ambariConfig, ViewEntityTest.class.getClassLoader(), "view.jar");
+    ViewEntity viewEntity = new ViewEntity(viewConfig, ambariConfig, "view.jar");
+
+    viewEntity.setClassLoader(ViewEntityTest.class.getClassLoader());
 
     ResourceTypeEntity resourceTypeEntity = new ResourceTypeEntity();
     resourceTypeEntity.setId(10);
@@ -237,5 +240,30 @@ public class ViewEntityTest {
     Assert.assertEquals("v1", configuration.getProperty("p1"));
     Assert.assertEquals("v2", configuration.getProperty("p2"));
     Assert.assertEquals("v3", configuration.getProperty("p3"));
+  }
+
+  @Test
+  public void testGetSetStatus() throws Exception {
+    ViewEntity viewDefinition = getViewEntity();
+
+    viewDefinition.setStatus(ViewDefinition.ViewStatus.PENDING);
+    Assert.assertEquals(ViewDefinition.ViewStatus.PENDING, viewDefinition.getStatus());
+
+    viewDefinition.setStatus(ViewDefinition.ViewStatus.LOADING);
+    Assert.assertEquals(ViewDefinition.ViewStatus.LOADING, viewDefinition.getStatus());
+
+    viewDefinition.setStatus(ViewDefinition.ViewStatus.LOADED);
+    Assert.assertEquals(ViewDefinition.ViewStatus.LOADED, viewDefinition.getStatus());
+
+    viewDefinition.setStatus(ViewDefinition.ViewStatus.ERROR);
+    Assert.assertEquals(ViewDefinition.ViewStatus.ERROR, viewDefinition.getStatus());
+  }
+
+  @Test
+  public void testGetSetStatusDetail() throws Exception {
+    ViewEntity viewDefinition = getViewEntity();
+
+    viewDefinition.setStatusDetail("status detail");
+    Assert.assertEquals("status detail", viewDefinition.getStatusDetail());
   }
 }

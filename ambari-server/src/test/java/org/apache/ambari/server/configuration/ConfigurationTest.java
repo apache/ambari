@@ -268,15 +268,26 @@ public class ConfigurationTest {
     
     Assert.assertEquals(25, conf.getClientThreadPoolSize());
     Assert.assertEquals(25, conf.getAgentThreadPoolSize());
-    
+
+    Assert.assertEquals(10, conf.getViewExtractionThreadPoolCoreSize());
+    Assert.assertEquals(20, conf.getViewExtractionThreadPoolMaxSize());
+    Assert.assertEquals(100000L, conf.getViewExtractionThreadPoolTimeout());
+
     ambariProperties = new Properties();
     ambariProperties.setProperty("client.threadpool.size.max", "4");
     ambariProperties.setProperty("agent.threadpool.size.max", "82");
+
+    ambariProperties.setProperty("view.extraction.threadpool.size.core", "83");
+    ambariProperties.setProperty("view.extraction.threadpool.size.max", "56");
+    ambariProperties.setProperty("view.extraction.threadpool.timeout", "6000");
+
     conf = new Configuration(ambariProperties);
     
     Assert.assertEquals(4, conf.getClientThreadPoolSize());
     Assert.assertEquals(82, conf.getAgentThreadPoolSize());
-    
-  }  
-  
+
+    Assert.assertEquals(83, conf.getViewExtractionThreadPoolCoreSize());
+    Assert.assertEquals(56, conf.getViewExtractionThreadPoolMaxSize());
+    Assert.assertEquals(6000L, conf.getViewExtractionThreadPoolTimeout());
+  }
 }

@@ -171,7 +171,7 @@ public class ViewEntity implements ViewDefinition {
    * The classloader used to load the view.
    */
   @Transient
-  private final ClassLoader classLoader;
+  private ClassLoader classLoader = null;
 
   /**
    * The mapping of resource type to resource provider.
@@ -203,6 +203,18 @@ public class ViewEntity implements ViewDefinition {
   @Transient
   private View view = null;
 
+  /**
+   * The view status.
+   */
+  @Transient
+  private ViewStatus status = ViewStatus.PENDING;
+
+  /**
+   * The view status detail.
+   */
+  @Transient
+  private String statusDetail;
+
 
   // ----- Constructors ------------------------------------------------------
 
@@ -212,7 +224,6 @@ public class ViewEntity implements ViewDefinition {
   public ViewEntity() {
     this.configuration        = null;
     this.ambariConfiguration  = null;
-    this.classLoader          = null;
     this.archive              = null;
     this.externalResourceType = null;
   }
@@ -222,14 +233,12 @@ public class ViewEntity implements ViewDefinition {
    *
    * @param configuration        the view configuration
    * @param ambariConfiguration  the Ambari configuration
-   * @param classLoader          the class loader
    * @param archivePath          the path of the view archive
    */
   public ViewEntity(ViewConfig configuration, Configuration ambariConfiguration,
-                        ClassLoader classLoader, String archivePath) {
+                    String archivePath) {
     this.configuration       = configuration;
     this.ambariConfiguration = ambariConfiguration;
-    this.classLoader         = classLoader;
     this.archive             = archivePath;
 
     String version = configuration.getVersion();
@@ -268,6 +277,16 @@ public class ViewEntity implements ViewDefinition {
   @Override
   public String getVersion() {
     return version;
+  }
+
+  @Override
+  public ViewStatus getStatus() {
+    return status;
+  }
+
+  @Override
+  public String getStatusDetail() {
+    return statusDetail;
   }
 
 
@@ -563,6 +582,15 @@ public class ViewEntity implements ViewDefinition {
   }
 
   /**
+   * Set the class loader.
+   *
+   * @param classLoader  the class loader
+   */
+  public void setClassLoader(ClassLoader classLoader) {
+    this.classLoader = classLoader;
+  }
+
+  /**
    * Add a resource provider for the given type.
    *
    * @param type      the resource type
@@ -703,8 +731,23 @@ public class ViewEntity implements ViewDefinition {
     this.resourceType = resourceType;
   }
 
+  /**
+   * Set the status of the view.
+   *
+   * @param status  the view status
+   */
+  public void setStatus(ViewStatus status) {
+    this.status = status;
+  }
 
-// ----- helper methods ----------------------------------------------------
+  /**
+   * Set the status detail for the view.
+   *
+   * @param statusDetail  the status detail
+   */
+  public void setStatusDetail(String statusDetail) {
+    this.statusDetail = statusDetail;
+  }
 
   /**
    * Get the internal view name from the given common name and version.

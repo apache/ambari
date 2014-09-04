@@ -42,6 +42,7 @@ import org.apache.ambari.server.orm.entities.ViewEntityTest;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntityTest;
 import org.apache.ambari.server.security.SecurityHelper;
+import org.apache.ambari.server.view.ViewInstanceHandlerList;
 import org.apache.ambari.server.view.ViewRegistry;
 import org.apache.ambari.server.view.ViewRegistryTest;
 import org.junit.Assert;
@@ -77,6 +78,7 @@ public class ViewPrivilegeResourceProviderTest {
   private static final MemberDAO memberDAO = createNiceMock(MemberDAO.class);
   private static final ResourceTypeDAO resourceTypeDAO = createNiceMock(ResourceTypeDAO.class);
   private static final SecurityHelper securityHelper = createNiceMock(SecurityHelper.class);
+  private static final ViewInstanceHandlerList handlerList = createNiceMock(ViewInstanceHandlerList.class);
 
   @BeforeClass
   public static void initClass() {
@@ -87,8 +89,8 @@ public class ViewPrivilegeResourceProviderTest {
   public void resetGlobalMocks() {
 
     ViewRegistry.initInstance(ViewRegistryTest.getRegistry(viewDAO, viewInstanceDAO, userDAO,
-        memberDAO, privilegeDAO, resourceDAO, resourceTypeDAO, securityHelper));
-    reset(privilegeDAO, userDAO, groupDAO, principalDAO, permissionDAO, resourceDAO);
+        memberDAO, privilegeDAO, resourceDAO, resourceTypeDAO, securityHelper, handlerList));
+    reset(privilegeDAO, userDAO, groupDAO, principalDAO, permissionDAO, resourceDAO, handlerList);
   }
 
   @Test

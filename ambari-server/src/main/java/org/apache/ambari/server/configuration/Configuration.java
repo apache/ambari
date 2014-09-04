@@ -302,6 +302,12 @@ public class Configuration {
   private static final String AGENT_THREADPOOL_SIZE_KEY = "agent.threadpool.size.max";
   private static final int AGENT_THREADPOOL_SIZE_DEFAULT = 25;
 
+  private static final String VIEW_EXTRACTION_THREADPOOL_MAX_SIZE_KEY = "view.extraction.threadpool.size.max";
+  private static final int VIEW_EXTRACTION_THREADPOOL_MAX_SIZE_DEFAULT = 20;
+  private static final String VIEW_EXTRACTION_THREADPOOL_CORE_SIZE_KEY = "view.extraction.threadpool.size.core";
+  private static final int VIEW_EXTRACTION_THREADPOOL_CORE_SIZE_DEFAULT = 10;
+  private static final String VIEW_EXTRACTION_THREADPOOL_TIMEOUT_KEY = "view.extraction.threadpool.timeout";
+  private static final long VIEW_EXTRACTION_THREADPOOL_TIMEOUT_DEFAULT = 100000L;
 
   private static final Logger LOG = LoggerFactory.getLogger(
       Configuration.class);
@@ -1030,5 +1036,35 @@ public class Configuration {
   public int getAgentThreadPoolSize() {
     return Integer.parseInt(properties.getProperty(
         AGENT_THREADPOOL_SIZE_KEY, String.valueOf(AGENT_THREADPOOL_SIZE_DEFAULT)));
+  }
+
+  /**
+   * Get the view extraction thread pool max size.
+   *
+   * @return the view extraction thread pool max size
+   */
+  public int getViewExtractionThreadPoolMaxSize() {
+    return Integer.parseInt(properties.getProperty(
+        VIEW_EXTRACTION_THREADPOOL_MAX_SIZE_KEY, String.valueOf(VIEW_EXTRACTION_THREADPOOL_MAX_SIZE_DEFAULT)));
+  }
+
+  /**
+   * Get the view extraction thread pool core size.
+   *
+   * @return the view extraction thread pool core size
+   */
+  public int getViewExtractionThreadPoolCoreSize() {
+    return Integer.parseInt(properties.getProperty(
+        VIEW_EXTRACTION_THREADPOOL_CORE_SIZE_KEY, String.valueOf(VIEW_EXTRACTION_THREADPOOL_CORE_SIZE_DEFAULT)));
+  }
+
+  /**
+   * Get the view extraction thread pool timeout.
+   *
+   * @return the view extraction thread pool timeout
+   */
+  public long getViewExtractionThreadPoolTimeout() {
+    return Long.parseLong(properties.getProperty(
+        VIEW_EXTRACTION_THREADPOOL_TIMEOUT_KEY, String.valueOf(VIEW_EXTRACTION_THREADPOOL_TIMEOUT_DEFAULT)));
   }
 }

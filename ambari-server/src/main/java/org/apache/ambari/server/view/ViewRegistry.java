@@ -38,6 +38,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
@@ -116,6 +120,11 @@ public class ViewRegistry {
   private static final String ARCHIVE_CLASSES_DIR = "WEB-INF/classes";
   private static final String ARCHIVE_LIB_DIR = "WEB-INF/lib";
   private static final String EXTRACTED_ARCHIVES_DIR = "work";
+
+  /**
+   * Thread pool
+   */
+  private static ExecutorService executorService;
 
   /**
    * Mapping of view names to view definitions.
@@ -262,10 +271,6 @@ public class ViewRegistry {
    * @param definition  the definition
    */
   public void addDefinition(ViewEntity definition) {
-    View view = definition.getView();
-    if (view != null) {
-      view.onDeploy(definition);
-    }
     viewDefinitions.put(definition.getName(), definition);
   }
 
@@ -391,80 +396,56 @@ public class ViewRegistry {
   }
 
   /**
-   * Read the view archives.
-   *
-   * @param configuration  Ambari configuration
-   *
-   * @return the set of view instance definitions read from the archives
-   *
-   * @throws SystemException if the view archives can not be successfully read
+   * Asynchronously read the view archives.
    */
-  public Set<ViewInstanceEntity> readViewArchives(Configuration configuration)
-      throws SystemException {
+  public void readViewArchives() {
 
-    try {
-      File viewDir = configuration.getViewsDir();
+    final ExecutorService executorService = getExecutorService(configuration);
 
-      Set<ViewInstanceEntity> allInstanceDefinitions = new HashSet<ViewInstanceEntity>();
+    // submit a task to manage the extraction tasks
+    executorService.submit(new Runnable() {
+      @Override
+      public void run() {
 
-      String extractedArchivesPath = viewDir.getAbsolutePath() +
-          File.separator + EXTRACTED_ARCHIVES_DIR;
+        try {
+          File viewDir = configuration.getViewsDir();
 
-      if (ensureExtractedArchiveDirectory(extractedArchivesPath)) {
-        File[] files = viewDir.listFiles();
+          String extractedArchivesPath = viewDir.getAbsolutePath() +
+              File.separator + EXTRACTED_ARCHIVES_DIR;
 
-        if (files != null) {
-          for (File archiveFile : files) {
-            if (!archiveFile.isDirectory()) {
-              try {
-                ViewConfig viewConfig = helper.getViewConfigFromArchive(archiveFile);
+          if (ensureExtractedArchiveDirectory(extractedArchivesPath)) {
+            File[] files = viewDir.listFiles();
 
-                String viewName    = ViewEntity.getViewName(viewConfig.getName(), viewConfig.getVersion());
-                String archivePath = extractedArchivesPath + File.separator + viewName;
+            if (files != null) {
+              for (final File archiveFile : files) {
+                if (!archiveFile.isDirectory()) {
 
-                // extract the archive and get the class loader
-                ClassLoader cl = extractViewArchive(archiveFile, helper.getFile(archivePath));
+                  final ViewConfig viewConfig = helper.getViewConfigFromArchive(archiveFile);
 
-                viewConfig = helper.getViewConfigFromExtractedArchive(archivePath);
+                  String commonName = viewConfig.getName();
+                  String version    = viewConfig.getVersion();
+                  String viewName   = ViewEntity.getViewName(commonName, version);
 
-                ViewEntity viewDefinition = createViewDefinition(viewConfig, configuration, cl, archivePath);
+                  final String     archivePath    = extractedArchivesPath + File.separator + viewName;
+                  final ViewEntity viewDefinition = new ViewEntity(viewConfig, configuration, archivePath);
 
-                Set<ViewInstanceEntity> instanceDefinitions = new HashSet<ViewInstanceEntity>();
-
-                for (InstanceConfig instanceConfig : viewConfig.getInstances()) {
-                  try {
-                    ViewInstanceEntity instanceEntity = createViewInstanceDefinition(viewConfig, viewDefinition, instanceConfig);
-                    instanceEntity.setXmlDriven(true);
-                    instanceDefinitions.add(instanceEntity);
-                  } catch (Exception e) {
-                    LOG.error("Caught exception adding view instance for view " +
-                        viewDefinition.getViewName(), e);
-                  }
+                  // submit a new task for each archive being read
+                  executorService.submit(new Runnable() {
+                    @Override
+                    public void run() {
+                      readViewArchive(viewDefinition, archiveFile, archivePath, viewConfig);
+                    }
+                  });
                 }
-                // ensure that the view entity matches the db
-                syncView(viewDefinition, instanceDefinitions);
-
-                // update the registry with the view
-                addDefinition(viewDefinition);
-
-                // update the registry with the view instances
-                for (ViewInstanceEntity instanceEntity : instanceDefinitions) {
-                  addInstanceDefinition(viewDefinition, instanceEntity);
-                }
-
-                allInstanceDefinitions.addAll(instanceDefinitions);
-              } catch (Exception e) {
-                LOG.error("Caught exception loading view from " + archiveFile.getAbsolutePath(), e);
               }
+              removeUndeployedViews();
             }
           }
-          removeUndeployedViews();
+        } catch (Exception e) {
+          LOG.error("Caught exception reading view archives.", e);
         }
       }
-      return allInstanceDefinitions;
-    } catch (Exception e) {
-      throw new SystemException("Caught exception reading view archives.", e);
-    }
+    });
   }
 
   /**
@@ -786,12 +767,12 @@ public class ViewRegistry {
     return viewDefinitions.get(viewName);
   }
 
-  // create a new view definition
-  protected ViewEntity createViewDefinition(ViewConfig viewConfig, Configuration ambariConfig,
-                                          ClassLoader cl, String archivePath)
+  // setup the given view definition
+  protected ViewEntity setupViewDefinition(ViewEntity viewDefinition, ViewConfig viewConfig,
+                                           ClassLoader cl)
       throws ClassNotFoundException, IntrospectionException {
 
-    ViewEntity viewDefinition = new ViewEntity(viewConfig, ambariConfig, cl, archivePath);
+    viewDefinition.setClassLoader(cl);
 
     List<ParameterConfig> parameterConfigurations = viewConfig.getParameters();
 
@@ -1145,7 +1126,7 @@ public class ViewRegistry {
   }
 
   // extract the given view archive to the given archive directory
-  private ClassLoader extractViewArchive(File viewArchive, File archiveDir)
+  private ClassLoader extractViewArchive(ViewEntity viewDefinition, File viewArchive, File archiveDir)
       throws IOException {
 
     // Skip if the archive has already been extracted
@@ -1153,13 +1134,17 @@ public class ViewRegistry {
 
       String archivePath = archiveDir.getAbsolutePath();
 
-      LOG.info("Creating archive folder " + archivePath + ".");
+      String msg = "Creating archive folder " + archivePath + ".";
+      LOG.info(msg);
+      setViewStatus(viewDefinition, ViewDefinition.ViewStatus.LOADING, msg);
 
       if (archiveDir.mkdir()) {
         JarFile     viewJarFile = helper.getJarFile(viewArchive);
         Enumeration enumeration = viewJarFile.entries();
 
-        LOG.info("Extracting files from " + viewArchive.getName() + ":");
+        msg = "Extracting files from " + viewArchive.getName() + ":";
+        LOG.info(msg);
+        setViewStatus(viewDefinition, ViewDefinition.ViewStatus.LOADING, msg);
 
         while (enumeration.hasMoreElements()) {
           JarEntry jarEntry  = (JarEntry) enumeration.nextElement();
@@ -1267,6 +1252,85 @@ public class ViewRegistry {
     // TODO : should we log this?
     return false;
   }
+
+  // fire the onDeploy event.
+  protected void onDeploy(ViewEntity definition) {
+    View view = definition.getView();
+    if (view != null) {
+      view.onDeploy(definition);
+    }
+  }
+
+  // read a view archive and return the set of new view instances
+  private void readViewArchive(ViewEntity viewDefinition,
+                                                  File archiveFile,
+                                                  String archivePath,
+                                                  ViewConfig viewConfig) {
+
+    setViewStatus(viewDefinition, ViewEntity.ViewStatus.LOADING, "Loading " + archivePath + ".");
+
+    try {
+      // update the registry with the view
+      addDefinition(viewDefinition);
+
+      // extract the archive and get the class loader
+      ClassLoader cl = extractViewArchive(viewDefinition, archiveFile, helper.getFile(archivePath));
+
+      viewConfig = helper.getViewConfigFromExtractedArchive(archivePath);
+
+      setupViewDefinition(viewDefinition, viewConfig, cl);
+
+      Set<ViewInstanceEntity> instanceDefinitions = new HashSet<ViewInstanceEntity>();
+
+      for (InstanceConfig instanceConfig : viewConfig.getInstances()) {
+        ViewInstanceEntity instanceEntity = createViewInstanceDefinition(viewConfig, viewDefinition, instanceConfig);
+        instanceEntity.setXmlDriven(true);
+        instanceDefinitions.add(instanceEntity);
+      }
+      // ensure that the view entity matches the db
+      syncView(viewDefinition, instanceDefinitions);
+
+      onDeploy(viewDefinition);
+
+      // update the registry with the view instances
+      for (ViewInstanceEntity instanceEntity : instanceDefinitions) {
+        addInstanceDefinition(viewDefinition, instanceEntity);
+        handlerList.addViewInstance(instanceEntity);
+      }
+      setViewStatus(viewDefinition, ViewEntity.ViewStatus.LOADED, "Loaded " + archivePath + ".");
+
+    } catch (Exception e) {
+      String msg = "Caught exception loading view " + viewDefinition.getViewName() + " : " + e.getMessage();
+
+      setViewStatus(viewDefinition, ViewEntity.ViewStatus.ERROR, msg);
+      LOG.error(msg, e);
+    }
+  }
+
+  // set the status of the given view.
+  private void setViewStatus(ViewEntity viewDefinition, ViewEntity.ViewStatus status, String statusDetail) {
+    viewDefinition.setStatus(status);
+    viewDefinition.setStatusDetail(statusDetail);
+  }
+
+  // Get the view extraction thread pool
+  private static synchronized ExecutorService getExecutorService(Configuration configuration) {
+    if (executorService == null) {
+      LinkedBlockingQueue<Runnable> queue = new LinkedBlockingQueue<Runnable>();
+
+      ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(
+          configuration.getViewExtractionThreadPoolCoreSize(),
+          configuration.getViewExtractionThreadPoolMaxSize(),
+          configuration.getViewExtractionThreadPoolTimeout(),
+          TimeUnit.MILLISECONDS,
+          queue);
+
+      threadPoolExecutor.allowCoreThreadTimeOut(true);
+      executorService = threadPoolExecutor;
+    }
+    return executorService;
+  }
+
 
 
   // ----- inner class : ViewRegistryHelper ----------------------------------

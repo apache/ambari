@@ -70,7 +70,6 @@ import org.apache.ambari.server.orm.dao.PrivilegeDAO;
 import org.apache.ambari.server.orm.dao.ResourceDAO;
 import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.ambari.server.orm.entities.MetainfoEntity;
-import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
 import org.apache.ambari.server.resources.ResourceManager;
 import org.apache.ambari.server.resources.api.rest.GetResource;
 import org.apache.ambari.server.scheduler.ExecutionScheduleManager;
@@ -90,7 +89,6 @@ import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.ambari.server.utils.VersionUtils;
 import org.apache.ambari.server.view.ViewRegistry;
-import org.apache.ambari.view.SystemException;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.nio.SelectChannelConnector;
@@ -307,13 +305,7 @@ public class AmbariServer {
       root.addServlet(sh, "/api/v1/*");
       sh.setInitOrder(2);
 
-      try {
-        for (ViewInstanceEntity entity : viewRegistry.readViewArchives(configs)){
-          handlerList.addViewInstance(entity);
-        }
-      } catch (SystemException e) {
-        LOG.error("Caught exception deploying views.", e);
-      }
+      viewRegistry.readViewArchives();
 
       handlerList.addHandler(root);
 
