@@ -27,6 +27,7 @@ App.ServiceConfig = Ember.Object.extend({
   restartRequiredMessage: '',
   restartRequiredHostsAndComponents: {},
   configGroups: [],
+  initConfigsLength: 0, // configs length after initialization in order to watch changes
   errorCount: function () {
     var overrideErrors = 0;
     this.get('configs').filterProperty("overrides").forEach(function (e) {
@@ -48,8 +49,11 @@ App.ServiceConfig = Ember.Object.extend({
   }.property('configs.@each.isValid', 'configs.@each.isVisible', 'configCategories.@each.slaveErrorCount', 'configs.@each.overrideErrorTrigger'),
 
   isPropertiesChanged: function() {
-    return this.get('configs').someProperty('isNotDefaultValue') || this.get('configs').someProperty('isOverrideChanged');
-  }.property('configs.@each.isNotDefaultValue', 'configs.@each.isOverrideChanged')
+    return this.get('configs').someProperty('isNotDefaultValue') ||
+           this.get('configs').someProperty('isOverrideChanged') ||
+           this.get('configs.length') !== this.get('initConfigsLength') ||
+           (this.get('configs.length') === this.get('initConfigsLength') && this.get('configs').someProperty('defaultValue', null));
+  }.property('configs.@each.isNotDefaultValue', 'configs.@each.isOverrideChanged', 'configs.length')
 });
 
 App.ServiceConfigCategory = Ember.Object.extend({
