@@ -4982,11 +4982,9 @@ ul.inline li {
         .top-label {
           min-width: 20px;
           padding: 5px;
-          padding-bottom: 1px;
         }
         .content {
           padding: 0 5px;
-          line-height: 19px;
           text-align: center;
           color: #555555;
         }
@@ -5014,6 +5012,11 @@ ul.inline li {
           padding: 1px 5px 15px 5px;
           text-align: left;
           .notes{
+            word-wrap: break-word;
+          }
+          .date{
+            color: #808080;
+            font-size: 11px;
             word-wrap: break-word;
           }
         }
@@ -5101,9 +5104,10 @@ ul.inline li {
 
     .icon-remove-circle {
       color: #ffffff;
-      padding-left: 10px;
-      padding-top: 7px;
+      margin-left: 10px;
+      margin-top: 0px;
       display: inline-block;
+      cursor: pointer;
     }
     .label-wrapper {
       line-height: 30px;
@@ -5120,16 +5124,31 @@ ul.inline li {
       font-size: 13px;
       li {
         line-height: 30px;
+        .icon-caret-right {
+          font-size: 18px;
+          margin-right: 20px;
+        }
       }
       li:hover {
         background-color: #666666;
         background-image: linear-gradient(to bottom, #666666, #555555);
-        color: white;
+        color: #ffffff;
       }
-      .icon-caret-right {
-        font-size: 18px;
-        margin-right: 20px;
+      li.not-allowed {
+        // the version which is displayed
+        cursor: not-allowed;
+        color: #808080;
+        .icon-caret-right,
+        .dropdown-menu {
+          display: none;
+        }
       }
+      li.not-allowed:hover {
+        background-color: #ffffff;
+        background-image: none;
+        color: #808080;
+      }
+
       div.row-fluid, a {
         padding-left: 10px;
       }
@@ -5144,6 +5163,11 @@ ul.inline li {
       cursor: default;
       .content {
         padding: 1px 5px 15px 5px;
+        .date{
+          color: #808080;
+          font-size: 11px;
+          word-wrap: break-word;
+        }
         .notes{
           word-wrap: break-word;
         }

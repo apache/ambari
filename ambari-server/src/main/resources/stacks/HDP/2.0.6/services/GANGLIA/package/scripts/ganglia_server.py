@@ -108,7 +108,7 @@ def server_files():
             recursive=True
   )
   
-  if System.get_instance().os_family in ["debian","suse"]:
+  if System.get_instance().os_family in ["ubuntu","suse"]:
     File( params.ganglia_apache_config_file,
       content = Template("ganglia.conf.j2"),
       mode = 0644

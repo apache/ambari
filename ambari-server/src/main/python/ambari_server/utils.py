@@ -28,7 +28,7 @@ from ambari_commons import OSConst
 # PostgreSQL settings
 PG_STATUS_RUNNING_DEFAULT = "running"
 PG_HBA_ROOT_DEFAULT = "/var/lib/pgsql/data"
-PG_HBA_INIT_FILES = {'debian': '/etc/postgresql',
+PG_HBA_INIT_FILES = {'ubuntu': '/etc/postgresql',
                      'redhat': '/etc/rc.d/init.d/postgresql',
                      'suse': '/etc/init.d/postgresql'}
 
@@ -172,10 +172,10 @@ def get_ubuntu_pg_version():
   postgre_ver = ""
 
   if os.path.isdir(PG_HBA_INIT_FILES[
-    'debian']):  # detect actual installed versions of PG and select a more new one
+    'ubuntu']):  # detect actual installed versions of PG and select a more new one
     postgre_ver = sorted(
-      [fld for fld in os.listdir(PG_HBA_INIT_FILES[OSConst.DEBIAN_FAMILY]) if
-       os.path.isdir(os.path.join(PG_HBA_INIT_FILES[OSConst.DEBIAN_FAMILY], fld))],
+      [fld for fld in os.listdir(PG_HBA_INIT_FILES[OSConst.UBUNTU_FAMILY]) if
+       os.path.isdir(os.path.join(PG_HBA_INIT_FILES[OSConst.UBUNTU_FAMILY], fld))],
       reverse=True)
     if len(postgre_ver) > 0:
       return postgre_ver[0]
@@ -188,7 +188,7 @@ def get_postgre_hba_dir(OS_FAMILY):
   1) /etc/rc.d/init.d/postgresql --> /etc/rc.d/init.d/postgresql-9.3
   2) /etc/init.d/postgresql --> /etc/init.d/postgresql-9.1
   """
-  if OS_FAMILY == OSConst.DEBIAN_FAMILY:
+  if OS_FAMILY == OSConst.UBUNTU_FAMILY:
     # Like: /etc/postgresql/9.1/main/
     return os.path.join(PG_HBA_INIT_FILES[OS_FAMILY], get_ubuntu_pg_version(),
                         "main")
@@ -216,7 +216,7 @@ def get_postgre_hba_dir(OS_FAMILY):
 
 def get_postgre_running_status(OS_FAMILY):
   """Return postgre running status indicator"""
-  if OS_FAMILY == OSConst.DEBIAN_FAMILY:
+  if OS_FAMILY == OSConst.UBUNTU_FAMILY:
     return os.path.join(get_ubuntu_pg_version(), "main")
   else:
     return PG_STATUS_RUNNING_DEFAULT

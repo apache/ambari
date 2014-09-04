@@ -354,7 +354,7 @@ App.ServiceConfigsByCategoryView = Ember.View.extend(App.UserPref, {
       var passesFilters = true;
 
       selectedFilters.forEach(function (filter) {
-        if (!config.get(filter.attributeName)) {
+        if (config.get(filter.attributeName) !== filter.attributeValue) {
           passesFilters = false;
         }
       });

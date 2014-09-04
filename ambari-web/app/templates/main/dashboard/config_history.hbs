@@ -42,7 +42,7 @@
           {{#view view.ConfigVersionView contentBinding="item"}}
             <td class="first">
               <span class="label label-info">{{item.versionText}}</span>
-              <a {{action goToServiceConfigs item.serviceName}} class="service-name">
+              <a {{action goToServiceConfigs item}} class="service-name">
                 {{item.displayName}}
               </a>
               <i {{bindAttr class=":icon-refresh :restart-required-service item.isRestartRequired::hidden"}}
@@ -55,7 +55,7 @@
                 </span>
               {{/if}}
             </td>
-            <td>{{item.modifiedDate}}</td>
+            <td>{{item.createdDate}}</td>
             <td>{{item.author}}</td>
             <td>{{item.briefNotes}}</td>
           {{/view}}

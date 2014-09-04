@@ -184,6 +184,7 @@
             <!--IDE and GIT files-->
             <exclude>.idea/</exclude>
             <exclude>.git/</exclude>
+            <exclude>.pydevproject</exclude>
             <exclude>**/.gitignore</exclude>
             <exclude>**/.gitattributes</exclude>
             <exclude>**/.gitkeep</exclude>
@@ -204,6 +205,7 @@
             <!--Python Mock library (BSD license)-->
             <exclude>ambari-common/src/test/python/mock/**</exclude>
             <!--Jinja2 library (BSD license)-->
+            <exclude>ambari-common/src/main/python/ambari_jinja2/**</exclude>
             <exclude>ambari-common/src/main/python/jinja2/**</exclude>
 
             <!--Contributions-->

@@ -24,6 +24,9 @@
         structured data stores such as relational databases
       </comment>
       <version>1.4.4.2.1</version>
+      <requiredServices>
+        <service>GLUSTERFS</service>
+      </requiredServices>      
     </service>
   </services>
 </metainfo>

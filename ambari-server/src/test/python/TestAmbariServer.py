@@ -1033,7 +1033,7 @@ class TestAmbariServer(TestCase):
 
 
     get_os_type_mock.return_value = OSConst.OS_UBUNTU
-    get_os_family_mock.return_value = OSConst.DEBIAN_FAMILY
+    get_os_family_mock.return_value = OSConst.UBUNTU_FAMILY
 
     firewall_obj = Firewall().getFirewallObject()
     p.communicate.return_value = ("Status: active", "err")
@@ -4521,7 +4521,8 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
         "authentication.ldap.groupMembershipAttr": "member",
         "authentication.ldap.baseDn": "base",
         "authentication.ldap.bindAnonymously": "true",
-        "client.security": "ldap"
+        "client.security": "ldap",
+        "ambari.ldap.isConfigured": "true"
       }
 
     sorted_x = sorted(ldap_properties_map.iteritems(), key=operator.itemgetter(0))
@@ -4547,7 +4548,8 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
         "authentication.ldap.groupMembershipAttr": "member",
         "authentication.ldap.baseDn": "base",
         "authentication.ldap.bindAnonymously": "true",
-        "client.security": "ldap"
+        "client.security": "ldap",
+        "ambari.ldap.isConfigured": "true"
       }
 
     sorted_x = sorted(ldap_properties_map.iteritems(), key=operator.itemgetter(0))
@@ -4644,7 +4646,8 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
         "authentication.ldap.groupNamingAttr": "test",
         "client.security": "ldap", \
         ambari_server.LDAP_MGR_PASSWORD_PROPERTY: ambari_server.get_alias_string( \
-          ambari_server.LDAP_MGR_PASSWORD_ALIAS)
+          ambari_server.LDAP_MGR_PASSWORD_ALIAS),
+        "ambari.ldap.isConfigured": "true"
       }
 
     sorted_x = sorted(ldap_properties_map.iteritems(), key=operator.itemgetter(0))

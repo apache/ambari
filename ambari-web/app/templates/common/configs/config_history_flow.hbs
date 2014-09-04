@@ -31,17 +31,18 @@
               {{#if serviceVersion.isCurrent}}
                 <span class="label label-success">
                 {{t common.current}}
-                <i {{bindAttr class=":icon-refresh :restart-required-service view.serviceVersion.isRestartRequired::hidden"}}></i>
+                <i {{bindAttr class=":icon-refresh :restart-required-service serviceVersion.isRestartRequired::hidden"}}></i>
               </span>
               {{/if}}
             </div>
               <div class="content">{{serviceVersion.author}}</div>
-              <div class="content">{{serviceVersion.modifiedDate}}</div>
+              <div class="content">{{serviceVersion.timeSinceCreated}}</div>
           </div>
 
           <div class="version-popover">
             <div class="content"> <strong>{{serviceVersion.displayName}}</strong> <span class="label label-info">{{serviceVersion.versionText}}</span> &nbsp;
               <strong>{{t services.service.config.configHistory.configGroup}}:{{serviceVersion.configGroupName}}</strong>
+              <div class="date">{{serviceVersion.createdDate}}</div>
               <div class="notes">{{serviceVersion.briefNotes}}</div>
             </div>
             <div class="version-operations-buttons">
@@ -72,7 +73,7 @@
                     <span class="label label-success">{{t common.current}}</span>
                 {{/if}}
                   <strong>{{view.compareServiceVersion.author}}</strong>&nbsp;{{t dashboard.configHistory.info-bar.authoredOn}}
-                  &nbsp;<strong>{{view.compareServiceVersion.modifiedDate}}</strong>
+                  &nbsp;<strong>{{view.compareServiceVersion.createdDate}}</strong>
               </div>
               <div class="pull-right operations-button">
                   <button class="btn btn-success"  {{action revert view.serviceVersionsReferences.compare target="view"}} {{bindAttr disabled="view.versionActionsDisabled" class="view.compareServiceVersion.isCurrent:hidden"}}>{{view.compareServiceVersion.makeCurrentButtonText}}</button>
@@ -88,16 +89,17 @@
                   </button>
                   <ul class="dropdown-menu">
                     {{#each serviceVersion in view.dropDownList}}
-                        <li class="pointer dropdown-submenu">
-                            <div class="row-fluid version-in-dropdown" {{action switchVersion serviceVersion target="view"}}>
+                        <li {{bindAttr class=":pointer :dropdown-submenu serviceVersion.isDisplayed:not-allowed"}}>
+                            <div class="row-fluid version-in-dropdown " {{action switchVersion serviceVersion target="view"}}>
                                 <div class="span2">{{serviceVersion.versionText}}</div>
-                                <div class="span6">{{serviceVersion.modifiedDate}}</div>
+                                <div class="span6">{{serviceVersion.createdDate}}</div>
                                 <div class="span3">{{serviceVersion.author}}</div>
                                 <div class="pull-right"><i class="icon-caret-right"></i></div>
                             </div>
                             <ul class="dropdown-menu version-info-operations">
                                 <div class="content"> <strong>{{serviceVersion.displayName}}</strong> <span class="label label-info">{{serviceVersion.versionText}}</span> &nbsp;
                                     <strong>{{t services.service.config.configHistory.configGroup}}:{{serviceVersion.configGroupName}}</strong>
+                                    <div class="date">{{serviceVersion.createdDate}}</div>
                                     <div class="notes">{{serviceVersion.briefNotes}}</div>
                                 </div>
                                 <div class="version-operations-buttons">
@@ -123,7 +125,7 @@
                 {{#if view.displayedServiceVersion.isCurrent}}
                     <span class="label label-success">{{t common.current}}</span>
                 {{/if}}
-                  <strong>{{view.displayedServiceVersion.author}}</strong>&nbsp;{{t dashboard.configHistory.info-bar.authoredOn}}&nbsp;<strong>{{view.displayedServiceVersion.modifiedDate}}</strong>
+                  <strong>{{view.displayedServiceVersion.author}}</strong>&nbsp;{{t dashboard.configHistory.info-bar.authoredOn}}&nbsp;<strong>{{view.displayedServiceVersion.createdDate}}</strong>
               </div>
               <div class="pull-right operations-button">
                   <div {{bindAttr class="view.displayedServiceVersion.isCurrent::hidden"}}>

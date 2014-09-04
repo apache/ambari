@@ -35,7 +35,7 @@ class TestHDP206StackAdvisor(TestCase):
       stack_advisor_impl = imp.load_module('stack_advisor_impl', fp, hdp206StackAdvisorPath, ('.py', 'rb', imp.PY_SOURCE))
     clazz = getattr(stack_advisor_impl, hdp206StackAdvisorClassName)
     self.stackAdvisor = clazz()
-    
+
   def test_recommendationCardinalityALL(self):
     servicesInfo = [
       {
@@ -85,7 +85,7 @@ class TestHDP206StackAdvisor(TestCase):
     }
     self.assertHostLayout(expectedComponentsHostsMap, result)
 
-  def test_validationNamenodeAndSecondaryNamenode2Hosts(self):
+  def test_validationNamenodeAndSecondaryNamenode2Hosts_noMessagesForSameHost(self):
     servicesInfo = [
       {
         "name": "HDFS",
@@ -99,8 +99,6 @@ class TestHDP206StackAdvisor(TestCase):
     result = self.stackAdvisor.validateComponentLayout(services, hosts)
 
     expectedItems = [
-      {"message": "NameNode and Secondary NameNode should not be hosted on same machine", "level": "WARN", "host": "host1"},
-      {"message": "NameNode and Secondary NameNode should not be hosted on same machine", "level": "WARN", "host": "host1"},
       {"message": "Host is not used", "level": "ERROR", "host": "host2"}
     ]
     self.assertValidationResult(expectedItems, result)

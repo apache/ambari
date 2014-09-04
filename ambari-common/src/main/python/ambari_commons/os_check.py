@@ -37,7 +37,7 @@ def linux_distribution():
 class OS_CONST_TYPE(type):
   # os families
   REDHAT_FAMILY = 'redhat'
-  DEBIAN_FAMILY = 'debian'
+  UBUNTU_FAMILY = 'ubuntu'
   SUSE_FAMILY = 'suse'
 
   # Declare here os type mapping
@@ -49,7 +49,7 @@ class OS_CONST_TYPE(type):
                                  'cloudlinux', 'slc', 'scientific', 'psbm',
                                  'centos linux']
                              },
-                            {'name': DEBIAN_FAMILY,
+                            {'name': UBUNTU_FAMILY,
                              'os_list': ['ubuntu', 'debian']
                              },
                             {'name': SUSE_FAMILY,
@@ -172,14 +172,14 @@ class OSCheck:
   #  Exception safe family check functions
 
   @staticmethod
-  def is_debian_family():
+  def is_ubuntu_family():
     """
      Return true if it is so or false if not
 
      This is safe check for debian family, doesn't generate exception
     """
     try:
-      if OSCheck.get_os_family() == OSConst.DEBIAN_FAMILY:
+      if OSCheck.get_os_family() == OSConst.UBUNTU_FAMILY:
         return True
     except Exception:
       pass

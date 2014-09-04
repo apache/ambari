@@ -80,7 +80,7 @@ App.MainServiceMenuView = Em.CollectionView.extend({
 
     link: function() {
       var stateName = (['summary','configs'].contains(App.router.get('currentState.name')))
-        ? this.get('isConfigurable') ?  App.router.get('currentState.name') : 'summary'
+        ? this.get('isConfigurable') && this.get('parentView.activeServiceId') != this.get('content.id') ?  App.router.get('currentState.name') : 'summary'
         : 'summary';
       return "#/main/services/" + this.get('content.id') + "/" + stateName;
     }.property('App.router.currentState.name', 'parentView.activeServiceId', 'isConfigurable'),

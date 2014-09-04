@@ -30,11 +30,17 @@ module.exports = Em.Route.extend({
           if (App.get('testMode')) {
             router.get('mainController').initialize();
           } else {
-            App.router.get('mainController').checkServerClientVersion().done(function () {
-              App.router.get('clusterController').loadClientServerClockDistance().done(function () {
-                router.get('mainController').initialize();
+            if (App.get('clusterName')) {
+              App.router.get('mainController').checkServerClientVersion().done(function () {
+                App.router.get('clusterController').loadClientServerClockDistance().done(function () {
+                  router.get('mainController').initialize();
+                });
               });
-            });
+            }
+            else {
+              App.router.get('clusterController').set('isLoaded', true);
+              App.router.get('mainViewsController').loadAmbariViews();
+            }
           }
         });
         // TODO: redirect to last known state
@@ -143,7 +149,8 @@ module.exports = Em.Route.extend({
     }),
     goToServiceConfigs: function (router, event) {
       router.get('mainServiceItemController').set('routeToConfigs', true);
-      router.transitionTo('main.services.service.configs', App.Service.find(event.context));
+      router.get('mainServiceInfoConfigsController').set('preSelectedConfigVersion', event.context);
+      router.transitionTo('main.services.service.configs', App.Service.find(event.context.get('serviceName')));
       router.get('mainServiceItemController').set('routeToConfigs', false);
     }
   }),
@@ -607,7 +614,7 @@ module.exports = Em.Route.extend({
           mainServiceInfoConfigsController.showSavePopup(router.get('location.lastSetURL').replace('configs', 'summary'));
           return false;
         }
-        var parent = event.view._parentView;
+        var parent = event.view.get('_parentView');
         parent.deactivateChildViews();
         event.view.set('active', "active");
         router.transitionTo(event.context);

@@ -94,7 +94,7 @@ class System(object):
     Return values:
     redhat, fedora, centos, oraclelinux, ascendos,
     amazon, xenserver, oel, ovs, cloudlinux, slc, scientific, psbm,
-    ubuntu, debian, sles, sled, opensuse, suse ... and others
+    ubuntu, ubuntu, sles, sled, opensuse, suse ... and others
     
     In case cannot detect raises exception.
     """
@@ -104,7 +104,7 @@ class System(object):
   def os_family(self):
     """
     Return values:
-    redhat, debian, suse
+    redhat, ubuntu, suse
     
     In case cannot detect raises exception
     """

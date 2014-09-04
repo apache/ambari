@@ -182,7 +182,7 @@ tez_local_api_jars = '/usr/lib/tez/tez*.jar'
 tez_local_lib_jars = '/usr/lib/tez/lib/*.jar'
 tez_user = config['configurations']['tez-env']['tez_user']
 
-if System.get_instance().os_family == "debian":
+if System.get_instance().os_family == "ubuntu":
   mysql_configname = '/etc/mysql/my.cnf'
 else:
   mysql_configname = '/etc/my.cnf'

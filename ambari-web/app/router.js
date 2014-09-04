@@ -287,7 +287,7 @@ App.Router = Em.Router.extend({
           loginController.postLogin(true, true);
         });
       } else {
-        router.transitionTo('views.index');
+        router.transitionTo('main.views.index');
         loginController.postLogin(true,true);
       }
     });

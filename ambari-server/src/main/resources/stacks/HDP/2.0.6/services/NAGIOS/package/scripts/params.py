@@ -27,7 +27,7 @@ import status_params
 # server configurations
 config = Script.get_config()
 
-if System.get_instance().os_family == "debian":
+if System.get_instance().os_family == "ubuntu":
   nagios_service_name = "nagios3"
 else:
   nagios_service_name = "nagios"
@@ -39,10 +39,10 @@ nagios_rw_dir = status_params.nagios_rw_dir
 
 # HACK: Stylesheets for Nagios UI on Ubuntu are in wrong place so we have to do a symlink.
 # In future we can fix this directly in the package.
-debian_stylesheets_real_location = "/etc/nagios3/stylesheets"
-debian_stylesheets_desired_location = "/usr/share/nagios3/htdocs/stylesheets"
+ubuntu_stylesheets_real_location = "/etc/nagios3/stylesheets"
+ubuntu_stylesheets_desired_location = "/usr/share/nagios3/htdocs/stylesheets"
 
-if System.get_instance().os_family == "debian":
+if System.get_instance().os_family == "ubuntu":
   host_template = "generic-host"
   plugins_dir = "/usr/lib/nagios/plugins"
   nagios_web_dir = "/usr/share/nagios3/htdocs"
@@ -185,7 +185,7 @@ if System.get_instance().os_family == "suse":
   nagios_p1_pl = "/usr/lib/nagios/p1.pl"
   htpasswd_cmd = "htpasswd2"
   web_conf_dir = "/etc/apache2/conf.d"
-elif System.get_instance().os_family == "debian":
+elif System.get_instance().os_family == "ubuntu":
   nagios_p1_pl = "/usr/lib/nagios3/p1.pl"
   htpasswd_cmd = "htpasswd"
   web_conf_dir = "/etc/apache2/conf.d"

@@ -143,7 +143,7 @@
             <exclude>**/*.json</exclude>
             <exclude>**/*.sql</exclude>
             <exclude>**/repo_suse_rhel.j2</exclude>
-            <exclude>**/repo_debian.j2</exclude>
+            <exclude>**/repo_ubuntu.j2</exclude>
             <exclude>**/.pydev*</exclude>
 
             <!--gitignore content -->
@@ -955,7 +955,7 @@
                 <argument>${custom.tests}</argument>
               </arguments>
               <environmentVariables>
-                  <PYTHONPATH>${project.basedir}/../ambari-common/src/main/python:${project.basedir}/../ambari-agent/src/main/python:${project.basedir}/../ambari-common/src/main/python/jinja2:${project.basedir}/../ambari-common/src/main/python/ambari_commons:${project.basedir}/../ambari-common/src/test/python:${project.basedir}/src/main/python:${project.basedir}/src/main/python/ambari-server-state:${project.basedir}/src/test/python:$PYTHONPATH</PYTHONPATH>
+                  <PYTHONPATH>${project.basedir}/../ambari-common/src/main/python:${project.basedir}/../ambari-agent/src/main/python:${project.basedir}/../ambari-common/src/main/python/ambari_jinja2:${project.basedir}/../ambari-common/src/main/python/ambari_commons:${project.basedir}/../ambari-common/src/test/python:${project.basedir}/src/main/python:${project.basedir}/src/main/python/ambari-server-state:${project.basedir}/src/test/python:$PYTHONPATH</PYTHONPATH>
               </environmentVariables>
               <skip>${skipTests}</skip>
             </configuration>

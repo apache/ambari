@@ -134,7 +134,7 @@
           </packages>
         </osSpecific>
         <osSpecific>
-          <osFamily>redhat5,redhat6,debian12</osFamily>
+          <osFamily>redhat5,redhat6,ubuntu12</osFamily>
           <packages>
             <package>
               <name>mysql-server</name>

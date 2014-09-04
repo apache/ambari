@@ -84,21 +84,18 @@ App.ConfigHistoryFlowView = Em.View.extend({
   }.property('displayedServiceVersion'),
 
   serviceVersions: function () {
-    var serviceVersions;
     var allServiceVersions = App.ServiceConfigVersion.find().filterProperty('serviceName', this.get('serviceName'));
-    var defaultGroup = Em.I18n.t('dashboard.configHistory.table.configGroup.default');
-    if (this.get('controller.selectedConfigGroup.isDefault')) {
-      allServiceVersions.forEach(function (version) {
-        version.set('isDisabled', ! (version.get('groupName') == defaultGroup));
-      });
-      serviceVersions = allServiceVersions.filterProperty('groupName', defaultGroup);
-    } else {
-      // filter out default group(should be grayedOut) and current selectedGroup versions
-      allServiceVersions.forEach(function (version) {
-        version.set('isDisabled', !(version.get('groupName') === this.get('controller.selectedConfigGroup.name')));
-      }, this);
-      serviceVersions = allServiceVersions.filterProperty('groupName', defaultGroup).concat(allServiceVersions.filterProperty('groupName', this.get('controller.selectedConfigGroup.name')));
-    }
+    var groupName = this.get('controller.selectedConfigGroup.isDefault') ? 'default'
+        : this.get('controller.selectedConfigGroup.name');
+
+    allServiceVersions.forEach(function (version) {
+      version.set('isDisabled', !(version.get('groupName') === groupName));
+    }, this);
+
+    var serviceVersions = allServiceVersions.filter(function(s) {
+      return s.get('groupName') == groupName || s.get('groupName') == 'default';
+    });
+
     return serviceVersions.sort(function (a, b) {
       return Em.get(a, 'createTime') - Em.get(b, 'createTime');
     });
@@ -109,14 +106,14 @@ App.ConfigHistoryFlowView = Em.View.extend({
    */
   visibleServiceVersion: function () {
     return this.get('serviceVersions').slice(this.get('startIndex'), (this.get('startIndex') + this.VERSIONS_IN_FLOW));
-  }.property('startIndex'),
+  }.property('startIndex', 'serviceVersions'),
 
   /**
    * enable actions to manipulate version only after it's loaded
    */
   versionActionsDisabled: function () {
-    return !this.get('controller.versionLoaded');
-  }.property('controller.versionLoaded'),
+    return !this.get('controller.versionLoaded') || this.get('dropDownList.length') === 0;
+  }.property('controller.versionLoaded', 'dropDownList.length'),
 
   /**
    * enable discard to manipulate version only after it's loaded and any property is changed
@@ -129,7 +126,7 @@ App.ConfigHistoryFlowView = Em.View.extend({
    * by default 6 is number of items in short list
    */
   dropDownList: function () {
-    var serviceVersions = this.get('serviceVersions').without(this.get('displayedServiceVersion')).slice(0).reverse();
+    var serviceVersions = this.get('serviceVersions').slice(0).reverse();
     if (this.get('showFullList')) {
       return serviceVersions;
     }
@@ -157,16 +154,16 @@ App.ConfigHistoryFlowView = Em.View.extend({
     var serviceVersions = this.get('serviceVersions');
     var startIndex = 0;
     var currentIndex = 0;
+    var selectedVersion = this.get('controller.currentVersion');
 
     serviceVersions.setEach('isDisplayed', false);
-    // display current in default group
+
     serviceVersions.forEach(function (serviceVersion, index) {
-      // find current in default group
-      if (serviceVersion.get('isCurrent') && serviceVersion.get('groupName') == Em.I18n.t('dashboard.configHistory.table.configGroup.default')){
+      if (selectedVersion === serviceVersion.get('version')) {
         serviceVersion.set('isDisplayed', true);
         currentIndex = index;
       }
-    });
+    }, this);
 
     // show current version as the last one
     if (currentIndex + 1 > this.VERSIONS_IN_FLOW) {
@@ -285,6 +282,7 @@ App.ConfigHistoryFlowView = Em.View.extend({
    * switch configs view version to chosen
    */
   switchVersion: function (event) {
+    if (event.context.get("isDisplayed"))  return;
     var version = event.context.get('version');
     var versionIndex = 0;
 

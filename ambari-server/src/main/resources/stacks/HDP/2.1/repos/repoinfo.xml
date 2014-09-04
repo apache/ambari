@@ -53,7 +53,7 @@
       <reponame>HDP-UTILS</reponame>
     </repo>
   </os>
-  <os type="debian12">
+  <os type="ubuntu12">
     <repo>
       <baseurl>REPLACE_WITH_UBUNTU12_URL</baseurl>
       <repoid>HDP-2.1</repoid>

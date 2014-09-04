@@ -55,6 +55,7 @@ App.serviceConfigVersionsMapper = App.QuickDataMapper.create({
       if (!isNaN(itemTotal)) {
         App.router.set('mainConfigHistoryController.filteredCount', itemTotal);
       }
+      App.store.commit();
       App.store.loadMany(this.get('model'), result);
     }
   }

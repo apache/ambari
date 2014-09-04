@@ -123,8 +123,8 @@ class TestRepositoryResource(TestCase):
     @patch("os.path.isfile", new=MagicMock(return_value=True))
     @patch("filecmp.cmp", new=MagicMock(return_value=False))
     @patch.object(System, "os_release_name", new='precise')        
-    @patch.object(System, "os_family", new='debian')
-    def test_create_repo_debian_repo_exists(self, file_mock, execute_mock, 
+    @patch.object(System, "os_family", new='ubuntu')
+    def test_create_repo_ubuntu_repo_exists(self, file_mock, execute_mock,
                                             tempfile_mock, checked_call_mock):
       tempfile_mock.return_value = MagicMock(spec=file)
       tempfile_mock.return_value.__enter__.return_value.name = "/tmp/1.txt"
@@ -160,8 +160,8 @@ class TestRepositoryResource(TestCase):
     @patch("os.path.isfile", new=MagicMock(return_value=True))
     @patch("filecmp.cmp", new=MagicMock(return_value=True))
     @patch.object(System, "os_release_name", new='precise')        
-    @patch.object(System, "os_family", new='debian')
-    def test_create_repo_debian_doesnt_repo_exist(self, file_mock, execute_mock, tempfile_mock):
+    @patch.object(System, "os_family", new='ubuntu')
+    def test_create_repo_ubuntu_doesnt_repo_exist(self, file_mock, execute_mock, tempfile_mock):
       tempfile_mock.return_value = MagicMock(spec=file)
       tempfile_mock.return_value.__enter__.return_value.name = "/tmp/1.txt"
       
@@ -186,10 +186,10 @@ class TestRepositoryResource(TestCase):
       
     
     @patch("os.path.isfile", new=MagicMock(return_value=True))
-    @patch.object(System, "os_family", new='debian')
+    @patch.object(System, "os_family", new='ubuntu')
     @patch("resource_management.libraries.providers.repository.Execute")
     @patch("resource_management.libraries.providers.repository.File")
-    def test_remove_repo_debian_repo_exist(self, file_mock, execute_mock):
+    def test_remove_repo_ubuntu_repo_exist(self, file_mock, execute_mock):
       with Environment('/') as env:
           Repository('HDP',
                      action = "remove",
@@ -200,10 +200,10 @@ class TestRepositoryResource(TestCase):
       self.assertEqual(execute_mock.call_args[0][0], 'apt-get update -qq -o Dir::Etc::sourcelist="sources.list.d/HDP.list" -o APT::Get::List-Cleanup="0"')
 
     @patch("os.path.isfile", new=MagicMock(return_value=False))
-    @patch.object(System, "os_family", new='debian')
+    @patch.object(System, "os_family", new='ubuntu')
     @patch("resource_management.libraries.providers.repository.Execute")
     @patch("resource_management.libraries.providers.repository.File")
-    def test_remove_repo_debian_repo_doenst_exist(self, file_mock, execute_mock):
+    def test_remove_repo_ubuntu_repo_doenst_exist(self, file_mock, execute_mock):
       with Environment('/') as env:
           Repository('HDP',
                      action = "remove",

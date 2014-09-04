@@ -35,11 +35,12 @@ App.ServiceConfigVersion = DS.Model.extend({
   service: DS.belongsTo('App.Service'),
   index: DS.attr('number'),
   isCurrent: DS.attr('boolean'),
+  isDisplayed: DS.attr('boolean'),
   currentTooltip: function () {
     return Em.I18n.t('dashboard.configHistory.table.current.tooltip').format(this.get('displayName'), this.get('configGroupName'));
   }.property('displayName', 'configGroupName'),
   configGroupName: function () {
-    return this.get('groupName') == Em.I18n.t('dashboard.configHistory.table.configGroup.default') ? (this.get('displayName') + ' ' + Em.I18n.t('common.default')) : this.get('groupName');
+    return (this.get('groupName') === 'default') ? (this.get('displayName') + ' ' + Em.I18n.t('common.default')) : this.get('groupName');
   }.property('groupName'),
   briefNotes: function () {
     return (typeof this.get('notes') === 'string') ? this.get('notes').slice(0, 100) : "";
@@ -50,11 +51,11 @@ App.ServiceConfigVersion = DS.Model.extend({
   makeCurrentButtonText: function() {
     return Em.I18n.t('dashboard.configHistory.info-bar.revert.versionButton').format(this.get('versionText'));
   }.property('versionText'),
-  modifiedDate: function () {
+  createdDate: function () {
     return dateUtil.dateFormat(this.get('createTime'));
   }.property('createTime'),
-  shortModifiedDate: function () {
-    return dateUtil.dateFormat(this.get('createTime'), 'MMM DD, YYYY');
+  timeSinceCreated: function () {
+    return $.timeago(this.get('createTime'));
   }.property('createTime'),
   /**
    * determine whether ServiceConfigVersion is requested from server

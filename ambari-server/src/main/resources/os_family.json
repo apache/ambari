@@ -16,7 +16,7 @@
     "sles11",
     "opensuse11"
   ],
-  "debian12": [
+  "ubuntu12": [
     "debian12",
     "ubuntu12"
   ]

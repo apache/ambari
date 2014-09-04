@@ -88,13 +88,13 @@ class TestSetupAgent(TestCase):
 
   @patch.object(setup_agent, 'getAvaliableAgentPackageVersions')
   @patch('ambari_commons.OSCheck.is_suse_family')
-  @patch('ambari_commons.OSCheck.is_debian_family')
+  @patch('ambari_commons.OSCheck.is_ubuntu_family')
   @patch.object(setup_agent, 'findNearestAgentPackageVersion')
-  def test_returned_optimal_version_is_initial_on_suse(self, findNearestAgentPackageVersion_method, is_debian_family_method,
+  def test_returned_optimal_version_is_initial_on_suse(self, findNearestAgentPackageVersion_method, is_ubuntu_family_method,
                                                        is_suse_family_method, getAvaliableAgentPackageVersions_method):
     getAvaliableAgentPackageVersions_method.return_value = {"exitstatus": 0, "log": "1.1.1"}
     is_suse_family_method.return_value = True
-    is_debian_family_method.return_value = False
+    is_ubuntu_family_method.return_value = False
 
     projectVersion = "1.1.1"
     result_version = setup_agent.getOptimalVersion(projectVersion)
@@ -104,13 +104,13 @@ class TestSetupAgent(TestCase):
 
   @patch.object(setup_agent, 'getAvaliableAgentPackageVersions')
   @patch('ambari_commons.OSCheck.is_suse_family')
-  @patch('ambari_commons.OSCheck.is_debian_family')
+  @patch('ambari_commons.OSCheck.is_ubuntu_family')
   @patch.object(setup_agent, 'findNearestAgentPackageVersion')
-  def test_returned_optimal_version_is_initial_on_debian(self, findNearestAgentPackageVersion_method, is_debian_family_method,
+  def test_returned_optimal_version_is_initial_on_ubuntu(self, findNearestAgentPackageVersion_method, is_ubuntu_family_method,
                                                        is_suse_family_method, getAvaliableAgentPackageVersions_method):
     getAvaliableAgentPackageVersions_method.return_value = {"exitstatus": 0, "log": "1.1.1"}
     is_suse_family_method.return_value = False
-    is_debian_family_method.return_value = True
+    is_ubuntu_family_method.return_value = True
 
     projectVersion = "1.1.1"
     result_version = setup_agent.getOptimalVersion(projectVersion)
@@ -119,13 +119,13 @@ class TestSetupAgent(TestCase):
     pass
 
   @patch('ambari_commons.OSCheck.is_suse_family')
-  @patch('ambari_commons.OSCheck.is_debian_family')
+  @patch('ambari_commons.OSCheck.is_ubuntu_family')
   @patch.object(setup_agent, 'findNearestAgentPackageVersion')
   def test_returned_optimal_version_is_nearest_on_suse(self, findNearestAgentPackageVersion_method,
-                                                       is_debian_family_method,
+                                                       is_ubuntu_family_method,
                                                        is_suse_family_method):
     is_suse_family_method.return_value = True
-    is_debian_family_method.return_value = False
+    is_ubuntu_family_method.return_value = False
 
     projectVersion = ""
     nearest_version = projectVersion + "1.1.1"
@@ -140,13 +140,13 @@ class TestSetupAgent(TestCase):
     pass
 
   @patch('ambari_commons.OSCheck.is_suse_family')
-  @patch('ambari_commons.OSCheck.is_debian_family')
+  @patch('ambari_commons.OSCheck.is_ubuntu_family')
   @patch.object(setup_agent, 'findNearestAgentPackageVersion')
-  def test_returned_optimal_version_is_nearest_on_debian(self, findNearestAgentPackageVersion_method,
-                                                       is_debian_family_method,
+  def test_returned_optimal_version_is_nearest_on_ubuntu(self, findNearestAgentPackageVersion_method,
+                                                       is_ubuntu_family_method,
                                                        is_suse_family_method):
     is_suse_family_method.return_value = False
-    is_debian_family_method.return_value = True
+    is_ubuntu_family_method.return_value = True
 
     projectVersion = ""
     nearest_version = projectVersion + "1.1.1"
@@ -162,14 +162,14 @@ class TestSetupAgent(TestCase):
 
   @patch.object(setup_agent, 'getAvaliableAgentPackageVersions')
   @patch('ambari_commons.OSCheck.is_suse_family')
-  @patch('ambari_commons.OSCheck.is_debian_family')
+  @patch('ambari_commons.OSCheck.is_ubuntu_family')
   @patch.object(setup_agent, 'findNearestAgentPackageVersion')
   def test_returned_optimal_version_is_initial(self, findNearestAgentPackageVersion_method,
-                                               is_debian_family_method,
+                                               is_ubuntu_family_method,
                                                is_suse_family_method, getAvaliableAgentPackageVersions_method):
     getAvaliableAgentPackageVersions_method.return_value = {"exitstatus": 0, "log": "1.1.1"}
     is_suse_family_method.return_value = False
-    is_debian_family_method.return_value = False
+    is_ubuntu_family_method.return_value = False
 
     projectVersion = "1.1.1"
     result_version = setup_agent.getOptimalVersion(projectVersion)
@@ -179,14 +179,14 @@ class TestSetupAgent(TestCase):
 
   @patch.object(setup_agent, 'getAvaliableAgentPackageVersions')
   @patch('ambari_commons.OSCheck.is_suse_family')
-  @patch('ambari_commons.OSCheck.is_debian_family')
+  @patch('ambari_commons.OSCheck.is_ubuntu_family')
   @patch.object(setup_agent, 'findNearestAgentPackageVersion')
   def test_returned_optimal_version_is_default(self, findNearestAgentPackageVersion_method,
-                                               is_debian_family_method,
+                                               is_ubuntu_family_method,
                                                is_suse_family_method, getAvaliableAgentPackageVersions_method):
     getAvaliableAgentPackageVersions_method.return_value = {"exitstatus": 0, "log": "1.1.1"}
     is_suse_family_method.return_value = False
-    is_debian_family_method.return_value = False
+    is_ubuntu_family_method.return_value = False
     findNearestAgentPackageVersion_method.return_value = {
       "exitstatus": 0,
       "log": ["1.1.1.1", ""]
@@ -208,14 +208,14 @@ class TestSetupAgent(TestCase):
   @patch.object(setup_agent, 'configureAgent')
   @patch.object(setup_agent, 'installAgent')
   @patch('ambari_commons.OSCheck.is_suse_family')
-  @patch('ambari_commons.OSCheck.is_debian_family')
+  @patch('ambari_commons.OSCheck.is_ubuntu_family')
   @patch.object(setup_agent, 'getOptimalVersion')
   @patch.object(setup_agent, 'checkServerReachability')
   @patch("sys.exit")
   @patch("os.path.dirname")
   @patch("os.path.realpath")
   def test_setup_agent_main(self, dirname_mock, realpath_mock, exit_mock, checkServerReachability_mock,
-                            getOptimalVersion_mock, is_debian_family_mock, is_suse_family_mock,
+                            getOptimalVersion_mock, is_ubuntu_family_mock, is_suse_family_mock,
                             installAgent_mock, configureAgent_mock, runAgent_mock,
                             isAgentPackageAlreadyInstalled_mock, tryStopAgent_mock):
     installAgent_mock.return_value = {'log': 'log', 'exitstatus': 0}
@@ -231,19 +231,19 @@ class TestSetupAgent(TestCase):
     getOptimalVersion_mock.return_value = {'log': '1.1.1', 'exitstatus': 0}
     isAgentPackageAlreadyInstalled_mock.return_value = False
     is_suse_family_mock.return_value = True
-    is_debian_family_mock.return_value = False
+    is_ubuntu_family_mock.return_value = False
     setup_agent.main(("setupAgent.py","agents_host","password", "server_hostname","1.1.1","8080"))
     self.assertTrue(exit_mock.called)
     self.assertTrue(getOptimalVersion_mock.called)
     self.assertTrue(isAgentPackageAlreadyInstalled_mock.called)
     self.assertTrue(installAgent_mock.called)
     self.assertFalse(is_suse_family_mock.called)
-    self.assertFalse(is_debian_family_mock.called)
+    self.assertFalse(is_ubuntu_family_mock.called)
     exit_mock.reset_mock()
     getOptimalVersion_mock.reset_mock()
     isAgentPackageAlreadyInstalled_mock.reset_mock()
     is_suse_family_mock.reset_mock()
-    is_debian_family_mock.reset_mock()
+    is_ubuntu_family_mock.reset_mock()
     installAgent_mock.reset_mock()
 
     getOptimalVersion_mock.return_value = {'log': '', 'exitstatus': 0}
@@ -252,17 +252,17 @@ class TestSetupAgent(TestCase):
     self.assertTrue(getOptimalVersion_mock.called)
     self.assertFalse(isAgentPackageAlreadyInstalled_mock.called)
     self.assertFalse(is_suse_family_mock.called)
-    self.assertFalse(is_debian_family_mock.called)
+    self.assertFalse(is_ubuntu_family_mock.called)
 
     exit_mock.reset_mock()
     getOptimalVersion_mock.reset_mock()
     isAgentPackageAlreadyInstalled_mock.reset_mock()
     is_suse_family_mock.reset_mock()
-    is_debian_family_mock.reset_mock()
+    is_ubuntu_family_mock.reset_mock()
     installAgent_mock.reset_mock()
 
     is_suse_family_mock.return_value = False
-    is_debian_family_mock.return_value = False
+    is_ubuntu_family_mock.return_value = False
     getOptimalVersion_mock.return_value = {'log': '1.1.1', 'exitstatus': 0}
     setup_agent.main(("setupAgent.py","agents_host","password", "server_hostname","1.1.1","8080"))
     self.assertTrue(exit_mock.called)
@@ -270,7 +270,7 @@ class TestSetupAgent(TestCase):
     self.assertTrue(isAgentPackageAlreadyInstalled_mock.called)
     self.assertTrue(installAgent_mock.called)
     self.assertFalse(is_suse_family_mock.called)
-    self.assertFalse(is_debian_family_mock.called)
+    self.assertFalse(is_ubuntu_family_mock.called)
     exit_mock.reset_mock()
     getOptimalVersion_mock.reset_mock()
     isAgentPackageAlreadyInstalled_mock.reset_mock()
@@ -278,7 +278,7 @@ class TestSetupAgent(TestCase):
     getOptimalVersion_mock.reset_mock()
     isAgentPackageAlreadyInstalled_mock.reset_mock()
     is_suse_family_mock.reset_mock()
-    is_debian_family_mock.reset_mock()
+    is_ubuntu_family_mock.reset_mock()
     installAgent_mock.reset_mock()
 
     setup_agent.main(("setupAgent.py","agents_host","password", "server_hostname","{ambariVersion}","8080"))
@@ -291,7 +291,7 @@ class TestSetupAgent(TestCase):
     self.assertTrue(getOptimalVersion_mock.called)
     exit_mock.reset_mock()
     is_suse_family_mock.return_value = False
-    is_debian_family_mock.return_value = False
+    is_ubuntu_family_mock.return_value = False
     setup_agent.main(("setupAgent.py","agents_host","password", "server_hostname","null","null"))
     self.assertTrue(exit_mock.called)
     exit_mock.reset_mock()
@@ -311,7 +311,7 @@ class TestSetupAgent(TestCase):
     exit_mock.reset_mock()
     #if suse
     is_suse_family_mock.return_value = True
-    is_debian_family_mock.return_value = False
+    is_ubuntu_family_mock.return_value = False
     #if "zypper install -y ambari-agent" return not 0 result
     installAgent_mock.return_value = {'log': 'log', 'exitstatus': 1}
     try:
@@ -324,7 +324,7 @@ class TestSetupAgent(TestCase):
     exit_mock.reset_mock()
     #if ubuntu
     is_suse_family_mock.return_value = False
-    is_debian_family_mock.return_value = True
+    is_ubuntu_family_mock.return_value = True
 
     installAgent_mock.return_value = {'log': 'log', 'exitstatus': 1}
     try:

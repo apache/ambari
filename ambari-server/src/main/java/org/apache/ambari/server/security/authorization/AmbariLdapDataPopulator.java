@@ -84,12 +84,15 @@ public class AmbariLdapDataPopulator {
    * @return true if enabled
    */
   public boolean isLdapEnabled() {
+    if (!configuration.isLdapConfigured()) {
+      return false;
+    }
     try {
       final LdapTemplate ldapTemplate = loadLdapTemplate();
       ldapTemplate.list(ldapServerProperties.getBaseDN());
       return true;
     } catch (Exception ex) {
-      LOG.error("Could not connect to LDAP server", ex);
+      LOG.error("Could not connect to LDAP server - " + ex.getMessage());
       return false;
     }
   }

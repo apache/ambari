@@ -19,7 +19,7 @@ from resource_management import *
 
 
 def turn_off_autostart(service):
-  if System.get_instance().os_family == "debian":
+  if System.get_instance().os_family == "ubuntu":
     Execute(format("update-rc.d {service} disable"),
             path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'
     )

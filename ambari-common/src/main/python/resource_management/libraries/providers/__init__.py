@@ -27,8 +27,8 @@ PROVIDERS = dict(
   suse=dict(
     Repository="resource_management.libraries.providers.repository.RhelSuseRepositoryProvider",
   ),
-  debian=dict(
-    Repository="resource_management.libraries.providers.repository.DebianRepositoryProvider",
+  ubuntu=dict(
+    Repository="resource_management.libraries.providers.repository.UbuntuRepositoryProvider",
   ),
   default=dict(
     ExecuteHadoop="resource_management.libraries.providers.execute_hadoop.ExecuteHadoopProvider",

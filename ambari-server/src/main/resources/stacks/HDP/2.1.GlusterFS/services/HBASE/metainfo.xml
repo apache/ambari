@@ -24,6 +24,11 @@
         synchronization
       </comment>
       <version>0.98.0.2.1</version>
+      
+      <requiredServices>
+        <service>ZOOKEEPER</service>
+        <service>GLUSTERFS</service>
+      </requiredServices>      
     </service>
   </services>
 </metainfo>

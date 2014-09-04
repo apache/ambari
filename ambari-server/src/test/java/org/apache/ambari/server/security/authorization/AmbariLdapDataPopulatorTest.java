@@ -123,17 +123,18 @@ public class AmbariLdapDataPopulatorTest {
   }
 
   @Test
-  public void testIsLdapEnabled() {
+  public void testIsLdapEnabled_badConfiguration() {
     final Configuration configuration = EasyMock.createNiceMock(Configuration.class);
     final Users users = EasyMock.createNiceMock(Users.class);
 
     final AmbariLdapDataPopulator populator = new AmbariLdapDataPopulatorTestInstance(configuration, users);
 
-    EasyMock.expect(populator.loadLdapTemplate().list(EasyMock. <String>anyObject())).andReturn(Collections.emptyList()).once();
-    EasyMock.replay(populator.loadLdapTemplate());
+    EasyMock.expect(configuration.isLdapConfigured()).andReturn(true);
+    EasyMock.expect(populator.loadLdapTemplate().list(EasyMock. <String>anyObject())).andThrow(new NullPointerException()).once();
+    EasyMock.replay(populator.loadLdapTemplate(), configuration);
 
-    populator.isLdapEnabled();
-    EasyMock.verify(populator.loadLdapTemplate());
+    Assert.assertFalse(populator.isLdapEnabled());
+    EasyMock.verify(populator.loadLdapTemplate(), configuration);
   }
 
   @Test
@@ -143,11 +144,12 @@ public class AmbariLdapDataPopulatorTest {
 
     final AmbariLdapDataPopulator populator = new AmbariLdapDataPopulatorTestInstance(configuration, users);
 
+    EasyMock.expect(configuration.isLdapConfigured()).andReturn(true);
     EasyMock.expect(populator.loadLdapTemplate().list(EasyMock. <String>anyObject())).andReturn(Collections.emptyList()).once();
-    EasyMock.replay(populator.loadLdapTemplate());
+    EasyMock.replay(populator.loadLdapTemplate(),configuration);
 
     Assert.assertTrue(populator.isLdapEnabled());
-    EasyMock.verify(populator.loadLdapTemplate());
+    EasyMock.verify(populator.loadLdapTemplate(), configuration);
   }
 
   @Test
@@ -157,11 +159,11 @@ public class AmbariLdapDataPopulatorTest {
 
     final AmbariLdapDataPopulator populator = new AmbariLdapDataPopulatorTestInstance(configuration, users);
 
-    EasyMock.expect(populator.loadLdapTemplate().list(EasyMock. <String>anyObject())).andThrow(new NullPointerException()).once();
-    EasyMock.replay(populator.loadLdapTemplate());
+    EasyMock.expect(configuration.isLdapConfigured()).andReturn(false);
+    EasyMock.replay(populator.loadLdapTemplate(), configuration);
 
     Assert.assertFalse(populator.isLdapEnabled());
-    EasyMock.verify(populator.loadLdapTemplate());
+    EasyMock.verify(populator.loadLdapTemplate(), configuration);
   }
 
   @Test
