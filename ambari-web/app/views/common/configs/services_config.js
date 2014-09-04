@@ -354,7 +354,7 @@ App.ServiceConfigsByCategoryView = Ember.View.extend(App.UserPref, {
       var passesFilters = true;
 
       selectedFilters.forEach(function (filter) {
-        if (!config.get(filter.attributeName)) {
+        if (config.get(filter.attributeName) !== filter.attributeValue) {
           passesFilters = false;
         }
       });
@@ -397,7 +397,7 @@ App.ServiceConfigsByCategoryView = Ember.View.extend(App.UserPref, {
     var categoryBlock = $('.' + this.get('category.name').split(' ').join('.') + '>.accordion-body');
     filteredResult.length && !this.get('category.isCollapsed') ? categoryBlock.show() : categoryBlock.hide();
     return filteredResult;
-  }.property('categoryConfigs', 'parentView.filter', 'parentView.columns.@each.selected').cacheable(),
+  }.property('categoryConfigs', 'parentView.filter', 'parentView.columns.@each.selected', 'categoryConfigs.@each.isValid').cacheable(),
 
   /**
    * sort configs in current category by index

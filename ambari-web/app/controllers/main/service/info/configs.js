@@ -128,16 +128,24 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   propertyFilters: [
     {
       attributeName: 'isOverridden',
+      attributeValue: true,
       caption: 'common.combobox.dropdown.overridden'
     },
     {
       attributeName: 'isFinal',
+      attributeValue: true,
       caption: 'common.combobox.dropdown.final'
     },
     {
       attributeName: 'hasCompareDiffs',
+      attributeValue: true,
       caption: 'common.combobox.dropdown.changed',
       dependentOn: 'isCompareMode'
+    },
+    {
+      attributeName: 'isValid',
+      attributeValue: false,
+      caption: 'common.combobox.dropdown.issues'
     }
   ],
 
@@ -161,6 +169,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
       if (Em.isNone(filter.dependentOn) || this.get(filter.dependentOn)) {
         filterColumns.push(Ember.Object.create({
           attributeName: filter.attributeName,
+          attributeValue: filter.attributeValue,
           name: this.t(filter.caption),
           selected: false
         }));

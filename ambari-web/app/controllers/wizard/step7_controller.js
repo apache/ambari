@@ -202,11 +202,18 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
   propertyFilters: [
     {
       attributeName: 'isOverridden',
+      attributeValue: true,
       caption: 'common.combobox.dropdown.overridden'
     },
     {
       attributeName: 'isFinal',
+      attributeValue: true,
       caption: 'common.combobox.dropdown.final'
+    },
+    {
+      attributeName: 'isValid',
+      attributeValue: false,
+      caption: 'common.combobox.dropdown.issues'
     }
   ],
 
@@ -217,6 +224,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
     return this.get('propertyFilters').map(function(filter) {
       return Ember.Object.create({
         attributeName: filter.attributeName,
+        attributeValue: filter.attributeValue,
         name: this.t(filter.caption),
         selected: false
       })
