@@ -19,11 +19,13 @@
   <schemaVersion>2.0</schemaVersion>
   <services>
     <service>
-      <name>SQOOP</name>
-      <comment>Tool for transferring bulk data between Apache Hadoop and
-        structured data stores such as relational databases
-      </comment>
-      <version>1.4.4.2.1</version>
+      <name>HIVE</name>
+      <comment>Data warehouse system for ad-hoc queries &amp; analysis of large datasets and table &amp; storage management service</comment>
+      <version>0.14.0.2.2</version>
+    </service>
+    <service>
+      <name>HCATALOG</name>
+      <version>0.14.0.2.2</version>
     </service>
   </services>
 </metainfo>

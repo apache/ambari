@@ -15,15 +15,17 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 -->
+
 <metainfo>
   <schemaVersion>2.0</schemaVersion>
   <services>
     <service>
-      <name>SQOOP</name>
-      <comment>Tool for transferring bulk data between Apache Hadoop and
-        structured data stores such as relational databases
-      </comment>
-      <version>1.4.4.2.1</version>
+      <name>YARN</name>
+      <version>2.6.0.2.2</version>
     </service>
   </services>
+  <service>
+    <name>MAPREDUCE2</name>
+    <version>2.6.0.2.2</version>
+  </service>
 </metainfo>

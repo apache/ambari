@@ -19,11 +19,8 @@
   <schemaVersion>2.0</schemaVersion>
   <services>
     <service>
-      <name>SQOOP</name>
-      <comment>Tool for transferring bulk data between Apache Hadoop and
-        structured data stores such as relational databases
-      </comment>
-      <version>1.4.4.2.1</version>
+      <name>FALCON</name>
+      <version>0.6.0.2.2</version>
     </service>
   </services>
 </metainfo>

@@ -15,15 +15,13 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 -->
+
 <metainfo>
   <schemaVersion>2.0</schemaVersion>
   <services>
     <service>
-      <name>SQOOP</name>
-      <comment>Tool for transferring bulk data between Apache Hadoop and
-        structured data stores such as relational databases
-      </comment>
-      <version>1.4.4.2.1</version>
+      <name>STORM</name>
+      <version>0.9.3.2.2</version>
     </service>
   </services>
 </metainfo>
