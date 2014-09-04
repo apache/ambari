@@ -79,10 +79,12 @@ public class NagiosPropertyProvider extends BaseProvider implements PropertyProv
   private static final String ALERT_SUMMARY_PASSIVE_PROPERTY_ID = "alerts/summary/PASSIVE";
   private static final String PASSIVE_TOKEN = "AMBARIPASSIVE=";
   
-  private static final List<String> IGNORABLE_FOR_SERVICES = new ArrayList<String>(
+  private static final List<String> DEFAULT_IGNORABLE_FOR_SERVICES = Collections.unmodifiableList(new ArrayList<String>(
       Arrays.asList("NodeManager health", "NodeManager process", "TaskTracker process",
       "RegionServer process", "DataNode process", "DataNode space",
-      "ZooKeeper Server process", "Supervisors process"));
+      "ZooKeeper Server process", "Supervisors process")));
+  
+  private static List<String> IGNORABLE_FOR_SERVICES;
   
   private static final List<String> IGNORABLE_FOR_HOSTS = new ArrayList<String>(
     Collections.singletonList("percent"));
@@ -99,6 +101,7 @@ public class NagiosPropertyProvider extends BaseProvider implements PropertyProv
   static {
     NAGIOS_PROPERTY_IDS.add("alerts/summary");
     NAGIOS_PROPERTY_IDS.add("alerts/detail");
+    IGNORABLE_FOR_SERVICES = new ArrayList<String>(DEFAULT_IGNORABLE_FOR_SERVICES);
 
     scheduler = Executors.newSingleThreadScheduledExecutor(new ThreadFactory() {
       @Override
@@ -121,6 +124,7 @@ public class NagiosPropertyProvider extends BaseProvider implements PropertyProv
     clusters = injector.getInstance(Clusters.class);
     Configuration config = injector.getInstance(Configuration.class);
     
+    IGNORABLE_FOR_SERVICES = new ArrayList<String>(DEFAULT_IGNORABLE_FOR_SERVICES);
     String ignores = config.getProperty(Configuration.NAGIOS_IGNORE_FOR_SERVICES_KEY);
     if (null != ignores) {
       Collections.addAll(IGNORABLE_FOR_SERVICES, COMMA_PATTERN.split(ignores));
