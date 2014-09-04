@@ -47,6 +47,7 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.AbstractControllerResourceProvider;
 import org.apache.ambari.server.controller.internal.AlertDefinitionResourceProvider;
 import org.apache.ambari.server.controller.internal.AlertGroupResourceProvider;
+import org.apache.ambari.server.controller.internal.AlertResourceProvider;
 import org.apache.ambari.server.controller.internal.AlertTargetResourceProvider;
 import org.apache.ambari.server.controller.internal.AmbariPrivilegeResourceProvider;
 import org.apache.ambari.server.controller.internal.BlueprintResourceProvider;
@@ -531,6 +532,7 @@ public class AmbariServer {
         injector.getInstance(Gson.class), ambariMetaInfo);
     StackDependencyResourceProvider.init(ambariMetaInfo);
     ClusterResourceProvider.init(injector.getInstance(BlueprintDAO.class), ambariMetaInfo, injector.getInstance(ConfigHelper.class));
+    AlertResourceProvider.init(injector);
     AlertDefinitionResourceProvider.init(injector);
     AlertGroupResourceProvider.init(injector);
     AlertTargetResourceProvider.init(injector);

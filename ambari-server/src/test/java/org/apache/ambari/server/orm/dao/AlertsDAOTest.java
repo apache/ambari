@@ -81,13 +81,13 @@ public class AlertsDAOTest {
       definition.setComponentName(null);
       definition.setClusterId(clusterId);
       definition.setHash(UUID.randomUUID().toString());
-      definition.setScheduleInterval(60);
+      definition.setScheduleInterval(Integer.valueOf(60));
       definition.setScope(Scope.SERVICE);
       definition.setSource("Source " + i);
       definition.setSourceType("SCRIPT");
       definitionDao.create(definition);
     }
-
+    
     List<AlertDefinitionEntity> definitions = definitionDao.findAll();
     assertNotNull(definitions);
     assertEquals(5, definitions.size());
@@ -192,6 +192,54 @@ public class AlertsDAOTest {
     assertNotNull(currentAlerts);
     assertEquals(0, currentAlerts.size());
   }
+  
+  /**
+   * Test looking up current by a host name.
+   */
+  @Test
+  public void testFindCurrentByHost() {
+    // create a host
+    AlertDefinitionEntity hostDef = new AlertDefinitionEntity();
+    hostDef.setDefinitionName("Host Alert Definition ");
+    hostDef.setServiceName("HostService");
+    hostDef.setComponentName(null);
+    hostDef.setClusterId(clusterId);
+    hostDef.setHash(UUID.randomUUID().toString());
+    hostDef.setScheduleInterval(Integer.valueOf(60));
+    hostDef.setScope(Scope.HOST);
+    hostDef.setSource("HostService");
+    hostDef.setSourceType("SCRIPT");
+    definitionDao.create(hostDef);
+    
+    // history for the definition
+    AlertHistoryEntity history = new AlertHistoryEntity();
+    history.setServiceName(hostDef.getServiceName());
+    history.setClusterId(clusterId);
+    history.setAlertDefinition(hostDef);
+    history.setAlertLabel(hostDef.getDefinitionName());
+    history.setAlertText(hostDef.getDefinitionName());
+    history.setAlertTimestamp(Long.valueOf(1L));
+    history.setHostName("h2");
+    history.setAlertState(AlertState.OK);
+    
+    // current for the history
+    AlertCurrentEntity current = new AlertCurrentEntity();
+    current.setOriginalTimestamp(1L);
+    current.setLatestTimestamp(2L);
+    current.setAlertHistory(history);
+    dao.create(current);
+    
+    
+    List<AlertCurrentEntity> currentAlerts = dao.findCurrentByHost(clusterId, history.getHostName());
+
+    assertNotNull(currentAlerts);
+    assertEquals(1, currentAlerts.size());
+
+    currentAlerts = dao.findCurrentByHost(clusterId, "foo");
+
+    assertNotNull(currentAlerts);
+    assertEquals(0, currentAlerts.size());
+  }  
 
   /**
    * 

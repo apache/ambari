@@ -19,6 +19,7 @@ package org.apache.ambari.server.orm.dao;
 
 import java.util.Collections;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -28,6 +29,7 @@ import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.AlertCurrentEntity;
 import org.apache.ambari.server.orm.entities.AlertHistoryEntity;
 import org.apache.ambari.server.state.AlertState;
+import org.apache.ambari.server.state.alert.Scope;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -205,6 +207,23 @@ public class AlertsDAO {
   }
 
   /**
+   * Gets the current alerts for a given cluster.
+   * 
+   * @return the current alerts for the given clusteror an empty list if none
+   *         exist (never {@code null}).
+   */
+  @RequiresSession
+  public List<AlertCurrentEntity> findCurrentByCluster(long clusterId) {
+    TypedQuery<AlertCurrentEntity> query = entityManagerProvider.get().createNamedQuery(
+        "AlertCurrentEntity.findByCluster", AlertCurrentEntity.class);
+
+    query.setParameter("clusterId", Long.valueOf(clusterId));
+
+    return daoUtils.selectList(query);
+  }
+  
+  
+  /**
    * Gets the current alerts for a given service.
    * 
    * @return the current alerts for the given service or an empty list if none
@@ -218,6 +237,7 @@ public class AlertsDAO {
 
     query.setParameter("clusterId", clusterId);
     query.setParameter("serviceName", serviceName);
+    query.setParameter("inlist", EnumSet.of(Scope.ANY, Scope.SERVICE));
 
     return daoUtils.selectList(query);
   }
@@ -236,6 +256,7 @@ public class AlertsDAO {
 
     query.setParameter("clusterId", clusterId);
     query.setParameter("hostName", hostName);
+    query.setParameter("inlist", EnumSet.of(Scope.ANY, Scope.HOST));
 
     return daoUtils.selectList(query);
   }

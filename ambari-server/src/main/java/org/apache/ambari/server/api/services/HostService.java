@@ -207,6 +207,17 @@ public class HostService extends BaseService {
   }
 
   /**
+   * Get the alerts sub-resource.
+   *
+   * @param hostName host id
+   * @return the alerts service
+   */
+  @Path("{hostName}/alerts_data")
+  public AlertService getAlertHandler(@PathParam("hostName") String hostName) {
+    return new AlertService(m_clusterName, null, hostName);
+  }  
+  
+  /**
    * Create a service resource instance.
    *
    *

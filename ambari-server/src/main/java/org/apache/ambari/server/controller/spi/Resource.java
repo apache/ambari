@@ -114,6 +114,7 @@ public interface Resource {
     Validation,
     HostComponentProcess,
     Permission,
+    Alert,
     AlertDefinition,
     AlertGroup,
     AlertTarget,
@@ -198,6 +199,7 @@ public interface Resource {
     public static final Type Validation = InternalType.Validation.getType();
     public static final Type HostComponentProcess = InternalType.HostComponentProcess.getType();
     public static final Type Permission = InternalType.Permission.getType();
+    public static final Type Alert = InternalType.Alert.getType();
     public static final Type AlertDefinition = InternalType.AlertDefinition.getType();
     public static final Type AlertGroup = InternalType.AlertGroup.getType();
     public static final Type AlertTarget = InternalType.AlertTarget.getType();

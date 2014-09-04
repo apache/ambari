@@ -183,6 +183,15 @@ public class ServiceService extends BaseService {
 
     return new ComponentService(m_clusterName, serviceName);
   }
+  
+  /**
+   * Gets the alerts sub-resource.
+   */
+  @Path("{serviceName}/alerts_data")
+  public AlertService getAlertHandler(
+      @PathParam("serviceName") String serviceName) {
+    return new AlertService(m_clusterName, serviceName, null);
+  }
 
   /**
    * Create a service resource instance.

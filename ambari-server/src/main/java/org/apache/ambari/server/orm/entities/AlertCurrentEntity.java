@@ -47,8 +47,9 @@ import org.apache.ambari.server.state.MaintenanceState;
 @TableGenerator(name = "alert_current_id_generator", table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value", pkColumnValue = "alert_current_id_seq", initialValue = 0, allocationSize = 1)
 @NamedQueries({
     @NamedQuery(name = "AlertCurrentEntity.findAll", query = "SELECT alert FROM AlertCurrentEntity alert"),
-    @NamedQuery(name = "AlertCurrentEntity.findByService", query = "SELECT alert FROM AlertCurrentEntity alert JOIN alert.alertHistory history WHERE history.clusterId = :clusterId AND history.serviceName = :serviceName"),
-    @NamedQuery(name = "AlertCurrentEntity.findByHost", query = "SELECT alert FROM AlertCurrentEntity alert JOIN alert.alertHistory history WHERE history.clusterId = :clusterId AND history.hostName = :hostName"),
+    @NamedQuery(name = "AlertCurrentEntity.findByCluster", query = "SELECT alert FROM AlertCurrentEntity alert JOIN alert.alertHistory history WHERE history.clusterId = :clusterId"),
+    @NamedQuery(name = "AlertCurrentEntity.findByService", query = "SELECT alert FROM AlertCurrentEntity alert JOIN alert.alertHistory history WHERE history.clusterId = :clusterId AND history.serviceName = :serviceName AND history.alertDefinition.scope IN :inlist"),
+    @NamedQuery(name = "AlertCurrentEntity.findByHost", query = "SELECT alert FROM AlertCurrentEntity alert JOIN alert.alertHistory history WHERE history.clusterId = :clusterId AND history.hostName = :hostName AND history.alertDefinition.scope IN :inlist"),
     @NamedQuery(name = "AlertCurrentEntity.findByHostAndName", query = "SELECT alert FROM AlertCurrentEntity alert JOIN alert.alertHistory history WHERE history.clusterId = :clusterId AND history.alertDefinition.definitionName = :definitionName AND history.hostName = :hostName"),
     @NamedQuery(name = "AlertCurrentEntity.removeByHistoryId", query = "DELETE FROM AlertCurrentEntity alert WHERE alert.alertHistory.alertId = :historyId"),
     @NamedQuery(name = "AlertCurrentEntity.removeByDefinitionId", query = "DELETE FROM AlertCurrentEntity alert WHERE alert.alertDefinition.definitionId = :definitionId") })

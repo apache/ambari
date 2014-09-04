@@ -15,42 +15,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.apache.ambari.server.api.resources;
-
-
-import java.util.HashSet;
-import java.util.Set;
 
 import org.apache.ambari.server.controller.spi.Resource;
 
 /**
- * Host resource definition.
+ * Definition for alert resources.
  */
-public class HostResourceDefinition extends BaseResourceDefinition {
-
-  /**
-   * Constructor.
-   */
-  public HostResourceDefinition() {
-    super(Resource.Type.Host);
+public class AlertResourceDefinition extends BaseResourceDefinition {
+  
+  public AlertResourceDefinition() {
+    super(Resource.Type.Alert);
   }
-
+  
   @Override
   public String getPluralName() {
-    return "hosts";
+    return "alerts_data";
   }
-
+  
   @Override
   public String getSingularName() {
-    return "host";
+    return "alert_data";
   }
-
-  @Override
-  public Set<SubResourceDefinition> getSubResourceDefinitions() {
-    Set<SubResourceDefinition> subs = new HashSet<SubResourceDefinition>();
-    subs.add(new SubResourceDefinition(Resource.Type.HostComponent));
-    subs.add(new SubResourceDefinition(Resource.Type.Alert));
-    return subs;
-  }
+  
 }
