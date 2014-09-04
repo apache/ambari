@@ -92,6 +92,7 @@ public class GroupDAO {
   @Transactional
   public void remove(GroupEntity group) {
     entityManagerProvider.get().remove(merge(group));
+    entityManagerProvider.get().getEntityManagerFactory().getCache().evictAll();
   }
 
   @Transactional

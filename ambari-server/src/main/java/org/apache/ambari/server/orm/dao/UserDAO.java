@@ -103,6 +103,7 @@ public class UserDAO {
   @Transactional
   public void remove(UserEntity user) {
     entityManagerProvider.get().remove(merge(user));
+    entityManagerProvider.get().getEntityManagerFactory().getCache().evictAll();
   }
 
   @Transactional
