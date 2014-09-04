@@ -41,27 +41,32 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     for component in componentsList:
       if component["StackServiceComponents"]["cardinality"] is not None:
          componentName = component["StackServiceComponents"]["component_name"]
+         componentDisplayName = component["StackServiceComponents"]["display_name"]
          componentHostsCount = 0
          if component["StackServiceComponents"]["hostnames"] is not None:
            componentHostsCount = len(component["StackServiceComponents"]["hostnames"])
          cardinality = str(component["StackServiceComponents"]["cardinality"])
          # cardinality types: null, 1+, 1-2, 1, ALL
+         message = None
          if "+" in cardinality:
            hostsMin = int(cardinality[:-1])
-           hostsMax = sys.maxint
+           if componentHostsCount < hostsMin:
+             message = "At least {0} {1} components should be installed in cluster.".format(hostsMin, componentDisplayName)
          elif "-" in cardinality:
            nums = cardinality.split("-")
            hostsMin = int(nums[0])
            hostsMax = int(nums[1])
+           if componentHostsCount > hostsMax or componentHostsCount < hostsMin:
+             message = "Between {0} and {1} {2} components should be installed in cluster.".format(hostsMin, hostsMax, componentDisplayName)
          elif "ALL" == cardinality:
-           hostsMin = hostsCount
-           hostsMax = hostsCount
+           if componentHostsCount != hostsCount:
+             message = "{0} component should be installed on all hosts in cluster.".format(componentDisplayName)
          else:
-           hostsMin = int(cardinality)
-           hostsMax = int(cardinality)
+           if componentHostsCount != int(cardinality):
+             message = "Exactly {0} {1} components should be installed in cluster.".format(int(cardinality), componentDisplayName)
 
-         if componentHostsCount > hostsMax or componentHostsCount < hostsMin:
-           items.append( { "type": 'host-component', "level": 'ERROR', "message": 'Cardinality violation, cardinality={0}, hosts count={1}'.format(cardinality, str(componentHostsCount)), "component-name": str(componentName) } )
+         if message is not None:
+           items.append({"type": 'host-component', "level": 'ERROR', "message": message, "component-name": componentName})
 
     # Validating host-usage
     usedHostsListList = [component["StackServiceComponents"]["hostnames"] for component in componentsList if not self.isNotValuable(component)]

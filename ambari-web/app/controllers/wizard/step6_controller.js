@@ -674,11 +674,8 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
 
         if (component || !item['component-name']) {
           var details = "";
-          if (component) {
-            details += " for " + component + " component";
-          }
           if (item.host) {
-            details += " " + item.host;
+            details += " (" + item.host + ")";
           }
 
           if (item.level === 'ERROR') {
