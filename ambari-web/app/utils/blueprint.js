@@ -218,8 +218,10 @@ module.exports = {
       var config = stepConfigs.findProperty('serviceName', service.get('serviceName'));
       if (config && service.get('configTypes')) {
         Object.keys(service.get('configTypes')).forEach(function(type) {
-          configurations[type] = {
-            properties: {}
+          if(!configurations[type]){
+            configurations[type] = {
+              properties: {}
+            }
           }
         });
         config.get('configs').forEach(function(property){
