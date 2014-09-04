@@ -215,6 +215,7 @@ NAGIOS_HTTPS = 'nagios.https'
 JDBC_RCA_PASSWORD_ALIAS = "ambari.db.password"
 CLIENT_SECURITY_KEY = "client.security"
 
+IS_LDAP_CONFIGURED = "ambari.ldap.isConfigured"
 LDAP_MGR_PASSWORD_ALIAS = "ambari.ldap.manager.password"
 LDAP_MGR_PASSWORD_PROPERTY = "authentication.ldap.managerPassword"
 LDAP_MGR_USERNAME_PROPERTY = "authentication.ldap.managerDn"
@@ -3064,6 +3065,7 @@ def setup_ldap():
     pass
 
     # Persisting values
+    ldap_property_value_map[IS_LDAP_CONFIGURED] = "true"
     update_properties(properties, ldap_property_value_map)
     print 'Saving...done'
 

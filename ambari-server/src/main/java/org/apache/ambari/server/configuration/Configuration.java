@@ -118,6 +118,7 @@ public class Configuration {
   public static final String OJDBC_JAR_NAME_DEFAULT = "ojdbc6.jar";
   public static final String MYSQL_JAR_NAME_KEY = "db.mysql.jdbc.name";
   public static final String MYSQL_JAR_NAME_DEFAULT = "mysql-connector-java.jar";
+  public static final String IS_LDAP_CONFIGURED = "ambari.ldap.isConfigured";
   public static final String LDAP_USE_SSL_KEY = "authentication.ldap.useSSL";
   public static final String LDAP_PRIMARY_URL_KEY =
       "authentication.ldap.primaryUrl";
@@ -280,6 +281,7 @@ public class Configuration {
   private static final String LDAP_ADMIN_GROUP_MAPPING_RULES_DEFAULT =
       "Ambari Administrators";
   private static final String LDAP_GROUP_SEARCH_FILTER_DEFAULT = "";
+  private static final String IS_LDAP_CONFIGURED_DEFAULT = "false";
   //TODO for development purposes only, should be changed to 'false'
   private static final String SERVER_PERSISTENCE_TYPE_DEFAULT = "local";
   private static final String SERVER_CONNECTION_MAX_IDLE_TIME =
@@ -802,6 +804,10 @@ public class Configuration {
     }
 
     return ldapServerProperties;
+  }
+
+  public boolean isLdapConfigured() {
+    return Boolean.parseBoolean(properties.getProperty(IS_LDAP_CONFIGURED, IS_LDAP_CONFIGURED_DEFAULT));
   }
 
   public String getServerOsType() {
