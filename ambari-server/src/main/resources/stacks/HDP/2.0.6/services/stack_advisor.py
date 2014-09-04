@@ -37,14 +37,6 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     nameNodeHosts = [component["StackServiceComponents"]["hostnames"] for component in componentsList if component["StackServiceComponents"]["component_name"] == "NAMENODE"]
     secondaryNameNodeHosts = [component["StackServiceComponents"]["hostnames"] for component in componentsList if component["StackServiceComponents"]["component_name"] == "SECONDARY_NAMENODE"]
 
-    if hostsCount > 1 and len(nameNodeHosts) > 0 and len(secondaryNameNodeHosts) > 0:
-      nameNodeHosts = nameNodeHosts[0]
-      secondaryNameNodeHosts = secondaryNameNodeHosts[0]
-      commonHosts = list(set(nameNodeHosts).intersection(secondaryNameNodeHosts))
-      for host in commonHosts:
-        items.append( { "type": 'host-component', "level": 'WARN', "message": 'NameNode and Secondary NameNode should not be hosted on same machine', "component-name": 'NAMENODE', "host": str(host) } )
-        items.append( { "type": 'host-component', "level": 'WARN', "message": 'NameNode and Secondary NameNode should not be hosted on same machine', "component-name": 'SECONDARY_NAMENODE', "host": str(host) } )
-
     # Validating cardinality
     for component in componentsList:
       if component["StackServiceComponents"]["cardinality"] is not None:
