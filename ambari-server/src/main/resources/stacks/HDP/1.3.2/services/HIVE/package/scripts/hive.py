@@ -40,24 +40,35 @@ def hive(name=None):
     )
     params.HdfsDirectory(None, action="create")
   if name == 'metastore' or name == 'hiveserver2':
-    config_file_mode = 0600
     jdbc_connector()
-  else:
-    config_file_mode = 0644
 
-  Directory(params.hive_config_dir,
+  Directory(params.hive_conf_dir,
+            owner=params.hive_user,
+            group=params.user_group,
+            recursive=True
+  )
+  Directory(params.hive_server_conf_dir,
             owner=params.hive_user,
             group=params.user_group,
             recursive=True
   )
 
   XmlConfig("hive-site.xml",
-            conf_dir=params.hive_config_dir,
+            conf_dir=params.hive_conf_dir,
             configurations=params.config['configurations']['hive-site'],
             configuration_attributes=params.config['configuration_attributes']['hive-site'],
             owner=params.hive_user,
             group=params.user_group,
-            mode=config_file_mode
+            mode=0644
+  )
+
+  XmlConfig("hive-site.xml",
+            conf_dir=params.hive_server_conf_dir,
+            configurations=params.config['configurations']['hive-site'],
+            configuration_attributes=params.config['configuration_attributes']['hive-site'],
+            owner=params.hive_user,
+            group=params.user_group,
+            mode=0600
   )
 
   environment = {
@@ -90,7 +101,13 @@ def hive(name=None):
     crt_directory(params.hive_log_dir)
     crt_directory(params.hive_var_lib)
 
-  File(format("{hive_config_dir}/hive-env.sh"),
+  File(format("{hive_conf_dir}/hive-env.sh"),
+       owner=params.hive_user,
+       group=params.user_group,
+       content=InlineTemplate(params.hive_env_sh_template)
+  )
+
+  File(format("{hive_server_conf_dir}/hive-env.sh"),
        owner=params.hive_user,
        group=params.user_group,
        content=InlineTemplate(params.hive_env_sh_template)
