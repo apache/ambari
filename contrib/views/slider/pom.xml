@@ -40,8 +40,8 @@
 		</dependency>
 		<dependency>
 			<groupId>org.apache.slider</groupId>
-			<artifactId>slider</artifactId>
-			<version>0.30.0</version>
+			<artifactId>slider-core</artifactId>
+			<version>0.41.0</version>
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>

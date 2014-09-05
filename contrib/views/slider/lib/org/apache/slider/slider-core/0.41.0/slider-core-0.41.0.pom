@@ -19,7 +19,7 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.apache.slider</groupId>
-  <artifactId>slider</artifactId>
-  <version>0.30.0</version>
+  <artifactId>slider-core</artifactId>
+  <version>0.41.0</version>
   <description>POM was created from install:install-file</description>
 </project>
