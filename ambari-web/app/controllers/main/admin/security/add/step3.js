@@ -24,7 +24,6 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
   hostComponents: [],
   hosts: [],
   isLoaded: false,
-  isRecommendedLoaded: true,
 
   componentToUserMap: {
     'NAMENODE': 'hdfs_user',

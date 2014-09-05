@@ -21,6 +21,7 @@ var App = require('app');
 App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
 
   name: 'mainAdminSecurityAddStep2Controller',
+  isRecommendedLoaded: true,
   stepConfigs: [],
   installedServices: [],
   selectedService: null,
