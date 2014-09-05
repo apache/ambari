@@ -48,8 +48,7 @@ angular.module('ambariAdminConsole')
         deferred.resolve(data.items);
       })
       .catch(function(data) {
-        deferred.reject(data);
-      });
+        deferred.reject(data); });
 
       return deferred.promise;
     },
@@ -101,6 +100,17 @@ angular.module('ambariAdminConsole')
           'PrivilegeInfo/principal_type': principalType,
           'PrivilegeInfo/principal_name': principalName,
           'PrivilegeInfo/permission_name': permissionName
+        }
+      });
+    },
+    editName: function(oldName, newName) {
+      return $http({
+        method: 'PUT',
+        url: Settings.baseUrl + '/clusters/' + oldName,
+        data: {
+          Clusters: {
+            "cluster_name": newName
+          }
         }
       });
     }

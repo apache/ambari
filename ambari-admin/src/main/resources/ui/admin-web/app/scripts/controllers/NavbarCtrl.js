@@ -20,11 +20,50 @@
 angular.module('ambariAdminConsole')
 .controller('NavbarCtrl',['$scope', 'Cluster', '$location', 'uiAlert', 'ROUTES', 'LDAP', 'ConfirmationModal', '$rootScope', function($scope, Cluster, $location, uiAlert, ROUTES, LDAP, ConfirmationModal, $rootScope) {
   $scope.cluster = null;
+  $scope.editCluster = {
+    name        : '',
+    editingName : false
+  };
+
   Cluster.getStatus().then(function(cluster) {
     $scope.cluster = cluster;
   }).catch(function(data) {
   	uiAlert.danger(data.status, data.message);
   });
+
+  $scope.toggleEditName = function($event) {
+    if ($event && $event.keyCode !== 27) {
+      // 27 = Escape key
+      return false;
+    }
+
+    $scope.editCluster.name         = $scope.cluster.Clusters.cluster_name;
+    $scope.editCluster.editingName  = !$scope.editCluster.editingName;
+  };
+
+  $scope.confirmClusterNameChange = function() {
+    ConfirmationModal.show('Confirm Cluster Name Change', 'Are you sure you want to change the cluster name to ' + $scope.editCluster.name + '?')
+      .then(function() {
+        $scope.saveClusterName();
+      }).catch(function() {
+        // user clicked cancel
+        $scope.toggleEditName();
+      });
+  };
+
+  $scope.saveClusterName = function() {
+    var oldClusterName = $scope.cluster.Clusters.cluster_name,
+        newClusterName = $scope.editCluster.name;
+
+    Cluster.editName(oldClusterName, newClusterName).then(function(data) {
+      $scope.cluster.Clusters.cluster_name = newClusterName;
+      uiAlert.success('Success', 'The cluster has been renamed to ' + newClusterName + '.');
+    }).catch(function(data) {
+      uiAlert.danger(data.data.status, data.data.message);
+    });
+
+    $scope.toggleEditName();
+  };
 
   $scope.isActive = function(path) {
   	var route = ROUTES;

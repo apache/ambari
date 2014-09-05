@@ -376,7 +376,7 @@ Em.I18n.translations = {
   'installer.step0.body':'This wizard will walk you through the cluster installation process.  Let\'s start by naming your new cluster.',
   'installer.step0.clusterName':'Name your cluster',
   'installer.step0.clusterName.tooltip.title':'Cluster Name',
-  'installer.step0.clusterName.tooltip.content':'Enter a unique cluster name. Cluster name cannot be changed later.',
+  'installer.step0.clusterName.tooltip.content':'Enter a unique cluster name.',
   'installer.step0.clusterName.error.required':'Cluster Name is required',
   'installer.step0.clusterName.error.whitespaces':'Cluster Name cannot contain white spaces',
   'installer.step0.clusterName.error.specialChar':'Cluster Name cannot contain special characters',

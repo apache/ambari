@@ -15,12 +15,45 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 -->
-<div class="left-navbar">
+<div class="left-navbar" xmlns="http://www.w3.org/1999/html">
   <div class="panel panel-default">
     <div class="panel-heading"><span class="glyphicon glyphicon-cloud"></span> Clusters</div>
     <div class="panel-body">
       <div ng-show="cluster">
-        <h5>{{cluster.Clusters.cluster_name}}</h5>
+        <div ng-switch on="editCluster.editingName">
+          <h5 ng-switch-when="false">{{cluster.Clusters.cluster_name}}
+            <i ng-click="toggleEditName()" class="glyphicon glyphicon-edit pull-right edit-cluster-name" tooltip="Rename Cluster"></i>
+          </h5>
+
+          <form ng-keyup="toggleEditName($event)" tabindex="1" name="editClusterNameForm" class="editClusterNameForm" ng-switch-when="true"
+                ng-submit="editCluster.name !== cluster.Clusters.cluster_name && editClusterNameForm.newClusterName.$valid && confirmClusterNameChange()">
+            <div class="form-group" ng-class="{'has-error': editClusterNameForm.newClusterName.$invalid && !editClusterNameForm.newClusterName.$pristine }">
+              <input
+                  autofocus
+                  type="text"
+                  name="newClusterName"
+                  ng-required="true"
+                  ng-pattern="/^[a-zA-Z0-9]*$/"
+                  ng-model="editCluster.name"
+                  class="form-control input-sm"
+                  tooltip="Only alpha-numeric characters."
+                  tooltip-trigger="focus">
+
+              <button
+                  type="submit"
+                  class="btn btn-success btn-xs"
+                  ng-class="{'disabled': editClusterNameForm.newClusterName.$invalid || editCluster.name == cluster.Clusters.cluster_name}">
+                <i class="glyphicon glyphicon-ok"></i>
+              </button>
+              <button ng-click="toggleEditName()"
+                      class="btn btn-danger btn-xs">
+                <i class="glyphicon glyphicon-remove"></i>
+              </button>
+            </div>
+          </form>
+
+        </div>
+
         <ul class="nav nav-pills nav-stacked">
           <li ng-class="{active: isActive('clusters.manageAccess')}">
             <a href="#/clusters/{{cluster.Clusters.cluster_name}}/manageAccess" class="permissions">Permissions</a>
