@@ -46,6 +46,18 @@
             <script>scripts/zookeeper_client.py</script>
             <scriptType>PYTHON</scriptType>
           </commandScript>
+          <configFiles>
+            <configFile>
+              <type>env</type>
+              <fileName>zookeeper-env.sh</fileName>
+              <dictionaryName>zookeeper-env</dictionaryName>
+            </configFile>
+            <configFile>
+              <type>env</type>
+              <fileName>log4j.properties</fileName>
+              <dictionaryName>zookeeper-log4j</dictionaryName>
+            </configFile>
+          </configFiles>
         </component>
       </components>
 

@@ -269,6 +269,33 @@ public class StackExtensionHelperTest {
   }
 
   @Test
+  public void testClientConfigFilesInheritance() throws Exception{
+    File stackRoot = new File(stackRootStr);
+    StackInfo stackInfo = new StackInfo();
+    stackInfo.setName("HDP");
+    stackInfo.setVersion("2.0.6");
+    StackExtensionHelper helper = new StackExtensionHelper(injector, stackRoot);
+    helper.populateServicesForStack(stackInfo);
+    helper.fillInfo();
+    List<ServiceInfo> allServices = helper.getAllApplicableServices(stackInfo);
+    for (ServiceInfo serviceInfo : allServices) {
+      if (serviceInfo.getName().equals("ZOOKEEPER")) {
+        List<ComponentInfo> components = serviceInfo.getComponents();
+        assertTrue(components.size() == 2);
+        ComponentInfo componentInfo = components.get(1);
+        List<ClientConfigFileDefinition> clientConfigs = componentInfo.getClientConfigFiles();
+        assertEquals(2,clientConfigs.size());
+        assertEquals("zookeeper-env",clientConfigs.get(0).getDictionaryName());
+        assertEquals("zookeeper-env.sh",clientConfigs.get(0).getFileName());
+        assertEquals("env",clientConfigs.get(0).getType());
+        assertEquals("zookeeper-log4j",clientConfigs.get(1).getDictionaryName());
+        assertEquals("log4j.properties",clientConfigs.get(1).getFileName());
+        assertEquals("env",clientConfigs.get(1).getType());
+      }
+    }
+  }
+
+  @Test
   public void testMonitoringServicePropertyInheritance() throws Exception{
     File stackRoot = new File(stackRootStr);
     StackInfo stackInfo = new StackInfo();

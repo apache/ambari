@@ -334,13 +334,7 @@ public class StackExtensionHelper {
             child.getConfigDependencies() : parent.getConfigDependencies());
 
 
-//    HashSet downloadSource = child.getDownloadSource();
-//    if (downloadSource != null) {
-//      result.setDownloadSource(child.getDownloadSource());
-//    } else {
-//      result.setDownloadSource(parent.getDownloadSource());
-//    }
-//
+    //Merge client config file definitions
     List<ClientConfigFileDefinition> clientConfigFiles = child.getClientConfigFiles();
     if (clientConfigFiles != null) {
       result.setClientConfigFiles(child.getClientConfigFiles());
