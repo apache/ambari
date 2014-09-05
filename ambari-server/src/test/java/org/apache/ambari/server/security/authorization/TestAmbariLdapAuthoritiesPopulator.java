@@ -63,6 +63,7 @@ public class TestAmbariLdapAuthoritiesPopulator extends EasyMockSupport {
         .withConstructor(helper, userDAO, memberDAO, privilegeDAO).createMock();
 
     expect(userEntity.getPrincipal()).andReturn(principalEntity);
+    expect(userEntity.getActive()).andReturn(true);
     expect(memberDAO.findAllMembersByUser(userEntity)).andReturn(Collections.singletonList(memberEntity));
     expect(memberEntity.getGroup()).andReturn(groupEntity);
     expect(groupEntity.getPrincipal()).andReturn(groupPrincipalEntity);
@@ -87,6 +88,7 @@ public class TestAmbariLdapAuthoritiesPopulator extends EasyMockSupport {
         .withConstructor(helper, userDAO, memberDAO, privilegeDAO).createMock();
 
     expect(userEntity.getPrincipal()).andReturn(principalEntity).anyTimes();
+    expect(userEntity.getActive()).andReturn(true);
     expect(memberDAO.findAllMembersByUser(userEntity)).andReturn(Collections.singletonList(memberEntity)).anyTimes();
     expect(memberEntity.getGroup()).andReturn(groupEntity).anyTimes();
     expect(groupEntity.getPrincipal()).andReturn(groupPrincipalEntity).anyTimes();

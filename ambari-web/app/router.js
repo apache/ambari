@@ -242,9 +242,13 @@ App.Router = Em.Router.extend({
     console.log("login error: " + error);
     this.setAuthenticated(false);
     if (request.status == 403) {
-      controller.postLogin(true, false);
+      var responseMessage = request.responseText;
+      try{
+        responseMessage = JSON.parse(request.responseText).message;
+      }catch(e){}
+      controller.postLogin(true, false, responseMessage);
     } else {
-      controller.postLogin(false, false);
+      controller.postLogin(false, false, null);
     }
 
   },
