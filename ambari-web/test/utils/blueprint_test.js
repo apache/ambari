@@ -400,7 +400,7 @@ describe('utils/blueprint', function() {
                     "fqdn": "host2"
                   }
                 ]
-              },
+              }
             ]
           }
         }

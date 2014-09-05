@@ -37,10 +37,8 @@ module.exports = {
       blueprint_cluster_binding: { host_groups: [] }
     };
 
-    var i = 0;
-    matches.forEach(function(match){
-      i += 1;
-      var group_name = 'host-group-' + i;
+    matches.forEach(function(match, i){
+      var group_name = 'host-group-' + (i+1);
 
       var masterComponents = self.getComponentsFromBlueprintByGroupName(masterBlueprint, match.g1);
       var slaveComponents = self.getComponentsFromBlueprintByGroupName(slaveBlueprint, match.g2);
@@ -155,7 +153,7 @@ module.exports = {
       return null;
     }
 
-    var res = JSON.parse(JSON.stringify(blueprint))
+    var res = JSON.parse(JSON.stringify(blueprint));
     var emptyGroups = [];
 
     for (var i = 0; i < res.blueprint.host_groups.length; i++) {

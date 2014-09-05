@@ -556,7 +556,7 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
     var invisibleSlaves = App.StackServiceComponent.find().filterProperty("isSlave").filterProperty("isShownOnInstallerSlaveClientPage", false).mapProperty("componentName");
 
     if (this.get('isInstallerWizard') || this.get('isAddServiceWizard')) {
-      masterBlueprint = App.router.get('wizardStep5Controller').getCurrentBlueprint();
+      masterBlueprint = self.getCurrentMastersBlueprint();
 
       var invisibleMasters = [];
       if (this.get('isInstallerWizard')) {
@@ -707,10 +707,8 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
     var clientComponents = self.get('content.clients').mapProperty('component_name');
     var mapping = self.get('hosts');
 
-    var i = 0;
-    mapping.forEach(function (item) {
-      i += 1;
-      var group_name = 'host-group-' + i;
+    mapping.forEach(function (item, i) {
+      var group_name = 'host-group-' + (i+1);
 
       var host_group = {
         name: group_name,
@@ -732,13 +730,53 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
         hosts: [
           { fqdn: item.hostName }
         ]
-      }
+      };
 
       res.blueprint.host_groups.push(host_group);
       res.blueprint_cluster_binding.host_groups.push(binding);
     });
 
     return res;
+  },
+
+  /**
+   * Create blueprint from assigned master components to appropriate hosts
+   * @returns {Object}
+   * @method getCurrentMastersBlueprint
+   */
+  getCurrentMastersBlueprint: function () {
+    var res = {
+      blueprint: { host_groups: [] },
+      blueprint_cluster_binding: { host_groups: [] }
+    };
+
+    var masters = this.get('content.masterComponentHosts');
+    var hosts = this.get('content.hosts');
+
+    Em.keys(hosts).forEach(function (host, i) {
+      var group_name = 'host-group-' + (i + 1);
+      var components = [];
+      masters.forEach(function (master) {
+        if (master.hostName === host) {
+          components.push({
+            name: master.component
+          });
+        }
+      });
+      res.blueprint.host_groups.push({
+        name: group_name,
+        components: components
+      });
+      res.blueprint_cluster_binding.host_groups.push({
+        name: group_name,
+        hosts: [
+          {
+            fqdn: host
+          }
+        ]
+      });
+    }, this);
+    return blueprintUtils.mergeBlueprints(res, this.getCurrentSlaveBlueprint());
   },
 
   /**

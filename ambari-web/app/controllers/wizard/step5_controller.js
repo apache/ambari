@@ -356,10 +356,8 @@ App.WizardStep5Controller = Em.Controller.extend(App.BlueprintMixin, {
 
     var mapping = self.get('masterHostMapping');
 
-    var i = 0;
-    mapping.forEach(function(item) {
-      i += 1;
-      var group_name = 'host-group-' + i;
+    mapping.forEach(function(item, i) {
+      var group_name = 'host-group-' + (i+1);
 
       var host_group = {
         name: group_name,
@@ -371,7 +369,7 @@ App.WizardStep5Controller = Em.Controller.extend(App.BlueprintMixin, {
       var binding = {
         name: group_name,
         hosts: [ { fqdn: item.host_name } ]
-      }
+      };
 
       res.blueprint.host_groups.push(host_group);
       res.blueprint_cluster_binding.host_groups.push(binding);

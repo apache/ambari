@@ -511,4 +511,100 @@ describe('App.WizardStep6Controller', function () {
     });
   });
 
+  describe('#getCurrentMastersBlueprint', function () {
+    var tests = Em.A([
+      {
+        masterComponentHosts: Em.A([
+          {hostName: 'h1', component: 'c1'}
+        ]),
+        hosts: {'h1': {}},
+        m: 'one host and one component',
+        e:{
+          blueprint: {
+            host_groups: [
+              {
+                name: 'host-group-1',
+                components: [
+                  { name: 'c1' }
+                ]
+              }
+            ]
+          },
+          blueprint_cluster_binding: {
+            host_groups: [
+              {
+                name: 'host-group-1',
+                hosts: [
+                  { fqdn: 'h1' }
+                ]
+              }
+            ]
+          }
+        }
+      },
+      {
+        masterComponentHosts: Em.A([
+          {hostName: 'h1', component: 'c1'},
+          {hostName: 'h2', component: 'c2'},
+          {hostName: 'h2', component: 'c3'}
+        ]),
+        hosts: {'h1': {}, 'h2': {}, 'h3': {}},
+        m: 'multiple hosts and multiple components',
+        e: {
+          blueprint: {
+            host_groups: [
+              {
+                name: 'host-group-1',
+                components: [
+                  { name: 'c1' }
+                ]
+              },
+              {
+                name: 'host-group-2',
+                components: [
+                  { name: 'c2' },
+                  { name: 'c3' }
+                ]
+              },
+              {
+                name: 'host-group-3',
+                components: []
+              }
+            ]
+          },
+          blueprint_cluster_binding: {
+            host_groups: [
+              {
+                name: 'host-group-1',
+                hosts: [
+                  { fqdn: 'h1' }
+                ]
+              },
+              {
+                name: 'host-group-2',
+                hosts: [
+                  { fqdn: 'h2' }
+                ]
+              },
+              {
+                name: 'host-group-3',
+                hosts: [
+                  { fqdn: 'h3' }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    ]);
+    tests.forEach(function (test) {
+      it(test.m, function () {
+        controller.set('content.masterComponentHosts', test.masterComponentHosts);
+        controller.set('content.hosts', test.hosts);
+        var r = controller.getCurrentMastersBlueprint();
+        expect(r).to.eql(test.e);
+      });
+    });
+  });
+
 });
