@@ -134,6 +134,11 @@ dfs_hosts = default('/configurations/hdfs-site/dfs.hosts', None)
 
 #log4j.properties
 rca_properties = format('''
+ambari.jobhistory.database={ambari_db_rca_url}
+ambari.jobhistory.driver={ambari_db_rca_driver}
+ambari.jobhistory.user={ambari_db_rca_username}
+ambari.jobhistory.password={ambari_db_rca_password}
+ambari.jobhistory.logger=${{hadoop.root.logger}}
 
 log4j.appender.JHA=org.apache.ambari.log4j.hadoop.mapreduce.jobhistory.JobHistoryAppender
 log4j.appender.JHA.database={ambari_db_rca_url}

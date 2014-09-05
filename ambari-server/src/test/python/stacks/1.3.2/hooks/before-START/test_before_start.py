@@ -26,6 +26,7 @@ from stacks.utils.RMFTestCase import *
 @patch.object(Hook, "run_custom_hook")
 class TestHookBeforeStart(RMFTestCase):
   def test_hook_default(self, mockHook):
+
     self.executeScript("1.3.2/hooks/before-START/scripts/hook.py",
                        classname="BeforeStartHook",
                        command="hook",
@@ -57,7 +58,7 @@ class TestHookBeforeStart(RMFTestCase):
                               owner = 'hdfs',
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/log4j.properties',
-                              content = 'log4jproperties\nline2log4jproperties\nline2\n\nlog4j.appender.JHA=org.apache.ambari.log4j.hadoop.mapreduce.jobhistory.JobHistoryAppender\nlog4j.appender.JHA.database=jdbc:postgresql://c6401.ambari.apache.org/ambarirca\nlog4j.appender.JHA.driver=org.postgresql.Driver\nlog4j.appender.JHA.user=mapred\nlog4j.appender.JHA.password=mapred\n\nlog4j.logger.org.apache.hadoop.mapred.JobHistory$JobHistoryLogger=DEBUG,JHA\nlog4j.additivity.org.apache.hadoop.mapred.JobHistory$JobHistoryLogger=true\n\n',
+                              content = 'log4jproperties\nline2log4jproperties\nline2\nambari.jobhistory.database=jdbc:postgresql://c6401.ambari.apache.org/ambarirca\nambari.jobhistory.driver=org.postgresql.Driver\nambari.jobhistory.user=mapred\nambari.jobhistory.password=mapred\nambari.jobhistory.logger=${hadoop.root.logger}\n\nlog4j.appender.JHA=org.apache.ambari.log4j.hadoop.mapreduce.jobhistory.JobHistoryAppender\nlog4j.appender.JHA.database=jdbc:postgresql://c6401.ambari.apache.org/ambarirca\nlog4j.appender.JHA.driver=org.postgresql.Driver\nlog4j.appender.JHA.user=mapred\nlog4j.appender.JHA.password=mapred\n\nlog4j.logger.org.apache.hadoop.mapred.JobHistory$JobHistoryLogger=DEBUG,JHA\nlog4j.additivity.org.apache.hadoop.mapred.JobHistory$JobHistoryLogger=true\n\n',
                               owner = 'hdfs',
                               group = 'hadoop',
                               mode = 0644,
