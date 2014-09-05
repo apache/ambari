@@ -374,7 +374,7 @@ App.ManageConfigGroupsController = Em.Controller.extend({
       }),
       configGroupName: self.get('selectedConfigGroup.name'),
       configGroupDesc: self.get('selectedConfigGroup.description'),
-      warningMessage: '',
+      warningMessage: null,
       isDescriptionDirty: false,
       validate: function () {
         var warningMessage = '';
@@ -396,7 +396,7 @@ App.ManageConfigGroupsController = Em.Controller.extend({
         this.set('warningMessage', warningMessage);
       }.observes('configGroupName', 'configGroupDesc'),
       disablePrimary: function () {
-        return !(this.get('configGroupName').trim().length > 0 && !this.get('warningMessage'));
+        return !(this.get('configGroupName').trim().length > 0 && (this.get('warningMessage') !== null && !this.get('warningMessage')));
       }.property('warningMessage', 'configGroupName', 'configGroupDesc'),
       onPrimary: function () {
         self.set('selectedConfigGroup.name', this.get('configGroupName'));
@@ -407,7 +407,6 @@ App.ManageConfigGroupsController = Em.Controller.extend({
         this.hide();
       }
     });
-    this.get('renameGroupPopup').validate();
   },
 
   /**
