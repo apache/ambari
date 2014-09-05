@@ -371,8 +371,8 @@ Em.I18n.translations = {
   'installer.controls.addSlaveComponentGroupButton.content':'If you need different settings on certain {0}s, you can add a {1} group.<br>All {2}s within the same group will have the same set of settings.  You can create multiple groups.',
   'installer.controls.slaveComponentChangeGroupName.error':'group with this name already exist',
 
-  'installer.step0.header':'Welcome',
-  'installer.step0.body.header':'Welcome to the Cluster Install Wizard',
+  'installer.step0.header':'Get Started',
+  'installer.step0.body.header':'Get Started',
   'installer.step0.body':'This wizard will walk you through the cluster installation process.  Let\'s start by naming your new cluster.',
   'installer.step0.clusterName':'Name your cluster',
   'installer.step0.clusterName.tooltip.title':'Cluster Name',
