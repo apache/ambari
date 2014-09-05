@@ -2300,18 +2300,6 @@ module.exports =
       "filename": "hadoop-env.xml",
       "category": "General Hadoop"
     },
-    {
-      "id": "puppet var",
-      "name": "content",
-      "displayName": "Hadoop Environment Template",
-      "description": "Hadoop Environment Template.",
-      "defaultValue": "",
-      "displayType": "string",
-      "isVisible": false,
-      "serviceName": "GLUSTERFS",
-      "filename": "hadoop-env.xml",
-      "category": "General Hadoop"
-    },
   /**********************************************HIVE***************************************/
     {
       "id": "puppet var",
