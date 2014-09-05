@@ -279,12 +279,16 @@ App.MainAdminSecurityProgressController = Em.Controller.extend({
    */
   applyConfigurationsToCluster: function () {
     var configData = this.get('serviceConfigTags').map(function (_serviceConfig) {
-      return {
+      var res = {
         type: _serviceConfig.siteName,
         tag: _serviceConfig.newTagName,
         properties: _serviceConfig.configs,
         service_config_version_note: Em.I18n.t('admin.security.step4.save.configuration.note')
       };
+      if (_serviceConfig.properties_attributes) {
+        res['properties_attributes'] = _serviceConfig.properties_attributes
+      }
+      return res;
     }, this);
 
     var selectedServices = this.get('secureServices');
@@ -360,7 +364,11 @@ App.MainAdminSecurityProgressController = Em.Controller.extend({
         command.set('isSuccess', false);
         command.set('isError', true);
       }
-      _tag.configs = data.items.findProperty('type', _tag.siteName).properties;
+      var cfg = data.items.findProperty('type', _tag.siteName);
+      _tag.configs = cfg.properties;
+      if (cfg.properties_attributes) {
+        _tag.properties_attributes = cfg.properties_attributes;
+      }
     }, this);
     if (this.manageSecureConfigs()) {
       this.escapeXMLCharacters(this.get('serviceConfigTags'));
