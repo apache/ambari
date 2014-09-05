@@ -81,6 +81,7 @@ import org.apache.ambari.view.events.Event;
 import org.apache.ambari.view.events.Listener;
 import org.easymock.EasyMock;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.security.core.GrantedAuthority;
 
@@ -295,6 +296,7 @@ public class ViewRegistryTest {
         libDir, fileEntry, viewJarFile, enumeration, jarEntry, is, fos, resourceDAO, viewDAO, viewInstanceDAO);
   }
 
+  @Ignore
   @Test
   public void testReadViewArchives_exception() throws Exception {
     ViewRegistry registry = getRegistry();
