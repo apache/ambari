@@ -57,13 +57,12 @@ hive_server_host = config['clusterHostInfo']['hive_server_host'][0]
 hive_server_port = default('/configurations/hive-site/hive.server2.thrift.port',"10000")
 hive_url = format("jdbc:hive2://{hive_server_host}:{hive_server_port}")
 
-smokeuser = config['configurations']['hadoop-env']['smokeuser']
+smokeuser = config['configurations']['cluster-env']['smokeuser']
 smoke_test_sql = format("{tmp_dir}/hiveserver2.sql")
 smoke_test_path = format("{tmp_dir}/hiveserver2Smoke.sh")
-smoke_user_keytab = config['configurations']['hadoop-env']['smokeuser_keytab']
+smoke_user_keytab = config['configurations']['cluster-env']['smokeuser_keytab']
 
-_authentication = config['configurations']['core-site']['hadoop.security.authentication']
-security_enabled = ( not is_empty(_authentication) and _authentication == 'kerberos')
+security_enabled = config['configurations']['cluster-env']['security_enabled']
 
 kinit_path_local = functions.get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
 hive_metastore_keytab_path =  config['configurations']['hive-site']['hive.metastore.kerberos.keytab.file']
@@ -94,7 +93,7 @@ java_share_dir = '/usr/share/java'
 driver_curl_target = format("{java_share_dir}/{jdbc_jar_name}")
 
 hdfs_user =  config['configurations']['hadoop-env']['hdfs_user']
-user_group = config['configurations']['hadoop-env']['user_group']
+user_group = config['configurations']['cluster-env']['user_group']
 artifact_dir = format("{tmp_dir}/AMBARI-artifacts/")
 
 target = format("{hive_lib}/{jdbc_jar_name}")

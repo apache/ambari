@@ -27,10 +27,10 @@ tmp_dir = Script.get_tmp_dir()
 
 ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
 oozie_user = config['configurations']['oozie-env']['oozie_user']
-smokeuser = config['configurations']['hadoop-env']['smokeuser']
+smokeuser = config['configurations']['cluster-env']['smokeuser']
 conf_dir = "/etc/oozie/conf"
 hadoop_conf_dir = "/etc/hadoop/conf"
-user_group = config['configurations']['hadoop-env']['user_group']
+user_group = config['configurations']['cluster-env']['user_group']
 jdk_location = config['hostLevelParams']['jdk_location']
 check_db_connection_jar_name = "DBConnectionVerification.jar"
 check_db_connection_jar = format("/usr/lib/ambari-agent/{check_db_connection_jar_name}")
@@ -44,13 +44,12 @@ hadoop_jar_location = "/usr/lib/hadoop/"
 ext_js_path = "/usr/share/HDP-oozie/ext.zip"
 oozie_libext_dir = "/usr/lib/oozie/libext"
 lzo_enabled = config['configurations']['mapred-env']['lzo_enabled']
-_authentication = config['configurations']['core-site']['hadoop.security.authentication']
-security_enabled = ( not is_empty(_authentication) and _authentication == 'kerberos')
+security_enabled = config['configurations']['cluster-env']['security_enabled']
 
 kinit_path_local = functions.get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
 oozie_service_keytab = config['configurations']['oozie-site']['oozie.service.HadoopAccessorService.keytab.file']
 oozie_principal = config['configurations']['oozie-site']['oozie.service.HadoopAccessorService.kerberos.principal']
-smokeuser_keytab = config['configurations']['hadoop-env']['smokeuser_keytab']
+smokeuser_keytab = config['configurations']['cluster-env']['smokeuser_keytab']
 oozie_keytab = config['configurations']['oozie-env']['oozie_keytab']
 
 oracle_driver_jar_name = "ojdbc6.jar"

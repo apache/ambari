@@ -973,9 +973,20 @@ module.exports =
       "displayType": "checkbox",
       "isOverridable": false,
       "isVisible": false,
-      "serviceName": "HDFS",
-      "filename": "hadoop-env.xml",
-      "category": "Advanced hadoop-env"
+      "serviceName": "MISC",
+      "filename": "cluster-env.xml"
+    },
+    {
+      "id": "puppet var",
+      "name": "kerberos_domain",
+      "displayName": "Kerberos realm",
+      "description": "Kerberos realm",
+      "defaultValue": 'EXAMPLE.COM',
+      "isRequired": false,
+      "isOverridable": false,
+      "isVisible": false,
+      "serviceName": "MISC",
+      "filename": "cluster-env.xml"
     },
     {
       "id": "puppet var",
@@ -2251,7 +2262,7 @@ module.exports =
       "displayType": "user",
       "isOverridable": false,
       "isVisible": true,
-      "filename": "core-site.xml",
+      "filename": "hadoop-env.xml",
       "serviceName": "MISC",
       "category": "Users and Groups",
       "belongsToService": ["HIVE", "WEBHCAT", "OOZIE"]
@@ -2474,9 +2485,9 @@ module.exports =
       "isOverridable": false,
       "isVisible": App.supports.customizeSmokeTestUser,
       "serviceName": "MISC",
-      "filename": "hadoop-env.xml",
+      "filename": "cluster-env.xml",
       "category": "Users and Groups",
-      "belongsToService": ["HDFS"]
+      "index": 16
     },
     {
       "id": "puppet var",
@@ -2489,9 +2500,8 @@ module.exports =
       "isOverridable": false,
       "isVisible": true,
       "serviceName": "MISC",
-      "filename": "hadoop-env.xml",
-      "category": "Users and Groups",
-      "belongsToService": ["HDFS"]
+      "filename": "cluster-env.xml",
+      "category": "Users and Groups"
     },
     {
       "id": "puppet var",
@@ -2517,9 +2527,8 @@ module.exports =
       "isOverridable": false,
       "isVisible": true,
       "serviceName": "MISC",
-      "filename": "hadoop-env.xml",
+      "filename": "cluster-env.xml",
       "category": "Users and Groups",
-      "belongsToService": ["HDFS"]
     }
   ]
 };

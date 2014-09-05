@@ -24,8 +24,7 @@ import os
 config = Script.get_config()
 
 #security params
-_authentication = config['configurations']['core-site']['hadoop.security.authentication']
-security_enabled = ( not is_empty(_authentication) and _authentication == 'kerberos')
+security_enabled = config['configurations']['cluster-env']['security_enabled']
 #java params
 java_home = config['hostLevelParams']['java_home']
 #hadoop params
@@ -63,4 +62,7 @@ mapred_log_dir_prefix = default("/configurations/mapred-env/mapred_log_dir_prefi
 
 #users and groups
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
-user_group = config['configurations']['hadoop-env']['user_group']
+user_group = config['configurations']['cluster-env']['user_group']
+
+namenode_host = default("/clusterHostInfo/namenode_host", [])
+has_namenode = not len(namenode_host) == 0

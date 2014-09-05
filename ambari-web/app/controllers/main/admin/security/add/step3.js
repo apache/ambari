@@ -116,7 +116,8 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
     {
       userConfig: 'hdfs_user',
       keytab: 'hdfs_user_keytab',
-      displayName: Em.I18n.t('admin.addSecurity.user.hdfsUser')
+      displayName: Em.I18n.t('admin.addSecurity.user.hdfsUser'),
+      checkService: 'HDFS'
     },
     {
       userConfig: 'hbase_user',

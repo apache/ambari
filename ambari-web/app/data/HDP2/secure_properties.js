@@ -28,7 +28,7 @@ module.exports =
       "isVisible": false,
       "isOverridable": false,
       "serviceName": "GENERAL",
-      "filename": "hadoop-env.xml",
+      "filename": "cluster-env.xml",
       "category": "KERBEROS"
     },
     {
@@ -45,19 +45,6 @@ module.exports =
     },
     {
       "id": "puppet var",
-      "name": "keytab_path",
-      "displayName": "Path to keytab file",
-      "value": "",
-      "defaultValue": "/etc/security/keytabs",
-      "description": "Type of kerberos security for the cluster",
-      "displayType": "principal",
-      "isVisible": false,
-      "isOverridable": false,
-      "serviceName": "GENERAL",
-      "category": "AMBARI"
-    },
-    {
-      "id": "puppet var",
       "name": "kerberos_domain",
       "displayName": "Realm name",
       "value": "",
@@ -67,7 +54,7 @@ module.exports =
       "isVisible": true,
       "isOverridable": false,
       "serviceName": "GENERAL",
-      "filename": "hadoop-env.xml",
+      "filename": "cluster-env.xml",
       "category": "KERBEROS"
     },
     {
@@ -81,6 +68,7 @@ module.exports =
       "isVisible": true,
       "isOverridable": false,
       "serviceName": "GENERAL",
+      "filename": "cluster-env.xml",
       "category": "KERBEROS"
     },
     {
@@ -108,7 +96,7 @@ module.exports =
       "isVisible": true,
       "isOverridable": false,
       "serviceName": "GENERAL",
-      "filename": "hadoop-env.xml",
+      "filename": "cluster-env.xml",
       "category": "AMBARI"
     },
     {

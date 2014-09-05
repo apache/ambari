@@ -774,38 +774,44 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
    */
   loadAdvancedConfigs: function (dependentController) {
     var self = this;
-    var stackServices = this.get('content.services').filter(function (service) {
-      return service.get('isInstalled') || service.get('isSelected');
-    });
-    var counter = stackServices.length;
-    var loadAdvancedConfigResult = [];
-    dependentController.set('isAdvancedConfigLoaded', false);
-    stackServices.forEach(function (service) {
-      var serviceName = service.get('serviceName');
-      App.config.loadAdvancedConfig(serviceName, function (properties) {
-        var supportsFinal = App.config.getConfigTypesInfoFromService(service).supportsFinal;
-
-        function shouldSupportFinal(filename) {
-          var matchingConfigType = supportsFinal.find(function (configType) {
-            return filename.startsWith(configType);
-          });
-          return !!matchingConfigType;
-        }
-
-        properties.forEach(function (property) {
-          property.supportsFinal = shouldSupportFinal(property.filename);
-        });
-        loadAdvancedConfigResult.pushObjects(properties);
-        counter--;
-        //pass configs to controller after last call is completed
-        if (counter === 0) {
-          self.set('content.advancedServiceConfig', loadAdvancedConfigResult);
-          self.setDBProperty('advancedServiceConfig', loadAdvancedConfigResult);
-          dependentController.set('isAdvancedConfigLoaded', true);
-        }
+    var loadServiceConfigsFn = function(clusterProperties) {
+      var stackServices = self.get('content.services').filter(function (service) {
+        return service.get('isInstalled') || service.get('isSelected');
       });
-    }, this);
+      var counter = stackServices.length;
+      var loadAdvancedConfigResult = [];
+      dependentController.set('isAdvancedConfigLoaded', false);
+      stackServices.forEach(function (service) {
+        var serviceName = service.get('serviceName');
+        App.config.loadAdvancedConfig(serviceName, function (properties) {
+          var supportsFinal = App.config.getConfigTypesInfoFromService(service).supportsFinal;
+
+          function shouldSupportFinal(filename) {
+            var matchingConfigType = supportsFinal.find(function (configType) {
+              return filename.startsWith(configType);
+            });
+            return !!matchingConfigType;
+          }
+
+          properties.forEach(function (property) {
+            property.supportsFinal = shouldSupportFinal(property.filename);
+          });
+          loadAdvancedConfigResult.pushObjects(properties);
+          counter--;
+          //pass configs to controller after last call is completed
+          if (counter === 0) {
+            loadAdvancedConfigResult.pushObjects(clusterProperties);
+            self.set('content.advancedServiceConfig', loadAdvancedConfigResult);
+            self.setDBProperty('advancedServiceConfig', loadAdvancedConfigResult);
+            dependentController.set('isAdvancedConfigLoaded', true);
+          }
+        });
+      }, this);
+    };
+    App.config.loadClusterConfig(loadServiceConfigsFn);
   },
+
+
   /**
    * Load serviceConfigProperties to model
    */
@@ -846,7 +852,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
           hasInitialValue: !!_configProperties.get('hasInitialValue'),
           isRequired: _configProperties.get('isRequired'), // flag that allow saving property with empty value
           group: !!_configProperties.get('group') ? _configProperties.get('group.name') : null,
-          showLabel: _configProperties.get('showLabel'),
+          showLabel: _configProperties.get('showLabel')
         };
         serviceConfigProperties.push(configProperty);
       }, this);

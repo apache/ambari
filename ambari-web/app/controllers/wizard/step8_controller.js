@@ -1404,6 +1404,11 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, {
     var selectedServices = this.get('selectedServices');
     var coreSiteObject = this.createCoreSiteObj();
     var tag = 'version1';
+    var clusterSiteObj = this.createSiteObj('cluster-env', true, tag);
+
+    if (this.get('content.controllerName') == 'installerController') {
+      this.get('serviceConfigTags').pushObject(clusterSiteObj);
+    }
 
     if (this.get('content.controllerName') == 'addServiceController') {
       tag = 'version' + (new Date).getTime();
@@ -1465,6 +1470,15 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, {
         }
       }));
     }, this);
+
+    var clusterConfig = serviceConfigTags.findProperty('type', 'cluster-env');
+    if (clusterConfig) {
+      allConfigData.pushObject(JSON.stringify({
+        Clusters: {
+          desired_config: [clusterConfig]
+        }
+      }));
+    }
 
     this.addRequestToAjaxQueue({
       name: 'common.across.services.configurations',
@@ -1621,7 +1635,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, {
   /**
    * Create siteObj for custom service with it own configs
    * @param {string} site
-   * @param {bool} isNonXmlFile
+   * @param {boolean} isNonXmlFile
    * @param tag
    * @returns {{type: string, tag: string, properties: {}}}
    * @method createSiteObj

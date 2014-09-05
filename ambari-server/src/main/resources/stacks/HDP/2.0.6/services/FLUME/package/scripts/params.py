@@ -21,7 +21,7 @@ from resource_management import *
 
 config = Script.get_config()
 
-user_group = config['configurations']['hadoop-env']['user_group']
+user_group = config['configurations']['cluster-env']['user_group']
 proxyuser_group =  config['configurations']['hadoop-env']['proxyuser_group']
 
 security_enabled = False

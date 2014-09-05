@@ -32,10 +32,9 @@ mapred_user = status_params.mapred_user
 yarn_user = status_params.yarn_user
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 
-smokeuser = config['configurations']['hadoop-env']['smokeuser']
-_authentication = config['configurations']['core-site']['hadoop.security.authentication']
-security_enabled = ( not is_empty(_authentication) and _authentication == 'kerberos')
-smoke_user_keytab = config['configurations']['hadoop-env']['smokeuser_keytab']
+smokeuser = config['configurations']['cluster-env']['smokeuser']
+security_enabled = config['configurations']['cluster-env']['security_enabled']
+smoke_user_keytab = config['configurations']['cluster-env']['smokeuser_keytab']
 yarn_executor_container_group = config['configurations']['yarn-site']['yarn.nodemanager.linux-container-executor.group']
 kinit_path_local = functions.get_kinit_path([default("kinit_path_local",None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
 rm_hosts = config['clusterHostInfo']['rm_host']
@@ -91,7 +90,7 @@ yarn_job_summary_log = format("{yarn_log_dir_prefix}/{yarn_user}/hadoop-mapreduc
 mapred_bin = "/usr/lib/hadoop-mapreduce/sbin"
 yarn_bin = "/usr/lib/hadoop-yarn/sbin"
 
-user_group = config['configurations']['hadoop-env']['user_group']
+user_group = config['configurations']['cluster-env']['user_group']
 limits_conf_dir = "/etc/security/limits.d"
 hadoop_conf_dir = "/etc/hadoop/conf"
 yarn_container_bin = "/usr/lib/hadoop-yarn/bin"

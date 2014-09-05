@@ -102,8 +102,8 @@ App.ReassignMasterController = App.WizardController.extend({
 
   getSecurityStatusSuccessCallback: function (data) {
     var configs = data.Clusters.desired_configs;
-    if ('hadoop-env' in configs) {
-      this.getServiceConfigsFromServer(configs['hadoop-env'].tag);
+    if ('cluster-env' in configs) {
+      this.getServiceConfigsFromServer(configs['cluster-env'].tag);
     }
     else {
       console.error('Cannot get security status from server');
@@ -114,7 +114,7 @@ App.ReassignMasterController = App.WizardController.extend({
     var self = this;
     var tags = [
       {
-        siteName: "hadoop-env",
+        siteName: "cluster-env",
         tagName: tag
       }
     ];

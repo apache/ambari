@@ -29,7 +29,7 @@ log_dir = config['configurations']['storm-env']['storm_log_dir']
 pid_dir = status_params.pid_dir
 conf_dir = "/etc/storm/conf"
 local_dir = config['configurations']['storm-site']['storm.local.dir']
-user_group = config['configurations']['hadoop-env']['user_group']
+user_group = config['configurations']['cluster-env']['user_group']
 java64_home = config['hostLevelParams']['java_home']
 nimbus_host = config['configurations']['storm-site']['nimbus.host']
 nimbus_port = config['configurations']['storm-site']['nimbus.thrift.port']
@@ -49,12 +49,11 @@ if 'ganglia_server_host' in config['clusterHostInfo'] and \
 else:
   ganglia_installed = False
   
-_authentication = config['configurations']['core-site']['hadoop.security.authentication']
-security_enabled = ( not is_empty(_authentication) and _authentication == 'kerberos')
+security_enabled = config['configurations']['cluster-env']['security_enabled']
 
 if security_enabled:
   _hostname_lowercase = config['hostname'].lower()
-  _kerberos_domain = config['configurations']['hadoop-env']['kerberos_domain']
+  _kerberos_domain = config['configurations']['cluster-env']['kerberos_domain']
   _storm_principal_name = config['configurations']['storm-env']['storm_principal_name']
   storm_jaas_principal = _storm_principal_name.replace('_HOST',_hostname_lowercase)
   storm_keytab_path = config['configurations']['storm-env']['storm_keytab']

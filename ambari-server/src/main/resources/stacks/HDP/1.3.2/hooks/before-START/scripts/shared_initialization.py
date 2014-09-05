@@ -33,54 +33,56 @@ def setup_hadoop():
 
   install_snappy()
 
-  #directories
-  Directory(params.hdfs_log_dir_prefix,
-            recursive=True,
-            owner='root',
-            group='root'
-  )
-  Directory(params.hadoop_pid_dir_prefix,
-            recursive=True,
-            owner='root',
-            group='root'
-  )
 
-  #files
-  if params.security_enabled:
-    tc_owner = "root"
-  else:
-    tc_owner = params.hdfs_user
+  if params.has_namenode:
+    #directories
+    Directory(params.hdfs_log_dir_prefix,
+              recursive=True,
+              owner='root',
+              group='root'
+    )
+    Directory(params.hadoop_pid_dir_prefix,
+              recursive=True,
+              owner='root',
+              group='root'
+    )
 
-    File(os.path.join(params.hadoop_conf_dir, 'commons-logging.properties'),
+    #files
+    if params.security_enabled:
+      tc_owner = "root"
+    else:
+      tc_owner = params.hdfs_user
+
+      File(os.path.join(params.hadoop_conf_dir, 'commons-logging.properties'),
+           owner=tc_owner,
+           content=Template("commons-logging.properties.j2")
+      )
+
+    health_check_template = "health_check" #for stack 1 use 'health_check'
+    File(os.path.join(params.hadoop_conf_dir, "health_check"),
          owner=tc_owner,
-         content=Template("commons-logging.properties.j2")
+         content=Template(health_check_template + ".j2")
     )
 
-  health_check_template = "health_check" #for stack 1 use 'health_check'
-  File(os.path.join(params.hadoop_conf_dir, "health_check"),
-       owner=tc_owner,
-       content=Template(health_check_template + ".j2")
-  )
+    log4j_filename = os.path.join(params.hadoop_conf_dir, "log4j.properties")
+    if (params.log4j_props != None):
+      File(log4j_filename,
+           mode=0644,
+           group=params.user_group,
+           owner=params.hdfs_user,
+           content=params.log4j_props
+      )
+    elif (os.path.exists(format("{params.hadoop_conf_dir}/log4j.properties"))):
+      File(log4j_filename,
+           mode=0644,
+           group=params.user_group,
+           owner=params.hdfs_user,
+      )
 
-  log4j_filename = os.path.join(params.hadoop_conf_dir, "log4j.properties")
-  if (params.log4j_props != None):
-    File(log4j_filename,
-         mode=0644,
-         group=params.user_group,
+    File(os.path.join(params.hadoop_conf_dir, "hadoop-metrics2.properties"),
          owner=params.hdfs_user,
-         content=params.log4j_props
+         content=Template("hadoop-metrics2.properties.j2")
     )
-  elif (os.path.exists(format("{params.hadoop_conf_dir}/log4j.properties"))):
-    File(log4j_filename,
-         mode=0644,
-         group=params.user_group,
-         owner=params.hdfs_user,
-    )
-
-  File(os.path.join(params.hadoop_conf_dir, "hadoop-metrics2.properties"),
-       owner=params.hdfs_user,
-       content=Template("hadoop-metrics2.properties.j2")
-  )
 
 def setup_database():
   """
@@ -113,33 +115,34 @@ def setup_configs():
   """
   import params
 
-  File(params.task_log4j_properties_location,
-       content=StaticFile("task-log4j.properties"),
-       mode=0755
-  )
-
-  Link('/usr/lib/hadoop/lib/hadoop-tools.jar',
-       to = '/usr/lib/hadoop/hadoop-tools.jar'
-  )
-
-  if os.path.exists(os.path.join(params.hadoop_conf_dir, 'configuration.xsl')):
-    File(os.path.join(params.hadoop_conf_dir, 'configuration.xsl'),
-         owner=params.hdfs_user,
-         group=params.user_group
+  if params.has_namenode:
+    File(params.task_log4j_properties_location,
+         content=StaticFile("task-log4j.properties"),
+         mode=0755
     )
 
-  if os.path.exists(os.path.join(params.hadoop_conf_dir, 'masters')):
-    File(os.path.join(params.hadoop_conf_dir, 'masters'),
-         owner=params.hdfs_user,
-         group=params.user_group
+    Link('/usr/lib/hadoop/lib/hadoop-tools.jar',
+         to = '/usr/lib/hadoop/hadoop-tools.jar'
     )
+
+    if os.path.exists(os.path.join(params.hadoop_conf_dir, 'configuration.xsl')):
+      File(os.path.join(params.hadoop_conf_dir, 'configuration.xsl'),
+           owner=params.hdfs_user,
+           group=params.user_group
+      )
+
+    if os.path.exists(os.path.join(params.hadoop_conf_dir, 'masters')):
+      File(os.path.join(params.hadoop_conf_dir, 'masters'),
+           owner=params.hdfs_user,
+           group=params.user_group
+      )
 
   # generate_include_file()
 
 def generate_include_file():
   import params
 
-  if params.dfs_hosts and params.has_slaves:
+  if params.has_namenode and params.dfs_hosts and params.has_slaves:
     include_hosts_list = params.slave_hosts
     File(params.dfs_hosts,
          content=Template("include_hosts_list.j2"),

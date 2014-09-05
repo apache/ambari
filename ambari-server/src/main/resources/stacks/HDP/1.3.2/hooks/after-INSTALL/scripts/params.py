@@ -24,8 +24,7 @@ import os
 config = Script.get_config()
 
 #security params
-_authentication = config['configurations']['core-site']['hadoop.security.authentication']
-security_enabled = ( not is_empty(_authentication) and _authentication == 'kerberos')
+security_enabled = config['configurations']['cluster-env']['security_enabled']
 #java params
 java_home = config['hostLevelParams']['java_home']
 #hadoop params
@@ -60,4 +59,4 @@ hadoop_libexec_dir = "/usr/lib/hadoop/libexec"
 
 #users and groups
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
-user_group = config['configurations']['hadoop-env']['user_group']
+user_group = config['configurations']['cluster-env']['user_group']

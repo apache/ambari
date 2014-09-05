@@ -28,7 +28,7 @@ module.exports =
       "isVisible": false,
       "isOverridable": false,
       "serviceName": "GENERAL",
-      "filename": "hadoop-env.xml",
+      "filename": "cluster-env.xml",
       "category": "KERBEROS"
     },
     {
@@ -54,6 +54,7 @@ module.exports =
       "isVisible": false,
       "isOverridable": false,
       "serviceName": "GENERAL",
+      "filename": "cluster-env.xml",
       "category": "AMBARI"
     },
     {
@@ -67,7 +68,7 @@ module.exports =
       "isVisible": true,
       "isOverridable": false,
       "serviceName": "GENERAL",
-      "filename": "hadoop-env.xml",
+      "filename": "cluster-env.xml",
       "category": "KERBEROS"
     },
     {
@@ -81,6 +82,7 @@ module.exports =
       "isVisible": true,
       "isOverridable": false,
       "serviceName": "GENERAL",
+      "filename": "cluster-env.xml",
       "category": "KERBEROS"
     },
     {
@@ -108,7 +110,7 @@ module.exports =
       "isVisible": true,
       "isOverridable": false,
       "serviceName": "GENERAL",
-      "filename": "hadoop-env.xml",
+      "filename": "cluster-env.xml",
       "category": "AMBARI"
     },
     {
@@ -743,21 +745,6 @@ module.exports =
       "defaultValue": "zookeeper/_HOST",
       "description": "Principal name for ZooKeeper. _HOST will get automatically replaced with actual hostname at every instance of zookeeper server",
       "displayType": "principal",
-      "isVisible": true,
-      "isOverridable": false,
-      "serviceName": "ZOOKEEPER",
-      "filename": "zookeeper-env.xml",
-      "category": "ZooKeeper Server",
-      "component": "ZOOKEEPER_SERVER"
-    },
-    {
-      "id": "puppet var",
-      "name": "zookeeper_keytab_path",
-      "displayName": "Path to keytab file",
-      "value": "",
-      "defaultValue": "/etc/security/keytabs/zk.service.keytab",
-      "description": "Path to ZooKeeper keytab file",
-      "displayType": "directory",
       "isVisible": true,
       "isOverridable": false,
       "serviceName": "ZOOKEEPER",

@@ -311,6 +311,14 @@ App.MainAdminSecurityProgressController = Em.Controller.extend({
       }
     }, this);
 
+    var clusterConfig = configData.findProperty('type', 'cluster-env');
+    if (clusterConfig) {
+      allConfigData.pushObject(JSON.stringify({
+        Clusters: {
+          desired_config: [clusterConfig]
+        }
+      }));
+    }
     App.ajax.send({
       name: 'common.across.services.configurations',
       sender: this,

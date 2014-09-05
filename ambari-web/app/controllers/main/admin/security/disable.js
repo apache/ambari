@@ -148,7 +148,9 @@ App.MainAdminSecurityDisableController = App.MainAdminSecurityProgressController
         _serviceConfigTags.newTagName = 'version' + (new Date).getTime();
         if (_serviceConfigTags.siteName.contains('-env')) {
           this.deleteDisabledConfigs(secureProperties, _serviceConfigTags);
-          _serviceConfigTags.configs.security_enabled = 'false';
+          if (_serviceConfigTags.siteName === 'cluster-env') {
+            _serviceConfigTags.configs.security_enabled = 'false';
+          }
         } else {
           this.modifySiteConfigs(secureMapping, _serviceConfigTags);
         }

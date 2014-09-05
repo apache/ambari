@@ -22,8 +22,7 @@ from resource_management import *
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 
-_authentication = config['configurations']['core-site']['hadoop.security.authentication']
-security_enabled = ( not is_empty(_authentication) and _authentication == 'kerberos')
+security_enabled = config['configurations']['cluster-env']['security_enabled']
 
 artifact_dir = format("{tmp_dir}/AMBARI-artifacts/")
 jce_policy_zip = default("/hostLevelParams/jce_name", None) # None when jdk is already installed by user

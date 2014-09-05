@@ -36,10 +36,9 @@ hbase_drain_only = config['commandParams']['mark_draining_only']
 hbase_included_hosts = config['commandParams']['included_hosts']
 
 hbase_user = status_params.hbase_user
-smokeuser = config['configurations']['hadoop-env']['smokeuser']
+smokeuser = config['configurations']['cluster-env']['smokeuser']
 _authentication = config['configurations']['core-site']['hadoop.security.authentication']
-security_enabled = ( not is_empty(_authentication) and _authentication == 'kerberos')
-user_group = config['configurations']['hadoop-env']['user_group']
+security_enabled = config['configurations']['cluster-env']['security_enabled']
 
 # this is "hadoop-metrics.properties" for 1.x stacks
 metric_prop_file_name = "hadoop-metrics2-hbase.properties"
@@ -74,9 +73,10 @@ if 'slave_hosts' in config['clusterHostInfo']:
 else:
   rs_hosts = default('/clusterHostInfo/hbase_rs_hosts', '/clusterHostInfo/all_hosts') 
   
-smoke_test_user = config['configurations']['hadoop-env']['smokeuser']
+smoke_test_user = config['configurations']['cluster-env']['smokeuser']
 smokeuser_permissions = "RWXCA"
 service_check_data = functions.get_unique_id_and_date()
+user_group = config['configurations']['cluster-env']["user_group"]
 
 if security_enabled:
   _hostname_lowercase = config['hostname'].lower()
@@ -85,7 +85,7 @@ if security_enabled:
 
 master_keytab_path = config['configurations']['hbase-site']['hbase.master.keytab.file']
 regionserver_keytab_path = config['configurations']['hbase-site']['hbase.regionserver.keytab.file']
-smoke_user_keytab = config['configurations']['hadoop-env']['smokeuser_keytab']
+smoke_user_keytab = config['configurations']['cluster-env']['smokeuser_keytab']
 hbase_user_keytab = config['configurations']['hbase-env']['hbase_user_keytab']
 kinit_path_local = functions.get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
 if security_enabled:

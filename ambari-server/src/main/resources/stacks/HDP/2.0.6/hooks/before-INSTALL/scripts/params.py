@@ -29,13 +29,13 @@ tmp_dir = Script.get_tmp_dir()
 #users and groups
 hbase_user = config['configurations']['hbase-env']['hbase_user']
 nagios_user = config['configurations']['nagios-env']['nagios_user']
-smoke_user =  config['configurations']['hadoop-env']['smokeuser']
+smoke_user =  config['configurations']['cluster-env']['smokeuser']
 gmetad_user = config['configurations']['ganglia-env']["gmetad_user"]
 gmond_user = config['configurations']['ganglia-env']["gmond_user"]
 tez_user = config['configurations']['tez-env']["tez_user"]
 
-user_group = config['configurations']['hadoop-env']['user_group']
-proxyuser_group =  config['configurations']['hadoop-env']['proxyuser_group']
+user_group = config['configurations']['cluster-env']['user_group']
+proxyuser_group = default("/configurations/hadoop-env/proxyuser_group","users")
 nagios_group = config['configurations']['nagios-env']['nagios_group']
 
 #hosts
@@ -84,8 +84,7 @@ if has_ganglia_server:
 hbase_tmp_dir = config['configurations']['hbase-site']['hbase.tmp.dir']
 
 #security params
-_authentication = config['configurations']['core-site']['hadoop.security.authentication']
-security_enabled = ( not is_empty(_authentication) and _authentication == 'kerberos')
+security_enabled = config['configurations']['cluster-env']['security_enabled']
 
 #java params
 java_home = config['hostLevelParams']['java_home']
@@ -94,7 +93,7 @@ jdk_name = default("/hostLevelParams/jdk_name", None) # None when jdk is already
 jce_policy_zip = default("/hostLevelParams/jce_name", None) # None when jdk is already installed by user
 jce_location = config['hostLevelParams']['jdk_location']
 jdk_location = config['hostLevelParams']['jdk_location']
-ignore_groupsusers_create = default("/configurations/hadoop-env/ignore_groupsusers_create", False)
+ignore_groupsusers_create = default("/configurations/cluster-env/ignore_groupsusers_create", False)
 
 smoke_user_dirs = format("/tmp/hadoop-{smoke_user},/tmp/hsperfdata_{smoke_user},/home/{smoke_user},/tmp/{smoke_user},/tmp/sqoop-{smoke_user}")
 if has_hbase_masters:

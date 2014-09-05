@@ -29,5 +29,5 @@ hadoop_home = '/usr'
 java64_home = config['hostLevelParams']['java_home']
 
 tez_user = config['configurations']['tez-env']['tez_user']
-user_group = config['configurations']['hadoop-env']['user_group']
+user_group = config['configurations']['cluster-env']['user_group']
 tez_env_sh_template = config['configurations']['tez-env']['content']
