@@ -4954,19 +4954,20 @@ ul.inline li {
 }
 
 .one-story-bar {
-  margin-bottom: 80px;
+  margin-bottom: 60px;
 }
 .two-stories-bar {
-  margin-bottom: 120px;
+  margin-bottom: 100px;
 }
 
 #config_history_flow {
+  margin-top: -5px;
   .version-slider {
     width: 100%;
-    height: 100px;
-    margin: 10px 0;
+    height: 64px;
+    margin: 5px 0;
     .flow-element {
-      width: 18%;
+      width: 18.5%;
       height: 100%;
       .version-box {
         position: relative;
@@ -4977,22 +4978,40 @@ ul.inline li {
         width: 72%;
         height: 100%;
         background-color: #ffffff;
-        border: 1px solid #dddddd;
-        font-size: 13px;
+        -webkit-border-radius: 4px;
+        -moz-border-radius: 4px;
+        border-radius: 4px;
+        border: 1px solid #d2d9dd;
+        font-size: 11px;
         .top-label {
           min-width: 20px;
-          padding: 5px;
+          padding: 3px 2px;
         }
+        .author,
         .content {
-          padding: 0 5px;
+          padding: 0px 2px;
           text-align: center;
           color: #555555;
+          display: block;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+        .content {
+          max-width: 97% !important;
+        }
+        .author {
+          max-width: 75% !important;
+        }
+        .current-label {
+          text-align: center;
+          padding: 2px 5px;
         }
       }
       .version-box .version-popover {
         display: none;
         position: absolute;
-        bottom: 89px;
+        bottom: 58px;
         left: -45px;
         z-index: 1000;
         float: left;
@@ -5028,29 +5047,34 @@ ul.inline li {
         .version-popover {
           display: block;
         }
+        .box {
+          background-color: #e6f1f6;
+        }
       }
       .version-box .box.displayed {
-        border: 1px solid #444444;
+        background-color: #e6f1f6;
         .content {
           color: #444444;
           font-weight: bold;
         }
       }
       .version-box .box.grayedOut {
-        background-color: #eeeeee;
-        border: 1px solid #eeeeee;
+        background-color: #f4f4f4;
+        border: 1px solid #f4f4f4;
+        .author,
         .content {
-          color: #b8b8b8;
+          color: #a6a6a6;
         }
+        .current-label .label,
         .top-label .label {
-          color: #eeeeee;
-          background-color: #b8b8b8;
+          opacity: .5;
         }
+
       }
       .arrow-box {
         width: 20%;
         margin-left: 1px;
-        margin-top: 20px;
+        margin-top: 9px;
         .icon-arrow-right {
           color: #c3c3c3;
         }
@@ -5058,7 +5082,7 @@ ul.inline li {
     }
     .first {
       width: 13%;
-      margin-left: 15px;
+      margin-left: 0px;
       .arrow-box {
         display: none;
       }
@@ -5068,7 +5092,7 @@ ul.inline li {
     }
 
     .icon-chevron-box {
-      margin-top: 25px;
+      margin-top: 12px;
       width: 5%;
       cursor: pointer;
       .icon-chevron-right,
@@ -6176,16 +6200,11 @@ i.icon-asterisks {
   #config_history_flow {
     .version-slider {
       .flow-element {
-        .box {
-          width: 75%;
+        .version-box .box {
+          font-size: 13px;
         }
         .arrow-box {
           margin-left: 5px;
-        }
-      }
-      .first {
-        .box {
-          width: 100%;
         }
       }
     }
