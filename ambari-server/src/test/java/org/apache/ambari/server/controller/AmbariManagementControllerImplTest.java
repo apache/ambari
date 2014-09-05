@@ -26,6 +26,7 @@ import static org.easymock.EasyMock.createStrictMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
+import static org.easymock.EasyMock.expectLastCall;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
@@ -65,6 +66,7 @@ import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.ServiceInfo;
+import javax.persistence.RollbackException;
 import org.easymock.Capture;
 import org.junit.Test;
 
@@ -279,6 +281,90 @@ public class AmbariManagementControllerImplTest {
     assertTrue(setResponses.contains(response2));
 
     verify(injector, clusters, cluster, cluster2, response, response2);
+  }
+
+  /**
+   * Ensure that when the cluster id is provided and the given cluster name is different from the cluster's name
+   * then the cluster rename logic is executed.
+   */
+  @Test
+  public void testUpdateClusters() throws Exception {
+    // member state mocks
+    Capture<AmbariManagementController> controllerCapture = new Capture<AmbariManagementController>();
+    Injector injector = createStrictMock(Injector.class);
+    Cluster cluster = createNiceMock(Cluster.class);
+    ActionManager actionManager = createNiceMock(ActionManager.class);
+    Clusters clusters = createNiceMock(Clusters.class);
+    ClusterRequest clusterRequest = createNiceMock(ClusterRequest.class);
+
+    // requests
+    Set<ClusterRequest> setRequests = Collections.singleton(clusterRequest);
+
+    // expectations
+    injector.injectMembers(capture(controllerCapture));
+    expect(injector.getInstance(Gson.class)).andReturn(null);
+    expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(null);
+    expect(clusterRequest.getClusterName()).andReturn("clusterNew").times(4);
+    expect(clusterRequest.getClusterId()).andReturn(1L).times(4);
+    expect(clusters.getClusterById(1L)).andReturn(cluster);
+    expect(cluster.getClusterName()).andReturn("clusterOld").times(2);
+    cluster.setClusterName("clusterNew");
+    expectLastCall();
+
+    // replay mocks
+    replay(actionManager, cluster, clusters, injector, clusterRequest);
+
+    // test
+    AmbariManagementController controller = new AmbariManagementControllerImpl(actionManager, clusters, injector);
+    controller.updateClusters(setRequests, null);
+
+    // assert and verify
+    assertSame(controller, controllerCapture.getValue());
+    verify(actionManager, cluster, clusters, injector, clusterRequest);
+  }
+
+  /**
+   * Ensure that RollbackException is thrown outside the updateClusters method
+   * when a unique constraint violation occurs.
+   */
+  @Test
+  public void testUpdateClusters__RollbackException() throws Exception {
+    // member state mocks
+    Capture<AmbariManagementController> controllerCapture = new Capture<AmbariManagementController>();
+    Injector injector = createStrictMock(Injector.class);
+    Cluster cluster = createNiceMock(Cluster.class);
+    ActionManager actionManager = createNiceMock(ActionManager.class);
+    Clusters clusters = createNiceMock(Clusters.class);
+    ClusterRequest clusterRequest = createNiceMock(ClusterRequest.class);
+
+    // requests
+    Set<ClusterRequest> setRequests = Collections.singleton(clusterRequest);
+
+    // expectations
+    injector.injectMembers(capture(controllerCapture));
+    expect(injector.getInstance(Gson.class)).andReturn(null);
+    expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(null);
+    expect(clusterRequest.getClusterName()).andReturn("clusterNew").times(4);
+    expect(clusterRequest.getClusterId()).andReturn(1L).times(4);
+    expect(clusters.getClusterById(1L)).andReturn(cluster);
+    expect(cluster.getClusterName()).andReturn("clusterOld").times(2);
+    cluster.setClusterName("clusterNew");
+    expectLastCall().andThrow(new RollbackException());
+
+    // replay mocks
+    replay(actionManager, cluster, clusters, injector, clusterRequest);
+
+    // test
+    AmbariManagementController controller = new AmbariManagementControllerImpl(actionManager, clusters, injector);
+    try {
+      controller.updateClusters(setRequests, null);
+      fail("Expected RollbackException");
+    } catch (RollbackException e) {
+      //expected
+    }
+    // assert and verify
+    assertSame(controller, controllerCapture.getValue());
+    verify(actionManager, cluster, clusters, injector, clusterRequest);
   }
 
   @Test
