@@ -22,6 +22,7 @@ App.MainAdminSecurityController = Em.Controller.extend({
   isSubmitDisabled: false,
   securityEnabled: false,
   dataIsLoaded: false,
+  isRecommendedLoaded: true,
   serviceUsers: [],
   tag: {},
   getAddSecurityWizardStatus: function () {
