@@ -16,6 +16,8 @@
  * limitations under the License.
  */
 
+// All of the "name" properties have to coincide with how they will appear in the *-site.xml file
+// The "template" properties can come from the config properties in site_properties.js or secure_properties.js .
 module.exports = [
   {
     "name": "hadoop.security.authentication",
@@ -215,6 +217,49 @@ module.exports = [
     "filename": "yarn-site.xml",
     "serviceName": "YARN"
   },
+  // YARN Timeline Service
+  // These "http-authentication" properties are supported in HDP Champlain
+  {
+    "name": "yarn.timeline-service.principal",
+    "templateName": ["apptimelineserver_principal_name", "kerberos_domain"],
+    "foreignKey": null,
+    "value": "<templateName[0]>@<templateName[1]>",
+    "filename": "yarn-site.xml",
+    "serviceName": "YARN"
+  },
+  {
+    "name": "yarn.timeline-service.keytab",
+    "templateName": ["apptimelineserver_keytab"],
+    "foreignKey": null,
+    "value": "<templateName[0]>",
+    "filename": "yarn-site.xml",
+    "serviceName": "YARN"
+  },
+  {
+    "name": "yarn.timeline-service.http-authentication.type",
+    "templateName": [],
+    "foreignKey": null,
+    "value": "kerberos",
+    "filename": "yarn-site.xml",
+    "serviceName": "YARN"
+  },
+  {
+    "name": "yarn.timeline-service.http-authentication.kerberos.principal",
+    "templateName": ["apptimelineserver_http_principal_name", "kerberos_domain"],
+    "foreignKey": null,
+    "value": "<templateName[0]>@<templateName[1]>",
+    "filename": "yarn-site.xml",
+    "serviceName": "YARN"
+  },
+  {
+    "name": "yarn.timeline-service.http-authentication.kerberos.keytab",
+    "templateName": ["apptimelineserver_http_keytab"],
+    "foreignKey": null,
+    "value": "<templateName[0]>",
+    "filename": "yarn-site.xml",
+    "serviceName": "YARN"
+  },
+  // YARN Resource Manager
   {
     "name": "yarn.resourcemanager.principal",
     "templateName": ["resourcemanager_principal_name", "kerberos_domain"],

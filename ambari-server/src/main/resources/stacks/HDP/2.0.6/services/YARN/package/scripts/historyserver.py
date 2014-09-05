@@ -24,7 +24,7 @@ from resource_management import *
 from yarn import yarn
 from service import service
 
-class Histroryserver(Script):
+class HistoryServer(Script):
   def install(self, env):
     self.install_packages(env)
 
@@ -50,4 +50,4 @@ class Histroryserver(Script):
     check_process_status(status_params.mapred_historyserver_pid_file)
 
 if __name__ == "__main__":
-  Histroryserver().execute()
+  HistoryServer().execute()

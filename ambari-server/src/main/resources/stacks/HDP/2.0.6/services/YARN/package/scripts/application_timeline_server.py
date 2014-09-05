@@ -39,12 +39,12 @@ class ApplicationTimelineServer(Script):
     import params
     env.set_params(params)
     self.configure(env) # FOR SECURITY
-    service('historyserver', action='start')
+    service('timelineserver', action='start')
 
   def stop(self, env):
     import params
     env.set_params(params)
-    service('historyserver', action='stop')
+    service('timelineserver', action='stop')
 
   def status(self, env):
     import status_params

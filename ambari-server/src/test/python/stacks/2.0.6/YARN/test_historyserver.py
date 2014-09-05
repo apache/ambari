@@ -29,89 +29,87 @@ class TestHistoryServer(RMFTestCase):
 
   def test_configure_default(self):
     self.executeScript("2.0.6/services/YARN/package/scripts/historyserver.py",
-                       classname = "Histroryserver",
-                       command = "configure",
-                       config_file="default.json"
-    )
+                       classname="HistoryServer",
+                       command="configure",
+                       config_file="default.json")
     self.assert_configure_default()
     self.assertNoMoreResources()
 
   def test_start_default(self):
     self.executeScript("2.0.6/services/YARN/package/scripts/historyserver.py",
-                       classname = "Histroryserver",
-                       command = "start",
-                       config_file="default.json"
-    )
-
+                       classname="HistoryServer",
+                       command="start",
+                       config_file="default.json")
     self.assert_configure_default()
-    self.assertResourceCalled('Execute', 'export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop-mapreduce/sbin/mr-jobhistory-daemon.sh --config /etc/hadoop/conf start historyserver',
-                              not_if = 'ls /var/run/hadoop-mapreduce/mapred/mapred-mapred-historyserver.pid >/dev/null 2>&1 && ps `cat /var/run/hadoop-mapreduce/mapred/mapred-mapred-historyserver.pid` >/dev/null 2>&1',
-                              user = 'mapred'
-    )
-    self.assertResourceCalled('Execute', 'ls /var/run/hadoop-mapreduce/mapred/mapred-mapred-historyserver.pid >/dev/null 2>&1 && ps `cat /var/run/hadoop-mapreduce/mapred/mapred-mapred-historyserver.pid` >/dev/null 2>&1',
-                              user = 'mapred',
-                              not_if = 'ls /var/run/hadoop-mapreduce/mapred/mapred-mapred-historyserver.pid >/dev/null 2>&1 && ps `cat /var/run/hadoop-mapreduce/mapred/mapred-mapred-historyserver.pid` >/dev/null 2>&1',
-                              initial_wait=5
-    )
+
+    pid_check_cmd = 'ls /var/run/hadoop-mapreduce/mapred/mapred-mapred-historyserver.pid >/dev/null 2>&1 && ps `cat /var/run/hadoop-mapreduce/mapred/mapred-mapred-historyserver.pid` >/dev/null 2>&1'
+
+    self.assertResourceCalled('File', '/var/run/hadoop-mapreduce/mapred/mapred-mapred-historyserver.pid',
+                              not_if=pid_check_cmd,
+                              action=['delete'])
+    self.assertResourceCalled('Execute', 'ulimit -c unlimited; export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop-mapreduce/sbin/mr-jobhistory-daemon.sh --config /etc/hadoop/conf start historyserver',
+                              not_if=pid_check_cmd,
+                              user='mapred')
+    self.assertResourceCalled('Execute', pid_check_cmd,
+                              not_if=pid_check_cmd,
+                              initial_wait=5,
+                              user='mapred')
     self.assertNoMoreResources()
 
   def test_stop_default(self):
     self.executeScript("2.0.6/services/YARN/package/scripts/historyserver.py",
-                       classname = "Histroryserver",
-                       command = "stop",
-                       config_file="default.json"
-    )
+                       classname="HistoryServer",
+                       command="stop",
+                       config_file="default.json")
 
     self.assertResourceCalled('Execute', 'export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop-mapreduce/sbin/mr-jobhistory-daemon.sh --config /etc/hadoop/conf stop historyserver',
-                              user = 'mapred'
-    )
-    self.assertResourceCalled('Execute', 'rm -f /var/run/hadoop-mapreduce/mapred/mapred-mapred-historyserver.pid',
-                              user = 'mapred'
-    )
+                              user='mapred')
+    self.assertResourceCalled('File', '/var/run/hadoop-mapreduce/mapred/mapred-mapred-historyserver.pid',
+                              action=['delete'])
     self.assertNoMoreResources()
 
   def test_configure_secured(self):
 
     self.executeScript("2.0.6/services/YARN/package/scripts/historyserver.py",
-                       classname = "Histroryserver",
-                       command = "configure",
-                       config_file="secured.json"
-    )
+                       classname="HistoryServer",
+                       command="configure",
+                       config_file="secured.json")
     self.assert_configure_secured()
     self.assertNoMoreResources()
 
   def test_start_secured(self):
     self.executeScript("2.0.6/services/YARN/package/scripts/historyserver.py",
-                       classname = "Histroryserver",
-                       command = "start",
-                       config_file="secured.json"
-    )
+                       classname="HistoryServer",
+                       command="start",
+                       config_file="secured.json")
 
     self.assert_configure_secured()
-    self.assertResourceCalled('Execute', 'export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop-mapreduce/sbin/mr-jobhistory-daemon.sh --config /etc/hadoop/conf start historyserver',
-                              not_if = 'ls /var/run/hadoop-mapreduce/mapred/mapred-mapred-historyserver.pid >/dev/null 2>&1 && ps `cat /var/run/hadoop-mapreduce/mapred/mapred-mapred-historyserver.pid` >/dev/null 2>&1',
-                              user = 'mapred'
-    )
-    self.assertResourceCalled('Execute', 'ls /var/run/hadoop-mapreduce/mapred/mapred-mapred-historyserver.pid >/dev/null 2>&1 && ps `cat /var/run/hadoop-mapreduce/mapred/mapred-mapred-historyserver.pid` >/dev/null 2>&1',
-                              user = 'mapred',
-                              not_if = 'ls /var/run/hadoop-mapreduce/mapred/mapred-mapred-historyserver.pid >/dev/null 2>&1 && ps `cat /var/run/hadoop-mapreduce/mapred/mapred-mapred-historyserver.pid` >/dev/null 2>&1',
-                              initial_wait=5
-    )
+
+    pid_check_cmd = 'ls /var/run/hadoop-mapreduce/mapred/mapred-mapred-historyserver.pid >/dev/null 2>&1 && ps `cat /var/run/hadoop-mapreduce/mapred/mapred-mapred-historyserver.pid` >/dev/null 2>&1'
+
+    self.assertResourceCalled('File', '/var/run/hadoop-mapreduce/mapred/mapred-mapred-historyserver.pid',
+                              not_if=pid_check_cmd,
+                              action=['delete'])
+    self.assertResourceCalled('Execute', 'ulimit -c unlimited; export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop-mapreduce/sbin/mr-jobhistory-daemon.sh --config /etc/hadoop/conf start historyserver',
+                              not_if=pid_check_cmd,
+                              user='mapred')
+    self.assertResourceCalled('Execute', pid_check_cmd,
+                              user='mapred',
+                              not_if=pid_check_cmd,
+                              initial_wait=5)
     self.assertNoMoreResources()
 
   def test_stop_secured(self):
     self.executeScript("2.0.6/services/YARN/package/scripts/historyserver.py",
-                       classname = "Histroryserver",
-                       command = "stop",
-                       config_file="secured.json"
-    )
+                       classname="HistoryServer",
+                       command="stop",
+                       config_file="secured.json")
 
     self.assertResourceCalled('Execute', 'export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop-mapreduce/sbin/mr-jobhistory-daemon.sh --config /etc/hadoop/conf stop historyserver',
-                              user = 'mapred'
-    )
-    self.assertResourceCalled('Execute', 'rm -f /var/run/hadoop-mapreduce/mapred/mapred-mapred-historyserver.pid',
-                              user = 'mapred'
-    )
+                              user='mapred')
+
+    self.assertResourceCalled('File', '/var/run/hadoop-mapreduce/mapred/mapred-mapred-historyserver.pid',
+                              action=['delete'])
     self.assertNoMoreResources()
 
   def assert_configure_default(self):

@@ -28,6 +28,8 @@ tmp_dir = Script.get_tmp_dir()
 
 config_dir = "/etc/hadoop/conf"
 
+ulimit_cmd = "ulimit -c unlimited;"
+
 mapred_user = status_params.mapred_user
 yarn_user = status_params.yarn_user
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
@@ -108,8 +110,15 @@ if security_enabled:
   _rm_principal_name = _rm_principal_name.replace('_HOST',hostname.lower())
   
   rm_kinit_cmd = format("{kinit_path_local} -kt {_rm_keytab} {_rm_principal_name};")
+
+  # YARN timeline security options are only available in HDP Champlain
+  _yarn_timelineservice_principal_name = config['configurations']['yarn-site']['yarn.timeline-service.principal']
+  _yarn_timelineservice_principal_name = _yarn_timelineservice_principal_name.replace('_HOST', hostname.lower())
+  _yarn_timelineservice_keytab = config['configurations']['yarn-site']['yarn.timeline-service.keytab']
+  yarn_timelineservice_kinit_cmd = format("{kinit_path_local} -kt {_yarn_timelineservice_keytab} {_yarn_timelineservice_principal_name};")
 else:
   rm_kinit_cmd = ""
+  yarn_timelineservice_kinit_cmd = ""
 
 yarn_log_aggregation_enabled = config['configurations']['yarn-site']['yarn.log-aggregation-enable']
 yarn_nm_app_log_dir =  config['configurations']['yarn-site']['yarn.nodemanager.remote-app-log-dir']

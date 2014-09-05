@@ -1057,7 +1057,7 @@ Em.I18n.translations = {
   'admin.security.step1.body.instruction2': 'Install and configure the Kerberos client on every host in the cluster',
   'admin.security.step1.body.instruction3': 'Create Kerberos principals for Hadoop services and hosts',
   'admin.security.step1.body.instruction4': 'Generate keytabs for each principal and place on the appropriate hosts',
-  'admin.security.step1.body.instruction5': '<b>Application Timeline Server</b> component of YARN service will be <span class="text-error"><b>deleted</b></span> as part of enabling security',
+  'admin.security.step1.body.instruction5': '<b>Application Timeline Server</b> component of YARN service will be <span class="text-error"><b>deleted</b></span> as part of enabling security in this HDP stack version',
   'admin.security.step2.body.header': 'Configure Kerberos security properties',
   'admin.security.step3.notice': 'You need to create Kerberos principals and keytabs before proceeding.<br />'+
   'Download the CSV file and use it to create a script to generate the principals and keytabs on specified hosts. ' +
@@ -1088,6 +1088,8 @@ Em.I18n.translations = {
   'admin.addSecurity.webhcat.user.httpUser': 'WebHCat SPNEGO User',
   'admin.addSecurity.oozie.user.httpUser': 'Oozie SPNEGO User',
   'admin.addSecurity.falcon.user.httpUser': 'Falcon SPNEGO User',
+  'admin.addSecurity.user.yarn.atsUser': 'YARN ATS User',
+  'admin.addSecurity.user.yarn.atsHTTPUser': 'YARN ATS HTTP User',
   'admin.addSecurity.enable.onClose': 'You are in the process of enabling security on your cluster. ' +
     'Are you sure you want to quit? If you quit, ' +
     'you may have to re-run the security wizard from the beginning to enable security.',

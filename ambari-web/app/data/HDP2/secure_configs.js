@@ -17,11 +17,24 @@
  */
 var App = require('app');
 require('models/service_config');
+require('models/service');
+
 App.SecureConfigProperties = Ember.ArrayProxy.extend({
   content: require('data/HDP2/secure_properties').configProperties
 });
 
 var configProperties = App.SecureConfigProperties.create();
+
+// Dynamically create YARN properties
+var yarnConfigProperties = [
+  App.ServiceConfigCategory.create({ name: 'ResourceManager', displayName : 'ResourceManager'}),
+  App.ServiceConfigCategory.create({ name: 'NodeManager', displayName : 'NodeManager'})
+];
+var isATSInstalled = App.Service.find('YARN').get('hostComponents').someProperty('componentName', 'APP_TIMELINE_SERVER');
+var doesATSSupportKerberos = App.get("doesATSSupportKerberos");
+if (isATSInstalled && doesATSSupportKerberos) {
+  yarnConfigProperties.push(App.ServiceConfigCategory.create({ name: 'AppTimelineServer', displayName : 'ApplicationTimelineService'}));
+}
 
 module.exports = [
   {
@@ -62,10 +75,7 @@ module.exports = [
     serviceName: 'YARN',
     displayName: 'YARN',
     filename: 'yarn-site',
-    configCategories: [
-      App.ServiceConfigCategory.create({ name: 'ResourceManager', displayName : 'ResourceManager'}),
-      App.ServiceConfigCategory.create({ name: 'NodeManager', displayName : 'NodeManager'})
-      ],
+    configCategories: yarnConfigProperties, // these properties can be dynamic
     sites: ['yarn-site'],
     configs: configProperties.filterProperty('serviceName', 'YARN')
   },
@@ -149,6 +159,6 @@ module.exports = [
     sites: ['falcon-startup.properties'],
     configs: configProperties.filterProperty('serviceName', 'FALCON')
   }
-
-
 ];
+
+

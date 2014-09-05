@@ -454,7 +454,9 @@
             "yarn.resourcemanager.webapp.spnego-keytab-file": "/etc/security/keytabs/spnego.service.keytab", 
             "yarn.resourcemanager.keytab": "/etc/security/keytabs/rm.service.keytab", 
             "yarn.nodemanager.aux-services.mapreduce_shuffle.class": "org.apache.hadoop.mapred.ShuffleHandler",
-            "yarn.timeline-service.leveldb-timeline-store.path": "/var/log/hadoop-yarn/timeline"
+            "yarn.timeline-service.leveldb-timeline-store.path": "/var/log/hadoop-yarn/timeline",
+            "yarn.timeline-service.principal": "yarn/_HOST@EXAMPLE.COM",
+            "yarn.timeline-service.keytab" : "/etc/security/keytabs/yarn.service.keytab"
         },
         "yarn-env": {
             "yarn_pid_dir_prefix": "/var/run/hadoop-yarn", 

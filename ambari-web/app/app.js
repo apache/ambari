@@ -49,6 +49,19 @@ module.exports = Em.Application.create({
     return '';
   }.property().volatile(),
 
+  /* Determine if Application Timeline Service supports Kerberization.
+   * Because this value is retrieved from the cardinality of the component, it is safe to keep in app.js
+   * since its value will not change during the lifetime of the application.
+   */
+  doesATSSupportKerberos: function() {
+    var YARNService = App.StackServiceComponent.find().filterProperty('serviceName', 'YARN');
+    if (YARNService.length) {
+      var ATS = App.StackServiceComponent.find().findProperty('componentName', 'APP_TIMELINE_SERVER');
+      return (!!ATS && !!ATS.get('minToInstall'));
+    }
+    return false;
+  }.property('App.router.clusterController.isLoaded'),
+
   clusterName: null,
   clockDistance: null, // server clock - client clock
   currentStackVersion: '',
