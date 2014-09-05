@@ -110,9 +110,10 @@ App.QuickViewLinks = Em.View.extend({
   },
 
   findComponentHost: function (components, componentName) {
-    return App.singleNodeInstall ? App.singleNodeAlias : components.find(function (item) {
+    var component = components.find(function (item) {
       return item.host_components.someProperty('HostRoles.component_name', componentName);
-    }).Hosts.public_host_name
+    });
+    return component && component.Hosts.public_host_name;
   },
 
   setQuickLinks: function () {
@@ -120,11 +121,79 @@ App.QuickViewLinks = Em.View.extend({
   }.observes('App.currentStackVersionNumber', 'App.singleNodeInstall'),
 
   setQuickLinksSuccessCallback: function (response) {
-    var serviceName = this.get('content.serviceName');
-    var hosts = [];
     var self = this;
-    var version = App.get('currentStackVersionNumber');
     var quickLinks = [];
+    var hosts = this.setHost(response, this.get('content.serviceName'));
+    if (!hosts || !this.get('content.quickLinks')) {
+      quickLinks = [{
+          label: this.t('quick.links.error.label'),
+          url: 'javascript:alert("' + this.t('contact.administrator') + '");return false;'
+      }];
+      this.set('quickLinks', quickLinks);
+      this.set('isLoaded', true);
+      /**
+       * MAPREDUCE is only service that use 2 different masters in quick links
+       * so we must work with this service as with one-master-service but set up
+       * two hosts for two components. (JOBTRACKER and HISTORYSERVER)
+       */
+    } else if (hosts.length == 1 || this.get('content.serviceName') == "MAPREDUCE") {
+
+      quickLinks = this.get('content.quickLinks').map(function (item) {
+        var protocol = self.setProtocol(item.get('service_id'), self.get('configProperties'), self.ambariProperties());
+        if (item.get('template')) {
+          var port = item.get('http_config') && self.setPort(item, protocol);
+          /**
+           * setting other host for mapreduce (only for MAPREDUCE and JobHistory Server)!!!
+           */
+          if (self.get('content.serviceName') == "MAPREDUCE" && item.get('label') == "JobHistory Server") {
+            item.set('url', item.get('template').fmt(protocol, hosts[1], port));
+          } else {
+            item.set('url', item.get('template').fmt(protocol, hosts[0], port));
+          }
+        }
+        return item;
+      });
+      this.set('quickLinks', quickLinks);
+      this.set('isLoaded', true);
+    } else {
+      // multiple hbase masters or HDFS HA enabled
+      var quickLinksArray = [];
+      hosts.forEach(function(host) {
+        var quickLinks = [];
+        self.get('content.quickLinks').forEach(function (item) {
+          var newItem = {};
+          var protocol = self.setProtocol(item.get('service_id'), self.get('configProperties'), self.ambariProperties());
+          if (item.get('template')) {
+            var port = item.get('http_config') && self.setPort(item, protocol);
+            newItem.url = item.get('template').fmt(protocol, host.publicHostName, port);
+            newItem.label = item.get('label');
+          }
+          quickLinks.push(newItem);
+        });
+        if (host.status) {
+          quickLinks.set('publicHostNameLabel', Em.I18n.t('quick.links.publicHostName').format(host.publicHostName, host.status));
+        } else {
+          quickLinks.set('publicHostNameLabel', host.publicHostName);
+        }
+        quickLinksArray.push(quickLinks);
+      }, this);
+      this.set('quickLinksArray', quickLinksArray);
+      this.set('isLoaded', true);
+    }
+  },
+
+  /**
+   * sets public host names for required masters of current service
+   * @param {String} serviceName - selected serviceName
+   * @param {JSON} response
+   * @returns {Array} containing hostName(s)
+   * @method setHost
+   */
+  setHost: function(response, serviceName) {
+    if (App.singleNodeInstall) {
+      return [App.singleNodeAlias];
+    }
+    var hosts = [];
     switch (serviceName) {
       case "HDFS":
         if (this.get('content.snameNode')) {
@@ -147,16 +216,9 @@ App.QuickViewLinks = Em.View.extend({
           }
         }
         break;
-      case "MAPREDUCE":
-      case "OOZIE":
-      case "GANGLIA":
-      case "NAGIOS":
-      case "HUE":
-        hosts[0] = App.singleNodeInstall ? App.singleNodeAlias : this.findComponentHost(response.items, this.get('content.hostComponents').findProperty('isMaster', true).get('componentName'));
-        break;
       case "HBASE":
         var masterComponents = response.items.filter(function (item) {
-            return item.host_components.someProperty('HostRoles.component_name', 'HBASE_MASTER');
+          return item.host_components.someProperty('HostRoles.component_name', 'HBASE_MASTER');
         });
         var activeMaster, standbyMasters, otherMasters;
         if (App.supports.multipleHBaseMasters) {
@@ -167,32 +229,28 @@ App.QuickViewLinks = Em.View.extend({
             return item.host_components.someProperty('metrics.hbase.master.IsActiveMaster', 'false');
           });
           otherMasters = masterComponents.filter(function (item) {
-            return !(item.host_components.someProperty('metrics.hbase.master.IsActiveMaster', 'true') || item.host_components.someProperty('metrics.hbase.master.IsActiveMaster', 'false')) ;
+            return !(item.host_components.someProperty('metrics.hbase.master.IsActiveMaster', 'true') || item.host_components.someProperty('metrics.hbase.master.IsActiveMaster', 'false'));
           });
         }
-        if (masterComponents.length > 0) {
-          if (App.singleNodeInstall) {
-            hosts[0] = App.singleNodeAlias;
-          } else if (masterComponents.length > 1) {
-            // need all hbase_masters hosts in quick links
-            if (activeMaster) {
-              activeMaster.forEach(function(item) {
-                hosts.push({'publicHostName': item.Hosts.public_host_name, 'status': Em.I18n.t('quick.links.label.active')});
-              });
-            }
-            if (standbyMasters) {
-              standbyMasters.forEach(function(item) {
-                hosts.push({'publicHostName': item.Hosts.public_host_name, 'status': Em.I18n.t('quick.links.label.standby')});
-              });
-            }
-            if (otherMasters) {
-              otherMasters.forEach(function(item) {
-                hosts.push({'publicHostName': item.Hosts.public_host_name});
-              });
-            }
-          } else {
-            hosts[0] = masterComponents[0].Hosts.public_host_name;
+        if (masterComponents.length > 1) {
+          // need all hbase_masters hosts in quick links
+          if (activeMaster) {
+            activeMaster.forEach(function (item) {
+              hosts.push({'publicHostName': item.Hosts.public_host_name, 'status': Em.I18n.t('quick.links.label.active')});
+            });
           }
+          if (standbyMasters) {
+            standbyMasters.forEach(function (item) {
+              hosts.push({'publicHostName': item.Hosts.public_host_name, 'status': Em.I18n.t('quick.links.label.standby')});
+            });
+          }
+          if (otherMasters) {
+            otherMasters.forEach(function (item) {
+              hosts.push({'publicHostName': item.Hosts.public_host_name});
+            });
+          }
+        } else {
+          hosts[0] = masterComponents[0].Hosts.public_host_name;
         }
         break;
       case "YARN":
@@ -217,84 +275,48 @@ App.QuickViewLinks = Em.View.extend({
           hosts[0] = this.findComponentHost(response.items, 'RESOURCEMANAGER');
         }
         break;
-      case "MAPREDUCE2":
-        hosts[0] = this.findComponentHost(response.items, 'HISTORYSERVER');
-        break;
-      case "FALCON":
-        hosts[0] = this.findComponentHost(response.items, 'FALCON_SERVER');
+      case "MAPREDUCE":
+        hosts[0] = this.findComponentHost(response.items, "JOBTRACKER");
+        hosts[1] = this.findComponentHost(response.items, "HISTORYSERVER");
         break;
       case "STORM":
-        hosts[0] = this.findComponentHost(response.items, 'STORM_UI_SERVER');
+        hosts[0] = this.findComponentHost(response.items, "STORM_UI_SERVER");
+        break;
+      default:
+        hosts[0] = this.findComponentHost(response.items, this.get('content.hostComponents') && this.get('content.hostComponents').findProperty('isMaster', true).get('componentName'));
         break;
     }
-    if (!hosts) {
-      quickLinks = [
-        {
-          label: this.t('quick.links.error.label'),
-          url: 'javascript:alert("' + this.t('contact.administrator') + '");return false;'
-        }
-      ];
-      this.set('quickLinks', quickLinks);
-      this.set('isLoaded', true);
-    } else if (hosts.length == 1) {
-
-      quickLinks = this.get('content.quickLinks').map(function (item) {
-        var protocol = self.setProtocol(item.get('service_id'));
-        if (item.get('template')) {
-          var port = item.get('http_config') && self.setPort(item, protocol, version);
-          item.set('url', item.get('template').fmt(protocol, hosts[0], port));
-        }
-        return item;
-      });
-      this.set('quickLinks', quickLinks);
-      this.set('isLoaded', true);
-    } else {
-      // multiple hbase masters or HDFS HA enabled
-      var quickLinksArray = [];
-      hosts.forEach(function(host){
-        var quickLinks = [];
-        self.get('content.quickLinks').forEach(function (item) {
-          var newItem = {};
-          var protocol = self.setProtocol(item.get('service_id'));
-          if (item.get('template')) {
-            var port = item.get('http_config') && self.setPort(item, protocol, version);
-            newItem.url = item.get('template').fmt(protocol, host.publicHostName, port);
-            newItem.label =  item.get('label');
-          }
-          quickLinks.push(newItem);
-        });
-        if (host.status) {
-          quickLinks.set('publicHostNameLabel', Em.I18n.t('quick.links.publicHostName').format(host.publicHostName, host.status));
-        } else {
-          quickLinks.set('publicHostNameLabel', host.publicHostName);
-        }
-        quickLinksArray.push(quickLinks);
-      }, this);
-      this.set('quickLinksArray', quickLinksArray);
-      this.set('isLoaded', true);
-    }
-
+    return hosts;
   },
 
-  setProtocol: function (service_id) {
-    var properties = this.ambariProperties();
-    var configProperties = this.get('configProperties');
+  /**
+   * services that supports security. this array is used to find out protocol.
+   * becides GANGLIA, NAGIOS, YARN, MAPREDUCE2. These properties use
+   * their properties to know protocol
+   */
+  servicesSupportsHttps: ["HDFS", "HBASE", "MAPREDUCE"],
+
+  /**
+   * setProtocol - if cluster is secure for some services (GANGLIA, NAGIOS, MAPREDUCE2, YARN and servicesSupportsHttps)
+   * protocol becomes "https" otherwise "http" (by default)
+   * @param {String} service_id - service name
+   * @param {Object} configProperties
+   * @param {Object} ambariProperties
+   * @returns {string} "https" or "http" only!
+   * @method setProtocol
+   */
+  setProtocol: function (service_id, configProperties, ambariProperties) {
     var hadoopSslEnabled = false;
     if (configProperties && configProperties.length > 0) {
       var site = configProperties.findProperty('type', 'core-site');
-      site.properties['hadoop.ssl.enabled'] && site.properties['hadoop.ssl.enabled'] === 'true' ? hadoopSslEnabled = true : null;
+      hadoopSslEnabled = (site && site.properties && site.properties['hadoop.ssl.enabled'] == true);
     }
     switch (service_id) {
       case "GANGLIA":
-        return (properties && properties.hasOwnProperty('ganglia.https') && properties['ganglia.https']) ? "https" : "http";
+        return (ambariProperties && ambariProperties['ganglia.https'] == true) ? "https" : "http";
         break;
       case "NAGIOS":
-        return (properties && properties.hasOwnProperty('nagios.https') && properties['nagios.https']) ? "https" : "http";
-        break;
-      case "HDFS":
-      case "HBASE":
-      case "MAPREDUCE":
-        return hadoopSslEnabled ? "https" : "http";
+        return (ambariProperties && ambariProperties['nagios.https'] == true) ? "https" : "http";
         break;
       case "YARN":
         var yarnProperties = configProperties.findProperty('type', 'yarn-site');
@@ -319,12 +341,18 @@ App.QuickViewLinks = Em.View.extend({
         return hadoopSslEnabled ? "https" : "http";
         break;
       default:
-        return "http";
+        return this.get('servicesSupportsHttps').contains(service_id) && hadoopSslEnabled ? "https" : "http";
     }
   },
 
-  setPort: function (item, protocol, version) {
-    var service_id = item.get('service_id');
+  /**
+   * sets the port of quick link
+   * @param item
+   * @param protocol
+   * @returns {*}
+   * @method setPort
+   */
+  setPort: function (item, protocol) {
     var configProperties = this.get('configProperties');
     var config = item.get('http_config');
     var defaultPort = item.get('default_http_port');
