@@ -1,9 +1,9 @@
 {
   "configurations": [
     {
-      "global": {
-        "nagios_contact": "me@my-awesome-domain.example"
-      }
+        "nagios-env" : {
+            "nagios_contact" : "admin@localhost"
+        }
     }
   ],
   "host_groups": [

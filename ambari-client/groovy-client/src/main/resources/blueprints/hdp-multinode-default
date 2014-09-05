@@ -1,7 +1,7 @@
 {
     "configurations" : [
         {
-            "global" : {
+            "nagios-env" : {
                 "nagios_contact" : "admin@localhost"
             }
         }
@@ -133,9 +133,6 @@
                 },
                 {
                     "name" : "NAGIOS_SERVER"
-                },
-                {
-                    "name" : "GANGLIA_SERVER"
                 },
                 {
                     "name" : "ZOOKEEPER_CLIENT"

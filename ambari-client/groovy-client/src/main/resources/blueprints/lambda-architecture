@@ -1,9 +1,9 @@
 {
   "configurations": [
     {
-      "global": {
-        "nagios_contact": "me@my-awesome-domain.example"
-      }
+        "nagios-env" : {
+            "nagios_contact" : "admin@localhost"
+        }
     }
   ],
   "host_groups": [
@@ -101,9 +101,6 @@
           "name": "YARN_CLIENT"
         },
         {
-          "name" : "APP_TIMELINE_SERVER"
-        },
-        {
           "name": "MAPREDUCE2_CLIENT"
         },
         {
@@ -156,9 +153,6 @@
         },
         {
           "name": "DATANODE"
-        },
-        {
-          "name" : "APP_TIMELINE_SERVER"
         },
         {
           "name": "GANGLIA_MONITOR"
