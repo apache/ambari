@@ -86,7 +86,9 @@ App.MainViewsController = Em.Controller.extend({
             instanceName: instance.ViewInstanceInfo.instance_name,
             href: instance.ViewInstanceInfo.context_path
           });
-          instances.push(current_instance);
+          if( current_instance.visible ){
+            instances.push(current_instance);
+          }
         }, this);
       }, this);
     }, this);
