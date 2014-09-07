@@ -134,16 +134,16 @@ public class ViewEntity implements ViewDefinition {
    */
   @OneToMany(cascade = CascadeType.ALL)
   @JoinColumns({
-      @JoinColumn(name = "resource_type_id", referencedColumnName = "resource_type_id", nullable = false),
+      @JoinColumn(name = "resource_type_id", referencedColumnName = "resource_type_id", nullable = false)
   })
   private Collection<PermissionEntity> permissions = new HashSet<PermissionEntity>();
 
   /**
    * The resource type.
    */
-  @ManyToOne
+  @ManyToOne(cascade = CascadeType.ALL)
   @JoinColumns({
-      @JoinColumn(name = "resource_type_id", referencedColumnName = "resource_type_id", nullable = false),
+      @JoinColumn(name = "resource_type_id", referencedColumnName = "resource_type_id", nullable = false)
   })
   private ResourceTypeEntity resourceType;
 
