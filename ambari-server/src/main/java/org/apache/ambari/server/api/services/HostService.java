@@ -212,7 +212,7 @@ public class HostService extends BaseService {
    * @param hostName host id
    * @return the alerts service
    */
-  @Path("{hostName}/alerts_data")
+  @Path("{hostName}/alerts")
   public AlertService getAlertHandler(@PathParam("hostName") String hostName) {
     return new AlertService(m_clusterName, null, hostName);
   }  

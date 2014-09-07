@@ -222,6 +222,55 @@ public class AlertsDAO {
     return daoUtils.selectList(query);
   }
   
+  /**
+   * Retrieves the summary information for a particular scope.  The result is a DTO
+   * since the columns are aggregated and don't fit to an entity.
+   * 
+   * @param clusterId the cluster id
+   * @param serviceName the service name. Use {@code null} to not filter on service.
+   * @param hostName the host name.  Use {@code null} to not filter on host.
+   * @return the summary DTO
+   */
+  @RequiresSession
+  public AlertSummaryDTO findCurrentCounts(long clusterId, String serviceName, String hostName) {
+    StringBuilder sb = new StringBuilder();
+    sb.append("SELECT NEW %s (");
+    sb.append("SUM(CASE WHEN history.alertState = %s.%s THEN 1 ELSE 0 END), ");
+    sb.append("SUM(CASE WHEN history.alertState = %s.%s THEN 1 ELSE 0 END), ");
+    sb.append("SUM(CASE WHEN history.alertState = %s.%s THEN 1 ELSE 0 END), ");
+    sb.append("SUM(CASE WHEN history.alertState = %s.%s THEN 1 ELSE 0 END)) ");
+    sb.append("FROM AlertCurrentEntity alert JOIN alert.alertHistory history WHERE history.clusterId = :clusterId");
+    
+    if (null != serviceName) {
+      sb.append(" AND history.serviceName = :serviceName");
+    }
+    
+    if (null != hostName) {
+      sb.append(" AND history.hostName = :hostName");
+    }
+    
+    String str = String.format(sb.toString(),
+        AlertSummaryDTO.class.getName(),
+        AlertState.class.getName(), AlertState.OK.name(),
+        AlertState.class.getName(), AlertState.WARNING.name(),
+        AlertState.class.getName(), AlertState.CRITICAL.name(),
+        AlertState.class.getName(), AlertState.UNKNOWN.name());
+    
+    TypedQuery<AlertSummaryDTO> query = entityManagerProvider.get().createQuery(
+        str, AlertSummaryDTO.class);
+    
+    query.setParameter("clusterId", Long.valueOf(clusterId));
+    
+    if (null != serviceName) {
+      query.setParameter("serviceName", serviceName);
+    }
+    
+    if (null != hostName) {
+      query.setParameter("hostName", hostName);
+    }
+    
+    return daoUtils.selectSingle(query);
+  }
   
   /**
    * Gets the current alerts for a given service.
@@ -408,4 +457,5 @@ public class AlertsDAO {
   public void remove(AlertCurrentEntity alert) {
     entityManagerProvider.get().remove(merge(alert));
   }
+
 }

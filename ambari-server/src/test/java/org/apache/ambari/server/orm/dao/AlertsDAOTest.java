@@ -229,7 +229,6 @@ public class AlertsDAOTest {
     current.setAlertHistory(history);
     dao.create(current);
     
-    
     List<AlertCurrentEntity> currentAlerts = dao.findCurrentByHost(clusterId, history.getHostName());
 
     assertNotNull(currentAlerts);
@@ -323,4 +322,78 @@ public class AlertsDAOTest {
     assertNotNull(entity.getAlertHistory());
     assertNotNull(entity.getAlertHistory().getAlertDefinition());
   }
+  
+  /**
+   * 
+   */
+  @Test
+  public void testFindCurrentSummary() throws Exception {
+    AlertSummaryDTO summary = dao.findCurrentCounts(clusterId.longValue(), null, null);
+    assertEquals(5, summary.getOkCount());
+
+    AlertHistoryEntity h1 = dao.findCurrentByCluster(clusterId.longValue()).get(2).getAlertHistory();
+    AlertHistoryEntity h2 = dao.findCurrentByCluster(clusterId.longValue()).get(3).getAlertHistory();
+    AlertHistoryEntity h3 = dao.findCurrentByCluster(clusterId.longValue()).get(4).getAlertHistory();
+    h1.setAlertState(AlertState.WARNING);
+    dao.merge(h1);
+    h2.setAlertState(AlertState.CRITICAL);
+    dao.merge(h2);
+    h3.setAlertState(AlertState.UNKNOWN);
+    dao.merge(h3);
+    
+    int ok = 0;
+    int warn = 0;
+    int crit = 0;
+    int unk = 0;
+    
+    for (AlertCurrentEntity h : dao.findCurrentByCluster(clusterId.longValue())) {
+      switch (h.getAlertHistory().getAlertState()) {
+        case CRITICAL:
+          crit++;
+          break;
+        case OK:
+          ok++;
+          break;
+        case UNKNOWN:
+          unk++;
+          break;
+        default:
+          warn++;
+          break;
+      }
+        
+    }
+      
+    summary = dao.findCurrentCounts(clusterId.longValue(), null, null);
+    // !!! db-to-db compare
+    assertEquals(ok, summary.getOkCount());
+    assertEquals(warn, summary.getWarningCount());
+    assertEquals(crit, summary.getCriticalCount());
+    assertEquals(unk, summary.getCriticalCount());
+    
+    // !!! expected
+    assertEquals(2, summary.getOkCount());
+    assertEquals(1, summary.getWarningCount());
+    assertEquals(1, summary.getCriticalCount());
+    assertEquals(1, summary.getCriticalCount());
+    
+    summary = dao.findCurrentCounts(clusterId.longValue(), "Service 0", null);
+    assertEquals(1, summary.getOkCount());
+    assertEquals(0, summary.getWarningCount());
+    assertEquals(0, summary.getCriticalCount());
+    assertEquals(0, summary.getCriticalCount());
+
+    summary = dao.findCurrentCounts(clusterId.longValue(), null, "h1");
+    assertEquals(2, summary.getOkCount());
+    assertEquals(1, summary.getWarningCount());
+    assertEquals(1, summary.getCriticalCount());
+    assertEquals(1, summary.getCriticalCount());
+    
+    summary = dao.findCurrentCounts(clusterId.longValue(), "foo", null);
+    assertEquals(0, summary.getOkCount());
+    assertEquals(0, summary.getWarningCount());
+    assertEquals(0, summary.getCriticalCount());
+    assertEquals(0, summary.getCriticalCount());
+    
+  }  
 }

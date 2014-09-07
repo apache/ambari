@@ -187,7 +187,7 @@ public class ServiceService extends BaseService {
   /**
    * Gets the alerts sub-resource.
    */
-  @Path("{serviceName}/alerts_data")
+  @Path("{serviceName}/alerts")
   public AlertService getAlertHandler(
       @PathParam("serviceName") String serviceName) {
     return new AlertService(m_clusterName, serviceName, null);

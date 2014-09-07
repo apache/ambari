@@ -48,6 +48,7 @@ import org.apache.ambari.server.controller.internal.AbstractControllerResourcePr
 import org.apache.ambari.server.controller.internal.AlertDefinitionResourceProvider;
 import org.apache.ambari.server.controller.internal.AlertGroupResourceProvider;
 import org.apache.ambari.server.controller.internal.AlertResourceProvider;
+import org.apache.ambari.server.controller.internal.AlertSummaryPropertyProvider;
 import org.apache.ambari.server.controller.internal.AlertTargetResourceProvider;
 import org.apache.ambari.server.controller.internal.AmbariPrivilegeResourceProvider;
 import org.apache.ambari.server.controller.internal.BlueprintResourceProvider;
@@ -535,6 +536,7 @@ public class AmbariServer {
     AlertResourceProvider.init(injector);
     AlertDefinitionResourceProvider.init(injector);
     AlertGroupResourceProvider.init(injector);
+    AlertSummaryPropertyProvider.init(injector);
     AlertTargetResourceProvider.init(injector);
     PermissionResourceProvider.init(injector.getInstance(PermissionDAO.class));
     ViewPermissionResourceProvider.init(injector.getInstance(PermissionDAO.class));

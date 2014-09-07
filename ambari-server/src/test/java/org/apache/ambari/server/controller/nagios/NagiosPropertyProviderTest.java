@@ -124,7 +124,7 @@ public class NagiosPropertyProviderTest {
     
     Map<String, Map<String, Object>> values = res.getPropertiesMap();
     
-    Assert.assertFalse("Expected no alerts", values.containsKey("alerts"));
+    Assert.assertFalse("Expected no alerts", values.containsKey("legacy_alerts"));
   }
 
 
@@ -176,9 +176,9 @@ public class NagiosPropertyProviderTest {
 
     Map<String, Map<String, Object>> values = res.getPropertiesMap();
 
-    Assert.assertTrue(values.containsKey("alerts/summary"));
+    Assert.assertTrue(values.containsKey("legacy_alerts/summary"));
 
-    Map<String, Object> summary = values.get("alerts/summary");
+    Map<String, Object> summary = values.get("legacy_alerts/summary");
     Assert.assertEquals(4L, summary.size());
     Assert.assertTrue(summary.containsKey("OK"));
     Assert.assertTrue(summary.containsKey("WARNING"));
@@ -230,7 +230,7 @@ public class NagiosPropertyProviderTest {
     
     Map<String, Map<String, Object>> values = res.getPropertiesMap();
     
-    Assert.assertFalse("Expected no alerts", values.containsKey("alerts"));
+    Assert.assertFalse("Expected no alerts", values.containsKey("legacy_alerts"));
   }
   
   @Test
@@ -260,12 +260,12 @@ public class NagiosPropertyProviderTest {
     
     Map<String, Map<String, Object>> values = res.getPropertiesMap();
     
-    Assert.assertTrue(values.containsKey("alerts"));
-    Assert.assertTrue(values.containsKey("alerts/summary"));
-    Assert.assertTrue(values.get("alerts").containsKey("detail"));
-    Assert.assertTrue(List.class.isInstance(values.get("alerts").get("detail")));
+    Assert.assertTrue(values.containsKey("legacy_alerts"));
+    Assert.assertTrue(values.containsKey("legacy_alerts/summary"));
+    Assert.assertTrue(values.get("legacy_alerts").containsKey("detail"));
+    Assert.assertTrue(List.class.isInstance(values.get("legacy_alerts").get("detail")));
     
-    List<?> list = (List<?>) values.get("alerts").get("detail");
+    List<?> list = (List<?>) values.get("legacy_alerts").get("detail");
     Assert.assertEquals(Integer.valueOf(3), Integer.valueOf(list.size()));
     for (Object o : list) {
       Assert.assertTrue(Map.class.isInstance(o));
@@ -275,7 +275,7 @@ public class NagiosPropertyProviderTest {
       Assert.assertTrue("expected HBASE", serviceName.equals("HBASE"));
     }
     
-    Map<String, Object> summary = values.get("alerts/summary");
+    Map<String, Object> summary = values.get("legacy_alerts/summary");
     Assert.assertTrue(summary.containsKey("OK"));
     Assert.assertTrue(summary.containsKey("WARNING"));
     Assert.assertTrue(summary.containsKey("CRITICAL"));
@@ -311,12 +311,12 @@ public class NagiosPropertyProviderTest {
     
     Map<String, Map<String, Object>> values = res.getPropertiesMap();
     
-    Assert.assertTrue(values.containsKey("alerts"));
-    Assert.assertTrue(values.containsKey("alerts/summary"));
-    Assert.assertTrue(values.get("alerts").containsKey("detail"));
-    Assert.assertTrue(List.class.isInstance(values.get("alerts").get("detail")));
+    Assert.assertTrue(values.containsKey("legacy_alerts"));
+    Assert.assertTrue(values.containsKey("legacy_alerts/summary"));
+    Assert.assertTrue(values.get("legacy_alerts").containsKey("detail"));
+    Assert.assertTrue(List.class.isInstance(values.get("legacy_alerts").get("detail")));
     
-    List<?> list = (List<?>) values.get("alerts").get("detail");
+    List<?> list = (List<?>) values.get("legacy_alerts").get("detail");
     Assert.assertTrue(7 == list.size());
     for (Object o : list) {
       Assert.assertTrue(Map.class.isInstance(o));
@@ -326,7 +326,7 @@ public class NagiosPropertyProviderTest {
       Assert.assertTrue("expected c6403.ambari.apache.org", host.equals("c6403.ambari.apache.org"));
     }
     
-    Map<String, Object> summary = values.get("alerts/summary");
+    Map<String, Object> summary = values.get("legacy_alerts/summary");
     Assert.assertTrue(summary.containsKey("OK"));
     Assert.assertTrue(summary.containsKey("WARNING"));
     Assert.assertTrue(summary.containsKey("CRITICAL"));
@@ -362,12 +362,12 @@ public class NagiosPropertyProviderTest {
     
     Map<String, Map<String, Object>> values = res.getPropertiesMap();
     
-    Assert.assertTrue(values.containsKey("alerts"));
-    Assert.assertTrue(values.containsKey("alerts/summary"));
-    Assert.assertTrue(values.get("alerts").containsKey("detail"));
-    Assert.assertTrue(List.class.isInstance(values.get("alerts").get("detail")));
+    Assert.assertTrue(values.containsKey("legacy_alerts"));
+    Assert.assertTrue(values.containsKey("legacy_alerts/summary"));
+    Assert.assertTrue(values.get("legacy_alerts").containsKey("detail"));
+    Assert.assertTrue(List.class.isInstance(values.get("legacy_alerts").get("detail")));
     
-    List<?> list = (List<?>) values.get("alerts").get("detail");
+    List<?> list = (List<?>) values.get("legacy_alerts").get("detail");
     Assert.assertEquals(Integer.valueOf(16), Integer.valueOf(list.size()));
     for (Object o : list) {
       Assert.assertTrue(Map.class.isInstance(o));
@@ -377,7 +377,7 @@ public class NagiosPropertyProviderTest {
       Assert.assertEquals("c6401.ambari.apache.org", host);
     }
     
-    Map<String, Object> summary = values.get("alerts/summary");
+    Map<String, Object> summary = values.get("legacy_alerts/summary");
     Assert.assertTrue(summary.containsKey("OK"));
     Assert.assertTrue(summary.containsKey("WARNING"));
     Assert.assertTrue(summary.containsKey("CRITICAL"));
@@ -417,12 +417,12 @@ public class NagiosPropertyProviderTest {
     
     Map<String, Map<String, Object>> values = res.getPropertiesMap();
     
-    Assert.assertTrue(values.containsKey("alerts"));
-    Assert.assertTrue(values.containsKey("alerts/summary"));
-    Assert.assertTrue(values.get("alerts").containsKey("detail"));
-    Assert.assertTrue(List.class.isInstance(values.get("alerts").get("detail")));
+    Assert.assertTrue(values.containsKey("legacy_alerts"));
+    Assert.assertTrue(values.containsKey("legacy_alerts/summary"));
+    Assert.assertTrue(values.get("legacy_alerts").containsKey("detail"));
+    Assert.assertTrue(List.class.isInstance(values.get("legacy_alerts").get("detail")));
     
-    List<?> list = (List<?>) values.get("alerts").get("detail");
+    List<?> list = (List<?>) values.get("legacy_alerts").get("detail");
     // removed an additional one
     Assert.assertEquals(Integer.valueOf(2), Integer.valueOf(list.size()));
     for (Object o : list) {
@@ -433,7 +433,7 @@ public class NagiosPropertyProviderTest {
       Assert.assertTrue("expected HBASE", serviceName.equals("HBASE"));
     }
     
-    Map<String, Object> summary = values.get("alerts/summary");
+    Map<String, Object> summary = values.get("legacy_alerts/summary");
     Assert.assertTrue(summary.containsKey("OK"));
     Assert.assertTrue(summary.containsKey("WARNING"));
     Assert.assertTrue(summary.containsKey("CRITICAL"));
@@ -490,12 +490,12 @@ public class NagiosPropertyProviderTest {
     
     Map<String, Map<String, Object>> values = res.getPropertiesMap();
     
-    Assert.assertTrue(values.containsKey("alerts"));
-    Assert.assertTrue(values.containsKey("alerts/summary"));
-    Assert.assertTrue(values.get("alerts").containsKey("detail"));
-    Assert.assertTrue(List.class.isInstance(values.get("alerts").get("detail")));
+    Assert.assertTrue(values.containsKey("legacy_alerts"));
+    Assert.assertTrue(values.containsKey("legacy_alerts/summary"));
+    Assert.assertTrue(values.get("legacy_alerts").containsKey("detail"));
+    Assert.assertTrue(List.class.isInstance(values.get("legacy_alerts").get("detail")));
     
-    List<?> list = (List<?>) values.get("alerts").get("detail");
+    List<?> list = (List<?>) values.get("legacy_alerts").get("detail");
     // removed an additional one
     Assert.assertEquals(Integer.valueOf(4), Integer.valueOf(list.size()));
     for (Object o : list) {
@@ -506,7 +506,7 @@ public class NagiosPropertyProviderTest {
       Assert.assertEquals(serviceName, "GANGLIA");
     }
     
-    Map<String, Object> summary = values.get("alerts/summary");
+    Map<String, Object> summary = values.get("legacy_alerts/summary");
     Assert.assertTrue(summary.containsKey("OK"));
     Assert.assertTrue(summary.containsKey("WARNING"));
     Assert.assertTrue(summary.containsKey("CRITICAL"));
@@ -543,12 +543,12 @@ public class NagiosPropertyProviderTest {
     
     Map<String, Map<String, Object>> values = res.getPropertiesMap();
     
-    Assert.assertTrue(values.containsKey("alerts"));
-    Assert.assertTrue(values.containsKey("alerts/summary"));
-    Assert.assertTrue(values.get("alerts").containsKey("detail"));
-    Assert.assertTrue(List.class.isInstance(values.get("alerts").get("detail")));
+    Assert.assertTrue(values.containsKey("legacy_alerts"));
+    Assert.assertTrue(values.containsKey("legacy_alerts/summary"));
+    Assert.assertTrue(values.get("legacy_alerts").containsKey("detail"));
+    Assert.assertTrue(List.class.isInstance(values.get("legacy_alerts").get("detail")));
     
-    List<?> list = (List<?>) values.get("alerts").get("detail");
+    List<?> list = (List<?>) values.get("legacy_alerts").get("detail");
     Assert.assertEquals(Integer.valueOf(1), Integer.valueOf(list.size()));
     for (Object o : list) {
       Assert.assertTrue(Map.class.isInstance(o));
@@ -558,7 +558,7 @@ public class NagiosPropertyProviderTest {
       Assert.assertEquals("c6404.ambari.apache.org", host);
     }
     
-    Map<String, Object> summary = values.get("alerts/summary");
+    Map<String, Object> summary = values.get("legacy_alerts/summary");
     Assert.assertTrue(summary.containsKey("OK"));
     Assert.assertTrue(summary.containsKey("WARNING"));
     Assert.assertTrue(summary.containsKey("CRITICAL"));

@@ -30,12 +30,12 @@ public class AlertResourceDefinition extends BaseResourceDefinition {
   
   @Override
   public String getPluralName() {
-    return "alerts_data";
+    return "alerts";
   }
   
   @Override
   public String getSingularName() {
-    return "alert_data";
+    return "alert";
   }
   
 }

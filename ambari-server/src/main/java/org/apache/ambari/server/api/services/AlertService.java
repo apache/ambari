@@ -52,7 +52,7 @@ public class AlertService extends BaseService {
    */
   @GET
   @Produces("text/plain")
-  public Response getDefinitions(String body,
+  public Response getAlerts(String body,
       @Context HttpHeaders headers,
       @Context UriInfo ui) {
     return handleRequest(headers, body, ui, Request.Type.GET,
@@ -66,7 +66,7 @@ public class AlertService extends BaseService {
   @GET
   @Path("{alertId}")
   @Produces("text/plain")
-  public Response getDefinition(String body,
+  public Response getAlert(String body,
       @Context HttpHeaders headers,
       @Context UriInfo ui,
       @PathParam("alertId") Long id) {

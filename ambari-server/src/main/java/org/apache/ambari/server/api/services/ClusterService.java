@@ -366,7 +366,7 @@ public class ClusterService extends BaseService {
    *
    * @return  the alert definition service
    */
-  @Path("{clusterName}/alerts_data")
+  @Path("{clusterName}/alerts")
   public AlertService getAlertService(
       @Context javax.ws.rs.core.Request request, @PathParam("clusterName") String clusterName) {
 

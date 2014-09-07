@@ -171,18 +171,18 @@ describe('MainAlertsController', function () {
         result: []
       },
       {
-        title: 'data.alerts is null',
-        data: {alerts: null},
+        title: 'data.legacy_alerts is null',
+        data: {legacy_alerts: null},
         result: []
       },
       {
-        title: 'data.alerts.detail is null',
-        data: {alerts: {detail: null}},
+        title: 'data.legacy_alerts.detail is null',
+        data: {legacy_alerts: {detail: null}},
         result: []
       },
       {
-        title: 'data.alerts.detail is empty',
-        data: {alerts: {detail: []}},
+        title: 'data.legacy_alerts.detail is empty',
+        data: {legacy_alerts: {detail: []}},
         result: []
       }
     ];
@@ -195,7 +195,7 @@ describe('MainAlertsController', function () {
       });
     });
 
-    var data = {alerts: {detail: [
+    var data = {legacy_alerts: {detail: [
       {
         description: 't1',
         service_name: "s1",
@@ -208,27 +208,27 @@ describe('MainAlertsController', function () {
     ]}};
     var testCasesOfStatus = [
       {
-        title: 'data.alerts.detail is correct, OK status',
+        title: 'data.legacy_alerts.detail is correct, OK status',
         status: 'OK',
         result: '0'
       },
       {
-        title: 'data.alerts.detail is correct, WARNING status',
+        title: 'data.legacy_alerts.detail is correct, WARNING status',
         status: 'WARNING',
         result: '1'
       },
       {
-        title: 'data.alerts.detail is correct, CRITICAL status',
+        title: 'data.legacy_alerts.detail is correct, CRITICAL status',
         status: 'CRITICAL',
         result: '2'
       },
       {
-        title: 'data.alerts.detail is correct, PASSIVE status',
+        title: 'data.legacy_alerts.detail is correct, PASSIVE status',
         status: 'PASSIVE',
         result: '3'
       },
       {
-        title: 'data.alerts.detail is correct, unknown status',
+        title: 'data.legacy_alerts.detail is correct, unknown status',
         status: '',
         result: '4'
       }
@@ -236,7 +236,7 @@ describe('MainAlertsController', function () {
     testCasesOfStatus.forEach(function (test) {
       it(test.title, function () {
         controller.set('isLoaded', false);
-        data.alerts.detail[0].status = test.status;
+        data.legacy_alerts.detail[0].status = test.status;
         controller.getAlertsSuccessCallback(data);
         expect(controller.get('alerts.length')).to.equal(1);
         expect(controller.get('alerts').objectAt(0).get('status')).to.equal(test.result);
