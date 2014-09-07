@@ -38,8 +38,7 @@ if System.get_instance().os_family == "suse":
 else:
   jsvc_path = "/usr/libexec/bigtop-utils"
 #security params
-_authentication = config['configurations']['core-site']['hadoop.security.authentication']
-security_enabled = ( not is_empty(_authentication) and _authentication == 'kerberos')
+security_enabled = config['configurations']['cluster-env']['security_enabled']
 #hadoop params
 hadoop_conf_dir = "/etc/hadoop/conf"
 
@@ -72,12 +71,12 @@ hadoop_pid_dir_prefix = config['configurations']['hadoop-env']['hadoop_pid_dir_p
 #users and groups
 hbase_user = config['configurations']['hbase-env']['hbase_user']
 nagios_user = config['configurations']['nagios-env']['nagios_user']
-smoke_user =  config['configurations']['hadoop-env']['smokeuser']
+smoke_user =  config['configurations']['cluster-env']['smokeuser']
 gmetad_user = config['configurations']['ganglia-env']["gmetad_user"]
 gmond_user = config['configurations']['ganglia-env']["gmond_user"]
 
-user_group = config['configurations']['hadoop-env']['user_group']
-proxyuser_group =  config['configurations']['hadoop-env']['proxyuser_group']
+user_group = config['configurations']['cluster-env']['user_group']
+proxyuser_group =  default("/configurations/hadoop-env/proxyuser_group","users")
 nagios_group = config['configurations']['nagios-env']['nagios_group']
 
 #hosts
@@ -119,7 +118,7 @@ if has_ganglia_server:
   ganglia_server_host = ganglia_server_hosts[0]
 
 hbase_tmp_dir = config['configurations']['hbase-site']['hbase.tmp.dir']
-ignore_groupsusers_create = default("/configurations/hadoop-env/ignore_groupsusers_create", False)
+ignore_groupsusers_create = default("/configurations/cluster-env/ignore_groupsusers_create", False)
 
 smoke_user_dirs = format("/tmp/hadoop-{smoke_user},/tmp/hsperfdata_{smoke_user},/home/{smoke_user},/tmp/{smoke_user},/tmp/sqoop-{smoke_user}")
 if has_hbase_masters:

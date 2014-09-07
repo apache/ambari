@@ -146,7 +146,7 @@
 
   <property>
     <name>tez.am.env</name>
-    <value>LD_LIBRARY_PATH=/usr/lib/hadoop/lib/native:/usr/lib/hadoop/lib/native/`$JAVA_HOME/bin/java -d32 -version &amp;&gt; /dev/null;if [ $? -eq 0 ]; then echo Linux-i386-32; else echo Linux-amd64-64;fi`</value>
+    <value>LD_LIBRARY_PATH=/usr/lib/hadoop/lib/native:/usr/lib/hadoop/lib/native/Linux-amd64-64</value>
     <description>
         Additional execution environment entries for tez. This is not an additive property. You must preserve the original value if
         you want to have access to native libraries.

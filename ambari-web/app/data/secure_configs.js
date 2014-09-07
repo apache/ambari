@@ -31,7 +31,7 @@ module.exports = [
       App.ServiceConfigCategory.create({ name: 'KERBEROS', displayName: 'Kerberos'}),
       App.ServiceConfigCategory.create({ name: 'AMBARI', displayName: 'Ambari'})
     ],
-    sites: ['hadoop-env', 'oozie-env', 'nagios-env', 'zookeeper-env', 'storm-env', 'hbase-env'],
+    sites: ['cluster-env'],
     configs: configProperties.filterProperty('serviceName', 'GENERAL')
   },
   {
@@ -44,7 +44,7 @@ module.exports = [
       App.ServiceConfigCategory.create({ name: 'SNameNode', displayName: 'Secondary NameNode'}),
       App.ServiceConfigCategory.create({ name: 'DataNode', displayName: 'DataNode'})
     ],
-    sites: ['core-site', 'hdfs-site'],
+    sites: ['hadoop-env','core-site', 'hdfs-site'],
     configs: configProperties.filterProperty('serviceName', 'HDFS')
   },
   {
@@ -87,7 +87,7 @@ module.exports = [
       App.ServiceConfigCategory.create({ name: 'HBase Master', displayName: 'HBase Master'}),
       App.ServiceConfigCategory.create({ name: 'RegionServer', displayName: 'RegionServer'})
     ],
-    sites: ['hbase-site'],
+    sites: ['hbase-env','hbase-site'],
     configs: configProperties.filterProperty('serviceName', 'HBASE')
   },
   {
@@ -96,6 +96,7 @@ module.exports = [
     configCategories: [
       App.ServiceConfigCategory.create({ name: 'ZooKeeper Server', displayName: 'ZooKeeper Server'})
     ],
+    sites: ['zookeeper-env'],
     configs: configProperties.filterProperty('serviceName', 'ZOOKEEPER')
 
   },
@@ -106,7 +107,7 @@ module.exports = [
     configCategories: [
       App.ServiceConfigCategory.create({ name: 'Oozie Server', displayName:  'Oozie Server'})
     ],
-    sites: ['oozie-site'],
+    sites: ['oozie-env','oozie-site'],
     configs: configProperties.filterProperty('serviceName', 'OOZIE')
   },
   {
@@ -115,6 +116,7 @@ module.exports = [
     configCategories: [
       App.ServiceConfigCategory.create({ name: 'Nagios Server', displayName:  'Nagios Server'})
     ],
+    sites: ['nagios-env'],
     configs: configProperties.filterProperty('serviceName', 'NAGIOS')
   }
 

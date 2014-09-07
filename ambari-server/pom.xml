@@ -33,6 +33,7 @@
     <hdpLatestUrl>http://public-repo-1.hortonworks.com/HDP/hdp_urlinfo.json</hdpLatestUrl>
     <ambari_commons.install.dir>/usr/lib/ambari-server/lib/ambari_commons</ambari_commons.install.dir>
     <resource_management.install.dir>/usr/lib/ambari-server/lib/resource_management</resource_management.install.dir>
+    <jinja.install.dir>/usr/lib/ambari-server/lib/ambari_jinja2</jinja.install.dir>
     <ambari-web-dir>${basedir}/../ambari-web/public</ambari-web-dir>
     <ambari-admin-dir>${basedir}/../ambari-admin</ambari-admin-dir>
     <contrib-views-dir>${basedir}/../contrib/views</contrib-views-dir>
@@ -280,6 +281,19 @@
                   <location>
                     ${project.basedir}/../ambari-common/src/main/python/resource_management
                   </location>
+                </source>
+              </sources>
+            </mapping>
+            <mapping>
+              <directory>${jinja.install.dir}</directory>
+              <username>root</username>
+              <groupname>root</groupname>
+              <sources>
+                <source>
+                  <location>${project.basedir}/../ambari-common/src/main/python/ambari_jinja2/ambari_jinja2</location>
+                  <excludes>
+                    <exclude>${project.basedir}/../ambari-common/src/main/python/ambari_jinja2/ambari_jinja2/testsuite</exclude>
+                  </excludes>
                 </source>
               </sources>
             </mapping>
@@ -918,6 +932,17 @@
                 <type>perm</type>
                 <prefix>${resource_management.install.dir}</prefix>
                 <filemode>755</filemode>
+                <user>root</user>
+                <group>root</group>
+              </mapper>
+            </data>
+            <data>
+              <src>${project.basedir}/../ambari-common/src/main/python/ambari_jinja2/ambari_jinja2</src>
+              <excludes>${project.basedir}/../ambari-common/src/main/python/ambari_jinja2/ambari_jinja2/testsuite</excludes>
+              <type>directory</type>
+              <mapper>
+                <type>perm</type>
+                <prefix>${jinja.install.dir}</prefix>
                 <user>root</user>
                 <group>root</group>
               </mapper>

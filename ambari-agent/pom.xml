@@ -40,7 +40,7 @@
     <agent.install.dir>/usr/lib/python2.6/site-packages/ambari_agent</agent.install.dir>
     <ambari_commons.install.dir>/usr/lib/ambari-agent/lib/ambari_commons</ambari_commons.install.dir>
     <resource_management.install.dir>/usr/lib/ambari-agent/lib/resource_management</resource_management.install.dir>
-    <jinja.install.dir>/usr/lib/python2.6/site-packages/ambari_jinja2</jinja.install.dir>
+    <jinja.install.dir>/usr/lib/ambari-agent/lib/ambari_jinja2</jinja.install.dir>
     <lib.dir>/usr/lib/ambari-agent/lib</lib.dir>
     <python.ver>python &gt;= 2.6</python.ver>
     <deb.python.ver>python (&gt;= 2.6)</deb.python.ver>

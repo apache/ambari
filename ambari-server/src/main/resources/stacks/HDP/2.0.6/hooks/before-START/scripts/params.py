@@ -24,15 +24,14 @@ import os
 config = Script.get_config()
 
 #security params
-_authentication = config['configurations']['core-site']['hadoop.security.authentication']
-security_enabled = ( not is_empty(_authentication) and _authentication == 'kerberos')
+security_enabled = config['configurations']['cluster-env']['security_enabled']
 
 #users and groups
 mapred_user = config['configurations']['mapred-env']['mapred_user']
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 yarn_user = config['configurations']['yarn-env']['yarn_user']
 
-user_group = config['configurations']['hadoop-env']['user_group']
+user_group = config['configurations']['cluster-env']['user_group']
 
 #hosts
 hostname = config["hostname"]
@@ -50,6 +49,7 @@ namenode_host = default("/clusterHostInfo/namenode_host", [])
 zk_hosts = default("/clusterHostInfo/zookeeper_hosts", [])
 ganglia_server_hosts = default("/clusterHostInfo/ganglia_server_host", [])
 
+has_namenode = not len(namenode_host) == 0
 has_resourcemanager = not len(rm_host) == 0
 has_slaves = not len(slave_hosts) == 0
 has_nagios = not len(hagios_server_hosts) == 0
@@ -69,7 +69,9 @@ is_slave = hostname in slave_hosts
 if has_ganglia_server:
   ganglia_server_host = ganglia_server_hosts[0]
 #hadoop params
-hadoop_tmp_dir = format("/tmp/hadoop-{hdfs_user}")
+
+if has_namenode:
+  hadoop_tmp_dir = format("/tmp/hadoop-{hdfs_user}")
 hadoop_lib_home = "/usr/lib/hadoop/lib"
 hadoop_conf_dir = "/etc/hadoop/conf"
 hadoop_pid_dir_prefix = config['configurations']['hadoop-env']['hadoop_pid_dir_prefix']
@@ -94,7 +96,7 @@ ambari_db_rca_driver = config['hostLevelParams']['ambari_db_rca_driver'][0]
 ambari_db_rca_username = config['hostLevelParams']['ambari_db_rca_username'][0]
 ambari_db_rca_password = config['hostLevelParams']['ambari_db_rca_password'][0]
 
-if 'rca_enabled' in config['configurations']['hadoop-env']:
+if has_namenode and 'rca_enabled' in config['configurations']['hadoop-env']:
   rca_enabled =  config['configurations']['hadoop-env']['rca_enabled']
 else:
   rca_enabled = False

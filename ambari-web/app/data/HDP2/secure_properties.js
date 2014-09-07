@@ -15,6 +15,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+
+/*
+ * Description of fields:
+ * name: has to coincide with how the property will be saved to the file
+ * displayName: how it will be shown in the Admin Security Wizard
+ * serviceName: the tab in which it will appear in the Admin Security Wizard
+ * filename: the file it is saved to, and the section of the command-#.json file
+ * category: the accordion name in the tab shown in the Admin Security Wizard
+ * component: Ambari component name
+ */
+
 module.exports =
 {
   "configProperties": [
@@ -28,7 +40,7 @@ module.exports =
       "isVisible": false,
       "isOverridable": false,
       "serviceName": "GENERAL",
-      "filename": "hadoop-env.xml",
+      "filename": "cluster-env.xml",
       "category": "KERBEROS"
     },
     {
@@ -45,19 +57,6 @@ module.exports =
     },
     {
       "id": "puppet var",
-      "name": "keytab_path",
-      "displayName": "Path to keytab file",
-      "value": "",
-      "defaultValue": "/etc/security/keytabs",
-      "description": "Type of kerberos security for the cluster",
-      "displayType": "principal",
-      "isVisible": false,
-      "isOverridable": false,
-      "serviceName": "GENERAL",
-      "category": "AMBARI"
-    },
-    {
-      "id": "puppet var",
       "name": "kerberos_domain",
       "displayName": "Realm name",
       "value": "",
@@ -67,7 +66,7 @@ module.exports =
       "isVisible": true,
       "isOverridable": false,
       "serviceName": "GENERAL",
-      "filename": "hadoop-env.xml",
+      "filename": "cluster-env.xml",
       "category": "KERBEROS"
     },
     {
@@ -81,6 +80,7 @@ module.exports =
       "isVisible": true,
       "isOverridable": false,
       "serviceName": "GENERAL",
+      "filename": "cluster-env.xml",
       "category": "KERBEROS"
     },
     {
@@ -108,7 +108,7 @@ module.exports =
       "isVisible": true,
       "isOverridable": false,
       "serviceName": "GENERAL",
-      "filename": "hadoop-env.xml",
+      "filename": "cluster-env.xml",
       "category": "AMBARI"
     },
     {
@@ -470,6 +470,65 @@ module.exports =
       "serviceName": "YARN",
       "category": "ResourceManager"
     },
+    // YARN Application Timeline Server
+    {
+      "id": "puppet var",
+      "name": "apptimelineserver_principal_name",
+      "displayName": "App Timeline Server Principal name",
+      "value": "",
+      "defaultValue": "yarn/_HOST",
+      "description": "Principal name for App Timeline Server. _HOST will get automatically replaced with actual hostname at an instance of App Timeline Server",
+      "displayType": "principal",
+      "isVisible": true,
+      "isOverridable": true,
+      "serviceName": "YARN",
+      "category": "AppTimelineServer",
+      "component": "APP_TIMELINE_SERVER"
+    },
+    {
+      "id": "puppet var",
+      "name": "apptimelineserver_keytab",
+      "displayName": "Path to App Timeline Server keytab file",
+      "value": "",
+      "defaultValue": "/etc/security/keytabs/yarn.service.keytab",
+      "description": "Path to App Timeline Server keytab file",
+      "displayType": "directory",
+      "isVisible": true,
+      "isOverridable": true,
+      "serviceName": "YARN",
+      "category": "AppTimelineServer",
+      "component": "APP_TIMELINE_SERVER"
+    },
+    {
+      "id": "puppet var",
+      "name": "apptimelineserver_http_principal_name",
+      "displayName": "App Timeline Server HTTP Principal name",
+      "value": "",
+      "defaultValue": "HTTP/_HOST",
+      "description": "Principal name for App Timeline Server HTTP. _HOST will get automatically replaced with actual hostname at an instance of App Timeline Server",
+      "displayType": "principal",
+      "isVisible": true,
+      "isOverridable": true,
+      "serviceName": "YARN",
+      "category": "AppTimelineServer",
+      "component": "APP_TIMELINE_SERVER"
+    },
+    {
+      "id": "puppet var",
+      "name": "apptimelineserver_http_keytab",
+      "displayName": "Path to App Timeline Server HTTP keytab file",
+      "value": "",
+      "defaultValue": "/etc/security/keytabs/yarn.service.keytab",
+      "description": "Path to App Timeline Server HTTP keytab file",
+      "displayType": "directory",
+      "isVisible": true,
+      "isOverridable": true,
+      "serviceName": "YARN",
+      "category": "AppTimelineServer",
+      "component": "APP_TIMELINE_SERVER"
+    },
+
+    // YARN Resource Manager
     {
       "id": "puppet var",
       "name": "resourcemanager_principal_name",

@@ -17,11 +17,24 @@
  */
 var App = require('app');
 require('models/service_config');
+require('models/service');
+
 App.SecureConfigProperties = Ember.ArrayProxy.extend({
   content: require('data/HDP2/secure_properties').configProperties
 });
 
 var configProperties = App.SecureConfigProperties.create();
+
+// Dynamically create YARN properties
+var yarnConfigProperties = [
+  App.ServiceConfigCategory.create({ name: 'ResourceManager', displayName : 'ResourceManager'}),
+  App.ServiceConfigCategory.create({ name: 'NodeManager', displayName : 'NodeManager'})
+];
+var isATSInstalled = App.Service.find('YARN').get('hostComponents').someProperty('componentName', 'APP_TIMELINE_SERVER');
+var doesATSSupportKerberos = App.get("doesATSSupportKerberos");
+if (isATSInstalled && doesATSSupportKerberos) {
+  yarnConfigProperties.push(App.ServiceConfigCategory.create({ name: 'AppTimelineServer', displayName : 'ApplicationTimelineService'}));
+}
 
 module.exports = [
   {
@@ -31,7 +44,7 @@ module.exports = [
       App.ServiceConfigCategory.create({ name: 'KERBEROS', displayName: 'Kerberos'}),
       App.ServiceConfigCategory.create({ name: 'AMBARI', displayName: 'Ambari'})
     ],
-    sites: ['hadoop-env', 'oozie-env', 'nagios-env', 'zookeeper-env', 'storm-env', 'hbase-env'],
+    sites: ['cluster-env'],
     configs: configProperties.filterProperty('serviceName', 'GENERAL')
   },
   {
@@ -45,7 +58,7 @@ module.exports = [
       App.ServiceConfigCategory.create({ name: 'JournalNode', displayName: 'JournalNode',exclude:'non-HA'}),
       App.ServiceConfigCategory.create({ name: 'DataNode', displayName: 'DataNode'})
     ],
-    sites: ['core-site', 'hdfs-site'],
+    sites: ['hadoop-env','core-site', 'hdfs-site'],
     configs: configProperties.filterProperty('serviceName', 'HDFS')
   },
   {
@@ -62,10 +75,7 @@ module.exports = [
     serviceName: 'YARN',
     displayName: 'YARN',
     filename: 'yarn-site',
-    configCategories: [
-      App.ServiceConfigCategory.create({ name: 'ResourceManager', displayName : 'ResourceManager'}),
-      App.ServiceConfigCategory.create({ name: 'NodeManager', displayName : 'NodeManager'})
-      ],
+    configCategories: yarnConfigProperties, // these properties can be dynamic
     sites: ['yarn-site'],
     configs: configProperties.filterProperty('serviceName', 'YARN')
   },
@@ -97,7 +107,7 @@ module.exports = [
       App.ServiceConfigCategory.create({ name: 'HBase Master', displayName: 'HBase Master'}),
       App.ServiceConfigCategory.create({ name: 'RegionServer', displayName: 'RegionServer'})
     ],
-    sites: ['hbase-site'],
+    sites: ['hbase-env','hbase-site'],
     configs: configProperties.filterProperty('serviceName', 'HBASE')
   },
   {
@@ -106,6 +116,7 @@ module.exports = [
     configCategories: [
       App.ServiceConfigCategory.create({ name: 'ZooKeeper Server', displayName: 'ZooKeeper Server'})
     ],
+    sites: ['zookeeper-env'],
     configs: configProperties.filterProperty('serviceName', 'ZOOKEEPER')
 
   },
@@ -116,7 +127,7 @@ module.exports = [
     configCategories: [
       App.ServiceConfigCategory.create({ name: 'Oozie Server', displayName:  'Oozie Server'})
     ],
-    sites: ['oozie-site'],
+    sites: ['oozie-env','oozie-site'],
     configs: configProperties.filterProperty('serviceName', 'OOZIE')
   },
   {
@@ -125,6 +136,7 @@ module.exports = [
     configCategories: [
       App.ServiceConfigCategory.create({ name: 'Nagios Server', displayName:  'Nagios Server'})
     ],
+    sites: ['nagios-env'],
     configs: configProperties.filterProperty('serviceName', 'NAGIOS')
   },
   {
@@ -134,7 +146,7 @@ module.exports = [
     configCategories: [
       App.ServiceConfigCategory.create({ name: 'Storm Topology', displayName:  'Storm Topology'})
     ],
-    sites: ['storm-site'],
+    sites: ['storm-env','storm-site'],
     configs: configProperties.filterProperty('serviceName', 'STORM')
   },
   {
@@ -147,6 +159,6 @@ module.exports = [
     sites: ['falcon-startup.properties'],
     configs: configProperties.filterProperty('serviceName', 'FALCON')
   }
-
-
 ];
+
+

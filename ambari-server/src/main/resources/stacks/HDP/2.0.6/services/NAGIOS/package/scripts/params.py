@@ -88,21 +88,31 @@ nagios_principal_name = default("/configurations/nagios-env/nagios_principal_nam
 hadoop_ssl_enabled = False
 
 oozie_server_port = get_port_from_url(config['configurations']['oozie-site']['oozie.base.url'])
+namenode_host = default("/clusterHostInfo/namenode_host", None)
 
-# different to HDP1    
-if 'dfs.namenode.http-address' in config['configurations']['hdfs-site']:
-  namenode_port = get_port_from_url(config['configurations']['hdfs-site']['dfs.namenode.http-address'])
+# - test for HDFS or HCFS (glusterfs)
+if 'namenode_host' in config['clusterHostInfo']:
+  ishdfs_value = "HDFS"
 else:
-  namenode_port = "50070" 
+  ishdfs_value = None
 
-if 'dfs.namenode.secondary.http-address' in config['configurations']['hdfs-site']:
-  snamenode_port = get_port_from_url(config['configurations']['hdfs-site']['dfs.namenode.secondary.http-address'])
-else:
-  snamenode_port = "50071"
+has_namenode = not namenode_host == None
 
-if 'dfs.journalnode.http-address' in config['configurations']['hdfs-site']:
-  journalnode_port = get_port_from_url(config['configurations']['hdfs-site']['dfs.journalnode.http-address'])
-  datanode_port = get_port_from_url(config['configurations']['hdfs-site']['dfs.datanode.http.address'])
+# different to HDP1
+if has_namenode:
+  if 'dfs.namenode.http-address' in config['configurations']['hdfs-site']:
+    namenode_port = get_port_from_url(config['configurations']['hdfs-site']['dfs.namenode.http-address'])
+  else:
+    namenode_port = "50070"
+
+  if 'dfs.namenode.secondary.http-address' in config['configurations']['hdfs-site']:
+    snamenode_port = get_port_from_url(config['configurations']['hdfs-site']['dfs.namenode.secondary.http-address'])
+  else:
+    snamenode_port = "50071"
+
+  if 'dfs.journalnode.http-address' in config['configurations']['hdfs-site']:
+    journalnode_port = get_port_from_url(config['configurations']['hdfs-site']['dfs.journalnode.http-address'])
+    datanode_port = get_port_from_url(config['configurations']['hdfs-site']['dfs.datanode.http.address'])
 
 hbase_master_rpc_port = default('/configurations/hbase-site/hbase.master.port', "60000")
 rm_port = get_port_from_url(config['configurations']['yarn-site']['yarn.resourcemanager.webapp.address'])
@@ -124,15 +134,16 @@ ahs_port = get_port_from_url(config['configurations']['yarn-site']['yarn.timelin
 
 # use sensible defaults for checkpoint as they are required by Nagios and 
 # may not be part of hdfs-site.xml on an upgrade
-if 'dfs.namenode.checkpoint.period' in config['configurations']['hdfs-site']:
-  dfs_namenode_checkpoint_period = config['configurations']['hdfs-site']['dfs.namenode.checkpoint.period']
-else:
-  dfs_namenode_checkpoint_period = '21600'
+if has_namenode:
+  if 'dfs.namenode.checkpoint.period' in config['configurations']['hdfs-site']:
+    dfs_namenode_checkpoint_period = config['configurations']['hdfs-site']['dfs.namenode.checkpoint.period']
+  else:
+    dfs_namenode_checkpoint_period = '21600'
   
-if 'dfs.namenode.checkpoint.txns' in config['configurations']['hdfs-site']:
-  dfs_namenode_checkpoint_txns = config['configurations']['hdfs-site']['dfs.namenode.checkpoint.txns']
-else:
-  dfs_namenode_checkpoint_txns = '1000000'
+  if 'dfs.namenode.checkpoint.txns' in config['configurations']['hdfs-site']:
+    dfs_namenode_checkpoint_txns = config['configurations']['hdfs-site']['dfs.namenode.checkpoint.txns']
+  else:
+    dfs_namenode_checkpoint_txns = '1000000'
 
 # this is different for HDP1
 nn_metrics_property = "FSNamesystem"
@@ -141,9 +152,7 @@ clientPort = config['configurations']['zookeeper-env']['clientPort'] #ZK
 
 java64_home = config['hostLevelParams']['java_home']
 check_cpu_on = is_jdk_greater_6(java64_home)
-_authentication = config['configurations']['core-site']['hadoop.security.authentication']
-security_enabled = ( not is_empty(_authentication) and _authentication == 'kerberos')
-
+security_enabled = config['configurations']['cluster-env']['security_enabled']
 nagios_keytab_path = default("/configurations/nagios-env/nagios_keytab_path", "/etc/security/keytabs/nagios.service.keytab")
 kinit_path_local = functions.get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
 
@@ -204,16 +213,9 @@ nagios_user = config['configurations']['nagios-env']['nagios_user']
 nagios_group = config['configurations']['nagios-env']['nagios_group']
 nagios_web_login = config['configurations']['nagios-env']['nagios_web_login']
 nagios_web_password = config['configurations']['nagios-env']['nagios_web_password']
-user_group = config['configurations']['hadoop-env']['user_group']
+user_group = config['configurations']['cluster-env']['user_group']
 nagios_contact = config['configurations']['nagios-env']['nagios_contact']
 
-# - test for HDFS or HCFS (glusterfs)
-if 'namenode_host' in config['clusterHostInfo']:
-  namenode_host = default("/clusterHostInfo/namenode_host", None)
-  ishdfs_value = "HDFS"
-else:
-  namenode_host = None
-  ishdfs_value = None 
 
 _snamenode_host = default("/clusterHostInfo/snamenode_host", None)
 _jtnode_host = default("/clusterHostInfo/jtnode_host", None)

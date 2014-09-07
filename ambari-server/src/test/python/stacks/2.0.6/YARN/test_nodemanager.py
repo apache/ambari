@@ -29,89 +29,84 @@ class TestNodeManager(RMFTestCase):
 
   def test_configure_default(self):
     self.executeScript("2.0.6/services/YARN/package/scripts/nodemanager.py",
-                       classname = "Nodemanager",
-                       command = "configure",
-                       config_file="default.json"
-    )
+                       classname="Nodemanager",
+                       command="configure",
+                       config_file="default.json")
     self.assert_configure_default()
     self.assertNoMoreResources()
 
   def test_start_default(self):
     self.executeScript("2.0.6/services/YARN/package/scripts/nodemanager.py",
-                       classname = "Nodemanager",
-                       command = "start",
-                       config_file="default.json"
-    )
-
+                       classname="Nodemanager",
+                       command="start",
+                       config_file="default.json")
     self.assert_configure_default()
-    self.assertResourceCalled('Execute', 'export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop-yarn/sbin/yarn-daemon.sh --config /etc/hadoop/conf start nodemanager',
-                              not_if = 'ls /var/run/hadoop-yarn/yarn/yarn-yarn-nodemanager.pid >/dev/null 2>&1 && ps `cat /var/run/hadoop-yarn/yarn/yarn-yarn-nodemanager.pid` >/dev/null 2>&1',
-                              user = 'yarn'
-    )
-    self.assertResourceCalled('Execute', 'ls /var/run/hadoop-yarn/yarn/yarn-yarn-nodemanager.pid >/dev/null 2>&1 && ps `cat /var/run/hadoop-yarn/yarn/yarn-yarn-nodemanager.pid` >/dev/null 2>&1',
-                              user = 'yarn',
-                              not_if = 'ls /var/run/hadoop-yarn/yarn/yarn-yarn-nodemanager.pid >/dev/null 2>&1 && ps `cat /var/run/hadoop-yarn/yarn/yarn-yarn-nodemanager.pid` >/dev/null 2>&1',
-                              initial_wait=5
-    )
+
+    pid_check_cmd = 'ls /var/run/hadoop-yarn/yarn/yarn-yarn-nodemanager.pid >/dev/null 2>&1 && ps `cat /var/run/hadoop-yarn/yarn/yarn-yarn-nodemanager.pid` >/dev/null 2>&1'
+
+    self.assertResourceCalled('File', '/var/run/hadoop-yarn/yarn/yarn-yarn-nodemanager.pid',
+                              not_if=pid_check_cmd,
+                              action=['delete'])
+    self.assertResourceCalled('Execute', 'ulimit -c unlimited; export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop-yarn/sbin/yarn-daemon.sh --config /etc/hadoop/conf start nodemanager',
+                              not_if=pid_check_cmd,
+                              user='yarn')
+    self.assertResourceCalled('Execute', pid_check_cmd,
+                              user='yarn',
+                              not_if=pid_check_cmd,
+                              initial_wait=5)
     self.assertNoMoreResources()
 
   def test_stop_default(self):
     self.executeScript("2.0.6/services/YARN/package/scripts/nodemanager.py",
-                       classname = "Nodemanager",
-                       command = "stop",
-                       config_file="default.json"
-    )
-
+                       classname="Nodemanager",
+                       command="stop",
+                       config_file="default.json")
     self.assertResourceCalled('Execute', 'export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop-yarn/sbin/yarn-daemon.sh --config /etc/hadoop/conf stop nodemanager',
-                              user = 'yarn'
-    )
-    self.assertResourceCalled('Execute', 'rm -f /var/run/hadoop-yarn/yarn/yarn-yarn-nodemanager.pid',
-                              user = 'yarn'
-    )
+                              user='yarn')
+    self.assertResourceCalled('File', '/var/run/hadoop-yarn/yarn/yarn-yarn-nodemanager.pid',
+                              action=['delete'])
     self.assertNoMoreResources()
 
   def test_configure_secured(self):
 
     self.executeScript("2.0.6/services/YARN/package/scripts/nodemanager.py",
-                       classname = "Nodemanager",
-                       command = "configure",
-                       config_file="secured.json"
-    )
+                       classname="Nodemanager",
+                       command="configure",
+                       config_file="secured.json")
     self.assert_configure_secured()
     self.assertNoMoreResources()
 
   def test_start_secured(self):
     self.executeScript("2.0.6/services/YARN/package/scripts/nodemanager.py",
-                       classname = "Nodemanager",
-                       command = "start",
-                       config_file="secured.json"
-    )
+                       classname="Nodemanager",
+                       command="start",
+                       config_file="secured.json")
 
     self.assert_configure_secured()
-    self.assertResourceCalled('Execute', 'export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop-yarn/sbin/yarn-daemon.sh --config /etc/hadoop/conf start nodemanager',
-                              not_if = 'ls /var/run/hadoop-yarn/yarn/yarn-yarn-nodemanager.pid >/dev/null 2>&1 && ps `cat /var/run/hadoop-yarn/yarn/yarn-yarn-nodemanager.pid` >/dev/null 2>&1',
-                              user = 'yarn'
-    )
+
+    pid_check_cmd = 'ls /var/run/hadoop-yarn/yarn/yarn-yarn-nodemanager.pid >/dev/null 2>&1 && ps `cat /var/run/hadoop-yarn/yarn/yarn-yarn-nodemanager.pid` >/dev/null 2>&1'
+
+    self.assertResourceCalled('File', '/var/run/hadoop-yarn/yarn/yarn-yarn-nodemanager.pid',
+                              not_if=pid_check_cmd,
+                              action=['delete'])
+    self.assertResourceCalled('Execute', 'ulimit -c unlimited; export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop-yarn/sbin/yarn-daemon.sh --config /etc/hadoop/conf start nodemanager',
+                              not_if=pid_check_cmd,
+                              user='yarn')
     self.assertResourceCalled('Execute', 'ls /var/run/hadoop-yarn/yarn/yarn-yarn-nodemanager.pid >/dev/null 2>&1 && ps `cat /var/run/hadoop-yarn/yarn/yarn-yarn-nodemanager.pid` >/dev/null 2>&1',
-                              user = 'yarn',
-                              not_if = 'ls /var/run/hadoop-yarn/yarn/yarn-yarn-nodemanager.pid >/dev/null 2>&1 && ps `cat /var/run/hadoop-yarn/yarn/yarn-yarn-nodemanager.pid` >/dev/null 2>&1',
-                              initial_wait=5
-    )
+                              user='yarn',
+                              not_if=pid_check_cmd,
+                              initial_wait=5)
     self.assertNoMoreResources()
 
   def test_stop_secured(self):
     self.executeScript("2.0.6/services/YARN/package/scripts/nodemanager.py",
-                       classname = "Nodemanager",
-                       command = "stop",
-                       config_file="secured.json"
-    )
-
+                       classname="Nodemanager",
+                       command="stop",
+                       config_file="secured.json")
     self.assertResourceCalled('Execute', 'export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop-yarn/sbin/yarn-daemon.sh --config /etc/hadoop/conf stop nodemanager',
-                              user = 'yarn'
-    )
-    self.assertResourceCalled('Execute', 'rm -f /var/run/hadoop-yarn/yarn/yarn-yarn-nodemanager.pid',
-                              user = 'yarn'
-    )
+                              user='yarn')
+    self.assertResourceCalled('File', '/var/run/hadoop-yarn/yarn/yarn-yarn-nodemanager.pid',
+                              action=['delete'])
     self.assertNoMoreResources()
 
   def assert_configure_default(self):

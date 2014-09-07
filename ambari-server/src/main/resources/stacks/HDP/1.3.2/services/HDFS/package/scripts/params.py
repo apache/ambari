@@ -27,9 +27,8 @@ tmp_dir = Script.get_tmp_dir()
 ulimit_cmd = "ulimit -c unlimited; "
 
 #security params
-_authentication = config['configurations']['core-site']['hadoop.security.authentication']
-security_enabled = ( not is_empty(_authentication) and _authentication == 'kerberos')
-smoke_user_keytab = config['configurations']['hadoop-env']['smokeuser_keytab']
+security_enabled = config['configurations']['cluster-env']['security_enabled']
+smoke_user_keytab = config['configurations']['cluster-env']['smokeuser_keytab']
 hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
 
 #exclude file
@@ -87,11 +86,11 @@ oozie_user = config['configurations']['oozie-env']['oozie_user']
 webhcat_user = config['configurations']['hive-env']['hcat_user']
 hcat_user = config['configurations']['hive-env']['hcat_user']
 hive_user = config['configurations']['hive-env']['hive_user']
-smoke_user =  config['configurations']['hadoop-env']['smokeuser']
+smoke_user =  config['configurations']['cluster-env']['smokeuser']
 mapred_user = config['configurations']['mapred-env']['mapred_user']
 hdfs_user = status_params.hdfs_user
 
-user_group = config['configurations']['hadoop-env']['user_group']
+user_group = config['configurations']['cluster-env']['user_group']
 proxyuser_group =  config['configurations']['hadoop-env']['proxyuser_group']
 nagios_group = config['configurations']['nagios-env']['nagios_group']
 

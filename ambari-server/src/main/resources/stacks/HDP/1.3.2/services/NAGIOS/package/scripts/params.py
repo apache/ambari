@@ -79,8 +79,7 @@ clientPort = config['configurations']['zookeeper-env']['clientPort'] #ZK
 
 java64_home = config['hostLevelParams']['java_home']
 check_cpu_on = is_jdk_greater_6(java64_home)
-_authentication = config['configurations']['core-site']['hadoop.security.authentication']
-security_enabled = ( not is_empty(_authentication) and _authentication == 'kerberos')
+security_enabled = config['configurations']['cluster-env']['security_enabled']
 
 nagios_keytab_path = default("/configurations/nagios-env/nagios_keytab_path", "/etc/security/keytabs/nagios.service.keytab")
 kinit_path_local = functions.get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
@@ -109,7 +108,7 @@ nagios_user = config['configurations']['nagios-env']['nagios_user']
 nagios_group = config['configurations']['nagios-env']['nagios_group']
 nagios_web_login = config['configurations']['nagios-env']['nagios_web_login']
 nagios_web_password = config['configurations']['nagios-env']['nagios_web_password']
-user_group = config['configurations']['hadoop-env']['user_group']
+user_group = config['configurations']['cluster-env']['user_group']
 nagios_contact = config['configurations']['nagios-env']['nagios_contact']
 
 namenode_host = default("/clusterHostInfo/namenode_host", None)

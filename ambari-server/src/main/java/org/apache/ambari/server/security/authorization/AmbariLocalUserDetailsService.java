@@ -91,7 +91,7 @@ public class AmbariLocalUserDetailsService implements UserDetailsService {
 
     List<PrivilegeEntity> privilegeEntities = privilegeDAO.findAllByPrincipal(principalEntities);
 
-    return new User(user.getUserName(), user.getUserPassword(),
-        authorizationHelper.convertPrivilegesToAuthorities(privilegeEntities));
+    return new User(user.getUserName(), user.getUserPassword(), user.getActive(), 
+        true, true, true, authorizationHelper.convertPrivilegesToAuthorities(privilegeEntities));
   }
 }

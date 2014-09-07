@@ -22,6 +22,14 @@
     <service>
       <name>YARN</name>
       <version>2.6.0.2.2</version>
+
+      <components>
+        <component>
+          <name>APP_TIMELINE_SERVER</name>
+          <cardinality>1</cardinality>
+        </component>
+      </components>
+
     </service>
   </services>
   <service>

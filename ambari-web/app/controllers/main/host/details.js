@@ -954,11 +954,16 @@ App.MainHostDetailsController = Em.Controller.extend({
           {
             "order_id": 2,
             "type": "PUT",
-            "uri": App.get('apiPrefix') + "/clusters/" + App.get('clusterName') + "/host_components",
+            "uri": App.get('apiPrefix') + "/clusters/" + App.get('clusterName') + "/host_components/" + slaveType,
             "RequestBodyInfo": {
               "RequestInfo": {
                 context: Em.I18n.t('hosts.host.regionserver.decommission.batch2'),
-                query: 'HostRoles/component_name=' + slaveType + '&HostRoles/host_name.in(' + hostNames + ')&HostRoles/maintenance_state=OFF'
+                operation_level: {
+                  level: "HOST_COMPONENT",
+                  cluster_name: App.get('clusterName'),
+                  host_name: hostNames,
+                  service_name: serviceName || null
+                }
               },
               "Body": {
                 HostRoles: {
@@ -1075,11 +1080,16 @@ App.MainHostDetailsController = Em.Controller.extend({
           {
             "order_id": 2,
             "type": "PUT",
-            "uri": App.apiPrefix + "/clusters/" + App.get('clusterName') + "/host_components",
+            "uri": App.get('apiPrefix') + "/clusters/" + App.get('clusterName') + "/host_components/" + slaveType,
             "RequestBodyInfo": {
               "RequestInfo": {
                 context: startContext,
-                query: 'HostRoles/component_name=' + slaveType + '&HostRoles/host_name.in(' + hostNames + ')&HostRoles/maintenance_state=OFF'
+                operation_level: {
+                  level: "HOST_COMPONENT",
+                  cluster_name: App.get('clusterName'),
+                  host_name: hostNames,
+                  service_name: serviceName || null
+                }
               },
               "Body": {
                 HostRoles: {

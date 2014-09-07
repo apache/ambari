@@ -24,13 +24,12 @@ import os
 config = Script.get_config()
 
 #security params
-_authentication = config['configurations']['core-site']['hadoop.security.authentication']
-security_enabled = ( not is_empty(_authentication) and _authentication == 'kerberos')
+security_enabled = config['configurations']['cluster-env']['security_enabled']
 
 #users and groups
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 
-user_group = config['configurations']['hadoop-env']['user_group']
+user_group = config['configurations']['cluster-env']['user_group']
 
 #hosts
 hostname = config["hostname"]
@@ -48,6 +47,7 @@ namenode_host = default("/clusterHostInfo/namenode_host", [])
 zk_hosts = default("/clusterHostInfo/zookeeper_hosts", [])
 ganglia_server_hosts = default("/clusterHostInfo/ganglia_server_host", [])
 
+has_namenode = not len(namenode_host) == 0
 has_resourcemanager = not len(rm_host) == 0
 has_slaves = not len(slave_hosts) == 0
 has_nagios = not len(hagios_server_hosts) == 0
@@ -67,7 +67,8 @@ is_slave = hostname in slave_hosts
 if has_ganglia_server:
   ganglia_server_host = ganglia_server_hosts[0]
 #hadoop params
-hadoop_tmp_dir = format("/tmp/hadoop-{hdfs_user}")
+if has_namenode:
+  hadoop_tmp_dir = format("/tmp/hadoop-{hdfs_user}")
 hadoop_lib_home = "/usr/lib/hadoop/lib"
 hadoop_conf_dir = "/etc/hadoop/conf"
 hadoop_pid_dir_prefix = config['configurations']['hadoop-env']['hadoop_pid_dir_prefix']
@@ -93,7 +94,7 @@ ambari_db_rca_driver = config['hostLevelParams']['ambari_db_rca_driver']
 ambari_db_rca_username = config['hostLevelParams']['ambari_db_rca_username']
 ambari_db_rca_password = config['hostLevelParams']['ambari_db_rca_password']
 
-if 'rca_enabled' in config['configurations']['mapred-env']:
+if has_namenode and 'rca_enabled' in config['configurations']['mapred-env']:
   rca_enabled =  config['configurations']['mapred-env']['rca_enabled']
 else:
   rca_enabled = False
@@ -134,6 +135,11 @@ dfs_hosts = default('/configurations/hdfs-site/dfs.hosts', None)
 
 #log4j.properties
 rca_properties = format('''
+ambari.jobhistory.database={ambari_db_rca_url}
+ambari.jobhistory.driver={ambari_db_rca_driver}
+ambari.jobhistory.user={ambari_db_rca_username}
+ambari.jobhistory.password={ambari_db_rca_password}
+ambari.jobhistory.logger=${{hadoop.root.logger}}
 
 log4j.appender.JHA=org.apache.ambari.log4j.hadoop.mapreduce.jobhistory.JobHistoryAppender
 log4j.appender.JHA.database={ambari_db_rca_url}

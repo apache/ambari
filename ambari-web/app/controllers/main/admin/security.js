@@ -22,6 +22,7 @@ App.MainAdminSecurityController = Em.Controller.extend({
   isSubmitDisabled: false,
   securityEnabled: false,
   dataIsLoaded: false,
+  isRecommendedLoaded: true,
   serviceUsers: [],
   tag: {},
   getAddSecurityWizardStatus: function () {
@@ -273,39 +274,43 @@ App.MainAdminSecurityController = Em.Controller.extend({
 
   getSecurityStatusFromServerSuccessCallback: function (data) {
     var configs = data.Clusters.desired_configs;
+    var tags = [];
     this.set('desiredConfigs', configs);
-    if ('hadoop-env' in configs && 'hdfs-site' in configs) {
-      this.set('tag.hadoop-env', configs['hadoop-env'].tag);
-      this.set('tag.hdfs-site', configs['hdfs-site'].tag);
-      this.getServiceConfigsFromServer();
-    }
-    else {
+
+    if  ('cluster-env' in configs) {
+      this.set('tag.cluster-env', configs['cluster-env'].tag);
+      tags.pushObject({
+        siteName: "cluster-env",
+        tagName: this.get('tag.cluster-env')
+      });
+    } else {
       this.showSecurityErrorPopup();
     }
-  },
 
-  getServiceConfigsFromServer: function () {
-    var tags = [
-      {
-        siteName: "hadoop-env",
-        tagName: this.get('tag.hadoop-env')
-      },
-      {
+    if ('hdfs-site' in configs) {
+      this.set('tag.hdfs-site', configs['hdfs-site'].tag);
+      tags.pushObject({
         siteName: "hdfs-site",
         tagName: this.get('tag.hdfs-site')
-      }
-    ];
+      });
+    }
+    this.getServiceConfigsFromServer(tags);
+  },
+
+  getServiceConfigsFromServer: function (tags) {
     var self = this;
 
     App.router.get('configurationController').getConfigsByTags(tags).done(function(data) {
-      var configs = data.findProperty('tag', self.get('tag.hadoop-env')).properties;
+      var configs = data.findProperty('tag', self.get('tag.cluster-env')).properties;
       if (configs && (configs['security_enabled'] === 'true' || configs['security_enabled'] === true)) {
         self.set('securityEnabled', true);
       }
       else {
         self.set('securityEnabled', false);
-        var hdfsConfigs = data.findProperty('tag', self.get('tag.hdfs-site')).properties;
-        self.setNnHaStatus(hdfsConfigs);
+        if (!!self.get('tag.hdfs-site')) {
+          var hdfsConfigs = data.findProperty('tag', self.get('tag.hdfs-site')).properties;
+          self.setNnHaStatus(hdfsConfigs);
+        }
       }
       self.loadUsers(configs);
       self.set('dataIsLoaded', true);

@@ -833,7 +833,8 @@ App.WizardStep3Controller = Em.Controller.extend({
       "parameters": {
         "check_execute_list": "host_resolution_check",
         "jdk_location" : jdk_location,
-        "threshold": "20"
+        "threshold": "20",
+        "hosts": hosts
       }
     };
     var resource_filters = {

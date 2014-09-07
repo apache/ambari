@@ -108,8 +108,8 @@ class TestHDP206StackAdvisor(TestCase):
       {
         "name": "GANGLIA",
         "components": [
-          {"name": "GANGLIA_MONITOR", "cardinality": "ALL", "category": "SLAVE", "is_master": False, "hostnames": ["host1"]},
-          {"name": "GANGLIA_SERVER", "cardinality": "1-2", "category": "MASTER", "is_master": True, "hostnames": ["host2", "host1"]}
+          {"name": "GANGLIA_MONITOR", "display_name": "Ganglia Monitor", "cardinality": "ALL", "category": "SLAVE", "is_master": False, "hostnames": ["host1"]},
+          {"name": "GANGLIA_SERVER", "display_name": "Ganglia Server", "cardinality": "1-2", "category": "MASTER", "is_master": True, "hostnames": ["host2", "host1"]}
         ]
       }
     ]
@@ -118,7 +118,45 @@ class TestHDP206StackAdvisor(TestCase):
     result = self.stackAdvisor.validateComponentLayout(services, hosts)
 
     expectedItems = [
-      {"message": "Cardinality violation, cardinality=ALL, hosts count=1", "level": "ERROR"}
+      {"message": "Ganglia Monitor component should be installed on all hosts in cluster.", "level": "ERROR"}
+    ]
+    self.assertValidationResult(expectedItems, result)
+
+  def test_validationCardinalityExactAmount(self):
+    servicesInfo = [
+      {
+        "name": "GANGLIA",
+        "components": [
+          {"name": "GANGLIA_MONITOR", "display_name": "Ganglia Monitor", "cardinality": "2", "category": "SLAVE", "is_master": False, "hostnames": ["host1"]},
+          {"name": "GANGLIA_SERVER", "display_name": "Ganglia Server", "cardinality": "2", "category": "MASTER", "is_master": True, "hostnames": ["host2", "host1"]}
+        ]
+      }
+    ]
+    services = self.prepareServices(servicesInfo)
+    hosts = self.prepareHosts(["host1", "host2"])
+    result = self.stackAdvisor.validateComponentLayout(services, hosts)
+
+    expectedItems = [
+      {"message": "Exactly 2 Ganglia Monitor components should be installed in cluster.", "level": "ERROR"}
+    ]
+    self.assertValidationResult(expectedItems, result)
+
+  def test_validationCardinalityAtLeast(self):
+    servicesInfo = [
+      {
+        "name": "GANGLIA",
+        "components": [
+          {"name": "GANGLIA_MONITOR", "display_name": "Ganglia Monitor", "cardinality": "1+", "category": "SLAVE", "is_master": False, "hostnames": ["host1"]},
+          {"name": "GANGLIA_SERVER", "display_name": "Ganglia Server", "cardinality": "3+", "category": "MASTER", "is_master": True, "hostnames": ["host2", "host1"]}
+        ]
+      }
+    ]
+    services = self.prepareServices(servicesInfo)
+    hosts = self.prepareHosts(["host1", "host2"])
+    result = self.stackAdvisor.validateComponentLayout(services, hosts)
+
+    expectedItems = [
+      {"message": "At least 3 Ganglia Server components should be installed in cluster.", "level": "ERROR"}
     ]
     self.assertValidationResult(expectedItems, result)
 
@@ -166,7 +204,7 @@ class TestHDP206StackAdvisor(TestCase):
       {
         "name": "GANGLIA",
         "components": [
-          {"name": "GANGLIA_SERVER", "cardinality": "0-1", "category": "MASTER", "is_master": True, "hostnames": ["host1", "host2"]}
+          {"name": "GANGLIA_SERVER", "display_name": "Ganglia Server", "cardinality": "0-1", "category": "MASTER", "is_master": True, "hostnames": ["host1", "host2"]}
         ]
       }
     ]
@@ -175,7 +213,7 @@ class TestHDP206StackAdvisor(TestCase):
     result = self.stackAdvisor.validateComponentLayout(services, hosts)
 
     expectedItems = [
-      {"message": "Cardinality violation, cardinality=0-1, hosts count=2", "level": "ERROR"}
+      {"message": "Between 0 and 1 Ganglia Server components should be installed in cluster.", "level": "ERROR"}
     ]
     self.assertValidationResult(expectedItems, result)
 
@@ -223,8 +261,12 @@ class TestHDP206StackAdvisor(TestCase):
         }
         try:
           nextComponent["StackServiceComponents"]["hostnames"] = component["hostnames"]
-        except KeyError, err:
+        except KeyError:
           nextComponent["StackServiceComponents"]["hostnames"] = []
+        try:
+          nextComponent["StackServiceComponents"]["display_name"] = component["display_name"]
+        except KeyError:
+          nextComponent["StackServiceComponents"]["display_name"] = component["name"]
         nextService["components"].append(nextComponent)
       services["services"].append(nextService)
 

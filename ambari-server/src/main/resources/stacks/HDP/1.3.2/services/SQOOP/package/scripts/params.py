@@ -20,10 +20,9 @@ from resource_management import *
 
 config = Script.get_config()
 
-_authentication = config['configurations']['core-site']['hadoop.security.authentication']
-security_enabled = ( not is_empty(_authentication) and _authentication == 'kerberos')
-smokeuser = config['configurations']['hadoop-env']['smokeuser']
-user_group = config['configurations']['hadoop-env']['user_group']
+security_enabled = config['configurations']['cluster-env']['security_enabled']
+smokeuser = config['configurations']['cluster-env']['smokeuser']
+user_group = config['configurations']['cluster-env']['user_group']
 sqoop_env_sh_template = config['configurations']['sqoop-env']['content']
 
 sqoop_conf_dir = "/usr/lib/sqoop/conf"
@@ -33,6 +32,6 @@ zoo_conf_dir = "/etc/zookeeper"
 sqoop_lib = "/usr/lib/sqoop/lib"
 sqoop_user = config['configurations']['sqoop-env']['sqoop_user']
 
-keytab_path = config['configurations']['hadoop-env']['keytab_path']
-smoke_user_keytab = config['configurations']['hadoop-env']['smokeuser_keytab']
+keytab_path = config['configurations']['cluster-env']['keytab_path']
+smoke_user_keytab = config['configurations']['cluster-env']['smokeuser_keytab']
 kinit_path_local = functions.get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])

@@ -281,6 +281,7 @@ Em.I18n.translations = {
   'login.username':'Username',
   'login.loginButton':'Sign in',
   'login.error.bad.credentials':'Unable to sign in. Invalid username/password combination.',
+  'login.error.disabled':'Unable to sign in. Invalid username/password combination.',
   'login.error.bad.connection':'Unable to connect to Ambari Server. Confirm Ambari Server is running and you can reach Ambari Server from this machine.',
 
   'graphs.noData.title': 'No Data',
@@ -371,12 +372,12 @@ Em.I18n.translations = {
   'installer.controls.addSlaveComponentGroupButton.content':'If you need different settings on certain {0}s, you can add a {1} group.<br>All {2}s within the same group will have the same set of settings.  You can create multiple groups.',
   'installer.controls.slaveComponentChangeGroupName.error':'group with this name already exist',
 
-  'installer.step0.header':'Welcome',
-  'installer.step0.body.header':'Welcome to the Cluster Install Wizard',
+  'installer.step0.header':'Get Started',
+  'installer.step0.body.header':'Get Started',
   'installer.step0.body':'This wizard will walk you through the cluster installation process.  Let\'s start by naming your new cluster.',
   'installer.step0.clusterName':'Name your cluster',
   'installer.step0.clusterName.tooltip.title':'Cluster Name',
-  'installer.step0.clusterName.tooltip.content':'Enter a unique cluster name. Cluster name cannot be changed later.',
+  'installer.step0.clusterName.tooltip.content':'Enter a unique cluster name.',
   'installer.step0.clusterName.error.required':'Cluster Name is required',
   'installer.step0.clusterName.error.whitespaces':'Cluster Name cannot contain white spaces',
   'installer.step0.clusterName.error.specialChar':'Cluster Name cannot contain special characters',
@@ -1056,7 +1057,7 @@ Em.I18n.translations = {
   'admin.security.step1.body.instruction2': 'Install and configure the Kerberos client on every host in the cluster',
   'admin.security.step1.body.instruction3': 'Create Kerberos principals for Hadoop services and hosts',
   'admin.security.step1.body.instruction4': 'Generate keytabs for each principal and place on the appropriate hosts',
-  'admin.security.step1.body.instruction5': '<b>Application Timeline Server</b> component of YARN service will be <span class="text-error"><b>deleted</b></span> as part of enabling security',
+  'admin.security.step1.body.instruction5': '<b>Application Timeline Server</b> component of YARN service will be <span class="text-error"><b>deleted</b></span> as part of enabling security in this HDP stack version',
   'admin.security.step2.body.header': 'Configure Kerberos security properties',
   'admin.security.step3.notice': 'You need to create Kerberos principals and keytabs before proceeding.<br />'+
   'Download the CSV file and use it to create a script to generate the principals and keytabs on specified hosts. ' +
@@ -1087,6 +1088,8 @@ Em.I18n.translations = {
   'admin.addSecurity.webhcat.user.httpUser': 'WebHCat SPNEGO User',
   'admin.addSecurity.oozie.user.httpUser': 'Oozie SPNEGO User',
   'admin.addSecurity.falcon.user.httpUser': 'Falcon SPNEGO User',
+  'admin.addSecurity.user.yarn.atsUser': 'YARN ATS User',
+  'admin.addSecurity.user.yarn.atsHTTPUser': 'YARN ATS HTTP User',
   'admin.addSecurity.enable.onClose': 'You are in the process of enabling security on your cluster. ' +
     'Are you sure you want to quit? If you quit, ' +
     'you may have to re-run the security wizard from the beginning to enable security.',

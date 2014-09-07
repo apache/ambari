@@ -28,21 +28,21 @@ describe('App.MainAdminSecurityAddStep1Controller', function () {
     content: {}
   });
 
-  describe('#isATSInstalled()', function() {
+  describe('#shouldRemoveATS()', function() {
     it('content.services is empty', function() {
       controller.set('content.services', []);
-      expect(controller.isATSInstalled()).to.be.false;
+      expect(controller.shouldRemoveATS()).to.be.false;
     });
     it('content.services does not contain YARN', function() {
       controller.set('content.services', [{serviceName: 'HDFS'}]);
-      expect(controller.isATSInstalled()).to.be.false;
+      expect(controller.shouldRemoveATS()).to.be.false;
     });
     it('YARN does not have ATS', function() {
       sinon.stub(App.Service, 'find', function(){
         return Em.Object.create({hostComponents: []})
       });
       controller.set('content.services', [{serviceName: 'YARN'}]);
-      expect(controller.isATSInstalled()).to.be.false;
+      expect(controller.shouldRemoveATS()).to.be.false;
       App.Service.find.restore();
     });
     it('YARN has ATS', function() {
@@ -52,7 +52,7 @@ describe('App.MainAdminSecurityAddStep1Controller', function () {
         }]})
       });
       controller.set('content.services', [{serviceName: 'YARN'}]);
-      expect(controller.isATSInstalled()).to.be.true;
+      expect(controller.shouldRemoveATS()).to.be.true;
       App.Service.find.restore();
     });
   });

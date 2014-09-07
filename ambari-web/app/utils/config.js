@@ -89,7 +89,7 @@ App.config = Em.Object.create({
    * @param {String} fileName
    * @method getOriginalFileName
    **/
-  getOriginalFileName: function(fileName) {
+  getOriginalFileName: function (fileName) {
     if (/\.xml$/.test(fileName)) return fileName;
     return this.get('filenameExceptions').contains(fileName) ? fileName : fileName + '.xml';
   },
@@ -105,8 +105,8 @@ App.config = Em.Object.create({
    * @param {String} fileName
    * @method getConfigTagFromFileName
    **/
-  getConfigTagFromFileName: function(fileName) {
-    return fileName.endsWith('.xml') ? fileName.slice(0,-4) : fileName;
+  getConfigTagFromFileName: function (fileName) {
+    return fileName.endsWith('.xml') ? fileName.slice(0, -4) : fileName;
   },
 
   setPreDefinedServiceConfigs: function () {
@@ -166,7 +166,7 @@ App.config = Em.Object.create({
     services.forEach(function (service) {
       if (service.get('configTypes')) {
         Object.keys(service.get('configTypes')).forEach(function (type) {
-          var contentProperty = configs.filterProperty('filename',type + '.xml').someProperty('name','content');
+          var contentProperty = configs.filterProperty('filename', type + '.xml').someProperty('name', 'content');
           if (contentProperty && (type.endsWith('-log4j') || type.endsWith('-env'))) {
             var property = {
               "id": "site property",
@@ -235,7 +235,7 @@ App.config = Em.Object.create({
   loadedConfigurationsCache: {},
 
   identifyCategory: function (config) {
-    if(config.filename.indexOf("env")!=-1) return;
+    if (config.filename.indexOf("env") != -1) return;
     var category = null;
     var serviceConfigMetaData = this.get('preDefinedServiceConfigs').findProperty('serviceName', config.serviceName);
     if (serviceConfigMetaData) {
@@ -334,13 +334,13 @@ App.config = Em.Object.create({
       var properties = siteConfig.properties || {};
       for (var index in properties) {
         var configsPropertyDef = preDefinedConfigs.filterProperty('name', index).findProperty('filename', filename);
-          if (!configsPropertyDef) {
-            preDefinedConfigs.filterProperty('name', index).forEach(function (_preDefinedConfig) {
-              var isServiceInstalled = selectedServiceNames.contains(_preDefinedConfig.serviceName);
-              if (isServiceInstalled || _preDefinedConfig.serviceName === 'MISC') {
-                configsPropertyDef = _preDefinedConfig;
-              }
-            }, this);
+        if (!configsPropertyDef) {
+          preDefinedConfigs.filterProperty('name', index).forEach(function (_preDefinedConfig) {
+            var isServiceInstalled = selectedServiceNames.contains(_preDefinedConfig.serviceName);
+            if (isServiceInstalled || _preDefinedConfig.serviceName === 'MISC') {
+              configsPropertyDef = _preDefinedConfig;
+            }
+          }, this);
         }
 
         var serviceConfigObj = App.ServiceConfig.create({
@@ -380,7 +380,7 @@ App.config = Em.Object.create({
 
           if (serviceConfigObj.get('displayType') == 'directories'
             && (serviceConfigObj.get('category') == 'DataNode'
-            || serviceConfigObj.get('category') == 'NameNode')) {
+              || serviceConfigObj.get('category') == 'NameNode')) {
             var dirs = serviceConfigObj.get('value').split(',').sort();
             serviceConfigObj.set('value', dirs.join(','));
             serviceConfigObj.set('defaultValue', dirs.join(','));
@@ -633,9 +633,11 @@ App.config = Em.Object.create({
 
   miscConfigVisibleProperty: function (configs, serviceToShow) {
     configs.forEach(function (item) {
-      item.set("isVisible", item.belongsToService.some(function (cur) {
-        return serviceToShow.contains(cur)
-      }));
+      if (item.belongsToService && item.belongsToService.length) {
+        item.set("isVisible", item.belongsToService.some(function (cur) {
+          return serviceToShow.contains(cur)
+        }));
+      }
     });
     return configs;
   },
@@ -835,6 +837,53 @@ App.config = Em.Object.create({
   },
 
   /**
+   * Fetch cluster configs from server
+   *
+   * @param callback
+   * @return {object|null}
+   */
+  loadClusterConfig: function (callback) {
+    return App.ajax.send({
+      name: 'config.cluster',
+      sender: this,
+      data: {
+        stackVersionUrl: App.get('stackVersionURL'),
+        callback: callback
+      },
+      success: 'loadClusterConfigSuccess',
+      error: 'loadClusterConfigError'
+    });
+  },
+
+  loadClusterConfigSuccess: function (data, opt, params) {
+    console.log("TRACE: In success function for the loadClusterConfigSuccess; url is ", opt.url);
+    var properties = [];
+    if (data.items.length) {
+      data.items.forEach(function (item) {
+        item = item.StackLevelConfigurations;
+        item.isVisible = true;
+        var serviceName = 'Cluster';
+        properties.push({
+          serviceName: serviceName,
+          name: item.property_name,
+          value: item.property_value,
+          description: item.property_description,
+          isVisible: item.isVisible,
+          isFinal: item.final === "true",
+          defaultIsFinal: item.final === "true",
+          filename: item.filename || item.type
+        });
+      }, this);
+    }
+    params.callback(properties);
+  },
+
+  loadClusterConfigError: function (request, ajaxOptions, error, opt) {
+    console.log('ERROR: Failed to load cluster-env configs');
+  },
+
+
+  /**
    * Generate serviceProperties save it to localDB
    * called form stepController step6WizardController
    *
@@ -992,7 +1041,7 @@ App.config = Em.Object.create({
    * @param {Em.Object} group - config group to set
    * @return {Object}
    **/
-  createCustomGroupConfig: function(propertyName, config, group) {
+  createCustomGroupConfig: function (propertyName, config, group) {
     var propertyValue = config.properties[propertyName];
     var propertyObject = {
       name: propertyName,

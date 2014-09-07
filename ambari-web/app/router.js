@@ -29,6 +29,10 @@ App.Router = Em.Router.extend({
   enableLogging: true,
   isFwdNavigation: true,
   backBtnForHigherStep: false,
+  /**
+   * user prefered path to route
+   */
+  preferedPath: null,
 
   setNavigationFlow: function (step) {
     var matches = step.match(/\d+$/);
@@ -238,9 +242,13 @@ App.Router = Em.Router.extend({
     console.log("login error: " + error);
     this.setAuthenticated(false);
     if (request.status == 403) {
-      controller.postLogin(true, false);
+      var responseMessage = request.responseText;
+      try{
+        responseMessage = JSON.parse(request.responseText).message;
+      }catch(e){}
+      controller.postLogin(true, false, responseMessage);
     } else {
-      controller.postLogin(false, false);
+      controller.postLogin(false, false, null);
     }
 
   },
@@ -282,10 +290,15 @@ App.Router = Em.Router.extend({
         }
       }
       if (transitionToApp) {
-        router.getSection(function (route) {
-          router.transitionTo(route);
-          loginController.postLogin(true, true);
-        });
+        if (!Em.isNone(router.get('preferedPath'))) {
+          window.location = router.get('preferedPath');
+          router.set('preferedPath', null);
+        } else {
+          router.getSection(function (route) {
+            router.transitionTo(route);
+            loginController.postLogin(true, true);
+          });
+        }
       } else {
         router.transitionTo('main.views.index');
         loginController.postLogin(true,true);

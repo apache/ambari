@@ -17,7 +17,11 @@
  */
 package org.apache.ambari.server.security.authorization;
 
-import com.google.inject.Inject;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
+
 import org.apache.ambari.server.orm.dao.MemberDAO;
 import org.apache.ambari.server.orm.dao.PrivilegeDAO;
 import org.apache.ambari.server.orm.dao.UserDAO;
@@ -28,13 +32,11 @@ import org.apache.ambari.server.orm.entities.UserEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ldap.core.DirContextOperations;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.ldap.userdetails.LdapAuthoritiesPopulator;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
+import com.google.inject.Inject;
 
 /**
  * Provides authorities population for LDAP user from LDAP catalog
@@ -63,12 +65,14 @@ public class AmbariLdapAuthoritiesPopulator implements LdapAuthoritiesPopulator 
     UserEntity user;
 
     user = userDAO.findLdapUserByName(username);
-
+    
     if (user == null) {
       log.error("Can't get authorities for user " + username + ", he is not present in local DB");
       return Collections.emptyList();
     }
-
+    if(!user.getActive()){
+      throw new DisabledException("User is disabled");
+    }
     // get all of the privileges for the user
     List<PrincipalEntity> principalEntities = new LinkedList<PrincipalEntity>();
 

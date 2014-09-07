@@ -57,8 +57,11 @@ App.MainAdminSecurityAddStep4Controller = App.MainAdminSecurityProgressControlle
 
   loadCommands: function () {
     this._super();
-    // no need to remove ATS component if YARN and ATS are not installed
-    if (this.get('secureServices').findProperty('serviceName', 'YARN') && App.Service.find('YARN').get('hostComponents').someProperty('componentName', 'APP_TIMELINE_SERVER')) {
+
+    // Determine if ATS Component needs to be removed
+    var isATSInstalled = this.get('content.isATSInstalled');
+    var doesATSSupportKerberos = App.get("doesATSSupportKerberos");
+    if (isATSInstalled && !doesATSSupportKerberos) {
       this.get('commands').splice(2, 0, App.Poll.create({name: 'DELETE_ATS', label: Em.I18n.translations['admin.addSecurity.apply.delete.ats'], isPolling: false}));
     }
   },
@@ -170,7 +173,7 @@ App.MainAdminSecurityAddStep4Controller = App.MainAdminSecurityProgressControlle
    */
   onDeleteComplete: function () {
     var deleteAtsCommand = this.get('commands').findProperty('name', 'DELETE_ATS');
-    console.warn('APP_TIMELINE_SERVER doesn\'t support security mode. It has been removed from YARN service ');
+    console.warn('APP_TIMELINE_SERVER doesn\'t support security mode in this HDP stack. It has been removed from YARN service ');
     deleteAtsCommand.set('isError', false);
     deleteAtsCommand.set('isSuccess', true);
   },

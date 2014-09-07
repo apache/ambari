@@ -36,17 +36,16 @@ tasktracker_pid_file = status_params.tasktracker_pid_file
 
 hadoop_libexec_dir = '/usr/lib/hadoop/libexec'
 hadoop_bin = "/usr/lib/hadoop/bin"
-user_group = config['configurations']['hadoop-env']['user_group']
+user_group = config['configurations']['cluster-env']['user_group']
 hdfs_log_dir_prefix = config['configurations']['hadoop-env']['hdfs_log_dir_prefix']
 mapred_log_dir_prefix = hdfs_log_dir_prefix
 mapred_local_dir = config['configurations']['mapred-site']['mapred.local.dir']
 update_exclude_file_only = config['commandParams']['update_exclude_file_only']
 
 hadoop_jar_location = "/usr/lib/hadoop/"
-smokeuser = config['configurations']['hadoop-env']['smokeuser']
-_authentication = config['configurations']['core-site']['hadoop.security.authentication']
-security_enabled = ( not is_empty(_authentication) and _authentication == 'kerberos')
-smoke_user_keytab = config['configurations']['hadoop-env']['smokeuser_keytab']
+smokeuser = config['configurations']['cluster-env']['smokeuser']
+security_enabled = config['configurations']['cluster-env']['security_enabled']
+smoke_user_keytab = config['configurations']['cluster-env']['smokeuser_keytab']
 kinit_path_local = functions.get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
 
 #exclude file

@@ -46,7 +46,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
     'STORM_UI_SERVER': 'storm_user',
     'FALCON_SERVER': 'falcon_user'
   },
-
+  // The componentName, principal, and keytab have to coincide with the values in secure_properties.js
   componentToConfigMap: [
     {
       componentName: 'NAMENODE',
@@ -104,6 +104,20 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
       keytab: 'nodemanager_http_keytab',
       displayName: Em.I18n.t('admin.addSecurity.nm.user.httpUser'),
       isHadoop2Stack: true
+    },
+    {
+      componentName: 'APP_TIMELINE_SERVER',
+      principal: 'apptimelineserver_principal_name',
+      keytab: 'apptimelineserver_keytab',
+      displayName: Em.I18n.t('admin.addSecurity.user.yarn.atsUser'),
+      isHadoop2Stack: true
+    },
+    {
+      componentName: 'APP_TIMELINE_SERVER',
+      principal: 'apptimelineserver_http_principal_name',
+      keytab: 'apptimelineserver_http_keytab',
+      displayName: Em.I18n.t('admin.addSecurity.user.yarn.atsHTTPUser'),
+      isHadoop2Stack: true
     }
   ],
 
@@ -116,7 +130,8 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
     {
       userConfig: 'hdfs_user',
       keytab: 'hdfs_user_keytab',
-      displayName: Em.I18n.t('admin.addSecurity.user.hdfsUser')
+      displayName: Em.I18n.t('admin.addSecurity.user.hdfsUser'),
+      checkService: 'HDFS'
     },
     {
       userConfig: 'hbase_user',
@@ -250,11 +265,20 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
    */
   setComponentsConfig: function (result, host, hadoopGroupId) {
     var hostComponents = host.get('hostComponents');
+
+    var isATSInstalled = this.get('content.isATSInstalled');
+    var doesATSSupportKerberos = App.get("doesATSSupportKerberos");
+
     this.get('componentToConfigMap').forEach(function (component) {
       //add specific components that supported only in Hadoop2 stack
       if (component.isHadoop2Stack && !App.get('isHadoop2Stack')) return;
 
       if (hostComponents.someProperty('componentName', component.componentName)) {
+
+        if (component.componentName === "APP_TIMELINE_SERVER" && (!isATSInstalled || !doesATSSupportKerberos)) {
+          return;
+        }
+
         var configs = this.get('content.serviceConfigProperties');
         var serviceName = App.StackServiceComponent.find(component.componentName).get('serviceName');
         var serviceConfigs = configs.filterProperty('serviceName', serviceName);
@@ -321,12 +345,19 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
     var componentToOwnerMap = this.buildComponentToOwnerMap(securityUsers);
     var hostName = host.get('hostName');
 
+    var isATSInstalled = this.get('content.isATSInstalled');
+    var doesATSSupportKerberos = App.get("doesATSSupportKerberos");
+
     host.get('hostComponents').forEach(function (hostComponent) {
       if (componentsToDisplay.contains(hostComponent.get('componentName'))) {
         var serviceConfigs = configs.filterProperty('serviceName', hostComponent.get('service.serviceName'));
         var secureProperties = this.getSecureProperties(serviceConfigs, hostComponent.get('componentName'), hostName);
         var displayName = this.changeDisplayName(hostComponent.get('displayName'));
         var key = hostName + "--" + secureProperties.principal;
+
+        if (hostComponent.get('componentName') === "APP_TIMELINE_SERVER" && (!isATSInstalled || !doesATSSupportKerberos)) {
+          return;
+        }
 
         if (Em.isNone(addedPrincipalsHost[key])) {
           var owner = componentToOwnerMap[hostComponent.get('componentName')] || '';

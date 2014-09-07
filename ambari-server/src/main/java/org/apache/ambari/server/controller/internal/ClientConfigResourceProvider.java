@@ -201,6 +201,11 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
         }
       }
 
+      // Hack - Remove passwords from configs
+      if (configurations.get(Configuration.HIVE_CONFIG_TAG)!=null) {
+        configurations.get(Configuration.HIVE_CONFIG_TAG).remove(Configuration.HIVE_METASTORE_PASSWORD_PROPERTY);
+      }
+
       Map<String, Set<String>> clusterHostInfo = null;
       ServiceInfo serviceInfo = null;
       String osFamily = null;

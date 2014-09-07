@@ -448,7 +448,7 @@ App.ServiceConfigsByCategoryView = Ember.View.extend(App.UserPref, {
     } else {
       this.$('.accordion-body').show();
     }
-    $('body').tooltip({
+    $('#serviceConfig').tooltip({
       selector: '[data-toggle=tooltip]',
       placement: 'top'
     });
@@ -733,6 +733,7 @@ App.ServiceConfigsByCategoryView = Ember.View.extend(App.UserPref, {
       serviceConfigProperty.set('isFinal', defaultIsFinal);
     }
     this.miscConfigChange(serviceConfigProperty);
+    Em.$('body>.tooltip').remove(); //some tooltips get frozen when their owner's DOM element is removed
   },
 
   createOverrideProperty: function (event) {

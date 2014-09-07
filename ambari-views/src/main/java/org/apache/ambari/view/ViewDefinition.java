@@ -57,4 +57,31 @@ public interface ViewDefinition {
    * @return the mask class name.
    */
   public String getMask();
+
+  /**
+   * Get the view status.
+   *
+   * @return the view status
+   */
+  public ViewStatus getStatus();
+
+  /**
+   * Get the view status detail.
+   *
+   * @return the view status detail
+   */
+  public String getStatusDetail();
+
+
+  // ----- ViewStatus enum ---------------------------------------------------
+
+  /**
+   * View status
+   */
+  public enum ViewStatus {
+    PENDING, // view has been created but not loaded from the archive
+    LOADING, // view is in the process of being loaded from the archive
+    LOADED,  // view is completely loaded and ready to use
+    ERROR    // an error occurred loading the view
+  }
 }

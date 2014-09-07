@@ -38,6 +38,7 @@ module.exports = [
       App.ServiceConfigCategory.create({ name: 'Users and Groups', displayName : 'Users and Groups'})
     ],
     configTypes: {
+      "cluster-env": {supports: {final: false}},
       "hadoop-env": {supports: {final: false}},
       "mapred-env": {supports: {final: false}},
       "yarn-env": {supports: {final: false}},

@@ -1784,10 +1784,22 @@ module.exports =
       "displayType": "checkbox",
       "isOverridable": false,
       "isVisible": false,
-      "serviceName": "HDFS",
-      "filename": "hadoop-env.xml",
-      "category": "Advanced hadoop-env"
+      "serviceName": "MISC",
+      "filename": "cluster-env.xml"
     },
+    {
+      "id": "puppet var",
+      "name": "kerberos_domain",
+      "displayName": "Kerberos realm",
+      "description": "Kerberos realm",
+      "defaultValue": 'EXAMPLE.COM',
+      "isRequired": false,
+      "isOverridable": false,
+      "isVisible": false,
+      "serviceName": "MISC",
+      "filename": "cluster-env.xml"
+    },
+
 
   /**********************************************MAPREDUCE2***************************************/
     {
@@ -2293,18 +2305,6 @@ module.exports =
       "name": "snamenode_host",
       "displayName": "Secondary NameNode Host",
       "description": "Secondary NameNode Host.",
-      "defaultValue": "",
-      "displayType": "string",
-      "isVisible": false,
-      "serviceName": "GLUSTERFS",
-      "filename": "hadoop-env.xml",
-      "category": "General Hadoop"
-    },
-    {
-      "id": "puppet var",
-      "name": "content",
-      "displayName": "Hadoop Environment Template",
-      "description": "Hadoop Environment Template.",
       "defaultValue": "",
       "displayType": "string",
       "isVisible": false,
@@ -3617,9 +3617,8 @@ module.exports =
       "isOverridable": false,
       "isVisible": App.supports.customizeSmokeTestUser,
       "serviceName": "MISC",
-      "filename": "hadoop-env.xml",
+      "filename": "cluster-env.xml",
       "category": "Users and Groups",
-      "belongsToService": ["HDFS"],
       "index": 16
     },
     {
@@ -3649,9 +3648,8 @@ module.exports =
       "isOverridable": false,
       "isVisible": true,
       "serviceName": "MISC",
-      "filename": "hadoop-env.xml",
+      "filename": "cluster-env.xml",
       "category": "Users and Groups",
-      "belongsToService": ["HDFS"],
       "index": 17
     },
     {
@@ -3692,9 +3690,8 @@ module.exports =
       "isOverridable": false,
       "isVisible": true,
       "serviceName": "MISC",
-      "filename": "hadoop-env.xml",
-      "category": "Users and Groups",
-      "belongsToService": ["HDFS"]
+      "filename": "cluster-env.xml",
+      "category": "Users and Groups"
     }
   ]
 };

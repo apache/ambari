@@ -68,37 +68,10 @@
     <description>Proxy user group.</description>
   </property>
   <property>
-    <name>security_enabled</name>
-    <value>false</value>
-    <description>Hadoop Security</description>
-  </property>
-  <property>
-    <name>kerberos_domain</name>
-    <value>EXAMPLE.COM</value>
-    <description>Kerberos realm.</description>
-  </property>
-  <property>
     <name>hdfs_user</name>
     <value>hdfs</value>
     <property-type>USER</property-type>
     <description>User to run HDFS as</description>
-  </property>
-  <property>
-    <name>ignore_groupsusers_create</name>
-    <value>false</value>
-    <description>Whether to ignores failures on users and group creation</description>
-  </property>
-  <property>
-    <name>smokeuser</name>
-    <value>ambari-qa</value>
-    <property-type>USER</property-type>
-    <description>User executing service checks</description>
-  </property>
-  <property>
-    <name>user_group</name>
-    <value>hadoop</value>
-    <property-type>GROUP</property-type>
-    <description>Proxy user group.</description>
   </property>
   
   <!-- hadoop-env.sh -->

@@ -1144,17 +1144,23 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   private synchronized RequestStatusResponse updateCluster(ClusterRequest request)
       throws AmbariException {
 
-    if (request.getClusterName() == null
-        || request.getClusterName().isEmpty()) {
-      throw new IllegalArgumentException("Invalid arguments, cluster name"
-          + " should not be null");
+    if (request.getClusterId() == null
+        && (request.getClusterName() == null
+        || request.getClusterName().isEmpty())) {
+      throw new IllegalArgumentException("Invalid arguments, cluster id or cluster name should not be null");
     }
 
     LOG.info("Received a updateCluster request"
+        + ", clusterId=" + request.getClusterId()
         + ", clusterName=" + request.getClusterName()
         + ", request=" + request);
 
-    final Cluster cluster = clusters.getCluster(request.getClusterName());
+    final Cluster cluster;
+    if (request.getClusterId() == null) {
+      cluster = clusters.getCluster(request.getClusterName());
+    } else {
+      cluster = clusters.getClusterById(request.getClusterId());
+    }
     //save data to return configurations created
     List<ConfigurationResponse> configurationResponses =
       new LinkedList<ConfigurationResponse>();
@@ -1164,6 +1170,14 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       String msg = "Unable to set desired configs and rollback at same time, request = " + request.toString();
       LOG.error(msg);
       throw new IllegalArgumentException(msg);
+    }
+
+    // set the new name of the cluster if change is requested
+    if (!cluster.getClusterName().equals(request.getClusterName())) {
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Received cluster name change request from " + cluster.getClusterName() + " to " + request.getClusterName());
+      }
+      cluster.setClusterName(request.getClusterName());
     }
 
     // set or create configuration mapping (and optionally create the map of properties)

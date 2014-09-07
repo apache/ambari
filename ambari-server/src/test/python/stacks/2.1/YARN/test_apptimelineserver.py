@@ -27,46 +27,50 @@ origin_exists = os.path.exists
     if args[0][-2:] == "j2" else True))
 class TestAppTimelineServer(RMFTestCase):
 
+
   def test_configure_default(self):
     self.executeScript("2.0.6/services/YARN/package/scripts/application_timeline_server.py",
-                       classname = "ApplicationTimelineServer",
-                       command = "configure",
-                       config_file="default.json"
-    )
+                       classname="ApplicationTimelineServer",
+                       command="configure",
+                       config_file="default.json")
+
     self.assert_configure_default()
     self.assertNoMoreResources()
 
   def test_start_default(self):
     self.executeScript("2.0.6/services/YARN/package/scripts/application_timeline_server.py",
-                       classname = "ApplicationTimelineServer",
-                       command = "start",
-                       config_file="default.json"
-    )
+                       classname="ApplicationTimelineServer",
+                       command="start",
+                       config_file="default.json")
+
     self.assert_configure_default()
 
-    self.assertResourceCalled('Execute', 'export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop-yarn/sbin/yarn-daemon.sh --config /etc/hadoop/conf start historyserver',
-                              not_if = 'ls /var/run/hadoop-yarn/yarn/yarn-yarn-historyserver.pid >/dev/null 2>&1 && ps `cat /var/run/hadoop-yarn/yarn/yarn-yarn-historyserver.pid` >/dev/null 2>&1',
-                              user = 'yarn')
-    self.assertResourceCalled('Execute', 'ls /var/run/hadoop-yarn/yarn/yarn-yarn-historyserver.pid >/dev/null 2>&1 && ps `cat /var/run/hadoop-yarn/yarn/yarn-yarn-historyserver.pid` >/dev/null 2>&1',
-                              initial_wait = 5,
-                              not_if = 'ls /var/run/hadoop-yarn/yarn/yarn-yarn-historyserver.pid >/dev/null 2>&1 && ps `cat /var/run/hadoop-yarn/yarn/yarn-yarn-historyserver.pid` >/dev/null 2>&1',
-                              user = 'yarn')
+    pid_check_cmd = 'ls /var/run/hadoop-yarn/yarn/yarn-yarn-timelineserver.pid >/dev/null 2>&1 && ps `cat /var/run/hadoop-yarn/yarn/yarn-yarn-timelineserver.pid` >/dev/null 2>&1'
+    self.assertResourceCalled('File', '/var/run/hadoop-yarn/yarn/yarn-yarn-timelineserver.pid',
+                              not_if=pid_check_cmd,
+                              action=['delete'])
+
+    self.assertResourceCalled('Execute', 'ulimit -c unlimited; export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop-yarn/sbin/yarn-daemon.sh --config /etc/hadoop/conf start timelineserver',
+                              not_if=pid_check_cmd,
+                              user='yarn')
+    self.assertResourceCalled('Execute', pid_check_cmd,
+                              initial_wait=5,
+                              not_if=pid_check_cmd,
+                              user='yarn')
     self.assertNoMoreResources()
 
   def test_stop_default(self):
     self.executeScript("2.0.6/services/YARN/package/scripts/application_timeline_server.py",
-                       classname = "ApplicationTimelineServer",
-                       command = "stop",
-                       config_file="default.json"
-    )
-    self.assertResourceCalled('Execute', 'export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop-yarn/sbin/yarn-daemon.sh --config /etc/hadoop/conf stop historyserver',
-                              user = 'yarn')
-    self.assertResourceCalled('Execute', 'rm -f /var/run/hadoop-yarn/yarn/yarn-yarn-historyserver.pid',
-                              user = 'yarn')
+                       classname="ApplicationTimelineServer",
+                       command="stop",
+                       config_file="default.json")
+
+    self.assertResourceCalled('Execute', 'export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop-yarn/sbin/yarn-daemon.sh --config /etc/hadoop/conf stop timelineserver',
+                              user='yarn')
+
+    self.assertResourceCalled('File', '/var/run/hadoop-yarn/yarn/yarn-yarn-timelineserver.pid',
+                              action=['delete'])
     self.assertNoMoreResources()
-
-
-
 
   def assert_configure_default(self):
     self.assertResourceCalled('Directory', '/var/run/hadoop-yarn/yarn',

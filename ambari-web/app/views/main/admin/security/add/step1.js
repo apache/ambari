@@ -21,10 +21,10 @@ var App = require('app');
 App.MainAdminSecurityAddStep1View = Em.View.extend({
 
   templateName: require('templates/main/admin/security/add/step1'),
-  isATSInstalled: false,
+  shouldRemoveATS: false,
   didInsertElement: function(){
-    var isATSInstalled = this.get('controller').isATSInstalled();
-    this.set('isATSInstalled',isATSInstalled);
+    var shouldRemoveATS = this.get('controller').shouldRemoveATS();
+    this.set('shouldRemoveATS', shouldRemoveATS);
   }
 
 });

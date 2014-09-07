@@ -736,3 +736,21 @@ input[type="submit"].btn.btn-mini {
 .breadcrumb > .active {
   color: #666;
 }
+
+.edit-cluster-name {
+  cursor: pointer;
+}
+
+.edit-cluster-name:hover {
+  color: #428bca;
+}
+
+.editClusterNameForm button.btn {
+  padding: 4px 8px;
+}
+
+.editClusterNameForm input {
+  width: 161px;
+  float: left;
+  margin-right: 5px;
+}

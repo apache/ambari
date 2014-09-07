@@ -171,7 +171,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
           attributeName: filter.attributeName,
           attributeValue: filter.attributeValue,
           name: this.t(filter.caption),
-          selected: false
+          selected: filter.dependentOn ? this.get(filter.dependentOn) : false
         }));
       }
     }, this);
@@ -619,7 +619,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
         serviceConfig.compareConfig.set('isFinal', compareConfig.isFinal);
         serviceConfig.compareConfig.set('value', App.config.formatOverrideValue(serviceConfig, compareConfig.value));
         serviceConfig.isComparison = true;
-        serviceConfig.hasCompareDiffs = (serviceConfig.value !== serviceConfig.compareConfig.get('value'));
+        serviceConfig.hasCompareDiffs = (serviceConfig.value !== serviceConfig.compareConfig.get('value'))||
+          (serviceConfig.isFinal !== (serviceConfig.compareConfig.get('isFinal') == true));
       } else if (serviceConfig.isUserProperty) {
         compareObject.isMock = true;
         compareObject.displayType = 'label';

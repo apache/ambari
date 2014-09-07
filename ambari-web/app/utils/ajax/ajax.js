@@ -434,6 +434,10 @@ var urls = {
       }
     }
   },
+  'config.cluster': {
+    'real': '{stackVersionUrl}/configurations?fields=*',
+    'mock': ''
+  },
   'config.advanced': {
     'real': '{stackVersionUrl}/services/{serviceName}/configurations?fields=*',
     'mock': '/data/wizard/stack/hdp/version{stackVersion}/{serviceName}.json'

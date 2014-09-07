@@ -43,6 +43,11 @@
         <description>User executing service checks</description>
     </property>
     <property>
+        <name>smokeuser_keytab</name>
+        <value>/etc/security/keytabs/smokeuser.headless.keytab</value>
+        <description>Path to smoke test user keytab file</description>
+    </property>
+    <property>
         <name>user_group</name>
         <value>hadoop</value>
         <property-type>GROUP</property-type>

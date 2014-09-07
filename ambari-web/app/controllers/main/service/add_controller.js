@@ -241,6 +241,8 @@ App.AddServiceController = App.WizardController.extend({
     var installedComponentsMap = {};
     var uninstalledComponents = [];
     var hosts = this.get('content.hosts');
+    var masterComponents = App.get('components.masters');
+    var nonMasterComponentHosts = [];
 
     components.forEach(function (component) {
       if (installedServices.contains(component.get('serviceName'))) {
@@ -252,11 +254,18 @@ App.AddServiceController = App.WizardController.extend({
 
     for (var hostName in hosts) {
       if (hosts[hostName].isInstalled) {
+        var isMasterComponentHosted = false;
         hosts[hostName].hostComponents.forEach(function (component) {
           if (installedComponentsMap[component.HostRoles.component_name]) {
             installedComponentsMap[component.HostRoles.component_name].push(hostName);
           }
+          if (masterComponents.contains(component.HostRoles.component_name)) {
+            isMasterComponentHosted = true;
+          }
         }, this);
+        if (!isMasterComponentHosted) {
+          nonMasterComponentHosts.push(hostName);
+        }
       }
     }
 
@@ -277,13 +286,21 @@ App.AddServiceController = App.WizardController.extend({
       result.push(component);
     }
 
+    if (!nonMasterComponentHosts.length) {
+      nonMasterComponentHosts.push(Object.keys(this.get('content.hosts'))[0]);
+    }
+    var uninstalledComponentHosts =  nonMasterComponentHosts.map(function(_hostName){
+      return {
+        group: "Default",
+        hostName: _hostName,
+        isInstalled: false
+      }
+    });
     uninstalledComponents.forEach(function (component) {
-      var hosts = jQuery.extend(true, [], result.findProperty('componentName', 'DATANODE').hosts);
-      hosts.setEach('isInstalled', false);
       result.push({
         componentName: component.get('componentName'),
         displayName: App.format.role(component.get('componentName')),
-        hosts: hosts,
+        hosts: uninstalledComponentHosts,
         isInstalled: false
       })
     });

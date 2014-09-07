@@ -45,6 +45,7 @@ module.exports = Em.Route.extend({
         });
         // TODO: redirect to last known state
       } else {
+        router.set('preferedPath', router.location.location.hash);
         Em.run.next(function () {
           router.transitionTo('login');
         });
@@ -89,7 +90,7 @@ module.exports = Em.Route.extend({
       route: '/',
       enter: function (router) {
         Em.run.next(function () {
-          router.transitionTo('widgets');
+          router.transitionTo('main.dashboard.widgets');
         });
       }
     }),
@@ -312,7 +313,7 @@ module.exports = Em.Route.extend({
   admin: Em.Route.extend({
     route: '/admin',
     enter: function (router, transition) {
-      if (!App.isAdmin) {
+      if (router.get('loggeIn') && !App.get('isAdmin')) {
         Em.run.next(function () {
           router.transitionTo('main.dashboard.index');
         });

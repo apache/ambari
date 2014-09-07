@@ -30,7 +30,7 @@ config_dir = "/etc/zookeeper/conf"
 zk_user =  config['configurations']['zookeeper-env']['zk_user']
 hostname = config['hostname']
 zk_bin = '/usr/lib/zookeeper/bin'
-user_group = config['configurations']['hadoop-env']['user_group']
+user_group = config['configurations']['cluster-env']['user_group']
 zk_env_sh_template = config['configurations']['zookeeper-env']['content']
 
 smoke_script = "/usr/lib/zookeeper/bin/zkCli.sh"
@@ -63,11 +63,10 @@ zookeeper_hosts.sort()
 zk_keytab_path = config['configurations']['zookeeper-env']['zookeeper_keytab_path']
 zk_server_jaas_file = format("{config_dir}/zookeeper_jaas.conf")
 zk_client_jaas_file = format("{config_dir}/zookeeper_client_jaas.conf")
-_authentication = config['configurations']['core-site']['hadoop.security.authentication']
-security_enabled = ( not is_empty(_authentication) and _authentication == 'kerberos')
+security_enabled = config['configurations']['cluster-env']['security_enabled']
 
-smoke_user_keytab = config['configurations']['hadoop-env']['smokeuser_keytab']
-smokeuser = config['configurations']['hadoop-env']['smokeuser']
+smoke_user_keytab = config['configurations']['cluster-env']['smokeuser_keytab']
+smokeuser = config['configurations']['cluster-env']['smokeuser']
 kinit_path_local = functions.get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
 
 #log4j.properties

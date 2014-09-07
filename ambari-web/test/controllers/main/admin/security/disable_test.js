@@ -255,16 +255,16 @@ describe('App.MainAdminSecurityDisableController', function () {
 
       expect(controller.manageSecureConfigs()).to.be.true;
     });
-    it('serviceConfigTags has hadoop-env site', function () {
+    it('serviceConfigTags has cluster-env site', function () {
       controller.set('serviceConfigTags', [
         {
-          siteName: 'hadoop-env',
+          siteName: 'cluster-env',
           configs: {}
         }
       ]);
 
       expect(controller.manageSecureConfigs()).to.be.true;
-      expect(controller.get('serviceConfigTags').findProperty('siteName', 'hadoop-env').configs.security_enabled).to.equal('false');
+      expect(controller.get('serviceConfigTags').findProperty('siteName', 'cluster-env').configs.security_enabled).to.equal('false');
     });
     it('serviceConfigTags has site.xml', function () {
       controller.set('serviceConfigTags', [

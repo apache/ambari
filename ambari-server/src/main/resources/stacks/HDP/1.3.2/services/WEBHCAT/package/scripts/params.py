@@ -41,15 +41,14 @@ hadoop_conf_dir = config['configurations']['webhcat-site']['templeton.hadoop.con
 templeton_jar = config['configurations']['webhcat-site']['templeton.jar']
 
 hadoop_home = '/usr'
-user_group = config['configurations']['hadoop-env']['user_group']
+user_group = config['configurations']['cluster-env']['user_group']
 
 webhcat_server_host = config['clusterHostInfo']['webhcat_server_host']
 
 webhcat_apps_dir = "/apps/webhcat"
-smoke_user_keytab = config['configurations']['hadoop-env']['smokeuser_keytab']
-smokeuser = config['configurations']['hadoop-env']['smokeuser']
-_authentication = config['configurations']['core-site']['hadoop.security.authentication']
-security_enabled = ( not is_empty(_authentication) and _authentication == 'kerberos')
+smoke_user_keytab = config['configurations']['cluster-env']['smokeuser_keytab']
+smokeuser = config['configurations']['cluster-env']['smokeuser']
+security_enabled = config['configurations']['cluster-env']['security_enabled']
 kinit_path_local = functions.get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
 
 #hdfs directories

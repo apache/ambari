@@ -39,6 +39,7 @@
 
         <component>
           <name>ZOOKEEPER_CLIENT</name>
+          <displayName>ZooKeeper Client</displayName>
           <category>CLIENT</category>
           <cardinality>1+</cardinality>
           <commandScript>

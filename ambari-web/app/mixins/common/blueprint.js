@@ -32,10 +32,8 @@ App.BlueprintMixin = Em.Mixin.create({
       blueprint_cluster_binding: { host_groups: [] }
     };
 
-    var i = 0;
-    hosts.forEach(function (host) {
-      i += 1;
-      var group_name = 'host-group-' + i;
+    hosts.forEach(function (host, i) {
+      var group_name = 'host-group-' + (i+1);
 
       res.blueprint.host_groups.push({
         name: group_name,

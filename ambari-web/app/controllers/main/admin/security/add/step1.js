@@ -21,11 +21,12 @@ App.MainAdminSecurityAddStep1Controller = Em.Controller.extend({
 
   name: 'mainAdminSecurityAddStep1Controller',
   /**
-   * identify whether ATS(Application Timeline Server) is installed
+   * identify whether ATS(Application Timeline Server) is installed and does not support Kerberization.
    * @return {Boolean}
    */
-  isATSInstalled: function() {
-    return this.get('content.services').someProperty('serviceName', 'YARN') &&
-      App.Service.find('YARN').get('hostComponents').someProperty('componentName', 'APP_TIMELINE_SERVER');
+  shouldRemoveATS: function() {
+    var isATSInstalled = this.get('content.isATSInstalled');
+    var doesATSSupportKerberos = App.get("doesATSSupportKerberos");
+    return isATSInstalled && !doesATSSupportKerberos;
   }
 });
