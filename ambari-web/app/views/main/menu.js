@@ -34,9 +34,7 @@ App.MainMenuView = Em.CollectionView.extend({
     var result = [];
     if (App.router.get('loggedIn')) {
 
-      if (App.router.get('clusterController.isLoaded')) {
-
-        if (App.get('clusterName')) {
+      if (App.router.get('clusterController.isLoaded') && App.get('clusterName')) {
 
           result.push(
             { label:Em.I18n.t('menu.item.dashboard'), routing:'dashboard', active:'active'},
@@ -55,8 +53,6 @@ App.MainMenuView = Em.CollectionView.extend({
           if (App.get('isAdmin')) {
             result.push({ label:Em.I18n.t('menu.item.admin'), routing:'admin'});
           }
-
-        }
       }
 
       if (App.get('supports.views')) {
@@ -68,35 +64,23 @@ App.MainMenuView = Em.CollectionView.extend({
   }.property('App.router.loggedIn', 'App.router.clusterController.isLoaded', 'App.supports.views', 'App.supports.mirroring',
       'App.supports.secureCluster', 'App.supports.highAvailability', 'views.length'),
 
-    /**
-     *    Adds observer on lastSetURL and calls navigation sync procedure
-     */
-  didInsertElement:function () {
-    this.renderOnRoute();
-  },
-
-  /**
-   *    Syncs navigation menu with requested URL
-   */
-  renderOnRoute: function () {
-    if (App.get('clusterName') && App.router.get('clusterController.isLoaded')) {
-      var last_url = App.router.location.lastSetURL || location.href.replace(/^[^#]*#/, '');
-      if (last_url.substr(1, 4) !== 'main' || !this._childViews) {
-        return;
-      }
-      var reg = /^\/main\/([a-z]+)/g;
-      var sub_url = reg.exec(last_url);
-      var chunk = (null != sub_url) ? sub_url[1] : 'dashboard';
-      $.each(this._childViews, function () {
-        this.set('active', this.get('content.routing') == chunk ? "active" : "");
-      });
-    }
-  }.observes('App.router.location.lastSetURL', 'App.router.clusterController.isLoaded'),
-
   itemViewClass:Em.View.extend({
 
-    classNameBindings:['active', ':top-nav-dropdown'],
-    active:'',
+    classNameBindings: ['active', ':top-nav-dropdown'],
+
+    active: function () {
+      if (App.get('clusterName') && App.router.get('clusterController.isLoaded')) {
+        var last_url = App.router.location.lastSetURL || location.href.replace(/^[^#]*#/, '');
+        if (last_url.substr(1, 4) !== 'main' || !this._childViews) {
+          return;
+        }
+        var reg = /^\/main\/([a-z]+)/g;
+        var sub_url = reg.exec(last_url);
+        var chunk = (null != sub_url) ? sub_url[1] : 'dashboard';
+        return this.get('content.routing').indexOf(chunk) === 0 ? "active" : "";
+      }
+      return "";
+    }.property('App.router.location.lastSetURL', 'App.router.clusterController.isLoaded'),
 
     alertsCount:function () {
       if (this.get('content').routing == 'hosts') {
