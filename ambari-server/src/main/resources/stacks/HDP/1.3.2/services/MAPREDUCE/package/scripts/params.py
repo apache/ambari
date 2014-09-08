@@ -78,3 +78,16 @@ HdfsDirectory = functools.partial(
 mapred_tt_group = default("/configurations/mapred-site/mapreduce.tasktracker.group", user_group)
 
 slave_hosts = default("/clusterHostInfo/slave_hosts", [])
+
+rca_enabled = False
+if 'mapred-env' in config['configurations']:
+  rca_enabled =  config['configurations']['mapred-env']['rca_enabled']
+
+ambari_db_rca_url = config['hostLevelParams']['ambari_db_rca_url']
+ambari_db_rca_driver = config['hostLevelParams']['ambari_db_rca_driver']
+ambari_db_rca_username = config['hostLevelParams']['ambari_db_rca_username']
+ambari_db_rca_password = config['hostLevelParams']['ambari_db_rca_password']
+
+rca_properties = ''
+if rca_enabled and 'rca_properties' in config['configurations']['mapred-env']:
+  rca_properties = format(config['configurations']['mapred-env']['rca_properties'])
