@@ -24,7 +24,7 @@ App.MainConfigHistoryView = App.TableView.extend({
   templateName: require('templates/main/dashboard/config_history'),
 
   controllerBinding: 'App.router.mainConfigHistoryController',
-  filteringComplete: true,
+  filteringComplete: false,
   timeOut: null,
 
   content: function () {
@@ -59,7 +59,7 @@ App.MainConfigHistoryView = App.TableView.extend({
   /**
    * synchronize properties of view with controller to generate query parameters
    */
-  updatePagination: function () {
+  updatePagination: function (key) {
     if (!Em.isNone(this.get('displayLength'))) {
       App.db.setDisplayLength(this.get('controller.name'), this.get('displayLength'));
       this.get('controller.paginationProps').findProperty('name', 'displayLength').value = this.get('displayLength');
@@ -69,12 +69,15 @@ App.MainConfigHistoryView = App.TableView.extend({
       this.get('controller.paginationProps').findProperty('name', 'startIndex').value = this.get('startIndex');
     }
 
-    this.refresh();
+    if (key !== 'SKIP_REFRESH') {
+      this.refresh();
+    }
   },
 
   didInsertElement: function () {
     this.addObserver('startIndex', this, 'updatePagination');
     this.addObserver('displayLength', this, 'updatePagination');
+    this.refresh();
     this.set('controller.isPolling', true);
     this.get('controller').doPolling();
   },
@@ -84,6 +87,7 @@ App.MainConfigHistoryView = App.TableView.extend({
    */
   willDestroyElement: function () {
     this.set('controller.isPolling', false);
+    clearTimeout(this.get('controller.timeoutRef'));
   },
 
   sortView: sort.serverWrapperView,
@@ -218,6 +222,7 @@ App.MainConfigHistoryView = App.TableView.extend({
   resetStartIndex: function () {
     if (this.get('controller.resetStartIndex') && this.get('filteredCount') > 0) {
       this.set('startIndex', 1);
+      this.updatePagination('SKIP_REFRESH');
     }
   }.observes('controller.resetStartIndex')
 
