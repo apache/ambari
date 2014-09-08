@@ -43,6 +43,12 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
 
   slaveHostToGroup: null,
 
+  /**
+   * Is Submit-click processing now
+   * @type {bool}
+   */
+  submitButtonClicked: false,
+
   isRecommendedLoaded: false,
   /**
    * used in services_config.js view to mark a config with security icon
@@ -136,8 +142,9 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
    */
   isSubmitDisabled: function () {
     if (!this.get('stepConfigs.length')) return true;
+    if (this.get('submitButtonClicked')) return true;
     return (!this.get('stepConfigs').filterProperty('showConfig', true).everyProperty('errorCount', 0) || this.get("miscModalVisible"));
-  }.property('stepConfigs.@each.errorCount', 'miscModalVisible'),
+  }.property('stepConfigs.@each.errorCount', 'miscModalVisible', 'submitButtonClicked'),
 
   /**
    * List of selected to install service names
@@ -241,6 +248,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
    * @method clearStep
    */
   clearStep: function () {
+    this.set('submitButtonClicked', false);
     this.set('isSubmitDisabled', true);
     this.set('isRecommendedLoaded', false);
     this.get('stepConfigs').clear();
@@ -1322,16 +1330,19 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
 
   /**
    * Click-handler on Next button
+   * Disable "Submit"-button while server-side processes are running
    * @method submit
    */
   submit: function () {
     if (this.get('isSubmitDisabled')) {
       return;
     }
-    var _this = this;
+    var self = this;
+    this.set('submitButtonClicked', true);
     this.serverSideValidation().done(function () {
-      _this.checkDatabaseConnectionTest().done(function () {
-        _this.resolveHiveMysqlDatabase();
+      self.checkDatabaseConnectionTest().done(function () {
+        self.resolveHiveMysqlDatabase();
+        self.set('submitButtonClicked', false);
       });
     });
   }
