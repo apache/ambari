@@ -87,7 +87,8 @@ module.exports = Em.Application.create({
    */
   isHaEnabled: function () {
     if (!this.get('isHadoop2Stack')) return false;
-    return !this.HostComponent.find().someProperty('componentName', 'SECONDARY_NAMENODE');
+    var isHDFSInstalled = App.Service.find().findProperty('serviceName','HDFS');
+    return isHDFSInstalled && !this.HostComponent.find().someProperty('componentName', 'SECONDARY_NAMENODE');
   }.property('router.clusterController.isLoaded', 'isHadoop2Stack'),
 
   /**
