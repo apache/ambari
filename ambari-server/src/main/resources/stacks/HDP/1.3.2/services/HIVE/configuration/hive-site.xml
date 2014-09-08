@@ -115,7 +115,7 @@ limitations under the License.
 
   <property>
     <name>hive.security.authorization.manager</name>
-    <value>org.apache.hcatalog.security.HdfsAuthorizationProvider</value>
+    <value>org.apache.hadoop.hive.ql.security.authorization.plugin.sqlstd.SQLStdHiveAuthorizerFactory</value>
     <description>the hive client authorization manager class name.
       The user defined authorization class should implement interface org.apache.hadoop.hive.ql.security.authorization.HiveAuthorizationProvider.  </description>
   </property>
