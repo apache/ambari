@@ -18,8 +18,10 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
+import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.entities.ViewEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceDataEntity;
@@ -27,6 +29,7 @@ import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
 import org.apache.ambari.server.orm.entities.ViewInstancePropertyEntity;
 import org.apache.ambari.server.orm.entities.ViewParameterEntity;
 import org.apache.ambari.server.view.ViewRegistry;
+import org.apache.ambari.view.ViewDefinition;
 import org.easymock.Capture;
 import org.junit.Assert;
 import org.junit.Before;
@@ -111,8 +114,15 @@ public class ViewInstanceResourceProviderTest {
     viewInstanceEntity.setViewName("V1{1.0.0}");
     viewInstanceEntity.setName("I1");
 
+    ViewEntity viewEntity = new ViewEntity();
+    viewEntity.setStatus(ViewDefinition.ViewStatus.LOADED);
+    viewEntity.setName("V1{1.0.0}");
+
+    viewInstanceEntity.setViewEntity(viewEntity);
+
     expect(singleton.instanceExists(viewInstanceEntity)).andReturn(false);
     expect(singleton.getInstanceDefinition("V1", "1.0.0", "I1")).andReturn(viewInstanceEntity);
+    expect(singleton.getDefinition("V1", null)).andReturn(viewEntity);
 
     Capture<ViewInstanceEntity> instanceEntityCapture = new Capture<ViewInstanceEntity>();
     singleton.installViewInstance(capture(instanceEntityCapture));
@@ -144,8 +154,15 @@ public class ViewInstanceResourceProviderTest {
     viewInstanceEntity.setViewName("V1{1.0.0}");
     viewInstanceEntity.setName("I1");
 
+    ViewEntity viewEntity = new ViewEntity();
+    viewEntity.setStatus(ViewDefinition.ViewStatus.LOADED);
+    viewEntity.setName("V1{1.0.0}");
+
+    viewInstanceEntity.setViewEntity(viewEntity);
+
     expect(singleton.instanceExists(viewInstanceEntity)).andReturn(true);
     expect(singleton.getInstanceDefinition("V1", "1.0.0", "I1")).andReturn(viewInstanceEntity);
+    expect(singleton.getDefinition("V1", null)).andReturn(viewEntity);
 
     replay(singleton);
 
@@ -155,6 +172,112 @@ public class ViewInstanceResourceProviderTest {
     } catch (ResourceAlreadyExistsException e) {
       // expected
     }
+
+    verify(singleton);
+  }
+
+  @Test
+  public void testCreateResources_viewNotLoaded() throws Exception {
+    ViewInstanceResourceProvider provider = new ViewInstanceResourceProvider();
+
+    Set<Map<String, Object>> properties = new HashSet<Map<String, Object>>();
+
+    Map<String, Object> propertyMap = new HashMap<String, Object>();
+
+    propertyMap.put(ViewInstanceResourceProvider.VIEW_NAME_PROPERTY_ID, "V1");
+    propertyMap.put(ViewInstanceResourceProvider.VIEW_VERSION_PROPERTY_ID, "1.0.0");
+    propertyMap.put(ViewInstanceResourceProvider.INSTANCE_NAME_PROPERTY_ID, "I1");
+
+    properties.add(propertyMap);
+
+    ViewEntity viewEntity = new ViewEntity();
+    viewEntity.setName("V1{1.0.0}");
+    viewEntity.setStatus(ViewDefinition.ViewStatus.LOADING);
+    ViewInstanceEntity viewInstanceEntity = new ViewInstanceEntity();
+    viewInstanceEntity.setViewName("V1{1.0.0}");
+    viewInstanceEntity.setName("I1");
+    viewInstanceEntity.setViewEntity(viewEntity);
+
+    expect(singleton.getInstanceDefinition("V1", "1.0.0", "I1")).andReturn(viewInstanceEntity);
+    expect(singleton.getDefinition("V1", null)).andReturn(viewEntity);
+
+    replay(singleton);
+
+    try {
+      provider.createResources(PropertyHelper.getCreateRequest(properties, null));
+      fail("Expected IllegalStateException.");
+    } catch (IllegalStateException e) {
+      // expected
+    }
+
+    verify(singleton);
+  }
+
+  @Test
+  public void testUpdateResources_viewNotLoaded() throws Exception {
+    ViewInstanceResourceProvider provider = new ViewInstanceResourceProvider();
+
+    Set<Map<String, Object>> properties = new HashSet<Map<String, Object>>();
+
+    Map<String, Object> propertyMap = new HashMap<String, Object>();
+
+    propertyMap.put(ViewInstanceResourceProvider.ICON_PATH_ID, "path");
+
+    properties.add(propertyMap);
+
+    PredicateBuilder predicateBuilder = new PredicateBuilder();
+    Predicate predicate =
+        predicateBuilder.property(ViewInstanceResourceProvider.VIEW_NAME_PROPERTY_ID).equals("V1").toPredicate();
+    ViewEntity viewEntity = new ViewEntity();
+    viewEntity.setName("V1{1.0.0}");
+    viewEntity.setStatus(ViewDefinition.ViewStatus.LOADING);
+    ViewInstanceEntity viewInstanceEntity = new ViewInstanceEntity();
+    viewInstanceEntity.setViewName("V1{1.0.0}");
+    viewInstanceEntity.setName("I1");
+    viewInstanceEntity.setViewEntity(viewEntity);
+
+    expect(singleton.getDefinitions()).andReturn(Collections.singleton(viewEntity));
+
+    replay(singleton);
+
+    provider.updateResources(PropertyHelper.getCreateRequest(properties, null), predicate);
+
+    Assert.assertNull(viewInstanceEntity.getIcon());
+
+    verify(singleton);
+  }
+
+  @Test
+  public void testDeleteResources_viewNotLoaded() throws Exception {
+    ViewInstanceResourceProvider provider = new ViewInstanceResourceProvider();
+
+    Set<Map<String, Object>> properties = new HashSet<Map<String, Object>>();
+
+    Map<String, Object> propertyMap = new HashMap<String, Object>();
+
+    propertyMap.put(ViewInstanceResourceProvider.VIEW_NAME_PROPERTY_ID, "V1");
+    propertyMap.put(ViewInstanceResourceProvider.VIEW_VERSION_PROPERTY_ID, "1.0.0");
+    propertyMap.put(ViewInstanceResourceProvider.INSTANCE_NAME_PROPERTY_ID, "I1");
+
+    properties.add(propertyMap);
+
+    PredicateBuilder predicateBuilder = new PredicateBuilder();
+    Predicate predicate =
+        predicateBuilder.property(ViewInstanceResourceProvider.VIEW_NAME_PROPERTY_ID).equals("V1").toPredicate();
+
+    ViewEntity viewEntity = new ViewEntity();
+    viewEntity.setName("V1{1.0.0}");
+    viewEntity.setStatus(ViewDefinition.ViewStatus.LOADING);
+    ViewInstanceEntity viewInstanceEntity = new ViewInstanceEntity();
+    viewInstanceEntity.setViewName("V1{1.0.0}");
+    viewInstanceEntity.setName("I1");
+    viewInstanceEntity.setViewEntity(viewEntity);
+
+    expect(singleton.getDefinitions()).andReturn(Collections.singleton(viewEntity));
+
+    replay(singleton);
+
+    provider.deleteResources(predicate);
 
     verify(singleton);
   }

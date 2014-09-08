@@ -98,7 +98,7 @@ public class ViewVersionResourceProvider extends AbstractResourceProvider {
   public RequestStatus createResources(Request request)
       throws SystemException, UnsupportedPropertyException,
       ResourceAlreadyExistsException, NoSuchParentResourceException {
-    throw new UnsupportedOperationException("Not yet supported.");
+    throw new UnsupportedOperationException("Not supported.");
   }
 
   @Override
@@ -147,13 +147,13 @@ public class ViewVersionResourceProvider extends AbstractResourceProvider {
   @Override
   public RequestStatus updateResources(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
-    throw new UnsupportedOperationException("Not yet supported.");
+    throw new UnsupportedOperationException("Not supported.");
   }
 
   @Override
   public RequestStatus deleteResources(Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
-    throw new UnsupportedOperationException("Not yet supported.");
+    throw new UnsupportedOperationException("Not supported.");
   }
 
   @Override

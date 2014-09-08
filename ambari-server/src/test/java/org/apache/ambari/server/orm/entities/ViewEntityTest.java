@@ -266,4 +266,21 @@ public class ViewEntityTest {
     viewDefinition.setStatusDetail("status detail");
     Assert.assertEquals("status detail", viewDefinition.getStatusDetail());
   }
+
+  @Test
+  public void testIsLoaded() throws Exception {
+    ViewEntity viewDefinition = getViewEntity();
+
+    viewDefinition.setStatus(ViewDefinition.ViewStatus.PENDING);
+    Assert.assertFalse(viewDefinition.isLoaded());
+
+    viewDefinition.setStatus(ViewDefinition.ViewStatus.LOADING);
+    Assert.assertFalse(viewDefinition.isLoaded());
+
+    viewDefinition.setStatus(ViewDefinition.ViewStatus.LOADED);
+    Assert.assertTrue(viewDefinition.isLoaded());
+
+    viewDefinition.setStatus(ViewDefinition.ViewStatus.ERROR);
+    Assert.assertFalse(viewDefinition.isLoaded());
+  }
 }

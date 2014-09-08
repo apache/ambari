@@ -222,7 +222,7 @@ public abstract class PrivilegeResourceProvider<T> extends AbstractResourceProvi
 
       for(PrivilegeEntity privilegeEntity : entitySet){
         Resource resource = toResource(privilegeEntity, userEntities, groupEntities, resourceEntities, requestedIds);
-        if (predicate == null || predicate.evaluate(resource)) {
+        if (resource != null && (predicate == null || predicate.evaluate(resource))) {
           resources.add(resource);
         }
       }
@@ -441,6 +441,10 @@ public abstract class PrivilegeResourceProvider<T> extends AbstractResourceProvi
         if (resource == null) {
           // request body is empty, use predicate instead
           resource = getResourceEntityId(predicate);
+          // if the predicate does not identify a single resource or the resource is not available for update
+          if (resource == null) {
+            return null;
+          }
         }
         final List<PrivilegeEntity> currentPrivileges = privilegeDAO.findByResourceId(resource);
 
