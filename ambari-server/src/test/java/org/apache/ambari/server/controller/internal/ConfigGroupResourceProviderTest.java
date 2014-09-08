@@ -49,6 +49,7 @@ import java.util.Set;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertTrue;
+import static junit.framework.Assert.fail;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMock;
@@ -56,6 +57,7 @@ import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
 import static org.easymock.EasyMock.verify;
 
 public class ConfigGroupResourceProviderTest {
@@ -303,6 +305,134 @@ public class ConfigGroupResourceProviderTest {
 
     verify(managementController, clusters, cluster,
       configGroup, response, configGroupResponse, configHelper);
+  }
+
+  @Test
+  public void testUpdateConfigGroup_renameGroup() throws Exception {
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
+    ConfigHelper configHelper = createNiceMock(ConfigHelper.class);
+    Clusters clusters = createNiceMock(Clusters.class);
+    Cluster cluster = createNiceMock(Cluster.class);
+    Host h1 = createNiceMock(Host.class);
+    Host h2 = createNiceMock(Host.class);
+    final ConfigGroup configGroup = createNiceMock(ConfigGroup.class);
+    ConfigGroupResponse configGroupResponse = createNiceMock
+            (ConfigGroupResponse.class);
+
+    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
+    expect(managementController.getAuthName()).andReturn("admin").anyTimes();
+    expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
+
+    expect(configGroup.getName()).andReturn("originalGroupName").anyTimes();
+    expect(configGroup.getId()).andReturn(25L).anyTimes();
+    expect(configGroup.convertToResponse()).andReturn(configGroupResponse).anyTimes();
+    expect(configGroupResponse.getClusterName()).andReturn("Cluster100").anyTimes();
+    expect(configGroupResponse.getId()).andReturn(25L).anyTimes();
+
+    replay(configGroup);
+
+    expect(cluster.getConfigGroups()).andStubAnswer(new IAnswer<Map<Long, ConfigGroup>>() {
+      @Override
+      public Map<Long, ConfigGroup> answer() throws Throwable {
+        Map<Long, ConfigGroup> configGroupMap = new HashMap<Long, ConfigGroup>();
+        configGroupMap.put(configGroup.getId(), configGroup);
+        return configGroupMap;
+      }
+    });
+
+
+    expect(managementController.getConfigHelper()).andReturn(configHelper).once();
+    configHelper.invalidateStaleConfigsCache();
+    expectLastCall().once();
+
+    replay(managementController, clusters, cluster,
+            response, configGroupResponse, configHelper);
+
+    ResourceProvider provider = getConfigGroupResourceProvider
+            (managementController);
+
+    String newGroupName = "newGroupName";
+    /*
+     * Check rename request validation
+     */
+    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+
+    Set<Map<String, Object>> hostSet = new HashSet<Map<String, Object>>();
+    Map<String, Object> host1 = new HashMap<String, Object>();
+    host1.put(ConfigGroupResourceProvider.CONFIGGROUP_HOSTNAME_PROPERTY_ID, "h1");
+    hostSet.add(host1);
+    Map<String, Object> host2 = new HashMap<String, Object>();
+    host2.put(ConfigGroupResourceProvider.CONFIGGROUP_HOSTNAME_PROPERTY_ID, "h2");
+    hostSet.add(host2);
+
+    Set<Map<String, Object>> configSet = new HashSet<Map<String, Object>>();
+    Map<String, String> configMap = new HashMap<String, String>();
+    Map<String, Object> configs = new HashMap<String, Object>();
+    configs.put("type", "core-site");
+    configs.put("tag", "version100");
+    configMap.put("key1", "value1");
+    configs.put("properties", configMap);
+    configSet.add(configs);
+
+    properties.put(ConfigGroupResourceProvider
+            .CONFIGGROUP_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
+    properties.put(ConfigGroupResourceProvider.CONFIGGROUP_NAME_PROPERTY_ID,
+            newGroupName);
+    properties.put(ConfigGroupResourceProvider.CONFIGGROUP_TAG_PROPERTY_ID,
+            "tag-1");
+    properties.put(ConfigGroupResourceProvider.CONFIGGROUP_HOSTS_PROPERTY_ID,
+            hostSet );
+    properties.put(ConfigGroupResourceProvider.CONFIGGROUP_CONFIGS_PROPERTY_ID,
+            configSet);
+
+    Map<String, String> mapRequestProps = new HashMap<String, String>();
+    mapRequestProps.put("context", "Called from a test");
+
+    Request request = PropertyHelper.getUpdateRequest(properties, mapRequestProps);
+
+    Predicate predicate = new PredicateBuilder().property
+            (ConfigGroupResourceProvider.CONFIGGROUP_CLUSTER_NAME_PROPERTY_ID).equals
+            ("Cluster100").and().
+            property(ConfigGroupResourceProvider.CONFIGGROUP_ID_PROPERTY_ID).equals
+            (25L).toPredicate();
+
+    try {
+      provider.updateResources(request, predicate);
+      fail("Should throw IllegalArgumentException");
+    } catch (IllegalArgumentException e) {
+      // expected
+    }
+
+    verify(configGroup);
+
+    /*
+     * Check execution of  rename request
+     */
+    reset(configGroup);
+    expect(configGroup.getName()).andReturn("originalGroupName").anyTimes();
+    expect(configGroup.getId()).andReturn(25L).anyTimes();
+
+    expect(configGroup.convertToResponse()).andReturn(configGroupResponse).anyTimes();
+
+    configGroup.setName(newGroupName);
+    expectLastCall().once();
+    replay(configGroup);
+
+    reset(cluster);
+    Map<Long, ConfigGroup> configGroupMap = new HashMap<Long, ConfigGroup>();
+    configGroupMap.put(configGroup.getId(), configGroup);
+    expect(cluster.getConfigGroups()).andReturn(configGroupMap).anyTimes();
+    replay(cluster);
+
+    properties = new LinkedHashMap<String, Object>();
+    properties.put(ConfigGroupResourceProvider
+            .CONFIGGROUP_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
+    properties.put(ConfigGroupResourceProvider.CONFIGGROUP_NAME_PROPERTY_ID,
+            newGroupName);
+    request = PropertyHelper.getUpdateRequest(properties, mapRequestProps);
+    provider.updateResources(request, predicate);
+    verify(configGroup);
   }
 
   @SuppressWarnings("unchecked")
