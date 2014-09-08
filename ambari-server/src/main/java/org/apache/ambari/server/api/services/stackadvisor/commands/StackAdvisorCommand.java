@@ -224,21 +224,17 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
       FileUtils.writeStringToFile(new File(requestDirectory, "services.json"),
           adjusted.servicesJSON);
 
-      boolean success = saRunner.runScript(stackAdvisorScript, getCommandType(), requestDirectory);
-      if (!success) {
-        String message = "Stack advisor script finished with errors";
-        LOG.warn(message);
-        throw new StackAdvisorException(message);
-      }
-
+      saRunner.runScript(stackAdvisorScript, getCommandType(), requestDirectory);
       String result = FileUtils.readFileToString(new File(requestDirectory, getResultFileName()));
 
       T response = this.mapper.readValue(result, this.type);
       return updateResponse(request, setRequestId(response));
+    } catch (StackAdvisorException ex) {
+      throw ex;
     } catch (Exception e) {
-      String message = "Error occured during stack advisor command invocation";
+      String message = "Error occured during stack advisor command invocation: ";
       LOG.warn(message, e);
-      throw new StackAdvisorException(message, e);
+      throw new StackAdvisorException(message + e.getMessage());
     }
   }
 

@@ -33,6 +33,7 @@ import javax.ws.rs.core.Response.Status;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorException;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequest;
+import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequestException;
 import org.apache.ambari.server.api.services.stackadvisor.recommendations.RecommendationResponse;
 import org.apache.ambari.server.api.services.stackadvisor.recommendations.RecommendationResponse.BindingHostGroup;
 import org.apache.ambari.server.api.services.stackadvisor.recommendations.RecommendationResponse.HostGroup;
@@ -90,9 +91,13 @@ public class RecommendationResourceProvider extends StackAdvisorResourceProvider
     final RecommendationResponse response;
     try {
       response = saHelper.recommend(recommendationRequest);
-    } catch (StackAdvisorException e) {
-      LOG.warn("Error occured during component-layout recommnedation", e);
+    } catch (StackAdvisorRequestException e) {
+      LOG.warn("Error occured during recommnedation", e);
       throw new WebApplicationException(Response.status(Status.BAD_REQUEST).entity(e.getMessage())
+          .build());
+    } catch (StackAdvisorException e) {
+      LOG.warn("Error occured during recommnedation", e);
+      throw new WebApplicationException(Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage())
           .build());
     }
 

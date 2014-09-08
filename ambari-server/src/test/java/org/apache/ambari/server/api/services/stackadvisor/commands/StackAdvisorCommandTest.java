@@ -23,6 +23,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -41,6 +42,7 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorException;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequest;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequest.StackAdvisorRequestBuilder;
+import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequestException;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorResponse;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRunner;
 import org.apache.ambari.server.api.services.stackadvisor.commands.StackAdvisorCommand.StackAdvisorData;
@@ -113,8 +115,8 @@ public class StackAdvisorCommandTest {
     doReturn(servicesJSON).when(command).getServicesInformation(request);
     doReturn(data).when(command)
         .adjust(any(StackAdvisorData.class), any(StackAdvisorRequest.class));
-    when(saRunner.runScript(any(String.class), any(StackAdvisorCommandType.class), any(File.class)))
-        .thenReturn(false);
+    doThrow(new StackAdvisorRequestException("error")).when(saRunner)
+        .runScript(any(String.class), any(StackAdvisorCommandType.class), any(File.class));
     command.invoke(request);
 
     assertTrue(false);
@@ -138,8 +140,8 @@ public class StackAdvisorCommandTest {
     doReturn("{\"services\" : \"HDFS\"").when(command).getServicesInformation(request);
     doThrow(new WebApplicationException()).when(command).adjust(any(StackAdvisorData.class),
         any(StackAdvisorRequest.class));
-    when(saRunner.runScript(any(String.class), any(StackAdvisorCommandType.class), any(File.class)))
-        .thenReturn(false);
+    doThrow(new StackAdvisorException("error")).when(saRunner)
+        .runScript(any(String.class), any(StackAdvisorCommandType.class), any(File.class));
     command.invoke(request);
 
     assertTrue(false);
@@ -168,16 +170,15 @@ public class StackAdvisorCommandTest {
     doReturn(servicesJSON).when(command).getServicesInformation(request);
     doReturn(data).when(command)
         .adjust(any(StackAdvisorData.class), any(StackAdvisorRequest.class));
-    when(saRunner.runScript(any(String.class), any(StackAdvisorCommandType.class), any(File.class)))
-        .thenAnswer(new Answer<Boolean>() {
-          public Boolean answer(InvocationOnMock invocation) throws Throwable {
-            String resultFilePath = String.format("%s/%s", requestId, command.getResultFileName());
-            File resultFile = new File(recommendationsDir, resultFilePath);
-            resultFile.getParentFile().mkdirs();
-            FileUtils.writeStringToFile(resultFile, testResourceString);
-            return true;
-          }
-        });
+    doAnswer(new Answer() {
+      public Object answer(InvocationOnMock invocation) throws Throwable {
+        String resultFilePath = String.format("%s/%s", requestId, command.getResultFileName());
+        File resultFile = new File(recommendationsDir, resultFilePath);
+        resultFile.getParentFile().mkdirs();
+        FileUtils.writeStringToFile(resultFile, testResourceString);
+        return null;
+      }
+    }).when(saRunner).runScript(any(String.class), any(StackAdvisorCommandType.class), any(File.class));
     TestResource result = command.invoke(request);
 
     assertEquals(expected, result.getType());

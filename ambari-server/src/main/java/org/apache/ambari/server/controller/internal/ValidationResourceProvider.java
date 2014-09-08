@@ -33,6 +33,7 @@ import javax.ws.rs.core.Response.Status;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorException;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequest;
+import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequestException;
 import org.apache.ambari.server.api.services.stackadvisor.validations.ValidationResponse;
 import org.apache.ambari.server.api.services.stackadvisor.validations.ValidationResponse.ValidationItem;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -82,9 +83,13 @@ public class ValidationResourceProvider extends StackAdvisorResourceProvider {
     final ValidationResponse response;
     try {
       response = saHelper.validate(validationRequest);
-    } catch (StackAdvisorException e) {
-      LOG.warn("Error occured during component-layout validation", e);
+    } catch (StackAdvisorRequestException e) {
+      LOG.warn("Error occurred during validation", e);
       throw new WebApplicationException(Response.status(Status.BAD_REQUEST).entity(e.getMessage())
+          .build());
+    } catch (StackAdvisorException e) {
+      LOG.warn("Error occurred during validation", e);
+      throw new WebApplicationException(Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage())
           .build());
     }
 

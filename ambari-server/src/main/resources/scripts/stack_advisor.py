@@ -145,8 +145,12 @@ def instantiateStackAdvisor(stackName, stackVersion, parentVersions):
 if __name__ == '__main__':
   try:
     main(sys.argv)
-  except Exception, e:
+  except StackAdvisorException as stack_exception:
+    traceback.print_exc()
+    print "Error occured in stack advisor.\nError details: {0}".format(str(stack_exception))
+    sys.exit(1)
+  except Exception as e:
     traceback.print_exc()
     print "Error occured in stack advisor.\nError details: {0}".format(str(e))
-    sys.exit(1)
+    sys.exit(2)
 
