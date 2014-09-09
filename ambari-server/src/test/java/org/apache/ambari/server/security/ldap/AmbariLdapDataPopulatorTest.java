@@ -15,17 +15,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.ambari.server.security.authorization;
+package org.apache.ambari.server.security.ldap;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import junit.framework.Assert;
 
 import org.apache.ambari.server.AmbariException;
@@ -35,10 +31,15 @@ import org.apache.ambari.server.orm.entities.MemberEntity;
 import org.apache.ambari.server.orm.entities.PrincipalEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
+import org.apache.ambari.server.security.authorization.LdapServerProperties;
+import org.apache.ambari.server.security.authorization.User;
+import org.apache.ambari.server.security.authorization.Users;
+import org.apache.ambari.server.security.ldap.AmbariLdapDataPopulator;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.easymock.IAnswer;
 import org.junit.Test;
+import org.springframework.ldap.core.AttributesMapper;
 import org.springframework.ldap.core.LdapTemplate;
 
 public class AmbariLdapDataPopulatorTest {
@@ -63,66 +64,6 @@ public class AmbariLdapDataPopulatorTest {
   }
 
   @Test
-  public void testRefreshGroupMembers() throws AmbariException {
-    final Configuration configuration = EasyMock.createNiceMock(Configuration.class);
-    final Users users = EasyMock.createNiceMock(Users.class);
-
-    final GroupEntity ldapGroup = new GroupEntity();
-    ldapGroup.setGroupId(1);
-    ldapGroup.setGroupName("ldapGroup");
-    ldapGroup.setLdapGroup(true);
-    ldapGroup.setMemberEntities(new HashSet<MemberEntity>());
-
-    final User ldapUserWithoutGroup = createLdapUserWithoutGroup();
-    final User ldapUserWithGroup = createLdapUserWithGroup(ldapGroup);
-    final User localUserWithoutGroup = createLocalUserWithoutGroup();
-    final User localUserWithGroup = createLocalUserWithGroup(ldapGroup);
-
-    final AmbariLdapDataPopulator populator = new AmbariLdapDataPopulatorTestInstance(configuration, users) {
-      @Override
-      protected Set<String> getExternalLdapGroupMembers(String groupName) {
-        return new HashSet<String>() {
-          {
-            add(ldapUserWithGroup.getUserName());
-            add(ldapUserWithoutGroup.getUserName());
-          }
-        };
-      }
-
-      @Override
-      protected Map<String, User> getInternalUsers() {
-        return new HashMap<String, User>() {
-          {
-            put(localUserWithGroup.getUserName(), localUserWithGroup);
-            put(localUserWithoutGroup.getUserName(), localUserWithoutGroup);
-          }
-        };
-      }
-
-      @Override
-      protected Map<String, User> getInternalMembers(String groupName) {
-        return new HashMap<String, User>() {
-          {
-            put(localUserWithGroup.getUserName(), localUserWithGroup);
-          }
-        };
-      }
-    };
-
-    users.createUser(EasyMock.<String> anyObject(), EasyMock.<String> anyObject());
-    EasyMock.expectLastCall().times(2);
-
-    users.addMemberToGroup(EasyMock.<String> anyObject(), EasyMock.<String> anyObject());
-    EasyMock.expectLastCall().times(2);
-
-    EasyMock.replay(users);
-
-    populator.refreshGroupMembers(ldapGroup.getGroupName());
-
-    EasyMock.verify(users);
-  }
-
-  @Test
   public void testIsLdapEnabled_badConfiguration() {
     final Configuration configuration = EasyMock.createNiceMock(Configuration.class);
     final Users users = EasyMock.createNiceMock(Users.class);
@@ -130,7 +71,7 @@ public class AmbariLdapDataPopulatorTest {
     final AmbariLdapDataPopulator populator = new AmbariLdapDataPopulatorTestInstance(configuration, users);
 
     EasyMock.expect(configuration.isLdapConfigured()).andReturn(true);
-    EasyMock.expect(populator.loadLdapTemplate().list(EasyMock. <String>anyObject())).andThrow(new NullPointerException()).once();
+    EasyMock.expect(populator.loadLdapTemplate().search(EasyMock. <String>anyObject(), EasyMock. <String>anyObject(), EasyMock. <AttributesMapper>anyObject())).andThrow(new NullPointerException()).once();
     EasyMock.replay(populator.loadLdapTemplate(), configuration);
 
     Assert.assertFalse(populator.isLdapEnabled());
@@ -145,8 +86,8 @@ public class AmbariLdapDataPopulatorTest {
     final AmbariLdapDataPopulator populator = new AmbariLdapDataPopulatorTestInstance(configuration, users);
 
     EasyMock.expect(configuration.isLdapConfigured()).andReturn(true);
-    EasyMock.expect(populator.loadLdapTemplate().list(EasyMock. <String>anyObject())).andReturn(Collections.emptyList()).once();
-    EasyMock.replay(populator.loadLdapTemplate(),configuration);
+    EasyMock.expect(populator.loadLdapTemplate().search(EasyMock. <String>anyObject(), EasyMock. <String>anyObject(), EasyMock. <AttributesMapper>anyObject())).andReturn(Collections.emptyList()).once();
+    EasyMock.replay(populator.loadLdapTemplate(), configuration);
 
     Assert.assertTrue(populator.isLdapEnabled());
     EasyMock.verify(populator.loadLdapTemplate(), configuration);

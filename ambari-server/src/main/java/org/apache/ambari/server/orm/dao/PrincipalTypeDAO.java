@@ -22,10 +22,11 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
-import org.apache.ambari.server.orm.entities.PrincipalTypeEntity;
 
+import org.apache.ambari.server.orm.entities.PrincipalTypeEntity;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
+
 import java.util.List;
 
 /**
@@ -79,6 +80,32 @@ public class PrincipalTypeDAO {
   @Transactional
   public PrincipalTypeEntity merge(PrincipalTypeEntity entity) {
     return entityManagerProvider.get().merge(entity);
+  }
+
+  /**
+   * Creates and returns principal type if it wasn't persisted yet.
+   *
+   * @param principalType id of principal type
+   * @return principal type
+   */
+  public PrincipalTypeEntity ensurePrincipalTypeCreated(int principalType) {
+    PrincipalTypeEntity principalTypeEntity = findById(principalType);
+    if (principalTypeEntity == null) {
+      principalTypeEntity = new PrincipalTypeEntity();
+      principalTypeEntity.setId(principalType);
+      switch (principalType) {
+        case PrincipalTypeEntity.USER_PRINCIPAL_TYPE:
+          principalTypeEntity.setName(PrincipalTypeEntity.USER_PRINCIPAL_TYPE_NAME);
+          break;
+        case PrincipalTypeEntity.GROUP_PRINCIPAL_TYPE:
+          principalTypeEntity.setName(PrincipalTypeEntity.GROUP_PRINCIPAL_TYPE_NAME);
+          break;
+        default:
+          throw new IllegalArgumentException("Unknown principal type ID=" + principalType);
+      }
+      create(principalTypeEntity);
+    }
+    return principalTypeEntity;
   }
 }
 

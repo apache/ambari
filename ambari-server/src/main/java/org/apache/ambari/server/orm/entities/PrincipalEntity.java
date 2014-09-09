@@ -44,7 +44,7 @@ import javax.persistence.TableGenerator;
     table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value"
     , pkColumnValue = "principal_id_seq"
     , initialValue = 2
-    , allocationSize = 1
+    , allocationSize = 500
 )
 @NamedQueries({
   @NamedQuery(name = "principalByPrivilegeId", query = "SELECT principal FROM PrincipalEntity principal JOIN principal.privileges privilege WHERE privilege.permission.id=:permission_id")

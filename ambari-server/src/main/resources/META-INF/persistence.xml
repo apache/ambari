@@ -75,7 +75,11 @@
       <!--<property name="javax.persistence.jdbc.driver" value="org.postgresql.Driver" />-->
       <property name="eclipselink.cache.size.default" value="10000" />
       <property name="eclipselink.jdbc.batch-writing" value="JDBC"/>
+      <property name="eclipselink.jdbc.batch-writing.size" value="4000"/>
+      <property name="eclipselink.jdbc.sequence-connection-pool" value="true" />
       <property name="eclipselink.weaving" value="static" />
+      
+      <!--<property name="eclipselink.logging.level.sql" value="FINEST" />-->
       <!--<property name="eclipselink.id-validation" value="NULL" />-->
 
     </properties>

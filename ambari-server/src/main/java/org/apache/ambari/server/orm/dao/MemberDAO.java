@@ -17,19 +17,23 @@
  */
 package org.apache.ambari.server.orm.dao;
 
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
 
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.MemberEntity;
+import org.apache.ambari.server.orm.entities.UserEntity;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
-import org.apache.ambari.server.orm.entities.UserEntity;
 
 @Singleton
 public class MemberDAO {
@@ -41,6 +45,18 @@ public class MemberDAO {
   @RequiresSession
   public MemberEntity findByPK(Integer memberPK) {
     return entityManagerProvider.get().find(MemberEntity.class, memberPK);
+  }
+
+  @RequiresSession
+  public MemberEntity findByUserAndGroup(String userName, String groupName) {
+    final TypedQuery<MemberEntity> query = entityManagerProvider.get().createNamedQuery("memberByUserAndGroup", MemberEntity.class);
+    query.setParameter("username", userName.toLowerCase());
+    query.setParameter("groupname", groupName.toLowerCase());
+    try {
+      return query.getSingleResult();
+    } catch (NoResultException e) {
+      return null;
+    }
   }
 
   @RequiresSession
@@ -57,7 +73,14 @@ public class MemberDAO {
 
   @Transactional
   public void create(MemberEntity member) {
-    entityManagerProvider.get().persist(member);
+    create(new HashSet<MemberEntity>(Arrays.asList(member)));
+  }
+
+  @Transactional
+  public void create(Set<MemberEntity> members) {
+    for (MemberEntity member: members) {
+      entityManagerProvider.get().persist(member);
+    }
   }
 
   @Transactional
@@ -68,6 +91,13 @@ public class MemberDAO {
   @Transactional
   public void remove(MemberEntity member) {
     entityManagerProvider.get().remove(merge(member));
+  }
+
+  @Transactional
+  public void remove(Set<MemberEntity> members) {
+    for (MemberEntity member: members) {
+      entityManagerProvider.get().remove(entityManagerProvider.get().merge(member));
+    }
   }
 
   @Transactional

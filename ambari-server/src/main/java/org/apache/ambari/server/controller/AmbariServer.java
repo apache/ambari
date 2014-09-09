@@ -76,11 +76,11 @@ import org.apache.ambari.server.scheduler.ExecutionScheduleManager;
 import org.apache.ambari.server.security.CertificateManager;
 import org.apache.ambari.server.security.SecurityFilter;
 import org.apache.ambari.server.security.authorization.AmbariLdapAuthenticationProvider;
-import org.apache.ambari.server.security.authorization.AmbariLdapDataPopulator;
 import org.apache.ambari.server.security.authorization.AmbariLocalUserDetailsService;
 import org.apache.ambari.server.security.authorization.Users;
 import org.apache.ambari.server.security.authorization.AmbariAuthorizationFilter;
 import org.apache.ambari.server.security.authorization.internal.AmbariInternalAuthenticationProvider;
+import org.apache.ambari.server.security.ldap.AmbariLdapDataPopulator;
 import org.apache.ambari.server.security.unsecured.rest.CertificateDownload;
 import org.apache.ambari.server.security.unsecured.rest.CertificateSign;
 import org.apache.ambari.server.security.unsecured.rest.ConnectionInfo;
@@ -461,8 +461,8 @@ public class AmbariServer {
       LOG.info("Database init needed - creating default data");
       Users users = injector.getInstance(Users.class);
 
-      users.createUser("admin", "admin", true, true);
-      users.createUser("user", "user", true, false);
+      users.createUser("admin", "admin");
+      users.createUser("user", "user");
 
       MetainfoEntity schemaVersion = new MetainfoEntity();
       schemaVersion.setMetainfoName(Configuration.SERVER_VERSION_KEY);

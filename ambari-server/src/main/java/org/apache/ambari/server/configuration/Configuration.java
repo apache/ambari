@@ -576,6 +576,20 @@ public class Configuration {
     properties.setProperty(CLIENT_SECURITY_KEY, type.toString());
   }
 
+  public void setLdap(String host, String userClass, String userNameAttr, String groupClass, String groupName, String groupMember,
+      String baseDN, boolean anon, String managerDN, String managerPass) {
+    properties.setProperty(LDAP_PRIMARY_URL_KEY, host);
+    properties.setProperty(LDAP_USER_OBJECT_CLASS_KEY, userClass);
+    properties.setProperty(LDAP_USERNAME_ATTRIBUTE_KEY, userNameAttr);
+    properties.setProperty(LDAP_GROUP_OBJECT_CLASS_KEY, groupClass);
+    properties.setProperty(LDAP_GROUP_NAMING_ATTR_KEY, groupName);
+    properties.setProperty(LDAP_GROUP_MEMEBERSHIP_ATTR_KEY, groupMember);
+    properties.setProperty(LDAP_BASE_DN_KEY, baseDN);
+    properties.setProperty(LDAP_BIND_ANONYMOUSLY_KEY, String.valueOf(anon));
+    properties.setProperty(LDAP_MANAGER_DN_KEY, managerDN);
+    properties.setProperty(LDAP_MANAGER_PASSWORD_KEY, managerPass);
+  }
+
   public String getWebAppDir() {
     LOG.info("Web App DIR test " + properties.getProperty(WEBAPP_DIR));
     return properties.getProperty(WEBAPP_DIR, "web");
