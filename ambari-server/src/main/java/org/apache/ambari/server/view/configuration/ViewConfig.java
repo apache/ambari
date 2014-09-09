@@ -68,6 +68,11 @@ public class ViewConfig {
   private String icon64;
 
   /**
+   * Indicates whether or not this is a system view.
+   */
+  private boolean system;
+
+  /**
    * The main view class name.
    */
   @XmlElement(name="view-class")
@@ -171,6 +176,15 @@ public class ViewConfig {
    */
   public String getIcon64() {
     return icon64;
+  }
+
+  /**
+   * Determine whether or not this is a system view.
+   *
+   * @return true if this is a system view
+   */
+  public boolean isSystem() {
+    return system;
   }
 
   /**

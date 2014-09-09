@@ -203,6 +203,7 @@ public class AmbariPrivilegeResourceProviderTest {
     expect(viewInstanceEntity.getViewEntity()).andReturn(viewEntity).anyTimes();
     expect(viewEntity.getCommonName()).andReturn("view").anyTimes();
     expect(viewEntity.getVersion()).andReturn("1.0.1").anyTimes();
+    expect(viewEntity.isLoaded()).andReturn(true).anyTimes();
     expect(viewInstanceEntity.getName()).andReturn("inst1").anyTimes();
     expect(viewInstanceEntity.getResource()).andReturn(viewResourceEntity).anyTimes();
     expect(viewUserEntity.getPrincipal()).andReturn(viewPrincipalEntity).anyTimes();
