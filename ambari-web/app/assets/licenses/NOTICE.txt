@@ -10,7 +10,7 @@ This product includes Ember.js (http://emberjs.com - https://github.com/emberjs/
 Copyright (c) 2011, Yehuda Katz, Tom Dale, Charles Jolley and Ember.js contributors
 
 This product was generated using Brunch (https://github.com/brunch/brunch/blob/master/LICENSE)
-Copyright (c) 2011, Allan Berger, Jan Monschke, Martin Schürrer, Thomas Schranz, Nik Graf, Paul Miller
+Copyright (c) 2011, Allan Berger, Jan Monschke, Martin Sch\u00FCrrer, Thomas Schranz, Nik Graf, Paul Miller
 
 This product includes Twitter Bootstrap 2 (http://twitter.github.com/bootstrap/ - Apache License v2.0.)
 
@@ -43,5 +43,3 @@ This product includes Spin.js (http://fgnass.github.com/spin.js/ - MIT license)
 Copyright (c) 2011 Felix Gnass [fgnass at neteye dot de]
 
 This product includes Moment.js (https://github.com/moment/moment/ - MIT license)
-
-This product includes iframeAutoHeight.js (http://github.com/house9/jquery-iframe-auto-height - MIT license)
