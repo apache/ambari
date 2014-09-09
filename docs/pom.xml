@@ -122,6 +122,18 @@
             </organization>
         </developer>
         <developer>
+            <id>alejandro</id>
+            <name>Alejandro Fernandez</name>
+            <email>alejandro@apache.org</email>
+            <timezone>-8</timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+                Hortonworks
+            </organization>
+        </developer>
+        <developer>
             <id>aonishuk</id>
             <name>Andrew Onischuk</name>
             <email>aonishuk@apache.org</email>
@@ -259,7 +271,7 @@
                 <role>Committer</role>
             </roles>
             <organization>
-                 Redhat
+                 Red Hat
             </organization>
         </developer>
         <developer>
@@ -499,7 +511,7 @@
                 <role>PMC</role>
             </roles>
             <organization>
-                Redhat
+                Red Hat
             </organization>
         </developer>
         <developer>
@@ -589,28 +601,30 @@
       </developers>
       <contributors>
          <contributor>
-         <name>Scott Creeley</name>
-         <organization>Redhat</organization>
+           <name>Scott Creeley</name>
+           <organization>Red Hat</organization>
          </contributor>
          <contributor>
-         <name>Michael Harp</name>
-         <organization>Teradata</organization>
+           <name>Michael Harp</name>
+           <organization>Teradata</organization>
          </contributor>
          <contributor>
-         <name>Janos Matyas</name>
-         <organization>SequenceIQ</organization>
+           <name>Janos Matyas</name>
+           <organization>SequenceIQ</organization>
          </contributor>
          <contributor>
-         <name>Greg Hill</name>
-         <organization>Rackspace</organization>
+           <name>Greg Hill</name>
+           <organization>Rackspace</organization>
          </contributor>
          <contributor>
-         <name>Steve Ratay</name>
-         <organization>Teradata</organization>
+           <name>Steve Ratay</name>
+           <organization>Teradata</organization>
+         </contributor>
+         <contributor>
+           <name>Jun Aoki</name>
+           <organization>Pivotal</organization>
          </contributor>
        </contributors>
-
-
 
     <organization>
         <name>Apache Software Foundation</name>
