@@ -30,7 +30,7 @@ Copyright (c) 2012, Michael Bostock.
 This product includes bootstrap-datepicker.js (http://www.eyecon.ro/bootstrap-datepicker - Apache License, Version 2.0)
 Copyright (c) 2012 Stefan Petre
 
-This product includes Font Awesome 3.2.1 (http://fortawesome.github.com/Font-Awesome - Creative Commons 3.0)
+This product includes Font Awesome 3.2.1 (http://fortawesome.github.com/Font-Awesome - SIL OFL 1.1)
 Copyright (c) 2013 Dave Gandy
 
 This product includes Rickshaw 1.1.2 (http://code.shutterstock.com/rickshaw/ - MIT License)
