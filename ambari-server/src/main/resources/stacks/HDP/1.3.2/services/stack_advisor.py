@@ -19,6 +19,7 @@ limitations under the License.
 
 import re
 import sys
+from math import ceil
 
 from stack_advisor import DefaultStackAdvisor
 
@@ -146,19 +147,21 @@ class HDP132StackAdvisor(DefaultStackAdvisor):
       24 < cluster["ram"]: 2048
     }[1]
 
+    totalAvailableRam = cluster["ram"] - cluster["reservedRam"]
+    if cluster["hBaseInstalled"]:
+      totalAvailableRam -= cluster["hbaseRam"]
+    cluster["totalAvailableRam"] = max(2048, totalAvailableRam * 1024)
     '''containers = max(3, min (2*cores,min (1.8*DISKS,(Total available RAM) / MIN_CONTAINER_SIZE))))'''
-    cluster["containers"] = max(3,
-                                min(2 * cluster["cpu"],
-                                    int(min(1.8 * cluster["disk"],
-                                            cluster["ram"] / cluster["minContainerSize"]))))
+    cluster["containers"] = round(max(3,
+                                      min(2 * cluster["cpu"],
+                                          min(ceil(1.8 * cluster["disk"]),
+                                              cluster["totalAvailableRam"] / cluster["minContainerSize"]))))
 
     '''ramPerContainers = max(2GB, RAM - reservedRam - hBaseRam) / containers'''
-    cluster["ramPerContainer"] = max(2048,
-                                     cluster["ram"] - cluster["reservedRam"] - cluster["hbaseRam"])
-    cluster["ramPerContainer"] /= cluster["containers"]
+    cluster["ramPerContainer"] = abs(cluster["totalAvailableRam"] / cluster["containers"])
     '''If greater than 1GB, value will be in multiples of 512.'''
     if cluster["ramPerContainer"] > 1024:
-      cluster["ramPerContainer"] = ceil(cluster["ramPerContainer"] / 512) * 512
+      cluster["ramPerContainer"] = int(cluster["ramPerContainer"] / 512) * 512
 
     cluster["mapMemory"] = int(cluster["ramPerContainer"])
     cluster["reduceMemory"] = cluster["ramPerContainer"]

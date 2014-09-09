@@ -39,17 +39,17 @@ class HDP21StackAdvisor(HDP206StackAdvisor):
                         "org.apache.oozie.service.HCatAccessorService")
 
   def recommendHiveConfigurations(self, configurations, clusterData):
-    containerSize = clusterData['mapMemory'] if clusterData['mapMemory'] > 2048 else clusterData['reduceMemory']
+    containerSize = clusterData['mapMemory'] if clusterData['mapMemory'] > 2048 else int(clusterData['reduceMemory'])
     containerSize = min(clusterData['containers'] * clusterData['ramPerContainer'], containerSize)
     putHiveProperty = self.putProperty(configurations, "hive-site")
-    putHiveProperty('hive.auto.convert.join.noconditionaltask.size', int(containerSize / 3) * 1048576)
-    putHiveProperty('hive.tez.java.opts', "-server -Xmx" + str(int(0.8 * containerSize))
+    putHiveProperty('hive.auto.convert.join.noconditionaltask.size', int(round(containerSize / 3)) * 1048576)
+    putHiveProperty('hive.tez.java.opts', "-server -Xmx" + str(int(round(0.8 * containerSize)))
                     + "m -Djava.net.preferIPv4Stack=true -XX:NewRatio=8 -XX:+UseNUMA -XX:+UseParallelGC")
     putHiveProperty('hive.tez.container.size', containerSize)
 
   def recommendTezConfigurations(self, configurations, clusterData):
     putTezProperty = self.putProperty(configurations, "tez-site")
-    putTezProperty("tez.am.resource.memory.mb", clusterData['amMemory'])
+    putTezProperty("tez.am.resource.memory.mb", int(clusterData['amMemory']))
     putTezProperty("tez.am.java.opts",
                    "-server -Xmx" + str(int(0.8 * clusterData["amMemory"]))
                    + "m -Djava.net.preferIPv4Stack=true -XX:+UseNUMA -XX:+UseParallelGC")
