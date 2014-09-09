@@ -259,7 +259,8 @@ App.StackService.configCategories = function () {
       break;
     case 'MAPREDUCE2':
       serviceConfigCategories.pushObjects([
-        App.ServiceConfigCategory.create({ name: 'HISTORYSERVER', displayName: 'History Server'})
+        App.ServiceConfigCategory.create({ name: 'HISTORYSERVER', displayName: 'History Server'}),
+        App.ServiceConfigCategory.create({ name: 'General', displayName: 'General'})
       ]);
       break;
     case 'HIVE':
