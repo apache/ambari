@@ -20,10 +20,10 @@
     <div class="panel-heading"><span class="glyphicon glyphicon-cloud"></span> Clusters</div>
     <div class="panel-body">
       <div ng-show="cluster">
-        <div ng-switch on="editCluster.editingName">
-          <h5 ng-switch-when="false">{{cluster.Clusters.cluster_name}}
+        <div id="cluster-name"  ng-switch on="editCluster.editingName">
+          <h4 ng-switch-when="false">{{cluster.Clusters.cluster_name}}
             <i ng-click="toggleEditName()" class="glyphicon glyphicon-edit pull-right edit-cluster-name" tooltip="Rename Cluster"></i>
-          </h5>
+          </h4>
 
           <form ng-keyup="toggleEditName($event)" tabindex="1" name="editClusterNameForm" class="editClusterNameForm" ng-switch-when="true"
                 ng-submit="editCluster.name !== cluster.Clusters.cluster_name && editClusterNameForm.newClusterName.$valid && confirmClusterNameChange()">
@@ -89,7 +89,7 @@
         <li ng-class="{active: isActive('groups.list')}"><link-to route="groups.list" class="groupslist-link">Groups</link-to></li>
       </ul>
       <hr>
-      <div ng-switch="isLDAPConfigured">
+      <div id="LDAP-button" ng-switch="isLDAPConfigured">
         <a ng-switch-when="true" href class="btn btn-primary btn-block syncldapbtn" ng-click="syncLDAP()">
           <span class="glyphicon glyphicon-transfer pulldown2"></span> Sync LDAP
         </a>

@@ -229,17 +229,43 @@
 
 .left-navbar .panel{
   border-radius: 0;
+  font-size: 15px;
+}
+.left-navbar .panel-heading {
+  padding: 8px 15px;
+  font-weight: bold;
+}
+.left-navbar .panel-body {
+  padding: 5px 15px;
+}
+.left-navbar .panel-body #cluster-name input{
+  font-size: 17px;
+}
+.left-navbar .panel-body #cluster-name form{
+  margin-top: 4px;
+  margin-bottom: -10px;
+}
+.left-navbar .panel-body h4 .glyphicon{
+  font-size: 14px;
+}
+.left-navbar .panel-body #LDAP-button {
+  padding: 5px;
+}
+.left-navbar .panel-body hr{
+  margin-top: 5px;
+  margin-bottom: 5px;
 }
 .left-navbar .panel-body li{
   margin: 0 -15px;
 }
 .left-navbar .panel-body li a{
   border-radius: 0;
-  padding-left: 30px;
+  padding-left: 33px;
+  padding-top: 8px;
+  padding-bottom: 8px;
 }
 .left-navbar .panel-body li.active a{
   background: #666;
-  
 }
 
 .search-container{
