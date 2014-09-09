@@ -429,6 +429,10 @@ describe('App.MainHostDetailsController', function () {
       expect(controller.constructConfigUrlParams(data)).to.eql([]);
     });
     it('isHaEnabled = true', function () {
+      App.store.load(App.Service, {
+        id: 'HDFS',
+        service_name: 'HDFS'
+      });
       var data = {Clusters: {desired_configs: {'core-site': {tag: 1}}}};
       App.HostComponent.find().clear();
       App.set('currentStackVersion', 'HDP-2.0.2');
@@ -540,7 +544,6 @@ describe('App.MainHostDetailsController', function () {
   });
 
   describe('#setZKConfigs()', function () {
-
     it('configs is null', function () {
       expect(controller.setZKConfigs(null)).to.be.false;
     });
@@ -550,6 +553,10 @@ describe('App.MainHostDetailsController', function () {
     it('isHaEnabled = true', function () {
       var configs = {'core-site': {}};
       App.HostComponent.find().clear();
+      App.store.load(App.Service, {
+        id: 'HDFS',
+        service_name: 'HDFS'
+      });
       App.set('currentStackVersion', 'HDP-2.0.2');
       expect(controller.setZKConfigs(configs, 'host1:2181', [])).to.be.true;
       expect(configs).to.eql({"core-site": {
