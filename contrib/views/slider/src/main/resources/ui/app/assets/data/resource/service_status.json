@@ -1,0 +1,107 @@
+
+{
+  "items" : [
+    {
+      "ServiceInfo" : {
+        "service_name" : "FALCON",
+        "state" : "STARTED"
+      }
+    },
+    {
+      "ServiceInfo" : {
+        "service_name" : "FLUME",
+        "state" : "STARTED"
+      }
+    },
+    {
+      "ServiceInfo" : {
+        "service_name" : "GANGLIA",
+        "state" : "STARTED"
+      }
+    },
+    {
+      "ServiceInfo" : {
+        "service_name" : "HBASE",
+        "state" : "STARTED"
+      }
+    },
+    {
+      "ServiceInfo" : {
+        "service_name" : "HCATALOG",
+        "state" : "INSTALLED"
+      }
+    },
+    {
+      "ServiceInfo" : {
+        "service_name" : "HDFS",
+        "state" : "STARTED"
+      }
+    },
+    {
+      "ServiceInfo" : {
+        "service_name" : "HIVE",
+        "state" : "INSTALLED"
+      }
+    },
+    {
+      "ServiceInfo" : {
+        "service_name" : "MAPREDUCE2",
+        "state" : "STARTED"
+      }
+    },
+    {
+      "ServiceInfo" : {
+        "service_name" : "NAGIOS",
+        "state" : "STARTED"
+      }
+    },
+    {
+      "ServiceInfo" : {
+        "service_name" : "OOZIE",
+        "state" : "STARTED"
+      }
+    },
+    {
+      "ServiceInfo" : {
+        "service_name" : "PIG",
+        "state" : "INSTALLED"
+      }
+    },
+    {
+      "ServiceInfo" : {
+        "service_name" : "SQOOP",
+        "state" : "INSTALLED"
+      }
+    },
+    {
+      "ServiceInfo" : {
+        "service_name" : "STORM",
+        "state" : "STARTED"
+      }
+    },
+    {
+      "ServiceInfo" : {
+        "service_name" : "TEZ",
+        "state" : "INSTALLED"
+      }
+    },
+    {
+      "ServiceInfo" : {
+        "service_name" : "WEBHCAT",
+        "state" : "STARTED"
+      }
+    },
+    {
+      "ServiceInfo" : {
+        "service_name" : "YARN",
+        "state" : "STARTED"
+      }
+    },
+    {
+      "ServiceInfo" : {
+        "service_name" : "ZOOKEEPER",
+        "state" : "STARTED"
+      }
+    }
+  ]
+}

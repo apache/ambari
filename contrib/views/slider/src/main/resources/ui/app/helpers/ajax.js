@@ -53,6 +53,19 @@ var urls = {
     mock: '/data/resource/status_true.json'
   },
 
+  'saveInitialValues': {
+    real: '',
+    headers: {
+      "Content-Type": "text/plain; charset=utf-8"
+    },
+    format: function(data) {
+      return {
+        type: 'PUT',
+        data: JSON.stringify(data.data)
+      }
+    }
+  },
+
   'createNewApp': {
     real: 'apps',
     mock: '',
@@ -104,9 +117,34 @@ var urls = {
     }
   },
 
+  'service_status': {
+    real: 'clusters/{clusterName}/services?fields=ServiceInfo/state&minimal_response=true',
+    mock:'/data/resource/service_status.json',
+    headers: {
+      Accept : "text/plain; charset=utf-8",
+      "Content-Type": "text/plain; charset=utf-8"
+    }
+  },
+
   'components_hosts': {
     real: 'clusters/{clusterName}/hosts?host_components/HostRoles/component_name={componentName}&minimal_response=true',
     mock:'/data/resource/components_hosts.json',
+    headers: {
+      Accept : "text/plain; charset=utf-8",
+      "Content-Type": "text/plain; charset=utf-8"
+    }
+  },
+
+  'config.tags': {
+    'real': 'clusters/{clusterName}?fields=Clusters/desired_configs',
+    headers: {
+      Accept : "text/plain; charset=utf-8",
+      "Content-Type": "text/plain; charset=utf-8"
+    }
+  },
+
+  'get_all_configurations': {
+    'real': 'clusters/{clusterName}/configurations?{urlParams}',
     headers: {
       Accept : "text/plain; charset=utf-8",
       "Content-Type": "text/plain; charset=utf-8"
@@ -190,7 +228,7 @@ var formatRequest = function (data) {
     if(Em.get(data, 'urlPrefix')){
       var prefix = Em.get(data, 'urlPrefix');
     }
-    opt.url = prefix + formatUrl(this.real, data);
+    opt.url = prefix + (formatUrl(this.real, data) ? formatUrl(this.real, data) : "");
   }
 
   if (this.format) {
