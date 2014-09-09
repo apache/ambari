@@ -752,6 +752,21 @@ module.exports =
       "category": "ZooKeeper Server",
       "component": "ZOOKEEPER_SERVER"
     },
+    {
+      "id": "puppet var",
+      "name": "zookeeper_keytab_path",
+      "displayName": "Path to keytab file",
+      "value": "",
+      "defaultValue": "/etc/security/keytabs/zk.service.keytab",
+      "description": "Path to ZooKeeper keytab file",
+      "displayType": "directory",
+      "isVisible": true,
+      "isOverridable": false,
+      "serviceName": "ZOOKEEPER",
+      "filename": "zookeeper-env.xml",
+      "category": "ZooKeeper Server",
+      "component": "ZOOKEEPER_SERVER"
+    },
     //NAGIOS
     {
       "id": "puppet var",
