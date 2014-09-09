@@ -39,52 +39,15 @@ def hive(name=None):
                          mode=params.hive_hdfs_user_mode
     )
     params.HdfsDirectory(None, action="create")
+  
+  # We should change configurations for client as well as for server.
+  # The reason is that stale-configs are service-level, not component.
+  for conf_dir in params.hive_conf_dirs_list:
+    fill_conf_dir(conf_dir)
+    
   if name == 'metastore' or name == 'hiveserver2':
     jdbc_connector()
-
-  Directory(params.hive_conf_dir,
-            owner=params.hive_user,
-            group=params.user_group,
-            recursive=True
-  )
-  Directory(params.hive_server_conf_dir,
-            owner=params.hive_user,
-            group=params.user_group,
-            recursive=True
-  )
-
-  XmlConfig("mapred-site.xml",
-            conf_dir=params.hive_conf_dir,
-            configurations=params.config['configurations']['mapred-site'],
-            configuration_attributes=params.config['configuration_attributes']['mapred-site'],
-            owner=params.hive_user,
-            group=params.user_group,
-            mode=0644)
-
-  XmlConfig("hive-site.xml",
-            conf_dir=params.hive_conf_dir,
-            configurations=params.config['configurations']['hive-site'],
-            configuration_attributes=params.config['configuration_attributes']['hive-site'],
-            owner=params.hive_user,
-            group=params.user_group,
-            mode=0644)
-
-  XmlConfig("mapred-site.xml",
-            conf_dir=params.hive_server_conf_dir,
-            configurations=params.config['configurations']['mapred-site'],
-            configuration_attributes=params.config['configuration_attributes']['mapred-site'],
-            owner=params.hive_user,
-            group=params.user_group,
-            mode=0600)
-
-  XmlConfig("hive-site.xml",
-            conf_dir=params.hive_server_conf_dir,
-            configurations=params.config['configurations']['hive-site'],
-            configuration_attributes=params.config['configuration_attributes']['hive-site'],
-            owner=params.hive_user,
-            group=params.user_group,
-            mode=0600)
-
+    
   environment = {
     "no_proxy": format("{ambari_server_hostname}")
   }
@@ -98,31 +61,19 @@ def hive(name=None):
           not_if=format("[ -f {check_db_connection_jar_name}]"),
           environment = environment)
 
-  File(format("{hive_conf_dir}/hive-env.sh"),
-       owner=params.hive_user,
-       group=params.user_group,
-       content=InlineTemplate(params.hive_env_sh_template)
-  )
-
-  File(format("{hive_server_conf_dir}/hive-env.sh"),
-       owner=params.hive_user,
-       group=params.user_group,
-       content=InlineTemplate(params.hive_env_sh_template)
-  )
-
   if name == 'metastore':
     File(params.start_metastore_path,
          mode=0755,
          content=StaticFile('startMetastore.sh')
     )
     if params.init_metastore_schema:
-      create_schema_cmd = format("export HIVE_CONF_DIR={hive_config_dir} ; "
+      create_schema_cmd = format("export HIVE_CONF_DIR={hive_server_conf_dir} ; "
                                  "{hive_bin}/schematool -initSchema "
                                  "-dbType {hive_metastore_db_type} "
                                  "-userName {hive_metastore_user_name} "
                                  "-passWord {hive_metastore_user_passwd!p}")
 
-      check_schema_created_cmd = format("export HIVE_CONF_DIR={hive_config_dir} ; "
+      check_schema_created_cmd = format("export HIVE_CONF_DIR={hive_server_conf_dir} ; "
                                         "{hive_bin}/schematool -info "
                                         "-dbType {hive_metastore_db_type} "
                                         "-userName {hive_metastore_user_name} "
@@ -141,40 +92,71 @@ def hive(name=None):
     crt_directory(params.hive_pid_dir)
     crt_directory(params.hive_log_dir)
     crt_directory(params.hive_var_lib)
+    
+def fill_conf_dir(component_conf_dir):
+  import params
+  
+  Directory(component_conf_dir,
+            owner=params.hive_user,
+            group=params.user_group,
+            recursive=True
+  )
 
-  crt_file(format("{hive_conf_dir}/hive-default.xml.template"))
-  crt_file(format("{hive_conf_dir}/hive-env.sh.template"))
+  XmlConfig("mapred-site.xml",
+            conf_dir=component_conf_dir,
+            configurations=params.config['configurations']['mapred-site'],
+            configuration_attributes=params.config['configuration_attributes']['mapred-site'],
+            owner=params.hive_user,
+            group=params.user_group,
+            mode=0644)
+
+  XmlConfig("hive-site.xml",
+            conf_dir=component_conf_dir,
+            configurations=params.config['configurations']['hive-site'],
+            configuration_attributes=params.config['configuration_attributes']['hive-site'],
+            owner=params.hive_user,
+            group=params.user_group,
+            mode=0644)
+  
+  File(format("{component_conf_dir}/hive-env.sh"),
+       owner=params.hive_user,
+       group=params.user_group,
+       content=InlineTemplate(params.hive_env_sh_template)
+  )
+  
+  crt_file(format("{component_conf_dir}/hive-default.xml.template"))
+  crt_file(format("{component_conf_dir}/hive-env.sh.template"))
 
   log4j_exec_filename = 'hive-exec-log4j.properties'
   if (params.log4j_exec_props != None):
-    File(format("{params.hive_conf_dir}/{log4j_exec_filename}"),
+    File(format("{component_conf_dir}/{log4j_exec_filename}"),
          mode=0644,
          group=params.user_group,
          owner=params.hive_user,
          content=params.log4j_exec_props
     )
-  elif (os.path.exists("{params.hive_conf_dir}/{log4j_exec_filename}.template")):
-    File(format("{params.hive_conf_dir}/{log4j_exec_filename}"),
+  elif (os.path.exists("{component_conf_dir}/{log4j_exec_filename}.template")):
+    File(format("{component_conf_dir}/{log4j_exec_filename}"),
          mode=0644,
          group=params.user_group,
          owner=params.hive_user,
-         content=StaticFile(format("{params.hive_conf_dir}/{log4j_exec_filename}.template"))
+         content=StaticFile(format("{component_conf_dir}/{log4j_exec_filename}.template"))
     )
 
   log4j_filename = 'hive-log4j.properties'
   if (params.log4j_props != None):
-    File(format("{params.hive_conf_dir}/{log4j_filename}"),
+    File(format("{component_conf_dir}/{log4j_filename}"),
          mode=0644,
          group=params.user_group,
          owner=params.hive_user,
          content=params.log4j_props
     )
-  elif (os.path.exists("{params.hive_conf_dir}/{log4j_filename}.template")):
-    File(format("{params.hive_conf_dir}/{log4j_filename}"),
+  elif (os.path.exists("{component_conf_dir}/{log4j_filename}.template")):
+    File(format("{component_conf_dir}/{log4j_filename}"),
          mode=0644,
          group=params.user_group,
          owner=params.hive_user,
-         content=StaticFile(format("{params.hive_conf_dir}/{log4j_filename}.template"))
+         content=StaticFile(format("{component_conf_dir}/{log4j_filename}.template"))
     )
 
 

@@ -36,7 +36,7 @@ def hcat():
   )
 
   XmlConfig("hive-site.xml",
-            conf_dir=params.hive_conf_dir,
+            conf_dir=params.hive_client_conf_dir,
             configurations=params.config['configurations']['hive-site'],
             configuration_attributes=params.config['configuration_attributes']['hive-site'],
             owner=params.hive_user,
