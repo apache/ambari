@@ -623,7 +623,7 @@ App.WizardStep5Controller = Em.Controller.extend(App.BlueprintMixin, {
 
     var componentObj = {};
     componentObj.component_name = componentName;
-    componentObj.display_name = fullComponent.get('displayName');
+    componentObj.display_name = App.format.role(fullComponent.get('componentName'));
     componentObj.serviceId = fullComponent.get('serviceName');
     componentObj.isServiceCoHost = App.StackServiceComponent.find().findProperty('componentName', componentName).get('isCoHostedComponent') && !this.get('isReassignWizard');
 

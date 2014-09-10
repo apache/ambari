@@ -27,6 +27,7 @@
 
         <component>
           <name>APP_TIMELINE_SERVER</name>
+          <displayName>App Timeline Server</displayName>
           <category>MASTER</category>
           <cardinality>1</cardinality>
           <commandScript>
