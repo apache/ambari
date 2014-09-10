@@ -72,6 +72,7 @@ App.CreateAppWizardStep2Controller = Ember.ArrayController.extend({
   initializeNewApp: function () {
     var newApp = this.get('appWizardController.newApp');
     this.set('newApp', newApp);
+    this.loadTypeComponents();
   },
 
   /**
@@ -94,7 +95,7 @@ App.CreateAppWizardStep2Controller = Ember.ArrayController.extend({
       });
       this.set('content', content);
     }
-  }.observes('newApp.appType.components.length'),
+  },
 
   /**
    * Check if param is integer
