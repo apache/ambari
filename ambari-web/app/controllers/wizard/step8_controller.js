@@ -648,7 +648,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, {
         // skip components that was hide on assign master page
         if (component.get('isMaster') && !component.get('isShownOnInstallerAssignMasterPage')) return;
         // no HA component
-        if (App.get('isHaEnabled') && component.get('isHAComponentOnly')) return;
+        if (component.get('isHAComponentOnly')) return;
         var displayName;
         if (component.get('isClient')) {
           displayName = Em.I18n.t('common.clients')
@@ -693,9 +693,9 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, {
       }
       else {
         console.log(' --- ---INFO: step8: NOT component isMaster');
+        var componentName = component.get('isClient') ? Em.I18n.t('common.client').toUpperCase() : component.get('componentName');
         var hostsLength = this.get('content.slaveComponentHosts')
-          .findProperty('componentName', component.get('isClient') ? Em.I18n.t('common.client').toUpperCase() : component.get('componentName'))
-          .hosts.length;
+          .findProperty('componentName', componentName).hosts.length;
         componentValue = hostsLength + Em.I18n.t('installer.step8.host' + ((hostsLength > 1) ? 's' : ''));
       }
     }

@@ -24,6 +24,7 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.internal.RequestStageContainer;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
 import org.apache.ambari.server.scheduler.ExecutionScheduleManager;
+import org.apache.ambari.server.security.ldap.LdapSyncDto;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ConfigHelper;
@@ -36,6 +37,7 @@ import org.apache.ambari.server.state.ServiceFactory;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -689,20 +691,12 @@ public interface AmbariManagementController {
   public boolean checkLdapConfigured();
 
   /**
-   * Retrieves users from external LDAP.
+   * Retrieves groups and users from external LDAP.
    *
-   * @return key-value pairs UserName-Synced
+   * @return ldap sync DTO
    * @throws AmbariException if LDAP is configured incorrectly
    */
-  public Map<String, Boolean> getLdapUsersSyncInfo() throws AmbariException;
-
-  /**
-   * Retrieves groups from external LDAP.
-   *
-   * @return key-value pairs GroupName-Synced
-   * @throws AmbariException if LDAP is configured incorrectly
-   */
-  public Map<String, Boolean> getLdapGroupsSyncInfo() throws AmbariException;
+  public LdapSyncDto getLdapSyncInfo() throws AmbariException;
 
   /**
    * Synchronizes local users and groups with given data.

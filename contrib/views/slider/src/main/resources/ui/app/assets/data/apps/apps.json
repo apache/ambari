@@ -18,6 +18,68 @@
       "version" : "1.0.0",
       "view_name" : "SLIDER",
       "yarnId" : "application_1409333994422_0005",
+      "alerts" : {
+        "detail" : [
+          {
+            "description" : "alert1",
+            "host_name" : "с6402.ambari.apache.org",
+            "last_status" : "CRITICAL",
+            "last_status_time" : 1409689349,
+            "service_name" : "HBASE",
+            "status" : "OK",
+            "status_time" : 1409703869,
+            "output" : "Connection refused",
+            "actual_status" : "CRITICAL"
+          },
+          {
+            "description" : "alert2",
+            "host_name" : "с6402.ambari.apache.org",
+            "last_status" : "OK",
+            "last_status_time" : 1409334745,
+            "service_name" : "HBASE",
+            "status" : "WARNING",
+            "status_time" : 1409703865,
+            "output" : "TCP OK - 0.001 second response time on port 9083",
+            "actual_status" : "OK"
+          },
+          {
+            "description" : "NameNode edit logs directory status on dev01.hortonworks.com",
+            "host_name" : "dev01.hortonworks.com",
+            "last_status" : "WARNING",
+            "last_status_time" : 1389788011,
+            "service_name" : "HBASE",
+            "status" : "CRITICAL",
+            "status_time" : 1389793171,
+            "output" : "WARNING: NameNode directory status not available via http://dev01.hortonworks.com:50070/jmx url, code 0"
+          },
+          {
+            "description" : "NameNode host CPU utilization on dev01.hortonworks.com",
+            "host_name" : "dev01.hortonworks.com",
+            "last_status" : "OK",
+            "last_status_time" : 1389636534,
+            "service_name" : "HBASE",
+            "status" : "PASSIVE",
+            "status_time" : 1389793060,
+            "output" : "1 CPU, load 19.0% &lt; 200% : OK"
+          },
+          {
+            "description" : "App Timeline Server Web UI",
+            "host_name" : "dev01.hortonworks.com",
+            "last_status" : "WARNING",
+            "last_status_time" : 1389636534,
+            "service_name" : "HBASE",
+            "status" : "UNKNOWN",
+            "status_time" : 1389793060,
+            "output" : "1 CPU, load 19.0% &lt; 200% : OK"
+          }
+        ],
+        "summary" : {
+          "CRITICAL" : 1,
+          "OK" : 1,
+          "PASSIVE" : 0,
+          "WARNING" : 0
+        }
+      },
       "components" : {
         "HBASE_MASTER" : {
           "componentName" : "HBASE_MASTER",
@@ -403,6 +465,68 @@
       "version" : "1.0.0",
       "view_name" : "SLIDER",
       "yarnId" : "application_1409333994422_0009",
+      "alerts" : {
+        "detail" : [
+          {
+            "description" : "alert1",
+            "host_name" : "с6402.ambari.apache.org",
+            "last_status" : "CRITICAL",
+            "last_status_time" : 1409689349,
+            "service_name" : "HBASE",
+            "status" : "OK",
+            "status_time" : 1409703869,
+            "output" : "Connection refused",
+            "actual_status" : "CRITICAL"
+          },
+          {
+            "description" : "alert2",
+            "host_name" : "с6402.ambari.apache.org",
+            "last_status" : "OK",
+            "last_status_time" : 1409334745,
+            "service_name" : "HBASE",
+            "status" : "WARNING",
+            "status_time" : 1409703865,
+            "output" : "TCP OK - 0.001 second response time on port 9083",
+            "actual_status" : "OK"
+          },
+          {
+            "description" : "NameNode edit logs directory status on dev01.hortonworks.com",
+            "host_name" : "dev01.hortonworks.com",
+            "last_status" : "WARNING",
+            "last_status_time" : 1389788011,
+            "service_name" : "HBASE",
+            "status" : "CRITICAL",
+            "status_time" : 1389793171,
+            "output" : "WARNING: NameNode directory status not available via http://dev01.hortonworks.com:50070/jmx url, code 0"
+          },
+          {
+            "description" : "NameNode host CPU utilization on dev01.hortonworks.com",
+            "host_name" : "dev01.hortonworks.com",
+            "last_status" : "OK",
+            "last_status_time" : 1389636534,
+            "service_name" : "HBASE",
+            "status" : "PASSIVE",
+            "status_time" : 1389793060,
+            "output" : "1 CPU, load 19.0% &lt; 200% : OK"
+          },
+          {
+            "description" : "App Timeline Server Web UI",
+            "host_name" : "dev01.hortonworks.com",
+            "last_status" : "WARNING",
+            "last_status_time" : 1389636534,
+            "service_name" : "HBASE",
+            "status" : "UNKNOWN",
+            "status_time" : 1389793060,
+            "output" : "1 CPU, load 19.0% &lt; 200% : OK"
+          }
+        ],
+        "summary" : {
+          "CRITICAL" : 1,
+          "OK" : 1,
+          "PASSIVE" : 0,
+          "WARNING" : 0
+        }
+      },
       "components" : {
         "HBASE_MASTER" : {
           "componentName" : "HBASE_MASTER",

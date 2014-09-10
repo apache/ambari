@@ -20,6 +20,7 @@ package org.apache.ambari.server.orm.entities;
 import javax.persistence.*;
 
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Set;
 
 @Table(name = "users", uniqueConstraints = {@UniqueConstraint(columnNames = {"user_name", "ldap_user"})})
@@ -32,7 +33,7 @@ import java.util.Set;
     table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value"
     , pkColumnValue = "user_id_seq"
     , initialValue = 2
-    , allocationSize = 1
+    , allocationSize = 500
     )
 public class UserEntity {
 
@@ -60,7 +61,7 @@ public class UserEntity {
   private Integer active = 1;
 
   @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-  private Set<MemberEntity> memberEntities;
+  private Set<MemberEntity> memberEntities = new HashSet<MemberEntity>();
 
   @OneToOne
   @JoinColumns({

@@ -174,7 +174,7 @@ class TestHDP206StackAdvisor(TestCase):
     result = self.stackAdvisor.validateConfigurations(services, hosts)
 
     expectedItems = [
-      {"message": "Value is less than the recommended default of 2046", "level": "WARN"},
+      {"message": "Value is less than the recommended default of 2048", "level": "WARN"},
       {"message": "Value should be integer", "level": "ERROR"},
       {"message": "Value should be set", "level": "ERROR"}
     ]
@@ -235,6 +235,161 @@ class TestHDP206StackAdvisor(TestCase):
     ]
     self.assertValidationResult(expectedItems, result)
 
+  def test_getClusterData_withHBaseAnd6gbRam(self):
+    servicesList = ["HBASE"]
+    components = []
+    hosts = {
+      "items" : [
+        {
+          "Hosts" : {
+            "cpu_count" : 8,
+            "total_mem" : 6291456,
+            "disk_info" : [
+              {"mountpoint" : "/"},
+              {"mountpoint" : "/dev/shm"},
+              {"mountpoint" : "/vagrant"},
+              {"mountpoint" : "/"},
+              {"mountpoint" : "/dev/shm"},
+              {"mountpoint" : "/"},
+              {"mountpoint" : "/dev/shm"},
+              {"mountpoint" : "/vagrant"}
+            ]
+          }
+        }
+      ]
+    }
+    expected = {
+      "hBaseInstalled": True,
+      "components": components,
+      "cpu": 8,
+      "disk": 8,
+      "ram": 6,
+      "reservedRam": 2,
+      "hbaseRam": 1,
+      "minContainerSize": 512,
+      "totalAvailableRam": 3072,
+      "containers": 6,
+      "ramPerContainer": 512,
+      "mapMemory": 512,
+      "reduceMemory": 512,
+      "amMemory": 512
+    }
+
+    result = self.stackAdvisor.getClusterData(servicesList, hosts, components)
+
+    self.assertEquals(result, expected)
+
+  def test_getClusterData_withHBaseAnd48gbRam(self):
+    servicesList = ["HBASE"]
+    components = []
+    hosts = {
+      "items" : [
+        {
+          "Hosts" : {
+            "cpu_count" : 6,
+            "total_mem" : 50331648,
+            "disk_info" : [
+              {"mountpoint" : "/"},
+              {"mountpoint" : "/dev/shm"},
+              {"mountpoint" : "/vagrant"},
+              {"mountpoint" : "/"},
+              {"mountpoint" : "/dev/shm"},
+              {"mountpoint" : "/vagrant"}
+            ]
+          }
+        }
+      ]
+    }
+    expected = {
+      "hBaseInstalled": True,
+      "components": components,
+      "cpu": 6,
+      "disk": 6,
+      "ram": 48,
+      "reservedRam": 6,
+      "hbaseRam": 8,
+      "minContainerSize": 2048,
+      "totalAvailableRam": 34816,
+      "containers": 11,
+      "ramPerContainer": 3072,
+      "mapMemory": 3072,
+      "reduceMemory": 3072,
+      "amMemory": 3072
+    }
+
+    result = self.stackAdvisor.getClusterData(servicesList, hosts, components)
+
+    self.assertEquals(result, expected)
+
+  def test_recommendYARNConfigurations(self):
+    configurations = {}
+    clusterData = {
+      "containers" : 5,
+      "ramPerContainer": 256
+    }
+    expected = {
+      "yarn-site": {
+        "properties": {
+          "yarn.nodemanager.resource.memory-mb": "1280",
+          "yarn.scheduler.minimum-allocation-mb": "256",
+          "yarn.scheduler.maximum-allocation-mb": "1280"
+        }
+      }
+    }
+
+    self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData)
+    self.assertEquals(configurations, expected)
+
+  def test_recommendMapReduce2Configurations_mapMemoryLessThan2560(self):
+    configurations = {}
+    clusterData = {
+      "mapMemory": 567,
+      "reduceMemory": 345.6666666666666,
+      "amMemory": 123.54
+    }
+    expected = {
+      "mapred-site": {
+        "properties": {
+          "yarn.app.mapreduce.am.resource.mb": "123",
+          "yarn.app.mapreduce.am.command-opts": "-Xmx99m",
+          "mapreduce.map.memory.mb": "567",
+          "mapreduce.reduce.memory.mb": "345",
+          "mapreduce.map.java.opts": "-Xmx454m",
+          "mapreduce.reduce.java.opts": "-Xmx277m",
+          "mapreduce.task.io.sort.mb": "227"
+        }
+      }
+    }
+
+    self.stackAdvisor.recommendMapReduce2Configurations(configurations, clusterData)
+    self.assertEquals(configurations, expected)
+
+  def test_getClusterData_noHostsWithoutHBase(self):
+    servicesList = []
+    components = []
+    hosts = {
+      "items" : []
+    }
+    result = self.stackAdvisor.getClusterData(servicesList, hosts, components)
+
+    expected = {
+      "hBaseInstalled": False,
+      "components": components,
+      "cpu": 0,
+      "disk": 0,
+      "ram": 0,
+      "reservedRam": 1,
+      "hbaseRam": 1,
+      "minContainerSize": 256,
+      "totalAvailableRam": 2048,
+      "containers": 3,
+      "ramPerContainer": 682.6666666666666,
+      "mapMemory": 682,
+      "reduceMemory": 682.6666666666666,
+      "amMemory": 682.6666666666666
+    }
+
+    self.assertEquals(result, expected)
 
   def prepareHosts(self, hostsNames):
     hosts = { "items": [] }

@@ -38,5 +38,12 @@ class Client(Script):
   def status(self, env):
     raise ClientComponentHasNoStatus()
 
+  def generate_configs_get_template_file_content(self, filename, dicts):
+    import params
+    content = super(Client,self).generate_configs_get_template_file_content(filename, dicts)
+    if filename == 'log4j.properties':
+     content += params.rca_properties
+    return content
+
 if __name__ == "__main__":
   Client().execute()

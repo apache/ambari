@@ -174,3 +174,17 @@ dtnode_heapsize = config['configurations']['hadoop-env']['dtnode_heapsize']
 
 mapred_pid_dir_prefix = default("/configurations/hadoop-env/mapred_pid_dir_prefix","/var/run/hadoop-mapreduce")
 mapreduce_libs_path = "/usr/lib/hadoop-mapreduce/*"
+
+rca_enabled = False
+if 'mapred-env' in config['configurations']:
+  rca_enabled =  config['configurations']['mapred-env']['rca_enabled']
+
+ambari_db_rca_url = config['hostLevelParams']['ambari_db_rca_url']
+ambari_db_rca_driver = config['hostLevelParams']['ambari_db_rca_driver']
+ambari_db_rca_username = config['hostLevelParams']['ambari_db_rca_username']
+ambari_db_rca_password = config['hostLevelParams']['ambari_db_rca_password']
+
+rca_properties = ''
+if rca_enabled and 'mapreduce-log4j' in config['configurations'] \
+  and 'rca_properties' in config['configurations']['mapred-env']:
+  rca_properties = format(config['configurations']['mapred-env']['rca_properties'])

@@ -21,39 +21,52 @@ var App = require('app');
 
 require('controllers/main/admin/security/add/step1');
 require('models/service');
-
+var controller;
 describe('App.MainAdminSecurityAddStep1Controller', function () {
 
-  var controller = App.MainAdminSecurityAddStep1Controller.create({
-    content: {}
+  beforeEach(function () {
+    controller = App.MainAdminSecurityAddStep1Controller.create({
+      content: {}
+    });
   });
 
-  describe('#shouldRemoveATS()', function() {
-    it('content.services is empty', function() {
-      controller.set('content.services', []);
-      expect(controller.shouldRemoveATS()).to.be.false;
-    });
-    it('content.services does not contain YARN', function() {
-      controller.set('content.services', [{serviceName: 'HDFS'}]);
-      expect(controller.shouldRemoveATS()).to.be.false;
-    });
-    it('YARN does not have ATS', function() {
-      sinon.stub(App.Service, 'find', function(){
-        return Em.Object.create({hostComponents: []})
+  describe('#shouldRemoveATS()', function () {
+
+    var tests = Em.A([
+      {
+        doesATSSupportKerberos: true,
+        isATSInstalled: true,
+        e: false
+      },
+      {
+        doesATSSupportKerberos: true,
+        isATSInstalled: false,
+        e: false
+      },
+      {
+        doesATSSupportKerberos: false,
+        isATSInstalled: true,
+        e: true
+      },
+      {
+        doesATSSupportKerberos: false,
+        isATSInstalled: false,
+        e: false
+      }
+    ]);
+
+    tests.forEach(function (test) {
+      it('', function () {
+        controller.set('content.isATSInstalled', test.isATSInstalled);
+        sinon.stub(App, 'get', function (k) {
+          if ('doesATSSupportKerberos' === k) return test.doesATSSupportKerberos;
+          return Em.get(App, k);
+        });
+        var result = controller.shouldRemoveATS();
+        App.get.restore();
+        expect(result).to.equal(test.e);
       });
-      controller.set('content.services', [{serviceName: 'YARN'}]);
-      expect(controller.shouldRemoveATS()).to.be.false;
-      App.Service.find.restore();
     });
-    it('YARN has ATS', function() {
-      sinon.stub(App.Service, 'find', function(){
-        return Em.Object.create({hostComponents: [{
-          componentName: 'APP_TIMELINE_SERVER'
-        }]})
-      });
-      controller.set('content.services', [{serviceName: 'YARN'}]);
-      expect(controller.shouldRemoveATS()).to.be.true;
-      App.Service.find.restore();
-    });
+
   });
 });

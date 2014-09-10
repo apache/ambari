@@ -17,6 +17,11 @@
 }}
 <div id="ha-step4">
   <h2>{{t admin.highAvailability.wizard.step4.bodyHeader}}</h2>
+  {{#unless controller.isNameNodeStarted}}
+    <div class="alert alert-error">
+      {{t admin.highAvailability.wizard.step4.error.nameNode}}
+    </div>
+  {{/unless}}
   <div class="alert alert-info">
     {{{view.step4BodyText}}}
   </div>

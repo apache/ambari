@@ -17,8 +17,11 @@
  */
 package org.apache.ambari.server.orm.dao;
 
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
@@ -30,6 +33,7 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
+
 import org.apache.ambari.server.orm.entities.PrincipalEntity;
 
 @Singleton
@@ -79,8 +83,15 @@ public class GroupDAO {
 
   @Transactional
   public void create(GroupEntity group) {
-    group.setGroupName(group.getGroupName().toLowerCase());
-    entityManagerProvider.get().persist(group);
+    create(new HashSet<GroupEntity>(Arrays.asList(group)));
+  }
+
+  @Transactional
+  public void create(Set<GroupEntity> groups) {
+    for (GroupEntity group: groups) {
+      group.setGroupName(group.getGroupName().toLowerCase());
+      entityManagerProvider.get().persist(group);
+    }
   }
 
   @Transactional
@@ -90,9 +101,24 @@ public class GroupDAO {
   }
 
   @Transactional
+  public void merge(Set<GroupEntity> groups) {
+    for (GroupEntity group: groups) {
+      group.setGroupName(group.getGroupName().toLowerCase());
+      entityManagerProvider.get().merge(group);
+    }
+  }
+
+  @Transactional
   public void remove(GroupEntity group) {
     entityManagerProvider.get().remove(merge(group));
     entityManagerProvider.get().getEntityManagerFactory().getCache().evictAll();
+  }
+
+  @Transactional
+  public void remove(Set<GroupEntity> groups) {
+    for (GroupEntity groupEntity: groups) {
+      entityManagerProvider.get().remove(entityManagerProvider.get().merge(groupEntity));
+    }
   }
 
   @Transactional

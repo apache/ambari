@@ -17,19 +17,24 @@
  */
 package org.apache.ambari.server.orm.dao;
 
-import com.google.inject.Inject;
-import com.google.inject.Provider;
-import com.google.inject.Singleton;
-import com.google.inject.persist.Transactional;
-import org.apache.ambari.server.orm.RequiresSession;
-import org.apache.ambari.server.orm.entities.PrincipalEntity;
-import org.apache.ambari.server.orm.entities.UserEntity;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
-import java.util.Collections;
-import java.util.List;
+
+import org.apache.ambari.server.orm.RequiresSession;
+import org.apache.ambari.server.orm.entities.PrincipalEntity;
+import org.apache.ambari.server.orm.entities.UserEntity;
+
+import com.google.inject.Inject;
+import com.google.inject.Provider;
+import com.google.inject.Singleton;
+import com.google.inject.persist.Transactional;
 
 @Singleton
 public class UserDAO {
@@ -90,8 +95,15 @@ public class UserDAO {
 
   @Transactional
   public void create(UserEntity user) {
-    user.setUserName(user.getUserName().toLowerCase());
-    entityManagerProvider.get().persist(user);
+    create(new HashSet<UserEntity>(Arrays.asList(user)));
+  }
+
+  @Transactional
+  public void create(Set<UserEntity> users) {
+    for (UserEntity user: users) {
+      user.setUserName(user.getUserName().toLowerCase());
+      entityManagerProvider.get().persist(user);
+    }
   }
 
   @Transactional
@@ -101,9 +113,24 @@ public class UserDAO {
   }
 
   @Transactional
+  public void merge(Set<UserEntity> users) {
+    for (UserEntity user: users) {
+      user.setUserName(user.getUserName().toLowerCase());
+      entityManagerProvider.get().merge(user);
+    }
+  }
+
+  @Transactional
   public void remove(UserEntity user) {
     entityManagerProvider.get().remove(merge(user));
     entityManagerProvider.get().getEntityManagerFactory().getCache().evictAll();
+  }
+
+  @Transactional
+  public void remove(Set<UserEntity> users) {
+    for (UserEntity userEntity: users) {
+      entityManagerProvider.get().remove(entityManagerProvider.get().merge(userEntity));
+    }
   }
 
   @Transactional

@@ -18,16 +18,17 @@
 
 package org.apache.ambari.server.orm.dao;
 
+import java.util.Arrays;
+import java.util.List;
+import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
+
+import org.apache.ambari.server.orm.entities.PrincipalEntity;
+
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
-
-import org.apache.ambari.server.orm.entities.PrincipalEntity;
-import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
-
-import java.util.List;
 
 /**
  * Principal Data Access Object.
@@ -82,7 +83,19 @@ public class PrincipalDAO {
    */
   @Transactional
   public void create(PrincipalEntity entity) {
-    entityManagerProvider.get().persist(entity);
+    create(Arrays.asList(entity));
+  }
+
+  /**
+   * Make instances managed and persistent.
+   *
+   * @param entities entities to store
+   */
+  @Transactional
+  public void create(List<PrincipalEntity> entities) {
+    for (PrincipalEntity entity: entities) {
+      entityManagerProvider.get().persist(entity);
+    }
   }
 
   /**

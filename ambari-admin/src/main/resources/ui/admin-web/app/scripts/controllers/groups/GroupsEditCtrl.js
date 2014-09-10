@@ -26,6 +26,14 @@ angular.module('ambariAdminConsole')
   $scope.dataLoaded = false;
   
   $scope.isMembersEditing = false;
+
+  $scope.$watch(function() {
+    return $scope.group.editingUsers;
+  }, function(newValue) {
+    if(newValue && !angular.equals(newValue, $scope.groupMembers)){
+      $scope.updateMembers();  
+    }
+  }, true);
   
   $scope.enableMembersEditing = function() {
     $scope.isMembersEditing = true;
@@ -49,6 +57,7 @@ angular.module('ambariAdminConsole')
   function loadMembers(){
     $scope.group.getMembers().then(function(members) {
       $scope.groupMembers = members;
+      $scope.group.editingUsers = angular.copy($scope.groupMembers);
     });
   }    
   

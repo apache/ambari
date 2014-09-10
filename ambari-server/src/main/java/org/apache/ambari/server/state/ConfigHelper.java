@@ -423,6 +423,8 @@ public class ConfigHelper {
 
     for(Service service : clusters.getCluster(clusterName).getServices().values()) {
       Set<PropertyInfo> stackProperties = ambariMetaInfo.getProperties(stack.getName(), stack.getVersion(), service.getName());
+      Set<PropertyInfo> stackLevelProperties = ambariMetaInfo.getStackProperties(stack.getName(), stack.getVersion());
+      stackProperties.addAll(stackLevelProperties);
       
       for (PropertyInfo stackProperty : stackProperties) {
         if(stackProperty.getName().equals(propertyName)) {
@@ -432,7 +434,6 @@ public class ConfigHelper {
           result.add(configType);
         }
       }
-      
     }
     
     return result;

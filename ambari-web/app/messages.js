@@ -883,6 +883,7 @@ Em.I18n.translations = {
   'admin.highAvailability.wizard.step2.header':'Select Hosts',
   'admin.highAvailability.wizard.step3.header':'Review',
   'admin.highAvailability.wizard.step4.header':'Create Checkpoint',
+  'admin.highAvailability.wizard.step4.error.nameNode':'NameNode is not started. Please quit wizard and start NameNode first.',
   'admin.highAvailability.wizard.step5.header':'Configure Components',
   'admin.highAvailability.wizard.step6.header':'Initialize JournalNodes',
   'admin.highAvailability.wizard.step7.header':'Start Components',

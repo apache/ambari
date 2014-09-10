@@ -163,9 +163,9 @@ App.MainServiceItemController = Em.Controller.extend({
 
   startStopPopupPrimary: function (serviceHealth, query, runMmOperation) {
     var requestInfo = "";
-    var turnOnMM = "ON"
+    var turnOnMM = "ON";
     if (serviceHealth == "STARTED") {
-      turnOnMM = "OFF"
+      turnOnMM = "OFF";
       requestInfo = App.BackgroundOperationsController.CommandContexts.START_SERVICE.format(this.get('content.serviceName'));
     } else {
       requestInfo = App.BackgroundOperationsController.CommandContexts.STOP_SERVICE.format(this.get('content.serviceName'));
@@ -189,8 +189,6 @@ App.MainServiceItemController = Em.Controller.extend({
       'error': 'startStopPopupErrorCallback',
       'data': data
     });
-    this.set('isStopDisabled', true);
-    this.set('isStartDisabled', true);
   },
 
   /**

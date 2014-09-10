@@ -38,29 +38,15 @@ class TestHiveMetastore(RMFTestCase):
     )
 
     self.assert_configure_default()
-    self.assertResourceCalled('File',
-                              '/etc/hive/conf/hive-exec-log4j.properties',
-                              mode=0644,
-                              group='hadoop',
-                              owner='hive',
-                              content='log4jproperties\nline2'
-    )
-    self.assertResourceCalled('File',
-                              '/etc/hive/conf/hive-log4j.properties',
-                              mode=0644,
-                              group='hadoop',
-                              owner='hive',
-                              content='log4jproperties\nline2'
-    )
     self.assertResourceCalled('Execute', 'env HADOOP_HOME=/usr JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /tmp/start_metastore_script /var/log/hive/hive.out /var/log/hive/hive.log /var/run/hive/hive.pid /etc/hive/conf.server /var/log/hive',
-                              not_if = 'ls /var/run/hive/hive.pid >/dev/null 2>&1 && ps `cat /var/run/hive/hive.pid` >/dev/null 2>&1',
-                              user = 'hive'
+        not_if = 'ls /var/run/hive/hive.pid >/dev/null 2>&1 && ps `cat /var/run/hive/hive.pid` >/dev/null 2>&1',
+        user = 'hive',
     )
-
     self.assertResourceCalled('Execute', '/usr/jdk64/jdk1.7.0_45/bin/java -cp /usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/share/java/mysql-connector-java.jar org.apache.ambari.server.DBConnectionVerification \'jdbc:mysql://c6402.ambari.apache.org/hive?createDatabaseIfNotExist=true\' hive \'!`"\'"\'"\' 1\' com.mysql.jdbc.Driver',
-                              path=['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'], tries=5, try_sleep=10
+        path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
+        tries = 5,
+        try_sleep = 10,
     )
-
     self.assertNoMoreResources()
 
   def test_stop_default(self):
@@ -82,20 +68,6 @@ class TestHiveMetastore(RMFTestCase):
                        config_file="secured.json"
     )
     self.assert_configure_default()
-    self.assertResourceCalled('File',
-                              '/etc/hive/conf/hive-exec-log4j.properties',
-                              mode=0644,
-                              group='hadoop',
-                              owner='hive',
-                              content='log4jproperties\nline2'
-    )
-    self.assertResourceCalled('File',
-                              '/etc/hive/conf/hive-log4j.properties',
-                              mode=0644,
-                              group='hadoop',
-                              owner='hive',
-                              content='log4jproperties\nline2'
-    )
     self.assertNoMoreResources()
 
   def test_start_secured(self):
@@ -106,29 +78,15 @@ class TestHiveMetastore(RMFTestCase):
     )
 
     self.assert_configure_secured()
-    self.assertResourceCalled('File',
-                              '/etc/hive/conf/hive-exec-log4j.properties',
-                              mode=0644,
-                              group='hadoop',
-                              owner='hive',
-                              content='log4jproperties\nline2'
-    )
-    self.assertResourceCalled('File',
-                              '/etc/hive/conf/hive-log4j.properties',
-                              mode=0644,
-                              group='hadoop',
-                              owner='hive',
-                              content='log4jproperties\nline2'
-    )
     self.assertResourceCalled('Execute', 'env HADOOP_HOME=/usr JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /tmp/start_metastore_script /var/log/hive/hive.out /var/log/hive/hive.log /var/run/hive/hive.pid /etc/hive/conf.server /var/log/hive',
-                              not_if = 'ls /var/run/hive/hive.pid >/dev/null 2>&1 && ps `cat /var/run/hive/hive.pid` >/dev/null 2>&1',
-                              user = 'hive'
+        not_if = 'ls /var/run/hive/hive.pid >/dev/null 2>&1 && ps `cat /var/run/hive/hive.pid` >/dev/null 2>&1',
+        user = 'hive',
     )
-
     self.assertResourceCalled('Execute', '/usr/jdk64/jdk1.7.0_45/bin/java -cp /usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/share/java/mysql-connector-java.jar org.apache.ambari.server.DBConnectionVerification \'jdbc:mysql://c6402.ambari.apache.org/hive?createDatabaseIfNotExist=true\' hive \'!`"\'"\'"\' 1\' com.mysql.jdbc.Driver',
-                              path=['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'], tries=5, try_sleep=10
+        path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
+        tries = 5,
+        try_sleep = 10,
     )
-
     self.assertNoMoreResources()
 
   def test_stop_secured(self):
@@ -144,188 +102,251 @@ class TestHiveMetastore(RMFTestCase):
     self.assertNoMoreResources()
 
   def assert_configure_default(self):
-    self.assertResourceCalled('Execute', 'hive mkdir -p /tmp/AMBARI-artifacts/ ; cp /usr/share/java/mysql-connector-java.jar /usr/lib/hive/lib//mysql-connector-java.jar',
-      creates = '/usr/lib/hive/lib//mysql-connector-java.jar',
-      path = ['/bin', '/usr/bin/'],
-      not_if = 'test -f /usr/lib/hive/lib//mysql-connector-java.jar',
+    self.assertResourceCalled('Directory', '/etc/hive/conf.server',
+        owner = 'hive',
+        group = 'hadoop',
+        recursive = True,
+    )
+    self.assertResourceCalled('XmlConfig', 'mapred-site.xml',
+        group = 'hadoop',
+        conf_dir = '/etc/hive/conf.server',
+        mode = 0644,
+        configuration_attributes = self.getConfig()['configuration_attributes']['mapred-site'],
+        owner = 'hive',
+        configurations = self.getConfig()['configurations']['mapred-site'],
+    )
+    self.assertResourceCalled('XmlConfig', 'hive-site.xml',
+        group = 'hadoop',
+        conf_dir = '/etc/hive/conf.server',
+        mode = 0644,
+        configuration_attributes = self.getConfig()['configuration_attributes']['hive-site'],
+        owner = 'hive',
+        configurations = self.getConfig()['configurations']['hive-site'],
+    )
+    self.assertResourceCalled('File', '/etc/hive/conf.server/hive-env.sh',
+        content = InlineTemplate(self.getConfig()['configurations']['hive-env']['content']),
+        owner = 'hive',
+        group = 'hadoop',
+    )
+    self.assertResourceCalled('File', '/etc/hive/conf.server/hive-default.xml.template',
+        owner = 'hive',
+        group = 'hadoop',
+    )
+    self.assertResourceCalled('File', '/etc/hive/conf.server/hive-env.sh.template',
+        owner = 'hive',
+        group = 'hadoop',
+    )
+    self.assertResourceCalled('File', '/etc/hive/conf.server/hive-exec-log4j.properties',
+        content = 'log4jproperties\nline2',
+        owner = 'hive',
+        group = 'hadoop',
+        mode = 0644,
+    )
+    self.assertResourceCalled('File', '/etc/hive/conf.server/hive-log4j.properties',
+        content = 'log4jproperties\nline2',
+        owner = 'hive',
+        group = 'hadoop',
+        mode = 0644,
     )
     self.assertResourceCalled('Directory', '/etc/hive/conf',
-                              owner = 'hive',
-                              group = 'hadoop',
-                              recursive = True,
-                              )
-    self.assertResourceCalled('Directory', '/etc/hive/conf.server',
-      owner = 'hive',
-      group = 'hadoop',
-      recursive = True,
+        owner = 'hive',
+        group = 'hadoop',
+        recursive = True,
     )
     self.assertResourceCalled('XmlConfig', 'mapred-site.xml',
-                              owner = 'hive',
-                              group = 'hadoop',
-                              mode = 0644,
-                              conf_dir = '/etc/hive/conf',
-                              configurations = self.getConfig()['configurations']['mapred-site'],
-                              configuration_attributes = self.getConfig()['configuration_attributes']['mapred-site']
+        group = 'hadoop',
+        conf_dir = '/etc/hive/conf',
+        mode = 0644,
+        configuration_attributes = self.getConfig()['configuration_attributes']['mapred-site'],
+        owner = 'hive',
+        configurations = self.getConfig()['configurations']['mapred-site'],
     )
     self.assertResourceCalled('XmlConfig', 'hive-site.xml',
-                              owner = 'hive',
-                              group = 'hadoop',
-                              mode = 0644,
-                              conf_dir = '/etc/hive/conf',
-                              configurations = self.getConfig()['configurations']['hive-site'],
-                              configuration_attributes = self.getConfig()['configuration_attributes']['hive-site']
-    )
-    self.assertResourceCalled('XmlConfig', 'mapred-site.xml',
-      owner = 'hive',
-      group = 'hadoop',
-      mode = 0600,
-      conf_dir = '/etc/hive/conf.server',
-      configurations = self.getConfig()['configurations']['mapred-site'],
-      configuration_attributes = self.getConfig()['configuration_attributes']['mapred-site']
-    )
-    self.assertResourceCalled('XmlConfig', 'hive-site.xml',
-      owner = 'hive',
-      group = 'hadoop',
-      mode = 0600,
-      conf_dir = '/etc/hive/conf.server',
-      configurations = self.getConfig()['configurations']['hive-site'],
-      configuration_attributes = self.getConfig()['configuration_attributes']['hive-site']
-    )
-    self.assertResourceCalled('Execute', "/bin/sh -c 'cd /usr/lib/ambari-agent/ && curl -kf -x \"\" --retry 5 http://c6401.ambari.apache.org:8080/resources/DBConnectionVerification.jar -o DBConnectionVerification.jar'",
-      not_if = '[ -f DBConnectionVerification.jar]',
-      environment = {'no_proxy': 'c6401.ambari.apache.org'}
+        group = 'hadoop',
+        conf_dir = '/etc/hive/conf',
+        mode = 0644,
+        configuration_attributes = self.getConfig()['configuration_attributes']['hive-site'],
+        owner = 'hive',
+        configurations = self.getConfig()['configurations']['hive-site'],
     )
     self.assertResourceCalled('File', '/etc/hive/conf/hive-env.sh',
-                              content = InlineTemplate(self.getConfig()['configurations']['hive-env']['content']),
-                              owner = 'hive',
-                              group = 'hadoop',
-                              )
-    self.assertResourceCalled('File', '/etc/hive/conf.server/hive-env.sh',
-      content = InlineTemplate(self.getConfig()['configurations']['hive-env']['content']),
-      owner = 'hive',
-      group = 'hadoop',
-    )
-    self.assertResourceCalled('File', '/tmp/start_metastore_script',
-      content = StaticFile('startMetastore.sh'),
-      mode = 0755,
-    )
-    self.assertResourceCalled('Directory', '/var/run/hive',
-      owner = 'hive',
-      group = 'hadoop',
-      mode = 0755,
-      recursive = True,
-    )
-    self.assertResourceCalled('Directory', '/var/log/hive',
-      owner = 'hive',
-      group = 'hadoop',
-      mode = 0755,
-      recursive = True,
-    )
-    self.assertResourceCalled('Directory', '/var/lib/hive',
-      owner = 'hive',
-      group = 'hadoop',
-      mode = 0755,
-      recursive = True,
+        content = InlineTemplate(self.getConfig()['configurations']['hive-env']['content']),
+        owner = 'hive',
+        group = 'hadoop',
     )
     self.assertResourceCalled('File', '/etc/hive/conf/hive-default.xml.template',
-      owner = 'hive',
-      group = 'hadoop',
+        owner = 'hive',
+        group = 'hadoop',
     )
     self.assertResourceCalled('File', '/etc/hive/conf/hive-env.sh.template',
-      owner = 'hive',
-      group = 'hadoop',
+        owner = 'hive',
+        group = 'hadoop',
+    )
+    self.assertResourceCalled('File', '/etc/hive/conf/hive-exec-log4j.properties',
+        content = 'log4jproperties\nline2',
+        owner = 'hive',
+        group = 'hadoop',
+        mode = 0644,
+    )
+    self.assertResourceCalled('File', '/etc/hive/conf/hive-log4j.properties',
+        content = 'log4jproperties\nline2',
+        owner = 'hive',
+        group = 'hadoop',
+        mode = 0644,
+    )
+    self.assertResourceCalled('Execute', 'hive mkdir -p /tmp/AMBARI-artifacts/ ; cp /usr/share/java/mysql-connector-java.jar /usr/lib/hive/lib//mysql-connector-java.jar',
+        creates = '/usr/lib/hive/lib//mysql-connector-java.jar',
+        path = ['/bin', '/usr/bin/'],
+        not_if = 'test -f /usr/lib/hive/lib//mysql-connector-java.jar',
+    )
+    self.assertResourceCalled('Execute', '/bin/sh -c \'cd /usr/lib/ambari-agent/ && curl -kf -x "" --retry 5 http://c6401.ambari.apache.org:8080/resources/DBConnectionVerification.jar -o DBConnectionVerification.jar\'',
+        environment = {'no_proxy': 'c6401.ambari.apache.org'},
+        not_if = '[ -f DBConnectionVerification.jar]',
+    )
+    self.assertResourceCalled('File', '/tmp/start_metastore_script',
+        content = StaticFile('startMetastore.sh'),
+        mode = 0755,
+    )
+    self.assertResourceCalled('Directory', '/var/run/hive',
+        owner = 'hive',
+        group = 'hadoop',
+        mode = 0755,
+        recursive = True,
+    )
+    self.assertResourceCalled('Directory', '/var/log/hive',
+        owner = 'hive',
+        group = 'hadoop',
+        mode = 0755,
+        recursive = True,
+    )
+    self.assertResourceCalled('Directory', '/var/lib/hive',
+        owner = 'hive',
+        group = 'hadoop',
+        mode = 0755,
+        recursive = True,
     )
 
   def assert_configure_secured(self):
-    self.assertResourceCalled('Execute', 'hive mkdir -p /tmp/AMBARI-artifacts/ ; cp /usr/share/java/mysql-connector-java.jar /usr/lib/hive/lib//mysql-connector-java.jar',
-      creates = '/usr/lib/hive/lib//mysql-connector-java.jar',
-      path = ['/bin', '/usr/bin/'],
-      not_if = 'test -f /usr/lib/hive/lib//mysql-connector-java.jar',
+    self.assertResourceCalled('Directory', '/etc/hive/conf.server',
+        owner = 'hive',
+        group = 'hadoop',
+        recursive = True,
+    )
+    self.assertResourceCalled('XmlConfig', 'mapred-site.xml',
+        group = 'hadoop',
+        conf_dir = '/etc/hive/conf.server',
+        mode = 0644,
+        configuration_attributes = self.getConfig()['configuration_attributes']['mapred-site'],
+        owner = 'hive',
+        configurations = self.getConfig()['configurations']['mapred-site'],
+    )
+    self.assertResourceCalled('XmlConfig', 'hive-site.xml',
+        group = 'hadoop',
+        conf_dir = '/etc/hive/conf.server',
+        mode = 0644,
+        configuration_attributes = self.getConfig()['configuration_attributes']['hive-site'],
+        owner = 'hive',
+        configurations = self.getConfig()['configurations']['hive-site'],
+    )
+    self.assertResourceCalled('File', '/etc/hive/conf.server/hive-env.sh',
+        content = InlineTemplate(self.getConfig()['configurations']['hive-env']['content']),
+        owner = 'hive',
+        group = 'hadoop',
+    )
+    self.assertResourceCalled('File', '/etc/hive/conf.server/hive-default.xml.template',
+        owner = 'hive',
+        group = 'hadoop',
+    )
+    self.assertResourceCalled('File', '/etc/hive/conf.server/hive-env.sh.template',
+        owner = 'hive',
+        group = 'hadoop',
+    )
+    self.assertResourceCalled('File', '/etc/hive/conf.server/hive-exec-log4j.properties',
+        content = 'log4jproperties\nline2',
+        owner = 'hive',
+        group = 'hadoop',
+        mode = 0644,
+    )
+    self.assertResourceCalled('File', '/etc/hive/conf.server/hive-log4j.properties',
+        content = 'log4jproperties\nline2',
+        owner = 'hive',
+        group = 'hadoop',
+        mode = 0644,
     )
     self.assertResourceCalled('Directory', '/etc/hive/conf',
-                              owner = 'hive',
-                              group = 'hadoop',
-                              recursive = True,
-                              )
-    self.assertResourceCalled('Directory', '/etc/hive/conf.server',
-      owner = 'hive',
-      group = 'hadoop',
-      recursive = True,
+        owner = 'hive',
+        group = 'hadoop',
+        recursive = True,
     )
     self.assertResourceCalled('XmlConfig', 'mapred-site.xml',
-                              owner = 'hive',
-                              group = 'hadoop',
-                              mode = 0644,
-                              conf_dir = '/etc/hive/conf',
-                              configurations = self.getConfig()['configurations']['mapred-site'],
-                              configuration_attributes = self.getConfig()['configuration_attributes']['mapred-site']
+        group = 'hadoop',
+        conf_dir = '/etc/hive/conf',
+        mode = 0644,
+        configuration_attributes = self.getConfig()['configuration_attributes']['mapred-site'],
+        owner = 'hive',
+        configurations = self.getConfig()['configurations']['mapred-site'],
     )
     self.assertResourceCalled('XmlConfig', 'hive-site.xml',
-                              owner = 'hive',
-                              group = 'hadoop',
-                              mode = 0644,
-                              conf_dir = '/etc/hive/conf',
-                              configurations = self.getConfig()['configurations']['hive-site'],
-                              configuration_attributes = self.getConfig()['configuration_attributes']['hive-site']
-    )
-    self.assertResourceCalled('XmlConfig', 'mapred-site.xml',
-      owner = 'hive',
-      group = 'hadoop',
-      mode = 0600,
-      conf_dir = '/etc/hive/conf.server',
-      configurations = self.getConfig()['configurations']['mapred-site'],
-      configuration_attributes = self.getConfig()['configuration_attributes']['mapred-site']
-    )
-    self.assertResourceCalled('XmlConfig', 'hive-site.xml',
-      owner = 'hive',
-      group = 'hadoop',
-      mode = 0600,
-      conf_dir = '/etc/hive/conf.server',
-      configurations = self.getConfig()['configurations']['hive-site'],
-      configuration_attributes = self.getConfig()['configuration_attributes']['hive-site']
-    )
-    self.assertResourceCalled('Execute', "/bin/sh -c 'cd /usr/lib/ambari-agent/ && curl -kf -x \"\" --retry 5 http://c6401.ambari.apache.org:8080/resources/DBConnectionVerification.jar -o DBConnectionVerification.jar'",
-      not_if = '[ -f DBConnectionVerification.jar]',
-      environment = {'no_proxy': 'c6401.ambari.apache.org'}
+        group = 'hadoop',
+        conf_dir = '/etc/hive/conf',
+        mode = 0644,
+        configuration_attributes = self.getConfig()['configuration_attributes']['hive-site'],
+        owner = 'hive',
+        configurations = self.getConfig()['configurations']['hive-site'],
     )
     self.assertResourceCalled('File', '/etc/hive/conf/hive-env.sh',
-                              content = InlineTemplate(self.getConfig()['configurations']['hive-env']['content']),
-                              owner = 'hive',
-                              group = 'hadoop',
-                              )
-    self.assertResourceCalled('File', '/etc/hive/conf.server/hive-env.sh',
-      content = InlineTemplate(self.getConfig()['configurations']['hive-env']['content']),
-      owner = 'hive',
-      group = 'hadoop',
-    )
-    self.assertResourceCalled('File', '/tmp/start_metastore_script',
-      content = StaticFile('startMetastore.sh'),
-      mode = 0755,
-    )
-    self.assertResourceCalled('Directory', '/var/run/hive',
-      owner = 'hive',
-      group = 'hadoop',
-      mode = 0755,
-      recursive = True,
-    )
-    self.assertResourceCalled('Directory', '/var/log/hive',
-      owner = 'hive',
-      group = 'hadoop',
-      mode = 0755,
-      recursive = True,
-    )
-    self.assertResourceCalled('Directory', '/var/lib/hive',
-      owner = 'hive',
-      group = 'hadoop',
-      mode = 0755,
-      recursive = True,
+        content = InlineTemplate(self.getConfig()['configurations']['hive-env']['content']),
+        owner = 'hive',
+        group = 'hadoop',
     )
     self.assertResourceCalled('File', '/etc/hive/conf/hive-default.xml.template',
-      owner = 'hive',
-      group = 'hadoop',
+        owner = 'hive',
+        group = 'hadoop',
     )
     self.assertResourceCalled('File', '/etc/hive/conf/hive-env.sh.template',
-      owner = 'hive',
-      group = 'hadoop',
+        owner = 'hive',
+        group = 'hadoop',
     )
-
+    self.assertResourceCalled('File', '/etc/hive/conf/hive-exec-log4j.properties',
+        content = 'log4jproperties\nline2',
+        owner = 'hive',
+        group = 'hadoop',
+        mode = 0644,
+    )
+    self.assertResourceCalled('File', '/etc/hive/conf/hive-log4j.properties',
+        content = 'log4jproperties\nline2',
+        owner = 'hive',
+        group = 'hadoop',
+        mode = 0644,
+    )
+    self.assertResourceCalled('Execute', 'hive mkdir -p /tmp/AMBARI-artifacts/ ; cp /usr/share/java/mysql-connector-java.jar /usr/lib/hive/lib//mysql-connector-java.jar',
+        creates = '/usr/lib/hive/lib//mysql-connector-java.jar',
+        path = ['/bin', '/usr/bin/'],
+        not_if = 'test -f /usr/lib/hive/lib//mysql-connector-java.jar',
+    )
+    self.assertResourceCalled('Execute', '/bin/sh -c \'cd /usr/lib/ambari-agent/ && curl -kf -x "" --retry 5 http://c6401.ambari.apache.org:8080/resources/DBConnectionVerification.jar -o DBConnectionVerification.jar\'',
+        environment = {'no_proxy': 'c6401.ambari.apache.org'},
+        not_if = '[ -f DBConnectionVerification.jar]',
+    )
+    self.assertResourceCalled('File', '/tmp/start_metastore_script',
+        content = StaticFile('startMetastore.sh'),
+        mode = 0755,
+    )
+    self.assertResourceCalled('Directory', '/var/run/hive',
+        owner = 'hive',
+        group = 'hadoop',
+        mode = 0755,
+        recursive = True,
+    )
+    self.assertResourceCalled('Directory', '/var/log/hive',
+        owner = 'hive',
+        group = 'hadoop',
+        mode = 0755,
+        recursive = True,
+    )
+    self.assertResourceCalled('Directory', '/var/lib/hive',
+        owner = 'hive',
+        group = 'hadoop',
+        mode = 0755,
+        recursive = True,
+    )

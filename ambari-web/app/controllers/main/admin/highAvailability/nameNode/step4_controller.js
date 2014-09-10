@@ -28,6 +28,8 @@ App.HighAvailabilityWizardStep4Controller = Em.Controller.extend({
 
   isNextEnabled: false,
 
+  isNameNodeStarted: true,
+
   pullCheckPointStatus: function () {
     var hostName = this.get('content.masterComponentHosts').findProperty('isCurNameNode', true).hostName;
     App.ajax.send({
@@ -41,18 +43,23 @@ App.HighAvailabilityWizardStep4Controller = Em.Controller.extend({
   },
 
   checkNnCheckPointStatus: function (data) {
-    var self = this;
-    var journalTransactionInfo =  $.parseJSON(data.metrics.dfs.namenode.JournalTransactionInfo);
-    var isInSafeMode = (data.metrics.dfs.namenode.Safemode != "");
-    journalTransactionInfo = parseInt(journalTransactionInfo.LastAppliedOrWrittenTxId) - parseInt(journalTransactionInfo.MostRecentCheckpointTxId);
-    if(journalTransactionInfo <= 1 && isInSafeMode){
-      this.set("isNextEnabled", true);
-      return;
-    }
+    if (data.HostRoles.desired_state === 'STARTED') {
+      this.set('isNameNodeStarted', true);
+      var self = this;
+      var journalTransactionInfo = $.parseJSON(data.metrics.dfs.namenode.JournalTransactionInfo);
+      var isInSafeMode = (data.metrics.dfs.namenode.Safemode != "");
+      journalTransactionInfo = parseInt(journalTransactionInfo.LastAppliedOrWrittenTxId) - parseInt(journalTransactionInfo.MostRecentCheckpointTxId);
+      if (journalTransactionInfo <= 1 && isInSafeMode) {
+        this.set("isNextEnabled", true);
+        return;
+      }
 
-    window.setTimeout(function () {
-      self.pullCheckPointStatus()
-    }, self.POLL_INTERVAL);
+      window.setTimeout(function () {
+        self.pullCheckPointStatus()
+      }, self.POLL_INTERVAL);
+    } else {
+      this.set('isNameNodeStarted', false);
+    }
   },
 
   done: function () {

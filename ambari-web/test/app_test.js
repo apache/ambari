@@ -199,7 +199,20 @@ describe('App', function () {
     });
   });
 
-  describe('#isHaEnabled', function () {
+  describe('#isHaEnabled when HDFS is installed:', function () {
+
+    beforeEach(function () {
+      sinon.stub(App.Service, 'find', function () {
+        return [{
+          id : 'HDFS',
+          serviceName: 'HDFS'
+        }];
+      });
+    });
+
+    afterEach(function () {
+      App.Service.find.restore();
+    });
 
     it('if hadoop stack version less than 2 then isHaEnabled should be false', function () {
       App.set('currentStackVersion', 'HDP-1.3.1');
@@ -221,6 +234,30 @@ describe('App', function () {
       App.set('currentStackVersion', "HDP-1.2.2");
     });
   });
+
+  describe('#isHaEnabled when HDFS is not installed:', function () {
+
+    beforeEach(function () {
+      sinon.stub(App.Service, 'find', function () {
+        return [{
+          id : 'ZOOKEEPER',
+          serviceName: 'ZOOKEEPER'
+        }];
+      });
+    });
+
+    afterEach(function () {
+      App.Service.find.restore();
+    });
+
+    it('if hadoop stack version higher than 2 but HDFS not installed then isHaEnabled should be false', function () {
+      App.set('currentStackVersion', 'HDP-2.1');
+      expect(App.get('isHaEnabled')).to.equal(false);
+      App.set('currentStackVersion', "HDP-1.2.2");
+    });
+
+  });
+
 
   describe('#services', function () {
     var stackServices = [

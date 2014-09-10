@@ -78,7 +78,6 @@ App.ClusterController = Em.Controller.extend({
     'cluster': false,
     'clusterStatus': false,
     'racks': false,
-    'users': false,
     'componentConfigs': false,
     'componentsState': false
   }),
@@ -291,8 +290,6 @@ App.ClusterController = Em.Controller.extend({
       });
     }
 
-    this.loadUsersInfo();
-
     /**
      * Order of loading:
      * 1. request for service components supported by stack
@@ -384,45 +381,6 @@ App.ClusterController = Em.Controller.extend({
 
   loadAmbariPropertiesError: function () {
     console.warn('can\'t get ambari properties');
-  },
-
-  /**
-   * Load info about users.
-   **/
-  loadUsersInfo: function() {
-    return App.ajax.send({
-      name: 'users.all',
-      sender: this,
-      success: 'loadUsersSuccess',
-      error: 'loadUsersError'
-    });
-  },
-
-  loadUsersSuccess: function(data) {
-    App.ajax.send({
-      name: 'users.privileges',
-      sender: this,
-      data: {
-        users: data
-      },
-      success: 'loadUsersPrivilegesSuccess'
-    });
-  },
-
-  loadUsersError: function() {
-    this.updateLoadStatus('users');
-  },
-  /**
-   * Load privileges, check relations between user and privilege,
-   * map users using <code>App.usersMappper</code>.
-   **/
-  loadUsersPrivilegesSuccess: function(data, opt, params) {
-    params.users.items.forEach(function(user) {
-      user.privileges = {};
-      user.privileges.items = data.items.filterProperty('PrivilegeInfo.principal_name', user.Users.user_name);
-    });
-    App.usersMapper.map(params.users);
-    this.updateLoadStatus('users');
   },
 
   updateClusterData: function () {

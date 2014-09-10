@@ -24,6 +24,7 @@ angular.module('ambariAdminConsole')
     User.get($routeParams.id).then(function(data) {
       $scope.user = data.Users;
       $scope.isCurrentUser = $scope.user.user_name === Auth.getCurrentUser();
+      $scope.editingGroupsList = angular.copy($scope.user.groups);
     });
   }
 
@@ -37,6 +38,18 @@ angular.module('ambariAdminConsole')
     $scope.isGroupEditing = true;
     $scope.editingGroupsList = angular.copy($scope.user.groups);
   };
+
+  $scope.$watch(function() {
+    return $scope.editingGroupsList;
+  }, function(newValue) {
+    if(newValue){
+      if( !angular.equals(newValue, $scope.user.groups) ){
+        console.log('Update!');
+        $scope.updateGroups();
+      }
+        
+    }
+  }, true);
 
   $scope.updateGroups = function() {
     var groups = $scope.editingGroupsList.toString().split(',').filter(function(item) {return item.trim();}).map(function(item) {return item.trim()});

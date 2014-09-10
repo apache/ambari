@@ -115,7 +115,12 @@ public class ViewPrivilegeResourceProvider extends PrivilegeResourceProvider<Vie
       if (viewInstanceEntity == null) {
         throw new AmbariException("View instance " + instanceName + " of " + viewName + viewVersion + " was not found");
       }
-      return Collections.singletonMap(viewInstanceEntity.getResource().getId(), viewInstanceEntity);
+
+      ViewEntity view = viewInstanceEntity.getViewEntity();
+
+      return view.isLoaded() ?
+          Collections.singletonMap(viewInstanceEntity.getResource().getId(), viewInstanceEntity) :
+          Collections.<Long, ViewInstanceEntity>emptyMap();
     }
 
     Set<ViewEntity> viewEntities = new HashSet<ViewEntity>();
@@ -136,8 +141,10 @@ public class ViewPrivilegeResourceProvider extends PrivilegeResourceProvider<Vie
     Map<Long, ViewInstanceEntity> resourceEntities = new HashMap<Long, ViewInstanceEntity>();
 
     for (ViewEntity viewEntity : viewEntities) {
-      for (ViewInstanceEntity viewInstanceEntity : viewEntity.getInstances()) {
-        resourceEntities.put(viewInstanceEntity.getResource().getId(), viewInstanceEntity);
+      if (viewEntity.isLoaded()) {
+        for (ViewInstanceEntity viewInstanceEntity : viewEntity.getInstances()) {
+          resourceEntities.put(viewInstanceEntity.getResource().getId(), viewInstanceEntity);
+        }
       }
     }
     return resourceEntities;
@@ -150,9 +157,18 @@ public class ViewPrivilegeResourceProvider extends PrivilegeResourceProvider<Vie
     final String viewName     = getQueryParameterValue(PRIVILEGE_VIEW_NAME_PROPERTY_ID, predicate).toString();
     final String viewVersion  = getQueryParameterValue(PRIVILEGE_VIEW_VERSION_PROPERTY_ID, predicate).toString();
     final String instanceName = getQueryParameterValue(PRIVILEGE_INSTANCE_NAME_PROPERTY_ID, predicate).toString();
+
     final ViewInstanceEntity viewInstanceEntity = viewRegistry.getInstanceDefinition(viewName, viewVersion, instanceName);
-    return viewInstanceEntity.getResource().getId();
+
+    if (viewInstanceEntity != null) {
+
+      ViewEntity view = viewInstanceEntity.getViewEntity();
+
+      return view.isLoaded() ? viewInstanceEntity.getResource().getId() : null;
+    }
+    return null;
   }
+
 
   // ----- helper methods ----------------------------------------------------
 
@@ -172,6 +188,10 @@ public class ViewPrivilegeResourceProvider extends PrivilegeResourceProvider<Vie
 
       ViewInstanceEntity viewInstanceEntity = resourceEntities.get(privilegeEntity.getResource().getId());
       ViewEntity         viewEntity         = viewInstanceEntity.getViewEntity();
+
+      if (!viewEntity.isLoaded()) {
+        return null;
+      }
 
       setResourceProperty(resource, PRIVILEGE_VIEW_NAME_PROPERTY_ID, viewEntity.getCommonName(), requestedIds);
       setResourceProperty(resource, PRIVILEGE_VIEW_VERSION_PROPERTY_ID, viewEntity.getVersion(), requestedIds);

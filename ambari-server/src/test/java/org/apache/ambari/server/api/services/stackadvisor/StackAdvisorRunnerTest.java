@@ -20,6 +20,7 @@ package org.apache.ambari.server.api.services.stackadvisor;
 
 import static org.easymock.EasyMock.expect;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 import static org.powermock.api.easymock.PowerMock.createNiceMock;
 import static org.powermock.api.easymock.PowerMock.replay;
 import static org.powermock.api.support.membermodification.MemberModifier.stub;
@@ -56,8 +57,8 @@ public class StackAdvisorRunnerTest {
     temp.delete();
   }
 
-  @Test
-  public void testRunScript_processStartThrowsException_returnFalse() throws IOException {
+  @Test(expected = StackAdvisorException.class)
+  public void testRunScript_processStartThrowsException_returnFalse() throws Exception {
     String script = "echo";
     StackAdvisorCommandType saCommandType = StackAdvisorCommandType.RECOMMEND_COMPONENT_LAYOUT;
     File actionDirectory = temp.newFolder("actionDir");
@@ -68,14 +69,11 @@ public class StackAdvisorRunnerTest {
         .toReturn(processBuilder);
     expect(processBuilder.start()).andThrow(new IOException());
     replay(processBuilder);
-    boolean result = saRunner.runScript(script, saCommandType, actionDirectory);
-
-    assertEquals(false, result);
+    saRunner.runScript(script, saCommandType, actionDirectory);
   }
 
-  @Test
-  public void testRunScript_processExitCodeNonZero_returnFalse() throws IOException,
-      InterruptedException {
+  @Test(expected = StackAdvisorRequestException.class)
+  public void testRunScript_processExitCode1_returnFalse() throws Exception {
     String script = "echo";
     StackAdvisorCommandType saCommandType = StackAdvisorCommandType.RECOMMEND_COMPONENT_LAYOUT;
     File actionDirectory = temp.newFolder("actionDir");
@@ -88,14 +86,28 @@ public class StackAdvisorRunnerTest {
     expect(processBuilder.start()).andReturn(process);
     expect(process.waitFor()).andReturn(1);
     replay(processBuilder, process);
-    boolean result = saRunner.runScript(script, saCommandType, actionDirectory);
+    saRunner.runScript(script, saCommandType, actionDirectory);
+  }
 
-    assertEquals(false, result);
+  @Test(expected = StackAdvisorException.class)
+  public void testRunScript_processExitCode2_returnFalse() throws Exception {
+    String script = "echo";
+    StackAdvisorCommandType saCommandType = StackAdvisorCommandType.RECOMMEND_COMPONENT_LAYOUT;
+    File actionDirectory = temp.newFolder("actionDir");
+    ProcessBuilder processBuilder = createNiceMock(ProcessBuilder.class);
+    Process process = createNiceMock(Process.class);
+    StackAdvisorRunner saRunner = new StackAdvisorRunner();
+
+    stub(PowerMock.method(StackAdvisorRunner.class, "prepareShellCommand"))
+        .toReturn(processBuilder);
+    expect(processBuilder.start()).andReturn(process);
+    expect(process.waitFor()).andReturn(2);
+    replay(processBuilder, process);
+    saRunner.runScript(script, saCommandType, actionDirectory);
   }
 
   @Test
-  public void testRunScript_processExitCodeZero_returnTrue() throws IOException,
-      InterruptedException {
+  public void testRunScript_processExitCodeZero_returnTrue() throws Exception {
     String script = "echo";
     StackAdvisorCommandType saCommandType = StackAdvisorCommandType.RECOMMEND_COMPONENT_LAYOUT;
     File actionDirectory = temp.newFolder("actionDir");
@@ -108,9 +120,11 @@ public class StackAdvisorRunnerTest {
     expect(processBuilder.start()).andReturn(process);
     expect(process.waitFor()).andReturn(0);
     replay(processBuilder, process);
-    boolean result = saRunner.runScript(script, saCommandType, actionDirectory);
-
-    assertEquals(true, result);
+    try {
+      saRunner.runScript(script, saCommandType, actionDirectory);
+    } catch (StackAdvisorException ex) {
+      fail("Should not fail with StackAdvisorException");
+    }
   }
 
 }

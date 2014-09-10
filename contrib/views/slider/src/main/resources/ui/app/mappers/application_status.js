@@ -24,24 +24,14 @@
 App.ApplicationStatusMapper = App.Mapper.createWithMixins(App.RunPeriodically, {
 
   /**
-   * Map for parsing JSON received from server
-   * Format:
-   *  <code>
-   *    {
-   *      key1: 'path1',
-   *      key2: 'path2',
-   *      key3: 'path3'
-   *    }
-   *  </code>
-   *  Keys - names for properties in App
-   *  Values - pathes in JSON
-   * @type {object}
+   * List of services, we need to get status of them
+   * @type {Array}
    */
-  map: {
-    viewEnabled: 'viewEnabled',
-    viewErrors: 'viewErrors',
-    resourcesVersion: 'version'
-  },
+  servicesWeNeed: [
+    'HDFS',
+    'YARN',
+    'ZOOKEEPER'
+  ],
 
   /**
    * Load data from <code>App.urlPrefix + this.urlSuffix</code> one time
@@ -49,50 +39,55 @@ App.ApplicationStatusMapper = App.Mapper.createWithMixins(App.RunPeriodically, {
    * @return {$.ajax}
    */
   load: function() {
-    console.log('App.ApplicationStatusMapper loading data');
     return App.ajax.send({
       name: 'mapper.applicationStatus',
       sender: this,
-      success: 'parse'
+      success: 'setResourcesVersion'
     });
   },
 
   /**
-   * Parse loaded data according to <code>map</code>
    * Set <code>App</code> properties
    * @param {object} data received from server data
-   * @method parse
+   * @method setResourcesVersion
    */
-  parse: function(data) {
-    var map = this.get('map');
-    Ember.keys(map).forEach(function(key) {
-      App.set(key, Ember.getWithDefault(data, map[key], ''));
-    });
+  setResourcesVersion: function(data) {
+    App.set('resourcesVersion', Em.get(data, "version") ? Em.get(data, "version") : "version" );
+    if(App.get('clusterName')){
+      this.loadServicesStatus();
+    }
   },
 
-  /**
-   * Get cluster name from server
-   * @returns {$.ajax}
-   * @method getClusterName
-   */
-  getClusterName: function() {
+  loadServicesStatus: function () {
     return App.ajax.send({
-      name: 'cluster_name',
-      sender: this,
+      name: 'service_status',
       data: {
         urlPrefix: '/api/v1/'
       },
-      success: 'getClusterNameSuccessCallback'
+      sender: this,
+      success: 'setErrors'
     });
   },
 
-  /**
-   * Success callback for clusterName-request
-   * @param {object} data
-   * @method getClusterNameSuccessCallback
-   */
-  getClusterNameSuccessCallback: function(data) {
-    App.set('clusterName', Em.get(data.items[0], 'Clusters.cluster_name'));
+  setErrors: function (data) {
+    var self = this,
+    errors = [];
+    this.get('servicesWeNeed').forEach( function (serviceName) {
+      self.findError(data.items.findProperty("ServiceInfo.service_name", serviceName), errors);
+    });
+
+    App.set('viewEnabled', (errors.length > 0 ? false : true));
+    App.set('viewErrors', errors);
+  },
+
+  findError: function (data, errors){
+    var name = Em.get(data, "ServiceInfo.service_name")
+    if(data){
+      if(Em.get(data, "ServiceInfo.state") != "STARTED")
+        errors.push(Em.I18n.t('error.start'+name));
+    }else{
+      errors.push(Em.I18n.t('error.no'+name));
+    }
   }
 
 });

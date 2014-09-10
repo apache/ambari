@@ -27,7 +27,6 @@ config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 
 hive_metastore_user_name = config['configurations']['hive-site']['javax.jdo.option.ConnectionUserName']
-hive_server_conf_dir = "/etc/hive/conf.server"
 hive_jdbc_connection_url = config['configurations']['hive-site']['javax.jdo.option.ConnectionURL']
 
 hive_metastore_user_passwd = config['configurations']['hive-site']['javax.jdo.option.ConnectionPassword']
@@ -73,15 +72,19 @@ kinit_path_local = functions.get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/
 hive_metastore_keytab_path =  config['configurations']['hive-site']['hive.metastore.kerberos.keytab.file']
 
 #hive_env
-hive_conf_dir = "/etc/hive/conf"
 hive_dbroot = config['configurations']['hive-env']['hive_dbroot']
 hive_log_dir = config['configurations']['hive-env']['hive_log_dir']
 hive_pid_dir = status_params.hive_pid_dir
 hive_pid = status_params.hive_pid
 #Default conf dir for client
-hive_config_dir = hive_conf_dir
+hive_client_conf_dir = "/etc/hive/conf"
+hive_server_conf_dir = "/etc/hive/conf.server"
+hive_conf_dirs_list = [hive_server_conf_dir, hive_client_conf_dir]
+
 if 'role' in config and config['role'] in ["HIVE_SERVER", "HIVE_METASTORE"]:
   hive_config_dir = hive_server_conf_dir
+else:
+  hive_config_dir = hive_client_conf_dir
 
 #hive-site
 hive_database_name = config['configurations']['hive-env']['hive_database_name']

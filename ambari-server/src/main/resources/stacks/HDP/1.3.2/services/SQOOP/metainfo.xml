@@ -29,7 +29,7 @@
       <components>
         <component>
           <name>SQOOP</name>
-          <displayName>Pig</displayName>
+          <displayName>Sqoop</displayName>
           <category>CLIENT</category>
           <cardinality>1+</cardinality>
           <dependencies>

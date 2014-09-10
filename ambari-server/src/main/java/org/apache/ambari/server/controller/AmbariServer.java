@@ -80,10 +80,10 @@ import org.apache.ambari.server.security.CertificateManager;
 import org.apache.ambari.server.security.SecurityFilter;
 import org.apache.ambari.server.security.authorization.AmbariAuthorizationFilter;
 import org.apache.ambari.server.security.authorization.AmbariLdapAuthenticationProvider;
-import org.apache.ambari.server.security.authorization.AmbariLdapDataPopulator;
 import org.apache.ambari.server.security.authorization.AmbariLocalUserDetailsService;
 import org.apache.ambari.server.security.authorization.Users;
 import org.apache.ambari.server.security.authorization.internal.AmbariInternalAuthenticationProvider;
+import org.apache.ambari.server.security.ldap.AmbariLdapDataPopulator;
 import org.apache.ambari.server.security.unsecured.rest.CertificateDownload;
 import org.apache.ambari.server.security.unsecured.rest.CertificateSign;
 import org.apache.ambari.server.security.unsecured.rest.ConnectionInfo;
@@ -94,6 +94,8 @@ import org.apache.ambari.server.utils.VersionUtils;
 import org.apache.ambari.server.view.ViewRegistry;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.SessionIdManager;
+import org.eclipse.jetty.server.SessionManager;
 import org.eclipse.jetty.server.nio.SelectChannelConnector;
 import org.eclipse.jetty.server.ssl.SslSelectChannelConnector;
 import org.eclipse.jetty.servlet.DefaultServlet;
@@ -157,6 +159,21 @@ public class AmbariServer {
   @Inject
   AmbariHandlerList handlerList;
 
+  /**
+   * Session manager.
+   */
+  @Inject
+  SessionManager sessionManager;
+
+  /**
+   * Session ID manager.
+   */
+  @Inject
+  SessionIdManager sessionIdManager;
+
+  @Inject
+  DelegatingFilterProxy springSecurityFilter;
+
   public String getServerOsType() {
     return configs.getServerOsType();
   }
@@ -176,6 +193,7 @@ public class AmbariServer {
     performStaticInjection();
     initDB();
     server = new Server();
+    server.setSessionIdManager(sessionIdManager);
     Server serverForAgent = new Server();
 
     checkDBVersion();
@@ -213,9 +231,20 @@ public class AmbariServer {
 
       root.setContextPath(CONTEXT_PATH);
       root.setErrorHandler(injector.getInstance(AmbariErrorHandler.class));
+      root.getSessionHandler().setSessionManager(sessionManager);
 
-      //Changing session cookie name to avoid conflicts
-      root.getSessionHandler().getSessionManager().setSessionCookie("AMBARISESSIONID");
+      SessionManager jettySessionManager = root.getSessionHandler().getSessionManager();
+
+      // use AMBARISESSIONID instead of JSESSIONID to avoid conflicts with
+      // other services (like HDFS) that run on the same context but a different
+      // port
+      jettySessionManager.setSessionCookie("AMBARISESSIONID");
+
+      // each request that does not use AMBARISESSIONID will create a new
+      // HashedSession in Jetty; these MUST be reaped after inactivity in order
+      // to prevent a memory leak
+      int sessionInactivityTimeout = configs.getHttpSessionInactiveTimeout();
+      jettySessionManager.setMaxInactiveInterval(sessionInactivityTimeout);
 
       GenericWebApplicationContext springWebAppContext = new GenericWebApplicationContext();
       springWebAppContext.setServletContext(root.getServletContext());
@@ -226,11 +255,14 @@ public class AmbariServer {
       root.getServletContext().setAttribute(
           WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE,
           springWebAppContext);
+      handlerList.setSpringWebAppContext(springWebAppContext);
 
       certMan.initRootCert();
 
-      ServletContextHandler agentroot = new ServletContextHandler(serverForAgent,
-          "/", ServletContextHandler.SESSIONS );
+      // the agent communication (heartbeats, registration, etc) is stateless
+      // and does not use sessions.
+      ServletContextHandler agentroot = new ServletContextHandler(
+          serverForAgent, "/", ServletContextHandler.NO_SESSIONS);
 
       ServletHolder rootServlet = root.addServlet(DefaultServlet.class, "/");
       rootServlet.setInitParameter("dirAllowed", "false");
@@ -240,17 +272,13 @@ public class AmbariServer {
       rootServlet = agentroot.addServlet(DefaultServlet.class, "/");
       rootServlet.setInitOrder(1);
 
-      //Spring Security Filter initialization
-      DelegatingFilterProxy springSecurityFilter = new DelegatingFilterProxy();
-      springSecurityFilter.setTargetBeanName("springSecurityFilterChain");
-
       //session-per-request strategy for api and agents
       root.addFilter(new FilterHolder(injector.getInstance(AmbariPersistFilter.class)), "/api/*", 1);
       root.addFilter(new FilterHolder(injector.getInstance(AmbariPersistFilter.class)), "/proxy/*", 1);
       root.addFilter(new FilterHolder(new MethodOverrideFilter()), "/api/*", 1);
       root.addFilter(new FilterHolder(new MethodOverrideFilter()), "/proxy/*", 1);
-      agentroot.addFilter(new FilterHolder(injector.getInstance(AmbariPersistFilter.class)), "/agent/*", 1);
 
+      agentroot.addFilter(new FilterHolder(injector.getInstance(AmbariPersistFilter.class)), "/agent/*", 1);
       agentroot.addFilter(SecurityFilter.class, "/*", 1);
 
       if (configs.getApiAuthentication()) {
@@ -467,8 +495,8 @@ public class AmbariServer {
       LOG.info("Database init needed - creating default data");
       Users users = injector.getInstance(Users.class);
 
-      users.createUser("admin", "admin", true, true);
-      users.createUser("user", "user", true, false);
+      users.createUser("admin", "admin");
+      users.createUser("user", "user");
 
       MetainfoEntity schemaVersion = new MetainfoEntity();
       schemaVersion.setMetainfoName(Configuration.SERVER_VERSION_KEY);

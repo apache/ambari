@@ -17,6 +17,12 @@
  */
 package org.apache.ambari.server.controller;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.inject.Inject;
+import javax.inject.Singleton;
+
 import org.apache.ambari.server.orm.entities.ViewEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
 import org.apache.ambari.server.view.ViewContextImpl;
@@ -25,12 +31,12 @@ import org.apache.ambari.server.view.ViewRegistry;
 import org.apache.ambari.view.SystemException;
 import org.apache.ambari.view.ViewContext;
 import org.eclipse.jetty.server.Handler;
+import org.eclipse.jetty.server.SessionManager;
+import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.webapp.WebAppContext;
-
-import javax.inject.Inject;
-import javax.inject.Singleton;
-import java.util.HashMap;
-import java.util.Map;
+import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.context.support.GenericWebApplicationContext;
+import org.springframework.web.filter.DelegatingFilterProxy;
 
 /**
  * An Ambari specific extension of the FailsafeHandlerList that allows for the addition
@@ -46,6 +52,15 @@ public class AmbariHandlerList extends FailsafeHandlerList implements ViewInstan
   ViewRegistry viewRegistry;
 
   /**
+   * Session manager.
+   */
+  @Inject
+  SessionManager sessionManager;
+
+  @Inject
+  DelegatingFilterProxy springSecurityFilter;
+
+  /**
    * The Handler factory.
    */
   private final HandlerFactory handlerFactory;
@@ -55,6 +70,10 @@ public class AmbariHandlerList extends FailsafeHandlerList implements ViewInstan
    */
   private final Map<ViewInstanceEntity, Handler> handlerMap = new HashMap<ViewInstanceEntity, Handler>();
 
+  /**
+   * Spring web app context.
+   */
+  private GenericWebApplicationContext springWebAppContext;
 
   // ----- Constructors ------------------------------------------------------
 
@@ -72,6 +91,10 @@ public class AmbariHandlerList extends FailsafeHandlerList implements ViewInstan
         context.setClassLoader(viewInstanceDefinition.getViewEntity().getClassLoader());
         context.setAttribute(ViewContext.CONTEXT_ATTRIBUTE, new ViewContextImpl(viewInstanceDefinition, viewRegistry));
 
+        context.getSessionHandler().setSessionManager(sessionManager);
+        context.getServletContext().setAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE, springWebAppContext);
+        context.addFilter(new FilterHolder(springSecurityFilter), "/*", 1);
+
         return context;
       }
     };
@@ -85,6 +108,16 @@ public class AmbariHandlerList extends FailsafeHandlerList implements ViewInstan
   protected AmbariHandlerList(HandlerFactory handlerFactory) {
     super(true);
     this.handlerFactory = handlerFactory;
+  }
+
+  /**
+   * Sets the spring web app context.
+   *
+   * @param springWebAppContext the spring web app context
+   */
+  public void setSpringWebAppContext(
+      GenericWebApplicationContext springWebAppContext) {
+    this.springWebAppContext = springWebAppContext;
   }
 
 

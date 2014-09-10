@@ -101,3 +101,48 @@ App.registerBoundHelper('humanize', Em.View.extend({
     return content && (content[0].toUpperCase() + content.slice(1)).replace(/([A-Z])/g, ' $1').replace(/_/g, ' ');
   }.property('content')
 }));
+
+/**
+ * Ambari overrides the default date transformer.
+ * This is done because of the non-standard data
+ * sent. For example Nagios sends date as "12345678".
+ * The problem is that it is a String and is represented
+ * only in seconds whereas Javascript's Date needs
+ * milliseconds representation.
+ */
+DS.attr.transforms = {
+  date: {
+    from: function (serialized) {
+      var type = typeof serialized;
+      if (type === 'string') {
+        serialized = parseInt(serialized);
+        type = typeof serialized;
+      }
+      if (type === 'number') {
+        if (!serialized) {  //serialized timestamp = 0;
+          return 0;
+        }
+        // The number could be seconds or milliseconds.
+        // If seconds, then the length is 10
+        // If milliseconds, the length is 13
+        if (serialized.toString().length < 13) {
+          serialized = serialized * 1000;
+        }
+        return new Date(serialized);
+      } else if (serialized === null || serialized === undefined) {
+        // if the value is not present in the data,
+        // return undefined, not null.
+        return serialized;
+      } else {
+        return null;
+      }
+    },
+    to: function (deserialized) {
+      if (deserialized instanceof Date) {
+        return deserialized.getTime();
+      } else {
+        return null;
+      }
+    }
+  }
+};

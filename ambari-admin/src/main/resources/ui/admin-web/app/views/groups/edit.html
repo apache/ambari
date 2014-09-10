@@ -40,28 +40,7 @@
   <div class="form-group">
     <label for="members" class="col-sm-2 control-label">{{group.ldap_group ? 'LDAP Members' : 'Local Members'}}</label>
     <div class="col-sm-10">
-      <div class="row" ng-hide="isMembersEditing">
-        <div class="col-sm-10">
-          <div class="well users">
-            <span ng-repeat="member in groupMembers" >
-              <link-to route='users.show' id="{{member}}">
-                {{member}}
-              </link-to>
-              {{$last ? '' : ', '}}
-            </span>
-          </div>
-        </div>
-        <div class="col-sm-2">
-          <a href ng-click="enableMembersEditing()" ng-hide="user.ldap_group"><span class="glyphicon glyphicon-pencil"></span> Edit</a>
-        </div>
-      </div>
-      <div class="row" ng-show="isMembersEditing">
-        <div class="col-sm-12">
-          <textarea name="groups" id="" cols="30" rows="5" class="form-control bottom-margin usergroups" ng-model="group.editingUsers"></textarea>
-          <a href class="btn btn-primary pull-right left-margin updategroups" ng-click="updateMembers()">Save</a>
-          <button class="btn btn-default pull-right cancel-groups-update" ng-click="cancelUpdate()">Cancel</button>
-        </div>
-      </div>
+      <editable-list items-source="group.editingUsers" resource-type="User" editable="!group.ldap_group"></editable-list>
     </div>
   </div>
 

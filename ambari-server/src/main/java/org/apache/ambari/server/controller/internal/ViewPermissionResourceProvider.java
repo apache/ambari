@@ -125,7 +125,11 @@ public class ViewPermissionResourceProvider extends AbstractResourceProvider {
       Object viewVersion = propertyMap.get(VIEW_VERSION_PROPERTY_ID);
       if (viewName != null && viewVersion != null) {
         ViewEntity viewEntity = viewRegistry.getDefinition(viewName.toString(), viewVersion.toString());
-        resources.add(toResource(viewUsePermission, viewEntity.getResourceType(), viewEntity, requestedIds));
+
+        // do not report permissions for views that are not loaded.
+        if (viewEntity.isLoaded()) {
+          resources.add(toResource(viewUsePermission, viewEntity.getResourceType(), viewEntity, requestedIds));
+        }
       }
     }
 
@@ -134,7 +138,7 @@ public class ViewPermissionResourceProvider extends AbstractResourceProvider {
 
       ViewEntity viewEntity = viewRegistry.getDefinition(resourceType);
 
-      if (viewEntity != null) {
+      if (viewEntity != null && viewEntity.isLoaded()) {
         resources.add(toResource(permissionEntity, resourceType, viewEntity, requestedIds));
       }
     }

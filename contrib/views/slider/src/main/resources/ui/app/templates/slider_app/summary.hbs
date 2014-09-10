@@ -69,14 +69,35 @@
         <div class="panel-heading">
           Alerts
           <div class="btn-group pull-right panel-link">
-            <a class="btn btn-default btn-sm" target="_blank" rel="tooltip"
+{{!--            <a class="btn btn-default btn-sm" target="_blank" rel="tooltip"
               {{translateAttr title="sliderApp.summary.go_to_nagios"}}
               {{bindAttr href="view.nagiosUrl"}}>
                 <i class="icon-link"></i>
-            </a>
+            </a>--}}
           </div>
         </div>
-        <div class="panel-body">
+        <div class="app-alerts">
+            <ul>
+              {{#each controller.model.alerts}}
+                {{#view view.AlertView contentBinding="this"}}
+                      <div class="container-fluid">
+                          <div class="row">
+                              <div class="col-md-1 status-icon">
+                                  <i {{bindAttr class="iconClass :icon-large"}}></i>
+                              </div>
+                              <div class="col-md-11">
+                                  <div class="row">
+                                      <div class="col-md-7 title">{{title}}</div>
+
+                                      <div {{bs-bind-tooltip view.tooltip}} data-placement="right" class="col-md-5 date-time">{{timeSinceAlert}}</div>
+                                  </div>
+                                  <div class="message">{{message}}</div>
+                              </div>
+                          </div>
+                      </div>
+                  {{/view}}
+              {{/each}}
+            </ul>
         </div>
       </div>
     </div>

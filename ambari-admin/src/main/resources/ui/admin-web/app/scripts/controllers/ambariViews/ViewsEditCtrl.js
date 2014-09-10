@@ -160,6 +160,14 @@ angular.module('ambariAdminConsole')
     $scope.editPermissionDisabled = true;
   };
 
+  $scope.$watch(function() {
+    return $scope.permissionsEdit;
+  }, function(newValue) {
+    if(newValue){
+      $scope.savePermissions();
+    }
+  }, true);  
+
   $scope.deleteInstance = function(instance) {
     ConfirmationModal.show('Delete View Instance', 'Are you sure you want to delete View Instance '+ instance.ViewInstanceInfo.label +'?').then(function() {
       View.deleteInstance(instance.ViewInstanceInfo.view_name, instance.ViewInstanceInfo.version, instance.ViewInstanceInfo.instance_name)

@@ -19,6 +19,7 @@ limitations under the License.
 
 import re
 import sys
+from math import ceil
 
 from stack_advisor import DefaultStackAdvisor
 
@@ -91,19 +92,19 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
 
   def recommendYARNConfigurations(self, configurations, clusterData):
     putYarnProperty = self.putProperty(configurations, "yarn-site")
-    putYarnProperty('yarn.nodemanager.resource.memory-mb', clusterData['containers'] * clusterData['ramPerContainer'])
-    putYarnProperty('yarn.scheduler.minimum-allocation-mb', clusterData['ramPerContainer'])
-    putYarnProperty('yarn.scheduler.maximum-allocation-mb', clusterData['containers'] * clusterData['ramPerContainer'])
+    putYarnProperty('yarn.nodemanager.resource.memory-mb', int(round(clusterData['containers'] * clusterData['ramPerContainer'])))
+    putYarnProperty('yarn.scheduler.minimum-allocation-mb', int(clusterData['ramPerContainer']))
+    putYarnProperty('yarn.scheduler.maximum-allocation-mb', int(round(clusterData['containers'] * clusterData['ramPerContainer'])))
 
   def recommendMapReduce2Configurations(self, configurations, clusterData):
     putMapredProperty = self.putProperty(configurations, "mapred-site")
-    putMapredProperty('yarn.app.mapreduce.am.resource.mb', clusterData['amMemory'])
-    putMapredProperty('yarn.app.mapreduce.am.command-opts', "-Xmx" + str(int(0.8 * clusterData['amMemory'])) + "m")
+    putMapredProperty('yarn.app.mapreduce.am.resource.mb', int(clusterData['amMemory']))
+    putMapredProperty('yarn.app.mapreduce.am.command-opts', "-Xmx" + str(int(round(0.8 * clusterData['amMemory']))) + "m")
     putMapredProperty('mapreduce.map.memory.mb', clusterData['mapMemory'])
-    putMapredProperty('mapreduce.reduce.memory.mb', clusterData['reduceMemory'])
-    putMapredProperty('mapreduce.map.java.opts', "-Xmx" + str(int(0.8 * clusterData['mapMemory'])) + "m")
-    putMapredProperty('mapreduce.reduce.java.opts', "-Xmx" + str(int(0.8 * clusterData['reduceMemory'])) + "m")
-    putMapredProperty('mapreduce.task.io.sort.mb', int(min(0.4 * clusterData['mapMemory'], 1024)))
+    putMapredProperty('mapreduce.reduce.memory.mb', int(clusterData['reduceMemory']))
+    putMapredProperty('mapreduce.map.java.opts', "-Xmx" + str(int(round(0.8 * clusterData['mapMemory']))) + "m")
+    putMapredProperty('mapreduce.reduce.java.opts', "-Xmx" + str(int(round(0.8 * clusterData['reduceMemory']))) + "m")
+    putMapredProperty('mapreduce.task.io.sort.mb', min(int(round(0.4 * clusterData['mapMemory'])), 1024))
 
   def getClusterData(self, servicesList, hosts, components):
 
@@ -161,19 +162,21 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       24 < cluster["ram"]: 2048
     }[1]
 
+    totalAvailableRam = cluster["ram"] - cluster["reservedRam"]
+    if cluster["hBaseInstalled"]:
+      totalAvailableRam -= cluster["hbaseRam"]
+    cluster["totalAvailableRam"] = max(2048, totalAvailableRam * 1024)
     '''containers = max(3, min (2*cores,min (1.8*DISKS,(Total available RAM) / MIN_CONTAINER_SIZE))))'''
-    cluster["containers"] = max(3,
+    cluster["containers"] = round(max(3,
                                 min(2 * cluster["cpu"],
-                                    int(min(1.8 * cluster["disk"],
-                                            cluster["ram"] / cluster["minContainerSize"]))))
+                                    min(ceil(1.8 * cluster["disk"]),
+                                            cluster["totalAvailableRam"] / cluster["minContainerSize"]))))
 
     '''ramPerContainers = max(2GB, RAM - reservedRam - hBaseRam) / containers'''
-    cluster["ramPerContainer"] = max(2048,
-                                     cluster["ram"] - cluster["reservedRam"] - cluster["hbaseRam"])
-    cluster["ramPerContainer"] /= cluster["containers"]
+    cluster["ramPerContainer"] = abs(cluster["totalAvailableRam"] / cluster["containers"])
     '''If greater than 1GB, value will be in multiples of 512.'''
     if cluster["ramPerContainer"] > 1024:
-      cluster["ramPerContainer"] = ceil(cluster["ramPerContainer"] / 512) * 512
+      cluster["ramPerContainer"] = int(cluster["ramPerContainer"] / 512) * 512
 
     cluster["mapMemory"] = int(cluster["ramPerContainer"])
     cluster["reduceMemory"] = cluster["ramPerContainer"]

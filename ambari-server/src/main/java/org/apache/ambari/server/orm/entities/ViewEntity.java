@@ -750,6 +750,15 @@ public class ViewEntity implements ViewDefinition {
   }
 
   /**
+   * Determine whether or not the entity is loaded.
+   *
+   * @return true if the entity is loaded
+   */
+  public boolean isLoaded() {
+    return status.equals(ViewStatus.LOADED);
+  }
+
+  /**
    * Get the internal view name from the given common name and version.
    *
    * @param name     the view common name

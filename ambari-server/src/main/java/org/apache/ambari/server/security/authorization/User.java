@@ -38,7 +38,7 @@ public class User {
   final Collection<String> groups = new ArrayList<String>();
   boolean admin = false;
 
-  User(UserEntity userEntity) {
+  public User(UserEntity userEntity) {
     userId = userEntity.getUserId();
     userName = userEntity.getUserName();
     createTime = userEntity.getCreateTime();

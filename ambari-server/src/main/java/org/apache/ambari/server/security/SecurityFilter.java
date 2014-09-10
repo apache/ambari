@@ -35,7 +35,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 public class SecurityFilter implements Filter {
-  
+
   //Allowed pathes for one way auth https
   private static String CA = "/ca";
 

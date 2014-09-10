@@ -25,26 +25,31 @@ require('utils/polling');
 require('models/cluster_states');
 require('models/service');
 
+var controller;
+
 describe('App.MainAdminSecurityAddStep4Controller', function () {
 
-  var controller = App.MainAdminSecurityAddStep4Controller.create({
-    content: {},
-    enableSubmit: function () {
-      this._super()
-    },
-    secureMapping: [],
-    secureProperties: [],
-    secureServices: []
+  beforeEach(function () {
+    controller = App.MainAdminSecurityAddStep4Controller.create({
+      content: {},
+      commands: [],
+      enableSubmit: function () {
+        this._super()
+      },
+      secureMapping: [],
+      secureProperties: [],
+      secureServices: []
+    });
   });
 
- describe('#isBackBtnDisabled', function() {
-    it('commands have error', function() {
+  describe('#isBackBtnDisabled', function () {
+    it('commands have error', function () {
       controller.set('commands', [Em.Object.create({
         isError: true
       })]);
       expect(controller.get('isBackBtnDisabled')).to.be.false;
     });
-    it('commands do not have error', function() {
+    it('commands do not have error', function () {
       controller.set('commands', [Em.Object.create({
         isError: false
       })]);
@@ -52,7 +57,7 @@ describe('App.MainAdminSecurityAddStep4Controller', function () {
     });
   });
 
-  describe('#isSecurityApplied', function() {
+  describe('#isSecurityApplied', function () {
     var testCases = [
       {
         title: 'No START_SERVICES command',
@@ -77,15 +82,15 @@ describe('App.MainAdminSecurityAddStep4Controller', function () {
       }
     ];
 
-    testCases.forEach(function(test){
-      it(test.title, function() {
+    testCases.forEach(function (test) {
+      it(test.title, function () {
         controller.set('commands', test.commands);
         expect(controller.get('isSecurityApplied')).to.equal(test.result);
       });
     });
   });
 
-  describe('#enableSubmit()', function() {
+  describe('#enableSubmit()', function () {
     var mock = {
       setStepsEnable: Em.K,
       setLowerStepsDisable: Em.K
@@ -104,7 +109,7 @@ describe('App.MainAdminSecurityAddStep4Controller', function () {
       mock.setLowerStepsDisable.restore();
     });
 
-    it('Command has error', function() {
+    it('Command has error', function () {
       controller.set('commands', [Em.Object.create({
         isError: true
       })]);
@@ -112,14 +117,14 @@ describe('App.MainAdminSecurityAddStep4Controller', function () {
       expect(controller.get('isSubmitDisabled')).to.be.false;
       expect(mock.setStepsEnable.calledOnce).to.be.true;
     });
-    it('Command is successful', function() {
+    it('Command is successful', function () {
       controller.set('commands', [Em.Object.create({
         isSuccess: true
       })]);
       controller.enableSubmit();
       expect(controller.get('isSubmitDisabled')).to.be.false;
     });
-    it('Command is in progress', function() {
+    it('Command is in progress', function () {
       controller.set('commands', [Em.Object.create()]);
       controller.enableSubmit();
       expect(controller.get('isSubmitDisabled')).to.be.true;
@@ -127,11 +132,13 @@ describe('App.MainAdminSecurityAddStep4Controller', function () {
     });
   });
 
-  describe('#clearStep()', function() {
-    it('Clear step info', function() {
+  describe('#clearStep()', function () {
+    it('Clear step info', function () {
       controller.set('commands', [Em.Object.create()]);
       controller.set('isSubmitDisabled', false);
-      controller.set('serviceConfigTags', [{}]);
+      controller.set('serviceConfigTags', [
+        {}
+      ]);
       controller.clearStep();
       expect(controller.get('isSubmitDisabled')).to.be.true;
       expect(controller.get('commands')).to.be.empty;
@@ -139,55 +146,68 @@ describe('App.MainAdminSecurityAddStep4Controller', function () {
     });
   });
 
-  describe('#loadCommands()', function() {
+  describe('#loadCommands()', function () {
 
-    beforeEach(function () {
-      controller.get('commands').clear();
+    before(function () {
       sinon.stub(App.clusterStatus, 'setClusterStatus', Em.K);
     });
-    afterEach(function () {
+
+    after(function () {
       App.clusterStatus.setClusterStatus.restore();
     });
 
-    it('No YARN in secureServices', function() {
-      controller.set('secureServices', []);
-      controller.loadCommands();
-      expect(controller.get('commands.length')).to.equal(3);
-      expect(controller.get('commands').someProperty('name', 'DELETE_ATS')).to.be.false;
-    });
-    it('YARN does not have APP_TIMELINE_SERVER', function() {
-      sinon.stub(App.Service, 'find', function () {
-        return Em.Object.create({
-          hostComponents: []
-        })
+    var tests = Em.A([
+      {
+        doesATSSupportKerberos: true,
+        isATSInstalled: true,
+        e: {
+          l: 3,
+          d: false
+        }
+      },
+      {
+        doesATSSupportKerberos: true,
+        isATSInstalled: false,
+        e: {
+          l: 3,
+          d: false
+        }
+      },
+      {
+        doesATSSupportKerberos: false,
+        isATSInstalled: true,
+        e: {
+          l: 4,
+          d: true
+        }
+      },
+      {
+        doesATSSupportKerberos: false,
+        isATSInstalled: false,
+        e: {
+          l: 3,
+          d: false
+        }
+      }
+    ]);
+
+    tests.forEach(function (test) {
+      it('doesATSSupportKerberos ' + test.doesATSSupportKerberos.toString() + ', isATSInstalled ' + test.isATSInstalled.toString(), function () {
+        sinon.stub(App, 'get', function (k) {
+          if ('doesATSSupportKerberos' === k) return test.doesATSSupportKerberos;
+          return Em.get(App, k);
+        });
+        controller.set('content.isATSInstalled', test.isATSInstalled);
+        controller.loadCommands();
+        App.get.restore();
+        expect(controller.get('commands.length')).to.equal(test.e.l);
+        expect(controller.get('commands').someProperty('name', 'DELETE_ATS')).to.equal(test.e.d);
       });
-      controller.set('secureServices', [{
-        serviceName: 'YARN'
-      }]);
-      controller.loadCommands();
-      expect(controller.get('commands.length')).to.equal(3);
-      expect(controller.get('commands').someProperty('name', 'DELETE_ATS')).to.be.false;
-      App.Service.find.restore();
     });
-    it('YARN has APP_TIMELINE_SERVER', function() {
-      sinon.stub(App.Service, 'find', function () {
-        return Em.Object.create({
-          hostComponents: [Em.Object.create({
-            componentName: 'APP_TIMELINE_SERVER'
-          })]
-        })
-      });
-      controller.set('secureServices', [{
-        serviceName: 'YARN'
-      }]);
-      controller.loadCommands();
-      expect(controller.get('commands.length')).to.equal(4);
-      expect(controller.get('commands').someProperty('name', 'DELETE_ATS')).to.be.true;
-      App.Service.find.restore();
-    });
+
   });
 
-  describe('#loadStep()', function() {
+  describe('#loadStep()', function () {
 
     beforeEach(function () {
       sinon.stub(controller, 'clearStep', Em.K);
@@ -199,8 +219,8 @@ describe('App.MainAdminSecurityAddStep4Controller', function () {
       controller.resumeSavedCommands.restore();
     });
 
-    it('Resume saved commands', function() {
-      sinon.stub(controller, 'resumeSavedCommands', function(){
+    it('Resume saved commands', function () {
+      sinon.stub(controller, 'resumeSavedCommands', function () {
         return true;
       });
 
@@ -209,8 +229,8 @@ describe('App.MainAdminSecurityAddStep4Controller', function () {
       expect(controller.prepareSecureConfigs.calledOnce).to.be.true;
       expect(controller.resumeSavedCommands.calledOnce).to.be.true;
     });
-    it('No saved commands', function() {
-      sinon.stub(controller, 'resumeSavedCommands', function(){
+    it('No saved commands', function () {
+      sinon.stub(controller, 'resumeSavedCommands', function () {
         return false;
       });
       sinon.stub(controller, 'loadCommands', Em.K);
@@ -232,28 +252,28 @@ describe('App.MainAdminSecurityAddStep4Controller', function () {
     });
   });
 
-  describe('#syncStopServicesOperation()', function() {
+  describe('#syncStopServicesOperation()', function () {
 
     afterEach(function () {
       App.router.get.restore();
     });
 
-    it('No running operations', function() {
-      sinon.stub(App.router, 'get', function(){
+    it('No running operations', function () {
+      sinon.stub(App.router, 'get', function () {
         return [];
       });
 
       expect(controller.syncStopServicesOperation()).to.be.false;
     });
-    it('Running operation is not Stop All Services', function() {
-      sinon.stub(App.router, 'get', function(){
+    it('Running operation is not Stop All Services', function () {
+      sinon.stub(App.router, 'get', function () {
         return [Em.Object.create({isRunning: true})];
       });
 
       expect(controller.syncStopServicesOperation()).to.be.false;
     });
-    it('No STOP_SERVICES in commands', function() {
-      sinon.stub(App.router, 'get', function(){
+    it('No STOP_SERVICES in commands', function () {
+      sinon.stub(App.router, 'get', function () {
         return [Em.Object.create({
           isRunning: true,
           name: 'Stop All Services'
@@ -263,8 +283,8 @@ describe('App.MainAdminSecurityAddStep4Controller', function () {
 
       expect(controller.syncStopServicesOperation()).to.be.false;
     });
-    it('Sync stop services commands', function() {
-      sinon.stub(App.router, 'get', function(){
+    it('Sync stop services commands', function () {
+      sinon.stub(App.router, 'get', function () {
         return [Em.Object.create({
           isRunning: true,
           name: 'Stop All Services',
@@ -280,50 +300,54 @@ describe('App.MainAdminSecurityAddStep4Controller', function () {
     });
   });
 
-  describe('#resumeSavedCommands()', function() {
+  describe('#resumeSavedCommands()', function () {
 
-    beforeEach(function(){
+    beforeEach(function () {
       sinon.stub(controller, 'addObserverToCommands', Em.K);
       sinon.stub(controller, 'moveToNextCommand', Em.K);
       controller.set('commands', []);
     });
-    afterEach(function(){
+    afterEach(function () {
       controller.moveToNextCommand.restore();
       controller.addObserverToCommands.restore();
       App.db.getSecurityDeployCommands.restore();
     });
 
 
-    it('Commands is null', function() {
-      sinon.stub(App.db, 'getSecurityDeployCommands', function(){
+    it('Commands is null', function () {
+      sinon.stub(App.db, 'getSecurityDeployCommands', function () {
         return null;
       });
       expect(controller.resumeSavedCommands()).to.be.false;
     });
-    it('Commands is empty', function() {
-      sinon.stub(App.db, 'getSecurityDeployCommands', function(){
+    it('Commands is empty', function () {
+      sinon.stub(App.db, 'getSecurityDeployCommands', function () {
         return [];
       });
       expect(controller.resumeSavedCommands()).to.be.false;
     });
-    it('Command has error', function() {
-      sinon.stub(App.db, 'getSecurityDeployCommands', function(){
-        return [{
-          isError: true,
-          name: 'command1'
-        }];
+    it('Command has error', function () {
+      sinon.stub(App.db, 'getSecurityDeployCommands', function () {
+        return [
+          {
+            isError: true,
+            name: 'command1'
+          }
+        ];
       });
       expect(controller.resumeSavedCommands()).to.be.true;
       expect(controller.get('commands').mapProperty('name')).to.eql(['command1']);
       expect(controller.addObserverToCommands.calledOnce).to.be.true;
     });
-    it('Command in progress', function() {
-      sinon.stub(App.db, 'getSecurityDeployCommands', function(){
-        return [{
-          isStarted: true,
-          isCompleted: false,
-          name: 'command1'
-        }];
+    it('Command in progress', function () {
+      sinon.stub(App.db, 'getSecurityDeployCommands', function () {
+        return [
+          {
+            isStarted: true,
+            isCompleted: false,
+            name: 'command1'
+          }
+        ];
       });
       expect(controller.resumeSavedCommands()).to.be.true;
       expect(controller.get('commands').mapProperty('name')).to.eql(['command1']);
@@ -331,12 +355,14 @@ describe('App.MainAdminSecurityAddStep4Controller', function () {
       expect(controller.addObserverToCommands.calledOnce).to.be.true;
       expect(controller.moveToNextCommand.calledOnce).to.be.true;
     });
-    it('Command completed', function() {
-      sinon.stub(App.db, 'getSecurityDeployCommands', function(){
-        return [{
-          isCompleted: true,
-          name: 'command1'
-        }];
+    it('Command completed', function () {
+      sinon.stub(App.db, 'getSecurityDeployCommands', function () {
+        return [
+          {
+            isCompleted: true,
+            name: 'command1'
+          }
+        ];
       });
       expect(controller.resumeSavedCommands()).to.be.true;
       expect(controller.get('commands').mapProperty('name')).to.eql(['command1']);
@@ -345,7 +371,7 @@ describe('App.MainAdminSecurityAddStep4Controller', function () {
     });
   });
 
- describe('#manageSecureConfigs()', function() {
+  describe('#manageSecureConfigs()', function () {
 
     beforeEach(function () {
       sinon.stub(controller, 'setPrincipalValue', Em.K);
@@ -354,10 +380,12 @@ describe('App.MainAdminSecurityAddStep4Controller', function () {
       controller.setPrincipalValue.restore();
     });
 
-    it('serviceConfigTags is null', function() {
+    it('serviceConfigTags is null', function () {
       sinon.stub(controller, 'onJsError', Em.K);
       controller.set('serviceConfigTags', null);
-      controller.set('configs', [{id: 'site property'}]);
+      controller.set('configs', [
+        {id: 'site property'}
+      ]);
       controller.set('commands', [Em.Object.create({
         name: 'APPLY_CONFIGURATIONS'
       })]);
@@ -369,36 +397,46 @@ describe('App.MainAdminSecurityAddStep4Controller', function () {
 
       controller.onJsError.restore();
     });
-    it('Add configs from site-*.xml', function() {
-      controller.set('serviceConfigTags', [{
-        siteName: 'site1',
-        configs: {}
-      }]);
-      controller.set('configs', [{
-        id: 'site property',
-        name: 'config1',
-        value: "value1",
-        filename: 'site1.xml'
-      }]);
+    it('Add configs from site-*.xml', function () {
+      controller.set('serviceConfigTags', [
+        {
+          siteName: 'site1',
+          configs: {}
+        }
+      ]);
+      controller.set('configs', [
+        {
+          id: 'site property',
+          name: 'config1',
+          value: "value1",
+          filename: 'site1.xml'
+        }
+      ]);
 
       expect(controller.manageSecureConfigs()).to.be.true;
       expect(controller.get('serviceConfigTags')[0].configs).to.eql({'config1': 'value1'});
     });
-    it('Add configs from global.xml, config matches "_hosts"', function() {
-      controller.set('serviceConfigTags', [{
-        siteName: 'global',
-        configs: {}
-      }]);
-      controller.set('globalProperties', [{
-        id: 'site property',
-        name: 'config1_hosts',
-        value: "value1",
-        filename: 'site1.xml'
-      }]);
-      controller.set('secureConfigs', [{
-        serviceName: 'service1',
-        name: 'config1'
-      }]);
+    it('Add configs from global.xml, config matches "_hosts"', function () {
+      controller.set('serviceConfigTags', [
+        {
+          siteName: 'global',
+          configs: {}
+        }
+      ]);
+      controller.set('globalProperties', [
+        {
+          id: 'site property',
+          name: 'config1_hosts',
+          value: "value1",
+          filename: 'site1.xml'
+        }
+      ]);
+      controller.set('secureConfigs', [
+        {
+          serviceName: 'service1',
+          name: 'config1'
+        }
+      ]);
 
       expect(controller.manageSecureConfigs()).to.be.true;
       expect(controller.get('serviceConfigTags')[0].configs).to.eql({});
@@ -406,8 +444,8 @@ describe('App.MainAdminSecurityAddStep4Controller', function () {
     });
   });
 
-  describe('#deleteComponents()', function() {
-    it('Send ajax', function() {
+  describe('#deleteComponents()', function () {
+    it('Send ajax', function () {
       sinon.stub(App.ajax, 'send', Em.K);
 
       controller.deleteComponents('comp1', 'host1');
@@ -417,8 +455,8 @@ describe('App.MainAdminSecurityAddStep4Controller', function () {
     });
   });
 
-  describe('#onDeleteComplete()', function() {
-    it('', function() {
+  describe('#onDeleteComplete()', function () {
+    it('', function () {
       controller.set('commands', [Em.Object.create({
         name: 'DELETE_ATS'
       })]);
@@ -429,8 +467,8 @@ describe('App.MainAdminSecurityAddStep4Controller', function () {
     });
   });
 
-  describe('#onJsError()', function() {
-    it('Show popup', function() {
+  describe('#onJsError()', function () {
+    it('Show popup', function () {
       sinon.stub(App.ModalPopup, 'show', Em.K);
 
       controller.onJsError();
@@ -439,4 +477,5 @@ describe('App.MainAdminSecurityAddStep4Controller', function () {
       App.ModalPopup.show.restore();
     });
   });
+
 });

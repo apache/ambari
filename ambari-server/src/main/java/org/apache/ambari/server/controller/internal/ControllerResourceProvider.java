@@ -23,7 +23,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
@@ -40,6 +39,9 @@ import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.security.ldap.LdapGroupDto;
+import org.apache.ambari.server.security.ldap.LdapSyncDto;
+import org.apache.ambari.server.security.ldap.LdapUserDto;
 import org.apache.commons.lang.StringUtils;
 
 /**
@@ -137,12 +139,14 @@ class ControllerResourceProvider extends AbstractControllerResourceProvider {
             ldapConfigured, requestedIds);
         if (ldapConfigured) {
           try {
+            final LdapSyncDto syncInfo = getManagementController().getLdapSyncInfo();
+
             final List<String> allUsers = new ArrayList<String>();
             final List<String> syncedUsers = new ArrayList<String>();
-            for (Entry<String, Boolean> user : getManagementController().getLdapUsersSyncInfo().entrySet()) {
-              allUsers.add(user.getKey());
-              if (user.getValue()) {
-                syncedUsers.add(user.getKey());
+            for (LdapUserDto user : syncInfo.getUsers()) {
+              allUsers.add(user.getUserName());
+              if (user.isSynced()) {
+                syncedUsers.add(user.getUserName());
               }
             }
             setResourceProperty(resource, CONTROLLER_LDAP_USERS_PROPERTY_ID,
@@ -151,10 +155,10 @@ class ControllerResourceProvider extends AbstractControllerResourceProvider {
                 syncedUsers, requestedIds);
             final List<String> allGroups = new ArrayList<String>();
             final List<String> syncedGroups = new ArrayList<String>();
-            for (Entry<String, Boolean> group : getManagementController().getLdapGroupsSyncInfo().entrySet()) {
-              allGroups.add(group.getKey());
-              if (group.getValue()) {
-                syncedGroups.add(group.getKey());
+            for (LdapGroupDto group : syncInfo.getGroups()) {
+              allGroups.add(group.getGroupName());
+              if (group.isSynced()) {
+                syncedGroups.add(group.getGroupName());
               }
             }
             setResourceProperty(resource, CONTROLLER_LDAP_GROUPS_PROPERTY_ID,

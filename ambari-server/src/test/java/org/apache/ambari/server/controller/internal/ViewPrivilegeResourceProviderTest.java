@@ -45,6 +45,7 @@ import org.apache.ambari.server.security.SecurityHelper;
 import org.apache.ambari.server.view.ViewInstanceHandlerList;
 import org.apache.ambari.server.view.ViewRegistry;
 import org.apache.ambari.server.view.ViewRegistryTest;
+import org.apache.ambari.view.ViewDefinition;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -100,6 +101,8 @@ public class ViewPrivilegeResourceProviderTest {
     ViewInstanceEntity viewInstanceDefinition = ViewInstanceEntityTest.getViewInstanceEntity();
 
     viewDefinition.addInstanceDefinition(viewInstanceDefinition);
+    viewInstanceDefinition.setViewEntity(viewDefinition);
+    viewDefinition.setStatus(ViewDefinition.ViewStatus.LOADED);
 
     ViewRegistry registry = ViewRegistry.getInstance();
 
@@ -158,11 +161,6 @@ public class ViewPrivilegeResourceProviderTest {
 
     verify(privilegeDAO, userDAO, groupDAO, principalDAO, permissionDAO, resourceDAO, privilegeEntity, resourceEntity,
         userEntity, principalEntity, permissionEntity, principalTypeEntity);
-  }
-
-  @Test
-  public void testUpdateResources() throws Exception {
-    // see AmbariPrivilegeResourceProvider#testUpdateResources
   }
 }
 

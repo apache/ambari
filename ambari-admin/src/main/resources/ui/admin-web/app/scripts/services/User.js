@@ -46,6 +46,13 @@ angular.module('ambariAdminConsole')
         + (params.admin ? '&Users/admin=true' : '')
       );
     },
+    listByName: function(name) {
+      return $http.get(
+        Settings.baseUrl + '/users?'
+        + 'Users/user_name.matches(.*'+name+'.*)'
+        + '&from=0&page_size=20'
+      );
+    },
     get: function(userId) {
       return Restangular.one('users', userId).get();
     },

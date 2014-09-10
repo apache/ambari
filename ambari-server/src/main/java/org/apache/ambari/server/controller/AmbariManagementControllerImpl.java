@@ -91,11 +91,13 @@ import org.apache.ambari.server.customactions.ActionDefinition;
 import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
 import org.apache.ambari.server.scheduler.ExecutionScheduleManager;
-import org.apache.ambari.server.security.authorization.AmbariLdapDataPopulator;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.security.authorization.Group;
 import org.apache.ambari.server.security.authorization.User;
 import org.apache.ambari.server.security.authorization.Users;
+import org.apache.ambari.server.security.ldap.AmbariLdapDataPopulator;
+import org.apache.ambari.server.security.ldap.LdapBatchDto;
+import org.apache.ambari.server.security.ldap.LdapSyncDto;
 import org.apache.ambari.server.stageplanner.RoleGraph;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -143,7 +145,6 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.collect.Multimaps;
 import com.google.gson.Gson;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
@@ -724,11 +725,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         throw new AmbariException("User already exists.");
       }
 
-      users.createUser(request.getUsername(), request.getPassword(), request.isActive(), request.isAdmin());
-
-      if (null != request.isActive() && null != user) {
-        users.setUserActive(user, request.isActive());
-      }
+      users.createUser(request.getUsername(), request.getPassword(), request.isActive(), request.isAdmin(), false);
     }
   }
 
@@ -1805,7 +1802,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
             RoleCommand roleCommand;
             State oldSchState = scHost.getState();
             ServiceComponentHostEvent event;
-            
+
             switch (newState) {
               case INSTALLED:
                 if (oldSchState == State.INIT
@@ -1960,7 +1957,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
                     break;
                 }
               }
-              
+
               if (null == requestParameters) {
                 requestParameters = new HashMap<String, String>();
               }
@@ -1972,7 +1969,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           }
         }
       }
-      
+
       for (String serviceName : smokeTestServices) { // Creates smoke test commands
         Service s = cluster.getService(serviceName);
         // find service component host
@@ -3313,7 +3310,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
     return response;
   }
-  
+
   @Override
   public Set<StackConfigurationResponse> getStackLevelConfigurations(
       Set<StackLevelConfigurationRequest> requests) throws AmbariException {
@@ -3322,7 +3319,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
       String stackName    = request.getStackName();
       String stackVersion = request.getStackVersion();
-      
+
       Set<StackConfigurationResponse> stackConfigurations = getStackLevelConfigurations(request);
 
       for (StackConfigurationResponse stackConfigurationResponse : stackConfigurations) {
@@ -3673,19 +3670,14 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   }
 
   @Override
-  public Map<String, Boolean> getLdapUsersSyncInfo() throws AmbariException {
-    return ldapDataPopulator.getLdapUsersSyncInfo();
-  }
-
-  @Override
-  public Map<String, Boolean> getLdapGroupsSyncInfo() throws AmbariException {
-    return ldapDataPopulator.getLdapGroupsSyncInfo();
+  public LdapSyncDto getLdapSyncInfo() throws AmbariException {
+    return ldapDataPopulator.getLdapSyncInfo();
   }
 
   @Override
   public synchronized void synchronizeLdapUsersAndGroups(Set<String> users,
       Set<String> groups) throws AmbariException {
-    ldapDataPopulator.synchronizeLdapUsersAndGroups(users, groups);
+    final LdapBatchDto batchInfo = ldapDataPopulator.synchronizeLdapUsersAndGroups(users, groups);
+    this.users.processLdapSync(batchInfo);
   }
-
 }

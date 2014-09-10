@@ -19,9 +19,13 @@ package org.apache.ambari.server.security.authorization;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+
+import javax.persistence.EntityManager;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.Configuration;
@@ -40,6 +44,8 @@ import org.apache.ambari.server.orm.entities.PrincipalEntity;
 import org.apache.ambari.server.orm.entities.PrincipalTypeEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
+import org.apache.ambari.server.security.ldap.LdapBatchDto;
+import org.apache.ambari.server.security.ldap.LdapUserGroupMemberDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -49,6 +55,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
 
@@ -60,6 +67,8 @@ public class Users {
 
   private final static Logger LOG = LoggerFactory.getLogger(Users.class);
 
+  @Inject
+  Provider<EntityManager> entityManagerProvider;
   @Inject
   protected UserDAO userDAO;
   @Inject
@@ -227,7 +236,7 @@ public class Users {
    * Creates new local user with provided userName and password.
    */
   public void createUser(String userName, String password) {
-    createUser(userName, password, true, false);
+    createUser(userName, password, true, false, false);
   }
 
   /**
@@ -237,9 +246,10 @@ public class Users {
    * @param password password
    * @param active is user active
    * @param admin is user admin
+   * @param ldapUser is user LDAP
    */
   @Transactional
-  public synchronized void createUser(String userName, String password, Boolean active, Boolean admin) {
+  public synchronized void createUser(String userName, String password, Boolean active, Boolean admin, Boolean ldapUser) {
 
     // create an admin principal to represent this user
     PrincipalTypeEntity principalTypeEntity = principalTypeDAO.findById(PrincipalTypeEntity.USER_PRINCIPAL_TYPE);
@@ -259,6 +269,9 @@ public class Users {
     userEntity.setPrincipal(principalEntity);
     if (active != null) {
       userEntity.setActive(active);
+    }
+    if (ldapUser != null) {
+      userEntity.setLdapUser(ldapUser);
     }
 
     userDAO.create(userEntity);
@@ -508,6 +521,147 @@ public class Users {
       }
     }
     return false;
+  }
+
+  /**
+   * Executes batch queries to database to insert large amounts of LDAP data.
+   *
+   * @param batchInfo DTO with batch information
+   */
+  public void processLdapSync(LdapBatchDto batchInfo) {
+    final Map<String, UserEntity> allUsers = new HashMap<String, UserEntity>();
+    final Map<String, GroupEntity> allGroups = new HashMap<String, GroupEntity>();
+
+    // prefetch all user and group data to avoid heavy queries in membership creation
+
+    for (UserEntity userEntity: userDAO.findAll()) {
+      allUsers.put(userEntity.getUserName(), userEntity);
+    }
+
+    for (GroupEntity groupEntity: groupDAO.findAll()) {
+      allGroups.put(groupEntity.getGroupName(), groupEntity);
+    }
+
+    final PrincipalTypeEntity userPrincipalType = principalTypeDAO
+        .ensurePrincipalTypeCreated(PrincipalTypeEntity.USER_PRINCIPAL_TYPE);
+    final PrincipalTypeEntity groupPrincipalType = principalTypeDAO
+        .ensurePrincipalTypeCreated(PrincipalTypeEntity.GROUP_PRINCIPAL_TYPE);
+
+    // remove users
+    final Set<UserEntity> usersToRemove = new HashSet<UserEntity>();
+    for (String userName: batchInfo.getUsersToBeRemoved()) {
+      UserEntity userEntity = userDAO.findLocalUserByName(userName);
+      if (userEntity == null) {
+        userEntity = userDAO.findLdapUserByName(userName);
+        if (userEntity == null) {
+          continue;
+        }
+      }
+      allUsers.remove(userEntity.getUserName());
+      usersToRemove.add(userEntity);
+    }
+    userDAO.remove(usersToRemove);
+
+    // remove groups
+    final Set<GroupEntity> groupsToRemove = new HashSet<GroupEntity>();
+    for (String groupName: batchInfo.getGroupsToBeRemoved()) {
+      final GroupEntity groupEntity = groupDAO.findGroupByName(groupName);
+      allGroups.remove(groupEntity.getGroupName());
+      groupsToRemove.add(groupEntity);
+    }
+    groupDAO.remove(groupsToRemove);
+
+    // update users
+    final Set<UserEntity> usersToBecomeLdap = new HashSet<UserEntity>();
+    for (String userName: batchInfo.getUsersToBecomeLdap()) {
+      UserEntity userEntity = userDAO.findLocalUserByName(userName);
+      if (userEntity == null) {
+        userEntity = userDAO.findLdapUserByName(userName);
+        if (userEntity == null) {
+          continue;
+        }
+      }
+      userEntity.setLdapUser(true);
+      allUsers.put(userEntity.getUserName(), userEntity);
+      usersToBecomeLdap.add(userEntity);
+    }
+    userDAO.merge(usersToBecomeLdap);
+
+    // update groups
+    final Set<GroupEntity> groupsToBecomeLdap = new HashSet<GroupEntity>();
+    for (String groupName: batchInfo.getGroupsToBecomeLdap()) {
+      final GroupEntity groupEntity = groupDAO.findGroupByName(groupName);
+      groupEntity.setLdapGroup(true);
+      allGroups.put(groupEntity.getGroupName(), groupEntity);
+      groupsToBecomeLdap.add(groupEntity);
+    }
+    groupDAO.merge(groupsToBecomeLdap);
+
+    // prepare create principals
+    final List<PrincipalEntity> principalsToCreate = new ArrayList<PrincipalEntity>();
+
+    // prepare create users
+    final Set<UserEntity> usersToCreate = new HashSet<UserEntity>();
+    for (String userName: batchInfo.getUsersToBeCreated()) {
+      final PrincipalEntity principalEntity = new PrincipalEntity();
+      principalEntity.setPrincipalType(userPrincipalType);
+      principalsToCreate.add(principalEntity);
+
+      final UserEntity userEntity = new UserEntity();
+      userEntity.setUserName(userName);
+      userEntity.setUserPassword("");
+      userEntity.setPrincipal(principalEntity);
+      userEntity.setLdapUser(true);
+
+      allUsers.put(userEntity.getUserName(), userEntity);
+      usersToCreate.add(userEntity);
+    }
+
+    // prepare create groups
+    final Set<GroupEntity> groupsToCreate = new HashSet<GroupEntity>();
+    for (String groupName: batchInfo.getGroupsToBeCreated()) {
+      final PrincipalEntity principalEntity = new PrincipalEntity();
+      principalEntity.setPrincipalType(groupPrincipalType);
+      principalsToCreate.add(principalEntity);
+
+      final GroupEntity groupEntity = new GroupEntity();
+      groupEntity.setGroupName(groupName);
+      groupEntity.setPrincipal(principalEntity);
+      groupEntity.setLdapGroup(true);
+
+      allGroups.put(groupEntity.getGroupName(), groupEntity);
+      groupsToCreate.add(groupEntity);
+    }
+
+    // create users and groups
+    principalDAO.create(principalsToCreate);
+    userDAO.create(usersToCreate);
+    groupDAO.create(groupsToCreate);
+
+    // remove membership
+    final Set<MemberEntity> membersToRemove = new HashSet<MemberEntity>();
+    for (LdapUserGroupMemberDto member: batchInfo.getMembershipToRemove()) {
+      membersToRemove.add(memberDAO.findByUserAndGroup(member.getUserName(), member.getGroupName()));
+    }
+    memberDAO.remove(membersToRemove);
+
+    // create membership
+    final Set<MemberEntity> membersToCreate = new HashSet<MemberEntity>();
+    final Set<GroupEntity> groupsToUpdate = new HashSet<GroupEntity>();
+    for (LdapUserGroupMemberDto member: batchInfo.getMembershipToAdd()) {
+      final MemberEntity memberEntity = new MemberEntity();
+      final GroupEntity groupEntity = allGroups.get(member.getGroupName());
+      memberEntity.setGroup(groupEntity);
+      memberEntity.setUser(allUsers.get(member.getUserName()));
+      groupEntity.getMemberEntities().add(memberEntity);
+      groupsToUpdate.add(groupEntity);
+      membersToCreate.add(memberEntity);
+    }
+    memberDAO.create(membersToCreate);
+    groupDAO.merge(groupsToUpdate); // needed for Derby DB as it doesn't fetch newly added members automatically
+
+    // clear cached entities
+    entityManagerProvider.get().getEntityManagerFactory().getCache().evictAll();
   }
 
 }

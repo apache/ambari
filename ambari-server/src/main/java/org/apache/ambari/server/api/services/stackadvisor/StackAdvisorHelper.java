@@ -59,7 +59,7 @@ public class StackAdvisorHelper {
    * Returns validation (component-layout or configurations) result for the
    * request.
    * 
-   * @param validationRequest the validation request
+   * @param request the validation request
    * @return {@link ValidationResponse} instance
    * @throws StackAdvisorException in case of stack advisor script errors
    */
@@ -83,7 +83,7 @@ public class StackAdvisorHelper {
       command = new GetConfigurationValidationCommand(recommendationsDir, stackAdvisorScript,
           requestId, saRunner, metaInfo);
     } else {
-      throw new StackAdvisorException(String.format("Unsupported request type, type=%s",
+      throw new StackAdvisorRequestException(String.format("Unsupported request type, type=%s",
           requestType));
     }
 
@@ -118,7 +118,7 @@ public class StackAdvisorHelper {
       command = new GetConfigurationRecommnedationCommand(recommendationsDir, stackAdvisorScript,
           requestId, saRunner, metaInfo);
     } else {
-      throw new StackAdvisorException(String.format("Unsupported request type, type=%s",
+      throw new StackAdvisorRequestException(String.format("Unsupported request type, type=%s",
           requestType));
     }
 

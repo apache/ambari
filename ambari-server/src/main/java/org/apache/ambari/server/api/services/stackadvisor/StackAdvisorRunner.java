@@ -41,10 +41,9 @@ public class StackAdvisorRunner {
    * @param script stack advisor script
    * @param saCommandType {@link StackAdvisorCommandType} to run.
    * @param actionDirectory directory for the action
-   * @return {@code true} if script completed successfully, {@code false}
-   *         otherwise.
    */
-  public boolean runScript(String script, StackAdvisorCommandType saCommandType, File actionDirectory) {
+  public void runScript(String script, StackAdvisorCommandType saCommandType, File actionDirectory)
+      throws StackAdvisorException {
     LOG.info(String.format("Script=%s, actionDirectory=%s, command=%s", script, actionDirectory,
         saCommandType));
 
@@ -62,23 +61,40 @@ public class StackAdvisorRunner {
         LOG.info("Stack-advisor output={}, error={}", outputFile, errorFile);
 
         int exitCode = process.waitFor();
+        String outMessage;
+        String errMessage = null;
         try {
-          String outMessage = FileUtils.readFileToString(new File(outputFile));
-          String errMessage = FileUtils.readFileToString(new File(errorFile));
+          outMessage = FileUtils.readFileToString(new File(outputFile)).trim();
+          errMessage = FileUtils.readFileToString(new File(errorFile)).trim();
           LOG.info("Stack advisor output files");
           LOG.info("    advisor script stdout: {}", outMessage);
           LOG.info("    advisor script stderr: {}", errMessage);
         } catch (IOException io) {
           LOG.error("Error in reading script log files", io);
         }
-
-        return exitCode == 0;
+        if (exitCode > 0) {
+          String errorMessage;
+          if (errMessage != null) {
+            errorMessage = errMessage.substring(errMessage.lastIndexOf("\n"));
+          } else {
+            errorMessage = "Error occurred during stack advisor execution";
+          }
+          switch (exitCode) {
+            case 1:
+              throw new StackAdvisorRequestException(errorMessage);
+            case 2:
+              throw new StackAdvisorException(errorMessage);
+          }
+        }
       } finally {
         process.destroy();
       }
+    } catch (StackAdvisorException ex) {
+      throw ex;
     } catch (Exception ioe) {
-      LOG.error("Error executing stack advisor", ioe);
-      return false;
+      String message = "Error executing stack advisor: ";
+      LOG.error(message, ioe);
+      throw new StackAdvisorException(message + ioe.getMessage());
     }
   }
 

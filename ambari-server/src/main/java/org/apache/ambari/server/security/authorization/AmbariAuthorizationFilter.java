@@ -18,18 +18,27 @@
 
 package org.apache.ambari.server.security.authorization;
 
+import java.io.IOException;
+
+import javax.servlet.Filter;
+import javax.servlet.FilterChain;
+import javax.servlet.FilterConfig;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
+import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
+import org.apache.ambari.server.orm.entities.ViewInstanceEntity.ViewInstanceVersionDTO;
 import org.apache.ambari.server.security.authorization.internal.InternalAuthenticationToken;
+import org.apache.ambari.server.view.ViewRegistry;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-
-import javax.servlet.*;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 
 public class AmbariAuthorizationFilter implements Filter {
 
@@ -43,7 +52,6 @@ public class AmbariAuthorizationFilter implements Filter {
    */
   private String realm;
 
-
   @Override
   public void init(FilterConfig filterConfig) throws ServletException {
     realm = getParameterValue(filterConfig, REALM_PARAM, DEFAULT_REALM);
@@ -51,8 +59,10 @@ public class AmbariAuthorizationFilter implements Filter {
 
   @Override
   public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-    HttpServletRequest httpRequest = (HttpServletRequest) request;
+    HttpServletRequest  httpRequest  = (HttpServletRequest) request;
     HttpServletResponse httpResponse = (HttpServletResponse) response;
+
+    String requestURI = httpRequest.getRequestURI();
 
     SecurityContext context = getSecurityContext();
 
@@ -71,7 +81,6 @@ public class AmbariAuthorizationFilter implements Filter {
           AmbariGrantedAuthority ambariGrantedAuthority = (AmbariGrantedAuthority) grantedAuthority;
 
           PrivilegeEntity privilegeEntity = ambariGrantedAuthority.getPrivilegeEntity();
-          String          requestURI      = httpRequest.getRequestURI();
           Integer         permissionId    = privilegeEntity.getPermission().getId();
 
           // admin has full access
@@ -101,7 +110,15 @@ public class AmbariAuthorizationFilter implements Filter {
           }
         }
       }
-      if (!authorized && !httpRequest.getMethod().equals("GET")) {
+
+      if (!authorized && requestURI.matches(ViewInstanceEntity.VIEWS_CONTEXT_PATH_PATTERN)) {
+        final ViewInstanceVersionDTO dto = ViewInstanceEntity.parseContextPath(requestURI);
+        authorized = ViewRegistry.getInstance().checkPermission(dto.getViewName(), dto.getVersion(), dto.getInstanceName(), true);
+      }
+
+      // allow GET for everything except views
+      if (!authorized &&
+          (!httpRequest.getMethod().equals("GET") || requestURI.matches("/views.*"))) {
 
         httpResponse.setHeader("WWW-Authenticate", "Basic realm=\"" + realm + "\"");
         httpResponse.sendError(HttpServletResponse.SC_FORBIDDEN, "You do not have permissions to access this resource.");

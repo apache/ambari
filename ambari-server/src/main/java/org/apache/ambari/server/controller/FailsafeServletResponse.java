@@ -18,6 +18,8 @@
 package org.apache.ambari.server.controller;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpServletResponseWrapper;
@@ -27,7 +29,15 @@ import javax.servlet.http.HttpServletResponseWrapper;
  * errors on failed requests.
  */
 public class FailsafeServletResponse extends HttpServletResponseWrapper {
+  /**
+   * Indicates that request failed.
+   */
   private boolean error;
+
+  /**
+   * List of errors which should not be consumed by fail-safe handler.
+   */
+  private List<Integer> allowedErrors = Arrays.asList(HttpServletResponse.SC_FORBIDDEN);
 
   /**
    * Constructor.
@@ -40,12 +50,20 @@ public class FailsafeServletResponse extends HttpServletResponseWrapper {
 
   @Override
   public void sendError(int sc) throws IOException {
-    error = true;
+    if (allowedErrors.contains(sc)) {
+      super.sendError(sc);
+    } else {
+      error = true;
+    }
   }
 
   @Override
   public void sendError(int sc, String msg) throws IOException {
-    error = true;
+    if (allowedErrors.contains(sc)) {
+      super.sendError(sc, msg);
+    } else {
+      error = true;
+    }
   }
 
   /**

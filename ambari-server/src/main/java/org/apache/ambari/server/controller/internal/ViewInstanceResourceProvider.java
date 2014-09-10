@@ -145,13 +145,16 @@ public class ViewInstanceResourceProvider extends AbstractResourceProvider {
       String instanceName = (String) propertyMap.get(INSTANCE_NAME_PROPERTY_ID);
 
       for (ViewEntity viewDefinition : viewRegistry.getDefinitions()){
-        if (viewName == null || viewName.equals(viewDefinition.getCommonName())) {
-          for (ViewInstanceEntity viewInstanceDefinition : viewRegistry.getInstanceDefinitions(viewDefinition)) {
-            if (instanceName == null || instanceName.equals(viewInstanceDefinition.getName())) {
-              if (viewVersion == null || viewVersion.equals(viewDefinition.getVersion())) {
-                if (includeInstance(viewInstanceDefinition, true)) {
-                  Resource resource = toResource(viewInstanceDefinition, requestedIds);
-                  resources.add(resource);
+        // do not report instances for views that are not loaded.
+        if (viewDefinition.isLoaded()){
+          if (viewName == null || viewName.equals(viewDefinition.getCommonName())) {
+            for (ViewInstanceEntity viewInstanceDefinition : viewRegistry.getInstanceDefinitions(viewDefinition)) {
+              if (instanceName == null || instanceName.equals(viewInstanceDefinition.getName())) {
+                if (viewVersion == null || viewVersion.equals(viewDefinition.getVersion())) {
+                  if (includeInstance(viewInstanceDefinition, true)) {
+                    Resource resource = toResource(viewInstanceDefinition, requestedIds);
+                    resources.add(resource);
+                  }
                 }
               }
             }
@@ -336,6 +339,20 @@ public class ViewInstanceResourceProvider extends AbstractResourceProvider {
           ViewRegistry       viewRegistry   = ViewRegistry.getInstance();
           ViewInstanceEntity instanceEntity = toEntity(properties);
 
+          ViewEntity viewEntity = instanceEntity.getViewEntity();
+          String     viewName   = viewEntity.getCommonName();
+          String     version    = viewEntity.getVersion();
+          ViewEntity view       = viewRegistry.getDefinition(viewName, version);
+
+          if ( view == null ) {
+            throw new IllegalStateException("The view " + viewName + " is not registered.");
+          }
+
+          // the view must be in the LOADED state to create an instance
+          if (!view.isLoaded()) {
+            throw new IllegalStateException("The view " + viewName + " is not loaded.");
+          }
+
           if (viewRegistry.instanceExists(instanceEntity)) {
             throw new DuplicateResourceException("The instance " + instanceEntity.getName() + " already exists.");
           }
@@ -376,11 +393,14 @@ public class ViewInstanceResourceProvider extends AbstractResourceProvider {
         Set<ViewInstanceEntity> viewInstanceEntities = new HashSet<ViewInstanceEntity>();
 
         for (ViewEntity viewEntity : viewRegistry.getDefinitions()){
-          for (ViewInstanceEntity viewInstanceEntity : viewRegistry.getInstanceDefinitions(viewEntity)){
-            Resource resource = toResource(viewInstanceEntity, requestedIds);
-            if (predicate == null || predicate.evaluate(resource)) {
-              if (includeInstance(viewInstanceEntity, false)) {
-                viewInstanceEntities.add(viewInstanceEntity);
+          // the view must be in the LOADED state to delete an instance
+          if (viewEntity.isLoaded()) {
+            for (ViewInstanceEntity viewInstanceEntity : viewRegistry.getInstanceDefinitions(viewEntity)){
+              Resource resource = toResource(viewInstanceEntity, requestedIds);
+              if (predicate == null || predicate.evaluate(resource)) {
+                if (includeInstance(viewInstanceEntity, false)) {
+                  viewInstanceEntities.add(viewInstanceEntity);
+                }
               }
             }
           }

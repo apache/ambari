@@ -10,7 +10,7 @@ This product includes Ember.js (http://emberjs.com - https://github.com/emberjs/
 Copyright (c) 2011, Yehuda Katz, Tom Dale, Charles Jolley and Ember.js contributors
 
 This product was generated using Brunch (https://github.com/brunch/brunch/blob/master/LICENSE)
-Copyright (c) 2011, Allan Berger, Jan Monschke, Martin Schürrer, Thomas Schranz, Nik Graf, Paul Miller
+Copyright (c) 2011, Allan Berger, Jan Monschke, Martin Sch\u00FCrrer, Thomas Schranz, Nik Graf, Paul Miller
 
 This product includes Twitter Bootstrap 2 (http://twitter.github.com/bootstrap/ - Apache License v2.0.)
 
@@ -30,7 +30,7 @@ Copyright (c) 2012, Michael Bostock.
 This product includes bootstrap-datepicker.js (http://www.eyecon.ro/bootstrap-datepicker - Apache License, Version 2.0)
 Copyright (c) 2012 Stefan Petre
 
-This product includes Font Awesome 3.2.1 (http://fortawesome.github.com/Font-Awesome - Creative Commons 3.0)
+This product includes Font Awesome 3.2.1 (http://fortawesome.github.com/Font-Awesome - SIL OFL 1.1)
 Copyright (c) 2013 Dave Gandy
 
 This product includes Rickshaw 1.1.2 (http://code.shutterstock.com/rickshaw/ - MIT License)
@@ -43,5 +43,3 @@ This product includes Spin.js (http://fgnass.github.com/spin.js/ - MIT license)
 Copyright (c) 2011 Felix Gnass [fgnass at neteye dot de]
 
 This product includes Moment.js (https://github.com/moment/moment/ - MIT license)
-
-This product includes iframeAutoHeight.js (http://github.com/house9/jquery-iframe-auto-height - MIT license)

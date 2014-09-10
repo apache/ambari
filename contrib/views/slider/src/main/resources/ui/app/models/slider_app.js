@@ -74,6 +74,11 @@ App.SliderApp = DS.Model.extend({
   quickLinks: DS.hasMany('quickLink', {async:true}),
 
   /**
+   * @type {App.SliderAppAlert[]}
+   */
+  alerts: DS.hasMany('sliderAppAlert', {async:true}),
+
+  /**
    * @type {App.TypedProperty[]}
    */
   runtimeProperties: DS.hasMany('typedProperty', {async:true}),

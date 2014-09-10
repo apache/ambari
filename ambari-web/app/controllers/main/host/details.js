@@ -564,7 +564,11 @@ App.MainHostDetailsController = Em.Controller.extend({
   checkZkConfigs: function () {
     var bg = App.router.get('backgroundOperationsController.services').findProperty('id', this.get('zkRequestId'));
     if (bg && !bg.get('isRunning')) {
-      this.loadConfigs();
+      var self = this;
+      this.removeObserver('App.router.backgroundOperationsController.serviceTimestamp', this, this.checkZkConfigs);
+      setTimeout(function () {
+        self.loadConfigs();
+      }, App.get('componentsUpdateInterval'));
     }
   },
 
@@ -573,7 +577,6 @@ App.MainHostDetailsController = Em.Controller.extend({
    * @method loadConfigs
    */
   loadConfigs: function () {
-    this.removeObserver('App.router.backgroundOperationsController.serviceTimestamp', this, this.checkZkConfigs);
     App.ajax.send({
       name: 'config.tags',
       sender: this,
