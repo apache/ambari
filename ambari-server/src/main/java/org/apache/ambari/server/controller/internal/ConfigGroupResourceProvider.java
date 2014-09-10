@@ -383,36 +383,6 @@ public class ConfigGroupResourceProvider extends
     cluster.deleteConfigGroup(request.getId());
   }
 
-  private void basicRequestValidation(ConfigGroupRequest request) {
-    if (request.getId() == null
-            || request.getClusterName() == null
-            || request.getClusterName().isEmpty()
-            || request.getGroupName() == null
-            || request.getGroupName().isEmpty()) {
-      LOG.debug("Received a config group request with request id = " +
-              request.getId() + ", cluster name = " +
-              request.getClusterName() + ", group name = " + request.getGroupName());
-      throw new IllegalArgumentException("Request id, " +
-              "cluster name and " +
-              "group name have to be provided.");
-    }
-  }
-
-  private void validateRenameRequest(ConfigGroupRequest request) {
-    if (request.getTag() != null
-            || (request.getHosts() != null && ! request.getHosts().isEmpty())
-            || request.getDescription() != null
-            || request.getServiceConfigVersionNote() != null
-            || (request.getConfigs()!=null && ! request.getConfigs().isEmpty())) {
-      throw new IllegalArgumentException("Request with id " +
-              request.getId() +
-              " seems to be a config group rename request. " +
-              "Renaming config group can not be combined with other " +
-              "operations, so hosts, configs, description, service config version note " +
-              "request fields should not be populated.");
-    }
-  }
-
   private void validateRequest(ConfigGroupRequest request) {
     if (request.getClusterName() == null
       || request.getClusterName().isEmpty()
@@ -534,87 +504,79 @@ public class ConfigGroupResourceProvider extends
     Clusters clusters = getManagementController().getClusters();
 
     for (ConfigGroupRequest request : requests) {
-      basicRequestValidation(request);
 
       Cluster cluster;
       try {
         cluster = clusters.getCluster(request.getClusterName());
       } catch (ClusterNotFoundException e) {
         throw new ParentObjectNotFoundException(
-          String.format(
-            "The cluster %s does not exist, can not update a config group",
-          request.getClusterName()), e);
+          "Attempted to add a config group to a cluster which doesn't exist", e);
       }
 
+      if (request.getId() == null) {
+        throw new AmbariException("Config group Id is a required parameter.");
+      }
+
+      validateRequest(request);
+
       // Find config group
-      Map<Long, ConfigGroup> configGroups = cluster.getConfigGroups();
-      ConfigGroup configGroup = configGroups.get(request.getId());
+      ConfigGroup configGroup = cluster.getConfigGroups().get(request.getId());
       if (configGroup == null) {
         throw new AmbariException("Config group not found"
                                  + ", clusterName = " + request.getClusterName()
                                  + ", groupId = " + request.getId());
       }
+      String serviceName = configGroup.getServiceName();
+      String requestServiceName = cluster.getServiceForConfigTypes(request.getConfigs().keySet());
+      if (serviceName != null && requestServiceName !=null && !StringUtils.equals(serviceName, requestServiceName)) {
+        throw new IllegalArgumentException("Config group " + configGroup.getId() +
+            " is mapped to service " + serviceName + ", " +
+            "but request contain configs from service " + requestServiceName);
+      } else if (serviceName == null && requestServiceName != null) {
+        configGroup.setServiceName(requestServiceName);
+        serviceName = requestServiceName;
+      }
 
-      if (! configGroup.getName().equals(request.getGroupName())) {
-        // Looks like user tries to rename a config group
-        validateRenameRequest(request);
-        configGroup.setName(request.getGroupName());
-        persist(configGroup);
-      } else { // Any other action
-        validateRequest(request);
-        String serviceName = configGroup.getServiceName();
-        String requestServiceName = cluster.getServiceForConfigTypes(request.getConfigs().keySet());
-        if (serviceName != null && requestServiceName !=null && !StringUtils.equals(serviceName, requestServiceName)) {
-          throw new IllegalArgumentException("Config group " + configGroup.getId() +
-              " is mapped to service " + serviceName + ", " +
-              "but request contain configs from service " + requestServiceName);
-        } else if (serviceName == null && requestServiceName != null) {
-          configGroup.setServiceName(requestServiceName);
-          serviceName = requestServiceName;
-        }
-
-        // Update hosts
-        Map<String, Host> hosts = new HashMap<String, Host>();
-        if (request.getHosts() != null && !request.getHosts().isEmpty()) {
-          for (String hostname : request.getHosts()) {
-            Host host = clusters.getHost(hostname);
-            if (host == null) {
-              throw new HostNotFoundException(hostname);
-            }
-            hosts.put(hostname, host);
+      // Update hosts
+      Map<String, Host> hosts = new HashMap<String, Host>();
+      if (request.getHosts() != null && !request.getHosts().isEmpty()) {
+        for (String hostname : request.getHosts()) {
+          Host host = clusters.getHost(hostname);
+          if (host == null) {
+            throw new HostNotFoundException(hostname);
           }
-        }
-
-        verifyHostList(cluster, hosts, request);
-
-        configGroup.setHosts(hosts);
-
-        // Update Configs
-        configGroup.setConfigurations(request.getConfigs());
-        // Save
-        configGroup.setName(request.getGroupName());
-        configGroup.setDescription(request.getDescription());
-        configGroup.setTag(request.getTag());
-
-        persist(configGroup);
-        if (serviceName != null) {
-          cluster.createServiceConfigVersion(serviceName, getManagementController().getAuthName(), null, configGroup);
-        } else {
-          LOG.warn("Could not determine service name for config group {}, service config version not created",
-                  configGroup.getId());
+          hosts.put(hostname, host);
         }
       }
-    }
-    getManagementController().getConfigHelper().invalidateStaleConfigsCache();
-  }
 
-  private void persist(ConfigGroup configGroup) {
-    configLogger.info("Persisting updated Config group"
-            + ", clusterName = " + configGroup.getClusterName()
-            + ", id = " + configGroup.getId()
-            + ", tag = " + configGroup.getTag()
-            + ", user = " + getManagementController().getAuthName());
-    configGroup.persist();
+      verifyHostList(cluster, hosts, request);
+
+      configGroup.setHosts(hosts);
+
+      // Update Configs
+      configGroup.setConfigurations(request.getConfigs());
+
+      // Save
+      configGroup.setName(request.getGroupName());
+      configGroup.setDescription(request.getDescription());
+      configGroup.setTag(request.getTag());
+
+      configLogger.info("Persisting updated Config group"
+        + ", clusterName = " + configGroup.getClusterName()
+        + ", id = " + configGroup.getId()
+        + ", tag = " + configGroup.getTag()
+        + ", user = " + getManagementController().getAuthName());
+
+      configGroup.persist();
+      if (serviceName != null) {
+        cluster.createServiceConfigVersion(serviceName, getManagementController().getAuthName(), null, configGroup);
+      } else {
+        LOG.warn("Could not determine service name for config group {}, service config version not created",
+            configGroup.getId());
+      }
+    }
+
+    getManagementController().getConfigHelper().invalidateStaleConfigsCache();
   }
 
   @SuppressWarnings("unchecked")
