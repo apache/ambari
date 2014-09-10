@@ -484,27 +484,30 @@ App.ManageConfigGroupsController = Em.Controller.extend({
     var groupsToCreate = [];
     var groups = this.get('configGroups');
     var originalGroups = this.get('originalConfigGroups');
-    var originalGroupsNames = originalGroups.mapProperty('name').without(originalGroups.findProperty('isDefault').get('name'));
+    // remove default group
+    originalGroups = originalGroups.without(originalGroups.findProperty('isDefault'));
+    var originalGroupsIds = originalGroups.mapProperty('id');
     groups.forEach(function (group) {
       if (!group.get('isDefault')) {
-        var originalGroup = originalGroups.findProperty('name', group.get('name'));
+        var originalGroup = originalGroups.findProperty('id', group.get('id'));
         if (originalGroup) {
           if (!(JSON.stringify(group.get('hosts').slice().sort()) === JSON.stringify(originalGroup.get('hosts').sort()))) {
             groupsToClearHosts.push(group.set('id', originalGroup.get('id')));
             if (group.get('hosts').length) {
               groupsToSetHosts.push(group.set('id', originalGroup.get('id')));
             }
-          } else if (group.get('description') !== originalGroup.get('description')) {
+          // should update name or description
+          } else if (group.get('description') !== originalGroup.get('description') || group.get('name') !== originalGroup.get('name') ) {
             groupsToSetHosts.push(group.set('id', originalGroup.get('id')));
           }
-          originalGroupsNames = originalGroupsNames.without(group.get('name'));
+          originalGroupsIds = originalGroupsIds.without(group.get('id'));
         } else {
           groupsToCreate.push(group);
         }
       }
     });
-    originalGroupsNames.forEach(function (groupName) {
-      groupsToDelete.push(originalGroups.findProperty('name', groupName));
+    originalGroupsIds.forEach(function (id) {
+      groupsToDelete.push(originalGroups.findProperty('id', id));
     }, this);
     return {
       toClearHosts: groupsToClearHosts,
