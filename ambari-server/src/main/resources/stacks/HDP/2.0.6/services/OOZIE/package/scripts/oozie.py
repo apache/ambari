@@ -139,7 +139,7 @@ def oozie_server_specific(
   if params.has_falcon_host:
     cmd3 += format(' && cp {falcon_home}/oozie/ext/falcon-oozie-el-extension-*.jar {oozie_libext_dir}')
   # this is different for HDP1
-  cmd4 = format("cd {oozie_tmp_dir} && /usr/lib/oozie/bin/oozie-setup.sh prepare-war")
+  cmd4 = format("cd {oozie_tmp_dir} && {oozie_setup_sh} prepare-war")
 
   no_op_test = format("ls {pid_file} >/dev/null 2>&1 && ps `cat {pid_file}` >/dev/null 2>&1")
   Execute( [cmd1, cmd2, cmd3],

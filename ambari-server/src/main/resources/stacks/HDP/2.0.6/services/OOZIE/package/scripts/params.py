@@ -39,6 +39,7 @@ oozie_hdfs_user_dir = format("/user/{oozie_user}")
 oozie_pid_dir = status_params.oozie_pid_dir
 pid_file = status_params.pid_file
 hadoop_jar_location = "/usr/lib/hadoop/"
+hdp_stack_version = config['hostLevelParams']['stack_version']
 # for HDP1 it's "/usr/share/HDP-oozie/ext.zip"
 ext_js_path = "/usr/share/HDP-oozie/ext-2.2.zip"
 oozie_libext_dir = "/usr/lib/oozie/libext"
@@ -65,7 +66,16 @@ oozie_server_admin_port = config['configurations']['oozie-env']['oozie_admin_por
 oozie_env_sh_template = config['configurations']['oozie-env']['content']
 oozie_lib_dir = "/var/lib/oozie/"
 oozie_webapps_dir = "/var/lib/oozie/oozie-server/webapps/"
+oozie_setup_sh = "/usr/lib/oozie/bin/oozie-setup.sh"
+oozie_shared_lib = "/usr/lib/oozie/share"
+fs_root = config['configurations']['core-site']['fs.defaultFS']
 
+if str(hdp_stack_version).startswith('2.0') or str(hdp_stack_version).startswith('2.1'):
+  put_shared_lib_to_hdfs_cmd = format("hadoop dfs -put {oozie_shared_lib} {oozie_hdfs_user_dir}")
+# for newer
+else:
+  put_shared_lib_to_hdfs_cmd = format("{oozie_setup_sh} sharelib create -fs {fs_root} -locallib {oozie_shared_lib}")
+  
 jdbc_driver_name = default("/configurations/oozie-site/oozie.service.JPAService.jdbc.driver", "")
 
 if jdbc_driver_name == "com.mysql.jdbc.Driver":

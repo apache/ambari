@@ -126,10 +126,10 @@ mysql_host = config['clusterHostInfo']['hive_mysql_host']
 mysql_adduser_path = format("{tmp_dir}/addMysqlUser.sh")
 
 ######## Metastore Schema
-if str(hdp_stack_version).startswith('2.1'):
-  init_metastore_schema = True
-else:
+if str(hdp_stack_version).startswith('2.0'):
   init_metastore_schema = False
+else:
+  init_metastore_schema = True
 
 ########## HCAT
 
