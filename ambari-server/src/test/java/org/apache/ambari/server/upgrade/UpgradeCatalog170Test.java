@@ -73,6 +73,7 @@ import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
 import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.ambari.server.orm.dao.ViewDAO;
 import org.apache.ambari.server.orm.dao.ViewInstanceDAO;
+import org.apache.ambari.server.orm.dao.ConfigGroupConfigMappingDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.KeyValueEntity;
@@ -81,6 +82,8 @@ import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.orm.entities.ViewEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
+import org.apache.ambari.server.orm.entities.ConfigGroupConfigMappingEntity;
+import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -230,6 +233,8 @@ public class UpgradeCatalog170Test {
     Config config = createStrictMock(Config.class);
     Config pigConfig = createStrictMock(Config.class);
 
+    ClusterConfigEntity clusterConfigEntity = createNiceMock(ClusterConfigEntity.class);
+    ConfigGroupConfigMappingDAO configGroupConfigMappingDAO = createNiceMock(ConfigGroupConfigMappingDAO.class);
     UserDAO userDAO = createNiceMock(UserDAO.class);
     PrincipalDAO principalDAO = createNiceMock(PrincipalDAO.class);
     PrincipalTypeDAO principalTypeDAO = createNiceMock(PrincipalTypeDAO.class);
@@ -261,6 +266,14 @@ public class UpgradeCatalog170Test {
     UpgradeCatalog170 upgradeCatalog = createMockBuilder(UpgradeCatalog170.class)
       .addMockedMethod(m).addMockedMethod(n).createMock();
 
+    List<ConfigGroupConfigMappingEntity> configGroupConfigMappingEntities =
+            new ArrayList<ConfigGroupConfigMappingEntity>();
+    ConfigGroupConfigMappingEntity configGroupConfigMappingEntity = new ConfigGroupConfigMappingEntity();
+    configGroupConfigMappingEntity.setConfigType(Configuration.GLOBAL_CONFIG_TAG);
+    configGroupConfigMappingEntity.setClusterConfigEntity(clusterConfigEntity);
+    configGroupConfigMappingEntity.setClusterId(1L);
+    configGroupConfigMappingEntities.add(configGroupConfigMappingEntity);
+
     Map<String, Cluster> clustersMap = new HashMap<String, Cluster>();
     clustersMap.put("c1", cluster);
 
@@ -274,6 +287,9 @@ public class UpgradeCatalog170Test {
     Set<String> envDicts = new HashSet<String>();
     envDicts.add("hadoop-env");
     envDicts.add("global");
+
+    Set<String> configTypes = new HashSet<String>();
+    configTypes.add("hadoop-env");
 
     Map<String, String> contentOfHadoopEnv = new HashMap<String, String>();
     contentOfHadoopEnv.put("content", "env file contents");
@@ -322,21 +338,27 @@ public class UpgradeCatalog170Test {
     expect(hrc.get(isA(SingularAttribute.class))).andReturn(errorLog).once();
     expect(q.setMaxResults(1000)).andReturn(q).anyTimes();
     expect(q.getResultList()).andReturn(r).anyTimes();
+    expect(clusterConfigEntity.getData()).andReturn("{\"dtnode_heapsize\":\"1028m\"}");
 
     expect(configuration.getDatabaseUrl()).andReturn(Configuration.JDBC_IN_MEMORY_URL).anyTimes();
     expect(injector.getInstance(ConfigHelper.class)).andReturn(configHelper).anyTimes();
     expect(injector.getInstance(AmbariManagementController.class)).andReturn(amc).anyTimes();
     expect(amc.getClusters()).andReturn(clusters).anyTimes();
     expect(clusters.getClusters()).andReturn(clustersMap).anyTimes();
+    expect(clusters.getClusterById(1L)).andReturn(clustersMap.values().iterator().next()).anyTimes();
     expect(cluster.getDesiredConfigByType("global")).andReturn(config).anyTimes();
+    expect(cluster.getClusterId()).andReturn(1L);
+    expect(cluster.getNextConfigVersion("hadoop-env")).andReturn(3L);
     expect(config.getProperties()).andReturn(globalConfigs).anyTimes();
     expect(cluster.getCurrentStackVersion()).andReturn(new StackId("HDP", "2.1")).anyTimes();
     expect(cluster.getClusterName()).andReturn("c1").anyTimes();
     expect(configHelper.findConfigTypesByPropertyName(new StackId("HDP", "2.1"), "prop1", "c1")).andReturn(envDicts).once();
     expect(configHelper.findConfigTypesByPropertyName(new StackId("HDP", "2.1"), "smokeuser_keytab", "c1")).andReturn(new HashSet<String>()).once();
     expect(configHelper.findConfigTypesByPropertyName(new StackId("HDP", "2.1"), "content", "c1")).andReturn(envDicts).once();
+    expect(configHelper.findConfigTypesByPropertyName(new StackId("HDP", "2.1"), "dtnode_heapsize", "c1")).andReturn(configTypes).once();
     expect(configHelper.getPropertyValueFromStackDefenitions(cluster, "hadoop-env", "content")).andReturn("env file contents").once();
 
+    expect(injector.getInstance(ConfigGroupConfigMappingDAO.class)).andReturn(configGroupConfigMappingDAO).anyTimes();
     expect(injector.getInstance(UserDAO.class)).andReturn(userDAO).anyTimes();
     expect(injector.getInstance(PrincipalDAO.class)).andReturn(principalDAO).anyTimes();
     expect(injector.getInstance(PrincipalTypeDAO.class)).andReturn(principalTypeDAO).anyTimes();
@@ -349,6 +371,7 @@ public class UpgradeCatalog170Test {
     expect(injector.getInstance(PrivilegeDAO.class)).andReturn(privilegeDAO).anyTimes();
     expect(injector.getInstance(KeyValueDAO.class)).andReturn(keyValueDAO).anyTimes();
 
+    expect(configGroupConfigMappingDAO.findAll()).andReturn(configGroupConfigMappingEntities).once();
     expect(userDAO.findAll()).andReturn(Collections.<UserEntity> emptyList()).times(2);
     expect(clusterDAO.findAll()).andReturn(Collections.<ClusterEntity> emptyList()).anyTimes();
     expect(viewDAO.findAll()).andReturn(Collections.<ViewEntity> emptyList()).anyTimes();
@@ -381,8 +404,8 @@ public class UpgradeCatalog170Test {
     replay(entityManager, trans, upgradeCatalog, cb, cq, hrc, q, userRolesResultSet);
 
     replay(dbAccessor, configuration, injector, cluster, clusters, amc, config, configHelper, pigConfig);
-    replay(userDAO, clusterDAO, viewDAO, viewInstanceDAO, permissionDAO);
-    replay(resourceTypeDAO, resourceDAO, keyValueDAO, privilegeDAO);
+    replay(userDAO, clusterDAO, viewDAO, viewInstanceDAO, permissionDAO, configGroupConfigMappingDAO);
+    replay(resourceTypeDAO, resourceDAO, keyValueDAO, privilegeDAO, clusterConfigEntity);
     replay(jobsView, showJobsKeyValue, user);
 
     Class<?> c = AbstractUpgradeCatalog.class;
