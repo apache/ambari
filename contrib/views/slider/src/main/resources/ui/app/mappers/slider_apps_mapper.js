@@ -27,7 +27,7 @@ App.SliderAppsMapper = App.Mapper.createWithMixins(App.RunPeriodically, {
    * @method load
    * @return {$.ajax}
    */
-  load: function() {
+  load: function () {
     return App.ajax.send({
       name: 'mapper.applicationApps',
       sender: this,
@@ -37,18 +37,47 @@ App.SliderAppsMapper = App.Mapper.createWithMixins(App.RunPeriodically, {
 
   /**
    * Parse loaded data
+   * Load <code>App.Alert</code> model
+   * @param {object} data received from server data
+   * @method parse
+   */
+  parseAlerts: function (data) {
+    var alerts = [],
+      appId = data.id;
+
+    if (data.alerts && data.alerts.detail) {
+      data.alerts.detail.forEach(function (alert) {
+        alerts.push({
+          id: appId + alert.description,
+          title: alert.description,
+          serviceName: alert.service_name,
+          status: alert.status,
+          message: alert.output,
+          hostName: alert.host_name,
+          lastTime: alert.status_time,
+          appId: appId,
+          lastCheck: alert.last_status_time
+        });
+      });
+      App.SliderApp.store.pushMany('sliderAppAlert', alerts);
+    }
+    return alerts.mapProperty('id');
+  },
+
+  /**
+   * Parse loaded data
    * Load <code>App.SliderAppComponent</code> model
    * @param {object} data received from server data
    * @method parse
    */
-  parseComponents: function(data) {
+  parseComponents: function (data) {
     var components = [],
-    appId = data.id;
+      appId = data.id;
 
     Object.keys(data.components).forEach(function (key) {
       var component = data.components[key];
       activeContainers = Object.keys(component.activeContainers);
-      for(var i= 0; i < component.instanceCount; i++){
+      for (var i = 0; i < component.instanceCount; i++) {
         components.pushObject(
           Ember.Object.create({
             id: appId + component.componentName + i,
@@ -70,7 +99,7 @@ App.SliderAppsMapper = App.Mapper.createWithMixins(App.RunPeriodically, {
    * @param {object} data received from server data
    * @method parse
    */
-  parseConfigs : function(data) {
+  parseConfigs: function (data) {
     var configs = {};
     Object.keys(data.configs).forEach(function (key) {
       configs[key] = data.configs[key];
@@ -84,25 +113,25 @@ App.SliderAppsMapper = App.Mapper.createWithMixins(App.RunPeriodically, {
    * @param {object} data received from server data
    * @method parse
    */
-  parseQuickLinks : function(data) {
+  parseQuickLinks: function (data) {
     var quickLinks = [],
-    appId = data.id;
+      appId = data.id;
     quickLinks.push(
       Ember.Object.create({
         id: 'YARN application',
         label: 'YARN application',
-        url: "http://"+window.location.hostname+":8088"
+        url: "http://" + window.location.hostname + ":8088"
       })
     );
 
-    if(!data.urls){
+    if (!data.urls) {
       return quickLinks.mapProperty('id');
     }
 
     Object.keys(data.urls).forEach(function (key) {
       quickLinks.push(
         Ember.Object.create({
-          id: appId+key,
+          id: appId + key,
           label: key,
           url: data.urls[key]
         })
@@ -112,9 +141,9 @@ App.SliderAppsMapper = App.Mapper.createWithMixins(App.RunPeriodically, {
     return quickLinks.mapProperty('id');
   },
 
-  parseObject: function(o) {
+  parseObject: function (o) {
     if (Ember.typeOf(o) !== 'object') return [];
-    return Ember.keys(o).map(function(key) {
+    return Ember.keys(o).map(function (key) {
       return {key: key, value: o[key]};
     });
   },
@@ -125,22 +154,23 @@ App.SliderAppsMapper = App.Mapper.createWithMixins(App.RunPeriodically, {
    * @param {object} data received from server data
    * @method parse
    */
-  parse: function(data) {
+  parse: function (data) {
     var apps = [],
-    self = this,
-    appsToDelete = App.SliderApp.store.all('sliderApp').get('content').mapProperty('id');
+      self = this,
+      appsToDelete = App.SliderApp.store.all('sliderApp').get('content').mapProperty('id');
 
-    data.items.forEach(function(app) {
+    data.items.forEach(function (app) {
       var componentsId = app.components ? self.parseComponents(app) : [],
-      configs = app.configs ? self.parseConfigs(app) : {},
-      quickLinks = self.parseQuickLinks(app),
-      jmx = self.parseObject(app.jmx),
-      masterActiveTime = jmx.findProperty('key', 'MasterActiveTime'),
-      masterStartTime = jmx.findProperty('key', 'MasterStartTime');
-      if(masterActiveTime){
+        configs = app.configs ? self.parseConfigs(app) : {},
+        quickLinks = self.parseQuickLinks(app),
+        alerts = self.parseAlerts(app),
+        jmx = self.parseObject(app.jmx),
+        masterActiveTime = jmx.findProperty('key', 'MasterActiveTime'),
+        masterStartTime = jmx.findProperty('key', 'MasterStartTime');
+      if (masterActiveTime) {
         masterActiveTime.value = new Date(Date.now() - masterActiveTime.value).getHours() + "h:" + new Date(Date.now() - masterActiveTime.value).getMinutes() + "m";
       }
-      if(masterStartTime){
+      if (masterStartTime) {
         masterStartTime.value = (new Date(parseInt(masterStartTime.value)).toUTCString());
       }
       apps.push(
@@ -157,6 +187,7 @@ App.SliderAppsMapper = App.Mapper.createWithMixins(App.RunPeriodically, {
           description: app.description || "-",
           components: componentsId,
           quickLinks: quickLinks,
+          alerts: alerts,
           configs: configs,
           jmx: jmx,
           runtimeProperties: app.configs
@@ -168,7 +199,7 @@ App.SliderAppsMapper = App.Mapper.createWithMixins(App.RunPeriodically, {
 
     appsToDelete.forEach(function (app) {
       var appRecord = App.SliderApp.store.getById('sliderApp', app);
-      if(appRecord){
+      if (appRecord) {
         appRecord.destroyRecord();
       }
     });

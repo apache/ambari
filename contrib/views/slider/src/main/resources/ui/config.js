@@ -37,6 +37,7 @@ exports.config = {
           'vendor/scripts/common/jquery.ui.widget.js',
           'vendor/scripts/common/jquery.ui.mouse.js',
           'vendor/scripts/common/jquery.ui.sortable.js',
+          'vendor/scripts/common/jquery.timeago.js',
           'vendor/scripts/common/handlebars.js',
           'vendor/scripts/development/ember.js',
           'vendor/scripts/production/ember-data.js',

@@ -608,3 +608,63 @@ a {
     margin-top: 20px;
   }
 }
+
+.app-alerts {
+  overflow-y: auto;
+  ul {
+    padding-left: 0;
+    margin-bottom: 0;
+  }
+  li {
+    border-bottom: 1px solid #eee;
+    list-style: none;
+    padding: 5px;
+    background-position: 14px 9px;
+    background-repeat: no-repeat;
+    .date-time {
+      float: right;
+    }
+    p {
+      margin-bottom: 2px;
+    }
+    .container-fluid {
+      padding-left: 10px;
+      padding-right: 10px;
+    }
+    .title {
+      font-weight: normal;
+      font-size: 13px;
+    }
+    .row-fluid [class*="span"] {
+      min-height: 0px;
+    }
+    .status-icon {
+      padding-top: 7px;
+    }
+    .date-time {
+      color: #999;
+      font-style: italic;
+      font-size: small;
+      text-align: right;
+    }
+    .message {
+      font-size: 12px;
+      color: #777;
+    }
+    .serviceLink {
+      padding-left: 7px;
+    }
+  }
+  .icon-ok {
+    color: #5AB400;
+  }
+  .icon-remove {
+    color: #FF4B4B;
+  }
+  .icon-warning-sign {
+    color: #FDB82F;
+  }
+  .icon-question-sign {
+    color: #999;
+  }
+}

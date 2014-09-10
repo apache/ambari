@@ -38,9 +38,23 @@ App.SliderAppSummaryView = Ember.View.extend({
     return 'http://' + App.get('nagiosHost') + '/nagios';
   }.property(),
 
-  fitPanels:function () {
+  fitPanels: function () {
     var heightLeft = parseInt(this.$('.panel-summury').css('height'));
-    this.$('.panel-components, .panel-alerts').css('height',((heightLeft<200)?200:heightLeft-20)/2);
-  }.on('didInsertElement')
+    this.$('.panel-components').css('height', ((heightLeft < 200) ? 200 : heightLeft - 20) / 2);
+    this.$('.panel-alerts .app-alerts').css('height', ((heightLeft < 200) ? 200 : heightLeft - 106) / 2);
+  }.on('didInsertElement'),
+
+  AlertView: Em.View.extend({
+    content: null,
+    tagName: 'li',
+    tooltip: function () {
+      var self = this;
+      return Ember.Object.create({
+        trigger: 'hover',
+        content: this.get('content.timeSinceAlertDetails'),
+        placement: "right"
+      });
+    }.property('content')
+  })
 
 });
