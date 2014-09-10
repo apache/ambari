@@ -19,7 +19,6 @@ package org.apache.ambari.server.api;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import com.google.inject.persist.PersistService;
 import com.google.inject.persist.UnitOfWork;
 
 import javax.servlet.*;

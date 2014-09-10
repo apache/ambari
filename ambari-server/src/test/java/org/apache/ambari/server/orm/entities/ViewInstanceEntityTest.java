@@ -20,6 +20,7 @@ package org.apache.ambari.server.orm.entities;
 
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.orm.entities.ViewInstanceEntity.ViewInstanceVersionDTO;
 import org.apache.ambari.server.security.SecurityHelper;
 import org.apache.ambari.server.view.ViewRegistryTest;
 import org.apache.ambari.server.view.configuration.InstanceConfig;
@@ -296,6 +297,21 @@ public class ViewInstanceEntityTest {
 
     Assert.assertEquals(ViewInstanceEntity.VIEWS_CONTEXT_PATH_PREFIX + "MY_VIEW/1.0.0/INSTANCE1",
         viewInstanceDefinition.getContextPath());
+  }
+
+  @Test
+  public void testParseContextPath() throws Exception {
+    final String[] pathesToTest = {
+        ViewInstanceEntity.VIEWS_CONTEXT_PATH_PREFIX + "MY_VIEW/1.0.0/INSTANCE1",
+        ViewInstanceEntity.VIEWS_CONTEXT_PATH_PREFIX + "MY_VIEW/1.0.0/INSTANCE1/index.html",
+        ViewInstanceEntity.VIEWS_CONTEXT_PATH_PREFIX + "MY_VIEW/1.0.0/INSTANCE1/api/test"
+    };
+    for (String contextPath: pathesToTest) {
+      final ViewInstanceVersionDTO dto = ViewInstanceEntity.parseContextPath(contextPath);
+      Assert.assertEquals("INSTANCE1", dto.getInstanceName());
+      Assert.assertEquals("MY_VIEW", dto.getViewName());
+      Assert.assertEquals("1.0.0", dto.getVersion());
+    }
   }
 
   @Test

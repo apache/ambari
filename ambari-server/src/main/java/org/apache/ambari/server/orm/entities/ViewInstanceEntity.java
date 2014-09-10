@@ -23,6 +23,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.persistence.Basic;
 import javax.persistence.CascadeType;
@@ -72,6 +74,11 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
    * The prefix for every view instance context path.
    */
   public static final String VIEWS_CONTEXT_PATH_PREFIX = "/views/";
+
+  /**
+   * The pattern for matching view instance context path.
+   */
+  public static final String VIEWS_CONTEXT_PATH_PATTERN = "" + VIEWS_CONTEXT_PATH_PREFIX + "([^/]+)/([^/]+)/([^/]+)(.*)";
 
   @Id
   @Column(name = "view_instance_id", nullable = false)
@@ -677,6 +684,25 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
   }
 
   /**
+   * Parses context path into view name, version and instance name
+   *
+   * @param contextPath the context path
+   * @return null if context path doesn't match correct pattern
+   */
+  public static ViewInstanceVersionDTO parseContextPath(String contextPath) {
+    final Pattern pattern = Pattern.compile(VIEWS_CONTEXT_PATH_PATTERN);
+    Matcher matcher = pattern.matcher(contextPath);
+    if (!matcher.matches()) {
+      return null;
+    } else {
+      final String viewName = matcher.group(1);
+      final String version = matcher.group(2);
+      final String instanceName = matcher.group(3);
+      return new ViewInstanceVersionDTO(viewName, version, instanceName);
+    }
+  }
+
+  /**
    * Get the current user name.
    *
    * @return the current user name; empty String if user is not known
@@ -767,5 +793,68 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
     int result = viewName.hashCode();
     result = 31 * result + name.hashCode();
     return result;
+  }
+
+  //----- ViewInstanceVersionDTO inner class --------------------------------------------------
+
+  /**
+   * Keeps information about view name, version and instance name.
+   */
+  public static class ViewInstanceVersionDTO {
+
+    /**
+     * View name.
+     */
+    private final String viewName;
+
+    /**
+     * View version.
+     */
+    private final String version;
+
+    /**
+     * View instance name.
+     */
+    private final String instanceName;
+
+    /**
+     * Constructor.
+     *
+     * @param viewName view name
+     * @param version view version
+     * @param instanceName view instance name
+     */
+    public ViewInstanceVersionDTO(String viewName, String version, String instanceName) {
+      this.viewName = viewName;
+      this.version = version;
+      this.instanceName = instanceName;
+    }
+
+    /**
+     * Get the view name.
+     *
+     * @return the view name
+     */
+    public String getViewName() {
+      return viewName;
+    }
+
+    /**
+     * Get the view version.
+     *
+     * @return the view version
+     */
+    public String getVersion() {
+      return version;
+    }
+
+    /**
+     * Get the view instance name.
+     *
+     * @return the view instance name
+     */
+    public String getInstanceName() {
+      return instanceName;
+    }
   }
 }

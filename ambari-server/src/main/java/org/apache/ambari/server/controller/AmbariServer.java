@@ -75,10 +75,10 @@ import org.apache.ambari.server.resources.api.rest.GetResource;
 import org.apache.ambari.server.scheduler.ExecutionScheduleManager;
 import org.apache.ambari.server.security.CertificateManager;
 import org.apache.ambari.server.security.SecurityFilter;
+import org.apache.ambari.server.security.authorization.AmbariAuthorizationFilter;
 import org.apache.ambari.server.security.authorization.AmbariLdapAuthenticationProvider;
 import org.apache.ambari.server.security.authorization.AmbariLocalUserDetailsService;
 import org.apache.ambari.server.security.authorization.Users;
-import org.apache.ambari.server.security.authorization.AmbariAuthorizationFilter;
 import org.apache.ambari.server.security.authorization.internal.AmbariInternalAuthenticationProvider;
 import org.apache.ambari.server.security.ldap.AmbariLdapDataPopulator;
 import org.apache.ambari.server.security.unsecured.rest.CertificateDownload;
@@ -91,6 +91,8 @@ import org.apache.ambari.server.utils.VersionUtils;
 import org.apache.ambari.server.view.ViewRegistry;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.SessionIdManager;
+import org.eclipse.jetty.server.SessionManager;
 import org.eclipse.jetty.server.nio.SelectChannelConnector;
 import org.eclipse.jetty.server.ssl.SslSelectChannelConnector;
 import org.eclipse.jetty.servlet.DefaultServlet;
@@ -154,6 +156,21 @@ public class AmbariServer {
   @Inject
   AmbariHandlerList handlerList;
 
+  /**
+   * Session manager.
+   */
+  @Inject
+  SessionManager sessionManager;
+
+  /**
+   * Session ID manager.
+   */
+  @Inject
+  SessionIdManager sessionIdManager;
+
+  @Inject
+  DelegatingFilterProxy springSecurityFilter;
+
   public String getServerOsType() {
     return configs.getServerOsType();
   }
@@ -173,6 +190,7 @@ public class AmbariServer {
     performStaticInjection();
     initDB();
     server = new Server();
+    server.setSessionIdManager(sessionIdManager);
     Server serverForAgent = new Server();
 
     checkDBVersion();
@@ -210,6 +228,7 @@ public class AmbariServer {
 
       root.setContextPath(CONTEXT_PATH);
       root.setErrorHandler(injector.getInstance(AmbariErrorHandler.class));
+      root.getSessionHandler().setSessionManager(sessionManager);
 
       //Changing session cookie name to avoid conflicts
       root.getSessionHandler().getSessionManager().setSessionCookie("AMBARISESSIONID");
@@ -223,6 +242,7 @@ public class AmbariServer {
       root.getServletContext().setAttribute(
           WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE,
           springWebAppContext);
+      handlerList.setSpringWebAppContext(springWebAppContext);
 
       certMan.initRootCert();
 
@@ -236,10 +256,6 @@ public class AmbariServer {
       /* Configure default servlet for agent server */
       rootServlet = agentroot.addServlet(DefaultServlet.class, "/");
       rootServlet.setInitOrder(1);
-
-      //Spring Security Filter initialization
-      DelegatingFilterProxy springSecurityFilter = new DelegatingFilterProxy();
-      springSecurityFilter.setTargetBeanName("springSecurityFilterChain");
 
       //session-per-request strategy for api and agents
       root.addFilter(new FilterHolder(injector.getInstance(AmbariPersistFilter.class)), "/api/*", 1);
