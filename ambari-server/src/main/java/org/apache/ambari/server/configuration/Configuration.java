@@ -260,12 +260,11 @@ public class Configuration {
   private static final String RESOURCES_DIR_DEFAULT =
       "/var/lib/ambari-server/resources/";
   private static final String ANONYMOUS_AUDIT_NAME_KEY = "anonymous.audit.name";
-  private static final String CLIENT_SECURITY_DEFAULT = "local";
+
   private static final int CLIENT_API_PORT_DEFAULT = 8080;
   private static final int CLIENT_API_SSL_PORT_DEFAULT = 8443;
-  private static final String USER_ROLE_NAME_DEFAULT = "user";
-  private static final String ADMIN_ROLE_NAME_DEFAULT = "admin";
   private static final String LDAP_BIND_ANONYMOUSLY_DEFAULT = "true";
+
   //TODO For embedded server only - should be removed later
   private static final String LDAP_PRIMARY_URL_DEFAULT = "localhost:33389";
   private static final String LDAP_BASE_DN_DEFAULT = "dc=ambari,dc=apache,dc=org";
@@ -308,6 +307,8 @@ public class Configuration {
   private static final int VIEW_EXTRACTION_THREADPOOL_CORE_SIZE_DEFAULT = 10;
   private static final String VIEW_EXTRACTION_THREADPOOL_TIMEOUT_KEY = "view.extraction.threadpool.timeout";
   private static final long VIEW_EXTRACTION_THREADPOOL_TIMEOUT_DEFAULT = 100000L;
+
+  private static final String SERVER_HTTP_SESSION_INACTIVE_TIMEOUT = "server.http.session.inactive_timeout";
 
   private static final Logger LOG = LoggerFactory.getLogger(
       Configuration.class);
@@ -401,7 +402,7 @@ public class Configuration {
     }
     configsMap.put(SRVR_CRT_PASS_KEY, password);
 
-    if (this.getApiSSLAuthentication()) {
+    if (getApiSSLAuthentication()) {
       LOG.info("API SSL Authentication is turned on.");
       File httpsPassFile = new File(configsMap.get(CLIENT_API_SSL_KSTR_DIR_NAME_KEY)
         + File.separator + configsMap.get(CLIENT_API_SSL_CRT_PASS_FILE_NAME_KEY));
@@ -464,14 +465,14 @@ public class Configuration {
   private synchronized void loadCredentialProvider() {
     if (!credentialProviderInitialized) {
       try {
-        this.credentialProvider = new CredentialProvider(null,
+        credentialProvider = new CredentialProvider(null,
           getMasterKeyLocation(), isMasterKeyPersisted());
       } catch (Exception e) {
         LOG.info("Credential provider creation failed. Reason: " + e.getMessage());
         if (LOG.isDebugEnabled()) {
           e.printStackTrace();
         }
-        this.credentialProvider = null;
+        credentialProvider = null;
       }
       credentialProviderInitialized = true;
     }
@@ -487,8 +488,9 @@ public class Configuration {
     //Get property file stream from classpath
     InputStream inputStream = Configuration.class.getClassLoader().getResourceAsStream(CONFIG_FILE);
 
-    if (inputStream == null)
+    if (inputStream == null) {
       throw new RuntimeException(CONFIG_FILE + " not found in classpath");
+    }
 
     // load the properties
     try {
@@ -531,8 +533,9 @@ public class Configuration {
   public String getBootSetupAgentPassword() {
     String pass = configsMap.get(PASSPHRASE_KEY);
 
-    if (null != pass)
+    if (null != pass) {
       return pass;
+    }
 
     // fallback
     return properties.getProperty(BOOTSTRAP_SETUP_AGENT_PASSWORD, "password");
@@ -685,8 +688,9 @@ public class Configuration {
 
   public String getLocalDatabaseUrl() {
     String dbName = properties.getProperty(SERVER_DB_NAME_KEY);
-    if(dbName == null || dbName.isEmpty())
+    if(dbName == null || dbName.isEmpty()) {
       throw new RuntimeException("Server DB Name is not configured!");
+    }
 
     return JDBC_LOCAL_URL + dbName;
   }
@@ -702,10 +706,11 @@ public class Configuration {
       dbpasswd = readPasswordFromStore(passwdProp);
     }
 
-    if (dbpasswd != null)
+    if (dbpasswd != null) {
       return dbpasswd;
-    else
+    } else {
       return readPasswordFromFile(passwdProp, SERVER_JDBC_USER_PASSWD_DEFAULT);
+    }
   }
 
   public String getRcaDatabaseDriver() {
@@ -724,8 +729,9 @@ public class Configuration {
     String passwdProp = properties.getProperty(SERVER_JDBC_RCA_USER_PASSWD_KEY);
     if (passwdProp != null) {
       String dbpasswd = readPasswordFromStore(passwdProp);
-      if (dbpasswd != null)
+      if (dbpasswd != null) {
         return dbpasswd;
+      }
     }
     return readPasswordFromFile(passwdProp, SERVER_JDBC_RCA_USER_PASSWD_DEFAULT);
   }
@@ -1080,5 +1086,19 @@ public class Configuration {
   public long getViewExtractionThreadPoolTimeout() {
     return Long.parseLong(properties.getProperty(
         VIEW_EXTRACTION_THREADPOOL_TIMEOUT_KEY, String.valueOf(VIEW_EXTRACTION_THREADPOOL_TIMEOUT_DEFAULT)));
+  }
+
+  /**
+   * Gets the inactivity timeout value, in seconds, for sessions created in
+   * Jetty by Spring Security. Without this timeout value, each request to the
+   * REST APIs will create new sessions that are never reaped since their
+   * default time is -1.
+   *
+   * @return the time value or {@code 60} seconds for default.
+   */
+  public int getHttpSessionInactiveTimeout() {
+    return Integer.parseInt(properties.getProperty(
+        SERVER_HTTP_SESSION_INACTIVE_TIMEOUT,
+        "60"));
   }
 }
