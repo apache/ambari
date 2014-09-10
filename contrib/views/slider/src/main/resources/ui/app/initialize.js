@@ -29,7 +29,18 @@ App.initializer({
   name: "preload",
 
   initialize: function(container, application) {
-
+    var viewId = 'SLIDER';
+    var viewVersion = '1.0.0';
+    var instanceName = 'SLIDER_1';
+    if (location.pathname != null) {
+      var splits = location.pathname.split('/');
+      if (splits != null && splits.length > 4) {
+        viewId = splits[2];
+        viewVersion = splits[3];
+        instanceName = splits[4];
+      }
+    }
+    
     application.reopen({
       /**
        * Test mode is automatically enabled if running on brunch server
@@ -40,13 +51,13 @@ App.initializer({
       /**
        * @type {string}
        */
-      name: 'SLIDER',
+      name: viewId,
 
       /**
        * Slider version
        * @type {string}
        */
-      version: '1.0.0',
+      version: viewVersion,
 
       /**
        * Version of SLIDER_1 resource
@@ -57,7 +68,7 @@ App.initializer({
       /**
        * @type {string}
        */
-      instance: 'SLIDER_1',
+      instance: instanceName,
 
       /**
        * API url for Slider
