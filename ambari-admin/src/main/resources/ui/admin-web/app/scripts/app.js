@@ -19,6 +19,7 @@
 
 angular.module('ambariAdminConsole', [
   'ngRoute',
+  'ngAnimate',
   'ui.bootstrap',
   'restangular',
   'angularAlert',

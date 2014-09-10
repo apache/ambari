@@ -174,6 +174,12 @@ angular.module('ambariAdminConsole')
     return deferred.promise;
   };
 
+  Group.listByName = function(name) {
+    return $http.get(Settings.baseUrl + '/groups?'
+      + 'Groups/group_name.matches(.*'+name+'.*)'
+    );
+  };
+
   Group.getPrivilegies = function(groupId) {
     return $http.get(Settings.baseUrl + '/privileges', {
         params:{

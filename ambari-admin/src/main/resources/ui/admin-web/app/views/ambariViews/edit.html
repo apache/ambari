@@ -93,9 +93,6 @@
 <div class="panel panel-default views-permissions-panel" style="">
   <div class="panel-heading clearfix">
     <h3 class="panel-title pull-left">Permissions</h3>
-    <div class="pull-right" >
-      <a ng-hide="isPermissionsEmpty" href class="permissions-edit-toggle" ng-click="editPermissionDisabled = !editPermissionDisabled" ng-show="editPermissionDisabled"> <span class="glyphicon glyphicon-pencil"></span> Edit</a>
-    </div>
   </div>
   <div class="panel-body">
     
@@ -114,36 +111,14 @@
             <label class="">{{permission.PermissionInfo.permission_name}}</label>
           </td>
           <td>
-            <div class="" ng-switch="editPermissionDisabled">
-              <textarea name="" id="" cols="30" rows="4" class="form-control permission-textarea-user" ng-model="permissionsEdit[permission.PermissionInfo.permission_name].USER" ng-switch-when="false"></textarea>
-              <div class="well" ng-switch-when="true">
-                <span ng-repeat="user in permission.USER | orderBy:identity">
-                  <link-to route="users.show" id="{{user}}">{{user}}</link-to>
-                  {{$last ? '' :', '}}
-                </span>
-              </div>
-            </div>
+            <editable-list items-source="permissionsEdit[permission.PermissionInfo.permission_name].USER" editable="true" resource-type="User"></editable-list>
           </td>
           <td>
-            <div class="" ng-switch="editPermissionDisabled">
-              <textarea name="" id="" cols="30" rows="4" class="form-control permission-textarea-group" ng-model="permissionsEdit[permission.PermissionInfo.permission_name].GROUP" ng-switch-when="false"></textarea>
-              <div class="well" ng-switch-when="true">
-                <span ng-repeat="group in permission.GROUP | orderBy:identity">
-                  <link-to route="groups.edit" id="{{group}}" >{{group}}</link-to>
-                  {{$last ? '' :', '}}
-                </span>
-              </div>
-            </div>
+            <editable-list items-source="permissionsEdit[permission.PermissionInfo.permission_name].GROUP" editable="true" resource-type="Group" ></editable-list>
           </td>
         </tr>
       </tbody>
     </table>
-    <div class="form-group" ng-hide="editPermissionDisabled">
-      <div class="col-sm-offset-2 col-sm-10">
-        <button class="btn btn-primary pull-right left-margin permissions-save" ng-click="savePermissions()">Save</button>
-        <button class="btn btn-default pull-right permissions-cancel" ng-click="cancelPermissions()">Cancel</button>
-      </div>
-    </div>
     <div ng-show="isPermissionsEmpty">
       <div class="alert alert-info">There are no permissions defined for this view.</div>
     </div>

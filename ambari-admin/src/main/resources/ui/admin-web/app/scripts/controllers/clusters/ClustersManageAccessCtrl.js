@@ -61,4 +61,12 @@ angular.module('ambariAdminConsole')
     });
     $scope.isEditMode = false;
   };
+
+  $scope.$watch(function() {
+    return $scope.permissionsEdit;
+  }, function(newValue) {
+    if(newValue){
+      $scope.save();
+    }
+  }, true);
 }]);
