@@ -230,8 +230,18 @@ public class AmbariServer {
       root.setErrorHandler(injector.getInstance(AmbariErrorHandler.class));
       root.getSessionHandler().setSessionManager(sessionManager);
 
-      //Changing session cookie name to avoid conflicts
-      root.getSessionHandler().getSessionManager().setSessionCookie("AMBARISESSIONID");
+      SessionManager jettySessionManager = root.getSessionHandler().getSessionManager();
+
+      // use AMBARISESSIONID instead of JSESSIONID to avoid conflicts with
+      // other services (like HDFS) that run on the same context but a different
+      // port
+      jettySessionManager.setSessionCookie("AMBARISESSIONID");
+
+      // each request that does not use AMBARISESSIONID will create a new
+      // HashedSession in Jetty; these MUST be reaped after inactivity in order
+      // to prevent a memory leak
+      int sessionInactivityTimeout = configs.getHttpSessionInactiveTimeout();
+      jettySessionManager.setMaxInactiveInterval(sessionInactivityTimeout);
 
       GenericWebApplicationContext springWebAppContext = new GenericWebApplicationContext();
       springWebAppContext.setServletContext(root.getServletContext());
@@ -246,8 +256,10 @@ public class AmbariServer {
 
       certMan.initRootCert();
 
-      ServletContextHandler agentroot = new ServletContextHandler(serverForAgent,
-          "/", ServletContextHandler.SESSIONS );
+      // the agent communication (heartbeats, registration, etc) is stateless
+      // and does not use sessions.
+      ServletContextHandler agentroot = new ServletContextHandler(
+          serverForAgent, "/", ServletContextHandler.NO_SESSIONS);
 
       ServletHolder rootServlet = root.addServlet(DefaultServlet.class, "/");
       rootServlet.setInitParameter("dirAllowed", "false");
@@ -262,8 +274,8 @@ public class AmbariServer {
       root.addFilter(new FilterHolder(injector.getInstance(AmbariPersistFilter.class)), "/proxy/*", 1);
       root.addFilter(new FilterHolder(new MethodOverrideFilter()), "/api/*", 1);
       root.addFilter(new FilterHolder(new MethodOverrideFilter()), "/proxy/*", 1);
-      agentroot.addFilter(new FilterHolder(injector.getInstance(AmbariPersistFilter.class)), "/agent/*", 1);
 
+      agentroot.addFilter(new FilterHolder(injector.getInstance(AmbariPersistFilter.class)), "/agent/*", 1);
       agentroot.addFilter(SecurityFilter.class, "/*", 1);
 
       if (configs.getApiAuthentication()) {
