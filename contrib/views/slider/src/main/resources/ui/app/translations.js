@@ -46,7 +46,8 @@ Em.I18n.translations = {
     'started': 'Started',
     'finished': 'Finished',
     'diagnostics': 'Diagnostics',
-    'description': 'Description'
+    'description': 'Description',
+    'alerts': 'Alerts'
   },
 
   'error.noHDFS': 'Slider applications view requires HDFS service.',

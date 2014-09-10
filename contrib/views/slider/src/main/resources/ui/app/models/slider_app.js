@@ -108,24 +108,6 @@ App.SliderApp = DS.Model.extend({
   hiddenCategories: ['yarn-site', 'global'],
 
   /**
-   * Configs grouped to categories by site-objects
-   * @type {Array}
-   */
-  configsByCategories: function () {
-    var configs = this.get('configs'),
-        hiddenCategories = this.get('hiddenCategories'),
-        groupedConfigs = [];
-    Ember.keys(configs).forEach(function (site) {
-      groupedConfigs.push({
-        name: site,
-        configs: this.mapObject(configs[site]),
-        isVisible: !hiddenCategories.contains(site)
-      });
-    }, this);
-    return groupedConfigs;
-  }.property('configs.@each'),
-
-  /**
    * Display metrics only for running apps
    * @type {boolean}
    */
@@ -141,7 +123,11 @@ App.SliderApp = DS.Model.extend({
   mapObject: function(o) {
     if (Ember.typeOf(o) !== 'object') return [];
     return Ember.keys(o).map(function(key) {
-      return {key: key, value: o[key]};
+      return {
+        key: key,
+        value: o[key],
+        isMultiline: o[key].indexOf("\n") !== -1 || o[key].length > 100
+      };
     });
   }
 
