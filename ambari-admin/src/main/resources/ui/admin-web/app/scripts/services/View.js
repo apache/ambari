@@ -59,9 +59,9 @@ angular.module('ambariAdminConsole')
     angular.forEach(item.versions, function(version) {
       versions[version.ViewVersionInfo.version] = version.instances.length;
       
-      angular.forEach(version.instances, function(isntance) {
-        isntance.label = version.ViewVersionInfo.label;
-      })
+      angular.forEach(version.instances, function(instance) {
+        instance.label = instance.ViewInstanceInfo.label || version.ViewVersionInfo.label || instance.ViewInstanceInfo.view_name;
+      });
 
       self.instances = self.instances.concat(version.instances);
     });
