@@ -2528,7 +2528,7 @@ module.exports =
       "isVisible": true,
       "serviceName": "MISC",
       "filename": "cluster-env.xml",
-      "category": "Users and Groups",
+      "category": "Users and Groups"
     }
   ]
 };

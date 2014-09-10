@@ -206,7 +206,7 @@ App.config = Em.Object.create({
 
   /**
    * Function should be used post-install as precondition check should not be done only after installer wizard
-   * @param siteNames {string|array}
+   * @param siteNames {String|Array}
    * @returns {Array}
    */
   getBySitename: function (siteNames) {
@@ -360,6 +360,13 @@ App.config = Em.Object.create({
 
         if (configsPropertyDef) {
           this.setServiceConfigUiAttributes(serviceConfigObj, configsPropertyDef);
+          // check if defined UI config present in config list obtained from server.
+          // in case when config is absent on server and defined UI config is required
+          // by server, this config should be ignored
+          var serverProperty = properties[serviceConfigObj.get('name')];
+          if (!serverProperty && serviceConfigObj.get('isRequiredByAgent')) {
+            continue;
+          }
         }
 
         if (!this.getBySitename(serviceConfigObj.get('filename')).someProperty('name', index)) {
@@ -470,7 +477,7 @@ App.config = Em.Object.create({
    * @param storedConfigs
    * @param advancedConfigs
    * @param selectedServiceNames
-   * @return {array}
+   * @return {Array}
    */
   mergePreDefinedWithStored: function (storedConfigs, advancedConfigs, selectedServiceNames) {
     var mergedConfigs = [];
@@ -584,6 +591,14 @@ App.config = Em.Object.create({
   addAdvancedConfigs: function (serviceConfigs, advancedConfigs, serviceName) {
     var miscConfigs = serviceConfigs.filterProperty('serviceName', 'MISC');
     var configsToVerifying = (serviceName) ? serviceConfigs.filterProperty('serviceName', serviceName).concat(miscConfigs) : serviceConfigs.slice();
+    var definedConfigs = (serviceName) ? this.get('preDefinedServiceConfigs').findProperty('serviceName', serviceName).get('configs') : [];
+
+    if (definedConfigs.length) {
+      advancedConfigs = advancedConfigs.filter(function(property) {
+        return !(definedConfigs.someProperty('name', property.name) && !serviceConfigs.someProperty('name', property.name));
+      }, this);
+    }
+
     advancedConfigs.forEach(function (_config) {
       var configType = this.getConfigTagFromFileName(_config.filename);
       var configCategory = 'Advanced ' + configType;
