@@ -567,6 +567,10 @@ public class ViewRegistry {
           LOG.debug("Deleting view instance " + viewName + "/" +
               version + "/" +instanceName);
         }
+        List<PrivilegeEntity> instancePrivileges = privilegeDAO.findByResourceId(instanceEntity.getResource().getId());
+        for (PrivilegeEntity privilegeEntity : instancePrivileges) {
+          privilegeDAO.remove(privilegeEntity);
+        }
         instanceDAO.remove(instanceEntity);
         viewEntity.removeInstanceDefinition(instanceName);
         removeInstanceDefinition(viewEntity, instanceName);

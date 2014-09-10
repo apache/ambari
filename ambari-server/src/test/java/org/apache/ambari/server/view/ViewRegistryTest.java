@@ -33,10 +33,12 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -700,6 +702,43 @@ public class ViewRegistryTest {
     Assert.assertEquals(viewInstanceEntity, viewInstanceDefinitions.iterator().next());
 
     verify(viewDAO, viewInstanceDAO, securityHelper);
+  }
+
+  @Test
+  public void testUninstallViewInstance() throws Exception {
+
+    ViewRegistry registry = getRegistry();
+
+    Configuration ambariConfig = new Configuration(new Properties());
+
+    ViewConfig config = ViewConfigTest.getConfig(xml_valid_instance);
+    ViewEntity viewEntity = getViewEntity(config, ambariConfig, getClass().getClassLoader(), "");
+    ViewInstanceEntity viewInstanceEntity = getViewInstanceEntity(viewEntity, config.getInstances().get(0));
+    ResourceEntity resource = new ResourceEntity();
+    resource.setId(3L);
+    viewInstanceEntity.setResource(resource);
+    PrivilegeEntity privilege1 = createNiceMock(PrivilegeEntity.class);
+    PrivilegeEntity privilege2 = createNiceMock(PrivilegeEntity.class);
+    List<PrivilegeEntity> privileges = Arrays.asList(privilege1, privilege2);
+
+    expect(privilegeDAO.findByResourceId(3L)).andReturn(privileges);
+    privilegeDAO.remove(privilege1);
+    privilegeDAO.remove(privilege2);
+    viewInstanceDAO.remove(viewInstanceEntity);
+
+    handlerList.removeViewInstance(viewInstanceEntity);
+
+    replay(viewInstanceDAO, privilegeDAO, handlerList);
+
+    registry.addDefinition(viewEntity);
+    registry.addInstanceDefinition(viewEntity, viewInstanceEntity);
+    registry.uninstallViewInstance(viewInstanceEntity);
+
+    Collection<ViewInstanceEntity> viewInstanceDefinitions = registry.getInstanceDefinitions(viewEntity);
+
+    Assert.assertEquals(0, viewInstanceDefinitions.size());
+
+    verify(viewInstanceDAO, privilegeDAO, handlerList);
   }
 
   @Test
