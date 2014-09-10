@@ -39,7 +39,8 @@ MAX_PARALLEL_BOOTSTRAPS = 20
 # How many seconds to wait between polling parallel bootstraps
 POLL_INTERVAL_SEC = 1
 DEBUG = False
-PYTHON_ENV="env PYTHONPATH=$PYTHONPATH:/tmp "
+DEFAULT_AGENT_TEMP_FOLDER = "/var/lib/ambari-agent/data/tmp"
+PYTHON_ENV="env PYTHONPATH=$PYTHONPATH:{0} ".format(DEFAULT_AGENT_TEMP_FOLDER)
 
 
 class HostLog:
@@ -142,7 +143,7 @@ class SSH:
 
 class Bootstrap(threading.Thread):
   """ Bootstrap the agent on a separate host"""
-  TEMP_FOLDER = "/tmp"
+  TEMP_FOLDER = DEFAULT_AGENT_TEMP_FOLDER
   OS_CHECK_SCRIPT_FILENAME = "os_check_type.py"
   AMBARI_REPO_FILENAME = "ambari"
   SETUP_SCRIPT_FILENAME = "setupAgent.py"
@@ -233,6 +234,22 @@ class Bootstrap(threading.Thread):
   def hasPassword(self):
     password_file = self.shared_state.password_file
     return password_file is not None and password_file != 'null'
+
+
+  def createTargetDir(self):
+    # Creating target dir
+    self.host_log.write("==========================\n")
+    self.host_log.write("Creating target directory...")
+    params = self.shared_state
+    user = params.user
+
+    command = "[ -d {0} ] || sudo mkdir -p {0} ; sudo chown {1} {0}".format(self.TEMP_FOLDER,params.user)
+
+    ssh = SSH(params.user, params.sshkey_file, self.host, command,
+              params.bootdir, self.host_log)
+    retcode = ssh.run()
+    self.host_log.write("\n")
+    return retcode
 
 
   def copyOsCheckScript(self):
@@ -489,7 +506,8 @@ class Bootstrap(threading.Thread):
     """ Copy files and run commands on remote host """
     self.status["start_time"] = time.time()
     # Population of action queue
-    action_queue = [self.copyCommonFunctions,
+    action_queue = [self.createTargetDir,
+                    self.copyCommonFunctions,
                     self.copyOsCheckScript,
                     self.runOsCheckScript,
                     self.checkSudoPackage

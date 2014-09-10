@@ -32,6 +32,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.spi.Resource;
 
 /**
@@ -270,7 +271,9 @@ public class HostComponentService extends BaseService {
     }
 
     Response.ResponseBuilder rb = Response.status(Response.Status.OK);
-    File file = new File("/tmp/ambari-server/"+hostComponentName+"-configs.tar.gz");
+    Configuration configs = new Configuration();
+    String tmpDir = configs.getProperty(Configuration.SERVER_TMP_DIR_KEY);
+    File file = new File(tmpDir+File.separator+hostComponentName+"-configs.tar.gz");
     InputStream resultInputStream = null;
     try {
       resultInputStream = new FileInputStream(file);
