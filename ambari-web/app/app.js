@@ -34,6 +34,9 @@ module.exports = Em.Application.create({
   }),
   isAdmin: false,
   isOperator: false,
+  isManager: function() {
+    return this.get('isAdmin') || this.get('isOperator');
+  }.property('isAdmin','isOperator'),
   /**
    * return url prefix with number value of version of HDP stack
    */
