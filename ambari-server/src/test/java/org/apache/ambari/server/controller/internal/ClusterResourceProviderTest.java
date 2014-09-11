@@ -34,6 +34,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -327,7 +328,7 @@ public class ClusterResourceProviderTest {
     expect(blueprintDAO.findByName(blueprintName)).andReturn(blueprint);
     expect(blueprint.getStackName()).andReturn(stackName);
     expect(blueprint.getStackVersion()).andReturn(stackVersion);
-    expect(blueprint.getConfigurations()).andReturn(configurations);
+    expect(blueprint.getConfigurations()).andReturn(configurations).anyTimes();
     expect(blueprint.validateConfigurations(metaInfo, true)).andReturn(
         Collections.<String, Map<String, Collection<String>>>emptyMap());
 
@@ -393,10 +394,10 @@ public class ClusterResourceProviderTest {
     expect(blueprintConfig4.getType()).andReturn("falcon-env").anyTimes();
     expect(blueprintConfig4.getConfigData()).andReturn(new Gson().toJson(falconEnvConfigProperties)).anyTimes();
     expect(blueprintConfig5.getBlueprintName()).andReturn("test-blueprint").anyTimes();
-    expect(blueprintConfig5.getType()).andReturn("hbase-env").anyTimes();
+    expect(blueprintConfig5.getType()).andReturn("global").anyTimes();
     expect(blueprintConfig5.getConfigData()).andReturn(new Gson().toJson(hbaseEnvConfigProperties)).anyTimes();
 
-    
+
     expect(blueprint.getHostGroups()).andReturn(Collections.singleton(hostGroup)).anyTimes();
     expect(hostGroup.getName()).andReturn("group1").anyTimes();
     expect(hostGroup.getComponents()).andReturn(hostGroupComponents).anyTimes();
@@ -764,7 +765,7 @@ public class ClusterResourceProviderTest {
     expect(blueprintDAO.findByName(blueprintName)).andReturn(blueprint);
     expect(blueprint.getStackName()).andReturn(stackName);
     expect(blueprint.getStackVersion()).andReturn(stackVersion);
-    expect(blueprint.getConfigurations()).andReturn(Collections.<BlueprintConfigEntity>singletonList(blueprintConfig));
+    expect(blueprint.getConfigurations()).andReturn(Collections.<BlueprintConfigEntity>singletonList(blueprintConfig)).anyTimes();
     expect(blueprint.validateConfigurations(metaInfo, true)).andReturn(allMissingPasswords);
 
     expect(metaInfo.getComponentDependencies("test", "1.23", "service1", "component1")).
@@ -1549,7 +1550,7 @@ public class ClusterResourceProviderTest {
     expect(blueprintDAO.findByName(blueprintName)).andReturn(blueprint);
     expect(blueprint.getStackName()).andReturn(stackName);
     expect(blueprint.getStackVersion()).andReturn(stackVersion);
-    expect(blueprint.getConfigurations()).andReturn(Collections.<BlueprintConfigEntity>singletonList(blueprintConfig));
+    expect(blueprint.getConfigurations()).andReturn(Collections.<BlueprintConfigEntity>singletonList(blueprintConfig)).anyTimes();
     expect(blueprint.validateConfigurations(metaInfo, true)).andReturn(allMissingPasswords);
 
     expect(metaInfo.getComponentDependencies("test", "1.23", "service1", "component1")).
@@ -2226,7 +2227,7 @@ public class ClusterResourceProviderTest {
     expect(blueprintDAO.findByName(blueprintName)).andReturn(blueprint);
     expect(blueprint.getStackName()).andReturn(stackName);
     expect(blueprint.getStackVersion()).andReturn(stackVersion);
-    expect(blueprint.getConfigurations()).andReturn(configurations).times(2);
+    expect(blueprint.getConfigurations()).andReturn(configurations).times(3);
     expect(blueprint.validateConfigurations(metaInfo, true)).andReturn(
         Collections.<String, Map<String, Collection<String>>>emptyMap());
 
