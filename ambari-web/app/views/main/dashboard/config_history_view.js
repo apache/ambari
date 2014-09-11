@@ -115,7 +115,7 @@ App.MainConfigHistoryView = App.TableView.extend({
   }),
   notesSort: sort.fieldView.extend({
     column: 5,
-    name: 'briefNotes',
+    name: 'notes',
     displayName: Em.I18n.t('common.notes')
   }),
 
@@ -193,7 +193,11 @@ App.MainConfigHistoryView = App.TableView.extend({
 
   ConfigVersionView: Em.View.extend({
     tagName: 'tr',
-    didInsertElement: function(){
+    showLessNotes: true,
+    toggleShowLessStatus: function () {
+      this.set('showLessNotes', !this.get('showLessNotes'));
+    },
+    didInsertElement: function () {
       App.tooltip(this.$("[rel='Tooltip']"));
     }
   }),

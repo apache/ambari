@@ -46,7 +46,7 @@ App.MainConfigHistoryController = Em.ArrayController.extend(App.TableServerMixin
     associations[2] = 'configGroup';
     associations[3] = 'createTime';
     associations[4] = 'author';
-    associations[5] = 'briefNotes';
+    associations[5] = 'notes';
     return associations;
   }.property(),
 

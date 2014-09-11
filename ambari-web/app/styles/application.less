@@ -553,6 +553,9 @@ h1 {
 
 .tooltip-inner {
   text-align: left;
+  max-width: 400px;
+  overflow-wrap: break-word;
+  white-space:pre-wrap;
 }
 
 .popover {
@@ -4944,6 +4947,9 @@ ul.inline li {
         width: 75%;
       }
     }
+    td.notes .show-more-button {
+      font-size: @default-font-size - 1;
+    }
   }
   div.page-bar div.filtered-info {
     margin-left: 17px;
@@ -5015,7 +5021,7 @@ ul.inline li {
         left: -45px;
         z-index: 1000;
         float: left;
-        min-width: 300px;
+        width: 300px;
         padding: 8px;
         list-style: none;
         background-color: #ffffff;
@@ -5031,7 +5037,9 @@ ul.inline li {
           padding: 1px 5px 15px 5px;
           text-align: left;
           .notes{
+            overflow-wrap: break-word;
             word-wrap: break-word;
+            white-space: pre-wrap;
           }
           .date{
             color: #808080;
@@ -5191,6 +5199,8 @@ ul.inline li {
         }
         .notes{
           word-wrap: break-word;
+          overflow-wrap: break-word;
+          white-space: pre-wrap;
         }
       }
       .btn {
