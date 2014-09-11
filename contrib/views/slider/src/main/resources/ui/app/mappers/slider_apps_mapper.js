@@ -75,8 +75,8 @@ App.SliderAppsMapper = App.Mapper.createWithMixins(App.RunPeriodically, {
       appId = data.id;
 
     Object.keys(data.components).forEach(function (key) {
-      var component = data.components[key];
-      activeContainers = Object.keys(component.activeContainers);
+      var component = data.components[key],
+        activeContainers = Object.keys(component.activeContainers);
       for (var i = 0; i < component.instanceCount; i++) {
         components.pushObject(
           Ember.Object.create({

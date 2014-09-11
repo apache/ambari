@@ -49,7 +49,8 @@ Em.I18n.translations = {
     'description': 'Description',
     'alerts': 'Alerts',
     'key': 'Key',
-    'remove': 'Remove'
+    'remove': 'Remove',
+    'send': 'Send'
   },
 
   'error.noHDFS': 'Slider applications view requires HDFS service.',
@@ -79,6 +80,8 @@ Em.I18n.translations = {
   'slider.apps.title': 'Slider Apps',
   'slider.apps.create': 'Create App',
   'sliderApps.filters.info': '{0} of {1} sliders showing',
+
+  'sliderApp.flex.invalid_counts': 'Instance counts should be integer and >= 0',
 
   'sliderApp.summary.go_to_nagios': 'Go to Nagios',
   'sliderApp.summary.go_to_ganglia': 'Go to Ganglia',
