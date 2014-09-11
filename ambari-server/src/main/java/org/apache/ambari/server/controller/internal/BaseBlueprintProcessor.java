@@ -595,6 +595,11 @@ public abstract class BaseBlueprintProcessor extends AbstractControllerResourceP
       return version;
     }
 
+
+    Map<DependencyInfo, String> getDependencyConditionalServiceMap() {
+      return dependencyConditionalServiceMap;
+    }
+
     /**
      * Get services contained in the stack.
      *
@@ -842,13 +847,19 @@ public abstract class BaseBlueprintProcessor extends AbstractControllerResourceP
      * Register conditional dependencies.
      */
     //todo: This information should be specified in the stack definition.
-    private void registerConditionalDependencies() {
+    void registerConditionalDependencies() {
       Collection<DependencyInfo> nagiosDependencies = getDependenciesForComponent("NAGIOS_SERVER");
       for (DependencyInfo dependency : nagiosDependencies) {
         if (dependency.getComponentName().equals("HCAT")) {
           dependencyConditionalServiceMap.put(dependency, "HCATALOG");
         } else if (dependency.getComponentName().equals("OOZIE_CLIENT")) {
           dependencyConditionalServiceMap.put(dependency, "OOZIE");
+        } else if (dependency.getComponentName().equals("YARN_CLIENT")) {
+          dependencyConditionalServiceMap.put(dependency, "YARN");
+        } else if (dependency.getComponentName().equals("TEZ_CLIENT")) {
+          dependencyConditionalServiceMap.put(dependency, "TEZ");
+        } else if (dependency.getComponentName().equals("MAPREDUCE2_CLIENT")) {
+          dependencyConditionalServiceMap.put(dependency, "MAPREDUCE2");
         }
       }
       dbDependencyInfo.put("MYSQL_SERVER", "global/hive_database");
