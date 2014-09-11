@@ -19,11 +19,13 @@
 package org.apache.ambari.server.controller.internal;
 
 import com.google.gson.Gson;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.StackConfigurationRequest;
 import org.apache.ambari.server.controller.StackConfigurationResponse;
+import org.apache.ambari.server.controller.StackLevelConfigurationRequest;
 import org.apache.ambari.server.controller.StackServiceComponentRequest;
 import org.apache.ambari.server.controller.StackServiceComponentResponse;
 import org.apache.ambari.server.controller.StackServiceRequest;
@@ -60,6 +62,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertNotNull;
+
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -606,6 +609,7 @@ public class BlueprintResourceProviderTest {
     Capture<Set<StackServiceRequest>> stackServiceRequestCapture = new Capture<Set<StackServiceRequest>>();
     Capture<Set<StackServiceComponentRequest>> serviceComponentRequestCapture = new Capture<Set<StackServiceComponentRequest>>();
     Capture<StackConfigurationRequest> stackConfigurationRequestCapture = new Capture<StackConfigurationRequest>();
+    Capture<StackLevelConfigurationRequest> stackLevelConfigurationRequestCapture = new Capture<StackLevelConfigurationRequest>();
     Request request = createMock(Request.class);
     StackServiceResponse stackServiceResponse = createMock(StackServiceResponse.class);
     StackServiceComponentResponse stackServiceComponentResponse = createNiceMock(StackServiceComponentResponse.class);
@@ -650,6 +654,8 @@ public class BlueprintResourceProviderTest {
 
     expect(managementController.getStackConfigurations(Collections.singleton(capture(stackConfigurationRequestCapture)))).
         andReturn(Collections.<StackConfigurationResponse>emptySet());
+    expect(managementController.getStackLevelConfigurations(Collections.singleton(capture(stackLevelConfigurationRequestCapture)))).
+    andReturn(Collections.<StackConfigurationResponse>emptySet());
 
     expect(metaInfo.getComponentDependencies("test-stack-name", "test-stack-version", "test-service", "MYSQL_SERVER")).
         andReturn(Collections.<DependencyInfo>emptyList()).anyTimes();
@@ -707,6 +713,7 @@ public class BlueprintResourceProviderTest {
     Capture<Set<StackServiceRequest>> stackServiceRequestCapture = new Capture<Set<StackServiceRequest>>();
     Capture<Set<StackServiceComponentRequest>> serviceComponentRequestCapture = new Capture<Set<StackServiceComponentRequest>>();
     Capture<StackConfigurationRequest> stackConfigurationRequestCapture = new Capture<StackConfigurationRequest>();
+    Capture<StackLevelConfigurationRequest> stackLevelConfigurationRequestCapture = new Capture<StackLevelConfigurationRequest>();
     Request request = createMock(Request.class);
     StackServiceResponse stackServiceResponse = createMock(StackServiceResponse.class);
     StackServiceComponentResponse stackServiceComponentResponse = createNiceMock(StackServiceComponentResponse.class);
@@ -757,6 +764,8 @@ public class BlueprintResourceProviderTest {
     expect(stackServiceComponentResponse2.getStackVersion()).andReturn("test-stack-version").anyTimes();
 
     expect(managementController.getStackConfigurations(Collections.singleton(capture(stackConfigurationRequestCapture)))).
+        andReturn(Collections.<StackConfigurationResponse>emptySet());
+    expect(managementController.getStackLevelConfigurations(Collections.singleton(capture(stackLevelConfigurationRequestCapture)))).
         andReturn(Collections.<StackConfigurationResponse>emptySet());
 
     expect(metaInfo.getComponentDependencies("test-stack-name", "test-stack-version", "test-service", "component2")).
@@ -822,6 +831,7 @@ public class BlueprintResourceProviderTest {
     Capture<Set<StackServiceRequest>> stackServiceRequestCapture = new Capture<Set<StackServiceRequest>>();
     Capture<Set<StackServiceComponentRequest>> serviceComponentRequestCapture = new Capture<Set<StackServiceComponentRequest>>();
     Capture<StackConfigurationRequest> stackConfigurationRequestCapture = new Capture<StackConfigurationRequest>();
+    Capture<StackLevelConfigurationRequest> stackLevelConfigurationRequestCapture = new Capture<StackLevelConfigurationRequest>();
     Request request = createMock(Request.class);
     StackServiceResponse stackServiceResponse = createMock(StackServiceResponse.class);
     StackServiceComponentResponse stackServiceComponentResponse = createNiceMock(StackServiceComponentResponse.class);
@@ -873,6 +883,8 @@ public class BlueprintResourceProviderTest {
     expect(stackServiceComponentResponse2.getStackVersion()).andReturn("test-stack-version").anyTimes();
 
     expect(managementController.getStackConfigurations(Collections.singleton(capture(stackConfigurationRequestCapture)))).
+        andReturn(Collections.<StackConfigurationResponse>emptySet());
+    expect(managementController.getStackLevelConfigurations(Collections.singleton(capture(stackLevelConfigurationRequestCapture)))).
         andReturn(Collections.<StackConfigurationResponse>emptySet());
 
     expect(metaInfo.getComponentDependencies("test-stack-name", "test-stack-version", "test-service", "component2")).
@@ -937,6 +949,7 @@ public class BlueprintResourceProviderTest {
     Capture<Set<StackServiceRequest>> stackServiceRequestCapture = new Capture<Set<StackServiceRequest>>();
     Capture<Set<StackServiceComponentRequest>> serviceComponentRequestCapture = new Capture<Set<StackServiceComponentRequest>>();
     Capture<StackConfigurationRequest> stackConfigurationRequestCapture = new Capture<StackConfigurationRequest>();
+    Capture<StackLevelConfigurationRequest> stackLevelConfigurationRequestCapture = new Capture<StackLevelConfigurationRequest>();
     Request request = createMock(Request.class);
     StackServiceResponse stackServiceResponse = createMock(StackServiceResponse.class);
     StackServiceComponentResponse stackServiceComponentResponse = createNiceMock(StackServiceComponentResponse.class);
@@ -978,6 +991,8 @@ public class BlueprintResourceProviderTest {
     expect(stackServiceComponentResponse2.getStackVersion()).andReturn("test-stack-version").anyTimes();
 
     expect(managementController.getStackConfigurations(Collections.singleton(capture(stackConfigurationRequestCapture)))).
+        andReturn(Collections.<StackConfigurationResponse>emptySet());
+    expect(managementController.getStackLevelConfigurations(Collections.singleton(capture(stackLevelConfigurationRequestCapture)))).
         andReturn(Collections.<StackConfigurationResponse>emptySet());
 
     expect(metaInfo.getComponentDependencies("test-stack-name", "test-stack-version", "test-service", "MYSQL_SERVER")).
