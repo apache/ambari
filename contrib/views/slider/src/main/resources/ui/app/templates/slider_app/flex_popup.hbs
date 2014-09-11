@@ -16,26 +16,24 @@
 * limitations under the License.
 }}
 
-<div class="has-hidden-info">
-  <ul>
-    <li class="thumbnail row" >
-      <a {{bindAttr class=":corner-icon :span1 view.parentView.isMoving:hidden"}} href="#" {{action deleteWidget target="view"}}>
-        <i class="icon-remove-sign icon-large"></i>
-      </a>
-      <div class="caption span10"> {{view.title}}</div>
-      <a class="corner-icon span1" href="#" {{action editWidget target="view"}}>
-        <i class="icon-edit"></i>
-      </a>
-
-      <div {{bindAttr class=":hidden-info-general view.hiddenInfoClass" }}>
-        <table align="center">
-          {{#each line in view.hiddenInfo}}
-            <tr><td>{{line}}</td></tr>
-          {{/each}}
-        </table>
+<div class="container flex-popup">
+  <form class="form-horizontal" role="form">
+    <div class="form-group">
+      <div class="col-sm-2"><strong>{{t common.components}}</strong></div>
+      <div class="col-sm-4"><strong>{{t wizard.step2.table.instances}}</strong></div>
+    </div>
+    {{#each component in groupedComponents}}
+      <div class="form-group">
+        <div class="col-sm-2">{{component.name}}</div>
+        <div class="col-sm-4">{{input value=component.count}}</div>
       </div>
-
-      <div {{bindAttr class=":widget-content view.hoverContentTopClass"}}>{{view.content}}</div>
-    </li>
-  </ul>
+    {{/each}}
+    <div class="form-group">
+      {{#if groupedComponentsHaveErrors}}
+        <div class="col-sm-5 alert alert-danger">
+          {{t sliderApp.flex.invalid_counts}}
+        </div>
+      {{/if}}
+    </div>
+  </form>
 </div>

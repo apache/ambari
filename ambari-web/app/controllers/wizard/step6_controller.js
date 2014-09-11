@@ -302,7 +302,7 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
         if (serviceComponent.get('isShownOnInstallerSlaveClientPage')) {
           headers.pushObject(Em.Object.create({
             name: serviceComponent.get('componentName'),
-            label: serviceComponent.get('displayName'),
+            label: App.format.role(serviceComponent.get('componentName')),
             allChecked: false,
             isRequired: serviceComponent.get('isRequired'),
             noChecked: true,

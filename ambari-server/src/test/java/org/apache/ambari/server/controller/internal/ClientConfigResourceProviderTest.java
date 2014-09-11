@@ -26,6 +26,7 @@ import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.state.*;
 import org.apache.ambari.server.state.PropertyInfo;
+import org.easymock.EasyMock;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -109,8 +110,8 @@ public class ClientConfigResourceProviderTest {
     // create the request
     Request request = PropertyHelper.getUpdateRequest(properties, null);
 
-    Predicate predicate = new PredicateBuilder().property(ClientConfigResourceProvider.COMPONENT_CLUSTER_NAME_PROPERTY_ID).equals("c1").
-        toPredicate();
+    Predicate predicate = new PredicateBuilder().property(
+            ClientConfigResourceProvider.COMPONENT_CLUSTER_NAME_PROPERTY_ID).equals("c1").toPredicate();
 
     try {
       provider.updateResources(request, predicate);
@@ -143,13 +144,13 @@ public class ClientConfigResourceProviderTest {
     ServiceComponentHost serviceComponentHost = createNiceMock(ServiceComponentHost.class);
     ServiceOsSpecific serviceOsSpecific = createNiceMock(ServiceOsSpecific.class);
     ConfigHelper configHelper = createNiceMock(ConfigHelper.class);
+    Configuration configuration = PowerMock.createStrictMockAndExpectNew(Configuration.class);
 
     File mockFile = PowerMock.createNiceMock(File.class);
     Runtime runtime = createMock(Runtime.class);
     Process process = createNiceMock(Process.class);
 
     Collection<Config> clusterConfigs = new HashSet<Config>();
-    //Config clusterConfig = new ConfigImpl("config");
     clusterConfigs.add(clusterConfig);
     Map<String, Map<String, String>> allConfigTags = new HashMap<String, Map<String, String>>();
     Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
@@ -216,6 +217,7 @@ public class ClientConfigResourceProviderTest {
     expect(configHelper.getEffectiveConfigProperties(cluster, configTags)).andReturn(properties);
     expect(clusterConfig.getType()).andReturn(Configuration.HIVE_CONFIG_TAG).anyTimes();
     expect(configHelper.getEffectiveConfigAttributes(cluster, configTags)).andReturn(attributes);
+    expect(configuration.getProperty("server.tmp.dir")).andReturn(Configuration.SERVER_TMP_DIR_DEFAULT);
     //!!!!
     Map<String,String> props = new HashMap<String, String>();
     props.put(Configuration.HIVE_METASTORE_PASSWORD_PROPERTY, "pass");
@@ -261,7 +263,8 @@ public class ClientConfigResourceProviderTest {
     expect(Runtime.getRuntime()).andReturn(runtime);
     expect(mockFile.exists()).andReturn(true);
     expect(runtime.exec("ambari-python-wrap /tmp/stacks/S1/V1/PIG/package/null generate_configs null " +
-            "/tmp/stacks/S1/V1/PIG/package /tmp/ambari-server/structured-out.json INFO /tmp/ambari-server"))
+                    "/tmp/stacks/S1/V1/PIG/package /var/lib/ambari-server/tmp/structured-out.json " +
+                    "INFO /var/lib/ambari-server/tmp"))
             .andReturn(process).once();
 
     // replay
@@ -278,6 +281,7 @@ public class ClientConfigResourceProviderTest {
     verify(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo,commandScriptDefinition,
             clusterConfig, host, service, serviceComponent, serviceComponentHost, serviceInfo, configHelper,
             runtime, process);
+    PowerMock.verifyAll();
   }
 
   @Test
@@ -295,8 +299,8 @@ public class ClientConfigResourceProviderTest {
         PropertyHelper.getKeyPropertyIds(type),
         managementController);
 
-    Predicate predicate = new PredicateBuilder().property(ClientConfigResourceProvider.COMPONENT_COMPONENT_NAME_PROPERTY_ID).equals("HDFS_CLIENT").
-        toPredicate();
+    Predicate predicate = new PredicateBuilder().property(
+            ClientConfigResourceProvider.COMPONENT_COMPONENT_NAME_PROPERTY_ID).equals("HDFS_CLIENT").toPredicate();
     try {
       provider.deleteResources(predicate);
       Assert.fail("Expected an UnsupportedOperationException");

@@ -67,11 +67,11 @@
       {{/bs-panel}}
       <div class="panel panel-default panel-alerts">
         <div class="panel-heading">
-          Alerts
+          {{t common.alerts}}
           <div class="btn-group pull-right panel-link">
 {{!--            <a class="btn btn-default btn-sm" target="_blank" rel="tooltip"
               {{translateAttr title="sliderApp.summary.go_to_nagios"}}
-              {{bindAttr href="view.nagiosUrl"}}>
+              {{bind-attr href="view.nagiosUrl"}}>
                 <i class="icon-link"></i>
             </a>--}}
           </div>
@@ -83,7 +83,7 @@
                       <div class="container-fluid">
                           <div class="row">
                               <div class="col-md-1 status-icon">
-                                  <i {{bindAttr class="iconClass :icon-large"}}></i>
+                                  <i {{bind-attr class="iconClass :icon-large"}}></i>
                               </div>
                               <div class="col-md-11">
                                   <div class="row">
@@ -105,11 +105,11 @@
   {{#if controller.model.showMetrics}}
     <div class="panel panel-default">
       <div class="panel-heading">
-        Metrics
+        {{t common.metrics}}
         <div class="btn-group pull-right panel-link">
           <a class="btn btn-default btn-sm" target="_blank" rel="tooltip"
             {{translateAttr title="sliderApp.summary.go_to_ganglia"}}
-            {{bindAttr href="view.gangliaUrl"}}>
+            {{bind-attr href="view.gangliaUrl"}}>
               <i class="icon-link"></i>
           </a>
         </div>

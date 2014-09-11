@@ -45,6 +45,12 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, {
   isDataLoaded: false,
 
   /**
+   * Define if some widget is currently moving
+   * @type {bool}
+   */
+  isMoving: false,
+
+  /**
    * Make widgets' list sortable on New Dashboard style
    */
   makeSortable: function () {
@@ -53,6 +59,8 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, {
       items: "> div",
       //placeholder: "sortable-placeholder",
       cursor: "move",
+      tolerance: "pointer",
+      scroll: false,
       update: function (event, ui) {
         if (!App.get('testMode')) {
           // update persist then translate to real
@@ -76,6 +84,12 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, {
             //self.translateToReal(newValue);
           });
         }
+      },
+      activate: function(event, ui) {
+        self.set('isMoving', true);
+      },
+      deactivate: function(event, ui) {
+        self.set('isMoving', false);
       }
     }).disableSelection();
   },

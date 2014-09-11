@@ -142,6 +142,11 @@ App.ConfigHistoryFlowView = Em.View.extend({
   },
 
   didInsertElement: function () {
+    $('.version-box').hoverIntent(function() {
+      $(this).find('.version-popover').delay(800).fadeIn(400);
+    }, function() {
+      $(this).find('.version-popover').hide();
+    });
     App.tooltip(this.$('[data-toggle=tooltip]'),{
       placement: 'bottom'
     });

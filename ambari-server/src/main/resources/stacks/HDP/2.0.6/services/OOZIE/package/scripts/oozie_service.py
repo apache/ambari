@@ -37,7 +37,7 @@ def oozie_service(action = 'start'): # 'start' or 'stop'
       db_connection_check_command = None
       
     cmd1 =  format("cd {oozie_tmp_dir} && /usr/lib/oozie/bin/ooziedb.sh create -sqlfile oozie.sql -run")
-    cmd2 =  format("{kinit_if_needed} hadoop dfs -put /usr/lib/oozie/share {oozie_hdfs_user_dir} ; hadoop dfs -chmod -R 755 {oozie_hdfs_user_dir}/share")
+    cmd2 =  format("{kinit_if_needed} {put_shared_lib_to_hdfs_cmd} ; hadoop dfs -chmod -R 755 {oozie_hdfs_user_dir}/share")
 
     if not os.path.isfile(params.jdbc_driver_jar) and params.jdbc_driver_name == "org.postgresql.Driver":
       print "ERROR: jdbc file " + params.jdbc_driver_jar + " is unavailable. Please, follow next steps:\n" \

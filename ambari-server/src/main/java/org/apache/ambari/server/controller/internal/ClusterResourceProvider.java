@@ -43,6 +43,7 @@ import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.BlueprintDAO;
+import org.apache.ambari.server.orm.entities.BlueprintConfigEntity;
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
 import org.apache.ambari.server.orm.entities.HostGroupEntity;
 import org.apache.ambari.server.state.Config;
@@ -420,6 +421,15 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
     Map<String, HostGroupImpl> blueprintHostGroups = parseBlueprintHostGroups(blueprint, stack);
     applyRequestInfoToHostGroups(properties, blueprintHostGroups);
     Collection<Map<String, String>> configOverrides = (Collection<Map<String, String>>)properties.get("configurations");
+
+    String message = null;
+    for (BlueprintConfigEntity blueprintConfig: blueprint.getConfigurations()){
+      if(blueprintConfig.getType().equals("global")){
+        message = "WARNING: Global configurations are deprecated, please use *-env";
+        break;
+      }
+    }
+
     processConfigurations(processBlueprintConfigurations(blueprint, configOverrides),
         processBlueprintAttributes(blueprint), stack, blueprintHostGroups);
     validatePasswordProperties(blueprint, blueprintHostGroups, (String) properties.get("default_password"));
@@ -436,8 +446,13 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
     registerConfigGroups(clusterName, blueprintHostGroups, stack);
 
     persistInstallStateForUI();
-    return ((ServiceResourceProvider) getResourceProvider(Resource.Type.Service)).
+
+    RequestStatusResponse request = ((ServiceResourceProvider) getResourceProvider(Resource.Type.Service)).
         installAndStart(clusterName);
+
+    request.setMessage(message);
+
+    return request;
   }
 
   /**

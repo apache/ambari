@@ -112,8 +112,15 @@ public class ViewEntity implements ViewDefinition {
   private String mask;
 
   /**
-   * The list of view parameters.
+   * Indicates whether or not this is a system view.
    */
+  @Column(name = "system_view")
+  @Basic
+  private Integer system;
+
+  /**
+  * The list of view parameters.
+  */
   @OneToMany(cascade = CascadeType.ALL, mappedBy = "view")
   private Collection<ViewParameterEntity> parameters = new HashSet<ViewParameterEntity>();
 
@@ -226,6 +233,7 @@ public class ViewEntity implements ViewDefinition {
     this.ambariConfiguration  = null;
     this.archive              = null;
     this.externalResourceType = null;
+    this.system               = 0;
   }
 
   /**
@@ -251,6 +259,7 @@ public class ViewEntity implements ViewDefinition {
     this.mask        = configuration.getMasker();
     this.icon        = configuration.getIcon();
     this.icon64      = configuration.getIcon64();
+    this.system      = configuration.isSystem() ? 1 : 0;
 
     this.externalResourceType =
         new Resource.Type(getQualifiedResourceTypeName(ResourceConfig.EXTERNAL_RESOURCE_PLURAL_NAME));
@@ -711,6 +720,24 @@ public class ViewEntity implements ViewDefinition {
    */
   public String getMask() {
     return mask;
+  }
+
+  /**
+   * Determine whether or not the view is a system view.
+   *
+   * @return true if the view is a system view
+   */
+  public boolean isSystem() {
+    return system == 1;
+  }
+
+  /**
+   * Set the flag which indicates whether or not the view is a system view.
+   *
+   * @param required  the system flag; true if the view is a system view
+   */
+  public void setSystem(boolean required) {
+    this.system = required ? 1 : 0;
   }
 
   /**

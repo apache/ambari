@@ -16,17 +16,29 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.view.slider;
 
-
-public class ViewStatus {
-  private String version;
-
-  public String getVersion() {
-    return version;
-  }
-
-  public void setVersion(String version) {
-    this.version = version;
-  }
-}
+/**
+ * Config property
+ * @type {object}
+ */
+App.ConfigProperty = Em.Object.extend({
+  name: null,
+  value: null,
+  label: "",
+  viewType: null,
+  view: function () {
+    switch (this.get('viewType')) {
+      case 'checkbox':
+        return Em.Checkbox;
+      case 'select':
+        return Em.Select;
+      default:
+        return Em.TextField;
+    }
+  }.property('viewType'),
+  readOnly: false,
+  //used for config with "select" view
+  options: [],
+  //indicate whether it single config or set of configs
+  isSet: false
+});

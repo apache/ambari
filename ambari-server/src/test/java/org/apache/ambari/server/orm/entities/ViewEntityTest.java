@@ -283,4 +283,15 @@ public class ViewEntityTest {
     viewDefinition.setStatus(ViewDefinition.ViewStatus.ERROR);
     Assert.assertFalse(viewDefinition.isLoaded());
   }
+
+  @Test
+  public void testSetIsSystem() throws Exception {
+    ViewEntity viewDefinition = getViewEntity();
+
+    viewDefinition.setSystem(false);
+    Assert.assertFalse(viewDefinition.isSystem());
+
+    viewDefinition.setSystem(true);
+    Assert.assertTrue(viewDefinition.isSystem());
+  }
 }

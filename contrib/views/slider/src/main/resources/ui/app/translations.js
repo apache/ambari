@@ -46,7 +46,11 @@ Em.I18n.translations = {
     'started': 'Started',
     'finished': 'Finished',
     'diagnostics': 'Diagnostics',
-    'description': 'Description'
+    'description': 'Description',
+    'alerts': 'Alerts',
+    'key': 'Key',
+    'remove': 'Remove',
+    'send': 'Send'
   },
 
   'error.noHDFS': 'Slider applications view requires HDFS service.',
@@ -71,10 +75,13 @@ Em.I18n.translations = {
   'configs.add_property': 'Add Property',
   'configs.add_property.invalid_name': 'Config name should consists only of letters, numbers, \'-\', \'_\', \'.\' and first character should be a letter.',
   'configs.add_property.name_exists': 'Config name already exists',
+  'configs.enable.metrics': 'Enable Metrics',
 
   'slider.apps.title': 'Slider Apps',
   'slider.apps.create': 'Create App',
   'sliderApps.filters.info': '{0} of {1} sliders showing',
+
+  'sliderApp.flex.invalid_counts': 'Instance counts should be integer and >= 0',
 
   'sliderApp.summary.go_to_nagios': 'Go to Nagios',
   'sliderApp.summary.go_to_ganglia': 'Go to Ganglia',

@@ -231,6 +231,8 @@ public class Configuration {
   public static final String DEFAULT_SCHEDULER_MAX_CONNECTIONS = "5";
   public static final String DEFAULT_EXECUTION_SCHEDULER_MISFIRE_TOLERATION = "480";
   public static final String DEFAULT_SCHEDULER_START_DELAY_SECONDS = "120";
+  public static final String SERVER_TMP_DIR_KEY = "server.tmp.dir";
+  public static final String SERVER_TMP_DIR_DEFAULT = "/var/lib/ambari-server/tmp";
   /**
    * This key defines whether stages of parallel requests are executed in
    * parallel or sequentally. Only stages from different requests
@@ -373,6 +375,8 @@ public class Configuration {
         JAVA_HOME_KEY));
     configsMap.put(PARALLEL_STAGE_EXECUTION_KEY, properties.getProperty(
             PARALLEL_STAGE_EXECUTION_KEY, PARALLEL_STAGE_EXECUTION_DEFAULT));
+    configsMap.put(SERVER_TMP_DIR_KEY, properties.getProperty(
+            SERVER_TMP_DIR_KEY, SERVER_TMP_DIR_DEFAULT));
 
     File passFile = new File(configsMap.get(SRVR_KSTR_DIR_KEY) + File.separator
         + configsMap.get(SRVR_CRT_PASS_FILE_KEY));

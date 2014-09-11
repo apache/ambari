@@ -981,11 +981,13 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
             State   masterState = null;
             State   clientState = null;
             State   otherState = null;
+            State   maxMMState = null; // The worst state among components in MM
 
             boolean hasDisabled  = false;
             boolean hasMaster    = false;
             boolean hasOther     = false;
             boolean hasClient    = false;
+            boolean hasMM        = false;
 
             for (ServiceComponentHostResponse hostComponentResponse : hostComponentResponses ) {
               ComponentInfo componentInfo = ambariMetaInfo.getComponentCategory(stackId.getStackName(),
@@ -999,8 +1001,15 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
                 boolean isInMaintenance = ! MaintenanceState.OFF.toString().
                         equals(hostComponentResponse.getMaintenanceState());
 
-                if (state.equals(State.DISABLED) || isInMaintenance) {
+                if (state.equals(State.DISABLED)) {
                   hasDisabled = true;
+                }
+
+                if (isInMaintenance & !componentInfo.isClient()) {
+                  hasMM = true;
+                  if ( maxMMState == null || state.ordinal() > maxMMState.ordinal()) {
+                    maxMMState = state;
+                  }
                 }
 
                 if (componentInfo.isMaster()) {
@@ -1037,7 +1046,8 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
             return hasMaster   ? masterState == null ? State.STARTED : masterState :
                    hasOther    ? otherState == null ? State.STARTED : otherState :
                    hasClient   ? clientState == null ? State.INSTALLED : clientState :
-                   hasDisabled ? State.DISABLED : State.UNKNOWN;
+                   hasDisabled ? State.DISABLED :
+                   hasMM       ? maxMMState : State.UNKNOWN;
           }
         } catch (AmbariException e) {
           LOG.error("Can't determine service state.", e);

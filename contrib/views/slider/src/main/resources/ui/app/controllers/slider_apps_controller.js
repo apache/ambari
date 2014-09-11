@@ -146,13 +146,19 @@ App.SliderAppsController = Ember.ArrayController.extend({
    * @method sendInitialValues
    */
   sendInitialValues: function () {
+    var initialValues = this.get('initialValuesToLoad');
     return App.ajax.send({
       name: 'saveInitialValues',
       sender: this,
       data: {
         data:  {
           ViewInstanceInfo: {
-            properties: this.get('initialValuesToLoad')
+            properties: {
+              'hdfs.address': initialValues.get('hdfsAddress'),
+              'yarn.resourcemanager.address': initialValues.get('yarnRMAddress'),
+              'yarn.resourcemanager.scheduler.address': initialValues.get('yarnRMSchedulerAddress'),
+              'zookeeper.quorum': initialValues.get('zookeeperQuorum')
+            }
           }
         }
       }

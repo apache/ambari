@@ -26,6 +26,7 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.StackConfigurationRequest;
 import org.apache.ambari.server.controller.StackConfigurationResponse;
+import org.apache.ambari.server.controller.StackLevelConfigurationRequest;
 import org.apache.ambari.server.controller.StackServiceComponentRequest;
 import org.apache.ambari.server.controller.StackServiceComponentResponse;
 import org.apache.ambari.server.controller.StackServiceRequest;
@@ -41,6 +42,7 @@ import org.apache.ambari.server.orm.entities.HostGroupEntity;
 import org.apache.ambari.server.state.AutoDeployInfo;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DependencyInfo;
+import org.apache.ambari.server.state.PropertyInfo;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -816,7 +818,10 @@ public abstract class BaseBlueprintProcessor extends AbstractControllerResourceP
 
       Set<StackConfigurationResponse> serviceConfigs = ambariManagementController.getStackConfigurations(
           Collections.singleton(new StackConfigurationRequest(name, version, service, null)));
-
+      Set<StackConfigurationResponse> stackLevelConfigs = ambariManagementController.getStackLevelConfigurations(
+          Collections.singleton(new StackLevelConfigurationRequest(name, version, null)));
+      serviceConfigs.addAll(stackLevelConfigs);
+      
       for (StackConfigurationResponse config : serviceConfigs) {
         String type = config.getType();
         //strip .xml from type

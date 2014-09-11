@@ -126,24 +126,82 @@ App.SliderAppController = Ember.ObjectController.extend({
   },
 
   /**
+   * Buttons for Flex modal popup
+   * @type {Em.Object[]}
+   */
+  flexModalButtons: [
+    Ember.Object.create({title: Em.I18n.t('common.cancel'), clicked:"closeFlex", dismiss: 'modal'}),
+    Ember.Object.create({title: Em.I18n.t('common.send'), clicked:"submitFlex", type:'success'})
+  ],
+
+  /**
+   * Grouped components by name
+   * @type {{name: string, count: number}[]}
+   */
+  groupedComponents: [],
+
+  /**
+   * Group components by <code>componentName</code> and save them to <code>groupedComponents</code>
+   * @method groupComponents
+   */
+  groupComponents: function() {
+    var groupedComponents = this.get('appType.components').map(function(c) {
+      return {
+        name: c.get('name'),
+        count: 0
+      };
+    });
+
+    this.get('components').forEach(function(component) {
+      var name = component.get('componentName'),
+        group = groupedComponents.findBy('name', name);
+      if (group) {
+        group.count++;
+      }
+    });
+    this.set('groupedComponents', groupedComponents);
+  },
+
+  /**
+   * Does new instance counts are invalid
+   * @type {bool}
+   */
+  groupedComponentsHaveErrors: false,
+
+  /**
+   * Validate new instance counts for components (should be integer and >= 0)
+   * @method validateGroupedComponents
+   * @returns {boolean}
+   */
+  validateGroupedComponents: function() {
+    var hasErrors = false;
+    this.get('groupedComponents').forEach(function(c) {
+      if (!/^\d+$/.test(c.count)) {
+        hasErrors = true;
+        return;
+      }
+      var count = parseInt(c.count + 0);
+      if (count < 0) {
+        hasErrors = true;
+      }
+    });
+    this.set('groupedComponentsHaveErrors', hasErrors);
+    return hasErrors;
+  },
+
+  /**
    * Do request to <strong>flex</strong> current slider's app
-   * @returns {$.ajax}
    * @method flex
    */
   flex: function() {
-    var model = this.get('model');
-    return App.ajax.send({
-      name: 'flexApp',
-      sender: this,
-      data: {
-        id: model.get('id'),
-        data: {
-          id: model.get('id'),
-          name: model.get('name'),
-          components: this.mapComponentsForFlexRequest()
-        }
-      }
-    });
+    this.groupComponents();
+    Bootstrap.ModalManager.open(
+      'flex-popup',
+      'Flex',
+      'slider_app/flex_popup',
+      this.get('flexModalButtons'),
+      this
+    );
   },
 
   /**
@@ -165,9 +223,9 @@ App.SliderAppController = Ember.ObjectController.extend({
    */
   mapComponentsForFlexRequest: function() {
     var components = {};
-    this.get('model.components').forEach(function(component) {
-      components[component.get('name')] = {
-        instanceCount: component.get('defaultNumInstances')
+    this.get('groupedComponents').forEach(function(component) {
+      components[Em.get(component, 'name')] = {
+        instanceCount: Em.get(component, 'count')
       }
     });
     return components;
@@ -198,6 +256,41 @@ App.SliderAppController = Ember.ObjectController.extend({
   },
 
   actions: {
+
+    /**
+     * Submit new instance counts for app components
+     * @method submitFlex
+     * @returns {*}
+     */
+    submitFlex: function() {
+      if (this.validateGroupedComponents()) return;
+      var model = this.get('model'),
+        components = this.mapComponentsForFlexRequest();
+      this.get('groupedComponents').clear();
+      this.set('groupedComponentsHaveErrors', false);
+      Bootstrap.ModalManager.close('flex-popup');
+      return App.ajax.send({
+        name: 'flexApp',
+        sender: this,
+        data: {
+          id: model.get('id'),
+          data: {
+            id: model.get('id'),
+            name: model.get('name'),
+            components: components
+          }
+        }
+      });
+    },
+
+    /**
+     * Close flex-popup
+     * @method closeFlex
+     */
+    closeFlex: function() {
+      this.get('groupedComponents').clear();
+      this.set('groupedComponentsHaveErrors', false);
+    },
 
     /**
      * Handler for "Yes" click in modal popup

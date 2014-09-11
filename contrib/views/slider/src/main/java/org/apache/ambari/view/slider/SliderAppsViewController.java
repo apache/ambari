@@ -30,6 +30,11 @@ import com.google.inject.ImplementedBy;
 @ImplementedBy(SliderAppsViewControllerImpl.class)
 public interface SliderAppsViewController {
 
+  public static final String PROPERTY_HDFS_ADDRESS = "hdfs.address";
+  public static final String PROPERTY_YARN_RM_ADDRESS = "yarn.resourcemanager.address";
+  public static final String PROPERTY_YARN_RM_SCHEDULER_ADDRESS = "yarn.resourcemanager.scheduler.address";
+  public static final String PROPERTY_ZK_QUOROM = "zookeeper.quorum";
+
   public ViewStatus getViewStatus();
 
   /**

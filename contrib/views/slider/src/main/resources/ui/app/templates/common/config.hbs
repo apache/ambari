@@ -16,17 +16,22 @@
 * limitations under the License.
 }}
 
-<div class="cluster-metrics">
-  <ul>
-    <li class="thumbnail row">
-      <a {{bindAttr class=":corner-icon :span1 view.parentView.isMoving:hidden"}} href="#" {{action deleteWidget target="view"}}>
-          <i class="icon-remove-sign icon-large"></i>
-      </a>
-      <div class="caption span10">{{view.title}}</div>
+<div class="form-group">
 
-      <div class="widget-content" >
-        {{view view.content}}
+    <label class="col-sm-4 control-label">{{formatWordBreak config.label devider='.'}}</label>
+
+    <div class="col-sm-6">
+      {{view config.view
+        value=config.value
+        content=config.options
+        class="form-control"
+        disabled=config.readOnly
+      }}
+    </div>
+
+  {{#if isCustom}}
+      <div class="col-sm-2">
+        {{#bs-button clicked="deleteConfig" clickedParamBinding="config" type="danger"}}{{t common.delete}}{{/bs-button}}
       </div>
-    </li>
-  </ul>
+  {{/if}}
 </div>

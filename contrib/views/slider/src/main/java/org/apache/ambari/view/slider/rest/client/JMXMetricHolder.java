@@ -16,17 +16,35 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.view.slider;
+package org.apache.ambari.view.slider.rest.client;
 
+import java.util.List;
+import java.util.Map;
 
-public class ViewStatus {
-  private String version;
+/**
+ *
+ */
+public final class JMXMetricHolder {
 
-  public String getVersion() {
-    return version;
+  private List<Map<String, Object>> beans;
+
+  public List<Map<String, Object>> getBeans() {
+    return beans;
   }
 
-  public void setVersion(String version) {
-    this.version = version;
+  public void setBeans(List<Map<String, Object>> beans) {
+    this.beans = beans;
+  }
+
+  @Override
+  public String toString() {
+    StringBuilder stringBuilder = new StringBuilder();
+
+    for (Map<String, Object> map : beans) {
+      for (Map.Entry<String, Object> entry : map.entrySet()) {
+        stringBuilder.append("    ").append(entry.toString()).append("\n");
+      }
+    }
+    return stringBuilder.toString();
   }
 }

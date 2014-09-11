@@ -69,6 +69,9 @@ public class AlertCurrentEntity {
 
   @Column(name = "original_timestamp", nullable = false)
   private Long originalTimestamp;
+  
+  @Column(name = "latest_text", length = 4000)
+  private String latestText = null;
 
   /**
    * Unidirectional one-to-one association to {@link AlertHistoryEntity}
@@ -170,6 +173,22 @@ public class AlertCurrentEntity {
    */
   public void setOriginalTimestamp(Long originalTimestamp) {
     this.originalTimestamp = originalTimestamp;
+  }
+  
+  /**
+   * Gets the latest text for this alert.  History will not get a new record on
+   * update when the state is the same, but the text may be changed.  For example,
+   * CPU utilization includes the usage in the text and should be available.
+   */
+  public String getLatestText() {
+    return latestText;
+  }
+  
+  /**
+   * Sets the latest text.  {@link #getLatestText()}
+   */
+  public void setLatestText(String text) {
+    latestText = text;
   }
 
   /**

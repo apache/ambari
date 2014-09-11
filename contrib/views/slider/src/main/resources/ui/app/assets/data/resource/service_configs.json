@@ -1,0 +1,38 @@
+{
+  "items" : [
+    {
+      "cluster_name" : "cl",
+      "configurations" : [
+        {
+          "Config" : {
+            "cluster_name" : "cl"
+          },
+          "type" : "ganglia-env",
+          "tag" : "version1410432304443",
+          "version" : 1,
+          "properties" : {
+            "rrdcached_timeout" : "3600",
+            "gmetad_user" : "nobody",
+            "rrdcached_base_dir" : "/var/lib/ganglia/rrds",
+            "rrdcached_write_threads" : "4",
+            "rrdcached_delay" : "1800",
+            "rrdcached_flush_timeout" : "7200",
+            "gmond_user" : "nobody",
+            "ganglia_runtime_dir" : "/var/run/ganglia/hdp",
+            "ganglia_custom_clusters": "'HBaseCluster1','7000','AccumuloCluster1','7001','HBaseCluster2','7002'"
+          },
+          "properties_attributes" : { }
+        }
+      ],
+      "createtime" : 1410432307174,
+      "group_id" : -1,
+      "group_name" : "default",
+      "hosts" : [ ],
+      "is_current" : true,
+      "service_config_version" : 1,
+      "service_config_version_note" : "Initial configurations for Ganglia",
+      "service_name" : "GANGLIA",
+      "user" : "admin"
+    }
+  ]
+}

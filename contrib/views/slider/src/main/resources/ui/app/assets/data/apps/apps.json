@@ -83,9 +83,23 @@
       "components" : {
         "HBASE_MASTER" : {
           "componentName" : "HBASE_MASTER",
-          "instanceCount" : 1,
+          "instanceCount" : 2,
           "activeContainers" : {
             "container_1409333994422_0005_01_000002" : {
+              "released" : "false",
+              "startTime" : "1409348511279",
+              "createTime" : "1409348510529",
+              "environment" : "[AGENT_WORK_ROOT=\"$PWD\", HADOOP_USER_NAME=\"yarn\", AGENT_LOG_ROOT=\"$LOG_DIRS\", PYTHONPATH=\"./infra/agent/slider-agent/\", SLIDER_PASSPHRASE=\"DEV\"]",
+              "host" : "с6402.ambari.apache.org",
+              "name" : "container_1409333994422_0005_01_000002",
+              "command" : "python ./infra/agent/slider-agent/agent/main.py --label container_1409333994422_0005_01_000002___HBASE_MASTER --zk-quorum с6401.ambari.apache.org:2181 --zk-reg-path /registry/org-apache-slider/h4 ; ",
+              "state" : "3",
+              "role" : "HBASE_MASTER",
+              "exitCode" : "0",
+              "diagnostics" : "",
+              "roleId" : "1"
+            },
+            "container_1409333994422_0005_01_000003" : {
               "released" : "false",
               "startTime" : "1409348511279",
               "createTime" : "1409348510529",

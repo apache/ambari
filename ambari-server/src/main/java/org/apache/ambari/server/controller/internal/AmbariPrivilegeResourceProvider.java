@@ -122,11 +122,13 @@ public class AmbariPrivilegeResourceProvider extends PrivilegeResourceProvider<O
         resourceEntities.put(clusterEntity.getResource().getId(), clusterEntity);
       }
     }
-    //add view entites
+    //add view entities
     ViewRegistry viewRegistry = ViewRegistry.getInstance();
     for (ViewEntity viewEntity : viewRegistry.getDefinitions()) {
-      for (ViewInstanceEntity viewInstanceEntity : viewEntity.getInstances()) {
-        resourceEntities.put(viewInstanceEntity.getResource().getId(), viewInstanceEntity);
+      if (viewEntity.isLoaded()) {
+        for (ViewInstanceEntity viewInstanceEntity : viewEntity.getInstances()) {
+          resourceEntities.put(viewInstanceEntity.getResource().getId(), viewInstanceEntity);
+        }
       }
     }
     return resourceEntities;

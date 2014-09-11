@@ -55,7 +55,6 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
   protected static final String COMPONENT_COMPONENT_NAME_PROPERTY_ID = "ServiceComponentInfo/component_name";
   protected static final String HOST_COMPONENT_HOST_NAME_PROPERTY_ID =
           PropertyHelper.getPropertyId("HostRoles", "host_name");
-  protected static final String TMP_PATH = "/tmp/ambari-server";
 
   private final Gson gson;
 
@@ -121,6 +120,8 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
       throw new SystemException("Failed to get components ", e);
     }
 
+    Configuration configs = new Configuration();
+    String TMP_PATH = configs.getProperty(Configuration.SERVER_TMP_DIR_KEY);
     AmbariManagementController managementController = getManagementController();
     ConfigHelper configHelper = managementController.getConfigHelper();
     Cluster cluster = null;
@@ -289,7 +290,7 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
       File tmpDirectory = new File(jsonFileName.getParent());
       if (!tmpDirectory.exists()) {
         try {
-          tmpDirectory.mkdir();
+          tmpDirectory.mkdirs();
           tmpDirectory.setWritable(true, true);
           tmpDirectory.setReadable(true, true);
         } catch (SecurityException se) {

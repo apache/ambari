@@ -20,6 +20,7 @@ package org.apache.ambari.server.api.services;
 
 import com.google.inject.Inject;
 import org.apache.ambari.server.api.resources.ResourceInstance;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.spi.ClusterController;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
@@ -231,7 +232,9 @@ public class ComponentService extends BaseService {
     }
 
     Response.ResponseBuilder rb = Response.status(Response.Status.OK);
-    File file = new File("/tmp/ambari-server/"+componentName+"-configs.tar.gz");
+    Configuration configs = new Configuration();
+    String tmpDir = configs.getProperty(Configuration.SERVER_TMP_DIR_KEY);
+    File file = new File(tmpDir+File.separator+componentName+"-configs.tar.gz");
     InputStream resultInputStream = null;
     try {
       resultInputStream = new FileInputStream(file);

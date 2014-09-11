@@ -17,60 +17,61 @@
 }}
 
 {{#bs-panel heading=sectionLabel collapsible=true dismiss=false open=isGeneral }}
-  <form class="form-horizontal" role="form">
-    {{#each config in sectionConfigs}}
-      <div class="form-group">
+    <form class="form-horizontal" role="form">
+      {{#each config in sectionConfigs}}
+        {{#if config.isSet}}
+          {{#view "configSet" configSet=config}}
+              <div class="form-group">
+                  <label class="col-sm-4 control-label">{{formatWordBreak view.configSet.trigger.label devider='.'}}</label>
 
-        <label class="col-sm-4 control-label">{{formatWordBreak config.label devider='.'}}</label>
-
-        <div class="col-sm-6">
-          {{input value=config.value class="form-control"}}
-        </div>
-
-        {{#if isCustom}}
-          <div class="col-sm-2">
-            {{#bs-button clicked="deleteConfig" clickedParamBinding="config" type="danger"}}{{t common.delete}}{{/bs-button}}
-          </div>
+                  <div class="col-sm-6">
+                    {{view view.configSet.trigger.view
+                    checked=view.configSet.trigger.value
+                    }}
+                  </div>
+              </div>
+            {{#each config in view.configs}}
+              {{partial "common/config"}}
+            {{/each}}
+          {{/view}}
+        {{else}}
+          {{partial "common/config"}}
         {{/if}}
-
-      </div>
-    {{/each}}
-  </form>
-  {{#if isCustom}}
-    {{#if buttonVisible}}
-      {{#bs-button clicked="addProperty" type="primary"}}{{t configs.add_property}}{{/bs-button}}
-    {{else}}
-      {{! "Add Property"-form}}
-      <form class="form-horizontal" role="form">
+      {{/each}}
+    </form>
+    {{#if isCustom}}
+      {{#bs-button clicked="addProperty" type="link"}}{{t configs.add_property}}...{{/bs-button}}
+    {{/if}}
+{{/bs-panel}}
+{{#bs-modal name="addPropertyModal" footerButtonsBinding="addPropertyModalButtons" titleBinding="addPropertyModalTitle"}}
+{{! "Add Property"-form}}
+    <form class="form-horizontal" role="form">
         <div class="form-group">
-          <div class="col-sm-4">
-            <label class="control-label">{{t common.name}}</label>
-          </div>
-          <div class="col-sm-6">
-            <label class="control-label">{{t common.value}}</label>
-          </div>
+            <div class="col-sm-4">
+                <label class="control-label">{{t common.key}}</label>
+            </div>
+            <div class="col-sm-6">
+              {{input value=newConfig.name class="form-control"}}
+            </div>
         </div>
         <div {{bind-attr class=":form-group newConfig.hasError:has-error"}}>
-          <div class="col-sm-4">
-            {{input value=newConfig.name class="form-control"}}
-          </div>
-          <div class="col-sm-6">
-            {{input value=newConfig.value class="form-control"}}
-          </div>
+            <div class="col-sm-4">
+                <label class="control-label">{{t common.value}}</label>
+            </div>
+            <div class="col-sm-6">
+              {{input value=newConfig.value class="form-control"}}
+            </div>
         </div>
         <div class="form-group">
           {{#if newConfig.hasError}}
-            <div class="col-sm-10">
-              <div class="alert alert-danger">
-                {{newConfig.messsage}}
-                </div>
-            </div>
+              <div class="col-sm-10">
+                  <div class="alert alert-danger">
+                    {{newConfig.messsage}}
+                  </div>
+              </div>
           {{/if}}
         </div>
-        {{#bs-button clicked="submit" type="primary"}}{{t common.add}}{{/bs-button}}
-        {{#bs-button clicked="discard"}}{{t common.cancel}}{{/bs-button}}
-      </form>
-    {{! "Add Property"-form end}}
-    {{/if}}
-  {{/if}}
-{{/bs-panel}}
+    </form>
+{{! "Add Property"-form end}}
+{{/bs-modal}}
+{{outlet bs-tooltip-box}}

@@ -31,6 +31,18 @@ App.CreateAppWizardStep3Controller = Ember.ObjectController.extend({
   configs: Em.A(),
 
   /**
+   * predefined settings of configuration properties
+   */
+  configSettings: {
+    'site.global.ganglia_server_id': {
+      viewType: 'select'
+    },
+    'site.global.ganglia_server_port': {
+      readOnly: true
+    }
+  },
+
+  /**
    * Convert configs to array of unique section names
    * @type {Array}
    */
@@ -60,6 +72,31 @@ App.CreateAppWizardStep3Controller = Ember.ObjectController.extend({
   configsObject: {},
 
   /**
+   * config that describe configurations set
+   */
+  configsSet: [
+    {
+      trigger: {value: false, label: Em.I18n.t('configs.enable.metrics'), viewType: 'checkbox'},
+      isSet: true,
+      section: 'global',
+      configNames: ["site.global.ganglia_server_host", "site.global.ganglia_server_id", "site.global.ganglia_server_port"],
+      configs: [],
+      dependencies: [
+        {
+          name: 'App.gangliaClusters',
+          map: [],
+          mapFunction: function (origin, dependent) {
+            if (!origin || !dependent) return false;
+            dependent.set('value', this.map.findBy('name', origin.get('value')).port);
+          },
+          origin: "site.global.ganglia_server_id",
+          dependent: "site.global.ganglia_server_port"
+        }
+      ]
+    }
+  ],
+
+  /**
    * Load all data required for step
    * @method loadStep
    */
@@ -73,21 +110,69 @@ App.CreateAppWizardStep3Controller = Ember.ObjectController.extend({
    * @param {bool} setDefaults
    * @method initConfigs
    */
-  initConfigs: function(setDefaults) {
-    setDefaults = setDefaults === true ? setDefaults : false;
-    var configs = this.get('newAppConfigs') || {},
-        c = Em.A();
+  initConfigs: function (setDefaults) {
+    var newAppConfigs = this.get('newAppConfigs') || {},
+      configs = Em.A(),
+      configsSet = $.extend(true, [], this.get('configsSet')),
+      allSetConfigs = {},
+      configSettings = this.get('configSettings'),
+      gangliaClusters = App.get('gangliaClusters');
 
-    Object.keys(configs).forEach(function (key) {
-      var label = (!!key.match('^site.'))?key.substr(5):key;
-      if(key === "site.global.ganglia_server_host" && setDefaults) {
-        configs[key] = App.get('gangliaHost') ? App.get('gangliaHost') : configs[key];
-      }
-      c.push({name:key,value:configs[key],label:label})
+    configsSet.forEach(function (item) {
+      item.configNames.forEach(function (configName) {
+        allSetConfigs[configName] = item;
+      });
     });
 
-    this.set('configs', c);
+    Object.keys(newAppConfigs).forEach(function (key) {
+      var label = (!!key.match('^site.')) ? key.substr(5) : key;
+      var configSetting = (configSettings[key]) ?
+        $.extend({name: key, value: configs[key], label: label}, configSettings[key]) :
+        {name: key, value: configs[key], label: label};
+
+      if (key === "site.global.ganglia_server_host" && !!setDefaults && App.get('gangliaHost')) {
+        configSetting.value = App.get('gangliaHost');
+      }
+
+      if (key === "site.global.ganglia_server_id" && gangliaClusters) {
+        configSetting.options = gangliaClusters.mapProperty('name');
+        configSetting.value = gangliaClusters.mapProperty('name')[0];
+      }
+      if (key === "site.global.ganglia_server_port" && gangliaClusters) {
+        configSetting.value = gangliaClusters.mapProperty('port')[0];
+      }
+
+      if (allSetConfigs[key]) {
+        allSetConfigs[key].configs.push(App.ConfigProperty.create(configSetting));
+      } else {
+        configs.push(App.ConfigProperty.create(configSetting));
+      }
+    });
+
+    configsSet.forEach(function (configSet) {
+      if (configSet.configs.length === configSet.configNames.length) {
+        delete configSet.configNames;
+        configSet.trigger = App.ConfigProperty.create(configSet.trigger);
+        this.initConfigSetDependecies(configSet);
+        configs.unshift(configSet);
+      }
+    }, this);
+
+    this.set('configs', configs);
   }.observes('newAppConfigs'),
+
+  /**
+   * initialize dependecies map for config set by name
+   * configSet map changed by reference
+   *
+   * @param {object} configSet
+   * @method initConfigSetDependecies
+   */
+  initConfigSetDependecies: function (configSet) {
+    configSet.dependencies.forEach(function (item) {
+      item.map = Em.get(item.name);
+    })
+  },
 
   /**
    * Clear all initial data
@@ -105,7 +190,7 @@ App.CreateAppWizardStep3Controller = Ember.ObjectController.extend({
   validateConfigs: function () {
     var self = this;
     var result = true;
-    var configs = this.get('configs');
+    var configs = this.addConfigSetProperties(this.get('configs'));
     var configsObject = {};
 
     try {
@@ -118,6 +203,22 @@ App.CreateAppWizardStep3Controller = Ember.ObjectController.extend({
       result = false;
     }
     return result;
+  },
+
+  /**
+   * add config properties from config sets to general configs array
+   * @param configs
+   * @return {Array}
+   */
+  addConfigSetProperties: function (configs) {
+    var configSets = configs.filterBy('isSet');
+    var newConfigs = [];
+    configs.filterBy('isSet').forEach(function (item) {
+      if (item.trigger.value) {
+        newConfigs.pushObjects(item.configs);
+      }
+    });
+    return configs.filterBy('isSet', false).concat(newConfigs);
   },
 
   /**

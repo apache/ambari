@@ -147,7 +147,7 @@ public class UpgradeCatalog161Test {
         Collections.singletonMap("hbase.master.info.port", "60010"), false, false);
     expectLastCall();
     
-    upgradeCatalog.updateConfigurationProperties("global",
+    upgradeCatalog.updateConfigurationProperties("oozie-env",
         Collections.singletonMap("oozie_admin_port", "11001"), false, false);
     expectLastCall();
     

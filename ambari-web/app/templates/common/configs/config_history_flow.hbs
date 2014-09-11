@@ -49,8 +49,10 @@
             </div>
             <div class="version-operations-buttons">
                 <button {{bindAttr disabled="serviceVersion.disabledActionAttr.view" class=":btn serviceVersion.isDisplayed:not-allowed-cursor" title="serviceVersion.disabledActionMessages.view"}} {{action switchVersion serviceVersion target="view"}}><i class="icon-search"></i>&nbsp;{{t common.view}}</button>
-                <button {{bindAttr disabled="serviceVersion.disabledActionAttr.compare" class=":btn serviceVersion.isDisplayed:not-allowed-cursor" title="serviceVersion.disabledActionMessages.compare"}} {{action compare serviceVersion target="view"}}><i class="icon-copy"></i>&nbsp;{{t common.compare}}</button>
-                <button {{bindAttr disabled="serviceVersion.disabledActionAttr.revert" class=":btn serviceVersion.isCurrent:not-allowed-cursor" title="serviceVersion.disabledActionMessages.revert"}} {{action revert serviceVersion target="view"}}>{{t dashboard.configHistory.info-bar.revert.button}}</button>
+                {{#if App.isManager}}
+                    <button {{bindAttr disabled="serviceVersion.disabledActionAttr.compare" class=":btn serviceVersion.isDisplayed:not-allowed-cursor" title="serviceVersion.disabledActionMessages.compare"}} {{action compare serviceVersion target="view"}}><i class="icon-copy"></i>&nbsp;{{t common.compare}}</button>
+                    <button {{bindAttr disabled="serviceVersion.disabledActionAttr.revert" class=":btn serviceVersion.isCurrent:not-allowed-cursor" title="serviceVersion.disabledActionMessages.revert"}} {{action revert serviceVersion target="view"}}>{{t dashboard.configHistory.info-bar.revert.button}}</button>
+                {{/if}}
             </div>
           </div>
         </div>
@@ -60,6 +62,7 @@
       {{translateAttr data-original-title="services.service.config.configHistory.rightArrow.tooltip"}}><i class="icon-chevron-right icon-3x"></i></div>
   </div>
   <div class="version-info-bar-wrapper">
+    {{#if App.isManager}}
       <div {{bindAttr class="view.showCompareVersionBar::hidden :version-info-bar"}}>
           <div class="row-fluid">
               <div class="span1 remove-compare-bar" {{action removeCompareVersionBar target="view"}} data-toggle="arrow-tooltip" {{translateAttr data-original-title="services.service.config.configHistory.dismissIcon.tooltip"}}>
@@ -82,8 +85,10 @@
               </div>
           </div>
       </div>
+    {{/if}}
       <div class="version-info-bar">
           <div class="row-fluid">
+            {{#if App.isManager}}
               <div class="btn-group pull-left">
                   <button id="toggle-dropdown-button" class="btn dropdown-toggle" data-toggle="dropdown" href="#" {{action hideFullList target="view"}} {{bindAttr disabled="view.versionActionsDisabled"}}>
                       <i class="icon-random"></i>
@@ -122,6 +127,7 @@
                     {{/unless}}
                   </ul>
               </div>
+            {{/if}}
               <div class="label-wrapper span8" data-toggle="tooltip" {{bindAttr data-original-title="view.displayedServiceVersion.briefNotes"}}>
                   <span class="label label-info">{{view.displayedServiceVersion.versionText}}</span>
                 {{#if view.displayedServiceVersion.isCurrent}}
@@ -129,6 +135,7 @@
                 {{/if}}
                   <strong>{{view.displayedServiceVersion.author}}</strong>&nbsp;{{t dashboard.configHistory.info-bar.authoredOn}}&nbsp;<strong>{{view.displayedServiceVersion.createdDate}}</strong>
               </div>
+            {{#if App.isManager}}
               <div class="pull-right operations-button">
                   <div {{bindAttr class="view.displayedServiceVersion.isCurrent::hidden"}}>
                       <button class="btn" {{action doCancel target="controller"}} {{bindAttr disabled="view.isDiscardDisabled"}}>{{t common.discard}}</button>
@@ -136,6 +143,7 @@
                   </div>
                   <button class="btn btn-success"  {{action revert view.serviceVersionsReferences.displayed target="view"}} {{bindAttr disabled="view.versionActionsDisabled" class="view.displayedServiceVersion.isCurrent:hidden"}}>{{view.displayedServiceVersion.makeCurrentButtonText}}</button>
               </div>
+            {{/if}}
           </div>
       </div>
   </div>

@@ -897,9 +897,10 @@ public class RequestResourceProviderTest {
 
     expect(managementController.createAction(capture(actionRequest), capture(propertyMap)))
         .andReturn(response).anyTimes();
+    expect(response.getMessage()).andReturn("Message").anyTimes();
 
     // replay
-    replay(managementController);
+    replay(managementController, response);
 
     // add the property map to a set for the request.  add more maps for multiple creates
     Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
@@ -920,6 +921,8 @@ public class RequestResourceProviderTest {
     Map<String, String> requestInfoProperties = new HashMap<String, String>();
     requestInfoProperties.put(RequestResourceProvider.COMMAND_ID, "HDFS_SERVICE_CHECK");
 
+
+
     // create the request
     Request request = PropertyHelper.getCreateRequest(propertySet, requestInfoProperties);
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
@@ -927,6 +930,7 @@ public class RequestResourceProviderTest {
         PropertyHelper.getPropertyIds(type),
         PropertyHelper.getKeyPropertyIds(type),
         managementController);
+
     provider.createResources(request);
     ExecuteActionRequest capturedRequest = actionRequest.getValue();
 
@@ -956,9 +960,9 @@ public class RequestResourceProviderTest {
 
     expect(managementController.createAction(capture(actionRequest), capture(propertyMap)))
         .andReturn(response).anyTimes();
-
+    expect(response.getMessage()).andReturn("Message").anyTimes();
     // replay
-    replay(managementController);
+    replay(managementController, response);
 
     // add the property map to a set for the request.  add more maps for multiple creates
     Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
@@ -1043,9 +1047,10 @@ public class RequestResourceProviderTest {
 
     expect(managementController.createAction(capture(actionRequest), capture(propertyMap)))
             .andReturn(response).anyTimes();
+    expect(response.getMessage()).andReturn("Message").anyTimes();
 
     // replay
-    replay(managementController);
+    replay(managementController, response);
 
     // add the property map to a set for the request.  add more maps for multiple creates
     Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
@@ -1116,9 +1121,10 @@ public class RequestResourceProviderTest {
 
     expect(managementController.createAction(capture(actionRequest), capture(propertyMap)))
         .andReturn(response).anyTimes();
+    expect(response.getMessage()).andReturn("Message").anyTimes();
 
     // replay
-    replay(managementController);
+    replay(managementController, response);
 
     // add the property map to a set for the request.  add more maps for multiple creates
     Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();

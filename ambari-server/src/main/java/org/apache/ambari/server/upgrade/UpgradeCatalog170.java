@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.upgrade;
 
+import java.lang.reflect.Type;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -30,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.Date;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
@@ -39,6 +42,7 @@ import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
+import com.google.common.reflect.TypeToken;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -53,11 +57,14 @@ import org.apache.ambari.server.orm.dao.PrincipalTypeDAO;
 import org.apache.ambari.server.orm.dao.PrivilegeDAO;
 import org.apache.ambari.server.orm.dao.ResourceDAO;
 import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
+import org.apache.ambari.server.orm.dao.ConfigGroupConfigMappingDAO;
 import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.ambari.server.orm.dao.ViewDAO;
 import org.apache.ambari.server.orm.dao.ViewInstanceDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
+import org.apache.ambari.server.orm.entities.ConfigGroupConfigMappingEntity;
+import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity_;
 import org.apache.ambari.server.orm.entities.KeyValueEntity;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
@@ -74,6 +81,7 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.alert.Scope;
+import org.apache.ambari.server.utils.StageUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -232,6 +240,8 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
     // Add columns
     dbAccessor.addColumn("viewmain", new DBColumnInfo("mask",
       String.class, 255, null, true));
+    dbAccessor.addColumn("viewmain", new DBColumnInfo("system_view",
+        Character.class, 1, null, true));
     dbAccessor.addColumn("viewparameter", new DBColumnInfo("masked",
       Character.class, 1, null, true));
     dbAccessor.addColumn("users", new DBColumnInfo("active",
@@ -585,6 +595,81 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
     renamePigProperties();
     upgradePermissionModel();
     addJobsViewPermissions();
+    moveConfigGroupsGlobalToEnv();
+  }
+
+  private void moveConfigGroupsGlobalToEnv() throws AmbariException {
+    final ConfigGroupConfigMappingDAO confGroupConfMappingDAO = injector.getInstance(ConfigGroupConfigMappingDAO.class);
+    ConfigHelper configHelper = injector.getInstance(ConfigHelper.class);
+    final ClusterDAO clusterDAO = injector.getInstance(ClusterDAO.class);
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    List<ConfigGroupConfigMappingEntity> configGroupConfigMappingEntities = confGroupConfMappingDAO.findAll();
+    List<ConfigGroupConfigMappingEntity> configGroupsWithGlobalConfigs = new ArrayList<ConfigGroupConfigMappingEntity>();
+    Type type = new TypeToken<Map<String, String>>() {}.getType();
+
+    for (ConfigGroupConfigMappingEntity entity : configGroupConfigMappingEntities) {
+      if (entity.getConfigType().equals(Configuration.GLOBAL_CONFIG_TAG)) {
+        configGroupsWithGlobalConfigs.add(entity);
+      }
+    }
+
+    for (ConfigGroupConfigMappingEntity entity : configGroupsWithGlobalConfigs) {
+      String configData = entity.getClusterConfigEntity().getData();
+      Map<String, String> properties = StageUtils.getGson().fromJson(configData, type);
+      Cluster cluster = ambariManagementController.getClusters().getClusterById(entity.getClusterId());
+      HashMap<String, HashMap<String, String>> configs = new HashMap<String, HashMap<String, String>>();
+
+      for (Entry<String, String> property : properties.entrySet()) {
+        Set<String> configTypes = configHelper.findConfigTypesByPropertyName(cluster.getCurrentStackVersion(),
+                property.getKey(), cluster.getClusterName());
+        // i'm not sure, but i hope that every service property is unique
+        String configType = configTypes.iterator().next();
+
+        if (configs.containsKey(configType)) {
+          HashMap<String, String> config = configs.get(configType);
+          config.put(property.getKey(), property.getValue());
+        } else {
+          HashMap<String, String> config = new HashMap<String, String>();
+          config.put(property.getKey(), property.getValue());
+          configs.put(configType, config);
+        }
+      }
+
+      for (Entry<String, HashMap<String, String>> config : configs.entrySet()) {
+
+        String tag;
+        if(cluster.getConfigsByType(config.getKey()) == null) {
+          tag = "version1";
+        } else {
+          tag = "version" + System.currentTimeMillis();
+        }
+
+        ClusterConfigEntity clusterConfigEntity = new ClusterConfigEntity();
+        clusterConfigEntity.setClusterEntity(entity.getClusterConfigEntity().getClusterEntity());
+        clusterConfigEntity.setClusterId(cluster.getClusterId());
+        clusterConfigEntity.setType(config.getKey());
+        clusterConfigEntity.setVersion(cluster.getNextConfigVersion(config.getKey()));
+        clusterConfigEntity.setTag(tag);
+        clusterConfigEntity.setTimestamp(new Date().getTime());
+        clusterConfigEntity.setData(StageUtils.getGson().toJson(config.getValue()));
+        clusterDAO.createConfig(clusterConfigEntity);
+
+
+        ConfigGroupConfigMappingEntity configGroupConfigMappingEntity = new ConfigGroupConfigMappingEntity();
+        configGroupConfigMappingEntity.setTimestamp(System.currentTimeMillis());
+        configGroupConfigMappingEntity.setClusterId(entity.getClusterId());
+        configGroupConfigMappingEntity.setClusterConfigEntity(clusterConfigEntity);
+        configGroupConfigMappingEntity.setConfigGroupEntity(entity.getConfigGroupEntity());
+        configGroupConfigMappingEntity.setConfigGroupId(entity.getConfigGroupId());
+        configGroupConfigMappingEntity.setConfigType(config.getKey());
+        configGroupConfigMappingEntity.setVersionTag(clusterConfigEntity.getTag());
+        confGroupConfMappingDAO.create(configGroupConfigMappingEntity);
+      }
+    }
+
+    for (ConfigGroupConfigMappingEntity entity : configGroupsWithGlobalConfigs) {
+      confGroupConfMappingDAO.remove(entity);
+    }
   }
 
   /**
@@ -653,6 +738,7 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
     columns.add(new DBColumnInfo("original_timestamp", Long.class, 0, null,
         false));
     columns.add(new DBColumnInfo("latest_timestamp", Long.class, 0, null, false));
+    columns.add(new DBColumnInfo("latest_text", String.class, 4000, null, true));
     dbAccessor.createTable(ALERT_TABLE_CURRENT, columns, "alert_id");
 
     dbAccessor.addFKConstraint(ALERT_TABLE_CURRENT, "fk_alert_current_def_id",

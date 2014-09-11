@@ -109,8 +109,8 @@ class TestBootstrap(TestCase):
     utime = 1234
     bootstrap_obj.getUtime = MagicMock(return_value=utime)
     ret = bootstrap_obj.getRunSetupWithPasswordCommand("hostname")
-    expected = "sudo -S python /tmp/setupAgent{0}.py hostname TEST_PASSPHRASE " \
-               "ambariServer  8440 < /tmp/host_pass{0}".format(utime)
+    expected = "sudo -S python /var/lib/ambari-agent/data/tmp/setupAgent{0}.py hostname TEST_PASSPHRASE " \
+               "ambariServer  8440 < /var/lib/ambari-agent/data/tmp/host_pass{0}".format(utime)
     self.assertEquals(ret, expected)
 
 
@@ -343,6 +343,25 @@ class TestBootstrap(TestCase):
     self.assertEquals(rf, "/etc/yum.repos.d/ambari.repo")
 
 
+  @patch.object(SSH, "__init__")
+  @patch.object(SSH, "run")
+  @patch.object(HostLog, "write")
+  def test_createTargetDir(self, write_mock, run_mock,
+                            init_mock):
+    shared_state = SharedState("root", "sshkey_file", "scriptDir", "bootdir",
+                               "setupAgentFile", "ambariServer", "centos6",
+                               None, "8440")
+    bootstrap_obj = Bootstrap("hostname", shared_state)
+    expected = 42
+    init_mock.return_value = None
+    run_mock.return_value = expected
+    res = bootstrap_obj.createTargetDir()
+    self.assertEquals(res, expected)
+    command = str(init_mock.call_args[0][3])
+    self.assertEqual(command,
+                     "[ -d /var/lib/ambari-agent/data/tmp ] || sudo mkdir -p /var/lib/ambari-agent/data/tmp ; "
+                     "sudo chown root /var/lib/ambari-agent/data/tmp")
+
   @patch.object(Bootstrap, "getOsCheckScript")
   @patch.object(Bootstrap, "getOsCheckScriptRemoteLocation")
   @patch.object(SCP, "__init__")
@@ -460,7 +479,7 @@ class TestBootstrap(TestCase):
     command = str(init_mock.call_args[0][3])
     self.assertEqual(command,
                      "chmod a+x OsCheckScriptRemoteLocation && "
-                     "env PYTHONPATH=$PYTHONPATH:/tmp OsCheckScriptRemoteLocation centos6")
+                     "env PYTHONPATH=$PYTHONPATH:/var/lib/ambari-agent/data/tmp OsCheckScriptRemoteLocation centos6")
 
 
   @patch.object(SSH, "__init__")
@@ -678,7 +697,7 @@ class TestBootstrap(TestCase):
     hasPassword_mock.return_value = False
     try_to_execute_mock.return_value = {"exitstatus": 0, "log":"log0", "errormsg":"errormsg0"}
     bootstrap_obj.run()
-    self.assertEqual(try_to_execute_mock.call_count, 6) # <- Adjust if changed
+    self.assertEqual(try_to_execute_mock.call_count, 7) # <- Adjust if changed
     self.assertTrue(createDoneFile_mock.called)
     self.assertEqual(bootstrap_obj.getStatus()["return_code"], 0)
 
@@ -689,7 +708,7 @@ class TestBootstrap(TestCase):
     hasPassword_mock.return_value = True
     try_to_execute_mock.return_value = {"exitstatus": 0, "log":"log0", "errormsg":"errormsg0"}
     bootstrap_obj.run()
-    self.assertEqual(try_to_execute_mock.call_count, 9) # <- Adjust if changed
+    self.assertEqual(try_to_execute_mock.call_count, 10) # <- Adjust if changed
     self.assertTrue(createDoneFile_mock.called)
     self.assertEqual(bootstrap_obj.getStatus()["return_code"], 0)
 

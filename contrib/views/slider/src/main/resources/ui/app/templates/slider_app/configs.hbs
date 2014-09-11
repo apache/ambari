@@ -16,27 +16,25 @@
 * limitations under the License.
 }}
 
-{{#if model.configsByCategories.length}}
-  {{#each configCategory in configsByCategories}}
+<div class="app_configs">
+  {{#each configCategory in view.configsByCategories}}
     {{#if configCategory.isVisible}}
       {{#bs-panel heading=configCategory.name collapsible=true}}
-          <table class="table table-striped table-bordered table-condensed">
-              <thead>
-              <tr>
-                  <th class="col-sm-4">{{t common.name}}</th>
-                  <th>{{t common.value}}</th>
-              </tr>
-              </thead>
-              <tbody>
-              {{#each configCategory.configs}}
-                  <tr>
-                      <td>{{key}}</td>
-                      <td>{{formatWordBreak value}}</td>
-                  </tr>
-              {{/each}}
-              </tbody>
-          </table>
+        <div class="container-fluid">
+          {{#each configCategory.configs}}
+            <div class="row">
+              <div class="col-md-3">{{formatWordBreak key devider="."}}</div>
+              <div>
+                {{#if isMultiline}}
+                  {{textarea disabled=true value=value classNames="col-md-6"}}
+                {{else}}
+                  <input type="text" {{bind-attr value=value}} disabled="disabled" class="col-md-6" />
+                {{/if}}
+              </div>
+            </div>
+          {{/each}}
+        </div>
       {{/bs-panel}}
     {{/if}}
   {{/each}}
-{{/if}}
+</div>

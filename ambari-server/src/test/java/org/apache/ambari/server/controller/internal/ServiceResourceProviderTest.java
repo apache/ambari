@@ -28,6 +28,7 @@ import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.isNull;
 import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
 import static org.easymock.EasyMock.verify;
 
 import java.lang.reflect.Field;
@@ -1149,6 +1150,7 @@ public class ServiceResourceProviderTest {
     ComponentInfo componentInfo = createNiceMock(ComponentInfo.class);
 
     ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "PIG", "PIG", "Host100", "INSTALLED", "", null, null, null);
+    shr1.setMaintenanceState(MaintenanceState.OFF.toString());
 
     Set<ServiceComponentHostResponse> responses = new LinkedHashSet<ServiceComponentHostResponse>();
     responses.add(shr1);
@@ -1191,6 +1193,7 @@ public class ServiceResourceProviderTest {
     ComponentInfo componentInfo = createNiceMock(ComponentInfo.class);
 
     ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "PIG", "PIG", "Host100", "INSTALL_FAILED", "", null, null, null);
+    shr1.setMaintenanceState(MaintenanceState.OFF.toString());
 
     Set<ServiceComponentHostResponse> responses = new LinkedHashSet<ServiceComponentHostResponse>();
     responses.add(shr1);
@@ -1316,7 +1319,13 @@ public class ServiceResourceProviderTest {
     expect(ambariMetaInfo.getComponentCategory((String) anyObject(), (String) anyObject(),
             (String) anyObject(), (String) anyObject())).andReturn(componentInfo).anyTimes();
 
-    expect(componentInfo.isMaster()).andReturn(true).times(2);
+    expect(componentInfo.isClient()).andReturn(false).anyTimes();
+    expect(componentInfo.isMaster()).andReturn(true);
+
+    expect(componentInfo.isClient()).andReturn(false).anyTimes();
+    expect(componentInfo.isMaster()).andReturn(true);
+
+    expect(componentInfo.isClient()).andReturn(false).anyTimes();
     expect(componentInfo.isMaster()).andReturn(false);
 
     expect(componentInfo.isClient()).andReturn(false);
@@ -1380,6 +1389,117 @@ public class ServiceResourceProviderTest {
 
     // verify
     verify(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo);
+  }
+
+
+  @Test
+  @SuppressWarnings("unchecked")
+  /**
+   * Tests the case when all service components are in MM (so we base on MM
+   * components state when calculating entire service state)
+   */
+  public void testDefaultServiceState_All_Components_In_MM() throws Exception{
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    Clusters clusters = createNiceMock(Clusters.class);
+    Cluster cluster = createNiceMock(Cluster.class);
+    AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
+    StackId stackId = createNiceMock(StackId.class);
+    ComponentInfo componentInfo = createStrictMock(ComponentInfo.class);
+
+    /*
+     * Any component is started, all other are stopped - service is considered STARTED
+     */
+    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "YARN", "RESOURCEMANAGER", "Host100", "INSTALLED", "", null, null, null);
+    shr1.setMaintenanceState(MaintenanceState.ON.toString());
+    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "YARN", "RESOURCEMANAGER", "Host101", "INSTALLED", "", null, null, null);
+    shr2.setMaintenanceState(MaintenanceState.ON.toString());
+    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("C1", "YARN", "NODEMANAGER", "Host100", "STARTED", "", null, null, null);
+    shr3.setMaintenanceState(MaintenanceState.ON.toString());
+    ServiceComponentHostResponse shr4 = new ServiceComponentHostResponse("C1", "YARN", "YARN_CLIENT", "Host100", "INSTALLED", "", null, null, null);
+    shr4.setMaintenanceState(MaintenanceState.ON.toString());
+
+
+    Set<ServiceComponentHostResponse> responses = new LinkedHashSet<ServiceComponentHostResponse>();
+    responses.add(shr1);
+    responses.add(shr2);
+    responses.add(shr3);
+    responses.add(shr4);
+
+    // set expectations
+    expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
+    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
+    expect(clusters.getCluster("C1")).andReturn(cluster).anyTimes();
+    expect(managementController.getHostComponents((Set<ServiceComponentHostRequest>) anyObject())).andReturn(responses).anyTimes();
+    expect(cluster.getDesiredStackVersion()).andReturn(stackId).anyTimes();
+
+    expect(stackId.getStackName()).andReturn("S1").anyTimes();
+    expect(stackId.getStackVersion()).andReturn("V1").anyTimes();
+
+
+    expect(ambariMetaInfo.getComponentCategory((String) anyObject(), (String) anyObject(),
+            (String) anyObject(), (String) anyObject())).andReturn(componentInfo).anyTimes();
+
+    expect(componentInfo.isClient()).andReturn(false);
+    expect(componentInfo.isMaster()).andReturn(true);
+
+    expect(componentInfo.isClient()).andReturn(false);
+    expect(componentInfo.isMaster()).andReturn(true);
+
+    expect(componentInfo.isClient()).andReturn(false);
+    expect(componentInfo.isMaster()).andReturn(false);
+    expect(componentInfo.isClient()).andReturn(false);
+
+    expect(componentInfo.isClient()).andReturn(true);
+    expect(componentInfo.isMaster()).andReturn(false);
+
+    expect(componentInfo.isClient()).andReturn(true).times(2);
+
+    // replay
+    replay(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo);
+
+    ServiceResourceProvider.ServiceState serviceState = new ServiceResourceProvider.DefaultServiceState();
+
+    State state = serviceState.getState(managementController, "C1", "YARN");
+    Assert.assertEquals(State.STARTED, state);
+
+    /*
+     * All components are stopped, service is considered INSTALLED
+     */
+    reset(componentInfo);
+
+    responses.clear();
+    shr1 = new ServiceComponentHostResponse("C1", "YARN", "RESOURCEMANAGER", "Host100", "INSTALLED", "", null, null, null);
+    shr1.setMaintenanceState(MaintenanceState.ON.toString());
+    shr2 = new ServiceComponentHostResponse("C1", "YARN", "RESOURCEMANAGER", "Host101", "INSTALLED", "", null, null, null);
+    shr2.setMaintenanceState(MaintenanceState.ON.toString());
+    shr3 = new ServiceComponentHostResponse("C1", "YARN", "NODEMANAGER", "Host100", "INSTALLED", "", null, null, null);
+    shr3.setMaintenanceState(MaintenanceState.ON.toString());
+    shr4 = new ServiceComponentHostResponse("C1", "YARN", "YARN_CLIENT", "Host100", "INSTALLED", "", null, null, null);
+    shr4.setMaintenanceState(MaintenanceState.ON.toString());
+    responses.add(shr1);
+    responses.add(shr2);
+    responses.add(shr3);
+    responses.add(shr4);
+
+    expect(componentInfo.isClient()).andReturn(false);
+    expect(componentInfo.isMaster()).andReturn(true);
+
+    expect(componentInfo.isClient()).andReturn(false);
+    expect(componentInfo.isMaster()).andReturn(true);
+
+    expect(componentInfo.isClient()).andReturn(false);
+    expect(componentInfo.isMaster()).andReturn(false);
+    expect(componentInfo.isClient()).andReturn(false);
+
+    expect(componentInfo.isClient()).andReturn(true);
+    expect(componentInfo.isMaster()).andReturn(false);
+
+    expect(componentInfo.isClient()).andReturn(true).times(2);
+
+    replay(componentInfo);
+
+    state = serviceState.getState(managementController, "C1", "YARN");
+    Assert.assertEquals(State.INSTALLED, state);
   }
 
 
