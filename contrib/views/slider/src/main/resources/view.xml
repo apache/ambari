@@ -35,7 +35,7 @@ limitations under the License. Kerberos, LDAP, Custom. Binary/Htt
   </parameter>
   <parameter>
     <name>zookeeper.quorum</name>
-    <description>ZooKeeper quorum location. Typically this is a comma separated list of ZooKeeper hostnames and port numbers. The port number can be got from the clientPort property in the zookeeper-env configuration. For example: zookeeper.host1:2181,zookeeper.host2:2181.</description>
+    <description>ZooKeeper quorum location. Typically this is a comma separated list of ZooKeeper hostnames and port numbers (clientPort property in the zookeeper-env). For example: zookeeper.host1:2181,zookeeper.host2:2181.</description>
     <required>false</required>
   </parameter>
   <resource>
