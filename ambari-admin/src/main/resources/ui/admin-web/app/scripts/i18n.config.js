@@ -18,25 +18,12 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('MainCtrl',['$scope', 'Auth', 'uiAlert', '$modal', function($scope, Auth, uiAlert, $modal) {
-  $scope.signOut = function() {
-    Auth.signout().then(function() {
-     window.location.pathname = ''; // Change location hard, because Angular works only with relative urls
-    }).catch(function(data) {
-      uiAlert.danger(data.data.status, data.data.message);
-    });
-  };
+.config(['$translateProvider', function($translateProvider) {
+  $translateProvider.translations('en',{
+    'CLUSTER.OPERATE': 'Operator',
+    'CLUSTER.READ': 'Read-Only',
+    'VIEW.USE': 'Use'
+  });
 
-  $scope.about = function() {
-  	var modalInstance = $modal.open({
-  		templateUrl:'views/modals/AboutModal.html',
-  		controller: ['$scope', function($scope) {
-  			$scope.ok = function() {
-  				modalInstance.close();
-  			};
-  		}]
-  	});
-  };
-
-  $scope.currentUser = Auth.getCurrentUser();
+  $translateProvider.preferredLanguage('en');
 }]);

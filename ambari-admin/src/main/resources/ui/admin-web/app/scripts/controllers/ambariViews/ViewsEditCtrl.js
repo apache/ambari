@@ -49,11 +49,7 @@ angular.module('ambariAdminConsole')
 
   // Get META for properties
   View.getMeta($routeParams.viewId, $routeParams.version).then(function(data) {
-    var meta = {};
-    angular.forEach(data.data.ViewVersionInfo.parameters, function(parameter) {
-      meta[parameter.name] = parameter;
-    });
-    $scope.configurationMeta = meta;
+    $scope.configurationMeta = data.data.ViewVersionInfo.parameters;
     reloadViewInfo();
   });
 
@@ -76,7 +72,6 @@ angular.module('ambariAdminConsole')
 
   $scope.permissions = [];
   
-  // reloadViewInfo();
   reloadViewPrivilegies();
 
   $scope.editSettingsDisabled = true;

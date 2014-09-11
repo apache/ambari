@@ -8,7 +8,9 @@
     "angular-bootstrap": "~0.11.0",
     "restangular": "~1.4.0",
     "angular-bootstrap-toggle-switch": "~0.5.1",
-    "angular-animate": "~1.2.23"
+    "angular-animate": "~1.2.23",
+    "angular-translate": "~2.2.0",
+    "font-awesome": "~4.2.0"
   },
   "devDependencies": {}
 }

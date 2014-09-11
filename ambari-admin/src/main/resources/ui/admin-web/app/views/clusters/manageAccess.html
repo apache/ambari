@@ -33,7 +33,7 @@
     </thead>
     <tbody>
       <tr ng-repeat="permission in permissions">
-        <td><label class="">{{permission.PermissionInfo.permission_name}}</label></td>
+        <td><label class="" tooltip="{{permission.PermissionInfo.permission_name}}">{{permission.PermissionInfo.permission_name | translate}}</label></td>
         <td>
           <div class="" ng-switch="isEditMode">
             <editable-list items-source="permissionsEdit[permission.PermissionInfo.permission_name].USER" resource-type="User" editable="true"></editable-list>
