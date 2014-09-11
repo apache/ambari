@@ -92,6 +92,15 @@ App.ConfigSectionComponent = Em.Component.extend({
     });
   },
 
+  addPropertyModalButtons: [
+    Ember.Object.create({title: Em.I18n.t('common.cancel'), clicked:"discard", dismiss: 'modal'}),
+    Ember.Object.create({title: Em.I18n.t('common.add'), clicked:"submit", type:'success'})
+  ],
+
+  addPropertyModalTitle: Em.I18n.t('configs.add_property'),
+
+  tooltipRemove:  Em.I18n.t('common.remove'),
+
   actions: {
 
     /**
@@ -99,7 +108,7 @@ App.ConfigSectionComponent = Em.Component.extend({
      * @method addProperty
      */
     addProperty: function() {
-      this.toggleProperty('buttonVisible');
+      return Bootstrap.ModalManager.show('addPropertyModal');
     },
 
     /**
@@ -116,6 +125,7 @@ App.ConfigSectionComponent = Em.Component.extend({
      * @method submit
      */
     submit: function() {
+      Bootstrap.ModalManager.hide('addPropertyModal');
       var name = this.get('newConfig.name'),
         value = this.get('newConfig.value');
       if (this.get('config').mapBy('name').contains(name)) {
