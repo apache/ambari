@@ -98,7 +98,7 @@ public class AmbariPrivilegeResourceProviderTest {
   @Before
   public void resetGlobalMocks() {
     ViewRegistry.initInstance(ViewRegistryTest.getRegistry(viewDAO, viewInstanceDAO, userDAO,
-        memberDAO, privilegeDAO, resourceDAO, resourceTypeDAO, securityHelper, handlerList));
+        memberDAO, privilegeDAO, resourceDAO, resourceTypeDAO, securityHelper, handlerList, null, null));
     reset(privilegeDAO, userDAO, groupDAO, principalDAO, permissionDAO, resourceDAO, clusterDAO, handlerList);
   }
 

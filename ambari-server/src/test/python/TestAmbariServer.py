@@ -2369,7 +2369,8 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
   @patch.object(ambari_server, "is_root")
   @patch.object(ambari_server, 'is_server_runing')
   @patch.object(ambari_server, 'proceedJDBCProperties')
-  def test_setup(self, proceedJDBCProperties_mock, is_server_runing_mock, is_root_mock, store_local_properties_mock,
+  @patch.object(ambari_server, "extract_views")
+  def test_setup(self, extract_views_mock, proceedJDBCProperties_mock, is_server_runing_mock, is_root_mock, store_local_properties_mock,
                  is_local_database_mock, store_remote_properties_mock,
                  setup_remote_db_mock, check_selinux_mock, check_jdbc_drivers_mock, check_ambari_user_mock,
                  check_postgre_up_mock, setup_db_mock, configure_postgres_mock,
@@ -2387,6 +2388,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     get_os_type_mock.return_value = ""
     get_os_family_mock.return_value = OSConst.REDHAT_FAMILY
     run_os_command_mock.return_value = 3,"",""
+    extract_views_mock.return_value = 0
 
     def reset_mocks():
       is_jdbc_user_changed_mock.reset_mock()
@@ -4966,9 +4968,10 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
   @patch.object(ambari_server, "setup_db")
   @patch.object(ambari_server, "get_is_secure")
   @patch.object(ambari_server, "store_password_file")
+  @patch.object(ambari_server, "extract_views")
   @patch("sys.exit")
   @patch('__builtin__.raw_input')
-  def test_ambariServerSetupWithCustomDbName(self, raw_input, exit_mock, store_password_file_mock,
+  def test_ambariServerSetupWithCustomDbName(self, raw_input, exit_mock, extract_views_mock, store_password_file_mock,
                                              get_is_secure_mock, setup_db_mock, is_root_mock, is_local_database_mock,
                                              check_selinux_mock, check_jdbc_drivers_mock, check_ambari_user_mock,
                                              check_postgre_up_mock, configure_postgres_mock,
@@ -4995,6 +4998,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     setup_db_mock.return_value = (0, None, None)
     get_is_secure_mock.return_value = False
     store_password_file_mock.return_value = "password"
+    extract_views_mock.return_value = 0
     get_os_type_mock.return_value = ""
     get_os_family_mock.return_value = OSConst.REDHAT_FAMILY
     run_os_command_mock.return_value = 3,"",""

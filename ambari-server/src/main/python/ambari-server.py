@@ -185,6 +185,14 @@ STACK_UPGRADE_HELPER_CMD = "{0}" + os.sep + "bin" + os.sep + "java -cp {1}" +\
                           os.pathsep + "{2} " +\
                           "org.apache.ambari.server.upgrade.StackUpgradeHelper" +\
                           " {3} {4} > " + SERVER_OUT_FILE + " 2>&1"
+
+
+VIEW_EXTRACT_CMD = "{0}" + os.sep + "bin" + os.sep + "java -cp {1}" +\
+                          os.pathsep + "{2} " +\
+                          "org.apache.ambari.server.view.ViewRegistry " +\
+                          "> " + SERVER_OUT_FILE + " 2>&1"
+
+
 ULIMIT_CMD = "ulimit -n"
 SERVER_INIT_TIMEOUT = 5
 SERVER_START_TIMEOUT = 10
@@ -1215,6 +1223,21 @@ def prompt_db_properties(args):
     password=args.database_password
   ))
 
+# extract the system views
+def extract_views():
+  jdk_path = find_jdk()
+  if jdk_path is None:
+    print_error_msg("No JDK found, please run the \"setup\" "
+                    "command to install a JDK automatically or install any "
+                    "JDK manually to " + JDK_INSTALL_DIR)
+    return 1
+
+  command = VIEW_EXTRACT_CMD.format(jdk_path, get_conf_dir(),
+    get_ambari_classpath())
+  (retcode, stdout, stderr) = run_os_command(command)
+  print_info_msg("Return code from view extraction: " +
+                 str(retcode))
+  return retcode
 
 # Store set of properties for remote database connection
 def store_remote_properties(args):
@@ -2257,6 +2280,12 @@ def setup(args):
       err = 'Error while configuring connection properties. Exiting'
       raise FatalException(retcode, err)
     check_jdbc_drivers(args)
+
+  print 'Extracting system views...'
+  retcode = extract_views()
+  if not retcode == 0:
+    err = 'Error while extracting system views. Exiting'
+    raise FatalException(retcode, err)
 
 
 def proceedJDBCProperties(args):

@@ -18,46 +18,17 @@
 
 package org.apache.ambari.server.view;
 
-import java.beans.IntrospectionException;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
-
-import javax.inject.Inject;
-import javax.inject.Singleton;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
-
 import com.google.common.collect.Sets;
+import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 import org.apache.ambari.server.api.resources.ResourceInstanceFactoryImpl;
 import org.apache.ambari.server.api.resources.SubResourceDefinition;
 import org.apache.ambari.server.api.resources.ViewExternalSubResourceDefinition;
 import org.apache.ambari.server.api.services.ViewExternalSubResourceService;
 import org.apache.ambari.server.api.services.ViewSubResourceService;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.ControllerModule;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.orm.dao.MemberDAO;
 import org.apache.ambari.server.orm.dao.PrivilegeDAO;
@@ -103,9 +74,22 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.GrantedAuthority;
 
-import com.google.inject.AbstractModule;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
+import javax.inject.Inject;
+import javax.inject.Singleton;
+import java.beans.IntrospectionException;
+import java.io.File;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Registry for view and view instance definitions.
@@ -116,9 +100,6 @@ public class ViewRegistry {
   /**
    * Constants
    */
-  private static final String VIEW_XML = "view.xml";
-  private static final String ARCHIVE_CLASSES_DIR = "WEB-INF/classes";
-  private static final String ARCHIVE_LIB_DIR = "WEB-INF/lib";
   private static final String EXTRACTED_ARCHIVES_DIR = "work";
 
   /**
@@ -148,11 +129,6 @@ public class ViewRegistry {
    */
   private final Map<String, Set<Listener>> listeners =
       new ConcurrentHashMap<String, Set<Listener>>();
-
-  /**
-   * Helper class.
-   */
-  private ViewRegistryHelper helper = new ViewRegistryHelper();
 
   /**
    * The singleton view registry instance.
@@ -224,8 +200,35 @@ public class ViewRegistry {
   @Inject
   ViewInstanceHandlerList handlerList;
 
+  /**
+   * The view extractor;
+   */
+  @Inject
+  ViewExtractor extractor;
+
+  /**
+   * The view archive utility.
+   */
+  @Inject
+  ViewArchiveUtility archiveUtility;
+
 
   // ----- ViewRegistry ------------------------------------------------------
+
+  /**
+   * Registry main method.
+   *
+   * @param args  the command line arguments
+   *
+   * @throws Exception if the registry command can not be completed
+   */
+  public static void main(String[] args) throws Exception {
+
+    Injector injector = Guice.createInjector(new ControllerModule());
+    initInstance(injector.getInstance(ViewRegistry.class));
+
+    singleton.readViewArchives(true, false);
+  }
 
   /**
    * Get the collection of all the view definitions.
@@ -396,56 +399,10 @@ public class ViewRegistry {
   }
 
   /**
-   * Asynchronously read the view archives.
+   * Read the view archives.
    */
   public void readViewArchives() {
-
-    final ExecutorService executorService = getExecutorService(configuration);
-
-    // submit a task to manage the extraction tasks
-    executorService.submit(new Runnable() {
-      @Override
-      public void run() {
-
-        try {
-          File viewDir = configuration.getViewsDir();
-
-          String extractedArchivesPath = viewDir.getAbsolutePath() +
-              File.separator + EXTRACTED_ARCHIVES_DIR;
-
-          if (ensureExtractedArchiveDirectory(extractedArchivesPath)) {
-            File[] files = viewDir.listFiles();
-
-            if (files != null) {
-              for (final File archiveFile : files) {
-                if (!archiveFile.isDirectory()) {
-
-                  final ViewConfig viewConfig = helper.getViewConfigFromArchive(archiveFile);
-
-                  String commonName = viewConfig.getName();
-                  String version    = viewConfig.getVersion();
-                  String viewName   = ViewEntity.getViewName(commonName, version);
-
-                  final String     archivePath    = extractedArchivesPath + File.separator + viewName;
-                  final ViewEntity viewDefinition = new ViewEntity(viewConfig, configuration, archivePath);
-
-                  // submit a new task for each archive being read
-                  executorService.submit(new Runnable() {
-                    @Override
-                    public void run() {
-                      readViewArchive(viewDefinition, archiveFile, archivePath, viewConfig);
-                    }
-                  });
-                }
-              }
-              removeUndeployedViews();
-            }
-          }
-        } catch (Exception e) {
-          LOG.error("Caught exception reading view archives.", e);
-        }
-      }
-    });
+    readViewArchives(false, true);
   }
 
   /**
@@ -755,15 +712,6 @@ public class ViewRegistry {
     viewInstanceDefinitions.clear();
     subResourceDefinitionsMap.clear();
     listeners.clear();
-  }
-
-  /**
-   * Set the helper.
-   *
-   * @param helper  the helper
-   */
-  protected void setHelper(ViewRegistryHelper helper) {
-    this.helper = helper;
   }
 
   // get a view entity for the given internal view name
@@ -1115,110 +1063,6 @@ public class ViewRegistry {
     return resourceEntity;
   }
 
-  // ensure that the extracted view archive directory exists
-  private boolean ensureExtractedArchiveDirectory(String extractedArchivesPath) {
-    File extractedArchiveDir = helper.getFile(extractedArchivesPath);
-
-    if (!extractedArchiveDir.exists()) {
-      if (!extractedArchiveDir.mkdir()) {
-        LOG.error("Could not create extracted view archive directory " +
-            extractedArchivesPath + ".");
-        return false;
-      }
-    }
-    return true;
-  }
-
-  // extract the given view archive to the given archive directory
-  private ClassLoader extractViewArchive(ViewEntity viewDefinition, File viewArchive, File archiveDir)
-      throws IOException {
-
-    // Skip if the archive has already been extracted
-    if (!archiveDir.exists()) {
-
-      String archivePath = archiveDir.getAbsolutePath();
-
-      String msg = "Creating archive folder " + archivePath + ".";
-      LOG.info(msg);
-      setViewStatus(viewDefinition, ViewDefinition.ViewStatus.LOADING, msg);
-
-      if (archiveDir.mkdir()) {
-        JarFile     viewJarFile = helper.getJarFile(viewArchive);
-        Enumeration enumeration = viewJarFile.entries();
-
-        msg = "Extracting files from " + viewArchive.getName() + ":";
-        LOG.info(msg);
-        setViewStatus(viewDefinition, ViewDefinition.ViewStatus.LOADING, msg);
-
-        while (enumeration.hasMoreElements()) {
-          JarEntry jarEntry  = (JarEntry) enumeration.nextElement();
-          String   entryPath = archivePath + File.separator + jarEntry.getName();
-
-          LOG.info("    " + entryPath);
-
-          File entryFile = helper.getFile(entryPath);
-
-          if (jarEntry.isDirectory()) {
-            if (!entryFile.mkdir()) {
-              LOG.error("Could not create archive entry directory " + entryPath + ".");
-            }
-          } else {
-            InputStream is = viewJarFile.getInputStream(jarEntry);
-            try {
-              FileOutputStream fos = helper.getFileOutputStream(entryFile);
-              try {
-                while (is.available() > 0) {
-                  fos.write(is.read());
-                }
-              } finally {
-                fos.close();
-              }
-            } finally {
-              is.close();
-            }
-          }
-        }
-      } else {
-        LOG.error("Could not create archive directory " + archivePath + ".");
-      }
-    }
-    return getArchiveClassLoader(archiveDir);
-  }
-
-  // get a class loader for the given archive directory
-  private ClassLoader getArchiveClassLoader(File archiveDir)
-      throws MalformedURLException {
-
-    String    archivePath = archiveDir.getAbsolutePath();
-    List<URL> urlList     = new LinkedList<URL>();
-
-    // include the classes directory
-    String classesPath = archivePath + File.separator + ARCHIVE_CLASSES_DIR;
-    File   classesDir  = helper.getFile(classesPath);
-    if (classesDir.exists()) {
-      urlList.add(classesDir.toURI().toURL());
-    }
-
-    // include any libraries in the lib directory
-    String libPath = archivePath + File.separator + ARCHIVE_LIB_DIR;
-    File   libDir  = helper.getFile(libPath);
-    if (libDir.exists()) {
-      File[] files = libDir.listFiles();
-      if (files != null) {
-        for (final File fileEntry : files) {
-          if (!fileEntry.isDirectory()) {
-            urlList.add(fileEntry.toURI().toURL());
-          }
-        }
-      }
-    }
-
-    // include the archive directory
-    urlList.add(archiveDir.toURI().toURL());
-
-    return URLClassLoader.newInstance(urlList.toArray(new URL[urlList.size()]));
-  }
-
   // notify the view identified by the given view name of the given event
   private void fireEvent(Event event, String viewName) {
     Set<Listener> listeners = this.listeners.get(viewName);
@@ -1265,22 +1109,94 @@ public class ViewRegistry {
     }
   }
 
-  // read a view archive and return the set of new view instances
+
+  // read the view archives.
+  private void readViewArchives(boolean systemOnly, boolean useExecutor) {
+    try {
+      File viewDir = configuration.getViewsDir();
+
+      String extractedArchivesPath = viewDir.getAbsolutePath() +
+          File.separator + EXTRACTED_ARCHIVES_DIR;
+
+      if (extractor.ensureExtractedArchiveDirectory(extractedArchivesPath)) {
+
+        File[] files  = viewDir.listFiles();
+
+        if (files != null) {
+
+          Set<Runnable> extractionRunnables = new HashSet<Runnable>();
+
+          for (final File archiveFile : files) {
+            if (!archiveFile.isDirectory()) {
+
+              final ViewConfig viewConfig = archiveUtility.getViewConfigFromArchive(archiveFile);
+
+              String commonName = viewConfig.getName();
+              String version    = viewConfig.getVersion();
+              String viewName   = ViewEntity.getViewName(commonName, version);
+
+              final String extractedArchiveDirPath = extractedArchivesPath + File.separator + viewName;
+              final File extractedArchiveDirFile = archiveUtility.getFile(extractedArchiveDirPath);
+
+              final ViewEntity viewDefinition = new ViewEntity(viewConfig, configuration, extractedArchiveDirPath);
+
+              boolean systemView = viewDefinition.isSystem();
+
+              if (!systemOnly || systemView) {
+                // update the registry with the view
+                addDefinition(viewDefinition);
+
+                // always load system views up front
+                if (systemView || !useExecutor || extractedArchiveDirFile.exists()) {
+                  // if the archive is already extracted then load the view now
+                  readViewArchive(viewDefinition, archiveFile, extractedArchiveDirFile, viewConfig);
+                } else {
+                  // if the archive needs to be extracted then create a runnable to do it
+                  extractionRunnables.add(new Runnable() {
+                    @Override
+                    public void run() {
+                      readViewArchive(viewDefinition, archiveFile, extractedArchiveDirFile, viewConfig);
+                    }
+                  });
+                }
+              }
+            }
+          }
+
+          if (useExecutor && extractionRunnables.size() > 0) {
+            final ExecutorService executorService = getExecutorService(configuration);
+
+            for (Runnable runnable : extractionRunnables) {
+              // submit a new task for each archive that needs extraction
+              executorService.submit(runnable);
+            }
+          }
+
+          removeUndeployedViews();
+        }
+      } else {
+        LOG.error("Could not create extracted view archive directory " + extractedArchivesPath + ".");
+      }
+    } catch (Exception e) {
+      LOG.error("Caught exception reading view archives.", e);
+    }
+  }
+
+  // read a view archive
   private void readViewArchive(ViewEntity viewDefinition,
                                                   File archiveFile,
-                                                  String archivePath,
+                                                  File extractedArchiveDirFile,
                                                   ViewConfig viewConfig) {
 
-    setViewStatus(viewDefinition, ViewEntity.ViewStatus.LOADING, "Loading " + archivePath + ".");
+    setViewStatus(viewDefinition, ViewEntity.ViewStatus.LOADING, "Loading " + extractedArchiveDirFile + ".");
+
+    String extractedArchiveDirPath = extractedArchiveDirFile.getAbsolutePath();
 
     try {
-      // update the registry with the view
-      addDefinition(viewDefinition);
-
       // extract the archive and get the class loader
-      ClassLoader cl = extractViewArchive(viewDefinition, archiveFile, helper.getFile(archivePath));
+      ClassLoader cl = extractor.extractViewArchive(viewDefinition, archiveFile, extractedArchiveDirFile);
 
-      viewConfig = helper.getViewConfigFromExtractedArchive(archivePath);
+      viewConfig = archiveUtility.getViewConfigFromExtractedArchive(extractedArchiveDirPath);
 
       setupViewDefinition(viewDefinition, viewConfig, cl);
 
@@ -1301,12 +1217,12 @@ public class ViewRegistry {
         addInstanceDefinition(viewDefinition, instanceEntity);
         handlerList.addViewInstance(instanceEntity);
       }
-      setViewStatus(viewDefinition, ViewEntity.ViewStatus.LOADED, "Loaded " + archivePath + ".");
+      setViewStatus(viewDefinition, ViewEntity.ViewStatus.LOADED, "Loaded " + extractedArchiveDirPath + ".");
 
     } catch (Exception e) {
-      String msg = "Caught exception loading view " + viewDefinition.getViewName() + " : " + e.getMessage();
+      String msg = "Caught exception loading view " + viewDefinition.getViewName();
 
-      setViewStatus(viewDefinition, ViewEntity.ViewStatus.ERROR, msg);
+      setViewStatus(viewDefinition, ViewEntity.ViewStatus.ERROR, msg + " : " + e.getMessage());
       LOG.error(msg, e);
     }
   }
@@ -1333,86 +1249,5 @@ public class ViewRegistry {
       executorService = threadPoolExecutor;
     }
     return executorService;
-  }
-
-
-
-  // ----- inner class : ViewRegistryHelper ----------------------------------
-
-  /**
-   * Registry helper class.
-   */
-  protected static class ViewRegistryHelper {
-
-    /**
-     * Get the view configuration from the given archive file.
-     *
-     * @param archiveFile  the archive file
-     *
-     * @return the associated view configuration
-     */
-    public ViewConfig getViewConfigFromArchive(File archiveFile)
-        throws MalformedURLException, JAXBException {
-      ClassLoader cl = URLClassLoader.newInstance(new URL[]{archiveFile.toURI().toURL()});
-
-      InputStream  configStream     = cl.getResourceAsStream(VIEW_XML);
-      JAXBContext  jaxbContext      = JAXBContext.newInstance(ViewConfig.class);
-      Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
-
-      return (ViewConfig) jaxbUnmarshaller.unmarshal(configStream);
-    }
-
-    /**
-     * Get the view configuration from the extracted archive file.
-     *
-     * @param archivePath path to extracted archive
-     *
-     * @return the associated view configuration
-     *
-     * @throws JAXBException if xml is malformed
-     * @throws FileNotFoundException if xml was not found
-     */
-    public ViewConfig getViewConfigFromExtractedArchive(String archivePath)
-        throws JAXBException, FileNotFoundException {
-
-      InputStream configStream      = new FileInputStream(new File(archivePath + File.separator + VIEW_XML));
-      JAXBContext  jaxbContext      = JAXBContext.newInstance(ViewConfig.class);
-      Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
-
-      return (ViewConfig) jaxbUnmarshaller.unmarshal(configStream);
-    }
-
-    /**
-     * Get a new file instance for the given path.
-     *
-     * @param path  the path
-     *
-     * @return a new file instance
-     */
-    public File getFile(String path) {
-      return new File(path);
-    }
-
-    /**
-     * Get a new file output stream for the given file.
-     *
-     * @param file  the file
-     *
-     * @return a new file output stream
-     */
-    public FileOutputStream getFileOutputStream(File file) throws FileNotFoundException {
-      return new FileOutputStream(file);
-    }
-
-    /**
-     * Get a new jar file instance from the given file.
-     *
-     * @param file  the file
-     *
-     * @return a new jar file instance
-     */
-    public JarFile getJarFile(File file) throws IOException {
-      return new JarFile(file);
-    }
   }
 }
