@@ -516,10 +516,10 @@ module.exports =
     {
       "id": "puppet var",
       "name": "apptimelineserver_http_keytab",
-      "displayName": "Path to App Timeline Server HTTP keytab file",
+      "displayName": "Path to App Timeline Server SPNEGO HTTP keytab file",
       "value": "",
-      "defaultValue": "/etc/security/keytabs/yarn.service.keytab",
-      "description": "Path to App Timeline Server HTTP keytab file",
+      "defaultValue": "/etc/security/keytabs/spnego.service.keytab",
+      "description": "Path to App Timeline Server SPNEGO HTTP keytab file",
       "displayType": "directory",
       "isVisible": true,
       "isOverridable": true,
