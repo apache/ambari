@@ -737,6 +737,7 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
     columns.add(new DBColumnInfo("original_timestamp", Long.class, 0, null,
         false));
     columns.add(new DBColumnInfo("latest_timestamp", Long.class, 0, null, false));
+    columns.add(new DBColumnInfo("latest_text", String.class, 4000, null, true));
     dbAccessor.createTable(ALERT_TABLE_CURRENT, columns, "alert_id");
 
     dbAccessor.addFKConstraint(ALERT_TABLE_CURRENT, "fk_alert_current_def_id",

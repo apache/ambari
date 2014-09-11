@@ -190,6 +190,7 @@ CREATE TABLE alert_current (
   maintenance_state VARCHAR(255),
   original_timestamp BIGINT NOT NULL,
   latest_timestamp BIGINT NOT NULL,
+  latest_text TEXT,
   PRIMARY KEY (alert_id),
   FOREIGN KEY (definition_id) REFERENCES alert_definition(definition_id),
   FOREIGN KEY (history_id) REFERENCES alert_history(alert_id)
