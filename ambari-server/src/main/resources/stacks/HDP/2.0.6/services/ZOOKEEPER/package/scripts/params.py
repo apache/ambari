@@ -26,14 +26,23 @@ import status_params
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 
-config_dir = "/etc/zookeeper/conf"
+#RPM versioning support
+rpm_version = default("/configurations/hadoop-env/rpm_version", None)
+
+#hadoop params
+if rpm_version is not None:
+  config_dir = format('/usr/hdp/{rpm_version}/etc/zookeeper/conf')
+  zk_bin = format('/usr/hdp/{rpm_version}/zookeeper/bin')
+  smoke_script = format('/usr/hdp/{rpm_version}/zookeeper/bin/zkCli.sh')
+else:
+  config_dir = "/etc/zookeeper/conf"
+  zk_bin = '/usr/lib/zookeeper/bin'
+  smoke_script = "/usr/lib/zookeeper/bin/zkCli.sh"
+
 zk_user =  config['configurations']['zookeeper-env']['zk_user']
 hostname = config['hostname']
-zk_bin = '/usr/lib/zookeeper/bin'
 user_group = config['configurations']['cluster-env']['user_group']
 zk_env_sh_template = config['configurations']['zookeeper-env']['content']
-
-smoke_script = "/usr/lib/zookeeper/bin/zkCli.sh"
 
 zk_log_dir = config['configurations']['zookeeper-env']['zk_log_dir']
 zk_data_dir = config['configurations']['zookeeper-env']['zk_data_dir']

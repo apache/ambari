@@ -26,9 +26,19 @@ proxyuser_group =  config['configurations']['hadoop-env']['proxyuser_group']
 
 security_enabled = False
 
-java_home = config['hostLevelParams']['java_home']
+#RPM versioning support
+rpm_version = default("/configurations/hadoop-env/rpm_version", None)
 
-flume_conf_dir = '/etc/flume/conf'
+#hadoop params
+if rpm_version is not None:
+  flume_conf_dir = format('/usr/hdp/{rpm_version}/etc/flume/conf')
+  flume_bin = format('/usr/hdp/{rpm_version}/flume/bin/flume-ng')
+
+else:
+  flume_conf_dir = '/etc/flume/conf'
+  flume_bin = '/usr/bin/flume-ng'
+
+java_home = config['hostLevelParams']['java_home']
 flume_log_dir = '/var/log/flume'
 flume_run_dir = '/var/run/flume'
 flume_user = 'flume'

@@ -26,16 +26,36 @@ import status_params
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 
+#RPM versioning support
+rpm_version = default("/configurations/hadoop-env/rpm_version", None)
+
+#hadoop params
+hdp_stack_version = config['hostLevelParams']['stack_version']
+if rpm_version is not None:
+  hadoop_bin_dir = format("/usr/hdp/{rpm_version}/hadoop/bin")
+  hadoop_home = format('/usr/hdp/{rpm_version}/hadoop')
+  hadoop_streeming_jars = format("/usr/hdp/{rpm_version}/hadoop-mapreduce/hadoop-streaming-*.jar")
+  if str(hdp_stack_version).startswith('2.0'):
+    config_dir = format('/usr/hdp/{rpm_version}/etc/hcatalog/conf')
+    webhcat_bin_dir = format('/usr/hdp/{rpm_version}/hive/hcatalog/sbin')
+  # for newer versions
+  else:
+    config_dir = format('/usr/hdp/{rpm_version}/etc/hive-webhcat/conf')
+    webhcat_bin_dir = format('/usr/hdp/{rpm_version}/hive/hive-hcatalog/sbin')
+else:
+  hadoop_bin_dir = "/usr/bin"
+  hadoop_home = '/usr'
+  hadoop_streeming_jars = '/usr/lib/hadoop-mapreduce/hadoop-streaming-*.jar'
+  if str(hdp_stack_version).startswith('2.0'):
+    config_dir = '/etc/hcatalog/conf'
+    webhcat_bin_dir = '/usr/lib/hcatalog/sbin'
+  # for newer versions
+  else:
+    config_dir = '/etc/hive-webhcat/conf'
+    webhcat_bin_dir = '/usr/lib/hive-hcatalog/sbin'
+
 hcat_user = config['configurations']['hive-env']['hcat_user']
 webhcat_user = config['configurations']['hive-env']['webhcat_user']
-
-if str(config['hostLevelParams']['stack_version']).startswith('2.0'):
-  config_dir = '/etc/hcatalog/conf'
-  webhcat_bin_dir = '/usr/lib/hcatalog/sbin'
-# for newer versions
-else:
-  config_dir = '/etc/hive-webhcat/conf'
-  webhcat_bin_dir = '/usr/lib/hive-hcatalog/sbin'
 
 webhcat_env_sh_template = config['configurations']['webhcat-env']['content']
 templeton_log_dir = config['configurations']['hive-env']['hcat_log_dir']
@@ -46,7 +66,6 @@ pid_file = status_params.pid_file
 hadoop_conf_dir = config['configurations']['webhcat-site']['templeton.hadoop.conf.dir']
 templeton_jar = config['configurations']['webhcat-site']['templeton.jar']
 
-hadoop_home = '/usr'
 user_group = config['configurations']['cluster-env']['user_group']
 
 webhcat_server_host = config['clusterHostInfo']['webhcat_server_host']
@@ -64,7 +83,6 @@ webhcat_hdfs_user_mode = 0755
 webhcat_apps_dir = "/apps/webhcat"
 #for create_hdfs_directory
 hostname = config["hostname"]
-hadoop_conf_dir = "/etc/hadoop/conf"
 security_param = "true" if security_enabled else "false"
 hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
@@ -79,5 +97,6 @@ HdfsDirectory = functools.partial(
   hdfs_user=hdfs_user,
   security_enabled = security_enabled,
   keytab = hdfs_user_keytab,
-  kinit_path_local = kinit_path_local
+  kinit_path_local = kinit_path_local,
+  bin_dir = hadoop_bin_dir
 )

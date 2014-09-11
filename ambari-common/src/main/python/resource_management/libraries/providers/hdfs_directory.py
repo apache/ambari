@@ -19,6 +19,7 @@ limitations under the License.
 Ambari Agent
 
 """
+import os
 
 from resource_management import *
 directories_list = [] #direcotries list for mkdir
@@ -68,6 +69,7 @@ class HdfsDirectoryProvider(Provider):
     secured = self.resource.security_enabled
     keytab_file = self.resource.keytab
     kinit_path = self.resource.kinit_path_local
+    bin_dir = self.resource.bin_dir
 
     chmod_commands = []
     chown_commands = []
@@ -76,7 +78,7 @@ class HdfsDirectoryProvider(Provider):
       mode = chmod_key[0]
       recursive = chmod_key[1]
       chmod_dirs_str = ' '.join(chmod_dirs)
-      chmod_commands.append(format("hadoop fs -chmod {recursive} {mode} {chmod_dirs_str}"))
+      chmod_commands.append(format("hadoop --config {hdp_conf_dir} fs -chmod {recursive} {mode} {chmod_dirs_str}"))
 
     for chown_key, chown_dirs in chown_map.items():
       owner = chown_key[0]
@@ -87,7 +89,7 @@ class HdfsDirectoryProvider(Provider):
         chown = owner
         if group:
           chown = format("{owner}:{group}")
-        chown_commands.append(format("hadoop fs -chown {recursive} {chown} {chown_dirs_str}"))
+        chown_commands.append(format("hadoop --config {hdp_conf_dir} fs -chown {recursive} {chown} {chown_dirs_str}"))
 
     if secured:
         Execute(format("{kinit_path} -kt {keytab_file} {hdfs_principal_name}"),
@@ -97,11 +99,17 @@ class HdfsDirectoryProvider(Provider):
     #for hadoop 2 we need to specify -p to create directories recursively
     parent_flag = '`rpm -q hadoop | grep -q "hadoop-1" || echo "-p"`'
 
-    Execute(format('hadoop fs -mkdir {parent_flag} {dir_list_str} && {chmod_cmd} && {chown_cmd}',
+    path = os.environ['PATH']
+    if bin_dir is not None:
+      path += os.pathsep + bin_dir
+
+    Execute(format('hadoop --config {hdp_conf_dir} fs -mkdir {parent_flag} {dir_list_str} && {chmod_cmd} && {chown_cmd}',
                    chmod_cmd=' && '.join(chmod_commands),
                    chown_cmd=' && '.join(chown_commands)),
             user=hdp_hdfs_user,
-            not_if=format("su - {hdp_hdfs_user} -c 'hadoop fs -ls {dir_list_str}'")
+            environment = {'PATH' : path},
+            not_if=format("su - {hdp_hdfs_user} -c 'export PATH=$PATH:{bin_dir} ; "
+                          "hadoop --config {hdp_conf_dir} fs -ls {dir_list_str}'")
     )
 
     directories_list[:] = []

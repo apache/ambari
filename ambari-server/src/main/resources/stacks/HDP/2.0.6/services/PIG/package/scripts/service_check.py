@@ -31,7 +31,7 @@ class PigServiceCheck(Script):
 
     cleanup_cmd = format("dfs -rmr {output_file} {input_file}")
     #cleanup put below to handle retries; if retrying there wil be a stale file that needs cleanup; exit code is fn of second command
-    create_file_cmd = format("{cleanup_cmd}; hadoop dfs -put /etc/passwd {input_file} ") #TODO: inconsistent that second command needs hadoop
+    create_file_cmd = format("{cleanup_cmd}; hadoop --config {hadoop_conf_dir} dfs -put /etc/passwd {input_file} ") #TODO: inconsistent that second command needs hadoop
     test_cmd = format("fs -test -e {output_file}")
 
     ExecuteHadoop( create_file_cmd,
@@ -42,7 +42,8 @@ class PigServiceCheck(Script):
       # for kinit run
       keytab = params.smoke_user_keytab,
       security_enabled = params.security_enabled,
-      kinit_path_local = params.kinit_path_local
+      kinit_path_local = params.kinit_path_local,
+      bin_dir = params.hadoop_bin_dir
     )
 
     File( format("{tmp_dir}/pigSmoke.sh"),
@@ -53,13 +54,14 @@ class PigServiceCheck(Script):
     Execute( format("pig {tmp_dir}/pigSmoke.sh"),
       tries     = 3,
       try_sleep = 5,
-      path      = '/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
+      path      = format('{pig_bin_dir}:/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'),
       user      = params.smokeuser
     )
 
     ExecuteHadoop( test_cmd,
       user      = params.smokeuser,
-      conf_dir = params.hadoop_conf_dir
+      conf_dir = params.hadoop_conf_dir,
+      bin_dir = params.hadoop_bin_dir
     )
 
 if __name__ == "__main__":

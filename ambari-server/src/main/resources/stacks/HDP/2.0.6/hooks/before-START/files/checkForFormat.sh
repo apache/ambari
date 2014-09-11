@@ -24,6 +24,8 @@ export hdfs_user=$1
 shift
 export conf_dir=$1
 shift
+export bin_dir=$1
+shift
 export mark_dir=$1
 shift
 export name_dirs=$*
@@ -50,6 +52,7 @@ if [[ ! -d $mark_dir ]] ; then
   done
 
   if [[ $EXIT_CODE == 0 ]] ; then
+    export PATH=$PATH:$bin_dir
     su - ${hdfs_user} -c "yes Y | hadoop --config ${conf_dir} ${command}"
   else
     echo "ERROR: Namenode directory(s) is non empty. Will not format the namenode. List of non-empty namenode dirs ${list_of_non_empty_dirs}"

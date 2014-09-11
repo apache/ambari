@@ -39,13 +39,13 @@ class TestServiceCheck(RMFTestCase):
       content = Template('hbase-smoke.sh.j2'),
       mode = 0755,
     )
-    self.assertResourceCalled('Execute', ' hbase --config /etc/hbase/conf shell /tmp/hbase-smoke.sh',
+    self.assertResourceCalled('Execute', ' /usr/lib/hbase/bin/hbase --config /etc/hbase/conf shell /tmp/hbase-smoke.sh',
       logoutput = True,
       tries = 3,
       user = 'ambari-qa',
       try_sleep = 5,
     )
-    self.assertResourceCalled('Execute', ' /tmp/hbaseSmokeVerify.sh /etc/hbase/conf ',
+    self.assertResourceCalled('Execute', ' /tmp/hbaseSmokeVerify.sh /etc/hbase/conf  /usr/lib/hbase/bin/hbase',
       logoutput = True,
       tries = 3,
       user = 'ambari-qa',
@@ -74,16 +74,16 @@ class TestServiceCheck(RMFTestCase):
       group = 'hadoop',
       mode = 0644,
     )
-    self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/hbase.headless.keytab hbase; hbase shell /tmp/hbase_grant_permissions.sh',
+    self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/hbase.headless.keytab hbase; /usr/lib/hbase/bin/hbase shell /tmp/hbase_grant_permissions.sh',
       user = 'hbase',
     )
-    self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa; hbase --config /etc/hbase/conf shell /tmp/hbase-smoke.sh',
+    self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa; /usr/lib/hbase/bin/hbase --config /etc/hbase/conf shell /tmp/hbase-smoke.sh',
       logoutput = True,
       tries = 3,
       user = 'ambari-qa',
       try_sleep = 5,
     )
-    self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa; /tmp/hbaseSmokeVerify.sh /etc/hbase/conf ',
+    self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa; /tmp/hbaseSmokeVerify.sh /etc/hbase/conf  /usr/lib/hbase/bin/hbase',
       logoutput = True,
       tries = 3,
       user = 'ambari-qa',

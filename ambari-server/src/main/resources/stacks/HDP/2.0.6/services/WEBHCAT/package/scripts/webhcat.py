@@ -84,12 +84,13 @@ def webhcat():
             path='/bin'
     )
 
-  CopyFromLocal('/usr/lib/hadoop-mapreduce/hadoop-streaming-*.jar',
+  CopyFromLocal(params.hadoop_streeming_jars,
                 owner=params.webhcat_user,
                 mode=0755,
                 dest_dir=params.webhcat_apps_dir,
                 kinnit_if_needed=kinit_if_needed,
-                hdfs_user=params.hdfs_user
+                hdfs_user=params.hdfs_user,
+                hadoop_conf_dir=params.hadoop_conf_dir
   )
 
   CopyFromLocal('/usr/share/HDP-webhcat/pig.tar.gz',
@@ -97,7 +98,8 @@ def webhcat():
                 mode=0755,
                 dest_dir=params.webhcat_apps_dir,
                 kinnit_if_needed=kinit_if_needed,
-                hdfs_user=params.hdfs_user
+                hdfs_user=params.hdfs_user,
+                hadoop_conf_dir=params.hadoop_conf_dir
   )
 
   CopyFromLocal('/usr/share/HDP-webhcat/hive.tar.gz',
@@ -105,5 +107,6 @@ def webhcat():
                 mode=0755,
                 dest_dir=params.webhcat_apps_dir,
                 kinnit_if_needed=kinit_if_needed,
-                hdfs_user=params.hdfs_user
+                hdfs_user=params.hdfs_user,
+                hadoop_conf_dir=params.hadoop_conf_dir
   )

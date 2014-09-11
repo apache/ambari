@@ -38,6 +38,7 @@ class HdfsDirectory(Resource):
   keytab = ResourceArgument()
   kinit_path_local = ResourceArgument()
   hdfs_user = ResourceArgument()
+  bin_dir = ResourceArgument(default="")
 
   #action 'create' immediately creates all pending directory in efficient manner
   #action 'create_delayed' add directory to list of pending directories

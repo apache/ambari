@@ -25,8 +25,23 @@ from resource_management import *
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 
-pig_conf_dir = "/etc/pig/conf"
-hadoop_conf_dir = "/etc/hadoop/conf"
+#RPM versioning support
+rpm_version = default("/configurations/hadoop-env/rpm_version", None)
+
+#hadoop params
+if rpm_version is not None:
+  hadoop_conf_dir = format("/usr/hdp/{rpm_version}/etc/hadoop/conf")
+  hadoop_bin_dir = format("/usr/hdp/{rpm_version}/hadoop/bin")
+  hadoop_home = format('/usr/hdp/{rpm_version}/hadoop')
+  pig_conf_dir = format('/usr/hdp/{rpm_version}/etc/pig/conf')
+  pig_bin_dir = format('/usr/hdp/{rpm_version}/pig/bin')
+else:
+  hadoop_conf_dir = "/etc/hadoop/conf"
+  hadoop_bin_dir = "/usr/bin"
+  hadoop_home = '/usr'
+  pig_conf_dir = "/etc/pig/conf"
+  pig_bin_dir = ""
+
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_name']
 smokeuser = config['configurations']['cluster-env']['smokeuser']
@@ -38,7 +53,6 @@ pig_env_sh_template = config['configurations']['pig-env']['content']
 
 # not supporting 32 bit jdk.
 java64_home = config['hostLevelParams']['java_home']
-hadoop_home = "/usr"
 
 pig_properties = config['configurations']['pig-properties']['content']
 
