@@ -304,7 +304,7 @@ DATABASE_INDEX = 0
 PROMPT_DATABASE_OPTIONS = False
 USERNAME_PATTERN = "^[a-zA-Z_][a-zA-Z0-9_\-]*$"
 PASSWORD_PATTERN = "^[a-zA-Z0-9_-]*$"
-DATABASE_NAMES = ["postgres", "oracle", "mysql"]
+DATABASE_TYPES = ["postgres", "oracle", "mysql"]
 DATABASE_STORAGE_NAMES = ["Database", "Service", "Database"]
 DATABASE_PORTS = ["5432", "1521", "3306"]
 DATABASE_DRIVER_NAMES = ["org.postgresql.Driver", "oracle.jdbc.driver.OracleDriver", "com.mysql.jdbc.Driver"]
@@ -838,8 +838,6 @@ def restart_postgres():
   return 0, "", ""
 
 
-# todo: check if the scheme is already exist
-
 def write_property(key, value):
   conf_file = find_properties_file()
   properties = Properties()
@@ -1087,7 +1085,7 @@ def get_pass_file_path(conf_file):
 # Set database properties to default values
 def load_default_db_properties(args):
   args.persistence_type = 'local'
-  args.dbms = DATABASE_NAMES[DATABASE_INDEX]
+  args.dbms = DATABASE_TYPES[DATABASE_INDEX]
   args.database_host = "localhost"
   args.database_port = DATABASE_PORTS[DATABASE_INDEX]
   args.database_name = DEFAULT_DB_NAME
@@ -1141,7 +1139,7 @@ def prompt_db_properties(args):
       pass
 
       DATABASE_INDEX = args.database_index
-      args.dbms = DATABASE_NAMES[args.database_index]
+      args.dbms = DATABASE_TYPES[args.database_index]
 
       if args.persistence_type != 'local':
         args.database_host = get_validated_string_input(
@@ -1386,11 +1384,47 @@ def configure_database_password(showDefault=True):
   return password
 
 
-def check_database_name_property():
+def get_ambari_version(properties):
+  """
+  :param properties: Ambari properties
+  :return: Return a string of the ambari version. When comparing versions, please use "compare_versions" function.
+  """
+  version = None
+  try:
+    server_version_file_path = properties[SERVER_VERSION_FILE_PATH]
+    if server_version_file_path and os.path.exists(server_version_file_path):
+      with open(server_version_file_path, 'r') as file:
+        version = file.read().strip()
+  except:
+    print_error_msg("Error getting ambari version")
+  return version
+
+
+def check_database_name_property(args, upgrade=False):
+  """
+  :param upgrade: If Ambari is being upgraded.
+  :return:
+  """
   properties = get_ambari_properties()
   if properties == -1:
     print_error_msg("Error getting ambari properties")
     return -1
+
+  version = get_ambari_version(properties)
+  if upgrade and compare_versions(version, "1.7.0") >= 0:
+
+    expected_db_name = properties[JDBC_DATABASE_NAME_PROPERTY]
+    # The existing ambari config file is probably from an earlier version of Ambari, and needs to be transformed.
+    if expected_db_name is None or expected_db_name == "":
+      db_name = properties[JDBC_DATABASE_PROPERTY]
+
+      if db_name:
+        write_property(JDBC_DATABASE_NAME_PROPERTY, db_name)
+        remove_property(JDBC_DATABASE_PROPERTY)
+        properties = get_ambari_properties()
+      else:
+        err = "DB Name property not set in config file.\n" + SETUP_OR_UPGRADE_MSG
+        raise FatalException(-1, "Upgrade to version %s cannot transform config file." % str(version))
 
   dbname = properties[JDBC_DATABASE_NAME_PROPERTY]
   if dbname is None or dbname == "":
@@ -1523,7 +1557,7 @@ def parse_properties_file(args):
     args.database_port = properties[JDBC_PORT_PROPERTY]
     global DATABASE_INDEX
     try:
-      DATABASE_INDEX = DATABASE_NAMES.index(args.dbms)
+      DATABASE_INDEX = DATABASE_TYPES.index(args.dbms)
     except ValueError:
       pass
 
@@ -2297,7 +2331,7 @@ def reset(args):
     err = "Ambari Server 'reset' cancelled"
     raise FatalException(1, err)
 
-  check_database_name_property()
+  check_database_name_property(args)
   parse_properties_file(args)
 
   if args.persistence_type == "remote":
@@ -2370,7 +2404,7 @@ def start(args):
           "command as root, as sudo or as user \"{1}\"".format(current_user, ambari_user)
     raise FatalException(1, err)
 
-  check_database_name_property()
+  check_database_name_property(args)
   parse_properties_file(args)
 
   status, pid = is_server_runing()
@@ -2540,7 +2574,7 @@ def upgrade_stack(args, stack_id, repo_url=None, repo_url_os=None):
     err = 'Ambari-server upgradestack should be run with ' \
           'root-level privileges'
     raise FatalException(4, err)
-  check_database_name_property()
+  check_database_name_property(args)
 
   stack_name, stack_version = stack_id.split(STACK_NAME_VER_SEP)
   retcode = run_stack_upgrade(stack_name, stack_version, repo_url, repo_url_os)
@@ -2726,7 +2760,7 @@ def upgrade(args):
     raise FatalException(retcode, err)
 
   try:
-    check_database_name_property()
+    check_database_name_property(args, upgrade=True)
   except FatalException:
     properties = get_ambari_properties()
     if properties == -1:
@@ -4170,12 +4204,12 @@ def main():
     options.database_index = 0
     DATABASE_INDEX = 0
     pass
-  elif options.dbms is not None and options.dbms not in DATABASE_NAMES:
+  elif options.dbms is not None and options.dbms not in DATABASE_TYPES:
     parser.print_help()
     parser.error("Unsupported Database " + options.dbms)
   elif options.dbms is not None:
     options.dbms = options.dbms.lower()
-    DATABASE_INDEX = DATABASE_NAMES.index(options.dbms)
+    DATABASE_INDEX = DATABASE_TYPES.index(options.dbms)
 
   #correct port
   if options.database_port is not None:
@@ -4339,6 +4373,9 @@ class Properties(object):
       self.process_pair(key, value)
 
   def process_pair(self, key, value):
+    """
+    Adds or overrides the property with the given key.
+    """
     oldkey = key
     oldvalue = value
     keyparts = self.bspacere.split(key)
@@ -4407,7 +4444,9 @@ class Properties(object):
 
   def store(self, out, header=""):
     """ Write the properties list to the stream 'out' along
-    with the optional 'header' """
+    with the optional 'header'
+    This function will attempt to close the file handler once it's done.
+    """
     if out.mode[0] != 'w':
       raise ValueError, 'Steam should be opened in write mode!'
     try:
@@ -4420,9 +4459,11 @@ class Properties(object):
       for prop, val in self._origprops.items():
         if val is not None:
           out.write(''.join((prop, '=', val, '\n')))
-      out.close()
     except IOError:
       raise
+    finally:
+      if out:
+        out.close()
 
 if __name__ == "__main__":
   try:
