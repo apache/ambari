@@ -135,6 +135,15 @@ var urls = {
     }
   },
 
+  'service_current_configs': {
+    real: 'clusters/{clusterName}/configurations/service_config_versions?service_name={serviceName}&is_current=true',
+    mock: '/data/resource/service_configs.json',
+    headers: {
+      Accept : "text/plain; charset=utf-8",
+      "Content-Type": "text/plain; charset=utf-8"
+    }
+  },
+
   'config.tags': {
     'real': 'clusters/{clusterName}?fields=Clusters/desired_configs',
     headers: {

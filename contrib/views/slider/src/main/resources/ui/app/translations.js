@@ -74,6 +74,7 @@ Em.I18n.translations = {
   'configs.add_property': 'Add Property',
   'configs.add_property.invalid_name': 'Config name should consists only of letters, numbers, \'-\', \'_\', \'.\' and first character should be a letter.',
   'configs.add_property.name_exists': 'Config name already exists',
+  'configs.enable.metrics': 'Enable Metrics',
 
   'slider.apps.title': 'Slider Apps',
   'slider.apps.create': 'Create App',

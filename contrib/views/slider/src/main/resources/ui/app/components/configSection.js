@@ -46,8 +46,12 @@ App.ConfigSectionComponent = Em.Component.extend({
 
   /**
    * Filtered configs for current section
+   * @type {Array}
    */
   sectionConfigs: Ember.computed.filter('config', function (item) {
+    if (item.isSet) {
+      return item.section === this.get('section');
+    }
     if (this.get('isGeneral')) {
       return !item.name.match('^site.') && this.get('predefinedConfigNames').contains(item.name);
     }

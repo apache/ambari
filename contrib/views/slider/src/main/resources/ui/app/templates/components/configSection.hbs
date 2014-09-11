@@ -19,19 +19,24 @@
 {{#bs-panel heading=sectionLabel collapsible=true dismiss=false open=isGeneral }}
     <form class="form-horizontal" role="form">
       {{#each config in sectionConfigs}}
-          <div class="form-group">
-              <label class="col-sm-4 control-label">{{formatWordBreak config.label devider='.'}}</label>
-              <div class="col-sm-6">
-                {{input value=config.value class="form-control"}}
-              </div>
-            {{#if isCustom}}
-                <div class="col-sm-2">
-                  {{#bs-button clicked="deleteConfig" clickedParamBinding="config"}}
-                      <i {{bs-bind-tooltip content=tooltipRemove}} class="icon-minus-sign"></i>{{/bs-button}}
-                </div>
-            {{/if}}
+        {{#if config.isSet}}
+          {{#view "configSet" configSet=config}}
+              <div class="form-group">
+                  <label class="col-sm-4 control-label">{{formatWordBreak view.configSet.trigger.label devider='.'}}</label>
 
-          </div>
+                  <div class="col-sm-6">
+                    {{view view.configSet.trigger.view
+                    checked=view.configSet.trigger.value
+                    }}
+                  </div>
+              </div>
+            {{#each config in view.configs}}
+              {{partial "common/config"}}
+            {{/each}}
+          {{/view}}
+        {{else}}
+          {{partial "common/config"}}
+        {{/if}}
       {{/each}}
     </form>
     {{#if isCustom}}
