@@ -115,7 +115,7 @@ public class AmbariCustomCommandExecutionHelperTest {
             {
               put("forceRefreshConfigTags" , "capacity-scheduler");
             }
-          });
+          }, false);
       actionRequest.getResourceFilters().add(new RequestResourceFilter("YARN", "RESOURCEMANAGER",Collections.singletonList("c6401")));
       
       controller.createAction(actionRequest, requestProperties);

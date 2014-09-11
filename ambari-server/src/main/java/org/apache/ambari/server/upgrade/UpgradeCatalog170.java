@@ -228,6 +228,10 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
 
     addAlertingFrameworkDDL();
 
+    // Exclusive requests changes
+    dbAccessor.addColumn("request", new DBColumnInfo(
+            "exclusive_execution", Integer.class, 1, 0, false));
+
     //service config versions changes
 
     //remove old artifacts (for versions <=1.4.1) which depend on tables changed

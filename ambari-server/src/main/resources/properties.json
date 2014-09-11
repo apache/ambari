@@ -130,6 +130,7 @@
         "Requests/create_time",
         "Requests/start_time",
         "Requests/end_time",
+        "Requests/exclusive",
         "Requests/task_count",
         "Requests/failed_task_count",
         "Requests/aborted_task_count",

@@ -279,7 +279,7 @@ public class MaintenanceStateHelper {
     ExecuteActionRequest actionRequest = new ExecuteActionRequest(
       clusterName, null, NAGIOS_ACTION_NAME,
       Collections.singletonList(resourceFilter),
-      level, params);
+      level, params, true);
 
     // createAction() may throw an exception if Nagios is in MS or
     // if Nagios is absent in cluster. This exception is usually ignored at

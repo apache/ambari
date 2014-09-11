@@ -37,7 +37,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
-import com.google.inject.Injector;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 
@@ -53,6 +52,15 @@ public class Request {
   private long createTime;
   private long startTime;
   private long endTime;
+
+  /**
+   * If true, this request can not be executed in parallel with any another
+   * requests. That is useful when updating MM state, performing
+   * decommission etc.
+   * Defaults to false.
+   */
+   private boolean exclusive;
+
   /**
    * As of now, this field is not used. Request status is
    * calculated at RequestResourceProvider on the fly.
@@ -75,6 +83,7 @@ public class Request {
     this.createTime = System.currentTimeMillis();
     this.startTime = -1;
     this.endTime = -1;
+    this.exclusive = false;
 
     if (-1L != this.clusterId) {
       try {
@@ -111,6 +120,7 @@ public class Request {
       this.startTime = -1;
       this.endTime = -1;
       this.requestType = RequestType.INTERNAL_REQUEST;
+      this.exclusive = false;
     } else {
       String message = "Attempted to construct request from empty stage collection";
       LOG.error(message);
@@ -132,6 +142,7 @@ public class Request {
       this.inputs = gson.toJson(actionRequest.getParameters());
       this.requestType = actionRequest.isCommand() ? RequestType.COMMAND : RequestType.ACTION;
       this.commandName = actionRequest.isCommand() ? actionRequest.getCommandName() : actionRequest.getActionName();
+      this.exclusive = actionRequest.isExclusive();
     }
   }
 
@@ -159,6 +170,7 @@ public class Request {
     this.createTime = entity.getCreateTime();
     this.startTime = entity.getStartTime();
     this.endTime = entity.getEndTime();
+    this.exclusive = entity.isExclusive();
     this.requestContext = entity.getRequestContext();
     this.inputs = entity.getInputs();
 
@@ -229,6 +241,7 @@ public class Request {
     requestEntity.setCreateTime(createTime);
     requestEntity.setStartTime(startTime);
     requestEntity.setEndTime(endTime);
+    requestEntity.setExclusive(exclusive);
     requestEntity.setRequestContext(requestContext);
     requestEntity.setInputs(inputs);
     requestEntity.setRequestType(requestType);
@@ -383,5 +396,13 @@ public class Request {
 
   public void setStatus(HostRoleStatus status) {
     this.status = status;
+  }
+
+  public boolean isExclusive() {
+    return exclusive;
+  }
+
+  public void setExclusive(boolean isExclusive) {
+    this.exclusive = isExclusive;
   }
 }
