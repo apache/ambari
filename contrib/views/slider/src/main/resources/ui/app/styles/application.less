@@ -529,18 +529,26 @@ a {
  * App Summary Page
  */
 .app_summary {
-  .container {
-    padding-left: 0;
-    .panel-summury {
-      min-height: 400px;
-      table  tr td:last-child {
-        word-break: break-word;
+  padding-left: 0;
+  table {
+    &.no-borders {
+      td {
+        border-width: 0;
       }
     }
-    .panel-link {
-      margin-top: -5px;
-      margin-right: -7px;
+  }
+  .panel-heading {
+    font-weight: 700;
+  }
+  .panel-summary {
+    min-height: 400px;
+    td:first-child {
+      text-align: right;
     }
+  }
+  .panel-link {
+    margin-top: -5px;
+    margin-right: -7px;
   }
 }
 
