@@ -19,7 +19,7 @@
 <p>
   {{t wizard.step3.header}}
 </p>
-<div {{bind-attr class="controller.isError:has-error :form-group"}}>
+<div {{bind-attr class="controller.isError:has-error :form-group :app-wiz-configs"}}>
   {{#each controller.sectionKeys}}
     {{config-section
       section=this

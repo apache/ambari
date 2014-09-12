@@ -412,8 +412,8 @@ App.HighAvailabilityProgressPageController = App.HighAvailabilityWizardControlle
    *
    * @param siteNames Array
    */
-  reconfigureSites: function(siteNames,data) {
-    var tagName =  'version' + (new Date).getTime();
+  reconfigureSites: function(siteNames, data) {
+    var tagName = App.get('testMode') ? 'version1' : 'version' + (new Date).getTime();
     var componentName;
     switch (this.get('content.controllerName')) {
       case 'rMHighAvailabilityWizardController':
@@ -422,13 +422,18 @@ App.HighAvailabilityProgressPageController = App.HighAvailabilityWizardControlle
       default:
         componentName =  'NAMENODE';
     }
-    return siteNames.map(function(_siteName){
-      return {
+    return siteNames.map(function(_siteName) {
+      var config = data.items.findProperty('type', _siteName);
+      var configToSave = {
         type: _siteName,
         tag: tagName,
-        properties: data.items.findProperty('type', _siteName).properties,
+        properties: config && config.properties,
         service_config_version_note: Em.I18n.t('admin.highAvailability.step4.save.configuration.note').format(App.format.role(componentName))
       }
+      if (config && config.properties_attributes) {
+        configToSave.properties_attributes = config.properties_attributes;
+      }
+      return configToSave;
     });
   }
 });

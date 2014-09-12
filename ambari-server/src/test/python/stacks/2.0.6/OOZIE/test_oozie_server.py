@@ -45,8 +45,8 @@ class TestOozieServer(RMFTestCase):
         ignore_failures = True,
         user = 'oozie',
         )
-    self.assertResourceCalled('Execute', ' hadoop dfs -put /usr/lib/oozie/share /user/oozie ; hadoop dfs -chmod -R 755 /user/oozie/share',
-        not_if = " hadoop dfs -ls /user/oozie/share | awk 'BEGIN {count=0;} /share/ {count++} END {if (count > 0) {exit 0} else {exit 1}}'",
+    self.assertResourceCalled('Execute', ' hadoop --config /etc/hadoop/conf dfs -put /usr/lib/oozie/share /user/oozie ; hadoop --config /etc/hadoop/conf dfs -chmod -R 755 /user/oozie/share',
+        not_if = " hadoop --config /etc/hadoop/conf dfs -ls /user/oozie/share | awk 'BEGIN {count=0;} /share/ {count++} END {if (count > 0) {exit 0} else {exit 1}}'",
         user = 'oozie',
         )
     self.assertResourceCalled('Execute', 'cd /var/tmp/oozie && /usr/lib/oozie/bin/oozie-start.sh',
@@ -91,8 +91,8 @@ class TestOozieServer(RMFTestCase):
                               ignore_failures = True,
                               user = 'oozie',
                               )
-    self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/oozie.service.keytab oozie/c6402.ambari.apache.org@EXAMPLE.COM; hadoop dfs -put /usr/lib/oozie/share /user/oozie ; hadoop dfs -chmod -R 755 /user/oozie/share',
-                              not_if = "/usr/bin/kinit -kt /etc/security/keytabs/oozie.service.keytab oozie/c6402.ambari.apache.org@EXAMPLE.COM; hadoop dfs -ls /user/oozie/share | awk 'BEGIN {count=0;} /share/ {count++} END {if (count > 0) {exit 0} else {exit 1}}'",
+    self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/oozie.service.keytab oozie/c6402.ambari.apache.org@EXAMPLE.COM; hadoop --config /etc/hadoop/conf dfs -put /usr/lib/oozie/share /user/oozie ; hadoop --config /etc/hadoop/conf dfs -chmod -R 755 /user/oozie/share',
+                              not_if = "/usr/bin/kinit -kt /etc/security/keytabs/oozie.service.keytab oozie/c6402.ambari.apache.org@EXAMPLE.COM; hadoop --config /etc/hadoop/conf dfs -ls /user/oozie/share | awk 'BEGIN {count=0;} /share/ {count++} END {if (count > 0) {exit 0} else {exit 1}}'",
                               user = 'oozie',
                               )
     self.assertResourceCalled('Execute', 'cd /var/tmp/oozie && /usr/lib/oozie/bin/oozie-start.sh',
@@ -122,6 +122,7 @@ class TestOozieServer(RMFTestCase):
                               kinit_path_local = '/usr/bin/kinit',
                               mode = 0775,
                               owner = 'oozie',
+                              bin_dir = '/usr/bin',
                               action = ['create'],
     )
     self.assertResourceCalled('XmlConfig', 'oozie-site.xml',
@@ -224,6 +225,7 @@ class TestOozieServer(RMFTestCase):
                               kinit_path_local = '/usr/bin/kinit',
                               mode = 0775,
                               owner = 'oozie',
+                              bin_dir = '/usr/bin',
                               action = ['create'],
                               )
     self.assertResourceCalled('XmlConfig', 'oozie-site.xml',

@@ -26,11 +26,32 @@ import status_params
 config = Script.get_config()
 exec_tmp_dir = Script.get_tmp_dir()
 
-hbase_conf_dir = "/etc/hbase/conf"
-daemon_script = "/usr/lib/hbase/bin/hbase-daemon.sh"
-region_mover = "/usr/lib/hbase/bin/region_mover.rb"
-region_drainer = "/usr/lib/hbase/bin/draining_servers.rb"
-hbase_cmd = "/usr/lib/hbase/bin/hbase"
+#RPM versioning support
+rpm_version = default("/configurations/hadoop-env/rpm_version", None)
+
+#hadoop params
+if rpm_version is not None:
+#RPM versioning support
+  rpm_version = default("/configurations/hadoop-env/rpm_version", None)
+
+#hadoop params
+if rpm_version is not None:
+  hadoop_conf_dir = format("/usr/hdp/{rpm_version}/etc/hadoop/conf")
+  hadoop_bin_dir = format("/usr/hdp/{rpm_version}/hadoop/bin")
+  hbase_conf_dir = format('/usr/hdp/{rpm_version}/etc/hbase/conf')
+  daemon_script = format('/usr/hdp/{rpm_version}/hbase/bin/hbase-daemon.sh')
+  region_mover = format('/usr/hdp/{rpm_version}/hbase/bin/region_mover.rb')
+  region_drainer = format('/usr/hdp/{rpm_version}hbase/bin/draining_servers.rb')
+  hbase_cmd = format('/usr/hdp/{rpm_version}/hbase/bin/hbase')
+else:
+  hadoop_conf_dir = "/etc/hadoop/conf"
+  hadoop_bin_dir = "/usr/bin"
+  hbase_conf_dir = "/etc/hbase/conf"
+  daemon_script = "/usr/lib/hbase/bin/hbase-daemon.sh"
+  region_mover = "/usr/lib/hbase/bin/region_mover.rb"
+  region_drainer = "/usr/lib/hbase/bin/draining_servers.rb"
+  hbase_cmd = "/usr/lib/hbase/bin/hbase"
+
 hbase_excluded_hosts = config['commandParams']['excluded_hosts']
 hbase_drain_only = config['commandParams']['mark_draining_only']
 hbase_included_hosts = config['commandParams']['included_hosts']
@@ -72,7 +93,7 @@ if 'slave_hosts' in config['clusterHostInfo']:
   rs_hosts = default('/clusterHostInfo/hbase_rs_hosts', '/clusterHostInfo/slave_hosts') #if hbase_rs_hosts not given it is assumed that region servers on same nodes as slaves
 else:
   rs_hosts = default('/clusterHostInfo/hbase_rs_hosts', '/clusterHostInfo/all_hosts') 
-  
+
 smoke_test_user = config['configurations']['cluster-env']['smokeuser']
 smokeuser_permissions = "RWXCA"
 service_check_data = functions.get_unique_id_and_date()
@@ -105,7 +126,6 @@ hbase_hdfs_root_dir = config['configurations']['hbase-site']['hbase.rootdir']
 hbase_staging_dir = "/apps/hbase/staging"
 #for create_hdfs_directory
 hostname = config["hostname"]
-hadoop_conf_dir = "/etc/hadoop/conf"
 hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_name']
@@ -119,5 +139,6 @@ HdfsDirectory = functools.partial(
   hdfs_user=hdfs_user,
   security_enabled = security_enabled,
   keytab = hdfs_user_keytab,
-  kinit_path_local = kinit_path_local
+  kinit_path_local = kinit_path_local,
+  bin_dir = hadoop_bin_dir
 )

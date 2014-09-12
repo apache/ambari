@@ -179,6 +179,7 @@ class TestHbaseRegionServer(RMFTestCase):
                               hdfs_user = 'hdfs',
                               kinit_path_local = '/usr/bin/kinit',
                               owner = 'hbase',
+                              bin_dir = '/usr/bin',
                               action = ['create_delayed'],
                               )
     self.assertResourceCalled('HdfsDirectory', '/apps/hbase/staging',
@@ -189,6 +190,7 @@ class TestHbaseRegionServer(RMFTestCase):
                               kinit_path_local = '/usr/bin/kinit',
                               mode = 0711,
                               owner = 'hbase',
+                              bin_dir = '/usr/bin',
                               action = ['create_delayed'],
                               )
     self.assertResourceCalled('HdfsDirectory', None,
@@ -197,6 +199,7 @@ class TestHbaseRegionServer(RMFTestCase):
                               conf_dir = '/etc/hadoop/conf',
                               hdfs_user = 'hdfs',
                               kinit_path_local = '/usr/bin/kinit',
+                              bin_dir = '/usr/bin',
                               action = ['create'],
                               )
 
@@ -279,6 +282,7 @@ class TestHbaseRegionServer(RMFTestCase):
                               hdfs_user = 'hdfs',
                               kinit_path_local = '/usr/bin/kinit',
                               owner = 'hbase',
+                              bin_dir = '/usr/bin',
                               action = ['create_delayed'],
                               )
     self.assertResourceCalled('HdfsDirectory', '/apps/hbase/staging',
@@ -289,6 +293,7 @@ class TestHbaseRegionServer(RMFTestCase):
                               kinit_path_local = '/usr/bin/kinit',
                               mode = 0711,
                               owner = 'hbase',
+                              bin_dir = '/usr/bin',
                               action = ['create_delayed'],
                               )
     self.assertResourceCalled('HdfsDirectory', None,
@@ -297,5 +302,6 @@ class TestHbaseRegionServer(RMFTestCase):
                               conf_dir = '/etc/hadoop/conf',
                               hdfs_user = 'hdfs',
                               kinit_path_local = '/usr/bin/kinit',
+                              bin_dir = '/usr/bin',
                               action = ['create'],
                               )

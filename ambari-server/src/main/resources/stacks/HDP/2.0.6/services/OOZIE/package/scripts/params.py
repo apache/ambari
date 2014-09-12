@@ -25,15 +25,28 @@ import status_params
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 
+#RPM versioning support
+rpm_version = default("/configurations/hadoop-env/rpm_version", None)
+
+#hadoop params
+if rpm_version is not None:
+  hadoop_conf_dir = format("/usr/hdp/{rpm_version}/etc/hadoop/conf")
+  hadoop_bin_dir = format("/usr/hdp/{rpm_version}/hadoop/bin")
+  hadoop_lib_home = format("/usr/hdp/{rpm_version}/hadoop/lib")
+  mapreduce_libs_path = format("/usr/hdp/{rpm_version}/hadoop-mapreduce/*")
+else:
+  hadoop_conf_dir = "/etc/hadoop/conf"
+  hadoop_bin_dir = "/usr/bin"
+  hadoop_lib_home = "/usr/lib/hadoop/lib"
+  mapreduce_libs_path = "/usr/lib/hadoop-mapreduce/*"
+
 oozie_user = config['configurations']['oozie-env']['oozie_user']
 smokeuser = config['configurations']['cluster-env']['smokeuser']
 conf_dir = "/etc/oozie/conf"
-hadoop_conf_dir = "/etc/hadoop/conf"
 user_group = config['configurations']['cluster-env']['user_group']
 jdk_location = config['hostLevelParams']['jdk_location']
 check_db_connection_jar_name = "DBConnectionVerification.jar"
 check_db_connection_jar = format("/usr/lib/ambari-agent/{check_db_connection_jar_name}")
-hadoop_prefix = "/usr"
 oozie_tmp_dir = "/var/tmp/oozie"
 oozie_hdfs_user_dir = format("/user/{oozie_user}")
 oozie_pid_dir = status_params.oozie_pid_dir
@@ -53,7 +66,6 @@ oozie_keytab = config['configurations']['oozie-env']['oozie_keytab']
 oozie_env_sh_template = config['configurations']['oozie-env']['content']
 
 oracle_driver_jar_name = "ojdbc6.jar"
-java_share_dir = "/usr/share/java"
 
 java_home = config['hostLevelParams']['java_home']
 oozie_metastore_user_name = config['configurations']['oozie-site']['oozie.service.JPAService.jdbc.username']
@@ -71,7 +83,7 @@ oozie_shared_lib = "/usr/lib/oozie/share"
 fs_root = config['configurations']['core-site']['fs.defaultFS']
 
 if str(hdp_stack_version).startswith('2.0') or str(hdp_stack_version).startswith('2.1'):
-  put_shared_lib_to_hdfs_cmd = format("hadoop dfs -put {oozie_shared_lib} {oozie_hdfs_user_dir}")
+  put_shared_lib_to_hdfs_cmd = format("hadoop --config {hadoop_conf_dir} dfs -put {oozie_shared_lib} {oozie_hdfs_user_dir}")
 # for newer
 else:
   put_shared_lib_to_hdfs_cmd = format("{oozie_setup_sh} sharelib create -fs {fs_root} -locallib {oozie_shared_lib}")
@@ -103,7 +115,6 @@ oozie_hdfs_user_dir = format("/user/{oozie_user}")
 oozie_hdfs_user_mode = 0775
 #for create_hdfs_directory
 hostname = config["hostname"]
-hadoop_conf_dir = "/etc/hadoop/conf"
 hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_name']
@@ -117,5 +128,6 @@ HdfsDirectory = functools.partial(
   hdfs_user=hdfs_user,
   security_enabled = security_enabled,
   keytab = hdfs_user_keytab,
-  kinit_path_local = kinit_path_local
+  kinit_path_local = kinit_path_local,
+  bin_dir = hadoop_bin_dir
 )

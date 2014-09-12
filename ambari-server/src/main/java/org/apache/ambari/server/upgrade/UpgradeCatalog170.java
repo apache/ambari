@@ -1005,6 +1005,8 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
     result.put("zookeeper_keytab_path","zookeeper-env");
     result.put("storm_principal_name","storm-env");
     result.put("storm_keytab","storm-env");
+    result.put("hive_hostname","hive-env");
+    result.put("oozie_hostname","oozie-env");
 
     return result;
   }

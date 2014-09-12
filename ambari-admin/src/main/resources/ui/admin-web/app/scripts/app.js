@@ -23,7 +23,8 @@ angular.module('ambariAdminConsole', [
   'ui.bootstrap',
   'restangular',
   'angularAlert',
-  'toggle-switch'
+  'toggle-switch',
+  'pascalprecht.translate'
 ])
 .constant('Settings',{
 	baseUrl: '/api/v1'

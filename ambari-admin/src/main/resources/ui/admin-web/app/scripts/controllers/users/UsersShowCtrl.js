@@ -122,7 +122,7 @@ angular.module('ambariAdminConsole')
 
   $scope.toggleUserActive = function() {
     if(!$scope.isCurrentUser){
-      ConfirmationModal.show('Change Status', 'Are you sure you want to change "'+ $scope.user.user_name +'" status?').then(function() {
+      ConfirmationModal.show('Change Status', 'Are you sure you want to change status for user "'+ $scope.user.user_name +'" to '+($scope.user.active ? 'inactive' : 'active')+'?').then(function() {
         User.setActive($scope.user.user_name, $scope.user.active);
       })
       .catch(function() {
@@ -132,7 +132,13 @@ angular.module('ambariAdminConsole')
   };    
   $scope.toggleUserAdmin = function() {
     if(!$scope.isCurrentUser){
-      ConfirmationModal.show('Change Admin Privilege', 'Are you sure you want to change "'+$scope.user.user_name+'" Admin privilege?').then(function() {
+      var message = '';
+      if( !$scope.user.admin ){
+        message = 'Are you sure you want to grant Admin privilege to user ';
+      } else {
+        message = 'Are you sure you want to revoke Admin privilege from user ';
+      }
+      ConfirmationModal.show('Change Admin Privilege', message + '"'+$scope.user.user_name+'"?').then(function() {
         User.setAdmin($scope.user.user_name, $scope.user.admin)
         .then(function() {
           loadPrivilegies();
@@ -164,13 +170,13 @@ angular.module('ambariAdminConsole')
         privilegie = privilegie.PrivilegeInfo;
         if(privilegie.type === 'CLUSTER'){
           // This is cluster
-          privilegies.clusters[privilegie.cluster_name] = privilegies.clusters[privilegie.cluster_name] || '';
-          privilegies.clusters[privilegie.cluster_name] += privilegies.clusters[privilegie.cluster_name] ? ', ' + privilegie.permission_name : privilegie.permission_name;
+          privilegies.clusters[privilegie.cluster_name] = privilegies.clusters[privilegie.cluster_name] || [];
+          privilegies.clusters[privilegie.cluster_name].push(privilegie.permission_name);
         } else if ( privilegie.type === 'VIEW'){
-          privilegies.views[privilegie.instance_name] = privilegies.views[privilegie.instance_name] || { privileges:''};
+          privilegies.views[privilegie.instance_name] = privilegies.views[privilegie.instance_name] || { privileges:[]};
           privilegies.views[privilegie.instance_name].version = privilegie.version;
           privilegies.views[privilegie.instance_name].view_name = privilegie.view_name;
-          privilegies.views[privilegie.instance_name].privileges += privilegies.views[privilegie.instance_name].privileges ? ', ' + privilegie.permission_name : privilegie.permission_name;
+          privilegies.views[privilegie.instance_name].privileges.push(privilegie.permission_name);
 
         }
       });

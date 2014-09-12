@@ -49,6 +49,7 @@ def hive_service(
     
     Execute(demon_cmd,
             user=params.hive_user,
+            environment= {'PATH' : params.execute_path, 'HADOOP_HOME' : params.hadoop_home },
             not_if=process_id_exists
     )
 
@@ -103,8 +104,10 @@ def hive_service(
 def check_fs_root():
   import params  
   fs_root_url = format("{fs_root}{hive_apps_whs_dir}")
-  cmd = "/usr/lib/hive/bin/metatool -listFSRoot 2>/dev/null | grep hdfs://"
+  cmd = format("metatool -listFSRoot 2>/dev/null | grep hdfs://")
   code, out = call(cmd, user=params.hive_user)
   if code == 0 and fs_root_url.strip() != out.strip():
-    cmd = format("/usr/lib/hive/bin/metatool -updateLocation {fs_root}{hive_apps_whs_dir} {out}")
-    Execute(cmd, user=params.hive_user)
+    cmd = format("metatool -updateLocation {fs_root}{hive_apps_whs_dir} {out}")
+    Execute(cmd,
+            environment= {'PATH' : params.execute_path },
+            user=params.hive_user)

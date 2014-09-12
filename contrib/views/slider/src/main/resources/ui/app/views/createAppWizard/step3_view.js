@@ -16,9 +16,10 @@
  * limitations under the License.
  */
 
-App.CreateAppWizardStep3View = Ember.View.extend({
+App.CreateAppWizardStep3View = Ember.View.extend(App.WithPanels, {
 
   didInsertElement: function () {
     this.get('controller').loadStep();
+    this.addCarets();
   }
 });

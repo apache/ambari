@@ -106,7 +106,6 @@ public class Configuration {
   public static final String CLIENT_API_SSL_CRT_PASS_FILE_NAME_KEY = "client.api.ssl.cert_pass_file";
   public static final String CLIENT_API_SSL_CRT_PASS_KEY = "client.api.ssl.crt_pass";
   public static final String CLIENT_API_SSL_KEY_NAME_KEY = "client.api.ssl.key_name";
-  public static final String SERVER_DB_TYPE_KEY = "server.jdbc.database";       // E.g., oracle|mysql|postgres
   public static final String SERVER_DB_NAME_KEY = "server.jdbc.database_name";
   public static final String SERVER_DB_NAME_DEFAULT = "ambari";
   public static final String SERVER_JDBC_POSTGRES_SCHEMA_NAME = "server.jdbc.postgres.schema";
@@ -1098,11 +1097,11 @@ public class Configuration {
    * REST APIs will create new sessions that are never reaped since their
    * default time is -1.
    *
-   * @return the time value or {@code 60} seconds for default.
+   * @return the time value or {@code 1800} seconds for default.
    */
   public int getHttpSessionInactiveTimeout() {
     return Integer.parseInt(properties.getProperty(
         SERVER_HTTP_SESSION_INACTIVE_TIMEOUT,
-        "60"));
+        "1800"));
   }
 }

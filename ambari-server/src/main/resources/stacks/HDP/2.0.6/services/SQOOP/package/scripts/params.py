@@ -21,6 +21,15 @@ from resource_management import *
 
 config = Script.get_config()
 
+#RPM versioning support
+rpm_version = default("/configurations/hadoop-env/rpm_version", None)
+
+#hadoop params
+if rpm_version is not None:
+  zoo_conf_dir = format('/usr/hdp/{rpm_version}/etc/zookeeper')
+else:
+  zoo_conf_dir = "/etc/zookeeper"
+
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 smokeuser = config['configurations']['cluster-env']['smokeuser']
 user_group = config['configurations']['cluster-env']['user_group']
@@ -29,7 +38,6 @@ sqoop_env_sh_template = config['configurations']['sqoop-env']['content']
 sqoop_conf_dir = "/usr/lib/sqoop/conf"
 hbase_home = "/usr"
 hive_home = "/usr"
-zoo_conf_dir = "/etc/zookeeper"
 sqoop_lib = "/usr/lib/sqoop/lib"
 sqoop_user = config['configurations']['sqoop-env']['sqoop_user']
 

@@ -27,6 +27,7 @@ import stat
 import datetime
 import operator
 import json
+from optparse import OptionParser
 import platform
 import shutil
 from pwd import getpwnam
@@ -43,7 +44,7 @@ with patch("platform.linux_distribution", return_value = ('Suse','11','Final')):
 
 FatalException = ambari_server.FatalException
 NonFatalException = ambari_server.NonFatalException
-
+CURR_AMBARI_VERSION = "1.7.0"
 
 class TestAmbariServer(TestCase):
   def setUp(self):
@@ -2368,7 +2369,8 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
   @patch.object(ambari_server, "is_root")
   @patch.object(ambari_server, 'is_server_runing')
   @patch.object(ambari_server, 'proceedJDBCProperties')
-  def test_setup(self, proceedJDBCProperties_mock, is_server_runing_mock, is_root_mock, store_local_properties_mock,
+  @patch.object(ambari_server, "extract_views")
+  def test_setup(self, extract_views_mock, proceedJDBCProperties_mock, is_server_runing_mock, is_root_mock, store_local_properties_mock,
                  is_local_database_mock, store_remote_properties_mock,
                  setup_remote_db_mock, check_selinux_mock, check_jdbc_drivers_mock, check_ambari_user_mock,
                  check_postgre_up_mock, setup_db_mock, configure_postgres_mock,
@@ -2386,6 +2388,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     get_os_type_mock.return_value = ""
     get_os_family_mock.return_value = OSConst.REDHAT_FAMILY
     run_os_command_mock.return_value = 3,"",""
+    extract_views_mock.return_value = 0
 
     def reset_mocks():
       is_jdbc_user_changed_mock.reset_mock()
@@ -3176,6 +3179,32 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     self.assertEquals(os_symlink_mock.call_args_list[0][0][1], os.path.join("somewhere","postgres-jdbc-driver.jar"))
 
 
+  @patch.object(ambari_server, "write_property")
+  @patch.object(ambari_server, "find_properties_file")
+  @patch.object(ambari_server, "is_root")
+  @patch.object(ambari_server, "get_ambari_version")
+  @patch.object(ambari_server, "get_ambari_properties")
+  def test_upgrade_from_161(self, get_ambari_properties_mock, get_ambari_version_mock, is_root_mock, find_properties_file_mock,
+                            write_property_mock):
+    args = MagicMock()
+    args.dbms = "postgres"
+    is_root_mock.return_value = True
+
+    # In Ambari 1.6.1, the DB name was actually stored in JDBC_DATABASE_PROPERTY, and the JDBC_DATABASE_NAME_PROPERTY
+    # property didn't exist. When upgrading to Ambari 1.7.0, the ambari.properties file should be transformed.
+    get_ambari_version_mock.return_value = "1.7.0"
+
+    properties = ambari_server.Properties()
+    properties.process_pair(ambari_server.JDBC_DATABASE_PROPERTY, "ambari")
+    get_ambari_properties_mock.return_value = properties
+
+    try:
+      ambari_server.upgrade(args)
+    except FatalException as fe:
+      self.fail("Did not expect failure: " + str(fe))
+    else:
+      self.assertTrue(write_property_mock.called)
+
 
   @patch("__builtin__.open")
   @patch("os.path.isfile")
@@ -3190,11 +3219,12 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
   @patch.object(ambari_server, "run_schema_upgrade")
   @patch.object(ambari_server, "update_ambari_properties")
   @patch.object(ambari_server, "parse_properties_file")
+  @patch.object(ambari_server, "get_ambari_version")
   @patch.object(ambari_server, "is_root")
   @patch.object(ambari_server, "get_ambari_properties")
   @patch.object(ambari_server, "upgrade_local_repo")
   def test_upgrade(self, upgrade_local_repo_mock,
-                   get_ambari_properties_mock, is_root_mock,
+                   get_ambari_properties_mock, is_root_mock, get_ambari_version_mock,
                    parse_properties_file_mock,
                    update_ambari_properties_mock, run_schema_upgrade_mock,
                    read_ambari_user_mock, print_warning_msg_mock,
@@ -3204,10 +3234,10 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
 
     args = MagicMock()
     check_database_name_property_mock = MagicMock()
-
     update_ambari_properties_mock.return_value = 0
     run_schema_upgrade_mock.return_value = 0
     isfile_mock.return_value = False
+    get_ambari_version_mock.return_value = CURR_AMBARI_VERSION
 
     # Testing call under non-root
     is_root_mock.return_value = False
@@ -3262,7 +3292,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     p = MagicMock()
     get_ambari_properties_mock.reset_mock()
     get_ambari_properties_mock.return_value = p
-    p.__getitem__.side_effect = ["something", KeyError("test exception")]
+    p.__getitem__.side_effect = ["something", "something", KeyError("test exception")]
     fail = False
 
     try:
@@ -3271,9 +3301,9 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
       fail = True
     self.assertTrue(fail)
 
-    # test if some drivers are available in reources, and symlink available too
+    # test if some drivers are available in resources, and symlink available too
     p.reset_mock()
-    p.__getitem__.side_effect = ["something", "resources"]
+    p.__getitem__.side_effect = ["something", "something", "resources"]
     lexists_mock.return_value = True
     isfile_mock.side_effect = [True, False, False]
     ambari_server.upgrade(args)
@@ -3281,8 +3311,8 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     self.assertEquals(os_remove_mock.call_count, 1)
     self.assertEquals(os_remove_mock.call_args[0][0], os.path.join("resources", "oracle-jdbc-driver.jar"))
     self.assertEquals(os_symlink_mock.call_count, 1)
-    self.assertEquals(os_symlink_mock.call_args[0][0], os.path.join("resources","ojdbc6.jar"))
-    self.assertEquals(os_symlink_mock.call_args[0][1], os.path.join("resources","oracle-jdbc-driver.jar"))
+    self.assertEquals(os_symlink_mock.call_args[0][0], os.path.join("resources", "ojdbc6.jar"))
+    self.assertEquals(os_symlink_mock.call_args[0][1], os.path.join("resources", "oracle-jdbc-driver.jar"))
 
 
   def test_print_info_msg(self):
@@ -4898,10 +4928,14 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
 
   @patch.object(ambari_server, "get_ambari_properties")
   def test_check_database_name_property(self, get_ambari_properties_mock):
+    parser = OptionParser()
+    parser.add_option('--database', default=None, help="Database to use embedded|oracle|mysql|postgres", dest="dbms")
+    args = parser.parse_args()
+
     # negative case
     get_ambari_properties_mock.return_value = {ambari_server.JDBC_DATABASE_NAME_PROPERTY: ""}
     try:
-      result = ambari_server.check_database_name_property()
+      result = ambari_server.check_database_name_property(args)
       self.fail("Should fail with exception")
     except FatalException as e:
       self.assertTrue('DB Name property not set in config file.' in e.reason)
@@ -4911,7 +4945,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     get_ambari_properties_mock.reset_mock()
     get_ambari_properties_mock.return_value = {ambari_server.JDBC_DATABASE_NAME_PROPERTY: dbname}
     try:
-      result = ambari_server.check_database_name_property()
+      result = ambari_server.check_database_name_property(args)
     except FatalException:
       self.fail("Setup should be successful")
 
@@ -4934,9 +4968,10 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
   @patch.object(ambari_server, "setup_db")
   @patch.object(ambari_server, "get_is_secure")
   @patch.object(ambari_server, "store_password_file")
+  @patch.object(ambari_server, "extract_views")
   @patch("sys.exit")
   @patch('__builtin__.raw_input')
-  def test_ambariServerSetupWithCustomDbName(self, raw_input, exit_mock, store_password_file_mock,
+  def test_ambariServerSetupWithCustomDbName(self, raw_input, exit_mock, extract_views_mock, store_password_file_mock,
                                              get_is_secure_mock, setup_db_mock, is_root_mock, is_local_database_mock,
                                              check_selinux_mock, check_jdbc_drivers_mock, check_ambari_user_mock,
                                              check_postgre_up_mock, configure_postgres_mock,
@@ -4963,6 +4998,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     setup_db_mock.return_value = (0, None, None)
     get_is_secure_mock.return_value = False
     store_password_file_mock.return_value = "password"
+    extract_views_mock.return_value = 0
     get_os_type_mock.return_value = ""
     get_os_family_mock.return_value = OSConst.REDHAT_FAMILY
     run_os_command_mock.return_value = 3,"",""

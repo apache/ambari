@@ -29,6 +29,7 @@
     <!-- bower:css -->
     <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.css" />
     <link rel="stylesheet" href="bower_components/angular-bootstrap-toggle-switch/style/bootstrap3/angular-toggle-switch-bootstrap-3.css" />
+    <link rel="stylesheet" href="bower_components/font-awesome/css/font-awesome.min.css"/>
     <!-- endbower -->
     <!-- endbuild -->
 
@@ -52,12 +53,12 @@
               <li>
                 <div class="btn-group" dropdown is-open="status.isopen">
                 <button type="button" class="btn btn-default dropdown-toggle navbar-btn" ng-disabled="disabled">
-                    {{currentUser}} <span class="caret"></span>
+                    <i class="fa fa-user"></i> {{currentUser}} <span class="caret"></span>
                   </button>
                   <ul class="dropdown-menu" role="menu">
                     <li><a href ng-click="about()">About</a></li>
                     <li class="divider"></li>
-                    <li><a href ng-click="signOut()">Sign Out</a></li>
+                    <li><a href ng-click="signOut()">Sign out</a></li>
                   </ul>
                 </div>
               </li>
@@ -91,6 +92,7 @@
     <script src="bower_components/lodash/dist/lodash.compat.js"></script>
     <script src="bower_components/restangular/dist/restangular.js"></script>
     <script src="bower_components/angular-bootstrap-toggle-switch/angular-toggle-switch.min.js"></script>
+    <script src="bower_components/angular-translate/angular-translate.min.js"></script>
     <!-- endbower -->
     <!-- endbuild -->
 
@@ -112,6 +114,7 @@
     <!-- build:js scripts/main.js -->
     <script src="scripts/app.js"></script>
     <script src="scripts/routes.js"></script>
+    <script src="scripts/i18n.config.js"></script>
     <script src="scripts/controllers/mainCtrl.js"></script>
     <script src="scripts/controllers/NavbarCtrl.js"></script>
     <script src="scripts/controllers/users/UsersCreateCtrl.js"></script>

@@ -63,7 +63,7 @@ def flume(action = None):
       _set_desired_state('STARTED')
       
     flume_base = format('su -s /bin/bash {flume_user} -c "export JAVA_HOME={java_home}; '
-      '/usr/bin/flume-ng agent --name {{0}} --conf {{1}} --conf-file {{2}} {{3}}"')
+      '{flume_bin} agent --name {{0}} --conf {{1}} --conf-file {{2}} {{3}}"')
 
     for agent in cmd_target_names():
       flume_agent_conf_dir = params.flume_conf_dir + os.sep + agent

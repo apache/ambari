@@ -24,6 +24,28 @@ import os
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 
+#RPM versioning support
+rpm_version = default("/configurations/hadoop-env/rpm_version", None)
+
+#hadoop params
+if rpm_version is not None:
+  hadoop_conf_dir = format("/usr/hdp/{rpm_version}/etc/hadoop/conf")
+  hadoop_conf_empty_dir = format("/usr/hdp/{rpm_version}/etc/hadoop/conf.empty")
+  mapreduce_libs_path = format("/usr/hdp/{rpm_version}/hadoop-mapreduce/*")
+  hadoop_libexec_dir = format("/usr/hdp/{rpm_version}/hadoop/libexec")
+  hadoop_bin = format("/usr/hdp/{rpm_version}/hadoop/sbin")
+  hadoop_bin_dir = format("/usr/hdp/{rpm_version}/hadoop/bin")
+  limits_conf_dir = format("/usr/hdp/{rpm_version}/etc/security/limits.d")
+else:
+  hadoop_conf_dir = "/etc/hadoop/conf"
+  hadoop_conf_empty_dir = "/etc/hadoop/conf.empty"
+  mapreduce_libs_path = "/usr/lib/hadoop-mapreduce/*"
+  hadoop_libexec_dir = "/usr/lib/hadoop/libexec"
+  hadoop_bin = "/usr/lib/hadoop/sbin"
+  hadoop_bin_dir = "/usr/bin"
+  limits_conf_dir = "/etc/security/limits.d"
+
+execute_path = os.environ['PATH'] + os.pathsep + hadoop_bin_dir
 ulimit_cmd = "ulimit -c unlimited; "
 
 #security params
@@ -100,17 +122,13 @@ proxyuser_group =  config['configurations']['hadoop-env']['proxyuser_group']
 nagios_group = config['configurations']['nagios-env']['nagios_group']
 
 #hadoop params
-hadoop_conf_dir = "/etc/hadoop/conf"
 hadoop_pid_dir_prefix = status_params.hadoop_pid_dir_prefix
-hadoop_bin = "/usr/lib/hadoop/sbin"
 
 hdfs_log_dir_prefix = config['configurations']['hadoop-env']['hdfs_log_dir_prefix']
 hadoop_root_logger = config['configurations']['hadoop-env']['hadoop_root_logger']
 
 dfs_domain_socket_path = config['configurations']['hdfs-site']['dfs.domain.socket.path']
 dfs_domain_socket_dir = os.path.dirname(dfs_domain_socket_path)
-
-hadoop_libexec_dir = "/usr/lib/hadoop/libexec"
 
 jn_edits_dir = config['configurations']['hdfs-site']['dfs.journalnode.edits.dir']
 
@@ -171,10 +189,9 @@ HdfsDirectory = functools.partial(
   hdfs_user=hdfs_user,
   security_enabled = security_enabled,
   keytab = hdfs_user_keytab,
-  kinit_path_local = kinit_path_local
+  kinit_path_local = kinit_path_local,
+  bin_dir = hadoop_bin_dir
 )
-
-limits_conf_dir = "/etc/security/limits.d"
 
 io_compression_codecs = config['configurations']['core-site']['io.compression.codecs']
 if not "com.hadoop.compression.lzo" in io_compression_codecs:
@@ -184,8 +201,6 @@ else:
 name_node_params = default("/commandParams/namenode", None)
 
 #hadoop params
-hadoop_conf_empty_dir = "/etc/hadoop/conf.empty"
-
 hadoop_env_sh_template = config['configurations']['hadoop-env']['content']
 
 #hadoop-env.sh
@@ -209,5 +224,4 @@ ttnode_heapsize = "1024m"
 
 dtnode_heapsize = config['configurations']['hadoop-env']['dtnode_heapsize']
 mapred_pid_dir_prefix = default("/configurations/mapred-env/mapred_pid_dir_prefix","/var/run/hadoop-mapreduce")
-mapreduce_libs_path = "/usr/lib/hadoop-mapreduce/*"
 mapred_log_dir_prefix = default("/configurations/mapred-env/mapred_log_dir_prefix","/var/log/hadoop-mapreduce")

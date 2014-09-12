@@ -31,7 +31,7 @@ class FlumeServiceCheck(Script):
       Execute(format("{kinit_path_local} -kt {http_keytab} {principal_replaced}"),
               user=params.smoke_user)
 
-    Execute(format('env JAVA_HOME={java_home} /usr/bin/flume-ng version'),
+    Execute(format('env JAVA_HOME={java_home} {flume_bin} version'),
             logoutput=True,
             tries = 3,
             try_sleep = 20)

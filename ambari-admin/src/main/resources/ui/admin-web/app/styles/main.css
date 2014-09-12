@@ -191,6 +191,9 @@
   ------ END editable-list DIRECTIVE SECTION ------ -
 */
 
+.tooltip-inner{
+  word-wrap: break-word;
+}
 
  .instances-table{
   table-layout: fixed;
@@ -961,4 +964,10 @@ button.btn.btn-xs{
   width: 161px;
   float: left;
   margin-right: 5px;
+}
+
+.no-animation *{
+  -webkit-transition: none!important;
+  -o-transition: none!important;
+  transition: none!important;
 }

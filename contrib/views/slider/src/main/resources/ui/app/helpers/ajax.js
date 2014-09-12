@@ -30,11 +30,16 @@
  */
 var urls = {
 
+  'slider.getViewParams': {
+    real: '',
+    mock: '/data/resource/slider-properties.json'
+  },
+
   'mapper.applicationTypes': {
     real: 'apptypes?fields=*',
     mock: '/data/apptypes/all_fields.json',
     headers: {
-      Accept : "text/plain; charset=utf-8",
+      Accept: "text/plain; charset=utf-8",
       "Content-Type": "text/plain; charset=utf-8"
     }
   },
@@ -43,7 +48,7 @@ var urls = {
     real: 'apps/?fields=*',
     mock: '/data/apps/apps.json',
     headers: {
-      Accept : "text/plain; charset=utf-8",
+      Accept: "text/plain; charset=utf-8",
       "Content-Type": "text/plain; charset=utf-8"
     }
   },
@@ -58,7 +63,7 @@ var urls = {
     headers: {
       "Content-Type": "text/plain; charset=utf-8"
     },
-    format: function(data) {
+    format: function (data) {
       return {
         type: 'PUT',
         data: JSON.stringify(data.data)
@@ -72,7 +77,7 @@ var urls = {
     headers: {
       "Content-Type": "text/plain; charset=utf-8"
     },
-    format: function(data) {
+    format: function (data) {
       return {
         type: 'POST',
         data: JSON.stringify(data.data)
@@ -83,7 +88,7 @@ var urls = {
   'destroyApp': {
     real: 'apps/{id}',
     mock: '',
-    format: function() {
+    format: function () {
       return {
         method: 'DELETE'
       }
@@ -96,7 +101,7 @@ var urls = {
     headers: {
       "Content-Type": "text/plain; charset=utf-8"
     },
-    format: function(data) {
+    format: function (data) {
       return {
         method: 'PUT',
         data: JSON.stringify(data.data)
@@ -109,7 +114,7 @@ var urls = {
     headers: {
       "Content-Type": "text/plain; charset=utf-8"
     },
-    format: function(data) {
+    format: function (data) {
       return {
         method: 'PUT',
         data: JSON.stringify(data.data)
@@ -119,18 +124,18 @@ var urls = {
 
   'service_status': {
     real: 'clusters/{clusterName}/services?fields=ServiceInfo/state&minimal_response=true',
-    mock:'/data/resource/service_status.json',
+    mock: '/data/resource/service_status.json',
     headers: {
-      Accept : "text/plain; charset=utf-8",
+      Accept: "text/plain; charset=utf-8",
       "Content-Type": "text/plain; charset=utf-8"
     }
   },
 
   'components_hosts': {
     real: 'clusters/{clusterName}/hosts?host_components/HostRoles/component_name={componentName}&minimal_response=true',
-    mock:'/data/resource/components_hosts.json',
+    mock: '/data/resource/components_hosts.json',
     headers: {
-      Accept : "text/plain; charset=utf-8",
+      Accept: "text/plain; charset=utf-8",
       "Content-Type": "text/plain; charset=utf-8"
     }
   },
@@ -139,7 +144,7 @@ var urls = {
     real: 'clusters/{clusterName}/configurations/service_config_versions?service_name={serviceName}&is_current=true',
     mock: '/data/resource/service_configs.json',
     headers: {
-      Accept : "text/plain; charset=utf-8",
+      Accept: "text/plain; charset=utf-8",
       "Content-Type": "text/plain; charset=utf-8"
     }
   },
@@ -147,7 +152,7 @@ var urls = {
   'config.tags': {
     'real': 'clusters/{clusterName}?fields=Clusters/desired_configs',
     headers: {
-      Accept : "text/plain; charset=utf-8",
+      Accept: "text/plain; charset=utf-8",
       "Content-Type": "text/plain; charset=utf-8"
     }
   },
@@ -155,16 +160,16 @@ var urls = {
   'get_all_configurations': {
     'real': 'clusters/{clusterName}/configurations?{urlParams}',
     headers: {
-      Accept : "text/plain; charset=utf-8",
+      Accept: "text/plain; charset=utf-8",
       "Content-Type": "text/plain; charset=utf-8"
     }
   },
 
   'cluster_name': {
     real: 'clusters',
-    mock:'/data/resource/cluster_name.json',
+    mock: '/data/resource/cluster_name.json',
     headers: {
-      Accept : "text/plain; charset=utf-8",
+      Accept: "text/plain; charset=utf-8",
       "Content-Type": "text/plain; charset=utf-8"
     }
   },
@@ -234,10 +239,11 @@ var formatRequest = function (data) {
   }
   else {
     var prefix = App.get('urlPrefix');
-    if(Em.get(data, 'urlPrefix')){
-      var prefix = Em.get(data, 'urlPrefix');
+    if (Em.get(data, 'urlPrefix')) {
+      prefix = Em.get(data, 'urlPrefix');
     }
-    opt.url = prefix + (formatUrl(this.real, data) ? formatUrl(this.real, data) : "");
+    var url = formatUrl(this.real, data);
+    opt.url = prefix + (url ? url : '');
   }
 
   if (this.format) {

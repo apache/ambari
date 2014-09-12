@@ -28,7 +28,10 @@ class TestHcatClient(RMFTestCase):
                        command = "configure",
                        config_file="default.json"
     )
-
+    self.assertResourceCalled('Directory', '/etc/hive/conf',
+                              owner = 'hcat',
+                              group = 'hadoop',
+    )
     self.assertResourceCalled('Directory', '/etc/hcatalog/conf',
       owner = 'hcat',
       group = 'hadoop',
@@ -59,7 +62,10 @@ class TestHcatClient(RMFTestCase):
                          command = "configure",
                          config_file="secured.json"
     )
-
+    self.assertResourceCalled('Directory', '/etc/hive/conf',
+                              owner = 'hcat',
+                              group = 'hadoop',
+    )
     self.assertResourceCalled('Directory', '/etc/hcatalog/conf',
       owner = 'hcat',
       group = 'hadoop',

@@ -23,6 +23,17 @@ from status_params import *
 
 config = Script.get_config()
 
+#RPM versioning support
+rpm_version = default("/configurations/hadoop-env/rpm_version", None)
+
+#hadoop params
+if rpm_version is not None:
+  hadoop_conf_dir = format("/usr/hdp/{rpm_version}/etc/hadoop/conf")
+  hadoop_bin_dir = format("/usr/hdp/{rpm_version}/hadoop/bin")
+else:
+  hadoop_conf_dir = "/etc/hadoop/conf"
+  hadoop_bin_dir = "/usr/bin"
+
 oozie_user = config['configurations']['oozie-env']['oozie_user']
 falcon_user = config['configurations']['falcon-env']['falcon_user']
 smoke_user =  config['configurations']['cluster-env']['smokeuser']
@@ -53,7 +64,6 @@ flacon_apps_dir = '/apps/falcon'
 #for create_hdfs_directory
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 hostname = config["hostname"]
-hadoop_conf_dir = "/etc/hadoop/conf"
 hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_name']
@@ -67,5 +77,6 @@ HdfsDirectory = functools.partial(
   hdfs_user=hdfs_user,
   security_enabled = security_enabled,
   keytab = hdfs_user_keytab,
-  kinit_path_local = kinit_path_local
+  kinit_path_local = kinit_path_local,
+  bin_dir = hadoop_bin_dir
 )

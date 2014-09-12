@@ -90,10 +90,22 @@ App.initializer({
        * List of errors
        * @type {string[]}
        */
-      viewErrors: []
+      viewErrors: [],
+
+      /**
+       * Host with Nagios Server
+       * @type {string|null}
+       */
+      nagiosHost: null,
+
+      /**
+       * Host with Ganglia Server
+       * @type {string|null}
+       */
+      gangliaHost: null
 
     });
-    application.SliderAppsController.proto().initResources();
+    application.SliderController.proto().initResources();
     application.ApplicationTypeMapper.loop('load');
     application.SliderAppsMapper.loop('load');
   }

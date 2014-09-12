@@ -23,6 +23,25 @@ import os
 
 config = Script.get_config()
 
+#RPM versioning support
+rpm_version = default("/configurations/hadoop-env/rpm_version", None)
+
+#hadoop params
+if rpm_version is not None:
+  hadoop_conf_dir = format("/usr/hdp/{rpm_version}/etc/hadoop/conf")
+  mapreduce_libs_path = format("/usr/hdp/{rpm_version}/hadoop-mapreduce/*")
+  hadoop_libexec_dir = format("/usr/hdp/{rpm_version}/hadoop/libexec")
+  hadoop_lib_home = format("/usr/hdp/{rpm_version}/hadoop/lib")
+  hadoop_bin = format("/usr/hdp/{rpm_version}/hadoop/sbin")
+  hadoop_home = format('/usr/hdp/{rpm_version}/hadoop')
+else:
+  hadoop_conf_dir = "/etc/hadoop/conf"
+  mapreduce_libs_path = "/usr/lib/hadoop-mapreduce/*"
+  hadoop_libexec_dir = "/usr/lib/hadoop/libexec"
+  hadoop_lib_home = "/usr/lib/hadoop/lib"
+  hadoop_bin = "/usr/lib/hadoop/sbin"
+  hadoop_home = '/usr'
+
 #security params
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 
@@ -72,11 +91,7 @@ if has_ganglia_server:
 
 if has_namenode:
   hadoop_tmp_dir = format("/tmp/hadoop-{hdfs_user}")
-hadoop_lib_home = "/usr/lib/hadoop/lib"
-hadoop_conf_dir = "/etc/hadoop/conf"
 hadoop_pid_dir_prefix = config['configurations']['hadoop-env']['hadoop_pid_dir_prefix']
-hadoop_home = "/usr"
-hadoop_bin = "/usr/lib/hadoop/sbin"
 
 task_log4j_properties_location = os.path.join(hadoop_conf_dir, "task-log4j.properties")
 
@@ -127,8 +142,6 @@ ttnode_heapsize = "1024m"
 
 dtnode_heapsize = config['configurations']['hadoop-env']['dtnode_heapsize']
 mapred_pid_dir_prefix = default("/configurations/mapred-env/mapred_pid_dir_prefix","/var/run/hadoop-mapreduce")
-mapreduce_libs_path = "/usr/lib/hadoop-mapreduce/*"
-hadoop_libexec_dir = "/usr/lib/hadoop/libexec"
 mapred_log_dir_prefix = default("/configurations/mapred-env/mapred_log_dir_prefix","/var/log/hadoop-mapreduce")
 
 #log4j.properties

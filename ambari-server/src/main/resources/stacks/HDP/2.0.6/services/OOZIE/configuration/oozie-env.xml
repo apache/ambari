@@ -122,7 +122,7 @@ export OOZIE_ADMIN_PORT={{oozie_server_admin_port}}
 # The base URL for callback URLs to Oozie
 #
 # export OOZIE_BASE_URL="http://${OOZIE_HTTP_HOSTNAME}:${OOZIE_HTTP_PORT}/oozie"
-export JAVA_LIBRARY_PATH=/usr/lib/hadoop/lib/native/Linux-amd64-64
+export JAVA_LIBRARY_PATH={{hadoop_lib_home}}/native/Linux-amd64-64
     </value>
   </property>
 

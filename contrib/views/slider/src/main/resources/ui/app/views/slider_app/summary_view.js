@@ -29,14 +29,14 @@ App.SliderAppSummaryView = Ember.View.extend({
    */
   gangliaUrl: function () {
     return 'http://' + App.get('gangliaHost') + '/ganglia';
-  }.property(),
+  }.property('App.gangliaHost'),
 
   /**
    * @type {string}
    */
   nagiosUrl: function () {
     return 'http://' + App.get('nagiosHost') + '/nagios';
-  }.property(),
+  }.property('App.nagiosHost'),
 
   fitPanels: function () {
     var heightLeft = parseInt(this.$('.panel-summury').css('height'));

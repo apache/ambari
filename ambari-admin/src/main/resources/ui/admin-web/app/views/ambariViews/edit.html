@@ -108,7 +108,7 @@
       <tbody>
         <tr ng-repeat="permission in permissions">
           <td>
-            <label class="">{{permission.PermissionInfo.permission_name}}</label>
+            <label class="" tooltip="{{permission.PermissionInfo.permission_name}}">{{permission.PermissionInfo.permission_name | translate}}</label>
           </td>
           <td>
             <editable-list items-source="permissionsEdit[permission.PermissionInfo.permission_name].USER" editable="true" resource-type="User"></editable-list>
@@ -136,11 +136,11 @@
   <div class="panel-body">
     <form name="propertiesForm" class="form-horizontal" ng-hide="isConfigurationEmpty" novalidate>
       <fieldset ng-disabled="editConfigurationDisabled">
-        <div class="form-group" ng-repeat="(propertyName, propertyValue) in configurationMeta" ng-class="{'has-error' : propertyValue.required && propertiesForm[propertyName].$error.required && !editConfigurationDisabled}">
-          <label for="" class="control-label col-sm-3" ng-class="{'not-required': !propertyValue.required}" tooltip="{{propertyValue.description}}">{{propertyName}}{{propertyValue.required ? '*' : ''}}</label>
+        <div class="form-group" ng-repeat="property in configurationMeta" ng-class="{'has-error' : property.required && propertiesForm[property.name].$error.required && !editConfigurationDisabled}">
+          <label for="" class="control-label col-sm-3" ng-class="{'not-required': !property.required}" tooltip="{{property.description}}">{{property.name}}{{property.required ? '*' : ''}}</label>
           <div class="col-sm-9">
-            <input type="{{propertyValue.masked ? 'password' : 'text'}}" class="form-control propertie-input" ng-required="propertyValue.required" name="{{propertyName}}" ng-model="configuration[propertyName]">
-            <div class="alert alert-danger no-margin-bottom top-margin" ng-show='propertyValue.required && propertiesForm[propertyName].$error.required && !editConfigurationDisabled'>
+            <input type="{{property.masked ? 'password' : 'text'}}" class="form-control propertie-input" ng-required="property.required" name="{{property.name}}" ng-model="configuration[property.name]">
+            <div class="alert alert-danger no-margin-bottom top-margin" ng-show='property.required && propertiesForm[property.name].$error.required && !editConfigurationDisabled'>
               This field is required.
             </div>
           </div>

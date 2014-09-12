@@ -86,13 +86,13 @@ angular.module('ambariAdminConsole')
       privilegie = privilegie.PrivilegeInfo;
       if(privilegie.type === 'CLUSTER'){
         // This is cluster
-        privilegies.clusters[privilegie.cluster_name] = privilegies.clusters[privilegie.cluster_name] || '';
-        privilegies.clusters[privilegie.cluster_name] += privilegies.clusters[privilegie.cluster_name] ? ', ' + privilegie.permission_name : privilegie.permission_name;
+        privilegies.clusters[privilegie.cluster_name] = privilegies.clusters[privilegie.cluster_name] || [];
+        privilegies.clusters[privilegie.cluster_name].push(privilegie.permission_name);
       } else if ( privilegie.type === 'VIEW'){
-        privilegies.views[privilegie.instance_name] = privilegies.views[privilegie.instance_name] || { privileges:''};
+        privilegies.views[privilegie.instance_name] = privilegies.views[privilegie.instance_name] || { privileges:[]};
         privilegies.views[privilegie.instance_name].version = privilegie.version;
         privilegies.views[privilegie.instance_name].view_name = privilegie.view_name;
-        privilegies.views[privilegie.instance_name].privileges += privilegies.views[privilegie.instance_name].privileges ? ', ' + privilegie.permission_name : privilegie.permission_name;
+        privilegies.views[privilegie.instance_name].privileges.push(privilegie.permission_name);
       }
     });
 
