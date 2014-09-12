@@ -32,7 +32,14 @@
     </description>
   </property>
 
-
-
+  <property>
+    <name>oozie.service.coord.check.maximum.frequency</name>
+    <value>false</value>
+    <description>
+      When true, Oozie will reject any coordinators with a frequency faster than 5 minutes.  It is not recommended to disable
+      this check or submit coordinators with frequencies faster than 5 minutes: doing so can cause unintended behavior and
+      additional system stress.
+    </description>
+  </property>
 
 </configuration>
