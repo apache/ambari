@@ -90,6 +90,10 @@ public class AlertSummaryPropertyProvider extends BaseProvider implements Proper
     AlertSummaryDTO summary = null;
 
     String clusterName = (String) resource.getPropertyValue(m_clusterPropertyId);
+    
+    if (null == clusterName)
+      return;
+    
     String typeId = null == m_typeIdPropertyId ? null : (String) resource.getPropertyValue(m_typeIdPropertyId);
     Cluster cluster = s_clusters.getCluster(clusterName);
     

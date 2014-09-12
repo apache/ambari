@@ -19,6 +19,36 @@
           }
         }        
       }
+    },
+    {
+      "name": "check_cpu",
+      "label": "NameNode host CPU utilization",
+      "interval": 2,
+      "scope": "any",
+      "source": {
+        "type": "METRIC",
+        "uri": "{{hdfs-site/dfs.namenode.http-address}}",
+        "reporting": {
+          "ok": {
+            "text": "{1} CPU, load {0:.1%}"
+          },
+          "warning": {
+            "text": "{1} CPU, load {0:.1%}",
+            "value": 200
+          },
+          "critical": {
+            "text": "{1} CPU, load {0:.1%}",
+            "value": 250
+          }
+        },
+        "jmx": {
+          "property_list": [
+            "java.lang:type=OperatingSystem/SystemCpuLoad",
+            "java.lang:type=OperatingSystem/AvailableProcessors"
+          ],
+          "value": "{0} * 100"
+        }
+      }
     }
   ],
   "SECONDARY_NAMENODE": [

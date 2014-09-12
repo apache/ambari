@@ -68,6 +68,7 @@ public class AlertDataManager {
       
     } else if (alert.getState() == current.getAlertHistory().getAlertState()) {
       current.setLatestTimestamp(Long.valueOf(alert.getTimestamp()));
+      current.setLatestText(alert.getText());
       
       m_alertsDao.merge(current);
     } else {

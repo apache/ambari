@@ -27,10 +27,11 @@ import com.google.gson.annotations.SerializedName;
  */
 public class MetricSource extends Source {
 
-  private String host = null;
-
+  @SerializedName("uri")
+  private String m_uri = null;
+  
   @SerializedName("jmx")
-  private String jmxInfo = null;
+  private Object jmxInfo = null;
 
   @SerializedName("ganglia")
   private String gangliaInfo = null;
@@ -38,7 +39,7 @@ public class MetricSource extends Source {
   /**
    * @return the jmx info, if this metric is jmx-based
    */
-  public String getJmxInfo() {
+  public Object getJmxInfo() {
     return jmxInfo;
   }
 
@@ -50,10 +51,10 @@ public class MetricSource extends Source {
   }
 
   /**
-   * @return the host info, which may include port information
+   * @return the uri info, which may include port information
    */
-  public String getHost() {
-    return host;
+  public String getUri() {
+    return m_uri;
   }
 
   /**
@@ -65,7 +66,7 @@ public class MetricSource extends Source {
     int result = super.hashCode();
     result = prime * result
         + ((gangliaInfo == null) ? 0 : gangliaInfo.hashCode());
-    result = prime * result + ((host == null) ? 0 : host.hashCode());
+    result = prime * result + ((m_uri == null) ? 0 : m_uri.hashCode());
     result = prime * result + ((jmxInfo == null) ? 0 : jmxInfo.hashCode());
 
     return result;
@@ -97,11 +98,11 @@ public class MetricSource extends Source {
       return false;
     }
 
-    if (host == null) {
-      if (other.host != null) {
+    if (m_uri == null) {
+      if (other.m_uri != null) {
         return false;
       }
-    } else if (!host.equals(other.host)) {
+    } else if (!m_uri.equals(other.m_uri)) {
       return false;
     }
 

@@ -29,7 +29,9 @@ import time
 import traceback
 from apscheduler.scheduler import Scheduler
 from alerts.collector import AlertCollector
+from alerts.metric_alert import MetricAlert
 from alerts.port_alert import PortAlert
+from alerts.script_alert import ScriptAlert
 
 
 logger = logging.getLogger()
@@ -48,8 +50,9 @@ class AlertSchedulerHandler():
     'standalone': False
   }
 
-  def __init__(self, cachedir, in_minutes=True):
+  def __init__(self, cachedir, stacks_dir, in_minutes=True):
     self.cachedir = cachedir
+    self.stacks_dir = stacks_dir
     
     if not os.path.exists(cachedir) and AlertSchedulerHandler.make_cachedir:
       try:
@@ -133,6 +136,7 @@ class AlertSchedulerHandler():
 
       for definition in command_json['alertDefinitions']:
         obj = self.__json_to_callable(definition)
+        
         if obj is None:
           continue
           
@@ -163,11 +167,12 @@ class AlertSchedulerHandler():
     alert = None
 
     if source_type == AlertSchedulerHandler.TYPE_METRIC:
-      pass
+      alert = MetricAlert(json_definition, source)
     elif source_type == AlertSchedulerHandler.TYPE_PORT:
       alert = PortAlert(json_definition, source)
-    elif type == AlertSchedulerHandler.TYPE_SCRIPT:
-      pass
+    elif source_type == AlertSchedulerHandler.TYPE_SCRIPT:
+      source['stacks_dir'] = self.stacks_dir
+      alert = ScriptAlert(json_definition, source)
 
     return alert
     
@@ -210,11 +215,15 @@ def main():
   del args[0]
 
   try:
-    logger.setLevel(logger.debug)
+    logger.setLevel(logging.DEBUG)
   except TypeError:
     logger.setLevel(12)
     
-  ash = AlertSchedulerHandler(args[0], False)
+  ch = logging.StreamHandler()
+  ch.setLevel(logger.level)
+  logger.addHandler(ch)
+    
+  ash = AlertSchedulerHandler(args[0], args[1], False)
   ash.start()
   
   i = 0

@@ -10,16 +10,6 @@
     },
     "alertDefinitions": [
       {
-        "name": "namenode_cpu",
-        "label": "NameNode host CPU Utilization",
-        "scope": "host",
-        "source": {
-          "type": "METRIC",
-          "jmx": "java.lang:type=OperatingSystem/SystemCpuLoad",
-          "host": "{{hdfs-site/dfs.namenode.secondary.http-address}}"
-        }
-      },
-      {
         "name": "namenode_process",
         "service": "HDFS",
         "component": "NAMENODE",
@@ -38,17 +28,6 @@
               "text": "Could not load process info: {0} on host {1}:{2}"
             }
           }
-        }
-      },
-      {
-        "name": "hdfs_last_checkpoint",
-        "label": "Last Checkpoint Time",
-        "interval": 1,
-        "scope": "service",
-        "enabled": false,
-        "source": {
-          "type": "SCRIPT",
-          "path": "scripts/alerts/last_checkpoint.py"
         }
       }
     ]

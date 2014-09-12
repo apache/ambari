@@ -21,9 +21,11 @@ limitations under the License.
 import os
 import sys
 from ambari_agent.AlertSchedulerHandler import AlertSchedulerHandler
-from ambari_agent.apscheduler.scheduler import Scheduler
-from ambari_agent.alerts.port_alert import PortAlert
 from ambari_agent.alerts.collector import AlertCollector
+from ambari_agent.alerts.metric_alert import MetricAlert
+from ambari_agent.alerts.port_alert import PortAlert
+from ambari_agent.alerts.script_alert import ScriptAlert
+from ambari_agent.apscheduler.scheduler import Scheduler
 from mock.mock import patch
 from unittest import TestCase
 
@@ -39,8 +41,9 @@ class TestAlerts(TestCase):
   @patch.object(Scheduler, "start")
   def test_start(self, aps_add_interval_job_mock, aps_start_mock):
     test_file_path = os.path.join('ambari_agent', 'dummy_files')
+    test_stack_path = os.path.join('ambari_agent', 'dummy_files')
 
-    ash = AlertSchedulerHandler(test_file_path)
+    ash = AlertSchedulerHandler(test_file_path, test_stack_path)
     ash.start()
 
     self.assertTrue(aps_add_interval_job_mock.called)
@@ -75,8 +78,6 @@ class TestAlerts(TestCase):
     self.assertEquals(6, pa.interval())
 
     res = pa.collect()
-    
-    pass
 
   def test_port_alert_no_sub(self):
     json = { "name": "namenode_process",
@@ -105,5 +106,94 @@ class TestAlerts(TestCase):
     self.assertEquals('http://c6401.ambari.apache.org', pa.uri)
 
     res = pa.collect()
+
+  def test_script_alert(self):
+    json = {
+      "name": "namenode_process",
+      "service": "HDFS",
+      "component": "NAMENODE",
+      "label": "NameNode process",
+      "interval": 6,
+      "scope": "host",
+      "source": {
+        "type": "SCRIPT",
+        "path": "test_script.py",
+        "reporting": {
+          "ok": {
+            "text": "TCP OK - {0:.4f} response time on port {1}"
+          },
+          "critical": {
+            "text": "Could not load process info: {0}"
+          }
+        }
+      }
+    }
+
+    # normally set by AlertSchedulerHandler
+    json['source']['stacks_dir'] = os.path.join('ambari_agent', 'dummy_files')
+
+    collector = AlertCollector()
+    sa = ScriptAlert(json, json['source'])
+    sa.set_helpers(collector, '')
+    self.assertEquals(json['source']['path'], sa.path)
+    self.assertEquals(json['source']['stacks_dir'], sa.stacks_dir)
+
+    sa.collect()
+
+    self.assertEquals('WARNING', collector.alerts()[0]['state'])
+    self.assertEquals('all is not well', collector.alerts()[0]['text'])
+   
+  @patch.object(MetricAlert, "_load_jmx")
+  def test_metric_alert(self, ma_load_jmx_mock):
+    json = {
+      "name": "cpu_check",
+      "service": "HDFS",
+      "component": "NAMENODE",
+      "label": "NameNode process",
+      "interval": 6,
+      "scope": "host",
+      "source": {
+        "type": "METRIC",
+        "uri": "http://myurl:8633",
+        "jmx": {
+          "property_list": [
+            "someJmxObject/value",
+            "someOtherJmxObject/value"
+          ],
+          "value": "{0} * 100 + 123"
+        },
+        "reporting": {
+          "ok": {
+            "text": "ok_arr: {0} {1} {2}",
+          },
+          "warning": {
+            "text": "",
+            "value": 13
+          },
+          "critical": {
+            "text": "crit_arr: {0} {1} {2}",
+            "value": 72
+          }
+        }
+      }
+    }
+
+    ma_load_jmx_mock.return_value = [1, 3]
+
+    collector = AlertCollector()
+    ma = MetricAlert(json, json['source'])
+    ma.set_helpers(collector, '')
+    ma.collect()
+
+    self.assertEquals('CRITICAL', collector.alerts()[0]['state'])
+    self.assertEquals('crit_arr: 1 3 223', collector.alerts()[0]['text'])
+
+    del json['source']['jmx']['value']
+    collector = AlertCollector()
+    ma = MetricAlert(json, json['source'])
+    ma.set_helpers(collector, '')
+    ma.collect()
+
+    self.assertEquals('OK', collector.alerts()[0]['state'])
+    self.assertEquals('ok_arr: 1 3 None', collector.alerts()[0]['text'])
     
-    pass

@@ -167,12 +167,12 @@ public class AlertResourceProvider extends ReadOnlyResourceProvider {
     setResourceProperty(resource, ALERT_LATEST_TIMESTAMP, entity.getLatestTimestamp(), requestedIds);
     setResourceProperty(resource, ALERT_MAINTENANCE_STATE, entity.getMaintenanceState(), requestedIds);
     setResourceProperty(resource, ALERT_ORIGINAL_TIMESTAMP, entity.getOriginalTimestamp(), requestedIds);
+    setResourceProperty(resource, ALERT_TEXT, entity.getLatestText(), requestedIds);
     
     AlertHistoryEntity history = entity.getAlertHistory();
     setResourceProperty(resource, ALERT_INSTANCE, history.getAlertInstance(), requestedIds);
     setResourceProperty(resource, ALERT_LABEL, history.getAlertLabel(), requestedIds);
     setResourceProperty(resource, ALERT_STATE, history.getAlertState(), requestedIds);
-    setResourceProperty(resource, ALERT_TEXT, history.getAlertText(), requestedIds);
     setResourceProperty(resource, ALERT_COMPONENT, history.getComponentName(), requestedIds);
     setResourceProperty(resource, ALERT_HOST, history.getHostName(), requestedIds);
     setResourceProperty(resource, ALERT_SERVICE, history.getServiceName(), requestedIds);

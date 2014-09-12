@@ -31,13 +31,14 @@ import pprint
 from random import randint
 
 import hostname
+import security
+import ssl
 import AmbariConfig
 from Heartbeat import Heartbeat
 from Register import Register
 from ActionQueue import ActionQueue
-import security
+from FileCache import FileCache
 from NetUtil import NetUtil
-import ssl
 from LiveStatus import LiveStatus
 from AlertSchedulerHandler import AlertSchedulerHandler
 
@@ -78,9 +79,10 @@ class Controller(threading.Thread):
     cache_dir = config.get('agent', 'cache_dir')
     if cache_dir is None:
       cache_dir = '/var/lib/ambari-agent/cache'
-      
+
+    stacks_cache_dir = os.path.join(cache_dir, FileCache.STACKS_CACHE_DIRECTORY)
     alerts_cache_dir = os.path.join(cache_dir, 'alerts')
-    self.alert_scheduler_handler = AlertSchedulerHandler(alerts_cache_dir)
+    self.alert_scheduler_handler = AlertSchedulerHandler(alerts_cache_dir, stacks_cache_dir)
 
 
   def __del__(self):

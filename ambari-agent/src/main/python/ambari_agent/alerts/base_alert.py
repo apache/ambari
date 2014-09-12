@@ -70,6 +70,9 @@ class BaseAlert(object):
       traceback.print_exc()
       res = (BaseAlert.RESULT_UNKNOWN, [str(e)])
       res_base_text = "Unknown {0}"
+    
+    if logger.isEnabledFor(logging.DEBUG):
+      logger.debug("debug alert result: {0}".format(str(res)))
       
     data = {}
     data['name'] = self._find_value('name')
@@ -80,6 +83,9 @@ class BaseAlert(object):
     data['service'] = self._find_value('serviceName')
     data['component'] = self._find_value('componentName')
     data['timestamp'] = long(time.time() * 1000)
+
+    if logger.isEnabledFor(logging.DEBUG):
+      logger.debug("debug alert text: {0}".format(data['text']))
     
     self.collector.put(self.cluster, data)
   
