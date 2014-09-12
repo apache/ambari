@@ -32,6 +32,7 @@ import org.apache.ambari.view.SystemException;
 import org.apache.ambari.view.ViewContext;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.SessionManager;
+import org.eclipse.jetty.server.session.SessionHandler;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.springframework.web.context.WebApplicationContext;
@@ -91,7 +92,7 @@ public class AmbariHandlerList extends FailsafeHandlerList implements ViewInstan
         context.setClassLoader(viewInstanceDefinition.getViewEntity().getClassLoader());
         context.setAttribute(ViewContext.CONTEXT_ATTRIBUTE, new ViewContextImpl(viewInstanceDefinition, viewRegistry));
 
-        context.getSessionHandler().setSessionManager(sessionManager);
+        context.setSessionHandler(new SharedSessionHandler(sessionManager));
         context.getServletContext().setAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE, springWebAppContext);
         context.addFilter(new FilterHolder(springSecurityFilter), "/*", 1);
 
@@ -142,6 +143,7 @@ public class AmbariHandlerList extends FailsafeHandlerList implements ViewInstan
   public void removeViewInstance(ViewInstanceEntity viewInstanceDefinition) {
     Handler handler = handlerMap.get(viewInstanceDefinition);
     if (handler != null) {
+      handlerMap.remove(viewInstanceDefinition);
       removeHandler(handler);
     }
   }
@@ -180,5 +182,34 @@ public class AmbariHandlerList extends FailsafeHandlerList implements ViewInstan
      * @return a new Handler instance
      */
     public Handler create(ViewInstanceEntity viewInstanceDefinition, String webApp, String contextPath);
+  }
+
+
+  // ----- inner class : SharedSessionHandler --------------------------------
+
+  /**
+   * A session handler that shares its session manager with another app.
+   * This handler DOES NOT attempt stop the shared session manager.
+   */
+  private static class SharedSessionHandler extends SessionHandler {
+
+    // ----- Constructors ----------------------------------------------------
+
+    /**
+     * Construct a SharedSessionHandler.
+     *
+     * @param manager  the shared session manager.
+     */
+    public SharedSessionHandler(SessionManager manager) {
+      super(manager);
+    }
+
+
+    // ----- SessionHandler --------------------------------------------------
+
+    @Override
+    protected void doStop() throws Exception {
+      // do nothing...
+    }
   }
 }
