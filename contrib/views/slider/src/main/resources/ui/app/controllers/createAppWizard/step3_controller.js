@@ -76,6 +76,7 @@ App.CreateAppWizardStep3Controller = Ember.ObjectController.extend({
    */
   configsSet: [
     {
+      name: 'ganglia_metrics',
       trigger: {value: false, label: Em.I18n.t('configs.enable.metrics'), viewType: 'checkbox'},
       isSet: true,
       section: 'global',
@@ -152,6 +153,9 @@ App.CreateAppWizardStep3Controller = Ember.ObjectController.extend({
     configsSet.forEach(function (configSet) {
       if (configSet.configs.length === configSet.configNames.length) {
         delete configSet.configNames;
+        if (configSet.name === 'ganglia_metrics') {
+          configSet.trigger.readOnly = (!App.get('gangliaClusters') || App.get('gangliaClusters').length === 0);
+        }
         configSet.trigger = App.ConfigProperty.create(configSet.trigger);
         this.initConfigSetDependecies(configSet);
         configs.unshift(configSet);
