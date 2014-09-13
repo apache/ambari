@@ -2328,9 +2328,10 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
    * trigger showItemsShouldBeRestarted popup with hosts that requires resetart
    * @method showHostsShouldBeRestarted
    */
-  showHostsShouldBeRestarted: function () {
+  showHostsShouldBeRestarted: function (restartRequiredHostsAndComponents) {
     var hosts = [];
-    for (var hostName in this.get('content.restartRequiredHostsAndComponents')) {
+    var rhc = this.get('content.restartRequiredHostsAndComponents') || restartRequiredHostsAndComponents;
+    for (var hostName in rhc) {
       hosts.push(hostName);
     }
     var hostsText = hosts.length == 1 ? Em.I18n.t('common.host') : Em.I18n.t('common.hosts');
@@ -2342,8 +2343,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
    * trigger showItemsShouldBeRestarted popup with components that requires resetart
    * @method showComponentsShouldBeRestarted
    */
-  showComponentsShouldBeRestarted: function () {
-    var rhc = this.get('content.restartRequiredHostsAndComponents');
+  showComponentsShouldBeRestarted: function (restartRequiredHostsAndComponents) {
+    var rhc = this.get('content.restartRequiredHostsAndComponents') || restartRequiredHostsAndComponents;
     var hostsComponets = [];
     var componentsObject = {};
     for (var hostName in rhc) {

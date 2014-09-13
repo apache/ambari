@@ -16,6 +16,7 @@
  */
 
 var App = require('app');
+var batchUtils = require('utils/batch_scheduled_requests');
 require('views/main/service/service');
 
 App.AlertItemView = Em.View.extend({
@@ -251,6 +252,67 @@ App.MainServiceInfoSummaryView = Em.View.extend({
   }.property('service'),
 
   oldServiceName:'',
+
+  /*
+   * 'Restart Required bar' start
+   */
+  componentsCount: null,
+  hostsCount: null,
+
+  restartRequiredHostsAndComponents:function () {
+    return this.get('controller.content.restartRequiredHostsAndComponents');
+  }.property('controller.content.restartRequiredHostsAndComponents'),
+
+  updateComponentInformation: function() {
+    var hc = this.get('restartRequiredHostsAndComponents');
+    var hostsCount = 0;
+    var componentsCount = 0;
+    for (var host in hc) {
+      hostsCount++;
+      componentsCount += hc[host].length;
+    }
+    this.set('componentsCount', componentsCount);
+    this.set('hostsCount', hostsCount);
+  }.observes('restartRequiredHostsAndComponents'),
+
+  rollingRestartSlaveComponentName : function() {
+    return batchUtils.getRollingRestartComponentName(this.get('serviceName'));
+  }.property('serviceName'),
+  rollingRestartActionName : function() {
+    var label = null;
+    var componentName = this.get('rollingRestartSlaveComponentName');
+    if (componentName) {
+      label = Em.I18n.t('rollingrestart.dialog.title').format(App.format.role(componentName));
+    }
+    return label;
+  }.property('rollingRestartSlaveComponentName'),
+  showComponentsShouldBeRestarted: function () {
+    var rhc = this.get('restartRequiredHostsAndComponents');
+    App.router.get('mainServiceInfoConfigsController').showComponentsShouldBeRestarted(rhc);
+  },
+  showHostsShouldBeRestarted: function () {
+    var rhc = this.get('restartRequiredHostsAndComponents');
+    App.router.get('mainServiceInfoConfigsController').showHostsShouldBeRestarted(rhc);
+  },
+  restartAllStaleConfigComponents: function () {
+    var self = this;
+    var serviceDisplayName = this.get('service.displayName');
+    var bodyMessage = Em.Object.create({
+      confirmMsg: Em.I18n.t('services.service.restartAll.confirmMsg').format(serviceDisplayName),
+      confirmButton: Em.I18n.t('services.service.restartAll.confirmButton'),
+      additionalWarningMsg: this.get('service.passiveState') === 'OFF' ? Em.I18n.t('services.service.restartAll.warningMsg.turnOnMM').format(serviceDisplayName) : null
+    });
+    return App.showConfirmationFeedBackPopup(function (query) {
+      var selectedService = self.get('service.id');
+      batchUtils.restartAllServiceHostComponents(selectedService, true, query);
+    }, bodyMessage);
+  },
+  rollingRestartStaleConfigSlaveComponents: function (componentName) {
+    batchUtils.launchHostComponentRollingRestart(componentName.context, this.get('service.displayName'), this.get('service.passiveState') === "ON", true);
+  },
+  /*
+   * 'Restart Required bar' ended
+   */
 
   /**
    * Contains graphs for this particular service
