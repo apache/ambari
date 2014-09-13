@@ -85,12 +85,10 @@ public class ValidationResourceProvider extends StackAdvisorResourceProvider {
       response = saHelper.validate(validationRequest);
     } catch (StackAdvisorRequestException e) {
       LOG.warn("Error occurred during validation", e);
-      throw new WebApplicationException(Response.status(Status.BAD_REQUEST).entity(e.getMessage())
-          .build());
+      throw new IllegalArgumentException(e.getMessage(), e);
     } catch (StackAdvisorException e) {
       LOG.warn("Error occurred during validation", e);
-      throw new WebApplicationException(Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage())
-          .build());
+      throw new SystemException(e.getMessage(), e);
     }
 
     Resource validation = createResources(new Command<Resource>() {

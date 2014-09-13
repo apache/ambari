@@ -1343,11 +1343,22 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
     }
     var self = this;
     this.set('submitButtonClicked', true);
-    this.serverSideValidation().done(function () {
-      self.checkDatabaseConnectionTest().done(function () {
+    this.serverSideValidation().done(function() {
+      self.checkDatabaseConnectionTest().done(function() {
         self.resolveHiveMysqlDatabase();
         self.set('submitButtonClicked', false);
       });
+    }).fail(function(value){
+      if ("invalid_configs" == value) {
+        self.set('submitButtonClicked', false);
+      } else {
+        // Failed due to validation mechanism failure.
+        // Should proceed with other checks
+        self.checkDatabaseConnectionTest().done(function() {
+          self.resolveHiveMysqlDatabase();
+          self.set('submitButtonClicked', false);
+        });
+      }
     });
   }
 

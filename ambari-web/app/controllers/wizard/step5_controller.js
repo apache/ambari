@@ -281,19 +281,13 @@ App.WizardStep5Controller = Em.Controller.extend(App.BlueprintMixin, {
         validate: 'host_groups',
         recommendations: blueprint
       },
-      success: 'updateValidationsSuccessCallback'
+      success: 'updateValidationsSuccessCallback',
+      error: 'updateValidationsErrorCallback'
     }).
-      retry({
-        times: App.maxRetries,
-        timeout: App.timeout
-      }).
       then(function() {
         if (callback) {
           callback();
         }
-      }, function () {
-        App.showReloadPopup();
-        console.log('Load validations failed');
       }
     );
   },
@@ -306,8 +300,8 @@ App.WizardStep5Controller = Em.Controller.extend(App.BlueprintMixin, {
   updateValidationsSuccessCallback: function (data) {
     var self = this;
 
-    generalErrorMessages = [];
-    generalWarningMessages = [];
+    var generalErrorMessages = [];
+    var generalWarningMessages = [];
     this.get('servicesMasters').setEach('warnMessage', null);
     this.get('servicesMasters').setEach('errorMessage', null);
     var anyErrors = false;
@@ -341,6 +335,19 @@ App.WizardStep5Controller = Em.Controller.extend(App.BlueprintMixin, {
     // use this.set('submitDisabled', anyErrors); is validation results should block next button
     // It's because showValidationIssuesAcceptBox allow use accept validation issues and continue
     this.set('submitDisabled', false); //this.set('submitDisabled', anyErrors);
+  },
+
+  /**
+   * Error-callback for validations request
+   * @param {object} jqXHR
+   * @param {object} ajaxOptions
+   * @param {string} error
+   * @param {object} opt
+   * @method updateValidationsErrorCallback
+   */
+  updateValidationsErrorCallback: function (jqXHR, ajaxOptions, error, opt) {
+    App.ajax.defaultErrorHandler(jqXHR, opt.url, opt.method, jqXHR.status);
+    console.log('Load validations failed');
   },
 
   /**
@@ -532,20 +539,12 @@ App.WizardStep5Controller = Em.Controller.extend(App.BlueprintMixin, {
         name: 'wizard.loadrecommendations',
         sender: self,
         data: data,
-        success: 'loadRecommendationsSuccessCallback'
+        success: 'loadRecommendationsSuccessCallback',
+        error: 'loadRecommendationsErrorCallback'
       }).
-        retry({
-          times: App.maxRetries,
-          timeout: App.timeout
-        }).
         then(function () {
           callback(self.createComponentInstallationObjects(), self);
-        },
-        function () {
-          App.showReloadPopup();
-          console.log('Load recommendations failed');
-        }
-      );
+        });
     }
   },
 
@@ -645,6 +644,19 @@ App.WizardStep5Controller = Em.Controller.extend(App.BlueprintMixin, {
    */
   loadRecommendationsSuccessCallback: function (data) {
     this.set('content.recommendations', data.resources[0].recommendations);
+  },
+
+  /**
+   * Error-callback for recommendations request
+   * @param {object} jqXHR
+   * @param {object} ajaxOptions
+   * @param {string} error
+   * @param {object} opt
+   * @method loadRecommendationsErrorCallback
+   */
+  loadRecommendationsErrorCallback: function (jqXHR, ajaxOptions, error, opt) {
+    App.ajax.defaultErrorHandler(jqXHR, opt.url, opt.method, jqXHR.status);
+    console.log('Load recommendations failed');
   },
 
   /**
