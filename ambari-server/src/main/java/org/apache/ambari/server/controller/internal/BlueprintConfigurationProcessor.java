@@ -274,6 +274,17 @@ public class BlueprintConfigurationProcessor {
     return hosts;
   }
 
+
+  /**
+   * Provides package-level access to the map of single host topology updaters.
+   * This is useful for facilitating unit-testing of this class.
+   *
+   * @return the map of single host topology updaters
+   */
+  static Map<String, Map<String, PropertyUpdater>> getSingleHostTopologyUpdaters() {
+    return singleHostTopologyUpdaters;
+  }
+
   /**
    * Provides functionality to update a property value.
    */
@@ -296,7 +307,7 @@ public class BlueprintConfigurationProcessor {
    * Topology based updater which replaces the original host name of a property with the host name
    * which runs the associated (master) component in the new cluster.
    */
-  private static class SingleHostTopologyUpdater implements PropertyUpdater {
+  static class SingleHostTopologyUpdater implements PropertyUpdater {
     /**
      * Component name
      */
@@ -340,6 +351,16 @@ public class BlueprintConfigurationProcessor {
               "Component '" + this.component + "' is not mapped to any host group or is mapped to multiple groups.");
         }
       }
+    }
+
+    /**
+     * Provides access to the name of the component associated
+     *   with this updater instance.
+     *
+     * @return component name for this updater
+     */
+    public String getComponentName() {
+      return this.component;
     }
   }
 
@@ -603,6 +624,8 @@ public class BlueprintConfigurationProcessor {
     Map<String, PropertyUpdater> hiveSiteMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> oozieSiteMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> stormSiteMap = new HashMap<String, PropertyUpdater>();
+    Map<String, PropertyUpdater> falconStartupPropertiesMap = new HashMap<String, PropertyUpdater>();
+
 
     Map<String, PropertyUpdater> mapredEnvMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> hadoopEnvMap = new HashMap<String, PropertyUpdater>();
@@ -623,6 +646,7 @@ public class BlueprintConfigurationProcessor {
     singleHostTopologyUpdaters.put("hive-site", hiveSiteMap);
     singleHostTopologyUpdaters.put("oozie-site", oozieSiteMap);
     singleHostTopologyUpdaters.put("storm-site", stormSiteMap);
+    singleHostTopologyUpdaters.put("falcon-startup.properties", falconStartupPropertiesMap);
 
     mPropertyUpdaters.put("hadoop-env", hadoopEnvMap);
     mPropertyUpdaters.put("hbase-env", hbaseEnvMap);
@@ -685,6 +709,10 @@ public class BlueprintConfigurationProcessor {
     stormSiteMap.put("nimbus.childopts", new SingleHostTopologyUpdater("GANGLIA_SERVER"));
     multiStormSiteMap.put("storm.zookeeper.servers",
         new YamlMultiValuePropertyDecorator(new MultipleHostTopologyUpdater("ZOOKEEPER_SERVER")));
+
+    // FALCON
+    falconStartupPropertiesMap.put("*.broker.url", new SingleHostTopologyUpdater("FALCON_SERVER"));
+
 
     // Required due to AMBARI-4933.  These no longer seem to be required as the default values in the stack
     // are now correct but are left here in case an existing blueprint still contains an old value.
