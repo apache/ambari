@@ -39,7 +39,8 @@ def setup_hadoop():
     Directory(params.hdfs_log_dir_prefix,
               recursive=True,
               owner='root',
-              group='root'
+              group=params.user_group,
+              mode=0775
     )
     Directory(params.hadoop_pid_dir_prefix,
               recursive=True,
