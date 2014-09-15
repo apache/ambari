@@ -777,12 +777,12 @@ public class ViewEntity implements ViewDefinition {
   }
 
   /**
-   * Determine whether or not the entity is loaded.
+   * Determine whether or not the entity is deployed.
    *
-   * @return true if the entity is loaded
+   * @return true if the entity is deployed
    */
-  public boolean isLoaded() {
-    return status.equals(ViewStatus.LOADED);
+  public boolean isDeployed() {
+    return status.equals(ViewStatus.DEPLOYED);
   }
 
   /**

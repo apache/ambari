@@ -249,11 +249,11 @@ public class ViewEntityTest {
     viewDefinition.setStatus(ViewDefinition.ViewStatus.PENDING);
     Assert.assertEquals(ViewDefinition.ViewStatus.PENDING, viewDefinition.getStatus());
 
-    viewDefinition.setStatus(ViewDefinition.ViewStatus.LOADING);
-    Assert.assertEquals(ViewDefinition.ViewStatus.LOADING, viewDefinition.getStatus());
+    viewDefinition.setStatus(ViewDefinition.ViewStatus.DEPLOYING);
+    Assert.assertEquals(ViewDefinition.ViewStatus.DEPLOYING, viewDefinition.getStatus());
 
-    viewDefinition.setStatus(ViewDefinition.ViewStatus.LOADED);
-    Assert.assertEquals(ViewDefinition.ViewStatus.LOADED, viewDefinition.getStatus());
+    viewDefinition.setStatus(ViewDefinition.ViewStatus.DEPLOYED);
+    Assert.assertEquals(ViewDefinition.ViewStatus.DEPLOYED, viewDefinition.getStatus());
 
     viewDefinition.setStatus(ViewDefinition.ViewStatus.ERROR);
     Assert.assertEquals(ViewDefinition.ViewStatus.ERROR, viewDefinition.getStatus());
@@ -268,20 +268,20 @@ public class ViewEntityTest {
   }
 
   @Test
-  public void testIsLoaded() throws Exception {
+  public void testisDeployed() throws Exception {
     ViewEntity viewDefinition = getViewEntity();
 
     viewDefinition.setStatus(ViewDefinition.ViewStatus.PENDING);
-    Assert.assertFalse(viewDefinition.isLoaded());
+    Assert.assertFalse(viewDefinition.isDeployed());
 
-    viewDefinition.setStatus(ViewDefinition.ViewStatus.LOADING);
-    Assert.assertFalse(viewDefinition.isLoaded());
+    viewDefinition.setStatus(ViewDefinition.ViewStatus.DEPLOYING);
+    Assert.assertFalse(viewDefinition.isDeployed());
 
-    viewDefinition.setStatus(ViewDefinition.ViewStatus.LOADED);
-    Assert.assertTrue(viewDefinition.isLoaded());
+    viewDefinition.setStatus(ViewDefinition.ViewStatus.DEPLOYED);
+    Assert.assertTrue(viewDefinition.isDeployed());
 
     viewDefinition.setStatus(ViewDefinition.ViewStatus.ERROR);
-    Assert.assertFalse(viewDefinition.isLoaded());
+    Assert.assertFalse(viewDefinition.isDeployed());
   }
 
   @Test

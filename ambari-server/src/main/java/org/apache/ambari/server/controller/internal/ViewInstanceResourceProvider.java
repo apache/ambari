@@ -146,7 +146,7 @@ public class ViewInstanceResourceProvider extends AbstractResourceProvider {
 
       for (ViewEntity viewDefinition : viewRegistry.getDefinitions()){
         // do not report instances for views that are not loaded.
-        if (viewDefinition.isLoaded()){
+        if (viewDefinition.isDeployed()){
           if (viewName == null || viewName.equals(viewDefinition.getCommonName())) {
             for (ViewInstanceEntity viewInstanceDefinition : viewRegistry.getInstanceDefinitions(viewDefinition)) {
               if (instanceName == null || instanceName.equals(viewInstanceDefinition.getName())) {
@@ -348,8 +348,8 @@ public class ViewInstanceResourceProvider extends AbstractResourceProvider {
             throw new IllegalStateException("The view " + viewName + " is not registered.");
           }
 
-          // the view must be in the LOADED state to create an instance
-          if (!view.isLoaded()) {
+          // the view must be in the DEPLOYED state to create an instance
+          if (!view.isDeployed()) {
             throw new IllegalStateException("The view " + viewName + " is not loaded.");
           }
 
@@ -393,8 +393,8 @@ public class ViewInstanceResourceProvider extends AbstractResourceProvider {
         Set<ViewInstanceEntity> viewInstanceEntities = new HashSet<ViewInstanceEntity>();
 
         for (ViewEntity viewEntity : viewRegistry.getDefinitions()){
-          // the view must be in the LOADED state to delete an instance
-          if (viewEntity.isLoaded()) {
+          // the view must be in the DEPLOYED state to delete an instance
+          if (viewEntity.isDeployed()) {
             for (ViewInstanceEntity viewInstanceEntity : viewRegistry.getInstanceDefinitions(viewEntity)){
               Resource resource = toResource(viewInstanceEntity, requestedIds);
               if (predicate == null || predicate.evaluate(resource)) {

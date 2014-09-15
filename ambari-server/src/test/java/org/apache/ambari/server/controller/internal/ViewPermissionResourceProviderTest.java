@@ -83,7 +83,7 @@ public class ViewPermissionResourceProviderTest {
     expect(permissionEntity.getResourceType()).andReturn(resourceTypeEntity);
     expect(resourceTypeEntity.getName()).andReturn("V1");
 
-    expect(viewEntity.isLoaded()).andReturn(true).anyTimes();
+    expect(viewEntity.isDeployed()).andReturn(true).anyTimes();
     expect(viewEntity.getCommonName()).andReturn("V1").anyTimes();
     expect(viewEntity.getVersion()).andReturn("1.0.0").anyTimes();
 
@@ -118,7 +118,7 @@ public class ViewPermissionResourceProviderTest {
 
     expect(permissionEntity.getResourceType()).andReturn(resourceTypeEntity);
 
-    expect(viewEntity.isLoaded()).andReturn(false).anyTimes();
+    expect(viewEntity.isDeployed()).andReturn(false).anyTimes();
 
     expect(viewRegistry.getDefinition(resourceTypeEntity)).andReturn(viewEntity);
 

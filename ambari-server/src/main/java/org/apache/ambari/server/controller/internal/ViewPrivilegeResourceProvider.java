@@ -118,7 +118,7 @@ public class ViewPrivilegeResourceProvider extends PrivilegeResourceProvider<Vie
 
       ViewEntity view = viewInstanceEntity.getViewEntity();
 
-      return view.isLoaded() ?
+      return view.isDeployed() ?
           Collections.singletonMap(viewInstanceEntity.getResource().getId(), viewInstanceEntity) :
           Collections.<Long, ViewInstanceEntity>emptyMap();
     }
@@ -141,7 +141,7 @@ public class ViewPrivilegeResourceProvider extends PrivilegeResourceProvider<Vie
     Map<Long, ViewInstanceEntity> resourceEntities = new HashMap<Long, ViewInstanceEntity>();
 
     for (ViewEntity viewEntity : viewEntities) {
-      if (viewEntity.isLoaded()) {
+      if (viewEntity.isDeployed()) {
         for (ViewInstanceEntity viewInstanceEntity : viewEntity.getInstances()) {
           resourceEntities.put(viewInstanceEntity.getResource().getId(), viewInstanceEntity);
         }
@@ -164,7 +164,7 @@ public class ViewPrivilegeResourceProvider extends PrivilegeResourceProvider<Vie
 
       ViewEntity view = viewInstanceEntity.getViewEntity();
 
-      return view.isLoaded() ? viewInstanceEntity.getResource().getId() : null;
+      return view.isDeployed() ? viewInstanceEntity.getResource().getId() : null;
     }
     return null;
   }
@@ -189,7 +189,7 @@ public class ViewPrivilegeResourceProvider extends PrivilegeResourceProvider<Vie
       ViewInstanceEntity viewInstanceEntity = resourceEntities.get(privilegeEntity.getResource().getId());
       ViewEntity         viewEntity         = viewInstanceEntity.getViewEntity();
 
-      if (!viewEntity.isLoaded()) {
+      if (!viewEntity.isDeployed()) {
         return null;
       }
 
