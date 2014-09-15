@@ -48,7 +48,8 @@ import javax.persistence.UniqueConstraint;
     @NamedQuery(name = "AlertGroupEntity.findAll", query = "SELECT alertGroup FROM AlertGroupEntity alertGroup"),
     @NamedQuery(name = "AlertGroupEntity.findAllInCluster", query = "SELECT alertGroup FROM AlertGroupEntity alertGroup WHERE alertGroup.clusterId = :clusterId"),
     @NamedQuery(name = "AlertGroupEntity.findByName", query = "SELECT alertGroup FROM AlertGroupEntity alertGroup WHERE alertGroup.groupName = :groupName"),
-    @NamedQuery(name = "AlertGroupEntity.findByNameInCluster", query = "SELECT alertGroup FROM AlertGroupEntity alertGroup WHERE alertGroup.groupName = :groupName AND alertGroup.clusterId = :clusterId"), })
+    @NamedQuery(name = "AlertGroupEntity.findByNameInCluster", query = "SELECT alertGroup FROM AlertGroupEntity alertGroup WHERE alertGroup.groupName = :groupName AND alertGroup.clusterId = :clusterId"),
+    @NamedQuery(name = "AlertGroupEntity.findByAssociatedDefinition", query = "SELECT alertGroup FROM AlertGroupEntity alertGroup WHERE :alertDefinition MEMBER OF alertGroup.alertDefinitions"), })
 public class AlertGroupEntity {
 
   @Id
@@ -224,7 +225,7 @@ public class AlertGroupEntity {
   /**
    * Adds the specified definition to the definitions that this group will
    * dispatch to.
-   * 
+   *
    * @param definition
    *          the definition to add (not {@code null}).
    */
@@ -240,7 +241,7 @@ public class AlertGroupEntity {
   /**
    * Removes the specified definition from the definitions that this group will
    * dispatch to.
-   * 
+   *
    * @param definition
    *          the definition to remove (not {@code null}).
    */

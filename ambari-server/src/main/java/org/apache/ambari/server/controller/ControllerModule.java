@@ -51,6 +51,8 @@ import org.apache.ambari.server.controller.internal.HostResourceProvider;
 import org.apache.ambari.server.controller.internal.MemberResourceProvider;
 import org.apache.ambari.server.controller.internal.ServiceResourceProvider;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
+import org.apache.ambari.server.events.listeners.AlertReceivedListener;
+import org.apache.ambari.server.events.listeners.AlertStateChangedListener;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.DBAccessorImpl;
 import org.apache.ambari.server.orm.PersistenceType;
@@ -222,6 +224,8 @@ public class ControllerModule extends AbstractModule {
     bind(ViewInstanceHandlerList.class).to(AmbariHandlerList.class);
 
     requestStaticInjection(ExecutionCommandWrapper.class);
+
+    bindEagerSingletons();
   }
 
 
@@ -298,5 +302,16 @@ public class ControllerModule extends AbstractModule {
 
     bind(HostRoleCommandFactory.class).to(HostRoleCommandFactoryImpl.class);
     bind(SecurityHelper.class).toInstance(SecurityHelperImpl.getInstance());
+  }
+
+  /**
+   * Initializes all eager singletons that should be instantiated as soon as
+   * possible and not wait for injection.
+   */
+  private void bindEagerSingletons() {
+    // alert subscribers are "headless" and have no guice references; created
+    // them as eager singletons to have them register with the eventbus
+    bind(AlertReceivedListener.class).asEagerSingleton();
+    bind(AlertStateChangedListener.class).asEagerSingleton();
   }
 }

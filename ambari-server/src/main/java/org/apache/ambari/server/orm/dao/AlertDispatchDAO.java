@@ -22,9 +22,11 @@ import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 
+import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.AlertGroupEntity;
 import org.apache.ambari.server.orm.entities.AlertNoticeEntity;
 import org.apache.ambari.server.orm.entities.AlertTargetEntity;
+import org.apache.ambari.server.state.alert.AlertGroup;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -187,6 +189,26 @@ public class AlertDispatchDAO {
   public List<AlertTargetEntity> findAllTargets() {
     TypedQuery<AlertTargetEntity> query = entityManagerProvider.get().createNamedQuery(
         "AlertTargetEntity.findAll", AlertTargetEntity.class);
+
+    return daoUtils.selectList(query);
+  }
+
+  /**
+   * Gets all of the {@link AlertGroup} instances that include the specified
+   * alert definition.
+   *
+   * @param definitionEntity
+   *          the definition that the group must include (not {@code null}).
+   * @return all alert groups that have an association with the specified
+   *         definition or empty list if none exist (never {@code null}).
+   */
+  public List<AlertGroupEntity> findGroupsByDefinition(
+      AlertDefinitionEntity definitionEntity) {
+
+    TypedQuery<AlertGroupEntity> query = entityManagerProvider.get().createNamedQuery(
+        "AlertGroupEntity.findByAssociatedDefinition", AlertGroupEntity.class);
+
+    query.setParameter("alertDefinition", definitionEntity);
 
     return daoUtils.selectList(query);
   }

@@ -39,6 +39,9 @@ import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
+import org.apache.ambari.server.events.AlertEvent;
+import org.apache.ambari.server.events.AlertReceivedEvent;
+import org.apache.ambari.server.events.publishers.AlertEventPublisher;
 import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.state.AgentVersion;
 import org.apache.ambari.server.state.Alert;
@@ -60,7 +63,6 @@ import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.alert.AlertDefinition;
 import org.apache.ambari.server.state.alert.AlertDefinitionHash;
-import org.apache.ambari.server.state.cluster.AlertDataManager;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.host.HostHealthyHeartbeatEvent;
 import org.apache.ambari.server.state.host.HostRegistrationRequestEvent;
@@ -115,9 +117,12 @@ public class HeartBeatHandler {
 
   @Inject
   private AlertDefinitionHash alertDefinitionHash;
-  
+
+  /**
+   * Publishes {@link AlertEvent} instances.
+   */
   @Inject
-  private AlertDataManager alertManager;
+  private AlertEventPublisher alertEventPublisher;
 
   private Map<String, Long> hostResponseIds = new ConcurrentHashMap<String, Long>();
 
@@ -236,13 +241,16 @@ public class HeartBeatHandler {
     if (null == hostname || null == heartbeat) {
       return;
     }
-    
+
     if (null != heartbeat.getAlerts()) {
       for (Alert alert : heartbeat.getAlerts()) {
-        if (null == alert.getHost())
+        if (null == alert.getHost()) {
           alert.setHost(hostname);
+        }
+
         Cluster cluster = clusterFsm.getCluster(alert.getCluster());
-        alertManager.add(cluster.getClusterId(), alert);
+        AlertEvent event = new AlertReceivedEvent(cluster.getClusterId(), alert);
+        alertEventPublisher.publish(event);
       }
     }
 

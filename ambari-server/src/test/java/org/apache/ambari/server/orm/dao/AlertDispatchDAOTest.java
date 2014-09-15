@@ -351,6 +351,35 @@ public class AlertDispatchDAOTest {
   }
 
   /**
+   * Tests finding groups by a definition ID that they are associatd with.
+   * 
+   * @throws Exception
+   */
+  @Test
+  public void testFindGroupsByDefinition() throws Exception {
+    List<AlertDefinitionEntity> definitions = createDefinitions();
+    AlertGroupEntity group = helper.createAlertGroup(clusterId, null);
+
+    group = dao.findGroupById(group.getGroupId());
+    assertNotNull(group);
+
+    for (AlertDefinitionEntity definition : definitions) {
+      group.addAlertDefinition(definition);
+    }
+
+    dao.merge(group);
+
+    group = dao.findGroupByName(group.getGroupName());
+    assertEquals(definitions.size(), group.getAlertDefinitions().size());
+
+    for (AlertDefinitionEntity definition : definitions) {
+      List<AlertGroupEntity> groups = dao.findGroupsByDefinition(definition);
+      assertEquals(1, groups.size());
+      assertEquals(group.getGroupId(), groups.get(0).getGroupId());
+    }
+  }
+
+  /**
    * @return
    */
   private List<AlertDefinitionEntity> createDefinitions() throws Exception {

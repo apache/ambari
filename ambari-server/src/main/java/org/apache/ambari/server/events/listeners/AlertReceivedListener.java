@@ -15,75 +15,116 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.ambari.server.state.cluster;
+package org.apache.ambari.server.events.listeners;
 
+import org.apache.ambari.server.events.AlertEvent;
+import org.apache.ambari.server.events.AlertReceivedEvent;
+import org.apache.ambari.server.events.AlertStateChangeEvent;
+import org.apache.ambari.server.events.publishers.AlertEventPublisher;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.AlertsDAO;
 import org.apache.ambari.server.orm.entities.AlertCurrentEntity;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.AlertHistoryEntity;
 import org.apache.ambari.server.state.Alert;
+import org.apache.ambari.server.state.AlertState;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
+import com.google.common.eventbus.AllowConcurrentEvents;
+import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 /**
- * The AlertManager is reponsible for tracking all alerts generated for a cluster. 
+ * The {@link AlertReceivedListener} class handles {@link AlertReceivedEvent}
+ * and updates the appropirate DAOs. It may also fire new
+ * {@link AlertStateChangeEvent} when an {@link AlertState} change is detected.
  */
 @Singleton
-public class AlertDataManager {
+public class AlertReceivedListener {
+  /**
+   * Logger.
+   */
+  private static Log LOG = LogFactory.getLog(AlertReceivedListener.class);
 
   @Inject
   private AlertsDAO m_alertsDao;
+
   @Inject
   private AlertDefinitionDAO m_definitionDao;
 
-  
-  AlertDataManager() {
+  /**
+   * Receives and publishes {@link AlertEvent} instances.
+   */
+  private AlertEventPublisher m_alertEventPublisher;
+
+  /**
+   * Constructor.
+   *
+   * @param publisher
+   */
+  @Inject
+  public AlertReceivedListener(AlertEventPublisher publisher) {
+    m_alertEventPublisher = publisher;
+    m_alertEventPublisher.register(this);
   }
-  
+
+
   /**
    * Adds an alert.  Checks for a new state before creating a new history record.
-   * 
+   *
    * @param clusterId the id for the cluster
    * @param alert the alert to add
    */
-  public void add(long clusterId, Alert alert) {
-    
+  @Subscribe
+  @AllowConcurrentEvents
+  public void onAlertEvent(AlertReceivedEvent event) {
+    long clusterId = event.getClusterId();
+    Alert alert = event.getAlert();
+
     AlertCurrentEntity current = m_alertsDao.findCurrentByHostAndName(clusterId,
         alert.getHost(), alert.getName());
-    
+
     if (null == current) {
       AlertDefinitionEntity definition = m_definitionDao.findByName(clusterId,
           alert.getName());
-      
+
       AlertHistoryEntity history = createHistory(clusterId, definition, alert);
-      
+
       current = new AlertCurrentEntity();
       current.setAlertHistory(history);
       current.setLatestTimestamp(Long.valueOf(alert.getTimestamp()));
       current.setOriginalTimestamp(Long.valueOf(alert.getTimestamp()));
-      
+
       m_alertsDao.create(current);
-      
+
     } else if (alert.getState() == current.getAlertHistory().getAlertState()) {
       current.setLatestTimestamp(Long.valueOf(alert.getTimestamp()));
       current.setLatestText(alert.getText());
-      
+
       m_alertsDao.merge(current);
     } else {
+      AlertState oldState = current.getAlertHistory().getAlertState();
+
       // insert history, update current
       AlertHistoryEntity history = createHistory(clusterId,
           current.getAlertHistory().getAlertDefinition(), alert);
-      
+
       current.setAlertHistory(history);
       current.setLatestTimestamp(Long.valueOf(alert.getTimestamp()));
       current.setOriginalTimestamp(Long.valueOf(alert.getTimestamp()));
-      
+
       m_alertsDao.merge(current);
+
+      // broadcast the alert changed event for other subscribers
+      AlertStateChangeEvent alertChangedEvent = new AlertStateChangeEvent(
+          event.getClusterId(), event.getAlert(), history, oldState);
+
+      m_alertEventPublisher.publish(alertChangedEvent);
     }
-    
   }
+
   /**
    * Convenience to create a new alert.
    * @param clusterId the cluster id
@@ -103,9 +144,7 @@ public class AlertDataManager {
     history.setComponentName(alert.getComponent());
     history.setHostName(alert.getHost());
     history.setServiceName(alert.getService());
-    
+
     return history;
   }
-  
-
 }

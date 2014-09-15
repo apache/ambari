@@ -32,8 +32,8 @@ public class Alert {
   private String label = null;
   private String text = null;
   private long timestamp = 0L;
-  
- 
+
+
   /**
    * Constructor.
    * @param alertName the name of the alert
@@ -56,32 +56,32 @@ public class Alert {
 
   public Alert() {
   }
- 
+
   /**
    * @return the name
    */
 
-  @JsonProperty("name")     
+  @JsonProperty("name")
   public String getName() {
     return name;
   }
- 
+
   /**
    * @return the service
    */
-  @JsonProperty("service")    
+  @JsonProperty("service")
   public String getService() {
     return service;
   }
-  
+
   /**
    * @return the component
    */
-  @JsonProperty("component")  
+  @JsonProperty("component")
   public String getComponent() {
     return component;
   }
- 
+
   /**
    * @return the host
    */
@@ -89,7 +89,7 @@ public class Alert {
   public String getHost() {
     return host;
   }
- 
+
   /**
    * @return the state
    */
@@ -101,7 +101,7 @@ public class Alert {
   /**
    * @return a short descriptive label for the alert
    */
-  @JsonProperty("label")  
+  @JsonProperty("label")
   public String getLabel() {
     return label;
   }
@@ -109,32 +109,32 @@ public class Alert {
   /**
    * @param alertLabel a short descriptive label for the alert
    */
-  @JsonProperty("label")   
+  @JsonProperty("label")
   public void setLabel(String alertLabel) {
     label = alertLabel;
   }
- 
+
   /**
    * @return detail text about the alert
    */
-  @JsonProperty("text")   
+  @JsonProperty("text")
   public String getText() {
     return text;
   }
-  
+
   /**
    * @param alertText detail text about the alert
    */
-  @JsonProperty("text")   
+  @JsonProperty("text")
   public void setText(String alertText) {
     text = alertText;
   }
 
-  @JsonProperty("instance")  
+  @JsonProperty("instance")
   public String getInstance() {
     return instance;
   }
-  
+
   @JsonProperty("instance")
   public void setInstance(String instance) {
     this.instance = instance;
@@ -164,24 +164,24 @@ public class Alert {
   public void setState(AlertState state) {
     this.state = state;
   }
-  
+
   @JsonProperty("timestamp")
   public void setTimestamp(long ts) {
     timestamp = ts;
   }
-  
+
   @JsonProperty("timestamp")
   public long getTimestamp() {
     return timestamp;
   }
-  
+
   /**
    * @return
    */
   public String getCluster() {
     return cluster;
   }
-  
+
   @Override
   public int hashCode() {
     int result = alertHashCode();
@@ -197,8 +197,9 @@ public class Alert {
    */
   @Override
   public boolean equals(Object o) {
-    if (null == o || !Alert.class.isInstance(o))
+    if (null == o || !Alert.class.isInstance(o)) {
       return false;
+    }
 
     return hashCode() == o.hashCode();
   }
@@ -217,7 +218,7 @@ public class Alert {
 
   /**
    * Checks equality with another alert, not taking into account instance info
-   * 
+   *
    * @param that
    *          the other alert to compare against
    * @return <code>true</code> when the alert is equal in every way except the
@@ -226,8 +227,7 @@ public class Alert {
   public boolean almostEquals(Alert that) {
     return alertHashCode() == that.alertHashCode();
   }
-  
-  
+
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
@@ -242,7 +242,4 @@ public class Alert {
     sb.append('}');
     return sb.toString();
   }
-
-  
-
 }
