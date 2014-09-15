@@ -19,11 +19,13 @@
 package org.apache.ambari.view.slider.rest.client;
 
 import org.apache.log4j.Logger;
+import org.codehaus.jackson.annotate.JsonIgnore;
 
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -73,6 +75,7 @@ public class Metric {
     this.temporal = temporal;
   }
 
+  @JsonIgnore
   public XPathExpression getxPathExpression() {
     if (!xPathExpressionComputed) {
       XPathFactory xPathfactory = XPathFactory.newInstance();

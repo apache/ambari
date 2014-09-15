@@ -20,6 +20,6 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.apache.slider</groupId>
   <artifactId>slider-core</artifactId>
-  <version>0.41.0</version>
+  <version>0.51.0</version>
   <description>POM was created from install:install-file</description>
 </project>

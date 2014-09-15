@@ -403,7 +403,7 @@
 		<zookeeper.version>3.4.5</zookeeper.version>
 		<jetty.version>6.1.26</jetty.version>
 		<metrics.version>3.0.1</metrics.version>
-		<slider.version>0.41.0</slider.version>
+		<slider.version>0.51.0</slider.version>
 	</properties>
 
 	<build>
