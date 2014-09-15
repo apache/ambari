@@ -176,9 +176,9 @@ public abstract class StackAdvisorResourceProvider extends ReadOnlyResourceProvi
     return map;
   }
 
-  private static final String CONFIGURATIONS_PROPERTY_ID = "recommendations/blueprint/configurations/";
+  protected static final String CONFIGURATIONS_PROPERTY_ID = "recommendations/blueprint/configurations/";
 
-  private Map<String, Map<String, Map<String, String>>> calculateConfigurations(Request request) {
+  protected Map<String, Map<String, Map<String, String>>> calculateConfigurations(Request request) {
     Map<String, Map<String, Map<String, String>>> configurations = new HashMap<String, Map<String, Map<String, String>>>();
     Map<String, Object> properties = request.getProperties().iterator().next();
     for (String property : properties.keySet()) {
@@ -202,7 +202,7 @@ public abstract class StackAdvisorResourceProvider extends ReadOnlyResourceProvi
             siteMap.put(propertiesProperty, propertiesMap);
           }
 
-          String value = (String) properties.get(property);
+          String value = properties.get(property).toString();
           propertiesMap.put(propertyName, value);
         } catch (Exception e) {
           LOG.debug(String.format("Error handling configuration property, name = %s", property), e);

@@ -56,6 +56,7 @@ import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.StackConfigurationRequest;
 import org.apache.ambari.server.controller.StackConfigurationResponse;
+import org.apache.ambari.server.controller.StackLevelConfigurationRequest;
 import org.apache.ambari.server.controller.StackServiceComponentRequest;
 import org.apache.ambari.server.controller.StackServiceComponentResponse;
 import org.apache.ambari.server.controller.StackServiceRequest;
@@ -196,8 +197,10 @@ public class ClusterResourceProviderTest {
     StackConfigurationResponse stackConfigurationResponse3 = createNiceMock(StackConfigurationResponse.class);
     StackConfigurationResponse stackConfigurationResponse4 = createNiceMock(StackConfigurationResponse.class);
     StackConfigurationResponse stackConfigurationResponse5 = createNiceMock(StackConfigurationResponse.class);
+    StackConfigurationResponse stackConfigurationResponse6 = createNiceMock(StackConfigurationResponse.class);
     Capture<Set<StackConfigurationRequest>> serviceConfigurationRequestCapture1 = new Capture<Set<StackConfigurationRequest>>();
     Capture<Set<StackConfigurationRequest>> serviceConfigurationRequestCapture2 = new Capture<Set<StackConfigurationRequest>>();
+    Capture<Set<StackLevelConfigurationRequest>> serviceLevelConfigurationRequestCapture1 = new Capture<Set<StackLevelConfigurationRequest>>();
 
     Map<String, String> coreSiteAttributes = new HashMap<String, String>();
     coreSiteAttributes.put("final", "true");
@@ -209,6 +212,7 @@ public class ClusterResourceProviderTest {
     BlueprintConfigEntity blueprintConfig3 = createNiceMock(BlueprintConfigEntity.class);
     BlueprintConfigEntity blueprintConfig4 = createNiceMock(BlueprintConfigEntity.class);
     BlueprintConfigEntity blueprintConfig5 = createNiceMock(BlueprintConfigEntity.class);
+    BlueprintConfigEntity blueprintConfig6 = createNiceMock(BlueprintConfigEntity.class);
 
     HostGroupEntity hostGroup = createNiceMock(HostGroupEntity.class);
     HostGroupComponentEntity hostGroupComponent1 = createNiceMock(HostGroupComponentEntity.class);
@@ -240,6 +244,8 @@ public class ClusterResourceProviderTest {
     Capture<Map<String, String>> updateClusterPropertyMapCapture6 = new Capture<Map<String, String>>();
     Capture<Set<ClusterRequest>> updateClusterRequestCapture7 = new Capture<Set<ClusterRequest>>();
     Capture<Map<String, String>> updateClusterPropertyMapCapture7 = new Capture<Map<String, String>>();
+    Capture<Set<ClusterRequest>> updateClusterRequestCapture8 = new Capture<Set<ClusterRequest>>();
+    Capture<Map<String, String>> updateClusterPropertyMapCapture8 = new Capture<Map<String, String>>();
 
     Capture<Request> serviceRequestCapture = new Capture<Request>();
     Capture<Request> componentRequestCapture = new Capture<Request>();
@@ -272,7 +278,10 @@ public class ClusterResourceProviderTest {
     stackConfigurationResponses2.add(stackConfigurationResponse2);
     stackConfigurationResponses2.add(stackConfigurationResponse3);
     stackConfigurationResponses2.add(stackConfigurationResponse4);
-
+    
+    Set<StackConfigurationResponse> stackConfigurationResponses3 = new LinkedHashSet<StackConfigurationResponse>();
+    stackConfigurationResponses3.add(stackConfigurationResponse6);
+    
     Collection<HostGroupComponentEntity> hostGroupComponents = new LinkedHashSet<HostGroupComponentEntity>();
     hostGroupComponents.add(hostGroupComponent1);
     hostGroupComponents.add(hostGroupComponent2);
@@ -322,6 +331,7 @@ public class ClusterResourceProviderTest {
     configurations.add(blueprintConfig3);
     configurations.add(blueprintConfig4);
     configurations.add(blueprintConfig5);
+    configurations.add(blueprintConfig6);
 
     // expectations
     expect(request.getProperties()).andReturn(propertySet).anyTimes();
@@ -353,6 +363,10 @@ public class ClusterResourceProviderTest {
 
     expect(managementController.getStackConfigurations(capture(serviceConfigurationRequestCapture1))).
         andReturn(stackConfigurationResponses1);
+    
+    expect(managementController.getStackLevelConfigurations(capture(serviceLevelConfigurationRequestCapture1))).
+        andReturn(stackConfigurationResponses3);
+    
     expect(stackConfigurationResponse1.getType()).andReturn("core-site.xml");
     expect(stackConfigurationResponse1.getPropertyName()).andReturn("property1");
     expect(stackConfigurationResponse1.getPropertyValue()).andReturn("value1");
@@ -360,10 +374,15 @@ public class ClusterResourceProviderTest {
 
     expect(managementController.getStackComponents(capture(serviceComponentRequestCapture2))).
         andReturn(stackServiceComponentResponses2);
+    
     expect(stackServiceComponentResponse3.getComponentName()).andReturn("component3");
 
     expect(managementController.getStackConfigurations(capture(serviceConfigurationRequestCapture2))).
         andReturn(stackConfigurationResponses2);
+    
+    expect(managementController.getStackLevelConfigurations(capture(serviceLevelConfigurationRequestCapture1))).
+        andReturn(stackConfigurationResponses3);
+    
     expect(stackConfigurationResponse2.getType()).andReturn("hdfs-site.xml");
     expect(stackConfigurationResponse2.getPropertyName()).andReturn("property2");
     expect(stackConfigurationResponse2.getPropertyValue()).andReturn("value2");
@@ -380,6 +399,10 @@ public class ClusterResourceProviderTest {
     expect(stackConfigurationResponse5.getType()).andReturn("hive-site.xml");
     expect(stackConfigurationResponse5.getPropertyName()).andReturn("javax.jdo.option.ConnectionURL");
     expect(stackConfigurationResponse5.getPropertyValue()).andReturn("localhost:12345");
+    
+    expect(stackConfigurationResponse6.getType()).andReturn("cluster-env.xml").anyTimes();
+    expect(stackConfigurationResponse6.getPropertyName()).andReturn("rqw").anyTimes();
+    expect(stackConfigurationResponse6.getPropertyValue()).andReturn("aaaa").anyTimes();
 
     expect(blueprintConfig.getBlueprintName()).andReturn("test-blueprint").anyTimes();
     expect(blueprintConfig.getType()).andReturn("core-site").anyTimes();
@@ -396,6 +419,9 @@ public class ClusterResourceProviderTest {
     expect(blueprintConfig5.getBlueprintName()).andReturn("test-blueprint").anyTimes();
     expect(blueprintConfig5.getType()).andReturn("global").anyTimes();
     expect(blueprintConfig5.getConfigData()).andReturn(new Gson().toJson(hbaseEnvConfigProperties)).anyTimes();
+    expect(blueprintConfig6.getBlueprintName()).andReturn("test-blueprint").anyTimes();
+    expect(blueprintConfig6.getType()).andReturn("cluster-env").anyTimes();
+    expect(blueprintConfig6.getConfigData()).andReturn(new Gson().toJson(hbaseEnvConfigProperties)).anyTimes();
 
 
     expect(blueprint.getHostGroups()).andReturn(Collections.singleton(hostGroup)).anyTimes();
@@ -426,6 +452,8 @@ public class ClusterResourceProviderTest {
         capture(updateClusterPropertyMapCapture6))).andReturn(null);
     expect(managementController.updateClusters(capture(updateClusterRequestCapture7),
         capture(updateClusterPropertyMapCapture7))).andReturn(null);
+    expect(managementController.updateClusters(capture(updateClusterRequestCapture8),
+        capture(updateClusterPropertyMapCapture8))).andReturn(null);
 
     expect(serviceResourceProvider.createResources(capture(serviceRequestCapture))).andReturn(null);
     expect(componentResourceProvider.createResources(capture(componentRequestCapture))).andReturn(null);
@@ -443,8 +471,8 @@ public class ClusterResourceProviderTest {
     replay(blueprintDAO, managementController, request, response, blueprint, stackServiceResponse1, stackServiceResponse2,
            stackServiceComponentResponse1, stackServiceComponentResponse2, stackServiceComponentResponse3,
            stackServiceComponentResponse4, stackConfigurationResponse1, stackConfigurationResponse2,
-           stackConfigurationResponse3, stackConfigurationResponse4, stackConfigurationResponse5, blueprintConfig,
-           blueprintConfig2, blueprintConfig3, blueprintConfig4, blueprintConfig5, hostGroup, hostGroupComponent1, hostGroupComponent2, hostGroupComponent3, hostGroupComponent4,
+           stackConfigurationResponse3, stackConfigurationResponse4, stackConfigurationResponse5, stackConfigurationResponse6, blueprintConfig,
+           blueprintConfig2, blueprintConfig3, blueprintConfig4, blueprintConfig5, blueprintConfig6, hostGroup, hostGroupComponent1, hostGroupComponent2, hostGroupComponent3, hostGroupComponent4,
            hostGroupConfig, serviceResourceProvider, componentResourceProvider, hostResourceProvider,
            hostComponentResourceProvider, configGroupResourceProvider, persistKeyValue, metaInfo);
 
@@ -514,6 +542,7 @@ public class ClusterResourceProviderTest {
     Set<ClusterRequest> updateClusterRequest5 = updateClusterRequestCapture5.getValue();
     Set<ClusterRequest> updateClusterRequest6 = updateClusterRequestCapture6.getValue();
     Set<ClusterRequest> updateClusterRequest7 = updateClusterRequestCapture7.getValue();
+    Set<ClusterRequest> updateClusterRequest8 = updateClusterRequestCapture8.getValue();
     assertEquals(1, updateClusterRequest1.size());
     assertEquals(1, updateClusterRequest2.size());
     assertEquals(1, updateClusterRequest3.size());
@@ -521,6 +550,7 @@ public class ClusterResourceProviderTest {
     assertEquals(1, updateClusterRequest5.size());
     assertEquals(1, updateClusterRequest6.size());
     assertEquals(1, updateClusterRequest7.size());
+    assertEquals(1, updateClusterRequest8.size());
     ClusterRequest ucr1 = updateClusterRequest1.iterator().next();
     ClusterRequest ucr2 = updateClusterRequest2.iterator().next();
     ClusterRequest ucr3 = updateClusterRequest3.iterator().next();
@@ -528,6 +558,7 @@ public class ClusterResourceProviderTest {
     ClusterRequest ucr5 = updateClusterRequest5.iterator().next();
     ClusterRequest ucr6 = updateClusterRequest6.iterator().next();
     ClusterRequest ucr7 = updateClusterRequest7.iterator().next();
+    ClusterRequest ucr8 = updateClusterRequest8.iterator().next();
     assertEquals(clusterName, ucr1.getClusterName());
     assertEquals(clusterName, ucr2.getClusterName());
     assertEquals(clusterName, ucr3.getClusterName());
@@ -535,6 +566,7 @@ public class ClusterResourceProviderTest {
     assertEquals(clusterName, ucr5.getClusterName());
     assertEquals(clusterName, ucr6.getClusterName());
     assertEquals(clusterName, ucr7.getClusterName());
+    assertEquals(clusterName, ucr8.getClusterName());
     ConfigurationRequest cr1 = ucr1.getDesiredConfig().get(0);
     ConfigurationRequest cr2 = ucr2.getDesiredConfig().get(0);
     ConfigurationRequest cr3 = ucr3.getDesiredConfig().get(0);
@@ -542,6 +574,7 @@ public class ClusterResourceProviderTest {
     ConfigurationRequest cr5 = ucr5.getDesiredConfig().get(0);
     ConfigurationRequest cr6 = ucr6.getDesiredConfig().get(0);
     ConfigurationRequest cr7 = ucr7.getDesiredConfig().get(0);
+    ConfigurationRequest cr8 = ucr8.getDesiredConfig().get(0);
     assertEquals("1", cr1.getVersionTag());
     assertEquals("1", cr2.getVersionTag());
     assertEquals("1", cr3.getVersionTag());
@@ -557,7 +590,8 @@ public class ClusterResourceProviderTest {
     mapConfigRequests.put(cr5.getType(), cr5);
     mapConfigRequests.put(cr6.getType(), cr6);
     mapConfigRequests.put(cr7.getType(), cr7);
-    assertEquals(7, mapConfigRequests.size());
+    mapConfigRequests.put(cr8.getType(), cr8);
+    assertEquals(8, mapConfigRequests.size());
     ConfigurationRequest hiveEnvConfigRequest = mapConfigRequests.get("hive-env");
     assertEquals("New MySQL Database", hiveEnvConfigRequest.getProperties().get("hive_database"));
     ConfigurationRequest hdfsConfigRequest = mapConfigRequests.get("hdfs-site");
@@ -637,7 +671,7 @@ public class ClusterResourceProviderTest {
     verify(blueprintDAO, managementController, request, response, blueprint, stackServiceResponse1, stackServiceResponse2,
         stackServiceComponentResponse1, stackServiceComponentResponse2, stackServiceComponentResponse3,
         stackServiceComponentResponse4, stackConfigurationResponse1, stackConfigurationResponse2,
-        stackConfigurationResponse3, stackConfigurationResponse4, stackConfigurationResponse5, blueprintConfig,
+        stackConfigurationResponse3, stackConfigurationResponse4, stackConfigurationResponse5, stackConfigurationResponse6, blueprintConfig,
         blueprintConfig2, hostGroup, hostGroupComponent1, hostGroupComponent2, hostGroupComponent3, hostGroupComponent4,
         hostGroupConfig, serviceResourceProvider, componentResourceProvider, hostResourceProvider,
         hostComponentResourceProvider, configGroupResourceProvider, persistKeyValue, metaInfo);
@@ -675,8 +709,10 @@ public class ClusterResourceProviderTest {
     StackConfigurationResponse stackConfigurationResponse5 = createNiceMock(StackConfigurationResponse.class);
     StackConfigurationResponse stackConfigurationResponse6 = createNiceMock(StackConfigurationResponse.class);
     StackConfigurationResponse stackConfigurationResponse7 = createNiceMock(StackConfigurationResponse.class);
+    StackConfigurationResponse stackConfigurationResponse8 = createNiceMock(StackConfigurationResponse.class);
     Capture<Set<StackConfigurationRequest>> serviceConfigurationRequestCapture1 = new Capture<Set<StackConfigurationRequest>>();
     Capture<Set<StackConfigurationRequest>> serviceConfigurationRequestCapture2 = new Capture<Set<StackConfigurationRequest>>();
+    Capture<Set<StackLevelConfigurationRequest>> serviceLevelConfigurationRequestCapture1 = new Capture<Set<StackLevelConfigurationRequest>>();
 
     BlueprintConfigEntity blueprintConfig = createNiceMock(BlueprintConfigEntity.class);
 
@@ -721,6 +757,9 @@ public class ClusterResourceProviderTest {
     stackConfigurationResponses2.add(stackConfigurationResponse6);
     stackConfigurationResponses2.add(stackConfigurationResponse7);
 
+    Set<StackConfigurationResponse> stackConfigurationResponses3 = new LinkedHashSet<StackConfigurationResponse>();
+    stackConfigurationResponses2.add(stackConfigurationResponse8);
+    
     Collection<HostGroupComponentEntity> hostGroupComponents = new LinkedHashSet<HostGroupComponentEntity>();
     hostGroupComponents.add(hostGroupComponent1);
     hostGroupComponents.add(hostGroupComponent2);
@@ -786,6 +825,10 @@ public class ClusterResourceProviderTest {
 
     expect(managementController.getStackConfigurations(capture(serviceConfigurationRequestCapture1))).
         andReturn(stackConfigurationResponses1);
+    
+    expect(managementController.getStackLevelConfigurations(capture(serviceLevelConfigurationRequestCapture1))).
+        andReturn(stackConfigurationResponses3);
+    
     expect(stackConfigurationResponse1.getType()).andReturn("core-site.xml");
     expect(stackConfigurationResponse1.getPropertyName()).andReturn("property1");
     expect(stackConfigurationResponse1.getPropertyValue()).andReturn("value1");
@@ -796,6 +839,14 @@ public class ClusterResourceProviderTest {
 
     expect(managementController.getStackConfigurations(capture(serviceConfigurationRequestCapture2))).
         andReturn(stackConfigurationResponses2);
+    
+    expect(managementController.getStackLevelConfigurations(capture(serviceLevelConfigurationRequestCapture1))).
+        andReturn(stackConfigurationResponses3); 
+    
+    expect(stackConfigurationResponse8.getType()).andReturn("cluster-env.xml").anyTimes();
+    expect(stackConfigurationResponse8.getPropertyName()).andReturn("rqw").anyTimes();
+    expect(stackConfigurationResponse8.getPropertyValue()).andReturn("aaaa").anyTimes();
+    
     expect(stackConfigurationResponse2.getType()).andReturn("hdfs-site.xml");
     expect(stackConfigurationResponse2.getPropertyName()).andReturn("property2");
     expect(stackConfigurationResponse2.getPropertyValue()).andReturn("value2");
@@ -820,7 +871,6 @@ public class ClusterResourceProviderTest {
     expect(stackConfigurationResponse7.getPropertyName()).andReturn("property3");
     expect(stackConfigurationResponse7.getPropertyValue()).andReturn("value3");
 
-
     expect(blueprintConfig.getBlueprintName()).andReturn("test-blueprint").anyTimes();
     expect(blueprintConfig.getType()).andReturn("core-site").anyTimes();
     expect(blueprintConfig.getConfigData()).andReturn(new Gson().toJson(blueprintConfigProperties));
@@ -840,7 +890,7 @@ public class ClusterResourceProviderTest {
     replay(blueprintDAO, managementController, request, response, blueprint, stackServiceResponse1, stackServiceResponse2,
         stackServiceComponentResponse1, stackServiceComponentResponse2, stackServiceComponentResponse3,
         stackConfigurationResponse1, stackConfigurationResponse2, stackConfigurationResponse3, stackConfigurationResponse4,
-        stackConfigurationResponse5, stackConfigurationResponse6, stackConfigurationResponse7,
+        stackConfigurationResponse5, stackConfigurationResponse6, stackConfigurationResponse7, stackConfigurationResponse8,
         blueprintConfig, hostGroup, hostGroupComponent1, hostGroupComponent2, hostGroupComponent3, hostGroupConfig,
         serviceResourceProvider, componentResourceProvider, hostResourceProvider, hostComponentResourceProvider,
         configGroupResourceProvider, persistKeyValue, metaInfo);
@@ -894,8 +944,11 @@ public class ClusterResourceProviderTest {
     StackConfigurationResponse stackConfigurationResponse2 = createNiceMock(StackConfigurationResponse.class);
     StackConfigurationResponse stackConfigurationResponse3 = createNiceMock(StackConfigurationResponse.class);
     StackConfigurationResponse stackConfigurationResponse4 = createNiceMock(StackConfigurationResponse.class);
+    StackConfigurationResponse stackConfigurationResponse5 = createNiceMock(StackConfigurationResponse.class);
     Capture<Set<StackConfigurationRequest>> serviceConfigurationRequestCapture1 = new Capture<Set<StackConfigurationRequest>>();
     Capture<Set<StackConfigurationRequest>> serviceConfigurationRequestCapture2 = new Capture<Set<StackConfigurationRequest>>();
+    Capture<Set<StackLevelConfigurationRequest>> serviceLevelConfigurationRequestCapture1 = new Capture<Set<StackLevelConfigurationRequest>>();
+
 
     BlueprintConfigEntity blueprintConfig = createNiceMock(BlueprintConfigEntity.class);
 
@@ -935,6 +988,9 @@ public class ClusterResourceProviderTest {
     stackConfigurationResponses2.add(stackConfigurationResponse2);
     stackConfigurationResponses2.add(stackConfigurationResponse3);
     stackConfigurationResponses2.add(stackConfigurationResponse4);
+    
+    Set<StackConfigurationResponse> stackConfigurationResponses3 = new LinkedHashSet<StackConfigurationResponse>();
+    stackConfigurationResponses2.add(stackConfigurationResponse5);
 
     Collection<HostGroupComponentEntity> hostGroupComponents = new LinkedHashSet<HostGroupComponentEntity>();
     hostGroupComponents.add(hostGroupComponent1);
@@ -981,6 +1037,10 @@ public class ClusterResourceProviderTest {
 
     expect(managementController.getStackConfigurations(capture(serviceConfigurationRequestCapture1))).
         andReturn(stackConfigurationResponses1);
+    
+    expect(managementController.getStackLevelConfigurations(capture(serviceLevelConfigurationRequestCapture1))).
+        andReturn(stackConfigurationResponses3);
+    
     expect(stackConfigurationResponse1.getType()).andReturn("core-site.xml");
     expect(stackConfigurationResponse1.getPropertyName()).andReturn("property1");
     expect(stackConfigurationResponse1.getPropertyValue()).andReturn("value1");
@@ -991,6 +1051,9 @@ public class ClusterResourceProviderTest {
 
     expect(managementController.getStackConfigurations(capture(serviceConfigurationRequestCapture2))).
         andReturn(stackConfigurationResponses2);
+    expect(managementController.getStackLevelConfigurations(capture(serviceLevelConfigurationRequestCapture1))).
+        andReturn(stackConfigurationResponses3);
+
     expect(stackConfigurationResponse2.getType()).andReturn("hdfs-site.xml");
     expect(stackConfigurationResponse2.getPropertyName()).andReturn("property2");
     expect(stackConfigurationResponse2.getPropertyValue()).andReturn("value2");
@@ -1002,6 +1065,11 @@ public class ClusterResourceProviderTest {
     expect(stackConfigurationResponse4.getType()).andReturn("core-site.xml");
     expect(stackConfigurationResponse4.getPropertyName()).andReturn("property3");
     expect(stackConfigurationResponse4.getPropertyValue()).andReturn("value3");
+    
+    expect(stackConfigurationResponse5.getType()).andReturn("cluster-env.xml").anyTimes();
+    expect(stackConfigurationResponse5.getPropertyName()).andReturn("rqw").anyTimes();
+    expect(stackConfigurationResponse5.getPropertyValue()).andReturn("aaaa").anyTimes();
+
 
     expect(blueprintConfig.getBlueprintName()).andReturn("test-blueprint").anyTimes();
     expect(blueprintConfig.getType()).andReturn("core-site").anyTimes();
@@ -1020,7 +1088,7 @@ public class ClusterResourceProviderTest {
 
     replay(blueprintDAO, managementController, request, response, blueprint, stackServiceResponse1, stackServiceResponse2,
         stackServiceComponentResponse1, stackServiceComponentResponse2, stackServiceComponentResponse3,
-        stackConfigurationResponse1, stackConfigurationResponse2, stackConfigurationResponse3, stackConfigurationResponse4,
+        stackConfigurationResponse1, stackConfigurationResponse2, stackConfigurationResponse3, stackConfigurationResponse4,stackConfigurationResponse5,
         blueprintConfig, hostGroup, hostGroupComponent1, hostGroupComponent2, hostGroupComponent3, hostGroupConfig,
         serviceResourceProvider, componentResourceProvider, hostResourceProvider, hostComponentResourceProvider,
         configGroupResourceProvider, persistKeyValue, metaInfo);
@@ -1067,9 +1135,11 @@ public class ClusterResourceProviderTest {
     StackConfigurationResponse stackConfigurationResponse2 = createNiceMock(StackConfigurationResponse.class);
     StackConfigurationResponse stackConfigurationResponse3 = createNiceMock(StackConfigurationResponse.class);
     StackConfigurationResponse stackConfigurationResponse4 = createNiceMock(StackConfigurationResponse.class);
+    StackConfigurationResponse stackConfigurationResponse5 = createNiceMock(StackConfigurationResponse.class);
     Capture<Set<StackConfigurationRequest>> serviceConfigurationRequestCapture1 = new Capture<Set<StackConfigurationRequest>>();
     Capture<Set<StackConfigurationRequest>> serviceConfigurationRequestCapture2 = new Capture<Set<StackConfigurationRequest>>();
-
+    Capture<Set<StackLevelConfigurationRequest>> serviceLevelConfigurationRequestCapture1 = new Capture<Set<StackLevelConfigurationRequest>>();
+    
     BlueprintConfigEntity blueprintConfig = createNiceMock(BlueprintConfigEntity.class);
 
     HostGroupEntity hostGroup = createNiceMock(HostGroupEntity.class);
@@ -1108,6 +1178,9 @@ public class ClusterResourceProviderTest {
     stackConfigurationResponses2.add(stackConfigurationResponse2);
     stackConfigurationResponses2.add(stackConfigurationResponse3);
     stackConfigurationResponses2.add(stackConfigurationResponse4);
+    
+    Set<StackConfigurationResponse> stackConfigurationResponses3 = new LinkedHashSet<StackConfigurationResponse>();
+    stackConfigurationResponses2.add(stackConfigurationResponse5);
 
     Collection<HostGroupComponentEntity> hostGroupComponents = new LinkedHashSet<HostGroupComponentEntity>();
     hostGroupComponents.add(hostGroupComponent1);
@@ -1164,6 +1237,10 @@ public class ClusterResourceProviderTest {
 
     expect(managementController.getStackConfigurations(capture(serviceConfigurationRequestCapture1))).
         andReturn(stackConfigurationResponses1);
+    
+    expect(managementController.getStackLevelConfigurations(capture(serviceLevelConfigurationRequestCapture1))).
+        andReturn(stackConfigurationResponses3);
+
     expect(stackConfigurationResponse1.getType()).andReturn("core-site.xml");
     expect(stackConfigurationResponse1.getPropertyName()).andReturn("property1");
     expect(stackConfigurationResponse1.getPropertyValue()).andReturn("value1");
@@ -1174,6 +1251,9 @@ public class ClusterResourceProviderTest {
 
     expect(managementController.getStackConfigurations(capture(serviceConfigurationRequestCapture2))).
         andReturn(stackConfigurationResponses2);
+    expect(managementController.getStackLevelConfigurations(capture(serviceLevelConfigurationRequestCapture1))).
+        andReturn(stackConfigurationResponses3);
+    
     expect(stackConfigurationResponse2.getType()).andReturn("hdfs-site.xml");
     expect(stackConfigurationResponse2.getPropertyName()).andReturn("property2");
     expect(stackConfigurationResponse2.getPropertyValue()).andReturn("value2");
@@ -1185,6 +1265,10 @@ public class ClusterResourceProviderTest {
     expect(stackConfigurationResponse4.getType()).andReturn("core-site.xml");
     expect(stackConfigurationResponse4.getPropertyName()).andReturn("property3");
     expect(stackConfigurationResponse4.getPropertyValue()).andReturn("value3");
+    
+    expect(stackConfigurationResponse5.getType()).andReturn("cluster-env.xml").anyTimes();
+    expect(stackConfigurationResponse5.getPropertyName()).andReturn("rqw").anyTimes();
+    expect(stackConfigurationResponse5.getPropertyValue()).andReturn("aaaa").anyTimes();
 
     expect(blueprintConfig.getBlueprintName()).andReturn("test-blueprint").anyTimes();
     expect(blueprintConfig.getType()).andReturn("core-site").anyTimes();
@@ -1203,7 +1287,7 @@ public class ClusterResourceProviderTest {
 
     replay(blueprintDAO, managementController, request, response, blueprint, stackServiceResponse1, stackServiceResponse2,
         stackServiceComponentResponse1, stackServiceComponentResponse2, stackServiceComponentResponse3,
-        stackConfigurationResponse1, stackConfigurationResponse2, stackConfigurationResponse3, stackConfigurationResponse4,
+        stackConfigurationResponse1, stackConfigurationResponse2, stackConfigurationResponse3, stackConfigurationResponse4,stackConfigurationResponse5,
         blueprintConfig, hostGroup, hostGroupComponent1, hostGroupComponent2, hostGroupComponent3, hostGroupConfig,
         serviceResourceProvider, componentResourceProvider, hostResourceProvider, hostComponentResourceProvider,
         configGroupResourceProvider, persistKeyValue, metaInfo);
@@ -1250,9 +1334,11 @@ public class ClusterResourceProviderTest {
     StackConfigurationResponse stackConfigurationResponse2 = createNiceMock(StackConfigurationResponse.class);
     StackConfigurationResponse stackConfigurationResponse3 = createNiceMock(StackConfigurationResponse.class);
     StackConfigurationResponse stackConfigurationResponse4 = createNiceMock(StackConfigurationResponse.class);
+    StackConfigurationResponse stackConfigurationResponse5 = createNiceMock(StackConfigurationResponse.class);
     Capture<Set<StackConfigurationRequest>> serviceConfigurationRequestCapture1 = new Capture<Set<StackConfigurationRequest>>();
     Capture<Set<StackConfigurationRequest>> serviceConfigurationRequestCapture2 = new Capture<Set<StackConfigurationRequest>>();
-
+    Capture<Set<StackLevelConfigurationRequest>> serviceLevelConfigurationRequestCapture1 = new Capture<Set<StackLevelConfigurationRequest>>();
+    
     BlueprintConfigEntity blueprintConfig = createNiceMock(BlueprintConfigEntity.class);
 
     HostGroupEntity hostGroup = createNiceMock(HostGroupEntity.class);
@@ -1291,6 +1377,9 @@ public class ClusterResourceProviderTest {
     stackConfigurationResponses2.add(stackConfigurationResponse2);
     stackConfigurationResponses2.add(stackConfigurationResponse3);
     stackConfigurationResponses2.add(stackConfigurationResponse4);
+    
+    Set<StackConfigurationResponse> stackConfigurationResponses3 = new LinkedHashSet<StackConfigurationResponse>();
+    stackConfigurationResponses3.add(stackConfigurationResponse5);
 
     Collection<HostGroupComponentEntity> hostGroupComponents = new LinkedHashSet<HostGroupComponentEntity>();
     hostGroupComponents.add(hostGroupComponent1);
@@ -1347,6 +1436,9 @@ public class ClusterResourceProviderTest {
 
     expect(managementController.getStackConfigurations(capture(serviceConfigurationRequestCapture1))).
         andReturn(stackConfigurationResponses1);
+    expect(managementController.getStackLevelConfigurations(capture(serviceLevelConfigurationRequestCapture1))).
+        andReturn(stackConfigurationResponses3);
+
     expect(stackConfigurationResponse1.getType()).andReturn("core-site.xml");
     expect(stackConfigurationResponse1.getPropertyName()).andReturn("property1");
     expect(stackConfigurationResponse1.getPropertyValue()).andReturn("value1");
@@ -1357,6 +1449,8 @@ public class ClusterResourceProviderTest {
 
     expect(managementController.getStackConfigurations(capture(serviceConfigurationRequestCapture2))).
         andReturn(stackConfigurationResponses2);
+    expect(managementController.getStackLevelConfigurations(capture(serviceLevelConfigurationRequestCapture1))).
+        andReturn(stackConfigurationResponses3);
     expect(stackConfigurationResponse2.getType()).andReturn("hdfs-site.xml");
     expect(stackConfigurationResponse2.getPropertyName()).andReturn("property2");
     expect(stackConfigurationResponse2.getPropertyValue()).andReturn("value2");
@@ -1368,6 +1462,10 @@ public class ClusterResourceProviderTest {
     expect(stackConfigurationResponse4.getType()).andReturn("core-site.xml");
     expect(stackConfigurationResponse4.getPropertyName()).andReturn("property3");
     expect(stackConfigurationResponse4.getPropertyValue()).andReturn("value3");
+    
+    expect(stackConfigurationResponse5.getType()).andReturn("cluster-env.xml").anyTimes();
+    expect(stackConfigurationResponse5.getPropertyName()).andReturn("rqw").anyTimes();
+    expect(stackConfigurationResponse5.getPropertyValue()).andReturn("aaaa").anyTimes();
 
     expect(blueprintConfig.getBlueprintName()).andReturn("test-blueprint").anyTimes();
     expect(blueprintConfig.getType()).andReturn("core-site").anyTimes();
@@ -1386,7 +1484,7 @@ public class ClusterResourceProviderTest {
 
     replay(blueprintDAO, managementController, request, response, blueprint, stackServiceResponse1, stackServiceResponse2,
         stackServiceComponentResponse1, stackServiceComponentResponse2, stackServiceComponentResponse3,
-        stackConfigurationResponse1, stackConfigurationResponse2, stackConfigurationResponse3, stackConfigurationResponse4,
+        stackConfigurationResponse1, stackConfigurationResponse2, stackConfigurationResponse3, stackConfigurationResponse4,stackConfigurationResponse5,
         blueprintConfig, hostGroup, hostGroupComponent1, hostGroupComponent2, hostGroupComponent3, hostGroupConfig,
         serviceResourceProvider, componentResourceProvider, hostResourceProvider, hostComponentResourceProvider,
         configGroupResourceProvider, persistKeyValue, metaInfo);
@@ -1429,9 +1527,11 @@ public class ClusterResourceProviderTest {
     StackConfigurationResponse stackConfigurationResponse5 = createNiceMock(StackConfigurationResponse.class);
     StackConfigurationResponse stackConfigurationResponse6 = createNiceMock(StackConfigurationResponse.class);
     StackConfigurationResponse stackConfigurationResponse7 = createNiceMock(StackConfigurationResponse.class);
+    StackConfigurationResponse stackConfigurationResponse8 = createNiceMock(StackConfigurationResponse.class);
     Capture<Set<StackServiceComponentRequest>> serviceComponentRequestCapture1 = new Capture<Set<StackServiceComponentRequest>>();
     Capture<Set<StackServiceComponentRequest>> serviceComponentRequestCapture2 = new Capture<Set<StackServiceComponentRequest>>();
-
+    Capture<Set<StackLevelConfigurationRequest>> serviceLevelConfigurationRequestCapture1 = new Capture<Set<StackLevelConfigurationRequest>>();
+    
     StackConfigurationResponse stackConfigurationResponse1 = createNiceMock(StackConfigurationResponse.class);
     StackConfigurationResponse stackConfigurationResponse2 = createNiceMock(StackConfigurationResponse.class);
     StackConfigurationResponse stackConfigurationResponse3 = createNiceMock(StackConfigurationResponse.class);
@@ -1468,7 +1568,8 @@ public class ClusterResourceProviderTest {
     Capture<Map<String, String>> updateClusterPropertyMapCapture5 = new Capture<Map<String, String>>();
     Capture<Set<ClusterRequest>> updateClusterRequestCapture6 = new Capture<Set<ClusterRequest>>();
     Capture<Map<String, String>> updateClusterPropertyMapCapture6 = new Capture<Map<String, String>>();
-
+    Capture<Set<ClusterRequest>> updateClusterRequestCapture7 = new Capture<Set<ClusterRequest>>();
+    Capture<Map<String, String>> updateClusterPropertyMapCapture7 = new Capture<Map<String, String>>();
     
     Capture<Request> serviceRequestCapture = new Capture<Request>();
     Capture<Request> componentRequestCapture = new Capture<Request>();
@@ -1503,7 +1604,9 @@ public class ClusterResourceProviderTest {
     stackConfigurationResponses2.add(stackConfigurationResponse6);
     stackConfigurationResponses2.add(stackConfigurationResponse7);
 
-
+    Set<StackConfigurationResponse> stackConfigurationResponses3 = new LinkedHashSet<StackConfigurationResponse>();
+    stackConfigurationResponses3.add(stackConfigurationResponse8);
+    
     Collection<HostGroupComponentEntity> hostGroupComponents = new LinkedHashSet<HostGroupComponentEntity>();
     hostGroupComponents.add(hostGroupComponent1);
     hostGroupComponents.add(hostGroupComponent2);
@@ -1571,6 +1674,9 @@ public class ClusterResourceProviderTest {
 
     expect(managementController.getStackConfigurations(capture(serviceConfigurationRequestCapture1))).
         andReturn(stackConfigurationResponses1);
+    expect(managementController.getStackLevelConfigurations(capture(serviceLevelConfigurationRequestCapture1))).
+        andReturn(stackConfigurationResponses3);
+
     expect(stackConfigurationResponse1.getType()).andReturn("core-site.xml");
     expect(stackConfigurationResponse1.getPropertyName()).andReturn("property1");
     expect(stackConfigurationResponse1.getPropertyValue()).andReturn("value1");
@@ -1581,6 +1687,8 @@ public class ClusterResourceProviderTest {
 
     expect(managementController.getStackConfigurations(capture(serviceConfigurationRequestCapture2))).
         andReturn(stackConfigurationResponses2);
+    expect(managementController.getStackLevelConfigurations(capture(serviceLevelConfigurationRequestCapture1))).
+        andReturn(stackConfigurationResponses3);
     expect(stackConfigurationResponse2.getType()).andReturn("hdfs-site.xml");
     expect(stackConfigurationResponse2.getPropertyName()).andReturn("property2");
     expect(stackConfigurationResponse2.getPropertyValue()).andReturn("value2");
@@ -1604,6 +1712,10 @@ public class ClusterResourceProviderTest {
     expect(stackConfigurationResponse7.getType()).andReturn("oozie-env.xml");
     expect(stackConfigurationResponse7.getPropertyName()).andReturn("oozie_user");
     expect(stackConfigurationResponse7.getPropertyValue()).andReturn("oozie");
+    
+    expect(stackConfigurationResponse8.getType()).andReturn("cluster-env.xml").anyTimes();
+    expect(stackConfigurationResponse8.getPropertyName()).andReturn("rqw").anyTimes();
+    expect(stackConfigurationResponse8.getPropertyValue()).andReturn("aaaa").anyTimes();
 
     expect(blueprintConfig.getBlueprintName()).andReturn("test-blueprint").anyTimes();
     expect(blueprintConfig.getType()).andReturn("core-site").anyTimes();
@@ -1634,7 +1746,8 @@ public class ClusterResourceProviderTest {
         capture(updateClusterPropertyMapCapture5))).andReturn(null);
     expect(managementController.updateClusters(capture(updateClusterRequestCapture6),
         capture(updateClusterPropertyMapCapture6))).andReturn(null);
-
+    expect(managementController.updateClusters(capture(updateClusterRequestCapture7),
+        capture(updateClusterPropertyMapCapture7))).andReturn(null);
 
     expect(serviceResourceProvider.createResources(capture(serviceRequestCapture))).andReturn(null);
     expect(componentResourceProvider.createResources(capture(componentRequestCapture))).andReturn(null);
@@ -1652,7 +1765,7 @@ public class ClusterResourceProviderTest {
     replay(blueprintDAO, managementController, request, response, blueprint, stackServiceResponse1, stackServiceResponse2,
         stackServiceComponentResponse1, stackServiceComponentResponse2, stackServiceComponentResponse3,
         stackConfigurationResponse1, stackConfigurationResponse2, stackConfigurationResponse3, stackConfigurationResponse4,
-        stackConfigurationResponse5, stackConfigurationResponse6, stackConfigurationResponse7,
+        stackConfigurationResponse5, stackConfigurationResponse6, stackConfigurationResponse7, stackConfigurationResponse8,
         blueprintConfig, hostGroup, hostGroupComponent1, hostGroupComponent2, hostGroupComponent3, hostGroupConfig,
         serviceResourceProvider, componentResourceProvider, hostResourceProvider, hostComponentResourceProvider,
         configGroupResourceProvider, persistKeyValue, metaInfo);
@@ -1722,31 +1835,36 @@ public class ClusterResourceProviderTest {
     Set<ClusterRequest> updateClusterRequest4 = updateClusterRequestCapture4.getValue();
     Set<ClusterRequest> updateClusterRequest5 = updateClusterRequestCapture5.getValue();
     Set<ClusterRequest> updateClusterRequest6 = updateClusterRequestCapture6.getValue();
-
+    Set<ClusterRequest> updateClusterRequest7 = updateClusterRequestCapture7.getValue();
+    
     assertEquals(1, updateClusterRequest1.size());
     assertEquals(1, updateClusterRequest2.size());
     assertEquals(1, updateClusterRequest3.size());
     assertEquals(1, updateClusterRequest4.size());
     assertEquals(1, updateClusterRequest5.size());
     assertEquals(1, updateClusterRequest6.size());
+    assertEquals(1, updateClusterRequest7.size());
     ClusterRequest ucr1 = updateClusterRequest1.iterator().next();
     ClusterRequest ucr2 = updateClusterRequest2.iterator().next();
     ClusterRequest ucr3 = updateClusterRequest3.iterator().next();
     ClusterRequest ucr4 = updateClusterRequest4.iterator().next();
     ClusterRequest ucr5 = updateClusterRequest5.iterator().next();
     ClusterRequest ucr6 = updateClusterRequest6.iterator().next();
+    ClusterRequest ucr7 = updateClusterRequest7.iterator().next();
     assertEquals(clusterName, ucr1.getClusterName());
     assertEquals(clusterName, ucr2.getClusterName());
     assertEquals(clusterName, ucr3.getClusterName());
     assertEquals(clusterName, ucr4.getClusterName());
     assertEquals(clusterName, ucr5.getClusterName());
     assertEquals(clusterName, ucr6.getClusterName());
+    assertEquals(clusterName, ucr7.getClusterName());
     ConfigurationRequest cr1 = ucr1.getDesiredConfig().get(0);
     ConfigurationRequest cr2 = ucr2.getDesiredConfig().get(0);
     ConfigurationRequest cr3 = ucr3.getDesiredConfig().get(0);
     ConfigurationRequest cr4 = ucr4.getDesiredConfig().get(0);
     ConfigurationRequest cr5 = ucr5.getDesiredConfig().get(0);
     ConfigurationRequest cr6 = ucr6.getDesiredConfig().get(0);
+    ConfigurationRequest cr7 = ucr7.getDesiredConfig().get(0);
 
     assertEquals("1", cr1.getVersionTag());
     assertEquals("1", cr2.getVersionTag());
@@ -1754,6 +1872,7 @@ public class ClusterResourceProviderTest {
     assertEquals("1", cr4.getVersionTag());
     assertEquals("1", cr5.getVersionTag());
     assertEquals("1", cr6.getVersionTag());
+    assertEquals("1", cr7.getVersionTag());
 
     Map<String, ConfigurationRequest> mapConfigRequests = new HashMap<String, ConfigurationRequest>();
     mapConfigRequests.put(cr1.getType(), cr1);
@@ -1762,7 +1881,9 @@ public class ClusterResourceProviderTest {
     mapConfigRequests.put(cr4.getType(), cr4);
     mapConfigRequests.put(cr5.getType(), cr5);
     mapConfigRequests.put(cr6.getType(), cr6);
-    assertEquals(6, mapConfigRequests.size());
+    mapConfigRequests.put(cr7.getType(), cr7);
+    assertEquals(7, mapConfigRequests.size());
+    
     ConfigurationRequest hdfsConfigRequest = mapConfigRequests.get("hdfs-site");
     assertEquals(1, hdfsConfigRequest.getProperties().size());
     assertEquals("value2", hdfsConfigRequest.getProperties().get("property2"));
@@ -1862,8 +1983,10 @@ public class ClusterResourceProviderTest {
     StackConfigurationResponse stackConfigurationResponse2 = createNiceMock(StackConfigurationResponse.class);
     StackConfigurationResponse stackConfigurationResponse3 = createNiceMock(StackConfigurationResponse.class);
     StackConfigurationResponse stackConfigurationResponse4 = createNiceMock(StackConfigurationResponse.class);
+    StackConfigurationResponse stackConfigurationResponse5 = createNiceMock(StackConfigurationResponse.class);
     Capture<Set<StackConfigurationRequest>> serviceConfigurationRequestCapture1 = new Capture<Set<StackConfigurationRequest>>();
     Capture<Set<StackConfigurationRequest>> serviceConfigurationRequestCapture2 = new Capture<Set<StackConfigurationRequest>>();
+    Capture<Set<StackLevelConfigurationRequest>> serviceLevelConfigurationRequestCapture1 = new Capture<Set<StackLevelConfigurationRequest>>();
 
     BlueprintConfigEntity blueprintConfig = createNiceMock(BlueprintConfigEntity.class);
 
@@ -1887,7 +2010,7 @@ public class ClusterResourceProviderTest {
     Capture<Map<String, String>> updateClusterPropertyMapCapture2 = new Capture<Map<String, String>>();
     Capture<Set<ClusterRequest>> updateClusterRequestCapture3 = new Capture<Set<ClusterRequest>>();
     Capture<Map<String, String>> updateClusterPropertyMapCapture3 = new Capture<Map<String, String>>();
-
+    
     Capture<Request> serviceRequestCapture = new Capture<Request>();
     Capture<Request> componentRequestCapture = new Capture<Request>();
     Capture<Request> componentRequestCapture2 = new Capture<Request>();
@@ -1917,6 +2040,9 @@ public class ClusterResourceProviderTest {
     stackConfigurationResponses2.add(stackConfigurationResponse2);
     stackConfigurationResponses2.add(stackConfigurationResponse3);
     stackConfigurationResponses2.add(stackConfigurationResponse4);
+    
+    Set<StackConfigurationResponse> stackConfigurationResponses3 = new LinkedHashSet<StackConfigurationResponse>();
+    stackConfigurationResponses3.add(stackConfigurationResponse5);
 
     Collection<HostGroupComponentEntity> hostGroupComponents = new LinkedHashSet<HostGroupComponentEntity>();
     hostGroupComponents.add(hostGroupComponent1);
@@ -1981,6 +2107,8 @@ public class ClusterResourceProviderTest {
 
     expect(managementController.getStackConfigurations(capture(serviceConfigurationRequestCapture1))).
         andReturn(stackConfigurationResponses1);
+    expect(managementController.getStackLevelConfigurations(capture(serviceLevelConfigurationRequestCapture1))).
+        andReturn(stackConfigurationResponses3);
     expect(stackConfigurationResponse1.getType()).andReturn("core-site.xml");
     expect(stackConfigurationResponse1.getPropertyName()).andReturn("property1");
     expect(stackConfigurationResponse1.getPropertyValue()).andReturn("value1");
@@ -1991,6 +2119,8 @@ public class ClusterResourceProviderTest {
 
     expect(managementController.getStackConfigurations(capture(serviceConfigurationRequestCapture2))).
         andReturn(stackConfigurationResponses2);
+    expect(managementController.getStackLevelConfigurations(capture(serviceLevelConfigurationRequestCapture1))).
+        andReturn(stackConfigurationResponses3);
     expect(stackConfigurationResponse2.getType()).andReturn("hdfs-site.xml");
     expect(stackConfigurationResponse2.getPropertyName()).andReturn("property2");
     expect(stackConfigurationResponse2.getPropertyValue()).andReturn("value2");
@@ -2002,6 +2132,11 @@ public class ClusterResourceProviderTest {
     expect(stackConfigurationResponse4.getType()).andReturn("core-site.xml");
     expect(stackConfigurationResponse4.getPropertyName()).andReturn("property3");
     expect(stackConfigurationResponse4.getPropertyValue()).andReturn("value3");
+    
+    expect(stackConfigurationResponse5.getType()).andReturn("cluster-env.xml").anyTimes();
+    expect(stackConfigurationResponse5.getPropertyName()).andReturn("rqw").anyTimes();
+    expect(stackConfigurationResponse5.getPropertyValue()).andReturn("aaaa").anyTimes();
+
 
     expect(blueprintConfig.getBlueprintName()).andReturn("test-blueprint").anyTimes();
     expect(blueprintConfig.getType()).andReturn("core-site").anyTimes();
@@ -2040,7 +2175,7 @@ public class ClusterResourceProviderTest {
 
     replay(blueprintDAO, managementController, request, response, blueprint, stackServiceResponse1, stackServiceResponse2,
         stackServiceComponentResponse1, stackServiceComponentResponse2, stackServiceComponentResponse3,
-        stackConfigurationResponse1, stackConfigurationResponse2, stackConfigurationResponse3, stackConfigurationResponse4,
+        stackConfigurationResponse1, stackConfigurationResponse2, stackConfigurationResponse3, stackConfigurationResponse4,stackConfigurationResponse5,
         blueprintConfig, hostGroup, hostGroupComponent1, hostGroupComponent2, hostGroupComponent3, hostGroupConfig,
         serviceResourceProvider, componentResourceProvider, hostResourceProvider, hostComponentResourceProvider,
         configGroupResourceProvider, metaInfo);
@@ -2092,8 +2227,10 @@ public class ClusterResourceProviderTest {
     StackConfigurationResponse stackConfigurationResponse6 = createNiceMock(StackConfigurationResponse.class);
     StackConfigurationResponse stackConfigurationResponse7 = createNiceMock(StackConfigurationResponse.class);
     StackConfigurationResponse stackConfigurationResponse8 = createNiceMock(StackConfigurationResponse.class);
+    StackConfigurationResponse stackConfigurationResponse9 = createNiceMock(StackConfigurationResponse.class);
     Capture<Set<StackConfigurationRequest>> serviceConfigurationRequestCapture1 = new Capture<Set<StackConfigurationRequest>>();
     Capture<Set<StackConfigurationRequest>> serviceConfigurationRequestCapture2 = new Capture<Set<StackConfigurationRequest>>();
+    Capture<Set<StackLevelConfigurationRequest>> serviceLevelConfigurationRequestCapture1 = new Capture<Set<StackLevelConfigurationRequest>>();
 
     Map<String, String> coreSiteAttributes = new HashMap<String, String>();
     coreSiteAttributes.put("final", "true");
@@ -2133,7 +2270,8 @@ public class ClusterResourceProviderTest {
     Capture<Map<String, String>> updateClusterPropertyMapCapture6 = new Capture<Map<String, String>>();
     Capture<Set<ClusterRequest>> updateClusterRequestCapture7 = new Capture<Set<ClusterRequest>>();
     Capture<Map<String, String>> updateClusterPropertyMapCapture7 = new Capture<Map<String, String>>();
-
+    Capture<Set<ClusterRequest>> updateClusterRequestCapture8 = new Capture<Set<ClusterRequest>>();
+    Capture<Map<String, String>> updateClusterPropertyMapCapture8 = new Capture<Map<String, String>>();
 
     Capture<Request> serviceRequestCapture = new Capture<Request>();
     Capture<Request> componentRequestCapture = new Capture<Request>();
@@ -2169,6 +2307,9 @@ public class ClusterResourceProviderTest {
     stackConfigurationResponses2.add(stackConfigurationResponse6);
     stackConfigurationResponses2.add(stackConfigurationResponse7);
     stackConfigurationResponses2.add(stackConfigurationResponse8);
+    
+    Set<StackConfigurationResponse> stackConfigurationResponses3 = new LinkedHashSet<StackConfigurationResponse>();
+    stackConfigurationResponses3.add(stackConfigurationResponse9);
 
     Collection<HostGroupComponentEntity> hostGroupComponents = new LinkedHashSet<HostGroupComponentEntity>();
     hostGroupComponents.add(hostGroupComponent1);
@@ -2252,6 +2393,9 @@ public class ClusterResourceProviderTest {
 
     expect(managementController.getStackConfigurations(capture(serviceConfigurationRequestCapture1))).
         andReturn(stackConfigurationResponses1);
+    expect(managementController.getStackLevelConfigurations(capture(serviceLevelConfigurationRequestCapture1))).
+        andReturn(stackConfigurationResponses3);
+
     expect(stackConfigurationResponse1.getType()).andReturn("core-site.xml");
     expect(stackConfigurationResponse1.getPropertyName()).andReturn("property1");
     expect(stackConfigurationResponse1.getPropertyValue()).andReturn("value1");
@@ -2263,6 +2407,8 @@ public class ClusterResourceProviderTest {
 
     expect(managementController.getStackConfigurations(capture(serviceConfigurationRequestCapture2))).
         andReturn(stackConfigurationResponses2);
+    expect(managementController.getStackLevelConfigurations(capture(serviceLevelConfigurationRequestCapture1))).
+        andReturn(stackConfigurationResponses3);
     expect(stackConfigurationResponse2.getType()).andReturn("hdfs-site.xml");
     expect(stackConfigurationResponse2.getPropertyName()).andReturn("property2");
     expect(stackConfigurationResponse2.getPropertyValue()).andReturn("value2");
@@ -2291,8 +2437,10 @@ public class ClusterResourceProviderTest {
     expect(stackConfigurationResponse8.getType()).andReturn("hive-env.xml");
     expect(stackConfigurationResponse8.getPropertyName()).andReturn("property3");
     expect(stackConfigurationResponse8.getPropertyValue()).andReturn("value3");
-
-
+    
+    expect(stackConfigurationResponse9.getType()).andReturn("cluster-env.xml").anyTimes();
+    expect(stackConfigurationResponse9.getPropertyName()).andReturn("rqw").anyTimes();
+    expect(stackConfigurationResponse9.getPropertyValue()).andReturn("aaaa").anyTimes();
 
     expect(blueprintConfig.getBlueprintName()).andReturn("test-blueprint").anyTimes();
     expect(blueprintConfig.getType()).andReturn("core-site").anyTimes();
@@ -2331,6 +2479,8 @@ public class ClusterResourceProviderTest {
         capture(updateClusterPropertyMapCapture6))).andReturn(null);
     expect(managementController.updateClusters(capture(updateClusterRequestCapture7),
         capture(updateClusterPropertyMapCapture7))).andReturn(null);
+    expect(managementController.updateClusters(capture(updateClusterRequestCapture8),
+        capture(updateClusterPropertyMapCapture8))).andReturn(null);
 
 
     expect(serviceResourceProvider.createResources(capture(serviceRequestCapture))).andReturn(null);
@@ -2349,7 +2499,8 @@ public class ClusterResourceProviderTest {
     replay(blueprintDAO, managementController, request, response, blueprint, stackServiceResponse1, stackServiceResponse2,
         stackServiceComponentResponse1, stackServiceComponentResponse2, stackServiceComponentResponse3,
         stackServiceComponentResponse4, stackConfigurationResponse1, stackConfigurationResponse2,
-        stackConfigurationResponse3, stackConfigurationResponse4, stackConfigurationResponse5, stackConfigurationResponse6, stackConfigurationResponse7, stackConfigurationResponse8, blueprintConfig,
+        stackConfigurationResponse3, stackConfigurationResponse4, stackConfigurationResponse5, stackConfigurationResponse6, 
+        stackConfigurationResponse7, stackConfigurationResponse8, stackConfigurationResponse9, blueprintConfig,
         blueprintConfig2, hostGroup, hostGroupComponent1, hostGroupComponent2, hostGroupComponent3, hostGroupComponent4,
         hostGroupConfig, serviceResourceProvider, componentResourceProvider, hostResourceProvider,
         hostComponentResourceProvider, configGroupResourceProvider, persistKeyValue, metaInfo);
@@ -2420,6 +2571,7 @@ public class ClusterResourceProviderTest {
     Set<ClusterRequest> updateClusterRequest5 = updateClusterRequestCapture5.getValue();
     Set<ClusterRequest> updateClusterRequest6 = updateClusterRequestCapture6.getValue();
     Set<ClusterRequest> updateClusterRequest7 = updateClusterRequestCapture7.getValue();
+    Set<ClusterRequest> updateClusterRequest8 = updateClusterRequestCapture8.getValue();
     assertEquals(1, updateClusterRequest1.size());
     assertEquals(1, updateClusterRequest2.size());
     assertEquals(1, updateClusterRequest3.size());
@@ -2427,6 +2579,7 @@ public class ClusterResourceProviderTest {
     assertEquals(1, updateClusterRequest5.size());
     assertEquals(1, updateClusterRequest6.size());
     assertEquals(1, updateClusterRequest7.size());
+    assertEquals(1, updateClusterRequest8.size());
     ClusterRequest ucr1 = updateClusterRequest1.iterator().next();
     ClusterRequest ucr2 = updateClusterRequest2.iterator().next();
     ClusterRequest ucr3 = updateClusterRequest3.iterator().next();
@@ -2434,6 +2587,7 @@ public class ClusterResourceProviderTest {
     ClusterRequest ucr5 = updateClusterRequest5.iterator().next();
     ClusterRequest ucr6 = updateClusterRequest6.iterator().next();
     ClusterRequest ucr7 = updateClusterRequest7.iterator().next();
+    ClusterRequest ucr8 = updateClusterRequest8.iterator().next();
     assertEquals(clusterName, ucr1.getClusterName());
     assertEquals(clusterName, ucr2.getClusterName());
     assertEquals(clusterName, ucr3.getClusterName());
@@ -2441,6 +2595,7 @@ public class ClusterResourceProviderTest {
     assertEquals(clusterName, ucr5.getClusterName());
     assertEquals(clusterName, ucr6.getClusterName());
     assertEquals(clusterName, ucr7.getClusterName());
+    assertEquals(clusterName, ucr8.getClusterName());
     ConfigurationRequest cr1 = ucr1.getDesiredConfig().get(0);
     ConfigurationRequest cr2 = ucr2.getDesiredConfig().get(0);
     ConfigurationRequest cr3 = ucr3.getDesiredConfig().get(0);
@@ -2448,6 +2603,7 @@ public class ClusterResourceProviderTest {
     ConfigurationRequest cr5 = ucr5.getDesiredConfig().get(0);
     ConfigurationRequest cr6 = ucr6.getDesiredConfig().get(0);
     ConfigurationRequest cr7 = ucr7.getDesiredConfig().get(0);
+    ConfigurationRequest cr8 = ucr8.getDesiredConfig().get(0);
     assertEquals("1", cr1.getVersionTag());
     assertEquals("1", cr2.getVersionTag());
     assertEquals("1", cr3.getVersionTag());
@@ -2455,6 +2611,7 @@ public class ClusterResourceProviderTest {
     assertEquals("1", cr5.getVersionTag());
     assertEquals("1", cr6.getVersionTag());
     assertEquals("1", cr7.getVersionTag());
+    assertEquals("1", cr8.getVersionTag());
     Map<String, ConfigurationRequest> mapConfigRequests = new HashMap<String, ConfigurationRequest>();
     mapConfigRequests.put(cr1.getType(), cr1);
     mapConfigRequests.put(cr2.getType(), cr2);
@@ -2463,7 +2620,8 @@ public class ClusterResourceProviderTest {
     mapConfigRequests.put(cr5.getType(), cr5);
     mapConfigRequests.put(cr6.getType(), cr6);
     mapConfigRequests.put(cr7.getType(), cr7);
-    assertEquals(7, mapConfigRequests.size());
+    mapConfigRequests.put(cr8.getType(), cr8);
+    assertEquals(8, mapConfigRequests.size());
     ConfigurationRequest hiveEnvConfigRequest = mapConfigRequests.get("hive-env");
     assertEquals("New MySQL Database", hiveEnvConfigRequest.getProperties().get("hive_database"));
     assertNotNull(hiveEnvConfigRequest.getPropertiesAttributes());
@@ -2888,6 +3046,7 @@ public class ClusterResourceProviderTest {
     expect(mockManagementController.getStackServices(isA(Set.class))).andReturn(Collections.singleton(mockStackServiceResponseOne));
     expect(mockManagementController.getStackComponents(isA(Set.class))).andReturn(Collections.singleton(mockStackComponentResponse));
     expect(mockManagementController.getStackConfigurations(isA(Set.class))).andReturn(Collections.<StackConfigurationResponse>emptySet());
+    expect(mockManagementController.getStackLevelConfigurations(isA(Set.class))).andReturn(Collections.<StackConfigurationResponse>emptySet());
 
     expect(mockAmbariMetaInfo.getComponentDependencies("HDP", "2.1", "OOZIE", "OOZIE_SERVER")).andReturn(Collections.<DependencyInfo>emptyList());
 
@@ -2970,7 +3129,8 @@ public class ClusterResourceProviderTest {
     expect(mockManagementController.getStackServices(isA(Set.class))).andReturn(Collections.singleton(mockStackServiceResponseOne));
     expect(mockManagementController.getStackComponents(isA(Set.class))).andReturn(Collections.singleton(mockStackComponentResponse));
     expect(mockManagementController.getStackConfigurations(isA(Set.class))).andReturn(Collections.<StackConfigurationResponse>emptySet());
-
+    expect(mockManagementController.getStackLevelConfigurations(isA(Set.class))).andReturn(Collections.<StackConfigurationResponse>emptySet());
+    
     expect(mockAmbariMetaInfo.getComponentDependencies("HDP", "2.1", "FALCON", "FALCON_SERVER")).andReturn(Collections.<DependencyInfo>emptyList());
 
     mockSupport.replayAll();
@@ -3050,7 +3210,8 @@ public class ClusterResourceProviderTest {
     expect(mockManagementController.getStackServices(isA(Set.class))).andReturn(Collections.singleton(mockStackServiceResponseOne));
     expect(mockManagementController.getStackComponents(isA(Set.class))).andReturn(Collections.singleton(mockStackComponentResponse));
     expect(mockManagementController.getStackConfigurations(isA(Set.class))).andReturn(Collections.<StackConfigurationResponse>emptySet());
-
+    expect(mockManagementController.getStackLevelConfigurations(isA(Set.class))).andReturn(Collections.<StackConfigurationResponse>emptySet());
+    
     expect(mockAmbariMetaInfo.getComponentDependencies("HDP", "2.1", "OOZIE", "OOZIE_SERVER")).andReturn(Collections.<DependencyInfo>emptyList());
 
     mockSupport.replayAll();
@@ -3126,7 +3287,8 @@ public class ClusterResourceProviderTest {
     expect(mockManagementController.getStackServices(isA(Set.class))).andReturn(Collections.singleton(mockStackServiceResponseOne));
     expect(mockManagementController.getStackComponents(isA(Set.class))).andReturn(Collections.singleton(mockStackComponentResponse));
     expect(mockManagementController.getStackConfigurations(isA(Set.class))).andReturn(Collections.<StackConfigurationResponse>emptySet());
-
+    expect(mockManagementController.getStackLevelConfigurations(isA(Set.class))).andReturn(Collections.<StackConfigurationResponse>emptySet());
+    
     expect(mockAmbariMetaInfo.getComponentDependencies("HDP", "2.1", "FALCON", "FALCON_SERVER")).andReturn(Collections.<DependencyInfo>emptyList());
 
     mockSupport.replayAll();
@@ -3201,7 +3363,8 @@ public class ClusterResourceProviderTest {
     expect(mockManagementController.getStackServices(isA(Set.class))).andReturn(Collections.singleton(mockStackServiceResponseOne));
     expect(mockManagementController.getStackComponents(isA(Set.class))).andReturn(Collections.singleton(mockStackComponentResponse));
     expect(mockManagementController.getStackConfigurations(isA(Set.class))).andReturn(Collections.<StackConfigurationResponse>emptySet());
-
+    expect(mockManagementController.getStackLevelConfigurations(isA(Set.class))).andReturn(Collections.<StackConfigurationResponse>emptySet());
+    
     expect(mockAmbariMetaInfo.getComponentDependencies("HDP", "2.1", "HIVE", "HIVE_SERVER")).andReturn(Collections.<DependencyInfo>emptyList());
 
     mockSupport.replayAll();
@@ -3276,7 +3439,8 @@ public class ClusterResourceProviderTest {
     expect(mockManagementController.getStackServices(isA(Set.class))).andReturn(Collections.singleton(mockStackServiceResponseOne));
     expect(mockManagementController.getStackComponents(isA(Set.class))).andReturn(Collections.singleton(mockStackComponentResponse));
     expect(mockManagementController.getStackConfigurations(isA(Set.class))).andReturn(Collections.<StackConfigurationResponse>emptySet());
-
+    expect(mockManagementController.getStackLevelConfigurations(isA(Set.class))).andReturn(Collections.<StackConfigurationResponse>emptySet());
+    
     expect(mockAmbariMetaInfo.getComponentDependencies("HDP", "2.1", "HBASE", "HBASE_SERVER")).andReturn(Collections.<DependencyInfo>emptyList());
 
     mockSupport.replayAll();

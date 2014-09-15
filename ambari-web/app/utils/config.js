@@ -591,14 +591,16 @@ App.config = Em.Object.create({
   addAdvancedConfigs: function (serviceConfigs, advancedConfigs, serviceName) {
     var miscConfigs = serviceConfigs.filterProperty('serviceName', 'MISC');
     var configsToVerifying = (serviceName) ? serviceConfigs.filterProperty('serviceName', serviceName).concat(miscConfigs) : serviceConfigs.slice();
-    var definedConfigs = (serviceName) ? this.get('preDefinedServiceConfigs').findProperty('serviceName', serviceName).get('configs') : [];
+    var definedService = this.get('preDefinedServiceConfigs').findProperty('serviceName', serviceName);
+    if (definedService) {
+      var definedConfigs = (serviceName) ? definedService.get('configs') : [];
 
-    if (definedConfigs.length) {
-      advancedConfigs = advancedConfigs.filter(function(property) {
-        return !(definedConfigs.someProperty('name', property.name) && !serviceConfigs.someProperty('name', property.name));
-      }, this);
+      if (definedConfigs.length) {
+        advancedConfigs = advancedConfigs.filter(function(property) {
+          return !(definedConfigs.someProperty('name', property.name) && !serviceConfigs.someProperty('name', property.name));
+        }, this);
+      }
     }
-
     advancedConfigs.forEach(function (_config) {
       var configType = this.getConfigTagFromFileName(_config.filename);
       var configCategory = 'Advanced ' + configType;

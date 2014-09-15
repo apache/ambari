@@ -19,6 +19,7 @@ limitations under the License.
 Ambari Agent
 
 """
+import os
 
 from resource_management import *
 
@@ -27,6 +28,7 @@ class ExecuteHadoopProvider(Provider):
     kinit__path_local = self.resource.kinit_path_local
     keytab = self.resource.keytab
     conf_dir = self.resource.conf_dir
+    bin_dir = self.resource.bin_dir
     command = self.resource.command
     principal = self.resource.principal
     
@@ -39,10 +41,15 @@ class ExecuteHadoopProvider(Provider):
           path = ['/bin'],
           user = self.resource.user
         )
-    
+
+      path = os.environ['PATH']
+      if bin_dir is not None:
+        path += os.pathsep + bin_dir
+
       Execute (format("hadoop --config {conf_dir} {command}"),
         user        = self.resource.user,
         tries       = self.resource.tries,
         try_sleep   = self.resource.try_sleep,
         logoutput   = self.resource.logoutput,
+        environment = {'PATH' : path}
       )

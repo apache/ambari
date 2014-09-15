@@ -211,7 +211,7 @@ public class UpgradeCatalog170Test {
 
     assertEquals(12, alertDefinitionColumnCapture.getValue().size());
     assertEquals(11, alertHistoryColumnCapture.getValue().size());
-    assertEquals(6, alertCurrentColumnCapture.getValue().size());
+    assertEquals(7, alertCurrentColumnCapture.getValue().size());
     assertEquals(5, alertGroupColumnCapture.getValue().size());
     assertEquals(5, alertTargetCapture.getValue().size());
     assertEquals(2, alertGroupTargetCapture.getValue().size());

@@ -19,7 +19,7 @@
 <div class="has-hidden-info">
   <ul>
     <li class="thumbnail row" >
-      <a class="corner-icon span1" href="#" {{action deleteWidget target="view"}}>
+      <a {{bindAttr class=":corner-icon :span1 view.parentView.isMoving:hidden"}} href="#" {{action deleteWidget target="view"}}>
         <i class="icon-remove-sign icon-large"></i>
       </a>
       <div class="caption span10"> {{view.title}}</div>

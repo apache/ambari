@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one
+  or more contributor license agreements.  See the NOTICE file
+  distributed with this work for additional information
+  regarding copyright ownership.  The ASF licenses this file
+  to you under the Apache License, Version 2.0 (the
+  "License"); you may not use this file except in compliance
+  with the License.  You may obtain a copy of the License at
+        
+       http://www.apache.org/licenses/LICENSE-2.0
+  
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+
+<configuration supports_final="true">
+
+  <property>
+    <name>oozie.service.HadoopAccessorService.hadoop.configurations</name>
+    <value>*=/usr/hdp/2.9.9.9-98/etc/hadoop/conf</value>
+    <description>
+      Comma separated AUTHORITY=HADOOP_CONF_DIR, where AUTHORITY is the HOST:PORT of
+      the Hadoop service (JobTracker, HDFS). The wildcard '*' configuration is
+      used when there is no exact match for an authority. The HADOOP_CONF_DIR contains
+      the relevant Hadoop *-site.xml files. If the path is relative is looked within
+      the Oozie configuration directory; though the path can be absolute (i.e. to point
+      to Hadoop client conf/ directories in the local filesystem.
+    </description>
+  </property>
+
+  <property>
+    <name>oozie.service.coord.check.maximum.frequency</name>
+    <value>false</value>
+    <description>
+      When true, Oozie will reject any coordinators with a frequency faster than 5 minutes.  It is not recommended to disable
+      this check or submit coordinators with frequencies faster than 5 minutes: doing so can cause unintended behavior and
+      additional system stress.
+    </description>
+  </property>
+
+</configuration>

@@ -134,7 +134,8 @@ App.ServerValidatorMixin = Em.Mixin.create({
     this.set("recommendationsConfigs", Em.get(data.resources[0] , "recommendations.blueprint.configurations"));
   },
 
-  loadRecommendationsError: function() {
+  loadRecommendationsError: function(jqXHR, ajaxOptions, error, opt) {
+    App.ajax.defaultErrorHandler(jqXHR, opt.url, opt.method, jqXHR.status);
     console.error('Load recommendations failed');
   },
 
@@ -251,8 +252,9 @@ App.ServerValidatorMixin = Em.Mixin.create({
     });
   },
 
-  validationError: function() {
+  validationError: function (jqXHR, ajaxOptions, error, opt) {
     this.set('configValidationFailed', true);
+    App.ajax.defaultErrorHandler(jqXHR, opt.url, opt.method, jqXHR.status);
     console.error('config validation failed');
   },
 
@@ -279,7 +281,7 @@ App.ServerValidatorMixin = Em.Mixin.create({
         },
         onSecondary: function () {
           this.hide();
-          deferred.reject();
+          deferred.reject("invalid_configs"); // message used to differentiate types of rejections.
         },
         bodyClass: Em.View.extend({
           controller: self,

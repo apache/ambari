@@ -45,11 +45,11 @@ def namenode(action=None, do_format=True):
       create_log_dir=True
     )
     if params.dfs_ha_enabled:
-      dfs_check_nn_status_cmd = format("su - {hdfs_user} -c 'hdfs haadmin -getServiceState {namenode_id} | grep active > /dev/null'")
+      dfs_check_nn_status_cmd = format("su - {hdfs_user} -c 'export PATH=$PATH:{hadoop_bin_dir} ; hdfs --config {hadoop_conf_dir} haadmin -getServiceState {namenode_id} | grep active > /dev/null'")
     else:
       dfs_check_nn_status_cmd = None
 
-    namenode_safe_mode_off = format("su - {hdfs_user} -c 'hadoop dfsadmin -safemode get' | grep 'Safe mode is OFF'")
+    namenode_safe_mode_off = format("su - {hdfs_user} -c 'export PATH=$PATH:{hadoop_bin_dir} ; hadoop --config {hadoop_conf_dir} dfsadmin -safemode get' | grep 'Safe mode is OFF'")
 
     if params.security_enabled:
       Execute(format("{kinit_path_local} -kt {hdfs_user_keytab} {hdfs_principal_name}"),
@@ -110,14 +110,16 @@ def format_namenode(force=None):
   if not params.dfs_ha_enabled:
     if force:
       ExecuteHadoop('namenode -format',
-                    kinit_override=True)
+                    kinit_override=True,
+                    bin_dir=params.hadoop_bin_dir,
+                    conf_dir=hadoop_conf_dir)
     else:
       File(format("{tmp_dir}/checkForFormat.sh"),
            content=StaticFile("checkForFormat.sh"),
            mode=0755)
       Execute(format(
-        "{tmp_dir}/checkForFormat.sh {hdfs_user} {hadoop_conf_dir} {old_mark_dir} "
-        "{mark_dir} {dfs_name_dir}"),
+        "{tmp_dir}/checkForFormat.sh {hdfs_user} {hadoop_conf_dir} "
+        "{hadoop_bin_dir} {old_mark_dir} {mark_dir} {dfs_name_dir}"),
               not_if=format("test -d {old_mark_dir} || test -d {mark_dir}"),
               path="/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin"
       )
@@ -154,4 +156,5 @@ def decommission():
   ExecuteHadoop(nn_refresh_cmd,
                 user=hdfs_user,
                 conf_dir=conf_dir,
-                kinit_override=True)
+                kinit_override=True,
+                bin_dir=params.hadoop_bin_dir)

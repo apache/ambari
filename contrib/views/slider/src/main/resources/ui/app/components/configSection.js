@@ -146,7 +146,7 @@ App.ConfigSectionComponent = Em.Component.extend({
         });
         return;
       }
-      this.get('config').pushObject({name: name, value: value, label: name});
+      this.get('config').pushObject(App.ConfigProperty.create({name: name, value: value, label: name}));
       this.cleanNewConfig();
       this.toggleProperty('buttonVisible');
     },

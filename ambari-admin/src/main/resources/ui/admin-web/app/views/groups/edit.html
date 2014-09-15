@@ -61,7 +61,7 @@
                 <a href="#/clusters/{{name}}/manageAccess">{{name}}</a>
               </td>
               <td>
-                {{privilege}}
+                <span tooltip="{{item}}" ng-repeat="item in privilege">{{item | translate}}{{$last ? '' : ', '}}</span>
               </td>
             </tr>
             <tr ng-repeat="(name, privilege) in privileges.views">
@@ -70,7 +70,7 @@
                 <a href="#/views/{{privilege.view_name}}/versions/{{privilege.version}}/instances/{{name}}/edit">{{name}}</a>
               </td>
               <td>
-                {{privilege.privileges}}
+                <span tooltip="{{item}}" ng-repeat="item in privilege.privileges">{{item | translate}}{{$last ? '' : ', '}}</span>
               </td>
             </tr>
           </tbody>

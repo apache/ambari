@@ -553,6 +553,9 @@ h1 {
 
 .tooltip-inner {
   text-align: left;
+  max-width: 400px;
+  overflow-wrap: break-word;
+  white-space:pre-wrap;
 }
 
 .popover {
@@ -1063,6 +1066,19 @@ h1 {
   padding: 8px 0;
 }
 
+#summary-restart-bar {
+  margin-top: 20px;
+  .alert{
+    .icon-refresh{
+      margin-left:10px;
+      color: #fdb82f;
+    }
+  }
+  .dropdown-menu > li > a:hover {
+    text-shadow: none;
+  }
+}
+
 #serviceConfig {
   margin-top: 20px;
   .alert{
@@ -1201,12 +1217,16 @@ h1 {
       color: rgb(243, 178, 11);
       margin-right: 2px;
     }
-    .btn-final .icon-lock {
-      color: grey;
+    .btn-final{
+      background: none repeat scroll 0 0 #fff;
+    }
+    .btn-final .icon-lock{
+      color: #a6a6a6;
     }
     .btn-final.active .icon-lock {
       color: blue;
     }
+    .btn-final.active,
     .btn-final.active[disabled] { //copied from Bootstrap .btn.active
       background-color: #e6e6e6;
       background-color: #d9d9d9 \9;
@@ -4944,6 +4964,9 @@ ul.inline li {
         width: 75%;
       }
     }
+    td.notes .show-more-button {
+      font-size: @default-font-size - 1;
+    }
   }
   div.page-bar div.filtered-info {
     margin-left: 17px;
@@ -5015,7 +5038,7 @@ ul.inline li {
         left: -45px;
         z-index: 1000;
         float: left;
-        min-width: 300px;
+        width: 300px;
         padding: 8px;
         list-style: none;
         background-color: #ffffff;
@@ -5031,7 +5054,9 @@ ul.inline li {
           padding: 1px 5px 15px 5px;
           text-align: left;
           .notes{
+            overflow-wrap: break-word;
             word-wrap: break-word;
+            white-space: pre-wrap;
           }
           .date{
             color: #808080;
@@ -5191,6 +5216,8 @@ ul.inline li {
         }
         .notes{
           word-wrap: break-word;
+          overflow-wrap: break-word;
+          white-space: pre-wrap;
         }
       }
       .btn {
@@ -5582,6 +5609,7 @@ ul.inline li {
   .summary-width {
     width:757px!important
   }
+
 
   .assign-masters {
     .host-assignments {

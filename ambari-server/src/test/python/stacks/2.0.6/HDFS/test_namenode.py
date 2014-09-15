@@ -48,7 +48,7 @@ class TestNamenode(RMFTestCase):
                               content = StaticFile('checkForFormat.sh'),
                               mode = 0755,
                               )
-    self.assertResourceCalled('Execute', '/tmp/checkForFormat.sh hdfs /etc/hadoop/conf /var/run/hadoop/hdfs/namenode/formatted/ /var/lib/hdfs/namenode/formatted/ /hadoop/hdfs/namenode',
+    self.assertResourceCalled('Execute', '/tmp/checkForFormat.sh hdfs /etc/hadoop/conf /usr/bin /var/run/hadoop/hdfs/namenode/formatted/ /var/lib/hdfs/namenode/formatted/ /hadoop/hdfs/namenode',
                               path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
                               not_if = 'test -d /var/run/hadoop/hdfs/namenode/formatted/ || test -d /var/lib/hdfs/namenode/formatted/',
                               )
@@ -75,7 +75,7 @@ class TestNamenode(RMFTestCase):
     self.assertResourceCalled('Execute', 'ulimit -c unlimited;  su - hdfs -c \'export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf start namenode\'',
                               not_if = 'ls /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid >/dev/null 2>&1 && ps `cat /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid` >/dev/null 2>&1',
                               )
-    self.assertResourceCalled('Execute', "su - hdfs -c 'hadoop dfsadmin -safemode get' | grep 'Safe mode is OFF'",
+    self.assertResourceCalled('Execute', "su - hdfs -c 'export PATH=$PATH:/usr/bin ; hadoop --config /etc/hadoop/conf dfsadmin -safemode get' | grep 'Safe mode is OFF'",
                               tries = 40,
                               only_if = None,
                               try_sleep = 10,
@@ -88,6 +88,7 @@ class TestNamenode(RMFTestCase):
                               kinit_path_local = '/usr/bin/kinit',
                               mode = 0777,
                               owner = 'hdfs',
+                              bin_dir = '/usr/bin',
                               action = ['create_delayed'],
                               )
     self.assertResourceCalled('HdfsDirectory', '/user/ambari-qa',
@@ -98,6 +99,7 @@ class TestNamenode(RMFTestCase):
                               kinit_path_local = '/usr/bin/kinit',
                               mode = 0770,
                               owner = 'ambari-qa',
+                              bin_dir = '/usr/bin',
                               action = ['create_delayed'],
                               )
     self.assertResourceCalled('HdfsDirectory', None,
@@ -107,6 +109,7 @@ class TestNamenode(RMFTestCase):
                               hdfs_user = 'hdfs',
                               kinit_path_local = '/usr/bin/kinit',
                               action = ['create'],
+                              bin_dir = '/usr/bin',
                               only_if = None,
                               )
     self.assertNoMoreResources()
@@ -149,7 +152,7 @@ class TestNamenode(RMFTestCase):
                               content = StaticFile('checkForFormat.sh'),
                               mode = 0755,
                               )
-    self.assertResourceCalled('Execute', '/tmp/checkForFormat.sh hdfs /etc/hadoop/conf /var/run/hadoop/hdfs/namenode/formatted/ /var/lib/hdfs/namenode/formatted/ /hadoop/hdfs/namenode',
+    self.assertResourceCalled('Execute', '/tmp/checkForFormat.sh hdfs /etc/hadoop/conf /usr/bin /var/run/hadoop/hdfs/namenode/formatted/ /var/lib/hdfs/namenode/formatted/ /hadoop/hdfs/namenode',
                               path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
                               not_if = 'test -d /var/run/hadoop/hdfs/namenode/formatted/ || test -d /var/lib/hdfs/namenode/formatted/',
                               )
@@ -179,7 +182,7 @@ class TestNamenode(RMFTestCase):
     self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/hdfs.headless.keytab hdfs',
                               user = 'hdfs',
                               )
-    self.assertResourceCalled('Execute', "su - hdfs -c 'hadoop dfsadmin -safemode get' | grep 'Safe mode is OFF'",
+    self.assertResourceCalled('Execute', "su - hdfs -c 'export PATH=$PATH:/usr/bin ; hadoop --config /etc/hadoop/conf dfsadmin -safemode get' | grep 'Safe mode is OFF'",
                               tries = 40,
                               only_if = None,
                               try_sleep = 10,
@@ -192,6 +195,7 @@ class TestNamenode(RMFTestCase):
                               kinit_path_local = '/usr/bin/kinit',
                               mode = 0777,
                               owner = 'hdfs',
+                              bin_dir = '/usr/bin',
                               action = ['create_delayed'],
                               )
     self.assertResourceCalled('HdfsDirectory', '/user/ambari-qa',
@@ -202,6 +206,7 @@ class TestNamenode(RMFTestCase):
                               kinit_path_local = '/usr/bin/kinit',
                               mode = 0770,
                               owner = 'ambari-qa',
+                              bin_dir = '/usr/bin',
                               action = ['create_delayed'],
                               )
     self.assertResourceCalled('HdfsDirectory', None,
@@ -211,6 +216,7 @@ class TestNamenode(RMFTestCase):
                               hdfs_user = 'hdfs',
                               kinit_path_local = '/usr/bin/kinit',
                               action = ['create'],
+                              bin_dir = '/usr/bin',
                               only_if = None,
                               )
     self.assertNoMoreResources()
@@ -260,9 +266,9 @@ class TestNamenode(RMFTestCase):
     self.assertResourceCalled('Execute', 'ulimit -c unlimited;  su - hdfs -c \'export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf start namenode\'',
                               not_if = 'ls /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid >/dev/null 2>&1 && ps `cat /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid` >/dev/null 2>&1',
                               )
-    self.assertResourceCalled('Execute', "su - hdfs -c 'hadoop dfsadmin -safemode get' | grep 'Safe mode is OFF'",
+    self.assertResourceCalled('Execute', "su - hdfs -c 'export PATH=$PATH:/usr/bin ; hadoop --config /etc/hadoop/conf dfsadmin -safemode get' | grep 'Safe mode is OFF'",
                               tries = 40,
-                              only_if = "su - hdfs -c 'hdfs haadmin -getServiceState nn1 | grep active > /dev/null'",
+                              only_if = "su - hdfs -c 'export PATH=$PATH:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn1 | grep active > /dev/null'",
                               try_sleep = 10,
                               )
     self.assertResourceCalled('HdfsDirectory', '/tmp',
@@ -273,6 +279,7 @@ class TestNamenode(RMFTestCase):
                               kinit_path_local = '/usr/bin/kinit',
                               mode = 0777,
                               owner = 'hdfs',
+                              bin_dir = '/usr/bin',
                               action = ['create_delayed'],
                               )
     self.assertResourceCalled('HdfsDirectory', '/user/ambari-qa',
@@ -283,6 +290,7 @@ class TestNamenode(RMFTestCase):
                               kinit_path_local = '/usr/bin/kinit',
                               mode = 0770,
                               owner = 'ambari-qa',
+                              bin_dir = '/usr/bin',
                               action = ['create_delayed'],
                               )
     self.assertResourceCalled('HdfsDirectory', None,
@@ -292,7 +300,8 @@ class TestNamenode(RMFTestCase):
                               hdfs_user = 'hdfs',
                               kinit_path_local = '/usr/bin/kinit',
                               action = ['create'],
-                              only_if = "su - hdfs -c 'hdfs haadmin -getServiceState nn1 | grep active > /dev/null'",
+                              bin_dir = '/usr/bin',
+                              only_if = "su - hdfs -c 'export PATH=$PATH:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn1 | grep active > /dev/null'",
                               )
     self.assertNoMoreResources()
 
@@ -326,9 +335,9 @@ class TestNamenode(RMFTestCase):
     self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/hdfs.headless.keytab hdfs',
                               user = 'hdfs',
                               )
-    self.assertResourceCalled('Execute', "su - hdfs -c 'hadoop dfsadmin -safemode get' | grep 'Safe mode is OFF'",
+    self.assertResourceCalled('Execute', "su - hdfs -c 'export PATH=$PATH:/usr/bin ; hadoop --config /etc/hadoop/conf dfsadmin -safemode get' | grep 'Safe mode is OFF'",
                               tries = 40,
-                              only_if = "su - hdfs -c 'hdfs haadmin -getServiceState nn1 | grep active > /dev/null'",
+                              only_if = "su - hdfs -c 'export PATH=$PATH:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn1 | grep active > /dev/null'",
                               try_sleep = 10,
                               )
     self.assertResourceCalled('HdfsDirectory', '/tmp',
@@ -339,6 +348,7 @@ class TestNamenode(RMFTestCase):
                               kinit_path_local = '/usr/bin/kinit',
                               mode = 0777,
                               owner = 'hdfs',
+                              bin_dir = '/usr/bin',
                               action = ['create_delayed'],
                               )
     self.assertResourceCalled('HdfsDirectory', '/user/ambari-qa',
@@ -349,6 +359,7 @@ class TestNamenode(RMFTestCase):
                               kinit_path_local = '/usr/bin/kinit',
                               mode = 0770,
                               owner = 'ambari-qa',
+                              bin_dir = '/usr/bin',
                               action = ['create_delayed'],
                               )
     self.assertResourceCalled('HdfsDirectory', None,
@@ -358,7 +369,8 @@ class TestNamenode(RMFTestCase):
                               hdfs_user = 'hdfs',
                               kinit_path_local = '/usr/bin/kinit',
                               action = ['create'],
-                              only_if = "su - hdfs -c 'hdfs haadmin -getServiceState nn1 | grep active > /dev/null'",
+                              bin_dir = '/usr/bin',
+                              only_if = "su - hdfs -c 'export PATH=$PATH:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn1 | grep active > /dev/null'",
                               )
     self.assertNoMoreResources()
 
@@ -377,6 +389,7 @@ class TestNamenode(RMFTestCase):
     self.assertResourceCalled('ExecuteHadoop', 'dfsadmin -refreshNodes',
                               user = 'hdfs',
                               conf_dir = '/etc/hadoop/conf',
+                              bin_dir = '/usr/bin',
                               kinit_override = True)
     self.assertNoMoreResources()
 
@@ -394,7 +407,8 @@ class TestNamenode(RMFTestCase):
     self.assertResourceCalled('Execute', '', user = 'hdfs')
     self.assertResourceCalled('ExecuteHadoop', 'dfsadmin -fs hdfs://c6401.ambari.apache.org:8020 -refreshNodes', 
                               user = 'hdfs', 
-                              conf_dir = '/etc/hadoop/conf', 
+                              conf_dir = '/etc/hadoop/conf',
+                              bin_dir = '/usr/bin',
                               kinit_override = True)
     self.assertNoMoreResources()    
 

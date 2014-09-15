@@ -37,8 +37,7 @@ nimbus_host = config['configurations']['storm-site']['nimbus.host']
 rest_api_port = "8745"
 rest_api_admin_port = "8746"
 rest_api_conf_file = format("{conf_dir}/config.yaml")
-rest_lib_dir = "/usr/lib/storm/contrib/storm-rest"
-java_home = config['hostLevelParams']['java_home']
+rest_lib_dir = default("/configurations/storm-env/rest_lib_dir","/usr/lib/storm/contrib/storm-rest")
 storm_env_sh_template = config['configurations']['storm-env']['content']
 
 if 'ganglia_server_host' in config['clusterHostInfo'] and \
@@ -48,7 +47,7 @@ if 'ganglia_server_host' in config['clusterHostInfo'] and \
   ganglia_report_interval = 60
 else:
   ganglia_installed = False
-  
+
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 
 if security_enabled:

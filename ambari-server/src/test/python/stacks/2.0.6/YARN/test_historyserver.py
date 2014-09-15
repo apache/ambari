@@ -124,6 +124,7 @@ class TestHistoryServer(RMFTestCase):
                               group = 'hadoop',
                               action = ['create_delayed'],
                               mode = 0777,
+                              bin_dir = '/usr/bin'
                               )
     self.assertResourceCalled('HdfsDirectory', '/mapred',
                               security_enabled = False,
@@ -132,6 +133,7 @@ class TestHistoryServer(RMFTestCase):
                               hdfs_user = 'hdfs',
                               kinit_path_local = "/usr/bin/kinit",
                               owner = 'mapred',
+                              bin_dir = '/usr/bin',
                               action = ['create_delayed'],
                               )
     self.assertResourceCalled('HdfsDirectory', '/mapred/system',
@@ -141,6 +143,7 @@ class TestHistoryServer(RMFTestCase):
                               hdfs_user = 'hdfs',
                               kinit_path_local = "/usr/bin/kinit",
                               owner = 'hdfs',
+                              bin_dir = '/usr/bin',
                               action = ['create_delayed'],
                               )
     self.assertResourceCalled('HdfsDirectory', '/mr-history/tmp',
@@ -152,6 +155,7 @@ class TestHistoryServer(RMFTestCase):
                               mode = 0777,
                               owner = 'mapred',
                               group = 'hadoop',
+                              bin_dir = '/usr/bin',
                               action = ['create_delayed'],
                               )
     self.assertResourceCalled('HdfsDirectory', '/mr-history/done',
@@ -163,6 +167,7 @@ class TestHistoryServer(RMFTestCase):
                               mode = 01777,
                               owner = 'mapred',
                               group = 'hadoop',
+                              bin_dir = '/usr/bin',
                               action = ['create_delayed'],
                               )
     self.assertResourceCalled('HdfsDirectory', None,
@@ -171,6 +176,7 @@ class TestHistoryServer(RMFTestCase):
                               conf_dir = '/etc/hadoop/conf',
                               hdfs_user = 'hdfs',
                               kinit_path_local = "/usr/bin/kinit",
+                              bin_dir = '/usr/bin',
                               action = ['create'],
                               )
     self.assertResourceCalled('Directory', '/var/run/hadoop-yarn/yarn',
@@ -314,6 +320,7 @@ class TestHistoryServer(RMFTestCase):
                               owner = 'yarn',
                               group = 'hadoop',
                               action = ['create_delayed'],
+                              bin_dir = '/usr/bin',
                               mode = 0777,
                               )
     self.assertResourceCalled('HdfsDirectory', '/mapred',
@@ -323,6 +330,7 @@ class TestHistoryServer(RMFTestCase):
                               hdfs_user = 'hdfs',
                               kinit_path_local = '/usr/bin/kinit',
                               owner = 'mapred',
+                              bin_dir = '/usr/bin',
                               action = ['create_delayed'],
                               )
     self.assertResourceCalled('HdfsDirectory', '/mapred/system',
@@ -332,6 +340,7 @@ class TestHistoryServer(RMFTestCase):
                               hdfs_user = 'hdfs',
                               kinit_path_local = '/usr/bin/kinit',
                               owner = 'hdfs',
+                              bin_dir = '/usr/bin',
                               action = ['create_delayed'],
                               )
     self.assertResourceCalled('HdfsDirectory', '/mr-history/tmp',
@@ -343,6 +352,7 @@ class TestHistoryServer(RMFTestCase):
                               mode = 0777,
                               owner = 'mapred',
                               group = 'hadoop',
+                              bin_dir = '/usr/bin',
                               action = ['create_delayed'],
                               )
     self.assertResourceCalled('HdfsDirectory', '/mr-history/done',
@@ -354,6 +364,7 @@ class TestHistoryServer(RMFTestCase):
                               mode = 01777,
                               owner = 'mapred',
                               group = 'hadoop',
+                              bin_dir = '/usr/bin',
                               action = ['create_delayed'],
                               )
     self.assertResourceCalled('HdfsDirectory', None,
@@ -362,6 +373,7 @@ class TestHistoryServer(RMFTestCase):
                               conf_dir = '/etc/hadoop/conf',
                               hdfs_user = 'hdfs',
                               kinit_path_local = '/usr/bin/kinit',
+                              bin_dir = '/usr/bin',
                               action = ['create'],
                               )
     self.assertResourceCalled('Directory', '/var/run/hadoop-yarn/yarn',

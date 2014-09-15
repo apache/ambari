@@ -27,7 +27,6 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.ambari.server.security.ClientSecurityType;
-import org.easymock.EasyMockSupport;
 import org.easymock.IAnswer;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -43,7 +42,7 @@ import static org.easymock.EasyMock.*;
 
 import static org.junit.Assert.*;
 
-public class AmbariLdapAuthenticationProviderTest extends EasyMockSupport {
+public class AmbariLdapAuthenticationProviderTest extends AmbariLdapAuthenticationProviderBaseTest {
 
   private static ApacheDSContainer apacheDSContainer;
   private static Injector injector;
@@ -57,6 +56,7 @@ public class AmbariLdapAuthenticationProviderTest extends EasyMockSupport {
 
   @BeforeClass
   public static void beforeClass() throws Exception{
+    createCleanApacheDSContainerWorkDir();
     apacheDSContainer = new ApacheDSContainer("dc=ambari,dc=apache,dc=org", "classpath:/users.ldif");
     apacheDSContainer.setPort(33389);
     apacheDSContainer.afterPropertiesSet();

@@ -88,7 +88,7 @@ class NameNode(Script):
     
     
     def startRebalancingProcess(threshold):
-      rebalanceCommand = format('hadoop --config {hadoop_conf_dir} balancer -threshold {threshold}')
+      rebalanceCommand = format('export PATH=$PATH:{hadoop_bin_dir} ; hadoop --config {hadoop_conf_dir} balancer -threshold {threshold}')
       return ['su','-',params.hdfs_user,'-c', rebalanceCommand]
     
     command = startRebalancingProcess(threshold)

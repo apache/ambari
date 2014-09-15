@@ -24,7 +24,6 @@ import com.google.inject.persist.PersistService;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.dao.UserDAO;
-import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.security.ClientSecurityType;
 import org.junit.*;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -34,7 +33,7 @@ import org.springframework.security.ldap.server.ApacheDSContainer;
 
 import static org.junit.Assert.*;
 
-public class AmbariLdapAuthenticationProviderForDNWithSpaceTest {
+public class AmbariLdapAuthenticationProviderForDNWithSpaceTest extends AmbariLdapAuthenticationProviderBaseTest{
   private static ApacheDSContainer apacheDSContainer;
   private static Injector injector;
 
@@ -47,6 +46,7 @@ public class AmbariLdapAuthenticationProviderForDNWithSpaceTest {
 
   @BeforeClass
   public static void beforeClass() throws Exception{
+    createCleanApacheDSContainerWorkDir();
     apacheDSContainer = new ApacheDSContainer("dc=ambari,dc=the apache,dc=org", "classpath:/users_for_dn_with_space.ldif");
     apacheDSContainer.setPort(33389);
     apacheDSContainer.afterPropertiesSet();

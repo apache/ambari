@@ -17,6 +17,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
+import os
 from mock.mock import MagicMock, call, patch
 from stacks.utils.RMFTestCase import *
 
@@ -53,6 +54,7 @@ class TestHiveServer(RMFTestCase):
                               keytab = UnknownConfigurationMock(),
                               conf_dir = '/etc/hadoop/conf',
                               hdfs_user = 'hdfs',
+                              bin_dir = '/usr/bin',
                               kinit_path_local = "/usr/bin/kinit"
     )
 
@@ -64,6 +66,7 @@ class TestHiveServer(RMFTestCase):
                               keytab = UnknownConfigurationMock(),
                               conf_dir = '/etc/hadoop/conf',
                               hdfs_user = 'hdfs',
+                              bin_dir = '/usr/bin',
                               kinit_path_local = "/usr/bin/kinit"
     )
     self.assertResourceCalled('HdfsDirectory', None,
@@ -72,6 +75,7 @@ class TestHiveServer(RMFTestCase):
                               conf_dir = '/etc/hadoop/conf',
                               hdfs_user = 'hdfs',
                               kinit_path_local = '/usr/bin/kinit',
+                              bin_dir = '/usr/bin',
                               action = ['create']
                               )
 
@@ -80,6 +84,7 @@ class TestHiveServer(RMFTestCase):
                               owner='tez',
                               dest_dir='/apps/tez/',
                               kinnit_if_needed='',
+                              hadoop_conf_dir='/etc/hadoop/conf',
                               hdfs_user='hdfs'
     )
 
@@ -88,11 +93,14 @@ class TestHiveServer(RMFTestCase):
                               owner='tez',
                               dest_dir='/apps/tez/lib/',
                               kinnit_if_needed='',
+                              hadoop_conf_dir='/etc/hadoop/conf',
                               hdfs_user='hdfs'
     )
 
     self.assertResourceCalled('Execute', 'env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /tmp/start_hiveserver2_script /var/log/hive/hive-server2.out /var/log/hive/hive-server2.log /var/run/hive/hive-server.pid /etc/hive/conf.server /var/log/hive',
                               not_if = 'ls /var/run/hive/hive-server.pid >/dev/null 2>&1 && ps `cat /var/run/hive/hive-server.pid` >/dev/null 2>&1',
+                              environment = {'PATH' : os.environ['PATH'] + os.pathsep + "/usr/lib/hive/bin",
+                                             'HADOOP_HOME' : '/usr'},
                               user = 'hive'
     )
 
@@ -144,6 +152,8 @@ class TestHiveServer(RMFTestCase):
     self.assert_configure_secured()
     self.assertResourceCalled('Execute', 'env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /tmp/start_hiveserver2_script /var/log/hive/hive-server2.out /var/log/hive/hive-server2.log /var/run/hive/hive-server.pid /etc/hive/conf.server /var/log/hive',
                               not_if = 'ls /var/run/hive/hive-server.pid >/dev/null 2>&1 && ps `cat /var/run/hive/hive-server.pid` >/dev/null 2>&1',
+                              environment = {'PATH' : os.environ['PATH'] + os.pathsep + "/usr/lib/hive/bin",
+                                             'HADOOP_HOME' : '/usr'},
                               user = 'hive'
     )
 
@@ -180,6 +190,7 @@ class TestHiveServer(RMFTestCase):
         kinit_path_local = '/usr/bin/kinit',
         mode = 0777,
         owner = 'hive',
+        bin_dir = '/usr/bin',
         action = ['create_delayed'],
     )
     self.assertResourceCalled('HdfsDirectory', '/user/hive',
@@ -190,6 +201,7 @@ class TestHiveServer(RMFTestCase):
         kinit_path_local = '/usr/bin/kinit',
         mode = 0700,
         owner = 'hive',
+        bin_dir = '/usr/bin',
         action = ['create_delayed'],
     )
     self.assertResourceCalled('HdfsDirectory', None,
@@ -198,6 +210,7 @@ class TestHiveServer(RMFTestCase):
         conf_dir = '/etc/hadoop/conf',
         hdfs_user = 'hdfs',
         kinit_path_local = '/usr/bin/kinit',
+        bin_dir = '/usr/bin',
         action = ['create'],
     )
     self.assertResourceCalled('Directory', '/etc/hive/conf.server',
@@ -295,6 +308,7 @@ class TestHiveServer(RMFTestCase):
     self.assertResourceCalled('Execute', 'hive mkdir -p /tmp/AMBARI-artifacts/ ; cp /usr/share/java/mysql-connector-java.jar /usr/lib/hive/lib//mysql-connector-java.jar',
         creates = '/usr/lib/hive/lib//mysql-connector-java.jar',
         path = ['/bin', '/usr/bin/'],
+        environment = {'PATH' : os.environ['PATH'] + os.pathsep + "/usr/lib/hive/bin"},
         not_if = 'test -f /usr/lib/hive/lib//mysql-connector-java.jar',
     )
     self.assertResourceCalled('Execute', '/bin/sh -c \'cd /usr/lib/ambari-agent/ && curl -kf -x "" --retry 5 http://c6401.ambari.apache.org:8080/resources/DBConnectionVerification.jar -o DBConnectionVerification.jar\'',
@@ -331,6 +345,7 @@ class TestHiveServer(RMFTestCase):
         conf_dir = '/etc/hadoop/conf',
         hdfs_user = 'hdfs',
         kinit_path_local = '/usr/bin/kinit',
+        bin_dir = '/usr/bin',
         mode = 0777,
         owner = 'hive',
         action = ['create_delayed'],
@@ -342,6 +357,7 @@ class TestHiveServer(RMFTestCase):
         hdfs_user = 'hdfs',
         kinit_path_local = '/usr/bin/kinit',
         mode = 0700,
+        bin_dir = '/usr/bin',
         owner = 'hive',
         action = ['create_delayed'],
     )
@@ -350,6 +366,7 @@ class TestHiveServer(RMFTestCase):
         keytab = '/etc/security/keytabs/hdfs.headless.keytab',
         conf_dir = '/etc/hadoop/conf',
         hdfs_user = 'hdfs',
+        bin_dir = '/usr/bin',
         kinit_path_local = '/usr/bin/kinit',
         action = ['create'],
     )
@@ -448,6 +465,7 @@ class TestHiveServer(RMFTestCase):
     self.assertResourceCalled('Execute', 'hive mkdir -p /tmp/AMBARI-artifacts/ ; cp /usr/share/java/mysql-connector-java.jar /usr/lib/hive/lib//mysql-connector-java.jar',
         creates = '/usr/lib/hive/lib//mysql-connector-java.jar',
         path = ['/bin', '/usr/bin/'],
+        environment = {'PATH' : os.environ['PATH'] + os.pathsep + "/usr/lib/hive/bin"},
         not_if = 'test -f /usr/lib/hive/lib//mysql-connector-java.jar',
     )
     self.assertResourceCalled('Execute', '/bin/sh -c \'cd /usr/lib/ambari-agent/ && curl -kf -x "" --retry 5 http://c6401.ambari.apache.org:8080/resources/DBConnectionVerification.jar -o DBConnectionVerification.jar\'',

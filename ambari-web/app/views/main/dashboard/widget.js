@@ -139,7 +139,7 @@ App.DashboardWidgetView = Em.View.extend({
 
     });
 
-    var browserVerion = this.getInternetExplorerVersion();
+    var browserVersion = this.getInternetExplorerVersion();
     App.ModalPopup.show({
       header: Em.I18n.t('dashboard.widgets.popupHeader'),
       classNames: [ 'sixty-percent-width-modal-edit-widget' ],
@@ -172,7 +172,7 @@ App.DashboardWidgetView = Em.View.extend({
         var handlers = [configObj.get('thresh1'), configObj.get('thresh2')];
         var colors = ['#95A800', '#FF8E00', '#B80000']; //color green, orange ,red
 
-        if (browserVerion == -1 || browserVerion > 9) {
+        if (browserVersion == -1 || browserVersion > 9) {
           configObj.set('isIE9', false);
           configObj.set('isGreenOrangeRed', true);
           $("#slider-range").slider({

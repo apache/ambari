@@ -26,6 +26,53 @@ import os
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 
+#RPM versioning support
+rpm_version = default("/configurations/hadoop-env/rpm_version", None)
+
+hdp_stack_version = config['hostLevelParams']['stack_version']
+
+#hadoop params
+if rpm_version is not None:
+  hadoop_conf_dir = format("/usr/hdp/{rpm_version}/etc/hadoop/conf")
+  hadoop_bin_dir = format("/usr/hdp/{rpm_version}/hadoop/bin")
+  hadoop_home = format('/usr/hdp/{rpm_version}/hadoop')
+  hive_conf_dir = format('/usr/hdp/{rpm_version}/etc/hive/conf')
+  hive_client_conf_dir = format('/usr/hdp/{rpm_version}/etc/hive/conf')
+  hive_server_conf_dir = format('/usr/hdp/{rpm_version}/etc/hive/conf.server')
+  hive_bin = format('/usr/hdp/{rpm_version}/hive/bin')
+  hive_lib = format('/usr/hdp/{rpm_version}/hive/lib')
+  tez_local_api_jars = format('/usr/hdp/{rpm_version}/tez/tez*.jar')
+  tez_local_lib_jars = format('/usr/hdp/{rpm_version}/tez/lib/*.jar')
+
+  if str(hdp_stack_version).startswith('2.0'):
+    hcat_conf_dir = format('/usr/hdp/{rpm_version}/etc/hcatalog/conf')
+    hcat_lib = format('/usr/hdp/{rpm_version}/hive/hcatalog/share/hcatalog')
+  # for newer versions
+  else:
+    hcat_conf_dir = format('/usr/hdp/{rpm_version}/etc/hive-hcatalog/conf')
+    hcat_lib = format('/usr/hdp/{rpm_version}/hive/hive-hcatalog/share/hcatalog')
+
+else:
+  hadoop_conf_dir = "/etc/hadoop/conf"
+  hadoop_bin_dir = "/usr/bin"
+  hadoop_home = '/usr'
+  hive_conf_dir = "/etc/hive/conf"
+  hive_bin = '/usr/lib/hive/bin'
+  hive_lib = '/usr/lib/hive/lib/'
+  hive_client_conf_dir = "/etc/hive/conf"
+  hive_server_conf_dir = '/etc/hive/conf.server'
+  tez_local_api_jars = '/usr/lib/tez/tez*.jar'
+  tez_local_lib_jars = '/usr/lib/tez/lib/*.jar'
+
+  if str(hdp_stack_version).startswith('2.0'):
+    hcat_conf_dir = '/etc/hcatalog/conf'
+    hcat_lib = '/usr/lib/hcatalog/share/hcatalog'
+  # for newer versions
+  else:
+    hcat_conf_dir = '/etc/hive-hcatalog/conf'
+    hcat_lib = '/usr/lib/hive-hcatalog/share/hcatalog'
+
+execute_path = os.environ['PATH'] + os.pathsep + hive_bin
 hive_metastore_user_name = config['configurations']['hive-site']['javax.jdo.option.ConnectionUserName']
 hive_jdbc_connection_url = config['configurations']['hive-site']['javax.jdo.option.ConnectionURL']
 
@@ -34,7 +81,6 @@ hive_metastore_db_type = config['configurations']['hive-env']['hive_database_typ
 
 #users
 hive_user = config['configurations']['hive-env']['hive_user']
-hive_lib = '/usr/lib/hive/lib/'
 #JDBC driver jar name
 hive_jdbc_driver = config['configurations']['hive-site']['javax.jdo.option.ConnectionDriverName']
 if hive_jdbc_driver == "com.mysql.jdbc.Driver":
@@ -51,11 +97,9 @@ check_db_connection_jar_name = "DBConnectionVerification.jar"
 check_db_connection_jar = format("/usr/lib/ambari-agent/{check_db_connection_jar_name}")
 
 #common
-hdp_stack_version = config['hostLevelParams']['stack_version']
 hive_metastore_port = get_port_from_url(config['configurations']['hive-site']['hive.metastore.uris']) #"9083"
 hive_var_lib = '/var/lib/hive'
 ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
-hive_bin = '/usr/lib/hive/bin'
 hive_server_host = config['clusterHostInfo']['hive_server_host'][0]
 hive_server_port = default('/configurations/hive-site/hive.server2.thrift.port',"10000")
 hive_url = format("jdbc:hive2://{hive_server_host}:{hive_server_port}")
@@ -77,8 +121,6 @@ hive_log_dir = config['configurations']['hive-env']['hive_log_dir']
 hive_pid_dir = status_params.hive_pid_dir
 hive_pid = status_params.hive_pid
 #Default conf dir for client
-hive_client_conf_dir = "/etc/hive/conf"
-hive_server_conf_dir = "/etc/hive/conf.server"
 hive_conf_dirs_list = [hive_server_conf_dir, hive_client_conf_dir]
 
 if 'role' in config and config['role'] in ["HIVE_SERVER", "HIVE_METASTORE"]:
@@ -91,8 +133,6 @@ hive_database_name = config['configurations']['hive-env']['hive_database_name']
 
 #Starting hiveserver2
 start_hiveserver2_script = 'startHiveserver2.sh.j2'
-
-hadoop_home = '/usr'
 
 ##Starting metastore
 start_metastore_script = 'startMetastore.sh'
@@ -133,15 +173,6 @@ else:
 
 ########## HCAT
 
-if str(hdp_stack_version).startswith('2.0'):
-  hcat_conf_dir = '/etc/hcatalog/conf'
-  hcat_lib = '/usr/lib/hcatalog/share/hcatalog'
-# for newer versions
-else:
-  hcat_conf_dir = '/etc/hive-hcatalog/conf'
-  hcat_lib = '/usr/lib/hive-hcatalog/share/hcatalog'
-
-
 hcat_dbroot = hcat_lib
 
 hcat_user = config['configurations']['hive-env']['hcat_user']
@@ -149,8 +180,6 @@ webhcat_user = config['configurations']['hive-env']['webhcat_user']
 
 hcat_pid_dir = status_params.hcat_pid_dir
 hcat_log_dir = config['configurations']['hive-env']['hcat_log_dir']
-
-hadoop_conf_dir = '/etc/hadoop/conf'
 
 #hive-log4j.properties.template
 if (('hive-log4j' in config['configurations']) and ('content' in config['configurations']['hive-log4j'])):
@@ -172,7 +201,6 @@ hive_hdfs_user_mode = 0700
 hive_apps_whs_dir = config['configurations']['hive-site']["hive.metastore.warehouse.dir"]
 #for create_hdfs_directory
 hostname = config["hostname"]
-hadoop_conf_dir = "/etc/hadoop/conf"
 hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_name']
@@ -180,8 +208,6 @@ kinit_path_local = functions.get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/
 
 # Tez libraries
 tez_lib_uris = default("/configurations/tez-site/tez.lib.uris", None)
-tez_local_api_jars = '/usr/lib/tez/tez*.jar'
-tez_local_lib_jars = '/usr/lib/tez/lib/*.jar'
 tez_user = config['configurations']['tez-env']['tez_user']
 
 if System.get_instance().os_family == "ubuntu":
@@ -205,13 +231,12 @@ else:
 import functools
 #create partial functions with common arguments for every HdfsDirectory call
 #to create hdfs directory we need to call params.HdfsDirectory in code
-#create partial functions with common arguments for every HdfsDirectory call
-#to create hdfs directory we need to call params.HdfsDirectory in code
 HdfsDirectory = functools.partial(
   HdfsDirectory,
   conf_dir=hadoop_conf_dir,
   hdfs_user=hdfs_user,
   security_enabled = security_enabled,
   keytab = hdfs_user_keytab,
-  kinit_path_local = kinit_path_local
+  kinit_path_local = kinit_path_local,
+  bin_dir = hadoop_bin_dir
 )

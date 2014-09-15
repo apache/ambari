@@ -16,9 +16,33 @@
 * limitations under the License.
 }}
 
+{{#if App.supports.hostOverrides}}
+  {{#if view.service.isRestartRequired}}
+    {{#if App.isAdmin}}
+      <div id="summary-restart-bar">
+        <div class="alert alert-warning clearfix">
+          <i class="icon-refresh"></i> {{{view.needToRestartMessage}}} {{t services.service.config.restartService.needToRestart}}  <a href="#" {{action showComponentsShouldBeRestarted target="view"}}>{{view.componentsCount}} {{pluralize view.componentsCount singular="t:common.component" plural="t:common.components"}}</a> {{t on}} <a href="#" {{action showHostsShouldBeRestarted target="view"}}>{{view.hostsCount}} {{pluralize view.hostsCount singular="t:common.host" plural="t:common.hosts"}}</a>
+          <span class="restart-components pull-right">&nbsp</span>
+          <div class="btn-group pull-right">
+            <button type="button" class="btn btn-default dropdown-toggle btn-warning" data-toggle="dropdown">
+              {{t hosts.host.details.needToRestart.button}}
+                <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu">
+                <li><a href="#" {{action restartAllStaleConfigComponents target="view"}}>{{t restart.service.all}}</a></li>
+              {{#if view.rollingRestartSlaveComponentName}}
+                  <li><a href="#" {{action rollingRestartStaleConfigSlaveComponents view.rollingRestartSlaveComponentName target="view"}}>{{view.rollingRestartActionName}}</a></li>
+              {{/if}}
+            </ul>
+          </div>
+        </div>
+      </div>
+    {{/if}}
+  {{/if}}
+{{/if}}
+
 <div class="row-fluid service-block">
   <div class="span6">
-
     <div class="box">
       <div class="box-header">
         <h4>{{controller.content.label}} {{t services.service.info.menu.summary}}</h4>

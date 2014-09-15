@@ -674,12 +674,16 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
    * @method resolveStormConfigs
    */
   resolveStormConfigs: function (configs) {
-    var dependentConfigs, gangliaServerHost;
+    var dependentConfigs, gangliaServerHost, gangliaHostId, hosts;
     dependentConfigs = ['nimbus.childopts', 'supervisor.childopts', 'worker.childopts'];
     // if Ganglia selected or installed, set ganglia host to configs
     if (this.get('installedServiceNames').contains('STORM') && this.get('installedServiceNames').contains('GANGLIA')) return;
     if (this.get('allSelectedServiceNames').contains('GANGLIA') || this.get('installedServiceNames').contains('GANGLIA')) {
-      gangliaServerHost = this.get('wizardController').getDBProperty('masterComponentHosts').findProperty('component', 'GANGLIA_SERVER').hostName;
+      hosts = this.get('wizardController').getDBProperty('hosts');
+      gangliaHostId = this.get('wizardController').getDBProperty('masterComponentHosts').findProperty('component', 'GANGLIA_SERVER').host_id;
+      for (var hostName in hosts) {
+        if (hosts[hostName].id == gangliaHostId) gangliaServerHost = hosts[hostName].name;
+      }
       dependentConfigs.forEach(function (configName) {
         var config = configs.findProperty('name', configName);
         var replaceStr = config.value.match(/.jar=host[^,]+/)[0];
@@ -1339,11 +1343,22 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
     }
     var self = this;
     this.set('submitButtonClicked', true);
-    this.serverSideValidation().done(function () {
-      self.checkDatabaseConnectionTest().done(function () {
+    this.serverSideValidation().done(function() {
+      self.checkDatabaseConnectionTest().done(function() {
         self.resolveHiveMysqlDatabase();
         self.set('submitButtonClicked', false);
       });
+    }).fail(function(value){
+      if ("invalid_configs" == value) {
+        self.set('submitButtonClicked', false);
+      } else {
+        // Failed due to validation mechanism failure.
+        // Should proceed with other checks
+        self.checkDatabaseConnectionTest().done(function() {
+          self.resolveHiveMysqlDatabase();
+          self.set('submitButtonClicked', false);
+        });
+      }
     });
   }
 

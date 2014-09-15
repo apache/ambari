@@ -38,16 +38,15 @@
                   class="form-control input-sm"
                   tooltip="Only alpha-numeric characters."
                   tooltip-trigger="focus">
-
-              <button
-                  type="submit"
-                  class="btn btn-success btn-xs"
-                  ng-class="{'disabled': editClusterNameForm.newClusterName.$invalid || editCluster.name == cluster.Clusters.cluster_name}">
-                <i class="glyphicon glyphicon-ok"></i>
-              </button>
               <button ng-click="toggleEditName()"
-                      class="btn btn-danger btn-xs">
+                      class="btn btn-xs">
                 <i class="glyphicon glyphicon-remove"></i>
+              </button>
+              <button
+                    type="submit"
+                    class="btn btn-primary btn-xs"
+                    ng-class="{'disabled': editClusterNameForm.newClusterName.$invalid || editCluster.name == cluster.Clusters.cluster_name}">
+                <i class="glyphicon glyphicon-ok"></i>
               </button>
             </div>
           </form>

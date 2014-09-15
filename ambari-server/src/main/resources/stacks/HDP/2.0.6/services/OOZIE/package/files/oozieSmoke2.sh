@@ -93,10 +93,10 @@ else
   kinitcmd=""
 fi
 
-su - ${smoke_test_user} -c "hdfs dfs -rm -r examples"
-su - ${smoke_test_user} -c "hdfs dfs -rm -r input-data"
-su - ${smoke_test_user} -c "hdfs dfs -copyFromLocal $OOZIE_EXAMPLES_DIR/examples examples"
-su - ${smoke_test_user} -c "hdfs dfs -copyFromLocal $OOZIE_EXAMPLES_DIR/examples/input-data input-data"
+su - ${smoke_test_user} -c "hdfs --config ${hadoop_conf_dir} dfs -rm -r examples"
+su - ${smoke_test_user} -c "hdfs --config ${hadoop_conf_dir} dfs -rm -r input-data"
+su - ${smoke_test_user} -c "hdfs --config ${hadoop_conf_dir} dfs -copyFromLocal $OOZIE_EXAMPLES_DIR/examples examples"
+su - ${smoke_test_user} -c "hdfs --config ${hadoop_conf_dir} dfs -copyFromLocal $OOZIE_EXAMPLES_DIR/examples/input-data input-data"
 
 cmd="${kinitcmd}source ${oozie_conf_dir}/oozie-env.sh ; /usr/bin/oozie -Doozie.auth.token.cache=false job -oozie $OOZIE_SERVER -config $OOZIE_EXAMPLES_DIR/examples/apps/map-reduce/job.properties  -run"
 echo $cmd

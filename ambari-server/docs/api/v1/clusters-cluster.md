@@ -60,9 +60,9 @@ Returns information for the specified cluster identified by ":name"
 
 **Example**
 
-Get information for the cluster "c1".
+Get information for the cluster "cluster001".
 
-    GET /clusters/c1
+    GET /clusters/cluster001
     
     200 OK
     {

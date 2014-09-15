@@ -69,7 +69,8 @@ def install_tez_jars():
                     owner=params.tez_user,
                     dest_dir=app_dir_path,
                     kinnit_if_needed=kinit_if_needed,
-                    hdfs_user=params.hdfs_user
+                    hdfs_user=params.hdfs_user,
+                    hadoop_conf_dir=params.hadoop_conf_dir
       )
     pass
 
@@ -79,7 +80,8 @@ def install_tez_jars():
                     owner=params.tez_user,
                     dest_dir=lib_dir_path,
                     kinnit_if_needed=kinit_if_needed,
-                    hdfs_user=params.hdfs_user
+                    hdfs_user=params.hdfs_user,
+                    hadoop_conf_dir=params.hadoop_conf_dir
       )
     pass
 

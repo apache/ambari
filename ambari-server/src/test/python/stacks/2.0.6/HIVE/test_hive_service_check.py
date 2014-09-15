@@ -17,6 +17,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
+import os
 from mock.mock import MagicMock, call, patch
 from stacks.utils.RMFTestCase import *
 import datetime, sys, socket
@@ -42,6 +43,7 @@ class TestServiceCheck(RMFTestCase):
                         path = ['/usr/sbin', '/usr/local/nin', '/bin', '/usr/bin'],
                         tries = 3,
                         user = 'ambari-qa',
+                        environment = {'PATH' : os.environ['PATH'] + os.pathsep + "/usr/lib/hive/bin"},
                         try_sleep = 5,
     )
     self.assertResourceCalled('ExecuteHadoop', 'fs -test -e /apps/hive/warehouse/hcatsmoke',
@@ -50,6 +52,7 @@ class TestServiceCheck(RMFTestCase):
                         conf_dir = '/etc/hadoop/conf',
                         keytab=UnknownConfigurationMock(),
                         kinit_path_local='/usr/bin/kinit',
+                        bin_dir = '/usr/lib/hive/bin',
                         security_enabled=False
     )
     self.assertResourceCalled('Execute', ' /tmp/hcatSmoke.sh hcatsmoke cleanup',
@@ -57,6 +60,7 @@ class TestServiceCheck(RMFTestCase):
                         path = ['/usr/sbin', '/usr/local/nin', '/bin', '/usr/bin'],
                         tries = 3,
                         user = 'ambari-qa',
+                        environment = {'PATH' : os.environ['PATH'] + os.pathsep + "/usr/lib/hive/bin"},
                         try_sleep = 5,
     )
     self.assertNoMoreResources()
@@ -78,6 +82,7 @@ class TestServiceCheck(RMFTestCase):
                         path = ['/usr/sbin', '/usr/local/nin', '/bin', '/usr/bin'],
                         tries = 3,
                         user = 'ambari-qa',
+                        environment = {'PATH' : os.environ['PATH'] + os.pathsep + "/usr/lib/hive/bin"},
                         try_sleep = 5,
     )
     self.assertResourceCalled('ExecuteHadoop', 'fs -test -e /apps/hive/warehouse/hcatsmoke',
@@ -87,6 +92,7 @@ class TestServiceCheck(RMFTestCase):
                         keytab='/etc/security/keytabs/hdfs.headless.keytab',
                         kinit_path_local='/usr/bin/kinit',
                         security_enabled=True,
+                        bin_dir = '/usr/lib/hive/bin',
                         principal='hdfs'
     )
     self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa;  /tmp/hcatSmoke.sh hcatsmoke cleanup',
@@ -94,6 +100,7 @@ class TestServiceCheck(RMFTestCase):
                         path = ['/usr/sbin', '/usr/local/nin', '/bin', '/usr/bin'],
                         tries = 3,
                         user = 'ambari-qa',
+                        environment = {'PATH' : os.environ['PATH'] + os.pathsep + "/usr/lib/hive/bin"},
                         try_sleep = 5,
     )
     self.assertNoMoreResources()

@@ -139,18 +139,22 @@ App.CreateAppWizardStep1Controller = Ember.Controller.extend({
    */
   loadGangliaClustersSuccessCallback: function (data) {
     var gangliaCustomClusters = [];
+
     if (data.items[0]) {
-      //parse CSV string with cluster names and ports
-      Em.get(data.items[0].configurations[0].properties, 'ganglia_custom_clusters').replace(/\'/g, "").split(',').forEach(function(item, index){
-        if (index % 2 === 0) {
-          gangliaCustomClusters.push({
-            name: item
-          })
-        } else {
-          gangliaCustomClusters[gangliaCustomClusters.length - 1].port = parseInt(item);
-        }
-      });
-      App.set('gangliaClusters', gangliaCustomClusters);
+      var prop = Em.get(data.items[0].configurations[0].properties, 'ganglia_custom_clusters');
+      if (prop) {
+        //parse CSV string with cluster names and ports
+        prop.replace(/\'/g, "").split(',').forEach(function(item, index){
+          if (index % 2 === 0) {
+            gangliaCustomClusters.push({
+              name: item
+            })
+          } else {
+            gangliaCustomClusters[gangliaCustomClusters.length - 1].port = parseInt(item);
+          }
+        });
+        App.set('gangliaClusters', gangliaCustomClusters);
+      }
     }
   },
 

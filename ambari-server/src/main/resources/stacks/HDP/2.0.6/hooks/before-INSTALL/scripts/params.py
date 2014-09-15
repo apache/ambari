@@ -19,7 +19,6 @@ limitations under the License.
 
 from resource_management import *
 from resource_management.core.system import System
-import os
 import json
 import collections
 
@@ -37,6 +36,8 @@ tez_user = config['configurations']['tez-env']["tez_user"]
 user_group = config['configurations']['cluster-env']['user_group']
 proxyuser_group = default("/configurations/hadoop-env/proxyuser_group","users")
 nagios_group = config['configurations']['nagios-env']['nagios_group']
+
+hdfs_log_dir_prefix = config['configurations']['hadoop-env']['hdfs_log_dir_prefix']
 
 #hosts
 hostname = config["hostname"]

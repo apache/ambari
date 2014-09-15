@@ -120,6 +120,7 @@ class TestNodeManager(RMFTestCase):
                               owner = 'yarn',
                               group = 'hadoop',
                               action = ['create_delayed'],
+                              bin_dir = '/usr/bin',
                               mode = 0777,
                               )
     self.assertResourceCalled('HdfsDirectory', '/mapred',
@@ -129,6 +130,7 @@ class TestNodeManager(RMFTestCase):
                               hdfs_user = 'hdfs',
                               kinit_path_local = "/usr/bin/kinit",
                               owner = 'mapred',
+                              bin_dir = '/usr/bin',
                               action = ['create_delayed'],
                               )
     self.assertResourceCalled('HdfsDirectory', '/mapred/system',
@@ -138,6 +140,7 @@ class TestNodeManager(RMFTestCase):
                               hdfs_user = 'hdfs',
                               kinit_path_local = "/usr/bin/kinit",
                               owner = 'hdfs',
+                              bin_dir = '/usr/bin',
                               action = ['create_delayed'],
                               )
     self.assertResourceCalled('HdfsDirectory', '/mr-history/tmp',
@@ -149,6 +152,7 @@ class TestNodeManager(RMFTestCase):
                               mode = 0777,
                               owner = 'mapred',
                               group = 'hadoop',
+                              bin_dir = '/usr/bin',
                               action = ['create_delayed'],
                               )
     self.assertResourceCalled('HdfsDirectory', '/mr-history/done',
@@ -160,6 +164,7 @@ class TestNodeManager(RMFTestCase):
                               mode = 01777,
                               owner = 'mapred',
                               group = 'hadoop',
+                              bin_dir = '/usr/bin',
                               action = ['create_delayed'],
                               )
     self.assertResourceCalled('HdfsDirectory', None,
@@ -168,6 +173,7 @@ class TestNodeManager(RMFTestCase):
                               conf_dir = '/etc/hadoop/conf',
                               hdfs_user = 'hdfs',
                               kinit_path_local = "/usr/bin/kinit",
+                              bin_dir = '/usr/bin',
                               action = ['create'],
                               )
     self.assertResourceCalled('Directory', '/var/run/hadoop-yarn/yarn',
@@ -311,6 +317,7 @@ class TestNodeManager(RMFTestCase):
                               owner = 'yarn',
                               group = 'hadoop',
                               action = ['create_delayed'],
+                              bin_dir = '/usr/bin',
                               mode = 0777,
                               )
     self.assertResourceCalled('HdfsDirectory', '/mapred',
@@ -320,6 +327,7 @@ class TestNodeManager(RMFTestCase):
                               hdfs_user = 'hdfs',
                               kinit_path_local = '/usr/bin/kinit',
                               owner = 'mapred',
+                              bin_dir = '/usr/bin',
                               action = ['create_delayed'],
                               )
     self.assertResourceCalled('HdfsDirectory', '/mapred/system',
@@ -329,6 +337,7 @@ class TestNodeManager(RMFTestCase):
                               hdfs_user = 'hdfs',
                               kinit_path_local = '/usr/bin/kinit',
                               owner = 'hdfs',
+                              bin_dir = '/usr/bin',
                               action = ['create_delayed'],
                               )
     self.assertResourceCalled('HdfsDirectory', '/mr-history/tmp',
@@ -338,6 +347,7 @@ class TestNodeManager(RMFTestCase):
                               hdfs_user = 'hdfs',
                               kinit_path_local = '/usr/bin/kinit',
                               mode = 0777,
+                              bin_dir = '/usr/bin',
                               owner = 'mapred',
                               group = 'hadoop',
                               action = ['create_delayed'],
@@ -349,6 +359,7 @@ class TestNodeManager(RMFTestCase):
                               hdfs_user = 'hdfs',
                               kinit_path_local = '/usr/bin/kinit',
                               mode = 01777,
+                              bin_dir = '/usr/bin',
                               owner = 'mapred',
                               group = 'hadoop',
                               action = ['create_delayed'],
@@ -357,6 +368,7 @@ class TestNodeManager(RMFTestCase):
                               security_enabled = True,
                               keytab = '/etc/security/keytabs/hdfs.headless.keytab',
                               conf_dir = '/etc/hadoop/conf',
+                              bin_dir = '/usr/bin',
                               hdfs_user = 'hdfs',
                               kinit_path_local = '/usr/bin/kinit',
                               action = ['create'],

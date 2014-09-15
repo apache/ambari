@@ -38,7 +38,7 @@ App.ApplicationStatusMapper = App.Mapper.createWithMixins(App.RunPeriodically, {
    * @method load
    * @return {$.ajax}
    */
-  load: function() {
+  load: function () {
     return App.ajax.send({
       name: 'mapper.applicationStatus',
       sender: this,
@@ -51,13 +51,18 @@ App.ApplicationStatusMapper = App.Mapper.createWithMixins(App.RunPeriodically, {
    * @param {object} data received from server data
    * @method setResourcesVersion
    */
-  setResourcesVersion: function(data) {
-    App.set('resourcesVersion', Em.get(data, "version") ? Em.get(data, "version") : "version" );
-    if(App.get('clusterName')){
+  setResourcesVersion: function (data) {
+    App.set('resourcesVersion', Em.getWithDefault(data, "version", 'version'));
+    if (App.get('clusterName')) {
       this.loadServicesStatus();
     }
   },
 
+  /**
+   * Get Services status from Ambari-server
+   * @returns {$.ajax}
+   * @method loadServicesStatus
+   */
   loadServicesStatus: function () {
     return App.ajax.send({
       name: 'service_status',
@@ -69,25 +74,42 @@ App.ApplicationStatusMapper = App.Mapper.createWithMixins(App.RunPeriodically, {
     });
   },
 
+  /**
+   * Success-callback for load services status
+   * Set Slider state basing on <code>ServiceInfo.state</code>
+   * @param {object} data
+   * @method setErrors
+   */
   setErrors: function (data) {
     var self = this,
-    errors = [];
-    this.get('servicesWeNeed').forEach( function (serviceName) {
-      self.findError(data.items.findProperty("ServiceInfo.service_name", serviceName), errors);
+      errors = [];
+    this.get('servicesWeNeed').forEach(function (serviceName) {
+      var e = self.findError(data.items.findProperty("ServiceInfo.service_name", serviceName));
+      if (!Em.isNone(e)) {
+        errors.push(e);
+      }
     });
 
-    App.set('viewEnabled', (errors.length > 0 ? false : true));
+    App.set('viewEnabled', errors.length === 0);
     App.set('viewErrors', errors);
   },
 
-  findError: function (data, errors){
-    var name = Em.get(data, "ServiceInfo.service_name")
-    if(data){
-      if(Em.get(data, "ServiceInfo.state") != "STARTED")
-        errors.push(Em.I18n.t('error.start'+name));
-    }else{
-      errors.push(Em.I18n.t('error.no'+name));
+  /**
+   * Get error for service (missed or not started)
+   * @param {object} data
+   * @returns {string|null}
+   */
+  findError: function (data) {
+    var name = Em.get(data, "ServiceInfo.service_name"),
+      error = null;
+    if (data) {
+      if (Em.get(data, "ServiceInfo.state") != "STARTED")
+        error = Em.I18n.t('error.start' + name);
     }
+    else {
+      error = Em.I18n.t('error.no' + name);
+    }
+    return error;
   }
 
 });

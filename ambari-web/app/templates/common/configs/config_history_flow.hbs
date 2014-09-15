@@ -45,7 +45,7 @@
             <div class="content"> <strong>{{serviceVersion.displayName}}</strong> <span class="label label-info">{{serviceVersion.versionText}}</span> &nbsp;
               <strong>{{t services.service.config.configHistory.configGroup}}:{{serviceVersion.configGroupName}}</strong>
               <div class="date">{{serviceVersion.createdDate}}</div>
-              <div class="notes">{{serviceVersion.briefNotes}}</div>
+              <div class="notes">{{serviceVersion.notes}}</div>
             </div>
             <div class="version-operations-buttons">
                 <button {{bindAttr disabled="serviceVersion.disabledActionAttr.view" class=":btn serviceVersion.isDisplayed:not-allowed-cursor" title="serviceVersion.disabledActionMessages.view"}} {{action switchVersion serviceVersion target="view"}}><i class="icon-search"></i>&nbsp;{{t common.view}}</button>
@@ -69,7 +69,7 @@
                   <i class="icon-remove-circle icon-large"></i>
               </div>
               <div class="label-wrapper span8"
-                   data-toggle="tooltip" {{bindAttr data-original-title="view.compareServiceVersion.briefNotes"}}>
+                   data-toggle="tooltip" {{bindAttr data-original-title="view.compareServiceVersion.notes"}}>
                   {{t services.service.config.configHistory.comparing}}
                   <span class="label label-info">{{view.displayedServiceVersion.versionText}}</span>
                   ...
@@ -107,7 +107,7 @@
                                 <div class="content"> <strong>{{serviceVersion.displayName}}</strong> <span class="label label-info">{{serviceVersion.versionText}}</span> &nbsp;
                                     <strong>{{t services.service.config.configHistory.configGroup}}:{{serviceVersion.configGroupName}}</strong>
                                     <div class="date">{{serviceVersion.createdDate}}</div>
-                                    <div class="notes">{{serviceVersion.briefNotes}}</div>
+                                    <div class="notes">{{serviceVersion.notes}}</div>
                                 </div>
                                 <div class="version-operations-buttons">
                                     <button {{bindAttr disabled="serviceVersion.disabledActionAttr.view" class=":btn serviceVersion.isDisplayed:not-allowed-cursor" title="serviceVersion.disabledActionMessages.view"}} {{action switchVersion serviceVersion target="view"}}><i class="icon-search"></i>&nbsp;{{t common.view}}</button>
@@ -128,7 +128,7 @@
                   </ul>
               </div>
             {{/if}}
-              <div class="label-wrapper span8" data-toggle="tooltip" {{bindAttr data-original-title="view.displayedServiceVersion.briefNotes"}}>
+              <div class="label-wrapper span8" data-toggle="tooltip" {{bindAttr data-original-title="view.displayedServiceVersion.notes"}}>
                   <span class="label label-info">{{view.displayedServiceVersion.versionText}}</span>
                 {{#if view.displayedServiceVersion.isCurrent}}
                     <span class="label label-success">{{t common.current}}</span>
