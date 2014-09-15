@@ -92,6 +92,12 @@ App.WizardStep5Controller = Em.Controller.extend(App.BlueprintMixin, {
   submitDisabled: false,
 
   /**
+   * Is Submit-click processing now
+   * @type {bool}
+   */
+  submitButtonClicked: false,
+
+  /**
    * Trigger for executing host names check for components
    * Should de "triggered" when host changed for some component and when new multiple component is added/removed
    * @type {bool}
@@ -1075,30 +1081,34 @@ App.WizardStep5Controller = Em.Controller.extend(App.BlueprintMixin, {
 
   /**
    * Submit button click handler
-   * @metohd submit
+   * @method submit
    */
   submit: function () {
     var self = this;
+    if (!this.get('submitButtonClicked')) {
+      this.set('submitButtonClicked', true);
 
-    var goNextStepIfValid = function() {
-      if (!self.get('submitDisabled')) {
-        App.router.send('next');
+      var goNextStepIfValid = function () {
+        if (!self.get('submitDisabled')) {
+          App.router.send('next');
+        }
+        self.set('submitButtonClicked', false);
+      };
+
+      if (App.get('supports.serverRecommendValidate')) {
+        self.recommendAndValidate(function () {
+          self.showValidationIssuesAcceptBox(goNextStepIfValid);
+        });
+      } else {
+        self.updateIsSubmitDisabled();
+        goNextStepIfValid();
       }
-    };
-
-    if (App.get('supports.serverRecommendValidate')) {
-      self.recommendAndValidate(function() {
-        self.showValidationIssuesAcceptBox(goNextStepIfValid);
-      });
-    } else {
-      self.updateIsSubmitDisabled();
-      goNextStepIfValid();
     }
   },
 
   /**
    * In case of any validation issues shows accept dialog box for user which allow cancel and fix issues or continue anyway
-   * @metohd submit
+   * @method showValidationIssuesAcceptBox
    */
   showValidationIssuesAcceptBox: function(callback) {
     var self = this;
