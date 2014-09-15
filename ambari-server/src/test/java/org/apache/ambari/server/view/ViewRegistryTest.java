@@ -533,6 +533,29 @@ public class ViewRegistryTest {
   }
 
   @Test
+  public void testGetDefinition() throws Exception {
+    ViewEntity viewDefinition = ViewEntityTest.getViewEntity();
+
+    ViewRegistry registry = ViewRegistry.getInstance();
+
+    ResourceTypeEntity resourceTypeEntity = new ResourceTypeEntity();
+    resourceTypeEntity.setId(10);
+    resourceTypeEntity.setName(viewDefinition.getName());
+
+    viewDefinition.setResourceType(resourceTypeEntity);
+
+    registry.addDefinition(viewDefinition);
+
+    viewDefinition.setStatus(ViewDefinition.ViewStatus.DEPLOYING);
+
+    Assert.assertNull(registry.getDefinition(resourceTypeEntity));
+
+    viewDefinition.setStatus(ViewDefinition.ViewStatus.DEPLOYED);
+
+    Assert.assertEquals(viewDefinition, registry.getDefinition(resourceTypeEntity));
+  }
+
+  @Test
   public void testAddGetInstanceDefinitions() throws Exception {
     ViewEntity viewDefinition = ViewEntityTest.getViewEntity();
     ViewInstanceEntity viewInstanceDefinition = ViewInstanceEntityTest.getViewInstanceEntity();

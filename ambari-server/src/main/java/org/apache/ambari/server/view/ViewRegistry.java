@@ -261,8 +261,10 @@ public class ViewRegistry {
   public ViewEntity getDefinition(ResourceTypeEntity resourceTypeEntity) {
 
     for (ViewEntity viewEntity : viewDefinitions.values()) {
-      if (viewEntity.getResourceType().equals(resourceTypeEntity)) {
-        return viewEntity;
+      if (viewEntity.isDeployed()) {
+        if (viewEntity.getResourceType().equals(resourceTypeEntity)) {
+          return viewEntity;
+        }
       }
     }
     return null;
