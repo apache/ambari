@@ -211,6 +211,20 @@ public class ConfigGroupResourceProvider extends
     return getRequestStatus(null);
   }
 
+  @Override
+  public Set<String> checkPropertyIds(Set<String> propertyIds) {
+    //allow providing service_config_version_note, but we should not return it for config group
+    Set<String> unsupportedPropertyIds = super.checkPropertyIds(propertyIds);
+    for (Iterator<String> iterator = unsupportedPropertyIds.iterator(); iterator.hasNext(); ) {
+      String next = iterator.next();
+      next = PropertyHelper.getPropertyName(next);
+      if (next.equals("service_config_version_note") || next.equals("/service_config_version_note")) {
+        iterator.remove();
+      }
+    }
+    return unsupportedPropertyIds;
+  }
+
   /**
    * Create configuration group resources based on set of config group requests.
    *
@@ -477,7 +491,8 @@ public class ConfigGroupResourceProvider extends
       configGroup.persist();
       cluster.addConfigGroup(configGroup);
       if (serviceName != null) {
-        cluster.createServiceConfigVersion(serviceName, getManagementController().getAuthName(), null, configGroup);
+        cluster.createServiceConfigVersion(serviceName, getManagementController().getAuthName(),
+          request.getServiceConfigVersionNote(), configGroup);
       } else {
         LOG.warn("Could not determine service name for config group {}, service config version not created",
             configGroup.getId());
@@ -569,7 +584,8 @@ public class ConfigGroupResourceProvider extends
 
       configGroup.persist();
       if (serviceName != null) {
-        cluster.createServiceConfigVersion(serviceName, getManagementController().getAuthName(), null, configGroup);
+        cluster.createServiceConfigVersion(serviceName, getManagementController().getAuthName(),
+          request.getServiceConfigVersionNote(), configGroup);
       } else {
         LOG.warn("Could not determine service name for config group {}, service config version not created",
             configGroup.getId());
