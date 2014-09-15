@@ -1282,6 +1282,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
           "tag": selectedConfigGroup.get('service.id'),
           "description": selectedConfigGroup.get('description'),
           "hosts": groupHosts,
+          "service_config_version_note": this.get('serviceConfigVersionNote'),
           "desired_configs": this.buildGroupDesiredConfigs(overridenConfigs)
         }
       }, true);
