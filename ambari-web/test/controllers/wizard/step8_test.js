@@ -101,13 +101,13 @@ describe('App.WizardStep8Controller', function () {
       {selectedServices: Em.A(['MAPREDUCE2', 'YARN', 'HBASE']), e: 7},
       {selectedServices: Em.A(['MAPREDUCE2', 'YARN', 'HBASE', 'OOZIE']), e: 9},
       {selectedServices: Em.A(['MAPREDUCE2', 'YARN', 'HBASE', 'OOZIE', 'HIVE']), e: 12},
-      {selectedServices: Em.A(['MAPREDUCE2', 'YARN', 'HBASE', 'OOZIE', 'HIVE', 'WEBHCAT']), e: 13},
-      {selectedServices: Em.A(['MAPREDUCE2', 'YARN', 'HBASE', 'OOZIE', 'HIVE', 'WEBHCAT', 'HUE']), e: 14},
-      {selectedServices: Em.A(['MAPREDUCE2', 'YARN', 'HBASE', 'OOZIE', 'HIVE', 'WEBHCAT', 'HUE', 'PIG']), e: 15},
-      {selectedServices: Em.A(['MAPREDUCE2', 'YARN', 'HBASE', 'OOZIE', 'HIVE', 'WEBHCAT', 'HUE', 'PIG', 'FALCON']), e: 17},
-      {selectedServices: Em.A(['MAPREDUCE2', 'YARN', 'HBASE', 'OOZIE', 'HIVE', 'WEBHCAT', 'HUE', 'PIG', 'FALCON', 'STORM']), e: 18},
-      {selectedServices: Em.A(['MAPREDUCE2', 'YARN', 'HBASE', 'OOZIE', 'HIVE', 'WEBHCAT', 'HUE', 'PIG', 'FALCON', 'STORM', 'TEZ']), e: 19},
-      {selectedServices: Em.A(['MAPREDUCE2', 'YARN', 'HBASE', 'OOZIE', 'HIVE', 'WEBHCAT', 'HUE', 'PIG', 'FALCON', 'STORM', 'TEZ', 'ZOOKEEPER']), e: 21}
+      {selectedServices: Em.A(['MAPREDUCE2', 'YARN', 'HBASE', 'OOZIE', 'HIVE']), e: 13},
+      {selectedServices: Em.A(['MAPREDUCE2', 'YARN', 'HBASE', 'OOZIE', 'HIVE', 'HUE']), e: 14},
+      {selectedServices: Em.A(['MAPREDUCE2', 'YARN', 'HBASE', 'OOZIE', 'HIVE', 'HUE', 'PIG']), e: 15},
+      {selectedServices: Em.A(['MAPREDUCE2', 'YARN', 'HBASE', 'OOZIE', 'HIVE', 'HUE', 'PIG', 'FALCON']), e: 17},
+      {selectedServices: Em.A(['MAPREDUCE2', 'YARN', 'HBASE', 'OOZIE', 'HIVE', 'HUE', 'PIG', 'FALCON', 'STORM']), e: 18},
+      {selectedServices: Em.A(['MAPREDUCE2', 'YARN', 'HBASE', 'OOZIE', 'HIVE', 'HUE', 'PIG', 'FALCON', 'STORM', 'TEZ']), e: 19},
+      {selectedServices: Em.A(['MAPREDUCE2', 'YARN', 'HBASE', 'OOZIE', 'HIVE', 'HUE', 'PIG', 'FALCON', 'STORM', 'TEZ', 'ZOOKEEPER']), e: 21}
     ]);
 
     tests.forEach(function (test) {

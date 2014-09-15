@@ -18,74 +18,30 @@
 
 package org.apache.ambari.server.upgrade;
 
-import java.lang.reflect.Type;
-
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.Date;
-
-import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Expression;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
-
 import com.google.common.reflect.TypeToken;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
-import org.apache.ambari.server.orm.dao.ClusterDAO;
-import org.apache.ambari.server.orm.dao.DaoUtils;
-import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
-import org.apache.ambari.server.orm.dao.KeyValueDAO;
-import org.apache.ambari.server.orm.dao.PermissionDAO;
-import org.apache.ambari.server.orm.dao.PrincipalDAO;
-import org.apache.ambari.server.orm.dao.PrincipalTypeDAO;
-import org.apache.ambari.server.orm.dao.PrivilegeDAO;
-import org.apache.ambari.server.orm.dao.ResourceDAO;
-import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
-import org.apache.ambari.server.orm.dao.ConfigGroupConfigMappingDAO;
-import org.apache.ambari.server.orm.dao.UserDAO;
-import org.apache.ambari.server.orm.dao.ViewDAO;
-import org.apache.ambari.server.orm.dao.ViewInstanceDAO;
-import org.apache.ambari.server.orm.entities.ClusterEntity;
-import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
-import org.apache.ambari.server.orm.entities.ConfigGroupConfigMappingEntity;
-import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
-import org.apache.ambari.server.orm.entities.HostRoleCommandEntity_;
-import org.apache.ambari.server.orm.entities.KeyValueEntity;
-import org.apache.ambari.server.orm.entities.PermissionEntity;
-import org.apache.ambari.server.orm.entities.PrincipalEntity;
-import org.apache.ambari.server.orm.entities.PrincipalTypeEntity;
-import org.apache.ambari.server.orm.entities.PrivilegeEntity;
-import org.apache.ambari.server.orm.entities.ResourceEntity;
-import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
-import org.apache.ambari.server.orm.entities.UserEntity;
-import org.apache.ambari.server.orm.entities.ViewEntity;
-import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
-import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.Config;
-import org.apache.ambari.server.state.ConfigHelper;
+import org.apache.ambari.server.orm.dao.*;
+import org.apache.ambari.server.orm.entities.*;
+import org.apache.ambari.server.state.*;
 import org.apache.ambari.server.utils.StageUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.inject.Inject;
-import com.google.inject.Injector;
+import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.*;
+import java.lang.reflect.Type;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.*;
+import java.util.Map.Entry;
 
 /**
  * Upgrade catalog for version 1.7.0.
@@ -532,6 +488,9 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
   @Override
   protected void executeDMLUpdates() throws AmbariException, SQLException {
     // Update historic records with the log paths, but only enough so as to not prolong the upgrade process
+    moveHcatalogIntoHiveService();
+    moveWebHcatIntoHiveService();
+
     executeInTransaction(new Runnable() {
       @Override
       public void run() {
@@ -596,6 +555,117 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
     addJobsViewPermissions();
     moveConfigGroupsGlobalToEnv();
   }
+
+  public void moveHcatalogIntoHiveService() throws AmbariException {
+    final String serviceName = "HIVE";
+    final String serviceNameToBeDeleted = "HCATALOG";
+    final String componentName = "HCAT";
+    moveComponentsIntoService(serviceName, serviceNameToBeDeleted, componentName);
+  }
+
+  private void moveWebHcatIntoHiveService() throws AmbariException {
+    final String serviceName = "HIVE";
+    final String serviceNameToBeDeleted = "WEBHCAT";
+    final String componentName = "WEBHCAT_SERVER";
+    moveComponentsIntoService(serviceName, serviceNameToBeDeleted, componentName);
+  }
+
+  private void moveComponentsIntoService(String serviceName, String serviceNameToBeDeleted, String componentName) throws AmbariException {
+    /**
+     * 1. ADD servicecomponentdesiredstate: Add HCAT HIVE entry:
+     * 2. Update hostcomponentdesiredstate: service_name to HIVE where service_name is HCATALOG:
+     * 3. Update hostcomponentstate: service_name to HIVE where service_name is HCATALOG:
+     * 4. DELETE servicecomponentdesiredstate: where component_name is HCAT and service_name is HCATALOG :
+     * 5. Delete servicedesiredstate where  service_name is HCATALOG:
+     * 6. Delete clusterservices where service_name is  HCATALOG:
+     */
+    ClusterDAO clusterDAO = injector.getInstance(ClusterDAO.class);
+    ClusterServiceDAO clusterServiceDAO = injector.getInstance(ClusterServiceDAO.class);
+    ServiceDesiredStateDAO serviceDesiredStateDAO = injector.getInstance(ServiceDesiredStateDAO.class);
+    ServiceComponentDesiredStateDAO serviceComponentDesiredStateDAO = injector.getInstance(ServiceComponentDesiredStateDAO.class);
+    HostComponentDesiredStateDAO hostComponentDesiredStateDAO = injector.getInstance(HostComponentDesiredStateDAO.class);
+    HostComponentStateDAO hostComponentStateDAO = injector.getInstance(HostComponentStateDAO.class);
+
+    List<ClusterEntity> clusterEntities = clusterDAO.findAll();
+    for (final ClusterEntity clusterEntity : clusterEntities) {
+      ServiceComponentDesiredStateEntityPK pkHCATInHcatalog = new ServiceComponentDesiredStateEntityPK();
+      pkHCATInHcatalog.setComponentName(componentName);
+      pkHCATInHcatalog.setClusterId(clusterEntity.getClusterId());
+      pkHCATInHcatalog.setServiceName(serviceNameToBeDeleted);
+      ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntityToDelete = serviceComponentDesiredStateDAO.findByPK(pkHCATInHcatalog);
+
+      if (serviceComponentDesiredStateEntityToDelete == null)
+        continue;
+
+      ServiceDesiredStateEntityPK serviceDesiredStateEntityPK = new ServiceDesiredStateEntityPK();
+      serviceDesiredStateEntityPK.setClusterId(clusterEntity.getClusterId());
+      serviceDesiredStateEntityPK.setServiceName(serviceNameToBeDeleted);
+      ServiceDesiredStateEntity serviceDesiredStateEntity = serviceDesiredStateDAO.findByPK(serviceDesiredStateEntityPK);
+
+      ClusterServiceEntityPK clusterServiceEntityToBeDeletedPK = new ClusterServiceEntityPK();
+      clusterServiceEntityToBeDeletedPK.setClusterId(clusterEntity.getClusterId());
+      clusterServiceEntityToBeDeletedPK.setServiceName(serviceNameToBeDeleted);
+      ClusterServiceEntity clusterServiceEntityToBeDeleted = clusterServiceDAO.findByPK(clusterServiceEntityToBeDeletedPK);
+
+      ClusterServiceEntityPK clusterServiceEntityPK = new ClusterServiceEntityPK();
+      clusterServiceEntityPK.setClusterId(clusterEntity.getClusterId());
+      clusterServiceEntityPK.setServiceName(serviceName);
+
+
+      ClusterServiceEntity clusterServiceEntity = clusterServiceDAO.findByPK(clusterServiceEntityPK);
+
+      ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity = new ServiceComponentDesiredStateEntity();
+      serviceComponentDesiredStateEntity.setServiceName(serviceName);
+      serviceComponentDesiredStateEntity.setComponentName(serviceComponentDesiredStateEntityToDelete.getComponentName());
+      serviceComponentDesiredStateEntity.setClusterId(clusterEntity.getClusterId());
+      serviceComponentDesiredStateEntity.setDesiredStackVersion(serviceComponentDesiredStateEntityToDelete.getDesiredStackVersion());
+      serviceComponentDesiredStateEntity.setDesiredState(serviceComponentDesiredStateEntityToDelete.getDesiredState());
+      serviceComponentDesiredStateEntity.setClusterServiceEntity(clusterServiceEntity);
+      //serviceComponentDesiredStateDAO.create(serviceComponentDesiredStateEntity);
+
+      Iterator<HostComponentDesiredStateEntity> hostComponentDesiredStateIterator = serviceComponentDesiredStateEntityToDelete.getHostComponentDesiredStateEntities().iterator();
+      Iterator<HostComponentStateEntity> hostComponentStateIterator = serviceComponentDesiredStateEntityToDelete.getHostComponentStateEntities().iterator();
+
+      while (hostComponentDesiredStateIterator.hasNext()) {
+        HostComponentDesiredStateEntity hcDesiredStateEntityToBeDeleted = hostComponentDesiredStateIterator.next();
+        HostComponentDesiredStateEntity hostComponentDesiredStateEntity = new HostComponentDesiredStateEntity();
+        hostComponentDesiredStateEntity.setClusterId(clusterEntity.getClusterId());
+        hostComponentDesiredStateEntity.setComponentName(hcDesiredStateEntityToBeDeleted.getComponentName());
+        hostComponentDesiredStateEntity.setDesiredStackVersion(hcDesiredStateEntityToBeDeleted.getDesiredStackVersion());
+        hostComponentDesiredStateEntity.setDesiredState(hcDesiredStateEntityToBeDeleted.getDesiredState());
+        hostComponentDesiredStateEntity.setHostName(hcDesiredStateEntityToBeDeleted.getHostName());
+        hostComponentDesiredStateEntity.setHostEntity(hcDesiredStateEntityToBeDeleted.getHostEntity());
+        hostComponentDesiredStateEntity.setAdminState(hcDesiredStateEntityToBeDeleted.getAdminState());
+        hostComponentDesiredStateEntity.setMaintenanceState(hcDesiredStateEntityToBeDeleted.getMaintenanceState());
+        hostComponentDesiredStateEntity.setRestartRequired(hcDesiredStateEntityToBeDeleted.isRestartRequired());
+        hostComponentDesiredStateEntity.setServiceName(serviceName);
+        hostComponentDesiredStateEntity.setServiceComponentDesiredStateEntity(serviceComponentDesiredStateEntity);
+        hostComponentDesiredStateDAO.merge(hostComponentDesiredStateEntity);
+        hostComponentDesiredStateDAO.remove(hcDesiredStateEntityToBeDeleted);
+      }
+
+      while (hostComponentStateIterator.hasNext()) {
+        HostComponentStateEntity hcStateToBeDeleted = hostComponentStateIterator.next();
+        HostComponentStateEntity hostComponentStateEntity = new HostComponentStateEntity();
+        hostComponentStateEntity.setClusterId(clusterEntity.getClusterId());
+        hostComponentStateEntity.setComponentName(hcStateToBeDeleted.getComponentName());
+        hostComponentStateEntity.setCurrentStackVersion(hcStateToBeDeleted.getCurrentStackVersion());
+        hostComponentStateEntity.setCurrentState(hcStateToBeDeleted.getCurrentState());
+        hostComponentStateEntity.setHostName(hcStateToBeDeleted.getHostName());
+        hostComponentStateEntity.setHostEntity(hcStateToBeDeleted.getHostEntity());
+        hostComponentStateEntity.setServiceName(serviceName);
+        hostComponentStateEntity.setServiceComponentDesiredStateEntity(serviceComponentDesiredStateEntity);
+        hostComponentStateDAO.merge(hostComponentStateEntity);
+        hostComponentStateDAO.remove(hcStateToBeDeleted);
+      }
+      serviceComponentDesiredStateEntity.setClusterServiceEntity(clusterServiceEntity);
+      serviceComponentDesiredStateDAO.merge(serviceComponentDesiredStateEntity);
+      serviceComponentDesiredStateDAO.remove(serviceComponentDesiredStateEntityToDelete);
+      serviceDesiredStateDAO.remove(serviceDesiredStateEntity);
+      clusterServiceDAO.remove(clusterServiceEntityToBeDeleted);
+    }
+  }
+
 
   private void moveConfigGroupsGlobalToEnv() throws AmbariException {
     final ConfigGroupConfigMappingDAO confGroupConfMappingDAO = injector.getInstance(ConfigGroupConfigMappingDAO.class);
@@ -905,7 +975,7 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
     if (clusterMap != null && !clusterMap.isEmpty()) {
       for (final Cluster cluster : clusterMap.values()) {
         Set<String> configTypes = configHelper.findConfigTypesByPropertyName(cluster.getCurrentStackVersion(),
-                CONTENT_FIELD_NAME, cluster.getClusterName());
+            CONTENT_FIELD_NAME, cluster.getClusterName());
 
         for(String configType:configTypes) {
           if(!configType.endsWith(ENV_CONFIGS_POSTFIX)) {

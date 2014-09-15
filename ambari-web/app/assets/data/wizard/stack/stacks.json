@@ -21,17 +21,6 @@
           }
         },
         {
-          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/HCATALOG",
-          "StackServices" : {
-            "user_name" : "root",
-            "stack_version" : "1.3.0",
-            "service_name" : "HCATALOG",
-            "stack_name" : "HDP",
-            "service_version" : "0.5.0",
-            "comments" : "This is comment for HCATALOG service"
-          }
-        },
-        {
           "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/MAPREDUCE",
           "StackServices" : {
             "user_name" : "mapred",
@@ -95,17 +84,6 @@
             "stack_name" : "HDP",
             "service_version" : "3.2.0",
             "comments" : "Ganglia Metrics Collection system"
-          }
-        },
-        {
-          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/WEBHCAT",
-          "StackServices" : {
-            "user_name" : "root",
-            "stack_version" : "1.3.0",
-            "service_name" : "WEBHCAT",
-            "stack_name" : "HDP",
-            "service_version" : "0.5.0",
-            "comments" : "This is comment for WEBHCAT service"
           }
         },
         {
@@ -196,17 +174,6 @@
           }
         },
         {
-          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HCATALOG",
-          "StackServices" : {
-            "user_name" : "root",
-            "stack_version" : "1.2.1",
-            "service_name" : "HCATALOG",
-            "stack_name" : "HDP",
-            "service_version" : "0.5.0",
-            "comments" : "This is comment for HCATALOG service"
-          }
-        },
-        {
           "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HDFS",
           "StackServices" : {
             "user_name" : "root",
@@ -270,17 +237,6 @@
             "stack_name" : "HDP",
             "service_version" : "1.1.2",
             "comments" : "Apache Hadoop Distributed Processing Framework"
-          }
-        },
-        {
-          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/WEBHCAT",
-          "StackServices" : {
-            "user_name" : "root",
-            "stack_version" : "1.2.1",
-            "service_name" : "WEBHCAT",
-            "stack_name" : "HDP",
-            "service_version" : "0.5.0",
-            "comments" : "This is comment for WEBHCAT service"
           }
         },
         {
@@ -357,17 +313,6 @@
             "stack_name" : "HDP",
             "service_version" : "3.2.3",
             "comments" : "Nagios Monitoring and Alerting system"
-          }
-        },
-        {
-          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.2.0/stackServices/HCATALOG",
-          "StackServices" : {
-            "user_name" : "root",
-            "stack_version" : "1.2.0",
-            "service_name" : "HCATALOG",
-            "stack_name" : "HDP",
-            "service_version" : "0.5.0",
-            "comments" : "This is comment for HCATALOG service"
           }
         },
         {

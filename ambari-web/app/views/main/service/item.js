@@ -215,7 +215,7 @@ App.MainServiceItemView = Em.View.extend({
   }.property('maintenance'),
 
   hasConfigTab: function() {
-    return !App.get('services.noConfigTypes').concat('HCATALOG').contains(this.get('controller.content.serviceName'));
+    return !App.get('services.noConfigTypes').contains(this.get('controller.content.serviceName'));
   }.property('controller.content.serviceName','App.services.noConfigTypes'),
 
   didInsertElement: function () {

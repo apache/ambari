@@ -36,6 +36,7 @@ if rpm_version is not None:
   hadoop_conf_dir = format("/usr/hdp/{rpm_version}/etc/hadoop/conf")
   hadoop_bin_dir = format("/usr/hdp/{rpm_version}/hadoop/bin")
   hadoop_home = format('/usr/hdp/{rpm_version}/hadoop')
+  hadoop_streeming_jars = format("/usr/hdp/{rpm_version}/hadoop-mapreduce/hadoop-streaming-*.jar")
   hive_conf_dir = format('/usr/hdp/{rpm_version}/etc/hive/conf')
   hive_client_conf_dir = format('/usr/hdp/{rpm_version}/etc/hive/conf')
   hive_server_conf_dir = format('/usr/hdp/{rpm_version}/etc/hive/conf.server')
@@ -46,16 +47,21 @@ if rpm_version is not None:
 
   if str(hdp_stack_version).startswith('2.0'):
     hcat_conf_dir = format('/usr/hdp/{rpm_version}/etc/hcatalog/conf')
+    config_dir = format('/usr/hdp/{rpm_version}/etc/hcatalog/conf')
     hcat_lib = format('/usr/hdp/{rpm_version}/hive/hcatalog/share/hcatalog')
+    webhcat_bin_dir = format('/usr/hdp/{rpm_version}/hive/hcatalog/sbin')
   # for newer versions
   else:
     hcat_conf_dir = format('/usr/hdp/{rpm_version}/etc/hive-hcatalog/conf')
+    config_dir = format('/usr/hdp/{rpm_version}/etc/hive-webhcat/conf')
     hcat_lib = format('/usr/hdp/{rpm_version}/hive/hive-hcatalog/share/hcatalog')
+    webhcat_bin_dir = format('/usr/hdp/{rpm_version}/hive/hive-hcatalog/sbin')
 
 else:
   hadoop_conf_dir = "/etc/hadoop/conf"
   hadoop_bin_dir = "/usr/bin"
   hadoop_home = '/usr'
+  hadoop_streeming_jars = '/usr/lib/hadoop-mapreduce/hadoop-streaming-*.jar'
   hive_conf_dir = "/etc/hive/conf"
   hive_bin = '/usr/lib/hive/bin'
   hive_lib = '/usr/lib/hive/lib/'
@@ -66,11 +72,15 @@ else:
 
   if str(hdp_stack_version).startswith('2.0'):
     hcat_conf_dir = '/etc/hcatalog/conf'
+    config_dir = '/etc/hcatalog/conf'
     hcat_lib = '/usr/lib/hcatalog/share/hcatalog'
+    webhcat_bin_dir = '/usr/lib/hcatalog/sbin'
   # for newer versions
   else:
     hcat_conf_dir = '/etc/hive-hcatalog/conf'
+    config_dir = '/etc/hive-webhcat/conf'
     hcat_lib = '/usr/lib/hive-hcatalog/share/hcatalog'
+    webhcat_bin_dir = '/usr/lib/hive-hcatalog/sbin'
 
 execute_path = os.environ['PATH'] + os.pathsep + hive_bin
 hive_metastore_user_name = config['configurations']['hive-site']['javax.jdo.option.ConnectionUserName']
@@ -202,9 +212,7 @@ hive_apps_whs_dir = config['configurations']['hive-site']["hive.metastore.wareho
 #for create_hdfs_directory
 hostname = config["hostname"]
 hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
-hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_name']
-kinit_path_local = functions.get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
 
 # Tez libraries
 tez_lib_uris = default("/configurations/tez-site/tez.lib.uris", None)
@@ -227,6 +235,38 @@ if os.path.exists(mysql_jdbc_driver_jar):
   hive_exclude_packages = ['mysql-connector-java']
 else:  
   hive_exclude_packages = []
+
+########################################################
+########### WebHCat related params #####################
+########################################################
+
+if str(config['hostLevelParams']['stack_version']).startswith('2.0'):
+  config_dir = '/etc/hcatalog/conf'
+  webhcat_bin_dir = '/usr/lib/hcatalog/sbin'
+# for newer versions
+else:
+  config_dir = '/etc/hive-webhcat/conf'
+  webhcat_bin_dir = '/usr/lib/hive-hcatalog/sbin'
+
+webhcat_env_sh_template = config['configurations']['webhcat-env']['content']
+templeton_log_dir = config['configurations']['hive-env']['hcat_log_dir']
+templeton_pid_dir = status_params.hcat_pid_dir
+
+webhcat_pid_file = status_params.webhcat_pid_file
+
+templeton_jar = config['configurations']['webhcat-site']['templeton.jar']
+
+
+webhcat_server_host = config['clusterHostInfo']['webhcat_server_host']
+
+webhcat_apps_dir = "/apps/webhcat"
+
+hcat_hdfs_user_dir = format("/user/{hcat_user}")
+hcat_hdfs_user_mode = 0755
+webhcat_hdfs_user_dir = format("/user/{webhcat_user}")
+webhcat_hdfs_user_mode = 0755
+#for create_hdfs_directory
+security_param = "true" if security_enabled else "false"
 
 import functools
 #create partial functions with common arguments for every HdfsDirectory call

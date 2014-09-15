@@ -1564,7 +1564,7 @@ module.exports =
       "name": "templeton.hive.archive",
       "displayName": "templeton.hive.archive",
       "isRequired": false,
-      "serviceName": "WEBHCAT",
+      "serviceName": "HIVE",
       "category": "Advanced webhcat-site"
     },
     {
@@ -1572,7 +1572,7 @@ module.exports =
       "name": "templeton.pig.archive",
       "displayName": "templeton.pig.archive",
       "isRequired": false,
-      "serviceName": "WEBHCAT",
+      "serviceName": "HIVE",
       "category": "Advanced webhcat-site"
     },
     {
@@ -1580,7 +1580,7 @@ module.exports =
       "name": "templeton.zookeeper.hosts",
       "displayName": "templeton.zookeeper.hosts",
       "displayType": "multiLine",
-      "serviceName": "WEBHCAT",
+      "serviceName": "HIVE",
       "category": "Advanced webhcat-site"
     },
   /**********************************************pig.properties*****************************************/
@@ -2585,7 +2585,7 @@ module.exports =
       "filename": "hive-env.xml",
       "category": "Advanced hive-env"
     },
-  /**********************************************WEBHCAT***************************************/
+  /**********************************************HIVE***************************************/
     {
       "id": "puppet var",
       "name": "webhcatserver_host",
@@ -2597,7 +2597,7 @@ module.exports =
       "isOverridable": false,
       "isVisible": true,
       "isRequiredByAgent": false,
-      "serviceName": "WEBHCAT",
+      "serviceName": "HIVE",
       "filename": "webhcat-env.xml",
       "category": "WEBHCAT_SERVER"
     },
@@ -2611,7 +2611,7 @@ module.exports =
       "displayType": "directory",
       "isOverridable": false,
       "isVisible": true,
-      "serviceName": "WEBHCAT",
+      "serviceName": "HIVE",
       "filename": "webhcat-env.xml",
       "category": "Advanced webhcat-env"
     },
@@ -2625,7 +2625,7 @@ module.exports =
       "displayType": "directory",
       "isOverridable": false,
       "isVisible": true,
-      "serviceName": "WEBHCAT",
+      "serviceName": "HIVE",
       "filename": "webhcat-env.xml",
       "category": "Advanced webhcat-env"
     },
@@ -3334,7 +3334,7 @@ module.exports =
       "filename": "core-site.xml",
       "serviceName": "MISC",
       "category": "Users and Groups",
-      "belongsToService": ["HIVE", "WEBHCAT", "OOZIE", "FALCON"],
+      "belongsToService": ["HIVE", "OOZIE", "FALCON"],
       "index": 18
     },
     {
@@ -3442,9 +3442,9 @@ module.exports =
       "isOverridable": false,
       "isVisible": true,
       "serviceName": "MISC",
-      "filename": "hcatalog-env.xml",
+      "filename": "hive-env.xml",
       "category": "Users and Groups",
-      "belongsToService": ["HCATALOG"],
+      "belongsToService": ["HIVE"],
       "index": 6
     },
     {
@@ -3460,7 +3460,7 @@ module.exports =
       "serviceName": "MISC",
       "filename": "webhcat-env.xml",
       "category": "Users and Groups",
-      "belongsToService": ["WEBHCAT"],
+      "belongsToService": ["HIVE"],
       "index": 7
     },
     {

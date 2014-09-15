@@ -320,42 +320,6 @@
       ]
     },
     {
-      "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/HCATALOG",
-      "StackServices" : {
-        "comments" : "This is comment for HCATALOG service",
-        "custom_commands" : [ ],
-        "display_name" : "HCatalog",
-        "required_services" : [
-          "HIVE"
-        ],
-        "service_check_supported" : true,
-        "service_name" : "HCATALOG",
-        "service_version" : "0.12.0.2.1",
-        "stack_name" : "HDP",
-        "stack_version" : "2.1",
-        "user_name" : null,
-        "config_types" : { }
-      },
-      "serviceComponents" : [
-        {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/HCATALOG/components/HCAT",
-          "StackServiceComponents" : {
-            "cardinality" : null,
-            "component_category" : "CLIENT",
-            "component_name" : "HCAT",
-            "custom_commands" : [ ],
-            "display_name" : "HCat",
-            "is_client" : true,
-            "is_master" : false,
-            "service_name" : "HCATALOG",
-            "stack_name" : "HDP",
-            "stack_version" : "2.1"
-          },
-          "dependencies" : [ ]
-        }
-      ]
-    },
-    {
       "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/HDFS",
       "StackServices" : {
         "comments" : "Apache Hadoop Distributed File System",
@@ -558,6 +522,22 @@
           "dependencies" : [ ]
         },
         {
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/HCATALOG/components/HCAT",
+          "StackServiceComponents" : {
+            "cardinality" : null,
+            "component_category" : "CLIENT",
+            "component_name" : "HCAT",
+            "custom_commands" : [ ],
+            "display_name" : "HCat",
+            "is_client" : true,
+            "is_master" : false,
+            "service_name" : "HCATALOG",
+            "stack_name" : "HDP",
+            "stack_version" : "2.1"
+          },
+          "dependencies" : [ ]
+        },
+        {
           "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/HIVE/components/HIVE_METASTORE",
           "StackServiceComponents" : {
             "cardinality" : "1",
@@ -628,6 +608,73 @@
                 "component_name" : "ZOOKEEPER_SERVER",
                 "dependent_component_name" : "HIVE_SERVER",
                 "dependent_service_name" : "HIVE",
+                "stack_name" : "HDP",
+                "stack_version" : "2.1"
+              }
+            }
+          ]
+        },
+        {
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/WEBHCAT/components/WEBHCAT_SERVER",
+          "StackServiceComponents" : {
+            "cardinality" : "1",
+            "component_category" : "MASTER",
+            "component_name" : "WEBHCAT_SERVER",
+            "custom_commands" : [ ],
+            "display_name" : "WebHCat Server",
+            "is_client" : false,
+            "is_master" : true,
+            "service_name" : "WEBHCAT",
+            "stack_name" : "HDP",
+            "stack_version" : "2.1"
+          },
+          "dependencies" : [
+            {
+              "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/WEBHCAT/components/WEBHCAT_SERVER/dependencies/HDFS_CLIENT",
+              "Dependencies" : {
+                "component_name" : "HDFS_CLIENT",
+                "dependent_component_name" : "WEBHCAT_SERVER",
+                "dependent_service_name" : "WEBHCAT",
+                "stack_name" : "HDP",
+                "stack_version" : "2.1"
+              }
+            },
+            {
+              "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/WEBHCAT/components/WEBHCAT_SERVER/dependencies/MAPREDUCE2_CLIENT",
+              "Dependencies" : {
+                "component_name" : "MAPREDUCE2_CLIENT",
+                "dependent_component_name" : "WEBHCAT_SERVER",
+                "dependent_service_name" : "WEBHCAT",
+                "stack_name" : "HDP",
+                "stack_version" : "2.1"
+              }
+            },
+            {
+              "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/WEBHCAT/components/WEBHCAT_SERVER/dependencies/YARN_CLIENT",
+              "Dependencies" : {
+                "component_name" : "YARN_CLIENT",
+                "dependent_component_name" : "WEBHCAT_SERVER",
+                "dependent_service_name" : "WEBHCAT",
+                "stack_name" : "HDP",
+                "stack_version" : "2.1"
+              }
+            },
+            {
+              "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/WEBHCAT/components/WEBHCAT_SERVER/dependencies/ZOOKEEPER_CLIENT",
+              "Dependencies" : {
+                "component_name" : "ZOOKEEPER_CLIENT",
+                "dependent_component_name" : "WEBHCAT_SERVER",
+                "dependent_service_name" : "WEBHCAT",
+                "stack_name" : "HDP",
+                "stack_version" : "2.1"
+              }
+            },
+            {
+              "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/WEBHCAT/components/WEBHCAT_SERVER/dependencies/ZOOKEEPER_SERVER",
+              "Dependencies" : {
+                "component_name" : "ZOOKEEPER_SERVER",
+                "dependent_component_name" : "WEBHCAT_SERVER",
+                "dependent_service_name" : "WEBHCAT",
                 "stack_name" : "HDP",
                 "stack_version" : "2.1"
               }
@@ -1232,105 +1279,6 @@
             "stack_version" : "2.1"
           },
           "dependencies" : [ ]
-        }
-      ]
-    },
-    {
-      "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/WEBHCAT",
-      "StackServices" : {
-        "comments" : "This is comment for WEBHCAT service",
-        "custom_commands" : [ ],
-        "display_name" : "WebHCat",
-        "required_services" : [
-          "HIVE",
-          "ZOOKEEPER"
-        ],
-        "service_check_supported" : true,
-        "service_name" : "WEBHCAT",
-        "service_version" : "0.13.0.2.1",
-        "stack_name" : "HDP",
-        "stack_version" : "2.1",
-        "user_name" : null,
-        "config_types" : {
-          "webhcat-env" : {
-            "supports" : {
-              "final" : "false"
-            }
-          },
-          "webhcat-site" : {
-            "supports" : {
-              "final" : "true"
-            }
-          }
-        }
-      },
-      "serviceComponents" : [
-        {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/WEBHCAT/components/WEBHCAT_SERVER",
-          "StackServiceComponents" : {
-            "cardinality" : "1",
-            "component_category" : "MASTER",
-            "component_name" : "WEBHCAT_SERVER",
-            "custom_commands" : [ ],
-            "display_name" : "WebHCat Server",
-            "is_client" : false,
-            "is_master" : true,
-            "service_name" : "WEBHCAT",
-            "stack_name" : "HDP",
-            "stack_version" : "2.1"
-          },
-          "dependencies" : [
-            {
-              "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/WEBHCAT/components/WEBHCAT_SERVER/dependencies/HDFS_CLIENT",
-              "Dependencies" : {
-                "component_name" : "HDFS_CLIENT",
-                "dependent_component_name" : "WEBHCAT_SERVER",
-                "dependent_service_name" : "WEBHCAT",
-                "stack_name" : "HDP",
-                "stack_version" : "2.1"
-              }
-            },
-            {
-              "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/WEBHCAT/components/WEBHCAT_SERVER/dependencies/MAPREDUCE2_CLIENT",
-              "Dependencies" : {
-                "component_name" : "MAPREDUCE2_CLIENT",
-                "dependent_component_name" : "WEBHCAT_SERVER",
-                "dependent_service_name" : "WEBHCAT",
-                "stack_name" : "HDP",
-                "stack_version" : "2.1"
-              }
-            },
-            {
-              "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/WEBHCAT/components/WEBHCAT_SERVER/dependencies/YARN_CLIENT",
-              "Dependencies" : {
-                "component_name" : "YARN_CLIENT",
-                "dependent_component_name" : "WEBHCAT_SERVER",
-                "dependent_service_name" : "WEBHCAT",
-                "stack_name" : "HDP",
-                "stack_version" : "2.1"
-              }
-            },
-            {
-              "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/WEBHCAT/components/WEBHCAT_SERVER/dependencies/ZOOKEEPER_CLIENT",
-              "Dependencies" : {
-                "component_name" : "ZOOKEEPER_CLIENT",
-                "dependent_component_name" : "WEBHCAT_SERVER",
-                "dependent_service_name" : "WEBHCAT",
-                "stack_name" : "HDP",
-                "stack_version" : "2.1"
-              }
-            },
-            {
-              "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/WEBHCAT/components/WEBHCAT_SERVER/dependencies/ZOOKEEPER_SERVER",
-              "Dependencies" : {
-                "component_name" : "ZOOKEEPER_SERVER",
-                "dependent_component_name" : "WEBHCAT_SERVER",
-                "dependent_service_name" : "WEBHCAT",
-                "stack_name" : "HDP",
-                "stack_version" : "2.1"
-              }
-            }
-          ]
         }
       ]
     },

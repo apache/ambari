@@ -20,7 +20,22 @@ limitations under the License.
 
 from resource_management import *
 
-config = Script.get_config()
+def webhcat_service_check():
+  import params
+  File(format("{tmp_dir}/templetonSmoke.sh"),
+       content= StaticFile('templetonSmoke.sh'),
+       mode=0755
+  )
 
-templeton_pid_dir = config['configurations']['hive-env']['hcat_pid_dir']
-pid_file = format('{templeton_pid_dir}/webhcat.pid')
+  cmd = format("{tmp_dir}/templetonSmoke.sh {webhcat_server_host[0]} {smokeuser} {smokeuser_keytab}"
+               " {security_param} {kinit_path_local}",
+               smokeuser_keytab=params.smoke_user_keytab if params.security_enabled else "no_keytab")
+
+  Execute(cmd,
+          tries=3,
+          try_sleep=5,
+          path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
+          logoutput=True)
+
+
+

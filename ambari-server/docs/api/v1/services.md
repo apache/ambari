@@ -78,13 +78,6 @@ Get the collection of the services for the cluster named "c1".
           		}
         	},
         	{
-        		"href" : "http://your.ambari.server/api/v1/clusters/c1/services/HCATALOG",
-        		"ServiceInfo" : {
-        	  		"cluster_name" : "c1",
-        	  		"service_name" : "HCATALOG"
-        	  	}
-        	},
-        	{
         		"href" : "http://your.ambari.server/api/v1/clusters/c1/services/PIG",
         		"ServiceInfo" : {
         	  		"cluster_name" : "c1",

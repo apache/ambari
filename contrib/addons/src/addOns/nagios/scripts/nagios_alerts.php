@@ -197,9 +197,9 @@ function hdp_mon_generate_response( $response_data )
         continue;
       }
       if (getParameter($object, "service_description") == WEBHCAT_SERVICE_CHECK) {
-        $services_object["WEBHCAT"] = getParameter($object, "last_hard_state");
-        if ($services_object["WEBHCAT"] >= 1) {
-          $services_object["WEBHCAT"] = 1;
+          $services_object["HIVE"] = getParameter($object, "last_hard_state");
+        if ($services_object["HIVE"] >= 1) {
+            $services_object["HIVE"] = 1;
         }
         continue;
       }
@@ -381,6 +381,7 @@ function hdp_mon_generate_response( $response_data )
         break;
       case "HIVE-METASTORE":
       case "HIVE-SERVER":
+      case "WEBHCAT":
         $pieces[0] = "HIVE";
         break;
       case "ZKSERVERS":
@@ -413,7 +414,6 @@ function hdp_mon_generate_response( $response_data )
       case "HBASE":
       case "ZOOKEEPER":
       case "OOZIE":
-      case "WEBHCAT":
       case "GANGLIA":
       case "STORM":
       case "FALCON":

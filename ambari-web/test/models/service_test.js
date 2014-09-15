@@ -92,14 +92,6 @@ var service,
       configurable: true
     },
     {
-      name: 'HCATALOG',
-      clientOnly: true
-    },
-    {
-      name: 'WEBHCAT',
-      configurable: true
-    },
-    {
       name: 'FLUME',
       configurable: true
     },

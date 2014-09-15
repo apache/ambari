@@ -20,7 +20,7 @@ var App = require('app');
 var misc = require('utils/misc');
 
 App.MainServiceMenuView = Em.CollectionView.extend({
-  disabledServices: ['HCATALOG'],
+  disabledServices: [],
 
   content:function () {
     var items = App.router.get('mainServiceController.content').filter(function(item){
@@ -75,7 +75,7 @@ App.MainServiceMenuView = Em.CollectionView.extend({
     }.property('content.criticalAlertsCount'),
 
     isConfigurable: function () {
-      return !App.get('services.noConfigTypes').concat('HCATALOG').contains(this.get('content.serviceName'));
+      return !App.get('services.noConfigTypes').contains(this.get('content.serviceName'));
     }.property('App.services.noConfigTypes','content.serviceName'),
 
     link: function() {
@@ -120,7 +120,7 @@ App.MainServiceMenuView = Em.CollectionView.extend({
 });
 
 App.TopNavServiceMenuView = Em.CollectionView.extend({
-  disabledServices: ['HCATALOG'],
+  disabledServices: [],
 
   content:function () {
     var items = App.router.get('mainServiceController.content').filter(function(item){
@@ -173,7 +173,7 @@ App.TopNavServiceMenuView = Em.CollectionView.extend({
     }.property('content.criticalAlertsCount'),
 
     isConfigurable: function () {
-      return !App.get('services.noConfigTypes').concat('HCATALOG').contains(this.get('content.serviceName'));
+      return !App.get('services.noConfigTypes').contains(this.get('content.serviceName'));
     }.property('App.services.noConfigTypes','content.serviceName'),
 
     link: function() {

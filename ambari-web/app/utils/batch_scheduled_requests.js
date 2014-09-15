@@ -72,7 +72,6 @@ module.exports = {
   restartAllServiceHostComponents: function(serviceName, staleConfigsOnly, query, runMmOperation) {
     var self = this;
     var context = staleConfigsOnly ? Em.I18n.t('rollingrestart.context.allWithStaleConfigsForSelectedService').format(serviceName) : Em.I18n.t('rollingrestart.context.allForSelectedService').format(serviceName);
-    var services = (serviceName === 'HIVE' && App.Service.find('HCATALOG').get('isLoaded')) ? ['HIVE', 'HCATALOG'] : [serviceName];
 
     if (runMmOperation) {
       this.turnOnOffPassiveRequest('ON', Em.I18n.t('passiveState.turnOnFor').format(serviceName), serviceName);

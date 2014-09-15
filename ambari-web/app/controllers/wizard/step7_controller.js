@@ -166,14 +166,13 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
 
   /**
    * List of installed service names
-   * Sqoop and HCatalog are excluded if not installer wizard running
    * @type {string[]}
    */
   installedServiceNames: function () {
     var serviceNames = this.get('content.services').filterProperty('isInstalled').mapProperty('serviceName');
     if (this.get('content.controllerName') !== 'installerController') {
       serviceNames = serviceNames.filter(function(_serviceName){
-        return !App.get('services.noConfigTypes').concat('HCATALOG').contains(_serviceName);
+        return !App.get('services.noConfigTypes').contains(_serviceName);
       });
     }
     return serviceNames;

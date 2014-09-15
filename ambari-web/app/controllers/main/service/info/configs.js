@@ -1698,7 +1698,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   addDynamicProperties: function (configs) {
     var allConfigs = this.get('stepConfigs').findProperty('serviceName', this.get('content.serviceName')).get('configs');
     var templetonHiveProperty = allConfigs.someProperty('name', 'templeton.hive.properties');
-    if (!templetonHiveProperty && this.get('content.serviceName') === 'WEBHCAT') {
+    if (!templetonHiveProperty && this.get('content.serviceName') === 'HIVE') {
       configs.pushObject({
         "name": "templeton.hive.properties",
         "templateName": ["hivemetastore_host"],
@@ -2136,7 +2136,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
       hostProperty: 'hivemetastore_host',
       componentName: 'HIVE_SERVER',
       serviceName: 'HIVE',
-      serviceUseThis: ['WEBHCAT']
+      serviceUseThis: ['HIVE']
     },
     {
       hostProperty: 'oozieserver_host',
@@ -2160,7 +2160,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     {
       hostProperty: 'webhcatserver_host',
       componentName: 'WEBHCAT_SERVER',
-      serviceName: 'WEBHCAT',
+      serviceName: 'HIVE',
       serviceUseThis: [],
       m: true
     },
@@ -2168,7 +2168,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
       hostProperty: 'zookeeperserver_hosts',
       componentName: 'ZOOKEEPER_SERVER',
       serviceName: 'ZOOKEEPER',
-      serviceUseThis: ['HBASE', 'WEBHCAT'],
+      serviceUseThis: ['HBASE', 'HIVE'],
       m: true
     },
     {

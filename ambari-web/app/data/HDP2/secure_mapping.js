@@ -505,7 +505,7 @@ module.exports = [
     "foreignKey": null,
     "value": "<templateName[0]>@<templateName[1]>",
     "filename": "webhcat-site.xml",
-    "serviceName": "WEBHCAT"
+    "serviceName": "HIVE"
   },
   {
     "name": "templeton.kerberos.keytab",
@@ -513,7 +513,7 @@ module.exports = [
     "foreignKey": null,
     "value": "<templateName[0]>",
     "filename": "webhcat-site.xml",
-    "serviceName": "WEBHCAT"
+    "serviceName": "HIVE"
   },
   {
     "name": "templeton.kerberos.secret",
@@ -521,7 +521,7 @@ module.exports = [
     "foreignKey": null,
     "value": "secret",
     "filename": "webhcat-site.xml",
-    "serviceName": "WEBHCAT"
+    "serviceName": "HIVE"
   },
   {
     "name": "templeton.hive.properties",
@@ -530,7 +530,7 @@ module.exports = [
     "value": "hive.metastore.local=false,hive.metastore.uris=thrift://<templateName[0]>:9083,hive." +
       "metastore.sasl.enabled=true,hive.metastore.execute.setugi=true,hive.metastore.warehouse.dir=/apps/hive/warehouse,hive.exec.mode.local.auto=false,hive.metastore.kerberos.principal=<templateName[1]>@<templateName[2]>",
     "filename": "webhcat-site.xml",
-    "serviceName": "WEBHCAT"
+    "serviceName": "HIVE"
   },
   {
     "name": "hbase.coprocessor.master.classes",
@@ -689,7 +689,7 @@ module.exports = [
     "foreignKey": ["webHCat_http_primary_name"],
     "value": "<templateName[0]>",
     "filename": "core-site.xml",
-    "serviceName": "WEBHCAT"
+    "serviceName": "HIVE"
   },
   {
     "name": "hadoop.proxyuser.<foreignKey[0]>.hosts",
@@ -697,7 +697,7 @@ module.exports = [
     "foreignKey": ["webHCat_http_primary_name"],
     "value": "<templateName[0]>",
     "filename": "core-site.xml",
-    "serviceName": "WEBHCAT"
+    "serviceName": "HIVE"
   }
 ];
 

@@ -91,9 +91,8 @@ function GetParentServiceName($componentName) {
     switch ($componentName) {
         { 'namenode', 'secondary_namenode', 'datanode', 'zkfc', 'journalnode'  -contains $_ } { 'HDFS' }
         { 'jobtracker', 'tasktracker' -contains $_ } { 'MAPREDUCE' }
-        { 'hive_server', 'hive_metastore', 'hive_client' -contains $_ } { 'HIVE' }
+        { 'hive_server', 'hive_metastore','webhcat_server','hive_client' -contains $_ } { 'HIVE' }
         'templeton' { 'TEMPLETON' }
-        'webhcat_server' { 'WEBHCAT' }
         'oozie_server' { 'OOZIE' }
         'pig' { 'PIG' }
         'sqoop' { 'SQOOP' }

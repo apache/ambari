@@ -1601,7 +1601,6 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, {
       oozieUser = this.get('configs').someProperty('name', 'oozie_user') ? this.get('configs').findProperty('name', 'oozie_user').value : null,
       isHiveSelected = installedAndSelectedServices.someProperty('serviceName', 'HIVE'),
       hiveUser = this.get('configs').someProperty('name', 'hive_user') ? this.get('configs').findProperty('name', 'hive_user').value : null,
-      isHcatSelected = installedAndSelectedServices.someProperty('serviceName', 'WEBHCAT'),
       hcatUser = this.get('configs').someProperty('name', 'hcat_user') ? this.get('configs').findProperty('name', 'hcat_user').value : null,
       isGLUSTERFSSelected = installedAndSelectedServices.someProperty('serviceName', 'GLUSTERFS');
 
@@ -1610,7 +1609,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, {
       if (
         (isOozieSelected || (_coreSiteObj.name != 'hadoop.proxyuser.' + oozieUser + '.hosts' && _coreSiteObj.name != 'hadoop.proxyuser.' + oozieUser + '.groups')) &&
         (isHiveSelected || (_coreSiteObj.name != 'hadoop.proxyuser.' + hiveUser + '.hosts' && _coreSiteObj.name != 'hadoop.proxyuser.' + hiveUser + '.groups')) &&
-        (isHcatSelected || (_coreSiteObj.name != 'hadoop.proxyuser.' + hcatUser + '.hosts' && _coreSiteObj.name != 'hadoop.proxyuser.' + hcatUser + '.groups'))) {
+        (isHiveSelected || (_coreSiteObj.name != 'hadoop.proxyuser.' + hcatUser + '.hosts' && _coreSiteObj.name != 'hadoop.proxyuser.' + hcatUser + '.groups'))) {
         coreSiteProperties[_coreSiteObj.name] = App.config.escapeXMLCharacters(_coreSiteObj.value);
       }
       if (isGLUSTERFSSelected && _coreSiteObj.name == "fs.default.name") {

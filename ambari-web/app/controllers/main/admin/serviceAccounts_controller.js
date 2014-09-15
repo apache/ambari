@@ -122,7 +122,7 @@ App.MainAdminServiceAccountsController = App.MainServiceInfoConfigsController.ex
     var proxyUserGroup = misc_configs.findProperty('name', 'proxyuser_group');
     //stack, with version lower than 2.1, doesn't have Falcon service
     if (proxyUserGroup) {
-      var proxyServices = ['HIVE', 'WEBHCAT', 'OOZIE', 'FALCON'];
+      var proxyServices = ['HIVE', 'OOZIE', 'FALCON'];
       var services = Em.A([]);
       proxyServices.forEach(function (serviceName) {
         var stackService = App.StackService.find(serviceName);

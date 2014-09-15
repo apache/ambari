@@ -1,6 +1,6 @@
 {
   "hosts": ["ab2test-5.c.pramod-thangali.internal", "ab2test-6.c.pramod-thangali.internal", "ab2test-7.c.pramod-thangali.internal"],
-  "services": ["HDFS", "MAPREDUCE2", "YARN", "TEZ", "NAGIOS", "GANGLIA", "HIVE", "HCATALOG", "WEBHCAT", "SQOOP", "OOZIE", "ZOOKEEPER", "FALCON", "STORM", "FLUME", "PIG"],
+  "services": ["HDFS", "MAPREDUCE2", "YARN", "TEZ", "NAGIOS", "GANGLIA", "HIVE", "SQOOP", "OOZIE", "ZOOKEEPER", "FALCON", "STORM", "FLUME", "PIG"],
   "recommendations": {
   "blueprint": {
     "host_groups": [

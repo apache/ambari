@@ -6,7 +6,7 @@
     "stack_version": "2.1.1"
   },
   "hosts": ["dev1.hortonworks.com", "dev2.hortonworks.com", "dev3.hortonworks.com"],
-  "services": ["FALCON", "FLUME", "GANGLIA", "HBASE", "HCATALOG", "HDFS", "HIVE", "MAPREDUCE2", "NAGIOS", "OOZIE", "PIG", "SQOOP", "STORM", "TEZ", "WEBCHAT", "YARN", "ZOOKEEPER"],
+  "services": ["FALCON", "FLUME", "GANGLIA", "HBASE", "HDFS", "HIVE", "MAPREDUCE2", "NAGIOS", "OOZIE", "PIG", "SQOOP", "STORM", "TEZ", "WEBCHAT", "YARN", "ZOOKEEPER"],
   "recommendations": {
     "blueprint": {
       "configurations": {
