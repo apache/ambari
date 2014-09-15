@@ -23,7 +23,20 @@
       <comment>Tool for transferring bulk data between Apache Hadoop and
         structured data stores such as relational databases
       </comment>
-      <version>1.4.5.2.2</version>
+      <version>1.4.5.2.9.9.9</version>
+      <osSpecifics>
+        <osSpecific>
+          <osFamily>any</osFamily>
+          <packages>
+            <package>
+              <name>sqoop_2_9_9_9_117</name>
+            </package>
+            <package>
+              <name>mysql-connector-java</name>
+            </package>
+          </packages>
+        </osSpecific>
+      </osSpecifics>
     </service>
   </services>
 </metainfo>

@@ -34,15 +34,16 @@ if rpm_version is not None:
   hadoop_bin_dir = format("/usr/hdp/{rpm_version}/hadoop/bin")
   hadoop_lib_home = format("/usr/hdp/{rpm_version}/hadoop/lib")
   mapreduce_libs_path = format("/usr/hdp/{rpm_version}/hadoop-mapreduce/*")
+  conf_dir = format("/usr/hdp/{rpm_version}/oozie/conf")
 else:
   hadoop_conf_dir = "/etc/hadoop/conf"
   hadoop_bin_dir = "/usr/bin"
   hadoop_lib_home = "/usr/lib/hadoop/lib"
   mapreduce_libs_path = "/usr/lib/hadoop-mapreduce/*"
+  conf_dir = "/etc/oozie/conf"
 
 oozie_user = config['configurations']['oozie-env']['oozie_user']
 smokeuser = config['configurations']['cluster-env']['smokeuser']
-conf_dir = "/etc/oozie/conf"
 user_group = config['configurations']['cluster-env']['user_group']
 jdk_location = config['hostLevelParams']['jdk_location']
 check_db_connection_jar_name = "DBConnectionVerification.jar"

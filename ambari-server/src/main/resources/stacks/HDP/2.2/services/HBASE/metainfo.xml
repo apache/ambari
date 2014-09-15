@@ -31,7 +31,7 @@
           <osFamily>any</osFamily>
           <packages>
             <package>
-              <name>hbase_2_9_9_9_98</name>
+              <name>hbase_2_9_9_9_117</name>
             </package>
           </packages>
         </osSpecific>

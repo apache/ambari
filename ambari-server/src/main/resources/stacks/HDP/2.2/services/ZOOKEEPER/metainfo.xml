@@ -29,7 +29,7 @@
           <osFamily>any</osFamily>
           <packages>
             <package>
-              <name>zookeeper_2_9_9_9_98</name>
+              <name>zookeeper_2_9_9_9_117</name>
             </package>
           </packages>
         </osSpecific>

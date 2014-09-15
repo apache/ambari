@@ -22,7 +22,17 @@
       <name>FALCON</name>
       <displayName>Falcon</displayName>
       <comment>Data management and processing platform</comment>
-      <version>0.6.0.2.2.0.0</version>
+      <version>0.6.0.2.2.9.9</version>
+      <osSpecifics>
+        <osSpecific>
+          <osFamily>any</osFamily>
+          <packages>
+            <package>
+              <name>falcon_2_9_9_9_117</name>
+            </package>
+          </packages>
+        </osSpecific>
+      </osSpecifics>
     </service>
   </services>
 </metainfo>

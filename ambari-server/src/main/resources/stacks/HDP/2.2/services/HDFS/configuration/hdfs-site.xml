@@ -24,7 +24,7 @@
 
   <property>
     <name>dfs.hosts.exclude</name>
-    <value>/usr/hdp/2.9.9.9-98/etc/hadoop/conf/dfs.exclude</value>
+    <value>/usr/hdp/2.9.9.9-117/etc/hadoop/conf/dfs.exclude</value>
     <description>Names a file that contains a list of hosts that are
       not permitted to connect to the namenode.  The full pathname of the
       file must be specified.  If the value is empty, no hosts are

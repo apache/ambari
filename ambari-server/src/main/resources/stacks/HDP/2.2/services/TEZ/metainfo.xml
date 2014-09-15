@@ -29,7 +29,7 @@
           <osFamily>any</osFamily>
           <packages>
             <package>
-              <name>tez_2_9_9_9_98</name>
+              <name>tez_2_9_9_9_117</name>
             </package>
           </packages>
         </osSpecific>
