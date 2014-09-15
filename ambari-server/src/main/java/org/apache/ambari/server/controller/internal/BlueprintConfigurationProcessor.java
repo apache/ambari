@@ -22,6 +22,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -96,7 +98,7 @@ public class BlueprintConfigurationProcessor {
    * @return  updated properties
    */
   public Map<String, Map<String, String>> doUpdateForClusterCreate(Map<String, ? extends HostGroup> hostGroups) {
-    for (Map<String, Map<String, PropertyUpdater>> updaterMap : allUpdaters) {
+    for (Map<String, Map<String, PropertyUpdater>> updaterMap : createCollectionOfUpdaters()) {
       for (Map.Entry<String, Map<String, PropertyUpdater>> entry : updaterMap.entrySet()) {
         String type = entry.getKey();
         for (Map.Entry<String, PropertyUpdater> updaterEntry : entry.getValue().entrySet()) {
@@ -115,6 +117,43 @@ public class BlueprintConfigurationProcessor {
   }
 
   /**
+   * Creates a Collection of PropertyUpdater maps that will handle the configuration
+   *   update for this cluster.  If NameNode HA is enabled, then updater
+   *   instances will be added to the collection, in addition to the default list
+   *   of Updaters that are statically defined.
+   *
+   * @return Collection of PropertyUpdater maps used to handle cluster config update
+   */
+  private Collection<Map<String, Map<String, PropertyUpdater>>> createCollectionOfUpdaters() {
+    return (isNameNodeHAEnabled()) ? addHAUpdaters(allUpdaters) : allUpdaters;
+  }
+
+  /**
+   * Creates a Collection of PropertyUpdater maps that include the NameNode HA properties, and
+   *   adds these to the list of updaters used to process the cluster configuration.  The HA
+   *   properties are based on the names of the HA namservices and name nodes, and so must
+   *   be registered at runtime, rather than in the static list.  This new Collection includes
+   *   the statically-defined updaters, in addition to the HA-related updaters.
+   *
+   * @param updaters a Collection of updater maps to be included in the list of updaters for
+   *                   this cluster config update
+   * @return A Collection of PropertyUpdater maps to handle the cluster config update
+   */
+  private Collection<Map<String, Map<String, PropertyUpdater>>> addHAUpdaters(Collection<Map<String, Map<String, PropertyUpdater>>> updaters) {
+    Collection<Map<String, Map<String, PropertyUpdater>>> highAvailabilityUpdaters =
+      new LinkedList<Map<String, Map<String, PropertyUpdater>>>();
+
+    // always add the statically-defined list of updaters to the list to use
+    // in processing cluster configuration
+    highAvailabilityUpdaters.addAll(updaters);
+
+    // add the updaters for the dynamic HA properties, based on the HA config in hdfs-site
+    highAvailabilityUpdaters.add(createMapOfHAUpdaters());
+
+    return highAvailabilityUpdaters;
+  }
+
+  /**
    * Update properties for blueprint export.
    * This involves converting concrete topology information to host groups.
    *
@@ -125,9 +164,98 @@ public class BlueprintConfigurationProcessor {
   public Map<String, Map<String, String>> doUpdateForBlueprintExport(Collection<? extends HostGroup> hostGroups) {
     doSingleHostExportUpdate(hostGroups, singleHostTopologyUpdaters);
     doSingleHostExportUpdate(hostGroups, dbHostTopologyUpdaters);
+
+    if (isNameNodeHAEnabled()) {
+      doNameNodeHAUpdate(hostGroups);
+    }
+
     doMultiHostExportUpdate(hostGroups, multiHostTopologyUpdaters);
 
     return properties;
+  }
+
+  /**
+   * Perform export update processing for HA configuration for NameNodes.  The HA NameNode property
+   *   names are based on the nameservices defined when HA is enabled via the Ambari UI, so this method
+   *   dynamically determines the property names, and registers PropertyUpdaters to handle the masking of
+   *   host names in these configuration items.
+   *
+   * @param hostGroups cluster host groups
+   */
+  public void doNameNodeHAUpdate(Collection<? extends HostGroup> hostGroups) {
+    Map<String, Map<String, PropertyUpdater>> highAvailabilityUpdaters = createMapOfHAUpdaters();
+
+    // perform a single host update on these dynamically generated property names
+    if (highAvailabilityUpdaters.get("hdfs-site").size() > 0) {
+      doSingleHostExportUpdate(hostGroups, highAvailabilityUpdaters);
+    }
+  }
+
+  /**
+   * Creates map of PropertyUpdater instances that are associated with
+   *   NameNode High Availability (HA).  The HA configuration property
+   *   names are dynamic, and based on other HA config elements in
+   *   hdfs-site.  This method registers updaters for the required
+   *   properties associated with each nameservice and namenode.
+   *
+   * @return a Map of registered PropertyUpdaters for handling HA properties in hdfs-site
+   */
+  private Map<String, Map<String, PropertyUpdater>> createMapOfHAUpdaters() {
+    Map<String, Map<String, PropertyUpdater>> highAvailabilityUpdaters = new HashMap<String, Map<String, PropertyUpdater>>();
+    Map<String, PropertyUpdater> hdfsSiteUpdatersForAvailability = new HashMap<String, PropertyUpdater>();
+    highAvailabilityUpdaters.put("hdfs-site", hdfsSiteUpdatersForAvailability);
+
+    Map<String, String> hdfsSiteConfig = properties.get("hdfs-site");
+    // generate the property names based on the current HA config for the NameNode deployments
+    for (String nameService : parseNameServices(hdfsSiteConfig)) {
+      for (String nameNode : parseNameNodes(nameService, hdfsSiteConfig)) {
+        final String httpsPropertyName = "dfs.namenode.https-address." + nameService + "." + nameNode;
+        hdfsSiteUpdatersForAvailability.put(httpsPropertyName, new SingleHostTopologyUpdater("NAMENODE"));
+        final String httpPropertyName = "dfs.namenode.http-address." + nameService + "." + nameNode;
+        hdfsSiteUpdatersForAvailability.put(httpPropertyName, new SingleHostTopologyUpdater("NAMENODE"));
+        final String rpcPropertyName = "dfs.namenode.rpc-address." + nameService + "." + nameNode;
+        hdfsSiteUpdatersForAvailability.put(rpcPropertyName, new SingleHostTopologyUpdater("NAMENODE"));
+      }
+    }
+    return highAvailabilityUpdaters;
+  }
+
+  /**
+   * Convenience function to determine if NameNode HA is enabled.
+   *
+   * @return true if NameNode HA is enabled
+   *         false if NameNode HA is not enabled
+   */
+  boolean isNameNodeHAEnabled() {
+    return properties.containsKey("hdfs-site") && properties.get("hdfs-site").containsKey("dfs.nameservices");
+  }
+
+
+  /**
+   * Parses out the list of nameservices associated with this HDFS configuration.
+   *
+   * @param properties config properties for this cluster
+   *
+   * @return array of Strings that indicate the nameservices for this cluster
+   */
+  static String[] parseNameServices(Map<String, String> properties) {
+    final String nameServices = properties.get("dfs.nameservices");
+    return splitAndTrimStrings(nameServices);
+  }
+
+  /**
+   * Parses out the list of name nodes associated with a given HDFS
+   *   NameService, based on a given HDFS configuration.
+   *
+   * @param nameService the nameservice used for this parsing
+   * @param properties config properties for this cluster
+   *
+   * @return array of Strings that indicate the name nodes associated
+   *           with this nameservice
+   */
+  static String[] parseNameNodes(String nameService, Map<String, String> properties) {
+    final String nameNodes = properties.get("dfs.ha.namenodes." + nameService);
+    return splitAndTrimStrings(nameNodes);
   }
 
   /**
@@ -274,15 +402,22 @@ public class BlueprintConfigurationProcessor {
     return hosts;
   }
 
-
   /**
-   * Provides package-level access to the map of single host topology updaters.
-   * This is useful for facilitating unit-testing of this class.
+   * Convenience method for splitting out the HA-related properties, while
+   *   also removing leading/trailing whitespace.
    *
-   * @return the map of single host topology updaters
+   * @param propertyName property name to parse
+   *
+   * @return an array of Strings that represent the comma-separated
+   *         elements in this property
    */
-  static Map<String, Map<String, PropertyUpdater>> getSingleHostTopologyUpdaters() {
-    return singleHostTopologyUpdaters;
+  private static String[] splitAndTrimStrings(String propertyName) {
+    List<String> namesWithoutWhitespace = new LinkedList<String>();
+    for (String service : propertyName.split(",")) {
+      namesWithoutWhitespace.add(service.trim());
+    }
+
+    return namesWithoutWhitespace.toArray(new String[namesWithoutWhitespace.size()]);
   }
 
   /**
@@ -630,12 +765,18 @@ public class BlueprintConfigurationProcessor {
     Map<String, PropertyUpdater> mapredEnvMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> hadoopEnvMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> hbaseEnvMap = new HashMap<String, PropertyUpdater>();
+    Map<String, PropertyUpdater> hiveEnvMap = new HashMap<String, PropertyUpdater>();
+    Map<String, PropertyUpdater> oozieEnvMap = new HashMap<String, PropertyUpdater>();
 
     Map<String, PropertyUpdater> multiWebhcatSiteMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> multiHbaseSiteMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> multiStormSiteMap = new HashMap<String, PropertyUpdater>();
+    Map<String, PropertyUpdater> multiCoreSiteMap = new HashMap<String, PropertyUpdater>();
+    Map<String, PropertyUpdater> multiHdfsSiteMap = new HashMap<String, PropertyUpdater>();
 
     Map<String, PropertyUpdater> dbHiveSiteMap = new HashMap<String, PropertyUpdater>();
+
+    Map<String, PropertyUpdater> nagiosEnvMap = new HashMap<String ,PropertyUpdater>();
 
 
     singleHostTopologyUpdaters.put("hdfs-site", hdfsSiteMap);
@@ -647,6 +788,9 @@ public class BlueprintConfigurationProcessor {
     singleHostTopologyUpdaters.put("oozie-site", oozieSiteMap);
     singleHostTopologyUpdaters.put("storm-site", stormSiteMap);
     singleHostTopologyUpdaters.put("falcon-startup.properties", falconStartupPropertiesMap);
+    singleHostTopologyUpdaters.put("nagios-env", nagiosEnvMap);
+    singleHostTopologyUpdaters.put("hive-env", hiveEnvMap);
+    singleHostTopologyUpdaters.put("oozie-env", oozieEnvMap);
 
     mPropertyUpdaters.put("hadoop-env", hadoopEnvMap);
     mPropertyUpdaters.put("hbase-env", hbaseEnvMap);
@@ -655,6 +799,8 @@ public class BlueprintConfigurationProcessor {
     multiHostTopologyUpdaters.put("webhcat-site", multiWebhcatSiteMap);
     multiHostTopologyUpdaters.put("hbase-site", multiHbaseSiteMap);
     multiHostTopologyUpdaters.put("storm-site", multiStormSiteMap);
+    multiHostTopologyUpdaters.put("core-site", multiCoreSiteMap);
+    multiHostTopologyUpdaters.put("hdfs-site", multiHdfsSiteMap);
 
     dbHostTopologyUpdaters.put("hive-site", dbHiveSiteMap);
 
@@ -666,6 +812,7 @@ public class BlueprintConfigurationProcessor {
     hdfsSiteMap.put("dfs.namenode.https-address", new SingleHostTopologyUpdater("NAMENODE"));
     coreSiteMap.put("fs.defaultFS", new SingleHostTopologyUpdater("NAMENODE"));
     hbaseSiteMap.put("hbase.rootdir", new SingleHostTopologyUpdater("NAMENODE"));
+    multiHdfsSiteMap.put("dfs.namenode.shared.edits.dir", new MultipleHostTopologyUpdater("JOURNALNODE"));
 
     // SECONDARY_NAMENODE
     hdfsSiteMap.put("dfs.secondary.http.address", new SingleHostTopologyUpdater("SECONDARY_NAMENODE"));
@@ -690,17 +837,34 @@ public class BlueprintConfigurationProcessor {
     yarnSiteMap.put("yarn.resourcemanager.address", new SingleHostTopologyUpdater("RESOURCEMANAGER"));
     yarnSiteMap.put("yarn.resourcemanager.admin.address", new SingleHostTopologyUpdater("RESOURCEMANAGER"));
 
+    // APP_TIMELINE_SERVER
+    yarnSiteMap.put("yarn.timeline-service.address", new SingleHostTopologyUpdater("APP_TIMELINE_SERVER"));
+    yarnSiteMap.put("yarn.timeline-service.webapp.address", new SingleHostTopologyUpdater("APP_TIMELINE_SERVER"));
+    yarnSiteMap.put("yarn.timeline-service.webapp.https.address", new SingleHostTopologyUpdater("APP_TIMELINE_SERVER"));
+
+
     // HIVE_SERVER
     hiveSiteMap.put("hive.metastore.uris", new SingleHostTopologyUpdater("HIVE_SERVER"));
     dbHiveSiteMap.put("javax.jdo.option.ConnectionURL",
         new DBTopologyUpdater("MYSQL_SERVER", "hive-env", "hive_database"));
+    multiCoreSiteMap.put("hadoop.proxyuser.hive.hosts", new MultipleHostTopologyUpdater("HIVE_SERVER"));
+    multiCoreSiteMap.put("hadoop.proxyuser.HTTP.hosts", new MultipleHostTopologyUpdater("WEBHCAT_SERVER"));
+    multiCoreSiteMap.put("hadoop.proxyuser.hcat.hosts", new MultipleHostTopologyUpdater("WEBHCAT_SERVER"));
+    multiWebhcatSiteMap.put("templeton.hive.properties", new MultipleHostTopologyUpdater("HIVE_SERVER"));
+    multiWebhcatSiteMap.put("templeton.kerberos.principal", new MultipleHostTopologyUpdater("WEBHCAT_SERVER"));
+    hiveEnvMap.put("hive_hostname", new SingleHostTopologyUpdater("HIVE_SERVER"));
 
     // OOZIE_SERVER
     oozieSiteMap.put("oozie.base.url", new SingleHostTopologyUpdater("OOZIE_SERVER"));
+    oozieSiteMap.put("oozie.authentication.kerberos.principal", new SingleHostTopologyUpdater("OOZIE_SERVER"));
+    oozieSiteMap.put("oozie.service.HadoopAccessorService.kerberos.principal", new SingleHostTopologyUpdater("OOZIE_SERVER"));
+    oozieEnvMap.put("oozie_hostname", new SingleHostTopologyUpdater("OOZIE_SERVER"));
+    multiCoreSiteMap.put("hadoop.proxyuser.oozie.hosts", new MultipleHostTopologyUpdater("OOZIE_SERVER"));
 
     // ZOOKEEPER_SERVER
     multiHbaseSiteMap.put("hbase.zookeeper.quorum", new MultipleHostTopologyUpdater("ZOOKEEPER_SERVER"));
     multiWebhcatSiteMap.put("templeton.zookeeper.hosts", new MultipleHostTopologyUpdater("ZOOKEEPER_SERVER"));
+    multiCoreSiteMap.put("ha.zookeeper.quorum", new MultipleHostTopologyUpdater("ZOOKEEPER_SERVER"));
 
     // STORM
     stormSiteMap.put("nimbus.host", new SingleHostTopologyUpdater("NIMBUS"));
@@ -712,6 +876,12 @@ public class BlueprintConfigurationProcessor {
 
     // FALCON
     falconStartupPropertiesMap.put("*.broker.url", new SingleHostTopologyUpdater("FALCON_SERVER"));
+    falconStartupPropertiesMap.put("*.falcon.service.authentication.kerberos.principal", new SingleHostTopologyUpdater("FALCON_SERVER"));
+    falconStartupPropertiesMap.put("*.falcon.http.authentication.kerberos.principal", new SingleHostTopologyUpdater("FALCON_SERVER"));
+
+
+    // NAGIOS
+    nagiosEnvMap.put("nagios_principal_name", new SingleHostTopologyUpdater("NAGIOS_SERVER"));
 
 
     // Required due to AMBARI-4933.  These no longer seem to be required as the default values in the stack
