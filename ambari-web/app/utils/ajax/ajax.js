@@ -1906,6 +1906,15 @@ var urls = {
     real: '/clusters/{clusterName}/configurations/service_config_versions?service_name={serviceName}&service_config_version={serviceConfigVersion}',
     mock: '/data/configurations/service_version.json'
   },
+  'service.serviceConfigVersions.get.multiple': {
+    real: '/clusters/{clusterName}/configurations/service_config_versions?service_name={serviceName}&service_config_version.in({serviceConfigVersions})',
+    mock: '/data/configurations/service_version.json',
+    format: function(data) {
+      return {
+        serviceConfigVersions: data.serviceConfigVersions.join(',')
+      }
+    }
+  },
   'service.serviceConfigVersion.revert': {
     'real': '/clusters/{clusterName}',
     'mock': '',

@@ -159,7 +159,7 @@ App.ConfigHistoryFlowView = Em.View.extend({
     var serviceVersions = this.get('serviceVersions');
     var startIndex = 0;
     var currentIndex = 0;
-    var selectedVersion = this.get('controller.currentVersion');
+    var selectedVersion = this.get('controller.selectedVersion');
 
     serviceVersions.setEach('isDisplayed', false);
 
