@@ -68,6 +68,8 @@ module.exports = {
    * Facade-function for restarting host components of specific service
    * @param {String} serviceName for which service hostComponents should be restarted
    * @param {bool} staleConfigsOnly restart only hostComponents with <code>staleConfig</code> true
+   * @param {Object} query
+   * @param {bool} runMmOperation
    */
   restartAllServiceHostComponents: function(serviceName, staleConfigsOnly, query, runMmOperation) {
     var self = this;
@@ -77,7 +79,7 @@ module.exports = {
       this.turnOnOffPassiveRequest('ON', Em.I18n.t('passiveState.turnOnFor').format(serviceName), serviceName);
     }
     this.getComponentsFromServer({
-      services: services,
+      services: [serviceName],
       staleConfigs: staleConfigsOnly ? staleConfigsOnly : null,
       passiveState: 'OFF',
       displayParams: ['host_components/HostRoles/component_name']
