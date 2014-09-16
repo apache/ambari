@@ -32,7 +32,7 @@ class HdfsServiceCheck(Script):
     safemode_command = "dfsadmin -safemode get | grep OFF"
 
     create_dir_cmd = format("fs -mkdir {dir} ; hadoop fs -chmod 777 {dir}")
-    test_dir_exists = format("hadoop fs -test -e {dir}")
+    test_dir_exists = format("su - {smoke_user} -c 'hadoop fs -test -e {dir}'")
     cleanup_cmd = format("fs -rm {tmp_file}")
     #cleanup put below to handle retries; if retrying there wil be a stale file
     #that needs cleanup; exit code is fn of second command
