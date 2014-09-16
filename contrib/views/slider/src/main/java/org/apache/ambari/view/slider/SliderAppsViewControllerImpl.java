@@ -681,7 +681,7 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
       
       final ActionInstallPackageArgs installArgs = new ActionInstallPackageArgs();
       installArgs.name = appName;
-      installArgs.packageURI = getAppsFolderPath() + configs.get("application.def").getAsString();
+      installArgs.packageURI = getAppsFolderPath() + "/" + configs.get("application.def").getAsString();
       installArgs.replacePkg = true;
 
       return invokeSliderClientRunnable(new SliderClientContextRunnable<String>() {
