@@ -72,6 +72,8 @@ public class AlertStateChangedListener {
   @Subscribe
   @AllowConcurrentEvents
   public void onAlertEvent(AlertStateChangeEvent event) {
+    LOG.debug(event);
+
     AlertHistoryEntity history = event.getNewHistoricalEntry();
     AlertDefinitionEntity definition = history.getAlertDefinition();
 

@@ -20,7 +20,6 @@ package org.apache.ambari.server.state;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -28,18 +27,16 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ServiceComponentNotFoundException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.ServiceResponse;
-import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
+import org.apache.ambari.server.events.ServiceInstalledEvent;
+import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.ClusterServiceDAO;
 import org.apache.ambari.server.orm.dao.ServiceDesiredStateDAO;
-import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntityPK;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntity;
-import org.apache.ambari.server.state.alert.AlertDefinition;
-import org.apache.ambari.server.state.alert.AlertDefinitionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -80,18 +77,10 @@ public class ServiceImpl implements Service {
   private AmbariMetaInfo ambariMetaInfo;
 
   /**
-   * Used when a service is installed to insert {@link AlertDefinitionEntity}
-   * into the database.
+   * Used to publish events relating to service CRUD operations.
    */
   @Inject
-  private AlertDefinitionDAO alertDefinitionDAO;
-
-  /**
-   * Used when a service is installed to read alert definitions from the stack
-   * and coerce them into {@link AlertDefinitionEntity}.
-   */
-  @Inject
-  private AlertDefinitionFactory alertDefinitionFactory;
+  private AmbariEventPublisher eventPublisher;
 
   private void init() {
     // TODO load from DB during restart?
@@ -476,6 +465,15 @@ public class ServiceImpl implements Service {
           refresh();
           cluster.refresh();
           persisted = true;
+
+          // publish the service installed event
+          StackId stackId = cluster.getDesiredStackVersion();
+
+          ServiceInstalledEvent event = new ServiceInstalledEvent(
+              getClusterId(), stackId.getStackName(),
+              stackId.getStackVersion(), getName());
+
+          eventPublisher.publish(event);
         } else {
           saveIfPersisted();
         }
@@ -491,7 +489,6 @@ public class ServiceImpl implements Service {
   @Transactional
   protected void persistEntities() {
     long clusterId = cluster.getClusterId();
-    StackId stackId = cluster.getDesiredStackVersion();
 
     ClusterEntity clusterEntity = clusterDAO.findById(clusterId);
     serviceEntity.setClusterEntity(clusterEntity);
@@ -501,26 +498,6 @@ public class ServiceImpl implements Service {
     clusterDAO.merge(clusterEntity);
     clusterServiceDAO.merge(serviceEntity);
     serviceDesiredStateDAO.merge(serviceDesiredStateEntity);
-
-    // populate alert definitions for the new service from the database, but
-    // don't worry about sending down commands to the agents; the host
-    // components are not yet bound to the hosts so we'd have no way of knowing
-    // which hosts are invalidated; do that in another impl
-    try{
-      Set<AlertDefinition> alertDefinitions = ambariMetaInfo.getAlertDefinitions(
-          stackId.getStackName(), stackId.getStackVersion(), getName());
-
-      for (AlertDefinition definition : alertDefinitions) {
-        AlertDefinitionEntity entity = alertDefinitionFactory.coerce(clusterId,
-            definition);
-
-        alertDefinitionDAO.create(entity);
-      }
-    } catch( AmbariException ae ){
-      LOG.error(
-          "Unable to populate alert definitions from the database during installation of {}",
-          getName(), ae);
-    }
   }
 
   @Transactional

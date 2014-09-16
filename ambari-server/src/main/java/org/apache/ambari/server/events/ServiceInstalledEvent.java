@@ -17,42 +17,36 @@
  */
 package org.apache.ambari.server.events;
 
-import org.apache.ambari.server.state.Alert;
-
 /**
- * The {@link AlertEvent} class is the base for all events related to alerts.
+ * The {@link ServiceInstalledEvent} class is fired when a service is
+ * successfully installed.
  */
-public abstract class AlertEvent {
-
-  protected long m_clusterId;
-  protected Alert m_alert;
-
+public class ServiceInstalledEvent extends ServiceEvent {
   /**
    * Constructor.
    *
    * @param clusterId
-   * @param alert
+   * @param stackName
+   * @param stackVersion
+   * @param serviceName
    */
-  public AlertEvent(long clusterId, Alert alert) {
-    m_clusterId = clusterId;
-    m_alert = alert;
+  public ServiceInstalledEvent(long clusterId, String stackName,
+      String stackVersion, String serviceName) {
+    super(AmbariEventType.SERVICE_INSTALL_SUCCESS, clusterId, stackName,
+        stackVersion, serviceName);
   }
 
   /**
-   * Gets the cluster ID that the alert belongs to.
-   *
-   * @return the ID of the cluster.
+   * {@inheritDoc}
    */
-  public long getClusterId() {
-    return m_clusterId;
-  }
-
-  /**
-   * Gets the alert that this event is created for.
-   *
-   * @return the alert (never {@code null}).
-   */
-  public Alert getAlert(){
-    return m_alert;
+  @Override
+  public String toString() {
+    StringBuilder buffer = new StringBuilder("ServiceInstalledEvent{ ");
+    buffer.append("cluserId=").append(m_clusterId);
+    buffer.append(", stackName=").append(m_stackName);
+    buffer.append(", stackVersion=").append(m_stackVersion);
+    buffer.append(", serviceName=").append(m_serviceName);
+    buffer.append("}");
+    return buffer.toString();
   }
 }

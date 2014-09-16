@@ -42,13 +42,13 @@ public final class AlertEventPublisher {
   /**
    * A multi-threaded event bus that can handle dispatching {@link AlertEvent}s.
    */
-  private final EventBus s_eventBus;
+  private final EventBus m_eventBus;
 
   /**
    * Constructor.
    */
   public AlertEventPublisher() {
-    s_eventBus = new AsyncEventBus(Executors.newFixedThreadPool(2,
+    m_eventBus = new AsyncEventBus(Executors.newFixedThreadPool(2,
         new AlertEventBusThreadFactory()));
   }
 
@@ -59,7 +59,7 @@ public final class AlertEventPublisher {
    * @param event
    */
   public void publish(AlertEvent event) {
-    s_eventBus.post(event);
+    m_eventBus.post(event);
   }
 
   /**
@@ -70,7 +70,7 @@ public final class AlertEventPublisher {
    *          the listener to receive events.
    */
   public void register(Object object) {
-    s_eventBus.register(object);
+    m_eventBus.register(object);
   }
 
   /**

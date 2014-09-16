@@ -17,29 +17,46 @@
  */
 package org.apache.ambari.server.events;
 
-import org.apache.ambari.server.state.Alert;
 
 /**
- * The {@link AlertEvent} class is the base for all events related to alerts.
+ * The {@link AmbariEvent} class is the base for all events in Ambari.
  */
-public abstract class AlertEvent {
+public abstract class AmbariEvent {
 
-  protected long m_clusterId;
-  protected Alert m_alert;
+  /**
+   * The {@link AmbariEventType} defines the type of Ambari event.
+   */
+  public enum AmbariEventType {
+    /**
+     * A service was successfully installed.
+     */
+    SERVICE_INSTALL_SUCCESS;
+  }
+
+  /**
+   * The concrete event's type.
+   */
+  protected final AmbariEventType m_eventType;
+
+  /**
+   * The cluster ID.
+   */
+  protected final long m_clusterId;
 
   /**
    * Constructor.
    *
+   * @param eventType
+   *          the type of event (not {@code null}).
    * @param clusterId
-   * @param alert
    */
-  public AlertEvent(long clusterId, Alert alert) {
+  public AmbariEvent(AmbariEventType eventType, long clusterId) {
+    m_eventType = eventType;
     m_clusterId = clusterId;
-    m_alert = alert;
   }
 
   /**
-   * Gets the cluster ID that the alert belongs to.
+   * Gets the cluster ID that the event belongs to.
    *
    * @return the ID of the cluster.
    */
@@ -48,11 +65,11 @@ public abstract class AlertEvent {
   }
 
   /**
-   * Gets the alert that this event is created for.
+   * Gets the type of {@link AmbariEvent}.
    *
-   * @return the alert (never {@code null}).
+   * @return the event type (never {@code null}).
    */
-  public Alert getAlert(){
-    return m_alert;
+  public AmbariEventType getType() {
+    return m_eventType;
   }
 }

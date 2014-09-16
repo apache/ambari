@@ -38,7 +38,7 @@ import com.google.inject.Singleton;
 
 /**
  * The {@link AlertReceivedListener} class handles {@link AlertReceivedEvent}
- * and updates the appropirate DAOs. It may also fire new
+ * and updates the appropriate DAOs. It may also fire new
  * {@link AlertStateChangeEvent} when an {@link AlertState} change is detected.
  */
 @Singleton
@@ -80,6 +80,8 @@ public class AlertReceivedListener {
   @Subscribe
   @AllowConcurrentEvents
   public void onAlertEvent(AlertReceivedEvent event) {
+    LOG.debug(event);
+
     long clusterId = event.getClusterId();
     Alert alert = event.getAlert();
 
