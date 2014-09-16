@@ -47,6 +47,7 @@ public class ViewConfigTest {
       "    <label>My View!</label>\n" +
       "    <description>Description</description>" +
       "    <version>1.0.0</version>\n" +
+      "    <system>true</system>\n" +
       "    <icon64>/this/is/the/icon/url/icon64.png</icon64>\n" +
       "    <icon>/this/is/the/icon/url/icon.png</icon>\n" +
       "    <masker-class>org.apache.ambari.server.view.DefaultMasker</masker-class>" +

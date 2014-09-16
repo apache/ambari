@@ -189,7 +189,7 @@ STACK_UPGRADE_HELPER_CMD = "{0}" + os.sep + "bin" + os.sep + "java -cp {1}" +\
 
 VIEW_EXTRACT_CMD = "{0}" + os.sep + "bin" + os.sep + "java -cp {1}" +\
                           os.pathsep + "{2} " +\
-                          "org.apache.ambari.server.view.ViewRegistry " +\
+                          "org.apache.ambari.server.view.ViewRegistry extract {3} " +\
                           "> " + SERVER_OUT_FILE + " 2>&1"
 
 
@@ -282,6 +282,9 @@ JDBC_DATABASE_NAME_PROPERTY = "server.jdbc.database_name"   # E.g., ambari
 JDBC_HOSTNAME_PROPERTY = "server.jdbc.hostname"
 JDBC_PORT_PROPERTY = "server.jdbc.port"
 JDBC_POSTGRES_SCHEMA_PROPERTY = "server.jdbc.postgres.schema"   # Only for postgres, defaults to same value as DB name
+
+VIEWS_DIR_PROPERTY = "views.dir"
+DEFAULT_VIEWS_DIR = "/var/lib/ambari-server/resources/views"
 
 JDBC_USER_NAME_PROPERTY = "server.jdbc.user.name"
 JDBC_PASSWORD_PROPERTY = "server.jdbc.user.passwd"
@@ -1225,6 +1228,7 @@ def prompt_db_properties(args):
 
 # extract the system views
 def extract_views():
+
   jdk_path = find_jdk()
   if jdk_path is None:
     print_error_msg("No JDK found, please run the \"setup\" "
@@ -1232,12 +1236,36 @@ def extract_views():
                     "JDK manually to " + JDK_INSTALL_DIR)
     return 1
 
-  command = VIEW_EXTRACT_CMD.format(jdk_path, get_conf_dir(),
-    get_ambari_classpath())
-  (retcode, stdout, stderr) = run_os_command(command)
-  print_info_msg("Return code from view extraction: " +
-                 str(retcode))
-  return retcode
+  properties = get_ambari_properties()
+  if properties == -1:
+    print_error_msg("Error getting ambari properties")
+    return -1
+
+  if not VIEWS_DIR_PROPERTY in properties.keys():
+    vdir = DEFAULT_VIEWS_DIR
+  else:
+    vdir = properties.get_property(VIEWS_DIR_PROPERTY)
+
+  files = [f for f in os.listdir(vdir) if os.path.isfile(os.path.join(vdir,f))]
+  for f in files:
+
+    command = VIEW_EXTRACT_CMD.format(jdk_path, get_conf_dir(),
+      get_ambari_classpath(), os.path.join(vdir,f))
+
+    retcode, stdout, stderr = run_os_command(command)
+    if retcode == 0:
+      sys.stdout.write(f + "\n")
+    elif retcode == 2:
+      sys.stdout.write("Error extracting " + f + "\n")
+    else:
+      sys.stdout.write(".")
+      sys.stdout.flush()
+
+    print_info_msg("Return code from extraction of view archive " + f + ": " +
+                   str(retcode))
+
+  sys.stdout.write("\n")
+  return 0
 
 # Store set of properties for remote database connection
 def store_remote_properties(args):

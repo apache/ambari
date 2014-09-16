@@ -18,8 +18,10 @@
 
 package org.apache.ambari.server.view;
 
+import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.reset;
@@ -81,6 +83,7 @@ import org.apache.ambari.server.view.events.EventImplTest;
 import org.apache.ambari.view.ViewDefinition;
 import org.apache.ambari.view.events.Event;
 import org.apache.ambari.view.events.Listener;
+import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.junit.Assert;
 import org.junit.Before;
@@ -924,6 +927,93 @@ public class ViewRegistryTest {
     Assert.assertTrue(registry.includeDefinition(viewEntity));
 
     verify(securityHelper, viewEntity, configuration);
+  }
+
+  @Test
+  public void testExtractViewArchive() throws Exception {
+
+    File viewDir = createNiceMock(File.class);
+    File extractedArchiveDir = createNiceMock(File.class);
+    File viewArchive = createNiceMock(File.class);
+    File archiveDir = createNiceMock(File.class);
+    File entryFile  = createNiceMock(File.class);
+    File classesDir = createNiceMock(File.class);
+    File libDir = createNiceMock(File.class);
+    File fileEntry = createNiceMock(File.class);
+
+    JarFile viewJarFile = createNiceMock(JarFile.class);
+    Enumeration<JarEntry> enumeration = createMock(Enumeration.class);
+    JarEntry jarEntry = createNiceMock(JarEntry.class);
+    InputStream is = createMock(InputStream.class);
+    FileOutputStream fos = createMock(FileOutputStream.class);
+    ViewExtractor viewExtractor = createMock(ViewExtractor.class);
+
+    ResourceTypeEntity resourceTypeEntity = new ResourceTypeEntity();
+    resourceTypeEntity.setId(10);
+    resourceTypeEntity.setName("MY_VIEW{1.0.0}");
+
+    ViewEntity viewDefinition = ViewEntityTest.getViewEntity();
+    viewDefinition.setResourceType(resourceTypeEntity);
+
+    Set<ViewInstanceEntity> viewInstanceEntities = ViewInstanceEntityTest.getViewInstanceEntities(viewDefinition);
+    viewDefinition.setInstances(viewInstanceEntities);
+
+    Map<File, ViewConfig> viewConfigs =
+        Collections.singletonMap(viewArchive, viewDefinition.getConfiguration());
+
+    long resourceId = 99L;
+    for (ViewInstanceEntity viewInstanceEntity : viewInstanceEntities) {
+      ResourceEntity resourceEntity = new ResourceEntity();
+      resourceEntity.setId(resourceId);
+      resourceEntity.setResourceType(resourceTypeEntity);
+      viewInstanceEntity.setResource(resourceEntity);
+    }
+
+    Map<String, File> files = new HashMap<String, File>();
+
+    files.put("/var/lib/ambari-server/resources/views/my_view-1.0.0.jar", viewArchive);
+    files.put("/var/lib/ambari-server/resources/views/work", extractedArchiveDir);
+    files.put("/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}", archiveDir);
+    files.put("/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}/view.xml", entryFile);
+    files.put("/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}/WEB-INF/classes", classesDir);
+    files.put("/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}/WEB-INF/lib", libDir);
+
+    Map<File, FileOutputStream> outputStreams = new HashMap<File, FileOutputStream>();
+    outputStreams.put(entryFile, fos);
+
+    Map<File, JarFile> jarFiles = new HashMap<File, JarFile>();
+    jarFiles.put(viewArchive, viewJarFile);
+
+    // set expectations
+    expect(configuration.getViewsDir()).andReturn(viewDir);
+    expect(viewDir.getAbsolutePath()).andReturn("/var/lib/ambari-server/resources/views");
+
+    expect(configuration.getViewExtractionThreadPoolCoreSize()).andReturn(2).anyTimes();
+    expect(configuration.getViewExtractionThreadPoolMaxSize()).andReturn(3).anyTimes();
+    expect(configuration.getViewExtractionThreadPoolTimeout()).andReturn(10000L).anyTimes();
+
+    expect(viewArchive.getAbsolutePath()).andReturn("/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}").anyTimes();
+
+    expect(archiveDir.exists()).andReturn(false);
+    expect(archiveDir.getAbsolutePath()).andReturn(
+        "/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}").anyTimes();
+
+    Capture<ViewEntity> viewEntityCapture = new Capture<ViewEntity>();
+    expect(viewExtractor.ensureExtractedArchiveDirectory("/var/lib/ambari-server/resources/views/work")).andReturn(true);
+    expect(viewExtractor.extractViewArchive(capture(viewEntityCapture), eq(viewArchive), eq(archiveDir))).andReturn(null);
+
+    // replay mocks
+    replay(configuration, viewDir, extractedArchiveDir, viewArchive, archiveDir, entryFile, classesDir,
+        libDir, fileEntry, viewJarFile, enumeration, jarEntry, is, fos, viewExtractor, resourceDAO, viewDAO, viewInstanceDAO);
+
+    TestViewArchiveUtility archiveUtility = new TestViewArchiveUtility(viewConfigs, files, outputStreams, jarFiles);
+
+    Assert.assertTrue(ViewRegistry.extractViewArchive("/var/lib/ambari-server/resources/views/my_view-1.0.0.jar",
+        viewExtractor, archiveUtility, configuration, true));
+
+    // verify mocks
+    verify(configuration, viewDir, extractedArchiveDir, viewArchive, archiveDir, entryFile, classesDir,
+        libDir, fileEntry, viewJarFile, enumeration, jarEntry, is, fos, viewExtractor, resourceDAO, viewDAO, viewInstanceDAO);
   }
 
   public static class TestViewArchiveUtility extends ViewArchiveUtility {
