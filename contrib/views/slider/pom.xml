@@ -551,7 +551,7 @@
 			</resource>
 			<resource>
 				<targetPath>WEB-INF/lib</targetPath>
-				<filtering>true</filtering>
+				<filtering>false</filtering>
 				<directory>lib</directory>
 				<includes>
 					<include>slider-agent.tar.gz</include>

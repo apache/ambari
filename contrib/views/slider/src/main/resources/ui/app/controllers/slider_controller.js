@@ -152,7 +152,6 @@ App.SliderController = Ember.Controller.extend(App.RunPeriodically, {
   getClusterNameSuccessCallback: function (data, opt, params) {
     var clusterName = Em.get(data.items[0], 'Clusters.cluster_name');
     App.set('clusterName', clusterName);
-    App.ApplicationStatusMapper.loop('load');
     this.loadComponentHost({componentName: "GANGLIA_SERVER", callback: "loadGangliaHostSuccessCallback"});
     this.loadComponentHost({componentName: "NAGIOS_SERVER", callback: "loadNagiosHostSuccessCallback"});
     this.loadComponentHost({componentName: "ZOOKEEPER_SERVER", callback: "setZookeeperQuorum"});

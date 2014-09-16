@@ -26,6 +26,8 @@ import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.security.PrivilegedExceptionAction;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -447,9 +449,20 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
     return yarnConfig;
   }
 
+  private boolean areViewParametersSet() {
+    String hdfsPath = viewContext.getProperties().get(PROPERTY_HDFS_ADDRESS);
+    String rmAddress = viewContext.getProperties().get(PROPERTY_YARN_RM_ADDRESS);
+    String rmSchedulerAddress = viewContext.getProperties().get(PROPERTY_YARN_RM_SCHEDULER_ADDRESS);
+    String zkQuorum = viewContext.getProperties().get(PROPERTY_ZK_QUOROM);
+    return hdfsPath!=null && rmAddress!=null && rmSchedulerAddress!=null && zkQuorum!=null;
+  }
+
   @Override
   public List<SliderApp> getSliderApps(final Set<String> properties)
       throws YarnException, IOException, InterruptedException {
+    if (!areViewParametersSet()) {
+      return Collections.emptyList();
+    }
     return invokeSliderClientRunnable(new SliderClientContextRunnable<List<SliderApp>>() {
       @Override
       public List<SliderApp> run(SliderClient sliderClient)
@@ -514,6 +527,9 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
   @Override
   public List<SliderAppType> getSliderAppTypes(Set<String> properties) {
     if (appTypes == null) {
+      if (!areViewParametersSet()) {
+        return Collections.emptyList();
+      }
       appTypes = loadAppTypes();
     }
     return appTypes;
@@ -637,7 +653,8 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
   public String createSliderApp(JsonObject json) throws IOException,
       YarnException, InterruptedException {
     if (json.has("name") && json.has("typeConfigs")
-        && json.has("typeComponents")) {
+        && json.has("typeComponents") && json.has("typeName")) {
+      final String appType = json.get("typeName").getAsString();
       final String appName = json.get("name").getAsString();
       JsonObject configs = json.get("typeConfigs").getAsJsonObject();
       JsonArray componentsArray = json.get("typeComponents").getAsJsonArray();
@@ -672,16 +689,15 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
       saveAppConfigs(configs, componentsArray, appConfigJsonFile);
       saveAppResources(componentsArray, resourcesJsonFile);
 
-      String hdfsLocation = viewContext.getProperties().get(PROPERTY_HDFS_ADDRESS);
       final ActionCreateArgs createArgs = new ActionCreateArgs();
       createArgs.template = appConfigJsonFile;
       createArgs.resources = resourcesJsonFile;
-      createArgs.image = new Path(hdfsLocation
-          + "/user/yarn/agent/slider-agent.tar.gz");
       
       final ActionInstallPackageArgs installArgs = new ActionInstallPackageArgs();
-      installArgs.name = appName;
-      installArgs.packageURI = getAppsFolderPath() + "/" + configs.get("application.def").getAsString();
+      SliderAppType sliderAppType = getSliderAppType(appType, null);
+      String localAppPackageFileName = sliderAppType.getTypePackageFileName();
+      installArgs.name = appType;
+      installArgs.packageURI = getAppsFolderPath() + "/" + localAppPackageFileName;
       installArgs.replacePkg = true;
 
       return invokeSliderClientRunnable(new SliderClientContextRunnable<String>() {
