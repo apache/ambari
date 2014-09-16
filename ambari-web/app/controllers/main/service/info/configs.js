@@ -248,7 +248,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     }
     var hash = {};
     this.get('stepConfigs')[0].configs.forEach(function (config) {
-      hash[config.get('name')] = {value: config.get('value'), overrides: []};
+      hash[config.get('name')] = {value: config.get('value'), overrides: [], isFinal: config.get('isFinal')};
       if (!config.get('overrides')) return;
       if (!config.get('overrides.length')) return;
 
