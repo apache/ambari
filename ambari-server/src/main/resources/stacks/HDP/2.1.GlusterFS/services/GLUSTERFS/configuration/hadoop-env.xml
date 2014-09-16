@@ -81,11 +81,13 @@
     <value>hdfs</value>
     <description>User to run HDFS as</description>
   </property>
+  <!--
   <property>
     <name>user_group</name>
     <value>hadoop</value>
     <description>Proxy user group.</description>
   </property>
+  -->
     <!-- hadoop-env.sh -->
   <property>
     <name>content</name>
