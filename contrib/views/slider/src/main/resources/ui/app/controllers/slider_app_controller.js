@@ -319,12 +319,17 @@ App.SliderAppController = Ember.ObjectController.extend({
     openModal: function(option) {
       this.set('currentAction', option.action);
       if (option.confirm) {
-        Bootstrap.ModalManager.confirm(
-          this,
+        Bootstrap.ModalManager.open(
+          "confirm-modal",
           Ember.I18n.t('common.confirmation'),
-          Ember.I18n.t('question.sure'),
-          Ember.I18n.t('yes'),
-          Ember.I18n.t('no')
+          Ember.View.extend({
+            template: Ember.Handlebars.compile('{{t question.sure}}')
+          }),
+          [
+            Ember.Object.create({title: Em.I18n.t('common.cancel'), clicked:"modalCanceled", dismiss: 'modal'}),
+            Ember.Object.create({title: Em.I18n.t('ok'), clicked:"modalConfirmed", type:'success'})
+          ],
+          this
         );
       }
       else {
