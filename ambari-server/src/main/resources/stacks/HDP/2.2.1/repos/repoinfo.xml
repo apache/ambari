@@ -42,7 +42,7 @@
   </os>
   <os type="suse11">
     <repo>
-      <baseurl>http://dev.hortonworks.com.s3.amazonaws.com/HDP/sles11sp1/2.x/updates/2.2.0.0</baseurl>
+      <baseurl>http://dev.hortonworks.com.s3.amazonaws.com/HDP/suse11sp3/2.x/updates/2.2.0.0</baseurl>
       <repoid>HDP-2.2.1</repoid>
       <reponame>HDP</reponame>
     </repo>
