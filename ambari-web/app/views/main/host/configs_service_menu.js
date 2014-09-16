@@ -29,7 +29,7 @@ App.MainHostServiceMenuView = Em.CollectionView.extend({
         var service = hc.get('service');
         if (service) {
           var serviceName = service.get('serviceName');
-          if(!App.get('services.noConfigTypes').concat('HCATALOG').contains(serviceName)){
+          if(!App.get('services.noConfigTypes').contains(serviceName)){
             if (!services.findProperty('serviceName', serviceName)) {
               services.push(service);
             }

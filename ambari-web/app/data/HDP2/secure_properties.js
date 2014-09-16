@@ -663,8 +663,6 @@ module.exports =
       "serviceName": "YARN",
       "category": "NodeManager"
     },
-
-  /**********************************************WEBHCAT***************************************/
     {
       "id": "puppet var",
       "name": "webhcatserver_host",
@@ -675,7 +673,7 @@ module.exports =
       "displayType": "masterHost",
       "isVisible": true,
       "isOverridable": false,
-      "serviceName": "WEBHCAT",
+      "serviceName": "HIVE",
       "category": "WebHCat Server"
     },
     {
@@ -688,7 +686,7 @@ module.exports =
       "displayType": "principal",
       "isVisible": true,
       "isOverridable": false,
-      "serviceName": "WEBHCAT",
+      "serviceName": "HIVE",
       "category": "WebHCat Server"
     },
     {
@@ -701,7 +699,7 @@ module.exports =
       "displayType": "directory",
       "isVisible": true,
       "isOverridable": false,
-      "serviceName": "WEBHCAT",
+      "serviceName": "HIVE",
       "category": "WebHCat Server"
     },
 

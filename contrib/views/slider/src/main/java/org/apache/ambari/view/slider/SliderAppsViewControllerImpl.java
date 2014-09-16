@@ -57,8 +57,10 @@ import org.apache.slider.client.SliderClient;
 import org.apache.slider.common.SliderKeys;
 import org.apache.slider.common.params.ActionCreateArgs;
 import org.apache.slider.common.params.ActionFreezeArgs;
+import org.apache.slider.common.params.ActionInstallPackageArgs;
 import org.apache.slider.common.params.ActionThawArgs;
 import org.apache.slider.common.tools.SliderFileSystem;
+import org.apache.slider.core.exceptions.SliderException;
 import org.apache.slider.core.exceptions.UnknownApplicationInstanceException;
 import org.apache.slider.core.main.LauncherExitCodes;
 import org.apache.slider.providers.agent.application.metadata.Application;
@@ -119,22 +121,45 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
     }
     return null;
   }
-
+  
+  private static interface SliderClientContextRunnable<T> {
+    public T run(SliderClient sliderClient) throws YarnException, IOException, InterruptedException;
+  }
+  
+  private <T> T invokeSliderClientRunnable(final SliderClientContextRunnable<T> runnable) throws IOException, InterruptedException {
+    ClassLoader currentClassLoader = Thread.currentThread().getContextClassLoader();
+    Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
+    try {
+      T value = UserGroupInformation.getBestUGI(null, "yarn").doAs(
+          new PrivilegedExceptionAction<T>() {
+            @Override
+            public T run() throws Exception {
+              final SliderClient sliderClient = createSliderClient();
+              try{
+                return runnable.run(sliderClient);
+              }finally{
+                destroySliderClient(sliderClient);
+              }
+            }
+          });
+      return value;
+    } finally {
+      Thread.currentThread().setContextClassLoader(currentClassLoader);
+    }
+  }
+  
   @Override
-  public SliderApp getSliderApp(String applicationId, Set<String> properties)
-      throws YarnException, IOException {
-    ApplicationId appId = getApplicationId(applicationId);
+  public SliderApp getSliderApp(String applicationId, final Set<String> properties)
+      throws YarnException, IOException, InterruptedException {
+    final ApplicationId appId = getApplicationId(applicationId);
     if (appId != null) {
-      ClassLoader currentClassLoader = Thread.currentThread()
-          .getContextClassLoader();
-      Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
-      try {
-        SliderClient sliderClient = getSliderClient();
-        ApplicationReport yarnApp = sliderClient.getApplicationReport(appId);
-        return createSliderAppObject(yarnApp, properties, sliderClient);
-      } finally {
-        Thread.currentThread().setContextClassLoader(currentClassLoader);
-      }
+      return invokeSliderClientRunnable(new SliderClientContextRunnable<SliderApp>() {
+        @Override
+        public SliderApp run(SliderClient sliderClient) throws YarnException, IOException {
+          ApplicationReport yarnApp = sliderClient.getApplicationReport(appId);
+          return createSliderAppObject(yarnApp, properties, sliderClient);
+        }
+      });
     }
     return null;
   }
@@ -322,24 +347,29 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
 
   /**
    * Creates a new {@link SliderClient} initialized with appropriate
-   * configuration. If configuration was not determined, <code>null</code> is
-   * returned.
+   * configuration and started. This slider client can be used to invoke
+   * individual API.
    * 
-   * @return
+   * When work with this client is done,
+   * {@link #destroySliderClient(SliderClient)} must be called.
+   * 
+   * @return created {@link SliderClient}
+   * @see #destroySliderClient(SliderClient)
+   * @see #runSliderCommand(String...)
    */
-  protected SliderClient getSliderClient() {
+  protected SliderClient createSliderClient() {
     Configuration sliderClientConfiguration = getSliderClientConfiguration();
-    if (sliderClientConfiguration != null) {
-      SliderClient client = new SliderClient() {
-        @Override
-        public String getUsername() throws IOException {
-          return "yarn";
-        }
+    SliderClient client = new SliderClient() {
+      @Override
+      public String getUsername() throws IOException {
+        return "yarn";
+      }
 
-        @Override
-        protected void serviceInit(Configuration conf) throws Exception {
-          super.serviceInit(conf);
-          // Override the default FS client to set the super user.
+      @Override
+      protected void initHadoopBinding() throws IOException, SliderException {
+        super.initHadoopBinding();
+        // Override the default FS client to the calling user
+        try {
           FileSystem fs = FileSystem.get(FileSystem.getDefaultUri(getConfig()),
               getConfig(), "yarn");
           SliderFileSystem fileSystem = new SliderFileSystem(fs, getConfig());
@@ -347,20 +377,49 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
               .getDeclaredField("sliderFileSystem");
           fsField.setAccessible(true);
           fsField.set(this, fileSystem);
+        } catch (InterruptedException e) {
+          throw new SliderException("Slider view unable to override filesystem of Slider client", e);
+        } catch (NoSuchFieldException e) {
+          throw new SliderException("Slider view unable to override filesystem of Slider client", e);
+        } catch (SecurityException e) {
+          throw new SliderException("Slider view unable to override filesystem of Slider client", e);
+        } catch (IllegalArgumentException e) {
+          throw new SliderException("Slider view unable to override filesystem of Slider client", e);
+        } catch (IllegalAccessException e) {
+          throw new SliderException("Slider view unable to override filesystem of Slider client", e);
         }
-      };
-      try {
-        sliderClientConfiguration = client.bindArgs(sliderClientConfiguration,
-            new String[] { "usage" });
-      } catch (Exception e) {
-        logger.warn("Unable to set SliderClient configs", e);
-        throw new RuntimeException(e.getMessage(), e);
       }
+
+      @Override
+      public void init(Configuration conf) {
+        super.init(conf);
+        try {
+          initHadoopBinding();
+        } catch (SliderException e) {
+          throw new RuntimeException("Unable to automatically init Hadoop binding", e);
+        } catch (IOException e) {
+          throw new RuntimeException("Unable to automatically init Hadoop binding", e);
+        }
+      }
+    };
+    try {
+      sliderClientConfiguration = client.bindArgs(sliderClientConfiguration,
+          new String[] { "usage" });
       client.init(sliderClientConfiguration);
       client.start();
-      return client;
+    } catch (Exception e) {
+      logger.warn("Unable to create SliderClient", e);
+      throw new RuntimeException(e.getMessage(), e);
+    } catch (Throwable e) {
+      logger.warn("Unable to create SliderClient", e);
+      throw new RuntimeException(e.getMessage(), e);
     }
-    return null;
+    return client;
+  }
+
+  protected void destroySliderClient(SliderClient sliderClient) {
+    sliderClient.stop();
+    sliderClient = null;
   }
 
   /**
@@ -389,58 +448,54 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
   }
 
   @Override
-  public List<SliderApp> getSliderApps(Set<String> properties)
-      throws YarnException, IOException {
-    List<SliderApp> sliderApps = new ArrayList<SliderApp>();
-    ClassLoader currentClassLoader = Thread.currentThread()
-        .getContextClassLoader();
-    Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
-    try {
-      Map<String, SliderApp> sliderAppsMap = new HashMap<String, SliderApp>();
-      SliderClient sliderClient = getSliderClient();
-      List<ApplicationReport> yarnApps = sliderClient.listSliderInstances(null);
-      for (ApplicationReport yarnApp : yarnApps) {
-        SliderApp sliderAppObject = createSliderAppObject(yarnApp, properties,
-            sliderClient);
-        if (sliderAppObject != null) {
-          if (sliderAppsMap.containsKey(sliderAppObject.getName())) {
-            if (sliderAppsMap.get(sliderAppObject.getName()).getId()
-                .compareTo(sliderAppObject.getId()) < 0) {
+  public List<SliderApp> getSliderApps(final Set<String> properties)
+      throws YarnException, IOException, InterruptedException {
+    return invokeSliderClientRunnable(new SliderClientContextRunnable<List<SliderApp>>() {
+      @Override
+      public List<SliderApp> run(SliderClient sliderClient)
+          throws YarnException, IOException {
+        List<SliderApp> sliderApps = new ArrayList<SliderApp>();
+        Map<String, SliderApp> sliderAppsMap = new HashMap<String, SliderApp>();
+        List<ApplicationReport> yarnApps = sliderClient.listSliderInstances(null);
+        for (ApplicationReport yarnApp : yarnApps) {
+          SliderApp sliderAppObject = createSliderAppObject(yarnApp, properties,
+              sliderClient);
+          if (sliderAppObject != null) {
+            if (sliderAppsMap.containsKey(sliderAppObject.getName())) {
+              if (sliderAppsMap.get(sliderAppObject.getName()).getId()
+                  .compareTo(sliderAppObject.getId()) < 0) {
+                sliderAppsMap.put(sliderAppObject.getName(), sliderAppObject);
+              }
+            } else {
               sliderAppsMap.put(sliderAppObject.getName(), sliderAppObject);
             }
-          } else {
-            sliderAppsMap.put(sliderAppObject.getName(), sliderAppObject);
           }
         }
+        if (sliderAppsMap.size() > 0)
+          sliderApps.addAll(sliderAppsMap.values());
+        return sliderApps;
       }
-      if (sliderAppsMap.size() > 0)
-        sliderApps.addAll(sliderAppsMap.values());
-    } finally {
-      Thread.currentThread().setContextClassLoader(currentClassLoader);
-    }
-    return sliderApps;
+    });
   }
 
   @Override
-  public void deleteSliderApp(String applicationId) throws YarnException,
-      IOException {
-    ClassLoader currentClassLoader = Thread.currentThread()
-        .getContextClassLoader();
-    Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
-    try {
-      Set<String> properties = new HashSet<String>();
-      properties.add("id");
-      properties.add("name");
-      SliderApp sliderApp = getSliderApp(applicationId, properties);
-      if (sliderApp == null) {
-        throw new ApplicationNotFoundException(applicationId);
+  public void deleteSliderApp(final String applicationId) throws YarnException,
+      IOException, InterruptedException {
+    Integer code = invokeSliderClientRunnable(new SliderClientContextRunnable<Integer>() {
+      @Override
+      public Integer run(SliderClient sliderClient) throws YarnException,
+          IOException, InterruptedException {
+        Set<String> properties = new HashSet<String>();
+        properties.add("id");
+        properties.add("name");
+        SliderApp sliderApp = getSliderApp(applicationId, properties);
+        if (sliderApp == null) {
+          throw new ApplicationNotFoundException(applicationId);
+        }
+        return sliderClient.actionDestroy(sliderApp.getName());
       }
-
-      SliderClient sliderClient = getSliderClient();
-      sliderClient.actionDestroy(sliderApp.getName());
-    } finally {
-      Thread.currentThread().setContextClassLoader(currentClassLoader);
-    }
+    });
+    logger.info("Deleted Slider App [" + applicationId + "] with exit code " + code);
   }
 
   @Override
@@ -623,25 +678,24 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
       createArgs.resources = resourcesJsonFile;
       createArgs.image = new Path(hdfsLocation
           + "/user/yarn/agent/slider-agent.tar.gz");
+      
+      final ActionInstallPackageArgs installArgs = new ActionInstallPackageArgs();
+      installArgs.name = appName;
+      installArgs.packageURI = getAppsFolderPath() + "/" + configs.get("application.def").getAsString();
+      installArgs.replacePkg = true;
 
-      ClassLoader currentClassLoader = Thread.currentThread()
-          .getContextClassLoader();
-      Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
-      try {
-        ApplicationId applicationId = UserGroupInformation.getBestUGI(null,
-            "yarn").doAs(new PrivilegedExceptionAction<ApplicationId>() {
-          public ApplicationId run() throws IOException, YarnException {
-            SliderClient sliderClient = getSliderClient();
-            sliderClient.actionCreate(appName, createArgs);
-            return sliderClient.applicationId;
+      return invokeSliderClientRunnable(new SliderClientContextRunnable<String>() {
+        @Override
+        public String run(SliderClient sliderClient) throws YarnException, IOException, InterruptedException {
+          sliderClient.actionInstallPkg(installArgs);
+          sliderClient.actionCreate(appName, createArgs);
+          ApplicationId applicationId = sliderClient.applicationId;
+          if (applicationId != null) {
+            return getApplicationIdString(applicationId);
           }
-        });
-        if (applicationId != null) {
-          return getApplicationIdString(applicationId);
+          return null;
         }
-      } finally {
-        Thread.currentThread().setContextClassLoader(currentClassLoader);
-      }
+      });
     }
     return null;
   }
@@ -711,59 +765,42 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
   }
 
   @Override
-  public void freezeApp(String appId) throws YarnException, IOException,
+  public void freezeApp(final String appId) throws YarnException, IOException,
       InterruptedException {
-    ClassLoader currentClassLoader = Thread.currentThread()
-        .getContextClassLoader();
-    Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
-    try {
-      Set<String> properties = new HashSet<String>();
-      properties.add("id");
-      properties.add("name");
-      final SliderApp sliderApp = getSliderApp(appId, properties);
-      if (sliderApp == null)
-        throw new ApplicationNotFoundException(appId);
-
-      ApplicationId applicationId = UserGroupInformation.getBestUGI(null,
-          "yarn").doAs(new PrivilegedExceptionAction<ApplicationId>() {
-        public ApplicationId run() throws IOException, YarnException {
-          SliderClient sliderClient = getSliderClient();
-          ActionFreezeArgs freezeArgs = new ActionFreezeArgs();
-          sliderClient.actionFreeze(sliderApp.getName(), freezeArgs);
-          return sliderClient.applicationId;
-        }
-      });
-      logger.debug("Slider app has been frozen - " + applicationId.toString());
-    } finally {
-      Thread.currentThread().setContextClassLoader(currentClassLoader);
-    }
+    ApplicationId applicationId = invokeSliderClientRunnable(new SliderClientContextRunnable<ApplicationId>() {
+      @Override
+      public ApplicationId run(SliderClient sliderClient) throws YarnException, IOException, InterruptedException {
+        Set<String> properties = new HashSet<String>();
+        properties.add("id");
+        properties.add("name");
+        final SliderApp sliderApp = getSliderApp(appId, properties);
+        if (sliderApp == null)
+          throw new ApplicationNotFoundException(appId);
+        ActionFreezeArgs freezeArgs = new ActionFreezeArgs();
+        sliderClient.actionFreeze(sliderApp.getName(), freezeArgs);
+        return sliderClient.applicationId;
+      }
+    });
+    logger.info("Frozen Slider App [" + appId + "] with response: " + applicationId.toString());
   }
 
   @Override
-  public void thawApp(String appId) throws YarnException, IOException,
-      InterruptedException {
-    ClassLoader currentClassLoader = Thread.currentThread()
-        .getContextClassLoader();
-    Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
-    try {
-      Set<String> properties = new HashSet<String>();
-      properties.add("id");
-      properties.add("name");
-      final SliderApp sliderApp = getSliderApp(appId, properties);
-      if (sliderApp == null)
-        throw new ApplicationNotFoundException(appId);
-      ApplicationId applicationId = UserGroupInformation.getBestUGI(null,
-          "yarn").doAs(new PrivilegedExceptionAction<ApplicationId>() {
-        public ApplicationId run() throws IOException, YarnException {
-          SliderClient sliderClient = getSliderClient();
-          ActionThawArgs thawArgs = new ActionThawArgs();
-          sliderClient.actionThaw(sliderApp.getName(), thawArgs);
-          return sliderClient.applicationId;
-        }
-      });
-      logger.debug("Slider app has been thawed - " + applicationId.toString());
-    } finally {
-      Thread.currentThread().setContextClassLoader(currentClassLoader);
-    }
+  public void thawApp(final String appId) throws YarnException, IOException, InterruptedException {
+    ApplicationId applicationId = invokeSliderClientRunnable(new SliderClientContextRunnable<ApplicationId>() {
+      @Override
+      public ApplicationId run(SliderClient sliderClient) throws YarnException,
+          IOException, InterruptedException {
+        Set<String> properties = new HashSet<String>();
+        properties.add("id");
+        properties.add("name");
+        final SliderApp sliderApp = getSliderApp(appId, properties);
+        if (sliderApp == null)
+          throw new ApplicationNotFoundException(appId);
+        ActionThawArgs thawArgs = new ActionThawArgs();
+        sliderClient.actionThaw(sliderApp.getName(), thawArgs);
+        return sliderClient.applicationId;
+      }
+    });
+    logger.info("Thawed Slider App [" + appId + "] with response: " + applicationId.toString());
   }
 }

@@ -30,9 +30,15 @@ rpm_version = default("/configurations/hadoop-env/rpm_version", None)
 if rpm_version is not None:
   hadoop_conf_dir = format("/usr/hdp/{rpm_version}/etc/hadoop/conf")
   hadoop_bin_dir = format("/usr/hdp/{rpm_version}/hadoop/bin")
+  falcon_webapp_dir = format("/usr/hdp/{rpm_version}/falcon/webapp")
+  falcon_home = format("/usr/hdp/{rpm_version}/falcon")
+  falcon_conf_dir = format("/usr/hdp/{rpm_version}/falcon/conf")
 else:
   hadoop_conf_dir = "/etc/hadoop/conf"
   hadoop_bin_dir = "/usr/bin"
+  falcon_webapp_dir = '/var/lib/falcon/webapp'
+  falcon_home = '/usr/lib/falcon'
+  falcon_conf_dir = '/etc/falcon/conf'
 
 oozie_user = config['configurations']['oozie-env']['oozie_user']
 falcon_user = config['configurations']['falcon-env']['falcon_user']
@@ -42,8 +48,6 @@ user_group = config['configurations']['cluster-env']['user_group']
 proxyuser_group =  config['configurations']['hadoop-env']['proxyuser_group']
 
 java_home = config['hostLevelParams']['java_home']
-falcon_home = '/usr/lib/falcon'
-falcon_conf_dir = '/etc/falcon/conf'
 falcon_local_dir = config['configurations']['falcon-env']['falcon_local_dir']
 falcon_log_dir = config['configurations']['falcon-env']['falcon_log_dir']
 store_uri = config['configurations']['falcon-startup.properties']['*.config.store.uri']
@@ -59,7 +63,6 @@ falcon_startup_properties = config['configurations']['falcon-startup.properties'
 smokeuser_keytab = config['configurations']['cluster-env']['smokeuser_keytab']
 falcon_env_sh_template = config['configurations']['falcon-env']['content']
 
-falcon_webapp_dir = '/var/lib/falcon/webapp'
 flacon_apps_dir = '/apps/falcon'
 #for create_hdfs_directory
 security_enabled = config['configurations']['cluster-env']['security_enabled']

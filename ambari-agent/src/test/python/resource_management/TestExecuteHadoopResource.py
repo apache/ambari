@@ -15,6 +15,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
+import os
 
 from unittest import TestCase
 from mock.mock import patch
@@ -38,7 +39,11 @@ class TestExecuteHadoopResource(TestCase):
       self.assertEqual(execute_mock.call_count, 1)
       self.assertEqual(execute_mock.call_args[0][0].command,'hadoop --config conf_dir command')
       self.assertEqual(execute_mock.call_args[0][0].arguments,
-                       {'logoutput': True, 'tries': 1, 'user': 'user', 'try_sleep': 0})
+                       {'logoutput': True,
+                        'tries': 1,
+                        'user': 'user',
+                        'try_sleep': 0,
+                        'environment': {'PATH': os.environ['PATH']}})
 
 
   @patch("resource_management.core.providers.system.ExecuteProvider")
@@ -58,7 +63,11 @@ class TestExecuteHadoopResource(TestCase):
       self.assertEqual(execute_mock.call_count, 1)
       self.assertEqual(execute_mock.call_args[0][0].command,'hadoop --config conf_dir command')
       self.assertEqual(execute_mock.call_args[0][0].arguments,
-                       {'logoutput': False, 'tries': 1, 'user': 'user', 'try_sleep': 0})
+                       {'logoutput': False,
+                        'tries': 1,
+                        'user': 'user',
+                        'try_sleep': 0,
+                        'environment': {'PATH': os.environ['PATH']}})
 
 
   @patch("resource_management.core.providers.system.ExecuteProvider")
@@ -83,7 +92,11 @@ class TestExecuteHadoopResource(TestCase):
       self.assertEqual(execute_mock.call_count, 1)
       self.assertEqual(execute_mock.call_args[0][0].command,'hadoop --config conf_dir command')
       self.assertEqual(execute_mock.call_args[0][0].arguments,
-                       {'logoutput': True, 'tries': 2, 'user': 'user', 'try_sleep': 2})
+                       {'logoutput': True,
+                        'tries': 2,
+                        'user': 'user',
+                        'try_sleep': 2,
+                        'environment': {'PATH': os.environ['PATH']}})
 
 
   @patch("resource_management.core.providers.system.ExecuteProvider")
@@ -105,9 +118,17 @@ class TestExecuteHadoopResource(TestCase):
       self.assertEqual(execute_mock.call_args_list[1][0][0].command,
                        'hadoop --config conf_dir command2')
       self.assertEqual(execute_mock.call_args_list[0][0][0].arguments,
-                       {'logoutput': False, 'tries': 1, 'user': 'user', 'try_sleep': 0})
+                       {'logoutput': False,
+                        'tries': 1,
+                        'user': 'user',
+                        'try_sleep': 0,
+                        'environment': {'PATH': os.environ['PATH']}})
       self.assertEqual(execute_mock.call_args_list[1][0][0].arguments,
-                       {'logoutput': False, 'tries': 1, 'user': 'user', 'try_sleep': 0})
+                       {'logoutput': False,
+                        'tries': 1,
+                        'user': 'user',
+                        'try_sleep': 0,
+                        'environment': {'PATH': os.environ['PATH']}})
 
 
   @patch("resource_management.core.providers.system.ExecuteProvider")
@@ -156,7 +177,11 @@ class TestExecuteHadoopResource(TestCase):
       self.assertEqual(execute_mock.call_args_list[1][0][0].command,
                        'hadoop --config conf_dir command')
       self.assertEqual(execute_mock.call_args_list[1][0][0].arguments,
-                       {'logoutput': True, 'tries': 1, 'user': 'user', 'try_sleep': 0})
+                       {'logoutput': True,
+                        'tries': 1,
+                        'user': 'user',
+                        'try_sleep': 0,
+                        'environment': {'PATH': os.environ['PATH']}})
 
 
   @patch("resource_management.core.providers.system.ExecuteProvider")

@@ -729,7 +729,7 @@ define service {
         hostgroup_name          webhcat-server
         use                     hadoop-service
         service_description     WEBHCAT::WebHCat Server status
-        servicegroups           WEBHCAT 
+        servicegroups           HIVE
         {% if security_enabled %}
         check_command           check_templeton_status!{{ templeton_port }}!v1!{{ str(security_enabled).lower() }}!{{ nagios_keytab_path }}!{{ nagios_principal_name }}!{{ kinit_path_local }}
         {% else %}

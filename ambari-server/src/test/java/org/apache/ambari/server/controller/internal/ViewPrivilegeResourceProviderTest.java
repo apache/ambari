@@ -102,7 +102,7 @@ public class ViewPrivilegeResourceProviderTest {
 
     viewDefinition.addInstanceDefinition(viewInstanceDefinition);
     viewInstanceDefinition.setViewEntity(viewDefinition);
-    viewDefinition.setStatus(ViewDefinition.ViewStatus.LOADED);
+    viewDefinition.setStatus(ViewDefinition.ViewStatus.DEPLOYED);
 
     ViewRegistry registry = ViewRegistry.getInstance();
 

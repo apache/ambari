@@ -27,12 +27,6 @@
     },
     {
       "ServiceInfo" : {
-        "service_name" : "HCATALOG",
-        "state" : "INSTALLED"
-      }
-    },
-    {
-      "ServiceInfo" : {
         "service_name" : "HDFS",
         "state" : "STARTED"
       }
@@ -83,12 +77,6 @@
       "ServiceInfo" : {
         "service_name" : "TEZ",
         "state" : "INSTALLED"
-      }
-    },
-    {
-      "ServiceInfo" : {
-        "service_name" : "WEBHCAT",
-        "state" : "STARTED"
       }
     },
     {

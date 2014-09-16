@@ -51,7 +51,7 @@ App.AddSecurityConfigs = Em.Mixin.create({
       configName: 'hivemetastore_host'
     },
     {
-      serviceName: 'WEBHCAT',
+      serviceName: 'HIVE',
       componentName: 'WEBHCAT_SERVER',
       configName: 'webhcat_server'
     }

@@ -23,7 +23,7 @@ from stacks.utils.RMFTestCase import *
 class TestWebHCatServer(RMFTestCase):
 
   def test_configure_default(self):
-    self.executeScript("1.3.2/services/WEBHCAT/package/scripts/webhcat_server.py",
+    self.executeScript("1.3.2/services/HIVE/package/scripts/webhcat_server.py",
                        classname = "WebHCatServer",
                        command = "configure",
                        config_file="default.json"
@@ -32,7 +32,7 @@ class TestWebHCatServer(RMFTestCase):
     self.assertNoMoreResources()
 
   def test_start_default(self):
-    self.executeScript("1.3.2/services/WEBHCAT/package/scripts/webhcat_server.py",
+    self.executeScript("1.3.2/services/HIVE/package/scripts/webhcat_server.py",
                        classname = "WebHCatServer",
                        command = "start",
                        config_file="default.json"
@@ -46,7 +46,7 @@ class TestWebHCatServer(RMFTestCase):
     self.assertNoMoreResources()
 
   def test_stop_default(self):
-    self.executeScript("1.3.2/services/WEBHCAT/package/scripts/webhcat_server.py",
+    self.executeScript("1.3.2/services/HIVE/package/scripts/webhcat_server.py",
                        classname = "WebHCatServer",
                        command = "stop",
                        config_file="default.json"
@@ -59,7 +59,7 @@ class TestWebHCatServer(RMFTestCase):
     self.assertNoMoreResources()
 
     def test_configure_secured(self):
-      self.executeScript("1.3.2/services/WEBHCAT/package/scripts/webhcat_server.py",
+      self.executeScript("1.3.2/services/HIVE/package/scripts/webhcat_server.py",
                          classname = "WebHCatServer",
                          command = "configure",
                          config_file="secured.json"
@@ -69,7 +69,7 @@ class TestWebHCatServer(RMFTestCase):
       self.assertNoMoreResources()
 
   def test_start_secured(self):
-    self.executeScript("1.3.2/services/WEBHCAT/package/scripts/webhcat_server.py",
+    self.executeScript("1.3.2/services/HIVE/package/scripts/webhcat_server.py",
                        classname = "WebHCatServer",
                        command = "start",
                        config_file="secured.json"
@@ -83,7 +83,7 @@ class TestWebHCatServer(RMFTestCase):
     self.assertNoMoreResources()
 
   def test_stop_secured(self):
-    self.executeScript("1.3.2/services/WEBHCAT/package/scripts/webhcat_server.py",
+    self.executeScript("1.3.2/services/HIVE/package/scripts/webhcat_server.py",
                        classname = "WebHCatServer",
                        command = "stop",
                        config_file="secured.json"

@@ -79,9 +79,9 @@ public interface ViewDefinition {
    * View status
    */
   public enum ViewStatus {
-    PENDING, // view has been created but not loaded from the archive
-    LOADING, // view is in the process of being loaded from the archive
-    LOADED,  // view is completely loaded and ready to use
-    ERROR    // an error occurred loading the view
+    PENDING,   // view has been created but not loaded from the archive
+    DEPLOYING, // view is in the process of being deployed from the archive
+    DEPLOYED,  // view is completely deployed and ready to use
+    ERROR      // an error occurred deploying the view
   }
 }

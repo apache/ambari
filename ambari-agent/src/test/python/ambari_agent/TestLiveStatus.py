@@ -36,8 +36,8 @@ class TestLiveStatus(TestCase):
     sys.stdout = out
     LiveStatus.SERVICES = [
       "HDFS", "MAPREDUCE", "GANGLIA", "HBASE",
-      "NAGIOS", "ZOOKEEPER", "OOZIE", "HCATALOG",
-      "KERBEROS", "TEMPLETON", "HIVE", "WEBHCAT",
+      "NAGIOS", "ZOOKEEPER", "OOZIE",
+      "KERBEROS", "TEMPLETON", "HIVE",
       "YARN", "MAPREDUCE2", "FLUME", "TEZ",
       "FALCON", "STORM"
     ]

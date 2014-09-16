@@ -48,8 +48,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   preSelectedConfigVersion: null,
   // contain Service Config Property, when user proceed from Select Config Group dialog
   overrideToAdd: null,
-  //latest version of service config versions
-  currentVersion: null,
+  //version of default config group, configs of which currently applied
+  currentDefaultVersion: null,
   //version selected to view
   selectedVersion: null,
   // file names of changed configs
@@ -58,8 +58,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   serviceConfigVersionNote: '',
   versionLoaded: false,
   isCurrentSelected: function () {
-    return this.get('selectedVersion') === this.get('currentVersion');
-  }.property('selectedVersion', 'currentVersion'),
+    return App.ServiceConfigVersion.find(this.get('content.serviceName') + "_" + this.get('selectedVersion')).get('isCurrent');
+  }.property('selectedVersion'),
   serviceConfigs: function () {
     return App.config.get('preDefinedServiceConfigs');
   }.property('App.config.preDefinedServiceConfigs'),
@@ -179,6 +179,16 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   }.property('propertyFilters', 'isCompareMode'),
 
   /**
+   * indicate wtether service config version belongs to default config group
+   * @method isVersionDefault
+   * @param version
+   * @return {Boolean}
+   */
+  isVersionDefault: function(version) {
+    return version && version.get('groupId') == -1;
+  },
+
+  /**
    * clear and set properties to default value
    */
   clearStep: function () {
@@ -290,41 +300,45 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
 
   /**
    * load service config versions to model
-   * set currentVersion
+   * set currentDefaultVersion
    * @param data
    * @param opt
    * @param params
    */
   loadServiceConfigVersionsSuccess: function (data, opt, params) {
     App.serviceConfigVersionsMapper.map(data);
+    this.set('currentDefaultVersion', data.items.filterProperty('group_id', -1).findProperty('is_current').service_config_version);
     if (this.get('preSelectedConfigVersion')) {
-      this.set('currentVersion', this.get('preSelectedConfigVersion.version'));
+      this.loadSelectedVersion(this.get('preSelectedConfigVersion.version'));
     } else {
-      this.set('currentVersion', data.items.filterProperty('group_id', -1).findProperty('is_current').service_config_version);
+      this.loadSelectedVersion();
     }
-    this.loadSelectedVersion();
   },
 
   /**
    * get selected service config version
-   * In case selected version is undefined then take currentVersion
+   * In case selected version is undefined then take currentDefaultVersion
    * @param version
    */
   loadSelectedVersion: function (version) {
     var self = this;
     this.set('versionLoaded', false);
-    var groupName = App.ServiceConfigVersion.find(this.get('content.serviceName') + "_" + version).get('groupName');
+    version = version || this.get('currentDefaultVersion');
+    var versionRecord = App.ServiceConfigVersion.find(this.get('content.serviceName') + "_" + version);
+    //version of non-default group require properties from current version of default group to correctly display page
+    var versions = (this.isVersionDefault(versionRecord)) ? [version] : [this.get('currentDefaultVersion'), version];
 
-    if (self.get('dataIsLoaded') && !(groupName && this.get('selectedConfigGroup.name') === groupName)) {
+    //if version from default group selected then switch to default group
+    if (self.get('dataIsLoaded') && this.isVersionDefault(versionRecord)) {
       this.set('selectedConfigGroup', this.get('configGroups').findProperty('isDefault'));
     }
 
     App.ajax.send({
-      name: 'service.serviceConfigVersion.get',
+      name: 'service.serviceConfigVersions.get.multiple',
       sender: this,
       data: {
         serviceName: this.get('content.serviceName'),
-        serviceConfigVersion: version || this.get('currentVersion')
+        serviceConfigVersions: versions
       },
       success: 'loadSelectedVersionSuccess'
     }).complete(function () {
@@ -346,18 +360,36 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     var serviceConfigsDef = this.get('serviceConfigs').findProperty('serviceName', this.get('content.serviceName'));
     var siteToTagMap = {};
     var configTypesRendered = Object.keys(serviceConfigsDef.get('configTypesRendered'));
+    var selectedVersion = params.serviceConfigVersions.length > 1 ? params.serviceConfigVersions[1] : params.serviceConfigVersions[0];
+    var configurations = [];
+
 
     configTypesRendered.forEach(function (siteName) {
-      if (data.items[0].configurations.someProperty('type', siteName)) {
-        siteToTagMap[siteName] = data.items[0].configurations.findProperty('type', siteName).tag;
-      } else {
-        siteToTagMap[siteName] = 'version1';
-      }
+      data.items.forEach(function (item) {
+        if (item.group_id == -1) {
+          configurations = item.configurations;
+          if (item.configurations.someProperty('type', siteName)) {
+            siteToTagMap[siteName] = item.configurations.findProperty('type', siteName).tag;
+          } else {
+            siteToTagMap[siteName] = 'version1';
+          }
+        } else {
+          //set config tags of non-default config group to load overrides from selected version
+          this.loadedGroupToOverrideSiteToTagMap[item.group_name] = {};
+          item.configurations.forEach(function (config) {
+            this.loadedGroupToOverrideSiteToTagMap[item.group_name][config.type] = config.tag;
+          }, this)
+        }
+      }, this)
     }, this);
 
-    App.router.get('configurationController').saveToDB(data.items[0].configurations);
+    App.router.get('configurationController').saveToDB(configurations);
     this.loadedClusterSiteToTagMap = siteToTagMap;
-    this.set('selectedVersion', params.serviceConfigVersion);
+    this.set('selectedVersion', selectedVersion);
+    //reset map if selected current version of default group
+    if (this.get('isCurrentSelected') && selectedVersion === this.get('currentDefaultVersion')) {
+      this.loadedGroupToOverrideSiteToTagMap = {};
+    }
   },
 
   /**
@@ -376,19 +408,19 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   },
 
   loadServiceConfigsSuccess: function (data, opt, params) {
+    if (App.get('supports.configHistory')) {
+      this.setConfigGroups(data, opt, params);
+      return;
+    }
     if (data) {
       this.setConfigGroups(data, opt, params);
     } else {
-      if (!App.get('supports.configHistory')) {
-        App.ajax.send({
-          name: 'config.tags',
-          sender: this,
-          data: App.permit(params, ['clusterName', 'serviceConfigsDef', 'serviceName']),
-          success: 'setConfigGroups'
-        });
-      }  else {
-        this.setConfigGroups(data, opt, params);
-      }
+      App.ajax.send({
+        name: 'config.tags',
+        sender: this,
+        data: App.permit(params, ['clusterName', 'serviceConfigsDef', 'serviceName']),
+        success: 'setConfigGroups'
+      });
     }
   },
 
@@ -480,15 +512,20 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     var selectedConfigGroup = this.get('selectedConfigGroup');
     var serviceName = this.get('content.serviceName');
     //STEP 1: handle tags from JSON data for host overrides
-    this.loadedGroupToOverrideSiteToTagMap = {};
+    if (!App.supports.configHistory) {
+      //if config history enabled then loadedGroupToOverrideSiteToTagMap already has content set in loadSelectedVersionSuccess()
+      this.loadedGroupToOverrideSiteToTagMap = {};
+    }
     var configGroupsWithOverrides = selectedConfigGroup.get('isDefault') && !this.get('isHostsConfigsPage') ? this.get('configGroups') : [selectedConfigGroup];
     configGroupsWithOverrides.forEach(function (item) {
       var groupName = item.get('name');
-      this.loadedGroupToOverrideSiteToTagMap[groupName] = {};
-      item.get('configSiteTags').forEach(function (siteTag) {
-        var site = siteTag.get('site');
-        this.loadedGroupToOverrideSiteToTagMap[groupName][site] = siteTag.get('tag');
-      }, this);
+      if (Em.isNone(this.loadedGroupToOverrideSiteToTagMap[groupName])) {
+        this.loadedGroupToOverrideSiteToTagMap[groupName] = {};
+        item.get('configSiteTags').forEach(function (siteTag) {
+          var site = siteTag.get('site');
+          this.loadedGroupToOverrideSiteToTagMap[groupName][site] = siteTag.get('tag');
+        }, this);
+      }
     }, this);
     //STEP 2: Create an array of objects defining tag names to be polled and new tag names to be set after submit
     this.setServiceConfigTags(this.loadedClusterSiteToTagMap);
@@ -515,7 +552,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
       //STEP load configs of version being compared against
       self.loadCompareVersionConfigs(self.get('allConfigs')).done(function (isComparison) {
         //STEP 9: Load and add overriden configs of group
-        if (!isComparison && self.get('isCurrentSelected')) {
+        if (!isComparison && (!self.get('selectedConfigGroup').get('isDefault') || self.get('isCurrentSelected'))) {
           App.config.loadServiceConfigGroupOverrides(self.get('allConfigs'), self.get('loadedGroupToOverrideSiteToTagMap'), self.get('configGroups'), self.onLoadOverrides, self);
         } else {
           self.onLoadOverrides(self.get('allConfigs'));
@@ -1698,7 +1735,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   addDynamicProperties: function (configs) {
     var allConfigs = this.get('stepConfigs').findProperty('serviceName', this.get('content.serviceName')).get('configs');
     var templetonHiveProperty = allConfigs.someProperty('name', 'templeton.hive.properties');
-    if (!templetonHiveProperty && this.get('content.serviceName') === 'WEBHCAT') {
+    if (!templetonHiveProperty && this.get('content.serviceName') === 'HIVE') {
       configs.pushObject({
         "name": "templeton.hive.properties",
         "templateName": ["hivemetastore_host"],
@@ -2136,7 +2173,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
       hostProperty: 'hivemetastore_host',
       componentName: 'HIVE_SERVER',
       serviceName: 'HIVE',
-      serviceUseThis: ['WEBHCAT']
+      serviceUseThis: ['HIVE']
     },
     {
       hostProperty: 'oozieserver_host',
@@ -2160,7 +2197,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     {
       hostProperty: 'webhcatserver_host',
       componentName: 'WEBHCAT_SERVER',
-      serviceName: 'WEBHCAT',
+      serviceName: 'HIVE',
       serviceUseThis: [],
       m: true
     },
@@ -2168,7 +2205,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
       hostProperty: 'zookeeperserver_hosts',
       componentName: 'ZOOKEEPER_SERVER',
       serviceName: 'ZOOKEEPER',
-      serviceUseThis: ['HBASE', 'WEBHCAT'],
+      serviceUseThis: ['HBASE', 'HIVE'],
       m: true
     },
     {
@@ -2328,9 +2365,10 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
    * trigger showItemsShouldBeRestarted popup with hosts that requires resetart
    * @method showHostsShouldBeRestarted
    */
-  showHostsShouldBeRestarted: function () {
+  showHostsShouldBeRestarted: function (restartRequiredHostsAndComponents) {
     var hosts = [];
-    for (var hostName in this.get('content.restartRequiredHostsAndComponents')) {
+    var rhc = this.get('content.restartRequiredHostsAndComponents') || restartRequiredHostsAndComponents;
+    for (var hostName in rhc) {
       hosts.push(hostName);
     }
     var hostsText = hosts.length == 1 ? Em.I18n.t('common.host') : Em.I18n.t('common.hosts');
@@ -2342,8 +2380,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
    * trigger showItemsShouldBeRestarted popup with components that requires resetart
    * @method showComponentsShouldBeRestarted
    */
-  showComponentsShouldBeRestarted: function () {
-    var rhc = this.get('content.restartRequiredHostsAndComponents');
+  showComponentsShouldBeRestarted: function (restartRequiredHostsAndComponents) {
+    var rhc = this.get('content.restartRequiredHostsAndComponents') || restartRequiredHostsAndComponents;
     var hostsComponets = [];
     var componentsObject = {};
     for (var hostName in rhc) {
@@ -2559,6 +2597,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
         return;
       }
     }
+    //clean when switch config group
+    this.loadedGroupToOverrideSiteToTagMap = {};
     this.set('selectedConfigGroup', event.context);
   },
 

@@ -27,7 +27,7 @@
           <osFamily>any</osFamily>
           <packages>
             <package>
-              <name>hive_2_9_9_9_98-webhcat</name>
+              <name>hive_2_9_9_9_117-webhcat</name>
             </package>
             <package>
               <name>webhcat-tar-hive</name>

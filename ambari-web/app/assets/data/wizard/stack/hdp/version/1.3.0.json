@@ -112,17 +112,6 @@
       }
     },
     {
-      "href" : "http://ec2-23-20-124-167.compute-1.amazonaws.com:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HCATALOG",
-      "StackServices" : {
-        "user_name" : "root",
-        "stack_version" : "1.2.1",
-        "service_name" : "HCATALOG",
-        "stack_name" : "HDP",
-        "comments" : "This is comment for HCATALOG service",
-        "service_version" : "0.5.0"
-      }
-    },
-    {
       "href" : "http://ec2-23-20-124-167.compute-1.amazonaws.com:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/GANGLIA",
       "StackServices" : {
         "user_name" : "root",

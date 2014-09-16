@@ -87,7 +87,7 @@ App.StackService = DS.Model.extend({
   }.property('coSelectedServices', 'serviceName'),
 
   isHiddenOnSelectServicePage: function () {
-    var hiddenServices = ['MAPREDUCE2', 'HCATALOG', 'WEBHCAT'];
+    var hiddenServices = ['MAPREDUCE2'];
     return hiddenServices.contains(this.get('serviceName'));
   }.property('serviceName'),
 
@@ -183,8 +183,6 @@ App.StackService.displayOrder = [
   'NAGIOS',
   'GANGLIA',
   'HIVE',
-  'HCATALOG',
-  'WEBHCAT',
   'HBASE',
   'PIG',
   'SQOOP',
@@ -198,8 +196,7 @@ App.StackService.displayOrder = [
 
 //@TODO: Write unit test for no two keys in the object should have any intersecting elements in their values
 App.StackService.coSelected = {
-  'YARN': ['MAPREDUCE2'],
-  'HIVE': ['HCATALOG', 'WEBHCAT']
+  'YARN': ['MAPREDUCE2']
 };
 
 
@@ -265,11 +262,7 @@ App.StackService.configCategories = function () {
       break;
     case 'HIVE':
       serviceConfigCategories.pushObjects([
-        App.ServiceConfigCategory.create({ name: 'HIVE_METASTORE', displayName: 'Hive Metastore'})
-      ]);
-      break;
-    case 'WEBHCAT':
-      serviceConfigCategories.pushObjects([
+        App.ServiceConfigCategory.create({ name: 'HIVE_METASTORE', displayName: 'Hive Metastore'}),
         App.ServiceConfigCategory.create({ name: 'WEBHCAT_SERVER', displayName: 'WebHCat Server'})
       ]);
       break;
@@ -322,8 +315,6 @@ App.StackService.configCategories = function () {
     case 'PIG':
       break;
     case 'SQOOP':
-      break;
-    case 'HCATALOG':
       break;
     default:
       serviceConfigCategories.pushObjects([

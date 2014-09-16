@@ -69,7 +69,7 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
    * Define state for submit button
    * @type {bool}
    */
-  submitDisabled: true,
+  submitDisabled: false,
 
   /**
    * Check if <code>addHostWizard</code> used
@@ -544,7 +544,9 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
    */
   callServerSideValidation: function (successCallback) {
     var self = this;
-    self.set('submitDisabled', true);
+
+    // We do not want to disable Next due to server validation issues - hence commented out line below
+    // self.set('submitDisabled', true);
 
     var selectedServices = App.StackService.find().filterProperty('isSelected').mapProperty('serviceName');
     var installedServices = App.StackService.find().filterProperty('isInstalled').mapProperty('serviceName');
@@ -593,19 +595,13 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
         validate: 'host_groups',
         recommendations: bluePrintsForValidation
       },
-      success: 'updateValidationsSuccessCallback'
+      success: 'updateValidationsSuccessCallback',
+      error: 'updateValidationsErrorCallback'
     }).
-      retry({
-        times: App.maxRetries,
-        timeout: App.timeout
-      }).
       then(function () {
         if (!self.get('submitDisabled') && successCallback) {
           successCallback();
         }
-      }, function () {
-        App.showReloadPopup();
-        console.log('Load validations failed');
       }
     );
   },
@@ -690,7 +686,20 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
 
     // use this.set('submitDisabled', anyErrors); is validation results should block next button
     // It's because showValidationIssuesAcceptBox allow use accept validation issues and continue
-    this.set('submitDisabled', false);
+    // this.set('submitDisabled', false);
+  },
+
+  /**
+   * Error-callback for validations request
+   * @param {object} jqXHR
+   * @param {object} ajaxOptions
+   * @param {string} error
+   * @param {object} opt
+   * @method updateValidationsErrorCallback
+   */
+  updateValidationsErrorCallback: function (jqXHR, ajaxOptions, error, opt) {
+    App.ajax.defaultErrorHandler(jqXHR, opt.url, opt.method, jqXHR.status);
+    console.log('Load validations failed');
   },
 
   /**

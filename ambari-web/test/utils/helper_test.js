@@ -229,7 +229,6 @@ describe('utils/helper', function() {
           'HBASE_REGIONSERVER': 'RegionServer',
           'HBASE_SERVICE_CHECK': 'HBase Service Check',
           'HCAT': 'HCat',
-          'HCATALOG': 'HCatalog',
           'HCAT_SERVICE_CHECK': 'HCat Service Check',
           'HDFS': 'HDFS',
           'HDFS_CLIENT': 'HDFS Client',

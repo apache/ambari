@@ -20,13 +20,10 @@ limitations under the License.
 from mock.mock import MagicMock, patch
 from stacks.utils.RMFTestCase import *
 
-from resource_management.libraries import functions
-import json
-
 class TestWebHCatServer(RMFTestCase):
 
   def test_configure_default(self):
-    self.executeScript("2.0.6/services/WEBHCAT/package/scripts/webhcat_server.py",
+    self.executeScript("2.0.6/services/HIVE/package/scripts/webhcat_server.py",
                        classname = "WebHCatServer",
                        command = "configure",
                        config_file="default.json"
@@ -35,7 +32,7 @@ class TestWebHCatServer(RMFTestCase):
     self.assertNoMoreResources()
 
   def test_start_default(self):
-    self.executeScript("2.0.6/services/WEBHCAT/package/scripts/webhcat_server.py",
+    self.executeScript("2.0.6/services/HIVE/package/scripts/webhcat_server.py",
                        classname = "WebHCatServer",
                        command = "start",
                        config_file="default.json"
@@ -49,7 +46,7 @@ class TestWebHCatServer(RMFTestCase):
     self.assertNoMoreResources()
 
   def test_stop_default(self):
-    self.executeScript("2.0.6/services/WEBHCAT/package/scripts/webhcat_server.py",
+    self.executeScript("2.0.6/services/HIVE/package/scripts/webhcat_server.py",
                        classname = "WebHCatServer",
                        command = "stop",
                        config_file="default.json"
@@ -62,7 +59,7 @@ class TestWebHCatServer(RMFTestCase):
     self.assertNoMoreResources()
 
     def test_configure_secured(self):
-      self.executeScript("2.0.6/services/WEBHCAT/package/scripts/webhcat_server.py",
+      self.executeScript("2.0.6/services/HIVE/package/scripts/webhcat_server.py",
                          classname = "WebHCatServer",
                          command = "configure",
                          config_file="secured.json"
@@ -72,7 +69,7 @@ class TestWebHCatServer(RMFTestCase):
       self.assertNoMoreResources()
 
   def test_start_secured(self):
-    self.executeScript("2.0.6/services/WEBHCAT/package/scripts/webhcat_server.py",
+    self.executeScript("2.0.6/services/HIVE/package/scripts/webhcat_server.py",
                        classname = "WebHCatServer",
                        command = "start",
                        config_file="secured.json"
@@ -86,7 +83,7 @@ class TestWebHCatServer(RMFTestCase):
     self.assertNoMoreResources()
 
   def test_stop_secured(self):
-    self.executeScript("2.0.6/services/WEBHCAT/package/scripts/webhcat_server.py",
+    self.executeScript("2.0.6/services/HIVE/package/scripts/webhcat_server.py",
                        classname = "WebHCatServer",
                        command = "stop",
                        config_file="secured.json"
@@ -131,33 +128,33 @@ class TestWebHCatServer(RMFTestCase):
                               action = ['create'],
                               )
     self.assertResourceCalled('Directory', '/var/run/webhcat',
-      owner = 'hcat',
-      group = 'hadoop',
-      recursive = True,
-      mode = 0755,
-    )
+                              owner = 'hcat',
+                              group = 'hadoop',
+                              recursive = True,
+                              mode = 0755,
+                              )
     self.assertResourceCalled('Directory', '/var/log/webhcat',
-      owner = 'hcat',
-      group = 'hadoop',
-      recursive = True,
-      mode = 0755,
-    )
+                              owner = 'hcat',
+                              group = 'hadoop',
+                              recursive = True,
+                              mode = 0755,
+                              )
     self.assertResourceCalled('Directory', '/etc/hcatalog/conf',
-      owner = 'hcat',
-      group = 'hadoop',
-    )
+                              owner = 'hcat',
+                              group = 'hadoop',
+                              )
     self.assertResourceCalled('XmlConfig', 'webhcat-site.xml',
-      owner = 'hcat',
-      group = 'hadoop',
-      conf_dir = '/etc/hcatalog/conf',
-      configurations = self.getConfig()['configurations']['webhcat-site'],
-      configuration_attributes = self.getConfig()['configuration_attributes']['webhcat-site']
+                              owner = 'hcat',
+                              group = 'hadoop',
+                              conf_dir = '/etc/hcatalog/conf',
+                              configurations = self.getConfig()['configurations']['webhcat-site'],
+                              configuration_attributes = self.getConfig()['configuration_attributes']['webhcat-site']
     )
     self.assertResourceCalled('File', '/etc/hcatalog/conf/webhcat-env.sh',
-      content = InlineTemplate(self.getConfig()['configurations']['webhcat-env']['content']),
-      owner = 'hcat',
-      group = 'hadoop',
-    )
+                              content = InlineTemplate(self.getConfig()['configurations']['webhcat-env']['content']),
+                              owner = 'hcat',
+                              group = 'hadoop',
+                              )
     self.assertResourceCalled('CopyFromLocal', '/usr/lib/hadoop-mapreduce/hadoop-streaming-*.jar',
                               owner='hcat',
                               mode=0755,
@@ -216,37 +213,37 @@ class TestWebHCatServer(RMFTestCase):
                               action = ['create'],
                               )
     self.assertResourceCalled('Directory', '/var/run/webhcat',
-      owner = 'hcat',
-      group = 'hadoop',
-      recursive = True,
-      mode = 0755,
-    )
+                              owner = 'hcat',
+                              group = 'hadoop',
+                              recursive = True,
+                              mode = 0755,
+                              )
     self.assertResourceCalled('Directory', '/var/log/webhcat',
-      owner = 'hcat',
-      group = 'hadoop',
-      recursive = True,
-      mode = 0755,
-    )
+                              owner = 'hcat',
+                              group = 'hadoop',
+                              recursive = True,
+                              mode = 0755,
+                              )
     self.assertResourceCalled('Directory', '/etc/hcatalog/conf',
-      owner = 'hcat',
-      group = 'hadoop',
-    )
+                              owner = 'hcat',
+                              group = 'hadoop',
+                              )
     self.assertResourceCalled('XmlConfig', 'webhcat-site.xml',
-      owner = 'hcat',
-      group = 'hadoop',
-      conf_dir = '/etc/hcatalog/conf',
-      configurations = self.getConfig()['configurations']['webhcat-site'],
-      configuration_attributes = self.getConfig()['configuration_attributes']['webhcat-site']
+                              owner = 'hcat',
+                              group = 'hadoop',
+                              conf_dir = '/etc/hcatalog/conf',
+                              configurations = self.getConfig()['configurations']['webhcat-site'],
+                              configuration_attributes = self.getConfig()['configuration_attributes']['webhcat-site']
     )
     self.assertResourceCalled('File', '/etc/hcatalog/conf/webhcat-env.sh',
-      content = InlineTemplate(self.getConfig()['configurations']['webhcat-env']['content']),
-      owner = 'hcat',
-      group = 'hadoop',
-    )
+                              content = InlineTemplate(self.getConfig()['configurations']['webhcat-env']['content']),
+                              owner = 'hcat',
+                              group = 'hadoop',
+                              )
     self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/hdfs.headless.keytab hdfs;',
-      path = ['/bin'],
-      user = 'hcat',
-    )
+                              path = ['/bin'],
+                              user = 'hcat',
+                              )
     self.assertResourceCalled('CopyFromLocal', '/usr/lib/hadoop-mapreduce/hadoop-streaming-*.jar',
                               owner='hcat',
                               mode=0755,

@@ -326,7 +326,6 @@ App.format = {
     'HBASE': 'HBase',
     'HBASE_REGIONSERVER': 'RegionServer',
     'HCAT': 'HCat',
-    'HCATALOG': 'HCatalog',
     'HDFS': 'HDFS',
     'HISTORYSERVER': 'History Server',
     'HIVE_SERVER': 'HiveServer2',

@@ -403,7 +403,7 @@
 		<zookeeper.version>3.4.5</zookeeper.version>
 		<jetty.version>6.1.26</jetty.version>
 		<metrics.version>3.0.1</metrics.version>
-		<slider.version>0.41.0</slider.version>
+		<slider.version>0.51.0</slider.version>
 	</properties>
 
 	<build>
@@ -548,6 +548,14 @@
 				<targetPath>WEB-INF/lib</targetPath>
 				<filtering>false</filtering>
 				<directory>target/lib</directory>
+			</resource>
+			<resource>
+				<targetPath>WEB-INF/lib</targetPath>
+				<filtering>true</filtering>
+				<directory>lib</directory>
+				<includes>
+					<include>slider-agent.tar.gz</include>
+				</includes>
 			</resource>
 		</resources>
 		<pluginManagement>

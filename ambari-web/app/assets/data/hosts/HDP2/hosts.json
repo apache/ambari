@@ -115,15 +115,6 @@
         },
         {
           "HostRoles" : {
-            "component_name" : "HCAT",
-            "maintenance_state" : "OFF",
-            "service_name" : "HCATALOG",
-            "stale_configs" : false,
-            "state" : "INSTALL_FAILED"
-          }
-        },
-        {
-          "HostRoles" : {
             "component_name" : "HDFS_CLIENT",
             "maintenance_state" : "OFF",
             "service_name" : "HDFS",
@@ -315,7 +306,7 @@
           "HostRoles" : {
             "component_name" : "WEBHCAT_SERVER",
             "maintenance_state" : "OFF",
-            "service_name" : "WEBHCAT",
+            "service_name" : "HIVE",
             "stale_configs" : false,
             "state" : "INSTALL_FAILED"
           }

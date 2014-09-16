@@ -97,18 +97,6 @@ App.Service = DS.Model.extend({
    */
   isRestartRequired: function () {
     var rhc = this.get('hostComponents').filterProperty('staleConfigs', true);
-
-    // HCatalog components are technically owned by Hive.
-    if (this.get('serviceName') == 'HIVE') {
-      var hcatService = App.Service.find('HCATALOG');
-      if (hcatService != null && hcatService.get('isLoaded')) {
-        var hcatStaleHcs = hcatService.get('hostComponents').filterProperty('staleConfigs', true);
-        if (hcatStaleHcs != null) {
-          rhc.pushObjects(hcatStaleHcs);
-        }
-      }
-    }
-
     var hc = {};
     rhc.forEach(function(_rhc) {
       var hostName = _rhc.get('hostName');

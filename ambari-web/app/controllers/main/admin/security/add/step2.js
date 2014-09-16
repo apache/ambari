@@ -76,7 +76,7 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
       components: ['HIVE_SERVER']
     },
     {
-      serviceName: 'WEBHCAT',
+      serviceName: 'HIVE',
       configName: 'webhcatserver_host',
       components: ['WEBHCAT_SERVER']
     },
@@ -168,7 +168,7 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
       primaryName: 'HTTP/'
     },
     {
-      serviceName: 'WEBHCAT',
+      serviceName: 'HIVE',
       configName: 'webhcatserver_host',
       principalName: 'webHCat_http_principal_name',
       primaryName: 'HTTP/'

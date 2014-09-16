@@ -93,12 +93,10 @@ public class RecommendationResourceProvider extends StackAdvisorResourceProvider
       response = saHelper.recommend(recommendationRequest);
     } catch (StackAdvisorRequestException e) {
       LOG.warn("Error occured during recommnedation", e);
-      throw new WebApplicationException(Response.status(Status.BAD_REQUEST).entity(e.getMessage())
-          .build());
+      throw new IllegalArgumentException(e.getMessage(), e);
     } catch (StackAdvisorException e) {
       LOG.warn("Error occured during recommnedation", e);
-      throw new WebApplicationException(Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage())
-          .build());
+      throw new SystemException(e.getMessage(), e);
     }
 
     Resource recommendation = createResources(new Command<Resource>() {

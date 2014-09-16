@@ -34,8 +34,8 @@ class TestActualConfigHandler(TestCase):
   def setUp(self):
     LiveStatus.SERVICES = [
       "HDFS", "MAPREDUCE", "GANGLIA", "HBASE",
-      "NAGIOS", "ZOOKEEPER", "OOZIE", "HCATALOG",
-      "KERBEROS", "TEMPLETON", "HIVE", "WEBHCAT",
+      "NAGIOS", "ZOOKEEPER", "OOZIE",
+      "KERBEROS", "TEMPLETON", "HIVE",
       "YARN", "MAPREDUCE2", "FLUME", "TEZ",
       "FALCON", "STORM"
     ]
@@ -108,7 +108,7 @@ class TestActualConfigHandler(TestCase):
        "componentName" : "HIVE_METASTORE"},
       {"serviceName" : "HIVE",
        "componentName" : "MYSQL_SERVER"},
-      {"serviceName" : "WEBHCAT",
+      {"serviceName" : "HIVE",
        "componentName" : "WEBHCAT_SERVER"},
       {"serviceName" : "YARN",
        "componentName" : "RESOURCEMANAGER"},

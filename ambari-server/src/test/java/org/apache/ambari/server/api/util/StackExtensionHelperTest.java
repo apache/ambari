@@ -18,35 +18,26 @@
 
 package org.apache.ambari.server.api.util;
 
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.metadata.ActionMetadata;
-import org.apache.ambari.server.state.*;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static org.easymock.EasyMock.*;
-import static org.junit.Assert.*;
-
-import org.apache.ambari.server.state.stack.ConfigurationXml;
-import org.junit.Test;
-import org.xml.sax.SAXException;
-
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.metadata.ActionMetadata;
+import org.apache.ambari.server.state.*;
+import org.apache.ambari.server.state.stack.ConfigurationXml;
+import org.junit.Test;
+import org.xml.sax.SAXException;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathExpressionException;
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
+
+import static org.easymock.EasyMock.*;
+import static org.junit.Assert.*;
 
 public class StackExtensionHelperTest {
 
@@ -305,7 +296,7 @@ public class StackExtensionHelperTest {
     helper.populateServicesForStack(stackInfo);
     helper.fillInfo();
     List<ServiceInfo> allServices = helper.getAllApplicableServices(stackInfo);
-    assertEquals(13, allServices.size());
+    assertEquals(12, allServices.size());
     for (ServiceInfo serviceInfo : allServices) {
       if (serviceInfo.getName().equals("NAGIOS")) {
         assertTrue(serviceInfo.isMonitoringService());

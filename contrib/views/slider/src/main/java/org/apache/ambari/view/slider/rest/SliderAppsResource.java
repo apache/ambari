@@ -72,7 +72,7 @@ public class SliderAppsResource {
   @DELETE
   @Path("{appId}")
   public void deleteApp(@Context HttpHeaders headers, @Context UriInfo uri,
-      @PathParam("appId") String appId) throws YarnException, IOException {
+      @PathParam("appId") String appId) throws YarnException, IOException, InterruptedException {
     sliderAppsViewController.deleteSliderApp(appId);
   }
 

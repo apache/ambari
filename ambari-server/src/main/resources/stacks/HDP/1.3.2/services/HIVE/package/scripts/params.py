@@ -64,7 +64,6 @@ smoke_user_keytab = config['configurations']['cluster-env']['smokeuser_keytab']
 
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 
-kinit_path_local = functions.get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
 hive_metastore_keytab_path =  config['configurations']['hive-site']['hive.metastore.kerberos.keytab.file']
 
 #hive_env
@@ -155,11 +154,37 @@ hive_hdfs_user_dir = format("/user/{hive_user}")
 hive_hdfs_user_mode = 0700
 #for create_hdfs_directory
 hostname = config["hostname"]
-hadoop_conf_dir = "/etc/hadoop/conf"
 hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
-hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_name']
 kinit_path_local = functions.get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+
+#################################################
+################## WebHCat ######################
+#################################################
+webhcat_env_sh_template = config['configurations']['webhcat-env']['content']
+
+config_dir = '/etc/hcatalog/conf'
+
+templeton_log_dir = config['configurations']['hive-env']['hcat_log_dir']
+templeton_pid_dir = status_params.templeton_pid_dir
+
+webhcat_pid_file = status_params.webhcat_pid_file
+
+templeton_jar = config['configurations']['webhcat-site']['templeton.jar']
+
+
+webhcat_server_host = config['clusterHostInfo']['webhcat_server_host']
+
+webhcat_apps_dir = "/apps/webhcat"
+
+#hdfs directories
+hcat_hdfs_user_dir = format("/user/{hcat_user}")
+hcat_hdfs_user_mode = 0755
+webhcat_hdfs_user_dir = format("/user/{webhcat_user}")
+webhcat_hdfs_user_mode = 0755
+#for create_hdfs_directory
+security_param = "true" if security_enabled else "false"
+
 import functools
 #create partial functions with common arguments for every HdfsDirectory call
 #to create hdfs directory we need to call params.HdfsDirectory in code

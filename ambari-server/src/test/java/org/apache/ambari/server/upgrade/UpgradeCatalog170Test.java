@@ -18,92 +18,50 @@
 
 package org.apache.ambari.server.upgrade;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertNull;
-import static junit.framework.Assert.assertTrue;
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.capture;
-import static org.easymock.EasyMock.createMockBuilder;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.createStrictMock;
-import static org.easymock.EasyMock.eq;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.isA;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.reset;
-import static org.easymock.EasyMock.verify;
+import com.google.inject.*;
+import com.google.inject.persist.PersistService;
+import com.google.inject.persist.Transactional;
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.orm.DBAccessor;
+import org.apache.ambari.server.orm.GuiceJpaInitializer;
+import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.dao.*;
+import org.apache.ambari.server.orm.entities.*;
+import org.apache.ambari.server.state.*;
+import org.easymock.Capture;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
 
+import javax.persistence.EntityManager;
+import javax.persistence.EntityTransaction;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.*;
+import javax.persistence.metamodel.SingularAttribute;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityTransaction;
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Order;
-import javax.persistence.criteria.Path;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
-import javax.persistence.metamodel.SingularAttribute;
-
-import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.orm.DBAccessor;
-import org.apache.ambari.server.orm.dao.ClusterDAO;
-import org.apache.ambari.server.orm.dao.KeyValueDAO;
-import org.apache.ambari.server.orm.dao.PermissionDAO;
-import org.apache.ambari.server.orm.dao.PrincipalDAO;
-import org.apache.ambari.server.orm.dao.PrincipalTypeDAO;
-import org.apache.ambari.server.orm.dao.PrivilegeDAO;
-import org.apache.ambari.server.orm.dao.ResourceDAO;
-import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
-import org.apache.ambari.server.orm.dao.UserDAO;
-import org.apache.ambari.server.orm.dao.ViewDAO;
-import org.apache.ambari.server.orm.dao.ViewInstanceDAO;
-import org.apache.ambari.server.orm.dao.ConfigGroupConfigMappingDAO;
-import org.apache.ambari.server.orm.entities.ClusterEntity;
-import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
-import org.apache.ambari.server.orm.entities.KeyValueEntity;
-import org.apache.ambari.server.orm.entities.PrivilegeEntity;
-import org.apache.ambari.server.orm.entities.ResourceEntity;
-import org.apache.ambari.server.orm.entities.UserEntity;
-import org.apache.ambari.server.orm.entities.ViewEntity;
-import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
-import org.apache.ambari.server.orm.entities.ConfigGroupConfigMappingEntity;
-import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
-import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.Config;
-import org.apache.ambari.server.state.ConfigHelper;
-import org.apache.ambari.server.state.StackId;
-import org.easymock.Capture;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-
-import com.google.inject.Binder;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.Module;
-import com.google.inject.Provider;
+import static junit.framework.Assert.*;
+import static org.easymock.EasyMock.*;
 
 /**
  * UpgradeCatalog170 unit tests.
  */
 public class UpgradeCatalog170Test {
+
+  private Injector injector;
+  private final String CLUSTER_NAME = "c1";
+  private final String SERVICE_NAME = "HDFS";
+  private final String HOST_NAME = "h1";
+  private final String DESIRED_STACK_VERSION = "{\"stackName\":\"HDP\",\"stackVersion\":\"2.0.6\"}";
 
   Provider<EntityManager> entityManagerProvider = createStrictMock(Provider.class);
   EntityManager entityManager = createStrictMock(EntityManager.class);
@@ -113,7 +71,144 @@ public class UpgradeCatalog170Test {
     reset(entityManagerProvider);
     expect(entityManagerProvider.get()).andReturn(entityManager).anyTimes();
     replay(entityManagerProvider);
+    injector = Guice.createInjector(new InMemoryDefaultTestModule());
+    injector.getInstance(GuiceJpaInitializer.class);
   }
+
+  @After
+  public void tearDown() {
+    injector.getInstance(PersistService.class).stop();
+  }
+
+  private ClusterEntity createCluster() {
+    ResourceTypeDAO resourceTypeDAO = injector.getInstance(ResourceTypeDAO.class);
+
+    // create an admin resource to represent this cluster
+    ResourceTypeEntity resourceTypeEntity = resourceTypeDAO.findById(ResourceTypeEntity.CLUSTER_RESOURCE_TYPE);
+    if (resourceTypeEntity == null) {
+      resourceTypeEntity = new ResourceTypeEntity();
+      resourceTypeEntity.setId(ResourceTypeEntity.CLUSTER_RESOURCE_TYPE);
+      resourceTypeEntity.setName(ResourceTypeEntity.CLUSTER_RESOURCE_TYPE_NAME);
+      resourceTypeEntity = resourceTypeDAO.merge(resourceTypeEntity);
+    }
+    ResourceEntity resourceEntity = new ResourceEntity();
+    resourceEntity.setResourceType(resourceTypeEntity);
+
+    ClusterDAO clusterDAO = injector.getInstance(ClusterDAO.class);
+    ClusterEntity clusterEntity = new ClusterEntity();
+    clusterEntity.setClusterId(1L);
+    clusterEntity.setClusterName(CLUSTER_NAME);
+    clusterEntity.setDesiredStackVersion(DESIRED_STACK_VERSION);
+    clusterEntity.setResource(resourceEntity);
+    clusterDAO.create(clusterEntity);
+    return clusterEntity;
+  }
+
+  private ClusterServiceEntity createService(ClusterEntity clusterEntity, String serviceName) {
+    ClusterServiceDAO clusterServiceDAO = injector.getInstance(ClusterServiceDAO.class);
+    ClusterServiceEntity clusterServiceEntity = new ClusterServiceEntity();
+    clusterServiceEntity.setClusterId(1L);
+    clusterServiceEntity.setClusterEntity(clusterEntity);
+    clusterServiceEntity.setServiceName(serviceName);
+    clusterServiceDAO.create(clusterServiceEntity);
+    return clusterServiceEntity;
+  }
+
+  private ClusterServiceEntity addService(ClusterEntity clusterEntity, String serviceName) {
+    ClusterDAO clusterDAO = injector.getInstance(ClusterDAO.class);
+
+    ClusterServiceEntity clusterServiceEntity = createService(clusterEntity, serviceName);
+
+    ServiceDesiredStateEntity serviceDesiredStateEntity = new ServiceDesiredStateEntity();
+    serviceDesiredStateEntity.setDesiredStackVersion(DESIRED_STACK_VERSION);
+    serviceDesiredStateEntity.setClusterId(1L);
+    serviceDesiredStateEntity.setServiceName(serviceName);
+    serviceDesiredStateEntity.setClusterServiceEntity(clusterServiceEntity);
+
+    clusterServiceEntity.setServiceDesiredStateEntity(serviceDesiredStateEntity);
+    clusterEntity.getClusterServiceEntities().add(clusterServiceEntity);
+
+    clusterDAO.merge(clusterEntity);
+
+    return clusterServiceEntity;
+  }
+
+
+  private HostEntity createHost(ClusterEntity clusterEntity) {
+    HostDAO hostDAO = injector.getInstance(HostDAO.class);
+    ClusterDAO clusterDAO = injector.getInstance(ClusterDAO.class);
+    HostEntity hostEntity = new HostEntity();
+    hostEntity.setHostName(HOST_NAME);
+    hostEntity.setClusterEntities(Collections.singletonList(clusterEntity));
+    hostDAO.create(hostEntity);
+    clusterEntity.getHostEntities().add(hostEntity);
+    clusterDAO.merge(clusterEntity);
+    return hostEntity;
+  }
+
+  @Transactional
+  private void addComponent(ClusterEntity clusterEntity, ClusterServiceEntity clusterServiceEntity, HostEntity hostEntity, String componentName) {
+    ServiceComponentDesiredStateEntity componentDesiredStateEntity = new ServiceComponentDesiredStateEntity();
+    componentDesiredStateEntity.setClusterServiceEntity(clusterServiceEntity);
+    componentDesiredStateEntity.setComponentName(componentName);
+    componentDesiredStateEntity.setServiceName(clusterServiceEntity.getServiceName());
+    componentDesiredStateEntity.setDesiredStackVersion(DESIRED_STACK_VERSION);
+    componentDesiredStateEntity.setClusterServiceEntity(clusterServiceEntity);
+    componentDesiredStateEntity.setClusterId(clusterServiceEntity.getClusterId());
+
+    HostComponentDesiredStateDAO hostComponentDesiredStateDAO = injector.getInstance(HostComponentDesiredStateDAO.class);
+    HostComponentDesiredStateEntity hostComponentDesiredStateEntity = new HostComponentDesiredStateEntity();
+    hostComponentDesiredStateEntity.setClusterId(clusterEntity.getClusterId());
+    hostComponentDesiredStateEntity.setHostName(hostEntity.getHostName());
+    hostComponentDesiredStateEntity.setComponentName(componentName);
+    hostComponentDesiredStateEntity.setServiceName(clusterServiceEntity.getServiceName());
+    hostComponentDesiredStateEntity.setAdminState(HostComponentAdminState.INSERVICE);
+    hostComponentDesiredStateEntity.setServiceComponentDesiredStateEntity(componentDesiredStateEntity);
+    hostComponentDesiredStateEntity.setHostEntity(hostEntity);
+    hostComponentDesiredStateDAO.create(hostComponentDesiredStateEntity);
+
+
+    HostComponentStateEntity hostComponentStateEntity = new HostComponentStateEntity();
+    hostComponentStateEntity.setHostEntity(hostEntity);
+    hostComponentStateEntity.setHostName(hostEntity.getHostName());
+    hostComponentStateEntity.setComponentName(componentName);
+    hostComponentStateEntity.setServiceName(clusterServiceEntity.getServiceName());
+    hostComponentStateEntity.setClusterId(clusterEntity.getClusterId());
+    hostComponentStateEntity.setCurrentStackVersion(clusterEntity.getDesiredStackVersion());
+    hostComponentStateEntity.setServiceComponentDesiredStateEntity(componentDesiredStateEntity);
+
+    componentDesiredStateEntity.setHostComponentStateEntities(Collections.singletonList(hostComponentStateEntity));
+    componentDesiredStateEntity.setHostComponentDesiredStateEntities(Collections.singletonList(hostComponentDesiredStateEntity));
+
+    hostEntity.getHostComponentStateEntities().add(hostComponentStateEntity);
+    hostEntity.getHostComponentDesiredStateEntities().add(hostComponentDesiredStateEntity);
+
+    clusterServiceEntity.getServiceComponentDesiredStateEntities().add(componentDesiredStateEntity);
+
+    ClusterServiceDAO clusterServiceDAO = injector.getInstance(ClusterServiceDAO.class);
+    ServiceComponentDesiredStateDAO serviceComponentDesiredStateDAO = injector.getInstance(ServiceComponentDesiredStateDAO.class);
+    HostDAO hostDAO = injector.getInstance(HostDAO.class);
+    serviceComponentDesiredStateDAO.merge(componentDesiredStateEntity);
+    hostDAO.merge(hostEntity);
+    clusterServiceDAO.merge(clusterServiceEntity);
+  }
+
+  @Test
+  public void testMoveHcatalogIntoHiveService()  throws AmbariException{
+    final ClusterEntity clusterEntity = createCluster();
+    final ClusterServiceEntity clusterServiceEntityHDFS = addService(clusterEntity, "HDFS");
+    final ClusterServiceEntity clusterServiceEntityHIVE = addService(clusterEntity, "HIVE");
+    final ClusterServiceEntity clusterServiceEntityHCATALOG = addService(clusterEntity, "HCATALOG");
+    final ClusterServiceEntity clusterServiceEntityWEBHCAT = addService(clusterEntity, "WEBHCAT");
+    final HostEntity hostEntity = createHost(clusterEntity);
+    addComponent(clusterEntity, clusterServiceEntityHDFS, hostEntity, "NAMENODE");
+    addComponent(clusterEntity, clusterServiceEntityHIVE, hostEntity, "HIVE_SERVER");
+    addComponent(clusterEntity, clusterServiceEntityHCATALOG, hostEntity, "HCAT");
+    addComponent(clusterEntity, clusterServiceEntityWEBHCAT, hostEntity, "WEBHCAT_SERVER");
+    UpgradeCatalog170 upgradeCatalog170 = injector.getInstance(UpgradeCatalog170.class);
+    upgradeCatalog170.moveHcatalogIntoHiveService();
+  }
+
 
   @Test
   public void testExecuteDDLUpdates() throws Exception {

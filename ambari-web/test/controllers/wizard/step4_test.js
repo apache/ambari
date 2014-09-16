@@ -24,8 +24,8 @@ require('controllers/wizard/step4_controller');
 describe('App.WizardStep4Controller', function () {
 
   var services = [
-    'HDFS', 'MAPREDUCE', 'NAGIOS', 'GANGLIA', 'OOZIE', 'HIVE', 'HBASE', 'PIG', 'SCOOP', 'ZOOKEEPER', 'HCATALOG',
-    'WEBHCAT', 'YARN', 'MAPREDUCE2', 'FALCON', 'TEZ', 'STORM'
+    'HDFS', 'MAPREDUCE', 'NAGIOS', 'GANGLIA', 'OOZIE', 'HIVE', 'HBASE', 'PIG', 'SCOOP', 'ZOOKEEPER',
+    'YARN', 'MAPREDUCE2', 'FALCON', 'TEZ', 'STORM'
   ];
 
   var controller = App.WizardStep4Controller.create();
@@ -135,31 +135,29 @@ describe('App.WizardStep4Controller', function () {
   describe('#setGroupedServices()', function () {
     var testCases = [
       {
-        title: 'should set HCATALOG and WEBHCAT isSelected to true when HIVE is selected',
+        title: 'should set MapReduce2 isSelected to true when YARN is selected',
         condition: {
+          'YARN': true,
           'HBASE': true,
           'ZOOKEEPER': true,
           'HIVE': true,
-          'HCATALOG': true,
-          'WEBHCAT': true
+          'MAPREDUCE2': true
         },
         result: {
-          'HCATALOG': true,
-          'WEBHCAT': true
+          'MAPREDUCE2': true
         }
       },
       {
-        title: 'should set HCATALOG and WEBHCAT isSelected to false when HIVE is not selected',
+        title: 'should set MapReduce2 isSelected to false when YARN is not selected',
         condition: {
+          'YARN': false,
           'HBASE': true,
           'ZOOKEEPER': true,
           'HIVE': false,
-          'HCATALOG': true,
-          'WEBHCAT': true
+          'MAPREDUCE2': true
         },
         result: {
-          'HCATALOG': false,
-          'WEBHCAT': false
+          'MAPREDUCE2': false
         }
       },
       {
@@ -168,15 +166,11 @@ describe('App.WizardStep4Controller', function () {
           'HBASE': true,
           'ZOOKEEPER': true,
           'HIVE': false,
-          'HCATALOG': true,
-          'WEBHCAT': true,
           'YARN': true,
           'MAPREDUCE2': true
         },
         result: {
-          'MAPREDUCE2': true,
-          'HCATALOG': false,
-          'WEBHCAT': false
+          'MAPREDUCE2': true
         }
       },
       {
@@ -185,15 +179,11 @@ describe('App.WizardStep4Controller', function () {
           'HBASE': true,
           'ZOOKEEPER': true,
           'HIVE': true,
-          'HCATALOG': true,
-          'WEBHCAT': true,
           'YARN': false,
           'MAPREDUCE2': true
         },
         result: {
-          'MAPREDUCE2': false,
-          'HCATALOG': true,
-          'WEBHCAT': true
+          'MAPREDUCE2': false
         }
       }
     ];

@@ -59,7 +59,7 @@
               </auto-deploy>
             </dependency>
             <dependency>
-              <name>HCATALOG/HCAT</name>
+              <name>HIVE/HCAT</name>
               <scope>host</scope>
               <auto-deploy>
                 <enabled>true</enabled>

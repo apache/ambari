@@ -47,9 +47,10 @@ public interface SliderAppsViewController {
    * @return
    * @throws YarnException
    * @throws IOException
+   * @throws InterruptedException 
    */
   public SliderApp getSliderApp(String applicationId, Set<String> properties)
-      throws YarnException, IOException;
+      throws YarnException, IOException, InterruptedException;
 
   /**
    * Provides list of Slider apps with requested properties populated.
@@ -60,9 +61,10 @@ public interface SliderAppsViewController {
    * @return
    * @throws YarnException
    * @throws IOException
+   * @throws InterruptedException 
    */
   public List<SliderApp> getSliderApps(Set<String> properties)
-      throws YarnException, IOException;
+      throws YarnException, IOException, InterruptedException;
 
   /**
    * Attempts to delete a Slider app. An unsuccessful attempt will result in
@@ -71,9 +73,10 @@ public interface SliderAppsViewController {
    * @param applicationId
    * @throws YarnException
    * @throws IOException
+   * @throws InterruptedException 
    */
   public void deleteSliderApp(String applicationId) throws YarnException,
-      IOException;
+      IOException, InterruptedException;
 
   public SliderAppType getSliderAppType(String appTypeId, Set<String> properties);
 

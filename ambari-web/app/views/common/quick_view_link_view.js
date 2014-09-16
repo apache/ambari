@@ -309,7 +309,11 @@ App.QuickViewLinks = Em.View.extend({
     var hadoopSslEnabled = false;
     if (configProperties && configProperties.length > 0) {
       var site = configProperties.findProperty('type', 'core-site');
-      hadoopSslEnabled = (site && site.properties && site.properties['hadoop.ssl.enabled'] == true);
+      if (App.get('isHadoop2Stack')) {
+        hadoopSslEnabled = (Em.get(site, 'properties') && site.properties['dfs.http.policy'] === 'HTTPS_ONLY');
+      } else {
+        hadoopSslEnabled = (Em.get(site, 'properties') &&  site.properties['hadoop.ssl.enabled'] == true);
+      }
     }
     switch (service_id) {
       case "GANGLIA":

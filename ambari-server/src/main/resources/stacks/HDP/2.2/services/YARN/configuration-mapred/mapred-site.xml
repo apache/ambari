@@ -24,7 +24,7 @@
 
   <property>
     <name>mapreduce.admin.user.env</name>
-    <value>LD_LIBRARY_PATH=/usr/lib/hadoop/lib/native:/usr/hdp/2.9.9.9-98/hadoop/lib/native/Linux-amd64-64</value>
+    <value>LD_LIBRARY_PATH=/usr/lib/hadoop/lib/native:/usr/hdp/2.9.9.9-117/hadoop/lib/native/Linux-amd64-64</value>
     <description>
       Additional execution environment entries for map and reduce task processes.
       This is not an additive property. You must preserve the original value if

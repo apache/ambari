@@ -717,18 +717,18 @@ describe("App.MainServiceInfoConfigsController", function () {
     var tests = [
       {
         stepConfigs: [Em.Object.create({
-          serviceName: "WEBHCAT",
+          serviceName: "HIVE",
           configs: []
         })],
         content: Em.Object.create({
-          serviceName: "WEBHCAT"
+          serviceName: "HIVE"
         }),
         m: "add dynamic property",
         addDynamic: true
       },
       {
         stepConfigs: [Em.Object.create({
-          serviceName: "WEBHCAT",
+          serviceName: "HIVE",
           configs: [
             Em.Object.create({
               name: "templeton.hive.properties"
@@ -736,7 +736,7 @@ describe("App.MainServiceInfoConfigsController", function () {
           ]
         })],
         content: Em.Object.create({
-          serviceName: "WEBHCAT"
+          serviceName: "HIVE"
         }),
         m: "don't add dynamic property (already included)",
         addDynamic: false

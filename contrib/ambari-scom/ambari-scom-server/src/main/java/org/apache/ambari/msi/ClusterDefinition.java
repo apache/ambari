@@ -167,7 +167,7 @@ public class ClusterDefinition {
     componentServiceMap.put("HIVE_METASTORE",     "HIVE");
     componentServiceMap.put("HIVE_CLIENT",        "HIVE");
     componentServiceMap.put("OOZIE_SERVER",       "OOZIE");
-    componentServiceMap.put("WEBHCAT_SERVER",     "WEBHCAT");
+    componentServiceMap.put("WEBHCAT_SERVER",     "HIVE");
     componentServiceMap.put("FLUME_SERVER",       "FLUME");
     componentServiceMap.put("HBASE_MASTER",       "HBASE");
     componentServiceMap.put("HBASE_REGIONSERVER", "HBASE");

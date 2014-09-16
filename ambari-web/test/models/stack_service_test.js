@@ -114,14 +114,6 @@ describe('App.StackService', function () {
       {
         serviceName: 'MAPREDUCE2',
         result: true
-      },
-      {
-        serviceName: 'HCATALOG',
-        result: true
-      },
-      {
-        serviceName: 'WEBHCAT',
-        result: true
       }
     ];
 

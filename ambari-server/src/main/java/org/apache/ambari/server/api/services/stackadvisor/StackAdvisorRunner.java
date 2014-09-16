@@ -75,7 +75,15 @@ public class StackAdvisorRunner {
         if (exitCode > 0) {
           String errorMessage;
           if (errMessage != null) {
-            errorMessage = errMessage.substring(errMessage.lastIndexOf("\n"));
+            // We want to get the last line.
+            int index = errMessage.lastIndexOf("\n");
+            if (index > 0 && index == (errMessage.length() - 1)) {
+              index = errMessage.lastIndexOf("\n", index - 1); // sentence ended with newline
+            }
+            if (index > -1) {
+              errMessage = errMessage.substring(index + 1).trim();
+            }
+            errorMessage = errMessage;
           } else {
             errorMessage = "Error occurred during stack advisor execution";
           }

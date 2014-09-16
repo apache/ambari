@@ -64,20 +64,11 @@ module.exports = [
     displayName: 'Hive',
     filename: 'hive-site',
     configCategories: [
-      App.ServiceConfigCategory.create({ name: 'Hive Metastore', displayName: 'Hive Metastore and Hive Server 2'})
-    ],
-    sites: ['hive-site'],
-    configs: configProperties.filterProperty('serviceName', 'HIVE')
-  },
-  {
-    serviceName: 'WEBHCAT',
-    displayName: 'WebHCat',
-    filename: 'webhcat-site',
-    configCategories: [
+      App.ServiceConfigCategory.create({ name: 'Hive Metastore', displayName: 'Hive Metastore and Hive Server 2'}),
       App.ServiceConfigCategory.create({ name: 'WebHCat Server', displayName : 'WebHCat Server'})
     ],
-    sites: ['webhcat-site'],
-    configs: configProperties.filterProperty('serviceName', 'WEBHCAT')
+    sites: ['hive-site','webhcat-site'],
+    configs: configProperties.filterProperty('serviceName', 'HIVE')
   },
   {
     serviceName: 'HBASE',

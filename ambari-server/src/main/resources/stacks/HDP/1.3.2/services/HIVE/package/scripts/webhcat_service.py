@@ -18,3 +18,23 @@ limitations under the License.
 Ambari Agent
 
 """
+from resource_management import *
+
+def webhcat_service(action='start'):
+  import params
+
+  cmd = format('env HADOOP_HOME={hadoop_home} /usr/lib/hcatalog/sbin/webhcat_server.sh')
+
+  if action == 'start':
+    demon_cmd = format('{cmd} start')
+    no_op_test = format('ls {webhcat_pid_file} >/dev/null 2>&1 && ps `cat {webhcat_pid_file}` >/dev/null 2>&1')
+    Execute(demon_cmd,
+            user=params.webhcat_user,
+            not_if=no_op_test
+    )
+  elif action == 'stop':
+    demon_cmd = format('{cmd} stop')
+    Execute(demon_cmd,
+            user=params.webhcat_user
+    )
+    Execute(format('rm -f {webhcat_pid_file}'))

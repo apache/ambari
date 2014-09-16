@@ -404,53 +404,6 @@ module.exports = {
       ]
     },
     {
-      "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.1/stackServices/HCATALOG",
-      "StackServices" : {
-        "comments" : "This is comment for HCATALOG service",
-        "custom_commands" : [ ],
-        "service_check_supported" : true,
-        "service_name" : "HCATALOG",
-        "display_name" : "HCatalog",
-        "service_version" : "0.12.0.2.1",
-        "stack_name" : "HDP",
-        "stack_version" : "2.1",
-        "user_name" : null,
-        "required_services" : [
-          "HIVE"
-        ],
-        "config_types" : {
-          "hive-env" : {
-            "supports" : {
-              "final" : "false"
-            }
-          },
-          "hive-site" : {
-            "supports" : {
-              "final" : "true"
-            }
-          }
-        }
-      },
-      "serviceComponents" : [
-        {
-          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.1/stackServices/HCATALOG/serviceComponents/HCAT",
-          "StackServiceComponents" : {
-            "cardinality" : null,
-            "component_category" : "CLIENT",
-            "component_name" : "HCAT",
-            "display_name" : "HCat",
-            "custom_commands" : [ ],
-            "is_client" : true,
-            "is_master" : false,
-            "service_name" : "HCATALOG",
-            "stack_name" : "HDP",
-            "stack_version" : "2.1"
-          },
-          "dependencies" : [ ]
-        }
-      ]
-    },
-    {
       "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.1/stackServices/HDFS",
       "StackServices" : {
         "comments" : "Apache Hadoop Distributed File System",
@@ -733,6 +686,73 @@ module.exports = {
           ]
         },
         {
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.1/stackServices/WEBHCAT/serviceComponents/WEBHCAT_SERVER",
+          "StackServiceComponents" : {
+            "cardinality" : "1",
+            "component_category" : "MASTER",
+            "component_name" : "WEBHCAT_SERVER",
+            "display_name" : "WebHCat Server",
+            "custom_commands" : [ ],
+            "is_client" : false,
+            "is_master" : true,
+            "service_name" : "HIVE",
+            "stack_name" : "HDP",
+            "stack_version" : "2.1"
+          },
+          "dependencies" : [
+            {
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.1/stackServices/HIVE/serviceComponents/WEBHCAT_SERVER/dependencies/HDFS_CLIENT",
+              "Dependencies" : {
+                "component_name" : "HDFS_CLIENT",
+                "dependent_component_name" : "WEBHCAT_SERVER",
+                "dependent_service_name" : "WEBHCAT",
+                "stack_name" : "HDP",
+                "stack_version" : "2.1"
+              }
+            },
+            {
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.1/stackServices/HIVE/serviceComponents/WEBHCAT_SERVER/dependencies/MAPREDUCE2_CLIENT",
+              "Dependencies" : {
+                "component_name" : "MAPREDUCE2_CLIENT",
+                "dependent_component_name" : "WEBHCAT_SERVER",
+                "dependent_service_name" : "WEBHCAT",
+                "stack_name" : "HDP",
+                "stack_version" : "2.1"
+              }
+            },
+            {
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.1/stackServices/WEBHCAT/serviceComponents/WEBHCAT_SERVER/dependencies/YARN_CLIENT",
+              "Dependencies" : {
+                "component_name" : "YARN_CLIENT",
+                "dependent_component_name" : "WEBHCAT_SERVER",
+                "dependent_service_name" : "WEBHCAT",
+                "stack_name" : "HDP",
+                "stack_version" : "2.1"
+              }
+            },
+            {
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.1/stackServices/WEBHCAT/serviceComponents/WEBHCAT_SERVER/dependencies/ZOOKEEPER_CLIENT",
+              "Dependencies" : {
+                "component_name" : "ZOOKEEPER_CLIENT",
+                "dependent_component_name" : "WEBHCAT_SERVER",
+                "dependent_service_name" : "WEBHCAT",
+                "stack_name" : "HDP",
+                "stack_version" : "2.1"
+              }
+            },
+            {
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.1/stackServices/WEBHCAT/serviceComponents/WEBHCAT_SERVER/dependencies/ZOOKEEPER_SERVER",
+              "Dependencies" : {
+                "component_name" : "ZOOKEEPER_SERVER",
+                "dependent_component_name" : "WEBHCAT_SERVER",
+                "dependent_service_name" : "WEBHCAT",
+                "stack_name" : "HDP",
+                "stack_version" : "2.1"
+              }
+            }
+          ]
+        },
+        {
           "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.1/stackServices/HIVE/serviceComponents/MYSQL_SERVER",
           "StackServiceComponents" : {
             "cardinality" : "0-1",
@@ -742,6 +762,22 @@ module.exports = {
             "custom_commands" : [ ],
             "is_client" : false,
             "is_master" : true,
+            "service_name" : "HIVE",
+            "stack_name" : "HDP",
+            "stack_version" : "2.1"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.1/stackServices/HIVE/serviceComponents/HCAT",
+          "StackServiceComponents" : {
+            "cardinality" : null,
+            "component_category" : "CLIENT",
+            "component_name" : "HCAT",
+            "display_name" : "HCat",
+            "custom_commands" : [ ],
+            "is_client" : true,
+            "is_master" : false,
             "service_name" : "HIVE",
             "stack_name" : "HDP",
             "stack_version" : "2.1"
@@ -1345,105 +1381,6 @@ module.exports = {
             "stack_version" : "2.1"
           },
           "dependencies" : [ ]
-        }
-      ]
-    },
-    {
-      "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.1/stackServices/WEBHCAT",
-      "StackServices" : {
-        "comments" : "This is comment for WEBHCAT service",
-        "custom_commands" : [ ],
-        "service_check_supported" : true,
-        "service_name" : "WEBHCAT",
-        "display_name" : "WebHCat",
-        "service_version" : "0.13.0.2.1",
-        "stack_name" : "HDP",
-        "stack_version" : "2.1",
-        "user_name" : null,
-        "required_services" : [
-          "HIVE",
-          "ZOOKEEPER"
-        ],
-        "config_types" : {
-          "webhcat-env" : {
-            "supports" : {
-              "final" : "false"
-            }
-          },
-          "webhcat-site" : {
-            "supports" : {
-              "final" : "true"
-            }
-          }
-        }
-      },
-      "serviceComponents" : [
-        {
-          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.1/stackServices/WEBHCAT/serviceComponents/WEBHCAT_SERVER",
-          "StackServiceComponents" : {
-            "cardinality" : "1",
-            "component_category" : "MASTER",
-            "component_name" : "WEBHCAT_SERVER",
-            "display_name" : "WebHCat Server",
-            "custom_commands" : [ ],
-            "is_client" : false,
-            "is_master" : true,
-            "service_name" : "WEBHCAT",
-            "stack_name" : "HDP",
-            "stack_version" : "2.1"
-          },
-          "dependencies" : [
-            {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.1/stackServices/WEBHCAT/serviceComponents/WEBHCAT_SERVER/dependencies/HDFS_CLIENT",
-              "Dependencies" : {
-                "component_name" : "HDFS_CLIENT",
-                "dependent_component_name" : "WEBHCAT_SERVER",
-                "dependent_service_name" : "WEBHCAT",
-                "stack_name" : "HDP",
-                "stack_version" : "2.1"
-              }
-            },
-            {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.1/stackServices/WEBHCAT/serviceComponents/WEBHCAT_SERVER/dependencies/MAPREDUCE2_CLIENT",
-              "Dependencies" : {
-                "component_name" : "MAPREDUCE2_CLIENT",
-                "dependent_component_name" : "WEBHCAT_SERVER",
-                "dependent_service_name" : "WEBHCAT",
-                "stack_name" : "HDP",
-                "stack_version" : "2.1"
-              }
-            },
-            {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.1/stackServices/WEBHCAT/serviceComponents/WEBHCAT_SERVER/dependencies/YARN_CLIENT",
-              "Dependencies" : {
-                "component_name" : "YARN_CLIENT",
-                "dependent_component_name" : "WEBHCAT_SERVER",
-                "dependent_service_name" : "WEBHCAT",
-                "stack_name" : "HDP",
-                "stack_version" : "2.1"
-              }
-            },
-            {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.1/stackServices/WEBHCAT/serviceComponents/WEBHCAT_SERVER/dependencies/ZOOKEEPER_CLIENT",
-              "Dependencies" : {
-                "component_name" : "ZOOKEEPER_CLIENT",
-                "dependent_component_name" : "WEBHCAT_SERVER",
-                "dependent_service_name" : "WEBHCAT",
-                "stack_name" : "HDP",
-                "stack_version" : "2.1"
-              }
-            },
-            {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.1/stackServices/WEBHCAT/serviceComponents/WEBHCAT_SERVER/dependencies/ZOOKEEPER_SERVER",
-              "Dependencies" : {
-                "component_name" : "ZOOKEEPER_SERVER",
-                "dependent_component_name" : "WEBHCAT_SERVER",
-                "dependent_service_name" : "WEBHCAT",
-                "stack_name" : "HDP",
-                "stack_version" : "2.1"
-              }
-            }
-          ]
         }
       ]
     },

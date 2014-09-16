@@ -42,7 +42,6 @@ public class ActionMetadata {
       Map<String, String> serviceChecks = new HashMap<String, String>();
       
       serviceChecks.put(Service.Type.ZOOKEEPER.toString(), "ZOOKEEPER_QUORUM_SERVICE_CHECK");
-      serviceChecks.put(Service.Type.HCATALOG.toString(), "HCAT_SERVICE_CHECK");
       
       SERVICE_CHECKS = Collections.unmodifiableMap(serviceChecks);
   }

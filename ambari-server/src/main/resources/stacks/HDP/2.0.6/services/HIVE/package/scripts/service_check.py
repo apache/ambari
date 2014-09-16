@@ -23,6 +23,7 @@ import socket
 import sys
 
 from hcat_service_check import hcat_service_check
+from webhcat_service_check import webhcat_service_check
 
 class HiveServiceCheck(Script):
   def service_check(self, env):
@@ -42,6 +43,7 @@ class HiveServiceCheck(Script):
       sys.exit(1)
 
     hcat_service_check()
+    webhcat_service_check()
 
 if __name__ == "__main__":
   HiveServiceCheck().execute()

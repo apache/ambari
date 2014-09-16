@@ -196,7 +196,10 @@ App.MainServiceItemView = Em.View.extend({
       }
       options.push(actionMap.TOGGLE_PASSIVE);
       var serviceName = service.get('serviceName');
-      if (serviceName === 'HDFS') {
+      var nnComponent = App.StackServiceComponent.find().findProperty('componentName','NAMENODE');
+      if (serviceName === 'HDFS' && nnComponent) {
+        var namenodeCustomCommands = nnComponent.get('customCommands');
+        if (namenodeCustomCommands && namenodeCustomCommands.contains('REBALANCEHDFS'))
         options.push(actionMap.REBALANCE_HDFS);
       }
       self.addActionMap().filterProperty('service', serviceName).forEach(function(item) {
@@ -215,7 +218,7 @@ App.MainServiceItemView = Em.View.extend({
   }.property('maintenance'),
 
   hasConfigTab: function() {
-    return !App.get('services.noConfigTypes').concat('HCATALOG').contains(this.get('controller.content.serviceName'));
+    return !App.get('services.noConfigTypes').contains(this.get('controller.content.serviceName'));
   }.property('controller.content.serviceName','App.services.noConfigTypes'),
 
   didInsertElement: function () {

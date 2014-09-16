@@ -63,6 +63,16 @@ class TestServiceCheck(RMFTestCase):
                         environment = {'PATH' : os.environ['PATH'] + os.pathsep + "/usr/lib/hive/bin"},
                         try_sleep = 5,
     )
+    self.assertResourceCalled('File', '/tmp/templetonSmoke.sh',
+                              content = StaticFile('templetonSmoke.sh'),
+                              mode = 0755,
+                              )
+    self.assertResourceCalled('Execute', '/tmp/templetonSmoke.sh c6402.ambari.apache.org ambari-qa no_keytab false /usr/bin/kinit',
+                              logoutput = True,
+                              path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
+                              tries = 3,
+                              try_sleep = 5,
+                              )
     self.assertNoMoreResources()
 
   @patch("sys.exit")
@@ -103,4 +113,15 @@ class TestServiceCheck(RMFTestCase):
                         environment = {'PATH' : os.environ['PATH'] + os.pathsep + "/usr/lib/hive/bin"},
                         try_sleep = 5,
     )
+    self.assertResourceCalled('File', '/tmp/templetonSmoke.sh',
+                              content = StaticFile('templetonSmoke.sh'),
+                              mode = 0755,
+                              )
+    self.assertResourceCalled('Execute', '/tmp/templetonSmoke.sh c6402.ambari.apache.org ambari-qa /etc/security/keytabs/smokeuser.headless.keytab true /usr/bin/kinit',
+                              logoutput = True,
+                              path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
+                              tries = 3,
+                              try_sleep = 5,
+                              )
+    self.assertNoMoreResources()
     self.assertNoMoreResources()

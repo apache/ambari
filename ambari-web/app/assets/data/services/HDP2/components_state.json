@@ -38,15 +38,6 @@
     },
     {
       "ServiceComponentInfo" : {
-        "component_name" : "HCAT",
-        "installed_count" : 1,
-        "service_name" : "HCATALOG",
-        "started_count" : 0,
-        "total_count" : 1
-      }
-    },
-    {
-      "ServiceComponentInfo" : {
         "component_name" : "DATANODE",
         "installed_count" : 0,
         "service_name" : "HDFS",

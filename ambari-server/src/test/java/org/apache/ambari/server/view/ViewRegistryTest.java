@@ -84,7 +84,6 @@ import org.apache.ambari.view.events.Listener;
 import org.easymock.EasyMock;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.security.core.GrantedAuthority;
 
@@ -296,13 +295,13 @@ public class ViewRegistryTest {
 
     // Wait for the view load to complete.
     long timeout = System.currentTimeMillis() + 10000L;
-    while ((view == null || !view.getStatus().equals(ViewDefinition.ViewStatus.LOADED))&&
+    while ((view == null || !view.getStatus().equals(ViewDefinition.ViewStatus.DEPLOYED))&&
         System.currentTimeMillis() < timeout) {
       view = registry.getDefinition("MY_VIEW", "1.0.0");
     }
 
     Assert.assertNotNull(view);
-    Assert.assertEquals(ViewDefinition.ViewStatus.LOADED, view.getStatus());
+    Assert.assertEquals(ViewDefinition.ViewStatus.DEPLOYED, view.getStatus());
 
     Assert.assertEquals(2, registry.getInstanceDefinitions(view).size());
 
@@ -531,6 +530,29 @@ public class ViewRegistryTest {
     Assert.assertEquals(1, viewDefinitions.size());
 
     Assert.assertEquals(viewDefinition, viewDefinitions.iterator().next());
+  }
+
+  @Test
+  public void testGetDefinition() throws Exception {
+    ViewEntity viewDefinition = ViewEntityTest.getViewEntity();
+
+    ViewRegistry registry = ViewRegistry.getInstance();
+
+    ResourceTypeEntity resourceTypeEntity = new ResourceTypeEntity();
+    resourceTypeEntity.setId(10);
+    resourceTypeEntity.setName(viewDefinition.getName());
+
+    viewDefinition.setResourceType(resourceTypeEntity);
+
+    registry.addDefinition(viewDefinition);
+
+    viewDefinition.setStatus(ViewDefinition.ViewStatus.DEPLOYING);
+
+    Assert.assertNull(registry.getDefinition(resourceTypeEntity));
+
+    viewDefinition.setStatus(ViewDefinition.ViewStatus.DEPLOYED);
+
+    Assert.assertEquals(viewDefinition, registry.getDefinition(resourceTypeEntity));
   }
 
   @Test

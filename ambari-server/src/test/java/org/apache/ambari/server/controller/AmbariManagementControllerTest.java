@@ -3131,7 +3131,7 @@ public class AmbariManagementControllerTest {
     Assert.assertNull(stage1.getExecutionCommandWrapper(host2, "DATANODE"));
     Assert.assertNotNull(stage3.getExecutionCommandWrapper(host1, "HBASE_SERVICE_CHECK"));
     Assert.assertNotNull(stage2.getExecutionCommandWrapper(host2, "HDFS_SERVICE_CHECK"));
- 
+
     Type type = new TypeToken<Map<String, String>>() {}.getType();
 
 
@@ -6516,7 +6516,7 @@ public class AmbariManagementControllerTest {
         }
       }
     }
- 
+
     Type type = new TypeToken<Map<String, String>>(){}.getType();
     for (Stage stage : actionDB.getAllStages(requestId)){
       Map<String, String> hostParamsStage = StageUtils.getGson().fromJson(stage.getHostParamsStage(), type);
@@ -7113,7 +7113,7 @@ public class AmbariManagementControllerTest {
   public void testGetStackServices() throws Exception {
     StackServiceRequest request = new StackServiceRequest(STACK_NAME, NEW_STACK_VERSION, null);
     Set<StackServiceResponse> responses = controller.getStackServices(Collections.singleton(request));
-    Assert.assertEquals(12, responses.size());
+    Assert.assertEquals(11, responses.size());
 
 
     StackServiceRequest requestWithParams = new StackServiceRequest(STACK_NAME, NEW_STACK_VERSION, SERVICE_NAME);

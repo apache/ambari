@@ -131,7 +131,6 @@ PROPERTIES_TO_CHECK = {
   "HIVE_CLIENT": {
     "hive-env": ["hive_log_dir", "hive_pid_dir"]
   },
-  #HCATALOG
   "HCAT": {
     "hive-env": ["hcat_log_dir", "hcat_pid_dir"]
   },
@@ -297,7 +296,6 @@ USERS_TO_GROUP_MAPPING = {
       "hive_user": "hive_user"
     }
   },
-  #HCATALOG
   "HCAT": {
     "hive-env": {
       "hive_user": "hive_user"

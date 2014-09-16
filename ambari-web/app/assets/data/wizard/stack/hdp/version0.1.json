@@ -215,23 +215,6 @@
       "master" : true
     }
   }, {
-    "name" : "HCATALOG",
-    "version" : "1.0",
-    "user" : "root",
-    "comment" : "This is comment for HCATALOG service",
-    "components" : [ {
-      "name" : "HCAT",
-      "category" : "CLIENT",
-      "client" : true,
-      "master" : false
-    } ],
-    "clientComponent" : {
-      "name" : "HCAT",
-      "category" : "CLIENT",
-      "client" : true,
-      "master" : false
-    }
-  }, {
     "name" : "HIVE",
     "version" : "1.0",
     "user" : "root",

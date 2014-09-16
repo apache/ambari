@@ -115,7 +115,7 @@ public class ViewInstanceResourceProviderTest {
     viewInstanceEntity.setName("I1");
 
     ViewEntity viewEntity = new ViewEntity();
-    viewEntity.setStatus(ViewDefinition.ViewStatus.LOADED);
+    viewEntity.setStatus(ViewDefinition.ViewStatus.DEPLOYED);
     viewEntity.setName("V1{1.0.0}");
 
     viewInstanceEntity.setViewEntity(viewEntity);
@@ -155,7 +155,7 @@ public class ViewInstanceResourceProviderTest {
     viewInstanceEntity.setName("I1");
 
     ViewEntity viewEntity = new ViewEntity();
-    viewEntity.setStatus(ViewDefinition.ViewStatus.LOADED);
+    viewEntity.setStatus(ViewDefinition.ViewStatus.DEPLOYED);
     viewEntity.setName("V1{1.0.0}");
 
     viewInstanceEntity.setViewEntity(viewEntity);
@@ -192,7 +192,7 @@ public class ViewInstanceResourceProviderTest {
 
     ViewEntity viewEntity = new ViewEntity();
     viewEntity.setName("V1{1.0.0}");
-    viewEntity.setStatus(ViewDefinition.ViewStatus.LOADING);
+    viewEntity.setStatus(ViewDefinition.ViewStatus.DEPLOYING);
     ViewInstanceEntity viewInstanceEntity = new ViewInstanceEntity();
     viewInstanceEntity.setViewName("V1{1.0.0}");
     viewInstanceEntity.setName("I1");
@@ -230,7 +230,7 @@ public class ViewInstanceResourceProviderTest {
         predicateBuilder.property(ViewInstanceResourceProvider.VIEW_NAME_PROPERTY_ID).equals("V1").toPredicate();
     ViewEntity viewEntity = new ViewEntity();
     viewEntity.setName("V1{1.0.0}");
-    viewEntity.setStatus(ViewDefinition.ViewStatus.LOADING);
+    viewEntity.setStatus(ViewDefinition.ViewStatus.DEPLOYING);
     ViewInstanceEntity viewInstanceEntity = new ViewInstanceEntity();
     viewInstanceEntity.setViewName("V1{1.0.0}");
     viewInstanceEntity.setName("I1");
@@ -267,7 +267,7 @@ public class ViewInstanceResourceProviderTest {
 
     ViewEntity viewEntity = new ViewEntity();
     viewEntity.setName("V1{1.0.0}");
-    viewEntity.setStatus(ViewDefinition.ViewStatus.LOADING);
+    viewEntity.setStatus(ViewDefinition.ViewStatus.DEPLOYING);
     ViewInstanceEntity viewInstanceEntity = new ViewInstanceEntity();
     viewInstanceEntity.setViewName("V1{1.0.0}");
     viewInstanceEntity.setName("I1");

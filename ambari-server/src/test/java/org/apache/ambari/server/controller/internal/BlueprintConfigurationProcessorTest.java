@@ -896,6 +896,27 @@ public class BlueprintConfigurationProcessorTest {
     assertEquals("jdbc:mysql://myHost.com/hive?createDatabaseIfNotExist=true", updatedVal);
   }
 
+  @Test
+  public void testFalconConfigPropertyUpdaterAdded() throws Exception {
+    Map<String, Map<String, BlueprintConfigurationProcessor.PropertyUpdater>> singleHostUpdaters =
+      BlueprintConfigurationProcessor.getSingleHostTopologyUpdaters();
+
+    assertTrue("Falcon startup.properties map was not added to the list of updater maps",
+               singleHostUpdaters.containsKey("falcon-startup.properties"));
+
+    Map<String, BlueprintConfigurationProcessor.PropertyUpdater> fieldsToUpdaters =
+      singleHostUpdaters.get("falcon-startup.properties");
+
+    assertTrue("Expected Falcon config property was not present in updater map",
+               fieldsToUpdaters.containsKey("*.broker.url"));
+
+    assertTrue("PropertyUpdater was not of the expected type for Falcon config property",
+               fieldsToUpdaters.get("*.broker.url") instanceof BlueprintConfigurationProcessor.SingleHostTopologyUpdater);
+
+    assertEquals("PropertyUpdater was not associated with the expected component name",
+                 "FALCON_SERVER", ((BlueprintConfigurationProcessor.SingleHostTopologyUpdater)fieldsToUpdaters.get("*.broker.url")).getComponentName());
+  }
+
   private class TestHostGroup implements HostGroup {
 
     private String name;

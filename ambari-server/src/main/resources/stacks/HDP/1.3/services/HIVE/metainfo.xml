@@ -23,10 +23,5 @@
       <comment>Data warehouse system for ad-hoc queries &amp; analysis of large datasets and table &amp; storage management service</comment>
       <version>0.11.0.1.3</version>
     </service>
-    <service>
-      <name>HCATALOG</name>
-      <comment>HCATALOG</comment>
-      <version>0.11.0.1.3</version>
-    </service>
   </services>
 </metainfo>

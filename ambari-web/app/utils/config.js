@@ -119,7 +119,7 @@ App.config = Em.Object.create({
     // HCatalog should be eventually made a part of Hive Service. See AMBARI-6302 description for further details
     var servicesWithConfigTypes = stackServices.filter(function (service) {
       var configtypes = service.get('configTypes');
-      return configtypes && !!Object.keys(configtypes).length && service.get('serviceName') != 'HCATALOG';
+      return configtypes && !!Object.keys(configtypes).length;
     }, this);
 
     var allTabs = servicesWithConfigTypes.concat(nonServiceTab);

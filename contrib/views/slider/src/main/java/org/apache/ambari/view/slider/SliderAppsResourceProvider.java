@@ -61,7 +61,10 @@ public class SliderAppsResourceProvider implements ResourceProvider<SliderApp> {
 		} catch (IOException e) {
 			logger.warn("Unable to delete Slider app with id " + resourceId, e);
 			throw new SystemException(e.getMessage(), e);
-		}
+		} catch (InterruptedException e) {
+		    logger.warn("Unable to delete Slider app with id " + resourceId, e);
+            throw new SystemException(e.getMessage(), e);
+        }
 	}
 
 	@Override
@@ -80,7 +83,10 @@ public class SliderAppsResourceProvider implements ResourceProvider<SliderApp> {
 		} catch (IOException e) {
 			logger.warn("Unable to determine Slider app with id " + resourceId, e);
 			throw new SystemException(e.getMessage(), e);
-		}
+		} catch (InterruptedException e) {
+		    logger.warn("Unable to determine Slider app with id " + resourceId, e);
+            throw new SystemException(e.getMessage(), e);
+        }
 	}
 
 	@Override
@@ -99,7 +105,10 @@ public class SliderAppsResourceProvider implements ResourceProvider<SliderApp> {
 		} catch (IOException e) {
 			logger.warn("Unable to determine Slider apps", e);
 			throw new SystemException(e.getMessage(), e);
-		}
+		} catch (InterruptedException e) {
+		    logger.warn("Unable to determine Slider apps", e);
+            throw new SystemException(e.getMessage(), e);
+        }
 		return appSet;
 	}
 

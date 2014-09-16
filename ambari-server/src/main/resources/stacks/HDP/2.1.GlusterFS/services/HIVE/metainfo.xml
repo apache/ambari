@@ -23,6 +23,71 @@
       <comment>Data warehouse system for ad-hoc queries &amp; analysis of large datasets and table &amp; storage management service</comment>
       <version>0.13.0.2.1</version>
 
+      <components>
+        <component>
+          <name>HIVE_SERVER</name>
+          <dependencies>
+            <dependency>
+              <name>TEZ/TEZ_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+          </dependencies>
+        </component>
+      </components>
+
+      <osSpecifics>
+        <osSpecific>
+          <osFamily>any</osFamily>
+          <packages>
+            <package>
+              <name>hive</name>
+            </package>
+            <package>
+              <name>hive-hcatalog</name>
+            </package>
+            <package>
+              <name>hive-webhcat</name>
+            </package>
+            <package>
+              <name>webhcat-tar-hive</name>
+            </package>
+            <package>
+              <name>webhcat-tar-pig</name>
+            </package>
+            <package>
+              <name>mysql-connector-java</name>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>redhat5,redhat6,suse11</osFamily>
+          <packages>
+            <package>
+              <name>mysql</name>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>redhat5,redhat6,ubuntu12</osFamily>
+          <packages>
+            <package>
+              <name>mysql-server</name>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>suse11</osFamily>
+          <packages>
+            <package>
+              <name>mysql-client</name>
+            </package>
+          </packages>
+        </osSpecific>
+      </osSpecifics>
+
       <configuration-dependencies>
         <config-type>hive-site</config-type>
         <config-type>hive-log4j</config-type>
@@ -31,54 +96,5 @@
         <config-type>mapred-site</config-type>
       </configuration-dependencies>
     </service>
-
-    <service>
-      <name>HCATALOG</name>
-      <comment>This is comment for HCATALOG service</comment>
-      <version>0.12.0.2.1</version>
-      <components>
-        <component>
-          <name>HCAT</name>
-          <category>CLIENT</category>
-          <commandScript>
-            <script>scripts/hcat_client.py</script>
-            <scriptType>PYTHON</scriptType>
-          </commandScript>
-          <configFiles>
-            <configFile>
-              <type>xml</type>
-              <fileName>hive-site.xml</fileName>
-              <dictionaryName>hive-site</dictionaryName>
-            </configFile>
-            <configFile>
-              <type>env</type>
-              <fileName>hive-env.sh</fileName>
-              <dictionaryName>hive-env</dictionaryName>
-            </configFile>
-            <configFile>
-              <type>env</type>
-              <fileName>hive-log4j.properties</fileName>
-              <dictionaryName>hive-log4j</dictionaryName>
-            </configFile>
-            <configFile>
-              <type>env</type>
-              <fileName>hive-exec-log4j.properties</fileName>
-              <dictionaryName>hive-exec-log4j</dictionaryName>
-            </configFile>
-          </configFiles>
-        </component>
-      </components>
-      <osSpecifics>
-        <osSpecific>
-          <osFamily>any</osFamily>
-          <packages>
-            <package>
-              <name>hive-hcatalog</name>
-            </package>
-          </packages>
-        </osSpecific>
-      </osSpecifics>
-    </service>
-
   </services>
 </metainfo>

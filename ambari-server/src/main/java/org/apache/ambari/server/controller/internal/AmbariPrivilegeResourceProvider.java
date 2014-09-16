@@ -125,7 +125,7 @@ public class AmbariPrivilegeResourceProvider extends PrivilegeResourceProvider<O
     //add view entities
     ViewRegistry viewRegistry = ViewRegistry.getInstance();
     for (ViewEntity viewEntity : viewRegistry.getDefinitions()) {
-      if (viewEntity.isLoaded()) {
+      if (viewEntity.isDeployed()) {
         for (ViewInstanceEntity viewInstanceEntity : viewEntity.getInstances()) {
           resourceEntities.put(viewInstanceEntity.getResource().getId(), viewInstanceEntity);
         }

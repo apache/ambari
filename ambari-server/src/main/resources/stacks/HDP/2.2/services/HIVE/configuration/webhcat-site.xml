@@ -25,33 +25,33 @@ limitations under the License.
 
   <property>
     <name>templeton.hadoop.conf.dir</name>
-    <value>/usr/hdp/2.9.9.9-98/etc/hadoop/conf</value>
+    <value>/usr/hdp/2.9.9.9-117/etc/hadoop/conf</value>
     <description>The path to the Hadoop configuration.</description>
   </property>
 
   <property>
     <name>templeton.jar</name>
-    <value>/usr/hdp/2.9.9.9-98/hcatalog/share/webhcat/svr/webhcat.jar</value>
+    <value>/usr/hdp/2.9.9.9-117/hcatalog/share/webhcat/svr/webhcat.jar</value>
     <description>The path to the Templeton jar file.</description>
   </property>
 
   <property>
     <name>templeton.libjars</name>
-    <value>/usr/hdp/2.9.9.9-98/zookeeper/zookeeper.jar</value>
+    <value>/usr/hdp/2.9.9.9-117/zookeeper/zookeeper.jar</value>
     <description>Jars to add the the classpath.</description>
   </property>
 
 
   <property>
     <name>templeton.hadoop</name>
-    <value>/usr/hdp/2.9.9.9-98/hadoop/bin/hadoop</value>
+    <value>/usr/hdp/2.9.9.9-117/hadoop/bin/hadoop</value>
     <description>The path to the Hadoop executable.</description>
   </property>
 
 
   <property>
     <name>templeton.hcat</name>
-    <value>/usr/hdp/2.9.9.9-98/hive/bin/hcat</value>
+    <value>/usr/hdp/2.9.9.9-117/hive/bin/hcat</value>
     <description>The path to the hcatalog executable.</description>
   </property>
 

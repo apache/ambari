@@ -35,17 +35,6 @@
       }
     },
     {
-      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/HCATALOG",
-      "StackServices" : {
-        "user_name" : "root",
-        "stack_version" : "2.0.1",
-        "service_name" : "HCATALOG",
-        "stack_name" : "HDP",
-        "comments" : "This is comment for HCATALOG service",
-        "service_version" : "0.5.0.22-1"
-      }
-    },
-    {
       "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/WEBHCAT",
       "StackServices" : {
         "user_name" : "root",

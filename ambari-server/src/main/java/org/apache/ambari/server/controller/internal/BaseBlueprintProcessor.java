@@ -851,7 +851,7 @@ public abstract class BaseBlueprintProcessor extends AbstractControllerResourceP
       Collection<DependencyInfo> nagiosDependencies = getDependenciesForComponent("NAGIOS_SERVER");
       for (DependencyInfo dependency : nagiosDependencies) {
         if (dependency.getComponentName().equals("HCAT")) {
-          dependencyConditionalServiceMap.put(dependency, "HCATALOG");
+          dependencyConditionalServiceMap.put(dependency, "HIVE");
         } else if (dependency.getComponentName().equals("OOZIE_CLIENT")) {
           dependencyConditionalServiceMap.put(dependency, "OOZIE");
         } else if (dependency.getComponentName().equals("YARN_CLIENT")) {

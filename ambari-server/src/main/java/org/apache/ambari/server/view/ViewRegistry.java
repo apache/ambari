@@ -261,8 +261,10 @@ public class ViewRegistry {
   public ViewEntity getDefinition(ResourceTypeEntity resourceTypeEntity) {
 
     for (ViewEntity viewEntity : viewDefinitions.values()) {
-      if (viewEntity.getResourceType().equals(resourceTypeEntity)) {
-        return viewEntity;
+      if (viewEntity.isDeployed()) {
+        if (viewEntity.getResourceType().equals(resourceTypeEntity)) {
+          return viewEntity;
+        }
       }
     }
     return null;
@@ -1188,7 +1190,7 @@ public class ViewRegistry {
                                                   File extractedArchiveDirFile,
                                                   ViewConfig viewConfig) {
 
-    setViewStatus(viewDefinition, ViewEntity.ViewStatus.LOADING, "Loading " + extractedArchiveDirFile + ".");
+    setViewStatus(viewDefinition, ViewEntity.ViewStatus.DEPLOYING, "Deploying " + extractedArchiveDirFile + ".");
 
     String extractedArchiveDirPath = extractedArchiveDirFile.getAbsolutePath();
 
@@ -1217,7 +1219,7 @@ public class ViewRegistry {
         addInstanceDefinition(viewDefinition, instanceEntity);
         handlerList.addViewInstance(instanceEntity);
       }
-      setViewStatus(viewDefinition, ViewEntity.ViewStatus.LOADED, "Loaded " + extractedArchiveDirPath + ".");
+      setViewStatus(viewDefinition, ViewEntity.ViewStatus.DEPLOYED, "Deployed " + extractedArchiveDirPath + ".");
 
     } catch (Exception e) {
       String msg = "Caught exception loading view " + viewDefinition.getViewName();

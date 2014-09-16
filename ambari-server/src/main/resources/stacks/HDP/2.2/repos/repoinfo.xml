@@ -18,14 +18,9 @@
 <reposinfo>
   <os type="redhat6">
     <repo>
-      <baseurl>http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos6/2.x/BUILDS/2.9.9.9-98</baseurl>
-      <repoid>HDP-2.9.9.9-98</repoid>
+      <baseurl>http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos6/2.x/updates/2.9.9.9</baseurl>
+      <repoid>HDP-2.9.9.9</repoid>
       <reponame>HDP</reponame>
-    </repo>
-    <repo>
-      <baseurl>http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos6/2.x/updates/2.2.0.0</baseurl>
-      <repoid>HDP-2.2.0.0</repoid>
-      <reponame>HDP-2.2</reponame>
     </repo>
     <repo>
       <baseurl>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.17/repos/centos6</baseurl>
@@ -35,14 +30,9 @@
   </os>
   <os type="redhat5">
     <repo>
-      <baseurl>http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos5/2.x/BUILDS/2.9.9.9-98</baseurl>
-      <repoid>HDP-2.9.9.9-98</repoid>
+      <baseurl>http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos5/2.x/updates/2.9.9.9</baseurl>
+      <repoid>HDP-2.9.9.9</repoid>
       <reponame>HDP</reponame>
-    </repo>
-    <repo>
-      <baseurl>http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos5/2.x/updates/2.2.0.0</baseurl>
-      <repoid>HDP-2.2.0.0</repoid>
-      <reponame>HDP-2.2</reponame>
     </repo>
     <repo>
       <baseurl>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.17/repos/centos5</baseurl>
@@ -52,14 +42,9 @@
   </os>
   <os type="suse11">
     <repo>
-      <baseurl>http://s3.amazonaws.com/dev.hortonworks.com/HDP/suse11/2.x/BUILDS/2.9.9.9-98</baseurl>
-      <repoid>HDP-2.9.9.9-98</repoid>
+      <baseurl>http://s3.amazonaws.com/dev.hortonworks.com/HDP/suse11/2.x/updates/2.9.9.9</baseurl>
+      <repoid>HDP-2.9.9.9</repoid>
       <reponame>HDP</reponame>
-    </repo>
-    <repo>
-      <baseurl>http://s3.amazonaws.com/dev.hortonworks.com/HDP/suse11/2.x/updates/2.2.0.0</baseurl>
-      <repoid>HDP-2.2.0.0</repoid>
-      <reponame>HDP-2.2</reponame>
     </repo>
     <repo>
       <baseurl>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.17/repos/suse11</baseurl>
