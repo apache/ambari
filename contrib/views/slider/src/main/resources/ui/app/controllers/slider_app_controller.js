@@ -46,7 +46,7 @@ App.SliderAppController = Ember.ObjectController.extend({
       actions.push({
         title: 'Flex',
         action: 'flex',
-        confirm: true
+        confirm: false
       });
     }
     if ('FROZEN' === status) {
