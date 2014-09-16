@@ -22,9 +22,5 @@
       <name>HIVE</name>
       <version>0.12.0.2.0</version>
     </service>
-    <service>
-      <name>HCATALOG</name>
-      <version>0.12.0.2.0</version>
-    </service>
   </services>
 </metainfo>
