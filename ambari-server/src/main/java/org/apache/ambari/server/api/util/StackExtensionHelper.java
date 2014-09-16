@@ -220,12 +220,16 @@ public class StackExtensionHelper {
     mergedServiceInfo.setCustomCommands(mergedCustomCommands);
     
     // metrics
-    if (null == childService.getMetricsFile() && null != parentService.getMetricsFile())
+    if (null != childService.getMetricsFile())
+      mergedServiceInfo.setMetricsFile(childService.getMetricsFile());
+    else if (null != parentService.getMetricsFile())
       mergedServiceInfo.setMetricsFile(parentService.getMetricsFile());
     
     // alerts
-    if (null == childService.getAlertsFile() && null != parentService.getAlertsFile())
-      mergedServiceInfo.setAlertsFile(parentService.getAlertsFile());    
+    if (null != childService.getAlertsFile())
+      mergedServiceInfo.setAlertsFile(childService.getAlertsFile());
+    else if (null != parentService.getAlertsFile())
+      mergedServiceInfo.setAlertsFile(parentService.getAlertsFile());
 
     populateComponents(mergedServiceInfo, parentService, childService);
 
@@ -425,12 +429,24 @@ public class StackExtensionHelper {
     // Map services with unique names
     Map<String, ServiceInfo> serviceInfoMap = new HashMap<String,
       ServiceInfo>();
+    List<ServiceInfo> serviceInfoList = null;
     // Iterate with oldest parent first - all stacks are populated
+    StackInfo parentStack = null;
     while(lt.hasPrevious()) {
-      StackInfo parentStack = lt.previous();
-      List<ServiceInfo> serviceInfoList = parentStack.getServices();
+      if (parentStack == null) {
+        parentStack = lt.previous();
+        serviceInfoList = parentStack.getServices();
+        for (ServiceInfo service : serviceInfoList){
+          if (!service.isDeleted()) {
+            serviceInfoMap.put(service.getName(), service);
+          }
+        }
+        continue;
+      }
+      StackInfo currentStackInfo = lt.previous();
+      serviceInfoList = currentStackInfo.getServices();
       
-      mergeStacks(parentStack, stackInfo);
+      mergeStacks(parentStack, currentStackInfo);
       
       for (ServiceInfo service : serviceInfoList) {
         ServiceInfo existingService = serviceInfoMap.get(service.getName());
@@ -439,7 +455,7 @@ public class StackExtensionHelper {
           continue;
         }
 
-        if (existingService == null) {
+        if (existingService == null && !service.isDeleted()) {
           serviceInfoMap.put(service.getName(), service);
         } else {
           // Redefined service - merge with parent
@@ -467,6 +483,7 @@ public class StackExtensionHelper {
         }
         
       }
+      parentStack = currentStackInfo;
     }
     return new ArrayList<ServiceInfo>(serviceInfoMap.values());
   }

@@ -649,6 +649,26 @@ public class StackExtensionHelperTest {
   }
 
   @Test
+  public void testServiceInheritance() throws Exception {
+    File stackRoot = new File(stackRootStr);
+    StackInfo stackInfo = new StackInfo();
+    stackInfo.setName("HDP");
+    stackInfo.setVersion("2.0.6");
+    StackExtensionHelper helper = new StackExtensionHelper(injector, stackRoot);
+    helper.populateServicesForStack(stackInfo);
+    helper.fillInfo();
+    List<ServiceInfo> allServices = helper.getAllApplicableServices(stackInfo);
+    for (ServiceInfo serviceInfo : allServices) {
+      if (serviceInfo.getName().equals("HDFS")){
+        assertEquals("HDFS", serviceInfo.getName());
+        assertNotNull(serviceInfo.getMetricsFile()); 
+      } 
+    }
+    
+  }
+  
+  
+  @Test
   public void testMergeComponentInfo() throws Exception {
     File stackRoot = new File(stackRootStr);
     StackExtensionHelper helper = new StackExtensionHelper(injector, stackRoot);
