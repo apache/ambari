@@ -114,7 +114,7 @@ App.SliderApp = DS.Model.extend({
   showMetrics: function() {
     var global = this.get('configs')['global'];
     //check whether slider has GANGLIA configured if not metrics should be hidden
-    if (!(global['ganglia_server_host'] && global['ganglia_server_id'] && global['ganglia_server_port'])) {
+    if (!(global && global['ganglia_server_host'] && global['ganglia_server_id'] && global['ganglia_server_port'])) {
       return false;
     }
     return App.SliderApp.Status.running === this.get('status');

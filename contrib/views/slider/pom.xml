@@ -549,6 +549,14 @@
 				<filtering>false</filtering>
 				<directory>target/lib</directory>
 			</resource>
+			<resource>
+				<targetPath>WEB-INF/lib</targetPath>
+				<filtering>true</filtering>
+				<directory>lib</directory>
+				<includes>
+					<include>slider-agent.tar.gz</include>
+				</includes>
+			</resource>
 		</resources>
 		<pluginManagement>
 			<plugins>

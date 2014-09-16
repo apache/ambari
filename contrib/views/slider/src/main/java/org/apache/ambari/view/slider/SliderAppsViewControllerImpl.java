@@ -57,6 +57,7 @@ import org.apache.slider.client.SliderClient;
 import org.apache.slider.common.SliderKeys;
 import org.apache.slider.common.params.ActionCreateArgs;
 import org.apache.slider.common.params.ActionFreezeArgs;
+import org.apache.slider.common.params.ActionInstallPackageArgs;
 import org.apache.slider.common.params.ActionThawArgs;
 import org.apache.slider.common.tools.SliderFileSystem;
 import org.apache.slider.core.exceptions.SliderException;
@@ -678,9 +679,15 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
       createArgs.image = new Path(hdfsLocation
           + "/user/yarn/agent/slider-agent.tar.gz");
       
+      final ActionInstallPackageArgs installArgs = new ActionInstallPackageArgs();
+      installArgs.name = appName;
+      installArgs.packageURI = getAppsFolderPath() + configs.get("application.def").getAsString();
+      installArgs.replacePkg = true;
+
       return invokeSliderClientRunnable(new SliderClientContextRunnable<String>() {
         @Override
         public String run(SliderClient sliderClient) throws YarnException, IOException, InterruptedException {
+          sliderClient.actionInstallPkg(installArgs);
           sliderClient.actionCreate(appName, createArgs);
           ApplicationId applicationId = sliderClient.applicationId;
           if (applicationId != null) {
