@@ -21,7 +21,6 @@
     <service>
       <name>FALCON</name>
       <displayName>Falcon</displayName>
-      <comment>Data management and processing platform</comment>
       <version>0.6.0.2.2.9.9</version>
       <osSpecifics>
         <osSpecific>

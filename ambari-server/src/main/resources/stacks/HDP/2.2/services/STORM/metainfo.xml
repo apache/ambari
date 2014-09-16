@@ -22,7 +22,6 @@
     <service>
       <name>STORM</name>
       <displayName>Storm</displayName>
-      <comment>Apache Hadoop Stream processing framework</comment>
       <version>0.9.3.2.9.9.9</version>
       <osSpecifics>
         <osSpecific>

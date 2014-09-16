@@ -19,8 +19,7 @@
   <schemaVersion>2.0</schemaVersion>
   <services>
     <service>
-      <name>FLUME</name>
-      <comment>Data management and processing platform</comment>
+      <name>FLUME</name>>
       <version>1.4.0.2.1</version>
     </service>
   </services>

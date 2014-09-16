@@ -20,7 +20,6 @@
   <services>
     <service>
       <name>HIVE</name>
-      <comment>Data warehouse system for ad-hoc queries &amp; analysis of large datasets and table &amp; storage management service</comment>
       <version>0.13.0.2.1</version>
 
       <components>

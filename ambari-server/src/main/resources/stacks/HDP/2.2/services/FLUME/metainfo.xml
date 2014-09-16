@@ -21,7 +21,6 @@
     <service>
       <name>FLUME</name>
       <displayName>Flume</displayName>
-      <comment>Data management and processing platform</comment>
       <version>1.5.0.1.2.9.9.9</version>
 
       <osSpecifics>

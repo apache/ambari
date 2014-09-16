@@ -20,7 +20,6 @@
   <services>
     <service>
       <name>NAGIOS</name>
-      <comment>Nagios Monitoring and Alerting system</comment>
       <version>3.5.0</version>
       <components>
         <component>
