@@ -18,7 +18,7 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('MainCtrl',['$scope', 'Auth', 'uiAlert', '$modal', function($scope, Auth, uiAlert, $modal) {
+.controller('MainCtrl',['$scope', 'Auth', 'uiAlert', '$modal', 'Cluster', function($scope, Auth, uiAlert, $modal, Cluster) {
   $scope.signOut = function() {
     Auth.signout().then(function() {
      window.location.pathname = ''; // Change location hard, because Angular works only with relative urls
@@ -39,4 +39,15 @@ angular.module('ambariAdminConsole')
   };
 
   $scope.currentUser = Auth.getCurrentUser();
+
+  $scope.cluster = null;
+  $scope.isLoaded = null;
+
+  Cluster.getStatus().then(function(cluster) {
+    $scope.cluster = cluster;
+    $scope.isLoaded = true;
+  }).catch(function(data) {
+      uiAlert.danger(data.status, data.message);
+  });
+
 }]);
