@@ -749,8 +749,7 @@ public class StackExtensionHelper {
     ConfigurationXml configuration = unmarshal(ConfigurationXml.class, configFile);
     String fileName = configFile.getName();
     stackInfo.getProperties().addAll(getProperties(configuration, fileName));
-    int extIndex = fileName.indexOf(AmbariMetaInfo.SERVICE_CONFIG_FILE_NAME_POSTFIX);
-    String configType = fileName.substring(0, extIndex);
+    String configType = ConfigHelper.fileNameToConfigType(fileName);
 
     addConfigType(stackInfo.getConfigTypes(), configType);
     setConfigTypeAttributes(stackInfo.getConfigTypes(), configuration, configType);
@@ -797,8 +796,7 @@ public class StackExtensionHelper {
     ConfigurationXml configuration = unmarshal(ConfigurationXml.class, configFile);
     String fileName = configFile.getName();
     serviceInfo.getProperties().addAll(getProperties(configuration, fileName));
-    int extIndex = fileName.indexOf(AmbariMetaInfo.SERVICE_CONFIG_FILE_NAME_POSTFIX);
-    String configType = fileName.substring(0, extIndex);
+    String configType = ConfigHelper.fileNameToConfigType(fileName);
 
     addConfigType(serviceInfo.getConfigTypes(), configType);
     setConfigTypeAttributes(serviceInfo.getConfigTypes(), configuration, configType);
@@ -836,8 +834,7 @@ public class StackExtensionHelper {
     if (configurations != null) {
       Map<String, Map<String, Map<String, String>>> configTypes = new HashMap<String, Map<String, Map<String, String>>>();
       for (PropertyInfo configuration : configurations) {
-        int extIndex = configuration.getFilename().indexOf(AmbariMetaInfo.SERVICE_CONFIG_FILE_NAME_POSTFIX);
-        String configType = configuration.getFilename().substring(0, extIndex);
+        String configType = ConfigHelper.fileNameToConfigType(configuration.getFilename());
         
         if (!configTypes.containsKey(configType)) {
           Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();

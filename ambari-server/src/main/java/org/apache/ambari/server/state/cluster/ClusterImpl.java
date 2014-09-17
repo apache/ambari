@@ -242,8 +242,7 @@ public class ClusterImpl implements Cluster {
       //collect config types for service
       Set<PropertyInfo> properties = ambariMetaInfo.getProperties(desiredStackVersion.getStackName(), desiredStackVersion.getStackVersion(), serviceName);
       for (PropertyInfo property : properties) {
-        int extIndex = property.getFilename().indexOf(AmbariMetaInfo.SERVICE_CONFIG_FILE_NAME_POSTFIX);
-        String configType = property.getFilename().substring(0, extIndex);
+        String configType = ConfigHelper.fileNameToConfigType(property.getFilename());
         if (serviceInfo.getExcludedConfigTypes() == null ||
           !serviceInfo.getExcludedConfigTypes().contains(configType)) {
           serviceConfigTypes.put(serviceName, configType);

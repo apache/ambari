@@ -78,7 +78,7 @@ public class ConfigHelper {
     staleConfigsCache = CacheBuilder.newBuilder().
       expireAfterWrite(STALE_CONFIGS_CACHE_EXPIRATION_TIME, TimeUnit.SECONDS).build();
   }
-  
+
   /**
    * Gets the desired tags for a cluster and host
    * @param cluster the cluster
@@ -428,8 +428,7 @@ public class ConfigHelper {
       
       for (PropertyInfo stackProperty : stackProperties) {
         if(stackProperty.getName().equals(propertyName)) {
-          int extIndex = stackProperty.getFilename().indexOf(AmbariMetaInfo.SERVICE_CONFIG_FILE_NAME_POSTFIX);
-          String configType = stackProperty.getFilename().substring(0, extIndex);
+          String configType = fileNameToConfigType(stackProperty.getFilename());
           
           result.add(configType);
         }
@@ -447,10 +446,11 @@ public class ConfigHelper {
 
     for(Service service : cluster.getServices().values()) {
       Set<PropertyInfo> stackProperties = ambariMetaInfo.getProperties(stack.getName(), stack.getVersion(), service.getName());
-      
+
       for (PropertyInfo stackProperty : stackProperties) {
         if(stackProperty.getPropertyTypes().contains(propertyType)) {
-          result.add(stackProperty.getValue());
+          String stackPropertyConfigType = fileNameToConfigType(stackProperty.getFilename());
+          result.add(cluster.getDesiredConfigByType(stackPropertyConfigType).getProperties().get(stackProperty.getName()));
         }
       }
     }
@@ -459,7 +459,8 @@ public class ConfigHelper {
     
     for (PropertyInfo stackProperty : stackProperties) {
       if(stackProperty.getPropertyTypes().contains(propertyType)) {
-        result.add(stackProperty.getValue());
+        String stackPropertyConfigType = fileNameToConfigType(stackProperty.getFilename());
+        result.add(cluster.getDesiredConfigByType(stackPropertyConfigType).getProperties().get(stackProperty.getName()));
       }
     }
     
@@ -475,8 +476,7 @@ public class ConfigHelper {
       Set<PropertyInfo> stackProperties = ambariMetaInfo.getProperties(stack.getName(), stack.getVersion(), serviceInfo.getName());
       
       for (PropertyInfo stackProperty : stackProperties) {
-        int extIndex = stackProperty.getFilename().indexOf(AmbariMetaInfo.SERVICE_CONFIG_FILE_NAME_POSTFIX);
-        String stackPropertyConfigType = stackProperty.getFilename().substring(0, extIndex);
+        String stackPropertyConfigType = fileNameToConfigType(stackProperty.getFilename());
         
         if(stackProperty.getName().equals(propertyName) && stackPropertyConfigType.equals(configType)) {
           return stackProperty.getValue();
@@ -749,6 +749,11 @@ public class ConfigHelper {
     return names;
   }
 
+
+  public static String fileNameToConfigType(String filename) {
+    int extIndex = filename.indexOf(AmbariMetaInfo.SERVICE_CONFIG_FILE_NAME_POSTFIX);
+    return filename.substring(0, extIndex);
+  }
 
 
 }
