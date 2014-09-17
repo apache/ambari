@@ -17,12 +17,41 @@
 }}
 
 <p>{{t installer.step7.popup.validation.warning.body}}</p>
-<div class="alert alert-warning">
+<div id="config-validation-warnings" class="limited-height-2">
+  <table class="table no-borders">
+    <thead>
+    <tr>
+      <th>
+        {{t common.service}}
+      </th>
+      <th>
+        {{t common.property}}
+      </th>
+      <th>
+        {{t common.description}}
+      </th>
+    </tr>
+    </thead>
+    <tbody>
     {{#each service in stepConfigs}}
       {{#each property in service.configs}}
         {{#if property.warn}}
-          <strong>{{property.displayName}}</strong>: {{property.warnMessage}}<br />
+          <tr>
+            <td>
+              {{property.serviceName}}
+            </td>
+            <td>
+              {{property.displayName}}
+            </td>
+            <td>
+              <strong>{{property.description}}:</strong><br/>
+              <strong>{{property.value}}</strong>{{t installer.step7.popup.validation.warning.errorDescription}}
+              <strong>{{property.defaultValue}}</strong>
+            </td>
+          </tr>
         {{/if}}
       {{/each}}
     {{/each}}
+    </tbody>
+  </table>
 </div>

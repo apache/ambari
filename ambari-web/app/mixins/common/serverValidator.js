@@ -274,6 +274,7 @@ App.ServerValidatorMixin = Em.Mixin.create({
       // Motivation: for server-side validation warnings and EVEN errors allow user to continue wizard
       return App.ModalPopup.show({
         header: Em. I18n.t('installer.step7.popup.validation.warning.header'),
+        classNames: ['sixty-percent-width-modal'],
         primary: Em.I18n.t('common.proceedAnyway'),
         onPrimary: function () {
           this.hide();

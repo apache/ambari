@@ -146,6 +146,11 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
       attributeName: 'isValid',
       attributeValue: false,
       caption: 'common.combobox.dropdown.issues'
+    },
+    {
+      attributeName: 'warn',
+      attributeValue: true,
+      caption: 'common.combobox.dropdown.warnings'
     }
   ],
 
