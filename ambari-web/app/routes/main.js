@@ -39,7 +39,6 @@ module.exports = Em.Route.extend({
             }
             else {
               App.router.get('clusterController').set('isLoaded', true);
-              App.router.get('mainViewsController').loadAmbariViews();
             }
           }
         });

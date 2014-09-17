@@ -25,6 +25,10 @@ App.MainViewsController = Em.Controller.extend({
 
   ambariViews: [],
 
+  init: function () {
+    this.loadAmbariViews();
+  },
+
   dataLoading: function () {
     var viewsController = this;
     var dfd = $.Deferred();
@@ -103,7 +107,7 @@ App.MainViewsController = Em.Controller.extend({
 
   setView: function(event) {
     if(event.context){
-      App.router.transitionTo('views.viewDetails', event.context);
+      App.router.transitionTo('main.views.viewDetails', event.context);
     }
   }
 });
