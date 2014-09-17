@@ -16,17 +16,19 @@
 * limitations under the License.
 }}
 
-<div {{bindAttr class=":control-group :overrideField"}}>
-  {{view view.serviceConfigProperty.compareConfig.viewClass serviceConfigBinding="view.serviceConfigProperty.compareConfig"}}
-  {{#unless view.serviceConfigProperty.compareConfig.isMock}}
-    <span class="label label-info">{{view.serviceConfigProperty.compareConfig.serviceVersion.versionText}}</span>
-    {{#if view.serviceConfigProperty.compareConfig.serviceVersion.isCurrent}}
-        <span class="label label-success">{{t common.current}}</span>
-    {{/if}}
-    {{#if view.serviceConfigProperty.compareConfig.supportsFinal}}
-        <a disabled="disabled" {{bindAttr class=":btn :btn-small :btn-final view.serviceConfigProperty.compareConfig.isFinal:active view.serviceConfigProperty.compareConfig.hideFinalIcon:hidden" }}>
-            <i class="icon-lock"></i>
-        </a>
-    {{/if}}
-  {{/unless}}
-</div>
+{{#each compareConfig in view.serviceConfigProperty.compareConfigs}}
+    <div {{bindAttr class=":control-group :overrideField"}}>
+      {{view compareConfig.viewClass serviceConfigBinding="compareConfig"}}
+      {{#unless compareConfig.isMock}}
+          <span class="label label-info">{{compareConfig.serviceVersion.versionText}}</span>
+        {{#if compareConfig.serviceVersion.isCurrent}}
+            <span class="label label-success">{{t common.current}}</span>
+        {{/if}}
+        {{#if compareConfig.supportsFinal}}
+            <a disabled="disabled" {{bindAttr class=":btn :btn-small :btn-final compareConfig.isFinal:active compareConfig.hideFinalIcon:hidden" }}>
+                <i class="icon-lock"></i>
+            </a>
+        {{/if}}
+      {{/unless}}
+    </div>
+{{/each}}

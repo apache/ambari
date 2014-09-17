@@ -49,9 +49,13 @@
             <div {{bindAttr class="errorMessage:error: warnMessage:warning: :control-group"}}>
               {{view viewClass serviceConfigBinding="this" categoryConfigsAllBinding="view.categoryConfigsAll" }}
               {{#if this.isComparison}}
+                {{#if controller.selectedConfigGroup.isDefault}}
                   <span class="label label-info">{{t dashboard.configHistory.table.version.prefix}}{{controller.selectedVersion}}</span>
-                {{#if controller.isCurrentSelected}}
+                  {{#if controller.isCurrentSelected}}
                     <span class="label label-success">{{t common.current}}</span>
+                  {{/if}}
+                {{else}}
+                  <span class="label label-info">{{t common.default}}&nbsp;{{t services.service.config.configHistory.configGroup}}</span>
                 {{/if}}
               {{/if}}
               {{#if supportsFinal}}
