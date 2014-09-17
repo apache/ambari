@@ -39,6 +39,7 @@ public class SliderApp {
   private Map<String, Map<String, String>> configs;
   private Map<String, SliderAppComponent> components;
   private Map<String, Object> metrics;
+  private Map<String, Object> alerts;
 
   public String getName() {
     return name;
@@ -166,5 +167,13 @@ public class SliderApp {
 
   public void setAppVersion(String appVersion) {
     this.appVersion = appVersion;
+  }
+
+  public Map<String, Object> getAlerts() {
+    return alerts;
+  }
+
+  public void setAlerts(Map<String, Object> alerts) {
+    this.alerts = alerts;
   }
 }

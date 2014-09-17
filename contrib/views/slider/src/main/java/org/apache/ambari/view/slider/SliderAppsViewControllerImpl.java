@@ -89,6 +89,8 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
   private ViewContext viewContext;
   private List<SliderAppType> appTypes;
   private Integer createAppCounter = -1;
+  @Inject
+  private SliderAppsAlerts sliderAlerts;
 
   private String getAppsFolderPath() {
     return viewContext.getAmbariProperty("resources.dir") + "/apps";
@@ -229,17 +231,17 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
             if (appMasterData == null) {
               appMasterData = sliderAppClient.getAppMasterData();
             }
-            if ("urls".equals(property.toLowerCase())) {
+            if (appMasterData!=null && "urls".equals(property.toLowerCase())) {
               if (quickLinks.isEmpty()) {
                 quickLinks = sliderAppClient
                     .getQuickLinks(appMasterData.publisherUrl);
               }
               app.setUrls(quickLinks);
-            } else if ("configs".equals(property.toLowerCase())) {
+            } else if (appMasterData!=null && "configs".equals(property.toLowerCase())) {
               Map<String, Map<String, String>> configs = sliderAppClient
                   .getConfigs(appMasterData.publisherUrl);
               app.setConfigs(configs);
-            } else if ("jmx".equals(property.toLowerCase())) {
+            } else if (appMasterData!=null && "jmx".equals(property.toLowerCase())) {
               if (quickLinks.isEmpty()) {
                 quickLinks = sliderAppClient
                     .getQuickLinks(appMasterData.publisherUrl);
@@ -323,6 +325,7 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
                           + appComponent.getCompletedContainers().size());
                     }
                   }
+                  app.setAlerts(sliderAlerts.generateComponentsAlerts(componentTypeMap, app.getType()));
                   app.setComponents(componentTypeMap);
                 }
               } catch (UnknownApplicationInstanceException e) {
