@@ -1,0 +1,115 @@
+{
+    "roleCommand": "SERVICE_CHECK",
+    "clusterName": "c1",
+    "hostname": "c6401.ambari.apache.org",
+    "hostLevelParams": {
+        "jdk_location": "http://c6401.ambari.apache.org:8080/resources/",
+        "ambari_db_rca_password": "mapred",
+        "ambari_db_rca_url": "jdbc:postgresql://c6401.ambari.apache.org/ambarirca",
+        "jce_name": "UnlimitedJCEPolicyJDK7.zip",
+        "stack_version": "2.1",
+        "stack_name": "HDP",
+        "ambari_db_rca_driver": "org.postgresql.Driver",
+        "jdk_name": "jdk-7u45-linux-x64.tar.gz",
+        "ambari_db_rca_username": "mapred",
+        "java_home": "/usr/jdk64/jdk1.7.0_45",
+        "db_name": "ambari"
+    },
+    "commandType": "EXECUTION_COMMAND",
+    "roleParams": {},
+    "serviceName": "SLIDER",
+    "role": "SLIDER",
+    "commandParams": {
+        "command_timeout": "300",
+        "service_package_folder": "OOZIE",
+        "script_type": "PYTHON",
+        "script": "scripts/service_check.py",
+        "excluded_hosts": "host1,host2"
+    },
+    "taskId": 152,
+    "public_hostname": "c6401.ambari.apache.org",
+    "configurations": {
+        "slider-client": {
+            "slider.zookeeper.quorum": "c6401.ambari.apache.org:2181",
+            "slider.yarn.queue": "default"
+        },
+        "core-site": {
+            "fs.defaultFS": "hdfs://c6401.ambari.apache.org:8020"
+        },
+        "hdfs-site": {
+            "a": "b"
+        },
+        "yarn-site": {
+            "yarn.application.classpath": "/etc/hadoop/conf,/usr/lib/hadoop/*,/usr/lib/hadoop/lib/*,/usr/lib/hadoop-hdfs/*,/usr/lib/hadoop-hdfs/lib/*,/usr/lib/hadoop-yarn/*,/usr/lib/hadoop-yarn/lib/*,/usr/lib/hadoop-mapreduce/*,/usr/lib/hadoop-mapreduce/lib/*",
+            "yarn.resourcemanager.address": "c6401.ambari.apache.org:8050",
+            "yarn.resourcemanager.scheduler.address": "c6401.ambari.apache.org:8030"
+        },
+        "cluster-env": {
+            "security_enabled": "false",
+            "ignore_groupsusers_create": "false",
+            "smokeuser": "ambari-qa",
+            "kerberos_domain": "EXAMPLE.COM",
+            "user_group": "hadoop"
+        },
+        "slider-log4j": {
+            "content": "log4jproperties\nline2"
+        }
+    },
+    "configuration_attributes": {
+        "yarn-site": {
+            "final": {
+                "yarn.nodemanager.disk-health-checker.min-healthy-disks": "true",
+                "yarn.nodemanager.container-executor.class": "true",
+                "yarn.nodemanager.local-dirs": "true"
+            }
+        },
+        "hdfs-site": {
+            "final": {
+                "dfs.web.ugi": "true",
+                "dfs.support.append": "true",
+                "dfs.cluster.administrators": "true"
+            }
+        },
+        "core-site": {
+            "final": {
+                "hadoop.proxyuser.hive.groups": "true",
+                "webinterface.private.actions": "true",
+                "hadoop.proxyuser.oozie.hosts": "true"
+            }
+        }
+    },
+    "configurationTags": {
+        "slider-client": {
+            "tag": "version1"
+        },
+        "slider-log4j": {
+            "tag": "version1"
+        },
+        "core-site": {
+            "tag": "version1"
+        },
+        "hdfs-site": {
+            "tag": "version1"
+        },
+        "yarn-site": {
+            "tag": "version1"
+        }
+    },
+    "commandId": "7-1",
+    "clusterHostInfo": {
+        "ambari_server_host": [
+            "c6401.ambari.apache.org"
+        ],
+        "all_ping_ports": [
+            "8670",
+            "8670"
+        ],
+        "rm_host": [
+            "c6402.ambari.apache.org"
+        ],
+        "all_hosts": [
+            "c6401.ambari.apache.org",
+            "c6402.ambari.apache.org"
+        ]
+    }
+}
