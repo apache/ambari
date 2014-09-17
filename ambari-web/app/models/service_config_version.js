@@ -27,7 +27,7 @@ App.ServiceConfigVersion = DS.Model.extend({
     return App.format.role(this.get('serviceName'));
   }.property('serviceName'),
   groupName: DS.attr('string'),
-  groupId: DS.attr('string'),
+  groupId: DS.attr('number'),
   version: DS.attr('number'),
   createTime: DS.attr('number'),
   author: DS.attr('string'),

@@ -324,17 +324,18 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
    * get selected service config version
    * In case selected version is undefined then take currentDefaultVersion
    * @param version
+   * @param switchToGroup
    */
-  loadSelectedVersion: function (version) {
+  loadSelectedVersion: function (version, switchToGroup) {
     var self = this;
     this.set('versionLoaded', false);
     version = version || this.get('currentDefaultVersion');
     //version of non-default group require properties from current version of default group to correctly display page
     var versions = (this.isVersionDefault(version)) ? [version] : [this.get('currentDefaultVersion'), version];
+    switchToGroup = this.isVersionDefault(version) ? this.get('configGroups').findProperty('isDefault') : switchToGroup;
 
-    //if version from default group selected then switch to default group
-    if (self.get('dataIsLoaded') && this.isVersionDefault(version)) {
-      this.set('selectedConfigGroup', this.get('configGroups').findProperty('isDefault'));
+    if (self.get('dataIsLoaded') && switchToGroup) {
+      this.set('selectedConfigGroup', switchToGroup);
     }
 
     App.ajax.send({
@@ -2708,7 +2709,17 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     }
     //clean when switch config group
     this.loadedGroupToOverrideSiteToTagMap = {};
-    this.set('selectedConfigGroup', event.context);
+    if (App.supports.configHistory) {
+      var configGroupVersions = App.ServiceConfigVersion.find().filterProperty('groupId', event.context.get('id'));
+      //check whether config group has config versions
+      if (configGroupVersions.length > 0) {
+        this.loadSelectedVersion(configGroupVersions.findProperty('isCurrent').get('version'), event.context);
+      } else {
+        this.loadSelectedVersion(null, event.context);
+      }
+    } else {
+      this.set('selectedConfigGroup', event.context);
+    }
   },
 
   /**
