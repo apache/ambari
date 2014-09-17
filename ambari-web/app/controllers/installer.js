@@ -745,6 +745,21 @@ App.InstallerController = App.WizardController.extend({
     App.router.get('applicationController').postUserPref(persists, true);
   },
 
+  /**
+   * Save cluster provisioning state to the server
+   * @param state cluster provisioning state
+   * @param callback is called after request completes
+   */
+  setClusterProvisioningState: function (state, callback) {
+    App.ajax.send({
+      name: 'cluster.save_provisioning_state',
+      sender: this,
+      data: {
+        state: state
+      }
+    }).complete(callback());
+  },
+
   setStepsEnable: function () {
     for (var i = 0; i <= this.totalSteps; i++) {
       var step = this.get('isStepDisabled').findProperty('step', i);

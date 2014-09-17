@@ -911,6 +911,19 @@ var urls = {
       };
     }
   },
+  'cluster.save_provisioning_state': {
+    'real': '/clusters/{clusterName}',
+    'type': 'PUT',
+    'format': function (data) {
+      return {
+        data: JSON.stringify({
+          "Clusters": {
+            "provisioning_state": data.state
+          }
+        })
+      };
+    }
+  },
   'admin.high_availability.polling': {
     'real': '/clusters/{clusterName}/requests/{requestId}?fields=tasks/*,Requests/*',
     'mock': ''
@@ -1368,7 +1381,7 @@ var urls = {
     mock: '/data/users/privileges_{userName}.json'
   },
   'router.login.clusters': {
-    'real': '/clusters',
+    'real': '/clusters?fields=Clusters/provisioning_state',
     'mock': '/data/clusters/info.json'
   },
   'router.logoff': {
@@ -1376,7 +1389,7 @@ var urls = {
     'mock': ''
   },
   'router.authentication': {
-    'real': '/clusters',
+    'real': '/clusters?fields=Clusters/provisioning_state',
     'mock': '/data/clusters/info.json',
     'format': function() {
       return {

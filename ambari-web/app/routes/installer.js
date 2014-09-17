@@ -79,7 +79,7 @@ module.exports = Em.Route.extend({
             });
           } else {
             Em.run.next(function () {
-              App.router.transitionTo('main.services');
+              App.router.transitionTo('main.views.index');
             });
           }
 
@@ -436,11 +436,11 @@ module.exports = Em.Route.extend({
     complete: function (router, context) {
       var controller = router.get('installerController');
       controller.finish();
-
-      // We need to do recovery based on whether we are in Add Host or Installer wizard
-      controller.saveClusterState('DEFAULT');
-
-      router.transitionTo('main.dashboard.index');
+      controller.setClusterProvisioningState('INSTALLED', function () {
+        // We need to do recovery based on whether we are in Add Host or Installer wizard
+        controller.saveClusterState('DEFAULT');
+        router.transitionTo('main.dashboard.index');
+      });
     }
   }),
 
