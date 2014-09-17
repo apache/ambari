@@ -222,7 +222,8 @@ if System.get_instance().os_family == "ubuntu":
   mysql_configname = '/etc/mysql/my.cnf'
 else:
   mysql_configname = '/etc/my.cnf'
-  
+
+tez_tar_file = "/usr/lib/tez/tez*.tar.gz"
 
 # Hive security
 hive_authorization_enabled = config['configurations']['hive-site']['hive.security.authorization.enabled']
