@@ -416,6 +416,10 @@ public class UpgradeCatalog170Test {
             Collections.singletonMap("hadoop_root_logger", "INFO,RFA"), false, false);
     expectLastCall();
 
+    upgradeCatalog.updateConfigurationProperties("oozie-env",
+            Collections.singletonMap("oozie_admin_port", "11001"), false, false);
+    expectLastCall();
+
     expect(dbAccessor.executeSelect("SELECT role_name, user_id FROM user_roles")).andReturn(userRolesResultSet).once();
     expect(entityManager.getTransaction()).andReturn(trans).anyTimes();
     expect(entityManager.getCriteriaBuilder()).andReturn(cb).anyTimes();

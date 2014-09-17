@@ -945,6 +945,8 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
     updateConfigurationProperties("hadoop-env",
             Collections.singletonMap("hadoop_root_logger", "INFO,RFA"), false,
             false);
+
+    updateConfigurationProperties("oozie-env", Collections.singletonMap("oozie_admin_port", "11001"), false, false);
   }
 
   /**

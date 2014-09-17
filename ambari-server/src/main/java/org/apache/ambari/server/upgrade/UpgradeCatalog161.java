@@ -289,7 +289,6 @@ public class UpgradeCatalog161 extends AbstractUpgradeCatalog {
   protected void addMissingConfigs() throws AmbariException {
     updateConfigurationProperties("hbase-site", Collections.singletonMap("hbase.regionserver.info.port", "60030"), false, false);
     updateConfigurationProperties("hbase-site", Collections.singletonMap("hbase.master.info.port", "60010"), false, false);
-    updateConfigurationProperties("oozie-env", Collections.singletonMap("oozie_admin_port", "11001"), false, false);
     updateConfigurationProperties("hive-site", Collections.singletonMap("hive.heapsize", "1024"), false, false);
     updateConfigurationProperties("pig-properties", Collections.singletonMap("pig-content", "\n# Licensed to the Apache " +
             "Software Foundation (ASF) under one\n# or more contributor license agreements.  See the NOTICE file\n# " +
