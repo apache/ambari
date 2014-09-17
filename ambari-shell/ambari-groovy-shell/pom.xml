@@ -71,6 +71,16 @@
       <groupId>org.codehaus.jackson</groupId>
       <artifactId>jackson-mapper-asl</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-common</artifactId>
+      <version>2.4.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpclient</artifactId>
+      <version>4.2.5</version>
+    </dependency>
   </dependencies>
   <build>
     <plugins>
@@ -87,6 +97,7 @@
             <exclude>src/test/resources/2columns</exclude>
             <exclude>src/test/resources/3columns</exclude>
             <exclude>src/test/resources/testBlueprint.json</exclude>
+            <exclude>src/test/resources/core-site.xml</exclude>
           </excludes>
         </configuration>
         <executions>

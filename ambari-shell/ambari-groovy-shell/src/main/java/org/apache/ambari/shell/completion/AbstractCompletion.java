@@ -18,12 +18,17 @@
 package org.apache.ambari.shell.completion;
 
 /**
- * Wrapper class for TAB completion to host names.
+ * Base class for completions.
  */
-public class Host extends AbstractCompletion {
+public abstract class AbstractCompletion {
 
-  public Host(String name) {
-    super(name);
+  private final String name;
+
+  protected AbstractCompletion(String name) {
+    this.name = name;
   }
 
+  public String getName() {
+    return name;
+  }
 }

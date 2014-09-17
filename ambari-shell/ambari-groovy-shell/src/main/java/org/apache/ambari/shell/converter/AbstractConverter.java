@@ -17,29 +17,47 @@
  */
 package org.apache.ambari.shell.converter;
 
+import java.lang.reflect.Constructor;
+import java.util.Collection;
 import java.util.List;
 
 import org.apache.ambari.groovy.client.AmbariClient;
-import org.apache.ambari.shell.completion.Host;
+import org.apache.ambari.shell.completion.AbstractCompletion;
 import org.springframework.shell.core.Completion;
-import org.springframework.shell.core.MethodTarget;
+import org.springframework.shell.core.Converter;
 
 /**
- * Converter used to complete host names.
+ * Base class of completion converters.
+ *
+ * @param <T> completion class type
  */
-public class HostConverter extends AbstractConverter<Host> {
+public abstract class AbstractConverter<T extends AbstractCompletion> implements Converter<T> {
 
-  public HostConverter(AmbariClient client) {
-    super(client);
+  private AmbariClient client;
+
+  protected AbstractConverter(AmbariClient client) {
+    this.client = client;
   }
 
   @Override
-  public boolean supports(Class<?> type, String s) {
-    return Host.class.isAssignableFrom(type);
+  public T convertFromText(String value, Class<?> clazz, String optionContext) {
+    try {
+      Constructor<?> constructor = clazz.getDeclaredConstructor(String.class);
+      return (T) constructor.newInstance(value);
+    } catch (Exception e) {
+      return null;
+    }
   }
 
-  @Override
-  public boolean getAllPossibleValues(List<Completion> completions, Class<?> targetType, String existingData, String optionContext, MethodTarget target) {
-    return getAllPossibleValues(completions, getClient().getHostNames().keySet());
+  public boolean getAllPossibleValues(List<Completion> completions, Collection<String> values) {
+    for (String value : values) {
+      completions.add(new Completion(value));
+    }
+    return true;
   }
+
+  public AmbariClient getClient() {
+    return client;
+  }
+
 }

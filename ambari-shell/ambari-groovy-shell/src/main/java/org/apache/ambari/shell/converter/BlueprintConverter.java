@@ -18,41 +18,28 @@
 package org.apache.ambari.shell.converter;
 
 import java.util.List;
-import java.util.Set;
 
 import org.apache.ambari.groovy.client.AmbariClient;
 import org.apache.ambari.shell.completion.Blueprint;
 import org.springframework.shell.core.Completion;
-import org.springframework.shell.core.Converter;
 import org.springframework.shell.core.MethodTarget;
 
 /**
  * Converter used to complete blueprint names.
  */
-public class BlueprintConverter implements Converter<Blueprint> {
-
-  private AmbariClient client;
+public class BlueprintConverter extends AbstractConverter<Blueprint> {
 
   public BlueprintConverter(AmbariClient client) {
-    this.client = client;
+    super(client);
   }
 
   @Override
-  public boolean supports(Class<?> type, String optionContext) {
+  public boolean supports(Class<?> type, String s) {
     return Blueprint.class.isAssignableFrom(type);
   }
 
   @Override
-  public Blueprint convertFromText(String value, Class<?> targetType, String optionContext) {
-    return new Blueprint(value);
-  }
-
-  @Override
   public boolean getAllPossibleValues(List<Completion> completions, Class<?> targetType, String existingData, String optionContext, MethodTarget target) {
-    Set<String> blueprints = client.getBlueprintsMap().keySet();
-    for (String blueprint : blueprints) {
-      completions.add(new Completion(blueprint));
-    }
-    return true;
+    return getAllPossibleValues(completions, getClient().getBlueprintsMap().keySet());
   }
 }

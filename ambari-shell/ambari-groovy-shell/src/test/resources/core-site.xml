@@ -1,0 +1,13 @@
+<configuration>
+
+  <property>
+    <name>fs.trash.interval</name>
+    <value>350</value>
+  </property>
+
+  <property>
+    <name>ipc.client.connection.maxidletime</name>
+    <value>30000</value>
+  </property>
+
+</configuration>

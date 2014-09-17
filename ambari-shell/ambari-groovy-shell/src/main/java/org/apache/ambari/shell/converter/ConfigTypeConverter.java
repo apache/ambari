@@ -20,26 +20,26 @@ package org.apache.ambari.shell.converter;
 import java.util.List;
 
 import org.apache.ambari.groovy.client.AmbariClient;
-import org.apache.ambari.shell.completion.Host;
+import org.apache.ambari.shell.completion.ConfigType;
 import org.springframework.shell.core.Completion;
 import org.springframework.shell.core.MethodTarget;
 
 /**
- * Converter used to complete host names.
+ * Converter used to complete config names.
  */
-public class HostConverter extends AbstractConverter<Host> {
+public class ConfigTypeConverter extends AbstractConverter<ConfigType> {
 
-  public HostConverter(AmbariClient client) {
+  public ConfigTypeConverter(AmbariClient client) {
     super(client);
   }
 
   @Override
   public boolean supports(Class<?> type, String s) {
-    return Host.class.isAssignableFrom(type);
+    return ConfigType.class.isAssignableFrom(type);
   }
 
   @Override
-  public boolean getAllPossibleValues(List<Completion> completions, Class<?> targetType, String existingData, String optionContext, MethodTarget target) {
-    return getAllPossibleValues(completions, getClient().getHostNames().keySet());
+  public boolean getAllPossibleValues(List<Completion> completions, Class<?> aClass, String s, String s2, MethodTarget methodTarget) {
+    return getAllPossibleValues(completions, getClient().getServiceConfigMap().keySet());
   }
 }

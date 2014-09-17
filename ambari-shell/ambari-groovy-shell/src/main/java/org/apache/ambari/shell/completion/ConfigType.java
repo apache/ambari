@@ -18,11 +18,11 @@
 package org.apache.ambari.shell.completion;
 
 /**
- * Wrapper class for TAB completion to host names.
+ * Wrapper class for TAB completion to config names.
  */
-public class Host extends AbstractCompletion {
+public class ConfigType extends AbstractCompletion {
 
-  public Host(String name) {
+  public ConfigType(String name) {
     super(name);
   }
 

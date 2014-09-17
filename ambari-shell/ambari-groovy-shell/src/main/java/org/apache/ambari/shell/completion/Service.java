@@ -17,15 +17,13 @@
  */
 package org.apache.ambari.shell.completion;
 
-public class Service {
-
-  private final String name;
+/**
+ * Wrapper class for TAB completion to service names.
+ */
+public class Service extends AbstractCompletion {
 
   public Service(String name) {
-    this.name = name;
+    super(name);
   }
 
-  public String getName() {
-    return name;
-  }
 }
