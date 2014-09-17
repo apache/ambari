@@ -88,6 +88,16 @@ class TestHiveServer(RMFTestCase):
                               hdfs_user='hdfs'
     )
 
+    self.assertResourceCalled('CopyFromLocal', '/usr/lib/tez/tez*.tar.gz',
+                              mode=0755,
+                              owner='tez',
+                              dest_dir='/apps/tez/',
+                              dest_file='tez.tar.gz',
+                              kinnit_if_needed='',
+                              hadoop_conf_dir='/etc/hadoop/conf',
+                              hdfs_user='hdfs'
+    )
+
     self.assertResourceCalled('CopyFromLocal', '/usr/lib/tez/lib/*.jar',
                               mode=0755,
                               owner='tez',

@@ -27,6 +27,7 @@ class CopyFromLocalProvider(Provider):
   def action_run(self):
     path = self.resource.path
     dest_dir = self.resource.dest_dir
+    dest_file = self.resource.dest_file
     kinnit_if_needed = self.resource.kinnit_if_needed
     owner = self.resource.owner
     group = self.resource.group
@@ -34,9 +35,14 @@ class CopyFromLocalProvider(Provider):
     hdfs_usr=self.resource.hdfs_user
     hadoop_conf_path = self.resource.hadoop_conf_dir
 
-    copy_cmd = format("fs -copyFromLocal {path} {dest_dir}")
-    dest_file_name = os.path.split(path)[1]
-    dest_path = dest_dir + dest_file_name if dest_dir.endswith(os.sep) else dest_dir + os.sep + dest_file_name
+
+    if dest_file:
+      copy_cmd = format("fs -copyFromLocal {path} {dest_dir}/{dest_file}")
+      dest_path = dest_dir + dest_file if dest_dir.endswith(os.sep) else dest_dir + os.sep + dest_file
+    else:
+      dest_file_name = os.path.split(path)[1]
+      copy_cmd = format("fs -copyFromLocal {path} {dest_dir}")
+      dest_path = dest_dir + os.sep + dest_file_name
     # Need to run unless as resource user
     su_cmd = 'su - {0} -c'.format(owner)
     unless_cmd = format("{su_cmd} '{kinnit_if_needed} hadoop fs -ls {dest_path}' >/dev/null 2>&1")
