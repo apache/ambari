@@ -21,6 +21,9 @@ package org.apache.ambari.view.slider.rest;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -88,11 +91,25 @@ public class SliderAppsResource {
         JsonObject requestJson = requestContent.getAsJsonObject();
         if (requestJson.has("state")) {
           String newState = requestJson.get("state").getAsString();
-          if ("FROZEN".equals(newState))
+          if ("FROZEN".equals(newState)) {
             sliderAppsViewController.freezeApp(appId);
-          else if ("RUNNING".equals(newState))
+            return Response.ok().build();
+          } else if ("RUNNING".equals(newState)) {
             sliderAppsViewController.thawApp(appId);
+            return Response.ok().build();
+          }
         } else if (requestJson.has("components")) {
+          Map<String, Integer> componentsMap = new HashMap<String, Integer>();
+          JsonObject componentsJson = requestJson.get("components")
+              .getAsJsonObject();
+          for (Entry<String, JsonElement> e : componentsJson.entrySet()) {
+            String componentName = e.getKey();
+            int instanceCount = e.getValue().getAsJsonObject()
+                .get("instanceCount").getAsInt();
+            componentsMap.put(componentName, instanceCount);
+          }
+          sliderAppsViewController.flexApp(appId, componentsMap);
+          return Response.ok().build();
         }
       }
       String sliderApp = sliderAppsViewController

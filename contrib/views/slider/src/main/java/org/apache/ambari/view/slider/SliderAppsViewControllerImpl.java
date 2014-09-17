@@ -26,7 +26,6 @@ import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.security.PrivilegedExceptionAction;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -44,7 +43,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.filefilter.RegexFileFilter;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hdfs.HdfsConfiguration;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.yarn.api.records.ApplicationId;
@@ -58,6 +56,7 @@ import org.apache.slider.api.ClusterDescription;
 import org.apache.slider.client.SliderClient;
 import org.apache.slider.common.SliderKeys;
 import org.apache.slider.common.params.ActionCreateArgs;
+import org.apache.slider.common.params.ActionFlexArgs;
 import org.apache.slider.common.params.ActionFreezeArgs;
 import org.apache.slider.common.params.ActionInstallPackageArgs;
 import org.apache.slider.common.params.ActionThawArgs;
@@ -250,10 +249,12 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
                 List<SliderAppType> appTypes = getSliderAppTypes(null);
                 if (appTypes != null && appTypes.size() > 0) {
                   for (SliderAppType appType : appTypes) {
-                    logger.info("TYPE: " + appType.getTypeName() + "   "
-                        + app.getType());
-                    logger.info("VERSION: " + appType.getTypeVersion() + "   "
-                        + app.getAppVersion());
+                    if (logger.isDebugEnabled()) {
+                      logger.debug("TYPE: " + appType.getTypeName() + "   "
+                          + app.getType());
+                      logger.debug("VERSION: " + appType.getTypeVersion() + "   "
+                          + app.getAppVersion());
+                    }
                     if ((appType.getTypeName() != null && appType.getTypeName()
                         .equalsIgnoreCase(app.getType()))
                         && (appType.getTypeVersion() != null && appType
@@ -588,6 +589,8 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
                 appTypeComponent.setName(component.getName());
                 appTypeComponent.setYarnMemory(1024);
                 appTypeComponent.setYarnCpuCores(1);
+                // Updated below if present in resources.json
+                appTypeComponent.setInstanceCount(1);
                 // appTypeComponent.setPriority(component.);
                 if (component.getMinInstanceCount() != null) {
                   appTypeComponent.setInstanceCount(Integer.parseInt(component
@@ -819,4 +822,33 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
     });
     logger.info("Thawed Slider App [" + appId + "] with response: " + applicationId.toString());
   }
+
+  @Override
+  public void flexApp(final String appId, final Map<String, Integer> componentsMap)
+      throws YarnException, IOException, InterruptedException {
+    ApplicationId applicationId = invokeSliderClientRunnable(new SliderClientContextRunnable<ApplicationId>() {
+      @Override
+      public ApplicationId run(SliderClient sliderClient) throws YarnException,
+          IOException, InterruptedException {
+        Set<String> properties = new HashSet<String>();
+        properties.add("id");
+        properties.add("name");
+        final SliderApp sliderApp = getSliderApp(appId, properties);
+        if (sliderApp == null) {
+          throw new ApplicationNotFoundException(appId);
+        }
+        ActionFlexArgs flexArgs = new ActionFlexArgs();
+        flexArgs.parameters.add(sliderApp.getName());
+        for (Entry<String, Integer> e : componentsMap.entrySet()) {
+          flexArgs.componentDelegate.componentTuples.add(e.getKey());
+          flexArgs.componentDelegate.componentTuples.add(e.getValue()
+              .toString());
+        }
+        sliderClient.actionFlex(sliderApp.getName(), flexArgs);
+        return sliderClient.applicationId;
+      }
+    });
+    logger.info("Flexed Slider App [" + appId + "] with response: " + applicationId);
+  }
+
 }
