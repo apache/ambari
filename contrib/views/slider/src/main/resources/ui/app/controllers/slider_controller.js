@@ -100,10 +100,12 @@ App.SliderController = Ember.Controller.extend(App.RunPeriodically, {
   getParametersFromViewPropertiesSuccessCallback: function(data) {
     var properties = Em.get(data, 'ViewInstanceInfo.properties'),
       initialValuesToLoad = this.get('initialValuesToLoad');
-    if (Em.isEmpty(properties)) {
+    if (properties == null || properties['hdfs.address'] == null
+        || properties['yarn.resourcemanager.address'] == null
+        || properties['yarn.resourcemanager.scheduler.address'] == null
+        || properties['zookeeper.quorum'] == null) {
       this.getClusterName();
-    }
-    else {
+    } else {
       initialValuesToLoad.setProperties({
         ambariAddress: location.protocol + "//" + document.location.host,
         hdfsAddress: properties['hdfs.address'],
