@@ -18,7 +18,6 @@
 package org.apache.ambari.server.controller.internal;
 
 import com.google.gson.Gson;
-import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 import com.google.inject.persist.Transactional;
@@ -213,6 +212,7 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
       clusterHostInfo = StageUtils.getClusterHostInfo(managementController.getClusters().getHostsForCluster(cluster.getClusterName()), cluster);
       serviceInfo = managementController.getAmbariMetaInfo().getServiceInfo(stackId.getStackName(),
               stackId.getStackVersion(), serviceName);
+      clusterHostInfo = substituteHostIndexes(clusterHostInfo);
       osFamily = clusters.getHost(hostName).getOsFamily();
 
       TreeMap<String, String> hostLevelParams = new TreeMap<String, String>();
@@ -248,11 +248,11 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
       }
       String packageList = gson.toJson(packages);
       hostLevelParams.put(PACKAGE_LIST, packageList);
-      
+
       Set<String> userSet = configHelper.getPropertyValuesWithPropertyType(stackId, PropertyType.USER, cluster);
       String userList = gson.toJson(userSet);
       hostLevelParams.put(USER_LIST, userList);
-      
+
       Set<String> groupSet = configHelper.getPropertyValuesWithPropertyType(stackId, PropertyType.GROUP, cluster);
       String groupList = gson.toJson(groupSet);
       hostLevelParams.put(GROUP_LIST, groupList);
@@ -322,6 +322,35 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
     }
 
     return resources;
+  }
+
+  private static Map<String, Set<String>> substituteHostIndexes(Map<String, Set<String>> clusterHostInfo) throws SystemException {
+    Set<String> keysToSkip = new HashSet<String>(Arrays.asList("all_hosts", "all_ping_ports",
+            "ambari_server_host"));
+    String[] allHosts = {};
+    if (clusterHostInfo.get("all_hosts") != null) {
+      allHosts = clusterHostInfo.get("all_hosts").toArray(new String[clusterHostInfo.get("all_hosts").size()]);
+    }
+    Set<String> keys = clusterHostInfo.keySet();
+    for (String key : keys) {
+      if (keysToSkip.contains(key)) {
+        continue;
+      }
+      Set<String> hosts = new HashSet<String>();
+      Set<String> currentHostsIndexes = clusterHostInfo.get(key);
+      if (currentHostsIndexes == null) {
+        continue;
+      }
+      for (String hostIndex : currentHostsIndexes) {
+        try {
+          hosts.add(allHosts[Integer.parseInt(hostIndex)]);
+        } catch (ArrayIndexOutOfBoundsException ex) {
+          throw new SystemException("Failed to fill cluster host info  ", ex);
+        }
+      }
+      clusterHostInfo.put(key, hosts);
+    }
+    return clusterHostInfo;
   }
 
   @Override

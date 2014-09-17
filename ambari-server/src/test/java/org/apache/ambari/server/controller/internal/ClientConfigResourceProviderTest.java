@@ -26,6 +26,7 @@ import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.state.*;
 import org.apache.ambari.server.state.PropertyInfo;
+import org.apache.ambari.server.utils.StageUtils;
 import org.easymock.EasyMock;
 import org.junit.Assert;
 import org.junit.Test;
@@ -36,6 +37,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.File;
 import java.io.PrintWriter;
+import java.lang.reflect.Method;
 import java.util.*;
 
 import static org.easymock.EasyMock.*;
@@ -44,7 +46,7 @@ import static org.easymock.EasyMock.*;
  * TaskResourceProvider tests.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest( {ClientConfigResourceProvider.class} )
+@PrepareForTest( {ClientConfigResourceProvider.class, StageUtils.class} )
 public class ClientConfigResourceProviderTest {
   @Test
   public void testCreateResources() throws Exception {
@@ -218,16 +220,28 @@ public class ClientConfigResourceProviderTest {
     expect(clusterConfig.getType()).andReturn(Configuration.HIVE_CONFIG_TAG).anyTimes();
     expect(configHelper.getEffectiveConfigAttributes(cluster, configTags)).andReturn(attributes);
     expect(configuration.getProperty("server.tmp.dir")).andReturn(Configuration.SERVER_TMP_DIR_DEFAULT);
-    //!!!!
     Map<String,String> props = new HashMap<String, String>();
     props.put(Configuration.HIVE_METASTORE_PASSWORD_PROPERTY, "pass");
     props.put("key","value");
     expect(clusterConfig.getProperties()).andReturn(props);
     expect(configHelper.getEffectiveDesiredTags(cluster, hostName)).andReturn(allConfigTags);
-    //!!!!
     expect(cluster.getClusterName()).andReturn(clusterName);
     expect(managementController.getHostComponents((Set<ServiceComponentHostRequest>) anyObject())).andReturn(responses).anyTimes();
     expect(cluster.getCurrentStackVersion()).andReturn(stackId);
+
+    PowerMock.mockStaticPartial(StageUtils.class, "getClusterHostInfo");
+    Map<String, Set<String>> clusterHostInfo = new HashMap<String, Set<String>>();
+    Set<String> all_hosts = new HashSet<String>(Arrays.asList("Host100","Host101","Host102"));
+    Set<String> some_hosts = new HashSet<String>(Arrays.asList("0","2"));
+    Set<String> clusterHostTypes = new HashSet<String>(Arrays.asList("nm_hosts", "hs_host",
+            "namenode_host", "rm_host", "snamenode_host", "slave_hosts", "zookeeper_hosts"));
+    for (String hostTypes: clusterHostTypes) {
+      clusterHostInfo.put(hostTypes,some_hosts);
+    }
+    Map<String, Host> stringHostMap = new HashMap<String, Host>();
+    stringHostMap.put(hostName, host);
+    clusterHostInfo.put("all_hosts",all_hosts);
+    expect(StageUtils.getClusterHostInfo(stringHostMap,cluster)).andReturn(clusterHostInfo);
 
     expect(stackId.getStackName()).andReturn(stackName).anyTimes();
     expect(stackId.getStackVersion()).andReturn(stackVersion).anyTimes();
@@ -242,10 +256,6 @@ public class ClientConfigResourceProviderTest {
     expect(ambariMetaInfo.getStackRoot()).andReturn(new File(stackRoot));
     expect(cluster.getAllConfigs()).andReturn(clusterConfigs);
     expect(clusters.getHostsForCluster(clusterName)).andReturn(hosts);
-    expect(cluster.getServices()).andReturn(services);
-    expect(service.getServiceComponents()).andReturn(serviceComponentMap);
-    expect(serviceComponent.getName()).andReturn(componentName);
-    expect(serviceComponent.getServiceComponentHosts()).andReturn(serviceComponentHosts);
     expect(clusters.getHost(hostName)).andReturn(host);
 
     HashMap<String, String> rcaParams = new HashMap<String, String>();
