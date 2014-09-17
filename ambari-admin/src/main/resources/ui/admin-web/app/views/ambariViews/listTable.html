@@ -45,7 +45,22 @@
             <i class="glyphicon glyphicon-chevron-right" ng-class="{'opened': view.isOpened}"></i>
             {{view.view_name}}
           </div>
-          <div class="col-sm-3">{{view.versions}}</div>
+          <div class="col-sm-3">
+            <span ng-repeat="(version, vData) in view.versions">
+              {{version}}
+                <span ng-switch="vData.status">
+                  <span ng-switch-when="PENDING" class="viewstatus pending" ng-switch-when="true" tooltip="Pending..."></span>
+                  <div class="viewstatus deploying" ng-switch-when="DEPLOYING" tooltip="Deploying...">
+                    <div class="rect1"></div>
+                    <div class="rect2"></div>
+                    <div class="rect3"></div>
+                  </div>
+                  <span ng-switch-when="DEPLOYED">({{vData.count}})</span>
+                  <span ng-switch-when="ERROR" tooltip="Error deploying. Check Ambari Server log."><i class="fa fa-exclamation-triangle"></i></span>
+                </span>
+              {{$last ? '' : ', '}}
+            </span>
+          </div>
           <div class="col-sm-6">{{view.description}}</div>
         </div>
       </accordion-heading>
@@ -65,7 +80,7 @@
           <tr>
             <td class="col-sm-3"></td>
             <td class="col-sm-3">
-              <a class="btn btn-default createisntance-btn" href="#/views/{{view.view_name}}/versions/{{view.versionsList[view.versionsList.length-1].ViewVersionInfo.version}}/new"><span class="glyphicon glyphicon-plus" ></span> Create Instance</a>
+              <a class="btn btn-default createisntance-btn {{view.canCreateInstance ? '' : 'disabled'}}" href="#/views/{{view.view_name}}/versions/{{view.versionsList[view.versionsList.length-1].ViewVersionInfo.version}}/new"><span class="glyphicon glyphicon-plus" ></span> Create Instance</a>
             </td>
             <td class="col-sm-3"></td>
             <td class="col-sm-3">

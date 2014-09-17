@@ -55,9 +55,13 @@ angular.module('ambariAdminConsole')
     self.view_name = item.ViewInfo.view_name;
     self.versions = '';
     self.instances = [];
+    self.canCreateInstance = false;
     var versions = {};
     angular.forEach(item.versions, function(version) {
-      versions[version.ViewVersionInfo.version] = version.instances.length;
+      versions[version.ViewVersionInfo.version] = {count: version.instances.length, status: version.ViewVersionInfo.status};
+      if(version.ViewVersionInfo.status === 'DEPLOYED'){ // if atelast one version is deployed
+        self.canCreateInstance = true;
+      }
       
       angular.forEach(version.instances, function(instance) {
         instance.label = instance.ViewInstanceInfo.label || version.ViewVersionInfo.label || instance.ViewInstanceInfo.view_name;
@@ -65,14 +69,8 @@ angular.module('ambariAdminConsole')
 
       self.instances = self.instances.concat(version.instances);
     });
+    self.versions = versions;
 
-    for(var ver in versions){
-      if(versions.hasOwnProperty(ver)){
-        self.versions += (self.versions ? ', ' : '') + ver +' ('+versions[ver]+')';
-      }
-    }
-
-    // self.isOpened = !self.instances.length;
     self.versionsList = item.versions;
   }
 
@@ -145,7 +143,7 @@ angular.module('ambariAdminConsole')
 
     $http({
       method: 'GET',
-      url: Settings.baseUrl + '/views/'+viewName
+      url: Settings.baseUrl + '/views/'+viewName + '?versions/ViewVersionInfo/status=DEPLOYED'
     }).success(function(data) {
       var versions = [];
       angular.forEach(data.versions, function(version) {
