@@ -21,9 +21,9 @@
     <div class="panel-body">
       <div ng-show="cluster">
         <div id="cluster-name"  ng-switch on="editCluster.editingName">
-          <h4 ng-switch-when="false">{{cluster.Clusters.cluster_name}}
+          <h5 ng-switch-when="false">{{cluster.Clusters.cluster_name}}
             <i ng-click="toggleEditName()" class="glyphicon glyphicon-edit pull-right edit-cluster-name" tooltip="Rename Cluster"></i>
-          </h4>
+          </h5>
 
           <form ng-keyup="toggleEditName($event)" tabindex="1" name="editClusterNameForm" class="editClusterNameForm" ng-switch-when="true"
                 ng-submit="editCluster.name !== cluster.Clusters.cluster_name && editClusterNameForm.newClusterName.$valid && confirmClusterNameChange()">

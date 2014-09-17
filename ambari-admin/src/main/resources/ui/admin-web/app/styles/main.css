@@ -112,6 +112,7 @@
 .editable-list-container.edit-mode .items-box ul.items-list li.item.add-item-input{
   display: inline-block!important;
   outline: none;
+  line-height: 20px;
   max-width: 200px;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -445,24 +446,25 @@
 
 .left-navbar .panel{
   border-radius: 0;
-  font-size: 15px;
 }
 .left-navbar .panel-heading {
   padding: 8px 15px;
-  font-weight: bold;
+  font-size: 15px;
 }
 .left-navbar .panel-body {
   padding: 5px 15px;
+  font-size: 14px;
 }
 .left-navbar .panel-body #cluster-name input{
-  font-size: 17px;
+  font-size: 14px;
 }
 .left-navbar .panel-body #cluster-name form{
   margin-top: 4px;
-  margin-bottom: -10px;
+  margin-bottom: -12px;
 }
-.left-navbar .panel-body h4 .glyphicon{
-  font-size: 14px;
+.left-navbar .panel-body h5 .glyphicon{
+  font-size: 13px;
+  color: #428bca;
 }
 .left-navbar .panel-body #LDAP-button {
   padding: 5px;
