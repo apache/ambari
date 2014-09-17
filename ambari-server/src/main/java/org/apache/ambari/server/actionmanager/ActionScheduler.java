@@ -217,15 +217,27 @@ class ActionScheduler implements Runnable {
       }
       int i_stage = 0;
       
-      
       stages = filterParallelPerHostStages(stages);
-      
+
+      boolean exclusiveRequestIsGoing = false;
+      // This loop greatly depends on the fact that order of stages in
+      // a list does not change between invocations
       for (Stage s : stages) {
         // Check if we can process this stage in parallel with another stages
         i_stage ++;
-
         long requestId = s.getRequestId();
         LOG.debug("==> STAGE_i = " + i_stage + "(requestId=" + requestId + ",StageId=" + s.getStageId() + ")");
+        Request request = db.getRequest(requestId);
+
+        if (request.isExclusive()) {
+          if (runningRequestIds.size() > 0 ) {
+            // As a result, we will wait until any previous stages are finished
+            LOG.debug("Stage requires exclusive execution, but other requests are already executing. Stopping for now");
+            break;
+          }
+          exclusiveRequestIsGoing = true;
+        }
+
         if (runningRequestIds.contains(requestId)) {
           // We don't want to process different stages from the same request in parallel
           LOG.debug("==> We don't want to process different stages from the same request in parallel" );
@@ -237,8 +249,6 @@ class ActionScheduler implements Runnable {
             db.startRequest(requestId);
           }
         }
-
-        
 
         // Commands that will be scheduled in current scheduler wakeup
         List<ExecutionCommand> commandsToSchedule = new ArrayList<ExecutionCommand>();
@@ -343,6 +353,12 @@ class ActionScheduler implements Runnable {
 
         if (! configuration.getParallelStageExecution()) { // If disabled
           return;
+        }
+
+        if (exclusiveRequestIsGoing) {
+          // As a result, we will prevent any further stages from being executed
+          LOG.debug("Stage requires exclusive execution, skipping all executing any further stages");
+          break;
         }
       }
 

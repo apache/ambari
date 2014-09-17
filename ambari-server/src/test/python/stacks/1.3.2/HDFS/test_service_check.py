@@ -57,7 +57,7 @@ class TestServiceCheck(RMFTestCase):
         conf_dir = '/etc/hadoop/conf',
         bin_dir = '/usr/bin',
         logoutput = True,
-        not_if = 'hadoop --config /etc/hadoop/conf fs -test -e /tmp',
+        not_if = 'su - ambari-qa -c \'hadoop --config /etc/hadoop/conf fs -test -e /tmp\'',
         try_sleep = 3,
         tries = 5,
         user = 'ambari-qa',

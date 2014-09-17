@@ -29,9 +29,43 @@
  * If Slider-properties exists:
  *  - Load cluster name
  *  - Load hostNames
+ * After whole data has been loaded set <code>App.sliderConfigs</code> and enable/disable Slider
  * @type {Ember.Controller}
  */
-App.SliderController = Ember.Controller.extend({
+App.SliderController = Ember.Controller.extend(App.RunPeriodically, {
+
+  /**
+   * Map for Slider-errors
+   * If some config is empty, service isn't installed
+   * @type {object}
+   */
+  serviceConfigMap: {
+    HDFS: 'hdfsAddress',
+    YARN: 'yarnResourceManager',
+    ZOOKEEPER: 'zookeeperQuorum'
+  },
+
+  /**
+   * List of Slider-properties mapped from Ambari-configs
+   * Key-names used in Slider-Title-Popup, so don't change it pls
+   * @type {Em.Object}
+   */
+  initialValuesToLoad: Em.Object.create({
+    ambariAddress: null,
+    clusterName: null,
+    hdfsAddress: null,
+    yarnResourceManager: null,
+    yarnResourceManagerScheduler: null,
+    zookeeperQuorum: null,
+    gangliaServer: null,
+    gangliaClusters: null
+  }),
+
+  /**
+   * List of host names with ZOOKEEPER_SERVER installed
+   * @type {string[]}
+   */
+  zookeeperHosts: [],
 
   /**
    *  Load resources on controller initialization
@@ -40,25 +74,6 @@ App.SliderController = Ember.Controller.extend({
   initResources: function () {
     this.getParametersFromViewProperties();
   },
-
-  /**
-   * List of Slider-properties mapped from Ambari-configs
-   * @type {Em.Object}
-   */
-  initialValuesToLoad: Em.Object.create({
-    ambariAddress: null,
-    clusterName: null,
-    hdfsAddress: null,
-    yarnRMAddress: null,
-    yarnRMSchedulerAddress: null,
-    zookeeperQuorum: null
-  }),
-
-  /**
-   * List of host names with ZOOKEEPER_SERVER installed
-   * @type {string[]}
-   */
-  zookeeperHosts: [],
 
   /**
    * Get Slider properties from View-parameters (set in the Ambari Admin View)
@@ -71,20 +86,46 @@ App.SliderController = Ember.Controller.extend({
       name: 'slider.getViewParams',
       sender: this,
       success: 'getParametersFromViewPropertiesSuccessCallback',
-      error: 'getClusterName'
+      error: 'getParametersFromViewPropertiesErrorCallback'
     });
   },
 
   /**
    * Check if Slider-properties exist
+   * If exist - set Slider properties using view-configs
    * If not - get Ambari configs to populate Slider properties
    * @param {object} data
    * @method getParametersFromViewPropertiesSuccessCallback
    */
   getParametersFromViewPropertiesSuccessCallback: function(data) {
     var properties = Em.get(data, 'ViewInstanceInfo.properties'),
-      loadConfigs = Em.isNone(properties);
-      this.getClusterName(loadConfigs);
+      initialValuesToLoad = this.get('initialValuesToLoad');
+    if (properties == null || properties['hdfs.address'] == null
+        || properties['yarn.resourcemanager.address'] == null
+        || properties['yarn.resourcemanager.scheduler.address'] == null
+        || properties['zookeeper.quorum'] == null) {
+      this.getClusterName();
+    } else {
+      initialValuesToLoad.setProperties({
+        ambariAddress: location.protocol + "//" + document.location.host,
+        hdfsAddress: properties['hdfs.address'],
+        yarnResourceManager: properties['yarn.resourcemanager.address'],
+        yarnResourceManagerScheduler: properties['yarn.resourcemanager.scheduler.address'],
+        zookeeperQuorum: properties['zookeeper.quorum'],
+        gangliaServer: properties['ganglia.server.hostname'],
+        gangliaClusters: properties['ganglia.custom.clusters']
+      });
+      App.set('gangliaHost', properties['ganglia.server.hostname']);
+      this.finishSliderConfiguration();
+    }
+  },
+
+  /**
+   * Error-callback for Slider-parameters request
+   * @method getParametersFromViewPropertiesErrorCallback
+   */
+  getParametersFromViewPropertiesErrorCallback: function() {
+    this.getClusterName();
   },
 
   /**
@@ -92,14 +133,12 @@ App.SliderController = Ember.Controller.extend({
    * @returns {$.ajax}
    * @method getClusterName
    */
-  getClusterName: function (loadConfigs) {
-    if (Em.isNone(loadConfigs)) loadConfigs = true;
+  getClusterName: function () {
     return App.ajax.send({
       name: 'cluster_name',
       sender: this,
       data: {
-        urlPrefix: '/api/v1/',
-        loadConfigs: loadConfigs
+        urlPrefix: '/api/v1/'
       },
       success: 'getClusterNameSuccessCallback'
     });
@@ -115,13 +154,10 @@ App.SliderController = Ember.Controller.extend({
   getClusterNameSuccessCallback: function (data, opt, params) {
     var clusterName = Em.get(data.items[0], 'Clusters.cluster_name');
     App.set('clusterName', clusterName);
-    App.ApplicationStatusMapper.loop('load');
     this.loadComponentHost({componentName: "GANGLIA_SERVER", callback: "loadGangliaHostSuccessCallback"});
     this.loadComponentHost({componentName: "NAGIOS_SERVER", callback: "loadNagiosHostSuccessCallback"});
     this.loadComponentHost({componentName: "ZOOKEEPER_SERVER", callback: "setZookeeperQuorum"});
-    if(params.loadConfigs) {
-      this.loadConfigsTags();
-    }
+    this.loadConfigsTags();
   },
 
   /**
@@ -182,8 +218,8 @@ App.SliderController = Ember.Controller.extend({
     initialValuesToLoad.set('ambariAddress', location.protocol + "//" + document.location.host);
     initialValuesToLoad.set('clusterName', App.get('clusterName'));
     initialValuesToLoad.set('hdfsAddress', hdfs.properties['fs.defaultFS']);
-    initialValuesToLoad.set('yarnRMAddress', yarn.properties['yarn.resourcemanager.address']);
-    initialValuesToLoad.set('yarnRMSchedulerAddress', yarn.properties['yarn.resourcemanager.scheduler.address']);
+    initialValuesToLoad.set('yarnResourceManager', yarn.properties['yarn.resourcemanager.address']);
+    initialValuesToLoad.set('yarnResourceManagerScheduler', yarn.properties['yarn.resourcemanager.scheduler.address']);
     initialValuesToLoad.set('zookeeperQuorum', zookeeper.properties.clientPort);
     this.setZookeeperQuorum();
   },
@@ -238,13 +274,38 @@ App.SliderController = Ember.Controller.extend({
           ViewInstanceInfo: {
             properties: {
               'hdfs.address': initialValues.get('hdfsAddress'),
-              'yarn.resourcemanager.address': initialValues.get('yarnRMAddress'),
-              'yarn.resourcemanager.scheduler.address': initialValues.get('yarnRMSchedulerAddress'),
+              'yarn.resourcemanager.address': initialValues.get('yarnResourceManager'),
+              'yarn.resourcemanager.scheduler.address': initialValues.get('yarnResourceManagerScheduler'),
               'zookeeper.quorum': initialValues.get('zookeeperQuorum')
             }
           }
         }
+      },
+      success: 'finishSliderConfiguration'
+    });
+  },
+
+  /**
+   * After all Slider-configs are loaded, application should check self status
+   * @method finishSliderConfiguration
+   */
+  finishSliderConfiguration: function() {
+    //check if all services exist
+    var serviceConfigMap = this.get('serviceConfigMap'),
+      initialValuesToLoad = this.get('initialValuesToLoad'),
+      services = Em.keys(serviceConfigMap),
+      errors = [];
+    services.forEach(function(serviceName) {
+      var configName = Em.get(serviceConfigMap, serviceName);
+      if (Em.isEmpty(initialValuesToLoad[configName])) {
+        errors.push(Em.I18n.t('error.no' + serviceName));
       }
+    });
+    App.setProperties({
+      viewErrors: errors,
+      viewEnabled: errors.length === 0,
+      sliderConfigs: initialValuesToLoad,
+      mapperTime: new Date().getTime()
     });
   },
 

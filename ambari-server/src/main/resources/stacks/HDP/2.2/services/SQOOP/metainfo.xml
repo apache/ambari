@@ -20,9 +20,6 @@
   <services>
     <service>
       <name>SQOOP</name>
-      <comment>Tool for transferring bulk data between Apache Hadoop and
-        structured data stores such as relational databases
-      </comment>
       <version>1.4.5.2.9.9.9</version>
       <osSpecifics>
         <osSpecific>

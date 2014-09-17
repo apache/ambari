@@ -60,12 +60,6 @@ App.initializer({
       version: viewVersion,
 
       /**
-       * Version of SLIDER_1 resource
-       * @type {string}
-       */
-      resourcesVersion: '',
-
-      /**
        * @type {string}
        */
       instance: instanceName,
@@ -102,16 +96,35 @@ App.initializer({
        * Host with Ganglia Server
        * @type {string|null}
        */
-      gangliaHost: null
+      gangliaHost: null,
+
+      /**
+       * List of Ganglia clusters
+       * @type {array|null}
+       */
+      gangliaClusters: null,
+
+      /**
+       * View-configs set from ambari-admin
+       * Loaded in <code>App.SliderController</code>
+       * @type {null|object}
+       */
+      sliderConfigs: null,
+
+      /**
+       * Last time when mapper ran
+       * @type {null|number}
+       */
+      mapperTime: null
 
     });
-    application.SliderController.proto().initResources();
+    application.SliderController.proto().loop('initResources');
     application.ApplicationTypeMapper.loop('load');
     application.SliderAppsMapper.loop('load');
   }
 });
 
-// Load all modules in order automagically. Ember likes things to work this
+// Load all modules in order automatically. Ember likes things to work this
 // way so everything is in the App.* namespace.
 var folderOrder = [
     'initializers', 'mixins', 'routes', 'models', 'mappers',

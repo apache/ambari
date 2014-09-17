@@ -157,19 +157,33 @@ App.MainServiceItemController = Em.Controller.extend({
 
     return App.showConfirmationFeedBackPopup(function(query, runMmOperation) {
       self.set('isPending', true);
-      self.startStopPopupPrimary(serviceHealth, query, runMmOperation);
+      self.startStopWithMmode(serviceHealth, query, runMmOperation);
     }, bodyMessage);
   },
 
-  startStopPopupPrimary: function (serviceHealth, query, runMmOperation) {
-    var requestInfo = "";
-    var turnOnMM = "ON";
-    if (serviceHealth == "STARTED") {
-      turnOnMM = "OFF";
-      requestInfo = App.BackgroundOperationsController.CommandContexts.START_SERVICE.format(this.get('content.serviceName'));
+
+  startStopWithMmode: function(serviceHealth, query, runMmOperation) {
+    var self = this;
+    if (runMmOperation) {
+      if (serviceHealth == "STARTED") {
+        this.startStopPopupPrimary(serviceHealth, query).complete(function() {
+          batchUtils.turnOnOffPassiveRequest("OFF", Em.I18n.t('passiveState.turnOff'), self.get('content.serviceName').toUpperCase());
+        });
+      } else {
+        batchUtils.turnOnOffPassiveRequest("ON", Em.I18n.t('passiveState.turnOn'), this.get('content.serviceName').toUpperCase()).complete(function() {
+          self.startStopPopupPrimary(serviceHealth, query);
+        })
+      }
     } else {
-      requestInfo = App.BackgroundOperationsController.CommandContexts.STOP_SERVICE.format(this.get('content.serviceName'));
+      this.startStopPopupPrimary(serviceHealth, query);
     }
+
+  },
+
+  startStopPopupPrimary: function (serviceHealth, query) {
+    var requestInfo = (serviceHealth == "STARTED")
+        ? App.BackgroundOperationsController.CommandContexts.START_SERVICE.format(this.get('content.serviceName'))
+        : App.BackgroundOperationsController.CommandContexts.STOP_SERVICE.format(this.get('content.serviceName'));
 
     var data = {
       'context': requestInfo,
@@ -179,10 +193,8 @@ App.MainServiceItemController = Em.Controller.extend({
       },
       'query': query
     };
-    if (runMmOperation) {
-      data.ServiceInfo.maintenance_state = turnOnMM;
-    }
-    App.ajax.send({
+
+    return App.ajax.send({
       'name': 'common.service.update',
       'sender': this,
       'success': 'startStopPopupSuccessCallback',

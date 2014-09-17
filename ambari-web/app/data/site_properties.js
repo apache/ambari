@@ -517,6 +517,15 @@ module.exports =
       "category": "Advanced hive-site",
       "serviceName": "HIVE"
     },
+    {
+      "id": "site property",
+      "name": "hive.server2.support.dynamic.service.discovery",
+      "displayName": "hive.server2.support.dynamic.service.discovery",
+      "defaultValue": false,
+      "displayType": "checkbox",
+      "category": "Advanced hive-site",
+      "serviceName": "HIVE"
+    },
   /**********************************************hbase-site***************************************/
     {
       "id": "site property",

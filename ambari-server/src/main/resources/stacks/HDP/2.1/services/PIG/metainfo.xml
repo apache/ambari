@@ -20,7 +20,6 @@
   <services>
     <service>
       <name>PIG</name>
-      <comment>Scripting platform for analyzing large datasets</comment>
       <version>0.12.1.2.1</version>
     </service>
   </services>

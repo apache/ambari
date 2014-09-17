@@ -20,7 +20,6 @@
   <services>
     <service>
       <name>HDFS</name>
-      <comment>Apache Hadoop Distributed File System</comment>
       <version>2.6.0.2.2</version>
     </service>
   </services>

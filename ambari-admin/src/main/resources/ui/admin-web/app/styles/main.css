@@ -211,11 +211,48 @@
 }
 .mainpage .panel-body{
   padding: 20px;
-  height: 560px;
+  height: 620px;
 }
 .mainpage h1{
   font-size: 24px;
   margin-top: 10px;
+}
+.mainpage .panel-body #main-operations-boxes {
+  padding: 10px;
+}
+.mainpage .panel-body #main-operations-boxes .thumbnail{
+  display: block;
+  height: 230px;
+  padding: 8px;
+  background-color: #eeeeee;
+  margin-bottom: 20px;
+  margin-left: 20px;
+  margin-right: 10px;
+  border: none;
+  border-radius: 0px;
+}
+.mainpage .panel-body #main-operations-boxes .thumbnail .title,
+.mainpage .panel-body #main-operations-boxes .thumbnail .description,
+.mainpage .panel-body #main-operations-boxes .thumbnail .buttons {
+  text-align: center;
+  line-height: 1.5;
+}
+.mainpage .panel-body #main-operations-boxes .thumbnail .buttons .btn{
+  width: 200px;
+  margin: 5px;
+}
+.mainpage .panel-body #main-operations-boxes .thumbnail .buttons .btn.userslist-button,
+.mainpage .panel-body #main-operations-boxes .thumbnail .buttons .btn.groupslist-button {
+  width: 100px;
+}
+.mainpage .panel-body #main-operations-boxes .thumbnail .glyphicon {
+  font-size: 50px;
+  text-align: center;
+  display: block;
+  line-height: 1.5;
+}
+.mainpage .panel-body #main-operations-boxes .col-sm-5 {
+  width: 43.5%;
 }
 
 .views-list-table .panel{
@@ -487,6 +524,9 @@
   }
   .container{
     width: 1170px;
+  }
+  .mainpage .panel-body #main-operations-boxes .col-sm-5 {
+    width: 44%;
   }
 }
 

@@ -108,7 +108,6 @@ App.clusterStatus = Em.Object.create(App.UserPref, {
    * @method updateFromServer
    */
   updateFromServer: function (overrideLocaldb) {
-    // if overrideLocaldb is undefined, set it to true
     this.set('additionalData', {
       user: App.db.getUser(),
       login: App.db.getLoginName(),

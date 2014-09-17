@@ -57,7 +57,7 @@ Em.I18n.translations = {
   'error.startHDFS': 'Slider applications view requires HDFS service to be started.',
   'error.noYARN': 'Slider applications view requires YARN service.',
   'error.startYARN': 'Slider applications view requires YARN service to be started.',
-  'error.noZooKeeper': 'Slider applications view requires ZooKeeper service.',
+  'error.noZOOKEEPER': 'Slider applications view requires ZooKeeper service.',
   'error.startZOOKEEPER': 'Slider applications view requires ZooKeeper service to be started.',
 
   'popup.confirmation.commonHeader': 'Confirmation',

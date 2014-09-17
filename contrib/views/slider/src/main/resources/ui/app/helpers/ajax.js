@@ -32,7 +32,11 @@ var urls = {
 
   'slider.getViewParams': {
     real: '',
-    mock: '/data/resource/slider-properties.json'
+    mock: '/data/resource/slider-properties.json',
+    headers: {
+      Accept: "text/plain; charset=utf-8",
+      "Content-Type": "text/plain; charset=utf-8"
+    }
   },
 
   'mapper.applicationTypes': {

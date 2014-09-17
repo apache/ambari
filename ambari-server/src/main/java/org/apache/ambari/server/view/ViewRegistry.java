@@ -28,7 +28,6 @@ import org.apache.ambari.server.api.resources.ViewExternalSubResourceDefinition;
 import org.apache.ambari.server.api.services.ViewExternalSubResourceService;
 import org.apache.ambari.server.api.services.ViewSubResourceService;
 import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.controller.ControllerModule;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.orm.dao.MemberDAO;
 import org.apache.ambari.server.orm.dao.PrivilegeDAO;
@@ -101,6 +100,7 @@ public class ViewRegistry {
    * Constants
    */
   private static final String EXTRACTED_ARCHIVES_DIR = "work";
+  private static final String EXTRACT_COMMAND = "extract";
 
   /**
    * Thread pool
@@ -219,15 +219,31 @@ public class ViewRegistry {
    * Registry main method.
    *
    * @param args  the command line arguments
-   *
-   * @throws Exception if the registry command can not be completed
    */
-  public static void main(String[] args) throws Exception {
+  public static void main(String[] args) {
 
-    Injector injector = Guice.createInjector(new ControllerModule());
-    initInstance(injector.getInstance(ViewRegistry.class));
+    if (args.length >= 2) {
+      String archivePath = args[1];
 
-    singleton.readViewArchives(true, false);
+      try {
+        Injector injector = Guice.createInjector();
+
+        ViewExtractor      extractor      = injector.getInstance(ViewExtractor.class);
+        ViewArchiveUtility archiveUtility = injector.getInstance(ViewArchiveUtility.class);
+        Configuration      configuration  = injector.getInstance(Configuration.class);
+
+        if (args[0].equals(EXTRACT_COMMAND)) {
+          if (extractViewArchive(archivePath, extractor, archiveUtility, configuration, true)) {
+            System.exit(0);
+          }
+        }
+      } catch (Exception e) {
+        String msg = "Caught exception extracting view archive " + archivePath + ".";
+        LOG.error(msg, e);
+        System.exit(2);
+      }
+    }
+    System.exit(1);
   }
 
   /**
@@ -1227,6 +1243,43 @@ public class ViewRegistry {
       setViewStatus(viewDefinition, ViewEntity.ViewStatus.ERROR, msg + " : " + e.getMessage());
       LOG.error(msg, e);
     }
+  }
+
+  // extract the view archive for the given path.
+  protected static boolean extractViewArchive(String archivePath,
+                                            ViewExtractor extractor,
+                                            ViewArchiveUtility archiveUtility,
+                                            Configuration configuration,
+                                            boolean systemOnly ) throws Exception {
+
+    File viewDir = configuration.getViewsDir();
+
+    String extractedArchivesPath = viewDir.getAbsolutePath() +
+        File.separator + EXTRACTED_ARCHIVES_DIR;
+
+    if (extractor.ensureExtractedArchiveDirectory(extractedArchivesPath)) {
+
+      File archiveFile = archiveUtility.getFile(archivePath);
+
+      ViewConfig viewConfig = archiveUtility.getViewConfigFromArchive(archiveFile);
+
+      String commonName = viewConfig.getName();
+      String version    = viewConfig.getVersion();
+      String viewName   = ViewEntity.getViewName(commonName, version);
+
+      String extractedArchiveDirPath = extractedArchivesPath + File.separator + viewName;
+      File   extractedArchiveDirFile = archiveUtility.getFile(extractedArchiveDirPath);
+
+      if (!extractedArchiveDirFile.exists()) {
+        ViewEntity viewDefinition = new ViewEntity(viewConfig, configuration, extractedArchiveDirPath);
+
+        if (!systemOnly || viewDefinition.isSystem()) {
+          extractor.extractViewArchive(viewDefinition, archiveFile, extractedArchiveDirFile);
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   // set the status of the given view.

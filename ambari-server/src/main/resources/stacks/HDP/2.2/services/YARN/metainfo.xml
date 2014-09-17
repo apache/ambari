@@ -22,7 +22,6 @@
     <service>
       <name>YARN</name>
       <displayName>YARN</displayName>
-      <comment>Apache Hadoop NextGen MapReduce (YARN)</comment>
       <version>2.6.0.2.9.9.9</version>
       <components>
         <components>
@@ -51,7 +50,6 @@
     <service>
       <name>MAPREDUCE2</name>
       <displayName>MapReduce2</displayName>
-      <comment>Apache Hadoop NextGen MapReduce (YARN)</comment>
       <version>2.6.0.2.9.9.9</version>
       <osSpecifics>
         <osSpecific>

@@ -20,6 +20,7 @@ package org.apache.ambari.view.slider;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.hadoop.yarn.exceptions.YarnException;
@@ -90,4 +91,7 @@ public interface SliderAppsViewController {
 
   public void thawApp(String appId) throws YarnException, IOException,
       InterruptedException;
+
+  public void flexApp(String appId, Map<String, Integer> componentsMap)
+      throws YarnException, IOException, InterruptedException;
 }

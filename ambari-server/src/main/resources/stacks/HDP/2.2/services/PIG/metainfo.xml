@@ -21,7 +21,6 @@
     <service>
       <name>PIG</name>
       <displayName>Pig</displayName>
-      <comment>Scripting platform for analyzing large datasets</comment>
       <version>0.14.0.2.9.9.9</version>
       <osSpecifics>
         <osSpecific>

@@ -58,7 +58,7 @@
         <tbody>
           {{#each controller.model.components}}
           <tr>
-            <td>{{componentName}}</td>
+            <td><span {{bind-attr class="isRunning:icon-ok-sign:icon-warning-sign :status"}}></span> {{componentName}}</td>
             <td>{{host}}</td>
           </tr>
           {{/each}}

@@ -70,6 +70,7 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
   protected static final String REQUEST_CREATE_TIME_ID = "Requests/create_time";
   protected static final String REQUEST_START_TIME_ID = "Requests/start_time";
   protected static final String REQUEST_END_TIME_ID = "Requests/end_time";
+  protected static final String REQUEST_EXCLUSIVE_ID = "Requests/exclusive";
   protected static final String REQUEST_TASK_CNT_ID = "Requests/task_count";
   protected static final String REQUEST_FAILED_TASK_CNT_ID = "Requests/failed_task_count";
   protected static final String REQUEST_ABORTED_TASK_CNT_ID = "Requests/aborted_task_count";
@@ -83,6 +84,7 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
   protected static final String HOSTS_ID = "hosts";
   protected static final String ACTION_ID = "action";
   protected static final String INPUTS_ID = "parameters";
+  protected static final String EXLUSIVE_ID = "exclusive";
   private static Set<String> pkPropertyIds =
       new HashSet<String>(Arrays.asList(new String[]{
           REQUEST_ID_PROPERTY_ID}));
@@ -317,13 +319,19 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
         params.put(key.substring(keyPrefix.length()), requestInfoProperties.get(key));
       }
     }
+
+    boolean exclusive = false;
+    if (requestInfoProperties.containsKey(EXLUSIVE_ID)) {
+      exclusive = Boolean.valueOf(requestInfoProperties.get(EXLUSIVE_ID).trim());
+    }
+
     return new ExecuteActionRequest(
       (String) propertyMap.get(REQUEST_CLUSTER_NAME_PROPERTY_ID),
       commandName,
       actionName,
       resourceFilterList,
       operationLevel,
-      params);
+      params, exclusive);
   }
 
   // Get all of the request resources for the given properties
@@ -422,6 +430,8 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
     setResourceProperty(resource, REQUEST_CREATE_TIME_ID, request.getCreateTime(), requestedPropertyIds);
     setResourceProperty(resource, REQUEST_START_TIME_ID, request.getStartTime(), requestedPropertyIds);
     setResourceProperty(resource, REQUEST_END_TIME_ID, request.getEndTime(), requestedPropertyIds);
+    setResourceProperty(resource, REQUEST_EXCLUSIVE_ID, request.isExclusive(), requestedPropertyIds);
+
     if (request.getRequestScheduleId() != null) {
       setResourceProperty(resource, REQUEST_SOURCE_SCHEDULE_ID, request.getRequestScheduleId(), requestedPropertyIds);
     } else {
