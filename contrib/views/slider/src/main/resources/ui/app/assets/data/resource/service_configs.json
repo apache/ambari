@@ -19,7 +19,7 @@
             "rrdcached_flush_timeout" : "7200",
             "gmond_user" : "nobody",
             "ganglia_runtime_dir" : "/var/run/ganglia/hdp",
-            "ganglia_custom_clusters": "'HBaseCluster1','7000','AccumuloCluster1','7001','HBaseCluster2','7002'"
+            "additional_clusters": "'HBaseCluster1','7000','AccumuloCluster1','7001','HBaseCluster2','7002'"
           },
           "properties_attributes" : { }
         }

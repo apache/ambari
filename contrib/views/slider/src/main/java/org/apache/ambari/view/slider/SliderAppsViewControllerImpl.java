@@ -319,9 +319,17 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
                               containerId, containerDataMap);
                         }
                       }
+                      // Set total instances count from statistics
                       appComponent.setInstanceCount(appComponent
                           .getActiveContainers().size()
                           + appComponent.getCompletedContainers().size());
+                      if (description.statistics != null
+                          && description.statistics.containsKey(componentEntry.getKey())) {
+                        Map<String, Integer> statisticsMap = description.statistics.get(componentEntry.getKey());
+                        if (statisticsMap.containsKey("containers.desired")) {
+                          appComponent.setInstanceCount(statisticsMap.get("containers.desired"));
+                        }
+                      }
                     }
                   }
                   app.setAlerts(sliderAlerts.generateComponentsAlerts(componentTypeMap, app.getType()));

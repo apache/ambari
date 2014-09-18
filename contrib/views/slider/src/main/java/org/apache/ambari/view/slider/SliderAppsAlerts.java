@@ -66,8 +66,23 @@ public class SliderAppsAlerts {
     HashMap<AlertField,Object> alertItem = new HashMap<AlertField, Object>();
     Date date = Calendar.getInstance().getTime();
 
-
-    AlertState state = getComponentState(component);
+    int totalContainerCount = component.getInstanceCount();
+    int activeContainerCount = component.getActiveContainers() != null ? component
+        .getActiveContainers().size() : 0;
+    AlertState state = AlertState.UNKNOWN;
+    String message = String.format("%s out of %s active", activeContainerCount,
+        totalContainerCount);
+    if (totalContainerCount == activeContainerCount || totalContainerCount < 1) {
+      // Everything OK
+      state = AlertState.OK;
+    } else {
+      float fraction = (float) activeContainerCount / (float) totalContainerCount;
+      if (fraction <= 0.2) { // less than or equal to 20%
+        state = AlertState.WARNING;
+      } else {
+        state = AlertState.CRITICAL;
+      }
+    }
     alertItem.put(AlertField.description, String.format("%s component",component.getComponentName()));
     alertItem.put(AlertField.host_name, getComponentHostName(component));
     alertItem.put(AlertField.last_status, state);
@@ -78,7 +93,7 @@ public class SliderAppsAlerts {
     alertItem.put(AlertField.component_name, component.getComponentName());
     alertItem.put(AlertField.status, state);
     alertItem.put(AlertField.status_time, new java.sql.Timestamp(date.getTime()));
-    alertItem.put(AlertField.output, state);
+    alertItem.put(AlertField.output, message);
     alertItem.put(AlertField.actual_status, state);
     return alertItem;
   }
@@ -108,13 +123,4 @@ public class SliderAppsAlerts {
     }
     return null;
   }
-
-  private AlertState getComponentState(SliderAppComponent component){
-    if (component.getInstanceCount() == component.getActiveContainers().size()){
-      return AlertState.OK;
-    }
-    return AlertState.CRITICAL;
-  }
-
-
 }
