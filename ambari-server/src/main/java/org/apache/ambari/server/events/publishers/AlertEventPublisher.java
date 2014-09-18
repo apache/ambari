@@ -17,8 +17,10 @@
  */
 package org.apache.ambari.server.events.publishers;
 
-import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.ambari.server.events.AlertEvent;
@@ -48,8 +50,14 @@ public final class AlertEventPublisher {
    * Constructor.
    */
   public AlertEventPublisher() {
-    m_eventBus = new AsyncEventBus(Executors.newFixedThreadPool(2,
-        new AlertEventBusThreadFactory()));
+    // create a fixed executor that is unbounded for now and will run rejected
+    // requests in the calling thread to prevent loss of alert handling
+    ThreadPoolExecutor executor = new ThreadPoolExecutor(2, 2, 0L,
+        TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(),
+        new AlertEventBusThreadFactory(),
+        new ThreadPoolExecutor.CallerRunsPolicy());
+
+    m_eventBus = new AsyncEventBus(executor);
   }
 
   /**

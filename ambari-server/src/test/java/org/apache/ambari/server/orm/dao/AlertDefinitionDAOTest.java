@@ -72,15 +72,18 @@ public class AlertDefinitionDAOTest {
    *
    */
   @Before
-  public void setup() {
+  public void setup() throws Exception {
     injector = Guice.createInjector(new InMemoryDefaultTestModule());
     injector.getInstance(GuiceJpaInitializer.class);
 
+    dispatchDao = injector.getInstance(AlertDispatchDAO.class);
     dao = injector.getInstance(AlertDefinitionDAO.class);
     alertsDao = injector.getInstance(AlertsDAO.class);
-    dispatchDao = injector.getInstance(AlertDispatchDAO.class);
     helper = injector.getInstance(OrmTestHelper.class);
     clusterId = helper.createCluster();
+
+    // create required default groups
+    helper.createDefaultAlertGroups(clusterId);
 
     // create 8 HDFS alerts
     int i = 0;
@@ -148,7 +151,6 @@ public class AlertDefinitionDAOTest {
       definition.setSourceType("SCRIPT");
       dao.create(definition);
     }
-
   }
 
   @After
@@ -287,7 +289,6 @@ public class AlertDefinitionDAOTest {
     history.setAlertState(AlertState.OK);
     history.setAlertText("Alert Text");
     history.setAlertTimestamp(calendar.getTimeInMillis());
-//    alertsDao.create(history);
 
     AlertCurrentEntity current = new AlertCurrentEntity();
     current.setAlertHistory(history);
@@ -359,5 +360,7 @@ public class AlertDefinitionDAOTest {
 
     assertNull(clusterDAO.findById(clusterId));
     assertNull(dao.findById(definition.getDefinitionId()));
+
+    assertEquals(0, dispatchDao.findAllGroups(clusterId).size());
   }
 }

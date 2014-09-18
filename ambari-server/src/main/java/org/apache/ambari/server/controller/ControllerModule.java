@@ -33,9 +33,11 @@ import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_USER
 import static org.eclipse.persistence.config.PersistenceUnitProperties.THROW_EXCEPTIONS;
 
 import java.security.SecureRandom;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.Set;
 
 import org.apache.ambari.server.actionmanager.ActionDBAccessor;
 import org.apache.ambari.server.actionmanager.ActionDBAccessorImpl;
@@ -88,6 +90,7 @@ import org.apache.ambari.server.state.host.HostImpl;
 import org.apache.ambari.server.state.scheduler.RequestExecution;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
 import org.apache.ambari.server.state.scheduler.RequestExecutionImpl;
+import org.apache.ambari.server.state.services.AlertNoticeDispatchService;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostImpl;
 import org.apache.ambari.server.view.ViewInstanceHandlerList;
 import org.eclipse.jetty.server.SessionIdManager;
@@ -98,6 +101,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.crypto.password.StandardPasswordEncoder;
 import org.springframework.web.filter.DelegatingFilterProxy;
 
+import com.google.common.util.concurrent.ServiceManager;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.inject.AbstractModule;
@@ -226,6 +230,7 @@ public class ControllerModule extends AbstractModule {
 
     requestStaticInjection(ExecutionCommandWrapper.class);
 
+    bindServices();
     bindEagerSingletons();
   }
 
@@ -303,6 +308,23 @@ public class ControllerModule extends AbstractModule {
 
     bind(HostRoleCommandFactory.class).to(HostRoleCommandFactoryImpl.class);
     bind(SecurityHelper.class).toInstance(SecurityHelperImpl.getInstance());
+  }
+
+  /**
+   * Bind all {@link com.google.common.util.concurrent.Service} singleton
+   * instances and then register them with a singleton {@link ServiceManager}.
+   */
+  private void bindServices() {
+    Set<com.google.common.util.concurrent.Service> services = new HashSet<com.google.common.util.concurrent.Service>();
+
+    AlertNoticeDispatchService alertNoticeDispatchService = new AlertNoticeDispatchService();
+
+    bind(AlertNoticeDispatchService.class).toInstance(
+        alertNoticeDispatchService);
+
+    services.add(alertNoticeDispatchService);
+    ServiceManager manager = new ServiceManager(services);
+    bind(ServiceManager.class).toInstance(manager);
   }
 
   /**

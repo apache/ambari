@@ -113,10 +113,12 @@ import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.GenericWebApplicationContext;
 import org.springframework.web.filter.DelegatingFilterProxy;
 
+import com.google.common.util.concurrent.ServiceManager;
 import com.google.gson.Gson;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+import com.google.inject.Scopes;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 import com.google.inject.persist.Transactional;
@@ -147,6 +149,13 @@ public class AmbariServer {
   @Inject
   @Named("dbInitNeeded")
   boolean dbInitNeeded;
+
+  /**
+   * Guava service manager singleton (bound with {@link Scopes#SINGLETON}).
+   */
+  @Inject
+  private ServiceManager serviceManager;
+
   /**
    * The singleton view registry.
    */
@@ -472,6 +481,9 @@ public class AmbariServer {
 
       executionScheduleManager.start();
       LOG.info("********* Started Scheduled Request Manager **********");
+
+      serviceManager.startAsync();
+      LOG.info("********* Started Services **********");
 
       server.join();
       LOG.info("Joined the Server");

@@ -26,6 +26,7 @@ import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.AlertGroupEntity;
 import org.apache.ambari.server.orm.entities.AlertNoticeEntity;
 import org.apache.ambari.server.orm.entities.AlertTargetEntity;
+import org.apache.ambari.server.state.NotificationState;
 import org.apache.ambari.server.state.alert.AlertGroup;
 
 import com.google.inject.Inject;
@@ -98,6 +99,37 @@ public class AlertDispatchDAO {
    */
   public AlertNoticeEntity findNoticeById(long noticeId) {
     return entityManagerProvider.get().find(AlertNoticeEntity.class, noticeId);
+  }
+
+  /**
+   * Gets a notification with the specified UUID.
+   *
+   * @param uuid
+   *          the UUID of the notification to retrieve.
+   * @return the notification or {@code null} if none exists.
+   */
+  public AlertNoticeEntity findNoticeByUuid(String uuid) {
+    TypedQuery<AlertNoticeEntity> query = entityManagerProvider.get().createNamedQuery(
+        "AlertNoticeEntity.findByUuid", AlertNoticeEntity.class);
+
+    query.setParameter("uuid", uuid);
+
+    return daoUtils.selectOne(query);
+  }
+
+  /**
+   * Gets all {@link AlertNoticeEntity} instances that are
+   * {@link NotificationState#PENDING} and not yet dispatched.
+   *
+   * @return the notices that are waiting to be dispatched, or an empty list
+   *         (never {@code null}).
+   */
+  public List<AlertNoticeEntity> findPendingNotices() {
+    TypedQuery<AlertNoticeEntity> query = entityManagerProvider.get().createNamedQuery(
+        "AlertNoticeEntity.findByState", AlertNoticeEntity.class);
+
+    query.setParameter("notifyState", NotificationState.PENDING);
+    return daoUtils.selectList(query);
   }
 
   /**
@@ -195,12 +227,13 @@ public class AlertDispatchDAO {
 
   /**
    * Gets all of the {@link AlertGroup} instances that include the specified
-   * alert definition.
+   * alert definition. Service default groups will also be returned.
    *
    * @param definitionEntity
    *          the definition that the group must include (not {@code null}).
    * @return all alert groups that have an association with the specified
-   *         definition or empty list if none exist (never {@code null}).
+   *         definition and the definition's service default group or empty list
+   *         if none exist (never {@code null}).
    */
   public List<AlertGroupEntity> findGroupsByDefinition(
       AlertDefinitionEntity definitionEntity) {
@@ -211,6 +244,23 @@ public class AlertDispatchDAO {
     query.setParameter("alertDefinition", definitionEntity);
 
     return daoUtils.selectList(query);
+  }
+
+  /**
+   * Gets the default group for the specified service.
+   *
+   * @param serviceName
+   *          the name of the service (not {@code null}).
+   * @return the default group, or {@code null} if the service name is not valid
+   *         for an installed service; otherwise {@code null} should not be
+   *         possible.
+   */
+  public AlertGroupEntity findDefaultServiceGroup(String serviceName) {
+    TypedQuery<AlertGroupEntity> query = entityManagerProvider.get().createNamedQuery(
+        "AlertGroupEntity.findServiceDefaultGroup", AlertGroupEntity.class);
+
+    query.setParameter("serviceName", serviceName);
+    return daoUtils.selectSingle(query);
   }
 
   /**
@@ -286,6 +336,21 @@ public class AlertDispatchDAO {
   @Transactional
   public void remove(AlertGroupEntity alertGroup) {
     entityManagerProvider.get().remove(merge(alertGroup));
+  }
+
+  /**
+   * Removes all {@link AlertDefinitionEntity} that are associated with the
+   * specified cluster ID.
+   *
+   * @param clusterId
+   *          the cluster ID.
+   */
+  @Transactional
+  public void removeAllGroups(long clusterId) {
+    List<AlertGroupEntity> groups = findAllGroups(clusterId);
+    for (AlertGroupEntity group : groups) {
+      remove(group);
+    }
   }
 
   /**

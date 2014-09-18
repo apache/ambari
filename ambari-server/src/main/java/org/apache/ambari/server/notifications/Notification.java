@@ -15,32 +15,43 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.ambari.server.state.alert;
+package org.apache.ambari.server.notifications;
 
+import java.util.List;
 
 /**
- * The {@link TargetType} enumeration is used to represent the built-in target
- * dispatch mechanisms that are supported internally. {@link AlertTarget}
- * instances may have other custom target types that are not listed here.
+ * The {@link Notification} class is a generic way to relay content through an
+ * {@link NotificationDispatcher}.
  */
-public enum TargetType {
-  /**
-   * Alerts will be distributed via email.
-   */
-  EMAIL,
+public class Notification {
 
   /**
-   * Alerts will be distributed via SNMP.
+   *
    */
-  SNMP,
+  public String Subject;
 
   /**
-   * Alerts will be distributed to Nagios.
+   * The main content of the notification.
    */
-  NAGIOS,
+  public String Body;
 
   /**
-   * Alerts will be distributed to a logger.
+   * An optional callback implementation that the dispatcher can use to report
+   * success/failure on delivery.
    */
-  LOG;
+  public DispatchCallback Callback;
+
+  /**
+   * An option list of unique IDs that will identify the origins of this
+   * notification.
+   */
+  public List<String> CallbackIds;
+
+  /**
+   * Constructor.
+   *
+   */
+  public Notification() {
+  }
+
 }

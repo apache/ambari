@@ -35,7 +35,11 @@ import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.AlertGroupEntity;
+import org.apache.ambari.server.orm.entities.AlertHistoryEntity;
+import org.apache.ambari.server.orm.entities.AlertNoticeEntity;
 import org.apache.ambari.server.orm.entities.AlertTargetEntity;
+import org.apache.ambari.server.state.AlertState;
+import org.apache.ambari.server.state.NotificationState;
 import org.apache.ambari.server.state.alert.Scope;
 import org.junit.After;
 import org.junit.Before;
@@ -54,6 +58,7 @@ public class AlertDispatchDAOTest {
   Injector injector;
   AlertDispatchDAO dao;
   AlertDefinitionDAO definitionDao;
+  AlertsDAO alertsDao;
   OrmTestHelper helper;
 
   /**
@@ -64,6 +69,7 @@ public class AlertDispatchDAOTest {
     injector = Guice.createInjector(new InMemoryDefaultTestModule());
     injector.getInstance(GuiceJpaInitializer.class);
     dao = injector.getInstance(AlertDispatchDAO.class);
+    alertsDao = injector.getInstance(AlertsDAO.class);
     definitionDao = injector.getInstance(AlertDefinitionDAO.class);
     helper = injector.getInstance(OrmTestHelper.class);
 
@@ -352,7 +358,7 @@ public class AlertDispatchDAOTest {
 
   /**
    * Tests finding groups by a definition ID that they are associatd with.
-   * 
+   *
    * @throws Exception
    */
   @Test
@@ -377,6 +383,38 @@ public class AlertDispatchDAOTest {
       assertEquals(1, groups.size());
       assertEquals(group.getGroupId(), groups.get(0).getGroupId());
     }
+  }
+
+  /**
+   * @throws Exception
+   */
+  @Test
+  public void testFindNoticeByUuid() throws Exception {
+    List<AlertDefinitionEntity> definitions = createDefinitions();
+    AlertDefinitionEntity definition = definitions.get(0);
+
+    AlertHistoryEntity history = new AlertHistoryEntity();
+    history.setServiceName(definition.getServiceName());
+    history.setClusterId(clusterId);
+    history.setAlertDefinition(definition);
+    history.setAlertLabel("Label");
+    history.setAlertState(AlertState.OK);
+    history.setAlertText("Alert Text");
+    history.setAlertTimestamp(System.currentTimeMillis());
+    alertsDao.create(history);
+
+    AlertTargetEntity target = helper.createAlertTarget();
+
+    AlertNoticeEntity notice = new AlertNoticeEntity();
+    notice.setUuid(UUID.randomUUID().toString());
+    notice.setAlertTarget(target);
+    notice.setAlertHistory(history);
+    notice.setNotifyState(NotificationState.PENDING);
+    dao.create(notice);
+
+    AlertNoticeEntity actual = dao.findNoticeByUuid(notice.getUuid());
+    assertEquals(notice.getNotificationId(), actual.getNotificationId());
+    assertNull(dao.findNoticeByUuid("DEADBEEF"));
   }
 
   /**

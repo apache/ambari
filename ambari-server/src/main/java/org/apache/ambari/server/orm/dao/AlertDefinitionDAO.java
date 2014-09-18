@@ -26,6 +26,7 @@ import javax.persistence.TypedQuery;
 
 import org.apache.ambari.server.controller.RootServiceResponseFactory;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
+import org.apache.ambari.server.orm.entities.AlertGroupEntity;
 import org.apache.ambari.server.state.alert.Scope;
 
 import com.google.inject.Inject;
@@ -125,7 +126,7 @@ public class AlertDefinitionDAO {
 
   /**
    * Gets all of the alert definitions for the list of IDs given.
-   * 
+   *
    * @param definitionIds
    *          the IDs of the definitions to retrieve.
    * @return the definition or an empty list (never {@code null}).
@@ -246,7 +247,9 @@ public class AlertDefinitionDAO {
   }
 
   /**
-   * Persists a new alert definition.
+   * Persists a new alert definition, also creating the associated
+   * {@link AlertGroupEntity} relationship for the definition's service default
+   * group.
    *
    * @param alertDefinition
    *          the definition to persist (not {@code null}).
@@ -254,6 +257,13 @@ public class AlertDefinitionDAO {
   @Transactional
   public void create(AlertDefinitionEntity alertDefinition) {
     entityManagerProvider.get().persist(alertDefinition);
+
+    AlertGroupEntity group = dispatchDao.findDefaultServiceGroup(alertDefinition.getServiceName());
+
+    if (null != group) {
+      group.addAlertDefinition(alertDefinition);
+      dispatchDao.merge(group);
+    }
   }
 
   /**
@@ -305,7 +315,6 @@ public class AlertDefinitionDAO {
    */
   @Transactional
   public void remove(AlertDefinitionEntity alertDefinition) {
-    alertDefinition = merge(alertDefinition);
     dispatchDao.removeNoticeByDefinitionId(alertDefinition.getDefinitionId());
     alertsDao.removeByDefinitionId(alertDefinition.getDefinitionId());
 

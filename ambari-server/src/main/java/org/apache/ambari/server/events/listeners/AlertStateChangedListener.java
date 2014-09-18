@@ -19,6 +19,7 @@ package org.apache.ambari.server.events.listeners;
 
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 import org.apache.ambari.server.events.AlertStateChangeEvent;
 import org.apache.ambari.server.events.publishers.AlertEventPublisher;
@@ -89,11 +90,12 @@ public class AlertStateChangedListener {
 
       for (AlertTargetEntity target : targets) {
         AlertNoticeEntity notice = new AlertNoticeEntity();
+        notice.setUuid(UUID.randomUUID().toString());
         notice.setAlertTarget(target);
         notice.setAlertHistory(event.getNewHistoricalEntry());
         notice.setNotifyState(NotificationState.PENDING);
 
-        m_alertsDispatchDao.merge(notice);
+        m_alertsDispatchDao.create(notice);
       }
     }
   }

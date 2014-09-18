@@ -113,6 +113,10 @@ public class AlertReceivedListener {
       AlertHistoryEntity history = createHistory(clusterId,
           current.getAlertHistory().getAlertDefinition(), alert);
 
+      // manually create the new history entity since we are merging into
+      // an existing current entity
+      m_alertsDao.create(history);
+
       current.setAlertHistory(history);
       current.setLatestTimestamp(Long.valueOf(alert.getTimestamp()));
       current.setOriginalTimestamp(Long.valueOf(alert.getTimestamp()));
@@ -121,7 +125,8 @@ public class AlertReceivedListener {
 
       // broadcast the alert changed event for other subscribers
       AlertStateChangeEvent alertChangedEvent = new AlertStateChangeEvent(
-          event.getClusterId(), event.getAlert(), history, oldState);
+          event.getClusterId(), event.getAlert(), current.getAlertHistory(),
+          oldState);
 
       m_alertEventPublisher.publish(alertChangedEvent);
     }

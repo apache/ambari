@@ -69,14 +69,15 @@ public class AlertCurrentEntity {
 
   @Column(name = "original_timestamp", nullable = false)
   private Long originalTimestamp;
-  
+
   @Column(name = "latest_text", length = 4000)
   private String latestText = null;
 
   /**
    * Unidirectional one-to-one association to {@link AlertHistoryEntity}
    */
-  @OneToOne(cascade = { CascadeType.PERSIST })
+  @OneToOne(cascade = { CascadeType.PERSIST, CascadeType.MERGE,
+      CascadeType.REFRESH })
   @JoinColumn(name = "history_id", unique = true, nullable = false)
   private AlertHistoryEntity alertHistory;
 
@@ -95,7 +96,7 @@ public class AlertCurrentEntity {
 
   /**
    * Gets the unique ID for this current alert.
-   * 
+   *
    * @return the ID (never {@code null}).
    */
   public Long getAlertId() {
@@ -104,7 +105,7 @@ public class AlertCurrentEntity {
 
   /**
    * Sets the unique ID for this current alert.
-   * 
+   *
    * @param alertId
    *          the ID (not {@code null}).
    */
@@ -115,7 +116,7 @@ public class AlertCurrentEntity {
   /**
    * Gets the time, in millis, that the last instance of this alert state was
    * received.
-   * 
+   *
    * @return the time of the most recently received alert data for this instance
    *         (never {@code null}).
    */
@@ -126,7 +127,7 @@ public class AlertCurrentEntity {
   /**
    * Sets the time, in millis, that the last instance of this alert state was
    * received.
-   * 
+   *
    * @param latestTimestamp
    *          the time of the most recently received alert data for this
    *          instance (never {@code null}).
@@ -137,7 +138,7 @@ public class AlertCurrentEntity {
 
   /**
    * Gets the current maintenance state for the alert.
-   * 
+   *
    * @return the current maintenance state (never {@code null}).
    */
   public MaintenanceState getMaintenanceState() {
@@ -146,7 +147,7 @@ public class AlertCurrentEntity {
 
   /**
    * Sets the current maintenance state for the alert.
-   * 
+   *
    * @param maintenanceState
    *          the state to set (not {@code null}).
    */
@@ -157,7 +158,7 @@ public class AlertCurrentEntity {
   /**
    * Gets the time, in milliseconds, when the alert was first received with the
    * current state.
-   * 
+   *
    * @return the time of the first instance of this alert.
    */
   public Long getOriginalTimestamp() {
@@ -167,14 +168,14 @@ public class AlertCurrentEntity {
   /**
    * Sets the time, in milliseconds, when the alert was first received with the
    * current state.
-   * 
+   *
    * @param originalTimestamp
    *          the time of the first instance of this alert (not {@code null}).
    */
   public void setOriginalTimestamp(Long originalTimestamp) {
     this.originalTimestamp = originalTimestamp;
   }
-  
+
   /**
    * Gets the latest text for this alert.  History will not get a new record on
    * update when the state is the same, but the text may be changed.  For example,
@@ -183,7 +184,7 @@ public class AlertCurrentEntity {
   public String getLatestText() {
     return latestText;
   }
-  
+
   /**
    * Sets the latest text.  {@link #getLatestText()}
    */
@@ -194,7 +195,7 @@ public class AlertCurrentEntity {
   /**
    * Gets the associated {@link AlertHistoryEntity} entry for this current alert
    * instance.
-   * 
+   *
    * @return the most recently received history entry (never {@code null}).
    */
   public AlertHistoryEntity getAlertHistory() {
@@ -204,7 +205,7 @@ public class AlertCurrentEntity {
   /**
    * Gets the associated {@link AlertHistoryEntity} entry for this current alert
    * instance.
-   * 
+   *
    * @param alertHistory
    *          the most recently received history entry (not {@code null}).
    */
@@ -218,16 +219,19 @@ public class AlertCurrentEntity {
    */
   @Override
   public boolean equals(Object object) {
-    if (this == object)
+    if (this == object) {
       return true;
+    }
 
-    if (object == null || getClass() != object.getClass())
+    if (object == null || getClass() != object.getClass()) {
       return false;
+    }
 
     AlertCurrentEntity that = (AlertCurrentEntity) object;
 
-    if (alertId != null ? !alertId.equals(that.alertId) : that.alertId != null)
+    if (alertId != null ? !alertId.equals(that.alertId) : that.alertId != null) {
       return false;
+    }
 
     return true;
   }

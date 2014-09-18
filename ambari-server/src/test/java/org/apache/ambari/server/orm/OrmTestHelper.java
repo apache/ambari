@@ -18,6 +18,9 @@
 
 package org.apache.ambari.server.orm;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -353,4 +356,38 @@ public class OrmTestHelper {
     alertDispatchDAO.create(group);
     return alertDispatchDAO.findGroupById(group.getGroupId());
   }
+
+  /**
+   * Creates some default alert groups for various services used in the tests.
+   *
+   * @param clusterId
+   * @return
+   * @throws Exception
+   */
+  @Transactional
+  public List<AlertGroupEntity> createDefaultAlertGroups(long clusterId)
+      throws Exception {
+    AlertGroupEntity hdfsGroup = new AlertGroupEntity();
+    hdfsGroup.setDefault(true);
+    hdfsGroup.setClusterId(clusterId);
+    hdfsGroup.setGroupName("HDFS");
+    hdfsGroup.setServiceName("HDFS");
+
+    AlertGroupEntity oozieGroup = new AlertGroupEntity();
+    oozieGroup.setDefault(true);
+    oozieGroup.setClusterId(clusterId);
+    oozieGroup.setGroupName("OOZIE");
+    oozieGroup.setServiceName("OOZIE");
+
+    alertDispatchDAO.create(hdfsGroup);
+    alertDispatchDAO.create(oozieGroup);
+
+    List<AlertGroupEntity> defaultGroups = alertDispatchDAO.findAllGroups(clusterId);
+    assertEquals(2, defaultGroups.size());
+    assertNotNull(alertDispatchDAO.findDefaultServiceGroup("HDFS"));
+    assertNotNull(alertDispatchDAO.findDefaultServiceGroup("OOZIE"));
+
+    return defaultGroups;
+  }
+
 }

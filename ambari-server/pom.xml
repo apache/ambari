@@ -1418,6 +1418,16 @@
       <artifactId>velocity</artifactId>
       <version>1.7</version>
     </dependency>
+    <dependency>
+      <groupId>com.sun.mail</groupId>
+      <artifactId>mailapi</artifactId>
+      <version>1.5.2</version>
+    </dependency>
+    <dependency>
+      <groupId>com.sun.mail</groupId>
+      <artifactId>smtp</artifactId>
+      <version>1.5.2</version>
+    </dependency>
   </dependencies>
   <!--<reporting> <plugins> <plugin> <groupId>org.codehaus.mojo</groupId>
     <artifactId>findbugs-maven-plugin</artifactId> <version>2.5.2</version> </plugin>

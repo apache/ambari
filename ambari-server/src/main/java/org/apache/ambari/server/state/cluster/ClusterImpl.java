@@ -37,6 +37,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import javax.persistence.RollbackException;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.ConfigGroupNotFoundException;
 import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.ParentObjectNotFoundException;
 import org.apache.ambari.server.ServiceComponentHostNotFoundException;
@@ -50,6 +51,7 @@ import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.cache.ConfigGroupHostMapping;
 import org.apache.ambari.server.orm.cache.HostConfigMapping;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
+import org.apache.ambari.server.orm.dao.AlertDispatchDAO;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.ClusterStateDAO;
 import org.apache.ambari.server.orm.dao.ConfigGroupHostMappingDAO;
@@ -106,7 +108,6 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.persist.Transactional;
-import org.apache.ambari.server.ConfigGroupNotFoundException;
 
 public class ClusterImpl implements Cluster {
 
@@ -190,6 +191,9 @@ public class ClusterImpl implements Cluster {
 
   @Inject
   private AlertDefinitionDAO alertDefinitionDAO;
+
+  @Inject
+  private AlertDispatchDAO alertDispatchDAO;
 
   private volatile boolean svcHostsLoaded = false;
 
@@ -1363,6 +1367,7 @@ public class ClusterImpl implements Cluster {
   protected void removeEntities() throws AmbariException {
     long clusterId = getClusterId();
     alertDefinitionDAO.removeAll(clusterId);
+    alertDispatchDAO.removeAllGroups(clusterId);
     clusterDAO.removeByPK(clusterId);
   }
 

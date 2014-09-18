@@ -113,6 +113,17 @@ public class AlertServiceStateListener {
     String stackVersion = event.getStackVersion();
     String serviceName = event.getServiceName();
 
+    // create the default alert group for the new service; this MUST be done
+    // before adding definitions so that they are properly added to the
+    // default group
+    AlertGroupEntity serviceAlertGroup = new AlertGroupEntity();
+    serviceAlertGroup.setClusterId(clusterId);
+    serviceAlertGroup.setDefault(true);
+    serviceAlertGroup.setGroupName(serviceName);
+    serviceAlertGroup.setServiceName(serviceName);
+
+    m_alertDispatchDao.create(serviceAlertGroup);
+
     // populate alert definitions for the new service from the database, but
     // don't worry about sending down commands to the agents; the host
     // components are not yet bound to the hosts so we'd have no way of knowing
@@ -134,14 +145,5 @@ public class AlertServiceStateListener {
           serviceName);
       LOG.error(message, ae);
     }
-
-    // create the default alert group for the new service
-    AlertGroupEntity serviceAlertGroup = new AlertGroupEntity();
-    serviceAlertGroup.setClusterId(clusterId);
-    serviceAlertGroup.setDefault(true);
-    serviceAlertGroup.setGroupName(serviceName);
-    serviceAlertGroup.setServiceName(serviceName);
-
-    m_alertDispatchDao.create(serviceAlertGroup);
   }
 }
