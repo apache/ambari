@@ -50,7 +50,7 @@ public class MaintenanceStateHelper {
   private static final String NAGIOS_COMPONENT = "NAGIOS_SERVER";
   private static final String NAGIOS_ACTION_NAME = "nagios_update_ignore";
   private static final Logger LOG = LoggerFactory.getLogger(MaintenanceStateHelper.class);
-  public static final String UPDATE_NAGIOS_REQUEST_NAME = "Update Nagios configuration";
+  public static final String UPDATE_NAGIOS_REQUEST_NAME = "Adjusting ignored alerts for Services/Hosts Maintenance Mode";
 
   @Inject
   private Clusters clusters;
