@@ -18,7 +18,7 @@
 
 <div>
   {{#view view.SliderTitleView}}
-    <h1>{{t slider.apps.title}} - <span {{bs-bind-popover view.popover}}>{{App.instance}}</span></h1>
+    <h1>{{t slider.apps.title}} - <span class="slider-app-title" {{bs-bind-popover view.popover}}>{{App.instance}}</span></h1>
   {{/view}}
 </div>
 {{#if App.viewEnabled}}

@@ -17,7 +17,9 @@
 }}
 
 <div class="slider-name-popover">
-  <h3><strong>{{App.instance}}</strong></h3>
+  <div class="header">
+    <h3><strong>{{App.instance}}</strong></h3>
+  </div>
   {{#each config in view.content}}
     <div class="row">
       <div class="col-md-4">{{humanize config.name}}</div>

@@ -40,18 +40,20 @@
     </div>
   </div>
 
-  <div class="col-md-3 quick-links-wrapper pull-right">
-    <ul class="nav nav-pills move">
-      <li class="dropdown">
-        <a class="dropdown-toggle" data-toggle="dropdown" href="#">{{t common.quickLinks}}<b class="caret"></b></a>
-        <ul class="dropdown-menu">
-          {{#each quickLink in model.quickLinks}}
-            <li><a {{bind-attr href="quickLink.url"}} target="_blank">{{quickLink.label}}</a></li>
-          {{/each}}
-        </ul>
-      </li>
-    </ul>
-  </div>
+  {{#if weHaveQuicklinks}}
+    <div class="col-md-3 quick-links-wrapper pull-right">
+      <ul class="nav nav-pills move">
+        <li class="dropdown">
+          <a class="dropdown-toggle" data-toggle="dropdown" href="#">{{t common.quickLinks}}<b class="caret"></b></a>
+          <ul class="dropdown-menu">
+            {{#each quickLink in model.quickLinks}}
+              <li><a {{bind-attr href="quickLink.url"}} target="_blank">{{quickLink.label}}</a></li>
+            {{/each}}
+          </ul>
+        </li>
+      </ul>
+    </div>
+  {{/if}}
 
   {{bs-tabs contentBinding="sliderAppTabs" default="summary"}}
   <div style="margin-top: 20px;">
