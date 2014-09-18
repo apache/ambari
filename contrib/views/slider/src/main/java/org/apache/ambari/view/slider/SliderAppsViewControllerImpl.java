@@ -133,7 +133,7 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
     ClassLoader currentClassLoader = Thread.currentThread().getContextClassLoader();
     Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
     try {
-      T value = UserGroupInformation.getBestUGI(null, "yarn").doAs(
+      T value = UserGroupInformation.getBestUGI(null, viewContext.getUsername()).doAs(
           new PrivilegedExceptionAction<T>() {
             @Override
             public T run() throws Exception {
@@ -274,7 +274,6 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
               app.setConfigs(configs);
             } else if ("components".equals(property.toLowerCase())) {
               try {
-                System.setProperty(SliderKeys.HADOOP_USER_NAME, "yarn");
                 ClusterDescription description = sliderClient
                     .getClusterDescription(yarnApp.getName());
                 if (description != null && description.status != null
@@ -368,7 +367,7 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
     SliderClient client = new SliderClient() {
       @Override
       public String getUsername() throws IOException {
-        return "yarn";
+        return viewContext.getUsername();
       }
 
       @Override
@@ -377,7 +376,7 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
         // Override the default FS client to the calling user
         try {
           FileSystem fs = FileSystem.get(FileSystem.getDefaultUri(getConfig()),
-              getConfig(), "yarn");
+              getConfig(), viewContext.getUsername());
           SliderFileSystem fileSystem = new SliderFileSystem(fs, getConfig());
           Field fsField = SliderClient.class
               .getDeclaredField("sliderFileSystem");
