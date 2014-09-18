@@ -332,7 +332,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     version = version || this.get('currentDefaultVersion');
     //version of non-default group require properties from current version of default group to correctly display page
     var versions = (this.isVersionDefault(version)) ? [version] : [this.get('currentDefaultVersion'), version];
-    switchToGroup = this.isVersionDefault(version) ? this.get('configGroups').findProperty('isDefault') : switchToGroup;
+    switchToGroup = (this.isVersionDefault(version) && !switchToGroup) ? this.get('configGroups').findProperty('isDefault') : switchToGroup;
 
     if (self.get('dataIsLoaded') && switchToGroup) {
       this.set('selectedConfigGroup', switchToGroup);
@@ -2096,13 +2096,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
       success: 'doPUTClusterConfigurationSiteSuccessCallback',
       error: 'doPUTClusterConfigurationSiteErrorCallback'
     });
-    var heapsizeException = this.get('heapsizeException');
-    var heapsizeRegExp = this.get('heapsizeRegExp');
-    this.get('stepConfigs')[0].get('configs').forEach(function (item) {
-      if (heapsizeRegExp.test(item.get('name')) && !heapsizeException.contains(item.get('name')) && /\d+m$/.test(item.get('value'))) {
-        item.set('value', item.get('value').slice(0, item.get('value.length') - 1));
-      }
-    });
   },
 
   doPUTClusterConfigurationSiteSuccessCallback: function () {
@@ -2181,19 +2174,20 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     var heapsizeRegExp = this.get('heapsizeRegExp');
     var siteProperties = {};
     siteObj.forEach(function (_siteObj) {
+      var value = _siteObj.value;
       if (_siteObj.isRequiredByAgent == false) return;
       if (heapsizeRegExp.test(_siteObj.name) && !heapsizeException.contains(_siteObj.name)) {
-        Em.set(_siteObj, "value",  _siteObj.value + "m");
+        value += "m";
       }
-      siteProperties[_siteObj.name] = App.config.escapeXMLCharacters(_siteObj.value);
+      siteProperties[_siteObj.name] = App.config.escapeXMLCharacters(value);
       switch (siteName) {
         case 'falcon-startup.properties':
         case 'falcon-runtime.properties':
         case 'pig-properties':
-          siteProperties[_siteObj.name] = _siteObj.value;
+          siteProperties[_siteObj.name] = value;
           break;
         default:
-          siteProperties[_siteObj.name] = this.setServerConfigValue(_siteObj.name, _siteObj.value);
+          siteProperties[_siteObj.name] = this.setServerConfigValue(_siteObj.name, value);
       }
     }, this);
     var result = {"type": siteName, "tag": tagName, "properties": siteProperties};
