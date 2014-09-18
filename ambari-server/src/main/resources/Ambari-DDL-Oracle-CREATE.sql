@@ -227,6 +227,7 @@ CREATE TABLE alert_notice (
   target_id NUMBER(19) NOT NULL,
   history_id NUMBER(19) NOT NULL,
   notify_state VARCHAR2(255) NOT NULL,
+  uuid VARCHAR2(64) NOT NULL UNIQUE,
   PRIMARY KEY (notification_id),
   FOREIGN KEY (target_id) REFERENCES alert_target(target_id),  
   FOREIGN KEY (history_id) REFERENCES alert_history(alert_id)

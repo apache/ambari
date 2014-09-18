@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.orm.entities;
 
+import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -38,7 +39,7 @@ import org.apache.ambari.server.state.NotificationState;
  * notification to an {@link AlertTargetEntity}. There are three
  * {@link NotificationState}s that a single notice can exist in. These instances
  * are persisted indefinitely for historical reference.
- * 
+ *
  */
 @Entity
 @Table(name = "alert_notice")
@@ -56,6 +57,10 @@ public class AlertNoticeEntity {
   @Enumerated(value = EnumType.STRING)
   @Column(name = "notify_state", nullable = false, length = 255)
   private NotificationState notifyState;
+
+  @Basic
+  @Column(nullable = false, length = 64)
+  private String uuid;
 
   /**
    * Bi-directional many-to-one association to {@link AlertHistoryEntity}.
@@ -79,7 +84,7 @@ public class AlertNoticeEntity {
 
   /**
    * Gets the unique ID for this alert notice.
-   * 
+   *
    * @return the ID (never {@code null}).
    */
   public Long getNotificationId() {
@@ -88,7 +93,7 @@ public class AlertNoticeEntity {
 
   /**
    * Sets the unique ID for this alert notice.
-   * 
+   *
    * @param notificationId
    *          the ID (not {@code null}).
    */
@@ -100,7 +105,7 @@ public class AlertNoticeEntity {
    * Gets the notification state for this alert notice. Alert notices are
    * pending until they are processed, after which they will either be
    * successful or failed.
-   * 
+   *
    * @return the notification state (never {@code null}).
    */
   public NotificationState getNotifyState() {
@@ -109,7 +114,7 @@ public class AlertNoticeEntity {
 
   /**
    * Sets the notification state for this alert notice.
-   * 
+   *
    * @param notifyState
    *          the notification state (not {@code null}).
    */
@@ -118,8 +123,27 @@ public class AlertNoticeEntity {
   }
 
   /**
+   * Gets the unique ID for this alert notice.
+   *
+   * @return the unique ID (never {@code null}).
+   */
+  public String getUuid() {
+    return uuid;
+  }
+
+  /**
+   * Sets the unique ID for this alert notice.
+   *
+   * @param uuid
+   *          the unique ID (not {@code null}).
+   */
+  public void setUuid(String uuid) {
+    this.uuid = uuid;
+  }
+
+  /**
    * Gets the associated alert history entry for this alert notice.
-   * 
+   *
    * @return the historical event that traiggered this notice's creation (never
    *         {@code null}).
    */
@@ -129,7 +153,7 @@ public class AlertNoticeEntity {
 
   /**
    * Sets the associated alert history entry for this alert notice.
-   * 
+   *
    * @param alertHistory
    *          the historical event that traiggered this notice's creation (not
    *          {@code null}).
@@ -140,7 +164,7 @@ public class AlertNoticeEntity {
 
   /**
    * Gets the intended audience for the notification.
-   * 
+   *
    * @return the recipient of this notification (never {@code null}).
    */
   public AlertTargetEntity getAlertTarget() {
@@ -149,7 +173,7 @@ public class AlertNoticeEntity {
 
   /**
    * Sets the intended audience for the notification.
-   * 
+   *
    * @param alertTarget
    *          the recipient of this notification (not {@code null}).
    */
@@ -162,17 +186,20 @@ public class AlertNoticeEntity {
    */
   @Override
   public boolean equals(Object object) {
-    if (this == object)
+    if (this == object) {
       return true;
+    }
 
-    if (object == null || getClass() != object.getClass())
+    if (object == null || getClass() != object.getClass()) {
       return false;
+    }
 
     AlertNoticeEntity that = (AlertNoticeEntity) object;
 
     if (notificationId != null ? !notificationId.equals(that.notificationId)
-        : that.notificationId != null)
+        : that.notificationId != null) {
       return false;
+    }
 
     return true;
   }

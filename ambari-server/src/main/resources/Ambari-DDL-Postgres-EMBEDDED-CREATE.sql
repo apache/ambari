@@ -323,6 +323,7 @@ CREATE TABLE ambari.alert_notice (
   target_id BIGINT NOT NULL,
   history_id BIGINT NOT NULL,
   notify_state VARCHAR(255) NOT NULL,
+  uuid VARCHAR(64) NOT NULL UNIQUE,
   PRIMARY KEY (notification_id),
   FOREIGN KEY (target_id) REFERENCES ambari.alert_target(target_id),  
   FOREIGN KEY (history_id) REFERENCES ambari.alert_history(alert_id)

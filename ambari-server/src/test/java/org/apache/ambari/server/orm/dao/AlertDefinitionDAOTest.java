@@ -65,7 +65,7 @@ public class AlertDefinitionDAOTest {
   OrmTestHelper helper;
 
   /**
-   * 
+   *
    */
   @Before
   public void setup() {
@@ -100,7 +100,7 @@ public class AlertDefinitionDAOTest {
   }
 
   /**
-   * 
+   *
    */
   @Test
   public void testFindByName() {
@@ -114,7 +114,7 @@ public class AlertDefinitionDAOTest {
   }
 
   /**
-   * 
+   *
    */
   @Test
   public void testFindAll() {
@@ -124,7 +124,7 @@ public class AlertDefinitionDAOTest {
   }
 
   /**
-   * 
+   *
    */
   @Test
   public void findById() {
@@ -190,6 +190,7 @@ public class AlertDefinitionDAOTest {
     notice.setAlertHistory(history);
     notice.setAlertTarget(helper.createAlertTarget());
     notice.setNotifyState(NotificationState.PENDING);
+    notice.setUuid(UUID.randomUUID().toString());
     dispatchDao.create(notice);
 
     group = dispatchDao.findGroupById(group.getGroupId());
