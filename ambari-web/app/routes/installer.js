@@ -439,6 +439,7 @@ module.exports = Em.Route.extend({
       controller.setClusterProvisioningState('INSTALLED', function () {
         // We need to do recovery based on whether we are in Add Host or Installer wizard
         controller.saveClusterState('DEFAULT');
+        App.router.set('clusterController.isLoaded', false);
         router.transitionTo('main.dashboard.index');
       });
     }
