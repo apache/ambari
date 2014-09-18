@@ -22,6 +22,7 @@ App.ReassignMasterWizardStep2Controller = App.WizardStep5Controller.extend({
 
   currentHostId: null,
   showCurrentHost: true,
+  useServerValidation: false,
 
   loadStep: function() {
     // If High Availability is enabled NameNode became a multiple component
