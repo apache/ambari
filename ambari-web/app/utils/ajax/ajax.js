@@ -1728,7 +1728,7 @@ var urls = {
    * Get all instances of all views across versions
    */
   'views.instances': {
-    'real': '/views?fields=versions/instances/ViewInstanceInfo,versions/ViewVersionInfo/label',
+    'real': '/views?fields=versions/instances/ViewInstanceInfo,versions/ViewVersionInfo/label&versions/ViewVersionInfo/system=false',
     'mock': '/data/views/instances.json'
   },
   'host.host_component.flume.metrics': {

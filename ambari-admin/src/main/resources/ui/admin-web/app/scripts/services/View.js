@@ -245,7 +245,8 @@ angular.module('ambariAdminConsole')
       method: 'GET',
       url: Settings.baseUrl + '/views',
       params:{
-        'fields': fields.join(',')
+        'fields': fields.join(','),
+        'versions/ViewVersionInfo/system': false
       }
     }).success(function(data) {
       var views = [];
