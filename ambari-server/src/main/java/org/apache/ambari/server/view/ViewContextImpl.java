@@ -35,6 +35,8 @@ import org.apache.ambari.view.Masker;
 import org.apache.ambari.view.ResourceProvider;
 import org.apache.ambari.view.SecurityException;
 import org.apache.ambari.view.URLStreamProvider;
+import org.apache.ambari.server.controller.internal.AppCookieManager;
+import org.apache.ambari.view.ImpersonatorSetting;
 import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.ViewController;
 import org.apache.ambari.view.ViewDefinition;
@@ -88,7 +90,7 @@ public class ViewContextImpl implements ViewContext, ViewController {
   /**
    * The available stream provider.
    */
-  private final URLStreamProvider streamProvider;
+  private final ViewURLStreamProvider streamProvider;
 
   /**
    * The data store.
@@ -300,6 +302,15 @@ public class ViewContextImpl implements ViewContext, ViewController {
     return this;
   }
 
+  @Override
+  public HttpImpersonatorImpl getHttpImpersonator() {
+    return new HttpImpersonatorImpl(this, this.streamProvider.getAppCookieManager());
+  }
+
+  @Override
+  public ImpersonatorSetting getImpersonatorSetting() {
+    return new ImpersonatorSettingImpl(this);
+  }
 
   // ----- ViewController ----------------------------------------------------
 
@@ -409,7 +420,6 @@ public class ViewContextImpl implements ViewContext, ViewController {
      */
     private final org.apache.ambari.server.controller.internal.URLStreamProvider streamProvider;
 
-
     // ----- Constructor -----------------------------------------------------
 
     protected ViewURLStreamProvider(org.apache.ambari.server.controller.internal.URLStreamProvider streamProvider) {
@@ -447,6 +457,10 @@ public class ViewContextImpl implements ViewContext, ViewController {
               configuration.getTruststorePassword(),
               configuration.getTruststoreType());
       return new ViewURLStreamProvider(streamProvider);
+    }
+
+    protected AppCookieManager getAppCookieManager() {
+      return streamProvider.getAppCookieManager();
     }
   }
 

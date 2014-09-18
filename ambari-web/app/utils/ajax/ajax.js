@@ -1698,28 +1698,6 @@ var urls = {
       }
     }
   },
-
-  'jobs.lastID': {
-    'real': '/proxy?url=http://{historyServerHostName}:{ahsWebPort}/ws/v1/timeline/HIVE_QUERY_ID?limit=1&secondaryFilter=tez:true',
-    'mock': 'data/jobs/hive-queries.json',
-    'apiPrefix': ''
-  },
-
-  'jobs.tezDag.NametoID': {
-    'real': '/proxy?url=http://{historyServerHostName}:{ahsWebPort}/ws/v1/timeline/TEZ_DAG_ID?primaryFilter=dagName:{tezDagName}',
-    'mock': '/data/jobs/tezDag-name-to-id.json',
-    'apiPrefix': ''
-  },
-  'jobs.tezDag.tezDagId': {
-    'real': '/proxy?url=http://{historyServerHostName}:{ahsWebPort}/ws/v1/timeline/TEZ_DAG_ID/{tezDagId}?fields=relatedentities,otherinfo',
-    'mock': '/data/jobs/tezDag.json',
-    'apiPrefix': ''
-  },
-  'jobs.tezDag.tezDagVertexId': {
-    'real': '/proxy?url=http://{historyServerHostName}:{ahsWebPort}/ws/v1/timeline/TEZ_VERTEX_ID/{tezDagVertexId}?fields=otherinfo',
-    'mock': '/data/jobs/tezDagVertex.json',
-    'apiPrefix': ''
-  },
   'views.info': {
     'real': '/views',
     'mock': '/data/views/views.json'
