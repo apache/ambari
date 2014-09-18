@@ -182,11 +182,22 @@ App.MainHostSummaryView = Em.View.extend({
           clients[clients.length - 1].set('isLast', false);
         }
         component.set('isLast', true);
+        if (['INSTALL_FAILED', 'INIT'].contains(component.get('workStatus'))) {
+          component.set('isInstallFailed', true);
+        }
         clients.push(component);
       }
     }, this);
     return clients;
   }.property('content.hostComponents.length'),
+  /**
+   * Check if some clients not installed or started
+   *
+   * @type {bool}
+   **/
+  areClientsInstallFailed: function() {
+    return this.get('clients').someProperty('isInstallFailed', true);
+  }.property('clients.@each.workStatus'),
 
   /**
    * Check if some clients have stale configs

@@ -52,7 +52,7 @@ App.SliderAppSummaryView = Ember.View.extend({
       return Ember.Object.create({
         trigger: 'hover',
         content: this.get('content.timeSinceAlertDetails'),
-        placement: "right"
+        placement: "bottom"
       });
     }.property('content')
   })

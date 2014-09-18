@@ -300,6 +300,7 @@ public class AlertDefinitionDAOTest {
     notice.setAlertHistory(history);
     notice.setAlertTarget(helper.createAlertTarget());
     notice.setNotifyState(NotificationState.PENDING);
+    notice.setUuid(UUID.randomUUID().toString());
     dispatchDao.create(notice);
 
     group = dispatchDao.findGroupById(group.getGroupId());

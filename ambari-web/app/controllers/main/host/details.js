@@ -1592,6 +1592,13 @@ App.MainHostDetailsController = Em.Controller.extend({
       componentName: event.context.get('componentName'),
       displayName: event.context.get('displayName')
     });
-  }
+  },
 
+  reinstallClients: function(event) {
+    var clientsToInstall = event.context.filter(function(component) {
+      return ['INIT', 'INSTALL_FAILED'].contains(component.get('workStatus'));
+    });
+    if (!clientsToInstall.length) return;
+    this.sendComponentCommand(clientsToInstall, Em.I18n.t('host.host.details.installClients'), 'INSTALLED');
+  }
 });

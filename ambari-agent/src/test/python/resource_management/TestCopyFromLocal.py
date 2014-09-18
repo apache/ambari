@@ -36,9 +36,9 @@ class TestCopyFromLocal(TestCase):
       call_arg_list = execute_hadoop_mock.call_args_list
       self.assertEqual('fs -copyFromLocal /user/testdir/*.files /apps/test/',
                        call_arg_list[0][0][0].command)
-      self.assertEquals({'not_if': "su - user1 -c ' hadoop fs -ls /apps/test/*.files' >/dev/null 2>&1", 'user': 'user1', 'conf_dir': '/etc/hadoop/conf'},
+      self.assertEquals({'not_if': "su - user1 -c ' hadoop fs -ls /apps/test//*.files' >/dev/null 2>&1", 'user': 'user1', 'conf_dir': '/etc/hadoop/conf'},
                         call_arg_list[0][0][0].arguments)
-      self.assertEquals('fs -chown user1 /apps/test/*.files', call_arg_list[1][0][0].command)
+      self.assertEquals('fs -chown user1 /apps/test//*.files', call_arg_list[1][0][0].command)
       self.assertEquals({'user': 'hdfs', 'conf_dir': '/etc/hadoop/conf'}, call_arg_list[1][0][0].arguments)
 
 
@@ -57,9 +57,9 @@ class TestCopyFromLocal(TestCase):
       call_arg_list = execute_hadoop_mock.call_args_list
       self.assertEqual('fs -copyFromLocal /user/testdir/*.files /apps/test/',
                        call_arg_list[0][0][0].command)
-      self.assertEquals({'not_if': "su - user1 -c ' hadoop fs -ls /apps/test/*.files' >/dev/null 2>&1", 'user': 'user1', 'conf_dir': '/etc/hadoop/conf'},
+      self.assertEquals({'not_if': "su - user1 -c ' hadoop fs -ls /apps/test//*.files' >/dev/null 2>&1", 'user': 'user1', 'conf_dir': '/etc/hadoop/conf'},
                         call_arg_list[0][0][0].arguments)
-      self.assertEquals('fs -chown user1:hdfs /apps/test/*.files', call_arg_list[1][0][0].command)
+      self.assertEquals('fs -chown user1:hdfs /apps/test//*.files', call_arg_list[1][0][0].command)
       self.assertEquals({'user': 'hdfs', 'conf_dir': '/etc/hadoop/conf'}, call_arg_list[1][0][0].arguments)
 
 

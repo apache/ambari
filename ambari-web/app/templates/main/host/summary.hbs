@@ -72,6 +72,9 @@
                   <div class="span7">
                     {{#each component in view.clients}}
                       {{component.displayName}}
+                      {{#if component.isInstallFailed}}
+                        <span class="health-status-installed icon-warning-sign"></span>
+                      {{/if}}
                       {{#if component.staleConfigs}}
                         <span class="text-warning icon-refresh"></span>
                       {{/if}}
@@ -95,6 +98,11 @@
                       <li>
                         <a href="javascript:void(null)" {{bindAttr class="view.areClientWithStaleConfigs::disabled"}} data-toggle="modal" {{action refreshConfigs view.clients target="controller"}}>
                           {{t hosts.host.details.refreshConfigs}}
+                        </a>
+                      </li>
+                      <li>
+                        <a href="javscript:void(null)" {{bindAttr class="view.areClientsInstallFailed::disabled" }} data-toggle="modal" {{action reinstallClients view.clients target="controller"}}>
+                          {{t host.host.details.installClients}}
                         </a>
                       </li>
                     </ul>

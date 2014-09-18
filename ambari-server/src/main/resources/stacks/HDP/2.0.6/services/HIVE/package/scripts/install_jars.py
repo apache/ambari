@@ -64,15 +64,16 @@ def install_tez_jars():
     pass
 
     if app_dir_path:
-      CopyFromLocal(params.tez_local_api_jars,
-                    mode=0755,
-                    owner=params.tez_user,
-                    dest_dir=app_dir_path,
-                    kinnit_if_needed=kinit_if_needed,
-                    hdfs_user=params.hdfs_user,
-                    hadoop_conf_dir=params.hadoop_conf_dir
-      )
-    pass
+      for scr_file, dest_file in params.app_dir_files.iteritems():
+        CopyFromLocal(scr_file,
+                      mode=0755,
+                      owner=params.tez_user,
+                      dest_dir=app_dir_path,
+                      dest_file=dest_file,
+                      kinnit_if_needed=kinit_if_needed,
+                      hdfs_user=params.hdfs_user,
+                      hadoop_conf_dir=params.hadoop_conf_dir
+        )
 
     if lib_dir_path:
       CopyFromLocal(params.tez_local_lib_jars,
@@ -92,9 +93,10 @@ def get_tez_hdfs_dir_paths(tez_lib_uris = None):
   if tez_lib_uris and tez_lib_uris.strip().find(hdfs_path_prefix, 0) != -1:
     dir_paths = tez_lib_uris.split(',')
     for path in dir_paths:
-      lib_dir_path = path.replace(hdfs_path_prefix, '')
-      lib_dir_path = lib_dir_path if lib_dir_path.endswith(os.sep) else lib_dir_path + os.sep
-      lib_dir_paths.append(lib_dir_path)
+      if not "tez.tar.gz" in path:
+        lib_dir_path = path.replace(hdfs_path_prefix, '')
+        lib_dir_path = lib_dir_path if lib_dir_path.endswith(os.sep) else lib_dir_path + os.sep
+        lib_dir_paths.append(lib_dir_path)
     pass
   pass
 

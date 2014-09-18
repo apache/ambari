@@ -255,14 +255,16 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
       String.class, 255, null, true));
     dbAccessor.addColumn("viewmain", new DBColumnInfo("system_view",
         Character.class, 1, null, true));
+    dbAccessor.addColumn("viewmain", new DBColumnInfo("resource_type_id",
+        Integer.class, 1, 1, false));
+    dbAccessor.addColumn("viewmain", new DBColumnInfo("description",
+        String.class, 2048, null, true));
     dbAccessor.addColumn("viewparameter", new DBColumnInfo("masked",
       Character.class, 1, null, true));
     dbAccessor.addColumn("users", new DBColumnInfo("active",
       Integer.class, 1, 1, false));
     dbAccessor.addColumn("users", new DBColumnInfo("principal_id",
         Long.class, 1, 1, false));
-    dbAccessor.addColumn("viewmain", new DBColumnInfo("resource_type_id",
-        Integer.class, 1, 1, false));
     dbAccessor.addColumn("viewinstance", new DBColumnInfo("resource_id",
         Long.class, 1, 1, false));
     dbAccessor.addColumn("viewinstance", new DBColumnInfo("xml_driven",
@@ -279,9 +281,6 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
       byte[].class, null, null, true));
 
     dbAccessor.addColumn("host_role_command", new DBColumnInfo("error_log",
-        String.class, 255, null, true));
-
-    dbAccessor.addColumn("viewmain", new DBColumnInfo("description",
         String.class, 255, null, true));
 
     addAlertingFrameworkDDL();
@@ -344,6 +343,19 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
         dbAccessor.executeQuery("UPDATE clusterconfig SET config_id = nextval('temp_seq')");
         dbAccessor.dropSequence("temp_seq");
       }
+    }
+
+    // alter view tables description columns size
+    if (dbType.equals(Configuration.ORACLE_DB_NAME) ||
+        dbType.equals(Configuration.MYSQL_DB_NAME)) {
+      dbAccessor.executeQuery("ALTER TABLE viewinstance MODIFY description VARCHAR(2048)");
+      dbAccessor.executeQuery("ALTER TABLE viewparameter MODIFY description VARCHAR(2048)");
+    } else if (Configuration.POSTGRES_DB_NAME.equals(dbType)) {
+      dbAccessor.executeQuery("ALTER TABLE viewinstance ALTER COLUMN description TYPE VARCHAR(2048)");
+      dbAccessor.executeQuery("ALTER TABLE viewparameter ALTER COLUMN description TYPE VARCHAR(2048)");
+    } else if (dbType.equals(Configuration.DERBY_DB_NAME)) {
+      dbAccessor.executeQuery("ALTER TABLE viewinstance ALTER COLUMN description SET DATA TYPE VARCHAR(2048)");
+      dbAccessor.executeQuery("ALTER TABLE viewparameter ALTER COLUMN description SET DATA TYPE VARCHAR(2048)");
     }
 
     //upgrade unit test workaround
@@ -949,6 +961,7 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
     columns.add(new DBColumnInfo("target_id", Long.class, null, null, false));
     columns.add(new DBColumnInfo("history_id", Long.class, null, null, false));
     columns.add(new DBColumnInfo("notify_state", String.class, 255, null, false));
+    columns.add(new DBColumnInfo("uuid", String.class, 64, null, false));
     dbAccessor.createTable(ALERT_TABLE_NOTICE, columns, "notification_id");
 
     dbAccessor.addFKConstraint(ALERT_TABLE_NOTICE, "fk_alert_notice_target_id",
@@ -956,6 +969,9 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
 
     dbAccessor.addFKConstraint(ALERT_TABLE_NOTICE, "fk_alert_notice_hist_id",
         "history_id", ALERT_TABLE_HISTORY, "alert_id", false);
+
+    dbAccessor.executeQuery("ALTER TABLE " + ALERT_TABLE_NOTICE
+        + " ADD CONSTRAINT uni_alert_notice_uuid UNIQUE (uuid)", false);
 
     // Indexes
     dbAccessor.createIndex("idx_alert_history_def_id", ALERT_TABLE_HISTORY,
@@ -992,6 +1008,8 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
     updateConfigurationProperties("hadoop-env",
             Collections.singletonMap("hadoop_root_logger", "INFO,RFA"), false,
             false);
+
+    updateConfigurationProperties("oozie-env", Collections.singletonMap("oozie_admin_port", "11001"), false, false);
   }
 
   /**

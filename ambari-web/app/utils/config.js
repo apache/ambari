@@ -364,7 +364,7 @@ App.config = Em.Object.create({
           // in case when config is absent on server and defined UI config is required
           // by server, this config should be ignored
           var serverProperty = properties[serviceConfigObj.get('name')];
-          if (!serverProperty && serviceConfigObj.get('isRequiredByAgent')) {
+          if (Em.isNone(serverProperty) && serviceConfigObj.get('isRequiredByAgent')) {
             continue;
           }
         }

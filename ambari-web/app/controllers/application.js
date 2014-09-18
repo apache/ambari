@@ -23,10 +23,6 @@ App.ApplicationController = Em.Controller.extend(App.UserPref, {
 
   name: 'applicationController',
 
-  clusterExists: function() {
-    return !Em.isNone(App.router.get('clusterController.clusterName'));
-  }.property('App.router.clusterController.clusterName'),
-
   clusterName: function () {
     return (App.router.get('clusterController.clusterName') || 'My Cluster');
   }.property('App.router.clusterController.clusterName'),
@@ -46,6 +42,10 @@ App.ApplicationController = Em.Controller.extend(App.UserPref, {
   isClusterDataLoaded: function() {
     return App.router.get('clusterController.isLoaded') && App.router.get('loggedIn');
   }.property('App.router.clusterController.isLoaded','App.router.loggedIn'),
+
+  isExistingClusterDataLoaded: function () {
+    return !Em.isNone(App.router.get('clusterController.clusterName')) && this.get('isClusterDataLoaded');
+  }.property('App.router.clusterController.clusterName', 'isClusterDataLoaded'),
 
   init: function(){
     this._super();

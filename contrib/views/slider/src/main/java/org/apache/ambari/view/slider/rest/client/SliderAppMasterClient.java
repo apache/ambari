@@ -48,26 +48,28 @@ public class SliderAppMasterClient extends BaseHttpClient {
   public SliderAppMasterData getAppMasterData() {
     try {
       String html = doGet("");
-      int from = html.lastIndexOf("<ul>");
-      int to = html.lastIndexOf("</ul>");
-      if (from < to && from > -1) {
-        SliderAppMasterData data = new SliderAppMasterData();
-        String content = html.substring(from, to);
-        content = content.replaceAll("<[^>]*>", "\r\n");
-        String[] splits = content.split("\r\n");
-        for (int i = 0; i < splits.length; i++) {
-          String split = splits[i].trim();
-          if ("Registry Web Service".equals(split)) {
-            data.registryUrl = splits[i + 1].trim();
-          } else if ("Application Master Web UI".equals(split)) {
-            data.uiUrl = splits[i + 1].trim();
-          } else if ("Management REST API".equals(split)) {
-            data.managementUrl = splits[i + 1].trim();
-          } else if ("Publisher Service".equals(split)) {
-            data.publisherUrl = splits[i + 1].trim();
+      if (html != null) {
+        int from = html.lastIndexOf("<ul>");
+        int to = html.lastIndexOf("</ul>");
+        if (from < to && from > -1) {
+          SliderAppMasterData data = new SliderAppMasterData();
+          String content = html.substring(from, to);
+          content = content.replaceAll("<[^>]*>", "\r\n");
+          String[] splits = content.split("\r\n");
+          for (int i = 0; i < splits.length; i++) {
+            String split = splits[i].trim();
+            if ("Registry Web Service".equals(split)) {
+              data.registryUrl = splits[i + 1].trim();
+            } else if ("Application Master Web UI".equals(split)) {
+              data.uiUrl = splits[i + 1].trim();
+            } else if ("Management REST API".equals(split)) {
+              data.managementUrl = splits[i + 1].trim();
+            } else if ("Publisher Service".equals(split)) {
+              data.publisherUrl = splits[i + 1].trim();
+            }
           }
+          return data;
         }
-        return data;
       }
     } catch (HttpException e) {
       logger.warn("Unable to determine Ambari clusters", e);

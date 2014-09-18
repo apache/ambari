@@ -28,6 +28,7 @@ class CopyFromLocal(Resource):
 
   path = ResourceArgument(default=lambda obj: obj.name)
   dest_dir = ResourceArgument(required=True)
+  dest_file = ResourceArgument()
   owner = ResourceArgument(required=True)
   group = ResourceArgument()
   mode = ResourceArgument()

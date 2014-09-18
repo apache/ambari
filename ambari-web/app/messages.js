@@ -658,7 +658,6 @@ Em.I18n.translations = {
   'installer.step7.popup.validation.request.failed.body': 'Config validaition failed.',
   'installer.step7.popup.validation.warning.header': 'Configurations',
   'installer.step7.popup.validation.warning.body': 'Some service configurations are not configured properly. We recommend you review and change the highlighted configuration values. Are you sure you want to proceed without correcting configurations?',
-
   'installer.step7.oozie.database.new': 'New Derby Database',
   'installer.step7.hive.database.new': 'New MySQL Database',
 
@@ -1695,6 +1694,7 @@ Em.I18n.translations = {
   'hosts.host.details.restartAllComponents':'Restart All Components',
   'hosts.host.details.refreshConfigs':'Refresh configs',
   'hosts.host.details.for.postfix':'{0} for host',
+  'host.host.details.installClients': 'Install clients',
 
   'host.host.componentFilter.master':'Master Components',
   'host.host.componentFilter.slave':'Slave Components',
@@ -2263,6 +2263,7 @@ Em.I18n.translations = {
   'common.combobox.dropdown.final': 'Final properties',
   'common.combobox.dropdown.changed': 'Changed properties',
   'common.combobox.dropdown.issues': 'Show property issues',
+  'common.combobox.dropdown.warnings': 'Show property warnings',
 
   'quick.links.error.label': 'Hostname is undefined',
   'quick.links.publicHostName': '{0} ({1})',

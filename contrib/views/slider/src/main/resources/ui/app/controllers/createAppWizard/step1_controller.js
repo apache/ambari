@@ -141,7 +141,7 @@ App.CreateAppWizardStep1Controller = Ember.Controller.extend({
     var gangliaCustomClusters = [];
 
     if (data.items[0]) {
-      var prop = Em.get(data.items[0].configurations[0].properties, 'ganglia_custom_clusters');
+      var prop = Em.get(data.items[0].configurations[0].properties, 'additional_clusters');
       if (prop) {
         //parse CSV string with cluster names and ports
         prop.replace(/\'/g, "").split(',').forEach(function(item, index){

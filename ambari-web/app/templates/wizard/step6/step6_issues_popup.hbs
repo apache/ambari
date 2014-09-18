@@ -17,25 +17,27 @@
 }}
 
 <p>{{t installer.step6.validationSlavesAndClients.popup.body}}</p>
-{{#if anyGeneralErrors}}
-  <div class="alert alert-error">
-    <ul>
-      {{#if errorMessage}}
-        <li>{{errorMessage}}</li>
-      {{/if}}
-      {{#each msg in controller.generalErrorMessages}}
-        <li>{{msg}}</li>
-      {{/each}}
-    </ul>
-  </div>
-{{/if}}
+<div class="limited-height-2">
+  {{#if anyGeneralErrors}}
+    <div class="alert alert-error">
+      <ul>
+        {{#if errorMessage}}
+          <li>{{errorMessage}}</li>
+        {{/if}}
+        {{#each msg in controller.generalErrorMessages}}
+          <li>{{msg}}</li>
+        {{/each}}
+      </ul>
+    </div>
+  {{/if}}
 
-{{#if anyGeneralWarnings}}
-  <div class="alert alert-warning">
-    <ul>
-      {{#each msg in controller.generalWarningMessages}}
-        <li>{{msg}}</li>
-      {{/each}}
-    </ul>
-  </div>
-{{/if}}
+  {{#if anyGeneralWarnings}}
+    <div class="alert alert-warning">
+      <ul>
+        {{#each msg in controller.generalWarningMessages}}
+          <li>{{msg}}</li>
+        {{/each}}
+      </ul>
+    </div>
+  {{/if}}
+</div>

@@ -146,6 +146,11 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
       attributeName: 'isValid',
       attributeValue: false,
       caption: 'common.combobox.dropdown.issues'
+    },
+    {
+      attributeName: 'warn',
+      attributeValue: true,
+      caption: 'common.combobox.dropdown.warnings'
     }
   ],
 
@@ -319,17 +324,18 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
    * get selected service config version
    * In case selected version is undefined then take currentDefaultVersion
    * @param version
+   * @param switchToGroup
    */
-  loadSelectedVersion: function (version) {
+  loadSelectedVersion: function (version, switchToGroup) {
     var self = this;
     this.set('versionLoaded', false);
     version = version || this.get('currentDefaultVersion');
     //version of non-default group require properties from current version of default group to correctly display page
     var versions = (this.isVersionDefault(version)) ? [version] : [this.get('currentDefaultVersion'), version];
+    switchToGroup = (this.isVersionDefault(version) && !switchToGroup) ? this.get('configGroups').findProperty('isDefault') : switchToGroup;
 
-    //if version from default group selected then switch to default group
-    if (self.get('dataIsLoaded') && this.isVersionDefault(version)) {
-      this.set('selectedConfigGroup', this.get('configGroups').findProperty('isDefault'));
+    if (self.get('dataIsLoaded') && switchToGroup) {
+      this.set('selectedConfigGroup', switchToGroup);
     }
 
     App.ajax.send({
@@ -2090,13 +2096,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
       success: 'doPUTClusterConfigurationSiteSuccessCallback',
       error: 'doPUTClusterConfigurationSiteErrorCallback'
     });
-    var heapsizeException = this.get('heapsizeException');
-    var heapsizeRegExp = this.get('heapsizeRegExp');
-    this.get('stepConfigs')[0].get('configs').forEach(function (item) {
-      if (heapsizeRegExp.test(item.get('name')) && !heapsizeException.contains(item.get('name')) && /\d+m$/.test(item.get('value'))) {
-        item.set('value', item.get('value').slice(0, item.get('value.length') - 1));
-      }
-    });
   },
 
   doPUTClusterConfigurationSiteSuccessCallback: function () {
@@ -2175,19 +2174,20 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     var heapsizeRegExp = this.get('heapsizeRegExp');
     var siteProperties = {};
     siteObj.forEach(function (_siteObj) {
+      var value = _siteObj.value;
       if (_siteObj.isRequiredByAgent == false) return;
       if (heapsizeRegExp.test(_siteObj.name) && !heapsizeException.contains(_siteObj.name)) {
-        Em.set(_siteObj, "value",  _siteObj.value + "m");
+        value += "m";
       }
-      siteProperties[_siteObj.name] = App.config.escapeXMLCharacters(_siteObj.value);
+      siteProperties[_siteObj.name] = App.config.escapeXMLCharacters(value);
       switch (siteName) {
         case 'falcon-startup.properties':
         case 'falcon-runtime.properties':
         case 'pig-properties':
-          siteProperties[_siteObj.name] = _siteObj.value;
+          siteProperties[_siteObj.name] = value;
           break;
         default:
-          siteProperties[_siteObj.name] = this.setServerConfigValue(_siteObj.name, _siteObj.value);
+          siteProperties[_siteObj.name] = this.setServerConfigValue(_siteObj.name, value);
       }
     }, this);
     var result = {"type": siteName, "tag": tagName, "properties": siteProperties};
@@ -2703,7 +2703,17 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     }
     //clean when switch config group
     this.loadedGroupToOverrideSiteToTagMap = {};
-    this.set('selectedConfigGroup', event.context);
+    if (App.supports.configHistory) {
+      var configGroupVersions = App.ServiceConfigVersion.find().filterProperty('groupId', event.context.get('id'));
+      //check whether config group has config versions
+      if (configGroupVersions.length > 0) {
+        this.loadSelectedVersion(configGroupVersions.findProperty('isCurrent').get('version'), event.context);
+      } else {
+        this.loadSelectedVersion(null, event.context);
+      }
+    } else {
+      this.set('selectedConfigGroup', event.context);
+    }
   },
 
   /**

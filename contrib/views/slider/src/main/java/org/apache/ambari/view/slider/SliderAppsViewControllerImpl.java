@@ -89,6 +89,8 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
   private ViewContext viewContext;
   private List<SliderAppType> appTypes;
   private Integer createAppCounter = -1;
+  @Inject
+  private SliderAppsAlerts sliderAlerts;
 
   private String getAppsFolderPath() {
     return viewContext.getAmbariProperty("resources.dir") + "/apps";
@@ -131,7 +133,7 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
     ClassLoader currentClassLoader = Thread.currentThread().getContextClassLoader();
     Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
     try {
-      T value = UserGroupInformation.getBestUGI(null, "yarn").doAs(
+      T value = UserGroupInformation.getBestUGI(null, viewContext.getUsername()).doAs(
           new PrivilegedExceptionAction<T>() {
             @Override
             public T run() throws Exception {
@@ -229,17 +231,17 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
             if (appMasterData == null) {
               appMasterData = sliderAppClient.getAppMasterData();
             }
-            if ("urls".equals(property.toLowerCase())) {
+            if (appMasterData!=null && "urls".equals(property.toLowerCase())) {
               if (quickLinks.isEmpty()) {
                 quickLinks = sliderAppClient
                     .getQuickLinks(appMasterData.publisherUrl);
               }
               app.setUrls(quickLinks);
-            } else if ("configs".equals(property.toLowerCase())) {
+            } else if (appMasterData!=null && "configs".equals(property.toLowerCase())) {
               Map<String, Map<String, String>> configs = sliderAppClient
                   .getConfigs(appMasterData.publisherUrl);
               app.setConfigs(configs);
-            } else if ("jmx".equals(property.toLowerCase())) {
+            } else if (appMasterData!=null && "jmx".equals(property.toLowerCase())) {
               if (quickLinks.isEmpty()) {
                 quickLinks = sliderAppClient
                     .getQuickLinks(appMasterData.publisherUrl);
@@ -272,7 +274,6 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
               app.setConfigs(configs);
             } else if ("components".equals(property.toLowerCase())) {
               try {
-                System.setProperty(SliderKeys.HADOOP_USER_NAME, "yarn");
                 ClusterDescription description = sliderClient
                     .getClusterDescription(yarnApp.getName());
                 if (description != null && description.status != null
@@ -318,11 +319,20 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
                               containerId, containerDataMap);
                         }
                       }
+                      // Set total instances count from statistics
                       appComponent.setInstanceCount(appComponent
                           .getActiveContainers().size()
                           + appComponent.getCompletedContainers().size());
+                      if (description.statistics != null
+                          && description.statistics.containsKey(componentEntry.getKey())) {
+                        Map<String, Integer> statisticsMap = description.statistics.get(componentEntry.getKey());
+                        if (statisticsMap.containsKey("containers.desired")) {
+                          appComponent.setInstanceCount(statisticsMap.get("containers.desired"));
+                        }
+                      }
                     }
                   }
+                  app.setAlerts(sliderAlerts.generateComponentsAlerts(componentTypeMap, app.getType()));
                   app.setComponents(componentTypeMap);
                 }
               } catch (UnknownApplicationInstanceException e) {
@@ -365,7 +375,7 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
     SliderClient client = new SliderClient() {
       @Override
       public String getUsername() throws IOException {
-        return "yarn";
+        return viewContext.getUsername();
       }
 
       @Override
@@ -374,7 +384,7 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
         // Override the default FS client to the calling user
         try {
           FileSystem fs = FileSystem.get(FileSystem.getDefaultUri(getConfig()),
-              getConfig(), "yarn");
+              getConfig(), viewContext.getUsername());
           SliderFileSystem fileSystem = new SliderFileSystem(fs, getConfig());
           Field fsField = SliderClient.class
               .getDeclaredField("sliderFileSystem");

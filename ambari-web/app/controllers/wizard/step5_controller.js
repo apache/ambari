@@ -98,6 +98,12 @@ App.WizardStep5Controller = Em.Controller.extend(App.BlueprintMixin, {
   submitButtonClicked: false,
 
   /**
+   * Either use or not use server validation in this controller
+   * @type {bool}
+   */
+  useServerValidation: true,
+
+  /**
    * Trigger for executing host names check for components
    * Should de "triggered" when host changed for some component and when new multiple component is added/removed
    * @type {bool}
@@ -243,7 +249,7 @@ App.WizardStep5Controller = Em.Controller.extend(App.BlueprintMixin, {
       return false;
     }
 
-    if (App.get('supports.serverRecommendValidate')) {
+    if (App.get('supports.serverRecommendValidate') && this.get('useServerValidation')) {
       self.set('submitDisabled', true);
 
       // reset previous recommendations
@@ -1095,7 +1101,7 @@ App.WizardStep5Controller = Em.Controller.extend(App.BlueprintMixin, {
         self.set('submitButtonClicked', false);
       };
 
-      if (App.get('supports.serverRecommendValidate')) {
+      if (App.get('supports.serverRecommendValidate')  && this.get('useServerValidation')) {
         self.recommendAndValidate(function () {
           self.showValidationIssuesAcceptBox(goNextStepIfValid);
         });

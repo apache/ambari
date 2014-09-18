@@ -44,7 +44,6 @@ App.RMHighAvailabilityWizardController = App.WizardController.extend({
     this._super(currentStep, completed);
     App.clusterStatus.setClusterStatus({
       clusterName: this.get('content.cluster.name'),
-      clusterState: 'RM_HIGH_AVAILABILITY_DEPLOY',
       wizardControllerName: 'rMHighAvailabilityWizardController',
       localdb: App.db.data
     });

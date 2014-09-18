@@ -220,6 +220,11 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
       attributeName: 'isValid',
       attributeValue: false,
       caption: 'common.combobox.dropdown.issues'
+    },
+    {
+      attributeName: 'warn',
+      attributeValue: true,
+      caption: 'common.combobox.dropdown.warnings'
     }
   ],
 

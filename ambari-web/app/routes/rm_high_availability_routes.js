@@ -22,8 +22,12 @@ module.exports = App.WizardRoute.extend({
   route: '/highAvailability/ResourceManager/enable',
 
   enter: function (router,transition) {
+    var rMHighAvailabilityWizardController = router.get('rMHighAvailabilityWizardController');
+    rMHighAvailabilityWizardController.dataLoading().done(function () {
+      //Set YARN as current service
+      App.router.set('mainServiceItemController.content', App.Service.find().findProperty('serviceName', 'YARN'));
+    });
     Em.run.next(function () {
-      var rMHighAvailabilityWizardController = router.get('rMHighAvailabilityWizardController');
       App.router.get('updateController').set('isWorking', false);
       var popup = App.ModalPopup.show({
         classNames: ['full-width-modal'],
@@ -50,7 +54,7 @@ module.exports = App.WizardRoute.extend({
                 localdb: App.db.data
               }, {alwaysCallback: function () {
                 self.hide();
-                router.route('/main/services/YARN/summary');
+                router.transitionTo('main.services.index');
                 location.reload();
               }});
             }, Em.I18n.t('admin.rm_highAvailability.closePopup'));
@@ -58,7 +62,7 @@ module.exports = App.WizardRoute.extend({
             this.hide();
             rMHighAvailabilityWizardController.setCurrentStep('1');
             router.get('updateController').set('isWorking', true);
-            router.route('/main/services/YARN/summary');
+            router.transitionTo('main.services.index');
           }
         },
         didInsertElement: function () {
@@ -181,7 +185,7 @@ module.exports = App.WizardRoute.extend({
         localdb: App.db.data
       }, {alwaysCallback: function () {
         controller.get('popup').hide();
-        router.route('/main/services/YARN/summary');
+        router.transitionTo('main.services.index');
         location.reload();
       }});
     }
