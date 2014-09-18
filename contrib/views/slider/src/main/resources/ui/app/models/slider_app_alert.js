@@ -85,46 +85,23 @@ App.SliderAppAlert = DS.Model.extend({
   timeSinceAlert: function () {
     var d = this.get('date');
     var timeFormat;
+    var statusMap = Em.Object.create({
+      'OK': 'OK',
+      'WARNING': 'WARN',
+      'CRITICAL': 'CRIT',
+      'PASSIVE': 'MAINT'
+    });
+    var messageKey = statusMap.getWithDefault(this.get('status'), 'UNKNOWN');
+
     if (d) {
-      switch (this.get('status')) {
-        case "0":
-          timeFormat = Em.I18n.t('sliderApp.alerts.OK.timePrefix');
-          break;
-        case "1":
-          timeFormat = Em.I18n.t('sliderApp.alerts.WARN.timePrefix');
-          break;
-        case "2":
-          timeFormat = Em.I18n.t('sliderApp.alerts.CRIT.timePrefix');
-          break;
-        case "3":
-          timeFormat = Em.I18n.t('sliderApp.alerts.MAINT.timePrefix');
-          break;
-        default:
-          timeFormat = Em.I18n.t('sliderApp.alerts.UNKNOWN.timePrefix');
-          break;
-      }
+      timeFormat = Em.I18n.t('sliderApp.alerts.' + messageKey + '.timePrefix');
       var prevSuffix = $.timeago.settings.strings.suffixAgo;
       $.timeago.settings.strings.suffixAgo = '';
       var since = timeFormat.format($.timeago(this.makeTimeAtleastMinuteAgo(d)));
       $.timeago.settings.strings.suffixAgo = prevSuffix;
       return since;
     } else if (d == 0) {
-      switch (this.get('status')) {
-        case "0":
-          timeFormat = Em.I18n.t('sliderApp.alerts.OK.timePrefixShort');
-          break;
-        case "1":
-          timeFormat = Em.I18n.t('sliderApp.alerts.WARN.timePrefixShort');
-          break;
-        case "2":
-          timeFormat = Em.I18n.t('sliderApp.alerts.CRIT.timePrefixShort');
-          break;
-        case "3":
-          timeFormat = Em.I18n.t('sliderApp.alerts.MAINT.timePrefixShort');
-          break;
-        default:
-          timeFormat = Em.I18n.t('sliderApp.alerts.UNKNOWN.timePrefixShort');
-      }
+      timeFormat = Em.I18n.t('sliderApp.alerts.' + messageKey + '.timePrefixShort');
       return timeFormat;
     } else {
       return "";
