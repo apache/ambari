@@ -560,10 +560,21 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
 
   @Override
   protected void executeDMLUpdates() throws AmbariException, SQLException {
-    // Update historic records with the log paths, but only enough so as to not prolong the upgrade process
-    moveHcatalogIntoHiveService();
-    moveWebHcatIntoHiveService();
 
+    executeInTransaction(new Runnable() {
+      @Override
+      public void run() {
+        try {
+          moveHcatalogIntoHiveService();
+          moveWebHcatIntoHiveService();
+        } catch (Exception e) {
+          LOG.warn("Integrating HCatalog and WebHCat services into Hive threw " +
+              "exception. ", e);
+        }
+      }
+    });
+
+    // Update historic records with the log paths, but only enough so as to not prolong the upgrade process
     executeInTransaction(new Runnable() {
       @Override
       public void run() {
@@ -644,14 +655,7 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
   }
 
   private void moveComponentsIntoService(String serviceName, String serviceNameToBeDeleted, String componentName) throws AmbariException {
-    /**
-     * 1. ADD servicecomponentdesiredstate: Add HCAT HIVE entry:
-     * 2. Update hostcomponentdesiredstate: service_name to HIVE where service_name is HCATALOG:
-     * 3. Update hostcomponentstate: service_name to HIVE where service_name is HCATALOG:
-     * 4. DELETE servicecomponentdesiredstate: where component_name is HCAT and service_name is HCATALOG :
-     * 5. Delete servicedesiredstate where  service_name is HCATALOG:
-     * 6. Delete clusterservices where service_name is  HCATALOG:
-     */
+    EntityManager em = getEntityManagerProvider().get();
     ClusterDAO clusterDAO = injector.getInstance(ClusterDAO.class);
     ClusterServiceDAO clusterServiceDAO = injector.getInstance(ClusterServiceDAO.class);
     ServiceDesiredStateDAO serviceDesiredStateDAO = injector.getInstance(ServiceDesiredStateDAO.class);
@@ -695,7 +699,6 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
       serviceComponentDesiredStateEntity.setDesiredStackVersion(serviceComponentDesiredStateEntityToDelete.getDesiredStackVersion());
       serviceComponentDesiredStateEntity.setDesiredState(serviceComponentDesiredStateEntityToDelete.getDesiredState());
       serviceComponentDesiredStateEntity.setClusterServiceEntity(clusterServiceEntity);
-      //serviceComponentDesiredStateDAO.create(serviceComponentDesiredStateEntity);
 
       Iterator<HostComponentDesiredStateEntity> hostComponentDesiredStateIterator = serviceComponentDesiredStateEntityToDelete.getHostComponentDesiredStateEntities().iterator();
       Iterator<HostComponentStateEntity> hostComponentStateIterator = serviceComponentDesiredStateEntityToDelete.getHostComponentStateEntities().iterator();
@@ -714,8 +717,8 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
         hostComponentDesiredStateEntity.setRestartRequired(hcDesiredStateEntityToBeDeleted.isRestartRequired());
         hostComponentDesiredStateEntity.setServiceName(serviceName);
         hostComponentDesiredStateEntity.setServiceComponentDesiredStateEntity(serviceComponentDesiredStateEntity);
-        hostComponentDesiredStateDAO.merge(hostComponentDesiredStateEntity);
-        hostComponentDesiredStateDAO.remove(hcDesiredStateEntityToBeDeleted);
+        em.merge(hostComponentDesiredStateEntity);
+        em.remove(hcDesiredStateEntityToBeDeleted);
       }
 
       while (hostComponentStateIterator.hasNext()) {
@@ -729,14 +732,14 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
         hostComponentStateEntity.setHostEntity(hcStateToBeDeleted.getHostEntity());
         hostComponentStateEntity.setServiceName(serviceName);
         hostComponentStateEntity.setServiceComponentDesiredStateEntity(serviceComponentDesiredStateEntity);
-        hostComponentStateDAO.merge(hostComponentStateEntity);
-        hostComponentStateDAO.remove(hcStateToBeDeleted);
+        em.merge(hcStateToBeDeleted);
+        em.remove(hcStateToBeDeleted);
       }
       serviceComponentDesiredStateEntity.setClusterServiceEntity(clusterServiceEntity);
-      serviceComponentDesiredStateDAO.merge(serviceComponentDesiredStateEntity);
-      serviceComponentDesiredStateDAO.remove(serviceComponentDesiredStateEntityToDelete);
-      serviceDesiredStateDAO.remove(serviceDesiredStateEntity);
-      clusterServiceDAO.remove(clusterServiceEntityToBeDeleted);
+      em.merge(serviceComponentDesiredStateEntity);
+      em.remove(serviceComponentDesiredStateEntityToDelete);
+      em.remove(serviceDesiredStateEntity);
+      em.remove(clusterServiceEntityToBeDeleted);
     }
   }
 
