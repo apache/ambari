@@ -42,9 +42,12 @@ App.ServiceConfigVersion = DS.Model.extend({
   configGroupName: function () {
     return (this.get('groupName') === 'default') ? (this.get('displayName') + ' ' + Em.I18n.t('common.default')) : this.get('groupName');
   }.property('groupName'),
-  briefNotes: function () {
-    return (typeof this.get('notes') === 'string') ? this.get('notes').slice(0, 81) : "";
+  fullNotes: function () {
+    return (typeof this.get('notes') === 'string') ? this.get('notes') || Em.I18n.t('dashboard.configHistory.table.notes.no') : Em.I18n.t('dashboard.configHistory.table.notes.no');
   }.property('notes'),
+  briefNotes: function () {
+    return this.get('fullNotes').slice(0, 81);
+  }.property('fullNotes'),
   moreNotesExists: function () {
     return (typeof this.get('notes') === 'string') ?  this.get('notes').length > 80 : false;
   }.property('notes'),

@@ -27,7 +27,7 @@ App.ConfigHistoryFlowView = Em.View.extend({
   startIndex: 0,
   showLeftArrow: false,
   showRightArrow: false,
-  VERSIONS_IN_FLOW: 5,
+  VERSIONS_IN_FLOW: 6,
   VERSIONS_IN_DROPDOWN: 6,
   /**
    * flag identify whether to show all versions or short list of them
@@ -97,7 +97,7 @@ App.ConfigHistoryFlowView = Em.View.extend({
     });
 
     return serviceVersions.sort(function (a, b) {
-      return Em.get(a, 'createTime') - Em.get(b, 'createTime');
+      return Em.get(b, 'createTime') - Em.get(a, 'createTime');
     });
   }.property('serviceName', 'controller.selectedConfigGroup.name'),
 
@@ -142,11 +142,6 @@ App.ConfigHistoryFlowView = Em.View.extend({
   },
 
   didInsertElement: function () {
-    $('.version-box').hoverIntent(function() {
-      $(this).find('.version-popover').delay(800).fadeIn(400);
-    }, function() {
-      $(this).find('.version-popover').hide();
-    });
     App.tooltip(this.$('[data-toggle=tooltip]'),{
       placement: 'bottom'
     });
@@ -217,7 +212,6 @@ App.ConfigHistoryFlowView = Em.View.extend({
         serviceVersions.forEach(function (serviceVersion, index) {
           // find current in default group
           if (serviceVersion.get('isCurrent') && serviceVersion.get('groupName') == Em.I18n.t('dashboard.configHistory.table.configGroup.default')){
-
             serviceVersion.set('isDisplayed', true);
             currentIndex = index;
           }
@@ -228,7 +222,6 @@ App.ConfigHistoryFlowView = Em.View.extend({
           // find current in selected group
           if (serviceVersion.get('isCurrent') && serviceVersion.get('groupName') == selectedGroupName){
             serviceVersion.set('isDisplayed', true);
-
             currentIndex = index;
           }
         });
@@ -238,7 +231,6 @@ App.ConfigHistoryFlowView = Em.View.extend({
             // find current in default group
             if (serviceVersion.get('isCurrent') && serviceVersion.get('groupName') == Em.I18n.t('dashboard.configHistory.table.configGroup.default')){
               serviceVersion.set('isDisplayed', true);
-
               currentIndex = index;
             }
           });
@@ -297,7 +289,6 @@ App.ConfigHistoryFlowView = Em.View.extend({
    */
   adjustFlowView: function () {
     var startIndex = this.get('startIndex');
-
     this.get('serviceVersions').forEach(function (serviceVersion, index) {
       serviceVersion.set('first', (index === startIndex));
     });
@@ -461,16 +452,18 @@ App.ConfigHistoryFlowView = Em.View.extend({
     });
   },
   /**
-   * move back to the previous service version
+   * move back to the later service version
    */
   shiftBack: function () {
+    if (!this.get('showLeftArrow')) return;
     this.decrementProperty('startIndex');
     this.adjustFlowView();
   },
   /**
-   * move forward to the next service version
+   * move forward to the previous service version
    */
   shiftForward: function () {
+    if (!this.get('showRightArrow')) return;
     this.incrementProperty('startIndex');
     this.adjustFlowView();
   },
