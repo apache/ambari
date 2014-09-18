@@ -155,6 +155,28 @@ App.ConfigHistoryFlowView = Em.View.extend({
     });
   },
 
+  serviceVersionBox: Em.View.extend({
+    templateName: require('templates/common/configs/service_version_box'),
+    didInsertElement: function () {
+      $('.version-box').hoverIntent(function() {
+        var self = this;
+        setTimeout(function() {
+          if ($(self).is(':hover')) {
+            $(self).find('.version-popover').fadeIn(200);
+          }
+        }, 700);
+      }, function() {
+        $(this).find('.version-popover').hide();
+      });
+      App.tooltip(this.$('[data-toggle=tooltip]'),{
+        placement: 'bottom'
+      });
+      App.tooltip(this.$('[data-toggle=arrow-tooltip]'),{
+        placement: 'top'
+      });
+    }
+  }),
+
   willInsertElement: function () {
     var serviceVersions = this.get('serviceVersions');
     var startIndex = 0;

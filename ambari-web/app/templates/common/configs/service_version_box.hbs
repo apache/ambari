@@ -1,0 +1,53 @@
+{{!
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+}}
+
+<div {{bindAttr class=":flow-element :pull-left serviceVersion.first:first"}}>
+  <div class="arrow-box pull-left"><i class="icon-arrow-right icon-3x"></i></div>
+  <div class="version-box">
+    <div {{bindAttr class=":version-info :box :pull-right serviceVersion.isDisplayed:displayed serviceVersion.isDisabled:grayedOut"}} {{action switchVersion serviceVersion target="view.parentView"}}>
+      <div class="top-label">
+        <span class="label label-info">{{serviceVersion.versionText}}</span>
+        <span class="author pull-right">{{serviceVersion.author}}</span>
+      </div>
+      <div class="content">{{serviceVersion.timeSinceCreated}}</div>
+      {{#if serviceVersion.isCurrent}}
+        <div class="current-label">
+                <span class="label label-success">
+                  {{t common.current}}
+                  <i {{bindAttr class=":icon-refresh :restart-required-service serviceVersion.isRestartRequired::hidden"}}></i>
+                </span>
+        </div>
+      {{/if}}
+    </div>
+
+    <div class="version-popover">
+      <div class="content"> <strong>{{serviceVersion.displayName}}</strong> <span class="label label-info">{{serviceVersion.versionText}}</span> &nbsp;
+        <strong>{{t services.service.config.configHistory.configGroup}}:{{serviceVersion.configGroupName}}</strong>
+        <div class="date">{{serviceVersion.createdDate}}</div>
+        <div class="notes">{{serviceVersion.notes}}</div>
+      </div>
+      <div class="version-operations-buttons">
+        <button {{bindAttr disabled="serviceVersion.disabledActionAttr.view" class=":btn serviceVersion.isDisplayed:not-allowed-cursor" title="serviceVersion.disabledActionMessages.view"}} {{action switchVersion serviceVersion target="view.parentView"}}><i class="icon-search"></i>&nbsp;{{t common.view}}</button>
+        {{#if App.isManager}}
+          <button {{bindAttr disabled="serviceVersion.disabledActionAttr.compare" class=":btn serviceVersion.isDisplayed:not-allowed-cursor" title="serviceVersion.disabledActionMessages.compare"}} {{action compare serviceVersion target="view.parentView"}}><i class="icon-copy"></i>&nbsp;{{t common.compare}}</button>
+          <button {{bindAttr disabled="serviceVersion.disabledActionAttr.revert" class=":btn serviceVersion.isCurrent:not-allowed-cursor" title="serviceVersion.disabledActionMessages.revert"}} {{action revert serviceVersion target="view.parentView"}}>{{t dashboard.configHistory.info-bar.revert.button}}</button>
+        {{/if}}
+      </div>
+    </div>
+  </div>
+</div>
