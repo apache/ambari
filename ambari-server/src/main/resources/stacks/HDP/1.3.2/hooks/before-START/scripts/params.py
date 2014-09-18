@@ -94,7 +94,7 @@ ambari_db_rca_driver = config['hostLevelParams']['ambari_db_rca_driver']
 ambari_db_rca_username = config['hostLevelParams']['ambari_db_rca_username']
 ambari_db_rca_password = config['hostLevelParams']['ambari_db_rca_password']
 
-if has_namenode and 'rca_enabled' in config['configurations']['mapred-env']:
+if has_namenode and 'mapred-env' in config['configurations']:
   rca_enabled =  config['configurations']['mapred-env']['rca_enabled']
 else:
   rca_enabled = False

@@ -49,13 +49,8 @@ def hcat():
             group=params.user_group,
             mode=0644)
 
-  hcat_TemplateConfig('hcat-env.sh')
-
-
-def hcat_TemplateConfig(name):
-  import params
-
-  TemplateConfig(format("{hcat_conf_dir}/{name}"),
-                 owner=params.hcat_user,
-                 group=params.user_group
+  File(format("{hcat_conf_dir}/hcat-env.sh"),
+       owner=params.hcat_user,
+       group=params.user_group,
+       content=InlineTemplate(params.hcat_env_sh_template)
   )

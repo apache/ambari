@@ -542,7 +542,10 @@
         }, 
         "webhcat-env": {
             "content": "\n# The file containing the running pid\nPID_FILE={{pid_file}}\n\nTEMPLETON_LOG_DIR={{templeton_log_dir}}/\n\n\nWEBHCAT_LOG_DIR={{templeton_log_dir}}/\n\n# The console error log\nERROR_LOG={{templeton_log_dir}}/webhcat-console-error.log\n\n# The console log\nCONSOLE_LOG={{templeton_log_dir}}/webhcat-console.log\n\n#TEMPLETON_JAR=templeton_jar_name\n\n#HADOOP_PREFIX=hadoop_prefix\n\n#HCAT_PREFIX=hive_prefix\n\n# Set HADOOP_HOME to point to a specific hadoop install directory\nexport HADOOP_HOME=/usr/lib/hadoop"
-        }, 
+        },
+        "hcat-env": {
+            "content": "JAVA_HOME={{java64_home}}\n      HCAT_PID_DIR={{hcat_pid_dir}}/\n      HCAT_LOG_DIR={{hcat_log_dir}}/\n      HCAT_CONF_DIR={{hcat_conf_dir}}\n      HADOOP_HOME=${HADOOP_HOME:-{{hadoop_home}}}\n      #DBROOT is the path where the connector jars are downloaded\n      DBROOT={{hcat_dbroot}}\n      USER={{hcat_user}}\n      METASTORE_PORT={{hive_metastore_port}}"
+        },
         "pig-env": {
             "content": "\nJAVA_HOME={{java64_home}}\nHADOOP_HOME=${HADOOP_HOME:-{{hadoop_home}}}\n\nif [ -d \"/usr/lib/tez\" ]; then\n  PIG_OPTS=\"$PIG_OPTS -Dmapreduce.framework.name=yarn\"\nfi"
         }, 
