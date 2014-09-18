@@ -64,25 +64,16 @@ def install_tez_jars():
     pass
 
     if app_dir_path:
-      CopyFromLocal(params.tez_local_api_jars,
-                    mode=0755,
-                    owner=params.tez_user,
-                    dest_dir=app_dir_path,
-                    kinnit_if_needed=kinit_if_needed,
-                    hdfs_user=params.hdfs_user,
-                    hadoop_conf_dir=params.hadoop_conf_dir
-      )
-
-      CopyFromLocal(params.tez_tar_file,
-                    owner=params.tez_user,
-                    mode=0755,
-                    dest_dir=app_dir_path,
-                    dest_file="tez.tar.gz",
-                    kinnit_if_needed=kinit_if_needed,
-                    hdfs_user=params.hdfs_user,
-                    hadoop_conf_dir=params.hadoop_conf_dir
-      )
-    pass
+      for scr_file, dest_file in params.app_dir_files.iteritems():
+        CopyFromLocal(scr_file,
+                      mode=0755,
+                      owner=params.tez_user,
+                      dest_dir=app_dir_path,
+                      dest_file=dest_file,
+                      kinnit_if_needed=kinit_if_needed,
+                      hdfs_user=params.hdfs_user,
+                      hadoop_conf_dir=params.hadoop_conf_dir
+        )
 
     if lib_dir_path:
       CopyFromLocal(params.tez_local_lib_jars,

@@ -269,6 +269,14 @@ webhcat_hdfs_user_mode = 0755
 #for create_hdfs_directory
 security_param = "true" if security_enabled else "false"
 
+if str(hdp_stack_version).startswith('2.0') or str(hdp_stack_version).startswith('2.1'):
+  app_dir_files = {tez_local_api_jars:None}
+else:
+  app_dir_files = {
+              tez_local_api_jars:None,
+              tez_tar_file:"tez.tar.gz"
+  }
+
 import functools
 #create partial functions with common arguments for every HdfsDirectory call
 #to create hdfs directory we need to call params.HdfsDirectory in code
