@@ -114,8 +114,17 @@ App.SliderAppController = Ember.ObjectController.extend(App.AjaxErrorHandler, {
           name: model.get('name'),
           state: "RUNNING"
         }
-      }
+      },
+      success: 'thawSuccessCallback'
     });
+  },
+
+  /**
+   * Redirect to Slider Apps Table page on successful thawing
+   * @method thawSuccessCallback
+   */
+  thawSuccessCallback: function () {
+    this.transitionToRoute('slider_apps.index');
   },
 
   /**
