@@ -633,11 +633,11 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
 
     moveGlobalsToEnv();
     addEnvContentFields();
-    addMissingConfigs();
     renamePigProperties();
     upgradePermissionModel();
     addJobsViewPermissions();
     moveConfigGroupsGlobalToEnv();
+    addMissingConfigs();
   }
 
   public void moveHcatalogIntoHiveService() throws AmbariException {
@@ -993,25 +993,7 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
   }
 
   protected void addMissingConfigs() throws AmbariException {
-    updateConfigurationProperties("hbase-env",
-        Collections.singletonMap("hbase_regionserver_xmn_max", "512"), false,
-        false);
-
-    updateConfigurationProperties("hbase-env",
-        Collections.singletonMap("hbase_regionserver_xmn_ratio", "0.2"), false,
-        false);
-
-    updateConfigurationProperties("yarn-env",
-        Collections.singletonMap("min_user_id", "1000"), false,
-        false);
-
-    updateConfigurationProperties("sqoop-env", Collections.singletonMap("sqoop_user", "sqoop"), false, false);
-
-    updateConfigurationProperties("hadoop-env",
-            Collections.singletonMap("hadoop_root_logger", "INFO,RFA"), false,
-            false);
-
-    updateConfigurationProperties("oozie-env", Collections.singletonMap("oozie_admin_port", "11001"), false, false);
+    addNewConfigurationsFromXml();
   }
 
   /**
@@ -1065,8 +1047,7 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
             continue;
           }
 
-          String value = configHelper.getPropertyValueFromStackDefenitions(cluster, configType, CONTENT_FIELD_NAME);
-          updateConfigurationProperties(configType, Collections.singletonMap(CONTENT_FIELD_NAME, value), true, true);
+          updateConfigurationPropertiesWithValuesFromXml(configType, Collections.singleton(CONTENT_FIELD_NAME), false, true);
         }
       }
     }
@@ -1129,7 +1110,7 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
         }
 
         for (Entry<String, Map<String, String>> newProperty : newProperties.entrySet()) {
-          updateConfigurationProperties(newProperty.getKey(), newProperty.getValue(), true, true);
+          updateConfigurationProperties(newProperty.getKey(), newProperty.getValue(), false, true);
         }
 
         // if have some custom properties, for own services etc., leave that as it was

@@ -423,9 +423,11 @@ public class UpgradeCatalog170Test {
     Method m = AbstractUpgradeCatalog.class.getDeclaredMethod
         ("updateConfigurationProperties", String.class, Map.class, boolean.class, boolean.class);
     Method n = AbstractUpgradeCatalog.class.getDeclaredMethod("getEntityManagerProvider");
-
+    Method l = AbstractUpgradeCatalog.class.getDeclaredMethod
+        ("addNewConfigurationsFromXml");
+    
     UpgradeCatalog170 upgradeCatalog = createMockBuilder(UpgradeCatalog170.class)
-      .addMockedMethod(m).addMockedMethod(n).createMock();
+      .addMockedMethod(m).addMockedMethod(n).addMockedMethod(l).createMock();
 
     List<ConfigGroupConfigMappingEntity> configGroupConfigMappingEntities =
             new ArrayList<ConfigGroupConfigMappingEntity>();
@@ -456,34 +458,10 @@ public class UpgradeCatalog170Test {
     contentOfHadoopEnv.put("content", "env file contents");
 
     upgradeCatalog.updateConfigurationProperties("hadoop-env",
-        globalConfigs, true, true);
+        globalConfigs, false, true);
     expectLastCall();
 
-    upgradeCatalog.updateConfigurationProperties("hadoop-env",
-        contentOfHadoopEnv, true, true);
-    expectLastCall();
-
-    upgradeCatalog.updateConfigurationProperties("hbase-env",
-        Collections.singletonMap("hbase_regionserver_xmn_max", "512"), false, false);
-    expectLastCall();
-
-    upgradeCatalog.updateConfigurationProperties("hbase-env",
-        Collections.singletonMap("hbase_regionserver_xmn_ratio", "0.2"), false, false);
-    expectLastCall();
-
-    upgradeCatalog.updateConfigurationProperties("yarn-env",
-        Collections.singletonMap("min_user_id", "1000"), false, false);
-    expectLastCall();
-
-    upgradeCatalog.updateConfigurationProperties("sqoop-env", Collections.singletonMap("sqoop_user", "sqoop"), false, false);
-    expectLastCall();
-
-    upgradeCatalog.updateConfigurationProperties("hadoop-env",
-            Collections.singletonMap("hadoop_root_logger", "INFO,RFA"), false, false);
-    expectLastCall();
-
-    upgradeCatalog.updateConfigurationProperties("oozie-env",
-            Collections.singletonMap("oozie_admin_port", "11001"), false, false);
+    upgradeCatalog.addNewConfigurationsFromXml();
     expectLastCall();
 
     expect(dbAccessor.executeSelect("SELECT role_name, user_id FROM user_roles")).andReturn(userRolesResultSet).once();
@@ -521,7 +499,6 @@ public class UpgradeCatalog170Test {
     expect(configHelper.findConfigTypesByPropertyName(new StackId("HDP", "2.1"), "smokeuser_keytab", "c1")).andReturn(new HashSet<String>()).once();
     expect(configHelper.findConfigTypesByPropertyName(new StackId("HDP", "2.1"), "content", "c1")).andReturn(envDicts).once();
     expect(configHelper.findConfigTypesByPropertyName(new StackId("HDP", "2.1"), "dtnode_heapsize", "c1")).andReturn(configTypes).once();
-    expect(configHelper.getPropertyValueFromStackDefenitions(cluster, "hadoop-env", "content")).andReturn("env file contents").once();
 
     expect(injector.getInstance(ConfigGroupConfigMappingDAO.class)).andReturn(configGroupConfigMappingDAO).anyTimes();
     expect(injector.getInstance(UserDAO.class)).andReturn(userDAO).anyTimes();

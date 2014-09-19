@@ -172,7 +172,7 @@ public class UpgradeCatalog161Test {
             "reducer=1000000000\npig.exec.reducers.max=999\n\n# Temporary location to store the intermediate " +
             "data.\npig.temp.dir=/tmp/\n\n# Threshold for merging FRJoin fragment files\npig.files.concatenation." +
             "threshold=100\npig.optimistic.files.concatenation=false;\n\npig.disable.counter=false\n\n" +
-            "hcat.bin=/usr/bin/hcat"), true, true);
+            "hcat.bin=/usr/bin/hcat"), true, false);
     expectLastCall();
 
     replay(upgradeCatalog, dbAccessor, configuration, injector, provider, em,
