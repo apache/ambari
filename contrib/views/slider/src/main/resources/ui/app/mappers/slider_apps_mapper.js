@@ -23,6 +23,14 @@
 App.SliderAppsMapper = App.Mapper.createWithMixins(App.RunPeriodically, {
 
   /**
+   * List of app state display names
+   */
+  stateMap: {
+    'FROZEN': 'STOPPED',
+    'THAWED': 'RUNNING'
+  },
+
+  /**
    * Load data from <code>App.urlPrefix + this.urlSuffix</code> one time
    * @method load
    * @return {$.ajax}
@@ -207,6 +215,7 @@ App.SliderAppsMapper = App.Mapper.createWithMixins(App.RunPeriodically, {
           yarnId: app.yarnId,
           name: app.name,
           status: app.state,
+          displayStatus: self.stateMap[app.state] || app.state,
           user: app.user,
           started: app.startTime ? (new Date(app.startTime).toUTCString()) : "-",
           ended: app.endTime ? (new Date(app.endTime).toUTCString()) : "-",
