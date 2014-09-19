@@ -53,12 +53,7 @@ Em.I18n.translations = {
     'send': 'Send'
   },
 
-  'error.noHDFS': 'Slider applications view requires HDFS service.',
-  'error.startHDFS': 'Slider applications view requires HDFS service to be started.',
-  'error.noYARN': 'Slider applications view requires YARN service.',
-  'error.startYARN': 'Slider applications view requires YARN service to be started.',
-  'error.noZOOKEEPER': 'Slider applications view requires ZooKeeper service.',
-  'error.startZOOKEEPER': 'Slider applications view requires ZooKeeper service to be started.',
+  'error.config_is_empty': 'Config <strong>{0}</strong> should not be empty',
 
   'popup.confirmation.commonHeader': 'Confirmation',
   'question.sure':'Are you sure?',

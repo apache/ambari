@@ -29,6 +29,7 @@ exports.config = {
       order: {
         before: [
           'vendor/scripts/common/d3.v2.js',
+          'vendor/scripts/common/tv4.js',
           'vendor/scripts/common/cubism.v1.js',
           'vendor/scripts/common/rickshaw.js',
           'vendor/scripts/common/console-polyfill.js',

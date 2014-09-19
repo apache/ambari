@@ -16,38 +16,36 @@
  * limitations under the License.
  */
 
-App.ApplicationView = Ember.View.extend({
+/**
+ * Slider config-property (see Ambari-Admin view-settings)
+ * Also see <code>view.xml</code>
+ * @type {DS.Model}
+ */
+App.SliderConfig = DS.Model.extend({
 
   /**
-   * View with popover for Slider title
-   * @type {Ember.View}
+   * Name in the Ambari-Admin
+   * @type {string}
    */
-  SliderTitleView: Em.View.extend({
+  viewConfigName: DS.attr('string'),
 
-    /**
-     * Popover-config
-     * @type {Em.Object}
-     */
-    popover: Em.Object.create({
-      trigger: 'hover',
-      placement: 'bottom'
-    }),
+  /**
+   * Shown name
+   * @type {string}
+   */
+  displayName: DS.attr('string'),
 
-    /**
-     * Set <code>popover</code> template
-     * @method sliderConfigsChecker
-     */
-    sliderConfigsChecker: function() {
-      var template = this.createChildView(App.SliderTitleTooltipView, {
-        content: App.SliderApp.store.all('sliderConfig')
-      });
-      this.set('popover.template', template.renderToBuffer().string());
-    }.observes('App.mapperTime')
+  /**
+   * @type {null|string}
+   */
+  value: null,
 
-  })
+  /**
+   * Is property required
+   * @type {bool}
+   */
+  required: DS.attr('bool')
 
 });
 
-App.SliderTitleTooltipView = Em.View.extend({
-  templateName: 'slider_title_tooltip'
-});
+App.SliderConfig.FIXTURES = [];

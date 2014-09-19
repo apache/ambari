@@ -161,6 +161,12 @@ App.SliderAppsMapper = App.Mapper.createWithMixins(App.RunPeriodically, {
     });
   },
 
+  /**
+   * Concatenate <code>supportedMetrics</code> into one string
+   * @param {object} app
+   * @returns {string}
+   * @method parseMetricNames
+   */
   parseMetricNames : function(app) {
     if (app.supportedMetrics) {
       return app.supportedMetrics.join(",");
@@ -185,6 +191,7 @@ App.SliderAppsMapper = App.Mapper.createWithMixins(App.RunPeriodically, {
         quickLinks = self.parseQuickLinks(app),
         alerts = self.parseAlerts(app),
         jmx = self.parseObject(app.jmx),
+        metricNames = self.parseMetricNames(app),
         masterActiveTime = jmx.findProperty('key', 'MasterActiveTime'),
         masterStartTime = jmx.findProperty('key', 'MasterStartTime');
       if (masterActiveTime) {

@@ -21,21 +21,36 @@ limitations under the License. Kerberos, LDAP, Custom. Binary/Htt
   <parameter>
     <name>hdfs.address</name>
     <description>The URL to access HDFS service via its protocol. Typically this is the fs.defaultFS property in the core-site.xml configuration. For example: hdfs://hdfs.namenode.host:8020.</description>
-    <required>false</required>
+    <required>true</required>
   </parameter>
   <parameter>
     <name>yarn.resourcemanager.address</name>
     <description>The URL to the YARN ResourceManager, used to provide YARN Application data. For example: http://yarn.resourcemanager.host:8050</description>
-    <required>false</required>
+    <required>true</required>
   </parameter>
   <parameter>
     <name>yarn.resourcemanager.scheduler.address</name>
     <description>The URL to the YARN ResourceManager Scheduler, which schedules YARN Applications. For example: http://yarn.resourcemanager.host:8030</description>
-    <required>false</required>
+    <required>true</required>
   </parameter>
   <parameter>
     <name>zookeeper.quorum</name>
     <description>ZooKeeper quorum location. Typically this is a comma separated list of ZooKeeper hostnames and port numbers (clientPort property in the zookeeper-env). For example: zookeeper.host1:2181,zookeeper.host2:2181.</description>
+    <required>true</required>
+  </parameter>
+  <parameter>
+    <name>ganglia.server.hostname</name>
+    <description>Hostname where Ganglia Server is located</description>
+    <required>false</required>
+  </parameter>
+  <parameter>
+    <name>ganglia.custom.clusters</name>
+    <description>Custom Ganglia clusters which can be used by applications created in Slider Apps view. Value is comma separated list of cluster-name and port pairs. Typically this is the ganglia_custom_clusters in the ganglia-env configuration. For example: Application1,8881,Application2,8882</description>
+    <required>false</required>
+  </parameter>
+  <parameter>
+    <name>slider.user</name>
+    <description>Slider user</description>
     <required>false</required>
   </parameter>
   <resource>

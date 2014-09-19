@@ -20,12 +20,12 @@
   {{#view view.SliderTitleView}}
     <h1>{{t slider.apps.title}} - <span class="slider-app-title" {{bs-bind-popover view.popover}}>{{App.instance}}</span></h1>
   {{/view}}
+  {{outlet bs-tooltip-box}}
 </div>
 {{#if App.viewEnabled}}
   {{outlet}}
-  {{outlet bs-tooltip-box}}
 {{else}}
   {{#each error in App.viewErrors}}
-    <h3>{{error}}</h3>
+    <h3>{{{error}}}</h3>
   {{/each}}
 {{/if}}

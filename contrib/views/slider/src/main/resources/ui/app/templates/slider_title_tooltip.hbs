@@ -22,7 +22,7 @@
   </div>
   {{#each config in view.content}}
     <div class="row">
-      <div class="col-md-4">{{humanize config.name}}</div>
+      <div class="col-md-4">{{humanize config.displayName}}</div>
       <div class="col-md-8">{{formatWordBreak config.value devider=','}}</div>
     </div>
   {{/each}}

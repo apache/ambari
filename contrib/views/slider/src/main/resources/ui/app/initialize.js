@@ -105,20 +105,13 @@ App.initializer({
       gangliaClusters: null,
 
       /**
-       * View-configs set from ambari-admin
-       * Loaded in <code>App.SliderController</code>
-       * @type {null|object}
-       */
-      sliderConfigs: null,
-
-      /**
        * Last time when mapper ran
        * @type {null|number}
        */
       mapperTime: null
 
     });
-    application.SliderController.proto().loop('initResources');
+    application.SliderController.proto().initResources();
     application.ApplicationTypeMapper.loop('load');
     application.SliderAppsMapper.loop('load');
   }
