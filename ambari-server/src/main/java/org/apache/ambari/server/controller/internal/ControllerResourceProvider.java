@@ -39,6 +39,7 @@ import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.security.ldap.LdapBatchDto;
 import org.apache.ambari.server.security.ldap.LdapGroupDto;
 import org.apache.ambari.server.security.ldap.LdapSyncDto;
 import org.apache.ambari.server.security.ldap.LdapUserDto;
@@ -57,6 +58,8 @@ class ControllerResourceProvider extends AbstractControllerResourceProvider {
   protected static final String CONTROLLER_LDAP_GROUPS_PROPERTY_ID        = PropertyHelper.getPropertyId("LDAP", "groups");
   protected static final String CONTROLLER_LDAP_SYNCED_USERS_PROPERTY_ID  = PropertyHelper.getPropertyId("LDAP", "synced_users");
   protected static final String CONTROLLER_LDAP_SYNCED_GROUPS_PROPERTY_ID = PropertyHelper.getPropertyId("LDAP", "synced_groups");
+
+  protected static final String ALL_ENTRIES = "*";
 
   private static Set<String> pkPropertyIds = new HashSet<String>(
       Arrays.asList(new String[] { CONTROLLER_NAME_PROPERTY_ID }));
@@ -190,39 +193,63 @@ class ControllerResourceProvider extends AbstractControllerResourceProvider {
     }
 
     // one request per each controller
+    Set<Resource> resources = new HashSet<Resource>();
     for (final ControllerRequest controllerRequest: requests) {
-      modifyResources(new Command<Void>() {
+      Resource resource = modifyResources(new Command<Resource>() {
         @Override
-        public Void invoke() throws AmbariException {
+        public Resource invoke() throws AmbariException {
+          Resource resource = null;
           switch (ControllerType.getByName(controllerRequest.getName())) {
           case LDAP:
-            Set<String> users = new HashSet<String>();
+            resource = new ResourceImpl(Resource.Type.Controller);
+            Set<String> users = null;
             if (controllerRequest.getPropertyMap().containsKey(CONTROLLER_LDAP_SYNCED_USERS_PROPERTY_ID)) {
               final String userCsv = (String) controllerRequest.getPropertyMap().get(CONTROLLER_LDAP_SYNCED_USERS_PROPERTY_ID);
-              for (String user: userCsv.split(",")) {
-                if (StringUtils.isNotEmpty(user)) {
-                  users.add(user.toLowerCase());
+              if (!userCsv.trim().equals(ALL_ENTRIES)) {
+                users = new HashSet<String>();
+                for (String user: userCsv.split(",")) {
+                  if (StringUtils.isNotEmpty(user)) {
+                    users.add(user.toLowerCase());
+                  }
                 }
               }
             }
-            Set<String> groups = new HashSet<String>();
+            Set<String> groups = null;
             if (controllerRequest.getPropertyMap().containsKey(CONTROLLER_LDAP_SYNCED_GROUPS_PROPERTY_ID)) {
               final String groupCsv = (String) controllerRequest.getPropertyMap().get(CONTROLLER_LDAP_SYNCED_GROUPS_PROPERTY_ID);
-              for (String group: groupCsv.split(",")) {
-                if (StringUtils.isNotEmpty(group)) {
-                  groups.add(group.toLowerCase());
+              if (!groupCsv.trim().equals(ALL_ENTRIES)) {
+                groups = new HashSet<String>();
+                for (String group : groupCsv.split(",")) {
+                  if (StringUtils.isNotEmpty(group)) {
+                    groups.add(group.toLowerCase());
+                  }
                 }
               }
             }
-            getManagementController().synchronizeLdapUsersAndGroups(users, groups);
+            if (!getManagementController().isLdapSyncInProgress()) {
+              LdapBatchDto syncInfo = getManagementController().synchronizeLdapUsersAndGroups(users, groups);
+              resource.setProperty("Sync/status", "successful");
+              resource.setProperty("Sync/summary/Users/created", syncInfo.getUsersToBeCreated().size());
+              resource.setProperty("Sync/summary/Users/updated", syncInfo.getUsersToBecomeLdap().size());
+              resource.setProperty("Sync/summary/Users/removed", syncInfo.getUsersToBeRemoved().size());
+              resource.setProperty("Sync/summary/Groups/created", syncInfo.getGroupsToBeCreated().size());
+              resource.setProperty("Sync/summary/Groups/updated", syncInfo.getGroupsToBecomeLdap().size());
+              resource.setProperty("Sync/summary/Groups/removed", syncInfo.getGroupsToBeRemoved().size());
+              resource.setProperty("Sync/summary/Memberships/created", syncInfo.getMembershipToAdd().size());
+              resource.setProperty("Sync/summary/Memberships/removed", syncInfo.getMembershipToRemove().size());
+            } else {
+              resource.setProperty("Sync/status", "not started");
+              resource.setProperty("Sync/summary", "Another sync is already running");
+            }
             break;
           }
-          return null;
+          return resource;
         }
       });
+      resources.add(resource);
     }
 
-    return getRequestStatus(null);
+    return getRequestStatus(null, resources);
   }
 
   @Override

@@ -41,6 +41,8 @@ import random
 import pwd
 from ambari_server.resourceFilesKeeper import ResourceFilesKeeper, KeeperException
 import json
+import base64
+from threading import Thread
 from ambari_commons import OSCheck, OSConst, Firewall
 from ambari_server import utils
 
@@ -64,6 +66,7 @@ UPGRADE_STACK_ACTION = "upgradestack"
 STATUS_ACTION = "status"
 SETUP_HTTPS_ACTION = "setup-https"
 LDAP_SETUP_ACTION = "setup-ldap"
+LDAP_SYNC_ACTION = "sync-ldap"
 SETUP_GANGLIA_HTTPS_ACTION = "setup-ganglia-https"
 SETUP_NAGIOS_HTTPS_ACTION = "setup-nagios-https"
 ENCRYPT_PASSWORDS_ACTION = "encrypt-passwords"
@@ -118,6 +121,14 @@ SERVER_OUT_FILE = "/var/log/ambari-server/ambari-server.out"
 SERVER_LOG_FILE = "/var/log/ambari-server/ambari-server.log"
 BLIND_PASSWORD = "*****"
 ROOT_FS_PATH = "/"
+
+# api properties
+SERVER_API_HOST = '127.0.0.1'
+SERVER_API_PROTOCOL = 'http'
+SERVER_API_PORT = '8080'
+SERVER_API_LDAP_URL = '/api/v1/controllers/ldap'
+SERVER_API_LOGIN = 'admin'
+SERVER_API_PASS = 'admin'
 
 # terminal styles
 BOLD_ON = '\033[1m'
@@ -2994,6 +3005,67 @@ def get_prompt_default(defaultStr=None):
   else:
     return '(' + defaultStr + ')'
 
+def sync_ldap():
+  if not is_root():
+    err = 'Ambari-server sync-ldap should be run with ' \
+          'root-level privileges'
+    raise FatalException(4, err)
+
+  server_status, pid = is_server_runing()
+  if not server_status:
+    err = 'Ambari Server is not running.'
+    raise FatalException(1, err)
+
+  ldap_configured = get_ambari_properties().get_property(IS_LDAP_CONFIGURED)
+  if ldap_configured != 'true':
+    err = "LDAP is not configured. Run 'ambari-server setup-ldap' first."
+    raise FatalException(1, err)
+
+  url = '{0}://{1}:{2!s}{3}'.format(SERVER_API_PROTOCOL, SERVER_API_HOST, SERVER_API_PORT, SERVER_API_LDAP_URL)
+  admin_auth = base64.encodestring('%s:%s' % (SERVER_API_LOGIN, SERVER_API_PASS)).replace('\n', '')
+  request = urllib2.Request(url)
+  request.add_header('Authorization', 'Basic %s' % admin_auth)
+  request.add_header('X-Requested-By', 'ambari')
+  body = [{"LDAP":{"synced_groups":"*","synced_users":"*"}}]
+  request.add_data(json.dumps(body))
+  request.get_method = lambda: 'PUT'
+  progress_message_thread = None
+  request_in_progress = True
+  def print_progress(message):
+    sys.stdout.write(message)
+    sys.stdout.flush()
+    while request_in_progress:
+      sys.stdout.write('.')
+      sys.stdout.flush()
+      time.sleep(1)
+    sys.stdout.write('\n')
+    sys.stdout.flush()
+  try:
+    progress_message_thread = Thread(target=print_progress, args=('Syncing Ambari Database for permissions for the LDAP Users and Groups..',))
+    progress_message_thread.start()
+    response = urllib2.urlopen(request)
+  except Exception as e:
+    err = 'Sync failed. Error details: %s' % e
+    raise FatalException(1, err)
+  finally:
+    request_in_progress = False
+    if progress_message_thread is not None:
+      progress_message_thread.join()
+  response_status_code = response.getcode()
+  if response_status_code != 200:
+    err = 'Error during syncing. Http status code - ' + response_status_code
+    raise FatalException(1, err)
+  response_body = json.loads(response.read())
+  sync_info = response_body['resources'][0]['Sync']
+  if sync_info['status'] != 'successful':
+    raise FatalException(1, sync_info['summary'])
+  else:
+    print 'Synced:'
+    for principal_type, summary in sync_info['summary'].iteritems():
+      print '    {0}:'.format(principal_type)
+      for action, amount in summary.iteritems():
+        print '        - {0} = {1!s}'.format(action, amount)
+    print 'Finished LDAP Sync.'
 
 def setup_ldap():
   if not is_root():
@@ -4343,6 +4415,8 @@ def main():
       upgrade_stack(options, stack_id, repo_url, repo_url_os)
     elif action == LDAP_SETUP_ACTION:
       setup_ldap()
+    elif action == LDAP_SYNC_ACTION:
+      sync_ldap()
     elif action == SETUP_SECURITY_ACTION:
       need_restart = setup_security(options)
     elif action == REFRESH_STACK_HASH_ACTION:

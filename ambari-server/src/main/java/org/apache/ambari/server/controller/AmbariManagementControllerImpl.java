@@ -227,6 +227,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   final private String serverDB;
   final private String mysqljdbcUrl;
 
+  private boolean ldapSyncInProgress;
+
   private Cache<ClusterRequest, ClusterResponse> clusterUpdateCache =
       CacheBuilder.newBuilder().expireAfterWrite(5, TimeUnit.MINUTES).build();
 
@@ -3675,9 +3677,30 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   }
 
   @Override
-  public synchronized void synchronizeLdapUsersAndGroups(Set<String> users,
-      Set<String> groups) throws AmbariException {
-    final LdapBatchDto batchInfo = ldapDataPopulator.synchronizeLdapUsersAndGroups(users, groups);
-    this.users.processLdapSync(batchInfo);
+  public boolean isLdapSyncInProgress() {
+    return ldapSyncInProgress;
+  }
+
+  @Override
+  public synchronized LdapBatchDto synchronizeLdapUsersAndGroups(Set<String> users, Set<String> groups)
+      throws AmbariException {
+    ldapSyncInProgress = true;
+    try {
+      final LdapBatchDto batchInfo = new LdapBatchDto();
+      if (users != null) {
+        ldapDataPopulator.synchronizeLdapUsers(users, batchInfo);
+      } else {
+        ldapDataPopulator.synchronizeAllLdapUsers(batchInfo);
+      }
+      if (groups != null) {
+        ldapDataPopulator.synchronizeLdapGroups(groups, batchInfo);
+      } else {
+        ldapDataPopulator.synchronizeAllLdapGroups(batchInfo);
+      }
+      this.users.processLdapSync(batchInfo);
+      return batchInfo;
+    } finally {
+      ldapSyncInProgress = false;
+    }
   }
 }

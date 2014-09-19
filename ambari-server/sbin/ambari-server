@@ -115,6 +115,10 @@ case "$1" in
         echo -e "Setting up LDAP properties..."
         $PYTHON /usr/sbin/ambari-server.py $@
         ;;
+  sync-ldap)
+        echo -e "Syncing with LDAP..."
+        $PYTHON /usr/sbin/ambari-server.py $@
+        ;;
   setup-security)
         echo -e "Security setup options..."
         $PYTHON /usr/sbin/ambari-server.py $@
