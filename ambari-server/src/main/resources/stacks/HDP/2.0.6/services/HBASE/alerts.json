@@ -5,7 +5,7 @@
       "name": "hbase_master_process",
       "label": "HBase Master Process",
       "interval": 1,
-      "scope": "any",
+      "scope": "ANY",
       "source": {
         "type": "PORT",
         "uri": "{{hbase-site/hbase.master.port}}",

@@ -1,13 +1,18 @@
 {
-  "service": [],
+  "service": [
+  ],
   "NAMENODE": [
     {
       "name": "namenode_cpu",
       "label": "NameNode host CPU Utilization",
-      "scope": "host",
+      "scope": "ANY",
       "source": {
         "type": "METRIC",
-        "jmx": "java.lang:type=OperatingSystem/SystemCpuLoad",
+        "jmx": {
+          "property_list": [
+            "java.lang:type=OperatingSystem/SystemCpuLoad"
+          ]
+        },
         "host": "{{hdfs-site/dfs.namenode.secondary.http-address}}",
         "reporting": {
           "ok": {
@@ -28,7 +33,7 @@
       "name": "namenode_process",
       "label": "NameNode process",
       "interval": 1,
-      "scope": "any",
+      "scope": "ANY",
       "source": {
         "type": "PORT",
         "uri": "{{hdfs-site/dfs.namenode.http-address}}",
@@ -47,7 +52,7 @@
       "name": "hdfs_last_checkpoint",
       "label": "Last Checkpoint Time",
       "interval": 1,
-      "scope": "service",
+      "SCOPE": "service",
       "enabled": false,
       "source": {
         "type": "SCRIPT",
@@ -60,7 +65,7 @@
       "name": "secondary_namenode_process",
       "label": "Secondary NameNode process",
       "interval": 1,
-      "scope": "any",
+      "scope": "ANY",
       "source": {
         "type": "PORT",        
         "uri": "{{hdfs-site/dfs.namenode.secondary.http-address}}",

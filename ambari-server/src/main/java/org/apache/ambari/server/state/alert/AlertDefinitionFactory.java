@@ -203,7 +203,7 @@ public class AlertDefinitionFactory {
     entity.setScope(scope);
 
     Source source = definition.getSource();
-    entity.setSourceType(source.getType().name());
+    entity.setSourceType(source.getType());
 
     try {
       String sourceJson = m_gson.toJson(source);

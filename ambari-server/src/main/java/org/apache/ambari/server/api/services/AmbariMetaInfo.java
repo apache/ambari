@@ -31,7 +31,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -48,6 +47,7 @@ import org.apache.ambari.server.api.util.StackExtensionHelper;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.customactions.ActionDefinition;
 import org.apache.ambari.server.customactions.ActionDefinitionManager;
+import org.apache.ambari.server.events.listeners.AlertAggregateListener;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.MetainfoDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
@@ -66,6 +66,7 @@ import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.alert.AlertDefinition;
 import org.apache.ambari.server.state.alert.AlertDefinitionFactory;
+import org.apache.ambari.server.state.alert.SourceType;
 import org.apache.ambari.server.state.stack.LatestRepoCallable;
 import org.apache.ambari.server.state.stack.MetricDefinition;
 import org.apache.ambari.server.state.stack.RepositoryXml;
@@ -1205,9 +1206,7 @@ public class AmbariMetaInfo {
     }
 
     // for every cluster
-    Set<Entry<String, Cluster>> clusterEntries = clusterMap.entrySet();
-    for (Entry<String, Cluster> clusterEntry : clusterEntries) {
-      Cluster cluster = clusterEntry.getValue();
+    for (Cluster cluster : clusterMap.values()) {
       long clusterId = cluster.getClusterId();
       StackId stackId = cluster.getDesiredStackVersion();
       StackInfo stackInfo = getStackInfo(stackId.getStackName(),
@@ -1246,7 +1245,7 @@ public class AmbariMetaInfo {
       List<AlertDefinitionEntity> persist = new ArrayList<AlertDefinitionEntity>();
       List<AlertDefinitionEntity> entities = alertDefinitionDao.findAll(clusterId);
 
-      // create a map of the enntities for fast extraction
+      // create a map of the entities for fast extraction
       Map<String, AlertDefinitionEntity> mappedEntities = new HashMap<String, AlertDefinitionEntity>(100);
       for (AlertDefinitionEntity entity : entities) {
         mappedEntities.put(entity.getDefinitionName(), entity);
@@ -1279,9 +1278,20 @@ public class AmbariMetaInfo {
           LOG.info("Merging Alert Definition {} into the database",
               entity.getDefinitionName());
         }
-
         alertDefinitionDao.createOrUpdate(entity);
       }
+      
+      // all definitions have been resolved.  pull and initialize the aggregates
+      for (AlertDefinitionEntity def : alertDefinitionDao.findAll(cluster.getClusterId())) {
+        if (def.getSourceType().equals(SourceType.AGGREGATE)) {
+          AlertDefinition realDef = alertDefinitionFactory.coerce(def);
+          
+          AlertAggregateListener listener = injector.getInstance(AlertAggregateListener.class);
+          
+          listener.addAggregateType(cluster.getClusterId(), realDef); 
+        }
+      }
+      
     }
   }
 }

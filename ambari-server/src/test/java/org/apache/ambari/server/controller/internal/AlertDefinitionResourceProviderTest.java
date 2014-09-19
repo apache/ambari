@@ -264,7 +264,7 @@ public class AlertDefinitionResourceProviderTest {
     Assert.assertEquals(Integer.valueOf(1), entity.getScheduleInterval());
     Assert.assertEquals(Scope.ANY, entity.getScope());
     Assert.assertEquals("HDFS", entity.getServiceName());
-    Assert.assertEquals("METRIC", entity.getSourceType());
+    Assert.assertEquals(SourceType.METRIC, entity.getSourceType());
     Assert.assertEquals("Mock Label (Create)", entity.getLabel());
 
     // verify Source
@@ -474,7 +474,7 @@ public class AlertDefinitionResourceProviderTest {
     entity.setHash(DEFINITION_UUID);
     entity.setScheduleInterval(Integer.valueOf(2));
     entity.setServiceName(null);
-    entity.setSourceType(SourceType.METRIC.name());
+    entity.setSourceType(SourceType.METRIC);
     entity.setSource(sourceJson);
     return Arrays.asList(entity);
   }

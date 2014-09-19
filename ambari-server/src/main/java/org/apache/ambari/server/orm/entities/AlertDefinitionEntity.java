@@ -43,6 +43,7 @@ import javax.persistence.TableGenerator;
 import javax.persistence.UniqueConstraint;
 
 import org.apache.ambari.server.state.alert.Scope;
+import org.apache.ambari.server.state.alert.SourceType;
 
 /**
  * The {@link AlertDefinitionEntity} class is used to model an alert that needs
@@ -106,7 +107,8 @@ public class AlertDefinitionEntity {
   private String serviceName;
 
   @Column(name = "source_type", nullable = false, length = 255)
-  private String sourceType;
+  @Enumerated(value = EnumType.STRING)
+  private SourceType sourceType;
 
   /**
    * Bi-directional many-to-many association to {@link AlertGroupEntity}
@@ -266,7 +268,7 @@ public class AlertDefinitionEntity {
    *         otherwise.
    */
   public boolean getEnabled() {
-    return enabled == 0 ? false : true;
+    return enabled == Integer.valueOf(0) ? false : true;
   }
 
   /**
@@ -277,7 +279,7 @@ public class AlertDefinitionEntity {
    *          otherwise.
    */
   public void setEnabled(boolean enabled) {
-    this.enabled = enabled ? 1 : 0;
+    this.enabled = enabled ? Integer.valueOf(1) : Integer.valueOf(0);
   }
 
   /**
@@ -344,16 +346,14 @@ public class AlertDefinitionEntity {
   /**
    * @return
    */
-  // !!! FIXME: Create enumeration for this
-  public String getSourceType() {
+  public SourceType getSourceType() {
     return sourceType;
   }
 
   /**
    * @param sourceType
    */
-  // !!! FIXME: Create enumeration for this
-  public void setSourceType(String sourceType) {
+  public void setSourceType(SourceType sourceType) {
     this.sourceType = sourceType;
   }
 

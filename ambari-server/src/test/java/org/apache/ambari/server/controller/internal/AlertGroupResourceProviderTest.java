@@ -478,7 +478,7 @@ public class AlertGroupResourceProviderTest {
     entity.setHash(DEFINITION_UUID);
     entity.setScheduleInterval(Integer.valueOf(2));
     entity.setServiceName(null);
-    entity.setSourceType(SourceType.METRIC.name());
+    entity.setSourceType(SourceType.METRIC);
     entity.setSource(null);
 
     Set<AlertDefinitionEntity> definitions = new HashSet<AlertDefinitionEntity>();

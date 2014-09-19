@@ -457,5 +457,57 @@ public class AlertsDAO {
   public void remove(AlertCurrentEntity alert) {
     entityManagerProvider.get().remove(merge(alert));
   }
+  
+  /**
+   * Finds the aggregate counts for an alert name, across all hosts. 
+   * @param clusterId the cluster id
+   * @param alertName the name of the alert to find the aggregate
+   * @return the summary data
+   */
+  @RequiresSession
+  public AlertSummaryDTO findAggregateCounts(long clusterId, String alertName) {
+    StringBuilder sb = new StringBuilder();
+    sb.append("SELECT NEW %s (");
+    sb.append("COUNT(history), ");
+    sb.append("SUM(CASE WHEN history.alertState = %s.%s THEN 1 ELSE 0 END), ");
+    sb.append("SUM(CASE WHEN history.alertState = %s.%s THEN 1 ELSE 0 END), ");
+    sb.append("SUM(CASE WHEN history.alertState = %s.%s THEN 1 ELSE 0 END)) ");
+    sb.append("FROM AlertCurrentEntity alert JOIN alert.alertHistory history WHERE history.clusterId = :clusterId");
+    sb.append(" AND history.alertDefinition.definitionName = :definitionName");
+    
+    String str = String.format(sb.toString(),
+        AlertSummaryDTO.class.getName(),
+        AlertState.class.getName(), AlertState.WARNING.name(),
+        AlertState.class.getName(), AlertState.CRITICAL.name(),
+        AlertState.class.getName(), AlertState.UNKNOWN.name());
+    
+    TypedQuery<AlertSummaryDTO> query = entityManagerProvider.get().createQuery(
+        str, AlertSummaryDTO.class);
+    
+    query.setParameter("clusterId", Long.valueOf(clusterId));
+    query.setParameter("definitionName", alertName);
+    
+    return daoUtils.selectSingle(query);    
+  }
+  
+  /**
+   * Locate the current alert for the provided service and alert name, but when
+   * host is not set ({@code IS NULL}).
+   * @param clusterId the cluster id
+   * @param serviceName the service name
+   * @param alertName the name of the alert
+   * @return the current record, or {@code null} if not found
+   */
+  @RequiresSession
+  public AlertCurrentEntity findCurrentByNameNoHost(long clusterId, String alertName) {
+    
+    TypedQuery<AlertCurrentEntity> query = entityManagerProvider.get().createNamedQuery(
+        "AlertCurrentEntity.findByNameAndNoHost", AlertCurrentEntity.class);
+
+    query.setParameter("clusterId", Long.valueOf(clusterId));
+    query.setParameter("definitionName", alertName);
+
+    return daoUtils.selectOne(query);
+  }
 
 }

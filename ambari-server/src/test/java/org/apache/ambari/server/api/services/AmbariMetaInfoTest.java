@@ -1530,7 +1530,7 @@ public class AmbariMetaInfoTest {
     expect(cluster.getClusterId()).andReturn(Long.valueOf(1)).anyTimes();
     expect(cluster.getDesiredStackVersion()).andReturn(stackId).anyTimes();
     expect(cluster.getServices()).andReturn(clusterServiceMap).anyTimes();
-    expect(dao.findAll(EasyMock.anyInt())).andReturn(entities);
+    expect(dao.findAll(EasyMock.anyInt())).andReturn(entities).atLeastOnce();
     dao.createOrUpdate(EasyMock.anyObject(AlertDefinitionEntity.class));
     EasyMock.expectLastCall().times(4);
 
@@ -1549,7 +1549,7 @@ public class AmbariMetaInfoTest {
     expect(cluster.getClusterId()).andReturn(Long.valueOf(1)).anyTimes();
     expect(cluster.getDesiredStackVersion()).andReturn(stackId).anyTimes();
     expect(cluster.getServices()).andReturn(clusterServiceMap).anyTimes();
-    expect(dao.findAll(EasyMock.anyInt())).andReturn(entities);
+    expect(dao.findAll(EasyMock.anyInt())).andReturn(entities).atLeastOnce();
 
     EasyMock.replay(clusters, cluster, dao);
     metaInfo.reconcileAlertDefinitions(clusters);

@@ -45,6 +45,7 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.NotificationState;
 import org.apache.ambari.server.state.alert.Scope;
+import org.apache.ambari.server.state.alert.SourceType;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -97,7 +98,7 @@ public class AlertDefinitionDAOTest {
       definition.setScheduleInterval(60);
       definition.setScope(Scope.SERVICE);
       definition.setSource("Source " + i);
-      definition.setSourceType("SCRIPT");
+      definition.setSourceType(SourceType.SCRIPT);
       dao.create(definition);
     }
 
@@ -118,7 +119,7 @@ public class AlertDefinitionDAOTest {
       definition.setScheduleInterval(60);
       definition.setScope(Scope.SERVICE);
       definition.setSource("Source " + i);
-      definition.setSourceType("SCRIPT");
+      definition.setSourceType(SourceType.SCRIPT);
       dao.create(definition);
     }
 
@@ -133,7 +134,7 @@ public class AlertDefinitionDAOTest {
       definition.setScheduleInterval(60);
       definition.setScope(Scope.HOST);
       definition.setSource("Source " + i);
-      definition.setSourceType("SCRIPT");
+      definition.setSourceType(SourceType.SCRIPT);
       dao.create(definition);
     }
 
@@ -148,7 +149,7 @@ public class AlertDefinitionDAOTest {
       definition.setScheduleInterval(60);
       definition.setScope(Scope.HOST);
       definition.setSource("Source " + i);
-      definition.setSourceType("SCRIPT");
+      definition.setSourceType(SourceType.SCRIPT);
       dao.create(definition);
     }
   }

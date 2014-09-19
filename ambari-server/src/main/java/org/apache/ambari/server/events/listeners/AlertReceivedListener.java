@@ -85,9 +85,15 @@ public class AlertReceivedListener {
     long clusterId = event.getClusterId();
     Alert alert = event.getAlert();
 
-    AlertCurrentEntity current = m_alertsDao.findCurrentByHostAndName(clusterId,
-        alert.getHost(), alert.getName());
-
+    AlertCurrentEntity current = null;
+    
+    if (null == alert.getHost()) {
+      current = m_alertsDao.findCurrentByNameNoHost(clusterId, alert.getName());
+    } else {
+      current = m_alertsDao.findCurrentByHostAndName(clusterId, alert.getHost(),
+          alert.getName());
+    }
+    
     if (null == current) {
       AlertDefinitionEntity definition = m_definitionDao.findByName(clusterId,
           alert.getName());
@@ -122,7 +128,7 @@ public class AlertReceivedListener {
       current.setOriginalTimestamp(Long.valueOf(alert.getTimestamp()));
 
       m_alertsDao.merge(current);
-
+      
       // broadcast the alert changed event for other subscribers
       AlertStateChangeEvent alertChangedEvent = new AlertStateChangeEvent(
           event.getClusterId(), event.getAlert(), current.getAlertHistory(),

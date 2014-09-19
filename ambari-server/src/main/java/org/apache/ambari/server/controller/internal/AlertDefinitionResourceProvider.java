@@ -310,7 +310,7 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
     String definitionName = (String) requestMap.get(ALERT_DEF_NAME);
     String serviceName = (String) requestMap.get(ALERT_DEF_SERVICE_NAME);
     String componentName = (String) requestMap.get(ALERT_DEF_COMPONENT_NAME);
-    String sourceType = (String) requestMap.get(ALERT_DEF_SOURCE_TYPE);
+    String type = (String) requestMap.get(ALERT_DEF_SOURCE_TYPE);
     String label = (String) requestMap.get(ALERT_DEF_LABEL);
     String desiredScope = (String) requestMap.get(ALERT_DEF_SCOPE);
 
@@ -329,6 +329,11 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
     Scope scope = null;
     if (null != desiredScope && desiredScope.length() > 0) {
       scope = Scope.valueOf(desiredScope);
+    }
+    
+    SourceType sourceType = null;
+    if (null != type && type.length() > 0) {
+      sourceType = SourceType.valueOf(type);
     }
 
     // if not specified when creating an alert definition, the scope is
@@ -354,7 +359,7 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
       throw new IllegalArgumentException("Service name must be specified");
     }
 
-    if (bCreate && StringUtils.isEmpty(sourceType)) {
+    if (bCreate && null == sourceType) {
       throw new IllegalArgumentException(String.format(
           "Source type must be specified and one of %s",
           EnumSet.allOf(SourceType.class)));
@@ -439,7 +444,7 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
     }
 
     if (null != enabled) {
-      entity.setEnabled(enabled);
+      entity.setEnabled(enabled.booleanValue());
     }
 
     if (null != interval) {

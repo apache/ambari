@@ -61,6 +61,7 @@ import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.alert.Scope;
+import org.apache.ambari.server.state.alert.SourceType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.util.Assert;
 
@@ -330,7 +331,7 @@ public class OrmTestHelper {
     definition.setScheduleInterval(60);
     definition.setScope(Scope.SERVICE);
     definition.setSource("Source " + System.currentTimeMillis());
-    definition.setSourceType("SCRIPT");
+    definition.setSourceType(SourceType.SCRIPT);
 
     alertDefinitionDAO.create(definition);
     return alertDefinitionDAO.findById(definition.getDefinitionId());

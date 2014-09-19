@@ -40,6 +40,7 @@ import org.apache.ambari.server.orm.entities.AlertHistoryEntity;
 import org.apache.ambari.server.state.AlertState;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.alert.Scope;
+import org.apache.ambari.server.state.alert.SourceType;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -84,7 +85,7 @@ public class AlertsDAOTest {
       definition.setScheduleInterval(Integer.valueOf(60));
       definition.setScope(Scope.SERVICE);
       definition.setSource("Source " + i);
-      definition.setSourceType("SCRIPT");
+      definition.setSourceType(SourceType.SCRIPT);
       definitionDao.create(definition);
     }
     
@@ -208,7 +209,7 @@ public class AlertsDAOTest {
     hostDef.setScheduleInterval(Integer.valueOf(60));
     hostDef.setScope(Scope.HOST);
     hostDef.setSource("HostService");
-    hostDef.setSourceType("SCRIPT");
+    hostDef.setSourceType(SourceType.SCRIPT);
     definitionDao.create(hostDef);
     
     // history for the definition
@@ -395,5 +396,83 @@ public class AlertsDAOTest {
     assertEquals(0, summary.getCriticalCount());
     assertEquals(0, summary.getCriticalCount());
     
+  }
+  
+  @Test
+  public void testFindAggregates() throws Exception {
+    // definition
+    AlertDefinitionEntity definition = new AlertDefinitionEntity();
+    definition.setDefinitionName("many_per_cluster");
+    definition.setServiceName("ServiceName");
+    definition.setComponentName(null);
+    definition.setClusterId(clusterId);
+    definition.setHash(UUID.randomUUID().toString());
+    definition.setScheduleInterval(Integer.valueOf(60));
+    definition.setScope(Scope.SERVICE);
+    definition.setSource("SourceScript");
+    definition.setSourceType(SourceType.SCRIPT);
+    definitionDao.create(definition);
+    
+    // history record #1 and current
+    AlertHistoryEntity history = new AlertHistoryEntity();
+    history.setAlertDefinition(definition);
+    history.setAlertInstance(null);
+    history.setAlertLabel("");
+    history.setAlertState(AlertState.OK);
+    history.setAlertText("");
+    history.setAlertTimestamp(Long.valueOf(1L));
+    history.setClusterId(clusterId);
+    history.setComponentName("");
+    history.setHostName("h1");
+    history.setServiceName("ServiceName");
+    
+    AlertCurrentEntity current = new AlertCurrentEntity();
+    current.setAlertHistory(history);
+    current.setLatestTimestamp(Long.valueOf(1L));
+    current.setOriginalTimestamp(Long.valueOf(1L));
+    dao.merge(current);
+    
+    // history record #2 and current
+    history = new AlertHistoryEntity();
+    history.setAlertDefinition(definition);
+    history.setAlertInstance(null);
+    history.setAlertLabel("");
+    history.setAlertState(AlertState.OK);
+    history.setAlertText("");
+    history.setAlertTimestamp(Long.valueOf(1L));
+    history.setClusterId(clusterId);
+    history.setComponentName("");
+    history.setHostName("h2");
+    history.setServiceName("ServiceName");
+    
+    current = new AlertCurrentEntity();
+    current.setAlertHistory(history);
+    current.setLatestTimestamp(Long.valueOf(1L));
+    current.setOriginalTimestamp(Long.valueOf(1L));
+    dao.merge(current);
+    
+    AlertSummaryDTO summary = dao.findAggregateCounts(clusterId.longValue(), "many_per_cluster");
+    assertEquals(2, summary.getOkCount());
+    assertEquals(0, summary.getWarningCount());
+    assertEquals(0, summary.getCriticalCount());
+    assertEquals(0, summary.getUnknownCount());
+    
+    AlertCurrentEntity c = dao.findCurrentByHostAndName(clusterId.longValue(),
+        "h2", "many_per_cluster");
+    AlertHistoryEntity h = c.getAlertHistory();
+    h.setAlertState(AlertState.CRITICAL);
+    dao.merge(h);
+    
+    summary = dao.findAggregateCounts(clusterId.longValue(), "many_per_cluster");
+    assertEquals(2, summary.getOkCount());
+    assertEquals(0, summary.getWarningCount());
+    assertEquals(1, summary.getCriticalCount());
+    assertEquals(0, summary.getUnknownCount());
+    
+    summary = dao.findAggregateCounts(clusterId.longValue(), "foo");
+    assertEquals(0, summary.getOkCount());
+    assertEquals(0, summary.getWarningCount());
+    assertEquals(0, summary.getCriticalCount());
+    assertEquals(0, summary.getUnknownCount());
   }  
 }

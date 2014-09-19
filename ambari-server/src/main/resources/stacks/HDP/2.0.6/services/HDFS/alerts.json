@@ -1,11 +1,35 @@
 {
-  "service": [],
+  "service": [
+    {
+      "name": "percent_datanode",
+      "label": "Percent DataNodes live",
+      "interval": 1,
+      "scope": "SERVICE",
+      "source": {
+        "type": "AGGREGATE",
+        "alert_name": "datanode_process",
+        "reporting": {
+          "ok": {
+            "text": "OK: total: <{0}>, affected: <{1}>"
+          },
+          "warning": {
+            "text": "OK: total: <{0}>, affected: <{1}>",
+            "value": 0.1
+          },
+          "critical": {
+            "text": "CRITICAL: total: <{0}>, affected <{1}>",
+            "value": 0.3
+          }
+        }
+      }
+    }
+  ],
   "NAMENODE": [
     {
       "name": "namenode_process",
       "label": "NameNode Process",
       "interval": 1,
-      "scope": "any",
+      "scope": "ANY",
       "source": {
         "type": "PORT",
         "uri": "{{hdfs-site/dfs.namenode.http-address}}",
@@ -24,7 +48,7 @@
       "name": "check_cpu",
       "label": "NameNode host CPU utilization",
       "interval": 2,
-      "scope": "any",
+      "scope": "ANY",
       "source": {
         "type": "METRIC",
         "uri": "{{hdfs-site/dfs.namenode.http-address}}",

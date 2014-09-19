@@ -20,17 +20,22 @@ package org.apache.ambari.server.state.cluster;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
+import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.ambari.server.events.AlertEvent;
 import org.apache.ambari.server.events.AlertReceivedEvent;
 import org.apache.ambari.server.events.AlertStateChangeEvent;
+import org.apache.ambari.server.events.listeners.AlertAggregateListener;
 import org.apache.ambari.server.events.listeners.AlertReceivedListener;
 import org.apache.ambari.server.events.listeners.AlertStateChangedListener;
+import org.apache.ambari.server.events.publishers.AlertEventPublisher;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
@@ -45,14 +50,24 @@ import org.apache.ambari.server.orm.entities.AlertNoticeEntity;
 import org.apache.ambari.server.orm.entities.AlertTargetEntity;
 import org.apache.ambari.server.state.Alert;
 import org.apache.ambari.server.state.AlertState;
+import org.apache.ambari.server.state.alert.AggregateSource;
+import org.apache.ambari.server.state.alert.AlertDefinitionFactory;
+import org.apache.ambari.server.state.alert.Reporting;
+import org.apache.ambari.server.state.alert.Reporting.ReportTemplate;
 import org.apache.ambari.server.state.alert.Scope;
+import org.apache.ambari.server.state.alert.Source;
+import org.apache.ambari.server.state.alert.SourceType;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.google.common.eventbus.EventBus;
+import com.google.common.eventbus.Subscribe;
+import com.google.gson.Gson;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
+
 
 /**
  * Tests the management of {@link AlertEvent}s in the system.
@@ -94,7 +109,7 @@ public class AlertDataManagerTest {
       definition.setScheduleInterval(Integer.valueOf(60));
       definition.setScope(Scope.SERVICE);
       definition.setSource("Source " + i);
-      definition.setSourceType("SCRIPT");
+      definition.setSourceType(SourceType.SCRIPT);
       definitionDao.create(definition);
     }
   }
@@ -252,5 +267,162 @@ public class AlertDataManagerTest {
 
     notices = dispatchDao.findAllNotices();
     assertEquals(1, notices.size());
+  }
+  
+  @Test
+  public void testAggregateAlerts() throws Exception {
+    // create definition
+    AlertDefinitionEntity definition = new AlertDefinitionEntity();
+    definition.setDefinitionName("to_aggregate");
+    definition.setLabel("My Label");
+    definition.setServiceName("SERVICE");
+    definition.setComponentName(null);
+    definition.setClusterId(clusterId);
+    definition.setHash(UUID.randomUUID().toString());
+    definition.setScheduleInterval(Integer.valueOf(60));
+    definition.setScope(Scope.HOST);
+    definition.setSource("Source");
+    definition.setSourceType(SourceType.SCRIPT);
+    definitionDao.create(definition);
+    
+    // create aggregate of definition
+    AlertDefinitionEntity aggDef = new AlertDefinitionEntity();
+    aggDef.setDefinitionName("aggregate_test");
+    aggDef.setServiceName("SERVICE");
+    aggDef.setComponentName(null);
+    aggDef.setClusterId(clusterId);
+    aggDef.setHash(UUID.randomUUID().toString());
+    aggDef.setScheduleInterval(Integer.valueOf(60));
+    aggDef.setScope(Scope.SERVICE);
+    
+    AggregateSource source = new AggregateSource();
+
+    source.setAlertName("to_aggregate");
+    // !!! type is protected
+    Field field = Source.class.getDeclaredField("type");
+    field.setAccessible(true);
+    field.set(source, SourceType.AGGREGATE);
+
+    Reporting reporting = new Reporting();
+    
+    ReportTemplate template = new ReportTemplate();
+    template.setText("You are good {1}/{0}");
+    reporting.setOk(template);
+
+    template = new ReportTemplate();
+    template.setText("Going bad {1}/{0}");
+    template.setValue(Double.valueOf(0.33d));
+    reporting.setWarning(template);
+    
+    template = new ReportTemplate();
+    template.setText("On fire! {1}/{0}");
+    template.setValue(Double.valueOf(0.66d));
+    reporting.setCritical(template);
+    
+    source.setReporting(reporting);
+
+    Gson gson = new Gson();
+    
+    aggDef.setSource(gson.toJson(source));
+    aggDef.setSourceType(SourceType.AGGREGATE);
+    definitionDao.create(aggDef);
+    
+    // add current and history across four hosts
+    for (int i = 0; i < 4; i++) {
+      AlertHistoryEntity history = new AlertHistoryEntity();
+      history.setAlertDefinition(definition);
+      history.setAlertInstance(null);
+      history.setAlertLabel(definition.getLabel());
+      history.setAlertState(AlertState.OK);
+      history.setAlertText("OK");
+      history.setAlertTimestamp(Long.valueOf(1));
+      history.setClusterId(clusterId);
+      history.setComponentName(definition.getComponentName());
+      history.setHostName("h" + (i+1));
+      history.setServiceName(definition.getServiceName());
+      dao.create(history);
+     
+      AlertCurrentEntity current = new AlertCurrentEntity();
+      current.setAlertHistory(history);
+      current.setLatestText(history.getAlertText());
+      current.setLatestTimestamp(Long.valueOf(1L));
+      current.setOriginalTimestamp(Long.valueOf(1L));
+      dao.merge(current);
+    }
+    
+    AlertEventPublisher publisher = injector.getInstance(AlertEventPublisher.class);
+
+    // !!! need a synchronous op for testing
+    field = AlertEventPublisher.class.getDeclaredField("m_eventBus");
+    field.setAccessible(true);
+    field.set(publisher, new EventBus());
+
+    final AtomicReference<Alert> ref = new AtomicReference<Alert>();    
+    publisher.register(new TestListener() {
+      @Subscribe
+      public void catchIt(AlertReceivedEvent event) {
+        ref.set(event.getAlert());
+      }
+    });
+    
+    AlertAggregateListener listener = injector.getInstance(AlertAggregateListener.class);
+    AlertDefinitionFactory factory = new AlertDefinitionFactory();
+    listener.addAggregateType(clusterId.longValue(), factory.coerce(aggDef));
+
+    // any alert and event will do that is for the definition since an aggregate
+    // checks them all regardless of state
+    Alert alert = new Alert(
+        definition.getDefinitionName(),
+        null,
+        definition.getServiceName(),
+        definition.getComponentName(),
+        "h1",
+        AlertState.OK);
+    AlertReceivedEvent event = new AlertReceivedEvent(clusterId.longValue(), alert);
+    
+    listener.onAlertEvent(event);
+    assertNotNull(ref.get());
+    assertEquals(AlertState.OK, ref.get().getState());
+    assertTrue(ref.get().getText().indexOf("0/4") > -1);
+    
+    // check if one is critical, still ok
+    AlertCurrentEntity current = dao.findCurrentByHostAndName(
+        clusterId.longValue(), "h1", definition.getDefinitionName());
+    current.getAlertHistory().setAlertState(AlertState.CRITICAL);
+    dao.merge(current.getAlertHistory());
+
+    listener.onAlertEvent(event);
+    assertEquals("aggregate_test", ref.get().getName());    
+    assertEquals(AlertState.OK, ref.get().getState());
+    assertTrue(ref.get().getText().indexOf("1/4") > -1);
+
+    // two are either warning or critical, warning
+    current = dao.findCurrentByHostAndName(
+        clusterId.longValue(), "h2", definition.getDefinitionName());
+    current.getAlertHistory().setAlertState(AlertState.WARNING);
+    dao.merge(current.getAlertHistory());
+    
+    listener.onAlertEvent(event);
+    assertEquals("aggregate_test", ref.get().getName());
+    assertEquals(AlertState.WARNING, ref.get().getState());
+    assertTrue(ref.get().getText().indexOf("2/4") > -1);
+
+    // three make it critical
+    current = dao.findCurrentByHostAndName(
+        clusterId.longValue(), "h3", definition.getDefinitionName());
+    current.getAlertHistory().setAlertState(AlertState.CRITICAL);
+    dao.merge(current.getAlertHistory());
+    
+    listener.onAlertEvent(event);
+    assertEquals("aggregate_test", ref.get().getName());    
+    assertEquals(AlertState.CRITICAL, ref.get().getState());
+    assertTrue(ref.get().getText().indexOf("3/4") > -1);
+  }
+  
+  /**
+   * Test interface collects aggregate alert invocations 
+   */
+  private static interface TestListener {
+    public void catchIt(AlertReceivedEvent event);
   }
 }

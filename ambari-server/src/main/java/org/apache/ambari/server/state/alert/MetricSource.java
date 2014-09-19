@@ -17,6 +17,10 @@
  */
 package org.apache.ambari.server.state.alert;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 import com.google.gson.annotations.SerializedName;
 
 /**
@@ -31,7 +35,7 @@ public class MetricSource extends Source {
   private String m_uri = null;
   
   @SerializedName("jmx")
-  private Object jmxInfo = null;
+  private JmxInfo jmxInfo = null;
 
   @SerializedName("ganglia")
   private String gangliaInfo = null;
@@ -39,7 +43,7 @@ public class MetricSource extends Source {
   /**
    * @return the jmx info, if this metric is jmx-based
    */
-  public Object getJmxInfo() {
+  public JmxInfo getJmxInfo() {
     return jmxInfo;
   }
 
@@ -115,5 +119,43 @@ public class MetricSource extends Source {
     }
 
     return true;
+  }
+  
+  /**
+   * Represents the {@code jmx} element in a Metric alert.
+   */
+  public static class JmxInfo {
+    @SerializedName("property_list")
+    private List<String> propertyList;
+    
+    private String value;
+    
+    public List<String> getPropertyList() {
+      return propertyList;
+    }
+    
+    public String getValue() {
+      return value;
+    }
+    
+    @Override
+    public boolean equals(Object object) {
+      if (!JmxInfo.class.isInstance(object)) {
+        return false;
+      }
+      
+      JmxInfo other = (JmxInfo)object;
+      
+      List<String> list1 = new ArrayList<String>(propertyList);
+      List<String> list2 = new ArrayList<String>(other.propertyList);
+      
+      if ((null == list1 && null != list2) || (null != list1 && null == list2)) {
+        return false;
+      }
+      
+      // !!! even if out of order, this is enough to fail
+      return list1.equals(list2);
+      
+    }
   }
 }
