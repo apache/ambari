@@ -22,9 +22,7 @@ import org.apache.ambari.server.controller.spi.PropertyProvider;
 import org.apache.ambari.server.controller.spi.ProviderModule;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
-import org.apache.ambari.server.orm.entities.ViewEntity;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -34,11 +32,6 @@ import java.util.Map;
  * any resource types not defined in a view.
  */
 public class ViewProviderModule implements ProviderModule {
-  /**
-   * Mapping of view resource type to resource provider.
-   */
-  private final Map<Resource.Type, ResourceProvider> resourceProviders;
-
   /**
    * The delegate provider module.
    */
@@ -51,12 +44,9 @@ public class ViewProviderModule implements ProviderModule {
    * Construct a view provider module.
    *
    * @param providerModule     the delegate provider module
-   * @param resourceProviders  the map of view resource types to resource providers
    */
-  private ViewProviderModule(ProviderModule providerModule,
-                            Map<Resource.Type, ResourceProvider> resourceProviders) {
+  private ViewProviderModule(ProviderModule providerModule) {
     this.providerModule = providerModule;
-    this.resourceProviders = resourceProviders;
   }
 
 
@@ -64,6 +54,9 @@ public class ViewProviderModule implements ProviderModule {
 
   @Override
   public ResourceProvider getResourceProvider(Resource.Type type) {
+
+    Map<Resource.Type, ResourceProvider> resourceProviders =
+        ViewRegistry.getInstance().getResourceProviders();
 
     if (resourceProviders.containsKey(type)) {
       return resourceProviders.get(type);
@@ -87,15 +80,6 @@ public class ViewProviderModule implements ProviderModule {
    * @return a view provider module
    */
   public static ViewProviderModule getViewProviderModule(ProviderModule module) {
-    Map<Resource.Type, ResourceProvider> resourceProviders = new HashMap<Resource.Type, ResourceProvider>();
-
-    ViewRegistry registry = ViewRegistry.getInstance();
-    for (ViewEntity definition : registry.getDefinitions()) {
-      for (Resource.Type type : definition.getViewResourceTypes()){
-        ResourceProvider provider = definition.getResourceProvider(type);
-        resourceProviders.put(type, provider);
-      }
-    }
-    return new ViewProviderModule(module, resourceProviders);
+    return new ViewProviderModule(module);
   }
 }

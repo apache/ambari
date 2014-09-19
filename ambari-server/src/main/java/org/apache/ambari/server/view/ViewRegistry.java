@@ -29,6 +29,7 @@ import org.apache.ambari.server.api.services.ViewExternalSubResourceService;
 import org.apache.ambari.server.api.services.ViewSubResourceService;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.orm.dao.MemberDAO;
 import org.apache.ambari.server.orm.dao.PrivilegeDAO;
 import org.apache.ambari.server.orm.dao.ResourceDAO;
@@ -123,6 +124,12 @@ public class ViewRegistry {
    */
   private final Map<String, Set<SubResourceDefinition>> subResourceDefinitionsMap =
       new HashMap<String, Set<SubResourceDefinition>>();
+
+  /**
+   * Mapping of view types to resource providers.
+   */
+  private final Map<Resource.Type, ResourceProvider> resourceProviders =
+      new ConcurrentHashMap<Resource.Type, ResourceProvider>();
 
   /**
    * Mapping of view names to registered listeners.
@@ -732,6 +739,15 @@ public class ViewRegistry {
     listeners.clear();
   }
 
+  /**
+   * Get the view resource provider mapping.
+   *
+   * @return the map of view resource providers
+   */
+  protected Map<Resource.Type, ResourceProvider> getResourceProviders() {
+    return resourceProviders;
+  }
+
   // get a view entity for the given internal view name
   private ViewEntity getDefinition(String viewName) {
     return viewDefinitions.get(viewName);
@@ -768,6 +784,8 @@ public class ViewRegistry {
         new ViewExternalSubResourceProvider(externalResourceType, viewDefinition);
     viewDefinition.addResourceProvider(externalResourceType, viewExternalSubResourceProvider );
 
+    resourceProviders.put(externalResourceType, viewExternalSubResourceProvider);
+
     ResourceInstanceFactoryImpl.addResourceDefinition(externalResourceType,
         new ViewExternalSubResourceDefinition(externalResourceType));
 
@@ -799,7 +817,9 @@ public class ViewRegistry {
         Class<?> clazz      = resourceConfiguration.getResourceClass(cl);
         String   idProperty = resourceConfiguration.getIdProperty();
 
-        viewDefinition.addResourceProvider(type, new ViewSubResourceProvider(type, clazz, idProperty, viewDefinition));
+        ViewSubResourceProvider provider = new ViewSubResourceProvider(type, clazz, idProperty, viewDefinition);
+        viewDefinition.addResourceProvider(type, provider);
+        resourceProviders.put(type, provider);
 
         resources.add(viewResourceEntity);
       }

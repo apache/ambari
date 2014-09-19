@@ -519,6 +519,26 @@ public class ViewRegistryTest {
   }
 
   @Test
+  public void testGetResourceProviders() throws Exception {
+
+    ViewConfig config = ViewConfigTest.getConfig();
+
+    ViewEntity viewDefinition = ViewEntityTest.getViewEntity();
+
+    ViewRegistry registry = ViewRegistry.getInstance();
+
+    registry.setupViewDefinition(viewDefinition, config, getClass().getClassLoader());
+
+    Map<Resource.Type, ResourceProvider> providerMap = registry.getResourceProviders();
+
+    Assert.assertEquals(3, providerMap.size());
+
+    Assert.assertTrue(providerMap.containsKey(Resource.Type.valueOf("MY_VIEW{1.0.0}/resource")));
+    Assert.assertTrue(providerMap.containsKey(Resource.Type.valueOf("MY_VIEW{1.0.0}/subresource")));
+    Assert.assertTrue(providerMap.containsKey(Resource.Type.valueOf("MY_VIEW{1.0.0}/resources")));
+  }
+
+  @Test
   public void testAddGetDefinitions() throws Exception {
     ViewEntity viewDefinition = ViewEntityTest.getViewEntity();
 
