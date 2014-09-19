@@ -59,6 +59,7 @@ App.SliderAppsMapper = App.Mapper.createWithMixins(App.RunPeriodically, {
           lastCheck: alert.last_status_time
         });
       });
+      alerts = alerts.sortBy('title');
       App.SliderApp.store.pushMany('sliderAppAlert', alerts);
     }
     return alerts.mapProperty('id');
