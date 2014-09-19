@@ -23,7 +23,7 @@
         <div class="container-fluid">
           {{#each configCategory.configs}}
             <div class="row">
-              <div class="col-md-3">{{formatWordBreak key devider="."}}</div>
+              <div class="col-md-3 property-name">{{formatWordBreak key devider="."}}</div>
               <div>
                 {{#if isMultiline}}
                   {{textarea disabled=true value=value classNames="col-md-6"}}
