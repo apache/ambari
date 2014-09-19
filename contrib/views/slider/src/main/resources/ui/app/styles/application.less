@@ -44,6 +44,40 @@ a {
   cursor: pointer;
 }
 
+select {
+  background-color: #ffffff;
+  border: 1px solid #cccccc;
+  color: #555555;
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  border-radius: 3px;
+}
+
+.well {
+  border-radius: 0px;
+  -webkit-border-radius: 0px;
+  -moz-border-radius: 0px;
+  -webkit-box-shadow: none;
+  -moz-box-shadow: none;
+  box-shadow: none;
+}
+
+.nav-pills {
+  &>li {
+    &> a {
+      border-radius: 0px;
+      -webkit-border-radius: 0px;
+      -moz-border-radius: 0px;
+    }
+    &.active {
+      &> a, &> a:hover, &> a:focus {
+        background-color: #666666;
+
+      }
+    }
+  }
+}
+
 .slider-header {
   overflow: hidden;
   .box-header {
@@ -126,12 +160,14 @@ a {
     font-size: 12px;
     label {
       font-size: 12px;
+      font-weight: normal;
     }
     div {
       display: inline-block;
       margin:0 10px;
     }
     .filtered-hosts-info, .selected-hosts-info {
+      float: left;
       text-align: left;
       margin-top: 8px;
       margin-left: 17px;
@@ -146,6 +182,7 @@ a {
         width:70px;
         font-size: 12px;
         height: 27px;
+        padding: 4px 6px;
       }
     }
     .paging_two_button {
