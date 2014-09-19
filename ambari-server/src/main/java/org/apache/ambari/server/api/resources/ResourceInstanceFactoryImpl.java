@@ -280,6 +280,10 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
         resourceDefinition = new ClientConfigResourceDefinition();
         break;
 
+      case LdapSyncEvent:
+        resourceDefinition = new LdapSyncEventResourceDefinition();
+        break;
+
       default:
         throw new IllegalArgumentException("Unsupported resource type: " + type);
     }
