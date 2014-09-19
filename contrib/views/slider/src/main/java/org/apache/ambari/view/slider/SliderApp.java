@@ -18,6 +18,7 @@
 
 package org.apache.ambari.view.slider;
 
+import java.util.List;
 import java.util.Map;
 
 public class SliderApp {
@@ -38,8 +39,9 @@ public class SliderApp {
   private Map<String, String> urls;
   private Map<String, Map<String, String>> configs;
   private Map<String, SliderAppComponent> components;
-  private Map<String, Object> metrics;
+  private Map<String, Number[][]> metrics;
   private Map<String, Object> alerts;
+  private List<String> supportedMetrics;
 
   public String getName() {
     return name;
@@ -129,12 +131,20 @@ public class SliderApp {
     this.components = components;
   }
 
-  public Map<String, Object> getMetrics() {
+  public Map<String, Number[][]> getMetrics() {
     return metrics;
   }
 
-  public void setMetrics(Map<String, Object> metrics) {
+  public void setMetrics(Map<String, Number[][]> metrics) {
     this.metrics = metrics;
+  }
+
+  public List<String> getSupportedMetrics() {
+    return supportedMetrics;
+  }
+
+  public void setSupportedMetrics(List<String> supportedMetrics) {
+    this.supportedMetrics = supportedMetrics;
   }
 
   public long getStartTime() {

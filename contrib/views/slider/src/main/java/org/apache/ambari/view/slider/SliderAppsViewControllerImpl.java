@@ -85,12 +85,14 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
 
   private static final Logger logger = Logger
       .getLogger(SliderAppsViewControllerImpl.class);
+  private static String METRICS_PREFIX = "metrics/";
   @Inject
   private ViewContext viewContext;
   private List<SliderAppType> appTypes;
   private Integer createAppCounter = -1;
   @Inject
   private SliderAppsAlerts sliderAlerts;
+  private Map<String, MetricsHolder> appMetrics = new HashMap<String, MetricsHolder>();
 
   private String getAppsFolderPath() {
     return viewContext.getAmbariProperty("resources.dir") + "/apps";
@@ -221,10 +223,25 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
       }
     }
     if (properties != null && !properties.isEmpty()) {
+      SliderAppType matchedAppType = null;
+      List<SliderAppType> matchingAppTypes = getSliderAppTypes(null);
+      if (matchingAppTypes != null && matchingAppTypes.size() > 0) {
+        for (SliderAppType appType : matchingAppTypes) {
+          if ((appType.getTypeName() != null && appType.getTypeName()
+              .equalsIgnoreCase(app.getType()))
+              && (appType.getTypeVersion() != null && appType.getTypeVersion()
+                  .equalsIgnoreCase(app.getAppVersion()))) {
+            matchedAppType = appType;
+            break;
+          }
+        }
+      }
+
       SliderAppMasterClient sliderAppClient = yarnApp.getTrackingUrl() == null ? null
           : new SliderAppMasterClient(yarnApp.getTrackingUrl());
       SliderAppMasterData appMasterData = null;
       Map<String, String> quickLinks = new HashMap<String, String>();
+      Set<String> gangliaMetrics = new HashSet<String>();
       for (String property : properties) {
         if ("RUNNING".equals(app.getState())) {
           if (sliderAppClient != null) {
@@ -248,25 +265,11 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
               }
               if (quickLinks != null && quickLinks.containsKey("JMX")) {
                 String jmxUrl = quickLinks.get("JMX");
-                List<SliderAppType> appTypes = getSliderAppTypes(null);
-                if (appTypes != null && appTypes.size() > 0) {
-                  for (SliderAppType appType : appTypes) {
-                    if (logger.isDebugEnabled()) {
-                      logger.debug("TYPE: " + appType.getTypeName() + "   "
-                          + app.getType());
-                      logger.debug("VERSION: " + appType.getTypeVersion() + "   "
-                          + app.getAppVersion());
-                    }
-                    if ((appType.getTypeName() != null && appType.getTypeName()
-                        .equalsIgnoreCase(app.getType()))
-                        && (appType.getTypeVersion() != null && appType
-                            .getTypeVersion().equalsIgnoreCase(
-                                app.getAppVersion()))) {
-                      app.setJmx(sliderAppClient.getJmx(jmxUrl, viewContext,
-                          appType));
-                      break;
-                    }
-                  }
+                if (matchedAppType != null) {
+                  MetricsHolder metricsHolder = appMetrics.get(matchedAppType
+                      .uniqueName());
+                  app.setJmx(sliderAppClient.getJmx(jmxUrl, viewContext,
+                      matchedAppType, metricsHolder));
                 }
               }
               Map<String, Map<String, String>> configs = sliderAppClient
@@ -350,8 +353,27 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
                         + yarnApp.getName(), e);
                 throw new RuntimeException(e.getMessage(), e);
               }
+            } else if (property.startsWith(METRICS_PREFIX)) {
+              gangliaMetrics.add(property.substring(METRICS_PREFIX.length()));
+            } else if ("supportedMetrics".equals(property)) {
+              if (matchedAppType != null) {
+                app.setSupportedMetrics(matchedAppType.getSupportedMetrics());
+              }
             }
           }
+        }
+      }
+      if (gangliaMetrics.size() > 0) {
+        if (quickLinks.isEmpty()) {
+          quickLinks = sliderAppClient
+              .getQuickLinks(appMasterData.publisherUrl);
+        }
+        if (quickLinks != null && quickLinks.containsKey("Metrics")) {
+          String metricsUrl = quickLinks.get("Metrics");
+          MetricsHolder metricsHolder = appMetrics.get(matchedAppType
+              .uniqueName());
+          app.setMetrics(sliderAppClient.getGangliaMetrics(metricsUrl,
+              gangliaMetrics, null, viewContext, matchedAppType, metricsHolder));
         }
       }
     }
@@ -626,9 +648,14 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
                 appTypeComponentList.add(appTypeComponent);
               }
 
-              appType.setJmxMetrics(readMetrics(zipFile, "jmx_metrics.json"));
-              appType.setGangliaMetrics(readMetrics(zipFile,
+              MetricsHolder metricsHolder = new MetricsHolder();
+              metricsHolder.setJmxMetrics(readMetrics(zipFile,
+                  "jmx_metrics.json"));
+              metricsHolder.setGangliaMetrics(readMetrics(zipFile,
                   "ganglia_metrics.json"));
+              appType.setSupportedMetrics(getSupportedMetrics(metricsHolder
+                  .getGangliaMetrics()));
+              appMetrics.put(appType.uniqueName(), metricsHolder);
 
               appType.setTypeComponents(appTypeComponentList);
               appTypes.add(appType);
@@ -644,19 +671,33 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
     return appTypes;
   }
 
+  private List<String> getSupportedMetrics(
+      Map<String, Map<String, Map<String, Metric>>> gangliaMetrics) {
+    Set<String> supportedMetrics = new HashSet<String>();
+    if (gangliaMetrics != null && gangliaMetrics.size() > 0) {
+      for (Map<String, Map<String, Metric>> compMetrics : gangliaMetrics
+          .values()) {
+        for (Map<String, Metric> metrics : compMetrics.values()) {
+          supportedMetrics.addAll(metrics.keySet());
+        }
+      }
+    }
+    return new ArrayList<String>(supportedMetrics);
+  }
+
   Map<String, Map<String, Map<String, Metric>>> readMetrics(ZipFile zipFile,
       String fileName) {
     Map<String, Map<String, Map<String, Metric>>> metrics = null;
     try {
       InputStream inputStream = zipFile.getInputStream(zipFile
-          .getEntry("jmx_metrics.json"));
+          .getEntry(fileName));
       ObjectMapper mapper = new ObjectMapper();
 
       metrics = mapper.readValue(inputStream,
           new TypeReference<Map<String, Map<String, Map<String, Metric>>>>() {
           });
     } catch (IOException e) {
-      logger.info("Error reading metrics. " + e.getMessage());
+      logger.info("Error reading metrics for file " + fileName + ". " + e.getMessage());
     }
 
     return metrics;

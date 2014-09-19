@@ -16,16 +16,30 @@
  * limitations under the License.
  */
 
-App.SliderAppController = Ember.ObjectController.extend({
+App.SliderAppController = Ember.ObjectController.extend(App.AjaxErrorHandler, {
 
   /**
    * List of Slider App tabs
    * @type {{title: string, linkTo: string}[]}
    */
-  sliderAppTabs: Ember.A([
-    Ember.Object.create({title: Ember.I18n.t('common.summary'), linkTo: 'slider_app.summary'}),
-    Ember.Object.create({title: Ember.I18n.t('common.configs'), linkTo: 'slider_app.configs'})
-  ]),
+  sliderAppTabs: function () {
+    var configs = this.get("model.configs");
+    var tabs = Ember.A([
+      Ember.Object.create({title: Ember.I18n.t('common.summary'), linkTo: 'slider_app.summary'})
+    ]);
+    if(typeof configs == "object" && Object.keys(configs).length > 0){
+      tabs.pushObject(Ember.Object.create({title: Ember.I18n.t('common.configs'), linkTo: 'slider_app.configs'}));
+    }
+    return tabs;
+  }.property('model.configs'),
+
+  /**
+   * Do we have quicklinks ?
+   * @type {bool}
+   */
+  weHaveQuicklinks: function () {
+    return (Em.get(this.get('model'), 'quickLinks.content.content.length') > 0);
+  }.property('model.quickLinks.content.content.length'),
 
   /**
    * List of available for model actions
@@ -100,8 +114,17 @@ App.SliderAppController = Ember.ObjectController.extend({
           name: model.get('name'),
           state: "RUNNING"
         }
-      }
+      },
+      success: 'thawSuccessCallback'
     });
+  },
+
+  /**
+   * Redirect to Slider Apps Table page on successful thawing
+   * @method thawSuccessCallback
+   */
+  thawSuccessCallback: function () {
+    this.transitionToRoute('slider_apps.index');
   },
 
   /**

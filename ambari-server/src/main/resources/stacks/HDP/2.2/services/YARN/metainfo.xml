@@ -37,10 +37,10 @@
           <osFamily>any</osFamily>
           <packages>
             <package>
-              <name>hadoop_2_9_9_9_117-yarn</name>
+              <name>hadoop_2_9_9_9_*-yarn</name>
             </package>
             <package>
-              <name>hadoop_2_9_9_9_117-mapreduce</name>
+              <name>hadoop_2_9_9_9_*-mapreduce</name>
             </package>
           </packages>
         </osSpecific>
@@ -56,7 +56,7 @@
           <osFamily>any</osFamily>
           <packages>
             <package>
-              <name>hadoop_2_9_9_9_117-mapreduce</name>
+              <name>hadoop_2_9_9_9_*-mapreduce</name>
             </package>
           </packages>
         </osSpecific>

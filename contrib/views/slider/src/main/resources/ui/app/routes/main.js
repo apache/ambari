@@ -46,6 +46,22 @@ App.SliderAppsRoute = Ember.Route.extend({
     return this.store.all('sliderApp');
   },
 
+
+  setupController: function(controller, model) {
+    controller.set('model', model);
+
+    // Load sliderConfigs to storage
+    App.SliderApp.store.pushMany('sliderConfig', Em.A([
+      Em.Object.create({id: 1, required: true, viewConfigName: 'hdfs.address', displayName: 'hdfsAddress', linkedService: 'HDFS'}),
+      Em.Object.create({id: 2, required: true, viewConfigName: 'yarn.resourcemanager.address', displayName: 'yarnResourceManager', linkedService: 'YARN'}),
+      Em.Object.create({id: 3, required: true, viewConfigName: 'yarn.resourcemanager.scheduler.address',  displayName: 'yarnResourceManagerScheduler'}),
+      Em.Object.create({id: 4, required: true, viewConfigName: 'zookeeper.quorum', displayName: 'zookeeperQuorum', linkedService: 'ZOOKEEPER'}),
+      Em.Object.create({id: 5, required: false, viewConfigName: 'ganglia.server.hostname', displayName: 'gangliaServer'}),
+      Em.Object.create({id: 6, required: false, viewConfigName: 'ganglia.custom.clusters', displayName: 'gangliaClusters'}),
+      Em.Object.create({id: 7, required: false, viewConfigName: 'slider.user', displayName: 'sliderUser'})
+    ]));
+  },
+
   actions: {
     createApp: function () {
       this.transitionTo('createAppWizard');

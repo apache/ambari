@@ -331,6 +331,13 @@
 			</exclusions>
 		</dependency>
 		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient</artifactId>
+			<version>${httpclient.version}</version>
+			<exclusions>
+			</exclusions>
+		</dependency>
+		<dependency>
 			<groupId>com.beust</groupId>
 			<artifactId>jcommander</artifactId>
 			<version>${jcommander.version}</version>
@@ -397,7 +404,7 @@
 		<bigtop.version>0.7.0</bigtop.version>
 		<commons-configuration.version>1.6</commons-configuration.version>
 		<commons-lang.version>2.6</commons-lang.version>
-		<httpclient.version>3.1</httpclient.version>
+		<httpclient.version>4.2.5</httpclient.version>
 		<jcommander.version>1.30</jcommander.version>
 		<curator.version>2.4.1</curator.version>
 		<zookeeper.version>3.4.5</zookeeper.version>

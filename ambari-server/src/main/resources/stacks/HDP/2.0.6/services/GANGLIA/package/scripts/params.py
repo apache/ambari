@@ -37,9 +37,11 @@ if gmond_add_clusters_str and gmond_add_clusters_str.isspace():
 
 gmond_app_strs = [] if gmond_add_clusters_str is None else gmond_add_clusters_str.split(',')
 gmond_apps = []
-for x in gmond_app_strs:
-  a,b = x.strip().split(':')
-  gmond_apps.append((a.strip(),b.strip()))
+
+i = 0
+while i < len(gmond_app_strs):
+  gmond_apps.append((gmond_app_strs[i].strip(), gmond_app_strs[i+1].strip()))
+  i = i + 2
 
 if System.get_instance().os_family == "ubuntu":
   gmond_service_name = "ganglia-monitor"

@@ -33,56 +33,52 @@ hdp_stack_version = config['hostLevelParams']['stack_version']
 
 #hadoop params
 if rpm_version is not None:
-  hadoop_conf_dir = format("/usr/hdp/{rpm_version}/etc/hadoop/conf")
-  hadoop_bin_dir = format("/usr/hdp/{rpm_version}/hadoop/bin")
-  hadoop_home = format('/usr/hdp/{rpm_version}/hadoop')
-  hadoop_streeming_jars = format("/usr/hdp/{rpm_version}/hadoop-mapreduce/hadoop-streaming-*.jar")
-  hive_conf_dir = format('/usr/hdp/{rpm_version}/etc/hive/conf')
-  hive_client_conf_dir = format('/usr/hdp/{rpm_version}/etc/hive/conf')
-  hive_server_conf_dir = format('/usr/hdp/{rpm_version}/etc/hive/conf.server')
-  hive_bin = format('/usr/hdp/{rpm_version}/hive/bin')
-  hive_lib = format('/usr/hdp/{rpm_version}/hive/lib')
-  tez_local_api_jars = format('/usr/hdp/{rpm_version}/tez/tez*.jar')
-  tez_local_lib_jars = format('/usr/hdp/{rpm_version}/tez/lib/*.jar')
+  hadoop_bin_dir = "/usr/hdp/current/hadoop/bin"
+  hadoop_home = '/usr/hdp/current/hadoop'
+  hadoop_streeming_jars = "/usr/hdp/current/hadoop-mapreduce/hadoop-streaming-*.jar"
+  hive_bin = '/usr/hdp/current/hive/bin'
+  hive_lib = '/usr/hdp/current/hive/lib'
+  tez_local_api_jars = '/usr/hdp/current/tez/tez*.jar'
+  tez_local_lib_jars = '/usr/hdp/current/tez/lib/*.jar'
+  tez_tar_file = "/usr/hdp/current/tez/lib/tez*.tar.gz"
 
-  if str(hdp_stack_version).startswith('2.0'):
-    hcat_conf_dir = format('/usr/hdp/{rpm_version}/etc/hcatalog/conf')
-    config_dir = format('/usr/hdp/{rpm_version}/etc/hcatalog/conf')
-    hcat_lib = format('/usr/hdp/{rpm_version}/hive/hcatalog/share/hcatalog')
-    webhcat_bin_dir = format('/usr/hdp/{rpm_version}/hive/hcatalog/sbin')
-  # for newer versions
-  else:
-    hcat_conf_dir = format('/usr/hdp/{rpm_version}/etc/hive-hcatalog/conf')
-    config_dir = format('/usr/hdp/{rpm_version}/etc/hive-webhcat/conf')
-    hcat_lib = format('/usr/hdp/{rpm_version}/hive/hive-hcatalog/share/hcatalog')
-    webhcat_bin_dir = format('/usr/hdp/{rpm_version}/hive/hive-hcatalog/sbin')
+  hcat_lib = '/usr/hdp/current/hive/hive-hcatalog/share/hcatalog'
+  webhcat_bin_dir = '/usr/hdp/current/hive/hive-hcatalog/sbin'
 
 else:
-  hadoop_conf_dir = "/etc/hadoop/conf"
   hadoop_bin_dir = "/usr/bin"
   hadoop_home = '/usr'
   hadoop_streeming_jars = '/usr/lib/hadoop-mapreduce/hadoop-streaming-*.jar'
-  hive_conf_dir = "/etc/hive/conf"
   hive_bin = '/usr/lib/hive/bin'
   hive_lib = '/usr/lib/hive/lib/'
-  hive_client_conf_dir = "/etc/hive/conf"
-  hive_server_conf_dir = '/etc/hive/conf.server'
   tez_local_api_jars = '/usr/lib/tez/tez*.jar'
   tez_local_lib_jars = '/usr/lib/tez/lib/*.jar'
+  tez_tar_file = "/usr/lib/tez/tez*.tar.gz"
 
   if str(hdp_stack_version).startswith('2.0'):
-    hcat_conf_dir = '/etc/hcatalog/conf'
-    config_dir = '/etc/hcatalog/conf'
     hcat_lib = '/usr/lib/hcatalog/share/hcatalog'
     webhcat_bin_dir = '/usr/lib/hcatalog/sbin'
   # for newer versions
   else:
-    hcat_conf_dir = '/etc/hive-hcatalog/conf'
-    config_dir = '/etc/hive-webhcat/conf'
     hcat_lib = '/usr/lib/hive-hcatalog/share/hcatalog'
     webhcat_bin_dir = '/usr/lib/hive-hcatalog/sbin'
 
-execute_path = os.environ['PATH'] + os.pathsep + hive_bin
+hadoop_conf_dir = "/etc/hadoop/conf"
+hive_conf_dir = "/etc/hive/conf"
+hive_client_conf_dir = "/etc/hive/conf"
+hive_server_conf_dir = '/etc/hive/conf.server'
+
+
+
+if str(hdp_stack_version).startswith('2.0'):
+  hcat_conf_dir = '/etc/hcatalog/conf'
+  config_dir = '/etc/hcatalog/conf'
+# for newer versions
+else:
+  hcat_conf_dir = '/etc/hive-hcatalog/conf'
+  config_dir = '/etc/hive-webhcat/conf'
+
+execute_path = os.environ['PATH'] + os.pathsep + hive_bin + os.pathsep + hadoop_bin_dir
 hive_metastore_user_name = config['configurations']['hive-site']['javax.jdo.option.ConnectionUserName']
 hive_jdbc_connection_url = config['configurations']['hive-site']['javax.jdo.option.ConnectionURL']
 
@@ -190,6 +186,7 @@ webhcat_user = config['configurations']['hive-env']['webhcat_user']
 
 hcat_pid_dir = status_params.hcat_pid_dir
 hcat_log_dir = config['configurations']['hive-env']['hcat_log_dir']
+hcat_env_sh_template = config['configurations']['hcat-env']['content']
 
 #hive-log4j.properties.template
 if (('hive-log4j' in config['configurations']) and ('content' in config['configurations']['hive-log4j'])):
@@ -223,8 +220,6 @@ if System.get_instance().os_family == "ubuntu":
 else:
   mysql_configname = '/etc/my.cnf'
 
-tez_tar_file = "/usr/lib/tez/tez*.tar.gz"
-
 # Hive security
 hive_authorization_enabled = config['configurations']['hive-site']['hive.security.authorization.enabled']
 
@@ -240,14 +235,6 @@ else:
 ########################################################
 ########### WebHCat related params #####################
 ########################################################
-
-if str(config['hostLevelParams']['stack_version']).startswith('2.0'):
-  config_dir = '/etc/hcatalog/conf'
-  webhcat_bin_dir = '/usr/lib/hcatalog/sbin'
-# for newer versions
-else:
-  config_dir = '/etc/hive-webhcat/conf'
-  webhcat_bin_dir = '/usr/lib/hive-hcatalog/sbin'
 
 webhcat_env_sh_template = config['configurations']['webhcat-env']['content']
 templeton_log_dir = config['configurations']['hive-env']['hcat_log_dir']

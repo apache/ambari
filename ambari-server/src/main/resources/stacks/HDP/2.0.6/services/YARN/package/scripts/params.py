@@ -32,29 +32,27 @@ rpm_version = default("/configurations/hadoop-env/rpm_version", None)
 
 #hadoop params
 if rpm_version is not None:
-  hadoop_conf_dir = format("/usr/hdp/{rpm_version}/etc/hadoop/conf")
-  hadoop_libexec_dir = format("/usr/hdp/{rpm_version}/hadoop/libexec")
-  hadoop_bin = format("/usr/hdp/{rpm_version}/hadoop/sbin")
-  hadoop_bin_dir = format("/usr/hdp/{rpm_version}/hadoop/bin")
-  limits_conf_dir = format("/usr/hdp/{rpm_version}/etc/security/limits.d")
-  hadoop_yarn_home = format('/usr/hdp/{rpm_version}/hadoop-yarn')
-  hadoop_mapred2_jar_location = format('/usr/hdp/{rpm_version}/hadoop-mapreduce')
-  mapred_bin = format('/usr/hdp/{rpm_version}/hadoop-mapreduce/sbin')
-  yarn_bin = format('/usr/hdp/{rpm_version}/hadoop-yarn/sbin')
-  yarn_container_bin = format('/usr/hdp/{rpm_version}/hadoop-yarn/bin')
+  hadoop_libexec_dir = "/usr/hdp/current/hadoop/libexec"
+  hadoop_bin = "/usr/hdp/current/hadoop/sbin"
+  hadoop_bin_dir = "/usr/hdp/current/hadoop/bin"
+  hadoop_yarn_home = '/usr/hdp/current/hadoop-yarn'
+  hadoop_mapred2_jar_location = '/usr/hdp/current/hadoop-mapreduce'
+  mapred_bin = '/usr/hdp/current/hadoop-mapreduce/sbin'
+  yarn_bin = '/usr/hdp/current/hadoop-yarn/sbin'
+  yarn_container_bin = '/usr/hdp/current/hadoop-yarn/bin'
 else:
-  hadoop_conf_dir = "/etc/hadoop/conf"
   hadoop_libexec_dir = "/usr/lib/hadoop/libexec"
   hadoop_bin = "/usr/lib/hadoop/sbin"
   hadoop_bin_dir = "/usr/bin"
-  limits_conf_dir = "/etc/security/limits.d"
   hadoop_yarn_home = '/usr/lib/hadoop-yarn'
   hadoop_mapred2_jar_location = "/usr/lib/hadoop-mapreduce"
   mapred_bin = "/usr/lib/hadoop-mapreduce/sbin"
   yarn_bin = "/usr/lib/hadoop-yarn/sbin"
   yarn_container_bin = "/usr/lib/hadoop-yarn/bin"
 
-execute_path = os.environ['PATH'] + os.pathsep + hadoop_bin_dir
+hadoop_conf_dir = "/etc/hadoop/conf"
+limits_conf_dir = "/etc/security/limits.d"
+execute_path = os.environ['PATH'] + os.pathsep + hadoop_bin_dir + os.pathsep + yarn_container_bin
 
 ulimit_cmd = "ulimit -c unlimited;"
 

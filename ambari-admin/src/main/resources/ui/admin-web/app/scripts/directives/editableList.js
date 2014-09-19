@@ -53,7 +53,6 @@ angular.module('ambariAdminConsole')
           var elem = $editBox[0];
           var selection = window.getSelection(),
               range = document.createRange();
-
           elem.innerHTML = '\u00a0';
           range.selectNodeContents(elem);
           selection.removeAllRanges();
@@ -72,6 +71,7 @@ angular.module('ambariAdminConsole')
           case 13: // Enter
             $scope.$apply(function() {
               $scope.addItem();
+              $scope.focusOnInput();
             });
             return false;
             break;
@@ -117,6 +117,7 @@ angular.module('ambariAdminConsole')
               $scope.addItem(item);
             });
             $scope.clearInput();
+            $scope.focusOnInput();
             
           } else {
             // Load typeahed items based on current input
@@ -129,30 +130,27 @@ angular.module('ambariAdminConsole')
                 } else if($scope.resourceType === 'Group'){
                   name = item.Groups.group_name;
                 }
-
                 if($scope.items.indexOf(name) < 0){ // Only if item not in list
                   items.push(name);
                 }
-                $scope.typeahead = items.slice(0, 5);
-                $scope.selectedTypeahed = 0;
               });
+              $scope.typeahead = items.slice(0, 5);
+              $scope.selectedTypeahed = 0;
             });
           }
-
-            
         } else {
           $scope.typeahead = [];
           $scope.selectedTypeahed = 0;
+          $scope.focusOnInput();
         }
       });
 
-      $scope.enableEditMode = function() {
+      $scope.enableEditMode = function(event) {
         if( $scope.editable && !$scope.editMode){
           $scope.editMode = true;
-          if( $scope.items.length === 0){
-            $scope.focusOnInput();
-          }
+          $scope.focusOnInput();
         }
+        event.stopPropagation();
       };
 
       $scope.cancel = function(event) {

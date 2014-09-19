@@ -52,7 +52,7 @@ angular.module('ambariAdminConsole')
     PermissionSaver.saveClusterPermissions(
       $scope.permissionsEdit,
       {
-        clusterId: $routeParams.id,
+        clusterId: $routeParams.id
       }
     ).then(reloadClusterData)
     .catch(function(data) {

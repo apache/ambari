@@ -1432,4 +1432,12 @@
   <!--<reporting> <plugins> <plugin> <groupId>org.codehaus.mojo</groupId>
     <artifactId>findbugs-maven-plugin</artifactId> <version>2.5.2</version> </plugin>
     </plugins> </reporting> -->
+
+  <pluginRepositories>
+    <pluginRepository>
+      <id>EclipseLink</id>
+      <url>http://download.eclipse.org/rt/eclipselink/maven.repo</url>
+    </pluginRepository>
+  </pluginRepositories>
+
 </project>

@@ -20,9 +20,74 @@ App.SliderAppSummaryView = Ember.View.extend({
 
   classNames: ['app_summary'],
 
-  graphs: [
-    [App.MetricView, App.Metric2View, App.Metric3View, App.Metric4View]
-  ],
+  /**
+   * List of graphs shown on page
+   * Format:
+   * <code>
+   *   [
+   *      {
+   *        id: string,
+   *        view: App.AppMetricView
+   *      },
+   *      {
+   *        id: string,
+   *        view: App.AppMetricView
+   *      },
+   *      ....
+   *   ]
+   * </code>
+   * @type {{object}[][]}
+   */
+  graphs: [],
+  
+  /**
+   * Update <code>graphs</code>-list when <code>model</code> is updated
+   * New metrics are pushed to <code>graphs</code> (not set new list to <code>graphs</code>!) to prevent page flickering
+   * @method updateGraphs
+   */
+  updateGraphs: function() {
+    // TODO - remove below lines when working.
+    if (true)
+      return;
+    
+    var model = this.get('controller.model'),
+      existingGraphs = this.get('graphs');
+    if (model) {
+      var currentGraphIds = [];
+      var supportedMetrics = model.get('supportedMetricNames');
+      if (supportedMetrics && supportedMetrics.length > 0) {
+        var appId = model.get('id');
+        supportedMetrics.split(',').forEach(function(metricName) {
+          var graphId = metricName + '_' + appId;
+          currentGraphIds.push(graphId);
+          if (!existingGraphs.isAny('id', graphId)) {
+            var view = App.AppMetricView.extend({
+              app: model,
+              metricName: metricName
+            });
+            existingGraphs.push({
+              id : graphId,
+              view : view
+            });
+          }
+        });
+      }
+      // Delete not existed graphs
+      var toDeleteGraphs = [];
+      existingGraphs.forEach(function(existingGraph) {
+       if (currentGraphIds.indexOf(existingGraph.id) == -1) {
+          toDeleteGraphs.push(existingGraph);
+        }
+      });
+      if(toDeleteGraphs.length > 0) {
+        var newGraphs = existingGraphs;
+        toDeleteGraphs.forEach(function(toDeleteGraph) {
+          newGraphs = newGraphs.without(toDeleteGraph);
+        });
+        this.set('graphs', newGraphs);
+      }
+    }
+  }.observes('controller.model.supportedMetricNames'),
 
   /**
    * @type {string}

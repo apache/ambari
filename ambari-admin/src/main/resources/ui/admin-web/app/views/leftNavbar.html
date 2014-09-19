@@ -21,9 +21,9 @@
     <div class="panel-body">
       <div ng-show="cluster">
         <div id="cluster-name"  ng-switch on="editCluster.editingName">
-          <h4 ng-switch-when="false">{{cluster.Clusters.cluster_name}}
+          <h5 ng-switch-when="false">{{cluster.Clusters.cluster_name}}
             <i ng-click="toggleEditName()" class="glyphicon glyphicon-edit pull-right edit-cluster-name" tooltip="Rename Cluster"></i>
-          </h4>
+          </h5>
 
           <form ng-keyup="toggleEditName($event)" tabindex="1" name="editClusterNameForm" class="editClusterNameForm" ng-switch-when="true"
                 ng-submit="editCluster.name !== cluster.Clusters.cluster_name && editClusterNameForm.newClusterName.$valid && confirmClusterNameChange()">
@@ -63,11 +63,9 @@
         
       <div ng-hide="cluster">
         <a href="/#/installer/step0" class="btn btn-primary btn-block createcluster-btn">
-          <span class="glyphicon glyphicon-plus"></span>
-          Create a Cluster
+          Launch Install Wizard
         </a>
       </div>
-        
     </div>
   </div>
 
@@ -99,6 +97,5 @@
         
     </div>
   </div>
-
 </div>
   

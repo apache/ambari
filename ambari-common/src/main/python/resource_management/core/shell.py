@@ -19,6 +19,7 @@ limitations under the License.
 Ambari Agent
 
 """
+import os
 
 __all__ = ["checked_call", "call", "quote_bash_args"]
 
@@ -31,15 +32,15 @@ from exceptions import ExecuteTimeoutException
 from resource_management.core.logger import Logger
 
 def checked_call(command, logoutput=False, 
-         cwd=None, env=None, preexec_fn=None, user=None, wait_for_finish=True, timeout=None):
-  return _call(command, logoutput, True, cwd, env, preexec_fn, user, wait_for_finish, timeout)
+         cwd=None, env=None, preexec_fn=None, user=None, wait_for_finish=True, timeout=None, path=None):
+  return _call(command, logoutput, True, cwd, env, preexec_fn, user, wait_for_finish, timeout, path)
 
 def call(command, logoutput=False, 
-         cwd=None, env=None, preexec_fn=None, user=None, wait_for_finish=True, timeout=None):
-  return _call(command, logoutput, False, cwd, env, preexec_fn, user, wait_for_finish, timeout)
+         cwd=None, env=None, preexec_fn=None, user=None, wait_for_finish=True, timeout=None, path=None):
+  return _call(command, logoutput, False, cwd, env, preexec_fn, user, wait_for_finish, timeout, path)
             
 def _call(command, logoutput=False, throw_on_failure=True, 
-         cwd=None, env=None, preexec_fn=None, user=None, wait_for_finish=True, timeout=None):
+         cwd=None, env=None, preexec_fn=None, user=None, wait_for_finish=True, timeout=None, path=None):
   """
   Execute shell command
   
@@ -54,12 +55,17 @@ def _call(command, logoutput=False, throw_on_failure=True,
   if isinstance(command, (list, tuple)):
     command = ' '.join(quote_bash_args(x) for x in command)
 
-  if user:
-    command = ["su", "-", user, "-c", command]
+  if path:
+    export_path_command = "export PATH=$PATH" + os.pathsep + os.pathsep.join(path) + " ; "
   else:
-    command = ["/bin/bash","--login","-c", command]
+    export_path_command = ""
 
-  proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+  if user:
+    subprocess_command = ["su", "-", user, "-c", export_path_command + command]
+  else:
+    subprocess_command = ["/bin/bash","--login","-c", export_path_command + command]
+
+  proc = subprocess.Popen(subprocess_command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                           cwd=cwd, env=env, shell=False,
                           preexec_fn=preexec_fn)
 
@@ -86,7 +92,7 @@ def _call(command, logoutput=False, throw_on_failure=True,
     Logger.info(out)
   
   if throw_on_failure and code:
-    err_msg = Logger.get_protected_text(("Execution of '%s' returned %d. %s") % (command[-1], code, out))
+    err_msg = Logger.get_protected_text(("Execution of '%s' returned %d. %s") % (command, code, out))
     raise Fail(err_msg)
   
   return code, out

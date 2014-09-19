@@ -343,9 +343,13 @@ public class StackExtensionHelperTest {
 
   private void addToPropertyMap(Map<String, Map<String, Map<String, String>>> configTypes,String configType,
       String keyword, String attributeName, String value) {
-    configTypes.put(configType, new HashMap<String, Map<String, String>>()); 
-    Map<String, Map<String, String>> config = configTypes.get(configType); 
-    config.put(keyword, new HashMap<String, String>());
+    if(!configTypes.containsKey(configType)) {
+      configTypes.put(configType, new HashMap<String, Map<String, String>>()); 
+    }
+    Map<String, Map<String, String>> config = configTypes.get(configType);
+    if(!config.containsKey(keyword)) {
+      config.put(keyword, new HashMap<String, String>());
+    }
     Map<String, String> supports = config.get(keyword);
     supports.put(attributeName, value);    
   }
@@ -358,12 +362,20 @@ public class StackExtensionHelperTest {
     Map<String, Map<String, Map<String, String>>> expectedConfigTypes = new HashMap<String, Map<String, Map<String, String>>>();
     addToPropertyMap(expectedConfigTypes, "global", StackExtensionHelper.Supports.KEYWORD, 
         StackExtensionHelper.Supports.FINAL.getPropertyName(), "true");
+    addToPropertyMap(expectedConfigTypes, "global", StackExtensionHelper.Supports.KEYWORD, 
+        StackExtensionHelper.Supports.ADDING_FORBIDDEN.getPropertyName(), "false");
     addToPropertyMap(expectedConfigTypes, "hdfs-site", StackExtensionHelper.Supports.KEYWORD, 
         StackExtensionHelper.Supports.FINAL.getPropertyName(), "false");
+    addToPropertyMap(expectedConfigTypes, "hdfs-site", StackExtensionHelper.Supports.KEYWORD, 
+        StackExtensionHelper.Supports.ADDING_FORBIDDEN.getPropertyName(), "false");
     addToPropertyMap(expectedConfigTypes, "hadoop-policy", StackExtensionHelper.Supports.KEYWORD, 
         StackExtensionHelper.Supports.FINAL.getPropertyName(), "false");
+    addToPropertyMap(expectedConfigTypes, "hadoop-policy", StackExtensionHelper.Supports.KEYWORD, 
+        StackExtensionHelper.Supports.ADDING_FORBIDDEN.getPropertyName(), "false");
     addToPropertyMap(expectedConfigTypes, "core-site", StackExtensionHelper.Supports.KEYWORD, 
         StackExtensionHelper.Supports.FINAL.getPropertyName(), "false");
+    addToPropertyMap(expectedConfigTypes, "core-site", StackExtensionHelper.Supports.KEYWORD, 
+        StackExtensionHelper.Supports.ADDING_FORBIDDEN.getPropertyName(), "false");
     
     Map<String, Map<String, Map<String, String>>> configTypes = serviceInfo.getConfigTypes();
     assertEquals(4, configTypes.size());
@@ -477,6 +489,8 @@ public class StackExtensionHelperTest {
     Map<String, Map<String, Map<String, String>>> expectedConfigTypes = new HashMap<String, Map<String, Map<String, String>>>();
     addToPropertyMap(expectedConfigTypes, "yarn-site", StackExtensionHelper.Supports.KEYWORD, 
         StackExtensionHelper.Supports.FINAL.getPropertyName(), "false");
+    addToPropertyMap(expectedConfigTypes, "yarn-site", StackExtensionHelper.Supports.KEYWORD, 
+        StackExtensionHelper.Supports.ADDING_FORBIDDEN.getPropertyName(), "true");
     
     assertEquals(expectedConfigTypes, serviceInfo.getConfigTypes());
   }
@@ -493,12 +507,20 @@ public class StackExtensionHelperTest {
     Map<String, Map<String, Map<String, String>>> expectedConfigTypes = new HashMap<String, Map<String, Map<String, String>>>();
     addToPropertyMap(expectedConfigTypes, "global", StackExtensionHelper.Supports.KEYWORD, 
         StackExtensionHelper.Supports.FINAL.getPropertyName(), "true");
+    addToPropertyMap(expectedConfigTypes, "global", StackExtensionHelper.Supports.KEYWORD, 
+        StackExtensionHelper.Supports.ADDING_FORBIDDEN.getPropertyName(), "false");
     addToPropertyMap(expectedConfigTypes, "hdfs-site", StackExtensionHelper.Supports.KEYWORD, 
         StackExtensionHelper.Supports.FINAL.getPropertyName(), "false");
+    addToPropertyMap(expectedConfigTypes, "hdfs-site", StackExtensionHelper.Supports.KEYWORD, 
+        StackExtensionHelper.Supports.ADDING_FORBIDDEN.getPropertyName(), "false");
     addToPropertyMap(expectedConfigTypes, "hadoop-policy", StackExtensionHelper.Supports.KEYWORD, 
         StackExtensionHelper.Supports.FINAL.getPropertyName(), "false");
+    addToPropertyMap(expectedConfigTypes, "hadoop-policy", StackExtensionHelper.Supports.KEYWORD, 
+        StackExtensionHelper.Supports.ADDING_FORBIDDEN.getPropertyName(), "false");
     addToPropertyMap(expectedConfigTypes, "core-site", StackExtensionHelper.Supports.KEYWORD, 
         StackExtensionHelper.Supports.FINAL.getPropertyName(), "false");
+    addToPropertyMap(expectedConfigTypes, "core-site", StackExtensionHelper.Supports.KEYWORD, 
+        StackExtensionHelper.Supports.ADDING_FORBIDDEN.getPropertyName(), "false");
     
     assertEquals(expectedConfigTypes, serviceInfo.getConfigTypes());
   }
@@ -514,14 +536,24 @@ public class StackExtensionHelperTest {
     Map<String, Map<String, Map<String, String>>> expectedConfigTypes = new HashMap<String, Map<String, Map<String, String>>>();
     addToPropertyMap(expectedConfigTypes, "global", StackExtensionHelper.Supports.KEYWORD, 
         StackExtensionHelper.Supports.FINAL.getPropertyName(), "true");
+    addToPropertyMap(expectedConfigTypes, "global", StackExtensionHelper.Supports.KEYWORD, 
+        StackExtensionHelper.Supports.ADDING_FORBIDDEN.getPropertyName(), "false");
     addToPropertyMap(expectedConfigTypes, "hdfs-site", StackExtensionHelper.Supports.KEYWORD, 
         StackExtensionHelper.Supports.FINAL.getPropertyName(), "false");
-    addToPropertyMap(expectedConfigTypes, "yarn-site", StackExtensionHelper.Supports.KEYWORD, 
-        StackExtensionHelper.Supports.FINAL.getPropertyName(), "false");
+    addToPropertyMap(expectedConfigTypes, "hdfs-site", StackExtensionHelper.Supports.KEYWORD, 
+        StackExtensionHelper.Supports.ADDING_FORBIDDEN.getPropertyName(), "false");
     addToPropertyMap(expectedConfigTypes, "hadoop-policy", StackExtensionHelper.Supports.KEYWORD, 
         StackExtensionHelper.Supports.FINAL.getPropertyName(), "false");
+    addToPropertyMap(expectedConfigTypes, "hadoop-policy", StackExtensionHelper.Supports.KEYWORD, 
+        StackExtensionHelper.Supports.ADDING_FORBIDDEN.getPropertyName(), "false");
     addToPropertyMap(expectedConfigTypes, "core-site", StackExtensionHelper.Supports.KEYWORD, 
         StackExtensionHelper.Supports.FINAL.getPropertyName(), "false");
+    addToPropertyMap(expectedConfigTypes, "core-site", StackExtensionHelper.Supports.KEYWORD, 
+        StackExtensionHelper.Supports.ADDING_FORBIDDEN.getPropertyName(), "false");
+    addToPropertyMap(expectedConfigTypes, "yarn-site", StackExtensionHelper.Supports.KEYWORD, 
+        StackExtensionHelper.Supports.FINAL.getPropertyName(), "false");
+    addToPropertyMap(expectedConfigTypes, "yarn-site", StackExtensionHelper.Supports.KEYWORD, 
+        StackExtensionHelper.Supports.ADDING_FORBIDDEN.getPropertyName(), "true");
     
     assertEquals(expectedConfigTypes, serviceInfo.getConfigTypes());
   }

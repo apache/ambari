@@ -20,19 +20,6 @@
 <configuration supports_final="true">
 
   <property>
-    <name>oozie.service.HadoopAccessorService.hadoop.configurations</name>
-    <value>*=/usr/hdp/2.9.9.9-117/etc/hadoop/conf</value>
-    <description>
-      Comma separated AUTHORITY=HADOOP_CONF_DIR, where AUTHORITY is the HOST:PORT of
-      the Hadoop service (JobTracker, HDFS). The wildcard '*' configuration is
-      used when there is no exact match for an authority. The HADOOP_CONF_DIR contains
-      the relevant Hadoop *-site.xml files. If the path is relative is looked within
-      the Oozie configuration directory; though the path can be absolute (i.e. to point
-      to Hadoop client conf/ directories in the local filesystem.
-    </description>
-  </property>
-
-  <property>
     <name>oozie.service.coord.check.maximum.frequency</name>
     <value>false</value>
     <description>

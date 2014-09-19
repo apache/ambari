@@ -350,7 +350,7 @@ App.config = Em.Object.create({
           filename: filename,
           isUserProperty: false,
           isOverridable: true,
-          isRequired: true,
+          isRequired: advancedConfigs.someProperty('name', index),
           isFinal: finalAttributes[index] === "true",
           defaultIsFinal: finalAttributes[index] === "true",
           showLabel: true,

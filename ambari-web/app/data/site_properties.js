@@ -1730,6 +1730,30 @@ module.exports =
       "filename": "hive-env.xml",
       "category": "Advanced hive-env"
     },
+    {
+      "id": "puppet var",
+      "name": "hive_database_name",
+      "displayName": "hive_database_name",
+      "defaultValue": "",
+      "isReconfigurable": false,
+      "isOverridable": false,
+      "isVisible": true,
+      "serviceName": "HIVE",
+      "filename": "hive-env.xml",
+      "category": "Advanced hive-env"
+    },
+    {
+      "id": "puppet var",
+      "name": "hive_database_type",
+      "displayName": "hive_database_type",
+      "defaultValue": "",
+      "isReconfigurable": false,
+      "isOverridable": false,
+      "isVisible": true,
+      "serviceName": "HIVE",
+      "filename": "hive-env.xml",
+      "category": "Advanced hive-env"
+    },
   /**********************************************HIVE***************************************/
     {
       "id": "puppet var",

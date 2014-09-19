@@ -201,13 +201,22 @@ App.ServerValidatorMixin = Em.Mixin.create({
     var self = this;
     var recommendations = this.get('hostGroups');
     recommendations.blueprint.configurations = blueprintUtils.buildConfisJSON(this.get('services'), this.get('stepConfigs'));
+
+    var serviceNames = this.get('serviceNames');
+    if (!self.get('isInstaller')) {
+      // When editing a service we validate only that service's configs.
+      // However, we should pass the IDs of services installed, or else,
+      // default value calculations will alter.
+      serviceNames = App.Service.find().mapProperty('serviceName');
+    }
+
     return App.ajax.send({
       name: 'config.validations',
       sender: this,
       data: {
         stackVersionUrl: App.get('stackVersionURL'),
         hosts: this.get('hostNames'),
-        services: this.get('serviceNames'),
+        services: serviceNames,
         validate: 'configurations',
         recommendations: recommendations
       },

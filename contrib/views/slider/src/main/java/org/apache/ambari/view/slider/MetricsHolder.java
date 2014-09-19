@@ -1,6 +1,3 @@
-<?xml version="1.0"?>
-<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
-<!--
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -18,12 +15,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
--->
 
-<configuration>
-  <property>
-    <name>rest_lib_dir</name>
-    <value>/usr/lib/storm/external/storm-rest</value>
-    <description></description>
-  </property>
-</configuration>
+package org.apache.ambari.view.slider;
+
+import org.apache.ambari.view.slider.rest.client.Metric;
+
+import java.util.Map;
+
+public class MetricsHolder {
+  private Map<String, Map<String, Map<String, Metric>>> jmxMetrics;
+  private Map<String, Map<String, Map<String, Metric>>> gangliaMetrics;
+
+  public Map<String, Map<String, Map<String, Metric>>> getJmxMetrics() {
+    return jmxMetrics;
+  }
+
+  public void setJmxMetrics(Map<String, Map<String, Map<String, Metric>>> jmxMetrics) {
+    this.jmxMetrics = jmxMetrics;
+  }
+
+  public Map<String, Map<String, Map<String, Metric>>> getGangliaMetrics() {
+    return gangliaMetrics;
+  }
+
+  public void setGangliaMetrics(Map<String, Map<String, Map<String, Metric>>> gangliaMetrics) {
+    this.gangliaMetrics = gangliaMetrics;
+  }
+}

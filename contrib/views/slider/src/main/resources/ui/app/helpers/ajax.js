@@ -24,7 +24,7 @@
  *  real - real url (without API prefix)
  *  type - request type (also may be defined in the format method)
  *  format - function for processing ajax params after default formatRequest. May be called with one or two parameters (data, opt). Return ajax-params object
- *  testInProduction - can this request be executed on production tests (used only in tests)
+ *  schema - basic validation schema (tv4) for response (optional)
  *
  * @type {Object}
  */
@@ -36,6 +36,14 @@ var urls = {
     headers: {
       Accept: "text/plain; charset=utf-8",
       "Content-Type": "text/plain; charset=utf-8"
+    },
+    schema: {
+      required: ['ViewInstanceInfo'],
+      properties: {
+        ViewInstanceInfo: {
+          required: ['properties']
+        }
+      }
     }
   },
 
@@ -45,6 +53,28 @@ var urls = {
     headers: {
       Accept: "text/plain; charset=utf-8",
       "Content-Type": "text/plain; charset=utf-8"
+    },
+    schema: {
+      required: ['items'],
+      properties: {
+        items: {
+          type: 'array',
+          items: {
+            required: ['id', 'typeComponents', 'typeConfigs'],
+            properties: {
+              typeConfigs: {
+                type: 'object'
+              },
+              typeComponents: {
+                type: 'array',
+                items: {
+                  required: ['id', 'name', 'category', 'displayName']
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
 
@@ -54,6 +84,23 @@ var urls = {
     headers: {
       Accept: "text/plain; charset=utf-8",
       "Content-Type": "text/plain; charset=utf-8"
+    },
+    schema: {
+      required: ['items'],
+      properties: {
+        items: {
+          type: 'array',
+          items: {
+            required: ['id', 'description', 'diagnostics', 'name', 'user', 'state', 'type', 'components', 'configs'],
+            alerts: {
+              type: 'object',
+              detail: {
+                type: 'array'
+              }
+            }
+          }
+        }
+      }
     }
   },
 
@@ -64,6 +111,7 @@ var urls = {
 
   'saveInitialValues': {
     real: '',
+    mock: '/data/resource/empty_json.json',
     headers: {
       "Content-Type": "text/plain; charset=utf-8"
     },
@@ -84,7 +132,8 @@ var urls = {
     format: function (data) {
       return {
         type: 'POST',
-        data: JSON.stringify(data.data)
+        data: JSON.stringify(data.data),
+        showErrorPopup: true
       }
     }
   },
@@ -94,7 +143,8 @@ var urls = {
     mock: '',
     format: function () {
       return {
-        method: 'DELETE'
+        method: 'DELETE',
+        showErrorPopup: true
       }
     }
   },
@@ -108,7 +158,8 @@ var urls = {
     format: function (data) {
       return {
         method: 'PUT',
-        data: JSON.stringify(data.data)
+        data: JSON.stringify(data.data),
+        showErrorPopup: true
       }
     }
   },
@@ -121,60 +172,9 @@ var urls = {
     format: function (data) {
       return {
         method: 'PUT',
-        data: JSON.stringify(data.data)
+        data: JSON.stringify(data.data),
+        showErrorPopup: true
       }
-    }
-  },
-
-  'service_status': {
-    real: 'clusters/{clusterName}/services?fields=ServiceInfo/state&minimal_response=true',
-    mock: '/data/resource/service_status.json',
-    headers: {
-      Accept: "text/plain; charset=utf-8",
-      "Content-Type": "text/plain; charset=utf-8"
-    }
-  },
-
-  'components_hosts': {
-    real: 'clusters/{clusterName}/hosts?host_components/HostRoles/component_name={componentName}&minimal_response=true',
-    mock: '/data/resource/components_hosts.json',
-    headers: {
-      Accept: "text/plain; charset=utf-8",
-      "Content-Type": "text/plain; charset=utf-8"
-    }
-  },
-
-  'service_current_configs': {
-    real: 'clusters/{clusterName}/configurations/service_config_versions?service_name={serviceName}&is_current=true',
-    mock: '/data/resource/service_configs.json',
-    headers: {
-      Accept: "text/plain; charset=utf-8",
-      "Content-Type": "text/plain; charset=utf-8"
-    }
-  },
-
-  'config.tags': {
-    'real': 'clusters/{clusterName}?fields=Clusters/desired_configs',
-    headers: {
-      Accept: "text/plain; charset=utf-8",
-      "Content-Type": "text/plain; charset=utf-8"
-    }
-  },
-
-  'get_all_configurations': {
-    'real': 'clusters/{clusterName}/configurations?{urlParams}',
-    headers: {
-      Accept: "text/plain; charset=utf-8",
-      "Content-Type": "text/plain; charset=utf-8"
-    }
-  },
-
-  'cluster_name': {
-    real: 'clusters',
-    mock: '/data/resource/cluster_name.json',
-    headers: {
-      Accept: "text/plain; charset=utf-8",
-      "Content-Type": "text/plain; charset=utf-8"
     }
   },
 
@@ -248,11 +248,11 @@ var formatRequest = function (data) {
     }
     var url = formatUrl(this.real, data);
     opt.url = prefix + (url ? url : '');
+    if (this.format) {
+      jQuery.extend(opt, this.format(data, opt));
+    }
   }
 
-  if (this.format) {
-    jQuery.extend(opt, this.format(data, opt));
-  }
   return opt;
 };
 
@@ -305,6 +305,17 @@ var ajax = Em.Object.extend({
 
     opt.success = function (data) {
       console.log("TRACE: The url is: " + opt.url);
+
+      // validate response if needed
+      if (urls[config.name].schema) {
+        var result = tv4.validateMultiple(data, urls[config.name].schema);
+        if (!result.valid) {
+          result.errors.forEach(function (error) {
+            console.warn('Request: ' + config.name, 'WARNING: ', error.message, error.dataPath);
+          });
+        }
+      }
+
       if (config.success) {
         config.sender[config.success](data, opt, params);
       }
@@ -313,6 +324,8 @@ var ajax = Em.Object.extend({
     opt.error = function (request, ajaxOptions, error) {
       if (config.error) {
         config.sender[config.error](request, ajaxOptions, error, opt, params);
+      } else {
+        config.sender.defaultErrorHandler.call(config.sender, request, opt.url, opt.type, opt.showErrorPopup);
       }
     };
 

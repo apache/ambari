@@ -17,6 +17,40 @@
  */
 package org.apache.ambari.server.api.util;
 
+import com.google.inject.Injector;
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.metadata.ActionMetadata;
+import org.apache.ambari.server.state.ClientConfigFileDefinition;
+import org.apache.ambari.server.state.CommandScriptDefinition;
+import org.apache.ambari.server.state.ComponentInfo;
+import org.apache.ambari.server.state.ConfigHelper;
+import org.apache.ambari.server.state.CustomCommandDefinition;
+import org.apache.ambari.server.state.DependencyInfo;
+import org.apache.ambari.server.state.PropertyInfo;
+import org.apache.ambari.server.state.ServiceInfo;
+import org.apache.ambari.server.state.ServiceOsSpecific;
+import org.apache.ambari.server.state.StackInfo;
+import org.apache.ambari.server.state.stack.ConfigurationXml;
+import org.apache.ambari.server.state.stack.RepositoryXml;
+import org.apache.ambari.server.state.stack.ServiceMetainfoXml;
+import org.apache.ambari.server.state.stack.StackMetainfoXml;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.w3c.dom.Document;
+import org.xml.sax.SAXException;
+
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
+import javax.xml.namespace.QName;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -30,33 +64,6 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
-
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
-import javax.xml.namespace.QName;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathExpression;
-import javax.xml.xpath.XPathExpressionException;
-import javax.xml.xpath.XPathFactory;
-
-import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.metadata.ActionMetadata;
-import org.apache.ambari.server.state.*;
-import org.apache.ambari.server.state.stack.ConfigurationXml;
-import org.apache.ambari.server.state.stack.RepositoryXml;
-import org.apache.ambari.server.state.stack.ServiceMetainfoXml;
-import org.apache.ambari.server.state.stack.StackMetainfoXml;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.w3c.dom.Document;
-import org.xml.sax.SAXException;
-
-import com.google.inject.Injector;
 
 /**
  * Helper methods for providing stack extension behavior -
@@ -520,8 +527,8 @@ public class StackExtensionHelper {
   }
 
   void populateServicesForStack(StackInfo stackInfo) throws
-          ParserConfigurationException, SAXException,
-          XPathExpressionException, IOException, JAXBException {
+      ParserConfigurationException, SAXException,
+      XPathExpressionException, IOException, JAXBException {
     List<ServiceInfo> services = new ArrayList<ServiceInfo>();
     File servicesFolder = new File(stackRoot.getAbsolutePath() + File
       .separator + stackInfo.getName() + File.separator + stackInfo.getVersion()
@@ -554,29 +561,33 @@ public class StackExtensionHelper {
 
           //Reading v2 service metainfo (may contain multiple services)
           // Get services from metadata
-          ServiceMetainfoXml smiv2x =
-                  unmarshal(ServiceMetainfoXml.class, metainfoFile);
-          List<ServiceInfo> serviceInfos = smiv2x.getServices();
-          for (ServiceInfo serviceInfo : serviceInfos) {
-            serviceInfo.setSchemaVersion(AmbariMetaInfo.SCHEMA_VERSION_2);
+          try {
+            ServiceMetainfoXml smiv2x =
+                unmarshal(ServiceMetainfoXml.class, metainfoFile);
+            List<ServiceInfo> serviceInfos = smiv2x.getServices();
+            for (ServiceInfo serviceInfo : serviceInfos) {
+              serviceInfo.setSchemaVersion(AmbariMetaInfo.SCHEMA_VERSION_2);
 
-            // Find service package folder
-            String servicePackageDir = resolveServicePackageFolder(
-                    stackRoot.getAbsolutePath(), stackInfo,
-                    serviceFolder.getName(), serviceInfo.getName());
-            serviceInfo.setServicePackageFolder(servicePackageDir);
+              // Find service package folder
+              String servicePackageDir = resolveServicePackageFolder(
+                  stackRoot.getAbsolutePath(), stackInfo,
+                  serviceFolder.getName(), serviceInfo.getName());
+              serviceInfo.setServicePackageFolder(servicePackageDir);
 
-            // process metrics.json
-            if (metricsJson.exists())
-              serviceInfo.setMetricsFile(metricsJson);
-            if (alertsJson.exists())
-              serviceInfo.setAlertsFile(alertsJson);
+              // process metrics.json
+              if (metricsJson.exists())
+                serviceInfo.setMetricsFile(metricsJson);
+              if (alertsJson.exists())
+                serviceInfo.setAlertsFile(alertsJson);
 
-            // Get all properties from all "configs/*-site.xml" files
-            setPropertiesFromConfigs(serviceFolder, serviceInfo);
+              // Get all properties from all "configs/*-site.xml" files
+              setPropertiesFromConfigs(serviceFolder, serviceInfo);
 
-            // Add now to be removed while iterating extension graph
-            services.add(serviceInfo);
+              // Add now to be removed while iterating extension graph
+              services.add(serviceInfo);
+            }
+          } catch (JAXBException e) {
+            LOG.warn("Error while parsing metainfo.xml for a service: " + serviceFolder.getAbsolutePath(), e);
           }
         }
       } catch (Exception e) {
@@ -609,13 +620,13 @@ public class StackExtensionHelper {
       servicePackageFolder = expectedSubPath;
       String message = String.format(
               "Service package folder for service %s" +
-                      "for stack %s has been resolved to %s",
+                      " for stack %s has been resolved to %s",
               serviceName, stackId, servicePackageFolder);
       LOG.debug(message);
     } else {
         String message = String.format(
                 "Service package folder %s for service %s " +
-                        "for stack %s does not exist.",
+                        " for stack %s does not exist.",
                 packageDir.getAbsolutePath(), serviceName, stackId);
         LOG.debug(message);
     }
@@ -905,7 +916,8 @@ public class StackExtensionHelper {
    */
   protected enum Supports {
 
-    FINAL("supports_final");
+    FINAL("supports_final"),
+    ADDING_FORBIDDEN("supports_adding_forbidden");
 
     public static final String KEYWORD = "supports";
 

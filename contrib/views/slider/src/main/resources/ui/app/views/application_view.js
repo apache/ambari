@@ -33,24 +33,18 @@ App.ApplicationView = Ember.View.extend({
       placement: 'bottom'
     }),
 
+    isIndexPage: function () {
+      var currentPath = this.get('controller.currentPath');
+      return currentPath && (currentPath == 'slider_apps.index' || currentPath.indexOf('slider_apps.createAppWizard') != -1);
+    }.property('controller.currentPath'),
+
     /**
      * Set <code>popover</code> template
      * @method sliderConfigsChecker
      */
     sliderConfigsChecker: function() {
-      var configs = App.get('sliderConfigs'),
-        res = [],
-        excludedConfigs = ['ambariAddress', 'clusterName'];
-      if (configs) {
-        Em.keys(configs).forEach(function(c) {
-          if (!excludedConfigs.contains(c)) {
-            res.push({name: c, value: configs[c]});
-          }
-        });
-      }
-      this.set('content', res);
       var template = this.createChildView(App.SliderTitleTooltipView, {
-        content: res
+        content: App.SliderApp.store.all('sliderConfig')
       });
       this.set('popover.template', template.renderToBuffer().string());
     }.observes('App.mapperTime')

@@ -28,8 +28,8 @@ rpm_version = default("/configurations/hadoop-env/rpm_version", None)
 
 #hadoop params
 if rpm_version is not None:
-  slider_conf_dir = format('/usr/lib/{rpm_version}/slider/conf')
-  slider_bin_dir = format('/usr/lib/{rpm_version}/slider/bin')
+  slider_conf_dir = '/usr/lib/current/slider/conf'
+  slider_bin_dir = '/usr/lib/current/slider/bin'
 else:
   slider_conf_dir = "/usr/lib/slider/conf"
   slider_bin_dir = "/usr/lib/slider/bin"

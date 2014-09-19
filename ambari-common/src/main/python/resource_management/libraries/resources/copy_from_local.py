@@ -35,5 +35,6 @@ class CopyFromLocal(Resource):
   kinnit_if_needed = ResourceArgument(default='')
   hadoop_conf_dir = ResourceArgument(default='/etc/hadoop/conf')
   hdfs_user = ResourceArgument(default='hdfs')
+  hadoop_bin_dir = ResourceArgument(default='/usr/bin')
 
   actions = Resource.actions + ["run"]

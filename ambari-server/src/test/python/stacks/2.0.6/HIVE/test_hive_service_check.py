@@ -40,10 +40,9 @@ class TestServiceCheck(RMFTestCase):
     )
     self.assertResourceCalled('Execute', 'env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /tmp/hcatSmoke.sh hcatsmoke prepare',
                         logoutput = True,
-                        path = ['/usr/sbin', '/usr/local/nin', '/bin', '/usr/bin'],
+                        path = ['/usr/sbin', '/usr/local/nin', '/bin', '/usr/bin', os.environ['PATH'] + os.pathsep + "/usr/lib/hive/bin" + os.pathsep + "/usr/bin"],
                         tries = 3,
                         user = 'ambari-qa',
-                        environment = {'PATH' : os.environ['PATH'] + os.pathsep + "/usr/lib/hive/bin"},
                         try_sleep = 5,
     )
     self.assertResourceCalled('ExecuteHadoop', 'fs -test -e /apps/hive/warehouse/hcatsmoke',
@@ -52,15 +51,14 @@ class TestServiceCheck(RMFTestCase):
                         conf_dir = '/etc/hadoop/conf',
                         keytab=UnknownConfigurationMock(),
                         kinit_path_local='/usr/bin/kinit',
-                        bin_dir = '/usr/lib/hive/bin',
+                        bin_dir = os.environ['PATH'] + os.pathsep + "/usr/lib/hive/bin" + os.pathsep + "/usr/bin",
                         security_enabled=False
     )
     self.assertResourceCalled('Execute', ' /tmp/hcatSmoke.sh hcatsmoke cleanup',
                         logoutput = True,
-                        path = ['/usr/sbin', '/usr/local/nin', '/bin', '/usr/bin'],
+                        path = ['/usr/sbin', '/usr/local/nin', '/bin', '/usr/bin', os.environ['PATH'] + os.pathsep + "/usr/lib/hive/bin" + os.pathsep + "/usr/bin"],
                         tries = 3,
                         user = 'ambari-qa',
-                        environment = {'PATH' : os.environ['PATH'] + os.pathsep + "/usr/lib/hive/bin"},
                         try_sleep = 5,
     )
     self.assertResourceCalled('File', '/tmp/templetonSmoke.sh',
@@ -87,12 +85,12 @@ class TestServiceCheck(RMFTestCase):
                         content = StaticFile('hcatSmoke.sh'),
                         mode = 0755,
     )
+    self.maxDiff = None
     self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa; env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /tmp/hcatSmoke.sh hcatsmoke prepare',
                         logoutput = True,
-                        path = ['/usr/sbin', '/usr/local/nin', '/bin', '/usr/bin'],
+                        path = ['/usr/sbin', '/usr/local/nin', '/bin', '/usr/bin', os.environ['PATH'] + os.pathsep + "/usr/lib/hive/bin" + os.pathsep + "/usr/bin"],
                         tries = 3,
                         user = 'ambari-qa',
-                        environment = {'PATH' : os.environ['PATH'] + os.pathsep + "/usr/lib/hive/bin"},
                         try_sleep = 5,
     )
     self.assertResourceCalled('ExecuteHadoop', 'fs -test -e /apps/hive/warehouse/hcatsmoke',
@@ -102,15 +100,14 @@ class TestServiceCheck(RMFTestCase):
                         keytab='/etc/security/keytabs/hdfs.headless.keytab',
                         kinit_path_local='/usr/bin/kinit',
                         security_enabled=True,
-                        bin_dir = '/usr/lib/hive/bin',
+                        bin_dir = os.environ['PATH'] + os.pathsep + "/usr/lib/hive/bin" + os.pathsep + "/usr/bin",
                         principal='hdfs'
     )
     self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa;  /tmp/hcatSmoke.sh hcatsmoke cleanup',
                         logoutput = True,
-                        path = ['/usr/sbin', '/usr/local/nin', '/bin', '/usr/bin'],
+                        path = ['/usr/sbin', '/usr/local/nin', '/bin', '/usr/bin', os.environ['PATH'] + os.pathsep + "/usr/lib/hive/bin" + os.pathsep + "/usr/bin"],
                         tries = 3,
                         user = 'ambari-qa',
-                        environment = {'PATH' : os.environ['PATH'] + os.pathsep + "/usr/lib/hive/bin"},
                         try_sleep = 5,
     )
     self.assertResourceCalled('File', '/tmp/templetonSmoke.sh',

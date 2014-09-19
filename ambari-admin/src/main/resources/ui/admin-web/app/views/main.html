@@ -21,6 +21,7 @@
     <div ng-if="isLoaded" id="main-operations-boxes" class="row thumbnails">
       <p ng-hide="cluster">Provision a cluster, manage who can access the cluster, and customize views for Ambari users.</p>
       <p ng-show="cluster">Monitor your cluster resources, manage who can access the cluster, and customize views for Ambari users.</p>
+
         <!--Clusters-->
       <div ng-show="cluster" class="col-sm-11 thumbnail">
         <h4 class="title">Operate Your Cluster</h4>
@@ -35,7 +36,7 @@
         <h4 class="title">Create a Cluster</h4>
         <div class="description">Use the Install Wizard to select services and configure your cluster</div>
         <div class="glyphicon glyphicon-cloud"></div>
-        <div class="buttons"> <a href="/#/installer/step0" class="btn btn-primary create-cluster-button">Install Cluster</a></div>
+        <div class="buttons"> <a href="/#/installer/step0" class="btn btn-primary create-cluster-button">Launch Install Wizard</a></div>
       </div>
 
         <!--Manage Users and groups-->

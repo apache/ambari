@@ -134,6 +134,8 @@ hcat_log_dir = config['configurations']['hive-env']['hcat_log_dir']   #hcat_log_
 
 hadoop_conf_dir = '/etc/hadoop/conf'
 
+hcat_env_sh_template = config['configurations']['hcat-env']['content']
+
 #hive-log4j.properties.template
 if (('hive-log4j' in config['configurations']) and ('content' in config['configurations']['hive-log4j'])):
   log4j_props = config['configurations']['hive-log4j']['content']

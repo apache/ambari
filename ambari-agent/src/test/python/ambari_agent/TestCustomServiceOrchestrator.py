@@ -486,7 +486,8 @@ class TestCustomServiceOrchestrator(TestCase):
       'taskId' : '13',
       'roleCommand': 'ACTIONEXECUTE',
       'commandType': 'BACKGROUND_EXECUTION_COMMAND',
-      '__handle' : BackgroundCommandExecutionHandle(None,13,MagicMock(), MagicMock())
+      '__handle': BackgroundCommandExecutionHandle({'taskId': '13'}, 13,
+                                                   MagicMock(), MagicMock())
     }
     dummy_controller = MagicMock()
     orchestrator = CustomServiceOrchestrator(self.config, dummy_controller)

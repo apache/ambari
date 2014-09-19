@@ -155,8 +155,8 @@ App.MainConfigHistoryView = App.TableView.extend({
     startTimeBinding: "controller.modifiedFilter.actualValues.startTime",
     endTimeBinding: "controller.modifiedFilter.actualValues.endTime",
     onTimeChange: function () {
-      this.get('parentView').updateFilter(this.get('column'), [this.get('startTime'), this.get('endTime')], 'range');
-    }.observes('startTime')
+      this.get('parentView').updateFilter(this.get('column'), [this.get('controller.modifiedFilter.actualValues.startTime'), this.get('controller.modifiedFilter.actualValues.endTime')], 'range');
+    }.observes('controller.modifiedFilter.actualValues.startTime', 'controller.modifiedFilter.actualValues.endTime')
   }),
 
   authorFilterView: filters.createTextView({

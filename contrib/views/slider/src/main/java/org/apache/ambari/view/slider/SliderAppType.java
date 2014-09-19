@@ -18,14 +18,9 @@
 
 package org.apache.ambari.view.slider;
 
-import org.apache.ambari.view.slider.rest.client.Metric;
-import org.codehaus.jackson.annotate.JsonIgnore;
-import org.codehaus.jackson.annotate.JsonIgnoreProperties;
-
 import java.util.List;
 import java.util.Map;
 
-@JsonIgnoreProperties({ "jmxMetrics", "gangliaMetrics" })
 public class SliderAppType {
   private String id;
   private String typeName;
@@ -34,27 +29,14 @@ public class SliderAppType {
   private Map<String, String> typeConfigs;
   private List<SliderAppTypeComponent> typeComponents;
   private String typePackageFileName;
-  @JsonIgnore
-  private Map<String, Map<String, Map<String, Metric>>> jmxMetrics;
-  @JsonIgnore
-  private Map<String, Map<String, Map<String, Metric>>> gangliaMetrics;
+  private List<String> supportedMetrics;
 
-  @JsonIgnore
-  public Map<String, Map<String, Map<String, Metric>>> getJmxMetrics() {
-    return jmxMetrics;
+  public List<String> getSupportedMetrics() {
+    return supportedMetrics;
   }
 
-  public void setJmxMetrics(Map<String, Map<String, Map<String, Metric>>> jmxMetrics) {
-    this.jmxMetrics = jmxMetrics;
-  }
-
-  @JsonIgnore
-  public Map<String, Map<String, Map<String, Metric>>> getGangliaMetrics() {
-    return gangliaMetrics;
-  }
-
-  public void setGangliaMetrics(Map<String, Map<String, Map<String, Metric>>> gangliaMetrics) {
-    this.gangliaMetrics = gangliaMetrics;
+  public void setSupportedMetrics(List<String> supportedMetrics) {
+    this.supportedMetrics = supportedMetrics;
   }
 
   public String getId() {
@@ -111,6 +93,10 @@ public class SliderAppType {
 
   public void setTypePackageFileName(String typePackageFileName) {
     this.typePackageFileName = typePackageFileName;
+  }
+
+  public String uniqueName() {
+    return getTypeName() + "-" + getTypeVersion();
   }
 
 }

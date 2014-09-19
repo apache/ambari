@@ -157,7 +157,7 @@ class TestFlumeHandler(RMFTestCase):
 
   def assert_configure_default(self):
 
-    self.assertResourceCalled('Directory', '/etc/flume/conf')
+    self.assertResourceCalled('Directory', '/etc/flume/conf', recursive=True)
 
     self.assertResourceCalled('Directory', '/var/log/flume', owner = 'flume')
 
@@ -180,7 +180,7 @@ class TestFlumeHandler(RMFTestCase):
 
   def assert_configure_many(self):
 
-    self.assertResourceCalled('Directory', '/etc/flume/conf')
+    self.assertResourceCalled('Directory', '/etc/flume/conf', recursive=True)
 
     self.assertResourceCalled('Directory', '/var/log/flume', owner = 'flume')
 

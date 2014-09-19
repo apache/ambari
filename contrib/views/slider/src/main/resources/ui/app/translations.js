@@ -50,15 +50,11 @@ Em.I18n.translations = {
     'alerts': 'Alerts',
     'key': 'Key',
     'remove': 'Remove',
-    'send': 'Send'
+    'send': 'Send',
+    'error': 'Error'
   },
 
-  'error.noHDFS': 'Slider applications view requires HDFS service.',
-  'error.startHDFS': 'Slider applications view requires HDFS service to be started.',
-  'error.noYARN': 'Slider applications view requires YARN service.',
-  'error.startYARN': 'Slider applications view requires YARN service to be started.',
-  'error.noZOOKEEPER': 'Slider applications view requires ZooKeeper service.',
-  'error.startZOOKEEPER': 'Slider applications view requires ZooKeeper service to be started.',
+  'error.config_is_empty': 'Config <strong>{0}</strong> should not be empty',
 
   'popup.confirmation.commonHeader': 'Confirmation',
   'question.sure':'Are you sure?',
@@ -70,7 +66,7 @@ Em.I18n.translations = {
   'tableView.filters.clearAllFilters': 'clear filters',
   'tableView.filters.showAll': 'Show All',
   'tableView.filters.clearSelection': 'clear selection All',
-  'tableView.filters.noItems' : 'There are no items to show',
+  'tableView.filters.noItems' : 'No sliders to display',
 
   'configs.add_property': 'Add Property',
   'configs.add_property.invalid_name': 'Config name should consists only of letters, numbers, \'-\', \'_\', \'.\' and first character should be a letter.',
@@ -100,9 +96,9 @@ Em.I18n.translations = {
   'sliderApp.alerts.brLastCheck': "\nLast Checked {0}",
   'sliderApp.alerts.occurredOn': 'Occurred on {0}, {1}',
 
-  'wizard.name': 'Create Slider App',
+  'wizard.name': 'Create App',
   'wizard.step1.name': 'Select Type',
-  'wizard.step1.header': 'Available Types',
+  'wizard.step1.header': 'Available Applications',
   'wizard.step1.description': 'Description',
   'wizard.step1.typeDescription': 'Deploys {0} cluster on YARN.',
   'wizard.step1.nameFormatError': 'App Name should consist only of letters, numbers, \'-\', \'_\' and first character should be a letter.',
@@ -118,5 +114,9 @@ Em.I18n.translations = {
   'wizard.step3.error': 'Only \"key\":\"value\" format allowed.',
   'wizard.step4.name': 'Deploy',
   'wizard.step4.appName': 'App Name',
-  'wizard.step4.appType': 'App Type'
+  'wizard.step4.appType': 'App Type',
+
+  'ajax.errorMessage': 'Error message',
+  'ajax.apiInfo': 'received on {0} method for API: {1}',
+  'ajax.statusCode': '{0} status code'
 };

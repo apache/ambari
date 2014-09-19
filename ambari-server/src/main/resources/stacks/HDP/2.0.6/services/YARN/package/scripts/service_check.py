@@ -60,7 +60,7 @@ class ServiceCheck(Script):
     )
 
     Execute(run_yarn_check_cmd,
-            environment= {'PATH' : params.execute_path },
+            path=params.execute_path,
             user=params.smokeuser
     )
 

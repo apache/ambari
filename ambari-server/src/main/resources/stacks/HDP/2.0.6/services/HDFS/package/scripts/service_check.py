@@ -33,7 +33,7 @@ class HdfsServiceCheck(Script):
 
     create_dir_cmd = format("fs -mkdir {dir}")
     chmod_command = format("fs -chmod 777 {dir}")
-    test_dir_exists = format("su - {smoke_user} -c 'hadoop --config {hadoop_conf_dir} fs -test -e {dir}'")
+    test_dir_exists = format("su - {smoke_user} -c '{hadoop_bin_dir}/hadoop --config {hadoop_conf_dir} fs -test -e {dir}'")
     cleanup_cmd = format("fs -rm {tmp_file}")
     #cleanup put below to handle retries; if retrying there wil be a stale file
     #that needs cleanup; exit code is fn of second command

@@ -59,6 +59,7 @@ App.SliderAppsMapper = App.Mapper.createWithMixins(App.RunPeriodically, {
           lastCheck: alert.last_status_time
         });
       });
+      alerts = alerts.sortBy('title');
       App.SliderApp.store.pushMany('sliderAppAlert', alerts);
     }
     return alerts.mapProperty('id');
@@ -113,25 +114,38 @@ App.SliderAppsMapper = App.Mapper.createWithMixins(App.RunPeriodically, {
    * @param {object} data received from server data
    * @method parse
    */
-  parseQuickLinks: function (data) {
+  parseQuickLinks : function(data) {
     var quickLinks = [],
-      appId = data.id;
+    appId = data.id;
+    var yarnAppId = appId;
+    var index = appId.lastIndexOf('_');
+    if (index > 0) {
+      yarnAppId = appId.substring(0, index + 1);
+      for (var k = (appId.length - index - 1); k < 4; k++) {
+        yarnAppId += '0';
+      }
+      yarnAppId += appId.substring(index + 1);
+    }
+    var yarnUI = "http://"+window.location.hostname+":8088";
+    if (App.viewUrls) {
+      yarnUI = App.viewUrls['yarn.resourcemanager.webapp.address'];
+    }
     quickLinks.push(
       Ember.Object.create({
         id: 'YARN application',
         label: 'YARN application',
-        url: "http://" + window.location.hostname + ":8088"
+        url: yarnUI + '/cluster/app/application_' + yarnAppId
       })
     );
 
-    if (!data.urls) {
+    if(!data.urls){
       return quickLinks.mapProperty('id');
     }
 
     Object.keys(data.urls).forEach(function (key) {
       quickLinks.push(
         Ember.Object.create({
-          id: appId + key,
+          id: appId+key,
           label: key,
           url: data.urls[key]
         })
@@ -146,6 +160,19 @@ App.SliderAppsMapper = App.Mapper.createWithMixins(App.RunPeriodically, {
     return Ember.keys(o).map(function (key) {
       return {key: key, value: o[key]};
     });
+  },
+
+  /**
+   * Concatenate <code>supportedMetrics</code> into one string
+   * @param {object} app
+   * @returns {string}
+   * @method parseMetricNames
+   */
+  parseMetricNames : function(app) {
+    if (app.supportedMetrics) {
+      return app.supportedMetrics.join(",");
+    }
+    return "";
   },
 
   /**
@@ -165,6 +192,7 @@ App.SliderAppsMapper = App.Mapper.createWithMixins(App.RunPeriodically, {
         quickLinks = self.parseQuickLinks(app),
         alerts = self.parseAlerts(app),
         jmx = self.parseObject(app.jmx),
+        metricNames = self.parseMetricNames(app),
         masterActiveTime = jmx.findProperty('key', 'MasterActiveTime'),
         masterStartTime = jmx.findProperty('key', 'MasterStartTime');
       if (masterActiveTime) {
@@ -190,7 +218,8 @@ App.SliderAppsMapper = App.Mapper.createWithMixins(App.RunPeriodically, {
           alerts: alerts,
           configs: configs,
           jmx: jmx,
-          runtimeProperties: app.configs
+          runtimeProperties: app.configs,
+          supportedMetricNames: metricNames
         })
       );
 

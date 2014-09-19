@@ -81,81 +81,37 @@ App.CreateAppWizardStep1Controller = Ember.Controller.extend({
    * @method loadStep
    */
   loadStep: function () {
-    this.loadGangliaHost();
-    this.loadGangliaClusters();
+    var sliderConfigs = App.SliderApp.store.all('sliderConfig'),
+      gangliaClusters = sliderConfigs.findBy('viewConfigName', 'ganglia.custom.clusters'),
+      gangliaHost = sliderConfigs.findBy('viewConfigName', 'ganglia.server.hostname');
+    App.set('gangliaClusters', this.formatGangliaClusters(gangliaClusters.get('value')));
+    App.set('gangliaHost', gangliaHost.get('value'));
     this.initializeNewApp();
     this.loadAvailableTypes();
   },
 
   /**
-   * Load ganglia server host
-   * @method loadGangliaHost
+   * Format value for <code>gangliaClusters</code>
+   * @param {string} prop
+   * @returns {Array}
+   * @method formatGangliaClusters
    */
-  loadGangliaHost: function () {
-    return App.ajax.send({
-      name: 'components_hosts',
-      sender: this,
-      data: {
-        componentName: "GANGLIA_SERVER",
-        urlPrefix: '/api/v1/'
-      },
-      success: 'loadGangliaHostSuccessCallback'
-    });
-  },
-
-  /**
-   * Success callback for hosts-request
-   * Save host name to gangliaHost
-   * @param {Object} data
-   * @method loadGangliaHostSuccessCallback
-   */
-  loadGangliaHostSuccessCallback: function (data) {
-    if(data.items[0]){
-      App.set('gangliaHost', Em.get(data.items[0], 'Hosts.host_name'));
-    }
-  },
-
-  /**
-   * Load ganglia clusters
-   * @method loadGangliaClusters
-   */
-  loadGangliaClusters: function () {
-    return App.ajax.send({
-      name: 'service_current_configs',
-      sender: this,
-      data: {
-        serviceName: "GANGLIA",
-        urlPrefix: '/api/v1/'
-      },
-      success: 'loadGangliaClustersSuccessCallback'
-    });
-  },
-
-  /**
-   * Success callback for config property
-   * Save cluster to gangliaClusters
-   * @param {Object} data
-   * @method loadGangliaClustersSuccessCallback
-   */
-  loadGangliaClustersSuccessCallback: function (data) {
+  formatGangliaClusters: function(prop) {
     var gangliaCustomClusters = [];
-
-    if (data.items[0]) {
-      var prop = Em.get(data.items[0].configurations[0].properties, 'additional_clusters');
-      if (prop) {
-        //parse CSV string with cluster names and ports
-        prop.replace(/\'/g, "").split(',').forEach(function(item, index){
-          if (index % 2 === 0) {
-            gangliaCustomClusters.push({
-              name: item
-            })
-          } else {
-            gangliaCustomClusters[gangliaCustomClusters.length - 1].port = parseInt(item);
-          }
-        });
-        App.set('gangliaClusters', gangliaCustomClusters);
-      }
+    //parse CSV string with cluster names and ports
+    if (!Em.isNone(prop)) {
+      prop.replace(/\'/g, "").split(',').forEach(function(item, index){
+        if (index % 2 === 0) {
+          gangliaCustomClusters.push({
+            name: item
+          })
+        }
+        else {
+          gangliaCustomClusters[gangliaCustomClusters.length - 1].port = parseInt(item);
+        }
+      });
     }
+    return gangliaCustomClusters;
   },
 
   /**

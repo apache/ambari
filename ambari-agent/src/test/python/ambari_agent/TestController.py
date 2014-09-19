@@ -364,7 +364,7 @@ class TestController(unittest.TestCase):
       self.fail("Should throw exception!")
     except IOError, e: # Expected
       self.assertEquals('Response parsing failed! Request data: ' + data +
-                        '; Response: {invalid_object}', e.message)
+                        '; Response: {invalid_object}', str(e))
 
     exceptionMessage = "Connection Refused"
     conMock.request.side_effect = Exception(exceptionMessage)
@@ -373,7 +373,7 @@ class TestController(unittest.TestCase):
       self.fail("Should throw exception!")
     except IOError, e: # Expected
       self.assertEquals('Request to ' + url + ' failed due to ' +
-                        exceptionMessage, e.message)
+                        exceptionMessage, str(e))
 
 
   @patch.object(threading._Event, "wait")
