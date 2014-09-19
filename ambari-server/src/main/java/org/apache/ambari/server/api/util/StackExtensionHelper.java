@@ -916,7 +916,8 @@ public class StackExtensionHelper {
    */
   protected enum Supports {
 
-    FINAL("supports_final");
+    FINAL("supports_final"),
+    ADDING_FORBIDDEN("supports_adding_forbidden");
 
     public static final String KEYWORD = "supports";
 

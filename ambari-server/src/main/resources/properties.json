@@ -248,6 +248,7 @@
         "StackConfigurations/property_description",
         "StackConfigurations/type",
         "StackConfigurations/final",
+        "StackConfigurations/adding_forbidden",
         "StackConfigurations/property_type",
         "_"
     ],
