@@ -132,7 +132,8 @@ var urls = {
     format: function (data) {
       return {
         type: 'POST',
-        data: JSON.stringify(data.data)
+        data: JSON.stringify(data.data),
+        showErrorPopup: true
       }
     }
   },
@@ -142,7 +143,8 @@ var urls = {
     mock: '',
     format: function () {
       return {
-        method: 'DELETE'
+        method: 'DELETE',
+        showErrorPopup: true
       }
     }
   },
@@ -156,7 +158,8 @@ var urls = {
     format: function (data) {
       return {
         method: 'PUT',
-        data: JSON.stringify(data.data)
+        data: JSON.stringify(data.data),
+        showErrorPopup: true
       }
     }
   },
@@ -169,7 +172,8 @@ var urls = {
     format: function (data) {
       return {
         method: 'PUT',
-        data: JSON.stringify(data.data)
+        data: JSON.stringify(data.data),
+        showErrorPopup: true
       }
     }
   },
@@ -320,6 +324,8 @@ var ajax = Em.Object.extend({
     opt.error = function (request, ajaxOptions, error) {
       if (config.error) {
         config.sender[config.error](request, ajaxOptions, error, opt, params);
+      } else {
+        config.sender.defaultErrorHandler.call(config.sender, request, opt.url, opt.type, opt.showErrorPopup);
       }
     };
 

@@ -50,7 +50,8 @@ Em.I18n.translations = {
     'alerts': 'Alerts',
     'key': 'Key',
     'remove': 'Remove',
-    'send': 'Send'
+    'send': 'Send',
+    'error': 'Error'
   },
 
   'error.config_is_empty': 'Config <strong>{0}</strong> should not be empty',
@@ -113,5 +114,9 @@ Em.I18n.translations = {
   'wizard.step3.error': 'Only \"key\":\"value\" format allowed.',
   'wizard.step4.name': 'Deploy',
   'wizard.step4.appName': 'App Name',
-  'wizard.step4.appType': 'App Type'
+  'wizard.step4.appType': 'App Type',
+
+  'ajax.errorMessage': 'Error message',
+  'ajax.apiInfo': 'received on {0} method for API: {1}',
+  'ajax.statusCode': '{0} status code'
 };

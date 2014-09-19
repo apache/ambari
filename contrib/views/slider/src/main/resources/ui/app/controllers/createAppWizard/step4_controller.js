@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-App.CreateAppWizardStep4Controller = Ember.ObjectController.extend({
+App.CreateAppWizardStep4Controller = Ember.ObjectController.extend(App.AjaxErrorHandler, {
 
   needs: "createAppWizard",
 
@@ -95,15 +95,15 @@ App.CreateAppWizardStep4Controller = Ember.ObjectController.extend({
           typeConfigs: app.get('configs')
         }
       },
-      complete: 'sendAppDataToServerCompleteCallback'
+      success: 'sendAppDataToServerSuccessCallback'
     });
   },
 
   /**
-   * Complete-callback for "create new app"-request
-   * @method sendAppDataToServerCompleteCallback
+   * Success-callback for "create new app"-request
+   * @method sendAppDataToServerSuccessCallback
    */
-  sendAppDataToServerCompleteCallback: function() {
+  sendAppDataToServerSuccessCallback: function() {
     this.get('appWizardController').hidePopup();
   },
 

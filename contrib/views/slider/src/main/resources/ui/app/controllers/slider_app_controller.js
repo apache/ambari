@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-App.SliderAppController = Ember.ObjectController.extend({
+App.SliderAppController = Ember.ObjectController.extend(App.AjaxErrorHandler, {
 
   /**
    * List of Slider App tabs
