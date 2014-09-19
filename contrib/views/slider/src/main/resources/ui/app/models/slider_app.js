@@ -104,6 +104,8 @@ App.SliderApp = DS.Model.extend({
 
   jmx: DS.attr('object'),
 
+  supportedMetricNames: DS.attr('string'),
+
   // Config categories, that should be hidden on app page
   hiddenCategories: ['yarn-site', 'global'],
 
@@ -113,6 +115,9 @@ App.SliderApp = DS.Model.extend({
    */
   showMetrics: function() {
     var global = this.get('configs')['global'];
+    if (App.get('gangliaHost') != null) {
+      return true;
+    }
     //check whether slider has GANGLIA configured if not metrics should be hidden
     if (!(global && global['ganglia_server_host'] && global['ganglia_server_id'] && global['ganglia_server_port'])) {
       return false;

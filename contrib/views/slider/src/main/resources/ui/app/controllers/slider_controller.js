@@ -106,6 +106,9 @@ App.SliderController = Ember.Controller.extend(App.RunPeriodically, {
         || properties['zookeeper.quorum'] == null) {
       this.getClusterName();
     } else {
+      // TODO remove below line as it is a temporary hack 
+      this.getClusterName();
+
       initialValuesToLoad.setProperties({
         ambariAddress: location.protocol + "//" + document.location.host,
         hdfsAddress: properties['hdfs.address'],
