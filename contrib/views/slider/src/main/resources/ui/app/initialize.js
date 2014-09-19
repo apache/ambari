@@ -112,7 +112,7 @@ App.initializer({
 
     });
     application.SliderController.proto().initResources();
-    application.ApplicationTypeMapper.loop('load');
+    application.ApplicationTypeMapper.load();
     application.SliderAppsMapper.loop('load');
   }
 });
