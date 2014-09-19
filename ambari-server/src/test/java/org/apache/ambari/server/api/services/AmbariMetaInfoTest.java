@@ -24,8 +24,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
 
 import java.io.File;
 import java.lang.reflect.Method;
@@ -37,6 +35,7 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 
+import javax.persistence.EntityManager;
 import javax.xml.bind.JAXBException;
 
 import junit.framework.Assert;
@@ -45,6 +44,8 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StackAccessException;
 import org.apache.ambari.server.api.util.StackExtensionHelper;
 import org.apache.ambari.server.metadata.ActionMetadata;
+import org.apache.ambari.server.orm.GuiceJpaInitializer;
+import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.state.AutoDeployInfo;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.CustomCommandDefinition;
@@ -108,7 +109,9 @@ public class AmbariMetaInfoTest {
 
   @Before
   public void before() throws Exception {
-    injector = Guice.createInjector(new MockModule());
+    injector = Guice.createInjector(new InMemoryDefaultTestModule());
+    injector.getInstance(GuiceJpaInitializer.class);
+    injector.getInstance(EntityManager.class);
     File stackRoot = new File("src/test/resources/stacks");
     LOG.info("Stacks file " + stackRoot.getAbsolutePath());
     metaInfo = new AmbariMetaInfo(stackRoot, new File("target/version"));
@@ -159,6 +162,120 @@ public class AmbariMetaInfoTest {
     assertNotNull(repository);
     assertFalse(repository.get("centos5").isEmpty());
     assertFalse(repository.get("centos6").isEmpty());
+  }
+
+  @Test
+  public void testGetRepositoryDefault() throws Exception {
+    // Scenario: user has internet and does nothing to repos via api
+    // use the latest
+    String buildDir = tmpFolder.getRoot().getAbsolutePath();
+    AmbariMetaInfo ambariMetaInfo = setupTempAmbariMetaInfo(buildDir);
+    // The current stack already has (HDP, 2.1.1, redhat6) with valid latest
+    // url
+    ambariMetaInfo.init();
+
+    List<RepositoryInfo> redhat6Repo = ambariMetaInfo.getRepositories(
+        STACK_NAME_HDP, "2.1.1", "redhat6");
+    assertNotNull(redhat6Repo);
+    for (RepositoryInfo ri : redhat6Repo) {
+      if (STACK_NAME_HDP.equals(ri.getRepoName())) {
+        assertFalse(ri.getBaseUrl().equals(ri.getDefaultBaseUrl()));
+        assertEquals(ri.getBaseUrl(), ri.getLatestBaseUrl());
+      }
+    }
+  }
+
+  @Test
+  public void testGetRepositoryNoInternetDefault() throws Exception {
+    // Scenario: user has no internet and does nothing to repos via api
+    // use the default
+    String buildDir = tmpFolder.getRoot().getAbsolutePath();
+    AmbariMetaInfo ambariMetaInfo = setupTempAmbariMetaInfo(buildDir);
+    // The current stack already has (HDP, 2.1.1, redhat6).
+
+    // Deleting the json file referenced by the latestBaseUrl to simulate No
+    // Internet.
+    File latestUrlFile = new File(buildDir,
+        "ambari-metaInfo/HDP/2.1.1/repos/hdp.json");
+    FileUtils.deleteQuietly(latestUrlFile);
+    assertTrue(!latestUrlFile.exists());
+    ambariMetaInfo.init();
+
+    List<RepositoryInfo> redhat6Repo = ambariMetaInfo.getRepositories(
+        STACK_NAME_HDP, "2.1.1", "redhat6");
+    assertNotNull(redhat6Repo);
+    for (RepositoryInfo ri : redhat6Repo) {
+      if (STACK_NAME_HDP.equals(ri.getRepoName())) {
+        // baseUrl should be same as defaultBaseUrl since No Internet to load the
+        // latestBaseUrl from the json file.
+        assertEquals(ri.getBaseUrl(), ri.getDefaultBaseUrl());
+      }
+    }
+  }
+
+  @Test
+  public void testGetRepositoryUpdatedBaseUrl() throws Exception {
+    // Scenario: user has internet and but calls to set repos via api
+    // use whatever they set
+    String buildDir = tmpFolder.getRoot().getAbsolutePath();
+    AmbariMetaInfo ambariMetaInfo = setupTempAmbariMetaInfo(buildDir);
+    // The current stack already has (HDP, 2.1.1, redhat6)
+
+    // Updating the baseUrl
+    String newBaseUrl = "http://myprivate-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.0";
+    ambariMetaInfo.updateRepoBaseURL(STACK_NAME_HDP, "2.1.1", "redhat6",
+        STACK_NAME_HDP + "-2.1.1", newBaseUrl);
+    RepositoryInfo repoInfo = ambariMetaInfo.getRepository(STACK_NAME_HDP, "2.1.1", "redhat6",
+        STACK_NAME_HDP + "-2.1.1");
+    assertEquals(newBaseUrl, repoInfo.getBaseUrl());
+    ambariMetaInfo.init();
+
+    List<RepositoryInfo> redhat6Repo = ambariMetaInfo.getRepositories(
+        STACK_NAME_HDP, "2.1.1", "redhat6");
+    assertNotNull(redhat6Repo);
+    for (RepositoryInfo ri : redhat6Repo) {
+      if (STACK_NAME_HDP.equals(ri.getRepoName())) {
+        assertEquals(newBaseUrl, ri.getBaseUrl());
+        // defaultBaseUrl and baseUrl should not be same, since it is updated.
+        assertFalse(ri.getBaseUrl().equals(ri.getDefaultBaseUrl()));
+      }
+    }
+  }
+
+  @Test
+  public void testGetRepositoryNoInternetUpdatedBaseUrl() throws Exception {
+    // Scenario: user has no internet and but calls to set repos via api
+    // use whatever they set
+    String buildDir = tmpFolder.getRoot().getAbsolutePath();
+    AmbariMetaInfo ambariMetaInfo = setupTempAmbariMetaInfo(buildDir);
+    // The current stack already has (HDP, 2.1.1, redhat6).
+
+    // Deleting the json file referenced by the latestBaseUrl to simulate No
+    // Internet.
+    File latestUrlFile = new File(buildDir,
+        "ambari-metaInfo/HDP/2.1.1/repos/hdp.json");
+    FileUtils.deleteQuietly(latestUrlFile);
+    assertTrue(!latestUrlFile.exists());
+
+    // Update baseUrl
+    String newBaseUrl = "http://myprivate-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.0";
+    ambariMetaInfo.updateRepoBaseURL("HDP", "2.1.1", "redhat6", "HDP-2.1.1",
+        newBaseUrl);
+    RepositoryInfo repoInfo = ambariMetaInfo.getRepository(STACK_NAME_HDP, "2.1.1", "redhat6",
+        STACK_NAME_HDP + "-2.1.1");
+    assertEquals(newBaseUrl, repoInfo.getBaseUrl());
+    ambariMetaInfo.init();
+
+    List<RepositoryInfo> redhat6Repo = ambariMetaInfo.getRepositories(
+        STACK_NAME_HDP, "2.1.1", "redhat6");
+    assertNotNull(redhat6Repo);
+    for (RepositoryInfo ri : redhat6Repo) {
+      if (STACK_NAME_HDP.equals(ri.getRepoName())) {
+        // baseUrl should point to the updated baseUrl
+        assertEquals(newBaseUrl, ri.getBaseUrl());
+        assertFalse(ri.getDefaultBaseUrl().equals(ri.getBaseUrl()));
+      }
+    }
   }
 
   @Test
@@ -1432,5 +1549,17 @@ public class AmbariMetaInfoTest {
     Assert.assertNotNull(set);
     Assert.assertTrue(set.size() > 0);
 
+  }
+
+  private AmbariMetaInfo setupTempAmbariMetaInfo(String buildDir)
+      throws Exception {
+    File stackRootTmp = new File(buildDir + "/ambari-metaInfo");
+    File stackRoot = new File("src/test/resources/stacks");
+    stackRootTmp.mkdir();
+    FileUtils.copyDirectory(stackRoot, stackRootTmp);
+    AmbariMetaInfo ambariMetaInfo = new AmbariMetaInfo(stackRootTmp, new File(
+        "target/version"));
+    injector.injectMembers(ambariMetaInfo);
+    return ambariMetaInfo;
   }
 }
