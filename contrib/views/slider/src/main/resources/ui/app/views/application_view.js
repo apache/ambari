@@ -33,6 +33,11 @@ App.ApplicationView = Ember.View.extend({
       placement: 'bottom'
     }),
 
+    isIndexPage: function () {
+      var currentPath = this.get('controller.currentPath');
+      return currentPath && (currentPath == 'slider_apps.index' || currentPath.indexOf('slider_apps.createAppWizard') != -1);
+    }.property('controller.currentPath'),
+
     /**
      * Set <code>popover</code> template
      * @method sliderConfigsChecker
