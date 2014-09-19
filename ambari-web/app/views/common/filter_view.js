@@ -495,7 +495,13 @@ module.exports = {
         break;
       case 'range':
         return function (origin, compareValue){
-          //TODO add filter by range value
+          if (compareValue[1] && compareValue[0]) {
+            return origin >= compareValue[0] && origin <= compareValue[1];
+          } else if (compareValue[0]){
+            return origin >= compareValue[0];
+          } else if (compareValue[1]) {
+            return origin <= compareValue[1]
+          }
           return true;
         };
         break;
