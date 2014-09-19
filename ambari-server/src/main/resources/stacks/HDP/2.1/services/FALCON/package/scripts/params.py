@@ -28,18 +28,16 @@ rpm_version = default("/configurations/hadoop-env/rpm_version", None)
 
 #hadoop params
 if rpm_version is not None:
-  hadoop_conf_dir = format("/usr/hdp/{rpm_version}/etc/hadoop/conf")
-  hadoop_bin_dir = format("/usr/hdp/{rpm_version}/hadoop/bin")
-  falcon_webapp_dir = format("/usr/hdp/{rpm_version}/falcon/webapp")
-  falcon_home = format("/usr/hdp/{rpm_version}/falcon")
-  falcon_conf_dir = format("/usr/hdp/{rpm_version}/falcon/conf")
+  hadoop_bin_dir = "/usr/hdp/current/hadoop/bin"
+  falcon_webapp_dir = "/usr/hdp/current/falcon/webapp"
+  falcon_home = "/usr/hdp/current/falcon"
 else:
-  hadoop_conf_dir = "/etc/hadoop/conf"
   hadoop_bin_dir = "/usr/bin"
   falcon_webapp_dir = '/var/lib/falcon/webapp'
   falcon_home = '/usr/lib/falcon'
-  falcon_conf_dir = '/etc/falcon/conf'
 
+hadoop_conf_dir = "/etc/hadoop/conf"
+falcon_conf_dir = '/etc/falcon/conf'
 oozie_user = config['configurations']['oozie-env']['oozie_user']
 falcon_user = config['configurations']['falcon-env']['falcon_user']
 smoke_user =  config['configurations']['cluster-env']['smokeuser']

@@ -28,20 +28,19 @@ rpm_version = default("/configurations/hadoop-env/rpm_version", None)
 
 #hadoop params
 if rpm_version is not None:
-  hadoop_conf_dir = format("/usr/hdp/{rpm_version}/etc/hadoop/conf")
-  mapreduce_libs_path = format("/usr/hdp/{rpm_version}/hadoop-mapreduce/*")
-  hadoop_libexec_dir = format("/usr/hdp/{rpm_version}/hadoop/libexec")
-  hadoop_lib_home = format("/usr/hdp/{rpm_version}/hadoop/lib")
-  hadoop_bin = format("/usr/hdp/{rpm_version}/hadoop/sbin")
-  hadoop_home = format('/usr/hdp/{rpm_version}/hadoop')
+  mapreduce_libs_path = "/usr/hdp/current/hadoop-mapreduce/*"
+  hadoop_libexec_dir = "/usr/hdp/current/hadoop/libexec"
+  hadoop_lib_home = "/usr/hdp/current/hadoop/lib"
+  hadoop_bin = "/usr/hdp/current/hadoop/sbin"
+  hadoop_home = '/usr/hdp/current/hadoop'
 else:
-  hadoop_conf_dir = "/etc/hadoop/conf"
   mapreduce_libs_path = "/usr/lib/hadoop-mapreduce/*"
   hadoop_libexec_dir = "/usr/lib/hadoop/libexec"
   hadoop_lib_home = "/usr/lib/hadoop/lib"
   hadoop_bin = "/usr/lib/hadoop/sbin"
   hadoop_home = '/usr'
 
+hadoop_conf_dir = "/etc/hadoop/conf"
 #security params
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 

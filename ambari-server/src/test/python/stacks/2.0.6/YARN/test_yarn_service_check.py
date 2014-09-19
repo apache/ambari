@@ -43,7 +43,7 @@ class TestServiceCheck(RMFTestCase):
                           try_sleep = 5,
     )
     self.assertResourceCalled('Execute', 'yarn --config /etc/hadoop/conf node -list',
-                              environment = {'PATH' : os.environ['PATH'] + os.pathsep + "/usr/bin"},
+                              path = [os.environ['PATH'] + os.pathsep + "/usr/bin" + os.pathsep + "/usr/lib/hadoop-yarn/bin"],
                               user = 'ambari-qa',
     )
     self.assertNoMoreResources()
@@ -66,7 +66,7 @@ class TestServiceCheck(RMFTestCase):
                           try_sleep = 5,
     )
     self.assertResourceCalled('Execute', 'yarn --config /etc/hadoop/conf node -list',
-                          environment = {'PATH' : os.environ['PATH'] + os.pathsep + "/usr/bin"},
+                              path = [os.environ['PATH'] + os.pathsep + "/usr/bin" + os.pathsep + "/usr/lib/hadoop-yarn/bin"],
                           user = 'ambari-qa',
     )
     self.assertNoMoreResources()

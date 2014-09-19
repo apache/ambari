@@ -28,7 +28,7 @@
           <osFamily>any</osFamily>
           <packages>
             <package>
-              <name>hadoop_2_9_9_9_117</name>
+              <name>hadoop_2_9_9_9_*</name>
             </package>
             <package>
               <name>hadoop-lzo</name>
@@ -52,7 +52,7 @@
               <name>hadoop-lzo-native</name>
             </package>
             <package>
-              <name>hadoop_2_9_9_9_117-libhdfs</name>
+              <name>hadoop_2_9_9_9_*-libhdfs</name>
             </package>
             <package>
               <name>ambari-log4j</name>

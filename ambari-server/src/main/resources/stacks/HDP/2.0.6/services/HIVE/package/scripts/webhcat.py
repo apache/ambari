@@ -56,6 +56,7 @@ def webhcat():
             recursive=True)
 
   Directory(params.config_dir,
+            recursive=True,
             owner=params.webhcat_user,
             group=params.user_group)
 
@@ -90,6 +91,7 @@ def webhcat():
                 dest_dir=params.webhcat_apps_dir,
                 kinnit_if_needed=kinit_if_needed,
                 hdfs_user=params.hdfs_user,
+                hadoop_bin_dir=params.hadoop_bin_dir,
                 hadoop_conf_dir=params.hadoop_conf_dir
   )
 
@@ -99,6 +101,7 @@ def webhcat():
                 dest_dir=params.webhcat_apps_dir,
                 kinnit_if_needed=kinit_if_needed,
                 hdfs_user=params.hdfs_user,
+                hadoop_bin_dir=params.hadoop_bin_dir,
                 hadoop_conf_dir=params.hadoop_conf_dir
   )
 
@@ -108,5 +111,6 @@ def webhcat():
                 dest_dir=params.webhcat_apps_dir,
                 kinnit_if_needed=kinit_if_needed,
                 hdfs_user=params.hdfs_user,
+                hadoop_bin_dir=params.hadoop_bin_dir,
                 hadoop_conf_dir=params.hadoop_conf_dir
   )

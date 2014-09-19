@@ -26,12 +26,14 @@ def hcat():
   import params
 
   Directory(params.hive_conf_dir,
+            recursive=True,
             owner=params.hcat_user,
             group=params.user_group,
   )
 
 
   Directory(params.hcat_conf_dir,
+            recursive=True,
             owner=params.hcat_user,
             group=params.user_group,
   )

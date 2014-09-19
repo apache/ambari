@@ -27,16 +27,15 @@ rpm_version = default("/configurations/hadoop-env/rpm_version", None)
 
 #hadoop params
 if rpm_version is not None:
-  hadoop_conf_dir = format("/usr/hdp/{rpm_version}/etc/hadoop/conf")
-  hadoop_conf_empty_dir = format("/usr/hdp/{rpm_version}/etc/hadoop/conf.empty")
-  mapreduce_libs_path = format("/usr/hdp/{rpm_version}/hadoop-mapreduce/*")
-  hadoop_libexec_dir = format("/usr/hdp/{rpm_version}/hadoop/libexec")
+  mapreduce_libs_path = "/usr/hdp/current/hadoop-mapreduce/*"
+  hadoop_libexec_dir = "/usr/hdp/current/hadoop/libexec"
 else:
-  hadoop_conf_dir = "/etc/hadoop/conf"
-  hadoop_conf_empty_dir = "/etc/hadoop/conf.empty"
   mapreduce_libs_path = "/usr/lib/hadoop-mapreduce/*"
   hadoop_libexec_dir = "/usr/lib/hadoop/libexec"
 
+hadoop_conf_dir = "/etc/hadoop/conf"
+hadoop_conf_empty_dir = "/etc/hadoop/conf.empty"
+versioned_hdp_root = '/usr/hdp/current'
 #security params
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 #java params

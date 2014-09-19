@@ -31,10 +31,12 @@ class TestHcatClient(RMFTestCase):
     self.assertResourceCalled('Directory', '/etc/hive/conf',
                               owner = 'hcat',
                               group = 'hadoop',
+                              recursive = True,
     )
     self.assertResourceCalled('Directory', '/etc/hcatalog/conf',
       owner = 'hcat',
       group = 'hadoop',
+      recursive = True,
     )
     self.assertResourceCalled('Directory', '/var/run/webhcat',
       owner = 'hcat',
@@ -64,10 +66,12 @@ class TestHcatClient(RMFTestCase):
                          config_file="secured.json"
     )
     self.assertResourceCalled('Directory', '/etc/hive/conf',
+                              recursive = True,
                               owner = 'hcat',
                               group = 'hadoop',
     )
     self.assertResourceCalled('Directory', '/etc/hcatalog/conf',
+      recursive = True,
       owner = 'hcat',
       group = 'hadoop',
     )

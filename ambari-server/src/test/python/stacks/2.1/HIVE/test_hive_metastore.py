@@ -41,7 +41,7 @@ class TestHiveMetastore(RMFTestCase):
     self.assert_configure_default()
     self.assertResourceCalled('Execute', 'env HADOOP_HOME=/usr JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /tmp/start_metastore_script /var/log/hive/hive.out /var/log/hive/hive.log /var/run/hive/hive.pid /etc/hive/conf.server /var/log/hive',
                               not_if = 'ls /var/run/hive/hive.pid >/dev/null 2>&1 && ps `cat /var/run/hive/hive.pid` >/dev/null 2>&1',
-                              environment = {'PATH' : os.environ['PATH'] + os.pathsep + "/usr/lib/hive/bin",
+                              environment = {'PATH' : os.environ['PATH'] + os.pathsep + "/usr/lib/hive/bin" + os.pathsep + "/usr/bin",
                                              'HADOOP_HOME' : '/usr'},
                               user = 'hive'
     )
@@ -85,7 +85,7 @@ class TestHiveMetastore(RMFTestCase):
     self.assert_configure_secured()
     self.assertResourceCalled('Execute', 'env HADOOP_HOME=/usr JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /tmp/start_metastore_script /var/log/hive/hive.out /var/log/hive/hive.log /var/run/hive/hive.pid /etc/hive/conf.server /var/log/hive',
                               not_if = 'ls /var/run/hive/hive.pid >/dev/null 2>&1 && ps `cat /var/run/hive/hive.pid` >/dev/null 2>&1',
-                              environment = {'PATH' : os.environ['PATH'] + os.pathsep + "/usr/lib/hive/bin",
+                              environment = {'PATH' : os.environ['PATH'] + os.pathsep + "/usr/lib/hive/bin" + os.pathsep + "/usr/bin",
                                              'HADOOP_HOME' : '/usr'},
                               user = 'hive'
     )
@@ -180,7 +180,7 @@ class TestHiveMetastore(RMFTestCase):
     self.assertResourceCalled('Execute', 'hive mkdir -p /tmp/AMBARI-artifacts/ ; cp /usr/share/java/mysql-connector-java.jar /usr/lib/hive/lib//mysql-connector-java.jar',
         creates = '/usr/lib/hive/lib//mysql-connector-java.jar',
         path = ['/bin', '/usr/bin/'],
-        environment = {'PATH' : os.environ['PATH'] + os.pathsep + "/usr/lib/hive/bin"},
+        environment = {'PATH' : os.environ['PATH'] + os.pathsep + "/usr/lib/hive/bin" + os.pathsep + "/usr/bin"},
         not_if = 'test -f /usr/lib/hive/lib//mysql-connector-java.jar',
     )
     self.assertResourceCalled('Execute', '/bin/sh -c \'cd /usr/lib/ambari-agent/ && curl -kf -x "" --retry 5 http://c6401.ambari.apache.org:8080/resources/DBConnectionVerification.jar -o DBConnectionVerification.jar\'',
@@ -285,7 +285,7 @@ class TestHiveMetastore(RMFTestCase):
     self.assertResourceCalled('Execute', 'hive mkdir -p /tmp/AMBARI-artifacts/ ; cp /usr/share/java/mysql-connector-java.jar /usr/lib/hive/lib//mysql-connector-java.jar',
         creates = '/usr/lib/hive/lib//mysql-connector-java.jar',
         path = ['/bin', '/usr/bin/'],
-        environment = {'PATH' : os.environ['PATH'] + os.pathsep + "/usr/lib/hive/bin"},
+        environment = {'PATH' : os.environ['PATH'] + os.pathsep + "/usr/lib/hive/bin" + os.pathsep + "/usr/bin"},
         not_if = 'test -f /usr/lib/hive/lib//mysql-connector-java.jar',
     )
     self.assertResourceCalled('Execute', '/bin/sh -c \'cd /usr/lib/ambari-agent/ && curl -kf -x "" --retry 5 http://c6401.ambari.apache.org:8080/resources/DBConnectionVerification.jar -o DBConnectionVerification.jar\'',

@@ -99,15 +99,11 @@ class HdfsDirectoryProvider(Provider):
     #for hadoop 2 we need to specify -p to create directories recursively
     parent_flag = '`rpm -q hadoop | grep -q "hadoop-1" || echo "-p"`'
 
-    path = os.environ['PATH']
-    if bin_dir is not None:
-      path += os.pathsep + bin_dir
-
     Execute(format('hadoop --config {hdp_conf_dir} fs -mkdir {parent_flag} {dir_list_str} && {chmod_cmd} && {chown_cmd}',
                    chmod_cmd=' && '.join(chmod_commands),
                    chown_cmd=' && '.join(chown_commands)),
             user=hdp_hdfs_user,
-            environment = {'PATH' : path},
+            path=bin_dir,
             not_if=format("su - {hdp_hdfs_user} -c 'export PATH=$PATH:{bin_dir} ; "
                           "hadoop --config {hdp_conf_dir} fs -ls {dir_list_str}'")
     )

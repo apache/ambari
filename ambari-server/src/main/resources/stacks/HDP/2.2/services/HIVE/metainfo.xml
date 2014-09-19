@@ -26,16 +26,16 @@
           <osFamily>any</osFamily>
           <packages>
             <package>
-              <name>hive_2_9_9_9_117</name>
+              <name>hive_2_9_9_9_*</name>
             </package>
             <package>
               <name>mysql-connector-java</name>
             </package>
             <package>
-              <name>hive_2_9_9_9_117-hcatalog</name>
+              <name>hive_2_9_9_9_*-hcatalog</name>
             </package>
             <package>
-              <name>hive_2_9_9_9_117-webhcat</name>
+              <name>hive_2_9_9_9_*-webhcat</name>
             </package>
             <package>
               <name>webhcat-tar-hive</name>

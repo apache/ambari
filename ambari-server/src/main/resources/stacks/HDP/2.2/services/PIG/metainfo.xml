@@ -27,7 +27,7 @@
           <osFamily>any</osFamily>
           <packages>
             <package>
-              <name>pig_2_9_9_9_117</name>
+              <name>pig_2_9_9_9_*</name>
             </package>
           </packages>
         </osSpecific>

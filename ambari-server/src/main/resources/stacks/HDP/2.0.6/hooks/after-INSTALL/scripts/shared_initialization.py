@@ -39,6 +39,10 @@ def setup_hadoop_env():
          owner=tc_owner,
          content=InlineTemplate(params.hadoop_env_sh_template)
     )
+    if params.rpm_version is not None:
+      Execute(format('ln -s /usr/hdp/{rpm_version}* {versioned_hdp_root}'),
+              not_if=format('ls {versioned_hdp_root}')
+      )
 
 def setup_config():
   import params

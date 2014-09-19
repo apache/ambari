@@ -36,22 +36,20 @@ if rpm_version is not None:
 
 #hadoop params
 if rpm_version is not None:
-  hadoop_conf_dir = format("/usr/hdp/{rpm_version}/etc/hadoop/conf")
-  hadoop_bin_dir = format("/usr/hdp/{rpm_version}/hadoop/bin")
-  hbase_conf_dir = format('/usr/hdp/{rpm_version}/etc/hbase/conf')
-  daemon_script = format('/usr/hdp/{rpm_version}/hbase/bin/hbase-daemon.sh')
-  region_mover = format('/usr/hdp/{rpm_version}/hbase/bin/region_mover.rb')
-  region_drainer = format('/usr/hdp/{rpm_version}hbase/bin/draining_servers.rb')
-  hbase_cmd = format('/usr/hdp/{rpm_version}/hbase/bin/hbase')
+  hadoop_bin_dir = format("/usr/hdp/current/hadoop/bin")
+  daemon_script = format('/usr/hdp/current/hbase/bin/hbase-daemon.sh')
+  region_mover = format('/usr/hdp/current/hbase/bin/region_mover.rb')
+  region_drainer = format('/usr/hdp/currenthbase/bin/draining_servers.rb')
+  hbase_cmd = format('/usr/hdp/current/hbase/bin/hbase')
 else:
-  hadoop_conf_dir = "/etc/hadoop/conf"
   hadoop_bin_dir = "/usr/bin"
-  hbase_conf_dir = "/etc/hbase/conf"
   daemon_script = "/usr/lib/hbase/bin/hbase-daemon.sh"
   region_mover = "/usr/lib/hbase/bin/region_mover.rb"
   region_drainer = "/usr/lib/hbase/bin/draining_servers.rb"
   hbase_cmd = "/usr/lib/hbase/bin/hbase"
 
+hadoop_conf_dir = "/etc/hadoop/conf"
+hbase_conf_dir = "/etc/hbase/conf"
 hbase_excluded_hosts = config['commandParams']['excluded_hosts']
 hbase_drain_only = config['commandParams']['mark_draining_only']
 hbase_included_hosts = config['commandParams']['included_hosts']

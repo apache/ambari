@@ -31,14 +31,13 @@ rpm_version = default("/configurations/hadoop-env/rpm_version", None)
 
 #hadoop params
 if rpm_version is not None:
-  config_dir = format('/usr/hdp/{rpm_version}/etc/zookeeper/conf')
-  zk_bin = format('/usr/hdp/{rpm_version}/zookeeper/bin')
-  smoke_script = format('/usr/hdp/{rpm_version}/zookeeper/bin/zkCli.sh')
+  zk_bin = '/usr/hdp/current/zookeeper/bin'
+  smoke_script = '/usr/hdp/current/zookeeper/bin/zkCli.sh'
 else:
-  config_dir = "/etc/zookeeper/conf"
   zk_bin = '/usr/lib/zookeeper/bin'
   smoke_script = "/usr/lib/zookeeper/bin/zkCli.sh"
 
+config_dir = "/etc/zookeeper/conf"
 zk_user =  config['configurations']['zookeeper-env']['zk_user']
 hostname = config['hostname']
 user_group = config['configurations']['cluster-env']['user_group']

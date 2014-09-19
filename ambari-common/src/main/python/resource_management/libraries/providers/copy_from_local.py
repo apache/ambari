@@ -34,6 +34,7 @@ class CopyFromLocalProvider(Provider):
     mode = self.resource.mode
     hdfs_usr=self.resource.hdfs_user
     hadoop_conf_path = self.resource.hadoop_conf_dir
+    bin_dir = self.resource.hadoop_bin_dir
 
 
     if dest_file:
@@ -50,6 +51,7 @@ class CopyFromLocalProvider(Provider):
     ExecuteHadoop(copy_cmd,
                   not_if=unless_cmd,
                   user=owner,
+                  bin_dir=bin_dir,
                   conf_dir=hadoop_conf_path
                   )
 
@@ -66,6 +68,7 @@ class CopyFromLocalProvider(Provider):
 
       ExecuteHadoop(chown_cmd,
                     user=hdfs_usr,
+                    bin_dir=bin_dir,
                     conf_dir=hadoop_conf_path)
     pass
 
@@ -75,5 +78,6 @@ class CopyFromLocalProvider(Provider):
 
       ExecuteHadoop(chmod_cmd,
                     user=hdfs_usr,
+                    bin_dir=bin_dir,
                     conf_dir=hadoop_conf_path)
     pass

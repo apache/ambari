@@ -29,21 +29,19 @@ rpm_version = default("/configurations/hadoop-env/rpm_version", None)
 
 #hadoop params
 if rpm_version is not None:
-  hadoop_conf_dir = format("/usr/hdp/{rpm_version}/etc/hadoop/conf")
-  hadoop_conf_empty_dir = format("/usr/hdp/{rpm_version}/etc/hadoop/conf.empty")
-  mapreduce_libs_path = format("/usr/hdp/{rpm_version}/hadoop-mapreduce/*")
-  hadoop_libexec_dir = format("/usr/hdp/{rpm_version}/hadoop/libexec")
-  hadoop_bin = format("/usr/hdp/{rpm_version}/hadoop/sbin")
-  hadoop_bin_dir = format("/usr/hdp/{rpm_version}/hadoop/bin")
-  limits_conf_dir = format("/usr/hdp/{rpm_version}/etc/security/limits.d")
+  mapreduce_libs_path = "/usr/hdp/current/hadoop-mapreduce/*"
+  hadoop_libexec_dir = "/usr/hdp/current/hadoop/libexec"
+  hadoop_bin = "/usr/hdp/current/hadoop/sbin"
+  hadoop_bin_dir = "/usr/hdp/current/hadoop/bin"
 else:
-  hadoop_conf_dir = "/etc/hadoop/conf"
-  hadoop_conf_empty_dir = "/etc/hadoop/conf.empty"
   mapreduce_libs_path = "/usr/lib/hadoop-mapreduce/*"
   hadoop_libexec_dir = "/usr/lib/hadoop/libexec"
   hadoop_bin = "/usr/lib/hadoop/sbin"
   hadoop_bin_dir = "/usr/bin"
-  limits_conf_dir = "/etc/security/limits.d"
+
+hadoop_conf_dir = "/etc/hadoop/conf"
+hadoop_conf_empty_dir = "/etc/hadoop/conf.empty"
+limits_conf_dir = "/etc/security/limits.d"
 
 execute_path = os.environ['PATH'] + os.pathsep + hadoop_bin_dir
 ulimit_cmd = "ulimit -c unlimited; "

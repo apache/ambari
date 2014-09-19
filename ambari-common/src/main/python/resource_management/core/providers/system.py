@@ -222,19 +222,15 @@ class ExecuteProvider(Provider):
         return
 
     Logger.debug("Executing %s" % self.resource)
-    
-    if self.resource.path != []:
-      if not self.resource.environment:
-        self.resource.environment = {}
-      
-      self.resource.environment['PATH'] = os.pathsep.join(self.resource.path) 
-    
+
     for i in range (0, self.resource.tries):
       try:
         shell.checked_call(self.resource.command, logoutput=self.resource.logoutput,
                             cwd=self.resource.cwd, env=self.resource.environment,
                             preexec_fn=_preexec_fn(self.resource), user=self.resource.user,
-                            wait_for_finish=self.resource.wait_for_finish, timeout=self.resource.timeout)
+                            wait_for_finish=self.resource.wait_for_finish,
+                            timeout=self.resource.timeout,
+                            path=self.resource.path)
         break
       except Fail as ex:
         if i == self.resource.tries-1: # last try

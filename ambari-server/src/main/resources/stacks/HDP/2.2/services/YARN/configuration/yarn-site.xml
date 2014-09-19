@@ -22,14 +22,9 @@
 <configuration supports_final="true" xmlns:xi="http://www.w3.org/2001/XInclude">
 
   <property>
-    <name>yarn.resourcemanager.nodes.exclude-path</name>
-    <value>/usr/hdp/2.9.9.9-117/etc/hadoop/conf/yarn.exclude</value>
-    <description>
-      Names a file that contains a list of hosts that are
-      not permitted to connect to the resource manager.  The full pathname of the
-      file must be specified.  If the value is empty, no hosts are
-      excluded.
-    </description>
+    <name>yarn.application.classpath</name>
+    <value>/etc/hadoop/conf,/usr/hdp/current/hadoop/*,/usr/hdp/current/hadoop/lib/*,/usr/hdp/current/hadoop-hdfs/*,/usr/hdp/current/hadoop-hdfs/lib/*,/usr/hdp/current/hadoop-yarn/*,/usr/hdp/current/hadoop-yarn/lib/*,/usr/hdp/current/hadoop-mapreduce/*,/usr/hdp/current/hadoop-mapreduce/lib/*</value>
+    <description>Classpath for typical applications.</description>
   </property>
 
 </configuration>

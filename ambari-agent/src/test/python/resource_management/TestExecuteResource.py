@@ -90,7 +90,8 @@ class TestExecuteResource(TestCase):
       execute_resource = Execute('echo "1"',
                                  path=["/test/one", "test/two"]
       )
-    self.assertEqual(execute_resource.environment["PATH"], '/test/one:test/two')
+    expected_command = 'export PATH=$PATH:/test/one:test/two ; echo "1"'
+    self.assertEqual(popen_mock.call_args_list[0][0][0][3], expected_command)
 
   @patch('time.sleep')
   @patch.object(subprocess, "Popen")

@@ -38,11 +38,13 @@ class TestServiceCheck(RMFTestCase):
                       try_sleep = 5,
                       tries = 1,
                       user = 'ambari-qa',
+                      bin_dir =  os.environ['PATH'] + os.pathsep + "/usr/bin" + os.pathsep + "/usr/lib/hadoop-yarn/bin",
                       conf_dir = '/etc/hadoop/conf',
     )
     self.assertResourceCalled('ExecuteHadoop', 'fs -put /etc/passwd /user/ambari-qa/mapredsmokeinput',
                       try_sleep = 5,
                       tries = 1,
+                      bin_dir =  os.environ['PATH'] + os.pathsep + "/usr/bin" + os.pathsep + "/usr/lib/hadoop-yarn/bin",
                       user = 'ambari-qa',
                       conf_dir = '/etc/hadoop/conf',
     )
@@ -50,11 +52,13 @@ class TestServiceCheck(RMFTestCase):
                       logoutput = True,
                       try_sleep = 5,
                       tries = 1,
+                      bin_dir =  os.environ['PATH'] + os.pathsep + "/usr/bin" + os.pathsep + "/usr/lib/hadoop-yarn/bin",
                       user = 'ambari-qa',
                       conf_dir = '/etc/hadoop/conf',
     )
     self.assertResourceCalled('ExecuteHadoop', 'fs -test -e /user/ambari-qa/mapredsmokeoutput',
                       user = 'ambari-qa',
+                      bin_dir =  os.environ['PATH'] + os.pathsep + "/usr/bin" + os.pathsep + "/usr/lib/hadoop-yarn/bin",
                       conf_dir = '/etc/hadoop/conf',
     )
     self.assertNoMoreResources()
@@ -73,11 +77,13 @@ class TestServiceCheck(RMFTestCase):
                       try_sleep = 5,
                       tries = 1,
                       user = 'ambari-qa',
+                      bin_dir =  os.environ['PATH'] + os.pathsep + "/usr/bin" + os.pathsep + "/usr/lib/hadoop-yarn/bin",
                       conf_dir = '/etc/hadoop/conf',
     )
     self.assertResourceCalled('ExecuteHadoop', 'fs -put /etc/passwd /user/ambari-qa/mapredsmokeinput',
                       try_sleep = 5,
                       tries = 1,
+                      bin_dir =  os.environ['PATH'] + os.pathsep + "/usr/bin" + os.pathsep + "/usr/lib/hadoop-yarn/bin",
                       user = 'ambari-qa',
                       conf_dir = '/etc/hadoop/conf',
     )
@@ -85,11 +91,13 @@ class TestServiceCheck(RMFTestCase):
                       logoutput = True,
                       try_sleep = 5,
                       tries = 1,
+                      bin_dir =  os.environ['PATH'] + os.pathsep + "/usr/bin" + os.pathsep + "/usr/lib/hadoop-yarn/bin",
                       user = 'ambari-qa',
                       conf_dir = '/etc/hadoop/conf',
     )
     self.assertResourceCalled('ExecuteHadoop', 'fs -test -e /user/ambari-qa/mapredsmokeoutput',
                       user = 'ambari-qa',
+                      bin_dir =  os.environ['PATH'] + os.pathsep + "/usr/bin" + os.pathsep + "/usr/lib/hadoop-yarn/bin",
                       conf_dir = '/etc/hadoop/conf',
     )
     self.assertNoMoreResources()

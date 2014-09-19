@@ -44,8 +44,7 @@ def hcat_service_check():
             tries=3,
             user=params.smokeuser,
             try_sleep=5,
-            path=['/usr/sbin', '/usr/local/nin', '/bin', '/usr/bin'],
-            environment = {'PATH' : params.execute_path},
+            path=['/usr/sbin', '/usr/local/nin', '/bin', '/usr/bin', params.execute_path],
             logoutput=True)
 
     if params.security_enabled:
@@ -57,7 +56,7 @@ def hcat_service_check():
                     kinit_path_local=params.kinit_path_local,
                     keytab=params.hdfs_user_keytab,
                     principal=params.hdfs_principal_name,
-                    bin_dir=params.hive_bin
+                    bin_dir=params.execute_path
       )
     else:
       ExecuteHadoop(test_cmd,
@@ -67,7 +66,7 @@ def hcat_service_check():
                     security_enabled=params.security_enabled,
                     kinit_path_local=params.kinit_path_local,
                     keytab=params.hdfs_user_keytab,
-                    bin_dir=params.hive_bin
+                    bin_dir=params.execute_path
       )
 
     cleanup_cmd = format("{kinit_cmd} {tmp_dir}/hcatSmoke.sh hcatsmoke{unique} cleanup")
@@ -75,8 +74,7 @@ def hcat_service_check():
     Execute(cleanup_cmd,
             tries=3,
             user=params.smokeuser,
-            environment = {'PATH' : params.execute_path },
             try_sleep=5,
-            path=['/usr/sbin', '/usr/local/nin', '/bin', '/usr/bin'],
+            path=['/usr/sbin', '/usr/local/nin', '/bin', '/usr/bin', params.execute_path],
             logoutput=True
     )
