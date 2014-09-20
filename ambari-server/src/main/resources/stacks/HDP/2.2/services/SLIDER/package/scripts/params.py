@@ -34,12 +34,12 @@ else:
   slider_conf_dir = "/usr/lib/slider/conf"
   slider_bin_dir = "/usr/lib/slider/bin"
 
+hadoop_conf_dir = "/etc/hadoop/conf"
 smokeuser = config['configurations']['cluster-env']['smokeuser']
-user_group = config['configurations']['cluster-env']['user_group']
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 smokeuser_keytab = config['configurations']['cluster-env']['smokeuser_keytab']
 kinit_path_local = functions.get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
 
 java64_home = config['hostLevelParams']['java_home']
 log4j_props = config['configurations']['slider-log4j']['content']
-slider_cmd = format("{slider_bin_dir}/slider-wrapper")
+slider_cmd = format("{slider_bin_dir}/slider")

@@ -34,9 +34,5 @@
 # * See the License for the specific language governing permissions and
 # * limitations under the License.
 # */
-import slider
-import os, sys
-
-if __name__ == '__main__':
-  os.environ["JAVA_HOME"] = "{{java64_home}}"
-  slider.main()
+export JAVA_HOME={{java64_home}}
+export HADOOP_CONF_DIR={{hadoop_conf_dir}}

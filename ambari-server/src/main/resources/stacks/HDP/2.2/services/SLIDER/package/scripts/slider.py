@@ -34,27 +34,9 @@ def slider():
             configurations=params.config['configurations']['slider-client']
   )
 
-  XmlConfig("core-site.xml",
-            conf_dir=params.slider_conf_dir,
-            configurations=params.config['configurations']['core-site'],
-            configuration_attributes=params.config['configuration_attributes']['core-site']
-  )
-
-  XmlConfig("hdfs-site.xml",
-            conf_dir=params.slider_conf_dir,
-            configurations=params.config['configurations']['hdfs-site'],
-            configuration_attributes=params.config['configuration_attributes']['hdfs-site']
-  )
-
-  XmlConfig("yarn-site.xml",
-            conf_dir=params.slider_conf_dir,
-            configurations=params.config['configurations']['yarn-site'],
-            configuration_attributes=params.config['configuration_attributes']['yarn-site']
-  )
-
-  File(format("{slider_bin_dir}/slider-wrapper"),
+  File(format("{slider_conf_dir}/slider-env.sh"),
        mode=0755,
-       content=Template('slider-wrapper.j2')
+       content=Template('slider-env.sh.j2')
   )
 
   if (params.log4j_props != None):
