@@ -1462,6 +1462,22 @@ def get_ambari_version(properties):
   return version
 
 
+def get_db_type(properties):
+  db_type = None
+  if properties[JDBC_URL_PROPERTY]:
+    jdbc_url = properties[JDBC_URL_PROPERTY].lower()
+    if "postgres" in jdbc_url:
+      db_type = "postgres"
+    elif "oracle" in jdbc_url:
+      db_type = "oracle"
+    elif "mysql" in jdbc_url:
+      db_type = "mysql"
+    elif "derby" in jdbc_url:
+      db_type = "derby"
+
+  return db_type
+
+
 def check_database_name_property(args, upgrade=False):
   """
   :param upgrade: If Ambari is being upgraded.
@@ -1475,18 +1491,29 @@ def check_database_name_property(args, upgrade=False):
   version = get_ambari_version(properties)
   if upgrade and compare_versions(version, "1.7.0") >= 0:
 
-    expected_db_name = properties[JDBC_DATABASE_NAME_PROPERTY]
-    # The existing ambari config file is probably from an earlier version of Ambari, and needs to be transformed.
-    if expected_db_name is None or expected_db_name == "":
-      db_name = properties[JDBC_DATABASE_PROPERTY]
-
+    # This code exists for historic reasons in which property names changed from Ambari 1.6.1 to 1.7.0
+    persistence_type = properties[PERSISTENCE_TYPE_PROPERTY]
+    if persistence_type == "remote":
+      db_name = properties["server.jdbc.schema"]  # this was a property in Ambari 1.6.1, but not after 1.7.0
       if db_name:
         write_property(JDBC_DATABASE_NAME_PROPERTY, db_name)
-        remove_property(JDBC_DATABASE_PROPERTY)
+
+      # If DB type is missing, attempt to reconstruct it from the JDBC URL
+      db_type = properties[JDBC_DATABASE_PROPERTY]
+      if db_type is None or db_type.strip().lower() not in ["postgres", "oracle", "mysql", "derby"]:
+        db_type = get_db_type(properties)
+        if db_type:
+          write_property(JDBC_DATABASE_PROPERTY, db_type)
+
+      properties = get_ambari_properties()
+    elif persistence_type == "local":
+      # Ambari 1.6.1, had "server.jdbc.database" as the DB name, and the
+      # DB type was assumed to be "postgres" if was embedded ("local")
+      db_name = properties[JDBC_DATABASE_PROPERTY]
+      if db_name:
+        write_property(JDBC_DATABASE_NAME_PROPERTY, db_name)
+        write_property(JDBC_DATABASE_PROPERTY, "postgres")
         properties = get_ambari_properties()
-      else:
-        err = "DB Name property not set in config file.\n" + SETUP_OR_UPGRADE_MSG
-        raise FatalException(-1, "Upgrade to version %s cannot transform config file." % str(version))
 
   dbname = properties[JDBC_DATABASE_NAME_PROPERTY]
   if dbname is None or dbname == "":
