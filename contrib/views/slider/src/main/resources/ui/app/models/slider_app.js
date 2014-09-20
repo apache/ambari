@@ -34,6 +34,11 @@ App.SliderApp = DS.Model.extend({
   status: DS.attr('string'),
 
   /**
+   * @type {displayStatus}
+   */
+  displayStatus: DS.attr('string'),
+
+  /**
    * @type {string}
    */
   user: DS.attr('string'),

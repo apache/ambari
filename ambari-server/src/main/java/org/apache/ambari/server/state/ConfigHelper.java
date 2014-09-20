@@ -474,6 +474,8 @@ public class ConfigHelper {
     
     for(ServiceInfo serviceInfo:stack.getServices()) {     
       Set<PropertyInfo> stackProperties = ambariMetaInfo.getProperties(stack.getName(), stack.getVersion(), serviceInfo.getName());
+      Set<PropertyInfo> stackLevelProperties = ambariMetaInfo.getStackProperties(stack.getName(), stack.getVersion());
+      stackProperties.addAll(stackLevelProperties);
       
       for (PropertyInfo stackProperty : stackProperties) {
         String stackPropertyConfigType = fileNameToConfigType(stackProperty.getFilename());
@@ -486,6 +488,43 @@ public class ConfigHelper {
     }
     
     return null;
+  }
+  
+  public ServiceInfo getPropertyOwnerService(Cluster cluster, String configType, String propertyName) throws AmbariException {
+    StackId stackId = cluster.getCurrentStackVersion();
+    StackInfo stack = ambariMetaInfo.getStackInfo(stackId.getStackName(),
+        stackId.getStackVersion());
+    
+    for(ServiceInfo serviceInfo:stack.getServices()) {     
+      Set<PropertyInfo> stackProperties = ambariMetaInfo.getProperties(stack.getName(), stack.getVersion(), serviceInfo.getName());
+      
+      for (PropertyInfo stackProperty : stackProperties) {
+        String stackPropertyConfigType = fileNameToConfigType(stackProperty.getFilename());
+        
+        if(stackProperty.getName().equals(propertyName) && stackPropertyConfigType.equals(configType)) {
+          return serviceInfo;
+        }
+      }
+      
+    }
+    
+    return null;
+  }
+  
+  public Set<PropertyInfo> getServiceProperties(Cluster cluster, String serviceName) throws AmbariException {
+    StackId stackId = cluster.getCurrentStackVersion();
+    StackInfo stack = ambariMetaInfo.getStackInfo(stackId.getStackName(),
+        stackId.getStackVersion());
+    
+    return ambariMetaInfo.getProperties(stack.getName(), stack.getVersion(), serviceName);
+  }
+  
+  public Set<PropertyInfo> getStackProperties(Cluster cluster) throws AmbariException {
+    StackId stackId = cluster.getCurrentStackVersion();
+    StackInfo stack = ambariMetaInfo.getStackInfo(stackId.getStackName(),
+        stackId.getStackVersion());
+    
+    return ambariMetaInfo.getStackProperties(stack.getName(), stack.getVersion());
   }
   
   public void createConfigType(Cluster cluster, AmbariManagementController ambariManagementController, 

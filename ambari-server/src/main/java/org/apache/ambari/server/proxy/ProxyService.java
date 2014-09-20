@@ -20,6 +20,7 @@ package org.apache.ambari.server.proxy;
 
 import com.google.gson.Gson;
 import org.apache.ambari.server.controller.internal.URLStreamProvider;
+import org.apache.ambari.server.view.ImpersonatorSettingImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,6 +37,7 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -48,9 +50,9 @@ import java.util.HashMap;
 @Path("/")
 public class ProxyService {
 
-  private static final int URL_CONNECT_TIMEOUT = 20000;
-  private static final int URL_READ_TIMEOUT = 15000;
-  private static final int HTTP_ERROR_RANGE_START = Response.Status.BAD_REQUEST.getStatusCode();
+  public static final int URL_CONNECT_TIMEOUT = 20000;
+  public static final int URL_READ_TIMEOUT = 15000;
+  public static final int HTTP_ERROR_RANGE_START = Response.Status.BAD_REQUEST.getStatusCode();
 
   private static final String REQUEST_TYPE_GET = "GET";
   private static final String REQUEST_TYPE_POST = "POST";
@@ -59,6 +61,7 @@ public class ProxyService {
   private static final String QUERY_PARAMETER_URL = "url=";
   private static final String AMBARI_PROXY_PREFIX = "AmbariProxy-";
   private static final String ERROR_PROCESSING_URL = "Error occurred during processing URL ";
+  private static final String INVALID_PARAM_IN_URL = "Invalid query params found in URL ";
 
   private final static Logger LOG = LoggerFactory.getLogger(ProxyService.class);
 
@@ -90,6 +93,14 @@ public class ProxyService {
     String query = ui.getRequestUri().getQuery();
     if (query != null && query.indexOf(QUERY_PARAMETER_URL) != -1) {
       String url = query.replaceFirst(QUERY_PARAMETER_URL, "");
+
+      MultivaluedMap<String, String> m = ui.getQueryParameters();
+      if (m.containsKey(ImpersonatorSettingImpl.DEFAULT_DO_AS_PARAM)) {              // Case doesn't matter
+        LOG.error(INVALID_PARAM_IN_URL + url);
+        return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).type(MediaType.TEXT_PLAIN).
+            entity(INVALID_PARAM_IN_URL).build();
+      }
+      
       try {
         HttpURLConnection connection = urlStreamProvider.processURL(url, requestType, body, getHeaderParamsToForward(headers));
         int responseCode = connection.getResponseCode();

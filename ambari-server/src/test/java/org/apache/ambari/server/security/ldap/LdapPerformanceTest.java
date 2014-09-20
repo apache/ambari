@@ -81,14 +81,16 @@ public class LdapPerformanceTest {
     }
     System.out.println("Data fetch: " + (System.currentTimeMillis() - time));
     time = System.currentTimeMillis();
-    LdapBatchDto batchDto = populator.synchronizeLdapUsersAndGroups(userNames, groupNames);
-    batchDto = populator.synchronizeLdapUsersAndGroups(userNames, groupNames);
+    LdapBatchDto batchDto = new LdapBatchDto();
+    populator.synchronizeLdapUsers(userNames, batchDto);
+    populator.synchronizeLdapGroups(groupNames, batchDto);
     this.users.processLdapSync(batchDto);
     System.out.println("Initial sync: " + (System.currentTimeMillis() - time));
     time = System.currentTimeMillis();
-    batchDto = populator.synchronizeLdapUsersAndGroups(userNames, groupNames);
+    batchDto = new LdapBatchDto();
+    populator.synchronizeLdapUsers(userNames, batchDto);
+    populator.synchronizeLdapGroups(groupNames, batchDto);
     this.users.processLdapSync(batchDto);
     System.out.println("Subsequent sync: " + (System.currentTimeMillis() - time));
-    time = System.currentTimeMillis();
   }
 }

@@ -31,5 +31,6 @@ mapred_pid_dir = format("{mapred_pid_dir_prefix}/{mapred_user}")
 
 resourcemanager_pid_file = format("{yarn_pid_dir}/yarn-{yarn_user}-resourcemanager.pid")
 nodemanager_pid_file = format("{yarn_pid_dir}/yarn-{yarn_user}-nodemanager.pid")
+yarn_historyserver_pid_file_old = format("{yarn_pid_dir}/yarn-{yarn_user}-historyserver.pid")
 yarn_historyserver_pid_file = format("{yarn_pid_dir}/yarn-{yarn_user}-timelineserver.pid")  # *-historyserver.pid is deprecated
 mapred_historyserver_pid_file = format("{mapred_pid_dir}/mapred-{mapred_user}-historyserver.pid")

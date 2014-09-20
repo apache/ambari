@@ -124,7 +124,8 @@ public interface Resource {
     ViewPermission,
     Controller,
     ClientConfig,
-    StackLevelConfiguration;
+    StackLevelConfiguration,
+    LdapSyncEvent;
 
     /**
      * Get the {@link Type} that corresponds to this InternalType.
@@ -210,6 +211,7 @@ public interface Resource {
     public static final Type Controller = InternalType.Controller.getType();
     public static final Type ClientConfig = InternalType.ClientConfig.getType();
     public static final Type StackLevelConfiguration = InternalType.StackLevelConfiguration.getType();
+    public static final Type LdapSyncEvent = InternalType.LdapSyncEvent.getType();
 
     /**
      * The type name.

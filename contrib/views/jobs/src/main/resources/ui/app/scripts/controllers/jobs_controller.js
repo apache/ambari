@@ -591,7 +591,10 @@ App.JobsController = Ember.ArrayController.extend(App.RunPeriodically, {
         name: 'jobs_lastID',
         sender: this,
         data: {
-          atsURL: atsURL
+          atsURL: atsURL,
+          view: App.get("view"),
+          version: App.get("version"),
+          instanceName: App.get("instanceName")
         },
         success: 'lastIDSuccessCallback',
         error : 'lastIDErrorCallback'
@@ -601,7 +604,10 @@ App.JobsController = Ember.ArrayController.extend(App.RunPeriodically, {
         sender: this,
         data: {
           atsURL: atsURL,
-          filtersLink: this.get('filterObject').createJobsFiltersLink()
+          filtersLink: this.get('filterObject').createJobsFiltersLink(),
+          view: App.get("view"),
+          version: App.get("version"),
+          instanceName: App.get("instanceName")
         },
         success: 'loadJobsSuccessCallback',
         error: 'loadJobsErrorCallback'

@@ -36,6 +36,14 @@ App.JobsRoute = Ember.Route.extend({
 
   setupController: function(controller, model) {
     this._super(controller, model);
+    var hashArray = location.pathname.split('/');
+    var view = hashArray[2];
+    var version = hashArray[3];
+    var instanceName = hashArray[4];
+    App.set('view', view);
+    App.set('version', version);
+    App.set('instanceName', instanceName);
+
     controller.set('interval', 6000);
     controller.loop('loadJobs', true);
     // This observer should be set with addObserver

@@ -56,7 +56,7 @@ App.SliderAppController = Ember.ObjectController.extend(App.AjaxErrorHandler, {
         confirm: true
       });
     }
-    if ('FINISHED' !== status) {
+    if ('RUNNING' == status) {
       actions.push({
         title: 'Flex',
         action: 'flex',

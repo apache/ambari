@@ -27,41 +27,54 @@
  *  testInProduction - can this request be executed on production tests (used only in tests)
  *
  * @type {Object}
+ *
+ * Any property inside {braces} is substituted dynamically by the formatUrl function provided that the property is passed into the "data" dictionary
+ * by the ajax call.
+ * E.g.,
+   App.ajax.send({
+     name: 'key_foo',
+     data: {
+          property1: value1,
+          property2: value2
+     }
+   });
+
+   Where the "urls" dictionary contains 'key_foo': {real: 'some_value_with_{property1}_and_{property2}' }
  */
 var urls = {
 
   'load_jobs': {
-    real: '/proxy?url={atsURL}/ws/v1/timeline/HIVE_QUERY_ID{filtersLink}',
+    real: '/views/{view}/{version}/{instanceName}/proxy?url={atsURL}/ws/v1/timeline/HIVE_QUERY_ID{filtersLink}',
     mock: '/scripts/assets/hive-queries.json',
     apiPrefix: ''
   },
 
   'jobs_lastID': {
-    real: '/proxy?url={atsURL}/ws/v1/timeline/HIVE_QUERY_ID?limit=1&secondaryFilter=tez:true',
+    real: '/views/{view}/{version}/{instanceName}/proxy?url={atsURL}/ws/v1/timeline/HIVE_QUERY_ID?limit=1&secondaryFilter=tez:true',
     mock: '/scripts/assets/hive-queries.json',
     apiPrefix: ''
   },
 
   'job_details': {
-    real: '/proxy?url={atsURL}/ws/v1/timeline/HIVE_QUERY_ID/{job_id}?fields=events,otherinfo',
+    real: '/views/{view}/{version}/{instanceName}/proxy?url={atsURL}/ws/v1/timeline/HIVE_QUERY_ID/{job_id}?fields=events,otherinfo',
     mock: '/scripts/assets/hive-query-2.json',
     apiPrefix: ''
   },
 
   'jobs.tezDag.NametoID': {
-    'real': '/proxy?url={atsURL}/ws/v1/timeline/TEZ_DAG_ID?primaryFilter=dagName:{tezDagName}',
+    'real': '/views/{view}/{version}/{instanceName}/proxy?url={atsURL}/ws/v1/timeline/TEZ_DAG_ID?primaryFilter=dagName:{tezDagName}',
     'mock': '/scripts/assets/tezDag-name-to-id.json',
     'apiPrefix': ''
   },
 
   'jobs.tezDag.tezDagId': {
-    'real': '/proxy?url={atsURL}/ws/v1/timeline/TEZ_DAG_ID/{tezDagId}?fields=relatedentities,otherinfo',
+    'real': '/views/{view}/{version}/{instanceName}/proxy?url={atsURL}/ws/v1/timeline/TEZ_DAG_ID/{tezDagId}?fields=relatedentities,otherinfo',
     'mock': '/scripts/assets/tezDag.json',
     'apiPrefix': ''
   },
 
   'jobs.tezDag.tezDagVertexId': {
-    'real': '/proxy?url={atsURL}/ws/v1/timeline/TEZ_VERTEX_ID/{tezDagVertexId}?fields=otherinfo',
+    'real': '/views/{view}/{version}/{instanceName}/proxy?url={atsURL}/ws/v1/timeline/TEZ_VERTEX_ID/{tezDagVertexId}?fields=otherinfo',
     'mock': '/scripts/assets/tezDagVertex.json',
     'apiPrefix': ''
   },

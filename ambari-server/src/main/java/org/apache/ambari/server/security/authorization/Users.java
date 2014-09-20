@@ -638,13 +638,6 @@ public class Users {
     userDAO.create(usersToCreate);
     groupDAO.create(groupsToCreate);
 
-    // remove membership
-    final Set<MemberEntity> membersToRemove = new HashSet<MemberEntity>();
-    for (LdapUserGroupMemberDto member: batchInfo.getMembershipToRemove()) {
-      membersToRemove.add(memberDAO.findByUserAndGroup(member.getUserName(), member.getGroupName()));
-    }
-    memberDAO.remove(membersToRemove);
-
     // create membership
     final Set<MemberEntity> membersToCreate = new HashSet<MemberEntity>();
     final Set<GroupEntity> groupsToUpdate = new HashSet<GroupEntity>();
@@ -659,6 +652,16 @@ public class Users {
     }
     memberDAO.create(membersToCreate);
     groupDAO.merge(groupsToUpdate); // needed for Derby DB as it doesn't fetch newly added members automatically
+
+    // remove membership
+    final Set<MemberEntity> membersToRemove = new HashSet<MemberEntity>();
+    for (LdapUserGroupMemberDto member: batchInfo.getMembershipToRemove()) {
+      MemberEntity memberEntity = memberDAO.findByUserAndGroup(member.getUserName(), member.getGroupName());
+      if (memberEntity != null) {
+        membersToRemove.add(memberEntity);
+      }
+    }
+    memberDAO.remove(membersToRemove);
 
     // clear cached entities
     entityManagerProvider.get().getEntityManagerFactory().getCache().evictAll();

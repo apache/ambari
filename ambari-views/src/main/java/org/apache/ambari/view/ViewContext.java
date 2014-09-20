@@ -20,6 +20,7 @@ package org.apache.ambari.view;
 
 import java.util.Collection;
 import java.util.Map;
+import org.apache.ambari.view.HttpImpersonator;
 
 /**
  * Context object available to the view components to provide access to
@@ -174,4 +175,18 @@ public interface ViewContext {
    * @return the view controller
    */
   public ViewController getController();
+
+  /**
+   * Get the HTTP Impersonator.
+   *
+   * @return the HTTP Impersonator, which internally uses the App Cookie Manager
+   */
+  public HttpImpersonator getHttpImpersonator();
+
+  /**
+   * Get the default settings for the Impersonator.
+   *
+   * @return the Impersonator settings.
+   */
+  public ImpersonatorSetting getImpersonatorSetting();
 }

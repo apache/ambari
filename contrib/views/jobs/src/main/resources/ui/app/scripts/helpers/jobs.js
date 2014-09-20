@@ -88,7 +88,10 @@ App.Helpers.jobs = {
         sender: sender,
         data: {
           atsURL: params.atsURL,
-          tezDagName: tezDagName
+          tezDagName: tezDagName,
+          view: App.get("view"),
+          version: App.get("version"),
+          instanceName: App.get("instanceName")
         },
         success: 'dagNameToIdSuccess',
         error: 'dagNameToIdError'
@@ -146,7 +149,10 @@ App.Helpers.jobs = {
         sender: sender,
         data: {
           tezDagId: tezDagInstanceId,
-          atsURL: atsURL
+          atsURL: atsURL,
+          view: App.get("view"),
+          version: App.get("version"),
+          instanceName: App.get("instanceName")
         },
         success: 'loadTezDagSuccess',
         error: 'loadTezDagError'
@@ -241,7 +247,10 @@ App.Helpers.jobs = {
       sender: sender,
       data: {
         atsURL: atsURL,
-        tezDagVertexId: tezVertexInstanceId
+        tezDagVertexId: tezVertexInstanceId,
+        view: App.get("view"),
+        version: App.get("version"),
+        instanceName: App.get("instanceName")
       },
       success: 'loadTezDagVertexSuccess',
       error: 'loadTezDagVertexError'

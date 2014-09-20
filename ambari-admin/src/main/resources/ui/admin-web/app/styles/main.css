@@ -345,11 +345,6 @@
   -o-transform: translateY(2px);
   transform: translateY(2px);
 }
-.btn.disabled.syncldapbtn{
-  pointer-events: auto;
-  background-color: #e6e6e6;
-  cursor: not-allowed;
-}
 .btn.deleteuser-btn.disabled, .btn.deleteuser-btn[disabled], .btn.btn-delete-instance.disabled{
   pointer-events: auto;
   cursor: not-allowed;
@@ -465,9 +460,6 @@
 .left-navbar .panel-body h5 .glyphicon{
   font-size: 13px;
   color: #428bca;
-}
-.left-navbar .panel-body #LDAP-button {
-  padding: 5px;
 }
 .left-navbar .panel-body hr{
   margin-top: 5px;

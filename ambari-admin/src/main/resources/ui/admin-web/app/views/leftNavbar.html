@@ -85,15 +85,6 @@
         <li ng-class="{active: isActive('users.list')}"><link-to route="users.list" class="userslist-link">Users</link-to></li>
         <li ng-class="{active: isActive('groups.list')}"><link-to route="groups.list" class="groupslist-link">Groups</link-to></li>
       </ul>
-      <hr>
-      <div id="LDAP-button" ng-switch="isLDAPConfigured">
-        <a ng-switch-when="true" href class="btn btn-primary btn-block syncldapbtn" ng-click="syncLDAP()">
-          <span class="glyphicon glyphicon-transfer pulldown2"></span> Sync LDAP
-        </a>
-        <a ng-switch-default href class="btn btn-default btn-block syncldapbtn disabled" tooltip="LDAP is not configured. To configure LDAP, run ambari-server setup-ldap from the command line.">
-          <span class="glyphicon glyphicon-transfer pulldown2"></span> Sync LDAP
-        </a>
-      </div>
         
     </div>
   </div>

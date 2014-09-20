@@ -24,6 +24,7 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.internal.RequestStageContainer;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
 import org.apache.ambari.server.scheduler.ExecutionScheduleManager;
+import org.apache.ambari.server.security.ldap.LdapBatchDto;
 import org.apache.ambari.server.security.ldap.LdapSyncDto;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -705,7 +706,14 @@ public interface AmbariManagementController {
    * @param groups groups to be synchronized
    * @throws AmbariException if synchronization data was invalid
    */
-  public void synchronizeLdapUsersAndGroups(Set<String> users, Set<String> groups) throws AmbariException;
+  public LdapBatchDto synchronizeLdapUsersAndGroups(Set<String> users, Set<String> groups) throws AmbariException;
+
+  /**
+   * Checks if LDAP sync process is running.
+   *
+   * @return true if LDAP sync is in progress
+   */
+  public boolean isLdapSyncInProgress();
 
   /**
    * Get configurations which are specific for a cluster (!not a service).

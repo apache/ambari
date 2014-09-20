@@ -38,30 +38,9 @@ class TestSliderClient(RMFTestCase):
                               configurations=self.getConfig()['configurations']['slider-client']
     )
 
-    self.assertResourceCalled('XmlConfig',
-                              'core-site.xml',
-                              conf_dir='/usr/lib/slider/conf',
-                              configurations=self.getConfig()['configurations']['core-site'],
-                              configuration_attributes=self.getConfig()['configuration_attributes']['core-site']
-    )
-
-    self.assertResourceCalled('XmlConfig',
-                              'hdfs-site.xml',
-                              conf_dir='/usr/lib/slider/conf',
-                              configurations=self.getConfig()['configurations']['hdfs-site'],
-                              configuration_attributes=self.getConfig()['configuration_attributes']['hdfs-site']
-    )
-
-    self.assertResourceCalled('XmlConfig',
-                              'yarn-site.xml',
-                              conf_dir='/usr/lib/slider/conf',
-                              configurations=self.getConfig()['configurations']['yarn-site'],
-                              configuration_attributes=self.getConfig()['configuration_attributes']['yarn-site']
-    )
-
     self.assertResourceCalled('File',
-                              '/usr/lib/slider/bin/slider-wrapper',
-                              content=Template('slider-wrapper.j2'),
+                              '/usr/lib/slider/conf/slider-env.sh',
+                              content=Template('slider-env.sh.j2'),
                               mode=0755
     )
 
@@ -83,7 +62,7 @@ class TestSliderClient(RMFTestCase):
     )
 
     self.assertResourceCalled('Execute',
-                              '/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa; /usr/lib/slider/bin/slider-wrapper list',
+                              '/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa; /usr/lib/slider/bin/slider list',
                               logoutput=True,
                               tries=3,
                               user='ambari-qa',
@@ -99,7 +78,7 @@ class TestSliderClient(RMFTestCase):
                        config_file="default.json"
     )
 
-    self.assertResourceCalled('Execute', ' /usr/lib/slider/bin/slider-wrapper list',
+    self.assertResourceCalled('Execute', ' /usr/lib/slider/bin/slider list',
                               logoutput=True,
                               tries=3,
                               user='ambari-qa',
