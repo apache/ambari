@@ -41,13 +41,13 @@ import com.google.gson.reflect.TypeToken;
 public class LatestRepoCallable implements Callable<Void> {
   private static final int LOOKUP_CONNECTION_TIMEOUT = 2000;
   private static final int LOOKUP_READ_TIMEOUT = 1000;
-
+  
   private final static Logger LOG = LoggerFactory.getLogger(LatestRepoCallable.class);
-
+  
   private String sourceUri = null;
   private File stackRepoFolder = null;
   private StackInfo stack = null;
-
+  
   public LatestRepoCallable(String latestSourceUri, File stackRepoFolder, StackInfo stack) {
     this.sourceUri = latestSourceUri;
     this.stackRepoFolder = stackRepoFolder;
@@ -56,19 +56,19 @@ public class LatestRepoCallable implements Callable<Void> {
 
   @Override
   public Void call() throws Exception {
-
+    
     Type type = new TypeToken<Map<String, Map<String, Object>>>(){}.getType();
     Gson gson = new Gson();
-
+    
     Map<String, Map<String, Object>> latestUrlMap = null;
-
+    
     try {
       if (sourceUri.startsWith("http")) {
-
+        
         URLStreamProvider streamProvider = new URLStreamProvider(
             LOOKUP_CONNECTION_TIMEOUT, LOOKUP_READ_TIMEOUT,
             null, null, null);
-
+        
         LOG.info("Loading latest URL info from " + sourceUri);
         latestUrlMap = gson.fromJson(new InputStreamReader(
             streamProvider.readFrom(sourceUri)), type);
@@ -79,7 +79,7 @@ public class LatestRepoCallable implements Callable<Void> {
         } else {
           jsonFile = new File(sourceUri);
         }
-
+        
         if (jsonFile.exists()) {
           LOG.info("Loading latest URL info from " + jsonFile);
           latestUrlMap = gson.fromJson(new FileReader(jsonFile), type);
@@ -89,76 +89,71 @@ public class LatestRepoCallable implements Callable<Void> {
       LOG.error("Could not load the URI " + sourceUri + " (" + e.getMessage() + ")");
       throw e;
     }
-
-
+    
+    
     if (null != latestUrlMap) {
       for (RepositoryInfo ri : stack.getRepositories()) {
         if (latestUrlMap.containsKey(ri.getRepoId())) {
           Map<String, Object> valueMap = latestUrlMap.get(ri.getRepoId());
           if (valueMap.containsKey("latest")) {
-
+            
             @SuppressWarnings("unchecked")
             Map<String, String> osMap = (Map<String, String>) valueMap.get("latest");
-
+            
             String baseUrl = resolveOsUrl(ri.getOsType(), osMap);
             if (null != baseUrl) {
               // !!! in the case where <name>.repo is defined with the base url, strip that off.
               // Agents do the reverse action (take the base url, and append <name>.repo)
-
+              
               String repo_file_format;
               if(ri.getOsType().equals("ubuntu12")) {
                 repo_file_format = "list";
               } else {
                 repo_file_format = "repo";
               }
-
+              
               String repoFileName = stack.getName().toLowerCase() + "." + repo_file_format;
-              int idx = baseUrl.toLowerCase().indexOf(repoFileName);
-
+              int idx = baseUrl.toLowerCase().indexOf(repoFileName); 
+              
               if (-1 != idx && baseUrl.toLowerCase().endsWith(repoFileName)) {
                 baseUrl = baseUrl.substring(0, idx);
               }
-
+              
               if ('/' == baseUrl.charAt(baseUrl.length()-1)) {
                 baseUrl = baseUrl.substring(0, baseUrl.length()-1);
               }
-
+              
               ri.setLatestBaseUrl(baseUrl);
-              if (ri.getBaseUrl() != null
-                  && ri.getBaseUrl().equals(ri.getDefaultBaseUrl())) {
-                // Override baseUrl with the latestBaseUrl.
-                ri.setBaseUrl(baseUrl);
-              }
             }
           }
         }
       }
     }
-
+    
     return null;
   }
-
+  
   /**
    * Resolves a base url given that certain OS types can be used interchangeably.
    * @param os the target os to find
-   * @param osMap the map of os-to-baseurl
+   * @param osMap the map of os-to-baseurl 
    * @return the url for an os.
    */
   private String resolveOsUrl(String os, Map<String, String> osMap) {
-
+    
     // !!! look for the OS directly
     if (osMap.containsKey(os))
       return osMap.get(os);
-
+    
     // !!! os not found, find and return the first compatible one
     Set<String> possibleTypes = OsFamily.findTypes(os);
-
+    
     for (String type : possibleTypes) {
       if (osMap.containsKey(type))
         return osMap.get(type);
     }
-
+    
     return null;
   }
-
+  
 }
