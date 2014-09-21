@@ -126,16 +126,37 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
     }
     return null;
   }
-  
+
   private static interface SliderClientContextRunnable<T> {
     public T run(SliderClient sliderClient) throws YarnException, IOException, InterruptedException;
   }
-  
+
+  private String getUserToRunAs() {
+    String user = viewContext.getProperties().get(PROPERTY_SLIDER_USER);
+    if (user == null || user.trim().length() < 1) {
+      return "yarn";
+    } else if ("${username}".equals(user)) {
+      return viewContext.getUsername();
+    } else {
+      return user;
+    }
+  }
+
   private <T> T invokeSliderClientRunnable(final SliderClientContextRunnable<T> runnable) throws IOException, InterruptedException {
     ClassLoader currentClassLoader = Thread.currentThread().getContextClassLoader();
     Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
     try {
-      T value = UserGroupInformation.getBestUGI(null, viewContext.getUsername()).doAs(
+      boolean securityEnabled = Boolean.valueOf(viewContext.getProperties().get(PROPERTY_SLIDER_SECURITY_ENABLED));
+      UserGroupInformation sliderUser;
+      if (securityEnabled) {
+        String viewPrincipal = viewContext.getProperties().get(PROPERTY_VIEW_PRINCIPAL);
+        String viewPrincipalKeytab = viewContext.getProperties().get(PROPERTY_VIEW_PRINCIPAL_KEYTAB);
+        UserGroupInformation ambariUser = UserGroupInformation.loginUserFromKeytabAndReturnUGI(viewPrincipal, viewPrincipalKeytab);
+        sliderUser = UserGroupInformation.createProxyUser(getUserToRunAs(), ambariUser);
+      } else {
+        sliderUser = UserGroupInformation.getBestUGI(null, getUserToRunAs());
+      }
+      T value = sliderUser.doAs(
           new PrivilegedExceptionAction<T>() {
             @Override
             public T run() throws Exception {
@@ -396,36 +417,6 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
     Configuration sliderClientConfiguration = getSliderClientConfiguration();
     SliderClient client = new SliderClient() {
       @Override
-      public String getUsername() throws IOException {
-        return viewContext.getUsername();
-      }
-
-      @Override
-      protected void initHadoopBinding() throws IOException, SliderException {
-        super.initHadoopBinding();
-        // Override the default FS client to the calling user
-        try {
-          FileSystem fs = FileSystem.get(FileSystem.getDefaultUri(getConfig()),
-              getConfig(), viewContext.getUsername());
-          SliderFileSystem fileSystem = new SliderFileSystem(fs, getConfig());
-          Field fsField = SliderClient.class
-              .getDeclaredField("sliderFileSystem");
-          fsField.setAccessible(true);
-          fsField.set(this, fileSystem);
-        } catch (InterruptedException e) {
-          throw new SliderException("Slider view unable to override filesystem of Slider client", e);
-        } catch (NoSuchFieldException e) {
-          throw new SliderException("Slider view unable to override filesystem of Slider client", e);
-        } catch (SecurityException e) {
-          throw new SliderException("Slider view unable to override filesystem of Slider client", e);
-        } catch (IllegalArgumentException e) {
-          throw new SliderException("Slider view unable to override filesystem of Slider client", e);
-        } catch (IllegalAccessException e) {
-          throw new SliderException("Slider view unable to override filesystem of Slider client", e);
-        }
-      }
-
-      @Override
       public void init(Configuration conf) {
         super.init(conf);
         try {
@@ -468,6 +459,8 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
     String rmAddress = viewContext.getProperties().get(PROPERTY_YARN_RM_ADDRESS);
     String rmSchedulerAddress = viewContext.getProperties().get(PROPERTY_YARN_RM_SCHEDULER_ADDRESS);
     String zkQuorum = viewContext.getProperties().get(PROPERTY_ZK_QUOROM);
+    boolean securedCluster = Boolean.getBoolean(viewContext.getProperties().get(PROPERTY_SLIDER_SECURITY_ENABLED));
+
     HdfsConfiguration hdfsConfig = new HdfsConfiguration();
     YarnConfiguration yarnConfig = new YarnConfiguration(hdfsConfig);
 
@@ -479,6 +472,16 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
     yarnConfig.set("slider.zookeeper.quorum", zkQuorum.toString());
     yarnConfig.set("yarn.application.classpath",
             "/etc/hadoop/conf,/usr/lib/hadoop/*,/usr/lib/hadoop/lib/*,/usr/lib/hadoop-hdfs/*,/usr/lib/hadoop-hdfs/lib/*,/usr/lib/hadoop-yarn/*,/usr/lib/hadoop-yarn/lib/*,/usr/lib/hadoop-mapreduce/*,/usr/lib/hadoop-mapreduce/lib/*");
+
+    if (securedCluster) {
+      String rmPrincipal = viewContext.getProperties().get(PROPERTY_YARN_RM_PRINCIPAL);
+      String nnPrincipal = viewContext.getProperties().get(PROPERTY_HDFS_NN_PRINCIPAL);
+      yarnConfig.set("yarn.resourcemanager.principal", rmPrincipal);
+      yarnConfig.set("dfs.namenode.kerberos.principal", nnPrincipal);
+      yarnConfig.set("hadoop.security.authorization", "true");
+      yarnConfig.set("hadoop.security.authentication", "kerberos");
+      yarnConfig.set("slider.security.enabled", "true");
+    }
     return yarnConfig;
   }
 
