@@ -101,6 +101,21 @@ App.MainServiceItemController = Em.Controller.extend({
 
   allHosts: [],
 
+  clientComponents: function () {
+    var clientNames = [];
+    var clients = App.StackServiceComponent.find().filterProperty('serviceName', this.get('content.serviceName')).filterProperty('isClient');
+    clients.forEach(function (item) {
+      clientNames.push({
+        action: 'downloadClientConfigs',
+        context: {
+          name: item.get('componentName'),
+          label: item.get('displayName')
+        }
+      });
+    });
+    return clientNames;
+  }.property('content.serviceName'),
+
   /**
    * Common method for ajax (start/stop service) responses
    * @param data
@@ -611,6 +626,13 @@ App.MainServiceItemController = Em.Controller.extend({
     return (this.get('content.healthStatus') != 'green');
   }.property('content.healthStatus','isPending'),
 
+  /**
+   * Determine if service has than one service client components
+   */
+  isSeveralClients: function () {
+    return App.StackServiceComponent.find().filterProperty('serviceName', this.get('content.serviceName')).filterProperty('isClient').length > 1;
+  }.property('content.serviceName'),
+
   enableHighAvailability: function() {
     var ability_controller = App.router.get('mainAdminHighAvailabilityController');
     ability_controller.enableHighAvailability();
@@ -626,12 +648,12 @@ App.MainServiceItemController = Em.Controller.extend({
     ability_controller.enableRMHighAvailability();
   },
 
-  downloadClientConfigs: function () {
+  downloadClientConfigs: function (event) {
     var component = this.get('content.hostComponents').findProperty('isClient');
     componentsUtils.downloadClientConfigs.call(this, {
       serviceName: this.get('content.serviceName'),
-      componentName: component.get('componentName'),
-      displayName: component.get('displayName')
+      componentName: (event && event.name) || component.get('componentName'),
+      displayName: (event && event.label) || component.get('displayName')
     });
   },
 

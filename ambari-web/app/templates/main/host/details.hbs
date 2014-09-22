@@ -55,7 +55,7 @@
                                   <ul class="dropdown-menu">
                                     {{#each client in view.clients}}
                                       <li>
-                                        <a {{action "downloadClientConfigs" client target="controller" href=true}}>{{client.service.displayName}}</a>
+                                        <a {{action "downloadClientConfigs" client target="controller" href=true}}>{{client.displayName}}</a>
                                       </li>
                                     {{/each}}
                                   </ul>

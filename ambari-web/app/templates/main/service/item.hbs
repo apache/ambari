@@ -83,11 +83,22 @@
 
         <!-- Other service actions -->
         {{#each option in view.maintenance}}
-        <li {{bindAttr class="option.disabled option.isHidden:hidden"}}>
+        <li {{bindAttr class="option.disabled option.isHidden:hidden option.hasSubmenu:dropdown-submenu option.hasSubmenu:submenu-left"}}>
           <a {{action "doAction" option target="controller" href=true}} {{bindAttr data-title="option.tooltip"}} rel="HealthTooltip">
               <i {{bindAttr class="option.cssClass"}}></i>
               {{option.label}}
           </a>
+          {{#if option.hasSubmenu}}
+            <div class="dropdown-menu-wrap">
+              <ul class="dropdown-menu">
+                {{#each item in option.submenuOptions}}
+                  <li>
+                    <a {{action "doAction" item target="controller" href=true}}>{{item.context.label}}</a>
+                  </li>
+                {{/each}}
+              </ul>
+            </div>
+          {{/if}}
         </li>
         {{/each}}
       </ul>
