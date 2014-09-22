@@ -67,14 +67,30 @@ App.SliderController = Ember.Controller.extend({
 
   /**
    * After all Slider-configs are loaded, application should check self status
+   * If config <code>required</code>-property is true, its value shouldn't be empty
+   * If config depends on some other config (see <code>requireDependsOn</code>-property)
+   * and referenced config-value is not-false, current config should have not-empty value
    * @method finishSliderConfiguration
    */
   finishSliderConfiguration: function () {
     //check if all services exist
     var errors = [];
     App.SliderApp.store.all('sliderConfig').forEach(function (model) {
-      if (Em.isEmpty(model.get('value')) && model.get('required')) {
-        errors.push(Em.I18n.t('error.config_is_empty').format(model.get('viewConfigName')));
+      if (model.get('required')) {
+        if (Em.isEmpty(model.get('value'))) {
+          errors.push(Em.I18n.t('error.config_is_empty').format(model.get('viewConfigName')));
+        }
+      }
+      else {
+        var dependenceConfig = model.get('requireDependsOn');
+        if (!Em.isNone(dependenceConfig)) {
+          var depValue = dependenceConfig.get('value').toLowerCase();
+          if (depValue == "true") {
+            if (Em.isEmpty(model.get('value'))) {
+              errors.push(Em.I18n.t('error.config_is_empty_2').format(model.get('viewConfigName'), dependenceConfig.get('viewConfigName')));
+            }
+          }
+        }
       }
     });
     errors.uniq();
