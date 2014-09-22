@@ -332,7 +332,7 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
       }
     } else if (Configuration.MYSQL_DB_NAME.equals(dbType)) {
       if (dbAccessor.tableHasData("clusterconfig")) {
-        dbAccessor.executeQuery("UPDATE viewinstance " +
+        dbAccessor.executeQuery("UPDATE clusterconfig " +
           "SET config_id = (SELECT @a := @a + 1 FROM (SELECT @a := 1) s)");
       }
     } else if (Configuration.POSTGRES_DB_NAME.equals(dbType)) {
@@ -370,7 +370,11 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
 
     populateConfigVersions();
 
-    dbAccessor.setNullable("clusterconfig", "version", false);
+    if (Configuration.MYSQL_DB_NAME.equals(dbType)) {
+      dbAccessor.executeQuery("ALTER TABLE clusterconfig MODIFY version BIGINT NOT NULL");
+    } else {
+      dbAccessor.setNullable("clusterconfig", "version", false);
+    }
 
     dbAccessor.executeQuery("ALTER TABLE clusterconfig ADD CONSTRAINT UQ_config_type_tag UNIQUE (cluster_id, type_name, version_tag)", true);
     dbAccessor.executeQuery("ALTER TABLE clusterconfig ADD CONSTRAINT UQ_config_type_version UNIQUE (cluster_id, type_name, version)", true);
@@ -481,7 +485,7 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
   private void renameSequenceValueColumnName() throws AmbariException, SQLException {
     final String dbType = getDbType();
     if (Configuration.MYSQL_DB_NAME.equals(dbType)) {
-      dbAccessor.executeQuery("ALTER TABLE ambari_sequences RENAME COLUMN value to sequence_value DECIMAL(38) NOT NULL");
+      dbAccessor.executeQuery("ALTER TABLE ambari_sequences CHANGE value sequence_value DECIMAL(38) NOT NULL");
     } else if (Configuration.DERBY_DB_NAME.equals(dbType)) {
       dbAccessor.executeQuery("RENAME COLUMN ambari_sequences.\"value\" to sequence_value");
     } else if (Configuration.ORACLE_DB_NAME.equals(dbType)) {
