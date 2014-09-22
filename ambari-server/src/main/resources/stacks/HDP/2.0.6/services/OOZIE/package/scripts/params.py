@@ -30,17 +30,16 @@ rpm_version = default("/configurations/hadoop-env/rpm_version", None)
 
 #hadoop params
 if rpm_version is not None:
-  hadoop_conf_dir = format("/usr/hdp/{rpm_version}/etc/hadoop/conf")
-  hadoop_bin_dir = format("/usr/hdp/{rpm_version}/hadoop/bin")
-  hadoop_lib_home = format("/usr/hdp/{rpm_version}/hadoop/lib")
-  mapreduce_libs_path = format("/usr/hdp/{rpm_version}/hadoop-mapreduce/*")
-  conf_dir = format("/usr/hdp/{rpm_version}/oozie/conf")
+  hadoop_bin_dir = "/usr/hdp/current/hadoop/bin"
+  hadoop_lib_home = "/usr/hdp/current/hadoop/lib"
+  mapreduce_libs_path = "/usr/hdp/current/hadoop-mapreduce/*"
 else:
-  hadoop_conf_dir = "/etc/hadoop/conf"
   hadoop_bin_dir = "/usr/bin"
   hadoop_lib_home = "/usr/lib/hadoop/lib"
   mapreduce_libs_path = "/usr/lib/hadoop-mapreduce/*"
-  conf_dir = "/etc/oozie/conf"
+
+hadoop_conf_dir = "/etc/hadoop/conf"
+conf_dir = "/etc/oozie/conf"
 
 oozie_user = config['configurations']['oozie-env']['oozie_user']
 smokeuser = config['configurations']['cluster-env']['smokeuser']

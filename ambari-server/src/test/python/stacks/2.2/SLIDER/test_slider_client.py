@@ -29,7 +29,9 @@ class TestSliderClient(RMFTestCase):
                        config_file="default.json"
     )
 
-    self.assertResourceCalled('Directory', '/usr/lib/slider/conf'
+    self.assertResourceCalled('Directory',
+                              '/usr/lib/slider/conf',
+                              recursive=True
     )
 
     self.assertResourceCalled('XmlConfig',

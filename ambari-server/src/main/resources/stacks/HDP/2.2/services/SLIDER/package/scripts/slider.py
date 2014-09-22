@@ -26,7 +26,8 @@ from resource_management import *
 def slider():
   import params
 
-  Directory(params.slider_conf_dir
+  Directory(params.slider_conf_dir,
+            recursive=True
   )
 
   XmlConfig("slider-client.xml",
