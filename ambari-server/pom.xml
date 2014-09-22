@@ -426,6 +426,17 @@
               </sources>
             </mapping>
             <mapping>
+              <directory>/var/lib/ambari-server/resources/apps</directory>
+              <filemode>755</filemode>
+              <username>root</username>
+              <groupname>root</groupname>
+              <sources>
+                <source>
+                  <location>src/main/resources/slider_resources/README.txt</location>
+                </source>
+              </sources>
+            </mapping>
+            <mapping>
               <directory>/var/lib/ambari-server/resources/scripts</directory>
               <filemode>755</filemode>
               <sources>
@@ -676,6 +687,17 @@
               <user>root</user>
               <group>root</group>
               <filemode>700</filemode>
+            </mapper>
+          </data>
+          <data>
+            <src>src/main/resources/slider_resources/README.txt</src>
+            <type>file</type>
+            <mapper>
+              <type>perm</type>
+              <prefix>/var/lib/ambari-server/resources/apps/</prefix>
+              <user>root</user>
+              <group>root</group>
+              <filemode>755</filemode>
             </mapper>
           </data>
           <data>
