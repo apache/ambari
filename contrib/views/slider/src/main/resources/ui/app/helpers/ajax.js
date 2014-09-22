@@ -118,7 +118,8 @@ var urls = {
     format: function (data) {
       return {
         type: 'PUT',
-        data: JSON.stringify(data.data)
+        data: JSON.stringify(data.data),
+        dataType: 'text'
       }
     }
   },
@@ -133,6 +134,7 @@ var urls = {
       return {
         type: 'POST',
         data: JSON.stringify(data.data),
+        dataType: 'text',
         showErrorPopup: true
       }
     }
@@ -144,6 +146,7 @@ var urls = {
     format: function () {
       return {
         method: 'DELETE',
+        dataType: 'text',
         showErrorPopup: true
       }
     }
@@ -159,6 +162,7 @@ var urls = {
       return {
         method: 'PUT',
         data: JSON.stringify(data.data),
+        dataType: 'text',
         showErrorPopup: true
       }
     }
@@ -173,6 +177,7 @@ var urls = {
       return {
         method: 'PUT',
         data: JSON.stringify(data.data),
+        dataType: 'text',
         showErrorPopup: true
       }
     }
