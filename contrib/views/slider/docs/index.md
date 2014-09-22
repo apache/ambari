@@ -21,7 +21,7 @@ limitations under the License.
 After deploying a HDP cluster through Ambari, it can be secured by using the *Enable Security* button in *Admin > Seurity* page.
 
 #### Step-2: Create *Kerberos* principal for view
-We need to provide a *Kerberos* identity for the process in which the view is run. We shall identify the user as `view-principal`. Since views are generally hosted by Ambari server, typically this can be named as *ambari*.
+We need to provide a *Kerberos* identity for the process in which the view is run. We shall identify the user as `view-principal`. **In this document `view-principal` can be changed to any suitable name.** Since views are generally hosted by Ambari server, typically this can be named as *ambari*.
 
 On the machine where *KDC Server* is hosted, create user principal by running below command
 
@@ -48,8 +48,8 @@ chmod 440 /etc/security/keytabs/view-principal.headless.keytab
 #### Step-3: Configure *proxyuser* for created principal
 Add the following configurations in *Custom core-site* section of *HDFS* service.
 
-* hadoop.proxyuser.ambari.groups = *
-* hadoop.proxyuser.ambari.hosts = `view-server-host`
+* hadoop.proxyuser.`view-principal`.groups = *
+* hadoop.proxyuser.`view-principal`.hosts = `view-server-host`
 
 This will in-turn show up in *core-site.xml* as
 
