@@ -27,6 +27,12 @@ App.ConfigHistoryFlowView = Em.View.extend({
   startIndex: 0,
   showLeftArrow: false,
   showRightArrow: false,
+  leftArrowTooltip: function () {
+    return this.get('showLeftArrow') ? Em.I18n.t('services.service.config.configHistory.leftArrow.tooltip') : null;
+  }.property('showLeftArrow'),
+  rightArrowTooltip: function () {
+    return this.get('showRightArrow') ? Em.I18n.t('services.service.config.configHistory.rightArrow.tooltip') : null;
+  }.property('showRightArrow'),
   VERSIONS_IN_FLOW: 6,
   VERSIONS_IN_DROPDOWN: 6,
   /**
@@ -126,7 +132,7 @@ App.ConfigHistoryFlowView = Em.View.extend({
    * by default 6 is number of items in short list
    */
   dropDownList: function () {
-    var serviceVersions = this.get('serviceVersions').slice(0).reverse();
+    var serviceVersions = this.get('serviceVersions').slice(0);
     if (this.get('showFullList')) {
       return serviceVersions;
     }

@@ -1421,8 +1421,8 @@ Em.I18n.translations = {
     'on the Ambari Server host to make the JDBC driver available and to enable testing the database connection.',
 
   'services.service.config.configHistory.configGroup': 'Config Group',
-  'services.service.config.configHistory.leftArrow.tooltip': 'Show earlier versions',
-  'services.service.config.configHistory.rightArrow.tooltip': 'Show later versions',
+  'services.service.config.configHistory.rightArrow.tooltip': 'Show earlier versions',
+  'services.service.config.configHistory.leftArrow.tooltip': 'Show later versions',
   'services.service.config.configHistory.dismissIcon.tooltip': 'Dismiss',
   'services.service.config.configHistory.makeCurrent.message': 'Created from service config version {0}',
   'services.service.config.configHistory.comparing': 'Comparing',
