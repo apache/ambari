@@ -101,11 +101,13 @@ App.MainServiceItemView = Em.View.extend({
         disabled: false
       },
       DOWNLOAD_CLIENT_CONFIGS: {
-        action: 'downloadClientConfigs',
+        action: this.get('controller.isSeveralClients') ? '' : 'downloadClientConfigs',
         label: Em.I18n.t('services.service.actions.downloadClientConfigs'),
         cssClass: 'icon-download-alt',
         isHidden: !(App.get('supports.downloadClientConfigs') && this.get('controller.content.hostComponents').findProperty('isClient')),
-        disabled: false
+        disabled: false,
+        hasSubmenu: this.get('controller.isSeveralClients'),
+        submenuOptions: this.get('controller.clientComponents')
       }
     }
   },

@@ -55,6 +55,7 @@ Em.I18n.translations = {
   },
 
   'error.config_is_empty': 'Config <strong>{0}</strong> should not be empty',
+  'error.config_is_empty_2': 'Config <strong>{0}</strong> should not be empty, because <strong>{1}</strong> is set to "true"',
 
   'popup.confirmation.commonHeader': 'Confirmation',
   'question.sure':'Are you sure?',

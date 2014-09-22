@@ -31,6 +31,11 @@ def oozie(is_server=False # TODO: see if see can remove this
                          owner=params.oozie_user,
                          mode=params.oozie_hdfs_user_mode
     )
+  Directory( params.conf_dir,
+             recursive = True,
+             owner = params.oozie_user,
+             group = params.user_group
+  )
   XmlConfig( "oozie-site.xml",
     conf_dir = params.conf_dir,
     configurations = params.config['configurations']['oozie-site'],
@@ -39,11 +44,6 @@ def oozie(is_server=False # TODO: see if see can remove this
     group = params.user_group,
     mode = 0664
   )
-  Directory( params.conf_dir,
-    owner = params.oozie_user,
-    group = params.user_group
-  )
-  
   File(format("{conf_dir}/oozie-env.sh"),
     owner=params.oozie_user,
     content=InlineTemplate(params.oozie_env_sh_template)

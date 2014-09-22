@@ -34,6 +34,10 @@ def falcon(type, action = None):
     Directory(params.falcon_home,
               owner=params.falcon_user
     )
+    Directory(params.falcon_conf_dir,
+              owner=params.falcon_user,
+              recursive=True
+    )
     File(params.falcon_conf_dir + '/falcon-env.sh',
          content=InlineTemplate(params.falcon_env_sh_template)
     )

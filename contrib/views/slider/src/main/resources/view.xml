@@ -53,6 +53,31 @@ limitations under the License. Kerberos, LDAP, Custom. Binary/Htt
     <description>Slider user</description>
     <required>false</required>
   </parameter>
+  <parameter>
+    <name>slider.security.enabled</name>
+    <description>Indicates whether cluster has been secured or not.</description>
+    <required>true</required>
+  </parameter>
+  <parameter>
+    <name>yarn.resourcemanager.principal</name>
+    <description>Kerberos principal used to access YARN ResourceManager. For example: rm/_HOST@EXAMPLE.COM</description>
+    <required>optional</required>
+  </parameter>
+  <parameter>
+    <name>dfs.namenode.kerberos.principal</name>
+    <description>Kerberos principal used to access YARN ResourceManager. For example: nn/_HOST@EXAMPLE.COM</description>
+    <required>optional</required>
+  </parameter>
+  <parameter>
+    <name>view.kerberos.principal</name>
+    <description>Kerberos principal associated with this view. For example: ambari/_HOST@EXAMPLE.COM</description>
+    <required>optional</required>
+  </parameter>
+  <parameter>
+    <name>view.kerberos.principal.keytab</name>
+    <description>Path to the Kerberos principal keytab. For example: /etc/security/keytabs/ambari.headless.keytab</description>
+    <required>optional</required>
+  </parameter>
   <resource>
     <name>status</name>
     <service-class>org.apache.ambari.view.slider.rest.ViewStatusResource</service-class>

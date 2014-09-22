@@ -341,16 +341,39 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
       if (currentHostsIndexes == null) {
         continue;
       }
-      for (String hostIndex : currentHostsIndexes) {
-        try {
-          hosts.add(allHosts[Integer.parseInt(hostIndex)]);
-        } catch (ArrayIndexOutOfBoundsException ex) {
-          throw new SystemException("Failed to fill cluster host info  ", ex);
+      for (String hostIndexRange : currentHostsIndexes) {
+        for (Integer hostIndex : rangeToSet(hostIndexRange)) {
+          try {
+            hosts.add(allHosts[hostIndex]);
+          } catch (ArrayIndexOutOfBoundsException ex) {
+            throw new SystemException("Failed to fill cluster host info  ", ex);
+          }
         }
       }
       clusterHostInfo.put(key, hosts);
     }
     return clusterHostInfo;
+  }
+
+  private static Set<Integer> rangeToSet(String range) {
+    Set<Integer> indexSet = new HashSet<Integer>();
+    int startIndex;
+    int endIndex;
+    if (range.contains("-")) {
+      startIndex = Integer.parseInt(range.split("-")[0]);
+      endIndex = Integer.parseInt(range.split("-")[1]);
+    }
+    else if (range.contains(",")) {
+      startIndex = Integer.parseInt(range.split(",")[0]);
+      endIndex = Integer.parseInt(range.split(",")[1]);
+    }
+    else {
+      startIndex = endIndex = Integer.parseInt(range);
+    }
+    for (int i=startIndex; i<=endIndex; i++) {
+      indexSet.add(i);
+    }
+    return  indexSet;
   }
 
   @Override

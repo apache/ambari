@@ -78,6 +78,8 @@ public class ConfigGroupResourceProvider extends
       .getPropertyId("ConfigGroup", "service_config_version_note");
   protected static final String CONFIGGROUP_HOSTNAME_PROPERTY_ID =
     PropertyHelper.getPropertyId(null, "host_name");
+  protected static final String CONFIGGROUP_HOSTS_HOSTNAME_PROPERTY_ID =
+    PropertyHelper.getPropertyId("ConfigGroup", "hosts/host_name");
   public static final String CONFIGGROUP_HOSTS_PROPERTY_ID = PropertyHelper
     .getPropertyId("ConfigGroup", "hosts");
   public static final String CONFIGGROUP_CONFIGS_PROPERTY_ID =
@@ -137,6 +139,10 @@ public class ConfigGroupResourceProvider extends
 
     Set<String>   requestedIds = getRequestPropertyIds(request, predicate);
     Set<Resource> resources    = new HashSet<Resource>();
+
+    if (requestedIds.contains(CONFIGGROUP_HOSTS_HOSTNAME_PROPERTY_ID)) {
+      requestedIds.add(CONFIGGROUP_HOSTS_PROPERTY_ID);
+    }
 
     for (ConfigGroupResponse response : responses) {
       Resource resource = new ResourceImpl(Resource.Type.ConfigGroup);
@@ -618,14 +624,19 @@ public class ConfigGroupResourceProvider extends
     Map<String, Config> configurations = new HashMap<String, Config>();
     Set<String> hosts = new HashSet<String>();
 
+    String hostnameKey = CONFIGGROUP_HOSTNAME_PROPERTY_ID;
     Object hostObj = properties.get(CONFIGGROUP_HOSTS_PROPERTY_ID);
+    if (hostObj == null) {
+      hostnameKey = CONFIGGROUP_HOSTS_HOSTNAME_PROPERTY_ID;
+      hostObj = properties.get(CONFIGGROUP_HOSTS_HOSTNAME_PROPERTY_ID);
+    }
     if (hostObj != null) {
       if (hostObj instanceof HashSet<?>) {
         try {
           Set<Map<String, String>> hostsSet = (Set<Map<String, String>>) hostObj;
           for (Map<String, String> hostMap : hostsSet) {
-            if (hostMap.containsKey(CONFIGGROUP_HOSTNAME_PROPERTY_ID)) {
-              String hostname = hostMap.get(CONFIGGROUP_HOSTNAME_PROPERTY_ID);
+            if (hostMap.containsKey(hostnameKey)) {
+              String hostname = hostMap.get(hostnameKey);
               hosts.add(hostname);
             }
           }

@@ -232,11 +232,16 @@ public class ClientConfigResourceProviderTest {
     PowerMock.mockStaticPartial(StageUtils.class, "getClusterHostInfo");
     Map<String, Set<String>> clusterHostInfo = new HashMap<String, Set<String>>();
     Set<String> all_hosts = new HashSet<String>(Arrays.asList("Host100","Host101","Host102"));
-    Set<String> some_hosts = new HashSet<String>(Arrays.asList("0","2"));
+    Set<String> some_hosts = new HashSet<String>(Arrays.asList("0-1","2"));
+    Set<String> ohter_hosts = new HashSet<String>(Arrays.asList("0,1"));
     Set<String> clusterHostTypes = new HashSet<String>(Arrays.asList("nm_hosts", "hs_host",
             "namenode_host", "rm_host", "snamenode_host", "slave_hosts", "zookeeper_hosts"));
     for (String hostTypes: clusterHostTypes) {
-      clusterHostInfo.put(hostTypes,some_hosts);
+      if (hostTypes.equals("slave_hosts")) {
+        clusterHostInfo.put(hostTypes, ohter_hosts);
+      } else {
+        clusterHostInfo.put(hostTypes, some_hosts);
+      }
     }
     Map<String, Host> stringHostMap = new HashMap<String, Host>();
     stringHostMap.put(hostName, host);

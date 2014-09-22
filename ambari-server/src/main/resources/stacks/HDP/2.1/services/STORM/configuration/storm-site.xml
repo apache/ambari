@@ -118,7 +118,7 @@
   </property>
   <property>
     <name>nimbus.childopts</name>
-    <value>-Xmx1024m -Djava.security.auth.login.config=/etc/storm/conf/storm_jaas.conf -javaagent:/usr/lib/storm/contrib/storm-jmxetric/lib/jmxetric-1.0.4.jar=host=localhost,port=8649,wireformat31x=true,mode=multicast,config=/usr/lib/storm/contrib/storm-jmxetric/conf/jmxetric-conf.xml,process=Nimbus_JVM</value>
+    <value>-Xmx1024m -javaagent:/usr/lib/storm/contrib/storm-jmxetric/lib/jmxetric-1.0.4.jar=host=localhost,port=8649,wireformat31x=true,mode=multicast,config=/usr/lib/storm/contrib/storm-jmxetric/conf/jmxetric-conf.xml,process=Nimbus_JVM</value>
     <description>This parameter is used by the storm-deploy project to configure the jvm options for the nimbus daemon.</description>
   </property>
   <property>
@@ -188,7 +188,7 @@
   </property>
   <property>
     <name>ui.childopts</name>
-    <value>-Xmx768m -Djava.security.auth.login.config=/etc/storm/conf/storm_jaas.conf</value>
+    <value>-Xmx768m</value>
     <description>Childopts for Storm UI Java process.</description>
   </property>
   <property>
@@ -264,7 +264,7 @@
   </property>
   <property>
     <name>supervisor.childopts</name>
-    <value>-Xmx256m -Djava.security.auth.login.config=/etc/storm/conf/storm_jaas.conf -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.port=56431 -javaagent:/usr/lib/storm/contrib/storm-jmxetric/lib/jmxetric-1.0.4.jar=host=localhost,port=8650,wireformat31x=true,mode=multicast,config=/usr/lib/storm/contrib/storm-jmxetric/conf/jmxetric-conf.xml,process=Supervisor_JVM</value>
+    <value>-Xmx256m -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.port=56431 -javaagent:/usr/lib/storm/contrib/storm-jmxetric/lib/jmxetric-1.0.4.jar=host=localhost,port=8650,wireformat31x=true,mode=multicast,config=/usr/lib/storm/contrib/storm-jmxetric/conf/jmxetric-conf.xml,process=Supervisor_JVM</value>
     <description>This parameter is used by the storm-deploy project to configure the jvm options for the supervisor daemon.</description>
   </property>
   <property>

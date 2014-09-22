@@ -71,6 +71,10 @@ class TestFalconServer(RMFTestCase):
     self.assertResourceCalled('Directory', '/usr/lib/falcon',
                               owner = 'falcon',
                               )
+    self.assertResourceCalled('Directory', '/etc/falcon/conf',
+                              owner = 'falcon',
+                              recursive = True
+    )
     self.assertResourceCalled('File', '/etc/falcon/conf/falcon-env.sh',
                               content = InlineTemplate(self.getConfig()['configurations']['falcon-env']['content']),
                               )
