@@ -432,7 +432,7 @@ public class ConfigGroupResourceProviderTest {
     assertEquals("t3", resources.iterator().next().getPropertyValue
       (ConfigGroupResourceProvider.CONFIGGROUP_TAG_PROPERTY_ID));
 
-    // Read by hostname
+    // Read by hostname (hosts=h1)
     predicate = new PredicateBuilder().property(ConfigGroupResourceProvider
       .CONFIGGROUP_CLUSTER_NAME_PROPERTY_ID).equals("Cluster100").and()
       .property(ConfigGroupResourceProvider.CONFIGGROUP_HOSTS_PROPERTY_ID)
@@ -448,13 +448,46 @@ public class ConfigGroupResourceProviderTest {
     assertEquals("h1", hostSet.iterator().next().get
       (ConfigGroupResourceProvider.CONFIGGROUP_HOSTNAME_PROPERTY_ID));
 
+    // Read by hostname (hosts/host_name=h1)
+    predicate = new PredicateBuilder().property(ConfigGroupResourceProvider
+      .CONFIGGROUP_CLUSTER_NAME_PROPERTY_ID).equals("Cluster100").and()
+      .property(ConfigGroupResourceProvider.CONFIGGROUP_HOSTS_HOSTNAME_PROPERTY_ID)
+      .equals("h1").toPredicate();
 
-    // Read by tag and hostname - Positive
+    resources = resourceProvider.getResources(request, predicate);
+
+    assertEquals(1, resources.size());
+    hostSet = (Set<Map<String, Object>>)
+      resources.iterator().next()
+        .getPropertyValue(ConfigGroupResourceProvider
+          .CONFIGGROUP_HOSTS_PROPERTY_ID);
+    assertEquals("h1", hostSet.iterator().next().get
+      (ConfigGroupResourceProvider.CONFIGGROUP_HOSTNAME_PROPERTY_ID));
+
+
+    // Read by tag and hostname (hosts=h1) - Positive
     predicate = new PredicateBuilder().property(ConfigGroupResourceProvider
       .CONFIGGROUP_CLUSTER_NAME_PROPERTY_ID).equals("Cluster100").and()
       .property(ConfigGroupResourceProvider.CONFIGGROUP_TAG_PROPERTY_ID)
       .equals("t4").and().property(ConfigGroupResourceProvider
         .CONFIGGROUP_HOSTS_PROPERTY_ID).equals("h1").toPredicate();
+
+    resources = resourceProvider.getResources(request, predicate);
+
+    assertEquals(1, resources.size());
+    hostSet = (Set<Map<String, Object>>)
+      resources.iterator().next()
+        .getPropertyValue(ConfigGroupResourceProvider
+          .CONFIGGROUP_HOSTS_PROPERTY_ID);
+    assertEquals("h1", hostSet.iterator().next().get
+      (ConfigGroupResourceProvider.CONFIGGROUP_HOSTNAME_PROPERTY_ID));
+
+    // Read by tag and hostname (hosts/host_name=h1) - Positive
+    predicate = new PredicateBuilder().property(ConfigGroupResourceProvider
+      .CONFIGGROUP_CLUSTER_NAME_PROPERTY_ID).equals("Cluster100").and()
+      .property(ConfigGroupResourceProvider.CONFIGGROUP_TAG_PROPERTY_ID)
+      .equals("t4").and().property(ConfigGroupResourceProvider
+        .CONFIGGROUP_HOSTS_HOSTNAME_PROPERTY_ID).equals("h1").toPredicate();
 
     resources = resourceProvider.getResources(request, predicate);
 
