@@ -127,8 +127,6 @@ SERVER_API_HOST = '127.0.0.1'
 SERVER_API_PROTOCOL = 'http'
 SERVER_API_PORT = '8080'
 SERVER_API_LDAP_URL = '/api/v1/controllers/ldap'
-SERVER_API_LOGIN = 'admin'
-SERVER_API_PASS = 'admin'
 
 # terminal styles
 BOLD_ON = '\033[1m'
@@ -3048,8 +3046,14 @@ def sync_ldap():
     err = "LDAP is not configured. Run 'ambari-server setup-ldap' first."
     raise FatalException(1, err)
 
+  admin_login = get_validated_string_input(prompt="Enter login: ", default=None,
+                                           pattern=None, description=None,
+                                           is_pass=False, allowEmpty=False)
+  admin_password = get_validated_string_input(prompt="Enter password: ", default=None,
+                                              pattern=None, description=None,
+                                              is_pass=True, allowEmpty=False)
   url = '{0}://{1}:{2!s}{3}'.format(SERVER_API_PROTOCOL, SERVER_API_HOST, SERVER_API_PORT, SERVER_API_LDAP_URL)
-  admin_auth = base64.encodestring('%s:%s' % (SERVER_API_LOGIN, SERVER_API_PASS)).replace('\n', '')
+  admin_auth = base64.encodestring('%s:%s' % (admin_login, admin_password)).replace('\n', '')
   request = urllib2.Request(url)
   request.add_header('Authorization', 'Basic %s' % admin_auth)
   request.add_header('X-Requested-By', 'ambari')
