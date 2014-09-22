@@ -127,6 +127,7 @@ App.MainConfigHistoryController = Em.ArrayController.extend(App.TableServerMixin
           time = curTime - 2592000000;
           break;
         case 'Custom':
+        case 'Custom2':
           customDatePopup.showCustomDatePopup(this, this.get('actualValues'));
           break;
         case 'Any':

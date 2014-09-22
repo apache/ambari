@@ -149,8 +149,14 @@ App.MainConfigHistoryView = App.TableView.extend({
 
   modifiedFilterView: filters.createSelectView({
     column: 3,
-    fieldType: 'filter-input-width',
-    content: ['Any', 'Past 1 hour',  'Past 1 Day', 'Past 2 Days', 'Past 7 Days', 'Past 14 Days', 'Past 30 Days', 'Custom'],
+    triggeredOnSameValue: [
+      {
+        values: ['Custom', 'Custom2'],
+        displayAs: 'Custom'
+      }
+    ],
+    fieldType: 'filter-input-width,modified-filter',
+    content: ['Any', 'Past 1 hour',  'Past 1 Day', 'Past 2 Days', 'Past 7 Days', 'Past 14 Days', 'Past 30 Days', 'Custom', 'Custom2'],
     valueBinding: "controller.modifiedFilter.optionValue",
     startTimeBinding: "controller.modifiedFilter.actualValues.startTime",
     endTimeBinding: "controller.modifiedFilter.actualValues.endTime",
