@@ -30,11 +30,13 @@ if rpm_version is not None:
   sqoop_lib = '/usr/hdp/current/sqoop/lib'
   hbase_home = '/usr/hdp/current/hbase'
   hive_home = '/usr/hdp/current/hive'
+  sqoop_bin_dir = '/usr/hdp/current/sqoop/bin/'
 else:
   sqoop_conf_dir = "/usr/lib/sqoop/conf"
   sqoop_lib = "/usr/lib/sqoop/lib"
   hbase_home = "/usr"
   hive_home = "/usr"
+  sqoop_bin_dir = "/usr/bin"
 
 zoo_conf_dir = "/etc/zookeeper"
 security_enabled = config['configurations']['cluster-env']['security_enabled']
