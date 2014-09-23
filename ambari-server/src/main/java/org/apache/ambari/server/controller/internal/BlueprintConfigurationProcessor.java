@@ -19,12 +19,14 @@
 package org.apache.ambari.server.controller.internal;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -73,6 +75,14 @@ public class BlueprintConfigurationProcessor {
    * Compiled regex for hostgroup token with port information.
    */
   private static Pattern HOSTGROUP_PORT_REGEX = Pattern.compile("%HOSTGROUP::(\\w+|\\d+)%:?(\\d+)?");
+
+  /**
+   * Statically-defined set of properties that can support using a nameservice name
+   *   in the configuration, rather than just a host name.
+   */
+  private static Set<String> configPropertiesWithHASupport =
+    new HashSet<String>(Arrays.asList("fs.defaultFS", "hbase.rootdir"));
+
 
   /**
    * Configuration properties to be updated
@@ -290,12 +300,28 @@ public class BlueprintConfigurationProcessor {
               break;
             }
           }
-          if (! matchedHost) {
+          // remove properties that do not contain hostnames,
+          // except in the case of HA-related properties, that
+          // can contain nameservice references instead of hostnames (Fix for Bug AMBARI-7458).
+          if (! matchedHost && ! isNameServiceProperty(propertyName)) {
             typeProperties.remove(propertyName);
           }
         }
       }
     }
+  }
+
+  /**
+   * Determines if a given property name's value can include
+   *   nameservice references instead of host names.
+   *
+   * @param propertyName name of the property
+   *
+   * @return true if this property can support using nameservice names
+   *         false if this property cannot support using nameservice names
+   */
+  private static boolean isNameServiceProperty(String propertyName) {
+    return configPropertiesWithHASupport.contains(propertyName);
   }
 
   /**

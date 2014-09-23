@@ -1135,8 +1135,15 @@ public class BlueprintConfigurationProcessorTest {
 
     Map<String, String> hdfsSiteProperties =
       new HashMap<String, String>();
+    Map<String, String> coreSiteProperties =
+      new HashMap<String, String>();
+    Map<String, String> hbaseSiteProperties =
+      new HashMap<String, String>();
+
 
     configProperties.put("hdfs-site", hdfsSiteProperties);
+    configProperties.put("core-site", coreSiteProperties);
+    configProperties.put("hbase-site", hbaseSiteProperties);
 
     // setup hdfs config for test
 
@@ -1151,7 +1158,6 @@ public class BlueprintConfigurationProcessorTest {
     hdfsSiteProperties.put("dfs.namenode.http-address." + expectedNameService + "." + expectedNodeTwo, expectedHostName + ":" + expectedPortNum);
     hdfsSiteProperties.put("dfs.namenode.rpc-address." + expectedNameService + "." + expectedNodeOne, expectedHostName + ":" + expectedPortNum);
     hdfsSiteProperties.put("dfs.namenode.rpc-address." + expectedNameService + "." + expectedNodeTwo, expectedHostName + ":" + expectedPortNum);
-
 
     BlueprintConfigurationProcessor configProcessor =
       new BlueprintConfigurationProcessor(configProperties);
@@ -1173,6 +1179,52 @@ public class BlueprintConfigurationProcessorTest {
       createExportedAddress(expectedPortNum, expectedHostGroupName), hdfsSiteProperties.get("dfs.namenode.rpc-address." + expectedNameService + "." + expectedNodeOne));
     assertEquals("HTTPS address HA property not properly exported",
       createExportedAddress(expectedPortNum, expectedHostGroupName), hdfsSiteProperties.get("dfs.namenode.rpc-address." + expectedNameService + "." + expectedNodeTwo));
+
+    mockSupport.verifyAll();
+
+  }
+
+  @Test
+  public void testDoNameNodeHighAvailabilityUpdateWithHAEnabledNameServicePropertiesIncluded() throws Exception {
+    final String expectedNameService = "mynameservice";
+    final String expectedHostName = "c6401.apache.ambari.org";
+
+    EasyMockSupport mockSupport = new EasyMockSupport();
+
+    HostGroup mockHostGroupOne = mockSupport.createMock(HostGroup.class);
+
+    expect(mockHostGroupOne.getHostInfo()).andReturn(Arrays.asList(expectedHostName, "serverTwo")).atLeastOnce();
+
+    mockSupport.replayAll();
+
+    Map<String, Map<String, String>> configProperties =
+      new HashMap<String, Map<String, String>>();
+
+    Map<String, String> coreSiteProperties =
+      new HashMap<String, String>();
+    Map<String, String> hbaseSiteProperties =
+      new HashMap<String, String>();
+
+
+    configProperties.put("core-site", coreSiteProperties);
+    configProperties.put("hbase-site", hbaseSiteProperties);
+
+    // configure fs.defaultFS to include a nameservice name, rather than a host name
+    coreSiteProperties.put("fs.defaultFS", "hdfs://" + expectedNameService);
+    // configure hbase.rootdir to include a nameservice name, rather than a host name
+    hbaseSiteProperties.put("hbase.rootdir", "hdfs://" + expectedNameService + "/apps/hbase/data");
+
+    BlueprintConfigurationProcessor configProcessor =
+      new BlueprintConfigurationProcessor(configProperties);
+
+    // call top-level export method, which will call the HA-specific method if HA is enabled
+    configProcessor.doUpdateForBlueprintExport(Arrays.asList(mockHostGroupOne));
+
+    // verify that any properties that include nameservices are not removed from the exported blueprint's configuration
+    assertEquals("Property containing an HA nameservice (fs.defaultFS), was not correctly exported by the processor",
+      "hdfs://" + expectedNameService, coreSiteProperties.get("fs.defaultFS"));
+    assertEquals("Property containing an HA nameservice (hbase.rootdir), was not correctly exported by the processor",
+      "hdfs://" + expectedNameService + "/apps/hbase/data", hbaseSiteProperties.get("hbase.rootdir"));
 
     mockSupport.verifyAll();
 
