@@ -82,7 +82,6 @@ import com.google.inject.Singleton;
 
 @Singleton
 public class SliderAppsViewControllerImpl implements SliderAppsViewController {
-
   private static final Logger logger = Logger
       .getLogger(SliderAppsViewControllerImpl.class);
   private static String METRICS_PREFIX = "metrics/";
@@ -175,19 +174,21 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
   }
   
   @Override
-  public SliderApp getSliderApp(String applicationId, final Set<String> properties)
-      throws YarnException, IOException, InterruptedException {
-    final ApplicationId appId = getApplicationId(applicationId);
-    if (appId != null) {
-      return invokeSliderClientRunnable(new SliderClientContextRunnable<SliderApp>() {
-        @Override
-        public SliderApp run(SliderClient sliderClient) throws YarnException, IOException {
-          ApplicationReport yarnApp = sliderClient.getApplicationReport(appId);
-          return createSliderAppObject(yarnApp, properties, sliderClient);
+  public SliderApp getSliderApp(final String applicationId, final Set<String> properties)
+     throws YarnException, IOException, InterruptedException {
+    return invokeSliderClientRunnable(new SliderClientContextRunnable<SliderApp>() {
+      @Override
+      public SliderApp run(SliderClient sliderClient) throws YarnException, IOException {
+        if (applicationId!=null) {
+          ApplicationId appId = getApplicationId(applicationId);
+          if (appId != null) {
+            ApplicationReport yarnApp = sliderClient.getApplicationReport(appId);
+            return createSliderAppObject(yarnApp, properties, sliderClient);
+          }
         }
-      });
-    }
-    return null;
+        return null;
+      }
+    });
   }
 
   private SliderApp createSliderAppObject(ApplicationReport yarnApp,
