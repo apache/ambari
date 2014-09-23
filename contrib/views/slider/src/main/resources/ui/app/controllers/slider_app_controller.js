@@ -48,6 +48,7 @@ App.SliderAppController = Ember.ObjectController.extend(App.AjaxErrorHandler, {
    */
   availableActions: function() {
     var actions = Em.A([]),
+      advanced = Em.A([]),
       status = this.get('model.status');
     if ('RUNNING' === status) {
       actions.pushObject({
@@ -64,27 +65,76 @@ App.SliderAppController = Ember.ObjectController.extend(App.AjaxErrorHandler, {
       });
     }
     if ('FROZEN' === status) {
-      actions.pushObjects([
-        {
-          title: 'Start',
-          action: 'thaw',
-          confirm: false
-        },
-        {
-          title: 'Destroy',
-          action: 'destroy',
-          confirm: true
-        }
-      ]);
+      actions.pushObject({
+        title: 'Start',
+        action: 'thaw',
+        confirm: false
+      });
+      advanced.pushObject({
+        title: 'Destroy',
+        action: 'destroy',
+        customConfirm: 'confirmDestroy'
+      });
+    }
+    if (advanced.length) {
+      actions.pushObject({
+        title: 'Advanced',
+        submenu: advanced
+      });
     }
     return actions;
   }.property('model.status'),
+
+  /**
+   * Checkbox in the destroy-modal
+   * If true - enable "Destroy"-button
+   * @type {bool}
+   */
+  confirmChecked: false,
+
+  /**
+   * Inverted <code>confirmChecked</code>-value
+   * Used in <code>App.DestroyAppPopupFooterView</code> to enable "Destroy"-button
+   * @type {bool}
+   */
+  destroyButtonEnabled: Ember.computed.not('confirmChecked'),
 
   /**
    * Method's name that should be called for model
    * @type {string}
    */
   currentAction: null,
+
+  /**
+   * Grouped components by name
+   * @type {{name: string, count: number}[]}
+   */
+  groupedComponents: [],
+
+  /**
+   * Does new instance counts are invalid
+   * @type {bool}
+   */
+  groupedComponentsHaveErrors: false,
+
+  /**
+   * Custom popup for "Destroy"-action
+   * @method destroyConfirm
+   */
+  confirmDestroy: function() {
+    var modalComponent = this.container.lookup('component-lookup:main').
+      lookupFactory('bs-modal', this.get('container')).create();
+    modalComponent.setProperties({
+      name: 'confirm-modal',
+      title: Ember.I18n.t('sliderApp.destroy.confirm.title'),
+      manual: true,
+      targetObject: this,
+      body: App.DestroyAppPopupView,
+      controller: this,
+      footerViews: [App.DestroyAppPopupFooterView]
+    });
+    Bootstrap.ModalManager.register('confirm-modal', modalComponent);
+  },
 
   /**
    * Try call controller's method with name stored in <code>currentAction</code>
@@ -149,21 +199,6 @@ App.SliderAppController = Ember.ObjectController.extend(App.AjaxErrorHandler, {
   },
 
   /**
-   * Buttons for Flex modal popup
-   * @type {Em.Object[]}
-   */
-  flexModalButtons: [
-    Ember.Object.create({title: Em.I18n.t('common.cancel'), clicked:"closeFlex", dismiss: 'modal'}),
-    Ember.Object.create({title: Em.I18n.t('common.send'), clicked:"submitFlex", type:'success'})
-  ],
-
-  /**
-   * Grouped components by name
-   * @type {{name: string, count: number}[]}
-   */
-  groupedComponents: [],
-
-  /**
    * Group components by <code>componentName</code> and save them to <code>groupedComponents</code>
    * @method groupComponents
    */
@@ -184,12 +219,6 @@ App.SliderAppController = Ember.ObjectController.extend(App.AjaxErrorHandler, {
     });
     this.set('groupedComponents', groupedComponents);
   },
-
-  /**
-   * Does new instance counts are invalid
-   * @type {bool}
-   */
-  groupedComponentsHaveErrors: false,
 
   /**
    * Validate new instance counts for components (should be integer and >= 0)
@@ -222,7 +251,10 @@ App.SliderAppController = Ember.ObjectController.extend(App.AjaxErrorHandler, {
       'flex-popup',
       'Flex',
       'slider_app/flex_popup',
-      this.get('flexModalButtons'),
+      Em.A([
+        Ember.Object.create({title: Em.I18n.t('common.cancel'), clicked:"closeFlex", dismiss: 'modal'}),
+        Ember.Object.create({title: Em.I18n.t('common.send'), clicked:"submitFlex", type:'success'})
+      ]),
       this
     );
   },
@@ -271,7 +303,7 @@ App.SliderAppController = Ember.ObjectController.extend(App.AjaxErrorHandler, {
   },
 
   /**
-   * Complate-callback for "destroy app"-request
+   * Complete-callback for "destroy app"-request
    * @method destroyCompleteCallback
    */
   destroyCompleteCallback: function() {
@@ -322,6 +354,7 @@ App.SliderAppController = Ember.ObjectController.extend(App.AjaxErrorHandler, {
      */
     modalConfirmed: function() {
       this.tryDoAction();
+      this.set('confirmChecked', false);
       return Bootstrap.ModalManager.close('confirm-modal');
     },
 
@@ -331,6 +364,7 @@ App.SliderAppController = Ember.ObjectController.extend(App.AjaxErrorHandler, {
      * @method modalCanceled
      */
     modalCanceled: function() {
+      this.set('confirmChecked', false);
       return Bootstrap.ModalManager.close('confirm-modal');
     },
 
@@ -340,24 +374,31 @@ App.SliderAppController = Ember.ObjectController.extend(App.AjaxErrorHandler, {
      * @method openModal
      */
     openModal: function(option) {
+      if (!option.action) return false;
       this.set('currentAction', option.action);
-      if (option.confirm) {
-        Bootstrap.ModalManager.open(
-          "confirm-modal",
-          Ember.I18n.t('common.confirmation'),
-          Ember.View.extend({
-            template: Ember.Handlebars.compile('{{t question.sure}}')
-          }),
-          [
-            Ember.Object.create({title: Em.I18n.t('common.cancel'), clicked:"modalCanceled", dismiss: 'modal'}),
-            Ember.Object.create({title: Em.I18n.t('ok'), clicked:"modalConfirmed", type:'success'})
-          ],
-          this
-        );
+      if (!Em.isNone(option.customConfirm) && Ember.typeOf(this.get(option.customConfirm)) === 'function') {
+        this[option.customConfirm]();
       }
       else {
-        this.tryDoAction();
+        if (option.confirm) {
+          Bootstrap.ModalManager.open(
+            "confirm-modal",
+            Ember.I18n.t('common.confirmation'),
+            Ember.View.extend({
+              template: Ember.Handlebars.compile('{{t question.sure}}')
+            }),
+            [
+              Ember.Object.create({title: Em.I18n.t('common.cancel'), clicked:"modalCanceled", dismiss: 'modal'}),
+              Ember.Object.create({title: Em.I18n.t('ok'), clicked:"modalConfirmed", type:'success'})
+            ],
+            this
+          );
+        }
+        else {
+          this.tryDoAction();
+        }
       }
+      return true;
     }
   }
 

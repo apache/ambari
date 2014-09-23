@@ -31,6 +31,7 @@ Em.I18n.translations = {
     'name': "Name",
     'back': "Back",
     'delete': 'Delete',
+    'destroy': 'Destroy',
     'value': "Value",
     'next': "Next",
     'quickLinks': "Quick Links",
@@ -96,6 +97,10 @@ Em.I18n.translations = {
   'sliderApp.alerts.lastCheck': 'Last Checked {0}',
   'sliderApp.alerts.brLastCheck': "\nLast Checked {0}",
   'sliderApp.alerts.occurredOn': 'Occurred on {0}, {1}',
+
+  'sliderApp.destroy.confirm.title': 'Destroy Slider App',
+  'sliderApp.destroy.confirm.body': 'Destroying a Slider App could result in data loss if not property performed. Make sure you have backed up data handled by the application.',
+  'sliderApp.destroy.confirm.body2': 'Are you sure you want to destroy Slider App <em>{0}</em>?',
 
   'wizard.name': 'Create App',
   'wizard.step1.name': 'Select Type',

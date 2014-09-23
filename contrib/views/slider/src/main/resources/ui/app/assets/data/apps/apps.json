@@ -12,7 +12,7 @@
       "metrics" : null,
       "name" : "h4",
       "startTime" : 1409348496653,
-      "state" : "RUNNING",
+      "state" : "FROZEN",
       "type" : "hbase",
       "user" : "yarn",
       "version" : "1.0.0",
