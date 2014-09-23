@@ -99,7 +99,7 @@ public class SliderAppMasterClient extends BaseHttpClient {
             quickLinks.put("JMX", entry.getValue().getAsString());
           } else if ("org.apache.slider.monitor".equals(entry.getKey())) {
             quickLinks.put("UI", entry.getValue().getAsString());
-          } else if ("app.metrics".equals(entry.getKey())) {
+          } else if ("org.apache.slider.metrics".equals(entry.getKey())) {
             quickLinks.put("Metrics", entry.getValue().getAsString());
           } else {
             quickLinks.put(entry.getKey(), entry.getValue().getAsString());

@@ -34,6 +34,11 @@ App.SliderAppComponent = DS.Model.extend({
   componentName: DS.attr('string'),
 
   /**
+   * @type {string}
+   */
+  containerId: DS.attr('string'),
+
+  /**
    * @type {App.SliderApp}
    */
   appId: DS.belongsTo('sliderApp'),
@@ -44,7 +49,16 @@ App.SliderAppComponent = DS.Model.extend({
    */
   isRunning: function() {
     return this.get('status') === 'Running';
-  }.property('status')
+  }.property('status'),
+
+  url: function() {
+    var host = this.get('host');
+    var containerId = this.get('containerId');
+    if (host != null && containerId != null) {
+      return "http://" + this.get('host') + ":8042/node/container/" + this.get('containerId');
+    }
+    return null;
+  }.property('host', 'containerId')
 
 });
 

@@ -92,6 +92,7 @@ App.SliderAppsMapper = App.Mapper.createWithMixins(App.RunPeriodically, {
             id: appId + component.componentName + i,
             status: activeContainers[i] ? "Running" : "Stopped",
             host: activeContainers[i] ? component.activeContainers[activeContainers[i]].host : "",
+            containerId: activeContainers[i] ? component.activeContainers[activeContainers[i]].name : "",
             componentName: component.componentName,
             appId: appId
           })
@@ -135,8 +136,12 @@ App.SliderAppsMapper = App.Mapper.createWithMixins(App.RunPeriodically, {
       yarnAppId += appId.substring(index + 1);
     }
     var yarnUI = "http://"+window.location.hostname+":8088";
-    if (App.viewUrls) {
-      yarnUI = App.viewUrls['yarn.resourcemanager.webapp.address'];
+    var viewConfigs = App.SliderApp.store.all('sliderConfig');
+    if (viewConfigs!=null) {
+      var viewConfig = viewConfigs.findBy('viewConfigName', 'yarn.resourcemanager.webapp.address');
+      if (viewConfig!=null) {
+        yarnUI = viewConfig.get('value');
+      }
     }
     quickLinks.push(
       Ember.Object.create({

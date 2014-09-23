@@ -33,6 +33,7 @@ public interface SliderAppsViewController {
 
   public static final String PROPERTY_HDFS_ADDRESS = "hdfs.address";
   public static final String PROPERTY_YARN_RM_ADDRESS = "yarn.resourcemanager.address";
+  public static final String PROPERTY_YARN_RM_WEBAPP_ADDRESS = "yarn.resourcemanager.webapp.address";
   public static final String PROPERTY_YARN_RM_SCHEDULER_ADDRESS = "yarn.resourcemanager.scheduler.address";
   public static final String PROPERTY_ZK_QUOROM = "zookeeper.quorum";
   public static final String PROPERTY_GANGLIA_SERVER_HOSTNAME = "ganglia.server.hostname";
