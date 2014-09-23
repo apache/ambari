@@ -122,13 +122,11 @@
       </div>
     </div>
     <div class="panel-body">
-      {{#each graphs in view.graphs}}
         <div class="row">
-          {{#each graph in graphs}}
-            <div class="col-md-3">{{view graph}}</div>
+          {{#each graph in view.graphs}}
+              <div class="col-md-3">{{view graph.view}}</div>
           {{/each}}
         </div>
-      {{/each}}
     </div>
   </div>
 {{/if}}

@@ -46,21 +46,20 @@ App.SliderAppSummaryView = Ember.View.extend({
    * @method updateGraphs
    */
   updateGraphs: function() {
-    // TODO - remove below lines when working.
-    if (true)
-      return;
-    
     var model = this.get('controller.model'),
-      existingGraphs = this.get('graphs');
+      existingGraphs = this.get('graphs'),
+      graphsBeenChanged = false;
+
     if (model) {
       var currentGraphIds = [];
       var supportedMetrics = model.get('supportedMetricNames');
-      if (supportedMetrics && supportedMetrics.length > 0) {
+      if (supportedMetrics) {
         var appId = model.get('id');
         supportedMetrics.split(',').forEach(function(metricName) {
           var graphId = metricName + '_' + appId;
           currentGraphIds.push(graphId);
           if (!existingGraphs.isAny('id', graphId)) {
+            graphsBeenChanged = true;
             var view = App.AppMetricView.extend({
               app: model,
               metricName: metricName
@@ -73,18 +72,12 @@ App.SliderAppSummaryView = Ember.View.extend({
         });
       }
       // Delete not existed graphs
-      var toDeleteGraphs = [];
-      existingGraphs.forEach(function(existingGraph) {
-       if (currentGraphIds.indexOf(existingGraph.id) == -1) {
-          toDeleteGraphs.push(existingGraph);
-        }
+      existingGraphs = existingGraphs.filter(function(existingGraph) {
+        graphsBeenChanged = graphsBeenChanged || !currentGraphIds.contains(existingGraph.id);
+        return currentGraphIds.contains(existingGraph.id);
       });
-      if(toDeleteGraphs.length > 0) {
-        var newGraphs = existingGraphs;
-        toDeleteGraphs.forEach(function(toDeleteGraph) {
-          newGraphs = newGraphs.without(toDeleteGraph);
-        });
-        this.set('graphs', newGraphs);
+      if (graphsBeenChanged) {
+        this.set('graphs', existingGraphs);
       }
     }
   }.observes('controller.model.supportedMetricNames'),

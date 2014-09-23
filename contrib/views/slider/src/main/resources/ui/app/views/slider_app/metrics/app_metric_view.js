@@ -47,7 +47,7 @@ App.AppMetricView = App.ChartView.extend({
   getDataForAjaxRequest: function() {
     return {
       id: this.get('app.id'),
-      metricName: this.get('metricName')
+      metric: this.get('metricName')
     };
   },
 
