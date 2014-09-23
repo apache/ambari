@@ -4741,8 +4741,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
         "authentication.ldap.groupMembershipAttr": "test",
         "authentication.ldap.groupNamingAttr": "test",
         "client.security": "ldap", \
-        ambari_server.LDAP_MGR_PASSWORD_PROPERTY: ambari_server.get_alias_string( \
-          ambari_server.LDAP_MGR_PASSWORD_ALIAS),
+        ambari_server.LDAP_MGR_PASSWORD_PROPERTY: "ldap-password.dat",
         "ambari.ldap.isConfigured": "true"
       }
 

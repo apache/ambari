@@ -794,13 +794,15 @@ public class Configuration {
             LDAP_BIND_ANONYMOUSLY_DEFAULT)));
     ldapServerProperties.setManagerDn(properties.getProperty(
         LDAP_MANAGER_DN_KEY));
-    String ldapPasswd = readPasswordFromStore(properties
-      .getProperty(LDAP_MANAGER_PASSWORD_KEY));
-    if (ldapPasswd != null) {
-      ldapServerProperties.setManagerPassword(ldapPasswd);
+    String ldapPasswordProperty = properties.getProperty(LDAP_MANAGER_PASSWORD_KEY);
+    String ldapPassword = null;
+    if (CredentialProvider.isAliasString(ldapPasswordProperty)) {
+      ldapPassword = readPasswordFromStore(ldapPasswordProperty);
+    }
+    if (ldapPassword != null) {
+      ldapServerProperties.setManagerPassword(ldapPassword);
     } else {
-      ldapServerProperties.setManagerPassword(properties.getProperty
-        (LDAP_MANAGER_PASSWORD_KEY));
+      ldapServerProperties.setManagerPassword(readPasswordFromFile(ldapPasswordProperty, ""));
     }
     ldapServerProperties.setBaseDN(properties.getProperty
         (LDAP_BASE_DN_KEY, LDAP_BASE_DN_DEFAULT));
