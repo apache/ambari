@@ -20,6 +20,7 @@
   <services>
     <service>
       <name>GLUSTERFS</name>
+      <displayName>GLUSTERFS</displayName>
       <comment>An Hadoop Compatible File System</comment>
       <version>3.4.0</version>
       <components>
@@ -31,26 +32,31 @@
             <scriptType>PYTHON</scriptType>
             <timeout>600</timeout>
           </commandScript>
-          <configFiles>
-            <configFile>
-              <type>xml</type>
-              <fileName>global.xml</fileName>
-              <dictionaryName>global</dictionaryName>
-            </configFile>
-            <configFile>
-              <type>xml</type>
-              <fileName>core-site.xml</fileName>
-              <dictionaryName>core-site</dictionaryName>
-            </configFile>        
-          </configFiles>          
         </component>
       </components>
+<!--
+      <osSpecifics>
+        <osSpecific>
+          <osFamily>any<osFamily>
+          <packages>
+            <package>
+              <type>rpm</type>
+              <name>glusterfs</name>
+            </package>
+          </packages>
+        </osSpecific>
+      </osSpecifics>
+-->
+      <commandScript>
+        <script>scripts/service_check.py</script>
+        <scriptType>PYTHON</scriptType>
+        <timeout>300</timeout>
+      </commandScript>
 
       <configuration-dependencies>
         <config-type>core-site</config-type>
-        <config-type>global</config-type>
-        <config-type>hadoop-policy</config-type>
-        <config-type>hdfs-site</config-type>
+        <config-type>hadoop-env</config-type>
+        <!--<config-type>hdfs-site</config-type>-->
       </configuration-dependencies>
 
     </service>

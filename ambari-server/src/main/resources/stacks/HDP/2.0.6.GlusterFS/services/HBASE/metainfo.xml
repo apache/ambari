@@ -16,8 +16,19 @@
    limitations under the License.
 -->
 <metainfo>
-    <versions>
-	  <active>false</active>
-    </versions>
-    <extends>2.0.6</extends>
+  <schemaVersion>2.0</schemaVersion>
+  <services>
+    <service>
+      <name>HBASE</name>
+      <comment>Non-relational distributed database and centralized service for configuration management &amp;
+        synchronization
+      </comment>
+      <version>0.96.1.2.0.6.1</version>
+      
+      <requiredServices>
+        <service>ZOOKEEPER</service>
+        <service>GLUSTERFS</service>
+      </requiredServices>      
+    </service>
+  </services>
 </metainfo>

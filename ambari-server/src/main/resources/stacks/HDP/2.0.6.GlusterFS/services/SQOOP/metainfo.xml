@@ -16,8 +16,17 @@
    limitations under the License.
 -->
 <metainfo>
-    <versions>
-	  <active>false</active>
-    </versions>
-    <extends>2.0.6</extends>
+  <schemaVersion>2.0</schemaVersion>
+  <services>
+    <service>
+      <name>SQOOP</name>
+      <comment>Tool for transferring bulk data between Apache Hadoop and
+        structured data stores such as relational databases
+      </comment>
+      <version>1.4.4.2.0.6.0</version>
+      <requiredServices>
+        <service>GLUSTERFS</service>
+      </requiredServices>      
+    </service>
+  </services>
 </metainfo>
