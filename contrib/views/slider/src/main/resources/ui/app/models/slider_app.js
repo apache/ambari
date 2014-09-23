@@ -115,6 +115,13 @@ App.SliderApp = DS.Model.extend({
   hiddenCategories: ['yarn-site', 'global'],
 
   /**
+   * @type {boolean}
+   */
+  doNotShowComponentsAndAlerts: function(){
+    return this.get('status') == "FROZEN" || this.get('status') == "FAILED";
+  }.property('status', 'components', 'alerts'),
+
+  /**
    * Display metrics only for running apps
    * @type {boolean}
    */

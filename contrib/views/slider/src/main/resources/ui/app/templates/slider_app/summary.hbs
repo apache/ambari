@@ -31,6 +31,10 @@
           <td>{{controller.appType}}</td>
         </tr>
         <tr>
+          <td>{{t common.yarn.app.id}}</td>
+          <td>{{controller.model.yarnId}}</td>
+        </tr>
+        <tr>
           <td>{{t common.started}}</td>
           <td>{{formatWordBreak controller.model.started}}</td>
         </tr>
@@ -53,27 +57,9 @@
     {{/bs-panel}}
   </div>
   <div class="col-md-6">
-    {{#bs-panel heading="Components" class="panel-components"}}
-      <table class="table no-borders table-condensed">
-        <tbody>
-          {{#each controller.model.components}}
-          <tr>
-            <td><span {{bind-attr class="isRunning:icon-ok-sign:icon-warning-sign :status"}}></span> {{componentName}}</td>
-            <td>
-              {{#if url}}
-                <a {{bind-attr href="url"}} target="_blank">{{host}}</a>
-              {{else}}
-                {{host}}
-              {{/if}}
-            </td>
-          </tr>
-          {{/each}}
-        </tbody>
-      </table>
-    {{/bs-panel}}
     <div class="panel panel-default panel-alerts">
       <div class="panel-heading">
-        {{t common.alerts}}
+        {{t common.status}}
         <div class="btn-group pull-right panel-link">
           {{#if App.nagiosHost}}
             <a class="btn btn-default btn-sm" target="_blank" rel="tooltip"
@@ -86,27 +72,57 @@
       </div>
       <div class="app-alerts">
         <ul>
-          {{#each controller.model.alerts}}
-            {{#view view.AlertView contentBinding="this"}}
-              <div class="container-fluid">
-                <div class="row">
-                  <div class="col-md-1 status-icon">
-                    <i {{bind-attr class="iconClass :icon-large"}}></i>
-                  </div>
-                  <div class="col-md-11">
-                    <div class="row">
-                      <div class="col-md-7 title">{{title}}</div>
-                      <div {{bs-bind-tooltip view.tooltip}} class="col-md-5 date-time">{{timeSinceAlert}}</div>
+          {{#if controller.model.doNotShowComponentsAndAlerts}}
+            <li>
+              <div class="container-fluid">{{t sliderApp.alerts.no.status}}</div>
+            </li>
+          {{else}}
+            {{#each controller.model.alerts}}
+              {{#view view.AlertView contentBinding="this"}}
+                <div class="container-fluid">
+                  <div class="row">
+                    <div class="col-md-1 status-icon">
+                      <i {{bind-attr class="iconClass :icon-small"}}></i>
                     </div>
-                    <div class="message">{{message}}</div>
+                    <div class="col-md-11">
+                      <div class="row">
+                        <div class="col-md-7 title">{{title}}</div>
+                        <div class="message">{{message}}</div>
+                      </div>
+
+                    </div>
                   </div>
                 </div>
-              </div>
-            {{/view}}
-          {{/each}}
+              {{/view}}
+            {{/each}}
+          {{/if}}
         </ul>
       </div>
     </div>
+    {{#bs-panel heading="Components" class="panel-components"}}
+      <table class="table no-borders table-condensed">
+        <tbody>
+          {{#if controller.model.doNotShowComponentsAndAlerts}}
+            <tr>
+              <td>{{t sliderApp.summary.no.components}}</td>
+            </tr>
+          {{else}}
+            {{#each controller.model.components}}
+              <tr>
+                <td><span {{bind-attr class="isRunning:icon-ok-sign:icon-warning-sign :status"}}></span> {{componentName}}</td>
+                <td>
+                  {{#if url}}
+                    <a {{bind-attr href="url"}} target="_blank">{{host}}</a>
+                  {{else}}
+                    {{host}}
+                  {{/if}}
+                </td>
+              </tr>
+            {{/each}}
+          {{/if}}
+        </tbody>
+      </table>
+    {{/bs-panel}}
   </div>
 </div>
 {{#if controller.model.showMetrics}}

@@ -624,6 +624,10 @@ select {
     .icon-warning-sign {
       color: #ff0000;
     }
+    .panel-body{
+      max-height: 400px;
+      overflow-x: auto;
+    }
   }
   .panel-link {
     margin-top: -5px;
@@ -771,9 +775,6 @@ select {
     .row-fluid [class*="span"] {
       min-height: 0px;
     }
-    .status-icon {
-      padding-top: 7px;
-    }
     .date-time {
       color: #999;
       font-style: italic;
@@ -783,6 +784,8 @@ select {
     .message {
       font-size: 12px;
       color: #777;
+      word-break: break-all;
+      padding-right: 15px;
     }
     .serviceLink {
       padding-left: 7px;

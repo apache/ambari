@@ -48,11 +48,12 @@ Em.I18n.translations = {
     'finished': 'Finished',
     'diagnostics': 'Diagnostics',
     'description': 'Description',
-    'alerts': 'Alerts',
+    'status': 'Status',
     'key': 'Key',
     'remove': 'Remove',
     'send': 'Send',
-    'error': 'Error'
+    'error': 'Error',
+    'yarn.app.id': 'YARN Application ID'
   },
 
   'error.config_is_empty': 'Config <strong>{0}</strong> should not be empty',
@@ -83,7 +84,9 @@ Em.I18n.translations = {
 
   'sliderApp.summary.go_to_nagios': 'Go to Nagios',
   'sliderApp.summary.go_to_ganglia': 'Go to Ganglia',
+  'sliderApp.summary.no.components': 'No components are currently running',
 
+  'sliderApp.alerts.no.status': 'No component statuses are currently available',
   'sliderApp.alerts.OK.timePrefixShort': 'OK',
   'sliderApp.alerts.WARN.timePrefixShort': 'WARN',
   'sliderApp.alerts.CRIT.timePrefixShort': 'CRIT',
