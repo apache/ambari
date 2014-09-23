@@ -41,6 +41,8 @@ if rpm_version is not None:
   tez_local_api_jars = '/usr/hdp/current/tez/tez*.jar'
   tez_local_lib_jars = '/usr/hdp/current/tez/lib/*.jar'
   tez_tar_file = "/usr/hdp/current/tez/lib/tez*.tar.gz"
+  pig_tar_file = '/usr/hdp/current/pig/pig.tar.gz'
+  hive_tar_file = '/usr/hdp/current/hive/hive.tar.gz'
 
   hcat_lib = '/usr/hdp/current/hive/hive-hcatalog/share/hcatalog'
   webhcat_bin_dir = '/usr/hdp/current/hive/hive-hcatalog/sbin'
@@ -54,6 +56,8 @@ else:
   tez_local_api_jars = '/usr/lib/tez/tez*.jar'
   tez_local_lib_jars = '/usr/lib/tez/lib/*.jar'
   tez_tar_file = "/usr/lib/tez/tez*.tar.gz"
+  pig_tar_file = '/usr/share/HDP-webhcat/pig.tar.gz'
+  hive_tar_file = '/usr/share/HDP-webhcat/hive.tar.gz'
 
   if str(hdp_stack_version).startswith('2.0'):
     hcat_lib = '/usr/lib/hcatalog/share/hcatalog'

@@ -59,7 +59,13 @@
           {{#each controller.model.components}}
           <tr>
             <td><span {{bind-attr class="isRunning:icon-ok-sign:icon-warning-sign :status"}}></span> {{componentName}}</td>
-            <td>{{host}}</td>
+            <td>
+              {{#if url}}
+                <a {{bind-attr href="url"}} target="_blank">{{host}}</a>
+              {{else}}
+                {{host}}
+              {{/if}}
+            </td>
           </tr>
           {{/each}}
         </tbody>

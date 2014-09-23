@@ -334,6 +334,11 @@
   width: 14px;
 }
 
+.groups-pane table .search-container .namefilter,
+.users-pane table .search-container .namefilter {
+  font-weight: normal;
+}
+
 .settings-edit-toggle.disabled, .properties-toggle.disabled{
   color: #999;
   cursor: not-allowed;

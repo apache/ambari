@@ -37,12 +37,6 @@
             <package>
               <name>hive_2_9_9_9_*-webhcat</name>
             </package>
-            <package>
-              <name>webhcat-tar-hive</name>
-            </package>
-            <package>
-              <name>webhcat-tar-pig</name>
-            </package>
           </packages>
         </osSpecific>
         <osSpecific>

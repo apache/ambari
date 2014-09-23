@@ -140,9 +140,13 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
   rowsPerPageSelectView: Em.Select.extend({
     content: ['10', '25', '50', '100'],
     attributeBindings: ['disabled'],
-    disabled: function () {
-      return !this.get('parentView.filteringComplete');
-    }.property('parentView.filteringComplete'),
+    disabled: true,
+
+    disableView: function () {
+      Em.run.next(this, function(){
+        this.set('disabled', !this.get('parentView.filteringComplete'));
+      });
+    }.observes('parentView.filteringComplete'),
 
     change: function () {
       this.get('parentView').saveDisplayLength();

@@ -20,12 +20,17 @@ limitations under the License. Kerberos, LDAP, Custom. Binary/Htt
   <version>1.0.0</version>
   <parameter>
     <name>hdfs.address</name>
-    <description>The URL to access HDFS service via its protocol. Typically this is the fs.defaultFS property in the core-site.xml configuration. For example: hdfs://hdfs.namenode.host:8020.</description>
+    <description>The URL to access HDFS service via its protocol. Typically this is the fs.defaultFS property in the core-site.xml configuration file. For example: hdfs://hdfs.namenode.host:8020.</description>
     <required>true</required>
   </parameter>
   <parameter>
     <name>yarn.resourcemanager.address</name>
     <description>The URL to the YARN ResourceManager, used to provide YARN Application data. For example: http://yarn.resourcemanager.host:8050</description>
+    <required>true</required>
+  </parameter>
+  <parameter>
+    <name>yarn.resourcemanager.webapp.address</name>
+    <description>The URL to the YARN ResourceManager Web Application, used to provide YARN UI. Typically this is the yarn.resourcemanager.webapp.address config from yarn-site.xml configuration file. For example: http://yarn.resourcemanager.host:8088</description>
     <required>true</required>
   </parameter>
   <parameter>

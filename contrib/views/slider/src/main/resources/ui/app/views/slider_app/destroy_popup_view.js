@@ -16,50 +16,22 @@
  * limitations under the License.
  */
 
-App.SliderAppComponent = DS.Model.extend({
+App.DestroyAppPopupView = Ember.View.extend({
+
+  templateName: 'slider_app/destroy/destroy_popup',
 
   /**
+   * targetObject should be defined for buttons and other components that may set actions
+   * @type {Em.Controller}
+   */
+  targetObjectBinding: 'controller',
+
+  /**
+   * Warning message for dummy user
    * @type {string}
    */
-  status: DS.attr('string'),
-
-  /**
-   * @type {string}
-   */
-  host: DS.attr('string'),
-
-  /**
-   * @type {string}
-   */
-  componentName: DS.attr('string'),
-
-  /**
-   * @type {string}
-   */
-  containerId: DS.attr('string'),
-
-  /**
-   * @type {App.SliderApp}
-   */
-  appId: DS.belongsTo('sliderApp'),
-
-  /**
-   * Is component running (used in the templates)
-   * @type {bool}
-   */
-  isRunning: function() {
-    return this.get('status') === 'Running';
-  }.property('status'),
-
-  url: function() {
-    var host = this.get('host');
-    var containerId = this.get('containerId');
-    if (host != null && containerId != null) {
-      return "http://" + this.get('host') + ":8042/node/container/" + this.get('containerId');
-    }
-    return null;
-  }.property('host', 'containerId')
+  confirmMessage: function() {
+    return Em.I18n.t('sliderApp.destroy.confirm.body2').format(this.get('controller.model.name'));
+  }.property()
 
 });
-
-App.SliderAppComponent.FIXTURES = [];

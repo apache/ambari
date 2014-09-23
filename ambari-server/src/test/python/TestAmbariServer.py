@@ -3189,12 +3189,13 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     args = MagicMock()
     args.dbms = "postgres"
     is_root_mock.return_value = True
-
-    # In Ambari 1.6.1, the DB name was actually stored in JDBC_DATABASE_PROPERTY, and the JDBC_DATABASE_NAME_PROPERTY
-    # property didn't exist. When upgrading to Ambari 1.7.0, the ambari.properties file should be transformed.
     get_ambari_version_mock.return_value = "1.7.0"
 
+    # Local Postgres
+    # In Ambari 1.6.1 for an embedded postgres database, the "server.jdbc.database" property stored the DB name,
+    # and the DB type was assumed to be "postgres" if the "server.persistence.type" property was "local"
     properties = ambari_server.Properties()
+    properties.process_pair(ambari_server.PERSISTENCE_TYPE_PROPERTY, "local")
     properties.process_pair(ambari_server.JDBC_DATABASE_PROPERTY, "ambari")
     get_ambari_properties_mock.return_value = properties
 
@@ -3204,6 +3205,71 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
       self.fail("Did not expect failure: " + str(fe))
     else:
       self.assertTrue(write_property_mock.called)
+
+    # External Postgres
+    # In Ambari 1.6.1 for an external postgres database, the "server.jdbc.database" property stored the
+    # DB type ("postgres"), and the "server.jdbc.schema" property stored the DB name.
+    write_property_mock.reset_mock()
+    properties = ambari_server.Properties()
+    properties.process_pair(ambari_server.PERSISTENCE_TYPE_PROPERTY, "remote")
+    properties.process_pair(ambari_server.JDBC_DATABASE_PROPERTY, "postgres")
+    properties.process_pair("server.jdbc.schema", "ambari")
+    properties.process_pair(ambari_server.JDBC_URL_PROPERTY, "jdbc:postgresql://c6410.ambari.apache.org:5432/ambari")
+
+    get_ambari_properties_mock.return_value = properties
+    try:
+      ambari_server.upgrade(args)
+    except FatalException as fe:
+      self.fail("Did not expect failure: " + str(fe))
+    else:
+      self.assertTrue(write_property_mock.called)
+
+    # External Postgres missing DB type, so it should be set based on the JDBC URL.
+    write_property_mock.reset_mock()
+    properties = ambari_server.Properties()
+    properties.process_pair(ambari_server.PERSISTENCE_TYPE_PROPERTY, "remote")
+    properties.process_pair("server.jdbc.schema", "ambari")
+    properties.process_pair(ambari_server.JDBC_URL_PROPERTY, "jdbc:postgresql://c6410.ambari.apache.org:5432/ambari")
+
+    get_ambari_properties_mock.return_value = properties
+    try:
+      ambari_server.upgrade(args)
+    except FatalException as fe:
+      self.fail("Did not expect failure: " + str(fe))
+    else:
+      self.assertTrue(write_property_mock.call_count == 2)
+
+    # External MySQL
+    # In Ambari 1.6.1 for an external MySQL database, the "server.jdbc.database" property stored the DB type ("mysql"),
+    # And the "server.jdbc.schema" property stored the DB name.
+    write_property_mock.reset_mock()
+    properties = ambari_server.Properties()
+    properties.process_pair(ambari_server.PERSISTENCE_TYPE_PROPERTY, "remote")
+    properties.process_pair(ambari_server.JDBC_DATABASE_PROPERTY, "mysql")
+    properties.process_pair("server.jdbc.schema", "ambari")
+    properties.process_pair(ambari_server.JDBC_URL_PROPERTY, "jdbc:mysql://c6409.ambari.apache.org:3306/ambari")
+    get_ambari_properties_mock.return_value = properties
+    try:
+      ambari_server.upgrade(args)
+    except FatalException as fe:
+      self.fail("Did not expect failure: " + str(fe))
+    else:
+      self.assertTrue(write_property_mock.called)
+
+    # External MySQL missing DB type, so it should be set based on the JDBC URL.
+    write_property_mock.reset_mock()
+    properties = ambari_server.Properties()
+    properties.process_pair(ambari_server.PERSISTENCE_TYPE_PROPERTY, "remote")
+    properties.process_pair("server.jdbc.schema", "ambari")
+    properties.process_pair(ambari_server.JDBC_URL_PROPERTY, "jdbc:mysql://c6409.ambari.apache.org:3306/ambari")
+
+    get_ambari_properties_mock.return_value = properties
+    try:
+      ambari_server.upgrade(args)
+    except FatalException as fe:
+      self.fail("Did not expect failure: " + str(fe))
+    else:
+      self.assertTrue(write_property_mock.call_count == 2)
 
 
   @patch("__builtin__.open")

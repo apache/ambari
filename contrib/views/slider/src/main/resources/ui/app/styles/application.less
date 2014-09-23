@@ -923,3 +923,35 @@ select {
   word-wrap: break-word;
   overflow: auto;
 }
+
+.dropdown-submenu {
+  position:relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top:0;
+  left:-100%;
+  margin-top:-6px;
+  margin-left:-1px;
+  -webkit-border-radius:6px 0 6px 6px;
+  -moz-border-radius:6px 0 6px 6px;
+  border-radius:6px 0 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display:block;
+}
+.dropdown-submenu>a:before {
+  display:block;
+  content:" ";
+  float:left;
+  width:0;
+  height:0;
+  border-color:transparent;
+  border-style:solid;
+  border-width:5px 5px 5px 0px;
+  border-right-color:#cccccc;
+  margin-top:5px;
+  margin-left:-10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color:#ffffff;
+}

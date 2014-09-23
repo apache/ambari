@@ -18,8 +18,10 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import org.easymock.EasyMockSupport;
 import org.junit.Test;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -29,8 +31,9 @@ import java.util.Set;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;
+import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertTrue;
-
+import static org.easymock.EasyMock.expect;
 
 /**
  * BlueprintConfigurationProcessor unit tests.
@@ -897,24 +900,899 @@ public class BlueprintConfigurationProcessorTest {
   }
 
   @Test
-  public void testFalconConfigPropertyUpdaterAdded() throws Exception {
-    Map<String, Map<String, BlueprintConfigurationProcessor.PropertyUpdater>> singleHostUpdaters =
-      BlueprintConfigurationProcessor.getSingleHostTopologyUpdaters();
+  public void testFalconConfigExport() throws Exception {
+    final String expectedHostName = "c6401.apache.ambari.org";
+    final String expectedPortNum = "808080";
+    final String expectedHostGroupName = "host_group_1";
 
-    assertTrue("Falcon startup.properties map was not added to the list of updater maps",
-               singleHostUpdaters.containsKey("falcon-startup.properties"));
+    EasyMockSupport mockSupport = new EasyMockSupport();
 
-    Map<String, BlueprintConfigurationProcessor.PropertyUpdater> fieldsToUpdaters =
-      singleHostUpdaters.get("falcon-startup.properties");
+    HostGroup mockHostGroupOne = mockSupport.createMock(HostGroup.class);
 
-    assertTrue("Expected Falcon config property was not present in updater map",
-               fieldsToUpdaters.containsKey("*.broker.url"));
+    expect(mockHostGroupOne.getHostInfo()).andReturn(Arrays.asList(expectedHostName, "serverTwo")).atLeastOnce();
+    expect(mockHostGroupOne.getName()).andReturn(expectedHostGroupName).atLeastOnce();
 
-    assertTrue("PropertyUpdater was not of the expected type for Falcon config property",
-               fieldsToUpdaters.get("*.broker.url") instanceof BlueprintConfigurationProcessor.SingleHostTopologyUpdater);
+    mockSupport.replayAll();
 
-    assertEquals("PropertyUpdater was not associated with the expected component name",
-                 "FALCON_SERVER", ((BlueprintConfigurationProcessor.SingleHostTopologyUpdater)fieldsToUpdaters.get("*.broker.url")).getComponentName());
+    Map<String, Map<String, String>> configProperties =
+      new HashMap<String, Map<String, String>>();
+
+    Map<String, String> falconStartupProperties =
+      new HashMap<String, String>();
+
+    configProperties.put("falcon-startup.properties", falconStartupProperties);
+
+    // setup properties that include host information
+    falconStartupProperties.put("*.broker.url", expectedHostName + ":" + expectedPortNum);
+    falconStartupProperties.put("*.falcon.service.authentication.kerberos.principal", "falcon/" + expectedHostName + "@EXAMPLE.COM");
+    falconStartupProperties.put("*.falcon.http.authentication.kerberos.principal", "HTTP/" + expectedHostName + "@EXAMPLE.COM");
+
+    BlueprintConfigurationProcessor configProcessor =
+      new BlueprintConfigurationProcessor(configProperties);
+
+    // call top-level export method
+    configProcessor.doUpdateForBlueprintExport(Arrays.asList(mockHostGroupOne));
+
+    assertEquals("Falcon Broker URL property not properly exported",
+      createExportedAddress(expectedPortNum, expectedHostGroupName), falconStartupProperties.get("*.broker.url"));
+
+    assertEquals("Falcon Kerberos Principal property not properly exported",
+      "falcon/" + "%HOSTGROUP::" + expectedHostGroupName + "%" + "@EXAMPLE.COM", falconStartupProperties.get("*.falcon.service.authentication.kerberos.principal"));
+
+    assertEquals("Falcon Kerberos HTTP Principal property not properly exported",
+      "HTTP/" + "%HOSTGROUP::" + expectedHostGroupName + "%" + "@EXAMPLE.COM", falconStartupProperties.get("*.falcon.http.authentication.kerberos.principal"));
+
+    mockSupport.verifyAll();
+
+  }
+
+  @Test
+  public void testFalconConfigClusterUpdate() throws Exception {
+    final String expectedHostName = "c6401.apache.ambari.org";
+    final String expectedPortNum = "808080";
+    final String expectedHostGroupName = "host_group_1";
+
+    EasyMockSupport mockSupport = new EasyMockSupport();
+
+    HostGroup mockHostGroupOne = mockSupport.createMock(HostGroup.class);
+
+    expect(mockHostGroupOne.getHostInfo()).andReturn(Arrays.asList(expectedHostName, "serverTwo")).atLeastOnce();
+
+    mockSupport.replayAll();
+
+    Map<String, Map<String, String>> configProperties =
+      new HashMap<String, Map<String, String>>();
+
+    Map<String, String> falconStartupProperties =
+      new HashMap<String, String>();
+
+    configProperties.put("falcon-startup.properties", falconStartupProperties);
+
+    // setup properties that include host information
+    falconStartupProperties.put("*.broker.url", createExportedAddress(expectedPortNum, expectedHostGroupName));
+    falconStartupProperties.put("*.falcon.service.authentication.kerberos.principal", "falcon/" + createExportedHostName(expectedHostGroupName) + "@EXAMPLE.COM");
+    falconStartupProperties.put("*.falcon.http.authentication.kerberos.principal", "HTTP/" + createExportedHostName(expectedHostGroupName) + "@EXAMPLE.COM");
+
+    BlueprintConfigurationProcessor configProcessor =
+      new BlueprintConfigurationProcessor(configProperties);
+
+    Map<String, HostGroup> mapOfHostGroups =
+      new HashMap<String, HostGroup>();
+    mapOfHostGroups.put(expectedHostGroupName, mockHostGroupOne);
+
+    // call top-level export method
+    configProcessor.doUpdateForClusterCreate(mapOfHostGroups);
+
+    assertEquals("Falcon Broker URL property not properly exported",
+      expectedHostName + ":" + expectedPortNum, falconStartupProperties.get("*.broker.url"));
+
+    assertEquals("Falcon Kerberos Principal property not properly exported",
+      "falcon/" + expectedHostName + "@EXAMPLE.COM", falconStartupProperties.get("*.falcon.service.authentication.kerberos.principal"));
+
+    assertEquals("Falcon Kerberos HTTP Principal property not properly exported",
+      "HTTP/" + expectedHostName + "@EXAMPLE.COM", falconStartupProperties.get("*.falcon.http.authentication.kerberos.principal"));
+
+    mockSupport.verifyAll();
+
+  }
+
+  @Test
+  public void testFalconConfigClusterUpdateDefaultConfig() throws Exception {
+    final String expectedHostName = "c6401.apache.ambari.org";
+    final String expectedPortNum = "808080";
+    final String expectedHostGroupName = "host_group_1";
+
+    EasyMockSupport mockSupport = new EasyMockSupport();
+
+    HostGroup mockHostGroupOne = mockSupport.createMock(HostGroup.class);
+    expect(mockHostGroupOne.getComponents()).andReturn(Arrays.asList("FALCON_SERVER")).atLeastOnce();
+    expect(mockHostGroupOne.getHostInfo()).andReturn(Arrays.asList(expectedHostName, "serverTwo")).atLeastOnce();
+
+    mockSupport.replayAll();
+
+    Map<String, Map<String, String>> configProperties =
+      new HashMap<String, Map<String, String>>();
+
+    Map<String, String> falconStartupProperties =
+      new HashMap<String, String>();
+
+    configProperties.put("falcon-startup.properties", falconStartupProperties);
+
+    // setup properties that include host information
+    falconStartupProperties.put("*.broker.url", "localhost:" + expectedPortNum);
+    falconStartupProperties.put("*.falcon.service.authentication.kerberos.principal", "falcon/" + "localhost" + "@EXAMPLE.COM");
+    falconStartupProperties.put("*.falcon.http.authentication.kerberos.principal", "HTTP/" + "localhost" + "@EXAMPLE.COM");
+
+    BlueprintConfigurationProcessor configProcessor =
+      new BlueprintConfigurationProcessor(configProperties);
+
+    Map<String, HostGroup> mapOfHostGroups =
+      new HashMap<String, HostGroup>();
+    mapOfHostGroups.put(expectedHostGroupName, mockHostGroupOne);
+
+    // call top-level export method
+    configProcessor.doUpdateForClusterCreate(mapOfHostGroups);
+
+    assertEquals("Falcon Broker URL property not properly exported",
+      expectedHostName + ":" + expectedPortNum, falconStartupProperties.get("*.broker.url"));
+
+    assertEquals("Falcon Kerberos Principal property not properly exported",
+      "falcon/" + expectedHostName + "@EXAMPLE.COM", falconStartupProperties.get("*.falcon.service.authentication.kerberos.principal"));
+
+    assertEquals("Falcon Kerberos HTTP Principal property not properly exported",
+      "HTTP/" + expectedHostName + "@EXAMPLE.COM", falconStartupProperties.get("*.falcon.http.authentication.kerberos.principal"));
+
+    mockSupport.verifyAll();
+
+  }
+
+  @Test
+  public void testDoUpdateForClusterWithNameNodeHAEnabled() throws Exception {
+    final String expectedNameService = "mynameservice";
+    final String expectedHostName = "c6401.apache.ambari.org";
+    final String expectedPortNum = "808080";
+    final String expectedNodeOne = "nn1";
+    final String expectedNodeTwo = "nn2";
+    final String expectedHostGroupName = "host_group_1";
+
+    EasyMockSupport mockSupport = new EasyMockSupport();
+
+    HostGroup mockHostGroupOne = mockSupport.createMock(HostGroup.class);
+
+    expect(mockHostGroupOne.getHostInfo()).andReturn(Arrays.asList(expectedHostName, "serverTwo")).atLeastOnce();
+
+    mockSupport.replayAll();
+
+    Map<String, Map<String, String>> configProperties =
+      new HashMap<String, Map<String, String>>();
+
+    Map<String, String> hdfsSiteProperties =
+      new HashMap<String, String>();
+
+    configProperties.put("hdfs-site", hdfsSiteProperties);
+
+    // setup hdfs HA config for test
+    hdfsSiteProperties.put("dfs.nameservices", expectedNameService);
+    hdfsSiteProperties.put("dfs.ha.namenodes.mynameservice", expectedNodeOne + ", " + expectedNodeTwo);
+
+
+    // setup properties that include exported host group information
+    hdfsSiteProperties.put("dfs.namenode.https-address." + expectedNameService + "." + expectedNodeOne, createExportedAddress(expectedPortNum, expectedHostGroupName));
+    hdfsSiteProperties.put("dfs.namenode.https-address." + expectedNameService + "." + expectedNodeTwo, createExportedAddress(expectedPortNum, expectedHostGroupName));
+    hdfsSiteProperties.put("dfs.namenode.http-address." + expectedNameService + "." + expectedNodeOne, createExportedAddress(expectedPortNum, expectedHostGroupName));
+    hdfsSiteProperties.put("dfs.namenode.http-address." + expectedNameService + "." + expectedNodeTwo, createExportedAddress(expectedPortNum, expectedHostGroupName));
+    hdfsSiteProperties.put("dfs.namenode.rpc-address." + expectedNameService + "." + expectedNodeOne, createExportedAddress(expectedPortNum, expectedHostGroupName));
+    hdfsSiteProperties.put("dfs.namenode.rpc-address." + expectedNameService + "." + expectedNodeTwo, createExportedAddress(expectedPortNum, expectedHostGroupName));
+
+
+    BlueprintConfigurationProcessor configProcessor =
+      new BlueprintConfigurationProcessor(configProperties);
+
+    Map<String, HostGroup> mapOfHostGroups = new HashMap<String, HostGroup>();
+    mapOfHostGroups.put(expectedHostGroupName,mockHostGroupOne);
+
+    configProcessor.doUpdateForClusterCreate(mapOfHostGroups);
+
+    // verify that the expected hostname was substitued for the host group name in the config
+    assertEquals("HTTPS address HA property not properly exported",
+      expectedHostName + ":" + expectedPortNum, hdfsSiteProperties.get("dfs.namenode.https-address." + expectedNameService + "." + expectedNodeOne));
+    assertEquals("HTTPS address HA property not properly exported",
+      expectedHostName + ":" + expectedPortNum, hdfsSiteProperties.get("dfs.namenode.https-address." + expectedNameService + "." + expectedNodeTwo));
+
+    assertEquals("HTTPS address HA property not properly exported",
+      expectedHostName + ":" + expectedPortNum, hdfsSiteProperties.get("dfs.namenode.http-address." + expectedNameService + "." + expectedNodeOne));
+    assertEquals("HTTPS address HA property not properly exported",
+      expectedHostName + ":" + expectedPortNum, hdfsSiteProperties.get("dfs.namenode.http-address." + expectedNameService + "." + expectedNodeTwo));
+
+    assertEquals("HTTPS address HA property not properly exported",
+      expectedHostName + ":" + expectedPortNum, hdfsSiteProperties.get("dfs.namenode.rpc-address." + expectedNameService + "." + expectedNodeOne));
+    assertEquals("HTTPS address HA property not properly exported",
+      expectedHostName + ":" + expectedPortNum, hdfsSiteProperties.get("dfs.namenode.rpc-address." + expectedNameService + "." + expectedNodeTwo));
+
+    mockSupport.verifyAll();
+  }
+
+  @Test
+  public void testDoNameNodeHighAvailabilityUpdateWithHAEnabled() throws Exception {
+    final String expectedNameService = "mynameservice";
+    final String expectedHostName = "c6401.apache.ambari.org";
+    final String expectedPortNum = "808080";
+    final String expectedNodeOne = "nn1";
+    final String expectedNodeTwo = "nn2";
+    final String expectedHostGroupName = "host_group_1";
+
+    EasyMockSupport mockSupport = new EasyMockSupport();
+
+    HostGroup mockHostGroupOne = mockSupport.createMock(HostGroup.class);
+
+    expect(mockHostGroupOne.getHostInfo()).andReturn(Arrays.asList(expectedHostName, "serverTwo")).atLeastOnce();
+    expect(mockHostGroupOne.getName()).andReturn(expectedHostGroupName).atLeastOnce();
+
+    mockSupport.replayAll();
+
+    Map<String, Map<String, String>> configProperties =
+      new HashMap<String, Map<String, String>>();
+
+    Map<String, String> hdfsSiteProperties =
+      new HashMap<String, String>();
+
+    configProperties.put("hdfs-site", hdfsSiteProperties);
+
+    // setup hdfs config for test
+
+    hdfsSiteProperties.put("dfs.nameservices", expectedNameService);
+    hdfsSiteProperties.put("dfs.ha.namenodes.mynameservice", expectedNodeOne + ", " + expectedNodeTwo);
+
+
+    // setup properties that include host information
+    hdfsSiteProperties.put("dfs.namenode.https-address." + expectedNameService + "." + expectedNodeOne, expectedHostName + ":" + expectedPortNum);
+    hdfsSiteProperties.put("dfs.namenode.https-address." + expectedNameService + "." + expectedNodeTwo, expectedHostName + ":" + expectedPortNum);
+    hdfsSiteProperties.put("dfs.namenode.http-address." + expectedNameService + "." + expectedNodeOne, expectedHostName + ":" + expectedPortNum);
+    hdfsSiteProperties.put("dfs.namenode.http-address." + expectedNameService + "." + expectedNodeTwo, expectedHostName + ":" + expectedPortNum);
+    hdfsSiteProperties.put("dfs.namenode.rpc-address." + expectedNameService + "." + expectedNodeOne, expectedHostName + ":" + expectedPortNum);
+    hdfsSiteProperties.put("dfs.namenode.rpc-address." + expectedNameService + "." + expectedNodeTwo, expectedHostName + ":" + expectedPortNum);
+
+
+    BlueprintConfigurationProcessor configProcessor =
+      new BlueprintConfigurationProcessor(configProperties);
+
+    // call top-level export method, which will call the HA-specific method if HA is enabled
+    configProcessor.doUpdateForBlueprintExport(Arrays.asList(mockHostGroupOne));
+
+    assertEquals("HTTPS address HA property not properly exported",
+      createExportedAddress(expectedPortNum, expectedHostGroupName), hdfsSiteProperties.get("dfs.namenode.https-address." + expectedNameService + "." + expectedNodeOne));
+    assertEquals("HTTPS address HA property not properly exported",
+      createExportedAddress(expectedPortNum, expectedHostGroupName), hdfsSiteProperties.get("dfs.namenode.https-address." + expectedNameService + "." + expectedNodeTwo));
+
+    assertEquals("HTTPS address HA property not properly exported",
+      createExportedAddress(expectedPortNum, expectedHostGroupName), hdfsSiteProperties.get("dfs.namenode.http-address." + expectedNameService + "." + expectedNodeOne));
+    assertEquals("HTTPS address HA property not properly exported",
+      createExportedAddress(expectedPortNum, expectedHostGroupName), hdfsSiteProperties.get("dfs.namenode.http-address." + expectedNameService + "." + expectedNodeTwo));
+
+    assertEquals("HTTPS address HA property not properly exported",
+      createExportedAddress(expectedPortNum, expectedHostGroupName), hdfsSiteProperties.get("dfs.namenode.rpc-address." + expectedNameService + "." + expectedNodeOne));
+    assertEquals("HTTPS address HA property not properly exported",
+      createExportedAddress(expectedPortNum, expectedHostGroupName), hdfsSiteProperties.get("dfs.namenode.rpc-address." + expectedNameService + "." + expectedNodeTwo));
+
+    mockSupport.verifyAll();
+
+  }
+
+  @Test
+  public void testDoNameNodeHighAvailabilityUpdateWithHANotEnabled() throws Exception {
+    EasyMockSupport mockSupport = new EasyMockSupport();
+
+    HostGroup mockHostGroupOne = mockSupport.createMock(HostGroup.class);
+
+    mockSupport.replayAll();
+
+    Map<String, Map<String, String>> configProperties =
+      new HashMap<String, Map<String, String>>();
+
+    Map<String, String> hdfsSiteProperties =
+      new HashMap<String, String>();
+
+    configProperties.put("hdfs-site", hdfsSiteProperties);
+
+    // hdfs-site config for this test will not include an HA values
+
+    BlueprintConfigurationProcessor configProcessor =
+      new BlueprintConfigurationProcessor(configProperties);
+
+    assertEquals("Incorrect initial state for hdfs-site config",
+      0, hdfsSiteProperties.size());
+
+    // call top-level export method
+    configProcessor.doUpdateForBlueprintExport(Arrays.asList(mockHostGroupOne));
+
+    assertEquals("Incorrect state for hdsf-site config after HA call in non-HA environment, should be zero",
+      0, hdfsSiteProperties.size());
+
+    mockSupport.verifyAll();
+
+  }
+
+  @Test
+  public void testDoNameNodeHighAvailabilityUpdateWithHAEnabledMultipleServices() throws Exception {
+    final String expectedNameServiceOne = "mynameserviceOne";
+    final String expectedNameServiceTwo = "mynameserviceTwo";
+    final String expectedHostNameOne = "c6401.apache.ambari.org";
+    final String expectedHostNameTwo = "c6402.apache.ambari.org";
+
+    final String expectedPortNum = "808080";
+    final String expectedNodeOne = "nn1";
+    final String expectedNodeTwo = "nn2";
+    final String expectedHostGroupName = "host_group_1";
+
+    EasyMockSupport mockSupport = new EasyMockSupport();
+
+    HostGroup mockHostGroupOne = mockSupport.createMock(HostGroup.class);
+
+    expect(mockHostGroupOne.getHostInfo()).andReturn(Arrays.asList(expectedHostNameOne, expectedHostNameTwo, "serverTwo")).atLeastOnce();
+    expect(mockHostGroupOne.getName()).andReturn(expectedHostGroupName).atLeastOnce();
+
+    mockSupport.replayAll();
+
+    Map<String, Map<String, String>> configProperties =
+      new HashMap<String, Map<String, String>>();
+
+    Map<String, String> hdfsSiteProperties =
+      new HashMap<String, String>();
+
+    configProperties.put("hdfs-site", hdfsSiteProperties);
+
+    // setup hdfs config for test
+
+    hdfsSiteProperties.put("dfs.nameservices", expectedNameServiceOne + "," + expectedNameServiceTwo);
+    hdfsSiteProperties.put("dfs.ha.namenodes." + expectedNameServiceOne, expectedNodeOne + ", " + expectedNodeTwo);
+    hdfsSiteProperties.put("dfs.ha.namenodes." + expectedNameServiceTwo, expectedNodeOne + ", " + expectedNodeTwo);
+
+
+    // setup properties that include host information for nameservice one
+    hdfsSiteProperties.put("dfs.namenode.https-address." + expectedNameServiceOne + "." + expectedNodeOne, expectedHostNameOne + ":" + expectedPortNum);
+    hdfsSiteProperties.put("dfs.namenode.https-address." + expectedNameServiceOne + "." + expectedNodeTwo, expectedHostNameOne + ":" + expectedPortNum);
+    hdfsSiteProperties.put("dfs.namenode.http-address." + expectedNameServiceOne + "." + expectedNodeOne, expectedHostNameOne + ":" + expectedPortNum);
+    hdfsSiteProperties.put("dfs.namenode.http-address." + expectedNameServiceOne + "." + expectedNodeTwo, expectedHostNameOne + ":" + expectedPortNum);
+    hdfsSiteProperties.put("dfs.namenode.rpc-address." + expectedNameServiceOne + "." + expectedNodeOne, expectedHostNameOne + ":" + expectedPortNum);
+    hdfsSiteProperties.put("dfs.namenode.rpc-address." + expectedNameServiceOne + "." + expectedNodeTwo, expectedHostNameOne + ":" + expectedPortNum);
+
+    // setup properties that include host information for nameservice two
+    hdfsSiteProperties.put("dfs.namenode.https-address." + expectedNameServiceTwo + "." + expectedNodeOne, expectedHostNameTwo + ":" + expectedPortNum);
+    hdfsSiteProperties.put("dfs.namenode.https-address." + expectedNameServiceTwo + "." + expectedNodeTwo, expectedHostNameTwo + ":" + expectedPortNum);
+    hdfsSiteProperties.put("dfs.namenode.http-address." + expectedNameServiceTwo + "." + expectedNodeOne, expectedHostNameTwo + ":" + expectedPortNum);
+    hdfsSiteProperties.put("dfs.namenode.http-address." + expectedNameServiceTwo + "." + expectedNodeTwo, expectedHostNameTwo + ":" + expectedPortNum);
+    hdfsSiteProperties.put("dfs.namenode.rpc-address." + expectedNameServiceTwo + "." + expectedNodeOne, expectedHostNameTwo + ":" + expectedPortNum);
+    hdfsSiteProperties.put("dfs.namenode.rpc-address." + expectedNameServiceTwo + "." + expectedNodeTwo, expectedHostNameTwo + ":" + expectedPortNum);
+
+
+    BlueprintConfigurationProcessor configProcessor =
+      new BlueprintConfigurationProcessor(configProperties);
+
+    // call top-level export method, which will call the HA-specific method if HA is enabled
+    configProcessor.doUpdateForBlueprintExport(Arrays.asList(mockHostGroupOne));
+
+    // verify results for name service one
+    assertEquals("HTTPS address HA property not properly exported",
+      createExportedAddress(expectedPortNum, expectedHostGroupName), hdfsSiteProperties.get("dfs.namenode.https-address." + expectedNameServiceOne + "." + expectedNodeOne));
+    assertEquals("HTTPS address HA property not properly exported",
+      createExportedAddress(expectedPortNum, expectedHostGroupName), hdfsSiteProperties.get("dfs.namenode.https-address." + expectedNameServiceOne + "." + expectedNodeTwo));
+
+    assertEquals("HTTPS address HA property not properly exported",
+      createExportedAddress(expectedPortNum, expectedHostGroupName), hdfsSiteProperties.get("dfs.namenode.http-address." + expectedNameServiceOne + "." + expectedNodeOne));
+    assertEquals("HTTPS address HA property not properly exported",
+      createExportedAddress(expectedPortNum, expectedHostGroupName), hdfsSiteProperties.get("dfs.namenode.http-address." + expectedNameServiceOne + "." + expectedNodeTwo));
+
+    assertEquals("HTTPS address HA property not properly exported",
+      createExportedAddress(expectedPortNum, expectedHostGroupName), hdfsSiteProperties.get("dfs.namenode.rpc-address." + expectedNameServiceOne + "." + expectedNodeOne));
+    assertEquals("HTTPS address HA property not properly exported",
+      createExportedAddress(expectedPortNum, expectedHostGroupName), hdfsSiteProperties.get("dfs.namenode.rpc-address." + expectedNameServiceOne + "." + expectedNodeTwo));
+
+
+    // verify results for name service two
+    assertEquals("HTTPS address HA property not properly exported",
+      createExportedAddress(expectedPortNum, expectedHostGroupName), hdfsSiteProperties.get("dfs.namenode.https-address." + expectedNameServiceTwo + "." + expectedNodeOne));
+    assertEquals("HTTPS address HA property not properly exported",
+      createExportedAddress(expectedPortNum, expectedHostGroupName), hdfsSiteProperties.get("dfs.namenode.https-address." + expectedNameServiceTwo + "." + expectedNodeTwo));
+
+    assertEquals("HTTPS address HA property not properly exported",
+      createExportedAddress(expectedPortNum, expectedHostGroupName), hdfsSiteProperties.get("dfs.namenode.http-address." + expectedNameServiceTwo + "." + expectedNodeOne));
+    assertEquals("HTTPS address HA property not properly exported",
+      createExportedAddress(expectedPortNum, expectedHostGroupName), hdfsSiteProperties.get("dfs.namenode.http-address." + expectedNameServiceTwo + "." + expectedNodeTwo));
+
+    assertEquals("HTTPS address HA property not properly exported",
+      createExportedAddress(expectedPortNum, expectedHostGroupName), hdfsSiteProperties.get("dfs.namenode.rpc-address." + expectedNameServiceTwo + "." + expectedNodeOne));
+    assertEquals("HTTPS address HA property not properly exported",
+      createExportedAddress(expectedPortNum, expectedHostGroupName), hdfsSiteProperties.get("dfs.namenode.rpc-address." + expectedNameServiceTwo + "." + expectedNodeTwo));
+
+    mockSupport.verifyAll();
+
+  }
+
+  @Test
+  public void testIsNameNodeHAEnabled() throws Exception {
+    Map<String, Map<String, String>> configProperties =
+      new HashMap<String, Map<String, String>>();
+
+    BlueprintConfigurationProcessor configProcessor =
+      new BlueprintConfigurationProcessor(configProperties);
+
+    assertFalse("Incorrect HA detection, hdfs-site not available",
+      configProcessor.isNameNodeHAEnabled());
+
+    Map<String, String> hdfsSiteMap = new HashMap<String, String>();
+    configProperties.put("hdfs-site", hdfsSiteMap);
+
+    assertFalse("Incorrect HA detection, HA flag not enabled",
+      configProcessor.isNameNodeHAEnabled());
+
+    hdfsSiteMap.put("dfs.nameservices", "myTestNameService");
+
+    assertTrue("Incorrect HA detection, HA was enabled",
+      configProcessor.isNameNodeHAEnabled());
+
+  }
+
+  @Test
+  public void testParseNameServices() throws Exception {
+    Map<String, String> hdfsSiteConfigMap =
+      new HashMap<String, String>();
+    hdfsSiteConfigMap.put("dfs.nameservices", "serviceOne");
+
+    // verify that a single service is parsed correctly
+    String[] result = BlueprintConfigurationProcessor.parseNameServices(hdfsSiteConfigMap);
+
+    assertNotNull("Resulting array was null",
+      result);
+    assertEquals("Incorrect array size",
+      1, result.length);
+    assertEquals("Incorrect value for returned name service",
+      "serviceOne", result[0]);
+
+    // verify that multiple services are parsed correctly
+    hdfsSiteConfigMap.put("dfs.nameservices", " serviceTwo, serviceThree, serviceFour");
+
+    String[] resultTwo = BlueprintConfigurationProcessor.parseNameServices(hdfsSiteConfigMap);
+
+    assertNotNull("Resulting array was null",
+      resultTwo);
+    assertEquals("Incorrect array size",
+      3, resultTwo.length);
+    assertEquals("Incorrect value for returned name service",
+      "serviceTwo", resultTwo[0]);
+    assertEquals("Incorrect value for returned name service",
+      "serviceThree", resultTwo[1]);
+    assertEquals("Incorrect value for returned name service",
+      "serviceFour", resultTwo[2]);
+  }
+
+  @Test
+  public void testParseNameNodes() throws Exception {
+    final String expectedServiceName = "serviceOne";
+    Map<String, String> hdfsSiteConfigMap =
+      new HashMap<String, String>();
+    hdfsSiteConfigMap.put("dfs.ha.namenodes." + expectedServiceName, "node1");
+
+    // verify that a single name node is parsed correctly
+    String[] result =
+      BlueprintConfigurationProcessor.parseNameNodes(expectedServiceName, hdfsSiteConfigMap);
+
+    assertNotNull("Resulting array was null",
+      result);
+    assertEquals("Incorrect array size",
+      1, result.length);
+    assertEquals("Incorrect value for returned name nodes",
+      "node1", result[0]);
+
+    // verify that multiple name nodes are parsed correctly
+    hdfsSiteConfigMap.put("dfs.ha.namenodes." + expectedServiceName, " nodeSeven, nodeEight, nodeNine");
+
+    String[] resultTwo =
+      BlueprintConfigurationProcessor.parseNameNodes(expectedServiceName, hdfsSiteConfigMap);
+
+    assertNotNull("Resulting array was null",
+      resultTwo);
+    assertEquals("Incorrect array size",
+      3, resultTwo.length);
+    assertEquals("Incorrect value for returned name node",
+      "nodeSeven", resultTwo[0]);
+    assertEquals("Incorrect value for returned name node",
+      "nodeEight", resultTwo[1]);
+    assertEquals("Incorrect value for returned name node",
+      "nodeNine", resultTwo[2]);
+
+  }
+
+  @Test
+  public void testYarnConfigExported() throws Exception {
+    final String expectedHostName = "c6401.apache.ambari.org";
+    final String expectedPortNum = "808080";
+    final String expectedHostGroupName = "host_group_1";
+
+    EasyMockSupport mockSupport = new EasyMockSupport();
+
+    HostGroup mockHostGroupOne = mockSupport.createMock(HostGroup.class);
+
+    expect(mockHostGroupOne.getHostInfo()).andReturn(Arrays.asList(expectedHostName, "serverTwo")).atLeastOnce();
+    expect(mockHostGroupOne.getName()).andReturn(expectedHostGroupName).atLeastOnce();
+
+    mockSupport.replayAll();
+
+    Map<String, Map<String, String>> configProperties =
+      new HashMap<String, Map<String, String>>();
+
+    Map<String, String> yarnSiteProperties =
+      new HashMap<String, String>();
+
+    configProperties.put("yarn-site", yarnSiteProperties);
+
+    // setup properties that include host information
+    yarnSiteProperties.put("yarn.log.server.url", "http://" + expectedHostName +":19888/jobhistory/logs");
+    yarnSiteProperties.put("yarn.resourcemanager.hostname", expectedHostName);
+    yarnSiteProperties.put("yarn.resourcemanager.resource-tracker.address", expectedHostName + ":" + expectedPortNum);
+    yarnSiteProperties.put("yarn.resourcemanager.webapp.address", expectedHostName + ":" + expectedPortNum);
+    yarnSiteProperties.put("yarn.resourcemanager.scheduler.address", expectedHostName + ":" + expectedPortNum);
+    yarnSiteProperties.put("yarn.resourcemanager.address", expectedHostName + ":" + expectedPortNum);
+    yarnSiteProperties.put("yarn.resourcemanager.admin.address", expectedHostName + ":" + expectedPortNum);
+    yarnSiteProperties.put("yarn.timeline-service.address", expectedHostName + ":" + expectedPortNum);
+    yarnSiteProperties.put("yarn.timeline-service.webapp.address", expectedHostName + ":" + expectedPortNum);
+    yarnSiteProperties.put("yarn.timeline-service.webapp.https.address", expectedHostName + ":" + expectedPortNum);
+
+    BlueprintConfigurationProcessor configProcessor =
+      new BlueprintConfigurationProcessor(configProperties);
+
+    // call top-level export method
+    configProcessor.doUpdateForBlueprintExport(Arrays.asList(mockHostGroupOne));
+
+    assertEquals("Yarn Log Server URL was incorrectly exported",
+      "http://" + "%HOSTGROUP::" + expectedHostGroupName + "%" +":19888/jobhistory/logs", yarnSiteProperties.get("yarn.log.server.url"));
+    assertEquals("Yarn ResourceManager hostname was incorrectly exported",
+      createExportedHostName(expectedHostGroupName), yarnSiteProperties.get("yarn.resourcemanager.hostname"));
+    assertEquals("Yarn ResourceManager tracker address was incorrectly exported",
+      createExportedAddress(expectedPortNum, expectedHostGroupName), yarnSiteProperties.get("yarn.resourcemanager.resource-tracker.address"));
+    assertEquals("Yarn ResourceManager webapp address was incorrectly exported",
+      createExportedAddress(expectedPortNum, expectedHostGroupName), yarnSiteProperties.get("yarn.resourcemanager.webapp.address"));
+    assertEquals("Yarn ResourceManager scheduler address was incorrectly exported",
+      createExportedAddress(expectedPortNum, expectedHostGroupName), yarnSiteProperties.get("yarn.resourcemanager.scheduler.address"));
+    assertEquals("Yarn ResourceManager address was incorrectly exported",
+      createExportedAddress(expectedPortNum, expectedHostGroupName), yarnSiteProperties.get("yarn.resourcemanager.address"));
+    assertEquals("Yarn ResourceManager admin address was incorrectly exported",
+      createExportedAddress(expectedPortNum, expectedHostGroupName), yarnSiteProperties.get("yarn.resourcemanager.admin.address"));
+    assertEquals("Yarn ResourceManager timeline-service address was incorrectly exported",
+      createExportedAddress(expectedPortNum, expectedHostGroupName), yarnSiteProperties.get("yarn.timeline-service.address"));
+    assertEquals("Yarn ResourceManager timeline webapp address was incorrectly exported",
+      createExportedAddress(expectedPortNum, expectedHostGroupName), yarnSiteProperties.get("yarn.timeline-service.webapp.address"));
+    assertEquals("Yarn ResourceManager timeline webapp HTTPS address was incorrectly exported",
+      createExportedAddress(expectedPortNum, expectedHostGroupName), yarnSiteProperties.get("yarn.timeline-service.webapp.https.address"));
+
+    mockSupport.verifyAll();
+
+  }
+
+  @Test
+  public void testHDFSConfigExported() throws Exception {
+    final String expectedHostName = "c6401.apache.ambari.org";
+    final String expectedPortNum = "808080";
+    final String expectedHostGroupName = "host_group_1";
+
+    EasyMockSupport mockSupport = new EasyMockSupport();
+
+    HostGroup mockHostGroupOne = mockSupport.createMock(HostGroup.class);
+
+    expect(mockHostGroupOne.getHostInfo()).andReturn(Arrays.asList(expectedHostName, "serverTwo")).atLeastOnce();
+    expect(mockHostGroupOne.getName()).andReturn(expectedHostGroupName).atLeastOnce();
+
+    mockSupport.replayAll();
+
+    Map<String, Map<String, String>> configProperties =
+      new HashMap<String, Map<String, String>>();
+
+    Map<String, String> hdfsSiteProperties =
+      new HashMap<String, String>();
+
+    Map<String, String> coreSiteProperties =
+      new HashMap<String, String>();
+
+    Map<String, String> hbaseSiteProperties =
+      new HashMap<String, String>();
+
+    configProperties.put("hdfs-site", hdfsSiteProperties);
+    configProperties.put("core-site", coreSiteProperties);
+    configProperties.put("hbase-site", hbaseSiteProperties);
+
+    // setup properties that include host information
+    hdfsSiteProperties.put("dfs.http.address", expectedHostName + ":" + expectedPortNum);
+    hdfsSiteProperties.put("dfs.https.address", expectedHostName + ":" + expectedPortNum);
+    hdfsSiteProperties.put("dfs.namenode.http-address", expectedHostName + ":" + expectedPortNum);
+    hdfsSiteProperties.put("dfs.namenode.https-address", expectedHostName + ":" + expectedPortNum);
+    hdfsSiteProperties.put("dfs.secondary.http.address", expectedHostName + ":" + expectedPortNum);
+    hdfsSiteProperties.put("dfs.namenode.secondary.http-address", expectedHostName + ":" + expectedPortNum);
+    hdfsSiteProperties.put("dfs.namenode.shared.edits.dir", expectedHostName + ":" + expectedPortNum);
+
+    coreSiteProperties.put("fs.default.name", expectedHostName + ":" + expectedPortNum);
+    coreSiteProperties.put("fs.defaultFS", "hdfs://" + expectedHostName + ":" + expectedPortNum);
+
+    hbaseSiteProperties.put("hbase.rootdir", "hdfs://" + expectedHostName + ":" + expectedPortNum + "/apps/hbase/data");
+
+
+    BlueprintConfigurationProcessor configProcessor =
+      new BlueprintConfigurationProcessor(configProperties);
+
+    // call top-level export method
+    configProcessor.doUpdateForBlueprintExport(Arrays.asList(mockHostGroupOne));
+
+    assertEquals("hdfs config property not exported properly",
+      createExportedAddress(expectedPortNum, expectedHostGroupName), hdfsSiteProperties.get("dfs.http.address"));
+    assertEquals("hdfs config property not exported properly",
+      createExportedAddress(expectedPortNum, expectedHostGroupName), hdfsSiteProperties.get("dfs.https.address"));
+    assertEquals("hdfs config property not exported properly",
+      createExportedAddress(expectedPortNum, expectedHostGroupName), hdfsSiteProperties.get("dfs.namenode.http-address"));
+    assertEquals("hdfs config property not exported properly",
+      createExportedAddress(expectedPortNum, expectedHostGroupName), hdfsSiteProperties.get("dfs.namenode.https-address"));
+    assertEquals("hdfs config property not exported properly",
+      createExportedAddress(expectedPortNum, expectedHostGroupName), hdfsSiteProperties.get("dfs.secondary.http.address"));
+    assertEquals("hdfs config property not exported properly",
+      createExportedAddress(expectedPortNum, expectedHostGroupName), hdfsSiteProperties.get("dfs.namenode.secondary.http-address"));
+    assertEquals("hdfs config property not exported properly",
+      createExportedAddress(expectedPortNum, expectedHostGroupName), hdfsSiteProperties.get("dfs.namenode.shared.edits.dir"));
+
+    assertEquals("hdfs config in core-site not exported properly",
+      createExportedAddress(expectedPortNum, expectedHostGroupName), coreSiteProperties.get("fs.default.name"));
+    assertEquals("hdfs config in core-site not exported properly",
+      "hdfs://" + createExportedAddress(expectedPortNum, expectedHostGroupName), coreSiteProperties.get("fs.defaultFS"));
+
+    assertEquals("hdfs config in hbase-site not exported properly",
+      "hdfs://" + createExportedAddress(expectedPortNum, expectedHostGroupName) + "/apps/hbase/data", hbaseSiteProperties.get("hbase.rootdir"));
+
+    mockSupport.verifyAll();
+
+  }
+
+  @Test
+  public void testHiveConfigExported() throws Exception {
+    final String expectedHostName = "c6401.apache.ambari.org";
+    final String expectedHostNameTwo = "c6402.ambari.apache.org";
+    final String expectedPortNum = "808080";
+    final String expectedHostGroupName = "host_group_1";
+    final String expectedHostGroupNameTwo = "host_group_2";
+
+    EasyMockSupport mockSupport = new EasyMockSupport();
+
+    HostGroup mockHostGroupOne = mockSupport.createMock(HostGroup.class);
+    HostGroup mockHostGroupTwo = mockSupport.createMock(HostGroup.class);
+
+    expect(mockHostGroupOne.getHostInfo()).andReturn(Arrays.asList(expectedHostName, "serverTwo")).atLeastOnce();
+    expect(mockHostGroupTwo.getHostInfo()).andReturn(Arrays.asList(expectedHostNameTwo, "serverTwo")).atLeastOnce();
+    expect(mockHostGroupOne.getName()).andReturn(expectedHostGroupName).atLeastOnce();
+    expect(mockHostGroupTwo.getName()).andReturn(expectedHostGroupNameTwo).atLeastOnce();
+
+    mockSupport.replayAll();
+
+    Map<String, Map<String, String>> configProperties =
+      new HashMap<String, Map<String, String>>();
+
+    Map<String, String> hiveSiteProperties =
+      new HashMap<String, String>();
+    Map<String, String> hiveEnvProperties =
+      new HashMap<String, String>();
+    Map<String, String> webHCatSiteProperties =
+      new HashMap<String, String>();
+    Map<String, String> coreSiteProperties =
+      new HashMap<String, String>();
+
+    configProperties.put("hive-site", hiveSiteProperties);
+    configProperties.put("hive-env", hiveEnvProperties);
+    configProperties.put("webhcat-site", webHCatSiteProperties);
+    configProperties.put("core-site", coreSiteProperties);
+
+
+    // setup properties that include host information
+    hiveSiteProperties.put("hive.metastore.uris", expectedHostName + ":" + expectedPortNum);
+    hiveSiteProperties.put("javax.jdo.option.ConnectionURL", expectedHostName + ":" + expectedPortNum);
+    hiveEnvProperties.put("hive_hostname", expectedHostName);
+
+    webHCatSiteProperties.put("templeton.hive.properties", expectedHostName + "," + expectedHostNameTwo);
+    webHCatSiteProperties.put("templeton.kerberos.principal", expectedHostName);
+
+    coreSiteProperties.put("hadoop.proxyuser.hive.hosts", expectedHostName + "," + expectedHostNameTwo);
+    coreSiteProperties.put("hadoop.proxyuser.HTTP.hosts", expectedHostName + "," + expectedHostNameTwo);
+    coreSiteProperties.put("hadoop.proxyuser.hcat.hosts", expectedHostName + "," + expectedHostNameTwo);
+
+    BlueprintConfigurationProcessor configProcessor =
+      new BlueprintConfigurationProcessor(configProperties);
+
+    // call top-level export method
+    configProcessor.doUpdateForBlueprintExport(Arrays.asList(mockHostGroupOne, mockHostGroupTwo));
+
+    assertEquals("hive property not properly exported",
+      createExportedAddress(expectedPortNum, expectedHostGroupName), hiveSiteProperties.get("hive.metastore.uris"));
+    assertEquals("hive property not properly exported",
+      createExportedAddress(expectedPortNum, expectedHostGroupName), hiveSiteProperties.get("javax.jdo.option.ConnectionURL"));
+    assertEquals("hive property not properly exported",
+      createExportedHostName(expectedHostGroupName), hiveEnvProperties.get("hive_hostname"));
+
+    assertEquals("hive property not properly exported",
+      createExportedHostName(expectedHostGroupName) + "," + createExportedHostName(expectedHostGroupNameTwo),
+      webHCatSiteProperties.get("templeton.hive.properties"));
+    assertEquals("hive property not properly exported",
+      createExportedHostName(expectedHostGroupName), webHCatSiteProperties.get("templeton.kerberos.principal"));
+
+    assertEquals("hive property not properly exported",
+      createExportedHostName(expectedHostGroupName) + "," + createExportedHostName(expectedHostGroupNameTwo), coreSiteProperties.get("hadoop.proxyuser.hive.hosts"));
+
+    assertEquals("hive property not properly exported",
+      createExportedHostName(expectedHostGroupName) + "," + createExportedHostName(expectedHostGroupNameTwo), coreSiteProperties.get("hadoop.proxyuser.HTTP.hosts"));
+
+    assertEquals("hive property not properly exported",
+      createExportedHostName(expectedHostGroupName) + "," + createExportedHostName(expectedHostGroupNameTwo), coreSiteProperties.get("hadoop.proxyuser.hcat.hosts"));
+
+    mockSupport.verifyAll();
+  }
+
+
+  @Test
+  public void testOozieConfigExported() throws Exception {
+    final String expectedHostName = "c6401.apache.ambari.org";
+    final String expectedHostNameTwo = "c6402.ambari.apache.org";
+    final String expectedHostGroupName = "host_group_1";
+    final String expectedHostGroupNameTwo = "host_group_2";
+
+    EasyMockSupport mockSupport = new EasyMockSupport();
+
+    HostGroup mockHostGroupOne = mockSupport.createMock(HostGroup.class);
+    HostGroup mockHostGroupTwo = mockSupport.createMock(HostGroup.class);
+
+    expect(mockHostGroupOne.getHostInfo()).andReturn(Arrays.asList(expectedHostName, "serverTwo")).atLeastOnce();
+    expect(mockHostGroupTwo.getHostInfo()).andReturn(Arrays.asList(expectedHostNameTwo, "serverTwo")).atLeastOnce();
+    expect(mockHostGroupOne.getName()).andReturn(expectedHostGroupName).atLeastOnce();
+    expect(mockHostGroupTwo.getName()).andReturn(expectedHostGroupNameTwo).atLeastOnce();
+
+    mockSupport.replayAll();
+
+    Map<String, Map<String, String>> configProperties =
+      new HashMap<String, Map<String, String>>();
+
+    Map<String, String> oozieSiteProperties =
+      new HashMap<String, String>();
+    Map<String, String> oozieEnvProperties =
+      new HashMap<String, String>();
+    Map<String, String> coreSiteProperties =
+      new HashMap<String, String>();
+
+    configProperties.put("oozie-site", oozieSiteProperties);
+    configProperties.put("oozie-env", oozieEnvProperties);
+    configProperties.put("hive-env", oozieEnvProperties);
+    configProperties.put("core-site", coreSiteProperties);
+
+    oozieSiteProperties.put("oozie.base.url", expectedHostName);
+    oozieSiteProperties.put("oozie.authentication.kerberos.principal", expectedHostName);
+    oozieSiteProperties.put("oozie.service.HadoopAccessorService.kerberos.principal", expectedHostName);
+
+    oozieEnvProperties.put("oozie_hostname", expectedHostName);
+
+    coreSiteProperties.put("hadoop.proxyuser.oozie.hosts", expectedHostName + "," + expectedHostNameTwo);
+
+    BlueprintConfigurationProcessor configProcessor =
+      new BlueprintConfigurationProcessor(configProperties);
+
+    // call top-level export method
+    configProcessor.doUpdateForBlueprintExport(Arrays.asList(mockHostGroupOne, mockHostGroupTwo));
+
+    assertEquals("oozie property not exported correctly",
+      createExportedHostName(expectedHostGroupName), oozieSiteProperties.get("oozie.base.url"));
+    assertEquals("oozie property not exported correctly",
+      createExportedHostName(expectedHostGroupName), oozieSiteProperties.get("oozie.authentication.kerberos.principal"));
+    assertEquals("oozie property not exported correctly",
+      createExportedHostName(expectedHostGroupName), oozieSiteProperties.get("oozie.service.HadoopAccessorService.kerberos.principal"));
+    assertEquals("oozie property not exported correctly",
+      createExportedHostName(expectedHostGroupName), oozieEnvProperties.get("oozie_hostname"));
+    assertEquals("oozie property not exported correctly",
+      createExportedHostName(expectedHostGroupName) + "," + createExportedHostName(expectedHostGroupNameTwo), coreSiteProperties.get("hadoop.proxyuser.oozie.hosts"));
+
+    mockSupport.verifyAll();
+
+  }
+
+  @Test
+  public void testZookeeperConfigExported() throws Exception {
+    final String expectedHostName = "c6401.apache.ambari.org";
+    final String expectedHostNameTwo = "c6402.ambari.apache.org";
+    final String expectedHostGroupName = "host_group_1";
+    final String expectedHostGroupNameTwo = "host_group_2";
+
+    EasyMockSupport mockSupport = new EasyMockSupport();
+
+    HostGroup mockHostGroupOne = mockSupport.createMock(HostGroup.class);
+    HostGroup mockHostGroupTwo = mockSupport.createMock(HostGroup.class);
+
+    expect(mockHostGroupOne.getHostInfo()).andReturn(Arrays.asList(expectedHostName, "serverTwo")).atLeastOnce();
+    expect(mockHostGroupTwo.getHostInfo()).andReturn(Arrays.asList(expectedHostNameTwo, "serverTwo")).atLeastOnce();
+    expect(mockHostGroupOne.getName()).andReturn(expectedHostGroupName).atLeastOnce();
+    expect(mockHostGroupTwo.getName()).andReturn(expectedHostGroupNameTwo).atLeastOnce();
+
+    mockSupport.replayAll();
+
+    Map<String, Map<String, String>> configProperties =
+      new HashMap<String, Map<String, String>>();
+
+    Map<String, String> coreSiteProperties =
+      new HashMap<String, String>();
+    Map<String, String> hbaseSiteProperties =
+      new HashMap<String, String>();
+    Map<String, String> webHCatSiteProperties =
+      new HashMap<String, String>();
+
+    configProperties.put("core-site", coreSiteProperties);
+    configProperties.put("hbase-site", hbaseSiteProperties);
+    configProperties.put("webhcat-site", webHCatSiteProperties);
+
+    coreSiteProperties.put("ha.zookeeper.quorum", expectedHostName + "," + expectedHostNameTwo);
+    hbaseSiteProperties.put("hbase.zookeeper.quorum", expectedHostName + "," + expectedHostNameTwo);
+    webHCatSiteProperties.put("templeton.zookeeper.hosts", expectedHostName + "," + expectedHostNameTwo);
+
+    BlueprintConfigurationProcessor configProcessor =
+      new BlueprintConfigurationProcessor(configProperties);
+
+    // call top-level export method
+    configProcessor.doUpdateForBlueprintExport(Arrays.asList(mockHostGroupOne, mockHostGroupTwo));
+
+    assertEquals("zookeeper config not properly exported",
+      createExportedHostName(expectedHostGroupName) + "," + createExportedHostName(expectedHostGroupNameTwo),
+      coreSiteProperties.get("ha.zookeeper.quorum"));
+    assertEquals("zookeeper config not properly exported",
+      createExportedHostName(expectedHostGroupName) + "," + createExportedHostName(expectedHostGroupNameTwo),
+      hbaseSiteProperties.get("hbase.zookeeper.quorum"));
+    assertEquals("zookeeper config not properly exported",
+      createExportedHostName(expectedHostGroupName) + "," + createExportedHostName(expectedHostGroupNameTwo),
+      webHCatSiteProperties.get("templeton.zookeeper.hosts"));
+
+    mockSupport.verifyAll();
+
+  }
+
+  @Test
+  public void testNagiosConfigExported() throws Exception {
+    final String expectedHostName = "c6401.apache.ambari.org";
+    final String expectedHostGroupName = "host_group_1";
+
+    EasyMockSupport mockSupport = new EasyMockSupport();
+
+    HostGroup mockHostGroupOne = mockSupport.createMock(HostGroup.class);
+
+    expect(mockHostGroupOne.getHostInfo()).andReturn(Arrays.asList(expectedHostName, "serverTwo")).atLeastOnce();
+    expect(mockHostGroupOne.getName()).andReturn(expectedHostGroupName).atLeastOnce();
+
+    mockSupport.replayAll();
+
+    Map<String, Map<String, String>> configProperties =
+      new HashMap<String, Map<String, String>>();
+
+    Map<String, String> nagiosEnvProperties =
+      new HashMap<String, String>();
+
+    configProperties.put("nagios-env", nagiosEnvProperties);
+
+    nagiosEnvProperties.put("nagios_principal_name", expectedHostName);
+
+    BlueprintConfigurationProcessor configProcessor =
+      new BlueprintConfigurationProcessor(configProperties);
+
+    // call top-level export method
+    configProcessor.doUpdateForBlueprintExport(Arrays.asList(mockHostGroupOne));
+
+    assertEquals("nagios config not properly exported",
+      createExportedHostName(expectedHostGroupName),
+      nagiosEnvProperties.get("nagios_principal_name"));
+
+    mockSupport.verifyAll();
+
+  }
+
+  private static String createExportedAddress(String expectedPortNum, String expectedHostGroupName) {
+    return createExportedHostName(expectedHostGroupName) + ":" + expectedPortNum;
+  }
+
+  private static String createExportedHostName(String expectedHostGroupName) {
+    return "%HOSTGROUP::" + expectedHostGroupName + "%";
   }
 
   private class TestHostGroup implements HostGroup {

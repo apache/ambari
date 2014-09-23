@@ -459,7 +459,7 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
     String rmAddress = viewContext.getProperties().get(PROPERTY_YARN_RM_ADDRESS);
     String rmSchedulerAddress = viewContext.getProperties().get(PROPERTY_YARN_RM_SCHEDULER_ADDRESS);
     String zkQuorum = viewContext.getProperties().get(PROPERTY_ZK_QUOROM);
-    boolean securedCluster = Boolean.getBoolean(viewContext.getProperties().get(PROPERTY_SLIDER_SECURITY_ENABLED));
+    boolean securedCluster = Boolean.valueOf(viewContext.getProperties().get(PROPERTY_SLIDER_SECURITY_ENABLED));
 
     HdfsConfiguration hdfsConfig = new HdfsConfiguration();
     YarnConfiguration yarnConfig = new YarnConfiguration(hdfsConfig);
