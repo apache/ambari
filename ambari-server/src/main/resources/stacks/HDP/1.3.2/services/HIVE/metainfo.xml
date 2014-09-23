@@ -157,7 +157,7 @@
         </component>
         <component>
           <name>HCAT</name>
-          <displayName>HCat</displayName>
+          <displayName>HCat Client</displayName>
           <category>CLIENT</category>
           <commandScript>
             <script>scripts/hcat_client.py</script>
