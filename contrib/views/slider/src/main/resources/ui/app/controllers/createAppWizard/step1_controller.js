@@ -59,6 +59,14 @@ App.CreateAppWizardStep1Controller = Ember.Controller.extend({
   nameErrorMessage: '',
 
   /**
+   * Define if there are existing App types
+   * @type {Boolean}
+   */
+  isAppTypesError: function(){
+    return !this.get('availableTypes.content.length');
+  }.property('availableTypes.content.length'),
+
+  /**
    * Define description depending on selected App type
    * @type {string}
    */
