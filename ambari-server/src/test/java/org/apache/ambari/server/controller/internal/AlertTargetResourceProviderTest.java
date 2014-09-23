@@ -187,6 +187,39 @@ public class AlertTargetResourceProviderTest {
    * @throws Exception
    */
   @Test
+  public void testCreateWithRecipientArray() throws Exception {
+    Capture<List<AlertTargetEntity>> listCapture = new Capture<List<AlertTargetEntity>>();
+
+    m_dao.createTargets(capture(listCapture));
+    expectLastCall();
+
+    replay(m_amc, m_dao);
+
+    AlertTargetResourceProvider provider = createProvider(m_amc);
+    Map<String, Object> requestProps = getRecipientCreationProperties();
+
+    Request request = PropertyHelper.getCreateRequest(
+        Collections.singleton(requestProps), null);
+    provider.createResources(request);
+
+    Assert.assertTrue(listCapture.hasCaptured());
+    AlertTargetEntity entity = listCapture.getValue().get(0);
+    Assert.assertNotNull(entity);
+
+    assertEquals(ALERT_TARGET_NAME, entity.getTargetName());
+    assertEquals(ALERT_TARGET_DESC, entity.getDescription());
+    assertEquals(ALERT_TARGET_TYPE, entity.getNotificationType());
+    assertEquals(
+        "{\"ambari.dispatch.recipients\":\"[\\\"ambari@ambari.apache.org\\\"]\"}",
+        entity.getProperties());
+
+    verify(m_amc, m_dao);
+  }
+
+  /**
+   * @throws Exception
+   */
+  @Test
   @SuppressWarnings("unchecked")
   public void testUpdateResources() throws Exception {
     Capture<AlertTargetEntity> entityCapture = new Capture<AlertTargetEntity>();
@@ -326,6 +359,31 @@ public class AlertTargetResourceProviderTest {
 
     requestProps.put(AlertTargetResourceProvider.ALERT_TARGET_PROPERTIES
         + "/foobar", "baz");
+
+    return requestProps;
+  }
+
+  /**
+   * Gets the maps of properties that simulate a deserialzied JSON request with
+   * a nested JSON array.
+   *
+   * @return
+   * @throws Exception
+   */
+  private Map<String, Object> getRecipientCreationProperties() throws Exception {
+    Map<String, Object> requestProps = new HashMap<String, Object>();
+    requestProps.put(AlertTargetResourceProvider.ALERT_TARGET_NAME,
+        ALERT_TARGET_NAME);
+
+    requestProps.put(AlertTargetResourceProvider.ALERT_TARGET_DESCRIPTION,
+        ALERT_TARGET_DESC);
+
+    requestProps.put(
+        AlertTargetResourceProvider.ALERT_TARGET_NOTIFICATION_TYPE,
+        ALERT_TARGET_TYPE);
+
+    requestProps.put(AlertTargetResourceProvider.ALERT_TARGET_PROPERTIES
+        + "/ambari.dispatch.recipients", "[\"ambari@ambari.apache.org\"]");
 
     return requestProps;
   }

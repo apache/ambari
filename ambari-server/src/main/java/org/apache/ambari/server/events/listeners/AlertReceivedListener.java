@@ -28,8 +28,8 @@ import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.AlertHistoryEntity;
 import org.apache.ambari.server.state.Alert;
 import org.apache.ambari.server.state.AlertState;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.eventbus.AllowConcurrentEvents;
 import com.google.common.eventbus.Subscribe;
@@ -46,7 +46,7 @@ public class AlertReceivedListener {
   /**
    * Logger.
    */
-  private static Log LOG = LogFactory.getLog(AlertReceivedListener.class);
+  private static final Logger LOG = LoggerFactory.getLogger(AlertReceivedListener.class);
 
   @Inject
   private AlertsDAO m_alertsDao;
@@ -70,30 +70,33 @@ public class AlertReceivedListener {
     m_alertEventPublisher.register(this);
   }
 
-
   /**
-   * Adds an alert.  Checks for a new state before creating a new history record.
+   * Adds an alert. Checks for a new state before creating a new history record.
    *
-   * @param clusterId the id for the cluster
-   * @param alert the alert to add
+   * @param clusterId
+   *          the id for the cluster
+   * @param alert
+   *          the alert to add
    */
   @Subscribe
   @AllowConcurrentEvents
   public void onAlertEvent(AlertReceivedEvent event) {
-    LOG.debug(event);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(event.toString());
+    }
 
     long clusterId = event.getClusterId();
     Alert alert = event.getAlert();
 
     AlertCurrentEntity current = null;
-    
+
     if (null == alert.getHost()) {
       current = m_alertsDao.findCurrentByNameNoHost(clusterId, alert.getName());
     } else {
       current = m_alertsDao.findCurrentByHostAndName(clusterId, alert.getHost(),
           alert.getName());
     }
-    
+
     if (null == current) {
       AlertDefinitionEntity definition = m_definitionDao.findByName(clusterId,
           alert.getName());
@@ -111,13 +114,20 @@ public class AlertReceivedListener {
       current.setLatestTimestamp(Long.valueOf(alert.getTimestamp()));
       current.setLatestText(alert.getText());
 
-      m_alertsDao.merge(current);
+      current = m_alertsDao.merge(current);
     } else {
-      AlertState oldState = current.getAlertHistory().getAlertState();
+      LOG.debug(
+          "Alert State Changed: CurrentId {}, CurrentTimestamp {}, HistoryId {}, HistoryState {}",
+          current.getAlertId(), current.getLatestTimestamp(),
+          current.getAlertHistory().getAlertId(),
+          current.getAlertHistory().getAlertState());
+
+      AlertHistoryEntity oldHistory = current.getAlertHistory();
+      AlertState oldState = oldHistory.getAlertState();
 
       // insert history, update current
       AlertHistoryEntity history = createHistory(clusterId,
-          current.getAlertHistory().getAlertDefinition(), alert);
+          oldHistory.getAlertDefinition(), alert);
 
       // manually create the new history entity since we are merging into
       // an existing current entity
@@ -127,8 +137,14 @@ public class AlertReceivedListener {
       current.setLatestTimestamp(Long.valueOf(alert.getTimestamp()));
       current.setOriginalTimestamp(Long.valueOf(alert.getTimestamp()));
 
-      m_alertsDao.merge(current);
-      
+      current = m_alertsDao.merge(current);
+
+      LOG.debug(
+          "Alert State Merged: CurrentId {}, CurrentTimestamp {}, HistoryId {}, HistoryState {}",
+          current.getAlertId(), current.getLatestTimestamp(),
+          current.getAlertHistory().getAlertId(),
+          current.getAlertHistory().getAlertState());
+
       // broadcast the alert changed event for other subscribers
       AlertStateChangeEvent alertChangedEvent = new AlertStateChangeEvent(
           event.getClusterId(), event.getAlert(), current.getAlertHistory(),

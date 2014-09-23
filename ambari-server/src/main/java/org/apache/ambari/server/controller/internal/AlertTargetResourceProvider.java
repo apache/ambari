@@ -20,6 +20,7 @@ package org.apache.ambari.server.controller.internal;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -45,7 +46,6 @@ import org.apache.ambari.server.state.alert.AlertTarget;
 import org.apache.commons.lang.StringUtils;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 
@@ -351,22 +351,19 @@ public class AlertTargetResourceProvider extends
    *         {@code null} if none.
    */
   private String extractProperties( Map<String, Object> requestMap ){
-    JsonObject jsonObject = new JsonObject();
+    Map<String, Object> normalizedMap = new HashMap<String, Object>(
+        requestMap.size());
+
     for (Entry<String, Object> entry : requestMap.entrySet()) {
       String key = entry.getKey();
       String propCat = PropertyHelper.getPropertyCategory(key);
 
       if (propCat.equals(ALERT_TARGET_PROPERTIES)) {
         String propKey = PropertyHelper.getPropertyName(key);
-        jsonObject.addProperty(propKey, entry.getValue().toString());
+        normalizedMap.put(propKey, entry.getValue());
       }
     }
 
-    String properties = null;
-    if (jsonObject.entrySet().size() > 0) {
-      properties = jsonObject.toString();
-    }
-
-    return properties;
+    return s_gson.toJson(normalizedMap);
   }
 }

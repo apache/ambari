@@ -22,6 +22,7 @@ package org.apache.ambari.server.orm.dao;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -63,7 +64,7 @@ public class AlertsDAOTest {
   private AlertDefinitionDAO definitionDao;
 
   /**
-   * 
+   *
    */
   @Before
   public void setup() throws Exception {
@@ -88,7 +89,7 @@ public class AlertsDAOTest {
       definition.setSourceType(SourceType.SCRIPT);
       definitionDao.create(definition);
     }
-    
+
     List<AlertDefinitionEntity> definitions = definitionDao.findAll();
     assertNotNull(definitions);
     assertEquals(5, definitions.size());
@@ -142,7 +143,7 @@ public class AlertsDAOTest {
   }
 
   /**
-   * 
+   *
    */
   @After
   public void teardown() {
@@ -152,7 +153,7 @@ public class AlertsDAOTest {
 
 
   /**
-   * 
+   *
    */
   @Test
   public void testFindAll() {
@@ -162,7 +163,7 @@ public class AlertsDAOTest {
   }
 
   /**
-   * 
+   *
    */
   @Test
   public void testFindAllCurrent() {
@@ -172,16 +173,16 @@ public class AlertsDAOTest {
   }
 
   /**
-   * 
+   *
    */
   @Test
   public void testFindCurrentByService() {
     List<AlertCurrentEntity> currentAlerts = dao.findCurrent();
     AlertCurrentEntity current = currentAlerts.get(0);
     AlertHistoryEntity history = current.getAlertHistory();
-    
+
     assertNotNull(history);
-    
+
     currentAlerts = dao.findCurrentByService(clusterId,
         history.getServiceName());
 
@@ -193,7 +194,7 @@ public class AlertsDAOTest {
     assertNotNull(currentAlerts);
     assertEquals(0, currentAlerts.size());
   }
-  
+
   /**
    * Test looking up current by a host name.
    */
@@ -211,7 +212,7 @@ public class AlertsDAOTest {
     hostDef.setSource("HostService");
     hostDef.setSourceType(SourceType.SCRIPT);
     definitionDao.create(hostDef);
-    
+
     // history for the definition
     AlertHistoryEntity history = new AlertHistoryEntity();
     history.setServiceName(hostDef.getServiceName());
@@ -222,14 +223,14 @@ public class AlertsDAOTest {
     history.setAlertTimestamp(Long.valueOf(1L));
     history.setHostName("h2");
     history.setAlertState(AlertState.OK);
-    
+
     // current for the history
     AlertCurrentEntity current = new AlertCurrentEntity();
     current.setOriginalTimestamp(1L);
     current.setLatestTimestamp(2L);
     current.setAlertHistory(history);
     dao.create(current);
-    
+
     List<AlertCurrentEntity> currentAlerts = dao.findCurrentByHost(clusterId, history.getHostName());
 
     assertNotNull(currentAlerts);
@@ -239,10 +240,10 @@ public class AlertsDAOTest {
 
     assertNotNull(currentAlerts);
     assertEquals(0, currentAlerts.size());
-  }  
+  }
 
   /**
-   * 
+   *
    */
   @Test
   public void testFindByState() {
@@ -250,7 +251,7 @@ public class AlertsDAOTest {
     allStates.add(AlertState.OK);
     allStates.add(AlertState.WARNING);
     allStates.add(AlertState.CRITICAL);
-        
+
     List<AlertHistoryEntity> history = dao.findAll(clusterId, allStates);
     assertNotNull(history);
     assertEquals(50, history.size());
@@ -263,21 +264,21 @@ public class AlertsDAOTest {
         Collections.singletonList(AlertState.CRITICAL));
     assertNotNull(history);
     assertEquals(10, history.size());
-    
+
     history = dao.findAll(clusterId,
         Collections.singletonList(AlertState.WARNING));
     assertNotNull(history);
-    assertEquals(0, history.size());        
+    assertEquals(0, history.size());
   }
 
   /**
-   * 
+   *
    */
   @Test
   public void testFindByDate() {
     calendar.clear();
     calendar.set(2014, Calendar.JANUARY, 1);
-    
+
     // on or after 1/1/2014
     List<AlertHistoryEntity> history = dao.findAll(clusterId,
         calendar.getTime(), null);
@@ -311,21 +312,21 @@ public class AlertsDAOTest {
     assertNotNull(history);
     assertEquals(0, history.size());
   }
-  
+
   @Test
   public void testFindCurrentByHostAndName() throws Exception {
     AlertCurrentEntity entity = dao.findCurrentByHostAndName(clusterId.longValue(), "h2", "Alert Definition 1");
     assertNull(entity);
-    
+
     entity = dao.findCurrentByHostAndName(clusterId.longValue(), "h1", "Alert Definition 1");
-    
+
     assertNotNull(entity);
     assertNotNull(entity.getAlertHistory());
     assertNotNull(entity.getAlertHistory().getAlertDefinition());
   }
-  
+
   /**
-   * 
+   *
    */
   @Test
   public void testFindCurrentSummary() throws Exception {
@@ -341,12 +342,12 @@ public class AlertsDAOTest {
     dao.merge(h2);
     h3.setAlertState(AlertState.UNKNOWN);
     dao.merge(h3);
-    
+
     int ok = 0;
     int warn = 0;
     int crit = 0;
     int unk = 0;
-    
+
     for (AlertCurrentEntity h : dao.findCurrentByCluster(clusterId.longValue())) {
       switch (h.getAlertHistory().getAlertState()) {
         case CRITICAL:
@@ -362,22 +363,22 @@ public class AlertsDAOTest {
           warn++;
           break;
       }
-        
+
     }
-      
+
     summary = dao.findCurrentCounts(clusterId.longValue(), null, null);
     // !!! db-to-db compare
     assertEquals(ok, summary.getOkCount());
     assertEquals(warn, summary.getWarningCount());
     assertEquals(crit, summary.getCriticalCount());
     assertEquals(unk, summary.getCriticalCount());
-    
+
     // !!! expected
     assertEquals(2, summary.getOkCount());
     assertEquals(1, summary.getWarningCount());
     assertEquals(1, summary.getCriticalCount());
     assertEquals(1, summary.getCriticalCount());
-    
+
     summary = dao.findCurrentCounts(clusterId.longValue(), "Service 0", null);
     assertEquals(1, summary.getOkCount());
     assertEquals(0, summary.getWarningCount());
@@ -389,15 +390,14 @@ public class AlertsDAOTest {
     assertEquals(1, summary.getWarningCount());
     assertEquals(1, summary.getCriticalCount());
     assertEquals(1, summary.getCriticalCount());
-    
+
     summary = dao.findCurrentCounts(clusterId.longValue(), "foo", null);
     assertEquals(0, summary.getOkCount());
     assertEquals(0, summary.getWarningCount());
     assertEquals(0, summary.getCriticalCount());
     assertEquals(0, summary.getCriticalCount());
-    
   }
-  
+
   @Test
   public void testFindAggregates() throws Exception {
     // definition
@@ -412,7 +412,7 @@ public class AlertsDAOTest {
     definition.setSource("SourceScript");
     definition.setSourceType(SourceType.SCRIPT);
     definitionDao.create(definition);
-    
+
     // history record #1 and current
     AlertHistoryEntity history = new AlertHistoryEntity();
     history.setAlertDefinition(definition);
@@ -425,13 +425,13 @@ public class AlertsDAOTest {
     history.setComponentName("");
     history.setHostName("h1");
     history.setServiceName("ServiceName");
-    
+
     AlertCurrentEntity current = new AlertCurrentEntity();
     current.setAlertHistory(history);
     current.setLatestTimestamp(Long.valueOf(1L));
     current.setOriginalTimestamp(Long.valueOf(1L));
     dao.merge(current);
-    
+
     // history record #2 and current
     history = new AlertHistoryEntity();
     history.setAlertDefinition(definition);
@@ -444,35 +444,84 @@ public class AlertsDAOTest {
     history.setComponentName("");
     history.setHostName("h2");
     history.setServiceName("ServiceName");
-    
+
     current = new AlertCurrentEntity();
     current.setAlertHistory(history);
     current.setLatestTimestamp(Long.valueOf(1L));
     current.setOriginalTimestamp(Long.valueOf(1L));
     dao.merge(current);
-    
+
     AlertSummaryDTO summary = dao.findAggregateCounts(clusterId.longValue(), "many_per_cluster");
     assertEquals(2, summary.getOkCount());
     assertEquals(0, summary.getWarningCount());
     assertEquals(0, summary.getCriticalCount());
     assertEquals(0, summary.getUnknownCount());
-    
+
     AlertCurrentEntity c = dao.findCurrentByHostAndName(clusterId.longValue(),
         "h2", "many_per_cluster");
     AlertHistoryEntity h = c.getAlertHistory();
     h.setAlertState(AlertState.CRITICAL);
     dao.merge(h);
-    
+
     summary = dao.findAggregateCounts(clusterId.longValue(), "many_per_cluster");
     assertEquals(2, summary.getOkCount());
     assertEquals(0, summary.getWarningCount());
     assertEquals(1, summary.getCriticalCount());
     assertEquals(0, summary.getUnknownCount());
-    
+
     summary = dao.findAggregateCounts(clusterId.longValue(), "foo");
     assertEquals(0, summary.getOkCount());
     assertEquals(0, summary.getWarningCount());
     assertEquals(0, summary.getCriticalCount());
     assertEquals(0, summary.getUnknownCount());
-  }  
+  }
+
+  /**
+   * Tests <a
+   * href="https://bugs.eclipse.org/bugs/show_bug.cgi?id=398067">https:/
+   * /bugs.eclipse.org/bugs/show_bug.cgi?id=398067</a> which causes an inner
+   * entity to be stale.
+   */
+  @Test
+  public void testJPAInnerEntityStaleness() {
+    List<AlertCurrentEntity> currents = dao.findCurrent();
+    AlertCurrentEntity current = currents.get(0);
+    AlertHistoryEntity oldHistory = current.getAlertHistory();
+
+    AlertHistoryEntity newHistory = new AlertHistoryEntity();
+    newHistory.setAlertDefinition(oldHistory.getAlertDefinition());
+    newHistory.setAlertInstance(oldHistory.getAlertInstance());
+    newHistory.setAlertLabel(oldHistory.getAlertLabel());
+
+    if (oldHistory.getAlertState() == AlertState.OK) {
+      newHistory.setAlertState(AlertState.CRITICAL);
+    } else {
+      newHistory.setAlertState(AlertState.OK);
+    }
+
+    newHistory.setAlertText("New History");
+    newHistory.setClusterId(oldHistory.getClusterId());
+    newHistory.setAlertTimestamp(System.currentTimeMillis());
+    newHistory.setComponentName(oldHistory.getComponentName());
+    newHistory.setHostName(oldHistory.getHostName());
+    newHistory.setServiceName(oldHistory.getServiceName());
+
+    dao.create(newHistory);
+
+    assertTrue(newHistory.getAlertId().longValue() != oldHistory.getAlertId().longValue());
+
+    current.setAlertHistory(newHistory);
+    dao.merge(current);
+
+    AlertCurrentEntity newCurrent = dao.findCurrentByHostAndName(
+        newHistory.getClusterId(),
+        newHistory.getHostName(),
+        newHistory.getAlertDefinition().getDefinitionName());
+
+    assertEquals(newHistory.getAlertId(),
+        newCurrent.getAlertHistory().getAlertId());
+
+    assertEquals(newHistory.getAlertState(),
+        newCurrent.getAlertHistory().getAlertState());
+  }
 }

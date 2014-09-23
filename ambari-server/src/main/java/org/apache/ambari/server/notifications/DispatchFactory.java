@@ -50,6 +50,22 @@ public final class DispatchFactory {
   }
 
   /**
+   * Registers a dispatcher instance with a type.
+   *
+   * @param type
+   *          the type
+   * @param dispatcher
+   *          the dispatcher to register with the type.
+   */
+  public void register(String type, NotificationDispatcher dispatcher) {
+    if (null == dispatcher) {
+      m_dispatchers.remove(type);
+    } else {
+      m_dispatchers.put(type, dispatcher);
+    }
+  }
+
+  /**
    * Gets a dispatcher based on the type.
    *
    * @param type

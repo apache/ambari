@@ -94,7 +94,6 @@ public class AlertServiceStateListener {
     publisher.register(this);
   }
 
-
   /**
    * Handles service installed events by populating the database with all known
    * alert definitions for the newly installed service and creates the service's

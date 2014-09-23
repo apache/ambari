@@ -2,7 +2,7 @@
   "service": [
     {
       "name": "percent_datanode",
-      "label": "Percent DataNodes live",
+      "label": "Percent DataNodes Live",
       "interval": 1,
       "scope": "SERVICE",
       "source": {

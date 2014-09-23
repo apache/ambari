@@ -18,6 +18,7 @@
 package org.apache.ambari.server.notifications;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * The {@link Notification} class is a generic way to relay content through an
@@ -34,6 +35,23 @@ public class Notification {
    * The main content of the notification.
    */
   public String Body;
+
+  /**
+   * The optional recipients of the notification. Some dispatchers may not
+   * require explicit recipients.
+   */
+  public List<Recipient> Recipients;
+
+  /**
+   * A map of all of the properties that a {@link NotificationDispatcher} needs
+   * in order to dispatch this notification.
+   */
+  public Map<String, String> DispatchProperties;
+
+  /**
+   * The optional credentials used to authenticate with the dispatcher.
+   */
+  public DispatchCredentials Credentials;
 
   /**
    * An optional callback implementation that the dispatcher can use to report

@@ -25,7 +25,7 @@ import org.apache.ambari.server.state.AlertState;
  * The {@link AlertStateChangeEvent} is fired when an {@link Alert} instance has
  * its {@link AlertState} changed.
  */
-public final class AlertStateChangeEvent extends AlertEvent {
+public class AlertStateChangeEvent extends AlertEvent {
 
   /**
    * The prior alert state.

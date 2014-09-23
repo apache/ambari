@@ -17,10 +17,13 @@
  */
 package org.apache.ambari.server.state.services;
 
+import java.lang.reflect.Type;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
@@ -29,19 +32,32 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.ambari.server.events.AlertEvent;
+import org.apache.ambari.server.notifications.DispatchCallback;
+import org.apache.ambari.server.notifications.DispatchCredentials;
 import org.apache.ambari.server.notifications.DispatchFactory;
 import org.apache.ambari.server.notifications.DispatchRunnable;
-import org.apache.ambari.server.notifications.DispatchCallback;
-import org.apache.ambari.server.notifications.NotificationDispatcher;
 import org.apache.ambari.server.notifications.Notification;
+import org.apache.ambari.server.notifications.NotificationDispatcher;
+import org.apache.ambari.server.notifications.Recipient;
 import org.apache.ambari.server.orm.dao.AlertDispatchDAO;
+import org.apache.ambari.server.orm.entities.AlertHistoryEntity;
 import org.apache.ambari.server.orm.entities.AlertNoticeEntity;
 import org.apache.ambari.server.orm.entities.AlertTargetEntity;
+import org.apache.ambari.server.state.AlertState;
 import org.apache.ambari.server.state.NotificationState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.util.concurrent.AbstractScheduledService;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
+import com.google.gson.reflect.TypeToken;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -49,6 +65,10 @@ import com.google.inject.Singleton;
  * The {@link AlertNoticeDispatchService} is used to scan the database for
  * {@link AlertNoticeEntity} that are in the {@link NotificationState#PENDING}.
  * It will then process them through the dispatch system.
+ * <p/>
+ * The dispatch system will then make a callback to
+ * {@link AlertNoticeDispatchCallback} so that the {@link NotificationState} can
+ * be updated to its final value.
  */
 @Singleton
 public class AlertNoticeDispatchService extends AbstractScheduledService {
@@ -57,6 +77,26 @@ public class AlertNoticeDispatchService extends AbstractScheduledService {
    * Logger.
    */
   private static final Logger LOG = LoggerFactory.getLogger(AlertNoticeDispatchService.class);
+
+  /**
+   * The property containing the dispatch authentication username.
+   */
+  private static final String AMBARI_DISPATCH_CREDENTIAL_USERNAME = "ambari.dispatch.credential.username";
+
+  /**
+   * The property containing the dispatch authentication password.
+   */
+  private static final String AMBARI_DISPATCH_CREDENTIAL_PASSWORD = "ambari.dispatch.credential.password";
+
+  /**
+   * The property containing the dispatch recipients
+   */
+  private static final String AMBARI_DISPATCH_RECIPIENTS = "ambari.dispatch.recipients";
+
+  /**
+   * Gson used to convert JSON properties to a map.
+   */
+  private final Gson m_gson;
 
   /**
    * Dispatch DAO to query pending {@link AlertNoticeEntity} instances from.
@@ -84,6 +124,12 @@ public class AlertNoticeDispatchService extends AbstractScheduledService {
         TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>(),
         new AlertDispatchThreadFactory(),
         new ThreadPoolExecutor.CallerRunsPolicy());
+
+    GsonBuilder gsonBuilder = new GsonBuilder();
+    gsonBuilder.registerTypeAdapter(AlertTargetProperties.class,
+        new AlertTargetPropertyDeserializer());
+
+    m_gson = gsonBuilder.create();
   }
 
   /**
@@ -122,15 +168,81 @@ public class AlertNoticeDispatchService extends AbstractScheduledService {
         continue;
       }
 
+      String propertiesJson = target.getProperties();
+      AlertTargetProperties targetProperties = m_gson.fromJson(propertiesJson,
+          AlertTargetProperties.class);
+
+      Map<String, String> properties = targetProperties.Properties;
+
       Notification notification = new Notification();
-      notification.Subject = target.getTargetName();
-      notification.Body = target.getDescription();
       notification.Callback = new AlertNoticeDispatchCallback();
       notification.CallbackIds = new ArrayList<String>(notices.size());
 
+      // !!! FIXME: temporary until velocity templates are implemented
+      String subject = "OK ({0}), Warning ({1}), Critical ({2})";
+      StringBuilder buffer = new StringBuilder(512);
+
+      int okCount = 0;
+      int warningCount = 0;
+      int criticalCount = 0;
+
       for (AlertNoticeEntity notice : notices) {
+        AlertHistoryEntity history = notice.getAlertHistory();
         notification.CallbackIds.add(notice.getUuid());
+
+        AlertState alertState = history.getAlertState();
+        switch (alertState) {
+          case CRITICAL:
+            criticalCount++;
+            break;
+          case OK:
+            okCount++;
+            break;
+          case UNKNOWN:
+            // !!! hmmmmmm
+            break;
+          case WARNING:
+            warningCount++;
+            break;
+          default:
+            break;
+        }
+
+        buffer.append(history.getAlertLabel());
+        buffer.append(": ");
+        buffer.append(history.getAlertText());
+        buffer.append("\n");
       }
+
+      notification.Subject = MessageFormat.format(subject, okCount,
+          warningCount, criticalCount);
+
+      notification.Body = buffer.toString();
+
+      // set dispatch credentials
+      if (properties.containsKey(AMBARI_DISPATCH_CREDENTIAL_USERNAME)
+          && properties.containsKey(AMBARI_DISPATCH_CREDENTIAL_PASSWORD)) {
+        DispatchCredentials credentials = new DispatchCredentials();
+        credentials.UserName = properties.get(AMBARI_DISPATCH_CREDENTIAL_USERNAME);
+        credentials.Password = properties.get(AMBARI_DISPATCH_CREDENTIAL_PASSWORD);
+        notification.Credentials = credentials;
+      }
+
+      if (null != targetProperties.Recipients) {
+        List<Recipient> recipients = new ArrayList<Recipient>(
+            targetProperties.Recipients.size());
+
+        for (String stringRecipient : targetProperties.Recipients) {
+          Recipient recipient = new Recipient();
+          recipient.Identifier = stringRecipient;
+          recipients.add(recipient);
+        }
+
+        notification.Recipients = recipients;
+      }
+
+      // set all other dispatch properties
+      notification.DispatchProperties = properties;
 
       NotificationDispatcher dispatcher = m_dispatchFactory.getDispatcher(target.getNotificationType());
       DispatchRunnable runnable = new DispatchRunnable(dispatcher, notification);
@@ -148,6 +260,61 @@ public class AlertNoticeDispatchService extends AbstractScheduledService {
   @Override
   protected Scheduler scheduler() {
     return Scheduler.newFixedDelaySchedule(1, 1, TimeUnit.MINUTES);
+  }
+
+  /**
+   * The {@link AlertTargetProperties} separates out the dispatcher properties
+   * from the list of recipients which is a JSON array and not a String.
+   */
+  private static final class AlertTargetProperties {
+    /**
+     * The properties to pass to the concrete dispatcher.
+     */
+    public Map<String, String> Properties;
+
+    /**
+     * The recipients of the notice.
+     */
+    public List<String> Recipients;
+  }
+
+  /**
+   * The {@link AlertTargetPropertyDeserializer} is used to dump the majority of
+   * JSON serialized properties into a {@link Map} of {@link String} while at
+   * the same time, converting
+   * {@link AlertNoticeDispatchService#AMBARI_DISPATCH_RECIPIENTS} into a list.
+   */
+  private static final class AlertTargetPropertyDeserializer implements
+      JsonDeserializer<AlertTargetProperties> {
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public AlertTargetProperties deserialize(JsonElement json, Type typeOfT,
+        JsonDeserializationContext context) throws JsonParseException {
+
+      AlertTargetProperties properties = new AlertTargetProperties();
+      properties.Properties = new HashMap<String, String>();
+
+      final JsonObject jsonObject = json.getAsJsonObject();
+      Set<Entry<String, JsonElement>> entrySet = jsonObject.entrySet();
+
+      for (Entry<String, JsonElement> entry : entrySet) {
+        String entryKey = entry.getKey();
+        JsonElement entryValue = entry.getValue();
+
+        if (entryKey.equals(AMBARI_DISPATCH_RECIPIENTS)) {
+          Type listType = new TypeToken<List<String>>() {}.getType();
+          JsonArray jsonArray = entryValue.getAsJsonArray();
+          properties.Recipients = context.deserialize(jsonArray, listType);
+        } else {
+          properties.Properties.put(entryKey, entryValue.getAsString());
+        }
+      }
+
+      return properties;
+    }
   }
 
   /**
