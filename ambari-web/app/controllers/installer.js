@@ -530,18 +530,16 @@ App.InstallerController = App.WizardController.extend({
    */
   saveClients: function (stepController) {
     var clients = [];
-    var serviceComponents = App.StackServiceComponent.find();
-    var services =
-      stepController.get('content').filterProperty('isSelected', true).forEach(function (_service) {
-        var client = _service.get('serviceComponents').filterProperty('isClient', true);
-        client.forEach(function (clientComponent) {
-          clients.pushObject({
-            component_name: clientComponent.get('componentName'),
-            display_name: clientComponent.get('displayName'),
-            isInstalled: false
-          });
-        }, this);
+    stepController.get('content').filterProperty('isSelected', true).forEach(function (_service) {
+      var client = _service.get('serviceComponents').filterProperty('isClient', true);
+      client.forEach(function (clientComponent) {
+        clients.pushObject({
+          component_name: clientComponent.get('componentName'),
+          display_name: clientComponent.get('displayName'),
+          isInstalled: false
+        });
       }, this);
+    }, this);
     this.setDBProperty('clientInfo', clients);
     this.set('content.clients', clients);
   },

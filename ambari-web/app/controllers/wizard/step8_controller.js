@@ -143,7 +143,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, {
    */
   selectedServices: function () {
     return this.get('content.services').filterProperty('isSelected', true).filterProperty('isInstalled', false);
-  }.property('content.services').cacheable(),
+  }.property('content.services.@each.isSelected','content.services.@each.isInstalled').cacheable(),
 
   /**
    * List of installed and selected services
