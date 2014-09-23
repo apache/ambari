@@ -20,8 +20,10 @@ limitations under the License.
 from mock.mock import MagicMock, call, patch
 from stacks.utils.RMFTestCase import *
 import os
+import  resource_management.libraries.functions
 
 origin_exists = os.path.exists
+@patch.object(resource_management.libraries.functions, "check_process_status", new = MagicMock())
 @patch.object(os.path, "exists", new=MagicMock(
     side_effect=lambda *args: origin_exists(args[0])
     if args[0][-2:] == "j2" else True))
@@ -207,3 +209,15 @@ class TestAppTimelineServer(RMFTestCase):
                               owner = 'mapred',
                               group = 'hadoop',
                               )
+
+
+  def test_status(self):
+    self.executeScript("2.0.6/services/YARN/package/scripts/application_timeline_server.py",
+                       classname="ApplicationTimelineServer",
+                       command="status",
+                       config_file="default.json")
+
+    self.assertResourceCalled('Execute', 'mv /var/run/hadoop-yarn/yarn/yarn-yarn-historyserver.pid /var/run/hadoop-yarn/yarn/yarn-yarn-timelineserver.pid',
+        only_if = 'test -e /var/run/hadoop-yarn/yarn/yarn-yarn-historyserver.pid',
+    )
+    self.assertNoMoreResources()
