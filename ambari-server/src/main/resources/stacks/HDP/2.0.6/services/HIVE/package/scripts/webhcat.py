@@ -95,7 +95,7 @@ def webhcat():
                 hadoop_conf_dir=params.hadoop_conf_dir
   )
 
-  CopyFromLocal('/usr/share/HDP-webhcat/pig.tar.gz',
+  CopyFromLocal(params.pig_tar_file,
                 owner=params.webhcat_user,
                 mode=0755,
                 dest_dir=params.webhcat_apps_dir,
@@ -105,7 +105,7 @@ def webhcat():
                 hadoop_conf_dir=params.hadoop_conf_dir
   )
 
-  CopyFromLocal('/usr/share/HDP-webhcat/hive.tar.gz',
+  CopyFromLocal(params.hive_tar_file,
                 owner=params.webhcat_user,
                 mode=0755,
                 dest_dir=params.webhcat_apps_dir,
