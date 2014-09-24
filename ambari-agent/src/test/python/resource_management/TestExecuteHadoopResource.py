@@ -43,7 +43,7 @@ class TestExecuteHadoopResource(TestCase):
                         'tries': 1,
                         'user': 'user',
                         'try_sleep': 0,
-                        'path': [None]})
+                        'path': []})
 
 
   @patch("resource_management.core.providers.system.ExecuteProvider")
@@ -67,7 +67,7 @@ class TestExecuteHadoopResource(TestCase):
                         'tries': 1,
                         'user': 'user',
                         'try_sleep': 0,
-                        'path': [None]})
+                        'path': []})
 
 
   @patch("resource_management.core.providers.system.ExecuteProvider")
@@ -96,7 +96,7 @@ class TestExecuteHadoopResource(TestCase):
                         'tries': 2,
                         'user': 'user',
                         'try_sleep': 2,
-                        'path': [None]})
+                        'path': []})
 
 
   @patch("resource_management.core.providers.system.ExecuteProvider")
@@ -122,13 +122,13 @@ class TestExecuteHadoopResource(TestCase):
                         'tries': 1,
                         'user': 'user',
                         'try_sleep': 0,
-                        'path': [None]})
+                        'path': []})
       self.assertEqual(execute_mock.call_args_list[1][0][0].arguments,
                        {'logoutput': False,
                         'tries': 1,
                         'user': 'user',
                         'try_sleep': 0,
-                        'path': [None]})
+                        'path': []})
 
 
   @patch("resource_management.core.providers.system.ExecuteProvider")
@@ -181,7 +181,7 @@ class TestExecuteHadoopResource(TestCase):
                         'tries': 1,
                         'user': 'user',
                         'try_sleep': 0,
-                        'path': [None]})
+                        'path': []})
 
 
   @patch("resource_management.core.providers.system.ExecuteProvider")
