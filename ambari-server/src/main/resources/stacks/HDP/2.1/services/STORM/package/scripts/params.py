@@ -29,10 +29,11 @@ rpm_version = default("/configurations/hadoop-env/rpm_version", None)
 
 #hadoop params
 if rpm_version is not None:
-  rest_lib_dir = format('/usr/hdp/current/storm/contrib/storm-rest')
-
+  rest_lib_dir = '/usr/hdp/current/storm/contrib/storm-rest'
+  storm_bin_dir = "/usr/hdp/current/storm/bin"
 else:
   rest_lib_dir = "/usr/lib/storm/contrib/storm-rest"
+  storm_bin_dir = "/usr/bin"
 
 storm_user = config['configurations']['storm-env']['storm_user']
 log_dir = config['configurations']['storm-env']['storm_log_dir']

@@ -48,20 +48,22 @@ def service(
 
   if action == "start":
     if name == "rest_api":
-      cmd = format("{process_cmd} {rest_api_conf_file} > {log_dir}/restapi.log")
+      cmd = format("{process_cmd} {rest_api_conf_file} > {log_dir}/restapi.log 2>&1")
     else:
-      cmd = format("env JAVA_HOME={java64_home} PATH=$PATH:{java64_home}/bin /usr/bin/storm {name} > {log_dir}/{name}.out 2>&1")
+      cmd = format("env JAVA_HOME={java64_home} PATH=$PATH:{java64_home}/bin storm {name} > {log_dir}/{name}.out 2>&1")
 
     Execute(cmd,
            not_if=no_op_test,
            user=params.storm_user,
-           wait_for_finish=False
+           wait_for_finish=False,
+           path=params.storm_bin_dir
     )
     Execute(crt_pid_cmd,
             user=params.storm_user,
             logoutput=True,
             tries=tries_count,
-            try_sleep=10
+            try_sleep=10,
+            path=params.storm_bin_dir
     )
 
   elif action == "stop":
