@@ -393,7 +393,7 @@ class TestNamenode(RMFTestCase):
                               kinit_override = True)
     self.assertNoMoreResources()
 
-  def test_decommission_ha(self):
+  def test_decommission_ha_default(self):
     self.executeScript("2.0.6/services/HDFS/package/scripts/namenode.py",
                        classname = "NameNode",
                        command = "decommission",
@@ -411,6 +411,29 @@ class TestNamenode(RMFTestCase):
                               bin_dir = '/usr/bin',
                               kinit_override = True)
     self.assertNoMoreResources()    
+    
+    
+  def test_decommission_secured(self):
+    self.executeScript("2.0.6/services/HDFS/package/scripts/namenode.py",
+                       classname = "NameNode",
+                       command = "decommission",
+                       config_file="secured.json"
+    )
+    self.assertResourceCalled('File', '/etc/hadoop/conf/dfs.exclude',
+        owner = 'hdfs',
+        content = Template('exclude_hosts_list.j2'),
+        group = 'hadoop',
+    )
+    self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/dn.service.keytab dn/c6401.ambari.apache.org@EXAMPLE.COM;',
+        user = 'hdfs',
+    )
+    self.assertResourceCalled('ExecuteHadoop', 'dfsadmin -refreshNodes',
+        bin_dir = '/usr/bin',
+        conf_dir = '/etc/hadoop/conf',
+        kinit_override = True,
+        user = 'hdfs',
+    )
+    self.assertNoMoreResources()
 
   def assert_configure_default(self):
     self.assertResourceCalled('File', '/etc/security/limits.d/hdfs.conf',
