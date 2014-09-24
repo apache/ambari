@@ -509,6 +509,7 @@
 				<artifactId>maven-dependency-plugin</artifactId>
 				<executions>
 					<execution>
+						<id>copy-dependencies</id>
 						<phase>generate-resources</phase>
 						<goals>
 							<goal>copy-dependencies</goal>
@@ -516,25 +517,20 @@
 						<configuration>
 							<outputDirectory>${project.build.directory}/lib</outputDirectory>
 							<includeScope>runtime</includeScope>
+							<excludeArtifactIds>slider-agent</excludeArtifactIds>
 						</configuration>
 					</execution>
 					<execution>
-						<id>copy-to-lib</id>
+						<id>copy-slider-agent-with-rename</id>
 						<phase>generate-resources</phase>
 						<goals>
-							<goal>copy</goal>
+							<goal>copy-dependencies</goal>
 						</goals>
 						<configuration>
-							<artifactItems>
-								<artifactItem>
-									<groupId>org.apache.slider</groupId>
-									<artifactId>slider-agent</artifactId>
-									<type>tar.gz</type>
-									<overWrite>false</overWrite>
-									<outputDirectory>${project.build.directory}/lib</outputDirectory>
-									<destFileName>slider-agent.tar.gz</destFileName>
-								</artifactItem>
-							</artifactItems>
+							<outputDirectory>${project.build.directory}/lib</outputDirectory>
+							<includeScope>runtime</includeScope>
+							<stripVersion>true</stripVersion>
+							<includeArtifactIds>slider-agent</includeArtifactIds>
 						</configuration>
 					</execution>
 				</executions>
