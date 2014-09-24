@@ -1451,21 +1451,23 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
    */
   showSaveConfigsPopup: function (header, flag, message, messageClass, value, status, urlParams) {
     var self = this;
+    if (flag) {
+      this.set('forceTransition', flag);
+      self.loadStep();
+    }
     App.ModalPopup.show({
       header: header,
       primary: Em.I18n.t('ok'),
       secondary: null,
       onPrimary: function () {
         this.hide();
-        if (flag) {
-          self.loadStep();
-        } else {
-          self.set('isApplyingChanges', false)
+        if (!flag) {
+          self.set('isApplyingChanges', false);
         }
       },
       onClose: function () {
         this.hide();
-        self.set('isApplyingChanges', false)
+        self.set('isApplyingChanges', false);
       },
       disablePrimary: true,
       bodyClass: Ember.View.extend({
