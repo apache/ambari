@@ -34,6 +34,12 @@ import com.google.gson.annotations.SerializedName;
  * The {@link AlertDefinitionCommand} class is used to encapsulate the
  * {@link AlertDefinition}s that will be returned to an agent given a requested
  * hash.
+ * <p/>
+ * Commands must have {@link #addConfigs(ConfigHelper, Cluster)} invoked before
+ * being sent to the agent so that the definitions will have the required
+ * configuration data when they run. Failure to do this will cause the alerts to
+ * be scheduled and run, but the result will always be a failure since the
+ * parameterized properties they depend on will not be available.
  */
 public class AlertDefinitionCommand extends AgentCommand {
   @SerializedName("clusterName")
@@ -47,7 +53,7 @@ public class AlertDefinitionCommand extends AgentCommand {
 
   @SerializedName("alertDefinitions")
   private final List<AlertDefinition> m_definitions;
-  
+
   @SerializedName("configurations")
   private Map<String, Map<String, String>> m_configurations;
 
@@ -118,7 +124,7 @@ public class AlertDefinitionCommand extends AgentCommand {
 
   /**
    * Adds cluster configuration properties as required by commands sent to agent.
-   * 
+   *
    * @param configHelper the helper
    * @param cluster the cluster, matching the cluster name specified by the command
    */
@@ -129,7 +135,7 @@ public class AlertDefinitionCommand extends AgentCommand {
 
     Map<String, Map<String, String>> allConfigTags =
         configHelper.getEffectiveDesiredTags(cluster, m_hostName);
-    
+
     for(Config clusterConfig: cluster.getAllConfigs()) {
       if (null == clusterConfig) {
         // !!! hard to believe
@@ -158,8 +164,5 @@ public class AlertDefinitionCommand extends AgentCommand {
 
       m_configurations.put(clusterConfig.getType(), props);
     }
-    
   }
-  
-  
 }

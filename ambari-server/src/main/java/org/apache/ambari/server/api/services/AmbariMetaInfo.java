@@ -47,7 +47,8 @@ import org.apache.ambari.server.api.util.StackExtensionHelper;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.customactions.ActionDefinition;
 import org.apache.ambari.server.customactions.ActionDefinitionManager;
-import org.apache.ambari.server.events.listeners.AlertAggregateListener;
+import org.apache.ambari.server.events.AlertDefinitionRegistrationEvent;
+import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.MetainfoDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
@@ -66,7 +67,6 @@ import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.alert.AlertDefinition;
 import org.apache.ambari.server.state.alert.AlertDefinitionFactory;
-import org.apache.ambari.server.state.alert.SourceType;
 import org.apache.ambari.server.state.stack.LatestRepoCallable;
 import org.apache.ambari.server.state.stack.MetricDefinition;
 import org.apache.ambari.server.state.stack.RepositoryXml;
@@ -148,6 +148,16 @@ public class AmbariMetaInfo {
    * {@link AlertDefinitionEntity}.
    */
   private AlertDefinitionFactory alertDefinitionFactory;
+
+  /**
+   * Publishes the following events:
+   * <ul>
+   * <li>{@link AlertDefinitionRegistrationEvent} when new alerts are merged
+   * from the stack</li>
+   * </ul>
+   */
+  @Inject
+  private AmbariEventPublisher eventPublisher;
 
   // Required properties by stack version
   private final Map<StackId, Map<String, Map<String, PropertyInfo>>> requiredProperties =
@@ -704,7 +714,7 @@ public class AmbariMetaInfo {
 
     return propertiesResult;
   }
-  
+
   public Set<PropertyInfo> getStackProperties(String stackName, String version)
       throws AmbariException {
     StackInfo stackInfo = getStackInfo(stackName, version);
@@ -742,27 +752,30 @@ public class AmbariMetaInfo {
 
     return propertyResult;
   }
-  
+
   public Set<PropertyInfo> getStackPropertiesByName(String stackName, String version, String propertyName)
       throws AmbariException {
     Set<PropertyInfo> properties = getStackProperties(stackName, version);
 
-    if (properties.size() == 0)
+    if (properties.size() == 0) {
       throw new StackAccessException("stackName=" + stackName
           + ", stackVersion=" + version
           + ", propertyName=" + propertyName);
+    }
 
     Set<PropertyInfo> propertyResult = new HashSet<PropertyInfo>();
 
     for (PropertyInfo property : properties) {
-      if (property.getName().equals(propertyName))
+      if (property.getName().equals(propertyName)) {
         propertyResult.add(property);
+      }
     }
 
-    if (propertyResult.isEmpty())
+    if (propertyResult.isEmpty()) {
       throw new StackAccessException("stackName=" + stackName
           + ", stackVersion=" + version
           + ", propertyName=" + propertyName);
+    }
 
     return propertyResult;
   }
@@ -1280,18 +1293,16 @@ public class AmbariMetaInfo {
         }
         alertDefinitionDao.createOrUpdate(entity);
       }
-      
-      // all definitions have been resolved.  pull and initialize the aggregates
+
+      // all definition resolved; publish their registration
       for (AlertDefinitionEntity def : alertDefinitionDao.findAll(cluster.getClusterId())) {
-        if (def.getSourceType().equals(SourceType.AGGREGATE)) {
-          AlertDefinition realDef = alertDefinitionFactory.coerce(def);
-          
-          AlertAggregateListener listener = injector.getInstance(AlertAggregateListener.class);
-          
-          listener.addAggregateType(cluster.getClusterId(), realDef); 
-        }
+        AlertDefinition realDef = alertDefinitionFactory.coerce(def);
+
+        AlertDefinitionRegistrationEvent event = new AlertDefinitionRegistrationEvent(
+            cluster.getClusterId(), realDef);
+
+        eventPublisher.publish(event);
       }
-      
     }
   }
 }

@@ -21,7 +21,7 @@ package org.apache.ambari.server.events;
 /**
  * The {@link ServiceEvent} class is the base for all service events in Ambari.
  */
-public abstract class ServiceEvent extends AmbariEvent {
+public abstract class ServiceEvent extends ClusterEvent {
 
   /**
    * The name of the service.

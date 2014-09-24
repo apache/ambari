@@ -85,7 +85,7 @@ public class AlertsDAOTest {
       definition.setHash(UUID.randomUUID().toString());
       definition.setScheduleInterval(Integer.valueOf(60));
       definition.setScope(Scope.SERVICE);
-      definition.setSource("Source " + i);
+      definition.setSource("{\"type\" : \"SCRIPT\"}");
       definition.setSourceType(SourceType.SCRIPT);
       definitionDao.create(definition);
     }
@@ -209,7 +209,7 @@ public class AlertsDAOTest {
     hostDef.setHash(UUID.randomUUID().toString());
     hostDef.setScheduleInterval(Integer.valueOf(60));
     hostDef.setScope(Scope.HOST);
-    hostDef.setSource("HostService");
+    hostDef.setSource("{\"type\" : \"SCRIPT\"}");
     hostDef.setSourceType(SourceType.SCRIPT);
     definitionDao.create(hostDef);
 
@@ -409,7 +409,7 @@ public class AlertsDAOTest {
     definition.setHash(UUID.randomUUID().toString());
     definition.setScheduleInterval(Integer.valueOf(60));
     definition.setScope(Scope.SERVICE);
-    definition.setSource("SourceScript");
+    definition.setSource("{\"type\" : \"SCRIPT\"}");
     definition.setSourceType(SourceType.SCRIPT);
     definitionDao.create(definition);
 

@@ -831,8 +831,8 @@ public class HeartBeatHandler {
       String hash = alertDefinitionHash.getHash(clusterName, hostname);
       AlertDefinitionCommand command = new AlertDefinitionCommand(clusterName,
           hostname, hash, definitions);
-      command.addConfigs(configHelper, cluster);
 
+      command.addConfigs(configHelper, cluster);
       commands.add(command);
     }
 

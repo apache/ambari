@@ -330,7 +330,7 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
     if (null != desiredScope && desiredScope.length() > 0) {
       scope = Scope.valueOf(desiredScope);
     }
-    
+
     SourceType sourceType = null;
     if (null != type && type.length() > 0) {
       sourceType = SourceType.valueOf(type);
@@ -473,18 +473,17 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
   private Resource toResource(boolean isCollection, String clusterName,
       AlertDefinitionEntity entity, Set<String> requestedIds) {
     Resource resource = new ResourceImpl(Resource.Type.AlertDefinition);
+    resource.setProperty(ALERT_DEF_ID, entity.getDefinitionId());
+    resource.setProperty(ALERT_DEF_CLUSTER_NAME, clusterName);
+    resource.setProperty(ALERT_DEF_NAME, entity.getDefinitionName());
+    resource.setProperty(ALERT_DEF_LABEL, entity.getLabel());
 
-    setResourceProperty(resource, ALERT_DEF_CLUSTER_NAME, clusterName, requestedIds);
-    setResourceProperty(resource, ALERT_DEF_ID, entity.getDefinitionId(), requestedIds);
-    setResourceProperty(resource, ALERT_DEF_NAME, entity.getDefinitionName(), requestedIds);
     setResourceProperty(resource, ALERT_DEF_INTERVAL, entity.getScheduleInterval(), requestedIds);
     setResourceProperty(resource, ALERT_DEF_SERVICE_NAME, entity.getServiceName(), requestedIds);
     setResourceProperty(resource, ALERT_DEF_COMPONENT_NAME, entity.getComponentName(), requestedIds);
     setResourceProperty(resource, ALERT_DEF_ENABLED, Boolean.valueOf(entity.getEnabled()), requestedIds);
     setResourceProperty(resource, ALERT_DEF_SCOPE, entity.getScope(), requestedIds);
     setResourceProperty(resource, ALERT_DEF_SOURCE_TYPE, entity.getSourceType(), requestedIds);
-    setResourceProperty(resource, ALERT_DEF_LABEL, entity.getLabel(),
-        requestedIds);
 
     if (!isCollection && null != resource.getPropertyValue(ALERT_DEF_SOURCE_TYPE)) {
 

@@ -479,7 +479,7 @@ public class AlertGroupResourceProviderTest {
     entity.setScheduleInterval(Integer.valueOf(2));
     entity.setServiceName(null);
     entity.setSourceType(SourceType.METRIC);
-    entity.setSource(null);
+    entity.setSource("{\"type\" : \"METRIC\"}");
 
     Set<AlertDefinitionEntity> definitions = new HashSet<AlertDefinitionEntity>();
     definitions.add(entity);

@@ -330,7 +330,7 @@ public class OrmTestHelper {
     definition.setHash(UUID.randomUUID().toString());
     definition.setScheduleInterval(60);
     definition.setScope(Scope.SERVICE);
-    definition.setSource("Source " + System.currentTimeMillis());
+    definition.setSource("{\"type\" : \"SCRIPT\"}");
     definition.setSourceType(SourceType.SCRIPT);
 
     alertDefinitionDAO.create(definition);

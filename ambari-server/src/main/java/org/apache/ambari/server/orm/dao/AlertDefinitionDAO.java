@@ -25,9 +25,15 @@ import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 
 import org.apache.ambari.server.controller.RootServiceResponseFactory;
+import org.apache.ambari.server.events.AlertDefinitionRegistrationEvent;
+import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.AlertGroupEntity;
+import org.apache.ambari.server.state.alert.AlertDefinition;
+import org.apache.ambari.server.state.alert.AlertDefinitionFactory;
 import org.apache.ambari.server.state.alert.Scope;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -40,6 +46,11 @@ import com.google.inject.persist.Transactional;
  */
 @Singleton
 public class AlertDefinitionDAO {
+  /**
+   * Logger.
+   */
+  private static Logger LOG = LoggerFactory.getLogger(AlertDefinitionDAO.class);
+
   /**
    * JPA entity manager
    */
@@ -63,6 +74,23 @@ public class AlertDefinitionDAO {
    */
   @Inject
   AlertDispatchDAO dispatchDao;
+
+  /**
+   * Publishes the following events:
+   * <ul>
+   * <li>{@link AlertDefinitionRegistrationEvent} when new alerts are merged
+   * from the stack</li>
+   * </ul>
+   */
+  @Inject
+  private AmbariEventPublisher eventPublisher;
+
+  /**
+   * A factory that assists in the creation of {@link AlertDefinition} and
+   * {@link AlertDefinitionEntity}.
+   */
+  @Inject
+  private AlertDefinitionFactory alertDefinitionFactory;
 
   /**
    * Gets an alert definition with the specified ID.
@@ -263,6 +291,18 @@ public class AlertDefinitionDAO {
     if (null != group) {
       group.addAlertDefinition(alertDefinition);
       dispatchDao.merge(group);
+    }
+
+    // publish the alert definition registration
+    AlertDefinition coerced = alertDefinitionFactory.coerce(alertDefinition);
+    if (null != coerced) {
+      AlertDefinitionRegistrationEvent event = new AlertDefinitionRegistrationEvent(
+          alertDefinition.getClusterId(), coerced);
+
+      eventPublisher.publish(event);
+    } else {
+      LOG.warn("Unable to broadcast alert registration event for {}",
+          alertDefinition.getDefinitionName());
     }
   }
 

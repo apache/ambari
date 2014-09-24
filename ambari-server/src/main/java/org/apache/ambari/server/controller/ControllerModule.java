@@ -53,6 +53,8 @@ import org.apache.ambari.server.controller.internal.HostResourceProvider;
 import org.apache.ambari.server.controller.internal.MemberResourceProvider;
 import org.apache.ambari.server.controller.internal.ServiceResourceProvider;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
+import org.apache.ambari.server.events.listeners.AlertAggregateListener;
+import org.apache.ambari.server.events.listeners.AlertLifecycleListener;
 import org.apache.ambari.server.events.listeners.AlertReceivedListener;
 import org.apache.ambari.server.events.listeners.AlertServiceStateListener;
 import org.apache.ambari.server.events.listeners.AlertStateChangedListener;
@@ -337,5 +339,7 @@ public class ControllerModule extends AbstractModule {
     bind(AlertReceivedListener.class).asEagerSingleton();
     bind(AlertStateChangedListener.class).asEagerSingleton();
     bind(AlertServiceStateListener.class).asEagerSingleton();
+    bind(AlertLifecycleListener.class).asEagerSingleton();
+    bind(AlertAggregateListener.class).asEagerSingleton();
   }
 }

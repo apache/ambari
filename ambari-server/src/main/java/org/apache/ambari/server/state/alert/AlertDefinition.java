@@ -43,6 +43,7 @@ public class AlertDefinition {
   private boolean enabled = true;
   private Source source = null;
   private String label = null;
+  private String uuid = null;
 
   /**
    * @return the service name
@@ -147,6 +148,25 @@ public class AlertDefinition {
    */
   public void setLabel(String definitionLabel) {
     label = definitionLabel;
+  }
+
+  /**
+   * Sets the UUID of the definition
+   *
+   * @param definitionUuid
+   */
+  public void setUuid(String definitionUuid) {
+    uuid = definitionUuid;
+  }
+
+  /**
+   * Gets the UUID of the definition. The UUID is a unique identifier that is
+   * generated every time the definition's state changes.
+   *
+   * @return the UUID
+   */
+  public String getUuid() {
+    return uuid;
   }
 
   /**

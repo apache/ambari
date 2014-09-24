@@ -17,49 +17,34 @@
  */
 package org.apache.ambari.server.events;
 
-
 /**
- * The {@link AmbariEvent} class is the base for all events in Ambari.
+ * The {@link ClusterEvent} represents all events in Ambari that can be scoped
+ * within a cluster.
  */
-public abstract class AmbariEvent {
-
+public class ClusterEvent extends AmbariEvent {
   /**
-   * The {@link AmbariEventType} defines the type of Ambari event.
+   * The cluster ID.
    */
-  public enum AmbariEventType {
-    /**
-     * A service was successfully installed.
-     */
-    SERVICE_INSTALL_SUCCESS,
-
-    /**
-     * An alert definition is registered with the system.
-     */
-    ALERT_DEFINITION_REGISTRATION;
-  }
-
-  /**
-   * The concrete event's type.
-   */
-  protected final AmbariEventType m_eventType;
+  protected final long m_clusterId;
 
   /**
    * Constructor.
    *
    * @param eventType
-   *          the type of event (not {@code null}).
    * @param clusterId
    */
-  public AmbariEvent(AmbariEventType eventType) {
-    m_eventType = eventType;
+  public ClusterEvent(AmbariEventType eventType, long clusterId) {
+    super(eventType);
+    m_clusterId = clusterId;
   }
 
   /**
-   * Gets the type of {@link AmbariEvent}.
+   * Gets the cluster ID that the event belongs to.
    *
-   * @return the event type (never {@code null}).
+   * @return the ID of the cluster.
    */
-  public AmbariEventType getType() {
-    return m_eventType;
+  public long getClusterId() {
+    return m_clusterId;
   }
+
 }

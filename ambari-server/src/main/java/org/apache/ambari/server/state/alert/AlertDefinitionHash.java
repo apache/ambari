@@ -42,6 +42,7 @@ import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
@@ -51,6 +52,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.google.inject.Singleton;
 
 /**
@@ -89,6 +91,14 @@ public class AlertDefinitionHash {
 
   @Inject
   private ActionQueue m_actionQueue;
+
+  /**
+   * Used to add configurations to the {@link AlertDefinitionCommand} instances
+   * so that alerts can be scheduled to run with access to the properties they
+   * need.
+   */
+  @Inject
+  private Provider<ConfigHelper> m_configHelper;
 
   /**
    * !!! TODO: this class needs some thoughts on locking
@@ -489,7 +499,7 @@ public class AlertDefinitionHash {
    * This method is typically called after
    * {@link #invalidateHosts(AlertDefinitionEntity)} has caused a cache
    * invalidation of the alert definition hash.
-   * 
+   *
    * @param clusterName
    *          the name of the cluster (not {@code null}).
    * @param hosts
@@ -513,6 +523,13 @@ public class AlertDefinitionHash {
 
       AlertDefinitionCommand command = new AlertDefinitionCommand(clusterName,
           hostName, hash, definitions);
+
+      try {
+        Cluster cluster = m_clusters.getCluster(clusterName);
+        command.addConfigs(m_configHelper.get(), cluster);
+      } catch (AmbariException ae) {
+        LOG.warn("Unable to add configurations to alert definition command", ae);
+      }
 
       // unlike other commands, the alert definitions commands are really
       // designed to be 1:1 per change; if multiple invalidations happened

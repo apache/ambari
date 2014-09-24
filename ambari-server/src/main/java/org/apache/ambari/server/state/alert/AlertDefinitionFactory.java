@@ -132,6 +132,7 @@ public class AlertDefinitionFactory {
     definition.setScope(entity.getScope());
     definition.setServiceName(entity.getServiceName());
     definition.setLabel(entity.getLabel());
+    definition.setUuid(entity.getHash());
 
     try{
       String sourceJson = entity.getSource();
@@ -139,7 +140,7 @@ public class AlertDefinitionFactory {
       definition.setSource(source);
     } catch (Exception exception) {
       LOG.error(
-          "Unable to deserialized the alert definition source during coercion",
+          "Unable to deserialize the alert definition source during coercion",
           exception);
 
       return null;
