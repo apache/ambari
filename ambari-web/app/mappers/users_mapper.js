@@ -25,6 +25,7 @@ App.usersMapper = App.QuickDataMapper.create({
     user_name : 'Users.user_name',
     is_ldap: 'Users.ldap_user',
     admin: 'Users.admin',
+    operator: 'Users.operator',
     permissions: 'permissions'
   },
   map: function (json) {
@@ -37,6 +38,7 @@ App.usersMapper = App.QuickDataMapper.create({
           item.permissions = item.privileges.items.mapProperty('PrivilegeInfo.permission_name');
         }
         item.Users.admin = self.isAdmin(item.permissions);
+        item.Users.operator = self.isOperator(item.permissions);
         result.push(self.parseIt(item, self.config));
         App.store.loadMany(self.get('model'), result);
       }
@@ -49,6 +51,16 @@ App.usersMapper = App.QuickDataMapper.create({
    * @return {Boolean}
    **/
   isAdmin: function(permissionList) {
+    //TODO: Separate cluster operator from admin
     return permissionList.indexOf('AMBARI.ADMIN') > -1 || permissionList.indexOf('CLUSTER.OPERATE') > -1;
+  },
+
+  /**
+   * Check if user is operator.
+   * @param {Array} permissionList
+   * @return {Boolean}
+   **/
+  isOperator: function(permissionList) {
+    return permissionList.indexOf('CLUSTER.OPERATE') > -1;
   }
 });

@@ -33,6 +33,7 @@ App.User = DS.Model.extend({
   }.property('isLdap'),
   auditItems:DS.hasMany('App.ServiceAudit'),
   admin: DS.attr('boolean'),
+  operator: DS.attr('boolean'),
   /**
    * List of permissions assigned to user
    *  Available permissions:
