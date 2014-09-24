@@ -83,11 +83,18 @@ App.SliderAppSummaryView = Ember.View.extend({
   }.observes('controller.model.supportedMetricNames'),
 
   /**
+   * Ganglia url
+   * If <code>model.quickLinks</code> has `app.ganglia` element, it's used
+   * Otherwise - <code>App.gangliaHost</code> is used
    * @type {string}
    */
   gangliaUrl: function () {
+    var g = this.get('controller.model.quickLinks').findBy('label', 'app.ganglia');
+    if (g) {
+      return g.get('url');
+    }
     return 'http://' + App.get('gangliaHost') + '/ganglia';
-  }.property('App.gangliaHost'),
+  }.property('App.gangliaHost', 'controller.model.quickLinks.@each.url'),
 
   /**
    * @type {string}
@@ -96,17 +103,39 @@ App.SliderAppSummaryView = Ember.View.extend({
     return 'http://' + App.get('nagiosHost') + '/nagios';
   }.property('App.nagiosHost'),
 
+  didInsertElement: function() {
+    var self = this;
+    Em.run.next(function() {
+      self.fitPanels();
+    });
+  },
+
+  /**
+   * Set equal height to left (summary) and right (alerts and components) columns basing on higher value
+   * @method fitPanels
+   */
   fitPanels: function () {
-    var heightLeft = parseInt(this.$('.panel-summury').css('height'));
-    this.$('.panel-components').css('height', ((heightLeft < 200) ? 200 : heightLeft - 20) / 2);
-    this.$('.panel-alerts .app-alerts').css('height', ((heightLeft < 200) ? 200 : heightLeft - 106) / 2);
-  }.on('didInsertElement'),
+    var panelSummary = this.$('.panel-summary'),
+        panelSummaryBody = panelSummary.find('.panel-body'),
+        columnRight = this.$('.column-right'),
+        panelAlerts = columnRight.find('.panel-alerts'),
+        panelComponents = columnRight.find('.panel-components');
+    if (panelSummary.height() < panelSummaryBody.height()) {
+      panelSummary.height(panelSummaryBody.height());
+    }
+    var marginAndBorderHeight = parseInt(panelAlerts.css('margin-bottom')) + 3;
+    if (panelSummary.height() > columnRight.height()) {
+      panelComponents.height(panelSummary.height() - panelAlerts.height() - marginAndBorderHeight);
+    }
+    else {
+      panelSummary.height(columnRight.height() - marginAndBorderHeight);
+    }
+  },
 
   AlertView: Em.View.extend({
     content: null,
     tagName: 'li',
     tooltip: function () {
-      var self = this;
       return Ember.Object.create({
         trigger: 'hover',
         content: this.get('content.timeSinceAlertDetails'),

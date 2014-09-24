@@ -18,12 +18,12 @@
 
 
 <div class="row">
-  <div class="col-md-6">
+  <div class="column-left col-md-6">
     {{#bs-panel heading="Summary" class="panel-summary"}}
       <table class="table no-borders table-condensed">
         <tbody>
         <tr>
-          <td>{{t common.status}}</td>
+          <td style="width: 25%;">{{t common.status}}</td>
           <td>{{controller.model.displayStatus}}</td>
         </tr>
         <tr>
@@ -56,7 +56,7 @@
       </table>
     {{/bs-panel}}
   </div>
-  <div class="col-md-6">
+  <div class="column-right col-md-6">
     <div class="panel panel-default panel-alerts">
       <div class="panel-heading">
         {{t common.status}}
@@ -89,7 +89,6 @@
                         <div class="col-md-7 title">{{title}}</div>
                         <div class="message">{{message}}</div>
                       </div>
-
                     </div>
                   </div>
                 </div>

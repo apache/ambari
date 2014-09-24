@@ -31,6 +31,9 @@ html {
 }
 .popover {
   max-width: 800px;
+  &.bottom {
+    left: 5px;
+  }
 }
 
 .slider-name-popover {
@@ -121,8 +124,7 @@ select {
 
     #filter-row {
       th {
-        padding: 0px;
-        padding-left: 4px;
+        padding: 0 0 0 4px;
       }
       .active-filter {
         color: #555555;
@@ -329,8 +331,7 @@ select {
     .page-listing a {
       line-height: 0;
       border: none;
-      margin: 0;
-      margin-right: 10px;
+      margin: 0 10px 0 0;
       cursor: pointer;
       color: #0088CC;
       padding: 8px 0;
@@ -625,8 +626,8 @@ select {
       color: #ff0000;
     }
     .panel-body{
-      max-height: 400px;
-      overflow-x: auto;
+      /*max-height: 400px;
+      overflow-x: auto;*/
     }
   }
   .panel-link {
