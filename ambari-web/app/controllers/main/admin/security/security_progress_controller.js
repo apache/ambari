@@ -379,7 +379,6 @@ App.MainAdminSecurityProgressController = Em.Controller.extend({
       }
     }, this);
     if (this.manageSecureConfigs()) {
-      this.escapeXMLCharacters(this.get('serviceConfigTags'));
       this.applyConfigurationsToCluster();
     }
   },
@@ -392,32 +391,6 @@ App.MainAdminSecurityProgressController = Em.Controller.extend({
     console.log("TRACE: error code status is: " + request.status);
   },
 
-  /*
-   Iterate over keys of all configurations and escape xml characters in their values
-   */
-  escapeXMLCharacters: function (serviceConfigTags) {
-    serviceConfigTags.forEach(function (_serviceConfigTags) {
-      var configs = _serviceConfigTags.configs;
-      for (var key in configs) {
-        configs[key] = this.setServerConfigValue(key, configs[key]);
-      }
-    }, this);
-  },
-
-  /**
-   * set specific server values to config
-   * @param configName
-   * @param value
-   * @return {*}
-   */
-  setServerConfigValue: function (configName, value) {
-    switch (configName) {
-      case 'storm.zookeeper.servers':
-        return value;
-      default:
-        return App.config.escapeXMLCharacters(value);
-    }
-  },
   /**
    * save commands to server and local storage
    */

@@ -22,24 +22,6 @@ var stringUtils = require('utils/string_utils');
 var configGroupsByTag = [];
 
 App.config = Em.Object.create({
-  /**
-   * XML characters which should be escaped in values
-   * http://en.wikipedia.org/wiki/List_of_XML_and_HTML_character_entity_references#Predefined_entities_in_XML
-   */
-  xmlEscapeMap: {
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': '&quot;',
-    "'": '&apos;'
-  },
-  xmlUnEscapeMap: {
-    "&amp;": "&",
-    "&lt;": "<",
-    "&gt;": ">",
-    "&quot;": '"',
-    "&apos;": "'"
-  },
 
   CONFIG_GROUP_NAME_MAX_LENGTH: 18,
 
@@ -47,35 +29,6 @@ App.config = Em.Object.create({
    * filename exceptions used to support substandard sitenames which don't have "xml" extension
    */
   filenameExceptions: ['zoo.cfg'],
-
-  /**
-   * Since values end up in XML files (core-sit.xml, etc.), certain
-   * XML sensitive characters should be escaped. If not we will have
-   * an invalid XML document, and services will fail to start.
-   *
-   * Special characters in XML are defined at
-   * http://en.wikipedia.org/wiki/List_of_XML_and_HTML_character_entity_references#Predefined_entities_in_XML
-   *
-   * @method escapeXMLCharacters
-   * @param {*} value
-   * @param toXml {Boolean}
-   * @return {String}
-   */
-  escapeXMLCharacters: function (value, toXML) {
-    var self = this;
-    // To prevent double/triple replacing '&gt;' to '&amp;gt;' to '&amp;amp;gt;', we need
-    // to first unescape all XML chars, and then escape them again.
-    var newValue = String(value).replace(/(&amp;|&lt;|&gt;|&quot;|&apos;)/g, function (s) {
-      return self.xmlUnEscapeMap[s];
-    });
-    if (toXML) {
-      return String(newValue).replace(/[&<>"']/g, function (s) {
-        return self.xmlEscapeMap[s];
-      });
-    } else {
-      return newValue;
-    }
-  },
 
   preDefinedServiceConfigs: [],
   /**

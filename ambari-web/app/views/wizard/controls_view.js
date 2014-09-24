@@ -60,10 +60,25 @@ App.ServiceConfigPopoverSupport = Ember.Mixin.create({
 });
 
 /**
+ * if config value contains &amp;|&lt;|&gt;|&quot;|&apos;
+ * input field converts it to &|<|>|"|'
+ * this mixin helps to aviod such convertation and show values as is.
+ */
+App.SkipXmlEscapingSupport = Ember.Mixin.create({
+  didInsertElement: function() {
+    this._super();
+    if (this.get('serviceConfig.value').match(/(&amp;|&lt;|&gt;|&quot;|&apos;)/g)) {
+      this.set('value', this.get('serviceConfig.value').replace('&','&amp;'));
+      this.set('value', this.get('value').replace('&amp;','&'));
+    }
+  }
+});
+
+/**
  * Default input control
  * @type {*}
  */
-App.ServiceConfigTextField = Ember.TextField.extend(App.ServiceConfigPopoverSupport, {
+App.ServiceConfigTextField = Ember.TextField.extend(App.ServiceConfigPopoverSupport, App.SkipXmlEscapingSupport, {
 
   valueBinding: 'serviceConfig.value',
   classNameBindings: 'textFieldClassName',
@@ -156,7 +171,7 @@ App.ServiceConfigPasswordField = Ember.TextField.extend({
  * Textarea control
  * @type {*}
  */
-App.ServiceConfigTextArea = Ember.TextArea.extend(App.ServiceConfigPopoverSupport, {
+App.ServiceConfigTextArea = Ember.TextArea.extend(App.ServiceConfigPopoverSupport, App.SkipXmlEscapingSupport, {
 
   valueBinding: 'serviceConfig.value',
   rows: 4,
@@ -167,7 +182,7 @@ App.ServiceConfigTextArea = Ember.TextArea.extend(App.ServiceConfigPopoverSuppor
  * Textarea control for content type
  * @type {*}
  */
-App.ServiceConfigTextAreaContent = Ember.TextArea.extend(App.ServiceConfigPopoverSupport, {
+App.ServiceConfigTextAreaContent = Ember.TextArea.extend(App.ServiceConfigPopoverSupport, App.SkipXmlEscapingSupport, {
 
   valueBinding: 'serviceConfig.value',
   rows: 20,
