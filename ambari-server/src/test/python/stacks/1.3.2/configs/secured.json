@@ -179,7 +179,7 @@
             "namenode_principal_name": "nn/_HOST", 
             "namenode_keytab": "/etc/security/keytabs/nn.service.keytab", 
             "nagios_principal_name": "nagios/c6402.ambari.apache.org@EXAMPLE.COM", 
-            "dfs_datanode_http_address": "1022", 
+            "dfs_datanode_http_address": "1022",
             "hbase_user_keytab": "/etc/security/keytabs/hbase.headless.keytab", 
             "jobtracker_primary_name": "jt", 
             "hbase_pid_dir": "/var/run/hbase", 
@@ -561,7 +561,8 @@
         }, 
         "hbase-env": {
             "hbase_pid_dir": "/var/run/hbase", 
-            "hbase_user": "hbase", 
+            "hbase_user": "hbase",
+            "hbase_principal_name": "hbase",
             "hbase_master_heapsize": "1024m",
             "hbase_regionserver_xmn_max": "512m",
             "hbase_regionserver_xmn_ratio": "0.2",

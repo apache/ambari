@@ -154,6 +154,7 @@ module.exports =
       "isOverridable": false,
       "isReconfigurable": false,
       "serviceName": "GENERAL",
+      "filename": "hbase-env.xml",
       "category": "AMBARI"
     },
     {
