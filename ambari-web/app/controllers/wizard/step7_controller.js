@@ -690,9 +690,11 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
       }
       dependentConfigs.forEach(function (configName) {
         var config = configs.findProperty('name', configName);
-        var replaceStr = config.value.match(/.jar=host[^,]+/)[0];
-        var replaceWith = replaceStr.slice(0, replaceStr.lastIndexOf('=') - replaceStr.length + 1) + gangliaServerHost;
-        config.value = config.defaultValue = config.value.replace(replaceStr, replaceWith);
+        if (!Em.isNone(config.value)) {
+          var replaceStr = config.value.match(/.jar=host[^,]+/)[0];
+          var replaceWith = replaceStr.slice(0, replaceStr.lastIndexOf('=') - replaceStr.length + 1) + gangliaServerHost;
+          config.value = config.defaultValue = config.value.replace(replaceStr, replaceWith);
+        }
         config.forceUpdate = true;
       }, this);
     }

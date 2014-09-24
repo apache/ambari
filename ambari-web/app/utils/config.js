@@ -434,7 +434,7 @@ App.config = Em.Object.create({
    */
   mergePreDefinedWithStored: function (storedConfigs, advancedConfigs, selectedServiceNames) {
     var mergedConfigs = [];
-    var contentProperties = this.createContentProperties(advancedConfigs);
+    var contentProperties = advancedConfigs ? this.createContentProperties(advancedConfigs) : [];
     var preDefinedConfigs = this.get('preDefinedSiteProperties').concat(contentProperties);
 
     storedConfigs = (storedConfigs) ? storedConfigs : [];
@@ -453,7 +453,7 @@ App.config = Em.Object.create({
       }, this);
 
       var configData = {};
-      var isAdvanced = advancedConfigs.someProperty('name', name);
+      var isAdvanced = advancedConfigs && advancedConfigs.someProperty('name', name);
       if (storedCfgs.length <= 1 && preDefinedCfgs.length <= 1) {
         var stored = storedCfgs[0];
         var preDefined = preDefinedCfgs[0];
@@ -554,36 +554,38 @@ App.config = Em.Object.create({
         }, this);
       }
     }
-    advancedConfigs.forEach(function (_config) {
-      var configType = this.getConfigTagFromFileName(_config.filename);
-      var configCategory = 'Advanced ' + configType;
-      var categoryMetaData = null;
-      if (_config) {
-        if (this.get('configMapping').computed().someProperty('name', _config.name)) {
-        } else if (!(configsToVerifying.someProperty('name', _config.name))) {
-          if (this.get('customFileNames').contains(_config.filename)) {
-            categoryMetaData = this.identifyCategory(_config);
-            if (categoryMetaData != null) {
-              configCategory = categoryMetaData.get('name');
+    if (advancedConfigs) {
+      advancedConfigs.forEach(function (_config) {
+        var configType = this.getConfigTagFromFileName(_config.filename);
+        var configCategory = 'Advanced ' + configType;
+        var categoryMetaData = null;
+        if (_config) {
+          if (this.get('configMapping').computed().someProperty('name', _config.name)) {
+          } else if (!(configsToVerifying.someProperty('name', _config.name))) {
+            if (this.get('customFileNames').contains(_config.filename)) {
+              categoryMetaData = this.identifyCategory(_config);
+              if (categoryMetaData != null) {
+                configCategory = categoryMetaData.get('name');
+              }
             }
+            _config.id = "site property";
+            _config.category = configCategory;
+            _config.displayName = _config.name;
+            _config.defaultValue = _config.value;
+            // make all advanced configs optional and populated by default
+            /*
+             * if (/\${.*}/.test(_config.value) || (service.serviceName !==
+             * 'OOZIE' && service.serviceName !== 'HBASE')) { _config.isRequired =
+             * false; _config.value = ''; } else if
+             * (/^\s+$/.test(_config.value)) { _config.isRequired = false; }
+             */
+            _config.isRequired = true;
+            _config.displayType = stringUtils.isSingleLine(_config.value) ? 'advanced' : 'multiLine';
+            serviceConfigs.push(_config);
           }
-          _config.id = "site property";
-          _config.category = configCategory;
-          _config.displayName = _config.name;
-          _config.defaultValue = _config.value;
-          // make all advanced configs optional and populated by default
-          /*
-           * if (/\${.*}/.test(_config.value) || (service.serviceName !==
-           * 'OOZIE' && service.serviceName !== 'HBASE')) { _config.isRequired =
-           * false; _config.value = ''; } else if
-           * (/^\s+$/.test(_config.value)) { _config.isRequired = false; }
-           */
-          _config.isRequired = true;
-          _config.displayType = stringUtils.isSingleLine(_config.value) ? 'advanced' : 'multiLine';
-          serviceConfigs.push(_config);
         }
-      }
-    }, this);
+      }, this);
+    }
   },
   /**
    * Render a custom conf-site box for entering properties that will be written in *-site.xml files of the services
