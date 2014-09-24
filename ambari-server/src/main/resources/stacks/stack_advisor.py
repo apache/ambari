@@ -20,22 +20,284 @@ limitations under the License.
 import socket
 
 class StackAdvisor(object):
+  """
+  Abstract class implemented by all stack advisors. Stack advisors advise on stack specific questions. 
+
+  Currently stack advisors provide following abilities:
+  - Recommend where services should be installed in cluster
+  - Recommend configurations based on host hardware
+  - Validate user selection of where services are installed on cluster
+  - Validate user configuration values 
+
+  Each of the above methods is passed in parameters about services and hosts involved as described below.
+
+    @type services: dictionary
+    @param services: Dictionary containing all information about services selected by the user. 
+      Example: {
+      "services": [
+        {
+          "StackServices": {
+            "service_name" : "HDFS",
+            "service_version" : "2.6.0.2.2",
+          },
+          "components" : [ 
+            {
+              "StackServiceComponents" : {
+                "cardinality" : "1+",
+                "component_category" : "SLAVE",
+                "component_name" : "DATANODE",
+                "display_name" : "DataNode",
+                "service_name" : "HDFS",
+                "hostnames" : []
+              },
+              "dependencies" : []
+            }, {
+              "StackServiceComponents" : {
+                "cardinality" : "1-2",
+                "component_category" : "MASTER",
+                "component_name" : "NAMENODE",
+                "display_name" : "NameNode",
+                "service_name" : "HDFS",
+                "hostnames" : []
+              },
+              "dependencies" : []
+            },
+            ...
+          ]
+        },
+        ...
+      ]
+    }
+  @type hosts: dictionary
+  @param hosts: Dictionary containing all information about hosts in this cluster
+    Example: {
+      "items": [
+        {
+          Hosts: {
+            "host_name": "c6401.ambari.apache.org",
+            "public_host_name" : "c6401.ambari.apache.org",
+            "ip": "192.168.1.101",
+            "cpu_count" : 1,
+            "disk_info" : [
+              {
+              "available" : "4564632",
+              "used" : "5230344",
+              "percent" : "54%",
+              "size" : "10319160",
+              "type" : "ext4",
+              "mountpoint" : "/"
+              },
+              {
+              "available" : "1832436",
+              "used" : "0",
+              "percent" : "0%",
+              "size" : "1832436",
+              "type" : "tmpfs",
+              "mountpoint" : "/dev/shm"
+              }
+            ],
+            "host_state" : "HEALTHY",
+            "os_arch" : "x86_64",
+            "os_type" : "centos6",
+            "total_mem" : 3664872
+          }
+        },
+        ...
+      ]
+    }
+
+    Each of the methods can either return recommendations or validations.
+
+    Recommendations are made in a Ambari Blueprints friendly format. 
+    Validations are an array of validation objects.
+  """
 
   def recommendComponentLayout(self, services, hosts):
-    """Returns Services object with hostnames array populated for components"""
+    """
+    Returns recommendation of which hosts various service components should be installed on.
+
+    This function takes as input all details about services being installed, and hosts
+    they are being installed into, to generate hostname assignments to various components
+    of each service.
+
+    @type services: dictionary
+    @param services: Dictionary containing all information about services selected by the user.
+    @type hosts: dictionary
+    @param hosts: Dictionary containing all information about hosts in this cluster
+    @rtype: dictionary
+    @return: Layout recommendation of service components on cluster hosts in Ambari Blueprints friendly format. 
+        Example: {
+          "resources" : [
+            {
+              "hosts" : [
+                "c6402.ambari.apache.org",
+                "c6401.ambari.apache.org"
+              ],
+              "services" : [
+                "HDFS"
+              ],
+              "recommendations" : {
+                "blueprint" : {
+                  "host_groups" : [
+                    {
+                      "name" : "host-group-2",
+                      "components" : [
+                        { "name" : "JOURNALNODE" },
+                        { "name" : "ZKFC" },
+                        { "name" : "DATANODE" },
+                        { "name" : "SECONDARY_NAMENODE" }
+                      ]
+                    },
+                    {
+                      "name" : "host-group-1",
+                      "components" : [
+                        { "name" : "HDFS_CLIENT" },
+                        { "name" : "NAMENODE" },
+                        { "name" : "JOURNALNODE" },
+                        { "name" : "ZKFC" },
+                        { "name" : "DATANODE" }
+                      ]
+                    }
+                  ]
+                },
+                "blueprint_cluster_binding" : {
+                  "host_groups" : [
+                    {
+                      "name" : "host-group-1",
+                      "hosts" : [ { "fqdn" : "c6401.ambari.apache.org" } ]
+                    },
+                    {
+                      "name" : "host-group-2",
+                      "hosts" : [ { "fqdn" : "c6402.ambari.apache.org" } ]
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+    """
     pass
 
   def validateComponentLayout(self, services, hosts):
-    """Returns array of Validation objects about issues with hostnames components assigned to"""
+    """
+    Returns array of Validation issues with service component layout on hosts
+
+    This function takes as input all details about services being installed along with
+    hosts the components are being installed on (hostnames property is populated for 
+    each component).  
+
+    @type services: dictionary
+    @param services: Dictionary containing information about services and host layout selected by the user.
+    @type hosts: dictionary
+    @param hosts: Dictionary containing all information about hosts in this cluster
+    @rtype: dictionary
+    @return: Dictionary containing array of validation items
+        Example: {
+          "items": [
+            {
+              "type" : "host-group",
+              "level" : "ERROR",
+              "message" : "NameNode and Secondary NameNode should not be hosted on the same machine",
+              "component-name" : "NAMENODE",
+              "host" : "c6401.ambari.apache.org" 
+            },
+            ...
+          ]
+        }  
+    """
     pass
 
   def recommendConfigurations(self, services, hosts):
-    """Returns Services object with configurations object populated"""
+    """
+    Returns recommendation of service configurations based on host-specific layout of components.
+
+    This function takes as input all details about services being installed, and hosts
+    they are being installed into, to recommend host-specific configurations.
+
+    @type services: dictionary
+    @param services: Dictionary containing all information about services and component layout selected by the user.
+    @type hosts: dictionary
+    @param hosts: Dictionary containing all information about hosts in this cluster
+    @rtype: dictionary
+    @return: Layout recommendation of service components on cluster hosts in Ambari Blueprints friendly format. 
+        Example: {
+         "services": [
+          "HIVE", 
+          "TEZ", 
+          "YARN"
+         ], 
+         "recommendations": {
+          "blueprint": {
+           "host_groups": [], 
+           "configurations": {
+            "yarn-site": {
+             "properties": {
+              "yarn.scheduler.minimum-allocation-mb": "682", 
+              "yarn.scheduler.maximum-allocation-mb": "2048", 
+              "yarn.nodemanager.resource.memory-mb": "2048"
+             }
+            }, 
+            "tez-site": {
+             "properties": {
+              "tez.am.java.opts": "-server -Xmx546m -Djava.net.preferIPv4Stack=true -XX:+UseNUMA -XX:+UseParallelGC", 
+              "tez.am.resource.memory.mb": "682"
+             }
+            }, 
+            "hive-site": {
+             "properties": {
+              "hive.tez.container.size": "682", 
+              "hive.tez.java.opts": "-server -Xmx546m -Djava.net.preferIPv4Stack=true -XX:NewRatio=8 -XX:+UseNUMA -XX:+UseParallelGC", 
+              "hive.auto.convert.join.noconditionaltask.size": "238026752"
+             }
+            }
+           }
+          }, 
+          "blueprint_cluster_binding": {
+           "host_groups": []
+          }
+         }, 
+         "hosts": [
+          "c6401.ambari.apache.org", 
+          "c6402.ambari.apache.org", 
+          "c6403.ambari.apache.org" 
+         ] 
+        }
+    """
     pass
 
   def validateConfigurations(self, services, hosts):
-    """Returns array of Validation objects about issues with configuration values provided in services"""
+    """"
+    Returns array of Validation issues with configurations provided by user
+
+    This function takes as input all details about services being installed along with
+    configuration values entered by the user. These configurations can be validated against
+    service requirements, or host hardware to generate validation issues. 
+
+    @type services: dictionary
+    @param services: Dictionary containing information about services and user configurations.
+    @type hosts: dictionary
+    @param hosts: Dictionary containing all information about hosts in this cluster
+    @rtype: dictionary
+    @return: Dictionary containing array of validation items
+        Example: {
+         "items": [
+          {
+           "config-type": "yarn-site", 
+           "message": "Value is less than the recommended default of 682", 
+           "type": "configuration", 
+           "config-name": "yarn.scheduler.minimum-allocation-mb", 
+           "level": "WARN"
+          }
+         ]
+       }
+    """
     pass
+
+
+
+
+
 
 class DefaultStackAdvisor(StackAdvisor):
 
