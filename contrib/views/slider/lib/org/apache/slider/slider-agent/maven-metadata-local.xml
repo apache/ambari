@@ -17,7 +17,7 @@
 -->
 <metadata>
   <groupId>org.apache.slider</groupId>
-  <artifactId>slider-core</artifactId>
+  <artifactId>slider-agent</artifactId>
   <versioning>
     <release>0.51.0</release>
     <versions>
