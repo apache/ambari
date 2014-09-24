@@ -31,10 +31,13 @@ html {
 }
 .popover {
   max-width: 800px;
+  &.bottom {
+    left: 5px;
+  }
 }
 
 .slider-name-popover {
-  max-width: 500px !important;
+  max-width: 600px !important;
   .row {
     .table-row();
   }
@@ -121,8 +124,7 @@ select {
 
     #filter-row {
       th {
-        padding: 0px;
-        padding-left: 4px;
+        padding: 0 0 0 4px;
       }
       .active-filter {
         color: #555555;
@@ -329,8 +331,7 @@ select {
     .page-listing a {
       line-height: 0;
       border: none;
-      margin: 0;
-      margin-right: 10px;
+      margin: 0 10px 0 0;
       cursor: pointer;
       color: #0088CC;
       padding: 8px 0;
@@ -430,6 +431,11 @@ select {
         }
       }
       margin-bottom: 30px;
+    }
+  }
+  #step1 {
+    .app-types-alert {
+      margin-top: 20px;
     }
   }
   .app-wiz-configs {
@@ -619,6 +625,10 @@ select {
     .icon-warning-sign {
       color: #ff0000;
     }
+    .panel-body{
+      /*max-height: 400px;
+      overflow-x: auto;*/
+    }
   }
   .panel-link {
     margin-top: -5px;
@@ -766,9 +776,6 @@ select {
     .row-fluid [class*="span"] {
       min-height: 0px;
     }
-    .status-icon {
-      padding-top: 7px;
-    }
     .date-time {
       color: #999;
       font-style: italic;
@@ -778,6 +785,8 @@ select {
     .message {
       font-size: 12px;
       color: #777;
+      word-break: break-all;
+      padding-right: 15px;
     }
     .serviceLink {
       padding-left: 7px;
@@ -904,18 +913,6 @@ select {
 .slider-app-title {
   font-style: italic;
   cursor: pointer;
-}
-.popover.bottom{
-  .popover-content{
-    background: #ffffff;
-    background: -moz-linear-gradient(top,  #f7f7f7 0%, #f7f7f7 18%, #ffffff 19%, #ffffff 100%);
-    background: -webkit-gradient(linear, top, top, color-stop(0%,#f7f7f7), color-stop(18%,#f7f7f7), color-stop(19%,#ffffff), color-stop(100%,#ffffff));
-    background: -webkit-linear-gradient(top,  #f7f7f7 0%,#f7f7f7 18%,#ffffff 19%,#ffffff 100%);
-    background: -o-linear-gradient(top,  #f7f7f7 0%,#f7f7f7 18%,#ffffff 19%,#ffffff 100%);
-    background: -ms-linear-gradient(top,  #f7f7f7 0%,#f7f7f7 18%,#ffffff 19%,#ffffff 100%);
-    background: linear-gradient(to bottom,  #f7f7f7 0%,#f7f7f7 18%,#ffffff 19%,#ffffff 100%);
-    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f7f7f7', endColorstr='#ffffff',GradientType=1 );
-  }
 }
 
 .api-error {

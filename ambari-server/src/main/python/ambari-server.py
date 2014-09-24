@@ -235,6 +235,7 @@ CLIENT_SECURITY_KEY = "client.security"
 IS_LDAP_CONFIGURED = "ambari.ldap.isConfigured"
 LDAP_MGR_PASSWORD_ALIAS = "ambari.ldap.manager.password"
 LDAP_MGR_PASSWORD_PROPERTY = "authentication.ldap.managerPassword"
+LDAP_MGR_PASSWORD_FILENAME = "ldap-password.dat"
 LDAP_MGR_USERNAME_PROPERTY = "authentication.ldap.managerDn"
 
 SSL_TRUSTSTORE_PASSWORD_ALIAS = "ambari.ssl.trustStore.password"
@@ -549,6 +550,7 @@ NR_ADJUST_OWNERSHIP_LIST = [
   ("/etc/ambari-server/conf", "644", "{0}", True),
   ("/etc/ambari-server/conf", "755", "{0}", False),
   ("/etc/ambari-server/conf/password.dat", "640", "{0}", False),
+  ("/etc/ambari-server/conf/ldap-password.dat", "640", "{0}", False),
   # Also, /etc/ambari-server/conf/password.dat
   # is generated later at store_password_file
 ]
@@ -3260,6 +3262,8 @@ def setup_ldap():
 
     # Persisting values
     ldap_property_value_map[IS_LDAP_CONFIGURED] = "true"
+    if mgr_password:
+      ldap_property_value_map[LDAP_MGR_PASSWORD_PROPERTY] = store_password_file(mgr_password, LDAP_MGR_PASSWORD_FILENAME)
     update_properties(properties, ldap_property_value_map)
     print 'Saving...done'
 
@@ -3404,12 +3408,19 @@ def setup_master_key():
   isSecure = get_is_secure(properties)
   (isPersisted, masterKeyFile) = get_is_persisted(properties)
 
-  # Read clear text password from file
+  # Read clear text DB password from file
   if not is_alias_string(db_password) and os.path.isfile(db_password):
     with open(db_password, 'r') as passwdfile:
       db_password = passwdfile.read()
 
   ldap_password = properties.get_property(LDAP_MGR_PASSWORD_PROPERTY)
+
+  if ldap_password:
+    # Read clear text LDAP password from file
+    if not is_alias_string(ldap_password) and os.path.isfile(ldap_password):
+      with open(ldap_password, 'r') as passwdfile:
+        ldap_password = passwdfile.read()
+  
   ts_password = properties.get_property(SSL_TRUSTSTORE_PASSWORD_PROPERTY)
   resetKey = False
   masterKey = None
@@ -3505,6 +3516,7 @@ def setup_master_key():
       print 'Failed to save secure LDAP password.'
     else:
       propertyMap[LDAP_MGR_PASSWORD_PROPERTY] = get_alias_string(LDAP_MGR_PASSWORD_ALIAS)
+      remove_password_file(LDAP_MGR_PASSWORD_FILENAME)
   pass
 
   if ts_password and not is_alias_string(ts_password):

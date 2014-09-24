@@ -85,7 +85,7 @@ describe('App.WizardStep8Controller', function () {
 
       it(test.name, function () {
 
-        var siteObj = installerStep8Controller.createSiteObj(test.e.type,false,test.e.tag);
+        var siteObj = installerStep8Controller.createSiteObj(test.e.type, test.e.tag);
         expect(siteObj.tag).to.equal(test.e.tag);
         expect(Em.keys(siteObj.properties).length).to.equal(test.e.l);
       });
@@ -911,11 +911,11 @@ describe('App.WizardStep8Controller', function () {
           type: 'zoo.cfg',
           tag: 'version1',
           properties: {
-            p1: 'a&b',
-            p2: 'a<b',
-            p3: 'a>b',
-            p4: 'a"b',
-            p5: 'a\'b'
+            p1: 'a&amp;b',
+            p2: 'a&lt;b',
+            p3: 'a&gt;b',
+            p4: 'a&quot;b',
+            p5: 'a&apos;b'
           }
         };
       installerStep8Controller.reopen({configs: configs});
@@ -951,28 +951,6 @@ describe('App.WizardStep8Controller', function () {
           tag: 'version1',
           properties: {
             'storm.zookeeper.servers': '[\'a\',\'b\']'
-          }
-        };
-      installerStep8Controller.reopen({configs: configs});
-      expect(installerStep8Controller.createStormSiteObj('version1')).to.eql(expected);
-    });
-    it('should affect storm-site.xml properties', function() {
-      var configs = [
-          {filename: 'storm-site.xml', value: 'a&amp;b', name: 'p1'},
-          {filename: 'storm-site.xml', value: 'a&lt;b', name: 'p2'},
-          {filename: 'storm-site.xml', value: 'a&gt;b', name: 'p3'},
-          {filename: 'storm-site.xml', value: 'a&quot;b', name: 'p4'},
-          {filename: 'storm-site.xml', value: 'a&apos;b', name: 'p5'}
-        ],
-        expected = {
-          type: 'storm-site',
-          tag: 'version1',
-          properties: {
-            p1: 'a&b',
-            p2: 'a<b',
-            p3: 'a>b',
-            p4: 'a"b',
-            p5: 'a\'b'
           }
         };
       installerStep8Controller.reopen({configs: configs});

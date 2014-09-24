@@ -42,9 +42,10 @@ class TestStormRestApi(RMFTestCase):
 
     self.assert_configure_default()
 
-    self.assertResourceCalled('Execute', '/usr/jdk64/jdk1.7.0_45/bin/java -jar /usr/lib/storm/contrib/storm-rest/`ls /usr/lib/storm/contrib/storm-rest | grep -wE storm-rest-[0-9.-]+\\.jar` server /etc/storm/conf/config.yaml > /var/log/storm/restapi.log',
+    self.assertResourceCalled('Execute', '/usr/jdk64/jdk1.7.0_45/bin/java -jar /usr/lib/storm/contrib/storm-rest/`ls /usr/lib/storm/contrib/storm-rest | grep -wE storm-rest-[0-9.-]+\\.jar` server /etc/storm/conf/config.yaml > /var/log/storm/restapi.log 2>&1',
       wait_for_finish = False,
       not_if = 'ls /var/run/storm/restapi.pid >/dev/null 2>&1 && ps `cat /var/run/storm/restapi.pid` >/dev/null 2>&1',
+      path = ['/usr/bin'],
       user = 'storm',
     )
 
@@ -52,6 +53,7 @@ class TestStormRestApi(RMFTestCase):
       logoutput = True,
       tries = 6,
       user = 'storm',
+      path = ['/usr/bin'],
       try_sleep = 10,
     )
 
@@ -91,9 +93,10 @@ class TestStormRestApi(RMFTestCase):
 
     self.assert_configure_secured()
 
-    self.assertResourceCalled('Execute', '/usr/jdk64/jdk1.7.0_45/bin/java -jar /usr/lib/storm/contrib/storm-rest/`ls /usr/lib/storm/contrib/storm-rest | grep -wE storm-rest-[0-9.-]+\\.jar` server /etc/storm/conf/config.yaml > /var/log/storm/restapi.log',
+    self.assertResourceCalled('Execute', '/usr/jdk64/jdk1.7.0_45/bin/java -jar /usr/lib/storm/contrib/storm-rest/`ls /usr/lib/storm/contrib/storm-rest | grep -wE storm-rest-[0-9.-]+\\.jar` server /etc/storm/conf/config.yaml > /var/log/storm/restapi.log 2>&1',
       wait_for_finish = False,
       not_if = 'ls /var/run/storm/restapi.pid >/dev/null 2>&1 && ps `cat /var/run/storm/restapi.pid` >/dev/null 2>&1',
+      path = ['/usr/bin'],
       user = 'storm',
     )
 
@@ -101,6 +104,7 @@ class TestStormRestApi(RMFTestCase):
       logoutput = True,
       tries = 6,
       user = 'storm',
+      path = ['/usr/bin'],
       try_sleep = 10,
     )
 

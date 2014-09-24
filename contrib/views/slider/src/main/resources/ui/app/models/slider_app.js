@@ -115,6 +115,13 @@ App.SliderApp = DS.Model.extend({
   hiddenCategories: ['yarn-site', 'global'],
 
   /**
+   * @type {boolean}
+   */
+  doNotShowComponentsAndAlerts: function(){
+    return this.get('status') == "FROZEN" || this.get('status') == "FAILED";
+  }.property('status', 'components', 'alerts'),
+
+  /**
    * Display metrics only for running apps
    * @type {boolean}
    */
@@ -122,10 +129,6 @@ App.SliderApp = DS.Model.extend({
     var global = this.get('configs')['global'];
     if (App.get('gangliaHost') != null) {
       return true;
-    }
-    //check whether slider has GANGLIA configured if not metrics should be hidden
-    if (!(global && global['ganglia_server_host'] && global['ganglia_server_id'] && global['ganglia_server_port'])) {
-      return false;
     }
     return App.SliderApp.Status.running === this.get('status');
   }.property('status', 'configs'),

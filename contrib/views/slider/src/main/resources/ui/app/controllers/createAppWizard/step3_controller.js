@@ -155,6 +155,7 @@ App.CreateAppWizardStep3Controller = Ember.ObjectController.extend({
         delete configSet.configNames;
         if (configSet.name === 'ganglia_metrics') {
           configSet.trigger.readOnly = (!App.get('gangliaClusters') || App.get('gangliaClusters').length === 0);
+          configSet.trigger.value = (App.get('gangliaClusters') && App.get('gangliaClusters').length > 0);
         }
         configSet.trigger = App.ConfigProperty.create(configSet.trigger);
         this.initConfigSetDependecies(configSet);

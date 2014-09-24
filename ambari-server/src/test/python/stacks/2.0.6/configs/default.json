@@ -29,6 +29,7 @@
         "script": "scripts/service_check.py",
         "excluded_hosts": "host1,host2",
         "mark_draining_only" : "false",
+        "update_exclude_file_only" : "false",
         "xml_configs_list":[{"hdfs-site.xml":"hdfs-site"}],
         "env_configs_list":[{"hadoop-env.sh":"hadoop-env"},{"log4j.properties":"hdfs-log4j,yarn-log4j"}],
         "output_file":"HDFS_CLIENT-configs.tar.gz"

@@ -993,6 +993,39 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
 
   protected void addMissingConfigs() throws AmbariException {
     addNewConfigurationsFromXml();
+    addOozieConfig();
+  }
+
+  protected void addOozieConfig() throws AmbariException {
+    final String PROPERTY_NAME = "log4j.appender.oozie.layout.ConversionPattern=";
+    final String PROPERTY_VALUE_OLD = "%d{ISO8601} %5p %c{1}:%L - %m%n";
+    final String PROPERTY_VALUE_NEW = "%d{ISO8601} %5p %c{1}:%L - SERVER[${oozie.instance.id}] %m%n";
+
+    AmbariManagementController ambariManagementController = injector.getInstance(
+        AmbariManagementController.class);
+    Clusters clusters = ambariManagementController.getClusters();
+
+    if (clusters != null) {
+      Map<String, Cluster> clusterMap = clusters.getClusters();
+      Map<String, String> prop = new HashMap<String, String>();
+      String content = null;
+
+      if (clusterMap != null && !clusterMap.isEmpty()) {
+        for (final Cluster cluster : clusterMap.values()) {
+          content = cluster.getDesiredConfigByType(
+              "oozie-log4j").getProperties().get("content");
+
+          if (content != null) {
+            content = content.replace(PROPERTY_NAME + PROPERTY_VALUE_OLD,
+                PROPERTY_NAME + PROPERTY_VALUE_NEW);
+
+            prop.put("content", content);
+            updateConfigurationPropertiesForCluster(cluster, "oozie-log4j",
+                prop, true, false);
+          }
+        }
+      }
+    }
   }
 
   /**

@@ -44,6 +44,12 @@
 			<version>${slider.version}</version>
 		</dependency>
 		<dependency>
+			<groupId>org.apache.slider</groupId>
+			<artifactId>slider-agent</artifactId>
+			<version>${slider.version}</version>
+			<type>tar.gz</type>
+		</dependency>
+		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<scope>test</scope>
@@ -503,6 +509,7 @@
 				<artifactId>maven-dependency-plugin</artifactId>
 				<executions>
 					<execution>
+						<id>copy-dependencies</id>
 						<phase>generate-resources</phase>
 						<goals>
 							<goal>copy-dependencies</goal>
@@ -510,6 +517,20 @@
 						<configuration>
 							<outputDirectory>${project.build.directory}/lib</outputDirectory>
 							<includeScope>runtime</includeScope>
+							<excludeArtifactIds>slider-agent</excludeArtifactIds>
+						</configuration>
+					</execution>
+					<execution>
+						<id>copy-slider-agent-with-rename</id>
+						<phase>generate-resources</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.directory}/lib</outputDirectory>
+							<includeScope>runtime</includeScope>
+							<stripVersion>true</stripVersion>
+							<includeArtifactIds>slider-agent</includeArtifactIds>
 						</configuration>
 					</execution>
 				</executions>
@@ -555,14 +576,6 @@
 				<targetPath>WEB-INF/lib</targetPath>
 				<filtering>false</filtering>
 				<directory>target/lib</directory>
-			</resource>
-			<resource>
-				<targetPath>WEB-INF/lib</targetPath>
-				<filtering>false</filtering>
-				<directory>lib</directory>
-				<includes>
-					<include>slider-agent.tar.gz</include>
-				</includes>
 			</resource>
 		</resources>
 		<pluginManagement>

@@ -36,6 +36,7 @@ hbase_drain_only = config['commandParams']['mark_draining_only']
 hbase_included_hosts = config['commandParams']['included_hosts']
 
 hbase_user = status_params.hbase_user
+hbase_principal_name = config['configurations']['hbase-env']['hbase_principal_name']
 smokeuser = config['configurations']['cluster-env']['smokeuser']
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 user_group = config['configurations']['cluster-env']['user_group']
@@ -82,7 +83,7 @@ smoke_user_keytab = config['configurations']['cluster-env']['smokeuser_keytab']
 hbase_user_keytab = config['configurations']['hbase-env']['hbase_user_keytab']
 kinit_path_local = functions.get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
 if security_enabled:
-  kinit_cmd = format("{kinit_path_local} -kt {hbase_user_keytab} {hbase_user};")
+  kinit_cmd = format("{kinit_path_local} -kt {hbase_user_keytab} {hbase_principal_name};")
 else:
   kinit_cmd = ""
 

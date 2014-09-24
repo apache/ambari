@@ -18,15 +18,18 @@
 
 package org.apache.ambari.server.orm.dao;
 
-import com.google.inject.Inject;
-import com.google.inject.Provider;
-import com.google.inject.Singleton;
-import org.apache.ambari.server.orm.entities.PermissionEntity;
-import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
+import java.util.List;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
-import java.util.List;
+
+import org.apache.ambari.server.orm.entities.PermissionEntity;
+import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
+
+import com.google.inject.Inject;
+import com.google.inject.Provider;
+import com.google.inject.Singleton;
+import com.google.inject.persist.Transactional;
 
 /**
  * Permission Data Access Object.
@@ -42,6 +45,16 @@ public class PermissionDAO {
 
   @Inject
   DaoUtils daoUtils;
+
+  /**
+   * Create permission.
+   *
+   * @param PermissionEntity entity to store
+   */
+  @Transactional
+  public void create(PermissionEntity permissionEntity) {
+    entityManagerProvider.get().persist(permissionEntity);
+  }
 
   /**
    * Find a permission entity with the given id.

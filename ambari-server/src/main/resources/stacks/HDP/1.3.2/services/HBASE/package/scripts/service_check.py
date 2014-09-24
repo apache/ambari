@@ -41,8 +41,8 @@ class HbaseServiceCheck(Script):
       mode = 0755,
       content = Template('hbase-smoke.sh.j2')
     )
-    
-    if params.security_enabled:    
+
+    if params.security_enabled:
       hbase_grant_premissions_file = format("{exec_tmp_dir}/hbase_grant_permissions.sh")
       grantprivelegecmd = format("{kinit_cmd} hbase shell {hbase_grant_premissions_file}")
   

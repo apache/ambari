@@ -110,6 +110,42 @@ class TestResourceManager(RMFTestCase):
     self.assertResourceCalled('File', '/var/run/hadoop-yarn/yarn/yarn-yarn-resourcemanager.pid',
                               action=['delete'])
     self.assertNoMoreResources()
+    
+    
+  def test_decommission_default(self):
+    self.executeScript("2.0.6/services/YARN/package/scripts/resourcemanager.py",
+                       classname = "Resourcemanager",
+                       command = "decommission",
+                       config_file="default.json"
+    )
+    self.assertResourceCalled('File', '/etc/hadoop/conf/yarn.exclude',
+        owner = 'yarn',
+        content = Template('exclude_hosts_list.j2'),
+        group = 'hadoop',
+    )
+    self.assertResourceCalled('Execute', ' yarn --config /etc/hadoop/conf rmadmin -refreshNodes',
+        environment = {'PATH': os.environ['PATH'] + ":/usr/bin:/usr/lib/hadoop-yarn/bin"},
+        user = 'yarn',
+    )
+    self.assertNoMoreResources()
+    
+  def test_decommission_secured(self):
+    self.executeScript("2.0.6/services/YARN/package/scripts/resourcemanager.py",
+                       classname = "Resourcemanager",
+                       command = "decommission",
+                       config_file="secured.json"
+    )
+    self.assertResourceCalled('File', '/etc/hadoop/conf/yarn.exclude',
+        owner = 'yarn',
+        content = Template('exclude_hosts_list.j2'),
+        group = 'hadoop',
+    )
+    self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/rm.service.keytab rm/c6401.ambari.apache.org@EXAMPLE.COM; yarn --config /etc/hadoop/conf rmadmin -refreshNodes',
+        environment = {'PATH': os.environ['PATH'] + ":/usr/bin:/usr/lib/hadoop-yarn/bin"},
+        user = 'yarn',
+    )
+    
+    self.assertNoMoreResources()
 
   def assert_configure_default(self):
 

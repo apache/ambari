@@ -288,42 +288,6 @@ describe('App.config', function () {
     });
   });
 
-  describe('#escapeXMLCharacters', function () {
-
-    var testConfigs = [
-      {
-        html: '&>"',
-        json: '&>"'
-      },
-      {
-        html: '&amp;&gt;&quot;&apos;',
-        json: '&>"\''
-      },
-      {
-        html: '&&gt;',
-        json: '&>'
-      },
-      {
-        html: '&&&amp;',
-        json: '&&&'
-      },
-      {
-        html: 'LD_LIBRARY_PATH=/usr/lib/hadoop/lib/native:/usr/lib/hadoop/lib/native/`$JAVA_HOME/bin/java -d32 -version &amp;&gt; /dev/null;if [ $? -eq 0 ]; then echo Linux-i386-32; else echo Linux-amd64-64;fi`',
-        json: 'LD_LIBRARY_PATH=/usr/lib/hadoop/lib/native:/usr/lib/hadoop/lib/native/`$JAVA_HOME/bin/java -d32 -version &> /dev/null;if [ $? -eq 0 ]; then echo Linux-i386-32; else echo Linux-amd64-64;fi`'
-      },
-      {
-        html: '&&&amp;',
-        json: '&amp;&amp;&amp;',
-        toXml: true
-      }
-    ];
-    testConfigs.forEach(function(t){
-      it('parsing html ' + t.html + ' `toXml` param passed ' + !!t.toXml, function () {
-        expect(t.json).to.equal(App.config.escapeXMLCharacters(t.html, t.toXml));
-      });
-    });
-  });
-
   describe('#addAvancedConfigs()', function() {
     before(function() {
       this.storedConfigs = modelSetup.setupStoredConfigsObject();

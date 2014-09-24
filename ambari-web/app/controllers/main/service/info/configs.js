@@ -1451,21 +1451,23 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
    */
   showSaveConfigsPopup: function (header, flag, message, messageClass, value, status, urlParams) {
     var self = this;
+    if (flag) {
+      this.set('forceTransition', flag);
+      self.loadStep();
+    }
     App.ModalPopup.show({
       header: header,
       primary: Em.I18n.t('ok'),
       secondary: null,
       onPrimary: function () {
         this.hide();
-        if (flag) {
-          self.loadStep();
-        } else {
-          self.set('isApplyingChanges', false)
+        if (!flag) {
+          self.set('isApplyingChanges', false);
         }
       },
       onClose: function () {
         this.hide();
-        self.set('isApplyingChanges', false)
+        self.set('isApplyingChanges', false);
       },
       disablePrimary: true,
       bodyClass: Ember.View.extend({
@@ -2151,7 +2153,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     var coreSiteObj = this.get('uiConfigs').filterProperty('filename', 'core-site.xml');
     var coreSiteProperties = {};
     coreSiteObj.forEach(function (_coreSiteObj) {
-      coreSiteProperties[_coreSiteObj.name] = App.config.escapeXMLCharacters(_coreSiteObj.value);
+      coreSiteProperties[_coreSiteObj.name] = _coreSiteObj.value;
       //this.recordHostOverride(_coreSiteObj, 'core-site', tagName, this);
     }, this);
     var result = {"type": "core-site", "tag": tagName, "properties": coreSiteProperties};
@@ -2179,7 +2181,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
       if (heapsizeRegExp.test(_siteObj.name) && !heapsizeException.contains(_siteObj.name)) {
         value += "m";
       }
-      siteProperties[_siteObj.name] = App.config.escapeXMLCharacters(value);
+      siteProperties[_siteObj.name] = value;
       switch (siteName) {
         case 'falcon-startup.properties':
         case 'falcon-runtime.properties':
@@ -2217,11 +2219,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
           return value;
         }
         break;
-      case 'content':
-        return value;
-        break;
       default:
-        return App.config.escapeXMLCharacters(value);
+        return value;
     }
   },
 

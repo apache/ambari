@@ -92,6 +92,7 @@ App.SliderAppsView = App.TableView.extend({
       });
       return Ember.Object.create({
         trigger: 'hover',
+        title: this.get('content.data.name'),
         template: template.renderToBuffer().string(),
         placement: "right"
       });

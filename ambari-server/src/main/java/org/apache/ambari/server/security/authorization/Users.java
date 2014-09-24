@@ -46,6 +46,7 @@ import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.security.ldap.LdapBatchDto;
 import org.apache.ambari.server.security.ldap.LdapUserGroupMemberDto;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -152,28 +153,41 @@ public class Users {
 
     UserEntity currentUserEntity = userDAO.findLocalUserByName(currentUserName);
 
-    //Authenticate LDAP admin user
-    boolean isLdapAdmin = false;
+    //Authenticate LDAP user
+    boolean isLdapUser = false;
     if (currentUserEntity == null) {
       currentUserEntity = userDAO.findLdapUserByName(currentUserName);
       try {
         ldapAuthenticationProvider.authenticate(
             new UsernamePasswordAuthenticationToken(currentUserName, currentUserPassword));
-      isLdapAdmin = true;
+      isLdapUser = true;
       } catch (BadCredentialsException ex) {
         throw new AmbariException("Incorrect password provided for LDAP user " +
             currentUserName);
       }
     }
 
+    boolean isCurrentUserAdmin = false;
+    for (PrivilegeEntity privilegeEntity: currentUserEntity.getPrincipal().getPrivileges()) {
+      if (privilegeEntity.getPermission().getPermissionName().equals(PermissionEntity.AMBARI_ADMIN_PERMISSION_NAME)) {
+        isCurrentUserAdmin = true;
+        break;
+      }
+    }
+
     UserEntity userEntity = userDAO.findLocalUserByName(userName);
 
     if ((userEntity != null) && (currentUserEntity != null)) {
-      if (isLdapAdmin || passwordEncoder.matches(currentUserPassword, currentUserEntity.getUserPassword())) {
+      if (!isCurrentUserAdmin && !userName.equals(currentUserName)) {
+        throw new AmbariException("You can't change password of another user");
+      }
+
+      if ((isLdapUser && isCurrentUserAdmin) || (StringUtils.isNotEmpty(currentUserPassword) &&
+          passwordEncoder.matches(currentUserPassword, currentUserEntity.getUserPassword()))) {
         userEntity.setUserPassword(passwordEncoder.encode(newPassword));
         userDAO.merge(userEntity);
       } else {
-        throw new AmbariException("Wrong password provided");
+        throw new AmbariException("Wrong current password provided");
       }
 
     } else {

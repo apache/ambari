@@ -413,9 +413,17 @@ App.Router = Em.Router.extend({
    * initialize isAdmin if user is administrator
    */
   initAdmin: function(){
-    if(App.db && App.db.getUser() && App.db.getUser().admin) {
-      App.set('isAdmin', true);
-      console.log('Administrator logged in');
+    if (App.db) {
+      var user = App.db.getUser();
+      if (user) {
+        if (user.admin) {
+          App.set('isAdmin', true);
+          console.log('Administrator logged in');
+        }
+        if (user.operator) {
+          App.set('isOperator', true);
+        }
+      }
     }
   },
 

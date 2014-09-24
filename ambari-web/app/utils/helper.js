@@ -325,7 +325,7 @@ App.format = {
     'GLUSTERFS': 'GLUSTERFS',
     'HBASE': 'HBase',
     'HBASE_REGIONSERVER': 'RegionServer',
-    'HCAT': 'HCat',
+    'HCAT': 'HCat Client',
     'HDFS': 'HDFS',
     'HISTORYSERVER': 'History Server',
     'HIVE_SERVER': 'HiveServer2',

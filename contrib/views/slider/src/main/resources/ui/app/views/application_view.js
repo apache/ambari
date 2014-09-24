@@ -28,10 +28,13 @@ App.ApplicationView = Ember.View.extend({
      * Popover-config
      * @type {Em.Object}
      */
-    popover: Em.Object.create({
-      trigger: 'hover',
-      placement: 'bottom'
-    }),
+    popover: function () {
+      return Em.Object.create({
+        trigger: 'hover',
+        placement: 'bottom',
+        title: App.get('instance')
+      })
+    }.property('content'),
 
     isIndexPage: function () {
       var currentPath = this.get('controller.currentPath');

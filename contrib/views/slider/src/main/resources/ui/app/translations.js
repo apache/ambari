@@ -48,11 +48,12 @@ Em.I18n.translations = {
     'finished': 'Finished',
     'diagnostics': 'Diagnostics',
     'description': 'Description',
-    'alerts': 'Alerts',
+    'status': 'Status',
     'key': 'Key',
     'remove': 'Remove',
     'send': 'Send',
-    'error': 'Error'
+    'error': 'Error',
+    'yarn.app.id': 'YARN Application ID'
   },
 
   'error.config_is_empty': 'Config <strong>{0}</strong> should not be empty',
@@ -83,7 +84,9 @@ Em.I18n.translations = {
 
   'sliderApp.summary.go_to_nagios': 'Go to Nagios',
   'sliderApp.summary.go_to_ganglia': 'Go to Ganglia',
+  'sliderApp.summary.no.components': 'No components are currently running',
 
+  'sliderApp.alerts.no.status': 'No component statuses are currently available',
   'sliderApp.alerts.OK.timePrefixShort': 'OK',
   'sliderApp.alerts.WARN.timePrefixShort': 'WARN',
   'sliderApp.alerts.CRIT.timePrefixShort': 'CRIT',
@@ -109,6 +112,7 @@ Em.I18n.translations = {
   'wizard.step1.typeDescription': 'Deploys {0} cluster on YARN.',
   'wizard.step1.nameFormatError': 'App Name should consist only of letters, numbers, \'-\', \'_\' and first character should be a letter.',
   'wizard.step1.nameRepeatError': 'App with entered Name already exists.',
+  'wizard.step1.noAppTypesError': 'No Slider Application packages have been installed on this server. Please contact your Ambari server administrator to install Slider Application packages into /var/lib/ambari-server/resources/apps/ folder.',
   'wizard.step2.name': 'Allocate Resources',
   'wizard.step2.header': 'HBase application requires resources to be allocated on the cluster. Provide resource allocation requests for each component of the application below.',
   'wizard.step2.table.instances': 'Number of Instances',

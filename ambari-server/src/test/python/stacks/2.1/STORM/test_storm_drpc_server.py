@@ -43,9 +43,10 @@ class TestStormDrpcServer(RMFTestCase):
     )
     self.assert_configure_default()
 
-    self.assertResourceCalled('Execute', 'env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 PATH=$PATH:/usr/jdk64/jdk1.7.0_45/bin /usr/bin/storm drpc > /var/log/storm/drpc.out 2>&1',
+    self.assertResourceCalled('Execute', 'env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 PATH=$PATH:/usr/jdk64/jdk1.7.0_45/bin storm drpc > /var/log/storm/drpc.out 2>&1',
       wait_for_finish = False,
       not_if = 'ls /var/run/storm/drpc.pid >/dev/null 2>&1 && ps `cat /var/run/storm/drpc.pid` >/dev/null 2>&1',
+      path = ['/usr/bin'],
       user = 'storm',
     )
 
@@ -53,6 +54,7 @@ class TestStormDrpcServer(RMFTestCase):
       logoutput = True,
       tries = 6,
       user = 'storm',
+      path = ['/usr/bin'],
       try_sleep = 10,
     )
 
@@ -92,9 +94,10 @@ class TestStormDrpcServer(RMFTestCase):
 
     self.assert_configure_secured()
 
-    self.assertResourceCalled('Execute', 'env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 PATH=$PATH:/usr/jdk64/jdk1.7.0_45/bin /usr/bin/storm drpc > /var/log/storm/drpc.out 2>&1',
+    self.assertResourceCalled('Execute', 'env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 PATH=$PATH:/usr/jdk64/jdk1.7.0_45/bin storm drpc > /var/log/storm/drpc.out 2>&1',
       wait_for_finish = False,
       not_if = 'ls /var/run/storm/drpc.pid >/dev/null 2>&1 && ps `cat /var/run/storm/drpc.pid` >/dev/null 2>&1',
+      path = ['/usr/bin'],
       user = 'storm',
     )
 
@@ -102,6 +105,7 @@ class TestStormDrpcServer(RMFTestCase):
       logoutput = True,
       tries = 6,
       user = 'storm',
+      path = ['/usr/bin'],
       try_sleep = 10,
     )
 

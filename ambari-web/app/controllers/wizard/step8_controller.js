@@ -143,7 +143,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, {
    */
   selectedServices: function () {
     return this.get('content.services').filterProperty('isSelected', true).filterProperty('isInstalled', false);
-  }.property('content.services').cacheable(),
+  }.property('content.services.@each.isSelected','content.services.@each.isInstalled').cacheable(),
 
   /**
    * List of installed and selected services
@@ -1404,7 +1404,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, {
     var selectedServices = this.get('selectedServices');
     var coreSiteObject = this.createCoreSiteObj();
     var tag = 'version1';
-    var clusterSiteObj = this.createSiteObj('cluster-env', true, tag);
+    var clusterSiteObj = this.createSiteObj('cluster-env', tag);
 
     if (this.get('content.controllerName') == 'installerController') {
       this.get('serviceConfigTags').pushObject(clusterSiteObj);
@@ -1436,8 +1436,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, {
             obj.service_config_version_note = serviceVersionNotes;
             this.get('serviceConfigTags').pushObject(obj);
           } else {
-            var isNonXmlFile = type.endsWith('log4j') || type.endsWith('env') || type.endsWith('properties') || type.endsWith('conf');
-            var obj = this.createSiteObj(type, isNonXmlFile, tag);
+            var obj = this.createSiteObj(type, tag);
             obj.service_config_version_note = serviceVersionNotes;
             this.get('serviceConfigTags').pushObject(obj);
           }
@@ -1610,17 +1609,17 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, {
         (isOozieSelected || (_coreSiteObj.name != 'hadoop.proxyuser.' + oozieUser + '.hosts' && _coreSiteObj.name != 'hadoop.proxyuser.' + oozieUser + '.groups')) &&
         (isHiveSelected || (_coreSiteObj.name != 'hadoop.proxyuser.' + hiveUser + '.hosts' && _coreSiteObj.name != 'hadoop.proxyuser.' + hiveUser + '.groups')) &&
         (isHiveSelected || (_coreSiteObj.name != 'hadoop.proxyuser.' + hcatUser + '.hosts' && _coreSiteObj.name != 'hadoop.proxyuser.' + hcatUser + '.groups'))) {
-        coreSiteProperties[_coreSiteObj.name] = App.config.escapeXMLCharacters(_coreSiteObj.value);
+        coreSiteProperties[_coreSiteObj.name] = _coreSiteObj.value;
       }
       if (isGLUSTERFSSelected && _coreSiteObj.name == "fs.default.name") {
         coreSiteProperties[_coreSiteObj.name] =
           this.get('configs').someProperty('name', 'fs_glusterfs_default_name') ?
-            App.config.escapeXMLCharacters(this.get('configs').findProperty('name', 'fs_glusterfs_default_name').value) : null;
+            this.get('configs').findProperty('name', 'fs_glusterfs_default_name').value : null;
       }
       if (isGLUSTERFSSelected && _coreSiteObj.name == "fs.defaultFS") {
         coreSiteProperties[_coreSiteObj.name] =
           this.get('configs').someProperty('name', 'glusterfs_defaultFS_name') ?
-            App.config.escapeXMLCharacters(this.get('configs').findProperty('name', 'glusterfs_defaultFS_name').value) : null;
+            this.get('configs').findProperty('name', 'glusterfs_defaultFS_name').value : null;
       }
     }, this);
     var attributes = App.router.get('mainServiceInfoConfigsController').getConfigAttributes(coreSiteObj);
@@ -1634,17 +1633,15 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, {
   /**
    * Create siteObj for custom service with it own configs
    * @param {string} site
-   * @param {boolean} isNonXmlFile
    * @param tag
    * @returns {{type: string, tag: string, properties: {}}}
    * @method createSiteObj
    */
-  createSiteObj: function (site, isNonXmlFile, tag) {
+  createSiteObj: function (site,  tag) {
     var properties = {};
     var configs = this.get('configs').filterProperty('filename', site + '.xml');
     var attributes = App.router.get('mainServiceInfoConfigsController').getConfigAttributes(configs);
     configs.forEach(function (_configProperty) {
-      if (isNonXmlFile) {
         var heapsizeExceptions = ['hadoop_heapsize', 'yarn_heapsize', 'nodemanager_heapsize', 'resourcemanager_heapsize', 'apptimelineserver_heapsize', 'jobhistory_heapsize'];
         // do not pass any globals whose name ends with _host or _hosts
         if (_configProperty.isRequiredByAgent !== false) {
@@ -1655,9 +1652,6 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, {
             properties[_configProperty.name] = _configProperty.value;
           }
         }
-      } else {
-        properties[_configProperty.name] = App.config.escapeXMLCharacters(_configProperty.value);
-      }
     }, this);
     var configObj = {"type": site, "tag": tag, "properties": properties };
     if (attributes) {
@@ -1676,7 +1670,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, {
     var configs = this.get('configs').filterProperty('filename', 'zoo.cfg');
     var csProperties = {};
     configs.forEach(function (_configProperty) {
-      csProperties[_configProperty.name] = App.config.escapeXMLCharacters(_configProperty.value);
+      csProperties[_configProperty.name] = _configProperty.value;
     }, this);
     return {type: 'zoo.cfg', tag: tag, properties: csProperties};
   },
@@ -1699,7 +1693,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, {
           stormProperties[_configProperty.name] = JSON.stringify(_configProperty.value).replace(/"/g, "");
         }
       } else {
-        stormProperties[_configProperty.name] = App.config.escapeXMLCharacters(_configProperty.value);
+        stormProperties[_configProperty.name] = _configProperty.value;
       }
     }, this);
     return {type: 'storm-site', tag: tag, properties: stormProperties};

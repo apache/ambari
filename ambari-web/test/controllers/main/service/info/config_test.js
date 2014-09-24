@@ -482,11 +482,8 @@ describe("App.MainServiceInfoConfigsController", function () {
     it("parsing storm.zookeeper.servers property in non standart method", function () {
       expect(mainServiceInfoConfigsController.setServerConfigValue("storm.zookeeper.servers", ["a", "b"])).to.equal('[\'a\',\'b\']');
     });
-    it("parsing content property in non standart method", function () {
-      expect(mainServiceInfoConfigsController.setServerConfigValue("content", "value")).to.equal("value");
-    });
     it("parsing default properties", function () {
-      expect(mainServiceInfoConfigsController.setServerConfigValue("any.other.property", "value&lt;")).to.equal("value<");
+      expect(mainServiceInfoConfigsController.setServerConfigValue("any.other.property", "value")).to.equal("value");
     });
   });
 
@@ -511,7 +508,7 @@ describe("App.MainServiceInfoConfigsController", function () {
           "tag": "version1",
           "properties": {
             "property1": "value1",
-            "property2": "value2<"
+            "property2": "value2&lt;"
           }
         },
         m: "default"
@@ -570,7 +567,7 @@ describe("App.MainServiceInfoConfigsController", function () {
           "tag": "version1",
           "properties": {
             "property1": "value1",
-            "property2": "value2<"
+            "property2": "value2&lt;"
           }
         }
       }

@@ -189,7 +189,7 @@ App.ChartView = Ember.View.extend({
     if (xhr.readyState == 4 && xhr.status) {
       textStatus = xhr.status + " " + textStatus;
     }
-    this._showMessage('warn', 'graphs.error.title', textStatus + ' ' + errorThrown);
+    this._showMessage('warn', Em.I18n.t('common.error'), textStatus + ' ' + errorThrown);
     this.set('isPopup', false);
     this.set('hasData', false);
   },
@@ -203,7 +203,7 @@ App.ChartView = Ember.View.extend({
    * @type: Function
    */
   _showMessage: function(type, title, message) {
-    var chartOverlay = '#' + this.id;
+    var chartOverlay = '#' + this.get('id');
     var chartOverlayId = chartOverlay + '-chart';
     var chartOverlayY = chartOverlay + '-yaxis';
     var chartOverlayX = chartOverlay + '-xaxis';
@@ -360,7 +360,7 @@ App.ChartView = Ember.View.extend({
         this.draw(seriesData);
         this.set('hasData', true);
         //move yAxis value lower to make them fully visible
-        $("#" + this.id + "-container").find('.y_axis text').attr('y',8);
+        $("#" + this.get('id') + "-container").find('.y_axis text').attr('y',8);
       }
     }
     else {
