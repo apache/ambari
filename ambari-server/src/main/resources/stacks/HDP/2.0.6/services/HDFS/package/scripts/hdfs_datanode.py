@@ -18,25 +18,34 @@ limitations under the License.
 """
 
 from resource_management import *
+from resource_management.libraries.functions.dfs_datanode_helper import handle_dfs_data_dir
 from utils import service
+
+
+def create_dirs(data_dir, params):
+  """
+  :param data_dir: The directory to create
+  :param params: parameters
+  """
+  Directory(data_dir,
+            recursive=True,
+            mode=0755,
+            owner=params.hdfs_user,
+            group=params.user_group,
+            ignore_failures=True
+  )
+
 
 def datanode(action=None):
   import params
-
   if action == "configure":
     Directory(params.dfs_domain_socket_dir,
               recursive=True,
               mode=0751,
               owner=params.hdfs_user,
               group=params.user_group)
-    for data_dir in params.dfs_data_dir.split(","):
-      Directory(data_dir,
-                recursive=True,
-                mode=0755,
-                owner=params.hdfs_user,
-                group=params.user_group,
-                ignore_failures=True
-      )
+
+    handle_dfs_data_dir(create_dirs, params)
 
   elif action == "start" or action == "stop":
     service(

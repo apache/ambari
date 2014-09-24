@@ -16,10 +16,31 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+import os
 
 from resource_management import *
+from resource_management.libraries.functions.dfs_datanode_helper import handle_dfs_data_dir
 from utils import service
-import os
+
+
+def create_dirs(data_dir, params):
+  """
+  :param data_dir: The directory to create
+  :param params: parameters
+  """
+  Directory(os.path.dirname(data_dir),
+            recursive=True,
+            mode=0755,
+            ignore_failures=True
+  )
+  Directory(data_dir,
+            recursive=False,
+            mode=0750,
+            owner=params.hdfs_user,
+            group=params.user_group,
+            ignore_failures=True
+  )
+
 
 def datanode(action=None):
   import params
@@ -30,19 +51,8 @@ def datanode(action=None):
               mode=0751,
               owner=params.hdfs_user,
               group=params.user_group)
-    for data_dir in params.dfs_data_dir.split(","):
-      Directory(os.path.dirname(data_dir),
-                recursive=True,
-                mode=0755,
-                ignore_failures=True
-      )
-      Directory(data_dir,
-                recursive=False,
-                mode=0750,
-                owner=params.hdfs_user,
-                group=params.user_group,
-                ignore_failures=True
-      )
+
+    handle_dfs_data_dir(create_dirs, params)
 
   elif action == "start" or action == "stop":
     service(

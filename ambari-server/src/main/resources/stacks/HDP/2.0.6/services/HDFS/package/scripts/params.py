@@ -144,6 +144,8 @@ namenode_formatted_mark_dir = format("/var/lib/hdfs/namenode/formatted/")
 fs_checkpoint_dir = config['configurations']['hdfs-site']['dfs.namenode.checkpoint.dir']
 
 dfs_data_dir = config['configurations']['hdfs-site']['dfs.datanode.data.dir']
+data_dir_mount_file = config['configurations']['hadoop-env']['dfs.datanode.data.dir.mount.file']
+
 # HDFS High Availability properties
 dfs_ha_enabled = False
 dfs_ha_nameservices = default("/configurations/hdfs-site/dfs.nameservices", None)

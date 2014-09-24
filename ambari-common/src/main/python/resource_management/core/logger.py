@@ -29,7 +29,15 @@ class Logger:
   
   # unprotected_strings : protected_strings map
   sensitive_strings = {}
-  
+
+  @staticmethod
+  def error(text):
+    Logger.logger.error(Logger.get_protected_text(text))
+
+  @staticmethod
+  def warning(text):
+    Logger.logger.warning(Logger.get_protected_text(text))
+
   @staticmethod
   def info(text):
     Logger.logger.info(Logger.get_protected_text(text))
@@ -37,6 +45,14 @@ class Logger:
   @staticmethod  
   def debug(text):
     Logger.logger.debug(Logger.get_protected_text(text))
+
+  @staticmethod
+  def error_resource(resource):
+    Logger.error(Logger.get_protected_text(Logger._get_resource_repr(resource)))
+
+  @staticmethod
+  def warning_resource(resource):
+    Logger.warning(Logger.get_protected_text(Logger._get_resource_repr(resource)))
 
   @staticmethod
   def info_resource(resource):
