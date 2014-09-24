@@ -487,6 +487,13 @@
   padding-top: 8px;
   padding-bottom: 8px;
 }
+.left-navbar .panel-body li .noclusters{
+  color: #808080;
+  padding-left: 33px;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  margin: 0px;
+}
 .left-navbar .panel-body li.active a{
   background: #666;
 }
