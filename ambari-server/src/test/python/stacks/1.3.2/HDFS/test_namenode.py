@@ -211,6 +211,43 @@ class TestNamenode(RMFTestCase):
                               action = ['delete'],
                               )
     self.assertNoMoreResources()
+    
+    
+  def test_decommission_default(self):
+    self.executeScript("1.3.2/services/HDFS/package/scripts/namenode.py",
+                       classname = "NameNode",
+                       command = "decommission",
+                       config_file="default.json"
+    )
+    self.assertResourceCalled('File', '/etc/hadoop/conf/dfs.exclude',
+        owner = 'hdfs',
+        content = Template('exclude_hosts_list.j2'),
+        group = 'hadoop',
+    )
+    self.assertResourceCalled('ExecuteHadoop', 'dfsadmin -refreshNodes',
+        conf_dir = '/etc/hadoop/conf',
+        kinit_override = True,
+        user = 'hdfs',
+    )
+    self.assertNoMoreResources()
+    
+  def test_decommission_secured(self):
+    self.executeScript("1.3.2/services/HDFS/package/scripts/namenode.py",
+                       classname = "NameNode",
+                       command = "decommission",
+                       config_file="secured.json"
+    )
+    self.assertResourceCalled('File', '/etc/hadoop/conf/dfs.exclude',
+        owner = 'hdfs',
+        content = Template('exclude_hosts_list.j2'),
+        group = 'hadoop',
+    )
+    self.assertResourceCalled('ExecuteHadoop', 'dfsadmin -refreshNodes',
+        conf_dir = '/etc/hadoop/conf',
+        kinit_override = True,
+        user = 'hdfs',
+    )
+    self.assertNoMoreResources()
 
   def assert_configure_default(self):
     self.assertResourceCalled('File', '/etc/security/limits.d/hdfs.conf',

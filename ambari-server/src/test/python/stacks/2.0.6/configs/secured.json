@@ -29,7 +29,8 @@
         "script_type": "PYTHON",
         "script": "scripts/yarn_client.py",
         "excluded_hosts": "host1",
-        "mark_draining_only" : "false"
+        "mark_draining_only" : "false",
+        "update_exclude_file_only" : "false"
     },
     "taskId": 186, 
     "public_hostname": "c6401.ambari.apache.org", 
