@@ -518,6 +518,25 @@
 							<includeScope>runtime</includeScope>
 						</configuration>
 					</execution>
+					<execution>
+						<id>copy-to-lib</id>
+						<phase>generate-resources</phase>
+						<goals>
+							<goal>copy</goal>
+						</goals>
+						<configuration>
+							<artifactItems>
+								<artifactItem>
+									<groupId>org.apache.slider</groupId>
+									<artifactId>slider-agent</artifactId>
+									<type>tar.gz</type>
+									<overWrite>false</overWrite>
+									<outputDirectory>${project.build.directory}/lib</outputDirectory>
+									<destFileName>slider-agent.tar.gz</destFileName>
+								</artifactItem>
+							</artifactItems>
+						</configuration>
+					</execution>
 				</executions>
 			</plugin>
 			<plugin>
