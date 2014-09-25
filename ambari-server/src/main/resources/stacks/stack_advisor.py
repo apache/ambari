@@ -300,6 +300,13 @@ class StackAdvisor(object):
 
 
 class DefaultStackAdvisor(StackAdvisor):
+  """
+  Default stack advisor implementation.
+  
+  This implementation is used when a stack-version, or its hierarchy does not
+  have an advisor. Stack-versions can extend this class to provide their own
+  implement
+  """
 
   def recommendComponentLayout(self, services, hosts):
     """Returns Services object with hostnames array populated for components"""
@@ -309,7 +316,7 @@ class DefaultStackAdvisor(StackAdvisor):
     hostsList = [host["Hosts"]["host_name"] for host in hosts["items"]]
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
 
-    layoutRecommendations = self.provideLayout(services, hosts)
+    layoutRecommendations = self.createComponentLayoutRecommendations(services, hosts)
 
     recommendations = {
       "Versions": {"stack_name": stackName, "stack_version": stackVersion},
@@ -320,7 +327,7 @@ class DefaultStackAdvisor(StackAdvisor):
 
     return recommendations
 
-  def provideLayout(self, services, hosts):
+  def createComponentLayoutRecommendations(self, services, hosts):
 
     recommendations = {
       "blueprint": {
@@ -340,19 +347,19 @@ class DefaultStackAdvisor(StackAdvisor):
 
     #extend 'hostsComponentsMap' with MASTER components
     for service in services["services"]:
-      masterComponents = [component for component in service["components"] if self.isMaster(component)]
+      masterComponents = [component for component in service["components"] if self.isMasterComponent(component)]
       for component in masterComponents:
         componentName = component["StackServiceComponents"]["component_name"]
 
-        if self.isAlreadyPopulated(component):
+        if self.isComponentHostsPopulated(component):
           hostsForComponent = component["StackServiceComponents"]["hostnames"]
         else:
           availableHosts = hostsList
-          if len(hostsList) > 1 and self.isNotPreferableOnAmbariServerHost(component):
+          if len(hostsList) > 1 and self.isComponentNotPreferableOnAmbariServerHost(component):
             availableHosts = [hostName for hostName in hostsList if not self.isLocalHost(hostName)]
 
-          if self.isMasterWithMultipleInstances(component):
-            hostsCount = self.defaultNoOfMasterHosts(component)
+          if self.isMasterComponentWithMultipleInstances(component):
+            hostsCount = self.getMinComponentCount(component)
             if hostsCount > 1: # get first 'hostsCount' available hosts
               if len(availableHosts) < hostsCount:
                 hostsCount = len(availableHosts)
@@ -369,17 +376,17 @@ class DefaultStackAdvisor(StackAdvisor):
     #extend 'hostsComponentsMap' with Slave and Client Components
     componentsListList = [service["components"] for service in services["services"]]
     componentsList = [item for sublist in componentsListList for item in sublist]
-    usedHostsListList = [component["StackServiceComponents"]["hostnames"] for component in componentsList if not self.isNotValuable(component)]
+    usedHostsListList = [component["StackServiceComponents"]["hostnames"] for component in componentsList if not self.isComponentNotValuable(component)]
     utilizedHosts = [item for sublist in usedHostsListList for item in sublist]
     freeHosts = [hostName for hostName in hostsList if hostName not in utilizedHosts]
 
     for service in services["services"]:
       slaveClientComponents = [component for component in service["components"]
-                               if self.isSlave(component) or self.isClient(component)]
+                               if self.isSlaveComponent(component) or self.isClientComponent(component)]
       for component in slaveClientComponents:
         componentName = component["StackServiceComponents"]["component_name"]
 
-        if self.isAlreadyPopulated(component):
+        if self.isComponentHostsPopulated(component):
           hostsForComponent = component["StackServiceComponents"]["hostnames"]
         elif component["StackServiceComponents"]["cardinality"] == "ALL":
           hostsForComponent = hostsList
@@ -388,7 +395,7 @@ class DefaultStackAdvisor(StackAdvisor):
             hostsForComponent = hostsList[-1:]
           else: # len(freeHosts) >= 1
             hostsForComponent = freeHosts
-            if self.isClient(component):
+            if self.isClientComponent(component):
               hostsForComponent = freeHosts[0:1]
 
         #extend 'hostsComponentsMap' with 'hostsForComponent'
@@ -410,7 +417,7 @@ class DefaultStackAdvisor(StackAdvisor):
     return recommendations
   pass
 
-  def prepareValidationResponse(self, services, validationItems):
+  def createValidationResponse(self, services, validationItems):
     """Returns array of Validation objects about issues with hostnames components assigned to"""
     stackName = services["Versions"]["stack_name"]
     stackVersion = services["Versions"]["stack_version"]
@@ -424,18 +431,18 @@ class DefaultStackAdvisor(StackAdvisor):
 
   def validateComponentLayout(self, services, hosts):
     """Returns array of Validation objects about issues with hostnames components assigned to"""
-    validationItems = self.getLayoutValidationItems(services, hosts)
-    return self.prepareValidationResponse(services, validationItems)
+    validationItems = self.getComponentLayoutValidations(services, hosts)
+    return self.createValidationResponse(services, validationItems)
 
   def validateConfigurations(self, services, hosts):
     """Returns array of Validation objects about issues with hostnames components assigned to"""
     validationItems = self.getConfigurationsValidationItems(services, hosts)
-    return self.prepareValidationResponse(services, validationItems)
+    return self.createValidationResponse(services, validationItems)
 
-  def getLayoutValidationItems(self, services, hosts):
+  def getComponentLayoutValidations(self, services, hosts):
     return []
 
-  def getClusterData(self, servicesList, hosts, components):
+  def getConfigurationClusterSummary(self, servicesList, hosts, components):
     pass
 
   def getConfigurationsValidationItems(self, services, hosts):
@@ -450,7 +457,7 @@ class DefaultStackAdvisor(StackAdvisor):
                   for service in services["services"]
                   for component in service["components"]]
 
-    clusterData = self.getClusterData(servicesList, hosts, components)
+    clusterSummary = self.getConfigurationClusterSummary(servicesList, hosts, components)
 
     recommendations = {
       "Versions": {"stack_name": stackName, "stack_version": stackVersion},
@@ -470,32 +477,32 @@ class DefaultStackAdvisor(StackAdvisor):
     configurations = recommendations["recommendations"]["blueprint"]["configurations"]
 
     for service in servicesList:
-      calculation = self.recommendServiceConfigurations(service)
+      calculation = self.getServiceConfigurationRecommender(service)
       if calculation is not None:
-        calculation(configurations, clusterData)
+        calculation(configurations, clusterSummary)
 
     return recommendations
 
-  def recommendServiceConfigurations(self, service):
-    return self.getServiceConfiguratorDict().get(service, None)
+  def getServiceConfigurationRecommender(self, service):
+    return self.getServiceConfigurationRecommenderDict().get(service, None)
 
-  def getServiceConfiguratorDict(self):
+  def getServiceConfigurationRecommenderDict(self):
     return {}
 
   # Recommendation helper methods
-  def isAlreadyPopulated(self, component):
+  def isComponentHostsPopulated(self, component):
     hostnames = self.getComponentAttribute(component, "hostnames")
     if hostnames is not None:
       return len(hostnames) > 0
     return False
 
-  def isClient(self, component):
+  def isClientComponent(self, component):
     return self.getComponentAttribute(component, "component_category") == 'CLIENT'
 
-  def isSlave(self, component):
+  def isSlaveComponent(self, component):
     return self.getComponentAttribute(component, "component_category") == 'SLAVE'
 
-  def isMaster(self, component):
+  def isMasterComponent(self, component):
     return self.getComponentAttribute(component, "is_master")
 
   def getComponentAttribute(self, component, attribute):
@@ -507,22 +514,22 @@ class DefaultStackAdvisor(StackAdvisor):
   def isLocalHost(self, hostName):
     return socket.getfqdn(hostName) == socket.getfqdn()
 
-  def isMasterWithMultipleInstances(self, component):
+  def isMasterComponentWithMultipleInstances(self, component):
     componentName = self.getComponentName(component)
     masters = self.getMastersWithMultipleInstances()
     return componentName in masters
 
-  def isNotValuable(self, component):
+  def isComponentNotValuable(self, component):
     componentName = self.getComponentName(component)
     service = self.getNotValuableComponents()
     return componentName in service
 
-  def defaultNoOfMasterHosts(self, component):
+  def getMinComponentCount(self, component):
     componentName = self.getComponentName(component)
-    return self.cardinality(componentName)["min"]
+    return self.getComponentCardinality(componentName)["min"]
 
   # Helper dictionaries
-  def cardinality(self, componentName):
+  def getComponentCardinality(self, componentName):
     return self.getCardinalitiesDict().get(componentName, {"min": 1, "max": 1})
 
   def getHostForComponent(self, component, hostsList, hostsComponentsMap):
@@ -531,7 +538,7 @@ class DefaultStackAdvisor(StackAdvisor):
     if len(hostsList) == 1:
       return hostsList[0]
     else:
-      scheme = self.defineSelectionScheme(componentName)
+      scheme = self.getComponentLayoutScheme(componentName)
       if scheme is not None:
         for key in scheme.keys():
           if isinstance(key, ( int, long )):
@@ -543,13 +550,16 @@ class DefaultStackAdvisor(StackAdvisor):
     hostOccupations = dict((host, len(components)) for host, components in hostComponentsMap.iteritems() if host in hostsList)
     return min(hostOccupations, key=hostOccupations.get)
 
-  def defineSelectionScheme(self, componentName):
-    return self.selectionSchemes().get(componentName, None)
+  def getComponentLayoutScheme(self, componentName):
+    """
+    Provides a scheme for laying out given component on different number of hosts.
+    """
+    return self.getComponentLayoutSchemes().get(componentName, None)
 
   def getComponentName(self, component):
     return self.getComponentAttribute(component, "component_name")
 
-  def isNotPreferableOnAmbariServerHost(self, component):
+  def isComponentNotPreferableOnAmbariServerHost(self, component):
     componentName = self.getComponentName(component)
     service = self.getNotPreferableOnServerComponents()
     return componentName in service
@@ -566,5 +576,11 @@ class DefaultStackAdvisor(StackAdvisor):
   def getCardinalitiesDict(self):
     return {}
 
-  def selectionSchemes(self):
+  def getComponentLayoutSchemes(self):
+    """
+    Provides layout scheme dictionaries for components.
+
+    The scheme dictionary basically maps the number of hosts to
+    host index where component should exist.
+    """
     return {}

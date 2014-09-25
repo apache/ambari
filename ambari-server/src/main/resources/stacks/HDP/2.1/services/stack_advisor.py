@@ -19,16 +19,15 @@ limitations under the License.
 
 class HDP21StackAdvisor(HDP206StackAdvisor):
 
-  def recommendServiceConfigurations(self, service):
-    calculator = super(HDP21StackAdvisor, self).recommendServiceConfigurations(service)
-    if calculator is None:
-      return {
-        "OOZIE": self.recommendOozieConfigurations,
-        "HIVE": self.recommendHiveConfigurations,
-        "TEZ": self.recommendTezConfigurations
-      }.get(service, None)
-    else:
-      return calculator
+  def getServiceConfigurationRecommenderDict(self, service):
+    parentRecommendConfDict = super(HDP21StackAdvisor, self).getServiceConfigurationRecommenderDict()
+    childRecommendConfDict = {
+      "OOZIE": self.recommendOozieConfigurations,
+      "HIVE": self.recommendHiveConfigurations,
+      "TEZ": self.recommendTezConfigurations
+    }
+    parentRecommendConfDict.update(childRecommendConfDict)
+    return parentRecommendConfDict
 
   def recommendOozieConfigurations(self, configurations, clusterData):
     if "FALCON_SERVER" in clusterData["components"]:
@@ -60,24 +59,8 @@ class HDP21StackAdvisor(HDP206StackAdvisor):
   def getNotValuableComponents(self):
     return ['JOURNALNODE', 'ZKFC', 'GANGLIA_MONITOR', 'APP_TIMELINE_SERVER']
 
-  def selectionSchemes(self):
-    return {
-      'NAMENODE': {"else": 0},
-      'SECONDARY_NAMENODE': {"else": 1},
-      'HBASE_MASTER': {6: 0, 31: 2, "else": 3},
-
-      'HISTORYSERVER': {31: 1, "else": 2},
-      'RESOURCEMANAGER': {31: 1, "else": 2},
-
-      'OOZIE_SERVER': {6: 1, 31: 2, "else": 3},
-
-      'HIVE_SERVER': {6: 1, 31: 2, "else": 4},
-      'HIVE_METASTORE': {6: 1, 31: 2, "else": 4},
-      'WEBHCAT_SERVER': {6: 1, 31: 2, "else": 4},
-      }
-
-  def selectionScheme(self):
-    parentSchemes = super(HDP21StackAdvisor, self).selectionSchemes()
+  def getComponentLayoutSchemes(self):
+    parentSchemes = super(HDP21StackAdvisor, self).getComponentLayoutSchemes()
     childSchemes = {
         'APP_TIMELINE_SERVER': {31: 1, "else": 2},
         'FALCON_SERVER': {6: 1, 31: 2, "else": 3}

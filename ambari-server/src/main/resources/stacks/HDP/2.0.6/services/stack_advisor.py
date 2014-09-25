@@ -25,7 +25,7 @@ from stack_advisor import DefaultStackAdvisor
 
 class HDP206StackAdvisor(DefaultStackAdvisor):
 
-  def getLayoutValidationItems(self, services, hosts):
+  def getComponentLayoutValidations(self, services, hosts):
     """Returns array of Validation objects about issues with hostnames components assigned to"""
     items = []
 
@@ -70,7 +70,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
            items.append({"type": 'host-component', "level": 'ERROR', "message": message, "component-name": componentName})
 
     # Validating host-usage
-    usedHostsListList = [component["StackServiceComponents"]["hostnames"] for component in componentsList if not self.isNotValuable(component)]
+    usedHostsListList = [component["StackServiceComponents"]["hostnames"] for component in componentsList if not self.isComponentNotValuable(component)]
     usedHostsList = [item for sublist in usedHostsListList for item in sublist]
     nonUsedHostsList = [item for item in hostsList if item not in usedHostsList]
     for host in nonUsedHostsList:
@@ -78,7 +78,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
 
     return items
 
-  def getServiceConfiguratorDict(self):
+  def getServiceConfigurationRecommenderDict(self):
     return {
       "YARN": self.recommendYARNConfigurations,
       "MAPREDUCE2": self.recommendMapReduce2Configurations
@@ -106,7 +106,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     putMapredProperty('mapreduce.reduce.java.opts', "-Xmx" + str(int(round(0.8 * clusterData['reduceMemory']))) + "m")
     putMapredProperty('mapreduce.task.io.sort.mb', min(int(round(0.4 * clusterData['mapMemory'])), 1024))
 
-  def getClusterData(self, servicesList, hosts, components):
+  def getConfigurationClusterSummary(self, servicesList, hosts, components):
 
     hBaseInstalled = False
     if 'HBASE' in servicesList:
@@ -290,7 +290,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       'HBASE_MASTER': {"min": 1},
       }
 
-  def selectionSchemes(self):
+  def getComponentLayoutSchemes(self):
     return {
       'NAMENODE': {"else": 0},
       'SECONDARY_NAMENODE': {"else": 1},

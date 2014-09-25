@@ -25,7 +25,7 @@ from stack_advisor import DefaultStackAdvisor
 
 class HDP132StackAdvisor(DefaultStackAdvisor):
 
-  def getLayoutValidationItems(self, services, hosts):
+  def getComponentLayoutValidations(self, services, hosts):
     """Returns array of Validation objects about issues with hostnames components assigned to"""
     items = []
 
@@ -73,7 +73,7 @@ class HDP132StackAdvisor(DefaultStackAdvisor):
           items.append( { "type": 'host-component', "level": 'ERROR', "message": 'Cardinality violation, cardinality={0}, hosts count={1}'.format(cardinality, str(componentHostsCount)), "component-name": str(componentName) } )
 
     # Validating host-usage
-    usedHostsListList = [component["StackServiceComponents"]["hostnames"] for component in componentsList if not self.isNotValuable(component)]
+    usedHostsListList = [component["StackServiceComponents"]["hostnames"] for component in componentsList if not self.isComponentNotValuable(component)]
     usedHostsList = [item for sublist in usedHostsListList for item in sublist]
     nonUsedHostsList = [item for item in hostsList if item not in usedHostsList]
     for host in nonUsedHostsList:
@@ -81,7 +81,7 @@ class HDP132StackAdvisor(DefaultStackAdvisor):
 
     return items
 
-  def getServiceConfiguratorDict(self):
+  def getServiceConfigurationRecommenderDict(self):
     return {
     }
 
@@ -91,7 +91,7 @@ class HDP132StackAdvisor(DefaultStackAdvisor):
       config[configType]["properties"][key] = str(value)
     return appendProperty
 
-  def getClusterData(self, servicesList, hosts, components):
+  def getConfigurationClusterSummary(self, servicesList, hosts, components):
 
     hBaseInstalled = False
     if 'HBASE' in servicesList:
@@ -255,7 +255,7 @@ class HDP132StackAdvisor(DefaultStackAdvisor):
       'HBASE_MASTER': {"min": 1},
       }
 
-  def selectionSchemes(self):
+  def getComponentLayoutSchemes(self):
     return {
       'NAMENODE': {"else": 0},
       'SECONDARY_NAMENODE': {"else": 1},
