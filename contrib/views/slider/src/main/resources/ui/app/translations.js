@@ -48,7 +48,7 @@ Em.I18n.translations = {
     'finished': 'Finished',
     'diagnostics': 'Diagnostics',
     'description': 'Description',
-    'status': 'Status',
+    'warning': 'Warning',
     'key': 'Key',
     'remove': 'Remove',
     'send': 'Send',
@@ -78,6 +78,7 @@ Em.I18n.translations = {
 
   'slider.apps.title': 'Slider Apps',
   'slider.apps.create': 'Create App',
+  'slider.apps.unavailable': 'HDFS or YARN services are currently unaccessible',
   'sliderApps.filters.info': '{0} of {1} sliders showing',
 
   'sliderApp.flex.invalid_counts': 'Instance counts should be integer and >= 0',

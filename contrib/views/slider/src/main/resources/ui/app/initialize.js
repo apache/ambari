@@ -113,7 +113,7 @@ App.initializer({
     });
     application.SliderController.proto().initResources();
     application.ApplicationTypeMapper.load();
-    application.SliderAppsMapper.loop('load');
+    application.SliderAppsMapper.run('load');
   }
 });
 
