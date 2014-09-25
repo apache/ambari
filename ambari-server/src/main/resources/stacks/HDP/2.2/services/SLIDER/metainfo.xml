@@ -29,6 +29,22 @@
           <displayName>Slider</displayName>
           <category>CLIENT</category>
           <cardinality>0+</cardinality>
+          <dependencies>
+            <dependency>
+              <name>HDFS/HDFS_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+            <dependency>
+              <name>YARN/YARN_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+          </dependencies>
           <commandScript>
             <script>scripts/slider_client.py</script>
             <scriptType>PYTHON</scriptType>
