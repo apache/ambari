@@ -23,6 +23,7 @@ App.stackServiceMapper = App.QuickDataMapper.create({
 
   config: {
     id: 'service_name',
+    stack_id: 'stack_id',
     service_name: 'service_name',
     display_name: 'display_name',
     config_types: 'config_types',
@@ -84,6 +85,7 @@ App.stackServiceMapper = App.QuickDataMapper.create({
           serviceComponents.push(serviceComponent.StackServiceComponents);
           stackServiceComponents.push(this.parseIt(serviceComponent.StackServiceComponents, this.get('component_config')));
         }, this);
+        stackService.stack_id = stackService.stack_name + '-' + stackService.stack_version;
         stackService.service_components = serviceComponents;
         result.push(this.parseIt(stackService, this.get('config')));
       }

@@ -19,7 +19,7 @@
   <schemaVersion>2.0</schemaVersion>
   <services>
     <service>
-      <name>FLUME</name>>
+      <name>FLUME</name>
       <version>1.4.0.2.1</version>
     </service>
   </services>

@@ -16,20 +16,18 @@
  * limitations under the License.
  */
 
+
 var App = require('app');
 
-App.WizardStep1Controller = Em.Controller.extend({
-
-  name: 'wizardStep1Controller',
-  /**
-   * Skip repo-validation
-   * @type {bool}
-   */
-  skipValidationChecked: false,
-
-  selectedStack: function() {
-    return App.Stack.find().findProperty('isSelected');
-  }.property('content.stacks.@each.isSelected')
-
-
+App.OperatingSystem = DS.Model.extend({
+  id:  DS.attr('string'), // This is ${stackName}-${stackVersion}-${osType}.
+  osType: DS.attr('string'),
+  stackName: DS.attr('string'),
+  stackVersion: DS.attr('string'),
+  repositories: DS.hasMany('App.Repository'),
+  stack: DS.belongsTo('App.Stack'),
+  isSelected: DS.attr('boolean', {defaultValue: true})
 });
+
+
+App.OperatingSystem.FIXTURES = [];

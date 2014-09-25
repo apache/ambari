@@ -561,16 +561,18 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, {
       this.loadRepoInfo();
     } else {
       // from install wizard
-      var selectedStack = this.get('content.stacks').findProperty('isSelected', true);
+      var selectedStack = App.Stack.find().findProperty('isSelected');
       var allRepos = [];
-      if (selectedStack && selectedStack.operatingSystems) {
-        selectedStack.operatingSystems.forEach(function (os) {
-          if (os.selected) {
-            allRepos.push(Em.Object.create({
-              base_url: os.baseUrl,
-              os_type: os.osType,
-              repo_id: os.repoId
-            }));
+      if (selectedStack && selectedStack.get('operatingSystems')) {
+        selectedStack.get('operatingSystems').forEach(function (os) {
+          if (os.get('isSelected')) {
+            os.get('repositories').forEach(function(repo) {
+              allRepos.push(Em.Object.create({
+                base_url: repo.get('baseUrl'),
+                os_type: repo.get('osType'),
+                repo_id: repo.get('repoId')
+              }));  
+            }, this);
           }
         }, this);
       }
@@ -966,7 +968,6 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, {
 
   deleteClustersCallback: function (response, request, data) {
     if (data.isLast) {
-      this.setLocalRepositories();
       this.createCluster();
       this.createSelectedServices();
       if (this.get('content.controllerName') !== 'addHostController') {
@@ -991,37 +992,6 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, {
       this.set('ajaxQueueLength', this.get('ajaxRequestsQueue.queue.length'));
       this.get('ajaxRequestsQueue').start();
     }
-  },
-
-  /**
-   * Updates local repositories for the Ambari server.
-   * @method setLocalRepositories
-   * @return {bool} true - requests are sent, false - requests not sent
-   */
-  setLocalRepositories: function () {
-    if (this.get('content.controllerName') !== 'installerController' || !App.get('supports.localRepositories')) return false;
-    var self = this,
-      stack = this.get('content.stacks').findProperty('isSelected', true);
-    stack.operatingSystems.forEach(function (os) {
-      if (os.baseUrl !== os.originalBaseUrl) {
-        console.log("Updating local repository URL from " + os.originalBaseUrl + " -> " + os.baseUrl + ". ", os);
-        self.addRequestToAjaxQueue({
-          name: 'wizard.step8.set_local_repos',
-          data: {
-            osType: os.osType,
-            repoId: os.repoId,
-            stackVersionURL: App.get('stackVersionURL'),
-            data: JSON.stringify({
-              "Repositories": {
-                "base_url": os.baseUrl,
-                "verify_base_url": false
-              }
-            })
-          }
-        });
-      }
-    });
-    return true;
   },
 
 

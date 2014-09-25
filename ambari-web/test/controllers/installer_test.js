@@ -27,50 +27,11 @@ describe('App.InstallerController', function () {
   var installerController = App.InstallerController.create();
 
   describe('#loadStacksVersionsSuccessCallback', function() {
-    var test_data = {
-      "items" : [
-        {
-          "Versions" : {
-            "active" : false,
-            "min_upgrade_version" : null,
-            "stack_name" : "HDP",
-            "stack_version" : "1.2.0"
-          }
-        },
-        {
-          "Versions" : {
-            "active" : true,
-            "min_upgrade_version" : null,
-            "stack_name" : "HDP",
-            "stack_version" : "1.2.1"
-          }
-        },
-        {
-          "Versions" : {
-            "active" : true,
-            "min_upgrade_version" : "1.2.0",
-            "stack_name" : "HDP",
-            "stack_version" : "1.3.0"
-          }
-        },
-        {
-          "Versions" : {
-            "active" : false,
-            "min_upgrade_version" : null,
-            "stack_name" : "HDP",
-            "stack_version" : "2.0.1"
-          }
-        }
-      ]
-    };
     it ('Correct data', function() {
-      installerController.loadStacksVersionsSuccessCallback(test_data);
-      expect(installerController.get('stacks.length')).to.equal(2);
-      expect(installerController.get('stacks').everyProperty('isSelected')).to.equal(false);
-      expect(installerController.get('stacks').mapProperty('name')).to.eql(['HDP-1.3.0', 'HDP-1.2.1']);
+      installerController.loadStacksVersionsSuccessCallback(require('test/stack'));
+      expect(installerController.get('content.stacks.length')).to.equal(2);
+      expect(installerController.get('content.stacks').everyProperty('isSelected')).to.equal(false);
+      expect(installerController.get('content.stacks').mapProperty('id')).to.eql(['HDP-2.1','HDP-1.3']);
     });
   });
-
-
-
 });

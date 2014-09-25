@@ -127,6 +127,8 @@ module.exports = Em.Route.extend({
     next: function (router) {
       var installerController = router.get('installerController');
       installerController.save('cluster');
+      App.db.setStacks(undefined);
+      installerController.set('content.stacks',undefined);
       router.transitionTo('step1');
     }
   }),
@@ -145,28 +147,12 @@ module.exports = Em.Route.extend({
     next: function (router) {
       var wizardStep1Controller = router.get('wizardStep1Controller');
       var installerController = router.get('installerController');
-      if (App.get('testMode')) {
-        installerController.set('validationCnt', 0);
-        installerController.set('invalidCnt', 0);
-      } else {
-        installerController.checkRepoURL();
-      }
-      // make sure got all validations feedback and no invalid url, then proceed
-      var myVar = setInterval(
-        function () {
-          var cnt = installerController.get('validationCnt');
-          var invalidCnt = installerController.get('invalidCnt');
-          if (cnt == 0 && invalidCnt == 0) { // all feedback exist and no invalid url
-            installerController.saveStacks(wizardStep1Controller);
-            installerController.setDBProperty('service', undefined);
-            installerController.clearInstallOptions();
-            router.transitionTo('step2');
-            clearInterval(myVar);
-          } else if (cnt == 0 && invalidCnt != 0) {
-            clearInterval(myVar);
-          }
-        },
-        1000);
+      installerController.checkRepoURL(wizardStep1Controller).done(function () {
+        installerController.setDBProperty('service', undefined);
+        installerController.setStacks();
+        installerController.clearInstallOptions();
+        router.transitionTo('step2');
+      });
     }
   }),
 
@@ -301,7 +287,7 @@ module.exports = Em.Route.extend({
       var wizardStep7Controller = router.get('wizardStep7Controller');
 
       if (!wizardStep6Controller.get('submitDisabled')) {
-        wizardStep6Controller.showValidationIssuesAcceptBox(function() {
+        wizardStep6Controller.showValidationIssuesAcceptBox(function () {
           controller.saveSlaveComponentHosts(wizardStep6Controller);
           controller.get('content').set('serviceConfigProperties', null);
           controller.setDBProperty('serviceConfigProperties', null);

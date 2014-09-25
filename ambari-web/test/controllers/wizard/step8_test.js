@@ -1313,62 +1313,6 @@ describe('App.WizardStep8Controller', function () {
 
     });
 
-    describe('#setLocalRepositories', function() {
-
-      it('shouldn\'t do nothing', function () {
-        installerStep8Controller.set('content', {controllerName: 'addServiceController'});
-        sinon.stub(App, 'get', function (k) {
-          if ('supports.localRepositories' === k) return false;
-          return Em.get(App, k);
-        });
-        expect(installerStep8Controller.setLocalRepositories()).to.equal(false);
-        App.get.restore();
-      });
-
-      it('shouldn\'t do requests', function() {
-        installerStep8Controller.set('content', {
-          controllerName: 'installerController',
-          stacks: [
-            {
-              isSelected: true,
-              operatingSystems: [
-                {baseUrl: 'u1', originalBaseUrl: 'u1'},
-                {baseUrl: 'u2', originalBaseUrl: 'u2'}
-              ]
-            }
-          ]
-        });
-        installerStep8Controller.setLocalRepositories();
-        expect(installerStep8Controller.addRequestToAjaxQueue.called).to.equal(false);
-      });
-
-      it('should do 2 requests', function() {
-        installerStep8Controller.set('content', {
-          controllerName: 'installerController',
-          stacks: [
-            {
-              isSelected: true,
-              operatingSystems: [
-                {baseUrl: 'new_u1', originalBaseUrl: 'u1', osType: 'o1', repoId: 'r1'},
-                {baseUrl: 'new_u2', originalBaseUrl: 'u2', osType: 'o2', repoId: 'r2'}
-              ]
-            }
-          ]
-        });
-        installerStep8Controller.setLocalRepositories();
-        expect(installerStep8Controller.addRequestToAjaxQueue.calledTwice).to.equal(true);
-        var firstRequestData = installerStep8Controller.addRequestToAjaxQueue.args[0][0].data;
-        expect(firstRequestData.osType).to.equal('o1');
-        expect(firstRequestData.repoId).to.equal('r1');
-        expect(JSON.parse(firstRequestData.data).Repositories.base_url).to.equal('new_u1');
-
-        var secondRequestData = installerStep8Controller.addRequestToAjaxQueue.args[1][0].data;
-        expect(secondRequestData.osType).to.equal('o2');
-        expect(secondRequestData.repoId).to.equal('r2');
-        expect(JSON.parse(secondRequestData.data).Repositories.base_url).to.equal('new_u2');
-      });
-
-    });
 
     describe('#createAdditionalHostComponents', function() {
 
