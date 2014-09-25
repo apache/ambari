@@ -43,5 +43,7 @@
       </div>
     {{/if}}
   </div>
-  <button class="btn btn-success pull-right next-btn" {{bind-attr disabled="controller.isSubmitDisabled"}} {{action submit target="controller"}}>{{t common.next}} &rarr;</button>
+  <div class="btn-area">
+    <button class="btn btn-success pull-right next-btn" {{bind-attr disabled="controller.isSubmitDisabled"}} {{action submit target="controller"}}>{{t common.next}} &rarr;</button>
+  </div>
 </div>
