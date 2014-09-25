@@ -84,6 +84,7 @@ import org.apache.ambari.server.state.host.HostHealthyHeartbeatEvent;
 import org.apache.ambari.server.state.host.HostRegistrationRequestEvent;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -484,7 +485,7 @@ public class ClusterTest {
     return clusterEntity;
   }
   
-  @Test
+  @Ignore
   public void testClusterRecovery() throws AmbariException {
     ClusterEntity entity = createDummyData();
     ClusterImpl cluster = new ClusterImpl(entity, injector);
