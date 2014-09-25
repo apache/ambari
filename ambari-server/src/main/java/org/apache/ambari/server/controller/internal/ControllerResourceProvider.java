@@ -29,6 +29,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ControllerRequest;
 import org.apache.ambari.server.controller.ControllerResponse;
+import org.apache.ambari.server.controller.LdapSyncRequest;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -39,6 +40,7 @@ import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.orm.entities.LdapSyncSpecEntity;
 import org.apache.ambari.server.security.ldap.LdapBatchDto;
 import org.apache.ambari.server.security.ldap.LdapGroupDto;
 import org.apache.ambari.server.security.ldap.LdapSyncDto;
@@ -227,7 +229,14 @@ class ControllerResourceProvider extends AbstractControllerResourceProvider {
               }
             }
             if (!getManagementController().isLdapSyncInProgress()) {
-              LdapBatchDto syncInfo = getManagementController().synchronizeLdapUsersAndGroups(users, groups);
+
+              LdapSyncRequest userRequest = users == null ? new LdapSyncRequest(LdapSyncSpecEntity.SyncType.ALL) :
+                  new LdapSyncRequest(LdapSyncSpecEntity.SyncType.SPECIFIC, users);
+
+              LdapSyncRequest groupRequest = groups == null ? new LdapSyncRequest(LdapSyncSpecEntity.SyncType.ALL) :
+                  new LdapSyncRequest(LdapSyncSpecEntity.SyncType.SPECIFIC, groups);
+
+              LdapBatchDto syncInfo = getManagementController().synchronizeLdapUsersAndGroups(userRequest, groupRequest);
               resource.setProperty("Sync/status", "successful");
               resource.setProperty("Sync/summary/Users/created", syncInfo.getUsersToBeCreated().size());
               resource.setProperty("Sync/summary/Users/updated", syncInfo.getUsersToBecomeLdap().size());
@@ -268,7 +277,6 @@ class ControllerResourceProvider extends AbstractControllerResourceProvider {
     if (properties == null) {
       return new ControllerRequest(null, properties);
     }
-    final ControllerRequest request = new ControllerRequest((String) properties.get(CONTROLLER_NAME_PROPERTY_ID), properties);
-    return request;
+    return new ControllerRequest((String) properties.get(CONTROLLER_NAME_PROPERTY_ID), properties);
   }
 }

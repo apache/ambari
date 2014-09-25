@@ -19,6 +19,8 @@
 package org.apache.ambari.server.controller.internal;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.LdapSyncRequest;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -31,6 +33,7 @@ import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.entities.LdapSyncEventEntity;
 import org.apache.ambari.server.orm.entities.LdapSyncSpecEntity;
+import org.apache.ambari.server.security.ldap.LdapBatchDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,7 +56,7 @@ import java.util.concurrent.atomic.AtomicLong;
 /**
  * Resource provider for ldap sync events.
  */
-public class LdapSyncEventResourceProvider extends AbstractResourceProvider {
+public class LdapSyncEventResourceProvider extends AbstractControllerResourceProvider {
 
   /**
    * Thread pool
@@ -71,19 +74,16 @@ public class LdapSyncEventResourceProvider extends AbstractResourceProvider {
   public static final String EVENT_ID_PROPERTY_ID            = "Event/id";
   public static final String EVENT_STATUS_PROPERTY_ID        = "Event/status";
   public static final String EVENT_STATUS_DETAIL_PROPERTY_ID = "Event/status_detail";
-  public static final String EVENT_START_TIME_PROPERTY_ID    = "Event/sync_start_time";
-  public static final String EVENT_END_TIME_PROPERTY_ID      = "Event/sync_end_time";
-  public static final String USERS_FETCHED_PROPERTY_ID       = "Event/results/users_fetched";
-  public static final String USERS_CREATED_PROPERTY_ID       = "Event/results/users_created";
-  public static final String USERS_UPDATED_PROPERTY_ID       = "Event/results/users_updated";
-  public static final String USERS_REMOVED_PROPERTY_ID       = "Event/results/users_removed";
-  public static final String GROUPS_FETCHED_PROPERTY_ID      = "Event/results/groups_fetched";
-  public static final String GROUPS_CREATED_PROPERTY_ID      = "Event/results/groups_created";
-  public static final String GROUPS_UPDATED_PROPERTY_ID      = "Event/results/groups_updated";
-  public static final String GROUPS_REMOVED_PROPERTY_ID      = "Event/results/groups_removed";
-  public static final String MEMBERSHIPS_FETCHED_PROPERTY_ID = "Event/results/memberships_fetched";
-  public static final String MEMBERSHIPS_CREATED_PROPERTY_ID = "Event/results/memberships_created";
-  public static final String MEMBERSHIPS_UPDATED_PROPERTY_ID = "Event/results/memberships_updated";
+  public static final String EVENT_START_TIME_PROPERTY_ID    = "Event/sync_time/start";
+  public static final String EVENT_END_TIME_PROPERTY_ID      = "Event/sync_time/end";
+  public static final String USERS_CREATED_PROPERTY_ID       = "Event/summary/users/created";
+  public static final String USERS_UPDATED_PROPERTY_ID       = "Event/summary/users/updated";
+  public static final String USERS_REMOVED_PROPERTY_ID       = "Event/summary/users/removed";
+  public static final String GROUPS_CREATED_PROPERTY_ID      = "Event/summary/groups/created";
+  public static final String GROUPS_UPDATED_PROPERTY_ID      = "Event/summary/groups/updated";
+  public static final String GROUPS_REMOVED_PROPERTY_ID      = "Event/summary/groups/removed";
+  public static final String MEMBERSHIPS_CREATED_PROPERTY_ID = "Event/summary/memberships/created";
+  public static final String MEMBERSHIPS_REMOVED_PROPERTY_ID = "Event/summary/memberships/removed";
   public static final String EVENT_SPECS_PROPERTY_ID         = "Event/specs";
 
   /**
@@ -105,17 +105,14 @@ public class LdapSyncEventResourceProvider extends AbstractResourceProvider {
     propertyIds.add(EVENT_STATUS_DETAIL_PROPERTY_ID);
     propertyIds.add(EVENT_START_TIME_PROPERTY_ID);
     propertyIds.add(EVENT_END_TIME_PROPERTY_ID);
-    propertyIds.add(USERS_FETCHED_PROPERTY_ID);
     propertyIds.add(USERS_CREATED_PROPERTY_ID);
     propertyIds.add(USERS_UPDATED_PROPERTY_ID);
     propertyIds.add(USERS_REMOVED_PROPERTY_ID);
-    propertyIds.add(GROUPS_FETCHED_PROPERTY_ID);
     propertyIds.add(GROUPS_CREATED_PROPERTY_ID);
     propertyIds.add(GROUPS_UPDATED_PROPERTY_ID);
     propertyIds.add(GROUPS_REMOVED_PROPERTY_ID);
-    propertyIds.add(MEMBERSHIPS_FETCHED_PROPERTY_ID);
     propertyIds.add(MEMBERSHIPS_CREATED_PROPERTY_ID);
-    propertyIds.add(MEMBERSHIPS_UPDATED_PROPERTY_ID);
+    propertyIds.add(MEMBERSHIPS_REMOVED_PROPERTY_ID);
     propertyIds.add(EVENT_SPECS_PROPERTY_ID);
   }
 
@@ -157,8 +154,8 @@ public class LdapSyncEventResourceProvider extends AbstractResourceProvider {
   /**
    * Construct a event resource provider.
    */
-  public LdapSyncEventResourceProvider() {
-    super(propertyIds, keyPropertyIds);
+  public LdapSyncEventResourceProvider(AmbariManagementController managementController) {
+    super(propertyIds, keyPropertyIds, managementController);
   }
 
 
@@ -260,17 +257,14 @@ public class LdapSyncEventResourceProvider extends AbstractResourceProvider {
     setResourceProperty(resource, EVENT_ID_PROPERTY_ID, eventEntity.getId(), requestedIds);
     setResourceProperty(resource, EVENT_STATUS_PROPERTY_ID, eventEntity.getStatus().toString().toUpperCase(), requestedIds);
     setResourceProperty(resource, EVENT_STATUS_DETAIL_PROPERTY_ID, eventEntity.getStatusDetail(), requestedIds);
-    setResourceProperty(resource, USERS_FETCHED_PROPERTY_ID, eventEntity.getUsersFetched(), requestedIds);
     setResourceProperty(resource, USERS_CREATED_PROPERTY_ID, eventEntity.getUsersCreated(), requestedIds);
     setResourceProperty(resource, USERS_UPDATED_PROPERTY_ID, eventEntity.getUsersUpdated(), requestedIds);
     setResourceProperty(resource, USERS_REMOVED_PROPERTY_ID, eventEntity.getUsersRemoved(), requestedIds);
-    setResourceProperty(resource, GROUPS_FETCHED_PROPERTY_ID, eventEntity.getGroupsFetched(), requestedIds);
     setResourceProperty(resource, GROUPS_CREATED_PROPERTY_ID, eventEntity.getGroupsCreated(), requestedIds);
     setResourceProperty(resource, GROUPS_UPDATED_PROPERTY_ID, eventEntity.getGroupsUpdated(), requestedIds);
     setResourceProperty(resource, GROUPS_REMOVED_PROPERTY_ID, eventEntity.getGroupsRemoved(), requestedIds);
-    setResourceProperty(resource, MEMBERSHIPS_FETCHED_PROPERTY_ID, eventEntity.getMembershipsFetched(), requestedIds);
     setResourceProperty(resource, MEMBERSHIPS_CREATED_PROPERTY_ID, eventEntity.getMembershipsCreated(), requestedIds);
-    setResourceProperty(resource, MEMBERSHIPS_UPDATED_PROPERTY_ID, eventEntity.getMembershipsUpdated(), requestedIds);
+    setResourceProperty(resource, MEMBERSHIPS_REMOVED_PROPERTY_ID, eventEntity.getMembershipsRemoved(), requestedIds);
 
     Set<Map<String, String>> specs = new HashSet<Map<String, String>>();
 
@@ -414,25 +408,93 @@ public class LdapSyncEventResourceProvider extends AbstractResourceProvider {
         }
       }
 
-      event.setStatus(LdapSyncEventEntity.Status.Running);
+      event.setStatus(LdapSyncEventEntity.Status.RUNNING);
       event.setStatusDetail("Running LDAP sync.");
       event.setStartTime(System.currentTimeMillis());
 
       try {
 
-        // TODO : call back end code to perform LDAP sync
+        populateLdapSyncEvent(event, syncLdap(event));
 
-        // TODO : update event resource with results of sync
-
-        event.setEndTime(System.currentTimeMillis());
-        event.setStatus(LdapSyncEventEntity.Status.Complete);
+        event.setStatus(LdapSyncEventEntity.Status.COMPLETE);
         event.setStatusDetail("Completed LDAP sync.");
       } catch (Exception e) {
+        event.setStatus(LdapSyncEventEntity.Status.ERROR);
         String msg = "Caught exception running LDAP sync. ";
-        event.setStatus(LdapSyncEventEntity.Status.Error);
         event.setStatusDetail(msg + e.getMessage());
         LOG.error(msg, e);
+      } finally {
+        event.setEndTime(System.currentTimeMillis());
       }
     }
+  }
+
+  /**
+   * Sync the users and groups specified in the given sync event with ldap.
+   *
+   * @param event  the sync event
+   *
+   * @return the results of the sync
+   *
+   * @throws AmbariException if the sync could not be completed
+   */
+  private LdapBatchDto syncLdap(LdapSyncEventEntity event) throws AmbariException {
+    LdapSyncRequest userRequest  = null;
+    LdapSyncRequest groupRequest = null;
+
+    for (LdapSyncSpecEntity spec : event.getSpecs()) {
+      switch (spec.getPrincipalType()) {
+        case USERS:
+          userRequest = getLdapRequest(userRequest, spec);
+          break;
+        case GROUPS:
+          groupRequest = getLdapRequest(groupRequest, spec);
+          break;
+      }
+    }
+    return getManagementController().synchronizeLdapUsersAndGroups(userRequest, groupRequest);
+  }
+
+  /**
+   * Update the given request with the given ldap event spec.
+   *
+   * @param request  the sync request; may be null
+   * @param spec     the specification of what to sync
+   *
+   * @return the updated sync request or a new sync request if the given request is null
+   */
+  private LdapSyncRequest getLdapRequest(LdapSyncRequest request, LdapSyncSpecEntity spec) {
+
+    switch (spec.getSyncType()) {
+      case ALL:
+        return new LdapSyncRequest(LdapSyncSpecEntity.SyncType.ALL);
+      case EXISTING:
+        return new LdapSyncRequest(LdapSyncSpecEntity.SyncType.EXISTING);
+      case SPECIFIC:
+        Set<String> principalNames = new HashSet<String>(spec.getPrincipalNames());
+        if (request == null ) {
+          request = new LdapSyncRequest(LdapSyncSpecEntity.SyncType.SPECIFIC, principalNames);
+        } else {
+          request.addPrincipalNames(principalNames);
+        }
+    }
+    return request;
+  }
+
+  /**
+   * Populate the given ldap sync event with the results of an ldap sync.
+   *
+   * @param event     the sync event
+   * @param syncInfo  the sync results
+   */
+  private void populateLdapSyncEvent(LdapSyncEventEntity event, LdapBatchDto syncInfo) {
+    event.setUsersCreated(syncInfo.getUsersToBeCreated().size());
+    event.setUsersUpdated(syncInfo.getUsersToBecomeLdap().size());
+    event.setUsersRemoved(syncInfo.getUsersToBeRemoved().size());
+    event.setGroupsCreated(syncInfo.getGroupsToBeCreated().size());
+    event.setGroupsUpdated(syncInfo.getGroupsToBecomeLdap().size());
+    event.setGroupsRemoved(syncInfo.getGroupsToBeRemoved().size());
+    event.setMembershipsCreated(syncInfo.getMembershipToAdd().size());
+    event.setMembershipsRemoved(syncInfo.getMembershipToRemove().size());
   }
 }

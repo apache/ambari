@@ -49,17 +49,14 @@ public class LdapSyncEventEntity {
   /**
    * Results of sync event.
    */
-  private Integer usersFetched;
   private Integer usersCreated;
   private Integer usersUpdated;
   private Integer usersRemoved;
-  private Integer groupsFetched;
   private Integer groupsCreated;
   private Integer groupsUpdated;
   private Integer groupsRemoved;
-  private Integer membershipsFetched;
   private Integer membershipsCreated;
-  private Integer membershipsUpdated;
+  private Integer membershipsRemoved;
 
   /**
    * The specifications that define the sync event.
@@ -76,7 +73,7 @@ public class LdapSyncEventEntity {
    */
   public LdapSyncEventEntity(long id) {
     this.id = id;
-    this.status = Status.Pending;
+    this.status = Status.PENDING;
   }
 
 
@@ -181,92 +178,148 @@ public class LdapSyncEventEntity {
     this.endTime = endTime;
   }
 
-  public Integer getUsersFetched() {
-    return usersFetched;
-  }
-
-  public void setUsersFetched(Integer usersFetched) {
-    this.usersFetched = usersFetched;
-  }
-
+  /**
+   * Get the number of users created during the sync event.
+   *
+   * @return the number of users created
+   */
   public Integer getUsersCreated() {
     return usersCreated;
   }
 
+  /**
+   * Set the number of users created during the sync event.
+   *
+   * @param usersCreated  the number of users created
+   */
   public void setUsersCreated(Integer usersCreated) {
     this.usersCreated = usersCreated;
   }
 
+  /**
+   * Get the number of users updated during the sync event.
+   *
+   * @return the number of users updated
+   */
   public Integer getUsersUpdated() {
     return usersUpdated;
   }
 
+  /**
+   * Set the number of users updated during the sync event.
+   *
+   * @param usersUpdated  the number of users updated
+   */
   public void setUsersUpdated(Integer usersUpdated) {
     this.usersUpdated = usersUpdated;
   }
 
+  /**
+   * Get the number of users removed during the sync event.
+   *
+   * @return the number of users removed
+   */
   public Integer getUsersRemoved() {
     return usersRemoved;
   }
 
+  /**
+   * Set the number of users removed during the sync event.
+   *
+   * @param usersRemoved  the number of users removed
+   */
   public void setUsersRemoved(Integer usersRemoved) {
     this.usersRemoved = usersRemoved;
   }
 
-  public Integer getGroupsFetched() {
-    return groupsFetched;
-  }
-
-  public void setGroupsFetched(Integer groupsFetched) {
-    this.groupsFetched = groupsFetched;
-  }
-
+  /**
+   * Get the number of groups created during the sync event.
+   *
+   * @return the number of groups created
+   */
   public Integer getGroupsCreated() {
     return groupsCreated;
   }
 
+  /**
+   * Set the number of groups created during the sync event.
+   *
+   * @param groupsCreated  the number of groups created
+   */
   public void setGroupsCreated(Integer groupsCreated) {
     this.groupsCreated = groupsCreated;
   }
 
+  /**
+   * Get the number of groups updated during the sync event.
+   *
+   * @return the number of groups updated
+   */
   public Integer getGroupsUpdated() {
     return groupsUpdated;
   }
 
+  /**
+   * Set the number of groups updated during the sync event.
+   *
+   * @param groupsUpdated  the number of groups updated
+   */
   public void setGroupsUpdated(Integer groupsUpdated) {
     this.groupsUpdated = groupsUpdated;
   }
 
+  /**
+   * Get the number of groups removed during the sync event.
+   *
+   * @return the number of groups removed
+   */
   public Integer getGroupsRemoved() {
     return groupsRemoved;
   }
 
+  /**
+   * Set the number of groups removed during the sync event.
+   *
+   * @param groupsRemoved  the number of groups removed
+   */
   public void setGroupsRemoved(Integer groupsRemoved) {
     this.groupsRemoved = groupsRemoved;
   }
 
-  public Integer getMembershipsFetched() {
-    return membershipsFetched;
-  }
-
-  public void setMembershipsFetched(Integer membershipsFetched) {
-    this.membershipsFetched = membershipsFetched;
-  }
-
+  /**
+   * Get the number of memberships created during the sync event.
+   *
+   * @return the number of memberships created
+   */
   public Integer getMembershipsCreated() {
     return membershipsCreated;
   }
 
+  /**
+   * Set the number of memberships created during the sync event.
+   *
+   * @param membershipsCreated  the number of memberships created
+   */
   public void setMembershipsCreated(Integer membershipsCreated) {
     this.membershipsCreated = membershipsCreated;
   }
 
-  public Integer getMembershipsUpdated() {
-    return membershipsUpdated;
+  /**
+   * Get the number of memberships removed during the sync event.
+   *
+   * @return the number of memberships removed
+   */
+  public Integer getMembershipsRemoved() {
+    return membershipsRemoved;
   }
 
-  public void setMembershipsUpdated(Integer membershipsUpdated) {
-    this.membershipsUpdated = membershipsUpdated;
+  /**
+   * Set the number of memberships removed during the sync event.
+   *
+   * @param membershipsRemoved  the number of memberships removed
+   */
+  public void setMembershipsRemoved(Integer membershipsRemoved) {
+    this.membershipsRemoved = membershipsRemoved;
   }
 
 
@@ -276,9 +329,9 @@ public class LdapSyncEventEntity {
    * LDAP sync event status
    */
   public enum Status {
-    Pending,
-    Running,
-    Error,
-    Complete
+    PENDING,  // sync is queued for execution
+    RUNNING,  // sync is running
+    ERROR,    // error occurred during sync
+    COMPLETE  // sync is complete
   }
 }

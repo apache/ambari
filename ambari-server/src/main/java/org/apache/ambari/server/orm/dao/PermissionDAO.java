@@ -49,7 +49,7 @@ public class PermissionDAO {
   /**
    * Create permission.
    *
-   * @param PermissionEntity entity to store
+   * @param permissionEntity  entity to store
    */
   @Transactional
   public void create(PermissionEntity permissionEntity) {

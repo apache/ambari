@@ -48,14 +48,16 @@ public class LdapSyncSpecEntity {
    *
    * @param principalType   the principal type
    * @param syncType        the sync type
-   * @param principalNames  the list of principal names.
+   * @param principalNames  the list of principal names; may not be null
    */
   public LdapSyncSpecEntity(PrincipalType principalType, SyncType syncType, List<String> principalNames) {
-    this.principalType = principalType;
-    this.syncType = syncType;
+    this.principalType  = principalType;
+    this.syncType       = syncType;
     this.principalNames = principalNames;
 
-    if (syncType == SyncType.Specific) {
+    assert principalNames != null;
+
+    if (syncType == SyncType.SPECIFIC) {
       if (principalNames.isEmpty()) {
         throw new IllegalArgumentException("Missing principal names for " + syncType + " sync-type.");
       }
@@ -103,8 +105,8 @@ public class LdapSyncSpecEntity {
    * LDAP sync principal type.
    */
   public enum PrincipalType {
-    Users,
-    Groups;
+    USERS,
+    GROUPS;
 
     /**
      * Get the enum value for the given principal type name string, ignoring case.
@@ -114,7 +116,7 @@ public class LdapSyncSpecEntity {
      * @return the enum value for the given type name
      */
     public static PrincipalType valueOfIgnoreCase(String type) {
-      return valueOf(Character.toUpperCase(type.charAt(0)) + type.substring(1).toLowerCase());
+      return valueOf(type.toUpperCase());
     }
   }
 
@@ -125,9 +127,9 @@ public class LdapSyncSpecEntity {
    * LDAP sync type.
    */
   public enum SyncType {
-    All,
-    Existing,
-    Specific;
+    ALL,       // sync all principals
+    EXISTING,  // sync only principals that currently exist in Ambari
+    SPECIFIC;  // sync only the named principals
 
     /**
      * Get the enum value for the given sync type name string, ignoring case.
@@ -137,7 +139,7 @@ public class LdapSyncSpecEntity {
      * @return the enum value for the given type name
      */
     public static SyncType valueOfIgnoreCase(String type) {
-      return valueOf(Character.toUpperCase(type.charAt(0)) + type.substring(1).toLowerCase());
+      return valueOf(type.toUpperCase());
     }
   }
 }
