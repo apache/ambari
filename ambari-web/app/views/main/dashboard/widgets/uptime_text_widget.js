@@ -54,7 +54,7 @@ App.UptimeTextDashboardWidgetView = App.TextDashboardWidgetView.extend({
   }.property('data'),
 
   timeConverter: function (timestamp) {
-    var m = moment((new Date(timestamp)).toISOString().replace('Z', ''));
+    var m = moment((new Date(timestamp)));
     return [m.format('ddd MMM DD YYYY'), m.format('HH:mm:ss')];
   },
 
