@@ -81,8 +81,8 @@ App.CreateAppWizardStep1Controller = Ember.Controller.extend({
    * @type {bool}
    */
   isSubmitDisabled: function () {
-    return !this.get('newAppName') || this.get('isNameError');
-  }.property('newAppName', 'isNameError'),
+    return !this.get('newAppName') || this.get('isNameError') || this.get('isAppTypesError');
+  }.property('newAppName', 'isNameError', 'isAppTypesError'),
 
   /**
    * Load all required data for step
