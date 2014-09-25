@@ -366,11 +366,7 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
 
     populateConfigVersions();
 
-    if (Configuration.MYSQL_DB_NAME.equals(dbType)) {
-      dbAccessor.executeQuery("ALTER TABLE clusterconfig MODIFY version BIGINT NOT NULL");
-    } else {
-      dbAccessor.setNullable("clusterconfig", "version", false);
-    }
+    dbAccessor.setNullable("clusterconfig", new DBColumnInfo("version", Long.class, null), false);
 
     dbAccessor.executeQuery("ALTER TABLE clusterconfig ADD CONSTRAINT UQ_config_type_tag UNIQUE (cluster_id, type_name, version_tag)", true);
     dbAccessor.executeQuery("ALTER TABLE clusterconfig ADD CONSTRAINT UQ_config_type_version UNIQUE (cluster_id, type_name, version)", true);

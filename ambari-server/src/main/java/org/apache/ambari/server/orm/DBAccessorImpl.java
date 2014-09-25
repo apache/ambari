@@ -587,10 +587,9 @@ public class DBAccessorImpl implements DBAccessor {
   }
 
   @Override
-  public void setNullable(String tableName, String columnName, boolean nullable)
+  public void setNullable(String tableName, DBAccessor.DBColumnInfo columnInfo, boolean nullable)
       throws SQLException {
-    String statement = dbmsHelper.getSetNullableStatement(tableName,
-        columnName, nullable);
+    String statement = dbmsHelper.getSetNullableStatement(tableName, columnInfo, nullable);
 
     executeQuery(statement);
   }

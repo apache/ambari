@@ -310,14 +310,14 @@ public interface DBAccessor {
    * 
    * @param tableName
    *          the name of the table (not {@code null}).
-   * @param columnName
-   *          the name of the column to alter (not {@code null}).
+   * @param columnInfo
+   *          the column object to get name and type of column (not {@code null}).
    * @param nullable
    *          {@code true} to indicate that the column allows {@code NULL}
    *          values, {@code false} otherwise.
    * @throws SQLException
    */
-  public void setNullable(String tableName, String columnName, boolean nullable)
+  public void setNullable(String tableName, DBAccessor.DBColumnInfo columnInfo, boolean nullable)
       throws SQLException;
 
   /**

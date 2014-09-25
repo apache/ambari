@@ -54,8 +54,9 @@ public class MySqlHelper extends GenericDbmsHelper {
 
   @Override
   public StringBuilder writeSetNullableString(StringBuilder builder,
-      String tableName, String columnName, boolean nullable) {
-    builder.append(" MODIFY ").append(columnName);
+      String tableName, DBAccessor.DBColumnInfo columnInfo, boolean nullable) {
+    builder.append(" MODIFY ").append(columnInfo.getName()).append(" ");
+    writeColumnType(builder, columnInfo);
     String nullStatement = nullable ? " NULL" : " NOT NULL";
     builder.append(nullStatement);
     return builder;
