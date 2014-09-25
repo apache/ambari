@@ -22,6 +22,7 @@ Em.I18n.translations = {
   'ok': 'OK',
   'yes': 'Yes',
   'no': 'No',
+  'any': 'Any',
 
   'common' : {
     'add': 'Add',

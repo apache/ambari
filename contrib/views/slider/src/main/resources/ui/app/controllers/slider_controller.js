@@ -58,6 +58,7 @@ App.SliderController = Ember.Controller.extend({
       initialValuesToLoad = this.get('initialValuesToLoad'),
       sliderConfigs = App.SliderApp.store.all('sliderConfig'),
       self = this;
+    App.set('label', Em.get(data, 'ViewInstanceInfo.label') || App.get('instance'));
     sliderConfigs.forEach(function (model) {
       var key = model.get('viewConfigName');
       model.set('value', properties[key]);

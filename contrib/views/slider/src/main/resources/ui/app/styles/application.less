@@ -91,6 +91,9 @@ select {
 #slider-apps-table  {
 
   #slider-table {
+    border-bottom: 1px solid #ddd;
+    border-left: 1px solid #ddd;
+    border-right: 1px solid #ddd;
     margin-top: 10px;
     margin-bottom: 10px;
     font-size: 13px\9;
@@ -153,6 +156,7 @@ select {
     }
     thead {
       background: none repeat scroll 0 0 #F8F8F8;
+      border-top: 1px solid #ddd;
     }
   }
   .page-bar {
@@ -256,8 +260,18 @@ select {
 
   .filter-input-width{
     width:68%;
+    font-weight: normal;
   }
   .table {
+
+    thead {
+      tr {
+        th {
+          border-bottom: none;
+        }
+      }
+    }
+
     table-layout: fixed;
     th {
       border-top: none;

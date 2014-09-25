@@ -65,6 +65,11 @@ App.initializer({
       instance: instanceName,
 
       /**
+       * @type {string}
+       */
+      label: '',
+
+      /**
        * API url for Slider
        * Format:
        *  <code>/api/v1/views/[VIEW_NAME]/versions/[VERSION]/instances/[INSTANCE_NAME]/</code>
