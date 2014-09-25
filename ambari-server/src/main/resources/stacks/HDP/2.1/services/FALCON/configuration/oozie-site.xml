@@ -152,6 +152,15 @@
       EL functions declarations, separated by commas, format is [PREFIX:]NAME=CLASS#METHOD.
     </description>
   </property>
+  
+  <property>
+    <name>oozie.service.HadoopAccessorService.supported.filesystems</name>
+    <value>*</value>
+    <description>
+      Enlist the different filesystems supported for federation. If wildcard "*" is specified, then ALL file schemes will be allowed.
+    </description>
+  </property>
+  
   <!--web ui should add following properties to oozie site accordingly to FALCON_USER-->
   <!--<property>-->
     <!--<name>oozie.service.ProxyUserService.proxyuser.#FALCON_USER#.hosts</name>-->
