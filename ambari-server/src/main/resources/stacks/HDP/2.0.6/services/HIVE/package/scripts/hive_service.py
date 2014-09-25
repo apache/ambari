@@ -49,7 +49,8 @@ def hive_service(
     
     Execute(demon_cmd,
             user=params.hive_user,
-            environment= {'PATH' : params.execute_path, 'HADOOP_HOME' : params.hadoop_home },
+            environment={'HADOOP_HOME': params.hadoop_home},
+            path=params.execute_path,
             not_if=process_id_exists
     )
 

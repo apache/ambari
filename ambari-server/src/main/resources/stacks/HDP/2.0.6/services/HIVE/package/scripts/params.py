@@ -45,7 +45,7 @@ if rpm_version is not None:
   hive_tar_file = '/usr/hdp/current/hive/hive.tar.gz'
 
   hcat_lib = '/usr/hdp/current/hive/hive-hcatalog/share/hcatalog'
-  webhcat_bin_dir = '/usr/hdp/current/hive/hive-hcatalog/sbin'
+  webhcat_bin_dir = '/usr/hdp/current/hive-hcatalog/sbin'
 
 else:
   hadoop_bin_dir = "/usr/bin"
