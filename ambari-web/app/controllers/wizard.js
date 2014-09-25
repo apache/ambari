@@ -886,11 +886,11 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
    */
   saveServiceConfigGroups: function (stepController, isAddService) {
     var serviceConfigGroups = [],
-      isForUpdate = false,
+      isForInstalledService = false,
       hosts = isAddService ? App.router.get('addServiceController').getDBProperty('hosts') : this.getDBProperty('hosts');
     stepController.get('stepConfigs').forEach(function (service) {
       // mark group of installed service
-      if (service.get('selected') === false) isForUpdate = true;
+      if (service.get('selected') === false) isForInstalledService = true;
       service.get('configGroups').forEach(function (configGroup) {
         var properties = [];
         configGroup.get('properties').forEach(function (property) {
@@ -903,14 +903,16 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
           })
         });
         //configGroup copied into plain JS object to avoid Converting circular structure to JSON
+        var hostNames = configGroup.get('hosts').map(function(host_name) {return hosts[host_name].id;});
         serviceConfigGroups.push({
           id: configGroup.get('id'),
           name: configGroup.get('name'),
           description: configGroup.get('description'),
-          hosts: configGroup.get('hosts').map(function(host_name) {return hosts[host_name].id;}),
+          hosts: hostNames,
           properties: properties,
           isDefault: configGroup.get('isDefault'),
-          isForUpdate: isForUpdate,
+          isForInstalledService: isForInstalledService,
+          isForUpdate: configGroup.isForUpdate || configGroup.get('hash') != this.getConfigGroupHash(configGroup, hostNames),
           service: {id: configGroup.get('service.id')}
         });
       }, this)
@@ -918,6 +920,26 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
     this.setDBProperty('serviceConfigGroups', serviceConfigGroups);
     this.set('content.configGroups', serviceConfigGroups);
   },
+
+  /**
+   * generate string hash for config group
+   * @param {Object} configGroup
+   * @param {Array|undefined} hosts
+   * @returns {String|null}
+   * @method getConfigGroupHash
+   */
+  getConfigGroupHash: function(configGroup,  hosts) {
+    if (!Em.get(configGroup, 'properties.length') && !Em.get(configGroup, 'hosts.length') && !hosts) {
+      return null;
+    }
+    var hash = {};
+    Em.get(configGroup, 'properties').forEach(function (config) {
+      hash[Em.get(config, 'name')] = {value: Em.get(config, 'value'), isFinal: Em.get(config, 'isFinal')};
+    });
+    hash['hosts'] = hosts || Em.get(configGroup, 'hosts');
+    return JSON.stringify(hash);
+  },
+
   /**
    * return slaveComponents bound to hosts
    * @return {Array}

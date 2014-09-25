@@ -857,12 +857,14 @@ App.ServiceConfigProperty = Ember.Object.extend({
             isError = true;
           } else {
             var overrides = parentSCP.get('overrides');
-            overrides.forEach(function (override) {
-              if (self != override && value === override.get('value')  && supportsFinal && isFinal === parentSCP.get('isFinal')) {
-                self.set('errorMessage', 'Multiple configuration overrides cannot have same value');
-                isError = true;
-              }
-            });
+            if (overrides) {
+              overrides.forEach(function (override) {
+                if (self != override && value === override.get('value')  && supportsFinal && isFinal === parentSCP.get('isFinal')) {
+                  self.set('errorMessage', 'Multiple configuration overrides cannot have same value');
+                  isError = true;
+                }
+              });
+            }
           }
         }
       }

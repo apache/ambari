@@ -1523,11 +1523,11 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, {
       });
       groupData.desired_configs = serviceConfigController.buildGroupDesiredConfigs.call(serviceConfigController, groupConfigs, timeTag);
       // check for group from installed service
-      if (configGroup.isForUpdate === true) {
+      if (configGroup.isForInstalledService === true) {
         // if group is a new one, create it
         if (!configGroup.id) {
           sendData.push({"ConfigGroup": groupData});
-        } else {
+        } else if (configGroup.isForUpdate){
           // update an existing group
           groupData.id = configGroup.id;
           updateData.push({"ConfigGroup": groupData});

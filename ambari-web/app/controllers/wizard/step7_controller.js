@@ -17,8 +17,6 @@
  */
 
 var App = require('app');
-var numberUtils = require('utils/number_utils');
-var stringUtils = require('utils/string_utils');
 /**
  * By Step 7, we have the following information stored in App.db and set on this
  * controller by the router.
@@ -645,7 +643,9 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
       serviceConfigProperty.validate();
 
     }, this);
-
+    component.get('configGroups').filterProperty('isDefault', false).forEach(function(configGroup) {
+      configGroup.set('hash', this.get('wizardController').getConfigGroupHash(configGroup));
+    }, this);
     var overrideToAdd = this.get('overrideToAdd');
     if (overrideToAdd) {
       overrideToAdd = componentConfig.get('configs').findProperty('name', overrideToAdd.name);
