@@ -19,7 +19,7 @@ limitations under the License.
 
 class HDP21StackAdvisor(HDP206StackAdvisor):
 
-  def getServiceConfigurationRecommenderDict(self, service):
+  def getServiceConfigurationRecommenderDict(self):
     parentRecommendConfDict = super(HDP21StackAdvisor, self).getServiceConfigurationRecommenderDict()
     childRecommendConfDict = {
       "OOZIE": self.recommendOozieConfigurations,
