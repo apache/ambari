@@ -53,12 +53,13 @@
 
         </div>
 
-        <ul class="nav nav-pills nav-stacked">
+        <ul class="nav nav-pills nav-stacked" ng-show="cluster.Clusters.provisioning_state == 'INSTALLED' ">
           <li ng-class="{active: isActive('clusters.manageAccess')}">
             <a href="#/clusters/{{cluster.Clusters.cluster_name}}/manageAccess" class="permissions">Permissions</a>
           </li>
           <li><a href="/#/main/dashboard" class="gotodashboard">Go to Dashboard</a></li>
         </ul>
+        <span class="cluster-installation-progress-label" ng-show="cluster.Clusters.provisioning_state == 'INIT'">Cluster creation in progress...</span>
       </div>
         
       <div ng-hide="cluster">

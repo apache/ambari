@@ -97,7 +97,7 @@
     <div class="panel-heading">
       <h3 class="panel-title">Properties</h3>
     </div>
-    <div class="panel-body">
+    <div class="panel-body property-form">
       <div class="form-group" ng-repeat="parameter in instance.properties"
         ng-class="{'has-error' : (form.isntanceCreateForm[parameter.name].$error.required && form.isntanceCreateForm.submitted)}" >
         <label for="" class="col-sm-3 control-label" ng-class="{'not-required': !parameter.required}" tooltip="{{parameter.description}}">{{parameter.name}}{{parameter.required ? '*' : ''}}</label>

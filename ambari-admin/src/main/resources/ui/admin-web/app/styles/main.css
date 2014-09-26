@@ -123,6 +123,14 @@
   transition: none;
 }
 
+.cluster-installation-progress-label{
+  display: block;
+  color: #888;
+  text-align: center;
+  padding: 10px 0px;
+  cursor: default;
+}
+
 .add-item-input span{
   display: block;
   outline: none;
@@ -598,6 +606,13 @@ table.no-border tr td{
 .groups-pane table ul li {
   margin: 0;
   padding: 0;
+}
+
+.property-form label{
+  width: 214px;
+  word-wrap: normal;
+  text-overflow: ellipsis;
+  overflow: hidden;
 }
 
 .views-list-pane{}
