@@ -349,7 +349,7 @@ App.ConfigHistoryFlowView = Em.View.extend({
     });
     this.shiftFlowOnSwitch(versionIndex);
     this.get('controller').loadSelectedVersion(displayedVersion);
-  },
+  }.observes('controller.selectedConfigGroup'),
   /**
    * revert config values to chosen version and apply reverted configs to server
    */
