@@ -23,8 +23,8 @@
       <reponame>HDP</reponame>
     </repo>
     <repo>
-      <baseurl>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.17/repos/centos6</baseurl>
-      <repoid>HDP-UTILS-1.1.0.17</repoid>
+      <baseurl>https://s3.amazonaws.com/dev.hortonworks.com/HDP-UTILS-1.1.0.20/repos/centos6</baseurl>
+      <repoid>HDP-UTILS-1.1.0.20</repoid>
       <reponame>HDP-UTILS</reponame>
     </repo>
   </os>
@@ -35,8 +35,8 @@
       <reponame>HDP</reponame>
     </repo>
     <repo>
-      <baseurl>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.17/repos/centos5</baseurl>
-      <repoid>HDP-UTILS-1.1.0.17</repoid>
+      <baseurl>https://s3.amazonaws.com/dev.hortonworks.com/HDP-UTILS-1.1.0.20/repos/centos5</baseurl>
+      <repoid>HDP-UTILS-1.1.0.20</repoid>
       <reponame>HDP-UTILS</reponame>
     </repo>
   </os>
@@ -47,20 +47,20 @@
       <reponame>HDP</reponame>
     </repo>
     <repo>
-      <baseurl>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.17/repos/suse11</baseurl>
-      <repoid>HDP-UTILS-1.1.0.17</repoid>
+      <baseurl>https://s3.amazonaws.com/dev.hortonworks.com/HDP-UTILS-1.1.0.20/repos/suse11sp3</baseurl>
+      <repoid>HDP-UTILS-1.1.0.20</repoid>
       <reponame>HDP-UTILS</reponame>
     </repo>
   </os>
-  <os type="debian12">
+  <os type="ubuntu12">
     <repo>
       <baseurl>REPLACE_WITH_UBUNTU12_URL</baseurl>
       <repoid>HDP-2.1</repoid>
       <reponame>HDP</reponame>
     </repo>
     <repo>
-      <baseurl>http://dev.hortonworks.com.s3.amazonaws.com/HDP-UTILS-1.1.0.19/repos/ubuntu12</baseurl>
-      <repoid>HDP-UTILS-1.1.0.19</repoid>
+      <baseurl>https://s3.amazonaws.com/dev.hortonworks.com/HDP-UTILS-1.1.0.20/repos/ubuntu12</baseurl>
+      <repoid>HDP-UTILS-1.1.0.20</repoid>
       <reponame>HDP-UTILS</reponame>
     </repo>
   </os>
