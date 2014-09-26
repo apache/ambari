@@ -99,6 +99,7 @@ App.TableView = Em.View.extend(App.UserPref, {
         if (view) {
           if (view.get('emptyValue')) {
             view.set('value', view.get('emptyValue'));
+            self.saveFilterConditions(condition.iColumn, view.get('appliedEmptyValue'), condition.type, false);
           } else {
             view.set('value', condition.value);
           }

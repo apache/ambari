@@ -155,6 +155,7 @@ App.MainConfigHistoryView = App.TableView.extend({
         displayAs: 'Custom'
       }
     ],
+    appliedEmptyValue: ["", ""],
     fieldType: 'filter-input-width,modified-filter',
     content: ['Any', 'Past 1 hour',  'Past 1 Day', 'Past 2 Days', 'Past 7 Days', 'Past 14 Days', 'Past 30 Days', 'Custom', 'Custom2'],
     valueBinding: "controller.modifiedFilter.optionValue",

@@ -383,6 +383,12 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, {
         toDelete = self.removeWidget(toDelete, item);
       }, this);
     }
+    else {
+      var graphs = ['11', '12', '13', '14'];
+      graphs.forEach ( function (item) {
+        toDelete = self.removeWidget(toDelete, item);
+      }, this);
+    }
     if (this.get('mapreduce_model') != null) {
       var map = ['6', '7', '8', '9', '10', '16', '18'];
       var flag = self.containsWidget(toDelete, map[0]);

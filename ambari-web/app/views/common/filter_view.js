@@ -90,6 +90,12 @@ var wrapperView = Ember.View.extend({
   emptyValue: '',
 
   /**
+   * empty value that actually applied to filtering on server,
+   * used with Select filter where displayed and actual filter value are different
+   */
+  appliedEmptyValue: "",
+
+  /**
    * reset value to empty string if emptyValue selected
    */
   actualValue: function () {
@@ -202,12 +208,14 @@ var wrapperView = Ember.View.extend({
       // value assigned to hidden option
       hiddenValue = values[Number(currentValueIndex == 0)];
     }, this);
-    // our select
-    var $select = $(this.get('element')).find(this.get('classInlineAttr'));
-    // now hide option with current value
-    $select.find('option[value="{0}"]'.format(this.get('value'))).css('display', 'none');
-    // and show option that was hidden
-    $select.find('option[value="{0}"'.format(hiddenValue)).css('display', 'block');
+    if (hiddenValue) {
+      // our select
+      var $select = $(this.get('element')).find(this.get('classInlineAttr'));
+      // now hide option with current value
+      $select.find('option[value="{0}"]'.format(this.get('value'))).css('display', 'none');
+      // and show option that was hidden
+      $select.find('option[value="{0}"'.format(hiddenValue)).css('display', 'block');
+    }
   }
 });
 
