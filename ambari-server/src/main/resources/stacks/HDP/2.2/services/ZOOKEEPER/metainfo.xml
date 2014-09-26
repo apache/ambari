@@ -21,14 +21,14 @@
     <service>
       <name>ZOOKEEPER</name>
       <displayName>ZooKeeper</displayName>
-      <version>3.4.5.2.9.9.9</version>
+      <version>3.4.5.2.2.0.0</version>
 
       <osSpecifics>
         <osSpecific>
           <osFamily>any</osFamily>
           <packages>
             <package>
-              <name>zookeeper_2_9_9_9_*</name>
+              <name>zookeeper_2_2_0_0_*</name>
             </package>
           </packages>
         </osSpecific>

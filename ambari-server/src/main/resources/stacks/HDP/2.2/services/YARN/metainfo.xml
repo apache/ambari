@@ -22,7 +22,7 @@
     <service>
       <name>YARN</name>
       <displayName>YARN</displayName>
-      <version>2.6.0.2.9.9.9</version>
+      <version>2.6.0.2.2.0.0</version>
       <components>
         <components>
           <component>
@@ -37,10 +37,10 @@
           <osFamily>any</osFamily>
           <packages>
             <package>
-              <name>hadoop_2_9_9_9_*-yarn</name>
+              <name>hadoop_2_2_0_0_*-yarn</name>
             </package>
             <package>
-              <name>hadoop_2_9_9_9_*-mapreduce</name>
+              <name>hadoop_2_2_0_0_*-mapreduce</name>
             </package>
           </packages>
         </osSpecific>
@@ -50,13 +50,13 @@
     <service>
       <name>MAPREDUCE2</name>
       <displayName>MapReduce2</displayName>
-      <version>2.6.0.2.9.9.9</version>
+      <version>2.6.0.2.2.0.0</version>
       <osSpecifics>
         <osSpecific>
           <osFamily>any</osFamily>
           <packages>
             <package>
-              <name>hadoop_2_9_9_9_*-mapreduce</name>
+              <name>hadoop_2_2_0_0_*-mapreduce</name>
             </package>
           </packages>
         </osSpecific>

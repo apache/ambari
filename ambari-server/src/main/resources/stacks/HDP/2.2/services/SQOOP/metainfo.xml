@@ -20,13 +20,13 @@
   <services>
     <service>
       <name>SQOOP</name>
-      <version>1.4.5.2.9.9.9</version>
+      <version>1.4.5.2.2.0.0</version>
       <osSpecifics>
         <osSpecific>
           <osFamily>any</osFamily>
           <packages>
             <package>
-              <name>sqoop_2_9_9_9_*</name>
+              <name>sqoop_2_2_0_0_*</name>
             </package>
             <package>
               <name>mysql-connector-java</name>

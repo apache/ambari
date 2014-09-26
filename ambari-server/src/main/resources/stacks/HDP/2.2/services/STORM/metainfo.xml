@@ -22,13 +22,13 @@
     <service>
       <name>STORM</name>
       <displayName>Storm</displayName>
-      <version>0.9.3.2.9.9.9</version>
+      <version>0.9.3.2.2.0.0</version>
       <osSpecifics>
         <osSpecific>
           <osFamily>any</osFamily>
           <packages>
             <package>
-              <name>storm_2_9_9_9_*</name>
+              <name>storm_2_2_0_0_*</name>
             </package>
           </packages>
         </osSpecific>
