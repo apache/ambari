@@ -19,6 +19,7 @@
 package org.apache.ambari.server.security.authorization;
 
 import java.io.IOException;
+import java.util.regex.Pattern;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -46,6 +47,8 @@ public class AmbariAuthorizationFilter implements Filter {
   private static final String DEFAULT_REALM = "AuthFilter";
 
   private static final String INTERNAL_TOKEN_HEADER = "X-Internal-Token";
+
+  private static final Pattern STACK_ADVISOR_REGEX = Pattern.compile("/api/v[0-9]+/stacks/[^/]+/versions/[^/]+/validations.*");
 
   /**
    * The realm to use for the basic http auth
@@ -93,6 +96,12 @@ public class AmbariAuthorizationFilter implements Filter {
             // clusters require permission
             if (permissionId.equals(PermissionEntity.CLUSTER_READ_PERMISSION) ||
                 permissionId.equals(PermissionEntity.CLUSTER_OPERATE_PERMISSION)) {
+              authorized = true;
+              break;
+            }
+          } else if (STACK_ADVISOR_REGEX.matcher(requestURI).matches()) {
+            //TODO permissions model doesn't manage stacks api, but we need access to stack advisor to save configs
+            if (permissionId.equals(PermissionEntity.CLUSTER_OPERATE_PERMISSION)) {
               authorized = true;
               break;
             }
