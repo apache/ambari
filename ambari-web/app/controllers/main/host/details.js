@@ -621,6 +621,7 @@ App.MainHostDetailsController = Em.Controller.extend({
     }
     if (services.someProperty('serviceName', 'HIVE')) {
       urlParams.push('(type=webhcat-site&tag=' + data.Clusters.desired_configs['webhcat-site'].tag + ')');
+      urlParams.push('(type=hive-site&tag=' + data.Clusters.desired_configs['hive-site'].tag + ')');
     }
     if (services.someProperty('serviceName', 'STORM')) {
       urlParams.push('(type=storm-site&tag=' + data.Clusters.desired_configs['storm-site'].tag + ')');
@@ -677,6 +678,9 @@ App.MainHostDetailsController = Em.Controller.extend({
     }
     if (configs['webhcat-site']) {
       configs['webhcat-site']['templeton.zookeeper.hosts'] = zksWithPort;
+    }
+    if (configs['hive-site']) {
+      configs['hive-site']['hive.zookeeper.quorum'] = zksWithPort;
     }
     if (configs['storm-site']) {
       configs['storm-site']['storm.zookeeper.servers'] = JSON.stringify(zks).replace(/"/g, "'");
