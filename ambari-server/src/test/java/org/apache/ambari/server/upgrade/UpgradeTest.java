@@ -28,6 +28,8 @@ import org.apache.ambari.server.controller.ControllerModule;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.*;
 import org.apache.ambari.server.utils.VersionUtils;
+import org.apache.ambari.server.view.ViewRegistry;
+import org.easymock.EasyMock;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -148,7 +150,14 @@ public class UpgradeTest {
   }
 
   private void performUpgrade(String targetVersion) throws Exception {
-    Injector injector = Guice.createInjector(new SchemaUpgradeHelper.UpgradeHelperModule(properties));
+    Injector injector = Guice.createInjector(new SchemaUpgradeHelper.UpgradeHelperModule(properties) {
+      @Override
+      protected void configure() {
+        super.configure();
+        ViewRegistry viewRegistryMock = EasyMock.createNiceMock(ViewRegistry.class);
+        bind(ViewRegistry.class).toInstance(viewRegistryMock);
+      }
+    });
     SchemaUpgradeHelper schemaUpgradeHelper = injector.getInstance(SchemaUpgradeHelper.class);
 
     LOG.info("Upgrading schema to target version = " + targetVersion);

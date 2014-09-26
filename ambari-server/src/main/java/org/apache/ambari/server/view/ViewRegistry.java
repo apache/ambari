@@ -102,6 +102,7 @@ public class ViewRegistry {
    */
   private static final String EXTRACTED_ARCHIVES_DIR = "work";
   private static final String EXTRACT_COMMAND = "extract";
+  private static final String ALL_VIEWS_REG_EXP = ".*";
 
   /**
    * Thread pool
@@ -424,10 +425,19 @@ public class ViewRegistry {
   }
 
   /**
-   * Read the view archives.
+   * Read all view archives.
    */
   public void readViewArchives() {
-    readViewArchives(false, true);
+    readViewArchives(false, true, ALL_VIEWS_REG_EXP, true);
+  }
+
+  /**
+   * Read only view archives with names corresponding to given regular expression.
+   *
+   * @param viewNameRegExp view name regular expression
+   */
+  public void readViewArchives(String viewNameRegExp) {
+    readViewArchives(false, false, viewNameRegExp, false);
   }
 
   /**
@@ -1147,9 +1157,9 @@ public class ViewRegistry {
     }
   }
 
-
   // read the view archives.
-  private void readViewArchives(boolean systemOnly, boolean useExecutor) {
+  private void readViewArchives(boolean systemOnly, boolean useExecutor,
+                                String viewNameRegExp, boolean removeUndeployed) {
     try {
       File viewDir = configuration.getViewsDir();
 
@@ -1172,6 +1182,10 @@ public class ViewRegistry {
               String commonName = viewConfig.getName();
               String version    = viewConfig.getVersion();
               String viewName   = ViewEntity.getViewName(commonName, version);
+
+              if (!viewName.matches(viewNameRegExp)) {
+                continue;
+              }
 
               final String extractedArchiveDirPath = extractedArchivesPath + File.separator + viewName;
               final File extractedArchiveDirFile = archiveUtility.getFile(extractedArchiveDirPath);
@@ -1210,7 +1224,9 @@ public class ViewRegistry {
             }
           }
 
-          removeUndeployedViews();
+          if (removeUndeployed) {
+            removeUndeployedViews();
+          }
         }
       } else {
         LOG.error("Could not create extracted view archive directory " + extractedArchivesPath + ".");
