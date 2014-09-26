@@ -135,11 +135,11 @@
   </div>
   <div class="panel-body">
     <form name="propertiesForm" class="form-horizontal" ng-hide="isConfigurationEmpty" novalidate>
-      <fieldset ng-disabled="editConfigurationDisabled">
-        <div class="form-group" ng-repeat="property in configurationMeta" ng-class="{'has-error' : property.required && propertiesForm[property.name].$error.required && !editConfigurationDisabled}">
-          <label for="" class="control-label col-sm-3" ng-class="{'not-required': !property.required}" tooltip="{{property.description}}">{{property.name}}{{property.required ? '*' : ''}}</label>
+      <fieldset>
+        <div class="form-group" ng-repeat="property in configurationMeta" ng-class="{'has-error' : property.required && propertiesForm[property.name].$error.required && !editConfigurationDisabled}" tooltip="{{property.description}}">
+          <label for="" class="control-label col-sm-3" ng-class="{'not-required': !property.required}">{{property.name}}{{property.required ? '*' : ''}}</label>
           <div class="col-sm-9">
-            <input type="{{property.masked ? 'password' : 'text'}}" class="form-control propertie-input" ng-required="property.required" name="{{property.name}}" ng-model="configuration[property.name]">
+            <input type="{{property.masked ? 'password' : 'text'}}" class="form-control propertie-input" ng-required="property.required"  ng-disabled="editConfigurationDisabled" name="{{property.name}}" ng-model="configuration[property.name]">
             <div class="alert alert-danger no-margin-bottom top-margin" ng-show='property.required && propertiesForm[property.name].$error.required && !editConfigurationDisabled'>
               This field is required.
             </div>
