@@ -167,65 +167,6 @@ describe("App.MainServiceInfoConfigsController", function () {
     });
   });
 
-  describe("#selectConfigGroup", function () {
-
-    var tests = [
-      {
-        event: {
-          context: "cfgGroup"
-        },
-        isInit: true,
-        showPopup: false,
-        m: "setup new cfg group"
-      },
-      {
-        event: {
-          context: "cfgGroup"
-        },
-        isInit: false,
-        hash: "hash",
-        showPopup: false,
-        m: "setup new cfg group, has some changes"
-      },
-      {
-        event: {
-          context: "cfgGroup"
-        },
-        isInit: false,
-        hash: "hash1",
-        showPopup: true,
-        m: "show popup, doesn't setup new cfg group"
-      }
-    ];
-
-    beforeEach(function () {
-      sinon.stub(mainServiceInfoConfigsController, "showSavePopup", Em.K);
-      sinon.stub(mainServiceInfoConfigsController, "getHash", function () {
-        return "hash"
-      });
-      sinon.stub(mainServiceInfoConfigsController, "onConfigGroupChange", Em.K);
-    });
-    afterEach(function () {
-      mainServiceInfoConfigsController.showSavePopup.restore();
-      mainServiceInfoConfigsController.getHash.restore();
-      mainServiceInfoConfigsController.onConfigGroupChange.restore();
-    });
-    tests.forEach(function (t) {
-      it(t.m, function () {
-        mainServiceInfoConfigsController.set("isInit", t.isInit);
-        mainServiceInfoConfigsController.set("hash", t.hash);
-        mainServiceInfoConfigsController.selectConfigGroup(t.event);
-        if (!t.showPopup) {
-          expect(mainServiceInfoConfigsController.get("selectedConfigGroup")).to.equal(t.event.context);
-          expect(mainServiceInfoConfigsController.showSavePopup.calledOnce).to.equal(false);
-        } else {
-          expect(mainServiceInfoConfigsController.showSavePopup.calledWith(null, t.event)).to.equal(true);
-        }
-      });
-    });
-
-  });
-
   describe("#manageConfigurationGroup", function () {
     beforeEach(function () {
       sinon.stub(mainServiceInfoConfigsController, "manageConfigurationGroups", Em.K);
@@ -647,7 +588,7 @@ describe("App.MainServiceInfoConfigsController", function () {
     it('values should be parsed', function () {
       mainServiceInfoConfigsController.set('stepConfigs', sc);
       mainServiceInfoConfigsController.doPUTClusterConfigurationSites([]);
-      expect(mainServiceInfoConfigsController.get('stepConfigs')[0].get('configs').mapProperty('value').uniq()).to.eql(['1024']);
+      expect(mainServiceInfoConfigsController.get('stepConfigs')[0].get('configs').mapProperty('value').uniq()).to.eql(['1024m']);
     });
     it('values should not be parsed', function () {
       mainServiceInfoConfigsController.set('stepConfigs', scExc);

@@ -137,16 +137,6 @@ describe('App.Run', function () {
     });
   });
 
-  describe('#lastUpdateTimeFormatted', function () {
-    it('should form date from lastUpdateTime', function () {
-      run.setProperties({
-        elapsedTime: 1000,
-        startTime: 100000000000
-      });
-      expect(run.get('lastUpdateTimeFormatted')).to.equal('Sat, Mar 03, 1973 09:46');
-    });
-  });
-
   describe('#lastUpdateTimeFormattedShort', function () {
     it('should form date and time from lastUpdateTime', function () {
       run.setProperties({
