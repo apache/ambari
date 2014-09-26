@@ -24,15 +24,10 @@
       <thead>
       <tr>
         <th></th>
-        <th>
-          {{t wizard.step2.table.instances}}
-        </th>
-        <th>
-          {{t wizard.step2.table.memory}}
-        </th>
-        <th>
-          {{t wizard.step2.table.cpu}}
-        </th>
+        <th>{{t wizard.step2.table.instances}}</th>
+        <th>{{t wizard.step2.table.memory}}</th>
+        <th>{{t wizard.step2.table.cpu}}</th>
+        <th colspan="2">{{t wizard.step2.table.yarnLabels}}</th>
       </tr>
       </thead>
       <tbody>
@@ -42,6 +37,16 @@
           <td>{{input valueBinding="numInstances"}}</td>
           <td>{{input valueBinding="yarnMemory"}}</td>
           <td>{{input valueBinding="yarnCPU"}}</td>
+          <td>
+            <div {{bs-bind-tooltip content=view.checkBoxPopover}}>
+              {{input type="checkbox" checkedBinding="yarnLabelChecked" class="checkbox-inline"}}
+            </div>
+          </td>
+          <td>
+            <div {{bs-bind-tooltip content=view.yarnLabelPopover}}>
+              {{input valueBinding="yarnLabel" disabledBinding="yarnLabelNotChecked"}}
+            </div>
+          </td>
         </tr>
       {{/each}}
       </tbody>
