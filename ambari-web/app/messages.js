@@ -1709,6 +1709,8 @@ Em.I18n.translations = {
   'hosts.host.addComponent.msg':'Are you sure you want to add {0}?',
   'hosts.host.addComponent.addZooKeeper':'Adding ZooKeeper Server may reconfigure such properties:<ul><li>ha.zookeeper.quorum</li><li>hbase.zookeeper.quorum</li><li>templeton.zookeeper.hosts</li><li>yarn.resourcemanager.zk-address</li><li>hive.zookeeper.quorum</li></ul>',
   'hosts.host.addComponent.deleteHostWithZooKeeper':'Deleting host with ZooKeeper Server may reconfigure such properties:<ul><li>ha.zookeeper.quorum</li><li>hbase.zookeeper.quorum</li><li>templeton.zookeeper.hosts</li><li>yarn.resourcemanager.zk-address</li><li>hive.zookeeper.quorum</li></ul>',
+  'host.host.addComponent.popup.dependedComponents.body': '{0} requires {1} to be installed along with it. Please add them first and then try adding {0}',
+  'host.host.addComponent.popup.dependedComponents.header': 'Component dependencies',
   'hosts.host.zooKeeper.configs.save.note': 'This configuration is created by ambari while installing/deleting zookeeper component on a host',
   'hosts.host.addComponent.note':'<b>Important:</b> After this <i>{0}</i> is installed, go to <i>Services -> Nagios</i> to restart the Nagios service.  This is required for the alerts and notifications to work properly.',
   'hosts.host.addComponent.securityNote':'You are running your cluster in secure mode. You must set up the keytab for {0} on {1} before you proceed. Otherwise, the component will not be able to start properly.',

@@ -134,6 +134,18 @@ module.exports = {
       var newWindow = window.open(url);
       newWindow.focus();
     }
+  },
+  /**
+   * Check if all required components are installed on host.
+   *
+   * @param {String} componentName
+   * @param {Array} installedComponentNames
+   * @return {Array} - names of missed components
+   */
+  checkComponentDependencies: function(componentName, installedComponentNames) {
+    return App.StackServiceComponent.find(componentName).get('dependencies').filter(function(dependency) {
+      return !installedComponentNames.contains(dependency)
+    });
   }
 
 };

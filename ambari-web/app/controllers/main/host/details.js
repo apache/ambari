@@ -19,6 +19,7 @@
 var App = require('app');
 var batchUtils = require('utils/batch_scheduled_requests');
 var componentsUtils = require('utils/components');
+var stringUtils = require('utils/string_utils');
 
 App.MainHostDetailsController = Em.Controller.extend({
 
@@ -392,7 +393,14 @@ App.MainHostDetailsController = Em.Controller.extend({
     var self = this;
     var component = event.context;
     var componentName = component.get('componentName');
-
+    var missedComponents = componentsUtils.checkComponentDependencies(componentName, this.get('content.hostComponents').mapProperty('componentName'))
+    if (!!missedComponents.length) {
+      var popupMessage = Em.I18n.t('host.host.addComponent.popup.dependedComponents.body').format(component.get('displayName'),
+        stringUtils.getFormattedStringFromArray(missedComponents.map(function(cName) {
+          return App.StackServiceComponent.find(cName).get('displayName');
+        })));
+      return App.showAlertPopup(Em.I18n.t('host.host.addComponent.popup.dependedComponents.header'), popupMessage);
+    }
     if (componentName === 'ZOOKEEPER_SERVER') {
       return App.showConfirmationPopup(function () {
         self.primary(component);
