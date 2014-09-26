@@ -1685,6 +1685,7 @@ public class BlueprintConfigurationProcessorTest {
   public void testOozieConfigExported() throws Exception {
     final String expectedHostName = "c6401.apache.ambari.org";
     final String expectedHostNameTwo = "c6402.ambari.apache.org";
+    final String expectedExternalHost = "c6408.ambari.apache.org";
     final String expectedHostGroupName = "host_group_1";
     final String expectedHostGroupNameTwo = "host_group_2";
 
@@ -1718,8 +1719,10 @@ public class BlueprintConfigurationProcessorTest {
     oozieSiteProperties.put("oozie.base.url", expectedHostName);
     oozieSiteProperties.put("oozie.authentication.kerberos.principal", expectedHostName);
     oozieSiteProperties.put("oozie.service.HadoopAccessorService.kerberos.principal", expectedHostName);
+    oozieSiteProperties.put("oozie.service.JPAService.jdbc.url", "jdbc:mysql://" + expectedExternalHost + "/ooziedb");
 
     oozieEnvProperties.put("oozie_hostname", expectedHostName);
+    oozieEnvProperties.put("oozie_existing_mysql_host", expectedExternalHost);
 
     coreSiteProperties.put("hadoop.proxyuser.oozie.hosts", expectedHostName + "," + expectedHostNameTwo);
 
@@ -1739,6 +1742,12 @@ public class BlueprintConfigurationProcessorTest {
       createExportedHostName(expectedHostGroupName), oozieEnvProperties.get("oozie_hostname"));
     assertEquals("oozie property not exported correctly",
       createExportedHostName(expectedHostGroupName) + "," + createExportedHostName(expectedHostGroupNameTwo), coreSiteProperties.get("hadoop.proxyuser.oozie.hosts"));
+
+    // verify that the oozie properties that can refer to an external DB are not included in the export
+    assertFalse("oozie_existing_mysql_host should not have been present in the exported configuration",
+      oozieEnvProperties.containsKey("oozie_existing_mysql_host"));
+    assertFalse("oozie.service.JPAService.jdbc.url should not have been present in the exported configuration",
+      oozieSiteProperties.containsKey("oozie.service.JPAService.jdbc.url"));
 
     mockSupport.verifyAll();
 
