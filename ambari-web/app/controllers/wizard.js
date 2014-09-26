@@ -909,6 +909,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
           name: configGroup.get('name'),
           description: configGroup.get('description'),
           hosts: hostNames,
+          publicHosts: configGroup.get('hosts').map(function(hostName) {return App.router.get('manageConfigGroupsController').hostsToPublic(hostName); }),
           properties: properties,
           isDefault: configGroup.get('isDefault'),
           isForInstalledService: isForInstalledService,
