@@ -53,13 +53,14 @@ App.SliderAppsMapper = App.Mapper.createWithMixins(App.RunPeriodically, {
       sender: this,
       success: 'parse'
     }).fail(function(jqXHR, textStatus){
-        if (textStatus === "timeout" && !self.get('isWarningPopupShown')) {
+        if (!self.get('isWarningPopupShown')) {
+          var message = textStatus === "timeout" ? "timeout" : jqXHR.responseText;
           self.set('isWarningPopupShown', true);
-          window.App.__container__.lookup('controller:SliderApps').showUnavailableAppsPopup();
+          window.App.__container__.lookup('controller:SliderApps').showUnavailableAppsPopup(message);
         }
       }).complete(function(){
         dfd.resolve();
-      })
+      });
     return dfd.promise();
   },
 
