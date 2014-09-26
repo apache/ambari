@@ -482,6 +482,7 @@ App.ServiceConfigProperty = Ember.Object.extend({
         var zkHosts = masterComponentHostsInDB.filterProperty('component', 'ZOOKEEPER_SERVER').mapProperty('hostName');
         this.setDefaultValue("(\\w*)", zkHosts);
         break;
+      case 'hive.zookeeper.quorum':
       case 'templeton.zookeeper.hosts':
         var zkHosts = masterComponentHostsInDB.filterProperty('component', 'ZOOKEEPER_SERVER').mapProperty('hostName');
         var zkHostPort = zkHosts;

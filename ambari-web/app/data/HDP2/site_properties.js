@@ -529,10 +529,20 @@ module.exports =
       "id": "site property",
       "name": "hive.server2.support.dynamic.service.discovery",
       "displayName": "hive.server2.support.dynamic.service.discovery",
-      "defaultValue": false,
+      "defaultValue": true,
       "displayType": "checkbox",
       "category": "Advanced hive-site",
       "serviceName": "HIVE"
+    },
+    {
+      "id": "site property",
+      "name": "hive.zookeeper.quorum",
+      "displayName": "hive.zookeeper.quorum",
+      "defaultValue": "localhost:2181",
+      "displayType": "multiLine",
+      "isVisible": true,
+      "serviceName": "HIVE",
+      "category": "Advanced hive-site"
     },
   /**********************************************tez-site*****************************************/
     {
