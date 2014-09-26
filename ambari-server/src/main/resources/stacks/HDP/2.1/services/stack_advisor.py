@@ -77,13 +77,13 @@ class HDP21StackAdvisor(HDP206StackAdvisor):
     parentValidators.update(childValidators)
     return parentValidators
 
-  def validateHiveConfigurations(self, properties, recommendedDefaults):
+  def validateHiveConfigurations(self, properties, recommendedDefaults, configurations):
     validationItems = [ {"config-name": 'hive.tez.container.size', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'hive.tez.container.size')},
                         {"config-name": 'hive.tez.java.opts', "item": self.validateXmxValue(properties, recommendedDefaults, 'hive.tez.java.opts')},
                         {"config-name": 'hive.auto.convert.join.noconditionaltask.size', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'hive.auto.convert.join.noconditionaltask.size')} ]
     return self.toConfigurationValidationProblems(validationItems, "hive-site")
 
-  def validateTezConfigurations(self, properties, recommendedDefaults):
+  def validateTezConfigurations(self, properties, recommendedDefaults, configurations):
     validationItems = [ {"config-name": 'tez.am.resource.memory.mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'tez.am.resource.memory.mb')},
                         {"config-name": 'tez.am.java.opts', "item": self.validateXmxValue(properties, recommendedDefaults, 'tez.am.java.opts')} ]
     return self.toConfigurationValidationProblems(validationItems, "tez-site")

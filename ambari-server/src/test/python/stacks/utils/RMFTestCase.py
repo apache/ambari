@@ -40,6 +40,7 @@ PATH_TO_STACK_TESTS = os.path.normpath("test/python/stacks/")
 
 class RMFTestCase(TestCase):
   def executeScript(self, path, classname=None, command=None, config_file=None,
+                    config_dict=None,
                     # common mocks for all the scripts
                     config_overrides = None,
                     shell_mock_value = (0, "OK."), 
@@ -52,13 +53,17 @@ class RMFTestCase(TestCase):
     stacks_path = os.path.join(src_dir, PATH_TO_STACKS)
     configs_path = os.path.join(src_dir, PATH_TO_STACK_TESTS, stack_version, "configs")
     script_path = os.path.join(stacks_path, norm_path)
-    config_file_path = os.path.join(configs_path, config_file)
-
-    try:
-      with open(config_file_path, "r") as f:
-        self.config_dict = json.load(f)
-    except IOError:
-      raise RuntimeError("Can not read config file: "+ config_file_path)
+    if config_file is not None and config_dict is None:
+      config_file_path = os.path.join(configs_path, config_file)
+      try:
+        with open(config_file_path, "r") as f:
+          self.config_dict = json.load(f)
+      except IOError:
+        raise RuntimeError("Can not read config file: "+ config_file_path)
+    elif config_dict is not None and config_file is None:
+      self.config_dict = config_dict
+    else:
+      raise RuntimeError("Please specify either config_file_path or config_dict parameter")
 
     if config_overrides:
       for key, value in config_overrides.iteritems():

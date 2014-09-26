@@ -146,6 +146,11 @@ fs_checkpoint_dir = config['configurations']['hdfs-site']['dfs.namenode.checkpoi
 dfs_data_dir = config['configurations']['hdfs-site']['dfs.datanode.data.dir']
 data_dir_mount_file = config['configurations']['hadoop-env']['dfs.datanode.data.dir.mount.file']
 
+dfs_dn_addr = default('/configurations/hdfs-site/dfs.datanode.address', None)
+dfs_dn_http_addr = default('/configurations/hdfs-site/dfs.datanode.http.address', None)
+dfs_dn_https_addr = default('/configurations/hdfs-site/dfs.datanode.https.address', None)
+dfs_http_policy = default('/configurations/hdfs-site/dfs.http.policy', None)
+
 # HDFS High Availability properties
 dfs_ha_enabled = False
 dfs_ha_nameservices = default("/configurations/hdfs-site/dfs.nameservices", None)
@@ -205,8 +210,11 @@ hadoop_env_sh_template = config['configurations']['hadoop-env']['content']
 
 #hadoop-env.sh
 java_home = config['hostLevelParams']['java_home']
+stack_version = str(config['hostLevelParams']['stack_version'])
 
-if str(config['hostLevelParams']['stack_version']).startswith('2.0') and System.get_instance().os_family != "suse":
+stack_is_champlain_or_further = not (stack_version.startswith('2.0') or stack_version.startswith('2.1'))
+
+if stack_version.startswith('2.0') and System.get_instance().os_family != "suse":
   # deprecated rhel jsvc_path
   jsvc_path = "/usr/libexec/bigtop-utils"
 else:
