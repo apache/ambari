@@ -357,7 +357,18 @@ public class ClusterImpl implements Cluster {
             services = new TreeMap<String, Service>();
             if (!clusterEntity.getClusterServiceEntities().isEmpty()) {
               for (ClusterServiceEntity serviceEntity : clusterEntity.getClusterServiceEntities()) {
-                services.put(serviceEntity.getServiceName(), serviceFactory.createExisting(this, serviceEntity));
+                StackId stackId = getCurrentStackVersion();
+                try {
+                  if (ambariMetaInfo.getServiceInfo(stackId.getStackName(), stackId.getStackVersion(),
+                          serviceEntity.getServiceName()) != null) {
+                    services.put(serviceEntity.getServiceName(), serviceFactory.createExisting(this, serviceEntity));
+                  }
+                } catch (AmbariException e) {
+                  LOG.error(String.format("Can not get service info: stackName=%s, stackVersion=%s, serviceName=%s",
+                          stackId.getStackName(), stackId.getStackVersion(),
+                          serviceEntity.getServiceName()));
+                  e.printStackTrace();
+                }
               }
             }
           }

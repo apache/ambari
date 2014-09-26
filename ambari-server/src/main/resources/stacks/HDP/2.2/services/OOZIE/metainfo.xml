@@ -26,13 +26,13 @@
           <osFamily>any</osFamily>
           <packages>
             <package>
-              <name>oozie_2_9_9_9_*</name>
+              <name>oozie_2_2_0_0_*</name>
             </package>
             <package>
-              <name>oozie_2_9_9_9_*-client</name>
+              <name>oozie_2_2_0_0_*-client</name>
             </package>
             <package>
-              <name>falcon_2_9_9_9_*</name>
+              <name>falcon_2_2_0_0_*</name>
             </package>
             <package>
               <name>zip</name>

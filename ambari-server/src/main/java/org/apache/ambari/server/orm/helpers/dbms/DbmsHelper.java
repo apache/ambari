@@ -77,13 +77,12 @@ public interface DbmsHelper {
    * 
    * @param tableName
    *          the table (not {@code null}).
-   * @param columnName
-   *          the column to alert the nullable state of (not {@code null}).
+   * @param columnInfo
+   *          the column object to get name and type of column (not {@code null}).
    * @param nullable
    *          {@code true} to indicate that the column allows {@code NULL}
    *          values, {@code false} otherwise.
    * @return the statement (never {@code null}).
    */
-  String getSetNullableStatement(String tableName, String columnName,
-      boolean nullable);
+  String getSetNullableStatement(String tableName, DBAccessor.DBColumnInfo columnInfo, boolean nullable);
 }

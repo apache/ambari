@@ -47,6 +47,7 @@ App.StackService = DS.Model.extend({
   stackVersion: DS.attr('string'),
   isSelected: DS.attr('boolean', {defaultValue: true}),
   isInstalled: DS.attr('boolean', {defaultValue: false}),
+  stack: DS.belongsTo('App.Stack'),
   serviceComponents: DS.hasMany('App.StackServiceComponent'),
   configs: DS.attr('array'),
   requiredServices: DS.attr('array'),

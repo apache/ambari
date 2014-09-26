@@ -16,32 +16,142 @@
 * limitations under the License.
 }}
 <div id="step1">
-  <h4>{{t wizard.step1.header}}</h4>
-  <div class="row">
-    <div class="col-xs-6">
-      {{view view.availableTypesSelect contentBinding="controller.availableTypes" optionLabelPath="content.displayName" multiple="true" class="type-select"}}
-    </div>
-    <div class="col-xs-6">
-      <div {{bind-attr class=":control-group controller.isNameError:error"}}>
-        <label>{{t common.name}}: {{input id="app-name-input" valueBinding="controller.newAppName"}}</label>
+  <form role="form" class="form-horizontal">
+    <!-- Available Applications -->
+    <h3>{{t wizard.step1.header}}</h3>
+    <div class="form-group row">
+      <div class="col-xs-3">
+        <label class="control-label">{{t wizard.step1.appTypes}}</label>
       </div>
-      {{#if controller.isNameError}}
-        <div class="alert alert-danger">
+      <div class="col-xs-7">
+        {{view
+          Em.Select
+          contentBinding="controller.availableTypes"
+          optionLabelPath="content.displayName"
+          class="form-control type-select"
+          valueBinding="controller.selectedType"
+        }}
+      </div>
+    </div>
+    <div class="form-group row">
+      <div class="col-xs-3">
+        <label class=" control-label">{{t wizard.step1.description}}</label>
+      </div>
+      <div class="col-xs-7">
+        <span class="pseudo-label control-label">{{controller.typeDescription}}</span>
+      </div>
+    </div>
+    <div class="form-group row">
+      <div class="col-xs-3">
+        <div {{bind-attr class=":control-group controller.isNameError:error"}}>
+          <label class="control-label">{{t common.name}}</label>
+        </div>
+      </div>
+      <div class="col-xs-7">
+        {{input id="app-name-input" class="form-control" valueBinding="controller.newApp.name"}}
+      </div>
+    </div>
+    {{#if controller.isNameError}}
+      <div class="row">
+        <div class="col-xs-12 alert alert-danger">
           {{controller.nameErrorMessage}}
         </div>
-      {{/if}}
-      <h5>{{t wizard.step1.description}}:</h5>
-      <p>
-        {{controller.typeDescription}}
-      </p>
-    </div>
-    {{#if controller.isAppTypesError}}
-      <div class="col-xs-12">
-          <div class="alert alert-info app-types-alert">
-              {{t wizard.step1.noAppTypesError}}
-          </div>
       </div>
     {{/if}}
-  </div>
-  <button class="btn btn-success pull-right next-btn" {{bind-attr disabled="controller.isSubmitDisabled"}} {{action submit target="controller"}}>{{t common.next}} &rarr;</button>
+    {{#if controller.isAppTypesError}}
+      <div class="row">
+        <div class="col-xs-12 alert alert-info app-types-alert">
+          {{t wizard.step1.noAppTypesError}}
+        </div>
+      </div>
+    {{/if}}
+    <!-- Available Applications end -->
+    <!-- Scheduler Options -->
+    <hr />
+    <div class="row">
+      <h3>{{t wizard.step1.schedulerOptions.label}}</h3>
+    </div>
+    <div class="row">
+      <div class="col-xs-3">
+        <label class="control-label">{{t wizard.step1.schedulerOptions.queueName}}</label>
+      </div>
+      <div class="col-xs-7">
+        {{input class="form-control" valueBinding="controller.newApp.queueName"}}
+      </div>
+    </div>
+    <!-- Scheduler Options end -->
+    <!-- YARN Labels -->
+    <hr />
+    <div class="row">
+      <h3>{{t wizard.step1.yarnLabels.label}}</h3>
+    </div>
+    <div class="row">
+      <div class="col-xs-3">
+        <label class="control-label">
+          {{view view.radioButton name="yarnLabel" selectionBinding="controller.newApp.selectedYarnLabel" value=0 class="radio-inline"}}
+          {{t wizard.step1.yarnLabels.options.anyHost}}
+        </label>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-xs-3">
+        <label class="control-label">
+          {{view view.radioButton name="yarnLabel" selectionBinding="controller.newApp.selectedYarnLabel" value=1 class="radio-inline"}}
+          {{t wizard.step1.yarnLabels.options.nonLabeledHost}}
+        </label>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-xs-3">
+        <label class="control-label">
+          {{view view.radioButton name="yarnLabel" selectionBinding="controller.newApp.selectedYarnLabel" value=2 class="radio-inline"}}
+          {{t wizard.step1.yarnLabels.options.specifyLabel}}
+        </label>
+      </div>
+      <div class="col-xs-7">
+        {{input type="text" class="form-control" disabledBinding="view.specLabelEnabled" valueBinding="controller.newApp.specialLabel"}}
+      </div>
+    </div>
+    <!-- YARN Labels end -->
+    <!-- Log Aggregation -->
+    <hr />
+    <div class="row">
+      <h3>{{t wizard.step1.logAggregation.label}}</h3>
+    </div>
+    <div class="row">
+      <div class="col-xs-3">
+        <label class="control-label">{{t wizard.step1.logAggregation.filePatterns.include}}</label>
+      </div>
+      <div class="col-xs-7">
+        {{input class="form-control" valueBinding="controller.newApp.includeFilePatterns"}}
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-xs-3">
+        <label class="control-label">{{t wizard.step1.logAggregation.filePatterns.exclude}}</label>
+      </div>
+      <div class="col-xs-7">
+        {{input class="form-control" valueBinding="controller.newApp.excludeFilePatterns"}}
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-xs-3">
+        <label class="control-label">{{t common.frequency}}</label>
+      </div>
+      <div class="col-xs-7">
+        <div class="input-group">
+          {{input class="form-control" valueBinding="controller.newApp.frequency"}}
+          <div class="input-group-addon">{{t common.minutes}}</div>
+        </div>
+      </div>
+    </div>
+    <!-- Log Aggregation end -->
+    <div class="btn-area">
+      <button
+        class="btn btn-success pull-right next-btn"
+        {{bind-attr disabled="controller.isSubmitDisabled"}}
+        {{action submit target="controller"}}>{{t common.next}} &rarr;
+      </button>
+    </div>
+  </form>
 </div>

@@ -21,13 +21,13 @@
     <service>
       <name>PIG</name>
       <displayName>Pig</displayName>
-      <version>0.14.0.2.9.9.9</version>
+      <version>0.14.0.2.2.0.0</version>
       <osSpecifics>
         <osSpecific>
           <osFamily>any</osFamily>
           <packages>
             <package>
-              <name>pig_2_9_9_9_*</name>
+              <name>pig_2_2_0_0_*</name>
             </package>
           </packages>
         </osSpecific>

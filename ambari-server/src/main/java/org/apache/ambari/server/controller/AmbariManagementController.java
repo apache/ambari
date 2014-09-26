@@ -702,11 +702,15 @@ public interface AmbariManagementController {
   /**
    * Synchronizes local users and groups with given data.
    *
-   * @param users users to be synchronized
-   * @param groups groups to be synchronized
+   * @param userRequest  users to be synchronized
+   * @param groupRequest groups to be synchronized
+   *
+   * @return the results of the LDAP synchronization
+   *
    * @throws AmbariException if synchronization data was invalid
    */
-  public LdapBatchDto synchronizeLdapUsersAndGroups(Set<String> users, Set<String> groups) throws AmbariException;
+  public LdapBatchDto synchronizeLdapUsersAndGroups(
+      LdapSyncRequest userRequest, LdapSyncRequest groupRequest) throws AmbariException;
 
   /**
    * Checks if LDAP sync process is running.

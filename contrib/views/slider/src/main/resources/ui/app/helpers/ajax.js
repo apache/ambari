@@ -85,6 +85,11 @@ var urls = {
       Accept: "text/plain; charset=utf-8",
       "Content-Type": "text/plain; charset=utf-8"
     },
+    'format': function() {
+      return {
+        timeout: 20000
+      };
+    },
     schema: {
       required: ['items'],
       properties: {
@@ -329,7 +334,7 @@ var ajax = Em.Object.extend({
     opt.error = function (request, ajaxOptions, error) {
       if (config.error) {
         config.sender[config.error](request, ajaxOptions, error, opt, params);
-      } else {
+      } else if (config.sender.defaultErrorHandler) {
         config.sender.defaultErrorHandler.call(config.sender, request, opt.url, opt.type, opt.showErrorPopup);
       }
     };

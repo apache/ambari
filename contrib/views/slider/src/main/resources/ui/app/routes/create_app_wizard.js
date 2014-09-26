@@ -33,3 +33,22 @@ App.CreateAppWizardRoute = Ember.Route.extend({
     }
   }
 });
+
+App.CreateAppWizardStep1Route = Em.Route.extend({
+
+  setupController: function(controller, model) {
+    controller.set('model', model);
+    controller.initializeNewApp();
+    controller.loadAvailableTypes();
+  }
+
+});
+
+App.CreateAppWizardStep2Route = Em.Route.extend({
+
+  setupController: function(controller, model) {
+    controller.set('model', model);
+    controller.initializeNewApp();
+  }
+
+});

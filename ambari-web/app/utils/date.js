@@ -60,7 +60,7 @@ module.exports = {
     }
     format = format || 'ddd, MMM DD, YYYY HH:mm';
 
-    return moment((new Date(timestamp)).toISOString().replace('Z', '')).format(format);
+    return moment((new Date(timestamp))).format(format);
   },
 
   /**
@@ -75,8 +75,8 @@ module.exports = {
       return timestamp;
     }
     var format = 'ddd MMM DD YYYY';
-    var date = moment((new Date(timestamp)).toISOString().replace('Z', '')).format(format);
-    var today = moment((new Date()).toISOString().replace('Z', '')).format(format);
+    var date = moment((new Date(timestamp))).format(format);
+    var today = moment((new Date())).format(format);
     if (date === today) {
       return 'Today ' + (new Date(timestamp)).toLocaleTimeString();
     }

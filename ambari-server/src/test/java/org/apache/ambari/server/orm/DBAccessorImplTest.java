@@ -332,7 +332,8 @@ public class DBAccessorImplTest {
 
     statement.close();
 
-    dbAccessor.setNullable(tableName, "isNullable", false);
+    dbAccessor.setNullable(tableName, new DBColumnInfo("isNullable",
+            String.class, 1000, "test", false), false);
     statement = dbAccessor.getConnection().createStatement();
     resultSet = statement.executeQuery("SELECT isNullable FROM " + tableName);
     rsmd = resultSet.getMetaData();
@@ -340,7 +341,8 @@ public class DBAccessorImplTest {
 
     statement.close();
 
-    dbAccessor.setNullable(tableName, "isNullable", true);
+    dbAccessor.setNullable(tableName, new DBColumnInfo("isNullable",
+            String.class, 1000, "test", false), true);
     statement = dbAccessor.getConnection().createStatement();
     resultSet = statement.executeQuery("SELECT isNullable FROM " + tableName);
     rsmd = resultSet.getMetaData();

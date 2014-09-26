@@ -31,16 +31,46 @@ App.SliderAppsMapper = App.Mapper.createWithMixins(App.RunPeriodically, {
   },
 
   /**
+   * @type {bool}
+   */
+  isWarningPopupShown: false,
+
+  /**
+   * @type {bool}
+   */
+  isChained: true,
+  /**
    * Load data from <code>App.urlPrefix + this.urlSuffix</code> one time
    * @method load
    * @return {$.ajax}
    */
   load: function () {
-    return App.ajax.send({
+    var self = this;
+    var dfd = $.Deferred();
+
+    App.ajax.send({
       name: 'mapper.applicationApps',
       sender: this,
       success: 'parse'
-    });
+    }).fail(function(jqXHR, textStatus){
+        if (textStatus === "timeout" && !self.get('isWarningPopupShown')) {
+          self.set('isWarningPopupShown', true);
+          window.App.__container__.lookup('controller:SliderApps').showUnavailableAppsPopup();
+        }
+      }).complete(function(){
+        dfd.resolve();
+      })
+    return dfd.promise();
+  },
+
+  /**
+   * close warning popup if apps became available
+   * @return {*}
+   */
+  closeWarningPopup: function() {
+    if (Bootstrap.ModalManager.get('apps-warning-modal')) {
+      Bootstrap.ModalManager.close('apps-warning-modal');
+    }
   },
 
   /**
@@ -198,6 +228,11 @@ App.SliderAppsMapper = App.Mapper.createWithMixins(App.RunPeriodically, {
     var apps = [],
       self = this,
       appsToDelete = App.SliderApp.store.all('sliderApp').get('content').mapProperty('id');
+
+    if (this.get('isWarningPopupShown')) {
+      this.closeWarningPopup();
+      this.set('isWarningPopupShown', false);
+    }
 
     data.items.forEach(function (app) {
       var componentsId = app.components ? self.parseComponents(app) : [],

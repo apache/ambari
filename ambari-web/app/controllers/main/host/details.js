@@ -19,6 +19,7 @@
 var App = require('app');
 var batchUtils = require('utils/batch_scheduled_requests');
 var componentsUtils = require('utils/components');
+var stringUtils = require('utils/string_utils');
 
 App.MainHostDetailsController = Em.Controller.extend({
 
@@ -392,7 +393,14 @@ App.MainHostDetailsController = Em.Controller.extend({
     var self = this;
     var component = event.context;
     var componentName = component.get('componentName');
-
+    var missedComponents = componentsUtils.checkComponentDependencies(componentName, this.get('content.hostComponents').mapProperty('componentName'))
+    if (!!missedComponents.length) {
+      var popupMessage = Em.I18n.t('host.host.addComponent.popup.dependedComponents.body').format(component.get('displayName'),
+        stringUtils.getFormattedStringFromArray(missedComponents.map(function(cName) {
+          return App.StackServiceComponent.find(cName).get('displayName');
+        })));
+      return App.showAlertPopup(Em.I18n.t('host.host.addComponent.popup.dependedComponents.header'), popupMessage);
+    }
     if (componentName === 'ZOOKEEPER_SERVER') {
       return App.showConfirmationPopup(function () {
         self.primary(component);
@@ -621,6 +629,7 @@ App.MainHostDetailsController = Em.Controller.extend({
     }
     if (services.someProperty('serviceName', 'HIVE')) {
       urlParams.push('(type=webhcat-site&tag=' + data.Clusters.desired_configs['webhcat-site'].tag + ')');
+      urlParams.push('(type=hive-site&tag=' + data.Clusters.desired_configs['hive-site'].tag + ')');
     }
     if (services.someProperty('serviceName', 'STORM')) {
       urlParams.push('(type=storm-site&tag=' + data.Clusters.desired_configs['storm-site'].tag + ')');
@@ -677,6 +686,9 @@ App.MainHostDetailsController = Em.Controller.extend({
     }
     if (configs['webhcat-site']) {
       configs['webhcat-site']['templeton.zookeeper.hosts'] = zksWithPort;
+    }
+    if (configs['hive-site']) {
+      configs['hive-site']['hive.zookeeper.quorum'] = zksWithPort;
     }
     if (configs['storm-site']) {
       configs['storm-site']['storm.zookeeper.servers'] = JSON.stringify(zks).replace(/"/g, "'");

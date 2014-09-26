@@ -3682,21 +3682,41 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   }
 
   @Override
-  public synchronized LdapBatchDto synchronizeLdapUsersAndGroups(Set<String> users, Set<String> groups)
+  public synchronized LdapBatchDto synchronizeLdapUsersAndGroups(
+      LdapSyncRequest userRequest, LdapSyncRequest groupRequest)
       throws AmbariException {
     ldapSyncInProgress = true;
     try {
+
       final LdapBatchDto batchInfo = new LdapBatchDto();
-      if (users != null) {
-        ldapDataPopulator.synchronizeLdapUsers(users, batchInfo);
-      } else {
-        ldapDataPopulator.synchronizeAllLdapUsers(batchInfo);
+
+      if (userRequest != null) {
+        switch (userRequest.getType()) {
+          case ALL:
+            ldapDataPopulator.synchronizeAllLdapUsers(batchInfo);
+            break;
+          case EXISTING:
+            ldapDataPopulator.synchronizeExistingLdapUsers(batchInfo);
+            break;
+          case SPECIFIC:
+            ldapDataPopulator.synchronizeLdapUsers(userRequest.getPrincipalNames(), batchInfo);
+            break;
+        }
       }
-      if (groups != null) {
-        ldapDataPopulator.synchronizeLdapGroups(groups, batchInfo);
-      } else {
-        ldapDataPopulator.synchronizeAllLdapGroups(batchInfo);
+      if (groupRequest != null) {
+        switch (groupRequest.getType()) {
+          case ALL:
+            ldapDataPopulator.synchronizeAllLdapGroups(batchInfo);
+            break;
+          case EXISTING:
+            ldapDataPopulator.synchronizeExistingLdapGroups(batchInfo);
+            break;
+          case SPECIFIC:
+            ldapDataPopulator.synchronizeLdapGroups(groupRequest.getPrincipalNames(), batchInfo);
+            break;
+        }
       }
+
       this.users.processLdapSync(batchInfo);
       return batchInfo;
     } finally {

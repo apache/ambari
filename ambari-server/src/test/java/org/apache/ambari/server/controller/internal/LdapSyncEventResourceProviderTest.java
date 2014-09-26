@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
@@ -29,6 +30,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createNiceMock;
 
 /**
@@ -37,7 +39,9 @@ import static org.easymock.EasyMock.createNiceMock;
 public class LdapSyncEventResourceProviderTest {
   @Test
   public void testCreateResources() throws Exception {
-    LdapSyncEventResourceProvider provider = new TestLdapSyncEventResourceProvider();
+    AmbariManagementController amc = createMock(AmbariManagementController.class);
+
+    LdapSyncEventResourceProvider provider = new TestLdapSyncEventResourceProvider(amc);
 
     Set<Map<String, Object>> properties = new HashSet<Map<String, Object>>();
     Map<String, Object> propertyMap = new HashMap<String, Object>();
@@ -48,11 +52,16 @@ public class LdapSyncEventResourceProviderTest {
     properties.add(propertyMap);
 
     provider.createResources(PropertyHelper.getCreateRequest(properties, null));
+
+    Set<Resource> resources = provider.getResources(PropertyHelper.getReadRequest(), null);
+    Assert.assertEquals(1, resources.size());
   }
 
   @Test
   public void testGetResources() throws Exception {
-    LdapSyncEventResourceProvider provider = new TestLdapSyncEventResourceProvider();
+    AmbariManagementController amc = createMock(AmbariManagementController.class);
+
+    LdapSyncEventResourceProvider provider = new TestLdapSyncEventResourceProvider(amc);
 
     Set<Map<String, Object>> properties = new HashSet<Map<String, Object>>();
     Map<String, Object> propertyMap = new HashMap<String, Object>();
@@ -70,7 +79,9 @@ public class LdapSyncEventResourceProviderTest {
 
   @Test
   public void testUpdateResources() throws Exception {
-    LdapSyncEventResourceProvider provider = new TestLdapSyncEventResourceProvider();
+    AmbariManagementController amc = createMock(AmbariManagementController.class);
+
+    LdapSyncEventResourceProvider provider = new TestLdapSyncEventResourceProvider(amc);
 
     Request request = createNiceMock(Request.class);
 
@@ -84,7 +95,9 @@ public class LdapSyncEventResourceProviderTest {
 
   @Test
   public void testDeleteResources() throws Exception {
-    LdapSyncEventResourceProvider provider = new TestLdapSyncEventResourceProvider();
+    AmbariManagementController amc = createMock(AmbariManagementController.class);
+
+    LdapSyncEventResourceProvider provider = new TestLdapSyncEventResourceProvider(amc);
 
     Set<Map<String, Object>> properties = new HashSet<Map<String, Object>>();
     Map<String, Object> propertyMap = new HashMap<String, Object>();
@@ -107,6 +120,13 @@ public class LdapSyncEventResourceProviderTest {
 
 
   protected static class TestLdapSyncEventResourceProvider extends LdapSyncEventResourceProvider {
+    /**
+     * Construct a event resource provider.
+     */
+    public TestLdapSyncEventResourceProvider(AmbariManagementController managementController) {
+      super(managementController);
+    }
+
     @Override
     protected void ensureEventProcessor() {
     }

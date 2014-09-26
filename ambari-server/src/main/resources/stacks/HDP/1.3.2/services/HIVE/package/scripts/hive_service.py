@@ -76,6 +76,7 @@ def hive_service(
         while time.time() < end_time:
           try:
             s.connect((address, port))
+            s.send("A001 AUTHENTICATE ANONYMOUS")
             is_service_socket_valid = True
             break
           except socket.error, e:          

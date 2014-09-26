@@ -17,7 +17,7 @@
 }}
 
 <p>
-  {{t wizard.step3.header}}
+  {{t wizard.step3.header.beginning}}{{appWizardController.newApp.appType.displayName}}{{t wizard.step3.header.end}}
 </p>
 <div {{bind-attr class="controller.isError:has-error :form-group :app-wiz-configs"}}>
   {{#each controller.sectionKeys}}
@@ -31,5 +31,7 @@
     <div class="alert alert-danger">{{t wizard.step3.error}}</div>
   {{/if}}
 </div>
-<button class="btn btn-success pull-right next-btn" {{action submit}}>{{t common.next}}</button>
-<button class="btn pull-right" {{action prevStep}}>{{t common.back}}</button>
+<div class="btn-area">
+  <button class="btn btn-success pull-right next-btn" {{action submit}}>{{t common.next}} &rarr;</button>
+  <button class="btn" {{action prevStep}}>&larr; {{t common.back}}</button>
+</div>

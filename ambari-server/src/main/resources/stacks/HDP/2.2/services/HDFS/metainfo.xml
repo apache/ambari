@@ -21,14 +21,14 @@
     <service>
       <name>HDFS</name>
       <displayName>HDFS</displayName>
-      <version>2.6.0.2.9.9.9</version>
+      <version>2.6.0.2.2.0.0</version>
 
       <osSpecifics>
         <osSpecific>
           <osFamily>any</osFamily>
           <packages>
             <package>
-              <name>hadoop_2_9_9_9_*</name>
+              <name>hadoop_2_2_0_0_*</name>
             </package>
             <package>
               <name>hadoop-lzo</name>
@@ -52,7 +52,7 @@
               <name>hadoop-lzo-native</name>
             </package>
             <package>
-              <name>hadoop_2_9_9_9_*-libhdfs</name>
+              <name>hadoop_2_2_0_0_*-libhdfs</name>
             </package>
             <package>
               <name>ambari-log4j</name>

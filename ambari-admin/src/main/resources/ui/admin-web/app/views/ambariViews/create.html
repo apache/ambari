@@ -102,7 +102,7 @@
         ng-class="{'has-error' : (form.isntanceCreateForm[parameter.name].$error.required && form.isntanceCreateForm.submitted)}" >
         <label for="" class="col-sm-3 control-label" ng-class="{'not-required': !parameter.required}" tooltip="{{parameter.description}}">{{parameter.name}}{{parameter.required ? '*' : ''}}</label>
         <div class="col-sm-9">
-          <input type="{{parameter.masked ? 'password' : 'text'}}" class="form-control viewproperty-input"  name="{{parameter.name}}" ng-required="parameter.required" ng-model="parameter.value" autocomplete="off">
+          <input type="{{parameter.masked ? 'password' : 'text'}}" class="form-control viewproperty-input"  name="{{parameter.name}}" ng-required="parameter.required" ng-model="parameter.value" autocomplete="off" tooltip="{{parameter.description}}">
           <div class="alert alert-danger no-margin-bottom top-margin" ng-show='form.isntanceCreateForm[parameter.name].$error.required && form.isntanceCreateForm.submitted'>
             This field is required.
           </div>

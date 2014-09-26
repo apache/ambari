@@ -49,7 +49,8 @@ def hive_service(
     
     Execute(demon_cmd,
             user=params.hive_user,
-            environment= {'PATH' : params.execute_path, 'HADOOP_HOME' : params.hadoop_home },
+            environment={'HADOOP_HOME': params.hadoop_home},
+            path=params.execute_path,
             not_if=process_id_exists
     )
 
@@ -81,6 +82,7 @@ def hive_service(
         while time.time() < end_time:
           try:
             s.connect((address, port))
+            s.send("A001 AUTHENTICATE ANONYMOUS")
             is_service_socket_valid = True
             break
           except socket.error, e:          

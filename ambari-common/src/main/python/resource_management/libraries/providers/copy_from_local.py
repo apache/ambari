@@ -46,7 +46,7 @@ class CopyFromLocalProvider(Provider):
       dest_path = dest_dir + os.sep + dest_file_name
     # Need to run unless as resource user
     su_cmd = 'su - {0} -c'.format(owner)
-    unless_cmd = format("{su_cmd} '{kinnit_if_needed} hadoop fs -ls {dest_path}' >/dev/null 2>&1")
+    unless_cmd = format("{su_cmd} '{kinnit_if_needed} export PATH=$PATH:{bin_dir} ; hadoop fs -ls {dest_path}' >/dev/null 2>&1")
 
     ExecuteHadoop(copy_cmd,
                   not_if=unless_cmd,

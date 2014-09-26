@@ -37,19 +37,19 @@ public class LdapSyncEventEntityTest {
   @Test
   public void testSetGetStatus() throws Exception {
     LdapSyncEventEntity event = new LdapSyncEventEntity(1L);
-    Assert.assertEquals(LdapSyncEventEntity.Status.Pending, event.getStatus());
+    Assert.assertEquals(LdapSyncEventEntity.Status.PENDING, event.getStatus());
 
-    event.setStatus(LdapSyncEventEntity.Status.Running);
-    Assert.assertEquals(LdapSyncEventEntity.Status.Running, event.getStatus());
+    event.setStatus(LdapSyncEventEntity.Status.RUNNING);
+    Assert.assertEquals(LdapSyncEventEntity.Status.RUNNING, event.getStatus());
 
-    event.setStatus(LdapSyncEventEntity.Status.Complete);
-    Assert.assertEquals(LdapSyncEventEntity.Status.Complete, event.getStatus());
+    event.setStatus(LdapSyncEventEntity.Status.COMPLETE);
+    Assert.assertEquals(LdapSyncEventEntity.Status.COMPLETE, event.getStatus());
 
-    event.setStatus(LdapSyncEventEntity.Status.Error);
-    Assert.assertEquals(LdapSyncEventEntity.Status.Error, event.getStatus());
+    event.setStatus(LdapSyncEventEntity.Status.ERROR);
+    Assert.assertEquals(LdapSyncEventEntity.Status.ERROR, event.getStatus());
 
-    event.setStatus(LdapSyncEventEntity.Status.Pending);
-    Assert.assertEquals(LdapSyncEventEntity.Status.Pending, event.getStatus());
+    event.setStatus(LdapSyncEventEntity.Status.PENDING);
+    Assert.assertEquals(LdapSyncEventEntity.Status.PENDING, event.getStatus());
   }
 
   @Test
@@ -62,8 +62,8 @@ public class LdapSyncEventEntityTest {
   @Test
   public void testSetGetSpecs() throws Exception {
     LdapSyncEventEntity event = new LdapSyncEventEntity(1L);
-    LdapSyncSpecEntity spec = new LdapSyncSpecEntity(LdapSyncSpecEntity.PrincipalType.Groups,
-        LdapSyncSpecEntity.SyncType.All, Collections.<String>emptyList());
+    LdapSyncSpecEntity spec = new LdapSyncSpecEntity(LdapSyncSpecEntity.PrincipalType.GROUPS,
+        LdapSyncSpecEntity.SyncType.ALL, Collections.<String>emptyList());
 
     event.setSpecs(Collections.singletonList(spec));
 
@@ -88,13 +88,6 @@ public class LdapSyncEventEntityTest {
   }
 
   @Test
-  public void testSetGetUsersFetched() throws Exception {
-    LdapSyncEventEntity event = new LdapSyncEventEntity(1L);
-    event.setUsersFetched(99);
-    Assert.assertEquals(Integer.valueOf(99), event.getUsersFetched());
-  }
-
-  @Test
   public void testSetGetUsersCreated() throws Exception {
     LdapSyncEventEntity event = new LdapSyncEventEntity(1L);
     event.setUsersCreated(98);
@@ -113,13 +106,6 @@ public class LdapSyncEventEntityTest {
     LdapSyncEventEntity event = new LdapSyncEventEntity(1L);
     event.setUsersRemoved(96);
     Assert.assertEquals(Integer.valueOf(96), event.getUsersRemoved());
-  }
-
-  @Test
-  public void testSetGetGroupsFetched() throws Exception {
-    LdapSyncEventEntity event = new LdapSyncEventEntity(1L);
-    event.setGroupsFetched(95);
-    Assert.assertEquals(Integer.valueOf(95), event.getGroupsFetched());
   }
 
   @Test
@@ -144,13 +130,6 @@ public class LdapSyncEventEntityTest {
   }
 
   @Test
-  public void testSetGetMembershipsFetched() throws Exception {
-    LdapSyncEventEntity event = new LdapSyncEventEntity(1L);
-    event.setMembershipsFetched(91);
-    Assert.assertEquals(Integer.valueOf(91), event.getMembershipsFetched());
-  }
-
-  @Test
   public void testSetGetMembershipsCreated() throws Exception {
     LdapSyncEventEntity event = new LdapSyncEventEntity(1L);
     event.setMembershipsCreated(90);
@@ -160,7 +139,7 @@ public class LdapSyncEventEntityTest {
   @Test
   public void testSetGetMembershipsUpdated() throws Exception {
     LdapSyncEventEntity event = new LdapSyncEventEntity(1L);
-    event.setMembershipsUpdated(99);
-    Assert.assertEquals(Integer.valueOf(99), event.getMembershipsUpdated());
+    event.setMembershipsRemoved(99);
+    Assert.assertEquals(Integer.valueOf(99), event.getMembershipsRemoved());
   }
 }

@@ -323,10 +323,12 @@ describe('App.InstallerStep7Controller', function () {
       installerStep7Controller.reopen({
         content: {services: []},
         wizardController: Em.Object.create({
-          getDBProperty: function () {
-            return [
-              {component: 'GANGLIA_SERVER', hostName: 'h1'}
-            ];
+
+          hosts: {'h1': {name: 'host1', id: 'h1'}},
+          masterComponentHosts: [{component: 'GANGLIA_SERVER', host_id: 'h1'}],
+
+          getDBProperty: function (k) {
+            return this.get(k);
           }
         })
       });
@@ -335,14 +337,14 @@ describe('App.InstallerStep7Controller', function () {
     it('shouldn\'t do nothing if Ganglia and Storm are installed', function () {
       var installedServiceNames = ['GANGLIA', 'STORM'],
         configs = [
-          {name: 'nimbus.childopts', value: '.jar=host=', defaultValue: ''},
-          {name: 'supervisor.childopts', value: '.jar=host=', defaultValue: ''},
-          {name: 'worker.childopts', value: '.jar=host=', defaultValue: ''}
+          {name: 'nimbus.childopts', value: '.jar=host=host2', defaultValue: ''},
+          {name: 'supervisor.childopts', value: '.jar=host=host2', defaultValue: ''},
+          {name: 'worker.childopts', value: '.jar=host=host2', defaultValue: ''}
         ],
         expected = [
-          {name: 'nimbus.childopts', value: '.jar=host=', defaultValue: ''},
-          {name: 'supervisor.childopts', value: '.jar=host=', defaultValue: ''},
-          {name: 'worker.childopts', value: '.jar=host=', defaultValue: ''}
+          {name: 'nimbus.childopts', value: '.jar=host=host2', defaultValue: ''},
+          {name: 'supervisor.childopts', value: '.jar=host=host2', defaultValue: ''},
+          {name: 'worker.childopts', value: '.jar=host=host2', defaultValue: ''}
         ];
       installerStep7Controller.reopen({installedServiceNames: installedServiceNames});
       installerStep7Controller.resolveStormConfigs(configs);
@@ -352,14 +354,14 @@ describe('App.InstallerStep7Controller', function () {
     it('shouldn\'t do nothing if Ganglia is in allSelectedServiceNames', function () {
       var allSelectedServiceNames = ['GANGLIA'],
         configs = [
-          {name: 'nimbus.childopts', value: '.jar=host=', defaultValue: ''},
-          {name: 'supervisor.childopts', value: '.jar=host=', defaultValue: ''},
-          {name: 'worker.childopts', value: '.jar=host=', defaultValue: ''}
+          {name: 'nimbus.childopts', value: '.jar=host=host2', defaultValue: ''},
+          {name: 'supervisor.childopts', value: '.jar=host=host2', defaultValue: ''},
+          {name: 'worker.childopts', value: '.jar=host=host2', defaultValue: ''}
         ],
         expected = [
-          {name: 'nimbus.childopts', value: 'h1', defaultValue: 'h1', forceUpdate: true},
-          {name: 'supervisor.childopts', value: 'h1', defaultValue: 'h1', forceUpdate: true},
-          {name: 'worker.childopts', value: 'h1', defaultValue: 'h1', forceUpdate: true}
+          {name: 'nimbus.childopts', value: '.jar=host=host1', defaultValue: '.jar=host=host1', forceUpdate: true},
+          {name: 'supervisor.childopts', value: '.jar=host=host1', defaultValue: '.jar=host=host1', forceUpdate: true},
+          {name: 'worker.childopts', value: '.jar=host=host1', defaultValue: '.jar=host=host1', forceUpdate: true}
         ];
       installerStep7Controller.reopen({allSelectedServiceNames: allSelectedServiceNames});
       installerStep7Controller.resolveStormConfigs(configs);
@@ -371,14 +373,14 @@ describe('App.InstallerStep7Controller', function () {
     it('shouldn\'t do nothing if Ganglia is in installedServiceNames (2)', function () {
       var installedServiceNames = ['GANGLIA'],
         configs = [
-          {name: 'nimbus.childopts', value: '.jar=host=', defaultValue: ''},
-          {name: 'supervisor.childopts', value: '.jar=host=', defaultValue: ''},
-          {name: 'worker.childopts', value: '.jar=host=', defaultValue: ''}
+          {name: 'nimbus.childopts', value: '.jar=host=host2', defaultValue: ''},
+          {name: 'supervisor.childopts', value: '.jar=host=host2', defaultValue: ''},
+          {name: 'worker.childopts', value: '.jar=host=host2', defaultValue: ''}
         ],
         expected = [
-          {name: 'nimbus.childopts', value: 'h1', defaultValue: 'h1', forceUpdate: true},
-          {name: 'supervisor.childopts', value: 'h1', defaultValue: 'h1', forceUpdate: true},
-          {name: 'worker.childopts', value: 'h1', defaultValue: 'h1', forceUpdate: true}
+          {name: 'nimbus.childopts', value: '.jar=host=host1', defaultValue: '.jar=host=host1', forceUpdate: true},
+          {name: 'supervisor.childopts', value: '.jar=host=host1', defaultValue: '.jar=host=host1', forceUpdate: true},
+          {name: 'worker.childopts', value: '.jar=host=host1', defaultValue: '.jar=host=host1', forceUpdate: true}
         ];
       installerStep7Controller.reopen({installedServiceNames: installedServiceNames});
       installerStep7Controller.resolveStormConfigs(configs);

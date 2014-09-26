@@ -222,17 +222,6 @@
   </property>
 
   <property>
-    <name>oozie.service.JPAService.jdbc.password</name>
-    <value> </value>
-    <description>
-      DB user password.
-
-      IMPORTANT: if password is emtpy leave a 1 space string, the service trims the value,
-      if empty Configuration assumes it is NULL.
-    </description>
-  </property>
-
-  <property>
     <name>oozie.service.JPAService.pool.max.active.conn</name>
     <value>10</value>
     <description>

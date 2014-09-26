@@ -235,7 +235,7 @@ class TestHDP206StackAdvisor(TestCase):
     ]
     self.assertValidationResult(expectedItems, result)
 
-  def test_getClusterData_withHBaseAnd6gbRam(self):
+  def test_getConfigurationClusterSummary_withHBaseAnd6gbRam(self):
     servicesList = ["HBASE"]
     components = []
     hosts = {
@@ -275,11 +275,11 @@ class TestHDP206StackAdvisor(TestCase):
       "amMemory": 512
     }
 
-    result = self.stackAdvisor.getClusterData(servicesList, hosts, components)
+    result = self.stackAdvisor.getConfigurationClusterSummary(servicesList, hosts, components)
 
     self.assertEquals(result, expected)
 
-  def test_getClusterData_withHBaseAnd48gbRam(self):
+  def test_getConfigurationClusterSummary_withHBaseAnd48gbRam(self):
     servicesList = ["HBASE"]
     components = []
     hosts = {
@@ -317,7 +317,7 @@ class TestHDP206StackAdvisor(TestCase):
       "amMemory": 3072
     }
 
-    result = self.stackAdvisor.getClusterData(servicesList, hosts, components)
+    result = self.stackAdvisor.getConfigurationClusterSummary(servicesList, hosts, components)
 
     self.assertEquals(result, expected)
 
@@ -364,13 +364,13 @@ class TestHDP206StackAdvisor(TestCase):
     self.stackAdvisor.recommendMapReduce2Configurations(configurations, clusterData)
     self.assertEquals(configurations, expected)
 
-  def test_getClusterData_noHostsWithoutHBase(self):
+  def test_getConfigurationClusterSummary_noHostsWithoutHBase(self):
     servicesList = []
     components = []
     hosts = {
       "items" : []
     }
-    result = self.stackAdvisor.getClusterData(servicesList, hosts, components)
+    result = self.stackAdvisor.getConfigurationClusterSummary(servicesList, hosts, components)
 
     expected = {
       "hBaseInstalled": False,

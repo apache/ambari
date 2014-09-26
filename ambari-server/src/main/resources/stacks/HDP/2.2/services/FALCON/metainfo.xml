@@ -27,7 +27,7 @@
           <osFamily>any</osFamily>
           <packages>
             <package>
-              <name>falcon_2_9_9_9_*</name>
+              <name>falcon_2_2_0_0_*</name>
             </package>
           </packages>
         </osSpecific>

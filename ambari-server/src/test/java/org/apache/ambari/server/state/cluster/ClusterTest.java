@@ -57,6 +57,7 @@ import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostStateEntity;
 import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntity;
+import org.apache.ambari.server.orm.entities.ClusterStateEntity;
 import org.apache.ambari.server.state.AgentVersion;
 import org.apache.ambari.server.state.Alert;
 import org.apache.ambari.server.state.AlertState;
@@ -84,6 +85,7 @@ import org.apache.ambari.server.state.host.HostHealthyHeartbeatEvent;
 import org.apache.ambari.server.state.host.HostRegistrationRequestEvent;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -487,6 +489,9 @@ public class ClusterTest {
   @Test
   public void testClusterRecovery() throws AmbariException {
     ClusterEntity entity = createDummyData();
+    ClusterStateEntity clusterStateEntity = new ClusterStateEntity();
+    clusterStateEntity.setCurrentStackVersion("{\"stackName\":\"HDP\",\"stackVersion\":\"0.1\"}");
+    entity.setClusterStateEntity(clusterStateEntity);
     ClusterImpl cluster = new ClusterImpl(entity, injector);
     Service service = cluster.getService("HDFS");
     /* make sure the services are recovered */

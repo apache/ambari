@@ -61,6 +61,15 @@ public class BlueprintConfigurationProcessor {
       new HashMap<String, Map<String, PropertyUpdater>>();
 
   /**
+   * Updaters that preserve the original property value, functions
+   *   as a placeholder for DB-related properties that need to be
+   *   removed from export, but do not require an update during
+   *   cluster creation
+   */
+  private static Map<String, Map<String, PropertyUpdater>> removePropertyUpdaters =
+    new HashMap<String, Map<String, PropertyUpdater>>();
+
+  /**
    * Collection of all updaters
    */
   private static Collection<Map<String, Map<String, PropertyUpdater>>> allUpdaters =
@@ -181,7 +190,34 @@ public class BlueprintConfigurationProcessor {
 
     doMultiHostExportUpdate(hostGroups, multiHostTopologyUpdaters);
 
+    doRemovePropertyExport(removePropertyUpdaters);
+
     return properties;
+  }
+
+  /**
+   * Performs export update for the set of properties that do not
+   * require update during cluster setup, but should be removed
+   * during a Blueprint export.
+   *
+   * In the case of a service referring to an external DB, any
+   * properties that contain external host information should
+   * be removed from the configuration that will be available in
+   * the exported Blueprint.
+   *
+   * @param updaters set of updaters for properties that should
+   *                 always be removed during a Blueprint export
+   */
+  private void doRemovePropertyExport(Map<String, Map<String, PropertyUpdater>> updaters) {
+    for (Map.Entry<String, Map<String, PropertyUpdater>> entry : updaters.entrySet()) {
+      String type = entry.getKey();
+      for (String propertyName : entry.getValue().keySet()) {
+        Map<String, String> typeProperties = properties.get(type);
+        if ( (typeProperties != null) && (typeProperties.containsKey(propertyName)) ) {
+          typeProperties.remove(propertyName);
+        }
+      }
+    }
   }
 
   /**
@@ -768,6 +804,21 @@ public class BlueprintConfigurationProcessor {
   }
 
   /**
+   * PropertyUpdater implementation that will always return the original
+   *   value for the updateForClusterCreate() method.
+   *   This updater type should only be used in cases where a given
+   *   property requires no updates, but may need to be considered
+   *   during the Blueprint export process.
+   */
+  private static class OriginalValuePropertyUpdater implements PropertyUpdater {
+    @Override
+    public String updateForClusterCreate(Map<String, ? extends HostGroup> hostGroups, String origValue, Map<String, Map<String, String>> properties) {
+      // always return the original value, since these properties do not require update handling
+      return origValue;
+    }
+  }
+
+  /**
    * Register updaters for configuration properties.
    */
   static {
@@ -783,6 +834,7 @@ public class BlueprintConfigurationProcessor {
     Map<String, PropertyUpdater> hbaseSiteMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> yarnSiteMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> hiveSiteMap = new HashMap<String, PropertyUpdater>();
+    Map<String, PropertyUpdater> oozieSiteOriginalValueMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> oozieSiteMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> stormSiteMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> falconStartupPropertiesMap = new HashMap<String, PropertyUpdater>();
@@ -793,6 +845,8 @@ public class BlueprintConfigurationProcessor {
     Map<String, PropertyUpdater> hbaseEnvMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> hiveEnvMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> oozieEnvMap = new HashMap<String, PropertyUpdater>();
+    Map<String, PropertyUpdater> oozieEnvOriginalValueMap = new HashMap<String, PropertyUpdater>();
+
 
     Map<String, PropertyUpdater> multiWebhcatSiteMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> multiHbaseSiteMap = new HashMap<String, PropertyUpdater>();
@@ -829,6 +883,9 @@ public class BlueprintConfigurationProcessor {
     multiHostTopologyUpdaters.put("hdfs-site", multiHdfsSiteMap);
 
     dbHostTopologyUpdaters.put("hive-site", dbHiveSiteMap);
+
+    removePropertyUpdaters.put("oozie-env", oozieEnvOriginalValueMap);
+    removePropertyUpdaters.put("oozie-site", oozieSiteOriginalValueMap);
 
     // NAMENODE
     hdfsSiteMap.put("dfs.http.address", new SingleHostTopologyUpdater("NAMENODE"));
@@ -886,6 +943,9 @@ public class BlueprintConfigurationProcessor {
     oozieSiteMap.put("oozie.service.HadoopAccessorService.kerberos.principal", new SingleHostTopologyUpdater("OOZIE_SERVER"));
     oozieEnvMap.put("oozie_hostname", new SingleHostTopologyUpdater("OOZIE_SERVER"));
     multiCoreSiteMap.put("hadoop.proxyuser.oozie.hosts", new MultipleHostTopologyUpdater("OOZIE_SERVER"));
+    // register updaters for Oozie properties that may point to an external DB
+    oozieEnvOriginalValueMap.put("oozie_existing_mysql_host", new OriginalValuePropertyUpdater());
+    oozieSiteOriginalValueMap.put("oozie.service.JPAService.jdbc.url", new OriginalValuePropertyUpdater());
 
     // ZOOKEEPER_SERVER
     multiHbaseSiteMap.put("hbase.zookeeper.quorum", new MultipleHostTopologyUpdater("ZOOKEEPER_SERVER"));

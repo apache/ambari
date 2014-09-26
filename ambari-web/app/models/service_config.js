@@ -482,6 +482,7 @@ App.ServiceConfigProperty = Ember.Object.extend({
         var zkHosts = masterComponentHostsInDB.filterProperty('component', 'ZOOKEEPER_SERVER').mapProperty('hostName');
         this.setDefaultValue("(\\w*)", zkHosts);
         break;
+      case 'hive.zookeeper.quorum':
       case 'templeton.zookeeper.hosts':
         var zkHosts = masterComponentHostsInDB.filterProperty('component', 'ZOOKEEPER_SERVER').mapProperty('hostName');
         var zkHostPort = zkHosts;
@@ -857,12 +858,14 @@ App.ServiceConfigProperty = Ember.Object.extend({
             isError = true;
           } else {
             var overrides = parentSCP.get('overrides');
-            overrides.forEach(function (override) {
-              if (self != override && value === override.get('value')  && supportsFinal && isFinal === parentSCP.get('isFinal')) {
-                self.set('errorMessage', 'Multiple configuration overrides cannot have same value');
-                isError = true;
-              }
-            });
+            if (overrides) {
+              overrides.forEach(function (override) {
+                if (self != override && value === override.get('value')  && supportsFinal && isFinal === parentSCP.get('isFinal')) {
+                  self.set('errorMessage', 'Multiple configuration overrides cannot have same value');
+                  isError = true;
+                }
+              });
+            }
           }
         }
       }

@@ -44,12 +44,18 @@ App.RunPeriodically = Ember.Mixin.create({
   timer: null,
 
   /**
+   * flag to indicate whether each call should be chained to previous one
+   * @type {bool}
+   */
+  isChained: false,
+
+  /**
    * Run <code>methodName</code> periodically with <code>interval</code>
    * @param {string} methodName method name to run periodically
    * @param {bool} initRun should methodName be run before setInterval call (default - true)
    * @method run
    */
-  loop: function(methodName, initRun) {
+  run: function(methodName, initRun) {
     initRun = Em.isNone(initRun) ? true : initRun;
     var self = this,
       interval = this.get('interval');
@@ -57,9 +63,34 @@ App.RunPeriodically = Ember.Mixin.create({
     if (initRun) {
       this[methodName]();
     }
+
+    if (this.get('isChained')) {
+      this.loop(self, methodName, interval);
+    } else {
+      this.set('timer',
+        setInterval(function () {
+          self[methodName]();
+        }, interval)
+      );
+    }
+  },
+
+  /**
+   * Start chain of calls of <code>methodName</code> with <code>interval</code>
+   * next call made only after previous is finished
+   * callback should return deffered object to run next loop
+   * @param {object} context
+   * @param {string} methodName method name to run periodically
+   * @param {number} interval
+   * @method loop
+   */
+  loop: function (context, methodName, interval) {
+    var self = this;
     this.set('timer',
-      setInterval(function () {
-        self[methodName]();
+      setTimeout(function () {
+        context[methodName]().done(function () {
+          self.loop(context, methodName, interval);
+        });
       }, interval)
     );
   },

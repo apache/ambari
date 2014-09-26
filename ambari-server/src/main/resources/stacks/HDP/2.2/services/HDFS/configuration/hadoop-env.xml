@@ -23,7 +23,7 @@
 <configuration>
   <property>
     <name>rpm_version</name>
-    <value>2.9.9.9</value>
+    <value>2.2.0.0</value>
     <description>Hadoop RPM version</description>
   </property>
 </configuration>

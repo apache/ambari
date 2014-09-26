@@ -18,7 +18,7 @@
 
 <div class="slider-header">
   {{#view view.SliderTitleView}}
-    <h1 class="pull-left">{{t slider.apps.title}} - <span class="slider-app-title" {{bs-bind-popover view.popover}}>{{App.instance}}</span></h1>
+    <h3 class="pull-left"><span class="slider-app-title" {{bs-bind-popover view.popover}}>{{App.label}}</span></h3>
     {{#if view.isIndexPage}}
       <div class="box-header pull-right">
         <div class="create-app">

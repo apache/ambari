@@ -41,8 +41,8 @@ class TestHiveMetastore(RMFTestCase):
     self.assert_configure_default()
     self.assertResourceCalled('Execute', 'env HADOOP_HOME=/usr JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /tmp/start_metastore_script /var/log/hive/hive.out /var/log/hive/hive.log /var/run/hive/hive.pid /etc/hive/conf.server /var/log/hive',
         not_if = 'ls /var/run/hive/hive.pid >/dev/null 2>&1 && ps `cat /var/run/hive/hive.pid` >/dev/null 2>&1',
-        environment = {'PATH' : os.environ['PATH'] + os.pathsep + "/usr/lib/hive/bin" + os.pathsep + "/usr/bin",
-                       'HADOOP_HOME' : '/usr'},
+        environment = {'HADOOP_HOME' : '/usr'},
+        path = [os.environ['PATH'] + os.pathsep + "/usr/lib/hive/bin" + os.pathsep + "/usr/bin"],
         user = 'hive',
     )
     self.assertResourceCalled('Execute', '/usr/jdk64/jdk1.7.0_45/bin/java -cp /usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/share/java/mysql-connector-java.jar org.apache.ambari.server.DBConnectionVerification \'jdbc:mysql://c6402.ambari.apache.org/hive?createDatabaseIfNotExist=true\' hive \'!`"\'"\'"\' 1\' com.mysql.jdbc.Driver',
@@ -83,8 +83,8 @@ class TestHiveMetastore(RMFTestCase):
     self.assert_configure_secured()
     self.assertResourceCalled('Execute', 'env HADOOP_HOME=/usr JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /tmp/start_metastore_script /var/log/hive/hive.out /var/log/hive/hive.log /var/run/hive/hive.pid /etc/hive/conf.server /var/log/hive',
         not_if = 'ls /var/run/hive/hive.pid >/dev/null 2>&1 && ps `cat /var/run/hive/hive.pid` >/dev/null 2>&1',
-        environment = {'PATH' : os.environ['PATH'] + os.pathsep + "/usr/lib/hive/bin" + os.pathsep + "/usr/bin",
-                       'HADOOP_HOME' : '/usr'},
+        environment = {'HADOOP_HOME' : '/usr'},
+        path = [os.environ['PATH'] + os.pathsep + "/usr/lib/hive/bin" + os.pathsep + "/usr/bin"],
         user = 'hive',
     )
     self.assertResourceCalled('Execute', '/usr/jdk64/jdk1.7.0_45/bin/java -cp /usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/share/java/mysql-connector-java.jar org.apache.ambari.server.DBConnectionVerification \'jdbc:mysql://c6402.ambari.apache.org/hive?createDatabaseIfNotExist=true\' hive \'!`"\'"\'"\' 1\' com.mysql.jdbc.Driver',

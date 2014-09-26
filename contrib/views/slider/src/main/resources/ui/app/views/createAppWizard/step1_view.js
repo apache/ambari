@@ -18,26 +18,29 @@
 
 App.CreateAppWizardStep1View = Ember.View.extend({
 
-  didInsertElement: function () {
-    this.get('controller').loadStep();
-  },
+  radioButton: Ember.TextField.extend({
 
-  availableTypesSelect: Ember.Select.extend({
+    tagName: "input",
 
-    /**
-     * Forbid user to select more than one App type
-     * Set selected type to <code>controller.selectedType</code>
-     */
-    setSelection: function () {
-      var content = this.get('content');
-      var selection = this.get('selection');
-      if (content.get('length') && !selection.length) {
-        this.set('selection', content.objectAt(0));
-      }
-      if (selection.length > 1) {
-        this.set('selection', [selection[0]])
-      }
-      this.set('controller.selectedType', this.get('selection')[0])
-    }.observes('content.length', 'selection.length', 'selection.@each')
-  })
+    type: "radio",
+
+    attributeBindings: ["name", "type", "value", "checked:checked:"],
+
+    click: function () {
+      this.set("selection", this.get('value'));
+    },
+
+    checked: function () {
+      return this.get("value") == this.get("selection");
+    }.property()
+
+  }),
+
+  /**
+   * Enable "Special-label" text-field only when "spec-label"-radio is checked
+   * @type {bool}
+   */
+  specLabelEnabled: Ember.computed.lt('controller.newApp.selectedYarnLabel', '2')
+
+
 });

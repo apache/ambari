@@ -137,7 +137,7 @@ var wrapperView = Ember.View.extend({
  */
 var textFieldView = Ember.TextField.extend({
   type:'text',
- // placeholder: Em.I18n.t('any'),
+  placeholder: Em.I18n.t('any'),
   valueBinding: "parentView.value"
 });
 
@@ -271,7 +271,7 @@ module.exports = {
       attributeBindings: ['disabled','multiple'],
       disabled: false
     });
-    config.emptyValue = '';//Em.I18n.t('any');
+    config.emptyValue = Em.I18n.t('any');
 
     return wrapperView.extend(config);
   },

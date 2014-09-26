@@ -60,46 +60,6 @@ describe('date', function () {
     });
   });
 
-  describe('#dateFormat', function() {
-    describe('Correct timestamps', function(){
-      correct_tests.forEach(function(test) {
-        var testMessage = test.t + ' `showSeconds` ' + !!test.showSeconds + '`showMilliseconds` ' + !!test.showMilliseconds;
-        it(testMessage, function() {
-          expect(date.dateFormat(test.t, test.showSeconds, test.showMilliseconds)).to.equal(test.e);
-        });
-      });
-    });
-    describe('Incorrect timestamps', function() {
-      incorrect_tests.forEach(function(test) {
-        it(test.t, function() {
-          expect(date.dateFormat(test.t)).to.equal(test.t);
-        });
-      });
-    });
-  });
-
-  describe('#dateFormatShort', function() {
-    describe('Correct timestamps', function() {
-      correct_tests.forEach(function(test) {
-        it(test.t, function() {
-          expect(date.dateFormatShort(test.t)).to.equal(test.e2);
-        });
-      });
-    });
-    it('Today timestamp', function() {
-      var now = new Date();
-      var then = new Date(now.getFullYear(),now.getUTCMonth(),now.getUTCDate(),0,0,0);
-      expect(date.dateFormatShort(then.getTime() + 10*3600*1000)).to.contain('Today 10:00:00');
-    });
-    describe('Incorrect timestamps', function() {
-      incorrect_tests.forEach(function(test) {
-        it(test.t, function() {
-          expect(date.dateFormatShort(test.t)).to.equal(test.t);
-        });
-      });
-    });
-  });
-
   describe('#startTime()', function() {
     var today = new Date();
     var tests = [

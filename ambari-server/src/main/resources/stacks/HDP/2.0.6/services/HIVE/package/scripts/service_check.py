@@ -36,6 +36,7 @@ class HiveServiceCheck(Script):
     print "Test connectivity to hive server"
     try:
       s.connect((address, port))
+      s.send("A001 AUTHENTICATE ANONYMOUS")
       print "Successfully connected to %s on port %s" % (address, port)
       s.close()
     except socket.error, e:

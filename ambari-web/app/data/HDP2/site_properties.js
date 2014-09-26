@@ -529,10 +529,20 @@ module.exports =
       "id": "site property",
       "name": "hive.server2.support.dynamic.service.discovery",
       "displayName": "hive.server2.support.dynamic.service.discovery",
-      "defaultValue": false,
+      "defaultValue": true,
       "displayType": "checkbox",
       "category": "Advanced hive-site",
       "serviceName": "HIVE"
+    },
+    {
+      "id": "site property",
+      "name": "hive.zookeeper.quorum",
+      "displayName": "hive.zookeeper.quorum",
+      "defaultValue": "localhost:2181",
+      "displayType": "multiLine",
+      "isVisible": true,
+      "serviceName": "HIVE",
+      "category": "Advanced hive-site"
     },
   /**********************************************tez-site*****************************************/
     {
@@ -2140,24 +2150,6 @@ module.exports =
       "id": "site property",
       "name": "fs.AbstractFileSystem.glusterfs.impl",
       "displayName": "GlusterFS Abstract File System Implementation",
-      "displayType": "string",
-      "filename": "core-site.xml",
-      "serviceName": "GLUSTERFS",
-      "category": "General"
-    },
-    {
-      "id": "site property",
-      "name": "fs.glusterfs.volumes",
-      "displayName": "Gluster volume name(s)",
-      "displayType": "string",
-      "filename": "core-site.xml",
-      "serviceName": "GLUSTERFS",
-      "category": "General"
-    },
-    {
-      "id": "site property",
-      "name": "fs.glusterfs.volume.fuse.gv0",
-      "displayName": "Gluster mount point for volume",
       "displayType": "string",
       "filename": "core-site.xml",
       "serviceName": "GLUSTERFS",

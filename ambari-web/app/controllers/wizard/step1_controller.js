@@ -20,6 +20,16 @@ var App = require('app');
 
 App.WizardStep1Controller = Em.Controller.extend({
 
-  name: 'wizardStep1Controller'
+  name: 'wizardStep1Controller',
+  /**
+   * Skip repo-validation
+   * @type {bool}
+   */
+  skipValidationChecked: false,
+
+  selectedStack: function() {
+    return App.Stack.find().findProperty('isSelected');
+  }.property('content.stacks.@each.isSelected')
+
 
 });
