@@ -72,6 +72,7 @@ public class AlertDefinitionEqualityTest extends TestCase {
    */
   private AlertDefinition getAlertDefinition(SourceType sourceType) {
     AlertDefinition definition = new AlertDefinition();
+    definition.setClusterId(1);
     definition.setComponentName("component");
     definition.setEnabled(true);
     definition.setInterval(1);

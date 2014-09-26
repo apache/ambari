@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.state.alerts;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -39,6 +40,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.google.common.eventbus.EventBus;
 import com.google.inject.Binder;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -72,6 +74,14 @@ public class AlertStateChangedEventTest {
 
     dispatchDao = injector.getInstance(AlertDispatchDAO.class);
     eventPublisher = injector.getInstance(AlertEventPublisher.class);
+
+    EventBus synchronizedBus = new EventBus();
+    synchronizedBus.register(injector.getInstance(AlertStateChangedListener.class));
+
+    // !!! need a synchronous op for testing
+    Field field = AlertEventPublisher.class.getDeclaredField("m_eventBus");
+    field.setAccessible(true);
+    field.set(eventPublisher, synchronizedBus);
   }
 
   /**
@@ -99,8 +109,6 @@ public class AlertStateChangedEventTest {
 
     // async publishing
     eventPublisher.publish(event);
-    Thread.sleep(2000);
-
     EasyMock.verify(dispatchDao, history, event);
   }
 

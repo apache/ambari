@@ -46,17 +46,34 @@ class BaseAlert(object):
     else:
       interval = self.alert_meta['interval']
       return 1 if interval < 1 else interval
-      
+
+
+  def definition_name(self):
+    '''
+    gets the unique name of the alert definition
+    '''
+    return self.alert_meta['name']
+
+
+  def definition_uuid(self):
+    '''
+    gets the unique has of the alert definition
+    '''
+    return self.alert_meta['uuid']
+
+
   def set_helpers(self, collector, value_dict):
     ''' sets helper objects for alerts without having to use them in a constructor '''
     self.collector = collector
     self.config_value_dict = value_dict
-      
+
+
   def set_cluster(self, cluster, host):
     ''' sets cluster information for the alert '''
     self.cluster = cluster
     self.host_name = host
-  
+
+
   def collect(self):
     ''' method used for collection.  defers to _collect() '''
     
@@ -83,12 +100,14 @@ class BaseAlert(object):
     data['service'] = self._find_value('serviceName')
     data['component'] = self._find_value('componentName')
     data['timestamp'] = long(time.time() * 1000)
+    data['uuid'] = self._find_value('uuid')
 
     if logger.isEnabledFor(logging.DEBUG):
       logger.debug("debug alert text: {0}".format(data['text']))
     
     self.collector.put(self.cluster, data)
-  
+
+
   def _find_value(self, meta_key):
     ''' safe way to get a value when outputting result json.  will not throw an exception '''
     if self.alert_meta.has_key(meta_key):
@@ -96,10 +115,12 @@ class BaseAlert(object):
     else:
       return None
 
+
   def get_lookup_keys(self):
     ''' returns a list of lookup keys found for this alert '''
     return self._lookup_keys
-      
+
+
   def _find_lookup_property(self, key):
     '''
     check if the supplied key is parameterized
@@ -112,7 +133,8 @@ class BaseAlert(object):
       return keys[0]
       
     return key
-    
+
+
   def _lookup_property_value(self, key):
     '''
     in the case of specifying a configuration path, lookup that path's value
@@ -124,7 +146,8 @@ class BaseAlert(object):
       return self.config_value_dict[key]
     else:
       return None
-  
+
+
   def _collect(self):
     '''
     Low level function to collect alert data.  The result is a tuple as:

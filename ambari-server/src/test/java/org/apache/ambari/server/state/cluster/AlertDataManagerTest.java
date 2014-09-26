@@ -373,7 +373,7 @@ public class AlertDataManagerTest {
     AggregateDefinitionMapping aggregateMapping = injector.getInstance(AggregateDefinitionMapping.class);
 
     AlertDefinition aggregateDefinition = factory.coerce(aggDef);
-    aggregateMapping.addAggregateType(clusterId.longValue(),
+    aggregateMapping.registerAggregate(clusterId.longValue(),
         aggregateDefinition );
 
     AggregateSource as = (AggregateSource) aggregateDefinition.getSource();

@@ -61,22 +61,25 @@ class AlertSchedulerHandler():
         logger.critical("Could not create the cache directory {0}".format(cachedir))
         pass
 
+    self._collector = AlertCollector()
     self.__scheduler = Scheduler(AlertSchedulerHandler.APS_CONFIG)
     self.__in_minutes = in_minutes
-    self.__collector = AlertCollector()
     self.__config_maps = {}
+
           
-  def update_definitions(self, alert_commands, refresh_jobs=False):
+  def update_definitions(self, alert_commands, reschedule_jobs=False):
     ''' updates the persisted definitions and restarts the scheduler '''
     
     with open(os.path.join(self.cachedir, self.FILENAME), 'w') as f:
       json.dump(alert_commands, f, indent=2)
     
-    if refresh_jobs:
-      self.start()
+    if reschedule_jobs:
+      self.reschedule()
+
       
   def __make_function(self, alert_def):
     return lambda: alert_def.collect()
+
     
   def start(self):
     ''' loads definitions from file and starts the scheduler '''
@@ -90,26 +93,72 @@ class AlertSchedulerHandler():
 
     alert_callables = self.__load_definitions()
       
+    # schedule each definition
     for _callable in alert_callables:
-      if self.__in_minutes:
-        self.__scheduler.add_interval_job(self.__make_function(_callable),
-          minutes=_callable.interval())
-      else:
-        self.__scheduler.add_interval_job(self.__make_function(_callable),
-          seconds=_callable.interval())
+      self.schedule_definition(_callable)
       
     logger.debug("Starting scheduler {0}; currently running: {1}".format(
       str(self.__scheduler), str(self.__scheduler.running)))
+
     self.__scheduler.start()
+
     
   def stop(self):
     if not self.__scheduler is None:
       self.__scheduler.shutdown(wait=False)
       self.__scheduler = Scheduler(AlertSchedulerHandler.APS_CONFIG)
+
+
+  def reschedule(self):
+    '''
+    Removes jobs that are scheduled where their UUID no longer is valid. 
+    Schedules jobs where the definition UUID is not currently scheduled.
+    '''
+    jobs_scheduled = 0
+    jobs_removed = 0
+    
+    definitions = self.__load_definitions()
+    scheduled_jobs = self.__scheduler.get_jobs()
+    
+    # for every scheduled job, see if its UUID is still valid
+    for scheduled_job in scheduled_jobs:
+      uuid_valid = False
       
+      for definition in definitions:
+        definition_uuid = definition.definition_uuid()
+        if scheduled_job.name == definition_uuid:
+          uuid_valid = True
+          break
+      
+      # jobs without valid UUIDs should be unscheduled
+      if uuid_valid == False:
+        jobs_removed += 1
+        logger.info("Unscheduling {0}".format(scheduled_job.name))
+        self._collector.remove_by_uuid(scheduled_job.name)
+        self.__scheduler.unschedule_job(scheduled_job)
+      
+    # for every definition, determine if there is a scheduled job
+    for definition in definitions:
+      definition_scheduled = False
+      for scheduled_job in scheduled_jobs:
+        definition_uuid = definition.definition_uuid()
+        if definition_uuid == scheduled_job.name:
+          definition_scheduled = True
+          break
+      
+      # if no jobs are found with the definitions UUID, schedule it
+      if definition_scheduled == False:
+        jobs_scheduled += 1
+        self.schedule_definition(definition)
+  
+    logger.info("Alert Reschedule Summary: {0} rescheduled, {1} unscheduled".format(
+        str(jobs_scheduled), str(jobs_removed)))
+
+
   def collector(self):
     ''' gets the collector for reporting to the server '''
-    return self.__collector
+    return self._collector
+  
       
   def __load_definitions(self):
     ''' loads all alert commands from the file.  all clusters are stored in one file '''
@@ -147,7 +196,7 @@ class AlertSchedulerHandler():
         vals = self.__find_config_values(configmap, obj.get_lookup_keys())
         self.__config_maps[clusterName].update(vals)
 
-        obj.set_helpers(self.__collector, self.__config_maps[clusterName])
+        obj.set_helpers(self._collector, self.__config_maps[clusterName])
 
         definitions.append(obj)
       
@@ -208,7 +257,30 @@ class AlertSchedulerHandler():
         configmap = command['configurations']
         keylist = self.__config_maps[clusterName].keys()
         vals = self.__find_config_values(configmap, keylist)
-        self.__config_maps[clusterName].update(vals)  
+        self.__config_maps[clusterName].update(vals)
+        
+
+  def schedule_definition(self,definition):
+    '''
+    Schedule a definition (callable). Scheduled jobs are given the UUID
+    as their name so that they can be identified later on.
+    '''
+    job = None
+
+    if self.__in_minutes:
+      job = self.__scheduler.add_interval_job(self.__make_function(definition),
+        minutes=definition.interval())
+    else:
+      job = self.__scheduler.add_interval_job(self.__make_function(definition),
+        seconds=definition.interval())
+    
+    # although the documentation states that Job(kwargs) takes a name 
+    # key/value pair, it does not actually set the name; do it manually
+    if job is not None:
+      job.name = definition.definition_uuid()
+      
+    logger.info("Scheduling {0} with UUID {1}".format(
+      definition.definition_name(), definition.definition_uuid()))
 
 def main():
   args = list(sys.argv)

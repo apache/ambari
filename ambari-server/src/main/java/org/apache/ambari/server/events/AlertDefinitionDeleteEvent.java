@@ -17,54 +17,39 @@
  */
 package org.apache.ambari.server.events;
 
+import org.apache.ambari.server.state.alert.AlertDefinition;
 
 /**
- * The {@link AmbariEvent} class is the base for all events in Ambari.
+ * The {@link AlertDefinitionDeleteEvent} is used to represent that an
+ * {@link AlertDefinition} has been removed from the system.
  */
-public abstract class AmbariEvent {
+public class AlertDefinitionDeleteEvent extends ClusterEvent {
 
   /**
-   * The {@link AmbariEventType} defines the type of Ambari event.
+   * The removed alert defintiion
    */
-  public enum AmbariEventType {
-    /**
-     * A service was successfully installed.
-     */
-    SERVICE_INSTALL_SUCCESS,
-
-    /**
-     * An alert definition is registered with the system.
-     */
-    ALERT_DEFINITION_REGISTRATION,
-
-    /**
-     * An alert definition is removed from the system.
-     */
-    ALERT_DEFINITION_REMOVAL;
-  }
-
-  /**
-   * The concrete event's type.
-   */
-  protected final AmbariEventType m_eventType;
+  private final AlertDefinition m_definition;
 
   /**
    * Constructor.
    *
-   * @param eventType
-   *          the type of event (not {@code null}).
    * @param clusterId
+   *          the ID of the cluster that the definition is in.
+   * @param definition
+   *          the alert definition being registered.
    */
-  public AmbariEvent(AmbariEventType eventType) {
-    m_eventType = eventType;
+  public AlertDefinitionDeleteEvent(
+      long clusterId, AlertDefinition definition) {
+    super(AmbariEventType.ALERT_DEFINITION_REMOVAL, clusterId);
+    m_definition = definition;
   }
 
   /**
-   * Gets the type of {@link AmbariEvent}.
+   * Get the registered alert definition.
    *
-   * @return the event type (never {@code null}).
+   * @return the alert definition (not {@code null}).
    */
-  public AmbariEventType getType() {
-    return m_eventType;
+  public AlertDefinition getDefinition() {
+    return m_definition;
   }
 }

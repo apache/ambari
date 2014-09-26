@@ -383,6 +383,93 @@ public class AlertGroupResourceProviderTest {
   }
 
   /**
+   * Tests that updating a default group doesn't change read-only properties
+   *
+   * @throws Exception
+   */
+  @Test
+  @SuppressWarnings("unchecked")
+  public void testUpdateDefaultGroup() throws Exception {
+    Capture<AlertGroupEntity> entityCapture = new Capture<AlertGroupEntity>();
+
+    // the definition IDs to associate with the group
+    List<Long> definitionIds = new ArrayList<Long>();
+    definitionIds.add(ALERT_DEF_ID);
+
+    // the target IDs to associate with the group
+    List<Long> targetIds = new ArrayList<Long>();
+    targetIds.add(ALERT_TARGET_ID);
+
+    // definition entities to return from DAO
+    List<AlertDefinitionEntity> definitionEntities = new ArrayList<AlertDefinitionEntity>();
+    definitionEntities.addAll(getMockDefinitions());
+
+    // target entities to return from DAO
+    List<AlertTargetEntity> newTargetEntities = new ArrayList<AlertTargetEntity>();
+    newTargetEntities.addAll(getMockTargets());
+
+    Set<AlertTargetEntity> mockTargets2 = getMockTargets();
+    AlertTargetEntity target2 = mockTargets2.iterator().next();
+    target2.setTargetId(29L);
+
+    newTargetEntities.add(target2);
+
+    AlertGroupEntity group = new AlertGroupEntity();
+    group.setDefault(true);
+    group.setGroupName(ALERT_GROUP_NAME);
+    group.setAlertDefinitions(getMockDefinitions());
+    group.setAlertTargets(getMockTargets());
+
+    expect(m_dao.findGroupById(ALERT_GROUP_ID)).andReturn(group).times(1);
+    expect(m_dao.merge(capture(entityCapture))).andReturn(group).once();
+
+    // expect target entity lookup for association
+    List<Long> newTargets = Arrays.asList(28L, 29L);
+    expect(m_dao.findTargetsById(EasyMock.eq(newTargets))).andReturn(
+        newTargetEntities).once();
+
+    replay(m_dao, m_definitionDao);
+
+    AlertGroupResourceProvider provider = createProvider(m_amc);
+
+    // create new properties, and include the ID since we're not going through
+    // a service layer which would add it for us automatically
+    Map<String, Object> requestProps = new HashMap<String, Object>();
+    requestProps.put(AlertGroupResourceProvider.ALERT_GROUP_ID,
+        ALERT_GROUP_ID.toString());
+
+    // try to change the name (it should not work)
+    String newName = ALERT_GROUP_NAME + " Foo";
+    requestProps.put(AlertGroupResourceProvider.ALERT_GROUP_NAME, newName);
+
+    // try to change the definitions (it should not work)
+    requestProps.put(AlertGroupResourceProvider.ALERT_GROUP_DEFINITIONS,
+        new ArrayList<Long>());
+
+    // try to change the targets (it should work)
+    requestProps.put(AlertGroupResourceProvider.ALERT_GROUP_TARGETS,
+        newTargets);
+
+    Predicate predicate = new PredicateBuilder().property(
+        AlertGroupResourceProvider.ALERT_GROUP_CLUSTER_NAME).equals(
+        ALERT_GROUP_CLUSTER_NAME).and().property(
+        AlertGroupResourceProvider.ALERT_GROUP_ID).equals(
+        ALERT_GROUP_ID.toString()).toPredicate();
+
+    Request request = PropertyHelper.getUpdateRequest(requestProps, null);
+    provider.updateResources(request, predicate);
+
+    assertTrue(entityCapture.hasCaptured());
+
+    AlertGroupEntity entity = entityCapture.getValue();
+    assertEquals(ALERT_GROUP_NAME, entity.getGroupName());
+    assertEquals(2, entity.getAlertTargets().size());
+    assertEquals(1, entity.getAlertDefinitions().size());
+
+    verify(m_dao, m_definitionDao);
+  }
+
+  /**
    * @throws Exception
    */
   @Test

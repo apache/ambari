@@ -17,13 +17,20 @@
  */
 package org.apache.ambari.server.state.alerts;
 
+import java.lang.reflect.Field;
+
 import junit.framework.Assert;
 
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.events.AlertDefinitionDeleteEvent;
 import org.apache.ambari.server.events.AmbariEvent;
+import org.apache.ambari.server.events.listeners.AlertLifecycleListener;
 import org.apache.ambari.server.events.listeners.AlertServiceStateListener;
+import org.apache.ambari.server.events.listeners.AlertStateChangedListener;
+import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.AlertDispatchDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
@@ -33,10 +40,15 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceFactory;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.alert.AggregateDefinitionMapping;
+import org.apache.ambari.server.state.alert.AggregateSource;
+import org.apache.ambari.server.state.alert.AlertDefinition;
+import org.apache.ambari.server.state.alert.Scope;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.google.common.eventbus.EventBus;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
@@ -55,6 +67,9 @@ public class AlertEventPublisherTest {
   private Injector injector;
   private ServiceFactory serviceFactory;
   private AmbariMetaInfo metaInfo;
+  private OrmTestHelper ormHelper;
+  private AggregateDefinitionMapping aggregateMapping;
+  private AmbariEventPublisher eventPublisher;
 
   /**
    *
@@ -64,13 +79,25 @@ public class AlertEventPublisherTest {
     injector = Guice.createInjector(new InMemoryDefaultTestModule());
     injector.getInstance(GuiceJpaInitializer.class);
 
+    eventPublisher = injector.getInstance(AmbariEventPublisher.class);
+    EventBus synchronizedBus = new EventBus();
+
     // force singleton init via Guice so the listener registers with the bus
-    injector.getInstance(AlertServiceStateListener.class);
+    synchronizedBus.register(injector.getInstance(AlertLifecycleListener.class));
+    synchronizedBus.register(injector.getInstance(AlertStateChangedListener.class));
+    synchronizedBus.register(injector.getInstance(AlertServiceStateListener.class));
+
+    // !!! need a synchronous op for testing
+    Field field = AmbariEventPublisher.class.getDeclaredField("m_eventBus");
+    field.setAccessible(true);
+    field.set(eventPublisher, synchronizedBus);
 
     dispatchDao = injector.getInstance(AlertDispatchDAO.class);
     definitionDao = injector.getInstance(AlertDefinitionDAO.class);
     clusters = injector.getInstance(Clusters.class);
     serviceFactory = injector.getInstance(ServiceFactory.class);
+    ormHelper = injector.getInstance(OrmTestHelper.class);
+    aggregateMapping = injector.getInstance(AggregateDefinitionMapping.class);
 
     metaInfo = injector.getInstance(AmbariMetaInfo.class);
     metaInfo.init();
@@ -107,7 +134,7 @@ public class AlertEventPublisherTest {
   /**
    * Tests that all {@link AlertDefinitionEntity} instances are created for the
    * installed service.
-   * 
+   *
    * @throws Exception
    */
   @Test
@@ -115,6 +142,43 @@ public class AlertEventPublisherTest {
     Assert.assertEquals(0, definitionDao.findAll().size());
     installHdfsService();
     Assert.assertEquals(4, definitionDao.findAll().size());
+  }
+
+  /**
+   * Tests that {@link AlertDefinitionDeleteEvent} instances are fired when a
+   * definition is removed.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testAlertDefinitionRemoval() throws Exception {
+    Assert.assertEquals(0, definitionDao.findAll().size());
+    AlertDefinitionEntity definition = ormHelper.createAlertDefinition(1L);
+    Assert.assertEquals(1, definitionDao.findAll().size());
+
+    AggregateSource source = new AggregateSource();
+    source.setAlertName(definition.getDefinitionName());
+
+    AlertDefinition aggregate = new AlertDefinition();
+    aggregate.setClusterId(1L);
+    aggregate.setComponentName("DATANODE");
+    aggregate.setEnabled(true);
+    aggregate.setInterval(1);
+    aggregate.setLabel("DataNode Aggregate");
+    aggregate.setName("datanode_aggregate");
+    aggregate.setScope(Scope.ANY);
+    aggregate.setServiceName("HDFS");
+    aggregate.setSource(source);
+    aggregate.setUuid("uuid");
+
+    aggregateMapping.registerAggregate(1L, aggregate);
+    Assert.assertNotNull(aggregateMapping.getAggregateDefinition(1L,
+        source.getAlertName()));
+
+    definitionDao.remove(definition);
+
+    Assert.assertNull(aggregateMapping.getAggregateDefinition(1L,
+        source.getAlertName()));
   }
 
   /**

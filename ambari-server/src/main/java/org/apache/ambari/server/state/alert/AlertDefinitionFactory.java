@@ -125,6 +125,7 @@ public class AlertDefinitionFactory {
     }
 
     AlertDefinition definition = new AlertDefinition();
+    definition.setClusterId(entity.getClusterId());
     definition.setComponentName(entity.getComponentName());
     definition.setEnabled(entity.getEnabled());
     definition.setInterval(entity.getScheduleInterval());

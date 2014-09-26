@@ -262,6 +262,264 @@ public class AlertDefinitionHash {
 
 
   /**
+   * Invalidate the hashes of any host that would be affected by the specified
+   * definition.
+   *
+   * @param definition
+   *          the definition to use to find the hosts to invlidate (not
+   *          {@code null}).
+   * @return the hosts that were invalidated, or an empty set (never
+   *         {@code null}).
+   */
+  public Set<String> invalidateHosts(AlertDefinitionEntity definition) {
+    return invalidateHosts(definition.getClusterId(),
+        definition.getDefinitionName(), definition.getServiceName(),
+        definition.getComponentName());
+  }
+
+  /**
+   * Invalidate the hashes of any host that would be affected by the specified
+   * definition.
+   *
+   * @param definition
+   *          the definition to use to find the hosts to invlidate (not
+   *          {@code null}).
+   * @return the hosts that were invalidated, or an empty set (never
+   *         {@code null}).
+   */
+  public Set<String> invalidateHosts(AlertDefinition definition) {
+    return invalidateHosts(definition.getClusterId(), definition.getName(),
+        definition.getServiceName(), definition.getComponentName());
+  }
+
+  /**
+   * Invalidate the hashes of any host that would be affected by the specified
+   * definition.
+   *
+   * @param clusterId
+   *          the cluster ID
+   * @param definitionName
+   *          the definition unique name.
+   * @param definitionServiceName
+   *          the definition's service name.
+   * @param definitionComponentName
+   *          the definition's component name.
+   * @return the hosts that were invalidated, or an empty set (never
+   *         {@code null}).
+   */
+  public Set<String> invalidateHosts(long clusterId, String definitionName,
+      String definitionServiceName, String definitionComponentName) {
+    Set<String> invalidatedHosts = new HashSet<String>();
+
+    Cluster cluster = null;
+    Map<String, Host> hosts = null;
+    String clusterName = null;
+    try {
+      cluster = m_clusters.getClusterById(clusterId);
+      if (null != cluster) {
+        clusterName = cluster.getClusterName();
+        hosts = m_clusters.getHostsForCluster(clusterName);
+      }
+
+      if (null == cluster) {
+        LOG.warn("Unable to lookup cluster with ID {}", clusterId);
+      }
+    } catch (Exception exception) {
+      LOG.error("Unable to lookup cluster with ID {}", clusterId, exception);
+    }
+
+    if (null == cluster) {
+      return invalidatedHosts;
+    }
+
+    // intercept host agent alerts; they affect all hosts
+    if (Services.AMBARI.equals(definitionServiceName)
+        && Components.AMBARI_AGENT.equals(definitionComponentName)) {
+
+      invalidateAll();
+      invalidatedHosts.addAll(hosts.keySet());
+      return invalidatedHosts;
+    }
+
+    // find all hosts that have the matching service and component
+    for (String hostName : hosts.keySet()) {
+      List<ServiceComponentHost> hostComponents = cluster.getServiceComponentHosts(hostName);
+      if (null == hostComponents || hostComponents.size() == 0) {
+        continue;
+      }
+
+      // if a host has a matching service/component, invalidate it
+      for (ServiceComponentHost component : hostComponents) {
+        String serviceName = component.getServiceName();
+        String componentName = component.getServiceComponentName();
+        if (serviceName.equals(definitionServiceName)
+            && componentName.equals(definitionComponentName)) {
+          invalidate(clusterName, hostName);
+          invalidatedHosts.add(hostName);
+        }
+      }
+    }
+
+    // get the service that this alert definition is associated with
+    Map<String, Service> services = cluster.getServices();
+    Service service = services.get(definitionServiceName);
+    if (null == service) {
+      LOG.warn("The alert definition {} has an unknown service of {}",
+          definitionName, definitionServiceName);
+
+      return invalidatedHosts;
+    }
+
+    // get all master components of the definition's service; any hosts that
+    // run the master should be invalidated as well
+    Map<String, ServiceComponent> components = service.getServiceComponents();
+    if (null != components) {
+      for (Entry<String, ServiceComponent> component : components.entrySet()) {
+        if (component.getValue().isMasterComponent()) {
+          Map<String, ServiceComponentHost> componentHosts = component.getValue().getServiceComponentHosts();
+          if (null != componentHosts) {
+            for (String componentHost : componentHosts.keySet()) {
+              invalidate(clusterName, componentHost);
+              invalidatedHosts.add(componentHost);
+            }
+          }
+        }
+      }
+    }
+
+    return invalidatedHosts;
+  }
+
+  /**
+   * Enqueue {@link AlertDefinitionCommand}s for every host specified so that
+   * they will receive a payload of alert definitions that they should be
+   * running.
+   * <p/>
+   * This method is typically called after
+   * {@link #invalidateHosts(AlertDefinitionEntity)} has caused a cache
+   * invalidation of the alert definition hash.
+   *
+   * @param clusterName
+   *          the name of the cluster (not {@code null}).
+   * @param hosts
+   *          the hosts to push {@link AlertDefinitionCommand}s for.
+   */
+  public void enqueueAgentCommands(long clusterId, Set<String> hosts) {
+    String clusterName = null;
+
+    try {
+      Cluster cluster = m_clusters.getClusterById(clusterId);
+      clusterName = cluster.getClusterName();
+    } catch (AmbariException ae) {
+      LOG.error("Unable to lookup cluster for alert definition commands", ae);
+    }
+
+    enqueueAgentCommands(clusterName, hosts);
+  }
+
+  /**
+   * Enqueue {@link AlertDefinitionCommand}s for every host specified so that
+   * they will receive a payload of alert definitions that they should be
+   * running.
+   * <p/>
+   * This method is typically called after
+   * {@link #invalidateHosts(AlertDefinitionEntity)} has caused a cache
+   * invalidation of the alert definition hash.
+   *
+   * @param clusterName
+   *          the name of the cluster (not {@code null}).
+   * @param hosts
+   *          the hosts to push {@link AlertDefinitionCommand}s for.
+   */
+  public void enqueueAgentCommands(String clusterName, Set<String> hosts) {
+    if (null == clusterName) {
+      LOG.warn("Unable to create alert definition agent commands because of a null cluster name");
+      return;
+    }
+
+    if (null == hosts || hosts.size() == 0) {
+      return;
+    }
+
+    for (String hostName : hosts) {
+      List<AlertDefinition> definitions = getAlertDefinitions(clusterName,
+          hostName);
+
+      String hash = getHash(clusterName, hostName);
+
+      AlertDefinitionCommand command = new AlertDefinitionCommand(clusterName,
+          hostName, hash, definitions);
+
+      try {
+        Cluster cluster = m_clusters.getCluster(clusterName);
+        command.addConfigs(m_configHelper.get(), cluster);
+      } catch (AmbariException ae) {
+        LOG.warn("Unable to add configurations to alert definition command", ae);
+      }
+
+      // unlike other commands, the alert definitions commands are really
+      // designed to be 1:1 per change; if multiple invalidations happened
+      // before the next heartbeat, there would be several commands that would
+      // force the agents to reschedule their alerts more than once
+      m_actionQueue.dequeue(hostName, AgentCommandType.ALERT_DEFINITION_COMMAND);
+      m_actionQueue.enqueue(hostName, command);
+    }
+  }
+
+  /**
+   * Calculates a unique hash value representing all of the alert definitions
+   * that should be scheduled to run on a given host. Alerts of type
+   * {@link SourceType#AGGREGATE} are not included in the hash since they are
+   * not run on the agents.
+   *
+   * @param clusterName
+   *          the cluster name (not {@code null}).
+   * @param hostName
+   *          the host name (not {@code null}).
+   * @return the unique hash or {@value #NULL_MD5_HASH} if none.
+   */
+  private String hash(String clusterName, String hostName) {
+    Set<AlertDefinitionEntity> definitions = getAlertDefinitionEntities(
+        clusterName,
+        hostName);
+
+    // no definitions found for this host, don't bother hashing
+    if( null == definitions || definitions.size() == 0 ) {
+      return NULL_MD5_HASH;
+    }
+
+    // strip out all AGGREGATE types
+    Iterator<AlertDefinitionEntity> iterator = definitions.iterator();
+    while (iterator.hasNext()) {
+      if (SourceType.AGGREGATE.equals(iterator.next().getSourceType())) {
+        iterator.remove();
+      }
+    }
+
+    // build the UUIDs
+    List<String> uuids = new ArrayList<String>(definitions.size());
+    for (AlertDefinitionEntity definition : definitions) {
+      uuids.add(definition.getHash());
+    }
+
+    // sort the UUIDs so that the digest is created with bytes in the same order
+    Collections.sort(uuids);
+
+    try {
+      MessageDigest digest = MessageDigest.getInstance("MD5");
+      for (String uuid : uuids) {
+        digest.update(uuid.getBytes());
+      }
+
+      byte[] hashBytes = digest.digest();
+      return Hex.encodeHexString(hashBytes);
+    } catch (NoSuchAlgorithmException nsae) {
+      LOG.warn("Unable to calculate MD5 alert definition hash", nsae);
+      return NULL_MD5_HASH;
+    }
+  }
+
+  /**
    * Gets the alert definition entities for the specified host. This will include the
    * following types of alert definitions:
    * <ul>
@@ -341,202 +599,5 @@ public class AlertDefinitionHash {
     }
 
     return definitions;
-  }
-
-  /**
-   * Invalidate the hashes of any host that would be affected by the specified
-   * definition.
-   *
-   * @param definition
-   *          the definition to use to find the hosts to invlidate (not
-   *          {@code null}).
-   * @return the hosts that were invalidated, or an empty set (never
-   *         {@code null}).
-   */
-  public Set<String> invalidateHosts(AlertDefinitionEntity definition) {
-    long clusterId = definition.getClusterId();
-    Set<String> invalidatedHosts = new HashSet<String>();
-
-    Cluster cluster = null;
-    Map<String, Host> hosts = null;
-    String clusterName = null;
-    try {
-      cluster = m_clusters.getClusterById(clusterId);
-      if (null != cluster) {
-        clusterName = cluster.getClusterName();
-        hosts = m_clusters.getHostsForCluster(clusterName);
-      }
-
-      if (null == cluster) {
-        LOG.warn("Unable to lookup cluster with ID {}", clusterId);
-      }
-    } catch (Exception exception) {
-      LOG.error("Unable to lookup cluster with ID {}", clusterId, exception);
-    }
-
-    if (null == cluster) {
-      return invalidatedHosts;
-    }
-
-    // intercept host agent alerts; they affect all hosts
-    String definitionServiceName = definition.getServiceName();
-    String definitionComponentName = definition.getComponentName();
-    if (Services.AMBARI.equals(definitionServiceName)
-        && Components.AMBARI_AGENT.equals(definitionComponentName)) {
-
-      invalidateAll();
-      invalidatedHosts.addAll(hosts.keySet());
-      return invalidatedHosts;
-    }
-
-    // find all hosts that have the matching service and component
-    for (String hostName : hosts.keySet()) {
-      List<ServiceComponentHost> hostComponents = cluster.getServiceComponentHosts(hostName);
-      if (null == hostComponents || hostComponents.size() == 0) {
-        continue;
-      }
-
-      // if a host has a matching service/component, invalidate it
-      for (ServiceComponentHost component : hostComponents) {
-        String serviceName = component.getServiceName();
-        String componentName = component.getServiceComponentName();
-        if (serviceName.equals(definitionServiceName)
-            && componentName.equals(definitionComponentName)) {
-          invalidate(clusterName, hostName);
-          invalidatedHosts.add(hostName);
-        }
-      }
-    }
-
-    // get the service that this alert definition is associated with
-    Map<String, Service> services = cluster.getServices();
-    Service service = services.get(definitionServiceName);
-    if (null == service) {
-      LOG.warn("The alert definition {} has an unknown service of {}",
-          definition.getDefinitionName(), definitionServiceName);
-
-      return invalidatedHosts;
-    }
-
-    // get all master components of the definition's service; any hosts that
-    // run the master should be invalidated as well
-    Map<String, ServiceComponent> components = service.getServiceComponents();
-    if (null != components) {
-      for (Entry<String, ServiceComponent> component : components.entrySet()) {
-        if (component.getValue().isMasterComponent()) {
-          Map<String, ServiceComponentHost> componentHosts = component.getValue().getServiceComponentHosts();
-          if (null != componentHosts) {
-            for (String componentHost : componentHosts.keySet()) {
-              invalidate(clusterName, componentHost);
-              invalidatedHosts.add(componentHost);
-            }
-          }
-        }
-      }
-    }
-
-    return invalidatedHosts;
-  }
-
-  /**
-   * Calculates a unique hash value representing all of the alert definitions
-   * that should be scheduled to run on a given host. Alerts of type
-   * {@link SourceType#AGGREGATE} are not included in the hash since they are
-   * not run on the agents.
-   *
-   * @param clusterName
-   *          the cluster name (not {@code null}).
-   * @param hostName
-   *          the host name (not {@code null}).
-   * @return the unique hash or {@value #NULL_MD5_HASH} if none.
-   */
-  private String hash(String clusterName, String hostName) {
-    Set<AlertDefinitionEntity> definitions = getAlertDefinitionEntities(
-        clusterName,
-        hostName);
-
-    // no definitions found for this host, don't bother hashing
-    if( null == definitions || definitions.size() == 0 ) {
-      return NULL_MD5_HASH;
-    }
-
-    // strip out all AGGREGATE types
-    Iterator<AlertDefinitionEntity> iterator = definitions.iterator();
-    while (iterator.hasNext()) {
-      if (SourceType.AGGREGATE.equals(iterator.next().getSourceType())) {
-        iterator.remove();
-      }
-    }
-
-    // build the UUIDs
-    List<String> uuids = new ArrayList<String>(definitions.size());
-    for (AlertDefinitionEntity definition : definitions) {
-      uuids.add(definition.getHash());
-    }
-
-    // sort the UUIDs so that the digest is created with bytes in the same order
-    Collections.sort(uuids);
-
-    try {
-      MessageDigest digest = MessageDigest.getInstance("MD5");
-      for (String uuid : uuids) {
-        digest.update(uuid.getBytes());
-      }
-
-      byte[] hashBytes = digest.digest();
-      return Hex.encodeHexString(hashBytes);
-    } catch (NoSuchAlgorithmException nsae) {
-      LOG.warn("Unable to calculate MD5 alert definition hash", nsae);
-      return NULL_MD5_HASH;
-    }
-  }
-
-  /**
-   * Enqueue {@link AlertDefinitionCommand}s for every host specified so that
-   * they will receive a payload of alert definitions that they should be
-   * running.
-   * <p/>
-   * This method is typically called after
-   * {@link #invalidateHosts(AlertDefinitionEntity)} has caused a cache
-   * invalidation of the alert definition hash.
-   *
-   * @param clusterName
-   *          the name of the cluster (not {@code null}).
-   * @param hosts
-   *          the hosts to push {@link AlertDefinitionCommand}s for.
-   */
-  public void enqueueAgentCommands(String clusterName, Set<String> hosts) {
-    if (null == clusterName) {
-      LOG.warn("Unable to create alert definition agent commands because of a null cluster name");
-      return;
-    }
-
-    if (null == hosts || hosts.size() == 0) {
-      return;
-    }
-
-    for (String hostName : hosts) {
-      List<AlertDefinition> definitions = getAlertDefinitions(clusterName,
-          hostName);
-
-      String hash = getHash(clusterName, hostName);
-
-      AlertDefinitionCommand command = new AlertDefinitionCommand(clusterName,
-          hostName, hash, definitions);
-
-      try {
-        Cluster cluster = m_clusters.getCluster(clusterName);
-        command.addConfigs(m_configHelper.get(), cluster);
-      } catch (AmbariException ae) {
-        LOG.warn("Unable to add configurations to alert definition command", ae);
-      }
-
-      // unlike other commands, the alert definitions commands are really
-      // designed to be 1:1 per change; if multiple invalidations happened
-      // before the next heartbeat, there would be several commands that would
-      // force the agents to reschedule their alerts more than once
-      m_actionQueue.dequeue(hostName, AgentCommandType.ALERT_DEFINITION_COMMAND);
-      m_actionQueue.enqueue(hostName, command);
-    }
   }
 }

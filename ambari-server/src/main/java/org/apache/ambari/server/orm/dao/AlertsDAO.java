@@ -515,6 +515,7 @@ public class AlertsDAO {
     query.setParameter("clusterId", Long.valueOf(clusterId));
     query.setParameter("definitionName", alertName);
 
+    query = setQueryRefreshHint(query);
     return daoUtils.selectOne(query);
   }
 

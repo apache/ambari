@@ -314,10 +314,6 @@ public class AlertGroupResourceProvider extends
       Collection<Long> targetIds = (Collection<Long>) requestMap.get(ALERT_GROUP_TARGETS);
       Collection<Long> definitionIds = (Collection<Long>) requestMap.get(ALERT_GROUP_DEFINITIONS);
 
-      if (!StringUtils.isBlank(name)) {
-        entity.setGroupName(name);
-      }
-
       // if targets were supplied, replace existing
       Set<AlertTargetEntity> targets = new HashSet<AlertTargetEntity>();
       if (null != targetIds && targetIds.size() > 0) {
@@ -331,17 +327,26 @@ public class AlertGroupResourceProvider extends
         entity.setAlertTargets(targets);
       }
 
-      // if definitions were supplied, replace existing
-      Set<AlertDefinitionEntity> definitions = new HashSet<AlertDefinitionEntity>();
-      if (null != definitionIds && definitionIds.size() > 0) {
-        List<Long> ids = new ArrayList<Long>(definitionIds.size());
-        ids.addAll(definitionIds);
-        definitions.addAll(s_definitionDao.findByIds(ids));
+      // only the targets should be updatable on default groups; everything
+      // else is valid only on regular groups
+      if (!entity.isDefault()) {
+        // set the name if supplied
+        if (!StringUtils.isBlank(name)) {
+          entity.setGroupName(name);
+        }
 
-        entity.setAlertDefinitions(definitions);
-      } else if (definitionIds.size() == 0) {
-        // empty array supplied, clear out existing definitions
-        entity.setAlertDefinitions(definitions);
+        // if definitions were supplied, replace existing
+        Set<AlertDefinitionEntity> definitions = new HashSet<AlertDefinitionEntity>();
+        if (null != definitionIds && definitionIds.size() > 0) {
+          List<Long> ids = new ArrayList<Long>(definitionIds.size());
+          ids.addAll(definitionIds);
+          definitions.addAll(s_definitionDao.findByIds(ids));
+
+          entity.setAlertDefinitions(definitions);
+        } else {
+          // empty array supplied, clear out existing definitions
+          entity.setAlertDefinitions(definitions);
+        }
       }
 
       s_dao.merge(entity);

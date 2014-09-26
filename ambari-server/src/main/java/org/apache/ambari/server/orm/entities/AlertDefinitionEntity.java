@@ -17,7 +17,9 @@
  */
 package org.apache.ambari.server.orm.entities;
 
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 
 import javax.persistence.Basic;
@@ -363,7 +365,7 @@ public class AlertDefinitionEntity {
    * @return the groups, or {@code null} if none.
    */
   public Set<AlertGroupEntity> getAlertGroups() {
-    return alertGroups;
+    return Collections.unmodifiableSet(alertGroups);
   }
 
   /**
@@ -418,7 +420,7 @@ public class AlertDefinitionEntity {
    * @param alertGroup
    */
   protected void removeAlertGroup(AlertGroupEntity alertGroup) {
-    if (null != alertGroups) {
+    if (null != alertGroups && alertGroups.contains(alertGroup)) {
       alertGroups.remove(alertGroup);
     }
   }
@@ -429,12 +431,15 @@ public class AlertDefinitionEntity {
    */
   @PreRemove
   public void preRemove() {
-    Set<AlertGroupEntity> groups = getAlertGroups();
-    if (null == groups || groups.size() == 0) {
+    if (null == alertGroups || alertGroups.size() == 0) {
       return;
     }
 
-    for (AlertGroupEntity group : groups) {
+    Iterator<AlertGroupEntity> iterator = alertGroups.iterator();
+    while (iterator.hasNext()) {
+      AlertGroupEntity group = iterator.next();
+      iterator.remove();
+
       group.removeAlertDefinition(this);
     }
   }

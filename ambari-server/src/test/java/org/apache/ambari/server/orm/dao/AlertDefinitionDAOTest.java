@@ -118,7 +118,7 @@ public class AlertDefinitionDAOTest {
       definition.setHash(UUID.randomUUID().toString());
       definition.setScheduleInterval(60);
       definition.setScope(Scope.SERVICE);
-      definition.setSource("Source " + i);
+      definition.setSource("{\"type\" : \"SCRIPT\"}");
       definition.setSourceType(SourceType.SCRIPT);
       dao.create(definition);
     }
@@ -133,7 +133,7 @@ public class AlertDefinitionDAOTest {
       definition.setHash(UUID.randomUUID().toString());
       definition.setScheduleInterval(60);
       definition.setScope(Scope.HOST);
-      definition.setSource("Source " + i);
+      definition.setSource("{\"type\" : \"SCRIPT\"}");
       definition.setSourceType(SourceType.SCRIPT);
       dao.create(definition);
     }
@@ -148,7 +148,7 @@ public class AlertDefinitionDAOTest {
       definition.setHash(UUID.randomUUID().toString());
       definition.setScheduleInterval(60);
       definition.setScope(Scope.HOST);
-      definition.setSource("Source " + i);
+      definition.setSource("{\"type\" : \"SCRIPT\"}");
       definition.setSourceType(SourceType.SCRIPT);
       dao.create(definition);
     }

@@ -56,6 +56,7 @@ class TestAlerts(TestCase):
       "label": "NameNode process",
       "interval": 6,
       "scope": "host",
+      "uuid": "c1f73191-4481-4435-8dae-fd380e4c0be1",
       "source": {
         "type": "PORT",
         "uri": "{{hdfs-site/my-key}}",
@@ -86,6 +87,7 @@ class TestAlerts(TestCase):
       "label": "NameNode process",
       "interval": 6,
       "scope": "host",
+      "uuid": "c1f73191-4481-4435-8dae-fd380e4c0be1",
       "source": {
         "type": "PORT",
         "uri": "http://c6401.ambari.apache.org",
@@ -115,6 +117,7 @@ class TestAlerts(TestCase):
       "label": "NameNode process",
       "interval": 6,
       "scope": "host",
+      "uuid": "c1f73191-4481-4435-8dae-fd380e4c0be1",
       "source": {
         "type": "SCRIPT",
         "path": "test_script.py",
@@ -152,6 +155,7 @@ class TestAlerts(TestCase):
       "label": "NameNode process",
       "interval": 6,
       "scope": "host",
+      "uuid": "c1f73191-4481-4435-8dae-fd380e4c0be1",
       "source": {
         "type": "METRIC",
         "uri": "http://myurl:8633",
@@ -196,4 +200,50 @@ class TestAlerts(TestCase):
 
     self.assertEquals('OK', collector.alerts()[0]['state'])
     self.assertEquals('ok_arr: 1 3 None', collector.alerts()[0]['text'])
+    
+  def test_reschedule(self):
+    test_file_path = os.path.join('ambari_agent', 'dummy_files')
+    test_stack_path = os.path.join('ambari_agent', 'dummy_files')
+
+    ash = AlertSchedulerHandler(test_file_path, test_stack_path)
+    ash.start()
+    ash.reschedule()
+        
+  
+  def test_alert_collector_purge(self):
+    json = { "name": "namenode_process",
+      "service": "HDFS",
+      "component": "NAMENODE",
+      "label": "NameNode process",
+      "interval": 6,
+      "scope": "host",
+      "uuid": "c1f73191-4481-4435-8dae-fd380e4c0be1",
+      "source": {
+        "type": "PORT",
+        "uri": "{{hdfs-site/my-key}}",
+        "default_port": 50070,
+        "reporting": {
+          "ok": {
+            "text": "TCP OK - {0:.4f} response time on port {1}"
+          },
+          "critical": {
+            "text": "Could not load process info: {0}"
+          }
+        }
+      }
+    }
+
+    collector = AlertCollector()
+
+    pa = PortAlert(json, json['source'])
+    pa.set_helpers(collector, {'hdfs-site/my-key': 'value1'})
+    self.assertEquals(6, pa.interval())
+
+    res = pa.collect()
+    
+    self.assertIsNotNone(collector.alerts()[0])
+    self.assertEquals('CRITICAL', collector.alerts()[0]['state'])
+    
+    collector.remove_by_uuid('c1f73191-4481-4435-8dae-fd380e4c0be1')
+    self.assertEquals(0,len(collector.alerts()))
     

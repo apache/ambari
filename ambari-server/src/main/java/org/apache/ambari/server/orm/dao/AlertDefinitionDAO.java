@@ -25,6 +25,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 
 import org.apache.ambari.server.controller.RootServiceResponseFactory;
+import org.apache.ambari.server.events.AlertDefinitionDeleteEvent;
 import org.apache.ambari.server.events.AlertDefinitionRegistrationEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
@@ -363,6 +364,18 @@ public class AlertDefinitionDAO {
     alertDefinition = findById(alertDefinition.getDefinitionId());
     if (null != alertDefinition) {
       entityManager.remove(alertDefinition);
+    }
+
+    // publish the alert definition removal
+    AlertDefinition coerced = alertDefinitionFactory.coerce(alertDefinition);
+    if (null != coerced) {
+      AlertDefinitionDeleteEvent event = new AlertDefinitionDeleteEvent(
+          alertDefinition.getClusterId(), coerced);
+
+      eventPublisher.publish(event);
+    } else {
+      LOG.warn("Unable to broadcast alert removal event for {}",
+          alertDefinition.getDefinitionName());
     }
   }
 

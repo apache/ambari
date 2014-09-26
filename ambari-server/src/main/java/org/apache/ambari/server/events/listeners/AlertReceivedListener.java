@@ -101,6 +101,14 @@ public class AlertReceivedListener {
       AlertDefinitionEntity definition = m_definitionDao.findByName(clusterId,
           alert.getName());
 
+      if (null == definition) {
+        LOG.warn(
+            "Received an alert for {} which is a definition that does not exist anymore",
+            alert.getName());
+
+        return;
+      }
+
       AlertHistoryEntity history = createHistory(clusterId, definition, alert);
 
       current = new AlertCurrentEntity();

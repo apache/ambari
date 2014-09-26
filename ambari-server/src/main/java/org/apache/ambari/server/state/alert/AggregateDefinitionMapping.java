@@ -19,6 +19,7 @@ package org.apache.ambari.server.state.alert;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.google.inject.Singleton;
 
@@ -33,7 +34,8 @@ public final class AggregateDefinitionMapping {
    * In-memory mapping of cluster ID to definition name / aggregate definition.
    * This is used for fast lookups when receiving events.
    */
-  private Map<Long, Map<String, AlertDefinition>> m_aggregateMap = new HashMap<Long, Map<String, AlertDefinition>>();
+  private Map<Long, Map<String, AlertDefinition>> m_aggregateMap =
+      new ConcurrentHashMap<Long, Map<String, AlertDefinition>>();
 
   /**
    * Constructor.
@@ -69,10 +71,10 @@ public final class AggregateDefinitionMapping {
    *
    * @param clusterId
    *          the ID of the cluster that the definition is bound to.
-   * @param name
-   *          the unique name of the definition.
+   * @param definition
+   *          the aggregate definition to register (not {@code null}).
    */
-  public void addAggregateType(long clusterId, AlertDefinition definition) {
+  public void registerAggregate(long clusterId, AlertDefinition definition) {
     Long id = Long.valueOf(clusterId);
 
     if (!m_aggregateMap.containsKey(id)) {
@@ -84,5 +86,26 @@ public final class AggregateDefinitionMapping {
     AggregateSource as = (AggregateSource) definition.getSource();
 
     map.put(as.getAlertName(), definition);
+  }
+
+  /**
+   * Removes the associated aggregate for the specified aggregated definition.
+   *
+   * @param clusterId
+   *          the ID of the cluster that the definition is bound to.
+   * @param name
+   *          the unique name of the definition for which aggregates should be
+   *          unassociated (not {@code null}).
+   */
+  public void removeAssociatedAggregate(long clusterId,
+      String aggregatedDefinitonName) {
+    Long id = Long.valueOf(clusterId);
+
+    if (!m_aggregateMap.containsKey(id)) {
+      return;
+    }
+
+    Map<String, AlertDefinition> map = m_aggregateMap.get(id);
+    map.remove(aggregatedDefinitonName);
   }
 }

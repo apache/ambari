@@ -16,6 +16,7 @@
         "label": "NameNode process",
         "interval": 6,
         "scope": "host",
+        "uuid": "3f82ae27-fa6a-465b-b77d-67963ac55d2f",
         "source": {
           "type": "PORT",
           "uri": "{{hdfs-site/dfs.namenode.http-address}}",

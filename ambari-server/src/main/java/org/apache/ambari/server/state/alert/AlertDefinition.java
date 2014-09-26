@@ -34,6 +34,7 @@ import java.util.HashSet;
  */
 public class AlertDefinition {
 
+  private long clusterId;
   private String serviceName = null;
   private String componentName = null;
 
@@ -44,6 +45,24 @@ public class AlertDefinition {
   private Source source = null;
   private String label = null;
   private String uuid = null;
+
+  /**
+   * Gets the cluster ID for this definition.
+   *
+   * @return
+   */
+  public long getClusterId() {
+    return clusterId;
+  }
+
+  /**
+   * Sets the cluster ID for this definition.
+   *
+   * @param clusterId
+   */
+  public void setClusterId(long clusterId) {
+    this.clusterId = clusterId;
+  }
 
   /**
    * @return the service name
