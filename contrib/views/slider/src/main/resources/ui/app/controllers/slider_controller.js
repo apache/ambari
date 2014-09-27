@@ -88,14 +88,13 @@ App.SliderController = Ember.Controller.extend({
     var gangliaCustomClusters = [];
     //parse CSV string with cluster names and ports
     if (!Em.isNone(prop)) {
-      prop.replace(/\'/g, "").split(',').forEach(function(item, index){
-        if (index % 2 === 0) {
+      prop.replace(/\'/g, "").split(',').forEach(function(item){
+        var splits = item.split(':');
+        if (splits.length > 1) {
           gangliaCustomClusters.push({
-            name: item
+            name: splits[0],
+            port: splits[1]
           })
-        }
-        else {
-          gangliaCustomClusters[gangliaCustomClusters.length - 1].port = parseInt(item);
         }
       });
     }
