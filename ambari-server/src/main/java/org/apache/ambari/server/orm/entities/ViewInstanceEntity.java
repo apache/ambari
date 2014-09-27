@@ -23,9 +23,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import javax.persistence.Basic;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -47,6 +44,7 @@ import javax.persistence.UniqueConstraint;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.security.SecurityHelper;
 import org.apache.ambari.server.security.SecurityHelperImpl;
+import org.apache.ambari.server.security.authorization.AmbariAuthorizationFilter;
 import org.apache.ambari.server.view.configuration.InstanceConfig;
 import org.apache.ambari.view.ResourceProvider;
 import org.apache.ambari.view.ViewDefinition;
@@ -70,15 +68,6 @@ import org.apache.ambari.view.ViewInstanceDefinition;
 )
 @Entity
 public class ViewInstanceEntity implements ViewInstanceDefinition {
-  /**
-   * The prefix for every view instance context path.
-   */
-  public static final String VIEWS_CONTEXT_PATH_PREFIX = "/views/";
-
-  /**
-   * The pattern for matching view instance context path.
-   */
-  public static final String VIEWS_CONTEXT_PATH_PATTERN = "" + VIEWS_CONTEXT_PATH_PREFIX + "([^/]+)/([^/]+)/([^/]+)(.*)";
 
   @Id
   @Column(name = "view_instance_id", nullable = false)
@@ -680,26 +669,7 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
    * @return the context path
    */
   public static String getContextPath(String viewName, String version, String viewInstanceName) {
-    return VIEWS_CONTEXT_PATH_PREFIX + viewName + "/" + version + "/" + viewInstanceName;
-  }
-
-  /**
-   * Parses context path into view name, version and instance name
-   *
-   * @param contextPath the context path
-   * @return null if context path doesn't match correct pattern
-   */
-  public static ViewInstanceVersionDTO parseContextPath(String contextPath) {
-    final Pattern pattern = Pattern.compile(VIEWS_CONTEXT_PATH_PATTERN);
-    Matcher matcher = pattern.matcher(contextPath);
-    if (!matcher.matches()) {
-      return null;
-    } else {
-      final String viewName = matcher.group(1);
-      final String version = matcher.group(2);
-      final String instanceName = matcher.group(3);
-      return new ViewInstanceVersionDTO(viewName, version, instanceName);
-    }
+    return AmbariAuthorizationFilter.VIEWS_CONTEXT_PATH_PREFIX + viewName + "/" + version + "/" + viewInstanceName;
   }
 
   /**

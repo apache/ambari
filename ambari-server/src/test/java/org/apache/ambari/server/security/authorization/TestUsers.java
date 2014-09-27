@@ -313,4 +313,5 @@ public class TestUsers {
 
     userDAO.merge(ldapUser);
   }
+
 }
