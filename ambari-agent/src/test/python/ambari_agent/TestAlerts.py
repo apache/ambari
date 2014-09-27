@@ -34,8 +34,10 @@ class TestAlerts(TestCase):
   def setUp(self):
     pass
 
+
   def tearDown(self):
     sys.stdout == sys.__stdout__
+
 
   @patch.object(Scheduler, "add_interval_job")
   @patch.object(Scheduler, "start")
@@ -49,6 +51,7 @@ class TestAlerts(TestCase):
     self.assertTrue(aps_add_interval_job_mock.called)
     self.assertTrue(aps_start_mock.called)
 
+
   def test_port_alert(self):
     json = { "name": "namenode_process",
       "service": "HDFS",
@@ -56,6 +59,7 @@ class TestAlerts(TestCase):
       "label": "NameNode process",
       "interval": 6,
       "scope": "host",
+      "enabled": True,
       "uuid": "c1f73191-4481-4435-8dae-fd380e4c0be1",
       "source": {
         "type": "PORT",
@@ -80,6 +84,7 @@ class TestAlerts(TestCase):
 
     res = pa.collect()
 
+
   def test_port_alert_no_sub(self):
     json = { "name": "namenode_process",
       "service": "HDFS",
@@ -87,6 +92,7 @@ class TestAlerts(TestCase):
       "label": "NameNode process",
       "interval": 6,
       "scope": "host",
+      "enabled": True,
       "uuid": "c1f73191-4481-4435-8dae-fd380e4c0be1",
       "source": {
         "type": "PORT",
@@ -109,6 +115,7 @@ class TestAlerts(TestCase):
 
     res = pa.collect()
 
+
   def test_script_alert(self):
     json = {
       "name": "namenode_process",
@@ -117,6 +124,7 @@ class TestAlerts(TestCase):
       "label": "NameNode process",
       "interval": 6,
       "scope": "host",
+      "enabled": True,
       "uuid": "c1f73191-4481-4435-8dae-fd380e4c0be1",
       "source": {
         "type": "SCRIPT",
@@ -145,7 +153,8 @@ class TestAlerts(TestCase):
 
     self.assertEquals('WARNING', collector.alerts()[0]['state'])
     self.assertEquals('all is not well', collector.alerts()[0]['text'])
-   
+
+
   @patch.object(MetricAlert, "_load_jmx")
   def test_metric_alert(self, ma_load_jmx_mock):
     json = {
@@ -155,6 +164,7 @@ class TestAlerts(TestCase):
       "label": "NameNode process",
       "interval": 6,
       "scope": "host",
+      "enabled": True,
       "uuid": "c1f73191-4481-4435-8dae-fd380e4c0be1",
       "source": {
         "type": "METRIC",
@@ -201,13 +211,17 @@ class TestAlerts(TestCase):
     self.assertEquals('OK', collector.alerts()[0]['state'])
     self.assertEquals('ok_arr: 1 3 None', collector.alerts()[0]['text'])
     
+
   def test_reschedule(self):
     test_file_path = os.path.join('ambari_agent', 'dummy_files')
     test_stack_path = os.path.join('ambari_agent', 'dummy_files')
 
     ash = AlertSchedulerHandler(test_file_path, test_stack_path)
     ash.start()
+    
+    self.assertEquals(1, ash.get_job_count())
     ash.reschedule()
+    self.assertEquals(1, ash.get_job_count())
         
   
   def test_alert_collector_purge(self):
@@ -217,6 +231,7 @@ class TestAlerts(TestCase):
       "label": "NameNode process",
       "interval": 6,
       "scope": "host",
+      "enabled": True,
       "uuid": "c1f73191-4481-4435-8dae-fd380e4c0be1",
       "source": {
         "type": "PORT",
@@ -247,3 +262,54 @@ class TestAlerts(TestCase):
     collector.remove_by_uuid('c1f73191-4481-4435-8dae-fd380e4c0be1')
     self.assertEquals(0,len(collector.alerts()))
     
+
+  def test_disabled_definitions(self):
+    test_file_path = os.path.join('ambari_agent', 'dummy_files')
+    test_stack_path = os.path.join('ambari_agent', 'dummy_files')
+
+    ash = AlertSchedulerHandler(test_file_path, test_stack_path)
+    ash.start()
+
+    self.assertEquals(1, ash.get_job_count())
+
+    json = { "name": "namenode_process",
+      "service": "HDFS",
+      "component": "NAMENODE",
+      "label": "NameNode process",
+      "interval": 6,
+      "scope": "host",
+      "enabled": True,
+      "uuid": "c1f73191-4481-4435-8dae-fd380e4c0be1",
+      "source": {
+        "type": "PORT",
+        "uri": "{{hdfs-site/my-key}}",
+        "default_port": 50070,
+        "reporting": {
+          "ok": {
+            "text": "TCP OK - {0:.4f} response time on port {1}"
+          },
+          "critical": {
+            "text": "Could not load process info: {0}"
+          }
+        }
+      }
+    }
+
+    pa = PortAlert(json, json['source'])
+    ash.schedule_definition(pa)
+    
+    self.assertEquals(2, ash.get_job_count())
+    
+    json['enabled'] = False
+    pa = PortAlert(json, json['source'])
+    ash.schedule_definition(pa)
+    
+    # verify disabled alert not scheduled
+    self.assertEquals(2, ash.get_job_count())
+    
+    json['enabled'] = True
+    pa = PortAlert(json, json['source'])
+    ash.schedule_definition(pa)
+    
+    # verify enabled alert was scheduled
+    self.assertEquals(3, ash.get_job_count())    

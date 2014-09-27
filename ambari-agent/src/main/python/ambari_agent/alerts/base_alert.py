@@ -48,14 +48,21 @@ class BaseAlert(object):
       return 1 if interval < 1 else interval
 
 
-  def definition_name(self):
+  def is_enabled(self):
+    '''
+    gets whether the definition is enabled
+    '''
+    return self.alert_meta['enabled']
+  
+
+  def get_name(self):
     '''
     gets the unique name of the alert definition
     '''
     return self.alert_meta['name']
 
 
-  def definition_uuid(self):
+  def get_uuid(self):
     '''
     gets the unique has of the alert definition
     '''
@@ -101,6 +108,7 @@ class BaseAlert(object):
     data['component'] = self._find_value('componentName')
     data['timestamp'] = long(time.time() * 1000)
     data['uuid'] = self._find_value('uuid')
+    data['enabled'] = self._find_value('enabled')
 
     if logger.isEnabledFor(logging.DEBUG):
       logger.debug("debug alert text: {0}".format(data['text']))

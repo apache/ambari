@@ -125,7 +125,7 @@ class AlertSchedulerHandler():
       uuid_valid = False
       
       for definition in definitions:
-        definition_uuid = definition.definition_uuid()
+        definition_uuid = definition.get_uuid()
         if scheduled_job.name == definition_uuid:
           uuid_valid = True
           break
@@ -141,7 +141,7 @@ class AlertSchedulerHandler():
     for definition in definitions:
       definition_scheduled = False
       for scheduled_job in scheduled_jobs:
-        definition_uuid = definition.definition_uuid()
+        definition_uuid = definition.get_uuid()
         if definition_uuid == scheduled_job.name:
           definition_scheduled = True
           break
@@ -264,7 +264,16 @@ class AlertSchedulerHandler():
     '''
     Schedule a definition (callable). Scheduled jobs are given the UUID
     as their name so that they can be identified later on.
+    <p/>
+    This function can be called with a definition that is disabled; it will
+    simply NOOP.
     '''
+    # NOOP if the definition is disabled; don't schedule it
+    if definition.is_enabled() == False:
+      logger.info("The alert {0} with UUID {1} is disabled and will not be scheduled".format(
+          definition.get_name(),definition.get_uuid()))
+      return
+    
     job = None
 
     if self.__in_minutes:
@@ -277,10 +286,20 @@ class AlertSchedulerHandler():
     # although the documentation states that Job(kwargs) takes a name 
     # key/value pair, it does not actually set the name; do it manually
     if job is not None:
-      job.name = definition.definition_uuid()
+      job.name = definition.get_uuid()
       
     logger.info("Scheduling {0} with UUID {1}".format(
-      definition.definition_name(), definition.definition_uuid()))
+      definition.get_name(), definition.get_uuid()))
+  
+  def get_job_count(self):
+    '''
+    Gets the number of jobs currently scheduled. This is mainly used for
+    test verification of scheduling
+    '''
+    if self.__scheduler is None:
+      return 0
+    
+    return len(self.__scheduler.get_jobs())   
 
 def main():
   args = list(sys.argv)
