@@ -19,6 +19,7 @@
 package org.apache.ambari.server.security.authorization;
 
 import java.io.IOException;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.servlet.Filter;
