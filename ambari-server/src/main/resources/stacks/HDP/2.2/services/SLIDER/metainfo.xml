@@ -22,7 +22,7 @@
       <name>SLIDER</name>
       <displayName>Slider</displayName>
       <comment>Apache Slider is a YARN application to deploy existing distributed applications on YARN, monitor them and make them larger or smaller as desired -even while the application is running.</comment>
-      <version>0.51.0</version>
+      <version>0.60.0.2.2.0.0</version>
       <components>
         <component>
           <name>SLIDER</name>
@@ -78,9 +78,6 @@
       <configuration-dependencies>
         <config-type>slider-log4j</config-type>
         <config-type>slider-client</config-type>
-        <config-type>hdfs-site</config-type>
-        <config-type>yarn-site</config-type>
-        <config-type>core-site</config-type>
       </configuration-dependencies>
 
     </service>
