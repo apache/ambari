@@ -183,6 +183,7 @@ App.SliderAppsMapper = App.Mapper.createWithMixins(App.RunPeriodically, {
     );
 
     if(!data.urls){
+      App.SliderApp.store.pushMany('QuickLink', quickLinks);
       return quickLinks.mapProperty('id');
     }
 
