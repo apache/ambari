@@ -28,7 +28,7 @@
             {{view Ember.Checkbox checkedBinding="view.masterComponentsChecked"}} {{t host.host.componentFilter.master}}:
             </label>
             <ul>
-            {{#each component in masterComponents}}
+            {{#each component in view.masterComponents}}
               <li>
                 <label class="checkbox">
                 {{view Ember.Checkbox checkedBinding="component.checkedForHostFilter" }} {{unbound component.displayName}}
@@ -42,7 +42,7 @@
             {{view Ember.Checkbox checkedBinding="view.slaveComponentsChecked"}} {{t host.host.componentFilter.slave}}:
             </label>
             <ul>
-            {{#each component in slaveComponents}}
+            {{#each component in view.slaveComponents}}
               <li>
                 <label class="checkbox">
                 {{view Ember.Checkbox checkedBinding="component.checkedForHostFilter" }} {{unbound component.displayName}}
@@ -56,7 +56,7 @@
             {{view Ember.Checkbox checkedBinding="view.clientComponentsChecked"}} {{t host.host.componentFilter.client}}:
             </label>
             <ul>
-            {{#each component in clientComponents}}
+            {{#each component in view.clientComponents}}
               <li>
               <label class="checkbox">
               {{view Ember.Checkbox checkedBinding="component.checkedForHostFilter" }} {{unbound component.displayName}}
