@@ -61,10 +61,8 @@ App.ServerValidatorMixin = Em.Mixin.create({
    * @type {Array} - of strings (serviceNames)
    */
   serviceNames: function() {
-    return this.get('content.serviceName')
-        ? [this.get('content.serviceName')]
-        : App.StackService.find().filter(function(s){return s.get('isSelected') || s.get('isInstalled')}).mapProperty('serviceName');
-  }.property('content.serviceName'),
+    return this.get('content.serviceName') ? [this.get('content.serviceName')] : this.get('allSelectedServiceNames');
+  }.property('content.serviceName', 'allSelectedServiceNames.@each'),
 
   /**
    * by default loads data from model otherwise must be overridden as computed property
@@ -74,10 +72,10 @@ App.ServerValidatorMixin = Em.Mixin.create({
   services: function() {
     return this.get('content.serviceName')
         ? [App.StackService.find(this.get('content.serviceName'))]
-        : App.StackService.find().filter(function(s){
+        : this.get('content.services').filter(function(s){
           return (s.get('isSelected') || s.get('isInstalled'))
         }).concat(require("data/service_configs"));
-  }.property('content.serviceName'),
+  }.property('content.serviceName', 'content.services', 'content.services.@each.isSelected', 'content.services.@each.isInstalled', 'content.stacks.@each.isSelected'),
 
   /**
    * by default loads data from model otherwise must be overridden as computed property
