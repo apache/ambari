@@ -26,6 +26,7 @@ module.exports = Em.Route.extend({
     console.log('in /main:enter');
     router.getAuthenticated().done(function (loggedIn) {
       if (loggedIn) {
+        App.router.get('mainViewsController').loadAmbariViews();
         App.router.get('clusterController').loadClusterName(false).done(function () {
           if (App.get('testMode')) {
             router.get('mainController').initialize();

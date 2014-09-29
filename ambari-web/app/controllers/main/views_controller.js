@@ -25,10 +25,6 @@ App.MainViewsController = Em.Controller.extend({
 
   ambariViews: [],
 
-  init: function () {
-    this.loadAmbariViews();
-  },
-
   dataLoading: function () {
     var viewsController = this;
     var dfd = $.Deferred();
