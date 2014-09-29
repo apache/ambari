@@ -73,6 +73,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -472,7 +473,7 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
     yarnConfig.set("fs.defaultFS", hdfsPath);
     yarnConfig.set("slider.zookeeper.quorum", zkQuorum.toString());
     yarnConfig.set("yarn.application.classpath",
-            "/etc/hadoop/conf,/usr/lib/hadoop/*,/usr/lib/hadoop/lib/*,/usr/lib/hadoop-hdfs/*,/usr/lib/hadoop-hdfs/lib/*,/usr/lib/hadoop-yarn/*,/usr/lib/hadoop-yarn/lib/*,/usr/lib/hadoop-mapreduce/*,/usr/lib/hadoop-mapreduce/lib/*");
+            "/etc/hadoop/conf,/usr/hdp/current/hadoop/*,/usr/hdp/current/hadoop/lib/*,/usr/hdp/current/hadoop-hdfs/*,/usr/hdp/current/hadoop-hdfs/lib/*,/usr/hdp/current/hadoop-yarn/*,/usr/hdp/current/hadoop-yarn/lib/*,/usr/hdp/current/hadoop-mapreduce/*,/usr/hdp/current/hadoop-mapreduce/lib/*");
 
     if (securedCluster) {
       String rmPrincipal = viewContext.getProperties().get(PROPERTY_YARN_RM_PRINCIPAL);
@@ -711,11 +712,13 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
   public String createSliderApp(JsonObject json) throws IOException,
       YarnException, InterruptedException {
     if (json.has("name") && json.has("typeConfigs")
-        && json.has("typeComponents") && json.has("typeName")) {
+        && json.has("resources") && json.has("typeName")) {
       final String appType = json.get("typeName").getAsString();
       final String appName = json.get("name").getAsString();
+      final String queueName = json.get("queue").getAsString();
       JsonObject configs = json.get("typeConfigs").getAsJsonObject();
-      JsonArray componentsArray = json.get("typeComponents").getAsJsonArray();
+      JsonObject resourcesObj = json.get("resources").getAsJsonObject();
+      JsonArray componentsArray = resourcesObj.get("components").getAsJsonArray();
       String appsCreateFolderPath = getAppsCreateFolderPath();
       File appsCreateFolder = new File(appsCreateFolderPath);
       if (!appsCreateFolder.exists()) {
@@ -745,12 +748,15 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
       File appConfigJsonFile = new File(appCreateFolder, "appConfig.json");
       File resourcesJsonFile = new File(appCreateFolder, "resources.json");
       saveAppConfigs(configs, componentsArray, appConfigJsonFile);
-      saveAppResources(componentsArray, resourcesJsonFile);
+      saveAppResources(resourcesObj, resourcesJsonFile);
 
       final ActionCreateArgs createArgs = new ActionCreateArgs();
       createArgs.template = appConfigJsonFile;
       createArgs.resources = resourcesJsonFile;
-      
+      if (queueName != null && queueName.trim().length() > 0) {
+        createArgs.queue = queueName;
+      }
+
       final ActionInstallPackageArgs installArgs = new ActionInstallPackageArgs();
       SliderAppType sliderAppType = getSliderAppType(appType, null);
       String localAppPackageFileName = sliderAppType.getTypePackageFileName();
@@ -774,30 +780,47 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
     return null;
   }
 
-  private void saveAppResources(JsonArray componentsArray,
+  private void saveAppResources(JsonObject clientResourcesObj,
       File resourcesJsonFile) throws IOException {
     JsonObject resourcesObj = new JsonObject();
+    JsonArray clientComponentsArray = clientResourcesObj.get("components").getAsJsonArray();
     resourcesObj.addProperty("schema",
         "http://example.org/specification/v2.0.0");
     resourcesObj.add("metadata", new JsonObject());
-    resourcesObj.add("global", new JsonObject());
+    resourcesObj.add("global", clientResourcesObj.get("global").getAsJsonObject());
     JsonObject componentsObj = new JsonObject();
-    if (componentsArray != null) {
-      for (int i = 0; i < componentsArray.size(); i++) {
-        JsonObject inputComponent = componentsArray.get(i).getAsJsonObject();
+    if (clientComponentsArray != null) {
+      for (int i = 0; i < clientComponentsArray.size(); i++) {
+        JsonObject inputComponent = clientComponentsArray.get(i).getAsJsonObject();
         if (inputComponent.has("id")) {
           JsonObject componentValue = new JsonObject();
-          componentValue.addProperty("yarn.role.priority",
-              inputComponent.get("priority").getAsString());
-          componentValue.addProperty("yarn.component.instances", inputComponent
-              .get("instanceCount").getAsString());
+          if (inputComponent.has("priority")) {
+            componentValue.addProperty("yarn.role.priority", inputComponent
+                .get("priority").getAsString());
+          }
+          if (inputComponent.has("instanceCount")) {
+            componentValue.addProperty("yarn.component.instances",
+                inputComponent.get("instanceCount").getAsString());
+          }
+          if (inputComponent.has("yarnMemory")) {
+            componentValue.addProperty("yarn.memory",
+                inputComponent.get("yarnMemory").getAsString());
+          }
+          if (inputComponent.has("yarnCpuCores")) {
+            componentValue.addProperty("yarn.vcores",
+                inputComponent.get("yarnCpuCores").getAsString());
+          }
+          if (inputComponent.has("yarnLabel")) {
+            componentValue.addProperty("yarn.label.expression", inputComponent
+                .get("yarnLabel").getAsString());
+          }
           componentsObj.add(inputComponent.get("id").getAsString(),
               componentValue);
         }
       }
     }
     resourcesObj.add("components", componentsObj);
-    String jsonString = new Gson().toJson(resourcesObj);
+    String jsonString = new GsonBuilder().setPrettyPrinting().create().toJson(resourcesObj);
     FileOutputStream fos = null;
     try {
       fos = new FileOutputStream(resourcesJsonFile);
@@ -826,7 +849,7 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
       }
     }
     appConfigs.add("components", componentsObj);
-    String jsonString = new Gson().toJson(appConfigs);
+    String jsonString = new GsonBuilder().setPrettyPrinting().create().toJson(appConfigs);
     FileOutputStream fos = null;
     try {
       fos = new FileOutputStream(appConfigJsonFile);

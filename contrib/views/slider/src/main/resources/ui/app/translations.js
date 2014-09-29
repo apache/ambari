@@ -56,7 +56,8 @@ Em.I18n.translations = {
     'error': 'Error',
     'yarn.app.id': 'YARN Application ID',
     'frequency': 'Frequency',
-    'minutes': 'Minutes'
+    'minutes': 'Minutes',
+    'seconds': 'Seconds'
   },
 
   'error.config_is_empty': 'Config <strong>{0}</strong> should not be empty',
