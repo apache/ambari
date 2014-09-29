@@ -197,6 +197,7 @@ public class AmbariMetaInfo {
 
     alertDefinitionFactory = injector.getInstance(AlertDefinitionFactory.class);
     alertDefinitionDao = injector.getInstance(AlertDefinitionDAO.class);
+    eventPublisher = injector.getInstance(AmbariEventPublisher.class);
   }
 
   /**
@@ -1275,12 +1276,20 @@ public class AmbariMetaInfo {
           continue;
         }
 
-        // if the definition exists in the stack and the database and they are
-        // not deeply equal, then merge the stack definition into the database
+        // definitions from the stack that are altered will not be overwritten;
+        // use the REST APIs to modify them instead
         AlertDefinition databaseDefinition = alertDefinitionFactory.coerce(entity);
         if (!stackDefinition.deeplyEquals(databaseDefinition)) {
-          entity = alertDefinitionFactory.merge(stackDefinition, entity);
-          persist.add(entity);
+          // this is the code that would normally merge the stack definition
+          // into the database; this is not the behavior we want today
+
+          // entity = alertDefinitionFactory.merge(stackDefinition, entity);
+          // persist.add(entity);
+
+          LOG.debug(
+              "The alert named {} has been modified from the stack definition and will not be merged",
+              stackDefinition.getName());
+
           continue;
         }
       }

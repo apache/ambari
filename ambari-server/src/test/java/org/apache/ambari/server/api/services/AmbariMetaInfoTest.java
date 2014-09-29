@@ -47,7 +47,12 @@ import org.apache.ambari.server.api.util.StackExtensionHelper;
 import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.OrmTestHelper;
+import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
+import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.state.AutoDeployInfo;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.CustomCommandDefinition;
 import org.apache.ambari.server.state.DependencyInfo;
@@ -56,6 +61,7 @@ import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.Stack;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.alert.AlertDefinition;
 import org.apache.ambari.server.state.alert.PortSource;
@@ -1615,6 +1621,42 @@ public class AmbariMetaInfoTest {
     assertNotNull(reporting.getWarning());
     assertNotNull(reporting.getWarning().getText());
     assertNotNull(reporting.getWarning().getValue());
+  }
+
+  /**
+   * Tests merging stack-based with existing definitions works
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testAlertDefinitionMerging() throws Exception {
+    injector.getInstance(OrmTestHelper.class).createCluster();
+    Clusters clusters = injector.getInstance(Clusters.class);
+    Cluster cluster = clusters.getClusterById(1);
+    cluster.setDesiredStackVersion(
+        new StackId(STACK_NAME_HDP, "2.0.6"));
+
+    cluster.addService("HDFS");
+
+    metaInfo.reconcileAlertDefinitions(clusters);
+
+    AlertDefinitionDAO dao = injector.getInstance(AlertDefinitionDAO.class);
+    List<AlertDefinitionEntity> definitions = dao.findAll();
+    assertEquals(4, definitions.size());
+
+    for (AlertDefinitionEntity definition : definitions) {
+      definition.setScheduleInterval(28);
+      dao.merge(definition);
+    }
+
+    metaInfo.reconcileAlertDefinitions(clusters);
+
+    definitions = dao.findAll();
+    assertEquals(4, definitions.size());
+
+    for (AlertDefinitionEntity definition : definitions) {
+      assertEquals(28, definition.getScheduleInterval().intValue());
+    }
   }
 
   private AmbariMetaInfo setupTempAmbariMetaInfo(String buildDir)

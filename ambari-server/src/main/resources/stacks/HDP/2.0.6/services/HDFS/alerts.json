@@ -5,6 +5,7 @@
       "label": "Percent DataNodes Live",
       "interval": 1,
       "scope": "SERVICE",
+      "enabled": true,
       "source": {
         "type": "AGGREGATE",
         "alert_name": "datanode_process",
@@ -30,6 +31,7 @@
       "label": "NameNode Process",
       "interval": 1,
       "scope": "ANY",
+      "enabled": true,
       "source": {
         "type": "PORT",
         "uri": "{{hdfs-site/dfs.namenode.http-address}}",
@@ -49,6 +51,7 @@
       "label": "NameNode host CPU utilization",
       "interval": 2,
       "scope": "ANY",
+      "enabled": true,
       "source": {
         "type": "METRIC",
         "uri": "{{hdfs-site/dfs.namenode.http-address}}",
@@ -81,6 +84,7 @@
       "label": "Secondary NameNode Process",
       "interval": 1,
       "scope": "any",
+      "enabled": true,
       "source": {
         "type": "PORT",        
         "uri": "{{hdfs-site/dfs.namenode.secondary.http-address}}",
@@ -102,6 +106,7 @@
       "label": "JournalNode Process",
       "interval": 1,
       "scope": "host",
+      "enabled": true,
       "source": {
         "type": "PORT",        
         "uri": "{{hdfs-site/dfs.journalnode.http-address}}",
@@ -123,6 +128,7 @@
       "label": "DateNode Process",
       "interval": 1,
       "scope": "host",
+      "enabled": true,
       "source": {
         "type": "PORT",        
         "uri": "{{hdfs-site/dfs.datanode.http.address}}",
