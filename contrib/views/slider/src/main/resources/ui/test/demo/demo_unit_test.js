@@ -16,11 +16,6 @@
  * limitations under the License.
  */
 
-'use strict';
-
-var config = {
-  LOG_TRANSITIONS: true,
-  LOG_TRANSITIONS_INTERNAL: false
-};
-
-module.exports = Ember.Application.createWithMixins(Bootstrap, config);
+test('this is always true', function() {
+  equal(1, 1, '1 is not 1... ooooh!');
+});

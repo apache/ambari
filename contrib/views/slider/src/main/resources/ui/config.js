@@ -24,8 +24,7 @@ exports.config = {
     javascripts: {
       joinTo: {
         'javascripts/app.js': /^(app|envs\/development)/,
-        'javascripts/vendor.js': /^(vendor\/scripts\/(common|development)|vendor\\scripts\\(common|development))/,
-        'javascripts/test.js': /^test(\/|\\)(?!vendor)/
+        'javascripts/vendor.js': /^(vendor\/scripts\/(common|development)|vendor\\scripts\\(common|development))/
       },
       order: {
         before: [

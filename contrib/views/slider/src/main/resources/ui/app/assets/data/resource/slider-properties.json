@@ -19,7 +19,7 @@
       "yarn.resourcemanager.webapp.address" : "slider-2.c.pramod-thangali.internal:8088",
       "zookeeper.quorum" : "slider-1.c.pramod-thangali.internal:2181,slider-2.c.pramod-thangali.internal:2181,slider-3.c.pramod-thangali.internal:2181",
       "ganglia.server.hostname" : "bvc",
-      "ganglia.custom.clusters" : "'HBaseCluster1:7000','AccumuloCluster1:7001','HBaseCluster2:7002'",
+      "ganglia.custom.clusters" : "'HBaseCluster1','7000','AccumuloCluster1','7001','HBaseCluster2','7002'",
       "slider.user" : "John Dow",
       "slider.security.enabled" : "false",
       "dfs.namenode.kerberos.principal" : null,

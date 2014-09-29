@@ -116,11 +116,9 @@ App.initializer({
       mapperTime: null
 
     });
-    if(!window.QUnit) {
-      application.SliderController.proto().initResources();
-      application.ApplicationTypeMapper.load();
-      application.SliderAppsMapper.run('load');
-    }
+    application.SliderController.proto().initResources();
+    application.ApplicationTypeMapper.load();
+    application.SliderAppsMapper.run('load');
   }
 });
 

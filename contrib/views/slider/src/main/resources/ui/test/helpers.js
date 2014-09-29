@@ -16,11 +16,19 @@
  * limitations under the License.
  */
 
-'use strict';
+require('initialize');
 
-var config = {
-  LOG_TRANSITIONS: true,
-  LOG_TRANSITIONS_INTERNAL: false
-};
+document.write('<div id="ember-testing"></div>');
+App.rootElement = '#ember-testing';
+App.setupForTesting();
+App.injectTestHelpers();
 
-module.exports = Ember.Application.createWithMixins(Bootstrap, config);
+module('Integration tests', {
+    setup: function() {
+        Ember.run(App, App.advanceReadiness);
+    },
+
+    teardown: function() {
+        App.reset();
+    }
+});
