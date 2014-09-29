@@ -37,7 +37,7 @@ App.Repository = DS.Model.extend({
 
   isSelected: function() {
     return this.get('operatingSystem.isSelected');
-  }.property('id'),
+  }.property('id','operatingSystem.isSelected'),
 
   emptyError: function() {
     return !this.get('baseUrl');
