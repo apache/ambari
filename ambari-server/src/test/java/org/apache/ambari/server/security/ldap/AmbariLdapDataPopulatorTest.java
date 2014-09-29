@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -43,6 +44,7 @@ import org.easymock.EasyMock;
 import org.easymock.IAnswer;
 import org.junit.Test;
 import org.springframework.ldap.core.AttributesMapper;
+import org.springframework.ldap.core.ContextMapper;
 import org.springframework.ldap.core.LdapTemplate;
 
 import static junit.framework.Assert.*;
@@ -1400,6 +1402,36 @@ public class AmbariLdapDataPopulatorTest {
     assertEquals(removedUsers.get(0), ldapUserWithoutGroup);
 
     verify(users);
+  }
+
+  @Test
+  public void testGetLdapUserByMemberAttr() throws Exception {
+
+    Configuration configuration = createNiceMock(Configuration.class);
+    Users users = createNiceMock(Users.class);
+    LdapTemplate ldapTemplate = createNiceMock(LdapTemplate.class);
+    LdapServerProperties ldapServerProperties = createNiceMock(LdapServerProperties.class);
+    Capture<ContextMapper> contextMapperCapture = new Capture<ContextMapper>();
+
+    List list = new LinkedList();
+
+    expect(configuration.getLdapServerProperties()).andReturn(ldapServerProperties).anyTimes();
+    expect(ldapServerProperties.getUserObjectClass()).andReturn("objectClass").anyTimes();
+    expect(ldapServerProperties.getBaseDN()).andReturn("baseDN").anyTimes();
+
+    expect(ldapTemplate.search(eq("baseDN"), eq("(&(objectClass=objectClass)(|(dn=foo)(uid=foo)))"), capture(contextMapperCapture))).andReturn(list);
+    expect(ldapTemplate.search(eq("baseDN"), eq("(&(objectClass=objectClass)(uid=foo))"), capture(contextMapperCapture))).andReturn(list);
+
+    replay(ldapTemplate, ldapServerProperties, users, configuration);
+
+    AmbariLdapDataPopulatorTestInstance populator = new AmbariLdapDataPopulatorTestInstance(configuration, users);
+
+    populator.setLdapTemplate(ldapTemplate);
+
+    populator.getLdapUserByMemberAttr("foo");
+    populator.getLdapUserByMemberAttr("uid=foo,dc=example,dc=com");
+
+    verify(ldapTemplate, ldapServerProperties, users, configuration);
   }
 
   private static int userIdCounter = 1;
