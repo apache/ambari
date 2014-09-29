@@ -27,6 +27,7 @@ App.serviceConfigVersionsMapper = App.QuickDataMapper.create({
     create_time: 'createtime',
     group_id: 'group_id',
     group_name: 'group_name',
+    hosts: 'hosts',
     author: 'user',
     notes: 'service_config_version_note',
     is_current: 'is_current',

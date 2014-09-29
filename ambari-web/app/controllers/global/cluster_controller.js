@@ -248,6 +248,7 @@ App.ClusterController = Em.Controller.extend({
    */
   loadClusterData: function () {
     var self = this;
+    this.getAllHostNames();
     this.loadAmbariProperties();
     if (!App.get('clusterName')) {
       return;
@@ -390,5 +391,26 @@ App.ClusterController = Em.Controller.extend({
       complete: function () {
       }
     });
+  },
+
+  /**
+   *
+   * @returns {*|Transport|$.ajax|boolean|ServerResponse}
+   */
+  getAllHostNames: function () {
+    return App.ajax.send({
+      name: 'hosts.all',
+      sender: this,
+      success: 'getHostNamesSuccess',
+      error: 'getHostNamesError'
+    });
+  },
+
+  getHostNamesSuccess: function (data) {
+    App.set("allHostNames", data.items.mapProperty("Hosts.host_name"));
+  },
+
+  getHostNamesError: function () {
+    console.error('failed to load hostNames');
   }
 });

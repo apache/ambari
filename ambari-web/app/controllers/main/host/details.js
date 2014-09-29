@@ -1531,6 +1531,7 @@ App.MainHostDetailsController = Em.Controller.extend({
           dialogSelf.hide();
           App.router.transitionTo('hosts.index');
         });
+        App.router.get('clusterController').getAllHostNames();
       },
       deleteHostErrorCallback: function (xhr, textStatus, errorThrown, opt) {
         console.log('Error deleting host.');

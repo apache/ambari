@@ -72,6 +72,8 @@ module.exports = Em.Application.create({
     return Em.get((this.get('currentStackVersion') || this.get('defaultStackVersion')).match(/(.+)-\d.+/), '1');
   }.property('currentStackVersion'),
 
+  allHostNames: [],
+
   currentStackVersionNumber: function () {
     var regExp = new RegExp(this.get('currentStackName') + '-');
     return (this.get('currentStackVersion') || this.get('defaultStackVersion')).replace(regExp, '');
