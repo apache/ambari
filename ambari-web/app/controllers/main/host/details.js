@@ -393,7 +393,10 @@ App.MainHostDetailsController = Em.Controller.extend({
     var self = this;
     var component = event.context;
     var componentName = component.get('componentName');
-    var missedComponents = componentsUtils.checkComponentDependencies(componentName, this.get('content.hostComponents').mapProperty('componentName'))
+    var missedComponents = componentsUtils.checkComponentDependencies(componentName, {
+      scope: 'host',
+      installedComponents: this.get('content.hostComponents').mapProperty('componentName')
+    });
     if (!!missedComponents.length) {
       var popupMessage = Em.I18n.t('host.host.addComponent.popup.dependedComponents.body').format(component.get('displayName'),
         stringUtils.getFormattedStringFromArray(missedComponents.map(function(cName) {

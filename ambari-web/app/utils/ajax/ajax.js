@@ -1094,7 +1094,7 @@ var urls = {
     }
   },
   'wizard.service_components': {
-    'real': '{stackUrl}/services?fields=StackServices/*,serviceComponents/*',
+    'real': '{stackUrl}/services?fields=StackServices/*,serviceComponents/*,serviceComponents/dependencies/Dependencies/scope',
     'mock': '/data/stacks/HDP-2.1/service_components.json',
     'format': function(data) {
       return {
