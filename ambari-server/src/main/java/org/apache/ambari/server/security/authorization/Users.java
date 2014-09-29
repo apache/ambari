@@ -24,7 +24,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import javax.persistence.EntityManager;
 
 import org.apache.ambari.server.AmbariException;
@@ -66,7 +65,7 @@ import com.google.inject.persist.Transactional;
 @Singleton
 public class Users {
 
-  private final static Logger LOG = LoggerFactory.getLogger(Users.class);
+  private static final Logger LOG = LoggerFactory.getLogger(Users.class);
 
   @Inject
   Provider<EntityManager> entityManagerProvider;

@@ -480,10 +480,10 @@
               </sources>
             </mapping>
             <mapping>
-              <directory>/var/lib/ambari-server/resources/stacks/HDP</directory>
+              <directory>/var/lib/ambari-server/resources/stacks/${stack.distribution}</directory>
               <sources>
                 <source>
-                  <location>target/classes/stacks/HDP</location>
+                  <location>target/classes/stacks/${stack.distribution}</location>
                 </source>
               </sources>
             </mapping>
@@ -843,11 +843,11 @@
             </mapper>
           </data>
           <data>
-            <src>target/classes/stacks/HDP</src>
+            <src>target/classes/stacks/${stack.distribution}</src>
             <type>directory</type>
             <mapper>
               <type>perm</type>
-              <prefix>/var/lib/ambari-server/resources/stacks/HDP</prefix>
+              <prefix>/var/lib/ambari-server/resources/stacks/${stack.distribution}</prefix>
             </mapper>
           </data>
           <data>

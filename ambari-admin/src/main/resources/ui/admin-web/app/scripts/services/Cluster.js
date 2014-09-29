@@ -23,7 +23,7 @@ angular.module('ambariAdminConsole')
     getStatus: function() {
       var deferred = $q.defer();
 
-      $http.get(Settings.baseUrl + '/clusters')
+      $http.get(Settings.baseUrl + '/clusters?fields=Clusters/provisioning_state')
       .then(function(data, status, headers) {
         deferred.resolve(data.data.items[0]);
       })

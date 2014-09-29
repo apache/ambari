@@ -20,7 +20,8 @@ App.SliderAppsController = Ember.ArrayController.extend({
   /**
    * show modal popup that says apps currently unavailable
    */
-  showUnavailableAppsPopup: function() {
+  showUnavailableAppsPopup: function(message) {
+    this.set('errorMessage', message);
     Bootstrap.ModalManager.open(
       "apps-warning-modal",
       Em.I18n.t('common.warning'),

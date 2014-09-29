@@ -590,10 +590,10 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
             if (metainfo.getApplication() != null) {
               Application application = metainfo.getApplication();
               String appConfigJsonString = IOUtils.toString(
-                  zipFile.getInputStream(zipFile.getEntry("appConfig.json")),
+                  zipFile.getInputStream(zipFile.getEntry("appConfig-default.json")),
                   "UTF-8");
               String resourcesJsonString = IOUtils.toString(
-                  zipFile.getInputStream(zipFile.getEntry("resources.json")),
+                  zipFile.getInputStream(zipFile.getEntry("resources-default.json")),
                   "UTF-8");
               JsonElement appConfigJson = new JsonParser()
                   .parse(appConfigJsonString);

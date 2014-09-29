@@ -134,7 +134,7 @@
     </div>
   </div>
   <div class="panel-body">
-    <form name="propertiesForm" class="form-horizontal" ng-hide="isConfigurationEmpty" novalidate>
+    <form name="propertiesForm" class="form-horizontal property-form" ng-hide="isConfigurationEmpty" novalidate>
       <fieldset>
         <div class="form-group" ng-repeat="property in configurationMeta" ng-class="{'has-error' : property.required && propertiesForm[property.name].$error.required && !editConfigurationDisabled}" tooltip="{{property.description}}">
           <label for="" class="control-label col-sm-3" ng-class="{'not-required': !property.required}">{{property.name}}{{property.required ? '*' : ''}}</label>

@@ -46,6 +46,7 @@ import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntityPK;
+import org.apache.ambari.server.orm.entities.ClusterConfigMappingEntity;
 import org.apache.ambari.server.orm.entities.ConfigGroupConfigMappingEntity;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
@@ -71,6 +72,7 @@ import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.alert.Scope;
 import org.apache.ambari.server.utils.StageUtils;
+import org.apache.ambari.server.view.ViewRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -116,9 +118,16 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
   private static final String ALERT_TABLE_GROUPING = "alert_grouping";
   private static final String ALERT_TABLE_NOTICE = "alert_notice";
   public static final String JOBS_VIEW_NAME = "JOBS";
+  public static final String VIEW_NAME_REG_EXP = JOBS_VIEW_NAME + "\\{.*\\}";
   public static final String JOBS_VIEW_INSTANCE_NAME = "JOBS_1";
   public static final String SHOW_JOBS_FOR_NON_ADMIN_KEY = "showJobsForNonAdmin";
   public static final String JOBS_VIEW_INSTANCE_LABEL = "Jobs";
+  public static final String CLUSTER_STATE_STACK_HDP_2_1 = "{\"stackName\":\"HDP\",\"stackVersion\":\"2.1\"}";
+  public static final String YARN_TIMELINE_SERVICE_WEBAPP_ADDRESS_PROPERTY = "yarn.timeline-service.webapp.address";
+  public static final String YARN_RESOURCEMANAGER_WEBAPP_ADDRESS_PROPERTY = "yarn.resourcemanager.webapp.address";
+  public static final String YARN_SITE = "yarn-site";
+  public static final String YARN_ATS_URL_PROPERTY = "yarn.ats.url";
+  public static final String YARN_RESOURCEMANAGER_URL_PROPERTY = "yarn.resourcemanager.url";
 
   //SourceVersion is only for book-keeping purpos
   @Override
@@ -1296,56 +1305,96 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
     final KeyValueDAO keyValueDAO = injector.getInstance(KeyValueDAO.class);
     final PermissionDAO permissionDAO = injector.getInstance(PermissionDAO.class);
     final PrivilegeDAO privilegeDAO = injector.getInstance(PrivilegeDAO.class);
+    final ClusterDAO clusterDAO = injector.getInstance(ClusterDAO.class);
+    final ViewRegistry viewRegistry = injector.getInstance(ViewRegistry.class);
 
-    ViewEntity jobsView = viewDAO.findByCommonName(JOBS_VIEW_NAME);
-    if (jobsView != null) {
-      ViewInstanceEntity jobsInstance = jobsView.getInstanceDefinition(JOBS_VIEW_INSTANCE_NAME);
-      if (jobsInstance == null) {
-        jobsInstance = new ViewInstanceEntity(jobsView, JOBS_VIEW_INSTANCE_NAME, JOBS_VIEW_INSTANCE_LABEL);
-        ResourceEntity resourceEntity = new ResourceEntity();
-        resourceEntity.setResourceType(resourceTypeDAO.findByName(
-            ViewEntity.getViewName(
-                jobsView.getCommonName(),
-                jobsView.getVersion())));
-        jobsInstance.setResource(resourceEntity);
-        jobsView.addInstanceDefinition(jobsInstance);
-        resourceDAO.create(resourceEntity);
-        viewInstanceDAO.create(jobsInstance);
-        viewDAO.merge(jobsView);
-      }
-      // get showJobsForNonAdmin value and remove it
-      boolean showJobsForNonAdmin = false;
-      KeyValueEntity showJobsKeyValueEntity = keyValueDAO.findByKey(SHOW_JOBS_FOR_NON_ADMIN_KEY);
-      if (showJobsKeyValueEntity != null) {
-        String value = showJobsKeyValueEntity.getValue();
-        showJobsForNonAdmin = Boolean.parseBoolean(value);
-        keyValueDAO.remove(showJobsKeyValueEntity);
-      }
-      if (showJobsForNonAdmin) {
-        ResourceEntity jobsResource = jobsInstance.getResource();
-        PermissionEntity viewUsePermission = permissionDAO.findViewUsePermission();
-        for (UserEntity userEntity : userDAO.findAll()) {
-          // check if user has VIEW.USE privilege for JOBS view
-          List<PrivilegeEntity> privilegeEntities = privilegeDAO.findAllByPrincipal(
-              Collections.singletonList(userEntity.getPrincipal()));
-          boolean hasJobsUsePrivilege = false;
-          for (PrivilegeEntity privilegeEntity : privilegeEntities) {
-            if (privilegeEntity.getResource().getId() == jobsInstance.getResource().getId() &&
-                privilegeEntity.getPermission().getId() == viewUsePermission.getId()) {
-              hasJobsUsePrivilege = true;
-              break;
+    List<ClusterEntity> clusters = clusterDAO.findAll();
+    if (!clusters.isEmpty()) {
+      ClusterEntity currentCluster = clusters.get(0);
+      String currentStackVersion = currentCluster.getClusterStateEntity().getCurrentStackVersion();
+      if (CLUSTER_STATE_STACK_HDP_2_1.equals(currentStackVersion)) {
+        ViewRegistry.initInstance(viewRegistry);
+        viewRegistry.readViewArchives(VIEW_NAME_REG_EXP);
+        ViewEntity jobsView = viewDAO.findByCommonName(JOBS_VIEW_NAME);
+
+        if (jobsView != null) {
+          ViewInstanceEntity jobsInstance = jobsView.getInstanceDefinition(JOBS_VIEW_INSTANCE_NAME);
+          if (jobsInstance == null) {
+            jobsInstance = new ViewInstanceEntity(jobsView, JOBS_VIEW_INSTANCE_NAME, JOBS_VIEW_INSTANCE_LABEL);
+            ResourceEntity resourceEntity = new ResourceEntity();
+            resourceEntity.setResourceType(resourceTypeDAO.findByName(
+                ViewEntity.getViewName(
+                    jobsView.getCommonName(),
+                    jobsView.getVersion())));
+            String atsHost;
+            String rmHost;
+            try {
+              ClusterConfigEntity currentYarnConfig = null;
+              for (ClusterConfigMappingEntity configMappingEntity : currentCluster.getConfigMappingEntities()) {
+                if (YARN_SITE.equals(configMappingEntity.getType()) && configMappingEntity.isSelected() > 0) {
+                  currentYarnConfig = clusterDAO.findConfig(currentCluster.getClusterId(),
+                      configMappingEntity.getType(), configMappingEntity.getTag());
+                  break;
+                }
+              }
+              Type type = new TypeToken<Map<String, String>>() {}.getType();
+              Map<String, String> yarnSiteProps = StageUtils.getGson().fromJson(currentYarnConfig.getData(), type);
+              atsHost = yarnSiteProps.get(YARN_TIMELINE_SERVICE_WEBAPP_ADDRESS_PROPERTY);
+              rmHost = yarnSiteProps.get(YARN_RESOURCEMANAGER_WEBAPP_ADDRESS_PROPERTY);
+            } catch (Exception ex) {
+              // Required properties failed to be set, therefore jobs instance should not be created
+              return;
             }
+            jobsInstance.setResource(resourceEntity);
+            jobsInstance.putProperty(YARN_ATS_URL_PROPERTY, "http://" + atsHost);
+            jobsInstance.putProperty(YARN_RESOURCEMANAGER_URL_PROPERTY, "http://" + rmHost);
+            jobsView.addInstanceDefinition(jobsInstance);
+            resourceDAO.create(resourceEntity);
+            viewInstanceDAO.create(jobsInstance);
+            viewDAO.merge(jobsView);
           }
-          // if not - add VIEW.use privilege
-          if (!hasJobsUsePrivilege) {
-            PrivilegeEntity privilegeEntity = new PrivilegeEntity();
-            privilegeEntity.setResource(jobsResource);
-            privilegeEntity.setPermission(viewUsePermission);
-            privilegeEntity.setPrincipal(userEntity.getPrincipal());
-            privilegeDAO.create(privilegeEntity);
+          // get showJobsForNonAdmin value and remove it
+          boolean showJobsForNonAdmin = false;
+          KeyValueEntity showJobsKeyValueEntity = keyValueDAO.findByKey(SHOW_JOBS_FOR_NON_ADMIN_KEY);
+          if (showJobsKeyValueEntity != null) {
+            String value = showJobsKeyValueEntity.getValue();
+            showJobsForNonAdmin = Boolean.parseBoolean(value);
+            keyValueDAO.remove(showJobsKeyValueEntity);
+          }
+          if (showJobsForNonAdmin) {
+            ResourceEntity jobsResource = jobsInstance.getResource();
+            long jobsResourceId = jobsResource.getId();
+            PermissionEntity viewUsePermission = permissionDAO.findViewUsePermission();
+            PermissionEntity adminPermission = permissionDAO.findAmbariAdminPermission();
+            int viewUsePermissionId = viewUsePermission.getId();
+            int adminPermissionId = adminPermission.getId();
+            for (UserEntity userEntity : userDAO.findAll()) {
+              // check if user has VIEW.USE privilege for JOBS view
+              List<PrivilegeEntity> privilegeEntities = privilegeDAO.findAllByPrincipal(
+                  Collections.singletonList(userEntity.getPrincipal()));
+              boolean hasJobsUsePrivilege = false;
+              for (PrivilegeEntity privilegeEntity : privilegeEntities) {
+                int privilegePermissionId = privilegeEntity.getPermission().getId();
+                Long privilegeResourceId = privilegeEntity.getResource().getId();
+                if ((privilegePermissionId == viewUsePermissionId && privilegeResourceId == jobsResourceId)
+                    || privilegePermissionId == adminPermissionId) {
+                  hasJobsUsePrivilege = true;
+                  break;
+                }
+              }
+              // if not - add VIEW.use privilege
+              if (!hasJobsUsePrivilege) {
+                PrivilegeEntity privilegeEntity = new PrivilegeEntity();
+                privilegeEntity.setResource(jobsResource);
+                privilegeEntity.setPermission(viewUsePermission);
+                privilegeEntity.setPrincipal(userEntity.getPrincipal());
+                privilegeDAO.create(privilegeEntity);
+              }
+            }
           }
         }
       }
     }
+
   }
 }

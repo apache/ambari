@@ -50,7 +50,7 @@ limitations under the License. Kerberos, LDAP, Custom. Binary/Htt
   </parameter>
   <parameter>
     <name>ganglia.custom.clusters</name>
-    <description>Custom Ganglia clusters which can be used by applications created in Slider Apps view. Value is comma separated list of cluster-name and port pairs. Typically this is the ganglia_custom_clusters in the ganglia-env configuration. For example: Application1,8881,Application2,8882</description>
+    <description>Custom Ganglia clusters which can be used by applications created in Slider Apps view. Value is comma separated list of cluster-name and port pairs. Typically this is the additional_clusters in the ganglia-env configuration. For example: Application1:8881,Application2:8882</description>
     <required>false</required>
   </parameter>
   <parameter>

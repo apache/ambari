@@ -318,8 +318,8 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
       service = this.get('stepConfigs').findProperty('serviceName', serviceName),
       defaultConfigGroupHosts = this.get('wizardController.allHosts').mapProperty('hostName'),
       siteToTagMap = this._createSiteToTagMap(data.Clusters.desired_configs, params.serviceConfigsDef.get('configTypes')),
-      selectedConfigGroup;
-
+      selectedConfigGroup,
+      manageCGController = App.router.get('manageConfigGroupsController');
     this.set('loadedClusterSiteToTagMap', siteToTagMap);
 
     //parse loaded config groups
@@ -338,6 +338,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
               parentConfigGroup: null,
               service: App.Service.find().findProperty('serviceName', item.tag),
               hosts: groupHosts,
+              publicHosts: manageCGController.hostsToPublic(groupHosts),
               configSiteTags: []
             });
             groupHosts.forEach(function (host) {
@@ -359,6 +360,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
       description: "Default cluster level " + serviceName + " configuration",
       isDefault: true,
       hosts: defaultConfigGroupHosts,
+      publicHosts: manageCGController.hostsToPublic(defaultConfigGroupHosts),
       parentConfigGroup: null,
       service: Em.Object.create({
         id: serviceName
@@ -1013,6 +1015,8 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
   loadConfigGroups: function (serviceConfigGroups) {
     var services = this.get('stepConfigs');
     var hosts = this.get('wizardController.allHosts').mapProperty('hostName');
+    var manageCGController = App.router.get('manageConfigGroupsController');
+    this.setupManageConfigGroupsController();
     services.forEach(function (service) {
       if (service.get('serviceName') === 'MISC') return;
       var serviceRawGroups = serviceConfigGroups.filterProperty('service.id', service.serviceName);
@@ -1023,6 +1027,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
             description: "Default cluster level " + service.serviceName + " configuration",
             isDefault: true,
             hosts: Em.copy(hosts),
+            publicHosts: Em.copy(manageCGController.hostsToPublic(hosts)),
             service: Em.Object.create({
               id: service.serviceName
             }),
@@ -1056,6 +1061,11 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
     });
   },
 
+  setupManageConfigGroupsController: function() {
+    var manageCGController = App.router.get('manageConfigGroupsController');
+    manageCGController.set('isInstaller', true);
+    manageCGController.set('isAddService', this.get('wizardController.name') === 'addServiceController');
+  },
   /**
    * Click-handler on config-group to make it selected
    * @param {object} event

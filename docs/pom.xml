@@ -299,6 +299,18 @@
             </organization>            
         </developer>
         <developer>
+            <id>jaoki</id>
+            <name>Jun Aoki</name>
+            <email>jaoki@apache.org</email>
+            <timezone>-8</timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+                Pivotal
+            </organization>
+        </developer>
+        <developer>
             <id>jaimin</id>
             <name>Jaimin Jetly</name>
             <email>jaimin@apache.org</email>
@@ -621,8 +633,8 @@
            <organization>Teradata</organization>
          </contributor>
          <contributor>
-           <name>Jun Aoki</name>
-           <organization>Pivotal</organization>
+           <name>Krisztian Horvath</name>
+           <organization>SequenceIQ</organization>
          </contributor>
        </contributors>
 

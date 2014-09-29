@@ -18,6 +18,13 @@
 
 package org.apache.ambari.server.upgrade;
 
+import static org.apache.ambari.server.upgrade.UpgradeCatalog170.CLUSTER_STATE_STACK_HDP_2_1;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog170.JOBS_VIEW_NAME;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog170.SHOW_JOBS_FOR_NON_ADMIN_KEY;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog170.YARN_RESOURCEMANAGER_WEBAPP_ADDRESS_PROPERTY;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog170.YARN_SITE;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog170.YARN_TIMELINE_SERVICE_WEBAPP_ADDRESS_PROPERTY;
+
 import com.google.inject.Binder;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -49,8 +56,10 @@ import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.ambari.server.orm.dao.ViewDAO;
 import org.apache.ambari.server.orm.dao.ViewInstanceDAO;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
+import org.apache.ambari.server.orm.entities.ClusterConfigMappingEntity;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
+import org.apache.ambari.server.orm.entities.ClusterStateEntity;
 import org.apache.ambari.server.orm.entities.ConfigGroupConfigMappingEntity;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntityPK;
@@ -59,6 +68,7 @@ import org.apache.ambari.server.orm.entities.HostComponentStateEntityPK;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.KeyValueEntity;
+import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
@@ -74,7 +84,9 @@ import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.HostComponentAdminState;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.view.ViewRegistry;
 import org.easymock.Capture;
+import org.easymock.IAnswer;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -116,6 +128,7 @@ import static org.easymock.EasyMock.createStrictMock;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.getCurrentArguments;
 import static org.easymock.EasyMock.isA;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.reset;
@@ -422,6 +435,9 @@ public class UpgradeCatalog170Test {
     Clusters clusters = createStrictMock(Clusters.class);
     Config config = createStrictMock(Config.class);
     Config pigConfig = createStrictMock(Config.class);
+    ViewRegistry viewRegistry = createNiceMock(ViewRegistry.class);
+    PermissionEntity adminPermission = createNiceMock(PermissionEntity.class);
+    PermissionEntity viewUsePermission = createNiceMock(PermissionEntity.class);
 
     ClusterConfigEntity clusterConfigEntity = createNiceMock(ClusterConfigEntity.class);
     ConfigGroupConfigMappingDAO configGroupConfigMappingDAO = createNiceMock(ConfigGroupConfigMappingDAO.class);
@@ -448,6 +464,8 @@ public class UpgradeCatalog170Test {
     TypedQuery<HostRoleCommandEntity> q = createNiceMock(TypedQuery.class);
     List<HostRoleCommandEntity> r = new ArrayList<HostRoleCommandEntity>();
     ResultSet userRolesResultSet = createNiceMock(ResultSet.class);
+    ClusterEntity clusterEntity = createNiceMock(ClusterEntity.class);
+    ClusterConfigEntity configEntity = createNiceMock(ClusterConfigEntity.class);
 
     Method m = AbstractUpgradeCatalog.class.getDeclaredMethod
         ("updateConfigurationProperties", String.class, Map.class, boolean.class, boolean.class);
@@ -543,13 +561,20 @@ public class UpgradeCatalog170Test {
     expect(injector.getInstance(PermissionDAO.class)).andReturn(permissionDAO).anyTimes();
     expect(injector.getInstance(PrivilegeDAO.class)).andReturn(privilegeDAO).anyTimes();
     expect(injector.getInstance(KeyValueDAO.class)).andReturn(keyValueDAO).anyTimes();
+    expect(injector.getInstance(ViewRegistry.class)).andReturn(viewRegistry).anyTimes();
 
+    String yarnConfig = String.format("{'%s':'%s', '%s':'%s'}",
+        YARN_TIMELINE_SERVICE_WEBAPP_ADDRESS_PROPERTY, "timeline:8081",
+        YARN_RESOURCEMANAGER_WEBAPP_ADDRESS_PROPERTY, "resource_man:8081");
     expect(configGroupConfigMappingDAO.findAll()).andReturn(configGroupConfigMappingEntities).once();
-    expect(userDAO.findAll()).andReturn(Collections.<UserEntity> emptyList()).times(2);
-    expect(clusterDAO.findAll()).andReturn(Collections.<ClusterEntity> emptyList()).anyTimes();
+    expect(userDAO.findAll()).andReturn(Collections.<UserEntity>emptyList()).times(2);
+    expect(clusterDAO.findAll()).andReturn(Collections.singletonList(clusterEntity)).anyTimes();
+    expect(configEntity.getData()).andReturn(yarnConfig);
+    expect(clusterDAO.findConfig(1L, YARN_SITE, "version1")).andReturn(configEntity).anyTimes();
     expect(viewDAO.findAll()).andReturn(Collections.<ViewEntity> emptyList()).anyTimes();
     expect(viewInstanceDAO.findAll()).andReturn(Collections.<ViewInstanceEntity> emptyList()).anyTimes();
-    expect(permissionDAO.findAmbariAdminPermission()).andReturn(null);
+    expect(permissionDAO.findAmbariAdminPermission()).andReturn(adminPermission).anyTimes();
+    expect(permissionDAO.findViewUsePermission()).andReturn(viewUsePermission).anyTimes();
     expect(permissionDAO.findClusterOperatePermission()).andReturn(null);
     expect(permissionDAO.findClusterReadPermission()).andReturn(null);
 
@@ -559,18 +584,36 @@ public class UpgradeCatalog170Test {
     ViewEntity jobsView = createNiceMock(ViewEntity.class);
     KeyValueEntity showJobsKeyValue = createNiceMock(KeyValueEntity.class);
     UserEntity user = createNiceMock(UserEntity.class);
+    ClusterConfigMappingEntity configMappingEntity = createNiceMock(ClusterConfigMappingEntity.class);
+    ClusterStateEntity clusterStateEntity = createNiceMock(ClusterStateEntity.class);
 
+    expect(clusterEntity.getClusterId()).andReturn(1L).anyTimes();
+    expect(clusterEntity.getConfigMappingEntities()).andReturn(Collections.singleton(configMappingEntity));
+    expect(clusterEntity.getClusterStateEntity()).andReturn(clusterStateEntity).anyTimes();
+    expect(clusterStateEntity.getCurrentStackVersion()).andReturn(CLUSTER_STATE_STACK_HDP_2_1);
+    expect(configMappingEntity.getType()).andReturn(YARN_SITE).anyTimes();
+    expect(configMappingEntity.isSelected()).andReturn(1).anyTimes();
+    expect(configMappingEntity.getTag()).andReturn("version1");
     expect(userDAO.findAll()).andReturn(Collections.singletonList(user));
-    expect(jobsView.getCommonName()).andReturn(UpgradeCatalog170.JOBS_VIEW_NAME);
+    expect(jobsView.getCommonName()).andReturn(JOBS_VIEW_NAME);
     expect(jobsView.getVersion()).andReturn("1.0.0");
-    expect(viewDAO.findByCommonName(UpgradeCatalog170.JOBS_VIEW_NAME)).andReturn(jobsView).once();
+    expect(viewDAO.findByCommonName(JOBS_VIEW_NAME)).andReturn(jobsView).once();
     expect(showJobsKeyValue.getValue()).andReturn("true");
-    expect(keyValueDAO.findByKey(UpgradeCatalog170.SHOW_JOBS_FOR_NON_ADMIN_KEY)).andReturn(showJobsKeyValue);
+    expect(keyValueDAO.findByKey(SHOW_JOBS_FOR_NON_ADMIN_KEY)).andReturn(showJobsKeyValue);
     expect(privilegeDAO.findAllByPrincipal(anyObject(List.class))).andReturn(Collections.<PrivilegeEntity>emptyList());
     expect(viewDAO.merge(jobsView)).andReturn(jobsView);
 
     resourceDAO.create(anyObject(ResourceEntity.class));
+    expect(adminPermission.getId()).andReturn(3);
+    expect(viewUsePermission.getId()).andReturn(4);
     viewInstanceDAO.create(anyObject(ViewInstanceEntity.class));
+    expectLastCall().andAnswer(new IAnswer<Object>() {
+      @Override
+      public Object answer() throws Throwable {
+        ((ViewInstanceEntity) getCurrentArguments()[0]).getResource().setId(1L);
+        return null;
+      }
+    });
     keyValueDAO.remove(showJobsKeyValue);
     privilegeDAO.create(anyObject(PrivilegeEntity.class));
 
@@ -579,7 +622,8 @@ public class UpgradeCatalog170Test {
     replay(dbAccessor, configuration, injector, cluster, clusters, amc, config, configHelper, pigConfig);
     replay(userDAO, clusterDAO, viewDAO, viewInstanceDAO, permissionDAO, configGroupConfigMappingDAO);
     replay(resourceTypeDAO, resourceDAO, keyValueDAO, privilegeDAO, clusterConfigEntity);
-    replay(jobsView, showJobsKeyValue, user);
+    replay(jobsView, showJobsKeyValue, user, viewRegistry, viewUsePermission, adminPermission);
+    replay(clusterEntity, configEntity, configMappingEntity, clusterStateEntity);
 
     Class<?> c = AbstractUpgradeCatalog.class;
     Field f = c.getDeclaredField("configuration");
@@ -595,7 +639,8 @@ public class UpgradeCatalog170Test {
     upgradeCatalog.executeDMLUpdates();
 
     verify(upgradeCatalog, dbAccessor, configuration, injector, cluster, clusters, amc, config, configHelper,
-        jobsView, showJobsKeyValue, privilegeDAO, viewDAO, viewInstanceDAO, resourceDAO, keyValueDAO, userRolesResultSet);
+        jobsView, showJobsKeyValue, privilegeDAO, viewDAO, viewInstanceDAO, resourceDAO, keyValueDAO,
+        viewRegistry, userRolesResultSet, clusterEntity, configEntity, configMappingEntity, clusterStateEntity);
   }
 
 

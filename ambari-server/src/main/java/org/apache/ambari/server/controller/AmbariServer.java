@@ -392,7 +392,7 @@ public class AmbariServer {
         sh.setInitParameter("com.sun.jersey.spi.container.ContainerRequestFilters",
                     "org.apache.ambari.server.api.AmbariCsrfProtectionFilter");
         proxy.setInitParameter("com.sun.jersey.spi.container.ContainerRequestFilters",
-                    "com.sun.jersey.api.container.filter.AmbariCsrfProtectionFilter");
+                    "org.apache.ambari.server.api.AmbariCsrfProtectionFilter");
       }
 
       //Set jetty thread pool

@@ -21,11 +21,11 @@ limitations under the License. Kerberos, LDAP, Custom. Binary/Htt
   <parameter>
       <name>yarn.ats.url</name>
       <description>The URL to the YARN Application Timeline Server, used to provide Jobs information, typically, this is the yarn.timeline-service.webapp.address property in the yarn-site.xml configuration. For example: http://yarn.ats.address:8188</description>
-      <required>false</required>
+      <required>true</required>
   </parameter>
   <parameter>
       <name>yarn.resourcemanager.url</name>
       <description>The URL to the YARN ResourceManager, used to provide YARN Application data. For example: http://yarn.resourcemanager.address:8088</description>
-      <required>false</required>
+      <required>true</required>
   </parameter>
 </view>

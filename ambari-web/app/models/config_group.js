@@ -82,6 +82,11 @@ App.ConfigGroup = Ember.Object.extend({
   hosts: [],
 
   /**
+   * Public host names related by host_name.
+   */
+  publicHosts: [],
+
+  /**
    * this flag is used for installed services' config groups
    * if user make changes to them - mark this flag to true
    */

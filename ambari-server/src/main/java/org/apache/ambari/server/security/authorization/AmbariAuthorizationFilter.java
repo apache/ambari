@@ -19,6 +19,8 @@
 package org.apache.ambari.server.security.authorization;
 
 import java.io.IOException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -31,7 +33,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
-import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity.ViewInstanceVersionDTO;
 import org.apache.ambari.server.security.authorization.internal.InternalAuthenticationToken;
 import org.apache.ambari.server.view.ViewRegistry;
@@ -46,6 +47,21 @@ public class AmbariAuthorizationFilter implements Filter {
   private static final String DEFAULT_REALM = "AuthFilter";
 
   private static final String INTERNAL_TOKEN_HEADER = "X-Internal-Token";
+
+  private static final Pattern STACK_ADVISOR_REGEX = Pattern.compile("/api/v[0-9]+/stacks/[^/]+/versions/[^/]+/validations.*");
+
+  public static final String API_VERSION_PREFIX        = "/api/v[0-9]+";
+  public static final String VIEWS_CONTEXT_PATH_PREFIX = "/views/";
+
+  private static final String VIEWS_CONTEXT_PATH_PATTERN       = VIEWS_CONTEXT_PATH_PREFIX + "([^/]+)/([^/]+)/([^/]+)(.*)";
+  private static final String VIEWS_CONTEXT_ALL_PATTERN        = VIEWS_CONTEXT_PATH_PREFIX + ".*";
+  private static final String API_USERS_USERNAME_PATTERN       = API_VERSION_PREFIX + "/users/([^/?]+)(.*)";
+  private static final String API_USERS_ALL_PATTERN            = API_VERSION_PREFIX + "/users.*";
+  private static final String API_GROUPS_ALL_PATTERN           = API_VERSION_PREFIX + "/groups.*";
+  private static final String API_CLUSTERS_ALL_PATTERN         = API_VERSION_PREFIX + "/clusters.*";
+  private static final String API_VIEWS_ALL_PATTERN            = API_VERSION_PREFIX + "/views.*";
+  private static final String API_PERSIST_ALL_PATTERN          = API_VERSION_PREFIX + "/persist.*";
+  private static final String API_LDAP_SYNC_EVENTS_ALL_PATTERN = API_VERSION_PREFIX + "/ldap_sync_events.*";
 
   /**
    * The realm to use for the basic http auth
@@ -89,20 +105,26 @@ public class AmbariAuthorizationFilter implements Filter {
             break;
           }
 
-          if (requestURI.matches("/api/v[0-9]+/clusters.*")) {
             // clusters require permission
+	  if (requestURI.matches(API_CLUSTERS_ALL_PATTERN)) {
             if (permissionId.equals(PermissionEntity.CLUSTER_READ_PERMISSION) ||
                 permissionId.equals(PermissionEntity.CLUSTER_OPERATE_PERMISSION)) {
               authorized = true;
               break;
             }
-          } else if (requestURI.matches("/api/v[0-9]+/views.*")) {
+          } else if (STACK_ADVISOR_REGEX.matcher(requestURI).matches()) {
+            //TODO permissions model doesn't manage stacks api, but we need access to stack advisor to save configs
+            if (permissionId.equals(PermissionEntity.CLUSTER_OPERATE_PERMISSION)) {
+              authorized = true;
+              break;
+            }
+	  } else if (requestURI.matches(API_VIEWS_ALL_PATTERN)) {
             // views require permission
             if (permissionId.equals(PermissionEntity.VIEW_USE_PERMISSION)) {
               authorized = true;
               break;
             }
-          } else if (requestURI.matches("/api/v[0-9]+/persist.*")) {
+          } else if (requestURI.matches(API_PERSIST_ALL_PATTERN)) {
             if (permissionId.equals(PermissionEntity.CLUSTER_OPERATE_PERMISSION)) {
               authorized = true;
               break;
@@ -111,14 +133,26 @@ public class AmbariAuthorizationFilter implements Filter {
         }
       }
 
-      if (!authorized && requestURI.matches(ViewInstanceEntity.VIEWS_CONTEXT_PATH_PATTERN)) {
-        final ViewInstanceVersionDTO dto = ViewInstanceEntity.parseContextPath(requestURI);
-        authorized = ViewRegistry.getInstance().checkPermission(dto.getViewName(), dto.getVersion(), dto.getInstanceName(), true);
+      if (!authorized && requestURI.matches(VIEWS_CONTEXT_PATH_PATTERN)) {
+        final ViewInstanceVersionDTO dto = parseViewInstanceInfo(requestURI);
+        authorized = getViewRegistry().checkPermission(dto.getViewName(), dto.getVersion(), dto.getInstanceName(), true);
       }
 
-      // allow GET for everything except views
+      // allow all types of requests for /users/{current_user}
+      if (!authorized && requestURI.matches(API_USERS_USERNAME_PATTERN)) {
+        final SecurityContext securityContext = getSecurityContext();
+        final String currentUserName = securityContext.getAuthentication().getName();
+        final String urlUserName = parseUserName(requestURI);
+        authorized = currentUserName.equalsIgnoreCase(urlUserName);
+      }
+
+      // allow GET for everything except /views, /api/v1/users, /api/v1/groups, /api/v1/ldap_sync_events
       if (!authorized &&
-          (!httpRequest.getMethod().equals("GET") || requestURI.matches("/views.*"))) {
+          (!httpRequest.getMethod().equals("GET")
+              || requestURI.matches(VIEWS_CONTEXT_ALL_PATTERN)
+              || requestURI.matches(API_USERS_ALL_PATTERN)
+              || requestURI.matches(API_GROUPS_ALL_PATTERN)
+              || requestURI.matches(API_LDAP_SYNC_EVENTS_ALL_PATTERN))) {
 
         httpResponse.setHeader("WWW-Authenticate", "Basic realm=\"" + realm + "\"");
         httpResponse.sendError(HttpServletResponse.SC_FORBIDDEN, "You do not have permissions to access this resource.");
@@ -157,7 +191,46 @@ public class AmbariAuthorizationFilter implements Filter {
     return value == null || value.length() == 0 ? defaultValue : value;
   }
 
+  /**
+   * Parses context path into view name, version and instance name
+   *
+   * @param contextPath the context path
+   * @return null if context path doesn't match correct pattern
+   */
+  static ViewInstanceVersionDTO parseViewInstanceInfo(String contextPath) {
+    final Pattern pattern = Pattern.compile(VIEWS_CONTEXT_PATH_PATTERN);
+    final Matcher matcher = pattern.matcher(contextPath);
+    if (!matcher.matches()) {
+      return null;
+    } else {
+      final String viewName = matcher.group(1);
+      final String version = matcher.group(2);
+      final String instanceName = matcher.group(3);
+      return new ViewInstanceVersionDTO(viewName, version, instanceName);
+    }
+  }
+
+  /**
+   * Parses url to get user name.
+   *
+   * @param url the url
+   * @return null if url doesn't match correct pattern
+   */
+  static String parseUserName(String url) {
+    final Pattern pattern = Pattern.compile(API_USERS_USERNAME_PATTERN);
+    final Matcher matcher = pattern.matcher(url);
+    if (!matcher.matches()) {
+      return null;
+    } else {
+      return matcher.group(1);
+    }
+  }
+
   SecurityContext getSecurityContext() {
     return SecurityContextHolder.getContext();
+  }
+
+  ViewRegistry getViewRegistry() {
+    return ViewRegistry.getInstance();
   }
 }
