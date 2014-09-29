@@ -54,6 +54,9 @@ App.Helpers.jobs = {
       data: {
         atsURL: atsURL,
         job_id: hiveJob.get('id'),
+        view: App.get("view"),
+        version: App.get("version"),
+        instanceName: App.get("instanceName"),
         successCallback: successCallback,
         errorCallback: errorCallback
       },
