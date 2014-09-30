@@ -92,11 +92,13 @@ App.config = Em.Object.create({
   }.property('App.isHadoop2Stack'),
 
   preDefinedSiteProperties: function () {
-    if (App.get('isHadoop2Stack')) {
+    if (App.get('isHadoop22Stack')) {
+      return require('data/HDP2.2/site_properties').configProperties;
+    } else if (App.get('isHadoop2Stack')) {
       return require('data/HDP2/site_properties').configProperties;
     }
     return require('data/site_properties').configProperties;
-  }.property('App.isHadoop2Stack'),
+  }.property('App.isHadoop2Stack', 'App.isHadoop22Stack'),
 
   preDefinedCustomConfigs: function () {
     if (App.get('isHadoop2Stack')) {

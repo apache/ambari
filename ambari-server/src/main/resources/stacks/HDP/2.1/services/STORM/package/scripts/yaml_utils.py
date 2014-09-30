@@ -19,12 +19,10 @@ limitations under the License.
 """
 
 import re
-from resource_management import *
 
 def escape_yaml_propetry(value):
   unquouted = False
   unquouted_values = ["null","Null","NULL","true","True","TRUE","false","False","FALSE","YES","Yes","yes","NO","No","no","ON","On","on","OFF","Off","off"]
-  
   if value in unquouted_values:
     unquouted = True
 
@@ -49,24 +47,3 @@ def escape_yaml_propetry(value):
     value = "'"+value+"'"
     
   return value
-
-def yaml_inline_template(configurations):
-  return source.InlineTemplate('''{% for key, value in configurations_dict.items() %}{{ key }}: {{ escape_yaml_propetry(value) }}
-{% endfor %}''', configurations_dict=configurations, extra_imports=[escape_yaml_propetry])
-
-def yaml_config(
-  filename,
-  configurations = None,
-  conf_dir = None,
-  mode = None,
-  owner = None,
-  group = None
-):
-    config_content = yaml_inline_template(configurations)
-
-    File (format("{conf_dir}/{filename}"),
-      content = config_content,
-      owner = owner,
-      group = group,
-      mode = mode
-    )

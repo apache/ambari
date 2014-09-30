@@ -19,9 +19,8 @@ limitations under the License.
 """
 
 from resource_management import *
-from yaml_config import yaml_config
+from yaml_utils import escape_yaml_propetry
 import sys
-
 
 def storm():
   import params
@@ -38,11 +37,15 @@ def storm():
        group=params.user_group
   )
 
-  yaml_config("storm.yaml",
-              conf_dir=params.conf_dir,
-              configurations=params.config['configurations']['storm-site'],
-              owner=params.storm_user,
-              group=params.user_group
+  configurations = params.config['configurations']['storm-site']
+  
+  File(format("{conf_dir}/storm.yaml"),
+       content=Template(
+                        "storm.yaml.j2", 
+                         extra_imports=[escape_yaml_propetry], 
+                        configurations = configurations),
+       owner=params.storm_user,
+       group=params.user_group
   )
 
   File(format("{conf_dir}/storm-env.sh"),

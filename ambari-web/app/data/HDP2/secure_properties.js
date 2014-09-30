@@ -27,8 +27,7 @@
  * component: Ambari component name
  */
 
-module.exports =
-{
+var props = {
   "configProperties": [
     {
       "id": "puppet var",
@@ -990,51 +989,6 @@ module.exports =
       "category": "Nagios Server",
       "component": "NAGIOS_SERVER"
     },
-  /**********************************************STORM***************************************/
-    {
-      "id": "puppet var",
-      "name": "storm_host",
-      "displayName": "Storm component hosts",
-      "value": "",
-      "defaultValue": "",
-      "description": "Storm component hosts",
-      "displayType": "slaveHosts",
-      "isVisible": true,
-      "isOverridable": false,
-      "serviceName": "STORM",
-      "category": "Storm Topology"
-    },
-    {
-      "id": "puppet var",
-      "name": "storm_principal_name",
-      "displayName": " Storm principal name",
-      "value": "",
-      "defaultValue": "storm/_HOST",
-      "description": "Principal name for Supervisor. _HOST will get automatically replaced with actual hostname at an instance of every storm component.",
-      "displayType": "principal",
-      "isVisible": true,
-      "isOverridable": false,
-      "serviceName": "STORM",
-      "filename": "storm-env.xml",
-      "category": "Storm Topology",
-      "components": ["SUPERVISOR", "NIMBUS", "STORM_UI_SERVER"]
-    },
-    {
-      "id": "puppet var",
-      "name": "storm_keytab",
-      "displayName": "Path to Storm keytab file",
-      "value": "",
-      "defaultValue": "/etc/security/keytabs/storm.service.keytab",
-      "description": "Path to the storm keytab file",
-      "displayType": "directory",
-      "isVisible": true,
-      "isOverridable": false,
-      "serviceName": "STORM",
-      "filename": "storm-env.xml",
-      "category": "Storm Topology",
-      "components": ["SUPERVISOR", "NIMBUS"]
-    },
-
   /**********************************************Falcon***************************************/
     {
       "id": "puppet var",
@@ -1118,3 +1072,162 @@ module.exports =
     }
   ]
 };
+
+var stormProperties = [
+  {
+    "id": "puppet var",
+    "name": "storm_host",
+    "displayName": "Storm component hosts",
+    "value": "",
+    "defaultValue": "",
+    "description": "Storm component hosts",
+    "displayType": "slaveHosts",
+    "isVisible": true,
+    "isOverridable": false,
+    "serviceName": "STORM",
+    "category": "Storm Topology"
+  },
+  {
+    "id": "puppet var",
+    "name": "storm_principal_name",
+    "displayName": " Storm principal name",
+    "value": "",
+    "defaultValue": "storm/_HOST",
+    "description": "Principal name for Supervisor. _HOST will get automatically replaced with actual hostname at an instance of every storm component.",
+    "displayType": "principal",
+    "isVisible": true,
+    "isOverridable": false,
+    "serviceName": "STORM",
+    "filename": "storm-env.xml",
+    "category": "Storm Topology",
+    "components": ["SUPERVISOR", "NIMBUS", "STORM_UI_SERVER"]
+  },
+  {
+    "id": "puppet var",
+    "name": "storm_keytab",
+    "displayName": "Path to Storm keytab file",
+    "value": "",
+    "defaultValue": "/etc/security/keytabs/storm.service.keytab",
+    "description": "Path to the storm keytab file",
+    "displayType": "directory",
+    "isVisible": true,
+    "isOverridable": false,
+    "serviceName": "STORM",
+    "filename": "storm-env.xml",
+    "category": "Storm Topology",
+    "components": ["SUPERVISOR", "NIMBUS"]
+  }
+];
+var storm22Properties = [
+  {
+    "id": "puppet var",
+    "name": "storm_principal_name",
+    "displayName": " Storm principal name",
+    "value": "",
+    "defaultValue": "storm/_HOST",
+    "description": "Principal name for Storm components. _HOST will get automatically replaced with actual hostname at an instance of every storm component.",
+    "displayType": "principal",
+    "isVisible": true,
+    "isOverridable": false,
+    "serviceName": "STORM",
+    "filename": "storm-env.xml",
+    "category": "Storm Topology",
+    "components": ["SUPERVISOR", "STORM_UI_SERVER", "DRPC_SERVER", "STORM_REST_API"]
+  },
+  {
+    "id": "puppet var",
+    "name": "storm_keytab",
+    "displayName": "Path to Storm keytab file",
+    "value": "",
+    "defaultValue": "/etc/security/keytabs/storm.service.keytab",
+    "description": "Path to the storm keytab file",
+    "displayType": "directory",
+    "isVisible": true,
+    "isOverridable": false,
+    "serviceName": "STORM",
+    "filename": "storm-env.xml",
+    "category": "Storm Topology",
+    "components": ["SUPERVISOR", "STORM_UI_SERVER", "DRPC_SERVER", "STORM_REST_API"]
+  },
+  {
+    "id": "puppet var",
+    "name": "nimbus_host",
+    "displayName": "Nimbus hosts",
+    "value": "",
+    "defaultValue": "",
+    "description": "Nimbus component hosts",
+    "displayType": "slaveHosts",
+    "isVisible": true,
+    "isOverridable": false,
+    "serviceName": "STORM",
+    "category": "Nimbus"
+  },
+  {
+    "id": "puppet var",
+    "name": "nimbus_principal_name",
+    "displayName": " Nimbus principal name",
+    "value": "",
+    "defaultValue": "nimbus/_HOST",
+    "description": "Nimbus Principal name",
+    "displayType": "principal",
+    "isVisible": true,
+    "isOverridable": false,
+    "serviceName": "STORM",
+    "filename": "storm-env.xml",
+    "category": "Nimbus",
+    "components": ["NIMBUS","DRPC_SERVER"]
+  },
+  {
+    "id": "puppet var",
+    "name": "nimbus_keytab",
+    "displayName": "Path to Nimbus keytab file",
+    "value": "",
+    "defaultValue": "/etc/security/keytabs/nimbus.service.keytab",
+    "description": "Path to the nimbus keytab file",
+    "displayType": "directory",
+    "isVisible": true,
+    "isOverridable": false,
+    "serviceName": "STORM",
+    "filename": "storm-env.xml",
+    "category": "Nimbus",
+    "components": ["NIMBUS","DRPC_SERVER"]
+  },
+  {
+    "id": "puppet var",
+    "name": "strom_ui_principal_name",
+    "displayName": "Storm UI principal name",
+    "value": "",
+    "defaultValue": "HTTP/_HOST",
+    "description": "Principal name for Storm UI",
+    "displayType": "principal",
+    "isVisible": false,
+    "isOverridable": false,
+    "serviceName": "STORM",
+    "filename": "storm-env.xml",
+    "category": "Nimbus",
+    "components": ["STORM_UI_SERVER"]
+  },
+  {
+    "id": "puppet var",
+    "name": "strom_ui_keytab",
+    "displayName": "Path to Nimbus UI keytab file",
+    "value": "",
+    "defaultValue": "/etc/security/keytabs/http.storm.service.keytab",
+    "description": "Path to the Storm UI keytab file",
+    "displayType": "directory",
+    "isVisible": false,
+    "isOverridable": false,
+    "serviceName": "STORM",
+    "filename": "storm-env.xml",
+    "category": "Nimbus",
+    "components": ["STORM_UI_SERVER"]
+  }
+];
+
+if(App.get('isHadoop22Stack')) {
+  props.configProperties.pushObjects(storm22Properties);
+} else {
+  props.configProperties.pushObjects(stormProperties);
+}
+
+module.exports = props;

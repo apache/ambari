@@ -47,79 +47,91 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
     'FALCON_SERVER': 'falcon_user'
   },
   // The componentName, principal, and keytab have to coincide with the values in secure_properties.js
-  componentToConfigMap: [
-    {
-      componentName: 'NAMENODE',
-      principal: 'hadoop_http_principal_name',
-      keytab: 'hadoop_http_keytab',
-      displayName: Em.I18n.t('admin.addSecurity.hdfs.user.httpUser')
-    },
-    {
-      componentName: 'SECONDARY_NAMENODE',
-      principal: 'hadoop_http_principal_name',
-      keytab: 'hadoop_http_keytab',
-      displayName: Em.I18n.t('admin.addSecurity.hdfs.user.httpUser')
-    },
-    {
-      componentName: 'JOURNALNODE',
-      principal: 'hadoop_http_principal_name',
-      keytab: 'hadoop_http_keytab',
-      displayName: Em.I18n.t('admin.addSecurity.hdfs.user.httpUser')
-    },
-    {
-      componentName: 'WEBHCAT_SERVER',
-      principal: 'webHCat_http_principal_name',
-      keytab: 'webhcat_http_keytab',
-      displayName: Em.I18n.t('admin.addSecurity.webhcat.user.httpUser')
-    },
-    {
-      componentName: 'OOZIE_SERVER',
-      principal: 'oozie_http_principal_name',
-      keytab: 'oozie_http_keytab',
-      displayName: Em.I18n.t('admin.addSecurity.oozie.user.httpUser')
-    },
-    {
-      componentName: 'FALCON_SERVER',
-      principal: 'falcon_http_principal_name',
-      keytab: 'falcon_http_keytab',
-      displayName: Em.I18n.t('admin.addSecurity.falcon.user.httpUser')
-    },
-    {
-      componentName: 'HISTORYSERVER',
-      principal: 'jobhistory_http_principal_name',
-      keytab: 'jobhistory_http_keytab',
-      displayName: Em.I18n.t('admin.addSecurity.historyServer.user.httpUser'),
-      isHadoop2Stack: true
-    },
-    {
-      componentName: 'RESOURCEMANAGER',
-      principal: 'resourcemanager_http_principal_name',
-      keytab: 'resourcemanager_http_keytab',
-      displayName: Em.I18n.t('admin.addSecurity.rm.user.httpUser'),
-      isHadoop2Stack: true
-    },
-    {
-      componentName: 'NODEMANAGER',
-      principal: 'nodemanager_http_principal_name',
-      keytab: 'nodemanager_http_keytab',
-      displayName: Em.I18n.t('admin.addSecurity.nm.user.httpUser'),
-      isHadoop2Stack: true
-    },
-    {
-      componentName: 'APP_TIMELINE_SERVER',
-      principal: 'apptimelineserver_principal_name',
-      keytab: 'apptimelineserver_keytab',
-      displayName: Em.I18n.t('admin.addSecurity.user.yarn.atsUser'),
-      isHadoop2Stack: true
-    },
-    {
-      componentName: 'APP_TIMELINE_SERVER',
-      principal: 'apptimelineserver_http_principal_name',
-      keytab: 'apptimelineserver_http_keytab',
-      displayName: Em.I18n.t('admin.addSecurity.user.yarn.atsHTTPUser'),
-      isHadoop2Stack: true
+  componentToConfigMap: function () {
+    var hdp2map = [
+      {
+        componentName: 'NAMENODE',
+        principal: 'hadoop_http_principal_name',
+        keytab: 'hadoop_http_keytab',
+        displayName: Em.I18n.t('admin.addSecurity.hdfs.user.httpUser')
+      },
+      {
+        componentName: 'SECONDARY_NAMENODE',
+        principal: 'hadoop_http_principal_name',
+        keytab: 'hadoop_http_keytab',
+        displayName: Em.I18n.t('admin.addSecurity.hdfs.user.httpUser')
+      },
+      {
+        componentName: 'JOURNALNODE',
+        principal: 'hadoop_http_principal_name',
+        keytab: 'hadoop_http_keytab',
+        displayName: Em.I18n.t('admin.addSecurity.hdfs.user.httpUser')
+      },
+      {
+        componentName: 'WEBHCAT_SERVER',
+        principal: 'webHCat_http_principal_name',
+        keytab: 'webhcat_http_keytab',
+        displayName: Em.I18n.t('admin.addSecurity.webhcat.user.httpUser')
+      },
+      {
+        componentName: 'OOZIE_SERVER',
+        principal: 'oozie_http_principal_name',
+        keytab: 'oozie_http_keytab',
+        displayName: Em.I18n.t('admin.addSecurity.oozie.user.httpUser')
+      },
+      {
+        componentName: 'FALCON_SERVER',
+        principal: 'falcon_http_principal_name',
+        keytab: 'falcon_http_keytab',
+        displayName: Em.I18n.t('admin.addSecurity.falcon.user.httpUser')
+      },
+      {
+        componentName: 'HISTORYSERVER',
+        principal: 'jobhistory_http_principal_name',
+        keytab: 'jobhistory_http_keytab',
+        displayName: Em.I18n.t('admin.addSecurity.historyServer.user.httpUser'),
+        isHadoop2Stack: true
+      },
+      {
+        componentName: 'RESOURCEMANAGER',
+        principal: 'resourcemanager_http_principal_name',
+        keytab: 'resourcemanager_http_keytab',
+        displayName: Em.I18n.t('admin.addSecurity.rm.user.httpUser'),
+        isHadoop2Stack: true
+      },
+      {
+        componentName: 'NODEMANAGER',
+        principal: 'nodemanager_http_principal_name',
+        keytab: 'nodemanager_http_keytab',
+        displayName: Em.I18n.t('admin.addSecurity.nm.user.httpUser'),
+        isHadoop2Stack: true
+      },
+      {
+        componentName: 'APP_TIMELINE_SERVER',
+        principal: 'apptimelineserver_principal_name',
+        keytab: 'apptimelineserver_keytab',
+        displayName: Em.I18n.t('admin.addSecurity.user.yarn.atsUser'),
+        isHadoop2Stack: true
+      },
+      {
+        componentName: 'APP_TIMELINE_SERVER',
+        principal: 'apptimelineserver_http_principal_name',
+        keytab: 'apptimelineserver_http_keytab',
+        displayName: Em.I18n.t('admin.addSecurity.user.yarn.atsHTTPUser'),
+        isHadoop2Stack: true
+      }
+    ];
+    if (App.get('isHadoop22Stack')) {
+      hdp2map.push({
+        componentName: 'DRPC_SERVER',
+        principal: 'nimbus_principal_name',
+        keytab: 'nimbus_keytab',
+        displayName: 'DRPC_SERVER',
+        isHadoop2Stack: true
+      });
     }
-  ],
+    return hdp2map;
+  }.property('App.isHadoop22Stack'),
 
   mandatoryConfigs: [
     {

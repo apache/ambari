@@ -42,7 +42,6 @@ conf_dir = "/etc/storm/conf"
 local_dir = config['configurations']['storm-site']['storm.local.dir']
 user_group = config['configurations']['cluster-env']['user_group']
 java64_home = config['hostLevelParams']['java_home']
-nimbus_host = config['configurations']['storm-site']['nimbus.host']
 nimbus_port = config['configurations']['storm-site']['nimbus.thrift.port']
 nimbus_host = config['configurations']['storm-site']['nimbus.host']
 rest_api_port = "8745"
@@ -58,11 +57,25 @@ if 'ganglia_server_host' in config['clusterHostInfo'] and \
 else:
   ganglia_installed = False
 
+is_compatible_to_2_2_stack = str(config['hostLevelParams']['stack_version']).startswith('2.2')
+
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 
 if security_enabled:
   _hostname_lowercase = config['hostname'].lower()
-  _kerberos_domain = config['configurations']['cluster-env']['kerberos_domain']
+  kerberos_domain = config['configurations']['cluster-env']['kerberos_domain']
   _storm_principal_name = config['configurations']['storm-env']['storm_principal_name']
   storm_jaas_principal = _storm_principal_name.replace('_HOST',_hostname_lowercase)
   storm_keytab_path = config['configurations']['storm-env']['storm_keytab']
+  
+  if is_compatible_to_2_2_stack:
+    storm_ui_keytab_path = config['configurations']['storm-env']['strom_ui_keytab']
+    _storm_ui_jaas_principal_name = config['configurations']['storm-env']['strom_ui_principal_name']
+    storm_ui_host = default("/clusterHostInfo/storm_ui_server_hosts", [])
+    storm_ui_jaas_principal = _storm_ui_jaas_principal_name.replace('_HOST',storm_ui_host[0].lower())
+    
+    
+    _nimbus_principal_name = config['configurations']['storm-env']['nimbus_principal_name']
+    nimbus_jaas_principal = _nimbus_principal_name.replace('_HOST',nimbus_host.lower())
+    nimbus_bare_jaas_principal = _nimbus_principal_name.replace('/_HOST','').replace('@'+kerberos_domain,'')
+    nimbus_keytab_path = config['configurations']['storm-env']['nimbus_keytab']

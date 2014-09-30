@@ -80,8 +80,11 @@ module.exports = Em.Application.create({
   }.property('currentStackVersion', 'currentStackName'),
 
   isHadoop2Stack: function () {
-    return (stringUtils.compareVersions(this.get('currentStackVersionNumber'), "2.0") === 1 ||
-      stringUtils.compareVersions(this.get('currentStackVersionNumber'), "2.0") === 0)
+    return (stringUtils.compareVersions(this.get('currentStackVersionNumber'), "2.0") > -1);
+  }.property('currentStackVersionNumber'),
+
+  isHadoop22Stack: function () {
+    return (stringUtils.compareVersions(this.get('currentStackVersionNumber'), "2.2") > -1);
   }.property('currentStackVersionNumber'),
 
   /**

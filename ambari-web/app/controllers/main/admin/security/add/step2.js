@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+var stringUtils = require('utils/string_utils');
 
 App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
 
@@ -139,6 +140,11 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
       serviceName: 'STORM',
       configName: 'storm_host',
       components: ['STORM_UI_SERVER', 'NIMBUS', 'SUPERVISOR']
+    },
+    {
+      serviceName: 'STORM',
+      configName: 'nimbus_host',
+      components: ['NIMBUS']
     }
   ],
 
@@ -198,6 +204,23 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
    */
   loadStep: function () {
     console.log("TRACE: Loading addSecurity step2: Configure Services");
+    var versionNumber = App.get('currentStackVersionNumber');
+    if( stringUtils.compareVersions(versionNumber, "2.2") >= 0){
+      // Add Nimbus config options
+      var masterComponentMap = this.get('masterComponentMap');
+      masterComponentMap.filterProperty('configName', 'storm_host').components = ["SUPERVISOR", "STORM_UI_SERVER", "DRPC_SERVER", "STORM_REST_API"];
+      masterComponentMap.pushObject({
+        serviceName: 'STORM',
+        configName: 'nimbus_host',
+        components: ['NIMBUS']
+      });
+      this.get('hostToPrincipalMap').pushObject({
+        serviceName: 'STORM',
+        configName: 'nimbus_host',
+        principalName: 'storm_principal_name',
+        primaryName: 'storm'
+      });
+    }
     this.clearStep();
     this.loadUsers();
     this.addUserPrincipals(this.get('content.services'), this.get('securityUsers'));
@@ -305,13 +328,15 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
     if (service) {
       var host = service.configs.findProperty('name', hostConfigName);
       var principal = service.configs.findProperty('name', principalConfigName);
-      if (host && principal) {
-        if (Array.isArray(host.defaultValue)) {
-          host.defaultValue = host.defaultValue[0];
-        }
-        principal.defaultValue = defaultPrimaryName + host.defaultValue.toLowerCase();
+      var versionNumber = App.get('currentStackVersionNumber');
+      if( principalConfigName == 'storm_principal_name' && stringUtils.compareVersions(versionNumber, "2.2") >= 0){
+        principal.defaultValue = defaultPrimaryName;
         return true;
-      }
+      } else if (host && principal) {
+        var host_defaultValue = Array.isArray(host.defaultValue) ? host.defaultValue[0] : host.defaultValue;
+        principal.defaultValue = defaultPrimaryName + host_defaultValue;
+        return true;
+       }
       return false;
     }
     return false;

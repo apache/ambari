@@ -36,7 +36,7 @@ if (isATSInstalled && doesATSSupportKerberos) {
   yarnConfigProperties.push(App.ServiceConfigCategory.create({ name: 'AppTimelineServer', displayName : 'ApplicationTimelineService'}));
 }
 
-module.exports = [
+var configs = [
   {
     serviceName: 'GENERAL',
     displayName: 'General',
@@ -135,7 +135,7 @@ module.exports = [
     displayName: 'Storm',
     filename: 'storm-site',
     configCategories: [
-      App.ServiceConfigCategory.create({ name: 'Storm Topology', displayName:  'Storm Topology'})
+      App.ServiceConfigCategory.create({ name: 'Storm Topology', displayName:  'Storm Client'})
     ],
     sites: ['storm-env','storm-site'],
     configs: configProperties.filterProperty('serviceName', 'STORM')
@@ -151,5 +151,17 @@ module.exports = [
     configs: configProperties.filterProperty('serviceName', 'FALCON')
   }
 ];
+
+if(App.get('isHadoop22Stack')){
+  for(var i = 0; i < configs.length; i++){
+    var config = configs[i];
+    if( config.serviceName === 'STORM' ){
+      config.configCategories.unshift(App.ServiceConfigCategory.create({ name: 'Nimbus', displayName:  'Nimbus'}));
+    }
+  }
+}
+
+
+module.exports = configs;
 
 
