@@ -30,19 +30,6 @@ class TestHookAfterInstall(RMFTestCase):
                        command="hook",
                        config_file="default.json"
     )
-    self.assertResourceCalled('Directory', '/etc/hadoop/conf.empty',
-                              owner = 'root',
-                              group = 'root',
-                              recursive = True,
-                              )
-    self.assertResourceCalled('Link', '/etc/hadoop/conf',
-                              to = '/etc/hadoop/conf.empty',
-                              not_if = 'ls /etc/hadoop/conf'
-                              )
-    self.assertResourceCalled('File', '/etc/hadoop/conf/hadoop-env.sh',
-                              content = InlineTemplate(self.getConfig()['configurations']['hadoop-env']['content']),
-                              owner = 'hdfs',
-                              )
     self.assertResourceCalled('XmlConfig', 'core-site.xml',
                               owner = 'hdfs',
                               group = 'hadoop',

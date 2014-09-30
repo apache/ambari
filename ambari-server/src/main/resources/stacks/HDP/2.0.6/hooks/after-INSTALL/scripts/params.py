@@ -44,7 +44,6 @@ java_home = config['hostLevelParams']['java_home']
 hdfs_log_dir_prefix = config['configurations']['hadoop-env']['hdfs_log_dir_prefix']
 hadoop_pid_dir_prefix = config['configurations']['hadoop-env']['hadoop_pid_dir_prefix']
 hadoop_root_logger = config['configurations']['hadoop-env']['hadoop_root_logger']
-hadoop_env_sh_template = config['configurations']['hadoop-env']['content']
 
 #hadoop-env.sh
 java_home = config['hostLevelParams']['java_home']
