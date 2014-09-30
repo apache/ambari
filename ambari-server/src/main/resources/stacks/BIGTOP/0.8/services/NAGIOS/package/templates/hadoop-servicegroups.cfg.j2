@@ -1,0 +1,119 @@
+{#
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#}
+
+
+
+{% if hostgroup_defs['namenode'] or 
+  hostgroup_defs['snamenode']  or
+  hostgroup_defs['slaves'] %}
+  {% if hostgroup_defs['namenode'] != None %}
+  define servicegroup {
+    servicegroup_name  HDFS
+    alias  HDFS Checks
+  }
+  {% endif %}
+{% endif %} 
+{%if hostgroup_defs['jobtracker'] or
+  hostgroup_defs['historyserver2']-%}
+define servicegroup {
+  servicegroup_name  MAPREDUCE
+  alias  MAPREDUCE Checks
+}
+{% endif %}
+{%if hostgroup_defs['resourcemanager'] or
+  hostgroup_defs['nodemanagers'] %}
+define servicegroup {
+  servicegroup_name  YARN
+  alias  YARN Checks
+}
+{% endif %}
+{%if hostgroup_defs['hbasemasters'] %}
+define servicegroup {
+  servicegroup_name  HBASE
+  alias  HBASE Checks
+}
+{% endif %}
+{% if hostgroup_defs['oozie-server'] %}
+define servicegroup {
+  servicegroup_name  OOZIE
+  alias  OOZIE Checks
+}
+{% endif %}
+{% if hostgroup_defs['webhcat-server'] %}
+define servicegroup {
+  servicegroup_name  WEBHCAT
+  alias  WEBHCAT Checks
+}
+{% endif %}
+{% if hostgroup_defs['nagios-server'] %}
+define servicegroup {
+  servicegroup_name  NAGIOS
+  alias  NAGIOS Checks
+}
+{% endif %}
+{% if hostgroup_defs['ganglia-server'] %}
+define servicegroup {
+  servicegroup_name  GANGLIA
+  alias  GANGLIA Checks
+}
+{% endif %}
+{% if hostgroup_defs['hiveserver'] %}
+define servicegroup {
+  servicegroup_name  HIVE
+  alias  HIVE Checks
+}
+{% endif %}
+{% if hostgroup_defs['zookeeper-servers'] %}
+define servicegroup {
+  servicegroup_name  ZOOKEEPER
+  alias  ZOOKEEPER Checks
+}
+{% endif %}
+define servicegroup {
+  servicegroup_name  AMBARI
+  alias  AMBARI Checks
+}
+{% if hostgroup_defs['hue-server'] %}
+define servicegroup {
+  servicegroup_name  HUE
+  alias  HUE Checks
+}
+{% endif %}
+{% if hostgroup_defs['nimbus'] or
+  hostgroup_defs['drpc-server'] or
+  hostgroup_defs['storm_ui'] or
+  hostgroup_defs['supervisors'] or
+  hostgroup_defs['storm_rest_api']%}
+define servicegroup {
+  servicegroup_name  STORM
+  alias  STORM Checks
+}
+{% endif %}
+{% if hostgroup_defs['falcon-server'] %}
+define servicegroup {
+  servicegroup_name  FALCON
+  alias  FALCON Checks
+}
+{% endif %}
+
+{%if hostgroup_defs['flume-servers'] %}
+define servicegroup {
+  servicegroup_name  FLUME
+  alias  FLUME Checks
+}
+{% endif %}
