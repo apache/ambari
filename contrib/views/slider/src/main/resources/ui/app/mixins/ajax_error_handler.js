@@ -68,7 +68,7 @@ App.AjaxErrorHandler = Ember.Mixin.create({
           showMessage: !!message
         }),
         [
-          Ember.Object.create({title: Em.I18n.t('ok'), clicked: "errorPopupClose", dismiss: 'modal'})
+          Ember.Object.create({title: Em.I18n.t('ok'), clicked: "errorPopupClose", dismiss: 'modal', type:'success'})
         ],
         context
       );
