@@ -28,14 +28,11 @@ rpm_version = default("/configurations/cluster-env/rpm_version", None)
 
 #hadoop params
 if rpm_version:
-#  slider_conf_dir = '/usr/lib/current/slider/conf'
-#  slider_bin_dir = '/usr/lib/current/slider/bin'
-  slider_conf_dir = "/usr/lib/slider/conf"
-  slider_bin_dir = "/usr/lib/slider/bin"
+  slider_bin_dir = '/usr/hdp/current/slider/bin'
 else:
-  slider_conf_dir = "/usr/lib/slider/conf"
   slider_bin_dir = "/usr/lib/slider/bin"
 
+slider_conf_dir = "/etc/slider/conf"
 hadoop_conf_dir = "/etc/hadoop/conf"
 smokeuser = config['configurations']['cluster-env']['smokeuser']
 security_enabled = config['configurations']['cluster-env']['security_enabled']
