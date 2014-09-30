@@ -71,7 +71,7 @@ Restart HDFS and YARN services.
 From *Ambari-Admin* create a *Slider Apps View* with the below parameters populated
 
 * slider.security.enabled = true
-* yarn.resourcemanager.principal = `rm/_HOST@EXAMPLE.COM`
+* yarn.rm.kerberos.principal = `rm/_HOST@EXAMPLE.COM`
 * dfs.namenode.kerberos.principal = `nn/_HOST@EXAMPLE.COM`
 * view.kerberos.principal = `view-principal`
 * view.kerberos.principal.keytab = `/etc/security/keytabs/view-principal.headless.keytab`
