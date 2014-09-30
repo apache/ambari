@@ -20,6 +20,8 @@ limitations under the License.
 from mock.mock import MagicMock, patch
 from stacks.utils.RMFTestCase import *
 
+@patch("os.path.isfile", new = MagicMock(return_value=True))
+@patch("glob.glob", new = MagicMock(return_value=["one", "two"]))
 class TestWebHCatServer(RMFTestCase):
 
   def test_configure_default(self):
@@ -183,6 +185,15 @@ class TestWebHCatServer(RMFTestCase):
                               hadoop_conf_dir='/etc/hadoop/conf',
                               hdfs_user='hdfs'
     )
+    self.assertResourceCalled('CopyFromLocal', '/usr/share/HDP-webhcat/sqoop*.tar.gz',
+                              owner='hcat',
+                              mode=0755,
+                              dest_dir='/apps/webhcat',
+                              kinnit_if_needed='',
+                              hadoop_bin_dir='/usr/bin',
+                              hadoop_conf_dir='/etc/hadoop/conf',
+                              hdfs_user='hdfs'
+    )
 
   def assert_configure_secured(self):
     self.assertResourceCalled('HdfsDirectory', '/apps/webhcat',
@@ -268,6 +279,15 @@ class TestWebHCatServer(RMFTestCase):
                               hdfs_user='hdfs'
     )
     self.assertResourceCalled('CopyFromLocal', '/usr/share/HDP-webhcat/hive.tar.gz',
+                              owner='hcat',
+                              mode=0755,
+                              dest_dir='/apps/webhcat',
+                              kinnit_if_needed='/usr/bin/kinit -kt /etc/security/keytabs/hdfs.headless.keytab hdfs;',
+                              hadoop_conf_dir='/etc/hadoop/conf',
+                              hadoop_bin_dir='/usr/bin',
+                              hdfs_user='hdfs'
+    )
+    self.assertResourceCalled('CopyFromLocal', '/usr/share/HDP-webhcat/sqoop*.tar.gz',
                               owner='hcat',
                               mode=0755,
                               dest_dir='/apps/webhcat',
