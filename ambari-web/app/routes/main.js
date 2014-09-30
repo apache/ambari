@@ -326,8 +326,7 @@ module.exports = Em.Route.extend({
           App.router.transitionTo('main.dashboard.index');
         });
       } else {
-        var controller = router.get('mainAdminController');
-        router.transitionTo('admin' + controller.get('category').capitalize());
+        this._super(router, event);
       }
     },
     connectOutlets: function (router, context) {
