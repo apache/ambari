@@ -23,6 +23,7 @@ import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.UndeclaredThrowableException;
 import java.security.PrivilegedExceptionAction;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -137,7 +138,7 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
     }
   }
 
-  private <T> T invokeSliderClientRunnable(final SliderClientContextRunnable<T> runnable) throws IOException, InterruptedException {
+  private <T> T invokeSliderClientRunnable(final SliderClientContextRunnable<T> runnable) throws IOException, InterruptedException, YarnException {
     ClassLoader currentClassLoader = Thread.currentThread().getContextClassLoader();
     Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
     try {
@@ -151,19 +152,28 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
       } else {
         sliderUser = UserGroupInformation.getBestUGI(null, getUserToRunAs());
       }
-      T value = sliderUser.doAs(
-          new PrivilegedExceptionAction<T>() {
-            @Override
-            public T run() throws Exception {
-              final SliderClient sliderClient = createSliderClient();
-              try{
-                return runnable.run(sliderClient);
-              }finally{
-                destroySliderClient(sliderClient);
+      try{
+        T value = sliderUser.doAs(
+            new PrivilegedExceptionAction<T>() {
+              @Override
+              public T run() throws Exception {
+                final SliderClient sliderClient = createSliderClient();
+                try{
+                  return runnable.run(sliderClient);
+                }finally{
+                  destroySliderClient(sliderClient);
+                }
               }
-            }
-          });
-      return value;
+            });
+        return value;
+      } catch (UndeclaredThrowableException e) {
+        Throwable cause = e.getCause();
+        if (cause instanceof YarnException) {
+          YarnException ye = (YarnException) cause;
+          throw ye;
+        }
+        throw e;
+      }
     } finally {
       Thread.currentThread().setContextClassLoader(currentClassLoader);
     }
@@ -782,7 +792,9 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
     resourcesObj.addProperty("schema",
         "http://example.org/specification/v2.0.0");
     resourcesObj.add("metadata", new JsonObject());
-    resourcesObj.add("global", clientResourcesObj.get("global").getAsJsonObject());
+    resourcesObj.add("global",
+        clientResourcesObj.has("global") ? clientResourcesObj.get("global")
+            .getAsJsonObject() : new JsonObject());
     JsonObject componentsObj = new JsonObject();
     if (clientComponentsArray != null) {
       for (int i = 0; i < clientComponentsArray.size(); i++) {
