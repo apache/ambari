@@ -285,16 +285,6 @@ prebuildWithoutPatch () {
     return 1
   fi
 
-  echo "$MVN clean test javadoc:javadoc -DskipTests -Pdocs -D${PROJECT_NAME}PatchProcess > $PATCH_DIR/trunkJavadocWarnings.txt 2>&1"
-  $MVN clean test javadoc:javadoc -DskipTests -Pdocs -D${PROJECT_NAME}PatchProcess > $PATCH_DIR/trunkJavadocWarnings.txt 2>&1
-  if [[ $? != 0 ]] ; then
-    echo "Trunk javadoc compilation is broken?"
-    JIRA_COMMENT="$JIRA_COMMENT
-
-    {color:red}-1 patch{color}.  Trunk compilation may be broken."
-    return 1
-  fi
-
   return 0
 }
 
@@ -396,56 +386,6 @@ applyPatch () {
   return 0
 }
 
-###############################################################################
-calculateJavadocWarnings() {
-    WARNING_FILE="$1"
-    RET=$(egrep "^[0-9]+ warnings$" "$WARNING_FILE" | awk '{sum+=$1} END {print sum}')
-}
-
-### Check there are no javadoc warnings
-checkJavadocWarnings () {
-  echo ""
-  echo ""
-  echo "======================================================================"
-  echo "======================================================================"
-  echo "    Determining number of patched javadoc warnings."
-  echo "======================================================================"
-  echo "======================================================================"
-  echo ""
-  echo ""
-  echo "$MVN clean test javadoc:javadoc -DskipTests -Pdocs -D${PROJECT_NAME}PatchProcess > $PATCH_DIR/patchJavadocWarnings.txt 2>&1"
-  if [ -d hadoop-project ]; then
-    (cd hadoop-project; $MVN install > /dev/null 2>&1)
-  fi
-  if [ -d hadoop-common-project/hadoop-annotations ]; then  
-    (cd hadoop-common-project/hadoop-annotations; $MVN install > /dev/null 2>&1)
-  fi
-  $MVN clean test javadoc:javadoc -DskipTests -Pdocs -D${PROJECT_NAME}PatchProcess > $PATCH_DIR/patchJavadocWarnings.txt 2>&1
-  calculateJavadocWarnings "$PATCH_DIR/trunkJavadocWarnings.txt"
-  numTrunkJavadocWarnings=$RET
-  calculateJavadocWarnings "$PATCH_DIR/patchJavadocWarnings.txt"
-  numPatchJavadocWarnings=$RET
-  grep -i warning "$PATCH_DIR/trunkJavadocWarnings.txt" > "$PATCH_DIR/trunkJavadocWarningsFiltered.txt"
-  grep -i warning "$PATCH_DIR/patchJavadocWarnings.txt" > "$PATCH_DIR/patchJavadocWarningsFiltered.txt"
-  diff -u "$PATCH_DIR/trunkJavadocWarningsFiltered.txt" \
-          "$PATCH_DIR/patchJavadocWarningsFiltered.txt" > \
-          "$PATCH_DIR/diffJavadocWarnings.txt"
-  rm -f "$PATCH_DIR/trunkJavadocWarningsFiltered.txt" "$PATCH_DIR/patchJavadocWarningsFiltered.txt"
-  echo "There appear to be $numTrunkJavadocWarnings javadoc warnings before the patch and $numPatchJavadocWarnings javadoc warnings after applying the patch."
-  if [[ $numTrunkJavadocWarnings != "" && $numPatchJavadocWarnings != "" ]] ; then
-    if [[ $numPatchJavadocWarnings -gt $numTrunkJavadocWarnings ]] ; then
-      JIRA_COMMENT="$JIRA_COMMENT
-
-    {color:red}-1 javadoc{color}.  The javadoc tool appears to have generated `expr $(($numPatchJavadocWarnings-$numTrunkJavadocWarnings))` warning messages.
-        See $BUILD_URL/artifact/trunk/patchprocess/diffJavadocWarnings.txt for details."
-        return 1
-    fi
-  fi
-  JIRA_COMMENT="$JIRA_COMMENT
-
-    {color:green}+1 javadoc{color}.  There were no new javadoc warning messages."
-  return 0
-}
 
 ###############################################################################
 ### Check there are no changes in the number of Javac warnings
@@ -1041,8 +981,6 @@ if [[ $JAVAC_RET == 2 ]] ; then
   cleanupAndExit 1
 fi
 (( RESULT = RESULT + $JAVAC_RET ))
-checkJavadocWarnings
-(( RESULT = RESULT + $? ))
 ### Checkstyle not implemented yet
 #checkStyle
 #(( RESULT = RESULT + $? ))
