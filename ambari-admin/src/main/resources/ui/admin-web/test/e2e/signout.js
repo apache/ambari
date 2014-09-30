@@ -16,26 +16,28 @@
  * limitations under the License.
  */
 'use strict';
-
-angular.module('ambariAdminConsole')
-.factory('Auth',['$http', 'Settings', function($http, Settings) {
-  var ambari;
-  var currentUserName;
-  if (localStorage.ambari) {
-    ambari = JSON.parse(localStorage.ambari);
-    if (ambari && ambari.app && ambari.app.loginName) {
-      currentUserName = ambari.app.loginName;
-    }
-  }
-  return {
-    signout: function() {
-      return $http({
-        method: 'GET',
-        url: Settings.baseUrl + '/logout'
+describe('Ambari sign out from Admin view', function () {
+  describe('Admin view', function () {
+    var ptor = protractor.getInstance();
+    beforeEach(function () {
+      ptor.get('app/index.html');
+      ptor.waitForAngular();
+    });
+    it('should navigate to login page on clicking "Sign out" action', function () {
+      var userDropdownBtn = element(by.binding('currentUser'));
+      var signOutAction = element(by.css('[ng-click="signOut()"]'));
+      //Action-1: Click on user dropdown menu and
+      //Action-2: Click on SignOut action link
+      userDropdownBtn.click().then(function () {
+        signOutAction.click().then(function () {
+          //Validation
+          setTimeout(function () {
+            expect(ptor.getCurrentUrl()).toContain('#/login');
+          }, 3000);
+        });
       });
-    },
-    getCurrentUser: function() {
-    	return currentUserName;
-    }
-  };
-}]);
+    });
+  });
+});
+
+

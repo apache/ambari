@@ -15,16 +15,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/* global describe, it */
 
-(function () {
-    'use strict';
+exports.config = {
+  allScriptsTimeout: 11000,
 
-    describe('Give it some context', function () {
-        describe('maybe a bit more context here', function () {
-            it('should run here few assertions', function () {
+  specs: [
+    'e2e/*.js'
+  ],
 
-            });
-        });
-    });
-})();
+  capabilities: {
+    'browserName': 'chrome'
+  },
+
+  chromeOnly: true,
+
+  baseUrl: 'http://localhost:8000',
+
+  rootElement: 'body',
+
+  onPrepare: function() {
+
+  },
+
+
+  framework: 'jasmine',
+
+  jasmineNodeOpts: {
+    onComplete: null,
+    isVerbose: true,
+    showColors: true,
+    includeStackTrace: true,
+    defaultTimeoutInterval: 30000
+  }
+};
+
