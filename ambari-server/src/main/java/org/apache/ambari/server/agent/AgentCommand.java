@@ -53,7 +53,17 @@ public abstract class AgentCommand {
     STATUS_COMMAND,
     CANCEL_COMMAND,
     REGISTRATION_COMMAND,
-    ALERT_DEFINITION_COMMAND
+
+    /**
+     * Sends alert definitions to an agent which will refresh all alerts running
+     * on that host.
+     */
+    ALERT_DEFINITION_COMMAND,
+
+    /**
+     * A single alert that should be run immediately.
+     */
+    ALERT_EXECUTION_COMMAND
   }
 
   public AgentCommandType getCommandType() {

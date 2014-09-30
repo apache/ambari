@@ -28,6 +28,8 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.agent.ActionQueue;
+import org.apache.ambari.server.agent.AlertExecutionCommand;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
@@ -43,6 +45,8 @@ import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.alert.AlertDefinition;
+import org.apache.ambari.server.state.alert.AlertDefinitionFactory;
 import org.apache.ambari.server.state.alert.AlertDefinitionHash;
 import org.apache.ambari.server.state.alert.Scope;
 import org.apache.ambari.server.state.alert.SourceType;
@@ -77,6 +81,7 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
   protected static final String ALERT_DEF_SOURCE_REPORTING_WARNING = "AlertDefinition/source/reporting/warning";
   protected static final String ALERT_DEF_SOURCE_REPORTING_CRITICAL = "AlertDefinition/source/reporting/critical";
 
+  protected static final String ALERT_DEF_ACTION_RUN_NOW = "AlertDefinition/run_now";
 
   private static Set<String> pkPropertyIds = new HashSet<String>(
       Arrays.asList(ALERT_DEF_ID, ALERT_DEF_NAME));
@@ -88,12 +93,26 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
   private static AlertDefinitionHash alertDefinitionHash;
 
   /**
+   * Used for coercing an {@link AlertDefinitionEntity} to an
+   * {@link AlertDefinition}.
+   */
+  private static AlertDefinitionFactory definitionFactory;
+
+  /**
+   * Used to enqueue commands to send to the agents when running an alert
+   * on-demand.
+   */
+  private static ActionQueue actionQueue;
+
+  /**
    * @param instance
    */
   @Inject
   public static void init(Injector injector) {
     alertDefinitionDAO = injector.getInstance(AlertDefinitionDAO.class);
     alertDefinitionHash = injector.getInstance(AlertDefinitionHash.class);
+    definitionFactory = injector.getInstance(AlertDefinitionFactory.class);
+    actionQueue = injector.getInstance(ActionQueue.class);
   }
 
   AlertDefinitionResourceProvider(Set<String> propertyIds,
@@ -199,9 +218,24 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
       NoSuchResourceException, NoSuchParentResourceException {
 
     String clusterName = null;
-    Set<String> invalidatedHosts = new HashSet<String>();
     Clusters clusters = getManagementController().getClusters();
 
+    // check the predicate to see if there is a reques to run
+    // the alert definition immediately
+    if( null != predicate ){
+      Set<Map<String,Object>> predicateMaps = getPropertyMaps(predicate);
+      for (Map<String, Object> propertyMap : predicateMaps) {
+        String runNow = (String) propertyMap.get(ALERT_DEF_ACTION_RUN_NOW);
+        if (null != runNow) {
+          if (Boolean.valueOf(runNow) == Boolean.TRUE) {
+            scheduleImmediateAlert(propertyMap);
+          }
+        }
+      }
+    }
+
+    // if an AlertDefinition property body was specified, perform the update\
+    Set<String> invalidatedHosts = new HashSet<String>();
     for (Map<String, Object> requestPropMap : request.getProperties()) {
       for (Map<String, Object> propertyMap : getPropertyMaps(requestPropMap, predicate)) {
         String stringId = (String) propertyMap.get(ALERT_DEF_ID);
@@ -234,10 +268,13 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
       }
     }
 
-    // build alert definition commands for all agent hosts affected
-    alertDefinitionHash.enqueueAgentCommands(clusterName, invalidatedHosts);
-
-    notifyUpdate(Resource.Type.AlertDefinition, request, predicate);
+    // build alert definition commands for all agent hosts affected; only
+    // update agents and broadcast update event if there are actual invalidated
+    // hosts
+    if (invalidatedHosts.size() > 0) {
+      alertDefinitionHash.enqueueAgentCommands(clusterName, invalidatedHosts);
+      notifyUpdate(Resource.Type.AlertDefinition, request, predicate);
+    }
 
     return getRequestStatus(null);
   }
@@ -500,5 +537,45 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
     }
 
     return resource;
+  }
+
+  /**
+   * Extracts an {@link AlertDefinitionEntity} from the property map and
+   * enqueues an {@link AlertExecutionCommand} for every host that should re-run
+   * the specified definition.
+   *
+   * @param propertyMap
+   */
+  private void scheduleImmediateAlert(Map<String, Object> propertyMap) {
+    Clusters clusters = getManagementController().getClusters();
+    String stringId = (String) propertyMap.get(ALERT_DEF_ID);
+    long id = Long.parseLong(stringId);
+
+    AlertDefinitionEntity entity = alertDefinitionDAO.findById(id);
+    if (null == entity) {
+      LOG.error("Unable to lookup alert definition with ID {}", id);
+      return;
+    }
+
+    Cluster cluster = null;
+    try {
+      cluster = clusters.getClusterById(entity.getClusterId());
+    } catch (AmbariException ambariException) {
+      LOG.error("Unable to lookup cluster with ID {}", entity.getClusterId(),
+          ambariException);
+      return;
+    }
+
+    Set<String> hostNames = alertDefinitionHash.getAssociatedHosts(cluster,
+        entity.getDefinitionName(), entity.getServiceName(),
+        entity.getComponentName());
+
+    for (String hostName : hostNames) {
+      AlertDefinition definition = definitionFactory.coerce(entity);
+      AlertExecutionCommand command = new AlertExecutionCommand(
+          cluster.getClusterName(), hostName, definition);
+
+      actionQueue.enqueue(hostName, command);
+    }
   }
 }

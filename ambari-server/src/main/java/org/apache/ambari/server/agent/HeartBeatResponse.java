@@ -50,6 +50,13 @@ public class HeartBeatResponse {
   @SerializedName("alertDefinitionCommands")
   private List<AlertDefinitionCommand> alertDefinitionCommands = null;
 
+  /**
+   * {@link AlertExecutionCommand}s are used to execute an alert job
+   * immediately.
+   */
+  @SerializedName("alertExecutionCommands")
+  private List<AlertExecutionCommand> alertExecutionCommands = null;
+
   @SerializedName("registrationCommand")
   private RegistrationCommand registrationCommand;
 
@@ -157,6 +164,16 @@ public class HeartBeatResponse {
     }
 
     alertDefinitionCommands.add(command);
+  }
+
+  public void addAlertExecutionCommand(AlertExecutionCommand command) {
+    // commands are added here when they are taken off the queue; there should
+    // be no thread contention and thus no worry about locks for the null check
+    if (null == alertExecutionCommands) {
+      alertExecutionCommands = new ArrayList<AlertExecutionCommand>();
+    }
+
+    alertExecutionCommands.add(command);
   }
 
   @Override

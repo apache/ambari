@@ -621,6 +621,10 @@ public class HeartBeatHandler {
             response.addAlertDefinitionCommand((AlertDefinitionCommand) ac);
             break;
           }
+          case ALERT_EXECUTION_COMMAND: {
+            response.addAlertExecutionCommand((AlertExecutionCommand) ac);
+            break;
+          }
           default:
             LOG.error("There is no action for agent command ="
                 + ac.getCommandType().name());

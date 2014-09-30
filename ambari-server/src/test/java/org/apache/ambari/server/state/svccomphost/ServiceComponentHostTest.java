@@ -125,7 +125,7 @@ public class ServiceComponentHostTest {
       String svcComponent,
       String hostName, boolean isClient) throws AmbariException{
     Cluster c = clusters.getCluster("C1");
-
+    Assert.assertNotNull(c.getConfigGroups());
     return createNewServiceComponentHost(c, svc, svcComponent, hostName);
   }
 

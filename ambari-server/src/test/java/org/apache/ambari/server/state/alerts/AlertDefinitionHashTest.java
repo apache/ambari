@@ -25,6 +25,7 @@ import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -32,11 +33,16 @@ import java.util.UUID;
 
 import junit.framework.TestCase;
 
+import org.apache.ambari.server.agent.ActionQueue;
+import org.apache.ambari.server.agent.AlertDefinitionCommand;
+import org.apache.ambari.server.agent.AlertExecutionCommand;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
@@ -344,6 +350,35 @@ public class AlertDefinitionHashTest extends TestCase {
     assertEquals(expected, m_hash.getHash(CLUSTERNAME, HOSTNAME));
   }
 
+  @Test
+  public void testActionQueueInvalidation() throws Exception{
+    ActionQueue actionQueue = m_injector.getInstance(ActionQueue.class);
+
+    AlertDefinitionCommand definitionCommand1 = new AlertDefinitionCommand(
+        CLUSTERNAME, HOSTNAME, "12345", null);
+
+    AlertDefinitionCommand definitionCommand2 = new AlertDefinitionCommand(
+        CLUSTERNAME, "anotherHost", "67890", null);
+
+    AlertExecutionCommand executionCommand = new AlertExecutionCommand(
+        CLUSTERNAME, HOSTNAME, null);
+
+    actionQueue.enqueue(HOSTNAME, definitionCommand1);
+    actionQueue.enqueue(HOSTNAME, executionCommand);
+    actionQueue.enqueue("anotherHost", definitionCommand2);
+
+    assertEquals(2, actionQueue.size(HOSTNAME));
+    assertEquals(1, actionQueue.size("anotherHost"));
+
+    Set<String> hosts = new HashSet<String>();
+    hosts.add(HOSTNAME);
+
+    // should invalidate both alert commands, and add a new definition command
+    m_hash.enqueueAgentCommands(CLUSTERNAME, hosts);
+    assertEquals(1, actionQueue.size(HOSTNAME));
+    assertEquals(1, actionQueue.size("anotherHost"));
+  }
+
   /**
    *
    */
@@ -353,12 +388,20 @@ public class AlertDefinitionHashTest extends TestCase {
      */
     @Override
     public void configure(Binder binder) {
+      Cluster cluster = EasyMock.createNiceMock(Cluster.class);
+      EasyMock.expect(cluster.getAllConfigs()).andReturn(
+          new ArrayList<Config>()).anyTimes();
+
       binder.bind(Clusters.class).toInstance(
           EasyMock.createNiceMock(Clusters.class));
-      binder.bind(Cluster.class).toInstance(
-          EasyMock.createNiceMock(Cluster.class));
+
+      binder.bind(Cluster.class).toInstance(cluster);
+
       binder.bind(AlertDefinitionDAO.class).toInstance(
           EasyMock.createNiceMock(AlertDefinitionDAO.class));
+
+      binder.bind(ConfigHelper.class).toInstance(
+          EasyMock.createNiceMock(ConfigHelper.class));
     }
   }
 }

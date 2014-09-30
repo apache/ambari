@@ -447,7 +447,8 @@
       "AlertDefinition/interval",
       "AlertDefinition/enabled",
       "AlertDefinition/scope",
-      "AlertDefinition/source"
+      "AlertDefinition/source",
+      "AlertDefinition/run_now"
     ],
     "AlertGroup": [
       "AlertGroup/id",

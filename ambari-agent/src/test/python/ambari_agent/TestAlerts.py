@@ -312,4 +312,46 @@ class TestAlerts(TestCase):
     ash.schedule_definition(pa)
     
     # verify enabled alert was scheduled
-    self.assertEquals(3, ash.get_job_count())    
+    self.assertEquals(3, ash.get_job_count())
+    
+  def test_immediate_alert(self):
+    test_file_path = os.path.join('ambari_agent', 'dummy_files')
+    test_stack_path = os.path.join('ambari_agent', 'dummy_files')
+
+    ash = AlertSchedulerHandler(test_file_path, test_stack_path)
+    ash.start()
+
+    self.assertEquals(1, ash.get_job_count())
+    self.assertEquals(0, len(ash._collector.alerts()))
+
+    execution_commands = [ { 
+        "clusterName": "c1",
+        "hostName": "c6401.ambari.apache.org",    
+        "alertDefinition": {         
+          "name": "namenode_process",
+          "service": "HDFS",
+          "component": "NAMENODE",
+          "label": "NameNode process",
+          "interval": 6,
+          "scope": "host",
+          "enabled": True,
+          "uuid": "c1f73191-4481-4435-8dae-fd380e4c0be1",
+          "source": {
+            "type": "PORT",
+            "uri": "{{hdfs-site/my-key}}",
+            "default_port": 50070,
+            "reporting": {
+              "ok": {
+                "text": "TCP OK - {0:.4f} response time on port {1}"
+              },
+              "critical": {
+                "text": "Could not load process info: {0}"
+              }
+            }
+          }
+        }
+      } ]
+    
+    # execute the alert immediately and verify that the collector has the result
+    ash.execute_alert(execution_commands)
+    self.assertEquals(1, len(ash._collector.alerts()))

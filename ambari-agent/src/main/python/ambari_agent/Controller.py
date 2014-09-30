@@ -262,6 +262,10 @@ class Controller(threading.Thread):
         if 'alertDefinitionCommands' in response.keys():
           self.alert_scheduler_handler.update_definitions(response['alertDefinitionCommands'], True)
           pass
+        
+        if 'alertExecutionCommands' in response.keys():
+          self.alert_scheduler_handler.execute_alert(response['alertExecutionCommands'])
+          pass        
 
         if "true" == response['restartAgent']:
           logger.error("Received the restartAgent command")

@@ -33,8 +33,8 @@ from alerts.metric_alert import MetricAlert
 from alerts.port_alert import PortAlert
 from alerts.script_alert import ScriptAlert
 
-
 logger = logging.getLogger()
+
 
 class AlertSchedulerHandler():
   make_cachedir = True
@@ -49,6 +49,7 @@ class AlertSchedulerHandler():
     'coalesce': True,
     'standalone': False
   }
+
 
   def __init__(self, cachedir, stacks_dir, in_minutes=True):
     self.cachedir = cachedir
@@ -66,7 +67,7 @@ class AlertSchedulerHandler():
     self.__in_minutes = in_minutes
     self.__config_maps = {}
 
-          
+
   def update_definitions(self, alert_commands, reschedule_jobs=False):
     ''' updates the persisted definitions and restarts the scheduler '''
     
@@ -76,11 +77,11 @@ class AlertSchedulerHandler():
     if reschedule_jobs:
       self.reschedule()
 
-      
+
   def __make_function(self, alert_def):
     return lambda: alert_def.collect()
 
-    
+
   def start(self):
     ''' loads definitions from file and starts the scheduler '''
 
@@ -102,7 +103,7 @@ class AlertSchedulerHandler():
 
     self.__scheduler.start()
 
-    
+
   def stop(self):
     if not self.__scheduler is None:
       self.__scheduler.shutdown(wait=False)
@@ -159,7 +160,7 @@ class AlertSchedulerHandler():
     ''' gets the collector for reporting to the server '''
     return self._collector
   
-      
+
   def __load_definitions(self):
     ''' loads all alert commands from the file.  all clusters are stored in one file '''
     definitions = []
@@ -184,13 +185,11 @@ class AlertSchedulerHandler():
         configmap = command_json['configurations']
 
       for definition in command_json['alertDefinitions']:
-        obj = self.__json_to_callable(definition)
+        obj = self.__json_to_callable(clusterName, hostName, definition)
         
         if obj is None:
           continue
           
-        obj.set_cluster(clusterName, hostName)
-
         # get the config values for the alerts 'lookup keys',
         # eg: hdfs-site/dfs.namenode.http-address : host_and_port        
         vals = self.__find_config_values(configmap, obj.get_lookup_keys())
@@ -202,7 +201,8 @@ class AlertSchedulerHandler():
       
     return definitions
 
-  def __json_to_callable(self, json_definition):
+
+  def __json_to_callable(self, clusterName, hostName, json_definition):
     '''
     converts the json that represents all aspects of a definition
     and makes an object that extends BaseAlert that is used for individual
@@ -223,8 +223,12 @@ class AlertSchedulerHandler():
       source['stacks_dir'] = self.stacks_dir
       alert = ScriptAlert(json_definition, source)
 
+    if alert is not None:
+      alert.set_cluster(clusterName, hostName)
+
     return alert
-    
+
+
   def __find_config_values(self, configmap, obj_keylist):
     ''' finds templated values in the configuration map provided  by the server '''
     if configmap is None:
@@ -242,7 +246,8 @@ class AlertSchedulerHandler():
         pass
         
     return result
-    
+
+ 
   def update_configurations(self, commands):
     '''
     when an execution command comes in, update any necessary values.
@@ -291,6 +296,7 @@ class AlertSchedulerHandler():
     logger.info("Scheduling {0} with UUID {1}".format(
       definition.get_name(), definition.get_uuid()))
   
+
   def get_job_count(self):
     '''
     Gets the number of jobs currently scheduled. This is mainly used for
@@ -299,7 +305,37 @@ class AlertSchedulerHandler():
     if self.__scheduler is None:
       return 0
     
-    return len(self.__scheduler.get_jobs())   
+    return len(self.__scheduler.get_jobs())
+
+  
+  def execute_alert(self, execution_commands):
+    '''
+    Executes an alert immediately, ignoring any scheduled jobs. The existing
+    jobs remain untouched. The result of this is stored in the alert
+    collector for tranmission during the next heartbeat
+    '''
+    if self.__scheduler is None or execution_commands is None:
+      return
+
+    for execution_command in execution_commands:
+      try:
+        alert_definition = execution_command['alertDefinition']
+        
+        clusterName = '' if not 'clusterName' in execution_command else execution_command['clusterName']
+        hostName = '' if not 'hostName' in execution_command else execution_command['hostName']      
+        
+        alert = self.__json_to_callable(clusterName, hostName, alert_definition)
+  
+        if alert is None:
+          continue
+  
+        logger.info("Executing on-demand alert {0} ({1})".format(alert.get_name(), 
+            alert.get_uuid()))
+        
+        alert.set_helpers(self._collector, self.__config_maps[clusterName])
+        alert.collect()
+      except:
+        logger.exception("Unable to execute the alert outside of the job scheduler")
 
 def main():
   args = list(sys.argv)

@@ -309,16 +309,13 @@ public class AlertDefinitionHash {
    */
   public Set<String> invalidateHosts(long clusterId, String definitionName,
       String definitionServiceName, String definitionComponentName) {
-    Set<String> invalidatedHosts = new HashSet<String>();
 
     Cluster cluster = null;
-    Map<String, Host> hosts = null;
     String clusterName = null;
     try {
       cluster = m_clusters.getClusterById(clusterId);
       if (null != cluster) {
         clusterName = cluster.getClusterName();
-        hosts = m_clusters.getHostsForCluster(clusterName);
       }
 
       if (null == cluster) {
@@ -329,16 +326,55 @@ public class AlertDefinitionHash {
     }
 
     if (null == cluster) {
-      return invalidatedHosts;
+      return Collections.emptySet();
+    }
+
+    // determine which hosts in the cluster would be affected by a change
+    // to the specified definition
+    Set<String> affectedHosts = getAssociatedHosts(cluster, definitionName,
+        definitionServiceName, definitionComponentName);
+
+    // invalidate all returned hosts
+    for (String hostName : affectedHosts) {
+      invalidate(clusterName, hostName);
+    }
+
+    return affectedHosts;
+  }
+
+  /**
+   * Gets the hosts that are associated with the specified definition. Each host
+   * returned is expected to be capable of running the alert. A change to the
+   * definition would entail contacting each returned host and invalidating
+   * their current alert definitions.
+   *
+   * @param cluster
+   * @param definitionName
+   * @param definitionServiceName
+   * @param definitionComponentName
+   * @return a set of all associated hosts or an empty set, never {@code null}.
+   */
+  public Set<String> getAssociatedHosts(Cluster cluster, String definitionName,
+      String definitionServiceName, String definitionComponentName) {
+
+    Map<String, Host> hosts = null;
+    String clusterName = cluster.getClusterName();
+    Set<String> affectedHosts = new HashSet<String>();
+
+    try {
+      hosts = m_clusters.getHostsForCluster(clusterName);
+    } catch (AmbariException ambariException) {
+      LOG.error("Unable to lookup hosts for cluster named {}", clusterName,
+          ambariException);
+
+      return affectedHosts;
     }
 
     // intercept host agent alerts; they affect all hosts
     if (Services.AMBARI.equals(definitionServiceName)
         && Components.AMBARI_AGENT.equals(definitionComponentName)) {
-
-      invalidateAll();
-      invalidatedHosts.addAll(hosts.keySet());
-      return invalidatedHosts;
+      affectedHosts.addAll(hosts.keySet());
+      return affectedHosts;
     }
 
     // find all hosts that have the matching service and component
@@ -354,8 +390,7 @@ public class AlertDefinitionHash {
         String componentName = component.getServiceComponentName();
         if (serviceName.equals(definitionServiceName)
             && componentName.equals(definitionComponentName)) {
-          invalidate(clusterName, hostName);
-          invalidatedHosts.add(hostName);
+          affectedHosts.add(hostName);
         }
       }
     }
@@ -367,7 +402,7 @@ public class AlertDefinitionHash {
       LOG.warn("The alert definition {} has an unknown service of {}",
           definitionName, definitionServiceName);
 
-      return invalidatedHosts;
+      return affectedHosts;
     }
 
     // get all master components of the definition's service; any hosts that
@@ -379,15 +414,14 @@ public class AlertDefinitionHash {
           Map<String, ServiceComponentHost> componentHosts = component.getValue().getServiceComponentHosts();
           if (null != componentHosts) {
             for (String componentHost : componentHosts.keySet()) {
-              invalidate(clusterName, componentHost);
-              invalidatedHosts.add(componentHost);
+              affectedHosts.add(componentHost);
             }
           }
         }
       }
     }
 
-    return invalidatedHosts;
+    return affectedHosts;
   }
 
   /**
@@ -462,6 +496,7 @@ public class AlertDefinitionHash {
       // before the next heartbeat, there would be several commands that would
       // force the agents to reschedule their alerts more than once
       m_actionQueue.dequeue(hostName, AgentCommandType.ALERT_DEFINITION_COMMAND);
+      m_actionQueue.dequeue(hostName, AgentCommandType.ALERT_EXECUTION_COMMAND);
       m_actionQueue.enqueue(hostName, command);
     }
   }
