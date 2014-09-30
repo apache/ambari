@@ -4816,6 +4816,60 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
 
     sys.stdout = sys.__stdout__
 
+  @patch("urllib2.urlopen")
+  @patch.object(ambari_server, "get_validated_string_input")
+  @patch.object(ambari_server, "get_ambari_properties")
+  @patch.object(ambari_server, "is_server_runing")
+  @patch.object(ambari_server, "is_root")
+  def test_ldap_sync(self, is_root_method, is_server_runing_mock, get_ambari_properties_mock,
+      get_validated_string_input_mock, urlopen_mock):
+
+    is_root_method.return_value = True
+    is_server_runing_mock.return_value = (True, 0)
+    properties = ambari_server.Properties()
+    properties.process_pair(ambari_server.IS_LDAP_CONFIGURED, 'true')
+    get_ambari_properties_mock.return_value = properties
+    get_validated_string_input_mock.side_effect = ['admin', 'admin']
+
+    u = MagicMock()
+    u.getcode.side_effect = [201, 200, 200]
+    u.read.side_effect = ['{"resources" : [{"href" : "http://c6401.ambari.apache.org:8080/api/v1/ldap_sync_events/16","Event" : {"id" : 16}}]}',
+                          '{"Event":{"status" : "RUNNING","summary" : {"groups" : {"created" : 0,"removed" : 0,"updated" : 0},"memberships" : {"created" : 0,"removed" : 0},"users" : {"created" : 0,"removed" : 0,"updated" : 0}}}}',
+                          '{"Event":{"status" : "COMPLETE","summary" : {"groups" : {"created" : 1,"removed" : 0,"updated" : 0},"memberships" : {"created" : 5,"removed" : 0},"users" : {"created" : 5,"removed" : 0,"updated" : 0}}}}']
+
+    urlopen_mock.return_value = u
+
+    ambari_server.sync_ldap()
+    pass
+
+
+  @patch("urllib2.urlopen")
+  @patch.object(ambari_server, "get_validated_string_input")
+  @patch.object(ambari_server, "get_ambari_properties")
+  @patch.object(ambari_server, "is_server_runing")
+  @patch.object(ambari_server, "is_root")
+  def test_ldap_sync_error_status(self, is_root_method, is_server_runing_mock, get_ambari_properties_mock,
+      get_validated_string_input_mock, urlopen_mock):
+
+    is_root_method.return_value = True
+    is_server_runing_mock.return_value = (True, 0)
+    properties = ambari_server.Properties()
+    properties.process_pair(ambari_server.IS_LDAP_CONFIGURED, 'true')
+    get_ambari_properties_mock.return_value = properties
+    get_validated_string_input_mock.side_effect = ['admin', 'admin']
+
+    u = MagicMock()
+    u.getcode.side_effect = [201, 200]
+    u.read.side_effect = ['{"resources" : [{"href" : "http://c6401.ambari.apache.org:8080/api/v1/ldap_sync_events/16","Event" : {"id" : 16}}]}',
+                          '{"Event":{"status" : "ERROR","status_detail" : "Error!!","summary" : {"groups" : {"created" : 0,"removed" : 0,"updated" : 0},"memberships" : {"created" : 0,"removed" : 0},"users" : {"created" : 0,"removed" : 0,"updated" : 0}}}}']
+
+    urlopen_mock.return_value = u
+
+    try:
+      ambari_server.sync_ldap()
+      self.fail("Should fail with exception")
+    except FatalException as e:
+      pass
 
   @patch.object(ambari_server, 'read_password')
   def test_configure_ldap_password(self, read_password_method):

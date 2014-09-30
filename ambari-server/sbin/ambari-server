@@ -129,7 +129,7 @@ case "$1" in
         ;;
   *)
         echo "Usage: /usr/sbin/ambari-server
-        {start|stop|restart|setup|upgrade|status|upgradestack|setup-ldap|setup-security|refresh-stack-hash} [options]
+        {start|stop|restart|setup|upgrade|status|upgradestack|setup-ldap|sync-ldap|setup-security|refresh-stack-hash} [options]
         Use usr/sbin/ambari-server <action> --help to get details on options available.
         Or, simply invoke ambari-server.py --help to print the options."
         exit 1
