@@ -26,10 +26,10 @@ config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 
 #RPM versioning support
-rpm_version = default("/configurations/hadoop-env/rpm_version", None)
+rpm_version = default("/configurations/cluster-env/rpm_version", None)
 
 #hadoop params
-if rpm_version is not None:
+if rpm_version:
   hadoop_bin_dir = "/usr/hdp/current/hadoop/bin"
   hadoop_home = '/usr/hdp/current/hadoop'
   pig_bin_dir = '/usr/hdp/current/pig/bin'

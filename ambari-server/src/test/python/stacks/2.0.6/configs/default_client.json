@@ -11,7 +11,7 @@
         "stack_version": "2.0",
         "stack_name": "HDP", 
         "ambari_db_rca_driver": "org.postgresql.Driver", 
-        "jdk_name": "jdk-7u45-linux-x64.tar.gz", 
+        "jdk_name": "jdk-7u67-linux-x64.tar.gz",
         "ambari_db_rca_username": "mapred", 
         "java_home": "/usr/jdk64/jdk1.7.0_45",
         "db_name": "ambari"

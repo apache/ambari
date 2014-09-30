@@ -29,23 +29,10 @@
     font-weight: bold;
   }
   .slider-modal-body {
-    height: 90%;
-    max-height: 90%;
     .wizard-content{
-      min-height: 95%;
-      padding-bottom: 49px;
       background-color: #ffffff;
-    }
-    .container-fluid {
-      height: 100%;
-      .row {
-        height: 100%;
-      }
-      .btn-area {
-        position: absolute;
-        right: 19px;
-        bottom: 19px;
-        left: 19px;
+      label {
+        font-weight: normal;
       }
     }
   }
@@ -67,17 +54,28 @@
   }
   #step2 {
     .table-container {
-      max-height: 248px;
       border: 1px solid #e3e3e3;
       padding: 5px;
       border-radius: 4px;
-      overflow: hidden;
+      overflow: auto;
       .components-table {
         width: 100%;
         border-spacing: 10px;
         border-collapse: separate;
-        input[type="text"]{
-          width: 100px;
+        th {
+          padding-right: 1px;
+        }
+        .cell-narrow {
+          width: 4em;
+        }
+        .cell-wide {
+          width: 5em;
+        }
+        .cell-auto {
+          input {
+            width: 100%;
+            min-width: 7em;
+          }
         }
       }
       margin-bottom: 30px;
@@ -87,8 +85,14 @@
     select {
       padding: 4px 0;
     }
-    .row {
+    hr {
       .table-row();
+    }
+    label {
+      width: 100%;
+    }
+    .row {
+      margin: 5px 0;
     }
     .app-types-alert {
       margin-top: 20px;

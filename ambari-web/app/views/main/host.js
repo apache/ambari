@@ -860,12 +860,40 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
     filterView: filters.componentFieldView.extend({
       templateName: require('templates/main/host/component_filter'),
 
+
       /**
-       * Next three lines bind data to this view
+       * Components which will be shown in component filter
+       * @returns {Array}
        */
-      masterComponentsBinding: 'controller.masterComponents',
-      slaveComponentsBinding: 'controller.slaveComponents',
-      clientComponentsBinding: 'controller.clientComponents',
+      componentsForFilter: function () {
+        var installedComponents = App.StackServiceComponent.find().toArray();
+        installedComponents.setEach('checkedForHostFilter', false);
+        return installedComponents;
+      }.property('App.router.clusterController.isLoaded'),
+
+      /**
+       * Master components
+       * @returns {Array}
+       */
+      masterComponents: function () {
+        return this.get('componentsForFilter').filterProperty('isMaster', true);
+      }.property('componentsForFilter'),
+
+      /**
+       * Slave components
+       * @returns {Array}
+       */
+      slaveComponents: function () {
+        return this.get('componentsForFilter').filterProperty('isSlave', true);
+      }.property('componentsForFilter'),
+
+      /**
+       * Client components
+       * @returns {Array}
+       */
+      clientComponents: function () {
+        return this.get('componentsForFilter').filterProperty('isClient', true);
+      }.property('componentsForFilter'),
 
       /**
        * Checkbox for quick selecting/deselecting of master components

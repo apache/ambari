@@ -21,41 +21,6 @@ import os
 
 from resource_management import *
 
-def setup_users():
-  """
-  Creates users before cluster installation
-  """
-  import params
-  
-  for group in params.group_list:
-    Group(group,
-        ignore_failures = params.ignore_groupsusers_create
-    )
-    
-  for user in params.user_list: 
-    User(user,
-        gid = params.user_to_gid_dict[user],
-        groups = params.user_to_groups_dict[user],
-        ignore_failures = params.ignore_groupsusers_create        
-    )
-  
-  set_uid(params.smoke_user, params.smoke_user_dirs)
-
-  if params.has_hbase_masters:
-    set_uid(params.hbase_user, params.hbase_user_dirs)
-
-def set_uid(user, user_dirs):
-  """
-  user_dirs - comma separated directories
-  """
-  import params
-
-  File(format("{tmp_dir}/changeUid.sh"),
-       content=StaticFile("changeToSecureUid.sh"),
-       mode=0555)
-  Execute(format("{tmp_dir}/changeUid.sh {user} {user_dirs} 2>/dev/null"),
-          not_if = format("test $(id -u {user}) -gt 1000"))
-
 def setup_java():
   """
   Installs jdk using specific params, that comes from ambari-server

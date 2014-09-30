@@ -23,7 +23,7 @@ import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Field;
+import java.lang.reflect.UndeclaredThrowableException;
 import java.security.PrivilegedExceptionAction;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -42,7 +42,6 @@ import org.apache.ambari.view.slider.rest.client.SliderAppMasterClient.SliderApp
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.filefilter.RegexFileFilter;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.hdfs.HdfsConfiguration;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.yarn.api.records.ApplicationId;
@@ -54,13 +53,11 @@ import org.apache.hadoop.yarn.exceptions.YarnException;
 import org.apache.log4j.Logger;
 import org.apache.slider.api.ClusterDescription;
 import org.apache.slider.client.SliderClient;
-import org.apache.slider.common.SliderKeys;
 import org.apache.slider.common.params.ActionCreateArgs;
 import org.apache.slider.common.params.ActionFlexArgs;
 import org.apache.slider.common.params.ActionFreezeArgs;
 import org.apache.slider.common.params.ActionInstallPackageArgs;
 import org.apache.slider.common.params.ActionThawArgs;
-import org.apache.slider.common.tools.SliderFileSystem;
 import org.apache.slider.core.exceptions.SliderException;
 import org.apache.slider.core.exceptions.UnknownApplicationInstanceException;
 import org.apache.slider.core.main.LauncherExitCodes;
@@ -72,7 +69,7 @@ import org.apache.tools.zip.ZipFile;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
 
-import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -141,7 +138,7 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
     }
   }
 
-  private <T> T invokeSliderClientRunnable(final SliderClientContextRunnable<T> runnable) throws IOException, InterruptedException {
+  private <T> T invokeSliderClientRunnable(final SliderClientContextRunnable<T> runnable) throws IOException, InterruptedException, YarnException {
     ClassLoader currentClassLoader = Thread.currentThread().getContextClassLoader();
     Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
     try {
@@ -155,19 +152,28 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
       } else {
         sliderUser = UserGroupInformation.getBestUGI(null, getUserToRunAs());
       }
-      T value = sliderUser.doAs(
-          new PrivilegedExceptionAction<T>() {
-            @Override
-            public T run() throws Exception {
-              final SliderClient sliderClient = createSliderClient();
-              try{
-                return runnable.run(sliderClient);
-              }finally{
-                destroySliderClient(sliderClient);
+      try{
+        T value = sliderUser.doAs(
+            new PrivilegedExceptionAction<T>() {
+              @Override
+              public T run() throws Exception {
+                final SliderClient sliderClient = createSliderClient();
+                try{
+                  return runnable.run(sliderClient);
+                }finally{
+                  destroySliderClient(sliderClient);
+                }
               }
-            }
-          });
-      return value;
+            });
+        return value;
+      } catch (UndeclaredThrowableException e) {
+        Throwable cause = e.getCause();
+        if (cause instanceof YarnException) {
+          YarnException ye = (YarnException) cause;
+          throw ye;
+        }
+        throw e;
+      }
     } finally {
       Thread.currentThread().setContextClassLoader(currentClassLoader);
     }
@@ -472,7 +478,7 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
     yarnConfig.set("fs.defaultFS", hdfsPath);
     yarnConfig.set("slider.zookeeper.quorum", zkQuorum.toString());
     yarnConfig.set("yarn.application.classpath",
-            "/etc/hadoop/conf,/usr/lib/hadoop/*,/usr/lib/hadoop/lib/*,/usr/lib/hadoop-hdfs/*,/usr/lib/hadoop-hdfs/lib/*,/usr/lib/hadoop-yarn/*,/usr/lib/hadoop-yarn/lib/*,/usr/lib/hadoop-mapreduce/*,/usr/lib/hadoop-mapreduce/lib/*");
+            "/etc/hadoop/conf,/usr/hdp/current/hadoop/*,/usr/hdp/current/hadoop/lib/*,/usr/hdp/current/hadoop-hdfs/*,/usr/hdp/current/hadoop-hdfs/lib/*,/usr/hdp/current/hadoop-yarn/*,/usr/hdp/current/hadoop-yarn/lib/*,/usr/hdp/current/hadoop-mapreduce/*,/usr/hdp/current/hadoop-mapreduce/lib/*");
 
     if (securedCluster) {
       String rmPrincipal = viewContext.getProperties().get(PROPERTY_YARN_RM_PRINCIPAL);
@@ -711,11 +717,13 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
   public String createSliderApp(JsonObject json) throws IOException,
       YarnException, InterruptedException {
     if (json.has("name") && json.has("typeConfigs")
-        && json.has("typeComponents") && json.has("typeName")) {
+        && json.has("resources") && json.has("typeName")) {
       final String appType = json.get("typeName").getAsString();
       final String appName = json.get("name").getAsString();
+      final String queueName = json.has("queue") ? json.get("queue").getAsString() : null;
       JsonObject configs = json.get("typeConfigs").getAsJsonObject();
-      JsonArray componentsArray = json.get("typeComponents").getAsJsonArray();
+      JsonObject resourcesObj = json.get("resources").getAsJsonObject();
+      JsonArray componentsArray = resourcesObj.get("components").getAsJsonArray();
       String appsCreateFolderPath = getAppsCreateFolderPath();
       File appsCreateFolder = new File(appsCreateFolderPath);
       if (!appsCreateFolder.exists()) {
@@ -745,12 +753,15 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
       File appConfigJsonFile = new File(appCreateFolder, "appConfig.json");
       File resourcesJsonFile = new File(appCreateFolder, "resources.json");
       saveAppConfigs(configs, componentsArray, appConfigJsonFile);
-      saveAppResources(componentsArray, resourcesJsonFile);
+      saveAppResources(resourcesObj, resourcesJsonFile);
 
       final ActionCreateArgs createArgs = new ActionCreateArgs();
       createArgs.template = appConfigJsonFile;
       createArgs.resources = resourcesJsonFile;
-      
+      if (queueName != null && queueName.trim().length() > 0) {
+        createArgs.queue = queueName;
+      }
+
       final ActionInstallPackageArgs installArgs = new ActionInstallPackageArgs();
       SliderAppType sliderAppType = getSliderAppType(appType, null);
       String localAppPackageFileName = sliderAppType.getTypePackageFileName();
@@ -774,30 +785,49 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
     return null;
   }
 
-  private void saveAppResources(JsonArray componentsArray,
+  private void saveAppResources(JsonObject clientResourcesObj,
       File resourcesJsonFile) throws IOException {
     JsonObject resourcesObj = new JsonObject();
+    JsonArray clientComponentsArray = clientResourcesObj.get("components").getAsJsonArray();
     resourcesObj.addProperty("schema",
         "http://example.org/specification/v2.0.0");
     resourcesObj.add("metadata", new JsonObject());
-    resourcesObj.add("global", new JsonObject());
+    resourcesObj.add("global",
+        clientResourcesObj.has("global") ? clientResourcesObj.get("global")
+            .getAsJsonObject() : new JsonObject());
     JsonObject componentsObj = new JsonObject();
-    if (componentsArray != null) {
-      for (int i = 0; i < componentsArray.size(); i++) {
-        JsonObject inputComponent = componentsArray.get(i).getAsJsonObject();
+    if (clientComponentsArray != null) {
+      for (int i = 0; i < clientComponentsArray.size(); i++) {
+        JsonObject inputComponent = clientComponentsArray.get(i).getAsJsonObject();
         if (inputComponent.has("id")) {
           JsonObject componentValue = new JsonObject();
-          componentValue.addProperty("yarn.role.priority",
-              inputComponent.get("priority").getAsString());
-          componentValue.addProperty("yarn.component.instances", inputComponent
-              .get("instanceCount").getAsString());
+          if (inputComponent.has("priority")) {
+            componentValue.addProperty("yarn.role.priority", inputComponent
+                .get("priority").getAsString());
+          }
+          if (inputComponent.has("instanceCount")) {
+            componentValue.addProperty("yarn.component.instances",
+                inputComponent.get("instanceCount").getAsString());
+          }
+          if (inputComponent.has("yarnMemory")) {
+            componentValue.addProperty("yarn.memory",
+                inputComponent.get("yarnMemory").getAsString());
+          }
+          if (inputComponent.has("yarnCpuCores")) {
+            componentValue.addProperty("yarn.vcores",
+                inputComponent.get("yarnCpuCores").getAsString());
+          }
+          if (inputComponent.has("yarnLabel")) {
+            componentValue.addProperty("yarn.label.expression", inputComponent
+                .get("yarnLabel").getAsString());
+          }
           componentsObj.add(inputComponent.get("id").getAsString(),
               componentValue);
         }
       }
     }
     resourcesObj.add("components", componentsObj);
-    String jsonString = new Gson().toJson(resourcesObj);
+    String jsonString = new GsonBuilder().setPrettyPrinting().create().toJson(resourcesObj);
     FileOutputStream fos = null;
     try {
       fos = new FileOutputStream(resourcesJsonFile);
@@ -826,7 +856,7 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
       }
     }
     appConfigs.add("components", componentsObj);
-    String jsonString = new Gson().toJson(appConfigs);
+    String jsonString = new GsonBuilder().setPrettyPrinting().create().toJson(appConfigs);
     FileOutputStream fos = null;
     try {
       fos = new FileOutputStream(appConfigJsonFile);

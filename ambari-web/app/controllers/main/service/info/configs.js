@@ -450,7 +450,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     var serviceName = this.get('content.serviceName');
     var displayName = this.get('content.displayName');
     var selectedConfigGroup;
-    var hostsLength = App.router.get('mainHostController.hostsCountMap.TOTAL');
+    var defaultHosts = App.get('allHostNames');
 
     //parse loaded config groups
     if (App.supports.hostOverrides) {
@@ -470,7 +470,9 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
               hosts: groupHosts,
               configSiteTags: []
             });
-            hostsLength -= groupHosts.length;
+            for (var i = 0; i< groupHosts.length ; i++) {
+              defaultHosts = defaultHosts.without(groupHosts[i]);
+            }
             item.desired_configs.forEach(function (config) {
               newConfigGroup.configSiteTags.push(App.ConfigSiteTag.create({
                 site: config.type,
@@ -491,9 +493,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
       name: displayName + " Default",
       description: "Default cluster level " + serviceName + " configuration",
       isDefault: true,
-      hosts: {
-        length: hostsLength
-      },
+      hosts: defaultHosts,
       parentConfigGroup: null,
       service: this.get('content'),
       serviceName: serviceName,

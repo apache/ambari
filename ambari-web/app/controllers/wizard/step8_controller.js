@@ -1154,7 +1154,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, {
     clientNames.forEach(function (clientName) {
       clientsMap[clientName] = Em.A([]);
       dependedComponents.forEach(function (component) {
-        if (component.get('dependencies').contains(clientName)) clientsMap[clientName].push(component.get('componentName'));
+        if (component.get('dependencies').mapProperty('componentName').contains(clientName)) clientsMap[clientName].push(component.get('componentName'));
       });
       if (!clientsMap[clientName].length) delete clientsMap[clientName];
     });

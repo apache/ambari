@@ -36,4 +36,123 @@ class TestHookBeforeInstall(RMFTestCase):
         ignore_failures = True,
         path = ['/bin', '/usr/bin/'],
     )
+    self.assertResourceCalled('Group', 'hadoop',
+        ignore_failures = False,
+    )
+    self.assertResourceCalled('Group', 'nobody',
+        ignore_failures = False,
+    )
+    self.assertResourceCalled('Group', 'users',
+        ignore_failures = False,
+    )
+    self.assertResourceCalled('Group', 'nagios',
+        ignore_failures = False,
+    )
+    self.assertResourceCalled('User', 'hive',
+        gid = 'hadoop',
+        ignore_failures = False,
+        groups = [u'hadoop'],
+    )
+    self.assertResourceCalled('User', 'oozie',
+        gid = 'hadoop',
+        ignore_failures = False,
+        groups = [u'hadoop'],
+    )
+    self.assertResourceCalled('User', 'nobody',
+        gid = 'hadoop',
+        ignore_failures = False,
+        groups = [u'nobody'],
+    )
+    self.assertResourceCalled('User', 'nagios',
+        gid = 'nagios',
+        ignore_failures = False,
+        groups = [u'hadoop'],
+    )
+    self.assertResourceCalled('User', 'ambari-qa',
+        gid = 'hadoop',
+        ignore_failures = False,
+        groups = [u'users'],
+    )
+    self.assertResourceCalled('User', 'flume',
+        gid = 'hadoop',
+        ignore_failures = False,
+        groups = [u'hadoop'],
+    )
+    self.assertResourceCalled('User', 'hdfs',
+        gid = 'hadoop',
+        ignore_failures = False,
+        groups = [u'hadoop'],
+    )
+    self.assertResourceCalled('User', 'storm',
+        gid = 'hadoop',
+        ignore_failures = False,
+        groups = [u'hadoop'],
+    )
+    self.assertResourceCalled('User', 'mapred',
+        gid = 'hadoop',
+        ignore_failures = False,
+        groups = [u'hadoop'],
+    )
+    self.assertResourceCalled('User', 'hbase',
+        gid = 'hadoop',
+        ignore_failures = False,
+        groups = [u'hadoop'],
+    )
+    self.assertResourceCalled('User', 'tez',
+        gid = 'hadoop',
+        ignore_failures = False,
+        groups = [u'users'],
+    )
+    self.assertResourceCalled('User', 'zookeeper',
+        gid = 'hadoop',
+        ignore_failures = False,
+        groups = [u'hadoop'],
+    )
+    self.assertResourceCalled('User', 'falcon',
+        gid = 'hadoop',
+        ignore_failures = False,
+        groups = [u'hadoop'],
+    )
+    self.assertResourceCalled('User', 'sqoop',
+        gid = 'hadoop',
+        ignore_failures = False,
+        groups = [u'hadoop'],
+    )
+    self.assertResourceCalled('User', 'yarn',
+        gid = 'hadoop',
+        ignore_failures = False,
+        groups = [u'hadoop'],
+    )
+    self.assertResourceCalled('User', 'hcat',
+        gid = 'hadoop',
+        ignore_failures = False,
+        groups = [u'hadoop'],
+    )
+    self.assertResourceCalled('File', '/tmp/changeUid.sh',
+        content = StaticFile('changeToSecureUid.sh'),
+        mode = 0555,
+    )
+    self.assertResourceCalled('Execute', '/tmp/changeUid.sh ambari-qa /tmp/hadoop-ambari-qa,/tmp/hsperfdata_ambari-qa,/home/ambari-qa,/tmp/ambari-qa,/tmp/sqoop-ambari-qa 2>/dev/null',
+        not_if = 'test $(id -u ambari-qa) -gt 1000',
+    )
+    self.assertResourceCalled('File', '/tmp/changeUid.sh',
+        content = StaticFile('changeToSecureUid.sh'),
+        mode = 0555,
+    )
+    self.assertResourceCalled('Execute', '/tmp/changeUid.sh hbase /home/hbase,/tmp/hbase,/usr/bin/hbase,/var/log/hbase,/hadoop/hbase 2>/dev/null',
+        not_if = 'test $(id -u hbase) -gt 1000',
+    )
+    self.assertResourceCalled('Directory', '/etc/hadoop/conf.empty',
+        owner = 'root',
+        group = 'root',
+        recursive = True,
+    )
+    self.assertResourceCalled('Link', '/etc/hadoop/conf',
+        not_if = 'ls /etc/hadoop/conf',
+        to = '/etc/hadoop/conf.empty',
+    )
+    self.assertResourceCalled('File', '/etc/hadoop/conf/hadoop-env.sh',
+        content = InlineTemplate(self.getConfig()['configurations']['hadoop-env']['content']),
+        owner = 'hdfs',
+    )
     self.assertNoMoreResources()

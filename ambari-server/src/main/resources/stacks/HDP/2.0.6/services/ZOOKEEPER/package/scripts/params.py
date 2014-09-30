@@ -27,10 +27,10 @@ config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 
 #RPM versioning support
-rpm_version = default("/configurations/hadoop-env/rpm_version", None)
+rpm_version = default("/configurations/cluster-env/rpm_version", None)
 
 #hadoop params
-if rpm_version is not None:
+if rpm_version:
   zk_bin = '/usr/hdp/current/zookeeper/bin'
   smoke_script = '/usr/hdp/current/zookeeper/bin/zkCli.sh'
 else:

@@ -35,6 +35,7 @@ module.exports = Em.Route.extend({
           var name = 'Cluster Install Wizard';
           $('title').text('Ambari - ' + name);
 
+          App.router.get('mainViewsController').loadAmbariViews();
           if (App.get('isAdmin')) {
             router.get('mainController').stopPolling();
             console.log('In installer with successful authenticated');
@@ -82,7 +83,6 @@ module.exports = Em.Route.extend({
               App.router.transitionTo('main.views.index');
             });
           }
-
         });
       } else {
         console.log('In installer but its not authenticated');
@@ -426,6 +426,7 @@ module.exports = Em.Route.extend({
         // We need to do recovery based on whether we are in Add Host or Installer wizard
         controller.saveClusterState('DEFAULT');
         App.router.set('clusterController.isLoaded', false);
+        router.set('clusterInstallCompleted', true);
         router.transitionTo('main.dashboard.index');
       });
     }

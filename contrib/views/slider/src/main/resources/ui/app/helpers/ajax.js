@@ -131,7 +131,7 @@ var urls = {
 
   'createNewApp': {
     real: 'apps',
-    mock: '',
+    mock: '/data/resource/empty_json.json',
     headers: {
       "Content-Type": "text/plain; charset=utf-8"
     },

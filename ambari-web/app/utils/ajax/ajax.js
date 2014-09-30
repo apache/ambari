@@ -1094,7 +1094,7 @@ var urls = {
     }
   },
   'wizard.service_components': {
-    'real': '{stackUrl}/services?fields=StackServices/*,serviceComponents/*',
+    'real': '{stackUrl}/services?fields=StackServices/*,serviceComponents/*,serviceComponents/dependencies/Dependencies/scope',
     'mock': '/data/stacks/HDP-2.1/service_components.json',
     'format': function(data) {
       return {
@@ -1882,7 +1882,7 @@ var urls = {
     }
   },
   'service.serviceConfigVersions.get': {
-    real: '/clusters/{clusterName}/configurations/service_config_versions?service_name={serviceName}&fields=service_config_version,user,group_id,group_name,is_current,createtime,service_name,service_config_version_note&minimal_response=true',
+    real: '/clusters/{clusterName}/configurations/service_config_versions?service_name={serviceName}&fields=service_config_version,user,hosts,group_id,group_name,is_current,createtime,service_name,service_config_version_note&minimal_response=true',
     mock: '/data/configurations/service_versions.json'
   },
   'service.serviceConfigVersions.get.current': {

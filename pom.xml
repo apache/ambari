@@ -31,7 +31,7 @@
     <deb.section>universe/admin</deb.section>
     <deb.architecture>i386 amd64</deb.architecture>
     <deb.priority>extra</deb.priority>
-    <stack.distribution>BIGTOP</stack.distribution>
+    <stack.distribution>HDP</stack.distribution>
   </properties>
   <pluginRepositories>
     <pluginRepository>

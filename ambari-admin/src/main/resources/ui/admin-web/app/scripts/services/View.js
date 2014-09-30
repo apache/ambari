@@ -233,6 +233,24 @@ angular.module('ambariAdminConsole')
     });
   };
 
+  View.checkViewVersionStatus = function(view_name, version) {
+    var deferred = $q.defer();
+
+    $http({
+      method: 'GET',
+      url: Settings.baseUrl + '/views/' + view_name + '/versions/' + version,
+      params:{
+        'fields': 'ViewVersionInfo/status'
+      }
+    }).then(function(data) {
+      deferred.resolve(data.data.ViewVersionInfo.status);
+    }).catch(function(err) {
+      deferred.reject(err);
+    });
+
+    return deferred;
+  };
+
   View.all = function() {
     var deferred = $q.defer();
     var fields = [

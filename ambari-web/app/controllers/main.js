@@ -63,11 +63,11 @@ App.MainController = Em.Controller.extend({
   },
 
   startPolling: function () {
-    if (App.router.get('clusterController.isLoaded')) {
+    if (App.router.get('applicationController.isExistingClusterDataLoaded')) {
       App.router.get('updateController').set('isWorking', true);
       App.router.get('backgroundOperationsController').set('isWorking', true);
     }
-  }.observes('App.router.clusterController.isLoaded'),
+  }.observes('App.router.applicationController.isExistingClusterDataLoaded'),
   stopPolling: function(){
     App.router.get('updateController').set('isWorking', false);
     App.router.get('backgroundOperationsController').set('isWorking', false);

@@ -256,22 +256,25 @@ App.ConfigHistoryFlowView = Em.View.extend({
    * initialize event to keep info bar position at the top of the page
    */
   keepInfoBarAtTop: function () {
-    var defaultTop;
+    var defaultTop, defaultLeft;
     var self = this;
     //reset defaultTop value in closure
     $(window).unbind('scroll');
 
     $(window).on('scroll', function (event) {
       var infoBar = $('#config_history_flow>.version-info-bar-wrapper');
+      var versionSlider = $('#config_history_flow>.version-slider');
       var scrollTop = $(window).scrollTop();
-
+      var scrollLeft = $(window).scrollLeft();
       if (infoBar.length === 0) {
         $(window).unbind('scroll');
         return;
       }
       //290 - default "top" property in px
       defaultTop = defaultTop || (infoBar.get(0).getBoundingClientRect() && infoBar.get(0).getBoundingClientRect().top) || 290;
-      self.setInfoBarPosition(infoBar, defaultTop, scrollTop);
+      // keep the version info bar always aligned to version slider
+      defaultLeft = (versionSlider.get(0).getBoundingClientRect() && versionSlider.get(0).getBoundingClientRect().left);
+      self.setInfoBarPosition(infoBar, defaultTop, scrollTop, defaultLeft, scrollLeft);
     })
   },
   /**
@@ -279,8 +282,10 @@ App.ConfigHistoryFlowView = Em.View.extend({
    * @param infoBar
    * @param defaultTop
    * @param scrollTop
+   * @param defaultLeft
+   * @param scrollLeft
    */
-  setInfoBarPosition: function (infoBar, defaultTop, scrollTop) {
+  setInfoBarPosition: function (infoBar, defaultTop, scrollTop, defaultLeft, scrollLeft) {
     if (scrollTop > defaultTop) {
       infoBar.css('top', '10px');
     } else if (scrollTop > 0) {
@@ -288,7 +293,13 @@ App.ConfigHistoryFlowView = Em.View.extend({
     } else {
       infoBar.css('top', 'auto');
     }
+    if (scrollLeft > 0) {
+      infoBar.css('left', defaultLeft);
+    } else {
+      infoBar.css('left', 'auto');
+    }
   },
+
   /**
    *  define the first element in viewport
    *  change visibility of arrows

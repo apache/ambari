@@ -27,6 +27,8 @@ class BeforeAnyHook(Hook):
     env.set_params(params)
     
     setup_jce()
+    setup_users()
+    setup_hadoop_env()
 
 if __name__ == "__main__":
   BeforeAnyHook().execute()

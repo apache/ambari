@@ -47,30 +47,6 @@ App.MainHostController = Em.ArrayController.extend({
     return installedComponents;
   }.property('App.router.clusterController.isLoaded'),
 
-  /**
-   * Master components
-   * @returns {Array}
-   */
-  masterComponents: function () {
-    return this.get('componentsForFilter').filterProperty('isMaster', true);
-  }.property('componentsForFilter'),
-
-  /**
-   * Slave components
-   * @returns {Array}
-   */
-  slaveComponents: function () {
-    return this.get('componentsForFilter').filterProperty('isSlave', true);
-  }.property('componentsForFilter'),
-
-  /**
-   * Client components
-   * @returns {Array}
-   */
-  clientComponents: function () {
-    return this.get('componentsForFilter').filterProperty('isClient', true);
-  }.property('componentsForFilter'),
-
   content: function () {
     return this.get('dataSource').filterProperty('isRequested');
   }.property('dataSource.@each.isRequested'),

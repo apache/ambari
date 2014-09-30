@@ -60,3 +60,6 @@ hadoop_libexec_dir = "/usr/lib/hadoop/libexec"
 #users and groups
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 user_group = config['configurations']['cluster-env']['user_group']
+
+namenode_host = default("/clusterHostInfo/namenode_host", [])
+has_namenode = not len(namenode_host) == 0

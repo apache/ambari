@@ -80,6 +80,17 @@ public class AmbariLdapDataPopulator {
    */
   private LdapTemplate ldapTemplate;
 
+  // Constants
+  private static final String UID_ATTRIBUTE          = "uid";
+  private static final String DN_ATTRIBUTE           = "dn";
+  private static final String OBJECT_CLASS_ATTRIBUTE = "objectClass";
+
+  /**
+   * Construct an AmbariLdapDataPopulator.
+   *
+   * @param configuration  the Ambari configuration
+   * @param users          utility that provides access to Users
+   */
   @Inject
   public AmbariLdapDataPopulator(Configuration configuration, Users users) {
     this.configuration = configuration;
@@ -134,8 +145,9 @@ public class AmbariLdapDataPopulator {
     final Map<String, User> internalUsersMap = getInternalUsers();
     final Set<LdapUserDto> externalUsers = getExternalLdapUserInfo();
     for (LdapUserDto externalUser : externalUsers) {
-      if (internalUsersMap.containsKey(externalUser)
-          && internalUsersMap.get(externalUser).isLdapUser()) {
+      String userName = externalUser.getUserName();
+      if (internalUsersMap.containsKey(userName)
+          && internalUsersMap.get(userName).isLdapUser()) {
         externalUser.setSynced(true);
       } else {
         externalUser.setSynced(false);
@@ -251,7 +263,7 @@ public class AmbariLdapDataPopulator {
   }
 
   /**
-   * Performs synchronization of given set of usernames.
+   * Performs synchronization of given set of user names.
    *
    * @param users set of users to synchronize
    * @throws AmbariException if synchronization failed for any reason
@@ -376,30 +388,43 @@ public class AmbariLdapDataPopulator {
     }
   }
 
+  /**
+   * Get the set of LDAP groups for the given group name.
+   *
+   * @param groupName  the group name
+   *
+   * @return the set of LDAP groups for the given name
+   */
   protected Set<LdapGroupDto> getLdapGroups(String groupName) {
-    Filter groupObjectFilter = new EqualsFilter("objectClass",
+    Filter groupObjectFilter = new EqualsFilter(OBJECT_CLASS_ATTRIBUTE,
         ldapServerProperties.getGroupObjectClass());
     Filter groupNameFilter = new LikeFilter(ldapServerProperties.getGroupNamingAttr(), groupName);
-    Set<LdapGroupDto> filteredLdapGroups = getFilteredLdapGroups(groupObjectFilter, groupNameFilter);
-    return filteredLdapGroups;
+    return getFilteredLdapGroups(groupObjectFilter, groupNameFilter);
   }
 
+  /**
+   * Get the set of LDAP users for the given user name.
+   *
+   * @param username  the user name
+   *
+   * @return the set of LDAP users for the given name
+   */
   protected Set<LdapUserDto> getLdapUsers(String username) {
-    Filter userObjectFilter = new EqualsFilter("objectClass", ldapServerProperties.getUserObjectClass());
+    Filter userObjectFilter = new EqualsFilter(OBJECT_CLASS_ATTRIBUTE, ldapServerProperties.getUserObjectClass());
     Filter userNameFilter = new LikeFilter(ldapServerProperties.getUsernameAttribute(), username);
-    Set<LdapUserDto> filteredLdapUsers = getFilteredLdapUsers(userObjectFilter, userNameFilter);
-    return filteredLdapUsers;
+    return getFilteredLdapUsers(userObjectFilter, userNameFilter);
   }
 
+  /**
+   * Get the LDAP member for the given member attribute.
+   *
+   * @param memberAttribute  the member attribute
+   *
+   * @return the user for the given member attribute; null if not found
+   */
   protected LdapUserDto getLdapUserByMemberAttr(String memberAttribute) {
-    // memberAttribute may be either DN or UID, check both
-    Filter userObjectFilter = new EqualsFilter("objectClass", ldapServerProperties.getUserObjectClass());
-    Filter dnFilter = new EqualsFilter("dn", memberAttribute);
-    Filter uidFilter = new EqualsFilter("uid", memberAttribute);
-    OrFilter orFilter = new OrFilter();
-    orFilter.or(dnFilter);
-    orFilter.or(uidFilter);
-    Set<LdapUserDto> filteredLdapUsers = getFilteredLdapUsers(userObjectFilter, orFilter);
+    Filter userObjectFilter = new EqualsFilter(OBJECT_CLASS_ATTRIBUTE, ldapServerProperties.getUserObjectClass());
+    Set<LdapUserDto> filteredLdapUsers = getFilteredLdapUsers(userObjectFilter, getMemberFilter(memberAttribute));
     return (filteredLdapUsers.isEmpty()) ? null : filteredLdapUsers.iterator().next();
   }
 
@@ -425,9 +450,36 @@ public class AmbariLdapDataPopulator {
    * @return set of info about LDAP groups
    */
   protected Set<LdapGroupDto> getExternalLdapGroupInfo() {
-    EqualsFilter groupObjectFilter = new EqualsFilter("objectClass",
+    EqualsFilter groupObjectFilter = new EqualsFilter(OBJECT_CLASS_ATTRIBUTE,
         ldapServerProperties.getGroupObjectClass());
     return getFilteredLdapGroups(groupObjectFilter);
+  }
+
+  // get a filter based on the given member attribute
+  private Filter getMemberFilter(String memberAttribute) {
+
+    String   usernameAttribute = ldapServerProperties.getUsernameAttribute();
+    OrFilter memberFilter      = null;
+
+    String[] filters = memberAttribute.split(",");
+    for (String filter : filters) {
+      String[] operands = filter.split("=");
+      if (operands.length == 2) {
+
+        String lOperand = operands[0];
+
+        if (lOperand.equals(usernameAttribute) || lOperand.equals(UID_ATTRIBUTE) || lOperand.equals(DN_ATTRIBUTE)) {
+          if (memberFilter == null) {
+            memberFilter = new OrFilter();
+          }
+          memberFilter.or(new EqualsFilter(lOperand, operands[1]));
+        }
+      }
+    }
+    return memberFilter == null ?
+        new OrFilter().or(new EqualsFilter(DN_ATTRIBUTE, memberAttribute)).
+            or(new EqualsFilter(UID_ATTRIBUTE, memberAttribute)) :
+        memberFilter;
   }
 
   private Set<LdapGroupDto> getFilteredLdapGroups(Filter...filters) {
@@ -450,16 +502,18 @@ public class AmbariLdapDataPopulator {
 
         final LdapGroupDto group = new LdapGroupDto();
         final String groupNameAttribute = adapter.getStringAttribute(ldapServerProperties.getGroupNamingAttr());
-        group.setGroupName(groupNameAttribute.toLowerCase());
 
-        final String[] uniqueMembers = adapter.getStringAttributes(ldapServerProperties.getGroupMembershipAttr());
-        if (uniqueMembers != null) {
-          for (String uniqueMember: uniqueMembers) {
-            group.getMemberAttributes().add(uniqueMember.toLowerCase());
+        if (groupNameAttribute != null) {
+          group.setGroupName(groupNameAttribute.toLowerCase());
+
+          final String[] uniqueMembers = adapter.getStringAttributes(ldapServerProperties.getGroupMembershipAttr());
+          if (uniqueMembers != null) {
+            for (String uniqueMember: uniqueMembers) {
+              group.getMemberAttributes().add(uniqueMember.toLowerCase());
+            }
           }
+          groups.add(group);
         }
-
-        groups.add(group);
         return null;
       }
     });
@@ -472,7 +526,7 @@ public class AmbariLdapDataPopulator {
    * @return set of info about LDAP users
    */
   protected Set<LdapUserDto> getExternalLdapUserInfo() {
-    EqualsFilter userObjectFilter = new EqualsFilter("objectClass",
+    EqualsFilter userObjectFilter = new EqualsFilter(OBJECT_CLASS_ATTRIBUTE,
         ldapServerProperties.getUserObjectClass());
     return getFilteredLdapUsers(userObjectFilter);
   }
@@ -496,7 +550,7 @@ public class AmbariLdapDataPopulator {
         final LdapUserDto user = new LdapUserDto();
         final DirContextAdapter adapter  = (DirContextAdapter) ctx;
         final String usernameAttribute = adapter.getStringAttribute(ldapServerProperties.getUsernameAttribute());
-        final String uidAttribute = adapter.getStringAttribute("uid");
+        final String uidAttribute = adapter.getStringAttribute(UID_ATTRIBUTE);
         if (usernameAttribute != null && uidAttribute != null) {
           user.setUserName(usernameAttribute.toLowerCase());
           user.setUid(uidAttribute.toLowerCase());
@@ -590,5 +644,4 @@ public class AmbariLdapDataPopulator {
     }
     return ldapTemplate;
   }
-
 }

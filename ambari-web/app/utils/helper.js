@@ -15,6 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+var stringUtils = require('utils/string_utils');
 
 /**
  * Remove spaces at beginning and ending of line.
@@ -287,6 +288,20 @@ App.isEmptyObject = function(obj) {
   for (var prop in obj) { if (obj.hasOwnProperty(prop)) {empty = false; break;} }
   return empty;
 }
+
+/**
+ * Convert object under_score keys to camelCase
+ *
+ * @param {Object} object
+ * @return {Object}
+ **/
+App.keysUnderscoreToCamelCase = function(object) {
+  var tmp = {};
+  for (var key in object) {
+    tmp[stringUtils.underScoreToCamelCase(key)] = object[key];
+  }
+  return tmp;
+};
 /**
  * Returns object with defined keys only.
  *

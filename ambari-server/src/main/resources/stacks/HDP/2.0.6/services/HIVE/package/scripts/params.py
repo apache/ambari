@@ -27,12 +27,12 @@ config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 
 #RPM versioning support
-rpm_version = default("/configurations/hadoop-env/rpm_version", None)
+rpm_version = default("/configurations/cluster-env/rpm_version", None)
 
 hdp_stack_version = config['hostLevelParams']['stack_version']
 
 #hadoop params
-if rpm_version is not None:
+if rpm_version:
   hadoop_bin_dir = "/usr/hdp/current/hadoop/bin"
   hadoop_home = '/usr/hdp/current/hadoop'
   hadoop_streeming_jars = "/usr/hdp/current/hadoop-mapreduce/hadoop-streaming-*.jar"
@@ -43,6 +43,7 @@ if rpm_version is not None:
   tez_tar_file = "/usr/hdp/current/tez/lib/tez*.tar.gz"
   pig_tar_file = '/usr/hdp/current/pig/pig.tar.gz'
   hive_tar_file = '/usr/hdp/current/hive/hive.tar.gz'
+  sqoop_tar_file = '/usr/hdp/current/sqoop/sqoop*.tar.gz'
 
   hcat_lib = '/usr/hdp/current/hive/hive-hcatalog/share/hcatalog'
   webhcat_bin_dir = '/usr/hdp/current/hive-hcatalog/sbin'
@@ -58,6 +59,7 @@ else:
   tez_tar_file = "/usr/lib/tez/tez*.tar.gz"
   pig_tar_file = '/usr/share/HDP-webhcat/pig.tar.gz'
   hive_tar_file = '/usr/share/HDP-webhcat/hive.tar.gz'
+  sqoop_tar_file = '/usr/share/HDP-webhcat/sqoop*.tar.gz'
 
   if str(hdp_stack_version).startswith('2.0'):
     hcat_lib = '/usr/lib/hcatalog/share/hcatalog'

@@ -33,15 +33,19 @@ App.ServiceConfigVersion = DS.Model.extend({
   author: DS.attr('string'),
   notes: DS.attr('string'),
   service: DS.belongsTo('App.Service'),
+  hosts: DS.attr('array'),
   index: DS.attr('number'),
   isCurrent: DS.attr('boolean'),
   isDisplayed: DS.attr('boolean'),
+  isDefault: function() {
+    return this.get('groupName') === 'default';
+  }.property('groupName'),
   currentTooltip: function () {
     return Em.I18n.t('dashboard.configHistory.table.current.tooltip').format(this.get('displayName'), this.get('configGroupName'));
   }.property('displayName', 'configGroupName'),
   configGroupName: function () {
-    return (this.get('groupName') === 'default') ? (this.get('displayName') + ' ' + Em.I18n.t('common.default')) : this.get('groupName');
-  }.property('groupName'),
+    return this.get('isDefault') ? (this.get('displayName') + ' ' + Em.I18n.t('common.default')) : this.get('groupName');
+  }.property('groupName','isDefault'),
   fullNotes: function () {
     return (typeof this.get('notes') === 'string') ? this.get('notes') || Em.I18n.t('dashboard.configHistory.table.notes.no') : Em.I18n.t('dashboard.configHistory.table.notes.no');
   }.property('notes'),
@@ -68,8 +72,19 @@ App.ServiceConfigVersion = DS.Model.extend({
    */
   isRequested: DS.attr('boolean'),
   isRestartRequired: function () {
-    return this.get('service.isRestartRequired') && this.get('isCurrent');
-  }.property('service.isRestartRequired', 'isCurrent'),
+    if (this.get('service.isRestartRequired') && this.get('isCurrent')) {
+      var hostNames = this.get('isDefault')
+        ? App.router.get('mainServiceInfoConfigsController.configGroups').findProperty('isDefault').get('hosts')
+        : this.get('hosts');
+      if (!hostNames.length) return false;
+      for (var i = 0; i < hostNames.length; i++) {
+        if (Object.keys(this.get('service.restartRequiredHostsAndComponents')).contains(hostNames[i])) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }.property('service.isRestartRequired','isDefault', 'isCurrent', 'hosts', 'service.restartRequiredHostsAndComponents', 'router.mainServiceInfoConfigsController.configGroups'),
   disabledActionMessages: function () {
     return {
       view: (this.get('isDisplayed')) ? Em.I18n.t('dashboard.configHistory.info-bar.view.button.disabled') : '',

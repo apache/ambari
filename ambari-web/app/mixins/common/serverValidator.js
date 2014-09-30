@@ -43,9 +43,6 @@ App.ServerValidatorMixin = Em.Mixin.create({
    */
   recommendationsConfigs: null,
 
-  loadAdditionalinfo: function() {
-    return !(this.get('content.hosts') && this.get('content.hosts').length);
-  }.property('content.hosts'),
   /**
    * by default loads data from model otherwise must be overridden as computed property
    * refer to \assets\data\stacks\HDP-2.1\recommendations_configs.json to learn structure
@@ -55,8 +52,8 @@ App.ServerValidatorMixin = Em.Mixin.create({
   hostNames: function() {
     return this.get('content.hosts')
         ? Object.keys(this.get('content.hosts'))
-        : this.get('allHostNames');
-  }.property('content.hosts', 'allHostNames'),
+        : App.get('allHostNames');
+  }.property('content.hosts', 'App.allHostNames'),
 
   allHostNames: [],
   /**
@@ -64,10 +61,8 @@ App.ServerValidatorMixin = Em.Mixin.create({
    * @type {Array} - of strings (serviceNames)
    */
   serviceNames: function() {
-    return this.get('content.serviceName')
-        ? [this.get('content.serviceName')]
-        : App.StackService.find().filter(function(s){return s.get('isSelected') || s.get('isInstalled')}).mapProperty('serviceName');
-  }.property('content.serviceName'),
+    return this.get('content.serviceName') ? [this.get('content.serviceName')] : this.get('allSelectedServiceNames');
+  }.property('content.serviceName', 'allSelectedServiceNames.@each'),
 
   /**
    * by default loads data from model otherwise must be overridden as computed property
@@ -77,10 +72,10 @@ App.ServerValidatorMixin = Em.Mixin.create({
   services: function() {
     return this.get('content.serviceName')
         ? [App.StackService.find(this.get('content.serviceName'))]
-        : App.StackService.find().filter(function(s){
+        : this.get('content.services').filter(function(s){
           return (s.get('isSelected') || s.get('isInstalled'))
         }).concat(require("data/service_configs"));
-  }.property('content.serviceName'),
+  }.property('content.serviceName', 'content.services', 'content.services.@each.isSelected', 'content.services.@each.isInstalled', 'content.stacks.@each.isSelected'),
 
   /**
    * by default loads data from model otherwise must be overridden as computed property
@@ -139,21 +134,14 @@ App.ServerValidatorMixin = Em.Mixin.create({
     console.error('Load recommendations failed');
   },
 
-  serverSideValidation: function() {
+  serverSideValidation: function () {
     var deferred = $.Deferred();
     if (!App.get('supports.serverRecommendValidate')) {
       deferred.resolve();
     } else {
       this.set('configValidationFailed', false);
-      if (this.get('loadAdditionalinfo')) {
-        var self = this;
-        this.getHostNames().always(function() {
-          if (self.get('configValidationFailed')) {
-            self.warnUser(deferred);
-          } else {
-            self.runServerSideValidation(deferred);
-          }
-        });
+      if (this.get('configValidationFailed')) {
+        this.warnUser(deferred);
       } else {
         this.runServerSideValidation(deferred);
       }
@@ -161,37 +149,6 @@ App.ServerValidatorMixin = Em.Mixin.create({
     return deferred;
   },
 
-  getHostNames: function() {
-    var self = this;
-
-    if (self.get('isInstaller')) {
-      // In installer wizard 'hosts.all' AJAX will not work cause cluster haven't been created yet
-      var hosts = [];
-      for (var host in self.get('content.hosts')) {
-        hosts.push(host);
-      }
-      self.set("allHostNames", hosts);
-      var deferred = $.Deferred();
-      deferred.resolve();
-      return deferred;
-    } else {
-      return App.ajax.send({
-        name: 'hosts.all',
-        sender: self,
-        success: 'getHostNamesSuccess',
-        error: 'getHostNamesError'
-      });
-    }
-  },
-
-  getHostNamesSuccess: function(data) {
-    this.set("allHostNames", data.items.mapProperty("Hosts.host_name"));
-  },
-
-  getHostNamesError: function() {
-    this.set('configValidationFailed', true);
-    console.error('failed to load hostNames');
-  },
   /**
    * @method serverSideValidation
    * send request to validate configs

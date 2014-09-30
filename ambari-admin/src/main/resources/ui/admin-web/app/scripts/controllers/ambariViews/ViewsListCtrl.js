@@ -19,10 +19,46 @@
 
 angular.module('ambariAdminConsole')
 .controller('ViewsListCtrl',['$scope', 'View', '$modal', 'uiAlert', 'ConfirmationModal', function($scope, View, $modal, uiAlert, ConfirmationModal) {
+
+  var deferredList = [];
+  $scope.$on('$locationChangeStart', function() {
+    deferredList.forEach(function(def) {
+      def.reject();
+    })
+  });
+
+  function checkViewVersionStatus(view, versionObj, versionNumber){
+    var deferred = View.checkViewVersionStatus(view.view_name, versionNumber);
+    deferredList.push(deferred);
+
+    deferred.promise.then(function(status) {
+      deferredList.splice(deferredList.indexOf(deferred), 1);
+      if (status !== 'DEPLOYED' && status !== 'ERROR') {
+        checkViewVersionStatus(view, versionObj, versionNumber);
+      } else {
+        $scope.$evalAsync(function() {
+          versionObj.status = status;
+          angular.forEach(view.versions, function(version) {
+            if(version.status === 'DEPLOYED'){
+              view.canCreateInstance = true;
+            }
+          })
+        });
+      }
+    });
+  }
+
   function loadViews(){
     View.all().then(function(views) {
       $scope.views = views;
       $scope.getFilteredViews();
+      angular.forEach(views, function(view) {
+        angular.forEach(view.versions, function(versionObj, versionNumber) {
+          if (versionObj.status !== 'DEPLOYED' || versionObj.status !== 'ERROR'){
+            checkViewVersionStatus(view, versionObj, versionNumber);
+          }
+        });
+      })
     }).catch(function(data) {
       uiAlert.danger(data.data.status, data.data.message);
     });

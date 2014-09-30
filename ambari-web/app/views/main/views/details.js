@@ -27,6 +27,60 @@ App.MainViewsDetailsView = Em.View.extend({
   attributeBindings: ['src','seamless'],
   seamless: "seamless",
 
+  interval: null,
+
+  /**
+   * Drop autoHeight timer
+   */
+  willDestroyElement: function() {
+    var interval = this.get('interval');
+    if (interval) {
+      clearInterval(interval);
+    }
+  },
+
+  /**
+   * Updates iframe height every 5s
+   */
+  didInsertElement : function() {
+    var interval, self = this;
+    interval = setInterval(function() {
+      self.resizeFunction();
+    }, 5000);
+    self.set('interval', interval);
+    this.resizeFunction();
+  },
+
+  resizeFunction : function() {
+    var body = $(document.body);
+    var footer = $("footer", body);
+    var header = $("#top-nav", body);
+    var iframe = $("iframe", body);
+
+    var bodyHeight = body.outerHeight();
+    var footerHeight = footer != null ? footer.outerHeight() : 0;
+    var headerHeight = header != null ? header.outerHeight() : 0;
+
+    var defaultHeight = bodyHeight - footerHeight - headerHeight;
+    console.debug("IFrame default Height = " + defaultHeight + " ("
+        + bodyHeight + " - " + headerHeight + " - " + footerHeight + ")");
+
+    if (iframe != null && iframe.length > 0) {
+      var childrenHeight = 0;
+      var iframeElement = iframe[0];
+      if (iframeElement.contentWindow != null
+          && iframeElement.contentWindow.document != null
+          && iframeElement.contentWindow.document.body != null) {
+        var iFrameContentBody = iframeElement.contentWindow.document.body;
+        childrenHeight = iFrameContentBody.scrollHeight;
+        console.debug("IFrame content Height = " + childrenHeight);
+      }
+      var iFrameHeight = Math.max(childrenHeight, defaultHeight);
+      console.debug("IFrame final height = ", iFrameHeight);
+      iframe.css('height', iFrameHeight);
+    }
+  },
+
   src: function() {
     return window.location.origin + this.get('controller.content.href');
   }.property('controller.content')

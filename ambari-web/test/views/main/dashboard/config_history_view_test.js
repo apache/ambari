@@ -92,18 +92,6 @@ describe('App.MainConfigHistoryView', function() {
       App.db.setDisplayLength.restore();
     });
 
-    it('displayLength and startIndex are null', function() {
-      view.set('displayLength', null);
-      view.set('startIndex', null);
-
-      view.updatePagination();
-
-      expect(view.refresh.calledOnce).to.be.true;
-      expect(App.db.setStartIndex.called).to.be.false;
-      expect(App.db.setDisplayLength.called).to.be.false;
-      expect(view.get('controller.paginationProps').findProperty('name', 'startIndex').value).to.equal(0);
-      expect(view.get('controller.paginationProps').findProperty('name', 'displayLength').value).to.equal('25');
-    });
     it('displayLength is correct', function() {
       view.set('displayLength', '50');
       view.set('startIndex', null);
@@ -137,6 +125,18 @@ describe('App.MainConfigHistoryView', function() {
       expect(view.refresh.calledOnce).to.be.true;
       expect(App.db.setStartIndex.calledWith('mainConfigHistoryController', 20)).to.be.true;
       expect(App.db.setDisplayLength.calledWith('mainConfigHistoryController', '100')).to.be.true;
+      expect(view.get('controller.paginationProps').findProperty('name', 'startIndex').value).to.equal(20);
+      expect(view.get('controller.paginationProps').findProperty('name', 'displayLength').value).to.equal('100');
+    });
+    it('displayLength and startIndex are null', function() {
+      view.set('displayLength', null);
+      view.set('startIndex', null);
+
+      view.updatePagination();
+
+      expect(view.refresh.calledOnce).to.be.true;
+      expect(App.db.setStartIndex.called).to.be.false;
+      expect(App.db.setDisplayLength.called).to.be.false;
       expect(view.get('controller.paginationProps').findProperty('name', 'startIndex').value).to.equal(20);
       expect(view.get('controller.paginationProps').findProperty('name', 'displayLength').value).to.equal('100');
     });

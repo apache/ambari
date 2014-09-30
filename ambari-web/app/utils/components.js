@@ -137,15 +137,38 @@ module.exports = {
   },
   /**
    * Check if all required components are installed on host.
+   * Available options:
+   *  scope: 'host' - dependency level `host`,`cluster` or `*`.
+   *  hostName: 'example.com' - host name to search installed components
+   *  installedComponents: ['A', 'B'] - names of installed components
+   *
+   * By default scope level is `*`
+   * For host level dependency you should specify at least `hostName` or `installedComponents` attribute.
    *
    * @param {String} componentName
-   * @param {Array} installedComponentNames
+   * @param {Object} opt - options. Allowed options are `hostName`, `installedComponents`, `scope`.
    * @return {Array} - names of missed components
    */
-  checkComponentDependencies: function(componentName, installedComponentNames) {
-    return App.StackServiceComponent.find(componentName).get('dependencies').filter(function(dependency) {
-      return !installedComponentNames.contains(dependency)
-    });
+  checkComponentDependencies: function(componentName, opt) {
+    opt = opt || {};
+    opt.scope = opt.scope || '*';
+    var installedComponents;
+    var dependencies = App.StackServiceComponent.find(componentName).get('dependencies');
+    dependencies = opt.scope === '*' ? dependencies : dependencies.filterProperty('scope', opt.scope);
+    if (dependencies.length == 0) return [];
+    switch (opt.scope) {
+      case 'host':
+        Em.assert("You should pass at least `hostName` or `installedComponents` to options.", opt.hostName || opt.installedComponents);
+        installedComponents = opt.installedComponents || App.HostComponent.find().filterProperty('hostName', opt.hostName).mapProperty('componentName').uniq();
+        break;
+      default:
+        // @todo: use more appropriate value regarding installed components
+        installedComponents = opt.installedComponents || App.HostComponent.find().mapProperty('componentName').uniq();
+        break;
+    }
+    return dependencies.filter(function(dependency) {
+      return !installedComponents.contains(dependency.componentName);
+    }).mapProperty('componentName');
   }
 
 };

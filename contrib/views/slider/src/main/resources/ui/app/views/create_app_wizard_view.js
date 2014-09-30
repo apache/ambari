@@ -72,9 +72,7 @@ App.CreateAppWizardView = Ember.View.extend({
 
   setHeight: function () {
     var height = $(window).height() * 0.8;
-    $('#createAppWizard').css({
-      height: height + 'px',
-      marginTop: -(height / 2) + 'px'
-    });
+    $('.slider-modal-body').css('max-height', height + 'px');
+    $('#createAppWizard').css('margin-top', -(height / 2) + 'px');
   }
 });

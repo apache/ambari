@@ -34,15 +34,15 @@
       {{#each}}
         <tr>
           <td>{{displayName}}</td>
-          <td>{{input valueBinding="numInstances"}}</td>
-          <td>{{input valueBinding="yarnMemory"}}</td>
-          <td>{{input valueBinding="yarnCPU"}}</td>
+          <td>{{input class="cell-narrow" valueBinding="numInstances"}}</td>
+          <td>{{input class="cell-wide" valueBinding="yarnMemory"}}</td>
+          <td>{{input class="cell-narrow" valueBinding="yarnCPU"}}</td>
           <td>
             <div {{bs-bind-tooltip content=view.checkBoxPopover}}>
               {{input type="checkbox" checkedBinding="yarnLabelChecked" class="checkbox-inline"}}
             </div>
           </td>
-          <td>
+          <td class="cell-auto">
             <div {{bs-bind-tooltip content=view.yarnLabelPopover}}>
               {{input valueBinding="yarnLabel" disabledBinding="yarnLabelNotChecked"}}
             </div>

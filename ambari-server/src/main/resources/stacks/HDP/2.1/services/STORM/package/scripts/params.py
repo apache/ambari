@@ -25,10 +25,10 @@ import status_params
 config = Script.get_config()
 
 #RPM versioning support
-rpm_version = default("/configurations/hadoop-env/rpm_version", None)
+rpm_version = default("/configurations/cluster-env/rpm_version", None)
 
 #hadoop params
-if rpm_version is not None:
+if rpm_version:
   rest_lib_dir = '/usr/hdp/current/storm/contrib/storm-rest'
   storm_bin_dir = "/usr/hdp/current/storm/bin"
 else:

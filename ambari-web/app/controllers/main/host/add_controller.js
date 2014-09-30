@@ -371,6 +371,7 @@ App.AddHostController = App.WizardController.extend({
     this.clearStorageData();
     App.router.get('updateController').updateAll();
     App.updater.immediateRun('updateHost');
+    App.router.get('clusterController').getAllHostNames();
   },
 
   /**

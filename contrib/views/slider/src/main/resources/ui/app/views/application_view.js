@@ -32,7 +32,8 @@ App.ApplicationView = Ember.View.extend({
       return Em.Object.create({
         trigger: 'hover',
         placement: 'bottom',
-        title: App.get('instance')
+        title: App.get('instance'),
+        html: true
       })
     }.property('content'),
 
@@ -49,8 +50,12 @@ App.ApplicationView = Ember.View.extend({
       var template = this.createChildView(App.SliderTitleTooltipView, {
         content: App.SliderApp.store.all('sliderConfig')
       });
-      this.set('popover.template', template.renderToBuffer().string());
-    }.observes('App.mapperTime')
+      $('#slider-title').data('bs.popover').options.content = template.renderToBuffer().string();
+    }.observes('App.mapperTime'),
+
+    didInsertElement: function () {
+      $('#slider-title').popover(this.get('popover'));
+    }
 
   })
 

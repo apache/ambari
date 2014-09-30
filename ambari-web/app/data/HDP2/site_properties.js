@@ -1818,7 +1818,19 @@ module.exports =
       "serviceName": "MISC",
       "filename": "cluster-env.xml"
     },
-
+    {
+      "id": "puppet var",
+      "name": "rpm_version",
+      "displayName": "Hadoop RPM version",
+      "description": "Hadoop RPM version",
+      "defaultValue": '',
+      "isRequired": true,
+      "isOverridable": false,
+      "isVisible": false,
+      "isEditable": false,
+      "serviceName": "MISC",
+      "filename": "cluster-env.xml"
+    },
 
   /**********************************************MAPREDUCE2***************************************/
     {

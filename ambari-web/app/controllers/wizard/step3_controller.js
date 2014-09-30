@@ -1112,10 +1112,10 @@ App.WizardStep3Controller = Em.Controller.extend({
       var selectedOS = [];
       var self = this;
       var isValid = false;
-      if (selectedStack && selectedStack.operatingSystems) {
-        selectedStack.get('operatingSystems').filterProperty('selected', true).forEach(function (os) {
-          selectedOS.pushObject(os.osType);
-          if (self.repoToAgentOsType(os.osType).indexOf(osType) >= 0) {
+      if (selectedStack && selectedStack.get('operatingSystems')) {
+        selectedStack.get('operatingSystems').filterProperty('isSelected', true).forEach(function (os) {
+          selectedOS.pushObject(os.get('osType'));
+          if (self.repoToAgentOsType(os.get('osType')).indexOf(osType) >= 0) {
             isValid = true;
           }
         });

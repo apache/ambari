@@ -24,7 +24,7 @@
 .editable-list-container.well{
   padding: 10px;
   position: relative;
-  margin-bottom: 30px;
+  margin-bottom: 25px;
   cursor: pointer;
 }
 .editable-list-container.well.edit-mode{
@@ -487,6 +487,13 @@
   padding-top: 8px;
   padding-bottom: 8px;
 }
+.left-navbar .panel-body li .noclusters{
+  color: #808080;
+  padding-left: 33px;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  margin: 0px;
+}
 .left-navbar .panel-body li.active a{
   background: #666;
 }
@@ -635,6 +642,15 @@ table.no-border tr td{
 .cluster-manage-access-pane .well, .views-permissions-panel .well{
   min-height: 63px;
 }
+
+.views-permissions-panel .panel-body{
+  padding-bottom: 0;
+}
+
+.views-permissions-panel .panel-body table{
+  margin-bottom: 0;
+}
+
 
 .views-list-pane accordion .panel-group .panel-heading{
   cursor: pointer;

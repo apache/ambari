@@ -62,8 +62,9 @@ describe('date', function () {
 
   describe('#startTime()', function() {
     var today = new Date();
+    var testDate = new Date(1349752195000);
     var tests = [
-      { t: 1349752195000, e: 'Tue Oct 09 2012 06:09' },
+      { t: 1349752195000, e: testDate.toDateString() + ' {0}:{1}'.format(date.dateFormatZeroFirst(testDate.getHours()), date.dateFormatZeroFirst(testDate.getMinutes())) },
       { t: -10000000, e: 'Not started' },
       { t: today.getTime(), e: 'Today {0}:{1}'.format(date.dateFormatZeroFirst(today.getHours()), date.dateFormatZeroFirst(today.getMinutes())) },
       { t: today, e: ''}
@@ -158,7 +159,7 @@ describe('date', function () {
         e: '0 secs'
       },
       {
-        startTimestamp: 1000,
+        startTimestamp: 100000000,
         endTimestamp: -1,
         stubbed: true,
         e: '19.00 secs'
@@ -166,7 +167,7 @@ describe('date', function () {
     ];
 
     beforeEach(function() {
-      sinon.stub(App, 'dateTime', function () { return 20000; });
+      sinon.stub(App, 'dateTime', function () { return 100019000; });
     });
 
     tests.forEach(function(test) {

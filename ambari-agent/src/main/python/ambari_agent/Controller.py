@@ -162,7 +162,11 @@ class Controller(threading.Thread):
   def cancelCommandInQueue(self, commands):
     """ Remove from the queue commands, kill the process if it's in progress """
     if commands:
-      self.actionQueue.cancel(commands)
+      try:
+        self.actionQueue.cancel(commands)
+      except Exception, err:
+        logger.error("Exception occurred on commands cancel: %s", err.message)
+        pass
     pass
 
   def addToQueue(self, commands):

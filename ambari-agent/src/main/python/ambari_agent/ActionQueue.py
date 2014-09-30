@@ -137,8 +137,8 @@ class ActionQueue(threading.Thread):
                       " of cluster " +  queued_command['clusterName'] + \
                       " to the queue.")
 
-    # Kill if in progress
-    self.customServiceOrchestrator.cancel_command(task_id, reason)
+      # Kill if in progress
+      self.customServiceOrchestrator.cancel_command(task_id, reason)
 
   def run(self):
     while not self.stopped():

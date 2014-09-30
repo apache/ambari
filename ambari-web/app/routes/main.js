@@ -26,11 +26,12 @@ module.exports = Em.Route.extend({
     console.log('in /main:enter');
     router.getAuthenticated().done(function (loggedIn) {
       if (loggedIn) {
+        App.router.get('mainViewsController').loadAmbariViews();
         App.router.get('clusterController').loadClusterName(false).done(function () {
           if (App.get('testMode')) {
             router.get('mainController').initialize();
           } else {
-            if (App.get('clusterName')) {
+            if (router.get('clusterInstallCompleted')) {
               App.router.get('mainController').checkServerClientVersion().done(function () {
                 App.router.get('clusterController').loadClientServerClockDistance().done(function () {
                   router.get('mainController').initialize();

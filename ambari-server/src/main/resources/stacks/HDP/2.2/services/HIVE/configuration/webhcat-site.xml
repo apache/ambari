@@ -49,5 +49,16 @@ limitations under the License.
     <description>The path to the hcatalog executable.</description>
   </property>
 
+  <property>
+    <name>templeton.sqoop.archive</name>
+    <value>hdfs:///apps/webhcat/sqoop.tar.gz</value>
+    <description>The path to the Sqoop archive in HDFS.</description>
+  </property>
+
+  <property>
+    <name>templeton.sqoop.path</name>
+    <value>sqoop.tar.gz/sqoop/bin/sqoop</value>
+    <description>The path to the Sqoop executable.</description>
+  </property>
 
 </configuration>
