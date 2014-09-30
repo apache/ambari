@@ -18,7 +18,7 @@
 <div class="clearfix">
   <ol class="breadcrumb pull-left">
     <li><a href="#/views">Views</a></li>
-    <li class="active">{{instance.ViewInstanceInfo.label}}</li>
+    <li class="active">{{instance.ViewInstanceInfo.label}} <a class="gotoinstance" ng-show="instance.ViewInstanceInfo.visible" href="/#/main{{instance.ViewInstanceInfo.context_path}}">Go to instance</a></li>
   </ol>
   <div class="pull-right top-margin-4" ng-switch="instance.ViewInstanceInfo.static">
     <button ng-switch-when="true" class="btn disabled btn-default btn-delete-instance" tooltip="Cannot Delete Static Instances">Delete Instance</button>

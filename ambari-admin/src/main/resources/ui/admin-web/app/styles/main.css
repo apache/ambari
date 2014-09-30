@@ -309,6 +309,10 @@
   transform: rotateZ(90deg);
 }
 
+a.gotoinstance{
+  font-size: 12px;
+}
+
 .ats-switch{
   border-color: #333;
 }
