@@ -19,6 +19,14 @@ limitations under the License.
 import os
 from resource_management import *
 
+def setup_hdp_install_directory():
+  import params
+  if params.rpm_version:
+    Execute(format('ln -s /usr/hdp/{rpm_version}-* {versioned_hdp_root}'),
+            not_if=format('ls {versioned_hdp_root}'),
+            only_if=format('ls -d /usr/hdp/{rpm_version}-*')
+    )
+
 def setup_hadoop_env():
   import params
   if params.has_namenode:
@@ -39,11 +47,6 @@ def setup_hadoop_env():
          owner=tc_owner,
          content=InlineTemplate(params.hadoop_env_sh_template)
     )
-    if params.rpm_version is not None:
-      Execute(format('ln -s /usr/hdp/{rpm_version}-* {versioned_hdp_root}'),
-              not_if=format('ls {versioned_hdp_root}'),
-              only_if=format('ls -d /usr/hdp/{rpm_version}-*')
-      )
 
 def setup_config():
   import params

@@ -24,10 +24,10 @@ import os
 config = Script.get_config()
 
 #RPM versioning support
-rpm_version = default("/configurations/hadoop-env/rpm_version", None)
+rpm_version = default("/configurations/cluster-env/rpm_version", None)
 
 #hadoop params
-if rpm_version is not None:
+if rpm_version:
   mapreduce_libs_path = "/usr/hdp/current/hadoop-mapreduce/*"
   hadoop_libexec_dir = "/usr/hdp/current/hadoop/libexec"
   hadoop_lib_home = "/usr/hdp/current/hadoop/lib"

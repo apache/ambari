@@ -27,15 +27,10 @@ config = Script.get_config()
 exec_tmp_dir = Script.get_tmp_dir()
 
 #RPM versioning support
-rpm_version = default("/configurations/hadoop-env/rpm_version", None)
+rpm_version = default("/configurations/cluster-env/rpm_version", None)
 
 #hadoop params
-if rpm_version is not None:
-#RPM versioning support
-  rpm_version = default("/configurations/hadoop-env/rpm_version", None)
-
-#hadoop params
-if rpm_version is not None:
+if rpm_version:
   hadoop_bin_dir = format("/usr/hdp/current/hadoop/bin")
   daemon_script = format('/usr/hdp/current/hbase/bin/hbase-daemon.sh')
   region_mover = format('/usr/hdp/current/hbase/bin/region_mover.rb')

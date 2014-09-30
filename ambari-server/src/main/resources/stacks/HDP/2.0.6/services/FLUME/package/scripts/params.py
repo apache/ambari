@@ -27,10 +27,10 @@ proxyuser_group =  config['configurations']['hadoop-env']['proxyuser_group']
 security_enabled = False
 
 #RPM versioning support
-rpm_version = default("/configurations/hadoop-env/rpm_version", None)
+rpm_version = default("/configurations/cluster-env/rpm_version", None)
 
 #hadoop params
-if rpm_version is not None:
+if rpm_version:
   flume_bin = '/usr/hdp/current/flume/bin/flume-ng'
 else:
   flume_bin = '/usr/bin/flume-ng'

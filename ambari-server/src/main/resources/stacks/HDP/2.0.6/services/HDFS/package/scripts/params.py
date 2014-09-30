@@ -25,10 +25,10 @@ config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 
 #RPM versioning support
-rpm_version = default("/configurations/hadoop-env/rpm_version", None)
+rpm_version = default("/configurations/cluster-env/rpm_version", None)
 
 #hadoop params
-if rpm_version is not None:
+if rpm_version:
   mapreduce_libs_path = "/usr/hdp/current/hadoop-mapreduce/*"
   hadoop_libexec_dir = "/usr/hdp/current/hadoop/libexec"
   hadoop_bin = "/usr/hdp/current/hadoop/sbin"

@@ -24,10 +24,10 @@ from resource_management import *
 config = Script.get_config()
 
 #RPM versioning support
-rpm_version = default("/configurations/hadoop-env/rpm_version", None)
+rpm_version = default("/configurations/cluster-env/rpm_version", None)
 
 #hadoop params
-if rpm_version is not None:
+if rpm_version:
 #  slider_conf_dir = '/usr/lib/current/slider/conf'
 #  slider_bin_dir = '/usr/lib/current/slider/bin'
   slider_conf_dir = "/usr/lib/slider/conf"

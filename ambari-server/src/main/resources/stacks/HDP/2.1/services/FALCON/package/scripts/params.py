@@ -24,10 +24,10 @@ from status_params import *
 config = Script.get_config()
 
 #RPM versioning support
-rpm_version = default("/configurations/hadoop-env/rpm_version", None)
+rpm_version = default("/configurations/cluster-env/rpm_version", None)
 
 #hadoop params
-if rpm_version is not None:
+if rpm_version:
   hadoop_bin_dir = "/usr/hdp/current/hadoop/bin"
   falcon_webapp_dir = "/usr/hdp/current/falcon/webapp"
   falcon_home = "/usr/hdp/current/falcon"

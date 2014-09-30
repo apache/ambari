@@ -27,12 +27,12 @@ config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 
 #RPM versioning support
-rpm_version = default("/configurations/hadoop-env/rpm_version", None)
+rpm_version = default("/configurations/cluster-env/rpm_version", None)
 
 hdp_stack_version = config['hostLevelParams']['stack_version']
 
 #hadoop params
-if rpm_version is not None:
+if rpm_version:
   hadoop_bin_dir = "/usr/hdp/current/hadoop/bin"
   hadoop_home = '/usr/hdp/current/hadoop'
   hadoop_streeming_jars = "/usr/hdp/current/hadoop-mapreduce/hadoop-streaming-*.jar"

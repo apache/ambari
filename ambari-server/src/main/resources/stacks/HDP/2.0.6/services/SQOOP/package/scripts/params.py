@@ -22,10 +22,10 @@ from resource_management import *
 config = Script.get_config()
 
 #RPM versioning support
-rpm_version = default("/configurations/hadoop-env/rpm_version", None)
+rpm_version = default("/configurations/cluster-env/rpm_version", None)
 
 #hadoop params
-if rpm_version is not None:
+if rpm_version:
   sqoop_conf_dir = '/usr/hdp/current/etc/sqoop/conf'
   sqoop_lib = '/usr/hdp/current/sqoop/lib'
   hbase_home = '/usr/hdp/current/hbase'
