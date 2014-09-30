@@ -155,10 +155,9 @@ App.CreateAppWizardStep3Controller = Ember.ObjectController.extend({
         delete configSet.configNames;
         if (configSet.name === 'ganglia_metrics') {
           configSet.trigger.readOnly = (!App.get('gangliaClusters') || App.get('gangliaClusters').length === 0);
-          configSet.trigger.value = (App.get('gangliaClusters') && App.get('gangliaClusters').length > 0);
         }
         configSet.trigger = App.ConfigProperty.create(configSet.trigger);
-        this.initConfigSetDependecies(configSet);
+        this.initConfigSetDependencies(configSet);
         configs.unshift(configSet);
       }
     }, this);
@@ -167,16 +166,16 @@ App.CreateAppWizardStep3Controller = Ember.ObjectController.extend({
   }.observes('newAppConfigs'),
 
   /**
-   * initialize dependecies map for config set by name
+   * initialize dependencies map for config set by name
    * configSet map changed by reference
    *
    * @param {object} configSet
-   * @method initConfigSetDependecies
+   * @method initConfigSetDependencies
    */
-  initConfigSetDependecies: function (configSet) {
+  initConfigSetDependencies: function (configSet) {
     configSet.dependencies.forEach(function (item) {
       item.map = Em.get(item.name);
-    })
+    });
   },
 
   /**
@@ -193,10 +192,10 @@ App.CreateAppWizardStep3Controller = Ember.ObjectController.extend({
    * @method validateConfigs
    */
   validateConfigs: function () {
-    var self = this;
-    var result = true;
-    var configs = this.addConfigSetProperties(this.get('configs'));
-    var configsObject = {};
+    var self = this,
+      result = true,
+      configs = this.addConfigSetProperties(this.get('configs')),
+      configsObject = {};
 
     try {
       configs.forEach(function (item) {
@@ -216,7 +215,6 @@ App.CreateAppWizardStep3Controller = Ember.ObjectController.extend({
    * @return {Array}
    */
   addConfigSetProperties: function (configs) {
-    var configSets = configs.filterBy('isSet');
     var newConfigs = [];
     configs.filterBy('isSet').forEach(function (item) {
       if (item.trigger.value) {

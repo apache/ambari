@@ -39,14 +39,15 @@ App.ConfigSetView = Ember.View.extend({
   }.property('configSet.trigger.value'),
 
   /**
-   * observe change of config values to resolve their dependecies
+   * observe change of config values to resolve their dependencies
+   * @method changeConfigValues
    */
   changeConfigValues: function () {
     var configs = this.get('configs');
-    var dependecies = this.get('configSet.dependencies');
+    var dependencies = this.get('configSet.dependencies');
 
     if (configs.length > 0) {
-      dependecies.forEach(function (item) {
+      dependencies.forEach(function (item) {
         var origin = configs.findBy('name', item.origin);
         var dependent = configs.findBy('name', item.dependent);
         item.mapFunction(origin, dependent);
