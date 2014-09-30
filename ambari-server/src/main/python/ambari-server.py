@@ -390,7 +390,7 @@ ORACLE_DB_ID_TYPES = ["Service Name", "SID"]
 
 
 # jdk commands
-JDK_NAMES = ["jdk-7u45-linux-x64.tar.gz", "jdk-6u31-linux-x64.bin"]
+JDK_NAMES = ["jdk-7u67-linux-x64.tar.gz", "jdk-6u31-linux-x64.bin"]
 JDK_URL_PROPERTIES = ["jdk1.7.url", "jdk1.6.url"]
 JCE_URL_PROPERTIES = ["jce_policy1.7.url", "jce_policy1.6.url"]
 DEFAULT_JDK16_LOCATION = "/usr/jdk64/jdk1.6.0_31"

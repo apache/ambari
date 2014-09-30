@@ -40,12 +40,12 @@ class TestHookBeforeInstall(RMFTestCase):
     )
     self.assertResourceCalled('Package', 'unzip',)
     self.assertResourceCalled('Package', 'curl',)
-    self.assertResourceCalled('Execute', 'mkdir -p /tmp/AMBARI-artifacts/ ;   curl -kf -x \"\"   --retry 10 http://c6401.ambari.apache.org:8080/resources//jdk-7u45-linux-x64.tar.gz -o /tmp/AMBARI-artifacts//jdk-7u45-linux-x64.tar.gz',
+    self.assertResourceCalled('Execute', 'mkdir -p /tmp/AMBARI-artifacts/ ;   curl -kf -x \"\"   --retry 10 http://c6401.ambari.apache.org:8080/resources//jdk-7u67-linux-x64.tar.gz -o /tmp/AMBARI-artifacts//jdk-7u67-linux-x64.tar.gz',
         not_if = 'test -e /usr/jdk64/jdk1.7.0_45/bin/java',
         path = ['/bin', '/usr/bin/'],
         environment = {'no_proxy': 'c6401.ambari.apache.org'},
     )
-    self.assertResourceCalled('Execute', 'mkdir -p /usr/jdk64 ; cd /usr/jdk64 ; tar -xf /tmp/AMBARI-artifacts//jdk-7u45-linux-x64.tar.gz > /dev/null 2>&1',
+    self.assertResourceCalled('Execute', 'mkdir -p /usr/jdk64 ; cd /usr/jdk64 ; tar -xf /tmp/AMBARI-artifacts//jdk-7u67-linux-x64.tar.gz > /dev/null 2>&1',
         not_if = 'test -e /usr/jdk64/jdk1.7.0_45/bin/java',
         path = ['/bin', '/usr/bin/'],
     )
