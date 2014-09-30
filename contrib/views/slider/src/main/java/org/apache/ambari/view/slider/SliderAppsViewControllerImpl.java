@@ -23,7 +23,6 @@ import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Field;
 import java.security.PrivilegedExceptionAction;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -42,7 +41,6 @@ import org.apache.ambari.view.slider.rest.client.SliderAppMasterClient.SliderApp
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.filefilter.RegexFileFilter;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.hdfs.HdfsConfiguration;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.yarn.api.records.ApplicationId;
@@ -54,13 +52,11 @@ import org.apache.hadoop.yarn.exceptions.YarnException;
 import org.apache.log4j.Logger;
 import org.apache.slider.api.ClusterDescription;
 import org.apache.slider.client.SliderClient;
-import org.apache.slider.common.SliderKeys;
 import org.apache.slider.common.params.ActionCreateArgs;
 import org.apache.slider.common.params.ActionFlexArgs;
 import org.apache.slider.common.params.ActionFreezeArgs;
 import org.apache.slider.common.params.ActionInstallPackageArgs;
 import org.apache.slider.common.params.ActionThawArgs;
-import org.apache.slider.common.tools.SliderFileSystem;
 import org.apache.slider.core.exceptions.SliderException;
 import org.apache.slider.core.exceptions.UnknownApplicationInstanceException;
 import org.apache.slider.core.main.LauncherExitCodes;
@@ -72,7 +68,6 @@ import org.apache.tools.zip.ZipFile;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
 
-import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -715,7 +710,7 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
         && json.has("resources") && json.has("typeName")) {
       final String appType = json.get("typeName").getAsString();
       final String appName = json.get("name").getAsString();
-      final String queueName = json.get("queue").getAsString();
+      final String queueName = json.has("queue") ? json.get("queue").getAsString() : null;
       JsonObject configs = json.get("typeConfigs").getAsJsonObject();
       JsonObject resourcesObj = json.get("resources").getAsJsonObject();
       JsonArray componentsArray = resourcesObj.get("components").getAsJsonArray();
