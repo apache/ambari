@@ -18,16 +18,13 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('MainCtrl',['$scope', '$window','Auth', 'uiAlert', '$modal', 'Cluster', function($scope, $window, Auth, uiAlert, $modal, Cluster) {
+.controller('MainCtrl',['$scope', 'Auth', 'uiAlert', '$modal', 'Cluster', function($scope, Auth, uiAlert, $modal, Cluster) {
   $scope.signOut = function() {
-    var data = JSON.parse(localStorage.ambari);
-    delete data.app.authenticated;
-    delete data.app.loginName;
-    delete data.app.user;
-    localStorage.ambari = JSON.stringify(data);
-    $window.location.pathname = '';
-    $scope.hello = "hello";
-    Auth.signout();
+    Auth.signout().then(function() {
+     window.location.pathname = ''; // Change location hard, because Angular works only with relative urls
+    }).catch(function(data) {
+      uiAlert.danger(data.data.status, data.data.message);
+    });
   };
 
   $scope.about = function() {
