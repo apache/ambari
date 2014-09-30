@@ -44,8 +44,8 @@ App.ApplicationController = Em.Controller.extend(App.UserPref, {
   }.property('App.router.clusterController.isLoaded','App.router.loggedIn'),
 
   isExistingClusterDataLoaded: function () {
-    return !Em.isNone(App.router.get('clusterController.clusterName')) && this.get('isClusterDataLoaded');
-  }.property('App.router.clusterController.clusterName', 'isClusterDataLoaded'),
+    return App.router.get('clusterInstallCompleted') && this.get('isClusterDataLoaded');
+  }.property('App.router.clusterInstallCompleted', 'isClusterDataLoaded'),
 
   init: function(){
     this._super();

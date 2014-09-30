@@ -31,7 +31,7 @@ module.exports = Em.Route.extend({
           if (App.get('testMode')) {
             router.get('mainController').initialize();
           } else {
-            if (App.get('clusterName')) {
+            if (router.get('clusterInstallCompleted')) {
               App.router.get('mainController').checkServerClientVersion().done(function () {
                 App.router.get('clusterController').loadClientServerClockDistance().done(function () {
                   router.get('mainController').initialize();
