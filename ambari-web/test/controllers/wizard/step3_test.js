@@ -1667,7 +1667,7 @@ describe('App.WizardStep3Controller', function () {
       c.reopen({
         content: {
           stacks: [
-            Em.Object.create({isSelected: true, operatingSystems: [{selected: true, osType: osType}]})
+            Em.Object.create({isSelected: true, operatingSystems: [Em.Object.create({isSelected: true, osType: osType})]})
           ]
         }
       });
@@ -1678,7 +1678,7 @@ describe('App.WizardStep3Controller', function () {
       c.reopen({
         content: {
           stacks: [
-            Em.Object.create({isSelected: true, operatingSystems: [{selected: true, osType: 'os1'}]})
+            Em.Object.create({isSelected: true, operatingSystems: [Em.Object.create({isSelected: true, osType: 'os1'})]})
           ]
         }
       });
