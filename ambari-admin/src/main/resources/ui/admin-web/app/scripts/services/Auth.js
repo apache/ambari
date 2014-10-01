@@ -19,14 +19,7 @@
 
 angular.module('ambariAdminConsole')
 .factory('Auth',['$http', 'Settings', function($http, Settings) {
-  var ambari;
-  var currentUserName;
-  if (localStorage.ambari) {
-    ambari = JSON.parse(localStorage.ambari);
-    if (ambari && ambari.app && ambari.app.loginName) {
-      currentUserName = ambari.app.loginName;
-    }
-  }
+	var currentUserName = JSON.parse(localStorage.ambari).app.loginName;
   return {
     signout: function() {
       return $http({
