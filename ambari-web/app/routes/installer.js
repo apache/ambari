@@ -422,7 +422,7 @@ module.exports = Em.Route.extend({
     complete: function (router, context) {
       var controller = router.get('installerController');
       controller.finish();
-      controller.setClusterProvisioningState('INSTALLED', function () {
+      controller.setClusterProvisioningState('INSTALLED').complete(function () {
         // We need to do recovery based on whether we are in Add Host or Installer wizard
         controller.saveClusterState('DEFAULT');
         App.router.set('clusterController.isLoaded', false);
