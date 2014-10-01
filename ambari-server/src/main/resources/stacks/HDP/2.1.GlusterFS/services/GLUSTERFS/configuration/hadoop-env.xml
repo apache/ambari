@@ -22,21 +22,6 @@
 
 <configuration supports_final="false">
   <property>
-    <name>fs.defaultFS</name>
-    <!-- cluster variant -->
-    <value>glusterfs:///localhost:8020</value>
-    <description>The name of the default file system.  Either the
-  literal string "local" or a host:port for NDFS.</description>
-    <final>true</final>
-  </property>
-  <property>
-    <name>fs.default.name</name>
-    <!-- cluster variant -->
-    <value>glusterfs:///localhost:8020</value>
-    <description>The name of the default file system.  Either the
-         literal string "local" or a host:port for NDFS.</description>
-  </property>
-  <property>
     <name>hadoop_pid_dir_prefix</name>
     <value>/var/run/hadoop</value>
     <description>Hadoop PID Dir Prefix</description>

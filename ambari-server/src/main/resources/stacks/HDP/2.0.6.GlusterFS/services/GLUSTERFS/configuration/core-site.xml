@@ -46,4 +46,8 @@
     <value>/mnt/gv0</value>
   </property>
 
+  <property>
+    <name>fs.defaultFS</name>
+    <value>glusterfs:///localhost:8020</value>
+  </property>  
 </configuration>
