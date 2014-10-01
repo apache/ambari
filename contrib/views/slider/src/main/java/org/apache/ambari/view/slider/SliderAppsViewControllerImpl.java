@@ -468,6 +468,8 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
     String zkQuorum = viewContext.getProperties().get(PROPERTY_ZK_QUOROM);
     boolean securedCluster = Boolean.valueOf(viewContext.getProperties().get(PROPERTY_SLIDER_SECURITY_ENABLED));
     String rmHAHosts = viewContext.getProperties().get(PROPERTY_YARN_RM_HA_HOSTS);
+    String rmStoreClass = viewContext.getProperties().get(PROPERTY_YARN_RM_STORE_CLASS);
+    String rmHAAutoFailoverPath = viewContext.getProperties().get(PROPERTY_YARN_RM_HA_AUTO_FAILOVER_ZKPATH);
 
     HdfsConfiguration hdfsConfig = new HdfsConfiguration();
     YarnConfiguration yarnConfig = new YarnConfiguration(hdfsConfig);
@@ -491,18 +493,13 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
       yarnConfig.set("slider.security.enabled", "true");
     }
 
-    if (rmHAHosts != null && rmHAHosts.trim().length() > 0) {
+    if (rmHAHosts != null && rmHAHosts.trim().length() > 0 && rmStoreClass!=null && rmHAAutoFailoverPath!=null) {
       yarnConfig.set("yarn.resourcemanager.ha.enabled", "true");
       yarnConfig.set("yarn.resourcemanager.cluster-id", "yarn-cluster");
       yarnConfig.set("yarn.resourcemanager.recovery.enabled", "true");
-      if (viewContext.getProperties().containsKey(PROPERTY_YARN_RM_STORE_CLASS)) {
-        yarnConfig.set("yarn.resourcemanager.store.class", viewContext
-            .getProperties().get(PROPERTY_YARN_RM_STORE_CLASS));
-      }
-      if (viewContext.getProperties().containsKey(PROPERTY_YARN_RM_HA_AUTO_FAILOVER_ZKPATH)) {
-        yarnConfig.set("yarn.resourcemanager.ha.automatic-failover.zk-base-path", viewContext
-            .getProperties().get(PROPERTY_YARN_RM_HA_AUTO_FAILOVER_ZKPATH));
-      }
+      yarnConfig.set("yarn.resourcemanager.store.class", rmStoreClass);
+      yarnConfig.set("yarn.resourcemanager.ha.automatic-failover.zk-base-path",
+          rmHAAutoFailoverPath);
       // ZK
       int count = 1;
       String[] zkHostPorts = zkQuorum.split(",");
