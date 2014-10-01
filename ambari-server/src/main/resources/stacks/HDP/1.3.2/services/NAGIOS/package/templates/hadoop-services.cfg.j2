@@ -64,6 +64,7 @@ define service {
 }
 
 # NAGIOS SERVER HDFS Checks
+{% if hostgroup_defs['namenode'] %}
 define service {
         hostgroup_name          nagios-server
         use                     hadoop-service
@@ -85,6 +86,7 @@ define service {
         retry_check_interval    0.25
         max_check_attempts      3
 }
+{% endif %}
 
 # AMBARI AGENT Checks
 {% for hostname in all_hosts %}
