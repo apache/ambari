@@ -617,7 +617,7 @@ table.no-border tr td{
 
 .property-form label{
   width: 214px;
-  word-wrap: normal;
+  word-wrap: break-word;
   text-overflow: ellipsis;
   overflow: hidden;
 }
