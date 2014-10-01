@@ -853,6 +853,8 @@ public class BlueprintConfigurationProcessor {
     Map<String, PropertyUpdater> multiStormSiteMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> multiCoreSiteMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> multiHdfsSiteMap = new HashMap<String, PropertyUpdater>();
+    Map<String, PropertyUpdater> multiHiveSiteMap = new HashMap<String, PropertyUpdater>();
+
 
     Map<String, PropertyUpdater> dbHiveSiteMap = new HashMap<String, PropertyUpdater>();
 
@@ -881,6 +883,7 @@ public class BlueprintConfigurationProcessor {
     multiHostTopologyUpdaters.put("storm-site", multiStormSiteMap);
     multiHostTopologyUpdaters.put("core-site", multiCoreSiteMap);
     multiHostTopologyUpdaters.put("hdfs-site", multiHdfsSiteMap);
+    multiHostTopologyUpdaters.put("hive-site", multiHiveSiteMap);
 
     dbHostTopologyUpdaters.put("hive-site", dbHiveSiteMap);
 
@@ -936,6 +939,7 @@ public class BlueprintConfigurationProcessor {
     multiWebhcatSiteMap.put("templeton.hive.properties", new MultipleHostTopologyUpdater("HIVE_SERVER"));
     multiWebhcatSiteMap.put("templeton.kerberos.principal", new MultipleHostTopologyUpdater("WEBHCAT_SERVER"));
     hiveEnvMap.put("hive_hostname", new SingleHostTopologyUpdater("HIVE_SERVER"));
+    multiHiveSiteMap.put("hive.zookeeper.quorum", new MultipleHostTopologyUpdater("ZOOKEEPER_SERVER"));
 
     // OOZIE_SERVER
     oozieSiteMap.put("oozie.base.url", new SingleHostTopologyUpdater("OOZIE_SERVER"));

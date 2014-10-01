@@ -1640,7 +1640,9 @@ public class BlueprintConfigurationProcessorTest {
     // setup properties that include host information
     hiveSiteProperties.put("hive.metastore.uris", expectedHostName + ":" + expectedPortNum);
     hiveSiteProperties.put("javax.jdo.option.ConnectionURL", expectedHostName + ":" + expectedPortNum);
+    hiveSiteProperties.put("hive.zookeeper.quorum", expectedHostName + ":" + expectedPortNum + "," + expectedHostNameTwo + ":" + expectedPortNum);
     hiveEnvProperties.put("hive_hostname", expectedHostName);
+
 
     webHCatSiteProperties.put("templeton.hive.properties", expectedHostName + "," + expectedHostNameTwo);
     webHCatSiteProperties.put("templeton.kerberos.principal", expectedHostName);
@@ -1676,6 +1678,10 @@ public class BlueprintConfigurationProcessorTest {
 
     assertEquals("hive property not properly exported",
       createExportedHostName(expectedHostGroupName) + "," + createExportedHostName(expectedHostGroupNameTwo), coreSiteProperties.get("hadoop.proxyuser.hcat.hosts"));
+
+    assertEquals("hive zookeeper quorum property not properly exported",
+      createExportedAddress(expectedPortNum, expectedHostGroupName) + "," + createExportedAddress(expectedPortNum, expectedHostGroupNameTwo),
+      hiveSiteProperties.get("hive.zookeeper.quorum"));
 
     mockSupport.verifyAll();
   }
