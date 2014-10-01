@@ -803,7 +803,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
       isMock: true,
       displayType: 'label'
     };
-    undefinedConfig.category = App.config.identifyCategory(undefinedConfig).name;
+    var category = App.config.identifyCategory(undefinedConfig);
+    undefinedConfig.category = category && category.name;
     return undefinedConfig;
   },
 
@@ -1073,7 +1074,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
    * @method createConfigProperty
    */
   createConfigProperty: function (_serviceConfigProperty, defaultGroupSelected, serviceConfigsData) {
-    console.log("config", _serviceConfigProperty);
     if (!_serviceConfigProperty) return null;
     var overrides = _serviceConfigProperty.overrides;
     // we will populate the override properties below
@@ -1187,7 +1187,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
           }
         }
       }
-      console.log("config result", serviceConfigProperty);
     } else {
       serviceConfigProperty.set('isVisible', false);
     }

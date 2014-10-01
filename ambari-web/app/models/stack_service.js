@@ -333,27 +333,25 @@ App.StackService.configCategories = function () {
 
   // Add Advanced section for every configType to all the services
   configTypes.forEach(function (type) {
-    var displayName = 'Advanced ' + type;
-    var canAddProperty = false;
-    var advancedSection;
-    advancedSection = App.ServiceConfigCategory.create({ name: 'Advanced ' + type, displayName: displayName,
-      canAddProperty: canAddProperty});
-    serviceConfigCategories.pushObject(advancedSection);
+    serviceConfigCategories.pushObject(App.ServiceConfigCategory.create({
+      name: 'Advanced ' + type,
+      displayName: Em.I18n.t('common.advanced') + " " + type,
+      canAddProperty: false
+    }));
   }, this);
 
   // Add custom section for every configType to all the services
   configTypes.forEach(function (type) {
-    var displayName = 'Custom ' + type;
-    var canAddProperty = true;
-    var customSection;
-    var siteFileName = type + '.xml';
     var configTypesWithNoCustomSection = ['capacity-scheduler','mapred-queue-acls','flume-conf', 'pig-properties'];
     if (type.endsWith('-env') || type.endsWith('-log4j') || configTypesWithNoCustomSection.contains(type)) {
       return;
     }
-    customSection = App.ServiceConfigCategory.create({ name: displayName, displayName: displayName, siteFileName: siteFileName,
-      canAddProperty: canAddProperty});
-    serviceConfigCategories.pushObject(customSection);
+    serviceConfigCategories.pushObject(App.ServiceConfigCategory.create({
+      name: 'Custom ' + type,
+      displayName: Em.I18n.t('common.custom') + " " + type,
+      siteFileName: type + '.xml',
+      canAddProperty: true
+    }));
   }, this);
   return serviceConfigCategories;
 };

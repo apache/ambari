@@ -219,6 +219,7 @@ Em.I18n.translations = {
   'common.view': 'View',
   'common.compare': 'Compare',
   'common.latest': 'Latest',
+  'common.custom': 'Custom',
   'common.continueAnyway': 'Continue Anyway',
 
   'passiveState.turnOn':'Turn On Maintenance Mode',

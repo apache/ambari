@@ -189,18 +189,34 @@ App.config = Em.Object.create({
    */
   loadedConfigurationsCache: {},
 
+  /**
+   * identify category by filename of config
+   * @param config
+   * @return {object|null}
+   */
   identifyCategory: function (config) {
-    if (config.filename.indexOf("env") != -1) return;
-    var category = null;
-    var serviceConfigMetaData = this.get('preDefinedServiceConfigs').findProperty('serviceName', config.serviceName);
-    if (serviceConfigMetaData) {
-      var configCategories = serviceConfigMetaData.get('configCategories');
+    var category = null,
+      categoryName = "",
+      serviceConfigMetaData = this.get('preDefinedServiceConfigs').findProperty('serviceName', config.serviceName),
+      configCategories = (serviceConfigMetaData && serviceConfigMetaData.get('configCategories')) || [];
+
+    if (config.filename.contains("env")) {
+      if (config.category) {
+        category = configCategories.findProperty("name", config.category);
+      } else {
+        configCategories.forEach(function (_category) {
+          if (_category.name.contains(this.getConfigTagFromFileName(config.filename))) {
+            category = _category;
+          }
+        }, this);
+      }
+    } else {
       configCategories.forEach(function (_category) {
         if (_category.siteFileNames && Array.isArray(_category.siteFileNames) && _category.siteFileNames.contains(config.filename)) {
           category = _category;
         }
       });
-      category = (category == null) ? configCategories.findProperty('siteFileName', this.getOriginalFileName(config.filename)) : category;
+      category = Em.isNone(category) ? configCategories.findProperty('siteFileName', this.getOriginalFileName(config.filename)) : category;
     }
     return category;
   },
