@@ -33,7 +33,7 @@ App.MainConfigHistoryController = Em.ArrayController.extend(App.TableServerMixin
   resetStartIndex: true,
   mockUrl: '/data/configurations/service_versions.json',
   realUrl: function () {
-    return App.apiPrefix + '/clusters/' + App.get('clusterName') + '/configurations/service_config_versions?<parameters>fields=service_config_version,user,group_id,group_name,is_current,createtime,service_name,service_config_version_note&minimal_response=true';
+    return App.apiPrefix + '/clusters/' + App.get('clusterName') + '/configurations/service_config_versions?<parameters>fields=service_config_version,user,group_id,group_name,is_current,createtime,service_name,hosts,service_config_version_note&minimal_response=true';
   }.property('App.clusterName'),
 
   /**

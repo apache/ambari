@@ -36,6 +36,7 @@ App.serviceConfigVersionsMapper = App.QuickDataMapper.create({
   map: function (json) {
     var result = [];
     var itemIds = {};
+    var serviceToHostMap = {};
 
     if (json && json.items) {
       json.items.forEach(function (item, index) {
@@ -44,6 +45,11 @@ App.serviceConfigVersionsMapper = App.QuickDataMapper.create({
         parsedItem.is_requested = true;
         itemIds[parsedItem.id] = true;
         parsedItem.index = index;
+        if (serviceToHostMap[item.service_name]) {
+          serviceToHostMap[item.service_name] = serviceToHostMap[item.service_name].concat(item.hosts);
+        } else {
+          serviceToHostMap[item.service_name] = item.hosts;
+        }
         result.push(parsedItem);
       }, this);
 
@@ -56,6 +62,23 @@ App.serviceConfigVersionsMapper = App.QuickDataMapper.create({
       if (!isNaN(itemTotal)) {
         App.router.set('mainConfigHistoryController.filteredCount', itemTotal);
       }
+      /**
+       * this code sets hostNames for default confg group
+       * by excluding hostNames that belongs to not default groups
+       * from list of all hosts
+       */
+      Object.keys(serviceToHostMap).forEach(function(sName) {
+        var defaultHostNames = App.get('allHostNames');
+        for (var i = 0; i < serviceToHostMap[sName].length; i++) {
+          defaultHostNames = defaultHostNames.without(serviceToHostMap[sName][i]);
+        }
+        var defVer = result.find(function(v) {
+          return v.is_current && v.group_id == -1 && v.service_name == sName;
+        });
+        if (defVer) {
+          defVer.hosts = defaultHostNames;
+        }
+      });
       App.store.commit();
       App.store.loadMany(this.get('model'), result);
     }

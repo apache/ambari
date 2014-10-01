@@ -73,9 +73,7 @@ App.ServiceConfigVersion = DS.Model.extend({
   isRequested: DS.attr('boolean'),
   isRestartRequired: function () {
     if (this.get('service.isRestartRequired') && this.get('isCurrent')) {
-      var hostNames = this.get('isDefault')
-        ? App.router.get('mainServiceInfoConfigsController.configGroups').findProperty('isDefault').get('hosts')
-        : this.get('hosts');
+      var hostNames = this.get('hosts');
       if (!hostNames.length) return false;
       for (var i = 0; i < hostNames.length; i++) {
         if (Object.keys(this.get('service.restartRequiredHostsAndComponents')).contains(hostNames[i])) {
