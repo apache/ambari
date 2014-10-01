@@ -128,7 +128,7 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
   }
 
   private String getUserToRunAs() {
-    String user = viewContext.getProperties().get(PROPERTY_SLIDER_USER);
+    String user = getViewParameterValue(PROPERTY_SLIDER_USER);
     if (user == null || user.trim().length() < 1) {
       return "yarn";
     } else if ("${username}".equals(user)) {
@@ -142,11 +142,11 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
     ClassLoader currentClassLoader = Thread.currentThread().getContextClassLoader();
     Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
     try {
-      boolean securityEnabled = Boolean.valueOf(viewContext.getProperties().get(PROPERTY_SLIDER_SECURITY_ENABLED));
+      boolean securityEnabled = Boolean.valueOf(getViewParameterValue(PROPERTY_SLIDER_SECURITY_ENABLED));
       UserGroupInformation sliderUser;
       if (securityEnabled) {
-        String viewPrincipal = viewContext.getProperties().get(PROPERTY_VIEW_PRINCIPAL);
-        String viewPrincipalKeytab = viewContext.getProperties().get(PROPERTY_VIEW_PRINCIPAL_KEYTAB);
+        String viewPrincipal = getViewParameterValue(PROPERTY_VIEW_PRINCIPAL);
+        String viewPrincipalKeytab = getViewParameterValue(PROPERTY_VIEW_PRINCIPAL_KEYTAB);
         UserGroupInformation ambariUser = UserGroupInformation.loginUserFromKeytabAndReturnUGI(viewPrincipal, viewPrincipalKeytab);
         sliderUser = UserGroupInformation.createProxyUser(getUserToRunAs(), ambariUser);
       } else {
@@ -455,6 +455,14 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
     sliderClient = null;
   }
 
+  private String getViewParameterValue(String parameterName) {
+    String value = viewContext.getProperties().get(parameterName);
+    if ("null".equals(value)) {
+      return null;
+    }
+    return value;
+  }
+
   /**
    * Dynamically determines Slider client configuration. If unable to determine,
    * <code>null</code> is returned.
@@ -462,14 +470,14 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
    * @return
    */
   private Configuration getSliderClientConfiguration() {
-    String hdfsPath = viewContext.getProperties().get(PROPERTY_HDFS_ADDRESS);
-    String rmAddress = viewContext.getProperties().get(PROPERTY_YARN_RM_ADDRESS);
-    String rmSchedulerAddress = viewContext.getProperties().get(PROPERTY_YARN_RM_SCHEDULER_ADDRESS);
-    String zkQuorum = viewContext.getProperties().get(PROPERTY_ZK_QUOROM);
-    boolean securedCluster = Boolean.valueOf(viewContext.getProperties().get(PROPERTY_SLIDER_SECURITY_ENABLED));
-    String rmHAHosts = viewContext.getProperties().get(PROPERTY_YARN_RM_HA_HOSTS);
-    String rmStoreClass = viewContext.getProperties().get(PROPERTY_YARN_RM_STORE_CLASS);
-    String rmHAAutoFailoverPath = viewContext.getProperties().get(PROPERTY_YARN_RM_HA_AUTO_FAILOVER_ZKPATH);
+    String hdfsPath = getViewParameterValue(PROPERTY_HDFS_ADDRESS);
+    String rmAddress = getViewParameterValue(PROPERTY_YARN_RM_ADDRESS);
+    String rmSchedulerAddress = getViewParameterValue(PROPERTY_YARN_RM_SCHEDULER_ADDRESS);
+    String zkQuorum = getViewParameterValue(PROPERTY_ZK_QUOROM);
+    boolean securedCluster = Boolean.valueOf(getViewParameterValue(PROPERTY_SLIDER_SECURITY_ENABLED));
+    String rmHAHosts = getViewParameterValue(PROPERTY_YARN_RM_HA_HOSTS);
+    String rmStoreClass = getViewParameterValue(PROPERTY_YARN_RM_STORE_CLASS);
+    String rmHAAutoFailoverPath = getViewParameterValue(PROPERTY_YARN_RM_HA_AUTO_FAILOVER_ZKPATH);
 
     HdfsConfiguration hdfsConfig = new HdfsConfiguration();
     YarnConfiguration yarnConfig = new YarnConfiguration(hdfsConfig);
@@ -484,8 +492,8 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
             "/etc/hadoop/conf,/usr/hdp/current/hadoop/*,/usr/hdp/current/hadoop/lib/*,/usr/hdp/current/hadoop-hdfs/*,/usr/hdp/current/hadoop-hdfs/lib/*,/usr/hdp/current/hadoop-yarn/*,/usr/hdp/current/hadoop-yarn/lib/*,/usr/hdp/current/hadoop-mapreduce/*,/usr/hdp/current/hadoop-mapreduce/lib/*");
 
     if (securedCluster) {
-      String rmPrincipal = viewContext.getProperties().get(PROPERTY_YARN_RM_PRINCIPAL);
-      String nnPrincipal = viewContext.getProperties().get(PROPERTY_HDFS_NN_PRINCIPAL);
+      String rmPrincipal = getViewParameterValue(PROPERTY_YARN_RM_PRINCIPAL);
+      String nnPrincipal = getViewParameterValue(PROPERTY_HDFS_NN_PRINCIPAL);
       yarnConfig.set("yarn.resourcemanager.principal", rmPrincipal);
       yarnConfig.set("dfs.namenode.kerberos.principal", nnPrincipal);
       yarnConfig.set("hadoop.security.authorization", "true");
@@ -530,10 +538,10 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
   }
 
   private boolean areViewParametersSet() {
-    String hdfsPath = viewContext.getProperties().get(PROPERTY_HDFS_ADDRESS);
-    String rmAddress = viewContext.getProperties().get(PROPERTY_YARN_RM_ADDRESS);
-    String rmSchedulerAddress = viewContext.getProperties().get(PROPERTY_YARN_RM_SCHEDULER_ADDRESS);
-    String zkQuorum = viewContext.getProperties().get(PROPERTY_ZK_QUOROM);
+    String hdfsPath = getViewParameterValue(PROPERTY_HDFS_ADDRESS);
+    String rmAddress = getViewParameterValue(PROPERTY_YARN_RM_ADDRESS);
+    String rmSchedulerAddress = getViewParameterValue(PROPERTY_YARN_RM_SCHEDULER_ADDRESS);
+    String zkQuorum = getViewParameterValue(PROPERTY_ZK_QUOROM);
     return hdfsPath!=null && rmAddress!=null && rmSchedulerAddress!=null && zkQuorum!=null;
   }
 
