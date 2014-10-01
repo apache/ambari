@@ -28,6 +28,7 @@
           <name>HIVE_METASTORE</name>
           <category>MASTER</category>
           <cardinality>1</cardinality>
+          <clientsToUpdateConfigs></clientsToUpdateConfigs>
           <auto-deploy>
             <enabled>true</enabled>
             <co-locate>HIVE/HIVE_SERVER</co-locate>
@@ -43,6 +44,7 @@
           <name>HIVE_SERVER</name>
           <category>MASTER</category>
           <cardinality>1</cardinality>
+          <clientsToUpdateConfigs></clientsToUpdateConfigs>
           <dependencies>
             <dependency>
               <name>ZOOKEEPER/ZOOKEEPER_SERVER</name>
@@ -85,6 +87,9 @@
           <displayName>WebHCat Server</displayName>
           <category>MASTER</category>
           <cardinality>1</cardinality>
+          <clientsToUpdateConfigs>
+            <client>HCAT</client>
+          </clientsToUpdateConfigs>
           <dependencies>
             <dependency>
               <name>HDFS/HDFS_CLIENT</name>

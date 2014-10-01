@@ -40,7 +40,17 @@ public class ComponentInfo {
   private CommandScriptDefinition commandScript;
 
   /**
-   *
+   * List of clients which configs are updated with master component.
+   * If clientsToUpdateConfigs is not specified all clients are considered to be updated.
+   * If clientsToUpdateConfigs is empty no clients are considered to be updated
+   */
+  @XmlElementWrapper(name = "clientsToUpdateConfigs")
+  @XmlElements(@XmlElement(name = "client"))
+  private List<String> clientsToUpdateConfigs;
+
+  /**
+   * Client configuration files
+   * List of files to download in client configuration tar
    */
   @XmlElementWrapper(name = "configFiles")
   @XmlElements(@XmlElement(name = "configFile"))
@@ -79,6 +89,7 @@ public class ComponentInfo {
     category = prototype.category;
     deleted = prototype.deleted;
     cardinality = prototype.cardinality;
+    clientsToUpdateConfigs = prototype.clientsToUpdateConfigs;
     commandScript = prototype.commandScript;
     customCommands = prototype.customCommands;
     dependencies = prototype.dependencies;
@@ -206,5 +217,13 @@ public class ComponentInfo {
 
   public String getCardinality() {
     return cardinality;
+  }
+
+  public List<String> getClientsToUpdateConfigs() {
+    return clientsToUpdateConfigs;
+  }
+
+  public void setClientsToUpdateConfigs(List<String> clientsToUpdateConfigs) {
+    this.clientsToUpdateConfigs = clientsToUpdateConfigs;
   }
 }

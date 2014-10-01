@@ -142,6 +142,19 @@ class TestActionQueue(TestCase):
     'serviceName': u'HDFS',
     'configurations':{'global' : {}},
     'configurationTags':{'global' : { 'tag': 'v123' }},
+    'hostLevelParams':{'custom_command': 'RESTART', 'clientsToUpdateConfigs': []}
+  }
+
+  datanode_restart_command_no_clients_update = {
+    'commandType': 'EXECUTION_COMMAND',
+    'role': u'DATANODE',
+    'roleCommand': u'CUSTOM_COMMAND',
+    'commandId': '1-1',
+    'taskId': 9,
+    'clusterName': u'cc',
+    'serviceName': u'HDFS',
+    'configurations':{'global' : {}},
+    'configurationTags':{'global' : { 'tag': 'v123' }},
     'hostLevelParams':{'custom_command': 'RESTART'}
   }
 
@@ -472,6 +485,48 @@ class TestActionQueue(TestCase):
     # Agent caches configurationTags if custom_command RESTART completed
     self.assertEqual(len(report['reports']), 1)
     self.assertEqual(expected, report['reports'][0])
+
+  @patch.object(ActualConfigHandler, "write_client_components")
+  @patch.object(CustomServiceOrchestrator, "runCommand")
+  @patch("CommandStatusDict.CommandStatusDict")
+  @patch.object(ActionQueue, "status_update_callback")
+  def test_store_configuration_tags_no_clients(self, status_update_callback_mock,
+                                    command_status_dict_mock,
+                                    cso_runCommand_mock, write_client_components_mock):
+    custom_service_orchestrator_execution_result_dict = {
+      'stdout': 'out',
+      'stderr': 'stderr',
+      'structuredOut' : '',
+      'exitcode' : 0
+    }
+    cso_runCommand_mock.return_value = custom_service_orchestrator_execution_result_dict
+
+    config = AmbariConfig().getConfig()
+    tempdir = tempfile.gettempdir()
+    config.set('agent', 'prefix', tempdir)
+    config.set('agent', 'cache_dir', "/var/lib/ambari-agent/cache")
+    config.set('agent', 'tolerate_download_failures', "true")
+    dummy_controller = MagicMock()
+    actionQueue = ActionQueue(config, dummy_controller)
+    actionQueue.execute_command(self.datanode_restart_command_no_clients_update)
+    report = actionQueue.result()
+    expected = {'status': 'COMPLETED',
+                'configurationTags': {'global': {'tag': 'v123'}},
+                'stderr': 'stderr',
+                'stdout': 'out',
+                'clusterName': u'cc',
+                'structuredOut': '""',
+                'roleCommand': u'CUSTOM_COMMAND',
+                'serviceName': u'HDFS',
+                'role': u'DATANODE',
+                'actionId': '1-1',
+                'taskId': 9,
+                'customCommand': 'RESTART',
+                'exitCode': 0}
+    # Agent caches configurationTags if custom_command RESTART completed
+    self.assertEqual(len(report['reports']), 1)
+    self.assertEqual(expected, report['reports'][0])
+    self.assertFalse(write_client_components_mock.called)
 
   @patch.object(ActionQueue, "status_update_callback")
   @patch.object(StackVersionsFileHandler, "read_stack_version")

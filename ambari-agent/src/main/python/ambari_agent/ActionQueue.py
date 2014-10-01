@@ -274,7 +274,10 @@ class ActionQueue(threading.Thread):
         command['hostLevelParams'].has_key('custom_command') and \
         command['hostLevelParams']['custom_command'] == self.CUSTOM_COMMAND_RESTART)):
         configHandler.write_actual_component(command['role'], command['configurationTags'])
-        configHandler.write_client_components(command['serviceName'], command['configurationTags'])
+        if command['hostLevelParams'].has_key('clientsToUpdateConfigs') and \
+          command['hostLevelParams']['clientsToUpdateConfigs']:
+          configHandler.write_client_components(command['serviceName'], command['configurationTags'],
+                                                command['hostLevelParams']['clientsToUpdateConfigs'])
         roleResult['configurationTags'] = configHandler.read_actual_component(command['role'])
 
     self.commandStatuses.put_command_status(command, roleResult)
