@@ -25,6 +25,20 @@ String.prototype.format = function () {
 };
 
 /**
+ * Return formatted string with inserted spaces before upper case and replaced '_' to spaces
+ * Also capitalize first letter
+ *
+ * Examples:
+ * 'apple' => 'Apple'
+ * 'apple_banana' => 'Apple banana'
+ * 'apple_bananaUranium' => 'Apple banana Uranium'
+ */
+String.prototype.humanize = function () {
+  var content = this;
+  return content && (content[0].toUpperCase() + content.slice(1)).replace(/([A-Z])/g, ' $1').replace(/_/g, ' ');
+}
+
+/**
  * Helper function for bound property helper registration
  * @memberof App
  * @method registerBoundHelper
@@ -37,7 +51,6 @@ App.registerBoundHelper = function(name, view) {
     return Ember.Handlebars.helpers.view.call(this, view, options);
   });
 };
-
 
 /**
  * Return formatted string with inserted <code>wbr</code>-tag after each dot
@@ -98,7 +111,7 @@ App.registerBoundHelper('humanize', Em.View.extend({
    */
   result: function() {
     var content = this.get('content');
-    return content && (content[0].toUpperCase() + content.slice(1)).replace(/([A-Z])/g, ' $1').replace(/_/g, ' ');
+    return content && content.humanize();
   }.property('content')
 }));
 

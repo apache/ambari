@@ -166,9 +166,13 @@ App.ChartView = Ember.View.extend({
     this.set('chartClass', this.get('chartId'));
     this.set('titleId', idTemplate.replace('{element}', 'title'));
     this.set('titleClass', this.get('titleId'));
-    this.loadData();
+    this.set('interval', 6000);
+    this.run('loadData', true);
   },
 
+  willDestroyElement: function() {
+    this.stop(); // Stop periodic load
+  },
 
   loadData: function() {
     App.ajax.send({

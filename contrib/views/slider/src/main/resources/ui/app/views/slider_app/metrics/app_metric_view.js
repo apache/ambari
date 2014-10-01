@@ -24,7 +24,7 @@
  * @extends Ember.Object
  * @extends Ember.View
  */
-App.AppMetricView = App.ChartView.extend({
+App.AppMetricView = App.ChartView.extend(App.RunPeriodically, {
 
   app: null,
 
@@ -35,10 +35,10 @@ App.AppMetricView = App.ChartView.extend({
   }.property('app.id', 'metricName'),
 
   title: function() {
-    return this.get('metricName');
+    return this.get('metricName').humanize();
   }.property('metricName'),
 
-  yAxisFormatter: App.ChartView.BytesFormatter,
+  yAxisFormatter: App.ChartView.DefaultFormatter,
 
   renderer: 'line',
 
