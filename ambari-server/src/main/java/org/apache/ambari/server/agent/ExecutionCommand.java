@@ -296,6 +296,7 @@ public class ExecutionCommand extends AgentCommand {
     String MYSQL_JDBC_URL = "mysql_jdbc_url";
     String ORACLE_JDBC_URL = "oracle_jdbc_url";
     String DB_DRIVER_FILENAME = "db_driver_filename";
+    String CLIENTS_TO_UPDATE_CONFIGS = "clientsToUpdateConfigs";
     String REPO_INFO = "repo_info";
     String DB_NAME = "db_name";
     String GLOBAL = "global";

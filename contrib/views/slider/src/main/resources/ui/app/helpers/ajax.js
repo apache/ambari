@@ -189,8 +189,12 @@ var urls = {
   },
 
   'metrics': {
-    real: 'apps/{id}/metrics/{metric}',
-    mock: '/data/metrics/metric.json'
+    real: 'apps/{id}?fields=metrics/{metric}',
+    mock: '/data/metrics/metric.json',
+    headers: {
+      "Accept": "text/plain; charset=utf-8",
+      "Content-Type": "text/plain; charset=utf-8"
+    }
   },
 
   'metrics2': {

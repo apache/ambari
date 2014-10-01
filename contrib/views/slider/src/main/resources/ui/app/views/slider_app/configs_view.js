@@ -32,19 +32,16 @@ App.SliderAppConfigsView = Ember.View.extend(App.WithPanels, {
   configsObserver: function() {
     var model = this.get('controller.content'),
       configs = model.get('.configs'),
-      configsByCategories = this.get('configsByCategories'),
-      hiddenCategories = model.get('hiddenCategories');
+      configsByCategories = this.get('configsByCategories');
     Em.keys(configs).forEach(function (site) {
       if (configsByCategories.mapBy('name').contains(site)) {
         var c = configsByCategories.findBy('name', site);
         c.set('configs', model.mapObject(configs[site]));
-        c.set('isVisible', !hiddenCategories.contains(site));
       }
       else {
         configsByCategories.pushObject(Em.Object.create({
           name: site,
-          configs: model.mapObject(configs[site]),
-          isVisible: !hiddenCategories.contains(site)
+          configs: model.mapObject(configs[site])
         }));
       }
     });

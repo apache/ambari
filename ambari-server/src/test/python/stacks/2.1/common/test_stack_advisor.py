@@ -16,19 +16,19 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-import socket
+import json
+import os
 from unittest import TestCase
 
 class TestHDP21StackAdvisor(TestCase):
 
   def setUp(self):
     import imp
-    import os
 
-    testDirectory = os.path.dirname(os.path.abspath(__file__))
-    stackAdvisorPath = os.path.join(testDirectory, '../../../../../main/resources/stacks/stack_advisor.py')
-    hdp206StackAdvisorPath = os.path.join(testDirectory, '../../../../../main/resources/stacks/HDP/2.0.6/services/stack_advisor.py')
-    hdp21StackAdvisorPath = os.path.join(testDirectory, '../../../../../main/resources/stacks/HDP/2.1/services/stack_advisor.py')
+    self.testDirectory = os.path.dirname(os.path.abspath(__file__))
+    stackAdvisorPath = os.path.join(self.testDirectory, '../../../../../main/resources/stacks/stack_advisor.py')
+    hdp206StackAdvisorPath = os.path.join(self.testDirectory, '../../../../../main/resources/stacks/HDP/2.0.6/services/stack_advisor.py')
+    hdp21StackAdvisorPath = os.path.join(self.testDirectory, '../../../../../main/resources/stacks/HDP/2.1/services/stack_advisor.py')
     hdp21StackAdvisorClassName = 'HDP21StackAdvisor'
     with open(stackAdvisorPath, 'rb') as fp:
       imp.load_module('stack_advisor', fp, stackAdvisorPath, ('.py', 'rb', imp.PY_SOURCE))
@@ -109,6 +109,35 @@ class TestHDP21StackAdvisor(TestCase):
 
     self.stackAdvisor.recommendHiveConfigurations(configurations, clusterData)
     self.assertEquals(configurations, expected)
+
+  def test_createComponentLayoutRecommendations_mastersIn10nodes(self):
+    services = json.load(open(os.path.join(self.testDirectory, 'services.json')))
+    hosts = json.load(open(os.path.join(self.testDirectory, 'hosts.json')))
+
+    expected_layout = [
+      [u'NAMENODE', u'NAGIOS_SERVER', u'GANGLIA_SERVER', u'ZOOKEEPER_SERVER', u'DRPC_SERVER', u'NIMBUS', u'STORM_REST_API', u'STORM_UI_SERVER', u'MYSQL_SERVER'],
+      [u'SECONDARY_NAMENODE', u'HISTORYSERVER', u'APP_TIMELINE_SERVER', u'RESOURCEMANAGER', u'ZOOKEEPER_SERVER'],
+      [u'HIVE_METASTORE', u'HIVE_SERVER', u'WEBHCAT_SERVER', u'HBASE_MASTER', u'OOZIE_SERVER', u'ZOOKEEPER_SERVER', u'FALCON_SERVER']
+    ]
+
+    masterComponents = [component['StackServiceComponents']['component_name'] for service in services["services"] for component in service["components"]
+                        if self.stackAdvisor.isMasterComponent(component)]
+
+    recommendation = self.stackAdvisor.createComponentLayoutRecommendations(services, hosts)
+
+    groups = []
+    for host_group in recommendation['blueprint']['host_groups']:
+      components = [component['name'] for component in host_group['components'] if component['name'] in masterComponents]
+      if len(components) > 0:
+        groups.append(components)
+
+    def sort_nested_lists(list):
+      result_list = []
+      for sublist in list:
+        result_list.append(sorted(sublist))
+      return sorted(result_list)
+
+    self.assertEquals(sort_nested_lists(expected_layout), sort_nested_lists(groups))
 
   def test_recommendHiveConfigurations_containersRamIsLess(self):
     configurations = {}

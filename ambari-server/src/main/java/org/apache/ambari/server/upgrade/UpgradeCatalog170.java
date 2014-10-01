@@ -1169,8 +1169,10 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
 
     result.put("smokeuser_keytab","hadoop-env");
     result.put("hdfs_user_keytab","hadoop-env");
+    result.put("hdfs_principal_name","hadoop-env");
     result.put("kerberos_domain","hadoop-env");
     result.put("hbase_user_keytab","hbase-env");
+    result.put("hbase_principal_name", "hbase-env");
     result.put("nagios_principal_name","nagios-env");
     result.put("nagios_keytab_path","nagios-env");
     result.put("oozie_keytab","oozie-env");

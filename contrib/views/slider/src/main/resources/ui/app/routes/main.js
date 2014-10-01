@@ -52,19 +52,22 @@ App.SliderAppsRoute = Ember.Route.extend({
 
     // Load sliderConfigs to storage
     App.SliderApp.store.pushMany('sliderConfig', Em.A([
-      Em.Object.create({id: 1, required: true, viewConfigName: 'hdfs.address', displayName: 'hdfsAddress', linkedService: 'HDFS'}),
-      Em.Object.create({id: 2, required: true, viewConfigName: 'yarn.resourcemanager.address', displayName: 'yarnResourceManager', linkedService: 'YARN'}),
-      Em.Object.create({id: 3, required: true, viewConfigName: 'yarn.resourcemanager.webapp.address', displayName: 'yarnResourceManagerWebapp', linkedService: 'YARN'}),
-      Em.Object.create({id: 4, required: true, viewConfigName: 'yarn.resourcemanager.scheduler.address',  displayName: 'yarnResourceManagerScheduler'}),
+      Em.Object.create({id: 1, required: true, viewConfigName: 'hdfs.url', displayName: 'hdfsAddress', linkedService: 'HDFS'}),
+      Em.Object.create({id: 2, required: true, viewConfigName: 'yarn.rm.url', displayName: 'yarnResourceManager', linkedService: 'YARN'}),
+      Em.Object.create({id: 3, required: true, viewConfigName: 'yarn.rm.webapp.url', displayName: 'yarnResourceManagerWebapp', linkedService: 'YARN'}),
+      Em.Object.create({id: 4, required: true, viewConfigName: 'yarn.rm.scheduler.url',  displayName: 'yarnResourceManagerScheduler'}),
       Em.Object.create({id: 5, required: true, viewConfigName: 'zookeeper.quorum', displayName: 'zookeeperQuorum', linkedService: 'ZOOKEEPER'}),
       Em.Object.create({id: 6, required: false, viewConfigName: 'ganglia.server.hostname', displayName: 'gangliaServer'}),
-      Em.Object.create({id: 7, required: false, viewConfigName: 'ganglia.custom.clusters', displayName: 'gangliaClusters'}),
+      Em.Object.create({id: 7, required: false, viewConfigName: 'ganglia.additional.clusters', displayName: 'gangliaClusters'}),
       Em.Object.create({id: 8, required: false, viewConfigName: 'slider.user', displayName: 'sliderUser'}),
       Em.Object.create({id: 9, required: true, viewConfigName: 'slider.security.enabled', displayName: 'sliderSecurityEnabled'}),
-      Em.Object.create({id: 10, required: false, requireDependsOn: 9, viewConfigName: 'yarn.resourcemanager.principal', displayName: 'yarnResourceManagerPrincipal'}),
+      Em.Object.create({id: 10, required: false, requireDependsOn: 9, viewConfigName: 'yarn.rm.kerberos.principal', displayName: 'yarnResourceManagerPrincipal'}),
       Em.Object.create({id: 11, required: false, requireDependsOn: 9, viewConfigName: 'dfs.namenode.kerberos.principal', displayName: 'dfsNamenodeKerberosPrincipal'}),
       Em.Object.create({id: 12, required: false, requireDependsOn: 9, viewConfigName: 'view.kerberos.principal', displayName: 'viewKerberosPrincipal'}),
-      Em.Object.create({id: 13, required: false, requireDependsOn: 9, viewConfigName: 'view.kerberos.principal.keytab', displayName: 'ViewKerberosPrincipalKeytab'})
+      Em.Object.create({id: 13, required: false, requireDependsOn: 9, viewConfigName: 'view.kerberos.principal.keytab', displayName: 'ViewKerberosPrincipalKeytab'}),
+      Em.Object.create({id: 14, required: false, viewConfigName: 'yarm.rm.ha.hosts', displayName: 'yarnResourceManagerHighAvailabilityHosts'}),
+      Em.Object.create({id: 15, required: false, viewConfigName: 'yarn.rm.store.class', displayName: 'yarnResourceManagerStoreClass'}),
+      Em.Object.create({id: 16, required: false, viewConfigName: 'yarn.rm.ha.automatic-failover.zk-base-path', displayName: 'yarnResourceManagerHighAvailabilityAutoFailoverZooKeeperBasePath'})
     ]));
   },
 

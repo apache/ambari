@@ -47,13 +47,14 @@ class ActualConfigHandler:
     filename = component + "_" + self.CONFIG_NAME
     self.write_file(filename, tags)
 
-  def write_client_components(self, serviceName, tags):
+  def write_client_components(self, serviceName, tags, components):
     from LiveStatus import LiveStatus
     for comp in LiveStatus.CLIENT_COMPONENTS:
       if comp['serviceName'] == serviceName:
         componentName = comp['componentName']
         if componentName in self.configTags and \
-            tags != self.configTags[componentName]:
+            tags != self.configTags[componentName] and \
+            (components == ["*"] or componentName in components):
           self.write_actual_component(componentName, tags)
     pass
 

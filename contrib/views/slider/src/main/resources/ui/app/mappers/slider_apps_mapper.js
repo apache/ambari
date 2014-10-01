@@ -169,7 +169,7 @@ App.SliderAppsMapper = App.Mapper.createWithMixins(App.RunPeriodically, {
     var yarnUI = "http://"+window.location.hostname+":8088";
     var viewConfigs = App.SliderApp.store.all('sliderConfig');
     if (!Em.isNone(viewConfigs)) {
-      var viewConfig = viewConfigs.findBy('viewConfigName', 'yarn.resourcemanager.webapp.address');
+      var viewConfig = viewConfigs.findBy('viewConfigName', 'yarn.rm.webapp.url');
       if (!Em.isNone(viewConfig)) {
         yarnUI = viewConfig.get('value');
       }

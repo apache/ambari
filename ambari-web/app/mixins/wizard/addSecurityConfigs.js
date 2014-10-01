@@ -82,20 +82,29 @@ App.AddSecurityConfigs = Em.Mixin.create({
   /**
    * security configs, which values should be modified after APPLY CONFIGURATIONS stage
    */
-  secureConfigs: [
-    {
-      name: 'nagios_principal_name',
-      serviceName: 'NAGIOS'
-    },
-    {
-      name: 'zookeeper_principal_name',
-      serviceName: 'ZOOKEEPER'
-    },
-    {
-      name: 'storm_principal_name',
-      serviceName: 'STORM'
+  secureConfigs: function () {
+    var configs = [
+      {
+        name: 'nagios_principal_name',
+        serviceName: 'NAGIOS'
+      },
+      {
+        name: 'zookeeper_principal_name',
+        serviceName: 'ZOOKEEPER'
+      },
+      {
+        name: 'storm_principal_name',
+        serviceName: 'STORM'
+      }
+    ];
+    if (App.get('isHadoop22Stack')) {
+      configs.push({
+        name: 'nimbus_principal_name',
+        serviceName: 'STORM'
+      })
     }
-  ],
+    return configs;
+  }.property('App.isHadoop22Stack'),
 
   secureServices: function() {
     return  this.get('content.services');

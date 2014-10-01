@@ -1,0 +1,804 @@
+{#
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#}
+
+#
+#
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+#
+#
+
+{# TODO: Look for { or } in created file #}
+# NAGIOS SERVER Check (status log update)
+{% if hostgroup_defs['nagios-server'] %}
+define service {
+        name                            hadoop-service
+        use                             generic-service
+        notification_options            w,u,c,r,f,s
+        first_notification_delay        0
+        notification_interval           0                 # Send the notification once
+        contact_groups                  admins
+        notifications_enabled           1
+        event_handler_enabled           1
+        register                        0
+}
+
+define service {        
+        hostgroup_name          nagios-server        
+        use                     hadoop-service
+        service_description     NAGIOS::Nagios status log freshness
+        servicegroups           NAGIOS
+        check_command           check_nagios!10!/var/nagios/status.dat!{{nagios_lookup_daemon_str}}
+        normal_check_interval   5
+        retry_check_interval    0.5
+        max_check_attempts      2
+}
+
+# NAGIOS SERVER HDFS Checks
+{% if hostgroup_defs['namenode'] != None %}
+define service {
+        hostgroup_name          nagios-server
+        use                     hadoop-service
+        service_description     HDFS::Percent DataNodes with space available
+        servicegroups           HDFS
+        check_command           check_aggregate!"DATANODE::DataNode space"!10%!30%
+        normal_check_interval   0.5
+        retry_check_interval    1 
+        max_check_attempts      1
+}
+
+define service {
+        hostgroup_name          nagios-server
+        use                     hadoop-service
+        service_description     HDFS::Percent DataNodes live
+        servicegroups           HDFS
+        check_command           check_aggregate!"DATANODE::DataNode process"!10%!30%
+        normal_check_interval   0.5
+        retry_check_interval    0.25
+        max_check_attempts      3
+}
+{% endif %}
+{# used only for HDP2 #}
+{% if hostgroup_defs['namenode'] and hostgroup_defs['namenode'] != None and dfs_ha_enabled %}
+define service {
+        hostgroup_name          nagios-server
+        use                     hadoop-service
+        service_description     HDFS::NameNode HA Healthy
+        servicegroups           HDFS
+        check_command           check_namenodes_ha!$HOSTGROUPMEMBERS:namenode$!{{ namenode_port }}
+        normal_check_interval   0.5
+        retry_check_interval    0.25
+        max_check_attempts      5
+}
+{% endif %}
+
+# AMBARI AGENT Checks
+{% for hostname in all_hosts %}
+define service {
+        host_name	        {{ hostname }}
+        use                     hadoop-service
+        service_description     AMBARI::Ambari Agent process
+        servicegroups           AMBARI
+        check_command           check_tcp_wrapper!{{all_ping_ports[loop.index-1]}}!-w 1 -c 1
+        normal_check_interval   1
+        retry_check_interval    0.25
+        max_check_attempts      4
+}
+
+{% endfor %}
+
+# NAGIOS SERVER ZOOKEEPER Checks
+{% if hostgroup_defs['zookeeper-servers'] %}
+define service {
+        hostgroup_name          nagios-server
+        use                     hadoop-service
+        service_description     ZOOKEEPER::Percent ZooKeeper Servers live
+        servicegroups           ZOOKEEPER
+        check_command           check_aggregate!"ZOOKEEPER::ZooKeeper Server process"!35%!70%
+        normal_check_interval   0.5
+        retry_check_interval    0.25
+        max_check_attempts      3
+}
+{% endif %}
+
+# NAGIOS SERVER HBASE Checks
+{% if hostgroup_defs['hbasemasters'] %}
+define service {
+        hostgroup_name          nagios-server
+        use                     hadoop-service
+        service_description     HBASE::Percent RegionServers live
+        servicegroups           HBASE
+        check_command           check_aggregate!"REGIONSERVER::RegionServer process"!10%!30%
+        normal_check_interval   0.5
+        retry_check_interval    0.25
+        max_check_attempts      3
+}
+{% endif %}
+{% endif %}
+
+
+
+# GANGLIA SERVER Checks
+{% if hostgroup_defs['ganglia-server'] %}
+define service {
+        hostgroup_name          ganglia-server
+        use                     hadoop-service
+        service_description     GANGLIA::Ganglia Server process
+        servicegroups           GANGLIA
+        check_command           check_tcp_wrapper!{{ ganglia_port }}!-w 1 -c 1
+        normal_check_interval   0.25
+        retry_check_interval    0.25
+        max_check_attempts      4
+}
+
+{% if hostgroup_defs['namenode'] %}
+define service {
+        hostgroup_name	        ganglia-server
+        use                     hadoop-service
+        service_description     GANGLIA::Ganglia Monitor process for NameNode
+        servicegroups           GANGLIA
+        check_command           check_tcp_wrapper!{{ ganglia_collector_namenode_port }}!-w 1 -c 1
+        normal_check_interval   0.25
+        retry_check_interval    0.25
+        max_check_attempts      4
+}
+{% endif %}
+
+{% if hostgroup_defs['hbasemasters'] %}
+define service {
+        hostgroup_name	        ganglia-server
+        use                     hadoop-service
+        service_description     GANGLIA::Ganglia Monitor process for HBase Master
+        servicegroups           GANGLIA
+        check_command           check_tcp_wrapper!{{ ganglia_collector_hbase_port }}!-w 1 -c 1
+        normal_check_interval   0.25
+        retry_check_interval    0.25
+        max_check_attempts      4
+}
+{% endif %}
+
+{% if hostgroup_defs['resourcemanager'] %}
+define service {
+        hostgroup_name	        ganglia-server
+        use                     hadoop-service
+        service_description     GANGLIA::Ganglia Monitor process for ResourceManager
+        servicegroups           GANGLIA
+        check_command           check_tcp_wrapper!{{ ganglia_collector_rm_port }}!-w 1 -c 1
+        normal_check_interval   0.25
+        retry_check_interval    0.25
+        max_check_attempts      4
+}
+{% endif %}
+
+{% if hostgroup_defs['historyserver2'] %}
+define service {
+        hostgroup_name	        ganglia-server
+        use                     hadoop-service
+        service_description     GANGLIA::Ganglia Monitor process for HistoryServer
+        servicegroups           GANGLIA
+        check_command           check_tcp_wrapper!{{ ganglia_collector_hs_port }}!-w 1 -c 1
+        normal_check_interval   0.25
+        retry_check_interval    0.25
+        max_check_attempts      4
+}
+{% endif %}
+{% endif %}
+
+
+{% if hostgroup_defs['snamenode'] and hostgroup_defs['namenode'] != None %}
+# Secondary namenode checks
+define service {
+        hostgroup_name          snamenode
+        use                     hadoop-service
+        service_description     NAMENODE::Secondary NameNode process
+        servicegroups           HDFS
+        check_command           check_tcp_wrapper!{{ snamenode_port }}!-w 1 -c 1
+        normal_check_interval   0.5
+        retry_check_interval    0.25
+        max_check_attempts      3
+}
+{% endif %}
+
+{% if hostgroup_defs['storm_ui'] %}
+# STORM UI Checks
+define service {
+        hostgroup_name          storm_ui
+        use                     hadoop-service
+        service_description     STORM_UI_SERVER::Storm UI on {{ hostgroup_defs['storm_ui'][0] }}
+        servicegroups           STORM
+        check_command           check_webui!storm_ui!{{ storm_ui_port }}
+        normal_check_interval   1
+        retry_check_interval    1
+        max_check_attempts      3
+}
+{% endif %}
+
+{% if hostgroup_defs['storm_ui'] %}
+# STORM UI Checks
+define service {
+        hostgroup_name          storm_ui
+        use                     hadoop-service
+        service_description     STORM_UI_SERVER::Storm UI Server process
+        servicegroups           STORM
+        check_command           check_tcp_wrapper!{{ storm_ui_port }}!-w 1 -c 1
+        normal_check_interval   0.5
+        retry_check_interval    0.25
+        max_check_attempts      3
+}
+{% endif %}
+
+{% if hostgroup_defs['nimbus'] %}
+# Nimbus Checks
+define service {
+        hostgroup_name          nimbus
+        use                     hadoop-service
+        service_description     NIMBUS::Nimbus process
+        servicegroups           STORM
+        check_command           check_tcp_wrapper!{{ nimbus_port }}!-w 1 -c 1
+        normal_check_interval   0.5
+        retry_check_interval    0.25
+        max_check_attempts      3
+}
+{% endif %}
+
+{% if hostgroup_defs['drpc-server'] %}
+# drpc Checks
+define service {
+        hostgroup_name          drpc-server
+        use                     hadoop-service
+        service_description     DRPC_SERVER::DRPC Server process
+        servicegroups           STORM
+        check_command           check_tcp_wrapper!{{ drpc_port }}!-w 1 -c 1
+        normal_check_interval   0.5
+        retry_check_interval    0.25
+        max_check_attempts      3
+}
+{% endif %}
+
+{% if hostgroup_defs['storm_rest_api'] %}
+# Storm REST API Checks
+define service {
+        hostgroup_name          storm_rest_api
+        use                     hadoop-service
+        service_description     STORM_REST_API::Storm REST API Server process
+        servicegroups           STORM
+        check_command           check_tcp_wrapper!{{ storm_rest_api_port }}!-w 1 -c 1
+        normal_check_interval   0.5
+        retry_check_interval    0.25
+        max_check_attempts      3
+}
+{% endif %}
+
+# NAGIOS SERVER Supervisor Checks
+{% if hostgroup_defs['supervisors'] %}
+define service {
+        hostgroup_name          nagios-server
+        use                     hadoop-service
+        service_description     SUPERVISOR::Percent Supervisors live
+        servicegroups           STORM
+        check_command           check_aggregate!"SUPERVISOR::Supervisors process"!10%!30%
+        normal_check_interval   0.5
+        retry_check_interval    0.25
+        max_check_attempts      3
+}
+
+define service {
+        hostgroup_name          supervisors
+        use                     hadoop-service
+        service_description     SUPERVISOR::Supervisors process
+        servicegroups           STORM
+        check_command           check_tcp_wrapper!{{ supervisor_port }}!-w 1 -c 1
+        normal_check_interval   1
+        retry_check_interval    0.5
+        max_check_attempts      3
+}
+{%  endif %}
+
+{% if hostgroup_defs['namenode'] and hostgroup_defs['namenode'] != None %}
+# HDFS Checks
+{%  for namenode_hostname in namenode_host %}
+{# TODO: check if we can get rid of str, lower #}
+define service {
+        host_name               {{ namenode_hostname }}
+        use                     hadoop-service
+        service_description     NAMENODE::NameNode edit logs directory status on {{ namenode_hostname }}
+        servicegroups           HDFS
+        check_command           check_name_dir_status!{{ namenode_port }}!{{ str(hadoop_ssl_enabled).lower() }}!{{ nagios_keytab_path }}!{{ nagios_principal_name }}!{{ kinit_path_local }}!{{ str(security_enabled).lower() }}
+        normal_check_interval   0.5
+        retry_check_interval    0.5
+        max_check_attempts      3
+}
+
+{% if check_cpu_on %}
+define service {
+        host_name               {{ namenode_hostname }}
+        use                     hadoop-service
+        service_description     NAMENODE::NameNode host CPU utilization on {{ namenode_hostname }}
+        servicegroups           HDFS
+#        check_command           check_cpu!200%!250%
+        check_command           check_cpu!{{ namenode_port }}!200%!250%!{{ str(hadoop_ssl_enabled).lower() }}!{{ nagios_keytab_path }}!{{ nagios_principal_name }}!{{ kinit_path_local }}!{{ str(security_enabled).lower() }}
+        normal_check_interval   5
+        retry_check_interval    2
+        max_check_attempts      5
+}
+{% endif %}
+
+define service {
+        host_name               {{ namenode_hostname }}
+        use                     hadoop-service
+        service_description     NAMENODE::NameNode Web UI on {{ namenode_hostname }}
+        servicegroups           HDFS
+        check_command           check_webui!namenode!{{ namenode_port }}
+        normal_check_interval   1
+        retry_check_interval    1
+        max_check_attempts      3
+}
+
+define service {
+        host_name               {{ namenode_hostname }}
+        use                     hadoop-service
+        service_description     NAMENODE::NameNode process on {{ namenode_hostname }}
+        servicegroups           HDFS
+        check_command           check_tcp_wrapper!{{nn_ha_host_port_map[namenode_hostname]}}!-w 1 -c 1
+        normal_check_interval   0.5
+        retry_check_interval    0.25
+        max_check_attempts      3
+}
+
+define service {
+        host_name               {{ namenode_hostname }}
+        use                     hadoop-service
+        service_description     HDFS::NameNode RPC latency on {{ namenode_hostname }}
+        servicegroups           HDFS
+        check_command           check_rpcq_latency!NameNode!{{ namenode_port }}!3000!5000!{{ str(hadoop_ssl_enabled).lower() }}!{{ nagios_keytab_path }}!{{ nagios_principal_name }}!{{ kinit_path_local }}!{{ str(security_enabled).lower() }}
+        normal_check_interval   5
+        retry_check_interval    1
+        max_check_attempts      5
+}
+
+{%  endfor  %}
+
+define service {
+        host_name               {{namenode_host[0]}}
+        use                     hadoop-service
+        service_description     NAMENODE::Last checkpoint time
+        servicegroups           HDFS
+        check_command           check_checkpoint_time!{{ nn_hosts_string }}!{{ namenode_port }}!200!200!{{ dfs_namenode_checkpoint_period }}!{{dfs_namenode_checkpoint_txns}}
+        normal_check_interval   0.5
+        retry_check_interval    0.25
+        max_check_attempts      3
+}
+
+define service {
+        hostgroup_name          nagios-server
+        use                     hadoop-service
+        service_description     HDFS::Blocks health
+        servicegroups           HDFS
+        check_command           check_hdfs_blocks!$HOSTGROUPMEMBERS:namenode$!{{ namenode_port }}!{{ nn_metrics_property }}!{{ str(hadoop_ssl_enabled).lower() }}!{{ nagios_keytab_path }}!{{ nagios_principal_name }}!{{ kinit_path_local }}!{{ str(security_enabled).lower() }}
+        normal_check_interval   2
+        retry_check_interval    1
+        max_check_attempts      1
+}
+
+define service {
+        hostgroup_name          nagios-server
+        use                     hadoop-service
+        service_description     HDFS::HDFS capacity utilization
+        servicegroups           HDFS
+        check_command           check_hdfs_capacity!$HOSTGROUPMEMBERS:namenode$!{{ namenode_port }}!80%!90%!{{ str(hadoop_ssl_enabled).lower() }}!{{ nagios_keytab_path }}!{{ nagios_principal_name }}!{{ kinit_path_local }}!{{ str(security_enabled).lower() }}
+        normal_check_interval   2
+        retry_check_interval    1
+        max_check_attempts      1
+}
+
+{% endif %}
+
+{% if hostgroup_defs['resourcemanager'] %}
+# YARN::RESOURCEMANAGER Checks 
+define service {
+        hostgroup_name          nagios-server
+        use                     hadoop-service
+        service_description     RESOURCEMANAGER::ResourceManager Web UI
+        servicegroups           YARN
+        check_command           check_webui_ha!resourcemanager!{{ rm_hosts_in_str }}!{{ rm_port }}
+        normal_check_interval   1
+        retry_check_interval    1
+        max_check_attempts      3
+}
+
+{% if check_cpu_on %}
+define service {
+        hostgroup_name          nagios-server
+        use                     hadoop-service
+        service_description     RESOURCEMANAGER::ResourceManager CPU utilization
+        servicegroups           YARN
+#       check_command           check_cpu!200%!250%
+        check_command           check_cpu_ha!{{ rm_hosts_in_str }}!{{ rm_port }}!200%!250%!{{ str(hadoop_ssl_enabled).lower() }}!{{ nagios_keytab_path }}!{{ nagios_principal_name }}!{{ kinit_path_local }}!{{ str(security_enabled).lower() }}
+        normal_check_interval   5
+        retry_check_interval    2 
+        max_check_attempts      5
+}
+{% endif %}
+
+define service {
+        hostgroup_name          nagios-server
+        use                     hadoop-service
+        service_description     RESOURCEMANAGER::ResourceManager RPC latency
+        servicegroups           YARN
+        check_command           check_rpcq_latency_ha!{{ rm_hosts_in_str }}!ResourceManager!{{ rm_port }}!3000!5000!{{ str(hadoop_ssl_enabled).lower() }}!{{ nagios_keytab_path }}!{{ nagios_principal_name }}!{{ kinit_path_local }}!{{ str(security_enabled).lower() }}
+        normal_check_interval   5
+        retry_check_interval    1 
+        max_check_attempts      5
+}
+
+{%  for rm_host in _rm_host  %}
+define service {
+        host_name               {{ rm_host }}
+        use                     hadoop-service
+        service_description     RESOURCEMANAGER::ResourceManager process on {{ rm_host }}
+        servicegroups           YARN
+        check_command           check_tcp_wrapper!{{ rm_port }}!-w 1 -c 1
+        normal_check_interval   1
+        retry_check_interval    0.5
+        max_check_attempts      3
+}
+{% endfor %}
+{%  endif %}
+
+{% if hostgroup_defs['nodemanagers'] %}
+# YARN::NODEMANAGER Checks
+define service {
+        hostgroup_name          nodemanagers
+        use                     hadoop-service
+        service_description     NODEMANAGER::NodeManager process
+        servicegroups           YARN
+        check_command           check_tcp_wrapper!{{ nm_port }}!-w 1 -c 1
+        normal_check_interval   1
+        retry_check_interval    0.5
+        max_check_attempts      3
+}
+
+define service {
+        hostgroup_name          nodemanagers
+        use                     hadoop-service
+        service_description     NODEMANAGER::NodeManager health
+        servicegroups           YARN
+        check_command           check_nodemanager_health!{{ nm_port }}!{{ str(security_enabled).lower() }}!{{ str(hadoop_ssl_enabled).lower() }}!{{ nagios_keytab_path }}!{{ nagios_principal_name }}!{{ kinit_path_local }}
+        normal_check_interval   1
+        retry_check_interval    1
+        max_check_attempts      3
+}
+define service {
+        hostgroup_name          nagios-server
+        use                     hadoop-service
+        service_description     NODEMANAGER::Percent NodeManagers live
+        servicegroups           YARN
+        check_command           check_aggregate!"NODEMANAGER::NodeManager process"!10%!30%
+        normal_check_interval   0.5
+        retry_check_interval    0.25
+        max_check_attempts      3
+}
+{%  endif %}
+
+{% if hostgroup_defs['historyserver2'] %}
+# MAPREDUCE::JOBHISTORY Checks
+define service {
+        hostgroup_name          historyserver2
+        use                     hadoop-service
+        service_description     JOBHISTORY::HistoryServer Web UI
+        servicegroups           MAPREDUCE
+        check_command           check_webui!historyserver2!{{ hs_port }}
+        normal_check_interval   1
+        retry_check_interval    1
+        max_check_attempts      3
+}
+
+{% if check_cpu_on %}
+define service {
+        hostgroup_name          historyserver2
+        use                     hadoop-service
+        service_description     JOBHISTORY::HistoryServer CPU utilization
+        servicegroups           MAPREDUCE
+#        check_command           check_cpu!200%!250%
+        check_command           check_cpu!{{ hs_port }}!200%!250%!{{ str(hadoop_ssl_enabled).lower() }}!{{ nagios_keytab_path }}!{{ nagios_principal_name }}!{{ kinit_path_local }}!{{ str(security_enabled).lower() }}
+        normal_check_interval   5
+        retry_check_interval    2 
+        max_check_attempts      5
+}
+{%  endif %}
+
+define service {
+        hostgroup_name          historyserver2
+        use                     hadoop-service
+        service_description     JOBHISTORY::HistoryServer RPC latency
+        servicegroups           MAPREDUCE
+        check_command           check_rpcq_latency!JobHistoryServer!{{ hs_port }}!3000!5000!{{ str(hadoop_ssl_enabled).lower() }}!{{ nagios_keytab_path }}!{{ nagios_principal_name }}!{{ kinit_path_local }}!{{ str(security_enabled).lower() }}
+        normal_check_interval   5
+        retry_check_interval    1 
+        max_check_attempts      5
+}
+
+define service {
+        hostgroup_name          historyserver2
+        use                     hadoop-service
+        service_description     JOBHISTORY::HistoryServer process
+        servicegroups           MAPREDUCE
+        check_command           check_tcp_wrapper!{{ hs_port }}!-w 1 -c 1
+        normal_check_interval   1
+        retry_check_interval    0.5
+        max_check_attempts      3
+}
+
+{%  endif %}
+
+{% if hostgroup_defs['journalnodes'] %}
+# Journalnode checks
+define service {
+        hostgroup_name          journalnodes
+        use                     hadoop-service
+        service_description     JOURNALNODE::JournalNode process
+        servicegroups           HDFS
+        check_command           check_tcp_wrapper!{{ journalnode_port }}!-w 1 -c 1
+        normal_check_interval   1
+        retry_check_interval    0.5
+        max_check_attempts      3
+}
+
+{% if dfs_ha_enabled %}
+define service {
+        hostgroup_name          nagios-server
+        use                     hadoop-service
+        service_description     HDFS::Percent JournalNodes live
+        servicegroups           HDFS
+        check_command           check_aggregate!"JOURNALNODE::JournalNode process"!33%!50%
+        normal_check_interval   0.5
+        retry_check_interval    0.25
+        max_check_attempts      3
+}
+{% endif %}
+{% endif %}
+
+{% if hostgroup_defs['slaves'] and hostgroup_defs['namenode'] != None %}
+# HDFS::DATANODE Checks
+define service {
+        hostgroup_name          slaves
+        use                     hadoop-service
+        service_description     DATANODE::DataNode process
+        servicegroups           HDFS
+        check_command           check_tcp_wrapper!{{datanode_port}}!-w 1 -c 1
+        normal_check_interval   1
+        retry_check_interval    0.5
+        max_check_attempts      3
+}
+
+define service {
+        hostgroup_name          slaves
+        use                     hadoop-service
+        service_description     DATANODE::DataNode space
+        servicegroups           HDFS
+        check_command           check_datanode_storage!{{ datanode_port }}!90%!90%!{{ str(hadoop_ssl_enabled).lower() }}!{{ nagios_keytab_path }}!{{ nagios_principal_name }}!{{ kinit_path_local }}!{{ str(security_enabled).lower() }}
+        normal_check_interval   2 
+        retry_check_interval    1
+        max_check_attempts      2
+}
+
+{% endif %}
+
+{% if hostgroup_defs['zookeeper-servers'] %}
+# ZOOKEEPER Checks
+define service {
+        hostgroup_name          zookeeper-servers
+        use                     hadoop-service
+        service_description     ZOOKEEPER::ZooKeeper Server process
+        servicegroups           ZOOKEEPER
+        check_command           check_tcp_wrapper!{{ clientPort }}!-w 1 -c 1
+        normal_check_interval   1
+        retry_check_interval    0.5
+        max_check_attempts      3
+}
+{% endif %}
+
+{% if hostgroup_defs['hbasemasters'] %}
+# HBASE::REGIONSERVER Checks
+define service {
+        hostgroup_name          region-servers
+        use                     hadoop-service
+        service_description     REGIONSERVER::RegionServer process
+        servicegroups           HBASE
+        check_command           check_tcp_wrapper!{{ hbase_rs_port }}!-w 1 -c 1
+        normal_check_interval   1
+        retry_check_interval    0.5
+        max_check_attempts      3
+}
+
+{# HBASE:: MASTER Checks
+# define service {
+#         hostgroup_name          hbasemasters
+#         use                     hadoop-service
+#         service_description     HBASEMASTER::HBase Master Web UI
+#         servicegroups           HBASE
+#         check_command           check_webui!hbase!{{ hbase_master_port }}
+#         normal_check_interval   1
+#         retry_check_interval    1
+#         max_check_attempts      3
+# #}
+{% if hostgroup_defs['hbasemasters'] %}
+{% if check_cpu_on %}
+define service {
+        hostgroup_name          nagios-server
+        use                     hadoop-service
+        service_description     HBASEMASTER::HBase Master CPU utilization
+        servicegroups           HBASE
+#        check_command           check_cpu!200%!250%
+        check_command           check_cpu_ha!{{ hbase_master_hosts_in_str }}!{{ hbase_master_port }}!200%!250%!{{ str(hadoop_ssl_enabled).lower() }}!{{ nagios_keytab_path }}!{{ nagios_principal_name }}!{{ kinit_path_local }}!{{ str(security_enabled).lower() }}
+        normal_check_interval   5
+        retry_check_interval    2
+        max_check_attempts      5
+}
+{%  endif %}
+{%  endif %}
+
+{%  for hbasemaster in hbase_master_hosts  %}
+define service {
+        host_name               {{ hbasemaster }}
+        use                     hadoop-service
+        service_description     HBASEMASTER::HBase Master process on {{ hbasemaster }}
+        servicegroups           HBASE
+        check_command           check_tcp_wrapper!{{ hbase_master_rpc_port }}!-w 1 -c 1
+        normal_check_interval   0.5
+        retry_check_interval    0.25
+        max_check_attempts      4
+}
+{% endfor %}
+{% endif %}
+
+{% if hostgroup_defs['hiveserver'] %}
+# HIVE Metastore check
+define service {
+        hostgroup_name          hiveserver
+        use                     hadoop-service
+        service_description     HIVE-METASTORE::Hive Metastore process
+        servicegroups           HIVE
+        check_command           check_tcp_wrapper!{{ hive_metastore_port }}!-w 1 -c 1
+        normal_check_interval   0.5
+        retry_check_interval    0.5
+        max_check_attempts      3
+}
+
+# HIVE Server check
+define service {
+        hostgroup_name          hiveserver
+        use                     hadoop-service
+        service_description     HIVE-SERVER::HiveServer2 process
+        servicegroups           HIVE
+        check_command           check_tcp_wrapper_sasl!{{ hive_server_port }}!-w 1 -c 1!A001 AUTHENTICATE ANONYMOUS
+        normal_check_interval   0.5
+        retry_check_interval    0.5
+        max_check_attempts      3
+}
+{% endif %}
+{% if hostgroup_defs['oozie-server'] %}
+# Oozie check
+define service {
+        hostgroup_name          oozie-server
+        use                     hadoop-service
+        service_description     OOZIE::Oozie Server status
+        servicegroups           OOZIE
+        {% if security_enabled %}
+        check_command           check_oozie_status!{{ oozie_server_port }}!{{ java64_home }}!true!{{ nagios_keytab_path }}!{{ nagios_principal_name }}!{{ kinit_path_local }}
+        {% else %}
+        check_command           check_oozie_status!{{ oozie_server_port }}!{{ java64_home }}!false
+        {% endif %}
+        normal_check_interval   1
+        retry_check_interval    1
+        max_check_attempts      3
+}
+{% endif %}
+{% if hostgroup_defs['webhcat-server'] %}
+# WEBHCAT check
+define service {
+        hostgroup_name          webhcat-server
+        use                     hadoop-service
+        service_description     WEBHCAT::WebHCat Server status
+        servicegroups           WEBHCAT 
+        {% if security_enabled %}
+        check_command           check_templeton_status!{{ templeton_port }}!v1!{{ str(security_enabled).lower() }}!{{ nagios_keytab_path }}!{{ nagios_principal_name }}!{{ kinit_path_local }}
+        {% else %}
+        check_command           check_templeton_status!{{ templeton_port }}!v1!false
+        {% endif %}
+        normal_check_interval   1
+        retry_check_interval    0.5
+        max_check_attempts      3
+}
+{% endif %}
+
+{% if hostgroup_defs['hue-server'] %}
+define service {
+        hostgroup_name          hue-server
+        use                     hadoop-service
+        service_description     HUE::Hue Server status
+        servicegroups           HUE
+        check_command           check_hue_status
+        normal_check_interval   100
+        retry_check_interval    0.5
+        max_check_attempts      3
+}
+{% endif %}
+
+#FALCON checks
+{% if hostgroup_defs['falcon-server'] %}
+define service {
+        hostgroup_name          falcon-server
+        service_description     FALCON::Falcon Server process
+        servicegroups           FALCON
+        check_command           check_tcp_wrapper!{{ falcon_port }}!-w 1 -c 1
+        normal_check_interval   1
+        retry_check_interval    0.5
+        max_check_attempts      3
+}
+define service {
+        hostgroup_name          falcon-server
+        service_description     FALCON::Falcon Server Web UI
+        servicegroups           FALCON
+        check_command           check_webui!falconserver!{{ falcon_port }}
+        normal_check_interval   1
+        retry_check_interval    0.5
+        max_check_attempts      3
+}
+{% endif %}
+{% if hostgroup_defs['ats-servers'] %}
+define service {
+        hostgroup_name          ats-servers
+        use                     hadoop-service
+        service_description     APP_TIMELINE_SERVER::App Timeline Server process
+        servicegroups           YARN
+        check_command           check_tcp_wrapper!{{ ahs_port }}!-w 1 -c 1
+        normal_check_interval   1
+        retry_check_interval    0.5
+        max_check_attempts      3
+}
+{% endif %}
+
+{% if hostgroup_defs['flume-servers'] %}
+# FLUME Checks
+define service {
+        hostgroup_name          flume-servers
+        use                     hadoop-service
+        service_description     FLUME::Flume Agent process
+        servicegroups           FLUME
+        check_command           check_ambari!/var/nagios/ambari.json!flume_agent
+        normal_check_interval   1
+        retry_check_interval    0.5
+        max_check_attempts      3
+}
+{% endif %}
+

@@ -57,7 +57,8 @@ Em.I18n.translations = {
     'yarn.app.id': 'YARN Application ID',
     'frequency': 'Frequency',
     'minutes': 'Minutes',
-    'seconds': 'Seconds'
+    'seconds': 'Seconds',
+    'save': 'Save'
   },
 
   'error.config_is_empty': 'Config <strong>{0}</strong> should not be empty',
@@ -86,6 +87,7 @@ Em.I18n.translations = {
   'sliderApps.filters.info': '{0} of {1} sliders showing',
 
   'sliderApp.flex.invalid_counts': 'Instance counts should be integer and >= 0',
+  'sliderApp.flex.message': 'Update the number of desired instances for each component of this application',
 
   'sliderApp.summary.go_to_nagios': 'Go to Nagios',
   'sliderApp.summary.go_to_ganglia': 'Go to Ganglia',

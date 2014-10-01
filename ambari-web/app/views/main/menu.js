@@ -118,7 +118,7 @@ App.MainMenuView = Em.CollectionView.extend({
       var itemName = this.get('content').routing;
       // route to correct category of current menu item
       if (itemName == 'admin') {
-        App.router.transitionTo('admin.' + event.context);
+        App.router.route('main/admin/' + event.context);
       }
     },
     dropdownCategories: function () {
@@ -128,19 +128,19 @@ App.MainMenuView = Em.CollectionView.extend({
       if (itemName == 'admin') {
         categories = [];
         categories.push({
-          name: 'repositories',
-          url: 'adminRepositories',
+          name: 'adminRepositories',
+          url: 'repositories',
           label: Em.I18n.t('common.repositories')
         });
         categories.push({
-          name: 'serviceAccounts',
-          url: 'adminServiceAccounts',
+          name: 'adminServiceAccounts',
+          url: 'serviceAccounts',
           label: Em.I18n.t('common.serviceAccounts')
         });
         if (App.supports.secureCluster) {
           categories.push({
             name: 'security',
-            url: 'adminSecurity.index',
+            url: 'security/',
             label: Em.I18n.t('common.security')
           });
         }

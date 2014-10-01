@@ -51,6 +51,11 @@ VERBOSE = False
 SILENT = False
 SERVER_START_DEBUG = False
 
+# ldap settings
+LDAP_SYNC_EXISTING = False
+LDAP_SYNC_USERS = None
+LDAP_SYNC_GROUPS = None
+
 # OS info
 OS_VERSION = OSCheck().get_os_major_version()
 OS_TYPE = OSCheck.get_os_type()
@@ -126,7 +131,7 @@ ROOT_FS_PATH = "/"
 SERVER_API_HOST = '127.0.0.1'
 SERVER_API_PROTOCOL = 'http'
 SERVER_API_PORT = '8080'
-SERVER_API_LDAP_URL = '/api/v1/controllers/ldap'
+SERVER_API_LDAP_URL = '/api/v1/ldap_sync_events'
 
 # terminal styles
 BOLD_ON = '\033[1m'
@@ -3032,6 +3037,10 @@ def get_prompt_default(defaultStr=None):
   else:
     return '(' + defaultStr + ')'
 
+
+#
+# Sync users and groups with configured LDAP
+#
 def sync_ldap():
   if not is_root():
     err = 'Ambari-server sync-ldap should be run with ' \
@@ -3048,57 +3057,122 @@ def sync_ldap():
     err = "LDAP is not configured. Run 'ambari-server setup-ldap' first."
     raise FatalException(1, err)
 
-  admin_login = get_validated_string_input(prompt="Enter login: ", default=None,
+  admin_login = get_validated_string_input(prompt="Enter admin login: ", default=None,
                                            pattern=None, description=None,
                                            is_pass=False, allowEmpty=False)
-  admin_password = get_validated_string_input(prompt="Enter password: ", default=None,
+  admin_password = get_validated_string_input(prompt="Enter admin password: ", default=None,
                                               pattern=None, description=None,
                                               is_pass=True, allowEmpty=False)
+
   url = '{0}://{1}:{2!s}{3}'.format(SERVER_API_PROTOCOL, SERVER_API_HOST, SERVER_API_PORT, SERVER_API_LDAP_URL)
   admin_auth = base64.encodestring('%s:%s' % (admin_login, admin_password)).replace('\n', '')
   request = urllib2.Request(url)
   request.add_header('Authorization', 'Basic %s' % admin_auth)
   request.add_header('X-Requested-By', 'ambari')
-  body = [{"LDAP":{"synced_groups":"*","synced_users":"*"}}]
-  request.add_data(json.dumps(body))
-  request.get_method = lambda: 'PUT'
-  progress_message_thread = None
-  request_in_progress = True
-  def print_progress(message):
-    sys.stdout.write(message)
-    sys.stdout.flush()
-    while request_in_progress:
-      sys.stdout.write('.')
-      sys.stdout.flush()
-      time.sleep(1)
-    sys.stdout.write('\n')
-    sys.stdout.flush()
+
+  if LDAP_SYNC_EXISTING:
+    sys.stdout.write('Syncing existing.')
+    bodies = [{"Event":{"specs":[{"principal_type":"users","sync_type":"existing"},{"principal_type":"groups","sync_type":"existing"}]}}]
+  else:
+    if LDAP_SYNC_USERS is None and LDAP_SYNC_GROUPS is None:
+      sys.stdout.write('Syncing all.')
+      bodies = [{"Event":{"specs":[{"principal_type":"users","sync_type":"all"},{"principal_type":"groups","sync_type":"all"}]}}]
+    else:
+      sys.stdout.write('Syncing specified users and groups.')
+      bodies = [{"Event":{"specs":[]}}]
+      body = bodies[0]
+      events = body['Event']
+      specs = events['specs']
+
+      if LDAP_SYNC_USERS is not None:
+        new_specs = [{"principal_type":"users","sync_type":"specific","names":""}]
+        get_ldap_event_spec_names(LDAP_SYNC_USERS, specs, new_specs)
+      if LDAP_SYNC_GROUPS is not None:
+        new_specs = [{"principal_type":"groups","sync_type":"specific","names":""}]
+        get_ldap_event_spec_names(LDAP_SYNC_GROUPS, specs, new_specs)
+
+  if VERBOSE:
+    sys.stdout.write('\nCalling API ' + SERVER_API_LDAP_URL + ' : ' + str(bodies) + '\n')
+
+  request.add_data(json.dumps(bodies))
+  request.get_method = lambda: 'POST'
+
   try:
-    progress_message_thread = Thread(target=print_progress, args=('Syncing Ambari Database for permissions for the LDAP Users and Groups..',))
-    progress_message_thread.start()
     response = urllib2.urlopen(request)
   except Exception as e:
-    err = 'Sync failed. Error details: %s' % e
+    err = 'Sync event creation failed. Error details: %s' % e
     raise FatalException(1, err)
-  finally:
-    request_in_progress = False
-    if progress_message_thread is not None:
-      progress_message_thread.join()
+
   response_status_code = response.getcode()
-  if response_status_code != 200:
-    err = 'Error during syncing. Http status code - ' + response_status_code
+  if response_status_code != 201:
+    err = 'Error during syncing. Http status code - ' + str(response_status_code)
     raise FatalException(1, err)
   response_body = json.loads(response.read())
-  sync_info = response_body['resources'][0]['Sync']
-  if sync_info['status'] != 'successful':
-    raise FatalException(1, sync_info['summary'])
-  else:
-    print 'Synced:'
-    for principal_type, summary in sync_info['summary'].iteritems():
-      print '    {0}:'.format(principal_type)
-      for action, amount in summary.iteritems():
-        print '        - {0} = {1!s}'.format(action, amount)
-    print 'Finished LDAP Sync.'
+
+  url = response_body['resources'][0]['href']
+  request = urllib2.Request(url)
+  request.add_header('Authorization', 'Basic %s' % admin_auth)
+  request.add_header('X-Requested-By', 'ambari')
+  body = [{"LDAP":{"synced_groups":"*","synced_users":"*"}}]
+  request.add_data(json.dumps(body))
+  request.get_method = lambda: 'GET'
+  request_in_progress = True
+
+  while request_in_progress:
+
+    sys.stdout.write('.')
+    sys.stdout.flush()
+
+    try:
+      response = urllib2.urlopen(request)
+    except Exception as e:
+      request_in_progress = False
+      err = 'Sync event check failed. Error details: %s' % e
+      raise FatalException(1, err)
+
+    response_status_code = response.getcode()
+    if response_status_code != 200:
+      err = 'Error during syncing. Http status code - ' + str(response_status_code)
+      raise FatalException(1, err)
+    response_body = json.loads(response.read())
+    sync_info = response_body['Event']
+
+    if sync_info['status'] == 'ERROR':
+      raise FatalException(1, str(sync_info['status_detail']))
+    elif sync_info['status'] == 'COMPLETE':
+      print '\n\nCompleted LDAP Sync.'
+      print 'Summary:'
+      for principal_type, summary in sync_info['summary'].iteritems():
+        print '  {0}:'.format(principal_type)
+        for action, amount in summary.iteritems():
+          print '    {0} = {1!s}'.format(action, amount)
+      request_in_progress = False
+    else:
+      time.sleep(1)
+
+  sys.stdout.write('\n')
+  sys.stdout.flush()
+
+#
+# Get the principal names from the given CSV file and set them on the given LDAP event specs.
+#
+def get_ldap_event_spec_names(file, specs, new_specs):
+
+  try:
+    if os.path.exists(file):
+      new_spec = new_specs[0]
+      with open(file, 'r') as names_file:
+        names = names_file.read()
+        new_spec['names'] = ''.join(names.split())
+        names_file.close()
+        specs += new_specs
+    else:
+      err = 'Sync event creation failed. File ' + file + ' not found.'
+      raise FatalException(1, err)
+  except:
+      err = 'Caught exception reading file ' + file + ' : ' + str(exception)
+      raise FatalException(1, err)
+
 
 def setup_ldap():
   if not is_root():
@@ -4313,6 +4387,10 @@ def main():
   parser.add_option('-g', '--debug', action="store_true", dest='debug', default=False,
                     help="Start ambari-server in debug mode")
 
+  parser.add_option('--existing', action="store_true", default=False, help="LDAP sync existing Ambari users and groups only", dest="ldap_sync_existing")
+  parser.add_option('--users', default=None, help="Specifies the path to the LDAP sync users CSV file.", dest="ldap_sync_users")
+  parser.add_option('--groups', default=None, help="Specifies the path to the LDAP sync groups CSV file.", dest="ldap_sync_groups")
+
   parser.add_option('--database', default=None, help="Database to use embedded|oracle|mysql|postgres", dest="dbms")
   parser.add_option('--databasehost', default=None, help="Hostname of database server", dest="database_host")
   parser.add_option('--databaseport', default=None, help="Database port", dest="database_port")
@@ -4342,6 +4420,18 @@ def main():
   # debug mode
   global SERVER_DEBUG_MODE
   SERVER_DEBUG_MODE = options.debug
+
+  # set ldap_sync_existing
+  global LDAP_SYNC_EXISTING
+  LDAP_SYNC_EXISTING = options.ldap_sync_existing
+
+  # set ldap_sync_users
+  global LDAP_SYNC_USERS
+  LDAP_SYNC_USERS = options.ldap_sync_users
+
+  # set ldap_sync_groups
+  global LDAP_SYNC_GROUPS
+  LDAP_SYNC_GROUPS = options.ldap_sync_groups
 
   global DATABASE_INDEX
   global PROMPT_DATABASE_OPTIONS

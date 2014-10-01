@@ -185,6 +185,9 @@ describe('App.MainHostDetailsController', function () {
       sinon.spy(App, "showConfirmationPopup");
       sinon.stub(controller, "addClientComponent", Em.K);
       sinon.stub(controller, "primary", Em.K);
+      controller.set('content', {hostComponents: [Em.Object.create({
+        componentName: "HDFS_CLIENT"
+      })]});
     });
 
     afterEach(function () {
@@ -206,34 +209,24 @@ describe('App.MainHostDetailsController', function () {
     });
     it('add slave component, securityEnabled = true', function () {
       var event = {context: Em.Object.create({
-        componentName: 'COMP1'
+        componentName: 'HIVE_CLIENT'
       })};
       controller.set('mockSecurityStatus', true);
       var popup = controller.addComponent(event);
       expect(App.showConfirmationPopup.calledOnce).to.be.true;
       popup.onPrimary();
       expect(controller.primary.calledWith(Em.Object.create({
-        componentName: 'COMP1'
+        componentName: 'HIVE_CLIENT'
       }))).to.be.true;
     });
     it('add slave component, securityEnabled = false', function () {
       var event = {context: Em.Object.create({
-        componentName: 'COMP1'
+        componentName: 'HIVE_CLIENT'
       })};
       controller.set('mockSecurityStatus', false);
       controller.addComponent(event);
       expect(controller.addClientComponent.calledWith(Em.Object.create({
-        componentName: 'COMP1'
-      }))).to.be.true;
-    });
-    it('add CLIENTS', function () {
-      var event = {context: Em.Object.create({
-        componentName: 'CLIENTS'
-      })};
-      controller.set('mockSecurityStatus', true);
-      controller.addComponent(event);
-      expect(controller.addClientComponent.calledWith(Em.Object.create({
-        componentName: 'CLIENTS'
+        componentName: 'HIVE_CLIENT'
       }))).to.be.true;
     });
   });
@@ -457,8 +450,8 @@ describe('App.MainHostDetailsController', function () {
         id: 'HIVE',
         service_name: 'HIVE'
       });
-      var data = {Clusters: {desired_configs: {'webhcat-site': {tag: 1}}}};
-      expect(controller.constructConfigUrlParams(data)).to.eql(['(type=webhcat-site&tag=1)']);
+      var data = {Clusters: {desired_configs: {'webhcat-site': {tag: 1},'hive-site': {tag: 1}}}};
+      expect(controller.constructConfigUrlParams(data)).to.eql(['(type=webhcat-site&tag=1)','(type=hive-site&tag=1)']);
       App.Service.find().clear();
     });
     it('STORM is installed', function () {

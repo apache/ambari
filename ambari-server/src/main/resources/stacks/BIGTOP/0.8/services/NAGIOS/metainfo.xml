@@ -1,0 +1,160 @@
+<?xml version="1.0"?>
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+<metainfo>
+  <schemaVersion>2.0</schemaVersion>
+  <services>
+    <service>
+      <name>NAGIOS</name>
+      <displayName>Nagios</displayName>
+      <comment>Nagios Monitoring and Alerting system</comment>
+      <version>3.5.0</version>
+      <components>
+        <component>
+           <name>NAGIOS_SERVER</name>
+          <displayName>Nagios Server</displayName>
+           <category>MASTER</category>
+           <cardinality>1</cardinality>
+          <dependencies>
+            <dependency>
+              <name>HDFS/HDFS_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+            <dependency>
+              <name>MAPREDUCE2/MAPREDUCE2_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+            <dependency>
+              <name>OOZIE/OOZIE_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+            <dependency>
+              <name>YARN/YARN_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+            <dependency>
+              <name>HCATALOG/HCAT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+          </dependencies>
+           <commandScript>
+             <script>scripts/nagios_server.py</script>
+             <scriptType>PYTHON</scriptType>
+             <timeout>600</timeout>
+           </commandScript>
+        </component>
+      </components>
+      <osSpecifics>
+        <osSpecific>
+          <osFamily>any</osFamily>
+          <packages>
+            <package>
+              <name>perl</name>
+            </package>
+            <package>
+              <name>fping</name>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>ubuntu12</osFamily>
+          <packages>
+            <package>
+              <name>nagios3</name>
+            </package>
+            <package>
+              <name>nagios3-common</name>
+            </package>
+            <package>
+              <name>nagios3-dbg</name>
+            </package>
+            <package>
+              <name>nagios3-doc</name>
+            </package>
+            <package>
+              <name>nagios-plugins-extra</name>
+            </package>
+            <package>
+              <name>php5-curl</name>
+            </package>
+            <package>
+              <name>libapache2-mod-php5</name>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>redhat5,redhat6,suse11</osFamily>
+          <packages>
+            <package>
+              <name>nagios-plugins-1.4.9</name>
+            </package>
+            <package>
+              <name>nagios-3.5.0-99</name>
+            </package>
+            <package>
+              <name>nagios-www-3.5.0-99</name>
+            </package>
+            <package>
+              <name>nagios-devel-3.5.0-99</name>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>suse11</osFamily>
+          <packages>
+            <package>
+              <name>php5*-json</name>
+            </package>
+            <package>
+              <name>apache2?mod_php*</name>
+            </package>
+            <package>
+              <name>php-curl</name>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>redhat5</osFamily>
+          <packages>
+            <package>
+              <name>php-pecl-json.x86_64</name>
+            </package>
+          </packages>
+        </osSpecific>
+      </osSpecifics>
+      <configuration-dependencies>
+        <config-type>nagios-env</config-type>
+      </configuration-dependencies>
+      <monitoringService>true</monitoringService>
+    </service>
+  </services>
+</metainfo>

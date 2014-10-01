@@ -365,9 +365,9 @@ class DefaultStackAdvisor(StackAdvisor):
                 hostsCount = len(availableHosts)
               hostsForComponent = availableHosts[:hostsCount]
             else:
-              hostsForComponent = [self.getHostForComponent(component, availableHosts, hostsComponentsMap)]
+              hostsForComponent = [self.getHostForComponent(component, availableHosts)]
           else:
-            hostsForComponent = [self.getHostForComponent(component, availableHosts, hostsComponentsMap)]
+            hostsForComponent = [self.getHostForComponent(component, availableHosts)]
 
         #extend 'hostsComponentsMap' with 'hostsForComponent'
         for hostName in hostsForComponent:
@@ -532,23 +532,18 @@ class DefaultStackAdvisor(StackAdvisor):
   def getComponentCardinality(self, componentName):
     return self.getCardinalitiesDict().get(componentName, {"min": 1, "max": 1})
 
-  def getHostForComponent(self, component, hostsList, hostsComponentsMap):
+  def getHostForComponent(self, component, hostsList):
     componentName = self.getComponentName(component)
 
-    if len(hostsList) == 1:
-      return hostsList[0]
-    else:
+    if len(hostsList) != 1:
       scheme = self.getComponentLayoutScheme(componentName)
       if scheme is not None:
         for key in scheme.keys():
           if isinstance(key, ( int, long )):
             if len(hostsList) < key:
               return hostsList[scheme[key]]
-      return self.getLeastOccupiedHost(hostsList, hostsComponentsMap)
-
-  def getLeastOccupiedHost(self, hostsList, hostComponentsMap):
-    hostOccupations = dict((host, len(components)) for host, components in hostComponentsMap.iteritems() if host in hostsList)
-    return min(hostOccupations, key=hostOccupations.get)
+        return hostsList[scheme['else']]
+    return hostsList[0]
 
   def getComponentLayoutScheme(self, componentName):
     """

@@ -308,17 +308,16 @@ class TestStackAdvisorInitialization(TestCase):
           "host_groups": [
             {
               "name": "host-group-1",
-              "components": [
-                {"name": "GANGLIA_SERVER"},
-                {"name": "NAMENODE"},
-                {"name": "ZOOKEEPER_SERVER"}
-              ]
+              "components": []
             },
             {
               "name": "host-group-2",
               "components": [
+                {"name": "GANGLIA_SERVER"},
                 {"name": "HBASE_MASTER"},
+                {"name": "NAMENODE"},
                 {"name": "SECONDARY_NAMENODE"},
+                {"name": "ZOOKEEPER_SERVER"},
                 {"name": "ZOOKEEPER_CLIENT"}
               ]
             }

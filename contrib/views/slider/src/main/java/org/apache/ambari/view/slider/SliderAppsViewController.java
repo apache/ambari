@@ -31,16 +31,16 @@ import com.google.inject.ImplementedBy;
 @ImplementedBy(SliderAppsViewControllerImpl.class)
 public interface SliderAppsViewController {
 
-  public static final String PROPERTY_HDFS_ADDRESS = "hdfs.address";
-  public static final String PROPERTY_YARN_RM_ADDRESS = "yarn.resourcemanager.address";
-  public static final String PROPERTY_YARN_RM_WEBAPP_ADDRESS = "yarn.resourcemanager.webapp.address";
-  public static final String PROPERTY_YARN_RM_SCHEDULER_ADDRESS = "yarn.resourcemanager.scheduler.address";
+  public static final String PROPERTY_HDFS_ADDRESS = "hdfs.url";
+  public static final String PROPERTY_YARN_RM_ADDRESS = "yarn.rm.url";
+  public static final String PROPERTY_YARN_RM_WEBAPP_ADDRESS = "yarn.rm.webapp.url";
+  public static final String PROPERTY_YARN_RM_SCHEDULER_ADDRESS = "yarn.rm.scheduler.url";
   public static final String PROPERTY_ZK_QUOROM = "zookeeper.quorum";
   public static final String PROPERTY_GANGLIA_SERVER_HOSTNAME = "ganglia.server.hostname";
-  public static final String PROPERTY_GANGLIA_CUSTOM_CLUSTERS = "ganglia.custom.clusters";
+  public static final String PROPERTY_GANGLIA_CUSTOM_CLUSTERS = "ganglia.additional.clusters";
   public static final String PROPERTY_SLIDER_USER = "slider.user";
   public static final String PROPERTY_SLIDER_SECURITY_ENABLED = "slider.security.enabled";
-  public static final String PROPERTY_YARN_RM_PRINCIPAL = "yarn.resourcemanager.principal";
+  public static final String PROPERTY_YARN_RM_PRINCIPAL = "yarn.rm.kerberos.principal";
   public static final String PROPERTY_HDFS_NN_PRINCIPAL = "dfs.namenode.kerberos.principal";
   public static final String PROPERTY_VIEW_PRINCIPAL = "view.kerberos.principal";
   public static final String PROPERTY_VIEW_PRINCIPAL_KEYTAB= "view.kerberos.principal.keytab";

@@ -500,6 +500,8 @@ describe('App.InstallerStep7Controller', function () {
       installerStep7Controller.reopen({
         stepConfigs: [Em.Object.create({serviceName: serviceName, displayName: serviceName, configGroups: configGroups})]
       });
+      var manageCGController = App.router.get('manageConfigGroupsController');
+      sinon.stub(manageCGController, 'hostsToPublic', function(data){return ['c6401','c6402','c6403']});
       installerStep7Controller.loadConfigGroups(serviceConfigGroups);
       expect(installerStep7Controller.get('stepConfigs.firstObject.configGroups.length')).to.equal(1);
       var group = installerStep7Controller.get('stepConfigs.firstObject.configGroups.firstObject');
@@ -509,6 +511,7 @@ describe('App.InstallerStep7Controller', function () {
       expect(group.get('hosts')).to.eql(['h1', 'h2', 'h3']);
       expect(group.get('service.id')).to.equal(serviceName);
       expect(group.get('serviceName')).to.equal(serviceName);
+      manageCGController.hostsToPublic.restore();
     });
     it('should update configGroups for service (only default group)', function () {
       var configGroups = [],

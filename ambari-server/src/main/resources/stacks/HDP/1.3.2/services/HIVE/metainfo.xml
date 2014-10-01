@@ -30,6 +30,7 @@
           <displayName>Hive Metastore</displayName>
           <category>MASTER</category>
           <cardinality>1</cardinality>
+          <clientsToUpdateConfigs></clientsToUpdateConfigs>
           <auto-deploy>
             <enabled>true</enabled>
             <co-locate>HIVE/HIVE_SERVER</co-locate>
@@ -46,6 +47,7 @@
           <displayName>HiveServer2</displayName>
           <category>MASTER</category>
           <cardinality>1</cardinality>
+          <clientsToUpdateConfigs></clientsToUpdateConfigs>
           <dependencies>
             <dependency>
               <name>ZOOKEEPER/ZOOKEEPER_SERVER</name>
@@ -74,6 +76,7 @@
           <displayName>MySQL Server</displayName>
           <category>MASTER</category>
           <cardinality>0-1</cardinality>
+          <clientsToUpdateConfigs></clientsToUpdateConfigs>
           <commandScript>
             <script>scripts/mysql_server.py</script>
             <scriptType>PYTHON</scriptType>
@@ -85,6 +88,9 @@
           <displayName>WebHCat Server</displayName>
           <category>MASTER</category>
           <cardinality>1</cardinality>
+          <clientsToUpdateConfigs>
+            <client>HCAT</client>
+          </clientsToUpdateConfigs>
           <dependencies>
             <dependency>
               <name>HDFS/HDFS_CLIENT</name>

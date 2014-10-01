@@ -24,15 +24,16 @@ describe('App.ajax', function() {
   beforeEach(function() {
     App.set('apiPrefix', '/api/v1');
     App.set('clusterName', 'tdk');
-    sinon.spy($, 'ajax');
-  });
-
-  afterEach(function() {
-    $.ajax.restore();
   });
 
   describe('#send', function() {
+    beforeEach(function() {
+      sinon.spy($, 'ajax');
+    });
 
+    afterEach(function() {
+      $.ajax.restore();
+    });
     it('Without sender', function() {
       expect(App.ajax.send({})).to.equal(null);
       expect($.ajax.called).to.equal(false);

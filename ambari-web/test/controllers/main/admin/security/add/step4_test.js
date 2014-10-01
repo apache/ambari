@@ -417,6 +417,15 @@ describe('App.MainAdminSecurityAddStep4Controller', function () {
       expect(controller.get('serviceConfigTags')[0].configs).to.eql({'config1': 'value1'});
     });
     it('Add configs from global.xml, config matches "_hosts"', function () {
+      controller.reopen({
+        secureConfigs: [
+          {
+            serviceName: 'service1',
+            name: 'config1'
+          }
+        ]
+      });
+
       controller.set('serviceConfigTags', [
         {
           siteName: 'global',
@@ -429,12 +438,6 @@ describe('App.MainAdminSecurityAddStep4Controller', function () {
           name: 'config1_hosts',
           value: "value1",
           filename: 'site1.xml'
-        }
-      ]);
-      controller.set('secureConfigs', [
-        {
-          serviceName: 'service1',
-          name: 'config1'
         }
       ]);
 

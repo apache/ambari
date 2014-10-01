@@ -331,6 +331,7 @@ public class StackExtensionHelper {
     CommandScriptDefinition commandScript = child.getCommandScript();
     String category = child.getCategory();
     String cardinality = child.getCardinality();
+    List<String> clientsToUpdateConfigs = child.getClientsToUpdateConfigs();
 
     if (commandScript != null) {
       result.setCommandScript(child.getCommandScript());
@@ -353,6 +354,11 @@ public class StackExtensionHelper {
       result.setClientConfigFiles(child.getClientConfigFiles());
     } else {
       result.setClientConfigFiles(parent.getClientConfigFiles());
+    }
+    if (clientsToUpdateConfigs != null) {
+      result.setClientsToUpdateConfigs(child.getClientsToUpdateConfigs());
+    } else {
+      result.setClientsToUpdateConfigs(parent.getClientsToUpdateConfigs());
     }
     // Merge custom command definitions for service
     List<CustomCommandDefinition> mergedCustomCommands =

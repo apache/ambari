@@ -34,7 +34,7 @@ if rpm_version:
   hadoop_bin_dir = format("/usr/hdp/current/hadoop/bin")
   daemon_script = format('/usr/hdp/current/hbase/bin/hbase-daemon.sh')
   region_mover = format('/usr/hdp/current/hbase/bin/region_mover.rb')
-  region_drainer = format('/usr/hdp/currenthbase/bin/draining_servers.rb')
+  region_drainer = format('/usr/hdp/current/hbase/bin/draining_servers.rb')
   hbase_cmd = format('/usr/hdp/current/hbase/bin/hbase')
 else:
   hadoop_bin_dir = "/usr/bin"

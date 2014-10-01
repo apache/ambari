@@ -42,6 +42,7 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_NAM
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_VERSION;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.USER_LIST;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.GROUP_LIST;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.CLIENTS_TO_UPDATE_CONFIGS;
 
 import java.io.File;
 import java.io.IOException;
@@ -1658,6 +1659,14 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       .MYSQL_DB_NAME)) {
       hostParams.put(DB_DRIVER_FILENAME, configs.getMySQLJarName());
     }
+
+    List<String> clientsToUpdateConfigsList = componentInfo.getClientsToUpdateConfigs();
+    if (clientsToUpdateConfigsList == null) {
+      clientsToUpdateConfigsList = new ArrayList<String>();
+      clientsToUpdateConfigsList.add("*");
+    }
+    String clientsToUpdateConfigs = gson.toJson(clientsToUpdateConfigsList);
+    hostParams.put(CLIENTS_TO_UPDATE_CONFIGS, clientsToUpdateConfigs);
     execCmd.setHostLevelParams(hostParams);
 
     Map<String, String> roleParams = new TreeMap<String, String>();
@@ -3004,6 +3013,25 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       clusterHostInfo = StageUtils.getClusterHostInfo(
         clusters.getHostsForCluster(cluster.getClusterName()), cluster);
       hostParamsStage = createDefaultHostParams(cluster);
+      StackId stackId = cluster.getDesiredStackVersion();
+      String componentName = null;
+      String serviceName = null;
+      if (actionExecContext.getOperationLevel() != null) {
+        componentName = actionExecContext.getOperationLevel().getHostComponentName();
+        serviceName = actionExecContext.getOperationLevel().getServiceName();
+      }
+      if (serviceName != null && componentName != null) {
+        ComponentInfo componentInfo = ambariMetaInfo.getComponent(
+                stackId.getStackName(), stackId.getStackVersion(),
+                serviceName, componentName);
+        List<String> clientsToUpdateConfigsList = componentInfo.getClientsToUpdateConfigs();
+        if (clientsToUpdateConfigsList == null) {
+          clientsToUpdateConfigsList = new ArrayList<String>();
+          clientsToUpdateConfigsList.add("*");
+        }
+        String clientsToUpdateConfigs = gson.toJson(clientsToUpdateConfigsList);
+        hostParamsStage.put(CLIENTS_TO_UPDATE_CONFIGS, clientsToUpdateConfigs);
+      }
       clusterHostInfoJson = StageUtils.getGson().toJson(clusterHostInfo);
     }
 

@@ -57,7 +57,7 @@
           <osFamily>any</osFamily>
           <packages>
             <package>
-              <name>slider</name>
+              <name>slider_2_2_0_0_*</name>
             </package>
           </packages>
         </osSpecific>

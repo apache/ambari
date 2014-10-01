@@ -1,0 +1,51 @@
+{#
+  Licensed to the Apache Software Foundation (ASF) under one
+  or more contributor license agreements.  See the NOTICE file
+ distributed with this work for additional information
+ regarding copyright ownership.  The ASF licenses this file
+ to you under the Apache License, Version 2.0 (the
+ "License"); you may not use this file except in compliance
+ with the License.  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+  limitations under the License.
+#}
+
+###########################################################################
+#
+# RESOURCE.CFG - Sample Resource File for Nagios 3.2.3
+#
+# Last Modified: 09-10-2003
+#
+# You can define $USERx$ macros in this file, which can in turn be used
+# in command definitions in your host config file(s).  $USERx$ macros are
+# useful for storing sensitive information such as usernames, passwords,
+# etc.  They are also handy for specifying the path to plugins and
+# event handlers - if you decide to move the plugins or event handlers to
+# a different directory in the future, you can just update one or two
+# $USERx$ macros, instead of modifying a lot of command definitions.
+#
+# The CGIs will not attempt to read the contents of resource files, so
+# you can set restrictive permissions (600 or 660) on them.
+#
+# Nagios supports up to 32 $USERx$ macros ($USER1$ through $USER32$)
+#
+# Resource files may also be used to store configuration directives for
+# external data sources like MySQL...
+#
+###########################################################################
+
+# Sets $USER1$ to be the path to the plugins
+$USER1$={{plugins_dir}}
+
+# Sets $USER2$ to be the path to event handlers
+#$USER2$={{eventhandlers_dir}}
+
+# Store some usernames and passwords (hidden from the CGIs)
+#$USER3$=someuser
+#$USER4$=somepassword

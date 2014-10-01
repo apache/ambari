@@ -469,6 +469,19 @@ App.Router = Em.Router.extend({
 
     main: require('routes/main'),
 
+    adminView: Em.Route.extend({
+      route: '/adminView',
+      enter: function (router) {
+        if (!router.get('loggedIn') || !App.get('isAdmin') || App.get('isOperator')) {
+          Em.run.next(function () {
+            router.transitionTo('login');
+          });
+        } else {
+            window.location.replace('/views/ADMIN_VIEW/1.0.0/INSTANCE/#/');
+        }
+      }
+    }),
+
     experimental: Em.Route.extend({
       route: '/experimental',
       enter: function (router, context) {

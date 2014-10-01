@@ -6662,6 +6662,7 @@ public class AmbariManagementControllerTest {
       (0).getExecutionCommandWrapper().getExecutionCommand()
       .getHostLevelParams();
     Assert.assertNotNull(paramsCmd.get("repo_info"));
+    Assert.assertNotNull(paramsCmd.get("clientsToUpdateConfigs"));
   }
 
   @Test

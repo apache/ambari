@@ -120,6 +120,9 @@ exclude_file_path = default("/configurations/yarn-site/yarn.resourcemanager.node
 
 hostname = config['hostname']
 
+ats_host = set(default("/clusterHostInfo/app_timeline_server_hosts", []))
+has_ats = not len(ats_host) == 0
+
 if security_enabled:
   _rm_principal_name = config['configurations']['yarn-site']['yarn.resourcemanager.principal']
   _rm_keytab = config['configurations']['yarn-site']['yarn.resourcemanager.keytab']
@@ -128,10 +131,11 @@ if security_enabled:
   rm_kinit_cmd = format("{kinit_path_local} -kt {_rm_keytab} {_rm_principal_name};")
 
   # YARN timeline security options are only available in HDP Champlain
-  _yarn_timelineservice_principal_name = config['configurations']['yarn-site']['yarn.timeline-service.principal']
-  _yarn_timelineservice_principal_name = _yarn_timelineservice_principal_name.replace('_HOST', hostname.lower())
-  _yarn_timelineservice_keytab = config['configurations']['yarn-site']['yarn.timeline-service.keytab']
-  yarn_timelineservice_kinit_cmd = format("{kinit_path_local} -kt {_yarn_timelineservice_keytab} {_yarn_timelineservice_principal_name};")
+  if has_ats:
+    _yarn_timelineservice_principal_name = config['configurations']['yarn-site']['yarn.timeline-service.principal']
+    _yarn_timelineservice_principal_name = _yarn_timelineservice_principal_name.replace('_HOST', hostname.lower())
+    _yarn_timelineservice_keytab = config['configurations']['yarn-site']['yarn.timeline-service.keytab']
+    yarn_timelineservice_kinit_cmd = format("{kinit_path_local} -kt {_yarn_timelineservice_keytab} {_yarn_timelineservice_principal_name};")
 else:
   rm_kinit_cmd = ""
   yarn_timelineservice_kinit_cmd = ""

@@ -20,9 +20,10 @@ limitations under the License.
 
 from mock.mock import MagicMock, call, patch
 from stacks.utils.RMFTestCase import *
-import  resource_management.core.source
+import resource_management.core.source
+from test_storm_base import TestStormBase
 
-class TestStormSupervisor(RMFTestCase):
+class TestStormSupervisor(TestStormBase):
 
   def test_configure_default(self):
     self.executeScript("2.1/services/STORM/package/scripts/supervisor_prod.py",
@@ -141,84 +142,3 @@ class TestStormSupervisor(RMFTestCase):
 
     self.assertNoMoreResources()
 
-  def assert_configure_default(self):
-    self.assertResourceCalled('Directory', '/var/log/storm',
-      owner = 'storm',
-      group = 'hadoop',
-      recursive = True,
-    )
-    self.assertResourceCalled('Directory', '/var/run/storm',
-      owner = 'storm',
-      group = 'hadoop',
-      recursive = True,
-    )
-    self.assertResourceCalled('Directory', '/hadoop/storm',
-      owner = 'storm',
-      group = 'hadoop',
-      recursive = True,
-    )
-    self.assertResourceCalled('Directory', '/etc/storm/conf',
-      owner = 'storm',
-      group = 'hadoop',
-      recursive = True,
-    )
-    self.assertResourceCalled('File', '/etc/storm/conf/config.yaml',
-      owner = 'storm',
-      content = Template('config.yaml.j2'),
-      group = 'hadoop',
-    )
-    self.assertResourceCalled('File', '/etc/storm/conf/storm.yaml',
-      owner = 'storm',
-      content = self.get_yaml_inline_template(self.getConfig()['configurations']['storm-site']),
-      group = 'hadoop',
-      mode = None,
-    )
-    self.assertResourceCalled('File', '/etc/storm/conf/storm-env.sh',
-                              owner = 'storm',
-                              content = InlineTemplate(self.getConfig()['configurations']['storm-env']['content'])
-                              )
-
-  def assert_configure_secured(self):
-    self.assertResourceCalled('Directory', '/var/log/storm',
-      owner = 'storm',
-      group = 'hadoop',
-      recursive = True,
-    )
-    self.assertResourceCalled('Directory', '/var/run/storm',
-      owner = 'storm',
-      group = 'hadoop',
-      recursive = True,
-    )
-    self.assertResourceCalled('Directory', '/hadoop/storm',
-      owner = 'storm',
-      group = 'hadoop',
-      recursive = True,
-    )
-    self.assertResourceCalled('Directory', '/etc/storm/conf',
-      owner = 'storm',
-      group = 'hadoop',
-      recursive = True,
-    )
-    self.assertResourceCalled('File', '/etc/storm/conf/config.yaml',
-      owner = 'storm',
-      content = Template('config.yaml.j2'),
-      group = 'hadoop',
-    )
-    self.assertResourceCalled('File', '/etc/storm/conf/storm.yaml',
-      owner = 'storm',
-      content = self.get_yaml_inline_template(self.getConfig()['configurations']['storm-site']),
-      group = 'hadoop',
-      mode = None,
-    )
-    self.assertResourceCalled('File', '/etc/storm/conf/storm-env.sh',
-                              owner = 'storm',
-                              content = InlineTemplate(self.getConfig()['configurations']['storm-env']['content'])
-                              )
-    self.assertResourceCalled('TemplateConfig', '/etc/storm/conf/storm_jaas.conf',
-      owner = 'storm',
-  )
-
-  def get_yaml_inline_template(self, configurations):
-    with self.env:
-      from yaml_config import yaml_inline_template
-      return yaml_inline_template(configurations)

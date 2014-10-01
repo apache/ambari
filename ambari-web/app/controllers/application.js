@@ -88,6 +88,10 @@ App.ApplicationController = Em.Controller.extend(App.UserPref, {
     }
   },
 
+  goToAdminView: function () {
+    App.router.route("adminView");
+  },
+
   showSettingsPopup: function() {
     // Settings only for admins
     if (!App.get('isAdmin')) return;

@@ -92,7 +92,21 @@ def hive(name=None):
     crt_directory(params.hive_pid_dir)
     crt_directory(params.hive_log_dir)
     crt_directory(params.hive_var_lib)
-    
+
+  XmlConfig("hive-site.xml",
+            conf_dir=params.hive_config_dir,
+            configurations=params.config['configurations']['hive-site'],
+            configuration_attributes=params.config['configuration_attributes']['hive-site'],
+            owner=params.hive_user,
+            group=params.user_group,
+            mode=0644)
+
+  File(format("{hive_config_dir}/hive-env.sh"),
+       owner=params.hive_user,
+       group=params.user_group,
+       content=InlineTemplate(params.hive_env_sh_template)
+    )
+
 def fill_conf_dir(component_conf_dir):
   import params
   
@@ -110,20 +124,7 @@ def fill_conf_dir(component_conf_dir):
             group=params.user_group,
             mode=0644)
 
-  XmlConfig("hive-site.xml",
-            conf_dir=component_conf_dir,
-            configurations=params.config['configurations']['hive-site'],
-            configuration_attributes=params.config['configuration_attributes']['hive-site'],
-            owner=params.hive_user,
-            group=params.user_group,
-            mode=0644)
-  
-  File(format("{component_conf_dir}/hive-env.sh"),
-       owner=params.hive_user,
-       group=params.user_group,
-       content=InlineTemplate(params.hive_env_sh_template)
-  )
-  
+
   crt_file(format("{component_conf_dir}/hive-default.xml.template"))
   crt_file(format("{component_conf_dir}/hive-env.sh.template"))
 

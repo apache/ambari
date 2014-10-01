@@ -1,0 +1,166 @@
+{#
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#}
+
+#
+#
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+#
+#
+#
+
+{% if check_cpu_on %}
+# 'check_cpu' check remote cpu load
+define command {
+        command_name    check_cpu
+        command_line    $USER1$/check_wrapper.sh php $USER1$/check_cpu.php -h $HOSTADDRESS$ -p $ARG1$ -w $ARG2$ -c $ARG3$ -e $ARG4$ -k $ARG5$ -r $ARG6$ -t $ARG7$ -u $ARG8$
+       }
+define command {
+        command_name    check_cpu_ha
+        command_line    $USER1$/check_wrapper.sh php $USER1$/check_cpu_ha.php -h $ARG1$ -p $ARG2$ -w $ARG3$ -c $ARG4$ -e $ARG5$ -k $ARG6$ -r $ARG7$ -t $ARG8$ -u $ARG9$
+       }
+{% endif %}
+
+# Check data node storage full 
+define command {
+        command_name    check_datanode_storage
+        command_line    $USER1$/check_wrapper.sh php $USER1$/check_datanode_storage.php -h $HOSTADDRESS$ -p $ARG1$ -w $ARG2$ -c $ARG3$ -e $ARG4$ -k $ARG5$ -r $ARG6$ -t $ARG7$ -s $ARG8$
+       }
+
+define command{
+        command_name    check_hdfs_blocks
+        command_line    $USER1$/check_wrapper.sh php $USER1$/check_hdfs_blocks.php -h $ARG1$ -p $ARG2$ -s $ARG3$ -e $ARG4$ -k $ARG5$ -r $ARG6$ -t $ARG7$ -u $ARG8$
+       }
+
+define command{
+        command_name    check_hdfs_capacity
+        command_line    $USER1$/check_wrapper.sh php $USER1$/check_hdfs_capacity.php -h $ARG1$ -p $ARG2$ -w $ARG3$ -c $ARG4$ -e $ARG5$ -k $ARG6$ -r $ARG7$ -t $ARG8$ -s $ARG9$
+       }
+
+define command{
+        command_name    check_aggregate
+        command_line    $USER1$/check_wrapper.sh php $USER1$/check_aggregate.php -f /var/nagios/status.dat -s 1 -t service -n $ARG1$ -w $ARG2$ -c $ARG3$
+       }
+
+define command{
+        command_name    check_rpcq_latency
+        command_line    $USER1$/check_wrapper.sh php $USER1$/check_rpcq_latency.php -h $HOSTADDRESS$ -p $ARG2$ -n $ARG1$ -w $ARG3$ -c $ARG4$ -e $ARG5$ -k $ARG6$ -r $ARG7$ -t $ARG8$ -s $ARG9$
+       }
+
+define command{
+        command_name    check_rpcq_latency_ha
+        command_line    $USER1$/check_wrapper.sh php $USER1$/check_rpcq_latency_ha.php -h $ARG1$ -p $ARG3$ -n $ARG2$ -w $ARG4$ -c $ARG5$ -e $ARG6$ -k $ARG7$ -r $ARG8$ -t $ARG9$ -s $ARG10$
+       }
+
+define command{
+        command_name    check_nagios
+        command_line    $USER1$/check_wrapper.sh $USER1$/check_nagios -e $ARG1$ -F $ARG2$ -C $ARG3$ 
+       }
+
+define command{
+        command_name    check_webui
+        command_line    $USER1$/check_wrapper.sh $USER1$/check_webui.sh $ARG1$ $HOSTADDRESS$ $ARG2$
+       }
+
+define command{
+        command_name    check_webui_ha
+        command_line    $USER1$/check_wrapper.sh $USER1$/check_webui_ha.sh $ARG1$ $ARG2$ $ARG3$
+       }
+
+define command{
+        command_name    check_name_dir_status
+        command_line    $USER1$/check_wrapper.sh php $USER1$/check_name_dir_status.php -h $HOSTADDRESS$ -p $ARG1$ -e $ARG2$ -k $ARG3$ -r $ARG4$ -t $ARG5$ -s $ARG6$
+       }
+
+define command{
+        command_name    check_oozie_status
+        command_line    $USER1$/check_wrapper.sh $USER1$/check_oozie_status.sh $HOSTADDRESS$ $ARG1$ $ARG2$ $ARG3$ $ARG4$ $ARG5$ $ARG6$ $ARG7$
+       }
+
+define command{
+        command_name    check_templeton_status
+        command_line    $USER1$/check_wrapper.sh $USER1$/check_templeton_status.sh $HOSTADDRESS$ $ARG1$ $ARG2$ $ARG3$ $ARG4$ $ARG5$ $ARG6$ $ARG7$
+       }
+
+define command{
+        command_name    check_hive_metastore_status
+        command_line    $USER1$/check_wrapper.sh $USER1$/check_hive_metastore_status.sh $HOSTADDRESS$ $ARG1$ $ARG2$ $ARG3$ $ARG4$ $ARG5$ $ARG6$ $ARG7$
+       }
+define command{
+        command_name    check_hue_status
+        command_line    $USER1$/check_wrapper.sh $USER1$/check_hue_status.sh
+       }
+
+define command{
+       command_name    check_mapred_local_dir_used_space
+       command_line    $USER1$/check_wrapper.sh $USER1$/check_mapred_local_dir_used.sh $ARG1$ $ARG2$
+       }
+
+define command{
+       command_name    check_namenodes_ha
+       command_line    $USER1$/check_wrapper.sh $USER1$/check_namenodes_ha.sh $ARG1$ $ARG2$
+       }
+
+define command{
+        command_name    check_nodemanager_health
+        command_line    $USER1$/check_wrapper.sh $USER1$/check_nodemanager_health.sh $HOSTADDRESS$ $ARG1$
+       }
+
+define command{
+        command_name    host_sys_logger
+        command_line    $USER1$/sys_logger.py $HOSTSTATETYPE$ $HOSTATTEMPT$ $HOSTSTATE$ "Host::Ping" "Event Host=$HOSTADDRESS$($HOSTSTATE$), $HOSTOUTPUT$ $LONGHOSTOUTPUT$"
+       }
+
+define command{
+        command_name    service_sys_logger
+        command_line    $USER1$/sys_logger.py $SERVICESTATETYPE$ $SERVICEATTEMPT$ $SERVICESTATE$ "$SERVICEDESC$" "Event Host=$HOSTADDRESS$ Service Description=$SERVICEDESC$($SERVICESTATE$), $SERVICEOUTPUT$ $LONGSERVICEOUTPUT$"
+       }
+
+define command{
+        command_name check_tcp_wrapper
+        command_line  $USER1$/check_wrapper.sh $USER1$/check_tcp -H $HOSTADDRESS$ -p $ARG1$ $ARG2$
+       }
+
+define command{
+        command_name check_checkpoint_time
+        command_line $USER1$/check_wrapper.sh /var/lib/ambari-agent/ambari-python-wrap $USER1$/check_checkpoint_time.py -H "$ARG1$" -p $ARG2$ -w $ARG3$ -c $ARG4$ -t $ARG5$ -x $ARG6$
+       }
+
+define command{
+        command_name check_tcp_wrapper_sasl
+        command_line  $USER1$/check_wrapper.sh $USER1$/check_tcp -H $HOSTADDRESS$ -p $ARG1$ $ARG2$ -s \"$ARG3$\"
+       }
+
+define command{
+        command_name check_ambari
+        command_line $USER1$/check_wrapper.sh /var/lib/ambari-agent/ambari-python-wrap $USER1$/check_ambari_alerts.py -H $HOSTADDRESS$ -f $ARG1$ -n $ARG2$
+       }
