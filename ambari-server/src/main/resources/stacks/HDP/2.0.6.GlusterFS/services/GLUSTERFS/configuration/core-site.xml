@@ -45,5 +45,10 @@
   <description>The mount point that corresponds to the fs.glusterfs.volumes value</description>
     <value>/mnt/gv0</value>
   </property>
+  
+  <property>
+    <name>fs.defaultFS</name>
+    <value>glusterfs:///localhost:8020</value>
+  </property>    
 
 </configuration>

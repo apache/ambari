@@ -33,6 +33,11 @@
   <name>fs.glusterfs.impl</name>
   <value>org.apache.hadoop.fs.glusterfs.GlusterFileSystem</value>
   </property>
+  
+  <property>
+    <name>fs.defaultFS</name>
+    <value>glusterfs:///localhost:8020</value>
+  </property>  
 
 
 </configuration>
