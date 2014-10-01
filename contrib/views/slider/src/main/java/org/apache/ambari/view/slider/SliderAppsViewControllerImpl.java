@@ -467,6 +467,7 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
     String rmSchedulerAddress = viewContext.getProperties().get(PROPERTY_YARN_RM_SCHEDULER_ADDRESS);
     String zkQuorum = viewContext.getProperties().get(PROPERTY_ZK_QUOROM);
     boolean securedCluster = Boolean.valueOf(viewContext.getProperties().get(PROPERTY_SLIDER_SECURITY_ENABLED));
+    String rmHAHosts = viewContext.getProperties().get(PROPERTY_YARN_RM_HA_HOSTS);
 
     HdfsConfiguration hdfsConfig = new HdfsConfiguration();
     YarnConfiguration yarnConfig = new YarnConfiguration(hdfsConfig);
@@ -488,6 +489,45 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
       yarnConfig.set("hadoop.security.authorization", "true");
       yarnConfig.set("hadoop.security.authentication", "kerberos");
       yarnConfig.set("slider.security.enabled", "true");
+    }
+
+    if (rmHAHosts != null && rmHAHosts.trim().length() > 0) {
+      yarnConfig.set("yarn.resourcemanager.ha.enabled", "true");
+      yarnConfig.set("yarn.resourcemanager.cluster-id", "yarn-cluster");
+      yarnConfig.set("yarn.resourcemanager.recovery.enabled", "true");
+      if (viewContext.getProperties().containsKey(PROPERTY_YARN_RM_STORE_CLASS)) {
+        yarnConfig.set("yarn.resourcemanager.store.class", viewContext
+            .getProperties().get(PROPERTY_YARN_RM_STORE_CLASS));
+      }
+      if (viewContext.getProperties().containsKey(PROPERTY_YARN_RM_HA_AUTO_FAILOVER_ZKPATH)) {
+        yarnConfig.set("yarn.resourcemanager.ha.automatic-failover.zk-base-path", viewContext
+            .getProperties().get(PROPERTY_YARN_RM_HA_AUTO_FAILOVER_ZKPATH));
+      }
+      // ZK
+      int count = 1;
+      String[] zkHostPorts = zkQuorum.split(",");
+      StringBuffer zkHosts = new StringBuffer();
+      for (String zkHostPort : zkHostPorts) {
+        String host = zkHostPort.split(":")[0];
+        zkHosts.append(host);
+        if (count++ < zkHostPorts.length) {
+          zkHosts.append(",");
+        }
+      }
+      yarnConfig.set("yarn.resourcemanager.zk-address", zkHosts.toString());
+      // HA Ids
+      StringBuffer rmIds = new StringBuffer();
+      String[] hosts = rmHAHosts.trim().split(",");
+      count = 1;
+      for (String host : hosts) {
+        String rmId = "rm" + Integer.toString(count++);
+        rmIds.append(rmId);
+        if (count <= hosts.length) {
+          rmIds.append(",");
+        }
+        yarnConfig.set("yarn.resourcemanager.hostname." + rmId, host.trim());
+      }
+      yarnConfig.set("yarn.resourcemanager.ha.rm-ids", rmIds.toString());
     }
     return yarnConfig;
   }
