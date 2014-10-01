@@ -20,8 +20,9 @@
 var App = require('app');
 require('controllers/main/admin/repositories');
 
+
 describe('App.MainAdminRepositoriesController', function() {
-  var controller;
+
   var data = {
     "items": [
       {
@@ -63,24 +64,24 @@ describe('App.MainAdminRepositoriesController', function() {
     ]
   };
 
-  beforeEach(function() {
-    controller = App.MainAdminRepositoriesController.create({
-      parseServicesInfo: Em.K
-    });
-  });
-
   //todo should be verified
   describe('#updateUpgradeVersionSuccessCallback()', function () {
     it('upgrade version of stack should be "HDP-1.2.2"', function () {
       App.set('currentStackVersion', 'HDP-1.2.2');
+      var controller = App.MainAdminRepositoriesController.create({
+        parseServicesInfo: Em.K
+      });
       controller.updateUpgradeVersionSuccessCallback.call(controller, data);
       expect(controller.get('upgradeVersion')).to.equal('HDP-1.2.2');
     });
     it('if min upgrade version less then current then upgrade version equal current', function () {
       App.set('currentStackVersion', 'HDP-1.2.2');
       data.items[0].Versions.min_upgrade_version = "1.2.3";
+      var controller = App.MainAdminRepositoriesController.create({
+        parseServicesInfo: Em.K
+      });
       controller.updateUpgradeVersionSuccessCallback.call(controller, data);
       expect(controller.get('upgradeVersion')).to.equal('HDP-1.2.2');
     })
-  });
+  })
 });
