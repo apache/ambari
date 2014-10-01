@@ -18,21 +18,23 @@
 
 <div class="app_configs">
   {{#each configCategory in view.configsByCategories}}
-    {{#bs-panel heading=configCategory.name collapsible=true}}
-      <div class="container-fluid">
-        {{#each configCategory.configs}}
-          <div class="row">
-            <div class="col-md-3 property-name">{{formatWordBreak key devider="."}}</div>
-            <div>
-              {{#if isMultiline}}
-                {{textarea disabled=true value=value classNames="col-md-6"}}
-              {{else}}
-                <input type="text" {{bind-attr value=value}} disabled="disabled" class="col-md-6" />
-              {{/if}}
+    {{#if configCategory.isVisible}}
+      {{#bs-panel heading=configCategory.name collapsible=true}}
+        <div class="container-fluid">
+          {{#each configCategory.configs}}
+            <div class="row">
+              <div class="col-md-3 property-name">{{formatWordBreak key devider="."}}</div>
+              <div>
+                {{#if isMultiline}}
+                  {{textarea disabled=true value=value classNames="col-md-6"}}
+                {{else}}
+                  <input type="text" {{bind-attr value=value}} disabled="disabled" class="col-md-6" />
+                {{/if}}
+              </div>
             </div>
-          </div>
-        {{/each}}
-      </div>
-    {{/bs-panel}}
+          {{/each}}
+        </div>
+      {{/bs-panel}}
+    {{/if}}
   {{/each}}
 </div>

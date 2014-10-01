@@ -111,6 +111,9 @@ App.SliderApp = DS.Model.extend({
 
   supportedMetricNames: DS.attr('string'),
 
+  // Config categories, that should be hidden on app page
+  hiddenCategories: ['yarn-site', 'global'],
+
   /**
    * @type {boolean}
    */
