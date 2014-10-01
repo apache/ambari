@@ -329,7 +329,7 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
       var host = service.configs.findProperty('name', hostConfigName);
       var principal = service.configs.findProperty('name', principalConfigName);
       var versionNumber = App.get('currentStackVersionNumber');
-      if( principalConfigName == 'storm_principal_name' && stringUtils.compareVersions(versionNumber, "2.2") >= 0){
+      if(principalConfigName == 'storm_principal_name' && stringUtils.compareVersions(versionNumber, "2.2") >= 0){
         principal.defaultValue = defaultPrimaryName;
         return true;
       } else if (host && principal) {

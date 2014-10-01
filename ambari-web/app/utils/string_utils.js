@@ -84,10 +84,10 @@ module.exports = {
    */
   compareVersions: function(first, second){
     if (!(typeof first === 'string' && typeof second === 'string')) {
-      return false;
+      return -1;
     }
     if (first === '' || second === '') {
-      return false;
+      return -1;
     }
     var firstNumbers = first.split('.');
     var secondNumbers = second.split('.');

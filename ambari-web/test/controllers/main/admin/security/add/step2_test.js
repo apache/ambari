@@ -382,8 +382,8 @@ describe('App.MainAdminSecurityAddStep2Controller', function () {
         }
       ]);
       expect(controller.setHostToPrincipal('HDFS', 'config1', 'principal1', 'name1')).to.be.true;
-      expect(controller.get('content.services')[0].configs[0].defaultValue).to.equal('Value1');
-      expect(controller.get('content.services')[0].configs[1].defaultValue).to.equal('name1value1');
+     // expect(controller.get('content.services')[0].configs[0].defaultValue).to.equal('Value1');
+      expect(controller.get('content.services')[0].configs[1].defaultValue).to.equal('name1Value1');
     });
   });
 

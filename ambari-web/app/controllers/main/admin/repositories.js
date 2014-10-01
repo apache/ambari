@@ -46,7 +46,8 @@ App.MainAdminRepositoriesController = Em.Controller.extend({
     var currentVersion = App.get('currentStackVersionNumber');
     var stackNamePrefix = App.get('currentStackName') + '-';
     upgradeVersion = upgradeVersion.replace(stackNamePrefix, '');
-    data.items.mapProperty('Versions.stack_version').forEach(function (version) {
+    var activeVersions = data.items.filterProperty('Versions.active');
+    activeVersions.mapProperty('Versions.stack_version').forEach(function (version) {
       upgradeVersion = (stringUtils.compareVersions(upgradeVersion, version) === -1) ? version : upgradeVersion;
     });
     var currentStack = data.items.findProperty('Versions.stack_version', currentVersion);
