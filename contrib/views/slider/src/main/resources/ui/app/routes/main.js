@@ -64,7 +64,10 @@ App.SliderAppsRoute = Ember.Route.extend({
       Em.Object.create({id: 10, required: false, requireDependsOn: 9, viewConfigName: 'yarn.rm.kerberos.principal', displayName: 'yarnResourceManagerPrincipal'}),
       Em.Object.create({id: 11, required: false, requireDependsOn: 9, viewConfigName: 'dfs.namenode.kerberos.principal', displayName: 'dfsNamenodeKerberosPrincipal'}),
       Em.Object.create({id: 12, required: false, requireDependsOn: 9, viewConfigName: 'view.kerberos.principal', displayName: 'viewKerberosPrincipal'}),
-      Em.Object.create({id: 13, required: false, requireDependsOn: 9, viewConfigName: 'view.kerberos.principal.keytab', displayName: 'ViewKerberosPrincipalKeytab'})
+      Em.Object.create({id: 13, required: false, requireDependsOn: 9, viewConfigName: 'view.kerberos.principal.keytab', displayName: 'ViewKerberosPrincipalKeytab'}),
+      Em.Object.create({id: 14, required: false, viewConfigName: 'yarm.rm.ha.hosts', displayName: 'yarnResourceManagerHighAvailabilityHosts'}),
+      Em.Object.create({id: 15, required: false, viewConfigName: 'yarn.rm.store.class', displayName: 'yarnResourceManagerStoreClass'}),
+      Em.Object.create({id: 16, required: false, viewConfigName: 'yarn.rm.ha.automatic-failover.zk-base-path', displayName: 'yarnResourceManagerHighAvailabilityAutoFailoverZooKeeperBasePath'})
     ]));
   },
 

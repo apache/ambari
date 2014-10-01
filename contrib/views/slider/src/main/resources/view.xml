@@ -83,6 +83,21 @@ limitations under the License. Kerberos, LDAP, Custom. Binary/Htt
     <description>Path to the Kerberos principal keytab used for view's user. For example: /etc/security/keytabs/ambari.headless.keytab</description>
     <required>optional</required>
   </parameter>
+  <parameter>
+    <name>yarm.rm.ha.hosts</name>
+    <description>Hostnames where YARN ResourceManagers are available when High Availability is enabled. Value should be a comma separated list of host names</description>
+    <required>optional</required>
+  </parameter>
+  <parameter>
+    <name>yarn.rm.store.class</name>
+    <description>Name of class used by YARN ResourceManager to persist its state. For example some of the classes are 'org.apache.hadoop.yarn.server.resourcemanager.recovery.ZKRMStateStore', or 'org.apache.hadoop.yarn.server.resourcemanager.recovery.FileSystemRMStateStore'</description>
+    <required>optional</required>
+  </parameter>
+  <parameter>
+    <name>yarn.rm.ha.automatic-failover.zk-base-path</name>
+    <description>The base path in ZooKeeper used for storing leader information. This is used when ZooKeeper based leader election is performed. For example: '/yarn-leader-election'</description>
+    <required>optional</required>
+  </parameter>
   <resource>
     <name>status</name>
     <service-class>org.apache.ambari.view.slider.rest.ViewStatusResource</service-class>
