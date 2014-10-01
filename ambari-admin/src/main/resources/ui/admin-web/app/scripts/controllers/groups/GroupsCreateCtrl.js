@@ -18,19 +18,18 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('GroupsCreateCtrl',['$scope', 'Group', '$location', 'uiAlert', function($scope, Group, $location, uiAlert) {
+.controller('GroupsCreateCtrl',['$scope', 'Group', '$location', 'Alert', function($scope, Group, $location, Alert) {
   $scope.group = new Group();
 
   $scope.createGroup = function() {
     $scope.form.submitted = true;
     if ($scope.form.$valid){
       $scope.group.save().then(function() {
-        uiAlert.success('Created group ' + $scope.group.group_name);
+        Alert.success('Created group <a href="#/groups/' + $scope.group.group_name + '/edit">' + $scope.group.group_name + '</a>');
         $location.path('/groups');
       })
       .catch(function(data) {
-      	data = data.data;
-        uiAlert.danger(data.status, data.message);
+        Alert.error('Group creation error', data.data.message);
       });
     }
   };

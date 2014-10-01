@@ -18,7 +18,7 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('NavbarCtrl',['$scope', 'Cluster', '$location', 'uiAlert', 'ROUTES', 'ConfirmationModal', '$rootScope', function($scope, Cluster, $location, uiAlert, ROUTES, ConfirmationModal, $rootScope) {
+.controller('NavbarCtrl',['$scope', 'Cluster', '$location', 'Alert', 'ROUTES', 'ConfirmationModal', '$rootScope', function($scope, Cluster, $location, Alert, ROUTES, ConfirmationModal, $rootScope) {
   $scope.cluster = null;
   $scope.editCluster = {
     name        : '',
@@ -28,7 +28,7 @@ angular.module('ambariAdminConsole')
   Cluster.getStatus().then(function(cluster) {
     $scope.cluster = cluster;
   }).catch(function(data) {
-  	uiAlert.danger(data.status, data.message);
+    Alert.error('Cannot load cluster status', data.data.message);
   });
 
   $scope.toggleEditName = function($event) {
@@ -57,9 +57,9 @@ angular.module('ambariAdminConsole')
 
     Cluster.editName(oldClusterName, newClusterName).then(function(data) {
       $scope.cluster.Clusters.cluster_name = newClusterName;
-      uiAlert.success('Success', 'The cluster has been renamed to ' + newClusterName + '.');
+      Alert.success('The cluster has been renamed to ' + newClusterName + '.');
     }).catch(function(data) {
-      uiAlert.danger(data.data.status, data.data.message);
+      Alert.error('Cannot rename cluster to ' + newClusterName, data.data.message);
     });
 
     $scope.toggleEditName();

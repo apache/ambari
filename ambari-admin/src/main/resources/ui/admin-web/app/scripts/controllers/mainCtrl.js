@@ -18,7 +18,7 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('MainCtrl',['$scope', '$window','Auth', 'uiAlert', '$modal', 'Cluster', function($scope, $window, Auth, uiAlert, $modal, Cluster) {
+.controller('MainCtrl',['$scope', '$window','Auth', 'Alert', '$modal', 'Cluster', function($scope, $window, Auth, Alert, $modal, Cluster) {
   $scope.signOut = function() {
     var data = JSON.parse(localStorage.ambari);
     delete data.app.authenticated;
@@ -50,7 +50,7 @@ angular.module('ambariAdminConsole')
     $scope.cluster = cluster;
     $scope.isLoaded = true;
   }).catch(function(data) {
-      uiAlert.danger(data.status, data.message);
+    Alert.error('Check cluster status error', data.data.message);
   });
 
 }]);

@@ -18,7 +18,7 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('ViewsEditCtrl', ['$scope', '$routeParams' , 'View', 'uiAlert', 'PermissionLoader', 'PermissionSaver', 'ConfirmationModal', '$location', function($scope, $routeParams, View, uiAlert, PermissionLoader, PermissionSaver, ConfirmationModal, $location) {
+.controller('ViewsEditCtrl', ['$scope', '$routeParams' , 'View', 'Alert', 'PermissionLoader', 'PermissionSaver', 'ConfirmationModal', '$location', function($scope, $routeParams, View, Alert, PermissionLoader, PermissionSaver, ConfirmationModal, $location) {
   $scope.identity = angular.identity;
   $scope.isConfigurationEmpty = true;
   function reloadViewInfo(){
@@ -42,7 +42,7 @@ angular.module('ambariAdminConsole')
       $scope.isConfigurationEmpty = angular.equals({}, $scope.configuration);
     })
     .catch(function(data) {
-      uiAlert.danger(data.data.status, data.data.message);
+      Alert.error('Cannot load instance info', data.data.message);
     });
   }
 
@@ -53,7 +53,7 @@ angular.module('ambariAdminConsole')
     reloadViewInfo();
   });
 
-  function reloadViewPrivilegies(){
+  function reloadViewPrivileges(){
     PermissionLoader.getViewPermissions({
       viewName: $routeParams.viewId,
       version: $routeParams.version,
@@ -66,13 +66,13 @@ angular.module('ambariAdminConsole')
       $scope.isPermissionsEmpty = angular.equals({}, $scope.permissions);
     })
     .catch(function(data) {
-      uiAlert.danger(data.data.status, data.data.message);
+      Alert.error('Cannot load permissions', data.data.message);
     });
   }
 
   $scope.permissions = [];
   
-  reloadViewPrivilegies();
+  reloadViewPrivileges();
 
   $scope.editSettingsDisabled = true;
   $scope.toggleSettingsEdit = function() {
@@ -93,7 +93,7 @@ angular.module('ambariAdminConsole')
         $scope.editSettingsDisabled = true;
       })
       .catch(function(data) {
-        uiAlert.danger(data.data.status, data.data.message);
+        Alert.error('Cannot save settings', data.data.message);
       });
     }
   };
@@ -122,7 +122,7 @@ angular.module('ambariAdminConsole')
         $scope.editConfigurationDisabled = true;
       })
       .catch(function(data) {
-        uiAlert.danger(data.data.status, data.data.message);
+        Alert.error('Cannot save properties', data.data.message);
       });
     }
   };
@@ -147,10 +147,10 @@ angular.module('ambariAdminConsole')
         instance_name: $routeParams.instanceId,
       }
     )
-    .then(reloadViewPrivilegies)
+    .then(reloadViewPrivileges)
     .catch(function(data) {
-      reloadViewPrivilegies();
-      uiAlert.danger(data.data.status, data.data.message);
+      reloadViewPrivileges();
+      Alert.error('Cannot save permissions', data.data.message);
     });
     $scope.editPermissionDisabled = true;
   };
@@ -170,7 +170,7 @@ angular.module('ambariAdminConsole')
         $location.path('/views');
       })
       .catch(function(data) {
-        uiAlert.danger(data.data.status, data.data.message);
+        Alert.error('Cannot delete instance', data.data.message);
       });
     });
   };

@@ -18,7 +18,7 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('UsersCreateCtrl',['$scope', '$routeParams', 'User', '$location', 'uiAlert', function($scope, $routeParams, User, $location, uiAlert) {
+.controller('UsersCreateCtrl',['$scope', '$routeParams', 'User', '$location', 'Alert', function($scope, $routeParams, User, $location, Alert) {
   $scope.user = {
     active: true
   };
@@ -32,11 +32,10 @@ angular.module('ambariAdminConsole')
         'Users/active': !!$scope.user.active,
         'Users/admin': !!$scope.user.admin
       }).then(function() {
-        uiAlert.success('Created user ' + $scope.user.user_name);
+        Alert.success('Created user <a href="#/users/' + $scope.user.user_name + '">' + $scope.user.user_name + "</a>");
         $location.path('/users');
       }).catch(function(data) {;
-        data = data.data;
-        uiAlert.danger(data.status, data.message);
+        Alert.error('User creation error', data.data.message);
       });
     }
   };

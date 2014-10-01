@@ -180,7 +180,7 @@ angular.module('ambariAdminConsole')
     );
   };
 
-  Group.getPrivilegies = function(groupId) {
+  Group.getPrivileges = function(groupId) {
     return $http.get(Settings.baseUrl + '/privileges', {
         params:{
           'PrivilegeInfo/principal_type': 'GROUP',

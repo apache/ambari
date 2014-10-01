@@ -18,7 +18,7 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('CreateViewInstanceCtrl',['$scope', 'View', 'uiAlert', '$routeParams', '$location', function($scope, View, uiAlert, $routeParams, $location) {
+.controller('CreateViewInstanceCtrl',['$scope', 'View', 'Alert', '$routeParams', '$location', function($scope, View, Alert, $routeParams, $location) {
   $scope.form = {};
 
   function loadMeta(){
@@ -74,16 +74,16 @@ angular.module('ambariAdminConsole')
         } else {
           View.createInstance($scope.instance)
           .then(function(data) {
-            uiAlert.success('Created View Instance ' + $scope.instance.instance_name);
+            Alert.success('Created View Instance ' + $scope.instance.instance_name);
             $location.path('/views/' + $scope.instance.view_name + '/versions/' + $scope.instance.version + '/instances/' + $scope.instance.instance_name + '/edit');
           })
           .catch(function(data) {
-            uiAlert.danger(data.data.status, data.data.message);
+            Alert.error('Cannot create instance', data.data.message);
           });
         }
       })
       .catch(function(data) {
-        uiAlert.danger(data.data.status, data.data.message);
+        Alert.error('Cannot create instance', data.data.message);
       });
     }
   };

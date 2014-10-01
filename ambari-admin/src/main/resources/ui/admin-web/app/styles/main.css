@@ -1022,6 +1022,98 @@ button.btn.btn-xs{
   color: #666;
 }
 
+.alert-container {
+  position: fixed;
+  top: 50px;
+  right: 20px;
+  z-index: 1000;
+  text-align: right;
+  max-width: 450px;
+}
+.ambariAlert {
+  position: relative;
+  border: 1px solid #c4c4c4;
+  border-radius: 4px 0 0 4px;
+  box-shadow: 0 0px 4px #ebebeb;
+  min-width: 200px;
+  max-width: 450px;
+  background: white;
+  margin-bottom: 20px;
+  z-index: 1000;
+  padding: 20px 20px 20px 60px;
+  max-height: 100%;
+  display: block;
+  float: right;
+  clear: both;
+  text-align: left;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+
+  -webkit-transition: all 0.3s linear;
+  -o-transition: all 0.3s linear;
+  transition: all 0.3s linear;
+
+  -webkit-transform: translateX(0px);
+  -ms-transform: translateX(0px);
+  -o-transform: translateX(0px);
+  transform: translateX(0px);
+}
+.ambariAlert .content {
+  display: inline-block;
+  padding-right: 10px;
+}
+.ambariAlert .icon-box {
+  display: inline-block;
+  font-size: 30px;
+  position: absolute;
+  left: 15px;
+  top: 10px;
+}
+.ambariAlert .more {
+  display: none;
+  margin-top: 10px;
+}
+.ambariAlert .more.visible {
+  display: block;
+}
+.ambariAlert.invisible {
+  -webkit-transform: translateX(1000px);
+  -ms-transform: translateX(1000px);
+  -o-transform: translateX(1000px);
+  transform: translateX(1000px);
+  
+  padding: 0;
+  margin: 0;
+  max-height: 0;
+}
+.ambariAlert .close {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  outline: none;
+}
+.ambariAlert.error {
+  border-left: 3px solid #ef2427;
+}
+.ambariAlert.error .icon-box {
+  color: #ef2427;
+}
+
+.ambariAlert.success {
+  border-left: 3px solid #82c534;
+}
+.ambariAlert.success .icon-box {
+  color: #82c534;
+}
+
+.ambariAlert.info {
+  border-left: 3px solid #ffbc5b;
+}
+.ambariAlert.info .icon-box {
+  color: #ffbc5b;
+}
+
 .edit-cluster-name {
   cursor: pointer;
 }

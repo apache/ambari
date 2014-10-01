@@ -18,7 +18,7 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('UsersShowCtrl', ['$scope', '$routeParams', 'User', '$modal', '$location', 'ConfirmationModal', 'uiAlert', 'Auth', 'getDifference', 'Group', '$q', function($scope, $routeParams, User, $modal, $location, ConfirmationModal, uiAlert, Auth, getDifference, Group, $q) {
+.controller('UsersShowCtrl', ['$scope', '$routeParams', 'User', '$modal', '$location', 'ConfirmationModal', 'Alert', 'Auth', 'getDifference', 'Group', '$q', function($scope, $routeParams, User, $modal, $location, ConfirmationModal, Alert, Auth, getDifference, Group, $q) {
 
   function loadUserInfo(){
     User.get($routeParams.id).then(function(data) {
@@ -58,13 +58,13 @@ angular.module('ambariAdminConsole')
     // Remove user from groups
     angular.forEach(diff.del, function(groupName) {
       promises.push(Group.removeMemberFromGroup(groupName, $scope.user.user_name).catch(function(data) {
-        uiAlert.danger(data.data.status, data.data.message);
+        Alert.error('Removing from group error', data.data.message);
       }));
     });
     // Add user to groups
     angular.forEach(diff.add, function(groupName) {
       promises.push(Group.addMemberToGroup(groupName, $scope.user.user_name).catch(function(data) {
-        uiAlert.danger(data.data.status, data.data.message);
+        Alert.error('Cannot add user to group', data.data.message);
       }));
     });
     $q.all(promises).then(function() {
@@ -113,9 +113,9 @@ angular.module('ambariAdminConsole')
 
     modalInstance.result.then(function(data) {
       User.setPassword($scope.user, data.password, data.currentUserPassword).then(function() {
-        uiAlert.success('Password changed.');
+        Alert.success('Password changed.');
       }).catch(function(data) {
-        uiAlert.danger(data.data.status, data.data.message);
+        Alert.error('Cannot change password', data.data.message);
       });
     }); 
   };
@@ -141,7 +141,7 @@ angular.module('ambariAdminConsole')
       ConfirmationModal.show('Change Admin Privilege', message + '"'+$scope.user.user_name+'"?').then(function() {
         User.setAdmin($scope.user.user_name, $scope.user.admin)
         .then(function() {
-          loadPrivilegies();
+          loadPrivileges();
         });
       })
       .catch(function() {
@@ -159,37 +159,34 @@ angular.module('ambariAdminConsole')
     });
   };
 
-  // Load privilegies
-  function loadPrivilegies(){
-    User.getPrivilegies($routeParams.id).then(function(data) {
-      var privilegies = {
+  // Load privileges
+  function loadPrivileges(){
+    User.getPrivileges($routeParams.id).then(function(data) {
+      var privileges = {
         clusters: {},
         views: {}
       };
-      angular.forEach(data.data.items, function(privilegie) {
-        privilegie = privilegie.PrivilegeInfo;
-        if(privilegie.type === 'CLUSTER'){
+      angular.forEach(data.data.items, function(privilege) {
+        privilege = privilege.PrivilegeInfo;
+        if(privilege.type === 'CLUSTER'){
           // This is cluster
-          privilegies.clusters[privilegie.cluster_name] = privilegies.clusters[privilegie.cluster_name] || [];
-          privilegies.clusters[privilegie.cluster_name].push(privilegie.permission_name);
-        } else if ( privilegie.type === 'VIEW'){
-          privilegies.views[privilegie.instance_name] = privilegies.views[privilegie.instance_name] || { privileges:[]};
-          privilegies.views[privilegie.instance_name].version = privilegie.version;
-          privilegies.views[privilegie.instance_name].view_name = privilegie.view_name;
-          privilegies.views[privilegie.instance_name].privileges.push(privilegie.permission_name);
+          privileges.clusters[privilege.cluster_name] = privileges.clusters[privilege.cluster_name] || [];
+          privileges.clusters[privilege.cluster_name].push(privilege.permission_name);
+        } else if ( privilege.type === 'VIEW'){
+          privileges.views[privilege.instance_name] = privileges.views[privilege.instance_name] || { privileges:[]};
+          privileges.views[privilege.instance_name].version = privilege.version;
+          privileges.views[privilege.instance_name].view_name = privilege.view_name;
+          privileges.views[privilege.instance_name].privileges.push(privilege.permission_name);
 
         }
       });
 
-      $scope.privileges = data.data.items.length ? privilegies : null;
+      $scope.privileges = data.data.items.length ? privileges : null;
       $scope.dataLoaded = true;
 
     }).catch(function(data) {
-      uiAlert.danger(data.data.status, data.data.message);
+      Alert.error('Cannot load privileges', data.data.message);
     });
   }
-
-  loadPrivilegies();
-  
-    
+  loadPrivileges();  
 }]);
