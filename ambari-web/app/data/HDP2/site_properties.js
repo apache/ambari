@@ -637,15 +637,15 @@ module.exports =
 
     },
     {
-    "id": "site property",
-    "name": "hbase.master.port",
-    "displayName": "HBase Master Port",
-    "isReconfigurable": true,
-    "displayType": "int",
-    "isOverridable": false,
-    "isVisible": true,
-    "serviceName": "HBASE",
-    "category": "Advanced hbase-site"
+      "id": "site property",
+      "name": "hbase.master.port",
+      "displayName": "HBase Master Port",
+      "isReconfigurable": true,
+      "displayType": "int",
+      "isOverridable": false,
+      "isVisible": true,
+      "serviceName": "HBASE",
+      "category": "Advanced hbase-site"
     },
     {
       "id": "site property",
@@ -964,6 +964,7 @@ module.exports =
       "displayName": "nimbus.host",
       "displayType": "masterHost",
       "isOverridable": false,
+      "isReconfigurable": false,
       "serviceName": "STORM",
       "category": "NIMBUS"
     },
@@ -1567,7 +1568,7 @@ module.exports =
       "serviceName": "FALCON",
       "filename": "falcon-startup.properties.xml"
     },
-   {
+    {
       "id": "site property",
       "name": "*.falcon.http.authentication.blacklisted.users",
       "displayName": "*.falcon.http.authentication.blacklisted.users",
@@ -1616,7 +1617,7 @@ module.exports =
       "serviceName": "PIG",
       "filename": "pig-properties.xml",
       "category": "Advanced pig-properties"
-    }, 
+    },
   /********************************************* flume-agent *****************************/
     {
       "id": "site property",
@@ -2100,15 +2101,15 @@ module.exports =
       "index": 1
     },
     {
-     "id": "puppet var",
-     "name": "hbase_regionserver_xmn_max",
-     "displayName": "RegionServers maximum value for -Xmn",
-     "displayType": "int",
-     "unit": "MB",
-     "isVisible": true,
-     "serviceName": "HBASE",
-     "category": "HBASE_REGIONSERVER",
-     "index": 6
+      "id": "puppet var",
+      "name": "hbase_regionserver_xmn_max",
+      "displayName": "RegionServers maximum value for -Xmn",
+      "displayType": "int",
+      "unit": "MB",
+      "isVisible": true,
+      "serviceName": "HBASE",
+      "category": "HBASE_REGIONSERVER",
+      "index": 6
     },
     {
       "id": "puppet var",

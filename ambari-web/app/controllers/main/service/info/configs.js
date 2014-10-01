@@ -756,7 +756,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     serviceConfig.compareConfigs = [];
     serviceConfig.isComparison = true;
 
-    if (compareConfig) {
+    //if config isn't reconfigurable then it can't have changed value to compare
+    if (compareConfig && serviceConfig.isReconfigurable) {
       compareObject = this.getComparisonConfig(serviceConfig, compareConfig);
       serviceConfig.hasCompareDiffs = serviceConfig.isMock || this.hasCompareDiffs(serviceConfig, compareObject);
       serviceConfig.compareConfigs.push(compareObject);
