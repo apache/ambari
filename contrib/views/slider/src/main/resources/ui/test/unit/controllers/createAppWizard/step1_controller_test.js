@@ -16,19 +16,24 @@
  * limitations under the License.
  */
 
-require('initialize');
+moduleFor('controller:createAppWizardStep1', 'App.CreateAppWizardStep1Controller', {
 
-document.write('<div id="ember-testing"></div>');
-App.rootElement = '#ember-testing';
-App.setupForTesting();
-App.injectTestHelpers();
+  needs: [
+    'controller:createAppWizard'
+  ]
 
-module('Integration tests', {
-    setup: function() {
-        Ember.run(App, App.advanceReadiness);
-    },
+});
 
-    teardown: function() {
-        App.reset();
-    }
+test('isAppTypesError', function () {
+
+  var controller = this.subject({availableTypes: {content: []}});
+  equal(controller.get('isAppTypesError'), true, 'should be true if no app types provided');
+
+  Em.run(function () {
+    controller.set('availableTypes', {content: [
+      {}
+    ]});
+  });
+  equal(controller.get('isAppTypesError'), false, 'should be false if app types provided');
+
 });
