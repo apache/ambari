@@ -253,7 +253,7 @@ App.SliderAppController = Ember.ObjectController.extend(App.AjaxErrorHandler, {
       'slider_app/flex_popup',
       Em.A([
         Ember.Object.create({title: Em.I18n.t('common.cancel'), clicked:"closeFlex", dismiss: 'modal'}),
-        Ember.Object.create({title: Em.I18n.t('common.send'), clicked:"submitFlex", type:'success'})
+        Ember.Object.create({title: Em.I18n.t('common.save'), clicked:"submitFlex", type:'success'})
       ]),
       this
     );
