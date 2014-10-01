@@ -1274,7 +1274,7 @@ public class ViewRegistry {
       setViewStatus(viewDefinition, ViewEntity.ViewStatus.DEPLOYED, "Deployed " + extractedArchiveDirPath + ".");
 
     } catch (Exception e) {
-      String msg = "Caught exception loading view " + viewDefinition.getViewName();
+      String msg = "Caught exception loading view " + viewDefinition.getName();
 
       setViewStatus(viewDefinition, ViewEntity.ViewStatus.ERROR, msg + " : " + e.getMessage());
       LOG.error(msg, e);
