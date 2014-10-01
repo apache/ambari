@@ -44,6 +44,7 @@ import java.util.Set;
 
 import static org.junit.Assert.*;
 import static org.easymock.EasyMock.*;
+import static org.junit.Assert.assertEquals;
 
 public class ViewInstanceResourceProviderTest {
 
@@ -65,7 +66,7 @@ public class ViewInstanceResourceProviderTest {
     propertyIds.add(ViewInstanceResourceProvider.PROPERTIES_PROPERTY_ID);
     ViewInstanceEntity viewInstanceEntity = createNiceMock(ViewInstanceEntity.class);
     ViewEntity viewEntity = createNiceMock(ViewEntity.class);
-    expect(viewInstanceEntity.getViewEntity()).andReturn(viewEntity);
+    expect(viewInstanceEntity.getViewEntity()).andReturn(viewEntity).anyTimes();
 
     ViewInstancePropertyEntity propertyEntity1 = createNiceMock(ViewInstancePropertyEntity.class);
     expect(propertyEntity1.getName()).andReturn("par1").anyTimes();
@@ -81,10 +82,14 @@ public class ViewInstanceResourceProviderTest {
     expect(parameter2.getName()).andReturn("par2").anyTimes();
     expect(viewEntity.getParameters()).andReturn(Arrays.asList(parameter1, parameter2));
 
-    expect(viewInstanceEntity.getData()).andReturn(Collections.<ViewInstanceDataEntity>emptyList());
+    expect(viewInstanceEntity.getData()).andReturn(Collections.<ViewInstanceDataEntity>emptyList()).anyTimes();
 
-    replay(viewEntity, viewInstanceEntity, parameter1, parameter2, propertyEntity1, propertyEntity3);
+    expect(singleton.checkAdmin()).andReturn(true);
+    expect(singleton.checkAdmin()).andReturn(false);
 
+    replay(singleton, viewEntity, viewInstanceEntity, parameter1, parameter2, propertyEntity1, propertyEntity3);
+
+    // as admin
     Resource resource = provider.toResource(viewInstanceEntity, propertyIds);
     Map<String, Map<String, Object>> properties = resource.getPropertiesMap();
     assertEquals(1, properties.size());
@@ -94,6 +99,14 @@ public class ViewInstanceResourceProviderTest {
     assertEquals("val1", props.get("par1"));
     assertEquals("val3", props.get("par3"));
     assertNull(props.get("par2"));
+
+    // as non-admin
+    resource = provider.toResource(viewInstanceEntity, propertyIds);
+    properties = resource.getPropertiesMap();
+    props = properties.get("ViewInstanceInfo/properties");
+    assertNull(props);
+
+    verify(singleton);
   }
 
   @Test
@@ -107,6 +120,7 @@ public class ViewInstanceResourceProviderTest {
     propertyMap.put(ViewInstanceResourceProvider.VIEW_NAME_PROPERTY_ID, "V1");
     propertyMap.put(ViewInstanceResourceProvider.VIEW_VERSION_PROPERTY_ID, "1.0.0");
     propertyMap.put(ViewInstanceResourceProvider.INSTANCE_NAME_PROPERTY_ID, "I1");
+    propertyMap.put(ViewInstanceResourceProvider.PROPERTIES_PROPERTY_ID + "/test_property", "test_value");
 
     properties.add(propertyMap);
 
@@ -114,24 +128,44 @@ public class ViewInstanceResourceProviderTest {
     viewInstanceEntity.setViewName("V1{1.0.0}");
     viewInstanceEntity.setName("I1");
 
+    ViewInstanceEntity viewInstanceEntity2 = new ViewInstanceEntity();
+    viewInstanceEntity2.setViewName("V1{1.0.0}");
+    viewInstanceEntity2.setName("I1");
+
     ViewEntity viewEntity = new ViewEntity();
     viewEntity.setStatus(ViewDefinition.ViewStatus.DEPLOYED);
     viewEntity.setName("V1{1.0.0}");
 
     viewInstanceEntity.setViewEntity(viewEntity);
+    viewInstanceEntity2.setViewEntity(viewEntity);
 
     expect(singleton.instanceExists(viewInstanceEntity)).andReturn(false);
+    expect(singleton.instanceExists(viewInstanceEntity2)).andReturn(false);
     expect(singleton.getInstanceDefinition("V1", "1.0.0", "I1")).andReturn(viewInstanceEntity);
-    expect(singleton.getDefinition("V1", null)).andReturn(viewEntity);
+    expect(singleton.getInstanceDefinition("V1", "1.0.0", "I1")).andReturn(viewInstanceEntity2);
+    expect(singleton.getDefinition("V1", null)).andReturn(viewEntity).anyTimes();
 
     Capture<ViewInstanceEntity> instanceEntityCapture = new Capture<ViewInstanceEntity>();
     singleton.installViewInstance(capture(instanceEntityCapture));
+    expectLastCall().anyTimes();
+
+    expect(singleton.checkAdmin()).andReturn(true);
+    expect(singleton.checkAdmin()).andReturn(false);
 
     replay(singleton);
 
+    // as admin
     provider.createResources(PropertyHelper.getCreateRequest(properties, null));
+    assertEquals(viewInstanceEntity, instanceEntityCapture.getValue());
+    Map<String, String> props = viewInstanceEntity.getPropertyMap();
+    assertEquals(1, props.size());
+    assertEquals("test_value", props.get("test_property"));
 
-    Assert.assertEquals(viewInstanceEntity, instanceEntityCapture.getValue());
+    // as non-admin
+    provider.createResources(PropertyHelper.getCreateRequest(properties, null));
+    assertEquals(viewInstanceEntity2, instanceEntityCapture.getValue());
+    props = viewInstanceEntity2.getPropertyMap();
+    assertTrue(props.isEmpty());
 
     verify(singleton);
   }
@@ -163,6 +197,8 @@ public class ViewInstanceResourceProviderTest {
     expect(singleton.instanceExists(viewInstanceEntity)).andReturn(true);
     expect(singleton.getInstanceDefinition("V1", "1.0.0", "I1")).andReturn(viewInstanceEntity);
     expect(singleton.getDefinition("V1", null)).andReturn(viewEntity);
+
+    expect(singleton.checkAdmin()).andReturn(true);
 
     replay(singleton);
 
@@ -200,6 +236,8 @@ public class ViewInstanceResourceProviderTest {
 
     expect(singleton.getInstanceDefinition("V1", "1.0.0", "I1")).andReturn(viewInstanceEntity);
     expect(singleton.getDefinition("V1", null)).andReturn(viewEntity);
+
+    expect(singleton.checkAdmin()).andReturn(true);
 
     replay(singleton);
 

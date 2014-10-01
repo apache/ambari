@@ -221,18 +221,24 @@ public class ViewInstanceResourceProvider extends AbstractResourceProvider {
     setResourceProperty(resource, DESCRIPTION_PROPERTY_ID, viewInstanceEntity.getDescription(), requestedIds);
     setResourceProperty(resource, VISIBLE_PROPERTY_ID, viewInstanceEntity.isVisible(), requestedIds);
     setResourceProperty(resource, STATIC_PROPERTY_ID, viewInstanceEntity.isXmlDriven(), requestedIds);
-    Map<String, String> properties = new HashMap<String, String>();
 
-    for (ViewInstancePropertyEntity viewInstancePropertyEntity : viewInstanceEntity.getProperties()) {
-      properties.put(viewInstancePropertyEntity.getName(), viewInstancePropertyEntity.getValue());
-    }
-    for (ViewParameterEntity viewParameterEntity : viewEntity.getParameters()) {
-      if (!properties.containsKey(viewParameterEntity.getName())) {
-        properties.put(viewParameterEntity.getName(), null);
+    // only allow an admin to access the view properties
+    if (ViewRegistry.getInstance().checkAdmin()) {
+
+      Map<String, String> properties = new HashMap<String, String>();
+
+      for (ViewInstancePropertyEntity viewInstancePropertyEntity : viewInstanceEntity.getProperties()) {
+        properties.put(viewInstancePropertyEntity.getName(), viewInstancePropertyEntity.getValue());
       }
+      for (ViewParameterEntity viewParameterEntity : viewEntity.getParameters()) {
+        if (!properties.containsKey(viewParameterEntity.getName())) {
+          properties.put(viewParameterEntity.getName(), null);
+        }
+      }
+      setResourceProperty(resource, PROPERTIES_PROPERTY_ID,
+          properties, requestedIds);
     }
-    setResourceProperty(resource, PROPERTIES_PROPERTY_ID,
-        properties, requestedIds);
+
     Map<String, String> applicationData = new HashMap<String, String>();
 
     String currentUserName = viewInstanceEntity.getCurrentUserName();
@@ -305,20 +311,26 @@ public class ViewInstanceResourceProvider extends AbstractResourceProvider {
 
     Collection<ViewInstancePropertyEntity> instanceProperties = new HashSet<ViewInstancePropertyEntity>();
 
+    boolean isUserAdmin = viewRegistry.checkAdmin();
+
     for (Map.Entry<String, Object> entry : properties.entrySet()) {
 
       String propertyName = entry.getKey();
 
       if (propertyName.startsWith(PROPERTIES_PREFIX)) {
-        ViewInstancePropertyEntity viewInstancePropertyEntity = new ViewInstancePropertyEntity();
 
-        viewInstancePropertyEntity.setViewName(viewName);
-        viewInstancePropertyEntity.setViewInstanceName(name);
-        viewInstancePropertyEntity.setName(entry.getKey().substring(PROPERTIES_PREFIX.length()));
-        viewInstancePropertyEntity.setValue((String) entry.getValue());
-        viewInstancePropertyEntity.setViewInstanceEntity(viewInstanceEntity);
+        // only allow an admin to access the view properties
+        if (isUserAdmin) {
+          ViewInstancePropertyEntity viewInstancePropertyEntity = new ViewInstancePropertyEntity();
 
-        instanceProperties.add(viewInstancePropertyEntity);
+          viewInstancePropertyEntity.setViewName(viewName);
+          viewInstancePropertyEntity.setViewInstanceName(name);
+          viewInstancePropertyEntity.setName(entry.getKey().substring(PROPERTIES_PREFIX.length()));
+          viewInstancePropertyEntity.setValue((String) entry.getValue());
+          viewInstancePropertyEntity.setViewInstanceEntity(viewInstanceEntity);
+
+          instanceProperties.add(viewInstancePropertyEntity);
+        }
       } else if (propertyName.startsWith(DATA_PREFIX)) {
         viewInstanceEntity.putInstanceData(entry.getKey().substring(DATA_PREFIX.length()), (String) entry.getValue());
       }
