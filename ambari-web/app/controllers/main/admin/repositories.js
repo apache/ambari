@@ -132,13 +132,10 @@ App.MainAdminRepositoriesController = Em.Controller.extend({
    */
   parseServicesInfo: function (currentStack, upgradeStack) {
     var result = [];
-    var installedServices = App.Service.find().mapProperty('serviceName');
     var displayOrder = App.StackService.displayOrder;
-    if (currentStack.stackServices.length && upgradeStack.stackServices.length) {
+    if (currentStack.stackServices.length ||  upgradeStack.stackServices.length) {
       // loop through all the service components
       displayOrder.forEach(function (_stackServiceName) {
-        var entry = currentStack.stackServices.
-          findProperty("StackServices.service_name", _stackServiceName);
         var stackService = App.StackService.find().findProperty('serviceName', _stackServiceName);
         if (!!stackService) {
           var myService = Em.Object.create({
