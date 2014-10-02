@@ -33,42 +33,42 @@ def hbase_decommission(env):
   )
   
   if params.hbase_excluded_hosts and params.hbase_excluded_hosts.split(","):
-    hosts = params.hbase_excluded_hosts.split(",")
-  elif params.hbase_included_hosts and params.hbase_included_hosts.split(","):
-    hosts = params.hbase_included_hosts.split(",")
 
-  if params.hbase_drain_only:
-    for host in hosts:
-      if host:
-        regiondrainer_cmd = format(
-          "{kinit_cmd} {hbase_cmd} --config {hbase_conf_dir} org.jruby.Main {region_drainer} remove {host}")
-        Execute(regiondrainer_cmd,
-                user=params.hbase_user,
-                logoutput=True
-        )
+    if params.hbase_drain_only == 'true':
+      hosts = params.hbase_excluded_hosts.split(",")
+      for host in hosts:
+        if host:
+          regiondrainer_cmd = format(
+            "{kinit_cmd} {hbase_cmd} --config {hbase_conf_dir} org.jruby.Main {region_drainer} remove {host}")
+          Execute(regiondrainer_cmd,
+                  user=params.hbase_user,
+                  logoutput=True
+          )
+          pass
+      pass
+
+    else:
+
+      hosts = params.hbase_excluded_hosts.split(",")
+      for host in hosts:
+        if host:
+          regiondrainer_cmd = format(
+            "{kinit_cmd} {hbase_cmd} --config {hbase_conf_dir} org.jruby.Main {region_drainer} add {host}")
+          regionmover_cmd = format(
+            "{kinit_cmd} {hbase_cmd} --config {hbase_conf_dir} org.jruby.Main {region_mover} unload {host}")
+
+          Execute(regiondrainer_cmd,
+                  user=params.hbase_user,
+                  logoutput=True
+          )
+
+          Execute(regionmover_cmd,
+                  user=params.hbase_user,
+                  logoutput=True
+          )
         pass
-    pass
-
-  else:
-    for host in hosts:
-      if host:
-        regiondrainer_cmd = format(
-          "{kinit_cmd} {hbase_cmd} --config {hbase_conf_dir} org.jruby.Main {region_drainer} add {host}")
-        regionmover_cmd = format(
-          "{kinit_cmd} {hbase_cmd} --config {hbase_conf_dir} org.jruby.Main {region_mover} unload {host}")
-
-        Execute(regiondrainer_cmd,
-                user=params.hbase_user,
-                logoutput=True
-        )
-
-        Execute(regionmover_cmd,
-                user=params.hbase_user,
-                logoutput=True
-        )
       pass
     pass
-  pass
-  
+
 
   pass

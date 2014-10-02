@@ -46,7 +46,7 @@ else:
 hadoop_conf_dir = "/etc/hadoop/conf"
 hbase_conf_dir = "/etc/hbase/conf"
 hbase_excluded_hosts = config['commandParams']['excluded_hosts']
-hbase_drain_only = default("/commandParams/mark_draining_only",False)
+hbase_drain_only = config['commandParams']['mark_draining_only']
 hbase_included_hosts = config['commandParams']['included_hosts']
 
 hbase_user = status_params.hbase_user
