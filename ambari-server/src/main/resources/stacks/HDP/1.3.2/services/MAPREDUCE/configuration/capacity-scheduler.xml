@@ -22,7 +22,7 @@
 <!-- The properties for a queue follow a naming convention,such as, -->
 <!-- mapred.capacity-scheduler.queue.<queue-name>.property-name. -->
 
-<configuration supports_final="true" supports_adding_forbidden="true">
+<configuration supports_final="false" supports_adding_forbidden="true">
 
   <property>
     <name>mapred.capacity-scheduler.maximum-system-jobs</name>

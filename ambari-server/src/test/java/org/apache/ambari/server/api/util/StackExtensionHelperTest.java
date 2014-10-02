@@ -617,7 +617,7 @@ public class StackExtensionHelperTest {
     assertEquals(2, attributes.size());
     QName supportsFinal = new QName("", "supports_final");
     assertTrue(attributes.containsKey(supportsFinal));
-    assertEquals("true", attributes.get(supportsFinal));
+    assertEquals("false", attributes.get(supportsFinal));
     QName supportsDeletable = new QName("", "supports_deletable");
     assertTrue(attributes.containsKey(supportsDeletable));
     assertEquals("false", attributes.get(supportsDeletable));

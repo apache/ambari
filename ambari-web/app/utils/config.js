@@ -1192,7 +1192,7 @@ App.config = Em.Object.create({
       "isOverridable": true,
       "isRequired": true,
       "isVisible": true,
-      "supportsFinal": true,
+      "supportsFinal": false,
       "serviceName": "YARN",
       "filename": "capacity-scheduler.xml",
       "category": "CapacityScheduler"
