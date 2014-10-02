@@ -212,7 +212,7 @@ App.MainHostDetailsController = Em.Controller.extend({
     var component = event.context;
     var componentName = component.get('componentName');
     var displayName = component.get('displayName');
-    var isLastComponent = (App.HostComponent.find().filterProperty('componentName', componentName).get('length') === 1);
+    var isLastComponent = (this.getTotalComponent(component) === 1);
     App.ModalPopup.show({
       header: Em.I18n.t('popup.confirmation.commonHeader'),
       primary: Em.I18n.t('hosts.host.deleteComponent.popup.confirm'),
@@ -250,6 +250,24 @@ App.MainHostDetailsController = Em.Controller.extend({
         });
       }
     });
+  },
+
+  /**
+   * get total count of host-components
+   * @method getTotalComponent
+   * @param component
+   * @return {Number}
+   */
+  getTotalComponent: function (component) {
+    var count;
+    if (component.get('isSlave')) {
+      count = App.SlaveComponent.find(component.get('componentName')).get('totalCount');
+    } else if (component.get('isClient')) {
+      count = App.ClientComponent.find(component.get('componentName')).get('totalCount');
+    } else {
+      count = App.HostComponent.find().filterProperty('componentName', component.get('componentName')).get('length')
+    }
+    return count || 0;
   },
 
   /**

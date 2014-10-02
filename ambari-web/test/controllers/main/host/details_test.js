@@ -1355,6 +1355,57 @@ describe('App.MainHostDetailsController', function () {
     });
   });
 
+  describe('#getTotalComponent()', function () {
+
+    beforeEach(function () {
+      sinon.stub(App.SlaveComponent, 'find', function() {
+        return Em.Object.create({
+          componentName: "SLAVE",
+          totalCount: 1
+        });
+      });
+      sinon.stub(App.ClientComponent, 'find', function() {
+        return Em.Object.create({
+          componentName: "CLIENT",
+          totalCount: 1
+        });
+      });
+      sinon.stub(App.HostComponent, 'find', function() {
+        return [Em.Object.create({
+          componentName: "MASTER",
+          totalCount: 1
+        })]
+      });
+    });
+    afterEach(function () {
+      App.SlaveComponent.find.restore();
+      App.ClientComponent.find.restore();
+      App.HostComponent.find.restore();
+    });
+
+    it('component is slave', function () {
+      expect(controller.getTotalComponent(Em.Object.create({
+        componentName: "SLAVE",
+        isSlave: true
+      }))).to.equal(1);
+    });
+    it('component is client', function () {
+      expect(controller.getTotalComponent(Em.Object.create({
+        componentName: "CLIENT",
+        isClient: true
+      }))).to.equal(1);
+    });
+    it('component is master', function () {
+      expect(controller.getTotalComponent(Em.Object.create({
+        componentName: "MASTER"
+      }))).to.equal(1);
+    });
+    it('unknown component', function () {
+      expect(controller.getTotalComponent(Em.Object.create({
+        componentName: "UNKNOWN"
+      }))).to.equal(0);
+    });
+  });
   describe('#downloadClientConfigs()', function () {
 
     beforeEach(function () {
