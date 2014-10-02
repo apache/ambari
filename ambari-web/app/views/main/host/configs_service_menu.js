@@ -20,7 +20,7 @@ var App = require('app');
 var misc = require('utils/misc');
 
 App.MainHostServiceMenuView = Em.CollectionView.extend({
-  content:function () {
+  content: function () {
     var host = this.get('host');
     var hostComponents = host.get('hostComponents');
     var services = Em.A([]);
@@ -29,7 +29,7 @@ App.MainHostServiceMenuView = Em.CollectionView.extend({
         var service = hc.get('service');
         if (service) {
           var serviceName = service.get('serviceName');
-          if(!App.get('services.noConfigTypes').contains(serviceName)){
+          if (!App.get('services.noConfigTypes').contains(serviceName)) {
             if (!services.findProperty('serviceName', serviceName)) {
               services.push(service);
             }
@@ -42,43 +42,38 @@ App.MainHostServiceMenuView = Em.CollectionView.extend({
     var stackServices = App.StackService.find().mapProperty('serviceName');
     return misc.sortByOrder(stackServices, services);
   }.property('host'),
-  
-  host: function(){
+
+  host: function () {
     return App.router.get('mainHostDetailsController.content');
   }.property('App.router.mainHostDetailsController.content'),
-  
+
   selectedService: null,
-  
-  showHostService: function(event){
+
+  showHostService: function (event) {
     var service = event.contexts[0];
-    if(service != null) {
+    if (!Em.isNone(service)) {
       this.set('selectedService', service);
       var context = service;
       context.host = this.get('host');
       this.get('controller').connectOutlet('service_config_outlet', 'mainHostServiceConfigs', context);
     }
-    else {
-      this.get('controller').connectOutlet('service_config_outlet', Em.View.extend({
-        template: Ember.Handlebars.compile('<i class="message">{{t hosts.host.serviceNotAvailable}}</i>')
-      }))
-    }
   },
 
-  didInsertElement:function () {
+  didInsertElement: function () {
     var event = {
-        contexts: [this.get('content').objectAt(0)]
+      contexts: [this.get('content').objectAt(0)]
     };
     this.showHostService(event);
   },
 
-  activeServiceId:null,
+  activeServiceId: null,
 
-  tagName:'ul',
-  classNames:["nav", "nav-list", "nav-services"],
+  tagName: 'ul',
+  classNames: ["nav", "nav-list", "nav-services"],
 
-  itemViewClass:Em.View.extend({
-    classNameBindings:["active", "clients"],
-    active:function () {
+  itemViewClass: Em.View.extend({
+    classNameBindings: ["active", "clients"],
+    active: function () {
       return this.get('content.serviceName') == this.get('parentView.selectedService.serviceName') ? 'active' : '';
     }.property('parentView.selectedService.serviceName'),
     template: Ember.Handlebars.compile('<a href="#" {{action showHostService view.content target="view.parentView"}} >{{view.content.displayName}}</a>')
