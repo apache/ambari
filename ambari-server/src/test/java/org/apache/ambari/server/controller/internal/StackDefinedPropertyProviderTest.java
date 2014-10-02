@@ -33,7 +33,7 @@ import org.apache.ambari.server.controller.ganglia.GangliaPropertyProvider;
 import org.apache.ambari.server.controller.ganglia.GangliaPropertyProviderTest.TestGangliaHostProvider;
 import org.apache.ambari.server.controller.jmx.JMXPropertyProvider;
 import org.apache.ambari.server.controller.jmx.TestStreamProvider;
-import org.apache.ambari.server.controller.jmx.JMXPropertyProviderTest.TestJMXHostProvider;
+import org.apache.ambari.server.controller.metrics.JMXPropertyProviderTest;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.PropertyProvider;
 import org.apache.ambari.server.controller.spi.Request;
@@ -65,9 +65,9 @@ import com.google.inject.persist.PersistService;
 public class StackDefinedPropertyProviderTest {
   private static final String HOST_COMPONENT_HOST_NAME_PROPERTY_ID = "HostRoles/host_name";
   private static final String HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID = "HostRoles/component_name";
-  private static final String HOST_COMPONENT_STATE_PROPERTY_ID = "HostRoles/state";    
+  private static final String HOST_COMPONENT_STATE_PROPERTY_ID = "HostRoles/state";
 
-  
+
   private Clusters clusters = null;
   private Injector injector = null;
 
@@ -78,13 +78,13 @@ public class StackDefinedPropertyProviderTest {
     injector = Guice.createInjector(module);
     injector.getInstance(GuiceJpaInitializer.class);
     StackDefinedPropertyProvider.init(injector);
-    
+
     clusters = injector.getInstance(Clusters.class);
     clusters.addCluster("c1");
-    
+
     Cluster cluster = clusters.getCluster("c1");
     cluster.setDesiredStackVersion(new StackId("HDP-2.0.5"));
-    
+
     clusters.addHost("h1");
     Host host = clusters.getHost("h1");
     Map<String, String> hostAttributes = new HashMap<String, String>();
@@ -92,88 +92,87 @@ public class StackDefinedPropertyProviderTest {
     hostAttributes.put("os_release_version", "6.3");
     host.setHostAttributes(hostAttributes);
     host.persist();
-    
+
     clusters.mapHostToCluster("h1", "c1");
   }
-  
+
   @After
   public void teardown() throws Exception {
-    injector.getInstance(PersistService.class).stop();    
+    injector.getInstance(PersistService.class).stop();
   }
-  
+
   @Test
   public void testPopulateHostComponentResources() throws Exception {
-    TestJMXHostProvider tj = new TestJMXHostProvider(true);
+    JMXPropertyProviderTest.TestJMXHostProvider tj = new JMXPropertyProviderTest.TestJMXHostProvider(true);
     TestGangliaHostProvider tg = new TestGangliaHostProvider();
-    
+    JMXPropertyProviderTest.TestMetricsHostProvider tm = new JMXPropertyProviderTest.TestMetricsHostProvider();
+
     StackDefinedPropertyProvider sdpp = new StackDefinedPropertyProvider(
-        Resource.Type.HostComponent, tj, tg, new CombinedStreamProvider(),
+        Resource.Type.HostComponent, tj, tg, tm, new CombinedStreamProvider(),
         "HostRoles/cluster_name", "HostRoles/host_name", "HostRoles/component_name", "HostRoles/state", null, null);
-    
+
     Resource resource = new ResourceImpl(Resource.Type.HostComponent);
 
     resource.setProperty("HostRoles/cluster_name", "c1");
     resource.setProperty("HostRoles/host_name", "h1");
     resource.setProperty("HostRoles/component_name", "NAMENODE");
     resource.setProperty("HostRoles/state", "STARTED");
-    
+
     // request with an empty set should get all supported properties
     Request request = PropertyHelper.getReadRequest(Collections.<String>emptySet(), new HashMap<String, TemporalInfo>());
 
     Set<Resource> set = sdpp.populateResources(Collections.singleton(resource), request, null);
     Assert.assertEquals(1, set.size());
-    
+
     Resource res = set.iterator().next();
-    
+
     Map<String, Map<String, Object>> values = res.getPropertiesMap();
-    
+
     Assert.assertTrue("Expected JMX metric 'metrics/dfs/FSNamesystem'", values.containsKey("metrics/dfs/FSNamesystem"));
     Assert.assertTrue("Expected JMX metric 'metrics/dfs/namenode'", values.containsKey("metrics/dfs/namenode"));
     Assert.assertTrue("Expected Ganglia metric 'metrics/rpcdetailed'", values.containsKey("metrics/rpcdetailed"));
   }
-  
-  
+
+
   @Test
   public void testCustomProviders() throws Exception {
-    
+
     StackDefinedPropertyProvider sdpp = new StackDefinedPropertyProvider(
-        Resource.Type.HostComponent, null, null, new CombinedStreamProvider(),
+        Resource.Type.HostComponent, null, null, null, new CombinedStreamProvider(),
         "HostRoles/cluster_name", "HostRoles/host_name", "HostRoles/component_name", "HostRoles/state",
         new EmptyPropertyProvider(), new EmptyPropertyProvider());
-    
+
     Resource resource = new ResourceImpl(Resource.Type.HostComponent);
 
     resource.setProperty("HostRoles/cluster_name", "c1");
     resource.setProperty("HostRoles/host_name", "h1");
     resource.setProperty("HostRoles/component_name", "DATANODE");
     resource.setProperty("HostRoles/state", "STARTED");
-    
+
     // request with an empty set should get all supported properties
     Request request = PropertyHelper.getReadRequest(Collections.<String>emptySet(), new HashMap<String, TemporalInfo>());
 
     Set<Resource> set = sdpp.populateResources(Collections.singleton(resource), request, null);
     Assert.assertEquals(1, set.size());
-    
+
     Resource res = set.iterator().next();
-    
+
     Map<String, Map<String, Object>> values = res.getPropertiesMap();
     Assert.assertTrue(values.containsKey("foo/type1"));
     Assert.assertTrue(values.containsKey("foo/type2"));
     Assert.assertTrue(values.containsKey("foo/type3"));
     Assert.assertFalse(values.containsKey("foo/type4"));
-    
+
     Assert.assertTrue(values.get("foo/type1").containsKey("name"));
     Assert.assertTrue(values.get("foo/type2").containsKey("name"));
     Assert.assertTrue(values.get("foo/type3").containsKey("name"));
 
     Assert.assertEquals("value1", values.get("foo/type1").get("name"));
-    Assert.assertEquals("value2", values.get("foo/type2").get("name"));
-    Assert.assertEquals("value3", values.get("foo/type3").get("name"));
-    
-  }
-  
 
-  
+  }
+
+
+
   private static class CombinedStreamProvider implements StreamProvider {
 
     @Override
@@ -193,12 +192,12 @@ public class StackDefinedPropertyProviderTest {
       return readFrom(spec);
     }
   }
-  
+
   private static class EmptyPropertyProvider implements PropertyProvider {
 
     @Override
     public Set<Resource> populateResources(Set<Resource> resources,
-        Request request, Predicate predicate) throws SystemException {
+                                           Request request, Predicate predicate) throws SystemException {
       // TODO Auto-generated method stub
       return null;
     }
@@ -210,19 +209,19 @@ public class StackDefinedPropertyProviderTest {
     }
 
   }
-  
+
   /**
    * Test for empty constructor.  Public since instantiated via reflection.
    */
   public static class CustomMetricProvider1 implements PropertyProvider {
     @Override
     public Set<Resource> populateResources(Set<Resource> resources,
-        Request request, Predicate predicate) throws SystemException {
-      
+                                           Request request, Predicate predicate) throws SystemException {
+
       for (Resource r : resources) {
         r.setProperty("foo/type1/name", "value1");
       }
-      
+
       return resources;
     }
 
@@ -237,14 +236,14 @@ public class StackDefinedPropertyProviderTest {
    */
   public static class CustomMetricProvider2 implements PropertyProvider {
     private Map<String, String> providerProperties = null;
-    
+
     public CustomMetricProvider2(Map<String, String> properties, Map<String, Metric> metrics) {
       providerProperties = properties;
     }
 
     @Override
     public Set<Resource> populateResources(Set<Resource> resources,
-        Request request, Predicate predicate) throws SystemException {
+                                           Request request, Predicate predicate) throws SystemException {
       for (Resource r : resources) {
         r.setProperty("foo/type2/name", providerProperties.get("Type2.Metric.Name"));
       }
@@ -263,7 +262,7 @@ public class StackDefinedPropertyProviderTest {
   public static class CustomMetricProvider3 implements PropertyProvider {
     private static CustomMetricProvider3 instance = null;
     private Map<String, String> providerProperties = new HashMap<String, String>();
-    
+
     public static CustomMetricProvider3 getInstance(Map<String, String> properties, Map<String, Metric> metrics) {
       if (null == instance) {
         instance = new CustomMetricProvider3();
@@ -271,10 +270,10 @@ public class StackDefinedPropertyProviderTest {
       }
       return instance;
     }
-    
+
     @Override
     public Set<Resource> populateResources(Set<Resource> resources,
-        Request request, Predicate predicate) throws SystemException {
+                                           Request request, Predicate predicate) throws SystemException {
       for (Resource r : resources) {
         r.setProperty("foo/type3/name", providerProperties.get("Type3.Metric.Name"));
       }
@@ -286,18 +285,20 @@ public class StackDefinedPropertyProviderTest {
       return Collections.emptySet();
     }
   }
-  
+
   @Test
   public void testPopulateResources_HDP2() throws Exception {
-    
+
     StreamProvider  streamProvider = new TestStreamProvider();
-    TestJMXHostProvider hostProvider = new TestJMXHostProvider(true);
+    JMXPropertyProviderTest.TestJMXHostProvider hostProvider = new JMXPropertyProviderTest.TestJMXHostProvider(true);
     TestGangliaHostProvider gangliaHostProvider = new TestGangliaHostProvider();
+    JMXPropertyProviderTest.TestMetricsHostProvider metricsHostProvider = new JMXPropertyProviderTest.TestMetricsHostProvider();
 
     StackDefinedPropertyProvider propertyProvider = new StackDefinedPropertyProvider(
         Resource.Type.HostComponent,
         hostProvider,
         gangliaHostProvider,
+        metricsHostProvider,
         streamProvider,
         PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
         PropertyHelper.getPropertyId("HostRoles", "host_name"),
@@ -325,7 +326,7 @@ public class StackDefinedPropertyProviderTest {
     Assert.assertEquals(8192,  resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root", "AvailableMB")));
     Assert.assertEquals(1,  resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root", "AvailableVCores")));
     Assert.assertEquals(2,  resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root", "AppsSubmitted")));
-    
+
     Assert.assertEquals(1,  resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/ClusterMetrics", "NumActiveNMs")));
     Assert.assertEquals(0,  resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/ClusterMetrics", "NumDecommissionedNMs")));
     Assert.assertEquals(0,  resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/ClusterMetrics", "NumLostNMs")));
@@ -346,18 +347,20 @@ public class StackDefinedPropertyProviderTest {
     request = PropertyHelper.getReadRequest(Collections.<String>emptySet());
 
     Assert.assertEquals(1, propertyProvider.populateResources(Collections.singleton(resource), request, null).size());
-  }  
-  
+  }
+
   @Test
   public void testPopulateResources_HDP2_params() throws Exception {
     TestStreamProvider  streamProvider = new TestStreamProvider();
-    TestJMXHostProvider hostProvider = new TestJMXHostProvider(false);
+    JMXPropertyProviderTest.TestJMXHostProvider hostProvider = new JMXPropertyProviderTest.TestJMXHostProvider(false);
     TestGangliaHostProvider gangliaHostProvider = new TestGangliaHostProvider();
+    JMXPropertyProviderTest.TestMetricsHostProvider metricsHostProvider = new JMXPropertyProviderTest.TestMetricsHostProvider();
 
     StackDefinedPropertyProvider propertyProvider = new StackDefinedPropertyProvider(
         Resource.Type.HostComponent,
         hostProvider,
         gangliaHostProvider,
+        metricsHostProvider,
         streamProvider,
         PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
         PropertyHelper.getPropertyId("HostRoles", "host_name"),
@@ -384,31 +387,33 @@ public class StackDefinedPropertyProviderTest {
     Assert.assertEquals(8192, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root", "AvailableMB")));
     Assert.assertEquals(1,    resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root", "AvailableVCores")));
     Assert.assertEquals(2,    resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root", "AppsSubmitted")));
-    
+
     Assert.assertEquals(15,   resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root/default", "AggregateContainersAllocated")));
     Assert.assertEquals(12,   resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root/default", "AggregateContainersReleased")));
     Assert.assertEquals(8192, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root/default", "AvailableMB")));
     Assert.assertEquals(1,    resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root/default", "AvailableVCores")));
     Assert.assertEquals(47,   resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root/default", "AppsSubmitted")));
-    
+
     Assert.assertEquals(4,    resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root/second_queue", "AggregateContainersAllocated")));
     Assert.assertEquals(4,    resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root/second_queue", "AggregateContainersReleased")));
     Assert.assertEquals(6048, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root/second_queue", "AvailableMB")));
     Assert.assertEquals(1,    resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root/second_queue", "AvailableVCores")));
     Assert.assertEquals(1,    resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root/second_queue", "AppsSubmitted")));
-  }  
+  }
 
 
   @Test
   public void testPopulateResources_HDP2_params_singleProperty() throws Exception {
     TestStreamProvider  streamProvider = new TestStreamProvider();
-    TestJMXHostProvider hostProvider = new TestJMXHostProvider(false);
+    JMXPropertyProviderTest.TestJMXHostProvider hostProvider = new JMXPropertyProviderTest.TestJMXHostProvider(false);
     TestGangliaHostProvider gangliaHostProvider = new TestGangliaHostProvider();
+    JMXPropertyProviderTest.TestMetricsHostProvider metricsHostProvider = new JMXPropertyProviderTest.TestMetricsHostProvider();
 
     StackDefinedPropertyProvider propertyProvider = new StackDefinedPropertyProvider(
         Resource.Type.HostComponent,
         hostProvider,
         gangliaHostProvider,
+        metricsHostProvider,
         streamProvider,
         PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
         PropertyHelper.getPropertyId("HostRoles", "host_name"),
@@ -434,17 +439,19 @@ public class StackDefinedPropertyProviderTest {
     Assert.assertEquals(8192, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root", "AvailableMB")));
     Assert.assertNull(resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root", "AvailableVCores")));
   }
-  
+
   @Test
   public void testPopulateResources_HDP2_params_category() throws Exception {
     TestStreamProvider  streamProvider = new TestStreamProvider();
-    TestJMXHostProvider hostProvider = new TestJMXHostProvider(false);
+    JMXPropertyProviderTest.TestJMXHostProvider hostProvider = new JMXPropertyProviderTest.TestJMXHostProvider(false);
     TestGangliaHostProvider gangliaHostProvider = new TestGangliaHostProvider();
+    JMXPropertyProviderTest.TestMetricsHostProvider metricsHostProvider = new JMXPropertyProviderTest.TestMetricsHostProvider();
 
     StackDefinedPropertyProvider propertyProvider = new StackDefinedPropertyProvider(
         Resource.Type.HostComponent,
         hostProvider,
         gangliaHostProvider,
+        metricsHostProvider,
         streamProvider,
         PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
         PropertyHelper.getPropertyId("HostRoles", "host_name"),
@@ -489,13 +496,15 @@ public class StackDefinedPropertyProviderTest {
   @Test
   public void testPopulateResources_HDP2_params_category2() throws Exception {
     TestStreamProvider  streamProvider = new TestStreamProvider();
-    TestJMXHostProvider hostProvider = new TestJMXHostProvider(false);
+    JMXPropertyProviderTest.TestJMXHostProvider hostProvider = new JMXPropertyProviderTest.TestJMXHostProvider(false);
     TestGangliaHostProvider gangliaHostProvider = new TestGangliaHostProvider();
+    JMXPropertyProviderTest.TestMetricsHostProvider metricsHostProvider = new JMXPropertyProviderTest.TestMetricsHostProvider();
 
     StackDefinedPropertyProvider propertyProvider = new StackDefinedPropertyProvider(
         Resource.Type.HostComponent,
         hostProvider,
         gangliaHostProvider,
+        metricsHostProvider,
         streamProvider,
         PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
         PropertyHelper.getPropertyId("HostRoles", "host_name"),
@@ -541,18 +550,20 @@ public class StackDefinedPropertyProviderTest {
     Assert.assertNull(resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root/second_queue", "AvailableMB")));
     Assert.assertNull(resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root/second_queue", "AvailableVCores")));
     Assert.assertNull(resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root/second_queue", "AppsSubmitted")));
-  }  
+  }
 
   @Test
   public void testPopulateResources_jmx_JournalNode() throws Exception {
     TestStreamProvider  streamProvider = new TestStreamProvider();
-    TestJMXHostProvider hostProvider = new TestJMXHostProvider(false);
+    JMXPropertyProviderTest.TestJMXHostProvider hostProvider = new JMXPropertyProviderTest.TestJMXHostProvider(false);
     TestGangliaHostProvider gangliaHostProvider = new TestGangliaHostProvider();
+    JMXPropertyProviderTest.TestMetricsHostProvider metricsHostProvider = new JMXPropertyProviderTest.TestMetricsHostProvider();
 
     StackDefinedPropertyProvider propertyProvider = new StackDefinedPropertyProvider(
         Resource.Type.HostComponent,
         hostProvider,
         gangliaHostProvider,
+        metricsHostProvider,
         streamProvider,
         PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
         PropertyHelper.getPropertyId("HostRoles", "host_name"),
@@ -670,20 +681,22 @@ public class StackDefinedPropertyProviderTest {
     cluster.setDesiredStackVersion(new StackId("HDP-2.1.1"));
 
     TestStreamProvider  streamProvider = new TestStreamProvider();
-    TestJMXHostProvider hostProvider = new TestJMXHostProvider(false);
+    JMXPropertyProviderTest.TestJMXHostProvider hostProvider = new JMXPropertyProviderTest.TestJMXHostProvider(false);
     TestGangliaHostProvider gangliaHostProvider = new TestGangliaHostProvider();
+    JMXPropertyProviderTest.TestMetricsHostProvider metricsHostProvider = new JMXPropertyProviderTest.TestMetricsHostProvider();
 
     StackDefinedPropertyProvider propertyProvider = new StackDefinedPropertyProvider(
-            Resource.Type.HostComponent,
-            hostProvider,
-            gangliaHostProvider,
-            streamProvider,
-            PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
-            PropertyHelper.getPropertyId("HostRoles", "host_name"),
-            PropertyHelper.getPropertyId("HostRoles", "component_name"),
-            PropertyHelper.getPropertyId("HostRoles", "state"),
-            new EmptyPropertyProvider(),
-            new EmptyPropertyProvider());
+        Resource.Type.HostComponent,
+        hostProvider,
+        gangliaHostProvider,
+        metricsHostProvider,
+        streamProvider,
+        PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
+        PropertyHelper.getPropertyId("HostRoles", "host_name"),
+        PropertyHelper.getPropertyId("HostRoles", "component_name"),
+        PropertyHelper.getPropertyId("HostRoles", "state"),
+        new EmptyPropertyProvider(),
+        new EmptyPropertyProvider());
 
     Resource resource = new ResourceImpl(Resource.Type.HostComponent);
 
@@ -698,26 +711,28 @@ public class StackDefinedPropertyProviderTest {
     Assert.assertEquals(1, propertyProvider.populateResources(Collections.singleton(resource), request, null).size());
 
     // see test/resources/storm_rest_api_jmx.json for values
-    Assert.assertEquals(28, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/api/cluster/summary/tasks.total", "tasks.total")));
-    Assert.assertEquals(8, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/api/cluster/summary/slots.total", "slots.total")));
-    Assert.assertEquals(5, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/api/cluster/summary/slots.free", "slots.free")));
-    Assert.assertEquals(2, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/api/cluster/summary/supervisors", "supervisors")));
-    Assert.assertEquals(28, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/api/cluster/summary/executors.total", "executors.total")));
-    Assert.assertEquals(3, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/api/cluster/summary/slots.used", "slots.used")));
-    Assert.assertEquals(1, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/api/cluster/summary/topologies", "topologies")));
-    Assert.assertEquals(4637, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/api/cluster/summary/nimbus.uptime", "nimbus.uptime")));
+    Assert.assertEquals(28.0, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/api/cluster/summary", "tasks.total")));
+    Assert.assertEquals(8.0, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/api/cluster/summary", "slots.total")));
+    Assert.assertEquals(5.0, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/api/cluster/summary", "slots.free")));
+    Assert.assertEquals(2.0, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/api/cluster/summary", "supervisors")));
+    Assert.assertEquals(28.0, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/api/cluster/summary", "executors.total")));
+    Assert.assertEquals(3.0, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/api/cluster/summary", "slots.used")));
+    Assert.assertEquals(1.0, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/api/cluster/summary", "topologies")));
+    Assert.assertEquals(4637.0, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/api/cluster/summary", "nimbus.uptime")));
   }
 
   @Test
   public void testPopulateResources_NoRegionServer() throws Exception {
     TestStreamProvider  streamProvider = new TestStreamProvider();
-    TestJMXHostProvider hostProvider = new TestJMXHostProvider(false);
+    JMXPropertyProviderTest.TestJMXHostProvider hostProvider = new JMXPropertyProviderTest.TestJMXHostProvider(false);
     TestGangliaHostProvider gangliaHostProvider = new TestGangliaHostProvider();
+    JMXPropertyProviderTest.TestMetricsHostProvider metricsHostProvider = new JMXPropertyProviderTest.TestMetricsHostProvider();
 
     StackDefinedPropertyProvider propertyProvider = new StackDefinedPropertyProvider(
         Resource.Type.HostComponent,
         hostProvider,
         gangliaHostProvider,
+        metricsHostProvider,
         streamProvider,
         PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
         null,
@@ -734,7 +749,7 @@ public class StackDefinedPropertyProviderTest {
     resource.setProperty(HOST_COMPONENT_STATE_PROPERTY_ID, "STARTED");
 
     int preSize = resource.getPropertiesMap().size();
-    
+
     // request with an empty set should get all supported properties
     Request request = PropertyHelper.getReadRequest(Collections.<String>emptySet());
 
@@ -746,13 +761,15 @@ public class StackDefinedPropertyProviderTest {
   @Test
   public void testPopulateResources_HBaseMaster2() throws Exception {
     TestStreamProvider  streamProvider = new TestStreamProvider();
-    TestJMXHostProvider hostProvider = new TestJMXHostProvider(false);
+    JMXPropertyProviderTest.TestJMXHostProvider hostProvider = new JMXPropertyProviderTest.TestJMXHostProvider(false);
     TestGangliaHostProvider gangliaHostProvider = new TestGangliaHostProvider();
+    JMXPropertyProviderTest.TestMetricsHostProvider metricsHostProvider = new JMXPropertyProviderTest.TestMetricsHostProvider();
 
     StackDefinedPropertyProvider propertyProvider = new StackDefinedPropertyProvider(
         Resource.Type.HostComponent,
         hostProvider,
         gangliaHostProvider,
+        metricsHostProvider,
         streamProvider,
         PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
         PropertyHelper.getPropertyId("HostRoles", "host_name"),
@@ -762,39 +779,41 @@ public class StackDefinedPropertyProviderTest {
         new EmptyPropertyProvider());
 
     Resource resource = new ResourceImpl(Resource.Type.HostComponent);
-    
+
     resource.setProperty("HostRoles/cluster_name", "c1");
     resource.setProperty(HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "domu-12-31-39-0e-34-e1.compute-1.internal");
     resource.setProperty(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "HBASE_MASTER");
     resource.setProperty(HOST_COMPONENT_STATE_PROPERTY_ID, "STARTED");
 
-    
+
     // request with an empty set should get all supported properties
     Request request = PropertyHelper.getReadRequest(Collections.<String>emptySet());
 
     Set<Resource> res = propertyProvider.populateResources(Collections.singleton(resource), request, null);
     Assert.assertEquals(1, res.size());
-    
+
     Map<String, Map<String, Object>> map = res.iterator().next().getPropertiesMap();
 
     Assert.assertTrue(map.containsKey("metrics/hbase/master"));
     // uses 'tag.isActiveMaster' (name with a dot)
     Assert.assertTrue(map.get("metrics/hbase/master").containsKey("IsActiveMaster"));
-  }    
+  }
 
-  
+
   @Test
   public void testPopulateResources_params_category5() throws Exception {
     org.apache.ambari.server.controller.ganglia.TestStreamProvider streamProvider =
         new org.apache.ambari.server.controller.ganglia.TestStreamProvider("temporal_ganglia_data_yarn_queues.txt");
 
-    TestJMXHostProvider jmxHostProvider = new TestJMXHostProvider(true);
+    JMXPropertyProviderTest.TestJMXHostProvider jmxHostProvider = new JMXPropertyProviderTest.TestJMXHostProvider(true);
     TestGangliaHostProvider hostProvider = new TestGangliaHostProvider();
-    
+    JMXPropertyProviderTest.TestMetricsHostProvider metricsHostProvider = new JMXPropertyProviderTest.TestMetricsHostProvider();
+
     StackDefinedPropertyProvider propertyProvider = new StackDefinedPropertyProvider(
         Resource.Type.HostComponent,
         jmxHostProvider,
         hostProvider,
+        metricsHostProvider,
         streamProvider,
         PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
         PropertyHelper.getPropertyId("HostRoles", "host_name"),
@@ -802,8 +821,8 @@ public class StackDefinedPropertyProviderTest {
         PropertyHelper.getPropertyId("HostRoles", "state"),
         new EmptyPropertyProvider(),
         new EmptyPropertyProvider());
-    
-    
+
+
     Resource resource = new ResourceImpl(Resource.Type.HostComponent);
 
     resource.setProperty("HostRoles/cluster_name", "c1");
@@ -812,35 +831,37 @@ public class StackDefinedPropertyProviderTest {
 
     String RM_CATEGORY_1 = "metrics/yarn/Queue/root/default";
     String RM_AVAILABLE_MEMORY_PROPERTY = PropertyHelper.getPropertyId(RM_CATEGORY_1, "AvailableMB");
-    
+
     // only ask for one property
     Map<String, TemporalInfo> temporalInfoMap = new HashMap<String, TemporalInfo>();
     temporalInfoMap.put(RM_CATEGORY_1, new TemporalInfoImpl(10L, 20L, 1L));
-    
+
     Request  request = PropertyHelper.getReadRequest(Collections.singleton(RM_CATEGORY_1), temporalInfoMap);
 
     Assert.assertEquals(1, propertyProvider.populateResources(Collections.singleton(resource), request, null).size());
-    
+
     List<String> metricsRegexes = new ArrayList<String>();
-    
+
     metricsRegexes.add("metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/");
 
     Assert.assertTrue(PropertyHelper.getProperties(resource).size() > 2);
     Assert.assertNotNull(resource.getPropertyValue(RM_AVAILABLE_MEMORY_PROPERTY));
-  }  
+  }
 
   @Test
   public void testPopulateResources_ganglia_JournalNode() throws Exception {
     org.apache.ambari.server.controller.ganglia.TestStreamProvider streamProvider =
         new org.apache.ambari.server.controller.ganglia.TestStreamProvider("journalnode_ganglia_data.txt");
 
-    TestJMXHostProvider jmxHostProvider = new TestJMXHostProvider(true);
+    JMXPropertyProviderTest.TestJMXHostProvider jmxHostProvider = new JMXPropertyProviderTest.TestJMXHostProvider(true);
     TestGangliaHostProvider hostProvider = new TestGangliaHostProvider();
-    
+    JMXPropertyProviderTest.TestMetricsHostProvider metricsHostProvider = new JMXPropertyProviderTest.TestMetricsHostProvider();
+
     StackDefinedPropertyProvider propertyProvider = new StackDefinedPropertyProvider(
         Resource.Type.HostComponent,
         jmxHostProvider,
         hostProvider,
+        metricsHostProvider,
         streamProvider,
         PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
         PropertyHelper.getPropertyId("HostRoles", "host_name"),
@@ -858,60 +879,60 @@ public class StackDefinedPropertyProviderTest {
 
 
     Object[][] testData = {
-      {"metrics", "boottime", 1378290058.0},
-      {"metrics/cpu", "cpu_aidle", 0.0},
-      {"metrics/cpu", "cpu_idle", 88.2},
-      {"metrics/cpu", "cpu_nice", 0.0},
-      {"metrics/cpu", "cpu_num", 2.0},
-      {"metrics/cpu", "cpu_speed", 3583.0},
-      {"metrics/cpu", "cpu_system", 8.4},
-      {"metrics/cpu", "cpu_user", 3.3},
-      {"metrics/cpu", "cpu_wio", 0.1},
-      {"metrics/disk", "disk_free", 92.428},
-      {"metrics/disk", "disk_total", 101.515},
-      {"metrics/disk", "part_max_used", 12.8},
-      {"metrics/load", "load_fifteen", 0.026},
-      {"metrics/load", "load_five", 0.114},
-      {"metrics/load", "load_one", 0.226},
-      {"metrics/memory", "mem_buffers", 129384.0},
-      {"metrics/memory", "mem_cached", 589576.0},
-      {"metrics/memory", "mem_free", 1365496.0},
-      {"metrics/memory", "mem_shared", 0.0},
-      {"metrics/memory", "mem_total", 4055144.0},
-      {"metrics/memory", "swap_free", 4128760.0},
-      {"metrics/memory", "swap_total", 4128760.0},
-      {"metrics/network", "bytes_in", 22547.48},
-      {"metrics/network", "bytes_out", 5772.33},
-      {"metrics/network", "pkts_in", 24.0},
-      {"metrics/network", "pkts_out", 35.4},
-      {"metrics/process", "proc_run", 4.0},
-      {"metrics/process", "proc_total", 657.0},
-      {"metrics/dfs/journalNode", "batchesWritten", 0.0},
-      {"metrics/dfs/journalNode", "batchesWrittenWhileLagging", 0.0},
-      {"metrics/dfs/journalNode", "bytesWritten", 0.0},
-      {"metrics/dfs/journalNode", "currentLagTxns", 0.0},
-      {"metrics/dfs/journalNode", "lastPromisedEpoch", 5.0},
-      {"metrics/dfs/journalNode", "lastWriterEpoch", 5.0},
-      {"metrics/dfs/journalNode", "lastWrittenTxId", 613.0},
-      {"metrics/dfs/journalNode", "syncs60s50thPercentileLatencyMicros", 0.0},
-      {"metrics/dfs/journalNode", "syncs60s75thPercentileLatencyMicros", 0.0},
-      {"metrics/dfs/journalNode", "syncs60s90thPercentileLatencyMicros", 0.0},
-      {"metrics/dfs/journalNode", "syncs60s95thPercentileLatencyMicros", 0.0},
-      {"metrics/dfs/journalNode", "syncs60s99thPercentileLatencyMicros", 0.0},
-      {"metrics/dfs/journalNode", "syncs60s_num_ops", 0.0},
-      {"metrics/dfs/journalNode", "syncs300s50thPercentileLatencyMicros", 0.0},
-      {"metrics/dfs/journalNode", "syncs300s75thPercentileLatencyMicros", 0.0},
-      {"metrics/dfs/journalNode", "syncs300s90thPercentileLatencyMicros", 0.0},
-      {"metrics/dfs/journalNode", "syncs300s95thPercentileLatencyMicros", 0.0},
-      {"metrics/dfs/journalNode", "syncs300s99thPercentileLatencyMicros", 0.0},
-      {"metrics/dfs/journalNode", "syncs300s_num_ops", 0.0},
-      {"metrics/dfs/journalNode", "syncs3600s50thPercentileLatencyMicros", 0.0},
-      {"metrics/dfs/journalNode", "syncs3600s75thPercentileLatencyMicros", 0.0},
-      {"metrics/dfs/journalNode", "syncs3600s90thPercentileLatencyMicros", 0.0},
-      {"metrics/dfs/journalNode", "syncs3600s95thPercentileLatencyMicros", 0.0},
-      {"metrics/dfs/journalNode", "syncs3600s99thPercentileLatencyMicros", 0.0},
-      {"metrics/dfs/journalNode", "syncs3600s_num_ops", 0.0},
-      {"metrics/dfs/journalNode", "txnsWritten", 0.0}
+        {"metrics", "boottime", 1378290058.0},
+        {"metrics/cpu", "cpu_aidle", 0.0},
+        {"metrics/cpu", "cpu_idle", 88.2},
+        {"metrics/cpu", "cpu_nice", 0.0},
+        {"metrics/cpu", "cpu_num", 2.0},
+        {"metrics/cpu", "cpu_speed", 3583.0},
+        {"metrics/cpu", "cpu_system", 8.4},
+        {"metrics/cpu", "cpu_user", 3.3},
+        {"metrics/cpu", "cpu_wio", 0.1},
+        {"metrics/disk", "disk_free", 92.428},
+        {"metrics/disk", "disk_total", 101.515},
+        {"metrics/disk", "part_max_used", 12.8},
+        {"metrics/load", "load_fifteen", 0.026},
+        {"metrics/load", "load_five", 0.114},
+        {"metrics/load", "load_one", 0.226},
+        {"metrics/memory", "mem_buffers", 129384.0},
+        {"metrics/memory", "mem_cached", 589576.0},
+        {"metrics/memory", "mem_free", 1365496.0},
+        {"metrics/memory", "mem_shared", 0.0},
+        {"metrics/memory", "mem_total", 4055144.0},
+        {"metrics/memory", "swap_free", 4128760.0},
+        {"metrics/memory", "swap_total", 4128760.0},
+        {"metrics/network", "bytes_in", 22547.48},
+        {"metrics/network", "bytes_out", 5772.33},
+        {"metrics/network", "pkts_in", 24.0},
+        {"metrics/network", "pkts_out", 35.4},
+        {"metrics/process", "proc_run", 4.0},
+        {"metrics/process", "proc_total", 657.0},
+        {"metrics/dfs/journalNode", "batchesWritten", 0.0},
+        {"metrics/dfs/journalNode", "batchesWrittenWhileLagging", 0.0},
+        {"metrics/dfs/journalNode", "bytesWritten", 0.0},
+        {"metrics/dfs/journalNode", "currentLagTxns", 0.0},
+        {"metrics/dfs/journalNode", "lastPromisedEpoch", 5.0},
+        {"metrics/dfs/journalNode", "lastWriterEpoch", 5.0},
+        {"metrics/dfs/journalNode", "lastWrittenTxId", 613.0},
+        {"metrics/dfs/journalNode", "syncs60s50thPercentileLatencyMicros", 0.0},
+        {"metrics/dfs/journalNode", "syncs60s75thPercentileLatencyMicros", 0.0},
+        {"metrics/dfs/journalNode", "syncs60s90thPercentileLatencyMicros", 0.0},
+        {"metrics/dfs/journalNode", "syncs60s95thPercentileLatencyMicros", 0.0},
+        {"metrics/dfs/journalNode", "syncs60s99thPercentileLatencyMicros", 0.0},
+        {"metrics/dfs/journalNode", "syncs60s_num_ops", 0.0},
+        {"metrics/dfs/journalNode", "syncs300s50thPercentileLatencyMicros", 0.0},
+        {"metrics/dfs/journalNode", "syncs300s75thPercentileLatencyMicros", 0.0},
+        {"metrics/dfs/journalNode", "syncs300s90thPercentileLatencyMicros", 0.0},
+        {"metrics/dfs/journalNode", "syncs300s95thPercentileLatencyMicros", 0.0},
+        {"metrics/dfs/journalNode", "syncs300s99thPercentileLatencyMicros", 0.0},
+        {"metrics/dfs/journalNode", "syncs300s_num_ops", 0.0},
+        {"metrics/dfs/journalNode", "syncs3600s50thPercentileLatencyMicros", 0.0},
+        {"metrics/dfs/journalNode", "syncs3600s75thPercentileLatencyMicros", 0.0},
+        {"metrics/dfs/journalNode", "syncs3600s90thPercentileLatencyMicros", 0.0},
+        {"metrics/dfs/journalNode", "syncs3600s95thPercentileLatencyMicros", 0.0},
+        {"metrics/dfs/journalNode", "syncs3600s99thPercentileLatencyMicros", 0.0},
+        {"metrics/dfs/journalNode", "syncs3600s_num_ops", 0.0},
+        {"metrics/dfs/journalNode", "txnsWritten", 0.0}
     };
 
     Map<String, TemporalInfo> temporalInfoMap = new HashMap<String, TemporalInfo>();
@@ -940,29 +961,31 @@ public class StackDefinedPropertyProviderTest {
     for (String property : properties) {
       Assert.assertEquals(testData[i++][2], resource.getPropertyValue(property));
     }
-  }  
+  }
 
   @Test
   public void testPopulateResources_resourcemanager_clustermetrics() throws Exception {
-    
+
     String[] metrics = new String[] {
-      "metrics/yarn/ClusterMetrics/NumActiveNMs",
-      "metrics/yarn/ClusterMetrics/NumDecommissionedNMs",
-      "metrics/yarn/ClusterMetrics/NumLostNMs",
-      "metrics/yarn/ClusterMetrics/NumUnhealthyNMs",
-      "metrics/yarn/ClusterMetrics/NumRebootedNMs"
+        "metrics/yarn/ClusterMetrics/NumActiveNMs",
+        "metrics/yarn/ClusterMetrics/NumDecommissionedNMs",
+        "metrics/yarn/ClusterMetrics/NumLostNMs",
+        "metrics/yarn/ClusterMetrics/NumUnhealthyNMs",
+        "metrics/yarn/ClusterMetrics/NumRebootedNMs"
     };
-    
+
     org.apache.ambari.server.controller.ganglia.TestStreamProvider streamProvider =
         new org.apache.ambari.server.controller.ganglia.TestStreamProvider("yarn_ganglia_data.txt");
 
-    TestJMXHostProvider jmxHostProvider = new TestJMXHostProvider(true);
+    JMXPropertyProviderTest.TestJMXHostProvider jmxHostProvider = new JMXPropertyProviderTest.TestJMXHostProvider(true);
+    JMXPropertyProviderTest.TestMetricsHostProvider metricsHostProvider = new JMXPropertyProviderTest.TestMetricsHostProvider();
     TestGangliaHostProvider hostProvider = new TestGangliaHostProvider();
-    
+
     StackDefinedPropertyProvider propertyProvider = new StackDefinedPropertyProvider(
         Resource.Type.HostComponent,
         jmxHostProvider,
         hostProvider,
+        metricsHostProvider,
         streamProvider,
         PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
         PropertyHelper.getPropertyId("HostRoles", "host_name"),
@@ -977,19 +1000,19 @@ public class StackDefinedPropertyProviderTest {
       resource.setProperty("HostRoles/cluster_name", "c1");
       resource.setProperty(HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "ip-10-39-113-33.ec2.internal");
       resource.setProperty(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "RESOURCEMANAGER");
-      
+
       // only ask for one property
       Map<String, TemporalInfo> temporalInfoMap = new HashMap<String, TemporalInfo>();
       temporalInfoMap.put(metric, new TemporalInfoImpl(10L, 20L, 1L));
       Request  request = PropertyHelper.getReadRequest(Collections.singleton(metric), temporalInfoMap);
 
       Assert.assertEquals(1, propertyProvider.populateResources(Collections.singleton(resource), request, null).size());
-      
+
       Assert.assertEquals(4, PropertyHelper.getProperties(resource).size());
       Assert.assertNotNull(resource.getPropertyValue(metric));
-      
+
     }
-    
-  }  
-  
+
+  }
+
 }

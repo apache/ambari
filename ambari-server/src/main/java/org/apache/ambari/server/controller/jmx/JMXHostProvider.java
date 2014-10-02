@@ -27,19 +27,6 @@ import java.util.Set;
 public interface JMXHostProvider {
 
   /**
-   * Get the JMX host name for the given cluster name and component name.
-   *
-   * @param clusterName    the cluster name
-   * @param componentName  the component name
-   *
-   * @return the JMX host name
-   *
-   * @throws SystemException if unable to get the JMX host name
-   */
-  public String getHostName(String clusterName, String componentName)
-      throws SystemException;
-
-  /**
    * Get the JMX host names for the given cluster name and component name.
    *
    * @param clusterName    the cluster name

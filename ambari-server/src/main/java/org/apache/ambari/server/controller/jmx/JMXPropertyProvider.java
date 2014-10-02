@@ -27,20 +27,12 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Callable;
-import java.util.concurrent.CompletionService;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorCompletionService;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.ambari.server.controller.internal.AbstractPropertyProvider;
 import org.apache.ambari.server.controller.internal.PropertyInfo;
+import org.apache.ambari.server.controller.metrics.MetricsHostProvider;
+import org.apache.ambari.server.controller.metrics.MetricsProvider;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
@@ -57,39 +49,11 @@ import org.slf4j.LoggerFactory;
 /**
  * Property provider implementation for JMX sources.
  */
-public class JMXPropertyProvider extends AbstractPropertyProvider {
+public class JMXPropertyProvider extends MetricsProvider {
 
   private static final String NAME_KEY = "name";
   private static final String PORT_KEY = "tag.port";
   private static final String DOT_REPLACEMENT_CHAR = "#";
-  private static final long DEFAULT_POPULATE_TIMEOUT_MILLIS = 12000L;
-
-  public static final String TIMED_OUT_MSG = "Timed out waiting for JMX metrics.";
-  public static final String STORM_REST_API = "STORM_REST_API";
-
-  /**
-   * Thread pool
-   */
-  private static final ExecutorService EXECUTOR_SERVICE;
-  private static final int THREAD_POOL_CORE_SIZE = 20;
-  private static final int THREAD_POOL_MAX_SIZE = 100;
-  private static final long THREAD_POOL_TIMEOUT_MILLIS = 30000L;
-
-  static {
-    LinkedBlockingQueue<Runnable> queue = new LinkedBlockingQueue<Runnable>(); // unlimited Queue
-
-    ThreadPoolExecutor threadPoolExecutor =
-        new ThreadPoolExecutor(
-            THREAD_POOL_CORE_SIZE,
-            THREAD_POOL_MAX_SIZE,
-            THREAD_POOL_TIMEOUT_MILLIS,
-            TimeUnit.MILLISECONDS,
-            queue);
-
-    threadPoolExecutor.allowCoreThreadTimeOut(true);
-
-    EXECUTOR_SERVICE = threadPoolExecutor;
-  }
 
   private final static ObjectReader jmxObjectReader;
   private final static ObjectReader stormObjectReader;
@@ -138,16 +102,6 @@ public class JMXPropertyProvider extends AbstractPropertyProvider {
 
   private final String statePropertyId;
 
-  private final Set<String> healthyStates;
-
-  /**
-   * The amount of time that this provider will wait for JMX metric values to be
-   * returned from the JMX sources.  If no results are returned for this amount of
-   * time then the request to populate the resources will fail.
-   */
-  protected long populateTimeout = DEFAULT_POPULATE_TIMEOUT_MILLIS;
-
-
   // ----- Constructors ------------------------------------------------------
 
   /**
@@ -155,23 +109,23 @@ public class JMXPropertyProvider extends AbstractPropertyProvider {
    *
    * @param componentMetrics         the map of supported metrics
    * @param streamProvider           the stream provider
-   * @param jmxHostProvider          the host mapping
+   * @param jmxHostProvider          the JMX host mapping
+   * @param metricsHostProvider      the host mapping
    * @param clusterNamePropertyId    the cluster name property id
    * @param hostNamePropertyId       the host name property id
    * @param componentNamePropertyId  the component name property id
    * @param statePropertyId          the state property id
-   * @param healthyStates            the set of healthy state values
    */
   public JMXPropertyProvider(Map<String, Map<String, PropertyInfo>> componentMetrics,
                              StreamProvider streamProvider,
                              JMXHostProvider jmxHostProvider,
+                             MetricsHostProvider metricsHostProvider,
                              String clusterNamePropertyId,
                              String hostNamePropertyId,
                              String componentNamePropertyId,
-                             String statePropertyId,
-                             Set<String> healthyStates) {
+                             String statePropertyId) {
 
-    super(componentMetrics);
+    super(componentMetrics, hostNamePropertyId, metricsHostProvider);
 
     this.streamProvider           = streamProvider;
     this.jmxHostProvider          = jmxHostProvider;
@@ -179,114 +133,9 @@ public class JMXPropertyProvider extends AbstractPropertyProvider {
     this.hostNamePropertyId       = hostNamePropertyId;
     this.componentNamePropertyId  = componentNamePropertyId;
     this.statePropertyId          = statePropertyId;
-    this.healthyStates            = healthyStates;
   }
-  
-  // ----- PropertyProvider --------------------------------------------------
-
-  @Override
-  public Set<Resource> populateResources(Set<Resource> resources, Request request, Predicate predicate)
-      throws SystemException {
-
-    // Get a valid ticket for the request.
-    Ticket ticket = new Ticket();
-
-    CompletionService<Resource> completionService =
-        new ExecutorCompletionService<Resource>(EXECUTOR_SERVICE);
-
-    // In a large cluster we could have thousands of resources to populate here.
-    // Distribute the work across multiple threads.
-    for (Resource resource : resources) {
-      completionService.submit(getPopulateResourceCallable(resource, request, predicate, ticket));
-    }
-
-    Set<Resource> keepers = new HashSet<Resource>();
-    try {
-      for (int i = 0; i < resources.size(); ++ i) {
-        Future<Resource> resourceFuture =
-            completionService.poll(populateTimeout, TimeUnit.MILLISECONDS);
-
-        if (resourceFuture == null) {
-          // its been more than the populateTimeout since the last callable completed ...
-          // invalidate the ticket to abort the threads and don't wait any longer
-          ticket.invalidate();
-          LOG.error(TIMED_OUT_MSG);
-          break;
-        } else {
-          // future should already be completed... no need to wait on get
-          Resource resource = resourceFuture.get();
-          if (resource != null) {
-            keepers.add(resource);
-          }
-        }
-      }
-    } catch (InterruptedException e) {
-      logException(e);
-    } catch (ExecutionException e) {
-      rethrowSystemException(e.getCause());
-    }
-    return keepers;
-  }
-
 
   // ----- helper methods ----------------------------------------------------
-
-  /**
-   * Set the populate timeout value for this provider.
-   *
-   * @param populateTimeout  the populate timeout value
-   */
-  protected void setPopulateTimeout(long populateTimeout) {
-    this.populateTimeout = populateTimeout;
-  }
-
-  /**
-   * Get the spec to locate the JMX stream from the given host and port
-   *
-   * @param protocol  the protocol, one of http or https
-   * @param hostName  the host name
-   * @param port      the port
-   *
-   * @return the spec
-   */
-  protected String getSpec(String protocol, String hostName,
-                           String port, String componentName) {
-      if (null == componentName || !componentName.equals(STORM_REST_API))
-        return protocol + "://" + hostName + ":" + port + "/jmx";
-      else
-        return protocol + "://" + hostName + ":" + port + "/api/cluster/summary";
-  }
-
-  /**
-   * Get the spec to locate the JMX stream from the given host and port
-   *
-   * @param hostName  the host name
-   * @param port      the port
-   *
-   * @return the spec
-   */
-  protected String getSpec(String hostName, String port) {
-      return getSpec("http", hostName, port, null);
-  }
-  
-  /**
-   * Get a callable that can be used to populate the given resource.
-   *
-   * @param resource  the resource to be populated
-   * @param request   the request
-   * @param predicate the predicate
-   * @param ticket    a valid ticket
-   *
-   * @return a callable that can be used to populate the given resource
-   */
-  private Callable<Resource> getPopulateResourceCallable(
-      final Resource resource, final Request request, final Predicate predicate, final Ticket ticket) {
-    return new Callable<Resource>() {
-      public Resource call() throws SystemException {
-        return populateResource(resource, request, predicate, ticket);
-      }
-    };
-  }
 
   /**
    * Populate a resource by obtaining the requested JMX properties.
@@ -298,7 +147,8 @@ public class JMXPropertyProvider extends AbstractPropertyProvider {
    *
    * @return the populated resource; null if the resource should NOT be part of the result set for the given predicate
    */
-  private Resource populateResource(Resource resource, Request request, Predicate predicate, Ticket ticket)
+  @Override
+  protected Resource populateResource(Resource resource, Request request, Predicate predicate, MetricsProvider.Ticket ticket)
       throws SystemException {
 
     Set<String> ids = getRequestPropertyIds(request, predicate);
@@ -354,16 +204,14 @@ public class JMXPropertyProvider extends AbstractPropertyProvider {
       try {
         for (String hostName : hostNames) {
           try {
-            in = streamProvider.readFrom(getSpec(protocol, hostName, port, componentName));
+            in = streamProvider.readFrom(getSpec(protocol, hostName, port, "/jmx"));
             // if the ticket becomes invalid (timeout) then bail out
             if (!ticket.isValid()) {
               return resource;
             }
-            if (null == componentName || !componentName.equals(STORM_REST_API)) {
-              getHadoopMetricValue(in, ids, resource, request, ticket);
-            } else {
-              getStormMetricValue(in, ids, resource, ticket);
-            }
+
+            getHadoopMetricValue(in, ids, resource, request, ticket);
+
           } catch (IOException e) {
             logException(e);
           }
@@ -470,31 +318,6 @@ public class JMXPropertyProvider extends AbstractPropertyProvider {
     }
   }
 
-  /**
-   * TODO: Refactor
-   * Storm-specific metrics fetching
-   */
-  private void getStormMetricValue(InputStream in, Set<String> ids,
-                                   Resource resource, Ticket ticket) throws IOException {
-    HashMap<String, Object> metricHolder = stormObjectReader.readValue(in);
-    for (String category : ids) {
-      Map<String, PropertyInfo> defProps = getComponentMetrics().get(STORM_REST_API);
-      for (Map.Entry<String, PropertyInfo> depEntry : defProps.entrySet()) {
-        if (depEntry.getKey().startsWith(category)) {
-          PropertyInfo propInfo = depEntry.getValue();
-          String propName = propInfo.getPropertyId();
-          Object propertyValue = metricHolder.get(propName);
-          String absId = PropertyHelper.getPropertyId(category, propName);
-          if (!ticket.isValid()) {
-            return;
-          }
-          // TODO: Maybe cast to int
-          resource.setProperty(absId, propertyValue);
-        }
-      }
-    }
-  }
-
   private void setResourceValue(Resource resource, Map<String, Map<String, Object>> categories, String propertyId,
                                 String category, String property, List<String> keyList) {
     Map<String, Object> properties = categories.get(category);
@@ -545,74 +368,5 @@ public class JMXPropertyProvider extends AbstractPropertyProvider {
       return name;
     }
     return null;
-  }
-
-  /**
-   * Determine whether or not the given property id was requested.
-   */
-  private static boolean isRequestedPropertyId(String propertyId, String requestedPropertyId, Request request) {
-    return request.getPropertyIds().isEmpty() || propertyId.startsWith(requestedPropertyId);
-  }
-
-  /**
-   * Log an error for the given exception.
-   *
-   * @param throwable  the caught exception
-   *
-   * @return the error message that was logged
-   */
-  private static String logException(Throwable throwable) {
-    String msg = "Caught exception getting JMX metrics : " + throwable.getLocalizedMessage();
-
-    LOG.debug(msg, throwable);
-
-    return msg;
-  }
-
-  /**
-   * Rethrow the given exception as a System exception and log the message.
-   *
-   * @param throwable  the caught exception
-   *
-   * @throws org.apache.ambari.server.controller.spi.SystemException always around the given exception
-   */
-  private static void rethrowSystemException(Throwable throwable) throws SystemException {
-    String msg = logException(throwable);
-
-    if (throwable instanceof SystemException) {
-      throw (SystemException) throwable;
-    }
-    throw new SystemException (msg, throwable);
-  }
-
-
-  // ----- inner class : Ticket ----------------------------------------------
-
-  /**
-   * Ticket used to cancel provider threads.  The provider threads should
-   * monitor the validity of the passed in ticket and bail out if it becomes
-   * invalid (as in a timeout).
-   */
-  private static class Ticket {
-    /**
-     * Indicate whether or not the ticket is valid.
-     */
-    private volatile boolean valid = true;
-
-    /**
-     * Invalidate the ticket.
-     */
-    public void invalidate() {
-      valid = false;
-    }
-
-    /**
-     * Determine whether or not this ticket is valid.
-     *
-     * @return true if the ticket is valid
-     */
-    public boolean isValid() {
-      return valid;
-    }
   }
 }
