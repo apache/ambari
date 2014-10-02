@@ -1,29 +1,25 @@
 {
-  "name":"Ambari",
-  "description":"Front-end package for the Apache Ambari Project",
-  "version":"1.0.0",
-  "homepage":"",
-  "repository":{
-    "type":"git",
-    "url":""
+  "name": "Ambari",
+  "description": "Front-end package for the Apache Ambari Project",
+  "version": "1.7.0",
+  "homepage": "http://ambari.apache.org/",
+  "repository": {
+    "type": "git",
+    "url": "https://git-wip-us.apache.org/repos/asf/ambari/repo?p=ambari.git;a=summary"
   },
-  "engines":{
-    "node":"~0.6.10 || 0.8 || 0.9 || 0.10"
+  "dependencies": {
+    "javascript-brunch": ">= 1.0 < 1.5",
+    "css-brunch": ">= 1.0 < 1.5",
+    "uglify-js-brunch": ">= 1.0 < 1.5",
+    "clean-css-brunch": ">= 1.0 < 1.5",
+    "ember-precompiler-brunch": ">= 1.0 < 1.5",
+    "less-brunch": ">= 1.0 < 1.5",
+    "cssstyle": "0.2.3"
   },
-  "scripts":{
-    "start":"brunch watch --server"
-  },
-  "dependencies":{
-    "javascript-brunch":">= 1.0 < 1.5",
-    "css-brunch":">= 1.0 < 1.5",
-    "uglify-js-brunch":">= 1.0 < 1.5",
-    "clean-css-brunch":">= 1.0 < 1.5",
-    "ember-precompiler-brunch":">= 1.0 < 1.5",
-    "less-brunch":">= 1.0 < 1.5",
-    "cssstyle":"0.2.3"
-  },
-  "devDependencies":{
+  "devDependencies": {
+    "phantomjs": "^1.9.2",
     "mocha":"1.9.0",
+    "mocha-phantomjs": "^3.1.6",
     "chai":"~1.9.0",
     "sinon":"=1.7.3",
     "sinon-chai":"~2.5.0",
@@ -36,5 +32,12 @@
     "karma-coverage": "~0.2.0",
     "karma-commonjs-require": "~0.0.1",
     "karma-ember-precompiler-brunch": "~0.0.1"
+  },
+  "scripts": {
+    "start": "brunch watch --server",
+    "test": "node_modules/mocha-phantomjs/bin/mocha-phantomjs public/test/test.html"
+  },
+  "engines": {
+    "node": "~0.6.10 || 0.8 || 0.9 || 0.10"
   }
 }
