@@ -882,7 +882,7 @@ App.MainHostDetailsController = Em.Controller.extend({
         this.doRecommissionAndRestart(hostName, svcName, "JOBTRACKER", "TASKTRACKER");
         break;
       case 'HBASE':
-        this.doRecommissionAndStart(hostName, svcName, "HBASE_MASTER", "HBASE_REGIONSERVER");
+        this.doRecommissionAndStartRegionServer(hostName, svcName, "HBASE_MASTER", "HBASE_REGIONSERVER");
     }
     this.showBackgroundOperationsPopup();
   },
@@ -971,6 +971,7 @@ App.MainHostDetailsController = Em.Controller.extend({
               "RequestInfo": {
                 "context": Em.I18n.t('hosts.host.regionserver.decommission.batch1'),
                 "command": "DECOMMISSION",
+                "exclusive" :"true",
                 "parameters": {
                   "slave_type": slaveType,
                   "excluded_hosts": hostNames
@@ -990,10 +991,11 @@ App.MainHostDetailsController = Em.Controller.extend({
           {
             "order_id": 2,
             "type": "PUT",
-            "uri": App.get('apiPrefix') + "/clusters/" + App.get('clusterName') + "/host_components/" + slaveType,
+            "uri": App.get('apiPrefix') + "/clusters/" + App.get('clusterName') +"/hosts/" + hostNames + "/host_components/" + slaveType,
             "RequestBodyInfo": {
               "RequestInfo": {
                 context: Em.I18n.t('hosts.host.regionserver.decommission.batch2'),
+                exclusive:true,
                 operation_level: {
                   level: "HOST_COMPONENT",
                   cluster_name: App.get('clusterName'),
@@ -1018,10 +1020,11 @@ App.MainHostDetailsController = Em.Controller.extend({
                 "command": "DECOMMISSION",
                 "service_name": serviceName,
                 "component_name": componentName,
+                "exclusive" :"true",
                 "parameters": {
                   "slave_type": slaveType,
                   "excluded_hosts": hostNames,
-                  "mark_draining_only": "true"
+                  "mark_draining_only": true
                 },
                 'operation_level': {
                   level: "HOST_COMPONENT",
@@ -1068,7 +1071,7 @@ App.MainHostDetailsController = Em.Controller.extend({
       return false;
     }
   },
-
+  
   /**
    * Performs Recommission and Start
    * @param {string} hostNames
@@ -1097,6 +1100,7 @@ App.MainHostDetailsController = Em.Controller.extend({
               "RequestInfo": {
                 "context": context_1,
                 "command": "DECOMMISSION",
+                "exclusive": true,
                 "parameters": {
                   "slave_type": slaveType,
                   "included_hosts": hostNames
@@ -1120,6 +1124,83 @@ App.MainHostDetailsController = Em.Controller.extend({
             "RequestBodyInfo": {
               "RequestInfo": {
                 context: startContext,
+                exclusive:true,
+                operation_level: {
+                  level: "HOST_COMPONENT",
+                  cluster_name: App.get('clusterName'),
+                  host_name: hostNames,
+                  service_name: serviceName || null
+                }
+              },
+              "Body": {
+                HostRoles: {
+                  state: "STARTED"
+                }
+              }
+            }
+          }
+        ]
+      },
+      success: 'decommissionSuccessCallback',
+      error: 'decommissionErrorCallback'
+    });
+  },
+  
+  
+  /**
+   * Performs Recommission and Start
+   * @param {string} hostNames
+   * @param {string} serviceName
+   * @param {string} componentName
+   * @param {string} slaveType
+   * @method doRecommissionAndStart
+   */
+  doRecommissionAndStartRegionServer: function (hostNames, serviceName, componentName, slaveType) {
+    var contextNameString_1 = 'hosts.host.' + slaveType.toLowerCase() + '.recommission';
+    var context_1 = Em.I18n.t(contextNameString_1);
+    var contextNameString_2 = 'requestInfo.startHostComponent.' + slaveType.toLowerCase();
+    var startContext = Em.I18n.t(contextNameString_2);
+    App.ajax.send({
+      name: 'host.host_component.recommission_and_restart',
+      sender: this,
+      data: {
+        intervalTimeSeconds: 1,
+        tolerateSize: 1,
+        batches: [
+          {
+            "order_id": 1,
+            "type": "POST",
+            "uri": App.apiPrefix + "/clusters/" + App.get('clusterName') + "/requests",
+            "RequestBodyInfo": {
+              "RequestInfo": {
+                "context": context_1,
+                "command": "DECOMMISSION",
+                "exclusive":"true",
+                "parameters": {
+                  "slave_type": slaveType,
+                  "mark_draining_only": true,
+                  "included_hosts": hostNames
+                },
+                'operation_level': {
+                  level: "HOST_COMPONENT",
+                  cluster_name: App.get('clusterName'),
+                  host_name: hostNames,
+                  service_name: serviceName
+                }
+              },
+              "Requests/resource_filters": [
+                {"service_name": serviceName, "component_name": componentName}
+              ]
+            }
+          },
+          {
+            "order_id": 2,
+            "type": "PUT",
+            "uri": App.get('apiPrefix') + "/clusters/" + App.get('clusterName') +"/hosts/" + hostNames + "/host_components/" + slaveType,
+            "RequestBodyInfo": {
+              "RequestInfo": {
+                context: startContext,
+                exclusive:true,
                 operation_level: {
                   level: "HOST_COMPONENT",
                   cluster_name: App.get('clusterName'),
@@ -1169,6 +1250,7 @@ App.MainHostDetailsController = Em.Controller.extend({
               "RequestInfo": {
                 "context": context_1,
                 "command": "DECOMMISSION",
+                "exclusive":"true",
                 "parameters": {
                   "slave_type": slaveType,
                   "included_hosts": hostNames
@@ -1195,6 +1277,7 @@ App.MainHostDetailsController = Em.Controller.extend({
                 "command": "RESTART",
                 "service_name": serviceName,
                 "component_name": slaveType,
+                "exclusive":"true",
                 "hosts": hostNames
               }
             }
