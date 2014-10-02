@@ -18,6 +18,12 @@
 
 @import-once 'common.less';
 
+.create-app-wizard-wrapper {
+  .modal-backdrop {
+    opacity: 0;
+  }
+}
+
 #createAppWizard {
   width: 80%;
   margin: 0 0 auto;
@@ -33,6 +39,11 @@
       background-color: #ffffff;
       label {
         font-weight: normal;
+      }
+      .form-horizontal {
+        .control-label {
+          text-align: left;
+        }
       }
     }
   }

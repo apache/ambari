@@ -40,7 +40,8 @@ App.CreateAppWizardStep1View = Ember.View.extend({
    * Enable "Special-label" text-field only when "spec-label"-radio is checked
    * @type {bool}
    */
-  specLabelEnabled: Ember.computed.lt('controller.newApp.selectedYarnLabel', '2')
+  specLabelEnabled: Ember.computed.lt('controller.newApp.selectedYarnLabel', '2'),
 
+  noAppsAvailableSelect: [Em.I18n.t('slider.apps.no.applications.available')]
 
 });

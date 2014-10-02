@@ -18,19 +18,36 @@
 <div id="step1">
   <form role="form" class="form-horizontal">
     <!-- Available Applications -->
+    {{#if controller.isAppTypesError}}
+      <div class="row">
+        <div class="col-xs-12 alert alert-info app-types-alert">
+          {{t wizard.step1.noAppTypesError}}
+        </div>
+      </div>
+    {{/if}}
     <strong>{{t wizard.step1.header}}</strong>
     <div class="form-group row">
       <div class="col-xs-3">
         <label class="control-label">{{t wizard.step1.appTypes}}</label>
       </div>
       <div class="col-xs-7">
-        {{view
-          Em.Select
-          contentBinding="controller.availableTypes"
-          optionLabelPath="content.displayName"
-          class="form-control type-select"
-          valueBinding="controller.selectedType"
-        }}
+        {{#if controller.isAppTypesError}}
+          {{view
+            Em.Select
+            contentBinding="view.noAppsAvailableSelect"
+            class="form-control type-select"
+            disabled=true
+          }}
+        {{else}}
+          {{view
+            Em.Select
+            contentBinding="controller.availableTypes"
+            optionLabelPath="content.displayName"
+            class="form-control type-select"
+            valueBinding="controller.selectedType"
+            disabledBinding="controller.isAppTypesError"
+          }}
+        {{/if}}
       </div>
     </div>
     <div class="form-group row">
@@ -38,7 +55,13 @@
         <label class=" control-label">{{t wizard.step1.description}}</label>
       </div>
       <div class="col-xs-7">
-        <span class="pseudo-label control-label">{{controller.typeDescription}}</span>
+        <span class="pseudo-label control-label">
+          {{#if controller.isAppTypesError}}
+            {{t slider.apps.no.description.available}}
+          {{else}}
+            {{controller.typeDescription}}
+          {{/if}}
+        </span>
       </div>
     </div>
     <div class="form-group row">
@@ -48,20 +71,13 @@
         </div>
       </div>
       <div class="col-xs-7">
-        {{input id="app-name-input" class="form-control" valueBinding="controller.newApp.name"}}
+        {{input id="app-name-input" class="form-control" valueBinding="controller.newApp.name" disabledBinding="controller.isAppTypesError"}}
       </div>
     </div>
     {{#if controller.isNameError}}
       <div class="row">
         <div class="col-xs-12 alert alert-danger">
           {{controller.nameErrorMessage}}
-        </div>
-      </div>
-    {{/if}}
-    {{#if controller.isAppTypesError}}
-      <div class="row">
-        <div class="col-xs-12 alert alert-info app-types-alert">
-          {{t wizard.step1.noAppTypesError}}
         </div>
       </div>
     {{/if}}
@@ -76,7 +92,7 @@
         <label class="control-label">{{t wizard.step1.schedulerOptions.queueName}}</label>
       </div>
       <div class="col-xs-7">
-        {{input class="form-control" valueBinding="controller.newApp.queueName"}}
+        {{input class="form-control" valueBinding="controller.newApp.queueName" placeholderTranslation="form.placeholder.optional"}}
       </div>
     </div>
     <!-- Scheduler Options end -->

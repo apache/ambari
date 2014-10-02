@@ -39,7 +39,10 @@ App.WithPanels = Ember.Mixin.create({
    */
   addCarets: function() {
     var panel = $('.panel');
-    panel.find('.panel-heading').prepend('<span class="pull-left icon icon-caret-down"></span>');
+    panel.find('.panel-heading').prepend('<span class="pull-left icon icon-caret-right"></span>');
+    panel.find('.panel-collapse.collapse.in').each(function() {
+      $(this).parent().find('.icon.icon-caret-right:first-child').addClass('icon-caret-down').removeClass('icon-caret-right');
+    });
     panel.on('hidden.bs.collapse', function (e) {
       $(e.delegateTarget).find('span.icon').addClass('icon-caret-right').removeClass('icon-caret-down');
     }).on('shown.bs.collapse', function (e) {
