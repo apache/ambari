@@ -282,6 +282,7 @@ App.Router = Em.Router.extend({
       loginData.privileges = privileges;
       App.usersMapper.map({"items": [loginData]});
       router.setUserLoggedIn(params.loginName);
+      App.router.get('mainViewsController').loadAmbariViews();
       var permissionList = privileges.items.mapProperty('PrivilegeInfo.permission_name');
       var isAdmin = permissionList.contains('AMBARI.ADMIN');
       var transitionToApp = false;
