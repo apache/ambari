@@ -25,6 +25,8 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <python.ver>python &gt;= 2.6</python.ver>
+    <!-- On centos the python xml's are inside python package -->
+    <python.xml.package>${python.ver}</python.xml.package>
     <deb.python.ver>python (&gt;= 2.6)</deb.python.ver>
     <deb.architecture>amd64</deb.architecture>
     <deb.dependency.list>openssl, postgresql (&gt;= 8.1), ${deb.python.ver}, curl</deb.dependency.list>
@@ -220,6 +222,7 @@
             <require>postgresql-server &gt;= 8.1</require>
             <require>openssl</require>
             <require>${python.ver}</require>
+            <require>${python.xml.package}</require>
           </requires>
           <postinstallScriptlet>
             <scriptFile>src/main/package/rpm/postinstall.sh</scriptFile>
@@ -1149,6 +1152,12 @@
           </plugin>
         </plugins>
       </build>
+    </profile>
+    <profile>
+      <id>suse11</id>
+      <properties>
+        <python.xml.package>python-xml</python.xml.package>
+      </properties>
     </profile>
   </profiles>
   <dependencies>
