@@ -61,13 +61,6 @@
       <div class="panel-heading">
         {{t common.status}}
         <div class="btn-group pull-right panel-link">
-          {{#if App.nagiosHost}}
-            <a class="btn btn-default btn-sm" target="_blank" rel="tooltip"
-              {{translateAttr title="sliderApp.summary.go_to_nagios"}}
-              {{bind-attr href="view.nagiosUrl"}}>
-              <i class="icon-link"></i>
-            </a>
-          {{/if}}
         </div>
       </div>
       <div class="app-alerts">

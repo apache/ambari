@@ -16,30 +16,31 @@
  * limitations under the License.
  */
 
-/**
- * Slider config-property (see Ambari-Admin view-settings)
- * Also see <code>view.xml</code>
- * @type {DS.Model}
- */
-App.SliderConfig = DS.Model.extend({
+QUnit.module('integration/pages - index', {
 
-  /**
-   * Name in the Ambari-Admin
-   * @type {string}
-   */
-  viewConfigName: DS.attr('string'),
+  setup: function () {
+    Ember.run(App, App.advanceReadiness);
+    Em.run(function () {
+      var p = {
+        validation: [
+          {message: 'Some mythical error'},
+          {message: 'Error with DNA'}
+        ],
+        parameters: {}
+      };
+      App.__container__.lookup('controller:Slider').getParametersFromViewPropertiesSuccessCallback(p);
+    });
+  },
 
-  /**
-   * Shown name
-   * @type {string}
-   */
-  displayName: DS.attr('string'),
-
-  /**
-   * @type {null|string}
-   */
-  value: null
+  teardown: function () {
+    App.reset();
+  }
 
 });
 
-App.SliderConfig.FIXTURES = [];
+test('Slider has validation errors', function () {
+
+  visit('/');
+  equal(find('.slider-errors-wrapper .error-message').length, 2, 'Error-messages exist on the page');
+
+});

@@ -1,0 +1,8 @@
+{
+  "version": "1.0.0",
+  "validation": [],
+  "parameters": {
+    "gangliaHost": "c6401.ambari.apache.org",
+    "gangliaClusters": "App1:8881,App2:8882"
+  }
+}

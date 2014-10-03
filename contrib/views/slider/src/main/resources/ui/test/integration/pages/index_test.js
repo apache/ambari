@@ -44,7 +44,7 @@ test('sliderConfigs', function () {
 
   visit('/');
   // configs count may be changed by adding new slider-configs
-  equal(App.SliderApp.store.all('sliderConfig').content.length, 16, 'slider configs should be set');
+  equal(App.SliderApp.store.all('sliderConfig').content.length, 2, 'slider configs should be set');
 
 });
 

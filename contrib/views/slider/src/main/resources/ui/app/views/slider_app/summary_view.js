@@ -96,13 +96,6 @@ App.SliderAppSummaryView = Ember.View.extend({
     return 'http://' + App.get('gangliaHost') + '/ganglia';
   }.property('App.gangliaHost', 'controller.model.quickLinks.@each.url'),
 
-  /**
-   * @type {string}
-   */
-  nagiosUrl: function () {
-    return 'http://' + App.get('nagiosHost') + '/nagios';
-  }.property('App.nagiosHost'),
-
   didInsertElement: function() {
     var self = this;
     Em.run.next(function() {
