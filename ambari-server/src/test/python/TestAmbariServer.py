@@ -4831,17 +4831,19 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     get_ambari_properties_mock.return_value = properties
     get_validated_string_input_mock.side_effect = ['admin', 'admin']
 
-    u = MagicMock()
-    u.getcode.side_effect = [201, 200, 200]
-    u.read.side_effect = ['{"resources" : [{"href" : "http://c6401.ambari.apache.org:8080/api/v1/ldap_sync_events/16","Event" : {"id" : 16}}]}',
+    response = MagicMock()
+    response.getcode.side_effect = [201, 200, 200]
+    response.read.side_effect = ['{"resources" : [{"href" : "http://c6401.ambari.apache.org:8080/api/v1/ldap_sync_events/16","Event" : {"id" : 16}}]}',
                           '{"Event":{"status" : "RUNNING","summary" : {"groups" : {"created" : 0,"removed" : 0,"updated" : 0},"memberships" : {"created" : 0,"removed" : 0},"users" : {"created" : 0,"removed" : 0,"updated" : 0}}}}',
                           '{"Event":{"status" : "COMPLETE","summary" : {"groups" : {"created" : 1,"removed" : 0,"updated" : 0},"memberships" : {"created" : 5,"removed" : 0},"users" : {"created" : 5,"removed" : 0,"updated" : 0}}}}']
 
-    urlopen_mock.return_value = u
+    urlopen_mock.return_value = response
 
     ambari_server.sync_ldap()
-    pass
 
+    self.assertTrue(response.getcode.called)
+    self.assertTrue(response.read.called)
+    pass
 
   @patch("urllib2.urlopen")
   @patch.object(ambari_server, "get_validated_string_input")
@@ -4858,17 +4860,120 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     get_ambari_properties_mock.return_value = properties
     get_validated_string_input_mock.side_effect = ['admin', 'admin']
 
-    u = MagicMock()
-    u.getcode.side_effect = [201, 200]
-    u.read.side_effect = ['{"resources" : [{"href" : "http://c6401.ambari.apache.org:8080/api/v1/ldap_sync_events/16","Event" : {"id" : 16}}]}',
+    response = MagicMock()
+    response.getcode.side_effect = [201, 200]
+    response.read.side_effect = ['{"resources" : [{"href" : "http://c6401.ambari.apache.org:8080/api/v1/ldap_sync_events/16","Event" : {"id" : 16}}]}',
                           '{"Event":{"status" : "ERROR","status_detail" : "Error!!","summary" : {"groups" : {"created" : 0,"removed" : 0,"updated" : 0},"memberships" : {"created" : 0,"removed" : 0},"users" : {"created" : 0,"removed" : 0,"updated" : 0}}}}']
 
-    urlopen_mock.return_value = u
+    urlopen_mock.return_value = response
 
     try:
       ambari_server.sync_ldap()
       self.fail("Should fail with exception")
     except FatalException as e:
+      pass
+
+  @patch("urllib2.urlopen")
+  @patch("urllib2.Request")
+  @patch("base64.encodestring")
+  @patch.object(ambari_server, 'is_root')
+  @patch.object(ambari_server, 'is_server_runing')
+  @patch.object(ambari_server, 'get_ambari_properties')
+  @patch.object(ambari_server, 'get_validated_string_input')
+  def test_sync_ldap_forbidden(self, get_validated_string_input_method, get_ambari_properties_method,
+                                is_server_runing_method, is_root_method,
+                                encodestring_method, request_constructor, urlopen_method):
+
+    is_root_method.return_value = False
+    try:
+      ambari_server.sync_ldap()
+      self.fail("Should throw exception if not root")
+    except FatalException as fe:
+      # Expected
+      self.assertTrue("root-level" in fe.reason)
+      pass
+    is_root_method.return_value = True
+
+    is_server_runing_method.return_value = (None, None)
+    try:
+      ambari_server.sync_ldap()
+      self.fail("Should throw exception if ambari is stopped")
+    except FatalException as fe:
+      # Expected
+      self.assertTrue("not running" in fe.reason)
+      pass
+    is_server_runing_method.return_value = (True, None)
+
+    configs = MagicMock()
+    configs.get_property.return_value = None
+    get_ambari_properties_method.return_value = configs
+    try:
+      ambari_server.sync_ldap()
+      self.fail("Should throw exception if ldap is not configured")
+    except FatalException as fe:
+      # Expected
+      self.assertTrue("not configured" in fe.reason)
+      pass
+    configs.get_property.return_value = 'true'
+
+    get_validated_string_input_method.return_value = 'admin'
+    encodestring_method.return_value = 'qwe123'
+
+    requestMocks = [MagicMock()]
+    request_constructor.side_effect = requestMocks
+    response = MagicMock()
+    response.getcode.return_value = 403
+    urlopen_method.return_value = response
+
+    try:
+      ambari_server.sync_ldap()
+      self.fail("Should throw exception if return code != 200")
+    except FatalException as fe:
+      # Expected
+      self.assertTrue("status code" in fe.reason)
+      pass
+
+  @patch.object(ambari_server, 'is_root')
+  def test_sync_ldap_ambari_stopped(self, is_root_method):
+    is_root_method.return_value = False
+    try:
+      ambari_server.sync_ldap()
+      self.fail("Should throw exception if not root")
+    except FatalException as fe:
+      # Expected
+      self.assertTrue("root-level" in fe.reason)
+      pass
+
+  @patch.object(ambari_server, 'is_root')
+  @patch.object(ambari_server, 'is_server_runing')
+  def test_sync_ldap_ambari_stopped(self, is_server_runing_method, is_root_method):
+    is_root_method.return_value = True
+    is_server_runing_method.return_value = (None, None)
+    try:
+      ambari_server.sync_ldap()
+      self.fail("Should throw exception if ambari is stopped")
+    except FatalException as fe:
+      # Expected
+      self.assertTrue("not running" in fe.reason)
+      pass
+
+  @patch.object(ambari_server, 'is_root')
+  @patch.object(ambari_server, 'is_server_runing')
+  @patch.object(ambari_server, 'get_ambari_properties')
+  def test_sync_ldap_not_configured(self, get_ambari_properties_method,
+                     is_server_runing_method, is_root_method):
+    is_root_method.return_value = True
+    is_server_runing_method.return_value = (True, None)
+
+    configs = MagicMock()
+    configs.get_property.return_value = None
+    get_ambari_properties_method.return_value = configs
+    try:
+      ambari_server.sync_ldap()
+      self.fail("Should throw exception if ldap is not configured")
+    except FatalException as fe:
+      # Expected
+      self.assertTrue("not configured" in fe.reason)
       pass
 
   @patch.object(ambari_server, 'read_password')
