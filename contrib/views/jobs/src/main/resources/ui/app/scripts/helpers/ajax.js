@@ -138,6 +138,12 @@ var formatUrl = function (url, data) {
       }
       url = url.replace(new RegExp(key, 'g'), replace);
     });
+
+    var pattern = "/proxy?url=";
+    var index = url.indexOf(pattern);
+    if (index > -1) {
+      url = url.substring(0, index) + pattern + escape(url.substring(index + pattern.length));
+    }
   }
   return url;
 };
