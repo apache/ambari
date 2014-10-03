@@ -383,6 +383,18 @@
             </organization>            
         </developer>
         <developer>
+            <id>matyas</id>
+            <name>Janos Matyas</name>
+            <email>matyas@apache.org</email>
+            <timezone>+2</timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+                SequenceIQ
+            </organization>
+        </developer>
+        <developer>
             <id>mpapirkovskyy</id>
             <name>Myroslav Papyrkovskyy</name>
             <email>mpapirkovskyy@apache.org</email>
@@ -619,10 +631,6 @@
          <contributor>
            <name>Michael Harp</name>
            <organization>Teradata</organization>
-         </contributor>
-         <contributor>
-           <name>Janos Matyas</name>
-           <organization>SequenceIQ</organization>
          </contributor>
          <contributor>
            <name>Greg Hill</name>
