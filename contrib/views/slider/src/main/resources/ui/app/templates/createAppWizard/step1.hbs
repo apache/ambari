@@ -20,7 +20,7 @@
     <!-- Available Applications -->
     {{#if controller.isAppTypesError}}
       <div class="row">
-        <div class="col-xs-12 alert alert-info app-types-alert">
+        <div class="col-xs-12 alert alert-warning app-types-alert">
           {{t wizard.step1.noAppTypesError}}
         </div>
       </div>
@@ -71,7 +71,7 @@
         </div>
       </div>
       <div class="col-xs-7">
-        {{input id="app-name-input" class="form-control" valueBinding="controller.newApp.name" disabledBinding="controller.isAppTypesError"}}
+        {{input id="app-name-input" class="form-control" valueBinding="controller.newApp.name" disabledBinding="controller.isAppTypesError" placeholderTranslation="form.placeholder.step1.name"}}
       </div>
     </div>
     {{#if controller.isNameError}}
@@ -139,7 +139,7 @@
         <label class="control-label">{{t wizard.step1.logAggregation.filePatterns.include}}</label>
       </div>
       <div class="col-xs-7">
-        {{input class="form-control" valueBinding="controller.newApp.includeFilePatterns"}}
+        {{input class="form-control" valueBinding="controller.newApp.includeFilePatterns" placeholderTranslation="form.placeholder.include.file.patterns"}}
       </div>
     </div>
     <div class="row">
@@ -147,7 +147,7 @@
         <label class="control-label">{{t wizard.step1.logAggregation.filePatterns.exclude}}</label>
       </div>
       <div class="col-xs-7">
-        {{input class="form-control" valueBinding="controller.newApp.excludeFilePatterns"}}
+        {{input class="form-control" valueBinding="controller.newApp.excludeFilePatterns" placeholderTranslation="form.placeholder.exclude.file.patterns"}}
       </div>
     </div>
     <div class="row">
@@ -156,7 +156,7 @@
       </div>
       <div class="col-xs-7">
         <div class="input-group">
-          {{input class="form-control" valueBinding="controller.newApp.frequency"}}
+          {{input class="form-control" valueBinding="controller.newApp.frequency" placeholderTranslation="form.placeholder.frequency"}}
           <div class="input-group-addon">{{t common.seconds}}</div>
         </div>
       </div>

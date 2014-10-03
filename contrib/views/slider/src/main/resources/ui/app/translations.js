@@ -63,7 +63,11 @@ Em.I18n.translations = {
 
   'form': {
     'placeholder': {
-      'optional': '(optional)'
+      'optional': '(optional)',
+      'step1.name': 'Enter Name (required)',
+      'include.file.patterns': '*.log',
+      'exclude.file.patterns': '*.zip',
+      'frequency': '3600'
     }
   },
 
