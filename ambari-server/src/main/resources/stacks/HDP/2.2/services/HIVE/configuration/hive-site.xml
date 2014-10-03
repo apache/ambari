@@ -26,10 +26,4 @@ limitations under the License.
     The user defined authorization class should implement interface org.apache.hadoop.hive.ql.security.authorization.HiveAuthorizationProvider.  </description>
   </property>
 
-  <property>
-    <name>hive.aux.jars.path</name>
-    <value>file:///usr/hdp/current/hive-hcatalog/share/hcatalog</value>
-    <description>Comma-separated list of the location of the plugin jars that contain implementations of user defined functions and SerDes.</description>
-  </property>
-
 </configuration>
