@@ -65,11 +65,12 @@ App.SliderController = Ember.Controller.extend(App.RunPeriodically, {
 
   /**
    * initialize properties of GANGLIA that required by Slider View
+   * @method initGangliaProperties
    */
   initGangliaProperties: function () {
     var sliderConfigs = App.SliderApp.store.all('sliderConfig'),
-      gangliaClusters = sliderConfigs.findBy('viewConfigName', 'gangliaClusters'),
-      gangliaHost = sliderConfigs.findBy('viewConfigName', 'gangliaHost');
+      gangliaClusters = sliderConfigs.findBy('viewConfigName', 'ganglia.additional.clusters'),
+      gangliaHost = sliderConfigs.findBy('viewConfigName', 'ganglia.server.hostname');
     App.set('gangliaClusters', this.formatGangliaClusters(gangliaClusters.get('value')));
     App.set('gangliaHost', gangliaHost.get('value'));
   },

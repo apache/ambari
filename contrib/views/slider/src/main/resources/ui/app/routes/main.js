@@ -52,8 +52,8 @@ App.SliderAppsRoute = Ember.Route.extend({
 
     // Load sliderConfigs to storage
     App.SliderApp.store.pushMany('sliderConfig', Em.A([
-      Em.Object.create({id: 1, required: false, viewConfigName: 'gangliaHost', displayName: 'gangliaServer'}),
-      Em.Object.create({id: 2, required: false, viewConfigName: 'gangliaClusters', displayName: 'gangliaClusters'})
+      Em.Object.create({id: 1, required: false, viewConfigName: 'ganglia.server.hostname', displayName: 'gangliaServer'}),
+      Em.Object.create({id: 2, required: false, viewConfigName: 'ganglia.additional.clusters', displayName: 'gangliaClusters'})
     ]));
   },
 

@@ -120,12 +120,12 @@
     <div class="row">
       <div class="col-xs-3">
         <label class="control-label">
-          {{view view.radioButton name="yarnLabel" selectionBinding="controller.newApp.selectedYarnLabel" value=2 class="radio-inline"}}
+          {{view view.radioButton name="yarnLabel" selectionBinding="controller.newApp.selectedYarnLabel" value=2 class="radio-inline special-label-radio"}}
           {{t wizard.step1.yarnLabels.options.specifyLabel}}
         </label>
       </div>
       <div class="col-xs-7">
-        {{input type="text" class="form-control" disabledBinding="view.specLabelEnabled" valueBinding="controller.newApp.specialLabel"}}
+        {{input type="text" class="form-control special-label" disabledBinding="view.specLabelEnabled" valueBinding="controller.newApp.specialLabel"}}
       </div>
     </div>
     <!-- YARN Labels end -->

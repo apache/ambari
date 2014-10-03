@@ -172,3 +172,28 @@ test('basic (no errors - just valid data)', function () {
   });
 
 });
+
+test('check step1', function () {
+
+  visit('/createAppWizard/step1');
+  equal(find(selectors.buttonNext).attr('disabled'), 'disabled', '"Next"-button should be disabled at the beginning of Step 1');
+  fillIn('#app-name-input', '1s');
+  andThen(function () {
+    equal(find(selectors.buttonNext).attr('disabled'), 'disabled', '"Next"-button should be disabled because invalid name provided');
+  });
+
+  fillIn('#app-name-input', '-');
+  andThen(function () {
+    equal(find(selectors.buttonNext).attr('disabled'), 'disabled', '"Next"-button should be disabled because invalid name provided (2)');
+  });
+
+  fillIn('#app-name-input', 's$1');
+  andThen(function () {
+    equal(find(selectors.buttonNext).attr('disabled'), 'disabled', '"Next"-button should be disabled because invalid name provided (2)');
+  });
+
+  equal(find('.special-label').attr('disabled'), 'disabled', '"Special YARN label"-textfield should be disabled');
+  find('.special-label-radio').click();
+  equal(find('.special-label').attr('disabled'), null, '"Special YARN label"-textfield should be enabled if proper radio-button selected');
+
+});

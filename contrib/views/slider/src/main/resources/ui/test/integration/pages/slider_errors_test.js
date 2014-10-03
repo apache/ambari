@@ -22,7 +22,7 @@ QUnit.module('integration/pages - index', {
     Ember.run(App, App.advanceReadiness);
     Em.run(function () {
       var p = {
-        validation: [
+        validations: [
           {message: 'Some mythical error'},
           {message: 'Error with DNA'}
         ],

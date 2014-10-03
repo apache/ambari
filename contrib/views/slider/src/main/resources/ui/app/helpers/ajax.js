@@ -55,9 +55,9 @@ var urls = {
       "Content-Type": "text/plain; charset=utf-8"
     },
     schema: {
-      required: ['version', 'validation', 'parameters'],
+      required: ['version', 'validations', 'parameters'],
       properties: {
-        validation: {
+        validations: {
           type: 'array'
         },
         parameters: {
