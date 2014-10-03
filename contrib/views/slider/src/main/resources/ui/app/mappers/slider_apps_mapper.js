@@ -53,6 +53,7 @@ App.SliderAppsMapper = App.Mapper.createWithMixins(App.RunPeriodically, {
       sender: this,
       success: 'parse'
     }).fail(function(jqXHR, textStatus){
+        App.__container__.lookup('controller:application').set('hasConfigErrors', true);
         if (!self.get('isWarningPopupShown')) {
           var message = textStatus === "timeout" ? "timeout" : jqXHR.responseText;
           self.set('isWarningPopupShown', true);
@@ -230,6 +231,8 @@ App.SliderAppsMapper = App.Mapper.createWithMixins(App.RunPeriodically, {
     var apps = [],
       self = this,
       appsToDelete = App.SliderApp.store.all('sliderApp').get('content').mapProperty('id');
+
+    App.__container__.lookup('controller:application').set('hasConfigErrors', false);
 
     if (this.get('isWarningPopupShown')) {
       this.closeWarningPopup();
