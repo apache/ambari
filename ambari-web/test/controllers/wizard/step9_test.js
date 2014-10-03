@@ -46,9 +46,21 @@ describe('App.InstallerStep9Controller', function () {
       })
     });
     obj = App.InstallerController.create();
+    sinon.stub(App.ajax, 'send', function() {
+      return {
+        retry: function() {
+          return {
+            then: Em.K,
+            complete: Em.K
+          };
+        },
+        complete: Em.K
+      };
+    });
   });
   afterEach(function () {
     modelSetup.cleanStackServiceComponent();
+    App.ajax.send.restore();
   });
 
   describe('#isSubmitDisabled', function () {
@@ -972,14 +984,12 @@ describe('App.InstallerStep9Controller', function () {
 
   describe('#loadCurrentTaskLog', function () {
     beforeEach(function () {
-      sinon.spy(App.ajax, 'send');
       sinon.stub(c, 'loadLogData', Em.K);
       c.set('wizardController', Em.Object.create({
         getDBProperty: Em.K
       }));
     });
     afterEach(function () {
-      App.ajax.send.restore();
       c.loadLogData.restore();
     });
     it('shouldn\'t call App.ajax.send if no currentOpenTaskId', function () {
@@ -1081,12 +1091,10 @@ describe('App.InstallerStep9Controller', function () {
 
   describe('#getLogsByRequest', function () {
     beforeEach(function () {
-      sinon.stub(App.ajax, 'send', function() {return {retry: function() {return {then: Em.K}}}});
       sinon.stub(c, 'togglePreviousSteps', Em.K);
       sinon.stub(c, 'loadLogData', Em.K);
     });
     afterEach(function () {
-      App.ajax.send.restore();
       c.togglePreviousSteps.restore();
       c.loadLogData.restore();
     });
@@ -1124,12 +1132,6 @@ describe('App.InstallerStep9Controller', function () {
   });
 
   describe('#isAllComponentsInstalled', function () {
-    beforeEach(function () {
-      sinon.spy(App.ajax, 'send');
-    });
-    afterEach(function () {
-      App.ajax.send.restore();
-    });
     it('shouldn\'t call App.ajax.send', function () {
       c.set('content', {controllerName: 'addServiceController'});
       c.isAllComponentsInstalled();
@@ -1163,14 +1165,12 @@ describe('App.InstallerStep9Controller', function () {
       sinon.stub(c, 'loadStep', Em.K);
       sinon.stub(c, 'loadLogData', Em.K);
       sinon.stub(c, 'startPolling', Em.K);
-      sinon.stub(App.ajax, 'send', function() {return {retry: function() {return {then: Em.K}}}});
     });
     afterEach(function () {
       c.togglePreviousSteps.restore();
       c.loadStep.restore();
       c.loadLogData.restore();
       c.startPolling.restore();
-      App.ajax.send.restore();
       App.get.restore();
     });
     it('should set custom data in testMode', function () {

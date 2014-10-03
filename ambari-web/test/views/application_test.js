@@ -104,7 +104,7 @@ var view,
     }
   ];
 
-describe('App.ApplicationView', function () {
+describe.skip('App.ApplicationView', function () {
 
   before(function () {
     if($('#modal').length) {
