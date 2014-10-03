@@ -18,9 +18,33 @@
 
 package org.apache.ambari.view.slider;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class ViewStatus {
+  public static class Validation {
+    public static enum TYPE {
+      ERROR, WARN
+    }
+
+    public String message;
+    public String type;
+
+    public Validation(String message, String type) {
+      this.message = message;
+      this.type = type;
+    }
+    public Validation(String message) {
+      this.message = message;
+      this.type = TYPE.ERROR.name();
+    }
+  }
+
   private String version;
+  private Map<String, String> parameters = new HashMap<String, String>();
+  private List<Validation> validations = new ArrayList<ViewStatus.Validation>();
 
   public String getVersion() {
     return version;
@@ -28,5 +52,21 @@ public class ViewStatus {
 
   public void setVersion(String version) {
     this.version = version;
+  }
+
+  public Map<String, String> getParameters() {
+    return parameters;
+  }
+
+  public void setParameters(Map<String, String> parameters) {
+    this.parameters = parameters;
+  }
+
+  public List<Validation> getValidations() {
+    return validations;
+  }
+
+  public void setValidations(List<Validation> validations) {
+    this.validations = validations;
   }
 }

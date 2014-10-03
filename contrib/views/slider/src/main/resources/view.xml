@@ -18,86 +18,43 @@ limitations under the License. Kerberos, LDAP, Custom. Binary/Htt
   <name>SLIDER</name>
   <label>Slider Apps View</label>
   <version>1.0.0</version>
-  <parameter>
-    <name>hdfs.url</name>
-    <description>The URL to access HDFS service via its protocol. Typically this is the fs.defaultFS property in the core-site.xml configuration file. For example: hdfs://hdfs.namenode.host:8020.</description>
-    <required>true</required>
-  </parameter>
-  <parameter>
-    <name>yarn.rm.url</name>
-    <description>The URL to the YARN ResourceManager, used to provide YARN Application data. For example: http://yarn.resourcemanager.host:8050</description>
-    <required>true</required>
-  </parameter>
-  <parameter>
-    <name>yarn.rm.webapp.url</name>
-    <description>The URL to the YARN ResourceManager Web Application, used to provide YARN UI. Typically this is the yarn.resourcemanager.webapp.address config from yarn-site.xml configuration file. For example: http://yarn.resourcemanager.host:8088</description>
-    <required>true</required>
-  </parameter>
-  <parameter>
-    <name>yarn.rm.scheduler.url</name>
-    <description>The URL to the YARN ResourceManager Scheduler, which schedules YARN Applications. For example: http://yarn.resourcemanager.host:8030</description>
-    <required>true</required>
-  </parameter>
-  <parameter>
-    <name>zookeeper.quorum</name>
-    <description>ZooKeeper quorum location. Typically this is a comma separated list of ZooKeeper hostnames and port numbers (clientPort property in the zookeeper-env). For example: zookeeper.host1:2181,zookeeper.host2:2181.</description>
-    <required>true</required>
-  </parameter>
-  <parameter>
-    <name>ganglia.server.hostname</name>
-    <description>Hostname where Ganglia Server is located</description>
-    <required>false</required>
-  </parameter>
-  <parameter>
-    <name>ganglia.additional.clusters</name>
-    <description>Ganglia clusters which can be used by applications created in Slider Apps view. Value is comma separated list of cluster-name and port pairs. Typically this is the additional_clusters in the ganglia-env configuration. For example: Application1:8881,Application2:8882</description>
-    <required>false</required>
-  </parameter>
-  <parameter>
-    <name>slider.user</name>
-    <description>Slider user</description>
-    <required>false</required>
-  </parameter>
-  <parameter>
-    <name>slider.security.enabled</name>
-    <description>Indicates whether cluster has been secured or not.</description>
-    <required>true</required>
-  </parameter>
-  <parameter>
-    <name>yarn.rm.kerberos.principal</name>
-    <description>Kerberos principal used to access YARN ResourceManager. For example: rm/_HOST@EXAMPLE.COM</description>
-    <required>optional</required>
-  </parameter>
-  <parameter>
-    <name>dfs.namenode.kerberos.principal</name>
-    <description>Kerberos principal used to access HDFS NameNode. For example: nn/_HOST@EXAMPLE.COM</description>
-    <required>optional</required>
-  </parameter>
-  <parameter>
-    <name>view.kerberos.principal</name>
-    <description>Kerberos principal associated with this view. For example: ambari/_HOST@EXAMPLE.COM</description>
-    <required>optional</required>
-  </parameter>
-  <parameter>
-    <name>view.kerberos.principal.keytab</name>
-    <description>Path to the Kerberos principal keytab used for view's user. For example: /etc/security/keytabs/ambari.headless.keytab</description>
-    <required>optional</required>
-  </parameter>
-  <parameter>
-    <name>yarm.rm.ha.hosts</name>
-    <description>Hostnames where YARN ResourceManagers are available when High Availability is enabled. Value should be a comma separated list of host names</description>
-    <required>optional</required>
-  </parameter>
-  <parameter>
-    <name>yarn.rm.store.class</name>
-    <description>Name of class used by YARN ResourceManager to persist its state. For example some of the classes are 'org.apache.hadoop.yarn.server.resourcemanager.recovery.ZKRMStateStore', or 'org.apache.hadoop.yarn.server.resourcemanager.recovery.FileSystemRMStateStore'</description>
-    <required>optional</required>
-  </parameter>
-  <parameter>
-    <name>yarn.rm.ha.automatic-failover.zk-base-path</name>
-    <description>The base path in ZooKeeper used for storing leader information. This is used when ZooKeeper based leader election is performed. For example: '/yarn-leader-election'</description>
-    <required>optional</required>
-  </parameter>
+	<parameter>
+		<name>ambari.server.url</name>
+		<description>Ambari Server Cluster REST API URL (for example:
+			http://ambari.server:8080/api/v1/clusters/c1)</description>
+		<required>true</required>
+	</parameter>
+	<parameter>
+		<name>ambari.server.username</name>
+		<description>Ambari administrator username (for example: admin)
+		</description>
+		<required>true</required>
+	</parameter>
+	<parameter>
+		<name>ambari.server.password</name>
+		<description>Ambari administrator password (for example: admin)
+		</description>
+		<required>true</required>
+	</parameter>
+	<parameter>
+		<name>slider.user</name>
+		<description>Slider user</description>
+		<required>false</required>
+	</parameter>
+	<parameter>
+		<name>view.kerberos.principal</name>
+		<description>Kerberos principal associated with this view. For
+			example: ambari/_HOST@EXAMPLE.COM
+		</description>
+		<required>optional</required>
+	</parameter>
+	<parameter>
+		<name>view.kerberos.principal.keytab</name>
+		<description>Path to the Kerberos principal keytab used for view's
+			user. For example: /etc/security/keytabs/ambari.headless.keytab
+		</description>
+		<required>optional</required>
+	</parameter>
   <resource>
     <name>status</name>
     <service-class>org.apache.ambari.view.slider.rest.ViewStatusResource</service-class>

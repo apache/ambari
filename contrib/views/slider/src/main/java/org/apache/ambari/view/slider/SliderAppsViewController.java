@@ -31,25 +31,18 @@ import com.google.inject.ImplementedBy;
 @ImplementedBy(SliderAppsViewControllerImpl.class)
 public interface SliderAppsViewController {
 
-  public static final String PROPERTY_HDFS_ADDRESS = "hdfs.url";
-  public static final String PROPERTY_YARN_RM_ADDRESS = "yarn.rm.url";
-  public static final String PROPERTY_YARN_RM_WEBAPP_ADDRESS = "yarn.rm.webapp.url";
-  public static final String PROPERTY_YARN_RM_SCHEDULER_ADDRESS = "yarn.rm.scheduler.url";
-  public static final String PROPERTY_ZK_QUOROM = "zookeeper.quorum";
-  // Ganglia
+  public static final String PARAM_AMBARI_CLUSTER_API = "ambari.server.url";
+  public static final String PARAM_AMBARI_USERNAME = "ambari.server.username";
+  public static final String PARAM_AMBARI_PASSWORD = "ambari.server.password";
+  public static final String PARAM_SLIDER_USER = "slider.user";
+  public static final String PARAM_VIEW_PRINCIPAL = "view.kerberos.principal";
+  public static final String PARAM_VIEW_PRINCIPAL_KEYTAB= "view.kerberos.principal.keytab";
+
+  public static final String PROPERTY_SLIDER_ZK_QUORUM = "slider.zookeeper.quorum";
   public static final String PROPERTY_GANGLIA_SERVER_HOSTNAME = "ganglia.server.hostname";
   public static final String PROPERTY_GANGLIA_CUSTOM_CLUSTERS = "ganglia.additional.clusters";
-  // Security
-  public static final String PROPERTY_SLIDER_USER = "slider.user";
+  public static final String PROPERTY_YARN_RM_WEBAPP_URL = "yarn.rm.webapp.url";
   public static final String PROPERTY_SLIDER_SECURITY_ENABLED = "slider.security.enabled";
-  public static final String PROPERTY_YARN_RM_PRINCIPAL = "yarn.rm.kerberos.principal";
-  public static final String PROPERTY_HDFS_NN_PRINCIPAL = "dfs.namenode.kerberos.principal";
-  public static final String PROPERTY_VIEW_PRINCIPAL = "view.kerberos.principal";
-  public static final String PROPERTY_VIEW_PRINCIPAL_KEYTAB= "view.kerberos.principal.keytab";
-  // HA
-  public static final String PROPERTY_YARN_RM_HA_HOSTS = "yarm.rm.ha.hosts";
-  public static final String PROPERTY_YARN_RM_STORE_CLASS = "yarn.rm.store.class";
-  public static final String PROPERTY_YARN_RM_HA_AUTO_FAILOVER_ZKPATH = "yarn.rm.ha.automatic-failover.zk-base-path";
 
   public ViewStatus getViewStatus();
 
