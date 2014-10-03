@@ -21,7 +21,7 @@
     <service>
       <name>SLIDER</name>
       <displayName>Slider</displayName>
-      <comment>Apache Slider is a YARN application to deploy existing distributed applications on YARN, monitor them and make them larger or smaller as desired -even while the application is running.</comment>
+      <comment>A framework for deploying, managing and monitoring existing distributed applications on YARN.</comment>
       <version>0.60.0.2.2.0.0</version>
       <components>
         <component>
