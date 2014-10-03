@@ -31,6 +31,7 @@ class TestFalconServer(RMFTestCase):
     )
     self.assert_configure_default()
     self.assertResourceCalled('Execute', '/usr/lib/falcon/bin/falcon-start -port 15000',
+                              path = ['/usr/bin'],
                               user = 'falcon',
                               )
     self.assertNoMoreResources()
@@ -42,6 +43,7 @@ class TestFalconServer(RMFTestCase):
                        config_file="default.json"
     )
     self.assertResourceCalled('Execute', '/usr/lib/falcon/bin/falcon-stop',
+                              path = ['/usr/bin'],
                               user = 'falcon',
                               )
     self.assertResourceCalled('File', '/var/run/falcon/falcon.pid',

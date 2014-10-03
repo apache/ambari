@@ -79,11 +79,13 @@ def falcon(type, action = None):
 
     if action == 'start':
       Execute(format('{falcon_home}/bin/falcon-start -port {falcon_port}'),
-              user=params.falcon_user
+              user=params.falcon_user,
+              path=params.hadoop_bin_dir
       )
     if action == 'stop':
       Execute(format('{falcon_home}/bin/falcon-stop'),
-              user=params.falcon_user
+              user=params.falcon_user,
+              path=params.hadoop_bin_dir
       )
       File(params.server_pid_file,
            action='delete'
