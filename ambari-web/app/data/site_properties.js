@@ -1732,7 +1732,7 @@ module.exports =
       "defaultValue": "",
       "isReconfigurable": false,
       "isOverridable": false,
-      "isVisible": true,
+      "isVisible": false,
       "serviceName": "HIVE",
       "filename": "hive-env.xml",
       "category": "Advanced hive-env"
@@ -1744,7 +1744,7 @@ module.exports =
       "defaultValue": "",
       "isReconfigurable": false,
       "isOverridable": false,
-      "isVisible": true,
+      "isVisible": false,
       "serviceName": "HIVE",
       "filename": "hive-env.xml",
       "category": "Advanced hive-env"
