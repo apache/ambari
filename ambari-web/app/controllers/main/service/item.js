@@ -256,6 +256,7 @@ App.MainServiceItemController = Em.Controller.extend({
    */
   refreshYarnQueues : function (event) {
     var controller = this;
+    var hosts = App.Service.find('YARN').get('hostComponents').filterProperty('componentName', 'RESOURCEMANAGER').mapProperty('hostName');
     return App.showConfirmationPopup(function() {
     App.ajax.send({
       name : 'service.item.refreshQueueYarnRequest',
@@ -263,7 +264,7 @@ App.MainServiceItemController = Em.Controller.extend({
       data : {
         command : "REFRESHQUEUES",
         context : Em.I18n.t('services.service.actions.run.yarnRefreshQueues.context') ,
-        hosts : App.Service.find('YARN').get('hostComponents').findProperty('componentName', 'RESOURCEMANAGER').get('hostName'),
+        hosts : hosts.join(','),
         serviceName : "YARN",
         componentName : "RESOURCEMANAGER",
         forceRefreshConfigTags : "capacity-scheduler"
