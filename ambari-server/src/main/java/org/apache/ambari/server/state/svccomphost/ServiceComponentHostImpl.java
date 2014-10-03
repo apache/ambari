@@ -31,6 +31,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.AlertDefinitionCommand;
 import org.apache.ambari.server.controller.ServiceComponentHostResponse;
+import org.apache.ambari.server.events.MaintenanceModeEvent;
+import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.dao.HostComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
@@ -109,6 +111,12 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
    */
   @Inject
   private AlertDefinitionHash alertDefinitionHash;
+
+  /**
+   * Used to publish events relating to service CRUD operations.
+   */
+  @Inject
+  private AmbariEventPublisher eventPublisher;
 
   private HostComponentStateEntity stateEntity;
   private HostComponentDesiredStateEntity desiredStateEntity;
@@ -1431,6 +1439,11 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
       try {
         desiredStateEntity.setMaintenanceState(state);
         saveIfPersisted();
+
+        // broadcast the maintenance mode change
+        MaintenanceModeEvent event = new MaintenanceModeEvent(state, this);
+        eventPublisher.publish(event);
+
       } finally {
         writeLock.unlock();
       }

@@ -19,6 +19,7 @@ package org.apache.ambari.server.events.listeners;
 
 import java.util.Set;
 
+import org.apache.ambari.server.EagerSingleton;
 import org.apache.ambari.server.events.AlertDefinitionDeleteEvent;
 import org.apache.ambari.server.events.AlertDefinitionRegistrationEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
@@ -40,6 +41,7 @@ import com.google.inject.Singleton;
  * infrastructure lifecycle such as definition registration events.
  */
 @Singleton
+@EagerSingleton
 public class AlertLifecycleListener {
   /**
    * Logger.

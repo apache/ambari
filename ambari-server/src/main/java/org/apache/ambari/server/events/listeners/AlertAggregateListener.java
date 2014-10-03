@@ -19,6 +19,7 @@ package org.apache.ambari.server.events.listeners;
 
 import java.text.MessageFormat;
 
+import org.apache.ambari.server.EagerSingleton;
 import org.apache.ambari.server.events.AlertReceivedEvent;
 import org.apache.ambari.server.events.publishers.AlertEventPublisher;
 import org.apache.ambari.server.orm.dao.AlertSummaryDTO;
@@ -41,6 +42,7 @@ import com.google.inject.Singleton;
  * {@link SourceType#AGGREGATE} alert that needs to run.
  */
 @Singleton
+@EagerSingleton
 public class AlertAggregateListener {
 
   @Inject

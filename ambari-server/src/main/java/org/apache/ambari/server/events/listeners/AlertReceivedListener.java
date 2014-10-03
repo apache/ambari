@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.events.listeners;
 
+import org.apache.ambari.server.EagerSingleton;
 import org.apache.ambari.server.events.AlertEvent;
 import org.apache.ambari.server.events.AlertReceivedEvent;
 import org.apache.ambari.server.events.AlertStateChangeEvent;
@@ -28,6 +29,7 @@ import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.AlertHistoryEntity;
 import org.apache.ambari.server.state.Alert;
 import org.apache.ambari.server.state.AlertState;
+import org.apache.ambari.server.state.MaintenanceState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,6 +44,7 @@ import com.google.inject.Singleton;
  * {@link AlertStateChangeEvent} when an {@link AlertState} change is detected.
  */
 @Singleton
+@EagerSingleton
 public class AlertReceivedListener {
   /**
    * Logger.
@@ -112,6 +115,7 @@ public class AlertReceivedListener {
       AlertHistoryEntity history = createHistory(clusterId, definition, alert);
 
       current = new AlertCurrentEntity();
+      current.setMaintenanceState(MaintenanceState.OFF);
       current.setAlertHistory(history);
       current.setLatestTimestamp(Long.valueOf(alert.getTimestamp()));
       current.setOriginalTimestamp(Long.valueOf(alert.getTimestamp()));
@@ -155,7 +159,7 @@ public class AlertReceivedListener {
 
       // broadcast the alert changed event for other subscribers
       AlertStateChangeEvent alertChangedEvent = new AlertStateChangeEvent(
-          event.getClusterId(), event.getAlert(), current.getAlertHistory(),
+          event.getClusterId(), event.getAlert(), current,
           oldState);
 
       m_alertEventPublisher.publish(alertChangedEvent);

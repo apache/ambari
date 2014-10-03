@@ -21,6 +21,7 @@ import java.text.MessageFormat;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.EagerSingleton;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.ControllerModule;
@@ -48,6 +49,7 @@ import com.google.inject.Singleton;
  * and {@link AlertGroupEntity} instances are correctly populated.
  */
 @Singleton
+@EagerSingleton
 public class AlertServiceStateListener {
   /**
    * Logger.

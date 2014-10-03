@@ -31,6 +31,8 @@ import org.apache.ambari.server.agent.AgentEnv;
 import org.apache.ambari.server.agent.DiskInfo;
 import org.apache.ambari.server.agent.HostInfo;
 import org.apache.ambari.server.controller.HostResponse;
+import org.apache.ambari.server.events.MaintenanceModeEvent;
+import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.cache.HostConfigMapping;
 import org.apache.ambari.server.orm.cache.HostConfigMappingImpl;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
@@ -89,7 +91,7 @@ public class HostImpl implements Host {
   private static final String TIMEZONE = "timezone";
   private static final String OS_RELEASE_VERSION = "os_release_version";
 
-  
+
   private final Gson gson;
 
   private static final Type hostAttributesType =
@@ -114,17 +116,21 @@ public class HostImpl implements Host {
   private List<DiskInfo> disksInfo = new ArrayList<DiskInfo>();
   private boolean persisted = false;
   private Integer currentPingPort = null;
-  
+
   private final StateMachine<HostState, HostEventType, HostEvent> stateMachine;
   private Map<Long, MaintenanceState> maintMap = null;
 
-  
-  
   // In-memory status, based on host components states
   private String status;
 
   // In-memory prefix of log file paths that is retrieved when the agent registers with the server
   private String prefix;
+
+  /**
+   * Used to publish events relating to host CRUD operations.
+   */
+  @Inject
+  private AmbariEventPublisher eventPublisher;
 
   private static final StateMachineFactory
     <HostImpl, HostState, HostEventType, HostEvent>
@@ -214,19 +220,19 @@ public class HostImpl implements Host {
   @Inject
   public HostImpl(@Assisted HostEntity hostEntity,
       @Assisted boolean persisted, Injector injector) {
-    this.stateMachine = stateMachineFactory.make(this);
+    stateMachine = stateMachineFactory.make(this);
     rwLock = new ReentrantReadWriteLock();
-    this.readLock = rwLock.readLock();
-    this.writeLock = rwLock.writeLock();
+    readLock = rwLock.readLock();
+    writeLock = rwLock.writeLock();
 
     this.hostEntity = hostEntity;
     this.persisted = persisted;
-    this.hostDAO = injector.getInstance(HostDAO.class);
-    this.hostStateDAO = injector.getInstance(HostStateDAO.class);
-    this.gson = injector.getInstance(Gson.class);
-    this.clusterDAO = injector.getInstance(ClusterDAO.class);
-    this.clusters = injector.getInstance(Clusters.class);
-    this.hostConfigMappingDAO = injector.getInstance(HostConfigMappingDAO.class);
+    hostDAO = injector.getInstance(HostDAO.class);
+    hostStateDAO = injector.getInstance(HostStateDAO.class);
+    gson = injector.getInstance(Gson.class);
+    clusterDAO = injector.getInstance(ClusterDAO.class);
+    clusters = injector.getInstance(Clusters.class);
+    hostConfigMappingDAO = injector.getInstance(HostConfigMappingDAO.class);
 
     hostStateEntity = hostEntity.getHostStateEntity();
     if (hostStateEntity == null) {
@@ -238,7 +244,7 @@ public class HostImpl implements Host {
         persist();
       }
     } else {
-      this.stateMachine.setCurrentState(hostStateEntity.getCurrentState());
+      stateMachine.setCurrentState(hostStateEntity.getCurrentState());
     }
 
   }
@@ -405,7 +411,7 @@ public class HostImpl implements Host {
       }
 
       // FIXME add all other information into host attributes
-      this.setAgentVersion(new AgentVersion(
+      setAgentVersion(new AgentVersion(
           hostInfo.getAgentUserId()));
 
       Map<String, String> attrs = new HashMap<String, String>();
@@ -462,7 +468,7 @@ public class HostImpl implements Host {
       if (hostInfo.getOSRelease() != null) {
         attrs.put(OS_RELEASE_VERSION, hostInfo.getOSRelease());
       }
-      
+
       setHostAttributes(attrs);
 
       saveIfPersisted();
@@ -482,7 +488,7 @@ public class HostImpl implements Host {
     }
 
   }
-  
+
   @Override
   public AgentEnv getLastAgentEnv() {
     readLock.lock();
@@ -533,7 +539,7 @@ public class HostImpl implements Host {
         stateMachine.doTransition(event.getType(), event);
       } catch (InvalidStateTransitionException e) {
         LOG.error("Can't handle Host event at current state"
-            + ", host=" + this.getHostName()
+            + ", host=" + getHostName()
             + ", currentState=" + oldState
             + ", eventType=" + event.getType()
             + ", event=" + event);
@@ -546,7 +552,7 @@ public class HostImpl implements Host {
     if (oldState != getState()) {
       if (LOG.isDebugEnabled()) {
         LOG.debug("Host transitioned to a new state"
-            + ", host=" + this.getHostName()
+            + ", host=" + getHostName()
             + ", oldState=" + oldState
             + ", currentState=" + getState()
             + ", eventType=" + event.getType().name()
@@ -574,7 +580,7 @@ public class HostImpl implements Host {
       writeLock.unlock();
     }
   }
-  
+
   @Override
   public Integer getCurrentPingPort() {
     try {
@@ -608,7 +614,7 @@ public class HostImpl implements Host {
       writeLock.unlock();
     }
   }
-  
+
   @Override
   public String getPublicHostName() {
     try {
@@ -703,8 +709,8 @@ public class HostImpl implements Host {
       writeLock.unlock();
     }
   }
-  
-  
+
+
   @Override
   public long getTotalMemBytes() {
     try {
@@ -811,18 +817,18 @@ public class HostImpl implements Host {
       writeLock.unlock();
     }
   }
-  
+
   @Override
   public String getOsFamily() {
-	  String majorVersion = this.getHostAttributes().get(OS_RELEASE_VERSION).split("\\.")[0];
-	  return this.getHostAttributes().get(OSFAMILY) + majorVersion;
+	  String majorVersion = getHostAttributes().get(OS_RELEASE_VERSION).split("\\.")[0];
+	  return getHostAttributes().get(OSFAMILY) + majorVersion;
   }
 
   @Override
   public List<DiskInfo> getDisksInfo() {
     try {
       readLock.lock();
-      return this.disksInfo;
+      return disksInfo;
     } finally {
       readLock.unlock();
     }
@@ -854,10 +860,11 @@ public class HostImpl implements Host {
     try {
       writeLock.lock();
       hostStateEntity.setHealthStatus(gson.toJson(healthStatus));
-      
-      if (healthStatus.getHealthStatus().equals(HealthStatus.UNKNOWN))
+
+      if (healthStatus.getHealthStatus().equals(HealthStatus.UNKNOWN)) {
         setStatus(HealthStatus.UNKNOWN.name());
-      
+      }
+
       saveIfPersisted();
     } finally {
       writeLock.unlock();
@@ -943,7 +950,7 @@ public class HostImpl implements Host {
   public void setLastRegistrationTime(long lastRegistrationTime) {
     try {
       writeLock.lock();
-      this.hostEntity.setLastRegistrationTime(lastRegistrationTime);
+      hostEntity.setLastRegistrationTime(lastRegistrationTime);
       saveIfPersisted();
     } finally {
       writeLock.unlock();
@@ -1012,8 +1019,8 @@ public class HostImpl implements Host {
       writeLock.unlock();
     }
   }
-  
-  
+
+
   @Override
   public String getStatus() {
     return status;
@@ -1142,13 +1149,14 @@ public class HostImpl implements Host {
       hostStateDAO.merge(hostStateEntity);
     }
   }
-  
+
   @Override
   @Transactional
   public boolean addDesiredConfig(long clusterId, boolean selected, String user, Config config) {
-    if (null == user)
+    if (null == user) {
       throw new NullPointerException("User must be specified.");
-    
+    }
+
     HostConfigMapping exist = getDesiredConfigEntity(clusterId, config.getType());
     if (null != exist && exist.getVersion().equals(config.getTag())) {
       if (!selected) {
@@ -1157,9 +1165,9 @@ public class HostImpl implements Host {
       }
       return false;
     }
-    
+
     writeLock.lock();
-    
+
     try {
       // set all old mappings for this type to empty
       for (HostConfigMapping e : hostConfigMappingDAO.findByType(clusterId,
@@ -1167,7 +1175,7 @@ public class HostImpl implements Host {
         e.setSelected(0);
         hostConfigMappingDAO.merge(e);
       }
-      
+
       HostConfigMapping hostConfigMapping = new HostConfigMappingImpl();
       hostConfigMapping.setClusterId(Long.valueOf(clusterId));
       hostConfigMapping.setCreateTimestamp(Long.valueOf(System.currentTimeMillis()));
@@ -1176,31 +1184,31 @@ public class HostImpl implements Host {
       hostConfigMapping.setUser(user);
       hostConfigMapping.setType(config.getType());
       hostConfigMapping.setVersion(config.getTag());
-      
+
       hostConfigMappingDAO.create(hostConfigMapping);
     }
     finally {
       writeLock.unlock();
     }
-    
+
     hostDAO.merge(hostEntity);
-    
+
     return true;
   }
-  
+
   @Override
   public Map<String, DesiredConfig> getDesiredConfigs(long clusterId) {
     Map<String, DesiredConfig> map = new HashMap<String, DesiredConfig>();
 
     for (HostConfigMapping e : hostConfigMappingDAO.findSelected(
         clusterId, hostEntity.getHostName())) {
-      
+
       DesiredConfig dc = new DesiredConfig();
       dc.setTag(e.getVersion());
       dc.setServiceName(e.getServiceName());
       dc.setUser(e.getUser());
       map.put(e.getType(), dc);
-      
+
     }
     return map;
   }
@@ -1221,7 +1229,7 @@ public class HostImpl implements Host {
       hostConfigMap.put(desiredConfigEntry.getKey(), hostConfig);
     }
 
-    Map<Long, ConfigGroup> configGroups = cluster.getConfigGroupsByHostname(this.getHostName());
+    Map<Long, ConfigGroup> configGroups = cluster.getConfigGroupsByHostname(getHostName());
 
     if (configGroups != null && !configGroups.isEmpty()) {
       for (ConfigGroup configGroup : configGroups.values()) {
@@ -1249,11 +1257,11 @@ public class HostImpl implements Host {
   private HostConfigMapping getDesiredConfigEntity(long clusterId, String type) {
     HostConfigMapping findSelectedByType = hostConfigMappingDAO.findSelectedByType(clusterId,
         hostEntity.getHostName(), type);
-    
-    
+
+
     return findSelectedByType;
   }
-  
+
   private void ensureMaintMap() {
     if (null == maintMap) {
       String entity = hostStateEntity.getMaintenanceState();
@@ -1268,42 +1276,47 @@ public class HostImpl implements Host {
       }
     }
   }
-  
+
   @Override
   public void setMaintenanceState(long clusterId, MaintenanceState state) {
     try {
       writeLock.lock();
-      
+
       ensureMaintMap();
-      
+
       maintMap.put(Long.valueOf(clusterId), state);
       String json = gson.toJson(maintMap, maintMapType);
-      
+
       hostStateEntity.setMaintenanceState(json);
       saveIfPersisted();
+
+      // broadcast the maintenance mode change
+      MaintenanceModeEvent event = new MaintenanceModeEvent(state, this);
+      eventPublisher.publish(event);
     } finally {
       writeLock.unlock();
     }
   }
-  
+
   @Override
   public MaintenanceState getMaintenanceState(long clusterId) {
     try {
       readLock.lock();
 
       ensureMaintMap();
-      
+
       Long id = Long.valueOf(clusterId);
-      
-      if (!maintMap.containsKey(id))
+
+      if (!maintMap.containsKey(id)) {
         maintMap.put(id, MaintenanceState.OFF);
-        
+      }
+
       return maintMap.get(id);
     } finally {
       readLock.unlock();
     }
   }
-  
+
 }
 
-  
+

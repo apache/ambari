@@ -39,6 +39,7 @@ import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
 
+import org.apache.ambari.server.EagerSingleton;
 import org.apache.ambari.server.actionmanager.ActionDBAccessor;
 import org.apache.ambari.server.actionmanager.ActionDBAccessorImpl;
 import org.apache.ambari.server.actionmanager.ExecutionCommandWrapper;
@@ -53,11 +54,6 @@ import org.apache.ambari.server.controller.internal.HostResourceProvider;
 import org.apache.ambari.server.controller.internal.MemberResourceProvider;
 import org.apache.ambari.server.controller.internal.ServiceResourceProvider;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
-import org.apache.ambari.server.events.listeners.AlertAggregateListener;
-import org.apache.ambari.server.events.listeners.AlertLifecycleListener;
-import org.apache.ambari.server.events.listeners.AlertReceivedListener;
-import org.apache.ambari.server.events.listeners.AlertServiceStateListener;
-import org.apache.ambari.server.events.listeners.AlertStateChangedListener;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.DBAccessorImpl;
 import org.apache.ambari.server.orm.PersistenceType;
@@ -99,8 +95,14 @@ import org.eclipse.jetty.server.SessionIdManager;
 import org.eclipse.jetty.server.SessionManager;
 import org.eclipse.jetty.server.session.HashSessionIdManager;
 import org.eclipse.jetty.server.session.HashSessionManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
+import org.springframework.core.type.filter.AnnotationTypeFilter;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.crypto.password.StandardPasswordEncoder;
+import org.springframework.util.ClassUtils;
 import org.springframework.web.filter.DelegatingFilterProxy;
 
 import com.google.common.util.concurrent.ServiceManager;
@@ -117,6 +119,7 @@ import com.google.inject.persist.jpa.AmbariJpaPersistModule;
  * Used for injection purposes.
  */
 public class ControllerModule extends AbstractModule {
+  private static Logger LOG = LoggerFactory.getLogger(ControllerModule.class);
 
   private final Configuration configuration;
   private final HostsMap hostsMap;
@@ -317,9 +320,11 @@ public class ControllerModule extends AbstractModule {
    * instances and then register them with a singleton {@link ServiceManager}.
    */
   private void bindServices() {
-    Set<com.google.common.util.concurrent.Service> services = new HashSet<com.google.common.util.concurrent.Service>();
+    Set<com.google.common.util.concurrent.Service> services =
+        new HashSet<com.google.common.util.concurrent.Service>();
 
-    AlertNoticeDispatchService alertNoticeDispatchService = new AlertNoticeDispatchService();
+    AlertNoticeDispatchService alertNoticeDispatchService =
+        new AlertNoticeDispatchService();
 
     bind(AlertNoticeDispatchService.class).toInstance(
         alertNoticeDispatchService);
@@ -332,14 +337,35 @@ public class ControllerModule extends AbstractModule {
   /**
    * Initializes all eager singletons that should be instantiated as soon as
    * possible and not wait for injection.
+   * <p/>
+   * An example of where this is needed is with a singleton that is headless; in
+   * other words, it doesn't have any injections but still needs to be part of
+   * the Guice framework.
+   * <p/>
+   * This currently scans {@code org.apache.ambari.server} for any
+   * {@link EagerSingleton} instances.
    */
   private void bindEagerSingletons() {
-    // alert subscribers are "headless" and have no guice references; created
-    // them as eager singletons to have them register with the eventbus
-    bind(AlertReceivedListener.class).asEagerSingleton();
-    bind(AlertStateChangedListener.class).asEagerSingleton();
-    bind(AlertServiceStateListener.class).asEagerSingleton();
-    bind(AlertLifecycleListener.class).asEagerSingleton();
-    bind(AlertAggregateListener.class).asEagerSingleton();
+    ClassPathScanningCandidateComponentProvider scanner =
+        new ClassPathScanningCandidateComponentProvider(false);
+
+    // match only singletons that are eager listeners
+    scanner.addIncludeFilter(new AnnotationTypeFilter(EagerSingleton.class));
+
+    Set<BeanDefinition> beanDefinitions = scanner.findCandidateComponents("org.apache.ambari.server");
+
+    if (null == beanDefinitions || beanDefinitions.size() == 0) {
+      LOG.warn("No instances of {} found to register", EagerSingleton.class);
+      return;
+    }
+
+    for (BeanDefinition beanDefinition : beanDefinitions) {
+      String className = beanDefinition.getBeanClassName();
+      Class<?> clazz = ClassUtils.resolveClassName(className,
+          ClassUtils.getDefaultClassLoader());
+
+      bind(clazz).asEagerSingleton();
+      LOG.debug("Binding singleton {} eagerly", clazz);
+    }
   }
 }

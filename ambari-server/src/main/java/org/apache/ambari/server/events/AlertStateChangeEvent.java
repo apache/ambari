@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.events;
 
+import org.apache.ambari.server.orm.entities.AlertCurrentEntity;
 import org.apache.ambari.server.orm.entities.AlertHistoryEntity;
 import org.apache.ambari.server.state.Alert;
 import org.apache.ambari.server.state.AlertState;
@@ -33,9 +34,14 @@ public class AlertStateChangeEvent extends AlertEvent {
   private final AlertState m_fromState;
 
   /**
-   * The newly created historical entry.
+   * The current alert, including state and history.
    */
-  private final AlertHistoryEntity m_newEntity;
+  private final AlertCurrentEntity m_currentAlert;
+
+  /**
+   * The historical record for this alert state change event.
+   */
+  private final AlertHistoryEntity m_history;
 
   /**
    * Constructor.
@@ -44,11 +50,21 @@ public class AlertStateChangeEvent extends AlertEvent {
    * @param alert
    */
   public AlertStateChangeEvent(long clusterId, Alert alert,
-      AlertHistoryEntity newEntity, AlertState fromState) {
+      AlertCurrentEntity currentAlert, AlertState fromState) {
     super(clusterId, alert);
 
-    m_newEntity = newEntity;
+    m_currentAlert = currentAlert;
+    m_history = currentAlert.getAlertHistory();
     m_fromState = fromState;
+  }
+
+  /**
+   * Gets the current alert.
+   *
+   * @return the current alert.
+   */
+  public AlertCurrentEntity getCurrentAlert() {
+    return m_currentAlert;
   }
 
   /**
@@ -57,7 +73,7 @@ public class AlertStateChangeEvent extends AlertEvent {
    * @return the newly created historical item.
    */
   public AlertHistoryEntity getNewHistoricalEntry() {
-    return m_newEntity;
+    return m_history;
   }
 
   /**

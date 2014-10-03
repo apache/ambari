@@ -21,14 +21,17 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import org.apache.ambari.server.EagerSingleton;
 import org.apache.ambari.server.events.AlertStateChangeEvent;
 import org.apache.ambari.server.events.publishers.AlertEventPublisher;
 import org.apache.ambari.server.orm.dao.AlertDispatchDAO;
+import org.apache.ambari.server.orm.entities.AlertCurrentEntity;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.AlertGroupEntity;
 import org.apache.ambari.server.orm.entities.AlertHistoryEntity;
 import org.apache.ambari.server.orm.entities.AlertNoticeEntity;
 import org.apache.ambari.server.orm.entities.AlertTargetEntity;
+import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.NotificationState;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -44,6 +47,7 @@ import com.google.inject.Singleton;
  * in the database.
  */
 @Singleton
+@EagerSingleton
 public class AlertStateChangedListener {
 
   /**
@@ -74,6 +78,13 @@ public class AlertStateChangedListener {
   @AllowConcurrentEvents
   public void onAlertEvent(AlertStateChangeEvent event) {
     LOG.debug(event);
+
+    // don't create any outbound alert notices if in MM
+    AlertCurrentEntity currentAlert = event.getCurrentAlert();
+    if (null != currentAlert
+        && currentAlert.getMaintenanceState() != MaintenanceState.OFF) {
+      return;
+    }
 
     AlertHistoryEntity history = event.getNewHistoricalEntry();
     AlertDefinitionEntity definition = history.getAlertDefinition();

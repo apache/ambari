@@ -40,7 +40,12 @@ public abstract class AmbariEvent {
     /**
      * An alert definition is removed from the system.
      */
-    ALERT_DEFINITION_REMOVAL;
+    ALERT_DEFINITION_REMOVAL,
+
+    /**
+     * A host/service/component has had a maintenance mode change.
+     */
+    MAINTENANCE_MODE;
   }
 
   /**

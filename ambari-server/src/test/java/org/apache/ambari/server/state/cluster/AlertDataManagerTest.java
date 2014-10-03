@@ -50,6 +50,7 @@ import org.apache.ambari.server.orm.entities.AlertNoticeEntity;
 import org.apache.ambari.server.orm.entities.AlertTargetEntity;
 import org.apache.ambari.server.state.Alert;
 import org.apache.ambari.server.state.AlertState;
+import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.alert.AggregateDefinitionMapping;
 import org.apache.ambari.server.state.alert.AggregateSource;
 import org.apache.ambari.server.state.alert.AlertDefinition;
@@ -250,6 +251,13 @@ public class AlertDataManagerTest {
     List<AlertHistoryEntity> histories = dao.findAll(clusterId);
     assertEquals(1, histories.size());
 
+    AlertCurrentEntity currentAlert = new AlertCurrentEntity();
+    currentAlert.setAlertHistory(histories.get(0));
+    currentAlert.setMaintenanceState(MaintenanceState.OFF);
+    currentAlert.setOriginalTimestamp(System.currentTimeMillis());
+    currentAlert.setLatestTimestamp(System.currentTimeMillis());
+    dao.create(currentAlert);
+
     AlertTargetEntity target = helper.createAlertTarget();
     Set<AlertTargetEntity> targets = new HashSet<AlertTargetEntity>();
     targets.add(target);
@@ -262,7 +270,7 @@ public class AlertDataManagerTest {
         AlertState.OK);
 
     AlertStateChangeEvent event = new AlertStateChangeEvent(clusterId, alert1,
-        histories.get(0), AlertState.CRITICAL);
+        currentAlert, AlertState.CRITICAL);
 
     AlertStateChangedListener listener = injector.getInstance(AlertStateChangedListener.class);
     listener.onAlertEvent(event);
