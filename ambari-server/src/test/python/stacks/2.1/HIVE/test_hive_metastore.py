@@ -151,6 +151,19 @@ class TestHiveMetastore(RMFTestCase):
         owner = 'hive',
         group = 'hadoop',
     )
+    self.assertResourceCalled('XmlConfig', 'hive-site.xml',
+                              group = 'hadoop',
+                              conf_dir = '/etc/hive/conf.server',
+                              mode = 0644,
+                              configuration_attributes = self.getConfig()['configuration_attributes']['hive-site'],
+                              owner = 'hive',
+                              configurations = self.getConfig()['configurations']['hive-site'],
+                              )
+    self.assertResourceCalled('File', '/etc/hive/conf.server/hive-env.sh',
+                              content = InlineTemplate(self.getConfig()['configurations']['hive-env']['content']),
+                              owner = 'hive',
+                              group = 'hadoop',
+                              )
     self.assertResourceCalled('Execute', 'hive mkdir -p /tmp/AMBARI-artifacts/ ; cp /usr/share/java/mysql-connector-java.jar /usr/lib/hive/lib//mysql-connector-java.jar',
         creates = '/usr/lib/hive/lib//mysql-connector-java.jar',
         path = ['/bin', '/usr/bin/'],
@@ -186,19 +199,6 @@ class TestHiveMetastore(RMFTestCase):
         mode = 0755,
         recursive = True,
     )
-    self.assertResourceCalled('XmlConfig', 'hive-site.xml',
-                              group = 'hadoop',
-                              conf_dir = '/etc/hive/conf.server',
-                              mode = 0644,
-                              configuration_attributes = self.getConfig()['configuration_attributes']['hive-site'],
-                              owner = 'hive',
-                              configurations = self.getConfig()['configurations']['hive-site'],
-                              )
-    self.assertResourceCalled('File', '/etc/hive/conf.server/hive-env.sh',
-                              content = InlineTemplate(self.getConfig()['configurations']['hive-env']['content']),
-                              owner = 'hive',
-                              group = 'hadoop',
-                              )
 
   def assert_configure_secured(self):
     self.assertResourceCalled('Directory', '/etc/hive/conf.server',
@@ -243,6 +243,19 @@ class TestHiveMetastore(RMFTestCase):
         owner = 'hive',
         group = 'hadoop',
     )
+    self.assertResourceCalled('XmlConfig', 'hive-site.xml',
+                              group = 'hadoop',
+                              conf_dir = '/etc/hive/conf.server',
+                              mode = 0644,
+                              configuration_attributes = self.getConfig()['configuration_attributes']['hive-site'],
+                              owner = 'hive',
+                              configurations = self.getConfig()['configurations']['hive-site'],
+                              )
+    self.assertResourceCalled('File', '/etc/hive/conf.server/hive-env.sh',
+                              content = InlineTemplate(self.getConfig()['configurations']['hive-env']['content']),
+                              owner = 'hive',
+                              group = 'hadoop',
+                              )
     self.assertResourceCalled('Execute', 'hive mkdir -p /tmp/AMBARI-artifacts/ ; cp /usr/share/java/mysql-connector-java.jar /usr/lib/hive/lib//mysql-connector-java.jar',
         creates = '/usr/lib/hive/lib//mysql-connector-java.jar',
         path = ['/bin', '/usr/bin/'],
@@ -278,16 +291,3 @@ class TestHiveMetastore(RMFTestCase):
         mode = 0755,
         recursive = True,
     )
-    self.assertResourceCalled('XmlConfig', 'hive-site.xml',
-                              group = 'hadoop',
-                              conf_dir = '/etc/hive/conf.server',
-                              mode = 0644,
-                              configuration_attributes = self.getConfig()['configuration_attributes']['hive-site'],
-                              owner = 'hive',
-                              configurations = self.getConfig()['configurations']['hive-site'],
-                              )
-    self.assertResourceCalled('File', '/etc/hive/conf.server/hive-env.sh',
-                              content = InlineTemplate(self.getConfig()['configurations']['hive-env']['content']),
-                              owner = 'hive',
-                              group = 'hadoop',
-                              )

@@ -44,7 +44,21 @@ def hive(name=None):
   # The reason is that stale-configs are service-level, not component.
   for conf_dir in params.hive_conf_dirs_list:
     fill_conf_dir(conf_dir)
-    
+
+  XmlConfig("hive-site.xml",
+            conf_dir=params.hive_config_dir,
+            configurations=params.config['configurations']['hive-site'],
+            configuration_attributes=params.config['configuration_attributes']['hive-site'],
+            owner=params.hive_user,
+            group=params.user_group,
+            mode=0644)
+
+  File(format("{hive_config_dir}/hive-env.sh"),
+       owner=params.hive_user,
+       group=params.user_group,
+       content=InlineTemplate(params.hive_env_sh_template)
+  )
+
   if name == 'metastore' or name == 'hiveserver2':
     jdbc_connector()
     
@@ -92,20 +106,6 @@ def hive(name=None):
     crt_directory(params.hive_pid_dir)
     crt_directory(params.hive_log_dir)
     crt_directory(params.hive_var_lib)
-
-  XmlConfig("hive-site.xml",
-            conf_dir=params.hive_config_dir,
-            configurations=params.config['configurations']['hive-site'],
-            configuration_attributes=params.config['configuration_attributes']['hive-site'],
-            owner=params.hive_user,
-            group=params.user_group,
-            mode=0644)
-
-  File(format("{hive_config_dir}/hive-env.sh"),
-       owner=params.hive_user,
-       group=params.user_group,
-       content=InlineTemplate(params.hive_env_sh_template)
-    )
 
 def fill_conf_dir(component_conf_dir):
   import params
