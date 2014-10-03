@@ -18,25 +18,33 @@
 
 var App = require('app');
 
-App.ContextMenuComponent = Em.Component.extend({
-  layoutName:'components/contextMenu',
-
-  onTargetChange:function () {
-    this.$().off('hidden.bs.context');
-    this.$().on('hidden.bs.context', Em.run.bind(this, this.resetConfirmations));
-  }.observes('target'),
-
-  resetConfirmations:function () {
-    this.triggerRecursively('resetConfirm');
-  },
-
+App.PopoverDeleteComponent = Em.Component.extend({
+  popover:Em.computed.alias('childViews.firstObject'),
+  layoutName:'components/deletePopover',
+  deleteForever:false,
   actions:{
-    removeFile:function () {
-      this.get('target').send('deleteFile',true);
+    confirm:function (deleteForever) {
+      this.sendAction('confirm',this.get('deleteForever'));
     },
-    moveToTrash:function () {
-      this.get('target').send('deleteFile');
-    },
-  }
-
+    close:function () {
+      this.set('popover.isVisible',false);
+    }
+  },
+  didInsertElement:function () {
+    $('body').on('click.popover', Em.run.bind(this,this.hideMultiply));
+  },
+  hideMultiply:function (e) {
+    if (!this.$()) {
+      return;
+    }
+    if (!this.$().is(e.target)
+        && this.$().has(e.target).length === 0
+        && $('.popover').has(e.target).length === 0) {
+          this.set('popover.isVisible',false);
+    }
+  },
+  willClearRender:function () {
+    this.get('popover').$element.off('click');
+    $('body').off('click.popover');
+  },
 });

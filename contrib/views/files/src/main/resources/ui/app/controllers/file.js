@@ -16,6 +16,8 @@
  * limitations under the License.
  */
 
+var App = require('app');
+
 App.FileController = Ember.ObjectController.extend({
   init:function () {
     this.set('content.selected', false);
@@ -25,41 +27,33 @@ App.FileController = Ember.ObjectController.extend({
     download:function (option) {
       this.store.linkFor([this.get('content')],option).then(function (link) {
         window.location.href = link;
-      });
+      },Em.run.bind(this,this.sendAlert));
     },
-    rename:function (opt,file) {
+    showChmod:function () {
+      this.toggleProperty('chmodVisible',true);
+    },
+    rename:function (opt,name) {
       var file = this.get('content'),
-          self,path,name,newPath;
-      if (opt === 'edit') {
-        this.set('tmpName',file.get('name'));
-        this.set('isRenaming',true);
-      };
+          path = file.get('path'),
+          newPath;
 
-      if (opt === 'cancel') {
-        this.set('tmpName','');
-        this.set('isRenaming',false);
-      };
+      if (name === file.get('name') || Em.isEmpty(name)) {
+        return this.set('isRenaming',!Em.isEmpty(name));
+      }
 
-      if (opt === 'confirm') {
-        self = this;
-        path = file.get('path');
-        name = this.get('tmpName');
+      newPath = path.substring(0,path.lastIndexOf('/')+1)+name;
 
-        if (Em.isEmpty(name)) {
-          return false;
-        }
-
-        if (name === file.get('name')) {
-          return self.set('isRenaming',false);
-        }
-
-        newPath = path.substring(0,path.lastIndexOf('/')+1)+name;
-
-        this.store.move(file,newPath).then(function () {
-          self.set('tmpName','');
-          self.set('isRenaming',false);
-        });
-      };
+      this.store.move(file,newPath)
+        .then(Em.run.bind(this,this.set,'isRenaming',false),Em.run.bind(this,this.sendAlert));
+    },
+    editName:function () {
+      this.set('isRenaming',true);
+    },
+    chmod:function (r) {
+      var record = this.get('content');
+      this.store
+        .chmod(record)
+        .then(null,Em.run.bind(this,this.chmodErrorCallback,record));
     },
     open:function (file) {
       if (this.get('content.isDirectory')) {
@@ -68,32 +62,22 @@ App.FileController = Ember.ObjectController.extend({
         return this.send('download');
       };
     },
-    removeFile:function (opt) {
-      if (opt=='ask') {
-        this.toggleProperty('isRemoving');
-        console.log('ask removeFile')
-        return false;
-      };
-
-      if (opt == 'cancel'  && !this.isDestroyed) {
-        this.set('isRemoving',false);
-        console.log('cancel removeFile')
-      }
-
-      if (opt == 'confirm') {
-        this.set('isRemoving',false);
-        this.store.remove(this.get('content'));
-      }
-    },
-    deleteFile:function () {
-      var file = this.get('content');
-      this.store.remove(file);
+    deleteFile:function (deleteForever) {
+      this.store
+        .remove(this.get('content'),!deleteForever)
+        .then(null,Em.run.bind(this,this.sendAlert));
     },
   },
-  tmpName:'',
   selected:false,
   isRenaming:false,
-  isRemoving:false,
+  isMovingToTrash:false,
+  chmodVisible:false,
+  targetContextMenu:null,
+  isPermissionsDirty:function () {
+    var file = this.get('content');
+    var diff = file.changedAttributes();
+    return !!diff.permission;
+  }.property('content.permission'),
   isMoving:function () {
     var movingFile = this.get('parentController.movingFile.path');
     var thisFile = this.get('content.id');
@@ -102,5 +86,19 @@ App.FileController = Ember.ObjectController.extend({
   
   setSelected:function (controller,observer) {
     this.set('selected',this.get(observer))
-  }.observes('content.selected')
+  }.observes('content.selected'),
+
+  renameSuccessCallback:function (record,error) {
+    record.rollback();
+    this.sendAlert(error);
+  },
+
+  chmodErrorCallback:function (record,error) {
+    record.rollback();
+    this.sendAlert(error);
+  },
+
+  sendAlert:function (error) {
+    this.send('showAlert',error);
+  },
 });

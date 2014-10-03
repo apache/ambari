@@ -16,23 +16,23 @@
    limitations under the License.
 }}
 
-{{#if isRemoving}}
-<a  tabindex="-1" href="#">
-  <i class="fa fa-exclamation-triangle"></i>
-  Delete forever
-  <div class="btn-group text-center dropdown-confirm">
-    <button {{action 'ask' target="view" }} type="button" class="btn btn-xs btn-danger">
-      <span class="glyphicon glyphicon-remove"></span>
-    </button>
-    <button {{action 'deleteFile'}} type="button" class="btn btn-xs btn-success delete">
-      <span class="glyphicon glyphicon-ok delete"></span>
-    </button>
+<a data-toggle="tooltip" data-placement="bottom" title="Delete"> <i class="fa fa-trash-o fa-lg"></i> </a>
+
+{{#bs-popover triggers='click' placement='left'}}
+  <div class="input-group" >
+    <div class="btn-group ">
+      <button {{action 'close'}} type="button" class="btn btn-xs btn-danger">
+        <i class="fa fa-times fa-fw"></i>
+      </button>
+      <button {{action 'confirm'}} type="button" class="btn btn-xs btn-success">
+        <i class="fa fa-check fa-fw"></i>
+      </button>
+    </div>
+    <div class="checkbox delete-forever">
+      <label>
+      {{input type="checkbox" checkedBinding='deleteForever' }} Delete forever
+      </label>
+    </div>
   </div>
-</a>
-{{else}}
-<a {{action 'ask' target="view" }} tabindex="-1" href="#">
-  <i class="fa fa-exclamation-triangle"></i>
-  Delete forever
-</a>
-{{/if}}
+{{/bs-popover}}
 

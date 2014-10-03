@@ -18,32 +18,22 @@
 
 var App = require('app');
 
-App.FilesView = Em.View.extend({
-    templateName: 'files',
-    didInsertElement:function () {
-      this.scheduleRebind();
-    },
-    scheduleRebind:function () {
-      Em.run.scheduleOnce('render', this, this.get('reBindTooltips'));
-    },
-    reBindTooltips:function () {
-      this.$().tooltip({selector:'[data-toggle=tooltip]'});
-    },
-    renameInputView: Em.TextField.extend({
-      controller:null,
-      didInsertElement:function (argument) {
-        var element = $(this.get('element'));
-        element.focus().val(this.value)
-      },
-      keyUp: function(e) {
-        var target = this.get('targetObject');
-        if (e.keyCode==13) {
-          return target.send('rename', 'confirm');
-        };
-
-        if (e.keyCode==27) {
-          return target.send('rename', 'cancel');
-        };
-      }
-    })
+App.SortArrowComponent = Em.Component.extend({
+  layout:Ember.Handlebars.compile('<i {{bind-attr class=":fa view.asc:fa-chevron-down:fa-chevron-up view.cur::fa-gr view.cur::fa-rotate-270" }} ></i>'),
+  classNames:['pull-right'],
+  tagName:'span',
+  sPs:[],
+  sA:false,
+  sP:null,
+  asc:true,
+  cur:false,
+  sorting:function () {
+    if (this.get('sPs.firstObject') == this.get('sP')) {
+      this.set('asc',this.get('sA'));
+      this.set('cur',true);
+    } else{
+      this.set('asc',true);
+      this.set('cur',false);
+    };
+  }.observes('sPs','sA').on('init'),
 });

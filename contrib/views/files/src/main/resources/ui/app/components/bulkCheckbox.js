@@ -18,32 +18,23 @@
 
 var App = require('app');
 
-App.FilesView = Em.View.extend({
-    templateName: 'files',
-    didInsertElement:function () {
-      this.scheduleRebind();
-    },
-    scheduleRebind:function () {
-      Em.run.scheduleOnce('render', this, this.get('reBindTooltips'));
-    },
-    reBindTooltips:function () {
-      this.$().tooltip({selector:'[data-toggle=tooltip]'});
-    },
-    renameInputView: Em.TextField.extend({
-      controller:null,
-      didInsertElement:function (argument) {
-        var element = $(this.get('element'));
-        element.focus().val(this.value)
-      },
-      keyUp: function(e) {
-        var target = this.get('targetObject');
-        if (e.keyCode==13) {
-          return target.send('rename', 'confirm');
-        };
-
-        if (e.keyCode==27) {
-          return target.send('rename', 'cancel');
-        };
-      }
-    })
+App.BulkCheckboxComponent = Em.Checkbox.extend({
+  changeBinding:'selectAll',
+  checkedBinding:'selectedAll',
+  selectedAll:false,
+  selectAll:function () {
+    var checked = this.get('checked');
+    var items = this.get('content');
+    return items.forEach(function (item) {
+      item.set('selected',checked);
+    });
+  },
+  selection:function () {
+    var selected = this.get('content').filterBy('selected',true);
+    if (selected.length == this.get('content.length') && selected.length > 0) {
+      this.set('selectedAll',true);
+    } else {
+      this.set('selectedAll',false);
+    }
+  }.observes('content.@each.selected'),
 });

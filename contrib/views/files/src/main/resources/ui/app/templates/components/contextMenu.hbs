@@ -16,6 +16,7 @@
    limitations under the License.
 }}
 
+{{#dropdown-wrap}}
 <div id="context-menu">
   <ul class="dropdown-menu dropdown-context compressed-context" role="menu">
     {{#if view.target.content.isDirectory}} 
@@ -24,8 +25,8 @@
     <li><a tabindex="-1" href="#" {{action 'download'}}>Download</a></li>
     {{/if}}
     <li><a tabindex="-1" href="#" {{action 'moveFile' 'cut' view.target.content}}>Move</a></li>
-    <li class="disabled"><a data-disabled="disabled" tabindex="-1" href="#">Permissions</a></li>
-    <li><a tabindex="-1" href="#" {{action 'rename' 'edit'}} >Rename</a></li>
+    <li><a tabindex="-1" href="#" {{action 'showChmod'}} >Permissions</a></li>
+    <li><a tabindex="-1" href="#" {{action 'editName'}} >Rename</a></li>
     <li class="divider"></li>
     <li class="dropdown-submenu">
       <a href="#" data-disabled="disabled">
@@ -33,24 +34,10 @@
         <i class="fa fa-chevron-right pull-right fa-right"></i>
       </a>
       <ul class="dropdown-menu">
-        {{#if view.target.isRemoving}}
-        <li>
-        <a  tabindex="-1" href="#" data-disabled="disabled">
-          Delete forever
-          <div class="btn-group text-center dropdown-confirm">
-            <button {{action 'removeFile' 'cancel'}} type="button" class="btn btn-xs btn-danger">
-              <i class="fa fa-times"></i>
-            </button>
-            <button {{action 'removeFile' 'confirm'}} type="button" class="btn btn-xs btn-success">
-              <i class="fa fa-check"></i>
-            </button>
-          </div>
-        </a>
-        </li>
-        {{else}}
-        <li><a class="confirm-action" data-action="removeFile" tabindex="-1" href="#">Delete forever</a></li>
-        {{/if}}
+        {{confirm-delete confirm="removeFile" deleteForever=true }}
+        {{confirm-delete confirm="moveToTrash" deleteForever=false }}
       </ul>
     </li>
   </ul>
 </div>
+{{/dropdown-wrap}}

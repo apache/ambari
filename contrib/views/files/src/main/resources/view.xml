@@ -21,7 +21,7 @@
 
     <parameter>
         <name>dataworker.defaultFs</name>
-        <description>FileSystem URI</description>
+        <description>The FileSystem URI (for example, hdfs://c6401.ambari.apache.org:8020)</description>
         <required>true</required>
     </parameter>
     <parameter>

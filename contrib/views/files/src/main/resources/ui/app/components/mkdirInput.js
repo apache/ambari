@@ -18,32 +18,28 @@
 
 var App = require('app');
 
-App.FilesView = Em.View.extend({
-    templateName: 'files',
-    didInsertElement:function () {
-      this.scheduleRebind();
-    },
-    scheduleRebind:function () {
-      Em.run.scheduleOnce('render', this, this.get('reBindTooltips'));
-    },
-    reBindTooltips:function () {
-      this.$().tooltip({selector:'[data-toggle=tooltip]'});
-    },
-    renameInputView: Em.TextField.extend({
-      controller:null,
-      didInsertElement:function (argument) {
-        var element = $(this.get('element'));
-        element.focus().val(this.value)
-      },
-      keyUp: function(e) {
-        var target = this.get('targetObject');
-        if (e.keyCode==13) {
-          return target.send('rename', 'confirm');
-        };
+App.MkdirInputComponent = Em.Component.extend({
+  layoutName:'components/mkdirInput',
+  newDirName:'',
+  isMkdir:false,
+  path:'',
+  actions:{
+    create:function () {
+      var name = this.get('newDirName');
 
-        if (e.keyCode==27) {
-          return target.send('rename', 'cancel');
-        };
+      if (Em.isEmpty(name)) {
+        return false;
       }
-    })
+      newDir = [this.get('path'),name].join('/').replace('//','/');
+
+      this.sendAction('create',newDir);
+      this.setProperties({'newDirName':'','isMkdir':false});
+    },
+    edit:function () {
+      this.set('isMkdir',true);
+    },
+    cancel:function () {
+      this.setProperties({'newDirName':'','isMkdir':false});
+    }
+  }
 });

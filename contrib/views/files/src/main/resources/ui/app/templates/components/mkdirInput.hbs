@@ -16,23 +16,22 @@
    limitations under the License.
 }}
 
-<a {{action 'show' target="view"}} data-toggle="tooltip" data-placement="bottom" title="Delete"> <i class="fa fa-trash-o fa-lg"></i> </a>
-
-<div class='df-popover hide'>
-  <div class="input-group" >
-    <div class="btn-group ">
-      <button {{action 'close' target="view"}} type="button" class="btn btn-xs btn-danger">
-        <i class="fa fa-times fa-fw"></i>
-      </button>
-      <button {{action 'deleteFile'}} type="button" class="btn btn-xs btn-success">
-        <i class="fa fa-check fa-fw"></i>
+{{#unless isMkdir}} 
+  <button type="button" {{action 'edit'}} {{bind-attr class=":btn :btn-default :btn-sm :pull-right :mkdirwrap"}}>
+    <i class="fa fa-plus"></i> New directory
+  </button>
+{{else}}
+  <div class="input-group input-group-sm pull-right mkdir-area">
+    {{input class="form-control mkdir-input" valueBinding='newDirName' placeholder="Enter Directory Name"}}
+    <div class="input-group-btn">
+      <button  type="button" {{action 'cancel'}} {{bind-attr class=":btn :btn-danger :btn-sm :btn-mkdir-cancel"}} >
+        <i class="fa fa-times"></i> Cancel
       </button>
     </div>
-    <div class="checkbox delete-forever">
-      <label>
-        <input type="checkbox"> Delete forever
-      </label>
+    <div class="input-group-btn">
+      <button  type="button" {{action 'create'}} {{bind-attr class="newDirName::disabled :btn :btn-success :btn-sm :btn-mkdir"}} >
+        <i class="fa fa-check"></i> Create
+      </button>
     </div>
   </div>
-</div>
-
+{{/unless}}

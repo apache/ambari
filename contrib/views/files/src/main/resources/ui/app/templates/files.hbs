@@ -19,13 +19,13 @@
 <div class="panel-default panel-files">
   <div class="panel-heading">
     {{!-- BREADCRUMBS --}}  
-    {{view view.breadcrumbsView}}
+    {{bread-crumbs path=path}}
       
     <div class="um-section">
     {{!-- UPLOADER --}}  
     <div {{bind-attr class="isUploading::hide :pull-right" }}>
       <button {{action 'upload' 'close'}} type="button" class="close" aria-hidden="true">&times;</button>
-      {{file-uploader path=path uploader=uploader class=" upload-area pull-right"}}
+      {{file-uploader path=path uploader=uploader class=" upload-area pull-right" alert='showAlert'}}
     </div>
 
     <div {{bind-attr class="isUploading:hide: :pull-right :uploadwrap" }}>
@@ -34,57 +34,26 @@
       </button>
     </div>
 
-    {{!-- MKDIR --}}  
-    {{#unless isMkdir}} 
-      <button type="button" {{action 'mkdir' 'edit'}} {{bind-attr class=":btn :btn-default :btn-sm :pull-right :mkdirwrap"}}>
-        <i class="fa fa-plus"></i> New directory
-      </button>
-    {{else}}
-      <div class="input-group input-group-sm pull-right mkdir-area">
-        {{input class="form-control mkdir-input" valueBinding='newDirName'}}
-        <div class="input-group-btn">
-          <button  type="button" {{action 'mkdir' 'cancel'}} {{bind-attr class=":btn :btn-danger :btn-sm :btn-mkdir-cancel"}} >
-            <i class="fa fa-times"></i> Cancel
-          </button>
-        </div>
-        <div class="input-group-btn">
-          <button  type="button" {{action 'mkdir' 'confirm'}} {{bind-attr class=":btn :btn-success :btn-sm :btn-mkdir"}} >
-            <i class="fa fa-check"></i> Create
-          </button>
-        </div>
-      </div>
-    {{/unless}}
-
+    {{!-- MKDIR --}} 
+    {{mkdir-input create="mkdir" path=path}}
 
     </div>
   </div>
 
   <div class="panel-body">
     <h4 class="i-am-in pull-left"> <i class="fa fa-folder fa-lg"></i>
-    {{#rename-input file=path actionName='renameDir' isRenaming=isRenaming class='renameable stocked half'}}
-      {{currentDir}} <a href="#" {{bind-attr class="isRootDir:hide"}} {{action showRenameInput}}><i class="fa fa-edit"></i></a>
+    {{#rename-input file=path confirm='renameDir' isRenaming=isRenaming class='renameable stocked half'}}
+      <a href="#" class="dir-name" {{action refreshDir}}>{{currentDir}}</a>
+      <a href="#" {{bind-attr class="isRootDir:hide"}} {{action showRenameInput}}><i class="fa fa-edit"></i></a>
     {{/rename-input}}
     </h4>
 
-    <div class="btn-group btn-sort pull-right" data-toggle="tooltip" data-placement="left" title="Sort by:">
-      <button type="button" class="btn btn-xs btn-default" {{action sort 'toggle'}}>
-      {{#if sortAscending}} Asc {{else}} Desc {{/if}}
-      </button>
-
-      <button type="button" class="btn btn-xs btn-default dropdown-toggle" data-toggle="dropdown">
-        <span>
-        {{capitalize sortProperties.firstObject}}
-        </span>
-        <span class="caret"></span>
-      </button>
-      <ul class="dropdown-menu" role="menu">
-        <li><a href="#" {{action 'sort' 'name'}} >Name</a></li>
-        <li><a href="#" {{action 'sort' 'size'}} >Size</a></li>
-        <li><a href="#" {{action 'sort' 'owner'}} >Owner</a></li>
-        <li><a href="#" {{action 'sort' 'group'}} >Group</a></li>
-        <li><a href="#" {{action 'sort' 'permission'}} >Permission</a></li>
-        <li><a href="#" {{action 'sort' 'date'}} >Date</a></li>
-      </ul>
+    <div class="input-group input-group-sm input-group-search">
+      {{input valueBinding='searchString' class="form-control input-search" placeholder="Search File Names" }}
+      {{#if searchString}}
+        <i {{action 'clearSearchField'}} class="fa fa-times form-control-feedback"></i>
+      {{/if}}
+      <div class="input-group-addon"><i class="fa fa-search"></i></div>
     </div>
   </div>
 
@@ -92,44 +61,66 @@
     <thead>
       <tr>
         <th class="icon"></th>
-        <th class="path" {{action 'sort' 'name'}}> Name {{view view.sortArrow sortProperty='name'}} </th>
-        <th class="size" {{action 'sort' 'size'}}>Size {{view view.sortArrow sortProperty='size'}}</th>
-        <th class="owner" {{action 'sort' 'owner'}}>Owner {{view view.sortArrow sortProperty='owner'}}</th>
-        <th class="grp" {{action 'sort' 'group'}} >Group {{view view.sortArrow sortProperty='group'}}</th>
-        <th class="perm" {{action 'sort' 'permission'}} >Permission {{view view.sortArrow sortProperty='permission'}}</th>
+        <th class="path" {{action 'sort' 'name'}}> Name {{sort-arrow sPs=sortProperties sA=sortAscending sP='name'}} </th>
+        <th class="size" {{action 'sort' 'size'}}>Size {{sort-arrow sPs=sortProperties sA=sortAscending sP='size'}}</th>
+        <th class="owner" {{action 'sort' 'owner'}}>Owner {{sort-arrow sPs=sortProperties sA=sortAscending sP='owner'}}</th>
+        <th class="grp" {{action 'sort' 'group'}} >Group {{sort-arrow sPs=sortProperties sA=sortAscending sP='group'}}</th>
+        <th class="perm" {{action 'sort' 'permission'}} >Permission {{sort-arrow sPs=sortProperties sA=sortAscending sP='permission'}}</th>
         <th class="download">
+          <div class="btn-group btn-sort pull-right" data-toggle="tooltip" data-placement="left" title="Sort by:">
+            <button type="button" class="btn btn-xs btn-default" {{action sort 'toggle'}}>
+            {{#if sortAscending}} Asc {{else}} Desc {{/if}}
+            </button>
+
+            <button type="button" class="btn btn-xs btn-default dropdown-toggle" data-toggle="dropdown">
+              <span>
+              {{capitalize sortProperties.firstObject}}
+              </span>
+              <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu" role="menu">
+              <li><a href="#" {{action 'sort' 'name'}} >Name</a></li>
+              <li><a href="#" {{action 'sort' 'size'}} >Size</a></li>
+              <li><a href="#" {{action 'sort' 'owner'}} >Owner</a></li>
+              <li><a href="#" {{action 'sort' 'group'}} >Group</a></li>
+              <li><a href="#" {{action 'sort' 'permission'}} >Permission</a></li>
+              <li><a href="#" {{action 'sort' 'date'}} >Date</a></li>
+            </ul>
+          </div>
         </th>
         <th class="check"> 
+        {{#dropdown-wrap}}
           <div id="bulkDropdown" class="btn-group">
-              <span class="input-group-addon">
-                <div class="checkbox">
-                    {{view view.checkboxAll contentBinding='fileList'}}
-                </div>
-              </span>
-          <button  type="button" data-toggle="dropdown" {{bind-attr class=":btn :btn-xs :btn-default :dropdown-toggle isSelected::disabled"}} >
-            <span class="caret"></span>
-          </button>
-          <ul class="dropdown-menu pull-right" role="menu">
-            <li><a href="#"  {{action 'download' 'zip'}} ><i class="fa fa-archive fa-fw"></i> Download zip</a></li>
-            {{#if canConcat}}
-            <li><a href="#"  {{action 'download' 'concat'}} ><i class="fa fa-th fa-fw"></i> Concat</a></li>
-            {{/if}}
-            <li class="divider"></li>
-            <li class="dropdown-submenu">
-              <a href="#" disabled="disabled">
-                <i class="fa fa-chevron-left fa-gr fa-fw"></i> Delete
-              </a>
-              <ul class="dropdown-menu left-submenu">
-                {{view view.deleteBulkView}}
-              </ul>
-            </li>
-          </ul>
-        </div>
+            <span class="input-group-addon">
+              <div class="checkbox">
+                {{bulk-checkbox content=fileList}}
+              </div>
+            </span>
+            <button  type="button" data-toggle="dropdown" {{bind-attr class=":btn :btn-xs :btn-default :dropdown-toggle isSelected::disabled"}} >
+              <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu pull-right" role="menu">
+              <li><a href="#"  {{action 'download' 'zip'}} ><i class="fa fa-archive fa-fw"></i> Download zip</a></li>
+              {{#if canConcat}}
+              <li><a href="#"  {{action 'download' 'concat'}} ><i class="fa fa-th fa-fw"></i> Concat</a></li>
+              {{/if}}
+              <li class="divider"></li>
+              <li class="dropdown-submenu">
+                <a href="#" disabled="disabled">
+                  <i class="fa fa-chevron-left fa-gr fa-fw"></i> Delete
+                </a>
+                <ul class="dropdown-menu left-submenu">
+                  {{confirm-delete confirm="deleteFile" deleteForever=true selector='bulkDropdown'}}
+                  {{confirm-delete confirm="deleteFile" deleteForever=false selector='bulkDropdown'}}
+                </ul>
+              </li>
+            </ul>
+          </div>
+        {{/dropdown-wrap}}
       </th>
       </tr>
     </thead>
     <tbody>
-    <div>
       <tr>
         <td><i class="fa fa-folder"></i></td>
         <td  {{action 'dirUp'}} colspan="7">
@@ -167,7 +158,7 @@
           </td>
           <td>
             {{#unless content.isDirectory}}
-              {{humanSize movingFile.size}}
+              {{humanSize movingFile.len}}
             {{/unless}}
           </td>
           <td >{{movingFile.owner}}</td>
@@ -186,87 +177,17 @@
         </tr>
       {{/if}}
       {{/unless}}
-    </div>
       {{#each fileList itemController="file"}}
-        <tr {{bind-attr class=":file-row isMoving:isMoving"}}>
-          <td>
-            {{#if content.isDirectory}}
-            <i class="fa fa-folder"></i>
-            {{else}}
-            <i class="fa fa-file"></i>
-            {{/if}}
-          </td>
-          <td>
-            {{#unless isRenaming}}
-              <div class="file-name allow-open">
-                <span>
-                  <a {{action 'open'}}>
-                    <strong>
-                      {{content.name}}
-                    </strong>
-                  </a>
-                </span>
-                <span class="help-block mod-time allow-open">
-                  <small class='allow-open'>
-                    Updated {{showDate modificationTime 'YYYY-MM-DD HH:mm'}}
-                  </small>
-                </span>
-              </div>
-            {{else}}
-              <div class="input-group input-group-sm rename-area">
-                {{view view.renameInputView class="form-control rename-input" valueBinding='tmpName'}}
-                <div class="input-group-btn">
-                  <button  type="button" {{action 'rename' 'cancel'}} {{bind-attr class=":btn :btn-danger :btn-xs :btn-rename-cancel isRenaming:show"}} >
-                    <i class="fa fa-times"></i> Cancel
-                  </button>
-                </div>
-                <div class="input-group-btn">
-                  <button  type="button" {{action 'rename' 'confirm'}} {{bind-attr class=":btn :btn-success :btn-xs :btn-rename isRenaming:show"}} >
-                    <i class="fa fa-check"></i> Rename
-                  </button>
-                </div>
-              </div>
-            {{/unless}}
-          </td>
-          <td>
-            {{#unless content.isDirectory}}
-              {{humanSize content.size}}
-            {{/unless}}
-          </td>
-          <td >{{content.owner}}</td>
-          <td>{{content.group}}</td>
-          <td>{{content.permission}}</td>
-          <td>
-            {{#unless isMoving}}
-              <ul class="list-inline file-actions text-right">
-                <li>
-                {{#if content.isDirectory}}
-                  <a href="#" {{action 'download' 'zip'}} data-toggle="tooltip" data-placement="bottom" title="Download zip"><i class="fa fa-archive fa-fw fa-lg"></i></a>  
-                {{else}}
-                  <a href="#" {{action 'download' 'browse'}} data-toggle="tooltip" data-placement="bottom" title="Download"><i class="fa fa-download fa-fw fa-lg"></i></a>  
-                {{/if}}
-                </li>
-                <li>
-                  <a href="#" {{action 'moveFile' 'cut' this.content}} data-toggle="tooltip" data-placement="bottom" title="Move"><i class="fa fa-level-down fa-rotate-270 fa-fw fa-lg"></i></span></a>  
-                </li>
-                <li>
-                  <a {{action 'rename' 'edit'}} data-toggle="tooltip" data-placement="bottom" title="Rename"><i class="fa fa-edit fa-lg"></i></a>
-                </li>
-                <li>{{view view.deleteSingleView}}</li>
-              </ul>
-            {{/unless}}
-            </td>
-          <td>
-          {{#if isMoving}}
-            <a href="#" {{action 'moveFile' 'cancel' target="parentController" }} data-toggle="tooltip" data-placement="bottom" title="Cancel moving"> <i class="fa fa-times fa-lg"></i></a>
-          {{else}}
-            {{input type="checkbox" checkedBinding='content.selected'}}
-          {{/if}}
-          {{view view.togglecontext}}
-          </td>
-        </tr>
+        {{partial 'util/fileRow'}}
       {{/each}}
+      {{#unless fileList}}
+      <tr>
+        <td colspan="8">
+          No files
+        </td>
+      </tr>
+      {{/unless}}
     </tbody>
   </table>
-  {{view view.contextMenu }}
+  {{context-menu target=targetContextMenu}}
 </div>

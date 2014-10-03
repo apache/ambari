@@ -21,10 +21,10 @@ var App = require('app');
 
 App.RenameInputComponent = Ember.Component.extend({
   tagName:'span',
-  layoutName:'util/renameInput',
+  layoutName:'components/renameInput',
   actions:{
     rename:function (opt) {
-      var target, tmpName;
+      var tmpName;
 
       switch (opt) {
         case 'edit': this.set('isRenaming',true); break;
@@ -34,8 +34,7 @@ App.RenameInputComponent = Ember.Component.extend({
           if (tmpName.length==0) {
             break;
           };
-          target = this.get('targetObject');
-          target.send(this.get('actionName'),this.get('filePath'),tmpName);
+          this.sendAction('confirm',this.get('filePath'),tmpName);
           this.set('isRenaming',false);
           break;
 
