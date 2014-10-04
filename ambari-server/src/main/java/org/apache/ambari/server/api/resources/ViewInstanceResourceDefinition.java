@@ -41,7 +41,10 @@ public class ViewInstanceResourceDefinition extends BaseResourceDefinition {
    */
   public ViewInstanceResourceDefinition(Set<SubResourceDefinition> subResourceDefinitions) {
     super(Resource.Type.ViewInstance);
-    this.subResourceDefinitions = new HashSet<SubResourceDefinition>(subResourceDefinitions);
+
+    this.subResourceDefinitions = subResourceDefinitions == null ? new HashSet<SubResourceDefinition>() :
+        new HashSet<SubResourceDefinition>(subResourceDefinitions);
+
     this.subResourceDefinitions.add(new SubResourceDefinition(Resource.Type.ViewPrivilege));
   }
 
