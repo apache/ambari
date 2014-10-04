@@ -162,11 +162,11 @@ App.TezDagVertex = DS.Model.extend({
   recordWriteCount: DS.attr('number'),
 
   totalReadBytes: function () {
-    return this.get('fileReadBytes') + this.get('hdfsReadBytes');
+    return (this.get('fileReadBytes') || 0) + (this.get('hdfsReadBytes') || 0);
   }.property('fileReadBytes', 'hdfsReadBytes'),
 
   totalWriteBytes: function () {
-    return this.get('fileWriteBytes') + this.get('hdfsWriteBytes');
+    return (this.get('fileWriteBytes') || 0) + (this.get('hdfsWriteBytes') || 0);
   }.property('fileWriteBytes', 'hdfsWriteBytes'),
 
   totalReadBytesDisplay: function () {
