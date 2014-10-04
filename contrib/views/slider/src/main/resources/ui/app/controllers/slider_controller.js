@@ -21,7 +21,7 @@
  * After this set <code>App.sliderConfig</code>-models and enable/disable Slider
  * @type {Ember.Controller}
  */
-App.SliderController = Ember.Controller.extend({
+App.SliderController = Ember.Controller.extend(App.RunPeriodically, {
 
   /**
    *  Load resources on controller initialization
@@ -39,10 +39,9 @@ App.SliderController = Ember.Controller.extend({
    */
   getParametersFromViewProperties: function () {
     return App.ajax.send({
-      name: 'slider.getViewParams',
+      name: 'slider.getViewParams.v2',
       sender: this,
-      success: 'getParametersFromViewPropertiesSuccessCallback',
-      error: 'finishSliderConfiguration'
+      success: 'getParametersFromViewPropertiesSuccessCallback'
     });
   },
 
@@ -54,21 +53,19 @@ App.SliderController = Ember.Controller.extend({
    * @method getParametersFromViewPropertiesSuccessCallback
    */
   getParametersFromViewPropertiesSuccessCallback: function (data) {
-    var properties = Em.get(data, 'ViewInstanceInfo.properties'),
-      initialValuesToLoad = this.get('initialValuesToLoad'),
-      sliderConfigs = App.SliderApp.store.all('sliderConfig'),
-      self = this;
-    App.set('label', Em.get(data, 'ViewInstanceInfo.label') || App.get('instance'));
+    var properties = Em.get(data, 'parameters'),
+      sliderConfigs = App.SliderApp.store.all('sliderConfig');
     sliderConfigs.forEach(function (model) {
       var key = model.get('viewConfigName');
       model.set('value', properties[key]);
     });
-    self.finishSliderConfiguration();
-    self.initGangliaProperties();
+    this.initGangliaProperties();
+    this.finishSliderConfiguration(data);
   },
 
   /**
    * initialize properties of GANGLIA that required by Slider View
+   * @method initGangliaProperties
    */
   initGangliaProperties: function () {
     var sliderConfigs = App.SliderApp.store.all('sliderConfig'),
@@ -103,36 +100,13 @@ App.SliderController = Ember.Controller.extend({
 
   /**
    * After all Slider-configs are loaded, application should check self status
-   * If config <code>required</code>-property is true, its value shouldn't be empty
-   * If config depends on some other config (see <code>requireDependsOn</code>-property)
-   * and referenced config-value is not-false, current config should have not-empty value
+   * @param {object} data - received from server information about current Slider-status
    * @method finishSliderConfiguration
    */
-  finishSliderConfiguration: function () {
-    //check if all services exist
-    var errors = [];
-    App.SliderApp.store.all('sliderConfig').forEach(function (model) {
-      if (model.get('required')) {
-        if (Em.isEmpty(model.get('value'))) {
-          errors.push(Em.I18n.t('error.config_is_empty').format(model.get('viewConfigName')));
-        }
-      }
-      else {
-        var dependenceConfig = model.get('requireDependsOn');
-        if (!Em.isNone(dependenceConfig)) {
-          var depValue = dependenceConfig.get('value').toLowerCase();
-          if (depValue == "true") {
-            if (Em.isEmpty(model.get('value'))) {
-              errors.push(Em.I18n.t('error.config_is_empty_2').format(model.get('viewConfigName'), dependenceConfig.get('viewConfigName')));
-            }
-          }
-        }
-      }
-    });
-    errors.uniq();
+  finishSliderConfiguration: function (data) {
     App.setProperties({
-      viewErrors: errors,
-      viewEnabled: errors.length === 0,
+      viewErrors: data.validations,
+      viewEnabled: data.validations.length === 0,
       mapperTime: new Date().getTime()
     });
   }

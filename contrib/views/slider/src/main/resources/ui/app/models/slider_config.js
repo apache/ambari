@@ -38,19 +38,7 @@ App.SliderConfig = DS.Model.extend({
   /**
    * @type {null|string}
    */
-  value: null,
-
-  /**
-   * Is property required
-   * @type {bool}
-   */
-  required: DS.attr('bool'),
-
-  /**
-   * If provided config has not-false value current config shouldn't be empty
-   * @type {App.SliderConfig}
-   */
-  requireDependsOn: DS.belongsTo('sliderConfig')
+  value: null
 
 });
 

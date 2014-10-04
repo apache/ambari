@@ -27,6 +27,7 @@ import java.util.Map;
 import org.apache.ambari.view.slider.clients.AmbariClient;
 import org.apache.ambari.view.slider.clients.AmbariCluster;
 import org.apache.ambari.view.slider.clients.AmbariClusterInfo;
+import org.apache.ambari.view.slider.clients.AmbariHostComponent;
 import org.apache.ambari.view.slider.clients.AmbariHostInfo;
 import org.apache.ambari.view.slider.clients.AmbariService;
 import org.apache.ambari.view.slider.clients.AmbariServiceInfo;
@@ -77,13 +78,14 @@ public class AmbariHttpClient extends BaseHttpClient implements AmbariClient {
 		if (clusterInfo != null) {
 			try {
 				JsonElement jsonElement = doGetJson("/api/v1/clusters/"
-				    + clusterInfo.getName());
+				    + clusterInfo.getName() + "?fields=services/ServiceInfo,hosts,Clusters");
 				if (jsonElement != null) {
 					AmbariCluster cluster = new AmbariCluster();
 					// desired configs
 					Map<String, String> desiredConfigs = new HashMap<String, String>();
-					JsonObject desiredConfigsObj = jsonElement.getAsJsonObject()
-					    .get("Clusters").getAsJsonObject().get("desired_configs")
+					JsonObject jsonObject = jsonElement.getAsJsonObject();
+                    JsonObject clustersJsonObject = jsonObject.get("Clusters").getAsJsonObject();
+                    JsonObject desiredConfigsObj = clustersJsonObject.get("desired_configs")
 					    .getAsJsonObject();
 					for (Map.Entry<String, JsonElement> entry : desiredConfigsObj
 					    .entrySet()) {
@@ -91,11 +93,30 @@ public class AmbariHttpClient extends BaseHttpClient implements AmbariClient {
 						    .getAsJsonObject().get("tag").getAsString());
 					}
 					cluster.setDesiredConfigs(desiredConfigs);
+					cluster.setName(clustersJsonObject.get("cluster_name").getAsString());
+					cluster.setVersion(clustersJsonObject.get("version").getAsString());
 					// services
-					List<AmbariServiceInfo> services = new ArrayList<AmbariServiceInfo>();
+                    List<AmbariServiceInfo> services = new ArrayList<AmbariServiceInfo>();
+                    for (JsonElement svcJson : jsonObject.get("services")
+                        .getAsJsonArray()) {
+                      AmbariServiceInfo si = new AmbariServiceInfo();
+                      si.setId(svcJson.getAsJsonObject().get("ServiceInfo")
+                          .getAsJsonObject().get("service_name").getAsString());
+                      si.setStarted("STARTED".equals(svcJson.getAsJsonObject()
+                          .get("ServiceInfo").getAsJsonObject().get("state")
+                          .getAsString()));
+                      services.add(si);
+                    }
 					cluster.setServices(services);
 					// hosts
 					List<AmbariHostInfo> hosts = new ArrayList<AmbariHostInfo>();
+					for (JsonElement hostJson : jsonObject.get("hosts")
+                        .getAsJsonArray()) {
+                      AmbariHostInfo hi = new AmbariHostInfo();
+                      hi.setHostName(hostJson.getAsJsonObject().get("Hosts")
+                          .getAsJsonObject().get("host_name").getAsString());
+                      hosts.add(hi);
+                    }
 					cluster.setHosts(hosts);
 					return cluster;
 				}
@@ -143,8 +164,45 @@ public class AmbariHttpClient extends BaseHttpClient implements AmbariClient {
 
 	@Override
 	public AmbariService getService(AmbariClusterInfo cluster, String serviceId) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+      if (cluster != null && serviceId != null) {
+        try {
+            JsonElement jsonElement = doGetJson("/api/v1/clusters/"
+                + cluster.getName() + "/services/" + serviceId + "?fields=ServiceInfo,components/host_components/HostRoles");
+            JsonObject jsonObject = jsonElement.getAsJsonObject();
+            if (jsonObject.has("status") && "404".equals(jsonObject.get("status").getAsString())) {
+              return null;
+            }
+            AmbariService svc = new AmbariService();
+            JsonObject serviceInfoJsonObject = jsonObject.get("ServiceInfo").getAsJsonObject();
+            svc.setId(serviceInfoJsonObject.get("service_name").getAsString());
+            svc.setStarted("STARTED".equals(serviceInfoJsonObject.get("state").getAsString()));
+            svc.setMaintenanceMode(!"OFF".equals(serviceInfoJsonObject.get("maintenance_state").getAsString()));
+            Map<String, List<AmbariHostComponent>> componentsToHostComponentsMap = new HashMap<String, List<AmbariHostComponent>>();
+            for(JsonElement ce: jsonObject.get("components").getAsJsonArray()){
+              String componentName = ce.getAsJsonObject().get("ServiceComponentInfo").getAsJsonObject().get("component_name").getAsString();
+              List<AmbariHostComponent> hcList = new ArrayList<AmbariHostComponent>();
+              componentsToHostComponentsMap.put(componentName, hcList);
+              JsonArray hcJsonArray = ce.getAsJsonObject().get("host_components").getAsJsonArray();
+              for(JsonElement hce: hcJsonArray) {
+                AmbariHostComponent hc = new AmbariHostComponent();
+                JsonObject hcJsonObject = hce.getAsJsonObject().get("HostRoles").getAsJsonObject();
+                hc.setHostName(hcJsonObject.get("host_name").getAsString());
+                hc.setStarted("STARTED".equals(hcJsonObject.get("state").getAsString()));
+                hc.setName(hcJsonObject.get("component_name").getAsString());
+                hcList.add(hc);
+              }
+            }
+            svc.setComponentsToHostComponentsMap(componentsToHostComponentsMap);
+            return svc;
+        } catch (HttpException e) {
+            logger.warn("Unable to determine Ambari clusters", e);
+            throw new RuntimeException(e.getMessage(), e);
+        } catch (IOException e) {
+            logger.warn("Unable to determine Ambari clusters", e);
+            throw new RuntimeException(e.getMessage(), e);
+        }
+    }
+    return null;
+}
 
 }

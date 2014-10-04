@@ -17,9 +17,6 @@
  */
 
 App.ErrorController = Ember.ObjectController.extend({
-  init:function () {
-    this._super();
-  },
   actions: {
     toggleStackTrace:function () {
       var value = this.get('isExpanded');
@@ -35,6 +32,8 @@ App.ErrorController = Ember.ObjectController.extend({
     if (content && content.responseText) {
       var json = JSON.parse(content.responseText);
       text = json.message;
+    } else if (content && content.message) {
+      text = content.message;
     }
     return text;
   }.property('content'),

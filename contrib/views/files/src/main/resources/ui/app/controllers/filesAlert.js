@@ -17,4 +17,14 @@
  */
 
 App.FilesAlertController = App.ErrorController.extend({
+  content:null,
+  output:function () {
+    var error = this.get('content'),output;
+    if (error instanceof Em.Error) {
+      output = error;
+    } else {
+      output = {status:error.status, message:error.statusText||error.message};
+    };
+    return output;
+  }.property('content')
 });

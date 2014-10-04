@@ -22,7 +22,6 @@ angular.module('ambariAdminConsole', [
   'ngAnimate',
   'ui.bootstrap',
   'restangular',
-  'angularAlert',
   'toggle-switch',
   'pascalprecht.translate'
 ])

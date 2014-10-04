@@ -169,26 +169,6 @@ class TestResourceManager(RMFTestCase):
       group = 'hadoop',
       recursive = True,
     )
-    self.assertResourceCalled('Directory', '/hadoop/yarn/local',
-      owner = 'yarn',
-      recursive = True,
-      ignore_failures = True,
-    )
-    self.assertResourceCalled('Directory', '/hadoop/yarn/local1',
-      owner = 'yarn',
-      recursive = True,
-      ignore_failures = True,
-    )
-    self.assertResourceCalled('Directory', '/hadoop/yarn/log',
-      owner = 'yarn',
-      recursive = True,
-      ignore_failures = True,
-    )
-    self.assertResourceCalled('Directory', '/hadoop/yarn/log1',
-      owner = 'yarn',
-      recursive = True,
-      ignore_failures = True,
-    )
     self.assertResourceCalled('Directory', '/var/log/hadoop-yarn',
       owner = 'yarn',
       recursive = True,
@@ -304,16 +284,6 @@ class TestResourceManager(RMFTestCase):
       owner = 'mapred',
       group = 'hadoop',
       recursive = True,
-    )
-    self.assertResourceCalled('Directory', '/hadoop/yarn/local',
-      owner = 'yarn',
-      recursive = True,
-      ignore_failures = True,
-    )
-    self.assertResourceCalled('Directory', '/hadoop/yarn/log',
-      owner = 'yarn',
-      recursive = True,
-      ignore_failures = True,
     )
     self.assertResourceCalled('Directory', '/var/log/hadoop-yarn',
       owner = 'yarn',

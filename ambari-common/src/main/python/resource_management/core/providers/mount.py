@@ -24,9 +24,60 @@ from __future__ import with_statement
 
 import os
 import re
+from subprocess import Popen, PIPE, STDOUT
+
 from resource_management.core.base import Fail
 from resource_management.core.providers import Provider
 from resource_management.core.logger import Logger
+
+
+def get_mounted():
+  """
+  :return: Return a list of mount objects (dictionary type) that contain the device, mount point, and other options.
+  """
+  p = Popen("mount", stdout=PIPE, stderr=STDOUT, shell=True)
+  out = p.communicate()[0]
+  if p.wait() != 0:
+    raise Fail("Getting list of mounts (calling mount) failed")
+
+  mounts = [x.split(' ') for x in out.strip().split('\n')]
+
+  results = []
+  for m in mounts:
+    # Example of m:
+    # /dev/sda1 on / type ext4 (rw,barrier=0)
+    # /dev/sdb on /grid/0 type ext4 (rw,discard)
+    if len(m) >= 6 and m[1] == "on" and m[3] == "type":
+      x = dict(
+        device=m[0],
+        mount_point=m[2],
+        fstype=m[4],
+        options=m[5][1:-1].split(',') if len(m[5]) >= 2 else []
+      )
+      results.append(x)
+
+  return results
+
+
+def get_fstab(self):
+  """
+  :return: Return a list of objects (dictionary type) representing the file systems table.
+  """
+  mounts = []
+  with open("/etc/fstab", "r") as fp:
+    for line in fp:
+      line = line.split('#', 1)[0].strip()
+      mount = re.split('\s+', line)
+      if len(mount) == 6:
+        mounts.append(dict(
+          device=mount[0],
+          mount_point=mount[1],
+          fstype=mount[2],
+          options=mount[3].split(","),
+          dump=int(mount[4]),
+          passno=int(mount[5]),
+          ))
+  return mounts
 
 
 class MountProvider(Provider):
@@ -89,7 +140,7 @@ class MountProvider(Provider):
     if self.resource.device and not os.path.exists(self.resource.device):
       raise Fail("%s Device %s does not exist" % (self, self.resource.device))
 
-    mounts = self.get_mounted()
+    mounts = get_mounted()
     for m in mounts:
       if m['mount_point'] == self.resource.mount_point:
         return True
@@ -97,41 +148,10 @@ class MountProvider(Provider):
     return False
 
   def is_enabled(self):
-    mounts = self.get_fstab()
+    mounts = get_fstab()
     for m in mounts:
       if m['mount_point'] == self.resource.mount_point:
         return True
 
     return False
 
-  def get_mounted(self):
-    p = Popen("mount", stdout=PIPE, stderr=STDOUT, shell=True)
-    out = p.communicate()[0]
-    if p.wait() != 0:
-      raise Fail("[%s] Getting list of mounts (calling mount) failed" % self)
-
-    mounts = [x.split(' ') for x in out.strip().split('\n')]
-
-    return [dict(
-      device=m[0],
-      mount_point=m[2],
-      fstype=m[4],
-      options=m[5][1:-1].split(','),
-    ) for m in mounts if m[1] == "on" and m[3] == "type"]
-
-  def get_fstab(self):
-    mounts = []
-    with open("/etc/fstab", "r") as fp:
-      for line in fp:
-        line = line.split('#', 1)[0].strip()
-        mount = re.split('\s+', line)
-        if len(mount) == 6:
-          mounts.append(dict(
-            device=mount[0],
-            mount_point=mount[1],
-            fstype=mount[2],
-            options=mount[3].split(","),
-            dump=int(mount[4]),
-            passno=int(mount[5]),
-          ))
-    return mounts

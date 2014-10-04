@@ -159,3 +159,11 @@ DS.attr.transforms = {
     }
   }
 };
+/**
+ * Allow get translation value used in I18n for attributes that ends with Translation.
+ * For example:
+ * <code>
+ *  {{input name="new" placeholderTranslation="any"}}
+ * </code>
+ **/
+Em.TextField.reopen(Em.I18n.TranslateableAttributes);

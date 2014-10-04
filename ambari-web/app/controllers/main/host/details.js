@@ -212,7 +212,7 @@ App.MainHostDetailsController = Em.Controller.extend({
     var component = event.context;
     var componentName = component.get('componentName');
     var displayName = component.get('displayName');
-    var isLastComponent = (App.HostComponent.find().filterProperty('componentName', componentName).get('length') === 1);
+    var isLastComponent = (this.getTotalComponent(component) === 1);
     App.ModalPopup.show({
       header: Em.I18n.t('popup.confirmation.commonHeader'),
       primary: Em.I18n.t('hosts.host.deleteComponent.popup.confirm'),
@@ -250,6 +250,24 @@ App.MainHostDetailsController = Em.Controller.extend({
         });
       }
     });
+  },
+
+  /**
+   * get total count of host-components
+   * @method getTotalComponent
+   * @param component
+   * @return {Number}
+   */
+  getTotalComponent: function (component) {
+    var count;
+    if (component.get('isSlave')) {
+      count = App.SlaveComponent.find(component.get('componentName')).get('totalCount');
+    } else if (component.get('isClient')) {
+      count = App.ClientComponent.find(component.get('componentName')).get('totalCount');
+    } else {
+      count = App.HostComponent.find().filterProperty('componentName', component.get('componentName')).get('length')
+    }
+    return count || 0;
   },
 
   /**
@@ -938,86 +956,93 @@ App.MainHostDetailsController = Em.Controller.extend({
    * @param {string} slaveType - slave component name
    */
   doDecommissionRegionServer: function (hostNames, serviceName, componentName, slaveType) {
+    var batches = [
+      {
+        "order_id": 1,
+        "type": "POST",
+        "uri": App.get('apiPrefix') + "/clusters/" + App.get('clusterName') + "/requests",
+        "RequestBodyInfo": {
+          "RequestInfo": {
+            "context": Em.I18n.t('hosts.host.regionserver.decommission.batch1'),
+            "command": "DECOMMISSION",
+            "exclusive" :"true",
+            "parameters": {
+              "slave_type": slaveType,
+              "excluded_hosts": hostNames
+            },
+            'operation_level': {
+              level: "HOST_COMPONENT",
+              cluster_name: App.get('clusterName'),
+              host_name: hostNames,
+              service_name: serviceName
+            }
+          },
+          "Requests/resource_filters": [
+            {"service_name": serviceName, "component_name": componentName}
+          ]
+        }
+      }];
+    var id = 2;
+    var hAray = hostNames.split(",");
+    for (var i = 0; i < hAray.length; i++) {
+      batches.push({
+        "order_id": id,
+        "type": "PUT",
+        "uri": App.get('apiPrefix') + "/clusters/" + App.get('clusterName') + "/hosts/" + hAray[i] + "/host_components/" + slaveType,
+        "RequestBodyInfo": {
+          "RequestInfo": {
+            context: Em.I18n.t('hosts.host.regionserver.decommission.batch2'),
+            exclusive: true,
+            operation_level: {
+              level: "HOST_COMPONENT",
+              cluster_name: App.get('clusterName'),
+              host_name: hostNames,
+              service_name: serviceName || null
+            }
+          },
+          "Body": {
+            HostRoles: {
+              state: "INSTALLED"
+            }
+          }
+        }
+      });
+      id++
+    }
+    batches.push({
+        "order_id": id,
+        "type": "POST",
+        "uri": App.get('apiPrefix') + "/clusters/" + App.get('clusterName') + "/requests",
+        "RequestBodyInfo": {
+          "RequestInfo": {
+            "context": Em.I18n.t('hosts.host.regionserver.decommission.batch3'),
+            "command": "DECOMMISSION",
+            "service_name": serviceName,
+            "component_name": componentName,
+            "parameters": {
+              "slave_type": slaveType,
+              "excluded_hosts": hostNames,
+              "mark_draining_only": true
+            },
+            'operation_level': {
+              level: "HOST_COMPONENT",
+              cluster_name: App.get('clusterName'),
+              host_name: hostNames,
+              service_name: serviceName
+            }
+          },
+          "Requests/resource_filters": [
+            {"service_name": serviceName, "component_name": componentName}
+          ]
+        }
+      });
     App.ajax.send({
       name: 'host.host_component.recommission_and_restart',
       sender: this,
       data: {
         intervalTimeSeconds: 1,
         tolerateSize: 0,
-        batches: [
-          {
-            "order_id": 1,
-            "type": "POST",
-            "uri": App.get('apiPrefix') + "/clusters/" + App.get('clusterName') + "/requests",
-            "RequestBodyInfo": {
-              "RequestInfo": {
-                "context": Em.I18n.t('hosts.host.regionserver.decommission.batch1'),
-                "command": "DECOMMISSION",
-                "parameters": {
-                  "slave_type": slaveType,
-                  "excluded_hosts": hostNames
-                },
-                'operation_level': {
-                  level: "HOST_COMPONENT",
-                  cluster_name: App.get('clusterName'),
-                  host_name: hostNames,
-                  service_name: serviceName
-                }
-              },
-              "Requests/resource_filters": [
-                {"service_name": serviceName, "component_name": componentName}
-              ]
-            }
-          },
-          {
-            "order_id": 2,
-            "type": "PUT",
-            "uri": App.get('apiPrefix') + "/clusters/" + App.get('clusterName') + "/host_components/" + slaveType,
-            "RequestBodyInfo": {
-              "RequestInfo": {
-                context: Em.I18n.t('hosts.host.regionserver.decommission.batch2'),
-                operation_level: {
-                  level: "HOST_COMPONENT",
-                  cluster_name: App.get('clusterName'),
-                  host_name: hostNames,
-                  service_name: serviceName || null
-                }
-              },
-              "Body": {
-                HostRoles: {
-                  state: "INSTALLED"
-                }
-              }
-            }
-          },
-          {
-            "order_id": 3,
-            "type": "POST",
-            "uri": App.get('apiPrefix') + "/clusters/" + App.get('clusterName') + "/requests",
-            "RequestBodyInfo": {
-              "RequestInfo": {
-                "context": Em.I18n.t('hosts.host.regionserver.decommission.batch3'),
-                "command": "DECOMMISSION",
-                "service_name": serviceName,
-                "component_name": componentName,
-                "parameters": {
-                  "slave_type": slaveType,
-                  "excluded_hosts": hostNames,
-                  "mark_draining_only": "true"
-                },
-                'operation_level': {
-                  level: "HOST_COMPONENT",
-                  cluster_name: App.get('clusterName'),
-                  host_name: hostNames,
-                  service_name: serviceName
-                }
-              },
-              "Requests/resource_filters": [
-                {"service_name": serviceName, "component_name": componentName}
-              ]
-            }
-          }
-        ]
+        batches: batches
       },
       success: 'decommissionSuccessCallback',
       error: 'decommissionErrorCallback'
@@ -1064,59 +1089,69 @@ App.MainHostDetailsController = Em.Controller.extend({
     var context_1 = Em.I18n.t(contextNameString_1);
     var contextNameString_2 = 'requestInfo.startHostComponent.' + slaveType.toLowerCase();
     var startContext = Em.I18n.t(contextNameString_2);
+    var params = {
+      "slave_type": slaveType,
+      "included_hosts": hostNames
+    };
+    if (serviceName == "HBASE") {
+      params.mark_draining_only = true;
+    }
+    var batches = [
+      {
+        "order_id": 1,
+        "type": "POST",
+        "uri": App.apiPrefix + "/clusters/" + App.get('clusterName') + "/requests",
+        "RequestBodyInfo": {
+          "RequestInfo": {
+            "context": context_1,
+            "command": "DECOMMISSION",
+            "exclusive":"true",
+            "parameters": params,
+            'operation_level': {
+              level: "HOST_COMPONENT",
+              cluster_name: App.get('clusterName'),
+              host_name: hostNames,
+              service_name: serviceName
+            }
+          },
+          "Requests/resource_filters": [
+            {"service_name": serviceName, "component_name": componentName}
+          ]
+        }
+      }];
+    var id = 2;
+    var hAray = hostNames.split(",");
+    for (var i = 0; i < hAray.length; i++) {
+      batches.push(    {
+        "order_id": id,
+        "type": "PUT",
+        "uri": App.get('apiPrefix') + "/clusters/" + App.get('clusterName') + "/hosts/" + hAray[i] + "/host_components/" + slaveType,
+        "RequestBodyInfo": {
+          "RequestInfo": {
+            context: startContext,
+            operation_level: {
+              level: "HOST_COMPONENT",
+              cluster_name: App.get('clusterName'),
+              host_name: hostNames,
+              service_name: serviceName || null
+            }
+          },
+          "Body": {
+            HostRoles: {
+              state: "STARTED"
+            }
+          }
+        }
+      });
+      id++;
+    }
     App.ajax.send({
       name: 'host.host_component.recommission_and_restart',
       sender: this,
       data: {
         intervalTimeSeconds: 1,
         tolerateSize: 1,
-        batches: [
-          {
-            "order_id": 1,
-            "type": "POST",
-            "uri": App.apiPrefix + "/clusters/" + App.get('clusterName') + "/requests",
-            "RequestBodyInfo": {
-              "RequestInfo": {
-                "context": context_1,
-                "command": "DECOMMISSION",
-                "parameters": {
-                  "slave_type": slaveType,
-                  "included_hosts": hostNames
-                },
-                'operation_level': {
-                  level: "HOST_COMPONENT",
-                  cluster_name: App.get('clusterName'),
-                  host_name: hostNames,
-                  service_name: serviceName
-                }
-              },
-              "Requests/resource_filters": [
-                {"service_name": serviceName, "component_name": componentName}
-              ]
-            }
-          },
-          {
-            "order_id": 2,
-            "type": "PUT",
-            "uri": App.get('apiPrefix') + "/clusters/" + App.get('clusterName') + "/host_components/" + slaveType,
-            "RequestBodyInfo": {
-              "RequestInfo": {
-                context: startContext,
-                operation_level: {
-                  level: "HOST_COMPONENT",
-                  cluster_name: App.get('clusterName'),
-                  host_name: hostNames,
-                  service_name: serviceName || null
-                }
-              },
-              "Body": {
-                HostRoles: {
-                  state: "STARTED"
-                }
-              }
-            }
-          }
-        ]
+        batches: batches
       },
       success: 'decommissionSuccessCallback',
       error: 'decommissionErrorCallback'
@@ -1151,6 +1186,7 @@ App.MainHostDetailsController = Em.Controller.extend({
               "RequestInfo": {
                 "context": context_1,
                 "command": "DECOMMISSION",
+                "exclusive":"true",
                 "parameters": {
                   "slave_type": slaveType,
                   "included_hosts": hostNames
@@ -1177,6 +1213,7 @@ App.MainHostDetailsController = Em.Controller.extend({
                 "command": "RESTART",
                 "service_name": serviceName,
                 "component_name": slaveType,
+                "exclusive":"true",
                 "hosts": hostNames
               }
             }

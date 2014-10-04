@@ -23,7 +23,6 @@
     <relativePath>../ambari-project</relativePath>
   </parent>
   <modelVersion>4.0.0</modelVersion>
-  <groupId>org.apache.ambari</groupId>
   <artifactId>ambari-web</artifactId>
   <packaging>pom</packaging>
   <name>Ambari Web</name>
@@ -139,12 +138,6 @@
                   <arg value="${basedir}/toggle-experimental.sh"/>
                   <arg value="${enableExperimental}"/>
                 </exec>
-                <exec dir="${basedir}" executable="gzip" failonerror="true">
-                  <arg value="-f"/>
-                  <arg value="public/javascripts/app.js"/>
-                  <arg value="public/javascripts/vendor.js"/>
-                  <arg value="public/stylesheets/app.css"/>
-                </exec>
               </target>
             </configuration>
           </execution>
@@ -155,23 +148,28 @@
               <goal>run</goal>
             </goals>
             <configuration>
-              <target name="ambari-web-test">
+              <target name="ambari-web unit tests" unless="${skipTests}">
+                <exec dir="${basedir}" executable="npm" failonerror="true">
+                  <env key="PYTHON" value="${basedir}/../ambari-common/src/main/unix/ambari-python-wrap" />
+                  <arg value="test"/>
+                </exec>
               </target>
             </configuration>
           </execution>
           <execution>
-            <id>package</id>
-            <phase>package</phase>
+            <id>gzip amabri-web content</id>
+            <phase>prepare-package</phase>
             <goals>
               <goal>run</goal>
             </goals>
             <configuration>
               <target name="ambari-web-package">
-                <!--
-                <copy toDir="${project.build.directory}/ambari-server-${project.version}-dist/ambari-server-${project.version}/web/">
-                  <fileset dir="${basedir}/../ambari-web/public"/>
-                </copy>
-                -->
+                <exec dir="${basedir}" executable="gzip" failonerror="true">
+                  <arg value="-f"/>
+                  <arg value="public/javascripts/app.js"/>
+                  <arg value="public/javascripts/vendor.js"/>
+                  <arg value="public/stylesheets/app.css"/>
+                </exec>
               </target>
             </configuration>
           </execution>

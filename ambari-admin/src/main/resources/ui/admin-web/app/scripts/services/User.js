@@ -78,7 +78,7 @@ angular.module('ambariAdminConsole')
     delete: function(userId) {
       return Restangular.one('users', userId).remove();
     },
-    getPrivilegies : function(userId) {
+    getPrivileges : function(userId) {
       return $http.get(Settings.baseUrl + '/privileges', {
         params:{
           'PrivilegeInfo/principal_type': 'USER',

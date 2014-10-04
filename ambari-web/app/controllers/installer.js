@@ -681,16 +681,15 @@ App.InstallerController = App.WizardController.extend({
   /**
    * Save cluster provisioning state to the server
    * @param state cluster provisioning state
-   * @param callback is called after request completes
    */
-  setClusterProvisioningState: function (state, callback) {
-    App.ajax.send({
+  setClusterProvisioningState: function (state) {
+    return App.ajax.send({
       name: 'cluster.save_provisioning_state',
       sender: this,
       data: {
         state: state
       }
-    }).complete(callback());
+    });
   },
 
   setStepsEnable: function () {

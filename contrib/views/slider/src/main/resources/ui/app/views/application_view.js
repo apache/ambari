@@ -37,10 +37,13 @@ App.ApplicationView = Ember.View.extend({
       })
     }.property('content'),
 
-    isIndexPage: function () {
+    showCreateAppButton: function () {
+      if (this.get('controller.hasConfigErrors')) {
+        return false;
+      }
       var currentPath = this.get('controller.currentPath');
       return currentPath && (currentPath == 'slider_apps.index' || currentPath.indexOf('slider_apps.createAppWizard') != -1);
-    }.property('controller.currentPath'),
+    }.property('controller.currentPath', 'controller.hasConfigErrors'),
 
     /**
      * Set <code>popover</code> template

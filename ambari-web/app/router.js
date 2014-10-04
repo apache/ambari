@@ -126,7 +126,7 @@ App.Router = Em.Router.extend({
   onAuthenticationSuccess: function (data) {
     this.set('loggedIn', true);
     if (data.items.length) {
-      this.set('clusterInstallCompleted', data.items[0].Clusters.provisioning_state === 'INSTALLED');
+      this.setClusterInstalled(data);
     }
   },
 
@@ -196,6 +196,15 @@ App.Router = Em.Router.extend({
     this.setAuthenticated(true);
     this.setLoginName(userName);
     this.setUser(App.User.find().findProperty('id', userName));
+  },
+
+  /**
+   * Set `clusterInstallCompleted` property based on cluster info response.
+   *
+   * @param {Object} clusterObject
+   **/
+  setClusterInstalled: function(clusterObject) {
+    this.set('clusterInstallCompleted', clusterObject.items[0].Clusters.provisioning_state === 'INSTALLED')
   },
 
   login: function () {
@@ -273,12 +282,14 @@ App.Router = Em.Router.extend({
       loginData.privileges = privileges;
       App.usersMapper.map({"items": [loginData]});
       router.setUserLoggedIn(params.loginName);
+      App.router.get('mainViewsController').loadAmbariViews();
       var permissionList = privileges.items.mapProperty('PrivilegeInfo.permission_name');
       var isAdmin = permissionList.contains('AMBARI.ADMIN');
       var transitionToApp = false;
       if (isAdmin) {
         App.set('isAdmin', true);
         if (clustersData.items.length) {
+          router.setClusterInstalled(clustersData);
           transitionToApp = true;
         } else {
           window.location = adminViewUrl;
@@ -286,7 +297,7 @@ App.Router = Em.Router.extend({
         }
       } else {
         if (clustersData.items.length) {
-          this.set('clusterInstallCompleted', clustersData.items[0].Clusters.provisioning_state === 'INSTALLED');
+          router.setClusterInstalled(clustersData);
           //TODO: Iterate over clusters
           var clusterName = clustersData.items[0].Clusters.cluster_name;
           var clusterPermissions = privileges.items.filterProperty('PrivilegeInfo.cluster_name', clusterName).mapProperty('PrivilegeInfo.permission_name');

@@ -255,7 +255,7 @@ App.config = Em.Object.create({
         advancedProperty = advancedConfigs.filterProperty('filename', config.filename).findProperty('name', config.name);
       }
       config.category = config.category ? config.category : 'Advanced ' + configType;
-      if (isAdvanced) {
+      if (advancedProperty) {
         config.description = advancedProperty.description;
       }
     }
@@ -341,7 +341,7 @@ App.config = Em.Object.create({
         }
 
         if (!this.getBySitename(serviceConfigObj.get('filename')).someProperty('name', index)) {
-          isAdvanced = advancedConfigs.someProperty('name', index);
+          isAdvanced = advancedConfigs.filterProperty('name', index).someProperty('filename', filename);
           serviceConfigObj.id = 'site property';
           if (configsPropertyDef) {
             if (configsPropertyDef.isRequiredByAgent === false) {
@@ -1192,7 +1192,7 @@ App.config = Em.Object.create({
       "isOverridable": true,
       "isRequired": true,
       "isVisible": true,
-      "supportsFinal": true,
+      "supportsFinal": false,
       "serviceName": "YARN",
       "filename": "capacity-scheduler.xml",
       "category": "CapacityScheduler"

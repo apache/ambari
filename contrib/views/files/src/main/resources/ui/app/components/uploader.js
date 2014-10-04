@@ -21,6 +21,12 @@ var App = require('app');
 
 App.FileUploaderComponent = Ember.Component.extend({
   didInsertElement:function () {
+    var _this = this;
+    this.uploader.reopen({
+      sendAlert:function (e) {
+        _this.sendAction('alert',e);
+      }
+    });
     this.fileInput.reopen({
       filesDidChange: function() {
         var files = this.get('files');
@@ -42,12 +48,11 @@ App.FileUploaderComponent = Ember.Component.extend({
   },
   actions:{
     upload:function (files) {
-      var self = this;
       var uploader = this.get('uploader');
       var uploadBtn = Ladda.create(this.uploadButton.get('element'));
       var reset = function () {
         uploadBtn.stop();
-        self.send('clear');
+        this.send('clear');
       };
       if (!uploader.get('isUploading')) {
         var path = this.get('path');
@@ -57,7 +62,7 @@ App.FileUploaderComponent = Ember.Component.extend({
           uploader.on('progress',function (e) {
             uploadBtn.setProgress(e.percent/100);
           })
-          uploader.upload(file,{path:path}).then(reset,reset);
+          uploader.upload(file,{path:path}).finally(Em.run.bind(this,reset));
         }
       };
     },
@@ -66,7 +71,7 @@ App.FileUploaderComponent = Ember.Component.extend({
     }
   },
   uploader: null,
-  layoutName:'util/uploader',
+  layoutName:'components/uploader',
   path:'',
   info:'',
   files:null,

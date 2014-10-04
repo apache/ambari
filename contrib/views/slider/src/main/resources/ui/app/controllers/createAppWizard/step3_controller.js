@@ -112,7 +112,9 @@ App.CreateAppWizardStep3Controller = Ember.ObjectController.extend({
    * @method initConfigs
    */
   initConfigs: function (setDefaults) {
-    var newAppConfigs = this.get('newAppConfigs') || {},
+    var self = this,
+      newAppConfigs = this.get('newAppConfigs') || {},
+      defaultConfigs = self.get('appWizardController.newApp.appType.configs');
       configs = Em.A(),
       configsSet = $.extend(true, [], this.get('configsSet')),
       allSetConfigs = {},
@@ -122,6 +124,9 @@ App.CreateAppWizardStep3Controller = Ember.ObjectController.extend({
     configsSet.forEach(function (item) {
       item.configNames.forEach(function (configName) {
         allSetConfigs[configName] = item;
+        if(!newAppConfigs[configName] && defaultConfigs && defaultConfigs[configName]){
+          newAppConfigs[configName] = defaultConfigs[configName];
+        }
       });
     });
 
@@ -163,7 +168,7 @@ App.CreateAppWizardStep3Controller = Ember.ObjectController.extend({
     }, this);
 
     this.set('configs', configs);
-  }.observes('newAppConfigs'),
+  },
 
   /**
    * initialize dependencies map for config set by name

@@ -201,7 +201,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
         if siteName in recommendedDefaults:
           siteProperties = getSiteProperties(configurations, siteName)
           if siteProperties is not None:
-            resultItems = method(siteProperties, recommendedDefaults[siteName]["properties"])
+            resultItems = method(siteProperties, recommendedDefaults[siteName]["properties"], configurations)
             items.extend(resultItems)
     return items
 
@@ -259,7 +259,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       return self.getWarnItem("Value is less than the recommended default of -Xmx" + defaultValueXmx)
     return None
 
-  def validateMapReduce2Configurations(self, properties, recommendedDefaults):
+  def validateMapReduce2Configurations(self, properties, recommendedDefaults, configurations):
     validationItems = [ {"config-name": 'mapreduce.map.java.opts', "item": self.validateXmxValue(properties, recommendedDefaults, 'mapreduce.map.java.opts')},
                         {"config-name": 'mapreduce.reduce.java.opts', "item": self.validateXmxValue(properties, recommendedDefaults, 'mapreduce.reduce.java.opts')},
                         {"config-name": 'mapreduce.task.io.sort.mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'mapreduce.task.io.sort.mb')},
@@ -269,7 +269,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
                         {"config-name": 'yarn.app.mapreduce.am.command-opts', "item": self.validateXmxValue(properties, recommendedDefaults, 'yarn.app.mapreduce.am.command-opts')} ]
     return self.toConfigurationValidationProblems(validationItems, "mapred-site")
 
-  def validateYARNConfigurations(self, properties, recommendedDefaults):
+  def validateYARNConfigurations(self, properties, recommendedDefaults, configurations):
     validationItems = [ {"config-name": 'yarn.nodemanager.resource.memory-mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'yarn.nodemanager.resource.memory-mb')},
                         {"config-name": 'yarn.scheduler.minimum-allocation-mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'yarn.scheduler.minimum-allocation-mb')},
                         {"config-name": 'yarn.scheduler.maximum-allocation-mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'yarn.scheduler.maximum-allocation-mb')} ]
@@ -349,3 +349,24 @@ def formatXmxSizeToBytes(value):
     modifier == 'p': 1024 * 1024 * 1024 * 1024 * 1024
     }[1]
   return to_number(value) * m
+
+def getPort(address):
+  """
+  Extracts port from the address like 0.0.0.0:1019
+  """
+  if address is None:
+    return None
+  m = re.search(r'(?:http(?:s)?://)?([\w\d.]*):(\d{1,5})', address)
+  if m is not None:
+    return int(m.group(2))
+  else:
+    return None
+
+def isSecurePort(port):
+  """
+  Returns True if port is root-owned at *nix systems
+  """
+  if port is not None:
+    return port < 1024
+  else:
+    return False

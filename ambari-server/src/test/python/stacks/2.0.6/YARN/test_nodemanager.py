@@ -176,6 +176,26 @@ class TestNodeManager(RMFTestCase):
                               bin_dir = '/usr/bin',
                               action = ['create'],
                               )
+    self.assertResourceCalled('Directory', '/hadoop/yarn/local',
+                              owner = 'yarn',
+                              recursive = True,
+                              ignore_failures = True,
+                              )
+    self.assertResourceCalled('Directory', '/hadoop/yarn/local1',
+                              owner = 'yarn',
+                              recursive = True,
+                              ignore_failures = True,
+                              )
+    self.assertResourceCalled('Directory', '/hadoop/yarn/log',
+                              owner = 'yarn',
+                              recursive = True,
+                              ignore_failures = True,
+                              )
+    self.assertResourceCalled('Directory', '/hadoop/yarn/log1',
+                              owner = 'yarn',
+                              recursive = True,
+                              ignore_failures = True,
+                              )
     self.assertResourceCalled('Directory', '/var/run/hadoop-yarn/yarn',
       owner = 'yarn',
       group = 'hadoop',
@@ -195,26 +215,6 @@ class TestNodeManager(RMFTestCase):
       owner = 'mapred',
       group = 'hadoop',
       recursive = True,
-    )
-    self.assertResourceCalled('Directory', '/hadoop/yarn/local',
-      owner = 'yarn',
-      recursive = True,
-      ignore_failures = True,
-    )
-    self.assertResourceCalled('Directory', '/hadoop/yarn/local1',
-      owner = 'yarn',
-      recursive = True,
-      ignore_failures = True,
-    )
-    self.assertResourceCalled('Directory', '/hadoop/yarn/log',
-      owner = 'yarn',
-      recursive = True,
-      ignore_failures = True,
-    )
-    self.assertResourceCalled('Directory', '/hadoop/yarn/log1',
-      owner = 'yarn',
-      recursive = True,
-      ignore_failures = True,
     )
     self.assertResourceCalled('Directory', '/var/log/hadoop-yarn',
       owner = 'yarn',
@@ -373,6 +373,16 @@ class TestNodeManager(RMFTestCase):
                               kinit_path_local = '/usr/bin/kinit',
                               action = ['create'],
                               )
+    self.assertResourceCalled('Directory', '/hadoop/yarn/local',
+                              owner = 'yarn',
+                              recursive = True,
+                              ignore_failures = True,
+                              )
+    self.assertResourceCalled('Directory', '/hadoop/yarn/log',
+                              owner = 'yarn',
+                              recursive = True,
+                              ignore_failures = True,
+                              )
     self.assertResourceCalled('Directory', '/var/run/hadoop-yarn/yarn',
       owner = 'yarn',
       group = 'hadoop',
@@ -392,16 +402,6 @@ class TestNodeManager(RMFTestCase):
       owner = 'mapred',
       group = 'hadoop',
       recursive = True,
-    )
-    self.assertResourceCalled('Directory', '/hadoop/yarn/local',
-      owner = 'yarn',
-      recursive = True,
-      ignore_failures = True,
-    )
-    self.assertResourceCalled('Directory', '/hadoop/yarn/log',
-      owner = 'yarn',
-      recursive = True,
-      ignore_failures = True,
     )
     self.assertResourceCalled('Directory', '/var/log/hadoop-yarn',
       owner = 'yarn',

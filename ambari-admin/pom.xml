@@ -15,7 +15,7 @@
    limitations under the License.
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <parent>
     <groupId>org.apache.ambari</groupId>
     <artifactId>ambari-project</artifactId>
@@ -122,6 +122,23 @@
               </arguments>
             </configuration>
           </execution>
+          <!--  @TODO: uncomment below execution for triggering ambar-admin UI unit tests from maven test phase.(AMBARI-7600)
+          <execution>
+            <id>unit test</id>
+            <phase>test</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <workingDirectory>${basedir}/src/main/resources/ui/admin-web</workingDirectory>
+              <executable>npm</executable>
+              <arguments>
+                <argument>run</argument>
+                <argument>test-single-run</argument>
+              </arguments>
+            </configuration>
+          </execution>
+          -->
         </executions>
       </plugin>
       <plugin>

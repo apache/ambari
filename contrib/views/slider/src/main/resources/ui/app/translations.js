@@ -61,6 +61,16 @@ Em.I18n.translations = {
     'save': 'Save'
   },
 
+  'form': {
+    'placeholder': {
+      'optional': '(optional)',
+      'step1.name': 'Enter Name (required)',
+      'include.file.patterns': '*.log',
+      'exclude.file.patterns': '*.zip',
+      'frequency': '3600'
+    }
+  },
+
   'error.config_is_empty': 'Config <strong>{0}</strong> should not be empty',
   'error.config_is_empty_2': 'Config <strong>{0}</strong> should not be empty, because <strong>{1}</strong> is set to "true"',
 
@@ -84,7 +94,10 @@ Em.I18n.translations = {
   'slider.apps.title': 'Slider Apps',
   'slider.apps.create': 'Create App',
   'slider.apps.unavailable': 'Unable to get list of Slider Apps due to issues below. Possible reasons include incorrect or invalid view parameters. Please contact administrator for setting up proper view parameters and verifying necessary services are working.',
+  'slider.apps.undefined.issue': 'Undefined issue',
   'sliderApps.filters.info': '{0} of {1} sliders showing',
+  'slider.apps.no.description.available': 'No Description Available',
+  'slider.apps.no.applications.available': 'No Applications Available',
 
   'sliderApp.flex.invalid_counts': 'Instance counts should be integer and >= 0',
   'sliderApp.flex.message': 'Update the number of desired instances for each component of this application',
@@ -114,15 +127,15 @@ Em.I18n.translations = {
 
   'wizard.name': 'Create App',
   'wizard.step1.name': 'Select Type',
-  'wizard.step1.header': 'Available Applications',
+  'wizard.step1.header': 'Select Application',
   'wizard.step1.appTypes': 'Application Types',
   'wizard.step1.description': 'Description',
-  'wizard.step1.schedulerOptions.label': 'Scheduler Options (optional)',
-  'wizard.step1.schedulerOptions.queueName': 'Queue name',
+  'wizard.step1.schedulerOptions.label': 'Scheduler Options',
+  'wizard.step1.schedulerOptions.queueName': 'Queue Name',
   'wizard.step1.yarnLabels.label': 'YARN Labels',
-  'wizard.step1.yarnLabels.options.anyHost': 'Any host',
-  'wizard.step1.yarnLabels.options.nonLabeledHost': 'Non-labeled host',
-  'wizard.step1.yarnLabels.options.specifyLabel': 'Specify label',
+  'wizard.step1.yarnLabels.options.anyHost': 'Any Host',
+  'wizard.step1.yarnLabels.options.nonLabeledHost': 'Non-Labeled Host',
+  'wizard.step1.yarnLabels.options.specifyLabel': 'Specify Label',
   'wizard.step1.logAggregation.label': 'Log Aggregation',
   'wizard.step1.logAggregation.filePatterns.include': 'Include File Patterns',
   'wizard.step1.logAggregation.filePatterns.exclude': 'Exclude File Patterns',

@@ -35,6 +35,7 @@ import org.apache.ambari.server.controller.ganglia.GangliaHostProvider;
 import org.apache.ambari.server.controller.ganglia.GangliaPropertyProvider;
 import org.apache.ambari.server.controller.jmx.JMXHostProvider;
 import org.apache.ambari.server.controller.jmx.JMXPropertyProvider;
+import org.apache.ambari.server.controller.metrics.MetricsHostProvider;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.PropertyProvider;
 import org.apache.ambari.server.controller.spi.Request;
@@ -56,57 +57,71 @@ import com.google.inject.Injector;
  * This class analyzes a service's metrics to determine if additional
  * metrics should be fetched.  It's okay to maintain state here since these
  * are done per-request.
- *
  */
 public class StackDefinedPropertyProvider implements PropertyProvider {
   private static final Logger LOG = LoggerFactory.getLogger(StackDefinedPropertyProvider.class);
-  
+
   @Inject
   private static Clusters clusters = null;
   @Inject
   private static AmbariMetaInfo metaInfo = null;
-  
+  @Inject
+  private static Injector injector = null;
+
+
   private Resource.Type type = null;
   private String clusterNamePropertyId = null;
   private String hostNamePropertyId = null;
   private String componentNamePropertyId = null;
-  private String jmxStatePropertyId = null;
+  private String resourceStatePropertyId = null;
   private ComponentSSLConfiguration sslConfig = null;
   private StreamProvider streamProvider = null;
   private JMXHostProvider jmxHostProvider;
   private GangliaHostProvider gangliaHostProvider;
   private PropertyProvider defaultJmx = null;
   private PropertyProvider defaultGanglia = null;
-  
+
+  private final MetricsHostProvider metricsHostProvider;
+
+  /**
+   * PropertyHelper/AbstractPropertyProvider expect map of maps,
+   * that's why we wrap metrics into map
+   */
+  public static final String WRAPPED_METRICS_KEY = "WRAPPED_METRICS_KEY";
+
   @Inject
   public static void init(Injector injector) {
     clusters = injector.getInstance(Clusters.class);
     metaInfo = injector.getInstance(AmbariMetaInfo.class);
+    StackDefinedPropertyProvider.injector = injector;
   }
-  
+
   public StackDefinedPropertyProvider(Resource.Type type,
       JMXHostProvider jmxHostProvider,
       GangliaHostProvider gangliaHostProvider,
+      MetricsHostProvider metricsHostProvider,
       StreamProvider streamProvider,
       String clusterPropertyId,
       String hostPropertyId,
       String componentPropertyId,
-      String jmxStatePropertyId,
+      String resourceStatePropertyId,
       PropertyProvider defaultJmxPropertyProvider,
       PropertyProvider defaultGangliaPropertyProvider
-      ) {
-    
+  ) {
+
+    this.metricsHostProvider = metricsHostProvider;
+
     if (null == clusterPropertyId)
       throw new NullPointerException("Cluster name property id cannot be null");
     if (null == componentPropertyId)
       throw new NullPointerException("Component name property id cannot be null");
-    
+
     this.type = type;
-    
+
     clusterNamePropertyId = clusterPropertyId;
     hostNamePropertyId = hostPropertyId;
     componentNamePropertyId = componentPropertyId;
-    this.jmxStatePropertyId = jmxStatePropertyId;
+    this.resourceStatePropertyId = resourceStatePropertyId;
     this.jmxHostProvider = jmxHostProvider;
     this.gangliaHostProvider = gangliaHostProvider;
     sslConfig = ComponentSSLConfiguration.instance();
@@ -114,34 +129,34 @@ public class StackDefinedPropertyProvider implements PropertyProvider {
     defaultJmx = defaultJmxPropertyProvider;
     defaultGanglia = defaultGangliaPropertyProvider;
   }
-      
-  
+
+
   @Override
   public Set<Resource> populateResources(Set<Resource> resources,
       Request request, Predicate predicate) throws SystemException {
 
     // only arrange for one instance of Ganglia and JMX instantiation
-    Map<String, Map<String, PropertyInfo>> gangliaMap = new HashMap<String, Map<String,PropertyInfo>>();
+    Map<String, Map<String, PropertyInfo>> gangliaMap = new HashMap<String, Map<String, PropertyInfo>>();
     Map<String, Map<String, PropertyInfo>> jmxMap = new HashMap<String, Map<String, PropertyInfo>>();
 
     List<PropertyProvider> additional = new ArrayList<PropertyProvider>();
-    
+
     try {
       for (Resource r : resources) {
         String clusterName = r.getPropertyValue(clusterNamePropertyId).toString();
         String componentName = r.getPropertyValue(componentNamePropertyId).toString();
-        
+
         Cluster cluster = clusters.getCluster(clusterName);
         StackId stack = cluster.getDesiredStackVersion();
         String svc = metaInfo.getComponentToService(stack.getStackName(),
             stack.getStackVersion(), componentName);
-        
+
         List<MetricDefinition> defs = metaInfo.getMetrics(
             stack.getStackName(), stack.getStackVersion(), svc, componentName, type.name());
-        
+
         if (null == defs || 0 == defs.size())
           continue;
-        
+
         for (MetricDefinition m : defs) {
           if (m.getType().equals("ganglia")) {
             gangliaMap.put(componentName, getPropertyInfo(m));
@@ -149,12 +164,20 @@ public class StackDefinedPropertyProvider implements PropertyProvider {
             jmxMap.put(componentName, getPropertyInfo(m));
           } else {
             PropertyProvider pp = getDelegate(m);
-            if (null != pp)
+            if(pp == null) {
+              pp = getDelegate(m,
+                  streamProvider, metricsHostProvider,
+                  clusterNamePropertyId, hostNamePropertyId,
+                  componentNamePropertyId, resourceStatePropertyId);
+            }
+            if(pp != null) {
               additional.add(pp);
+            }
+
           }
         }
       }
-        
+
       if (gangliaMap.size() > 0) {
         GangliaPropertyProvider gpp = type.equals (Resource.Type.Component) ?
           new GangliaComponentPropertyProvider(gangliaMap,
@@ -163,22 +186,23 @@ public class StackDefinedPropertyProvider implements PropertyProvider {
           new GangliaHostComponentPropertyProvider(gangliaMap,
               streamProvider, sslConfig, gangliaHostProvider,
               clusterNamePropertyId, hostNamePropertyId, componentNamePropertyId);
-          
+
           gpp.populateResources(resources, request, predicate);
       } else {
         defaultGanglia.populateResources(resources, request, predicate);
       }
-      
+
       if (jmxMap.size() > 0) {
         JMXPropertyProvider jpp = new JMXPropertyProvider(jmxMap, streamProvider,
-            jmxHostProvider, clusterNamePropertyId, hostNamePropertyId,
-            componentNamePropertyId, jmxStatePropertyId, Collections.singleton("STARTED"));
-        
+            jmxHostProvider, metricsHostProvider,
+            clusterNamePropertyId, hostNamePropertyId,
+            componentNamePropertyId, resourceStatePropertyId);
+
         jpp.populateResources(resources, request, predicate);
       } else {
         defaultJmx.populateResources(resources, request, predicate);
       }
-      
+
       for (PropertyProvider pp : additional) {
         pp.populateResources(resources, request, predicate);
       }
@@ -187,7 +211,7 @@ public class StackDefinedPropertyProvider implements PropertyProvider {
       e.printStackTrace();
       throw new SystemException("Error loading deferred resources", e);
     }
-    
+
     return resources;
   }
 
@@ -195,59 +219,134 @@ public class StackDefinedPropertyProvider implements PropertyProvider {
   public Set<String> checkPropertyIds(Set<String> propertyIds) {
     return Collections.emptySet();
   }
-  
+
   /**
    * @param def the metric definition
-   * @return the converted Map required for JMX or Ganglia execution
+   * @return the converted Map required for JMX or Ganglia execution.
+   * Format: <metric name, property info>
    */
-  private  Map<String, PropertyInfo> getPropertyInfo(MetricDefinition def) {
+  private Map<String, PropertyInfo> getPropertyInfo(MetricDefinition def) {
     Map<String, PropertyInfo> defs = new HashMap<String, PropertyInfo>();
-    
-    for (Entry<String,Metric> entry : def.getMetrics().entrySet()) {
+
+    for (Entry<String, Metric> entry : def.getMetrics().entrySet()) {
       Metric metric = entry.getValue();
       defs.put(entry.getKey(), new PropertyInfo(
           metric.getName(), metric.isTemporal(), metric.isPointInTime()));
     }
-    
+
     return defs;
   }
-  
+
   /**
-   * @param the metric definition for a component and resource type combination
+   * @param definition metric definition for a component and resource type combination
    * @return the custom property provider
    */
   private PropertyProvider getDelegate(MetricDefinition definition) {
+    try {
+      Class<?> clz = Class.forName(definition.getType());
+
+      // singleton/factory
       try {
-        Class<?> clz = Class.forName(definition.getType());
-
-        // singleton/factory
-        try {
-          Method m = clz.getMethod("getInstance", Map.class, Map.class);
-          Object o = m.invoke(null, definition.getProperties(), definition.getMetrics());
-          return PropertyProvider.class.cast(o);
-        } catch (Exception e) {
-          LOG.info("Could not load singleton or factory method for type '" +
-              definition.getType());
-        }
-        
-        // try maps constructor        
-        try {
-          Constructor<?> ct = clz.getConstructor(Map.class, Map.class);
-          Object o = ct.newInstance(definition.getProperties(), definition.getMetrics());
-          return PropertyProvider.class.cast(o);
-        } catch (Exception e) {
-          LOG.info("Could not find contructor for type '" +
-              definition.getType());
-        }
-        
-        // just new instance
-        return PropertyProvider.class.cast(clz.newInstance());
-
+        Method m = clz.getMethod("getInstance", Map.class, Map.class);
+        Object o = m.invoke(null, definition.getProperties(), definition.getMetrics());
+        return PropertyProvider.class.cast(o);
       } catch (Exception e) {
-        LOG.error("Could not load class " + definition.getType());
-        return null;
+        LOG.info("Could not load singleton or factory method for type '" +
+            definition.getType());
       }
+
+      // try maps constructor
+      try {
+        Constructor<?> ct = clz.getConstructor(Map.class, Map.class);
+        Object o = ct.newInstance(definition.getProperties(), definition.getMetrics());
+        return PropertyProvider.class.cast(o);
+      } catch (Exception e) {
+        LOG.info("Could not find contructor for type '" +
+            definition.getType());
+      }
+
+      // just new instance
+      return PropertyProvider.class.cast(clz.newInstance());
+
+    } catch (Exception e) {
+      LOG.error("Could not load class " + definition.getType());
+      return null;
+    }
   }
-  
+
+  /**
+   *
+   * @param definition the metric definition for a component
+   * @param streamProvider the stream provider
+   * @param metricsHostProvider the metrics host provider
+   * @param clusterNamePropertyId the cluster name property id
+   * @param hostNamePropertyId the host name property id
+   * @param componentNamePropertyId the component name property id
+   * @param statePropertyId the state property id
+   * @return the custom property provider
+   */
+
+  private PropertyProvider getDelegate(MetricDefinition definition,
+                                       StreamProvider streamProvider,
+                                       MetricsHostProvider metricsHostProvider,
+                                       String clusterNamePropertyId,
+                                       String hostNamePropertyId,
+                                       String componentNamePropertyId,
+                                       String statePropertyId) {
+    Map<String, PropertyInfo> metrics = getPropertyInfo(definition);
+    HashMap<String, Map<String, PropertyInfo>> componentMetrics =
+        new HashMap<String, Map<String, PropertyInfo>>();
+    componentMetrics.put(WRAPPED_METRICS_KEY, metrics);
+
+    try {
+      Class<?> clz = Class.forName(definition.getType());
+      // singleton/factory
+      try {
+                /*
+         * Interface for singleton/factory method invocation TBD
+         * when implementing the first real use
+         */
+        Method m = clz.getMethod("getInstance", Map.class, Map.class);
+        Object o = m.invoke(
+            definition.getProperties(), componentMetrics,
+            streamProvider, clusterNamePropertyId, hostNamePropertyId,
+            componentNamePropertyId, statePropertyId);
+        return PropertyProvider.class.cast(o);
+      } catch (Exception e) {
+        LOG.info("Could not load singleton or factory method for type '" +
+            definition.getType());
+      }
+
+      // try maps constructor
+      try {
+                /*
+         * Warning: this branch is already used, that's why please adjust
+         * all implementations when modifying constructor interface
+         */
+        Constructor<?> ct = clz.getConstructor(Injector.class, Map.class,
+            Map.class, StreamProvider.class, MetricsHostProvider.class,
+            String.class, String.class, String.class, String.class);
+        Object o = ct.newInstance(
+            injector,
+            definition.getProperties(), componentMetrics,
+            streamProvider, metricsHostProvider,
+            clusterNamePropertyId, hostNamePropertyId,
+            componentNamePropertyId, statePropertyId);
+        return PropertyProvider.class.cast(o);
+      } catch (Exception e) {
+        LOG.info("Could not find contructor for type '" +
+            definition.getType());
+      }
+
+      // just new instance
+      return PropertyProvider.class.cast(clz.newInstance());
+
+    } catch (Exception e) {
+      LOG.error("Could not load class " + definition.getType());
+      return null;
+    }
+
+
+  }
 
 }

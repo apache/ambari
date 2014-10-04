@@ -47,6 +47,26 @@ var urls = {
     }
   },
 
+  'slider.getViewParams.v2': {
+    real: 'resources/status',
+    mock: '/data/resource/slider-properties-2.json',
+    headers: {
+      "Accept": "application/json; charset=utf-8",
+      "Content-Type": "text/plain; charset=utf-8"
+    },
+    schema: {
+      required: ['version', 'validations', 'parameters'],
+      properties: {
+        validations: {
+          type: 'array'
+        },
+        parameters: {
+          type : 'object'
+        }
+      }
+    }
+  },
+
   'mapper.applicationTypes': {
     real: 'apptypes?fields=*',
     mock: '/data/apptypes/all_fields.json',

@@ -16,11 +16,17 @@
 * limitations under the License.
 }}
 
-<div class="row-fluid" style="margin-top: 7px;">
-  <div id="services-menu" class="well span2">
-    {{view App.MainHostServiceMenuView}}
-  </div>
-  <div class="span10">
-    {{outlet service_config_outlet}}
-  </div>
-</div>
+{{#if view.isConfigAvailable}}
+    <div class="row-fluid">
+        <div class="well span2 services-host-menu">
+          {{view App.MainHostServiceMenuView}}
+        </div>
+        <div class="span10">
+          {{outlet service_config_outlet}}
+        </div>
+    </div>
+{{else}}
+    <div class="services-host-menu">
+        <i class="message alert alert-info">{{t hosts.host.serviceNotAvailable}}</i>
+    </div>
+{{/if}}

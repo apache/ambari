@@ -18,10 +18,16 @@
 
 @import-once 'common.less';
 
+.create-app-wizard-wrapper {
+  .modal-backdrop {
+    opacity: 0;
+  }
+}
+
 #createAppWizard {
-  width: 80%;
+  width: 94%;
   margin: 0 0 auto;
-  left: 10%;
+  left: 3%;
   .wizard-nav {
     padding-left: 0px;
   }
@@ -33,6 +39,11 @@
       background-color: #ffffff;
       label {
         font-weight: normal;
+      }
+      .form-horizontal {
+        .control-label {
+          text-align: left;
+        }
       }
     }
   }
@@ -96,6 +107,10 @@
     }
     .app-types-alert {
       margin-top: 20px;
+    }
+    .alert-warning {
+      border-color: #fbeed5;
+      color: #c09853;
     }
   }
   .pseudo-label {

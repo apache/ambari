@@ -17,11 +17,12 @@
  */
 
 var App = require('app');
+var bind = Ember.run.bind;
 
 App.FilesController = Ember.ArrayController.extend({
   actions:{
     moveFile:function (opt,file) {
-      var src, title, self,
+      var src, title,
           file = file || this.get('selectedFiles.firstObject'),
           moving = this.get('movingFile');
 
@@ -32,11 +33,8 @@ App.FilesController = Ember.ArrayController.extend({
       };
 
       if (opt == 'move') {
-        self = this;
         this.store.move(moving.path,[this.get('path'),moving.name].join('/').replace('//','/'))
-          .then(function () {
-            self.set('movingFile',null);
-          });
+          .then(bind(this,this.set,'movingFile',null),bind(this,this.throwAlert));
       };
 
       if (opt == 'cancel') {
@@ -47,7 +45,7 @@ App.FilesController = Ember.ArrayController.extend({
       this.toggleProperty('isRenaming');
     },
     renameDir:function (path,newName) {
-      var self = this,
+      var _this = this,
           basedir = path.substring(0,path.lastIndexOf('/')+1);
           newPath = basedir + newName;
 
@@ -59,25 +57,28 @@ App.FilesController = Ember.ArrayController.extend({
         var recordExists = listdir.isAny('id',newPath);
 
         listdir.forEach(function (file) {
-          self.store.unloadRecord(file);
+          _this.store.unloadRecord(file);
         });
 
         if (recordExists) {
-          return self.send('showAlert',{message:newPath + ' already exists.'});
+          return _this.throwAlert({message:newPath + ' already exists.'});
         };
 
-        self.store.move(path,newPath).then(function (newDir) {
-          self.store.unloadRecord(newDir);
-          self.set('path',newPath);
-        });
-      });
+        return _this.store.move(path,newPath);
+      }).then(function (newDir) {
+        if (newDir) {
+          _this.store.unloadRecord(newDir);
+          _this.set('path',newPath);
+        };
+      }).catch(bind(this,this.throwAlert));
 
     },
-    deleteFile:function () {
+    deleteFile:function (deleteForever) {
       var self = this;
       var selected = this.get('selectedFiles');
+      var moveToTrash = !deleteForever;
       selected.forEach(function (file) {
-        self.store.remove(file);
+        self.store.remove(file,moveToTrash).then(null,bind(self,self.throwAlert));
       });
     },
     download:function (option) {
@@ -86,31 +87,9 @@ App.FilesController = Ember.ArrayController.extend({
         window.location.href = link;
       });
     },
-    mkdir:function (opt) {
-      var name,self,newDir;
-      if (opt === 'edit') {
-        this.set('isMkdir',true);
-      };
-
-      if (opt === 'cancel') {
-        this.set('newDirName','');
-        this.set('isMkdir',false);
-      };
-
-      if (opt === 'confirm') {
-        self = this;
-        name = this.get('newDirName');
-
-        if (Em.isEmpty(name)) {
-          return false;
-        }
-        newDir = [this.get('path'),name].join('/').replace('//','/');
-
-        this.store.mkdir(newDir).then(function () {
-          self.set('newDirName','');
-          self.set('isMkdir',false);
-        });
-      };
+    mkdir:function (newDirName) {
+      this.store.mkdir(newDirName)
+        .then(bind(this,this.mkdirSuccessCalback),bind(this,this.throwAlert));
     },
     upload:function (opt) {
       if (opt === 'open') {
@@ -129,6 +108,9 @@ App.FilesController = Ember.ArrayController.extend({
         this.set('sortProperties',[pr]);
         this.set('sortAscending',true);
       };
+    },
+    clearSearchField:function () {
+      this.set('searchString','');
     }
   },
   init:function () {
@@ -140,6 +122,7 @@ App.FilesController = Ember.ArrayController.extend({
 
       controller.store.pushPayload('file',{file:e});
     });
+    this._super();
   },
 
   sortProperties: ['name'],
@@ -149,10 +132,7 @@ App.FilesController = Ember.ArrayController.extend({
   movingFile:null,
   uploader:App.Uploader,
   isRenaming:false,
-  isRemoving:false,
-  isMkdir:false,
   isUploading:false,
-  newDirName:'',
   queryParams: ['path'],
   path: '/',
   isRootDir:Ember.computed.equal('path', '/'),
@@ -165,23 +145,32 @@ App.FilesController = Ember.ArrayController.extend({
   }.property('path'),
   selectedOne:Ember.computed.equal('selectedFiles.length', 1),
   isSelected:Ember.computed.gt('selectedFiles.length', 0),
-  selectedFiles:Ember.computed.filterBy('content', 'selected', true),
+  selectedFiles:function () {
+    return this.get('content').filterBy('selected', true);
+  }.property('content.@each.selected'),
   canConcat:function () {
     return this.get('selectedFiles').filterProperty('isDirectory').get('length')==0;
   }.property('selectedFiles.length'),
 
-  fileList: Ember.computed.alias('arrangedContent')
+  searchString:'',
+  fileList: function () {
+    var fileList = this.get('arrangedContent');
+    var search = this.get('searchString');
+    return (search)?fileList.filter(function (file) {
+      return !!file.get('name').match(search);
+    }):fileList;
+  }.property('arrangedContent','searchString'),
+
+  mkdirSuccessCalback:function (newDir) {
+    if (newDir.get('path') != [this.get('path'),newDir.get('name')].join('/')){
+      newDir.unloadRecord();
+      newDir.store.listdir(this.get('path'));
+    }
+  },
+
+  throwAlert:function (error) {
+    this.send('showAlert',error);
+  }
 });
 
-App.FilesAlertController = Em.ObjectController.extend({
-  content:null,
-  output:function () {
-    var error = this.get('content'),output;
-    if (error instanceof Em.Error) {
-      output = error;
-    } else {
-      output = {status:error.status, message:error.statusText||error.message};
-    };
-    return output;
-  }.property('content')
-});
+

@@ -94,10 +94,6 @@ class TestHiveClient(RMFTestCase):
         group = 'hadoop',
         mode = 0644,
     )
-    self.assertResourceCalled('Execute', '/bin/sh -c \'cd /usr/lib/ambari-agent/ && curl -kf -x "" --retry 5 http://c6401.ambari.apache.org:8080/resources/DBConnectionVerification.jar -o DBConnectionVerification.jar\'',
-        environment = {'no_proxy': 'c6401.ambari.apache.org'},
-        not_if = '[ -f DBConnectionVerification.jar]',
-    )
     self.assertResourceCalled('XmlConfig', 'hive-site.xml',
                               group = 'hadoop',
                               conf_dir = '/etc/hive/conf',
@@ -111,6 +107,10 @@ class TestHiveClient(RMFTestCase):
                               owner = 'hive',
                               group = 'hadoop',
                               )
+    self.assertResourceCalled('Execute', '/bin/sh -c \'cd /usr/lib/ambari-agent/ && curl -kf -x "" --retry 5 http://c6401.ambari.apache.org:8080/resources/DBConnectionVerification.jar -o DBConnectionVerification.jar\'',
+        environment = {'no_proxy': 'c6401.ambari.apache.org'},
+        not_if = '[ -f DBConnectionVerification.jar]',
+    )
     self.assertNoMoreResources()
 
 
@@ -187,10 +187,6 @@ class TestHiveClient(RMFTestCase):
         group = 'hadoop',
         mode = 0644,
     )
-    self.assertResourceCalled('Execute', '/bin/sh -c \'cd /usr/lib/ambari-agent/ && curl -kf -x "" --retry 5 http://c6401.ambari.apache.org:8080/resources/DBConnectionVerification.jar -o DBConnectionVerification.jar\'',
-        environment = {'no_proxy': 'c6401.ambari.apache.org'},
-        not_if = '[ -f DBConnectionVerification.jar]',
-    )
     self.assertResourceCalled('XmlConfig', 'hive-site.xml',
                               group = 'hadoop',
                               conf_dir = '/etc/hive/conf',
@@ -204,4 +200,8 @@ class TestHiveClient(RMFTestCase):
                               owner = 'hive',
                               group = 'hadoop',
                               )
+    self.assertResourceCalled('Execute', '/bin/sh -c \'cd /usr/lib/ambari-agent/ && curl -kf -x "" --retry 5 http://c6401.ambari.apache.org:8080/resources/DBConnectionVerification.jar -o DBConnectionVerification.jar\'',
+        environment = {'no_proxy': 'c6401.ambari.apache.org'},
+        not_if = '[ -f DBConnectionVerification.jar]',
+    )
     self.assertNoMoreResources()

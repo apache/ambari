@@ -21,10 +21,8 @@ package org.apache.ambari.server.controller.internal;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Simple resource implementation.
@@ -39,14 +37,15 @@ public class ResourceImpl implements Resource {
   /**
    * The map of property maps keyed by property category.
    */
-  private final Map<String, Map<String, Object>> propertiesMap = new TreeMap<String, Map<String, Object>>();
+  private final Map<String, Map<String, Object>> propertiesMap =
+      Collections.synchronizedMap(new TreeMap<String, Map<String, Object>>());
 
   // ----- Constructors ------------------------------------------------------
 
   /**
    * Create a resource of the given type.
    *
-   * @param type  the resource type
+   * @param type the resource type
    */
   public ResourceImpl(Type type) {
     this.type = type;
@@ -55,7 +54,7 @@ public class ResourceImpl implements Resource {
   /**
    * Copy constructor
    *
-   * @param resource  the resource to copy
+   * @param resource the resource to copy
    */
   public ResourceImpl(Resource resource) {
     this(resource, null);
@@ -65,8 +64,8 @@ public class ResourceImpl implements Resource {
    * Construct a resource from the given resource, setting only the properties
    * that are found in the given set of property and category ids.
    *
-   * @param resource     the resource to copy
-   * @param propertyIds  the set of requested property and category ids
+   * @param resource    the resource to copy
+   * @param propertyIds the set of requested property and category ids
    */
   public ResourceImpl(Resource resource, Set<String> propertyIds) {
     this.type = resource.getType();
@@ -106,7 +105,7 @@ public class ResourceImpl implements Resource {
 
     Map<String, Object> properties = propertiesMap.get(categoryKey);
     if (properties == null) {
-      properties = new TreeMap<String, Object>();
+      properties = Collections.synchronizedMap(new TreeMap<String, Object>());
       propertiesMap.put(categoryKey, properties);
     }
     properties.put(PropertyHelper.getPropertyName(id), value);

@@ -250,6 +250,27 @@ public class HdfsApi {
   }
 
   /**
+   * Change permissions
+   * @param path path
+   * @param permissions permissions in format rwxrwxrwx
+   * @throws IOException
+   * @throws InterruptedException
+   */
+  public boolean chmod(final String path, final String permissions) throws IOException,
+      InterruptedException {
+    return ugi.doAs(new PrivilegedExceptionAction<Boolean>() {
+      public Boolean run() throws Exception {
+        try {
+          fs.setPermission(new Path(path), new FsPermission(permissions));
+        } catch (Exception ex) {
+          return false;
+        }
+        return true;
+      }
+    });
+  }
+
+  /**
    * Copy file
    * @param src source path
    * @param dest destination path

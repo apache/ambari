@@ -16,10 +16,26 @@
 * limitations under the License.
 }}
 
+{{!
+  DON'T TRY TO PUT OUTLET INTO CONDITIONAL STATES
+  https://github.com/emberjs/ember.js/issues/3187 - CLOSED BUT NOT FIXED YET
+}}
+
+
+{{#unless App.viewEnabled}}
+  <div class="slider-errors-wrapper">
+    <div class="alert alert-danger">
+      {{#each error in App.viewErrors}}
+        <h3 class="error-message">{{{error.message}}}</h3>
+      {{/each}}
+    </div>
+  </div>
+{{/unless}}
+
 <div class="slider-header">
   {{#view view.SliderTitleView}}
       <h3 class="pull-left" id="slider-title"><span class="slider-app-title">{{App.label}}</span></h3>
-    {{#if view.isIndexPage}}
+    {{#if view.showCreateAppButton}}
       <div class="box-header pull-right">
         <div class="create-app">
           <a href="#" class="btn btn-primary" {{action createApp}}>
@@ -31,10 +47,5 @@
   {{/view}}
   {{outlet bs-tooltip-box}}
 </div>
-{{#if App.viewEnabled}}
-  {{outlet}}
-{{else}}
-  {{#each error in App.viewErrors}}
-    <h3>{{{error}}}</h3>
-  {{/each}}
-{{/if}}
+
+{{outlet}}

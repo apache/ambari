@@ -18,7 +18,7 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('ClustersManageAccessCtrl', ['$scope', 'Cluster', '$routeParams', 'uiAlert', 'PermissionLoader', 'PermissionSaver', function($scope, Cluster, $routeParams, uiAlert, PermissionLoader, PermissionSaver) {
+.controller('ClustersManageAccessCtrl', ['$scope', 'Cluster', '$routeParams', 'Alert', 'PermissionLoader', 'PermissionSaver', function($scope, Cluster, $routeParams, Alert, PermissionLoader, PermissionSaver) {
   $scope.identity = angular.identity;
   function reloadClusterData(){
     PermissionLoader.getClusterPermissions({
@@ -29,7 +29,7 @@ angular.module('ambariAdminConsole')
       $scope.permissions = angular.copy(permissions);
     })
     .catch(function(data) {
-      uiAlert.danger(data.data.status, data.data.message);
+      Alert.error('Cannot load cluster data', data.data.message);
     });;
   }
  
@@ -56,7 +56,7 @@ angular.module('ambariAdminConsole')
       }
     ).then(reloadClusterData)
     .catch(function(data) {
-      uiAlert.danger(data.data.status, data.data.message);
+      Alert.error('Cannot save permissions', data.data.message);
       reloadClusterData();
     });
     $scope.isEditMode = false;

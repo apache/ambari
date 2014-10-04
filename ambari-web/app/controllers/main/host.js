@@ -63,7 +63,7 @@ App.MainHostController = Em.ArrayController.extend({
   filterProperties: [
     {
       key: 'publicHostName',
-      alias: 'Hosts/host_name',
+      alias: 'Hosts/public_host_name',
       type: 'MATCH'
     },
     {
@@ -156,7 +156,7 @@ App.MainHostController = Em.ArrayController.extend({
   sortProps: [
     {
       key: 'publicHostName',
-      alias: 'Hosts/host_name'
+      alias: 'Hosts/public_host_name'
     },
     {
       key: 'ip',

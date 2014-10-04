@@ -30,10 +30,10 @@ angular.module('ambariAdminConsole')
         permissionsInner[permission.PermissionInfo.permission_name] = permission;
       });
 
-      // Now we can get privilegies
-      resource.getPrivileges(params).then(function(privilegies) {
-        angular.forEach(privilegies, function(privilegie) {
-          permissionsInner[privilegie.PrivilegeInfo.permission_name][privilegie.PrivilegeInfo.principal_type].push(privilegie.PrivilegeInfo.principal_name);
+      // Now we can get privileges
+      resource.getPrivileges(params).then(function(privileges) {
+        angular.forEach(privileges, function(privilege) {
+          permissionsInner[privilege.PrivilegeInfo.permission_name][privilege.PrivilegeInfo.principal_type].push(privilege.PrivilegeInfo.principal_name);
         });
 
         // After all builded - return object

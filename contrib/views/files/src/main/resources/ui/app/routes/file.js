@@ -25,6 +25,9 @@ App.FilesRoute = Em.Route.extend({
     }
   },
   actions:{
+    refreshDir:function () {
+      this.refresh();
+    },
     error:function (error,transition,e) {
       if (this.router._lookupActiveView('files')) {
         this.send('showAlert',error);

@@ -18,21 +18,25 @@
 
 var App = require('app');
 
-App.ContextMenu = Em.Component.extend({
-  layoutName:'util/contextMenu',
-  waitConfirm: null,
-  startWaitConfirm:function (v,observer) {
-    var self = this,
-        action = this.get(observer);
-    if (!action) {
-      $(this.get('element')).off('hidden.bs.context');
-      return false;
-    };
-    $(this.get('element')).on('hidden.bs.context',function(){
-      self.get('target').send(self.get(observer),'cancel');
-      self.set('waitConfirm', null)
-    })
-    this.get('target').send(action,'ask');
-  }.observes('waitConfirm')
+App.ContextMenuComponent = Em.Component.extend({
+  layoutName:'components/contextMenu',
+
+  onTargetChange:function () {
+    this.$().off('hidden.bs.context');
+    this.$().on('hidden.bs.context', Em.run.bind(this, this.resetConfirmations));
+  }.observes('target'),
+
+  resetConfirmations:function () {
+    this.triggerRecursively('resetConfirm');
+  },
+
+  actions:{
+    removeFile:function () {
+      this.get('target').send('deleteFile',true);
+    },
+    moveToTrash:function () {
+      this.get('target').send('deleteFile');
+    },
+  }
 
 });

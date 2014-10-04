@@ -96,6 +96,33 @@ public class FileOperationService extends HdfsService {
   }
 
   /**
+   * Chmod
+   * @param request chmod request
+   * @return response with success
+   */
+  @POST
+  @Path("/chmod")
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response chmod(final ChmodRequest request) {
+    try {
+      HdfsApi api = getApi(context);
+      ResponseBuilder result;
+      if (api.chmod(request.path, request.mode)) {
+        result = Response.ok(HdfsApi.fileStatusToJSON(api
+            .getFileStatus(request.path)));
+      } else {
+        result = Response.ok(new BoolResult(false)).status(422);
+      }
+      return result.build();
+    } catch (WebApplicationException ex) {
+      throw ex;
+    } catch (Exception ex) {
+      throw new ServiceFormattedException(ex.getMessage(), ex);
+    }
+  }
+
+  /**
    * Copy file
    * @param request source and destination request
    * @return response with success
@@ -229,6 +256,16 @@ public class FileOperationService extends HdfsService {
     public String path;
   }
 
+  /**
+   * Wrapper for json mapping of chmod request
+   */
+  @XmlRootElement
+  public static class ChmodRequest {
+    @XmlElement(nillable = false, required = true)
+    public String path;
+    @XmlElement(nillable = false, required = true)
+    public String mode;
+  }
 
   /**
    * Wrapper for json mapping of request with

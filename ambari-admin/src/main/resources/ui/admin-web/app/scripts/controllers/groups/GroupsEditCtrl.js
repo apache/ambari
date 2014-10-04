@@ -18,7 +18,7 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('GroupsEditCtrl',['$scope', 'Group', '$routeParams', 'uiAlert', 'ConfirmationModal', '$location', function($scope, Group, $routeParams, uiAlert, ConfirmationModal, $location) {
+.controller('GroupsEditCtrl',['$scope', 'Group', '$routeParams', 'Alert', 'ConfirmationModal', '$location', function($scope, Group, $routeParams, Alert, ConfirmationModal, $location) {
   $scope.editMode = false;
   $scope.group = new Group($routeParams.id);
   $scope.group.editingUsers = [];
@@ -48,7 +48,7 @@ angular.module('ambariAdminConsole')
     $scope.group.members = newMembers;
     $scope.group.saveMembers().then(loadMembers)
     .catch(function(data) {
-      uiAlert.danger(data.status, data.message);
+      Alert.error('Cannot update group members', data.data.message);
     });
     $scope.isMembersEditing = false;
   };
@@ -76,30 +76,30 @@ angular.module('ambariAdminConsole')
     });
   };
 
-  // Load privilegies
-  Group.getPrivilegies($routeParams.id).then(function(data) {
-    var privilegies = {
+  // Load privileges
+  Group.getPrivileges($routeParams.id).then(function(data) {
+    var privileges = {
       clusters: {},
       views: {}
     };
-    angular.forEach(data.data.items, function(privilegie) {
-      privilegie = privilegie.PrivilegeInfo;
-      if(privilegie.type === 'CLUSTER'){
+    angular.forEach(data.data.items, function(privilege) {
+      privilege = privilege.PrivilegeInfo;
+      if(privilege.type === 'CLUSTER'){
         // This is cluster
-        privilegies.clusters[privilegie.cluster_name] = privilegies.clusters[privilegie.cluster_name] || [];
-        privilegies.clusters[privilegie.cluster_name].push(privilegie.permission_name);
-      } else if ( privilegie.type === 'VIEW'){
-        privilegies.views[privilegie.instance_name] = privilegies.views[privilegie.instance_name] || { privileges:[]};
-        privilegies.views[privilegie.instance_name].version = privilegie.version;
-        privilegies.views[privilegie.instance_name].view_name = privilegie.view_name;
-        privilegies.views[privilegie.instance_name].privileges.push(privilegie.permission_name);
+        privileges.clusters[privilege.cluster_name] = privileges.clusters[privilege.cluster_name] || [];
+        privileges.clusters[privilege.cluster_name].push(privilege.permission_name);
+      } else if ( privilege.type === 'VIEW'){
+        privileges.views[privilege.instance_name] = privileges.views[privilege.instance_name] || { privileges:[]};
+        privileges.views[privilege.instance_name].version = privilege.version;
+        privileges.views[privilege.instance_name].view_name = privilege.view_name;
+        privileges.views[privilege.instance_name].privileges.push(privilege.permission_name);
       }
     });
 
-    $scope.privileges = data.data.items.length ? privilegies : null;
+    $scope.privileges = data.data.items.length ? privileges : null;
     $scope.dataLoaded = true;
   }).catch(function(data) {
-    uiAlert.danger(data.data.status, data.data.message);
+    Alert.error('Cannot load privileges', data.data.message);
   });
 
 

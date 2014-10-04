@@ -67,7 +67,7 @@ App.initializer({
       /**
        * @type {string}
        */
-      label: '',
+      label: instanceName,
 
       /**
        * API url for Slider
@@ -92,12 +92,6 @@ App.initializer({
       viewErrors: [],
 
       /**
-       * Host with Nagios Server
-       * @type {string|null}
-       */
-      nagiosHost: null,
-
-      /**
        * Host with Ganglia Server
        * @type {string|null}
        */
@@ -117,7 +111,8 @@ App.initializer({
 
     });
     if(!window.QUnit) {
-      application.SliderController.proto().initResources();
+      var sliderController = application.__container__.lookup('controller:Slider');
+      sliderController.run('initResources');
       application.ApplicationTypeMapper.load();
       application.SliderAppsMapper.run('load');
     }

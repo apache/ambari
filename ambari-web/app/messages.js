@@ -656,7 +656,7 @@ Em.I18n.translations = {
   'installer.step7.popup.database.connection.body': 'You have not run or passed the database connection test for: {0}. It is highly recommended that you pass the connection test before proceeding to prevent failures during deployment.',
   'installer.step7.popup.validation.failed.header': 'Validation failed.',
   'installer.step7.popup.validation.failed.body': 'Some services are not properly configured. You have to change the highlighted configs according to the recommended values.',
-  'installer.step7.popup.validation.request.failed.body': 'Config validaition failed.',
+  'installer.step7.popup.validation.request.failed.body': 'Config validation failed.',
   'installer.step7.popup.validation.warning.header': 'Configurations',
   'installer.step7.popup.validation.warning.body': 'Some service configurations are not configured properly. We recommend you review and change the highlighted configuration values. Are you sure you want to proceed without correcting configurations?',
   'installer.step7.oozie.database.new': 'New Derby Database',

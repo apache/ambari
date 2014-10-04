@@ -3057,10 +3057,10 @@ def sync_ldap():
     err = "LDAP is not configured. Run 'ambari-server setup-ldap' first."
     raise FatalException(1, err)
 
-  admin_login = get_validated_string_input(prompt="Enter admin login: ", default=None,
+  admin_login = get_validated_string_input(prompt="Enter Ambari Admin login: ", default=None,
                                            pattern=None, description=None,
                                            is_pass=False, allowEmpty=False)
-  admin_password = get_validated_string_input(prompt="Enter admin password: ", default=None,
+  admin_password = get_validated_string_input(prompt="Enter Ambari Admin password: ", default=None,
                                               pattern=None, description=None,
                                               is_pass=True, allowEmpty=False)
 
@@ -3169,7 +3169,7 @@ def get_ldap_event_spec_names(file, specs, new_specs):
     else:
       err = 'Sync event creation failed. File ' + file + ' not found.'
       raise FatalException(1, err)
-  except:
+  except Exception as exception:
       err = 'Caught exception reading file ' + file + ' : ' + str(exception)
       raise FatalException(1, err)
 

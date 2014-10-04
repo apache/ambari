@@ -87,11 +87,6 @@ function _move(adapter, store, record, query) {
 
     return store.push('file', payload);
   }, function(reason) {
-    if (reason instanceof DS.InvalidError) {
-      store.recordWasInvalid(record, reason.errors);
-    } else {
-      store.recordWasError(record, reason);
-    }
 
     throw reason;
   }, label);
@@ -113,19 +108,14 @@ function _mkdir(adapter, store, type, query) {
 
     return store.push('file', payload);
   }, function(reason) {
-    if (reason instanceof DS.InvalidError) {
-      store.recordWasInvalid(record, reason.errors);
-    } else {
-      store.recordWasError(record, reason);
-    }
-
     throw reason;
   }, label);
 }
 
-function _remove(adapter, store, record, query) {
+function _remove(adapter, store, record, query, toTrash) {
   var type = record.constructor;
-  var promise = adapter.remove(store, type, query),
+  var method = (toTrash)?'moveToTrash':'remove';
+  var promise = adapter[method](store, type, query),
       serializer = serializerForAdapter(adapter, type),
       label = "";
 
@@ -136,7 +126,8 @@ function _remove(adapter, store, record, query) {
     if (reason instanceof DS.InvalidError) {
       store.recordWasInvalid(record, reason.errors);
     } else {
-      store.recordWasError(record, reason);
+      record.rollback();
+      //store.recordWasError(record, reason);
     }
 
     throw reason;
@@ -172,11 +163,21 @@ App.Store = DS.Store.extend({
     move:function (store, type, record, query) {
       return this.ajax(this.buildURL('fileops','rename'), 'POST', { data: query });
     },
+    updateRecord:function (store, type, record) {
+      var query = {
+        "path":record.get('path'),
+        "mode":record.get('permission')
+      };
+      return this.ajax(this.buildURL('fileops','chmod'), 'POST', { data: query });
+    },
     mkdir:function (store, type, query) {
       return this.ajax(this.buildURL('fileops','mkdir'), 'PUT', { data: query });
     },
     remove:function (store, type, query) {
       return this.ajax(this.buildURL('fileops','remove'), 'DELETE', { data: query });
+    },
+    moveToTrash:function (store, type, query) {
+      return this.ajax(this.buildURL('fileops','moveToTrash'), 'DELETE', { data: query });
     },
     downloadUrl:function (option, query) {
       return [this.buildURL('download',option),Em.$.param(query)].join('?');
@@ -218,6 +219,9 @@ App.Store = DS.Store.extend({
 
     return DS.PromiseObject.create({ promise: resolver.promise });
   },
+  chmod:function (record, path) {
+    return record.save();
+  },
   mkdir:function (path) {
     var query = {
       "path":path
@@ -231,7 +235,7 @@ App.Store = DS.Store.extend({
 
     return DS.PromiseObject.create({ promise: resolver.promise });
   },
-  remove:function (record) {
+  remove:function (record, toTrash) {
     var query = {
       "path":record.get('path'),
       "recursive":true
@@ -242,7 +246,7 @@ App.Store = DS.Store.extend({
     var adapter = this.adapterFor(type);
     
     record.deleteRecord();
-    resolver.resolve(_remove(adapter, this, record, query));
+    resolver.resolve(_remove(adapter, this, record, query, toTrash));
 
     return DS.PromiseObject.create({ promise: resolver.promise });
   },
@@ -279,7 +283,7 @@ App.Store = DS.Store.extend({
     return resolver.promise.then(function(response) {
       return adapter.downloadUrl(option,response);
     }, function(reason) {
-      //TODO reject
+      throw reason;
     });
   }
 })
@@ -293,7 +297,10 @@ App.FileSerializer = DS.RESTSerializer.extend({
   extractSingle: function(store, type, payload, id, requestType) {
     payload = {'files': payload};
     return this._super(store, type, payload, id, requestType);
-  }
+  },
+  extractChmod:function(store, type, payload, id, requestType) {
+    return this.extractSingle(store, type, payload, id, requestType);
+  },
 });
 
 App.Uploader = Ember.Uploader.create({
@@ -307,11 +314,19 @@ App.Uploader = Ember.Uploader.create({
 
     this.set('isUploading', true);
     
-    return this.ajax(url, data, type).then(function(respData) {
-      self.didUpload(respData);
-      return respData;
-    });
+    return this.ajax(url, data, type)
+      .then(Em.run.bind(this,this.uploadSuccess),Em.run.bind(this,this.uploadFailed));
   },
+  uploadSuccess:function(respData) {
+    this.didUpload(respData);
+    return respData;
+  },
+  uploadFailed:function (error) {
+    this.set('isUploading', false);
+    this.sendAlert(error);
+    return error;
+  },
+  sendAlert: Em.K,
   ajax: function(url, params, method) {
     var self = this;
     var settings = {

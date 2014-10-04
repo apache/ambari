@@ -76,6 +76,13 @@ App.SliderAppController = Ember.ObjectController.extend(App.AjaxErrorHandler, {
         customConfirm: 'confirmDestroy'
       });
     }
+    if ('FAILED' === status) {
+      advanced.pushObject({
+        title: 'Destroy',
+        action: 'destroy',
+        customConfirm: 'confirmDestroy'
+      });
+    }
     if (advanced.length) {
       actions.pushObject({
         title: 'Advanced',

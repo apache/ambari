@@ -1,0 +1,84 @@
+{{!
+   Licensed to the Apache Software Foundation (ASF) under one
+   or more contributor license agreements.  See the NOTICE file
+   distributed with this work for additional information
+   regarding copyright ownership.  The ASF licenses this file
+   to you under the Apache License, Version 2.0 (the
+   "License"); you may not use this file except in compliance
+   with the License.  You may obtain a copy of the License at
+  
+       http://www.apache.org/licenses/LICENSE-2.0
+  
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+}}
+
+<tr {{bind-attr class=":file-row isMoving:isMoving"}}>
+  <td>
+    {{#if content.isDirectory}}
+    <i class="fa fa-folder"></i>
+    {{else}}
+    <i class="fa fa-file"></i>
+    {{/if}}
+  </td>
+  <td>
+    {{#rename-input fileBinding='content' confirm='rename' isRenaming=isRenaming}}
+      <div class="file-name allow-open">
+        <span>
+          <a {{action 'open'}}>
+            <strong>
+              {{content.name}}
+            </strong>
+          </a>
+        </span>
+        <span class="help-block mod-time allow-open">
+          <small class='allow-open'>
+            Updated {{showDate modificationTime 'YYYY-MM-DD HH:mm'}}
+          </small>
+        </span>
+      </div>
+    {{/rename-input}}
+  </td>
+  <td>
+    {{#unless content.isDirectory}}{{humanSize content.size}}{{else}}-{{/unless}}
+  </td>
+  <td >{{content.owner}}</td>
+  <td>{{content.group}}</td>
+  <td class="permission-cell">
+    {{content.permission}}
+    {{#if isPermissionsDirty}} <span>*</span>  {{/if}}
+  </td>
+  <td>
+    {{#unless isMoving}}
+      <ul class="list-inline file-actions text-right">
+        <li>
+        {{#if content.isDirectory}}
+          <a href="#" {{action 'download' 'zip'}} data-toggle="tooltip" data-placement="bottom" title="Download zip"><i class="fa fa-archive fa-fw fa-lg"></i></a>  
+        {{else}}
+          <a href="#" {{action 'download' 'browse'}} data-toggle="tooltip" data-placement="bottom" title="Download"><i class="fa fa-download fa-fw fa-lg"></i></a>  
+        {{/if}}
+        </li>
+        <li>
+          <a href="#" {{action 'moveFile' 'cut' this.content}} data-toggle="tooltip" data-placement="bottom" title="Move"><i class="fa fa-level-down fa-rotate-270 fa-fw fa-lg"></i></span></a>  
+        </li>
+        {{!-- <li>
+          <a {{action 'rename' 'edit'}} data-toggle="tooltip" data-placement="bottom" title="Rename"><i class="fa fa-edit fa-lg"></i></a>
+        </li> --}}
+        <li>{{popover-delete confirm="deleteFile"}}</li>
+      </ul>
+    {{/unless}}
+    </td>
+  <td>
+  {{#if isMoving}}
+    <a href="#" {{action 'moveFile' 'cancel' target="parentController" }} data-toggle="tooltip" data-placement="bottom" title="Cancel moving"> <i class="fa fa-times fa-lg"></i></a>
+  {{else}}
+    {{input type="checkbox" checkedBinding='content.selected'}}
+  {{/if}}
+  {{toggle-context}}
+  </td>
+</tr>
+{{chmod-input chVisible=chmodVisible file=content confirm="chmod"}}
+        

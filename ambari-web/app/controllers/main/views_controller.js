@@ -43,6 +43,9 @@ App.MainViewsController = Em.Controller.extend({
 
 
   loadAmbariViews: function () {
+    if (!App.router.get('loggedIn')) {
+      return;
+    }
     App.ajax.send({
       name: 'views.info',
       sender: this,

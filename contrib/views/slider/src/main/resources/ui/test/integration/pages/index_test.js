@@ -19,6 +19,7 @@
 QUnit.module('integration/pages - index', {
 
   setup: function () {
+    App.set('viewEnabled', true);
     Ember.run(App, App.advanceReadiness);
   },
 
@@ -43,7 +44,7 @@ test('sliderConfigs', function () {
 
   visit('/');
   // configs count may be changed by adding new slider-configs
-  equal(App.SliderApp.store.all('sliderConfig').content.length, 16, 'slider configs should be set');
+  equal(App.SliderApp.store.all('sliderConfig').content.length, 2, 'slider configs should be set');
 
 });
 
@@ -53,9 +54,9 @@ test('Create-App button', function () {
   click('.create-app a');
 
   andThen(function () {
-    equal(currentRouteName(), 'createAppWizard.index', 'route is valid');
-    equal(currentPath(), 'slider_apps.createAppWizard.index', 'path is valid');
-    equal(currentURL(), '/createAppWizard', 'url is valid');
+    equal(currentRouteName(), 'createAppWizard.step1', 'route is valid');
+    equal(currentPath(), 'slider_apps.createAppWizard.step1', 'path is valid');
+    equal(currentURL(), '/createAppWizard/step1', 'url is valid');
   });
 
 });

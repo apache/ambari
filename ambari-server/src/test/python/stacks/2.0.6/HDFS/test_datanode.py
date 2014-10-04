@@ -18,6 +18,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 from ambari_commons import OSCheck
+import json
 from mock.mock import MagicMock, patch
 from stacks.utils.RMFTestCase import *
 
@@ -56,6 +57,7 @@ class TestDatanode(RMFTestCase):
                               )
     self.assertNoMoreResources()
 
+  @patch("os.path.exists", new = MagicMock(return_value=False))
   def test_stop_default(self):
     self.executeScript("2.0.6/services/HDFS/package/scripts/datanode.py",
                        classname = "DataNode",
@@ -115,6 +117,70 @@ class TestDatanode(RMFTestCase):
                               )
     self.assertNoMoreResources()
 
+  def test_start_secured_HDP22_root(self):
+    config_file = "stacks/2.0.6/configs/secured.json"
+    with open(config_file, "r") as f:
+      secured_json = json.load(f)
+
+    secured_json['hostLevelParams']['stack_version']= '2.2'
+
+    self.executeScript("2.0.6/services/HDFS/package/scripts/datanode.py",
+                       classname = "DataNode",
+                       command = "start",
+                       config_dict = secured_json
+    )
+    self.assert_configure_secured()
+    self.assertResourceCalled('Directory', '/var/run/hadoop/hdfs',
+                              owner = 'hdfs',
+                              recursive = True,
+                              )
+    self.assertResourceCalled('Directory', '/var/log/hadoop/hdfs',
+                              owner = 'hdfs',
+                              recursive = True,
+                              )
+    self.assertResourceCalled('File', '/var/run/hadoop/hdfs/hadoop-hdfs-datanode.pid',
+                              action = ['delete'],
+                              not_if='ls /var/run/hadoop/hdfs/hadoop-hdfs-datanode.pid >/dev/null 2>&1 && ps `cat /var/run/hadoop/hdfs/hadoop-hdfs-datanode.pid` >/dev/null 2>&1',
+                              )
+    self.assertResourceCalled('Execute', 'ulimit -c unlimited;  su - root -c \'export HADOOP_SECURE_DN_PID_DIR=/var/run/hadoop/hdfs && export HADOOP_SECURE_DN_LOG_DIR=/var/log/hadoop/hdfs && export HADOOP_SECURE_DN_USER=hdfs && export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf start datanode\'',
+                              not_if = 'ls /var/run/hadoop/hdfs/hadoop-hdfs-datanode.pid >/dev/null 2>&1 && ps `cat /var/run/hadoop/hdfs/hadoop-hdfs-datanode.pid` >/dev/null 2>&1',
+                              )
+    self.assertNoMoreResources()
+
+  def test_start_secured_HDP22_non_root_https_only(self):
+    config_file="stacks/2.0.6/configs/secured.json"
+    with open(config_file, "r") as f:
+      secured_json = json.load(f)
+
+    secured_json['hostLevelParams']['stack_version']= '2.2'
+    secured_json['configurations']['hdfs-site']['dfs.http.policy']= 'HTTPS_ONLY'
+    secured_json['configurations']['hdfs-site']['dfs.datanode.address']= '0.0.0.0:10000'
+    secured_json['configurations']['hdfs-site']['dfs.datanode.https.address']= '0.0.0.0:50000'
+
+    self.executeScript("2.0.6/services/HDFS/package/scripts/datanode.py",
+                       classname = "DataNode",
+                       command = "start",
+                       config_dict = secured_json
+    )
+    self.assert_configure_secured()
+    self.assertResourceCalled('Directory', '/var/run/hadoop/hdfs',
+                              owner = 'hdfs',
+                              recursive = True,
+                              )
+    self.assertResourceCalled('Directory', '/var/log/hadoop/hdfs',
+                              owner = 'hdfs',
+                              recursive = True,
+                              )
+    self.assertResourceCalled('File', '/var/run/hadoop/hdfs/hadoop-hdfs-datanode.pid',
+                              action = ['delete'],
+                              not_if='ls /var/run/hadoop/hdfs/hadoop-hdfs-datanode.pid >/dev/null 2>&1 && ps `cat /var/run/hadoop/hdfs/hadoop-hdfs-datanode.pid` >/dev/null 2>&1',
+                              )
+    self.assertResourceCalled('Execute', 'ulimit -c unlimited;  su - hdfs -c \'export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf start datanode\'',
+                              not_if = 'ls /var/run/hadoop/hdfs/hadoop-hdfs-datanode.pid >/dev/null 2>&1 && ps `cat /var/run/hadoop/hdfs/hadoop-hdfs-datanode.pid` >/dev/null 2>&1',
+                              )
+    self.assertNoMoreResources()
+
+  @patch("os.path.exists", new = MagicMock(return_value=False))
   def test_stop_secured(self):
     self.executeScript("2.0.6/services/HDFS/package/scripts/datanode.py",
                        classname = "DataNode",
@@ -138,6 +204,76 @@ class TestDatanode(RMFTestCase):
                               )
     self.assertResourceCalled('File', '/var/run/hadoop/hdfs/hadoop-hdfs-datanode.pid',
                               action = ['delete'],
+                              )
+    self.assertNoMoreResources()
+
+
+  @patch("os.path.exists", new = MagicMock(return_value=False))
+  def test_stop_secured_HDP22_root(self):
+    config_file = "stacks/2.0.6/configs/secured.json"
+    with open(config_file, "r") as f:
+      secured_json = json.load(f)
+
+    secured_json['hostLevelParams']['stack_version']= '2.2'
+
+    self.executeScript("2.0.6/services/HDFS/package/scripts/datanode.py",
+                       classname = "DataNode",
+                       command = "stop",
+                       config_dict = secured_json
+    )
+    self.assertResourceCalled('Directory', '/var/run/hadoop/hdfs',
+                              owner = 'hdfs',
+                              recursive = True,
+                              )
+    self.assertResourceCalled('Directory', '/var/log/hadoop/hdfs',
+                              owner = 'hdfs',
+                              recursive = True,
+                              )
+    self.assertResourceCalled('File', '/var/run/hadoop/hdfs/hadoop-hdfs-datanode.pid',
+                              action = ['delete'],
+                              not_if='ls /var/run/hadoop/hdfs/hadoop-hdfs-datanode.pid >/dev/null 2>&1 && ps `cat /var/run/hadoop/hdfs/hadoop-hdfs-datanode.pid` >/dev/null 2>&1',
+                              )
+    self.assertResourceCalled('Execute', 'ulimit -c unlimited;  su - root -c \'export HADOOP_SECURE_DN_PID_DIR=/var/run/hadoop/hdfs && export HADOOP_SECURE_DN_LOG_DIR=/var/log/hadoop/hdfs && export HADOOP_SECURE_DN_USER=hdfs && export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf stop datanode\'',
+                              not_if = None,
+                              )
+    self.assertResourceCalled('File', '/var/run/hadoop/hdfs/hadoop-hdfs-datanode.pid',
+                              action = ['delete'],
+                              )
+    self.assertNoMoreResources()
+
+  @patch("os.path.exists", new = MagicMock(return_value=False))
+  def test_stop_secured_HDP22_non_root_https_only(self):
+    config_file = "stacks/2.0.6/configs/secured.json"
+    with open(config_file, "r") as f:
+      secured_json = json.load(f)
+
+    secured_json['hostLevelParams']['stack_version']= '2.2'
+    secured_json['configurations']['hdfs-site']['dfs.http.policy']= 'HTTPS_ONLY'
+    secured_json['configurations']['hdfs-site']['dfs.datanode.address']= '0.0.0.0:10000'
+    secured_json['configurations']['hdfs-site']['dfs.datanode.https.address']= '0.0.0.0:50000'
+
+    self.executeScript("2.0.6/services/HDFS/package/scripts/datanode.py",
+                       classname = "DataNode",
+                       command = "stop",
+                       config_dict = secured_json
+    )
+    self.assertResourceCalled('Directory', '/var/run/hadoop/hdfs',
+                              owner = 'hdfs',
+                              recursive = True,
+                              )
+    self.assertResourceCalled('Directory', '/var/log/hadoop/hdfs',
+                              owner = 'hdfs',
+                              recursive = True,
+                              )
+    self.assertResourceCalled('File', '/var/run/hadoop/hdfs/hadoop-hdfs-datanode.pid',
+                              action = ['delete'],
+                              not_if='ls /var/run/hadoop/hdfs/hadoop-hdfs-datanode.pid >/dev/null 2>&1 && ps `cat /var/run/hadoop/hdfs/hadoop-hdfs-datanode.pid` >/dev/null 2>&1',
+                              )
+    self.assertResourceCalled('Execute', 'ulimit -c unlimited;  su - hdfs -c \'export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf stop datanode\'',
+                              not_if=None,
+                              )
+    self.assertResourceCalled('File', '/var/run/hadoop/hdfs/hadoop-hdfs-datanode.pid',
+                              action=['delete'],
                               )
     self.assertNoMoreResources()
 

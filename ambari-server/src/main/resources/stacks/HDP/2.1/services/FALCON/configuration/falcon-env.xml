@@ -91,7 +91,7 @@ export FALCON_SERVER_OPTS="-Dfalcon.embeddedmq={{falcon_embeddedmq_enabled}} -Df
 # java heap size we want to set for the falcon server. Default is 1024MB
 #export FALCON_SERVER_HEAP=
 
-# What is is considered as falcon home dir. Default is the base locaion of the installed software
+# What is is considered as falcon home dir. Default is the base location of the installed software
 #export FALCON_HOME_DIR=
 
 # Where log files are stored. Defatult is logs directory under the base install location

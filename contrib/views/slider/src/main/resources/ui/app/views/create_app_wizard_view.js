@@ -18,6 +18,8 @@
 
 App.CreateAppWizardView = Ember.View.extend({
 
+  classNames: ['create-app-wizard-wrapper'],
+
   didInsertElement: function(){
     this.setHeight();
     $(window).resize(this.setHeight);

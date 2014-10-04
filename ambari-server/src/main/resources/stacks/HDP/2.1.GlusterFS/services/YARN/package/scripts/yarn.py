@@ -59,6 +59,16 @@ def yarn(name = None):
     )
     params.HdfsDirectory(None, action="create")
 
+  if name == "nodemanager":
+    Directory(params.nm_local_dirs.split(','),
+              owner=params.yarn_user,
+              recursive=True
+    )
+    Directory(params.nm_log_dirs.split(','),
+              owner=params.yarn_user,
+              recursive=True
+    )
+
   Directory([params.yarn_pid_dir, params.yarn_log_dir],
             owner=params.yarn_user,
             group=params.user_group,
@@ -70,14 +80,7 @@ def yarn(name = None):
             group=params.user_group,
             recursive=True
   )
-  Directory(params.nm_local_dirs.split(','),
-            owner=params.yarn_user,
-            recursive=True
-  )
-  Directory(params.nm_log_dirs.split(','),
-            owner=params.yarn_user,
-            recursive=True
-  )
+
   Directory(params.yarn_log_dir_prefix,
             owner=params.yarn_user,
             recursive=True

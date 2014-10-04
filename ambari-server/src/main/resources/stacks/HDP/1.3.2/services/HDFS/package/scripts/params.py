@@ -122,6 +122,8 @@ namenode_formatted_mark_dir = format("{hadoop_pid_dir_prefix}/hdfs/namenode/form
 fs_checkpoint_dir = config['configurations']['core-site']['fs.checkpoint.dir']
 
 dfs_data_dir = config['configurations']['hdfs-site']['dfs.data.dir']
+data_dir_mount_file = config['configurations']['hadoop-env']['dfs.datanode.data.dir.mount.file']
+
 #for create_hdfs_directory
 hostname = config["hostname"]
 hadoop_conf_dir = "/etc/hadoop/conf"

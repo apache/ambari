@@ -103,11 +103,7 @@ class TestHBaseMaster(RMFTestCase):
                               content = StaticFile('draining_servers.rb'),
                               mode = 0755,
                               )
-    self.assertResourceCalled('Execute', ' /usr/lib/hbase/bin/hbase --config /etc/hbase/conf org.jruby.Main /usr/lib/hbase/bin/draining_servers.rb add host1',
-                              logoutput = True,
-                              user = 'hbase',
-                              )
-    self.assertResourceCalled('Execute', ' /usr/lib/hbase/bin/hbase --config /etc/hbase/conf org.jruby.Main /usr/lib/hbase/bin/region_mover.rb unload host1',
+    self.assertResourceCalled('Execute', ' /usr/lib/hbase/bin/hbase --config /etc/hbase/conf org.jruby.Main /usr/lib/hbase/bin/draining_servers.rb remove host1',
                               logoutput = True,
                               user = 'hbase',
                               )
