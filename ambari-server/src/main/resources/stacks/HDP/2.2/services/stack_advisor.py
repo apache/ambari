@@ -101,10 +101,9 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       # determine whether we use secure ports
       address_properties_with_warnings = []
       if dfs_http_policy_value == HTTPS_ONLY:
-        any_privileged_ports_are_in_use = privileged_dfs_dn_port or privileged_dfs_https_port
-        if any_privileged_ports_are_in_use:
+        if not privileged_dfs_dn_port and (privileged_dfs_https_port or datanode_https_address not in hdfs_site):
           important_properties = [dfs_datanode_address, datanode_https_address]
-          message = "You set up datanode to use some non-secure ports, but {0} is set to {1}. " \
+          message = "You set up datanode to use some non-secure ports. " \
                     "If you want to run Datanode under non-root user in a secure cluster, " \
                     "you should set all these properties {2} " \
                     "to use non-secure ports (if property {3} does not exist, " \

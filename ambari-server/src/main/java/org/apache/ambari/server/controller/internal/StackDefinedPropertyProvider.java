@@ -168,7 +168,8 @@ public class StackDefinedPropertyProvider implements PropertyProvider {
               pp = getDelegate(m,
                   streamProvider, metricsHostProvider,
                   clusterNamePropertyId, hostNamePropertyId,
-                  componentNamePropertyId, resourceStatePropertyId);
+                  componentNamePropertyId, resourceStatePropertyId,
+                  componentName);
             }
             if(pp != null) {
               additional.add(pp);
@@ -292,7 +293,8 @@ public class StackDefinedPropertyProvider implements PropertyProvider {
                                        String clusterNamePropertyId,
                                        String hostNamePropertyId,
                                        String componentNamePropertyId,
-                                       String statePropertyId) {
+                                       String statePropertyId,
+                                       String componentName) {
     Map<String, PropertyInfo> metrics = getPropertyInfo(definition);
     HashMap<String, Map<String, PropertyInfo>> componentMetrics =
         new HashMap<String, Map<String, PropertyInfo>>();
@@ -325,13 +327,13 @@ public class StackDefinedPropertyProvider implements PropertyProvider {
          */
         Constructor<?> ct = clz.getConstructor(Injector.class, Map.class,
             Map.class, StreamProvider.class, MetricsHostProvider.class,
-            String.class, String.class, String.class, String.class);
+            String.class, String.class, String.class, String.class, String.class);
         Object o = ct.newInstance(
             injector,
             definition.getProperties(), componentMetrics,
             streamProvider, metricsHostProvider,
             clusterNamePropertyId, hostNamePropertyId,
-            componentNamePropertyId, statePropertyId);
+            componentNamePropertyId, statePropertyId, componentName);
         return PropertyProvider.class.cast(o);
       } catch (Exception e) {
         LOG.info("Could not find contructor for type '" +

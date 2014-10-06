@@ -64,6 +64,11 @@
           </packages>
         </osSpecific>
       </osSpecifics>
+
+      <requiredServices>
+        <service>PIG</service>
+      </requiredServices>
+
     </service>
   </services>
 </metainfo>

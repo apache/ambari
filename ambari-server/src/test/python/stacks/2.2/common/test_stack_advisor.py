@@ -113,12 +113,64 @@ class TestHDP22StackAdvisor(TestCase):
     validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations)
     self.assertEquals(validation_problems, expected)
 
-    # TEST CASE: Secure cluster, dfs.http.policy=HTTPS_ONLY, secure ports
+    # TEST CASE: Secure cluster, dfs.http.policy=HTTPS_ONLY, https address not defined
+    properties = {  # hdfs-site
+                    'dfs.http.policy': 'HTTPS_ONLY',
+                    'dfs.datanode.address': '0.0.0.0:1019',
+                    }
+    configurations = {
+      'hdfs-site': {
+        'properties': properties,
+        },
+      'core-site': {
+        'properties': secure_cluster_core_site
+      }
+    }
+    expected = [ ]
+    validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations)
+    self.assertEquals(validation_problems, expected)
+
+    # TEST CASE: Secure cluster, dfs.http.policy=HTTPS_ONLY, https address defined and secure
+    properties = {  # hdfs-site
+                    'dfs.http.policy': 'HTTPS_ONLY',
+                    'dfs.datanode.address': '0.0.0.0:1019',
+                    'dfs.datanode.https.address': '0.0.0.0:1022',
+                    }
+    configurations = {
+      'hdfs-site': {
+        'properties': properties,
+        },
+      'core-site': {
+        'properties': secure_cluster_core_site
+      }
+    }
+    expected = []
+    validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations)
+    self.assertEquals(validation_problems, expected)
+
+    # TEST CASE: Secure cluster, dfs.http.policy=HTTPS_ONLY, https address defined and non secure
     properties = {  # hdfs-site
                     'dfs.http.policy': 'HTTPS_ONLY',
                     'dfs.datanode.address': '0.0.0.0:1019',
                     'dfs.datanode.https.address': '0.0.0.0:50475',
+                  }
+    configurations = {
+      'hdfs-site': {
+        'properties': properties,
+      },
+      'core-site': {
+        'properties': secure_cluster_core_site
+      }
     }
+    expected = []
+    validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations)
+    self.assertEquals(validation_problems, expected)
+
+    # TEST CASE: Secure cluster, dfs.http.policy=HTTPS_ONLY, non secure dfs port, https property not defined
+    properties = {  # hdfs-site
+                    'dfs.http.policy': 'HTTPS_ONLY',
+                    'dfs.datanode.address': '0.0.0.0:50010',
+                 }
     configurations = {
       'hdfs-site': {
         'properties': properties,
@@ -130,31 +182,80 @@ class TestHDP22StackAdvisor(TestCase):
     expected = [{'config-name': 'dfs.datanode.address',
                  'config-type': 'hdfs-site',
                  'level': 'WARN',
-                 'message': "You set up datanode to use some non-secure ports, "
-                            "but dfs.http.policy is set to HTTPS_ONLY. If you "
-                            "want to run Datanode under non-root user in a secure"
-                            " cluster, you should set all these properties ['dfs.datanode.address', 'dfs.datanode.https.address'] "
-                            "to use non-secure ports (if property dfs.datanode.https.address does not exist, just add it)."
-                            " You may also set up property dfs.data.transfer.protection ('authentication' is a good default value). "
-                            "Also, set up WebHDFS with SSL as described in manual in order to be able to use HTTPS.",
+                 'message': "You set up datanode to use some non-secure ports. "
+                            "If you want to run Datanode under non-root user in "
+                            "a secure cluster, you should set all these properties "
+                            "['dfs.datanode.address', 'dfs.datanode.https.address'] "
+                            "to use non-secure ports (if property "
+                            "dfs.datanode.https.address does not exist, just add it). "
+                            "You may also set up property dfs.data.transfer.protection "
+                            "('authentication' is a good default value). Also, set up "
+                            "WebHDFS with SSL as described in manual in order to "
+                            "be able to use HTTPS.",
                  'type': 'configuration'},
                 {'config-name': 'dfs.datanode.https.address',
                  'config-type': 'hdfs-site',
                  'level': 'WARN',
-                 'message': "You set up datanode to use some non-secure ports, "
-                            "but dfs.http.policy is set to HTTPS_ONLY. If you "
-                            "want to run Datanode under non-root user in a secure"
-                            " cluster, you should set all these properties ['dfs.datanode.address', 'dfs.datanode.https.address'] "
-                            "to use non-secure ports (if property dfs.datanode.https.address does not exist, just add it)."
-                            " You may also set up property dfs.data.transfer.protection ('authentication' is a good default value). "
-                            "Also, set up WebHDFS with SSL as described in manual in order to be able to use HTTPS.",
+                 'message': "You set up datanode to use some non-secure ports. "
+                            "If you want to run Datanode under non-root user in "
+                            "a secure cluster, you should set all these properties "
+                            "['dfs.datanode.address', 'dfs.datanode.https.address'] "
+                            "to use non-secure ports (if property dfs.datanode.https.address "
+                            "does not exist, just add it). You may also set up property "
+                            "dfs.data.transfer.protection ('authentication' is a good default value). "
+                            "Also, set up WebHDFS with SSL as described in manual in "
+                            "order to be able to use HTTPS.",
                  'type': 'configuration'}
-                ]
+    ]
     validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations)
     self.assertEquals(validation_problems, expected)
 
 
-    # TEST CASE: Secure cluster, dfs.http.policy=HTTPS_ONLY, valid configuration
+    # TEST CASE: Secure cluster, dfs.http.policy=HTTPS_ONLY, non secure dfs port, https defined and secure
+    properties = {  # hdfs-site
+                    'dfs.http.policy': 'HTTPS_ONLY',
+                    'dfs.datanode.address': '0.0.0.0:50010',
+                    'dfs.datanode.https.address': '0.0.0.0:1022',
+                    }
+    configurations = {
+      'hdfs-site': {
+        'properties': properties,
+        },
+      'core-site': {
+        'properties': secure_cluster_core_site
+      }
+    }
+    expected = [{'config-name': 'dfs.datanode.address',
+                 'config-type': 'hdfs-site',
+                 'level': 'WARN',
+                 'message': "You set up datanode to use some non-secure ports. "
+                            "If you want to run Datanode under non-root user in "
+                            "a secure cluster, you should set all these properties "
+                            "['dfs.datanode.address', 'dfs.datanode.https.address'] "
+                            "to use non-secure ports (if property dfs.datanode.https.address "
+                            "does not exist, just add it). You may also set up property "
+                            "dfs.data.transfer.protection ('authentication' is a good "
+                            "default value). Also, set up WebHDFS with SSL as described "
+                            "in manual in order to be able to use HTTPS.",
+                 'type': 'configuration'},
+                {'config-name': 'dfs.datanode.https.address',
+                 'config-type': 'hdfs-site',
+                 'level': 'WARN',
+                 'message': "You set up datanode to use some non-secure ports. "
+                            "If you want to run Datanode under non-root user in "
+                            "a secure cluster, you should set all these properties "
+                            "['dfs.datanode.address', 'dfs.datanode.https.address'] "
+                            "to use non-secure ports (if property dfs.datanode.https.address "
+                            "does not exist, just add it). You may also set up property "
+                            "dfs.data.transfer.protection ('authentication' is a good default value). "
+                            "Also, set up WebHDFS with SSL as described in manual in order to be "
+                            "able to use HTTPS.",
+                 'type': 'configuration'}
+    ]
+    validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations)
+    self.assertEquals(validation_problems, expected)
+
+    # TEST CASE: Secure cluster, dfs.http.policy=HTTPS_ONLY, valid non-root configuration
     properties = {  # hdfs-site
                     'dfs.http.policy': 'HTTPS_ONLY',
                     'dfs.datanode.address': '0.0.0.0:50010',
@@ -173,7 +274,7 @@ class TestHDP22StackAdvisor(TestCase):
     validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations)
     self.assertEquals(validation_problems, expected)
 
-    # TEST CASE: Secure cluster, dfs.http.policy=HTTP_ONLY, insecure ports
+    # TEST CASE: Secure cluster, dfs.http.policy=HTTP_ONLY, insecure port
     properties = {  # hdfs-site
                     'dfs.http.policy': 'HTTP_ONLY',
                     'dfs.datanode.address': '0.0.0.0:1019',

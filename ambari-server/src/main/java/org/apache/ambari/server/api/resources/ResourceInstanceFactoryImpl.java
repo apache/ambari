@@ -24,7 +24,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.api.query.QueryImpl;
-import org.apache.ambari.server.controller.internal.ControllerType;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
 import org.apache.ambari.server.view.ViewRegistry;
@@ -281,11 +280,6 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
 
       case ViewPermission:
         resourceDefinition = new ViewPermissionResourceDefinition();
-        break;
-
-      case Controller:
-        resourceDefinition = new ControllerResourceDefinition(
-            ControllerType.getByName(mapIds.get(Resource.Type.Controller)));
         break;
 
       case ClientConfig:
