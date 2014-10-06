@@ -320,6 +320,20 @@ public interface DBAccessor {
   public void setNullable(String tableName, DBAccessor.DBColumnInfo columnInfo, boolean nullable)
       throws SQLException;
 
+  public static enum DbType {
+    ORACLE,
+    MYSQL,
+    POSTGRES,
+    DERBY,
+    UNKNOWN
+  }
+
+  /**
+   * Get type of database platform
+   * @return @DbType
+   */
+  public DbType getDbType();
+
   /**
    * Capture column type
    */

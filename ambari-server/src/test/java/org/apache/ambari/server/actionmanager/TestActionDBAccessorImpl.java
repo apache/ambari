@@ -16,24 +16,28 @@
  * limitations under the License.
  */
 package org.apache.ambari.server.actionmanager;
- 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
+import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.Singleton;
+import com.google.inject.persist.PersistService;
+import com.google.inject.persist.UnitOfWork;
+import com.google.inject.util.Modules;
+import junit.framework.Assert;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.agent.ActionQueue;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.api.services.BaseRequest;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.ExecuteActionRequest;
 import org.apache.ambari.server.controller.HostsMap;
 import org.apache.ambari.server.controller.internal.RequestResourceFilter;
+import org.apache.ambari.server.orm.DBAccessor;
+import org.apache.ambari.server.orm.DBAccessorImpl;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.ExecutionCommandDAO;
@@ -47,14 +51,13 @@ import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.inject.Guice;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.persist.PersistService;
-import com.google.inject.persist.UnitOfWork;
-
-import junit.framework.Assert;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.apache.ambari.server.orm.DBAccessor.DbType.ORACLE;
 
 public class TestActionDBAccessorImpl {
   private static final Logger log = LoggerFactory.getLogger(TestActionDBAccessorImpl.class);
@@ -77,7 +80,9 @@ public class TestActionDBAccessorImpl {
 
   @Before
   public void setup() throws AmbariException {
-    injector = Guice.createInjector(new InMemoryDefaultTestModule());
+    InMemoryDefaultTestModule defaultTestModule = new InMemoryDefaultTestModule();
+    injector  = Guice.createInjector(Modules.override(defaultTestModule)
+      .with(new TestActionDBAccessorModule()));
     injector.getInstance(GuiceJpaInitializer.class);
     injector.injectMembers(this);
     clusters.addHost(hostName);
@@ -402,6 +407,76 @@ public class TestActionDBAccessorImpl {
         assertEquals(HostRoleStatus.ABORTED, command.getStatus());
       }
     }
+  }
+
+  private static class TestActionDBAccessorModule extends AbstractModule {
+    @Override
+    protected void configure() {
+      bind(DBAccessor.class).to(TestDBAccessorImpl.class);
+    }
+  }
+
+  @Singleton
+  static class TestDBAccessorImpl extends DBAccessorImpl {
+    private DbType dbTypeOverride = null;
+
+    @Inject
+    public TestDBAccessorImpl(Configuration configuration) {
+      super(configuration);
+    }
+
+    @Override
+    public DbType getDbType() {
+      if (dbTypeOverride != null) {
+        return dbTypeOverride;
+      }
+
+      return super.getDbType();
+    }
+
+    public void setDbTypeOverride(DbType dbTypeOverride) {
+      this.dbTypeOverride = dbTypeOverride;
+    }
+  }
+
+  @Test
+  public void testGet1000TasksFromOracleDB() throws Exception {
+    Stage s = new Stage(requestId, "/a/b", "cluster1", 1L, "action db accessor test",
+      "clusterHostInfo", "commandParamsStage", "hostParamsStage");
+    s.setStageId(stageId);
+    for (int i = 1000; i < 2002; i++) {
+      String host = "host" + i;
+
+      clusters.addHost(host);
+      clusters.getHost(host).persist();
+
+      s.addHostRoleExecutionCommand("host" + i, Role.HBASE_MASTER,
+        RoleCommand.START, null, "cluster1", "HBASE");
+    }
+
+    List<Stage> stages = new ArrayList<Stage>();
+    stages.add(s);
+    Request request = new Request(stages, clusters);
+    db.persistActions(request);
+
+    List<HostRoleCommandEntity> entities =
+      hostRoleCommandDAO.findByRequest(request.getRequestId());
+
+    assertEquals(1002, entities.size());
+    List<Long> taskIds = new ArrayList<Long>();
+    for (HostRoleCommandEntity entity : entities) {
+      taskIds.add(entity.getTaskId());
+    }
+
+    TestDBAccessorImpl testDBAccessorImpl =
+      (TestDBAccessorImpl) injector.getInstance(DBAccessor.class);
+
+    testDBAccessorImpl.setDbTypeOverride(ORACLE);
+
+    assertEquals(ORACLE, injector.getInstance(DBAccessor.class).getDbType());
+    entities = hostRoleCommandDAO.findByPKs(taskIds);
+    assertEquals("Tasks returned from DB match the ones created",
+      taskIds.size(), entities.size());
   }
 
   private void populateActionDB(ActionDBAccessor db, String hostname,
