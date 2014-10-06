@@ -271,7 +271,7 @@ module.exports = {
       attributeBindings: ['disabled','multiple'],
       disabled: false
     });
-    config.emptyValue = Em.I18n.t('any');
+    config.emptyValue = config.emptyValue || Em.I18n.t('any');
 
     return wrapperView.extend(config);
   },

@@ -356,7 +356,7 @@ App.TableView = Em.View.extend({
     var assoc = this.get('colPropAssoc');
     if (filterConditions.length) {
       result = content.filter(function (item) {
-         var match = true;
+        var match = true;
         filterConditions.forEach(function (condition) {
           var filterFunc = filters.getFilterByType(condition.type, false);
           if (match && condition.value != condition.defaultValue) {
