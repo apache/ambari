@@ -23,6 +23,14 @@ App.MainDashboardServiceStormView = App.MainDashboardServiceView.extend({
   templateName: require('templates/main/service/services/storm'),
   serviceName: 'STORM',
 
+  /**
+   * this parameter is used to fiter hosts by component name
+   * used in mainHostController.filterByComponent() method
+   */
+  filterComponent: function() {
+    return Em.Object.create({componentName: 'SUPERVISOR'});
+  }.property(),
+
   freeSlotsPercentage: function() {
     return Math.round(this.get('service.freeSlots')/this.get('service.totalSlots')*100);
   }.property('service.freeSlots', 'service.totalSlots'),

@@ -28,5 +28,80 @@
       additional system stress.
     </description>
   </property>
+  <property>
+    <name>oozie.services</name>
+    <value>
+      org.apache.oozie.service.SchedulerService,
+      org.apache.oozie.service.InstrumentationService,
+      org.apache.oozie.service.MemoryLocksService,
+      org.apache.oozie.service.UUIDService,
+      org.apache.oozie.service.ELService,
+      org.apache.oozie.service.AuthorizationService,
+      org.apache.oozie.service.UserGroupInformationService,
+      org.apache.oozie.service.HadoopAccessorService,
+      org.apache.oozie.service.JobsConcurrencyService,
+      org.apache.oozie.service.URIHandlerService,
+      org.apache.oozie.service.DagXLogInfoService,
+      org.apache.oozie.service.SchemaService,
+      org.apache.oozie.service.LiteWorkflowAppService,
+      org.apache.oozie.service.JPAService,
+      org.apache.oozie.service.StoreService,
+      org.apache.oozie.service.CoordinatorStoreService,
+      org.apache.oozie.service.SLAStoreService,
+      org.apache.oozie.service.DBLiteWorkflowStoreService,
+      org.apache.oozie.service.CallbackService,
+      org.apache.oozie.service.ShareLibService,
+      org.apache.oozie.service.CallableQueueService,
+      org.apache.oozie.service.ActionService,
+      org.apache.oozie.service.ActionCheckerService,
+      org.apache.oozie.service.RecoveryService,
+      org.apache.oozie.service.PurgeService,
+      org.apache.oozie.service.CoordinatorEngineService,
+      org.apache.oozie.service.BundleEngineService,
+      org.apache.oozie.service.DagEngineService,
+      org.apache.oozie.service.CoordMaterializeTriggerService,
+      org.apache.oozie.service.StatusTransitService,
+      org.apache.oozie.service.PauseTransitService,
+      org.apache.oozie.service.GroupsService,
+      org.apache.oozie.service.ProxyUserService,
+      org.apache.oozie.service.XLogStreamingService,
+      org.apache.oozie.service.JvmPauseMonitorService
+    </value>
+    <description>
+      All services to be created and managed by Oozie Services singleton.
+      Class names must be separated by commas.
+    </description>
+  </property>
+
+  <property>
+    <name>oozie.service.SchemaService.wf.ext.schemas</name>
+    <value>shell-action-0.1.xsd,shell-action-0.2.xsd,shell-action-0.3.xsd,email-action-0.1.xsd,email-action-0.2.xsd,hive-action-0.2.xsd,hive-action-0.3.xsd,hive-action-0.4.xsd,hive-action-0.5.xsd,sqoop-action-0.2.xsd,sqoop-action-0.3.xsd,sqoop-action-0.4.xsd,ssh-action-0.1.xsd,ssh-action-0.2.xsd,distcp-action-0.1.xsd,distcp-action-0.2.xsd,oozie-sla-0.1.xsd,oozie-sla-0.2.xsd</value>
+  </property>
+
+  <property>
+    <name>oozie.service.AuthorizationService.security.enabled</name>
+    <value>false</value>
+    <description>
+      Specifies whether security (user name/admin role) is enabled or not.
+      If disabled any user can manage Oozie system and manage any job.
+    </description>
+  </property>
+
+  <property>
+    <name>oozie.service.HadoopAccessorService.kerberos.enabled</name>
+    <value>false</value>
+    <description>
+      Indicates if Oozie is configured to use Kerberos.
+    </description>
+  </property>
+
+  <property>
+    <name>oozie.authentication.simple.anonymous.allowed</name>
+    <value>true</value>
+    <description>
+      Indicates if anonymous requests are allowed.
+      This setting is meaningful only when using 'simple' authentication.
+    </description>
+  </property>
 
 </configuration>

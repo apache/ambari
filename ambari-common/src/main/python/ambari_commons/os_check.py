@@ -28,6 +28,8 @@ def linux_distribution():
 
   if PYTHON_VER < 26:
     linux_distribution = platform.dist()
+  elif os.path.exists('/etc/redhat-release'):
+    linux_distribution = platform.dist()
   else:
     linux_distribution = platform.linux_distribution()
 
@@ -208,6 +210,21 @@ class OSCheck:
     """
     try:
       if OSCheck.get_os_family() == OSConst.REDHAT_FAMILY:
+        return True
+    except Exception:
+      pass
+    return False
+
+  @staticmethod
+  def is_redhat7():
+    """
+     Return true if it is so or false if not
+
+     This is safe check for redhat7 , doesn't generate exception
+    """
+    try:
+      ostemp=OSCheck.get_os_family()+OSCheck().get_os_major_version()
+      if ostemp == 'redhat7':
         return True
     except Exception:
       pass

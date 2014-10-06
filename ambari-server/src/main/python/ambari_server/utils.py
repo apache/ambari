@@ -23,7 +23,7 @@ import sys
 import time
 import glob
 import subprocess
-from ambari_commons import OSConst
+from ambari_commons import OSConst,OSCheck
 
 # PostgreSQL settings
 PG_STATUS_RUNNING_DEFAULT = "running"
@@ -192,6 +192,8 @@ def get_postgre_hba_dir(OS_FAMILY):
     # Like: /etc/postgresql/9.1/main/
     return os.path.join(PG_HBA_INIT_FILES[OS_FAMILY], get_ubuntu_pg_version(),
                         "main")
+  elif OSCheck.is_redhat7():
+    return PG_HBA_ROOT_DEFAULT
   else:
     if not os.path.isfile(PG_HBA_INIT_FILES[OS_FAMILY]):
       # Link: /etc/init.d/postgresql --> /etc/init.d/postgresql-9.1

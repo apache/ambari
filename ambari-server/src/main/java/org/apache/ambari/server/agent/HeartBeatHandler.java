@@ -685,6 +685,7 @@ public class HeartBeatHandler {
 
     String agentOsType = getOsType(register.getHardwareProfile().getOS(),
         register.getHardwareProfile().getOSRelease());
+    LOG.info("agentOsType = "+agentOsType );
     if (!ambariMetaInfo.isOsSupported(agentOsType)) {
       LOG.warn("Received registration request from host with not supported"
           + " os type"

@@ -1,4 +1,10 @@
 {
+  "redhat7": [
+    "redhat7",
+    "centos7",
+    "oraclelinux7",
+    "rhel7"
+  ],
   "redhat6": [
     "redhat6",
     "centos6",
