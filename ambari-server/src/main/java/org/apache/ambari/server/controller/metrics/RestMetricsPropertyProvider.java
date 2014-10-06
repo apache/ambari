@@ -77,6 +77,7 @@ public class RestMetricsPropertyProvider extends MetricsProvider {
   private final String componentNamePropertyId;
   private final String statePropertyId;
   private MetricsHostProvider metricsHostProvider;
+  private final String componentName;
 
   private static final String DEFAULT_PORT_PROPERTY = "default_port";
   private static final String PORT_CONFIG_TYPE_PROPERTY = "port_config_type";
@@ -123,7 +124,8 @@ public class RestMetricsPropertyProvider extends MetricsProvider {
       String clusterNamePropertyId,
       String hostNamePropertyId,
       String componentNamePropertyId,
-      String statePropertyId) {
+      String statePropertyId,
+      String componentName){
 
     super(componentMetrics, hostNamePropertyId, metricsHostProvider);
     this.metricsProperties = metricsProperties;
@@ -133,6 +135,7 @@ public class RestMetricsPropertyProvider extends MetricsProvider {
     this.statePropertyId = statePropertyId;
     this.metricsHostProvider = metricsHostProvider;
     injector.injectMembers(this);
+    this.componentName = componentName;
   }
 
   // ----- MetricsProvider implementation ------------------------------------
@@ -155,6 +158,12 @@ public class RestMetricsPropertyProvider extends MetricsProvider {
     // Remove request properties that request temporal information
     Set<String> ids = getRequestPropertyIds(request, predicate);
     Set<String> temporalIds = new HashSet<String>();
+    String resourceComponentName = (String) resource.getPropertyValue(componentNamePropertyId);
+
+    if (!componentName.equals(resourceComponentName)) {
+      return resource;
+    }
+
     for (String id : ids) {
       if (request.getTemporalInfo(id) != null) {
         temporalIds.add(id);
@@ -176,8 +185,6 @@ public class RestMetricsPropertyProvider extends MetricsProvider {
       }
     }
 
-    String componentName = (String) resource.getPropertyValue(componentNamePropertyId);
-
     Map<String, PropertyInfo> propertyInfos =
         getComponentMetrics().get(StackDefinedPropertyProvider.WRAPPED_METRICS_KEY);
     if (propertyInfos == null) {
@@ -190,14 +197,14 @@ public class RestMetricsPropertyProvider extends MetricsProvider {
     try {
       String clusterName = (String) resource.getPropertyValue(clusterNamePropertyId);
       Cluster cluster = clusters.getCluster(clusterName);
-      hostname = getHost(resource, clusterName, componentName);
+      hostname = getHost(resource, clusterName, resourceComponentName);
       if (hostname == null) {
         String msg = String.format("Unable to get component REST metrics. " +
-            "No host name for %s.", componentName);
+            "No host name for %s.", resourceComponentName);
         LOG.warn(msg);
         return resource;
       }
-      port = resolvePort(cluster, hostname, componentName, metricsProperties);
+      port = resolvePort(cluster, hostname, resourceComponentName, metricsProperties);
     } catch (Exception e) {
       rethrowSystemException(e);
     }
