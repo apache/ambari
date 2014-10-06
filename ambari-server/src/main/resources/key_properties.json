@@ -149,9 +149,6 @@
     "Cluster": "AlertDefinition/cluster_name",
     "AlertDefinition": "AlertDefinition/id"
   },
-  "Controller": {
-    "Controller": "Controllers/name"
-  },
   "ClientConfig": {
     "Cluster": "ServiceComponentInfo/cluster_name",
     "Service": "ServiceComponentInfo/service_name",

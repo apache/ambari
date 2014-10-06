@@ -433,15 +433,6 @@
       "AlertDefinition/scope",
       "AlertDefinition/source"
     ],      
-    "Controller":[
-        "Controllers/name",
-        "LDAP/configured",
-        "LDAP/users",
-        "LDAP/groups",
-        "LDAP/synced_users",
-        "LDAP/synced_groups",
-        "_"
-    ],
     "ClientConfig":[
         "ServiceComponentInfo/service_name",
         "ServiceComponentInfo/component_name",

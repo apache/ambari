@@ -119,7 +119,6 @@ public interface Resource {
     ClusterPrivilege,
     ViewPrivilege,
     ViewPermission,
-    Controller,
     ClientConfig,
     StackLevelConfiguration,
     LdapSyncEvent;
@@ -202,7 +201,6 @@ public interface Resource {
     public static final Type ClusterPrivilege = InternalType.ClusterPrivilege.getType();
     public static final Type ViewPrivilege = InternalType.ViewPrivilege.getType();
     public static final Type ViewPermission = InternalType.ViewPermission.getType();
-    public static final Type Controller = InternalType.Controller.getType();
     public static final Type ClientConfig = InternalType.ClientConfig.getType();
     public static final Type StackLevelConfiguration = InternalType.StackLevelConfiguration.getType();
     public static final Type LdapSyncEvent = InternalType.LdapSyncEvent.getType();
