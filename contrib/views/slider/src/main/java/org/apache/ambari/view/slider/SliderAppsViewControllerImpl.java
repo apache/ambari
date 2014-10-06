@@ -723,9 +723,6 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
   @Override
   public List<SliderAppType> getSliderAppTypes(Set<String> properties) {
     if (appTypes == null) {
-      if (!areViewParametersSet()) {
-        return Collections.emptyList();
-      }
       appTypes = loadAppTypes();
     }
     return appTypes;
