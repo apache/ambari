@@ -87,22 +87,22 @@ App.SliderApp = DS.Model.extend({
   /**
    * @type {App.SliderAppComponent[]}
    */
-  components: DS.hasMany('sliderAppComponent', {async:true}),
+  components: DS.hasMany('sliderAppComponent', {async: true}),
 
   /**
    * @type {App.QuickLink[]}
    */
-  quickLinks: DS.hasMany('quickLink', {async:true}),
+  quickLinks: DS.hasMany('quickLink', {async: true}),
 
   /**
    * @type {App.SliderAppAlert[]}
    */
-  alerts: DS.hasMany('sliderAppAlert', {async:true}),
+  alerts: DS.hasMany('sliderAppAlert', {async: true}),
 
   /**
    * @type {App.TypedProperty[]}
    */
-  runtimeProperties: DS.hasMany('typedProperty', {async:true}),
+  runtimeProperties: DS.hasMany('typedProperty', {async: true}),
 
   /**
    * @type {object}
@@ -133,7 +133,7 @@ App.SliderApp = DS.Model.extend({
   /**
    * @type {boolean}
    */
-  doNotShowComponentsAndAlerts: function(){
+  doNotShowComponentsAndAlerts: function () {
     return this.get('status') == "FROZEN" || this.get('status') == "FAILED";
   }.property('status', 'components', 'alerts'),
 
@@ -141,7 +141,7 @@ App.SliderApp = DS.Model.extend({
    * Display metrics only for running apps
    * @type {boolean}
    */
-  showMetrics: function() {
+  showMetrics: function () {
     var global = this.get('configs')['global'];
     if (App.get('gangliaHost') != null) {
       return true;
@@ -154,9 +154,9 @@ App.SliderApp = DS.Model.extend({
    * @param {object} o
    * @returns {{key: string, value: *}[]}
    */
-  mapObject: function(o) {
+  mapObject: function (o) {
     if (Ember.typeOf(o) !== 'object') return [];
-    return Ember.keys(o).map(function(key) {
+    return Ember.keys(o).map(function (key) {
       return {
         key: key,
         value: o[key],
@@ -170,12 +170,13 @@ App.SliderApp = DS.Model.extend({
 App.SliderApp.FIXTURES = [];
 
 App.SliderApp.Status = {
-    accepted: "ACCEPTED",
-    failed: "FAILED",
-    finished: "FINISHED",
-    killed: "KILLED",
-    new: "NEW",
-    new_saving: "NEW_SAVING",
-    running: "RUNNING" ,
-    submitted:"SUBMITTED"
+  accepted: "ACCEPTED",
+  failed: "FAILED",
+  finished: "FINISHED",
+  killed: "KILLED",
+  new: "NEW",
+  new_saving: "NEW_SAVING",
+  running: "RUNNING",
+  submitted: "SUBMITTED",
+  frozen: "FROZEN"
 };

@@ -44,7 +44,7 @@ test('sliderConfigs', function () {
 
   visit('/');
   // configs count may be changed by adding new slider-configs
-  equal(App.SliderApp.store.all('sliderConfig').content.length, 2, 'slider configs should be set');
+  equal(App.SliderApp.store.all('sliderConfig').content.length, 3, 'slider configs should be set');
 
 });
 
@@ -58,5 +58,16 @@ test('Create-App button', function () {
     equal(currentPath(), 'slider_apps.createAppWizard.step1', 'path is valid');
     equal(currentURL(), '/createAppWizard/step1', 'url is valid');
   });
+
+});
+
+test('Create-App button visible/hidden', function () {
+
+  Em.run(function () {
+    App.__container__.lookup('controller:application').set('hasConfigErrors', true);
+  });
+
+  visit('/');
+  equal(find('.create-app').length, 0, 'Create App button should be hidden if some config errors');
 
 });
