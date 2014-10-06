@@ -42,6 +42,49 @@ App.SliderAppController = Ember.ObjectController.extend(App.AjaxErrorHandler, {
   }.property('model.quickLinks.content.content.length'),
 
   /**
+   * List of all possible actions for slider app
+   * @type {Em.Object}
+   */
+  appActions: Em.Object.create({
+    stop: {
+      title: 'Stop',
+      action: 'freeze',
+      confirm: true
+    },
+    flex: {
+      title: 'Flex',
+      action: 'flex',
+      confirm: false
+    },
+    destroy: {
+      title: 'Destroy',
+      action: 'destroy',
+      customConfirm: 'confirmDestroy'
+    },
+    start: {
+      title: 'Start',
+      action: 'thaw',
+      confirm: false
+    }
+  }),
+
+  /**
+   * map of available action for slider app according to its status
+   * key - status, value - list of actions
+   * @type {Em.Object}
+   */
+  statusActionsMap: Em.Object.create({
+    NEW: ['stop'],
+    NEW_SAVING: ['stop'],
+    ACCEPTED: ['stop'],
+    RUNNING: ['stop', 'flex'],
+    FINISHED: ['start', 'destroy'],
+    FAILED: ['destroy'],
+    KILLED: ['destroy'],
+    FROZEN: ['start', 'destroy']
+  }),
+
+  /**
    * List of available for model actions
    * Based on <code>model.status</code>
    * @type {Ember.Object[]}
@@ -49,40 +92,19 @@ App.SliderAppController = Ember.ObjectController.extend(App.AjaxErrorHandler, {
   availableActions: function() {
     var actions = Em.A([]),
       advanced = Em.A([]),
+      appActions = this.get('appActions'),
+      statusActionsMap = this.get('statusActionsMap'),
       status = this.get('model.status');
-    if ('RUNNING' === status) {
-      actions.pushObject({
-        title: 'Stop',
-        action: 'freeze',
-        confirm: true
-      });
-    }
-    if ('RUNNING' == status) {
-      actions.push({
-        title: 'Flex',
-        action: 'flex',
-        confirm: false
-      });
-    }
-    if ('FROZEN' === status) {
-      actions.pushObject({
-        title: 'Start',
-        action: 'thaw',
-        confirm: false
-      });
-      advanced.pushObject({
-        title: 'Destroy',
-        action: 'destroy',
-        customConfirm: 'confirmDestroy'
-      });
-    }
-    if ('FAILED' === status) {
-      advanced.pushObject({
-        title: 'Destroy',
-        action: 'destroy',
-        customConfirm: 'confirmDestroy'
-      });
-    }
+
+    statusActionsMap[status].forEach(function(action) {
+      if ('destroy' === action) {
+        advanced.pushObject(appActions[action]);
+      }
+      else {
+        actions.pushObject(appActions[action]);
+      }
+    });
+
     if (advanced.length) {
       actions.pushObject({
         title: 'Advanced',
@@ -405,7 +427,6 @@ App.SliderAppController = Ember.ObjectController.extend(App.AjaxErrorHandler, {
           this.tryDoAction();
         }
       }
-      return true;
     }
   }
 
