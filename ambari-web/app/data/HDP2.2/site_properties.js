@@ -20,7 +20,7 @@ var App = require('app');
 var hdp2properties = require('data/HDP2/site_properties').configProperties;
 var hdp22properties = hdp2properties.filter(function (item){
   //In HDP2.2 storm.thrift.transport property is computed on server
-  return item.name !== 'storm.thrift.transport';
+  return item.name !== 'storm.thrift.transport' && item.name !== 'storm_rest_api_host';
 });
 
 module.exports =
