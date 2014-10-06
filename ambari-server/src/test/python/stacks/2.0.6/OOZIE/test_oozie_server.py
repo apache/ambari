@@ -209,6 +209,11 @@ class TestOozieServer(RMFTestCase):
                               recursive = True,
                               mode = 0755,
                               )
+    self.assertResourceCalled('Directory', '/var/lib/oozie/oozie-server',
+                              owner = 'oozie',
+                              recursive = True,
+                              mode = 0755,
+                              )
     self.assertResourceCalled('Execute', 'cd /usr/lib/oozie && tar -xvf oozie-sharelib.tar.gz',
                               not_if = 'ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1',
                               )
@@ -315,6 +320,11 @@ class TestOozieServer(RMFTestCase):
                               mode = 0755,
                               )
     self.assertResourceCalled('Directory', '/var/lib/oozie/oozie-server/conf',
+                              owner = 'oozie',
+                              recursive = True,
+                              mode = 0755,
+                              )
+    self.assertResourceCalled('Directory', '/var/lib/oozie/oozie-server',
                               owner = 'oozie',
                               recursive = True,
                               mode = 0755,

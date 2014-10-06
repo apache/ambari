@@ -33,7 +33,6 @@ rpm_version = default("/configurations/cluster-env/rpm_version", None)
 if rpm_version:
   hadoop_bin_dir = "/usr/hdp/current/hadoop/bin"
   hadoop_lib_home = "/usr/hdp/current/hadoop/lib"
-  mapreduce_libs_path = "/usr/hdp/current/hadoop-mapreduce/*"
   oozie_lib_dir = "/usr/hdp/current/oozie/"
   oozie_setup_sh = "/usr/hdp/current/oozie/bin/oozie-setup.sh"
   oozie_webapps_dir = "/usr/hdp/current/oozie/oozie-server/webapps"
@@ -47,7 +46,6 @@ if rpm_version:
 else:
   hadoop_bin_dir = "/usr/bin"
   hadoop_lib_home = "/usr/lib/hadoop/lib"
-  mapreduce_libs_path = "/usr/lib/hadoop-mapreduce/*"
   oozie_lib_dir = "/var/lib/oozie/"
   oozie_setup_sh = "/usr/lib/oozie/bin/oozie-setup.sh"
   oozie_webapps_dir = "/var/lib/oozie/oozie-server/webapps/"
