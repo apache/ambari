@@ -21,6 +21,7 @@ package org.apache.ambari.server.api.util;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.state.*;
@@ -32,6 +33,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathExpressionException;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
@@ -353,6 +355,31 @@ public class StackExtensionHelperTest {
     Map<String, String> supports = config.get(keyword);
     supports.put(attributeName, value);    
   }
+
+  /**
+   * This test ensures the service status check is added into the action metadata when
+   * the stack has no parent and is the only stack in the stack family
+   * @throws Exception
+   */
+  @Test
+  public void testGetServiceInfoFromSingleStack() throws Exception {
+    File stackRoot = new File("./src/test/resources/single_stack".replace("/", File.separator));
+    StackExtensionHelper helper = new StackExtensionHelper(injector, stackRoot);
+    helper.fillInfo();
+    List<StackInfo> stackInfoList = helper.getAllAvailableStacks();
+    assertEquals(1, stackInfoList.size());
+
+    List<ServiceInfo> serviceInfoList = helper.getAllApplicableServices(stackInfoList.get(0));
+    for(ServiceInfo serviceInfo: serviceInfoList) {
+      if ("HDFS".equalsIgnoreCase(serviceInfo.getName())) {
+        ActionMetadata actionMetadata = injector.getInstance(ActionMetadata.class);
+        String hdfsStatusCheckCmd = actionMetadata.getServiceCheckAction("HDFS");
+        assertEquals("HDFS_SERVICE_CHECK", hdfsStatusCheckCmd);
+        break;
+      }
+    }
+  }
+
   @Test
   public void testPopulateConfigTypes() throws XPathExpressionException, ParserConfigurationException, SAXException, IOException, JAXBException {
     StackExtensionHelper helper = getStackExtensionHelper();

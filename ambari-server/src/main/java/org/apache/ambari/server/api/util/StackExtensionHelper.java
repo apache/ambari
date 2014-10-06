@@ -490,11 +490,6 @@ public class StackExtensionHelper {
           }
         }
         
-        // add action for service check
-        if(serviceInfo.getCommandScript() != null) {
-          actionMetadata.addServiceCheckAction(serviceInfo.getName());
-        }
-        
       }
       parentStack = currentStackInfo;
     }
@@ -536,6 +531,7 @@ public class StackExtensionHelper {
       ParserConfigurationException, SAXException,
       XPathExpressionException, IOException, JAXBException {
     List<ServiceInfo> services = new ArrayList<ServiceInfo>();
+
     File servicesFolder = new File(stackRoot.getAbsolutePath() + File
       .separator + stackInfo.getName() + File.separator + stackInfo.getVersion()
       + File.separator + AmbariMetaInfo.SERVICES_FOLDER_NAME);
@@ -602,6 +598,14 @@ public class StackExtensionHelper {
     }
 
     stackInfo.getServices().addAll(services);
+
+    // add service check actions from the target stack
+    for(ServiceInfo serviceInfo : stackInfo.getServices()) {
+      if(serviceInfo.getCommandScript() != null) {
+        actionMetadata.addServiceCheckAction(serviceInfo.getName());
+      }
+    }
+
   }
 
 
