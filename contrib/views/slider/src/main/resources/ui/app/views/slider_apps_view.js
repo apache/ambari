@@ -120,7 +120,8 @@ App.SliderAppsView = App.TableView.extend({
     }.property('parentView.statusList'),
     onChangeValue: function(){
       this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'string', this.get('defaultValue'));
-    }
+    },
+    emptyValue: 'All Status'
   }),
 
   typeFilterView: filters.createTextView({
