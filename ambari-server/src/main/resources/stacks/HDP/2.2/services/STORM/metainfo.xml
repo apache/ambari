@@ -23,6 +23,12 @@
       <name>STORM</name>
       <displayName>Storm</displayName>
       <version>0.9.3.2.2.0.0</version>
+      <components>
+        <component>
+          <name>STORM_REST_API</name>
+          <deleted>true</deleted>
+        </component>
+      </components>
       <osSpecifics>
         <osSpecific>
           <osFamily>any</osFamily>
