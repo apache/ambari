@@ -49,9 +49,25 @@ App.SliderApp = DS.Model.extend({
   started: DS.attr('number'),
 
   /**
+   * @type {String}
+   */
+
+  startedToLocalTime: function () {
+    return new Date(this.get('started')).toString().replace("(FLE Daylight Time)","");
+  }.property('started'),
+
+  /**
    * @type {number}
    */
   ended: DS.attr('number'),
+
+  /**
+   * @type {String}
+   */
+
+  endedToLocalTime: function () {
+    return new Date(this.get('ended')).toString().replace("(FLE Daylight Time)","");
+  }.property('ended'),
 
   /**
    * @type {App.SliderAppType}

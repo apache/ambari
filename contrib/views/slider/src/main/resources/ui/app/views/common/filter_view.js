@@ -291,7 +291,7 @@ module.exports = {
       case 'date':
         return function (rowValue, rangeExp) {
           var match = false;
-          var timePassed = new Date().getTime() - rowValue;
+          var timePassed = new Date().getTime() - new Date(rowValue).getTime();
           switch (rangeExp) {
             case 'Past 1 hour':
               match = timePassed <= 3600000;
