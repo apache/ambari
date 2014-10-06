@@ -1807,7 +1807,12 @@ def download_jdk(args):
       raise FatalException(1, err)
     jdk_num = str(JDK_INDEX + 1)
     jdk_num = get_validated_string_input(
-      "[1] - Oracle JDK 1.7\n[2] - Oracle JDK 1.6\n[3] - Custom JDK\n==============================================================================\nEnter choice (" + jdk_num + "): ",
+      """
+      [1] - Oracle JDK 1.7 + Java Cryptography Extension (JCE) Policy Files 7
+      [2] - Oracle JDK 1.6 + Java Cryptography Extension (JCE) Policy Files 6
+      [3] - Custom JDK
+      ==============================================================================
+      Enter choice (""" + jdk_num + "):",
       jdk_num,
       "^[123]$",
       "Invalid number.",
@@ -1840,11 +1845,13 @@ def download_jdk(args):
     if os.path.exists(dest_file):
       print "JDK already exists, using " + dest_file
     else:
-      ok = get_YN_input("To download the Oracle JDK you must accept the "
+      ok = get_YN_input("To download the Oracle JDK and the Java Cryptography Extension (JCE) "
+                        "Policy Files you must accept the "
                         "license terms found at "
                         "http://www.oracle.com/technetwork/java/javase/"
                         "terms/license/index.html and not accepting will "
-                        "cancel the Ambari Server setup.\nDo you accept the "
+                        "cancel the Ambari Server setup and you must install the JDK and JCE "
+                        "files manually.\nDo you accept the "
                         "Oracle Binary Code License Agreement [y/n] (y)? ", True)
       if not ok:
         print 'Exiting...'
