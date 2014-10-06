@@ -31,11 +31,18 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
 
 /**
  * Cluster controller tests
@@ -126,6 +133,41 @@ public class ClusterControllerImplTest {
       ++cnt;
     }
     Assert.assertEquals(4, cnt);
+  }
+
+  @Test
+  public void testGetResources_NoSuchResourceException() throws Exception{
+
+    ProviderModule providerModule = createNiceMock(ProviderModule.class);
+    ResourceProvider resourceProvider = createNiceMock(ResourceProvider.class);
+
+    expect(providerModule.getResourceProvider(Resource.Type.View)).andReturn(resourceProvider).anyTimes();
+    expect(resourceProvider.checkPropertyIds(Collections.singleton("ViewInfo/view_name"))).andReturn(Collections.<String>emptySet()).anyTimes();
+    expect(resourceProvider.getResources(anyObject(Request.class), anyObject(Predicate.class))).andReturn(Collections.<Resource>emptySet()).anyTimes();
+
+    replay(providerModule, resourceProvider);
+
+    ClusterControllerImpl controller = new ClusterControllerImpl(providerModule);
+
+    Set<String> propertyIds = new HashSet<String>();
+
+    propertyIds.add("ViewInfo/view_name");
+
+    Request request = PropertyHelper.getReadRequest(propertyIds);
+
+    // No predicate
+    Iterator<Resource> iter = controller.getResourceIterable(Resource.Type.View, request, null).iterator();
+    Assert.assertFalse(iter.hasNext());
+
+    // Ask for a specific resource.
+    Predicate predicate = new PredicateBuilder().property("ViewInfo/view_name").equals("BadView").toPredicate();
+    try {
+      controller.getResourceIterable(Resource.Type.View, request, predicate);
+      Assert.fail("Expected NoSuchResourceException.");
+    } catch (NoSuchResourceException e) {
+      // expected
+    }
+    verify(providerModule, resourceProvider);
   }
 
   @Test
