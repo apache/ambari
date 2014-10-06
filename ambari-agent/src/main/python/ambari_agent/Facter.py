@@ -189,8 +189,10 @@ class Facter():
 
   # Return first ip adress
   def getIpAddress(self):
-    result = self.data_return_first("(?: inet addr:)(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})",
-                                    self.DATA_IFCONFIG_OUTPUT)
+    ip_pattern="(?: inet addr:)(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})"
+    if OSCheck.is_redhat7():
+      ip_pattern="(?: inet )(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})"
+    result = self.data_return_first(ip_pattern,self.DATA_IFCONFIG_OUTPUT)
     if result == '':
       log.warn("Can't get an ip address from {0}".format(self.DATA_IFCONFIG_OUTPUT))
       return socket.gethostbyname(socket.gethostname())
@@ -199,8 +201,10 @@ class Facter():
 
   # Return  netmask
   def getNetmask(self):
-    result = self.data_return_first("(?: Mask:)(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})",
-                                    self.DATA_IFCONFIG_OUTPUT)
+    mask_pattern="(?: Mask:)(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})"
+    if OSCheck.is_redhat7():
+      mask_pattern="(?: netmask )(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})"
+    result = self.data_return_first(mask_pattern,self.DATA_IFCONFIG_OUTPUT)
     if result == '':
       log.warn("Can't get a netmask from {0}".format(self.DATA_IFCONFIG_OUTPUT))
       return 'OS NOT SUPPORTED'
@@ -209,7 +213,10 @@ class Facter():
 
   # Return interfaces
   def getInterfaces(self):
-    result = self.data_return_list("(\w+)(?:.*Link encap:)", self.DATA_IFCONFIG_OUTPUT)
+    interface_pattern="(\w+)(?:.*Link encap:)"
+    if OSCheck.is_redhat7():
+      interface_pattern="(\w+)(?:.*flags=)"
+    result = self.data_return_list(interface_pattern, self.DATA_IFCONFIG_OUTPUT)
     if result == '':
       log.warn("Can't get a network interfaces list from {0}".format(self.DATA_IFCONFIG_OUTPUT))
       return 'OS NOT SUPPORTED'
