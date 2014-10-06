@@ -31,7 +31,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -48,21 +47,26 @@ import org.apache.ambari.server.api.util.StackExtensionHelper;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.customactions.ActionDefinition;
 import org.apache.ambari.server.customactions.ActionDefinitionManager;
+import org.apache.ambari.server.events.AlertDefinitionRegistrationEvent;
+import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
+import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.MetainfoDAO;
+import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.MetainfoEntity;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.DependencyInfo;
 import org.apache.ambari.server.state.OperatingSystemInfo;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.RepositoryInfo;
+import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.Stack;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.alert.AlertDefinition;
-import org.apache.ambari.server.state.alert.MetricSource;
-import org.apache.ambari.server.state.alert.Source;
-import org.apache.ambari.server.state.alert.SourceType;
+import org.apache.ambari.server.state.alert.AlertDefinitionFactory;
 import org.apache.ambari.server.state.stack.LatestRepoCallable;
 import org.apache.ambari.server.state.stack.MetricDefinition;
 import org.apache.ambari.server.state.stack.RepositoryXml;
@@ -72,12 +76,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonDeserializationContext;
-import com.google.gson.JsonDeserializer;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
 import com.google.gson.reflect.TypeToken;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
@@ -133,12 +131,34 @@ public class AmbariMetaInfo {
   private File stackRoot;
   private File serverVersionFile;
   private File customActionRoot;
+
   @Inject
   private MetainfoDAO metainfoDAO;
+
   @Inject
   Injector injector;
-  
-  
+
+  /**
+   * Alert Definition DAO used to merge stack definitions into the database.
+   */
+  AlertDefinitionDAO alertDefinitionDao;
+
+  /**
+   * A factory that assists in the creation of {@link AlertDefinition} and
+   * {@link AlertDefinitionEntity}.
+   */
+  private AlertDefinitionFactory alertDefinitionFactory;
+
+  /**
+   * Publishes the following events:
+   * <ul>
+   * <li>{@link AlertDefinitionRegistrationEvent} when new alerts are merged
+   * from the stack</li>
+   * </ul>
+   */
+  @Inject
+  private AmbariEventPublisher eventPublisher;
+
   // Required properties by stack version
   private final Map<StackId, Map<String, Map<String, PropertyInfo>>> requiredProperties =
     new HashMap<StackId, Map<String, Map<String, PropertyInfo>>>();
@@ -153,11 +173,11 @@ public class AmbariMetaInfo {
   public AmbariMetaInfo(Configuration conf) throws Exception {
     String stackPath = conf.getMetadataPath();
     String serverVersionFilePath = conf.getServerVersionFilePath();
-    this.stackRoot = new File(stackPath);
-    this.serverVersionFile = new File(serverVersionFilePath);
-    this.customActionRoot = new File(conf.getCustomActionDefinitionPath());
+    stackRoot = new File(stackPath);
+    serverVersionFile = new File(serverVersionFilePath);
+    customActionRoot = new File(conf.getCustomActionDefinitionPath());
   }
-  
+
   public AmbariMetaInfo(File stackRoot, File serverVersionFile) throws Exception {
     this.stackRoot = stackRoot;
     this.serverVersionFile = serverVersionFile;
@@ -174,6 +194,10 @@ public class AmbariMetaInfo {
     readServerVersion();
     getConfigurationInformation(stackRoot);
     getCustomActionDefinitions(customActionRoot);
+
+    alertDefinitionFactory = injector.getInstance(AlertDefinitionFactory.class);
+    alertDefinitionDao = injector.getInstance(AlertDefinitionDAO.class);
+    eventPublisher = injector.getInstance(AmbariEventPublisher.class);
   }
 
   /**
@@ -190,13 +214,14 @@ public class AmbariMetaInfo {
                                             String serviceName, String componentName) throws AmbariException {
     ComponentInfo component = null;
     List<ComponentInfo> components = getComponentsByService(stackName, version, serviceName);
-    if (components != null)
+    if (components != null) {
       for (ComponentInfo cmp : components) {
         if (cmp.getName().equals(componentName)) {
           component = cmp;
           break;
         }
       }
+    }
     return component;
   }
 
@@ -227,24 +252,27 @@ public class AmbariMetaInfo {
 
     List<ComponentInfo> componentsByService = getComponentsByService(stackName, version, serviceName);
 
-    if (componentsByService.size() == 0)
+    if (componentsByService.size() == 0) {
       throw new StackAccessException("stackName=" + stackName
           + ", stackVersion=" + version
           + ", serviceName=" + serviceName
           + ", componentName=" + componentName);
+    }
 
     ComponentInfo componentResult = null;
 
     for (ComponentInfo component : componentsByService) {
-      if (component.getName().equals(componentName))
+      if (component.getName().equals(componentName)) {
         componentResult = component;
+      }
     }
 
-    if (componentResult == null)
+    if (componentResult == null) {
       throw new StackAccessException("stackName=" + stackName
           + ", stackVersion=" + version
           + ", serviceName=" + serviceName
           + ", componentName=" + componentName);
+    }
 
     return componentResult;
   }
@@ -334,8 +362,9 @@ public class AmbariMetaInfo {
 
     List<RepositoryInfo> repositoriesResult = new ArrayList<RepositoryInfo>();
     for (RepositoryInfo repository : repositories) {
-      if (repository.getOsType().equals(osType))
+      if (repository.getOsType().equals(osType)) {
         repositoriesResult.add(repository);
+      }
     }
     return repositoriesResult;
   }
@@ -345,22 +374,25 @@ public class AmbariMetaInfo {
 
     List<RepositoryInfo> repositories = getRepositories(stackName, version, osType);
 
-    if (repositories.size() == 0)
+    if (repositories.size() == 0) {
       throw new StackAccessException("stackName=" + stackName
           + ", stackVersion=" + version
           + ", osType=" + osType
           + ", repoId=" + repoId);
+    }
 
     RepositoryInfo repoResult = null;
     for (RepositoryInfo repository : repositories) {
-      if (repository.getRepoId().equals(repoId))
+      if (repository.getRepoId().equals(repoId)) {
         repoResult = repository;
+      }
     }
-    if (repoResult == null)
+    if (repoResult == null) {
       throw new StackAccessException("stackName=" + stackName
           + ", stackVersion= " + version
           + ", osType=" + osType
           + ", repoId= " + repoId);
+    }
     return repoResult;
   }
 
@@ -452,10 +484,10 @@ public class AmbariMetaInfo {
     Map<String, Map<String, String>> propertiesResult = new HashMap<String, Map<String, String>>();
 
     ServiceInfo service = getServiceInfo(stackName, version, serviceName);
-    if (service != null)
+    if (service != null) {
       if (serviceName.equals(service.getName())) {
         List<PropertyInfo> properties = service.getProperties();
-        if (properties != null)
+        if (properties != null) {
           for (PropertyInfo propertyInfo : properties) {
             Map<String, String> fileProperties = propertiesResult
                 .get(propertyInfo.getFilename());
@@ -471,7 +503,9 @@ public class AmbariMetaInfo {
             }
 
           }
+        }
       }
+    }
 
     return propertiesResult;
   }
@@ -497,10 +531,11 @@ public class AmbariMetaInfo {
     }
 
     services = stack.getServices();
-    if (services != null)
+    if (services != null) {
       for (ServiceInfo service : services) {
         servicesInfoResult.put(service.getName(), service);
       }
+    }
     return servicesInfoResult;
   }
 
@@ -508,13 +543,15 @@ public class AmbariMetaInfo {
 
     Map<String, ServiceInfo> services = getServices(stackName, version);
 
-    if (services.size() == 0)
+    if (services.size() == 0) {
       throw new StackAccessException("stackName=" + stackName + ", stackVersion=" + version + ", serviceName=" + serviceName);
+    }
 
     ServiceInfo serviceInfo = services.get(serviceName);
 
-    if (serviceInfo == null)
+    if (serviceInfo == null) {
       throw new StackAccessException("stackName=" + stackName + ", stackVersion=" + version + ", serviceName=" + serviceName);
+    }
 
     return serviceInfo;
 
@@ -532,13 +569,14 @@ public class AmbariMetaInfo {
     }
 
     services = stack.getServices();
-    if (services != null)
+    if (services != null) {
       for (ServiceInfo service : services) {
         if (serviceName.equals(service.getName())) {
           serviceInfoResult = service;
           break;
         }
       }
+    }
     return serviceInfoResult;
   }
 
@@ -546,8 +584,9 @@ public class AmbariMetaInfo {
     throws AmbariException {
     List<ServiceInfo> servicesResult = null;
     StackInfo stack = getStackInfo(stackName, version);
-    if (stack != null)
+    if (stack != null) {
       servicesResult = stack.getServices();
+    }
     return servicesResult;
   }
 
@@ -568,18 +607,18 @@ public class AmbariMetaInfo {
     throws AmbariException{
 
     HashSet<String> needRestartServices = new HashSet<String>();
-    
+
     List<ServiceInfo> serviceInfos = getSupportedServices(stackName, version);
-     
-    
+
+
     for (ServiceInfo service : serviceInfos) {
       if (service.isRestartRequiredAfterChange() != null && service.isRestartRequiredAfterChange()) {
         needRestartServices.add(service.getName());
       }
     }
     return needRestartServices;
-  }  
-  
+  }
+
   public List<StackInfo> getSupportedStacks() {
     return stacksResult;
   }
@@ -601,18 +640,21 @@ public class AmbariMetaInfo {
 
     Set<Stack> supportedStackNames = getStackNames();
 
-    if (supportedStackNames.size() == 0)
+    if (supportedStackNames.size() == 0) {
       throw new StackAccessException("stackName=" + stackName);
+    }
 
     Stack stackResult = null;
 
     for (Stack stack : supportedStackNames) {
-      if (stack.getStackName().equals(stackName))
+      if (stack.getStackName().equals(stackName)) {
         stackResult = stack;
+      }
     }
 
-    if (stackResult == null)
+    if (stackResult == null) {
       throw new StackAccessException("stackName=" + stackName);
+    }
 
     return stackResult;
   }
@@ -621,8 +663,9 @@ public class AmbariMetaInfo {
 
     Set<StackInfo> stackVersions = new HashSet<StackInfo>();
     for (StackInfo stackInfo : stacksResult) {
-      if (stackName.equals(stackInfo.getName()))
+      if (stackName.equals(stackInfo.getName())) {
         stackVersions.add(stackInfo);
+      }
     }
     return stackVersions;
   }
@@ -638,9 +681,10 @@ public class AmbariMetaInfo {
       }
     }
 
-    if (stackInfoResult == null)
+    if (stackInfoResult == null) {
       throw new StackAccessException("stackName=" + stackName
           + ", stackVersion=" + version);
+    }
 
     return stackInfoResult;
   }
@@ -671,7 +715,7 @@ public class AmbariMetaInfo {
 
     return propertiesResult;
   }
-  
+
   public Set<PropertyInfo> getStackProperties(String stackName, String version)
       throws AmbariException {
     StackInfo stackInfo = getStackInfo(stackName, version);
@@ -685,48 +729,54 @@ public class AmbariMetaInfo {
       throws AmbariException {
     Set<PropertyInfo> properties = getProperties(stackName, version, serviceName);
 
-    if (properties.size() == 0)
+    if (properties.size() == 0) {
       throw new StackAccessException("stackName=" + stackName
           + ", stackVersion=" + version
           + ", serviceName=" + serviceName
           + ", propertyName=" + propertyName);
+    }
 
     Set<PropertyInfo> propertyResult = new HashSet<PropertyInfo>();
 
     for (PropertyInfo property : properties) {
-      if (property.getName().equals(propertyName))
+      if (property.getName().equals(propertyName)) {
         propertyResult.add(property);
+      }
     }
 
-    if (propertyResult.isEmpty())
+    if (propertyResult.isEmpty()) {
       throw new StackAccessException("stackName=" + stackName
           + ", stackVersion=" + version
           + ", serviceName=" + serviceName
           + ", propertyName=" + propertyName);
+    }
 
     return propertyResult;
   }
-  
+
   public Set<PropertyInfo> getStackPropertiesByName(String stackName, String version, String propertyName)
       throws AmbariException {
     Set<PropertyInfo> properties = getStackProperties(stackName, version);
 
-    if (properties.size() == 0)
+    if (properties.size() == 0) {
       throw new StackAccessException("stackName=" + stackName
           + ", stackVersion=" + version
           + ", propertyName=" + propertyName);
+    }
 
     Set<PropertyInfo> propertyResult = new HashSet<PropertyInfo>();
 
     for (PropertyInfo property : properties) {
-      if (property.getName().equals(propertyName))
+      if (property.getName().equals(propertyName)) {
         propertyResult.add(property);
+      }
     }
 
-    if (propertyResult.isEmpty())
+    if (propertyResult.isEmpty()) {
       throw new StackAccessException("stackName=" + stackName
           + ", stackVersion=" + version
           + ", propertyName=" + propertyName);
+    }
 
     return propertyResult;
   }
@@ -753,28 +803,31 @@ public class AmbariMetaInfo {
 
     Set<OperatingSystemInfo> operatingSystems = getOperatingSystems(stackName, version);
 
-    if (operatingSystems.size() == 0)
+    if (operatingSystems.size() == 0) {
       throw new StackAccessException("stackName=" + stackName
           + ", stackVersion=" + version
           + ", osType=" + osType);
+    }
 
     OperatingSystemInfo resultOperatingSystem = null;
 
     for (OperatingSystemInfo operatingSystem : operatingSystems) {
-      if (operatingSystem.getOsType().equals(osType))
+      if (operatingSystem.getOsType().equals(osType)) {
         resultOperatingSystem = operatingSystem;
+      }
     }
 
-    if (resultOperatingSystem == null)
+    if (resultOperatingSystem == null) {
       throw new StackAccessException("stackName=" + stackName
           + ", stackVersion=" + version
           + ", osType=" + osType);
+    }
 
     return resultOperatingSystem;
   }
 
   private void readServerVersion() throws Exception {
-    File versionFile = this.serverVersionFile;
+    File versionFile = serverVersionFile;
     if (!versionFile.exists()) {
       throw new AmbariException("Server version file does not exist.");
     }
@@ -823,10 +876,11 @@ public class AmbariMetaInfo {
         + ", stackRoot = " + stackRootAbsPath);
     }
 
-    if (!stackRoot.isDirectory() && !stackRoot.exists())
+    if (!stackRoot.isDirectory() && !stackRoot.exists()) {
       throw new IOException("" + Configuration.METADETA_DIR_PATH
         + " should be a directory with stack"
         + ", stackRoot = " + stackRootAbsPath);
+    }
 
     StackExtensionHelper stackExtensionHelper = new StackExtensionHelper(injector, stackRoot);
     stackExtensionHelper.fillInfo();
@@ -1011,8 +1065,9 @@ public class AmbariMetaInfo {
     // validate existing
     RepositoryInfo ri = getRepository(stackName, stackVersion, osType, repoId);
 
-    if (!stackRoot.exists())
+    if (!stackRoot.exists()) {
       throw new StackAccessException("Stack root does not exist.");
+    }
 
     ri.setBaseUrl(newBaseUrl);
 
@@ -1098,74 +1153,165 @@ public class AmbariMetaInfo {
     }
     return requiredProperties;
   }
-  
+
   /**
-   * @param stackName the stack name
-   * @param stackVersion the stack version
-   * @param serviceName the service name
-   * @return the alert definitions for a stack
+   * Gets the alert definitions for the specified stack and service.
+   *
+   * @param stackName
+   *          the stack name
+   * @param stackVersion
+   *          the stack version
+   * @param serviceName
+   *          the service name
+   * @return the alert definitions for a stack or an empty list if none (never
+   *         {@code null}).
    * @throws AmbariException
    */
   public Set<AlertDefinition> getAlertDefinitions(String stackName, String stackVersion,
       String serviceName) throws AmbariException {
-    
+
     ServiceInfo svc = getService(stackName, stackVersion, serviceName);
+    return getAlertDefinitions(svc);
+  }
 
-    if (null == svc.getAlertsFile() || !svc.getAlertsFile().exists()) {
-      LOG.debug("Alerts file for " + stackName + "/" + stackVersion + "/" + serviceName + " not found.");
-      return null;
-    }
-    
-    Map<String, List<AlertDefinition>> map = null;
+  /**
+   * Gets the alert definitions for the specified stack and service.
+   *
+   * @param stackName
+   *          the stack name
+   * @param stackVersion
+   *          the stack version
+   * @param serviceName
+   *          the service name
+   * @return the alert definitions for a stack or an empty list if none (never
+   *         {@code null}).
+   * @throws AmbariException
+   */
+  public Set<AlertDefinition> getAlertDefinitions(ServiceInfo service)
+      throws AmbariException {
+    File alertsFile = service.getAlertsFile();
 
-    GsonBuilder builder = new GsonBuilder().registerTypeAdapter(Source.class,
-        new JsonDeserializer<Source>() {
-          @Override
-          public Source deserialize(JsonElement json, Type typeOfT,
-              JsonDeserializationContext context) throws JsonParseException {
-            JsonObject jsonObj = (JsonObject) json;
+    if (null == alertsFile || !alertsFile.exists()) {
+      LOG.debug("Alerts file for {}/{} not found.", service.getSchemaVersion(),
+          service.getName());
 
-            SourceType type = SourceType.valueOf(jsonObj.get("type").getAsString());
-            Class<? extends Source> cls = null;
-            
-            switch (type) {
-              case METRIC:
-                cls = MetricSource.class;
-                break;
-              default:
-                break;
-            }
-
-            if (null != cls)
-              return context.deserialize(json, cls);
-            else
-              return null;
-          }
-        });
-    
-    Gson gson = builder.create();
-
-    try {
-      Type type = new TypeToken<Map<String, List<AlertDefinition>>>(){}.getType();
-      map = gson.fromJson(new FileReader(svc.getAlertsFile()), type);
-    } catch (Exception e) {
-      LOG.error ("Could not read the alert definition file", e);
-      throw new AmbariException("Could not read alert definition file", e);
+      return Collections.emptySet();
     }
 
-    Set<AlertDefinition> defs = new HashSet<AlertDefinition>();
-    
-    for (Entry<String, List<AlertDefinition>> entry : map.entrySet()) {
-      for (AlertDefinition ad : entry.getValue()) {
-        ad.setServiceName(serviceName);
-        if (!entry.getKey().equals("service")) {
-          ad.setComponentName(entry.getKey());
+    return alertDefinitionFactory.getAlertDefinitions(alertsFile,
+        service.getName());
+  }
+
+  /**
+   * Compares the alert definitions defined on the stack with those in the
+   * database and merges any new or updated definitions. This method will first
+   * determine the services that are installed on each cluster to prevent alert
+   * definitions from undeployed services from being shown.
+   *
+   * @param clusters
+   * @throws AmbariException
+   */
+  public void reconcileAlertDefinitions(Clusters clusters)
+      throws AmbariException {
+
+    Map<String, Cluster> clusterMap = clusters.getClusters();
+    if (null == clusterMap || clusterMap.size() == 0) {
+      return;
+    }
+
+    // for every cluster
+    for (Cluster cluster : clusterMap.values()) {
+      long clusterId = cluster.getClusterId();
+      StackId stackId = cluster.getDesiredStackVersion();
+      StackInfo stackInfo = getStackInfo(stackId.getStackName(),
+          stackId.getStackVersion());
+
+      // creating a mapping between service name and service for fast lookups
+      List<ServiceInfo> stackServices = stackInfo.getServices();
+      Map<String, ServiceInfo> stackServiceMap = new HashMap<String, ServiceInfo>();
+      for (ServiceInfo stackService : stackServices) {
+        stackServiceMap.put(stackService.getName(), stackService);
+      }
+
+      Map<String, Service> clusterServiceMap = cluster.getServices();
+      Set<String> clusterServiceNames = clusterServiceMap.keySet();
+
+      // for every service installed in that cluster, get the service metainfo
+      // and off of that the alert definitions
+      List<AlertDefinition> stackDefinitions = new ArrayList<AlertDefinition>(50);
+      for (String clusterServiceName : clusterServiceNames) {
+        ServiceInfo stackService = stackServiceMap.get(clusterServiceName);
+        if (null == stackService) {
+          continue;
+        }
+
+        // get all alerts defined on the stack for each cluster service
+        Set<AlertDefinition> serviceDefinitions = getAlertDefinitions(stackService);
+        stackDefinitions.addAll(serviceDefinitions);
+      }
+
+      // if there are no alert definitions defined for the cluster services
+      // then don't do anything and go to the next cluster
+      if (null == stackDefinitions || stackDefinitions.size() == 0) {
+        continue;
+      }
+
+      List<AlertDefinitionEntity> persist = new ArrayList<AlertDefinitionEntity>();
+      List<AlertDefinitionEntity> entities = alertDefinitionDao.findAll(clusterId);
+
+      // create a map of the entities for fast extraction
+      Map<String, AlertDefinitionEntity> mappedEntities = new HashMap<String, AlertDefinitionEntity>(100);
+      for (AlertDefinitionEntity entity : entities) {
+        mappedEntities.put(entity.getDefinitionName(), entity);
+      }
+
+      // for each stack definition, see if it exists and compare if it does
+      for( AlertDefinition stackDefinition : stackDefinitions ){
+        AlertDefinitionEntity entity = mappedEntities.get(stackDefinition.getName());
+
+        // no entity means this is new; create a new entity
+        if (null == entity) {
+          entity = alertDefinitionFactory.coerce(clusterId, stackDefinition);
+          persist.add(entity);
+          continue;
+        }
+
+        // definitions from the stack that are altered will not be overwritten;
+        // use the REST APIs to modify them instead
+        AlertDefinition databaseDefinition = alertDefinitionFactory.coerce(entity);
+        if (!stackDefinition.deeplyEquals(databaseDefinition)) {
+          // this is the code that would normally merge the stack definition
+          // into the database; this is not the behavior we want today
+
+          // entity = alertDefinitionFactory.merge(stackDefinition, entity);
+          // persist.add(entity);
+
+          LOG.debug(
+              "The alert named {} has been modified from the stack definition and will not be merged",
+              stackDefinition.getName());
+
+          continue;
         }
       }
-      defs.addAll(entry.getValue());
+
+      // persist any new or updated definition
+      for (AlertDefinitionEntity entity : persist) {
+        if (LOG.isDebugEnabled()) {
+          LOG.info("Merging Alert Definition {} into the database",
+              entity.getDefinitionName());
+        }
+        alertDefinitionDao.createOrUpdate(entity);
+      }
+
+      // all definition resolved; publish their registration
+      for (AlertDefinitionEntity def : alertDefinitionDao.findAll(cluster.getClusterId())) {
+        AlertDefinition realDef = alertDefinitionFactory.coerce(def);
+
+        AlertDefinitionRegistrationEvent event = new AlertDefinitionRegistrationEvent(
+            cluster.getClusterId(), realDef);
+
+        eventPublisher.publish(event);
+      }
     }
-    
-    return defs;
   }
-  
 }

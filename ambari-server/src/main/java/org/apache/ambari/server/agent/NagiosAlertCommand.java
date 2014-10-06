@@ -21,24 +21,27 @@ import java.util.Collection;
 
 import org.apache.ambari.server.state.Alert;
 
+import com.google.gson.annotations.SerializedName;
+
 /**
- * Specialized command that updates Nagios with alert data 
+ * Specialized command that updates Nagios with alert data
  */
 public class NagiosAlertCommand extends StatusCommand {
+  @SerializedName("alerts")
   private Collection<Alert> alerts = null;
-  
+
   /**
    * @param alerts
    */
   public void setAlerts(Collection<Alert> alertData) {
     alerts = alertData;
   }
-  
+
   /**
    * @return the alerts
    */
   public Collection<Alert> getAlerts() {
     return alerts;
   }
-  
+
 }

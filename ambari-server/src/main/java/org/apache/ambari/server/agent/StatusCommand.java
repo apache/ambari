@@ -20,8 +20,6 @@ package org.apache.ambari.server.agent;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.codehaus.jackson.annotate.JsonProperty;
-
 import com.google.gson.annotations.SerializedName;
 
 /**
@@ -33,96 +31,91 @@ public class StatusCommand extends AgentCommand {
     super(AgentCommandType.STATUS_COMMAND);
   }
 
+  @SerializedName("clusterName")
   private String clusterName;
+
+  @SerializedName("serviceName")
   private String serviceName;
+
+  @SerializedName("componentName")
   private String componentName;
+
+  @SerializedName("configurations")
   private Map<String, Map<String, String>> configurations;
+
   @SerializedName("configuration_attributes")
   private Map<String, Map<String, Map<String, String>>> configurationAttributes;
-  private Map<String, String> commandParams = new HashMap<String, String>();
-  private Map<String, String> hostLevelParams = new HashMap<String, String>();
-  private String hostname = null;
-  
 
-  @JsonProperty("clusterName")
+  @SerializedName("commandParams")
+  private Map<String, String> commandParams = new HashMap<String, String>();
+
+  @SerializedName("hostLevelParams")
+  private Map<String, String> hostLevelParams = new HashMap<String, String>();
+
+  @SerializedName("hostname")
+  private String hostname = null;
+
   public String getClusterName() {
     return clusterName;
   }
-  
-  @JsonProperty("clusterName")
+
   public void setClusterName(String clusterName) {
     this.clusterName = clusterName;
   }
 
-  @JsonProperty("serviceName")
   public String getServiceName() {
     return serviceName;
   }
 
-  @JsonProperty("serviceName")
   public void setServiceName(String serviceName) {
     this.serviceName = serviceName;
   }
 
-  @JsonProperty("componentName")
   public String getComponentName() {
     return componentName;
   }
 
-  @JsonProperty("componentName")
   public void setComponentName(String componentName) {
     this.componentName = componentName;
   }
-  
-  @JsonProperty("configurations")
+
   public Map<String, Map<String, String>> getConfigurations() {
     return configurations;
   }
 
-  @JsonProperty("configurations")
   public void setConfigurations(Map<String, Map<String, String>> configurations) {
     this.configurations = configurations;
   }
 
-  @JsonProperty("configuration_attributes")
   public Map<String, Map<String, Map<String, String>>> getConfigurationAttributes() {
     return configurationAttributes;
   }
 
-  @JsonProperty("configuration_attributes")
   public void setConfigurationAttributes(Map<String, Map<String, Map<String, String>>> configurationAttributes) {
     this.configurationAttributes = configurationAttributes;
   }
 
-  @JsonProperty("hostLevelParams")
   public Map<String, String> getHostLevelParams() {
     return hostLevelParams;
   }
 
-  @JsonProperty("hostLevelParams")
   public void setHostLevelParams(Map<String, String> params) {
-    this.hostLevelParams = params;
+    hostLevelParams = params;
   }
 
-  @JsonProperty("commandParams")
   public Map<String, String> getCommandParams() {
     return commandParams;
   }
 
-  @JsonProperty("commandParams")
   public void setCommandParams(Map<String, String> commandParams) {
     this.commandParams = commandParams;
   }
-  
-  @JsonProperty("hostname")
+
   public void setHostname(String hostname) {
     this.hostname = hostname;
   }
 
-  @JsonProperty("hostname")
   public String getHostname() {
     return hostname;
   }
-  
-  
 }

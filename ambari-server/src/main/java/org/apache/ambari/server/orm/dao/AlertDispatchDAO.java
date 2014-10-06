@@ -22,9 +22,12 @@ import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 
+import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.AlertGroupEntity;
 import org.apache.ambari.server.orm.entities.AlertNoticeEntity;
 import org.apache.ambari.server.orm.entities.AlertTargetEntity;
+import org.apache.ambari.server.state.NotificationState;
+import org.apache.ambari.server.state.alert.AlertGroup;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -51,7 +54,7 @@ public class AlertDispatchDAO {
 
   /**
    * Gets an alert group with the specified ID.
-   * 
+   *
    * @param groupId
    *          the ID of the group to retrieve.
    * @return the group or {@code null} if none exists.
@@ -62,7 +65,7 @@ public class AlertDispatchDAO {
 
   /**
    * Gets an alert target with the specified ID.
-   * 
+   *
    * @param targetId
    *          the ID of the target to retrieve.
    * @return the target or {@code null} if none exists.
@@ -72,8 +75,24 @@ public class AlertDispatchDAO {
   }
 
   /**
+   * Gets all of the alert targets for the list of IDs given.
+   *
+   * @param targetIds
+   *          the IDs of the targets to retrieve.
+   * @return the targets or an empty list (never {@code null}).
+   */
+  public List<AlertTargetEntity> findTargetsById(List<Long> targetIds) {
+    TypedQuery<AlertTargetEntity> query = entityManagerProvider.get().createNamedQuery(
+        "AlertTargetEntity.findByIds", AlertTargetEntity.class);
+
+    query.setParameter("targetIds", targetIds);
+
+    return daoUtils.selectList(query);
+  }
+
+  /**
    * Gets a notification with the specified ID.
-   * 
+   *
    * @param noticeId
    *          the ID of the notification to retrieve.
    * @return the notification or {@code null} if none exists.
@@ -83,9 +102,40 @@ public class AlertDispatchDAO {
   }
 
   /**
+   * Gets a notification with the specified UUID.
+   *
+   * @param uuid
+   *          the UUID of the notification to retrieve.
+   * @return the notification or {@code null} if none exists.
+   */
+  public AlertNoticeEntity findNoticeByUuid(String uuid) {
+    TypedQuery<AlertNoticeEntity> query = entityManagerProvider.get().createNamedQuery(
+        "AlertNoticeEntity.findByUuid", AlertNoticeEntity.class);
+
+    query.setParameter("uuid", uuid);
+
+    return daoUtils.selectOne(query);
+  }
+
+  /**
+   * Gets all {@link AlertNoticeEntity} instances that are
+   * {@link NotificationState#PENDING} and not yet dispatched.
+   *
+   * @return the notices that are waiting to be dispatched, or an empty list
+   *         (never {@code null}).
+   */
+  public List<AlertNoticeEntity> findPendingNotices() {
+    TypedQuery<AlertNoticeEntity> query = entityManagerProvider.get().createNamedQuery(
+        "AlertNoticeEntity.findByState", AlertNoticeEntity.class);
+
+    query.setParameter("notifyState", NotificationState.PENDING);
+    return daoUtils.selectList(query);
+  }
+
+  /**
    * Gets an alert group with the specified name across all clusters. Alert
    * group names are unique within a cluster.
-   * 
+   *
    * @param groupName
    *          the name of the group (not {@code null}).
    * @return the alert group or {@code null} if none exists.
@@ -102,7 +152,7 @@ public class AlertDispatchDAO {
   /**
    * Gets an alert group with the specified name for the given cluster. Alert
    * group names are unique within a cluster.
-   * 
+   *
    * @param clusterId
    *          the ID of the cluster.
    * @param groupName
@@ -122,7 +172,7 @@ public class AlertDispatchDAO {
   /**
    * Gets an alert target with the specified name. Alert target names are unique
    * across all clusters.
-   * 
+   *
    * @param targetName
    *          the name of the target (not {@code null}).
    * @return the alert target or {@code null} if none exists.
@@ -138,7 +188,7 @@ public class AlertDispatchDAO {
 
   /**
    * Gets all alert groups stored in the database across all clusters.
-   * 
+   *
    * @return all alert groups or empty list if none exist (never {@code null}).
    */
   public List<AlertGroupEntity> findAllGroups() {
@@ -150,7 +200,7 @@ public class AlertDispatchDAO {
 
   /**
    * Gets all alert groups stored in the database for the specified cluster.
-   * 
+   *
    * @return all alert groups in the specified cluster or empty list if none
    *         exist (never {@code null}).
    */
@@ -165,7 +215,7 @@ public class AlertDispatchDAO {
 
   /**
    * Gets all alert targets stored in the database.
-   * 
+   *
    * @return all alert targets or empty list if none exist (never {@code null}).
    */
   public List<AlertTargetEntity> findAllTargets() {
@@ -176,8 +226,46 @@ public class AlertDispatchDAO {
   }
 
   /**
+   * Gets all of the {@link AlertGroup} instances that include the specified
+   * alert definition. Service default groups will also be returned.
+   *
+   * @param definitionEntity
+   *          the definition that the group must include (not {@code null}).
+   * @return all alert groups that have an association with the specified
+   *         definition and the definition's service default group or empty list
+   *         if none exist (never {@code null}).
+   */
+  public List<AlertGroupEntity> findGroupsByDefinition(
+      AlertDefinitionEntity definitionEntity) {
+
+    TypedQuery<AlertGroupEntity> query = entityManagerProvider.get().createNamedQuery(
+        "AlertGroupEntity.findByAssociatedDefinition", AlertGroupEntity.class);
+
+    query.setParameter("alertDefinition", definitionEntity);
+
+    return daoUtils.selectList(query);
+  }
+
+  /**
+   * Gets the default group for the specified service.
+   *
+   * @param serviceName
+   *          the name of the service (not {@code null}).
+   * @return the default group, or {@code null} if the service name is not valid
+   *         for an installed service; otherwise {@code null} should not be
+   *         possible.
+   */
+  public AlertGroupEntity findDefaultServiceGroup(String serviceName) {
+    TypedQuery<AlertGroupEntity> query = entityManagerProvider.get().createNamedQuery(
+        "AlertGroupEntity.findServiceDefaultGroup", AlertGroupEntity.class);
+
+    query.setParameter("serviceName", serviceName);
+    return daoUtils.selectSingle(query);
+  }
+
+  /**
    * Gets all alert notifications stored in the database.
-   * 
+   *
    * @return all alert notifications or empty list if none exist (never
    *         {@code null}).
    */
@@ -189,8 +277,25 @@ public class AlertDispatchDAO {
   }
 
   /**
+   * Persists new alert groups.
+   *
+   * @param entities
+   *          the groups to persist (not {@code null}).
+   */
+  @Transactional
+  public void createGroups(List<AlertGroupEntity> entities) {
+    if (null == entities) {
+      return;
+    }
+
+    for (AlertGroupEntity entity : entities) {
+      create(entity);
+    }
+  }
+
+  /**
    * Persists a new alert group.
-   * 
+   *
    * @param alertGroup
    *          the group to persist (not {@code null}).
    */
@@ -201,7 +306,7 @@ public class AlertDispatchDAO {
 
   /**
    * Refresh the state of the alert group from the database.
-   * 
+   *
    * @param alertGroup
    *          the group to refresh (not {@code null}).
    */
@@ -212,7 +317,7 @@ public class AlertDispatchDAO {
 
   /**
    * Merge the speicified alert group with the existing group in the database.
-   * 
+   *
    * @param alertGroup
    *          the group to merge (not {@code null}).
    * @return the updated group with merged content (never {@code null}).
@@ -224,7 +329,7 @@ public class AlertDispatchDAO {
 
   /**
    * Removes the specified alert group from the database.
-   * 
+   *
    * @param alertGroup
    *          the group to remove.
    */
@@ -234,8 +339,40 @@ public class AlertDispatchDAO {
   }
 
   /**
+   * Removes all {@link AlertDefinitionEntity} that are associated with the
+   * specified cluster ID.
+   *
+   * @param clusterId
+   *          the cluster ID.
+   */
+  @Transactional
+  public void removeAllGroups(long clusterId) {
+    List<AlertGroupEntity> groups = findAllGroups(clusterId);
+    for (AlertGroupEntity group : groups) {
+      remove(group);
+    }
+  }
+
+  /**
+   * Persists new alert targets.
+   *
+   * @param entities
+   *          the targets to persist (not {@code null}).
+   */
+  @Transactional
+  public void createTargets(List<AlertTargetEntity> entities) {
+    if (null == entities) {
+      return;
+    }
+
+    for (AlertTargetEntity entity : entities) {
+      create(entity);
+    }
+  }
+
+  /**
    * Persists a new alert target.
-   * 
+   *
    * @param alertTarget
    *          the target to persist (not {@code null}).
    */
@@ -246,7 +383,7 @@ public class AlertDispatchDAO {
 
   /**
    * Refresh the state of the alert target from the database.
-   * 
+   *
    * @param alertTarget
    *          the target to refresh (not {@code null}).
    */
@@ -257,7 +394,7 @@ public class AlertDispatchDAO {
 
   /**
    * Merge the speicified alert target with the existing target in the database.
-   * 
+   *
    * @param alertTarget
    *          the target to merge (not {@code null}).
    * @return the updated target with merged content (never {@code null}).
@@ -269,7 +406,7 @@ public class AlertDispatchDAO {
 
   /**
    * Removes the specified alert target from the database.
-   * 
+   *
    * @param alertTarget
    *          the target to remove.
    */
@@ -280,7 +417,7 @@ public class AlertDispatchDAO {
 
   /**
    * Persists a new notification.
-   * 
+   *
    * @param alertNotice
    *          the notification to persist (not {@code null}).
    */
@@ -291,7 +428,7 @@ public class AlertDispatchDAO {
 
   /**
    * Refresh the state of the notification from the database.
-   * 
+   *
    * @param alertNotice
    *          the notification to refresh (not {@code null}).
    */
@@ -302,7 +439,7 @@ public class AlertDispatchDAO {
 
   /**
    * Merge the specified notification with the existing target in the database.
-   * 
+   *
    * @param alertNotice
    *          the notification to merge (not {@code null}).
    * @return the updated notification with merged content (never {@code null}).
@@ -314,7 +451,7 @@ public class AlertDispatchDAO {
 
   /**
    * Removes the specified notification from the database.
-   * 
+   *
    * @param alertNotice
    *          the notification to remove.
    */
@@ -327,7 +464,7 @@ public class AlertDispatchDAO {
    * Removes notifications for the specified alert definition ID. This will
    * invoke {@link EntityManager#clear()} when completed since the JPQL
    * statement will remove entries without going through the EM.
-   * 
+   *
    * @param definitionId
    *          the ID of the definition to remove.
    */

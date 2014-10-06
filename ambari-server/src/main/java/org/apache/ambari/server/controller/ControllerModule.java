@@ -33,10 +33,13 @@ import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_USER
 import static org.eclipse.persistence.config.PersistenceUnitProperties.THROW_EXCEPTIONS;
 
 import java.security.SecureRandom;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.Set;
 
+import org.apache.ambari.server.EagerSingleton;
 import org.apache.ambari.server.actionmanager.ActionDBAccessor;
 import org.apache.ambari.server.actionmanager.ActionDBAccessorImpl;
 import org.apache.ambari.server.actionmanager.ExecutionCommandWrapper;
@@ -85,16 +88,24 @@ import org.apache.ambari.server.state.host.HostImpl;
 import org.apache.ambari.server.state.scheduler.RequestExecution;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
 import org.apache.ambari.server.state.scheduler.RequestExecutionImpl;
+import org.apache.ambari.server.state.services.AlertNoticeDispatchService;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostImpl;
 import org.apache.ambari.server.view.ViewInstanceHandlerList;
 import org.eclipse.jetty.server.SessionIdManager;
 import org.eclipse.jetty.server.SessionManager;
 import org.eclipse.jetty.server.session.HashSessionIdManager;
 import org.eclipse.jetty.server.session.HashSessionManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
+import org.springframework.core.type.filter.AnnotationTypeFilter;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.crypto.password.StandardPasswordEncoder;
+import org.springframework.util.ClassUtils;
 import org.springframework.web.filter.DelegatingFilterProxy;
 
+import com.google.common.util.concurrent.ServiceManager;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.inject.AbstractModule;
@@ -108,6 +119,7 @@ import com.google.inject.persist.jpa.AmbariJpaPersistModule;
  * Used for injection purposes.
  */
 public class ControllerModule extends AbstractModule {
+  private static Logger LOG = LoggerFactory.getLogger(ControllerModule.class);
 
   private final Configuration configuration;
   private final HostsMap hostsMap;
@@ -222,6 +234,9 @@ public class ControllerModule extends AbstractModule {
     bind(ViewInstanceHandlerList.class).to(AmbariHandlerList.class);
 
     requestStaticInjection(ExecutionCommandWrapper.class);
+
+    bindServices();
+    bindEagerSingletons();
   }
 
 
@@ -298,5 +313,59 @@ public class ControllerModule extends AbstractModule {
 
     bind(HostRoleCommandFactory.class).to(HostRoleCommandFactoryImpl.class);
     bind(SecurityHelper.class).toInstance(SecurityHelperImpl.getInstance());
+  }
+
+  /**
+   * Bind all {@link com.google.common.util.concurrent.Service} singleton
+   * instances and then register them with a singleton {@link ServiceManager}.
+   */
+  private void bindServices() {
+    Set<com.google.common.util.concurrent.Service> services =
+        new HashSet<com.google.common.util.concurrent.Service>();
+
+    AlertNoticeDispatchService alertNoticeDispatchService =
+        new AlertNoticeDispatchService();
+
+    bind(AlertNoticeDispatchService.class).toInstance(
+        alertNoticeDispatchService);
+
+    services.add(alertNoticeDispatchService);
+    ServiceManager manager = new ServiceManager(services);
+    bind(ServiceManager.class).toInstance(manager);
+  }
+
+  /**
+   * Initializes all eager singletons that should be instantiated as soon as
+   * possible and not wait for injection.
+   * <p/>
+   * An example of where this is needed is with a singleton that is headless; in
+   * other words, it doesn't have any injections but still needs to be part of
+   * the Guice framework.
+   * <p/>
+   * This currently scans {@code org.apache.ambari.server} for any
+   * {@link EagerSingleton} instances.
+   */
+  private void bindEagerSingletons() {
+    ClassPathScanningCandidateComponentProvider scanner =
+        new ClassPathScanningCandidateComponentProvider(false);
+
+    // match only singletons that are eager listeners
+    scanner.addIncludeFilter(new AnnotationTypeFilter(EagerSingleton.class));
+
+    Set<BeanDefinition> beanDefinitions = scanner.findCandidateComponents("org.apache.ambari.server");
+
+    if (null == beanDefinitions || beanDefinitions.size() == 0) {
+      LOG.warn("No instances of {} found to register", EagerSingleton.class);
+      return;
+    }
+
+    for (BeanDefinition beanDefinition : beanDefinitions) {
+      String className = beanDefinition.getBeanClassName();
+      Class<?> clazz = ClassUtils.resolveClassName(className,
+          ClassUtils.getDefaultClassLoader());
+
+      bind(clazz).asEagerSingleton();
+      LOG.debug("Binding singleton {} eagerly", clazz);
+    }
   }
 }

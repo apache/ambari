@@ -1,0 +1,24 @@
+{
+  "service": [],
+  "HBASE_MASTER": [
+    {
+      "name": "hbase_master_process",
+      "label": "HBase Master Process",
+      "interval": 1,
+      "scope": "ANY",
+      "source": {
+        "type": "PORT",
+        "uri": "{{hbase-site/hbase.master.port}}",
+        "default_port": 60000,
+        "reporting": {
+          "ok": {
+            "text": "TCP OK - {0:.4f} response on port {1}"
+          },
+          "critical": {
+            "text": "Connection failed: {0} on host {1}:{2}"
+          }
+        }        
+      }
+    }
+  ]
+}

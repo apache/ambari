@@ -19,7 +19,7 @@
 package org.apache.ambari.server.api.resources;
 
 
-import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.ambari.server.controller.spi.Resource;
@@ -48,6 +48,9 @@ public class HostResourceDefinition extends BaseResourceDefinition {
 
   @Override
   public Set<SubResourceDefinition> getSubResourceDefinitions() {
-    return Collections.singleton(new SubResourceDefinition(Resource.Type.HostComponent));
+    Set<SubResourceDefinition> subs = new HashSet<SubResourceDefinition>();
+    subs.add(new SubResourceDefinition(Resource.Type.HostComponent));
+    subs.add(new SubResourceDefinition(Resource.Type.Alert));
+    return subs;
   }
 }

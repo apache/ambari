@@ -114,7 +114,10 @@ public interface Resource {
     Validation,
     HostComponentProcess,
     Permission,
+    Alert,
     AlertDefinition,
+    AlertGroup,
+    AlertTarget,
     AmbariPrivilege,
     ClusterPrivilege,
     ViewPrivilege,
@@ -196,7 +199,10 @@ public interface Resource {
     public static final Type Validation = InternalType.Validation.getType();
     public static final Type HostComponentProcess = InternalType.HostComponentProcess.getType();
     public static final Type Permission = InternalType.Permission.getType();
+    public static final Type Alert = InternalType.Alert.getType();
     public static final Type AlertDefinition = InternalType.AlertDefinition.getType();
+    public static final Type AlertGroup = InternalType.AlertGroup.getType();
+    public static final Type AlertTarget = InternalType.AlertTarget.getType();
     public static final Type AmbariPrivilege = InternalType.AmbariPrivilege.getType();
     public static final Type ClusterPrivilege = InternalType.ClusterPrivilege.getType();
     public static final Type ViewPrivilege = InternalType.ViewPrivilege.getType();
@@ -317,8 +323,13 @@ public interface Resource {
 
     @Override
     public boolean equals(Object o) {
-      if (this == o) return true;
-      if (o == null || getClass() != o.getClass()) return false;
+      if (this == o) {
+        return true;
+      }
+
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
 
       Type type = (Type) o;
 

@@ -17,52 +17,55 @@
  */
 package org.apache.ambari.server.agent;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.ambari.server.agent.AgentCommand.AgentCommandType;
+import org.easymock.EasyMock;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class TestActionQueue {
-  
+
   private static Logger LOG = LoggerFactory.getLogger(TestActionQueue.class);
-  
+
   private static int threadCount = 100;
   static class ActionQueueOperation implements Runnable {
-    
+
     enum OpType {
       ENQUEUE,
       DEQUEUE,
       DEQUEUEALL
     }
-  
+
     private volatile boolean shouldRun = true;
     private long [] opCounts;
     private ActionQueue actionQueue;
     private OpType operation;
     private String[] hosts;
-    
+
     public ActionQueueOperation(ActionQueue aq, String [] hosts, OpType op) {
-      this.actionQueue = aq;
-      this.operation = op;
+      actionQueue = aq;
+      operation = op;
       this.hosts = hosts;
       opCounts = new long [hosts.length];
       for (int i = 0; i < hosts.length; i++) {
         opCounts[i] = 0;
       }
     }
-    
+
     public long [] getOpCounts() {
       return opCounts;
     }
-    
+
     public void stop() {
-      this.shouldRun = false;
+      shouldRun = false;
     }
-    
+
     @Override
     public void run() {
       try {
@@ -82,7 +85,7 @@ public class TestActionQueue {
         throw new RuntimeException("Failure", ex);
       }
     }
-    
+
     private void enqueueOp() throws InterruptedException {
       while (shouldRun) {
         int index = 0;
@@ -94,7 +97,7 @@ public class TestActionQueue {
         Thread.sleep(1);
       }
     }
-    
+
     private void dequeueOp() throws InterruptedException {
       while (shouldRun) {
         int index = 0;
@@ -108,7 +111,7 @@ public class TestActionQueue {
         Thread.sleep(1);
       }
     }
-    
+
     private void dequeueAllOp() throws InterruptedException {
       while (shouldRun) {
         int index = 0;
@@ -123,7 +126,7 @@ public class TestActionQueue {
       }
     }
   }
-  
+
   @Test
   public void testConcurrentOperations() throws InterruptedException {
     ActionQueue aq = new ActionQueue();
@@ -185,7 +188,7 @@ public class TestActionQueue {
         }
       }
     }
-    
+
     // Stop all threads
     for (int i = 0; i < threadCount; i++) {
       dequeOperators[i].stop();
@@ -195,7 +198,7 @@ public class TestActionQueue {
     for (Thread consumer : consumers) {
       consumer.join();
     }
-    
+
     for (int h = 0; h<hosts.length; h++) {
       long opsEnqueued = 0;
       long opsDequeued = 0;
@@ -210,5 +213,54 @@ public class TestActionQueue {
           + ", opsDequeued: " + opsDequeued);
       assertEquals(opsDequeued, opsEnqueued);
     }
+  }
+
+  /**
+   * @throws Exception
+   */
+  @Test
+  public void testDequeueCommandType() throws Exception {
+    ActionQueue queue = new ActionQueue();
+    String c6401 = "c6401.ambari.apache.org";
+    String c6402 = "c6402.ambari.apache.org";
+
+    queue.enqueue(c6401,
+        EasyMock.createMockBuilder(ExecutionCommand.class).createNiceMock());
+
+    queue.enqueue(c6401,
+        EasyMock.createMockBuilder(StatusCommand.class).createNiceMock());
+
+    queue.enqueue(c6401,
+        EasyMock.createMockBuilder(AlertDefinitionCommand.class).createNiceMock());
+
+    queue.enqueue(c6401,
+        EasyMock.createMockBuilder(StatusCommand.class).createNiceMock());
+
+    queue.enqueue(c6401,
+        EasyMock.createMockBuilder(AlertDefinitionCommand.class).createNiceMock());
+
+    queue.enqueue(c6401,
+        EasyMock.createMockBuilder(StatusCommand.class).createNiceMock());
+
+    queue.enqueue(c6401,
+        EasyMock.createMockBuilder(AlertDefinitionCommand.class).createNiceMock());
+
+    queue.enqueue(c6402,
+        EasyMock.createMockBuilder(ExecutionCommand.class).createNiceMock());
+
+    queue.enqueue(c6402,
+        EasyMock.createMockBuilder(StatusCommand.class).createNiceMock());
+
+    queue.enqueue(c6402,
+        EasyMock.createMockBuilder(AlertDefinitionCommand.class).createNiceMock());
+
+    assertEquals(7, queue.size(c6401));
+
+    List<AgentCommand> commands = queue.dequeue(c6401,
+        AgentCommandType.ALERT_DEFINITION_COMMAND);
+
+    assertEquals(3, commands.size());
+    assertEquals(4, queue.size(c6401));
+    assertEquals(3, queue.size(c6402));
   }
 }

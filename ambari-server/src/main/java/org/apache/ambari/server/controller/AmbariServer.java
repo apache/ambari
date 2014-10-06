@@ -46,6 +46,10 @@ import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.AbstractControllerResourceProvider;
 import org.apache.ambari.server.controller.internal.AlertDefinitionResourceProvider;
+import org.apache.ambari.server.controller.internal.AlertGroupResourceProvider;
+import org.apache.ambari.server.controller.internal.AlertResourceProvider;
+import org.apache.ambari.server.controller.internal.AlertSummaryPropertyProvider;
+import org.apache.ambari.server.controller.internal.AlertTargetResourceProvider;
 import org.apache.ambari.server.controller.internal.AmbariPrivilegeResourceProvider;
 import org.apache.ambari.server.controller.internal.BlueprintResourceProvider;
 import org.apache.ambari.server.controller.internal.ClusterPrivilegeResourceProvider;
@@ -59,7 +63,6 @@ import org.apache.ambari.server.controller.internal.ViewPermissionResourceProvid
 import org.apache.ambari.server.controller.nagios.NagiosPropertyProvider;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.PersistenceType;
-import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.BlueprintDAO;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.GroupDAO;
@@ -110,10 +113,12 @@ import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.GenericWebApplicationContext;
 import org.springframework.web.filter.DelegatingFilterProxy;
 
+import com.google.common.util.concurrent.ServiceManager;
 import com.google.gson.Gson;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+import com.google.inject.Scopes;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 import com.google.inject.persist.Transactional;
@@ -144,6 +149,13 @@ public class AmbariServer {
   @Inject
   @Named("dbInitNeeded")
   boolean dbInitNeeded;
+
+  /**
+   * Guava service manager singleton (bound with {@link Scopes#SINGLETON}).
+   */
+  @Inject
+  private ServiceManager serviceManager;
+
   /**
    * The singleton view registry.
    */
@@ -437,6 +449,9 @@ public class AmbariServer {
       LOG.info("********* Current Clusters State *********");
       LOG.info(clusterDump.toString());
 
+      LOG.info("********* Reconciling Alert Definitions **********");
+      ambariMetaInfo.reconcileAlertDefinitions(clusters);
+
       LOG.info("********* Initializing ActionManager **********");
       ActionManager manager = injector.getInstance(ActionManager.class);
       LOG.info("********* Initializing Controller **********");
@@ -466,6 +481,9 @@ public class AmbariServer {
 
       executionScheduleManager.start();
       LOG.info("********* Started Scheduled Request Manager **********");
+
+      serviceManager.startAsync();
+      LOG.info("********* Started Services **********");
 
       server.join();
       LOG.info("Joined the Server");
@@ -555,7 +573,11 @@ public class AmbariServer {
         injector.getInstance(Gson.class), ambariMetaInfo);
     StackDependencyResourceProvider.init(ambariMetaInfo);
     ClusterResourceProvider.init(injector.getInstance(BlueprintDAO.class), ambariMetaInfo, injector.getInstance(ConfigHelper.class));
-    AlertDefinitionResourceProvider.init(injector.getInstance(AlertDefinitionDAO.class));
+    AlertResourceProvider.init(injector);
+    AlertDefinitionResourceProvider.init(injector);
+    AlertGroupResourceProvider.init(injector);
+    AlertSummaryPropertyProvider.init(injector);
+    AlertTargetResourceProvider.init(injector);
     PermissionResourceProvider.init(injector.getInstance(PermissionDAO.class));
     ViewPermissionResourceProvider.init(injector.getInstance(PermissionDAO.class));
     PrivilegeResourceProvider.init(injector.getInstance(PrivilegeDAO.class), injector.getInstance(UserDAO.class),

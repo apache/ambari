@@ -31,15 +31,16 @@ import pprint
 from random import randint
 
 import hostname
+import security
+import ssl
 import AmbariConfig
 from Heartbeat import Heartbeat
 from Register import Register
 from ActionQueue import ActionQueue
-import security
+from FileCache import FileCache
 from NetUtil import NetUtil
-import ssl
 from LiveStatus import LiveStatus
-
+from AlertSchedulerHandler import AlertSchedulerHandler
 
 logger = logging.getLogger()
 
@@ -73,6 +74,15 @@ class Controller(threading.Thread):
     self.heartbeat_wait_event = threading.Event()
     # List of callbacks that are called at agent registration
     self.registration_listeners = []
+    
+    # pull config directory out of config
+    cache_dir = config.get('agent', 'cache_dir')
+    if cache_dir is None:
+      cache_dir = '/var/lib/ambari-agent/cache'
+
+    stacks_cache_dir = os.path.join(cache_dir, FileCache.STACKS_CACHE_DIRECTORY)
+    alerts_cache_dir = os.path.join(cache_dir, 'alerts')
+    self.alert_scheduler_handler = AlertSchedulerHandler(alerts_cache_dir, stacks_cache_dir)
 
 
   def __del__(self):
@@ -129,6 +139,12 @@ class Controller(threading.Thread):
           pass
         else:
           self.hasMappedComponents = False
+
+        if 'alertDefinitionCommands' in ret.keys():
+          logger.info("Got alert definition update on registration " + pprint.pformat(ret['alertDefinitionCommands']))
+          self.alert_scheduler_handler.update_definitions(ret['alertDefinitionCommands'])
+          pass
+
         pass
       except ssl.SSLError:
         self.repeatRegistration = False
@@ -236,11 +252,20 @@ class Controller(threading.Thread):
 
         if 'executionCommands' in response.keys():
           self.addToQueue(response['executionCommands'])
+          self.alert_scheduler_handler.update_configurations(response['executionCommands'])
           pass
 
         if 'statusCommands' in response.keys():
           self.addToStatusQueue(response['statusCommands'])
           pass
+          
+        if 'alertDefinitionCommands' in response.keys():
+          self.alert_scheduler_handler.update_definitions(response['alertDefinitionCommands'], True)
+          pass
+        
+        if 'alertExecutionCommands' in response.keys():
+          self.alert_scheduler_handler.execute_alert(response['alertExecutionCommands'])
+          pass        
 
         if "true" == response['restartAgent']:
           logger.error("Received the restartAgent command")
@@ -301,7 +326,7 @@ class Controller(threading.Thread):
     self.actionQueue = ActionQueue(self.config, controller=self)
     self.actionQueue.start()
     self.register = Register(self.config)
-    self.heartbeat = Heartbeat(self.actionQueue, self.config)
+    self.heartbeat = Heartbeat(self.actionQueue, self.config, self.alert_scheduler_handler.collector())
 
     opener = urllib2.build_opener()
     urllib2.install_opener(opener)
@@ -318,6 +343,8 @@ class Controller(threading.Thread):
     registerResponse = self.registerWithServer()
     message = registerResponse['response']
     logger.info("Registration response from %s was %s", self.serverHostname, message)
+
+    self.alert_scheduler_handler.start()
 
     if self.isRegistered:
       # Clearing command queue to stop executing "stale" commands

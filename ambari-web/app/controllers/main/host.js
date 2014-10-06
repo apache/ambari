@@ -98,7 +98,7 @@ App.MainHostController = Em.ArrayController.extend({
     },
     {
       key: 'criticalAlertsCount',
-      alias: 'alerts/summary/CRITICAL{0}|alerts/summary/WARNING{1}',
+      alias: 'legacy_alerts/summary/CRITICAL{0}|legacy_alerts/summary/WARNING{1}',
       type: 'CUSTOM'
     },
     {
@@ -344,7 +344,7 @@ App.MainHostController = Em.ArrayController.extend({
       'UNHEALTHY': data.Clusters.health_report['Host/host_status/UNHEALTHY'],
       'ALERT': data.Clusters.health_report['Host/host_status/ALERT'],
       'UNKNOWN': data.Clusters.health_report['Host/host_status/UNKNOWN'],
-      'health-status-WITH-ALERTS': (data.alerts) ? data.alerts.summary.CRITICAL + data.alerts.summary.WARNING : 0,
+      'health-status-WITH-ALERTS': (data.legacy_alerts) ? data.legacy_alerts.summary.CRITICAL + data.legacy_alerts.summary.WARNING : 0,
       'health-status-RESTART': data.Clusters.health_report['Host/stale_config'],
       'health-status-PASSIVE_STATE': data.Clusters.health_report['Host/maintenance_state'],
       'TOTAL': data.Clusters.total_hosts

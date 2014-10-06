@@ -19,6 +19,7 @@ package org.apache.ambari.server.orm.dao;
 
 import java.util.Collections;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -28,6 +29,9 @@ import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.AlertCurrentEntity;
 import org.apache.ambari.server.orm.entities.AlertHistoryEntity;
 import org.apache.ambari.server.state.AlertState;
+import org.apache.ambari.server.state.alert.Scope;
+import org.eclipse.persistence.config.HintValues;
+import org.eclipse.persistence.config.QueryHints;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -55,7 +59,7 @@ public class AlertsDAO {
 
   /**
    * Gets an alert with the specified ID.
-   * 
+   *
    * @param alertId
    *          the ID of the alert to retrieve.
    * @return the alert or {@code null} if none exists.
@@ -66,7 +70,7 @@ public class AlertsDAO {
 
   /**
    * Gets all alerts stored in the database across all clusters.
-   * 
+   *
    * @return all alerts or an empty list if none exist (never {@code null}).
    */
   public List<AlertHistoryEntity> findAll() {
@@ -78,7 +82,7 @@ public class AlertsDAO {
 
   /**
    * Gets all alerts stored in the database for the given cluster.
-   * 
+   *
    * @param clusterId
    *          the ID of the cluster.
    * @return all alerts in the specified cluster or an empty list if none exist
@@ -96,7 +100,7 @@ public class AlertsDAO {
   /**
    * Gets all alerts stored in the database for the given cluster that have one
    * of the specified alert states.
-   * 
+   *
    * @param clusterId
    *          the ID of the cluster.
    * @param alertStates
@@ -124,7 +128,7 @@ public class AlertsDAO {
    * Gets all alerts stored in the database for the given cluster and that fall
    * withing the specified date range. Dates are expected to be in milliseconds
    * since the epoch, normalized to UTC time.
-   * 
+   *
    * @param clusterId
    *          the ID of the cluster.
    * @param startDate
@@ -139,8 +143,9 @@ public class AlertsDAO {
    */
   public List<AlertHistoryEntity> findAll(long clusterId, Date startDate,
       Date endDate) {
-    if (null == startDate && null == endDate)
+    if (null == startDate && null == endDate) {
       return Collections.emptyList();
+    }
 
     TypedQuery<AlertHistoryEntity> query = null;
 
@@ -172,15 +177,16 @@ public class AlertsDAO {
       query.setParameter("beforeDate", endDate.getTime());
     }
 
-    if (null == query)
+    if (null == query) {
       return Collections.emptyList();
+    }
 
     return daoUtils.selectList(query);
   }
 
   /**
    * Gets the current alerts.
-   * 
+   *
    * @return the current alerts or an empty list if none exist (never
    *         {@code null}).
    */
@@ -194,7 +200,7 @@ public class AlertsDAO {
 
   /**
    * Gets a current alert with the specified ID.
-   * 
+   *
    * @param alertId
    *          the ID of the alert to retrieve.
    * @return the alert or {@code null} if none exists.
@@ -205,8 +211,75 @@ public class AlertsDAO {
   }
 
   /**
+   * Gets the current alerts for a given cluster.
+   *
+   * @return the current alerts for the given clusteror an empty list if none
+   *         exist (never {@code null}).
+   */
+  @RequiresSession
+  public List<AlertCurrentEntity> findCurrentByCluster(long clusterId) {
+    TypedQuery<AlertCurrentEntity> query = entityManagerProvider.get().createNamedQuery(
+        "AlertCurrentEntity.findByCluster", AlertCurrentEntity.class);
+
+    query.setParameter("clusterId", Long.valueOf(clusterId));
+    query = setQueryRefreshHint(query);
+
+    return daoUtils.selectList(query);
+  }
+
+  /**
+   * Retrieves the summary information for a particular scope.  The result is a DTO
+   * since the columns are aggregated and don't fit to an entity.
+   *
+   * @param clusterId the cluster id
+   * @param serviceName the service name. Use {@code null} to not filter on service.
+   * @param hostName the host name.  Use {@code null} to not filter on host.
+   * @return the summary DTO
+   */
+  @RequiresSession
+  public AlertSummaryDTO findCurrentCounts(long clusterId, String serviceName, String hostName) {
+    StringBuilder sb = new StringBuilder();
+    sb.append("SELECT NEW %s (");
+    sb.append("SUM(CASE WHEN history.alertState = %s.%s THEN 1 ELSE 0 END), ");
+    sb.append("SUM(CASE WHEN history.alertState = %s.%s THEN 1 ELSE 0 END), ");
+    sb.append("SUM(CASE WHEN history.alertState = %s.%s THEN 1 ELSE 0 END), ");
+    sb.append("SUM(CASE WHEN history.alertState = %s.%s THEN 1 ELSE 0 END)) ");
+    sb.append("FROM AlertCurrentEntity alert JOIN alert.alertHistory history WHERE history.clusterId = :clusterId");
+
+    if (null != serviceName) {
+      sb.append(" AND history.serviceName = :serviceName");
+    }
+
+    if (null != hostName) {
+      sb.append(" AND history.hostName = :hostName");
+    }
+
+    String str = String.format(sb.toString(),
+        AlertSummaryDTO.class.getName(),
+        AlertState.class.getName(), AlertState.OK.name(),
+        AlertState.class.getName(), AlertState.WARNING.name(),
+        AlertState.class.getName(), AlertState.CRITICAL.name(),
+        AlertState.class.getName(), AlertState.UNKNOWN.name());
+
+    TypedQuery<AlertSummaryDTO> query = entityManagerProvider.get().createQuery(
+        str, AlertSummaryDTO.class);
+
+    query.setParameter("clusterId", Long.valueOf(clusterId));
+
+    if (null != serviceName) {
+      query.setParameter("serviceName", serviceName);
+    }
+
+    if (null != hostName) {
+      query.setParameter("hostName", hostName);
+    }
+
+    return daoUtils.selectSingle(query);
+  }
+
+  /**
    * Gets the current alerts for a given service.
-   * 
+   *
    * @return the current alerts for the given service or an empty list if none
    *         exist (never {@code null}).
    */
@@ -218,13 +291,15 @@ public class AlertsDAO {
 
     query.setParameter("clusterId", clusterId);
     query.setParameter("serviceName", serviceName);
+    query.setParameter("inlist", EnumSet.of(Scope.ANY, Scope.SERVICE));
 
+    query = setQueryRefreshHint(query);
     return daoUtils.selectList(query);
   }
 
   /**
    * Gets the current alerts for a given host.
-   * 
+   *
    * @return the current alerts for the given host or an empty list if none
    *         exist (never {@code null}).
    */
@@ -236,15 +311,32 @@ public class AlertsDAO {
 
     query.setParameter("clusterId", clusterId);
     query.setParameter("hostName", hostName);
+    query.setParameter("inlist", EnumSet.of(Scope.ANY, Scope.HOST));
 
+    query = setQueryRefreshHint(query);
     return daoUtils.selectList(query);
+  }
+
+  @RequiresSession
+  public AlertCurrentEntity findCurrentByHostAndName(long clusterId, String hostName,
+      String alertName) {
+
+    TypedQuery<AlertCurrentEntity> query = entityManagerProvider.get().createNamedQuery(
+        "AlertCurrentEntity.findByHostAndName", AlertCurrentEntity.class);
+
+    query.setParameter("clusterId", Long.valueOf(clusterId));
+    query.setParameter("hostName", hostName);
+    query.setParameter("definitionName", alertName);
+
+    query = setQueryRefreshHint(query);
+    return daoUtils.selectOne(query);
   }
 
   /**
    * Removes alert history and current alerts for the specified alert defintiion
    * ID. This will invoke {@link EntityManager#clear()} when completed since the
    * JPQL statement will remove entries without going through the EM.
-   * 
+   *
    * @param definitionId
    *          the ID of the definition to remove.
    */
@@ -268,7 +360,7 @@ public class AlertsDAO {
 
   /**
    * Remove a current alert whose history entry matches the specfied ID.
-   * 
+   *
    * @param   historyId the ID of the history entry.
    * @return  the number of alerts removed.
    */
@@ -283,7 +375,7 @@ public class AlertsDAO {
 
   /**
    * Persists a new alert.
-   * 
+   *
    * @param alert
    *          the alert to persist (not {@code null}).
    */
@@ -294,7 +386,7 @@ public class AlertsDAO {
 
   /**
    * Refresh the state of the alert from the database.
-   * 
+   *
    * @param alert
    *          the alert to refresh (not {@code null}).
    */
@@ -305,7 +397,7 @@ public class AlertsDAO {
 
   /**
    * Merge the speicified alert with the existing alert in the database.
-   * 
+   *
    * @param alert
    *          the alert to merge (not {@code null}).
    * @return the updated alert with merged content (never {@code null}).
@@ -317,7 +409,7 @@ public class AlertsDAO {
 
   /**
    * Removes the specified alert from the database.
-   * 
+   *
    * @param alert
    *          the alert to remove.
    */
@@ -331,7 +423,7 @@ public class AlertsDAO {
 
   /**
    * Persists a new current alert.
-   * 
+   *
    * @param alert
    *          the current alert to persist (not {@code null}).
    */
@@ -342,7 +434,7 @@ public class AlertsDAO {
 
   /**
    * Refresh the state of the current alert from the database.
-   * 
+   *
    * @param alert
    *          the current alert to refresh (not {@code null}).
    */
@@ -353,7 +445,7 @@ public class AlertsDAO {
 
   /**
    * Merge the speicified current alert with the existing alert in the database.
-   * 
+   *
    * @param alert
    *          the current alert to merge (not {@code null}).
    * @return the updated current alert with merged content (never {@code null}).
@@ -365,12 +457,84 @@ public class AlertsDAO {
 
   /**
    * Removes the specified current alert from the database.
-   * 
+   *
    * @param alert
    *          the current alert to remove.
    */
   @Transactional
   public void remove(AlertCurrentEntity alert) {
     entityManagerProvider.get().remove(merge(alert));
+  }
+
+  /**
+   * Finds the aggregate counts for an alert name, across all hosts.
+   * @param clusterId the cluster id
+   * @param alertName the name of the alert to find the aggregate
+   * @return the summary data
+   */
+  @RequiresSession
+  public AlertSummaryDTO findAggregateCounts(long clusterId, String alertName) {
+    StringBuilder sb = new StringBuilder();
+    sb.append("SELECT NEW %s (");
+    sb.append("COUNT(history), ");
+    sb.append("SUM(CASE WHEN history.alertState = %s.%s THEN 1 ELSE 0 END), ");
+    sb.append("SUM(CASE WHEN history.alertState = %s.%s THEN 1 ELSE 0 END), ");
+    sb.append("SUM(CASE WHEN history.alertState = %s.%s THEN 1 ELSE 0 END)) ");
+    sb.append("FROM AlertCurrentEntity alert JOIN alert.alertHistory history WHERE history.clusterId = :clusterId");
+    sb.append(" AND history.alertDefinition.definitionName = :definitionName");
+
+    String str = String.format(sb.toString(),
+        AlertSummaryDTO.class.getName(),
+        AlertState.class.getName(), AlertState.WARNING.name(),
+        AlertState.class.getName(), AlertState.CRITICAL.name(),
+        AlertState.class.getName(), AlertState.UNKNOWN.name());
+
+    TypedQuery<AlertSummaryDTO> query = entityManagerProvider.get().createQuery(
+        str, AlertSummaryDTO.class);
+
+    query.setParameter("clusterId", Long.valueOf(clusterId));
+    query.setParameter("definitionName", alertName);
+
+    return daoUtils.selectSingle(query);
+  }
+
+  /**
+   * Locate the current alert for the provided service and alert name, but when
+   * host is not set ({@code IS NULL}).
+   * @param clusterId the cluster id
+   * @param serviceName the service name
+   * @param alertName the name of the alert
+   * @return the current record, or {@code null} if not found
+   */
+  @RequiresSession
+  public AlertCurrentEntity findCurrentByNameNoHost(long clusterId, String alertName) {
+
+    TypedQuery<AlertCurrentEntity> query = entityManagerProvider.get().createNamedQuery(
+        "AlertCurrentEntity.findByNameAndNoHost", AlertCurrentEntity.class);
+
+    query.setParameter("clusterId", Long.valueOf(clusterId));
+    query.setParameter("definitionName", alertName);
+
+    query = setQueryRefreshHint(query);
+    return daoUtils.selectOne(query);
+  }
+
+  /**
+   * Sets {@link QueryHints#REFRESH} on the specified query so that child
+   * entities are not stale.
+   * <p/>
+   * See <a
+   * href="https://bugs.eclipse.org/bugs/show_bug.cgi?id=398067">https://bugs
+   * .eclipse.org/bugs/show_bug.cgi?id=398067</a>
+   *
+   * @param query
+   * @return
+   */
+  private <T> TypedQuery<T> setQueryRefreshHint(TypedQuery<T> query) {
+    // !!! https://bugs.eclipse.org/bugs/show_bug.cgi?id=398067
+    // ensure that an associated entity with a JOIN is not stale; this causes
+    // the associated AlertHistoryEntity to be stale
+    query.setHint(QueryHints.REFRESH, HintValues.TRUE);
+    return query;
   }
 }

@@ -92,7 +92,7 @@ App.hostsMapper = App.QuickDataMapper.create({
           }
           serviceToHostComponentIdMap[serviceName].push(component.id);
         }, this);
-        item.critical_alerts_count = (item.alerts) ? item.alerts.summary.CRITICAL + item.alerts.summary.WARNING : 0;
+        item.critical_alerts_count = (item.legacy_alerts) ? item.legacy_alerts.summary.CRITICAL + item.legacy_alerts.summary.WARNING : 0;
         item.cluster_id = App.get('clusterName');
         item.index = index;
 

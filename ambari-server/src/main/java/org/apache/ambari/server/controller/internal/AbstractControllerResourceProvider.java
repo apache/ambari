@@ -18,14 +18,14 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ResourceProviderFactory;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
-
-import java.util.Map;
-import java.util.Set;
 
 /**
  * Abstract resource provider implementation that maps to an Ambari management controller.
@@ -149,8 +149,14 @@ public abstract class AbstractControllerResourceProvider extends AbstractResourc
         return new RecommendationResourceProvider(propertyIds, keyPropertyIds, managementController);
       case Validation:
         return new ValidationResourceProvider(propertyIds, keyPropertyIds, managementController);
+      case Alert:
+        return new AlertResourceProvider(propertyIds, keyPropertyIds, managementController);
       case AlertDefinition:
         return new AlertDefinitionResourceProvider(propertyIds, keyPropertyIds, managementController);
+      case AlertGroup:
+        return new AlertGroupResourceProvider(propertyIds, keyPropertyIds, managementController);
+      case AlertTarget:
+        return new AlertTargetResourceProvider(propertyIds, keyPropertyIds, managementController);
       case ClientConfig:
         return new ClientConfigResourceProvider(propertyIds, keyPropertyIds, managementController);
       default:

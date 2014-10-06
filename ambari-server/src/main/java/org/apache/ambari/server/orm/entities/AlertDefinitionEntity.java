@@ -17,6 +17,9 @@
  */
 package org.apache.ambari.server.orm.entities;
 
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 
 import javax.persistence.Basic;
@@ -26,11 +29,14 @@ import javax.persistence.Entity;
 import javax.persistence.EntityManager;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.Lob;
 import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.PreRemove;
@@ -39,6 +45,7 @@ import javax.persistence.TableGenerator;
 import javax.persistence.UniqueConstraint;
 
 import org.apache.ambari.server.state.alert.Scope;
+import org.apache.ambari.server.state.alert.SourceType;
 
 /**
  * The {@link AlertDefinitionEntity} class is used to model an alert that needs
@@ -50,9 +57,13 @@ import org.apache.ambari.server.state.alert.Scope;
     "cluster_id", "definition_name" }))
 @TableGenerator(name = "alert_definition_id_generator", table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value", pkColumnValue = "alert_definition_id_seq", initialValue = 0, allocationSize = 1)
 @NamedQueries({
-    @NamedQuery(name = "AlertDefinitionEntity.findAll", query = "SELECT alertDefinition FROM AlertDefinitionEntity alertDefinition"),
-    @NamedQuery(name = "AlertDefinitionEntity.findAllInCluster", query = "SELECT alertDefinition FROM AlertDefinitionEntity alertDefinition WHERE alertDefinition.clusterId = :clusterId"),
-    @NamedQuery(name = "AlertDefinitionEntity.findByName", query = "SELECT alertDefinition FROM AlertDefinitionEntity alertDefinition WHERE alertDefinition.definitionName = :definitionName AND alertDefinition.clusterId = :clusterId"), })
+    @NamedQuery(name = "AlertDefinitionEntity.findAll", query = "SELECT ad FROM AlertDefinitionEntity ad"),
+    @NamedQuery(name = "AlertDefinitionEntity.findAllInCluster", query = "SELECT ad FROM AlertDefinitionEntity ad WHERE ad.clusterId = :clusterId"),
+    @NamedQuery(name = "AlertDefinitionEntity.findByName", query = "SELECT ad FROM AlertDefinitionEntity ad WHERE ad.definitionName = :definitionName AND ad.clusterId = :clusterId"),
+    @NamedQuery(name = "AlertDefinitionEntity.findByService", query = "SELECT ad FROM AlertDefinitionEntity ad WHERE ad.serviceName = :serviceName AND ad.clusterId = :clusterId"),
+    @NamedQuery(name = "AlertDefinitionEntity.findByServiceAndComponent", query = "SELECT ad FROM AlertDefinitionEntity ad WHERE ad.serviceName = :serviceName AND ad.componentName = :componentName AND ad.clusterId = :clusterId"),
+    @NamedQuery(name = "AlertDefinitionEntity.findByServiceMaster", query = "SELECT ad FROM AlertDefinitionEntity ad WHERE ad.serviceName IN :services AND ad.scope = :scope AND ad.clusterId = :clusterId"),
+    @NamedQuery(name = "AlertDefinitionEntity.findByIds", query = "SELECT ad FROM AlertDefinitionEntity ad WHERE ad.definitionId IN :definitionIds") })
 public class AlertDefinitionEntity {
 
   @Id
@@ -67,6 +78,10 @@ public class AlertDefinitionEntity {
 
   @Column(name = "cluster_id", nullable = false)
   private Long clusterId;
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", insertable = false, updatable = false)
+  private ClusterEntity clusterEntity;
 
   @Column(name = "component_name", length = 255)
   private String componentName;
@@ -94,7 +109,8 @@ public class AlertDefinitionEntity {
   private String serviceName;
 
   @Column(name = "source_type", nullable = false, length = 255)
-  private String sourceType;
+  @Enumerated(value = EnumType.STRING)
+  private SourceType sourceType;
 
   /**
    * Bi-directional many-to-many association to {@link AlertGroupEntity}
@@ -174,6 +190,15 @@ public class AlertDefinitionEntity {
   }
 
   /**
+   * Gets the cluster that this alert definition is a member of.
+   *
+   * @return
+   */
+  public ClusterEntity getCluster() {
+    return clusterEntity;
+  }
+
+  /**
    * Gets the component name that this alert is associated with, if any. Some
    * alerts are scoped at the service level and will not have a component name.
    *
@@ -245,7 +270,7 @@ public class AlertDefinitionEntity {
    *         otherwise.
    */
   public boolean getEnabled() {
-    return enabled == 0 ? false : true;
+    return enabled == Integer.valueOf(0) ? false : true;
   }
 
   /**
@@ -256,7 +281,7 @@ public class AlertDefinitionEntity {
    *          otherwise.
    */
   public void setEnabled(boolean enabled) {
-    this.enabled = enabled ? 1 : 0;
+    this.enabled = enabled ? Integer.valueOf(1) : Integer.valueOf(0);
   }
 
   /**
@@ -323,16 +348,14 @@ public class AlertDefinitionEntity {
   /**
    * @return
    */
-  // !!! FIXME: Create enumeration for this
-  public String getSourceType() {
+  public SourceType getSourceType() {
     return sourceType;
   }
 
   /**
    * @param sourceType
    */
-  // !!! FIXME: Create enumeration for this
-  public void setSourceType(String sourceType) {
+  public void setSourceType(SourceType sourceType) {
     this.sourceType = sourceType;
   }
 
@@ -342,7 +365,7 @@ public class AlertDefinitionEntity {
    * @return the groups, or {@code null} if none.
    */
   public Set<AlertGroupEntity> getAlertGroups() {
-    return alertGroups;
+    return Collections.unmodifiableSet(alertGroups);
   }
 
   /**
@@ -357,7 +380,7 @@ public class AlertDefinitionEntity {
 
   /**
    * Sets a human readable label for this alert definition.
-   * 
+   *
    * @param label
    *          the label or {@code null} if none.
    */
@@ -367,11 +390,39 @@ public class AlertDefinitionEntity {
 
   /**
    * Gets the label for this alert definition.
-   * 
+   *
    * @return the label or {@code null} if none.
    */
   public String getLabel() {
     return label;
+  }
+
+  /**
+   * Adds the specified alert group to the groups that this definition is
+   * associated with. This is used to complement the JPA bidirectional
+   * association.
+   *
+   * @param alertGroup
+   */
+  protected void addAlertGroup(AlertGroupEntity alertGroup) {
+    if (null == alertGroups) {
+      alertGroups = new HashSet<AlertGroupEntity>();
+    }
+
+    alertGroups.add(alertGroup);
+  }
+
+  /**
+   * Removes the specified alert group to the groups that this definition is
+   * associated with. This is used to complement the JPA bidirectional
+   * association.
+   *
+   * @param alertGroup
+   */
+  protected void removeAlertGroup(AlertGroupEntity alertGroup) {
+    if (null != alertGroups && alertGroups.contains(alertGroup)) {
+      alertGroups.remove(alertGroup);
+    }
   }
 
   /**
@@ -380,16 +431,16 @@ public class AlertDefinitionEntity {
    */
   @PreRemove
   public void preRemove() {
-    Set<AlertGroupEntity> groups = getAlertGroups();
-    if (null == groups || groups.size() == 0) {
+    if (null == alertGroups || alertGroups.size() == 0) {
       return;
     }
 
-    for (AlertGroupEntity group : groups) {
-      Set<AlertDefinitionEntity> definitions = group.getAlertDefinitions();
-      if (null != definitions) {
-        definitions.remove(this);
-      }
+    Iterator<AlertGroupEntity> iterator = alertGroups.iterator();
+    while (iterator.hasNext()) {
+      AlertGroupEntity group = iterator.next();
+      iterator.remove();
+
+      group.removeAlertDefinition(this);
     }
   }
 

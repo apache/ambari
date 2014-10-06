@@ -18,14 +18,25 @@
 
 package org.apache.ambari.server.api.services;
 
+import java.util.Collections;
+
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
+
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.state.Clusters;
-
-import javax.ws.rs.*;
-import javax.ws.rs.core.*;
-import java.util.Collections;
 
 
 /**
@@ -46,7 +57,7 @@ public class ClusterService extends BaseService {
    * Construct a ClusterService.
    */
   public ClusterService() {
-    this.clusters = AmbariServer.getController().getClusters();
+    clusters = AmbariServer.getController().getClusters();
   }
 
   /**
@@ -187,7 +198,7 @@ public class ClusterService extends BaseService {
     hasPermission(Request.Type.valueOf(request.getMethod()), clusterName);
     return new ServiceService(clusterName);
   }
-  
+
   /**
    * Gets the configurations sub-resource.
    *
@@ -295,7 +306,7 @@ public class ClusterService extends BaseService {
     hasPermission(Request.Type.valueOf(request.getMethod()), clusterName);
     return new RequestScheduleService(clusterName);
   }
-  
+
   /**
    * Gets the alert definition service
    *
@@ -313,12 +324,32 @@ public class ClusterService extends BaseService {
   }
 
   /**
+   * Gets the alert group service.
+   *
+   * @param request
+   *          the request.
+   * @param clusterName
+   *          the cluster name.
+   * @return the alert group service.
+   */
+  @Path("{clusterName}/alert_groups")
+  public AlertGroupService getAlertGroups(
+      @Context javax.ws.rs.core.Request request,
+      @PathParam("clusterName") String clusterName) {
+
+    hasPermission(Request.Type.valueOf(request.getMethod()), clusterName);
+    return new AlertGroupService(clusterName);
+  }
+
+  /**
    * Gets the privilege service
    *
-   * @param request      the request
-   * @param clusterName  the cluster name
+   * @param request
+   *          the request
+   * @param clusterName
+   *          the cluster name
    *
-   * @return  the privileges service
+   * @return the privileges service
    */
   @Path("{clusterName}/privileges")
   public PrivilegeService getPrivilegeService(@Context javax.ws.rs.core.Request request, @PathParam ("clusterName") String clusterName) {
@@ -326,6 +357,22 @@ public class ClusterService extends BaseService {
     hasPermission(Request.Type.valueOf(request.getMethod()), clusterName);
     return new ClusterPrivilegeService(clusterName);
   }
+  
+  /**
+   * Gets the alert definition service
+   *
+   * @param request      the request
+   * @param clusterName  the cluster name
+   *
+   * @return  the alert definition service
+   */
+  @Path("{clusterName}/alerts")
+  public AlertService getAlertService(
+      @Context javax.ws.rs.core.Request request, @PathParam("clusterName") String clusterName) {
+
+    hasPermission(Request.Type.valueOf(request.getMethod()), clusterName);
+    return new AlertService(clusterName, null, null);
+  }  
 
 
   // ----- helper methods ----------------------------------------------------
@@ -343,14 +390,17 @@ public class ClusterService extends BaseService {
   }
 
   /**
-   * Determine whether or not the access specified by the given request type
-   * is permitted for the current user on the cluster resource identified by
-   * the given cluster name.
+   * Determine whether or not the access specified by the given request type is
+   * permitted for the current user on the cluster resource identified by the
+   * given cluster name.
    *
-   * @param requestType  the request method type
-   * @param clusterName  the name of the cluster resource
+   * @param requestType
+   *          the request method type
+   * @param clusterName
+   *          the name of the cluster resource
    *
-   * @throws WebApplicationException if access is forbidden
+   * @throws WebApplicationException
+   *           if access is forbidden
    */
   private void hasPermission(Request.Type requestType, String clusterName) throws WebApplicationException {
     if (!clusters.checkPermission(clusterName, requestType == Request.Type.GET)) {

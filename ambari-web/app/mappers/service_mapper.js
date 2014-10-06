@@ -30,8 +30,8 @@ App.serviceMapper = App.QuickDataMapper.create({
         cachedService.ServiceInfo.passive_state = service.ServiceInfo.maintenance_state;
 
         //check whether Nagios installed and started
-        if (service.alerts) {
-          cachedService.ServiceInfo.critical_alerts_count = service.alerts.summary.CRITICAL + service.alerts.summary.WARNING;
+        if (service.legacy_alerts) {
+          cachedService.ServiceInfo.critical_alerts_count = service.legacy_alerts.summary.CRITICAL + service.legacy_alerts.summary.WARNING;
         }
       } else {
         var serviceData = {
@@ -45,8 +45,8 @@ App.serviceMapper = App.QuickDataMapper.create({
         };
 
         //check whether Nagios installed and started
-        if (service.alerts) {
-          serviceData.ServiceInfo.critical_alerts_count = service.alerts.summary.CRITICAL + service.alerts.summary.WARNING;
+        if (service.legacy_alerts) {
+          serviceData.ServiceInfo.critical_alerts_count = service.legacy_alerts.summary.CRITICAL + service.legacy_alerts.summary.WARNING;
         }
         App.cache['services'].push(serviceData);
       }

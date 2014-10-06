@@ -47,6 +47,9 @@ public class ServiceResourceDefinition extends BaseResourceDefinition {
 
   @Override
   public Set<SubResourceDefinition> getSubResourceDefinitions() {
-    return Collections.singleton(new SubResourceDefinition(Resource.Type.Component));
+    Set<SubResourceDefinition> subs = new HashSet<SubResourceDefinition>();
+    subs.add(new SubResourceDefinition(Resource.Type.Component));
+    subs.add(new SubResourceDefinition(Resource.Type.Alert));
+    return subs;
   }
 }

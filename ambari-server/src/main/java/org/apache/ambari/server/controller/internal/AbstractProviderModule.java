@@ -18,9 +18,21 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
+import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.HostRequest;
 import org.apache.ambari.server.controller.HostResponse;
@@ -29,31 +41,34 @@ import org.apache.ambari.server.controller.ServiceComponentHostResponse;
 import org.apache.ambari.server.controller.ganglia.GangliaComponentPropertyProvider;
 import org.apache.ambari.server.controller.ganglia.GangliaHostComponentPropertyProvider;
 import org.apache.ambari.server.controller.ganglia.GangliaHostPropertyProvider;
-import org.apache.ambari.server.controller.ganglia.GangliaReportPropertyProvider;
 import org.apache.ambari.server.controller.ganglia.GangliaHostProvider;
+import org.apache.ambari.server.controller.ganglia.GangliaReportPropertyProvider;
 import org.apache.ambari.server.controller.jmx.JMXHostProvider;
 import org.apache.ambari.server.controller.jmx.JMXPropertyProvider;
 import org.apache.ambari.server.controller.metrics.MetricsHostProvider;
 import org.apache.ambari.server.controller.nagios.NagiosPropertyProvider;
-import org.apache.ambari.server.controller.spi.*;
+import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
+import org.apache.ambari.server.controller.spi.NoSuchResourceException;
+import org.apache.ambari.server.controller.spi.Predicate;
+import org.apache.ambari.server.controller.spi.PropertyProvider;
+import org.apache.ambari.server.controller.spi.ProviderModule;
+import org.apache.ambari.server.controller.spi.Request;
+import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.ResourceProvider;
+import org.apache.ambari.server.controller.spi.SystemException;
+import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.apache.ambari.server.controller.AmbariManagementController;
-
-import com.google.inject.Inject;
-
 import org.apache.ambari.server.controller.utilities.StreamProvider;
+import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.State;
-import org.apache.ambari.server.state.Cluster;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
-import java.util.Map.Entry;
-import java.util.concurrent.ConcurrentHashMap;
+import com.google.inject.Inject;
 
 /**
  * An abstract provider module implementation.
@@ -425,6 +440,8 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
                 configuration),
               "Clusters/cluster_name",
               "Clusters/version"));
+          providers.add(new AlertSummaryPropertyProvider(type,
+              "Clusters/cluster_name", null));
           break;
         case Service:
           providers.add(new NagiosPropertyProvider(type,
@@ -433,6 +450,8 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
                 configuration),
               "ServiceInfo/cluster_name",
               "ServiceInfo/service_name"));
+          providers.add(new AlertSummaryPropertyProvider(type,
+              "ServiceInfo/cluster_name", "ServiceInfo/service_name"));
           break;
         case Host:
           providers.add(createGangliaHostPropertyProvider(
@@ -449,6 +468,8 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
                 configuration),
               "Hosts/cluster_name",
               "Hosts/host_name"));
+          providers.add(new AlertSummaryPropertyProvider(type,
+              "Hosts/cluster_name", "Hosts/host_name"));
           break;
         case Component: {
           // TODO as we fill out stack metric definitions, these can be phased out

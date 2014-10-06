@@ -145,10 +145,23 @@
     "HostComponent": "HostComponentProcess/component_name",
     "HostComponentProcess": "HostComponentProcess/name"
   },
+  "Alert": {
+    "Cluster": "Alert/cluster_name",
+    "Service": "Alert/service_name",
+    "Host": "Alert/host_name",
+    "Alert": "Alert/id"
+  },
   "AlertDefinition": {
     "Cluster": "AlertDefinition/cluster_name",
     "AlertDefinition": "AlertDefinition/id"
   },
+  "AlertTarget": {
+    "AlertTarget": "AlertTarget/id"
+  },
+  "AlertGroup": {
+    "Cluster": "AlertGroup/cluster_name",
+    "AlertGroup": "AlertGroup/id"
+  },  
   "ClientConfig": {
     "Cluster": "ServiceComponentInfo/cluster_name",
     "Service": "ServiceComponentInfo/service_name",

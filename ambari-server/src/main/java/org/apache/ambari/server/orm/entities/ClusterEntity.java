@@ -18,13 +18,31 @@
 
 package org.apache.ambari.server.orm.entities;
 
-import javax.persistence.*;
-
-import org.apache.ambari.server.state.State;
+import static org.apache.commons.lang.StringUtils.defaultString;
 
 import java.util.Collection;
 
-import static org.apache.commons.lang.StringUtils.defaultString;
+import javax.persistence.Basic;
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinColumns;
+import javax.persistence.ManyToMany;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
+import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
+import javax.persistence.Table;
+import javax.persistence.TableGenerator;
+
+import org.apache.ambari.server.state.State;
 
 @Table(name = "clusters")
 @NamedQueries({
@@ -58,8 +76,8 @@ public class ClusterEntity {
   @Basic
   @Enumerated(value = EnumType.STRING)
   @Column(name = "provisioning_state", insertable = true, updatable = true)
-  private State provisioningState = State.INIT;   
-  
+  private State provisioningState = State.INIT;
+
   @Basic
   @Column(name = "desired_cluster_state", insertable = true, updatable = true)
   private String desiredClusterState = "";
@@ -95,6 +113,9 @@ public class ClusterEntity {
 
   @OneToMany(mappedBy = "clusterEntity", cascade = CascadeType.REMOVE)
   private Collection<ServiceConfigEntity> serviceConfigEntities;
+
+  @OneToMany(mappedBy = "clusterEntity", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
+  private Collection<AlertDefinitionEntity> alertDefinitionEntities;
 
   @OneToOne(cascade = CascadeType.ALL)
   @JoinColumns({
@@ -141,24 +162,24 @@ public class ClusterEntity {
   public void setDesiredStackVersion(String desiredStackVersion) {
     this.desiredStackVersion = desiredStackVersion;
   }
-  
+
   /**
-   * Gets whether the cluster is still initializing or has finished with its 
+   * Gets whether the cluster is still initializing or has finished with its
    * deployment requests.
-   * 
-   * @return either {@link State#INIT} or {@link State#INSTALLED}, 
+   *
+   * @return either {@link State#INIT} or {@link State#INSTALLED},
    * never {@code null}.
    */
   public State getProvisioningState(){
-    return this.provisioningState;
+    return provisioningState;
   }
-  
+
   /**
-   * Sets whether the cluster is still initializing or has finished with its 
+   * Sets whether the cluster is still initializing or has finished with its
    * deployment requests.
-   * 
-   * @param provisioningState either {@link State#INIT} or 
-   * {@link State#INSTALLED}, never {@code null}. 
+   *
+   * @param provisioningState either {@link State#INIT} or
+   * {@link State#INSTALLED}, never {@code null}.
    */
   public void setProvisioningState(State provisioningState){
     this.provisioningState = provisioningState;
@@ -166,13 +187,21 @@ public class ClusterEntity {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
 
     ClusterEntity that = (ClusterEntity) o;
 
-    if (!clusterId.equals(that.clusterId)) return false;
-    if (!clusterName.equals(that.clusterName)) return false;
+    if (!clusterId.equals(that.clusterId)) {
+      return false;
+    }
+    if (!clusterName.equals(that.clusterName)) {
+      return false;
+    }
 
     return true;
   }
@@ -219,7 +248,7 @@ public class ClusterEntity {
   public Collection<ClusterConfigMappingEntity> getConfigMappingEntities() {
     return configMappingEntities;
   }
-  
+
   public void setConfigMappingEntities(Collection<ClusterConfigMappingEntity> entities) {
     configMappingEntities = entities;
   }
@@ -246,6 +275,10 @@ public class ClusterEntity {
 
   public void setServiceConfigEntities(Collection<ServiceConfigEntity> serviceConfigEntities) {
     this.serviceConfigEntities = serviceConfigEntities;
+  }
+
+  public Collection<AlertDefinitionEntity> getAlertDefinitionEntities() {
+    return alertDefinitionEntities;
   }
 
   /**

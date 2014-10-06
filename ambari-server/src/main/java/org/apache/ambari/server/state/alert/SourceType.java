@@ -18,7 +18,7 @@
 package org.apache.ambari.server.state.alert;
 
 /**
- * Source type refers to how the alert is to be collected. 
+ * Source type refers to how the alert is to be collected.
  */
 public enum SourceType {
   /**
@@ -36,5 +36,10 @@ public enum SourceType {
   /**
    * Source is an aggregate of a collection of other alert states
    */
-  AGGREGATE
+  AGGREGATE,
+
+  /**
+   * Source is a ratio of two {@link #METRIC} values.
+   */
+  PERCENT;
 }

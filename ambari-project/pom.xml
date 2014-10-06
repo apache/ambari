@@ -55,8 +55,9 @@
   </pluginRepositories>
   <repositories>
     <repository>
-      <id>EclipseLink</id>
-      <url>http://download.eclipse.org/rt/eclipselink/maven.repo</url>
+      <id>oss.sonatype.org</id>
+      <name>OSS Sonatype Staging</name>
+      <url>https://oss.sonatype.org/content/groups/staging</url>
     </repository>
     <repository>
       <id>spring-milestones</id>
@@ -211,7 +212,7 @@
       <dependency>
         <groupId>org.eclipse.persistence</groupId>
         <artifactId>eclipselink</artifactId>
-        <version>2.4.0</version>
+        <version>2.4.2</version>
       </dependency>
       <dependency>
         <groupId>org.postgresql</groupId>

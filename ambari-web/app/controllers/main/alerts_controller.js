@@ -139,8 +139,8 @@ App.MainAlertsController = Em.Controller.extend({
    */
   getAlertsSuccessCallback: function (json) {
     var alerts = [];
-    if (json && json.alerts && json.alerts.detail) {
-      json.alerts.detail.forEach(function (_alert) {
+    if (json && json.legacy_alerts && json.legacy_alerts.detail) {
+      json.legacy_alerts.detail.forEach(function (_alert) {
         alerts.pushObject(App.Alert.create({
           title: _alert.description,
           serviceType: _alert.service_name,

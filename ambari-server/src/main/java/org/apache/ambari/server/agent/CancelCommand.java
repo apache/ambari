@@ -18,10 +18,6 @@
 package org.apache.ambari.server.agent;
 
 import com.google.gson.annotations.SerializedName;
-import org.codehaus.jackson.annotate.JsonProperty;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Command to report the status of a list of services in roles.
@@ -35,6 +31,7 @@ public class CancelCommand extends AgentCommand {
   @SerializedName("target_task_id")
   private long targetTaskId;
 
+  @SerializedName("reason")
   private String reason;
 
   public long getTargetTaskId() {

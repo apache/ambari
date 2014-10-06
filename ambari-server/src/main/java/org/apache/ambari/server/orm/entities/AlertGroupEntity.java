@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -48,7 +49,9 @@ import javax.persistence.UniqueConstraint;
     @NamedQuery(name = "AlertGroupEntity.findAll", query = "SELECT alertGroup FROM AlertGroupEntity alertGroup"),
     @NamedQuery(name = "AlertGroupEntity.findAllInCluster", query = "SELECT alertGroup FROM AlertGroupEntity alertGroup WHERE alertGroup.clusterId = :clusterId"),
     @NamedQuery(name = "AlertGroupEntity.findByName", query = "SELECT alertGroup FROM AlertGroupEntity alertGroup WHERE alertGroup.groupName = :groupName"),
-    @NamedQuery(name = "AlertGroupEntity.findByNameInCluster", query = "SELECT alertGroup FROM AlertGroupEntity alertGroup WHERE alertGroup.groupName = :groupName AND alertGroup.clusterId = :clusterId"), })
+    @NamedQuery(name = "AlertGroupEntity.findByNameInCluster", query = "SELECT alertGroup FROM AlertGroupEntity alertGroup WHERE alertGroup.groupName = :groupName AND alertGroup.clusterId = :clusterId"),
+    @NamedQuery(name = "AlertGroupEntity.findByAssociatedDefinition", query = "SELECT alertGroup FROM AlertGroupEntity alertGroup WHERE :alertDefinition MEMBER OF alertGroup.alertDefinitions"),
+    @NamedQuery(name = "AlertGroupEntity.findServiceDefaultGroup", query = "SELECT alertGroup FROM AlertGroupEntity alertGroup WHERE alertGroup.serviceName = :serviceName AND alertGroup.isDefault = 1") })
 public class AlertGroupEntity {
 
   @Id
@@ -71,14 +74,14 @@ public class AlertGroupEntity {
   /**
    * Bi-directional many-to-many association to {@link AlertDefinitionEntity}
    */
-  @ManyToMany
+  @ManyToMany(cascade = CascadeType.MERGE)
   @JoinTable(name = "alert_grouping", joinColumns = { @JoinColumn(name = "group_id", nullable = false) }, inverseJoinColumns = { @JoinColumn(name = "definition_id", nullable = false) })
   private Set<AlertDefinitionEntity> alertDefinitions;
 
   /**
    * Unidirectional many-to-many association to {@link AlertTargetEntity}
    */
-  @ManyToMany
+  @ManyToMany(cascade = CascadeType.MERGE)
   @JoinTable(name = "alert_group_target", joinColumns = { @JoinColumn(name = "group_id", nullable = false) }, inverseJoinColumns = { @JoinColumn(name = "target_id", nullable = false) })
   private Set<AlertTargetEntity> alertTargets;
 
@@ -177,7 +180,7 @@ public class AlertGroupEntity {
   /**
    * Set the service name. This is only applicable when {@link #isDefault()} is
    * {@code true}.
-   * 
+   *
    * @param serviceName
    *          the service that this is the default group for, or {@code null} if
    *          this is not a default group.
@@ -189,10 +192,14 @@ public class AlertGroupEntity {
   /**
    * Gets all of the alert definitions that are a part of this grouping.
    *
-   * @return the alert definitions or {@code null} if none.
+   * @return the alert definitions or an empty set if none (never {@code null).
    */
   public Set<AlertDefinitionEntity> getAlertDefinitions() {
-    return alertDefinitions;
+    if (null == alertDefinitions) {
+      alertDefinitions = new HashSet<AlertDefinitionEntity>();
+    }
+
+    return Collections.unmodifiableSet(alertDefinitions);
   }
 
   /**
@@ -202,14 +209,58 @@ public class AlertGroupEntity {
    *          the definitions, or {@code null} for none.
    */
   public void setAlertDefinitions(Set<AlertDefinitionEntity> alertDefinitions) {
+    if (null != this.alertDefinitions) {
+      for (AlertDefinitionEntity definition : this.alertDefinitions) {
+        definition.removeAlertGroup(this);
+      }
+    }
+
     this.alertDefinitions = alertDefinitions;
+
+    if (null != alertDefinitions) {
+      for (AlertDefinitionEntity definition : alertDefinitions) {
+        definition.addAlertGroup(this);
+      }
+    }
+  }
+
+  /**
+   * Adds the specified definition to the definitions that this group will
+   * dispatch to.
+   *
+   * @param definition
+   *          the definition to add (not {@code null}).
+   */
+  public void addAlertDefinition(AlertDefinitionEntity definition) {
+    if (null == alertDefinitions) {
+      alertDefinitions = new HashSet<AlertDefinitionEntity>();
+    }
+
+    alertDefinitions.add(definition);
+    definition.addAlertGroup(this);
+  }
+
+  /**
+   * Removes the specified definition from the definitions that this group will
+   * dispatch to.
+   *
+   * @param definition
+   *          the definition to remove (not {@code null}).
+   */
+  public void removeAlertDefinition(AlertDefinitionEntity definition) {
+    if (null != alertDefinitions) {
+      alertDefinitions.remove(definition);
+    }
+
+    definition.removeAlertGroup(this);
   }
 
   /**
    * Gets an immutable set of the targets that will receive notifications for
    * alert definitions in this group.
    *
-   * @return the targets, or {@code null} if there are none.
+   * @return the targets that will be dispatch to for alerts in this group, or
+   *         an empty set if there are none (never {@code null}).
    */
   public Set<AlertTargetEntity> getAlertTargets() {
     if( null == alertTargets ) {

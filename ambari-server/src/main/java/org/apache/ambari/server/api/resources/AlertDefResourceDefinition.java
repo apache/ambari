@@ -21,8 +21,6 @@ import org.apache.ambari.server.controller.spi.Resource;
 
 /**
  * Resource Definition for AlertDefinition types.
- * @author ncole
- *
  */
 public class AlertDefResourceDefinition extends BaseResourceDefinition {
 
@@ -32,7 +30,6 @@ public class AlertDefResourceDefinition extends BaseResourceDefinition {
   
   @Override
   public String getPluralName() {
-    // TODO Auto-generated method stub
     return "alert_definitions";
   }
   

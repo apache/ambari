@@ -29,6 +29,7 @@ import java.io.File;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
@@ -46,7 +47,12 @@ import org.apache.ambari.server.api.util.StackExtensionHelper;
 import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.OrmTestHelper;
+import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
+import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.state.AutoDeployInfo;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.CustomCommandDefinition;
 import org.apache.ambari.server.state.DependencyInfo;
@@ -55,12 +61,15 @@ import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.Stack;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.alert.AlertDefinition;
+import org.apache.ambari.server.state.alert.PortSource;
+import org.apache.ambari.server.state.alert.Reporting;
+import org.apache.ambari.server.state.alert.Source;
 import org.apache.ambari.server.state.stack.MetricDefinition;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -70,6 +79,7 @@ import org.slf4j.LoggerFactory;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.google.inject.util.Modules;
 
 public class AmbariMetaInfoTest {
 
@@ -109,13 +119,17 @@ public class AmbariMetaInfoTest {
 
   @Before
   public void before() throws Exception {
-    injector = Guice.createInjector(new InMemoryDefaultTestModule());
+    injector = Guice.createInjector(Modules.override(
+        new InMemoryDefaultTestModule()).with(new MockModule()));
+
     injector.getInstance(GuiceJpaInitializer.class);
     injector.getInstance(EntityManager.class);
+
     File stackRoot = new File("src/test/resources/stacks");
     LOG.info("Stacks file " + stackRoot.getAbsolutePath());
     metaInfo = new AmbariMetaInfo(stackRoot, new File("target/version"));
     metaInfo.injector = injector;
+
     try {
       metaInfo.init();
     } catch(Exception e) {
@@ -1540,7 +1554,6 @@ public class AmbariMetaInfoTest {
   }
 
   @Test
-  @Ignore
   public void testAlertsJson() throws Exception {
     ServiceInfo svc = metaInfo.getService(STACK_NAME_HDP, "2.0.5", "HDFS");
     Assert.assertNotNull(svc);
@@ -1559,6 +1572,91 @@ public class AmbariMetaInfoTest {
     Assert.assertNotNull(set);
     Assert.assertTrue(set.size() > 0);
 
+    // find two different definitions and test each one
+    AlertDefinition nameNodeProcess = null;
+    AlertDefinition nameNodeCpu = null;
+
+    Iterator<AlertDefinition> iterator = set.iterator();
+    while (iterator.hasNext()) {
+      AlertDefinition definition = iterator.next();
+      if (definition.getName().equals("namenode_process")) {
+        nameNodeProcess = definition;
+      }
+
+      if (definition.getName().equals("namenode_cpu")) {
+        nameNodeCpu = definition;
+      }
+    }
+
+    assertNotNull(nameNodeProcess);
+    assertNotNull(nameNodeCpu);
+
+    assertEquals("NameNode host CPU Utilization", nameNodeCpu.getLabel());
+
+    // test namenode_process
+    Source source = nameNodeProcess.getSource();
+    assertNotNull(source);
+    assertNotNull(((PortSource) source).getPort());
+    Reporting reporting = source.getReporting();
+    assertNotNull(reporting);
+    assertNotNull(reporting.getOk());
+    assertNotNull(reporting.getOk().getText());
+    assertNull(reporting.getOk().getValue());
+    assertNotNull(reporting.getCritical());
+    assertNotNull(reporting.getCritical().getText());
+    assertNull(reporting.getCritical().getValue());
+    assertNull(reporting.getWarning());
+
+    // test namenode_cpu
+    source = nameNodeCpu.getSource();
+    assertNotNull(source);
+    reporting = source.getReporting();
+    assertNotNull(reporting);
+    assertNotNull(reporting.getOk());
+    assertNotNull(reporting.getOk().getText());
+    assertNull(reporting.getOk().getValue());
+    assertNotNull(reporting.getCritical());
+    assertNotNull(reporting.getCritical().getText());
+    assertNotNull(reporting.getCritical().getValue());
+    assertNotNull(reporting.getWarning());
+    assertNotNull(reporting.getWarning().getText());
+    assertNotNull(reporting.getWarning().getValue());
+  }
+
+  /**
+   * Tests merging stack-based with existing definitions works
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testAlertDefinitionMerging() throws Exception {
+    injector.getInstance(OrmTestHelper.class).createCluster();
+    Clusters clusters = injector.getInstance(Clusters.class);
+    Cluster cluster = clusters.getClusterById(1);
+    cluster.setDesiredStackVersion(
+        new StackId(STACK_NAME_HDP, "2.0.6"));
+
+    cluster.addService("HDFS");
+
+    metaInfo.reconcileAlertDefinitions(clusters);
+
+    AlertDefinitionDAO dao = injector.getInstance(AlertDefinitionDAO.class);
+    List<AlertDefinitionEntity> definitions = dao.findAll();
+    assertEquals(4, definitions.size());
+
+    for (AlertDefinitionEntity definition : definitions) {
+      definition.setScheduleInterval(28);
+      dao.merge(definition);
+    }
+
+    metaInfo.reconcileAlertDefinitions(clusters);
+
+    definitions = dao.findAll();
+    assertEquals(4, definitions.size());
+
+    for (AlertDefinitionEntity definition : definitions) {
+      assertEquals(28, definition.getScheduleInterval().intValue());
+    }
   }
 
   private AmbariMetaInfo setupTempAmbariMetaInfo(String buildDir)

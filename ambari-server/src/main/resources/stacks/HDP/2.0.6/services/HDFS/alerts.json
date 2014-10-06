@@ -1,0 +1,147 @@
+{
+  "service": [
+    {
+      "name": "percent_datanode",
+      "label": "Percent DataNodes Live",
+      "interval": 1,
+      "scope": "SERVICE",
+      "enabled": true,
+      "source": {
+        "type": "AGGREGATE",
+        "alert_name": "datanode_process",
+        "reporting": {
+          "ok": {
+            "text": "OK: total: <{0}>, affected: <{1}>"
+          },
+          "warning": {
+            "text": "OK: total: <{0}>, affected: <{1}>",
+            "value": 0.1
+          },
+          "critical": {
+            "text": "CRITICAL: total: <{0}>, affected <{1}>",
+            "value": 0.3
+          }
+        }
+      }
+    }
+  ],
+  "NAMENODE": [
+    {
+      "name": "namenode_process",
+      "label": "NameNode Process",
+      "interval": 1,
+      "scope": "ANY",
+      "enabled": true,
+      "source": {
+        "type": "PORT",
+        "uri": "{{hdfs-site/dfs.namenode.http-address}}",
+        "default_port": 50070,
+        "reporting": {
+          "ok": {
+            "text": "TCP OK - {0:.4f} response on port {1}"
+          },
+          "critical": {
+            "text": "Connection failed: {0} on host {1}:{2}"
+          }
+        }        
+      }
+    },
+    {
+      "name": "check_cpu",
+      "label": "NameNode host CPU utilization",
+      "interval": 2,
+      "scope": "ANY",
+      "enabled": true,
+      "source": {
+        "type": "METRIC",
+        "uri": "{{hdfs-site/dfs.namenode.http-address}}",
+        "reporting": {
+          "ok": {
+            "text": "{1} CPU, load {0:.1%}"
+          },
+          "warning": {
+            "text": "{1} CPU, load {0:.1%}",
+            "value": 200
+          },
+          "critical": {
+            "text": "{1} CPU, load {0:.1%}",
+            "value": 250
+          }
+        },
+        "jmx": {
+          "property_list": [
+            "java.lang:type=OperatingSystem/SystemCpuLoad",
+            "java.lang:type=OperatingSystem/AvailableProcessors"
+          ],
+          "value": "{0} * 100"
+        }
+      }
+    }
+  ],
+  "SECONDARY_NAMENODE": [
+    {
+      "name": "secondary_namenode_process",
+      "label": "Secondary NameNode Process",
+      "interval": 1,
+      "scope": "any",
+      "enabled": true,
+      "source": {
+        "type": "PORT",        
+        "uri": "{{hdfs-site/dfs.namenode.secondary.http-address}}",
+        "default_port": 50071,
+        "reporting": {
+          "ok": {
+            "text": "TCP OK - {0:.4f} response on port {1}"
+          },
+          "critical": {
+            "text": "Connection failed: {0} on host {1}:{2}"
+          }
+        }        
+      }
+    }
+  ],
+  "JOURNALNODE": [
+    {
+      "name": "journalnode_process",
+      "label": "JournalNode Process",
+      "interval": 1,
+      "scope": "host",
+      "enabled": true,
+      "source": {
+        "type": "PORT",        
+        "uri": "{{hdfs-site/dfs.journalnode.http-address}}",
+        "default_port": 8480,
+        "reporting": {
+          "ok": {
+            "text": "TCP OK - {0:.4f} response on port {1}"
+          },
+          "critical": {
+            "text": "Connection failed: {0} on host {1}:{2}"
+          }
+        }        
+      }
+    }
+  ],      
+  "DATANODE": [
+    {
+      "name": "datanode_process",
+      "label": "DateNode Process",
+      "interval": 1,
+      "scope": "host",
+      "enabled": true,
+      "source": {
+        "type": "PORT",        
+        "uri": "{{hdfs-site/dfs.datanode.http.address}}",
+        "default_port": 50075,
+        "reporting": {
+          "ok": {
+            "text": "TCP OK - {0:.4f} response on port {1}"
+          },
+          "critical": {
+            "text": "Connection failed: {0} on host {1}:{2}"
+          }
+        }        
+      }
+    }    
+  ]
+}

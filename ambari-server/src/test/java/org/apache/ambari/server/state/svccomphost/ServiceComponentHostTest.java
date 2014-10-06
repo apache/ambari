@@ -106,12 +106,12 @@ public class ServiceComponentHostTest {
     metaInfo.init();
     clusters.mapHostToCluster("h1","C1");
   }
-  
+
   private void setOsFamily(Host host, String osFamily, String osVersion) {
     Map<String, String> hostAttributes = new HashMap<String, String>(2);
     hostAttributes.put("os_family", osFamily);
     hostAttributes.put("os_release_version", osVersion);
-    
+
     host.setHostAttributes(hostAttributes);
   }
 
@@ -119,15 +119,16 @@ public class ServiceComponentHostTest {
   public void teardown() {
     injector.getInstance(PersistService.class).stop();
   }
-  
+
   private ServiceComponentHost createNewServiceComponentHost(
       String svc,
       String svcComponent,
       String hostName, boolean isClient) throws AmbariException{
     Cluster c = clusters.getCluster("C1");
-    
+    Assert.assertNotNull(c.getConfigGroups());
     return createNewServiceComponentHost(c, svc, svcComponent, hostName);
   }
+
   private ServiceComponentHost createNewServiceComponentHost(
       Cluster c,
       String svc,
@@ -157,18 +158,22 @@ public class ServiceComponentHostTest {
 
     ServiceComponentHost impl = serviceComponentHostFactory.createNew(
         sc, hostName);
+
     impl.persist();
-    Assert.assertEquals(State.INIT,
-        impl.getState());
-    Assert.assertEquals(State.INIT,
-        impl.getDesiredState());
+
+    Assert.assertEquals(State.INIT, impl.getState());
+    Assert.assertEquals(State.INIT, impl.getDesiredState());
     Assert.assertEquals(c.getClusterName(), impl.getClusterName());
     Assert.assertEquals(c.getClusterId(), impl.getClusterId());
     Assert.assertEquals(s.getName(), impl.getServiceName());
     Assert.assertEquals(sc.getName(), impl.getServiceComponentName());
     Assert.assertEquals(hostName, impl.getHostName());
+
+    Assert.assertNotNull(c.getServiceComponentHosts(hostName));
+
     Assert.assertFalse(
         impl.getDesiredStackVersion().getStackId().isEmpty());
+
     Assert.assertTrue(impl.getStackVersion().getStackId().isEmpty());
 
     return impl;
@@ -265,7 +270,7 @@ public class ServiceComponentHostTest {
 
     ServiceComponentHostEvent installEvent2 = createEvent(impl, ++timestamp,
         startEventType);
-   
+
     boolean exceptionThrown = false;
     LOG.info("Transitioning from " + impl.getState() + " " + installEvent2.getType());
     try {
@@ -504,7 +509,7 @@ public class ServiceComponentHostTest {
     Assert.assertEquals("HDP-1.1.0",
         sch.getDesiredStackVersion().getStackId());
   }
-  
+
   @Test
   public void testActualConfigs() throws Exception {
     ServiceComponentHost sch =
@@ -521,25 +526,25 @@ public class ServiceComponentHostTest {
 
     configGroup.persist();
     cluster.addConfigGroup(configGroup);
-    
+
     Map<String, Map<String,String>> actual =
         new HashMap<String, Map<String, String>>() {{
           put("global", new HashMap<String,String>() {{ put("tag", "version1"); }});
           put("core-site", new HashMap<String,String>() {{ put("tag", "version1");
             put(configGroup.getId().toString(), "version2"); }});
         }};
-        
+
     sch.updateActualConfigs(actual);
-    
+
     Map<String, HostConfig> confirm = sch.getActualConfigs();
-    
+
     Assert.assertEquals(2, confirm.size());
     Assert.assertTrue(confirm.containsKey("global"));
     Assert.assertTrue(confirm.containsKey("core-site"));
     Assert.assertEquals(1, confirm.get("core-site").getConfigGroupOverrides().size());
 
   }
-  
+
   @Test
   public void testConvertToResponse() throws AmbariException {
     ServiceComponentHost sch =
@@ -556,7 +561,7 @@ public class ServiceComponentHostTest {
     Assert.assertEquals(State.INSTALLED.toString(), r.getDesiredState());
     Assert.assertEquals(State.INSTALLING.toString(), r.getLiveState());
     Assert.assertEquals("HDP-1.0.0", r.getStackVersion());
-    
+
     Assert.assertFalse(r.isStaleConfig());
 
     // TODO check configs
@@ -616,62 +621,61 @@ public class ServiceComponentHostTest {
         impl.getState());
   }
 
-   @Test
-   public void TestDisableInVariousStates() throws AmbariException,
-           InvalidStateTransitionException {
-       ServiceComponentHost sch =
-               createNewServiceComponentHost("HDFS", "DATANODE", "h1", false);
-       ServiceComponentHostImpl impl =  (ServiceComponentHostImpl) sch;
+  @Test
+  public void testDisableInVariousStates() throws AmbariException,
+      InvalidStateTransitionException {
+    ServiceComponentHost sch = createNewServiceComponentHost("HDFS",
+        "DATANODE", "h1", false);
+    ServiceComponentHostImpl impl = (ServiceComponentHostImpl) sch;
 
-       // Test valid states in which host component can be disabled
-       long timestamp = 0;
-       HashSet<State> validStates = new HashSet<State>();
-       validStates.add(State.INSTALLED);
-       validStates.add(State.INSTALL_FAILED);
-       validStates.add(State.UNKNOWN);
-       validStates.add(State.DISABLED);
-       for (State state : validStates)
-       {
-         sch.setState(state);
-         ServiceComponentHostEvent disableEvent = createEvent(
-                   impl, ++timestamp, ServiceComponentHostEventType.HOST_SVCCOMP_DISABLE);
-         impl.handleEvent(disableEvent);
-         // TODO: At present operation timestamps are not getting updated.
-         Assert.assertEquals(-1, impl.getLastOpStartTime());
-         Assert.assertEquals(-1, impl.getLastOpLastUpdateTime());
-         Assert.assertEquals(-1, impl.getLastOpEndTime());
-         Assert.assertEquals(State.DISABLED, impl.getState());
-       }
+    // Test valid states in which host component can be disabled
+    long timestamp = 0;
+    HashSet<State> validStates = new HashSet<State>();
+    validStates.add(State.INSTALLED);
+    validStates.add(State.INSTALL_FAILED);
+    validStates.add(State.UNKNOWN);
+    validStates.add(State.DISABLED);
+    for (State state : validStates) {
+      sch.setState(state);
+      ServiceComponentHostEvent disableEvent = createEvent(impl, ++timestamp,
+          ServiceComponentHostEventType.HOST_SVCCOMP_DISABLE);
+      impl.handleEvent(disableEvent);
+      // TODO: At present operation timestamps are not getting updated.
+      Assert.assertEquals(-1, impl.getLastOpStartTime());
+      Assert.assertEquals(-1, impl.getLastOpLastUpdateTime());
+      Assert.assertEquals(-1, impl.getLastOpEndTime());
+      Assert.assertEquals(State.DISABLED, impl.getState());
+    }
 
-       // Test invalid states in which host component cannot be disabled
-       HashSet<State> invalidStates = new HashSet<State>();
-       invalidStates.add(State.INIT);
-       invalidStates.add(State.INSTALLING);
-       invalidStates.add(State.STARTING);
-       invalidStates.add(State.STARTED);
-       invalidStates.add(State.STOPPING);
-       invalidStates.add(State.UNINSTALLING);
-       invalidStates.add(State.UNINSTALLED);
-       invalidStates.add(State.UPGRADING);
+    // Test invalid states in which host component cannot be disabled
+    HashSet<State> invalidStates = new HashSet<State>();
+    invalidStates.add(State.INIT);
+    invalidStates.add(State.INSTALLING);
+    invalidStates.add(State.STARTING);
+    invalidStates.add(State.STARTED);
+    invalidStates.add(State.STOPPING);
+    invalidStates.add(State.UNINSTALLING);
+    invalidStates.add(State.UNINSTALLED);
+    invalidStates.add(State.UPGRADING);
 
-       for(State state : invalidStates)
-       {
-           sch.setState(state);
-           ServiceComponentHostEvent disableEvent = createEvent(
-                   impl, ++timestamp, ServiceComponentHostEventType.HOST_SVCCOMP_DISABLE);
-           boolean exceptionThrown = false;
-           try {
-               impl.handleEvent(disableEvent);
-           } catch (Exception e) {
-               exceptionThrown = true;
-           }
-           Assert.assertTrue("Exception not thrown on invalid event", exceptionThrown);
-           // TODO: At present operation timestamps are not getting updated.
-           Assert.assertEquals(-1, impl.getLastOpStartTime());
-           Assert.assertEquals(-1, impl.getLastOpLastUpdateTime());
-           Assert.assertEquals(-1, impl.getLastOpEndTime());
-       }
-   }
+    for (State state : invalidStates) {
+      sch.setState(state);
+      ServiceComponentHostEvent disableEvent = createEvent(impl, ++timestamp,
+          ServiceComponentHostEventType.HOST_SVCCOMP_DISABLE);
+      boolean exceptionThrown = false;
+      try {
+        impl.handleEvent(disableEvent);
+      } catch (Exception e) {
+        exceptionThrown = true;
+      }
+      Assert.assertTrue("Exception not thrown on invalid event",
+          exceptionThrown);
+      // TODO: At present operation timestamps are not getting updated.
+      Assert.assertEquals(-1, impl.getLastOpStartTime());
+      Assert.assertEquals(-1, impl.getLastOpLastUpdateTime());
+      Assert.assertEquals(-1, impl.getLastOpEndTime());
+    }
+  }
 
   @Test
   public void testCanBeRemoved() throws Exception{
@@ -689,13 +693,13 @@ public class ServiceComponentHostTest {
       }
     }
   }
-  
+
   @Test
   public void testStaleConfigs() throws Exception {
     String stackVersion="HDP-2.0.6";
     String clusterName = "c2";
     String hostName = "h3";
-    
+
     clusters.addCluster(clusterName);
     clusters.addHost(hostName);
     setOsFamily(clusters.getHost(hostName), "redhat", "5.9");
@@ -703,14 +707,14 @@ public class ServiceComponentHostTest {
     clusters.getCluster(clusterName).setDesiredStackVersion(
         new StackId(stackVersion));
     metaInfo.init();
-    clusters.mapHostToCluster(hostName, clusterName);    
-    
+    clusters.mapHostToCluster(hostName, clusterName);
+
     Cluster cluster = clusters.getCluster(clusterName);
-    
+
     ServiceComponentHost sch1 = createNewServiceComponentHost(cluster, "HDFS", "NAMENODE", hostName);
     ServiceComponentHost sch2 = createNewServiceComponentHost(cluster, "HDFS", "DATANODE", hostName);
     ServiceComponentHost sch3 = createNewServiceComponentHost(cluster, "MAPREDUCE2", "HISTORYSERVER", hostName);
-    
+
     sch1.setDesiredState(State.INSTALLED);
     sch1.setState(State.INSTALLING);
     sch1.setStackVersion(new StackId(stackVersion));
@@ -718,10 +722,10 @@ public class ServiceComponentHostTest {
     sch2.setDesiredState(State.INSTALLED);
     sch2.setState(State.INSTALLING);
     sch2.setStackVersion(new StackId(stackVersion));
-    
+
     sch3.setDesiredState(State.INSTALLED);
     sch3.setState(State.INSTALLING);
-    sch3.setStackVersion(new StackId(stackVersion));    
+    sch3.setStackVersion(new StackId(stackVersion));
 
     Assert.assertFalse(sch1.convertToResponse().isStaleConfig());
     Assert.assertFalse(sch2.convertToResponse().isStaleConfig());
@@ -736,7 +740,7 @@ public class ServiceComponentHostTest {
     Map<String, Map<String, String>> actual = new HashMap<String, Map<String, String>>() {{
       put("global", new HashMap<String,String>() {{ put("tag", "version1"); }});
     }};
-    
+
     sch1.updateActualConfigs(actual);
     sch2.updateActualConfigs(actual);
     sch3.updateActualConfigs(actual);
@@ -747,7 +751,7 @@ public class ServiceComponentHostTest {
     // HDP-x/HDFS does not define type 'foo', so changes do not count to stale
     Assert.assertFalse(sch1.convertToResponse().isStaleConfig());
     Assert.assertFalse(sch2.convertToResponse().isStaleConfig());
-    
+
     makeConfig(cluster, "hdfs-site", "version1",
         new HashMap<String,String>() {{ put("a", "b"); }}, new HashMap<String, Map<String,String>>());
 
@@ -756,7 +760,7 @@ public class ServiceComponentHostTest {
     Assert.assertTrue(sch2.convertToResponse().isStaleConfig());
 
     actual.put("hdfs-site", new HashMap<String, String>() {{ put ("tag", "version1"); }});
-    
+
     sch1.updateActualConfigs(actual);
     // previous value from cache
     Assert.assertTrue(sch1.convertToResponse().isStaleConfig());
@@ -766,7 +770,7 @@ public class ServiceComponentHostTest {
     // HDP-x/HDFS/hdfs-site up to date, only for sch1
     Assert.assertFalse(sch1.convertToResponse().isStaleConfig());
     Assert.assertTrue(sch2.convertToResponse().isStaleConfig());
-    
+
     sch2.updateActualConfigs(actual);
     // previous value from cache
     Assert.assertTrue(sch2.convertToResponse().isStaleConfig());
@@ -776,15 +780,15 @@ public class ServiceComponentHostTest {
     // HDP-x/HDFS/hdfs-site up to date for both
     Assert.assertFalse(sch1.convertToResponse().isStaleConfig());
     Assert.assertFalse(sch2.convertToResponse().isStaleConfig());
-    
+
     makeConfig(cluster, "hdfs-site", "version2",
-        new HashMap<String, String>() {{ put("dfs.journalnode.http-address", "http://foo"); }}, 
+        new HashMap<String, String>() {{ put("dfs.journalnode.http-address", "http://foo"); }},
         new HashMap<String, Map<String,String>>());
 
     // HDP-x/HDFS/hdfs-site updated to changed property
     Assert.assertTrue(sch1.convertToResponse().isStaleConfig());
     Assert.assertTrue(sch2.convertToResponse().isStaleConfig());
-    
+
     actual.get("hdfs-site").put("tag", "version2");
     sch1.updateActualConfigs(actual);
     sch2.updateActualConfigs(actual);
@@ -795,13 +799,13 @@ public class ServiceComponentHostTest {
     // HDP-x/HDFS/hdfs-site updated to changed property
     Assert.assertFalse(sch1.convertToResponse().isStaleConfig());
     Assert.assertFalse(sch2.convertToResponse().isStaleConfig());
-    
+
     // make a host override
     final Host host = clusters.getHostsForCluster(cluster.getClusterName()).get(hostName);
     Assert.assertNotNull(host);
-    
+
     final Config c = configFactory.createNew(cluster, "hdfs-site",
-        new HashMap<String, String>() {{ put("dfs.journalnode.http-address", "http://goo"); }}, 
+        new HashMap<String, String>() {{ put("dfs.journalnode.http-address", "http://goo"); }},
         new HashMap<String, Map<String,String>>());
     c.setTag("version3");
     c.persist();
@@ -812,11 +816,11 @@ public class ServiceComponentHostTest {
       new HashMap<String, Host>() {{ put("h3", host); }});
     configGroup.persist();
     cluster.addConfigGroup(configGroup);
-    
+
     // HDP-x/HDFS/hdfs-site updated host to changed property
     Assert.assertTrue(sch1.convertToResponse().isStaleConfig());
     Assert.assertTrue(sch2.convertToResponse().isStaleConfig());
-    
+
     actual.get("hdfs-site").put(configGroup.getId().toString(), "version3");
     sch2.updateActualConfigs(actual);
     // previous value from cache
@@ -827,7 +831,7 @@ public class ServiceComponentHostTest {
     // HDP-x/HDFS/hdfs-site updated host to changed property
     Assert.assertTrue(sch1.convertToResponse().isStaleConfig());
     Assert.assertFalse(sch2.convertToResponse().isStaleConfig());
-    
+
     sch1.updateActualConfigs(actual);
     // previous value from cache
     Assert.assertTrue(sch1.convertToResponse().isStaleConfig());
@@ -837,7 +841,7 @@ public class ServiceComponentHostTest {
     // HDP-x/HDFS/hdfs-site updated host to changed property
     Assert.assertFalse(sch1.convertToResponse().isStaleConfig());
     Assert.assertFalse(sch2.convertToResponse().isStaleConfig());
-    
+
     // change 'global' property only affecting global/HDFS
     makeConfig(cluster, "global", "version2",
       new HashMap<String,String>() {{
@@ -845,7 +849,7 @@ public class ServiceComponentHostTest {
         put("dfs_namenode_name_dir", "/foo3"); // HDFS only
         put("mapred_log_dir_prefix", "/foo2"); // MR2 only
       }}, new HashMap<String, Map<String,String>>());
-    
+
     Assert.assertTrue(sch1.convertToResponse().isStaleConfig());
     Assert.assertTrue(sch2.convertToResponse().isStaleConfig());
     Assert.assertFalse(sch3.convertToResponse().isStaleConfig());
@@ -868,7 +872,7 @@ public class ServiceComponentHostTest {
     sch1.updateActualConfigs(actual);
 
     final Config c1 = configFactory.createNew(cluster, "core-site",
-      new HashMap<String, String>() {{ put("fs.trash.interval", "400"); }}, 
+      new HashMap<String, String>() {{ put("fs.trash.interval", "400"); }},
       new HashMap<String, Map<String,String>>());
     c1.setTag("version2");
     c1.persist();
@@ -913,13 +917,13 @@ public class ServiceComponentHostTest {
     sch3.setRestartRequired(false);
     Assert.assertFalse(sch3.convertToResponse().isStaleConfig());
   }
-  
+
   @Test
   public void testStaleConfigsAttributes() throws Exception {
     String stackVersion="HDP-2.0.6";
     String clusterName = "c2";
     String hostName = "h3";
-    
+
     clusters.addCluster(clusterName);
     clusters.addHost(hostName);
     setOsFamily(clusters.getHost(hostName), "redhat", "5.9");
@@ -927,14 +931,14 @@ public class ServiceComponentHostTest {
     clusters.getCluster(clusterName).setDesiredStackVersion(
         new StackId(stackVersion));
     metaInfo.init();
-    clusters.mapHostToCluster(hostName, clusterName);    
-    
+    clusters.mapHostToCluster(hostName, clusterName);
+
     Cluster cluster = clusters.getCluster(clusterName);
-    
+
     ServiceComponentHost sch1 = createNewServiceComponentHost(cluster, "HDFS", "NAMENODE", hostName);
     ServiceComponentHost sch2 = createNewServiceComponentHost(cluster, "HDFS", "DATANODE", hostName);
     ServiceComponentHost sch3 = createNewServiceComponentHost(cluster, "MAPREDUCE2", "HISTORYSERVER", hostName);
-    
+
     sch1.setDesiredState(State.INSTALLED);
     sch1.setState(State.INSTALLING);
     sch1.setStackVersion(new StackId(stackVersion));
@@ -942,10 +946,10 @@ public class ServiceComponentHostTest {
     sch2.setDesiredState(State.INSTALLED);
     sch2.setState(State.INSTALLING);
     sch2.setStackVersion(new StackId(stackVersion));
-    
+
     sch3.setDesiredState(State.INSTALLED);
     sch3.setState(State.INSTALLING);
-    sch3.setStackVersion(new StackId(stackVersion));    
+    sch3.setStackVersion(new StackId(stackVersion));
 
     Assert.assertFalse(sch1.convertToResponse().isStaleConfig());
     Assert.assertFalse(sch2.convertToResponse().isStaleConfig());
@@ -964,7 +968,7 @@ public class ServiceComponentHostTest {
       put("global", new HashMap<String,String>() {{ put("tag", "version1"); }});
       put("hdfs-site", new HashMap<String,String>() {{ put("tag", "version1"); }});
     }};
-    
+
     sch1.updateActualConfigs(actual);
     sch2.updateActualConfigs(actual);
     sch3.updateActualConfigs(actual);
@@ -973,7 +977,7 @@ public class ServiceComponentHostTest {
       new HashMap<String,String>() {{ put("a", "c"); }},new HashMap<String, Map<String,String>>(){{
        put("final", new HashMap<String, String>(){{
          put("a", "true");
-       }}); 
+       }});
       }});
     // HDP-x/HDFS does not define type 'foo', so changes do not count to stale
     Assert.assertFalse(sch1.convertToResponse().isStaleConfig());
@@ -986,7 +990,7 @@ public class ServiceComponentHostTest {
     sch3.setRestartRequired(false);
     sch3.updateActualConfigs(actual);
     Assert.assertFalse(sch3.convertToResponse().isStaleConfig());
-    
+
     // Now add config-attributes
     Map<String, Map<String, String>> c1PropAttributes = new HashMap<String, Map<String,String>>();
     c1PropAttributes.put("final", new HashMap<String, String>());
@@ -1001,7 +1005,7 @@ public class ServiceComponentHostTest {
     Assert.assertTrue(sch1.convertToResponse().isStaleConfig());
     Assert.assertTrue(sch2.convertToResponse().isStaleConfig());
     Assert.assertFalse(sch3.convertToResponse().isStaleConfig());
-    
+
     // Now change config-attributes
     Map<String, Map<String, String>> c2PropAttributes = new HashMap<String, Map<String,String>>();
     c2PropAttributes.put("final", new HashMap<String, String>());
@@ -1016,7 +1020,7 @@ public class ServiceComponentHostTest {
     Assert.assertTrue(sch1.convertToResponse().isStaleConfig());
     Assert.assertTrue(sch2.convertToResponse().isStaleConfig());
     Assert.assertFalse(sch3.convertToResponse().isStaleConfig());
-    
+
     // Now change config-attributes
     makeConfig(cluster, "hdfs-site", "version4",
         new HashMap<String,String>() {{
@@ -1044,13 +1048,13 @@ public class ServiceComponentHostTest {
     cluster.addConfig(config);
     cluster.addDesiredConfig("user", Collections.singleton(config));
   }
-  
+
   @Test
   public void testMaintenance() throws Exception {
     String stackVersion="HDP-2.0.6";
     String clusterName = "c2";
     String hostName = "h3";
-    
+
     clusters.addCluster(clusterName);
     clusters.addHost(hostName);
     setOsFamily(clusters.getHost(hostName), "redhat", "5.9");
@@ -1058,10 +1062,10 @@ public class ServiceComponentHostTest {
     clusters.getCluster(clusterName).setDesiredStackVersion(
         new StackId(stackVersion));
     metaInfo.init();
-    clusters.mapHostToCluster(hostName, clusterName);    
-    
+    clusters.mapHostToCluster(hostName, clusterName);
+
     Cluster cluster = clusters.getCluster(clusterName);
-    
+
     ServiceComponentHost sch1 = createNewServiceComponentHost(cluster, "HDFS", "NAMENODE", hostName);
     ServiceComponentHost sch2 = createNewServiceComponentHost(cluster, "HDFS", "DATANODE", hostName);
     ServiceComponentHost sch3 = createNewServiceComponentHost(cluster, "MAPREDUCE2", "HISTORYSERVER", hostName);
@@ -1071,20 +1075,20 @@ public class ServiceComponentHostTest {
     pk.setComponentName(sch1.getServiceComponentName());
     pk.setServiceName(sch1.getServiceName());
     pk.setHostName(hostName);
-    
+
     HostComponentDesiredStateDAO dao = injector.getInstance(HostComponentDesiredStateDAO.class);
     HostComponentDesiredStateEntity entity = dao.findByPK(pk);
     Assert.assertEquals(MaintenanceState.OFF, entity.getMaintenanceState());
     Assert.assertEquals(MaintenanceState.OFF, sch1.getMaintenanceState());
-    
+
     sch1.setMaintenanceState(MaintenanceState.ON);
     Assert.assertEquals(MaintenanceState.ON, sch1.getMaintenanceState());
-    
+
     entity = dao.findByPK(pk);
     Assert.assertEquals(MaintenanceState.ON, entity.getMaintenanceState());
 
   }
 
-  
-  
+
+
 }

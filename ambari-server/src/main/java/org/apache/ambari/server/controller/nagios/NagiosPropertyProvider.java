@@ -17,14 +17,10 @@
  */
 package org.apache.ambari.server.controller.nagios;
 
-import com.google.gson.Gson;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -42,8 +38,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
 import java.util.regex.Pattern;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.configuration.Configuration;
@@ -54,7 +50,6 @@ import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.utilities.StreamProvider;
-import org.apache.ambari.server.state.Alert;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Service;
@@ -63,20 +58,26 @@ import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.gson.Gson;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+
 /**
  * Used to populate resources that have Nagios alertable properties.
  */
+@Deprecated
 public class NagiosPropertyProvider extends BaseProvider implements PropertyProvider {
   
   private static final Logger LOG = LoggerFactory.getLogger(NagiosPropertyProvider.class);
   private static final Set<String> NAGIOS_PROPERTY_IDS = new HashSet<String>();
   private static final String NAGIOS_TEMPLATE = "http://%s/ambarinagios/nagios/nagios_alerts.php?q1=alerts&alert_type=all";
   
-  private static final String ALERT_DETAIL_PROPERTY_ID = "alerts/detail";
-  private static final String ALERT_SUMMARY_OK_PROPERTY_ID = "alerts/summary/OK";
-  private static final String ALERT_SUMMARY_WARNING_PROPERTY_ID = "alerts/summary/WARNING";
-  private static final String ALERT_SUMMARY_CRITICAL_PROPERTY_ID = "alerts/summary/CRITICAL";
-  private static final String ALERT_SUMMARY_PASSIVE_PROPERTY_ID = "alerts/summary/PASSIVE";
+  private static final String ALERT_DETAIL_PROPERTY_ID = "legacy_alerts/detail";
+  private static final String ALERT_SUMMARY_PROPERTY_ID = "legacy_alerts/summary";
+  private static final String ALERT_SUMMARY_OK_PROPERTY_ID = "legacy_alerts/summary/OK";
+  private static final String ALERT_SUMMARY_WARNING_PROPERTY_ID = "legacy_alerts/summary/WARNING";
+  private static final String ALERT_SUMMARY_CRITICAL_PROPERTY_ID = "legacy_alerts/summary/CRITICAL";
+  private static final String ALERT_SUMMARY_PASSIVE_PROPERTY_ID = "legacy_alerts/summary/PASSIVE";
   private static final String PASSIVE_TOKEN = "AMBARIPASSIVE=";
   
   private static final List<String> DEFAULT_IGNORABLE_FOR_SERVICES = Collections.unmodifiableList(new ArrayList<String>(
@@ -99,8 +100,8 @@ public class NagiosPropertyProvider extends BaseProvider implements PropertyProv
   private static final Set<String> CLUSTER_NAMES = new CopyOnWriteArraySet<String>();
   
   static {
-    NAGIOS_PROPERTY_IDS.add("alerts/summary");
-    NAGIOS_PROPERTY_IDS.add("alerts/detail");
+    NAGIOS_PROPERTY_IDS.add(ALERT_SUMMARY_PROPERTY_ID);
+    NAGIOS_PROPERTY_IDS.add(ALERT_DETAIL_PROPERTY_ID);
     IGNORABLE_FOR_SERVICES = new ArrayList<String>(DEFAULT_IGNORABLE_FOR_SERVICES);
 
     scheduler = Executors.newSingleThreadScheduledExecutor(new ThreadFactory() {

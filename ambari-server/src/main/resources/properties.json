@@ -421,6 +421,22 @@
       "HostComponentProcess/name",
       "HostComponentProcess/status"
     ],
+    "Alert": [
+      "Alert/cluster_name",
+      "Alert/id",
+      "Alert/name",
+      "Alert/latest_timestamp",
+      "Alert/maintenance_state",
+      "Alert/original_timestamp",
+      "Alert/instance",
+      "Alert/label",
+      "Alert/state",
+      "Alert/text",
+      "Alert/component_name",
+      "Alert/host_name",
+      "Alert/service_name",
+      "Alert/scope"
+    ],
     "AlertDefinition": [
       "AlertDefinition/cluster_name",
       "AlertDefinition/service_name",
@@ -431,8 +447,25 @@
       "AlertDefinition/interval",
       "AlertDefinition/enabled",
       "AlertDefinition/scope",
-      "AlertDefinition/source"
-    ],      
+      "AlertDefinition/source",
+      "AlertDefinition/run_now"
+    ],
+    "AlertGroup": [
+      "AlertGroup/id",
+      "AlertGroup/name",
+      "AlertGroup/cluster_name",
+      "AlertGroup/default",
+      "AlertGroup/definitions",
+      "AlertGroup/targets"
+    ],
+    "AlertTarget": [
+      "AlertTarget/id",
+      "AlertTarget/name",
+      "AlertTarget/description",      
+      "AlertTarget/notification_type",
+      "AlertTarget/properties",
+      "AlertTarget/groups"
+    ],
     "ClientConfig":[
         "ServiceComponentInfo/service_name",
         "ServiceComponentInfo/component_name",

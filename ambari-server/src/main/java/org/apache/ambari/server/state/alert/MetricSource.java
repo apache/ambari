@@ -17,41 +17,145 @@
  */
 package org.apache.ambari.server.state.alert;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 import com.google.gson.annotations.SerializedName;
 
 /**
  * Alert when the source type is defined as {@link SourceType#METRIC}
+ * <p/>
+ * Equality checking for instances of this class should be executed on every
+ * member to ensure that reconciling stack differences is correct.
  */
 public class MetricSource extends Source {
-  
-  private String host = null;
+
+  @SerializedName("uri")
+  private String m_uri = null;
   
   @SerializedName("jmx")
-  private String jmxInfo = null;
-  
+  private JmxInfo jmxInfo = null;
+
   @SerializedName("ganglia")
   private String gangliaInfo = null;
-  
+
   /**
    * @return the jmx info, if this metric is jmx-based
    */
-  public String getJmxInfo() {
+  public JmxInfo getJmxInfo() {
     return jmxInfo;
   }
-  
+
   /**
    * @return the ganglia info, if this metric is ganglia-based
    */
   public String getGangliaInfo() {
     return gangliaInfo;
   }
-  
+
   /**
-   * @return the host info, which may include port information
+   * @return the uri info, which may include port information
    */
-  public String getHost() {
-    return host;
+  public String getUri() {
+    return m_uri;
+  }
+
+  /**
+   *
+   */
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = super.hashCode();
+    result = prime * result
+        + ((gangliaInfo == null) ? 0 : gangliaInfo.hashCode());
+    result = prime * result + ((m_uri == null) ? 0 : m_uri.hashCode());
+    result = prime * result + ((jmxInfo == null) ? 0 : jmxInfo.hashCode());
+
+    return result;
+  }
+
+  /**
+   *
+   */
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+
+    if (!super.equals(obj)) {
+      return false;
+    }
+
+    if (getClass() != obj.getClass()) {
+      return false;
+    }
+
+    MetricSource other = (MetricSource) obj;
+    if (gangliaInfo == null) {
+      if (other.gangliaInfo != null) {
+        return false;
+      }
+    } else if (!gangliaInfo.equals(other.gangliaInfo)) {
+      return false;
+    }
+
+    if (m_uri == null) {
+      if (other.m_uri != null) {
+        return false;
+      }
+    } else if (!m_uri.equals(other.m_uri)) {
+      return false;
+    }
+
+    if (jmxInfo == null) {
+      if (other.jmxInfo != null) {
+        return false;
+      }
+    } else if (!jmxInfo.equals(other.jmxInfo)) {
+      return false;
+    }
+
+    return true;
   }
   
-  
+  /**
+   * Represents the {@code jmx} element in a Metric alert.
+   */
+  public static class JmxInfo {
+    @SerializedName("property_list")
+    private List<String> propertyList;
+    
+    private String value;
+    
+    public List<String> getPropertyList() {
+      return propertyList;
+    }
+    
+    public String getValue() {
+      return value;
+    }
+    
+    @Override
+    public boolean equals(Object object) {
+      if (!JmxInfo.class.isInstance(object)) {
+        return false;
+      }
+      
+      JmxInfo other = (JmxInfo)object;
+      
+      List<String> list1 = new ArrayList<String>(propertyList);
+      List<String> list2 = new ArrayList<String>(other.propertyList);
+      
+      if ((null == list1 && null != list2) || (null != list1 && null == list2)) {
+        return false;
+      }
+      
+      // !!! even if out of order, this is enough to fail
+      return list1.equals(list2);
+      
+    }
+  }
 }

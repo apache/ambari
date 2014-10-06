@@ -29,7 +29,10 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.agent.AlertDefinitionCommand;
 import org.apache.ambari.server.controller.ServiceComponentHostResponse;
+import org.apache.ambari.server.events.MaintenanceModeEvent;
+import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.dao.HostComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
@@ -55,6 +58,7 @@ import org.apache.ambari.server.state.ServiceComponentHostEvent;
 import org.apache.ambari.server.state.ServiceComponentHostEventType;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
+import org.apache.ambari.server.state.alert.AlertDefinitionHash;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.fsm.SingleArcTransition;
@@ -101,6 +105,19 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   @Inject
   ConfigHelper helper;
 
+  /**
+   * Used for creating commands to send to the agents when alert definitions are
+   * added as the result of a service install.
+   */
+  @Inject
+  private AlertDefinitionHash alertDefinitionHash;
+
+  /**
+   * Used to publish events relating to service CRUD operations.
+   */
+  @Inject
+  private AmbariEventPublisher eventPublisher;
+
   private HostComponentStateEntity stateEntity;
   private HostComponentDesiredStateEntity desiredStateEntity;
 
@@ -127,16 +144,21 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
          State.INSTALLING,
          ServiceComponentHostEventType.HOST_SVCCOMP_INSTALL,
          new ServiceComponentHostOpStartedTransition())
+
      .addTransition(State.INSTALLING,
          State.INSTALLED,
          ServiceComponentHostEventType.HOST_SVCCOMP_OP_SUCCEEDED,
          new ServiceComponentHostOpCompletedTransition())
-         
+
+  .addTransition(State.INSTALLING, State.INSTALLED,
+      ServiceComponentHostEventType.HOST_SVCCOMP_OP_SUCCEEDED,
+      new AlertDefinitionCommandTransition())
+
      .addTransition(State.INSTALLED,
          State.INSTALLED,
          ServiceComponentHostEventType.HOST_SVCCOMP_OP_SUCCEEDED,
          new ServiceComponentHostOpCompletedTransition())
-         
+
      .addTransition(State.INSTALLING,
          State.INSTALLING,
          ServiceComponentHostEventType.HOST_SVCCOMP_OP_IN_PROGRESS,
@@ -202,7 +224,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
          State.STARTING,
          ServiceComponentHostEventType.HOST_SVCCOMP_OP_IN_PROGRESS,
          new ServiceComponentHostOpInProgressTransition())
-         
+
      .addTransition(State.STARTING,
          State.STARTING,
          ServiceComponentHostEventType.HOST_SVCCOMP_START,
@@ -211,7 +233,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
          State.STARTED,
          ServiceComponentHostEventType.HOST_SVCCOMP_STARTED,
          new ServiceComponentHostOpCompletedTransition())
-         
+
      .addTransition(State.STARTING,
          State.INSTALLED,
          ServiceComponentHostEventType.HOST_SVCCOMP_OP_FAILED,
@@ -383,7 +405,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
          State.INSTALLING,
          ServiceComponentHostEventType.HOST_SVCCOMP_INSTALL,
          new ServiceComponentHostOpStartedTransition())
-     
+
      .addTransition(State.INSTALLING,
          State.INSTALLING,
          ServiceComponentHostEventType.HOST_SVCCOMP_OP_IN_PROGRESS,
@@ -516,8 +538,34 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
         ServiceComponentHostEvent event) {
       // TODO Audit logs
       impl.updateLastOpInfo(event.getType(), event.getOpTimestamp());
+
     }
 
+  }
+
+  /**
+   * The {@link AlertDefinitionCommandTransition} is used to capture the
+   * transition from {@link State#INSTALLING} to {@link State#INSTALLED} so that
+   * the host affected will have new {@link AlertDefinitionCommand}s pushed to
+   * it.
+   */
+  static class AlertDefinitionCommandTransition implements
+      SingleArcTransition<ServiceComponentHostImpl, ServiceComponentHostEvent> {
+
+    @Override
+    public void transition(ServiceComponentHostImpl impl,
+        ServiceComponentHostEvent event) {
+      if (event.getType() != ServiceComponentHostEventType.HOST_SVCCOMP_OP_SUCCEEDED) {
+        return;
+      }
+
+      String hostName = impl.getHostName();
+      impl.alertDefinitionHash.invalidate(impl.getClusterName(), hostName);
+      impl.alertDefinitionHash.enqueueAgentCommands(impl.getClusterName(),
+          Collections.singleton(hostName));
+
+      impl.updateLastOpInfo(event.getType(), event.getOpTimestamp());
+    }
   }
 
   static class ServiceComponentHostOpStartedTransition
@@ -615,13 +663,13 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     injector.injectMembers(this);
 
     if (serviceComponent.isClientComponent()) {
-      this.stateMachine = clientStateMachineFactory.make(this);
+      stateMachine = clientStateMachineFactory.make(this);
     } else {
-      this.stateMachine = daemonStateMachineFactory.make(this);
+      stateMachine = daemonStateMachineFactory.make(this);
     }
 
     this.serviceComponent = serviceComponent;
-    this.clusterGlobalLock = serviceComponent.getClusterGlobalLock();
+    clusterGlobalLock = serviceComponent.getClusterGlobalLock();
 
     stateEntity = new HostComponentStateEntity();
     stateEntity.setClusterId(serviceComponent.getClusterId());
@@ -646,14 +694,14 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     }
 
     try {
-      this.host = clusters.getHost(hostName);
+      host = clusters.getHost(hostName);
     } catch (AmbariException e) {
       //TODO exception?
       LOG.error("Host '{}' was not found" + hostName);
       throw new RuntimeException(e);
     }
 
-    this.resetLastOpInfo();
+    resetLastOpInfo();
   }
 
   @AssistedInject
@@ -663,21 +711,21 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
                                   Injector injector) {
     injector.injectMembers(this);
     this.serviceComponent = serviceComponent;
-    this.clusterGlobalLock = serviceComponent.getClusterGlobalLock();
+    clusterGlobalLock = serviceComponent.getClusterGlobalLock();
 
     this.desiredStateEntity = desiredStateEntity;
     this.stateEntity = stateEntity;
 
     //TODO implement State Machine init as now type choosing is hardcoded in above code
     if (serviceComponent.isClientComponent()) {
-      this.stateMachine = clientStateMachineFactory.make(this);
+      stateMachine = clientStateMachineFactory.make(this);
     } else {
-      this.stateMachine = daemonStateMachineFactory.make(this);
+      stateMachine = daemonStateMachineFactory.make(this);
     }
-    this.stateMachine.setCurrentState(stateEntity.getCurrentState());
+    stateMachine.setCurrentState(stateEntity.getCurrentState());
 
     try {
-      this.host = clusters.getHost(stateEntity.getHostName());
+      host = clusters.getHost(stateEntity.getHostName());
     } catch (AmbariException e) {
       //TODO exception? impossible due to database restrictions
       LOG.error("Host '{}' was not found " + stateEntity.getHostName());
@@ -743,8 +791,8 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
         } catch (InvalidStateTransitionException e) {
           LOG.debug("Can't handle ServiceComponentHostEvent event at"
               + " current state"
-              + ", serviceComponentName=" + this.getServiceComponentName()
-              + ", hostName=" + this.getHostName()
+              + ", serviceComponentName=" + getServiceComponentName()
+              + ", hostName=" + getHostName()
               + ", currentState=" + oldState
               + ", eventType=" + event.getType()
               + ", event=" + event);
@@ -760,8 +808,8 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     if (!oldState.equals(getState())) {
       if (LOG.isDebugEnabled()) {
         LOG.debug("ServiceComponentHost transitioned to a new state"
-            + ", serviceComponentName=" + this.getServiceComponentName()
-            + ", hostName=" + this.getHostName()
+            + ", serviceComponentName=" + getServiceComponentName()
+            + ", hostName=" + getHostName()
             + ", oldState=" + oldState
             + ", currentState=" + getState()
             + ", eventType=" + event.getType().name()
@@ -1269,7 +1317,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
           removeEntities();
           persisted = false;
         }
-        clusters.getCluster(this.getClusterName()).removeServiceComponentHost(this);
+        clusters.getCluster(getClusterName()).removeServiceComponentHost(this);
       } catch (AmbariException ex) {
         if (LOG.isDebugEnabled()) {
           LOG.error(ex.getMessage());
@@ -1301,7 +1349,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
     hostComponentDesiredStateDAO.removeByPK(desiredPK);
   }
-  
+
   @Override
   public void updateActualConfigs(Map<String, Map<String, String>> configTags) {
     Map<Long, ConfigGroup> configGroupMap;
@@ -1349,9 +1397,9 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
       clusterGlobalLock.readLock().unlock();
     }
   }
-  
-  
-  
+
+
+
   @Override
   public Map<String, HostConfig> getActualConfigs() {
     clusterGlobalLock.readLock().lock();
@@ -1382,7 +1430,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
       clusterGlobalLock.readLock().unlock();
     }
   }
-  
+
   @Override
   public void setMaintenanceState(MaintenanceState state) {
     clusterGlobalLock.readLock().lock();
@@ -1391,6 +1439,11 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
       try {
         desiredStateEntity.setMaintenanceState(state);
         saveIfPersisted();
+
+        // broadcast the maintenance mode change
+        MaintenanceModeEvent event = new MaintenanceModeEvent(state, this);
+        eventPublisher.publish(event);
+
       } finally {
         writeLock.unlock();
       }
@@ -1413,7 +1466,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
       clusterGlobalLock.readLock().unlock();
     }
   }
-  
+
   @Override
   public void setProcesses(List<Map<String, String>> procs) {
     clusterGlobalLock.readLock().lock();
@@ -1428,8 +1481,8 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
       clusterGlobalLock.readLock().unlock();
     }
   }
-  
-  @Override  
+
+  @Override
   public List<Map<String, String>> getProcesses() {
     clusterGlobalLock.readLock().lock();
     try {

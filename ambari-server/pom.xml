@@ -195,7 +195,7 @@
           <dependency>
             <groupId>org.eclipse.persistence</groupId>
             <artifactId>eclipselink</artifactId>
-            <version>2.4.0</version>
+            <version>2.4.2</version>
           </dependency>
         </dependencies>
       </plugin>
@@ -1451,15 +1451,23 @@
       <artifactId>velocity</artifactId>
       <version>1.7</version>
     </dependency>
+    <dependency>
+      <groupId>com.sun.mail</groupId>
+      <artifactId>mailapi</artifactId>
+      <version>1.5.2</version>
+    </dependency>
+    <dependency>
+      <groupId>com.sun.mail</groupId>
+      <artifactId>smtp</artifactId>
+      <version>1.5.2</version>
+    </dependency>
   </dependencies>
-  <!--<reporting> <plugins> <plugin> <groupId>org.codehaus.mojo</groupId>
-    <artifactId>findbugs-maven-plugin</artifactId> <version>2.5.2</version> </plugin>
-    </plugins> </reporting> -->
-
+  
   <pluginRepositories>
     <pluginRepository>
-      <id>EclipseLink</id>
-      <url>http://download.eclipse.org/rt/eclipselink/maven.repo</url>
+      <id>oss.sonatype.org</id>
+      <name>OSS Sonatype Staging</name>
+      <url>https://oss.sonatype.org/content/groups/staging</url>
     </pluginRepository>
   </pluginRepositories>
 
