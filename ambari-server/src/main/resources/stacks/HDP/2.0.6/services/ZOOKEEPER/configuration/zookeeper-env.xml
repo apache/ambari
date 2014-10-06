@@ -69,6 +69,7 @@
     <description>This is the jinja template for zookeeper-env.sh file</description>
     <value>
 export JAVA_HOME={{java64_home}}
+export ZOOKEEPER_HOME={{zk_home}}
 export ZOO_LOG_DIR={{zk_log_dir}}
 export ZOOPIDFILE={{zk_pid_file}}
 export SERVER_JVMFLAGS={{zk_server_heapsize}}
