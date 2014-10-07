@@ -34,7 +34,6 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -46,8 +45,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.api.services.PersistKeyValueImpl;
-import org.apache.ambari.server.api.services.PersistKeyValueService;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ClusterRequest;
 import org.apache.ambari.server.controller.ClusterResponse;
@@ -78,7 +75,6 @@ import org.apache.ambari.server.state.AutoDeployInfo;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DependencyInfo;
-import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.State;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
@@ -227,7 +223,6 @@ public class ClusterResourceProviderTest {
     ResourceProvider hostResourceProvider = createStrictMock(ResourceProvider.class);
     ResourceProvider hostComponentResourceProvider = createStrictMock(ResourceProvider.class);
     ConfigGroupResourceProvider configGroupResourceProvider = createStrictMock(ConfigGroupResourceProvider.class);
-    PersistKeyValueImpl persistKeyValue = createNiceMock(PersistKeyValueImpl.class);
 
     Capture<ClusterRequest> createClusterRequestCapture = new Capture<ClusterRequest>();
     Capture<Set<ClusterRequest>> updateClusterRequestCapture = new Capture<Set<ClusterRequest>>();
@@ -246,6 +241,8 @@ public class ClusterResourceProviderTest {
     Capture<Map<String, String>> updateClusterPropertyMapCapture7 = new Capture<Map<String, String>>();
     Capture<Set<ClusterRequest>> updateClusterRequestCapture8 = new Capture<Set<ClusterRequest>>();
     Capture<Map<String, String>> updateClusterPropertyMapCapture8 = new Capture<Map<String, String>>();
+    Capture<Set<ClusterRequest>> persistUIStateRequestCapture = new Capture<Set<ClusterRequest>>();
+    Capture<Map<String, String>> persistUIStatePropertyMapCapture = new Capture<Map<String, String>>();
 
     Capture<Request> serviceRequestCapture = new Capture<Request>();
     Capture<Request> componentRequestCapture = new Capture<Request>();
@@ -455,6 +452,10 @@ public class ClusterResourceProviderTest {
     expect(managementController.updateClusters(capture(updateClusterRequestCapture8),
         capture(updateClusterPropertyMapCapture8))).andReturn(null);
 
+    // set state for UI
+    expect(managementController.updateClusters(capture(persistUIStateRequestCapture),
+        capture(persistUIStatePropertyMapCapture))).andReturn(null);
+
     expect(serviceResourceProvider.createResources(capture(serviceRequestCapture))).andReturn(null);
     expect(componentResourceProvider.createResources(capture(componentRequestCapture))).andReturn(null);
     expect(componentResourceProvider.createResources(capture(componentRequestCapture2))).andReturn(null);
@@ -466,19 +467,16 @@ public class ClusterResourceProviderTest {
     expect(configGroupResourceProvider.createResources(
         capture(configGroupRequestCapture))).andReturn(null);
 
-    persistKeyValue.put("CLUSTER_CURRENT_STATUS", "{\"clusterState\":\"CLUSTER_STARTED_5\"}");
-
     replay(blueprintDAO, managementController, request, response, blueprint, stackServiceResponse1, stackServiceResponse2,
            stackServiceComponentResponse1, stackServiceComponentResponse2, stackServiceComponentResponse3,
            stackServiceComponentResponse4, stackConfigurationResponse1, stackConfigurationResponse2,
            stackConfigurationResponse3, stackConfigurationResponse4, stackConfigurationResponse5, stackConfigurationResponse6, blueprintConfig,
            blueprintConfig2, blueprintConfig3, blueprintConfig4, blueprintConfig5, blueprintConfig6, hostGroup, hostGroupComponent1, hostGroupComponent2, hostGroupComponent3, hostGroupComponent4,
            hostGroupConfig, serviceResourceProvider, componentResourceProvider, hostResourceProvider,
-           hostComponentResourceProvider, configGroupResourceProvider, persistKeyValue, metaInfo);
+           hostComponentResourceProvider, configGroupResourceProvider, metaInfo);
 
     // test
     ClusterResourceProvider.init(blueprintDAO, metaInfo, configHelper);
-    PersistKeyValueService.init(persistKeyValue);
     ResourceProvider provider = new TestClusterResourceProvider(
         managementController, serviceResourceProvider, componentResourceProvider,
         hostResourceProvider, hostComponentResourceProvider, configGroupResourceProvider) {
@@ -543,6 +541,7 @@ public class ClusterResourceProviderTest {
     Set<ClusterRequest> updateClusterRequest6 = updateClusterRequestCapture6.getValue();
     Set<ClusterRequest> updateClusterRequest7 = updateClusterRequestCapture7.getValue();
     Set<ClusterRequest> updateClusterRequest8 = updateClusterRequestCapture8.getValue();
+    Set<ClusterRequest> persistUIStateRequest = persistUIStateRequestCapture.getValue();
     assertEquals(1, updateClusterRequest1.size());
     assertEquals(1, updateClusterRequest2.size());
     assertEquals(1, updateClusterRequest3.size());
@@ -551,6 +550,7 @@ public class ClusterResourceProviderTest {
     assertEquals(1, updateClusterRequest6.size());
     assertEquals(1, updateClusterRequest7.size());
     assertEquals(1, updateClusterRequest8.size());
+    assertEquals(1, persistUIStateRequest.size());
     ClusterRequest ucr1 = updateClusterRequest1.iterator().next();
     ClusterRequest ucr2 = updateClusterRequest2.iterator().next();
     ClusterRequest ucr3 = updateClusterRequest3.iterator().next();
@@ -559,6 +559,7 @@ public class ClusterResourceProviderTest {
     ClusterRequest ucr6 = updateClusterRequest6.iterator().next();
     ClusterRequest ucr7 = updateClusterRequest7.iterator().next();
     ClusterRequest ucr8 = updateClusterRequest8.iterator().next();
+    ClusterRequest ucr9 = persistUIStateRequest.iterator().next();
     assertEquals(clusterName, ucr1.getClusterName());
     assertEquals(clusterName, ucr2.getClusterName());
     assertEquals(clusterName, ucr3.getClusterName());
@@ -567,6 +568,8 @@ public class ClusterResourceProviderTest {
     assertEquals(clusterName, ucr6.getClusterName());
     assertEquals(clusterName, ucr7.getClusterName());
     assertEquals(clusterName, ucr8.getClusterName());
+    assertEquals(clusterName, ucr9.getClusterName());
+    assertEquals("INSTALLED", ucr9.getProvisioningState());
     ConfigurationRequest cr1 = ucr1.getDesiredConfig().get(0);
     ConfigurationRequest cr2 = ucr2.getDesiredConfig().get(0);
     ConfigurationRequest cr3 = ucr3.getDesiredConfig().get(0);
@@ -674,7 +677,7 @@ public class ClusterResourceProviderTest {
         stackConfigurationResponse3, stackConfigurationResponse4, stackConfigurationResponse5, stackConfigurationResponse6, blueprintConfig,
         blueprintConfig2, hostGroup, hostGroupComponent1, hostGroupComponent2, hostGroupComponent3, hostGroupComponent4,
         hostGroupConfig, serviceResourceProvider, componentResourceProvider, hostResourceProvider,
-        hostComponentResourceProvider, configGroupResourceProvider, persistKeyValue, metaInfo);
+        hostComponentResourceProvider, configGroupResourceProvider, metaInfo);
   }
 
   @Test
@@ -728,7 +731,6 @@ public class ClusterResourceProviderTest {
     ResourceProvider hostResourceProvider = createStrictMock(ResourceProvider.class);
     ResourceProvider hostComponentResourceProvider = createStrictMock(ResourceProvider.class);
     ConfigGroupResourceProvider configGroupResourceProvider = createStrictMock(ConfigGroupResourceProvider.class);
-    PersistKeyValueImpl persistKeyValue = createNiceMock(PersistKeyValueImpl.class);
 
     Set<StackServiceResponse> stackServiceResponses = new LinkedHashSet<StackServiceResponse>();
     stackServiceResponses.add(stackServiceResponse1);
@@ -893,7 +895,7 @@ public class ClusterResourceProviderTest {
         stackConfigurationResponse5, stackConfigurationResponse6, stackConfigurationResponse7, stackConfigurationResponse8,
         blueprintConfig, hostGroup, hostGroupComponent1, hostGroupComponent2, hostGroupComponent3, hostGroupConfig,
         serviceResourceProvider, componentResourceProvider, hostResourceProvider, hostComponentResourceProvider,
-        configGroupResourceProvider, persistKeyValue, metaInfo);
+        configGroupResourceProvider, metaInfo);
 
     // test
     ClusterResourceProvider.init(blueprintDAO, metaInfo, configHelper);
@@ -913,7 +915,7 @@ public class ClusterResourceProviderTest {
         stackConfigurationResponse1, stackConfigurationResponse2, stackConfigurationResponse3, stackConfigurationResponse4,
         blueprintConfig, hostGroup, hostGroupComponent1, hostGroupComponent2, hostGroupComponent3, hostGroupConfig,
         serviceResourceProvider, componentResourceProvider, hostResourceProvider, hostComponentResourceProvider,
-        configGroupResourceProvider, persistKeyValue);
+        configGroupResourceProvider);
   }
 
   @Test
@@ -964,7 +966,6 @@ public class ClusterResourceProviderTest {
     ResourceProvider hostResourceProvider = createStrictMock(ResourceProvider.class);
     ResourceProvider hostComponentResourceProvider = createStrictMock(ResourceProvider.class);
     ConfigGroupResourceProvider configGroupResourceProvider = createStrictMock(ConfigGroupResourceProvider.class);
-    PersistKeyValueImpl persistKeyValue = createNiceMock(PersistKeyValueImpl.class);
 
     Set<StackServiceResponse> stackServiceResponses = new LinkedHashSet<StackServiceResponse>();
     stackServiceResponses.add(stackServiceResponse1);
@@ -1091,7 +1092,7 @@ public class ClusterResourceProviderTest {
         stackConfigurationResponse1, stackConfigurationResponse2, stackConfigurationResponse3, stackConfigurationResponse4,stackConfigurationResponse5,
         blueprintConfig, hostGroup, hostGroupComponent1, hostGroupComponent2, hostGroupComponent3, hostGroupConfig,
         serviceResourceProvider, componentResourceProvider, hostResourceProvider, hostComponentResourceProvider,
-        configGroupResourceProvider, persistKeyValue, metaInfo);
+        configGroupResourceProvider, metaInfo);
 
     // test
     ClusterResourceProvider.init(blueprintDAO, metaInfo, configHelper);
@@ -1154,7 +1155,6 @@ public class ClusterResourceProviderTest {
     ResourceProvider hostResourceProvider = createStrictMock(ResourceProvider.class);
     ResourceProvider hostComponentResourceProvider = createStrictMock(ResourceProvider.class);
     ConfigGroupResourceProvider configGroupResourceProvider = createStrictMock(ConfigGroupResourceProvider.class);
-    PersistKeyValueImpl persistKeyValue = createNiceMock(PersistKeyValueImpl.class);
 
     Set<StackServiceResponse> stackServiceResponses = new LinkedHashSet<StackServiceResponse>();
     stackServiceResponses.add(stackServiceResponse1);
@@ -1290,7 +1290,7 @@ public class ClusterResourceProviderTest {
         stackConfigurationResponse1, stackConfigurationResponse2, stackConfigurationResponse3, stackConfigurationResponse4,stackConfigurationResponse5,
         blueprintConfig, hostGroup, hostGroupComponent1, hostGroupComponent2, hostGroupComponent3, hostGroupConfig,
         serviceResourceProvider, componentResourceProvider, hostResourceProvider, hostComponentResourceProvider,
-        configGroupResourceProvider, persistKeyValue, metaInfo);
+        configGroupResourceProvider, metaInfo);
 
     // test
     ClusterResourceProvider.init(blueprintDAO, metaInfo, configHelper);
@@ -1353,7 +1353,6 @@ public class ClusterResourceProviderTest {
     ResourceProvider hostResourceProvider = createStrictMock(ResourceProvider.class);
     ResourceProvider hostComponentResourceProvider = createStrictMock(ResourceProvider.class);
     ConfigGroupResourceProvider configGroupResourceProvider = createStrictMock(ConfigGroupResourceProvider.class);
-    PersistKeyValueImpl persistKeyValue = createNiceMock(PersistKeyValueImpl.class);
 
     Set<StackServiceResponse> stackServiceResponses = new LinkedHashSet<StackServiceResponse>();
     stackServiceResponses.add(stackServiceResponse1);
@@ -1487,7 +1486,7 @@ public class ClusterResourceProviderTest {
         stackConfigurationResponse1, stackConfigurationResponse2, stackConfigurationResponse3, stackConfigurationResponse4,stackConfigurationResponse5,
         blueprintConfig, hostGroup, hostGroupComponent1, hostGroupComponent2, hostGroupComponent3, hostGroupConfig,
         serviceResourceProvider, componentResourceProvider, hostResourceProvider, hostComponentResourceProvider,
-        configGroupResourceProvider, persistKeyValue, metaInfo);
+        configGroupResourceProvider, metaInfo);
 
     // test
     ClusterResourceProvider.init(blueprintDAO, metaInfo, configHelper);
@@ -1553,7 +1552,6 @@ public class ClusterResourceProviderTest {
     ResourceProvider hostResourceProvider = createStrictMock(ResourceProvider.class);
     ResourceProvider hostComponentResourceProvider = createStrictMock(ResourceProvider.class);
     ConfigGroupResourceProvider configGroupResourceProvider = createStrictMock(ConfigGroupResourceProvider.class);
-    PersistKeyValueImpl persistKeyValue = createNiceMock(PersistKeyValueImpl.class);
 
     Capture<ClusterRequest> createClusterRequestCapture = new Capture<ClusterRequest>();
     Capture<Set<ClusterRequest>> updateClusterRequestCapture = new Capture<Set<ClusterRequest>>();
@@ -1570,6 +1568,8 @@ public class ClusterResourceProviderTest {
     Capture<Map<String, String>> updateClusterPropertyMapCapture6 = new Capture<Map<String, String>>();
     Capture<Set<ClusterRequest>> updateClusterRequestCapture7 = new Capture<Set<ClusterRequest>>();
     Capture<Map<String, String>> updateClusterPropertyMapCapture7 = new Capture<Map<String, String>>();
+    Capture<Set<ClusterRequest>> persistUIStateRequestCapture = new Capture<Set<ClusterRequest>>();
+    Capture<Map<String, String>> persistUIStatePropertyMapCapture = new Capture<Map<String, String>>();
     
     Capture<Request> serviceRequestCapture = new Capture<Request>();
     Capture<Request> componentRequestCapture = new Capture<Request>();
@@ -1749,6 +1749,10 @@ public class ClusterResourceProviderTest {
     expect(managementController.updateClusters(capture(updateClusterRequestCapture7),
         capture(updateClusterPropertyMapCapture7))).andReturn(null);
 
+    // set state for UI
+    expect(managementController.updateClusters(capture(persistUIStateRequestCapture),
+        capture(persistUIStatePropertyMapCapture))).andReturn(null);
+
     expect(serviceResourceProvider.createResources(capture(serviceRequestCapture))).andReturn(null);
     expect(componentResourceProvider.createResources(capture(componentRequestCapture))).andReturn(null);
     expect(componentResourceProvider.createResources(capture(componentRequestCapture2))).andReturn(null);
@@ -1760,7 +1764,6 @@ public class ClusterResourceProviderTest {
     expect(configGroupResourceProvider.createResources(
         capture(configGroupRequestCapture))).andReturn(null);
 
-    persistKeyValue.put("CLUSTER_CURRENT_STATUS", "{\"clusterState\":\"CLUSTER_STARTED_5\"}");
 
     replay(blueprintDAO, managementController, request, response, blueprint, stackServiceResponse1, stackServiceResponse2,
         stackServiceComponentResponse1, stackServiceComponentResponse2, stackServiceComponentResponse3,
@@ -1768,11 +1771,10 @@ public class ClusterResourceProviderTest {
         stackConfigurationResponse5, stackConfigurationResponse6, stackConfigurationResponse7, stackConfigurationResponse8,
         blueprintConfig, hostGroup, hostGroupComponent1, hostGroupComponent2, hostGroupComponent3, hostGroupConfig,
         serviceResourceProvider, componentResourceProvider, hostResourceProvider, hostComponentResourceProvider,
-        configGroupResourceProvider, persistKeyValue, metaInfo);
+        configGroupResourceProvider, metaInfo);
 
     // test
     ClusterResourceProvider.init(blueprintDAO, metaInfo, configHelper);
-    PersistKeyValueService.init(persistKeyValue);
     ResourceProvider provider = new TestClusterResourceProvider(
         managementController, serviceResourceProvider, componentResourceProvider,
         hostResourceProvider, hostComponentResourceProvider, configGroupResourceProvider) {
@@ -1836,6 +1838,7 @@ public class ClusterResourceProviderTest {
     Set<ClusterRequest> updateClusterRequest5 = updateClusterRequestCapture5.getValue();
     Set<ClusterRequest> updateClusterRequest6 = updateClusterRequestCapture6.getValue();
     Set<ClusterRequest> updateClusterRequest7 = updateClusterRequestCapture7.getValue();
+    Set<ClusterRequest> persistUIStateRequest = persistUIStateRequestCapture.getValue();
     
     assertEquals(1, updateClusterRequest1.size());
     assertEquals(1, updateClusterRequest2.size());
@@ -1844,6 +1847,7 @@ public class ClusterResourceProviderTest {
     assertEquals(1, updateClusterRequest5.size());
     assertEquals(1, updateClusterRequest6.size());
     assertEquals(1, updateClusterRequest7.size());
+    assertEquals(1, persistUIStateRequest.size());
     ClusterRequest ucr1 = updateClusterRequest1.iterator().next();
     ClusterRequest ucr2 = updateClusterRequest2.iterator().next();
     ClusterRequest ucr3 = updateClusterRequest3.iterator().next();
@@ -1851,6 +1855,7 @@ public class ClusterResourceProviderTest {
     ClusterRequest ucr5 = updateClusterRequest5.iterator().next();
     ClusterRequest ucr6 = updateClusterRequest6.iterator().next();
     ClusterRequest ucr7 = updateClusterRequest7.iterator().next();
+    ClusterRequest ucr8 = persistUIStateRequest.iterator().next();
     assertEquals(clusterName, ucr1.getClusterName());
     assertEquals(clusterName, ucr2.getClusterName());
     assertEquals(clusterName, ucr3.getClusterName());
@@ -1858,6 +1863,8 @@ public class ClusterResourceProviderTest {
     assertEquals(clusterName, ucr5.getClusterName());
     assertEquals(clusterName, ucr6.getClusterName());
     assertEquals(clusterName, ucr7.getClusterName());
+    assertEquals(clusterName, ucr8.getClusterName());
+    assertEquals("INSTALLED", ucr8.getProvisioningState());
     ConfigurationRequest cr1 = ucr1.getDesiredConfig().get(0);
     ConfigurationRequest cr2 = ucr2.getDesiredConfig().get(0);
     ConfigurationRequest cr3 = ucr3.getDesiredConfig().get(0);
@@ -1952,7 +1959,7 @@ public class ClusterResourceProviderTest {
         stackConfigurationResponse5, stackConfigurationResponse6, stackConfigurationResponse7,
         blueprintConfig, hostGroup, hostGroupComponent1, hostGroupComponent2, hostGroupComponent3, hostGroupConfig,
         serviceResourceProvider, componentResourceProvider, hostResourceProvider, hostComponentResourceProvider,
-        configGroupResourceProvider, persistKeyValue);
+        configGroupResourceProvider);
   }
 
   @Test
@@ -2253,7 +2260,6 @@ public class ClusterResourceProviderTest {
     ResourceProvider hostResourceProvider = createStrictMock(ResourceProvider.class);
     ResourceProvider hostComponentResourceProvider = createStrictMock(ResourceProvider.class);
     ConfigGroupResourceProvider configGroupResourceProvider = createStrictMock(ConfigGroupResourceProvider.class);
-    PersistKeyValueImpl persistKeyValue = createNiceMock(PersistKeyValueImpl.class);
 
     Capture<ClusterRequest> createClusterRequestCapture = new Capture<ClusterRequest>();
     Capture<Set<ClusterRequest>> updateClusterRequestCapture = new Capture<Set<ClusterRequest>>();
@@ -2272,6 +2278,8 @@ public class ClusterResourceProviderTest {
     Capture<Map<String, String>> updateClusterPropertyMapCapture7 = new Capture<Map<String, String>>();
     Capture<Set<ClusterRequest>> updateClusterRequestCapture8 = new Capture<Set<ClusterRequest>>();
     Capture<Map<String, String>> updateClusterPropertyMapCapture8 = new Capture<Map<String, String>>();
+    Capture<Set<ClusterRequest>> persistUIStateRequestCapture = new Capture<Set<ClusterRequest>>();
+    Capture<Map<String, String>> persistUIStatePropertyMapCapture = new Capture<Map<String, String>>();
 
     Capture<Request> serviceRequestCapture = new Capture<Request>();
     Capture<Request> componentRequestCapture = new Capture<Request>();
@@ -2482,6 +2490,9 @@ public class ClusterResourceProviderTest {
     expect(managementController.updateClusters(capture(updateClusterRequestCapture8),
         capture(updateClusterPropertyMapCapture8))).andReturn(null);
 
+    // set state for UI
+    expect(managementController.updateClusters(capture(persistUIStateRequestCapture),
+        capture(persistUIStatePropertyMapCapture))).andReturn(null);
 
     expect(serviceResourceProvider.createResources(capture(serviceRequestCapture))).andReturn(null);
     expect(componentResourceProvider.createResources(capture(componentRequestCapture))).andReturn(null);
@@ -2494,7 +2505,7 @@ public class ClusterResourceProviderTest {
     expect(configGroupResourceProvider.createResources(
         capture(configGroupRequestCapture))).andReturn(null);
 
-    persistKeyValue.put("CLUSTER_CURRENT_STATUS", "{\"clusterState\":\"CLUSTER_STARTED_5\"}");
+
 
     replay(blueprintDAO, managementController, request, response, blueprint, stackServiceResponse1, stackServiceResponse2,
         stackServiceComponentResponse1, stackServiceComponentResponse2, stackServiceComponentResponse3,
@@ -2503,11 +2514,10 @@ public class ClusterResourceProviderTest {
         stackConfigurationResponse7, stackConfigurationResponse8, stackConfigurationResponse9, blueprintConfig,
         blueprintConfig2, hostGroup, hostGroupComponent1, hostGroupComponent2, hostGroupComponent3, hostGroupComponent4,
         hostGroupConfig, serviceResourceProvider, componentResourceProvider, hostResourceProvider,
-        hostComponentResourceProvider, configGroupResourceProvider, persistKeyValue, metaInfo);
+        hostComponentResourceProvider, configGroupResourceProvider, metaInfo);
 
     // test
     ClusterResourceProvider.init(blueprintDAO, metaInfo, configHelper);
-    PersistKeyValueService.init(persistKeyValue);
     ResourceProvider provider = new TestClusterResourceProvider(
         managementController, serviceResourceProvider, componentResourceProvider,
         hostResourceProvider, hostComponentResourceProvider, configGroupResourceProvider) {
@@ -2572,6 +2582,7 @@ public class ClusterResourceProviderTest {
     Set<ClusterRequest> updateClusterRequest6 = updateClusterRequestCapture6.getValue();
     Set<ClusterRequest> updateClusterRequest7 = updateClusterRequestCapture7.getValue();
     Set<ClusterRequest> updateClusterRequest8 = updateClusterRequestCapture8.getValue();
+    Set<ClusterRequest> persistUIStateRequest = persistUIStateRequestCapture.getValue();
     assertEquals(1, updateClusterRequest1.size());
     assertEquals(1, updateClusterRequest2.size());
     assertEquals(1, updateClusterRequest3.size());
@@ -2580,6 +2591,7 @@ public class ClusterResourceProviderTest {
     assertEquals(1, updateClusterRequest6.size());
     assertEquals(1, updateClusterRequest7.size());
     assertEquals(1, updateClusterRequest8.size());
+    assertEquals(1, persistUIStateRequest.size());
     ClusterRequest ucr1 = updateClusterRequest1.iterator().next();
     ClusterRequest ucr2 = updateClusterRequest2.iterator().next();
     ClusterRequest ucr3 = updateClusterRequest3.iterator().next();
@@ -2588,6 +2600,7 @@ public class ClusterResourceProviderTest {
     ClusterRequest ucr6 = updateClusterRequest6.iterator().next();
     ClusterRequest ucr7 = updateClusterRequest7.iterator().next();
     ClusterRequest ucr8 = updateClusterRequest8.iterator().next();
+    ClusterRequest ucr9 = persistUIStateRequest.iterator().next();
     assertEquals(clusterName, ucr1.getClusterName());
     assertEquals(clusterName, ucr2.getClusterName());
     assertEquals(clusterName, ucr3.getClusterName());
@@ -2596,6 +2609,8 @@ public class ClusterResourceProviderTest {
     assertEquals(clusterName, ucr6.getClusterName());
     assertEquals(clusterName, ucr7.getClusterName());
     assertEquals(clusterName, ucr8.getClusterName());
+    assertEquals("INSTALLED", ucr9.getProvisioningState());
+    assertEquals(clusterName, ucr9.getClusterName());
     ConfigurationRequest cr1 = ucr1.getDesiredConfig().get(0);
     ConfigurationRequest cr2 = ucr2.getDesiredConfig().get(0);
     ConfigurationRequest cr3 = ucr3.getDesiredConfig().get(0);
@@ -2713,7 +2728,7 @@ public class ClusterResourceProviderTest {
         stackConfigurationResponse3, stackConfigurationResponse4, stackConfigurationResponse5, blueprintConfig,
         blueprintConfig2, hostGroup, hostGroupComponent1, hostGroupComponent2, hostGroupComponent3, hostGroupComponent4,
         hostGroupConfig, serviceResourceProvider, componentResourceProvider, hostResourceProvider,
-        hostComponentResourceProvider, configGroupResourceProvider, persistKeyValue, metaInfo);
+        hostComponentResourceProvider, configGroupResourceProvider, metaInfo);
   }
 
 

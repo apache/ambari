@@ -445,7 +445,7 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
 
     registerConfigGroups(clusterName, blueprintHostGroups, stack);
 
-    persistInstallStateForUI();
+    persistInstallStateForUI(clusterName);
 
     RequestStatusResponse request = ((ServiceResourceProvider) getResourceProvider(Resource.Type.Service)).
         installAndStart(clusterName);
@@ -819,13 +819,19 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
    * Persist cluster state for the ambari UI.  Setting this state informs that UI that a cluster has been
    * installed and started and that the monitoring screen for the cluster should be displayed to the user.
    *
-   * @throws SystemException if an unexpected exception occurs
+   * @param clusterName  name of cluster
+   *
+   * @throws SystemException if unable to update the cluster with the UI installed flag
    */
-  private void persistInstallStateForUI() throws SystemException {
-    PersistKeyValueService persistService = new PersistKeyValueService();
+  private void persistInstallStateForUI(String clusterName) throws SystemException {
+    Map<String, Object> clusterProperties = new HashMap<String, Object>();
+    clusterProperties.put(CLUSTER_PROVISIONING_STATE_PROPERTY_ID, "INSTALLED");
+    clusterProperties.put(CLUSTER_NAME_PROPERTY_ID, clusterName);
+
     try {
-      persistService.update("{\"CLUSTER_CURRENT_STATUS\": \"{\\\"clusterState\\\":\\\"CLUSTER_STARTED_5\\\"}\"}");
-    } catch (Exception e) {
+      getManagementController().updateClusters(
+          Collections.singleton(getRequest(clusterProperties)), null);
+    } catch (AmbariException e) {
       throw new SystemException("Unable to finalize state of cluster for UI.  " +
           "Cluster creation will not be affected but the cluster may be inaccessible by Ambari UI." );
     }
