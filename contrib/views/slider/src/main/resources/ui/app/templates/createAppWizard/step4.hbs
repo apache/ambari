@@ -32,6 +32,9 @@
 <pre>{{controller.configsFormatted}}</pre>
 
 <div class="btn-area">
-  <button class="btn btn-success pull-right" {{action finish target="controller"}}>{{t common.finish}}</button>
+  <button
+      class="btn btn-success pull-right"
+    {{bind-attr disabled="controller.isSubmitDisabled"}}
+    {{action finish target="controller"}}>{{t common.finish}}</button>
 </div>
 </div>
