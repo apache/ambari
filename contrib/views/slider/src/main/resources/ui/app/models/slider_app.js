@@ -53,7 +53,7 @@ App.SliderApp = DS.Model.extend({
    */
 
   startedToLocalTime: function () {
-    return new Date(this.get('started')).toString().replace("(FLE Daylight Time)","");
+    return moment(this.get('started')).format('ddd, DD MMM YYYY, HH:mm:ss Z [GMT]');
   }.property('started'),
 
   /**
@@ -66,7 +66,7 @@ App.SliderApp = DS.Model.extend({
    */
 
   endedToLocalTime: function () {
-    return new Date(this.get('ended')).toString().replace("(FLE Daylight Time)","");
+    return moment(this.get('ended')).format('ddd, DD MMM YYYY, HH:mm:ss Z [GMT]');
   }.property('ended'),
 
   /**
