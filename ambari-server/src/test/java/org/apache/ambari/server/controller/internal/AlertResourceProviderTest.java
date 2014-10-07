@@ -85,7 +85,6 @@ public class AlertResourceProviderTest {
 
     Cluster cluster = EasyMock.createMock(Cluster.class);
     Clusters clusters = m_injector.getInstance(Clusters.class);
-    //Configuration config = m_injector.getInstance(Configuration.class);
 
     expect(m_amc.getClusters()).andReturn(clusters).atLeastOnce();
     expect(clusters.getCluster(capture(new Capture<String>()))).andReturn(cluster).atLeastOnce();
