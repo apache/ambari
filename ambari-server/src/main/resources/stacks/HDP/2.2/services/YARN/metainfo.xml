@@ -24,14 +24,12 @@
       <displayName>YARN</displayName>
       <version>2.6.0.2.2.0.0</version>
       <components>
-        <components>
-          <component>
-            <name>APP_TIMELINE_SERVER</name>
-            <cardinality>1</cardinality>
-          </component>
-        </components>
+        <component>
+          <name>APP_TIMELINE_SERVER</name>
+          <cardinality>1</cardinality>
+        </component>
       </components>
-
+      
       <osSpecifics>
         <osSpecific>
           <osFamily>any</osFamily>
