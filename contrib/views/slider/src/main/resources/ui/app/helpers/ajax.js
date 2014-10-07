@@ -41,7 +41,7 @@ var urls = {
       required: ['ViewInstanceInfo'],
       properties: {
         ViewInstanceInfo: {
-          required: ['properties']
+          required: ['properties', 'description', 'label']
         }
       }
     }

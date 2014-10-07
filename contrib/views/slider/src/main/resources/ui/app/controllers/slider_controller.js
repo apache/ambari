@@ -32,6 +32,29 @@ App.SliderController = Ember.Controller.extend(App.RunPeriodically, {
   },
 
   /**
+   * Load Slider display information
+   * @returns {$.ajax}
+   * @method getViewDisplayParameters
+   */
+  getViewDisplayParameters: function() {
+    return App.ajax.send({
+      name: 'slider.getViewParams',
+      sender: this,
+      success: 'getViewDisplayParametersSuccessCallback'
+    });
+  },
+
+  /**
+   * Set Slider label and description to <code>App</code> properties
+   * @param {object} data
+   * @method getViewDisplayParametersSuccessCallback
+   */
+  getViewDisplayParametersSuccessCallback: function(data) {
+    App.set('description', Em.get(data, 'ViewInstanceInfo.description'));
+    App.set('label', Em.get(data, 'ViewInstanceInfo.label'));
+  },
+
+  /**
    * Get Slider properties from View-parameters (set in the Ambari Admin View)
    * If parameters can't be found, use Ambari-configs to populate Slider properties
    * @returns {$.ajax}

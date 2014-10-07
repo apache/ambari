@@ -20,6 +20,13 @@ QUnit.module('integration/pages - index', {
 
   setup: function () {
     App.set('viewEnabled', true);
+    App.__container__.lookup('controller:Slider').getViewDisplayParametersSuccessCallback({
+      "ViewInstanceInfo": {
+        "context_path": "/views/SLIDER/1.0.0/s1",
+        "description": "DESCRIPTION",
+        "label": "SLIDER LABEL"
+      }
+    });
     Ember.run(App, App.advanceReadiness);
   },
 
@@ -69,5 +76,24 @@ test('Create-App button visible/hidden', function () {
 
   visit('/');
   equal(find('.create-app').length, 0, 'Create App button should be hidden if some config errors');
+
+});
+
+test('Slider Title', function () {
+
+  visit('/');
+  equal(find('.slider-app-title').text(), 'SLIDER LABEL', 'App has valid Slider Title');
+
+});
+
+test('Slider Title Popover', function () {
+
+  visit('/');
+  triggerEvent('#slider-title', 'mouseenter'); // not hover!
+  andThen(function () {
+    equal(find('.popover').length, 1, 'popover exists');
+    equal(find('.popover-title').text(), 'SLIDER LABEL', 'popover has valid title');
+    equal(find('.slider-description').text(), 'DESCRIPTION', 'popover has slider description');
+  });
 
 });

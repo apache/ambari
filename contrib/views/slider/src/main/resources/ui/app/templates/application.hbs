@@ -24,11 +24,13 @@
 
 {{#unless App.viewEnabled}}
   <div class="slider-errors-wrapper">
-    <div class="alert alert-danger">
-      {{#each error in App.viewErrors}}
-        <h3 class="error-message">{{{error.message}}}</h3>
-      {{/each}}
-    </div>
+    {{#if App.viewErrors.length}}
+      <div class="alert alert-danger">
+        {{#each error in App.viewErrors}}
+          <h3 class="error-message">{{{error.message}}}</h3>
+        {{/each}}
+      </div>
+    {{/if}}
   </div>
 {{/unless}}
 

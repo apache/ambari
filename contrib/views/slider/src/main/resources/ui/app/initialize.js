@@ -70,6 +70,11 @@ App.initializer({
       label: instanceName,
 
       /**
+       * @type {string|null}
+       */
+      description: null,
+
+      /**
        * API url for Slider
        * Format:
        *  <code>/api/v1/views/[VIEW_NAME]/versions/[VERSION]/instances/[INSTANCE_NAME]/</code>
@@ -112,7 +117,9 @@ App.initializer({
     });
     if(!window.QUnit) {
       var sliderController = application.__container__.lookup('controller:Slider');
-      sliderController.run('initResources');
+      sliderController.getViewDisplayParameters().done(function() {
+        sliderController.run('initResources');
+      });
       application.ApplicationTypeMapper.load();
       application.SliderAppsMapper.run('load');
     }

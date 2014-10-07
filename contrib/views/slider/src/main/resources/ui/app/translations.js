@@ -84,7 +84,7 @@ Em.I18n.translations = {
   'tableView.filters.clearAllFilters': 'clear filters',
   'tableView.filters.showAll': 'Show All',
   'tableView.filters.clearSelection': 'clear selection All',
-  'tableView.filters.noItems' : 'No sliders to display',
+  'tableView.filters.noItems' : 'No slider apps to display',
 
   'configs.add_property': 'Add Property',
   'configs.add_property.invalid_name': 'Config name should consists only of letters, numbers, \'-\', \'_\', \'.\' and first character should be a letter.',
@@ -95,7 +95,7 @@ Em.I18n.translations = {
   'slider.apps.create': 'Create App',
   'slider.apps.unavailable': 'Unable to get list of Slider Apps due to issues below. Possible reasons include incorrect or invalid view parameters. Please contact administrator for setting up proper view parameters and verifying necessary services are working.',
   'slider.apps.undefined.issue': 'Undefined issue',
-  'sliderApps.filters.info': '{0} of {1} sliders showing',
+  'sliderApps.filters.info': '{0} of {1} slider apps showing',
   'slider.apps.no.description.available': 'No Description Available',
   'slider.apps.no.applications.available': 'No Applications Available',
 
