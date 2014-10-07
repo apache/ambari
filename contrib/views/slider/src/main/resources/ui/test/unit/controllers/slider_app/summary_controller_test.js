@@ -16,15 +16,21 @@
  * limitations under the License.
  */
 
-App.SliderAppView = Ember.View.extend({
+moduleFor('controller:sliderAppSummary', 'App.SliderAppSummaryController');
 
-  didInsertElement: function() {
-    // Breadcrumbs should be on the one line with Slider Title
-    // but title and breadcrumbs are in different templates
-    $('.apps-breadcrumbs').css({
-      'margin-top': -28,
-      'margin-left': $('.slider-app-title').width() + 10
-    });
-  }
+test('appType', function () {
+
+  var sliderAppSummaryController = this.subject({
+    model: {
+      appType: {
+        displayName: 'name1'
+      }
+    }
+  });
+  equal(sliderAppSummaryController.get('appType'), 'name1');
+  Em.run(function() {
+    sliderAppSummaryController.set('model.appType.displayName', 'name2');
+  });
+  equal(sliderAppSummaryController.get('appType'), 'name2');
 
 });

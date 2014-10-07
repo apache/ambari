@@ -24,19 +24,6 @@ App.ApplicationView = Ember.View.extend({
    */
   SliderTitleView: Em.View.extend({
 
-    /**
-     * Popover-config
-     * @type {Em.Object}
-     */
-    popover: function () {
-      return Em.Object.create({
-        trigger: 'hover',
-        placement: 'bottom',
-        title: App.get('instance'),
-        html: true
-      })
-    }.property('content'),
-
     showCreateAppButton: function () {
       if (this.get('controller.hasConfigErrors')) {
         return false;
@@ -57,8 +44,22 @@ App.ApplicationView = Ember.View.extend({
     }.observes('App.mapperTime'),
 
     didInsertElement: function () {
-      $('#slider-title').popover(this.get('popover'));
-    }
+      this.createPopover();
+    },
+
+    /**
+     * Create popover for Slider Title
+     * @method createPopover
+     */
+    createPopover: function() {
+      $('#slider-title').popover('destroy').popover({
+        trigger: 'hover',
+        placement: 'bottom',
+        title: App.get('label'),
+        html: true
+      });
+      this.sliderConfigsChecker();
+    }.observes('App.label')
 
   })
 
