@@ -263,7 +263,8 @@ public class AlertDefinitionHash {
 
   /**
    * Invalidate the hashes of any host that would be affected by the specified
-   * definition.
+   * definition. If the definition is an {@link SourceType#AGGREGATE}, this will
+   * return an empty set since aggregates do not affect hosts.
    *
    * @param definition
    *          the definition to use to find the hosts to invlidate (not
@@ -273,13 +274,15 @@ public class AlertDefinitionHash {
    */
   public Set<String> invalidateHosts(AlertDefinitionEntity definition) {
     return invalidateHosts(definition.getClusterId(),
+        definition.getSourceType(),
         definition.getDefinitionName(), definition.getServiceName(),
         definition.getComponentName());
   }
 
   /**
    * Invalidate the hashes of any host that would be affected by the specified
-   * definition.
+   * definition. If the definition is an {@link SourceType#AGGREGATE}, this will
+   * return an empty set since aggregates do not affect hosts.
    *
    * @param definition
    *          the definition to use to find the hosts to invlidate (not
@@ -288,16 +291,20 @@ public class AlertDefinitionHash {
    *         {@code null}).
    */
   public Set<String> invalidateHosts(AlertDefinition definition) {
-    return invalidateHosts(definition.getClusterId(), definition.getName(),
+    return invalidateHosts(definition.getClusterId(),
+        definition.getSource().getType(), definition.getName(),
         definition.getServiceName(), definition.getComponentName());
   }
 
   /**
    * Invalidate the hashes of any host that would be affected by the specified
-   * definition.
+   * definition. If the definition is an {@link SourceType#AGGREGATE}, this will
+   * return an empty set since aggregates do not affect hosts.
    *
    * @param clusterId
    *          the cluster ID
+   * @param definitionSourceType
+   *          the type of alert definition
    * @param definitionName
    *          the definition unique name.
    * @param definitionServiceName
@@ -307,7 +314,8 @@ public class AlertDefinitionHash {
    * @return the hosts that were invalidated, or an empty set (never
    *         {@code null}).
    */
-  public Set<String> invalidateHosts(long clusterId, String definitionName,
+  public Set<String> invalidateHosts(long clusterId,
+      SourceType definitionSourceType, String definitionName,
       String definitionServiceName, String definitionComponentName) {
 
     Cluster cluster = null;
@@ -330,8 +338,10 @@ public class AlertDefinitionHash {
     }
 
     // determine which hosts in the cluster would be affected by a change
-    // to the specified definition
-    Set<String> affectedHosts = getAssociatedHosts(cluster, definitionName,
+    // to the specified definition; pass in the definition source type
+    // to check for AGGREGATE
+    Set<String> affectedHosts = getAssociatedHosts(cluster,
+        definitionSourceType, definitionName,
         definitionServiceName, definitionComponentName);
 
     // invalidate all returned hosts
@@ -347,6 +357,9 @@ public class AlertDefinitionHash {
    * returned is expected to be capable of running the alert. A change to the
    * definition would entail contacting each returned host and invalidating
    * their current alert definitions.
+   * <p/>
+   * If the definition is an {@link SourceType#AGGREGATE}, this will return an
+   * empty set since aggregates do not affect hosts.
    *
    * @param cluster
    * @param definitionName
@@ -354,8 +367,13 @@ public class AlertDefinitionHash {
    * @param definitionComponentName
    * @return a set of all associated hosts or an empty set, never {@code null}.
    */
-  public Set<String> getAssociatedHosts(Cluster cluster, String definitionName,
+  public Set<String> getAssociatedHosts(Cluster cluster,
+      SourceType definitionSourceType, String definitionName,
       String definitionServiceName, String definitionComponentName) {
+
+    if (definitionSourceType == SourceType.AGGREGATE) {
+      return Collections.emptySet();
+    }
 
     Map<String, Host> hosts = null;
     String clusterName = cluster.getClusterName();

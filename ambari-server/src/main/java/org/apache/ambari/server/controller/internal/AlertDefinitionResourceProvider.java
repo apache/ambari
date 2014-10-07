@@ -567,6 +567,7 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
     }
 
     Set<String> hostNames = alertDefinitionHash.getAssociatedHosts(cluster,
+        entity.getSourceType(),
         entity.getDefinitionName(), entity.getServiceName(),
         entity.getComponentName());
 

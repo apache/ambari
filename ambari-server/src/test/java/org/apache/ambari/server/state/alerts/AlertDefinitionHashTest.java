@@ -50,6 +50,7 @@ import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.alert.AlertDefinition;
 import org.apache.ambari.server.state.alert.AlertDefinitionHash;
 import org.apache.ambari.server.state.alert.Scope;
+import org.apache.ambari.server.state.alert.SourceType;
 import org.apache.commons.codec.binary.Hex;
 import org.easymock.EasyMock;
 import org.junit.After;
@@ -85,6 +86,7 @@ public class AlertDefinitionHashTest extends TestCase {
    */
   @Override
   @Before
+  @SuppressWarnings("unchecked")
   protected void setUp() throws Exception {
     super.setUp();
 
@@ -325,6 +327,19 @@ public class AlertDefinitionHashTest extends TestCase {
     m_hash.invalidateAll();
     assertFalse(m_hash.isHashCached(CLUSTERNAME, HOSTNAME));
     assertFalse(m_hash.isHashCached("foo", HOSTNAME));
+  }
+
+  @Test
+  public void testAggregateIgnored() {
+    Set<String> associatedHosts = m_hash.getAssociatedHosts(m_mockCluster,
+        SourceType.AGGREGATE, "definitionName", "HDFS", null);
+
+    assertEquals(0, associatedHosts.size());
+
+    associatedHosts = m_hash.getAssociatedHosts(m_mockCluster, SourceType.PORT,
+        "definitionName", "HDFS", null);
+
+    assertEquals(1, associatedHosts.size());
   }
 
   @Test
