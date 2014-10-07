@@ -17,7 +17,22 @@
  */
 package org.apache.ambari.server.orm;
 
-import com.google.inject.Inject;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
+
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.helpers.ScriptRunner;
 import org.apache.ambari.server.orm.helpers.dbms.DbmsHelper;
@@ -40,20 +55,8 @@ import org.eclipse.persistence.sessions.DatabaseLogin;
 import org.eclipse.persistence.sessions.DatabaseSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
-import java.sql.Connection;
-import java.sql.DatabaseMetaData;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.regex.Pattern;
+
+import com.google.inject.Inject;
 
 public class DBAccessorImpl implements DBAccessor {
   private static final Logger LOG = LoggerFactory.getLogger(DBAccessorImpl.class);
@@ -64,7 +67,6 @@ public class DBAccessorImpl implements DBAccessor {
   private DatabaseMetaData databaseMetaData;
   private static final String dbURLPatternString = "jdbc:(.*?):.*";
   private Pattern dbURLPattern = Pattern.compile(dbURLPatternString, Pattern.CASE_INSENSITIVE);
-  private DbType dbType;
 
   @Inject
   public DBAccessorImpl(Configuration configuration) {
@@ -99,19 +101,14 @@ public class DBAccessorImpl implements DBAccessor {
 
   protected DbmsHelper loadHelper(DatabasePlatform databasePlatform) {
     if (databasePlatform instanceof OraclePlatform) {
-      dbType = DbType.ORACLE;
       return new OracleHelper(databasePlatform);
     }else if (databasePlatform instanceof MySQLPlatform) {
-      dbType = DbType.MYSQL;
       return new MySqlHelper(databasePlatform);
     }else if (databasePlatform instanceof PostgreSQLPlatform) {
-      dbType = DbType.POSTGRES;
       return new PostgresHelper(databasePlatform);
     }else if (databasePlatform instanceof DerbyPlatform) {
-      dbType = DbType.DERBY;
       return new DerbyHelper(databasePlatform);
     } else {
-      dbType = DbType.UNKNOWN;
       return new GenericDbmsHelper(databasePlatform);
     }
   }
@@ -192,8 +189,32 @@ public class DBAccessorImpl implements DBAccessor {
     return result;
   }
 
-  public DbType getDbType() {
-    return dbType;
+  protected String getDbType() {
+    String dbUrl = configuration.getDatabaseUrl();
+
+    // dbUrl will have the following format
+    // jdbc:{0}://{1}:{2}/{3},  type, host, port, name
+    // Most importantly, type is one of: postgresql, oracle:thin, mysql
+
+    if (null != dbUrl && !dbUrl.equals("")) {
+      Matcher m = dbURLPattern.matcher(dbUrl.toLowerCase());
+
+      if (m.find() && m.groupCount() == 1) {
+        String type = m.group(1);
+
+        if (type.contains(Configuration.POSTGRES_DB_NAME)) {
+          return Configuration.POSTGRES_DB_NAME;
+        } else if (type.contains(Configuration.ORACLE_DB_NAME)) {
+          return Configuration.ORACLE_DB_NAME;
+        } else if (type.contains(Configuration.MYSQL_DB_NAME)) {
+          return Configuration.MYSQL_DB_NAME;
+        } else if (type.contains(Configuration.DERBY_DB_NAME)) {
+          return Configuration.DERBY_DB_NAME;
+        }
+      }
+    }
+
+    throw new RuntimeException("Unable to determine database type.");
   }
 
   @Override

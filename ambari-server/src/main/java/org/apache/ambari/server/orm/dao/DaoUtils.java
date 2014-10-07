@@ -18,8 +18,8 @@
 
 package org.apache.ambari.server.orm.dao;
 
-import com.google.inject.Inject;
 import com.google.inject.Singleton;
+
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.Query;
@@ -29,19 +29,9 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 import java.util.Collections;
 import java.util.List;
-import static org.apache.ambari.server.orm.DBAccessor.DbType;
-import org.apache.ambari.server.orm.DBAccessor;
 
 @Singleton
 public class DaoUtils {
-  @Inject
-  private DBAccessor dbAccessor;
-
-  public static final int ORACLE_LIST_LIMIT = 999;
-
-  public DbType getDbType() {
-    return dbAccessor.getDbType();
-  }
 
   public <T> List<T> selectAll(EntityManager entityManager, Class<T> entityClass) {
     CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();

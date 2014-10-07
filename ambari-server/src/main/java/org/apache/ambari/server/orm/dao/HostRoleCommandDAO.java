@@ -18,7 +18,6 @@
 
 package org.apache.ambari.server.orm.dao;
 
-import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
@@ -28,6 +27,9 @@ import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import java.util.ArrayList;
@@ -36,8 +38,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import static org.apache.ambari.server.orm.DBAccessor.DbType.ORACLE;
-import static org.apache.ambari.server.orm.dao.DaoUtils.ORACLE_LIST_LIMIT;
 
 @Singleton
 public class HostRoleCommandDAO {
@@ -57,23 +57,10 @@ public class HostRoleCommandDAO {
     if (taskIds == null || taskIds.isEmpty()) {
       return Collections.emptyList();
     }
-
     TypedQuery<HostRoleCommandEntity> query = entityManagerProvider.get().createQuery(
       "SELECT task FROM HostRoleCommandEntity task WHERE task.taskId IN ?1 " +
         "ORDER BY task.taskId",
       HostRoleCommandEntity.class);
-
-    if (daoUtils.getDbType().equals(ORACLE) && taskIds.size() > ORACLE_LIST_LIMIT) {
-      List<HostRoleCommandEntity> result = new ArrayList<HostRoleCommandEntity>();
-
-      List<List<Long>> lists = Lists.partition(new ArrayList<Long>(taskIds), ORACLE_LIST_LIMIT);
-      for (List<Long> list : lists) {
-        result.addAll(daoUtils.selectList(query, list));
-      }
-
-      return result;
-    }
-
     return daoUtils.selectList(query, taskIds);
   }
 
@@ -112,17 +99,6 @@ public class HostRoleCommandDAO {
             "WHERE task.requestId IN ?1 AND task.taskId IN ?2 " +
             "ORDER BY task.taskId", Long.class
     );
-
-    if (daoUtils.getDbType().equals(ORACLE) && taskIds.size() > ORACLE_LIST_LIMIT) {
-      List<Long> result = new ArrayList<Long>();
-
-      List<List<Long>> lists = Lists.partition(new ArrayList<Long>(taskIds), ORACLE_LIST_LIMIT);
-      for (List<Long> taskIdList : lists) {
-        result.addAll(daoUtils.selectList(query, requestIds, taskIdList));
-      }
-
-      return result;
-    }
     return daoUtils.selectList(query, requestIds, taskIds);
   }
 

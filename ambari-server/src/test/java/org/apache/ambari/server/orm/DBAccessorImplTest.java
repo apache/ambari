@@ -78,12 +78,6 @@ public class DBAccessorImplTest {
   }
 
   @Test
-  public void testDbType() throws Exception {
-    DBAccessorImpl dbAccessor = injector.getInstance(DBAccessorImpl.class);
-    assertEquals(DBAccessor.DbType.DERBY, dbAccessor.getDbType());
-  }
-
-  @Test
   public void testCreateTable() throws Exception {
     String tableName = getFreeTableName();
     createMyTable(tableName);
