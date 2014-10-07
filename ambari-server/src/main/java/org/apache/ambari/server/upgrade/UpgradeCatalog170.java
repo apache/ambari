@@ -1265,34 +1265,33 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
     }
 
     for (UserEntity user: userDAO.findAll()) {
-      for (String role: roles.get(user)) {
-        if (role.equals("admin")) {
-          final PrivilegeEntity privilege = new PrivilegeEntity();
-          privilege.setPermission(adminPermission);
-          privilege.setPrincipal(user.getPrincipal());
-          privilege.setResource(ambariResource);
-          user.getPrincipal().getPrivileges().add(privilege);
-          privilegeDAO.create(privilege);
-          for (ClusterEntity cluster: clusterDAO.findAll()) {
-            final PrivilegeEntity clusterPrivilege = new PrivilegeEntity();
-            clusterPrivilege.setPermission(clusterOperatePermission);
-            clusterPrivilege.setPrincipal(user.getPrincipal());
-            clusterPrivilege.setResource(cluster.getResource());
-            privilegeDAO.create(clusterPrivilege);
-            user.getPrincipal().getPrivileges().add(clusterPrivilege);
-          }
-          userDAO.merge(user);
-        } else if (role.equals("user")) {
-          for (ClusterEntity cluster: clusterDAO.findAll()) {
-            final PrivilegeEntity privilege = new PrivilegeEntity();
-            privilege.setPermission(clusterReadPermission);
-            privilege.setPrincipal(user.getPrincipal());
-            privilege.setResource(cluster.getResource());
-            privilegeDAO.create(privilege);
-            user.getPrincipal().getPrivileges().add(privilege);
-          }
-          userDAO.merge(user);
+      List<String> userRoles = roles.get(user);
+      if (userRoles.contains("admin")) {
+        final PrivilegeEntity privilege = new PrivilegeEntity();
+        privilege.setPermission(adminPermission);
+        privilege.setPrincipal(user.getPrincipal());
+        privilege.setResource(ambariResource);
+        user.getPrincipal().getPrivileges().add(privilege);
+        privilegeDAO.create(privilege);
+        for (ClusterEntity cluster: clusterDAO.findAll()) {
+          final PrivilegeEntity clusterPrivilege = new PrivilegeEntity();
+          clusterPrivilege.setPermission(clusterOperatePermission);
+          clusterPrivilege.setPrincipal(user.getPrincipal());
+          clusterPrivilege.setResource(cluster.getResource());
+          privilegeDAO.create(clusterPrivilege);
+          user.getPrincipal().getPrivileges().add(clusterPrivilege);
         }
+        userDAO.merge(user);
+      } else if (userRoles.contains("user")) {
+        for (ClusterEntity cluster: clusterDAO.findAll()) {
+          final PrivilegeEntity privilege = new PrivilegeEntity();
+          privilege.setPermission(clusterReadPermission);
+          privilege.setPrincipal(user.getPrincipal());
+          privilege.setResource(cluster.getResource());
+          privilegeDAO.create(privilege);
+          user.getPrincipal().getPrivileges().add(privilege);
+        }
+        userDAO.merge(user);
       }
     }
 

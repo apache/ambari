@@ -69,6 +69,7 @@ import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.KeyValueEntity;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
+import org.apache.ambari.server.orm.entities.PrincipalEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
@@ -109,6 +110,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -522,7 +524,6 @@ public class UpgradeCatalog170Test {
     expect(entityManager.getTransaction()).andReturn(trans).anyTimes();
     expect(entityManager.getCriteriaBuilder()).andReturn(cb).anyTimes();
     expect(entityManager.createQuery(cq)).andReturn(q).anyTimes();
-    expect(userRolesResultSet.next()).andReturn(false).once();
     expect(trans.isActive()).andReturn(true).anyTimes();
     expect(upgradeCatalog.getEntityManagerProvider()).andReturn(entityManagerProvider).anyTimes();
     expect(cb.createQuery(HostRoleCommandEntity.class)).andReturn(cq).anyTimes();
@@ -570,11 +571,38 @@ public class UpgradeCatalog170Test {
     expect(injector.getInstance(KeyValueDAO.class)).andReturn(keyValueDAO).anyTimes();
     expect(injector.getInstance(ViewRegistry.class)).andReturn(viewRegistry).anyTimes();
 
+    expect(userRolesResultSet.next()).andReturn(true).times(3);
+    expect(userRolesResultSet.next()).andReturn(false).times(1);
+    expect(userRolesResultSet.getString(1)).andReturn("admin").times(1);
+    expect(userRolesResultSet.getString(1)).andReturn("user").times(2);
+    expect(userRolesResultSet.getInt(2)).andReturn(1).times(2);
+    expect(userRolesResultSet.getInt(2)).andReturn(2).times(1);
+
+    UserEntity userEntity1 = createNiceMock(UserEntity.class);
+    UserEntity userEntity2 = createNiceMock(UserEntity.class);
+    PrincipalEntity userPrincipal1 = createNiceMock(PrincipalEntity.class);
+    PrincipalEntity userPrincipal2 = createNiceMock(PrincipalEntity.class);
+    Set<PrivilegeEntity> userPrivileges1 = createNiceMock(Set.class);
+    Set<PrivilegeEntity> userPrivileges2 = createNiceMock(Set.class);
+    expect(userEntity1.getPrincipal()).andReturn(userPrincipal1).anyTimes();
+    expect(userEntity2.getPrincipal()).andReturn(userPrincipal2).anyTimes();
+    expect(userPrincipal1.getPrivileges()).andReturn(userPrivileges1).anyTimes();
+    expect(userPrincipal2.getPrivileges()).andReturn(userPrivileges2).anyTimes();
+    expect(userPrivileges1.add(anyObject(PrivilegeEntity.class))).andReturn(true).once();
+    expect(userDAO.findByPK(1)).andReturn(userEntity1).times(2);
+    expect(userDAO.findByPK(2)).andReturn(userEntity2).once();
+    expect(userDAO.merge(userEntity1)).andReturn(userEntity1).once();
+    expect(userDAO.merge(userEntity2)).andReturn(userEntity2).once();
+
+    expect(configGroupConfigMappingDAO.findAll()).andReturn(configGroupConfigMappingEntities).once();
+    expect(userDAO.findAll()).andReturn(Collections.<UserEntity> emptyList()).times(1);
+    expect(userDAO.findAll()).andReturn(Arrays.asList(userEntity1, userEntity2)).times(1);
+    expect(clusterDAO.findAll()).andReturn(Collections.<ClusterEntity> emptyList()).times(1);
+
     String yarnConfig = String.format("{'%s':'%s', '%s':'%s'}",
         YARN_TIMELINE_SERVICE_WEBAPP_ADDRESS_PROPERTY, "timeline:8081",
         YARN_RESOURCEMANAGER_WEBAPP_ADDRESS_PROPERTY, "resource_man:8081");
     expect(configGroupConfigMappingDAO.findAll()).andReturn(configGroupConfigMappingEntities).once();
-    expect(userDAO.findAll()).andReturn(Collections.<UserEntity>emptyList()).times(2);
     expect(clusterDAO.findAll()).andReturn(Collections.singletonList(clusterEntity)).anyTimes();
     expect(configEntity.getData()).andReturn(yarnConfig);
     expect(clusterDAO.findConfig(1L, YARN_SITE, "version1")).andReturn(configEntity).anyTimes();
@@ -629,7 +657,9 @@ public class UpgradeCatalog170Test {
     replay(dbAccessor, configuration, injector, cluster, clusters, amc, config, configHelper, pigConfig);
     replay(userDAO, clusterDAO, viewDAO, viewInstanceDAO, permissionDAO, configGroupConfigMappingDAO);
     replay(resourceTypeDAO, resourceDAO, keyValueDAO, privilegeDAO, clusterConfigEntity);
-    replay(jobsView, showJobsKeyValue, user, viewRegistry, viewUsePermission, adminPermission);
+    replay(jobsView, showJobsKeyValue, user);
+    replay(userEntity1, userEntity2, userPrincipal1, userPrincipal2, userPrivileges1, userPrivileges2);
+    replay(viewRegistry, viewUsePermission, adminPermission);
     replay(clusterEntity, configEntity, configMappingEntity, clusterStateEntity);
 
     Class<?> c = AbstractUpgradeCatalog.class;
@@ -646,8 +676,9 @@ public class UpgradeCatalog170Test {
     upgradeCatalog.executeDMLUpdates();
 
     verify(upgradeCatalog, dbAccessor, configuration, injector, cluster, clusters, amc, config, configHelper,
-        jobsView, showJobsKeyValue, privilegeDAO, viewDAO, viewInstanceDAO, resourceDAO, keyValueDAO,
-        viewRegistry, userRolesResultSet, clusterEntity, configEntity, configMappingEntity, clusterStateEntity);
+        jobsView, showJobsKeyValue, privilegeDAO, viewDAO, viewInstanceDAO, resourceDAO, keyValueDAO, userRolesResultSet,
+        userEntity1, userEntity2, userPrincipal1, userPrincipal2, userPrivileges1, userPrivileges2,
+        viewRegistry, clusterEntity, configEntity, configMappingEntity, clusterStateEntity);
   }
 
 
