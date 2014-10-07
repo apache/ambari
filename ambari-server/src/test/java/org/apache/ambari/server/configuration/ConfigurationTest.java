@@ -47,6 +47,7 @@ import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.powermock.api.easymock.PowerMock;
 import org.powermock.api.support.membermodification.MemberMatcher;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
@@ -54,9 +55,9 @@ import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 
-
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ Configuration.class })
+@PowerMockIgnore( {"javax.management.*"})
 public class ConfigurationTest {
   public TemporaryFolder temp = new TemporaryFolder();
   private Injector injector;

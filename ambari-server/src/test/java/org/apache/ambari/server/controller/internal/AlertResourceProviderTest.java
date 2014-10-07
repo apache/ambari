@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.server.controller.internal;
 
+import static org.apache.ambari.server.configuration.Configuration.JDBC_IN_MEMORY_URL;
+import static org.apache.ambari.server.configuration.Configuration.JDBC_IN_MEMROY_DRIVER;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.captureLong;
 import static org.easymock.EasyMock.createMock;
@@ -31,12 +33,15 @@ import java.util.Set;
 
 import javax.persistence.EntityManager;
 
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.orm.DBAccessor;
+import org.apache.ambari.server.orm.DBAccessorImpl;
 import org.apache.ambari.server.orm.dao.AlertsDAO;
 import org.apache.ambari.server.orm.entities.AlertCurrentEntity;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
@@ -80,10 +85,12 @@ public class AlertResourceProviderTest {
 
     Cluster cluster = EasyMock.createMock(Cluster.class);
     Clusters clusters = m_injector.getInstance(Clusters.class);
+    //Configuration config = m_injector.getInstance(Configuration.class);
+
     expect(m_amc.getClusters()).andReturn(clusters).atLeastOnce();
     expect(clusters.getCluster(capture(new Capture<String>()))).andReturn(cluster).atLeastOnce();
     expect(cluster.getClusterId()).andReturn(Long.valueOf(1L));
-    
+
     replay(m_amc, clusters, cluster);
     
     m_dao = m_injector.getInstance(AlertsDAO.class);
@@ -231,11 +238,19 @@ public class AlertResourceProviderTest {
       binder.bind(EntityManager.class).toInstance(EasyMock.createMock(EntityManager.class));
       binder.bind(AlertsDAO.class).toInstance(EasyMock.createMock(AlertsDAO.class));
       binder.bind(AmbariManagementController.class).toInstance(createMock(AmbariManagementController.class));
+      binder.bind(DBAccessor.class).to(DBAccessorImpl.class);
       
       Clusters clusters = EasyMock.createNiceMock(Clusters.class);
+      Configuration configuration = EasyMock.createMock(Configuration.class);
       
       binder.bind(Clusters.class).toInstance(clusters);
-      
+      binder.bind(Configuration.class).toInstance(configuration);
+
+      expect(configuration.getDatabaseUrl()).andReturn(JDBC_IN_MEMORY_URL).anyTimes();
+      expect(configuration.getDatabaseDriver()).andReturn(JDBC_IN_MEMROY_DRIVER).anyTimes();
+      expect(configuration.getDatabaseUser()).andReturn("test").anyTimes();
+      expect(configuration.getDatabasePassword()).andReturn("test").anyTimes();
+      replay(configuration);
     }
   }
 }
