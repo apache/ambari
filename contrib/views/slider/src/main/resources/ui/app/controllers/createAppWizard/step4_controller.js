@@ -29,6 +29,12 @@ App.CreateAppWizardStep4Controller = Ember.ObjectController.extend(App.AjaxError
   newApp: null,
 
   /**
+   * Define if submit button is disabled
+   * @type {Boolean}
+   */
+  isSubmitDisabled: false,
+
+  /**
    * Return formatted configs to show them on preview page
    * @return {String}
    */
@@ -128,13 +134,15 @@ App.CreateAppWizardStep4Controller = Ember.ObjectController.extend(App.AjaxError
     if (app.queueName != null && app.queueName.trim().length > 0) {
       dataObj.queue = app.queueName.trim();
     }
+    this.set('isSubmitDisabled', true);
     return App.ajax.send({
       name: 'createNewApp',
       sender: this,
       data: {
         data: dataObj
       },
-      success: 'sendAppDataToServerSuccessCallback'
+      success: 'sendAppDataToServerSuccessCallback',
+      complete: 'sendAppDataToServerCompleteCallback'
     });
   },
 
@@ -144,6 +152,14 @@ App.CreateAppWizardStep4Controller = Ember.ObjectController.extend(App.AjaxError
    */
   sendAppDataToServerSuccessCallback: function() {
     this.get('appWizardController').hidePopup();
+  },
+
+  /**
+   * Complete-callback for "create new app"-request
+   * @method sendAppDataToServerCompleteCallback
+   */
+  sendAppDataToServerCompleteCallback: function () {
+    this.set('isSubmitDisabled', false);
   },
 
   actions: {
