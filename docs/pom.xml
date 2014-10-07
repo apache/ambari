@@ -383,9 +383,9 @@
             </organization>            
         </developer>
         <developer>
-            <id>matyas</id>
+            <id>matyix</id>
             <name>Janos Matyas</name>
-            <email>matyas@apache.org</email>
+            <email>matyix@apache.org</email>
             <timezone>+2</timezone>
             <roles>
                 <role>Committer</role>
