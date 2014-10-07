@@ -53,7 +53,8 @@ App.SliderApp = DS.Model.extend({
    */
 
   startedToLocalTime: function () {
-    return moment(this.get('started')).format('ddd, DD MMM YYYY, HH:mm:ss Z [GMT]');
+    var started = this.get('started');
+    return started ? moment(started).format('ddd, DD MMM YYYY, HH:mm:ss Z [GMT]') : '-';
   }.property('started'),
 
   /**
@@ -66,7 +67,8 @@ App.SliderApp = DS.Model.extend({
    */
 
   endedToLocalTime: function () {
-    return moment(this.get('ended')).format('ddd, DD MMM YYYY, HH:mm:ss Z [GMT]');
+    var ended = this.get('ended');
+    return ended ? moment(ended).format('ddd, DD MMM YYYY, HH:mm:ss Z [GMT]') : '-';
   }.property('ended'),
 
   /**
