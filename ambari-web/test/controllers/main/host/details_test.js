@@ -463,6 +463,15 @@ describe('App.MainHostDetailsController', function () {
       expect(controller.constructConfigUrlParams(data)).to.eql(['(type=storm-site&tag=1)']);
       App.Service.find().clear();
     });
+    it('SLIDER is installed', function () {
+      App.store.load(App.Service, {
+        id: 'SLIDER',
+        service_name: 'SLIDER'
+      });
+      var data = {Clusters: {desired_configs: {'slider-client': {tag: 1}}}};
+      expect(controller.constructConfigUrlParams(data)).to.eql(['(type=slider-client&tag=1)']);
+      App.Service.find().clear();
+    });
   });
 
   describe('#loadConfigsSuccessCallback()', function () {
@@ -580,6 +589,13 @@ describe('App.MainHostDetailsController', function () {
       expect(controller.setZKConfigs(configs, '', ["host1", 'host2'])).to.be.true;
       expect(configs).to.eql({"storm-site": {
         "storm.zookeeper.servers": "['host1','host2']"
+      }});
+    });
+    it('slider-client is present', function () {
+      var configs = {'slider-client': {}};
+      expect(controller.setZKConfigs(configs, 'host1:2181', [])).to.be.true;
+      expect(configs).to.eql({"slider-client": {
+        "slider.zookeeper.quorum": "host1:2181"
       }});
     });
   });
