@@ -40,9 +40,12 @@ import org.eclipse.persistence.sessions.DatabaseLogin;
 import org.eclipse.persistence.sessions.DatabaseSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+ 
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.sql.Blob;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
@@ -50,6 +53,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -386,11 +390,61 @@ public class DBAccessorImpl implements DBAccessor {
   }
 
   @Override
-  public void alterColumn(String tableName, DBColumnInfo columnInfo) throws SQLException {
+  public void alterColumn(String tableName, DBColumnInfo columnInfo)
+      throws SQLException {
     //varchar extension only (derby limitation, but not too much for others),
-    //use addColumn-update-drop-rename for more
-    String statement = dbmsHelper.getAlterColumnStatement(tableName, columnInfo);
-    executeQuery(statement);
+    if (dbmsHelper.supportsColumnTypeChange()) {
+      String statement = dbmsHelper.getAlterColumnStatement(tableName,
+          columnInfo);
+      executeQuery(statement);
+    } else {
+      //use addColumn: add_tmp-update-drop-rename for Derby
+      DBColumnInfo columnInfoTmp = new DBColumnInfo(
+          columnInfo.getName() + "_TMP",
+          columnInfo.getType(),
+          columnInfo.getLength());
+      String statement = dbmsHelper.getAddColumnStatement(tableName, columnInfoTmp);
+      executeQuery(statement);
+      updateTable(tableName, columnInfo, columnInfoTmp);
+      dropColumn(tableName, columnInfo.getName());
+      renameColumn(tableName, columnInfoTmp.getName(), columnInfo);
+    }
+  }
+
+  @Override
+  public void updateTable(String tableName, DBColumnInfo columnNameFrom,
+      DBColumnInfo columnNameTo) throws SQLException {
+    LOG.info("Executing query: UPDATE TABLE " + tableName + " SET "
+        + columnNameTo.getName() + "=" + columnNameFrom.getName());
+
+    String statement = "SELECT * FROM " + tableName;
+    int typeFrom = getColumnType(tableName, columnNameFrom.getName());
+    int typeTo = getColumnType(tableName, columnNameTo.getName());
+    ResultSet rs = executeSelect(statement, ResultSet.TYPE_SCROLL_SENSITIVE,
+        ResultSet.CONCUR_UPDATABLE);
+
+    while (rs.next()) {
+      convertUpdateData(rs, columnNameFrom, typeFrom, columnNameTo, typeTo);
+      rs.updateRow();
+    }
+    rs.close();
+  }
+
+  private void convertUpdateData(ResultSet rs, DBColumnInfo columnNameFrom,
+      int typeFrom,
+      DBColumnInfo columnNameTo, int typeTo) throws SQLException {
+    if (typeFrom == Types.BLOB && typeTo == Types.CLOB) {
+      //BLOB-->CLOB
+      Blob data = rs.getBlob(columnNameFrom.getName());
+      if (data != null) {
+        rs.updateClob(columnNameTo.getName(),
+            new BufferedReader(new InputStreamReader(data.getBinaryStream())));
+      }
+    } else {
+      Object data = rs.getObject(columnNameFrom.getName());
+      rs.updateObject(columnNameTo.getName(), data);
+    }
+
   }
 
   @Override
@@ -494,6 +548,11 @@ public class DBAccessorImpl implements DBAccessor {
   }
 
   @Override
+  public ResultSet executeSelect(String query, int resultSetType, int resultSetConcur) throws SQLException {
+    Statement statement = getConnection().createStatement(resultSetType, resultSetConcur);
+    return statement.executeQuery(query);
+  }
+
   public void truncateTable(String tableName) throws SQLException {
     String query = "DELETE FROM " + tableName;
     executeQuery(query);
@@ -501,7 +560,9 @@ public class DBAccessorImpl implements DBAccessor {
 
   @Override
   public void dropColumn(String tableName, String columnName) throws SQLException {
-    throw new UnsupportedOperationException("Drop column not supported");
+    if (tableHasColumn(tableName, columnName)) {
+      executeQuery("ALTER TABLE " + tableName + " DROP COLUMN " + columnName);
+    }
   }
 
   @Override
