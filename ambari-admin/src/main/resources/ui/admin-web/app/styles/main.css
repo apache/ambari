@@ -1025,39 +1025,28 @@ button.btn.btn-xs{
 .alert-container {
   position: fixed;
   top: 50px;
-  right: 20px;
   z-index: 1000;
-  text-align: right;
-  max-width: 450px;
+  width: 300px;
+  margin-left: -150px;
+  left: 50%;
 }
 .ambariAlert {
   position: relative;
   border: 1px solid #c4c4c4;
   border-radius: 4px 0 0 4px;
   box-shadow: 0 0px 4px #ebebeb;
-  min-width: 200px;
-  max-width: 450px;
+  width: 300px;
   background: white;
   margin-bottom: 20px;
   z-index: 1000;
   padding: 20px 20px 20px 60px;
   max-height: 100%;
   display: block;
-  float: right;
   clear: both;
   text-align: left;
   -webkit-box-sizing: border-box;
   -moz-box-sizing: border-box;
   box-sizing: border-box;
-
-  -webkit-transition: all 0.3s linear;
-  -o-transition: all 0.3s linear;
-  transition: all 0.3s linear;
-
-  -webkit-transform: translateX(0px);
-  -ms-transform: translateX(0px);
-  -o-transform: translateX(0px);
-  transform: translateX(0px);
 }
 .ambariAlert .content {
   display: inline-block;
