@@ -59,7 +59,7 @@ public class UpgradeCatalog160 extends AbstractUpgradeCatalog {
     columns.add(new DBAccessor.DBColumnInfo("blueprint_name", String.class, 255, null, false));
     columns.add(new DBAccessor.DBColumnInfo("hostgroup_name", String.class, 255, null, false));
     columns.add(new DBAccessor.DBColumnInfo("type_name", String.class, 255, null, false));
-    columns.add(new DBAccessor.DBColumnInfo("config_data", byte[].class, null, null, false));
+    columns.add(new DBAccessor.DBColumnInfo("config_data", char[].class, null, null, false));
 
     dbAccessor.createTable("hostgroup_configuration", columns, "blueprint_name",
         "hostgroup_name", "type_name");

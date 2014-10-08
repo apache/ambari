@@ -182,7 +182,7 @@ public class UpgradeCatalog160Test {
     column = columns.get(3);
     assertEquals("config_data", column.getName());
     assertEquals(null, column.getLength());
-    assertEquals(byte[].class, column.getType());
+    assertEquals(char[].class, column.getType());
     assertNull(column.getDefaultValue());
     assertFalse(column.isNullable());
   }
