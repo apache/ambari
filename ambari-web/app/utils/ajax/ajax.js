@@ -405,6 +405,23 @@ var urls = {
       }
   },
 
+  'service.item.executeCustomCommand':{
+    'real': '/clusters/{clusterName}/requests',
+    'mock': '',
+    'format' : function(data) {
+      return {
+        type : 'POST',
+        data : JSON.stringify({
+          RequestInfo: {
+            'context': data.context,
+            'command': data.command,
+          },
+          "Requests/resource_filters": [{"service_name" : data.serviceName, "component_name" : data.componentName, 'hosts': data.hosts}]
+        })
+      }
+    }
+  },
+
   'service.load_config_groups': {
     'real': '/clusters/{clusterName}/config_groups?ConfigGroup/tag={serviceName}&fields=*',
     'mock': '/data/configurations/config_group.json'

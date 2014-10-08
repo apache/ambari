@@ -53,7 +53,7 @@
                                 <a><i class="icon-download-alt"></i> {{t services.service.actions.downloadClientConfigs}}</a>
                                 <div class="dropdown-menu-wrap">
                                   <ul class="dropdown-menu">
-                                    {{#each client in view.clients}}
+                                    {{#each client in view.clientsWithConfigs}}
                                       <li>
                                         <a {{action "downloadClientConfigs" client target="controller" href=true}}>{{client.displayName}}</a>
                                       </li>

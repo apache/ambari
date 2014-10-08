@@ -292,5 +292,38 @@ App.MainHostSummaryView = Em.View.extend({
       return $.timeago(d);
     }
     return "";
-  }.property('content.lastHeartBeatTime')
+  }.property('content.lastHeartBeatTime'),
+
+  /**
+   * Get clients with custom commands
+   */
+  clientsWithCustomCommands: function() {
+    var clients = this.get('clients');
+    var options = [];
+    var clientWithCommands;
+    clients.forEach(function(client) {
+      var componentName = client.get('componentName');
+      var customCommands = App.StackServiceComponent.find(componentName).get('customCommands');
+
+      if (customCommands.length) {
+        clientWithCommands = {
+          label: client.get('displayName'),
+          commands: []
+        };
+        customCommands.forEach(function(command) {
+          clientWithCommands.commands.push({
+            label: Em.I18n.t('services.service.actions.run.executeCustomCommand.menu').format(command),
+            service: client.get('service.serviceName'),
+            hosts: client.get('hostName'),
+            component: componentName,
+            command: command
+          });
+        });
+
+        options.push(clientWithCommands);
+      }
+    });
+
+    return options;
+  }.property('controller')
 });

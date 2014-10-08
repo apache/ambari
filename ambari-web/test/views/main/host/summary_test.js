@@ -272,7 +272,7 @@ describe('App.MainHostSummaryView', function() {
 
   });
 
- describe('#addableComponents', function() {
+  describe('#addableComponents', function() {
 
     var tests = Em.A([
       {
@@ -326,4 +326,55 @@ describe('App.MainHostSummaryView', function() {
 
   });
 
+  describe("#clientsWithCustomCommands", function() {
+    before(function() {
+      sinon.stub(App.StackServiceComponent, 'find', function(component) {
+        var customCommands = [];
+
+        if (component == 'WITH_CUSTOM_COMMANDS') {
+          customCommands = ['CUSTOMCOMMAND'];
+        }
+
+        var obj = Em.Object.create({
+          customCommands: customCommands,
+          filterProperty: function () {
+            return {
+              mapProperty: Em.K
+            };
+          }
+        });
+        return obj;
+      });
+    });
+
+    after(function() {
+      App.StackServiceComponent.find.restore();
+    });
+    var content = Em.Object.create({
+      hostComponents: Em.A([
+        Em.Object.create({
+          componentName: 'WITH_CUSTOM_COMMANDS',
+          displayName: 'WITH_CUSTOM_COMMANDS',
+          hostName: 'c6401',
+          service: Em.Object.create({
+            serviceName: 'TESTSRV'
+          })
+        }),
+        Em.Object.create({
+          componentName: 'WITHOUT_CUSTOM_COMMANDS',
+          displayName: 'WITHOUT_CUSTOM_COMMANDS',
+          hostName: 'c6401',
+          service: Em.Object.create({
+            serviceName: 'TESTSRV'
+          })
+        })
+      ])
+    });
+
+    it("Clients with custom commands only", function() {
+      mainHostSummaryView.set('content', content);
+      expect(mainHostSummaryView.get('clientsWithCustomCommands').length).to.eql(1);
+      expect(mainHostSummaryView.get('clientsWithCustomCommands')).to.have.deep.property('[0].commands[0].command', 'CUSTOMCOMMAND');
+    });
+  });
 });

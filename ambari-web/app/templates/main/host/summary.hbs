@@ -105,6 +105,23 @@
                           {{t host.host.details.installClients}}
                         </a>
                       </li>
+                      {{#each option in view.clientsWithCustomCommands}}
+                        <li class="dropdown-submenu submenu-left">
+                          <a href="javascript:void(null)" >
+                            <i class="icon-play-circle"></i>
+                            {{option.label}}
+                          </a>
+                            <div class="dropdown-menu-wrap">
+                              <ul class="dropdown-menu">
+                                {{#each command in option.commands}}
+                                  <li>
+                                    <a href="javascript:void(null)" {{action "executeCustomCommand" command target="controller" href=true}}>{{command.label}}</a>
+                                  </li>
+                                {{/each}}
+                              </ul>
+                            </div>
+                        </li>
+                      {{/each}}
                     </ul>
                   </div>
                 {{/if}}
