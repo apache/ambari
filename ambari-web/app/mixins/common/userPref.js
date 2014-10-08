@@ -80,9 +80,7 @@ App.UserPref = Em.Mixin.create({
    * @param {Object} value
    */
   postUserPref: function (key, value) {
-    if (!App.get('isAdmin')) {
-      return $.Deferred().reject().promise();
-    };
+    if(!App.get('isAdmin')) return;
     var keyValuePair = {};
     keyValuePair[key] = JSON.stringify(value);
     return App.ajax.send({
