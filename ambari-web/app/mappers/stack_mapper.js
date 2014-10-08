@@ -73,7 +73,7 @@ App.stackMapper = App.QuickDataMapper.create({
     var resulOS = [];
     var resultRepo = [];
 
-    var stackVersions =   json.items.filterProperty('Versions.active');
+    var stackVersions = json.items.filterProperty('Versions.active');
     stackVersions.sortProperty('Versions.stack_version').reverse().forEach(function(item) {
       var stack = item.Versions;
       var operatingSystemsArray = [];
@@ -106,9 +106,9 @@ App.stackMapper = App.QuickDataMapper.create({
       
     }, this);
 
+    App.store.commit();
     App.store.loadMany(modelRepo, resultRepo);
     App.store.loadMany(modelOS, resulOS);
     App.store.loadMany(modelStack, resultStack);
-
   }
 });
