@@ -136,59 +136,6 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
     });
   });
 
-  /*  describe('#loadStep()', function () {
-   var isHaEnabled = true;
-
-   beforeEach(function () {
-   controller.set('content.reassign.service_id', 'service1');
-   sinon.stub(controller, 'onTaskStatusChange', Em.K);
-   sinon.stub(App, 'get', function () {
-   return isHaEnabled;
-   });
-   });
-   afterEach(function () {
-   App.get.restore();
-   controller.onTaskStatusChange.restore();
-   });
-
-   it('reassign component is NameNode and HA enabled', function () {
-   isHaEnabled = true;
-   controller.set('content.reassign.component_name', 'NAMENODE');
-
-   controller.loadStep();
-   expect(controller.get('hostComponents')).to.eql(['NAMENODE', 'ZKFC']);
-   expect(controller.get('restartYarnMRComponents')).to.be.false;
-   expect(controller.get('serviceName')).to.eql(['service1']);
-   });
-   it('reassign component is NameNode and HA disabled', function () {
-   isHaEnabled = false;
-   controller.set('content.reassign.component_name', 'NAMENODE');
-
-   controller.loadStep();
-   expect(controller.get('hostComponents')).to.eql(['NAMENODE']);
-   expect(controller.get('restartYarnMRComponents')).to.be.false;
-   expect(controller.get('serviceName')).to.eql(['service1']);
-   });
-   it('reassign component is JOBTRACKER and HA enabled', function () {
-   isHaEnabled = true;
-   controller.set('content.reassign.component_name', 'JOBTRACKER');
-
-   controller.loadStep();
-   expect(controller.get('hostComponents')).to.eql(['JOBTRACKER']);
-   expect(controller.get('restartYarnMRComponents')).to.be.true;
-   expect(controller.get('serviceName')).to.eql(['service1']);
-   });
-   it('reassign component is RESOURCEMANAGER and HA enabled', function () {
-   isHaEnabled = true;
-   controller.set('content.reassign.component_name', 'RESOURCEMANAGER');
-
-   controller.loadStep();
-   expect(controller.get('hostComponents')).to.eql(['RESOURCEMANAGER']);
-   expect(controller.get('restartYarnMRComponents')).to.be.true;
-   expect(controller.get('serviceName')).to.eql(['service1']);
-   });
-   });*/
-
   describe('#getHostComponentsNames()', function () {
     it('No host-components', function () {
       controller.set('hostComponents', []);
@@ -587,6 +534,7 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
       sinon.stub(controller, 'setAdditionalConfigs', Em.K);
       sinon.stub(controller, 'setSecureConfigs', Em.K);
       sinon.stub(controller, 'setSpecificNamenodeConfigs', Em.K);
+      sinon.stub(controller, 'setSpecificResourceMangerConfigs', Em.K);
       sinon.stub(controller, 'getComponentDir', Em.K);
       sinon.stub(controller, 'saveClusterStatus', Em.K);
       sinon.stub(controller, 'saveConfigsToServer', Em.K);
@@ -596,6 +544,7 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
       controller.setAdditionalConfigs.restore();
       controller.setSecureConfigs.restore();
       controller.setSpecificNamenodeConfigs.restore();
+      controller.setSpecificResourceMangerConfigs.restore();
       controller.getComponentDir.restore();
       controller.saveClusterStatus.restore();
       controller.saveConfigsToServer.restore();
@@ -628,12 +577,598 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
       expect(controller.saveClusterStatus.calledWith([])).to.be.true;
       expect(controller.saveConfigsToServer.calledWith({'hdfs-site': {}})).to.be.true;
     });
+    it('component is RESOURCEMANAGER, has configs', function () {
+      controller.set('content.reassign.component_name', 'RESOURCEMANAGER');
+
+      controller.onLoadConfigs({items: [
+        {
+          type: 'hdfs-site',
+          properties: {}
+        }
+      ]});
+      expect(controller.setAdditionalConfigs.calledWith({'hdfs-site': {}}, 'RESOURCEMANAGER', 'host1')).to.be.true;
+      expect(controller.setSecureConfigs.calledWith([], {'hdfs-site': {}}, 'RESOURCEMANAGER')).to.be.true;
+      expect(controller.setSpecificResourceMangerConfigs.calledWith({'hdfs-site': {}}, 'host1')).to.be.true;
+      expect(controller.getComponentDir.calledWith({'hdfs-site': {}}, 'RESOURCEMANAGER')).to.be.true;
+      expect(controller.saveClusterStatus.calledWith([])).to.be.true;
+      expect(controller.saveConfigsToServer.calledWith({'hdfs-site': {}})).to.be.true;
+    });
+  });
+
+  describe('#loadStep()', function () {
+    var isHaEnabled = true;
+
+    beforeEach(function () {
+      controller.set('content.reassign.service_id', 'service1');
+      sinon.stub(controller, 'onTaskStatusChange', Em.K);
+      sinon.stub(controller, 'initializeTasks', Em.K);
+      sinon.stub(App, 'get', function () {
+        return isHaEnabled;
+      });
+    });
+    afterEach(function () {
+      controller.onTaskStatusChange.restore();
+      controller.initializeTasks.restore();
+      App.get.restore();
+    });
+
+    it('reassign component is NameNode and HA enabled', function () {
+      isHaEnabled = true;
+      controller.set('content.reassign.component_name', 'NAMENODE');
+
+      controller.loadStep();
+      expect(controller.get('hostComponents')).to.eql(['NAMENODE', 'ZKFC']);
+      expect(controller.get('serviceName')).to.eql(['service1']);
+    });
+    it('reassign component is NameNode and HA disabled', function () {
+      isHaEnabled = false;
+      controller.set('content.reassign.component_name', 'NAMENODE');
+
+      controller.loadStep();
+      expect(controller.get('hostComponents')).to.eql(['NAMENODE']);
+      expect(controller.get('serviceName')).to.eql(['service1']);
+    });
+    it('reassign component is JOBTRACKER and HA enabled', function () {
+      isHaEnabled = true;
+      controller.set('content.reassign.component_name', 'JOBTRACKER');
+
+      controller.loadStep();
+      expect(controller.get('hostComponents')).to.eql(['JOBTRACKER']);
+      expect(controller.get('serviceName')).to.eql(['service1']);
+    });
+    it('reassign component is RESOURCEMANAGER and HA enabled', function () {
+      isHaEnabled = true;
+      controller.set('content.reassign.component_name', 'RESOURCEMANAGER');
+
+      controller.loadStep();
+      expect(controller.get('hostComponents')).to.eql(['RESOURCEMANAGER']);
+      expect(controller.get('serviceName')).to.eql(['service1']);
+    });
   });
 
 
- /* describe('#setSpecificNamenodeConfigs()', function () {
-   it('configs is empty', function () {
-   controller.setSpecificNamenodeConfigs();
-   });
-   });*/
+  describe('#saveConfigsToServer()', function () {
+    beforeEach(function () {
+      sinon.stub(controller, 'getServiceConfigData', Em.K);
+    });
+    afterEach(function () {
+      controller.getServiceConfigData.restore();
+    });
+    it('', function () {
+      controller.saveConfigsToServer([1]);
+      expect(controller.getServiceConfigData.calledWith([1])).to.be.true;
+      expect(App.ajax.send.calledOnce).to.be.true;
+    });
+  });
+
+  describe('#setSpecificNamenodeConfigs()', function () {
+    var isHaEnabled = false;
+    var service = Em.Object.create();
+    beforeEach(function () {
+      sinon.stub(App, 'get', function () {
+        return isHaEnabled;
+      });
+      sinon.stub(App.Service, 'find', function () {
+        return service;
+      });
+      controller.set('content.reassignHosts.source', 'host1');
+    });
+    afterEach(function () {
+      App.get.restore();
+      App.Service.find.restore();
+    });
+    it('HA isn\'t enabled and no HBASE service', function () {
+      isHaEnabled = false;
+      var configs = {};
+      controller.setSpecificNamenodeConfigs(configs, 'host1');
+      expect(configs).to.eql({});
+    });
+    it('HA isn\'t enabled and HBASE service', function () {
+      isHaEnabled = false;
+      service = Em.Object.create({
+        isLoaded: true
+      });
+      var configs = {
+        'hbase-site': {
+          'hbase.rootdir': 'hdfs://localhost:8020/apps/hbase/data'
+        }
+      };
+      controller.setSpecificNamenodeConfigs(configs, 'host1');
+      expect(configs['hbase-site']['hbase.rootdir']).to.equal('hdfs://host1:8020/apps/hbase/data');
+    });
+    it('HA enabled and namenode 1', function () {
+      isHaEnabled = true;
+      var configs = {
+        'hdfs-site': {
+          'dfs.nameservices': 's',
+          'dfs.namenode.http-address.s.nn1': 'host1:50070',
+          'dfs.namenode.https-address.s.nn1': '',
+          'dfs.namenode.rpc-address.s.nn1': ''
+        }
+      };
+      controller.setSpecificNamenodeConfigs(configs, 'host2');
+      expect(configs['hdfs-site']).to.eql({
+        "dfs.nameservices": "s",
+        "dfs.namenode.http-address.s.nn1": "host2:50070",
+        "dfs.namenode.https-address.s.nn1": "host2:50470",
+        "dfs.namenode.rpc-address.s.nn1": "host2:8020"
+      });
+    });
+    it('HA enabled and namenode 2', function () {
+      isHaEnabled = true;
+      var configs = {
+        'hdfs-site': {
+          'dfs.nameservices': 's',
+          'dfs.namenode.http-address.s.nn2': 'host2:50070',
+          'dfs.namenode.https-address.s.nn2': '',
+          'dfs.namenode.rpc-address.s.nn2': ''
+        }
+      };
+      controller.setSpecificNamenodeConfigs(configs, 'host1');
+      expect(configs['hdfs-site']).to.eql({
+        "dfs.nameservices": "s",
+        "dfs.namenode.http-address.s.nn2": "host1:50070",
+        "dfs.namenode.https-address.s.nn2": "host1:50470",
+        "dfs.namenode.rpc-address.s.nn2": "host1:8020"
+      });
+    });
+  });
+
+  describe('#setSpecificResourceMangerConfigs()', function () {
+    var isRMHaEnabled = false;
+    var service = Em.Object.create();
+    beforeEach(function () {
+      sinon.stub(App, 'get', function () {
+        return isRMHaEnabled;
+      });
+      controller.set('content.reassignHosts.source', 'host1');
+    });
+    afterEach(function () {
+      App.get.restore();
+    });
+
+    it('HA isn\'t enabled', function () {
+      isRMHaEnabled = false;
+      var configs = {};
+      controller.setSpecificResourceMangerConfigs(configs, 'host1');
+      expect(configs).to.eql({});
+    });
+    it('HA enabled and resource manager 1', function () {
+      isRMHaEnabled = true;
+      var configs = {
+        'yarn-site': {
+          'yarn.resourcemanager.hostname.rm1': 'host1'
+        }
+      };
+      controller.setSpecificResourceMangerConfigs(configs, 'host2');
+      expect(configs['yarn-site']).to.eql({
+        'yarn.resourcemanager.hostname.rm1': 'host2'
+      });
+    });
+    it('HA enabled and resource manager 2', function () {
+      isRMHaEnabled = true;
+      var configs = {
+        'yarn-site': {
+          'yarn.resourcemanager.hostname.rm2': 'host2'
+        }
+      };
+      controller.setSpecificResourceMangerConfigs(configs, 'host1');
+      expect(configs['yarn-site']).to.eql({
+        'yarn.resourcemanager.hostname.rm2': 'host1'
+      });
+    });
+  });
+
+  describe('#setSecureConfigs()', function () {
+    it('undefined component and security disabled', function () {
+      var secureConfigs = [];
+      controller.set('content.securityEnabled', false);
+      controller.set('secureConfigsMap', []);
+      expect(controller.setSecureConfigs(secureConfigs, {}, 'COMP1')).to.be.false;
+      expect(secureConfigs).to.eql([]);
+    });
+    it('undefined component and security enabled', function () {
+      var secureConfigs = [];
+      controller.set('content.securityEnabled', true);
+      controller.set('secureConfigsMap', []);
+      expect(controller.setSecureConfigs(secureConfigs, {}, 'COMP1')).to.be.false;
+      expect(secureConfigs).to.eql([]);
+    });
+    it('component exist and security disabled', function () {
+      var secureConfigs = [];
+      controller.set('content.securityEnabled', false);
+      controller.set('secureConfigsMap', [{
+        componentName: 'COMP1'
+      }]);
+      expect(controller.setSecureConfigs(secureConfigs, {}, 'COMP1')).to.be.false;
+      expect(secureConfigs).to.eql([]);
+    });
+    it('component exist and security enabled', function () {
+      var secureConfigs = [];
+      var configs = {'s1': {
+        'k1': 'kValue',
+        'p1': 'pValue'
+      }};
+      controller.set('content.securityEnabled', true);
+      controller.set('secureConfigsMap', [{
+        componentName: 'COMP1',
+        configs: [{
+          site: 's1',
+          keytab: 'k1',
+          principal: 'p1'
+        }]
+      }]);
+      expect(controller.setSecureConfigs(secureConfigs, configs, 'COMP1')).to.be.true;
+      expect(secureConfigs).to.eql([
+        {
+          "keytab": "kValue",
+          "principal": "pValue"
+        }
+      ]);
+    });
+  });
+
+  describe('#getComponentDir()', function () {
+    var isHadoop2Stack = false;
+    beforeEach(function () {
+      sinon.stub(App, 'get', function () {
+        return isHadoop2Stack;
+      });
+    });
+    afterEach(function () {
+      App.get.restore();
+    });
+
+    var configs = {
+      'hdfs-site': {
+        'dfs.name.dir': 'case1',
+        'dfs.namenode.name.dir': 'case2',
+        'dfs.namenode.checkpoint.dir': 'case3'
+      },
+      'core-site': {
+        'fs.checkpoint.dir': 'case4'
+      }
+    };
+
+    it('unknown component name', function () {
+      expect(controller.getComponentDir(configs, 'COMP1')).to.be.empty;
+    });
+    it('NAMENODE component and isHadoop2Stack is false', function () {
+      expect(controller.getComponentDir(configs, 'NAMENODE')).to.equal('case1');
+    });
+    it('NAMENODE component and isHadoop2Stack is true', function () {
+      isHadoop2Stack = true;
+      expect(controller.getComponentDir(configs, 'NAMENODE')).to.equal('case2');
+    });
+    it('SECONDARY_NAMENODE component and isHadoop2Stack is true', function () {
+      isHadoop2Stack = true;
+      expect(controller.getComponentDir(configs, 'SECONDARY_NAMENODE')).to.equal('case3');
+    });
+    it('SECONDARY_NAMENODE component and isHadoop2Stack is false', function () {
+      isHadoop2Stack = false;
+      expect(controller.getComponentDir(configs, 'SECONDARY_NAMENODE')).to.equal('case4');
+    });
+  });
+
+  describe('#saveClusterStatus()', function () {
+    var mock = {
+      saveComponentDir: Em.K,
+      saveSecureConfigs: Em.K
+    };
+    beforeEach(function () {
+      sinon.stub(App.clusterStatus, 'setClusterStatus', Em.K);
+      sinon.stub(App.router, 'get', function() {
+        return mock;
+      });
+      sinon.spy(mock, 'saveComponentDir');
+      sinon.spy(mock, 'saveSecureConfigs');
+    });
+    afterEach(function () {
+      App.clusterStatus.setClusterStatus.restore();
+      App.router.get.restore();
+      mock.saveSecureConfigs.restore();
+      mock.saveComponentDir.restore();
+    });
+
+    it('componentDir undefined and secureConfigs is empty', function () {
+      expect(controller.saveClusterStatus([], null)).to.be.false;
+    });
+    it('componentDir defined and secureConfigs is empty', function () {
+      expect(controller.saveClusterStatus([], 'dir1')).to.be.true;
+      expect(mock.saveComponentDir.calledWith('dir1')).to.be.true;
+      expect(mock.saveSecureConfigs.calledWith([])).to.be.true;
+    });
+    it('componentDir undefined and secureConfigs has data', function () {
+      expect(controller.saveClusterStatus([1], null)).to.be.true;
+      expect(mock.saveComponentDir.calledWith(null)).to.be.true;
+      expect(mock.saveSecureConfigs.calledWith([1])).to.be.true;
+    });
+    it('componentDir defined and secureConfigs has data', function () {
+      expect(controller.saveClusterStatus([1], 'dir1')).to.be.true;
+      expect(mock.saveComponentDir.calledWith('dir1')).to.be.true;
+      expect(mock.saveSecureConfigs.calledWith([1])).to.be.true;
+    });
+  });
+
+  describe('#onSaveConfigs()', function () {
+    beforeEach(function () {
+      sinon.stub(controller, 'onTaskCompleted', Em.K);
+    });
+    afterEach(function () {
+      controller.onTaskCompleted.restore();
+    });
+
+    it('', function () {
+      controller.onSaveConfigs();
+      expect(controller.onTaskCompleted.calledOnce).to.be.true;
+    });
+  });
+
+  describe('#startZooKeeperServers()', function () {
+    beforeEach(function () {
+      sinon.stub(controller, 'updateComponent', Em.K);
+    });
+    afterEach(function () {
+      controller.updateComponent.restore();
+    });
+
+    it('', function () {
+      controller.set('content.masterComponentHosts', [{
+        component: 'ZOOKEEPER_SERVER',
+        hostName: 'host1'
+      }]);
+      controller.startZooKeeperServers();
+      expect(controller.updateComponent.calledWith('ZOOKEEPER_SERVER', ['host1'], 'ZOOKEEPER', 'Start')).to.be.true;
+    });
+  });
+
+  describe('#startNameNode()', function () {
+    beforeEach(function () {
+      sinon.stub(controller, 'updateComponent', Em.K);
+    });
+    afterEach(function () {
+      controller.updateComponent.restore();
+    });
+
+    it('reassign host does not match current', function () {
+      controller.set('content.masterComponentHosts', [{
+        component: 'NAMENODE',
+        hostName: 'host1'
+      }]);
+      controller.set('content.reassignHosts.source', 'host2');
+      controller.startNameNode();
+      expect(controller.updateComponent.calledWith('NAMENODE', ['host1'], 'HDFS', 'Start')).to.be.true;
+    });
+    it('reassign host matches current', function () {
+      controller.set('content.masterComponentHosts', [{
+        component: 'NAMENODE',
+        hostName: 'host1'
+      }]);
+      controller.set('content.reassignHosts.source', 'host1');
+      controller.startNameNode();
+      expect(controller.updateComponent.calledWith('NAMENODE', [], 'HDFS', 'Start')).to.be.true;
+    });
+  });
+
+  describe('#startServices()', function () {
+    beforeEach(function () {
+      sinon.stub(controller, 'getStartServicesData', Em.K);
+    });
+    afterEach(function () {
+      controller.getStartServicesData.restore();
+    });
+
+    it('', function () {
+      controller.startServices();
+      expect(controller.getStartServicesData.calledOnce).to.be.true;
+      expect(App.ajax.send.calledOnce).to.be.true;
+    });
+  });
+
+  describe('#getStartServicesData()', function () {
+    beforeEach(function () {
+      sinon.stub(App.Service, 'find', function () {
+        return [
+          {serviceName: 'SERVICE1'},
+          {serviceName: 'SERVICE2'}
+        ]
+      })
+    });
+    afterEach(function () {
+      App.Service.find.restore();
+    });
+
+    it('No unrelated services', function () {
+      controller.set('unrelatedServicesMap', {
+        'COMP1': ['SERVICE1']
+      });
+      controller.set('content.reassign.component_name', 'COMP2');
+      expect(controller.getStartServicesData()).to.eql({
+        "context": "Start all services",
+        "ServiceInfo": {
+          "state": "STARTED"
+        },
+        "urlParams": "params/run_smoke_test=true"
+      });
+    });
+    it('Present unrelated services', function () {
+      controller.set('unrelatedServicesMap', {
+        'COMP1': ['SERVICE1']
+      });
+      controller.set('content.reassign.component_name', 'COMP1');
+      expect(controller.getStartServicesData()).to.eql({
+        "context": "Start required services",
+        "ServiceInfo": {
+          "state": "STARTED"
+        },
+        "urlParams": "ServiceInfo/service_name.in(SERVICE2)"
+      });
+    });
+  });
+
+  describe('#deleteHostComponents()', function () {
+
+    it('No host components', function () {
+      controller.set('hostComponents', []);
+      controller.set('content.reassignHosts.source', 'host1');
+      controller.deleteHostComponents();
+      expect(App.ajax.send.called).to.be.false;
+    });
+    it('delete two components', function () {
+      controller.set('hostComponents', [1, 2]);
+      controller.set('content.reassignHosts.source', 'host1');
+      controller.deleteHostComponents();
+      expect(App.ajax.send.getCall(0).args[0].data).to.eql({
+        "hostName": "host1",
+        "componentName": 1
+      });
+      expect(App.ajax.send.getCall(1).args[0].data).to.eql({
+        "hostName": "host1",
+        "componentName": 2
+      });
+    });
+  });
+
+  describe('#onDeleteHostComponentsError()', function () {
+    beforeEach(function () {
+      sinon.stub(controller, 'onComponentsTasksSuccess', Em.K);
+      sinon.stub(controller, 'onTaskError', Em.K);
+    });
+    afterEach(function () {
+      controller.onComponentsTasksSuccess.restore();
+      controller.onTaskError.restore();
+    });
+
+    it('task success', function () {
+      var error = {
+        responseText: 'org.apache.ambari.server.controller.spi.NoSuchResourceException'
+      }
+      controller.onDeleteHostComponentsError(error);
+      expect(controller.onComponentsTasksSuccess.calledOnce).to.be.true;
+    });
+    it('unknown error', function () {
+      var error = {
+        responseText: ''
+      }
+      controller.onDeleteHostComponentsError(error);
+      expect(controller.onTaskError.calledOnce).to.be.true;
+    });
+  });
+
+  describe('#done()', function () {
+    beforeEach(function () {
+      sinon.stub(controller, 'removeObserver', Em.K);
+      sinon.stub(App.router, 'send', Em.K);
+    });
+    afterEach(function () {
+      controller.removeObserver.restore();
+      App.router.send.restore();
+    });
+
+    it('submit disabled', function () {
+      controller.set('isSubmitDisabled', true);
+      controller.done();
+      expect(App.router.send.called).to.be.false;
+    });
+    it('submit enabled and does not have manual steps', function () {
+      controller.set('isSubmitDisabled', false);
+      controller.set('content.hasManualSteps', false);
+      controller.done();
+      expect(controller.removeObserver.calledWith('tasks.@each.status', controller, 'onTaskStatusChange')).to.be.true;
+      expect(App.router.send.calledWith('complete')).to.be.true;
+    });
+    it('submit enabled and has manual steps', function () {
+      controller.set('isSubmitDisabled', false);
+      controller.set('content.hasManualSteps', true);
+      controller.done();
+      expect(controller.removeObserver.calledWith('tasks.@each.status', controller, 'onTaskStatusChange')).to.be.true;
+      expect(App.router.send.calledWith('next')).to.be.true;
+    });
+  });
+
+  describe('#getServiceConfigData()', function () {
+    var services = [];
+    var stackServices = [];
+    beforeEach(function () {
+      sinon.stub(App.Service, 'find', function () {
+        return services;
+      });
+      sinon.stub(App.StackService, 'find', function () {
+        return stackServices;
+      });
+    });
+    afterEach(function () {
+      App.Service.find.restore();
+      App.StackService.find.restore();
+    });
+
+    it('No services', function () {
+      services = [];
+      controller.set('content.reassign.component_name', 'COMP1');
+      expect(controller.getServiceConfigData([])).to.eql([]);
+    });
+    it('No services in stackServices', function () {
+      services = [Em.Object.create({serviceName: 'S1'})];
+      stackServices = [];
+      controller.set('content.reassign.component_name', 'COMP1');
+      expect(controller.getServiceConfigData([])).to.eql([]);
+    });
+    it('Services in stackServicesm but configTypesRendered is empty', function () {
+      services = [Em.Object.create({serviceName: 'S1'})];
+      stackServices = [Em.Object.create({
+        serviceName: 'S1',
+        configTypesRendered: {}
+      })];
+      controller.set('content.reassign.component_name', 'COMP1');
+      expect(controller.getServiceConfigData([])[0]).to.equal("{\"Clusters\":{\"desired_config\":[]}}");
+    });
+    it('Services in stackServicesm and configTypesRendered has data, but configs is empty', function () {
+      services = [Em.Object.create({serviceName: 'S1'})];
+      stackServices = [
+        Em.Object.create({
+          serviceName: 'S1',
+          configTypesRendered: {'type1': {}}
+        })
+      ];
+      controller.set('content.reassign.component_name', 'COMP1');
+      expect(controller.getServiceConfigData([])[0]).to.equal("{\"Clusters\":{\"desired_config\":[]}}");
+    });
+    it('Services in stackServicesm and configTypesRendered has data, and configs present', function () {
+      services = [Em.Object.create({serviceName: 'S1'})];
+      stackServices = [
+        Em.Object.create({
+          serviceName: 'S1',
+          configTypesRendered: {'type1': {}}
+        })
+      ];
+      var configs = {
+        'type1': {
+          'prop1': 'value1'
+        }
+      };
+      controller.set('content.reassign.component_name', 'COMP1');
+      expect(JSON.parse(controller.getServiceConfigData(configs)[0]).Clusters.desired_config.length).to.equal(1);
+    });
+
+  });
 });

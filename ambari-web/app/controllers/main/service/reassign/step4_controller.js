@@ -269,6 +269,7 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
 
   /**
    * compute data for call to stop services
+   * @return {Object}
    */
   getStopServicesData: function () {
     var data = {
@@ -430,6 +431,23 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
    * @param configs
    */
   saveConfigsToServer: function (configs) {
+    App.ajax.send({
+      name: 'common.across.services.configurations',
+      sender: this,
+      data: {
+        data: '[' + this.getServiceConfigData(configs).toString() + ']'
+      },
+      success: 'onSaveConfigs',
+      error: 'onTaskError'
+    });
+  },
+  /**
+   * gather and format config data before sending to server
+   * @param configs
+   * @return {Array}
+   * @method getServiceConfigData
+   */
+  getServiceConfigData: function (configs) {
     var componentName = this.get('content.reassign.component_name');
     var tagName = 'version' + (new Date).getTime();
     var configData = Object.keys(configs).map(function (_siteName) {
@@ -440,10 +458,9 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
         service_config_version_note: Em.I18n.t('services.reassign.step4.save.configuration.note').format(App.format.role(componentName))
       }
     });
-
-    var installedServices = App.Service.find();
     var allConfigData = [];
-    installedServices.forEach(function (service) {
+
+    App.Service.find().forEach(function (service) {
       var stackService = App.StackService.find().findProperty('serviceName', service.get('serviceName'));
       if (stackService) {
         var serviceConfigData = [];
@@ -460,16 +477,7 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
         }));
       }
     }, this);
-
-    App.ajax.send({
-      name: 'common.across.services.configurations',
-      sender: this,
-      data: {
-        data: '[' + allConfigData.toString() + ']'
-      },
-      success: 'onSaveConfigs',
-      error: 'onTaskError'
-    });
+    return allConfigData;
   },
 
   /**
@@ -482,15 +490,10 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
 
     if (App.get('isHadoop2Stack') && App.get('isHaEnabled')) {
       var nameServices = configs['hdfs-site']['dfs.nameservices'];
-      if (configs['hdfs-site']['dfs.namenode.http-address.' + nameServices + '.nn1'] === sourceHostName + ':50070') {
-        configs['hdfs-site']['dfs.namenode.http-address.' + nameServices + '.nn1'] = targetHostName + ':50070';
-        configs['hdfs-site']['dfs.namenode.https-address.' + nameServices + '.nn1'] = targetHostName + ':50470';
-        configs['hdfs-site']['dfs.namenode.rpc-address.' + nameServices + '.nn1'] = targetHostName + ':8020';
-      } else {
-        configs['hdfs-site']['dfs.namenode.http-address.' + nameServices + '.nn2'] = targetHostName + ':50070';
-        configs['hdfs-site']['dfs.namenode.https-address.' + nameServices + '.nn2'] = targetHostName + ':50470';
-        configs['hdfs-site']['dfs.namenode.rpc-address.' + nameServices + '.nn2'] = targetHostName + ':8020';
-      }
+      var suffix = (configs['hdfs-site']['dfs.namenode.http-address.' + nameServices + '.nn1'] === sourceHostName + ':50070') ? '.nn1' : '.nn2';
+      configs['hdfs-site']['dfs.namenode.http-address.' + nameServices + suffix] = targetHostName + ':50070';
+      configs['hdfs-site']['dfs.namenode.https-address.' + nameServices + suffix] = targetHostName + ':50470';
+      configs['hdfs-site']['dfs.namenode.rpc-address.' + nameServices + suffix] = targetHostName + ':8020';
     }
     if (!App.get('isHaEnabled') && App.Service.find('HBASE').get('isLoaded')) {
       configs['hbase-site']['hbase.rootdir'] = configs['hbase-site']['hbase.rootdir'].replace(/\/\/[^\/]*/, '//' + targetHostName + ':8020');
@@ -512,7 +515,6 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
         configs['yarn-site']['yarn.resourcemanager.hostname.rm2'] = targetHostName;
       }
     }
-
   },
 
   /**
@@ -588,42 +590,53 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
     this.updateComponent('NAMENODE', components.mapProperty('hostName').without(this.get('content.reassignHosts.source')), "HDFS", "Start");
   },
 
+  /**
+   * make server call to start services
+   */
   startServices: function () {
+    App.ajax.send({
+      name: 'common.services.update',
+      sender: this,
+      data: this.getStartServicesData(),
+      success: 'startPolling',
+      error: 'onTaskError'
+    });
+  },
+
+  /**
+   * compute data for call to start services
+   * @return {Object}
+   */
+  getStartServicesData: function () {
     var unrelatedServices = this.get('unrelatedServicesMap')[this.get('content.reassign.component_name')];
+    var data = {};
+
     if (unrelatedServices) {
       var list = App.Service.find().mapProperty("serviceName").filter(function (s) {
         return !unrelatedServices.contains(s)
       }).join(',');
-      var conf = {
-        name: 'common.services.update',
-        sender: this,
-        data: {
-          "context": "Start required services",
-          "ServiceInfo": {
-            "state": "STARTED"
-          },
-          urlParams: "ServiceInfo/service_name.in(" + list + ")"},
-        success: 'startPolling',
-        error: 'onTaskError'
-      };
-      App.ajax.send(conf);
-    } else {
-      App.ajax.send({
-        name: 'common.services.update',
-        sender: this,
-        data: {
-          "context": "Start all services",
-          "ServiceInfo": {
-            "state": "STARTED"
-          },
-          urlParams: "params/run_smoke_test=true"
+      data = {
+        "context": "Start required services",
+        "ServiceInfo": {
+          "state": "STARTED"
         },
-        success: 'startPolling',
-        error: 'onTaskError'
-      });
+        "urlParams": "ServiceInfo/service_name.in(" + list + ")"
+      };
+    } else {
+      data = {
+        "context": "Start all services",
+        "ServiceInfo": {
+          "state": "STARTED"
+        },
+        "urlParams": "params/run_smoke_test=true"
+      };
     }
+    return data;
   },
 
+  /**
+   * make DELETE call for each host component on host
+   */
   deleteHostComponents: function () {
     this.set('multiTaskCounter', 0);
     var hostComponents = this.get('hostComponents');
