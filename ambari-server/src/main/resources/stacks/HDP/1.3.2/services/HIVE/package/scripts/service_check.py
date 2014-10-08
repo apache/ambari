@@ -32,16 +32,11 @@ class HiveServiceCheck(Script):
 
     address=format("{hive_server_host}")
     port=int(format("{hive_server_port}"))
-    s = socket.socket()
     print "Test connectivity to hive server"
-    try:
-      s.connect((address, port))
-      s.send("A001 AUTHENTICATE ANONYMOUS")
+    if check_thrift_port_sasl(address, port):
       print "Successfully connected to %s on port %s" % (address, port)
-      s.close()
-    except socket.error, e:
-      print "Connection to %s on port %s failed: %s" % (address, port, e)
-      sys.exit(1)
+    else:
+      print "Connection to %s on port %s failed: %s" % (address, port)
 
     hcat_service_check()
     webhcat_service_check()

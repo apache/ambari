@@ -19,7 +19,6 @@ limitations under the License.
 """
 
 from resource_management import *
-import socket
 import sys
 import time
 
@@ -66,25 +65,17 @@ def hive_service(
       
       start_time = time.time()
       end_time = start_time + SOCKET_WAIT_SECONDS
-      
-      s = socket.socket()
-      s.settimeout(5)
-            
+
       is_service_socket_valid = False
       print "Waiting for the Hive server to start..."
-      try:
-        while time.time() < end_time:
-          try:
-            s.connect((address, port))
-            s.send("A001 AUTHENTICATE ANONYMOUS")
-            is_service_socket_valid = True
-            break
-          except socket.error, e:          
-            time.sleep(5)
-      finally:
-        s.close()
-      
-      elapsed_time = time.time() - start_time    
+      while time.time() < end_time:
+        if check_thrift_port_sasl(address, port, 2):
+          is_service_socket_valid = True
+          break
+        else:
+          time.sleep(2)
+
+      elapsed_time = time.time() - start_time
       
       if is_service_socket_valid == False: 
         raise Fail("Connection to Hive server %s on port %s failed after %d seconds" % (address, port, elapsed_time))

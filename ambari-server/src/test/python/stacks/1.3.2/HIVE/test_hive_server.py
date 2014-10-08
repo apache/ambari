@@ -379,5 +379,5 @@ class TestHiveServer(RMFTestCase):
       self.fail("Script failure due to socket error was expected")
     except:
       self.assert_configure_default()
-      self.assertTrue(socket_mock.called)
-      self.assertTrue(s.close.called)    
+      self.assertFalse(socket_mock.called)
+      self.assertFalse(s.close.called)

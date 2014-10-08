@@ -539,7 +539,7 @@ define service {
         use                     hadoop-service
         service_description     HIVE-SERVER::HiveServer2 process
         servicegroups           HIVE
-        check_command           check_tcp_wrapper_sasl!{{ hive_server_port }}!-w 1 -c 1!A001 AUTHENTICATE ANONYMOUS
+        check_command           check_tcp_wrapper_sasl!{{ hive_server_port }}!-w 1 -c 1
         normal_check_interval   0.5
         retry_check_interval    0.5
         max_check_attempts      3

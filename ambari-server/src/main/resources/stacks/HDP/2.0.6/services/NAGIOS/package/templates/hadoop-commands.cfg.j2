@@ -157,7 +157,7 @@ define command{
 
 define command{
         command_name check_tcp_wrapper_sasl
-        command_line  $USER1$/check_wrapper.sh $USER1$/check_tcp -H $HOSTADDRESS$ -p $ARG1$ $ARG2$ -s \"$ARG3$\"
+        command_line $USER1$/check_wrapper.sh /var/lib/ambari-agent/ambari-python-wrap $USER1$/check_hive_thrift_port.py -H $HOSTADDRESS$ -p $ARG1$
        }
 
 define command{
