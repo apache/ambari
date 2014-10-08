@@ -36,12 +36,16 @@ var view,
 describe('App.MainHostDetailsView', function () {
 
   beforeEach(function () {
-    view = App.MainHostDetailsView.create();
+    view = App.MainHostDetailsView.create({
+       content: Em.Object.create({
+          hostComponents: []
+       })
+    });
   });
 
   describe('#content', function () {
     it('should take content from controller', function () {
-      App.router.set('mainHostDetailsController.content', {
+      view.set('content', {
         property: 'value'
       });
       expect(view.get('content.property')).to.equal('value');
@@ -50,7 +54,7 @@ describe('App.MainHostDetailsView', function () {
 
   describe('#clients', function () {
     it('should take clients from content', function () {
-      App.router.set('mainHostDetailsController.content', {
+      view.set('content', {
         hostComponents: [
           {
             isClient: true
@@ -94,6 +98,60 @@ describe('App.MainHostDetailsView', function () {
     });
   });
 
+  describe('#clientsWithConfigs', function() {
+    beforeEach(function () {
+      view.set('content', {
+        hostComponents: [
+          Em.Object.create({
+            isClient: true,
+            service: Em.Object.create({
+              serviceName: 'WITH_CONFIGS'
+            })
+          }),
+          Em.Object.create({
+            isClient: true,
+            service: Em.Object.create({
+              serviceName: 'WITHOUT_CONFIGS'
+            })
+          }),
+          Em.Object.create({
+            isClient: false,
+            service: Em.Object.create({
+              serviceName: 'SAMPLE_SERVICE'
+            })
+          })
+        ]
+      });
+
+      App.set('services', {
+        noConfigTypes: ['WITHOUT_CONFIGS', 'WITHOUT_CONFIGS_2']
+      });
+    });
+
+    afterEach(function () {
+      App.set('services', Em.K);
+    });
+
+    it('should get only clients with configs', function() {
+      expect(view.get('clientsWithConfigs')).to.have.length(1);
+      console.log(view.get('content.hostComponents'));
+      view.get('content.hostComponents').pushObject(Em.Object.create({
+        isClient: true,
+        service: Em.Object.create({
+          serviceName: 'WITHOUT_CONFIGS_2'
+        })
+      }));
+      expect(view.get('clientsWithConfigs')).to.have.length(1);
+      view.get('content.hostComponents').pushObject(Em.Object.create({
+        isClient: true,
+        service: Em.Object.create({
+          serviceName: 'WITH_CONFIGS_2'
+        })
+      }));
+      expect(view.get('clientsWithConfigs')).to.have.length(2);
+    });
+  });
+
   describe('#didInsertElement()', function () {
     it('isLoaded should be set as true', function () {
       view.didInsertElement();
@@ -107,5 +165,4 @@ describe('App.MainHostDetailsView', function () {
       expect(App.router.get('currentState.name')).to.equal('index');
     });
   });
-
 });

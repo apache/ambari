@@ -1445,4 +1445,22 @@ describe('App.MainHostDetailsController', function () {
     });
   });
 
+  describe('#executeCustomCommands', function() {
+    beforeEach(function () {
+      sinon.spy(App, "showConfirmationPopup");
+      sinon.stub(App.ajax, "send", Em.K);
+    });
+    afterEach(function () {
+      App.showConfirmationPopup.restore();
+      App.ajax.send.restore();
+    });
+
+    it('confirm popup should be displayed', function () {
+      var popup = controller.executeCustomCommand({context: Em.Object.create()});
+      expect(App.showConfirmationPopup.calledOnce).to.be.true;
+      popup.onPrimary();
+      expect(App.ajax.send.calledOnce).to.be.true;
+    });
+  });
+
 });

@@ -153,12 +153,15 @@ App.MainServiceItemView = Em.View.extend({
     var allSlaves = service.get('hostComponents').filterProperty('isSlave').mapProperty('componentName').uniq();
     var actionMap = this.actionMap();
     var serviceCheckSupported = App.get('services.supportsServiceCheck').contains(service.get('serviceName'));
+    var hasConfigTab = this.get('hasConfigTab');
 
     if (this.get('controller.isClientsOnlyService')) {
       if (serviceCheckSupported) {
         options.push(actionMap.RUN_SMOKE_TEST);
       }
-      options.push(actionMap.REFRESH_CONFIGS);
+      if (hasConfigTab) {
+	      options.push(actionMap.REFRESH_CONFIGS);
+	    }
     } else {
       if (this.get('serviceName') === 'FLUME') {
         options.push(actionMap.REFRESH_CONFIGS);
@@ -211,7 +214,11 @@ App.MainServiceItemView = Em.View.extend({
         options.push(item);
       });
     }
-    options.push(actionMap.DOWNLOAD_CLIENT_CONFIGS);
+
+    if (hasConfigTab) {
+      options.push(actionMap.DOWNLOAD_CLIENT_CONFIGS);
+    }
+
     return options;
   }.property('controller.content', 'controller.isStopDisabled','controller.isClientsOnlyService', 'controller.content.isRestartRequired', 'isPassive'),
 
