@@ -802,7 +802,9 @@ public class Configuration {
     if (ldapPassword != null) {
       ldapServerProperties.setManagerPassword(ldapPassword);
     } else {
-      ldapServerProperties.setManagerPassword(readPasswordFromFile(ldapPasswordProperty, ""));
+      if (ldapPasswordProperty != null && new File(ldapPasswordProperty).exists()) {
+        ldapServerProperties.setManagerPassword(readPasswordFromFile(ldapPasswordProperty, ""));
+      }
     }
     ldapServerProperties.setBaseDN(properties.getProperty
         (LDAP_BASE_DN_KEY, LDAP_BASE_DN_DEFAULT));

@@ -242,6 +242,7 @@ LDAP_MGR_PASSWORD_ALIAS = "ambari.ldap.manager.password"
 LDAP_MGR_PASSWORD_PROPERTY = "authentication.ldap.managerPassword"
 LDAP_MGR_PASSWORD_FILENAME = "ldap-password.dat"
 LDAP_MGR_USERNAME_PROPERTY = "authentication.ldap.managerDn"
+LDAP_PRIMARY_URL_PROPERTY = "authentication.ldap.primaryUrl"
 
 SSL_TRUSTSTORE_PASSWORD_ALIAS = "ambari.ssl.trustStore.password"
 SSL_TRUSTSTORE_PATH_PROPERTY = "ssl.trustStore.path"
@@ -2924,6 +2925,10 @@ def upgrade(args):
       if os.path.lexists(jdbc_symlink):
         os.remove(jdbc_symlink)
       os.symlink(os.path.join(resources_dir,JDBC_DB_DEFAULT_DRIVER[db_name]), jdbc_symlink)
+  
+  # check if ambari has obsolete LDAP configuration
+  if properties.get_property(LDAP_PRIMARY_URL_PROPERTY) and not properties.get_property(IS_LDAP_CONFIGURED):
+    args.warnings.append("Existing LDAP configuration is detected. You must run the \"ambari-server setup-ldap\" command to adjust existing LDAP configuration.")
 
 
 #
@@ -3190,7 +3195,7 @@ def setup_ldap():
   properties = get_ambari_properties()
   isSecure = get_is_secure(properties)
   # python2.x dict is not ordered
-  ldap_property_list_reqd = ["authentication.ldap.primaryUrl",
+  ldap_property_list_reqd = [LDAP_PRIMARY_URL_PROPERTY,
                         "authentication.ldap.secondaryUrl",
                         "authentication.ldap.useSSL",
                         "authentication.ldap.userObjectClass",
