@@ -353,6 +353,9 @@ public class UpgradeCatalog170Test {
     Capture<List<DBAccessor.DBColumnInfo>> alertNoticeCapture = new Capture<List<DBAccessor.DBColumnInfo>>();
     Capture<List<DBAccessor.DBColumnInfo>> serviceConfigCapture = new Capture<List<DBAccessor.DBColumnInfo>>();
     Capture<List<DBAccessor.DBColumnInfo>> serviceConfigMappingCapture = new Capture<List<DBAccessor.DBColumnInfo>>();
+    Capture<DBAccessor.DBColumnInfo> configDataClusterConfigCapture = new Capture<DBAccessor.DBColumnInfo>();
+    Capture<DBAccessor.DBColumnInfo> configDataBlueprintConfigurationCapture = new Capture<DBAccessor.DBColumnInfo>();
+    Capture<DBAccessor.DBColumnInfo> configDataHostGroupConfigurationCapture = new Capture<DBAccessor.DBColumnInfo>();
 
     setViewExpectations(dbAccessor, maskColumnCapture, systemColumnCapture);
     setViewParameterExpectations(dbAccessor, maskedColumnCapture);
@@ -363,13 +366,13 @@ public class UpgradeCatalog170Test {
         capture(alertDefinitionColumnCapture), eq("definition_id"));
 
     dbAccessor.createTable(eq("alert_history"),
-        capture(alertHistoryColumnCapture), eq("alert_id"));
+      capture(alertHistoryColumnCapture), eq("alert_id"));
 
     dbAccessor.createTable(eq("alert_current"),
-        capture(alertCurrentColumnCapture), eq("alert_id"));
+      capture(alertCurrentColumnCapture), eq("alert_id"));
 
     dbAccessor.createTable(eq("alert_group"), capture(alertGroupColumnCapture),
-        eq("group_id"));
+      eq("group_id"));
 
     dbAccessor.createTable(eq("alert_target"), capture(alertTargetCapture),
         eq("target_id"));
@@ -382,6 +385,10 @@ public class UpgradeCatalog170Test {
 
     dbAccessor.createTable(eq("alert_notice"), capture(alertNoticeCapture),
         eq("notification_id"));
+
+    dbAccessor.alterColumn(eq("clusterconfig"), capture(configDataClusterConfigCapture));
+    dbAccessor.alterColumn(eq("blueprint_configuration"), capture(configDataBlueprintConfigurationCapture));
+    dbAccessor.alterColumn(eq("hostgroup_configuration"), capture(configDataHostGroupConfigurationCapture));
 
     dbAccessor.createTable(eq("serviceconfig"), capture(serviceConfigCapture),
         eq("service_config_id"));

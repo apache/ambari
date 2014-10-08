@@ -21,10 +21,12 @@ package org.apache.ambari.server.orm.entities;
 import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.IdClass;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinColumns;
+import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
@@ -49,7 +51,8 @@ public class HostGroupConfigEntity implements BlueprintConfiguration {
   private String type;
 
   @Column(name = "config_data", nullable = false, insertable = true, updatable = false)
-  @Basic
+  @Basic(fetch = FetchType.LAZY)
+  @Lob
   private String configData;
 
   @Column(name = "config_attributes", nullable = true, insertable = true, updatable = false)
