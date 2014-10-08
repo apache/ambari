@@ -36,6 +36,7 @@ import junit.framework.Assert;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.security.authorization.LdapServerProperties;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.RandomStringUtils;
 import org.junit.After;
@@ -125,11 +126,11 @@ public class ConfigurationTest {
 
     File passFile = File.createTempFile("https.pass.", "txt");
     passFile.deleteOnExit();
-    
+
     String password = "pass12345";
-    
+
     FileUtils.writeStringToFile(passFile, password);
-    
+
     Properties ambariProperties = new Properties();
     ambariProperties.setProperty(Configuration.API_USE_SSL, "true");
     ambariProperties.setProperty(
@@ -138,14 +139,14 @@ public class ConfigurationTest {
     ambariProperties.setProperty(
         Configuration.CLIENT_API_SSL_CRT_PASS_FILE_NAME_KEY,
         passFile.getName());
-    
-    
+
+
     String oneWayPort = RandomStringUtils.randomNumeric(4);
     String twoWayPort = RandomStringUtils.randomNumeric(4);
-    
+
     ambariProperties.setProperty(Configuration.SRVR_TWO_WAY_SSL_PORT_KEY, twoWayPort.toString());
     ambariProperties.setProperty(Configuration.SRVR_ONE_WAY_SSL_PORT_KEY, oneWayPort.toString());
-    
+
     Configuration conf = new Configuration(ambariProperties);
     Assert.assertTrue(conf.getApiSSLAuthentication());
 
@@ -235,7 +236,7 @@ public class ConfigurationTest {
 
     Assert.assertEquals("ambaritest", conf.getDatabasePassword());
   }
-  
+
   @Test
   public void testGetAmbariProperties() throws Exception {
     Properties ambariProperties = new Properties();
@@ -266,7 +267,7 @@ public class ConfigurationTest {
   public void testServerPoolSizes() {
     Properties ambariProperties = new Properties();
     Configuration conf = new Configuration(ambariProperties);
-    
+
     Assert.assertEquals(25, conf.getClientThreadPoolSize());
     Assert.assertEquals(25, conf.getAgentThreadPoolSize());
 
@@ -283,12 +284,71 @@ public class ConfigurationTest {
     ambariProperties.setProperty("view.extraction.threadpool.timeout", "6000");
 
     conf = new Configuration(ambariProperties);
-    
+
     Assert.assertEquals(4, conf.getClientThreadPoolSize());
     Assert.assertEquals(82, conf.getAgentThreadPoolSize());
 
     Assert.assertEquals(83, conf.getViewExtractionThreadPoolCoreSize());
     Assert.assertEquals(56, conf.getViewExtractionThreadPoolMaxSize());
     Assert.assertEquals(6000L, conf.getViewExtractionThreadPoolTimeout());
+  }
+
+  @Test
+  public void testGetLdapServerProperties_WrongManagerPassword() throws Exception {
+    final Properties ambariProperties = new Properties();
+    ambariProperties.setProperty(Configuration.LDAP_MANAGER_PASSWORD_KEY, "somePassword");
+    final Configuration configuration = new Configuration(ambariProperties);
+
+    final LdapServerProperties ldapProperties = configuration.getLdapServerProperties();
+    // if it's not a store alias and is not a file, it should be ignored
+    Assert.assertNull(ldapProperties.getManagerPassword());
+  }
+
+  @Test
+  public void testGetLdapServerProperties() throws Exception {
+    final Properties ambariProperties = new Properties();
+    final Configuration configuration = new Configuration(ambariProperties);
+
+    final File passwordFile = temp.newFile("ldap-password.dat");
+    final FileOutputStream fos = new FileOutputStream(passwordFile);
+    fos.write("ambaritest\r\n".getBytes());
+    fos.close();
+    final String passwordFilePath = temp.getRoot().getAbsolutePath() + File.separator + "ldap-password.dat";
+
+    ambariProperties.setProperty(Configuration.LDAP_PRIMARY_URL_KEY, "1");
+    ambariProperties.setProperty(Configuration.LDAP_SECONDARY_URL_KEY, "2");
+    ambariProperties.setProperty(Configuration.LDAP_USE_SSL_KEY, "true");
+    ambariProperties.setProperty(Configuration.LDAP_BIND_ANONYMOUSLY_KEY, "true");
+    ambariProperties.setProperty(Configuration.LDAP_MANAGER_DN_KEY, "5");
+    ambariProperties.setProperty(Configuration.LDAP_MANAGER_PASSWORD_KEY, passwordFilePath);
+    ambariProperties.setProperty(Configuration.LDAP_BASE_DN_KEY, "7");
+    ambariProperties.setProperty(Configuration.LDAP_USERNAME_ATTRIBUTE_KEY, "8");
+    ambariProperties.setProperty(Configuration.LDAP_USER_BASE_KEY, "9");
+    ambariProperties.setProperty(Configuration.LDAP_USER_OBJECT_CLASS_KEY, "10");
+    ambariProperties.setProperty(Configuration.LDAP_GROUP_BASE_KEY, "11");
+    ambariProperties.setProperty(Configuration.LDAP_GROUP_OBJECT_CLASS_KEY, "12");
+    ambariProperties.setProperty(Configuration.LDAP_GROUP_MEMEBERSHIP_ATTR_KEY, "13");
+    ambariProperties.setProperty(Configuration.LDAP_GROUP_NAMING_ATTR_KEY, "14");
+    ambariProperties.setProperty(Configuration.LDAP_ADMIN_GROUP_MAPPING_RULES_KEY, "15");
+    ambariProperties.setProperty(Configuration.LDAP_GROUP_SEARCH_FILTER_KEY, "16");
+
+    final LdapServerProperties ldapProperties = configuration.getLdapServerProperties();
+
+    Assert.assertEquals("1", ldapProperties.getPrimaryUrl());
+    Assert.assertEquals("2", ldapProperties.getSecondaryUrl());
+    Assert.assertEquals(true, ldapProperties.isUseSsl());
+    Assert.assertEquals(true, ldapProperties.isAnonymousBind());
+    Assert.assertEquals("5", ldapProperties.getManagerDn());
+    Assert.assertEquals("ambaritest", ldapProperties.getManagerPassword());
+    Assert.assertEquals("7", ldapProperties.getBaseDN());
+    Assert.assertEquals("8", ldapProperties.getUsernameAttribute());
+    Assert.assertEquals("9", ldapProperties.getUserBase());
+    Assert.assertEquals("10", ldapProperties.getUserObjectClass());
+    Assert.assertEquals("11", ldapProperties.getGroupBase());
+    Assert.assertEquals("12", ldapProperties.getGroupObjectClass());
+    Assert.assertEquals("13", ldapProperties.getGroupMembershipAttr());
+    Assert.assertEquals("14", ldapProperties.getGroupNamingAttr());
+    Assert.assertEquals("15", ldapProperties.getAdminGroupMappingRules());
+    Assert.assertEquals("16", ldapProperties.getGroupSearchFilter());
   }
 }
