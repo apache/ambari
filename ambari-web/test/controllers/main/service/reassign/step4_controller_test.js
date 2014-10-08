@@ -469,6 +469,12 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
         result: [
           "(type=yarn-site&tag=5)"
         ]
+      },
+      {
+        componentName: 'APP_TIMELINE_SERVER',
+        result: [
+          "(type=yarn-site&tag=5)"
+        ]
       }
     ];
 

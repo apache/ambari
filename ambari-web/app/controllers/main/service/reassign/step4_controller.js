@@ -36,7 +36,8 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
    */
   unrelatedServicesMap: {
     'JOBTRACKER': ['HDFS', 'ZOOKEEPER', 'HBASE', 'FLUME', 'SQOOP', 'STORM'],
-    'RESOURCEMANAGER': ['HDFS', 'ZOOKEEPER', 'HBASE', 'FLUME', 'SQOOP', 'STORM']
+    'RESOURCEMANAGER': ['HDFS', 'ZOOKEEPER', 'HBASE', 'FLUME', 'SQOOP', 'STORM'],
+    'APP_TIMELINE_SERVER': ['HDFS', 'ZOOKEEPER', 'HBASE', 'FLUME', 'SQOOP', 'STORM']
   },
 
   /**
@@ -99,7 +100,17 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
           'fs.defaultFS': 'hdfs://<replace-value>:8020'
         }
       }
-    }
+    },
+    {
+      componentName: 'APP_TIMELINE_SERVER',
+      configs: {
+        'yarn-site': {
+          'yarn.timeline-service.webapp.address': '<replace-value>:8188',
+          'yarn.timeline-service.webapp.https.address': '<replace-value>:8190',
+          'yarn.timeline-service.address': '<replace-value>:10200'
+        }
+      }
+    },
   ],
 
   secureConfigsMap: [
@@ -382,6 +393,15 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
         break;
       case 'RESOURCEMANAGER':
         urlParams.push('(type=yarn-site&tag=' + data.Clusters.desired_configs['yarn-site'].tag + ')');
+        break;
+      case 'WEBHCAT_SERVER':
+        urlParams.push('(type=webhcat-site&tag=' + data.Clusters.desired_configs['webhcat-site'].tag + ')');
+        break;
+      case 'APP_TIMELINE_SERVER':
+        urlParams.push('(type=yarn-site&tag=' + data.Clusters.desired_configs['yarn-site'].tag + ')');
+        break;
+      case 'OOZIE_SERVER':
+        urlParams.push('(type=oozie-site&tag=' + data.Clusters.desired_configs['oozie-site'].tag + ')');
         break;
     }
     return urlParams;

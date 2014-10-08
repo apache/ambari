@@ -77,7 +77,7 @@ App.StackServiceComponent = DS.Model.extend({
 
   /** @property {Boolean} isReassignable - component supports reassign action **/
   isReassignable: function() {
-    return ['NAMENODE', 'SECONDARY_NAMENODE', 'JOBTRACKER', 'RESOURCEMANAGER'].contains(this.get('componentName'));
+    return ['NAMENODE', 'SECONDARY_NAMENODE', 'JOBTRACKER', 'RESOURCEMANAGER', 'APP_TIMELINE_SERVER'].contains(this.get('componentName'));
   }.property('componentName'),
 
   /** @property {Boolean} isRollinRestartAllowed - component supports rolling restart action **/

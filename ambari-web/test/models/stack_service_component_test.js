@@ -122,7 +122,7 @@ var componentPropertiesValidationTests = [
       isSlave: false,
       isMaster: true,
       isRestartable: true,
-      isReassignable: false,
+      isReassignable: true,
       isDeletable: false,
       isRollinRestartAllowed: false,
       isDecommissionAllowed: false,
