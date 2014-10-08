@@ -152,6 +152,18 @@ public interface DBAccessor {
                          String whereClause) throws SQLException;
 
   /**
+   * Simple update operation on table
+   *
+   * @param tableName
+   * @param columnNameSrc
+   * @param columnNameTgt
+   * @return
+   * @throws SQLException
+   */
+  public void updateTable(String tableName, DBColumnInfo columnNameSrc,
+                         DBColumnInfo columnNameTgt) throws SQLException;
+
+  /**
    * Helper method to run third party scripts like Quartz DDL
    * @param filePath
    * @throws SQLException
@@ -173,6 +185,16 @@ public interface DBAccessor {
    * @throws SQLException
    */
   ResultSet executeSelect(String query) throws SQLException;
+
+  /**
+   * Execute select query
+   * @param query
+   * @param resultSetType
+   * @param resultSetConcur
+   * @return
+   * @throws SQLException
+   */
+  ResultSet executeSelect(String query, int resultSetType, int resultSetConcur) throws SQLException;
 
   /**
    * Execute query on DB
