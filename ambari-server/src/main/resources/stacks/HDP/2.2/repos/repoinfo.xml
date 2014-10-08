@@ -42,19 +42,19 @@
   </os>
   <os type="suse11">
     <repo>
-      <baseurl>http://s3.amazonaws.com/dev.hortonworks.com/HDP/sles11sp3/2.x/updates/2.2.0.0</baseurl>
+      <baseurl>http://s3.amazonaws.com/dev.hortonworks.com/HDP/sles11sp1/2.x/updates/2.2.0.0</baseurl>
       <repoid>HDP-2.2</repoid>
       <reponame>HDP</reponame>
     </repo>
     <repo>
-      <baseurl>http://s3.amazonaws.com/dev.hortonworks.com/HDP-UTILS-1.1.0.20/repos/suse11sp3</baseurl>
+      <baseurl>http://s3.amazonaws.com/dev.hortonworks.com/HDP-UTILS-1.1.0.20/repos/suse11sp1</baseurl>
       <repoid>HDP-UTILS-1.1.0.20</repoid>
       <reponame>HDP-UTILS</reponame>
     </repo>
   </os>
   <os type="ubuntu12">
     <repo>
-      <baseurl>REPLACE_WITH_UBUNTU12_URL</baseurl>
+      <baseurl>http://s3.amazonaws.com/dev.hortonworks.com/HDP/ubuntu12/2.x/updates/2.2.0.0</baseurl>
       <repoid>HDP-2.2</repoid>
       <reponame>HDP</reponame>
     </repo>
