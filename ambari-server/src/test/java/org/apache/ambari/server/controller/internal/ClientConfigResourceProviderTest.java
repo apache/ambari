@@ -35,7 +35,9 @@ import org.powermock.api.easymock.PowerMock;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.InputStream;
 import java.io.PrintWriter;
 import java.lang.reflect.Method;
 import java.util.*;
@@ -275,12 +277,15 @@ public class ClientConfigResourceProviderTest {
     PowerMock.createNiceMockAndExpectNew(PrintWriter.class, anyObject());
     expect(mockFile.getParent()).andReturn("");
     PowerMock.mockStatic(Runtime.class);
-    expect(Runtime.getRuntime()).andReturn(runtime);
     expect(mockFile.exists()).andReturn(true);
-    expect(runtime.exec("ambari-python-wrap /tmp/stacks/S1/V1/PIG/package/null generate_configs null " +
-                    "/tmp/stacks/S1/V1/PIG/package /var/lib/ambari-server/tmp/structured-out.json " +
-                    "INFO /var/lib/ambari-server/tmp"))
-            .andReturn(process).once();
+    String commandLine = "ambari-python-wrap /tmp/stacks/S1/V1/PIG/package/null generate_configs null " +
+            "/tmp/stacks/S1/V1/PIG/package /var/lib/ambari-server/tmp/structured-out.json " +
+            "INFO /var/lib/ambari-server/tmp";
+    ProcessBuilder processBuilder = PowerMock.createNiceMock(ProcessBuilder.class);
+    PowerMock.expectNew(ProcessBuilder.class,Arrays.asList(commandLine.split("\\s+"))).andReturn(processBuilder).once();
+    expect(processBuilder.start()).andReturn(process).once();
+    InputStream inputStream = new ByteArrayInputStream("some logging info".getBytes());
+    expect(process.getInputStream()).andReturn(inputStream);
 
     // replay
     replay(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo, commandScriptDefinition,

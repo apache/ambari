@@ -31,12 +31,12 @@ import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.state.*;
 import org.apache.ambari.server.state.PropertyInfo.PropertyType;
 import org.apache.ambari.server.utils.StageUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.*;
@@ -54,6 +54,7 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
   protected static final String COMPONENT_COMPONENT_NAME_PROPERTY_ID = "ServiceComponentInfo/component_name";
   protected static final String HOST_COMPONENT_HOST_NAME_PROPERTY_ID =
           PropertyHelper.getPropertyId("HostRoles", "host_name");
+  private static final int SCRIPT_TIMEOUT = 1500;
 
   private final Gson gson;
 
@@ -64,6 +65,7 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
                   COMPONENT_COMPONENT_NAME_PROPERTY_ID}));
 
   private MaintenanceStateHelper maintenanceStateHelper;
+  private static final Logger LOG = LoggerFactory.getLogger(ClientConfigResourceProvider.class);
 
   // ----- Constructors ----------------------------------------------------
 
@@ -310,11 +312,19 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
               packageFolderAbsolute + " " + TMP_PATH + File.separator + "structured-out.json" + " INFO " + TMP_PATH;
 
       try {
-        executeCommand(cmd, 1500);
+        executeCommand(cmd, SCRIPT_TIMEOUT);
       } catch (TimeoutException e) {
-        throw new SystemException("Script was killed due to timeout  ", e);
-      } catch (Exception e) {
-        throw new SystemException("Failed to run python script for a component ", e);
+        LOG.error("Generate client configs script was killed due to timeout ", e);
+        throw new SystemException("Generate client configs script was killed due to timeout ", e);
+      } catch (InterruptedException e) {
+        LOG.error("Failed to run generate client configs script for a component " + componentName, e);
+        throw new SystemException("Failed to run generate client configs script for a component " + componentName, e);
+      } catch (ExecutionException e) {
+        LOG.error(e.getMessage(),e);
+        throw new SystemException(e.getMessage() + " " + e.getCause());
+      } catch (IOException e) {
+        LOG.error("Failed to run generate client configs script for a component " + componentName, e);
+        throw new SystemException("Failed to run generate client configs script for a component " + componentName, e);
       }
 
     } catch (AmbariException e) {
@@ -418,19 +428,28 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
   }
 
 
-  private static int executeCommand(final String commandLine,
+  private int executeCommand(final String commandLine,
                                     final long timeout)
-          throws IOException, InterruptedException, TimeoutException {
-    Runtime runtime = Runtime.getRuntime();
-    Process process = runtime.exec(commandLine);
+          throws IOException, InterruptedException, TimeoutException, ExecutionException {
+    ProcessBuilder builder = new ProcessBuilder(Arrays.asList(commandLine.split("\\s+")));
+    builder.redirectErrorStream(true);
+    Process process = builder.start();
     CommandLineThread commandLineThread = new CommandLineThread(process);
+    LogStreamReader logStream = new LogStreamReader(process.getInputStream());
+    Thread logStreamThread = new Thread(logStream, "LogStreamReader");
+    logStreamThread.start();
     commandLineThread.start();
     try {
       commandLineThread.join(timeout);
-      if (commandLineThread.exit != null)
-        return commandLineThread.exit;
-      else
+      logStreamThread.join(timeout);
+      Integer returnCode = commandLineThread.getReturnCode();
+      if (returnCode == null)
         throw new TimeoutException();
+      else if (returnCode != 0)
+        throw new ExecutionException(String.format("Execution of \"%s\" returned %d.", commandLine, returnCode),
+                new Throwable(logStream.getOutput()));
+      else
+        return commandLineThread.returnCode;
     } catch (InterruptedException ex) {
       commandLineThread.interrupt();
       Thread.currentThread().interrupt();
@@ -442,7 +461,15 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
 
   private static class CommandLineThread extends Thread {
     private final Process process;
-    private Integer exit;
+    private Integer returnCode;
+
+    public void setReturnCode(Integer exit) {
+      this.returnCode = exit;
+    }
+
+    public Integer getReturnCode() {
+      return returnCode;
+    }
 
     private CommandLineThread(Process process) {
       this.process = process;
@@ -451,9 +478,39 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
 
     public void run() {
       try {
-        exit = process.waitFor();
+        setReturnCode(process.waitFor());
       } catch (InterruptedException ignore) {
         return;
+      }
+    }
+
+  }
+
+  private class LogStreamReader implements Runnable {
+
+    private BufferedReader reader;
+    private StringBuilder output;
+
+    public LogStreamReader(InputStream is) {
+      this.reader = new BufferedReader(new InputStreamReader(is));
+      this.output = new StringBuilder("");
+    }
+
+    public String getOutput() {
+      return this.output.toString();
+    }
+
+    public void run() {
+      try {
+        String line = reader.readLine();
+        while (line != null) {
+          output.append(line);
+          output.append("\n");
+          line = reader.readLine();
+        }
+        reader.close();
+      } catch (IOException e) {
+        LOG.warn(e.getMessage());
       }
     }
   }
