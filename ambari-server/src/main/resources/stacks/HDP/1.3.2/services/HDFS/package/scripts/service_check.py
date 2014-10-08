@@ -32,7 +32,7 @@ class HdfsServiceCheck(Script):
     safemode_command = "dfsadmin -safemode get | grep OFF"
 
     create_dir_cmd = format("fs -mkdir {dir} ; hadoop fs -chmod 777 {dir}")
-    test_dir_exists = format("su - {smoke_user} -c 'hadoop fs -test -e {dir}'")
+    test_dir_exists = format("su -s /bin/bash - {smoke_user} -c 'hadoop fs -test -e {dir}'")
     cleanup_cmd = format("fs -rm {tmp_file}")
     #cleanup put below to handle retries; if retrying there wil be a stale file
     #that needs cleanup; exit code is fn of second command
@@ -41,7 +41,7 @@ class HdfsServiceCheck(Script):
     test_cmd = format("fs -test -e {tmp_file}")
     if params.security_enabled:
       Execute(format(
-        "su - {smoke_user} -c '{kinit_path_local} -kt {smoke_user_keytab} "
+        "su -s /bin/bash - {smoke_user} -c '{kinit_path_local} -kt {smoke_user_keytab} "
         "{smoke_user}'"))
     ExecuteHadoop(safemode_command,
                   user=params.smoke_user,
@@ -79,7 +79,7 @@ class HdfsServiceCheck(Script):
       checkWebUIFilePath = format("{tmp_dir}/{checkWebUIFileName}")
       comma_sep_jn_hosts = ",".join(params.journalnode_hosts)
       checkWebUICmd = format(
-        "su - {smoke_test_user} -c 'python {checkWebUIFilePath} -m "
+        "su -s /bin/bash - {smoke_test_user} -c 'python {checkWebUIFilePath} -m "
         "{comma_sep_jn_hosts} -p {journalnode_port}'")
       File(checkWebUIFilePath,
            content=StaticFile(checkWebUIFileName))

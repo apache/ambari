@@ -36,9 +36,9 @@ function checkOozieJobStatus {
   local i=0
   local rc=1
   local cmd="source ${oozie_conf_dir}/oozie-env.sh ; ${oozie_bin_dir}/oozie job -oozie ${OOZIE_SERVER} -info $job_id"
-  su - ${smoke_test_user} -c "$cmd"
+  su -s /bin/bash - ${smoke_test_user} -c "$cmd"
   while [ $i -lt $num_of_tries ] ; do
-    cmd_output=`su - ${smoke_test_user} -c "$cmd"`
+    cmd_output=`su -s /bin/bash - ${smoke_test_user} -c "$cmd"`
     (IFS='';echo $cmd_output)
     act_status=$(IFS='';echo $cmd_output | grep ^Status | cut -d':' -f2 | sed 's| ||g')
     echo "workflow_status=$act_status"
@@ -98,14 +98,14 @@ else
   kinitcmd=""
 fi
 
-su - ${smoke_test_user} -c "${hadoop_bin_dir}/hdfs --config ${hadoop_conf_dir} dfs -rm -r examples"
-su - ${smoke_test_user} -c "${hadoop_bin_dir}/hdfs --config ${hadoop_conf_dir} dfs -rm -r input-data"
-su - ${smoke_test_user} -c "${hadoop_bin_dir}/hdfs --config ${hadoop_conf_dir} dfs -copyFromLocal $OOZIE_EXAMPLES_DIR/examples examples"
-su - ${smoke_test_user} -c "${hadoop_bin_dir}/hdfs --config ${hadoop_conf_dir} dfs -copyFromLocal $OOZIE_EXAMPLES_DIR/examples/input-data input-data"
+su -s /bin/bash - ${smoke_test_user} -c "${hadoop_bin_dir}/hdfs --config ${hadoop_conf_dir} dfs -rm -r examples"
+su -s /bin/bash - ${smoke_test_user} -c "${hadoop_bin_dir}/hdfs --config ${hadoop_conf_dir} dfs -rm -r input-data"
+su -s /bin/bash - ${smoke_test_user} -c "${hadoop_bin_dir}/hdfs --config ${hadoop_conf_dir} dfs -copyFromLocal $OOZIE_EXAMPLES_DIR/examples examples"
+su -s /bin/bash - ${smoke_test_user} -c "${hadoop_bin_dir}/hdfs --config ${hadoop_conf_dir} dfs -copyFromLocal $OOZIE_EXAMPLES_DIR/examples/input-data input-data"
 
 cmd="${kinitcmd}source ${oozie_conf_dir}/oozie-env.sh ; ${oozie_bin_dir}/oozie -Doozie.auth.token.cache=false job -oozie $OOZIE_SERVER -config $OOZIE_EXAMPLES_DIR/examples/apps/map-reduce/job.properties  -run"
 echo $cmd
-job_info=`su - ${smoke_test_user} -c "$cmd" | grep "job:"`
+job_info=`su -s /bin/bash - ${smoke_test_user} -c "$cmd" | grep "job:"`
 job_id="`echo $job_info | cut -d':' -f2`"
 checkOozieJobStatus "$job_id" 15
 OOZIE_EXIT_CODE="$?"

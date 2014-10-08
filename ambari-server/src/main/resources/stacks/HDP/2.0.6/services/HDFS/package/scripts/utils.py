@@ -111,7 +111,7 @@ def service(action=None, name=None, user=None, create_pid_dir=False,
     "{hadoop_bin}/hadoop-daemon.sh")
   cmd = format("{hadoop_daemon} --config {hadoop_conf_dir}")
 
-  daemon_cmd = format("{ulimit_cmd} su - {user} -c '{cmd} {action} {name}'")
+  daemon_cmd = format("{ulimit_cmd} su -s /bin/bash - {user} -c '{cmd} {action} {name}'")
 
   service_is_up = check_process if action == "start" else None
   #remove pid file from dead process
