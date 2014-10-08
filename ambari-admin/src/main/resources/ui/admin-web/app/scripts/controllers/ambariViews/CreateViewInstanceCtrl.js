@@ -73,26 +73,16 @@ angular.module('ambariAdminConsole')
   $scope.nameValidationPattern = /^\s*\w*\s*$/;
 
   $scope.save = function() {
-    $scope.form.isntanceCreateForm.submitted = true;
-    if($scope.form.isntanceCreateForm.$valid){
-      View.getInstance($scope.instance.view_name, $scope.instance.version, $scope.instance.instance_name)
-      .then(function(data) {
-        if (data.ViewInstanceInfo) {
-          $scope.instanceExists = true;
-        } else {
-          View.createInstance($scope.instance)
-          .then(function(data) {
-            Alert.success('Created View Instance ' + $scope.instance.instance_name);
-            $location.path('/views/' + $scope.instance.view_name + '/versions/' + $scope.instance.version + '/instances/' + $scope.instance.instance_name + '/edit');
-          })
-          .catch(function(data) {
-            Alert.error('Cannot create instance', data.data.message);
-          });
-        }
-      })
-      .catch(function(data) {
-        Alert.error('Cannot create instance', data.data.message);
-      });
+    $scope.form.instanceCreateForm.submitted = true;
+    if($scope.form.instanceCreateForm.$valid){
+      View.createInstance($scope.instance)
+        .then(function(data) {
+          Alert.success('Created View Instance ' + $scope.instance.instance_name);
+          $location.path('/views/' + $scope.instance.view_name + '/versions/' + $scope.instance.version + '/instances/' + $scope.instance.instance_name + '/edit');
+        })
+        .catch(function(data) {
+          Alert.error('Cannot create instance', data.data.message);
+        });
     }
   };
 }]);

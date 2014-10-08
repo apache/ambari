@@ -20,7 +20,7 @@
   <li class="active">Create Instance</li>
 </ol>
 <hr>
-<form class="form-horizontal create-view-form" role="form" name="form.isntanceCreateForm" novalidate>
+<form class="form-horizontal create-view-form" role="form" name="form.instanceCreateForm" novalidate>
   <div class="view-header">
     <div class="form-group">
       <div class="col-sm-2">
@@ -42,16 +42,16 @@
     </div>
     <div class="panel-body">
       <div class="form-group" 
-      ng-class="{'has-error' : ( (form.isntanceCreateForm.instanceNameInput.$error.required || form.isntanceCreateForm.instanceNameInput.$error.pattern) && form.isntanceCreateForm.submitted) || instanceExists }"
+      ng-class="{'has-error' : ( (form.instanceCreateForm.instanceNameInput.$error.required || form.instanceCreateForm.instanceNameInput.$error.pattern) && form.instanceCreateForm.submitted) || instanceExists }"
       >
         <label for="" class="control-label col-sm-2">Instance Name</label>
         <div class="col-sm-10">
           <input type="text" class="form-control instancename-input" name="instanceNameInput" ng-pattern="nameValidationPattern" required ng-model="instance.instance_name" autocomplete="off">
 
-          <div class="alert alert-danger no-margin-bottom top-margin" ng-show='form.isntanceCreateForm.instanceNameInput.$error.required && form.isntanceCreateForm.submitted'>
+          <div class="alert alert-danger no-margin-bottom top-margin" ng-show='form.instanceCreateForm.instanceNameInput.$error.required && form.instanceCreateForm.submitted'>
             This field is required.
           </div>
-          <div class="alert alert-danger no-margin-bottom top-margin" ng-show='form.isntanceCreateForm.instanceNameInput.$error.pattern && form.isntanceCreateForm.submitted'>
+          <div class="alert alert-danger no-margin-bottom top-margin" ng-show='form.instanceCreateForm.instanceNameInput.$error.pattern && form.instanceCreateForm.submitted'>
             Must not contain any special characters or spaces.
           </div>
           <div class="alert alert-danger no-margin-bottom top-margin" ng-show='instanceExists'>
@@ -60,24 +60,24 @@
         </div>
       </div>
       <div class="form-group"
-      ng-class="{'has-error' : ( (form.isntanceCreateForm.displayLabel.$error.required || form.isntanceCreateForm.displayLabel.$error.pattern) && form.isntanceCreateForm.submitted)}">
+      ng-class="{'has-error' : ( (form.instanceCreateForm.displayLabel.$error.required || form.instanceCreateForm.displayLabel.$error.pattern) && form.instanceCreateForm.submitted)}">
         <label for="" class="control-label col-sm-2">Display Name</label>
         <div class="col-sm-10">
           <input type="text" class="form-control instancelabel-input" name="displayLabel" ng-model="instance.label" required ng-pattern="/^([a-zA-Z0-9._\s]+)$/" autocomplete="off">
 
-          <div class="alert alert-danger no-margin-bottom top-margin" ng-show='form.isntanceCreateForm.displayLabel.$error.required && form.isntanceCreateForm.submitted'>
+          <div class="alert alert-danger no-margin-bottom top-margin" ng-show='form.instanceCreateForm.displayLabel.$error.required && form.instanceCreateForm.submitted'>
             This field is required.
           </div>
-          <div class="alert alert-danger no-margin-bottom top-margin" ng-show='form.isntanceCreateForm.displayLabel.$error.pattern && form.isntanceCreateForm.submitted'>
+          <div class="alert alert-danger no-margin-bottom top-margin" ng-show='form.instanceCreateForm.displayLabel.$error.pattern && form.instanceCreateForm.submitted'>
             Must not contain any special characters.
           </div>
         </div>
       </div>
-      <div class="form-group" ng-class="{'has-error' : form.isntanceCreateForm.description.$error.required && form.isntanceCreateForm.submitted }">
+      <div class="form-group" ng-class="{'has-error' : form.instanceCreateForm.description.$error.required && form.instanceCreateForm.submitted }">
         <label for="" class="control-label col-sm-2">Description</label>
         <div class="col-sm-10">
           <input type="text" class="form-control" name="description" ng-model="instance.description" maxlength="140" required>
-          <div class="alert alert-danger no-margin-bottom top-margin" ng-show='form.isntanceCreateForm.description.$error.required && form.isntanceCreateForm.submitted'>
+          <div class="alert alert-danger no-margin-bottom top-margin" ng-show='form.instanceCreateForm.description.$error.required && form.instanceCreateForm.submitted'>
             This field is required.
           </div>
         </div>
@@ -99,11 +99,11 @@
     </div>
     <div class="panel-body property-form">
       <div class="form-group" ng-repeat="parameter in instance.properties"
-        ng-class="{'has-error' : (form.isntanceCreateForm[parameter.name].$error.required && form.isntanceCreateForm.submitted)}" >
+        ng-class="{'has-error' : (form.instanceCreateForm[parameter.name].$error.required && form.instanceCreateForm.submitted)}" >
         <label for="" class="col-sm-3 control-label" ng-class="{'not-required': !parameter.required}" tooltip="{{parameter.description}}">{{parameter.name}}{{parameter.required ? '*' : ''}}</label>
         <div class="col-sm-9">
           <input type="{{parameter.masked ? 'password' : 'text'}}" class="form-control viewproperty-input"  name="{{parameter.name}}" ng-required="parameter.required" ng-model="parameter.value" autocomplete="off" tooltip="{{parameter.description}}">
-          <div class="alert alert-danger no-margin-bottom top-margin" ng-show='form.isntanceCreateForm[parameter.name].$error.required && form.isntanceCreateForm.submitted'>
+          <div class="alert alert-danger no-margin-bottom top-margin" ng-show='form.instanceCreateForm[parameter.name].$error.required && form.instanceCreateForm.submitted'>
             This field is required.
           </div>
         </div>
