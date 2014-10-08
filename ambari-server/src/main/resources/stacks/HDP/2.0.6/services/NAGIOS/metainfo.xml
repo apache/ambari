@@ -126,6 +126,9 @@
             <package>
               <name>nagios-devel-3.5.0-99</name>
             </package>
+            <package>
+              <name>php</name>
+            </package>
           </packages>
         </osSpecific>
         <osSpecific>
