@@ -28,3 +28,4 @@ from resource_management.libraries.functions.check_process_status import *
 from resource_management.libraries.functions.is_empty import *
 from resource_management.libraries.functions.substitute_vars import *
 from resource_management.libraries.functions.get_port_from_url import *
+from resource_management.libraries.functions.hive_check import *

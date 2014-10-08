@@ -72,6 +72,7 @@ def nagios_server_config():
   nagios_server_check( 'check_checkpoint_time.py' )
   nagios_server_check( 'sys_logger.py' )
   nagios_server_check( 'check_ambari_alerts.py' )
+  nagios_server_check( 'check_hive_thrift_port.py' )
 
 def nagios_server_configfile(
   name,

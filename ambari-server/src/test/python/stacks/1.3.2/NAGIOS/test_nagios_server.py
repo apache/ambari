@@ -254,6 +254,11 @@ class TestNagiosServer(RMFTestCase):
                               content=StaticFile('hdp_nagios_init.php'),
                               mode=0755
     )
+    self.assertResourceCalled('File',
+                              '/usr/lib64/nagios/plugins/check_hive_thrift_port.py',
+                              content=StaticFile('check_hive_thrift_port.py'),
+                              mode=0755
+    )
     self.assertResourceCalled('Execute',
                               'htpasswd2 -c -b  /etc/nagios/htpasswd.users nagiosadmin \'!`"\'"\'"\' 1\'',
                               not_if="grep nagiosadmin /etc/nagios/htpasswd.users"
