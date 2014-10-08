@@ -95,21 +95,22 @@
       <table class="table no-borders table-condensed">
         <tbody>
           {{#if controller.model.doNotShowComponentsAndAlerts}}
-            <tr>
-              <td>{{t sliderApp.summary.no.components}}</td>
-            </tr>
+          <tr>
+            <td>{{t sliderApp.summary.no.components}}</td>
+          </tr>
           {{else}}
             {{#each controller.model.components}}
-              <tr>
-                <td><span {{bind-attr class="isRunning:icon-ok-sign:icon-warning-sign :status"}}></span> {{componentName}}</td>
-                <td>
-                  {{#if url}}
-                    <a {{bind-attr href="url"}} target="_blank">{{host}}</a>
-                  {{else}}
-                    {{host}}
-                  {{/if}}
-                </td>
-              </tr>
+            <tr>
+              <td><span {{bind-attr class="isRunning:icon-ok-sign:icon-warning-sign :status"}}></span> {{componentName}}
+              </td>
+              <td>
+                {{#if url}}
+                  <a {{bind-attr href="url"}} target="_blank">{{host}}</a>
+                {{else}}
+                  {{host}}
+                {{/if}}
+              </td>
+            </tr>
             {{/each}}
           {{/if}}
         </tbody>
@@ -117,8 +118,9 @@
     {{/bs-panel}}
   </div>
 </div>
+
 {{#if controller.model.showMetrics}}
-  <div class="panel panel-default">
+  <div {{bind-attr class="view.graphsNotEmpty:visible:hidden :panel :panel-default"}}>
     <div class="panel-heading">
       {{t common.metrics}}
       <div class="btn-group pull-right panel-link">
@@ -130,11 +132,11 @@
       </div>
     </div>
     <div class="panel-body">
-        <div class="row">
-          {{#each graph in view.graphs}}
-              <div class="col-md-3">{{view graph.view}}</div>
-          {{/each}}
-        </div>
+      <div class="row">
+        {{#each graph in view.graphs}}
+          <div class="col-md-3">{{view graph.view}}</div>
+        {{/each}}
+      </div>
     </div>
   </div>
 {{/if}}

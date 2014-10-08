@@ -52,10 +52,12 @@ test('doNotShowComponentsAndAlerts', function () {
 
 test('showMetrics', function () {
 
-  var sliderApp = this.subject({name: 'p1', configs: {}});
+  var sliderApp = this.subject({name: 'p1', configs: {}, supportedMetricNames: ''});
+  equal(sliderApp.get('showMetrics'), false, 'should be false if supportedMetricNames is not provided');
 
   Em.run(function () {
     App.set('gangliaHost', 'some_host');
+    sliderApp.set('supportedMetricNames', 'some');
   });
   equal(sliderApp.get('showMetrics'), true, 'should be true if App.gangliaHost is provided');
 

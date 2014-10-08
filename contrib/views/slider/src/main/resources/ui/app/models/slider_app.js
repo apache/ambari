@@ -129,7 +129,10 @@ App.SliderApp = DS.Model.extend({
 
   supportedMetricNames: DS.attr('string'),
 
-  // Config categories, that should be hidden on app page
+  /**
+   * Config categories, that should be hidden on app page
+   * @type {string[]}
+   */
   hiddenCategories: [],
 
   /**
@@ -141,15 +144,16 @@ App.SliderApp = DS.Model.extend({
 
   /**
    * Display metrics only for running apps
+   * Also don't display if metrics don't exist
    * @type {boolean}
    */
   showMetrics: function () {
-    var global = this.get('configs')['global'];
+    if (!this.get('supportedMetricNames.length')) return false;
     if (App.get('gangliaHost') != null) {
       return true;
     }
     return App.SliderApp.Status.running === this.get('status');
-  }.property('status', 'configs'),
+  }.property('status', 'configs', 'supportedMetricNames'),
 
   /**
    * Map object to array

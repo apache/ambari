@@ -188,12 +188,8 @@ App.ChartView = Ember.View.extend({
     return {};
   },
 
-  loadDataErrorCallback: function(xhr, textStatus, errorThrown) {
+  loadDataErrorCallback: function() {
     this.set('isReady', true);
-    if (xhr.readyState == 4 && xhr.status) {
-      textStatus = xhr.status + " " + textStatus;
-    }
-    this._showMessage('warn', Em.I18n.t('common.error'), textStatus + ' ' + errorThrown);
     this.set('isPopup', false);
     this.set('hasData', false);
   },
@@ -371,11 +367,7 @@ App.ChartView = Ember.View.extend({
       this.set('isReady', true);
       //if Axis X time interval is default(60 minutes)
       if(this.get('timeUnitSeconds') === 3600){
-        this._showMessage('info', this.t('graphs.noData.title'), this.t('graphs.noData.message'));
         this.set('hasData', false);
-      }
-      else {
-        this._showMessage('info', this.t('graphs.noData.title'), this.t('graphs.noDataAtTime.message'));
       }
       this.set('isPopup', false);
     }

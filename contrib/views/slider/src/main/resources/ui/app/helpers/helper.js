@@ -79,7 +79,7 @@ App.registerBoundHelper('formatWordBreak', Em.View.extend({
   result: function() {
     var d = this.get('devider');
     var r = new RegExp('\\'+d,"g");
-    return this.get('content') && this.get('content').replace(r, d+'<wbr />');
+    return this.get('content') && this.get('content').toString().replace(r, d+'<wbr />');
   }.property('content')
 }));
 
