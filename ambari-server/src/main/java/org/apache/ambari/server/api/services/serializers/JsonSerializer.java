@@ -115,7 +115,10 @@ public class JsonSerializer implements ResultSerializer {
     }
 
     if (isArray(node)) {
-      m_generator.writeArrayFieldStart(node.getName());
+      if (node.getName() != null)
+        m_generator.writeArrayFieldStart(node.getName());
+      else
+        m_generator.writeStartArray();
     }
 
     for (TreeNode<Resource> child : node.getChildren()) {
@@ -139,7 +142,9 @@ public class JsonSerializer implements ResultSerializer {
 
   // Determines whether or not the given node is an array
   private boolean isArray(TreeNode<Resource> node) {
-    return node.getObject() == null && node.getName() != null;
+    return (node.getObject() == null && node.getName() != null) ||
+            (node.getObject() == null && node.getName() == null &&
+             node.getChildren().size() > 1);
   }
 
   private TreeNode<Map<String, Object>> getTreeProperties (Map<String, Map<String, Object>> propertiesMap) {
