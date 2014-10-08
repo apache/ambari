@@ -30,11 +30,11 @@ App.AppMetricView = App.ChartView.extend(App.RunPeriodically, {
 
   metricName: null,
 
-  id : function() {
+  id: function () {
     return 'graph_' + this.get('app.id') + this.get('metricName');
   }.property('app.id', 'metricName'),
 
-  title: function() {
+  title: function () {
     return this.get('metricName').humanize();
   }.property('metricName'),
 
@@ -43,8 +43,8 @@ App.AppMetricView = App.ChartView.extend(App.RunPeriodically, {
   renderer: 'line',
 
   ajaxIndex: 'metrics',
-  
-  getDataForAjaxRequest: function() {
+
+  getDataForAjaxRequest: function () {
     return {
       id: this.get('app.id'),
       metric: this.get('metricName')
@@ -56,9 +56,8 @@ App.AppMetricView = App.ChartView.extend(App.RunPeriodically, {
       seriesArray = [],
       metricName = this.get('metricName'),
       metrics = Ember.get(jsonData, 'metrics');
-
     if (!Ember.isNone(metrics)) {
-      Ember.keys(metrics).forEach(function() {
+      Ember.keys(metrics).forEach(function () {
         var seriesData = metrics[metricName];
         if (seriesData) {
           var s = self.transformData(seriesData, metricName);
@@ -66,6 +65,13 @@ App.AppMetricView = App.ChartView.extend(App.RunPeriodically, {
         }
       });
     }
+    this.get('parentView.graphs').findBy('metricName', metricName).set('dataExists', !!seriesArray.length);
     return seriesArray;
+  },
+
+  loadDataErrorCallback: function() {
+    this.set('isReady', true);
+    this.get('parentView.graphs').findBy('metricName', this.get('metricName')).set('dataExists', false);
   }
+
 });

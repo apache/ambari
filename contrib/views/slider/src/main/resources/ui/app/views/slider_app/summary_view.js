@@ -27,60 +27,30 @@ App.SliderAppSummaryView = Ember.View.extend({
    *   [
    *      {
    *        id: string,
+   *        dataExists: bool,
+   *        metricName: string,
    *        view: App.AppMetricView
    *      },
    *      {
    *        id: string,
+   *        dataExists: bool,
+   *        metricName: string,
    *        view: App.AppMetricView
    *      },
    *      ....
    *   ]
    * </code>
-   * @type {{object}[][]}
+   * @type {{object}[]}
    */
   graphs: [],
-  
-  /**
-   * Update <code>graphs</code>-list when <code>model</code> is updated
-   * New metrics are pushed to <code>graphs</code> (not set new list to <code>graphs</code>!) to prevent page flickering
-   * @method updateGraphs
-   */
-  updateGraphs: function() {
-    var model = this.get('controller.model'),
-      existingGraphs = this.get('graphs'),
-      graphsBeenChanged = false;
 
-    if (model) {
-      var currentGraphIds = [];
-      var supportedMetrics = model.get('supportedMetricNames');
-      if (supportedMetrics) {
-        var appId = model.get('id');
-        supportedMetrics.split(',').forEach(function(metricName) {
-          var graphId = metricName + '_' + appId;
-          currentGraphIds.push(graphId);
-          if (!existingGraphs.isAny('id', graphId)) {
-            graphsBeenChanged = true;
-            var view = App.AppMetricView.extend({
-              app: model,
-              metricName: metricName
-            });
-            existingGraphs.push({
-              id : graphId,
-              view : view
-            });
-          }
-        });
-      }
-      // Delete not existed graphs
-      existingGraphs = existingGraphs.filter(function(existingGraph) {
-        graphsBeenChanged = graphsBeenChanged || !currentGraphIds.contains(existingGraph.id);
-        return currentGraphIds.contains(existingGraph.id);
-      });
-      if (graphsBeenChanged) {
-        this.set('graphs', existingGraphs);
-      }
-    }
-  }.observes('controller.model.supportedMetricNames'),
+  /**
+   * Determine if at least one graph contains some data to show
+   * @type {bool}
+   */
+  graphsNotEmpty: function () {
+    return this.get('graphs').isAny('dataExists', true);
+  }.property('graphs.@each.dataExists'),
 
   /**
    * Ganglia url
@@ -96,9 +66,53 @@ App.SliderAppSummaryView = Ember.View.extend({
     return 'http://' + App.get('gangliaHost') + '/ganglia';
   }.property('App.gangliaHost', 'controller.model.quickLinks.@each.url'),
 
-  didInsertElement: function() {
+  /**
+   * Update <code>graphs</code>-list when <code>model</code> is updated
+   * New metrics are pushed to <code>graphs</code> (not set new list to <code>graphs</code>!) to prevent page flickering
+   * @method updateGraphs
+   */
+  updateGraphs: function () {
+    var model = this.get('controller.model'),
+      existingGraphs = this.get('graphs'),
+      graphsBeenChanged = false;
+
+    if (model) {
+      var currentGraphIds = [],
+        supportedMetrics = model.get('supportedMetricNames');
+      if (supportedMetrics) {
+        var appId = model.get('id');
+        supportedMetrics.split(',').forEach(function (metricName) {
+          var graphId = metricName + '_' + appId;
+          currentGraphIds.push(graphId);
+          if (!existingGraphs.isAny('id', graphId)) {
+            graphsBeenChanged = true;
+            var view = App.AppMetricView.extend({
+              app: model,
+              metricName: metricName
+            });
+            existingGraphs.push(Em.Object.create({
+              id: graphId,
+              view: view,
+              dataExists: false,
+              metricName: metricName
+            }));
+          }
+        });
+      }
+      // Delete not existed graphs
+      existingGraphs = existingGraphs.filter(function (existingGraph) {
+        graphsBeenChanged = graphsBeenChanged || !currentGraphIds.contains(existingGraph.get('id'));
+        return currentGraphIds.contains(existingGraph.get('id'));
+      });
+      if (graphsBeenChanged) {
+        this.set('graphs', existingGraphs);
+      }
+    }
+  }.observes('controller.model.supportedMetricNames'),
+
+  didInsertElement: function () {
     var self = this;
-    Em.run.next(function() {
+    Em.run.next(function () {
       self.fitPanels();
     });
   },
@@ -109,10 +123,10 @@ App.SliderAppSummaryView = Ember.View.extend({
    */
   fitPanels: function () {
     var panelSummary = this.$('.panel-summary'),
-        panelSummaryBody = panelSummary.find('.panel-body'),
-        columnRight = this.$('.column-right'),
-        panelAlerts = columnRight.find('.panel-alerts'),
-        panelComponents = columnRight.find('.panel-components');
+      panelSummaryBody = panelSummary.find('.panel-body'),
+      columnRight = this.$('.column-right'),
+      panelAlerts = columnRight.find('.panel-alerts'),
+      panelComponents = columnRight.find('.panel-components');
     if (panelSummary.height() < panelSummaryBody.height()) {
       panelSummary.height(panelSummaryBody.height());
     }

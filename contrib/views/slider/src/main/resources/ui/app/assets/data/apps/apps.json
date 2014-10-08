@@ -18,6 +18,10 @@
       "version" : "1.0.0",
       "view_name" : "SLIDER",
       "yarnId" : "application_1409333994422_0005",
+      "supportedMetrics" : [
+        "firstMetric",
+        "secondMetric"
+      ],
       "alerts" : {
         "detail" : [
           {
