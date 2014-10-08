@@ -41,7 +41,7 @@ class User(Resource):
   gid = ResourceArgument()
   groups = ForcedListArgument(default=[]) # supplementary groups
   home = ResourceArgument()
-  shell = ResourceArgument(default="/bin/bash")
+  shell = ResourceArgument()
   password = ResourceArgument()
   system = BooleanArgument(default=False)
 

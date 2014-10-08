@@ -61,7 +61,7 @@ class TestSNamenode(RMFTestCase):
                               action = ['delete'],
                               not_if='ls /var/run/hadoop/hdfs/hadoop-hdfs-secondarynamenode.pid >/dev/null 2>&1 && ps `cat /var/run/hadoop/hdfs/hadoop-hdfs-secondarynamenode.pid` >/dev/null 2>&1',
                               )
-    self.assertResourceCalled('Execute', 'ulimit -c unlimited;  su - hdfs -c \'export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf start secondarynamenode\'',
+    self.assertResourceCalled('Execute', 'ulimit -c unlimited;  su -s /bin/bash - hdfs -c \'export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf start secondarynamenode\'',
                               not_if = 'ls /var/run/hadoop/hdfs/hadoop-hdfs-secondarynamenode.pid >/dev/null 2>&1 && ps `cat /var/run/hadoop/hdfs/hadoop-hdfs-secondarynamenode.pid` >/dev/null 2>&1',
                               )
     self.assertNoMoreResources()
@@ -84,7 +84,7 @@ class TestSNamenode(RMFTestCase):
                               action = ['delete'],
                               not_if='ls /var/run/hadoop/hdfs/hadoop-hdfs-secondarynamenode.pid >/dev/null 2>&1 && ps `cat /var/run/hadoop/hdfs/hadoop-hdfs-secondarynamenode.pid` >/dev/null 2>&1',
                               )
-    self.assertResourceCalled('Execute', 'ulimit -c unlimited;  su - hdfs -c \'export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf stop secondarynamenode\'',
+    self.assertResourceCalled('Execute', 'ulimit -c unlimited;  su -s /bin/bash - hdfs -c \'export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf stop secondarynamenode\'',
                               not_if = None,
                               )
     self.assertResourceCalled('File', '/var/run/hadoop/hdfs/hadoop-hdfs-secondarynamenode.pid',
@@ -130,7 +130,7 @@ class TestSNamenode(RMFTestCase):
                               action = ['delete'],
                               not_if='ls /var/run/hadoop/hdfs/hadoop-hdfs-secondarynamenode.pid >/dev/null 2>&1 && ps `cat /var/run/hadoop/hdfs/hadoop-hdfs-secondarynamenode.pid` >/dev/null 2>&1',
                               )
-    self.assertResourceCalled('Execute', 'ulimit -c unlimited;  su - hdfs -c \'export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf start secondarynamenode\'',
+    self.assertResourceCalled('Execute', 'ulimit -c unlimited;  su -s /bin/bash - hdfs -c \'export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf start secondarynamenode\'',
                               not_if = 'ls /var/run/hadoop/hdfs/hadoop-hdfs-secondarynamenode.pid >/dev/null 2>&1 && ps `cat /var/run/hadoop/hdfs/hadoop-hdfs-secondarynamenode.pid` >/dev/null 2>&1',
                               )
     self.assertNoMoreResources()
@@ -153,7 +153,7 @@ class TestSNamenode(RMFTestCase):
                               action = ['delete'],
                               not_if='ls /var/run/hadoop/hdfs/hadoop-hdfs-secondarynamenode.pid >/dev/null 2>&1 && ps `cat /var/run/hadoop/hdfs/hadoop-hdfs-secondarynamenode.pid` >/dev/null 2>&1',
                               )
-    self.assertResourceCalled('Execute', 'ulimit -c unlimited;  su - hdfs -c \'export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf stop secondarynamenode\'',
+    self.assertResourceCalled('Execute', 'ulimit -c unlimited;  su -s /bin/bash - hdfs -c \'export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf stop secondarynamenode\'',
                               not_if = None,
                               )
     self.assertResourceCalled('File', '/var/run/hadoop/hdfs/hadoop-hdfs-secondarynamenode.pid',

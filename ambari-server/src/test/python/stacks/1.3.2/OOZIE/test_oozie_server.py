@@ -160,7 +160,7 @@ class TestOozieServer(RMFTestCase):
                          command = "stop",
                          config_file="default.json"
     )
-    self.assertResourceCalled('Execute', "su - oozie -c  'cd /var/tmp/oozie && /usr/lib/oozie/bin/oozie-stop.sh' && rm -f /var/run/oozie/oozie.pid",
+    self.assertResourceCalled('Execute', "su -s /bin/bash - oozie -c  'cd /var/tmp/oozie && /usr/lib/oozie/bin/oozie-stop.sh' && rm -f /var/run/oozie/oozie.pid",
       only_if = 'ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1',
     )
     self.assertNoMoreResources()
@@ -303,7 +303,7 @@ class TestOozieServer(RMFTestCase):
                          command = "stop",
                          config_file="secured.json"
     )
-    self.assertResourceCalled('Execute', "su - oozie -c  'cd /var/tmp/oozie && /usr/lib/oozie/bin/oozie-stop.sh' && rm -f /var/run/oozie/oozie.pid",
+    self.assertResourceCalled('Execute', "su -s /bin/bash - oozie -c  'cd /var/tmp/oozie && /usr/lib/oozie/bin/oozie-stop.sh' && rm -f /var/run/oozie/oozie.pid",
       only_if = 'ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1',
     )
     self.assertNoMoreResources()

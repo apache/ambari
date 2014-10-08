@@ -36,8 +36,7 @@ class TestUserResource(TestCase):
     popen_mock.return_value = subproc_mock
     getpwnam_mock.return_value = None
     with Environment('/') as env:
-      user = User("mapred", action = "create")
-    
+      user = User("mapred", action = "create", shell = "/bin/bash")
 
     popen_mock.assert_called_with(['/bin/bash', '--login', '-c', 'useradd -m -s /bin/bash mapred'], shell=False, preexec_fn=None, stderr=-2, stdout=-1, env=None, cwd=None)
     self.assertEqual(popen_mock.call_count, 1)
@@ -51,8 +50,7 @@ class TestUserResource(TestCase):
     getpwnam_mock.return_value = 1
 
     with Environment('/') as env:
-      user = User("mapred", action = "create")
-    
+      user = User("mapred", action = "create", shell = "/bin/bash")
 
     popen_mock.assert_called_with(['/bin/bash', '--login', '-c', 'usermod -s /bin/bash mapred'], shell=False, preexec_fn=None, stderr=-2, stdout=-1, env=None, cwd=None)
     self.assertEqual(popen_mock.call_count, 1)
@@ -66,8 +64,7 @@ class TestUserResource(TestCase):
     getpwnam_mock.return_value = 1
 
     with Environment('/') as env:
-      user = User("mapred", action = "remove")
-    
+      user = User("mapred", action = "remove", shell = "/bin/bash")
 
     popen_mock.assert_called_with(['/bin/bash', '--login', '-c', 'userdel mapred'], shell=False, preexec_fn=None, stderr=-2, stdout=-1, env=None, cwd=None)
     self.assertEqual(popen_mock.call_count, 1)
@@ -81,10 +78,8 @@ class TestUserResource(TestCase):
     getpwnam_mock.return_value = 1
 
     with Environment('/') as env:
-      user = User("mapred",
-                  action = "create",
-                  comment = "testComment")
-    
+      user = User("mapred", action = "create", comment = "testComment", 
+          shell = "/bin/bash")
 
     popen_mock.assert_called_with(['/bin/bash', '--login', '-c', 'usermod -c testComment -s /bin/bash mapred'], shell=False, preexec_fn=None, stderr=-2, stdout=-1, env=None, cwd=None)
     self.assertEqual(popen_mock.call_count, 1)
@@ -98,10 +93,8 @@ class TestUserResource(TestCase):
     getpwnam_mock.return_value = 1
 
     with Environment('/') as env:
-      user = User("mapred",
-                  action = "create",
-                  home = "/test/home")
-    
+      user = User("mapred", action = "create", home = "/test/home", 
+          shell = "/bin/bash")
 
     popen_mock.assert_called_with(['/bin/bash', '--login', '-c', 'usermod -s /bin/bash -d /test/home mapred'], shell=False, preexec_fn=None, stderr=-2, stdout=-1, env=None, cwd=None)
     self.assertEqual(popen_mock.call_count, 1)
@@ -115,10 +108,8 @@ class TestUserResource(TestCase):
     getpwnam_mock.return_value = 1
 
     with Environment('/') as env:
-      user = User("mapred",
-                  action = "create",
-                  password = "secure")
-    
+      user = User("mapred", action = "create", password = "secure", 
+          shell = "/bin/bash")    
 
     popen_mock.assert_called_with(['/bin/bash', '--login', '-c', 'usermod -s /bin/bash -p secure mapred'], shell=False, preexec_fn=None, stderr=-2, stdout=-1, env=None, cwd=None)
     self.assertEqual(popen_mock.call_count, 1)
@@ -132,10 +123,7 @@ class TestUserResource(TestCase):
     getpwnam_mock.return_value = 1
 
     with Environment('/') as env:
-      user = User("mapred",
-                  action = "create",
-                  shell = "/bin/sh")
-    
+      user = User("mapred", action = "create", shell = "/bin/sh")
 
     popen_mock.assert_called_with(['/bin/bash', '--login', '-c', 'usermod -s /bin/sh mapred'], shell=False, preexec_fn=None, stderr=-2, stdout=-1, env=None, cwd=None)
     self.assertEqual(popen_mock.call_count, 1)
@@ -149,10 +137,7 @@ class TestUserResource(TestCase):
     getpwnam_mock.return_value = 1
 
     with Environment('/') as env:
-      user = User("mapred",
-                  action = "create",
-                  uid = "1")
-    
+      user = User("mapred", action = "create", uid = "1", shell = "/bin/bash")
 
     popen_mock.assert_called_with(['/bin/bash', '--login', '-c', 'usermod -s /bin/bash -u 1 mapred'], shell=False, preexec_fn=None, stderr=-2, stdout=-1, env=None, cwd=None)
     self.assertEqual(popen_mock.call_count, 1)
@@ -166,10 +151,7 @@ class TestUserResource(TestCase):
     getpwnam_mock.return_value = 1
 
     with Environment('/') as env:
-      user = User("mapred",
-                  action = "create",
-                  gid = "1")
-    
+      user = User("mapred", action = "create", gid = "1", shell = "/bin/bash")
 
     popen_mock.assert_called_with(['/bin/bash', '--login', '-c', 'usermod -s /bin/bash -g 1 mapred'], shell=False, preexec_fn=None, stderr=-2, stdout=-1, env=None, cwd=None)
     self.assertEqual(popen_mock.call_count, 1)
@@ -183,10 +165,21 @@ class TestUserResource(TestCase):
     getpwnam_mock.return_value = 1
 
     with Environment('/') as env:
-      user = User("mapred",
-                  action = "create",
-                  groups = ['1','2','3'])
-    
+      user = User("mapred", action = "create", groups = ['1','2','3'], 
+          shell = "/bin/bash")
 
     popen_mock.assert_called_with(['/bin/bash', '--login', '-c', 'usermod -G 1,2,3 -s /bin/bash mapred'], shell=False, preexec_fn=None, stderr=-2, stdout=-1, env=None, cwd=None)
+    self.assertEqual(popen_mock.call_count, 1)
+
+  @patch.object(subprocess, "Popen")
+  @patch.object(pwd, "getpwnam")
+  def test_missing_shell_argument(self, getpwnam_mock, popen_mock):
+    subproc_mock = MagicMock()
+    subproc_mock.returncode = 0
+    popen_mock.return_value = subproc_mock
+    getpwnam_mock.return_value = None
+    with Environment('/') as env:
+      user = User("mapred", action = "create")
+
+    popen_mock.assert_called_with(['/bin/bash', '--login', '-c', 'useradd -m mapred'], shell=False, preexec_fn=None, stderr=-2, stdout=-1, env=None, cwd=None)
     self.assertEqual(popen_mock.call_count, 1)

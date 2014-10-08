@@ -72,10 +72,10 @@ class TestNamenode(RMFTestCase):
                               action = ['delete'],
                               not_if='ls /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid >/dev/null 2>&1 && ps `cat /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid` >/dev/null 2>&1',
                               )
-    self.assertResourceCalled('Execute', 'ulimit -c unlimited;  su - hdfs -c \'export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf start namenode\'',
+    self.assertResourceCalled('Execute', 'ulimit -c unlimited;  su -s /bin/bash - hdfs -c \'export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf start namenode\'',
                               not_if = 'ls /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid >/dev/null 2>&1 && ps `cat /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid` >/dev/null 2>&1',
                               )
-    self.assertResourceCalled('Execute', "su - hdfs -c 'export PATH=$PATH:/usr/bin ; hadoop --config /etc/hadoop/conf dfsadmin -safemode get' | grep 'Safe mode is OFF'",
+    self.assertResourceCalled('Execute', "su -s /bin/bash - hdfs -c 'export PATH=$PATH:/usr/bin ; hadoop --config /etc/hadoop/conf dfsadmin -safemode get' | grep 'Safe mode is OFF'",
                               tries = 40,
                               only_if = None,
                               try_sleep = 10,
@@ -124,7 +124,7 @@ class TestNamenode(RMFTestCase):
                               action = ['delete'],
                               not_if='ls /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid >/dev/null 2>&1 && ps `cat /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid` >/dev/null 2>&1',
                               )
-    self.assertResourceCalled('Execute', 'ulimit -c unlimited;  su - hdfs -c \'export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf stop namenode\'',
+    self.assertResourceCalled('Execute', 'ulimit -c unlimited;  su -s /bin/bash - hdfs -c \'export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf stop namenode\'',
                               not_if = None,
                               )
     self.assertResourceCalled('File', '/var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid',
@@ -176,13 +176,13 @@ class TestNamenode(RMFTestCase):
                               action = ['delete'],
                               not_if='ls /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid >/dev/null 2>&1 && ps `cat /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid` >/dev/null 2>&1',
                               )
-    self.assertResourceCalled('Execute', 'ulimit -c unlimited;  su - hdfs -c \'export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf start namenode\'',
+    self.assertResourceCalled('Execute', 'ulimit -c unlimited;  su -s /bin/bash - hdfs -c \'export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf start namenode\'',
                               not_if = 'ls /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid >/dev/null 2>&1 && ps `cat /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid` >/dev/null 2>&1',
                               )
     self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/hdfs.headless.keytab hdfs',
                               user = 'hdfs',
                               )
-    self.assertResourceCalled('Execute', "su - hdfs -c 'export PATH=$PATH:/usr/bin ; hadoop --config /etc/hadoop/conf dfsadmin -safemode get' | grep 'Safe mode is OFF'",
+    self.assertResourceCalled('Execute', "su -s /bin/bash - hdfs -c 'export PATH=$PATH:/usr/bin ; hadoop --config /etc/hadoop/conf dfsadmin -safemode get' | grep 'Safe mode is OFF'",
                               tries = 40,
                               only_if = None,
                               try_sleep = 10,
@@ -231,7 +231,7 @@ class TestNamenode(RMFTestCase):
                               action = ['delete'],
                               not_if='ls /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid >/dev/null 2>&1 && ps `cat /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid` >/dev/null 2>&1',
                               )
-    self.assertResourceCalled('Execute', 'ulimit -c unlimited;  su - hdfs -c \'export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf stop namenode\'',
+    self.assertResourceCalled('Execute', 'ulimit -c unlimited;  su -s /bin/bash - hdfs -c \'export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf stop namenode\'',
                               not_if = None,
                               )
     self.assertResourceCalled('File', '/var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid',
@@ -263,12 +263,12 @@ class TestNamenode(RMFTestCase):
                               action = ['delete'],
                               not_if='ls /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid >/dev/null 2>&1 && ps `cat /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid` >/dev/null 2>&1',
                               )
-    self.assertResourceCalled('Execute', 'ulimit -c unlimited;  su - hdfs -c \'export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf start namenode\'',
+    self.assertResourceCalled('Execute', 'ulimit -c unlimited;  su -s /bin/bash - hdfs -c \'export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf start namenode\'',
                               not_if = 'ls /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid >/dev/null 2>&1 && ps `cat /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid` >/dev/null 2>&1',
                               )
-    self.assertResourceCalled('Execute', "su - hdfs -c 'export PATH=$PATH:/usr/bin ; hadoop --config /etc/hadoop/conf dfsadmin -safemode get' | grep 'Safe mode is OFF'",
+    self.assertResourceCalled('Execute', "su -s /bin/bash - hdfs -c 'export PATH=$PATH:/usr/bin ; hadoop --config /etc/hadoop/conf dfsadmin -safemode get' | grep 'Safe mode is OFF'",
                               tries = 40,
-                              only_if = "su - hdfs -c 'export PATH=$PATH:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn1 | grep active > /dev/null'",
+                              only_if = "su -s /bin/bash - hdfs -c 'export PATH=$PATH:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn1 | grep active > /dev/null'",
                               try_sleep = 10,
                               )
     self.assertResourceCalled('HdfsDirectory', '/tmp',
@@ -301,7 +301,7 @@ class TestNamenode(RMFTestCase):
                               kinit_path_local = '/usr/bin/kinit',
                               action = ['create'],
                               bin_dir = '/usr/bin',
-                              only_if = "su - hdfs -c 'export PATH=$PATH:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn1 | grep active > /dev/null'",
+                              only_if = "su -s /bin/bash - hdfs -c 'export PATH=$PATH:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn1 | grep active > /dev/null'",
                               )
     self.assertNoMoreResources()
 
@@ -329,15 +329,15 @@ class TestNamenode(RMFTestCase):
                               action = ['delete'],
                               not_if='ls /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid >/dev/null 2>&1 && ps `cat /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid` >/dev/null 2>&1',
                               )
-    self.assertResourceCalled('Execute', 'ulimit -c unlimited;  su - hdfs -c \'export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf start namenode\'',
+    self.assertResourceCalled('Execute', 'ulimit -c unlimited;  su -s /bin/bash - hdfs -c \'export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf start namenode\'',
                               not_if = 'ls /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid >/dev/null 2>&1 && ps `cat /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid` >/dev/null 2>&1',
                               )
     self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/hdfs.headless.keytab hdfs',
                               user = 'hdfs',
                               )
-    self.assertResourceCalled('Execute', "su - hdfs -c 'export PATH=$PATH:/usr/bin ; hadoop --config /etc/hadoop/conf dfsadmin -safemode get' | grep 'Safe mode is OFF'",
+    self.assertResourceCalled('Execute', "su -s /bin/bash - hdfs -c 'export PATH=$PATH:/usr/bin ; hadoop --config /etc/hadoop/conf dfsadmin -safemode get' | grep 'Safe mode is OFF'",
                               tries = 40,
-                              only_if = "su - hdfs -c 'export PATH=$PATH:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn1 | grep active > /dev/null'",
+                              only_if = "su -s /bin/bash - hdfs -c 'export PATH=$PATH:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn1 | grep active > /dev/null'",
                               try_sleep = 10,
                               )
     self.assertResourceCalled('HdfsDirectory', '/tmp',
@@ -370,7 +370,7 @@ class TestNamenode(RMFTestCase):
                               kinit_path_local = '/usr/bin/kinit',
                               action = ['create'],
                               bin_dir = '/usr/bin',
-                              only_if = "su - hdfs -c 'export PATH=$PATH:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn1 | grep active > /dev/null'",
+                              only_if = "su -s /bin/bash - hdfs -c 'export PATH=$PATH:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn1 | grep active > /dev/null'",
                               )
     self.assertNoMoreResources()
 

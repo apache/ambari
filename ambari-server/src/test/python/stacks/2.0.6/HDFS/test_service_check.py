@@ -56,7 +56,7 @@ class TestServiceCheck(RMFTestCase):
     self.assertResourceCalled('ExecuteHadoop', 'fs -mkdir /tmp',
         conf_dir = '/etc/hadoop/conf',
         logoutput = True,
-        not_if = 'su - ambari-qa -c \'/usr/bin/hadoop --config /etc/hadoop/conf fs -test -e /tmp\'',
+        not_if = 'su -s /bin/bash - ambari-qa -c \'/usr/bin/hadoop --config /etc/hadoop/conf fs -test -e /tmp\'',
         try_sleep = 3,
         tries = 5,
         bin_dir = '/usr/bin',
