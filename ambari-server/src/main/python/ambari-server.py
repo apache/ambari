@@ -1808,12 +1808,11 @@ def download_jdk(args):
       raise FatalException(1, err)
     jdk_num = str(JDK_INDEX + 1)
     jdk_num = get_validated_string_input(
-      """
-      [1] - Oracle JDK 1.7 + Java Cryptography Extension (JCE) Policy Files 7
-      [2] - Oracle JDK 1.6 + Java Cryptography Extension (JCE) Policy Files 6
-      [3] - Custom JDK
-      ==============================================================================
-      Enter choice (""" + jdk_num + "):",
+"""[1] - Oracle JDK 1.7 + Java Cryptography Extension (JCE) Policy Files 7
+[2] - Oracle JDK 1.6 + Java Cryptography Extension (JCE) Policy Files 6
+[3] - Custom JDK
+==============================================================================
+Enter choice (""" + jdk_num + "):",
       jdk_num,
       "^[123]$",
       "Invalid number.",
