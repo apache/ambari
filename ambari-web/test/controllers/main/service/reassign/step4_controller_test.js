@@ -475,6 +475,12 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
         result: [
           "(type=yarn-site&tag=5)"
         ]
+      },
+      {
+        componentName: 'OOZIE_SERVER',
+        result: [
+          "(type=oozie-site&tag=6)"
+        ]
       }
     ];
 
@@ -485,7 +491,8 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
           'core-site': {tag: 2},
           'hbase-site': {tag: 3},
           'mapred-site': {tag: 4},
-          'yarn-site': {tag: 5}
+          'yarn-site': {tag: 5},
+          'oozie-site': {tag: 6}
         }
       }
     };

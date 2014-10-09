@@ -37,7 +37,8 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
   unrelatedServicesMap: {
     'JOBTRACKER': ['HDFS', 'ZOOKEEPER', 'HBASE', 'FLUME', 'SQOOP', 'STORM'],
     'RESOURCEMANAGER': ['HDFS', 'ZOOKEEPER', 'HBASE', 'FLUME', 'SQOOP', 'STORM'],
-    'APP_TIMELINE_SERVER': ['HDFS', 'ZOOKEEPER', 'HBASE', 'FLUME', 'SQOOP', 'STORM']
+    'APP_TIMELINE_SERVER': ['HDFS', 'ZOOKEEPER', 'HBASE', 'FLUME', 'SQOOP', 'STORM'],
+    'OOZIE_SERVER': ['HDFS', 'ZOOKEEPER', 'HBASE', 'FLUME', 'SQOOP', 'STORM', 'HIVE']
   },
 
   /**
@@ -111,6 +112,14 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
         }
       }
     },
+    {
+      componentName: 'OOZIE_SERVER',
+        configs: {
+          'oozie-site': {
+          'oozie.base.url': '<replace-value>:11000/oozie'
+        }
+      }
+    }
   ],
 
   secureConfigsMap: [
