@@ -24,6 +24,7 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.UndeclaredThrowableException;
+import java.net.URI;
 import java.security.PrivilegedExceptionAction;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -36,6 +37,7 @@ import java.util.Set;
 import java.util.zip.ZipException;
 
 import org.apache.ambari.view.ViewContext;
+import org.apache.ambari.view.slider.ViewStatus.Validation;
 import org.apache.ambari.view.slider.clients.AmbariCluster;
 import org.apache.ambari.view.slider.clients.AmbariClusterInfo;
 import org.apache.ambari.view.slider.clients.AmbariHostComponent;
@@ -48,6 +50,8 @@ import org.apache.ambari.view.slider.rest.client.SliderAppMasterClient.SliderApp
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.filefilter.RegexFileFilter;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hdfs.HdfsConfiguration;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.yarn.api.records.ApplicationId;
@@ -133,6 +137,11 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
           AmbariCluster cluster = ambariClient.getCluster(clusterInfo);
           AmbariServiceInfo hdfsServiceInfo = null;
           AmbariServiceInfo yarnServiceInfo = null;
+          // Validate stack-version
+          Validation validateStackVersion = validateStackVersion(clusterInfo.getVersion());
+          if (validateStackVersion != null) {
+            status.getValidations().add(validateStackVersion);
+          }
           for (AmbariServiceInfo svc : cluster.getServices()) {
             if ("HDFS".equals(svc.getId())) {
               hdfsServiceInfo = svc;
@@ -174,6 +183,12 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
             newHadoopConfigs.put("security_enabled",
                 clusterEnvConfigs.get("security_enabled"));
           }
+          if (cluster.getDesiredConfigs().containsKey("hdfs-site")) {
+            Map<String, String> hdfsSiteConfigs = ambariClient
+                .getConfiguration(cluster, "hdfs-site", cluster
+                    .getDesiredConfigs().get("hdfs-site"));
+            newHadoopConfigs.putAll(hdfsSiteConfigs);
+          }
           if (cluster.getDesiredConfigs().containsKey("yarn-site")) {
             Map<String, String> yarnSiteConfigs = ambariClient
                 .getConfiguration(cluster, "yarn-site", cluster
@@ -181,6 +196,15 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
             newHadoopConfigs.putAll(yarnSiteConfigs);
             status.getParameters().put(PROPERTY_YARN_RM_WEBAPP_URL,
                 newHadoopConfigs.get("yarn.resourcemanager.webapp.address"));
+          }
+          if (cluster.getDesiredConfigs().containsKey("yarn-env")) {
+            Map<String, String> yarnEnvConfigs = ambariClient.getConfiguration(cluster, "yarn-env", cluster
+                .getDesiredConfigs().get("yarn-env"));
+            String yarnUser = yarnEnvConfigs.get("yarn_user");
+            if (yarnUser == null || yarnUser.trim().length() < 1) {
+              yarnUser = "yarn";
+            }
+            newHadoopConfigs.put("yarn_user", yarnUser);
           }
           if (cluster.getDesiredConfigs().containsKey("zookeeper-env")) {
             Map<String, String> zkEnvConfigs = ambariClient.getConfiguration(
@@ -231,6 +255,10 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
             newHadoopConfigs.put(PROPERTY_GANGLIA_CUSTOM_CLUSTERS, clustersCsv);
             status.getParameters().put(PROPERTY_GANGLIA_CUSTOM_CLUSTERS, clustersCsv);
           }
+          Validation validateHDFSAccess = validateHDFSAccess(newHadoopConfigs, hdfsServiceInfo);
+          if (validateHDFSAccess != null) {
+            status.getValidations().add(validateHDFSAccess);
+          }
         } else {
           status.getValidations().add(
               new ViewStatus.Validation("Ambari cluster with ID ["
@@ -259,6 +287,72 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
     return status;
   }
 
+  /**
+   * Slider-view supports only some stack-versions. This method validates that the targeted cluster is supported.
+   *
+   * @param clusterVersion
+   * @return
+   */
+  private Validation validateStackVersion(String clusterVersion) {
+    // Assuming cluster versions are of the format "X-a.b.c.d"
+    String stackName = clusterVersion;
+    String stackVersion = clusterVersion;
+    int dashIndex = clusterVersion.indexOf('-');
+    if (dashIndex > -1 && dashIndex < clusterVersion.length() - 1) {
+      stackName = stackName.substring(0, dashIndex);
+      stackVersion = stackVersion.substring(dashIndex + 1);
+    }
+    String[] versionSplits = stackVersion.split("\\.");
+    if (!"HDP".equals(stackName) || versionSplits.length < 2) {
+      return new Validation("Stack version (" + clusterVersion + ") used by cluster is not supported");
+    }
+    try {
+      int majorVersion = Integer.parseInt(versionSplits[0]);
+      int minorVersion = Integer.parseInt(versionSplits[1]);
+      if (!(majorVersion >= 2 && minorVersion >= 2)) {
+        return new Validation("Stack version (" + clusterVersion + ") used by cluster is not supported");
+      }
+    } catch (NumberFormatException e) {
+      return new Validation("Stack version (" + clusterVersion + ") used by cluster is not supported");
+    }
+    return null;
+  }
+
+  private Validation validateHDFSAccess(final Map<String, String> hadoopConfigs, AmbariServiceInfo hdfsServiceInfo) {
+    if (hdfsServiceInfo != null && hdfsServiceInfo.isStarted()) {
+      if (hadoopConfigs.containsKey("fs.defaultFS")) {
+        final String fsPath = hadoopConfigs.get("fs.defaultFS");
+        try {
+          invokeHDFSClientRunnable(new HDFSClientRunnable<Boolean>() {
+            @Override
+            public Boolean run() throws IOException, InterruptedException {
+              HdfsConfiguration hdfsConfiguration = new HdfsConfiguration();
+              for (Entry<String, String> entry : hadoopConfigs.entrySet()) {
+                hdfsConfiguration.set(entry.getKey(), entry.getValue());
+              }
+              FileSystem fs = FileSystem.get(URI.create(fsPath), hdfsConfiguration, getUserToRunAs(hadoopConfigs));
+              Path homePath = fs.getHomeDirectory();
+              fs.listFiles(homePath, false);
+              fs.close();
+              return Boolean.TRUE;
+            }
+          }, hadoopConfigs);
+        } catch (IOException e) {
+          String message = "Error validating access to user home directory: " + e.getMessage();
+          logger.warn(message, e);
+          return new Validation(message);
+        } catch (InterruptedException e) {
+          String message = "Error validating access to user home directory: " + e.getMessage();
+          logger.warn(message, e);
+          return new Validation(message);
+        }
+      } else {
+        return new Validation("Unknown filesystem location for verification");
+      }
+    }
+    return null;
+  }
+
   private String getApplicationIdString(ApplicationId appId) {
     return Long.toString(appId.getClusterTimestamp()) + "_"
         + Integer.toString(appId.getId());
@@ -281,9 +375,20 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
     public T run(SliderClient sliderClient) throws YarnException, IOException, InterruptedException;
   }
 
+  private static interface HDFSClientRunnable<T> {
+    public T run() throws IOException, InterruptedException;
+  }
+
   private String getUserToRunAs() {
+    return getUserToRunAs(getHadoopConfigs());
+  }
+
+  private String getUserToRunAs(Map<String, String> hadoopConfigs) {
     String user = getViewParameterValue(PARAM_SLIDER_USER);
     if (user == null || user.trim().length() < 1) {
+      if (hadoopConfigs.containsKey("yarn_user")) {
+        return hadoopConfigs.get("yarn_user");
+      }
       return "yarn";
     } else if ("${username}".equals(user)) {
       return viewContext.getUsername();
@@ -292,11 +397,42 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
     }
   }
 
+  private <T> T invokeHDFSClientRunnable(final HDFSClientRunnable<T> runnable, Map<String, String> hadoopConfigs)
+      throws IOException, InterruptedException {
+    ClassLoader currentClassLoader = Thread.currentThread().getContextClassLoader();
+    Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
+    try {
+      boolean securityEnabled = Boolean.valueOf(hadoopConfigs.get("security_enabled"));
+      UserGroupInformation sliderUser;
+      if (securityEnabled) {
+        String viewPrincipal = getViewParameterValue(PARAM_VIEW_PRINCIPAL);
+        String viewPrincipalKeytab = getViewParameterValue(PARAM_VIEW_PRINCIPAL_KEYTAB);
+        UserGroupInformation ambariUser = UserGroupInformation.loginUserFromKeytabAndReturnUGI(viewPrincipal, viewPrincipalKeytab);
+        sliderUser = UserGroupInformation.createProxyUser(getUserToRunAs(), ambariUser);
+      } else {
+        sliderUser = UserGroupInformation.getBestUGI(null, getUserToRunAs());
+      }
+      try {
+        T value = sliderUser.doAs(new PrivilegedExceptionAction<T>() {
+          @Override
+          public T run() throws Exception {
+            return runnable.run();
+          }
+        });
+        return value;
+      } catch (UndeclaredThrowableException e) {
+        throw e;
+      }
+    } finally {
+      Thread.currentThread().setContextClassLoader(currentClassLoader);
+    }
+  }
+
   private <T> T invokeSliderClientRunnable(final SliderClientContextRunnable<T> runnable) throws IOException, InterruptedException, YarnException {
     ClassLoader currentClassLoader = Thread.currentThread().getContextClassLoader();
     Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
     try {
-      boolean securityEnabled = Boolean.valueOf(getViewParameterValue(PROPERTY_SLIDER_SECURITY_ENABLED));
+      boolean securityEnabled = Boolean.valueOf(getHadoopConfigs().get(PROPERTY_SLIDER_SECURITY_ENABLED));
       UserGroupInformation sliderUser;
       if (securityEnabled) {
         String viewPrincipal = getViewParameterValue(PARAM_VIEW_PRINCIPAL);
@@ -637,8 +773,7 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
     for(Entry<String, String> entry: hadoopConfigs.entrySet()) {
       yarnConfig.set(entry.getKey(), entry.getValue());
     }
-    yarnConfig.set("slider.security.enabled", hadoopConfigs.get("security_enabled"));
-    yarnConfig.set("slider.yarn.queue", "default"); //TODO Remove?
+    yarnConfig.set(PROPERTY_SLIDER_SECURITY_ENABLED, hadoopConfigs.get("security_enabled"));
     if (hadoopConfigs.containsKey(PROPERTY_SLIDER_ZK_QUORUM)) {
       yarnConfig.set(PROPERTY_SLIDER_ZK_QUORUM, hadoopConfigs.get(PROPERTY_SLIDER_ZK_QUORUM));
     }
