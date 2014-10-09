@@ -27,6 +27,12 @@ describe('App.InstallerController', function () {
   var installerController = App.InstallerController.create();
 
   describe('#loadStacksVersionsSuccessCallback', function() {
+    beforeEach(function () {
+      sinon.stub(App.store, 'commit', Em.K);
+    });
+    afterEach(function () {
+      App.store.commit.restore();
+    });
     it ('Correct data', function() {
       installerController.loadStacksVersionsSuccessCallback(require('test/stack'));
       expect(installerController.get('content.stacks.length')).to.equal(2);

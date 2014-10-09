@@ -260,6 +260,10 @@ describe('App.stackMapper', function () {
       App.resetDsStoreTypeMap(App.Repository);
       App.resetDsStoreTypeMap(App.OperatingSystem);
       App.resetDsStoreTypeMap(App.Stack);
+      sinon.stub(App.store, 'commit', Em.K);
+    });
+    afterEach(function(){
+      App.store.commit.restore();
     });
 
 		
