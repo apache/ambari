@@ -21,11 +21,6 @@
 -->
 <configuration supports_final="true">
   <property>
-    <name>slider.yarn.queue</name>
-    <value>default</value>
-    <description>YARN queue for the Application Master</description>
-  </property>
-  <property>
     <name>slider.zookeeper.quorum</name>
     <value>localhost:2181</value>
     <description>ZK quorum</description>

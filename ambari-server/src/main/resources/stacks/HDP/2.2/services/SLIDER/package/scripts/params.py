@@ -38,6 +38,7 @@ smokeuser = config['configurations']['cluster-env']['smokeuser']
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 smokeuser_keytab = config['configurations']['cluster-env']['smokeuser_keytab']
 kinit_path_local = functions.get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+slider_env_sh_template = config['configurations']['slider-env']['content']
 
 java64_home = config['hostLevelParams']['java_home']
 log4j_props = config['configurations']['slider-log4j']['content']
