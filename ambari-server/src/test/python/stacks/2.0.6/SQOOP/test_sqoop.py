@@ -31,6 +31,7 @@ class TestSqoop(RMFTestCase):
     self.assertResourceCalled('Link', '/usr/lib/sqoop/lib/mysql-connector-java.jar',
                               to = '/usr/share/java/mysql-connector-java.jar',)
     self.assertResourceCalled('Directory', '/usr/lib/sqoop/conf',
+                              recursive = True,
                               owner = 'sqoop',
                               group = 'hadoop',)
     self.assertResourceCalled('File', '/usr/lib/sqoop/conf/sqoop-env.sh',

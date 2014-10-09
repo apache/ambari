@@ -22,9 +22,7 @@ from resource_management import *
 def setup_hdp_install_directory():
   import params
   if params.rpm_version:
-    Execute(format('ln -s /usr/hdp/{rpm_version}-* {versioned_hdp_root}'),
-            not_if=format('ls {versioned_hdp_root}'),
-            only_if=format('ls -d /usr/hdp/{rpm_version}-*')
+    Execute(format('hdp-select set all `hdp-select versions | grep ^{rpm_version}- | tail -1`')
     )
 
 def setup_config():
@@ -36,4 +34,4 @@ def setup_config():
               configuration_attributes=params.config['configuration_attributes']['core-site'],
               owner=params.hdfs_user,
               group=params.user_group
-  )
+    )

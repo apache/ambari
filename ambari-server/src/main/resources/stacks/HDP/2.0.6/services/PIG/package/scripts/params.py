@@ -30,9 +30,9 @@ rpm_version = default("/configurations/cluster-env/rpm_version", None)
 
 #hadoop params
 if rpm_version:
-  hadoop_bin_dir = "/usr/hdp/current/hadoop/bin"
-  hadoop_home = '/usr/hdp/current/hadoop'
-  pig_bin_dir = '/usr/hdp/current/pig/bin'
+  hadoop_bin_dir = "/usr/hdp/current/hadoop-client/bin"
+  hadoop_home = '/usr/hdp/current/hadoop-client'
+  pig_bin_dir = '/usr/hdp/current/pig-client/bin'
 else:
   hadoop_bin_dir = "/usr/bin"
   hadoop_home = '/usr'

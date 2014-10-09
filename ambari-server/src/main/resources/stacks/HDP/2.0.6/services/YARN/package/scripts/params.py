@@ -32,14 +32,14 @@ rpm_version = default("/configurations/cluster-env/rpm_version", None)
 
 #hadoop params
 if rpm_version:
-  hadoop_libexec_dir = "/usr/hdp/current/hadoop/libexec"
-  hadoop_bin = "/usr/hdp/current/hadoop/sbin"
-  hadoop_bin_dir = "/usr/hdp/current/hadoop/bin"
-  hadoop_yarn_home = '/usr/hdp/current/hadoop-yarn'
-  hadoop_mapred2_jar_location = '/usr/hdp/current/hadoop-mapreduce'
-  mapred_bin = '/usr/hdp/current/hadoop-mapreduce/sbin'
-  yarn_bin = '/usr/hdp/current/hadoop-yarn/sbin'
-  yarn_container_bin = '/usr/hdp/current/hadoop-yarn/bin'
+  hadoop_libexec_dir = "/usr/hdp/current/hadoop-client/libexec"
+  hadoop_bin = "/usr/hdp/current/hadoop-client/sbin"
+  hadoop_bin_dir = "/usr/hdp/current/hadoop-client/bin"
+  hadoop_yarn_home = '/usr/hdp/current/hadoop-yarn-client'
+  hadoop_mapred2_jar_location = '/usr/hdp/current/hadoop-mapreduce-client'
+  mapred_bin = '/usr/hdp/current/hadoop-mapreduce-client/sbin'
+  yarn_bin = '/usr/hdp/current/hadoop-yarn-client/sbin'
+  yarn_container_bin = '/usr/hdp/current/hadoop-yarn-client/bin'
 else:
   hadoop_libexec_dir = "/usr/lib/hadoop/libexec"
   hadoop_bin = "/usr/lib/hadoop/sbin"

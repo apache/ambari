@@ -31,7 +31,7 @@ rpm_version = default("/configurations/cluster-env/rpm_version", None)
 
 #hadoop params
 if rpm_version:
-  flume_bin = '/usr/hdp/current/flume/bin/flume-ng'
+  flume_bin = '/usr/hdp/current/flume-client/bin/flume-ng'
 else:
   flume_bin = '/usr/bin/flume-ng'
 

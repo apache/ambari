@@ -29,10 +29,10 @@ rpm_version = default("/configurations/cluster-env/rpm_version", None)
 
 #hadoop params
 if rpm_version:
-  mapreduce_libs_path = "/usr/hdp/current/hadoop-mapreduce/*"
-  hadoop_libexec_dir = "/usr/hdp/current/hadoop/libexec"
-  hadoop_bin = "/usr/hdp/current/hadoop/sbin"
-  hadoop_bin_dir = "/usr/hdp/current/hadoop/bin"
+  mapreduce_libs_path = "/usr/hdp/current/hadoop-mapreduce-client/*"
+  hadoop_libexec_dir = "/usr/hdp/current/hadoop-client/libexec"
+  hadoop_bin = "/usr/hdp/current/hadoop-client/sbin"
+  hadoop_bin_dir = "/usr/hdp/current/hadoop-client/bin"
 else:
   mapreduce_libs_path = "/usr/lib/hadoop-mapreduce/*"
   hadoop_libexec_dir = "/usr/lib/hadoop/libexec"

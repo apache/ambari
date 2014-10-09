@@ -31,9 +31,9 @@ rpm_version = default("/configurations/cluster-env/rpm_version", None)
 
 #hadoop params
 if rpm_version:
-  zk_home = '/usr/hdp/current/zookeeper'
-  zk_bin = '/usr/hdp/current/zookeeper/bin'
-  smoke_script = '/usr/hdp/current/zookeeper/bin/zkCli.sh'
+  zk_home = '/usr/hdp/current/zookeeper-client'
+  zk_bin = '/usr/hdp/current/zookeeper-client/bin'
+  smoke_script = '/usr/hdp/current/zookeeper-client/bin/zkCli.sh'
 else:
   zk_home = '/usr'
   zk_bin = '/usr/lib/zookeeper/bin'

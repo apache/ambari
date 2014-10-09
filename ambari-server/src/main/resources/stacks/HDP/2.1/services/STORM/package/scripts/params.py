@@ -29,8 +29,8 @@ rpm_version = default("/configurations/cluster-env/rpm_version", None)
 
 #hadoop params
 if rpm_version:
-  rest_lib_dir = '/usr/hdp/current/storm/contrib/storm-rest'
-  storm_bin_dir = "/usr/hdp/current/storm/bin"
+  rest_lib_dir = '/usr/hdp/current/storm-client/contrib/storm-rest'
+  storm_bin_dir = "/usr/hdp/current/storm-client/bin"
 else:
   rest_lib_dir = "/usr/lib/storm/contrib/storm-rest"
   storm_bin_dir = "/usr/bin"

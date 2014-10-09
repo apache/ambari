@@ -28,9 +28,9 @@ rpm_version = default("/configurations/cluster-env/rpm_version", None)
 
 #hadoop params
 if rpm_version:
-  hadoop_bin_dir = "/usr/hdp/current/hadoop/bin"
-  falcon_webapp_dir = "/usr/hdp/current/falcon/webapp"
-  falcon_home = "/usr/hdp/current/falcon"
+  hadoop_bin_dir = "/usr/hdp/current/hadoop-client/bin"
+  falcon_webapp_dir = "/usr/hdp/current/falcon-client/webapp"
+  falcon_home = "/usr/hdp/current/falcon-client"
 else:
   hadoop_bin_dir = "/usr/bin"
   falcon_webapp_dir = '/var/lib/falcon/webapp'
