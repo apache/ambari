@@ -50,6 +50,38 @@
             <scriptType>PYTHON</scriptType>
             <timeout>600</timeout>
           </commandScript>
+          <configFiles>
+            <configFile>
+              <type>xml</type>
+              <fileName>slider-client.xml</fileName>
+              <dictionaryName>slider-client</dictionaryName>
+            </configFile>
+            <configFile>
+              <type>xml</type>
+              <fileName>core-site.xml</fileName>
+              <dictionaryName>core-site</dictionaryName>
+            </configFile>
+            <configFile>
+              <type>xml</type>
+              <fileName>hdfs-site.xml</fileName>
+              <dictionaryName>hdfs-site</dictionaryName>
+            </configFile>
+            <configFile>
+              <type>xml</type>
+              <fileName>yarn-site.xml</fileName>
+              <dictionaryName>yarn-site</dictionaryName>
+            </configFile>
+            <configFile>
+              <type>env</type>
+              <fileName>slider-env.sh</fileName>
+              <dictionaryName>slider-env</dictionaryName>
+            </configFile>
+            <configFile>
+              <type>env</type>
+              <fileName>log4j.properties</fileName>
+              <dictionaryName>slider-log4j</dictionaryName>
+            </configFile>
+          </configFiles>
         </component>
       </components>
       <osSpecifics>
@@ -78,6 +110,7 @@
       <configuration-dependencies>
         <config-type>slider-log4j</config-type>
         <config-type>slider-client</config-type>
+        <config-type>slider-env</config-type>
       </configuration-dependencies>
 
     </service>

@@ -40,11 +40,10 @@ class TestSliderClient(RMFTestCase):
                               configurations=self.getConfig()['configurations']['slider-client']
     )
 
-    self.assertResourceCalled('File',
-                              '/etc/slider/conf/slider-env.sh',
-                              content=Template('slider-env.sh.j2'),
-                              mode=0755
-    )
+    self.assertResourceCalled('File', '/etc/slider/conf/slider-env.sh',
+                              content = InlineTemplate(self.getConfig()['configurations']['slider-env']['content']),
+                              mode = 0755,
+                              )
 
     self.assertResourceCalled('File',
                               '/etc/slider/conf/log4j.properties',

@@ -48,6 +48,9 @@
         },
         "slider-log4j": {
             "content": "log4jproperties\nline2"
+        },
+        "slider-env": {
+            "content": "envproperties\nline2"
         }
     },
     "configuration_attributes": {},
@@ -56,6 +59,9 @@
             "tag": "version1"
         },
         "slider-log4j": {
+            "tag": "version1"
+        },
+        "slider-env": {
             "tag": "version1"
         }
     },

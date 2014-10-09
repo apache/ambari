@@ -37,7 +37,7 @@ def slider():
 
   File(format("{slider_conf_dir}/slider-env.sh"),
        mode=0755,
-       content=Template('slider-env.sh.j2')
+       content=InlineTemplate(params.slider_env_sh_template)
   )
 
   if (params.log4j_props != None):
