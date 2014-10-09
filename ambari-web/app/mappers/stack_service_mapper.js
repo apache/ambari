@@ -63,10 +63,12 @@ App.stackServiceMapper = App.QuickDataMapper.create({
   },
 
   mapStackServices: function(json) {
+    App.set('isStackServicesLoaded',false);
     this.clearStackModels();
     App.resetDsStoreTypeMap(App.StackServiceComponent);
     App.resetDsStoreTypeMap(App.StackService);
     this.map(json);
+    App.set('isStackServicesLoaded',true);
   },
 
   map: function (json) {
