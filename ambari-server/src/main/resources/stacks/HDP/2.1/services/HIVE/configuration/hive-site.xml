@@ -500,7 +500,7 @@ limitations under the License.
 
   <property>
       <name>hive.server2.authentication.spnego.principal</name>
-      <value>/etc/security/keytabs/spnego.service.keytab</value>
+      <value>HTTP/_HOST@EXAMPLE.COM</value>
       <description>
           This keytab would be used by HiveServer2 when Kerberos security is enabled and HTTP transport mode is used.
       </description>
@@ -508,7 +508,7 @@ limitations under the License.
 
   <property>
       <name>hive.server2.authentication.spnego.keytab</name>
-      <value>HTTP/_HOST@EXAMPLE.COM</value>
+      <value>/etc/security/keytabs/spnego.service.keytab</value>
       <description>
           The SPNEGO service principal would be used by HiveServer2 when Kerberos security is enabled and HTTP transport mode is used.
       </description>
