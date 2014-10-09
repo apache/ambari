@@ -321,19 +321,12 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
   private Validation validateHDFSAccess(final Map<String, String> hadoopConfigs, AmbariServiceInfo hdfsServiceInfo) {
     if (hdfsServiceInfo != null && hdfsServiceInfo.isStarted()) {
       if (hadoopConfigs.containsKey("fs.defaultFS")) {
-        final String fsPath = hadoopConfigs.get("fs.defaultFS");
         try {
           invokeHDFSClientRunnable(new HDFSClientRunnable<Boolean>() {
             @Override
-            public Boolean run() throws IOException, InterruptedException {
-              HdfsConfiguration hdfsConfiguration = new HdfsConfiguration();
-              for (Entry<String, String> entry : hadoopConfigs.entrySet()) {
-                hdfsConfiguration.set(entry.getKey(), entry.getValue());
-              }
-              FileSystem fs = FileSystem.get(URI.create(fsPath), hdfsConfiguration, getUserToRunAs(hadoopConfigs));
+            public Boolean run(FileSystem fs) throws IOException, InterruptedException {
               Path homePath = fs.getHomeDirectory();
               fs.listFiles(homePath, false);
-              fs.close();
               return Boolean.TRUE;
             }
           }, hadoopConfigs);
@@ -376,7 +369,7 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
   }
 
   private static interface HDFSClientRunnable<T> {
-    public T run() throws IOException, InterruptedException;
+    public T run(FileSystem fs) throws IOException, InterruptedException;
   }
 
   private String getUserToRunAs() {
@@ -397,26 +390,44 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
     }
   }
 
-  private <T> T invokeHDFSClientRunnable(final HDFSClientRunnable<T> runnable, Map<String, String> hadoopConfigs)
-      throws IOException, InterruptedException {
+  private <T> T invokeHDFSClientRunnable(final HDFSClientRunnable<T> runnable, final Map<String, String> hadoopConfigs) throws IOException,
+      InterruptedException {
     ClassLoader currentClassLoader = Thread.currentThread().getContextClassLoader();
     Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
     try {
       boolean securityEnabled = Boolean.valueOf(hadoopConfigs.get("security_enabled"));
+      final HdfsConfiguration hdfsConfiguration = new HdfsConfiguration();
+      for (Entry<String, String> entry : hadoopConfigs.entrySet()) {
+        hdfsConfiguration.set(entry.getKey(), entry.getValue());
+      }
+      UserGroupInformation.setConfiguration(hdfsConfiguration);
       UserGroupInformation sliderUser;
+      String loggedInUser = getUserToRunAs(hadoopConfigs);
       if (securityEnabled) {
         String viewPrincipal = getViewParameterValue(PARAM_VIEW_PRINCIPAL);
         String viewPrincipalKeytab = getViewParameterValue(PARAM_VIEW_PRINCIPAL_KEYTAB);
         UserGroupInformation ambariUser = UserGroupInformation.loginUserFromKeytabAndReturnUGI(viewPrincipal, viewPrincipalKeytab);
-        sliderUser = UserGroupInformation.createProxyUser(getUserToRunAs(), ambariUser);
+        if (loggedInUser.equals(ambariUser.getShortUserName())) {
+          // HDFS throws exception when caller tries to impresonate themselves.
+          // User: admin@EXAMPLE.COM is not allowed to impersonate admin
+          sliderUser = ambariUser;
+        } else {
+          sliderUser = UserGroupInformation.createProxyUser(loggedInUser, ambariUser);
+        }
       } else {
-        sliderUser = UserGroupInformation.getBestUGI(null, getUserToRunAs());
+        sliderUser = UserGroupInformation.getBestUGI(null, loggedInUser);
       }
       try {
         T value = sliderUser.doAs(new PrivilegedExceptionAction<T>() {
           @Override
           public T run() throws Exception {
-            return runnable.run();
+            String fsPath = hadoopConfigs.get("fs.defaultFS");
+            FileSystem fs = FileSystem.get(URI.create(fsPath), hdfsConfiguration);
+            try {
+              return runnable.run(fs);
+            } finally {
+              fs.close();
+            }
           }
         });
         return value;
@@ -432,15 +443,23 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
     ClassLoader currentClassLoader = Thread.currentThread().getContextClassLoader();
     Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
     try {
-      boolean securityEnabled = Boolean.valueOf(getHadoopConfigs().get(PROPERTY_SLIDER_SECURITY_ENABLED));
+      boolean securityEnabled = Boolean.valueOf(getHadoopConfigs().get("security_enabled"));
+      UserGroupInformation.setConfiguration(getSliderClientConfiguration());
       UserGroupInformation sliderUser;
+      String loggedInUser = getUserToRunAs();
       if (securityEnabled) {
         String viewPrincipal = getViewParameterValue(PARAM_VIEW_PRINCIPAL);
         String viewPrincipalKeytab = getViewParameterValue(PARAM_VIEW_PRINCIPAL_KEYTAB);
         UserGroupInformation ambariUser = UserGroupInformation.loginUserFromKeytabAndReturnUGI(viewPrincipal, viewPrincipalKeytab);
-        sliderUser = UserGroupInformation.createProxyUser(getUserToRunAs(), ambariUser);
+        if (loggedInUser.equals(ambariUser.getShortUserName())) {
+          // HDFS throws exception when caller tries to impresonate themselves.
+          // User: admin@EXAMPLE.COM is not allowed to impersonate admin
+          sliderUser = ambariUser;
+        } else {
+          sliderUser = UserGroupInformation.createProxyUser(loggedInUser, ambariUser);
+        }
       } else {
-        sliderUser = UserGroupInformation.getBestUGI(null, getUserToRunAs());
+        sliderUser = UserGroupInformation.getBestUGI(null, loggedInUser);
       }
       try {
         T value = sliderUser.doAs(new PrivilegedExceptionAction<T>() {
