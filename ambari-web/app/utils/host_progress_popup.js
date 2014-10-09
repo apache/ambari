@@ -322,7 +322,7 @@ App.HostPopup = Em.Object.create({
   setBackgroundOperationHeader: function (isServiceListHidden) {
     if (this.get('isBackgroundOperations') && !isServiceListHidden) {
       var numRunning =  App.router.get('backgroundOperationsController.allOperationsCount');
-      this.set("popupHeaderName", numRunning + Em.I18n.t('hostPopup.header.postFix'));
+      this.set("popupHeaderName", numRunning + Em.I18n.t('hostPopup.header.postFix').format(numRunning == 1 ? "" : "s"));
     }
   },
 

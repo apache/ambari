@@ -38,7 +38,7 @@ App.WizardStep0Controller = Em.Controller.extend({
       this.set('clusterNameError', Em.I18n.t('installer.step0.clusterName.error.required'));
       return true;
     } else if (/\s/.test(clusterName)) {
-      this.set('clusterNameError', Em.I18n.t('installer.step0.clusterName.error.whitespaces'));
+      this.set('clusterNameError', Em.I18n.t('installer.step0.clusterName.error.whitespace'));
       return true;
     } else if (/[^\w\s]/gi.test(clusterName)) {
       this.set('clusterNameError', Em.I18n.t('installer.step0.clusterName.error.specialChar'));

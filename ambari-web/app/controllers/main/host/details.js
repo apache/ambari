@@ -944,7 +944,7 @@ App.MainHostDetailsController = Em.Controller.extend({
     return App.ModalPopup.show({
       header: Em.I18n.t('common.warning'),
       message: function () {
-        return Em.I18n.t('hostPopup.reccomendation.beforeDecommission').format(App.format.components["HBASE_REGIONSERVER"]);
+        return Em.I18n.t('hostPopup.recommendation.beforeDecommission').format(App.format.components["HBASE_REGIONSERVER"]);
       }.property(),
       bodyClass: Ember.View.extend({
         template: Em.Handlebars.compile('<div class="alert alert-warning">{{message}}</div>')

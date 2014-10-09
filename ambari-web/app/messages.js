@@ -257,7 +257,7 @@ Em.I18n.translations = {
   'hostPopup.status.category.success':'Success ({0})',
   'hostPopup.status.category.aborted':'Aborted ({0})',
   'hostPopup.status.category.timedout':'Timedout ({0})',
-  'hostPopup.header.postFix':' Background Operations Running',
+  'hostPopup.header.postFix':' Background Operation{0} Running',
   'hostPopup.serviceInfo.showMore':'Show more...',
   'hostPopup.bgop.abortRequest.title': 'Abort operation',
   'hostPopup.bgop.abortRequest.confirmation.body': 'Are you sure you want to abort \'{0}\' operation?',
@@ -268,7 +268,7 @@ Em.I18n.translations = {
   'hostPopup.bgop.sourceRequestSchedule.aborted': 'Future operations of this batch request have been aborted',
   'hostPopup.bgop.abort.rollingRestart': 'Abort Rolling Restart',
   'hostPopup.warning.alertsTimeOut': 'Maintenance Mode has been turned {0}. It may take a few minutes for the alerts to be {1}.',
-  'hostPopup.reccomendation.beforeDecommission': '{0} Maintenance Mode is pre required for decommissioning.',
+  'hostPopup.recommendation.beforeDecommission': '{0} Maintenance Mode is pre required for decommissioning.',
 
   'question.sure':'Are you sure?',
 
@@ -300,8 +300,8 @@ Em.I18n.translations = {
   'graphs.timeRange.year': 'Last 1 year',
 
   'users.userName.validationFail': 'Only lowercase letters and numbers are recommended; must start with a letter',
-  'host.spacesValidation': 'Can\'t contain whitespaces',
-  'host.trimspacesValidation': 'Can\'t contain leading or trailing whitespaces',
+  'host.spacesValidation': 'Cannot contain whitespace',
+  'host.trimspacesValidation': 'Cannot contain leading or trailing whitespace',
 
   'services.hdfs.rebalance.title' : 'HDFS Rebalance',
   'services.nagios.description':'Nagios Monitoring and Alerting system',
@@ -375,12 +375,12 @@ Em.I18n.translations = {
 
   'installer.step0.header':'Get Started',
   'installer.step0.body.header':'Get Started',
-  'installer.step0.body':'This wizard will walk you through the cluster installation process.  Let\'s start by naming your new cluster.',
+  'installer.step0.body':'This wizard will walk you through the cluster installation process.  First, start by naming your new cluster.',
   'installer.step0.clusterName':'Name your cluster',
   'installer.step0.clusterName.tooltip.title':'Cluster Name',
   'installer.step0.clusterName.tooltip.content':'Enter a unique cluster name.',
   'installer.step0.clusterName.error.required':'Cluster Name is required',
-  'installer.step0.clusterName.error.whitespaces':'Cluster Name cannot contain white spaces',
+  'installer.step0.clusterName.error.whitespace':'Cluster Name cannot contain whitespace',
   'installer.step0.clusterName.error.specialChar':'Cluster Name cannot contain special characters',
 
   'installer.step1.header':'Select Stack',
@@ -499,7 +499,7 @@ Em.I18n.translations = {
   'installer.step3.hostWarningsPopup.jdk.message':'The following registered hosts have issues related to JDK',
   'installer.step3.hostWarningsPopup.repositories':'Repository Issues',
   'installer.step3.hostWarningsPopup.repositories.name':'Repository for OS not available',
-  'installer.step3.hostWarningsPopup.repositories.context':'Host ({0}) is {1} OS type, but the repositories chosen in "Select Stack" step was {2}. Selected repositories dont support such host OS type.',
+  'installer.step3.hostWarningsPopup.repositories.context':'Host ({0}) is {1} OS type, but the repositories chosen in "Select Stack" step was {2}. Selected repositories do not support this host OS type.',
   'installer.step3.hostWarningsPopup.repositories.message': 'The following registered hosts have different Operating System types from the available Repositories chosen in "Select Stack" step. You can go back to "Select Stack" step to select another OS repository <b>or</b> remove the host.',
   'installer.step3.hostWarningsPopup.disk':'Disk Issues',
   'installer.step3.hostWarningsPopup.disk.name':'Not enough disk space ',
@@ -1104,7 +1104,7 @@ Em.I18n.translations = {
   'admin.security.applying.config.body':'You cannot quit wizard while configurations are being applied',
   'admin.security.status.error' : 'Error in retrieving cluster security status from Ambari server',
   'admin.users.ldapAuthUsed':'LDAP Authentication is being used to authenticate users',
-  'admin.users.delete.yourself.message':'You can\'t delete yourself',
+  'admin.users.delete.yourself.message':'You cannot delete yourself',
   'admin.users.delete.yourself.header':'Deleting warning',
 
   'admin.users.delete.header':'Delete {0}',
