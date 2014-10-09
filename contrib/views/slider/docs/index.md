@@ -45,6 +45,14 @@ Change file permissions so that only necessary users can access it.
 chmod 440 /etc/security/keytabs/view-principal.headless.keytab
 ```
 
+If the view is hosted by *ambari-server*, its Kerberos identity can be set by running the below command.
+
+```
+ambari-server setup-security
+```
+During *setup-security* the `view-principal` user should be provided along with the keytab. These same values will be provided as view parameters in *Step-4*.
+
+
 #### Step-3: Configure *proxyuser* for created principal
 Add the following configurations in *Custom core-site* section of *HDFS* service.
 
@@ -71,7 +79,5 @@ Restart HDFS and YARN services.
 From *Ambari-Admin* create a *Slider Apps View* with the below parameters populated
 
 * slider.security.enabled = true
-* yarn.rm.kerberos.principal = `rm/_HOST@EXAMPLE.COM`
-* dfs.namenode.kerberos.principal = `nn/_HOST@EXAMPLE.COM`
 * view.kerberos.principal = `view-principal`
 * view.kerberos.principal.keytab = `/etc/security/keytabs/view-principal.headless.keytab`
