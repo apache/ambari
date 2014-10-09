@@ -31,18 +31,18 @@ rpm_version = default("/configurations/cluster-env/rpm_version", None)
 
 #hadoop params
 if rpm_version:
-  hadoop_bin_dir = "/usr/hdp/current/hadoop/bin"
-  hadoop_lib_home = "/usr/hdp/current/hadoop/lib"
-  oozie_lib_dir = "/usr/hdp/current/oozie/"
-  oozie_setup_sh = "/usr/hdp/current/oozie/bin/oozie-setup.sh"
-  oozie_webapps_dir = "/usr/hdp/current/oozie/oozie-server/webapps"
-  oozie_webapps_conf_dir = "/usr/hdp/current/oozie/oozie-server/conf"
-  oozie_libext_dir = "/usr/hdp/current/oozie/libext"
-  oozie_server_dir = "/usr/hdp/current/oozie/oozie-server"
-  oozie_shared_lib = "/usr/hdp/current/oozie/share"
-  oozie_home = "/usr/hdp/current/oozie"
-  oozie_bin_dir = "/usr/hdp/current/oozie/bin"
-  falcon_home = '/usr/hdp/current/falcon'
+  hadoop_bin_dir = "/usr/hdp/current/hadoop-client/bin"
+  hadoop_lib_home = "/usr/hdp/current/hadoop-client/lib"
+  oozie_lib_dir = "/usr/hdp/current/oozie-client/"
+  oozie_setup_sh = "/usr/hdp/current/oozie-client/bin/oozie-setup.sh"
+  oozie_webapps_dir = "/usr/hdp/current/oozie-client/oozie-server/webapps"
+  oozie_webapps_conf_dir = "/usr/hdp/current/oozie-client/oozie-server/conf"
+  oozie_libext_dir = "/usr/hdp/current/oozie-client/libext"
+  oozie_server_dir = "/usr/hdp/current/oozie-client/oozie-server"
+  oozie_shared_lib = "/usr/hdp/current/oozie-client/share"
+  oozie_home = "/usr/hdp/current/oozie-client"
+  oozie_bin_dir = "/usr/hdp/current/oozie-client/bin"
+  falcon_home = '/usr/hdp/current/falcon-client'
 else:
   hadoop_bin_dir = "/usr/bin"
   hadoop_lib_home = "/usr/lib/hadoop/lib"

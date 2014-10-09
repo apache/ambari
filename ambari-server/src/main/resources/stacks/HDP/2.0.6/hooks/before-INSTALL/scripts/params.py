@@ -25,6 +25,9 @@ import collections
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 
+#RPM versioning support
+rpm_version = default("/configurations/cluster-env/rpm_version", None)
+
 #users and groups
 hbase_user = config['configurations']['hbase-env']['hbase_user']
 nagios_user = config['configurations']['nagios-env']['nagios_user']

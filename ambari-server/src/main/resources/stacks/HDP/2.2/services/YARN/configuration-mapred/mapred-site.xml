@@ -24,7 +24,7 @@
 
   <property>
     <name>mapreduce.admin.user.env</name>
-    <value>LD_LIBRARY_PATH=/usr/lib/hadoop/lib/native:/usr/hdp/current/hadoop/lib/native/Linux-amd64-64</value>
+    <value>LD_LIBRARY_PATH=/usr/lib/hadoop/lib/native:/usr/hdp/current/hadoop-client/lib/native/Linux-amd64-64</value>
     <description>
       Additional execution environment entries for map and reduce task processes.
       This is not an additive property. You must preserve the original value if
@@ -34,7 +34,7 @@
 
   <property>
     <name>mapreduce.application.classpath</name>
-    <value>$HADOOP_MAPRED_HOME/share/hadoop/mapreduce/*,$HADOOP_MAPRED_HOME/share/hadoop/mapreduce/lib/*,/usr/hdp/current/hadoop-mapreduce/,/usr/hdp/current/hadoop-mapreduce/lib,/usr/hdp/current/hadoop/</value>
+    <value>$HADOOP_MAPRED_HOME/share/hadoop/mapreduce/*,$HADOOP_MAPRED_HOME/share/hadoop/mapreduce/lib/*,/usr/hdp/current/hadoop-mapreduce-client/,/usr/hdp/current/hadoop-mapreduce-client/lib,/usr/hdp/current/hadoop-client/</value>
     <description>
       CLASSPATH for MR applications. A comma-separated list of CLASSPATH
       entries.

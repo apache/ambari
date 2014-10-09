@@ -28,7 +28,7 @@ rpm_version = default("/configurations/cluster-env/rpm_version", None)
 
 #hadoop params
 if rpm_version:
-  slider_bin_dir = '/usr/hdp/current/slider/bin'
+  slider_bin_dir = '/usr/hdp/current/slider-client/bin'
 else:
   slider_bin_dir = "/usr/lib/slider/bin"
 

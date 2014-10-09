@@ -27,7 +27,8 @@ def sqoop(type=None):
   ) 
   Directory(params.sqoop_conf_dir,
             owner = params.sqoop_user,
-            group = params.user_group
+            group = params.user_group,
+            recursive = True
   )
   
   File(format("{sqoop_conf_dir}/sqoop-env.sh"),

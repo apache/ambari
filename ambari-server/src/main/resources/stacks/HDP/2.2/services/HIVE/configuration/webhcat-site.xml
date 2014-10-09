@@ -31,21 +31,21 @@ limitations under the License.
 
   <property>
     <name>templeton.libjars</name>
-    <value>/usr/hdp/current/zookeeper/zookeeper.jar</value>
+    <value>/usr/hdp/current/zookeeper-client/zookeeper.jar</value>
     <description>Jars to add the the classpath.</description>
   </property>
 
 
   <property>
     <name>templeton.hadoop</name>
-    <value>/usr/hdp/current/hadoop/bin/hadoop</value>
+    <value>/usr/hdp/current/hadoop-client/bin/hadoop</value>
     <description>The path to the Hadoop executable.</description>
   </property>
 
 
   <property>
     <name>templeton.hcat</name>
-    <value>/usr/hdp/current/hive/bin/hcat</value>
+    <value>/usr/hdp/current/hive-client/bin/hcat</value>
     <description>The path to the hcatalog executable.</description>
   </property>
 

@@ -80,7 +80,7 @@ fi
 
 export OOZIE_EXAMPLES_DIR=`$LIST_PACKAGE_FILES_CMD oozie-client | grep 'oozie-examples.tar.gz$' | xargs dirname`
 if [[ -z "$OOZIE_EXAMPLES_DIR" ]] ; then
-  export OOZIE_EXAMPLES_DIR='/usr/hdp/current/oozie/doc/'
+  export OOZIE_EXAMPLES_DIR='/usr/hdp/current/oozie-client/doc/'
 fi
 cd $OOZIE_EXAMPLES_DIR
 

@@ -56,4 +56,8 @@ def setup_java():
   )
 
 def install_packages():
-  Package(['unzip', 'curl'])
+  import params
+  packages = ['unzip', 'curl']
+  if params.rpm_version:
+    packages.append('hdp-select')
+  Package(packages)

@@ -26,16 +26,18 @@ rpm_version = default("/configurations/cluster-env/rpm_version", None)
 
 #hadoop params
 if rpm_version:
-  sqoop_conf_dir = '/usr/hdp/current/etc/sqoop/conf'
-  sqoop_lib = '/usr/hdp/current/sqoop/lib'
-  hbase_home = '/usr/hdp/current/hbase'
-  hive_home = '/usr/hdp/current/hive'
-  sqoop_bin_dir = '/usr/hdp/current/sqoop/bin/'
+  sqoop_conf_dir = '/etc/sqoop/conf'
+  sqoop_lib = '/usr/hdp/current/sqoop-client/lib'
+  hadoop_home = '/usr/hdp/current/hbase-client'
+  hbase_home = '/usr/hdp/current/hbase-client'
+  hive_home = '/usr/hdp/current/hive-client'
+  sqoop_bin_dir = '/usr/hdp/current/sqoop-client/bin/'
 else:
   sqoop_conf_dir = "/usr/lib/sqoop/conf"
   sqoop_lib = "/usr/lib/sqoop/lib"
-  hbase_home = "/usr"
-  hive_home = "/usr"
+  hadoop_home = '/usr/lib/hadoop'
+  hbase_home = "/usr/lib/hbase"
+  hive_home = "/usr/lib/hive"
   sqoop_bin_dir = "/usr/bin"
 
 zoo_conf_dir = "/etc/zookeeper"

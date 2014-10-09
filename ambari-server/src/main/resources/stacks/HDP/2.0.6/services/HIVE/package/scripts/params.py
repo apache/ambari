@@ -33,20 +33,20 @@ hdp_stack_version = config['hostLevelParams']['stack_version']
 
 #hadoop params
 if rpm_version:
-  hadoop_bin_dir = "/usr/hdp/current/hadoop/bin"
-  hadoop_home = '/usr/hdp/current/hadoop'
-  hadoop_streeming_jars = "/usr/hdp/current/hadoop-mapreduce/hadoop-streaming-*.jar"
-  hive_bin = '/usr/hdp/current/hive/bin'
-  hive_lib = '/usr/hdp/current/hive/lib'
-  tez_local_api_jars = '/usr/hdp/current/tez/tez*.jar'
-  tez_local_lib_jars = '/usr/hdp/current/tez/lib/*.jar'
-  tez_tar_file = "/usr/hdp/current/tez/lib/tez*.tar.gz"
-  pig_tar_file = '/usr/hdp/current/pig/pig.tar.gz'
-  hive_tar_file = '/usr/hdp/current/hive/hive.tar.gz'
-  sqoop_tar_file = '/usr/hdp/current/sqoop/sqoop*.tar.gz'
+  hadoop_bin_dir = "/usr/hdp/current/hadoop-client/bin"
+  hadoop_home = '/usr/hdp/current/hadoop-client'
+  hadoop_streeming_jars = "/usr/hdp/current/hadoop-mapreduce-client/hadoop-streaming-*.jar"
+  hive_bin = '/usr/hdp/current/hive-client/bin'
+  hive_lib = '/usr/hdp/current/hive-client/lib'
+  tez_local_api_jars = '/usr/hdp/current/tez-client/tez*.jar'
+  tez_local_lib_jars = '/usr/hdp/current/tez-client/lib/*.jar'
+  tez_tar_file = "/usr/hdp/current/tez-client/lib/tez*.tar.gz"
+  pig_tar_file = '/usr/hdp/current/pig-client/pig.tar.gz'
+  hive_tar_file = '/usr/hdp/current/hive-client/hive.tar.gz'
+  sqoop_tar_file = '/usr/hdp/current/sqoop-client/sqoop*.tar.gz'
 
-  hcat_lib = '/usr/hdp/current/hive/hive-hcatalog/share/hcatalog'
-  webhcat_bin_dir = '/usr/hdp/current/hive-hcatalog/sbin'
+  hcat_lib = '/usr/hdp/current/hive-webhcat/share/hcatalog'
+  webhcat_bin_dir = '/usr/hdp/current/hive-webhcat/sbin'
 
 else:
   hadoop_bin_dir = "/usr/bin"
