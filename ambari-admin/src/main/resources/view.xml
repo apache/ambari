@@ -21,7 +21,7 @@ limitations under the License. Kerberos, LDAP, Custom. Binary/Htt
   <system>true</system>
   <instance>
     <name>INSTANCE</name>
-    <visible>false</visible>
     <description>This view provides administration capabilities for Ambari</description>
+    <visible>false</visible>
   </instance>
 </view>

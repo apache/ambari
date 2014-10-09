@@ -38,12 +38,13 @@
         <!-- <hidden>true</hidden> -->
     </parameter>
 
+    <resource>
+      <name>scheduler</name>
+      <service-class>org.apache.ambari.view.capacityscheduler.CapacitySchedulerService</service-class>
+    </resource>
+
     <instance>
         <name>Scheduler</name>
     </instance>
 
-    <resource>
-        <name>scheduler</name>
-        <service-class>org.apache.ambari.view.capacityscheduler.CapacitySchedulerService</service-class>
-    </resource>
 </view>

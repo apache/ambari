@@ -46,14 +46,14 @@ limitations under the License. Kerberos, LDAP, Custom. Binary/Htt
 		<description>Kerberos principal associated with this view. For
 			example: ambari/_HOST@EXAMPLE.COM
 		</description>
-		<required>optional</required>
+		<required>false</required>
 	</parameter>
 	<parameter>
 		<name>view.kerberos.principal.keytab</name>
 		<description>Path to the Kerberos principal keytab used for view's
 			user. For example: /etc/security/keytabs/ambari.headless.keytab
 		</description>
-		<required>optional</required>
+		<required>false</required>
 	</parameter>
   <resource>
     <name>status</name>
