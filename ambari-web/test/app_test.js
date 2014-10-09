@@ -145,10 +145,10 @@ describe('App', function () {
         result: '1.3.1'
       }
     ];
-    before(function() {
+    before(function () {
       App.set('defaultStackVersion', '');
     });
-    after(function() {
+    after(function () {
       App.set('defaultStackVersion', 'HDP-2.0.5');
     });
     testCases.forEach(function (test) {
@@ -161,13 +161,13 @@ describe('App', function () {
   });
 
   describe('#isHadoop2Stack', function () {
-    before(function() {
+    before(function () {
       App.set('defaultStackVersion', '');
     });
-    after(function() {
+    after(function () {
       App.set('defaultStackVersion', 'HDP-2.0.5');
     });
-    var testCases = [
+    var testCasesWithoutHDFSDefined = [
       {
         title: 'if currentStackVersion is empty then isHadoop2Stack should be false',
         currentStackVersion: '',
@@ -190,12 +190,31 @@ describe('App', function () {
       }
     ];
 
-    testCases.forEach(function (test) {
+    testCasesWithoutHDFSDefined.forEach(function (test) {
       it(test.title, function () {
         App.set('currentStackVersion', test.currentStackVersion);
         expect(App.get('isHadoop2Stack')).to.equal(test.result);
         App.set('currentStackVersion', "HDP-1.2.2");
       });
+    });
+
+
+    it('HDFS service version should get priority when defined', function () {
+      var stackServices = [
+        Em.Object.create({
+          serviceName: 'HDFS',
+          serviceVersion: '2.1'
+        })
+      ];
+      sinon.stub(App.StackService, 'find', function () {
+        return stackServices;
+      });
+      App.set('currentStackVersion', '0.8');
+      App.set('isStackServicesLoaded', true);
+      expect(App.get('isHadoop2Stack')).to.equal(true);
+      App.set('isStackServicesLoaded', false);
+      App.set('currentStackVersion', "HDP-1.2.2");
+      App.StackService.find.restore();
     });
   });
 
@@ -203,10 +222,12 @@ describe('App', function () {
 
     beforeEach(function () {
       sinon.stub(App.Service, 'find', function () {
-        return [{
-          id : 'HDFS',
-          serviceName: 'HDFS'
-        }];
+        return [
+          {
+            id: 'HDFS',
+            serviceName: 'HDFS'
+          }
+        ];
       });
     });
 
@@ -239,10 +260,12 @@ describe('App', function () {
 
     beforeEach(function () {
       sinon.stub(App.Service, 'find', function () {
-        return [{
-          id : 'ZOOKEEPER',
-          serviceName: 'ZOOKEEPER'
-        }];
+        return [
+          {
+            id: 'ZOOKEEPER',
+            serviceName: 'ZOOKEEPER'
+          }
+        ];
       });
     });
 

@@ -37,6 +37,8 @@ module.exports = Em.Application.create({
   isManager: function() {
     return this.get('isAdmin') || this.get('isOperator');
   }.property('isAdmin','isOperator'),
+
+  isStackServicesLoaded: false,
   /**
    * return url prefix with number value of version of HDP stack
    */
@@ -80,8 +82,15 @@ module.exports = Em.Application.create({
   }.property('currentStackVersion', 'currentStackName'),
 
   isHadoop2Stack: function () {
-    return (stringUtils.compareVersions(this.get('currentStackVersionNumber'), "2.0") > -1);
-  }.property('currentStackVersionNumber'),
+    var result = true;
+    var hdfsService = App.StackService.find().findProperty('serviceName','HDFS');
+    if (hdfsService) {
+      result = stringUtils.compareVersions(hdfsService.get('serviceVersion'), "2.0") > -1;
+    } else {
+      result = stringUtils.compareVersions(this.get('currentStackVersionNumber'), "2.0") > -1;
+    }
+    return result;
+  }.property('router.clusterController.isLoaded', 'isStackServicesLoaded','currentStackVersionNumber'),
 
   isHadoop22Stack: function () {
     return (stringUtils.compareVersions(this.get('currentStackVersionNumber'), "2.2") > -1);
