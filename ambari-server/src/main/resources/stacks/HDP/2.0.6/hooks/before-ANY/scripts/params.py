@@ -39,9 +39,11 @@ rpm_version = default("/configurations/cluster-env/rpm_version", None)
 if rpm_version:
   mapreduce_libs_path = "/usr/hdp/current/hadoop-mapreduce/*"
   hadoop_libexec_dir = "/usr/hdp/current/hadoop/libexec"
+  hadoop_home = "/usr/hdp/current/hadoop"
 else:
   mapreduce_libs_path = "/usr/lib/hadoop-mapreduce/*"
   hadoop_libexec_dir = "/usr/lib/hadoop/libexec"
+  hadoop_home = "/usr/lib/hadoop"
 
 hadoop_conf_dir = "/etc/hadoop/conf"
 hadoop_conf_empty_dir = "/etc/hadoop/conf.empty"
