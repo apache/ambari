@@ -26,8 +26,9 @@ import java.util.Set;
 @Table(name = "users", uniqueConstraints = {@UniqueConstraint(columnNames = {"user_name", "ldap_user"})})
 @Entity
 @NamedQueries({
-    @NamedQuery(name = "localUserByName", query = "SELECT user FROM UserEntity user where lower(user.userName)=:username AND user.ldapUser=false"),
-    @NamedQuery(name = "ldapUserByName", query = "SELECT user FROM UserEntity user where lower(user.userName)=:username AND user.ldapUser=true")
+    @NamedQuery(name = "userByName", query = "SELECT user_entity from UserEntity user_entity where lower(user_entity.userName)=:username"),
+    @NamedQuery(name = "localUserByName", query = "SELECT user_entity FROM UserEntity user_entity where lower(user_entity.userName)=:username AND user_entity.ldapUser=false"),
+    @NamedQuery(name = "ldapUserByName", query = "SELECT user_entity FROM UserEntity user_entity where lower(user_entity.userName)=:username AND user_entity.ldapUser=true")
 })
 @TableGenerator(name = "user_id_generator",
     table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value"

@@ -486,7 +486,7 @@ public class AmbariServer {
    * Creates default users if in-memory database is used
    */
   @Transactional
-  protected void initDB() {
+  protected void initDB() throws AmbariException {
     if (configs.getPersistenceType() == PersistenceType.IN_MEMORY || dbInitNeeded) {
       LOG.info("Database init needed - creating default data");
       Users users = injector.getInstance(Users.class);
