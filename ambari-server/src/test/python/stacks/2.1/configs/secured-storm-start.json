@@ -209,7 +209,8 @@
             "dfs.datanode.data.dir.perm": "750", 
             "dfs.namenode.name.dir.restore": "true", 
             "dfs.replication.max": "50", 
-            "dfs.namenode.checkpoint.period": "21600"
+            "dfs.namenode.checkpoint.period": "21600",
+            "dfs.http.policy": "HTTP_ONLY"
         }, 
         "storm-env": {
             "storm_log_dir": "/var/log/storm", 
@@ -226,7 +227,6 @@
         "core-site": {
             "io.serializations": "org.apache.hadoop.io.serializer.WritableSerialization", 
             "fs.trash.interval": "360", 
-            "dfs.http.policy": "HTTP_ONLY", 
             "hadoop.security.authentication": "kerberos", 
             "io.compression.codecs": "org.apache.hadoop.io.compress.GzipCodec,org.apache.hadoop.io.compress.DefaultCodec", 
             "hadoop.proxyuser.falcon.hosts": "*", 

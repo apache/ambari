@@ -308,11 +308,12 @@ App.QuickViewLinks = Em.View.extend({
   setProtocol: function (service_id, configProperties, ambariProperties) {
     var hadoopSslEnabled = false;
     if (configProperties && configProperties.length > 0) {
-      var site = configProperties.findProperty('type', 'core-site');
+      var coreSite = configProperties.findProperty('type', 'core-site');
+      var hdfsSite = configProperties.findProperty('type', 'hdfs-site');
       if (App.get('isHadoop2Stack')) {
-        hadoopSslEnabled = (Em.get(site, 'properties') && site.properties['dfs.http.policy'] === 'HTTPS_ONLY');
+        hadoopSslEnabled = (Em.get(hdfsSite, 'properties') && hdfsSite.properties['dfs.http.policy'] === 'HTTPS_ONLY');
       } else {
-        hadoopSslEnabled = (Em.get(site, 'properties') &&  site.properties['hadoop.ssl.enabled'] == true);
+        hadoopSslEnabled = (Em.get(coreSite, 'properties') && coreSite.properties['hadoop.ssl.enabled'] == true);
       }
     }
     switch (service_id) {

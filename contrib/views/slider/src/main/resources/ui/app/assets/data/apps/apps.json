@@ -1108,7 +1108,6 @@
           "container_1411422858327_0005_01_000006.app.monitor" : "mop-3.c.pramod-thangali.internal:43240/master-status"
         },
         "core-site" : {
-          "dfs.http.policy" : "HTTP_ONLY",
           "fs.defaultFS" : "hdfs://mop-5.c.pramod-thangali.internal:8020",
           "fs.trash.interval" : "360",
           "hadoop.proxyuser.falcon.groups" : "users",
@@ -1224,7 +1223,8 @@
           "dfs.web.authentication.kerberos.keytab" : "/etc/security/keytabs/spnego.service.keytab",
           "dfs.web.authentication.kerberos.principal" : "HTTP/_HOST@EXAMPLE.COM",
           "dfs.webhdfs.enabled" : "true",
-          "fs.permissions.umask-mode" : "022"
+          "fs.permissions.umask-mode" : "022",
+          "dfs.http.policy" : "HTTP_ONLY"
         },
         "logfolders" : {
           "HBASE_MASTER->mop-3.c.pramod-thangali.internal->AGENT_LOG_ROOT->container_1411422858327_0005_01_000006" : "/hadoop/yarn/log/application_1411422858327_0005/container_1411422858327_0005_01_000006",

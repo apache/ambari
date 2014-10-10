@@ -163,14 +163,4 @@ RULE[2:$1%$2@$0](.%admin@APACHE.ORG)s/./admin/
 DEFAULT
     </description>
   </property>
-
-  <property>
-    <name>dfs.http.policy</name>
-    <value>HTTP_ONLY</value>
-    <description>
-      Decide if HTTPS(SSL) is supported on HDFS This configures the HTTP endpoint for HDFS daemons:
-      The following values are supported: - HTTP_ONLY : Service is provided only on http - HTTPS_ONLY :
-      Service is provided only on https - HTTP_AND_HTTPS : Service is provided both on http and https
-    </description>
-  </property>
 </configuration>
