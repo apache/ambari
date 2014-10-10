@@ -18,12 +18,20 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('CreateViewInstanceCtrl',['$scope', 'View', 'Alert', '$routeParams', '$location', function($scope, View, Alert, $routeParams, $location) {
+.controller('CreateViewInstanceCtrl',['$scope', 'View', 'Alert', 'Auth', '$routeParams', '$location', function($scope, View, Alert, Auth, $routeParams, $location) {
   $scope.form = {};
 
   function loadMeta(){
     View.getMeta($routeParams.viewId, $scope.version).then(function(data) {
       var viewVersion = data.data;
+      var pattern = /{username}/;
+      viewVersion.ViewVersionInfo.parameters = viewVersion.ViewVersionInfo.parameters.map(function (item) {
+        var parameter = item;
+        if (pattern.test(item.description)) {
+          parameter.description = item.description.replace(pattern, Auth.getCurrentUser());
+        }
+        return parameter;
+      });
       $scope.view = viewVersion;
 
       $scope.instance = {
