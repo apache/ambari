@@ -2671,15 +2671,12 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
         } else {
           controller.set('selectedService.configGroups', managedConfigGroups);
         }
-
-        var selectEventObject = {};
-        //check whether selectedConfigGroup exists
+        //check whether selectedConfigGroup was selected
         if (selectedConfigGroup && controller.get('configGroups').someProperty('name', selectedConfigGroup.get('name'))) {
-          selectEventObject.context = selectedConfigGroup;
+          controller.set('selectedConfigGroup', selectedConfigGroup);
         } else {
-          selectEventObject.context = managedConfigGroups.findProperty('isDefault', true);
+          controller.set('selectedConfigGroup', managedConfigGroups.findProperty('isDefault', true));
         }
-        controller.selectConfigGroup(selectEventObject);
       },
 
       updateButtons: function () {
