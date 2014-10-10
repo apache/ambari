@@ -723,11 +723,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         throw new AmbariException("Username and password must be supplied.");
       }
 
-      User user = users.getAnyUser(request.getUsername());
-      if (null != user) {
-        throw new AmbariException("User already exists.");
-      }
-
       users.createUser(request.getUsername(), request.getPassword(), request.isActive(), request.isAdmin(), false);
     }
   }
@@ -1643,11 +1638,11 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
     String packageList = gson.toJson(packages);
     hostParams.put(PACKAGE_LIST, packageList);
-    
+
     Set<String> userSet = configHelper.getPropertyValuesWithPropertyType(stackId, PropertyType.USER, cluster);
     String userList = gson.toJson(userSet);
     hostParams.put(USER_LIST, userList);
-    
+
     Set<String> groupSet = configHelper.getPropertyValuesWithPropertyType(stackId, PropertyType.GROUP, cluster);
     String groupList = gson.toJson(groupSet);
     hostParams.put(GROUP_LIST, groupList);
@@ -2467,7 +2462,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       }
 
       if (null != request.isActive()) {
-        users.setUserActive(u, request.isActive());
+        users.setUserActive(u.getUserName(), request.isActive());
       }
 
       if (null != request.isAdmin()) {

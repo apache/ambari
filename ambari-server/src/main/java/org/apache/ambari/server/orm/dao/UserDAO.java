@@ -51,8 +51,19 @@ public class UserDAO {
 
   @RequiresSession
   public List<UserEntity> findAll() {
-    TypedQuery<UserEntity> query = entityManagerProvider.get().createQuery("SELECT user FROM UserEntity user", UserEntity.class);
+    TypedQuery<UserEntity> query = entityManagerProvider.get().createQuery("SELECT user_entity FROM UserEntity user_entity", UserEntity.class);
     return daoUtils.selectList(query);
+  }
+
+  @RequiresSession
+  public UserEntity findUserByName(String userName) {
+    TypedQuery<UserEntity> query = entityManagerProvider.get().createNamedQuery("userByName", UserEntity.class);
+    query.setParameter("username", userName.toLowerCase());
+    try {
+      return query.getSingleResult();
+    } catch (NoResultException e) {
+      return null;
+    }
   }
 
   @RequiresSession
@@ -88,7 +99,7 @@ public class UserDAO {
     if (principalList == null || principalList.isEmpty()) {
       return Collections.emptyList();
     }
-    TypedQuery<UserEntity> query = entityManagerProvider.get().createQuery("SELECT user FROM UserEntity user WHERE user.principal IN :principalList", UserEntity.class);
+    TypedQuery<UserEntity> query = entityManagerProvider.get().createQuery("SELECT user_entity FROM UserEntity user_entity WHERE user_entity.principal IN :principalList", UserEntity.class);
     query.setParameter("principalList", principalList);
     return daoUtils.selectList(query);
   }

@@ -92,7 +92,6 @@ public class Users {
   @Inject
   private  AmbariLdapAuthenticationProvider ldapAuthenticationProvider;
 
-
   public List<User> getAllUsers() {
     List<UserEntity> userEntities = userDAO.findAll();
     List<User> users = new ArrayList<User>(userEntities.size());
@@ -104,38 +103,9 @@ public class Users {
     return users;
   }
 
-  public User getUser(int userId) throws AmbariException {
-    UserEntity userEntity = userDAO.findByPK(userId);
-    if (userEntity != null) {
-      return new User(userEntity);
-    } else {
-      throw new AmbariException("User with id '" + userId + " not found");
-    }
-  }
-
   public User getAnyUser(String userName) {
-    UserEntity userEntity = userDAO.findLdapUserByName(userName);
-    if (null == userEntity) {
-      userEntity = userDAO.findLocalUserByName(userName);
-    }
-
+    UserEntity userEntity = userDAO.findUserByName(userName);
     return (null == userEntity) ? null : new User(userEntity);
-  }
-
-  public User getLocalUser(String userName) throws AmbariException{
-    UserEntity userEntity = userDAO.findLocalUserByName(userName);
-    if (userEntity == null) {
-      throw new AmbariException("User doesn't exist");
-    }
-    return new User(userEntity);
-  }
-
-  public User getLdapUser(String userName) throws AmbariException{
-    UserEntity userEntity = userDAO.findLdapUserByName(userName);
-    if (userEntity == null) {
-      throw new AmbariException("User doesn't exist");
-    }
-    return new User(userEntity);
   }
 
   /**
@@ -201,15 +171,17 @@ public class Users {
 
   /**
    * Enables/disables user.
-   * @throws AmbariException
+   *
+   * @param userName user name
+   * @throws AmbariException if user does not exist
    */
-  public synchronized void setUserActive(User user, boolean active) throws AmbariException {
-    UserEntity userEntity = userDAO.findByPK(user.getUserId());
+  public synchronized void setUserActive(String userName, boolean active) throws AmbariException {
+    UserEntity userEntity = userDAO.findUserByName(userName);
     if (userEntity != null) {
       userEntity.setActive(active);
       userDAO.merge(userEntity);
     } else {
-      throw new AmbariException("User " + user + " doesn't exist");
+      throw new AmbariException("User " + userName + " doesn't exist");
     }
   }
 
@@ -220,12 +192,12 @@ public class Users {
    * @throws AmbariException if user does not exist
    */
   public synchronized void setUserLdap(String userName) throws AmbariException {
-    UserEntity userEntity = userDAO.findLocalUserByName(userName);
+    UserEntity userEntity = userDAO.findUserByName(userName);
     if (userEntity != null) {
       userEntity.setLdapUser(true);
       userDAO.merge(userEntity);
     } else {
-      throw new AmbariException("User " + userName + " doesn't exist or is already an LDAP user");
+      throw new AmbariException("User " + userName + " doesn't exist");
     }
   }
 
@@ -247,8 +219,12 @@ public class Users {
 
   /**
    * Creates new local user with provided userName and password.
+   *
+   * @param userName user name
+   * @param password password
+   * @throws AmbariException if user already exists
    */
-  public void createUser(String userName, String password) {
+  public void createUser(String userName, String password) throws AmbariException {
     createUser(userName, password, true, false, false);
   }
 
@@ -260,9 +236,14 @@ public class Users {
    * @param active is user active
    * @param admin is user admin
    * @param ldapUser is user LDAP
+   * @throws AmbariException if user already exists
    */
   @Transactional
-  public synchronized void createUser(String userName, String password, Boolean active, Boolean admin, Boolean ldapUser) {
+  public synchronized void createUser(String userName, String password, Boolean active, Boolean admin, Boolean ldapUser) throws AmbariException {
+
+    if (getAnyUser(userName) != null) {
+      throw new AmbariException("User " + userName + " already exists");
+    }
 
     // create an admin principal to represent this user
     PrincipalTypeEntity principalTypeEntity = principalTypeDAO.findById(PrincipalTypeEntity.USER_PRINCIPAL_TYPE);
@@ -420,6 +401,7 @@ public class Users {
     if (!user.getPrincipal().getPrivileges().contains(adminPrivilege)) {
       privilegeDAO.create(adminPrivilege);
       user.getPrincipal().getPrivileges().add(adminPrivilege);
+      principalDAO.merge(user.getPrincipal()); //explicit merge for Derby support
       userDAO.merge(user);
     }
   }
@@ -434,6 +416,7 @@ public class Users {
     for (PrivilegeEntity privilege: user.getPrincipal().getPrivileges()) {
       if (privilege.getPermission().getPermissionName().equals(PermissionEntity.AMBARI_ADMIN_PERMISSION_NAME)) {
         user.getPrincipal().getPrivileges().remove(privilege);
+        principalDAO.merge(user.getPrincipal()); //explicit merge for Derby support
         userDAO.merge(user);
         privilegeDAO.remove(privilege);
         break;
@@ -450,12 +433,9 @@ public class Users {
       throw new AmbariException("Group " + groupName + " doesn't exist");
     }
 
-    UserEntity userEntity = userDAO.findLocalUserByName(userName);
+    UserEntity userEntity = userDAO.findUserByName(userName);
     if (userEntity == null) {
-      userEntity = userDAO.findLdapUserByName(userName);
-      if (userEntity == null) {
-        throw new AmbariException("User " + userName + " doesn't exist");
-      }
+      throw new AmbariException("User " + userName + " doesn't exist");
     }
 
     if (isUserInGroup(userEntity, groupEntity)) {
@@ -481,12 +461,9 @@ public class Users {
       throw new AmbariException("Group " + groupName + " doesn't exist");
     }
 
-    UserEntity userEntity = userDAO.findLocalUserByName(userName);
+    UserEntity userEntity = userDAO.findUserByName(userName);
     if (userEntity == null) {
-      userEntity = userDAO.findLdapUserByName(userName);
-      if (userEntity == null) {
-        throw new AmbariException("User " + userName + " doesn't exist");
-      }
+      throw new AmbariException("User " + userName + " doesn't exist");
     }
 
     if (isUserInGroup(userEntity, groupEntity)) {
@@ -563,12 +540,9 @@ public class Users {
     // remove users
     final Set<UserEntity> usersToRemove = new HashSet<UserEntity>();
     for (String userName: batchInfo.getUsersToBeRemoved()) {
-      UserEntity userEntity = userDAO.findLocalUserByName(userName);
+      UserEntity userEntity = userDAO.findUserByName(userName);
       if (userEntity == null) {
-        userEntity = userDAO.findLdapUserByName(userName);
-        if (userEntity == null) {
-          continue;
-        }
+        continue;
       }
       allUsers.remove(userEntity.getUserName());
       usersToRemove.add(userEntity);

@@ -640,7 +640,7 @@ public class ViewRegistry {
    */
   public boolean hasPermission(PermissionEntity permissionEntity, ResourceEntity resourceEntity, String userName) {
 
-    UserEntity userEntity = userDAO.findLocalUserByName(userName);
+    UserEntity userEntity = userDAO.findUserByName(userName);
 
     if (userEntity == null) {
       return false;

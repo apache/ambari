@@ -339,7 +339,7 @@ public class AmbariPrivilegeResourceProviderTest {
     expect(clusterDAO.findAll()).andReturn(Collections.<ClusterEntity>emptyList());
     expect(permissionDAO.findPermissionByNameAndType(EasyMock.eq("READ"), EasyMock.<ResourceTypeEntity> anyObject())).andReturn(permissionEntity);
     expect(resourceDAO.findById(EasyMock.anyLong())).andReturn(resourceEntity);
-    expect(userDAO.findLocalUserByName("admin")).andReturn(userEntity);
+    expect(userDAO.findUserByName("admin")).andReturn(userEntity);
     expect(principalDAO.findById(EasyMock.anyLong())).andReturn(principalEntity);
     expect(userEntity.getPrincipal()).andReturn(principalEntity).anyTimes();
     expect(principalEntity.getId()).andReturn(2L).anyTimes();
