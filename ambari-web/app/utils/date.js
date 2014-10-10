@@ -156,7 +156,7 @@ module.exports = {
    * 3500000 secs = 58.33 mins
    *
    * @param {number} time
-   * @param {bool} zeroValid for the case to show 0 when time is 0, not null
+   * @param {bool} [zeroValid] for the case to show 0 when time is 0, not null
    * @return {string|null} formatted date
    * @method timingFormat
    */

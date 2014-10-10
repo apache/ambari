@@ -302,6 +302,20 @@ App.keysUnderscoreToCamelCase = function(object) {
   }
   return tmp;
 };
+
+/**
+ * Convert dotted keys to camelcase
+ *
+ * @param {Object} object
+ * @return {Object}
+ **/
+App.keysDottedToCamelCase = function(object) {
+  var tmp = {};
+  for (var key in object) {
+    tmp[key.split('.').reduce(function(p, c) { return p + c.capitalize()})] = object[key];
+  }
+  return tmp;
+};
 /**
  * Returns object with defined keys only.
  *
