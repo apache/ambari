@@ -425,6 +425,22 @@ module.exports = [
     "serviceName": "HIVE"
   },
   {
+    "name": "hive.server2.authentication.spnego.principal",
+    "templateName": ["hive_metastore_http_principal_name", "kerberos_domain"],
+    "foreignKey": null,
+    "value": "<templateName[0]>@<templateName[1]>",
+    "filename": "hive-site.xml",
+    "serviceName": "HIVE"
+  },
+  {
+    "name": "hive.server2.authentication.spnego.keytab",
+    "templateName": ["hive_metastore_http_keytab"],
+    "foreignKey": null,
+    "value": "<templateName[0]>",
+    "filename": "hive-site.xml",
+    "serviceName": "HIVE"
+  },
+  {
     "name": "oozie.service.AuthorizationService.authorization.enabled",
     "templateName": [],
     "foreignKey": null,

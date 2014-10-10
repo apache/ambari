@@ -829,6 +829,32 @@ var props = {
       "category": "Hive Metastore",
       "component": "HIVE_SERVER"
     },
+    {
+      "id": "puppet var",
+      "name": "hive_metastore_http_principal_name",
+      "displayName": "Web principal name",
+      "value": "",
+      "defaultValue": "HTTP/_HOST",
+      "description": "Principal name for SPNEGO access to Hive Metastore and HiveServer2. _HOST will get automatically replaced with actual hostname at an instance of Hive Metastore and HiveServer2",
+      "displayType": "principal",
+      "isVisible": true,
+      "isOverridable": false,
+      "serviceName": "HIVE",
+      "category": "Hive Metastore"
+    },
+    {
+      "id": "puppet var",
+      "name": "hive_metastore_http_keytab",
+      "displayName": "Path to SPNEGO keytab file",
+      "value": "",
+      "defaultValue": "/etc/security/keytabs/spnego.service.keytab",
+      "description": "Path to SPNEGO keytab file for  Hive Metastore and HiveServer2",
+      "displayType": "directory",
+      "isVisible": true,
+      "isOverridable": false,
+      "serviceName": "HIVE",
+      "category": "Hive Metastore"
+    },
 
   /**********************************************OOZIE***************************************/
     {
