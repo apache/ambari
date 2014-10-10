@@ -333,5 +333,17 @@ limitations under the License.
       supporting dynamic service discovery.
     </description>
   </property>
+  
+  <property>
+    <name>hive.cluster.delegation.token.store.class</name>
+    <value>org.apache.hadoop.hive.thrift.ZooKeeperTokenStore</value>
+    <description>The delegation token store implementation class.</description>
+  </property>
+  
+  <property>
+    <name>hive.cluster.delegation.token.store.zookeeper.connectString</name>
+    <value>localhost:2181</value>
+    <description>The ZooKeeper token store connect string.</description>
+  </property>
 
 </configuration>
