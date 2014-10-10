@@ -198,6 +198,14 @@
   </property>
 
   <property>
+    <name>dfs.datanode.https.address</name>
+    <value>0.0.0.0:50475</value>
+    <description>
+      The datanode https server address and port.
+    </description>
+  </property>
+
+  <property>
     <name>dfs.blocksize</name>
     <value>134217728</value>
     <description>The default block size for new files.</description>
@@ -491,6 +499,16 @@
     <value>true</value>
     <description>Set to true to enable NameNode to attempt recovering a previously failed dfs.namenode.name.dir.
       When enabled, a recovery of any failed directory is attempted during checkpoint.</description>
+  </property>
+
+  <property>
+    <name>dfs.http.policy</name>
+    <value>HTTP_ONLY</value>
+    <description>
+      Decide if HTTPS(SSL) is supported on HDFS This configures the HTTP endpoint for HDFS daemons:
+      The following values are supported: - HTTP_ONLY : Service is provided only on http - HTTPS_ONLY :
+      Service is provided only on https - HTTP_AND_HTTPS : Service is provided both on http and https
+    </description>
   </property>
 
 </configuration>

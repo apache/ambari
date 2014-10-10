@@ -198,6 +198,14 @@
   </property>
 
   <property>
+    <name>dfs.datanode.https.address</name>
+    <value>0.0.0.0:50475</value>
+    <description>
+      The datanode https server address and port.
+    </description>
+  </property>
+
+  <property>
     <name>dfs.blocksize</name>
     <value>134217728</value>
     <description>The default block size for new files.</description>
