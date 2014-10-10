@@ -18,6 +18,7 @@
 var App = require('app');
 var misc = require('utils/misc');
 var stringUtils = require('utils/string_utils');
+var dateUtils = require('utils/date');
 var previousResponse = [];
 
 App.serviceMetricsMapper = App.QuickDataMapper.create({
@@ -136,13 +137,13 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     region_servers_total: 'region_servers_total'
   },
   stormConfig: {
-    total_tasks: 'restApiComponent.metrics.api.cluster.summary.["tasks.total"]',
-    total_slots: 'restApiComponent.metrics.api.cluster.summary.["slots.total"]',
-    free_slots: 'restApiComponent.metrics.api.cluster.summary.["slots.free"]',
-    used_slots: 'restApiComponent.metrics.api.cluster.summary.["tasks.total"]',
-    topologies: 'restApiComponent.metrics.api.cluster.summary.topologies',
-    total_executors: 'restApiComponent.metrics.api.cluster.summary.["executors.total"]',
-    nimbus_uptime: 'restApiComponent.metrics.api.cluster.summary.["nimbus.uptime"]',
+    total_tasks: 'restApiComponent.tasksTotal',
+    total_slots: 'restApiComponent.slotsTotal',
+    free_slots: 'restApiComponent.slotsFree',
+    used_slots: 'restApiComponent.slotsUsed',
+    topologies: 'restApiComponent.topologies',
+    total_executors: 'restApiComponent.executorsTotal',
+    nimbus_uptime: 'restApiComponent.nimbusUptime',
     super_visors_started: 'super_visors_started',
     super_visors_installed: 'super_visors_installed',
     super_visors_total: 'super_visors_total'
@@ -649,9 +650,22 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
   stormMapper: function(item) {
     var finalConfig = jQuery.extend({}, this.config);
     var stormConfig = this.stormConfig;
+    var metricsInfoComponent = /^2.1/.test(App.get('currentStackVersionNumber')) ? 'STORM_REST_API' : 'STORM_UI_SERVER';
+    var metricsPath = {
+      STORM_REST_API: 'metrics.api.cluster.summary',
+      STORM_UI_SERVER: 'metrics.api.v1.cluster.summary'
+    }[metricsInfoComponent];
+
     item.components.forEach(function(component) {
-      if (component.ServiceComponentInfo && component.ServiceComponentInfo.component_name == "STORM_REST_API") {
-        item.restApiComponent = component;
+      if (component.ServiceComponentInfo && component.ServiceComponentInfo.component_name == metricsInfoComponent) {
+        if (Em.get(component, metricsPath)) {
+          item.restApiComponent = App.keysDottedToCamelCase(Em.get(component, metricsPath));
+          if (metricsInfoComponent == 'STORM_UI_SERVER') {
+            item.restApiComponent.topologies = Em.get(component, 'metrics.api.v1.topology.summary.length');
+          } else {
+            item.restApiComponent.nimbusUptime = dateUtils.timingFormat(item.restApiComponent.nimbusUptime * 1000);
+          }
+        }
         finalConfig = jQuery.extend({}, finalConfig, stormConfig);
       }
     });

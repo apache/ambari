@@ -318,7 +318,113 @@ describe('utils/helper', function() {
         expect(App.permit(obj, test.keys)).to.deep.eql(test.e);
       });
     });
+  });
 
+  describe('#App.keysUnderscoreToCamelCase()', function() {
+    var tests = [
+      {
+        object: {
+          'key_upper': '2'
+        },
+        expected: {
+          keyUpper: '2'
+        },
+        m: 'One level object, key should be camelCased'
+      },
+      {
+        object: {
+          'key_upper': '2',
+          'key': '1'
+        },
+        expected: {
+          keyUpper: '2',
+          key: '1'
+        },
+        m: 'One level object, one key should be camelCased.'
+      },
+      {
+        object: {
+          'key_upper': '2',
+          'key': '1'
+        },
+        expected: {
+          keyUpper: '2',
+          key: '1'
+        },
+        m: 'One level object, one key should be camelCased.'
+      },
+      {
+        object: {
+          'key_upper': '2',
+          'key_upone_uptwo_upthree': '4',
+          'key': '1'
+        },
+        expected: {
+          keyUpper: '2',
+          keyUponeUptwoUpthree: '4',
+          key: '1'
+        },
+        m: 'One level object, two keys should be camelCased, few dots notation.'
+      }
+    ];
+    tests.forEach(function(test) {
+      it(test.m, function() {
+        expect(App.keysUnderscoreToCamelCase(test.object)).to.deep.equal(test.expected);
+      });
+    });
+  });
 
+  describe('#App.keysDottedToCamelCase()', function() {
+    var tests = [
+      {
+        object: {
+          'key.upper': '2'
+        },
+        expected: {
+          keyUpper: '2'
+        },
+        m: 'One level object, key should be camelCased'
+      },
+      {
+        object: {
+          'key.upper': '2',
+          'key': '1'
+        },
+        expected: {
+          keyUpper: '2',
+          key: '1'
+        },
+        m: 'One level object, one key should be camelCased.'
+      },
+      {
+        object: {
+          'key.upper': '2',
+          'key': '1'
+        },
+        expected: {
+          keyUpper: '2',
+          key: '1'
+        },
+        m: 'One level object, one key should be camelCased.'
+      },
+      {
+        object: {
+          'key.upper': '2',
+          'key.upone.uptwo.upthree': '4',
+          'key': '1'
+        },
+        expected: {
+          keyUpper: '2',
+          keyUponeUptwoUpthree: '4',
+          key: '1'
+        },
+        m: 'One level object, two keys should be camelCased, few dots notation.'
+      }
+    ];
+    tests.forEach(function(test) {
+      it(test.m, function() {
+        expect(App.keysDottedToCamelCase(test.object)).to.deep.equal(test.expected);
+      });
+    });
   });
 });

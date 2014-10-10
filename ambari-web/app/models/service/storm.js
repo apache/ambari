@@ -28,7 +28,7 @@ App.StormService = App.Service.extend({
   freeSlots: DS.attr('number'),
   totalExecutors: DS.attr('number'),
   topologies: DS.attr('number'),
-  nimbusUptime: DS.attr('number')
+  nimbusUptime: DS.attr('string')
 });
 
 App.StormService.FIXTURES = [];

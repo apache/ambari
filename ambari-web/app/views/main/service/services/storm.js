@@ -44,9 +44,6 @@ App.MainDashboardServiceStormView = App.MainDashboardServiceView.extend({
   }.property('service.superVisorsTotal'),
 
   nimbusUptimeFormatted: function() {
-    if (this.get('service.nimbusUptime') > 0) {
-      return date.timingFormat(this.get('service.nimbusUptime')*1000);
-    }
-    return Em.I18n.t('services.service.summary.notRunning');
+    return this.get('service.nimbusUptime') || Em.I18n.t('services.service.summary.notRunning');
   }.property('service.nimbusUptime')
 });

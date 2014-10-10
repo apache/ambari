@@ -410,7 +410,7 @@ App.UpdateController = Em.Controller.extend({
         "ServiceComponentInfo/GrayListedNodes," +
         "ServiceComponentInfo/BlackListedNodes," +
         "ServiceComponentInfo/jobtracker/*,",
-      'STORM': "metrics/api/cluster/summary,"
+      'STORM': /^2.1/.test(App.get('currentStackVersionNumber')) ? 'metrics/api/cluster/summary' : 'metrics/api/v1/cluster/summary,metrics/api/v1/topology/summary'
     };
     var services = App.cache['services'];
     services.forEach(function (service) {
