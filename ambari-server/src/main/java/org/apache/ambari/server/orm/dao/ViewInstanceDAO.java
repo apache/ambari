@@ -18,16 +18,20 @@
 
 package org.apache.ambari.server.orm.dao;
 
+import java.util.List;
+
+import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
+import javax.persistence.TypedQuery;
+
+import org.apache.ambari.server.orm.RequiresSession;
+import org.apache.ambari.server.orm.entities.ViewInstanceDataEntity;
+import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
+
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
-import org.apache.ambari.server.orm.entities.ViewInstanceDataEntity;
-import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
-
-import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
-import java.util.List;
 
 /**
  * View Instance Data Access Object.
@@ -55,6 +59,23 @@ public class ViewInstanceDAO {
       "SELECT instance FROM ViewInstanceEntity instance WHERE instance.viewName = ?1 AND instance.name = ?2",
       ViewInstanceEntity.class);
     return daoUtils.selectSingle(query, viewName, instanceName);
+  }
+
+  /**
+   * Find a view instance by given resource id.
+   *
+   * @param resourceId resource id
+   * @return a matching view instance or null
+   */
+  @RequiresSession
+  public ViewInstanceEntity findByResourceId(long resourceId) {
+    TypedQuery<ViewInstanceEntity> query = entityManagerProvider.get().createNamedQuery("viewInstanceByResourceId", ViewInstanceEntity.class);
+    query.setParameter("resourceId", resourceId);
+    try {
+      return query.getSingleResult();
+    } catch (NoResultException ignored) {
+      return null;
+    }
   }
 
   /**
