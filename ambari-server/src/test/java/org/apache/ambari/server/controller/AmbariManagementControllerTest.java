@@ -33,7 +33,6 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.StringReader;
 import java.lang.reflect.Type;
@@ -8233,10 +8232,10 @@ public class AmbariManagementControllerTest {
 
   @Test
   public void testUpdateRepoUrlController() throws Exception {
+    String badUrl = "http://hortonworks.com";
     RepositoryInfo repo = ambariMetaInfo.getRepository(STACK_NAME, STACK_VERSION, OS_TYPE, REPO_ID);
-
     RepositoryRequest request = new RepositoryRequest(STACK_NAME, STACK_VERSION, OS_TYPE, REPO_ID);
-    request.setBaseUrl("http://hortonworks.com");
+    request.setBaseUrl(badUrl);
 
     Set<RepositoryRequest> requests = new HashSet<RepositoryRequest>();
     requests.add(request);
@@ -8244,9 +8243,10 @@ public class AmbariManagementControllerTest {
     // test bad url
     try {
       controller.updateRespositories(requests);
+      Assert.fail("Expected a bad URL to throw an exception");
     } catch (Exception e) {
       assertNotNull(e);
-      Assert.assertTrue(e.getMessage().contains(FileNotFoundException.class.getName()));
+      Assert.assertTrue(e.getMessage().contains(badUrl));
     }
     // test bad url, but allow to set anyway
     request.setVerifyBaseUrl(false);
