@@ -34,7 +34,11 @@ import static org.apache.commons.lang.StringUtils.defaultString;
             "WHERE cluster.clusterName=:clusterName"),
     @NamedQuery(name = "allClusters", query =
         "SELECT clusters " +
-            "FROM ClusterEntity clusters")
+            "FROM ClusterEntity clusters"),
+    @NamedQuery(name = "clusterByResourceId", query =
+        "SELECT cluster " +
+            "FROM ClusterEntity cluster " +
+            "WHERE cluster.resource.id=:resourceId")
 })
 @Entity
 @TableGenerator(name = "cluster_id_generator",

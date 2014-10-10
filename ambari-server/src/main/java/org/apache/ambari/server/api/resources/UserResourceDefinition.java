@@ -17,7 +17,7 @@
  */
 package org.apache.ambari.server.api.resources;
 
-import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.ambari.server.controller.spi.Resource;
@@ -30,7 +30,7 @@ public class UserResourceDefinition extends BaseResourceDefinition {
   public UserResourceDefinition() {
     super(Resource.Type.User);
   }
-  
+
   @Override
   public String getPluralName() {
     return "users";
@@ -43,7 +43,9 @@ public class UserResourceDefinition extends BaseResourceDefinition {
 
   @Override
   public Set<SubResourceDefinition> getSubResourceDefinitions() {
-    return Collections.emptySet();
+    final Set<SubResourceDefinition> subResourceDefinitions = new HashSet<SubResourceDefinition>();
+    subResourceDefinitions.add(new SubResourceDefinition(Resource.Type.UserPrivilege));
+    return subResourceDefinitions;
   }
 
 }

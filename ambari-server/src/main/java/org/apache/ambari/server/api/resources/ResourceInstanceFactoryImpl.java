@@ -141,7 +141,7 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
       case StackVersion:
         resourceDefinition = new StackVersionResourceDefinition();
         break;
-        
+
       case StackLevelConfiguration:
         resourceDefinition = new StackLevelConfigurationResourceDefinition();
         break;
@@ -265,6 +265,10 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
 
       case ViewPrivilege:
         resourceDefinition = new PrivilegeResourceDefinition(Resource.Type.ViewPrivilege);
+        break;
+
+      case UserPrivilege:
+        resourceDefinition = new PrivilegeResourceDefinition(Resource.Type.UserPrivilege);
         break;
 
       case ViewPermission:

@@ -28,7 +28,6 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 
 import com.google.inject.Singleton;
-import org.apache.ambari.server.controller.ivory.Cluster;
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
@@ -59,6 +58,18 @@ public class ClusterDAO {
   public ClusterEntity findByName(String clusterName) {
     TypedQuery<ClusterEntity> query = entityManagerProvider.get().createNamedQuery("clusterByName", ClusterEntity.class);
     query.setParameter("clusterName", clusterName);
+    try {
+      return query.getSingleResult();
+    } catch (NoResultException ignored) {
+      return null;
+    }
+  }
+
+
+  @RequiresSession
+  public ClusterEntity findByResourceId(long resourceId) {
+    TypedQuery<ClusterEntity> query = entityManagerProvider.get().createNamedQuery("clusterByResourceId", ClusterEntity.class);
+    query.setParameter("resourceId", resourceId);
     try {
       return query.getSingleResult();
     } catch (NoResultException ignored) {
@@ -126,7 +137,7 @@ public class ClusterDAO {
   public void createConfig(ClusterConfigEntity entity) {
     entityManagerProvider.get().persist(entity);
   }
-  
+
   /**
    * Remove a cluster configuration in the DB.
    */

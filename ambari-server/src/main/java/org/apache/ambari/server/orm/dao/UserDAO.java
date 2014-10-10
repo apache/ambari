@@ -93,6 +93,23 @@ public class UserDAO {
     return daoUtils.selectList(query);
   }
 
+  /**
+   * Find the user entity for the given admin principal entity.
+   *
+   * @param principal the principal entity
+   *
+   * @return the matching user entity
+   */
+  public UserEntity findUserByPrincipal(PrincipalEntity principal) {
+    if (principal == null) {
+      return null;
+    }
+    final TypedQuery<UserEntity> query = entityManagerProvider.get().createQuery("SELECT user_entity FROM UserEntity user_entity WHERE user_entity.principal.id=:principalId", UserEntity.class);
+    query.setParameter("principalId", principal.getId());
+    return daoUtils.selectSingle(query);
+  }
+
+
   @Transactional
   public void create(UserEntity user) {
     create(new HashSet<UserEntity>(Arrays.asList(user)));

@@ -388,6 +388,8 @@ public abstract class PrivilegeResourceProvider<T> extends AbstractResourceProvi
               " permission on a " + entity.getResource().getResourceType().getName() + " resource.");
         }
         privilegeDAO.create(entity);
+        entity.getPrincipal().getPrivileges().add(entity);
+        principalDAO.merge(entity.getPrincipal());
         return null;
       }
     };
@@ -409,6 +411,8 @@ public abstract class PrivilegeResourceProvider<T> extends AbstractResourceProvi
                 throw new AmbariException("Can't remove " + entity.getPermission().getResourceType().getName() +
                     " permission from a " + entity.getResource().getResourceType().getName() + " resource.");
               }
+              entity.getPrincipal().getPrivileges().remove(entity);
+              principalDAO.merge(entity.getPrincipal());
               privilegeDAO.remove(entity);
             }
           }
@@ -464,6 +468,8 @@ public abstract class PrivilegeResourceProvider<T> extends AbstractResourceProvi
             }
 
             privilegeDAO.create(requiredPrivilege);
+            requiredPrivilege.getPrincipal().getPrivileges().add(requiredPrivilege);
+            principalDAO.merge(requiredPrivilege.getPrincipal());
           }
         }
         for (PrivilegeEntity currentPrivilege: currentPrivileges) {
@@ -480,6 +486,8 @@ public abstract class PrivilegeResourceProvider<T> extends AbstractResourceProvi
               throw new AmbariException("Can't remove " + currentPrivilege.getPermission().getResourceType().getName() +
                   " permission from a " + currentPrivilege.getResource().getResourceType().getName() + " resource.");
             }
+            currentPrivilege.getPrincipal().getPrivileges().remove(currentPrivilege);
+            principalDAO.merge(currentPrivilege.getPrincipal());
             privilegeDAO.remove(currentPrivilege);
           }
         }

@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+
 import javax.persistence.Basic;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -33,6 +34,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinColumns;
 import javax.persistence.ManyToOne;
+import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
@@ -58,8 +60,15 @@ import org.apache.ambari.view.ViewInstanceDefinition;
     name = "UQ_viewinstance_name", columnNames = {"view_name", "name"}
   )
 )
-@NamedQuery(name = "allViewInstances",
-  query = "SELECT viewInstance FROM ViewInstanceEntity viewInstance")
+@NamedQueries({
+  @NamedQuery(name = "allViewInstances",
+      query = "SELECT viewInstance FROM ViewInstanceEntity viewInstance"),
+  @NamedQuery(name = "viewInstanceByResourceId", query =
+      "SELECT viewInstance " +
+          "FROM ViewInstanceEntity viewInstance " +
+          "WHERE viewInstance.resource.id=:resourceId")
+})
+
 @TableGenerator(name = "view_instance_id_generator",
   table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value"
   , pkColumnValue = "view_instance_id_seq"

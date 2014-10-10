@@ -81,6 +81,23 @@ public class GroupDAO {
     return daoUtils.selectList(query);
   }
 
+  /**
+   * Find the group entity for the given admin principal entity.
+   *
+   * @param principal the principal entity
+   *
+   * @return the matching gropu entity
+   */
+  public GroupEntity findGroupByPrincipal(PrincipalEntity principal) {
+    if (principal == null) {
+      return null;
+    }
+    final TypedQuery<GroupEntity> query = entityManagerProvider.get().createQuery("SELECT group_entity FROM GroupEntity group_entity WHERE group_entity.principal.id=:principalId", GroupEntity.class);
+    query.setParameter("principalId", principal.getId());
+    return daoUtils.selectSingle(query);
+  }
+
+
   @Transactional
   public void create(GroupEntity group) {
     create(new HashSet<GroupEntity>(Arrays.asList(group)));
