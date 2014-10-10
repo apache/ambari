@@ -451,10 +451,7 @@ public class AlertDefinitionResourceProviderTest {
    * @return
    */
   private AlertDefinitionResourceProvider createProvider(AmbariManagementController amc) {
-    return new AlertDefinitionResourceProvider(
-        PropertyHelper.getPropertyIds(Resource.Type.AlertDefinition),
-        PropertyHelper.getKeyPropertyIds(Resource.Type.AlertDefinition),
-        amc);
+    return new AlertDefinitionResourceProvider(amc);
   }
 
   /**

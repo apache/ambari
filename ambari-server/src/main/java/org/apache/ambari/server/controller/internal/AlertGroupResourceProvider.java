@@ -21,6 +21,7 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -35,7 +36,6 @@ import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.spi.Resource.Type;
 import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
@@ -72,6 +72,30 @@ public class AlertGroupResourceProvider extends
       Arrays.asList(ALERT_GROUP_ID, ALERT_GROUP_CLUSTER_NAME));
 
   /**
+   * The property ids for an alert group resource.
+   */
+  private static final Set<String> PROPERTY_IDS = new HashSet<String>();
+
+  /**
+   * The key property ids for an alert group resource.
+   */
+  private static final Map<Resource.Type, String> KEY_PROPERTY_IDS = new HashMap<Resource.Type, String>();
+
+  static {
+    // properties
+    PROPERTY_IDS.add(ALERT_GROUP_ID);
+    PROPERTY_IDS.add(ALERT_GROUP_CLUSTER_NAME);
+    PROPERTY_IDS.add(ALERT_GROUP_NAME);
+    PROPERTY_IDS.add(ALERT_GROUP_DEFAULT);
+    PROPERTY_IDS.add(ALERT_GROUP_DEFINITIONS);
+    PROPERTY_IDS.add(ALERT_GROUP_TARGETS);
+
+    // keys
+    KEY_PROPERTY_IDS.put(Resource.Type.AlertGroup, ALERT_GROUP_ID);
+    KEY_PROPERTY_IDS.put(Resource.Type.Cluster, ALERT_GROUP_CLUSTER_NAME);
+  }
+
+  /**
    * Group/Target DAO
    */
   private static AlertDispatchDAO s_dao;
@@ -97,14 +121,10 @@ public class AlertGroupResourceProvider extends
   /**
    * Constructor.
    *
-   * @param propertyIds
-   * @param keyPropertyIds
-   * @param managementController
+   * @param controller
    */
-  AlertGroupResourceProvider(Set<String> propertyIds,
-      Map<Type, String> keyPropertyIds,
-      AmbariManagementController managementController) {
-    super(propertyIds, keyPropertyIds, managementController);
+  AlertGroupResourceProvider(AmbariManagementController controller) {
+    super(PROPERTY_IDS, KEY_PROPERTY_IDS, controller);
   }
 
   @Override

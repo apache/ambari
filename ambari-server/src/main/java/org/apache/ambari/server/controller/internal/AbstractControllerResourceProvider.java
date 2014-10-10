@@ -151,12 +151,6 @@ public abstract class AbstractControllerResourceProvider extends AbstractResourc
         return new ValidationResourceProvider(propertyIds, keyPropertyIds, managementController);
       case Alert:
         return new AlertResourceProvider(propertyIds, keyPropertyIds, managementController);
-      case AlertDefinition:
-        return new AlertDefinitionResourceProvider(propertyIds, keyPropertyIds, managementController);
-      case AlertGroup:
-        return new AlertGroupResourceProvider(propertyIds, keyPropertyIds, managementController);
-      case AlertTarget:
-        return new AlertTargetResourceProvider(propertyIds, keyPropertyIds, managementController);
       case ClientConfig:
         return new ClientConfigResourceProvider(propertyIds, keyPropertyIds, managementController);
       default:

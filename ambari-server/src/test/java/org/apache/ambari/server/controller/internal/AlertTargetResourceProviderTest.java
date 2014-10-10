@@ -317,9 +317,7 @@ public class AlertTargetResourceProviderTest {
    */
   private AlertTargetResourceProvider createProvider(
       AmbariManagementController amc) {
-    return new AlertTargetResourceProvider(
-        PropertyHelper.getPropertyIds(Resource.Type.AlertTarget),
-        PropertyHelper.getKeyPropertyIds(Resource.Type.AlertTarget), amc);
+    return new AlertTargetResourceProvider();
   }
 
   /**

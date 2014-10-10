@@ -116,6 +116,7 @@ public interface Resource {
     Permission,
     Alert,
     AlertDefinition,
+    AlertHistory,
     AlertGroup,
     AlertTarget,
     AmbariPrivilege,
@@ -202,6 +203,7 @@ public interface Resource {
     public static final Type Permission = InternalType.Permission.getType();
     public static final Type Alert = InternalType.Alert.getType();
     public static final Type AlertDefinition = InternalType.AlertDefinition.getType();
+    public static final Type AlertHistory = InternalType.AlertHistory.getType();
     public static final Type AlertGroup = InternalType.AlertGroup.getType();
     public static final Type AlertTarget = InternalType.AlertTarget.getType();
     public static final Type AmbariPrivilege = InternalType.AmbariPrivilege.getType();

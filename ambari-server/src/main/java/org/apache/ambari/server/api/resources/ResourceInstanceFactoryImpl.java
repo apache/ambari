@@ -249,13 +249,17 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
       case Permission:
         resourceDefinition = new PermissionResourceDefinition();
         break;
-        
+
       case Alert:
         resourceDefinition = new AlertResourceDefinition();
         break;
 
       case AlertDefinition:
         resourceDefinition = new AlertDefResourceDefinition();
+        break;
+
+      case AlertHistory:
+        resourceDefinition = new AlertHistoryResourceDefinition();
         break;
 
       case AlertGroup:

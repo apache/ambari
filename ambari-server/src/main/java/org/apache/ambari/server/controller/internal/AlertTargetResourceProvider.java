@@ -28,14 +28,12 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.spi.Resource.Type;
 import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
@@ -55,7 +53,7 @@ import com.google.inject.Injector;
  * {@link AlertTargetEntity}.
  */
 public class AlertTargetResourceProvider extends
-    AbstractControllerResourceProvider {
+ AbstractResourceProvider {
 
   protected static final String ALERT_TARGET = "AlertTarget";
   protected static final String ALERT_TARGET_ID = "AlertTarget/id";
@@ -67,6 +65,29 @@ public class AlertTargetResourceProvider extends
 
   private static final Set<String> PK_PROPERTY_IDS = new HashSet<String>(
       Arrays.asList(ALERT_TARGET_ID, ALERT_TARGET_NAME));
+
+  /**
+   * The property ids for an alert target resource.
+   */
+  private static final Set<String> PROPERTY_IDS = new HashSet<String>();
+
+  /**
+   * The key property ids for an alert target resource.
+   */
+  private static final Map<Resource.Type, String> KEY_PROPERTY_IDS = new HashMap<Resource.Type, String>();
+
+  static {
+    // properties
+    PROPERTY_IDS.add(ALERT_TARGET_ID);
+    PROPERTY_IDS.add(ALERT_TARGET_NAME);
+    PROPERTY_IDS.add(ALERT_TARGET_DESCRIPTION);
+    PROPERTY_IDS.add(ALERT_TARGET_NOTIFICATION_TYPE);
+    PROPERTY_IDS.add(ALERT_TARGET_PROPERTIES);
+    PROPERTY_IDS.add(ALERT_TARGET_GROUPS);
+
+    // keys
+    KEY_PROPERTY_IDS.put(Resource.Type.AlertTarget, ALERT_TARGET_ID);
+  }
 
   /**
    * Target DAO
@@ -93,15 +114,9 @@ public class AlertTargetResourceProvider extends
 
   /**
    * Constructor.
-   *
-   * @param propertyIds
-   * @param keyPropertyIds
-   * @param managementController
    */
-  AlertTargetResourceProvider(Set<String> propertyIds,
-      Map<Type, String> keyPropertyIds,
-      AmbariManagementController managementController) {
-    super(propertyIds, keyPropertyIds, managementController);
+  AlertTargetResourceProvider() {
+    super(PROPERTY_IDS, KEY_PROPERTY_IDS);
   }
 
   @Override

@@ -20,6 +20,7 @@ package org.apache.ambari.server.controller.internal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -105,6 +106,35 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
   private static ActionQueue actionQueue;
 
   /**
+   * The property ids for an alert defintion resource.
+   */
+  private static final Set<String> PROPERTY_IDS = new HashSet<String>();
+
+  /**
+   * The key property ids for an alert definition resource.
+   */
+  private static final Map<Resource.Type, String> KEY_PROPERTY_IDS = new HashMap<Resource.Type, String>();
+
+  static {
+    // properties
+    PROPERTY_IDS.add(ALERT_DEF_CLUSTER_NAME);
+    PROPERTY_IDS.add(ALERT_DEF_SERVICE_NAME);
+    PROPERTY_IDS.add(ALERT_DEF_COMPONENT_NAME);
+    PROPERTY_IDS.add(ALERT_DEF_ID);
+    PROPERTY_IDS.add(ALERT_DEF_NAME);
+    PROPERTY_IDS.add(ALERT_DEF_LABEL);
+    PROPERTY_IDS.add(ALERT_DEF_INTERVAL);
+    PROPERTY_IDS.add(ALERT_DEF_ENABLED);
+    PROPERTY_IDS.add(ALERT_DEF_SCOPE);
+    PROPERTY_IDS.add(ALERT_DEF_SOURCE);
+    PROPERTY_IDS.add(ALERT_DEF_ACTION_RUN_NOW);
+
+    // keys
+    KEY_PROPERTY_IDS.put(Resource.Type.AlertDefinition, ALERT_DEF_ID);
+    KEY_PROPERTY_IDS.put(Resource.Type.Cluster, ALERT_DEF_CLUSTER_NAME);
+  }
+
+  /**
    * @param instance
    */
   @Inject
@@ -115,10 +145,13 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
     actionQueue = injector.getInstance(ActionQueue.class);
   }
 
-  AlertDefinitionResourceProvider(Set<String> propertyIds,
-      Map<Resource.Type, String> keyPropertyIds,
-      AmbariManagementController managementController) {
-    super(propertyIds, keyPropertyIds, managementController);
+  /**
+   * Constructor.
+   *
+   * @param controller
+   */
+  AlertDefinitionResourceProvider(AmbariManagementController controller) {
+    super(PROPERTY_IDS, KEY_PROPERTY_IDS, controller);
   }
 
   @Override

@@ -357,7 +357,7 @@ public class ClusterService extends BaseService {
     hasPermission(Request.Type.valueOf(request.getMethod()), clusterName);
     return new ClusterPrivilegeService(clusterName);
   }
-  
+
   /**
    * Gets the alert definition service
    *
@@ -372,8 +372,26 @@ public class ClusterService extends BaseService {
 
     hasPermission(Request.Type.valueOf(request.getMethod()), clusterName);
     return new AlertService(clusterName, null, null);
-  }  
+  }
 
+  /**
+   * Gets the alert history service
+   *
+   * @param request
+   *          the request
+   * @param clusterName
+   *          the cluster name
+   *
+   * @return the alert history service
+   */
+  @Path("{clusterName}/alert_history")
+  public AlertHistoryService getAlertHistoryService(
+      @Context javax.ws.rs.core.Request request,
+      @PathParam("clusterName") String clusterName) {
+
+    hasPermission(Request.Type.valueOf(request.getMethod()), clusterName);
+    return new AlertHistoryService(clusterName, null, null);
+  }
 
   // ----- helper methods ----------------------------------------------------
 

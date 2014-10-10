@@ -528,9 +528,7 @@ public class AlertGroupResourceProviderTest {
   private AlertGroupResourceProvider createProvider(
       AmbariManagementController amc) {
 
-    return new AlertGroupResourceProvider(
-        PropertyHelper.getPropertyIds(Resource.Type.AlertGroup),
-        PropertyHelper.getKeyPropertyIds(Resource.Type.AlertGroup), amc);
+    return new AlertGroupResourceProvider(amc);
   }
 
   /**

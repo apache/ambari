@@ -437,35 +437,6 @@
       "Alert/service_name",
       "Alert/scope"
     ],
-    "AlertDefinition": [
-      "AlertDefinition/cluster_name",
-      "AlertDefinition/service_name",
-      "AlertDefinition/component_name",
-      "AlertDefinition/id",
-      "AlertDefinition/name",
-      "AlertDefinition/label",
-      "AlertDefinition/interval",
-      "AlertDefinition/enabled",
-      "AlertDefinition/scope",
-      "AlertDefinition/source",
-      "AlertDefinition/run_now"
-    ],
-    "AlertGroup": [
-      "AlertGroup/id",
-      "AlertGroup/name",
-      "AlertGroup/cluster_name",
-      "AlertGroup/default",
-      "AlertGroup/definitions",
-      "AlertGroup/targets"
-    ],
-    "AlertTarget": [
-      "AlertTarget/id",
-      "AlertTarget/name",
-      "AlertTarget/description",      
-      "AlertTarget/notification_type",
-      "AlertTarget/properties",
-      "AlertTarget/groups"
-    ],
     "ClientConfig":[
         "ServiceComponentInfo/service_name",
         "ServiceComponentInfo/component_name",

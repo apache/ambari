@@ -24,10 +24,17 @@ import java.util.List;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.metamodel.SingularAttribute;
 
+import org.apache.ambari.server.api.query.JpaPredicateVisitor;
+import org.apache.ambari.server.controller.AlertHistoryRequest;
+import org.apache.ambari.server.controller.spi.Predicate;
+import org.apache.ambari.server.controller.utilities.PredicateHelper;
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.AlertCurrentEntity;
 import org.apache.ambari.server.orm.entities.AlertHistoryEntity;
+import org.apache.ambari.server.orm.entities.AlertHistoryEntity_;
 import org.apache.ambari.server.state.AlertState;
 import org.apache.ambari.server.state.alert.Scope;
 import org.eclipse.persistence.config.HintValues;
@@ -182,6 +189,33 @@ public class AlertsDAO {
     }
 
     return daoUtils.selectList(query);
+  }
+
+  /**
+   * Finds all {@link AlertHistoryEntity} that match the provided
+   * {@link AlertHistoryRequest}. This method will make JPA do the heavy lifting
+   * of providing a slice of the result set.
+   *
+   * @param request
+   * @return
+   */
+  @Transactional
+  public List<AlertHistoryEntity> findAll(AlertHistoryRequest request) {
+    EntityManager entityManager = entityManagerProvider.get();
+
+    // convert the Ambari predicate into a JPA predicate
+    HistoryPredicateVisitor visitor = new HistoryPredicateVisitor();
+    PredicateHelper.visit(request.Predicate, visitor);
+
+    CriteriaQuery<AlertHistoryEntity> query = visitor.getCriteriaQuery();
+    javax.persistence.criteria.Predicate jpaPredicate = visitor.getJpaPredicate();
+
+    if (null != jpaPredicate) {
+      query.where(jpaPredicate);
+    }
+
+    TypedQuery<AlertHistoryEntity> typedQuery = entityManager.createQuery(query);
+    return daoUtils.selectList(typedQuery);
   }
 
   /**
@@ -536,5 +570,38 @@ public class AlertsDAO {
     // the associated AlertHistoryEntity to be stale
     query.setHint(QueryHints.REFRESH, HintValues.TRUE);
     return query;
+  }
+
+  /**
+   * The {@link HistoryPredicateVisitor} is used to convert an Ambari
+   * {@link Predicate} into a JPA {@link javax.persistence.criteria.Predicate}.
+   */
+  private final class HistoryPredicateVisitor extends
+      JpaPredicateVisitor<AlertHistoryEntity> {
+
+    /**
+     * Constructor.
+     *
+     */
+    public HistoryPredicateVisitor() {
+      super(entityManagerProvider.get(), AlertHistoryEntity.class);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Class<AlertHistoryEntity> getEntityClass() {
+      return AlertHistoryEntity.class;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<? extends SingularAttribute<?, ?>> getPredicateMapping(
+        String propertyId) {
+      return AlertHistoryEntity_.getPredicateMapping().get(propertyId);
+    }
   }
 }

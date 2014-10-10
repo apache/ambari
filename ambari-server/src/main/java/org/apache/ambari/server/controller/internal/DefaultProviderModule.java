@@ -21,12 +21,13 @@ package org.apache.ambari.server.controller.internal;
 import java.util.Map;
 import java.util.Set;
 
-import com.google.inject.Inject;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+
+import com.google.inject.Inject;
 
 /**
  * The default provider module implementation.
@@ -83,6 +84,15 @@ public class DefaultProviderModule extends AbstractProviderModule {
         return new LdapSyncEventResourceProvider(managementController);
       case UserPrivilege:
         return new UserPrivilegeResourceProvider();
+      case AlertDefinition:
+        return new AlertDefinitionResourceProvider(managementController);
+      case AlertHistory:
+        return new AlertHistoryResourceProvider(managementController);
+      case AlertTarget:
+        return new AlertTargetResourceProvider();
+      case AlertGroup:
+        return new AlertGroupResourceProvider(managementController);
+
       default:
         return AbstractControllerResourceProvider.getResourceProvider(type, propertyIds,
             keyPropertyIds, managementController);
