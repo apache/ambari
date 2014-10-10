@@ -38,20 +38,22 @@ limitations under the License. Kerberos, LDAP, Custom. Binary/Htt
 	</parameter>
 	<parameter>
 		<name>slider.user</name>
-		<description>Slider user</description>
+		<description>User this view instance should run as. Specifying an empty value runs view as YARN service user (for example 'yarn'). Specifying '{username}' runs the view as the currently logged in user. Specifying any other value runs the view as that user.
+			Administrators should check that the HDFS home folder for that user is created and accessible.
+        </description>
 		<required>false</required>
 	</parameter>
 	<parameter>
 		<name>view.kerberos.principal</name>
-		<description>Kerberos principal associated with this view. For
-			example: ambari/_HOST@EXAMPLE.COM
+		<description>Kerberos principal associated with this view. For example: ambari/_HOST@EXAMPLE.COM.
+			Administrators should make sure that HDFS service has the 'hadoop.proxyuser.[user].groups' and 'hadoop.proxyuser.[user].hosts' configs populated in 'core-site.xml'.
 		</description>
 		<required>false</required>
 	</parameter>
 	<parameter>
 		<name>view.kerberos.principal.keytab</name>
-		<description>Path to the Kerberos principal keytab used for view's
-			user. For example: /etc/security/keytabs/ambari.headless.keytab
+		<description>Path to the Kerberos principal keytab used for view's user. For example: /etc/security/keytabs/ambari.headless.keytab
+			Administrators should make sure that HDFS service has the 'hadoop.proxyuser.[user].groups' and 'hadoop.proxyuser.[user].hosts' configs populated in 'core-site.xml'.
 		</description>
 		<required>false</required>
 	</parameter>
