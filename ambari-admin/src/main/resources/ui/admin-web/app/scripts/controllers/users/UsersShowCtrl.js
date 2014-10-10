@@ -44,7 +44,6 @@ angular.module('ambariAdminConsole')
   }, function(newValue) {
     if(newValue){
       if( !angular.equals(newValue, $scope.user.groups) ){
-        console.log('Update!');
         $scope.updateGroups();
       }
         

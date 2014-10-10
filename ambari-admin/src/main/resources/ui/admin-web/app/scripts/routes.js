@@ -86,6 +86,13 @@ angular.module('ambariAdminConsole')
       templateUrl: 'views/clusters/manageAccess.html',
       controller: 'ClustersManageAccessCtrl'
     }
+  },
+  dashboard:{
+    url: '/dashboard',
+    controller: ['$window', function($window) {
+      $window.location.href = '/#/main/dashboard';
+    }],
+    template: ''
   }
 })
 .config(['$routeProvider', '$locationProvider', 'ROUTES', function($routeProvider, $locationProvider, ROUTES) {

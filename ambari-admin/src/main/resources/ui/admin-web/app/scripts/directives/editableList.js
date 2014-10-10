@@ -18,7 +18,7 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.directive('editableList', ['$q', '$document', function($q, $document) {
+.directive('editableList', ['$q', '$document', '$location', function($q, $document, $location) {
   return {
     restrict: 'E',
     templateUrl: 'views/directives/editableList.html',
@@ -84,7 +84,7 @@ angular.module('ambariAdminConsole')
         }
       });
     },
-    controller: ['$scope', '$injector', function($scope, $injector) {
+    controller: ['$scope', '$injector', '$modal', function($scope, $injector, $modal) {
       var $resource = $injector.get($scope.resourceType);
 
       $scope.identity = angular.identity; // Sorting function
@@ -160,10 +160,15 @@ angular.module('ambariAdminConsole')
         event.stopPropagation();
       };
       $scope.save = function(event) {
+        if( $scope.input ){
+          $scope.addItem($scope.input);
+        }
         $scope.itemsSource = $scope.items;
         $scope.editMode = false;
         $scope.input = '';
-        event.stopPropagation();
+        if(event){
+          event.stopPropagation();
+        }
       };
 
 
@@ -191,6 +196,41 @@ angular.module('ambariAdminConsole')
       $scope.removeFromItems = function(item) {
         $scope.items.splice( $scope.items.indexOf(item), 1);
       };
+
+      $scope.$on('$locationChangeStart', function(event, targetUrl) {
+        targetUrl = targetUrl.split('#').pop();
+        if( $scope.input ){
+          $scope.addItem($scope.input);
+        }
+        if( $scope.editMode && !angular.equals($scope.items, $scope.itemsSource)){
+          var modalInstance = $modal.open({
+            template: '<div class="modal-header"><h3 class="modal-title">Warning</h3></div><div class="modal-body">You have unsaved changes. Save changes or discard?</div><div class="modal-footer"><div class="btn btn-default" ng-click="cancel()">Cancel</div><div class="btn btn-warning" ng-click="discard()">Discard</div><div class="btn btn-primary" ng-click="save()">Save</div></div>',
+            controller: ['$scope', '$modalInstance', function($scope, $modalInstance) {
+              $scope.save = function() {
+                $modalInstance.close('save');
+              };
+              $scope.discard = function() {
+                $modalInstance.close('discard');
+              };
+              $scope.cancel = function() {
+                $modalInstance.close('cancel');
+              };
+            }]
+          });
+          modalInstance.result.then(function(action) {
+            switch(action){
+              case 'save':
+                $scope.save();
+                break;
+              case 'discard':
+                $scope.editMode = false;
+                $location.path(targetUrl);
+                break;
+            }
+          });
+          event.preventDefault();
+        }
+      });
     }]
   };
 }]);

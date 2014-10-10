@@ -22,6 +22,7 @@ module.exports = function(config){
     basePath : '../',
 
     files : [
+      'app/bower_components/jquery/dist/jquery.js',
       'app/bower_components/angular/angular.js',
       'app/bower_components/angular-animate/angular-animate.js',
       'app/bower_components/angular-bootstrap/ui-bootstrap.js',
@@ -35,7 +36,8 @@ module.exports = function(config){
       'app/bower_components/sinon/lib/sinon.js',
       'app/bower_components/angular-mocks/angular-mocks.js',
       'app/scripts/**/*.js',
-      'test/unit/**/*.js'
+      'test/unit/**/*.js',
+      'app/views/directives/*.html'
     ],
 
     autoWatch : true,
@@ -46,12 +48,20 @@ module.exports = function(config){
 
     plugins : [
             'karma-jasmine',
-            'karma-phantomjs-launcher'
+            'karma-phantomjs-launcher',
+            'karma-ng-html2js-preprocessor'
             ],
 
     junitReporter : {
       outputFile: 'test_out/unit.xml',
       suite: 'unit'
+    },
+
+    preprocessors: {
+      'app/views/directives/*.html': ['ng-html2js']
+    },
+    ngHtml2JsPreprocessor: {
+      'stripPrefix': 'app/'
     }
 
   });
