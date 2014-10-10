@@ -1313,23 +1313,23 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     if (serviceName === 'HDFS') {
       var hdfsConfigs = this.get('stepConfigs').findProperty('serviceName', 'HDFS').get('configs');
       if (App.get('isHadoop2Stack')) {
-        if (hdfsConfigs.findProperty('name', 'dfs.namenode.name.dir').get('isNotDefaultValue') ||
-          hdfsConfigs.findProperty('name', 'dfs.namenode.checkpoint.dir').get('isNotDefaultValue') ||
-          hdfsConfigs.findProperty('name', 'dfs.datanode.data.dir').get('isNotDefaultValue')) {
-          dirChanged = true;
+        if ((hdfsConfigs.findProperty('name', 'dfs.namenode.name.dir') && hdfsConfigs.findProperty('name', 'dfs.namenode.name.dir').get('isNotDefaultValue')) ||
+            (hdfsConfigs.findProperty('name', 'dfs.namenode.checkpoint.dir') && hdfsConfigs.findProperty('name', 'dfs.namenode.checkpoint.dir').get('isNotDefaultValue')) ||
+            (hdfsConfigs.findProperty('name', 'dfs.datanode.data.dir') && hdfsConfigs.findProperty('name', 'dfs.datanode.data.dir').get('isNotDefaultValue'))) {
+            dirChanged = true;
         }
       } else {
-        if (hdfsConfigs.findProperty('name', 'dfs.name.dir').get('isNotDefaultValue') ||
-          hdfsConfigs.findProperty('name', 'fs.checkpoint.dir').get('isNotDefaultValue') ||
-          hdfsConfigs.findProperty('name', 'dfs.data.dir').get('isNotDefaultValue')) {
-          dirChanged = true;
+        if ((hdfsConfigs.findProperty('name', 'dfs.name.dir') && hdfsConfigs.findProperty('name', 'dfs.name.dir').get('isNotDefaultValue')) ||
+            (hdfsConfigs.findProperty('name', 'fs.checkpoint.dir') && hdfsConfigs.findProperty('name', 'fs.checkpoint.dir').get('isNotDefaultValue')) ||
+            (hdfsConfigs.findProperty('name', 'dfs.data.dir') && hdfsConfigs.findProperty('name', 'dfs.data.dir').get('isNotDefaultValue'))) {
+             dirChanged = true;
         }
       }
     } else if (serviceName === 'MAPREDUCE') {
       var mapredConfigs = this.get('stepConfigs').findProperty('serviceName', 'MAPREDUCE').get('configs');
-      if (mapredConfigs.findProperty('name', 'mapred.local.dir').get('isNotDefaultValue') ||
-        mapredConfigs.findProperty('name', 'mapred.system.dir').get('isNotDefaultValue')) {
-        dirChanged = true;
+      if ((mapredConfigs.findProperty('name', 'mapred.local.dir') && mapredConfigs.findProperty('name', 'mapred.local.dir').get('isNotDefaultValue')) ||
+          (mapredConfigs.findProperty('name', 'mapred.system.dir') && mapredConfigs.findProperty('name', 'mapred.system.dir').get('isNotDefaultValue'))) {
+            dirChanged = true;
       }
     }
     return dirChanged;
