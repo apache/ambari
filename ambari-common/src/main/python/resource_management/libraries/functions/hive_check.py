@@ -20,7 +20,7 @@ limitations under the License.
 import socket
 from resource_management.core.exceptions import Fail
 
-def check_thrift_port_sasl(address, port, timeout = 5):
+def check_thrift_port_sasl(address, port, timeout = 5, security_enabled = False):
   """
   Hive thrift SASL port check
   """
@@ -73,8 +73,13 @@ def check_thrift_port_sasl(address, port, timeout = 5):
 
   try:
     s.connect((address, port))
-    s.send(msg)
+    #Successfull connection, port check passed
     is_service_socket_valid = True
+
+    # Try to send anonymous plain auth message to thrift to prevent errors in hive log
+    # Plain mechanism is not supported in security mode
+    if not security_enabled:
+      s.send(msg)
   except socket.error, e:
     #Expected if service unreachable
     pass

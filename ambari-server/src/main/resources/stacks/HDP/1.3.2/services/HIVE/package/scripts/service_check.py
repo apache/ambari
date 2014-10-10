@@ -33,10 +33,11 @@ class HiveServiceCheck(Script):
     address=format("{hive_server_host}")
     port=int(format("{hive_server_port}"))
     print "Test connectivity to hive server"
-    if check_thrift_port_sasl(address, port):
+    if check_thrift_port_sasl(address, port, security_enabled=params.security_enabled):
       print "Successfully connected to %s on port %s" % (address, port)
     else:
-      print "Connection to %s on port %s failed: %s" % (address, port)
+      print "Connection to %s on port %s failed" % (address, port)
+      exit(1)
 
     hcat_service_check()
     webhcat_service_check()

@@ -69,7 +69,7 @@ def hive_service(
       is_service_socket_valid = False
       print "Waiting for the Hive server to start..."
       while time.time() < end_time:
-        if check_thrift_port_sasl(address, port, 2):
+        if check_thrift_port_sasl(address, port, 2, security_enabled=params.security_enabled):
           is_service_socket_valid = True
           break
         else:

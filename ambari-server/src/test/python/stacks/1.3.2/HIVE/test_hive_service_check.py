@@ -22,11 +22,11 @@ from stacks.utils.RMFTestCase import *
 import datetime, socket
 import  resource_management.libraries.functions
 @patch.object(resource_management.libraries.functions, "get_unique_id_and_date", new = MagicMock(return_value=''))
-@patch("socket.socket", new = MagicMock())
+@patch("socket.socket")
 class TestServiceCheck(RMFTestCase):
 
   @patch("sys.exit")
-  def test_service_check_default(self, sys_exit_mock):
+  def test_service_check_default(self, sys_exit_mock, socket_mock):
 
     self.executeScript("1.3.2/services/HIVE/package/scripts/service_check.py",
                         classname="HiveServiceCheck",
@@ -70,9 +70,10 @@ class TestServiceCheck(RMFTestCase):
                               try_sleep = 5,
                               )
     self.assertNoMoreResources()
+    self.assertTrue(socket_mock.called)
 
   @patch("sys.exit")
-  def test_service_check_secured(self, sys_exit_mock):
+  def test_service_check_secured(self, sys_exit_mock, socket_mock):
 
     self.executeScript("1.3.2/services/HIVE/package/scripts/service_check.py",
                         classname="HiveServiceCheck",
@@ -117,3 +118,4 @@ class TestServiceCheck(RMFTestCase):
                               try_sleep = 5,
                               )
     self.assertNoMoreResources()
+    self.assertTrue(socket_mock.called)
