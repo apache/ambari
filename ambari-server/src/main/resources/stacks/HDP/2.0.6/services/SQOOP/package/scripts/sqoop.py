@@ -18,7 +18,7 @@ limitations under the License.
 """
 
 from resource_management import *
-import sys
+import os
 
 def sqoop(type=None):
   import params
@@ -30,29 +30,22 @@ def sqoop(type=None):
             group = params.user_group,
             recursive = True
   )
-  
   File(format("{sqoop_conf_dir}/sqoop-env.sh"),
     owner=params.sqoop_user,
+    group = params.user_group,
     content=InlineTemplate(params.sqoop_env_sh_template)
   )
-  
-  File (params.sqoop_conf_dir + "/sqoop-env-template.sh",
-          owner = params.sqoop_user,
-          group = params.user_group
-  )
-  File (params.sqoop_conf_dir + "/sqoop-site-template.xml",
-         owner = params.sqoop_user,
-         group = params.user_group
-  )
-  File (params.sqoop_conf_dir + "/sqoop-site.xml",
-         owner = params.sqoop_user,
-         group = params.user_group
-  )
+  update_config_permissions(["sqoop-env-template.sh",
+                             "sqoop-site-template.xml",
+                             "sqoop-site.xml"])
   pass
 
-def sqoop_TemplateConfig(name, tag=None):
+def update_config_permissions(names):
   import params
-  TemplateConfig( format("{sqoop_conf_dir}/{name}"),
-                  owner = params.sqoop_user,
-                  template_tag = tag
-  )
+  for filename in names:
+    full_filename = os.path.join(params.sqoop_conf_dir, filename)
+    File(full_filename,
+          owner = params.sqoop_user,
+          group = params.user_group,
+          only_if = format("test -e {full_filename}")
+    )
