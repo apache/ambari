@@ -36,15 +36,19 @@ class TestSqoop(RMFTestCase):
                               group = 'hadoop',)
     self.assertResourceCalled('File', '/usr/lib/sqoop/conf/sqoop-env.sh',
                               owner = 'sqoop',
+                              group = 'hadoop',
                               content = InlineTemplate(self.getConfig()['configurations']['sqoop-env']['content'])
                               )
     self.assertResourceCalled('File', '/usr/lib/sqoop/conf/sqoop-env-template.sh',
+                              only_if = 'test -e /usr/lib/sqoop/conf/sqoop-env-template.sh',
                               owner = 'sqoop',
                               group = 'hadoop',)
     self.assertResourceCalled('File', '/usr/lib/sqoop/conf/sqoop-site-template.xml',
+                              only_if = 'test -e /usr/lib/sqoop/conf/sqoop-site-template.xml',
                               owner = 'sqoop',
                               group = 'hadoop',)
     self.assertResourceCalled('File', '/usr/lib/sqoop/conf/sqoop-site.xml',
+                              only_if = 'test -e /usr/lib/sqoop/conf/sqoop-site.xml',
                               owner = 'sqoop',
                               group = 'hadoop',)
     self.assertNoMoreResources()
