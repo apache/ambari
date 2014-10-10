@@ -18,20 +18,29 @@
 package org.apache.ambari.server.state.stack;
 
 public class Metric {
-	private String metric = null;
-	private boolean pointInTime = false;
-	private boolean temporal  = false;
+  private String metric = null;
+  private boolean pointInTime = false;
+  private boolean temporal = false;
 
-	public String getName() {
-		return metric;
-	}
-	
-	public boolean isPointInTime() {
-		return pointInTime;
-	}
-	
-	public boolean isTemporal() {
-		return temporal;
-	}
-	
+  public Metric() {
+  }
+
+  public Metric(String metric, boolean pointInTime, boolean temporal) {
+    this.metric = metric;
+    this.pointInTime = pointInTime;
+    this.temporal = temporal;
+  }
+
+  public String getName() {
+    return metric;
+  }
+
+  public boolean isPointInTime() {
+    return pointInTime;
+  }
+
+  public boolean isTemporal() {
+    return temporal;
+  }
+
 }

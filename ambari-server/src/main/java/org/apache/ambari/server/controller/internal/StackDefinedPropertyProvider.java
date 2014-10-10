@@ -226,7 +226,7 @@ public class StackDefinedPropertyProvider implements PropertyProvider {
    * @return the converted Map required for JMX or Ganglia execution.
    * Format: <metric name, property info>
    */
-  private Map<String, PropertyInfo> getPropertyInfo(MetricDefinition def) {
+  public static Map<String, PropertyInfo> getPropertyInfo(MetricDefinition def) {
     Map<String, PropertyInfo> defs = new HashMap<String, PropertyInfo>();
 
     for (Entry<String, Metric> entry : def.getMetrics().entrySet()) {
