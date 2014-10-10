@@ -373,7 +373,7 @@ App.MainAdminSecurityProgressController = Em.Controller.extend({
         command.set('isError', true);
       }
       var cfg = data.items.findProperty('type', _tag.siteName);
-      _tag.configs = cfg.properties;
+      _tag.configs = this.modifyConfigsForSecure(_tag.siteName, cfg);
       if (cfg.properties_attributes) {
         _tag.properties_attributes = cfg.properties_attributes;
       }
@@ -381,6 +381,52 @@ App.MainAdminSecurityProgressController = Em.Controller.extend({
     if (this.manageSecureConfigs()) {
       this.applyConfigurationsToCluster();
     }
+  },
+
+  propertiesToUpdate: [
+    {
+      siteName: 'storm-site',
+      name: 'ui.childopts',
+      append: ' -Djava.security.auth.login.config=/etc/storm/conf/storm_jaas.conf'
+    },
+    {
+      siteName: 'storm-site',
+      name: 'supervisor.childopts',
+      append: ' -Djava.security.auth.login.config=/etc/storm/conf/storm_jaas.conf'
+    },
+    {
+      siteName: 'storm-site',
+      name: 'nimbus.childopts',
+      append: ' -Djava.security.auth.login.config=/etc/storm/conf/storm_jaas.conf'
+    }
+  ],
+
+  /**
+   * updates some configs for correct work in secure mode
+   * @method modifyConfigsForSecure
+   * @param {String} siteName
+   * @param {Object} cfg
+   * {
+   *   properties: {
+   *    'ui.childopts': 'value1'
+   *    'property2': 'value2'
+   *   }
+   * };
+   * has other properties but required filed is "properties";
+   * @returns {Object}
+   *   properties: {
+   *    'ui.childopts': 'value1 -Djava.security.auth.login.config=/etc/storm/conf/storm_jaas.conf'
+   *    'property2': 'value2'
+   *   }
+   */
+  modifyConfigsForSecure: function(siteName, cfg) {
+    var propertiesToUpdate = this.get('propertiesToUpdate').filterProperty('siteName', siteName);
+    if (propertiesToUpdate.length) {
+      propertiesToUpdate.forEach(function(p) {
+        cfg.properties[p.name] += p.append;
+      }, this);
+    }
+    return cfg.properties
   },
 
   getAllConfigurationsErrorCallback: function (request, ajaxOptions, error) {

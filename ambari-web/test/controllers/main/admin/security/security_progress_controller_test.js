@@ -408,4 +408,36 @@ describe('App.MainAdminSecurityProgressController', function () {
       });
     });
   });
+
+  describe('#modifyConfigsForSecure', function () {
+    var cfg = {
+      properties: {
+        'ui.childopts': 'value1',
+        'supervisor.childopts': 'value2',
+        'common_property': 'value4'
+      }
+    };
+    var siteName = 'storm-site';
+    var result = {
+      'ui.childopts': 'value1 -Djava.security.auth.login.config=/etc/storm/conf/storm_jaas.conf',
+      'supervisor.childopts': 'value2 -Djava.security.auth.login.config=/etc/storm/conf/storm_jaas.conf',
+      'common_property': 'value4'
+    };
+    var propertiesToUpdate = [
+      {
+        siteName: 'storm-site',
+        name: 'ui.childopts',
+        append: ' -Djava.security.auth.login.config=/etc/storm/conf/storm_jaas.conf'
+      },
+      {
+        siteName: 'storm-site',
+        name: 'supervisor.childopts',
+        append: ' -Djava.security.auth.login.config=/etc/storm/conf/storm_jaas.conf'
+      }
+    ];
+    it("should change some storm sonfigs", function () {
+      controller.set('propertiesToUpdate', propertiesToUpdate);
+      expect(controller.modifyConfigsForSecure(siteName, cfg)).to.eql(result);
+    });
+  });
 });
