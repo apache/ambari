@@ -37,22 +37,28 @@ def main():
 
   parser.add_option("-H", "--host", dest="address", help="Hive thrift host")
   parser.add_option("-p", "--port", type="int", dest="port", help="Hive thrift port")
+  parser.add_option("--security-enabled", action="store_true", dest="security_enabled")
 
   (options, args) = parser.parse_args()
 
   if options.address is None:
-    print "Hive thrift host (--name or -n)"
+    print "Specify hive thrift host (--host or -H)"
     exit(-1)
 
   if options.port is None:
-    print "Hive thrift port (--file or -f)"
+    print "Specify hive thrift port (--port or -p)"
     exit(-1)
+
+  if options.security_enabled:
+    security_enabled = options.security_enabled
+  else:
+    security_enabled = False
 
   address = options.address
   port = options.port
 
   starttime = time()
-  if check_thrift_port_sasl(address, port):
+  if check_thrift_port_sasl(address, port, security_enabled=security_enabled):
     timetaken = time() - starttime
     print OK_MESSAGE % (timetaken, port)
     exit(0)
