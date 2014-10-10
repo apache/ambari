@@ -1087,6 +1087,7 @@ Em.I18n.translations = {
   'admin.addSecurity.nm.user.httpUser': 'NodeManager SPNEGO User',
   'admin.addSecurity.historyServer.user.httpUser': 'History server SPNEGO User',
   'admin.addSecurity.webhcat.user.httpUser': 'WebHCat SPNEGO User',
+  'admin.addSecurity.hive.user.httpUser': 'Hive SPNEGO User',
   'admin.addSecurity.oozie.user.httpUser': 'Oozie SPNEGO User',
   'admin.addSecurity.falcon.user.httpUser': 'Falcon SPNEGO User',
   'admin.addSecurity.user.yarn.atsUser': 'YARN ATS User',
