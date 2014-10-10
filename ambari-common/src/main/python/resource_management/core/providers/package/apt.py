@@ -28,7 +28,16 @@ REPO_UPDATE_CMD = "apt-get update -qq"
 REMOVE_CMD = "/usr/bin/apt-get -y -q remove %s"
 CHECK_CMD = "dpkg --get-selections %s | grep -v deinstall"
 
+def replace_underscores(function_to_decorate):
+  def wrapper(*args):
+    self = args[0]
+    name = args[1].replace("_", "-")
+    return function_to_decorate(self, name)
+  return wrapper
+
 class AptProvider(PackageProvider):
+
+  @replace_underscores
   def install_package(self, name):
     if not self._check_existence(name):
       cmd = INSTALL_CMD % (name)
@@ -49,9 +58,11 @@ class AptProvider(PackageProvider):
     else:
       Logger.info("Skipping installing existent package %s" % (name))
 
+  @replace_underscores
   def upgrade_package(self, name):
     return self.install_package(name)
 
+  @replace_underscores
   def remove_package(self, name):
     if self._check_existence(name):
       cmd = REMOVE_CMD % (name)
@@ -60,6 +71,7 @@ class AptProvider(PackageProvider):
     else:
       Logger.info("Skipping removing non-existent package %s" % (name))
 
+  @replace_underscores
   def _check_existence(self, name):
     code, out = shell.call(CHECK_CMD % name)
     return not bool(code)

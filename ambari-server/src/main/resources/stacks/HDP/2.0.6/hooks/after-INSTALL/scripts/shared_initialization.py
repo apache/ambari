@@ -22,7 +22,7 @@ from resource_management import *
 def setup_hdp_install_directory():
   import params
   if params.rpm_version:
-    Execute(format('hdp-select set all `hdp-select versions | grep ^{rpm_version}- | tail -1`')
+    Execute(format('ambari-python-wrap /usr/bin/hdp-select set all `ambari-python-wrap /usr/bin/hdp-select versions | grep ^{rpm_version}- | tail -1`')
     )
 
 def setup_config():
