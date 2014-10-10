@@ -713,6 +713,7 @@ App.MainHostDetailsController = Em.Controller.extend({
     }
     if (configs['hive-site']) {
       configs['hive-site']['hive.zookeeper.quorum'] = zksWithPort;
+      configs['hive-site']['hive.cluster.delegation.token.store.zookeeper.connectString'] = zksWithPort;
     }
     if (configs['storm-site']) {
       configs['storm-site']['storm.zookeeper.servers'] = JSON.stringify(zks).replace(/"/g, "'");
