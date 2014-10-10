@@ -485,6 +485,7 @@ App.ServiceConfigProperty = Ember.Object.extend({
       case 'hive.zookeeper.quorum':
       case 'templeton.zookeeper.hosts':
       case 'slider.zookeeper.quorum':
+      case 'hive.cluster.delegation.token.store.zookeeper.connectString':
         var zkHosts = masterComponentHostsInDB.filterProperty('component', 'ZOOKEEPER_SERVER').mapProperty('hostName');
         var zkHostPort = zkHosts;
         var regex = "\\w*:(\\d+)";   //regex to fetch the port

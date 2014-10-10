@@ -584,6 +584,14 @@ describe('App.MainHostDetailsController', function () {
         "templeton.zookeeper.hosts": "host1:2181"
       }});
     });
+    it('hive-site is present', function () {
+      var configs = {'hive-site': {}};
+      expect(controller.setZKConfigs(configs, 'host1:2181', [])).to.be.true;
+      expect(configs).to.eql({"hive-site": {
+        'hive.cluster.delegation.token.store.zookeeper.connectString': "host1:2181",
+        'hive.zookeeper.quorum': "host1:2181"
+      }});
+    });
     it('storm-site is present', function () {
       var configs = {'storm-site': {}};
       expect(controller.setZKConfigs(configs, '', ["host1", 'host2'])).to.be.true;
