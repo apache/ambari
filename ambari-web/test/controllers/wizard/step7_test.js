@@ -389,6 +389,34 @@ describe('App.InstallerStep7Controller', function () {
       });
     });
 
+    it('should replace host name for *.childopts properties if Ganglia is in installedServiceNames for Add Service Wizard', function () {
+      var installedServiceNames = ['GANGLIA'],
+        configs = [
+          {name: 'nimbus.childopts', value: '.jar=host=host2', defaultValue: ''},
+          {name: 'supervisor.childopts', value: '.jar=host=host2', defaultValue: ''},
+          {name: 'worker.childopts', value: '.jar=host=host2', defaultValue: ''}
+        ],
+        expected = [
+          {name: 'nimbus.childopts', value: '.jar=host=realhost1', defaultValue: '.jar=host=realhost1', forceUpdate: true},
+          {name: 'supervisor.childopts', value: '.jar=host=realhost1', defaultValue: '.jar=host=realhost1', forceUpdate: true},
+          {name: 'worker.childopts', value: '.jar=host=realhost1', defaultValue: '.jar=host=realhost1', forceUpdate: true}
+        ];
+      installerStep7Controller.reopen({
+        installedServiceNames: installedServiceNames,
+        wizardController: Em.Object.create({
+          name: 'addServiceController',
+          masterComponentHosts: [{component: 'GANGLIA_SERVER', hostName: 'realhost1'}],
+          getDBProperty: function (k) {
+            return this.get(k);
+          }
+        })
+      });
+      installerStep7Controller.resolveStormConfigs(configs);
+      Em.keys(expected[0]).forEach(function (k) {
+        expect(configs.mapProperty(k)).to.eql(expected.mapProperty(k));
+      });
+    });
+
   });
 
   describe('#resolveServiceDependencyConfigs', function () {

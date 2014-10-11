@@ -685,10 +685,14 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
     // if Ganglia selected or installed, set ganglia host to configs
     if (this.get('installedServiceNames').contains('STORM') && this.get('installedServiceNames').contains('GANGLIA')) return;
     if (this.get('allSelectedServiceNames').contains('GANGLIA') || this.get('installedServiceNames').contains('GANGLIA')) {
-      hosts = this.get('wizardController').getDBProperty('hosts');
-      gangliaHostId = this.get('wizardController').getDBProperty('masterComponentHosts').findProperty('component', 'GANGLIA_SERVER').host_id;
-      for (var hostName in hosts) {
-        if (hosts[hostName].id == gangliaHostId) gangliaServerHost = hosts[hostName].name;
+      if (this.get('wizardController.name') === 'addServiceController') {
+        gangliaServerHost = this.get('wizardController').getDBProperty('masterComponentHosts').findProperty('component', 'GANGLIA_SERVER').hostName;
+      } else {
+        hosts = this.get('wizardController').getDBProperty('hosts');
+        gangliaHostId = this.get('wizardController').getDBProperty('masterComponentHosts').findProperty('component', 'GANGLIA_SERVER').host_id;
+        for (var hostName in hosts) {
+          if (hosts[hostName].id == gangliaHostId) gangliaServerHost = hosts[hostName].name;
+        }
       }
       dependentConfigs.forEach(function (configName) {
         var config = configs.findProperty('name', configName);
