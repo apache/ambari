@@ -36,6 +36,54 @@ describe('#Auth', function () {
       $window = _$window_;
       $httpBackend = _$httpBackend_;
       $httpBackend.whenGET('/api/v1/logout').respond(200,{message: "successfully logged out"});
+      $httpBackend.whenGET('/api/v1/views?fields=versions%2Finstances%2FViewInstanceInfo&versions%2FViewVersionInfo%2Fsystem=false&versions%2Finstances%2FViewInstanceInfo%2Fvisible=true')
+        .respond(200,{
+          "href": "http://c6401.ambari.apache.org:8080/api/v1/views?fields=versions/instances/ViewInstanceInfo&versions/ViewVersionInfo/system=false&versions/instances/ViewInstanceInfo/visible=true",
+          "items": [
+            {
+              "ViewInfo": {
+                "view_name": "SLIDER"
+              },
+              "href": "http://c6401.ambari.apache.org:8080/api/v1/views/SLIDER",
+              "versions": [
+                {
+                  "ViewVersionInfo": {
+                    "system": false,
+                    "version": "1.0.0",
+                    "view_name": "SLIDER"
+                  },
+                  "href": "http://c6401.ambari.apache.org:8080/api/v1/views/SLIDER/versions/1.0.0",
+                  "instances": [
+                    {
+                      "ViewInstanceInfo": {
+                        "context_path": "/views/SLIDER/1.0.0/VisibleInstance",
+                        "description": "VisibleInstance",
+                        "icon64_path": null,
+                        "icon_path": null,
+                        "instance_data": {},
+                        "instance_name": "VisibleInstance",
+                        "label": "VisibleInstance",
+                        "properties": {
+                          "ambari.server.password": "123",
+                          "ambari.server.url": "123",
+                          "ambari.server.username": "123",
+                          "slider.user": null,
+                          "view.kerberos.principal": null,
+                          "view.kerberos.principal.keytab": null
+                        },
+                        "static": false,
+                        "version": "1.0.0",
+                        "view_name": "SLIDER",
+                        "visible": true
+                      },
+                      "href": "http://c6401.ambari.apache.org:8080/api/v1/views/SLIDER/versions/1.0.0/instances/VisibleInstance"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        });
       scope = $rootScope.$new();
       scope.$apply();
       ctrl = $controller('MainCtrl', {$scope: scope});
@@ -43,12 +91,19 @@ describe('#Auth', function () {
 
     it('should reset window.location and ambari localstorage', function () {
       scope.signOut();
-      $httpBackend.flush();
       chai.expect($window.location.pathname).to.be.empty;
       var data = JSON.parse(localStorage.ambari);
       chai.expect(data.app.authenticated).to.equal(undefined);
       chai.expect(data.app.loginName).to.equal(undefined);
       chai.expect(data.app.user).to.equal(undefined);
+      $httpBackend.flush();
+    });
+
+    it('should get visible view instances and show them in top nav menu', function() {
+      $httpBackend.flush();
+
+      chai.expect(scope.viewInstances.length).to.equal(1);
+      chai.expect(scope.viewInstances[0].instance_name).to.equal('VisibleInstance');
     });
   });
 });

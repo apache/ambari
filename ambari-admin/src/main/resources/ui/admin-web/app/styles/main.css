@@ -395,6 +395,35 @@ a.gotoinstance{
 /*
   Style topnav menu
 */
+.navbar-views-dropdown > a{
+  color: #c3c3c3;
+  font-size: 1.3em;
+  padding: 10px 25px 18px;
+  display: block;
+  box-shadow: none!important;
+  background: none!important;
+  text-decoration: none;
+}
+.navbar-views-dropdown > a:hover{
+  color: #fff;
+}
+.navbar-views-dropdown > a > i{
+  display: block;
+  margin-top: 1px;
+  margin-bottom: -12px;
+}
+.navbar-views-dropdown .dropdown-menu{
+  margin-top: -2px;
+}
+
+.navbar-views-dropdown .dropdown-menu a:hover{
+  background: #666;
+  color: #fff;
+}
+.navbar-views-dropdown .dropdown-menu .disabled a:hover{
+  background: none;
+  color: #999;
+}
 #top-nav .navbar.navbar-static-top{
   min-height: 40px;
 }

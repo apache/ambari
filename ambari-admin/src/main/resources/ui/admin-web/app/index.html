@@ -51,6 +51,15 @@
             <a href="#/" class="brand" title="Apache Ambari">Ambari</a>
             <ul class="nav navbar-nav navbar-right">
               <li>
+                <div class="btn-group navbar-views-dropdown" dropdown is-open="viewsdropdown.isopen" ng-mouseover="viewsdropdown.isopen=true" ng-mouseout="viewsdropdown.isopen=false">
+                  <a href="/#/main/views" ng-click="gotoViewsDashboard()" class="dropdown-toggle"><i class="fa fa-th"></i></a>
+                  <ul class="dropdown-menu" role="menu">
+                    <li ng-repeat="instance in viewInstances"><a href="/#/main{{instance.context_path}}" ng-click="about()">{{instance.label}}</a></li>
+                    <li ng-show="!viewInstances.length" class="disabled"><a>No Views</a></li>
+                  </ul>
+                </div>
+              </li>
+              <li>
                 <div class="btn-group" dropdown is-open="status.isopen">
                   <button type="button" class="btn btn-default dropdown-toggle navbar-btn" ng-disabled="disabled">
                     <i class="fa fa-user"></i> {{currentUser}} <span class="caret"></span>

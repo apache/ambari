@@ -251,6 +251,31 @@ angular.module('ambariAdminConsole')
     return deferred;
   };
 
+  View.getAllVisibleInstance = function() {
+    var deferred = $q.defer();
+    $http({
+      method: 'GET',
+      url: Settings.baseUrl + '/views',
+      params:{
+        'fields': 'versions/instances/ViewInstanceInfo',
+        'versions/ViewVersionInfo/system': false,
+        'versions/instances/ViewInstanceInfo/visible': true
+      }
+    }).then(function(data) {
+      var instances = [];
+      data.data.items.forEach(function(view) {
+        view.versions.forEach(function(version) {
+          version.instances.forEach(function(instance) {
+            instances.push(instance.ViewInstanceInfo);
+          });
+        })
+      });
+      deferred.resolve(instances);
+    });
+
+    return deferred.promise;
+  };
+
   View.all = function() {
     var deferred = $q.defer();
     var fields = [
