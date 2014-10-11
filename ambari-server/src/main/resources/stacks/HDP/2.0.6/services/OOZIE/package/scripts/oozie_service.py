@@ -40,11 +40,11 @@ def oozie_service(action = 'start'): # 'start' or 'stop'
     cmd2 =  format("{kinit_if_needed} {put_shared_lib_to_hdfs_cmd} ; hadoop --config {hadoop_conf_dir} dfs -chmod -R 755 {oozie_hdfs_user_dir}/share")
 
     if not os.path.isfile(params.jdbc_driver_jar) and params.jdbc_driver_name == "org.postgresql.Driver":
-      print "ERROR: jdbc file " + params.jdbc_driver_jar + " is unavailable. Please, follow next steps:\n" \
+      print format("ERROR: jdbc file {jdbc_driver_jar} is unavailable. Please, follow next steps:\n" \
         "1) Download postgresql-9.0-801.jdbc4.jar.\n2) Create needed directory: mkdir -p {oozie_home}/libserver/\n" \
         "3) Copy postgresql-9.0-801.jdbc4.jar to newly created dir: cp /path/to/jdbc/postgresql-9.0-801.jdbc4.jar " \
         "{oozie_home}/libserver/\n4) Copy postgresql-9.0-801.jdbc4.jar to libext: cp " \
-        "/path/to/jdbc/postgresql-9.0-801.jdbc4.jar {oozie_home}/libext/\n"
+        "/path/to/jdbc/postgresql-9.0-801.jdbc4.jar {oozie_home}/libext/\n")
       exit(1)
 
     if db_connection_check_command:
