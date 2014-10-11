@@ -30,6 +30,7 @@ def tez():
     recursive = True
   )
 
+  # TODO, tez-site.xml needs to use versioned tez.tar.gz file to allow currently running jobs to finish during a rolling upgrade.
   XmlConfig( "tez-site.xml",
             conf_dir = params.config_dir,
             configurations = params.config['configurations']['tez-site'],
