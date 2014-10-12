@@ -463,7 +463,7 @@ App.ConfigHistoryFlowView = Em.View.extend({
         self.get('controller').set('preSelectedConfigVersion', Em.Object.create({
           version: newVersionToBeCreated,
           serviceName: self.get('displayedServiceVersion.serviceName'),
-          groupName: self.get('displayedServiceVersion.groupName')
+          groupName: self.get('controller.selectedConfigGroup.name')
         }));
         self.get('controller').restartServicePopup();
         this.hide();
