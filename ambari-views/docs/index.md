@@ -38,8 +38,6 @@ A view may have multiple instances.  Each instance of a view has a name that is 
 
 For example, a file browser view may define a file system URI parameter.  A view deployer may define multiple instances of the file browser view, each with a different file system URI property value.
 
-###View Admin
-TBD.
 
 ###View Context
 The view context gives the view components access to the runtime context that the Ambari container provides.  The context remains associated with the view instance for the duration of its lifetime.
@@ -56,6 +54,18 @@ The context interface provides access to information about the associated view i
       public String getUsername();
     
       /**
+       * Determine whether or not the access specified by the given permission name
+       * is permitted for the given user.
+       *
+       * @param userName        the user name
+       * @param permissionName  the permission name
+       *
+       * @throws SecurityException if the access specified by the given permission name
+       *         is not permitted
+       */
+      public void hasPermission(String userName, String permissionName) throws SecurityException;
+    
+      /**
        * Get the view name.
        *
        * @return the view name
@@ -63,16 +73,30 @@ The context interface provides access to information about the associated view i
       public String getViewName();
     
       /**
+       * Get the view definition associated with this context.
+       *
+       * @return the view definition
+       */
+      public ViewDefinition getViewDefinition();
+    
+      /**
        * Get the view instance name.
        *
-       * @return the view instance name
+       * @return the view instance name; null if no instance is associated
        */
       public String getInstanceName();
     
       /**
+       * Get the view instance definition associated with this context.
+       *
+       * @return the view instance definition; null if no instance is associated
+       */
+      public ViewInstanceDefinition getViewInstanceDefinition();
+    
+      /**
        * Get the property values specified to create the view instance.
        *
-       * @return the view instance property values
+       * @return the view instance property values; null if no instance is associated
        */
       public Map<String, String> getProperties();
     
@@ -81,6 +105,8 @@ The context interface provides access to information about the associated view i
        *
        * @param key    the key
        * @param value  the value
+       *
+       * @throws IllegalStateException if no instance is associated
        */
       public void putInstanceData(String key, String value);
     
@@ -89,14 +115,14 @@ The context interface provides access to information about the associated view i
        *
        * @param key  the key
        *
-       * @return the instance data value
+       * @return the instance data value; null if no instance is associated
        */
       public String getInstanceData(String key);
     
       /**
        * Get the instance data values.
        *
-       * @return the view instance property values
+       * @return the view instance property values; null if no instance is associated
        */
       public Map<String, String> getInstanceData();
     
@@ -104,6 +130,8 @@ The context interface provides access to information about the associated view i
        * Remove the instance data value for the given key.
        *
        * @param key  the key
+       *
+       * @throws IllegalStateException if no instance is associated
        */
       public void removeInstanceData(String key);
     
@@ -121,7 +149,7 @@ The context interface provides access to information about the associated view i
        *
        * @param type  the resource type
        *
-       * @return the resource provider
+       * @return the resource provider; null if no instance is associated
        */
       public ResourceProvider<?> getResourceProvider(String type);
     
@@ -135,9 +163,44 @@ The context interface provides access to information about the associated view i
       /**
        * Get a data store for view persistence entities.
        *
-       * @return a data store
+       * @return a data store; null if no instance is associated
        */
       public DataStore getDataStore();
+    
+      /**
+       * Get all of the available view definitions.
+       *
+       * @return the view definitions
+       */
+      public Collection<ViewDefinition> getViewDefinitions();
+    
+      /**
+       * Get all of the available view instance definitions.
+       *
+       * @return the view instance definitions
+       */
+      public Collection<ViewInstanceDefinition> getViewInstanceDefinitions();
+    
+      /**
+       * Get a view controller associated with this context.
+       *
+       * @return the view controller
+       */
+      public ViewController getController();
+    
+      /**
+       * Get the HTTP Impersonator.
+       *
+       * @return the HTTP Impersonator, which internally uses the App Cookie Manager
+       */
+      public HttpImpersonator getHttpImpersonator();
+    
+      /**
+       * Get the default settings for the Impersonator.
+       *
+       * @return the Impersonator settings.
+       */
+      public ImpersonatorSetting getImpersonatorSetting();
  
 ###UI Components
 The view archive may contain components of a web application such as html or JavaSript. 
@@ -201,9 +264,9 @@ For example, in the doGet() method of the servlet we can use the view context in
 
 
 ###Resources
-Resources may be exposed for a view.  Each resource is defined in the view.xml descriptor.  All resource descriptions specify a resource name and service class.  See [view.xml](#view.xml).
+Resources may be exposed for a view.  Each resource is defined in the view.xml descriptor.  All resource descriptions specify a resource name and service class.  See [view.xml](#viewxml).
 
-Each resource endpoint may then be accessed through the Ambari API.  See [API](#API).
+Each resource endpoint may then be accessed through the Ambari API.  See [API](#api).
 
 #####Service Class
 
@@ -234,7 +297,7 @@ The service class uses JAX-RS annotations to define the view resource endpoint. 
 
 
 ####Managed Resources
-A managed resource is a resource that is managed through the Ambari API framework.  In addition to a name and service class, a managed resource definition includes plural name, resource class and provider class.  See [view.xml](#view.xml).
+A managed resource is a resource that is managed through the Ambari API framework.  In addition to a name and service class, a managed resource definition includes plural name, resource class and provider class.  See [view.xml](#viewxml).
  
 The advantage of using a managed resource over a simple resource is that any queries through the REST API for managed resource may take advantage of any of the features of the API framework.  These include partial response, query predicates, pagination, sub-resource queries, etc.  See [API](#API).
 
@@ -311,6 +374,59 @@ For example …
         }
         ... 
       }
+
+###Permissions
+The permission VIEW.USE can be granted on any view instance by an administrator.  A user that has VIEW.USE privilege on a view instance will be able to access the view instance.  See [API](#api).
+  
+###Custom Permissions
+A view can define permissions in the view.xml descriptor. 
+  
+      <view>
+        <name>RESTRICTED</name>
+        <label>The Restricted View</label>
+        <version>1.0.0</version>
+        <resource>
+          <name>restricted</name>
+          <service-class>org.apache.ambari.view.restricted.RestrictedResource</service-class>
+        </resource>
+        <resource>
+          <name>unrestricted</name>
+          <service-class>org.apache.ambari.view.restricted.UnrestrictedResource</service-class>
+        </resource>
+        <permission>
+          <name>RESTRICTED</name>
+          <description>
+            Access permission for a restricted view resource.
+          </description>
+        </permission>
+        <instance>
+          <name>INSTANCE_1</name>
+        </instance>
+      </view>
+
+This configuration defines a view named RESTRICTED that has a single instance.  The descriptor also defines a permission named RESTRICTED and two resources named 'unrestricted' and 'restricted'.
+An administrator can grant the RESTRICTED permission on any instance of the RESTRICTED view.  
+
+The view implementation code can use the view context to check custom permissions.
+ 
+            
+      @Inject
+      ViewContext context;
+      
+      @GET
+      @Produces({"text/html"})
+      public Response getRestricted() throws IOException{
+    
+        String userName = context.getUsername();
+    
+        try {
+          context.hasPermission(userName, "RESTRICTED");
+        } catch (org.apache.ambari.view.SecurityException e) {
+          return Response.status(401).build();
+        }
+    
+        return Response.ok("<b>You have accessed a restricted resource.</b>").type("text/html").build();
+      } 
 
 ###Persistence
 
@@ -410,7 +526,130 @@ The DataStore object exposes a simple interface for persisting view entities.  T
        */
       public <T> Collection<T> findAll(Class<T> clazz, String whereClause) throws PersistenceException;
       
-Each entity to be persisted by the view should be specified in the view.xml.  See [view.xml](#view.xml).   
+Each entity to be persisted by the view should be specified in the view.xml.  See [view.xml](#viewxml).   
+
+###Events
+
+
+
+#####View Lifecycle Events
+
+A view can monitor its own lifecycle events by implementing the View interface.
+
+    public interface View {
+    
+      ...
+      
+      public void onDeploy(ViewDefinition definition);
+    
+      public void onCreate(ViewInstanceDefinition definition);
+    
+      public void onDestroy(ViewInstanceDefinition definition);
+    }
+    
+The View implementation class should be specified in the view's XML descriptor.
+        
+    <view>
+      <name>FILES</name>
+      <label>Files</label>
+      <version>0.1.0</version>
+      ...
+      <view-class>org.apache.ambari.view.filebrowser.ViewImpl</view-class>
+    </view>
+
+
+The methods of the registered View implementation are fired whenever a view lifecycle event occurs.
+
+Event | Description | Parameter
+---|---|---
+Deploy    |The view has been successfully deployed. |The deployed view definition.
+Create    |An instance of the view has been created. |The new view instance definition.
+Destroy   |An instance of the view has been destroyed. |The destroyed view instance definition.
+
+
+
+#####Custom Events
+
+A view can send out notification of custom events through the view framework and listen for custom view events from other deployed views.
+
+#####Listeners
+
+To listen for event notifications, a view needs to implement a listener and register it with the view framework.
+
+    public interface Listener {
+    
+      ...
+      
+      public void notify(Event event);
+    }
+
+
+The notify method of the listener will be called when the subject view fires an event. 
+
+    public class JobsListener implements Listener {
+      @Override
+      public void notify(Event event) {
+        if (event.getId().equals("NEW_JOB")) {
+          ViewInstanceDefinition instance = event.getViewInstanceSubject();         
+          ...
+        }      
+      }
+    }
+
+
+#####ViewController
+
+The ViewController allows a view to register event listeners and to fire event notifications.
+
+    public interface ViewController {
+
+      ...
+      
+      public void fireEvent(String eventId, Map<String, String> eventProperties);
+    
+      public void registerListener(Listener listener, String viewName);
+    
+      public void unregisterListener(Listener listener, String viewName);    
+    }
+    
+A view component can access the view controller through the injected view context.
+    
+    @Inject
+    ViewContext context;
+
+    ...
+    ViewController controller = context.getController();
+    
+
+A view component may register to listen for events fired by other views.
+
+    @Inject
+    ViewContext context;
+
+    ...
+    Listener listener = new JobsListener();
+
+    ...
+    ViewController controller = context.getController();
+    controller.registerListener(listener, "JOBS");
+
+
+A view component may also fire its own custom view notifications.
+
+
+    @Inject
+    ViewContext context;
+
+    ...
+    Map<String, String> jobEventProperties = new HashMap<String, String>();
+
+    jobEventProperties.put("JobId", jobId);
+    jobEventProperties.put("JobOwner", jobOwner);
+    
+    ...
+    ViewController controller = context.getController();
+    controller.fireEvent("NEW_JOB", jobEventProperties);
+
 
 
 Packaging
@@ -429,30 +668,39 @@ The view.xml file is the only required file for a view archive.  The view.xml is
 
 Element | Description
 ---|---
-name    |The unique view name (required)
-label   |The user facing name
-version |The view version (required)
-parameter| Define a properties used to describe an instance 
-resource | Describe a resources exposed by the view
-persistence   | Describe a view entities for persistence 
-instance | Define an instances of a view
+name    |The unique view name (required).
+label   |The user facing name.
+version |The view version (required).
+description |The description of the view.
+icon64 |The 64x64 icon to display for this view. If this property is not set, the 32x32 sized icon will be used.
+icon |The 32x32 icon to display for this view. Suggested size is 32x32 and will be displayed as 8x8 and 16x16 as necessary. If this property is not set, a default view framework icon is used.
+system |Indicates whether or not this is a system view.  Default is false. 
+view-class |The View class to receive framework events. 
+masker-class |The Masker class for masking view parameters. 
+parameter|Defines a configuration parameter that is used to when creating a view instance. 
+resource |Describe a resources exposed by the view.
+permission   |Defines a custom permission for the view. 
+persistence   |Describe a view entities for persistence. 
+instance |Define an instances of a view.
 
 #####parameter
 Element | Description
 ---|---
-name    |The parameter name
-description    |The parameter description
-required    |Determines whether or not the parameter is required
+name    |The parameter name.
+description    |The parameter description.
+required    |Determines whether or not the parameter is required.
+masked    |Indicated this parameter value is to be "masked" in the Ambari Web UI (i.e. not shown in the clear). Omitting this element default to not-masked. Otherwise, if true, the parameter value will be "masked" in the Web UI.
 
 #####resource
 Element | Description
 ---|---
-name    |The resource name (i.e file)
-plural-name    |The parameter description (i.e. files) *
-id-property    |The id field of the managed resource class *
-resource-class |The class of the JavaBean that contains the attributes of a managed resource *
-provider-class |The class of the managed resource provider *
-service-class  |The class of the JAX-RS annotated service resource
+name    |The resource name (i.e file).
+plural-name    |The parameter description (i.e. files). *
+id-property    |The id field of the managed resource class. *
+resource-class |The class of the JavaBean that contains the attributes of a managed resource. *
+provider-class |The class of the managed resource provider. *
+service-class  |The class of the JAX-RS annotated service resource.
+sub-resource-name  |The sub-resource name.
 
 For example …
 
@@ -473,16 +721,22 @@ For example …
     </resource>
 
 
-#####persitence
+#####permission
 Element | Description
 ---|---
-entity | An entity that may be persisted through the DataStore
+name | The permission name.
+description | The permission description.
+
+#####persistence
+Element | Description
+---|---
+entity | An entity that may be persisted through the DataStore.
 
 #####entity
 Element | Description
 ---|---
-class | The class ot the JavaBean that contains the attributes of an entity
-id-property | The id field of the entity
+class | The class ot the JavaBean that contains the attributes of an entity.
+id-property | The id field of the entity.
 
 For example …
 
@@ -504,19 +758,24 @@ For example …
 #####instance
 Element | Description
 ---|---
-name | The unique instance name (required)
-property | An instance property
+name | The unique instance name (required).
+label | The display label of the view instance. If not set, the view definition label is used.
+description | The description of the view instance. If not set, the view definition description is used.
+icon64 | Overrides the view icon64 for this specific view instance.
+icon | Overrides the view icon for this specific view instance.
+visible | If true, for the view instance to show up in the users view instance list.  The default value is true.
+property | Specifies configuration parameters values for the view instance.
 
 #####property
 Element | Description
 ---|---
-key | The property key (must match view parameter name)
-value | The property value
+key | The property key (must match view parameter name).
+value | The property value.
 
 
 
 
-A complete view.xml example …
+A view.xml example …
 
     <view>
         <name>FILES</name>
@@ -574,7 +833,7 @@ Use
 ###API
 
 #####Get Views
-The user may query for all of the deployed views.  Note that views are a top level resources (they are not sub-resources of a cluster).
+The user may query for all of the deployed views.  Note that views are a top-level resources (they are not sub-resources of a cluster).
 
     GET http://<server>:8080/api/v1/views/
 
@@ -812,6 +1071,42 @@ Because the resource is managed through the Ambari API framework, it may be quer
  
     GET http://<server>:8080/api/v1/views/PIG/versions/0.1.0/instances/INSTANCE_1/scripts?fields=pythonScript&owner=jsmith
     
+
+#####Grant view privileges
+
+To grant privileges to access the restricted resource we can create a privilege sub-resource for the view instance.  The following API will grant RESTICTED permission to the user 'bob' for the view instance 'INSTANCE_1' of the 'RESTRICTED' view. 
+
+    POST http://<server>/api/v1/views/RESTRICTED/versions/1.0.0/instances/INSTANCE_1
+    
+    [
+      {
+        "PrivilegeInfo" : {
+          "permission_name" : "RESTRICTED",
+          "principal_name" : "bob",
+          "principal_type" : "USER"
+        }
+      }
+    ]
+
+#####Get a view privilege
+
+We can see a privilege sub resource for a view instance.
+
+    GET  http://<server>/api/v1/views/RESTRICTED/versions/1.0.0/instances/INSTANCE_1/privileges/5
+
+
+    {
+      "href" : "http://<server>/api/v1/views/RESTRICTED/versions/1.0.0/instances/INSTANCE_1/privileges/5",
+      "PrivilegeInfo" : {
+        "instance_name" : "INSTANCE_1",
+        "permission_name" : "RESTRICTED",
+        "principal_name" : "bob",
+        "principal_type" : "USER",
+        "privilege_id" : 5,
+        "version" : "1.0.0",
+        "view_name" : "RESTRICTED"
+      }
+    }
 
 ###View UI
 The context root of a view instance is …
