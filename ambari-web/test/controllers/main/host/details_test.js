@@ -27,13 +27,18 @@ var controller;
 describe('App.MainHostDetailsController', function () {
 
 
-  beforeEach(function() {
+  beforeEach(function () {
+    sinon.stub(App.ajax, 'send', Em.K);
     controller = App.MainHostDetailsController.create({
       securityEnabled: function () {
         return this.get('mockSecurityStatus');
       }.property(),
+      content: Em.Object.create(),
       mockSecurityStatus: false
     });
+  });
+  afterEach(function () {
+    App.ajax.send.restore();
   });
 
 
@@ -144,11 +149,9 @@ describe('App.MainHostDetailsController', function () {
 
     beforeEach(function () {
       sinon.spy(App, "showConfirmationPopup");
-      sinon.stub(App.ajax, "send", Em.K);
     });
     afterEach(function () {
       App.showConfirmationPopup.restore();
-      App.ajax.send.restore();
     });
 
     it('confirm popup should be displayed', function () {
@@ -315,14 +318,6 @@ describe('App.MainHostDetailsController', function () {
   });
 
   describe('#primary()', function () {
-
-    beforeEach(function () {
-      sinon.stub(App.ajax, "send", Em.K);
-    });
-    afterEach(function () {
-      App.ajax.send.restore();
-    });
-
     it('Query should be sent', function () {
       var component = Em.Object.create({
         componentName: 'COMP1',
@@ -380,14 +375,6 @@ describe('App.MainHostDetailsController', function () {
   });
 
   describe('#sendRefreshComponentConfigsCommand()', function () {
-
-    beforeEach(function () {
-      sinon.stub(App.ajax, "send", Em.K);
-    });
-    afterEach(function () {
-      App.ajax.send.restore();
-    });
-
     it('Query should be sent', function () {
       var component = Em.Object.create({
         service: {},
@@ -400,14 +387,6 @@ describe('App.MainHostDetailsController', function () {
   });
 
   describe('#loadConfigs()', function () {
-
-    beforeEach(function () {
-      sinon.stub(App.ajax, "send", Em.K);
-    });
-    afterEach(function () {
-      App.ajax.send.restore();
-    });
-
     it('Query should be sent', function () {
       controller.loadConfigs();
       expect(App.ajax.send.calledOnce).to.be.true;
@@ -477,13 +456,11 @@ describe('App.MainHostDetailsController', function () {
   describe('#loadConfigsSuccessCallback()', function () {
 
     beforeEach(function () {
-      sinon.stub(App.ajax, "send", Em.K);
       sinon.stub(controller, "constructConfigUrlParams", function () {
         return this.get('mockUrlParams');
       });
     });
     afterEach(function () {
-      App.ajax.send.restore();
       controller.constructConfigUrlParams.restore();
     });
 
@@ -505,13 +482,11 @@ describe('App.MainHostDetailsController', function () {
       sinon.stub(controller, "getZkServerHosts", Em.K);
       sinon.stub(controller, "concatZkNames", Em.K);
       sinon.stub(controller, "setZKConfigs", Em.K);
-      sinon.spy(App.ajax, "send");
     });
     afterEach(function () {
       controller.getZkServerHosts.restore();
       controller.concatZkNames.restore();
       controller.setZKConfigs.restore();
-      App.ajax.send.restore();
     });
 
     it('data.items is empty', function () {
@@ -679,12 +654,10 @@ describe('App.MainHostDetailsController', function () {
 
     beforeEach(function () {
       sinon.spy(App.ModalPopup, "show");
-      sinon.stub(App.ajax, "send", Em.K);
     });
 
     afterEach(function () {
       App.ModalPopup.show.restore();
-      App.ajax.send.restore();
     });
 
     it('popup should be displayed', function () {
@@ -778,14 +751,6 @@ describe('App.MainHostDetailsController', function () {
   });
 
   describe('#doDecommission()', function () {
-
-    beforeEach(function () {
-      sinon.stub(App.ajax, "send", Em.K);
-    });
-    afterEach(function () {
-      App.ajax.send.restore();
-    });
-
     it('Query should be sent', function () {
       controller.doDecommission('', '', '', '');
       expect(App.ajax.send.calledOnce).to.be.true;
@@ -793,63 +758,132 @@ describe('App.MainHostDetailsController', function () {
   });
 
   describe('#doDecommissionRegionServer()', function () {
-
-    beforeEach(function () {
-      sinon.stub(App.ajax, "send", Em.K);
-    });
-    afterEach(function () {
-      App.ajax.send.restore();
-    });
-
     it('Query should be sent', function () {
       controller.doDecommissionRegionServer('', '', '', '');
       expect(App.ajax.send.calledOnce).to.be.true;
     });
   });
 
-  /**
-   * TODO uncomment test when final rules will be implemented into warnBeforeDecommission function
-   */
-  /* describe('#warnBeforeDecommission()', function () {
-
-   beforeEach(function () {
-   sinon.stub(controller, "doDecommissionRegionServer", Em.K);
-   sinon.stub(App.ModalPopup, "show", Em.K);
-   });
-   afterEach(function () {
-   App.ModalPopup.show.restore();
-   controller.doDecommissionRegionServer.restore();
-   });
-
-   it('Component in passive state', function () {
-   controller.set('content.hostComponents', [Em.Object.create({
-   componentName: 'HBASE_REGIONSERVER',
-   passiveState: 'ON'
-   })]);
-   controller.warnBeforeDecommission('host1', 'HBASE', 'HBASE_REGIONSERVER', 'SLAVE');
-   expect(App.ModalPopup.show.called).to.be.false;
-   expect(controller.doDecommissionRegionServer.calledWith('host1', 'HBASE', 'HBASE_REGIONSERVER', 'SLAVE')).to.be.true;
-   });
-   it('Component is not in passive state', function () {
-   controller.set('content.hostComponents', [Em.Object.create({
-   componentName: 'HBASE_REGIONSERVER',
-   passiveState: 'OFF'
-   })]);
-   controller.warnBeforeDecommission('host1', 'HBASE', 'HBASE_REGIONSERVER', 'SLAVE');
-   expect(App.ModalPopup.show.calledOnce).to.be.true;
-   expect(controller.doDecommissionRegionServer.called).to.be.false;
-   });
-   });*/
-
-  describe('#doRecommissionAndStart()', function () {
-
+  describe('#warnBeforeDecommission()', function () {
     beforeEach(function () {
-      sinon.stub(App.ajax, "send", Em.K);
+      sinon.stub(controller, "showHbaseActiveWarning", Em.K);
+      sinon.stub(controller, "checkRegionServerState", Em.K);
     });
     afterEach(function () {
-      App.ajax.send.restore();
+      controller.checkRegionServerState.restore();
+      controller.showHbaseActiveWarning.restore();
     });
 
+    it('Component in passive state', function () {
+      controller.set('content.hostComponents', [Em.Object.create({
+        componentName: 'HBASE_REGIONSERVER',
+        passiveState: 'ON'
+      })]);
+      controller.warnBeforeDecommission('host1');
+      expect(controller.checkRegionServerState.calledOnce).to.be.true;
+    });
+    it('Component is not in passive state', function () {
+      controller.set('content.hostComponents', [Em.Object.create({
+        componentName: 'HBASE_REGIONSERVER',
+        passiveState: 'OFF'
+      })]);
+      controller.warnBeforeDecommission('host1');
+      expect(controller.showHbaseActiveWarning.calledOnce).to.be.true;
+    });
+  });
+
+  describe('#checkRegionServerState()', function () {
+    it('', function () {
+      expect(controller.checkRegionServerState('host1')).to.be.an('object');
+      expect(App.ajax.send.getCall(0).args[0].data.hostNames).to.equal('host1');
+    });
+  });
+
+  describe('#checkRegionServerStateSuccessCallback()', function () {
+    beforeEach(function () {
+      sinon.stub(controller, "doDecommissionRegionServer", Em.K);
+      sinon.stub(controller, "showRegionServerWarning", Em.K);
+    });
+    afterEach(function () {
+      controller.doDecommissionRegionServer.restore();
+      controller.showRegionServerWarning.restore();
+    });
+
+    it('Decommission all regionservers', function () {
+      var data = {
+        items: [
+          {
+            HostRoles: {
+              host_name: 'host1'
+            }
+          },
+          {
+            HostRoles: {
+              host_name: 'host2'
+            }
+          }
+        ]
+      };
+      controller.checkRegionServerStateSuccessCallback(data, {}, {hostNames: 'host1,host2'});
+      expect(controller.showRegionServerWarning.calledOnce).to.be.true;
+    });
+    it('Decommission one of two regionservers', function () {
+      var data = {
+        items: [
+          {
+            HostRoles: {
+              host_name: 'host1'
+            }
+          },
+          {
+            HostRoles: {
+              host_name: 'host2'
+            }
+          }
+        ]
+      };
+      controller.checkRegionServerStateSuccessCallback(data, {}, {hostNames: 'host1'});
+      expect(controller.doDecommissionRegionServer.calledWith('host1', "HBASE", "HBASE_MASTER", "HBASE_REGIONSERVER")).to.be.true;
+    });
+    it('Decommission one of three regionservers', function () {
+      var data = {
+        items: [
+          {
+            HostRoles: {
+              host_name: 'host1'
+            }
+          },
+          {
+            HostRoles: {
+              host_name: 'host2'
+            }
+          },
+          {
+            HostRoles: {
+              host_name: 'host3'
+            }
+          }
+        ]
+      };
+      controller.checkRegionServerStateSuccessCallback(data, {}, {hostNames: 'host1'});
+      expect(controller.doDecommissionRegionServer.calledWith('host1', "HBASE", "HBASE_MASTER", "HBASE_REGIONSERVER")).to.be.true;
+    });
+  });
+
+  describe('#showRegionServerWarning()', function () {
+    beforeEach(function () {
+      sinon.stub(App.ModalPopup, 'show', Em.K);
+    });
+    afterEach(function () {
+      App.ModalPopup.show.restore();
+    });
+    it('', function () {
+      controller.showRegionServerWarning();
+      expect(App.ModalPopup.show.calledOnce).to.be.true;
+    });
+  });
+
+  describe('#doRecommissionAndStart()', function () {
     it('Query should be sent', function () {
       controller.doRecommissionAndStart('', '', '', '');
       expect(App.ajax.send.calledOnce).to.be.true;
@@ -882,14 +916,6 @@ describe('App.MainHostDetailsController', function () {
   });
 
   describe('#doRecommissionAndRestart()', function () {
-
-    beforeEach(function () {
-      sinon.stub(App.ajax, "send", Em.K);
-    });
-    afterEach(function () {
-      App.ajax.send.restore();
-    });
-
     it('Query should be sent', function () {
       controller.doRecommissionAndRestart('', '', '', '');
       expect(App.ajax.send.calledOnce).to.be.true;
@@ -995,14 +1021,6 @@ describe('App.MainHostDetailsController', function () {
   });
 
   describe('#hostPassiveModeRequest()', function () {
-
-    beforeEach(function () {
-      sinon.stub(App.ajax, "send", Em.K);
-    });
-    afterEach(function () {
-      App.ajax.send.restore();
-    });
-
     it('Query should be sent', function () {
       controller.hostPassiveModeRequest('', '');
       expect(App.ajax.send.calledOnce).to.be.true;
@@ -1456,11 +1474,9 @@ describe('App.MainHostDetailsController', function () {
   describe('#executeCustomCommands', function() {
     beforeEach(function () {
       sinon.spy(App, "showConfirmationPopup");
-      sinon.stub(App.ajax, "send", Em.K);
     });
     afterEach(function () {
       App.showConfirmationPopup.restore();
-      App.ajax.send.restore();
     });
 
     it('confirm popup should be displayed', function () {

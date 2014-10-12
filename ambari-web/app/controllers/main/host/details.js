@@ -927,13 +927,63 @@ App.MainHostDetailsController = Em.Controller.extend({
    * @method warnBeforeDecommission
    * @param {string} hostNames - list of host when run from bulk operations or current host
    */
-
   warnBeforeDecommission: function (hostNames) {
     if (this.get('content.hostComponents').findProperty('componentName', 'HBASE_REGIONSERVER').get('passiveState') == "OFF") {
       this.showHbaseActiveWarning();
     } else {
-      this.doDecommissionRegionServer(hostNames, "HBASE", "HBASE_MASTER", "HBASE_REGIONSERVER");
+      this.checkRegionServerState(hostNames);
     }
+  },
+
+  /**
+   *  send call to check is this regionserver last in cluster which has desired_admin_state property "INSERVICE"
+   * @method checkRegionServerState
+   * @param hostNames
+   */
+  checkRegionServerState: function (hostNames) {
+    return App.ajax.send({
+      name: 'host.region_servers.in_inservice',
+      sender: this,
+      data: {
+        hostNames: hostNames
+      },
+      success: 'checkRegionServerStateSuccessCallback'
+    });
+  },
+
+  /**
+   * check is this regionserver last in cluster which has desired_admin_state property "INSERVICE"
+   * @method checkRegionServerStateSuccessCallback
+   * @param data
+   * @param opt
+   * @param params
+   */
+  checkRegionServerStateSuccessCallback: function (data, opt, params) {
+    var hostArray = params.hostNames.split(",");
+    var decommissionPossible = (data.items.mapProperty('HostRoles.host_name').filter(function (hostName) {
+      return !hostArray.contains(hostName);
+    }, this).length >= 1);
+    if (decommissionPossible) {
+      this.doDecommissionRegionServer(params.hostNames, "HBASE", "HBASE_MASTER", "HBASE_REGIONSERVER");
+    } else {
+      this.showRegionServerWarning();
+    }
+  },
+
+  /**
+   * show warning that regionserver is last in cluster which has desired_admin_state property "INSERVICE"
+   * @method showRegionServerWarning
+   * @param hostNames
+   */
+  showRegionServerWarning: function () {
+    return App.ModalPopup.show({
+      header: Em.I18n.t('common.warning'),
+      message: Em.I18n.t('hosts.host.hbase_regionserver.decommission.warning'),
+      bodyClass: Ember.View.extend({
+        template: Em.Handlebars.compile('<div class="alert alert-warning">{{message}}</div>')
+      }),
+      secondary: false
+    });
   },
 
   /**

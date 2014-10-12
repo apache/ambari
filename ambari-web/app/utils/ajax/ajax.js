@@ -533,6 +533,10 @@ var urls = {
     'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{componentName}?fields=metrics/dfs/namenode',
     'mock': ''
   },
+  'host.region_servers.in_inservice': {
+    'real': '/clusters/{clusterName}/host_components?HostRoles/component_name=HBASE_REGIONSERVER&HostRoles/desired_admin_state=INSERVICE&fields=HostRoles/host_name&minimal_response=true',
+    'mock': ''
+  },
   'host.host_component.decommission_slave': {
     'real' : '/clusters/{clusterName}/requests',
     'mock' : '',
