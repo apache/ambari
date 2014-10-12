@@ -26,15 +26,16 @@ limitations under the License. Kerberos, LDAP, Custom. Binary/Htt
 	</parameter>
 	<parameter>
 		<name>ambari.server.username</name>
-		<description>Ambari administrator username (for example: admin)
+		<description>Cluster Operator username (for example: admin)
 		</description>
 		<required>true</required>
 	</parameter>
 	<parameter>
 		<name>ambari.server.password</name>
-		<description>Ambari administrator password (for example: admin)
+		<description>Cluster Operator password (for example: admin)
 		</description>
 		<required>true</required>
+		<masked>true</masked>
 	</parameter>
 	<parameter>
 		<name>slider.user</name>
