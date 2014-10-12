@@ -156,4 +156,32 @@ describe('MainHostController', function () {
     });
   });
 
+  describe('#warnBeforeDecommissionSuccess()', function () {
+    var mock = {
+      showHbaseActiveWarning: Em.K,
+      checkRegionServerState: Em.K
+    };
+    beforeEach(function () {
+      hostController = App.MainHostController.create({});
+      sinon.stub(App.router, 'get', function () {
+        return mock;
+      });
+      sinon.spy(mock, 'showHbaseActiveWarning');
+      sinon.spy(mock, 'checkRegionServerState');
+    });
+    afterEach(function () {
+      App.router.get.restore();
+      mock.showHbaseActiveWarning.restore();
+      mock.checkRegionServerState.restore();
+    });
+
+    it('items length more than 0', function () {
+      hostController.warnBeforeDecommissionSuccess({items: [1]}, {}, {});
+      expect(mock.showHbaseActiveWarning.calledOnce).to.be.true;
+    });
+    it('items length equal 0', function () {
+      hostController.warnBeforeDecommissionSuccess({items: []}, {}, {hostNames: 'host1'});
+      expect(mock.checkRegionServerState.calledWith('host1')).to.be.true;
+    });
+  });
 });

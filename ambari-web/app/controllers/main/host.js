@@ -888,7 +888,7 @@ App.MainHostController = Em.ArrayController.extend({
     if (Em.get(data, 'items.length')) {
       App.router.get('mainHostDetailsController').showHbaseActiveWarning();
     } else {
-      App.router.get('mainHostDetailsController').doDecommissionRegionServer(params.hostNames, "HBASE", "HBASE_MASTER", "HBASE_REGIONSERVER");
+      App.router.get('mainHostDetailsController').checkRegionServerState(params.hostNames);
     }
   },
   /**
