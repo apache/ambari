@@ -44,6 +44,7 @@ import org.slf4j.LoggerFactory;
 import com.google.gson.Gson;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+import com.google.inject.ProvisionException;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 import com.google.inject.persist.Transactional;
@@ -129,9 +130,17 @@ public class ServiceImpl implements Service {
     if (!serviceEntity.getServiceComponentDesiredStateEntities().isEmpty()) {
       for (ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity
           : serviceEntity.getServiceComponentDesiredStateEntities()) {
-        components.put(serviceComponentDesiredStateEntity.getComponentName(),
-            serviceComponentFactory.createExisting(this,
-                serviceComponentDesiredStateEntity));
+        try {
+            components.put(serviceComponentDesiredStateEntity.getComponentName(),
+                serviceComponentFactory.createExisting(this,
+                    serviceComponentDesiredStateEntity));
+          } catch(ProvisionException ex) {
+            StackId stackId = cluster.getCurrentStackVersion();
+            LOG.error(String.format("Can not get component info: stackName=%s, stackVersion=%s, serviceName=%s, componentName=%s",
+                stackId.getStackName(), stackId.getStackVersion(),
+                serviceEntity.getServiceName(),serviceComponentDesiredStateEntity.getComponentName()));
+            ex.printStackTrace();
+          }
       }
     }
 
