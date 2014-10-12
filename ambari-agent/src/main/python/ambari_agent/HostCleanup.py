@@ -38,8 +38,12 @@ from ambari_commons import OSCheck
 logger = logging.getLogger()
 configFile = "/etc/ambari-agent/conf/ambari-agent.ini"
 
-PACKAGE_ERASE_CMD_RHEL = "yum erase -y {0}"
-PACKAGE_ERASE_CMD_SUSE = "zypper -n -q remove {0}"
+PACKAGE_ERASE_CMD = {
+  "redhat": "yum erase -y {0}",
+  "suse": "zypper -n -q remove {0}",
+  "ubuntu": "/usr/bin/apt-get -y -q remove {0}"
+}
+
 USER_ERASE_CMD = "userdel -rf {0}"
 GROUP_ERASE_CMD = "groupdel {0}"
 PROC_KILL_CMD = "kill -9 {0}"
@@ -324,10 +328,8 @@ class HostCleanup:
     if packageStr is not None and packageStr:
       os_name = OSCheck.get_os_family()
       command = ''
-      if os_name == 'suse':
-        command = PACKAGE_ERASE_CMD_SUSE.format(packageStr)
-      elif os_name == 'redhat':
-        command = PACKAGE_ERASE_CMD_RHEL.format(packageStr)
+      if os_name in PACKAGE_ERASE_CMD:
+        command = PACKAGE_ERASE_CMD[os_name].format(packageStr)
       else:
         logger.warn("Unsupported OS type, cannot remove package.")
 
