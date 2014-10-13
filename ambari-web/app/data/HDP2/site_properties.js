@@ -1631,6 +1631,78 @@ module.exports =
       "filename": "pig-properties.xml",
       "category": "Advanced pig-properties"
     },
+
+  /**********************************************KNOX*****************************************/
+    {
+      "id": "site property",
+      "name": "content",
+      "displayName": "content",
+      "value": "",
+      "defaultValue": "",
+      "displayType": "content",
+      "isRequired": false,
+      "showLabel": false,
+      "serviceName": "KNOX",
+      "filename": "ambari-topology.xml",
+      "category": "Advanced ambari-topology"
+    },
+
+    {
+      "id": "site property",
+      "name": "content",
+      "displayName": "content",
+      "value": "",
+      "defaultValue": "",
+      "displayType": "content",
+      "isRequired": false,
+      "showLabel": false,
+      "serviceName": "KNOX",
+      "filename": "users-ldif.xml",
+      "category": "Advanced users-ldif"
+    },
+    {
+      "id": "puppet var",
+      "name": "knox_gateway_host",
+      "displayName": "Knox Gateway host",
+      "value": "",
+      "defaultValue": "",
+      "description": "The host that has been assigned to run Knox Gateway",
+      "displayType": "masterHost",
+      "isOverridable": false,
+      "isVisible": true,
+      "isRequiredByAgent": false,
+      "serviceName": "KNOX",
+      "filename": "knox-env.xml",
+      "category": "KNOX_GATEWAY",
+      "index": 0
+    },
+    {
+      "id": "site property",
+      "name": "knox_master_secret",
+      "displayName": "Knox Master Secret",
+      "value": "",
+      "defaultValue": "",
+      "displayType": "password",
+      "isReconfigurable": false,
+      "isOverridable": false,
+      "isRequired": true,
+      "serviceName": "KNOX",
+      "filename": "knox-env.xml",
+      "category": "KNOX_GATEWAY"
+    },
+    {
+      "id": "puppet var",
+      "name": "knox_pid_dir",
+      "displayName": "Knox PID dir",
+      "value": "",
+      "displayType": "directory",
+      "isReconfigurable": false,
+      "isOverridable": false,
+      "serviceName": "KNOX",
+      "filename": "knox-env.xml",
+      "category": "Advanced knox-env.xml"
+    },
+
   /********************************************* flume-agent *****************************/
     {
       "id": "site property",
@@ -3716,6 +3788,36 @@ module.exports =
       "category": "Users and Groups",
       "belongsToService": ["SQOOP"],
       "index": 17
+    },
+    {
+      "id": "puppet var",
+      "name": "knox_user",
+      "displayName": "Knox User",
+      "isReconfigurable": false,
+      "displayType": "user",
+      "isOverridable": false,
+      "isVisible": true,
+      "serviceName": "MISC",
+      "filename": "knox-env.xml",
+      "category": "Users and Groups",
+      "belongsToService": ["KNOX"],
+      "index": 18
+    },
+    {
+      "id": "puppet var",
+      "name": "knox_group",
+      "displayName": "Knox Group",
+      "description": "Knox Group",
+      "defaultValue": "knox",
+      "isReconfigurable": false,
+      "displayType": "user",
+      "isOverridable": false,
+      "isVisible": true,
+      "serviceName": "MISC",
+      "filename": "knox-env.xml",
+      "category": "Users and Groups",
+      "belongsToService": ["KNOX"],
+      "index": 19
     },
     {
       "id": "puppet var",

@@ -111,3 +111,11 @@ define servicegroup {
   alias  FLUME Checks
 }
 {% endif %}
+
+{%if hostgroup_defs['knox-gateway'] %}
+define servicegroup {
+  servicegroup_name  KNOX
+  alias  KNOX Checks
+}
+{% endif %}
+

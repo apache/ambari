@@ -405,6 +405,23 @@ var urls = {
       }
   },
 
+  'service.item.startStopLdapKnox':{
+    'real': '/clusters/{clusterName}/requests',
+    'mock': '',
+    'format' : function(data) {
+      return {
+        type : 'POST',
+        data : JSON.stringify({
+          RequestInfo: {
+            'context': data.context,
+            'command': data.command
+          },
+          "Requests/resource_filters": [{"service_name" : data.serviceName, "component_name" : data.componentName, 'hosts': data.host}]
+        })
+      }
+    }
+  },
+
   'service.item.executeCustomCommand':{
     'real': '/clusters/{clusterName}/requests',
     'mock': '',

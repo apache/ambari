@@ -93,6 +93,18 @@ App.MainServiceItemView = Em.View.extend({
         cssClass: 'icon-share-alt',
         disabled: false
       },
+      STARTDEMOLDAP: {
+        action: 'startLdapKnox',
+        label: Em.I18n.t('services.service.actions.run.startLdapKnox.context'),
+        cssClass: 'icon-play-sign',
+        disabled: false
+      },
+      STOPDEMOLDAP: {
+        action: 'stopLdapKnox',
+        label: Em.I18n.t('services.service.actions.run.stopLdapKnox.context'),
+        cssClass: 'icon-stop',
+        disabled: false
+      },
       REBALANCE_HDFS: {
         action: 'rebalanceHdfsNodes',
         context: Em.I18n.t('services.service.actions.run.rebalanceHdfsNodes.context'),
@@ -202,10 +214,20 @@ App.MainServiceItemView = Em.View.extend({
       options.push(actionMap.TOGGLE_PASSIVE);
       var serviceName = service.get('serviceName');
       var nnComponent = App.StackServiceComponent.find().findProperty('componentName','NAMENODE');
+      var knoxGatewayComponent = App.StackServiceComponent.find().findProperty('componentName','KNOX_GATEWAY');
       if (serviceName === 'HDFS' && nnComponent) {
         var namenodeCustomCommands = nnComponent.get('customCommands');
         if (namenodeCustomCommands && namenodeCustomCommands.contains('REBALANCEHDFS'))
         options.push(actionMap.REBALANCE_HDFS);
+      }
+
+      if (serviceName === 'KNOX' && knoxGatewayComponent) {
+        var knoxGatewayCustomCommands = knoxGatewayComponent.get('customCommands');
+        knoxGatewayCustomCommands.forEach(function(command) {
+          if (actionMap[command]) {
+            options.push(actionMap[command]);
+          }
+        });
       }
       self.addActionMap().filterProperty('service', serviceName).forEach(function(item) {
         item.action = 'add' + item.component;

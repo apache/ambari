@@ -625,4 +625,38 @@ describe('App.MainServiceItemController', function () {
     });
   });
 
+  describe('#startLdapKnox() and #stopLdapKnox() should call startStopLdapKnox once: ', function () {
+
+
+    var mainServiceItemController = App.MainServiceItemController.create({content: {serviceName: 'KNOX',
+      displayName: 'Knox'}});
+
+    beforeEach(function () {
+      sinon.stub(mainServiceItemController, 'startStopLdapKnox', function(){
+        return true;
+      });
+    });
+    afterEach(function () {
+      mainServiceItemController.startStopLdapKnox.restore();
+    });
+
+    var tests = [
+      {
+        methodName: 'startLdapKnox',
+        callback: mainServiceItemController.startLdapKnox
+      },
+      {
+        methodName: 'stopLdapKnox',
+        callback: mainServiceItemController.stopLdapKnox
+      }
+    ];
+
+    tests.forEach(function(test){
+      it(test.methodName + ' should call startStopLdapKnox method', function () {
+        test.callback.call(mainServiceItemController);
+        expect(mainServiceItemController.startStopLdapKnox.calledOnce).to.be.true;
+      });
+    },this);
+
+  });
 });
