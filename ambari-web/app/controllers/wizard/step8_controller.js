@@ -1439,7 +1439,19 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, {
         }
       }));
     }, this);
-
+    /**
+     * if some services change core-site we should put updates to cluster
+     */
+    if (this.get('content.controllerName') == 'addServiceController' && !selectedServices.someProperty('serviceName', 'HDFS')) {
+      var coreConfig = serviceConfigTags.findProperty('type', 'core-site');
+      if (coreConfig) {
+        allConfigData.pushObject(JSON.stringify({
+          Clusters: {
+            desired_config: [coreConfig]
+          }
+        }));
+      }
+    }
     var clusterConfig = serviceConfigTags.findProperty('type', 'cluster-env');
     if (clusterConfig) {
       allConfigData.pushObject(JSON.stringify({

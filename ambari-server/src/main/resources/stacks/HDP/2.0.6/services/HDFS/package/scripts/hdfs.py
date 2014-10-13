@@ -58,6 +58,15 @@ def hdfs(name=None):
             group=params.user_group
   )
 
+  XmlConfig("core-site.xml",
+            conf_dir=params.hadoop_conf_dir,
+            configurations=params.config['configurations']['core-site'],
+            configuration_attributes=params.config['configuration_attributes']['core-site'],
+            owner=params.hdfs_user,
+            group=params.user_group,
+            mode=0644
+  )
+
   File(os.path.join(params.hadoop_conf_dir, 'slaves'),
        owner=tc_owner,
        content=Template("slaves.j2")

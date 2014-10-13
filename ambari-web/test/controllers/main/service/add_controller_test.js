@@ -78,4 +78,30 @@ describe('App.AddServiceController', function() {
 
   });
 
+  describe('#generateDataForInstallServices', function() {
+    var tests = [{
+      selected: ["YARN","HBASE"],
+      res: {
+        "context": Em.I18n.t('requestInfo.installServices'),
+        "ServiceInfo": {"state": "INSTALLED"},
+        "urlParams": "ServiceInfo/service_name.in(YARN,HBASE)"
+      }
+    },
+    {
+      selected: ['OOZIE'],
+      res: {
+        "context": Em.I18n.t('requestInfo.installServices'),
+        "ServiceInfo": {"state": "INSTALLED"},
+        "urlParams": "ServiceInfo/service_name.in(OOZIE,HDFS,YARN,MAPREDUCE,MAPREDUCE2)"
+      }
+    }
+    ]
+    tests.forEach(function(t){
+      it('should generate data with ' + t.selected.join(","), function () {
+        expect(addServiceController.generateDataForInstallServices(t.selected)).to.be.eql(t.res);
+      });
+    });
+
+
+  });
 });
