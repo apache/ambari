@@ -117,6 +117,7 @@ class TestHostCleanup(TestCase):
       self.silent = silent
       self.java_home = java_home
 
+  @patch.object(HostCleanup.HostCleanup, 'do_clear_cache')
   @patch.object(HostCleanup, 'get_YN_input')
   @patch.object(HostCleanup.HostCleanup, 'do_cleanup')
   @patch.object(HostCleanup.HostCleanup, 'is_current_user_root')
@@ -126,7 +127,7 @@ class TestHostCleanup(TestCase):
   @patch.object(logging, 'FileHandler')
   @patch.object(optparse.OptionParser, 'parse_args')
   def test_options(self, parser_mock, file_handler_mock, logging_mock, read_host_check_file_mock,
-                   set_formatter_mock, user_root_mock, do_cleanup_mock, get_yn_input_mock):
+                   set_formatter_mock, user_root_mock, do_cleanup_mock, get_yn_input_mock, clear_cache_mock):
     parser_mock.return_value = (TestHostCleanup.HostCleanupOptions('/someoutputfile', '/someinputfile', '', False,
                                                                    False, 'java_home'), [])
     file_handler_mock.return_value = logging.FileHandler('') # disable creating real file
@@ -144,7 +145,27 @@ class TestHostCleanup(TestCase):
     read_host_check_file_mock.assert_called_with('/someinputfile')
     self.assertTrue(get_yn_input_mock.called)
 
+  @patch.object(HostCleanup.HostCleanup, 'get_files_in_dir')
+  @patch.object(HostCleanup.HostCleanup, 'do_erase_files_silent')
+  def test_clear_cache(self, erase_files_mock, get_files_mock):
+    old_data = HostCleanup.CACHE_FILES_PATTERN
 
+    HostCleanup.CACHE_FILES_PATTERN = {
+      'somedir': ['*.txt']
+    }
+
+    files_list = ['/tmp/somedir/test.txt']
+    get_files_mock.return_value = files_list
+
+    self.hostcleanup.do_clear_cache('/tmp')
+
+
+    get_files_mock.assert_called_with('/tmp/somedir', '*.txt')
+    erase_files_mock.assert_called_with(files_list)
+
+    HostCleanup.CACHE_FILES_PATTERN = old_data
+
+  @patch.object(HostCleanup.HostCleanup, 'do_clear_cache')
   @patch.object(HostCleanup, 'get_YN_input')
   @patch.object(HostCleanup.HostCleanup, 'do_cleanup')
   @patch.object(HostCleanup.HostCleanup, 'is_current_user_root')
@@ -154,7 +175,7 @@ class TestHostCleanup(TestCase):
   @patch.object(logging, 'FileHandler')
   @patch.object(optparse.OptionParser, 'parse_args')
   def test_options_silent(self, parser_mock, file_handler_mock, logging_mock, read_host_check_file_mock,
-                   set_formatter_mock, user_root_mock, do_cleanup_mock, get_yn_input_mock):
+                   set_formatter_mock, user_root_mock, do_cleanup_mock, get_yn_input_mock, clear_cache_mock):
     parser_mock.return_value = (TestHostCleanup.HostCleanupOptions('/someoutputfile', '/someinputfile', '', False,
                                                                    True, 'java_home'), [])
     file_handler_mock.return_value = logging.FileHandler('') # disable creating real file
@@ -172,6 +193,7 @@ class TestHostCleanup(TestCase):
     read_host_check_file_mock.assert_called_with('/someinputfile')
     self.assertFalse(get_yn_input_mock.called)
 
+  @patch.object(HostCleanup.HostCleanup, 'do_clear_cache')
   @patch.object(HostCleanup.HostCleanup, 'get_additional_dirs')
   @patch.object(HostCleanup.HostCleanup, 'do_erase_alternatives')
   @patch.object(HostCleanup.HostCleanup, 'find_repo_files_for_repos')
@@ -185,7 +207,7 @@ class TestHostCleanup(TestCase):
                       do_erase_dir_silent_method,
                       do_erase_files_silent_method, do_kill_processes_method,
                       get_os_type_method, find_repo_files_for_repos_method,
-                      do_erase_alternatives_method, get_additional_dirs_method):
+                      do_erase_alternatives_method, get_additional_dirs_method, clear_cache_mock):
     out = StringIO.StringIO()
     sys.stdout = out
     get_additional_dirs_method.return_value = ['/tmp/hadoop-nagios','/tmp/hsperfdata_007']
@@ -216,7 +238,7 @@ class TestHostCleanup(TestCase):
 
     sys.stdout = sys.__stdout__
 
-
+  @patch.object(HostCleanup.HostCleanup, 'do_clear_cache')
   @patch.object(HostCleanup.HostCleanup, 'do_delete_by_owner')
   @patch.object(HostCleanup.HostCleanup, 'get_user_ids')
   @patch.object(HostCleanup.HostCleanup, 'do_erase_alternatives')
@@ -232,7 +254,7 @@ class TestHostCleanup(TestCase):
                       do_erase_files_silent_method, do_kill_processes_method,
                       get_os_type_method, find_repo_files_for_repos_method,
                       do_erase_alternatives_method, get_user_ids_method,
-                      do_delete_by_owner_method):
+                      do_delete_by_owner_method, clear_cache_mock):
 
     global SKIP_LIST
     oldSkipList = HostCleanup.SKIP_LIST
@@ -260,6 +282,7 @@ class TestHostCleanup(TestCase):
     HostCleanup.SKIP_LIST = oldSkipList
     sys.stdout = sys.__stdout__
 
+  @patch.object(HostCleanup.HostCleanup, 'do_clear_cache')
   @patch.object(HostCleanup.HostCleanup, 'find_repo_files_for_repos')
   @patch.object(OSCheck, "get_os_type")
   @patch.object(HostCleanup.HostCleanup, 'do_kill_processes')
@@ -271,7 +294,7 @@ class TestHostCleanup(TestCase):
                       do_delete_users_method,
                       do_erase_dir_silent_method,
                       do_erase_files_silent_method, do_kill_processes_method,
-                      get_os_type_method, find_repo_files_for_repos_method):
+                      get_os_type_method, find_repo_files_for_repos_method, clear_cache_mock):
 
     out = StringIO.StringIO()
     sys.stdout = out

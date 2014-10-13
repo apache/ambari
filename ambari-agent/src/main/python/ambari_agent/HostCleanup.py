@@ -27,16 +27,16 @@ import subprocess
 import logging
 import shutil
 import platform
+import fnmatch
 import ConfigParser
 import optparse
 import shlex
 import datetime
-import AmbariConfig
+from AmbariConfig import AmbariConfig
 from pwd import getpwnam
 from ambari_commons import OSCheck
 
 logger = logging.getLogger()
-configFile = "/etc/ambari-agent/conf/ambari-agent.ini"
 
 PACKAGE_ERASE_CMD = {
   "redhat": "yum erase -y {0}",
@@ -67,6 +67,9 @@ REPOS_KEY = "repo_list"
 DIR_SECTION = "directories"
 ADDITIONAL_DIRS = "additional_directories"
 DIR_KEY = "dir_list"
+CACHE_FILES_PATTERN = {
+  'alerts': ['*.json']
+}
 PROCESS_SECTION = "processes"
 PROCESS_KEY = "proc_list"
 ALT_SECTION = "alternatives"
@@ -86,9 +89,9 @@ PACKAGES_BLACK_LIST = ["ambari-server", "ambari-agent"]
 class HostCleanup:
   def resolve_ambari_config(self):
     try:
-      config = AmbariConfig.AmbariConfig()
-      if os.path.exists(configFile):
-        config.read(configFile)
+      config = AmbariConfig()
+      if os.path.exists(AmbariConfig.CONFIG_FILE):
+        config.read(AmbariConfig.CONFIG_FILE)
       else:
         raise Exception("No config found, use default")
 
@@ -229,6 +232,33 @@ class HostCleanup:
 
     return out
 
+
+  def do_clear_cache(self, cache_root, dir_map=None):
+    """
+     Clear cache dir according to provided root directory
+
+     cache_root - root dir for cache directory
+     dir_map - should be used only for recursive calls
+    """
+    global CACHE_FILES_PATTERN
+    file_map = CACHE_FILES_PATTERN if dir_map is None else dir_map
+    remList = []
+
+    # Build remove list according to masks
+    for folder in file_map:
+      if isinstance(file_map[folder], list):  # here is list of file masks/files
+        for mask in file_map[folder]:
+          remList += self.get_files_in_dir("%s/%s" % (cache_root, folder), mask)
+      elif isinstance(file_map[folder], dict):  # here described sub-folder
+        remList += self.do_clear_cache("%s/%s" % (cache_root, folder), file_map[folder])
+
+    if dir_map is not None:  # push result list back as this is call from stack
+      return remList
+    else:  # root call, so we have final list
+      self.do_erase_files_silent(remList)
+
+
+
   # Alternatives exist as a stack of symlinks under /var/lib/alternatives/$name
   # Script expects names of the alternatives as input
   # We find all the symlinks using command, #] alternatives --display $name
@@ -276,7 +306,7 @@ class HostCleanup:
             logger.error("Unable to kill process with pid: " + pid + ", " + stderrdata)
     return 0
 
-  def get_files_in_dir(self, dirPath):
+  def get_files_in_dir(self, dirPath, filemask = None):
     fileList = []
     if dirPath:
       if os.path.exists(dirPath):
@@ -285,7 +315,11 @@ class HostCleanup:
           for link in listdir:
             path = dirPath + os.sep + link
             if not os.path.islink(path) and not os.path.isdir(path):
-              fileList.append(path)
+              if filemask is not None:
+                if fnmatch.fnmatch(path, filemask):
+                  fileList.append(path)
+              else:
+                fileList.append(path)
 
     return fileList
 
@@ -531,6 +565,9 @@ def main():
 
   if propMap:
     h.do_cleanup(propMap)
+
+  if os.path.exists(config.get('agent', 'cache_dir')):
+    h.do_clear_cache(config.get('agent', 'cache_dir'))
 
   logger.info('Clean-up completed. The output is at %s' % (str(options.outputfile)))
 
