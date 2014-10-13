@@ -924,24 +924,6 @@ describe('App.WizardStep8Controller', function () {
   });
 
   describe('#createStormSiteObj', function() {
-    it('should remove quotes for some properties', function() {
-      var configs = [
-          {filename: 'storm-site.xml', value: ["a", "b"], name: 'nimbus.childopts'},
-          {filename: 'storm-site.xml', value: ["a", "b"], name: 'supervisor.childopts'},
-          {filename: 'storm-site.xml', value: ["a", "b"], name: 'worker.childopts'}
-        ],
-        expected = {
-          type: 'storm-site',
-          tag: 'version1',
-          properties: {
-            'nimbus.childopts': '[a,b]',
-            'supervisor.childopts': '[a,b]',
-            'worker.childopts': '[a,b]'
-          }
-        };
-      installerStep8Controller.reopen({configs: configs});
-      expect(installerStep8Controller.createStormSiteObj('version1')).to.eql(expected);
-    });
     it('should replace quote \'"\' to "\'" for some properties', function() {
       var configs = [
           {filename: 'storm-site.xml', value: ["a", "b"], name: 'storm.zookeeper.servers'}
@@ -951,6 +933,25 @@ describe('App.WizardStep8Controller', function () {
           tag: 'version1',
           properties: {
             'storm.zookeeper.servers': '[\'a\',\'b\']'
+          }
+        };
+      installerStep8Controller.reopen({configs: configs});
+      expect(installerStep8Controller.createStormSiteObj('version1')).to.eql(expected);
+    });
+
+    it('should not escape special characters', function() {
+      var configs = [
+          {filename: 'storm-site.xml', value: "abc\n\t", name: 'nimbus.childopts'},
+          {filename: 'storm-site.xml', value: "a\nb", name: 'supervisor.childopts'},
+          {filename: 'storm-site.xml', value: "a\t\tb", name: 'worker.childopts'}
+        ],
+        expected = {
+          type: 'storm-site',
+          tag: 'version1',
+          properties: {
+            'nimbus.childopts': 'abc\n\t',
+            'supervisor.childopts': 'a\nb',
+            'worker.childopts': 'a\t\tb'
           }
         };
       installerStep8Controller.reopen({configs: configs});
