@@ -449,6 +449,14 @@ class TestNamenode(RMFTestCase):
                               configurations = self.getConfig()['configurations']['hdfs-site'],
                               configuration_attributes = self.getConfig()['configuration_attributes']['hdfs-site']
                               )
+    self.assertResourceCalled('XmlConfig', 'core-site.xml',
+                              owner = 'hdfs',
+                              group = 'hadoop',
+                              conf_dir = '/etc/hadoop/conf',
+                              configurations = self.getConfig()['configurations']['core-site'],
+                              configuration_attributes = self.getConfig()['configuration_attributes']['core-site'],
+                              mode = 0644
+                              )
     self.assertResourceCalled('File', '/etc/hadoop/conf/slaves',
                               content = Template('slaves.j2'),
                               owner = 'hdfs',
@@ -473,6 +481,14 @@ class TestNamenode(RMFTestCase):
                               conf_dir = '/etc/hadoop/conf',
                               configurations = self.getConfig()['configurations']['hdfs-site'],
                               configuration_attributes = self.getConfig()['configuration_attributes']['hdfs-site']
+                              )
+    self.assertResourceCalled('XmlConfig', 'core-site.xml',
+                              owner = 'hdfs',
+                              group = 'hadoop',
+                              conf_dir = '/etc/hadoop/conf',
+                              configurations = self.getConfig()['configurations']['core-site'],
+                              configuration_attributes = self.getConfig()['configuration_attributes']['core-site'],
+                              mode = 0644
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/slaves',
                               content = Template('slaves.j2'),

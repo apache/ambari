@@ -1291,6 +1291,61 @@ describe('App.WizardStep8Controller', function () {
         installerStep8Controller.applyConfigurationsToCluster(serviceConfigTags);
         expect(installerStep8Controller.addRequestToAjaxQueue.args[0][0].data).to.eql({data: data});
       });
+
+      it('should call addRequestToAjaxQueue with core-site if addServiceController', function() {
+        var serviceConfigTags = [
+            {
+              type: 'oozie',
+              tag: 'tag1',
+              properties: [
+                {},
+                {}
+              ]
+            },
+            {
+              type: 'core-site',
+              tag: 'tag1',
+              properties: [
+                {}
+              ]
+            },
+            {
+              type: 'cluster-env',
+              tag: 'tag1',
+              properties: [
+                {}
+              ]
+            }
+          ];
+
+        data = '['+ JSON.stringify({Clusters: {
+              desired_config: [serviceConfigTags[0]]
+            }
+          }) + ',' +
+          JSON.stringify({Clusters: {
+              desired_config: [serviceConfigTags[1]]
+            }
+          }) + ',' +
+          JSON.stringify({Clusters: {
+              desired_config: [serviceConfigTags[2]]
+            }
+          }) + ']';
+        installerStep8Controller.reopen({
+          selectedServices: [
+            Em.Object.create({
+              isSelected: true,
+              isInstalled: false,
+              configTypesRendered: {'oozie': 'tag1' }
+            })
+          ],
+          content: {
+            controllerName: 'addServiceController'
+          }
+        });
+        installerStep8Controller.applyConfigurationsToCluster(serviceConfigTags);
+        var sendData = installerStep8Controller.addRequestToAjaxQueue.args[0][0].data;
+        expect(sendData).to.eql({data: data});
+      });
     });
 
     describe('#applyConfigurationGroups', function() {

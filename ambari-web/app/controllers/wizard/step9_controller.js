@@ -479,12 +479,15 @@ App.WizardStep9Controller = Em.Controller.extend({
         };
         break;
       case 'addServiceController':
-        var servicesList = this.get('content.services').filterProperty('isSelected').filterProperty('isInstalled', false).mapProperty('serviceName').join(",");
+        var servicesList = this.get('content.services').filterProperty('isSelected').filterProperty('isInstalled', false).mapProperty('serviceName');
+        if (servicesList.contains('OOZIE')) {
+          servicesList = servicesList.concat(['HDFS', 'YARN', 'MAPREDUCE', 'MAPREDUCE2']);
+        }
         name = 'common.services.update';
         data = {
           "context": Em.I18n.t("requestInfo.startAddedServices"),
           "ServiceInfo": { "state": "STARTED" },
-          "urlParams": "ServiceInfo/state=INSTALLED&ServiceInfo/service_name.in(" + servicesList + ")&params/reconfigure_client=false"
+          "urlParams": "ServiceInfo/state=INSTALLED&ServiceInfo/service_name.in(" + servicesList.join(",") + ")&params/reconfigure_client=false"
         };
         break;
       default:

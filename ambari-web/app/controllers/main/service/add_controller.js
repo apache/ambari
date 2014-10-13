@@ -377,16 +377,28 @@ App.AddServiceController = App.WizardController.extend({
     App.router.get('updateController').updateAll();
   },
 
-  installServices: function (callback) {
-    this.set('content.cluster.oldRequestsId', []);
-    this.installAdditionalClients();
-    var selectedServices = this.get('content.services').filterProperty('isInstalled', false).filterProperty('isSelected', true).mapProperty('serviceName');
-    var name = 'common.services.update';
-    var data = {
+  /**
+   * genarates data for ajax request to launch install services
+   * @method generateDataForInstallServices
+   * @param {Array} selectedServices
+   * @returns {{context: *, ServiceInfo: {state: string}, urlParams: string}}
+   */
+  generateDataForInstallServices: function(selectedServices) {
+    if (selectedServices.contains('OOZIE')) {
+      selectedServices = selectedServices.concat(['HDFS', 'YARN', 'MAPREDUCE', 'MAPREDUCE2']);
+    }
+    return {
       "context": Em.I18n.t('requestInfo.installServices'),
       "ServiceInfo": {"state": "INSTALLED"},
       "urlParams": "ServiceInfo/service_name.in(" + selectedServices.join(',')  + ")"
     };
+  },
+  installServices: function (callback) {
+    this.set('content.cluster.oldRequestsId', []);
+    this.installAdditionalClients();
+    var name = 'common.services.update';
+    var selectedServices = this.get('content.services').filterProperty('isInstalled', false).filterProperty('isSelected', true).mapProperty('serviceName');
+    var data = this.generateDataForInstallServices(selectedServices);
     this.installServicesRequest(name, data, callback);
   },
 
