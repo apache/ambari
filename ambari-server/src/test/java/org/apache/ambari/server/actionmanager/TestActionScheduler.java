@@ -324,6 +324,7 @@ public class TestActionScheduler {
   }
 
   @Test
+  @Ignore // This is temporary disabled as discussed here https://reviews.apache.org/r/26510/
   public void testOpFailedEventRaisedForAbortedHostRole() throws Exception {
     ActionQueue aq = new ActionQueue();
     Properties properties = new Properties();
