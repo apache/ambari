@@ -802,3 +802,18 @@ define service {
 }
 {% endif %}
 
+{% if hostgroup_defs['knox-gateway'] %}
+# KNOX Checks
+define service {
+        hostgroup_name          knox-gateway
+        use                     hadoop-service
+        service_description     KNOX::Knox Gateway process
+        servicegroups           KNOX
+        check_command           check_tcp_wrapper!{{ knox_gateway_port }}!-w 1 -c 1
+        normal_check_interval   1
+        retry_check_interval    0.5
+        max_check_attempts      3
+}
+{% endif %}
+
+

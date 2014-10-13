@@ -131,6 +131,7 @@ supervisor_port = "56431"
 storm_rest_api_port = "8745"
 falcon_port = config['configurations']['falcon-env']['falcon_port']
 ahs_port = get_port_from_url(config['configurations']['yarn-site']['yarn.timeline-service.webapp.address'])
+knox_gateway_port = config['configurations']['gateway-site']['gateway.port']
 
 # use sensible defaults for checkpoint as they are required by Nagios and 
 # may not be part of hdfs-site.xml on an upgrade
@@ -249,6 +250,7 @@ _falcon_host = default("/clusterHostInfo/falcon_server_hosts", None)
 #if hbase_rs_hosts not given it is assumed that region servers on same nodes as slaves
 _hbase_rs_hosts = default("/clusterHostInfo/hbase_rs_hosts", _slave_hosts)
 _hue_server_host = default("/clusterHostInfo/hue_server_host", None)
+_knox_gateway_host =  default("/clusterHostInfo/knox_gateway_hosts", None)
 all_hosts = config['clusterHostInfo']['all_hosts']
 
 if 'namenode_host' in config['clusterHostInfo']:
@@ -283,5 +285,6 @@ hostgroup_defs = {
     'supervisors' : _supervisor_hosts,
     'storm_rest_api' : _storm_rest_api_hosts,
     'falcon-server' : _falcon_host,
-    'ats-servers' : _app_timeline_server_hosts
+    'ats-servers' : _app_timeline_server_hosts,
+    'knox-gateway' : _knox_gateway_host
 }

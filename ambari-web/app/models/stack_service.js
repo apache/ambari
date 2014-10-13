@@ -313,6 +313,11 @@ App.StackService.configCategories = function () {
         App.ServiceConfigCategory.create({ name: 'FLUME_HANDLER', displayName: 'flume.conf', siteFileName: 'flume-conf', canAddProperty: false})
       ]);
       break;
+    case 'KNOX':
+      serviceConfigCategories.pushObjects([
+        App.ServiceConfigCategory.create({ name: 'KNOX_GATEWAY', displayName: 'Knox Gateway'})
+      ]);
+      break;
     case 'PIG':
       break;
     case 'SQOOP':
@@ -342,7 +347,7 @@ App.StackService.configCategories = function () {
 
   // Add custom section for every configType to all the services
   configTypes.forEach(function (type) {
-    var configTypesWithNoCustomSection = ['capacity-scheduler','mapred-queue-acls','flume-conf', 'pig-properties'];
+    var configTypesWithNoCustomSection = ['capacity-scheduler','mapred-queue-acls','flume-conf', 'pig-properties','ambari-topology','users-ldif'];
     if (type.endsWith('-env') || type.endsWith('-log4j') || configTypesWithNoCustomSection.contains(type)) {
       return;
     }

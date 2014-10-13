@@ -292,6 +292,56 @@ App.MainServiceItemController = Em.Controller.extend({
     App.showAlertPopup(Em.I18n.t('services.service.actions.run.yarnRefreshQueues.error'), error);
     console.warn('Error during refreshYarnQueues:'+error);
   },
+
+  startLdapKnox: function(event) {
+    var context =  Em.I18n.t('services.service.actions.run.startLdapKnox.context');
+    this.startStopLdapKnox('STARTDEMOLDAP',context);
+  },
+
+  stopLdapKnox: function(event) {
+    var context = Em.I18n.t('services.service.actions.run.stopLdapKnox.context');
+    this.startStopLdapKnox('STOPDEMOLDAP',context);
+  },
+
+  startStopLdapKnox: function(command,context) {
+    var controller = this;
+    var host = App.HostComponent.find().findProperty('componentName', 'KNOX_GATEWAY').get('hostName');
+    return App.showConfirmationPopup(function() {
+      App.ajax.send({
+        name: 'service.item.startStopLdapKnox',
+        sender: controller,
+        data: {
+          command: command,
+          context: context,
+          host: host,
+          serviceName: "KNOX",
+          componentName: "KNOX_GATEWAY"
+        },
+        success: 'startStopLdapKnoxSuccessCallback',
+        error: 'startStopLdapKnoxErrorCallback'
+      });
+    });
+  },
+
+  startStopLdapKnoxSuccessCallback  : function(data, ajaxOptions, params) {
+    if (data.Requests.id) {
+      App.router.get('backgroundOperationsController').showPopup();
+    } else {
+      console.warn('Error during startStopLdapKnox');
+    }
+  },
+  startStopLdapKnoxErrorCallback : function(data) {
+    var error = Em.I18n.t('services.service.actions.run.startStopLdapKnox.error');
+    if(data && data.responseText){
+      try {
+        var json = $.parseJSON(data.responseText);
+        error += json.message;
+      } catch (err) {}
+    }
+    App.showAlertPopup(Em.I18n.t('services.service.actions.run.yarnRefreshQueues.error'), error);
+    console.warn('Error during refreshYarnQueues:'+ error);
+  },
+
   /**
    * On click handler for rebalance Hdfs command from items menu
    */

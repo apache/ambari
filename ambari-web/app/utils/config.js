@@ -599,7 +599,7 @@ App.config = Em.Object.create({
              * (/^\s+$/.test(_config.value)) { _config.isRequired = false; }
              */
             _config.isRequired = true;
-            _config.displayType = stringUtils.isSingleLine(_config.value) ? 'advanced' : 'multiLine';
+            _config.displayType = _config.displayType ? _config.displayType : stringUtils.isSingleLine(_config.value) ? 'advanced' : 'multiLine';
             serviceConfigs.push(_config);
           }
         }
@@ -914,7 +914,7 @@ App.config = Em.Object.create({
          */
         if ((fileName !== 'mapred-queue-acls.xml' || App.supports.capacitySchedulerUi) &&
           (fileName !== 'capacity-scheduler.xml' || isHDP2 || App.supports.capacitySchedulerUi)) {
-          properties.push({
+          var property = {
             serviceName: serviceName,
             name: item.property_name,
             value: item.property_value,
@@ -923,7 +923,11 @@ App.config = Em.Object.create({
             isFinal: item.final === "true",
             defaultIsFinal: item.final === "true",
             filename: item.filename || fileName
-          });
+          };
+          if (item.property_type.contains('PASSWORD')) {
+            property.displayType = "password";
+          }
+          properties.push(property);
         }
       }, this);
     }

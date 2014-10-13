@@ -478,6 +478,9 @@ App.ServiceConfigProperty = Ember.Object.extend({
       case 'supervisor_hosts':
         this.set('value', slaveComponentHostsInDB.findProperty('componentName', 'SUPERVISOR').hosts.mapProperty('hostName'));
         break;
+      case 'knox_gateway_host':
+        this.set('value', masterComponentHostsInDB.findProperty('component', 'KNOX_GATEWAY').hostName);
+        break;
       case 'hbase.zookeeper.quorum':
         var zkHosts = masterComponentHostsInDB.filterProperty('component', 'ZOOKEEPER_SERVER').mapProperty('hostName');
         this.setDefaultValue("(\\w*)", zkHosts);
