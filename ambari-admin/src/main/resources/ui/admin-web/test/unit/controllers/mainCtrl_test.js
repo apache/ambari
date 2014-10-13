@@ -35,8 +35,8 @@ describe('#Auth', function () {
       deferred.resolve('c1');
       $window = _$window_;
       $httpBackend = _$httpBackend_;
-      $httpBackend.whenGET('/api/v1/logout').respond(200,{message: "successfully logged out"});
-      $httpBackend.whenGET('/api/v1/views?fields=versions%2Finstances%2FViewInstanceInfo&versions%2FViewVersionInfo%2Fsystem=false&versions%2Finstances%2FViewInstanceInfo%2Fvisible=true')
+      $httpBackend.whenGET(/\/api\/v1\/logout\?_=\d+/).respond(200,{message: "successfully logged out"});
+      $httpBackend.whenGET(/\/api\/v1\/views.+/)
         .respond(200,{
           "href": "http://c6401.ambari.apache.org:8080/api/v1/views?fields=versions/instances/ViewInstanceInfo&versions/ViewVersionInfo/system=false&versions/instances/ViewInstanceInfo/visible=true",
           "items": [
