@@ -1402,7 +1402,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
    * On save configs handler. Open save configs popup with appropriate message.
    */
   onDoPUTClusterConfigurations: function () {
-    var header, message, messageClass, value, status, urlParams = '',
+    var header, message, messageClass, value, status = 'unknown', urlParams = '',
     result = {
       flag: this.get('saveConfigsFlag'),
       message: null,
@@ -1413,10 +1413,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
 
     if (!result.flag) {
       result.message = Em.I18n.t('services.service.config.failSaveConfig');
-    } else {
-      if (!result.flag) {
-        result.message = Em.I18n.t('services.service.config.failSaveConfigHostOverrides');
-      }
     }
 
     App.router.get('clusterController').updateClusterData();
@@ -1428,7 +1424,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
       message = Em.I18n.t('services.service.config.saved.message');
       messageClass = 'alert alert-success';
       // warn the user if any of the components are in UNKNOWN state
-      status = 'unknown';
       urlParams += ',ServiceComponentInfo/installed_count,ServiceComponentInfo/total_count';
       if (this.get('content.serviceName') === 'HDFS' || App.Service.find().someProperty('id', 'MAPREDUCE')) {
         urlParams += '&ServiceComponentInfo/service_name.in(HDFS,MAPREDUCE)'
