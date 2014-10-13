@@ -32,4 +32,27 @@ limitations under the License.
     <description>Comma-separated list of the location of the plugin jars that contain implementations of user defined functions and SerDes.</description>
   </property>
 
+  <property>
+    <name>hive.cluster.delegation.token.store.class</name>
+    <value>org.apache.hadoop.hive.thrift.ZooKeeperTokenStore</value>
+    <description>The delegation token store implementation class.</description>
+  </property>
+  
+  <property>
+    <name>hive.cluster.delegation.token.store.zookeeper.connectString</name>
+    <value>localhost:2181</value>
+    <description>The ZooKeeper token store connect string.</description>
+  </property>
+
+  <property>
+    <name>hive.server2.support.dynamic.service.discovery</name>
+    <value>true</value>
+    <description>Whether HiveServer2 supports dynamic service discovery for its
+      clients. To support this, each instance of HiveServer2 currently uses
+      ZooKeeper to register itself, when it is brought up. JDBC/ODBC clients
+      should use the ZooKeeper ensemble: hive.zookeeper.quorum in their
+      connection string.
+    </description>
+  </property>
+  
 </configuration>
