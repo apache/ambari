@@ -165,24 +165,25 @@ for jarFile in `ls /usr/share/java/*mysql* 2>/dev/null`
 do
   JAVA_JDBC_LIBS=${JAVA_JDBC_LIBS}:$jarFile
 done
-#Add libraries required by oracle connector
+# Add libraries required by oracle connector
 for jarFile in `ls /usr/share/java/*ojdbc* 2>/dev/null`
 do
   JAVA_JDBC_LIBS=${JAVA_JDBC_LIBS}:$jarFile
 done
-#Add libraries required by nodemanager
+# Add libraries required by nodemanager
 MAPREDUCE_LIBS={{mapreduce_libs_path}}
 export HADOOP_CLASSPATH=${HADOOP_CLASSPATH}${JAVA_JDBC_LIBS}:${MAPREDUCE_LIBS}
 
-if [ -d "/usr/lib/tez" ]; then
-  export HADOOP_CLASSPATH=$HADOOP_CLASSPATH:/usr/lib/tez/*:/usr/lib/tez/lib/*:/etc/tez/conf
+if [[ -d "/usr/hdp/current/tez-client" &&  -d "/etc/tez/conf/" ]]; then
+  # When using versioned RPMs, the tez-client will be a symlink to the current folder of tez in HDP.
+  export HADOOP_CLASSPATH=${HADOOP_CLASSPATH}:/usr/hdp/current/tez-client/*:/usr/hdp/current/tez-client/lib/*:/etc/tez/conf/
 fi
 
 # Setting path to hdfs command line
 export HADOOP_LIBEXEC_DIR={{hadoop_libexec_dir}}
 
-#Mostly required for hadoop 2.0
-export JAVA_LIBRARY_PATH=${JAVA_LIBRARY_PATH}:/usr/lib/hadoop/lib/native/Linux-amd64-64
+# Mostly required for hadoop 2.0
+export JAVA_LIBRARY_PATH=${JAVA_LIBRARY_PATH}:/usr/hdp/current/hadoop-client/lib/native/Linux-amd64-64
 
 #Hadoop logging options
 export HADOOP_ROOT_LOGGER={{hadoop_root_logger}}

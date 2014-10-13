@@ -27,12 +27,6 @@ limitations under the License.
   </property>
 
   <property>
-    <name>hive.aux.jars.path</name>
-    <value>file:///usr/hdp/current/hive-hcatalog/share/hcatalog</value>
-    <description>Comma-separated list of the location of the plugin jars that contain implementations of user defined functions and SerDes.</description>
-  </property>
-
-  <property>
     <name>hive.cluster.delegation.token.store.class</name>
     <value>org.apache.hadoop.hive.thrift.ZooKeeperTokenStore</value>
     <description>The delegation token store implementation class.</description>
