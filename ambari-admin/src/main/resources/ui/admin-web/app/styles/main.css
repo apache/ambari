@@ -363,10 +363,10 @@ a.gotoinstance{
   -o-transform: translateY(2px);
   transform: translateY(2px);
 }
-.btn.deleteuser-btn.disabled, .btn.deleteuser-btn[disabled], .btn.btn-delete-instance.disabled{
+.btn.deleteuser-btn.disabled, .btn.deleteuser-btn[disabled], .btn.btn-delete-instance.disabled, .btn-default.disabled{
   pointer-events: auto;
-  cursor: not-allowed;
-  background-color: #e6e6e6;
+  cursor: not-allowed !important;
+  background-color: #e6e6e6 !important;
 }
 
 .about .logo{

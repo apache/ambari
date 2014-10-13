@@ -80,7 +80,7 @@
           <tr>
             <td class="col-sm-3"></td>
             <td class="col-sm-3">
-              <a class="btn btn-default createisntance-btn {{view.canCreateInstance ? '' : 'disabled'}}" href="#/views/{{view.view_name}}/versions/{{view.versionsList[view.versionsList.length-1].ViewVersionInfo.version}}/new"><span class="glyphicon glyphicon-plus" ></span> Create Instance</a>
+              <a tooltip="{{view.canCreateInstance ? '' : 'Unable to create view instances'}}" class="btn btn-default createisntance-btn {{view.canCreateInstance ? '' : 'disabled'}}" href="#/views/{{view.view_name}}/versions/{{view.versionsList[view.versionsList.length-1].ViewVersionInfo.version}}/new"><span class="glyphicon glyphicon-plus"></span> Create Instance</a>
             </td>
             <td class="col-sm-3"></td>
             <td class="col-sm-3">
