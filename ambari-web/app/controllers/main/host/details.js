@@ -712,7 +712,9 @@ App.MainHostDetailsController = Em.Controller.extend({
       configs['webhcat-site']['templeton.zookeeper.hosts'] = zksWithPort;
     }
     if (configs['hive-site']) {
-      configs['hive-site']['hive.zookeeper.quorum'] = zksWithPort;
+      if (App.get('isHadoop22Stack')) {
+        configs['hive-site']['hive.zookeeper.quorum'] = zksWithPort;
+      }
       configs['hive-site']['hive.cluster.delegation.token.store.zookeeper.connectString'] = zksWithPort;
     }
     if (configs['storm-site']) {
