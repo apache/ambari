@@ -547,16 +547,6 @@ module.exports =
       "category": "Advanced hive-site",
       "serviceName": "HIVE"
     },
-    {
-      "id": "site property",
-      "name": "hive.zookeeper.quorum",
-      "displayName": "hive.zookeeper.quorum",
-      "defaultValue": "localhost:2181",
-      "displayType": "multiLine",
-      "isVisible": true,
-      "serviceName": "HIVE",
-      "category": "Advanced hive-site"
-    },
   /**********************************************tez-site*****************************************/
     {
       "id": "site property",

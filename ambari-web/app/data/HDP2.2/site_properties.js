@@ -23,6 +23,18 @@ var hdp22properties = hdp2properties.filter(function (item){
   return item.name !== 'storm.thrift.transport' && item.name !== 'storm_rest_api_host';
 });
 
+hdp22properties.push(
+{
+  "id": "site property",
+  "name": "hive.zookeeper.quorum",
+  "displayName": "hive.zookeeper.quorum",
+  "defaultValue": "localhost:2181",
+  "displayType": "multiLine",
+  "isVisible": true,
+  "serviceName": "HIVE",
+  "category": "Advanced hive-site"
+});
+
 module.exports =
 {
   "configProperties": hdp22properties

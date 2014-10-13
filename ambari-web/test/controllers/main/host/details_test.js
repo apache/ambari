@@ -559,13 +559,26 @@ describe('App.MainHostDetailsController', function () {
         "templeton.zookeeper.hosts": "host1:2181"
       }});
     });
-    it('hive-site is present', function () {
+    it('hive-site is present and stack < 2.2', function () {
+      var version = App.get('currentStackVersion');
       var configs = {'hive-site': {}};
+      App.set('currentStackVersion', 'HDP-2.1.0');
+      expect(controller.setZKConfigs(configs, 'host1:2181', [])).to.be.true;
+      expect(configs).to.eql({"hive-site": {
+        'hive.cluster.delegation.token.store.zookeeper.connectString': "host1:2181"
+      }});
+      App.set('currentStackVersion', version);
+    });
+    it('hive-site is present and stack > 2.2', function () {
+      var version = App.get('currentStackVersion');
+      var configs = {'hive-site': {}};
+      App.set('currentStackVersion', 'HDP-2.2.0');
       expect(controller.setZKConfigs(configs, 'host1:2181', [])).to.be.true;
       expect(configs).to.eql({"hive-site": {
         'hive.cluster.delegation.token.store.zookeeper.connectString': "host1:2181",
         'hive.zookeeper.quorum': "host1:2181"
       }});
+      App.set('currentStackVersion', version);
     });
     it('storm-site is present', function () {
       var configs = {'storm-site': {}};
