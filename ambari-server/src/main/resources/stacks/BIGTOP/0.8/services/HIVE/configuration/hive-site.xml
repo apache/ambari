@@ -162,6 +162,18 @@ limitations under the License.
   </property>
 
   <property>
+    <name>hive.server2.enable.impersonation</name>
+    <description>Enable user impersonation for HiveServer2</description>
+    <value>true</value>
+  </property>
+
+  <property>
+    <name>hive.server2.authentication</name>
+    <description>Authentication mode, default NONE. Options are NONE, NOSASL, KERBEROS, LDAP, PAM and CUSTOM</description>
+    <value>NOSASL</value>
+  </property>
+
+  <property>
     <name>fs.hdfs.impl.disable.cache</name>
     <value>true</value>
     <description>Disable HDFS filesystem cache.</description>
