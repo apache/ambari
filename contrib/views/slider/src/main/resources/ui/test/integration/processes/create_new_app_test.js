@@ -75,6 +75,7 @@ var appTypes = {
 
 var selectors = {
     buttonNext: 'button.next-btn',
+    buttonBack: 'button.btn:eq(1)',
     step2: {
       content: '#step2 table tbody'
     }
@@ -82,6 +83,12 @@ var selectors = {
   newApp = {
     name: 'new_app',
     type: 'HBASE',
+    includeFilePatterns: 'includeFilePatterns1',
+    excludeFilePatterns: 'excludeFilePatterns1',
+    frequency: 'frequency1',
+    queueName: 'queueName1',
+    specialLabel: 'specialLabel1',
+    selectedYarnLabel: 'selectedYarnLabel1',
     components: {
       HBASE_MASTER: 4,
       HBASE_REGIONSERVER: 5
@@ -127,15 +134,15 @@ test('basic (no errors - just valid data)', function () {
 
     equal(find(selectors.buttonNext).attr('disabled'), null, '"Next"-button should be enabled at the beginning of Step 2');
     equal(find(selectors.step2.content + ' tr').length, 2, 'Selected App Type has 2 components');
-    equal(find(selectors.step2.content + ' tr:eq(0) input').val(), '1', 'Component count for 1st component is valid by default');
-    equal(find(selectors.step2.content + ' tr:eq(1) input').val(), '2', 'Component count for 2nd component is valid by default');
+    equal(find(selectors.step2.content + ' tr:eq(0) .numInstances').val(), '1', 'Component count for 1st component is valid by default');
+    equal(find(selectors.step2.content + ' tr:eq(1) .numInstances').val(), '2', 'Component count for 2nd component is valid by default');
 
-    fillIn(selectors.step2.content + ' tr:eq(0) input:eq(0)', newApp.components.HBASE_MASTER);
-    fillIn(selectors.step2.content + ' tr:eq(1) input:eq(0)', newApp.components.HBASE_REGIONSERVER);
+    fillIn(selectors.step2.content + ' tr:eq(0) .numInstances', newApp.components.HBASE_MASTER);
+    fillIn(selectors.step2.content + ' tr:eq(1) .numInstances', newApp.components.HBASE_REGIONSERVER);
 
-    equal(find(selectors.step2.content + ' tr:eq(0) input:eq(4)').attr('disabled'), 'disabled', 'YARN label input-field should be disabled by default');
-    find(selectors.step2.content + ' tr:eq(0) input:eq(3)').click();
-    equal(find(selectors.step2.content + ' tr:eq(0) input:eq(4)').attr('disabled'), null, 'YARN label input-field should be enabled after checkbox checked');
+    equal(find(selectors.step2.content + ' tr:eq(0) .yarnLabel').attr('disabled'), 'disabled', 'YARN label input-field should be disabled by default');
+    find(selectors.step2.content + ' tr:eq(0) .checkbox-inline').click();
+    equal(find(selectors.step2.content + ' tr:eq(0) .yarnLabel').attr('disabled'), null, 'YARN label input-field should be enabled after checkbox checked');
 
     click(selectors.buttonNext);
     andThen(function () {
@@ -195,5 +202,78 @@ test('check step1', function () {
   equal(find('.special-label').attr('disabled'), 'disabled', '"Special YARN label"-textfield should be disabled');
   find('.special-label-radio').click();
   equal(find('.special-label').attr('disabled'), null, '"Special YARN label"-textfield should be enabled if proper radio-button selected');
+
+});
+
+test('check step2', function () {
+
+  visit('/createAppWizard/step1');
+  fillIn('#app-name-input', newApp.name);
+  click(selectors.buttonNext);
+
+  andThen(function () {
+    fillIn(selectors.step2.content + ' tr:eq(0) .numInstances', -1);
+    andThen(function () {
+      equal(find(selectors.buttonNext).attr('disabled'), 'disabled', '"Next"-button should be disabled because invalid value provided for Instances count');
+      equal(find('.alert').length, 1, 'Alert-box is on page');
+    });
+    fillIn(selectors.step2.content + ' tr:eq(0) .numInstances', 1);
+    andThen(function () {
+      equal(find(selectors.buttonNext).attr('disabled'), null);
+      equal(find('.alert').length, 0, 'Alert-box is hidden');
+    });
+    fillIn(selectors.step2.content + ' tr:eq(0) .yarnMemory', -1);
+    andThen(function () {
+      equal(find(selectors.buttonNext).attr('disabled'), 'disabled', '"Next"-button should be disabled because invalid value provided for Memory');
+      equal(find('.alert').length, 1, 'Alert-box is on page');
+    });
+    fillIn(selectors.step2.content + ' tr:eq(0) .yarnMemory', 1024);
+    andThen(function () {
+      equal(find(selectors.buttonNext).attr('disabled'), null);
+      equal(find('.alert').length, 0, 'Alert-box is hidden');
+    });
+    fillIn(selectors.step2.content + ' tr:eq(0) .yarnCPU', -1);
+    andThen(function () {
+      equal(find(selectors.buttonNext).attr('disabled'), 'disabled', '"Next"-button should be disabled because invalid value provided for CPU Cores');
+      equal(find('.alert').length, 1, 'Alert-box is on page');
+    });
+    fillIn(selectors.step2.content + ' tr:eq(0) .yarnCPU', 1024);
+    andThen(function () {
+      equal(find(selectors.buttonNext).attr('disabled'), null);
+      equal(find('.alert').length, 0, 'Alert-box is hidden');
+    });
+
+    equal(find(selectors.step2.content + ' tr:eq(0) .yarnLabel').attr('disabled'), 'disabled', 'Labels-field is disabled by default');
+    find(selectors.step2.content + ' tr:eq(0) .checkbox-inline').click();
+    andThen(function () {
+      equal(find(selectors.step2.content + ' tr:eq(0) yarnLabel').attr('disabled'), null, 'Labels-field should be enabled when checkbox clicked');
+    });
+  });
+
+});
+
+test('check step2 back', function () {
+
+  visit('/createAppWizard/step1');
+  fillIn('#app-name-input', newApp.name);
+  fillIn('.includeFilePatterns', newApp.includeFilePatterns);
+  fillIn('.excludeFilePatterns', newApp.excludeFilePatterns);
+  fillIn('.frequency', newApp.frequency);
+  fillIn('.queueName', newApp.queueName);
+  find('.selectedYarnLabel:eq(2)').click();
+  fillIn('.special-label', newApp.specialLabel);
+  click(selectors.buttonNext);
+
+  andThen(function () {
+    click(selectors.buttonBack);
+    andThen(function () {
+      equal(find('#app-name-input').val(), newApp.name, 'Name is restored');
+      equal(find('.includeFilePatterns').val(), newApp.includeFilePatterns, 'includeFilePatterns is restored');
+      equal(find('.excludeFilePatterns').val(), newApp.excludeFilePatterns, 'excludeFilePatterns is restored');
+      equal(find('.frequency').val(), newApp.frequency, 'frequency is restored');
+      equal(find('.queueName').val(), newApp.queueName, 'queueName is restored');
+      equal(find('.special-label').val(), newApp.specialLabel, 'specialLabel is restored');
+    });
+  });
 
 });
