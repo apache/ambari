@@ -17,6 +17,11 @@
  */
 package org.apache.ambari.server.state;
 
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
+
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
@@ -35,12 +40,14 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
+
+
 
 public class ConfigHelperTest {
   private Clusters clusters;
@@ -101,6 +108,22 @@ public class ConfigHelperTest {
     managementController.updateClusters(new HashSet<ClusterRequest>()
     {{ add(clusterRequest1); }}, null);
 
+    // flume-conf
+
+    ConfigurationRequest cr2 = new ConfigurationRequest();
+    cr2.setClusterName(clusterName);
+    cr2.setType("flume-conf");
+    cr2.setVersionTag("version1");
+
+
+    final ClusterRequest clusterRequest2 =
+      new ClusterRequest(cluster.getClusterId(), clusterName,
+        cluster.getDesiredStackVersion().getStackVersion(), null);
+
+    clusterRequest2.setDesiredConfig(Collections.singletonList(cr2));
+    managementController.updateClusters(new HashSet<ClusterRequest>()
+    {{ add(clusterRequest2); }}, null);
+
     // global
     cr.setType("global");
     cr.setVersionTag("version1");
@@ -115,13 +138,13 @@ public class ConfigHelperTest {
       put("attribute2", attrs);
     }});
 
-    final ClusterRequest clusterRequest2 =
+    final ClusterRequest clusterRequest3 =
       new ClusterRequest(cluster.getClusterId(), clusterName,
         cluster.getDesiredStackVersion().getStackVersion(), null);
 
-    clusterRequest2.setDesiredConfig(Collections.singletonList(cr));
+    clusterRequest3.setDesiredConfig(Collections.singletonList(cr));
     managementController.updateClusters(new HashSet<ClusterRequest>()
-    {{ add(clusterRequest2); }}, null);
+    {{ add(clusterRequest3); }}, null);
   }
 
   @After
@@ -248,10 +271,10 @@ public class ConfigHelperTest {
 
     Map<String, Map<String, Map<String, String>>> effectiveAttributes = configHelper
         .getEffectiveConfigAttributes(cluster,
-            configHelper.getEffectiveDesiredTags(cluster, "h1"));
+          configHelper.getEffectiveDesiredTags(cluster, "h1"));
 
     Assert.assertNotNull(effectiveAttributes);
-    Assert.assertEquals(2, effectiveAttributes.size());
+    Assert.assertEquals(3, effectiveAttributes.size());
 
     Assert.assertTrue(effectiveAttributes.containsKey("global"));
     Map<String, Map<String, String>> globalAttrs = effectiveAttributes.get("global");
@@ -493,5 +516,41 @@ public class ConfigHelperTest {
     Assert.assertEquals("true", finalResultAttributes.get("b"));
     Assert.assertEquals("true", finalResultAttributes.get("c"));
     Assert.assertEquals("true", finalResultAttributes.get("d"));
+  }
+
+  @Test
+  public void testCalculateIsStaleConfigs() throws Exception {
+
+    Map<String, HostConfig> schReturn = new HashMap<String, HostConfig>();
+    HostConfig hc = new HostConfig();
+    // Put a different version to check for change
+    hc.setDefaultVersionTag("version2");
+    schReturn.put("flume-conf", hc);
+    // set up mocks
+    ServiceComponentHost sch = createNiceMock(ServiceComponentHost.class);
+    // set up expectations
+    expect(sch.getActualConfigs()).andReturn(schReturn).times(3);
+    expect(sch.getHostName()).andReturn("h1").times(6);
+    expect(sch.getClusterId()).andReturn(1l).times(3);
+    expect(sch.getServiceName()).andReturn("FLUME").times(3);
+    expect(sch.getServiceComponentName()).andReturn("FLUME_HANDLER").times(3);
+    replay(sch);
+    // Cluster level config changes
+    Assert.assertTrue(configHelper.isStaleConfigs(sch));
+    HostConfig hc2 = new HostConfig();
+    hc2.setDefaultVersionTag("version1");
+    schReturn.put("flume-conf", hc2);
+    // invalidate cache to test new sch
+    configHelper.invalidateStaleConfigsCache();
+    // Cluster level same configs
+    Assert.assertFalse(configHelper.isStaleConfigs(sch));
+    // Cluster level same configs but group specific configs for host have been updated
+    List<String> hosts = new ArrayList<String>();
+    hosts.add("h1");
+    List<Config> configs = new ArrayList<Config>();
+    configs.add(new ConfigImpl("flume-conf"));
+    addConfigGroup("configGroup1", "FLUME", hosts, configs);
+    Assert.assertTrue(configHelper.isStaleConfigs(sch));
+    verify(sch);
   }
 }

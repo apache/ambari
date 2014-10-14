@@ -47,6 +47,7 @@ import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
 import org.apache.ambari.server.state.PropertyInfo.PropertyType;
+import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.upgrade.UpgradeCatalog170;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -670,8 +671,8 @@ public class ConfigHelper {
         // desired and actual both define the type
         HostConfig hc = actual.get(type);
         Map<String, String> actualTags = buildTags(hc);
-        
-        if (!isTagChanged(tags, actualTags)) {
+
+        if (!isTagChanged(tags, actualTags, hasGroupSpecificConfigsForType(cluster, sch.getHostName(), type))) {
           stale = false;
         } else if (type.equals(Configuration.GLOBAL_CONFIG_TAG)) {
           // tags are changed, need to find out what has changed,
@@ -688,6 +689,31 @@ public class ConfigHelper {
       }
     }
     return stale;
+  }
+
+  /**
+   * Determines if the hostname has group specific configs for the type specified
+   *
+   * @param cluster
+   * @param hostname of the host to look for
+   * @param type     the type to look for (e.g. flume-conf)
+   * @return <code>true</code> if the hostname has group specific configuration for the type
+   */
+  private boolean hasGroupSpecificConfigsForType(Cluster cluster, String hostname, String type) {
+    try {
+      Map<Long, ConfigGroup> configGroups = cluster.getConfigGroupsByHostname(hostname);
+      if (configGroups != null && !configGroups.isEmpty()) {
+        for (ConfigGroup configGroup : configGroups.values()) {
+          Config config = configGroup.getConfigurations().get(type);
+          if (config != null) {
+            return true;
+          }
+        }
+      }
+    } catch (AmbariException ambariException) {
+      LOG.warn("Could not determine group configuration for host. Details: " + ambariException.getMessage());
+    }
+    return false;
   }
 
   /**
@@ -761,9 +787,15 @@ public class ConfigHelper {
   /**
    * @return true if the tags are different in any way, even if not-specified
    */
-  private boolean isTagChanged(Map<String, String> desiredTags, Map<String, String> actualTags) {
-    if (!actualTags.get(CLUSTER_DEFAULT_TAG).equals(desiredTags.get(CLUSTER_DEFAULT_TAG)))
+  private boolean isTagChanged(Map<String, String> desiredTags, Map<String, String> actualTags, boolean groupSpecificConfigs) {
+    if (!actualTags.get(CLUSTER_DEFAULT_TAG).equals(desiredTags.get(CLUSTER_DEFAULT_TAG)) && !groupSpecificConfigs)
       return true;
+
+    // if the host has group specific configs for type we should ignore the cluster level configs and compare specifics
+    if (groupSpecificConfigs) {
+      actualTags.remove(CLUSTER_DEFAULT_TAG);
+      desiredTags.remove(CLUSTER_DEFAULT_TAG);
+    }
 
     Set<String> desiredSet = new HashSet<String>(desiredTags.values());
     Set<String> actualSet = new HashSet<String>(actualTags.values());
