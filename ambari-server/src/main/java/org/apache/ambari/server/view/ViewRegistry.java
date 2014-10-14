@@ -718,6 +718,15 @@ public class ViewRegistry {
   }
 
   /**
+   * Determine whether or not the current view user has admin rights.
+   *
+   * @return true if the current view user is an admin
+   */
+  public boolean checkAdmin() {
+    return checkAuthorization(null);
+  }
+
+  /**
    * Determine whether or not the given view definition resource should be included
    * based on the permissions granted to the current user.
    *
