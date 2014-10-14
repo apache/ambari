@@ -119,6 +119,7 @@ public class ViewRegistryTest {
       "    <parameter>\n" +
       "        <name>p2</name>\n" +
       "        <description>Parameter 2.</description>\n" +
+      "        <masked>true</masked>" +
       "        <required>false</required>\n" +
       "    </parameter>\n" +
       "    <instance>\n" +
@@ -675,6 +676,9 @@ public class ViewRegistryTest {
 
     Assert.assertEquals(1, viewInstanceDefinitions.size());
 
+    ViewInstanceEntity instanceEntity = viewInstanceDefinitions.iterator().next();
+    Assert.assertEquals("djItMQ==", instanceEntity.getProperty("p2").getValue() );
+
     Assert.assertEquals(viewInstanceEntity, viewInstanceDefinitions.iterator().next());
 
     verify(viewDAO, viewInstanceDAO, securityHelper, handlerList);
@@ -761,6 +765,9 @@ public class ViewRegistryTest {
     Collection<ViewInstanceEntity> viewInstanceDefinitions = registry.getInstanceDefinitions(viewEntity);
 
     Assert.assertEquals(1, viewInstanceDefinitions.size());
+
+    ViewInstanceEntity instanceEntity = viewInstanceDefinitions.iterator().next();
+    Assert.assertEquals("djItMQ==", instanceEntity.getProperty("p2").getValue() );
 
     Assert.assertEquals(viewInstanceEntity, viewInstanceDefinitions.iterator().next());
 

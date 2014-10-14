@@ -34,6 +34,7 @@ import org.apache.ambari.view.MaskException;
 import org.apache.ambari.view.Masker;
 import org.apache.ambari.view.ResourceProvider;
 import org.apache.ambari.view.SecurityException;
+import org.apache.ambari.view.SystemException;
 import org.apache.ambari.view.URLStreamProvider;
 import org.apache.ambari.server.controller.internal.AppCookieManager;
 import org.apache.ambari.view.ImpersonatorSetting;
@@ -203,7 +204,11 @@ public class ViewContextImpl implements ViewContext, ViewController {
   public void putInstanceData(String key, String value) {
     checkInstance();
     viewInstanceEntity.putInstanceData(key, value);
-    viewRegistry.updateViewInstance(viewInstanceEntity);
+    try {
+      viewRegistry.updateViewInstance(viewInstanceEntity);
+    } catch (SystemException e) {
+      LOG.error("Caught exception updating the view instance.", e);
+    }
   }
 
   @Override
