@@ -52,6 +52,7 @@ SILENT = False
 SERVER_START_DEBUG = False
 
 # ldap settings
+LDAP_SYNC_ALL = False
 LDAP_SYNC_EXISTING = False
 LDAP_SYNC_USERS = None
 LDAP_SYNC_GROUPS = None
@@ -3068,6 +3069,10 @@ def sync_ldap():
     err = "LDAP is not configured. Run 'ambari-server setup-ldap' first."
     raise FatalException(1, err)
 
+  if not LDAP_SYNC_ALL and not LDAP_SYNC_EXISTING and LDAP_SYNC_USERS is None and LDAP_SYNC_GROUPS is None:
+    err = 'Must specify a sync option.  Please see help for more information.'
+    raise FatalException(1, err)
+
   admin_login = get_validated_string_input(prompt="Enter Ambari Admin login: ", default=None,
                                            pattern=None, description=None,
                                            is_pass=False, allowEmpty=False)
@@ -3081,26 +3086,25 @@ def sync_ldap():
   request.add_header('Authorization', 'Basic %s' % admin_auth)
   request.add_header('X-Requested-By', 'ambari')
 
-  if LDAP_SYNC_EXISTING:
+  if LDAP_SYNC_ALL:
+    sys.stdout.write('Syncing all.')
+    bodies = [{"Event":{"specs":[{"principal_type":"users","sync_type":"all"},{"principal_type":"groups","sync_type":"all"}]}}]
+  elif LDAP_SYNC_EXISTING:
     sys.stdout.write('Syncing existing.')
     bodies = [{"Event":{"specs":[{"principal_type":"users","sync_type":"existing"},{"principal_type":"groups","sync_type":"existing"}]}}]
   else:
-    if LDAP_SYNC_USERS is None and LDAP_SYNC_GROUPS is None:
-      sys.stdout.write('Syncing all.')
-      bodies = [{"Event":{"specs":[{"principal_type":"users","sync_type":"all"},{"principal_type":"groups","sync_type":"all"}]}}]
-    else:
-      sys.stdout.write('Syncing specified users and groups.')
-      bodies = [{"Event":{"specs":[]}}]
-      body = bodies[0]
-      events = body['Event']
-      specs = events['specs']
+    sys.stdout.write('Syncing specified users and groups.')
+    bodies = [{"Event":{"specs":[]}}]
+    body = bodies[0]
+    events = body['Event']
+    specs = events['specs']
 
-      if LDAP_SYNC_USERS is not None:
-        new_specs = [{"principal_type":"users","sync_type":"specific","names":""}]
-        get_ldap_event_spec_names(LDAP_SYNC_USERS, specs, new_specs)
-      if LDAP_SYNC_GROUPS is not None:
-        new_specs = [{"principal_type":"groups","sync_type":"specific","names":""}]
-        get_ldap_event_spec_names(LDAP_SYNC_GROUPS, specs, new_specs)
+    if LDAP_SYNC_USERS is not None:
+      new_specs = [{"principal_type":"users","sync_type":"specific","names":""}]
+      get_ldap_event_spec_names(LDAP_SYNC_USERS, specs, new_specs)
+    if LDAP_SYNC_GROUPS is not None:
+      new_specs = [{"principal_type":"groups","sync_type":"specific","names":""}]
+      get_ldap_event_spec_names(LDAP_SYNC_GROUPS, specs, new_specs)
 
   if VERBOSE:
     sys.stdout.write('\nCalling API ' + SERVER_API_LDAP_URL + ' : ' + str(bodies) + '\n')
@@ -4398,6 +4402,7 @@ def main():
   parser.add_option('-g', '--debug', action="store_true", dest='debug', default=False,
                     help="Start ambari-server in debug mode")
 
+  parser.add_option('--all', action="store_true", default=False, help="LDAP sync all Ambari users and groups", dest="ldap_sync_all")
   parser.add_option('--existing', action="store_true", default=False, help="LDAP sync existing Ambari users and groups only", dest="ldap_sync_existing")
   parser.add_option('--users', default=None, help="Specifies the path to the LDAP sync users CSV file.", dest="ldap_sync_users")
   parser.add_option('--groups', default=None, help="Specifies the path to the LDAP sync groups CSV file.", dest="ldap_sync_groups")
@@ -4431,6 +4436,10 @@ def main():
   # debug mode
   global SERVER_DEBUG_MODE
   SERVER_DEBUG_MODE = options.debug
+
+  # set ldap_sync_all
+  global LDAP_SYNC_ALL
+  LDAP_SYNC_ALL = options.ldap_sync_all
 
   # set ldap_sync_existing
   global LDAP_SYNC_EXISTING
