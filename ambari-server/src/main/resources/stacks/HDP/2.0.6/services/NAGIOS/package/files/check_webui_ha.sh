@@ -28,7 +28,7 @@ checkurl () {
   url=$1
   host=$2
   export no_proxy=$host
-  curl $url -o /dev/null
+  curl $url -k -o /dev/null
   echo $?
 }
 
