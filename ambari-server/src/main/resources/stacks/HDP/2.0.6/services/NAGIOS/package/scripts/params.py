@@ -24,6 +24,9 @@ from functions import is_jdk_greater_6
 from resource_management import *
 import status_params
 
+HADOOP_HTTP_POLICY = "HTTP_ONLY"
+HADOOP_HTTPS_POLICY = "HTTPS_ONLY"
+
 # server configurations
 config = Script.get_config()
 
@@ -85,10 +88,11 @@ nagios_service_cfg = format("{nagios_obj_dir}/hadoop-services.cfg")
 nagios_command_cfg = format("{nagios_obj_dir}/hadoop-commands.cfg")
 eventhandlers_dir = "/usr/lib/nagios/eventhandlers"
 nagios_principal_name = default("/configurations/nagios-env/nagios_principal_name", "nagios")
-hadoop_ssl_enabled = False
 
 oozie_server_port = get_port_from_url(config['configurations']['oozie-site']['oozie.base.url'])
 namenode_host = default("/clusterHostInfo/namenode_host", None)
+
+has_namenode = not namenode_host == None
 
 # - test for HDFS or HCFS (glusterfs)
 if 'namenode_host' in config['clusterHostInfo']:
@@ -96,29 +100,90 @@ if 'namenode_host' in config['clusterHostInfo']:
 else:
   ishdfs_value = None
 
-has_namenode = not namenode_host == None
+# HDFS, YARN, and MR use different settings to enable SSL
+hdfs_ssl_enabled = False
+yarn_ssl_enabled = False
+mapreduce_ssl_enabled = False
 
-# different to HDP1
+# initialize all http policies to HTTP_ONLY
+dfs_http_policy = HADOOP_HTTP_POLICY
+yarn_http_policy = HADOOP_HTTP_POLICY
+mapreduce_http_policy = HADOOP_HTTP_POLICY
+
+# 
+if 'dfs.http.policy' in config['configurations']['hdfs-site']:
+  dfs_http_policy = config['configurations']['hdfs-site']['dfs.http.policy']
+
+if 'yarn.http.policy' in config['configurations']['yarn-site']:
+  yarn_http_policy = config['configurations']['yarn-site']['yarn.http.policy']
+
+if 'mapreduce.jobhistory.http.policy' in config['configurations']['mapred-site']:
+  mapreduce_http_policy = config['configurations']['mapred-site']['mapreduce.jobhistory.http.policy']
+
+if dfs_http_policy == HADOOP_HTTPS_POLICY:
+  hdfs_ssl_enabled = True
+
+if yarn_http_policy == HADOOP_HTTPS_POLICY:
+  yarn_ssl_enabled = True
+
+if mapreduce_http_policy == HADOOP_HTTPS_POLICY:
+  mapreduce_ssl_enabled = True
+
+# set default ports and webui lookup properties
+dfs_namenode_webui_default_port = '50070'
+dfs_snamenode_webui_default_port = '50090'
+yarn_nodemanager_default_port = '8042'
+dfs_namenode_webui_property = 'dfs.namenode.http-address'
+dfs_snamenode_webui_property = 'dfs.namenode.secondary.http-address'
+dfs_datanode_webui_property = 'dfs.datanode.http.address'
+yarn_rm_webui_property = 'yarn.resourcemanager.webapp.address'
+yarn_timeline_service_webui_property = 'yarn.timeline-service.webapp.address'
+yarn_nodemanager_webui_property = 'yarn.nodemanager.webapp.address'
+mapreduce_jobhistory_webui_property = 'mapreduce.jobhistory.webapp.address'
+ 
+# if HDFS is protected by SSL, adjust the ports and lookup properties
+if hdfs_ssl_enabled == True:
+  dfs_namenode_webui_default_port = '50470'
+  dfs_snamenode_webui_default_port = '50091'
+  dfs_namenode_webui_property = 'dfs.namenode.https-address'
+  dfs_snamenode_webui_property = 'dfs.namenode.secondary.https-address'
+  dfs_datanode_webui_property = 'dfs.datanode.https.address'
+
+# if YARN is protected by SSL, adjust the ports and lookup properties  
+if yarn_ssl_enabled == True:
+  yarn_rm_webui_property = 'yarn.resourcemanager.webapp.https.address'
+  yarn_nodemanager_webui_property = 'yarn.nodemanager.webapp.https.address'  
+  yarn_timeline_service_webui_property = 'yarn.timeline-service.webapp.https.address'
+
+# if MR is protected by SSL, adjust the ports and lookup properties
+if mapreduce_ssl_enabled == True:
+  mapreduce_jobhistory_webui_property = 'mapreduce.jobhistory.webapp.https.address'
+  
 if has_namenode:
-  if 'dfs.namenode.http-address' in config['configurations']['hdfs-site']:
-    namenode_port = get_port_from_url(config['configurations']['hdfs-site']['dfs.namenode.http-address'])
+  # extract NameNode
+  if dfs_namenode_webui_property in config['configurations']['hdfs-site']:
+    namenode_port = get_port_from_url(config['configurations']['hdfs-site'][dfs_namenode_webui_property])
   else:
-    namenode_port = "50070"
+    namenode_port = dfs_namenode_webui_default_port
 
-  if 'dfs.namenode.secondary.http-address' in config['configurations']['hdfs-site']:
-    snamenode_port = get_port_from_url(config['configurations']['hdfs-site']['dfs.namenode.secondary.http-address'])
+  # extract Secondary NameNode
+  if dfs_snamenode_webui_property in config['configurations']['hdfs-site']:
+    snamenode_port = get_port_from_url(config['configurations']['hdfs-site'][dfs_snamenode_webui_property])
   else:
-    snamenode_port = "50071"
+    snamenode_port = dfs_snamenode_webui_default_port
 
   if 'dfs.journalnode.http-address' in config['configurations']['hdfs-site']:
     journalnode_port = get_port_from_url(config['configurations']['hdfs-site']['dfs.journalnode.http-address'])
-    datanode_port = get_port_from_url(config['configurations']['hdfs-site']['dfs.datanode.http.address'])
+    datanode_port = get_port_from_url(config['configurations']['hdfs-site'][dfs_datanode_webui_property])
 
-hbase_master_rpc_port = default('/configurations/hbase-site/hbase.master.port', "60000")
-rm_port = get_port_from_url(config['configurations']['yarn-site']['yarn.resourcemanager.webapp.address'])
-nm_port = "8042"
-hs_port = get_port_from_url(config['configurations']['mapred-site']['mapreduce.jobhistory.webapp.address'])
+nm_port = yarn_nodemanager_default_port
+if yarn_nodemanager_webui_property in config['configurations']['yarn-site']:
+  nm_port = get_port_from_url(config['configurations']['yarn-site'][yarn_nodemanager_webui_property])
+  
 flume_port = "4159"
+hbase_master_rpc_port = default('/configurations/hbase-site/hbase.master.port', "60000")
+rm_port = get_port_from_url(config['configurations']['yarn-site'][yarn_rm_webui_property])
+hs_port = get_port_from_url(config['configurations']['mapred-site'][mapreduce_jobhistory_webui_property])
 hive_metastore_port = get_port_from_url(config['configurations']['hive-site']['hive.metastore.uris']) #"9083"
 hive_server_port = default('/configurations/hive-site/hive.server2.thrift.port',"10000")
 templeton_port = config['configurations']['webhcat-site']['templeton.port'] #"50111"
@@ -130,7 +195,7 @@ nimbus_port = config['configurations']['storm-site']['nimbus.thrift.port']
 supervisor_port = "56431"
 storm_rest_api_port = "8745"
 falcon_port = config['configurations']['falcon-env']['falcon_port']
-ahs_port = get_port_from_url(config['configurations']['yarn-site']['yarn.timeline-service.webapp.address'])
+ahs_port = get_port_from_url(config['configurations']['yarn-site'][yarn_timeline_service_webui_property])
 knox_gateway_port = config['configurations']['gateway-site']['gateway.port']
 
 # use sensible defaults for checkpoint as they are required by Nagios and 

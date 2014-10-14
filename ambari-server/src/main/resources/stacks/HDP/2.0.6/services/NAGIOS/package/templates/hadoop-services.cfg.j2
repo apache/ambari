@@ -332,7 +332,7 @@ define service {
         use                     hadoop-service
         service_description     NAMENODE::NameNode edit logs directory status on {{ namenode_hostname }}
         servicegroups           HDFS
-        check_command           check_name_dir_status!{{ namenode_port }}!{{ str(hadoop_ssl_enabled).lower() }}!{{ nagios_keytab_path }}!{{ nagios_principal_name }}!{{ kinit_path_local }}!{{ str(security_enabled).lower() }}
+        check_command           check_name_dir_status!{{ namenode_port }}!{{ str(hdfs_ssl_enabled).lower() }}!{{ nagios_keytab_path }}!{{ nagios_principal_name }}!{{ kinit_path_local }}!{{ str(security_enabled).lower() }}
         normal_check_interval   0.5
         retry_check_interval    0.5
         max_check_attempts      3
@@ -345,7 +345,7 @@ define service {
         service_description     NAMENODE::NameNode host CPU utilization on {{ namenode_hostname }}
         servicegroups           HDFS
 #        check_command           check_cpu!200%!250%
-        check_command           check_cpu!{{ namenode_port }}!200%!250%!{{ str(hadoop_ssl_enabled).lower() }}!{{ nagios_keytab_path }}!{{ nagios_principal_name }}!{{ kinit_path_local }}!{{ str(security_enabled).lower() }}
+        check_command           check_cpu!{{ namenode_port }}!200%!250%!{{ str(hdfs_ssl_enabled).lower() }}!{{ nagios_keytab_path }}!{{ nagios_principal_name }}!{{ kinit_path_local }}!{{ str(security_enabled).lower() }}
         normal_check_interval   5
         retry_check_interval    2
         max_check_attempts      5
@@ -379,7 +379,7 @@ define service {
         use                     hadoop-service
         service_description     HDFS::NameNode RPC latency on {{ namenode_hostname }}
         servicegroups           HDFS
-        check_command           check_rpcq_latency!NameNode!{{ namenode_port }}!3000!5000!{{ str(hadoop_ssl_enabled).lower() }}!{{ nagios_keytab_path }}!{{ nagios_principal_name }}!{{ kinit_path_local }}!{{ str(security_enabled).lower() }}
+        check_command           check_rpcq_latency!NameNode!{{ namenode_port }}!3000!5000!{{ str(hdfs_ssl_enabled).lower() }}!{{ nagios_keytab_path }}!{{ nagios_principal_name }}!{{ kinit_path_local }}!{{ str(security_enabled).lower() }}
         normal_check_interval   5
         retry_check_interval    1
         max_check_attempts      5
@@ -392,7 +392,7 @@ define service {
         use                     hadoop-service
         service_description     NAMENODE::Last checkpoint time
         servicegroups           HDFS
-        check_command           check_checkpoint_time!{{ nn_hosts_string }}!{{ namenode_port }}!200!200!{{ dfs_namenode_checkpoint_period }}!{{dfs_namenode_checkpoint_txns}}
+        check_command           check_checkpoint_time!{{ nn_hosts_string }}!{{ namenode_port }}!200!200!{{ dfs_namenode_checkpoint_period }}!{{dfs_namenode_checkpoint_txns}}!{{str(hdfs_ssl_enabled).lower()}}
         normal_check_interval   0.5
         retry_check_interval    0.25
         max_check_attempts      3
@@ -403,7 +403,7 @@ define service {
         use                     hadoop-service
         service_description     HDFS::Blocks health
         servicegroups           HDFS
-        check_command           check_hdfs_blocks!$HOSTGROUPMEMBERS:namenode$!{{ namenode_port }}!{{ nn_metrics_property }}!{{ str(hadoop_ssl_enabled).lower() }}!{{ nagios_keytab_path }}!{{ nagios_principal_name }}!{{ kinit_path_local }}!{{ str(security_enabled).lower() }}
+        check_command           check_hdfs_blocks!$HOSTGROUPMEMBERS:namenode$!{{ namenode_port }}!{{ nn_metrics_property }}!{{ str(hdfs_ssl_enabled).lower() }}!{{ nagios_keytab_path }}!{{ nagios_principal_name }}!{{ kinit_path_local }}!{{ str(security_enabled).lower() }}
         normal_check_interval   2
         retry_check_interval    1
         max_check_attempts      1
@@ -414,7 +414,7 @@ define service {
         use                     hadoop-service
         service_description     HDFS::HDFS capacity utilization
         servicegroups           HDFS
-        check_command           check_hdfs_capacity!$HOSTGROUPMEMBERS:namenode$!{{ namenode_port }}!80%!90%!{{ str(hadoop_ssl_enabled).lower() }}!{{ nagios_keytab_path }}!{{ nagios_principal_name }}!{{ kinit_path_local }}!{{ str(security_enabled).lower() }}
+        check_command           check_hdfs_capacity!$HOSTGROUPMEMBERS:namenode$!{{ namenode_port }}!80%!90%!{{ str(hdfs_ssl_enabled).lower() }}!{{ nagios_keytab_path }}!{{ nagios_principal_name }}!{{ kinit_path_local }}!{{ str(security_enabled).lower() }}
         normal_check_interval   2
         retry_check_interval    1
         max_check_attempts      1
@@ -442,7 +442,7 @@ define service {
         service_description     RESOURCEMANAGER::ResourceManager CPU utilization
         servicegroups           YARN
 #       check_command           check_cpu!200%!250%
-        check_command           check_cpu_ha!{{ rm_hosts_in_str }}!{{ rm_port }}!200%!250%!{{ str(hadoop_ssl_enabled).lower() }}!{{ nagios_keytab_path }}!{{ nagios_principal_name }}!{{ kinit_path_local }}!{{ str(security_enabled).lower() }}
+        check_command           check_cpu_ha!{{ rm_hosts_in_str }}!{{ rm_port }}!200%!250%!{{ str(yarn_ssl_enabled).lower() }}!{{ nagios_keytab_path }}!{{ nagios_principal_name }}!{{ kinit_path_local }}!{{ str(security_enabled).lower() }}
         normal_check_interval   5
         retry_check_interval    2 
         max_check_attempts      5
@@ -454,7 +454,7 @@ define service {
         use                     hadoop-service
         service_description     RESOURCEMANAGER::ResourceManager RPC latency
         servicegroups           YARN
-        check_command           check_rpcq_latency_ha!{{ rm_hosts_in_str }}!ResourceManager!{{ rm_port }}!3000!5000!{{ str(hadoop_ssl_enabled).lower() }}!{{ nagios_keytab_path }}!{{ nagios_principal_name }}!{{ kinit_path_local }}!{{ str(security_enabled).lower() }}
+        check_command           check_rpcq_latency_ha!{{ rm_hosts_in_str }}!ResourceManager!{{ rm_port }}!3000!5000!{{ str(yarn_ssl_enabled).lower() }}!{{ nagios_keytab_path }}!{{ nagios_principal_name }}!{{ kinit_path_local }}!{{ str(security_enabled).lower() }}
         normal_check_interval   5
         retry_check_interval    1 
         max_check_attempts      5
@@ -492,7 +492,7 @@ define service {
         use                     hadoop-service
         service_description     NODEMANAGER::NodeManager health
         servicegroups           YARN
-        check_command           check_nodemanager_health!{{ nm_port }}!{{ str(security_enabled).lower() }}!{{ str(hadoop_ssl_enabled).lower() }}!{{ nagios_keytab_path }}!{{ nagios_principal_name }}!{{ kinit_path_local }}
+        check_command           check_nodemanager_health!{{ nm_port }}!{{ str(security_enabled).lower() }}!{{ str(yarn_ssl_enabled).lower() }}!{{ nagios_keytab_path }}!{{ nagios_principal_name }}!{{ kinit_path_local }}
         normal_check_interval   1
         retry_check_interval    1
         max_check_attempts      3
@@ -529,7 +529,7 @@ define service {
         service_description     JOBHISTORY::HistoryServer CPU utilization
         servicegroups           MAPREDUCE
 #        check_command           check_cpu!200%!250%
-        check_command           check_cpu!{{ hs_port }}!200%!250%!{{ str(hadoop_ssl_enabled).lower() }}!{{ nagios_keytab_path }}!{{ nagios_principal_name }}!{{ kinit_path_local }}!{{ str(security_enabled).lower() }}
+        check_command           check_cpu!{{ hs_port }}!200%!250%!{{ str(mapreduce_ssl_enabled).lower() }}!{{ nagios_keytab_path }}!{{ nagios_principal_name }}!{{ kinit_path_local }}!{{ str(security_enabled).lower() }}
         normal_check_interval   5
         retry_check_interval    2 
         max_check_attempts      5
@@ -541,7 +541,7 @@ define service {
         use                     hadoop-service
         service_description     JOBHISTORY::HistoryServer RPC latency
         servicegroups           MAPREDUCE
-        check_command           check_rpcq_latency!JobHistoryServer!{{ hs_port }}!3000!5000!{{ str(hadoop_ssl_enabled).lower() }}!{{ nagios_keytab_path }}!{{ nagios_principal_name }}!{{ kinit_path_local }}!{{ str(security_enabled).lower() }}
+        check_command           check_rpcq_latency!JobHistoryServer!{{ hs_port }}!3000!5000!{{ str(mapreduce_ssl_enabled).lower() }}!{{ nagios_keytab_path }}!{{ nagios_principal_name }}!{{ kinit_path_local }}!{{ str(security_enabled).lower() }}
         normal_check_interval   5
         retry_check_interval    1 
         max_check_attempts      5
@@ -605,7 +605,7 @@ define service {
         use                     hadoop-service
         service_description     DATANODE::DataNode space
         servicegroups           HDFS
-        check_command           check_datanode_storage!{{ datanode_port }}!90%!90%!{{ str(hadoop_ssl_enabled).lower() }}!{{ nagios_keytab_path }}!{{ nagios_principal_name }}!{{ kinit_path_local }}!{{ str(security_enabled).lower() }}
+        check_command           check_datanode_storage!{{ datanode_port }}!90%!90%!{{ str(hdfs_ssl_enabled).lower() }}!{{ nagios_keytab_path }}!{{ nagios_principal_name }}!{{ kinit_path_local }}!{{ str(security_enabled).lower() }}
         normal_check_interval   2 
         retry_check_interval    1
         max_check_attempts      2
@@ -659,7 +659,7 @@ define service {
         service_description     HBASEMASTER::HBase Master CPU utilization
         servicegroups           HBASE
 #        check_command           check_cpu!200%!250%
-        check_command           check_cpu_ha!{{ hbase_master_hosts_in_str }}!{{ hbase_master_port }}!200%!250%!{{ str(hadoop_ssl_enabled).lower() }}!{{ nagios_keytab_path }}!{{ nagios_principal_name }}!{{ kinit_path_local }}!{{ str(security_enabled).lower() }}
+        check_command           check_cpu_ha!{{ hbase_master_hosts_in_str }}!{{ hbase_master_port }}!200%!250%!false!{{ nagios_keytab_path }}!{{ nagios_principal_name }}!{{ kinit_path_local }}!{{ str(security_enabled).lower() }}
         normal_check_interval   5
         retry_check_interval    2
         max_check_attempts      5

@@ -152,7 +152,7 @@ define command{
 
 define command{
         command_name check_checkpoint_time
-        command_line $USER1$/check_wrapper.sh /var/lib/ambari-agent/ambari-python-wrap $USER1$/check_checkpoint_time.py -H "$ARG1$" -p $ARG2$ -w $ARG3$ -c $ARG4$ -t $ARG5$ -x $ARG6$
+        command_line $USER1$/check_wrapper.sh /var/lib/ambari-agent/ambari-python-wrap $USER1$/check_checkpoint_time.py -H "$ARG1$" -p $ARG2$ -w $ARG3$ -c $ARG4$ -t $ARG5$ -x $ARG6$ -s $ARG7$
        }
 
 define command{

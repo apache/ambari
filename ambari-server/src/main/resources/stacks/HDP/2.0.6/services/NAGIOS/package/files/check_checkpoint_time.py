@@ -32,7 +32,6 @@ OK_MESSAGE = "OK: Last checkpoint time"
 WARNING_JMX_MESSAGE = "WARNING: NameNode JMX not accessible"
 
 def main():
-
   current_time = int(round(time.time() * 1000))
 
   parser = optparse.OptionParser()
@@ -41,6 +40,8 @@ def main():
                     default="localhost", help="NameNode host")
   parser.add_option("-p", "--port", dest="port",
                     default="50070", help="NameNode jmx port")
+  parser.add_option("-s", "--ssl-enabled", dest="is_ssl_enabled",
+                    default=False, help="SSL Enabled")  
   parser.add_option("-w", "--warning", dest="warning",
                     default="200", help="Percent for warning alert")
   parser.add_option("-c", "--critical", dest="crit",
@@ -50,16 +51,25 @@ def main():
   parser.add_option("-x", "--txns", dest="txns",
                     default="1000000",
                     help="CheckpointNode will create a checkpoint of the namespace every 'dfs.namenode.checkpoint.txns'")
+  
   (options, args) = parser.parse_args()
 
-  host = get_available_nn_host(options)
+  scheme = "http"
+  if options.is_ssl_enabled == "true":
+    scheme = "https"
 
-  last_checkpoint_time_qry = "http://{host}:{port}/jmx?qry=Hadoop:service=NameNode,name=FSNamesystem".\
-    format(host=host, port=options.port)
+  host = get_available_nn_host(options,scheme)
+
+  last_checkpoint_time_qry = "{scheme}://{host}:{port}/jmx?qry=Hadoop:service=NameNode,name=FSNamesystem".format(
+      scheme=scheme, host=host, port=options.port)
+
+  print last_checkpoint_time_qry
+    
   last_checkpoint_time = int(get_value_from_jmx(last_checkpoint_time_qry,"LastCheckpointTime"))
 
-  journal_transaction_info_qry = "http://{host}:{port}/jmx?qry=Hadoop:service=NameNode,name=NameNodeInfo".\
-    format(host=host, port=options.port)
+  journal_transaction_info_qry = "{scheme}://{host}:{port}/jmx?qry=Hadoop:service=NameNode,name=NameNodeInfo".format(
+      scheme=scheme, host=host, port=options.port)
+  
   journal_transaction_info = get_value_from_jmx(journal_transaction_info_qry,"JournalTransactionInfo")
   journal_transaction_info_dict = json.loads(journal_transaction_info)
 
@@ -78,10 +88,12 @@ def main():
     print OK_MESSAGE
     exit(0)
 
+
 def get_time(delta):
   h = int(delta/3600)
   m = int((delta % 3600)/60)
   return {'h':h, 'm':m}
+
 
 def get_value_from_jmx(qry, property):
   try:
@@ -94,19 +106,18 @@ def get_value_from_jmx(qry, property):
   data_dict = json.loads(data)
   return (data_dict["beans"][0][property])
 
-def get_available_nn_host(options):
+
+def get_available_nn_host(options, scheme):
   nn_hosts = options.host.split(" ")
   for nn_host in nn_hosts:
     try:
-      urllib2.urlopen("http://{host}:{port}/jmx".format(host=nn_host, port=options.port))
+      urllib2.urlopen("{scheme}://{host}:{port}/jmx".format(scheme=scheme, host=nn_host, port=options.port))
       return nn_host
     except Exception:
       pass
   print WARNING_JMX_MESSAGE
   exit(1)
 
+
 if __name__ == "__main__":
   main()
-
-
-
