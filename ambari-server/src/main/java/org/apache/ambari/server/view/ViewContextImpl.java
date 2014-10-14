@@ -207,7 +207,9 @@ public class ViewContextImpl implements ViewContext, ViewController {
     try {
       viewRegistry.updateViewInstance(viewInstanceEntity);
     } catch (SystemException e) {
-      LOG.error("Caught exception updating the view instance.", e);
+      String msg = "Caught exception updating the view instance.";
+      LOG.error(msg, e);
+      throw new IllegalStateException(msg, e);
     }
   }
 

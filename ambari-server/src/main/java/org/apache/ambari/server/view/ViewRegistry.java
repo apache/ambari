@@ -465,7 +465,7 @@ public class ViewRegistry {
               version + "/" + instanceName);
         }
 
-        SetViewInstanceProperties(instanceEntity, viewEntity.getConfiguration(), viewEntity.getClassLoader());
+        setViewInstanceProperties(instanceEntity, viewEntity.getConfiguration(), viewEntity.getClassLoader());
         instanceEntity.validate(viewEntity);
 
         ResourceTypeEntity resourceTypeEntity = resourceTypeDAO.findByName(ViewEntity.getViewName(viewName, version));
@@ -520,7 +520,7 @@ public class ViewRegistry {
     ViewEntity viewEntity = getDefinition(instanceEntity.getViewName());
 
     if (viewEntity != null) {
-      SetViewInstanceProperties(instanceEntity, viewEntity.getConfiguration(), viewEntity.getClassLoader());
+      setViewInstanceProperties(instanceEntity, viewEntity.getConfiguration(), viewEntity.getClassLoader());
       instanceEntity.validate(viewEntity);
       instanceDAO.merge(instanceEntity);
     }
@@ -876,7 +876,7 @@ public class ViewRegistry {
     ViewInstanceEntity viewInstanceDefinition =
         new ViewInstanceEntity(viewDefinition, instanceConfig);
 
-    SetViewInstanceProperties(viewInstanceDefinition, instanceConfig, viewConfig, viewDefinition.getClassLoader());
+    setViewInstanceProperties(viewInstanceDefinition, instanceConfig, viewConfig, viewDefinition.getClassLoader());
     viewInstanceDefinition.validate(viewDefinition);
 
     bindViewInstance(viewDefinition, viewInstanceDefinition);
@@ -923,7 +923,7 @@ public class ViewRegistry {
   }
 
   // Set the properties of the given view instance.
-  private void SetViewInstanceProperties(ViewInstanceEntity instanceEntity, ViewConfig viewConfig, ClassLoader classLoader) throws SystemException {
+  private void setViewInstanceProperties(ViewInstanceEntity instanceEntity, ViewConfig viewConfig, ClassLoader classLoader) throws SystemException {
 
     Map<String, String> properties = new HashMap<String, String>();
 
@@ -933,22 +933,22 @@ public class ViewRegistry {
     for (ViewInstancePropertyEntity viewInstancePropertyEntity : propertyEntities) {
       properties.put(viewInstancePropertyEntity.getName(), viewInstancePropertyEntity.getValue());
     }
-    SetViewInstanceProperties( instanceEntity,  properties, viewConfig,  classLoader);
+    setViewInstanceProperties(instanceEntity, properties, viewConfig, classLoader);
   }
 
   // Set the properties of the given view instance from the given instance configuration.
-  private void SetViewInstanceProperties(ViewInstanceEntity instanceEntity, InstanceConfig instanceConfig, ViewConfig viewConfig, ClassLoader classLoader) throws SystemException {
+  private void setViewInstanceProperties(ViewInstanceEntity instanceEntity, InstanceConfig instanceConfig, ViewConfig viewConfig, ClassLoader classLoader) throws SystemException {
 
     Map<String, String> properties = new HashMap<String, String>();
 
     for (PropertyConfig propertyConfig : instanceConfig.getProperties()) {
       properties.put(propertyConfig.getKey(), propertyConfig.getValue());
     }
-    SetViewInstanceProperties( instanceEntity,  properties, viewConfig,  classLoader);
+    setViewInstanceProperties(instanceEntity, properties, viewConfig, classLoader);
   }
 
   // Set the properties of the given view instance from the given property set.
-  private void SetViewInstanceProperties(ViewInstanceEntity instanceEntity, Map<String, String> properties, ViewConfig viewConfig, ClassLoader classLoader) throws SystemException {
+  private void setViewInstanceProperties(ViewInstanceEntity instanceEntity, Map<String, String> properties, ViewConfig viewConfig, ClassLoader classLoader) throws SystemException {
     try {
       Masker masker = getMasker(viewConfig.getMaskerClass(classLoader));
 
