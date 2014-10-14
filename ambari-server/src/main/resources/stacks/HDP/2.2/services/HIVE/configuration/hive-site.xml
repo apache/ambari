@@ -49,4 +49,18 @@ limitations under the License.
     </description>
   </property>
   
+  <property>
+    <name>fs.hdfs.impl.disable.cache</name>
+    <value>false</value>
+    <deleted>true</deleted>
+    <description>Disable HDFS filesystem cache.</description>
+  </property>
+
+  <property>
+    <name>fs.file.impl.disable.cache</name>
+    <value>false</value>
+    <deleted>true</deleted>
+    <description>Disable local filesystem cache.</description>
+  </property>
+
 </configuration>
