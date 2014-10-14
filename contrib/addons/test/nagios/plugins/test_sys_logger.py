@@ -267,13 +267,21 @@ test('HBASE_RegionServer_live:OK',
      'HARD', '1', 'OK', 'HBASE::Percent RegionServers live', 'SERVICE MSG')
 
 # Hadoop_Hive_Metastore_Process_Down
-test('Hadoop_Hive_Metastore_Process_Down',
+test('Hadoop_Hive_Metastore_Status_Check_Down',
      'Critical: Hadoop: hive_metastore_process_down# SERVICE MSG',
      'HARD', '1', 'CRITICAL', 'HIVE-METASTORE::HIVE-METASTORE status check', 'SERVICE MSG')
 
-test('Hadoop_Hive_Metastore_Process_Down:OK',
+test('Hadoop_Hive_Metastore_Status_Check_Down:OK',
     'OK: Hadoop: hive_metastore_process_down_ok# SERVICE MSG',
     'HARD', '1', 'OK', 'HIVE-METASTORE::HIVE-METASTORE status check', 'SERVICE MSG')
+
+test('Hadoop_Hive_Metastore_Process_Down',
+     'Critical: Hadoop: hive_metastore_process_down# SERVICE MSG',
+     'HARD', '1', 'CRITICAL', 'HIVE-METASTORE::Hive Metastore process', 'SERVICE MSG')
+
+test('Hadoop_Hive_Metastore_Process_Down:OK',
+     'OK: Hadoop: hive_metastore_process_down_ok# SERVICE MSG',
+     'HARD', '1', 'OK', 'HIVE-METASTORE::Hive Metastore process', 'SERVICE MSG')
 
 # Hadoop_Zookeeper_Down
 test('Hadoop_Zookeeper_Down',
@@ -448,10 +456,10 @@ test('JournalNode_process:OK',
      'HARD', '1', 'OK', 'JOURNALNODE::JournalNode process', 'SERVICE MSG')
 
 test('ZooKeeper_Server_process',
-     'Critical: Hadoop: zookeeper_server_process# SERVICE MSG',
+     'Critical: Hadoop: zookeeper_process_down# SERVICE MSG',
      'HARD', '1', 'CRITICAL', 'ZOOKEEPER::ZooKeeper Server process', 'SERVICE MSG')
 test('ZooKeeper_Server_process:OK',
-     'OK: Hadoop: zookeeper_server_process_ok# SERVICE MSG',
+     'OK: Hadoop: zookeeper_process_down_ok# SERVICE MSG',
      'HARD', '1', 'OK', 'ZOOKEEPER::ZooKeeper Server process', 'SERVICE MSG')
 
 test('JobTracker_process',
@@ -541,10 +549,10 @@ test('Flume_Agent_process:OK',
      'HARD', '1', 'OK', 'FLUME::Flume Agent process', 'SERVICE MSG')
 
 test('Oozie_Server_status',
-     'Critical: Hadoop: oozie_server_process# SERVICE MSG',
+     'Critical: Hadoop: oozie_down# SERVICE MSG',
      'HARD', '1', 'CRITICAL', 'OOZIE::Oozie Server status', 'SERVICE MSG')
 test('Oozie_Server_status:OK',
-     'OK: Hadoop: oozie_server_process_ok# SERVICE MSG',
+     'OK: Hadoop: oozie_down_ok# SERVICE MSG',
      'HARD', '1', 'OK', 'OOZIE::Oozie Server status', 'SERVICE MSG')
 
 test('Hive_Metastore_status',
