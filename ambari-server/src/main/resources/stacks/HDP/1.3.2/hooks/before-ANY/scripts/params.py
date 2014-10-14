@@ -72,10 +72,10 @@ namenode_heapsize = config['configurations']['hadoop-env']['namenode_heapsize']
 namenode_opt_newsize =  config['configurations']['hadoop-env']['namenode_opt_newsize']
 namenode_opt_maxnewsize =  config['configurations']['hadoop-env']['namenode_opt_maxnewsize']
 
-jtnode_opt_newsize = "200m"
-jtnode_opt_maxnewsize = "200m"
-jtnode_heapsize =  "1024m"
-ttnode_heapsize = "1024m"
+jtnode_opt_newsize = default("/configurations/mapred-env/jtnode_opt_newsize","200m")
+jtnode_opt_maxnewsize = default("/configurations/mapred-env/jtnode_opt_maxnewsize","200m")
+jtnode_heapsize =  default("/configurations/mapred-env/jtnode_heapsize","1024m")
+ttnode_heapsize = default("/configurations/mapred-env/ttnode_heapsize","1024m")
 
 dtnode_heapsize = config['configurations']['hadoop-env']['dtnode_heapsize']
 mapred_pid_dir_prefix = default("/configurations/mapred-env/mapred_pid_dir_prefix","/var/run/hadoop-mapreduce")
