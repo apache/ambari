@@ -332,6 +332,24 @@ describe('validator', function () {
       })
     });
   });
+  describe('#isValidConfigGroupName(value)', function() {
+    var tests = [
+      {m:'"123" - valid',i:'123',e:true},
+      {m:'"abc" - valid',i:'abc',e:true},
+      {m:'"abc123" - valid',i:'abc123',e:true},
+      {m:'".abc." - invalid',i:'.abc.',e:false},
+      {m:'"_abc_" - valid',i:'_abc_',e:true},
+      {m:'"-abc-" - valid',i:'-abc-',e:true},
+      {m:'" abc  123 " - valid',i:' abc  123 ',e:true},
+      {m:'"a"b" - invalid',i:'a"b',e:false},
+      {m:'"a\'b" - invalid',i:'a\'b',e:false}
+    ];
+    tests.forEach(function(test) {
+      it(test.m + ' ', function () {
+        expect(validator.isValidConfigGroupName(test.i)).to.equal(test.e);
+      })
+    });
+  });
 
   describe('#isValidMatchesRegexp()', function() {
     var message = '`{0}` should be {1}',

@@ -18,6 +18,7 @@
 
 
 var App = require('app');
+var validator = require('utils/validator');
 var hostsManagement = require('utils/hosts');
 var numberUtils = require('utils/number_utils');
 
@@ -427,18 +428,22 @@ App.ManageConfigGroupsController = Em.Controller.extend({
       validate: function () {
         var warningMessage = '';
         var originalGroup = self.get('selectedConfigGroup');
+        var groupName = this.get('configGroupName').trim();
         if (originalGroup.get('description') !== this.get('configGroupDesc') && !this.get('isDescriptionDirty')) {
           this.set('isDescriptionDirty', true);
         }
-        if (originalGroup.get('name').trim() === this.get('configGroupName').trim()) {
+        if (originalGroup.get('name').trim() === groupName) {
           if (this.get('isDescriptionDirty')) {
             warningMessage = '';
           } else {
             warningMessage = Em.I18n.t("config.group.selection.dialog.err.name.exists");
           }
         } else {
-          if (self.get('configGroups').mapProperty('name').contains(this.get('configGroupName').trim())) {
+          if (self.get('configGroups').mapProperty('name').contains(groupName)) {
             warningMessage = Em.I18n.t("config.group.selection.dialog.err.name.exists");
+          }
+          else if (groupName && !validator.isValidConfigGroupName(groupName)) {
+            warningMessage = Em.I18n.t("form.validator.configGroupName");
           }
         }
         this.set('warningMessage', warningMessage);
@@ -479,8 +484,12 @@ App.ManageConfigGroupsController = Em.Controller.extend({
       },
       validate: function () {
         var warningMessage = '';
-        if (self.get('configGroups').mapProperty('name').contains(this.get('configGroupName').trim())) {
+        var groupName = this.get('configGroupName').trim();
+        if (self.get('configGroups').mapProperty('name').contains(groupName)) {
           warningMessage = Em.I18n.t("config.group.selection.dialog.err.name.exists");
+        }
+        else if (groupName && !validator.isValidConfigGroupName(groupName)) {
+          warningMessage = Em.I18n.t("form.validator.configGroupName");
         }
         this.set('warningMessage', warningMessage);
       }.observes('configGroupName'),

@@ -130,6 +130,16 @@ module.exports = {
     return configKeyRegex.test(value);
   },
 
+  /**
+   * validate configuration group name
+   * @param value
+   * @return {Boolean}
+   */
+  isValidConfigGroupName: function(value) {
+    var configKeyRegex = /^[\s0-9a-z_\-]+$/i;
+    return configKeyRegex.test(value);
+  },
+
   empty:function (e) {
     switch (e) {
       case "":
