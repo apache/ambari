@@ -28,4 +28,9 @@ limitations under the License. Kerberos, LDAP, Custom. Binary/Htt
       <description>The URL to the YARN ResourceManager, used to provide YARN Application data. For example: http://yarn.resourcemanager.address:8088</description>
       <required>true</required>
   </parameter>
+  <!-- The status resource exists to show the subset of properties that any user is allowed to see, not just an admin user. -->
+  <resource>
+    <name>status</name>
+    <service-class>org.apache.ambari.view.jobs.rest.ViewStatusResource</service-class>
+  </resource>
 </view>
