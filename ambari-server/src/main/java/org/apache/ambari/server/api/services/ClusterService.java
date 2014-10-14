@@ -393,6 +393,25 @@ public class ClusterService extends BaseService {
     return new AlertHistoryService(clusterName, null, null);
   }
 
+  /**
+   * Gets the alert notice service
+   *
+   * @param request
+   *          the request
+   * @param clusterName
+   *          the cluster name
+   *
+   * @return the alert notice service
+   */
+  @Path("{clusterName}/alert_notices")
+  public AlertNoticeService getAlertNoticeService(
+      @Context javax.ws.rs.core.Request request,
+      @PathParam("clusterName") String clusterName) {
+
+    hasPermission(Request.Type.valueOf(request.getMethod()), clusterName);
+    return new AlertNoticeService(clusterName);
+  }
+
   // ----- helper methods ----------------------------------------------------
 
   /**

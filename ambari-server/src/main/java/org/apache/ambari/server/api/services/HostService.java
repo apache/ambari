@@ -18,6 +18,9 @@
 
 package org.apache.ambari.server.api.services;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -32,9 +35,6 @@ import javax.ws.rs.core.UriInfo;
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.controller.spi.Resource;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Service responsible for hosts resource requests.
@@ -215,8 +215,26 @@ public class HostService extends BaseService {
   @Path("{hostName}/alerts")
   public AlertService getAlertHandler(@PathParam("hostName") String hostName) {
     return new AlertService(m_clusterName, null, hostName);
-  }  
-  
+  }
+
+  /**
+   * Gets the alert history service
+   *
+   * @param request
+   *          the request
+   * @param hostName
+   *          the host name
+   *
+   * @return the alert history service
+   */
+  @Path("{hostName}/alert_history")
+  public AlertHistoryService getAlertHistoryService(
+      @Context javax.ws.rs.core.Request request,
+      @PathParam("hostName") String hostName) {
+
+    return new AlertHistoryService(m_clusterName, null, hostName);
+  }
+
   /**
    * Create a service resource instance.
    *

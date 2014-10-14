@@ -48,6 +48,7 @@ import org.apache.ambari.server.controller.internal.AbstractControllerResourcePr
 import org.apache.ambari.server.controller.internal.AlertDefinitionResourceProvider;
 import org.apache.ambari.server.controller.internal.AlertGroupResourceProvider;
 import org.apache.ambari.server.controller.internal.AlertHistoryResourceProvider;
+import org.apache.ambari.server.controller.internal.AlertNoticeResourceProvider;
 import org.apache.ambari.server.controller.internal.AlertResourceProvider;
 import org.apache.ambari.server.controller.internal.AlertSummaryPropertyProvider;
 import org.apache.ambari.server.controller.internal.AlertTargetResourceProvider;
@@ -579,6 +580,7 @@ public class AmbariServer {
     AlertResourceProvider.init(injector);
     AlertDefinitionResourceProvider.init(injector);
     AlertHistoryResourceProvider.init(injector);
+    AlertNoticeResourceProvider.init(injector);
     AlertGroupResourceProvider.init(injector);
     AlertSummaryPropertyProvider.init(injector);
     AlertTargetResourceProvider.init(injector);

@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.ambari.server.controller.AlertHistoryRequest;
+import org.apache.ambari.server.controller.AlertNoticeRequest;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -35,9 +35,11 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
-import org.apache.ambari.server.orm.dao.AlertsDAO;
+import org.apache.ambari.server.orm.dao.AlertDispatchDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.AlertHistoryEntity;
+import org.apache.ambari.server.orm.entities.AlertNoticeEntity;
+import org.apache.ambari.server.orm.entities.AlertTargetEntity;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 
 import com.google.inject.Inject;
@@ -46,29 +48,25 @@ import com.google.inject.Injector;
 /**
  * ResourceProvider for Alert History
  */
-public class AlertHistoryResourceProvider extends AbstractResourceProvider {
+public class AlertNoticeResourceProvider extends AbstractResourceProvider {
 
-  public static final String ALERT_HISTORY = "AlertHistory";
-  public static final String ALERT_HISTORY_DEFINITION_ID = "AlertHistory/definition_id";
-  public static final String ALERT_HISTORY_DEFINITION_NAME = "AlertHistory/definition_name";
-  public static final String ALERT_HISTORY_ID = "AlertHistory/id";
-  public static final String ALERT_HISTORY_CLUSTER_NAME = "AlertHistory/cluster_name";
-  public static final String ALERT_HISTORY_SERVICE_NAME = "AlertHistory/service_name";
-  public static final String ALERT_HISTORY_COMPONENT_NAME = "AlertHistory/component_name";
-  public static final String ALERT_HISTORY_HOSTNAME = "AlertHistory/host_name";
-  public static final String ALERT_HISTORY_LABEL = "AlertHistory/label";
-  public static final String ALERT_HISTORY_STATE = "AlertHistory/state";
-  public static final String ALERT_HISTORY_TEXT = "AlertHistory/text";
-  public static final String ALERT_HISTORY_TIMESTAMP = "AlertHistory/timestamp";
-  public static final String ALERT_HISTORY_INSTANCE = "AlertHistory/instance";
+  public static final String ALERT_HISTORY = "AlertNotice";
+  public static final String ALERT_NOTICE_ID = "AlertNotice/id";
+  public static final String ALERT_NOTICE_STATE = "AlertNotice/notification_state";
+  public static final String ALERT_NOTICE_UUID = "AlertNotice/uuid";
+  public static final String ALERT_NOTICE_SERVICE_NAME = "AlertNotice/service_name";
+  public static final String ALERT_NOTICE_TARGET_ID = "AlertNotice/target_id";
+  public static final String ALERT_NOTICE_TARGET_NAME = "AlertNotice/target_name";
+  public static final String ALERT_NOTICE_HISTORY_ID = "AlertNotice/history_id";
+  public static final String ALERT_NOTICE_CLUSTER_NAME = "AlertNotice/cluster_name";
 
   private static final Set<String> PK_PROPERTY_IDS = new HashSet<String>(
-      Arrays.asList(ALERT_HISTORY_ID));
+      Arrays.asList(ALERT_NOTICE_ID));
 
   /**
    * Used for querying alert history.
    */
-  private static AlertsDAO s_dao = null;
+  private static AlertDispatchDAO s_dao = null;
 
   /**
    * The property ids for an alert history resource.
@@ -83,24 +81,18 @@ public class AlertHistoryResourceProvider extends AbstractResourceProvider {
 
   static {
     // properties
-    PROPERTY_IDS.add(ALERT_HISTORY_DEFINITION_ID);
-    PROPERTY_IDS.add(ALERT_HISTORY_DEFINITION_NAME);
-    PROPERTY_IDS.add(ALERT_HISTORY_ID);
-    PROPERTY_IDS.add(ALERT_HISTORY_CLUSTER_NAME);
-    PROPERTY_IDS.add(ALERT_HISTORY_SERVICE_NAME);
-    PROPERTY_IDS.add(ALERT_HISTORY_COMPONENT_NAME);
-    PROPERTY_IDS.add(ALERT_HISTORY_HOSTNAME);
-    PROPERTY_IDS.add(ALERT_HISTORY_LABEL);
-    PROPERTY_IDS.add(ALERT_HISTORY_STATE);
-    PROPERTY_IDS.add(ALERT_HISTORY_TEXT);
-    PROPERTY_IDS.add(ALERT_HISTORY_TIMESTAMP);
-    PROPERTY_IDS.add(ALERT_HISTORY_INSTANCE);
+    PROPERTY_IDS.add(ALERT_NOTICE_ID);
+    PROPERTY_IDS.add(ALERT_NOTICE_STATE);
+    PROPERTY_IDS.add(ALERT_NOTICE_UUID);
+    PROPERTY_IDS.add(ALERT_NOTICE_SERVICE_NAME);
+    PROPERTY_IDS.add(ALERT_NOTICE_TARGET_ID);
+    PROPERTY_IDS.add(ALERT_NOTICE_TARGET_NAME);
+    PROPERTY_IDS.add(ALERT_NOTICE_HISTORY_ID);
+    PROPERTY_IDS.add(ALERT_NOTICE_CLUSTER_NAME);
 
     // keys
-    KEY_PROPERTY_IDS.put(Resource.Type.AlertHistory, ALERT_HISTORY_ID);
-    KEY_PROPERTY_IDS.put(Resource.Type.Cluster, ALERT_HISTORY_CLUSTER_NAME);
-    KEY_PROPERTY_IDS.put(Resource.Type.Service, ALERT_HISTORY_SERVICE_NAME);
-    KEY_PROPERTY_IDS.put(Resource.Type.Host, ALERT_HISTORY_HOSTNAME);
+    KEY_PROPERTY_IDS.put(Resource.Type.AlertNotice, ALERT_NOTICE_ID);
+    KEY_PROPERTY_IDS.put(Resource.Type.Cluster, ALERT_NOTICE_CLUSTER_NAME);
   }
 
   /**
@@ -110,7 +102,7 @@ public class AlertHistoryResourceProvider extends AbstractResourceProvider {
    */
   @Inject
   public static void init(Injector injector) {
-    s_dao = injector.getInstance(AlertsDAO.class);
+    s_dao = injector.getInstance(AlertDispatchDAO.class);
   }
 
   /**
@@ -118,7 +110,7 @@ public class AlertHistoryResourceProvider extends AbstractResourceProvider {
    *
    * @param controller
    */
-  AlertHistoryResourceProvider() {
+  AlertNoticeResourceProvider() {
     super(PROPERTY_IDS, KEY_PROPERTY_IDS);
   }
 
@@ -168,13 +160,14 @@ public class AlertHistoryResourceProvider extends AbstractResourceProvider {
       throws SystemException, UnsupportedPropertyException,
       NoSuchResourceException, NoSuchParentResourceException {
 
-    Set<Resource> results = new LinkedHashSet<Resource>();
     Set<String> requestPropertyIds = getRequestPropertyIds(request, predicate);
-    AlertHistoryRequest historyRequest = new AlertHistoryRequest();
-    historyRequest.Predicate = predicate;
+    Set<Resource> results = new LinkedHashSet<Resource>();
 
-    List<AlertHistoryEntity> entities = s_dao.findAll(historyRequest);
-    for (AlertHistoryEntity entity : entities) {
+    AlertNoticeRequest noticeRequest = new AlertNoticeRequest();
+    noticeRequest.Predicate = predicate;
+
+    List<AlertNoticeEntity> entities = s_dao.findAllNotices(noticeRequest);
+    for (AlertNoticeEntity entity : entities) {
       results.add(toResource(entity, requestPropertyIds));
     }
 
@@ -182,33 +175,47 @@ public class AlertHistoryResourceProvider extends AbstractResourceProvider {
   }
 
   /**
-   * Converts the {@link AlertHistoryEntity} to a {@link Resource}.
+   * Converts the {@link AlertNoticeEntity} to a {@link Resource}.
    *
+   * @param clusterName
+   *          the name of the cluster (not {@code null}).
    * @param entity
    *          the entity to convert (not {@code null}).
    * @param requestedIds
    *          the properties requested (not {@code null}).
    * @return
    */
-  private Resource toResource(AlertHistoryEntity entity,
+  private Resource toResource(AlertNoticeEntity entity,
       Set<String> requestedIds) {
-    AlertDefinitionEntity definition = entity.getAlertDefinition();
+    AlertHistoryEntity history = entity.getAlertHistory();
+    AlertTargetEntity target = entity.getAlertTarget();
+    AlertDefinitionEntity definition = history.getAlertDefinition();
     ClusterEntity cluster = definition.getCluster();
 
-    Resource resource = new ResourceImpl(Resource.Type.AlertHistory);
-    resource.setProperty(ALERT_HISTORY_ID, entity.getAlertId());
+    Resource resource = new ResourceImpl(Resource.Type.AlertNotice);
+    resource.setProperty(ALERT_NOTICE_ID, entity.getNotificationId());
 
-    setResourceProperty(resource, ALERT_HISTORY_CLUSTER_NAME,cluster.getClusterName(), requestedIds);
-    setResourceProperty(resource, ALERT_HISTORY_DEFINITION_ID, definition.getDefinitionId(), requestedIds);
-    setResourceProperty(resource, ALERT_HISTORY_DEFINITION_NAME, definition.getDefinitionName(), requestedIds);
-    setResourceProperty(resource, ALERT_HISTORY_SERVICE_NAME, entity.getServiceName(), requestedIds);
-    setResourceProperty(resource, ALERT_HISTORY_COMPONENT_NAME, entity.getComponentName(), requestedIds);
-    setResourceProperty(resource, ALERT_HISTORY_HOSTNAME, entity.getHostName(), requestedIds);
-    setResourceProperty(resource, ALERT_HISTORY_LABEL, entity.getAlertLabel(), requestedIds);
-    setResourceProperty(resource, ALERT_HISTORY_STATE, entity.getAlertState(), requestedIds);
-    setResourceProperty(resource, ALERT_HISTORY_TEXT, entity.getAlertText(), requestedIds);
-    setResourceProperty(resource, ALERT_HISTORY_TIMESTAMP, entity.getAlertTimestamp(), requestedIds);
-    setResourceProperty(resource, ALERT_HISTORY_INSTANCE, entity.getAlertInstance(), requestedIds);
+    setResourceProperty(resource, ALERT_NOTICE_STATE, entity.getNotifyState(),
+        requestedIds);
+
+    setResourceProperty(resource, ALERT_NOTICE_UUID, entity.getUuid(),
+        requestedIds);
+
+    setResourceProperty(resource, ALERT_NOTICE_SERVICE_NAME,
+        definition.getServiceName(), requestedIds);
+
+    setResourceProperty(resource, ALERT_NOTICE_TARGET_ID, target.getTargetId(),
+        requestedIds);
+
+    setResourceProperty(resource, ALERT_NOTICE_TARGET_NAME,
+        target.getTargetName(), requestedIds);
+
+    setResourceProperty(resource, ALERT_NOTICE_HISTORY_ID,
+        history.getAlertId(), requestedIds);
+
+    setResourceProperty(resource, ALERT_NOTICE_CLUSTER_NAME,
+        cluster.getClusterName(),
+        requestedIds);
 
     return resource;
   }

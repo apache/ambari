@@ -76,10 +76,8 @@ public class AlertReceivedListener {
   /**
    * Adds an alert. Checks for a new state before creating a new history record.
    *
-   * @param clusterId
-   *          the id for the cluster
-   * @param alert
-   *          the alert to add
+   * @param event
+   *          the event to handle.
    */
   @Subscribe
   @AllowConcurrentEvents

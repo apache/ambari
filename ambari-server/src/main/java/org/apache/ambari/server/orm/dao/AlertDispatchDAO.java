@@ -21,10 +21,17 @@ import java.util.List;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.metamodel.SingularAttribute;
 
+import org.apache.ambari.server.api.query.JpaPredicateVisitor;
+import org.apache.ambari.server.controller.AlertNoticeRequest;
+import org.apache.ambari.server.controller.spi.Predicate;
+import org.apache.ambari.server.controller.utilities.PredicateHelper;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.AlertGroupEntity;
 import org.apache.ambari.server.orm.entities.AlertNoticeEntity;
+import org.apache.ambari.server.orm.entities.AlertNoticeEntity_;
 import org.apache.ambari.server.orm.entities.AlertTargetEntity;
 import org.apache.ambari.server.state.NotificationState;
 import org.apache.ambari.server.state.alert.AlertGroup;
@@ -277,6 +284,32 @@ public class AlertDispatchDAO {
   }
 
   /**
+   * Gets all alert notifications stored in the database that match the given
+   * predicate, pagination, and sorting.
+   *
+   * @param request
+   * @return all alert notifications or empty list if none exist (never
+   *         {@code null}).
+   */
+  public List<AlertNoticeEntity> findAllNotices(AlertNoticeRequest request) {
+    EntityManager entityManager = entityManagerProvider.get();
+
+    // convert the Ambari predicate into a JPA predicate
+    NoticePredicateVisitor visitor = new NoticePredicateVisitor();
+    PredicateHelper.visit(request.Predicate, visitor);
+
+    CriteriaQuery<AlertNoticeEntity> query = visitor.getCriteriaQuery();
+    javax.persistence.criteria.Predicate jpaPredicate = visitor.getJpaPredicate();
+
+    if (null != jpaPredicate) {
+      query.where(jpaPredicate);
+    }
+
+    TypedQuery<AlertNoticeEntity> typedQuery = entityManager.createQuery(query);
+    return daoUtils.selectList(typedQuery);
+  }
+
+  /**
    * Persists new alert groups.
    *
    * @param entities
@@ -477,5 +510,38 @@ public class AlertDispatchDAO {
     currentQuery.setParameter("definitionId", definitionId);
     currentQuery.executeUpdate();
     entityManager.clear();
+  }
+
+  /**
+   * The {@link NoticePredicateVisitor} is used to convert an Ambari
+   * {@link Predicate} into a JPA {@link javax.persistence.criteria.Predicate}.
+   */
+  private final class NoticePredicateVisitor extends
+      JpaPredicateVisitor<AlertNoticeEntity> {
+
+    /**
+     * Constructor.
+     *
+     */
+    public NoticePredicateVisitor() {
+      super(entityManagerProvider.get(), AlertNoticeEntity.class);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Class<AlertNoticeEntity> getEntityClass() {
+      return AlertNoticeEntity.class;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<? extends SingularAttribute<?, ?>> getPredicateMapping(
+        String propertyId) {
+      return AlertNoticeEntity_.getPredicateMapping().get(propertyId);
+    }
   }
 }

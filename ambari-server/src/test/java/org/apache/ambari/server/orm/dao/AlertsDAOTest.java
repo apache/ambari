@@ -43,6 +43,7 @@ import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.events.listeners.AlertMaintenanceModeListener;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
+import org.apache.ambari.server.orm.AlertDaoHelper;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
@@ -94,6 +95,8 @@ public class AlertsDAOTest {
   private ServiceComponentHostFactory m_schFactory;
   private AmbariEventPublisher m_eventPublisher;
 
+  private AlertDaoHelper m_alertHelper;
+
   /**
    *
    */
@@ -110,6 +113,7 @@ public class AlertsDAOTest {
     m_schFactory = m_injector.getInstance(ServiceComponentHostFactory.class);
     m_eventPublisher = m_injector.getInstance(AmbariEventPublisher.class);
     m_clusters = m_injector.getInstance(Clusters.class);
+    m_alertHelper = m_injector.getInstance(AlertDaoHelper.class);
 
     // register a listener
     EventBus synchronizedBus = new EventBus();
@@ -778,88 +782,7 @@ public class AlertsDAOTest {
   @Test
   public void testAlertHistoryPredicate() throws Exception {
     Cluster cluster = initializeNewCluster();
-
-    // remove any definitions and start over
-    List<AlertDefinitionEntity> definitions = m_definitionDao.findAll();
-    for (AlertDefinitionEntity definition : definitions) {
-      m_definitionDao.remove(definition);
-    }
-
-    // create some definitions
-    AlertDefinitionEntity namenode = new AlertDefinitionEntity();
-    namenode.setDefinitionName("NAMENODE");
-    namenode.setServiceName("HDFS");
-    namenode.setComponentName("NAMENODE");
-    namenode.setClusterId(cluster.getClusterId());
-    namenode.setHash(UUID.randomUUID().toString());
-    namenode.setScheduleInterval(Integer.valueOf(60));
-    namenode.setScope(Scope.ANY);
-    namenode.setSource("{\"type\" : \"SCRIPT\"}");
-    namenode.setSourceType(SourceType.SCRIPT);
-    m_definitionDao.create(namenode);
-
-    AlertDefinitionEntity datanode = new AlertDefinitionEntity();
-    datanode.setDefinitionName("DATANODE");
-    datanode.setServiceName("HDFS");
-    datanode.setComponentName("DATANODE");
-    datanode.setClusterId(cluster.getClusterId());
-    datanode.setHash(UUID.randomUUID().toString());
-    datanode.setScheduleInterval(Integer.valueOf(60));
-    datanode.setScope(Scope.HOST);
-    datanode.setSource("{\"type\" : \"SCRIPT\"}");
-    datanode.setSourceType(SourceType.SCRIPT);
-    m_definitionDao.create(datanode);
-
-    AlertDefinitionEntity aggregate = new AlertDefinitionEntity();
-    aggregate.setDefinitionName("YARN_AGGREGATE");
-    aggregate.setServiceName("YARN");
-    aggregate.setComponentName(null);
-    aggregate.setClusterId(cluster.getClusterId());
-    aggregate.setHash(UUID.randomUUID().toString());
-    aggregate.setScheduleInterval(Integer.valueOf(60));
-    aggregate.setScope(Scope.SERVICE);
-    aggregate.setSource("{\"type\" : \"SCRIPT\"}");
-    aggregate.setSourceType(SourceType.SCRIPT);
-    m_definitionDao.create(aggregate);
-
-    // create some history
-    AlertHistoryEntity nnHistory = new AlertHistoryEntity();
-    nnHistory.setAlertState(AlertState.OK);
-    nnHistory.setServiceName(namenode.getServiceName());
-    nnHistory.setComponentName(namenode.getComponentName());
-    nnHistory.setClusterId(cluster.getClusterId());
-    nnHistory.setAlertDefinition(namenode);
-    nnHistory.setAlertLabel(namenode.getDefinitionName());
-    nnHistory.setAlertText(namenode.getDefinitionName());
-    nnHistory.setAlertTimestamp(calendar.getTimeInMillis());
-    nnHistory.setHostName(HOSTNAME);
-    m_dao.create(nnHistory);
-
-    AlertHistoryEntity dnHistory = new AlertHistoryEntity();
-    dnHistory.setAlertState(AlertState.WARNING);
-    dnHistory.setServiceName(datanode.getServiceName());
-    dnHistory.setComponentName(datanode.getComponentName());
-    dnHistory.setClusterId(cluster.getClusterId());
-    dnHistory.setAlertDefinition(datanode);
-    dnHistory.setAlertLabel(datanode.getDefinitionName());
-    dnHistory.setAlertText(datanode.getDefinitionName());
-    dnHistory.setAlertTimestamp(calendar.getTimeInMillis());
-    dnHistory.setHostName(HOSTNAME);
-    m_dao.create(dnHistory);
-
-    AlertHistoryEntity aggregateHistory = new AlertHistoryEntity();
-    aggregateHistory.setAlertState(AlertState.CRITICAL);
-    aggregateHistory.setServiceName(aggregate.getServiceName());
-    aggregateHistory.setComponentName(aggregate.getComponentName());
-    aggregateHistory.setClusterId(cluster.getClusterId());
-    aggregateHistory.setAlertDefinition(aggregate);
-    aggregateHistory.setAlertLabel(aggregate.getDefinitionName());
-    aggregateHistory.setAlertText(aggregate.getDefinitionName());
-    aggregateHistory.setAlertTimestamp(calendar.getTimeInMillis());
-    m_dao.create(aggregateHistory);
-
-    List<AlertHistoryEntity> histories = m_dao.findAll();
-    assertEquals(3, histories.size());
+    m_alertHelper.populateData(cluster);
 
     Predicate clusterPredicate = null;
     Predicate hdfsPredicate = null;
@@ -868,6 +791,7 @@ public class AlertsDAOTest {
     Predicate clusterAndHdfsAndCriticalPredicate = null;
     Predicate hdfsAndCriticalOrWarningPredicate = null;
     Predicate alertNamePredicate = null;
+    Predicate historyIdPredicate = null;
 
     clusterPredicate = new PredicateBuilder().property(
         AlertHistoryResourceProvider.ALERT_HISTORY_CLUSTER_NAME).equals("c1").toPredicate();
@@ -875,7 +799,7 @@ public class AlertsDAOTest {
     AlertHistoryRequest request = new AlertHistoryRequest();
 
     request.Predicate = clusterPredicate;
-    histories = m_dao.findAll(request);
+    List<AlertHistoryEntity> histories = m_dao.findAll(request);
     assertEquals(3, histories.size());
 
     hdfsPredicate = new PredicateBuilder().property(
@@ -930,6 +854,14 @@ public class AlertsDAOTest {
     assertEquals(1, histories.size());
 
     request.Predicate = alertNamePredicate;
+    histories = m_dao.findAll(request);
+    assertEquals(1, histories.size());
+
+    historyIdPredicate = new PredicateBuilder().property(
+        AlertHistoryResourceProvider.ALERT_HISTORY_ID).equals(
+        histories.get(0).getAlertId()).toPredicate();
+
+    request.Predicate = historyIdPredicate;
     histories = m_dao.findAll(request);
     assertEquals(1, histories.size());
   }

@@ -69,6 +69,9 @@ public class AlertHistoryEntity_ {
   public static Map<String, List<? extends SingularAttribute<?, ?>>> getPredicateMapping() {
     Map<String, List<? extends SingularAttribute<?, ?>>> mapping = new HashMap<String, List<? extends SingularAttribute<?, ?>>>();
 
+    mapping.put(AlertHistoryResourceProvider.ALERT_HISTORY_ID,
+        Collections.singletonList(alertId));
+
     mapping.put(AlertHistoryResourceProvider.ALERT_HISTORY_SERVICE_NAME,
         Collections.singletonList(serviceName));
 

@@ -18,17 +18,23 @@
 
 package org.apache.ambari.server.api.services;
 
-import org.apache.ambari.server.api.resources.ResourceInstance;
-import org.apache.ambari.server.controller.spi.Resource;
-
-import javax.ws.rs.*;
-import javax.ws.rs.core.*;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
+
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
+
+import org.apache.ambari.server.api.resources.ResourceInstance;
+import org.apache.ambari.server.controller.spi.Resource;
 
 /**
  * Service responsible for services resource requests.
@@ -183,7 +189,7 @@ public class ServiceService extends BaseService {
 
     return new ComponentService(m_clusterName, serviceName);
   }
-  
+
   /**
    * Gets the alerts sub-resource.
    */
@@ -191,6 +197,24 @@ public class ServiceService extends BaseService {
   public AlertService getAlertHandler(
       @PathParam("serviceName") String serviceName) {
     return new AlertService(m_clusterName, serviceName, null);
+  }
+
+  /**
+   * Gets the alert history service
+   *
+   * @param request
+   *          the request
+   * @param serviceName
+   *          the service name
+   *
+   * @return the alert history service
+   */
+  @Path("{serviceName}/alert_history")
+  public AlertHistoryService getAlertHistoryService(
+      @Context javax.ws.rs.core.Request request,
+      @PathParam("serviceName") String serviceName) {
+
+    return new AlertHistoryService(m_clusterName, serviceName, null);
   }
 
   /**

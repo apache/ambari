@@ -199,6 +199,15 @@ public class AlertDefinitionEntity {
   }
 
   /**
+   * Sets the cluster that the alert definition is a member of.
+   *
+   * @param clusterEntity
+   */
+  public void setCluster(ClusterEntity clusterEntity) {
+    this.clusterEntity = clusterEntity;
+  }
+
+  /**
    * Gets the component name that this alert is associated with, if any. Some
    * alerts are scoped at the service level and will not have a component name.
    *

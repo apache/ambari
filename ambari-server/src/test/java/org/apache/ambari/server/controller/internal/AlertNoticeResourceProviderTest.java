@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.controller.internal;
 
+import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createStrictMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
@@ -27,8 +28,10 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
-import org.apache.ambari.server.controller.AlertHistoryRequest;
+import org.apache.ambari.server.controller.AlertNoticeRequest;
+import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
@@ -36,13 +39,16 @@ import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
-import org.apache.ambari.server.orm.dao.AlertsDAO;
+import org.apache.ambari.server.orm.dao.AlertDispatchDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.AlertHistoryEntity;
+import org.apache.ambari.server.orm.entities.AlertNoticeEntity;
+import org.apache.ambari.server.orm.entities.AlertTargetEntity;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.state.AlertState;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.NotificationState;
 import org.easymock.EasyMock;
 import org.junit.Assert;
 import org.junit.Before;
@@ -55,21 +61,21 @@ import com.google.inject.Module;
 import com.google.inject.util.Modules;
 
 /**
- * {@link AlertHistoryResourceProvider} tests.
+ * {@link AlertNoticeResourceProvider} tests.
  */
-public class AlertHistoryResourceProviderTest {
+public class AlertNoticeResourceProviderTest {
 
-  private AlertsDAO m_dao = null;
+  private AlertDispatchDAO m_dao = null;
   private Injector m_injector;
 
   @Before
   public void before() {
-    m_dao = createStrictMock(AlertsDAO.class);
+    m_dao = createStrictMock(AlertDispatchDAO.class);
 
     m_injector = Guice.createInjector(Modules.override(
         new InMemoryDefaultTestModule()).with(new MockModule()));
 
-    AlertHistoryResourceProvider.init(m_injector);
+    AlertNoticeResourceProvider.init(m_injector);
   }
 
   /**
@@ -78,12 +84,12 @@ public class AlertHistoryResourceProviderTest {
   @Test
   @SuppressWarnings("unchecked")
   public void testGetResourcesNoPredicate() throws Exception {
-    AlertHistoryResourceProvider provider = createProvider();
+    AlertNoticeResourceProvider provider = createProvider();
 
     Request request = PropertyHelper.getReadRequest(
         "AlertHistory/cluster_name", "AlertHistory/id");
 
-    expect(m_dao.findAll(EasyMock.anyObject(AlertHistoryRequest.class))).andReturn(
+    expect(m_dao.findAllNotices(EasyMock.anyObject(AlertNoticeRequest.class))).andReturn(
         Collections.EMPTY_LIST);
 
     replay(m_dao);
@@ -98,22 +104,25 @@ public class AlertHistoryResourceProviderTest {
   @Test
   public void testGetResourcesClusterPredicate() throws Exception {
     Request request = PropertyHelper.getReadRequest(
-        AlertHistoryResourceProvider.ALERT_HISTORY_CLUSTER_NAME,
-        AlertHistoryResourceProvider.ALERT_HISTORY_DEFINITION_ID,
-        AlertHistoryResourceProvider.ALERT_HISTORY_DEFINITION_NAME,
-        AlertHistoryResourceProvider.ALERT_HISTORY_COMPONENT_NAME,
-        AlertHistoryResourceProvider.ALERT_HISTORY_HOSTNAME,
-        AlertHistoryResourceProvider.ALERT_HISTORY_STATE);
+        AlertNoticeResourceProvider.ALERT_NOTICE_CLUSTER_NAME,
+        AlertNoticeResourceProvider.ALERT_NOTICE_ID,
+        AlertNoticeResourceProvider.ALERT_NOTICE_HISTORY_ID,
+        AlertNoticeResourceProvider.ALERT_NOTICE_SERVICE_NAME,
+        AlertNoticeResourceProvider.ALERT_NOTICE_TARGET_ID,
+        AlertNoticeResourceProvider.ALERT_NOTICE_TARGET_NAME,
+        AlertNoticeResourceProvider.ALERT_NOTICE_STATE);
+
+    AmbariManagementController amc = createMock(AmbariManagementController.class);
 
     Predicate predicate = new PredicateBuilder().property(
-        AlertHistoryResourceProvider.ALERT_HISTORY_CLUSTER_NAME).equals("c1").toPredicate();
+        AlertNoticeResourceProvider.ALERT_NOTICE_CLUSTER_NAME).equals("c1").toPredicate();
 
-    expect(m_dao.findAll(EasyMock.anyObject(AlertHistoryRequest.class))).andReturn(
+    expect(m_dao.findAllNotices(EasyMock.anyObject(AlertNoticeRequest.class))).andReturn(
         getMockEntities());
 
-    replay(m_dao);
+    replay(amc, m_dao);
 
-    AlertHistoryResourceProvider provider = createProvider();
+    AlertNoticeResourceProvider provider = createProvider();
     Set<Resource> results = provider.getResources(request, predicate);
 
     assertEquals(1, results.size());
@@ -121,13 +130,14 @@ public class AlertHistoryResourceProviderTest {
     Resource r = results.iterator().next();
 
     Assert.assertEquals(
-        "namenode_definition",
-        r.getPropertyValue(AlertHistoryResourceProvider.ALERT_HISTORY_DEFINITION_NAME));
+        "Administrators",
+        r.getPropertyValue(AlertNoticeResourceProvider.ALERT_NOTICE_TARGET_NAME));
 
-    Assert.assertEquals(AlertState.WARNING,
-        r.getPropertyValue(AlertHistoryResourceProvider.ALERT_HISTORY_STATE));
+    Assert.assertEquals(
+        NotificationState.FAILED,
+        r.getPropertyValue(AlertNoticeResourceProvider.ALERT_NOTICE_STATE));
 
-    verify(m_dao);
+    verify(amc, m_dao);
   }
 
   /**
@@ -136,23 +146,24 @@ public class AlertHistoryResourceProviderTest {
   @Test
   public void testGetSingleResource() throws Exception {
     Request request = PropertyHelper.getReadRequest(
-        AlertHistoryResourceProvider.ALERT_HISTORY_CLUSTER_NAME,
-        AlertHistoryResourceProvider.ALERT_HISTORY_DEFINITION_ID,
-        AlertHistoryResourceProvider.ALERT_HISTORY_DEFINITION_NAME,
-        AlertHistoryResourceProvider.ALERT_HISTORY_COMPONENT_NAME,
-        AlertHistoryResourceProvider.ALERT_HISTORY_HOSTNAME,
-        AlertHistoryResourceProvider.ALERT_HISTORY_STATE);
+        AlertNoticeResourceProvider.ALERT_NOTICE_CLUSTER_NAME,
+        AlertNoticeResourceProvider.ALERT_NOTICE_ID,
+        AlertNoticeResourceProvider.ALERT_NOTICE_HISTORY_ID,
+        AlertNoticeResourceProvider.ALERT_NOTICE_SERVICE_NAME,
+        AlertNoticeResourceProvider.ALERT_NOTICE_TARGET_ID,
+        AlertNoticeResourceProvider.ALERT_NOTICE_TARGET_NAME,
+        AlertNoticeResourceProvider.ALERT_NOTICE_STATE);
 
     Predicate predicate = new PredicateBuilder().property(
-        AlertHistoryResourceProvider.ALERT_HISTORY_CLUSTER_NAME).equals("c1").and().property(
-        AlertHistoryResourceProvider.ALERT_HISTORY_ID).equals("1").toPredicate();
+        AlertNoticeResourceProvider.ALERT_NOTICE_CLUSTER_NAME).equals("c1").and().property(
+        AlertNoticeResourceProvider.ALERT_NOTICE_ID).equals("1").toPredicate();
 
-    expect(m_dao.findAll(EasyMock.anyObject(AlertHistoryRequest.class))).andReturn(
+    expect(m_dao.findAllNotices(EasyMock.anyObject(AlertNoticeRequest.class))).andReturn(
         getMockEntities());
 
     replay(m_dao);
 
-    AlertHistoryResourceProvider provider = createProvider();
+    AlertNoticeResourceProvider provider = createProvider();
     Set<Resource> results = provider.getResources(request, predicate);
 
     assertEquals(1, results.size());
@@ -160,25 +171,25 @@ public class AlertHistoryResourceProviderTest {
     Resource r = results.iterator().next();
 
     Assert.assertEquals(
-        "namenode_definition",
-        r.getPropertyValue(AlertHistoryResourceProvider.ALERT_HISTORY_DEFINITION_NAME));
+        "Administrators",
+        r.getPropertyValue(AlertNoticeResourceProvider.ALERT_NOTICE_TARGET_NAME));
 
-    Assert.assertEquals(AlertState.WARNING,
-        r.getPropertyValue(AlertHistoryResourceProvider.ALERT_HISTORY_STATE));
+    Assert.assertEquals(NotificationState.FAILED,
+        r.getPropertyValue(AlertNoticeResourceProvider.ALERT_NOTICE_STATE));
   }
 
   /**
    * @param amc
    * @return
    */
-  private AlertHistoryResourceProvider createProvider() {
-    return new AlertHistoryResourceProvider();
+  private AlertNoticeResourceProvider createProvider() {
+    return new AlertNoticeResourceProvider();
   }
 
   /**
    * @return
    */
-  private List<AlertHistoryEntity> getMockEntities() throws Exception {
+  private List<AlertNoticeEntity> getMockEntities() throws Exception {
     ClusterEntity cluster = new ClusterEntity();
     cluster.setClusterName("c1");
     cluster.setClusterId(1L);
@@ -191,15 +202,26 @@ public class AlertHistoryResourceProviderTest {
     definition.setServiceName("HDFS");
     definition.setCluster(cluster);
 
-    AlertHistoryEntity entity = new AlertHistoryEntity();
-    entity.setAlertId(1L);
-    entity.setAlertDefinition(definition);
-    entity.setClusterId(Long.valueOf(1L));
-    entity.setComponentName(null);
-    entity.setAlertText("Mock Label");
-    entity.setServiceName("HDFS");
-    entity.setAlertState(AlertState.WARNING);
-    entity.setAlertTimestamp(System.currentTimeMillis());
+    AlertHistoryEntity history = new AlertHistoryEntity();
+    history.setAlertId(1L);
+    history.setAlertDefinition(definition);
+    history.setClusterId(Long.valueOf(1L));
+    history.setComponentName(null);
+    history.setAlertText("Mock Label");
+    history.setServiceName("HDFS");
+    history.setAlertState(AlertState.WARNING);
+    history.setAlertTimestamp(System.currentTimeMillis());
+
+    AlertTargetEntity administrators = new AlertTargetEntity();
+    administrators.setDescription("The Administrators");
+    administrators.setNotificationType("EMAIL");
+    administrators.setTargetName("Administrators");
+
+    AlertNoticeEntity entity = new AlertNoticeEntity();
+    entity.setAlertHistory(history);
+    entity.setAlertTarget(administrators);
+    entity.setNotifyState(NotificationState.FAILED);
+    entity.setUuid(UUID.randomUUID().toString());
     return Arrays.asList(entity);
   }
 
@@ -212,7 +234,7 @@ public class AlertHistoryResourceProviderTest {
     */
     @Override
     public void configure(Binder binder) {
-      binder.bind(AlertsDAO.class).toInstance(m_dao);
+      binder.bind(AlertDispatchDAO.class).toInstance(m_dao);
       binder.bind(Clusters.class).toInstance(
           EasyMock.createNiceMock(Clusters.class));
       binder.bind(Cluster.class).toInstance(

@@ -119,6 +119,7 @@ public interface Resource {
     AlertHistory,
     AlertGroup,
     AlertTarget,
+    AlertNotice,
     AmbariPrivilege,
     ClusterPrivilege,
     ViewPrivilege,
@@ -206,6 +207,7 @@ public interface Resource {
     public static final Type AlertHistory = InternalType.AlertHistory.getType();
     public static final Type AlertGroup = InternalType.AlertGroup.getType();
     public static final Type AlertTarget = InternalType.AlertTarget.getType();
+    public static final Type AlertNotice = InternalType.AlertNotice.getType();
     public static final Type AmbariPrivilege = InternalType.AmbariPrivilege.getType();
     public static final Type ClusterPrivilege = InternalType.ClusterPrivilege.getType();
     public static final Type ViewPrivilege = InternalType.ViewPrivilege.getType();
