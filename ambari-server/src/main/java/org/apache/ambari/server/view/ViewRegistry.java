@@ -48,6 +48,7 @@ import org.apache.ambari.server.orm.entities.ViewEntity;
 import org.apache.ambari.server.orm.entities.ViewEntityEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceDataEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
+import org.apache.ambari.server.orm.entities.ViewInstancePropertyEntity;
 import org.apache.ambari.server.orm.entities.ViewParameterEntity;
 import org.apache.ambari.server.orm.entities.ViewResourceEntity;
 import org.apache.ambari.server.security.SecurityHelper;
@@ -60,7 +61,6 @@ import org.apache.ambari.server.view.configuration.PersistenceConfig;
 import org.apache.ambari.server.view.configuration.PropertyConfig;
 import org.apache.ambari.server.view.configuration.ResourceConfig;
 import org.apache.ambari.server.view.configuration.ViewConfig;
-import org.apache.ambari.view.MaskException;
 import org.apache.ambari.view.Masker;
 import org.apache.ambari.view.SystemException;
 import org.apache.ambari.view.View;
@@ -69,7 +69,6 @@ import org.apache.ambari.view.ViewDefinition;
 import org.apache.ambari.view.ViewResourceHandler;
 import org.apache.ambari.view.events.Event;
 import org.apache.ambari.view.events.Listener;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.GrantedAuthority;
@@ -465,6 +464,8 @@ public class ViewRegistry {
           LOG.debug("Creating view instance " + viewName + "/" +
               version + "/" + instanceName);
         }
+
+        SetViewInstanceProperties(instanceEntity, viewEntity.getConfiguration(), viewEntity.getClassLoader());
         instanceEntity.validate(viewEntity);
 
         ResourceTypeEntity resourceTypeEntity = resourceTypeDAO.findByName(ViewEntity.getViewName(viewName, version));
@@ -512,12 +513,14 @@ public class ViewRegistry {
    * @param instanceEntity  the view instance entity
    *
    * @throws IllegalStateException if the given instance is not in a valid state
+   * @throws SystemException       if the instance can not be updated
    */
   public void updateViewInstance(ViewInstanceEntity instanceEntity)
-      throws IllegalStateException {
+      throws IllegalStateException, SystemException {
     ViewEntity viewEntity = getDefinition(instanceEntity.getViewName());
 
     if (viewEntity != null) {
+      SetViewInstanceProperties(instanceEntity, viewEntity.getConfiguration(), viewEntity.getClassLoader());
       instanceEntity.validate(viewEntity);
       instanceDAO.merge(instanceEntity);
     }
@@ -860,26 +863,11 @@ public class ViewRegistry {
 
   // create a new view instance definition
   protected ViewInstanceEntity createViewInstanceDefinition(ViewConfig viewConfig, ViewEntity viewDefinition, InstanceConfig instanceConfig)
-      throws ClassNotFoundException, IllegalStateException, MaskException {
+      throws ClassNotFoundException, SystemException {
     ViewInstanceEntity viewInstanceDefinition =
         new ViewInstanceEntity(viewDefinition, instanceConfig);
 
-    Masker masker = getMasker(viewConfig.getMaskerClass(viewDefinition.getClassLoader()));
-    for (PropertyConfig propertyConfig : instanceConfig.getProperties()) {
-      ParameterConfig parameterConfig = null;
-      for (ParameterConfig paramConfig : viewConfig.getParameters()) {
-        if (StringUtils.equals(paramConfig.getName(), propertyConfig.getKey())) {
-          parameterConfig = paramConfig;
-          break;
-        }
-      }
-      if (parameterConfig != null && parameterConfig.isMasked()) {
-        viewInstanceDefinition.putProperty(propertyConfig.getKey(),
-            masker.mask(propertyConfig.getValue()));
-      } else {
-        viewInstanceDefinition.putProperty(propertyConfig.getKey(), propertyConfig.getValue());
-      }
-    }
+    SetViewInstanceProperties(viewInstanceDefinition, instanceConfig, viewConfig, viewDefinition.getClassLoader());
     viewInstanceDefinition.validate(viewDefinition);
 
     bindViewInstance(viewDefinition, viewInstanceDefinition);
@@ -923,6 +911,56 @@ public class ViewRegistry {
     setPersistenceEntities(viewInstanceDefinition);
 
     viewDefinition.addInstanceDefinition(viewInstanceDefinition);
+  }
+
+  // Set the properties of the given view instance.
+  private void SetViewInstanceProperties(ViewInstanceEntity instanceEntity, ViewConfig viewConfig, ClassLoader classLoader) throws SystemException {
+
+    Map<String, String> properties = new HashMap<String, String>();
+
+    HashSet<ViewInstancePropertyEntity> propertyEntities =
+        new HashSet<ViewInstancePropertyEntity>(instanceEntity.getProperties());
+
+    for (ViewInstancePropertyEntity viewInstancePropertyEntity : propertyEntities) {
+      properties.put(viewInstancePropertyEntity.getName(), viewInstancePropertyEntity.getValue());
+    }
+    SetViewInstanceProperties( instanceEntity,  properties, viewConfig,  classLoader);
+  }
+
+  // Set the properties of the given view instance from the given instance configuration.
+  private void SetViewInstanceProperties(ViewInstanceEntity instanceEntity, InstanceConfig instanceConfig, ViewConfig viewConfig, ClassLoader classLoader) throws SystemException {
+
+    Map<String, String> properties = new HashMap<String, String>();
+
+    for (PropertyConfig propertyConfig : instanceConfig.getProperties()) {
+      properties.put(propertyConfig.getKey(), propertyConfig.getValue());
+    }
+    SetViewInstanceProperties( instanceEntity,  properties, viewConfig,  classLoader);
+  }
+
+  // Set the properties of the given view instance from the given property set.
+  private void SetViewInstanceProperties(ViewInstanceEntity instanceEntity, Map<String, String> properties, ViewConfig viewConfig, ClassLoader classLoader) throws SystemException {
+    try {
+      Masker masker = getMasker(viewConfig.getMaskerClass(classLoader));
+
+      Map<String, ParameterConfig> parameterConfigMap = new HashMap<String, ParameterConfig>();
+      for (ParameterConfig paramConfig : viewConfig.getParameters()) {
+        parameterConfigMap.put(paramConfig.getName(), paramConfig);
+      }
+      for (Map.Entry<String, String> entry : properties.entrySet()) {
+        String name  = entry.getKey();
+        String value = entry.getValue();
+
+        ParameterConfig parameterConfig = parameterConfigMap.get(name);
+
+        if (parameterConfig != null && parameterConfig.isMasked()) {
+          value = masker.mask(value);
+        }
+        instanceEntity.putProperty(name, value);
+      }
+    } catch (Exception e) {
+      throw new SystemException("Caught exception while setting instance property.", e);
+    }
   }
 
   // Set the entities defined in the view persistence element for the given view instance
@@ -1196,13 +1234,13 @@ public class ViewRegistry {
                 // always load system views up front
                 if (systemView || !useExecutor || extractedArchiveDirFile.exists()) {
                   // if the archive is already extracted then load the view now
-                  readViewArchive(viewDefinition, archiveFile, extractedArchiveDirFile, viewConfig);
+                  readViewArchive(viewDefinition, archiveFile, extractedArchiveDirFile);
                 } else {
                   // if the archive needs to be extracted then create a runnable to do it
                   extractionRunnables.add(new Runnable() {
                     @Override
                     public void run() {
-                      readViewArchive(viewDefinition, archiveFile, extractedArchiveDirFile, viewConfig);
+                      readViewArchive(viewDefinition, archiveFile, extractedArchiveDirFile);
                     }
                   });
                 }
@@ -1233,9 +1271,8 @@ public class ViewRegistry {
 
   // read a view archive
   private void readViewArchive(ViewEntity viewDefinition,
-                                                  File archiveFile,
-                                                  File extractedArchiveDirFile,
-                                                  ViewConfig viewConfig) {
+                               File archiveFile,
+                               File extractedArchiveDirFile) {
 
     setViewStatus(viewDefinition, ViewEntity.ViewStatus.DEPLOYING, "Deploying " + extractedArchiveDirFile + ".");
 
@@ -1245,7 +1282,7 @@ public class ViewRegistry {
       // extract the archive and get the class loader
       ClassLoader cl = extractor.extractViewArchive(viewDefinition, archiveFile, extractedArchiveDirFile);
 
-      viewConfig = archiveUtility.getViewConfigFromExtractedArchive(extractedArchiveDirPath);
+      ViewConfig viewConfig = archiveUtility.getViewConfigFromExtractedArchive(extractedArchiveDirPath);
 
       setupViewDefinition(viewDefinition, viewConfig, cl);
 
