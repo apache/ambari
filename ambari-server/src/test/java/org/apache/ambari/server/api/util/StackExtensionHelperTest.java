@@ -298,7 +298,7 @@ public class StackExtensionHelperTest {
     helper.populateServicesForStack(stackInfo);
     helper.fillInfo();
     List<ServiceInfo> allServices = helper.getAllApplicableServices(stackInfo);
-    assertEquals(12, allServices.size());
+    assertEquals(13, allServices.size());
     for (ServiceInfo serviceInfo : allServices) {
       if (serviceInfo.getName().equals("NAGIOS")) {
         assertTrue(serviceInfo.isMonitoringService());
