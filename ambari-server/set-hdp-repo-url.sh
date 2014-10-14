@@ -57,7 +57,7 @@ then
 
    
   # all stacks get the same url
-  for ver in '1.3' '2.0' '2.1'; do
+  for ver in '1.3' '2.0' '2.1' '2.2'; do
     echo "Replacing $ver latest lookup url to '$LATEST_URL'"
     HDPREPO=target/classes/stacks/HDP/$ver/repos
     sed "s;\(<latest>\)\([^>]*\)\(<\/latest>\);\1$LATEST_URL\3;" ${HDPREPO}/repoinfo.xml > ${HDPREPO}/repoinfo.xml.tmp; mv ${HDPREPO}/repoinfo.xml.tmp ${HDPREPO}/repoinfo.xml
