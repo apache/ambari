@@ -110,7 +110,7 @@ var urls = {
   },
 
   'instance_parameters': {
-    real: 'views/{view}/versions/{version}/instances/{instanceName}',
+    real: 'views/{view}/versions/{version}/instances/{instanceName}/resources/status',
     mock: ''
   }
 
