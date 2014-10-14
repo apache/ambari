@@ -99,13 +99,13 @@ App.CreateAppWizardStep2Controller = Ember.ArrayController.extend({
   },
 
   /**
-   * Check if param is integer
+   * Check if param is integer (and >= 0)
    * @param {string} value value to check
    * @return {Boolean}
    * @method isNotInteger
    */
   isNotInteger: function (value) {
-    return !(value.trim().length && (value % 1 == 0));
+    return !(value && value.trim().length && (value % 1 == 0) && value >= 0);
   },
 
   /**
