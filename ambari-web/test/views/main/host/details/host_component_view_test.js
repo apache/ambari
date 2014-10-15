@@ -385,4 +385,36 @@ describe('App.HostComponentView', function() {
     });
   });
 
+  describe('#slaveCustomCommands', function() {
+
+    var content = [
+      {
+        componentName: 'SLAVE_COMPONENT',
+        hostName: '01'
+      },
+      {
+        componentName: 'NOT_SLAVE_COMPONENT',
+        hostName: '02'
+      }
+    ];
+    before(function() {
+      sinon.stub(App.StackServiceComponent, 'find', function() {
+        return Em.Object.create({
+          componentName: 'SLAVE_COMPONENT',
+          isSlave: true,
+          customCommands: ['CUSTOM']
+        });
+      });
+    });
+
+    it('Should get custom commands for slaves', function() {
+      hostComponentView.set('content', content);
+      expect(hostComponentView.get('customCommands')).to.have.length(1);
+    });
+
+    after(function() {
+      App.StackServiceComponent.find.restore();
+    });
+  });
+
 });

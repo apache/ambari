@@ -34,6 +34,15 @@ App.MainServiceItemView = Em.View.extend({
     return this.get('controller.content.passiveState') === 'ON';
   }.property('controller.content.passiveState'),
 
+  /**
+   * Some custom commands need custom logic to be executed
+   */
+  mastersExcludedCommands: {
+    'NAMENODE': ['DECOMMISSION', 'REBALANCEHDFS'],
+    'RESOURCEMANAGER': ['DECOMMISSION', 'REFRESHQUEUES'],
+    'HBASE_MASTER': ['DECOMMISSION']
+  },
+
   actionMap: function() {
     return {
       RESTART_ALL: {
@@ -120,6 +129,12 @@ App.MainServiceItemView = Em.View.extend({
         disabled: false,
         hasSubmenu: this.get('controller.isSeveralClients'),
         submenuOptions: this.get('controller.clientComponents')
+      },
+      MASTER_CUSTOM_COMMAND: {
+        action: 'executeCustomCommand',
+        cssClass: 'icon-play-circle',
+        isHidden: false,
+        disabled: false
       }
     }
   },
@@ -166,6 +181,7 @@ App.MainServiceItemView = Em.View.extend({
     var actionMap = this.actionMap();
     var serviceCheckSupported = App.get('services.supportsServiceCheck').contains(service.get('serviceName'));
     var hasConfigTab = this.get('hasConfigTab');
+    var excludedCommands = this.get('mastersExcludedCommands');
 
     if (this.get('controller.isClientsOnlyService')) {
       if (serviceCheckSupported) {
@@ -234,6 +250,31 @@ App.MainServiceItemView = Em.View.extend({
         item.disabled = self.get('controller.isAddDisabled-' + item.component);
         item.tooltip = self.get('controller.addDisabledTooltip' + item.component);
         options.push(item);
+      });
+
+      allMasters.forEach(function(master) {
+        var component = App.StackServiceComponent.find(master);
+        var commands = component.get('customCommands');
+
+        if (!commands.length) {
+          return false;
+        }
+
+        commands.forEach(function(command) {
+          if (excludedCommands[master] && excludedCommands[master].contains(command)){
+            return false;
+          }
+
+          options.push(self.createOption(actionMap.MASTER_CUSTOM_COMMAND, {
+            label: Em.I18n.t('services.service.actions.run.executeCustomCommand.menu').format(command),
+            context: {
+              label: Em.I18n.t('services.service.actions.run.executeCustomCommand.menu').format(command),
+              service: component.get('serviceName'),
+              component: component.get('componentName'),
+              command: command
+            }
+          }));
+        });
       });
     }
 

@@ -132,6 +132,12 @@
                 </a>
             </li>
         {{/if}}
+
+      {{#each command in view.customCommands}}
+        <li>
+          <a href="javascript:void(null)" {{action "executeCustomCommand" command target="controller" href=true}}>{{command.label}}</a>
+        </li>
+      {{/each}}
       </ul>
     </div>
   {{/if}}
