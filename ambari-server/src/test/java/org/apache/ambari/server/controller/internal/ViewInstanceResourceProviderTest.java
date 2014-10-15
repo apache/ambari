@@ -29,6 +29,7 @@ import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
 import org.apache.ambari.server.orm.entities.ViewInstancePropertyEntity;
 import org.apache.ambari.server.orm.entities.ViewParameterEntity;
 import org.apache.ambari.server.view.ViewRegistry;
+import org.apache.ambari.server.view.configuration.ViewConfig;
 import org.apache.ambari.view.ViewDefinition;
 import org.easymock.Capture;
 import org.junit.Assert;
@@ -141,9 +142,15 @@ public class ViewInstanceResourceProviderTest {
 
     expect(singleton.instanceExists(viewInstanceEntity)).andReturn(false);
     expect(singleton.instanceExists(viewInstanceEntity2)).andReturn(false);
+    expect(singleton.getDefinition("V1", "1.0.0")).andReturn(viewEntity).anyTimes();
     expect(singleton.getInstanceDefinition("V1", "1.0.0", "I1")).andReturn(viewInstanceEntity);
     expect(singleton.getInstanceDefinition("V1", "1.0.0", "I1")).andReturn(viewInstanceEntity2);
     expect(singleton.getDefinition("V1", null)).andReturn(viewEntity).anyTimes();
+
+    Capture<Map<String, String>> captureProperties = new Capture<Map<String, String>>();
+
+    singleton.setViewInstanceProperties(eq(viewInstanceEntity), capture(captureProperties),
+        anyObject(ViewConfig.class), anyObject(ClassLoader.class));
 
     Capture<ViewInstanceEntity> instanceEntityCapture = new Capture<ViewInstanceEntity>();
     singleton.installViewInstance(capture(instanceEntityCapture));
@@ -157,7 +164,7 @@ public class ViewInstanceResourceProviderTest {
     // as admin
     provider.createResources(PropertyHelper.getCreateRequest(properties, null));
     assertEquals(viewInstanceEntity, instanceEntityCapture.getValue());
-    Map<String, String> props = viewInstanceEntity.getPropertyMap();
+    Map<String, String> props = captureProperties.getValue();
     assertEquals(1, props.size());
     assertEquals("test_value", props.get("test_property"));
 
@@ -195,6 +202,7 @@ public class ViewInstanceResourceProviderTest {
     viewInstanceEntity.setViewEntity(viewEntity);
 
     expect(singleton.instanceExists(viewInstanceEntity)).andReturn(true);
+    expect(singleton.getDefinition("V1", "1.0.0")).andReturn(viewEntity).anyTimes();
     expect(singleton.getInstanceDefinition("V1", "1.0.0", "I1")).andReturn(viewInstanceEntity);
     expect(singleton.getDefinition("V1", null)).andReturn(viewEntity);
 
@@ -235,6 +243,7 @@ public class ViewInstanceResourceProviderTest {
     viewInstanceEntity.setViewEntity(viewEntity);
 
     expect(singleton.getInstanceDefinition("V1", "1.0.0", "I1")).andReturn(viewInstanceEntity);
+    expect(singleton.getDefinition("V1", "1.0.0")).andReturn(viewEntity).anyTimes();
     expect(singleton.getDefinition("V1", null)).andReturn(viewEntity);
 
     expect(singleton.checkAdmin()).andReturn(true);
