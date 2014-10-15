@@ -295,7 +295,7 @@ public class RestMetricsPropertyProvider extends MetricsProvider {
                 "service is misspelled. Trying default port",
             componentName, portConfigType,
             portPropertyName, hostname);
-        LOG.warn(message);
+        LOG.debug(message);
       }
     }
     if (portStr == null && metricsProperties.containsKey(DEFAULT_PORT_PROPERTY)) {

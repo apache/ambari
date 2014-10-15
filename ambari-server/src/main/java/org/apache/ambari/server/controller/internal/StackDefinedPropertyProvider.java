@@ -163,15 +163,15 @@ public class StackDefinedPropertyProvider implements PropertyProvider {
           } else if (m.getType().equals("jmx")) {
             jmxMap.put(componentName, getPropertyInfo(m));
           } else {
-            PropertyProvider pp = getDelegate(m);
-            if(pp == null) {
-              pp = getDelegate(m,
-                  streamProvider, metricsHostProvider,
-                  clusterNamePropertyId, hostNamePropertyId,
-                  componentNamePropertyId, resourceStatePropertyId,
-                  componentName);
+            PropertyProvider pp = getDelegate(m,
+                streamProvider, metricsHostProvider,
+                clusterNamePropertyId, hostNamePropertyId,
+                componentNamePropertyId, resourceStatePropertyId,
+                componentName);
+            if (pp == null) {
+              pp = getDelegate(m);
             }
-            if(pp != null) {
+            if (pp != null) {
               additional.add(pp);
             }
 
@@ -302,26 +302,8 @@ public class StackDefinedPropertyProvider implements PropertyProvider {
 
     try {
       Class<?> clz = Class.forName(definition.getType());
-      // singleton/factory
       try {
-                /*
-         * Interface for singleton/factory method invocation TBD
-         * when implementing the first real use
-         */
-        Method m = clz.getMethod("getInstance", Map.class, Map.class);
-        Object o = m.invoke(
-            definition.getProperties(), componentMetrics,
-            streamProvider, clusterNamePropertyId, hostNamePropertyId,
-            componentNamePropertyId, statePropertyId);
-        return PropertyProvider.class.cast(o);
-      } catch (Exception e) {
-        LOG.info("Could not load singleton or factory method for type '" +
-            definition.getType());
-      }
-
-      // try maps constructor
-      try {
-                /*
+         /*
          * Warning: this branch is already used, that's why please adjust
          * all implementations when modifying constructor interface
          */
