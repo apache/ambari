@@ -34,8 +34,9 @@ App.usersMapper = App.QuickDataMapper.create({
       var result= [];
       if(!App.User.find().someProperty("userName", item.Users.user_name)) {
         item.permissions = [];
-        if (!!Em.get(item.privileges, 'items.length')) {
-          item.permissions = item.privileges.items.mapProperty('PrivilegeInfo.permission_name');
+        var privileges = item.privileges;
+        if (!!Em.get(privileges, 'length')) {
+          item.permissions = privileges.mapProperty('PrivilegeInfo.permission_name');
         }
         item.Users.admin = self.isAdmin(item.permissions);
         item.Users.operator = self.isOperator(item.permissions);
