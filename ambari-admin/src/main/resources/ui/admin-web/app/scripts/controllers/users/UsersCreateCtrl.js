@@ -18,10 +18,11 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('UsersCreateCtrl',['$scope', '$routeParams', 'User', '$location', 'Alert', function($scope, $routeParams, User, $location, Alert) {
+.controller('UsersCreateCtrl',['$scope', '$routeParams', 'User', '$location', 'Alert', 'UnsavedDialog', function($scope, $routeParams, User, $location, Alert, UnsavedDialog) {
   $scope.user = {
     active: true
   };
+  var targetUrl = '/users';
 
   $scope.createUser = function() {
     $scope.form.submitted = true;
@@ -33,10 +34,38 @@ angular.module('ambariAdminConsole')
         'Users/admin': !!$scope.user.admin
       }).then(function() {
         Alert.success('Created user <a href="#/users/' + $scope.user.user_name + '">' + $scope.user.user_name + "</a>");
-        $location.path('/users');
-      }).catch(function(data) {;
+        $scope.form.$setPristine();
+        $location.path(targetUrl);
+      }).catch(function(data) {
         Alert.error('User creation error', data.data.message);
       });
     }
   };
+
+  $scope.cancel = function() {
+    $scope.form.$setPristine();
+    $location.path('/users');
+  };
+
+  $scope.$on('$locationChangeStart', function(event, __targetUrl) {
+        
+    if( $scope.form.$dirty ){
+      UnsavedDialog().then(function(action) {
+        targetUrl = __targetUrl.split('#').pop();
+        switch(action){
+          case 'save':
+            $scope.createUser();
+            break;
+          case 'discard':
+            $scope.form.$setPristine();
+            $location.path(targetUrl);
+            break;
+          case 'cancel':
+          targetUrl = '/users';
+            break;
+        }
+      });
+      event.preventDefault();
+    }
+  });
 }]);

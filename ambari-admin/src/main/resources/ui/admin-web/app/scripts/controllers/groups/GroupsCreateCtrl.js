@@ -18,19 +18,47 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('GroupsCreateCtrl',['$scope', 'Group', '$location', 'Alert', function($scope, Group, $location, Alert) {
+.controller('GroupsCreateCtrl',['$scope', 'Group', '$location', 'Alert', 'UnsavedDialog', function($scope, Group, $location, Alert, UnsavedDialog) {
   $scope.group = new Group();
+  var targetUrl = '/groups';
 
   $scope.createGroup = function() {
     $scope.form.submitted = true;
     if ($scope.form.$valid){
       $scope.group.save().then(function() {
         Alert.success('Created group <a href="#/groups/' + $scope.group.group_name + '/edit">' + $scope.group.group_name + '</a>');
-        $location.path('/groups');
+        $scope.form.$setPristine();
+        $location.path(targetUrl);
       })
       .catch(function(data) {
         Alert.error('Group creation error', data.data.message);
       });
     }
   };
+
+  $scope.cancel = function() {
+    $scope.form.$setPristine();
+    $location.path('/groups');
+  };
+
+  $scope.$on('$locationChangeStart', function(event, __targetUrl) {
+    if( $scope.form.$dirty ){
+      UnsavedDialog().then(function(action) {
+        targetUrl = __targetUrl.split('#').pop();
+        switch(action){
+          case 'save':
+            $scope.createGroup();
+            break;
+          case 'discard':
+            $scope.form.$setPristine();
+            $location.path(targetUrl);
+            break;
+          case 'cancel':
+            targetUrl = '/groups';
+            break;
+        }
+      });
+      event.preventDefault();
+    }
+  });
 }]);
