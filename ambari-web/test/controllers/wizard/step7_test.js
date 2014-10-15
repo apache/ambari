@@ -32,8 +32,7 @@ describe('App.InstallerStep7Controller', function () {
       content: {
         advancedServiceConfig: [],
         serviceConfigProperties: []
-      },
-      applyServicesConfigs: Em.K
+      }
     });
   });
 
@@ -971,6 +970,7 @@ describe('App.InstallerStep7Controller', function () {
       sinon.stub(installerStep7Controller, 'checkHostOverrideInstaller', Em.K);
       sinon.stub(installerStep7Controller, 'activateSpecialConfigs', Em.K);
       sinon.stub(installerStep7Controller, 'selectProperService', Em.K);
+      sinon.stub(installerStep7Controller, 'applyServicesConfigs', Em.K);
       sinon.stub(App.router, 'send', Em.K);
     });
     afterEach(function () {
@@ -986,6 +986,7 @@ describe('App.InstallerStep7Controller', function () {
       installerStep7Controller.checkHostOverrideInstaller.restore();
       installerStep7Controller.activateSpecialConfigs.restore();
       installerStep7Controller.selectProperService.restore();
+      installerStep7Controller.applyServicesConfigs.restore();
       App.router.send.restore();
     });
     it('should call clearStep', function () {
@@ -1003,44 +1004,6 @@ describe('App.InstallerStep7Controller', function () {
       expect(App.config.addAdvancedConfigs.calledOnce).to.equal(true);
       expect(App.config.addCustomConfigs.calledOnce).to.equal(true);
     });
-    Em.A([
-        {
-          allSelectedServiceNames: ['YARN'],
-          capacitySchedulerUi: false,
-          e: true
-        },
-        {
-          allSelectedServiceNames: ['YARN'],
-          capacitySchedulerUi: true,
-          e: false
-        },
-        {
-          allSelectedServiceNames: ['HDFS'],
-          capacitySchedulerUi: false,
-          e: false
-        },
-        {
-          allSelectedServiceNames: ['HDFS'],
-          capacitySchedulerUi: true,
-          e: false
-        }
-      ]).forEach(function (test) {
-        it('allSelectedServiceNames = ' + JSON.stringify(test.allSelectedServiceNames) + ', capacitySchedulerUi = ' + test.capacitySchedulerUi.toString(), function () {
-          sinon.stub(App, 'get', function (k) {
-            if (k === 'supports.capacitySchedulerUi') return test.capacitySchedulerUi;
-            return Em.get(App, k);
-          });
-          installerStep7Controller.reopen({allSelectedServiceNames: test.allSelectedServiceNames});
-          installerStep7Controller.loadStep();
-          if (test.e) {
-            expect(App.config.fileConfigsIntoTextarea.calledOnce).to.equal(true);
-          }
-          else {
-            expect(App.config.fileConfigsIntoTextarea.called).to.equal(false);
-          }
-          App.get.restore();
-        });
-      });
     it('should call setInstalledServiceConfigs for addServiceController', function () {
       installerStep7Controller.set('wizardController.name', 'addServiceController');
       installerStep7Controller.loadStep();
@@ -1048,6 +1011,86 @@ describe('App.InstallerStep7Controller', function () {
     });
   });
 
+  describe('#applyServicesConfigs', function() {
+    beforeEach(function() {
+      installerStep7Controller.reopen({
+        allSelectedServiceNames: [],
+      });
+      sinon.stub(App.config, 'fileConfigsIntoTextarea', function(configs) {
+        return configs;
+      });
+      sinon.stub(installerStep7Controller, 'resolveServiceDependencyConfigs', Em.K);
+      sinon.stub(installerStep7Controller, 'loadServerSideConfigsRecommendations', function() {
+        return $.Deferred().resolve();
+      });
+      sinon.stub(installerStep7Controller, 'checkHostOverrideInstaller', Em.K);
+      sinon.stub(installerStep7Controller, 'activateSpecialConfigs', Em.K);
+      sinon.stub(installerStep7Controller, 'selectProperService', Em.K);
+      sinon.stub(installerStep7Controller, 'setStepConfigs', Em.K);
+      sinon.stub(App.router, 'send', Em.K);
+    });
+    afterEach(function () {
+      App.config.fileConfigsIntoTextarea.restore();
+      installerStep7Controller.resolveServiceDependencyConfigs.restore();
+      installerStep7Controller.loadServerSideConfigsRecommendations.restore();
+      installerStep7Controller.checkHostOverrideInstaller.restore();
+      installerStep7Controller.activateSpecialConfigs.restore();
+      installerStep7Controller.selectProperService.restore();
+      installerStep7Controller.setStepConfigs.restore();
+      App.router.send.restore();
+    });
+
+    it('should run some methods' , function () {
+     installerStep7Controller.applyServicesConfigs({name: 'configs'}, {name: 'storedConfigs'});
+     expect(installerStep7Controller.loadServerSideConfigsRecommendations.calledOnce).to.equal(true);
+     expect(installerStep7Controller.get('isRecommendedLoaded')).to.equal(true);
+     expect(installerStep7Controller.setStepConfigs.calledWith({name: 'configs'}, {name: 'storedConfigs'})).to.equal(true);
+     expect(installerStep7Controller.checkHostOverrideInstaller.calledOnce).to.equal(true);
+     expect(installerStep7Controller.activateSpecialConfigs.calledOnce).to.equal(true);
+     expect(installerStep7Controller.selectProperService.calledOnce).to.equal(true);
+    });
+
+    Em.A([
+      {
+        allSelectedServiceNames: ['YARN'],
+        fileConfigsIntoTextarea: true,
+        m: 'should run fileConfigsIntoTextarea',
+        capacitySchedulerUi: false
+      },
+      {
+        allSelectedServiceNames: ['YARN'],
+        m: 'shouldn\'t run fileConfigsIntoTextarea',
+        capacitySchedulerUi: true
+      },
+      {
+        allSelectedServiceNames: ['STORM'],
+        resolveServiceDependencyConfigs: true,
+        m: 'should run resolveServiceDependencyConfigs'
+      }
+    ]).forEach(function(t) {
+      it(t.m, function () {
+        sinon.stub(App, 'get', function (k) {
+          if (k === 'supports.capacitySchedulerUi') return t.capacitySchedulerUi;
+          return Em.get(App, k);
+        });
+        installerStep7Controller.reopen({
+          allSelectedServiceNames: t.allSelectedServiceNames
+        });
+        installerStep7Controller.applyServicesConfigs({name: 'configs'}, {name: 'storedConfigs'});
+        if (t.fileConfigsIntoTextarea) {
+          expect(App.config.fileConfigsIntoTextarea.calledWith({name: 'configs'}, 'capacity-scheduler.xml')).to.equal(true);
+        } else {
+          expect(App.config.fileConfigsIntoTextarea.calledOnce).to.equal(false);
+        }
+        if (t.resolveServiceDependencyConfigs) {
+          expect(installerStep7Controller.resolveServiceDependencyConfigs.calledWith('STORM', {name: 'configs'})).to.equal(true);
+        } else {
+          expect(installerStep7Controller.resolveServiceDependencyConfigs.calledOnce).to.equal(false);
+        }
+        App.get.restore();
+      });
+    });
+  });
   describe('#_updateValueForCheckBoxConfig', function () {
     Em.A([
         {
