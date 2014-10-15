@@ -27,6 +27,13 @@ import os
 def hdfs(name=None):
   import params
 
+  # On some OS this folder could be not exists, so we will create it before pushing there files
+  Directory(params.limits_conf_dir,
+            recursive=True,
+            owner='root',
+            group='root'
+  )
+
   File(os.path.join(params.limits_conf_dir, 'hdfs.conf'),
        owner='root',
        group='root',
