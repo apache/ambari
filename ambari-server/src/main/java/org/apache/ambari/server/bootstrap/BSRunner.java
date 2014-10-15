@@ -52,13 +52,13 @@ class BSRunner extends Thread {
   private String ambariHostname;
   private boolean verbose;
   private BootStrapImpl bsImpl;
-  private final String clusterOsType;
+  private final String clusterOsFamily;
   private String projectVersion;
   private int serverPort;
 
   public BSRunner(BootStrapImpl impl, SshHostInfo sshHostInfo, String bootDir,
       String bsScript, String agentSetupScript, String agentSetupPassword,
-      int requestId, long timeout, String hostName, boolean isVerbose, String clusterOsType,
+      int requestId, long timeout, String hostName, boolean isVerbose, String clusterOsFamily,
       String projectVersion, int serverPort)
   {
     this.requestId = requestId;
@@ -71,7 +71,7 @@ class BSRunner extends Thread {
     this.agentSetupPassword = agentSetupPassword;
     this.ambariHostname = hostName;
     this.verbose = isVerbose;
-    this.clusterOsType = clusterOsType;
+    this.clusterOsFamily = clusterOsFamily;
     this.projectVersion = projectVersion;
     this.bsImpl = impl;
     this.serverPort = serverPort;
@@ -190,7 +190,7 @@ class BSRunner extends Thread {
       commands[4] = this.sshKeyFile.toString();
       commands[5] = this.agentSetupScript.toString();
       commands[6] = this.ambariHostname;
-      commands[7] = this.clusterOsType;
+      commands[7] = this.clusterOsFamily;
       commands[8] = this.projectVersion;
       commands[9] = this.serverPort+"";
       if (this.passwordFile != null) {
@@ -208,7 +208,8 @@ class BSRunner extends Thread {
       StringBuilder commandString = new StringBuilder();
       for (String comm : commands) {
         commandString.append(" " + comm);
-      }   
+      }
+
      
       if (LOG.isDebugEnabled()) {
         LOG.debug(commandString);

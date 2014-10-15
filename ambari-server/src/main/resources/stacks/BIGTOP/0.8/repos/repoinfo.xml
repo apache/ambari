@@ -19,7 +19,7 @@
   <!-- TODO define latest json file for bigtop 
   <latest>http://s3.amazonaws.com/dev.hortonworks.com/HDP/hdp_urlinfo.json</latest>
   -->
-  <os type="redhat6">
+  <os family="redhat6">
     <repo>
       <baseurl>http://bigtop01.cloudera.org:8080/job/Bigtop-trunk-Repository/label=centos6/lastSuccessfulBuild/artifact/repo/</baseurl>
       <repoid>BIGTOP-0.8</repoid>

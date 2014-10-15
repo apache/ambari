@@ -69,6 +69,7 @@ import org.apache.ambari.server.state.host.HostImpl;
 import org.apache.ambari.server.state.scheduler.RequestExecution;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
 import org.apache.ambari.server.state.scheduler.RequestExecutionImpl;
+import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostImpl;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -89,6 +90,7 @@ public class AgentResourceTest extends JerseyTest {
   ActionManager actionManager;
   Injector injector;
   AmbariMetaInfo ambariMetaInfo;
+  OsFamily os_family;
   ActionDBAccessor actionDBAccessor;
 
   public AgentResourceTest() {
@@ -282,9 +284,11 @@ public class AgentResourceTest extends JerseyTest {
       }
       requestStaticInjection(AgentResource.class);
       bind(Clusters.class).to(ClustersImpl.class);
+      os_family = mock(OsFamily.class);
       actionManager = mock(ActionManager.class);
       ambariMetaInfo = mock(AmbariMetaInfo.class);
       actionDBAccessor = mock(ActionDBAccessor.class);
+      bind(OsFamily.class).toInstance(os_family);
       bind(ActionDBAccessor.class).toInstance(actionDBAccessor);
       bind(ActionManager.class).toInstance(actionManager);
       bind(AgentCommand.class).to(ExecutionCommand.class);

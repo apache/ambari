@@ -27,7 +27,7 @@ import sys
 from unittest import TestCase
 from mock.mock import patch
 
-from ambari_commons import OSCheck, OSConst
+from ambari_commons import OSCheck
 import os_check_type
 
 utils = __import__('ambari_server.utils').utils
@@ -87,7 +87,6 @@ class TestOSCheck(TestCase):
     result = OSCheck.get_os_type()
     self.assertEquals(result, 'redhat')
 
-
   @patch("platform.linux_distribution")
   @patch("os.path.exists")
   def test_get_os_family(self, mock_exists, mock_linux_distribution):
@@ -132,7 +131,6 @@ class TestOSCheck(TestCase):
       self.assertEquals("Cannot detect os type. Exiting...", str(e))
       pass
 
-
   @patch("platform.linux_distribution")
   def test_get_os_version(self, mock_linux_distribution):
 
@@ -151,7 +149,6 @@ class TestOSCheck(TestCase):
       self.assertEquals("Cannot detect os version. Exiting...", str(e))
       pass
 
-
   @patch("platform.linux_distribution")
   def test_get_os_major_version(self, mock_linux_distribution):
 
@@ -164,7 +161,6 @@ class TestOSCheck(TestCase):
     mock_linux_distribution.return_value = ('Suse', '11', '')
     result = OSCheck.get_os_major_version()
     self.assertEquals(result, '11')
-
 
   @patch("platform.linux_distribution")
   def test_get_os_release_name(self, mock_linux_distribution):
@@ -183,7 +179,6 @@ class TestOSCheck(TestCase):
       # Expected
       self.assertEquals("Cannot detect os release name. Exiting...", str(e))
       pass
-
 
   @patch.object(ambari_server, "get_conf_dir")
   def test_update_ambari_properties_os(self, get_conf_dir_mock):
@@ -219,7 +214,7 @@ class TestOSCheck(TestCase):
 
     count = 0
     for line in ambari_properties_content:
-      if ( not line.startswith('#') ):
+      if (not line.startswith('#')):
         count += 1
         if (line == "server.os_type=old_sys_os6\n"):
           self.fail("line=" + line)
@@ -255,7 +250,7 @@ class TestOSCheck(TestCase):
       self.fail("Must fail because os's not compatible.")
     except Exception as e:
       self.assertEquals(
-        "Local OS is not compatible with cluster primary OS. Please perform manual bootstrap on this host.",
+        "Local OS is not compatible with cluster primary OS family. Please perform manual bootstrap on this host.",
         str(e))
       pass
 

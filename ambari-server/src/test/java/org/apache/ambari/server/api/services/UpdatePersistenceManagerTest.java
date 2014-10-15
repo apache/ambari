@@ -59,7 +59,7 @@ public class UpdatePersistenceManagerTest {
 //
 //    //expectations
 //    expect(resource.getResourceDefinition()).andReturn(resourceDefinition);
-//    expect(resourceDefinition.getType()).andReturn(Resource.Type.Component);
+//    expect(resourceDefinition.getFamily()).andReturn(Resource.Type.Component);
 //    expect(resource.getQuery()).andReturn(query);
 //    expect(query.getPredicate()).andReturn(predicate);
 //
@@ -116,7 +116,7 @@ public class UpdatePersistenceManagerTest {
 //
 //    //expectations
 //    expect(resource.getResourceDefinition()).andReturn(resourceDefinition);
-//    expect(resourceDefinition.getType()).andReturn(Resource.Type.Component);
+//    expect(resourceDefinition.getFamily()).andReturn(Resource.Type.Component);
 //    expect(resource.getQuery()).andReturn(query);
 //    expect(query.getPredicate()).andReturn(predicate);
 //

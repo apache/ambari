@@ -16,7 +16,7 @@
    limitations under the License.
 -->
 <reposinfo>
-  <os type="redhat6">
+  <os family="redhat6">
     <repo>
       <baseurl>http://public-repo-1.hortonworks.com/HDP-1.1.1.16/repos/centos6</baseurl>
       <repoid>HDP-1.1.1.16</repoid>
@@ -35,7 +35,7 @@
       <mirrorslist><![CDATA[https://mirrors.fedoraproject.org/metalink?repo=epel-6&arch=$basearch]]></mirrorslist>
     </repo>
   </os>
-  <os type="centos5">
+  <os family="centos5">
     <repo>
       <baseurl>http://public-repo-1.hortonworks.com/HDP-1.1.1.16/repos/centos5</baseurl>
       <repoid>HDP-1.1.1.16</repoid>

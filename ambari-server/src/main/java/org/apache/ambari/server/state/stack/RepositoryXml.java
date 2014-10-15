@@ -57,8 +57,8 @@ public class RepositoryXml {
    */
   @XmlAccessorType(XmlAccessType.FIELD)
   public static class Os {
-    @XmlAttribute(name="type")
-    private String type;
+    @XmlAttribute(name="family")
+    private String family;
     
     @XmlElement(name="repo")
     private List<Repo> repos;
@@ -67,10 +67,10 @@ public class RepositoryXml {
     }
     
     /**
-     * @return the os type
+     * @return the os family
      */
-    public String getType() {
-      return type;
+    public String getFamily() {
+      return family;
     }
     
     /**

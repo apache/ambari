@@ -170,6 +170,7 @@ public class StackUpgradeUtil {
     
     AmbariMetaInfo ami = injector.getInstance(AmbariMetaInfo.class);
     MetainfoDAO metaDao = injector.getInstance(MetainfoDAO.class);
+    OsFamily os_family = injector.getInstance(OsFamily.class);
     
     String stackRepoId = stackName + "-" + stackVersion;
     
@@ -183,7 +184,7 @@ public class StackUpgradeUtil {
     } else {
       for (String os : oses) {
         
-        String family = OsFamily.find(os);
+        String family = os_family.find(os);
         if (null != family) {
           String key = ami.generateRepoMetaKey(stackName, stackVersion, os,
               stackRepoId, AmbariMetaInfo.REPOSITORY_XML_PROPERTY_BASEURL);

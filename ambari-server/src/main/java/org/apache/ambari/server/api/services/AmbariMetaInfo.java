@@ -24,7 +24,6 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -72,6 +71,7 @@ import org.apache.ambari.server.state.stack.MetricDefinition;
 import org.apache.ambari.server.state.stack.RepositoryXml;
 import org.apache.ambari.server.state.stack.RepositoryXml.Os;
 import org.apache.ambari.server.state.stack.RepositoryXml.Repo;
+import org.apache.ambari.server.state.stack.OsFamily;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -121,9 +121,14 @@ public class AmbariMetaInfo {
   private static final String REPOSITORY_FOLDER_NAME = "repos";
   public static final String REPOSITORY_XML_PROPERTY_BASEURL = "baseurl";
   // all the supported OS'es
-  private static final List<String> ALL_SUPPORTED_OS = Arrays.asList(
-      "redhat7","centos7","centos5", "redhat5", "centos6", "redhat6", "oraclelinux5",
-      "oraclelinux6", "suse11", "sles11", "ubuntu12");
+  @Inject
+  private OsFamily os_family;
+
+  /**
+   * ALL_SUPPORTED_OS is dynamically generated list from loaded families from os_family.json
+   * Instead of append values here, please, add new families in json for tests and production
+   */
+  private List<String> ALL_SUPPORTED_OS;
 
   private final ActionDefinitionManager adManager = new ActionDefinitionManager();
   private String serverVersion = "undefined";
@@ -138,6 +143,8 @@ public class AmbariMetaInfo {
   @Inject
   Injector injector;
 
+  @Inject
+  Configuration cfg;
   /**
    * Alert Definition DAO used to merge stack definitions into the database.
    */
@@ -176,6 +183,8 @@ public class AmbariMetaInfo {
     stackRoot = new File(stackPath);
     serverVersionFile = new File(serverVersionFilePath);
     customActionRoot = new File(conf.getCustomActionDefinitionPath());
+    os_family = new OsFamily(conf);
+    ALL_SUPPORTED_OS = new ArrayList<String>(os_family.os_list());
   }
 
   public AmbariMetaInfo(File stackRoot, File serverVersionFile) throws Exception {
@@ -190,6 +199,10 @@ public class AmbariMetaInfo {
    */
   @Inject
   public void init() throws Exception {
+    // Need to be initialized before all actions
+    os_family = injector.getInstance(OsFamily.class);
+    ALL_SUPPORTED_OS = new ArrayList<String>(os_family.os_list());
+
     stacksResult = new ArrayList<StackInfo>();
     readServerVersion();
     getConfigurationInformation(stackRoot);
@@ -986,7 +999,7 @@ public class AmbariMetaInfo {
     List<RepositoryInfo> list = new ArrayList<RepositoryInfo>();
 
     for (Os o : rxml.getOses()) {
-      for (String os : o.getType().split(",")) {
+      for (String os : o.getFamily().split(",")) {
         for (Repo r : o.getRepos()) {
           RepositoryInfo ri = new RepositoryInfo();
           ri.setBaseUrl(r.getBaseUrl());
@@ -1000,7 +1013,7 @@ public class AmbariMetaInfo {
           if (null != metainfoDAO) {
             LOG.debug("Checking for override for base_url");
             String key = generateRepoMetaKey(r.getRepoName(), stack.getVersion(),
-                o.getType(), r.getRepoId(), REPOSITORY_XML_PROPERTY_BASEURL);
+                o.getFamily(), r.getRepoId(), REPOSITORY_XML_PROPERTY_BASEURL);
             MetainfoEntity entity = metainfoDAO.findByKey(key);
             if (null != entity) {
               ri.setBaseUrl(entity.getMetainfoValue());
@@ -1019,7 +1032,7 @@ public class AmbariMetaInfo {
 
     if (null != rxml.getLatestURI() && list.size() > 0) {
       lookupList.add(new LatestRepoCallable(rxml.getLatestURI(),
-          repositoryFile.getParentFile(), stack));
+          repositoryFile.getParentFile(), stack, os_family));
     }
 
     return list;

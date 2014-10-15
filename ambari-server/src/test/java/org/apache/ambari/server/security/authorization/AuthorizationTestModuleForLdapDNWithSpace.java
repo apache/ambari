@@ -34,6 +34,7 @@ public class AuthorizationTestModuleForLdapDNWithSpace extends AbstractModule {
         "target/version");
     properties.setProperty(Configuration.OS_VERSION_KEY,
         "centos5");
+    properties.setProperty(Configuration.SHARED_RESOURCES_DIR_KEY, "src/test/resources/");
     //make ambari detect active configuration
     properties.setProperty(Configuration.LDAP_BASE_DN_KEY, "dc=ambari,dc=the apache,dc=org");
     properties.setProperty(Configuration.LDAP_GROUP_BASE_KEY, "ou=the groups,dc=ambari,dc=the apache,dc=org");

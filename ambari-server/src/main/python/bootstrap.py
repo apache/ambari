@@ -405,6 +405,7 @@ class Bootstrap(threading.Thread):
     self.host_log.write("\n")
     return retcode
 
+
   def runSetupAgent(self):
     params = self.shared_state
     self.host_log.write("==========================\n")
@@ -415,6 +416,7 @@ class Bootstrap(threading.Thread):
     retcode = ssh.run()
     self.host_log.write("\n")
     return retcode
+
 
   def createDoneFile(self, retcode):
     """ Creates .done file for current host. These files are later read from Java code.
@@ -429,7 +431,7 @@ class Bootstrap(threading.Thread):
   def getServerFamily(self):
     '''Return server OS family and version'''
     cot = re.search("([^\d]+)([\d]*)", self.shared_state.cluster_os_type)
-    return cot.group(1).lower(), cot.group(2).lower()
+    return cot.group(1).lower(),cot.group(2).lower()
 
   def checkSudoPackage(self):
     """ Checking 'sudo' package on remote host """
@@ -468,6 +470,7 @@ class Bootstrap(threading.Thread):
     self.host_log.write("Copying password file finished")
     return max(retcode1["exitstatus"], retcode2["exitstatus"])
 
+
   def changePasswordFileModeOnHost(self):
     # Change password file mode to 600
     self.host_log.write("Changing password file mode...")
@@ -478,6 +481,7 @@ class Bootstrap(threading.Thread):
     retcode = ssh.run()
     self.host_log.write("Change password file mode on host finished")
     return retcode
+
 
   def deletePasswordFile(self):
     # Deleting the password file

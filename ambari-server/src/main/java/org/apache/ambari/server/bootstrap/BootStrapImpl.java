@@ -51,6 +51,7 @@ public class BootStrapImpl {
   int requestId = 0;
   private FifoLinkedHashMap<Long, BootStrapStatus> bsStatus;
   private final String clusterOsType;
+  private final String clusterOsFamily;
   private String projectVersion;
   private int serverPort;
 
@@ -64,6 +65,7 @@ public class BootStrapImpl {
     this.masterHostname = conf.getMasterHostname(
         InetAddress.getLocalHost().getCanonicalHostName());
     this.clusterOsType = conf.getServerOsType();
+    this.clusterOsFamily = conf.getServerOsFamily();
     this.projectVersion = ambariMetaInfo.getServerVersion();
     this.projectVersion = (this.projectVersion.equals(DEV_VERSION)) ? DEV_VERSION.replace("$", "") : this.projectVersion;
     this.serverPort = (conf.getApiSSLAuthentication())? conf.getClientSSLApiPort() : conf.getClientApiPort();
@@ -114,7 +116,7 @@ public class BootStrapImpl {
 
     bsRunner = new BSRunner(this, info, bootStrapDir.toString(),
         bootScript, bootSetupAgentScript, bootSetupAgentPassword, requestId, 0L,
-        this.masterHostname, info.isVerbose(), this.clusterOsType, this.projectVersion, this.serverPort);
+        this.masterHostname, info.isVerbose(), this.clusterOsFamily, this.projectVersion, this.serverPort);
     bsRunner.start();
     response.setStatus(BSRunStat.OK);
     response.setLog("Running Bootstrap now.");

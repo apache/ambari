@@ -71,6 +71,7 @@ public class BootStrapTest extends TestCase {
     properties.setProperty(Configuration.SRVR_KSTR_DIR_KEY, "target" + File.separator + "classes");
     properties.setProperty(Configuration.METADETA_DIR_PATH, metadetadir);
     properties.setProperty(Configuration.SERVER_VERSION_FILE, serverVersionFilePath);
+    properties.setProperty(Configuration.SHARED_RESOURCES_DIR_KEY, "src/test/resources/");
     Configuration conf = new Configuration(properties);
     AmbariMetaInfo ambariMetaInfo = new AmbariMetaInfo(conf);
     BootStrapImpl impl = new BootStrapImpl(conf, ambariMetaInfo);
@@ -118,6 +119,7 @@ public class BootStrapTest extends TestCase {
         properties.setProperty(Configuration.SRVR_KSTR_DIR_KEY, "target" + File.separator + "classes");
         properties.setProperty(Configuration.METADETA_DIR_PATH, metadetadir);
         properties.setProperty(Configuration.SERVER_VERSION_FILE, serverVersionFilePath);
+      properties.setProperty(Configuration.SHARED_RESOURCES_DIR_KEY, "src/test/resources/");
         Configuration conf = new Configuration(properties);
         AmbariMetaInfo ambariMetaInfo = new AmbariMetaInfo(conf);
         BootStrapImpl impl = new BootStrapImpl(conf, ambariMetaInfo);

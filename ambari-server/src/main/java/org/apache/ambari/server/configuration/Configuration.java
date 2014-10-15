@@ -172,8 +172,8 @@ public class Configuration {
   public static final String HOSTNAME_MACRO = "{hostname}";
   public static final String JDBC_RCA_LOCAL_URL = "jdbc:postgresql://" + HOSTNAME_MACRO + "/ambarirca";
   public static final String JDBC_RCA_LOCAL_DRIVER = "org.postgresql.Driver";
-  public static final String OS_VERSION_KEY =
-      "server.os_type";
+  public static final String OS_FAMILY_KEY = "server.os_family";
+  public static final String OS_VERSION_KEY = "server.os_type";
   public static final String SRVR_HOSTS_MAPPING =
       "server.hosts.mapping";
   // Command parameter names
@@ -243,6 +243,7 @@ public class Configuration {
   public static final String AGENT_TASK_TIMEOUT_DEFAULT = "600";
 
   public static final String CUSTOM_ACTION_DEFINITION_KEY = "custom.action.definitions";
+  public static final String SHARED_RESOURCES_DIR_KEY = "shared.resources.dir";
   private static final String CUSTOM_ACTION_DEFINITION_DEF_VALUE =
       "/var/lib/ambari-server/resources/custom_action_definitions";
 
@@ -260,6 +261,7 @@ public class Configuration {
   private static final String PASSPHRASE_ENV_DEFAULT = "AMBARI_PASSPHRASE";
   private static final String RESOURCES_DIR_DEFAULT =
       "/var/lib/ambari-server/resources/";
+  private static final String SHARED_RESOURCES_DIR_DEFAULT = "/usr/lib/ambari-server/lib/ambari_commons/resources";
   private static final String ANONYMOUS_AUDIT_NAME_KEY = "anonymous.audit.name";
 
   private static final int CLIENT_API_PORT_DEFAULT = 8080;
@@ -376,6 +378,9 @@ public class Configuration {
             PARALLEL_STAGE_EXECUTION_KEY, PARALLEL_STAGE_EXECUTION_DEFAULT));
     configsMap.put(SERVER_TMP_DIR_KEY, properties.getProperty(
             SERVER_TMP_DIR_KEY, SERVER_TMP_DIR_DEFAULT));
+
+    configsMap.put(SHARED_RESOURCES_DIR_KEY, properties.getProperty(
+       SHARED_RESOURCES_DIR_KEY, SHARED_RESOURCES_DIR_DEFAULT));
 
     File passFile = new File(configsMap.get(SRVR_KSTR_DIR_KEY) + File.separator
         + configsMap.get(SRVR_CRT_PASS_FILE_KEY));
@@ -847,6 +852,10 @@ public class Configuration {
     return properties.getProperty(OS_VERSION_KEY, "");
   }
 
+  public String getServerOsFamily() {
+    return properties.getProperty(OS_FAMILY_KEY, "");
+  }
+
   public String getMasterHostname(String defaultValue) {
     return properties.getProperty(BOOTSTRAP_MASTER_HOSTNAME, defaultValue);
   }
@@ -885,7 +894,7 @@ public class Configuration {
 
   public int getConnectionMaxIdleTime() {
     return Integer.parseInt(properties.getProperty
-      (SERVER_CONNECTION_MAX_IDLE_TIME, String.valueOf("900000")));
+            (SERVER_CONNECTION_MAX_IDLE_TIME, String.valueOf("900000")));
   }
 
   /**
@@ -1043,6 +1052,10 @@ public class Configuration {
 
   public String getResourceDirPath() {
     return properties.getProperty(RESOURCES_DIR_KEY, RESOURCES_DIR_DEFAULT);
+  }
+    
+  public String getSharedResourcesDirPath(){
+      return properties.getProperty(SHARED_RESOURCES_DIR_KEY, SHARED_RESOURCES_DIR_DEFAULT);
   }
 
   public String getServerJDBCPostgresSchemaName() {

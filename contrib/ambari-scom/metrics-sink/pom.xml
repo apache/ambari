@@ -20,7 +20,7 @@
         <groupId>org.apache.ambari</groupId>
         <artifactId>ambari-scom-project</artifactId>
         <version>1.0.0</version>
-    </parent>  
+    </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>metrics-sink</artifactId>
     <packaging>jar</packaging>

@@ -120,6 +120,8 @@ public class AmbariCustomCommandExecutionHelper {
   private ConfigHelper configHelper;
   @Inject
   private MaintenanceStateHelper maintenanceStateHelper;
+  @Inject
+  private OsFamily os_family;
 
   protected static final String SERVICE_CHECK_COMMAND_NAME = "SERVICE_CHECK";
   protected static final String DECOMMISSION_COMMAND_NAME = "DECOMMISSION";
@@ -862,7 +864,7 @@ public class AmbariCustomCommandExecutionHelper {
         stackId.getStackName(), stackId.getStackVersion());
     String repoInfo = "";
 
-    String family = OsFamily.find(host.getOsType());
+    String family = os_family.find(host.getOsType());
     if (null == family)
       family = host.getOsFamily();
    

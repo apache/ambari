@@ -16,7 +16,7 @@
    limitations under the License.
 -->
 <reposinfo>
-  <os type="redhat6">
+  <os family="redhat6">
     <repo>
       <baseurl>http://public-repo-1.hortonworks.com/HDP/centos6/1.x/updates/1.3.3.0</baseurl>
       <repoid>HDP-1.3.3</repoid>
@@ -28,7 +28,7 @@
       <reponame>HDP-UTILS</reponame>
     </repo>
   </os>
-  <os type="redhat5">
+  <os family="redhat5">
     <repo>
       <baseurl>http://public-repo-1.hortonworks.com/HDP/centos5/1.x/updates/1.3.3.0</baseurl>
       <repoid>HDP-1.3.3</repoid>
@@ -40,7 +40,7 @@
       <reponame>HDP-UTILS</reponame>
     </repo>
   </os>
-  <os type="suse11">
+  <os family="suse11">
     <repo>
       <baseurl>http://public-repo-1.hortonworks.com/HDP/suse11/1.x/updates/1.3.3.0</baseurl>
       <repoid>HDP-1.3.3</repoid>

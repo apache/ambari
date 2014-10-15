@@ -591,6 +591,7 @@ public class AmbariServer {
         injector.getInstance(GroupDAO.class), injector.getInstance(ViewInstanceDAO.class));
     ClusterPrivilegeResourceProvider.init(injector.getInstance(ClusterDAO.class));
     AmbariPrivilegeResourceProvider.init(injector.getInstance(ClusterDAO.class));
+
   }
 
   /**

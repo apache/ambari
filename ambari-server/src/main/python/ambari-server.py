@@ -412,6 +412,7 @@ JAVA_HOME_PROPERTY = "java.home"
 JDK_NAME_PROPERTY = "jdk.name"
 JCE_NAME_PROPERTY = "jce.name"
 OS_TYPE_PROPERTY = "server.os_type"
+OS_FAMILY_PROPERTY = "server.os_family"
 GET_FQDN_SERVICE_URL = "server.fqdn.service.url"
 
 JDK_DOWNLOAD_CMD = "curl --create-dirs -o {0} {1}"
@@ -2065,7 +2066,12 @@ def configure_os_settings():
     print_error_msg("Non-Linux systems are not supported")
     return -1
 
-  master_os_type = OS_FAMILY + OS_VERSION
+  # to check server/agent compatibility
+  master_os_family = OS_FAMILY + OS_VERSION
+  # to check supported os_types
+  master_os_type = OS_TYPE + OS_VERSION
+
+  write_property(OS_FAMILY_PROPERTY, master_os_family)
   write_property(OS_TYPE_PROPERTY, master_os_type)
   return 0
 

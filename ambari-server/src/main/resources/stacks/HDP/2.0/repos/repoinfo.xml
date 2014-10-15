@@ -17,7 +17,7 @@
 -->
 <reposinfo>
   <latest>http://s3.amazonaws.com/dev.hortonworks.com/HDP/hdp_urlinfo.json</latest>
-  <os type="redhat6">
+  <os family="redhat6">
     <repo>
       <baseurl>http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.10.0</baseurl>
       <repoid>HDP-2.0</repoid>
@@ -29,7 +29,7 @@
       <reponame>HDP-UTILS</reponame>
     </repo>
   </os>
-  <os type="redhat5">
+  <os family="redhat5">
     <repo>
       <baseurl>http://public-repo-1.hortonworks.com/HDP/centos5/2.x/updates/2.0.10.0</baseurl>
       <repoid>HDP-2.0</repoid>
@@ -41,7 +41,7 @@
       <reponame>HDP-UTILS</reponame>
     </repo>
   </os>
-  <os type="suse11">
+  <os family="suse11">
     <repo>
       <baseurl>http://public-repo-1.hortonworks.com/HDP/suse11/2.x/updates/2.0.10.0</baseurl>
       <repoid>HDP-2.0</repoid>

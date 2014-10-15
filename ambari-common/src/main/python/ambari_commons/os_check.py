@@ -20,7 +20,16 @@ limitations under the License.
 
 import os
 import sys
+import json
 import platform
+
+# path to resources dir
+RESOURCES_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), "resources")
+
+# family JSON data
+OSFAMILY_JSON_RESOURCE = "os_family.json"
+JSON_OS_TYPE = "distro"
+JSON_OS_VERSION = "versions"
 
 
 def linux_distribution():
@@ -37,33 +46,33 @@ def linux_distribution():
 
 
 class OS_CONST_TYPE(type):
-  # os families
-  REDHAT_FAMILY = 'redhat'
-  UBUNTU_FAMILY = 'ubuntu'
-  SUSE_FAMILY = 'suse'
 
   # Declare here os type mapping
-  OS_FAMILY_COLLECTION = [
-                            {'name': REDHAT_FAMILY,
-                             'os_list':
-                                ['redhat', 'fedora', 'centos', 'oraclelinux',
-                                 'ascendos', 'amazon', 'xenserver', 'oel', 'ovs',
-                                 'cloudlinux', 'slc', 'scientific', 'psbm',
-                                 'centos linux']
-                             },
-                            {'name': UBUNTU_FAMILY,
-                             'os_list': ['ubuntu', 'debian']
-                             },
-                            {'name': SUSE_FAMILY,
-                             'os_list': ['sles', 'sled', 'opensuse', 'suse']
-                             }
-                           ]
+  OS_FAMILY_COLLECTION = []
   # Would be generated from Family collection definition
   OS_COLLECTION = []
+  FAMILY_COLLECTION = []
+
+  def initialize_data(cls):
+    """
+      Initialize internal data structures from file
+    """
+    try:
+      f = open(os.path.join(RESOURCES_DIR, OSFAMILY_JSON_RESOURCE))
+      json_data = json.load(f)
+      f.close()
+      for family in json_data:
+        cls.FAMILY_COLLECTION += [family]
+        cls.OS_COLLECTION += json_data[family][JSON_OS_TYPE]
+        cls.OS_FAMILY_COLLECTION += [{
+          'name': family,
+          'os_list': json_data[family][JSON_OS_TYPE]
+        }]
+    except:
+      raise Exception("Couldn't load '%s' file" % OSFAMILY_JSON_RESOURCE)
 
   def __init__(cls, name, bases, dct):
-    for item in cls.OS_FAMILY_COLLECTION:
-      cls.OS_COLLECTION += item['os_list']
+    cls.initialize_data()
 
   def __getattr__(cls, name):
     """
@@ -76,8 +85,9 @@ class OS_CONST_TYPE(type):
     name = name.lower()
     if "os_" in name and name[3:] in cls.OS_COLLECTION:
       return name[3:]
-    else:
-      raise Exception("Unknown class property '%s'" % name)
+    if "_family" in name and name[:-7] in cls.FAMILY_COLLECTION:
+      return name[:-7]
+    raise Exception("Unknown class property '%s'" % name)
 
 
 class OSConst:

@@ -89,6 +89,7 @@ import org.apache.ambari.server.state.scheduler.RequestExecution;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
 import org.apache.ambari.server.state.scheduler.RequestExecutionImpl;
 import org.apache.ambari.server.state.services.AlertNoticeDispatchService;
+import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostImpl;
 import org.apache.ambari.server.view.ViewInstanceHandlerList;
 import org.eclipse.jetty.server.SessionIdManager;
@@ -122,6 +123,7 @@ public class ControllerModule extends AbstractModule {
   private static Logger LOG = LoggerFactory.getLogger(ControllerModule.class);
 
   private final Configuration configuration;
+  private final OsFamily os_family;
   private final HostsMap hostsMap;
   private boolean dbInitNeeded;
   private final Gson prettyGson = new GsonBuilder().serializeNulls().setPrettyPrinting().create();
@@ -132,11 +134,13 @@ public class ControllerModule extends AbstractModule {
   public ControllerModule() throws Exception {
     configuration = new Configuration();
     hostsMap = new HostsMap(configuration);
+    os_family = new OsFamily(configuration);
   }
 
   public ControllerModule(Properties properties) throws Exception {
     configuration = new Configuration(properties);
     hostsMap = new HostsMap(configuration);
+    os_family = new OsFamily(configuration);
   }
 
 
@@ -193,6 +197,7 @@ public class ControllerModule extends AbstractModule {
     bind(SessionIdManager.class).toInstance(sessionIdManager);
 
     bind(Configuration.class).toInstance(configuration);
+    bind(OsFamily.class).toInstance(os_family);
     bind(HostsMap.class).toInstance(hostsMap);
     bind(PasswordEncoder.class).toInstance(new StandardPasswordEncoder());
     bind(DelegatingFilterProxy.class).toInstance(new DelegatingFilterProxy() {

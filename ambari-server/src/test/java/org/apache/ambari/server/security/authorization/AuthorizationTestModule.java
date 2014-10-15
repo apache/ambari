@@ -38,6 +38,7 @@ public class AuthorizationTestModule extends AbstractModule {
         "target/version");
     properties.setProperty(Configuration.OS_VERSION_KEY,
         "centos5");
+    properties.setProperty(Configuration.SHARED_RESOURCES_DIR_KEY, "src/test/resources/");
     //make ambari detect active configuration
     properties.setProperty(Configuration.LDAP_GROUP_BASE_KEY, "ou=groups,dc=ambari,dc=apache,dc=org");
 

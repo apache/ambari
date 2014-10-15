@@ -47,11 +47,13 @@ public class LatestRepoCallable implements Callable<Void> {
   private String sourceUri = null;
   private File stackRepoFolder = null;
   private StackInfo stack = null;
+  private OsFamily os_family;
 
-  public LatestRepoCallable(String latestSourceUri, File stackRepoFolder, StackInfo stack) {
+  public LatestRepoCallable(String latestSourceUri, File stackRepoFolder, StackInfo stack, OsFamily os_family) {
     this.sourceUri = latestSourceUri;
     this.stackRepoFolder = stackRepoFolder;
     this.stack = stack;
+    this.os_family = os_family;
   }
 
   @Override
@@ -151,7 +153,7 @@ public class LatestRepoCallable implements Callable<Void> {
       return osMap.get(os);
 
     // !!! os not found, find and return the first compatible one
-    Set<String> possibleTypes = OsFamily.findTypes(os);
+    Set<String> possibleTypes = os_family.findTypes(os);
 
     for (String type : possibleTypes) {
       if (osMap.containsKey(type))

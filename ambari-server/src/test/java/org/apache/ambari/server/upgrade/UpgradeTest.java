@@ -68,6 +68,7 @@ public class UpgradeTest {
       "target/version");
     properties.setProperty(Configuration.OS_VERSION_KEY,
       "centos5");
+    properties.setProperty(Configuration.SHARED_RESOURCES_DIR_KEY, "src/test/resources/");
   }
 
   @Test

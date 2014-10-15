@@ -115,6 +115,7 @@ import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
+import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostInstallEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpSucceededEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartEvent;
@@ -8725,6 +8726,7 @@ public class AmbariManagementControllerTest {
             "target/version");
         properties.setProperty(Configuration.OS_VERSION_KEY,
             "centos6");
+        properties.setProperty(Configuration.SHARED_RESOURCES_DIR_KEY, "src/test/resources/");
         try {
           install(new ControllerModule(properties));
         } catch (Exception e) {
@@ -8799,7 +8801,7 @@ public class AmbariManagementControllerTest {
         properties.setProperty(Configuration.SERVER_VERSION_FILE,
             "../version");
         properties.setProperty(Configuration.OS_VERSION_KEY, "centos6");
-
+        properties.setProperty(Configuration.SHARED_RESOURCES_DIR_KEY, "src/test/resources/");
         try {
           install(new ControllerModule(properties));
         } catch (Exception e) {
@@ -8908,6 +8910,7 @@ public class AmbariManagementControllerTest {
             "target/version");
         properties.setProperty(Configuration.OS_VERSION_KEY,
             "centos5");
+        properties.setProperty(Configuration.SHARED_RESOURCES_DIR_KEY, "src/test/resources/");
         try {
           install(new ControllerModule(properties));
         } catch (Exception e) {
@@ -9236,6 +9239,7 @@ public class AmbariManagementControllerTest {
         properties.setProperty(Configuration.SERVER_VERSION_FILE,
             "../version");
         properties.setProperty(Configuration.OS_VERSION_KEY, OS_TYPE);
+        properties.setProperty(Configuration.SHARED_RESOURCES_DIR_KEY, "src/test/resources/");
         try {
           install(new ControllerModule(properties));
         } catch (Exception e) {
