@@ -21,6 +21,9 @@ package org.apache.ambari.server.orm.entities;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * PrincipalEntity tests.
  */
@@ -43,5 +46,45 @@ public class PrincipalEntityTest {
 
     entity.setPrincipalType(typeEntity);
     Assert.assertEquals(typeEntity, entity.getPrincipalType());
+  }
+
+  @Test
+  public void testSetGetPrivileges() throws Exception {
+
+    Set<PrivilegeEntity> privileges = new HashSet<PrivilegeEntity>();
+    PrivilegeEntity privilegeEntity = new PrivilegeEntity();
+    privilegeEntity.setId(1);
+    privileges.add(privilegeEntity);
+    privilegeEntity = new PrivilegeEntity();
+    privilegeEntity.setId(2);
+    privileges.add(privilegeEntity);
+
+    PrincipalEntity entity = new PrincipalEntity();
+
+    entity.setPrivileges(privileges);
+    Assert.assertEquals(privileges, entity.getPrivileges());
+  }
+
+  @Test
+  public void testRemovePrivilege() throws Exception {
+
+    Set<PrivilegeEntity> privileges = new HashSet<PrivilegeEntity>();
+    PrivilegeEntity privilegeEntity1 = new PrivilegeEntity();
+    privilegeEntity1.setId(1);
+    privileges.add(privilegeEntity1);
+    PrivilegeEntity privilegeEntity2 = new PrivilegeEntity();
+    privilegeEntity2.setId(2);
+    privileges.add(privilegeEntity2);
+
+    PrincipalEntity entity = new PrincipalEntity();
+
+    entity.setPrivileges(privileges);
+
+    entity.removePrivilege(privilegeEntity2);
+
+    privileges = entity.getPrivileges();
+    Assert.assertEquals(1, privileges.size());
+
+    privileges.contains(privilegeEntity1);
   }
 }

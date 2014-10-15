@@ -125,6 +125,14 @@ public class PrincipalEntity {
     this.privileges = privileges;
   }
 
+  /**
+   * Remove a privilege.
+   *
+   * @param privilege  the privilege entity
+   */
+  public void removePrivilege(PrivilegeEntity privilege) {
+    privileges.remove(privilege);
+  }
 
   // ----- Object overrides --------------------------------------------------
 

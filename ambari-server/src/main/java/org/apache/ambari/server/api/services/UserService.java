@@ -129,6 +129,16 @@ public class UserService extends BaseService {
   }
 
   /**
+   * Gets the user privilege service
+   */
+  @Path("{userName}/privileges")
+  public PrivilegeService getPrivilegeService(@Context javax.ws.rs.core.Request request,
+                                              @PathParam ("userName") String userName) {
+
+    return new UserPrivilegeService(userName);
+  }
+
+  /**
    * Create a user resource instance.
    *
    * @param userName  user name

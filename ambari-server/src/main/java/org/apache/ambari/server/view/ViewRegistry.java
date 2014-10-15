@@ -40,6 +40,7 @@ import org.apache.ambari.server.orm.dao.ViewInstanceDAO;
 import org.apache.ambari.server.orm.entities.GroupEntity;
 import org.apache.ambari.server.orm.entities.MemberEntity;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
+import org.apache.ambari.server.orm.entities.PrincipalEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
@@ -547,7 +548,7 @@ public class ViewRegistry {
         }
         List<PrivilegeEntity> instancePrivileges = privilegeDAO.findByResourceId(instanceEntity.getResource().getId());
         for (PrivilegeEntity privilegeEntity : instancePrivileges) {
-          privilegeDAO.remove(privilegeEntity);
+          removePrivilegeEntity(privilegeEntity);
         }
         instanceDAO.remove(instanceEntity);
         viewEntity.removeInstanceDefinition(instanceName);
@@ -825,7 +826,7 @@ public class ViewRegistry {
 
     ViewExternalSubResourceProvider viewExternalSubResourceProvider =
         new ViewExternalSubResourceProvider(externalResourceType, viewDefinition);
-    viewDefinition.addResourceProvider(externalResourceType, viewExternalSubResourceProvider );
+    viewDefinition.addResourceProvider(externalResourceType, viewExternalSubResourceProvider);
 
     resourceProviders.put(externalResourceType, viewExternalSubResourceProvider);
 
@@ -1185,6 +1186,17 @@ public class ViewRegistry {
     if (view != null) {
       view.onDeploy(definition);
     }
+  }
+
+  // remove a privilege entity.
+  private void removePrivilegeEntity(PrivilegeEntity privilegeEntity) {
+
+    PrincipalEntity principalEntity = privilegeEntity.getPrincipal();
+    if (principalEntity != null) {
+      principalEntity.removePrivilege(privilegeEntity);
+    }
+
+    privilegeDAO.remove(privilegeEntity);
   }
 
   // read the view archives.
