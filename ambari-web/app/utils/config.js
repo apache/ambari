@@ -92,13 +92,18 @@ App.config = Em.Object.create({
   }.property('App.isHadoop2Stack'),
 
   preDefinedSiteProperties: function () {
+    var sitePropertiesForCurrentStack = this.preDefinedConfigFile('site_properties');
+    if (sitePropertiesForCurrentStack) {
+      return sitePropertiesForCurrentStack.configProperties;
+    }
+
     if (App.get('isHadoop22Stack')) {
       return require('data/HDP2.2/site_properties').configProperties;
     } else if (App.get('isHadoop2Stack')) {
       return require('data/HDP2/site_properties').configProperties;
     }
     return require('data/site_properties').configProperties;
-  }.property('App.isHadoop2Stack', 'App.isHadoop22Stack'),
+  }.property('App.isHadoop2Stack', 'App.isHadoop22Stack', 'App.currentStackName'),
 
   preDefinedCustomConfigs: function () {
     if (App.get('isHadoop2Stack')) {
@@ -107,6 +112,13 @@ App.config = Em.Object.create({
     return require('data/custom_configs');
   }.property('App.isHadoop2Stack'),
 
+  preDefinedConfigFile: function(file) {
+    try {
+      return require('data/{0}/{1}'.format(App.get('currentStackName'), file));
+    } catch(err) {
+      // the file doesn't exist, which might be expected.
+    }
+  },
   //categories which contain custom configs
   categoriesWithCustom: ['CapacityScheduler'],
 
@@ -118,32 +130,34 @@ App.config = Em.Object.create({
   createContentProperties: function (configs) {
     var services = App.StackService.find();
     var contentProperties = [];
-    services.forEach(function (service) {
-      if (service.get('configTypes')) {
-        Object.keys(service.get('configTypes')).forEach(function (type) {
-          var contentProperty = configs.filterProperty('filename', type + '.xml').someProperty('name', 'content');
-          if (contentProperty && (type.endsWith('-log4j') || type.endsWith('-env'))) {
-            var property = {
-              "id": "site property",
-              "name": "content",
-              "displayName": type.endsWith('-env') ? type + ' template' : "content",
-              "value": "",
-              "defaultValue": "",
-              "description": type + " properties",
-              "displayType": "content",
-              "isOverridable": true,
-              "isRequired": false,
-              "isVisible": true,
-              "showLabel": type.endsWith('-env'),
-              "serviceName": service.get('serviceName'),
-              "filename": type + '.xml',
-              "category": "Advanced " + type
-            };
-            contentProperties.pushObject(property);
-          }
-        }, this);
-      }
-    }, this);
+    if (configs) {
+      services.forEach(function (service) {
+        if (service.get('configTypes')) {
+          Object.keys(service.get('configTypes')).forEach(function (type) {
+            var contentProperty = configs.filterProperty('filename', type + '.xml').someProperty('name', 'content');
+            if (contentProperty && (type.endsWith('-log4j') || type.endsWith('-env'))) {
+              var property = {
+                "id": "site property",
+                "name": "content",
+                "displayName": type.endsWith('-env') ? type + ' template' : "content",
+                "value": "",
+                "defaultValue": "",
+                "description": type + " properties",
+                "displayType": "content",
+                "isOverridable": true,
+                "isRequired": false,
+                "isVisible": true,
+                "showLabel": type.endsWith('-env'),
+                "serviceName": service.get('serviceName'),
+                "filename": type + '.xml',
+                "category": "Advanced " + type
+              };
+              contentProperties.pushObject(property);
+            }
+          }, this);
+        }
+      }, this);
+    }
     return contentProperties;
   },
 
