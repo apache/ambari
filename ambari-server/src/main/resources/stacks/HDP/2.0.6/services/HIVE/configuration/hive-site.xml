@@ -70,20 +70,6 @@ limitations under the License.
   </property>
 
   <property>
-    <name>hive.metastore.kerberos.keytab.file</name>
-    <value>/etc/security/keytabs/hive.service.keytab</value>
-    <description>The path to the Kerberos Keytab file containing the metastore
-     thrift server's service principal.</description>
-  </property>
-
-  <property>
-    <name>hive.metastore.kerberos.principal</name>
-    <value>hive/_HOST@EXAMPLE.COM</value>
-    <description>The service principal for the metastore thrift server. The special
-    string _HOST will be replaced automatically with the correct host name.</description>
-  </property>
-
-  <property>
     <name>hive.metastore.cache.pinobjtypes</name>
     <value>Table,Database,Type,FieldSchema,Order</value>
     <description>List of comma separated metastore object types that should be pinned in the cache</description>
