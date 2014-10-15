@@ -29,6 +29,11 @@ class TestZkfc(RMFTestCase):
                        command = "start",
                        config_file="ha_default.json"
     )
+    self.assertResourceCalled('Directory', '/etc/security/limits.d',
+                              owner = 'root',
+                              group = 'root',
+                              recursive = True,
+                              )
     self.assertResourceCalled('File', '/etc/security/limits.d/hdfs.conf',
                               content = Template('hdfs.conf.j2'),
                               owner = 'root',
@@ -104,6 +109,11 @@ class TestZkfc(RMFTestCase):
                        command = "start",
                        config_file="ha_secured.json"
     )
+    self.assertResourceCalled('Directory', '/etc/security/limits.d',
+                              owner = 'root',
+                              group = 'root',
+                              recursive = True,
+                              )
     self.assertResourceCalled('File', '/etc/security/limits.d/hdfs.conf',
                               content = Template('hdfs.conf.j2'),
                               owner = 'root',
