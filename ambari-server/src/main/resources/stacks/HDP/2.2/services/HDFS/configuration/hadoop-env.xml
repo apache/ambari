@@ -174,9 +174,13 @@ done
 MAPREDUCE_LIBS={{mapreduce_libs_path}}
 export HADOOP_CLASSPATH=${HADOOP_CLASSPATH}${JAVA_JDBC_LIBS}:${MAPREDUCE_LIBS}
 
-if [[ -d "/usr/hdp/current/tez-client" &&  -d "/etc/tez/conf/" ]]; then
-  # When using versioned RPMs, the tez-client will be a symlink to the current folder of tez in HDP.
-  export HADOOP_CLASSPATH=${HADOOP_CLASSPATH}:/usr/hdp/current/tez-client/*:/usr/hdp/current/tez-client/lib/*:/etc/tez/conf/
+# TODO, once Ambari 1.7.0 properly supports versioned RPMs stored in HDFS, Ambari will no longer need these
+# added to the HADOOP_CLASSPATH
+if [ -d "/usr/hdp/current/tez-client" ]; then
+  if [ -d "/etc/tez/conf/" ]; then
+    # When using versioned RPMs, the tez-client will be a symlink to the current folder of tez in HDP.
+    export HADOOP_CLASSPATH=${HADOOP_CLASSPATH}:/usr/hdp/current/tez-client/*:/usr/hdp/current/tez-client/lib/*:/etc/tez/conf/
+  fi
 fi
 
 # Setting path to hdfs command line
