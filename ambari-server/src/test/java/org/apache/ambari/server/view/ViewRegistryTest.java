@@ -677,7 +677,7 @@ public class ViewRegistryTest {
     Assert.assertEquals(1, viewInstanceDefinitions.size());
 
     ViewInstanceEntity instanceEntity = viewInstanceDefinitions.iterator().next();
-    Assert.assertEquals("djItMQ==", instanceEntity.getProperty("p2").getValue() );
+    Assert.assertEquals("v2-1", instanceEntity.getProperty("p2").getValue() );
 
     Assert.assertEquals(viewInstanceEntity, viewInstanceDefinitions.iterator().next());
 
@@ -767,11 +767,36 @@ public class ViewRegistryTest {
     Assert.assertEquals(1, viewInstanceDefinitions.size());
 
     ViewInstanceEntity instanceEntity = viewInstanceDefinitions.iterator().next();
-    Assert.assertEquals("djItMQ==", instanceEntity.getProperty("p2").getValue() );
+    Assert.assertEquals("v2-1", instanceEntity.getProperty("p2").getValue() );
 
     Assert.assertEquals(viewInstanceEntity, viewInstanceDefinitions.iterator().next());
 
     verify(viewDAO, viewInstanceDAO, securityHelper);
+  }
+
+  @Test
+  public void testSetViewInstanceProperties() throws Exception {
+
+    ViewRegistry registry = ViewRegistry.getInstance();
+
+    Properties properties = new Properties();
+    properties.put("p1", "v1");
+
+    Configuration ambariConfig = new Configuration(properties);
+
+    ViewConfig config = ViewConfigTest.getConfig(xml_valid_instance);
+    ViewEntity viewEntity = getViewEntity(config, ambariConfig, getClass().getClassLoader(), "");
+    ViewInstanceEntity viewInstanceEntity = getViewInstanceEntity(viewEntity, config.getInstances().get(0));
+
+
+    Map<String, String> instanceProperties = new HashMap<String, String>();
+    instanceProperties.put("p1", "newV1");
+    instanceProperties.put("p2", "newV2");
+
+    registry.setViewInstanceProperties(viewInstanceEntity, instanceProperties, viewEntity.getConfiguration(), viewEntity.getClassLoader());
+
+    Assert.assertEquals("newV1", viewInstanceEntity.getProperty("p1").getValue());
+    Assert.assertEquals("bmV3VjI=", viewInstanceEntity.getProperty("p2").getValue());
   }
 
   @Test

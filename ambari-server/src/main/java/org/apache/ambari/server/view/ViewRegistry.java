@@ -48,7 +48,6 @@ import org.apache.ambari.server.orm.entities.ViewEntity;
 import org.apache.ambari.server.orm.entities.ViewEntityEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceDataEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
-import org.apache.ambari.server.orm.entities.ViewInstancePropertyEntity;
 import org.apache.ambari.server.orm.entities.ViewParameterEntity;
 import org.apache.ambari.server.orm.entities.ViewResourceEntity;
 import org.apache.ambari.server.security.SecurityHelper;
@@ -479,7 +478,6 @@ public class ViewRegistry {
               version + "/" + instanceName);
         }
 
-        setViewInstanceProperties(instanceEntity, viewEntity.getConfiguration(), viewEntity.getClassLoader());
         instanceEntity.validate(viewEntity);
 
         ResourceTypeEntity resourceTypeEntity = resourceTypeDAO.findByName(ViewEntity.getViewName(viewName, version));
@@ -534,7 +532,6 @@ public class ViewRegistry {
     ViewEntity viewEntity = getDefinition(instanceEntity.getViewName());
 
     if (viewEntity != null) {
-      setViewInstanceProperties(instanceEntity, viewEntity.getConfiguration(), viewEntity.getClassLoader());
       instanceEntity.validate(viewEntity);
       instanceDAO.merge(instanceEntity);
     }
@@ -748,6 +745,41 @@ public class ViewRegistry {
     return false;
   }
 
+  /**
+   * Set the properties of the given view instance from the given property set.
+   *
+   * @param instanceEntity  the view instance entity
+   * @param properties      the view instance properties
+   * @param viewConfig      the view configuration
+   * @param classLoader     the class loader for the view
+   *
+   * @throws SystemException if the view instance properties can not be set
+   */
+  public void setViewInstanceProperties(ViewInstanceEntity instanceEntity, Map<String, String> properties,
+                                        ViewConfig viewConfig, ClassLoader classLoader) throws SystemException {
+    try {
+      Masker masker = getMasker(viewConfig.getMaskerClass(classLoader));
+
+      Map<String, ParameterConfig> parameterConfigMap = new HashMap<String, ParameterConfig>();
+      for (ParameterConfig paramConfig : viewConfig.getParameters()) {
+        parameterConfigMap.put(paramConfig.getName(), paramConfig);
+      }
+      for (Map.Entry<String, String> entry : properties.entrySet()) {
+        String name  = entry.getKey();
+        String value = entry.getValue();
+
+        ParameterConfig parameterConfig = parameterConfigMap.get(name);
+
+        if (parameterConfig != null && parameterConfig.isMasked()) {
+          value = masker.mask(value);
+        }
+        instanceEntity.putProperty(name, value);
+      }
+    } catch (Exception e) {
+      throw new SystemException("Caught exception while setting instance property.", e);
+    }
+  }
+
 
   // ----- helper methods ----------------------------------------------------
 
@@ -876,12 +908,18 @@ public class ViewRegistry {
   }
 
   // create a new view instance definition
-  protected ViewInstanceEntity createViewInstanceDefinition(ViewConfig viewConfig, ViewEntity viewDefinition, InstanceConfig instanceConfig)
+  protected ViewInstanceEntity createViewInstanceDefinition(ViewConfig viewConfig, ViewEntity viewDefinition,
+                                                            InstanceConfig instanceConfig)
       throws ClassNotFoundException, SystemException {
     ViewInstanceEntity viewInstanceDefinition =
         new ViewInstanceEntity(viewDefinition, instanceConfig);
 
-    setViewInstanceProperties(viewInstanceDefinition, instanceConfig, viewConfig, viewDefinition.getClassLoader());
+    Map<String, String> properties = new HashMap<String, String>();
+
+    for (PropertyConfig propertyConfig : instanceConfig.getProperties()) {
+      properties.put(propertyConfig.getKey(), propertyConfig.getValue());
+    }
+    setViewInstanceProperties(viewInstanceDefinition, properties, viewConfig, viewDefinition.getClassLoader());
     viewInstanceDefinition.validate(viewDefinition);
 
     bindViewInstance(viewDefinition, viewInstanceDefinition);
@@ -925,56 +963,6 @@ public class ViewRegistry {
     setPersistenceEntities(viewInstanceDefinition);
 
     viewDefinition.addInstanceDefinition(viewInstanceDefinition);
-  }
-
-  // Set the properties of the given view instance.
-  private void setViewInstanceProperties(ViewInstanceEntity instanceEntity, ViewConfig viewConfig, ClassLoader classLoader) throws SystemException {
-
-    Map<String, String> properties = new HashMap<String, String>();
-
-    HashSet<ViewInstancePropertyEntity> propertyEntities =
-        new HashSet<ViewInstancePropertyEntity>(instanceEntity.getProperties());
-
-    for (ViewInstancePropertyEntity viewInstancePropertyEntity : propertyEntities) {
-      properties.put(viewInstancePropertyEntity.getName(), viewInstancePropertyEntity.getValue());
-    }
-    setViewInstanceProperties(instanceEntity, properties, viewConfig, classLoader);
-  }
-
-  // Set the properties of the given view instance from the given instance configuration.
-  private void setViewInstanceProperties(ViewInstanceEntity instanceEntity, InstanceConfig instanceConfig, ViewConfig viewConfig, ClassLoader classLoader) throws SystemException {
-
-    Map<String, String> properties = new HashMap<String, String>();
-
-    for (PropertyConfig propertyConfig : instanceConfig.getProperties()) {
-      properties.put(propertyConfig.getKey(), propertyConfig.getValue());
-    }
-    setViewInstanceProperties(instanceEntity, properties, viewConfig, classLoader);
-  }
-
-  // Set the properties of the given view instance from the given property set.
-  private void setViewInstanceProperties(ViewInstanceEntity instanceEntity, Map<String, String> properties, ViewConfig viewConfig, ClassLoader classLoader) throws SystemException {
-    try {
-      Masker masker = getMasker(viewConfig.getMaskerClass(classLoader));
-
-      Map<String, ParameterConfig> parameterConfigMap = new HashMap<String, ParameterConfig>();
-      for (ParameterConfig paramConfig : viewConfig.getParameters()) {
-        parameterConfigMap.put(paramConfig.getName(), paramConfig);
-      }
-      for (Map.Entry<String, String> entry : properties.entrySet()) {
-        String name  = entry.getKey();
-        String value = entry.getValue();
-
-        ParameterConfig parameterConfig = parameterConfigMap.get(name);
-
-        if (parameterConfig != null && parameterConfig.isMasked()) {
-          value = masker.mask(value);
-        }
-        instanceEntity.putProperty(name, value);
-      }
-    } catch (Exception e) {
-      throw new SystemException("Caught exception while setting instance property.", e);
-    }
   }
 
   // Set the entities defined in the view persistence element for the given view instance

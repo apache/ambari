@@ -37,7 +37,6 @@ import org.apache.ambari.server.orm.entities.ViewInstancePropertyEntity;
 import org.apache.ambari.server.orm.entities.ViewParameterEntity;
 import org.apache.ambari.server.view.ViewRegistry;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -260,7 +259,7 @@ public class ViewInstanceResourceProvider extends AbstractResourceProvider {
   }
 
   // Convert a map of properties to a view instance entity.
-  private ViewInstanceEntity toEntity(Map<String, Object> properties) {
+  private ViewInstanceEntity toEntity(Map<String, Object> properties) throws AmbariException {
     String name = (String) properties.get(INSTANCE_NAME_PROPERTY_ID);
     if (name == null || name.isEmpty()) {
       throw new IllegalArgumentException("View instance name must be provided");
@@ -271,23 +270,25 @@ public class ViewInstanceResourceProvider extends AbstractResourceProvider {
       throw new IllegalArgumentException("View version must be provided");
     }
 
-    String viewName = (String) properties.get(VIEW_NAME_PROPERTY_ID);
-    if (viewName == null || viewName.isEmpty()) {
+    String commonViewName = (String) properties.get(VIEW_NAME_PROPERTY_ID);
+    if (commonViewName == null || commonViewName.isEmpty()) {
       throw new IllegalArgumentException("View name must be provided");
     }
 
-    ViewRegistry       viewRegistry       = ViewRegistry.getInstance();
-    ViewInstanceEntity viewInstanceEntity = viewRegistry.getInstanceDefinition(viewName, version, name);
+    ViewRegistry viewRegistry = ViewRegistry.getInstance();
+    ViewEntity   viewEntity   = viewRegistry.getDefinition(commonViewName, version);
+    String       viewName     = ViewEntity.getViewName(commonViewName, version);
 
-    viewName = ViewEntity.getViewName(viewName, version);
+    if (viewEntity == null) {
+      throw new IllegalArgumentException("View name " + viewName + " does not exist.");
+    }
+
+    ViewInstanceEntity viewInstanceEntity = viewRegistry.getInstanceDefinition(commonViewName, version, name);
 
     if (viewInstanceEntity == null) {
       viewInstanceEntity = new ViewInstanceEntity();
       viewInstanceEntity.setName(name);
       viewInstanceEntity.setViewName(viewName);
-      ViewEntity viewEntity = new ViewEntity();
-      viewEntity.setName(viewName);
-      viewEntity.setVersion(version);
       viewInstanceEntity.setViewEntity(viewEntity);
     }
     if (properties.containsKey(LABEL_PROPERTY_ID)) {
@@ -309,7 +310,7 @@ public class ViewInstanceResourceProvider extends AbstractResourceProvider {
       viewInstanceEntity.setIcon64((String) properties.get(ICON64_PATH_ID));
     }
 
-    Collection<ViewInstancePropertyEntity> instanceProperties = new HashSet<ViewInstancePropertyEntity>();
+    Map<String, String> instanceProperties = new HashMap<String, String>();
 
     boolean isUserAdmin = viewRegistry.checkAdmin();
 
@@ -321,22 +322,18 @@ public class ViewInstanceResourceProvider extends AbstractResourceProvider {
 
         // only allow an admin to access the view properties
         if (isUserAdmin) {
-          ViewInstancePropertyEntity viewInstancePropertyEntity = new ViewInstancePropertyEntity();
-
-          viewInstancePropertyEntity.setViewName(viewName);
-          viewInstancePropertyEntity.setViewInstanceName(name);
-          viewInstancePropertyEntity.setName(entry.getKey().substring(PROPERTIES_PREFIX.length()));
-          viewInstancePropertyEntity.setValue((String) entry.getValue());
-          viewInstancePropertyEntity.setViewInstanceEntity(viewInstanceEntity);
-
-          instanceProperties.add(viewInstancePropertyEntity);
+          instanceProperties.put(entry.getKey().substring(PROPERTIES_PREFIX.length()), (String) entry.getValue());
         }
       } else if (propertyName.startsWith(DATA_PREFIX)) {
         viewInstanceEntity.putInstanceData(entry.getKey().substring(DATA_PREFIX.length()), (String) entry.getValue());
       }
     }
     if (!instanceProperties.isEmpty()) {
-      viewInstanceEntity.setProperties(instanceProperties);
+      try {
+        viewRegistry.setViewInstanceProperties(viewInstanceEntity, instanceProperties, viewEntity.getConfiguration(), viewEntity.getClassLoader());
+      } catch (org.apache.ambari.view.SystemException e) {
+        throw new AmbariException("Caught exception trying to set view properties.", e);
+      }
     }
 
     return viewInstanceEntity;
