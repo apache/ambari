@@ -194,9 +194,6 @@ export HADOOP_LIBEXEC_DIR={{hadoop_libexec_dir}}
 
 #Mostly required for hadoop 2.0
 export JAVA_LIBRARY_PATH=${JAVA_LIBRARY_PATH}:/usr/lib/hadoop/lib/native/Linux-amd64-64
-
-#Hadoop logging options
-export HADOOP_ROOT_LOGGER={{hadoop_root_logger}}
     </value>
   </property>
   
