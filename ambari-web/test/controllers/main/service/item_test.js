@@ -27,6 +27,7 @@ require('controllers/global/cluster_controller');
 require('controllers/main/service/reassign_controller');
 require('controllers/main/service/item');
 var batchUtils = require('utils/batch_scheduled_requests');
+var componentsUtils = require('utils/components');
 
 describe('App.MainServiceItemController', function () {
 
@@ -602,26 +603,41 @@ describe('App.MainServiceItemController', function () {
       content: {
         hostComponents: [
           Em.Object.create({
-            isClient: true
+            isClient: true,
+            componentName: 'C1',
+            displayName: 'd1'
           })
-        ]
+        ],
+        serviceName: 'S1'
       }
     });
 
     beforeEach(function () {
-      sinon.stub($, 'fileDownload', function() {
-        return {
-          fail: function() { return false; }
-        }
-      });
+      sinon.stub(componentsUtils, 'downloadClientConfigs', Em.K);
     });
     afterEach(function () {
-      $.fileDownload.restore();
+      componentsUtils.downloadClientConfigs.restore();
     });
 
     it('should launch $.fileDownload method', function () {
       mainServiceItemController.downloadClientConfigs();
-      expect($.fileDownload.calledOnce).to.be.true;
+      expect(componentsUtils.downloadClientConfigs.calledWith({
+        serviceName: 'S1',
+        componentName: 'C1',
+        displayName: 'd1'
+      })).to.be.true;
+    });
+    it('should launch $.fileDownload method, event passed', function () {
+      var event = {
+        label: 'label1',
+        name: 'name1'
+      };
+      mainServiceItemController.downloadClientConfigs(event);
+      expect(componentsUtils.downloadClientConfigs.calledWith({
+        serviceName: 'S1',
+        componentName: 'name1',
+        displayName: 'label1'
+      })).to.be.true;
     });
   });
 

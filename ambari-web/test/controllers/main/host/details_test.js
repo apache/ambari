@@ -22,6 +22,7 @@ require('controllers/main/host/details');
 require('models/service');
 require('models/host_component');
 var batchUtils = require('utils/batch_scheduled_requests');
+var componentsUtils = require('utils/components');
 var controller;
 
 describe('App.MainHostDetailsController', function () {
@@ -1464,23 +1465,25 @@ describe('App.MainHostDetailsController', function () {
   describe('#downloadClientConfigs()', function () {
 
     beforeEach(function () {
-      sinon.stub($, 'fileDownload', function() {
-        return {
-          fail: function() { return false; }
-        }
-      });
+      sinon.stub(componentsUtils, 'downloadClientConfigs', Em.K);
     });
     afterEach(function () {
-      $.fileDownload.restore();
+      componentsUtils.downloadClientConfigs.restore();
     });
 
-    it('should launch $.fileDownload method', function () {
+    it('should launch componentsUtils.downloadClientConfigs method', function () {
       controller.downloadClientConfigs({
         context: Em.Object.create({
-          componentName: 'name'
+          componentName: 'name',
+          hostName: 'host1',
+          displayName: 'dName'
         })
       });
-      expect($.fileDownload.calledOnce).to.be.true;
+      expect(componentsUtils.downloadClientConfigs.calledWith({
+        componentName: 'name',
+        hostName: 'host1',
+        displayName: 'dName'
+      })).to.be.true;
     });
   });
 
