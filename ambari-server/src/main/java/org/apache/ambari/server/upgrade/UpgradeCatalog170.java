@@ -43,10 +43,10 @@ import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.ambari.server.orm.dao.ViewDAO;
 import org.apache.ambari.server.orm.dao.ViewInstanceDAO;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
+import org.apache.ambari.server.orm.entities.ClusterConfigMappingEntity;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntityPK;
-import org.apache.ambari.server.orm.entities.ClusterConfigMappingEntity;
 import org.apache.ambari.server.orm.entities.ConfigGroupConfigMappingEntity;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
@@ -70,6 +70,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
+import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.ambari.server.view.ViewRegistry;
 import org.slf4j.Logger;
@@ -646,6 +647,28 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
     addJobsViewPermissions();
     moveConfigGroupsGlobalToEnv();
     addMissingConfigs();
+    updateClusterProvisionState();
+  }
+
+  public void updateClusterProvisionState() {
+    // Change the provisioning_state of the cluster to INIT state
+    executeInTransaction(new Runnable() {
+      @Override
+      public void run() {
+        try {
+          final ClusterDAO clusterDAO = injector.getInstance(ClusterDAO.class);
+          EntityManager em = getEntityManagerProvider().get();
+          List<ClusterEntity> clusterEntities = clusterDAO.findAll();
+          for (ClusterEntity clusterEntity : clusterEntities) {
+            clusterEntity.setProvisioningState(State.INSTALLED);
+            em.merge(clusterEntity);
+          }
+        } catch (Exception e) {
+          LOG.warn("Updating cluster provisioning_state to INSTALLED threw " +
+              "exception. ", e);
+        }
+      }
+    });
   }
 
   public void moveHcatalogIntoHiveService() throws AmbariException {
