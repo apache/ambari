@@ -18,7 +18,7 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('ViewsEditCtrl', ['$scope', '$routeParams' , 'View', 'Alert', 'PermissionLoader', 'PermissionSaver', 'ConfirmationModal', '$location', function($scope, $routeParams, View, Alert, PermissionLoader, PermissionSaver, ConfirmationModal, $location) {
+.controller('ViewsEditCtrl', ['$scope', '$routeParams' , 'View', 'Alert', 'PermissionLoader', 'PermissionSaver', 'ConfirmationModal', '$location', 'UnsavedDialog', function($scope, $routeParams, View, Alert, PermissionLoader, PermissionSaver, ConfirmationModal, $location, UnsavedDialog) {
   $scope.identity = angular.identity;
   $scope.isConfigurationEmpty = true;
   function reloadViewInfo(){
@@ -79,9 +79,9 @@ angular.module('ambariAdminConsole')
     $scope.editSettingsDisabled = !$scope.editSettingsDisabled;
   };
 
-  $scope.saveSettings = function() {
+  $scope.saveSettings = function(callback) {
     if( $scope.settingsForm.$valid ){
-      View.updateInstance($routeParams.viewId, $routeParams.version, $routeParams.instanceId, {
+      return View.updateInstance($routeParams.viewId, $routeParams.version, $routeParams.instanceId, {
         'ViewInstanceInfo':{
           'visible': $scope.settings.visible,
           'label': $scope.settings.label,
@@ -89,8 +89,13 @@ angular.module('ambariAdminConsole')
         }
       })
       .success(function() {
-        reloadViewInfo();
-        $scope.editSettingsDisabled = true;
+        if( callback ){
+          callback();
+        } else {
+          reloadViewInfo();
+          $scope.editSettingsDisabled = true;
+          $scope.settingsForm.$setPristine();
+        }
       })
       .catch(function(data) {
         Alert.error('Cannot save settings', data.data.message);
@@ -104,6 +109,7 @@ angular.module('ambariAdminConsole')
       'description': $scope.instance.ViewInstanceInfo.description
     };
     $scope.editSettingsDisabled = true;
+    $scope.settingsForm.$setPristine();
   };
 
   
@@ -113,13 +119,14 @@ angular.module('ambariAdminConsole')
   }
   $scope.saveConfiguration = function() {
     if( $scope.propertiesForm.$valid ){
-      View.updateInstance($routeParams.viewId, $routeParams.version, $routeParams.instanceId, {
+      return View.updateInstance($routeParams.viewId, $routeParams.version, $routeParams.instanceId, {
         'ViewInstanceInfo':{
           'properties': $scope.configuration
         }
       })
       .success(function() {
         $scope.editConfigurationDisabled = true;
+        $scope.propertiesForm.$setPristine();
       })
       .catch(function(data) {
         Alert.error('Cannot save properties', data.data.message);
@@ -129,6 +136,7 @@ angular.module('ambariAdminConsole')
   $scope.cancelConfiguration = function() {
     $scope.configuration = angular.copy($scope.instance.ViewInstanceInfo.properties);
     $scope.editConfigurationDisabled = true;
+    $scope.propertiesForm.$setPristine();
   };
 
   // Permissions edit
@@ -139,12 +147,13 @@ angular.module('ambariAdminConsole')
   };
 
   $scope.savePermissions = function() {
-    PermissionSaver.saveViewPermissions(
+    $scope.editPermissionDisabled = true;
+    return PermissionSaver.saveViewPermissions(
       $scope.permissionsEdit,
       {
         view_name: $routeParams.viewId,
         version: $routeParams.version,
-        instance_name: $routeParams.instanceId,
+        instance_name: $routeParams.instanceId
       }
     )
     .then(reloadViewPrivileges)
@@ -152,7 +161,6 @@ angular.module('ambariAdminConsole')
       reloadViewPrivileges();
       Alert.error('Cannot save permissions', data.data.message);
     });
-    $scope.editPermissionDisabled = true;
   };
 
   $scope.$watch(function() {
@@ -174,4 +182,34 @@ angular.module('ambariAdminConsole')
       });
     });
   };
+
+  $scope.$on('$locationChangeStart', function(event, targetUrl) {
+    if( $scope.settingsForm.$dirty || $scope.propertiesForm.$dirty){
+      UnsavedDialog().then(function(action) {
+        targetUrl = targetUrl.split('#').pop();
+        switch(action){
+          case 'save':
+            if($scope.settingsForm.$valid &&  $scope.propertiesForm.$valid ){
+              $scope.saveSettings(function() {
+                $scope.saveConfiguration().then(function() {
+                  $scope.propertiesForm.$setPristine();
+                  $scope.settingsForm.$setPristine();
+                  $location.path(targetUrl);
+                });
+              });
+            }
+            break;
+          case 'discard':
+            $scope.propertiesForm.$setPristine();
+            $scope.settingsForm.$setPristine();
+            $location.path(targetUrl);
+            break;
+          case 'cancel':
+            targetUrl = '';
+            break;
+        }
+      });
+      event.preventDefault();
+    }
+  });
 }]);
