@@ -18,13 +18,6 @@
 
 package org.apache.ambari.server.upgrade;
 
-import static org.apache.ambari.server.upgrade.UpgradeCatalog170.CLUSTER_STATE_STACK_HDP_2_1;
-import static org.apache.ambari.server.upgrade.UpgradeCatalog170.JOBS_VIEW_NAME;
-import static org.apache.ambari.server.upgrade.UpgradeCatalog170.SHOW_JOBS_FOR_NON_ADMIN_KEY;
-import static org.apache.ambari.server.upgrade.UpgradeCatalog170.YARN_RESOURCEMANAGER_WEBAPP_ADDRESS_PROPERTY;
-import static org.apache.ambari.server.upgrade.UpgradeCatalog170.YARN_SITE;
-import static org.apache.ambari.server.upgrade.UpgradeCatalog170.YARN_TIMELINE_SERVICE_WEBAPP_ADDRESS_PROPERTY;
-
 import com.google.inject.Binder;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -85,6 +78,7 @@ import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.HostComponentAdminState;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.view.ViewRegistry;
 import org.easymock.Capture;
 import org.easymock.IAnswer;
@@ -122,6 +116,12 @@ import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertNull;
 import static junit.framework.Assert.assertTrue;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog170.CLUSTER_STATE_STACK_HDP_2_1;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog170.JOBS_VIEW_NAME;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog170.SHOW_JOBS_FOR_NON_ADMIN_KEY;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog170.YARN_RESOURCEMANAGER_WEBAPP_ADDRESS_PROPERTY;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog170.YARN_SITE;
+import static org.apache.ambari.server.upgrade.UpgradeCatalog170.YARN_TIMELINE_SERVICE_WEBAPP_ADDRESS_PROPERTY;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMockBuilder;
@@ -148,7 +148,7 @@ public class UpgradeCatalog170Test {
   private final String DESIRED_STACK_VERSION = "{\"stackName\":\"HDP\",\"stackVersion\":\"2.0.6\"}";
 
   Provider<EntityManager> entityManagerProvider = createStrictMock(Provider.class);
-  EntityManager entityManager = createStrictMock(EntityManager.class);
+  EntityManager entityManager = createNiceMock(EntityManager.class);
 
   @Before
   public void init() {
@@ -183,6 +183,7 @@ public class UpgradeCatalog170Test {
     clusterEntity.setClusterId(1L);
     clusterEntity.setClusterName(CLUSTER_NAME);
     clusterEntity.setDesiredStackVersion(DESIRED_STACK_VERSION);
+    clusterEntity.setProvisioningState(State.INIT);
     clusterEntity.setResource(resourceEntity);
     clusterDAO.create(clusterEntity);
     return clusterEntity;
@@ -276,49 +277,6 @@ public class UpgradeCatalog170Test {
     hostDAO.merge(hostEntity);
     clusterServiceDAO.merge(clusterServiceEntity);
   }
-
-  @Test
-  public void testMoveHcatalogIntoHiveService()  throws AmbariException{
-    final ClusterEntity clusterEntity = createCluster();
-    final ClusterServiceEntity clusterServiceEntityHDFS = addService(clusterEntity, "HDFS");
-    final ClusterServiceEntity clusterServiceEntityHIVE = addService(clusterEntity, "HIVE");
-    final ClusterServiceEntity clusterServiceEntityHCATALOG = addService(clusterEntity, "HCATALOG");
-    final ClusterServiceEntity clusterServiceEntityWEBHCAT = addService(clusterEntity, "WEBHCAT");
-    final HostEntity hostEntity = createHost(clusterEntity);
-    addComponent(clusterEntity, clusterServiceEntityHDFS, hostEntity, "NAMENODE");
-    addComponent(clusterEntity, clusterServiceEntityHIVE, hostEntity, "HIVE_SERVER");
-    addComponent(clusterEntity, clusterServiceEntityHCATALOG, hostEntity, "HCAT");
-    addComponent(clusterEntity, clusterServiceEntityWEBHCAT, hostEntity, "WEBHCAT_SERVER");
-    UpgradeCatalog170 upgradeCatalog170 = injector.getInstance(UpgradeCatalog170.class);
-    upgradeCatalog170.moveHcatalogIntoHiveService();
-
-    ServiceComponentDesiredStateDAO serviceComponentDesiredStateDAO = injector.getInstance(ServiceComponentDesiredStateDAO.class);
-    ServiceComponentDesiredStateEntityPK pkHCATInHive = new ServiceComponentDesiredStateEntityPK();
-    pkHCATInHive.setComponentName("HCAT");
-    pkHCATInHive.setClusterId(clusterEntity.getClusterId());
-    pkHCATInHive.setServiceName("HIVE");
-    ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity = serviceComponentDesiredStateDAO.findByPK(pkHCATInHive);
-    assertNotNull(serviceComponentDesiredStateEntity);
-
-    HostComponentDesiredStateDAO hostComponentDesiredStateDAO = injector.getInstance(HostComponentDesiredStateDAO.class);
-    HostComponentDesiredStateEntityPK hcDesiredStateEntityPk  = new HostComponentDesiredStateEntityPK();
-    hcDesiredStateEntityPk.setServiceName("HIVE");
-    hcDesiredStateEntityPk.setClusterId(clusterEntity.getClusterId());
-    hcDesiredStateEntityPk.setComponentName("HCAT");
-    hcDesiredStateEntityPk.setHostName(HOST_NAME);
-    HostComponentDesiredStateEntity hcDesiredStateEntity = hostComponentDesiredStateDAO.findByPK(hcDesiredStateEntityPk);
-    assertNotNull(hcDesiredStateEntity);
-
-    HostComponentStateDAO hostComponentStateDAO = injector.getInstance(HostComponentStateDAO.class);
-    HostComponentStateEntityPK hcStateEntityPk  = new HostComponentStateEntityPK();
-    hcStateEntityPk.setServiceName("HIVE");
-    hcStateEntityPk.setClusterId(clusterEntity.getClusterId());
-    hcStateEntityPk.setComponentName("HCAT");
-    hcStateEntityPk.setHostName(HOST_NAME);
-    HostComponentStateEntity hcStateEntity = hostComponentStateDAO.findByPK(hcStateEntityPk);
-    assertNotNull(hcStateEntity);
-  }
-
 
   @Test
   public void testExecuteDDLUpdates() throws Exception {
@@ -679,6 +637,61 @@ public class UpgradeCatalog170Test {
         jobsView, showJobsKeyValue, privilegeDAO, viewDAO, viewInstanceDAO, resourceDAO, keyValueDAO, userRolesResultSet,
         userEntity1, userEntity2, userPrincipal1, userPrincipal2, userPrivileges1, userPrivileges2,
         viewRegistry, clusterEntity, configEntity, configMappingEntity, clusterStateEntity);
+  }
+
+  @Test
+  public void testMoveHcatalogIntoHiveService()  throws AmbariException {
+    final ClusterEntity clusterEntity = createCluster();
+    final ClusterServiceEntity clusterServiceEntityHDFS = addService(clusterEntity, "HDFS");
+    final ClusterServiceEntity clusterServiceEntityHIVE = addService(clusterEntity, "HIVE");
+    final ClusterServiceEntity clusterServiceEntityHCATALOG = addService(clusterEntity, "HCATALOG");
+    final ClusterServiceEntity clusterServiceEntityWEBHCAT = addService(clusterEntity, "WEBHCAT");
+    final HostEntity hostEntity = createHost(clusterEntity);
+    addComponent(clusterEntity, clusterServiceEntityHDFS, hostEntity, "NAMENODE");
+    addComponent(clusterEntity, clusterServiceEntityHIVE, hostEntity, "HIVE_SERVER");
+    addComponent(clusterEntity, clusterServiceEntityHCATALOG, hostEntity, "HCAT");
+    addComponent(clusterEntity, clusterServiceEntityWEBHCAT, hostEntity, "WEBHCAT_SERVER");
+    UpgradeCatalog170 upgradeCatalog170 = injector.getInstance(UpgradeCatalog170.class);
+    upgradeCatalog170.moveHcatalogIntoHiveService();
+
+    ServiceComponentDesiredStateDAO serviceComponentDesiredStateDAO = injector.getInstance(ServiceComponentDesiredStateDAO.class);
+    ServiceComponentDesiredStateEntityPK pkHCATInHive = new ServiceComponentDesiredStateEntityPK();
+    pkHCATInHive.setComponentName("HCAT");
+    pkHCATInHive.setClusterId(clusterEntity.getClusterId());
+    pkHCATInHive.setServiceName("HIVE");
+    ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity = serviceComponentDesiredStateDAO.findByPK(pkHCATInHive);
+    assertNotNull(serviceComponentDesiredStateEntity);
+
+    HostComponentDesiredStateDAO hostComponentDesiredStateDAO = injector.getInstance(HostComponentDesiredStateDAO.class);
+    HostComponentDesiredStateEntityPK hcDesiredStateEntityPk  = new HostComponentDesiredStateEntityPK();
+    hcDesiredStateEntityPk.setServiceName("HIVE");
+    hcDesiredStateEntityPk.setClusterId(clusterEntity.getClusterId());
+    hcDesiredStateEntityPk.setComponentName("HCAT");
+    hcDesiredStateEntityPk.setHostName(HOST_NAME);
+    HostComponentDesiredStateEntity hcDesiredStateEntity = hostComponentDesiredStateDAO.findByPK(hcDesiredStateEntityPk);
+    assertNotNull(hcDesiredStateEntity);
+
+    HostComponentStateDAO hostComponentStateDAO = injector.getInstance(HostComponentStateDAO.class);
+    HostComponentStateEntityPK hcStateEntityPk  = new HostComponentStateEntityPK();
+    hcStateEntityPk.setServiceName("HIVE");
+    hcStateEntityPk.setClusterId(clusterEntity.getClusterId());
+    hcStateEntityPk.setComponentName("HCAT");
+    hcStateEntityPk.setHostName(HOST_NAME);
+    HostComponentStateEntity hcStateEntity = hostComponentStateDAO.findByPK(hcStateEntityPk);
+    assertNotNull(hcStateEntity);
+  }
+
+  @Test
+  public void updateClusterProvisionState()  throws AmbariException {
+    ClusterEntity clusterEntity = createCluster();
+    UpgradeCatalog170 upgradeCatalog170 = injector.getInstance(UpgradeCatalog170.class);
+    upgradeCatalog170.updateClusterProvisionState();    //action
+
+    ClusterDAO clusterDAO = injector.getInstance(ClusterDAO.class);
+    String assertMsg = "updated provisioning state should be installed";
+    String expectedState = "INSTALLED";
+    String actualState = clusterDAO.findById(1L).getProvisioningState().name();
+    assertEquals(assertMsg,expectedState, actualState);  //validation
   }
 
 
