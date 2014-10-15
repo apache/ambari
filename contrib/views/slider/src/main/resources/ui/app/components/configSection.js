@@ -129,7 +129,6 @@ App.ConfigSectionComponent = Em.Component.extend({
      * @method submit
      */
     submit: function() {
-      Bootstrap.ModalManager.hide('addPropertyModal');
       var name = this.get('newConfig.name'),
         value = this.get('newConfig.value');
       if (this.get('config').mapBy('name').contains(name)) {
@@ -149,6 +148,7 @@ App.ConfigSectionComponent = Em.Component.extend({
       this.get('config').pushObject(App.ConfigProperty.create({name: name, value: value, label: name}));
       this.cleanNewConfig();
       this.toggleProperty('buttonVisible');
+      Bootstrap.ModalManager.hide('addPropertyModal');
     },
 
     /**

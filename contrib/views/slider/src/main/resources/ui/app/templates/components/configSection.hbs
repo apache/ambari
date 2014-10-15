@@ -41,26 +41,26 @@
       {{/each}}
     </form>
     {{#if isCustom}}
-      {{#bs-button clicked="addProperty" type="link"}}{{t configs.add_property}}...{{/bs-button}}
+      {{#bs-button clicked="addProperty" class="add-property" type="link"}}{{t configs.add_property}}...{{/bs-button}}
     {{/if}}
 {{/bs-panel}}
 {{#bs-modal name="addPropertyModal" footerButtonsBinding="addPropertyModalButtons" titleBinding="addPropertyModalTitle"}}
 {{! "Add Property"-form}}
     <form class="form-horizontal" role="form">
-        <div class="form-group">
+        <div {{bind-attr class=":form-group newConfig.hasError:has-error"}}>
             <div class="col-sm-4">
                 <label class="control-label">{{t common.key}}</label>
             </div>
             <div class="col-sm-6">
-              {{input value=newConfig.name class="form-control"}}
+              {{input value=newConfig.name class="form-control new-config-name"}}
             </div>
         </div>
-        <div {{bind-attr class=":form-group newConfig.hasError:has-error"}}>
+        <div {{bind-attr class=":form-group"}}>
             <div class="col-sm-4">
                 <label class="control-label">{{t common.value}}</label>
             </div>
             <div class="col-sm-6">
-              {{input value=newConfig.value class="form-control"}}
+              {{input value=newConfig.value class="form-control new-config-value"}}
             </div>
         </div>
         <div class="form-group">

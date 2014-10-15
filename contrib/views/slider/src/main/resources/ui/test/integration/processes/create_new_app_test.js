@@ -78,6 +78,9 @@ var selectors = {
     buttonBack: 'button.btn:eq(1)',
     step2: {
       content: '#step2 table tbody'
+    },
+    step3: {
+      addPropertyButton: '#createAppWizard .add-property'
     }
   },
   newApp = {
@@ -276,4 +279,43 @@ test('check step2 back', function () {
     });
   });
 
+});
+
+test('check step3', function () {
+
+  visit('/createAppWizard/step1');
+  fillIn('#app-name-input', newApp.name);
+  click(selectors.buttonNext);
+
+  andThen(function () {
+    click(selectors.buttonNext);
+
+    andThen(function () {
+      // Step 3
+
+      click(selectors.step3.addPropertyButton);
+      andThen(function () {
+        fillIn('.new-config-name:eq(0)', '!!');
+        click('.modal-dialog:eq(0) .btn-success');
+        andThen(function () {
+          equal(find('.modal-dialog:eq(0) .alert').length, 1, 'Error-message for invalid config name exists');
+        });
+
+        fillIn('.new-config-name:eq(0)', 'agent.conf'); // config already exists
+        click('.modal-dialog:eq(0) .btn-success');
+        andThen(function () {
+          equal(find('.modal-dialog:eq(0) .alert').length, 1, 'Error-message for existing config name');
+        });
+
+        click('.modal-dialog:eq(0) .btn-default');
+        andThen(function () {
+          click(selectors.step3.addPropertyButton);
+          andThen(function () {
+            equal(find('.new-config-name:eq(0)').val(), '', 'New config name should be empty on second modal opening');
+            equal(find('.new-config-value:eq(0)').val(), '', 'New config value should be empty on second modal opening');
+          });
+        });
+      });
+    });
+  });
 });
