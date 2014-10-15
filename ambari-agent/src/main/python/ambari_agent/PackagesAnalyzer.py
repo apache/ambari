@@ -25,6 +25,10 @@ import shell
 import subprocess
 from threading import Thread
 import threading
+from ambari_commons import OSCheck, OSConst, Firewall
+
+LIST_INSTALLED_PACKAGES_UBUNTU = "for i in $(dpkg -l |grep ^ii |awk -F' ' '{print $2}'); do      apt-cache showpkg \"$i\"|head -3|grep -v '^Versions'| tr -d '()' | awk '{ print $1\" \"$2 }'|sed -e 's/^Package: //;' | paste -d ' ' - -;  done"
+LIST_AVAILABLE_PACKAGES_UBUNTU = "packages=`for  i in $(ls -1 /var/lib/apt/lists  | grep -v \"ubuntu.com\") ; do grep ^Package: /var/lib/apt/lists/$i |  awk '{print $2}' ; done` ; for i in $packages; do      apt-cache showpkg \"$i\"|head -3|grep -v '^Versions'| tr -d '()' | awk '{ print $1\" \"$2 }'|sed -e 's/^Package: //;' | paste -d ' ' - -;  done"
 
 logger = logging.getLogger()
 
@@ -35,7 +39,8 @@ class PackagesAnalyzer:
   event = threading.Event()
 
   def launch_subprocess(self, command):
-    return subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    isShell = not isinstance(command, (list, tuple))
+    return subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=isShell)
 
   def watchdog_func(self, command):
     self.event.wait(self.TIMEOUT_SECONDS)
@@ -69,39 +74,51 @@ class PackagesAnalyzer:
       if item[0].find(pkgName) == 0:
         installedPkgs.append(item[0])
 
-  def hasZypper(self):
-    try:
-      result = self.subprocessWithTimeout(["which", "zypper"])
-      if 0 == result['retCode']:
-        return True
-      else:
-        return False
-    except:
-      pass
-
   # All installed packages in systems supporting yum
   def allInstalledPackages(self, allInstalledPackages):
-    if self.hasZypper():
+    osType = OSCheck.get_os_family()
+    
+    if osType == OSConst.SUSE_FAMILY:
       return self.lookUpZypperPackages(
         ["zypper", "search", "--installed-only", "--details"],
         allInstalledPackages)
-    else:
+    elif osType == OSConst.REDHAT_FAMILY:
       return self.lookUpYumPackages(
         ["yum", "list", "installed"],
         'Installed Packages',
         allInstalledPackages)
+    elif osType == OSConst.UBUNTU_FAMILY:
+       return self.lookUpAptPackages(
+        LIST_INSTALLED_PACKAGES_UBUNTU,
+        allInstalledPackages)   
 
-  # All available packages in systems supporting yum
   def allAvailablePackages(self, allAvailablePackages):
-    if self.hasZypper():
+    osType = OSCheck.get_os_family()
+    
+    if osType == OSConst.SUSE_FAMILY:
       return self.lookUpZypperPackages(
         ["zypper", "search", "--uninstalled-only", "--details"],
         allAvailablePackages)
-    else:
+    elif osType == OSConst.REDHAT_FAMILY:
       return self.lookUpYumPackages(
         ["yum", "list", "available"],
         'Available Packages',
         allAvailablePackages)
+    elif osType == OSConst.UBUNTU_FAMILY:
+       return self.lookUpAptPackages(
+        LIST_AVAILABLE_PACKAGES_UBUNTU,
+        allAvailablePackages)   
+      
+  def lookUpAptPackages(self, command, allPackages):   
+    try:
+      result = self.subprocessWithTimeout(command)
+      if 0 == result['retCode']:
+        for x in result['out'].split('\n'):
+          if x.strip():
+            allPackages.append(x.split(' '))
+      
+    except:
+      pass
 
   def lookUpYumPackages(self, command, skipTill, allPackages):
     try:

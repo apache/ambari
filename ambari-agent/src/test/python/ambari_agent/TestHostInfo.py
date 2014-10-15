@@ -40,11 +40,10 @@ with patch("platform.linux_distribution", return_value = ('redhat','11','Final')
 @patch.object(System, "os_family", new = 'redhat')
 class TestHostInfo(TestCase):
 
-  logger = logging.getLogger()
-
-  @patch.object(PackagesAnalyzer, 'hasZypper')
+  @patch.object(OSCheck, 'get_os_family')
   @patch.object(PackagesAnalyzer, 'subprocessWithTimeout')
-  def test_analyze_zypper_out(self, spwt_mock, hasZy_mock):
+  def test_analyze_zypper_out(self, spwt_mock, get_os_family_mock):
+    get_os_family_mock.return_value = 'suse'
     packageAnalyzer = PackagesAnalyzer()
     stringToRead = """Refreshing service 'susecloud'.
            Loading repository data...
@@ -65,7 +64,6 @@ class TestHostInfo(TestCase):
     result['retCode'] = 0
 
     spwt_mock.return_value = result
-    hasZy_mock.return_value = True
     installedPackages = []
     packageAnalyzer.allInstalledPackages(installedPackages)
     self.assertEqual(7, len(installedPackages))
@@ -133,9 +131,10 @@ class TestHostInfo(TestCase):
     for package in expected:
       self.assertTrue(package in allPackages)
 
-  @patch.object(PackagesAnalyzer, 'hasZypper')
+  @patch.object(OSCheck, 'get_os_family')
   @patch.object(PackagesAnalyzer, 'subprocessWithTimeout')
-  def test_analyze_yum_output(self, subprocessWithTimeout_mock, hasZy_mock):
+  def test_analyze_yum_output(self, subprocessWithTimeout_mock, get_os_family_mock):
+    get_os_family_mock.return_value = 'redhat'
     packageAnalyzer = PackagesAnalyzer()
     stringToRead = """Loaded plugins: amazon-id, product-id, rhui-lb, security, subscription-manager
                       Updating certificate-based repositories.
@@ -159,7 +158,6 @@ class TestHostInfo(TestCase):
     result['retCode'] = 0
 
     subprocessWithTimeout_mock.return_value = result
-    hasZy_mock.return_value = False
     installedPackages = []
     packageAnalyzer.allInstalledPackages(installedPackages)
     self.assertEqual(9, len(installedPackages))
