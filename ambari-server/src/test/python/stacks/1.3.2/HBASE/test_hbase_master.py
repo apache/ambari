@@ -89,7 +89,7 @@ class TestHBaseMaster(RMFTestCase):
     self.assertNoMoreResources()
 
   def test_decom_default_draining_only(self):
-    self.executeScript("2.0.6/services/HBASE/package/scripts/hbase_master.py",
+    self.executeScript("1.3.2/services/HBASE/package/scripts/hbase_master.py",
                        classname = "HbaseMaster",
                        command = "decommission",
                        config_file="default.hbasedecom.json"
@@ -99,11 +99,11 @@ class TestHBaseMaster(RMFTestCase):
                               content = StaticFile('draining_servers.rb'),
                               mode = 0755,
                               )
-    self.assertResourceCalled('Execute', ' /usr/lib/hbase/bin/hbase --config /etc/hbase/conf org.jruby.Main /usr/lib/hbase/bin/draining_servers.rb add host1',
+    self.assertResourceCalled('Execute', ' /usr/lib/hbase/bin/hbase --config /etc/hbase/conf org.jruby.Main /usr/lib/hbase/bin/draining_servers.rb remove host1',
                               logoutput = True,
                               user = 'hbase',
                               )
-    self.assertResourceCalled('Execute', ' /usr/lib/hbase/bin/hbase --config /etc/hbase/conf org.jruby.Main /usr/lib/hbase/bin/region_mover.rb unload host1',
+    self.assertResourceCalled('Execute', ' /usr/lib/hbase/bin/hbase --config /etc/hbase/conf org.jruby.Main /usr/lib/hbase/bin/draining_servers.rb remove host2',
                               logoutput = True,
                               user = 'hbase',
                               )

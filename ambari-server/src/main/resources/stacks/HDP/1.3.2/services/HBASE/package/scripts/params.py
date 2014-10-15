@@ -32,7 +32,7 @@ region_mover = "/usr/lib/hbase/bin/region_mover.rb"
 region_drainer = "/usr/lib/hbase/bin/draining_servers.rb"
 hbase_cmd = "/usr/lib/hbase/bin/hbase"
 hbase_excluded_hosts = config['commandParams']['excluded_hosts']
-hbase_drain_only = config['commandParams']['mark_draining_only']
+hbase_drain_only = default("/commandParams/mark_draining_only",False)
 hbase_included_hosts = config['commandParams']['included_hosts']
 
 hbase_user = status_params.hbase_user
