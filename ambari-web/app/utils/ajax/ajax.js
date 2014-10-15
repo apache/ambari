@@ -1394,7 +1394,7 @@ var urls = {
     }
   },
   'router.login': {
-    'real': '/users/{loginName}',
+    'real': '/users/{loginName}?fields=*,privileges/PrivilegeInfo/cluster_name,privileges/PrivilegeInfo/permission_name',
     'mock': '/data/users/user_{usr}.json',
     'format': function (data) {
       var statusCode = jQuery.extend({}, require('data/statusCodes'));

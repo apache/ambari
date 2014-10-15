@@ -168,30 +168,6 @@ App.Router = Em.Router.extend({
     return App.db.getUser();
   },
 
-  /**
-   * Get user privileges.
-   *
-   * @param {String} userName
-   * @returns {$.Deferred}
-   **/
-  getUserPrivileges: function(userName) {
-    return App.ajax.send({
-      name: 'router.user.privileges',
-      sender: this,
-      data: {
-        userName: userName
-      },
-      success: 'getUserPrivilegesSuccess',
-      error: 'getUserPrivilegesError'
-    });
-  },
-
-  getUserPrivilegesSuccess: function() {},
-
-  getUserPrivilegesError: function(req) {
-    console.log("Get user privileges error: " + req.statusCode);
-  },
-
   setUserLoggedIn: function(userName) {
     this.setAuthenticated(true);
     this.setLoginName(userName);
@@ -243,6 +219,9 @@ App.Router = Em.Router.extend({
 
   loginSuccessCallback: function(data, opt, params) {
     console.log('login success');
+    App.usersMapper.map({"items": [data]});
+    this.setUserLoggedIn(params.loginName);
+    App.router.get('mainViewsController').loadAmbariViews();
     App.ajax.send({
       name: 'router.login.clusters',
       sender: this,
@@ -276,14 +255,9 @@ App.Router = Em.Router.extend({
     //TODO: Replace hard coded value with query. Same in templates/application.hbs
     var loginController = this.get('loginController');
     var loginData = params.loginData;
+    var privileges = loginData.privileges;
     var router = this;
-
-    this.getUserPrivileges(params.loginName).done(function(privileges) {
-      loginData.privileges = privileges;
-      App.usersMapper.map({"items": [loginData]});
-      router.setUserLoggedIn(params.loginName);
-      App.router.get('mainViewsController').loadAmbariViews();
-      var permissionList = privileges.items.mapProperty('PrivilegeInfo.permission_name');
+    var permissionList = privileges.mapProperty('PrivilegeInfo.permission_name');
       var isAdmin = permissionList.contains('AMBARI.ADMIN');
       var transitionToApp = false;
       if (isAdmin) {
@@ -300,7 +274,7 @@ App.Router = Em.Router.extend({
           router.setClusterInstalled(clustersData);
           //TODO: Iterate over clusters
           var clusterName = clustersData.items[0].Clusters.cluster_name;
-          var clusterPermissions = privileges.items.filterProperty('PrivilegeInfo.cluster_name', clusterName).mapProperty('PrivilegeInfo.permission_name');
+          var clusterPermissions = privileges.filterProperty('PrivilegeInfo.cluster_name', clusterName).mapProperty('PrivilegeInfo.permission_name');
           if (clusterPermissions.contains('CLUSTER.OPERATE')) {
             App.set('isAdmin', true);
             App.set('isOperator', true);
@@ -324,7 +298,6 @@ App.Router = Em.Router.extend({
         router.transitionTo('main.views.index');
         loginController.postLogin(true,true);
       }
-    });
   },
 
   loginGetClustersErrorCallback: function (req) {
