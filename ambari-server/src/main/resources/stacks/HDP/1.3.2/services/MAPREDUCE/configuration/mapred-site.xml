@@ -458,23 +458,6 @@
   </property>
 
   <property>
-    <name>mapreduce.jobtracker.kerberos.principal</name>
-    <value>jt/_HOST@EXAMPLE.COM</value>
-    <description>
-      JT user name key.
-    </description>
-  </property>
-
-  <property>
-    <name>mapreduce.tasktracker.kerberos.principal</name>
-    <value>tt/_HOST@EXAMPLE.COM</value>
-    <description>
-      tt user name key. "_HOST" is replaced by the host name of the task tracker.
-    </description>
-  </property>
-
-
-  <property>
     <name>hadoop.job.history.user.location</name>
     <value>none</value>
     <description> Location to store the history files of a particular job. If set to none, then the job histories are
@@ -484,20 +467,6 @@
   </property>
 
 
-  <property>
-    <name>mapreduce.jobtracker.keytab.file</name>
-    <value>/etc/security/keytabs/jt.service.keytab</value>
-    <description>
-      The keytab for the jobtracker principal.
-    </description>
-
-  </property>
-
-  <property>
-    <name>mapreduce.tasktracker.keytab.file</name>
-    <value>/etc/security/keytabs/tt.service.keytab</value>
-    <description>The filename of the keytab for the task tracker</description>
-  </property>
 
   <property>
     <name>mapreduce.jobtracker.staging.root.dir</name>
@@ -537,20 +506,6 @@
     <final>true</final>
   </property>
 
-  <property>
-    <name>mapreduce.jobhistory.kerberos.principal</name>
-    <!-- cluster variant -->
-    <value>jhs/_HOST@EXAMPLE.COM</value>
-    <description>Job history user name key. (must map to same user as JT
-      user)</description>
-  </property>
-
-  <property>
-    <name>mapreduce.jobhistory.keytab.file</name>
-    <!-- cluster variant -->
-    <value>/etc/security/keytabs/jhs.service.keytab</value>
-    <description>The keytab for the job history server principal.</description>
-  </property>
 
   <property>
     <name>mapred.jobtracker.blacklist.fault-timeout-window</name>

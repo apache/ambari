@@ -171,12 +171,6 @@
   </property>
 
   <property>
-    <name>mapreduce.jobhistory.keytab.file</name>
-    <value>/etc/security/keytabs/jhs.service.keytab</value>
-    <description>The keytab for the job history server principal.</description>
-  </property>
-
-  <property>
     <name>mapreduce.shuffle.port</name>
     <value>13562</value>
     <description>
