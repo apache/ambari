@@ -61,6 +61,7 @@ import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.ambari.server.orm.dao.ViewDAO;
 import org.apache.ambari.server.orm.dao.ViewInstanceDAO;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
+import org.apache.ambari.server.orm.entities.PrincipalEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
@@ -816,6 +817,14 @@ public class ViewRegistryTest {
     PrivilegeEntity privilege2 = createNiceMock(PrivilegeEntity.class);
     List<PrivilegeEntity> privileges = Arrays.asList(privilege1, privilege2);
 
+    PrincipalEntity principalEntity = createNiceMock(PrincipalEntity.class);
+
+    expect(privilege1.getPrincipal()).andReturn(principalEntity);
+    expect(privilege2.getPrincipal()).andReturn(principalEntity);
+
+    principalEntity.removePrivilege(privilege1);
+    principalEntity.removePrivilege(privilege2);
+
     expect(privilegeDAO.findByResourceId(3L)).andReturn(privileges);
     privilegeDAO.remove(privilege1);
     privilegeDAO.remove(privilege2);
@@ -823,7 +832,7 @@ public class ViewRegistryTest {
 
     handlerList.removeViewInstance(viewInstanceEntity);
 
-    replay(viewInstanceDAO, privilegeDAO, handlerList);
+    replay(viewInstanceDAO, privilegeDAO, handlerList, privilege1, privilege2, principalEntity);
 
     registry.addDefinition(viewEntity);
     registry.addInstanceDefinition(viewEntity, viewInstanceEntity);
@@ -833,7 +842,7 @@ public class ViewRegistryTest {
 
     Assert.assertEquals(0, viewInstanceDefinitions.size());
 
-    verify(viewInstanceDAO, privilegeDAO, handlerList);
+    verify(viewInstanceDAO, privilegeDAO, handlerList, privilege1, privilege2, principalEntity);
   }
 
   @Test
