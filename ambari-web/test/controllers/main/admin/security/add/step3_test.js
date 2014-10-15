@@ -101,17 +101,31 @@ describe('App.MainAdminSecurityAddStep3Controller', function () {
   });
 
   describe('#buildComponentToOwnerMap()', function() {
+    beforeEach(function(){
+      sinon.stub(controller, 'getSecurityUsers', function () {
+        return [{
+          name: 'storm_user',
+          value: 'storm'
+        }];
+      });
+    });
+    afterEach(function(){
+      controller.getSecurityUsers.restore();
+    });
+
     it('componentToUserMap is empty', function() {
-      controller.set('componentToUserMap', {});
+      sinon.stub(controller, 'get').withArgs('componentToUserMap').returns({});
       expect(controller.buildComponentToOwnerMap([])).to.eql({});
+      controller.get.restore();
     });
     it('componentToUserMap has properties', function() {
-      controller.set('componentToUserMap', {'COMP1': 'config1'});
       var securityUsers = [{
         name: 'config1',
         value: 'value1'
       }];
+      sinon.stub(controller, 'get').withArgs('componentToUserMap').returns({'COMP1': 'config1'});
       expect(controller.buildComponentToOwnerMap(securityUsers)).to.eql({'COMP1': 'value1'});
+      controller.get.restore();
     });
   });
 
@@ -341,6 +355,50 @@ describe('App.MainAdminSecurityAddStep3Controller', function () {
     });
   });
 
+  describe('#setHostComponentsSecureValue()', function () {
+
+    it('DRPC Server principal should point to Nimbus host for HDP-2.2 stack', function () {
+      sinon.stub(App, 'get').withArgs('isHadoop22Stack').returns(true);
+      sinon.stub(controller, 'get').withArgs('content.serviceConfigProperties').returns([]);
+      sinon.stub(controller, 'getNimbusHostName').returns('nimbus_host');
+      sinon.stub(controller, 'buildComponentToOwnerMap').returns({'DRPC_SERVER': 'storm'});
+      sinon.stub(controller, 'getSecureProperties').returns({
+        "keytab": "/etc/security/keytabs/nimbus.service.keytab",
+        "principal": "nimbus/nimbus_host"
+      });
+      sinon.stub(controller, 'getSecurityUsers', function () {
+        return [
+          {
+            name: 'storm_user',
+            value: 'storm'
+          }
+        ];
+      });
+      var host = Em.Object.create({
+        hostComponents: [Em.Object.create({
+          componentName: 'DRPC_SERVER',
+          displayName: 'DRPC Server'
+        })]
+      });
+
+      var result = [];
+      controller.setHostComponentsSecureValue(result, host, {}, [], 'hadoopId');
+      expect(result).to.be.not.empty;
+      expect(controller.getSecureProperties.args[0][2]).to.equal('nimbus_host');
+
+      var hostComponent = result[0];
+      expect(hostComponent.principal).to.equal('nimbus/nimbus_host');
+      expect(hostComponent.owner).to.equal('storm');
+
+      App.get.restore();
+      controller.get.restore();
+      controller.getNimbusHostName.restore();
+      controller.buildComponentToOwnerMap.restore();
+      controller.getSecureProperties.restore();
+      controller.getSecurityUsers.restore();
+    });
+  });
+
   describe('#getSecureProperties()', function () {
 
     beforeEach(function () {
@@ -520,39 +578,6 @@ describe('App.MainAdminSecurityAddStep3Controller', function () {
     });
     it('name is not HiveServer2', function() {
       expect(controller.changeDisplayName('something')).to.equal('something');
-    });
-  });
-
-  describe('#getSecurityUsers()', function () {
-    it('testMode is true, testModeUsers is empty', function () {
-      controller.set('testModeUsers', []);
-      App.testMode = true;
-      expect(controller.getSecurityUsers()).to.eql([]);
-    });
-    it('testMode is true, testModeUsers is correct', function () {
-      controller.set('testModeUsers', [
-        {
-          name: 'user1',
-          value: 'value1'
-        }
-      ]);
-      App.testMode = true;
-      expect(controller.getSecurityUsers()).to.eql([
-        {
-          id: 'puppet var',
-          name: 'user1',
-          value: 'value1'
-        }
-      ]);
-    });
-    it('testMode is false', function () {
-      sinon.stub(App.db, 'getSecureUserInfo', function () {
-        return [{}];
-      });
-      App.testMode = false;
-      expect(controller.getSecurityUsers()).to.eql([{}]);
-      expect(App.db.getSecureUserInfo.calledOnce).to.be.true;
-      App.db.getSecureUserInfo.restore();
     });
   });
 });

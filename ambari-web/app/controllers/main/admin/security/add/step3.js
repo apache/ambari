@@ -25,30 +25,35 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
   hosts: [],
   isLoaded: false,
 
-  componentToUserMap: {
-    'NAMENODE': 'hdfs_user',
-    'SECONDARY_NAMENODE': 'hdfs_user',
-    'DATANODE': 'hdfs_user',
-    'JOURNALNODE': 'hdfs_user',
-    'TASKTRACKER': 'mapred_user',
-    'JOBTRACKER': 'mapred_user',
-    'HISTORYSERVER': 'mapred_user',
-    'RESOURCEMANAGER': 'yarn_user',
-    'NODEMANAGER': 'yarn_user',
-    'ZOOKEEPER_SERVER': 'zk_user',
-    'HIVE_SERVER': 'hive_user',
-    'OOZIE_SERVER': 'oozie_user',
-    'NAGIOS_SERVER': 'nagios_user',
-    'HBASE_MASTER': 'hbase_user',
-    'HBASE_REGIONSERVER': 'hbase_user',
-    'SUPERVISOR': 'storm_user',
-    'NIMBUS': 'storm_user',
-    'STORM_UI_SERVER': 'storm_user',
-    'FALCON_SERVER': 'falcon_user'
-  },
+  componentToUserMap: function() {
+    var map = {
+      'NAMENODE': 'hdfs_user',
+      'SECONDARY_NAMENODE': 'hdfs_user',
+      'DATANODE': 'hdfs_user',
+      'JOURNALNODE': 'hdfs_user',
+      'TASKTRACKER': 'mapred_user',
+      'JOBTRACKER': 'mapred_user',
+      'HISTORYSERVER': 'mapred_user',
+      'RESOURCEMANAGER': 'yarn_user',
+      'NODEMANAGER': 'yarn_user',
+      'ZOOKEEPER_SERVER': 'zk_user',
+      'HIVE_SERVER': 'hive_user',
+      'OOZIE_SERVER': 'oozie_user',
+      'NAGIOS_SERVER': 'nagios_user',
+      'HBASE_MASTER': 'hbase_user',
+      'HBASE_REGIONSERVER': 'hbase_user',
+      'SUPERVISOR': 'storm_user',
+      'NIMBUS': 'storm_user',
+      'STORM_UI_SERVER': 'storm_user',
+      'FALCON_SERVER': 'falcon_user'
+    };
+    if (App.get('isHadoop22Stack')) {
+      map['DRPC_SERVER'] = 'storm_user'
+    }
+    return map;
+  }.property('App.isHadoop22Stack'),
   // The componentName, principal, and keytab have to coincide with the values in secure_properties.js
-  componentToConfigMap: function () {
-    var hdp2map = [
+  componentToConfigMap: [
       {
         componentName: 'NAMENODE',
         principal: 'hadoop_http_principal_name',
@@ -126,18 +131,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
         displayName: Em.I18n.t('admin.addSecurity.user.yarn.atsHTTPUser'),
         isHadoop2Stack: true
       }
-    ];
-    if (App.get('isHadoop22Stack')) {
-      hdp2map.push({
-        componentName: 'DRPC_SERVER',
-        principal: 'nimbus_principal_name',
-        keytab: 'nimbus_keytab',
-        displayName: 'DRPC_SERVER',
-        isHadoop2Stack: true
-      });
-    }
-    return hdp2map;
-  }.property('App.isHadoop22Stack'),
+  ],
 
   mandatoryConfigs: [
     {
@@ -157,22 +151,6 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
       displayName: Em.I18n.t('admin.addSecurity.user.hbaseUser'),
       checkService: 'HBASE'
     }
-  ],
-  /**
-   * mock users that used in testMode
-   */
-  testModeUsers: [
-    { name: 'hdfs_user', value: 'hdfs'},
-    { name: 'mapred_user', value: 'mapred'},
-    { name: 'yarn_user', value: 'yarn'},
-    { name: 'hbase_user', value: 'hbase'},
-    { name: 'hive_user', value: 'hive'},
-    { name: 'falcon_user', value: 'falcon'},
-    { name: 'smokeuser', value: 'ambari-qa'},
-    { name: 'zk_user', value: 'zookeeper'},
-    { name: 'oozie_user', value: 'oozie'},
-    { name: 'nagios_user', value: 'nagios'},
-    { name: 'user_group', value: 'hadoop'}
   ],
 
   /**
@@ -263,6 +241,18 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
   },
 
   /**
+   * Returns host name for Nimbus component
+   */
+  getNimbusHostName: function () {
+    var host = this.get('hosts').find(function (host) {
+      return !!host.get('hostComponents').findProperty('componentName', 'NIMBUS');
+    });
+    if (host) {
+      return host.get('hostName');
+    }
+  },
+
+  /**
    * build map of connections between component and user
    * @param securityUsers
    */
@@ -270,7 +260,9 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
     var componentToUserMap = this.get('componentToUserMap');
     var componentToOwnerMap = {};
     for (var component in componentToUserMap) {
-      componentToOwnerMap[component] = securityUsers.findProperty('name', componentToUserMap[component]).value;
+      var user = componentToUserMap[component];
+      var secutityUser = securityUsers.findProperty('name', user);
+      componentToOwnerMap[component] = secutityUser.value;
     }
     return componentToOwnerMap;
   },
@@ -359,6 +351,9 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
     var componentsToDisplay = ['NAMENODE', 'SECONDARY_NAMENODE', 'DATANODE', 'JOBTRACKER', 'ZOOKEEPER_SERVER', 'HIVE_SERVER', 'TASKTRACKER',
       'OOZIE_SERVER', 'NAGIOS_SERVER', 'HBASE_MASTER', 'HBASE_REGIONSERVER', 'HISTORYSERVER', 'RESOURCEMANAGER', 'NODEMANAGER', 'JOURNALNODE',
       'SUPERVISOR', 'NIMBUS', 'STORM_UI_SERVER', 'FALCON_SERVER'];
+    if (App.get('isHadoop22Stack')) {
+      componentsToDisplay.push('DRPC_SERVER');
+    }
     var configs = this.get('content.serviceConfigProperties');
     var componentToOwnerMap = this.buildComponentToOwnerMap(securityUsers);
     var hostName = host.get('hostName');
@@ -369,7 +364,11 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
     host.get('hostComponents').forEach(function (hostComponent) {
       if (componentsToDisplay.contains(hostComponent.get('componentName'))) {
         var serviceConfigs = configs.filterProperty('serviceName', hostComponent.get('service.serviceName'));
-        var secureProperties = this.getSecureProperties(serviceConfigs, hostComponent.get('componentName'), hostName);
+        var targetHost = hostName;
+        if (App.get('isHadoop22Stack') && hostComponent.get('componentName') === 'DRPC_SERVER') {
+          targetHost = this.getNimbusHostName()
+        }
+        var secureProperties = this.getSecureProperties(serviceConfigs, hostComponent.get('componentName'), targetHost);
         var displayName = this.changeDisplayName(hostComponent.get('displayName'));
         var key = hostName + "--" + secureProperties.principal;
 
@@ -433,19 +432,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
    * @return {Array}
    */
   getSecurityUsers: function () {
-    var securityUsers = [];
-    if (App.get('testMode')) {
-      this.get('testModeUsers').forEach(function (user) {
-        securityUsers.push({
-          id: 'puppet var',
-          name: user.name,
-          value: user.value
-        });
-      });
-    } else {
-      securityUsers = App.db.getSecureUserInfo();
-    }
-    return securityUsers;
+    return App.db.getSecureUserInfo();
   },
 
   /**
