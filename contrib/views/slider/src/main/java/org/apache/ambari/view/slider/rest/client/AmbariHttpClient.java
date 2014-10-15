@@ -19,10 +19,12 @@
 package org.apache.ambari.view.slider.rest.client;
 
 import java.io.IOException;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.ambari.view.slider.clients.AmbariClient;
 import org.apache.ambari.view.slider.clients.AmbariCluster;
@@ -32,11 +34,14 @@ import org.apache.ambari.view.slider.clients.AmbariHostInfo;
 import org.apache.ambari.view.slider.clients.AmbariService;
 import org.apache.ambari.view.slider.clients.AmbariServiceInfo;
 import org.apache.commons.httpclient.HttpException;
+import org.apache.commons.httpclient.HttpStatus;
 import org.apache.log4j.Logger;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.stream.JsonReader;
 
 public class AmbariHttpClient extends BaseHttpClient implements AmbariClient {
 
@@ -45,34 +50,77 @@ public class AmbariHttpClient extends BaseHttpClient implements AmbariClient {
 	public AmbariHttpClient(String url, String userId, String password) {
 		super(url, userId, password);
 	}
+	
+    @SuppressWarnings("deprecation")
+    private RuntimeException createRuntimeException(HttpException httpException) {
+      String message = httpException.getMessage();
+      try {
+        JsonElement jsonElement = new JsonParser().parse(new JsonReader(new StringReader(httpException.getMessage())));
+        if (jsonElement != null && jsonElement.getAsJsonObject().has("message")) {
+          message = jsonElement.getAsJsonObject().get("message").getAsString();
+        }
+      } catch (Throwable t) {
+      }
+      if (httpException.getReasonCode() != HttpStatus.SC_OK) {
+        message = httpException.getReasonCode() + " " + httpException.getReason() + ": " + message;
+      }
+      return new RuntimeException(message, httpException);
+    }
 
-	/**
-	 * Provides the first cluster defined on this Ambari server.
-	 * 
-	 * @return
-	 */
-	public AmbariClusterInfo getClusterInfo() {
-		try {
-			JsonElement jsonElement = doGetJson("/api/v1/clusters");
-			JsonObject jsonObject = jsonElement.getAsJsonObject();
-			JsonArray clustersArray = jsonObject.get("items").getAsJsonArray();
-			if (clustersArray.size() > 0) {
-				AmbariClusterInfo cluster = new AmbariClusterInfo();
-				JsonObject clusterObj = clustersArray.get(0).getAsJsonObject()
-				    .get("Clusters").getAsJsonObject();
-				cluster.setName(clusterObj.get("cluster_name").getAsString());
-				cluster.setVersion(clusterObj.get("version").getAsString());
-				return cluster;
-			}
-		} catch (HttpException e) {
-			logger.warn("Unable to determine Ambari clusters", e);
-			throw new RuntimeException(e.getMessage(), e);
-		} catch (IOException e) {
-			logger.warn("Unable to determine Ambari clusters", e);
-			throw new RuntimeException(e.getMessage(), e);
-		}
-		return null;
-	}
+    /**
+     * Provides the first cluster defined on this Ambari server.
+     * 
+     * @return
+     */
+    public AmbariClusterInfo getClusterInfo() {
+        try {
+            JsonElement jsonElement = doGetJson("/api/v1/clusters");
+            if(jsonElement==null) {
+              return null;
+            }
+            JsonObject jsonObject = jsonElement.getAsJsonObject();
+            JsonArray clustersArray = jsonObject.get("items").getAsJsonArray();
+            if (clustersArray.size() > 0) {
+                AmbariClusterInfo cluster = new AmbariClusterInfo();
+                JsonObject clusterObj = clustersArray.get(0).getAsJsonObject()
+                    .get("Clusters").getAsJsonObject();
+                cluster.setName(clusterObj.get("cluster_name").getAsString());
+                cluster.setVersion(clusterObj.get("version").getAsString());
+                return cluster;
+            }
+        } catch (HttpException e) {
+            logger.warn("Unable to determine Ambari clusters", e);
+            throw createRuntimeException(e);
+        } catch (IOException e) {
+            logger.warn("Unable to determine Ambari clusters", e);
+            throw new RuntimeException(e.getMessage(), e);
+        }
+        return null;
+    }
+
+    /**
+     * Provides the first cluster defined on this Ambari server.
+     * 
+     * @return
+     */
+    public Map<String, String> getAmbariServerConfigs() {
+      Map<String, String> configs = new HashMap<String, String>();
+      try {
+        JsonElement jsonElement = doGetJson("/api/v1/services/AMBARI/components/AMBARI_SERVER");
+        if (jsonElement != null && jsonElement.getAsJsonObject().has("RootServiceComponents")
+            && jsonElement.getAsJsonObject().get("RootServiceComponents").getAsJsonObject().has("properties")) {
+          JsonObject ambariProperties = jsonElement.getAsJsonObject().get("RootServiceComponents").getAsJsonObject().get("properties").getAsJsonObject();
+          for (Entry<String, JsonElement> entry : ambariProperties.entrySet()) {
+            configs.put(entry.getKey(), entry.getValue().getAsString());
+          }
+        }
+      } catch (HttpException e) {
+        logger.warn("Unable to determine Ambari clusters", e);
+      } catch (IOException e) {
+        logger.warn("Unable to determine Ambari clusters", e);
+      }
+      return configs;
+    }
 
 	public AmbariCluster getCluster(AmbariClusterInfo clusterInfo) {
 		if (clusterInfo != null) {
@@ -120,10 +168,14 @@ public class AmbariHttpClient extends BaseHttpClient implements AmbariClient {
 					cluster.setHosts(hosts);
 					return cluster;
 				}
+			} catch (IllegalStateException e) {
+			  logger.warn("Unable to determine Ambari cluster details - "
+			      + clusterInfo.getName(), e);
+			  throw new RuntimeException(e.getMessage(), e);
 			} catch (HttpException e) {
 				logger.warn("Unable to determine Ambari cluster details - "
 				    + clusterInfo.getName(), e);
-				throw new RuntimeException(e.getMessage(), e);
+				throw createRuntimeException(e);
 			} catch (IOException e) {
 				logger.warn("Unable to determine Ambari cluster details - "
 				    + clusterInfo.getName(), e);
@@ -140,20 +192,22 @@ public class AmbariHttpClient extends BaseHttpClient implements AmbariClient {
 				JsonElement jsonElement = doGetJson("/api/v1/clusters/"
 				    + cluster.getName() + "/configurations?type=" + configType
 				    + "&tag=" + configTag);
-				JsonObject jsonObject = jsonElement.getAsJsonObject();
-				JsonArray configsArray = jsonObject.get("items").getAsJsonArray();
-				if (configsArray.size() > 0) {
-					JsonObject propertiesObj = configsArray.get(0).getAsJsonObject()
-					    .get("properties").getAsJsonObject();
-					Map<String, String> properties = new HashMap<String, String>();
-					for (Map.Entry<String, JsonElement> entry : propertiesObj.entrySet()) {
-						properties.put(entry.getKey(), entry.getValue().getAsString());
-					}
-					return properties;
+				if (jsonElement!=null) {
+				  JsonObject jsonObject = jsonElement.getAsJsonObject();
+				  JsonArray configsArray = jsonObject.get("items").getAsJsonArray();
+				  if (configsArray.size() > 0) {
+				    JsonObject propertiesObj = configsArray.get(0).getAsJsonObject()
+				        .get("properties").getAsJsonObject();
+				    Map<String, String> properties = new HashMap<String, String>();
+				    for (Map.Entry<String, JsonElement> entry : propertiesObj.entrySet()) {
+				      properties.put(entry.getKey(), entry.getValue().getAsString());
+				    }
+				    return properties;
+				  }
 				}
 			} catch (HttpException e) {
 				logger.warn("Unable to determine Ambari clusters", e);
-				throw new RuntimeException(e.getMessage(), e);
+				throw createRuntimeException(e);
 			} catch (IOException e) {
 				logger.warn("Unable to determine Ambari clusters", e);
 				throw new RuntimeException(e.getMessage(), e);
@@ -168,10 +222,10 @@ public class AmbariHttpClient extends BaseHttpClient implements AmbariClient {
         try {
             JsonElement jsonElement = doGetJson("/api/v1/clusters/"
                 + cluster.getName() + "/services/" + serviceId + "?fields=ServiceInfo,components/host_components/HostRoles");
-            JsonObject jsonObject = jsonElement.getAsJsonObject();
-            if (jsonObject.has("status") && "404".equals(jsonObject.get("status").getAsString())) {
+            if (jsonElement == null) {
               return null;
             }
+            JsonObject jsonObject = jsonElement.getAsJsonObject();
             AmbariService svc = new AmbariService();
             JsonObject serviceInfoJsonObject = jsonObject.get("ServiceInfo").getAsJsonObject();
             svc.setId(serviceInfoJsonObject.get("service_name").getAsString());
@@ -196,7 +250,7 @@ public class AmbariHttpClient extends BaseHttpClient implements AmbariClient {
             return svc;
         } catch (HttpException e) {
             logger.warn("Unable to determine Ambari clusters", e);
-            throw new RuntimeException(e.getMessage(), e);
+            throw createRuntimeException(e);
         } catch (IOException e) {
             logger.warn("Unable to determine Ambari clusters", e);
             throw new RuntimeException(e.getMessage(), e);

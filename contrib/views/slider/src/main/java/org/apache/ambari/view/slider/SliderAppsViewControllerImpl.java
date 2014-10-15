@@ -132,137 +132,147 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
         }
         AmbariHttpClient ambariClient = new AmbariHttpClient(ambariUrl,
             ambariUsername, ambariPassword);
-        AmbariClusterInfo clusterInfo = ambariClient.getClusterInfo();
-        if (clusterName.equals(clusterInfo.getName())) {
-          AmbariCluster cluster = ambariClient.getCluster(clusterInfo);
-          AmbariServiceInfo hdfsServiceInfo = null;
-          AmbariServiceInfo yarnServiceInfo = null;
-          // Validate stack-version
-          Validation validateStackVersion = validateStackVersion(clusterInfo.getVersion());
-          if (validateStackVersion != null) {
-            status.getValidations().add(validateStackVersion);
-          }
-          for (AmbariServiceInfo svc : cluster.getServices()) {
-            if ("HDFS".equals(svc.getId())) {
-              hdfsServiceInfo = svc;
-            } else if ("YARN".equals(svc.getId())) {
-              yarnServiceInfo = svc;
+        try {
+          AmbariClusterInfo clusterInfo = ambariClient.getClusterInfo();
+          if (clusterName.equals(clusterInfo.getName())) {
+            AmbariCluster cluster = ambariClient.getCluster(clusterInfo);
+            AmbariServiceInfo hdfsServiceInfo = null;
+            AmbariServiceInfo yarnServiceInfo = null;
+            // Validate stack-version
+            Validation validateStackVersion = validateStackVersion(clusterInfo.getVersion());
+            if (validateStackVersion != null) {
+              status.getValidations().add(validateStackVersion);
             }
-          }
-          // HDFS
-          if (hdfsServiceInfo != null) {
-            if (!hdfsServiceInfo.isStarted()) {
-              status.getValidations().add(
-                  new ViewStatus.Validation("HDFS service is not started"));
-            }
-          } else {
-            status.getValidations().add(
-                new ViewStatus.Validation("HDFS service is not installed"));
-          }
-          // YARN
-          if (yarnServiceInfo != null) {
-            if (!yarnServiceInfo.isStarted()) {
-              status.getValidations().add(
-                  new ViewStatus.Validation("YARN service is not started"));
-            }
-          } else {
-            status.getValidations().add(
-                new ViewStatus.Validation("YARN service is not installed"));
-          }
-          // Configs
-          if (cluster.getDesiredConfigs().containsKey("core-site")) {
-            Map<String, String> coreSiteConfigs = ambariClient
-                .getConfiguration(cluster, "core-site", cluster
-                    .getDesiredConfigs().get("core-site"));
-            newHadoopConfigs.putAll(coreSiteConfigs);
-          }
-          if (cluster.getDesiredConfigs().containsKey("cluster-env")) {
-            Map<String, String> clusterEnvConfigs = ambariClient
-                .getConfiguration(cluster, "cluster-env", cluster
-                    .getDesiredConfigs().get("cluster-env"));
-            newHadoopConfigs.put("security_enabled",
-                clusterEnvConfigs.get("security_enabled"));
-          }
-          if (cluster.getDesiredConfigs().containsKey("hdfs-site")) {
-            Map<String, String> hdfsSiteConfigs = ambariClient
-                .getConfiguration(cluster, "hdfs-site", cluster
-                    .getDesiredConfigs().get("hdfs-site"));
-            newHadoopConfigs.putAll(hdfsSiteConfigs);
-          }
-          if (cluster.getDesiredConfigs().containsKey("yarn-site")) {
-            Map<String, String> yarnSiteConfigs = ambariClient
-                .getConfiguration(cluster, "yarn-site", cluster
-                    .getDesiredConfigs().get("yarn-site"));
-            newHadoopConfigs.putAll(yarnSiteConfigs);
-            status.getParameters().put(PROPERTY_YARN_RM_WEBAPP_URL,
-                newHadoopConfigs.get("yarn.resourcemanager.webapp.address"));
-          }
-          if (cluster.getDesiredConfigs().containsKey("yarn-env")) {
-            Map<String, String> yarnEnvConfigs = ambariClient.getConfiguration(cluster, "yarn-env", cluster
-                .getDesiredConfigs().get("yarn-env"));
-            String yarnUser = yarnEnvConfigs.get("yarn_user");
-            if (yarnUser == null || yarnUser.trim().length() < 1) {
-              yarnUser = "yarn";
-            }
-            newHadoopConfigs.put("yarn_user", yarnUser);
-          }
-          if (cluster.getDesiredConfigs().containsKey("zookeeper-env")) {
-            Map<String, String> zkEnvConfigs = ambariClient.getConfiguration(
-                cluster, "zookeeper-env",
-                cluster.getDesiredConfigs().get("zookeeper-env"));
-            StringBuilder zkQuorumBuilder = new StringBuilder();
-            String port = zkEnvConfigs.get("clientPort");
-            AmbariService zkService = ambariClient.getService(cluster,
-                "ZOOKEEPER");
-            if (zkService != null) {
-              List<AmbariHostComponent> hostsList = zkService
-                  .getComponentsToHostComponentsMap().get("ZOOKEEPER_SERVER");
-              int count = 1;
-              for (AmbariHostComponent host : hostsList) {
-                zkQuorumBuilder.append(host.getHostName() + ":" + port);
-                if (count++ < hostsList.size()) {
-                  zkQuorumBuilder.append(",");
-                }
+            for (AmbariServiceInfo svc : cluster.getServices()) {
+              if ("HDFS".equals(svc.getId())) {
+                hdfsServiceInfo = svc;
+              } else if ("YARN".equals(svc.getId())) {
+                yarnServiceInfo = svc;
               }
-              newHadoopConfigs.put(PROPERTY_SLIDER_ZK_QUORUM,
-                  zkQuorumBuilder.toString());
+            }
+            // HDFS
+            if (hdfsServiceInfo != null) {
+              if (!hdfsServiceInfo.isStarted()) {
+                status.getValidations().add(
+                    new ViewStatus.Validation("HDFS service is not started"));
+              }
             } else {
               status.getValidations().add(
+                  new ViewStatus.Validation("HDFS service is not installed"));
+            }
+            // YARN
+            if (yarnServiceInfo != null) {
+              if (!yarnServiceInfo.isStarted()) {
+                status.getValidations().add(
+                    new ViewStatus.Validation("YARN service is not started"));
+              }
+            } else {
+              status.getValidations().add(
+                  new ViewStatus.Validation("YARN service is not installed"));
+            }
+            // JAVA_HOME
+            Map<String, String> ambariServerConfigs = ambariClient.getAmbariServerConfigs();
+            if (ambariServerConfigs.containsKey("java.home")) {
+              newHadoopConfigs.put("java.home", ambariServerConfigs.get("java.home"));
+            }
+            // Configs
+            if (cluster.getDesiredConfigs().containsKey("core-site")) {
+              Map<String, String> coreSiteConfigs = ambariClient
+                  .getConfiguration(cluster, "core-site", cluster
+                      .getDesiredConfigs().get("core-site"));
+              newHadoopConfigs.putAll(coreSiteConfigs);
+            }
+            if (cluster.getDesiredConfigs().containsKey("cluster-env")) {
+              Map<String, String> clusterEnvConfigs = ambariClient
+                  .getConfiguration(cluster, "cluster-env", cluster
+                      .getDesiredConfigs().get("cluster-env"));
+              newHadoopConfigs.put("security_enabled",
+                  clusterEnvConfigs.get("security_enabled"));
+            }
+            if (cluster.getDesiredConfigs().containsKey("hdfs-site")) {
+              Map<String, String> hdfsSiteConfigs = ambariClient
+                  .getConfiguration(cluster, "hdfs-site", cluster
+                      .getDesiredConfigs().get("hdfs-site"));
+              newHadoopConfigs.putAll(hdfsSiteConfigs);
+            }
+            if (cluster.getDesiredConfigs().containsKey("yarn-site")) {
+              Map<String, String> yarnSiteConfigs = ambariClient
+                  .getConfiguration(cluster, "yarn-site", cluster
+                      .getDesiredConfigs().get("yarn-site"));
+              newHadoopConfigs.putAll(yarnSiteConfigs);
+              status.getParameters().put(PROPERTY_YARN_RM_WEBAPP_URL,
+                  newHadoopConfigs.get("yarn.resourcemanager.webapp.address"));
+            }
+            if (cluster.getDesiredConfigs().containsKey("yarn-env")) {
+              Map<String, String> yarnEnvConfigs = ambariClient.getConfiguration(cluster, "yarn-env", cluster
+                  .getDesiredConfigs().get("yarn-env"));
+              String yarnUser = yarnEnvConfigs.get("yarn_user");
+              if (yarnUser == null || yarnUser.trim().length() < 1) {
+                yarnUser = "yarn";
+              }
+              newHadoopConfigs.put("yarn_user", yarnUser);
+            }
+            if (cluster.getDesiredConfigs().containsKey("zookeeper-env")) {
+              Map<String, String> zkEnvConfigs = ambariClient.getConfiguration(
+                  cluster, "zookeeper-env",
+                  cluster.getDesiredConfigs().get("zookeeper-env"));
+              StringBuilder zkQuorumBuilder = new StringBuilder();
+              String port = zkEnvConfigs.get("clientPort");
+              AmbariService zkService = ambariClient.getService(cluster,
+                  "ZOOKEEPER");
+              if (zkService != null) {
+                List<AmbariHostComponent> hostsList = zkService
+                    .getComponentsToHostComponentsMap().get("ZOOKEEPER_SERVER");
+                int count = 1;
+                for (AmbariHostComponent host : hostsList) {
+                  zkQuorumBuilder.append(host.getHostName() + ":" + port);
+                  if (count++ < hostsList.size()) {
+                    zkQuorumBuilder.append(",");
+                  }
+                }
+                newHadoopConfigs.put(PROPERTY_SLIDER_ZK_QUORUM,
+                    zkQuorumBuilder.toString());
+              } else {
+                status.getValidations().add(
+                    new ViewStatus.Validation(
+                        "ZooKeeper service is not installed"));
+              }
+            } else {
+              status.getValidations()
+              .add(
                   new ViewStatus.Validation(
                       "ZooKeeper service is not installed"));
             }
-          } else {
-            status.getValidations()
-                .add(
-                    new ViewStatus.Validation(
-                        "ZooKeeper service is not installed"));
-          }
-          if (cluster.getDesiredConfigs().containsKey("ganglia-env")) {
-            Map<String, String> gangliaConfigs = ambariClient.getConfiguration(
-                cluster, "ganglia-env",
-                cluster.getDesiredConfigs().get("ganglia-env"));
-            String clustersCsv = gangliaConfigs.get("additional_clusters");
-            AmbariService gangliaService = ambariClient.getService(cluster,
-                "GANGLIA");
-            List<AmbariHostComponent> hostsList = gangliaService
-                .getComponentsToHostComponentsMap().get("GANGLIA_SERVER");
-            if (hostsList != null && hostsList.size() > 0) {
-              String gangliaHostName = hostsList
-                  .get(0).getHostName();
-              newHadoopConfigs.put(PROPERTY_GANGLIA_SERVER_HOSTNAME, gangliaHostName);
-              status.getParameters().put(PROPERTY_GANGLIA_SERVER_HOSTNAME, gangliaHostName);
+            if (cluster.getDesiredConfigs().containsKey("ganglia-env")) {
+              Map<String, String> gangliaConfigs = ambariClient.getConfiguration(
+                  cluster, "ganglia-env",
+                  cluster.getDesiredConfigs().get("ganglia-env"));
+              String clustersCsv = gangliaConfigs.get("additional_clusters");
+              AmbariService gangliaService = ambariClient.getService(cluster,
+                  "GANGLIA");
+              List<AmbariHostComponent> hostsList = gangliaService
+                  .getComponentsToHostComponentsMap().get("GANGLIA_SERVER");
+              if (hostsList != null && hostsList.size() > 0) {
+                String gangliaHostName = hostsList
+                    .get(0).getHostName();
+                newHadoopConfigs.put(PROPERTY_GANGLIA_SERVER_HOSTNAME, gangliaHostName);
+                status.getParameters().put(PROPERTY_GANGLIA_SERVER_HOSTNAME, gangliaHostName);
+              }
+              newHadoopConfigs.put(PROPERTY_GANGLIA_CUSTOM_CLUSTERS, clustersCsv);
+              status.getParameters().put(PROPERTY_GANGLIA_CUSTOM_CLUSTERS, clustersCsv);
             }
-            newHadoopConfigs.put(PROPERTY_GANGLIA_CUSTOM_CLUSTERS, clustersCsv);
-            status.getParameters().put(PROPERTY_GANGLIA_CUSTOM_CLUSTERS, clustersCsv);
+            Validation validateHDFSAccess = validateHDFSAccess(newHadoopConfigs, hdfsServiceInfo);
+            if (validateHDFSAccess != null) {
+              status.getValidations().add(validateHDFSAccess);
+            }
+          } else {
+            status.getValidations().add(
+                new ViewStatus.Validation("Ambari cluster with ID ["
+                    + clusterName + "] was not found on Ambari server"));
           }
-          Validation validateHDFSAccess = validateHDFSAccess(newHadoopConfigs, hdfsServiceInfo);
-          if (validateHDFSAccess != null) {
-            status.getValidations().add(validateHDFSAccess);
-          }
-        } else {
-          status.getValidations().add(
-              new ViewStatus.Validation("Ambari cluster with ID ["
-                  + clusterName + "] was not found on Ambari server"));
+        } catch (Throwable t) {
+          logger.warn("Exception determining view status", t);
+          status.getValidations().add(new ViewStatus.Validation(t.getMessage()));
         }
       } else {
         status
@@ -276,13 +286,15 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
           new ViewStatus.Validation(
               "View parameters specifying Ambari details required"));
     }
-    Set<String> removeKeys = new HashSet<String>(viewContext.getInstanceData().keySet());
-    for (Entry<String, String> e : newHadoopConfigs.entrySet()) {
-      viewContext.putInstanceData(e.getKey(), e.getValue());
-      removeKeys.remove(e.getKey());
-    }
-    for (String key : removeKeys) {
-      viewContext.removeInstanceData(key);
+    if (!newHadoopConfigs.equals(viewContext.getInstanceData())) {
+      Set<String> removeKeys = new HashSet<String>(viewContext.getInstanceData().keySet());
+      for (Entry<String, String> e : newHadoopConfigs.entrySet()) {
+        viewContext.putInstanceData(e.getKey(), e.getValue());
+        removeKeys.remove(e.getKey());
+      }
+      for (String key : removeKeys) {
+        viewContext.removeInstanceData(key);
+      }
     }
     return status;
   }
@@ -772,7 +784,7 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
   }
 
   protected Map<String, String> getHadoopConfigs() {
-    if(hadoopConfigs==null) {
+    if(hadoopConfigs==null || hadoopConfigs.isEmpty()) {
       hadoopConfigs = viewContext.getInstanceData();
     }
     return hadoopConfigs;
@@ -950,12 +962,14 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
                   JsonElement componentJson = resourcesJson.getAsJsonObject()
                       .get("components").getAsJsonObject()
                       .get(component.getName());
-                  if (componentJson != null
-                      && componentJson.getAsJsonObject().has(
-                          "yarn.role.priority")) {
-                    appTypeComponent.setPriority(Integer.parseInt(componentJson
-                        .getAsJsonObject().get("yarn.role.priority")
-                        .getAsString()));
+                  if (componentJson != null && componentJson.isJsonObject()) {
+                    JsonObject componentObj = componentJson.getAsJsonObject();
+                    if (componentObj.has("yarn.role.priority")) {
+                      appTypeComponent.setPriority(Integer.parseInt(componentObj.get("yarn.role.priority").getAsString()));
+                    }
+                    if (componentObj.has("yarn.memory")) {
+                      appTypeComponent.setYarnMemory(Integer.parseInt(componentObj.get("yarn.memory").getAsString()));
+                    }
                   }
                 }
                 appTypeComponent.setCategory(component.getCategory());

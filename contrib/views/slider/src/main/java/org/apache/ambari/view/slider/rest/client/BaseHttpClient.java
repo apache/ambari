@@ -88,22 +88,26 @@ public class BaseHttpClient {
 		return doGetJson(getUrl(), path);
 	}
 
-	public JsonElement doGetJson(String url, String path) throws HttpException,
+	@SuppressWarnings("deprecation")
+    public JsonElement doGetJson(String url, String path) throws HttpException,
 	    IOException {
 		GetMethod get = new GetMethod(url + path);
 		if (isNeedsAuthentication()) {
 			get.setDoAuthentication(true);
 		}
 		int executeMethod = getHttpClient().executeMethod(get);
-		switch (executeMethod) {
-		case HttpStatus.SC_OK:
-			JsonElement jsonElement = new JsonParser().parse(new JsonReader(
-			    new InputStreamReader(get.getResponseBodyAsStream())));
-			return jsonElement;
-		default:
-			break;
-		}
-		return null;
+        switch (executeMethod) {
+        case HttpStatus.SC_OK:
+          JsonElement jsonElement = new JsonParser().parse(new JsonReader(new InputStreamReader(get.getResponseBodyAsStream())));
+          return jsonElement;
+        case HttpStatus.SC_NOT_FOUND:
+          return null;
+        default:
+          HttpException httpException = new HttpException(get.getResponseBodyAsString());
+          httpException.setReason(HttpStatus.getStatusText(executeMethod));
+          httpException.setReasonCode(executeMethod);
+          throw httpException;
+        }
 	}
 
 	public String doGet(String path) throws HttpException, IOException {

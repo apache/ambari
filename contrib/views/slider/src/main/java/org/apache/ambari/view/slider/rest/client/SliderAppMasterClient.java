@@ -63,13 +63,13 @@ public class SliderAppMasterClient extends BaseHttpClient {
           String[] splits = content.split("\r\n");
           for (int i = 0; i < splits.length; i++) {
             String split = splits[i].trim();
-            if ("Registry Web Service".equals(split)) {
+            if ("org.apache.slider.registry".equals(split)) {
               data.registryUrl = splits[i + 1].trim();
-            } else if ("Application Master Web UI".equals(split)) {
+            } else if ("org.apache.http.UI".equals(split)) {
               data.uiUrl = splits[i + 1].trim();
-            } else if ("Management REST API".equals(split)) {
+            } else if ("org.apache.slider.management".equals(split)) {
               data.managementUrl = splits[i + 1].trim();
-            } else if ("Publisher Service".equals(split)) {
+            } else if ("org.apache.slider.publisher".equals(split)) {
               data.publisherUrl = splits[i + 1].trim();
             }
           }
@@ -87,9 +87,12 @@ public class SliderAppMasterClient extends BaseHttpClient {
   }
 
   public Map<String, String> getQuickLinks(String providerUrl) {
+    Map<String, String> quickLinks = new HashMap<String, String>();
     try {
+      if (providerUrl == null || providerUrl.trim().length() < 1) {
+        return quickLinks;
+      }
       JsonElement json = super.doGetJson(providerUrl, "/slider/quicklinks");
-      Map<String, String> quickLinks = new HashMap<String, String>();
       if (json != null && json.getAsJsonObject() != null
           && json.getAsJsonObject().has("entries")) {
         JsonObject jsonObject = json.getAsJsonObject().get("entries")
@@ -99,26 +102,29 @@ public class SliderAppMasterClient extends BaseHttpClient {
             quickLinks.put("JMX", entry.getValue().getAsString());
           } else if ("org.apache.slider.monitor".equals(entry.getKey())) {
             quickLinks.put("UI", entry.getValue().getAsString());
+          } else if ("org.apache.slider.metrics.ui".equals(entry.getKey())) {
+            quickLinks.put("Metrics UI", entry.getValue().getAsString());
           } else if ("org.apache.slider.metrics".equals(entry.getKey())) {
-            quickLinks.put("Metrics", entry.getValue().getAsString());
+            quickLinks.put("Metrics API", entry.getValue().getAsString());
           } else {
             quickLinks.put(entry.getKey(), entry.getValue().getAsString());
           }
         }
       }
-      return quickLinks;
     } catch (HttpException e) {
       logger.warn("Unable to determine quicklinks from " + providerUrl, e);
-      throw new RuntimeException(e.getMessage(), e);
     } catch (IOException e) {
       logger.warn("Unable to determine quicklinks from " + providerUrl, e);
-      throw new RuntimeException(e.getMessage(), e);
     }
+    return quickLinks;
   }
 
   public Map<String, Map<String, String>> getConfigs(String providerUrl) {
+    Map<String, Map<String, String>> configsMap = new HashMap<String, Map<String, String>>();
     try {
-      Map<String, Map<String, String>> configsMap = new HashMap<String, Map<String, String>>();
+      if (providerUrl == null || providerUrl.trim().length() < 1) {
+        return configsMap;
+      }
       JsonElement json = super.doGetJson(providerUrl, "/slider");
       if (json != null) {
         JsonObject configsJson = json.getAsJsonObject().get("configurations")
@@ -143,14 +149,12 @@ public class SliderAppMasterClient extends BaseHttpClient {
           }
         }
       }
-      return configsMap;
     } catch (HttpException e) {
       logger.warn("Unable to determine quicklinks from " + providerUrl, e);
-      throw new RuntimeException(e.getMessage(), e);
     } catch (IOException e) {
       logger.warn("Unable to determine quicklinks from " + providerUrl, e);
-      throw new RuntimeException(e.getMessage(), e);
     }
+    return configsMap;
   }
 
   public Map<String, Number[][]> getGangliaMetrics(String gangliaUrl,
