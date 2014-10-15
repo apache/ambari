@@ -50,15 +50,11 @@ hadoop_conf_empty_dir = "/etc/hadoop/conf.empty"
 versioned_hdp_root = '/usr/hdp/current'
 #security params
 security_enabled = config['configurations']['cluster-env']['security_enabled']
-#java params
-java_home = config['hostLevelParams']['java_home']
+
 #hadoop params
 hdfs_log_dir_prefix = config['configurations']['hadoop-env']['hdfs_log_dir_prefix']
 hadoop_pid_dir_prefix = config['configurations']['hadoop-env']['hadoop_pid_dir_prefix']
 hadoop_root_logger = config['configurations']['hadoop-env']['hadoop_root_logger']
-
-#hadoop-env.sh
-java_home = config['hostLevelParams']['java_home']
 
 if str(config['hostLevelParams']['stack_version']).startswith('2.0') and System.get_instance().os_family != "suse":
   # deprecated rhel jsvc_path
@@ -89,28 +85,25 @@ smoke_user =  config['configurations']['cluster-env']['smokeuser']
 gmetad_user = config['configurations']['ganglia-env']["gmetad_user"]
 gmond_user = config['configurations']['ganglia-env']["gmond_user"]
 tez_user = config['configurations']['tez-env']["tez_user"]
+oozie_user = config['configurations']['oozie-env']["oozie_user"]
 
 user_group = config['configurations']['cluster-env']['user_group']
-proxyuser_group =  default("/configurations/hadoop-env/proxyuser_group","users")
-nagios_group = config['configurations']['nagios-env']['nagios_group']
 
 hagios_server_hosts = default("/clusterHostInfo/nagios_server_host", [])
 ganglia_server_hosts = default("/clusterHostInfo/ganglia_server_host", [])
 namenode_host = default("/clusterHostInfo/namenode_host", [])
 hbase_master_hosts = default("/clusterHostInfo/hbase_master_hosts", [])
+oozie_servers = default("/clusterHostInfo/oozie_server", [])
 
 has_namenode = not len(namenode_host) == 0
 has_nagios = not len(hagios_server_hosts) == 0
 has_ganglia_server = not len(ganglia_server_hosts) == 0
 has_tez = 'tez-site' in config['configurations']
 has_hbase_masters = not len(hbase_master_hosts) == 0
+has_oozie_server = not len(oozie_servers) == 0
 
 hbase_tmp_dir = config['configurations']['hbase-site']['hbase.tmp.dir']
 
-hbase_user = config['configurations']['hbase-env']['hbase_user']
-smoke_user =  config['configurations']['cluster-env']['smokeuser']
-
-user_group = config['configurations']['cluster-env']['user_group']
 proxyuser_group = default("/configurations/hadoop-env/proxyuser_group","users")
 nagios_group = config['configurations']['nagios-env']['nagios_group']
 
@@ -130,6 +123,8 @@ if has_ganglia_server:
   user_to_groups_dict[gmetad_user] = [gmetad_user]
 if has_tez:
   user_to_groups_dict[tez_user] = [proxyuser_group]
+if has_oozie_server:
+  user_to_groups_dict[oozie_user] = [proxyuser_group]
 
 user_to_gid_dict = collections.defaultdict(lambda:user_group)
 if has_nagios:
