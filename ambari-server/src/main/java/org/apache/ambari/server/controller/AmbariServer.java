@@ -228,28 +228,13 @@ public class AmbariServer {
       ServletContextHandler root = new ServletContextHandler(
           ServletContextHandler.SECURITY | ServletContextHandler.SESSIONS);
 
-      root.setContextPath(CONTEXT_PATH);
-      root.setErrorHandler(injector.getInstance(AmbariErrorHandler.class));
+      configureRootHandler(root);
+      configureSessionManager(sessionManager);
       root.getSessionHandler().setSessionManager(sessionManager);
-
-      SessionManager jettySessionManager = root.getSessionHandler().getSessionManager();
-
-      // use AMBARISESSIONID instead of JSESSIONID to avoid conflicts with
-      // other services (like HDFS) that run on the same context but a different
-      // port
-      jettySessionManager.setSessionCookie("AMBARISESSIONID");
-
-      // each request that does not use AMBARISESSIONID will create a new
-      // HashedSession in Jetty; these MUST be reaped after inactivity in order
-      // to prevent a memory leak
-      int sessionInactivityTimeout = configs.getHttpSessionInactiveTimeout();
-      jettySessionManager.setMaxInactiveInterval(sessionInactivityTimeout);
 
       GenericWebApplicationContext springWebAppContext = new GenericWebApplicationContext();
       springWebAppContext.setServletContext(root.getServletContext());
       springWebAppContext.setParent(springAppContext);
-      /* Configure web app context */
-      root.setResourceBase(configs.getWebAppDir());
 
       root.getServletContext().setAttribute(
           WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE,
@@ -480,6 +465,40 @@ public class AmbariServer {
           "Terminating this instance.", bindException);
       throw bindException;
     }
+  }
+
+  /**
+   * Performs basic configuration of root handler with static values and values from
+   * configuration file.
+   *
+   * @param root root handler
+   */
+  protected void configureRootHandler(ServletContextHandler root) {
+    root.setContextPath(CONTEXT_PATH);
+    root.setErrorHandler(injector.getInstance(AmbariErrorHandler.class));
+    root.setMaxFormContentSize(-1);
+
+    /* Configure web app context */
+    root.setResourceBase(configs.getWebAppDir());
+  }
+
+  /**
+   * Performs basic configuration of session manager with static values and values from
+   * configuration file.
+   *
+   * @param sessionManager session manager
+   */
+  protected void configureSessionManager(SessionManager sessionManager) {
+    // use AMBARISESSIONID instead of JSESSIONID to avoid conflicts with
+    // other services (like HDFS) that run on the same context but a different
+    // port
+    sessionManager.setSessionCookie("AMBARISESSIONID");
+
+    // each request that does not use AMBARISESSIONID will create a new
+    // HashedSession in Jetty; these MUST be reaped after inactivity in order
+    // to prevent a memory leak
+    int sessionInactivityTimeout = configs.getHttpSessionInactiveTimeout();
+    sessionManager.setMaxInactiveInterval(sessionInactivityTimeout);
   }
 
   /**

@@ -34,6 +34,8 @@ import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.MetainfoDAO;
 import org.apache.ambari.server.orm.entities.MetainfoEntity;
+import org.easymock.EasyMock;
+import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -100,17 +102,17 @@ public class AmbariServerTest {
       // Expected
     }
   }
-  
+
   @Test
   public void testProxyUser() throws Exception {
-    
+
     PasswordAuthentication pa = Authenticator.requestPasswordAuthentication(
         InetAddress.getLocalHost(), 80, null, null, null);
     Assert.assertNull(pa);
-    
+
     System.setProperty("http.proxyUser", "abc");
     System.setProperty("http.proxyPassword", "def");
-    
+
     AmbariServer.setupProxyAuth();
 
     pa = Authenticator.requestPasswordAuthentication(
@@ -121,5 +123,17 @@ public class AmbariServerTest {
 
   }
 
+  @Test
+  public void testConfigureRootHandler() throws Exception {
+    final ServletContextHandler handler = EasyMock.createNiceMock(ServletContextHandler.class);
+
+    handler.setMaxFormContentSize(-1);
+    EasyMock.expectLastCall().once();
+    replay(handler);
+
+    injector.getInstance(AmbariServer.class).configureRootHandler(handler);
+
+    EasyMock.verify(handler);
+  }
 
 }
