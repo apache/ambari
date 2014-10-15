@@ -733,10 +733,6 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
     App.config.addAdvancedConfigs(configs, advancedConfigs);
     //STEP 5: Add custom configs
     App.config.addCustomConfigs(configs);
-    //put properties from capacity-scheduler.xml into one config with textarea view
-    if (this.get('allSelectedServiceNames').contains('YARN') && !App.get('supports.capacitySchedulerUi')) {
-      configs = App.config.fileConfigsIntoTextarea(configs, 'capacity-scheduler.xml');
-    }
 
     this.set('groupsToDelete', this.get('wizardController').getDBProperty('groupsToDelete') || []);
 
@@ -751,7 +747,10 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
   },
 
   applyServicesConfigs: function (configs, storedConfigs) {
-    if (this.get('allSelectedServiceNames').contains('STORM') || this.get('installedServiceNames').contains('STORM')) {
+    if (this.get('allSelectedServiceNames').contains('YARN') && !App.get('supports.capacitySchedulerUi')) {
+      configs = App.config.fileConfigsIntoTextarea(configs, 'capacity-scheduler.xml');
+    }
+    if (this.get('allSelectedServiceNames').contains('STORM')) {
       this.resolveServiceDependencyConfigs('STORM', configs);
     }
     //STEP 6: Distribute configs by service and wrap each one in App.ServiceConfigProperty (configs -> serviceConfigs)
