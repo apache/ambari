@@ -708,6 +708,50 @@ App.MainServiceItemController = Em.Controller.extend({
     });
   },
 
+  /**
+   * On click handler for custom command from items menu
+   * @param context
+   */
+  executeCustomCommand: function(context) {
+    var controller = this;
+    return App.showConfirmationPopup(function() {
+      App.ajax.send({
+        name : 'service.item.executeCustomCommand',
+        sender: controller,
+        data : {
+          command : context.command,
+          context : 'Execute ' + context.command,
+          hosts : App.Service.find(context.service).get('hostComponents').findProperty('componentName', context.component).get('hostName'),
+          serviceName : context.service,
+          componentName : context.component,
+          forceRefreshConfigTags : "capacity-scheduler"
+        },
+        success : 'executeCustomCommandSuccessCallback',
+        error : 'executeCustomCommandErrorCallback'
+      });
+    });
+  },
+
+  executeCustomCommandSuccessCallback  : function(data, ajaxOptions, params) {
+    if (data.Requests.id) {
+      App.router.get('backgroundOperationsController').showPopup();
+    } else {
+      console.warn('Error during execution of ' + params.command + ' custom command on' + params.componentName);
+    }
+  },
+
+  executeCustomCommandErrorCallback : function(data) {
+    var error = Em.I18n.t('services.service.actions.run.executeCustomCommand.error');
+    if(data && data.responseText){
+      try {
+        var json = $.parseJSON(data.responseText);
+        error += json.message;
+      } catch (err) {}
+    }
+    App.showAlertPopup(Em.I18n.t('services.service.actions.run.executeCustomCommand.error'), error);
+    console.warn('Error during executing custom command');
+  },
+
   isPending:true
 
 });

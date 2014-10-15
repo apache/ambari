@@ -263,6 +263,31 @@ App.HostComponentView = Em.View.extend({
     this.$('.components-health').stop(true, true);
     this.$('.components-health').css({opacity: 1.0});
     this.doBlinking();
-  }.observes('workStatus')
+  }.observes('workStatus'),
+
+  /**
+   * Get custom commands for slave components
+   */
+  customCommands: function() {
+    var hostComponent = this.get('content');
+    var component = App.StackServiceComponent.find(hostComponent.get('componentName'));
+    var customCommands = [];
+    var commands;
+
+    if (component.get('isSlave')) {
+      commands = component.get('customCommands');
+      commands.forEach(function(command) {
+        customCommands.push({
+          label: Em.I18n.t('services.service.actions.run.executeCustomCommand.menu').format(command),
+          service: component.get('serviceName'),
+          hosts: hostComponent.get('hostName'),
+          component: component.get('componentName'),
+          command: command
+        });
+      });
+    }
+
+    return customCommands;
+  }.property('content')
 
 });

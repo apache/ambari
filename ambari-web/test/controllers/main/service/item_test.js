@@ -659,4 +659,48 @@ describe('App.MainServiceItemController', function () {
     },this);
 
   });
+
+  describe("#executeCustomCommand", function () {
+    var data = {
+      data: {
+        'serviceName': "SAMPLESRV",
+        'displayName': "SAMPLESRV",
+        'query': "test"
+      },
+      "RequestInfo": {
+        "context": "Execute Custom Commands",
+        "command" : "SAMPLESRVCUSTOMCOMMANDS"
+      },
+      "Requests/resource_filters": [{"service_name" : "SAMPLESRV"}]
+    };
+
+    var context = {
+      label: 'Execute Custom Commands',
+      service: data.data.serviceName,
+      component: data.data.serviceName,
+      command: data.RequestInfo.command
+    };
+
+    var mainServiceItemController = App.MainServiceItemController.create({
+      content: {
+        serviceName: data.data.serviceName,
+        displayName: data.data.displayName
+      }
+    });
+
+    before(function () {
+      mainServiceItemController.set("executeCustomCommandErrorCallback", Em.K);
+      mainServiceItemController.set("executeCustomCommandSuccessCallback", Em.K);
+      sinon.spy(App, 'showConfirmationPopup');
+    });
+
+    after(function () {
+      App.showConfirmationPopup.restore();
+    });
+
+    it('shows a confirmation popup', function () {
+      mainServiceItemController.executeCustomCommand(context);
+      expect(App.showConfirmationPopup.calledOnce).to.equal(true);
+    });
+  });
 });
