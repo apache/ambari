@@ -421,4 +421,52 @@ describe('App.config', function () {
       expect(ServiceConfig.get('configCategories.length')).to.eql(1);
     });
   });
+
+  describe('#preDefinedConfigFile', function() {
+    before(function() {
+      setups.setupStackVersion(this, 'BIGTOP-0.8');
+    });
+
+    it('bigtop site properties should be ok.', function() {
+      var bigtopSiteProperties = App.config.preDefinedConfigFile('site_properties');
+      expect(bigtopSiteProperties).to.be.ok;
+    });
+
+    it('a non-existing file should not be ok.', function () {
+      var notExistingSiteProperty = App.config.preDefinedConfigFile('notExisting');
+      expect(notExistingSiteProperty).to.not.be.ok;
+    });
+
+    after(function() {
+      setups.restoreStackVersion(this);
+    });
+  });
+
+  describe('#preDefinedSiteProperties-bigtop', function () {
+    before(function() {
+      setups.setupStackVersion(this, 'BIGTOP-0.8');
+    });
+
+    it('bigtop should use New PostgreSQL Database as its default hive metastore database', function () {
+      expect(App.config.get('preDefinedSiteProperties').findProperty('defaultValue', 'New PostgreSQL Database')).to.be.ok;
+    });
+
+    after(function() {
+      setups.restoreStackVersion(this);
+    });
+  });
+
+  describe('#preDefinedSiteProperties-hdp2', function () {
+    before(function() {
+      setups.setupStackVersion(this, 'HDP-2.0');
+    });
+
+    it('HDP2 should use New MySQL Database as its default hive metastore database', function () {
+      expect(App.config.get('preDefinedSiteProperties').findProperty('defaultValue', 'New MySQL Database')).to.be.ok;
+    });
+
+    after(function() {
+      setups.restoreStackVersion(this);
+    });
+  });
 });
