@@ -1238,7 +1238,7 @@ var storm22Properties = [
     "name": "strom_ui_keytab",
     "displayName": "Path to Nimbus UI keytab file",
     "value": "",
-    "defaultValue": "/etc/security/keytabs/http.storm.service.keytab",
+    "defaultValue": "/etc/security/keytabs/spnego.service.keytab",
     "description": "Path to the Storm UI keytab file",
     "displayType": "directory",
     "isVisible": false,
