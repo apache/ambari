@@ -512,8 +512,12 @@
         "tez-env": {
             "content": "\n# Tez specific configuration\nexport TEZ_CONF_DIR={{config_dir}}\n\n# Set HADOOP_HOME to point to a specific hadoop install directory\nexport HADOOP_HOME=${HADOOP_HOME:-{{hadoop_home}}}\n\n# The java implementation to use.\nexport JAVA_HOME={{java64_home}}", 
             "tez_user": "tez"
-        }, 
-        "storm-env": {
+        },
+        "flume-env": {
+             "content": "export JAVA_HOME={{java64_home}}",
+             "flume_user": "flume"
+        },
+      "storm-env": {
             "content": "\n#!/bin/bash\n\n# Set Storm specific environment variables here.\n\n# The java implementation to use.\nexport JAVA_HOME={{java_home}}\n\n# export STORM_CONF_DIR=\"\"", 
             "storm_log_dir": "/var/log/storm", 
             "storm_pid_dir": "/var/run/storm", 

@@ -33,6 +33,11 @@ def flume(action = None):
     Directory(params.flume_conf_dir, recursive=True)
     Directory(params.flume_log_dir, owner=params.flume_user)
 
+    File(format("{flume_conf_dir}/flume-env.sh"),
+         owner=params.flume_user,
+         content=InlineTemplate(params.flume_env_sh_template)
+    )
+
     flume_agents = {}
     if params.flume_conf_content is not None:
       flume_agents = build_flume_topology(params.flume_conf_content)
