@@ -30,6 +30,8 @@ describe('App', function () {
       loadTags: function () {
       }
     });
+    App.set('defaultStackVersion', "HDP-1.2.2");
+    App.set('currentStackVersion', "HDP-1.2.2");
 
     var testCases = [
       {
@@ -55,28 +57,16 @@ describe('App', function () {
         currentStackVersion: 'HDP-1.3.2',
         defaultStackVersion: 'HDP-1.3.1',
         result: '/stacks/HDP/versions/1.3.2'
-      },
-      {
-        title: 'if defaultStackVersion is "HDPLocal-1.3.1" then stackVersionURL should be "/stacks/HDPLocal/versions/1.3.1"',
-        currentStackVersion: '',
-        defaultStackVersion: 'HDPLocal-1.3.1',
-        result: '/stacks/HDPLocal/versions/1.3.1'
-      },
-      {
-        title: 'if currentStackVersion is "HDPLocal-1.3.1" then stackVersionURL should be "/stacks/HDPLocal/versions/1.3.1"',
-        currentStackVersion: 'HDPLocal-1.3.1',
-        defaultStackVersion: '',
-        result: '/stacks/HDPLocal/versions/1.3.1'
       }
     ];
 
     testCases.forEach(function (test) {
       it(test.title, function () {
-        App.set('currentStackVersion', test.currentStackVersion);
         App.set('defaultStackVersion', test.defaultStackVersion);
+        App.set('currentStackVersion', test.currentStackVersion);
         expect(App.get('stackVersionURL')).to.equal(test.result);
-        App.set('currentStackVersion', "HDP-1.2.2");
         App.set('defaultStackVersion', "HDP-1.2.2");
+        App.set('currentStackVersion', "HDP-1.2.2");
       });
     });
   });

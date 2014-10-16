@@ -40,7 +40,8 @@ App.MainServiceItemView = Em.View.extend({
   mastersExcludedCommands: {
     'NAMENODE': ['DECOMMISSION', 'REBALANCEHDFS'],
     'RESOURCEMANAGER': ['DECOMMISSION', 'REFRESHQUEUES'],
-    'HBASE_MASTER': ['DECOMMISSION']
+    'HBASE_MASTER': ['DECOMMISSION'],
+    'KNOX_GATEWAY': ['STARTDEMOLDAP','STOPDEMOLDAP']
   },
 
   actionMap: function() {
@@ -65,6 +66,7 @@ App.MainServiceItemView = Em.View.extend({
       },
       REFRESH_YARN_QUEUE: {
         action: 'refreshYarnQueues',
+        customCommand: 'REFRESHQUEUES',
         label: Em.I18n.t('services.service.actions.run.yarnRefreshQueues.menu'),
         cssClass: 'icon-refresh',
         disabled: false
@@ -104,18 +106,21 @@ App.MainServiceItemView = Em.View.extend({
       },
       STARTDEMOLDAP: {
         action: 'startLdapKnox',
+        customCommand: 'STARTDEMOLDAP',
         label: Em.I18n.t('services.service.actions.run.startLdapKnox.context'),
         cssClass: 'icon-play-sign',
         disabled: false
       },
       STOPDEMOLDAP: {
         action: 'stopLdapKnox',
+        customCommand: 'STOPDEMOLDAP',
         label: Em.I18n.t('services.service.actions.run.stopLdapKnox.context'),
         cssClass: 'icon-stop',
         disabled: false
       },
       REBALANCE_HDFS: {
         action: 'rebalanceHdfsNodes',
+        customCommand: 'REBALANCEHDFS',
         context: Em.I18n.t('services.service.actions.run.rebalanceHdfsNodes.context'),
         label: Em.I18n.t('services.service.actions.run.rebalanceHdfsNodes'),
         cssClass: 'icon-refresh',

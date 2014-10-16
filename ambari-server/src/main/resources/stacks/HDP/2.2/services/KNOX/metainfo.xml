@@ -22,7 +22,7 @@
       <name>KNOX</name>
       <displayName>Knox</displayName>
       <comment>Provides a single point of authentication and access for Apache Hadoop services in a cluster</comment>
-      <version>0.5.0</version>
+      <version>0.5.0.2.2.0.0</version>
       <components>
         <component>
           <name>KNOX_GATEWAY</name>
