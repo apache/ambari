@@ -18,6 +18,7 @@
 var App = require('app');
 var batchUtils = require('utils/batch_scheduled_requests');
 require('views/main/service/service');
+require('data/service_graph_config');
 
 App.AlertItemView = Em.View.extend({
   tagName:"li",
@@ -314,81 +315,40 @@ App.MainServiceInfoSummaryView = Em.View.extend({
    * 'Restart Required bar' ended
    */
 
+   /*
+   * Find the graph class associated with the graph name, and split
+   * the array into sections of 4 for displaying on the page
+   * (will only display rows with 4 items)
+   */
+  constructGraphObjects: function(graphNames) {
+    var result = [], graphObjects = [], chunkSize = 4;
+
+    if (!graphNames) {
+      return [];
+    }
+
+    graphNames.forEach(function(graphName) {
+      graphObjects.push(App["ChartServiceMetrics" + graphName].extend());
+    });
+
+    while(graphObjects.length) {
+      result.push(graphObjects.splice(0, chunkSize));
+    }
+
+    return result;
+  },
+
   /**
    * Contains graphs for this particular service
    */
-  serviceMetricGraphs:function () {
+  serviceMetricGraphs:function() {
     var svcName = this.get('service.serviceName');
     var graphs = [];
+
     if (svcName) {
-      switch (svcName.toLowerCase()) {
-        case 'hdfs':
-          graphs = [ [App.ChartServiceMetricsHDFS_SpaceUtilization.extend(),
-            App.ChartServiceMetricsHDFS_FileOperations.extend(),
-            App.ChartServiceMetricsHDFS_BlockStatus.extend(),
-            App.ChartServiceMetricsHDFS_IO.extend()],
-            [App.ChartServiceMetricsHDFS_RPC.extend(),
-            App.ChartServiceMetricsHDFS_GC.extend(),
-            App.ChartServiceMetricsHDFS_JVMHeap.extend(),
-            App.ChartServiceMetricsHDFS_JVMThreads.extend()]];
-          break;
-        case 'yarn':
-          graphs = [[App.ChartServiceMetricsYARN_AllocatedMemory.extend(),
-              App.ChartServiceMetricsYARN_QMR.extend(),
-              App.ChartServiceMetricsYARN_AllocatedContainer.extend(),
-              App.ChartServiceMetricsYARN_NMS.extend()],
-            [App.ChartServiceMetricsYARN_ApplicationCurrentStates.extend(),
-             App.ChartServiceMetricsYARN_ApplicationFinishedStates.extend(),
-             App.ChartServiceMetricsYARN_RPC.extend(),
-            App.ChartServiceMetricsYARN_GC.extend()
-            ],
-            [App.ChartServiceMetricsYARN_JVMThreads.extend(),
-             App.ChartServiceMetricsYARN_JVMHeap.extend()]];
-          break;
-        case 'mapreduce':
-          graphs = [ [App.ChartServiceMetricsMapReduce_JobsStatus.extend(),
-            App.ChartServiceMetricsMapReduce_TasksRunningWaiting.extend(),
-            App.ChartServiceMetricsMapReduce_MapSlots.extend(),
-            App.ChartServiceMetricsMapReduce_ReduceSlots.extend()],
-            [App.ChartServiceMetricsMapReduce_GC.extend(),
-            App.ChartServiceMetricsMapReduce_RPC.extend(),
-            App.ChartServiceMetricsMapReduce_JVMHeap.extend(),
-            App.ChartServiceMetricsMapReduce_JVMThreads.extend()]];
-          break;
-        case 'hbase':
-          graphs = [  [App.ChartServiceMetricsHBASE_ClusterRequests.extend(),
-            App.ChartServiceMetricsHBASE_RegionServerReadWriteRequests.extend(),
-            App.ChartServiceMetricsHBASE_RegionServerRegions.extend(),
-            App.ChartServiceMetricsHBASE_RegionServerQueueSize.extend()],
-            [App.ChartServiceMetricsHBASE_HlogSplitTime.extend(),
-            App.ChartServiceMetricsHBASE_HlogSplitSize.extend()]];
-          break;
-        case 'flume':
-          graphs = [[App.ChartServiceMetricsFlume_ChannelSizeMMA.extend(),
-             App.ChartServiceMetricsFlume_ChannelSizeSum.extend(),
-             App.ChartServiceMetricsFlume_IncommingMMA.extend(),
-             App.ChartServiceMetricsFlume_IncommingSum],
-             [App.ChartServiceMetricsFlume_OutgoingMMA,
-               App.ChartServiceMetricsFlume_OutgoingSum,
-             //App.ChartServiceMetricsFlume_GarbageCollection.extend(),
-              //App.ChartServiceMetricsFlume_JVMHeapUsed.extend(),
-              //App.ChartServiceMetricsFlume_JVMThreadsRunnable.extend(),
-              App.ChartServiceMetricsFlume_CPUUser.extend()]];
-          break;
-        case 'storm':
-          graphs = [
-            [
-              App.ChartServiceMetricsSTORM_SlotsNumber.extend(),
-              App.ChartServiceMetricsSTORM_Executors.extend(),
-              App.ChartServiceMetricsSTORM_Topologies.extend(),
-              App.ChartServiceMetricsSTORM_Tasks.extend()
-            ]
-          ];
-          break;
-        default:
-          break;
-      }
+      graphs = this.constructGraphObjects(App.service_graph_config[svcName.toLowerCase()]);
     }
+
     return graphs;
   }.property(''),
 
