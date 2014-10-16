@@ -246,6 +246,14 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, {
           hive_properties = Em.A(['hive_existing_mysql_host', 'hive_existing_mysql_database', 'hive_existing_oracle_host',
             'hive_existing_oracle_database', 'hive_existing_postgresql_host', 'hive_existing_postgresql_database']);
           break;
+        case 'New PostgreSQL Database':
+          if (configs.someProperty('name', 'hive_ambari_host')) {
+            configs.findProperty('name', 'hive_hostname').value = configs.findProperty('name', 'hive_ambari_host').value;
+            hiveDbType.value = 'postgres';
+          }
+          hive_properties = Em.A(['hive_existing_mysql_host', 'hive_existing_mysql_database', 'hive_existing_oracle_host',
+            'hive_existing_oracle_database', 'hive_existing_postgresql_host', 'hive_existing_postgresql_database']);
+          break;
         case 'Existing MySQL Database':
           configs.findProperty('name', 'hive_hostname').value = configs.findProperty('name', 'hive_existing_mysql_host').value;
           hiveDbType.value = 'mysql';
@@ -723,6 +731,8 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, {
       hiveDb = serviceConfigPreoprties.findProperty('name', 'hive_database');
     if (hiveDb.value === 'New MySQL Database') {
       return 'MySQL (New Database)';
+    } else if (hiveDb.value === 'New PostgreSQL Database') {
+      return 'Postgres (New Database)';
     }
     else {
       if (hiveDb.value === 'Existing MySQL Database') {
@@ -1298,6 +1308,8 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, {
       var hiveDb = this.get('content.serviceConfigProperties').findProperty('name', 'hive_database');
       if (hiveDb.value == "New MySQL Database") {
         this.registerHostsToComponent(masterHosts.filterProperty('component', 'HIVE_SERVER').mapProperty('hostName'), 'MYSQL_SERVER');
+      } else if (hiveDb.value === "New PostgreSQL Database") {
+        this.registerHostsToComponent(masterHosts.filterProperty('component', 'HIVE_SERVER').mapProperty('hostName'), 'POSTGRESQL_SERVER');
       }
     }
   },

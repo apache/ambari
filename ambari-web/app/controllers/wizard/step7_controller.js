@@ -1288,11 +1288,11 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
     var configMap = [
       {
         serviceName: 'OOZIE',
-        ignored: Em.I18n.t('installer.step7.oozie.database.new')
+        ignored: [Em.I18n.t('installer.step7.oozie.database.new')]
       },
       {
         serviceName: 'HIVE',
-        ignored: Em.I18n.t('installer.step7.hive.database.new')
+        ignored: [Em.I18n.t('installer.step7.hive.database.new.mysql'), Em.I18n.t('installer.step7.hive.database.new.postgres')]
       }
     ];
     configMap.forEach(function (config) {
@@ -1301,7 +1301,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
       if (service && service.get('isSelected') && !service.get('isInstalled')) {
         var serviceConfigs = this.get('stepConfigs').findProperty('serviceName', config.serviceName).configs;
         var serviceDatabase = serviceConfigs.findProperty('name', config.serviceName.toLowerCase() + '_database').get('value');
-        if (serviceDatabase !== config.ignored) {
+        if (!config.ignored.contains(serviceDatabase)) {
           var filledProperties = App.db.get('tmp', config.serviceName + '_connection');
           if (!filledProperties || App.isEmptyObject(filledProperties)) {
             isConnectionNotTested = true;

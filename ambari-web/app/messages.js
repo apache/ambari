@@ -660,7 +660,8 @@ Em.I18n.translations = {
   'installer.step7.popup.validation.warning.header': 'Configurations',
   'installer.step7.popup.validation.warning.body': 'Some service configurations are not configured properly. We recommend you review and change the highlighted configuration values. Are you sure you want to proceed without correcting configurations?',
   'installer.step7.oozie.database.new': 'New Derby Database',
-  'installer.step7.hive.database.new': 'New MySQL Database',
+  'installer.step7.hive.database.new.mysql': 'New MySQL Database',
+  'installer.step7.hive.database.new.postgres': 'New PostgreSQL Database',
 
   'installer.step8.header':'Review',
   'installer.step8.body':'Please review the configuration before installation',
