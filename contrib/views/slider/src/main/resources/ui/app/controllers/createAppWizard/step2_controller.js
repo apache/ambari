@@ -77,24 +77,31 @@ App.CreateAppWizardStep2Controller = Ember.ArrayController.extend({
 
   /**
    * Fill <code>content</code> with objects created from <code>App.SliderAppTypeComponent</code>
+   * If user come from 3 or 4 step, <code>newApp.components</code> are used
    * @method loadTypeComponents
    */
   loadTypeComponents: function () {
     var content = [],
-        component = this.get('typeComponent'),
-        allTypeComponents = this.get('newApp.appType.components');
-    if (allTypeComponents && allTypeComponents.get('length')) {
-      allTypeComponents.forEach(function (typeComponent) {
-        content.push(component.create({
-          displayName: typeComponent.get('displayName'),
-          name: typeComponent.get('name'),
-          priority: typeComponent.get('priority'),
-          numInstances: typeComponent.get('defaultNumInstances').toString(),
-          yarnMemory: typeComponent.get('defaultYARNMemory').toString(),
-          yarnCPU: typeComponent.get('defaultYARNCPU').toString()
-        }));
-      });
-      this.set('content', content);
+      component = this.get('typeComponent'),
+      allTypeComponents = this.get('newApp.appType.components'),
+      existingComponents = this.get('appWizardController.newApp.components'); // user may back to current step from 3 or 4
+    if (existingComponents && existingComponents.get('length')) {
+      this.set('content', existingComponents);
+    }
+    else {
+      if (allTypeComponents && allTypeComponents.get('length')) {
+        allTypeComponents.forEach(function (typeComponent) {
+          content.push(component.create({
+            displayName: typeComponent.get('displayName'),
+            name: typeComponent.get('name'),
+            priority: typeComponent.get('priority'),
+            numInstances: typeComponent.get('defaultNumInstances').toString(),
+            yarnMemory: typeComponent.get('defaultYARNMemory').toString(),
+            yarnCPU: typeComponent.get('defaultYARNCPU').toString()
+          }));
+        });
+        this.set('content', content);
+      }
     }
   },
 
