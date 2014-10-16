@@ -53,7 +53,7 @@ def install_tez_jars():
     app_dir_path = None
     lib_dir_path = None
 
-    if len(destination_hdfs_dirs) > 1:
+    if len(destination_hdfs_dirs) > 0:
       for path in destination_hdfs_dirs:
         if 'lib' in path:
           lib_dir_path = path
@@ -99,6 +99,9 @@ def get_tez_hdfs_dir_paths(tez_lib_uris = None):
         lib_dir_path = path.replace(hdfs_path_prefix, '')
         lib_dir_path = lib_dir_path if lib_dir_path.endswith(os.sep) else lib_dir_path + os.sep
         lib_dir_paths.append(lib_dir_path)
+      else:
+        lib_dir_path = path.replace(hdfs_path_prefix, '')
+        lib_dir_paths.append(os.path.dirname(lib_dir_path))
     pass
   pass
 
