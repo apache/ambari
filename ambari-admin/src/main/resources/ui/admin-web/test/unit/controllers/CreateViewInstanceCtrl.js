@@ -33,10 +33,10 @@ describe('#CreateViewInstanceCtrl', function () {
     spyOn(View, 'createInstance').andReturn($q.defer().promise);
 
     $httpBackend = _$httpBackend_;
-    $httpBackend.whenGET('/api/v1/views/TestView?versions/ViewVersionInfo/status=DEPLOYED').respond(200, {
+    $httpBackend.whenGET(/\/api\/v1\/views\/TestView\?.+/).respond(200, {
       "versions": [{"ViewVersionInfo": {}}]
     });
-    $httpBackend.whenGET('/api/v1/views/TestView/versions/1.0.0').respond(200, {
+    $httpBackend.whenGET(/\/api\/v1\/views\/TestView\/versions\/1\.0\.0/).respond(200, {
       "ViewVersionInfo": {}
     });
     scope = $rootScope.$new();

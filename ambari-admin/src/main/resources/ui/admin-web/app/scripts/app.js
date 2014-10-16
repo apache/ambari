@@ -58,6 +58,19 @@ angular.module('ambariAdminConsole', [
     }
   }]);
 
+  $provide.factory('TimestampHttpInterceptor', [function($q) {
+    return {
+      request: function(config) {
+        if (config && config.method === 'GET' && config.url.indexOf('html') === -1) {
+          config.url += config.url.indexOf('?') < 0 ? '?' : '&';
+          config.url += '_=' + new Date().getTime();
+         }
+         return config || $q.when(config);
+      }
+   };
+  }]);
+  $httpProvider.interceptors.push('TimestampHttpInterceptor');
+
   $provide.decorator('ngFormDirective', ['$delegate', function($delegate) {
     var ngForm = $delegate[0], controller = ngForm.controller;
     ngForm.controller = ['$scope', '$element', '$attrs', '$injector', function(scope, element, attrs, $injector) {
