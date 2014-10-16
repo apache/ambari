@@ -980,7 +980,7 @@
         "component_category" : "CLIENT",
         "component_name" : "YARN_CLIENT",
         "custom_commands" : [ ],
-        "display_name" : "Yarn Client",
+        "display_name" : "YARN Client",
         "is_client" : true,
         "is_master" : false,
         "service_name" : "YARN",

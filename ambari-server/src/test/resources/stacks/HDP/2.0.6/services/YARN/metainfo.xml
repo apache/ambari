@@ -72,7 +72,7 @@
         </component>
         <component>
           <name>YARN_CLIENT</name>
-          <displayName>Yarn Client</displayName>
+          <displayName>YARN Client</displayName>
           <category>CLIENT</category>
           <deleted>true</deleted>
           <cardinality>0+</cardinality>
