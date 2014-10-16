@@ -205,6 +205,10 @@ public class ViewRegistryTest {
     viewDefinition.setResourceType(resourceTypeEntity);
 
     Set<ViewInstanceEntity> viewInstanceEntities = ViewInstanceEntityTest.getViewInstanceEntities(viewDefinition);
+
+    for (ViewInstanceEntity viewInstanceEntity : viewInstanceEntities) {
+      viewInstanceEntity.putInstanceData("p1", "v1");
+    }
     viewDefinition.setInstances(viewInstanceEntities);
 
     Map<File, ViewConfig> viewConfigs =
@@ -308,7 +312,12 @@ public class ViewRegistryTest {
     Assert.assertNotNull(view);
     Assert.assertEquals(ViewDefinition.ViewStatus.DEPLOYED, view.getStatus());
 
-    Assert.assertEquals(2, registry.getInstanceDefinitions(view).size());
+    Collection<ViewInstanceEntity> instanceDefinitions = registry.getInstanceDefinitions(view);
+    Assert.assertEquals(2, instanceDefinitions.size());
+
+    for (ViewInstanceEntity viewInstanceEntity : instanceDefinitions) {
+      Assert.assertEquals("v1", viewInstanceEntity.getInstanceData("p1").getValue());
+    }
 
     // verify mocks
     verify(configuration, viewDir, extractedArchiveDir, viewArchive, archiveDir, entryFile, classesDir,

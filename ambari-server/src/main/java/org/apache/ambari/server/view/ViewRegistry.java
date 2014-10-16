@@ -1097,11 +1097,6 @@ public class ViewRegistry {
       persistedView = viewDAO.merge(view);
     }
 
-    Map<String, ViewInstanceEntity> xmlInstanceEntityMap = new HashMap<String, ViewInstanceEntity>();
-    for( ViewInstanceEntity instance : view.getInstances()) {
-      xmlInstanceEntityMap.put(instance.getName(), instance);
-    }
-
     view.setResourceType(persistedView.getResourceType());
     view.setPermissions(persistedView.getPermissions());
 
@@ -1110,8 +1105,6 @@ public class ViewRegistry {
 
       String             instanceName = persistedInstance.getName();
       ViewInstanceEntity instance     = view.getInstanceDefinition(instanceName);
-
-      xmlInstanceEntityMap.remove(instanceName);
 
       // if the persisted instance is not in the view ...
       if (instance == null) {
@@ -1128,14 +1121,9 @@ public class ViewRegistry {
         }
       } else {
         instance.setResource(persistedInstance.getResource());
+        instance.setViewInstanceId(persistedInstance.getViewInstanceId());
+        instance.setData(persistedInstance.getData());
       }
-    }
-
-    // these instances appear in the view.xml but are not present in the db...
-    // add them to db
-    for (ViewInstanceEntity instance : xmlInstanceEntityMap.values()) {
-      instance.setResource(createViewInstanceResource(resourceType));
-      instanceDAO.merge(instance);
     }
   }
 
