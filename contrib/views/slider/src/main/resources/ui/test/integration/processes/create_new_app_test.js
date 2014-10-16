@@ -75,7 +75,7 @@ var appTypes = {
 
 var selectors = {
     buttonNext: 'button.next-btn',
-    buttonBack: 'button.btn:eq(1)',
+    buttonBack: '.btn-area button.btn:eq(1)',
     step2: {
       content: '#step2 table tbody'
     },
@@ -96,6 +96,7 @@ var selectors = {
       HBASE_MASTER: 4,
       HBASE_REGIONSERVER: 5
     },
+    yarnLabel: 'SOME LABEL',
     categoriesCount: 6,
     newConfig: {
       name: 'new_property',
@@ -318,4 +319,32 @@ test('check step3', function () {
       });
     });
   });
+});
+
+test('check step3 back', function () {
+
+  visit('/createAppWizard/step1');
+  fillIn('#app-name-input', newApp.name);
+  click(selectors.buttonNext);
+
+  andThen(function () {
+    fillIn(selectors.step2.content + ' tr:eq(0) .numInstances', newApp.components.HBASE_MASTER);
+    find(selectors.step2.content + ' tr:eq(0) .checkbox-inline').click();
+    fillIn(selectors.step2.content + ' tr:eq(0) .yarnLabel', newApp.yarnLabel);
+    fillIn(selectors.step2.content + ' tr:eq(1) .numInstances', newApp.components.HBASE_REGIONSERVER);
+    click(selectors.buttonNext);
+
+    andThen(function () {
+      click(selectors.buttonBack);
+
+      andThen(function () {
+        equal(find(selectors.step2.content + ' tr:eq(0) .numInstances').val(), newApp.components.HBASE_MASTER, 'Components count restored');
+        equal(find(selectors.step2.content + ' tr:eq(0) .checkbox-inline').attr('checked'), 'checked', 'YARN label checkbox restored');
+        equal(find(selectors.step2.content + ' tr:eq(0) .yarnLabel').val(), newApp.yarnLabel, 'YARN label input restored');
+        equal(find(selectors.step2.content + ' tr:eq(0) .yarnLabel').attr('disabled'), null, 'YARN label input not disabled');
+        equal(find(selectors.step2.content + ' tr:eq(1) .numInstances').val(), newApp.components.HBASE_REGIONSERVER, 'Components count restored (2)');
+      });
+    });
+  });
+
 });
