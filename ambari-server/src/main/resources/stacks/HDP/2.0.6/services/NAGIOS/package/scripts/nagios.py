@@ -91,10 +91,7 @@ def set_web_permisssions():
   import params
 
   cmd = format("{htpasswd_cmd} -c -b  {conf_dir}/htpasswd.users {nagios_web_login} {nagios_web_password!p}")
-  test = format("grep {nagios_web_login} {conf_dir}/htpasswd.users")
-  Execute( cmd,
-    not_if = test
-  )
+  Execute(cmd)
 
   File( format("{conf_dir}/htpasswd.users"),
     owner = params.nagios_user,
