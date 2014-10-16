@@ -1668,7 +1668,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   setHiveHostName: function (configs) {
     if (configs.someProperty('name', 'hive_database')) {
       var hiveDb = configs.findProperty('name', 'hive_database');
-      if (hiveDb.value === 'New MySQL Database') {
+      if (hiveDb.value === 'New MySQL Database' || hiveDb.value === 'New PostgreSQL Database') {
         var ambariHost = configs.findProperty('name', 'hive_ambari_host');
         if (ambariHost) {
           ambariHost.name = 'hive_hostname';

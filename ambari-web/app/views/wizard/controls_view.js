@@ -216,7 +216,7 @@ App.ServiceConfigRadioButtons = Ember.View.extend({
   didInsertElement: function () {
     // on page render, automatically populate JDBC URLs only for default database settings
     // so as to not lose the user's customizations on these fields
-    if (['addServiceController', 'installerController'].contains(App.clusterStatus.wizardControllerName) && ['New MySQL Database', 'New Derby Database'].contains(this.get('serviceConfig.value'))) {
+    if (['addServiceController', 'installerController'].contains(App.clusterStatus.wizardControllerName) && ['New PostgreSQL Database', 'New MySQL Database', 'New Derby Database'].contains(this.get('serviceConfig.value'))) {
       this.onOptionsChange();
     }
   },
@@ -242,6 +242,7 @@ App.ServiceConfigRadioButtons = Ember.View.extend({
               connectionUrl.set('value', "jdbc:mysql://" + this.get('hostName') + "/" + this.get('databaseName') + "?createDatabaseIfNotExist=true");
               dbClass.set('value', "com.mysql.jdbc.Driver");
               break;
+            case 'New PostgreSQL Database':
             case Em.I18n.t('services.service.config.hive.oozie.postgresql'):
               connectionUrl.set('value', "jdbc:postgresql://" + this.get('hostName') + ":5432/" + this.get('databaseName'));
               dbClass.set('value', "org.postgresql.Driver");
@@ -297,6 +298,7 @@ App.ServiceConfigRadioButtons = Ember.View.extend({
     if (this.get('serviceConfig.serviceName') === 'HIVE') {
       switch (value) {
         case 'New MySQL Database':
+        case 'New PostgreSQL Database':
           hostname = this.get('categoryConfigsAll').findProperty('name', 'hive_ambari_host');
           break;
         case 'Existing MySQL Database':

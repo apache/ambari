@@ -621,6 +621,13 @@ describe('App.WizardStep8Controller', function () {
         },
         {
           serviceConfigProperties: [
+            {name: 'hive_database', value: 'New PostgreSQL Database'}
+          ],
+          m: 'New PostgreSQL Database',
+          e: 'Postgres (New Database)'
+        },
+        {
+          serviceConfigProperties: [
             {name: 'hive_database', value: 'Existing MySQL Database'},
             {name: 'hive_existing_mysql_database', value: 'dbname'}
           ],
@@ -1414,28 +1421,40 @@ describe('App.WizardStep8Controller', function () {
         expect(installerStep8Controller.registerHostsToComponent.args[0][1]).to.equal('GANGLIA_MONITOR');
       });
 
-      it('should add MYSQL_SERVER', function() {
-        installerStep8Controller.reopen({
-          getRegisteredHosts: function() {
-            return [{hostName: 'h1'}, {hostName: 'h2'}];
-          },
-          content: {
-            masterComponentHosts: [
-              {component: 'HIVE_SERVER', hostName: 'h1'},
-              {component: 'HIVE_SERVER', hostName: 'h2'}
-            ],
-            services: [
-              Em.Object.create({serviceName: 'HIVE', isSelected: true, isInstalled: false})
-            ],
-            serviceConfigProperties: [
-              {name: 'hive_database', value: 'New MySQL Database'}
-            ]
-          }
+      var newDatabases = [
+        {name: 'New MySQL Database',
+         component: 'MYSQL_SERVER'
+        },
+        {name: 'New PostgreSQL Database',
+          component: 'POSTGRESQL_SERVER'
+        },
+      ];
+
+      newDatabases.forEach(function (db) {
+        it('should add {0}'.format(db.component), function() {
+          installerStep8Controller.reopen({
+            getRegisteredHosts: function() {
+              return [{hostName: 'h1'}, {hostName: 'h2'}];
+            },
+            content: {
+              masterComponentHosts: [
+                {component: 'HIVE_SERVER', hostName: 'h1'},
+                {component: 'HIVE_SERVER', hostName: 'h2'}
+              ],
+              services: [
+                Em.Object.create({serviceName: 'HIVE', isSelected: true, isInstalled: false})
+              ],
+              serviceConfigProperties: [
+                {name: 'hive_database', value: db.name}
+              ]
+            }
+          });
+          installerStep8Controller.createAdditionalHostComponents();
+          expect(installerStep8Controller.registerHostsToComponent.calledOnce).to.equal(true);
+          expect(installerStep8Controller.registerHostsToComponent.args[0][0]).to.eql(['h1', 'h2']);
+          expect(installerStep8Controller.registerHostsToComponent.args[0][1]).to.equal(db.component);
         });
-        installerStep8Controller.createAdditionalHostComponents();
-        expect(installerStep8Controller.registerHostsToComponent.calledOnce).to.equal(true);
-        expect(installerStep8Controller.registerHostsToComponent.args[0][0]).to.eql(['h1', 'h2']);
-        expect(installerStep8Controller.registerHostsToComponent.args[0][1]).to.equal('MYSQL_SERVER');
+
       });
 
     });

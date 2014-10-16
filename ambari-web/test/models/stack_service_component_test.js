@@ -290,7 +290,19 @@ var componentPropertiesValidationTests = [
       isOtherComponentCoHosted: false,
       isCoHostedComponent: false
     }
-  }
+  },
+  {
+    componentName: 'POSTGRESQL_SERVER',
+    expected: {
+      isShownOnInstallerAssignMasterPage: false,
+    }
+  },
+  {
+    componentName: 'MYSQL_SERVER',
+    expected: {
+      isShownOnInstallerAssignMasterPage: false,
+    }
+  },
 ];
 
 describe('App.StackServiceComponent', function() {
