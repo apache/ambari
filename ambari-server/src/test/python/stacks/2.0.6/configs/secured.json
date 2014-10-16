@@ -522,6 +522,10 @@
             "hbase_log_dir": "/var/log/hbase",
             "hbase_user_keytab": "/etc/security/keytabs/hbase.headless.keytab"
         },
+        "flume-env": {
+            "content": "export JAVA_HOME={{java64_home}}",
+            "flume_user": "flume"
+        },
         "ganglia-env": {
             "gmond_user": "nobody", 
             "ganglia_runtime_dir": "/var/run/ganglia/hdp", 

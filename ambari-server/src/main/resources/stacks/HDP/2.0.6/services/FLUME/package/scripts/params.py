@@ -58,6 +58,8 @@ else:
 targets = default('/commandParams/flume_handler', None)
 flume_command_targets = [] if targets is None else targets.split(',')
 
+flume_env_sh_template = config['configurations']['flume-env']['content']
+
 ganglia_server_hosts = default('/clusterHostInfo/ganglia_server_host', [])
 ganglia_server_host = None
 if 0 != len(ganglia_server_hosts):

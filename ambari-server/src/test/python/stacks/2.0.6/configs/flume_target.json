@@ -485,6 +485,10 @@
             "yarn.resourcemanager.admin.address": "c6402.ambari.apache.org:8141", 
             "yarn.nodemanager.aux-services.mapreduce_shuffle.class": "org.apache.hadoop.mapred.ShuffleHandler"
         },
+        "flume-env": {
+          "content": "export JAVA_HOME={{java64_home}}",
+          "flume_user": "flume"
+        },
         "tez-site": {
             "tez.am.log.level": "WARN",
             "tez.lib.uris": "hdfs:///apps/tez/,hdfs:///apps/tez/lib/",

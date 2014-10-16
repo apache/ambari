@@ -22,7 +22,6 @@ from mock.mock import MagicMock, call, patch
 from stacks.utils.RMFTestCase import *
 import resource_management.core.source
 
-@patch.object(resource_management.core.source, "InlineTemplate", new = MagicMock(return_value='InlineTemplateMock'))
 class TestFlumeHandler(RMFTestCase):
 
   def test_configure_default(self):
@@ -161,6 +160,11 @@ class TestFlumeHandler(RMFTestCase):
 
     self.assertResourceCalled('Directory', '/var/log/flume', owner = 'flume')
 
+    self.assertResourceCalled('File', "/etc/flume/conf/flume-env.sh",
+      owner="flume",
+      content=InlineTemplate(self.getConfig()['configurations']['flume-env']['content'])
+    )
+
     self.assertResourceCalled('Directory', '/etc/flume/conf/a1')
 
     self.assertResourceCalled('PropertiesFile', '/etc/flume/conf/a1/flume.conf',
@@ -183,6 +187,11 @@ class TestFlumeHandler(RMFTestCase):
     self.assertResourceCalled('Directory', '/etc/flume/conf', recursive=True)
 
     self.assertResourceCalled('Directory', '/var/log/flume', owner = 'flume')
+
+    self.assertResourceCalled('File', "/etc/flume/conf/flume-env.sh",
+         owner="flume",
+         content=InlineTemplate(self.getConfig()['configurations']['flume-env']['content'])
+    )
 
     top = build_flume(self.getConfig()['configurations']['flume-conf']['content'])
 
