@@ -87,7 +87,64 @@
         "knox_group": "knox",
         "knox_pid_dir": "/var/run/knox",
         "knox_user": "knox"
+      },
+      "kafka-env": {
+        "content": "\n#!/bin/bash\n\n# Set KAFKA specific environment variables here.\n\n# The java implementation to use.\nexport JAVA_HOME={{java64_home}}\nexport PATH=$PATH:$JAVA_HOME/bin",
+        "kafka_user": "kafka",
+        "kafka_log_dir": "/var/log/kafka",
+        "kafka_pid_dir": "/var/run/kafka"
+      },
+      "kafka-log4j": {
+        "content": "\n#\n#\n# Licensed to the Apache Software Foundation (ASF) under one\n# or more contributor license agreements.  See the NOTICE file\n# distributed with this work for additional information\n# regarding copyright ownership.  The ASF licenses this file\n# to you under the Apache License, Version 2.0 (the\n# \"License\"); you may not use this file except in compliance\n# with the License.  You may obtain a copy of the License at\n#\n#   http://www.apache.org/licenses/LICENSE-2.0\n#\n# Unless required by applicable law or agreed to in writing,\n# software distributed under the License is distributed on an\n# \"AS IS\" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY\n# KIND, either express or implied.  See the License for the\n# specific language governing permissions and limitations\n# under the License.\n#\n#\n#\nkafka.logs.dir=logs\n\nlog4j.rootLogger=INFO, stdout\n\nlog4j.appender.stdout=org.apache.log4j.ConsoleAppender\nlog4j.appender.stdout.layout=org.apache.log4j.PatternLayout\nlog4j.appender.stdout.layout.ConversionPattern=[%d] %p %m (%c)%n\n\nlog4j.appender.kafkaAppender=org.apache.log4j.DailyRollingFileAppender\nlog4j.appender.kafkaAppender.DatePattern='.'yyyy-MM-dd-HH\nlog4j.appender.kafkaAppender.File=${kafka.logs.dir}/server.log\nlog4j.appender.kafkaAppender.layout=org.apache.log4j.PatternLayout\nlog4j.appender.kafkaAppender.layout.ConversionPattern=[%d] %p %m (%c)%n\n\nlog4j.appender.stateChangeAppender=org.apache.log4j.DailyRollingFileAppender\nlog4j.appender.stateChangeAppender.DatePattern='.'yyyy-MM-dd-HH\nlog4j.appender.stateChangeAppender.File=${kafka.logs.dir}/state-change.log\nlog4j.appender.stateChangeAppender.layout=org.apache.log4j.PatternLayout\nlog4j.appender.stateChangeAppender.layout.ConversionPattern=[%d] %p %m (%c)%n\n\nlog4j.appender.requestAppender=org.apache.log4j.DailyRollingFileAppender\nlog4j.appender.requestAppender.DatePattern='.'yyyy-MM-dd-HH\nlog4j.appender.requestAppender.File=${kafka.logs.dir}/kafka-request.log\nlog4j.appender.requestAppender.layout=org.apache.log4j.PatternLayout\nlog4j.appender.requestAppender.layout.ConversionPattern=[%d] %p %m (%c)%n\n\nlog4j.appender.cleanerAppender=org.apache.log4j.DailyRollingFileAppender\nlog4j.appender.cleanerAppender.DatePattern='.'yyyy-MM-dd-HH\nlog4j.appender.cleanerAppender.File=${kafka.logs.dir}/log-cleaner.log\nlog4j.appender.cleanerAppender.layout=org.apache.log4j.PatternLayout\nlog4j.appender.cleanerAppender.layout.ConversionPattern=[%d] %p %m (%c)%n\n\nlog4j.appender.controllerAppender=org.apache.log4j.DailyRollingFileAppender\nlog4j.appender.controllerAppender.DatePattern='.'yyyy-MM-dd-HH\nlog4j.appender.controllerAppender.File=${kafka.logs.dir}/controller.log\nlog4j.appender.controllerAppender.layout=org.apache.log4j.PatternLayout\nlog4j.appender.controllerAppender.layout.ConversionPattern=[%d] %p %m (%c)%n\n\n# Turn on all our debugging info\n#log4j.logger.kafka.producer.async.DefaultEventHandler=DEBUG, kafkaAppender\n#log4j.logger.kafka.client.ClientUtils=DEBUG, kafkaAppender\n#log4j.logger.kafka.perf=DEBUG, kafkaAppender\n#log4j.logger.kafka.perf.ProducerPerformance$ProducerThread=DEBUG, kafkaAppender\n#log4j.logger.org.I0Itec.zkclient.ZkClient=DEBUG\nlog4j.logger.kafka=INFO, kafkaAppender\nlog4j.logger.kafka.network.RequestChannel$=WARN, requestAppender\nlog4j.additivity.kafka.network.RequestChannel$=false\n\n#log4j.logger.kafka.network.Processor=TRACE, requestAppender\n#log4j.logger.kafka.server.KafkaApis=TRACE, requestAppender\n#log4j.additivity.kafka.server.KafkaApis=false\nlog4j.logger.kafka.request.logger=WARN, requestAppender\nlog4j.additivity.kafka.request.logger=false\n\nlog4j.logger.kafka.controller=TRACE, controllerAppender\nlog4j.additivity.kafka.controller=false\n\nlog4j.logger.kafka.log.LogCleaner=INFO, cleanerAppender\nlog4j.additivity.kafka.log.LogCleaner=false\n\nlog4j.logger.state.change.logger=TRACE, stateChangeAppender\nlog4j.additivity.state.change.logger=false"
+      },
+      "kafka-broker": {
+        "log.segment.bytes": "1073741824",
+        "socket.send.buffer.bytes": "102400",
+        "num.network.threads": "3",
+        "log.flush.scheduler.interval.ms": "3000",
+        "kafka.ganglia.metrics.host": "localhost",
+        "zookeeper.session.timeout.ms": "6000",
+        "replica.lag.time.max.ms": "10000",
+        "num.io.threads": "8",
+        "kafka.ganglia.metrics.group": "kafka",
+        "replica.lag.max.messages": "4000",
+        "port": "6667",
+        "log.retention.bytes": "-1",
+        "fetch.purgatory.purge.interval.requests": "10000",
+        "producer.purgatory.purge.interval.requests": "10000",
+        "default.replication.factor": "1",
+        "replica.high.watermark.checkpoint.interval.ms": "5000",
+        "zookeeper.connect": "c6402.ambari.apache.org:2181",
+        "controlled.shutdown.retry.backoff.ms": "5000",
+        "num.partitions": "1",
+        "log.flush.interval.messages": "10000",
+        "replica.fetch.min.bytes": "1",
+        "queued.max.requests": "500",
+        "controlled.shutdown.max.retries": "3",
+        "replica.fetch.wait.max.ms": "500",
+        "controlled.shutdown.enable": "false",
+        "log.roll.hours": "168",
+        "log.cleanup.interval.mins": "10",
+        "replica.socket.receive.buffer.bytes": "65536",
+        "zookeeper.connection.timeout.ms": "6000",
+        "replica.fetch.max.bytes": "1048576",
+        "num.replica.fetchers": "1",
+        "socket.request.max.bytes": "104857600",
+        "message.max.bytes": "1000000",
+        "zookeeper.sync.time.ms": "2000",
+        "socket.receive.buffer.bytes": "102400",
+        "controller.message.queue.size": "10",
+        "log.flush.interval.ms": "3000",
+        "log.dirs": "/tmp/log/dir",
+        "controller.socket.timeout.ms": "30000",
+        "replica.socket.timeout.ms": "30000",
+        "auto.create.topics.enable": "true",
+        "log.index.size.max.bytes": "10485760",
+        "kafka.ganglia.metrics.port": "8649",
+        "log.index.interval.bytes": "4096",
+        "log.retention.hours": "168"
       }
+
 
     },
     "configuration_attributes": {
@@ -114,7 +171,10 @@
         },
       "knox-env": {},
       "gateway-site": {},
-      "users-ldif": {}
+      "users-ldif": {},
+      "kafka-env": {},
+      "kafka-log4j": {},
+      "kafka-broker": {}
     },
     "configurationTags": {
         "slider-client": {
@@ -143,6 +203,15 @@
       },
       "users-ldif": {
         "tag": "version1"
+      },
+      "kafka-env": {
+        "tag": "version1"
+      },
+      "kafka-log4j": {
+        "tag": "version1"
+      },
+      "kafka-broker": {
+        "tag": "version1"
       }
     },
     "commandId": "7-1",
@@ -163,6 +232,13 @@
         ],
       "knox_gateway_hosts": [
         "jaimin-knox-1.c.pramod-thangali.internal"
-      ]
-    }
+      ],
+      "kafka_broker_hosts": [
+        "c6402.ambari.apache.org"
+      ],
+       "zookeeper_hosts": [
+         "c6401.ambari.apache.org"
+        ]
+
+}
 }

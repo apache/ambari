@@ -119,3 +119,10 @@ define servicegroup {
 }
 {% endif %}
 
+{%if hostgroup_defs['kafka-broker'] %}
+define servicegroup {
+  servicegroup_name  KAFKA
+  alias  KAFKA Checks
+}
+{% endif %}
+
