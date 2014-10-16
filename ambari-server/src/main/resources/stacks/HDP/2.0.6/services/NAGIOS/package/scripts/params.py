@@ -91,8 +91,12 @@ nagios_principal_name = default("/configurations/nagios-env/nagios_principal_nam
 
 oozie_server_port = get_port_from_url(config['configurations']['oozie-site']['oozie.base.url'])
 namenode_host = default("/clusterHostInfo/namenode_host", None)
+_rm_host = default("/clusterHostInfo/rm_host", None)
+if type(_rm_host) is list:
+  rm_hosts_in_str = ','.join(_rm_host)
 
 has_namenode = not namenode_host == None
+has_rm = not _rm_host == None
 
 # - test for HDFS or HCFS (glusterfs)
 if 'namenode_host' in config['clusterHostInfo']:
@@ -110,15 +114,18 @@ dfs_http_policy = HADOOP_HTTP_POLICY
 yarn_http_policy = HADOOP_HTTP_POLICY
 mapreduce_http_policy = HADOOP_HTTP_POLICY
 
-# 
-if 'dfs.http.policy' in config['configurations']['hdfs-site']:
-  dfs_http_policy = config['configurations']['hdfs-site']['dfs.http.policy']
+#
+if has_namenode:
+  if 'dfs.http.policy' in config['configurations']['hdfs-site']:
+    dfs_http_policy = config['configurations']['hdfs-site']['dfs.http.policy']
+  if dfs_http_policy == HADOOP_HTTPS_POLICY:
+    hdfs_ssl_enabled = True
+if has_rm:
+  if 'yarn.http.policy' in config['configurations']['yarn-site']:
+    yarn_http_policy = config['configurations']['yarn-site']['yarn.http.policy']
 
-if 'yarn.http.policy' in config['configurations']['yarn-site']:
-  yarn_http_policy = config['configurations']['yarn-site']['yarn.http.policy']
-
-if 'mapreduce.jobhistory.http.policy' in config['configurations']['mapred-site']:
-  mapreduce_http_policy = config['configurations']['mapred-site']['mapreduce.jobhistory.http.policy']
+  if 'mapreduce.jobhistory.http.policy' in config['configurations']['mapred-site']:
+    mapreduce_http_policy = config['configurations']['mapred-site']['mapreduce.jobhistory.http.policy']
 
 if dfs_http_policy == HADOOP_HTTPS_POLICY:
   hdfs_ssl_enabled = True
@@ -177,8 +184,9 @@ if has_namenode:
     datanode_port = get_port_from_url(config['configurations']['hdfs-site'][dfs_datanode_webui_property])
 
 nm_port = yarn_nodemanager_default_port
-if yarn_nodemanager_webui_property in config['configurations']['yarn-site']:
-  nm_port = get_port_from_url(config['configurations']['yarn-site'][yarn_nodemanager_webui_property])
+if has_rm:
+  if yarn_nodemanager_webui_property in config['configurations']['yarn-site']:
+    nm_port = get_port_from_url(config['configurations']['yarn-site'][yarn_nodemanager_webui_property])
   
 flume_port = "4159"
 hbase_master_rpc_port = default('/configurations/hbase-site/hbase.master.port', "60000")
@@ -197,6 +205,7 @@ storm_rest_api_port = "8745"
 falcon_port = config['configurations']['falcon-env']['falcon_port']
 ahs_port = get_port_from_url(config['configurations']['yarn-site'][yarn_timeline_service_webui_property])
 knox_gateway_port = config['configurations']['gateway-site']['gateway.port']
+kafka_broker_port = config['configurations']['kafka-broker']['port']
 
 # use sensible defaults for checkpoint as they are required by Nagios and 
 # may not be part of hdfs-site.xml on an upgrade
@@ -316,6 +325,7 @@ _falcon_host = default("/clusterHostInfo/falcon_server_hosts", None)
 _hbase_rs_hosts = default("/clusterHostInfo/hbase_rs_hosts", _slave_hosts)
 _hue_server_host = default("/clusterHostInfo/hue_server_host", None)
 _knox_gateway_host =  default("/clusterHostInfo/knox_gateway_hosts", None)
+_kafka_broker_host =  default("/clusterHostInfo/kafka_broker_hosts", None)
 all_hosts = config['clusterHostInfo']['all_hosts']
 
 if 'namenode_host' in config['clusterHostInfo']:
@@ -351,5 +361,6 @@ hostgroup_defs = {
     'storm_rest_api' : _storm_rest_api_hosts,
     'falcon-server' : _falcon_host,
     'ats-servers' : _app_timeline_server_hosts,
-    'knox-gateway' : _knox_gateway_host
+    'knox-gateway' : _knox_gateway_host,
+    'kafka-broker' : _kafka_broker_host
 }

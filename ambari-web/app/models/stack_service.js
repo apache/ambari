@@ -318,6 +318,11 @@ App.StackService.configCategories = function () {
         App.ServiceConfigCategory.create({ name: 'KNOX_GATEWAY', displayName: 'Knox Gateway'})
       ]);
       break;
+    case 'KAFKA':
+      serviceConfigCategories.pushObjects([
+        App.ServiceConfigCategory.create({ name: 'KAFKA_BROKER', displayName: 'Kafka Broker'})
+      ]);
+      break;
     case 'PIG':
       break;
     case 'SQOOP':

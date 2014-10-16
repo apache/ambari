@@ -1693,6 +1693,99 @@ module.exports =
       "category": "Advanced knox-env.xml"
     },
 
+  /********************************************* KAFKA *****************************/
+    {
+      "id": "puppet var",
+      "name": "kafka_broker_host",
+      "displayName": "Kafka Broker host",
+      "value": "",
+      "defaultValue": "",
+      "description": "The host that has been assigned to run Kafka Broker",
+      "displayType": "masterHost",
+      "isOverridable": false,
+      "isVisible": true,
+      "isRequiredByAgent": false,
+      "serviceName": "KAFKA",
+      "filename": "kafka-broker.xml",
+      "category": "KAFKA_BROKER",
+      "index": 0
+    },
+    {
+      "id": "site property",
+      "name": "log.dirs",
+      "displayName": "log.dirs",
+      "value": "",
+      "defaultValue": "",
+      "displayType": "directories",
+      "serviceName": "KAFKA",
+      "filename": "kafka-broker.xml",
+      "category": "KAFKA_BROKER",
+      "index": 0
+    },
+    {
+      "id": "site property",
+      "name": "port",
+      "displayName": "port",
+      "value": "",
+      "defaultValue": "",
+      "displayType": "int",
+      "serviceName": "KAFKA",
+      "filename": "kafka-broker.xml",
+      "category": "KAFKA_BROKER",
+      "index": 0
+    },
+    {
+      "id": "site property",
+      "name": "log.roll.hours",
+      "displayName": "log.roll.hours",
+      "value": "",
+      "defaultValue": "",
+      "displayType": "advanced",
+      "serviceName": "KAFKA",
+      "filename": "kafka-broker.xml",
+      "category": "KAFKA_BROKER",
+      "index": 0
+    },
+    {
+      "id": "site property",
+      "name": "log.retention.hours",
+      "displayName": "log.retention.hours",
+      "value": "",
+      "defaultValue": "",
+      "displayType": "advanced",
+      "serviceName": "KAFKA",
+      "filename": "kafka-broker.xml",
+      "category": "KAFKA_BROKER",
+      "index": 0
+    },
+    {
+      "id": "site property",
+      "name": "zookeeper.connect",
+      "displayName": "zookeeper.connect",
+      "value": "",
+      "defaultValue": "",
+      "displayType": "advanced",
+      "serviceName": "KAFKA",
+      "filename": "kafka-broker.xml",
+      "category": "KAFKA_BROKER",
+      "index": 0
+    },
+    {
+      "id": "site property",
+      "name": "kafka_pid_dir",
+      "displayName": "Kafka PID dir",
+      "value": "",
+      "defaultValue": "",
+      "isReconfigurable": false,
+      "isOverridable": false,
+      "displayType": "directory",
+      "serviceName": "KAFKA",
+      "filename": "kafka-broker.xml",
+      "category": "Advanced kafka-env.xml",
+      "index": 0
+    },
+
+
   /********************************************* flume-agent *****************************/
     {
       "id": "site property",

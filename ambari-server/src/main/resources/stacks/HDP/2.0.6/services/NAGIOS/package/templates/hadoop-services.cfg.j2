@@ -801,4 +801,18 @@ define service {
 }
 {% endif %}
 
+{% if hostgroup_defs['kafka-broker'] %}
+# KNOX Checks
+define service {
+        hostgroup_name          kafka-broker
+        use                     hadoop-service
+        service_description     KAFKA::Kafka Broker process
+        servicegroups           KAFKA
+        check_command           check_tcp_wrapper!{{ kafka_broker_port }}!-w 1 -c 1
+        normal_check_interval   1
+        retry_check_interval    0.5
+        max_check_attempts      3
+}
+{% endif %}
+
 

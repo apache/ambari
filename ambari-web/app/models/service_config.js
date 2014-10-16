@@ -481,10 +481,14 @@ App.ServiceConfigProperty = Ember.Object.extend({
       case 'knox_gateway_host':
         this.set('value', masterComponentHostsInDB.findProperty('component', 'KNOX_GATEWAY').hostName);
         break;
+      case 'kafka_broker_host':
+        this.set('value', masterComponentHostsInDB.findProperty('component', 'KAFKA_BROKER').hostName);
+        break;
       case 'hbase.zookeeper.quorum':
         var zkHosts = masterComponentHostsInDB.filterProperty('component', 'ZOOKEEPER_SERVER').mapProperty('hostName');
         this.setDefaultValue("(\\w*)", zkHosts);
         break;
+      case 'zookeeper.connect':
       case 'hive.zookeeper.quorum':
       case 'templeton.zookeeper.hosts':
       case 'slider.zookeeper.quorum':
