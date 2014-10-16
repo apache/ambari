@@ -18,11 +18,11 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import java.util.Comparator;
+
 import org.apache.ambari.server.controller.spi.PageRequest;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Resource;
-
-import java.util.Comparator;
 
 /**
  * Basic page request implementation.

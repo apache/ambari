@@ -18,15 +18,16 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import org.apache.ambari.server.controller.spi.Request;
-import org.apache.ambari.server.controller.spi.TemporalInfo;
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+
+import org.apache.ambari.server.controller.spi.Request;
+import org.apache.ambari.server.controller.spi.ResourceProvider;
+import org.apache.ambari.server.controller.spi.TemporalInfo;
 
 /**
  * Default request implementation.
@@ -56,6 +57,17 @@ public class RequestImpl implements Request {
    */
   private Map<String, TemporalInfo> m_mapTemporalInfo = new HashMap<String, TemporalInfo>();
 
+  /**
+   * An optional page request which a concrete {@link ResourceProvider} can use
+   * to return a slice of results.
+   */
+  private PageInfo m_pageInfo = null;
+
+  /**
+   * An optional sort request which a concrete {@link ResourceProvider} can use
+   * to return sorted results.
+   */
+  private SortInfo m_sortInfo = null;
 
   // ----- Constructors ------------------------------------------------------
 
@@ -112,10 +124,60 @@ public class RequestImpl implements Request {
     m_mapTemporalInfo = mapTemporalInfo;
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public PageInfo getPageInfo() {
+    return m_pageInfo;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public SortInfo getSortInfo() {
+    return m_sortInfo;
+  }
+
+  /**
+   * Sets the pagination request that a {@link ResourceProvider} can optionally
+   * use when creating its result set.
+   * <p/>
+   * If the result set is being paginated by the {@link ResourceProvider}, then
+   * {@link PageInfo#isResponsePaged()} must be invoked with {@code true} by the
+   * provider.
+   *
+   * @param pageInfo
+   *          the page request, or {@code null} if none.
+   */
+  public void setPageInfo(PageInfo pageInfo) {
+    m_pageInfo = pageInfo;
+  }
+
+  /**
+   * Sets the sorting request that a {@link ResourceProvider} can optionally use
+   * when creating its result set.
+   * <p/>
+   * If the result set is being paginated by the {@link ResourceProvider}, then
+   * {@link SortInfo#isResponseSorted()} must be invoked with {@code true} by
+   * the provider.
+   *
+   * @param sortInfo
+   *          the sort request, or {@code null} if none.
+   */
+  public void setSortInfo(SortInfo sortInfo) {
+    m_sortInfo = sortInfo;
+  }
+
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
 
     RequestImpl request = (RequestImpl) o;
 
@@ -130,6 +192,7 @@ public class RequestImpl implements Request {
     return result;
   }
 
+  @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
     sb.append("Request:"
@@ -157,5 +220,4 @@ public class RequestImpl implements Request {
     sb.append(" ]");
     return sb.toString();
   }
-
 }

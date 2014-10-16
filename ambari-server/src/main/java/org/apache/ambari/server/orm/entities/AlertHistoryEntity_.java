@@ -88,6 +88,9 @@ public class AlertHistoryEntity_ {
     mapping.put(AlertHistoryResourceProvider.ALERT_HISTORY_HOSTNAME,
         Collections.singletonList(hostName));
 
+    mapping.put(AlertHistoryResourceProvider.ALERT_HISTORY_LABEL,
+        Collections.singletonList(alertLabel));
+
     // AlertHistory.alertDefinition.definitionName = foo
     mapping.put(AlertHistoryResourceProvider.ALERT_HISTORY_DEFINITION_NAME,
         Arrays.asList(alertDefinition, AlertDefinitionEntity_.definitionName));

@@ -40,6 +40,7 @@ import org.apache.ambari.server.state.alert.SourceType;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.google.inject.persist.Transactional;
 
 @Singleton
 public class AlertDaoHelper {
@@ -59,6 +60,7 @@ public class AlertDaoHelper {
   /**
    *
    */
+  @Transactional
   public void populateData(Cluster cluster) throws Exception {
     // remove any definitions and start over
     List<AlertDefinitionEntity> definitions = m_definitionDao.findAll();
@@ -157,6 +159,13 @@ public class AlertDaoHelper {
     nnPendingNotice.setNotifyState(NotificationState.PENDING);
     nnPendingNotice.setUuid(UUID.randomUUID().toString());
     m_dispatchDAO.create(nnPendingNotice);
+
+    AlertNoticeEntity dnDeliveredNotice = new AlertNoticeEntity();
+    dnDeliveredNotice.setAlertHistory(dnHistory);
+    dnDeliveredNotice.setAlertTarget(administrators);
+    dnDeliveredNotice.setNotifyState(NotificationState.FAILED);
+    dnDeliveredNotice.setUuid(UUID.randomUUID().toString());
+    m_dispatchDAO.create(dnDeliveredNotice);
 
     AlertNoticeEntity aggregateFailedNotice = new AlertNoticeEntity();
     aggregateFailedNotice.setAlertHistory(aggregateHistory);

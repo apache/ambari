@@ -39,7 +39,13 @@ import junit.framework.Assert;
 
 import org.apache.ambari.server.controller.AlertHistoryRequest;
 import org.apache.ambari.server.controller.internal.AlertHistoryResourceProvider;
+import org.apache.ambari.server.controller.internal.PageRequestImpl;
+import org.apache.ambari.server.controller.internal.SortRequestImpl;
+import org.apache.ambari.server.controller.spi.PageRequest.StartingPoint;
 import org.apache.ambari.server.controller.spi.Predicate;
+import org.apache.ambari.server.controller.spi.SortRequest;
+import org.apache.ambari.server.controller.spi.SortRequest.Order;
+import org.apache.ambari.server.controller.spi.SortRequestProperty;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.events.listeners.AlertMaintenanceModeListener;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
@@ -864,6 +870,108 @@ public class AlertsDAOTest {
     request.Predicate = historyIdPredicate;
     histories = m_dao.findAll(request);
     assertEquals(1, histories.size());
+  }
+
+  /**
+   * Tests that JPA does the pagination work for us.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testAlertHistoryPagination() throws Exception {
+    Cluster cluster = initializeNewCluster();
+    m_alertHelper.populateData(cluster);
+
+    AlertHistoryRequest request = new AlertHistoryRequest();
+    request.Pagination = null;
+
+    // get back all 3
+    List<AlertHistoryEntity> histories = m_dao.findAll(request);
+    assertEquals(3, histories.size());
+
+    // only the first 2
+    request.Pagination = new PageRequestImpl(StartingPoint.Beginning, 2, 0,
+        null, null);
+
+    histories = m_dao.findAll(request);
+    assertEquals(2, histories.size());
+
+    // the 2nd and 3rd
+    request.Pagination = new PageRequestImpl(StartingPoint.Beginning, 1, 2,
+        null, null);
+
+    histories = m_dao.findAll(request);
+    assertEquals(1, histories.size());
+
+    // none b/c we're out of index
+    request.Pagination = new PageRequestImpl(StartingPoint.Beginning, 1, 3,
+        null, null);
+
+    histories = m_dao.findAll(request);
+    assertEquals(0, histories.size());
+  }
+
+  /**
+   * Tests that JPA does the sorting work for us.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testAlertHistorySorting() throws Exception {
+    Cluster cluster = initializeNewCluster();
+    m_alertHelper.populateData(cluster);
+
+    List<SortRequestProperty> sortProperties = new ArrayList<SortRequestProperty>();
+    SortRequest sortRequest = new SortRequestImpl(sortProperties);
+    AlertHistoryRequest request = new AlertHistoryRequest();
+    request.Sort = sortRequest;
+
+    Predicate clusterPredicate = new PredicateBuilder().property(
+        AlertHistoryResourceProvider.ALERT_HISTORY_CLUSTER_NAME).equals("c1").toPredicate();
+
+    request.Predicate = clusterPredicate;
+
+    sortProperties.add(new SortRequestProperty(
+        AlertHistoryResourceProvider.ALERT_HISTORY_SERVICE_NAME, Order.ASC));
+
+    // get back all 3
+    List<AlertHistoryEntity> histories = m_dao.findAll(request);
+    assertEquals(3, histories.size());
+
+    // assert sorting ASC
+    String lastServiceName = null;
+    for (AlertHistoryEntity history : histories) {
+      if (null == lastServiceName) {
+        lastServiceName = history.getServiceName();
+        continue;
+      }
+
+      String currentServiceName = history.getServiceName();
+      assertTrue(lastServiceName.compareTo(currentServiceName) <= 0);
+      lastServiceName = currentServiceName;
+    }
+
+    // clear and do DESC
+    sortProperties.clear();
+    sortProperties.add(new SortRequestProperty(
+        AlertHistoryResourceProvider.ALERT_HISTORY_SERVICE_NAME, Order.DESC));
+
+    // get back all 3
+    histories = m_dao.findAll(request);
+    assertEquals(3, histories.size());
+
+    // assert sorting DESC
+    lastServiceName = null;
+    for (AlertHistoryEntity history : histories) {
+      if (null == lastServiceName) {
+        lastServiceName = history.getServiceName();
+        continue;
+      }
+
+      String currentServiceName = history.getServiceName();
+      assertTrue(lastServiceName.compareTo(currentServiceName) >= 0);
+      lastServiceName = currentServiceName;
+    }
   }
 
   private Cluster initializeNewCluster() throws Exception {

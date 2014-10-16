@@ -30,6 +30,8 @@ import java.util.regex.Pattern;
 import org.apache.ambari.server.controller.internal.PropertyInfo;
 import org.apache.ambari.server.controller.internal.RequestImpl;
 import org.apache.ambari.server.controller.spi.Request;
+import org.apache.ambari.server.controller.spi.Request.PageInfo;
+import org.apache.ambari.server.controller.spi.Request.SortInfo;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.TemporalInfo;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -338,7 +340,7 @@ public class PropertyHelper {
    * @param propertyIds  the property ids associated with the request; may be null
    */
   public static Request getReadRequest(Set<String> propertyIds) {
-    return new RequestImpl(propertyIds,  null, null, null);
+    return PropertyHelper.getReadRequest(propertyIds, null);
   }
 
   /**
@@ -350,20 +352,38 @@ public class PropertyHelper {
    */
   public static Request getReadRequest(Set<String> propertyIds, Map<String,
       TemporalInfo> mapTemporalInfo) {
-    return new RequestImpl(propertyIds,  null, null, mapTemporalInfo);
+    return PropertyHelper.getReadRequest(propertyIds, null, mapTemporalInfo,
+        null, null);
   }
 
   /**
-   * Factory method to create a read request from the given set of property ids.  The set of
-   * property ids represents the properties of interest for the query.
+   * Factory method to create a read request from the given set of property ids.
+   * The set of property ids represents the properties of interest for the
+   * query.
    *
-   * @param propertyIds      the property ids associated with the request; may be null
-   * @param requestInfoProperties request info properties
-   * @param mapTemporalInfo  the temporal info
+   * @param propertyIds
+   *          the property ids associated with the request; may be null
+   * @param requestInfoProperties
+   *          request info properties
+   * @param mapTemporalInfo
+   *          the temporal info
+   * @param pageInfo
+   *          an optional page request, or {@code null} for none.
+   * @param sortInfo
+   *          an optional sort request, or {@code null} for none.
    */
   public static Request getReadRequest(Set<String> propertyIds,
-      Map<String, String> requestInfoProperties, Map<String, TemporalInfo> mapTemporalInfo) {
-    return new RequestImpl(propertyIds, null, requestInfoProperties, mapTemporalInfo);
+      Map<String, String> requestInfoProperties,
+      Map<String, TemporalInfo> mapTemporalInfo, PageInfo pageInfo,
+      SortInfo sortInfo) {
+
+    RequestImpl request = new RequestImpl(propertyIds, null,
+        requestInfoProperties,
+        mapTemporalInfo);
+
+    request.setPageInfo(pageInfo);
+    request.setSortInfo(sortInfo);
+    return request;
   }
 
   /**
@@ -373,7 +393,8 @@ public class PropertyHelper {
    * @param propertyIds  the property ids associated with the request; may be null
    */
   public static Request getReadRequest(String ... propertyIds) {
-    return new RequestImpl(new HashSet<String>(Arrays.asList(propertyIds)),  null, null, null);
+    return PropertyHelper.getReadRequest(new HashSet<String>(
+        Arrays.asList(propertyIds)));
   }
 
   /**

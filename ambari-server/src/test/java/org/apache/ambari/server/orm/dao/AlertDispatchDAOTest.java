@@ -36,7 +36,13 @@ import junit.framework.Assert;
 
 import org.apache.ambari.server.controller.AlertNoticeRequest;
 import org.apache.ambari.server.controller.internal.AlertNoticeResourceProvider;
+import org.apache.ambari.server.controller.internal.PageRequestImpl;
+import org.apache.ambari.server.controller.internal.SortRequestImpl;
+import org.apache.ambari.server.controller.spi.PageRequest.StartingPoint;
 import org.apache.ambari.server.controller.spi.Predicate;
+import org.apache.ambari.server.controller.spi.SortRequest;
+import org.apache.ambari.server.controller.spi.SortRequest.Order;
+import org.apache.ambari.server.controller.spi.SortRequestProperty;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.orm.AlertDaoHelper;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
@@ -499,11 +505,11 @@ public class AlertDispatchDAOTest {
     request.Predicate = clusterPredicate;
 
     List<AlertNoticeEntity> notices = m_dao.findAllNotices(request);
-    assertEquals(2, notices.size());
+    assertEquals(3, notices.size());
 
     request.Predicate = hdfsPredicate;
     notices = m_dao.findAllNotices(request);
-    assertEquals(1, notices.size());
+    assertEquals(2, notices.size());
 
     request.Predicate = yarnPredicate;
     notices = m_dao.findAllNotices(request);
@@ -511,11 +517,11 @@ public class AlertDispatchDAOTest {
 
     request.Predicate = adminPredicate;
     notices = m_dao.findAllNotices(request);
-    assertEquals(1, notices.size());
+    assertEquals(2, notices.size());
 
     request.Predicate = adminOrOperatorPredicate;
     notices = m_dao.findAllNotices(request);
-    assertEquals(2, notices.size());
+    assertEquals(3, notices.size());
 
     request.Predicate = pendingPredicate;
     notices = m_dao.findAllNotices(request);
@@ -528,6 +534,108 @@ public class AlertDispatchDAOTest {
     request.Predicate = noticeIdPredicate;
     notices = m_dao.findAllNotices(request);
     assertEquals(1, notices.size());
+  }
+
+  /**
+   * Tests that JPA does the pagination work for us.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testAlertNoticePagination() throws Exception {
+    Cluster cluster = initializeNewCluster();
+    m_alertHelper.populateData(cluster);
+
+    AlertNoticeRequest request = new AlertNoticeRequest();
+    request.Pagination = null;
+
+    // get back all 3
+    List<AlertNoticeEntity> notices = m_dao.findAllNotices(request);
+    assertEquals(3, notices.size());
+
+    // only the first 2
+    request.Pagination = new PageRequestImpl(StartingPoint.Beginning, 2, 0,
+        null, null);
+
+    notices = m_dao.findAllNotices(request);
+    assertEquals(2, notices.size());
+
+    // the 2nd and 3rd
+    request.Pagination = new PageRequestImpl(StartingPoint.Beginning, 1, 2,
+        null, null);
+
+    notices = m_dao.findAllNotices(request);
+    assertEquals(1, notices.size());
+
+    // none b/c we're out of index
+    request.Pagination = new PageRequestImpl(StartingPoint.Beginning, 1, 3,
+        null, null);
+
+    notices = m_dao.findAllNotices(request);
+    assertEquals(0, notices.size());
+  }
+
+  /**
+   * Tests that JPA does the sorting work for us.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testAlertNoticeSorting() throws Exception {
+    Cluster cluster = initializeNewCluster();
+    m_alertHelper.populateData(cluster);
+
+    List<SortRequestProperty> sortProperties = new ArrayList<SortRequestProperty>();
+    SortRequest sortRequest = new SortRequestImpl(sortProperties);
+
+    AlertNoticeRequest request = new AlertNoticeRequest();
+    request.Sort = sortRequest;
+
+    Predicate clusterPredicate = new PredicateBuilder().property(
+        AlertNoticeResourceProvider.ALERT_NOTICE_CLUSTER_NAME).equals("c1").toPredicate();
+
+    request.Predicate = clusterPredicate;
+
+    sortProperties.add(new SortRequestProperty(
+        AlertNoticeResourceProvider.ALERT_NOTICE_ID, Order.ASC));
+
+    // get back all 3
+    List<AlertNoticeEntity> notices = m_dao.findAllNotices(request);
+    assertEquals(3, notices.size());
+
+    // assert sorting ASC
+    long lastId = 0L;
+    for (AlertNoticeEntity notice : notices) {
+      if (lastId == 0L) {
+        lastId = notice.getNotificationId();
+        continue;
+      }
+
+      long currentId = notice.getNotificationId();
+      assertTrue(lastId < currentId);
+      lastId = currentId;
+    }
+
+    // clear and do DESC
+    sortProperties.clear();
+    sortProperties.add(new SortRequestProperty(
+        AlertNoticeResourceProvider.ALERT_NOTICE_ID, Order.DESC));
+
+    notices = m_dao.findAllNotices(request);
+    assertEquals(3, notices.size());
+
+    // assert sorting DESC
+    lastId = 0L;
+    for (AlertNoticeEntity notice : notices) {
+      if (lastId == 0L) {
+        lastId = notice.getNotificationId();
+        continue;
+      }
+
+      long currentId = notice.getNotificationId();
+      assertTrue(lastId > currentId);
+      lastId = currentId;
+    }
   }
 
   /**

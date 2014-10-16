@@ -18,12 +18,11 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import junit.framework.Assert;
-import org.apache.ambari.server.controller.spi.*;
-import org.apache.ambari.server.controller.utilities.PredicateHelper;
-import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.apache.ambari.server.controller.utilities.PredicateBuilder;
-import org.junit.Test;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -38,11 +37,32 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
+import junit.framework.Assert;
+
+import org.apache.ambari.server.controller.spi.ClusterController;
+import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
+import org.apache.ambari.server.controller.spi.NoSuchResourceException;
+import org.apache.ambari.server.controller.spi.PageRequest;
+import org.apache.ambari.server.controller.spi.PageResponse;
+import org.apache.ambari.server.controller.spi.Predicate;
+import org.apache.ambari.server.controller.spi.PropertyProvider;
+import org.apache.ambari.server.controller.spi.ProviderModule;
+import org.apache.ambari.server.controller.spi.Request;
+import org.apache.ambari.server.controller.spi.Request.PageInfo;
+import org.apache.ambari.server.controller.spi.Request.SortInfo;
+import org.apache.ambari.server.controller.spi.RequestStatus;
+import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
+import org.apache.ambari.server.controller.spi.ResourceProvider;
+import org.apache.ambari.server.controller.spi.SortRequest;
+import org.apache.ambari.server.controller.spi.SortRequestProperty;
+import org.apache.ambari.server.controller.spi.SystemException;
+import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
+import org.apache.ambari.server.controller.utilities.PredicateBuilder;
+import org.apache.ambari.server.controller.utilities.PredicateHelper;
+import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.easymock.EasyMock;
+import org.junit.Test;
 
 /**
  * Cluster controller tests
@@ -884,6 +904,63 @@ public class ClusterControllerImplTest {
       // are no property providers defined for that type.
       controller.populateResources(type, Collections.singleton(resource), request, predicate);
     }
+  }
+
+  /**
+   * Tests that when a {@link ResourceProviderPageResponse} is present on the
+   * {@link Request}, in-memory paging is not performed.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testResourceProviderResponse() throws Exception {
+    ProviderModule providerModule = createNiceMock(ProviderModule.class);
+    ResourceProvider resourceProvider = createNiceMock(ResourceProvider.class);
+
+    expect(providerModule.getResourceProvider(Resource.Type.AlertHistory)).andReturn(
+        resourceProvider).anyTimes();
+
+    expect(
+        resourceProvider.checkPropertyIds(Collections.singleton(AlertHistoryResourceProvider.ALERT_HISTORY_HOSTNAME))).andReturn(
+        Collections.<String> emptySet()).anyTimes();
+
+    expect(
+        resourceProvider.getResources(anyObject(Request.class),
+            anyObject(Predicate.class))).andReturn(
+        Collections.<Resource> emptySet()).anyTimes();
+
+    // strict pageRequest mock to ensure that paging is not performed on
+    // the result set
+    PageRequest pageRequest = EasyMock.createStrictMock(PageRequest.class);
+
+    replay(providerModule, resourceProvider, pageRequest);
+
+    ClusterControllerImpl controller = new ClusterControllerImpl(providerModule);
+
+    Set<String> propertyIds = new HashSet<String>();
+    propertyIds.add(AlertHistoryResourceProvider.ALERT_HISTORY_HOSTNAME);
+
+    // create a result set that we will use to ensure that the contents
+    // were unmodified
+    Set<Resource> providerResources = new LinkedHashSet<Resource>();
+    providerResources.add(createNiceMock(Resource.class));
+
+    PageInfo pageInfo = new PageInfo(pageRequest);
+    pageInfo.setResponsePaged(true);
+
+    SortInfo sortInfo = null;
+
+    Request request = PropertyHelper.getReadRequest(propertyIds, null, null,
+        pageInfo, sortInfo);
+
+    Predicate predicate = new PredicateBuilder().property(
+        AlertHistoryResourceProvider.ALERT_HISTORY_HOSTNAME).equals(
+        "c6401.ambari.apache.org").toPredicate();
+
+    PageResponse pageResponse = controller.getPage(Resource.Type.AlertHistory,
+        providerResources, request, predicate, pageRequest, null);
+
+    verify(providerModule, resourceProvider, pageRequest);
   }
 
   public static class TestProviderModule implements ProviderModule {

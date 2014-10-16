@@ -170,8 +170,24 @@ public class AlertHistoryResourceProvider extends AbstractResourceProvider {
 
     Set<Resource> results = new LinkedHashSet<Resource>();
     Set<String> requestPropertyIds = getRequestPropertyIds(request, predicate);
+
+    Request.PageInfo pageInfo = request.getPageInfo();
+    Request.SortInfo sortInfo = request.getSortInfo();
+
     AlertHistoryRequest historyRequest = new AlertHistoryRequest();
     historyRequest.Predicate = predicate;
+
+    if (null != pageInfo) {
+      historyRequest.Pagination = pageInfo.getPageRequest();
+
+      pageInfo.setResponsePaged(true);
+      pageInfo.setTotalCount(s_dao.getCount(predicate));
+    }
+
+    if (null != sortInfo) {
+      sortInfo.setResponseSorted(true);
+      historyRequest.Sort = sortInfo.getSortRequest();
+    }
 
     List<AlertHistoryEntity> entities = s_dao.findAll(historyRequest);
     for (AlertHistoryEntity entity : entities) {

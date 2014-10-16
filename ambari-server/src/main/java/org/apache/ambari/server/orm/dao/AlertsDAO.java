@@ -25,9 +25,11 @@ import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Order;
 import javax.persistence.metamodel.SingularAttribute;
 
 import org.apache.ambari.server.api.query.JpaPredicateVisitor;
+import org.apache.ambari.server.api.query.JpaSortBuilder;
 import org.apache.ambari.server.controller.AlertHistoryRequest;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.utilities.PredicateHelper;
@@ -56,13 +58,13 @@ public class AlertsDAO {
    * JPA entity manager
    */
   @Inject
-  Provider<EntityManager> entityManagerProvider;
+  private Provider<EntityManager> entityManagerProvider;
 
   /**
    * DAO utilities for dealing mostly with {@link TypedQuery} results.
    */
   @Inject
-  DaoUtils daoUtils;
+  private DaoUtils daoUtils;
 
   /**
    * Gets an alert with the specified ID.
@@ -214,8 +216,34 @@ public class AlertsDAO {
       query.where(jpaPredicate);
     }
 
+    // sorting
+    JpaSortBuilder<AlertHistoryEntity> sortBuilder = new JpaSortBuilder<AlertHistoryEntity>();
+    List<Order> sortOrders = sortBuilder.buildSortOrders(request.Sort, visitor);
+    query.orderBy(sortOrders);
+
+    // pagination
     TypedQuery<AlertHistoryEntity> typedQuery = entityManager.createQuery(query);
+    if( null != request.Pagination ){
+      typedQuery.setFirstResult(request.Pagination.getOffset());
+      typedQuery.setMaxResults(request.Pagination.getPageSize());
+    }
+
+    typedQuery = setQueryRefreshHint(typedQuery);
+
     return daoUtils.selectList(typedQuery);
+  }
+
+  /**
+   * Gets the total count of all {@link AlertHistoryEntity} rows that match the
+   * specified {@link Predicate}.
+   *
+   * @param predicate
+   *          the predicate to apply, or {@code null} for none.
+   * @return the total count of rows that would be returned in a result set.
+   */
+  @Transactional
+  public int getCount(Predicate predicate) {
+    return 0;
   }
 
   /**

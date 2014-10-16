@@ -18,30 +18,6 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import org.apache.ambari.server.controller.spi.ClusterController;
-import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
-import org.apache.ambari.server.controller.spi.NoSuchResourceException;
-import org.apache.ambari.server.controller.spi.SortRequest;
-import org.apache.ambari.server.controller.spi.PageRequest;
-import org.apache.ambari.server.controller.spi.PageResponse;
-import org.apache.ambari.server.controller.spi.Predicate;
-import org.apache.ambari.server.controller.spi.PropertyProvider;
-import org.apache.ambari.server.controller.spi.ProviderModule;
-import org.apache.ambari.server.controller.spi.Request;
-import org.apache.ambari.server.controller.spi.RequestStatus;
-import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
-import org.apache.ambari.server.controller.spi.ResourcePredicateEvaluator;
-import org.apache.ambari.server.controller.spi.ResourceProvider;
-import org.apache.ambari.server.controller.spi.Schema;
-import org.apache.ambari.server.controller.spi.SortRequestProperty;
-import org.apache.ambari.server.controller.spi.SystemException;
-import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
-import org.apache.ambari.server.controller.utilities.PredicateBuilder;
-import org.apache.ambari.server.controller.utilities.PredicateHelper;
-import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -51,12 +27,35 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.NavigableSet;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.TreeSet;
 
-import static org.apache.ambari.server.controller.spi.Resource.Type;
+import org.apache.ambari.server.controller.spi.ClusterController;
+import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
+import org.apache.ambari.server.controller.spi.NoSuchResourceException;
+import org.apache.ambari.server.controller.spi.PageRequest;
+import org.apache.ambari.server.controller.spi.PageResponse;
+import org.apache.ambari.server.controller.spi.Predicate;
+import org.apache.ambari.server.controller.spi.PropertyProvider;
+import org.apache.ambari.server.controller.spi.ProviderModule;
+import org.apache.ambari.server.controller.spi.Request;
+import org.apache.ambari.server.controller.spi.RequestStatus;
+import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.Resource.Type;
+import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
+import org.apache.ambari.server.controller.spi.ResourcePredicateEvaluator;
+import org.apache.ambari.server.controller.spi.ResourceProvider;
+import org.apache.ambari.server.controller.spi.Schema;
+import org.apache.ambari.server.controller.spi.SortRequest;
+import org.apache.ambari.server.controller.spi.SortRequestProperty;
+import org.apache.ambari.server.controller.spi.SystemException;
+import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
+import org.apache.ambari.server.controller.utilities.PredicateBuilder;
+import org.apache.ambari.server.controller.utilities.PredicateHelper;
+import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Default cluster controller implementation.
@@ -175,47 +174,68 @@ public class ClusterControllerImpl implements ClusterController {
       NoSuchResourceException,
       NoSuchParentResourceException {
 
-    Set<Resource> resources;
     ResourceProvider provider = ensureResourceProvider(type);
 
     ResourcePredicateEvaluator evaluator = provider instanceof ResourcePredicateEvaluator ?
         (ResourcePredicateEvaluator) provider : DEFAULT_RESOURCE_PREDICATE_EVALUATOR;
 
     int totalCount = 0;
+    Set<Resource> resources = providerResources;
+
     if (!providerResources.isEmpty()) {
+      Request.PageInfo pageInfo = request.getPageInfo();
+      Request.SortInfo sortInfo = request.getSortInfo();
+
+      // determine if the provider has already paged & sorted the results
+      boolean providerAlreadyPaged = (null != pageInfo && pageInfo.isResponsePaged());
+      boolean providerAlreadySorted = (null != sortInfo && sortInfo.isResponseSorted());
+
+      // conditionally create a comparator if there is a sort
       Comparator<Resource> resourceComparator = comparator;
-      if (sortRequest != null) {
+      if (null != sortRequest) {
         checkSortRequestProperties(sortRequest, type, provider);
         resourceComparator = new ResourceComparator(sortRequest);
       }
 
-      TreeSet<Resource> sortedResources = new TreeSet<Resource>(resourceComparator);
-      sortedResources.addAll(providerResources);
-      totalCount = sortedResources.size();
+      // if the provider did not already sort the set, then sort it based
+      // on the comparator
+      if (!providerAlreadySorted) {
+        TreeSet<Resource> sortedResources = new TreeSet<Resource>(
+            resourceComparator);
 
-      if (pageRequest != null) {
+        sortedResources.addAll(providerResources);
+        resources = sortedResources;
+      }
+
+      // start out assuming that the results are not paged and that
+      // the total count is the size of the provider resources
+      totalCount = resources.size();
+
+      // conditionally page the results
+      if (null != pageRequest && !providerAlreadyPaged) {
         switch (pageRequest.getStartingPoint()) {
           case Beginning:
-            return getPageFromOffset(pageRequest.getPageSize(), 0,
-              sortedResources, predicate, evaluator);
+            return getPageFromOffset(pageRequest.getPageSize(), 0, resources,
+                predicate, evaluator);
           case End:
-            return getPageToOffset(pageRequest.getPageSize(), -1,
-                sortedResources, predicate, evaluator);
+            return getPageToOffset(pageRequest.getPageSize(), -1, resources,
+                predicate, evaluator);
           case OffsetStart:
             return getPageFromOffset(pageRequest.getPageSize(),
-              pageRequest.getOffset(), sortedResources, predicate, evaluator);
+                pageRequest.getOffset(), resources, predicate, evaluator);
           case OffsetEnd:
             return getPageToOffset(pageRequest.getPageSize(),
-              pageRequest.getOffset(), sortedResources, predicate, evaluator);
-          // TODO : need to support the following cases for pagination
-//          case PredicateStart:
-//          case PredicateEnd:
+                pageRequest.getOffset(), resources, predicate, evaluator);
+          case PredicateStart:
+          case PredicateEnd:
+            // TODO : need to support the following cases for pagination
+            break;
+          default:
+            break;
         }
+      } else if (providerAlreadyPaged) {
+        totalCount = pageInfo.getTotalCount();
       }
-      resources = sortedResources;
-    } else {
-      resources = providerResources;
-      totalCount = providerResources.size();
     }
 
     return new PageResponseImpl(new ResourceIterable(resources, predicate,
@@ -562,7 +582,7 @@ public class ClusterControllerImpl implements ClusterController {
    * @return a page response containing a page of resources
    */
   private PageResponse getPageFromOffset(int pageSize, int offset,
-                                         NavigableSet<Resource> resources,
+      Set<Resource> resources,
                                          Predicate predicate,
                                          ResourcePredicateEvaluator evaluator) {
 
@@ -603,7 +623,7 @@ public class ClusterControllerImpl implements ClusterController {
    * @return a page response containing a page of resources
    */
   private PageResponse getPageToOffset(int pageSize, int offset,
-                                       NavigableSet<Resource> resources,
+      Set<Resource> resources,
                                        Predicate predicate,
                                        ResourcePredicateEvaluator evaluator) {
 
@@ -726,10 +746,10 @@ public class ClusterControllerImpl implements ClusterController {
      */
     private ResourceIterator(Set<Resource> resources, Predicate predicate,
                              ResourcePredicateEvaluator evaluator) {
-      this.iterator     = resources.iterator();
+      iterator     = resources.iterator();
       this.predicate    = predicate;
       this.evaluator    = evaluator;
-      this.nextResource = getNextResource();
+      nextResource = getNextResource();
     }
 
     // ----- Iterator --------------------------------------------------------
@@ -746,7 +766,7 @@ public class ClusterControllerImpl implements ClusterController {
       }
 
       Resource currentResource = nextResource;
-      this.nextResource = getNextResource();
+      nextResource = getNextResource();
 
       return currentResource;
     }

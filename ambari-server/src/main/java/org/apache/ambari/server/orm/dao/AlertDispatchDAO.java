@@ -22,9 +22,11 @@ import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Order;
 import javax.persistence.metamodel.SingularAttribute;
 
 import org.apache.ambari.server.api.query.JpaPredicateVisitor;
+import org.apache.ambari.server.api.query.JpaSortBuilder;
 import org.apache.ambari.server.controller.AlertNoticeRequest;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.utilities.PredicateHelper;
@@ -305,8 +307,32 @@ public class AlertDispatchDAO {
       query.where(jpaPredicate);
     }
 
+    // sorting
+    JpaSortBuilder<AlertNoticeEntity> sortBuilder = new JpaSortBuilder<AlertNoticeEntity>();
+    List<Order> sortOrders = sortBuilder.buildSortOrders(request.Sort, visitor);
+    query.orderBy(sortOrders);
+
+    // pagination
     TypedQuery<AlertNoticeEntity> typedQuery = entityManager.createQuery(query);
+    if (null != request.Pagination) {
+      typedQuery.setFirstResult(request.Pagination.getOffset());
+      typedQuery.setMaxResults(request.Pagination.getPageSize());
+    }
+
     return daoUtils.selectList(typedQuery);
+  }
+
+  /**
+   * Gets the total count of all {@link AlertNoticeEntity} rows that match the
+   * specified {@link Predicate}.
+   *
+   * @param predicate
+   *          the predicate to apply, or {@code null} for none.
+   * @return the total count of rows that would be returned in a result set.
+   */
+  @Transactional
+  public int getNoticesCount(Predicate predicate) {
+    return 0;
   }
 
   /**

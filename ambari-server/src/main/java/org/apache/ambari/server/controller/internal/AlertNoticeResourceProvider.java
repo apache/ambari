@@ -163,8 +163,23 @@ public class AlertNoticeResourceProvider extends AbstractResourceProvider {
     Set<String> requestPropertyIds = getRequestPropertyIds(request, predicate);
     Set<Resource> results = new LinkedHashSet<Resource>();
 
+    Request.PageInfo pageInfo = request.getPageInfo();
+    Request.SortInfo sortInfo = request.getSortInfo();
+
     AlertNoticeRequest noticeRequest = new AlertNoticeRequest();
     noticeRequest.Predicate = predicate;
+
+    if (null != pageInfo) {
+      noticeRequest.Pagination = pageInfo.getPageRequest();
+
+      pageInfo.setResponsePaged(true);
+      pageInfo.setTotalCount(s_dao.getNoticesCount(predicate));
+    }
+
+    if (null != sortInfo) {
+      sortInfo.setResponseSorted(true);
+      noticeRequest.Sort = sortInfo.getSortRequest();
+    }
 
     List<AlertNoticeEntity> entities = s_dao.findAllNotices(noticeRequest);
     for (AlertNoticeEntity entity : entities) {

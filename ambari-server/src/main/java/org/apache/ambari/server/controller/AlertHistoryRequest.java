@@ -17,7 +17,9 @@
  */
 package org.apache.ambari.server.controller;
 
+import org.apache.ambari.server.controller.spi.PageRequest;
 import org.apache.ambari.server.controller.spi.Predicate;
+import org.apache.ambari.server.controller.spi.SortRequest;
 import org.apache.ambari.server.orm.entities.AlertHistoryEntity;
 
 /**
@@ -27,8 +29,17 @@ import org.apache.ambari.server.orm.entities.AlertHistoryEntity;
 public class AlertHistoryRequest {
 
   /**
-   * An Ambari predicate.
+   * An Ambari predicate, or {@code null} for none.
    */
   public Predicate Predicate;
 
+  /**
+   * Pagination information, or {@code null} for none.
+   */
+  public PageRequest Pagination;
+
+  /**
+   * Sort information, or {@code null} for none.
+   */
+  public SortRequest Sort;
 }

@@ -18,6 +18,14 @@
 
 package org.apache.ambari.server.api.query;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.ambari.server.api.query.render.DefaultRenderer;
 import org.apache.ambari.server.api.query.render.Renderer;
 import org.apache.ambari.server.api.resources.ResourceDefinition;
@@ -25,20 +33,33 @@ import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.resources.ResourceInstanceFactoryImpl;
 import org.apache.ambari.server.api.resources.SubResourceDefinition;
 import org.apache.ambari.server.api.services.BaseRequest;
+import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.api.services.ResultImpl;
 import org.apache.ambari.server.api.util.TreeNode;
 import org.apache.ambari.server.api.util.TreeNodeImpl;
-import org.apache.ambari.server.controller.utilities.PredicateHelper;
-import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.controller.predicate.AndPredicate;
 import org.apache.ambari.server.controller.predicate.EqualsPredicate;
-import org.apache.ambari.server.api.services.Result;
-import org.apache.ambari.server.controller.spi.*;
+import org.apache.ambari.server.controller.spi.ClusterController;
+import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
+import org.apache.ambari.server.controller.spi.NoSuchResourceException;
+import org.apache.ambari.server.controller.spi.PageRequest;
 import org.apache.ambari.server.controller.spi.PageRequest.StartingPoint;
+import org.apache.ambari.server.controller.spi.PageResponse;
+import org.apache.ambari.server.controller.spi.Predicate;
+import org.apache.ambari.server.controller.spi.Request;
+import org.apache.ambari.server.controller.spi.Request.PageInfo;
+import org.apache.ambari.server.controller.spi.Request.SortInfo;
+import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.ResourceProvider;
+import org.apache.ambari.server.controller.spi.Schema;
+import org.apache.ambari.server.controller.spi.SortRequest;
+import org.apache.ambari.server.controller.spi.SystemException;
+import org.apache.ambari.server.controller.spi.TemporalInfo;
+import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
+import org.apache.ambari.server.controller.utilities.PredicateHelper;
+import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.*;
 
 /**
  * Default read query.
@@ -299,7 +320,7 @@ public class QueryImpl implements Query, ResourceInstance {
   // ----- helper methods ----------------------------------------------------
 
   /**
-   * Get the map of sub-resources.  Lazily create the map if required.  
+   * Get the map of sub-resources.  Lazily create the map if required.
    */
   protected Map<String, QueryImpl> ensureSubResources() {
     if (availableSubResources == null) {
@@ -343,15 +364,19 @@ public class QueryImpl implements Query, ResourceInstance {
       NoSuchResourceException,
       NoSuchParentResourceException {
 
-    Set<Resource> providerResourceSet = new HashSet<Resource>();
     Resource.Type resourceType    = getResourceDefinition().getType();
     Predicate     queryPredicate  = createPredicate(getKeyValueMap(), processUserPredicate(userPredicate));
 
     // must occur after processing user predicate and prior to creating request
     finalizeProperties();
 
-    Request       request     = createRequest();
+    Request request = createRequest();
+
+    // use linked hashsets so that we maintain inseration and traversal order
+    // in the event that the resource provider already gave us a sorted set
+    // back
     Set<Resource> resourceSet = new LinkedHashSet<Resource>();
+    Set<Resource> providerResourceSet = new LinkedHashSet<Resource>();
 
     Set<Resource> queryResources = doQuery(resourceType, request, queryPredicate);
     // If there is a page request and the predicate does not contain properties
@@ -382,7 +407,7 @@ public class QueryImpl implements Query, ResourceInstance {
   }
 
   /**
-   * Query the cluster controller for the sub-resources associated with 
+   * Query the cluster controller for the sub-resources associated with
    * this query object.
    */
   private void queryForSubResources()
@@ -439,13 +464,14 @@ public class QueryImpl implements Query, ResourceInstance {
   }
 
   /**
-   * Get a map of property sets keyed by the resources associated with this query.
-   * The property sets should contain the joined sets of all of the requested
-   * properties from each resource's sub-resources.
+   * Get a map of property sets keyed by the resources associated with this
+   * query. The property sets should contain the joined sets of all of the
+   * requested properties from each resource's sub-resources.
    *
-   * For example, if this query is associated with the resources
-   * AResource1, AResource1 and AResource3 as follows ...
+   * For example, if this query is associated with the resources AResource1,
+   * AResource1 and AResource3 as follows ...
    *
+   * <pre>
    * a_resources
    * │
    * └──AResource1 ─────────────AResource1 ─────────────AResource3
@@ -465,22 +491,22 @@ public class QueryImpl implements Query, ResourceInstance {
    *          │
    *          └── CResource2
    *                p3:2
-   *
+   * 
    * Given the following query ...
-   *
+   * 
    *     api/v1/a_resources?b_resources/p1>3&b_resources/p2=5&c_resources/p3=1
-   *
+   * 
    * The caller should pass the following property ids ...
-   *
+   * 
    *     b_resources/p1
    *     b_resources/p2
    *     c_resources/p3
-   *
+   * 
    * getJoinedResourceProperties should produce the following map of property sets
    * by making recursive calls on the sub-resources of each of this query's resources,
    * joining the resulting property sets, and adding them to the map keyed by the
    * resource ...
-   *
+   * 
    *  {
    *    AResource1=[{b_resources/p1=1, b_resources/p2=5, c_resources/p3=1},
    *                {b_resources/p1=2, b_resources/p2=0, c_resources/p3=1},
@@ -490,12 +516,17 @@ public class QueryImpl implements Query, ResourceInstance {
    *                {b_resources/p1=4, b_resources/p2=0, c_resources/p3=3}],
    *    AResource3=[{b_resources/p1=5, b_resources/p2=5, c_resources/p3=4}],
    *  }
+   * </pre>
    *
-   * @param propertyIds     the requested properties
-   * @param parentResource  the parent resource; may be null
-   * @param category        the sub-resource category; may be null
+   * @param propertyIds
+   *          the requested properties
+   * @param parentResource
+   *          the parent resource; may be null
+   * @param category
+   *          the sub-resource category; may be null
    *
-   * @return a map of property sets keyed by the resources associated with this query
+   * @return a map of property sets keyed by the resources associated with this
+   *         query
    */
   protected Map<Resource, Set<Map<String, Object>>> getJoinedResourceProperties(Set<String> propertyIds,
                                                                                 Resource parentResource,
@@ -567,9 +598,9 @@ public class QueryImpl implements Query, ResourceInstance {
    * Finalize properties for entire query tree before executing query.
    */
   private void finalizeProperties() {
-    ResourceDefinition rootDefinition = this.resourceDefinition;
+    ResourceDefinition rootDefinition = resourceDefinition;
 
-    QueryInfo rootQueryInfo = new QueryInfo(rootDefinition, this.requestedProperties);
+    QueryInfo rootQueryInfo = new QueryInfo(rootDefinition, requestedProperties);
     TreeNode<QueryInfo> rootNode = new TreeNodeImpl<QueryInfo>(
         null, rootQueryInfo, rootDefinition.getType().name());
 
@@ -868,9 +899,20 @@ public class QueryImpl implements Query, ResourceInstance {
   private Request createRequest() {
     Map<String, String> requestInfoProperties = new HashMap<String, String>();
 
+    PageInfo pageInfo = null;
+    if (null != pageRequest) {
+      pageInfo = new PageInfo(pageRequest);
+    }
+
+    SortInfo sortInfo = null;
+    if (null != sortRequest) {
+      sortInfo = new SortInfo(sortRequest);
+    }
+
     if (pageRequest != null) {
       requestInfoProperties.put(BaseRequest.PAGE_SIZE_PROPERTY_KEY,
           Integer.toString(pageRequest.getPageSize() + pageRequest.getOffset()));
+
       requestInfoProperties.put(
         BaseRequest.ASC_ORDER_PROPERTY_KEY,
           Boolean.toString(pageRequest.getStartingPoint() == StartingPoint.Beginning
@@ -879,7 +921,7 @@ public class QueryImpl implements Query, ResourceInstance {
 
     if (allProperties) {
       return PropertyHelper.getReadRequest(Collections.<String> emptySet(),
-          requestInfoProperties, null);
+          requestInfoProperties, null, pageInfo, sortInfo);
     }
 
     Map<String, TemporalInfo> mapTemporalInfo    = new HashMap<String, TemporalInfo>();
@@ -895,7 +937,9 @@ public class QueryImpl implements Query, ResourceInstance {
         mapTemporalInfo.put(propertyId, globalTemporalInfo);
       }
     }
-    return PropertyHelper.getReadRequest(setProperties, requestInfoProperties, mapTemporalInfo);
+
+    return PropertyHelper.getReadRequest(setProperties, requestInfoProperties,
+        mapTemporalInfo, pageInfo, sortInfo);
   }
 
 
@@ -921,8 +965,9 @@ public class QueryImpl implements Query, ResourceInstance {
     for (Resource.Type type : types) {
       String resourceKeyProp = schema.getKeyPropertyId(type);
       Object resourceValue = resource.getPropertyValue(resourceKeyProp);
-      if (null != resourceValue)
+      if (null != resourceValue) {
         resourceKeyValueMap.put(type, resourceValue.toString());
+      }
     }
     return resourceKeyValueMap;
   }

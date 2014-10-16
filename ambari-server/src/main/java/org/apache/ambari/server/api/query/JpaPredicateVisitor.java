@@ -130,6 +130,15 @@ public abstract class JpaPredicateVisitor<T> implements PredicateVisitor {
   }
 
   /**
+   * Gets the criteria builder used to construct the query and predicates.
+   *
+   * @return the builder (never {@code null}).
+   */
+  public CriteriaBuilder getCriteriaBuilder() {
+    return m_builder;
+  }
+
+  /**
    * {@inheritDoc}
    */
   @Override

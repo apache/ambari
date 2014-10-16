@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createNiceMock;
@@ -25,7 +26,6 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.reset;
 import static org.easymock.EasyMock.verify;
-import static org.easymock.EasyMock.anyObject;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -137,7 +137,8 @@ public class RequestResourceProviderTest {
       .toPredicate();
 
     request = PropertyHelper.getReadRequest(new HashSet<String>(),
-      requestInfoProperties, null);
+        requestInfoProperties, null, null, null);
+
     expect(actionManager.getRequests(Collections.<Long> emptyList()))
       .andReturn(Collections.<org.apache.ambari.server.actionmanager.Request> emptyList());
     expect(actionManager.getRequestsByStatus(null,
@@ -151,7 +152,7 @@ public class RequestResourceProviderTest {
 
     requestInfoProperties.put(BaseRequest.PAGE_SIZE_PROPERTY_KEY, "20");
     request = PropertyHelper.getReadRequest(new HashSet<String>(),
-      requestInfoProperties, null);
+        requestInfoProperties, null, null, null);
     expect(actionManager.getRequests(Collections.<Long> emptyList()))
       .andReturn(Collections.<org.apache.ambari.server.actionmanager.Request> emptyList());
     expect(actionManager.getRequestsByStatus(null, 20, false))
@@ -163,7 +164,7 @@ public class RequestResourceProviderTest {
 
     requestInfoProperties.put(BaseRequest.ASC_ORDER_PROPERTY_KEY, "true");
     request = PropertyHelper.getReadRequest(new HashSet<String>(),
-      requestInfoProperties, null);
+        requestInfoProperties, null, null, null);
     expect(actionManager.getRequests(Collections.<Long> emptyList()))
       .andReturn(Collections.<org.apache.ambari.server.actionmanager.Request> emptyList());
     expect(actionManager.getRequestsByStatus(null, 20, true))
@@ -1166,7 +1167,7 @@ public class RequestResourceProviderTest {
     Assert.assertEquals(2, capturedResourceFilter.getHostNames().size());
     Assert.assertEquals(0, actionRequest.getValue().getParameters().size());
     }
-  
+
   @Test
   public void testGetResourcesWithoutCluster() throws Exception {
     Resource.Type type = Resource.Type.Request;
@@ -1224,7 +1225,7 @@ public class RequestResourceProviderTest {
     }
 
     // verify
-    verify(managementController, actionManager, hostRoleCommand, clusters);    
+    verify(managementController, actionManager, hostRoleCommand, clusters);
   }
 
 }
