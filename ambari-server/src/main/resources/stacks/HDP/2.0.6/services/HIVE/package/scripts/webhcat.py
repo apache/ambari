@@ -87,6 +87,10 @@ def webhcat():
             path='/bin'
     )
 
+  # TODO, fix this in AMBARI-7842.
+  # The source of these tarballs will no longer be deterministic, since the build version is not known until HDP 2.2
+  # is deployed.
+  # Also, this logic should be specific to HDP 2.2 stack.
   CopyFromLocal(params.hadoop_streeming_jars,
                 owner=params.webhcat_user,
                 mode=0755,

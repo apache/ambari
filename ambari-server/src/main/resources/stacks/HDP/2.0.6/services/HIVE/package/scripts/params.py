@@ -31,16 +31,15 @@ rpm_version = default("/configurations/cluster-env/rpm_version", None)
 
 hdp_stack_version = config['hostLevelParams']['stack_version']
 
-#hadoop params
+# Hadoop params
+# TODO, this logic assumes that the existence of rpm_version => HDP version is 2.2 or greater.
+# Instead, it should initialize these parameters in a file inside the HDP 2.2 stack.
 if rpm_version:
   hadoop_bin_dir = "/usr/hdp/current/hadoop-client/bin"
   hadoop_home = '/usr/hdp/current/hadoop-client'
   hadoop_streeming_jars = "/usr/hdp/current/hadoop-mapreduce-client/hadoop-streaming-*.jar"
   hive_bin = '/usr/hdp/current/hive-client/bin'
   hive_lib = '/usr/hdp/current/hive-client/lib'
-  tez_local_api_jars = '/usr/hdp/current/tez-client/tez*.jar'
-  tez_local_lib_jars = '/usr/hdp/current/tez-client/lib/*.jar'
-  tez_tar_file = "/usr/hdp/current/tez-client/lib/tez*.tar.gz"
   pig_tar_file = '/usr/hdp/current/pig-client/pig.tar.gz'
   hive_tar_file = '/usr/hdp/current/hive-client/hive.tar.gz'
   sqoop_tar_file = '/usr/hdp/current/sqoop-client/sqoop*.tar.gz'
@@ -54,9 +53,6 @@ else:
   hadoop_streeming_jars = '/usr/lib/hadoop-mapreduce/hadoop-streaming-*.jar'
   hive_bin = '/usr/lib/hive/bin'
   hive_lib = '/usr/lib/hive/lib/'
-  tez_local_api_jars = '/usr/lib/tez/tez*.jar'
-  tez_local_lib_jars = '/usr/lib/tez/lib/*.jar'
-  tez_tar_file = "/usr/lib/tez/tez*.tar.gz"
   pig_tar_file = '/usr/share/HDP-webhcat/pig.tar.gz'
   hive_tar_file = '/usr/share/HDP-webhcat/hive.tar.gz'
   sqoop_tar_file = '/usr/share/HDP-webhcat/sqoop*.tar.gz'
@@ -217,8 +213,7 @@ hostname = config["hostname"]
 hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
 hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_name']
 
-# Tez libraries
-tez_lib_uris = default("/configurations/tez-site/tez.lib.uris", None)
+# Tez-related properties
 tez_user = config['configurations']['tez-env']['tez_user']
 
 if System.get_instance().os_family == "ubuntu":
@@ -261,14 +256,6 @@ webhcat_hdfs_user_dir = format("/user/{webhcat_user}")
 webhcat_hdfs_user_mode = 0755
 #for create_hdfs_directory
 security_param = "true" if security_enabled else "false"
-
-if str(hdp_stack_version).startswith('2.0') or str(hdp_stack_version).startswith('2.1'):
-  app_dir_files = {tez_local_api_jars:None}
-else:
-  app_dir_files = {
-              tez_local_api_jars:None,
-              tez_tar_file:"tez.tar.gz"
-  }
 
 import functools
 #create partial functions with common arguments for every HdfsDirectory call
