@@ -720,8 +720,8 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
           quickLinks = sliderAppClient
               .getQuickLinks(appMasterData.publisherUrl);
         }
-        if (quickLinks != null && quickLinks.containsKey("Metrics")) {
-          String metricsUrl = quickLinks.get("Metrics");
+        if (quickLinks != null && quickLinks.containsKey(METRICS_API_NAME)) {
+          String metricsUrl = quickLinks.get(METRICS_API_NAME);
           MetricsHolder metricsHolder = appMetrics.get(matchedAppType
               .uniqueName());
           app.setMetrics(sliderAppClient.getGangliaMetrics(metricsUrl,
