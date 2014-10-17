@@ -82,7 +82,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   }.property('App.isHadoop2Stack'),
 
   showConfigHistoryFeature: function() {
-    return App.supports.configHistory;
+    return App.get('supports.configHistory');
   }.property('App.supports.configHistory'),
   /**
    * Map, which contains relation between group and site
@@ -453,7 +453,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     var defaultHosts = App.get('allHostNames');
 
     //parse loaded config groups
-    if (App.supports.hostOverrides) {
+    if (App.get('supports.hostOverrides')) {
       var configGroups = [];
       if (data && data.config_groups && data.config_groups.length) {
         data.config_groups.forEach(function (item) {
@@ -517,7 +517,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     var selectedConfigGroup = this.get('selectedConfigGroup');
     var serviceName = this.get('content.serviceName');
     //STEP 1: handle tags from JSON data for host overrides
-    if (!App.supports.configHistory) {
+    if (!App.get('supports.configHistory')) {
       //if config history enabled then loadedGroupToOverrideSiteToTagMap already has content set in loadSelectedVersionSuccess()
       this.loadedGroupToOverrideSiteToTagMap = {};
     }
@@ -538,25 +538,23 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     var advancedConfigs = this.get('advancedConfigs');
     //STEP 4: Load on-site config by service from server
     App.router.get('configurationController').getConfigsByTags(this.get('serviceConfigTags')).done(function(configGroups){
-      //STEP 5: Merge on-site configs with pre-defined
+      //Merge on-site configs with pre-defined
       var configSet = App.config.mergePreDefinedWithLoaded(configGroups, advancedConfigs, self.get('serviceConfigTags'), serviceName);
       configSet = App.config.syncOrderWithPredefined(configSet);
-      //var serviceConfigs = this.getSitesConfigProperties(advancedConfigs);
+
       var configs = configSet.configs;
-      //STEP 6: add advanced configs
-      App.config.addAdvancedConfigs(configs, advancedConfigs, serviceName);
-      //STEP 7: add custom configs
+      //add custom configs
       App.config.addCustomConfigs(configs);
       //put properties from capacity-scheduler.xml into one config with textarea view
-      if (self.get('content.serviceName') === 'YARN' && !App.supports.capacitySchedulerUi) {
+      if (self.get('content.serviceName') === 'YARN' && !App.get('supports.capacitySchedulerUi')) {
         configs = App.config.fileConfigsIntoTextarea(configs, 'capacity-scheduler.xml');
       }
       self.set('allConfigs', configs);
-      //STEP 8: add configs as names of host components
+      //add configs as names of host components
       self.addHostNamesToConfig();
-      //STEP load configs of version being compared against
+      //load configs of version being compared against
       self.loadCompareVersionConfigs(self.get('allConfigs')).done(function (isComparison) {
-        //STEP 9: Load and add overriden configs of group
+        //Load and add overriden configs of group
         if (!isComparison && (!self.get('selectedConfigGroup').get('isDefault') || self.get('isCurrentSelected'))) {
           App.config.loadServiceConfigGroupOverrides(self.get('allConfigs'), self.get('loadedGroupToOverrideSiteToTagMap'), self.get('configGroups'), self.onLoadOverrides, self);
         } else {
@@ -847,7 +845,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
       App.config.OnNnHAHideSnn(serviceConfig);
     }
 
-    if (serviceName && !App.supports.serverRecommendValidate) {
+    if (serviceName && !App.get('supports.serverRecommendValidate')) {
       // set recommended Defaults first then load the configs (including set validator)
       var s = App.StackService.find().findProperty('serviceName', this.get('content.serviceName'));
       var defaultsProvider = s.get('defaultsProviders');
@@ -857,7 +855,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
         Em.run(this, 'setDefaults');
       }
     } else {
-      if (App.supports.serverRecommendValidate) {
+      if (App.get('supports.serverRecommendValidate')) {
         serviceConfig = App.config.createServiceConfig(this.get('content.serviceName'));
         this.loadConfigs(this.get('allConfigs'), serviceConfig);
         this.checkOverrideProperty(serviceConfig);
@@ -1230,7 +1228,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     newSCP.set('supportsFinal', serviceConfigProperty.get('supportsFinal'));
     newSCP.set('isOriginalSCP', false); // indicated this is overridden value,
     newSCP.set('parentSCP', serviceConfigProperty);
-    if (App.supports.hostOverrides && defaultGroupSelected) {
+    if (App.get('supports.hostOverrides') && defaultGroupSelected) {
       newSCP.set('group', override.group);
       newSCP.set('isEditable', false);
     }
@@ -1270,7 +1268,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
       displayName = this.get('content.displayName'),
       urlParams = '';
 
-    if (App.supports.hostOverrides ||
+    if (App.get('supports.hostOverrides') ||
       (serviceName !== 'HDFS' && this.get('content.isStopped') === true) ||
       ((serviceName === 'HDFS') && this.get('content.isStopped') === true && (!App.Service.find().someProperty('id', 'MAPREDUCE') || App.Service.find('MAPREDUCE').get('isStopped')))) {
 
@@ -1344,7 +1342,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     var self = this;
 
     if (selectedConfigGroup.get('isDefault')) {
-      if (this.get('content.serviceName') === 'YARN' && !App.supports.capacitySchedulerUi) {
+      if (this.get('content.serviceName') === 'YARN' && !App.get('supports.capacitySchedulerUi')) {
         configs = App.config.textareaIntoFileConfigs(configs, 'capacity-scheduler.xml');
       }
       var modifiedConfigs = configs
@@ -1958,7 +1956,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
         break;
       default:
         var filename = (App.config.get('filenameExceptions').contains(siteName)) ? siteName : siteName + '.xml';
-        if (filename === 'mapred-queue-acls.xml' && !App.supports.capacitySchedulerUi) {
+        if (filename === 'mapred-queue-acls.xml' && !App.get('supports.capacitySchedulerUi')) {
           return null;
         }
         configObject = this.createSiteObj(siteName, tagName, this.get('uiConfigs').filterProperty('filename', filename));
@@ -2700,7 +2698,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     }
     //clean when switch config group
     this.loadedGroupToOverrideSiteToTagMap = {};
-    if (App.supports.configHistory) {
+    if (App.get('supports.configHistory')) {
       var configGroupVersions = App.ServiceConfigVersion.find().filterProperty('groupId', event.context.get('id'));
       //check whether config group has config versions
       if (configGroupVersions.length > 0) {

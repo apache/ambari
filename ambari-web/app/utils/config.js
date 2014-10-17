@@ -164,7 +164,7 @@ App.config = Em.Object.create({
   //configs with these filenames go to appropriate category not in Advanced
   customFileNames: function () {
     var customFiles = ['flume-conf.xml'];
-    if (App.supports.capacitySchedulerUi) {
+    if (App.get('supports.capacitySchedulerUi')) {
       if (App.get('isHadoop2Stack')) {
         return customFiles.concat(['capacity-scheduler.xml']);
       }
@@ -628,7 +628,7 @@ App.config = Em.Object.create({
     var stored = configs.filter(function (_config) {
       return this.get('categoriesWithCustom').contains(_config.category);
     }, this);
-    if (App.supports.capacitySchedulerUi) {
+    if (App.get('supports.capacitySchedulerUi')) {
       var queueProperties = stored.filter(this.get('capacitySchedulerFilter'));
       if (queueProperties.length) {
         queueProperties.setEach('isQueue', true);
@@ -811,7 +811,7 @@ App.config = Em.Object.create({
     serviceConfig.configCategories.filterProperty('isCustomView', true).forEach(function (category) {
       switch (category.name) {
         case 'CapacityScheduler':
-          if (App.supports.capacitySchedulerUi) {
+          if (App.get('supports.capacitySchedulerUi')) {
             category.set('customView', App.ServiceConfigCapacityScheduler);
           } else {
             category.set('isCustomView', false);
@@ -926,8 +926,8 @@ App.config = Em.Object.create({
          * Properties from capacity-scheduler.xml are ignored unless HDP stack version is 2.x or
          * HDP stack version is 1.x and App.supports.capacitySchedulerUi is true.
          */
-        if ((fileName !== 'mapred-queue-acls.xml' || App.supports.capacitySchedulerUi) &&
-          (fileName !== 'capacity-scheduler.xml' || isHDP2 || App.supports.capacitySchedulerUi)) {
+        if ((fileName !== 'mapred-queue-acls.xml' || App.get('supports.capacitySchedulerUi')) &&
+          (fileName !== 'capacity-scheduler.xml' || isHDP2 || App.get('supports.capacitySchedulerUi'))) {
           var property = {
             serviceName: serviceName,
             name: item.property_name,
@@ -1363,7 +1363,7 @@ App.config = Em.Object.create({
   persistWizardStep7ConfigGroups: function () {
     var installerController = App.router.get('installerController');
     var step7Controller = App.router.get('wizardStep7Controller');
-    if (App.supports.hostOverridesInstaller) {
+    if (App.get('supports.hostOverridesInstaller')) {
       installerController.saveServiceConfigGroups(step7Controller, step7Controller.get('content.controllerName') == 'addServiceController');
       App.clusterStatus.setClusterStatus({
         localdb: App.db.data
