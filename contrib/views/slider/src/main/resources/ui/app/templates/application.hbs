@@ -36,10 +36,15 @@
 
 <div class="slider-header">
   {{#view view.SliderTitleView}}
-      <h3 class="pull-left" id="slider-title"><span class="slider-app-title">{{App.label}}</span></h3>
+    <h3 class="pull-left" id="slider-title"><span class="slider-app-title">{{App.label}}</span></h3>
     {{#if view.showCreateAppButton}}
       <div class="box-header pull-right">
-        <div class="create-app">
+        {{#if App.sliderUser}}
+          <div class="pull-left view-user">
+            <i class="icon-user"></i>&nbsp;{{App.sliderUser}}
+          </div>
+        {{/if}}
+        <div class="create-app pull-right">
           <a href="#" class="btn btn-primary" {{action createApp}}>
             <i class="icon-plus"></i><span>&nbsp;{{t slider.apps.create}}</span>
           </a>

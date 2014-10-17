@@ -24,7 +24,10 @@ QUnit.module('integration/pages - index', {
       "ViewInstanceInfo": {
         "context_path": "/views/SLIDER/1.0.0/s1",
         "description": "DESCRIPTION",
-        "label": "SLIDER LABEL"
+        "label": "SLIDER LABEL",
+        "properties": {
+          "slider.user": "admin"
+        }
       }
     });
     Ember.run(App, App.advanceReadiness);

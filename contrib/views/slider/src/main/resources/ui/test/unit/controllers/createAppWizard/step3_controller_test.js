@@ -46,6 +46,9 @@ test('initConfigs', function () {
       "ViewInstanceInfo" : {
         "instance_data": {
           "java.home": "/usr/jdk64/jdk1.7.0_45"
+        },
+        "properties": {
+          "slider.user": "admin"
         }
       }
     });
