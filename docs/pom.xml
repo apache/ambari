@@ -479,6 +479,18 @@
             </organization>            
         </developer>
         <developer>
+            <id>screeley</id>
+            <name>Scott Creeley</name>
+            <email>screeley@apache.org</email>
+            <timezone>-8</timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+                Red Hat
+            </organization>
+        </developer>
+        <developer>
             <id>smohanty</id>
             <name>Sumit Mohanty</name>
             <email>smohanty@apache.org</email>
@@ -624,27 +636,171 @@
         </developer>
       </developers>
       <contributors>
-         <contributor>
-           <name>Scott Creeley</name>
-           <organization>Red Hat</organization>
-         </contributor>
-         <contributor>
-           <name>Michael Harp</name>
-           <organization>Teradata</organization>
-         </contributor>
-         <contributor>
-           <name>Greg Hill</name>
-           <organization>Rackspace</organization>
-         </contributor>
-         <contributor>
-           <name>Steve Ratay</name>
-           <organization>Teradata</organization>
-         </contributor>
-         <contributor>
-           <name>Krisztian Horvath</name>
-           <organization>SequenceIQ</organization>
-         </contributor>
-       </contributors>
+        <contributor>
+          <name>Newton Alex</name>
+          <organization>Pivotal</organization>
+        </contributor>
+        <contributor>
+          <name>Saman Alvi</name>
+          <organization>Pivotal</organization>
+        </contributor>
+        <contributor>
+          <name>Dilli Arumugam</name>
+          <organization>Hortonworks</organization>
+        </contributor>
+        <contributor>
+          <name>Jos Backus</name>
+          <organization>eBay</organization>
+        </contributor>
+        <contributor>
+          <name>Sandeep Baldawa</name>
+          <organization></organization>
+        </contributor>
+        <contributor>
+          <name>Daniel Ballard</name>
+          <organization>Pivotal</organization>
+        </contributor>
+        <contributor>
+          <name>Florian Barca</name>
+          <organization>Hortonworks</organization>
+        </contributor>
+        <contributor>
+          <name>Chun Chen</name>
+          <organization></organization>
+        </contributor>
+        <contributor>
+          <name>Bradley Childs</name>
+          <organization>Red Hat</organization>
+        </contributor>
+        <contributor>
+          <name>Sriharsha Chintalapani</name>
+          <organization>Hortonworks</organization>
+        </contributor>
+        <contributor>
+          <name>Alexander Denissov</name>
+          <organization>Pivotal</organization>
+        </contributor>
+        <contributor>
+          <name>Ellen Evans</name>
+          <organization></organization>
+        </contributor>
+        <contributor>
+          <name>Matthew Farrellee</name>
+          <organization>Red Hat</organization>
+        </contributor>
+        <contributor>
+          <name>Ximo Guanter</name>
+          <organization></organization>
+        </contributor>
+        <contributor>
+          <name>Arpit Gupta</name>
+          <organization>Hortonworks</organization>
+        </contributor>
+        <contributor>
+          <name>Sumit Gupta</name>
+          <organization>Hortonworks</organization>
+        </contributor>
+        <contributor>
+          <name>Michael Harp</name>
+          <organization>Teradata</organization>
+        </contributor>
+        <contributor>
+          <name>Greg Hill</name>
+          <organization>Rackspace</organization>
+        </contributor>
+        <contributor>
+          <name>Krisztian Horvath</name>
+          <organization>SequenceIQ</organization>
+        </contributor>
+        <contributor>
+          <name>Saurabh Jain</name>
+          <organization></organization>
+        </contributor>
+        <contributor>
+          <name>Shawn Kern</name>
+          <organization></organization>
+        </contributor>
+        <contributor>
+          <name>Giridharan Kesavan</name>
+          <organization>Hortonworks</organization>
+        </contributor>
+        <contributor>
+          <name>Olivier Lamy</name>
+          <organization></organization>
+        </contributor>
+        <contributor>
+          <name>Adamos Loizou</name>
+          <organization></organization>
+        </contributor>
+        <contributor>
+          <name>Jayush Luniya</name>
+          <organization>Hortonworks</organization>
+        </contributor>
+        <contributor>
+          <name>Trevor McKay</name>
+          <organization>Red Hat</organization>
+        </contributor>
+        <contributor>
+          <name>Jeff Markham</name>
+          <organization>Hortonworks</organization>
+        </contributor>
+        <contributor>
+          <name>Rodrigo Meneses</name>
+          <organization>Pivotal</organization>
+        </contributor>
+        <contributor>
+          <name>Thejas Nair</name>
+          <organization>Hortonworks</organization>
+        </contributor>
+        <contributor>
+          <name>Robert Nettleton</name>
+          <organization>Hortonworks</organization>
+        </contributor>
+        <contributor>
+          <name>Richard Pelavin</name>
+          <organization></organization>
+        </contributor>
+        <contributor>
+          <name>ViVek Raghuwanshi</name>
+          <organization></organization>
+        </contributor>
+        <contributor>
+          <name>Steve Ratay</name>
+          <organization>Teradata</organization>
+        </contributor>
+        <contributor>
+          <name>Ananya Sen</name>
+          <organization></organization>
+        </contributor>
+        <contributor>
+          <name>Ashish Singh</name>
+          <organization>Hortonworks</organization>
+        </contributor>
+        <contributor>
+          <name>Suresh Srinivas</name>
+          <organization>Hortonworks</organization>
+        </contributor>
+        <contributor>
+          <name>Pramod Thangali</name>
+          <organization>Hortonworks</organization>
+        </contributor>
+        <contributor>
+          <name>Thulasi</name>
+          <organization>Pivotal</organization>
+        </contributor>
+        <contributor>
+          <name>Sunitha Velpula</name>
+          <organization>Hortonworks</organization>
+        </contributor>
+        <contributor>
+          <name>Ivan Wang</name>
+          <organization>Pivotal</organization>
+        </contributor>
+        <contributor>
+          <name>Cabir Zounaidou</name>
+          <organization>Hortonworks</organization>
+        </contributor>
+      </contributors>
 
     <organization>
         <name>Apache Software Foundation</name>
