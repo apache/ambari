@@ -21,8 +21,8 @@ module.exports = App.WizardRoute.extend({
   route: '/addSecurity',
   enter: function (router) {
     console.log('in /security/add:enter');
-
-    Ember.run.next(function () {
+    var controller = router.get('addSecurityController');
+    controller.dataLoading().done(Ember.run.next(function () {
       //after refresh check if the wizard is open then restore it
       if (router.get('mainAdminSecurityController').getAddSecurityWizardStatus() === 'RUNNING') {
         var mainAdminSecurityController = router.get('mainAdminSecurityController');
@@ -101,7 +101,7 @@ module.exports = App.WizardRoute.extend({
       } else {
         router.transitionTo('adminSecurity.index');
       }
-    });
+    }));
   },
 
   step1: Em.Route.extend({
