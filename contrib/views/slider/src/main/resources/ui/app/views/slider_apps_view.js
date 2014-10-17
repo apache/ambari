@@ -148,7 +148,8 @@ App.SliderAppsView = App.TableView.extend({
     onChangeValue: function(){
       this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'date', this.get('defaultValue'));
     },
-    type: 'number'
+    type: 'number',
+    emptyValue: 'All Dates'
   }),
 
   /**

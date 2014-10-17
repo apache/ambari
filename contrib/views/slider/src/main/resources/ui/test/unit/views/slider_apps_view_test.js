@@ -29,7 +29,7 @@ test('clearFilters', function () {
   });
 
   Em.run(function () {
-    view.clearFilters();
+    view.clearAllFilters();
   });
 
   equal(view.get('pageContent.length'), 1, 'all content items should be displayed');
