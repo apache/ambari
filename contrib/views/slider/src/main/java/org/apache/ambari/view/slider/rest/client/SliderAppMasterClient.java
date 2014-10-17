@@ -36,6 +36,7 @@ import org.apache.ambari.view.slider.SliderAppType;
 import org.apache.ambari.view.slider.SliderAppTypeComponent;
 import org.apache.ambari.view.slider.TemporalInfo;
 import org.apache.commons.httpclient.HttpException;
+import org.apache.ambari.view.slider.SliderAppsViewController;
 import org.apache.log4j.Logger;
 
 import com.google.gson.JsonElement;
@@ -105,7 +106,7 @@ public class SliderAppMasterClient extends BaseHttpClient {
           } else if ("org.apache.slider.metrics.ui".equals(entry.getKey())) {
             quickLinks.put("Metrics UI", entry.getValue().getAsString());
           } else if ("org.apache.slider.metrics".equals(entry.getKey())) {
-            quickLinks.put("Metrics API", entry.getValue().getAsString());
+            quickLinks.put(SliderAppsViewController.METRICS_API_NAME, entry.getValue().getAsString());
           } else {
             quickLinks.put(entry.getKey(), entry.getValue().getAsString());
           }

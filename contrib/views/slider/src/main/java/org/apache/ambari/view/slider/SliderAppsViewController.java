@@ -44,6 +44,8 @@ public interface SliderAppsViewController {
   public static final String PROPERTY_YARN_RM_WEBAPP_URL = "yarn.rm.webapp.url";
   public static final String PROPERTY_SLIDER_SECURITY_ENABLED = "slider.security.enabled";
 
+  public static final String METRICS_API_NAME = "Metrics API";
+
   public ViewStatus getViewStatus();
 
   /**
