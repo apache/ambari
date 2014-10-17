@@ -345,16 +345,18 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
             }
           }, hadoopConfigs);
         } catch (IOException e) {
-          String message = "Error validating access to user home directory: " + e.getMessage();
+          String message = "Slider View requires access to user's home directory in HDFS to proceed. Contact your administrator to create the home directory. ("
+              + e.getMessage() + ")";
           logger.warn(message, e);
           return new Validation(message);
         } catch (InterruptedException e) {
-          String message = "Error validating access to user home directory: " + e.getMessage();
+          String message = "Slider View requires access to user's home directory in HDFS to proceed. Contact your administrator to create the home directory. ("
+              + e.getMessage() + ")";
           logger.warn(message, e);
           return new Validation(message);
         }
       } else {
-        return new Validation("Unknown filesystem location for verification");
+        return new Validation("Location of HDFS filesystem is unknown for verification. Please check the 'fs.defaultFS' config in core-site.xml");
       }
     }
     return null;
