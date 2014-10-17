@@ -53,7 +53,7 @@
         <li class="dropdown">
           <a class="dropdown-toggle" data-toggle="dropdown" href="#">{{t common.quickLinks}}<b class="caret"></b></a>
           <ul class="dropdown-menu">
-            {{#each quickLink in model.quickLinks}}
+            {{#each quickLink in controller.quickLinksOrdered}}
               <li><a {{bind-attr href="quickLink.url"}} target="_blank">{{quickLink.label}}</a></li>
             {{/each}}
           </ul>
