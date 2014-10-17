@@ -25,11 +25,17 @@ angular.module('ambariAdminConsole')
     editingName : false
   };
 
-  Cluster.getStatus().then(function(cluster) {
-    $scope.cluster = cluster;
-  }).catch(function(data) {
-    Alert.error('Cannot load cluster status', data.data.message);
-  });
+  function loadClusterData(){
+    Cluster.getStatus().then(function(cluster) {
+      $scope.cluster = cluster;
+      if(cluster.Clusters.provisioning_state === 'INIT'){
+        setTimeout(loadClusterData, 1000);
+      }
+    }).catch(function(data) {
+      Alert.error('Cannot load cluster status', data.data.message);
+    });
+  };
+  loadClusterData();
 
   $scope.toggleEditName = function($event) {
     if ($event && $event.keyCode !== 27) {
