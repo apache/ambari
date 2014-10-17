@@ -136,6 +136,10 @@ App.CreateAppWizardStep3Controller = Ember.ObjectController.extend({
         $.extend({name: key, value: newAppConfigs[key], label: label}, configSettings[key]) :
         {name: key, value: newAppConfigs[key], label: label};
 
+      if (key === 'java_home' && !!setDefaults && App.get('javaHome')) {
+        configSetting.value = App.get('javaHome');
+      }
+
       if (key === "site.global.ganglia_server_host" && !!setDefaults && App.get('gangliaHost')) {
         configSetting.value = App.get('gangliaHost');
       }

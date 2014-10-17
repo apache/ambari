@@ -112,7 +112,13 @@ App.initializer({
        * Last time when mapper ran
        * @type {null|number}
        */
-      mapperTime: null
+      mapperTime: null,
+
+      /**
+       * Default java_home value for Slider View instance
+       * @type {string|null}
+       */
+      javaHome: null
 
     });
     if(!window.QUnit) {
