@@ -46,13 +46,18 @@ angular.module('ambariAdminConsole')
   $scope.cluster = null;
   $scope.isLoaded = null;
 
-  Cluster.getStatus().then(function(cluster) {
-    $scope.cluster = cluster;
-    $scope.isLoaded = true;
-  }).catch(function(data) {
-    Alert.error('Check cluster status error', data.data.message);
-  });
-
+  function loadClusterData(){
+    Cluster.getStatus().then(function(cluster) {
+      $scope.cluster = cluster;
+      $scope.isLoaded = true;
+      if(cluster.Clusters.provisioning_state === 'INIT'){
+        setTimeout(loadClusterData, 1000);
+      }
+    }).catch(function(data) {
+      Alert.error('Cannot load cluster status', data.data.message);
+    });
+  };
+  loadClusterData();
   $scope.viewInstances = [];
   View.getAllVisibleInstance().then(function(instances) {
     $scope.viewInstances = instances;
