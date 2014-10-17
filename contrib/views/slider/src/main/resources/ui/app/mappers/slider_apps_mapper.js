@@ -172,7 +172,7 @@ App.SliderAppsMapper = App.Mapper.createWithMixins(App.RunPeriodically, {
     if (!Em.isNone(viewConfigs)) {
       var viewConfig = viewConfigs.findBy('viewConfigName', 'yarn.rm.webapp.url');
       if (!Em.isNone(viewConfig)) {
-        yarnUI = viewConfig.get('value');
+        yarnUI = 'http://' + viewConfig.get('value');
       }
     }
     quickLinks.push(
