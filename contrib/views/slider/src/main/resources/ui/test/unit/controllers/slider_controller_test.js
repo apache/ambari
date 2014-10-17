@@ -28,6 +28,9 @@ test('getViewDisplayParametersSuccessCallback', function () {
         "label" : "display s1",
         "instance_data": {
           "java.home": "/usr/jdk64/jdk1.7.0_45"
+        },
+        "properties": {
+          "slider.user": "admin"
         }
       }
     })
@@ -35,5 +38,6 @@ test('getViewDisplayParametersSuccessCallback', function () {
   equal(App.get('label'), 'display s1', 'valid label is set');
   equal(App.get('description'), 'description s1', 'valid description is set');
   equal(App.get('javaHome'), '/usr/jdk64/jdk1.7.0_45', 'valid default java_home property is set');
+  equal(App.get('sliderUser'), 'admin', 'valid sliderUser is set');
 
 });
