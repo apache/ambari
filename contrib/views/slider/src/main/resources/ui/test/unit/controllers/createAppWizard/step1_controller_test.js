@@ -37,3 +37,42 @@ test('isAppTypesError', function () {
   equal(controller.get('isAppTypesError'), false, 'should be false if app types provided');
 
 });
+
+test('nameValidator', function() {
+  expect(7);
+
+  var tests = [
+    { name: 'Slider', e: true },
+    { name: '_slider', e: true },
+    { name: 'slider*2', e: true },
+    { name: 'slider', e: false },
+    { name: 'slider_1-2_3', e: false }
+  ];
+
+  var controller = this.subject({isNameError: false,
+    store: Em.Object.create({
+      all: function(key) {
+        return {
+          sliderApp: [
+            { name: 'slider2' }
+          ]
+        }[key];
+      }
+    })
+  });
+
+  tests.forEach(function(test) {
+    Em.run(function() {
+      controller.set('newApp', { name: test.name});
+    });
+
+    equal(controller.get('isNameError'), test.e, 'Name `' + test.name + '` is' + (!!test.e ? ' not ' : ' ') + 'valid');
+  });
+
+  Em.run(function() {
+    controller.set('newApp', { name: 'slider2'});
+  })
+
+  equal(controller.get('isNameError'), true, 'Name `slider2` already exist');
+  equal(controller.get('nameErrorMessage'), Em.I18n.t('wizard.step1.nameRepeatError'), 'Error message should be shown');
+});

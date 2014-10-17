@@ -119,7 +119,7 @@ App.CreateAppWizardStep1Controller = Ember.Controller.extend({
     var newAppName = this.get('newApp.name');
     if (newAppName) {
       // new App name should consist only of letters, numbers, '-', '_' and first character should be a letter
-      if (!/^[A-Za-z][A-Za-z0-9_\-]*$/.test(newAppName)) {
+      if (!/^[a-z][a-z0-9_-]*$/.test(newAppName)) {
         this.set('isNameError', true);
         this.set('nameErrorMessage', Em.I18n.t('wizard.step1.nameFormatError'));
         return false;
