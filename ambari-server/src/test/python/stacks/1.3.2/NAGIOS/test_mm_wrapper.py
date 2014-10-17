@@ -213,12 +213,25 @@ vm-3.vm ZOOKEEPER ZOOKEEPER_SERVER
     check_output_mock.reset_mock()
 
     # Failed all checks
-    check_output_mock.side_effect = [
-      subprocess.CalledProcessError(1, 'dummy cmd', output='dummy output1'),
-      subprocess.CalledProcessError(3, 'dummy cmd', output='dummy output2'),
-      subprocess.CalledProcessError(1, 'dummy cmd', output='dummy output3'),
-      subprocess.CalledProcessError(2, 'dummy cmd', output='dummy output4'),
-      ]
+    check_output_side_effects = []
+    error = subprocess.CalledProcessError(1, 'dummy cmd')
+    error.output = 'dummy output1'
+    check_output_side_effects.append(error)
+
+    error = subprocess.CalledProcessError(3, 'dummy cmd')
+    error.output = 'dummy output2'
+    check_output_side_effects.append(error)
+
+    error = subprocess.CalledProcessError(1, 'dummy cmd')
+    error.output = 'dummy output3'
+    check_output_side_effects.append(error)
+
+    error = subprocess.CalledProcessError(2, 'dummy cmd')
+    error.output = 'dummy output4'
+    check_output_side_effects.append(error)
+
+    check_output_mock.side_effect = check_output_side_effects
+
     result = mm_wrapper.work_in_or_mode(hostnames, ignored_hosts, command_line,
                                         custom_env,
                                         self.default_empty_check_result)
@@ -229,12 +242,25 @@ vm-3.vm ZOOKEEPER ZOOKEEPER_SERVER
     check_output_mock.reset_mock()
 
     # Failed all but MM host component checks
-    check_output_mock.side_effect = [
-      subprocess.CalledProcessError(1, 'dummy cmd', output='dummy output1'),
-      subprocess.CalledProcessError(0, 'dummy cmd', output='dummy output2'),
-      subprocess.CalledProcessError(2, 'dummy cmd', output='dummy output3'),
-      subprocess.CalledProcessError(3, 'dummy cmd', output='dummy output4'),
-    ]
+    check_output_side_effects = []
+    error = subprocess.CalledProcessError(1, 'dummy cmd')
+    error.output = 'dummy output1'
+    check_output_side_effects.append(error)
+
+    error = subprocess.CalledProcessError(0, 'dummy cmd')
+    error.output = 'dummy output2'
+    check_output_side_effects.append(error)
+
+    error = subprocess.CalledProcessError(2, 'dummy cmd')
+    error.output = 'dummy output3'
+    check_output_side_effects.append(error)
+
+    error = subprocess.CalledProcessError(3, 'dummy cmd')
+    error.output = 'dummy output4'
+    check_output_side_effects.append(error)
+
+    check_output_mock.side_effect = check_output_side_effects
+
     result = mm_wrapper.work_in_or_mode(hostnames, ignored_hosts, command_line,
                                         custom_env,
                                         self.default_empty_check_result)
@@ -246,12 +272,25 @@ vm-3.vm ZOOKEEPER ZOOKEEPER_SERVER
 
     # Components check only for one check is successful
     ignored_hosts = []
-    check_output_mock.side_effect = [
-      subprocess.CalledProcessError(1, 'dummy cmd', output='dummy output1'),
-      subprocess.CalledProcessError(0, 'dummy cmd', output='dummy output2'),
-      subprocess.CalledProcessError(2, 'dummy cmd', output='dummy output3'),
-      subprocess.CalledProcessError(3, 'dummy cmd', output='dummy output4'),
-    ]
+    check_output_side_effects = []
+    error = subprocess.CalledProcessError(1, 'dummy cmd')
+    error.output = 'dummy output1'
+    check_output_side_effects.append(error)
+
+    error = subprocess.CalledProcessError(0, 'dummy cmd')
+    error.output = 'dummy output2'
+    check_output_side_effects.append(error)
+
+    error = subprocess.CalledProcessError(2, 'dummy cmd')
+    error.output = 'dummy output3'
+    check_output_side_effects.append(error)
+
+    error = subprocess.CalledProcessError(3, 'dummy cmd')
+    error.output = 'dummy output4'
+    check_output_side_effects.append(error)
+
+    check_output_mock.side_effect = check_output_side_effects
+
     result = mm_wrapper.work_in_or_mode(hostnames, ignored_hosts, command_line,
                                         custom_env,
                                         self.default_empty_check_result)
@@ -282,12 +321,24 @@ vm-3.vm ZOOKEEPER ZOOKEEPER_SERVER
     check_output_mock.reset_mock()
 
     # Failed all checks
-    check_output_mock.side_effect = [
-      subprocess.CalledProcessError(1, 'dummy cmd', output='dummy output1'),
-      subprocess.CalledProcessError(3, 'dummy cmd', output='dummy output2'),
-      subprocess.CalledProcessError(1, 'dummy cmd', output='dummy output3'),
-      subprocess.CalledProcessError(2, 'dummy cmd', output='dummy output4'),
-    ]
+    check_output_side_effects = []
+    error = subprocess.CalledProcessError(1, 'dummy cmd')
+    error.output = 'dummy output1'
+    check_output_side_effects.append(error)
+
+    error = subprocess.CalledProcessError(3, 'dummy cmd')
+    error.output = 'dummy output2'
+    check_output_side_effects.append(error)
+
+    error = subprocess.CalledProcessError(1, 'dummy cmd')
+    error.output = 'dummy output3'
+    check_output_side_effects.append(error)
+
+    error = subprocess.CalledProcessError(2, 'dummy cmd')
+    error.output = 'dummy output4'
+    check_output_side_effects.append(error)
+
+    check_output_mock.side_effect = check_output_side_effects
     result = mm_wrapper.work_in_and_mode(hostnames, ignored_hosts, command_line,
                                         custom_env,
                                         self.default_empty_check_result)
@@ -298,12 +349,24 @@ vm-3.vm ZOOKEEPER ZOOKEEPER_SERVER
     check_output_mock.reset_mock()
 
     # Failed all but MM host component checks
-    check_output_mock.side_effect = [
-      subprocess.CalledProcessError(1, 'dummy cmd', output='dummy output1'),
-      subprocess.CalledProcessError(0, 'dummy cmd', output='dummy output2'),
-      subprocess.CalledProcessError(2, 'dummy cmd', output='dummy output3'),
-      subprocess.CalledProcessError(3, 'dummy cmd', output='dummy output4'),
-      ]
+    check_output_side_effects = []
+    error = subprocess.CalledProcessError(1, 'dummy cmd')
+    error.output = 'dummy output1'
+    check_output_side_effects.append(error)
+
+    error = subprocess.CalledProcessError(0, 'dummy cmd')
+    error.output = 'dummy output2'
+    check_output_side_effects.append(error)
+
+    error = subprocess.CalledProcessError(2, 'dummy cmd')
+    error.output = 'dummy output3'
+    check_output_side_effects.append(error)
+
+    error = subprocess.CalledProcessError(3, 'dummy cmd')
+    error.output = 'dummy output4'
+    check_output_side_effects.append(error)
+
+    check_output_mock.side_effect = check_output_side_effects
     result = mm_wrapper.work_in_and_mode(hostnames, ignored_hosts, command_line,
                                         custom_env,
                                         self.default_empty_check_result)
@@ -315,12 +378,24 @@ vm-3.vm ZOOKEEPER ZOOKEEPER_SERVER
 
     # Components check only for one check is successful
     ignored_hosts = []
-    check_output_mock.side_effect = [
-      subprocess.CalledProcessError(1, 'dummy cmd', output='dummy output1'),
-      subprocess.CalledProcessError(0, 'dummy cmd', output='dummy output2'),
-      subprocess.CalledProcessError(2, 'dummy cmd', output='dummy output3'),
-      subprocess.CalledProcessError(3, 'dummy cmd', output='dummy output4'),
-      ]
+    check_output_side_effects = []
+    error = subprocess.CalledProcessError(1, 'dummy cmd')
+    error.output = 'dummy output1'
+    check_output_side_effects.append(error)
+
+    error = subprocess.CalledProcessError(0, 'dummy cmd')
+    error.output = 'dummy output2'
+    check_output_side_effects.append(error)
+
+    error = subprocess.CalledProcessError(2, 'dummy cmd')
+    error.output = 'dummy output3'
+    check_output_side_effects.append(error)
+
+    error = subprocess.CalledProcessError(3, 'dummy cmd')
+    error.output = 'dummy output4'
+    check_output_side_effects.append(error)
+
+    check_output_mock.side_effect = check_output_side_effects
     result = mm_wrapper.work_in_and_mode(hostnames, ignored_hosts, command_line,
                                         custom_env,
                                         self.default_empty_check_result)
@@ -349,9 +424,12 @@ vm-3.vm ZOOKEEPER ZOOKEEPER_SERVER
     check_output_mock.reset_mock()
 
     # Failed all checks
-    check_output_mock.side_effect = [
-      subprocess.CalledProcessError(1, 'dummy cmd', output='dummy output1'),
-    ]
+    check_output_side_effects = []
+    error = subprocess.CalledProcessError(1, 'dummy cmd')
+    error.output = 'dummy output1'
+    check_output_side_effects.append(error)
+
+    check_output_mock.side_effect = check_output_side_effects
     result = mm_wrapper.work_in_env_only_mode(hostnames, command_line, custom_env)
     self.assertEquals(check_output_mock.call_count, 1)
     self.assertEquals(str(result),
@@ -382,9 +460,12 @@ vm-3.vm ZOOKEEPER ZOOKEEPER_SERVER
     check_output_mock.reset_mock()
 
     # Failed all checks
-    check_output_mock.side_effect = [
-      subprocess.CalledProcessError(1, 'dummy cmd', output='dummy output1'),
-    ]
+    check_output_side_effects = []
+    error = subprocess.CalledProcessError(1, 'dummy cmd')
+    error.output = 'dummy output1'
+    check_output_side_effects.append(error)
+
+    check_output_mock.side_effect = check_output_side_effects
     result = mm_wrapper.work_in_filter_mm_mode(hostnames, ignored_hosts, command_line,
                                                custom_env,
                                                self.default_empty_check_result)
@@ -396,9 +477,12 @@ vm-3.vm ZOOKEEPER ZOOKEEPER_SERVER
 
     # All host components are in MM
     ignored_hosts = hostnames
-    check_output_mock.side_effect = [
-      subprocess.CalledProcessError(1, 'dummy cmd', output='dummy output1'),
-      ]
+    check_output_side_effects = []
+    error = subprocess.CalledProcessError(1, 'dummy cmd')
+    error.output = 'dummy output1'
+    check_output_side_effects.append(error)
+
+    check_output_mock.side_effect = check_output_side_effects
     result = mm_wrapper.work_in_filter_mm_mode(hostnames, ignored_hosts, command_line,
                                                custom_env,
                                                self.default_empty_check_result)
@@ -433,9 +517,12 @@ vm-3.vm ZOOKEEPER ZOOKEEPER_SERVER
 
     # Failed check on host that is not in MM state
     ignored_hosts = ['h3']
-    check_output_mock.side_effect = [
-      subprocess.CalledProcessError(1, 'dummy cmd', output='dummy output1'),
-      ]
+    check_output_side_effects = []
+    error = subprocess.CalledProcessError(1, 'dummy cmd')
+    error.output = 'dummy output1'
+    check_output_side_effects.append(error)
+
+    check_output_mock.side_effect = check_output_side_effects
     result = mm_wrapper.work_in_legacy_check_wrapper_mode(ignored_hosts, command_line,
                                                custom_env)
     self.assertEquals(check_output_mock.call_count, 1)
@@ -446,9 +533,12 @@ vm-3.vm ZOOKEEPER ZOOKEEPER_SERVER
 
     # Failed check on host that is in MM state
     ignored_hosts = ['h2']
-    check_output_mock.side_effect = [
-      subprocess.CalledProcessError(1, 'dummy cmd', output='dummy output1'),
-      ]
+    check_output_side_effects = []
+    error = subprocess.CalledProcessError(1, 'dummy cmd')
+    error.output = 'dummy output1'
+    check_output_side_effects.append(error)
+
+    check_output_mock.side_effect = check_output_side_effects
     result = mm_wrapper.work_in_legacy_check_wrapper_mode(ignored_hosts, command_line,
                                                custom_env)
     self.assertEquals(check_output_mock.call_count, 1)
