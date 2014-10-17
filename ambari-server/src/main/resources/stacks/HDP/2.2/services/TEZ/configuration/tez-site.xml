@@ -28,5 +28,11 @@
     </description>
   </property>
 
+  <property>
+    <name>tez.cluster.additional.classpath.prefix</name>
+    <value>/usr/hdp/current/share/lzo/0.6.0/lib/hadoop-lzo-0.6.0.jar</value>
+    <description></description>
+  </property>
+
 </configuration>
 
