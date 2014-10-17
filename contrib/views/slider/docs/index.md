@@ -81,3 +81,34 @@ From *Ambari-Admin* create a *Slider Apps View* with the below parameters popula
 * slider.security.enabled = true
 * view.kerberos.principal = `view-principal`
 * view.kerberos.principal.keytab = `/etc/security/keytabs/view-principal.headless.keytab`
+
+#### Step-5 Create *Kerberos* principal for *slider.user*
+We need to provide a *Kerberos* identity for the user identified in *slider.user* view parameter. 
+
+The *slider.user* view parameter has the following interpretations:
+
+* If the parameter is left blank, it means the user *yarn*. 
+* If it is `${username}`, it is the user logged into Ambari. 
+* Else, it is exact name of the user. 
+
+We shall assume the user as `slider-user`. In a secured cluster this user has to actually exist on all the hosts. The user should also have an *uid* greater than 1000.
+
+On the machine where *KDC Server* is hosted, create user principal by running below command
+
+```
+kadmin.local -q "addprinc -randkey slider-user@EXAMPLE.COM"
+```
+Next, extract keytab file 
+
+```
+kadmin.local -q "xst -k /path/to/keytab/slider-user.headless.keytab view-principal@EXAMPLE.COM"
+```
+The keytab file should then be copied over to the keytabs location on the host where the view is hosted.
+
+```
+cp /path/to/keytab/slider-user.headless.keytab /etc/security/keytabs/
+```
+
+Change file permissions so that only necessary users can access it.
+
+**Make sure that `slider-user` keytab is at /etc/security/keytabs/`slider-user`.headless.keytab**
