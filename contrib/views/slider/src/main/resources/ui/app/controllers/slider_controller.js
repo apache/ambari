@@ -52,6 +52,7 @@ App.SliderController = Ember.Controller.extend(App.RunPeriodically, {
   getViewDisplayParametersSuccessCallback: function(data) {
     App.set('description', Em.get(data, 'ViewInstanceInfo.description'));
     App.set('label', Em.get(data, 'ViewInstanceInfo.label'));
+    App.set('javaHome', Em.get(data, 'ViewInstanceInfo.instance_data') && Em.get(data, 'ViewInstanceInfo.instance_data')['java.home']);
   },
 
   /**

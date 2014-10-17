@@ -16,24 +16,44 @@
  * limitations under the License.
  */
 
-moduleFor('controller:slider', 'App.SliderController');
+moduleFor('controller:createAppWizardStep3', 'App.CreateAppWizardStep3Controller', {
 
-test('getViewDisplayParametersSuccessCallback', function () {
+  needs: [
+    'controller:createAppWizard',
+    'controller:slider'
+  ]
 
-  var sliderController = this.subject({});
+});
+
+test('initConfigs', function () {
+
+  var controller = this.subject(),
+    wizardController = controller.get('controllers.createAppWizard');
+
   Em.run(function () {
-    sliderController.getViewDisplayParametersSuccessCallback({
+    wizardController.setProperties({
+      content: {},
+      newApp: {
+        appType: {
+          configs: []
+        },
+        configs: {
+          java_home: '/usr/jdk64/jdk1.7.0_40'
+        }
+      }
+    });
+    App.__container__.lookup('controller:slider').getViewDisplayParametersSuccessCallback({
       "ViewInstanceInfo" : {
-        "description" : "description s1",
-        "label" : "display s1",
         "instance_data": {
           "java.home": "/usr/jdk64/jdk1.7.0_45"
         }
       }
-    })
+    });
+    Em.run(function () {
+      controller.initConfigs(true);
+    });
   });
-  equal(App.get('label'), 'display s1', 'valid label is set');
-  equal(App.get('description'), 'description s1', 'valid description is set');
-  equal(App.get('javaHome'), '/usr/jdk64/jdk1.7.0_45', 'valid default java_home property is set');
+
+  equal(controller.get('configs').findBy('label', 'java_home').get('value'), '/usr/jdk64/jdk1.7.0_45', 'should set default java_home property value');
 
 });
