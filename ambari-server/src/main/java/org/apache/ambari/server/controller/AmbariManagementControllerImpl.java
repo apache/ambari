@@ -1980,9 +1980,10 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         Service s = cluster.getService(serviceName);
         // find service component host
         ServiceComponent component = getClientComponentForRunningAction(cluster, s);
-        String componentName = component != null ? component.getName() : null;
+        String componentName = component.getName();
         String clientHost = getClientHostForRunningAction(cluster, s, component);
-        String smokeTestRole = actionMetadata.getServiceCheckAction(serviceName);
+        String smokeTestRole =
+            actionMetadata.getServiceCheckAction(serviceName);
 
         if (clientHost == null || smokeTestRole == null) {
           LOG.info("Nothing to do for service check as could not find role or"
