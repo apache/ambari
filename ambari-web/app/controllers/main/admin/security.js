@@ -74,25 +74,25 @@ App.MainAdminSecurityController = Em.Controller.extend({
       }
     }, this);
     return services;
-  }.property(),
+  }.property('App.router.clusterController.isLoaded'),
 
   /**
    * default values of configs, which contains user names
    */
-  defaultUserNameMap: {
-    'hdfs_user': 'hdfs',
-    'yarn_user': 'yarn',
-    'mapred_user': 'mapred',
-    'hbase_user': 'hbase',
-    'hive_user': 'hive',
-    'proxyuser_group': 'users',
-    'smokeuser': 'ambari-qa',
-    'zk_user': 'zookeeper',
-    'oozie_user': 'oozie',
-    'nagios_user': 'nagios',
-    'user_group': 'hadoop',
-    'storm_user': 'storm',
-    'falcon_user': 'falcon'
+  userNameMap: {
+    'hdfs_user': {defaultValue: 'hdfs', siteName: 'hadoop-env', serviceName: 'HDFS'},
+    'yarn_user': {defaultValue: 'yarn', siteName: 'yarn-env', serviceName: 'YARN'},
+    'mapred_user': {defaultValue: 'mapred', siteName: 'mapred-env', serviceName: 'MAPREDUCE'},
+    'hbase_user': {defaultValue: 'hbase', siteName: 'hbase-env', serviceName: 'HBASE'},
+    'hive_user': {defaultValue: 'hive', siteName: 'hive-env', serviceName: 'HIVE'},
+    'proxyuser_group': {defaultValue: 'users', siteName: 'hadoop-env', serviceName: 'HDFS'},
+    'smokeuser': {defaultValue: 'ambari-qa', siteName: 'cluster-env', serviceName: 'CLUSTER'},
+    'zk_user': {defaultValue: 'zookeeper', siteName: 'zookeeper-env', serviceName: 'ZOOKEEPER'},
+    'oozie_user': {defaultValue: 'oozie', siteName: 'oozie-env', serviceName: 'OOZIE'},
+    'nagios_user': {defaultValue: 'nagios', siteName: 'nagios-env', serviceName: 'NAGIOS'},
+    'user_group': {defaultValue: 'hadoop', siteName: 'hadoop-env', serviceName: 'HDFS'},
+    'storm_user': {defaultValue: 'storm', siteName: 'storm-env', serviceName: 'STORM'},
+    'falcon_user': {defaultValue: 'falcon', siteName: 'falcon-env', serviceName: 'FALCON'}
   },
 
   loadStep: function () {
@@ -153,7 +153,6 @@ App.MainAdminSecurityController = Em.Controller.extend({
    * @return {Object}
    */
   setServiceTagNames: function (secureService, configs) {
-    //var serviceConfigTags = this.get('serviceConfigTags');
     for (var index in configs) {
       if (secureService.sites && secureService.sites.contains(index)) {
         var serviceConfigObj = {
@@ -274,33 +273,48 @@ App.MainAdminSecurityController = Em.Controller.extend({
 
   getSecurityStatusFromServerSuccessCallback: function (data) {
     var configs = data.Clusters.desired_configs;
-    var tags = [];
+    var serviceNames = this.get('services').mapProperty('serviceName');
+    var configTags = [];
     this.set('desiredConfigs', configs);
+    for (var key in this.userNameMap) {
+      if (serviceNames.contains(this.userNameMap[key]['serviceName']) || this.userNameMap[key]['serviceName'] === 'CLUSTER')
+        configTags.push(this.userNameMap[key]['siteName']);
+    }
+    configTags = configTags.uniq();
 
-    if  ('cluster-env' in configs) {
-      this.set('tag.cluster-env', configs['cluster-env'].tag);
-      tags.pushObject({
-        siteName: "cluster-env",
-        tagName: this.get('tag.cluster-env')
-      });
-    } else {
+    var errorFlag = false;
+    configTags.forEach(function (_tag) {
+      if (!configs[_tag]) {
+        errorFlag = true;
+      }
+    }, this);
+
+    if (errorFlag) {
       this.showSecurityErrorPopup();
-    }
+    }  else {
+      var tags = configTags.map(function (_tag) {
+        this.set('tag.' + _tag, configs[_tag].tag);
+        return {
+          siteName: _tag,
+          tagName: configs[_tag].tag
+        }
+      }, this);
 
-    if ('hdfs-site' in configs) {
-      this.set('tag.hdfs-site', configs['hdfs-site'].tag);
-      tags.pushObject({
-        siteName: "hdfs-site",
-        tagName: this.get('tag.hdfs-site')
-      });
+      if ('hdfs-site' in configs) {
+        this.set('tag.hdfs-site', configs['hdfs-site'].tag);
+        tags.pushObject({
+          siteName: "hdfs-site",
+          tagName: this.get('tag.hdfs-site')
+        });
+      }
+      this.getServiceConfigsFromServer(tags);
     }
-    this.getServiceConfigsFromServer(tags);
   },
 
   getServiceConfigsFromServer: function (tags) {
     var self = this;
 
-    App.router.get('configurationController').getConfigsByTags(tags).done(function(data) {
+    App.router.get('configurationController').getConfigsByTags(tags).done(function (data) {
       var configs = data.findProperty('tag', self.get('tag.cluster-env')).properties;
       if (configs && (configs['security_enabled'] === 'true' || configs['security_enabled'] === true)) {
         self.set('securityEnabled', true);
@@ -312,7 +326,11 @@ App.MainAdminSecurityController = Em.Controller.extend({
           self.setNnHaStatus(hdfsConfigs);
         }
       }
-      self.loadUsers(configs);
+      var userConfigs = {};
+      data.forEach(function(_config){
+        $.extend(userConfigs, _config.properties);
+      });
+      self.loadUsers(userConfigs);
       self.set('dataIsLoaded', true);
     });
   },
@@ -336,14 +354,14 @@ App.MainAdminSecurityController = Em.Controller.extend({
    * @param configs {Object}
    */
   loadUsers: function (configs) {
-    var defaultUserNameMap = this.get('defaultUserNameMap');
-    var serviceUsers = this.get('serviceUsers');
+    var defaultUserNameMap = this.get('userNameMap');
+    this.set('serviceUsers',[]);
 
     for (var configName in defaultUserNameMap) {
-      serviceUsers.push({
+      this.get('serviceUsers').push({
         id: 'puppet var',
         name: configName,
-        value: configs[configName] || defaultUserNameMap[configName]
+        value: configs[configName] || defaultUserNameMap[configName]['defaultValue']
       });
     }
     App.db.setSecureUserInfo(this.get('serviceUsers'));

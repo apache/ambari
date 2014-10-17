@@ -25,7 +25,8 @@ describe('App.MainAdminSecurityController', function () {
 
   var controller = App.MainAdminSecurityController.create({
     getServiceConfigsFromServer: function () {
-    }
+    } ,
+    services: [{serviceName: 'HDFS'}]
   });
 
   describe('#setServiceTagNames()', function () {
@@ -126,6 +127,9 @@ describe('App.MainAdminSecurityController', function () {
           },
           'cluster-env': {
             tag: 2
+          },
+          'hadoop-env': {
+            tag: 3
           }
         }
       }};
@@ -189,7 +193,7 @@ describe('App.MainAdminSecurityController', function () {
     it('if defaultUserNameMap is empty then serviceUsers stays the same', function () {
       var configs = {};
       controller.set('serviceUsers', []);
-      controller.set('defaultUserNameMap', {});
+      controller.set('userNameMap', {});
       controller.loadUsers(configs);
       expect(controller.get('serviceUsers')).to.be.empty;
     });
@@ -197,9 +201,9 @@ describe('App.MainAdminSecurityController', function () {
     it('if user config value is missing then use default', function () {
       var configs = {};
       controller.set('serviceUsers', []);
-      controller.set('defaultUserNameMap', {
-        'test_user': 'test'
-      });
+      controller.set('userNameMap', {
+        test_user: {defaultValue: 'test', siteName: 'test-env', serviceName: 'TEST'
+      }});
       controller.loadUsers(configs);
       expect(controller.get('serviceUsers')).to.eql([
         {
@@ -216,8 +220,8 @@ describe('App.MainAdminSecurityController', function () {
       };
       controller.set('serviceUsers', []);
       controller.set('defaultUserNameMap', {
-        'test_user': 'test'
-      });
+        test_user: {defaultValue: 'test', siteName: 'test-env', serviceName: 'TEST'
+        }});
       controller.loadUsers(configs);
       expect(controller.get('serviceUsers')).to.eql([
         {
