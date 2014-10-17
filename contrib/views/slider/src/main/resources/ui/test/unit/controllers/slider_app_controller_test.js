@@ -62,3 +62,32 @@ test('availableActions', function () {
   ok(controller.get('availableActions').mapBy('action').contains('thaw'), 'actions for FROZEN (2)');
 
 });
+
+test('quickLinksOrdered', function() {
+  expect(2);
+
+  var controller = this.subject({
+    store: Em.Object.create({
+      all: function(model) {
+        return {
+          'quick-link': [
+            Em.Object.create({ label: 'org.apache.slider.thrift'}),
+            Em.Object.create({ label: 'Metrics API'}),
+            Em.Object.create({ label: 'org.apache.slider.hbase'}),
+            Em.Object.create({ label: 'Metrics UI'}),
+            Em.Object.create({ label: 'UI'}),
+            Em.Object.create({ label: 'Some Label'})
+          ]
+        }[model];
+      }
+    }),
+    weHaveQuicklinks: true
+  });
+
+  Em.run(function() {
+    controller.get('quickLinksOrdered');
+  });
+
+  equal(controller.get('quickLinksOrdered').objectAt(4).get('label'), 'Metrics UI', 'Metrics UI link should be before Metrics API');
+  equal(controller.get('quickLinksOrdered').objectAt(5).get('label'), 'Metrics API', 'Metrics API link should be last');
+});
