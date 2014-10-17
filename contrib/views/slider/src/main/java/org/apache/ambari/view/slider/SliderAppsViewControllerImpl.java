@@ -1091,8 +1091,10 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
       installArgs.replacePkg = true;
 
       final ActionInstallKeytabArgs keytabArgs = new ActionInstallKeytabArgs();
-      keytabArgs.keytabUri = getUserToRunAsKeytab();
-      keytabArgs.folder = appName;
+      if (securityEnabled) {
+        keytabArgs.keytabUri = getUserToRunAsKeytab();
+        keytabArgs.folder = appName;
+      }
 
       return invokeSliderClientRunnable(new SliderClientContextRunnable<String>() {
         @Override
