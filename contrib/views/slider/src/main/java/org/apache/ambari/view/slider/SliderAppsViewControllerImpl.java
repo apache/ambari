@@ -66,7 +66,6 @@ import org.apache.slider.client.SliderClient;
 import org.apache.slider.common.params.ActionCreateArgs;
 import org.apache.slider.common.params.ActionFlexArgs;
 import org.apache.slider.common.params.ActionFreezeArgs;
-import org.apache.slider.common.params.ActionInstallKeytabArgs;
 import org.apache.slider.common.params.ActionInstallPackageArgs;
 import org.apache.slider.common.params.ActionThawArgs;
 import org.apache.slider.core.exceptions.SliderException;
@@ -85,7 +84,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.google.gson.JsonPrimitive;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -136,7 +134,7 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
             ambariUsername, ambariPassword);
         try {
           AmbariClusterInfo clusterInfo = ambariClient.getClusterInfo();
-          if (clusterInfo!=null && clusterName.equals(clusterInfo.getName())) {
+          if (clusterName.equals(clusterInfo.getName())) {
             AmbariCluster cluster = ambariClient.getCluster(clusterInfo);
             AmbariServiceInfo hdfsServiceInfo = null;
             AmbariServiceInfo yarnServiceInfo = null;
@@ -1041,7 +1039,6 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
       final String appType = json.get("typeName").getAsString();
       final String appName = json.get("name").getAsString();
       final String queueName = json.has("queue") ? json.get("queue").getAsString() : null;
-      final boolean securityEnabled = Boolean.valueOf(getHadoopConfigs().get("security_enabled"));
       JsonObject configs = json.get("typeConfigs").getAsJsonObject();
       JsonObject resourcesObj = json.get("resources").getAsJsonObject();
       JsonArray componentsArray = resourcesObj.get("components").getAsJsonArray();
@@ -1073,7 +1070,7 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
       appCreateFolder.mkdirs();
       File appConfigJsonFile = new File(appCreateFolder, "appConfig.json");
       File resourcesJsonFile = new File(appCreateFolder, "resources.json");
-      saveAppConfigs(configs, componentsArray, appName, securityEnabled, appConfigJsonFile);
+      saveAppConfigs(configs, componentsArray, appConfigJsonFile);
       saveAppResources(resourcesObj, resourcesJsonFile);
 
       final ActionCreateArgs createArgs = new ActionCreateArgs();
@@ -1090,16 +1087,9 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
       installArgs.packageURI = getAppsFolderPath() + "/" + localAppPackageFileName;
       installArgs.replacePkg = true;
 
-      final ActionInstallKeytabArgs keytabArgs = new ActionInstallKeytabArgs();
-      keytabArgs.keytabUri = getUserToRunAsKeytab();
-      keytabArgs.folder = appName;
-
       return invokeSliderClientRunnable(new SliderClientContextRunnable<String>() {
         @Override
         public String run(SliderClient sliderClient) throws YarnException, IOException, InterruptedException {
-          if (securityEnabled) {
-            sliderClient.actionInstallKeytab(keytabArgs);
-          }
           sliderClient.actionInstallPkg(installArgs);
           sliderClient.actionCreate(appName, createArgs);
           ApplicationId applicationId = sliderClient.applicationId;
@@ -1167,28 +1157,8 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
     }
   }
 
-  /*
-   * When security is enabled, the AppMaster itself needs the keytab identifying the calling user.
-   * The user's keytab should be at the same location as the view's keytab, and should be
-   * named as ${username}.headless.keytab
-   */
-  private String getUserToRunAsKeytab() {
-    String viewKeytab = viewContext.getProperties().get(PARAM_VIEW_PRINCIPAL_KEYTAB);
-    String prefix = "";
-    int index = viewKeytab.lastIndexOf('/');
-    if (index > -1) {
-      prefix = viewKeytab.substring(0, index);
-    }
-    String username = getUserToRunAs();
-    String userKeytab = prefix + "/" + username + ".headless.keytab";
-    if (logger.isDebugEnabled()) {
-      logger.debug(username + " keytab: " + userKeytab);
-    }
-    return userKeytab;
-  }
-
   private void saveAppConfigs(JsonObject configs, JsonArray componentsArray,
-      String appName, boolean securityEnabled, File appConfigJsonFile) throws IOException {
+      File appConfigJsonFile) throws IOException {
     JsonObject appConfigs = new JsonObject();
     appConfigs.addProperty("schema", "http://example.org/specification/v2.0.0");
     appConfigs.add("metadata", new JsonObject());
@@ -1203,15 +1173,7 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
         }
       }
     }
-    if (securityEnabled) {
-      JsonObject appMasterComponent = new JsonObject();
-      String userToRunAsKeytab = getUserToRunAsKeytab();
-      String fileName = userToRunAsKeytab.substring(userToRunAsKeytab.lastIndexOf('/') + 1);
-      appMasterComponent.add("slider.am.login.keytab.name", new JsonPrimitive(fileName));
-      appMasterComponent.add("slider.hdfs.keytab.dir", new JsonPrimitive(".slider/keytabs/" + appName));
-      componentsObj.add("slider-appmaster", appMasterComponent);
-    }
-   appConfigs.add("components", componentsObj);
+    appConfigs.add("components", componentsObj);
     String jsonString = new GsonBuilder().setPrettyPrinting().create().toJson(appConfigs);
     FileOutputStream fos = null;
     try {
@@ -1221,9 +1183,6 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
       if (fos != null) {
         fos.close();
       }
-    }
-    if (logger.isDebugEnabled()) {
-      logger.debug("Saved appConfigs.json at " + appConfigJsonFile.getAbsolutePath());
     }
   }
 
