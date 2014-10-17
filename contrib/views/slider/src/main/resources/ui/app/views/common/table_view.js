@@ -297,6 +297,7 @@ App.TableView = Em.View.extend({
    * @param {Number} iColumn number of column by which filter
    * @param {Object} value
    * @param {String} type
+   * @param {String} defaultValue
    */
   updateFilter: function (iColumn, value, type, defaultValue) {
     var filterCondition = this.get('filterConditions').findProperty('iColumn', iColumn);
@@ -399,13 +400,19 @@ App.TableView = Em.View.extend({
   /**
    * Run <code>clearFilter</code> in the each child filterView
    */
-  clearFilters: function() {
+  clearAllFilters: function() {
     this.set('filterConditions', []);
     this.get('_childViews').forEach(function(childView) {
       if (childView['clearFilter']) {
         childView.clearFilter();
       }
     });
+  },
+
+  actions: {
+    clearFilters: function() {
+      return this.clearAllFilters();
+    }
   }
 
 });

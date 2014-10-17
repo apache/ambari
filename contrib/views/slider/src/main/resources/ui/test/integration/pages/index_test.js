@@ -97,3 +97,27 @@ test('Slider Title Popover', function () {
   });
 
 });
+
+test('Clear Filters', function () {
+
+  visit('/');
+  fillIn('#filter-row input:eq(0)', 'Some val');
+  find('#filter-row select:eq(0)  :nth-child(1)').attr('selected', 'selected');
+  fillIn('#filter-row input:eq(1)', 'Some val');
+  fillIn('#filter-row input:eq(2)', 'Some val');
+  find('#filter-row select:eq(1) :nth-child(1)').attr('selected', 'selected');
+
+  andThen(function () {
+    click('.clearFiltersLink');
+
+    andThen(function () {
+      equal(find('#filter-row input:eq(0)').val(), '');
+      equal(find('#filter-row select:eq(0)').val(), 'All Status');
+      equal(find('#filter-row input:eq(1)').val(), '');
+      equal(find('#filter-row input:eq(2)').val(), '');
+      equal(find('#filter-row select:eq(1)').val(), 'All Dates');
+
+    });
+  });
+
+});
