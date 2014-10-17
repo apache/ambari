@@ -929,11 +929,17 @@ public class ClusterControllerImplTest {
             anyObject(Predicate.class))).andReturn(
         Collections.<Resource> emptySet()).anyTimes();
 
+    expect(resourceProvider.checkPropertyIds(EasyMock.anyObject(Set.class))).andReturn(
+        new HashSet<String>()).anyTimes();
+
     // strict pageRequest mock to ensure that paging is not performed on
     // the result set
     PageRequest pageRequest = EasyMock.createStrictMock(PageRequest.class);
 
-    replay(providerModule, resourceProvider, pageRequest);
+    SortRequest sortRequest = EasyMock.createStrictMock(SortRequest.class);
+    expect(sortRequest.getPropertyIds()).andReturn(new ArrayList<String>()).atLeastOnce();
+
+    replay(providerModule, resourceProvider, pageRequest, sortRequest);
 
     ClusterControllerImpl controller = new ClusterControllerImpl(providerModule);
 
@@ -943,12 +949,13 @@ public class ClusterControllerImplTest {
     // create a result set that we will use to ensure that the contents
     // were unmodified
     Set<Resource> providerResources = new LinkedHashSet<Resource>();
-    providerResources.add(createNiceMock(Resource.class));
+    providerResources.add(new ResourceImpl(Resource.Type.AlertHistory));
 
     PageInfo pageInfo = new PageInfo(pageRequest);
     pageInfo.setResponsePaged(true);
 
-    SortInfo sortInfo = null;
+    SortInfo sortInfo = new SortInfo(sortRequest);
+    sortInfo.setResponseSorted(true);
 
     Request request = PropertyHelper.getReadRequest(propertyIds, null, null,
         pageInfo, sortInfo);
@@ -958,9 +965,9 @@ public class ClusterControllerImplTest {
         "c6401.ambari.apache.org").toPredicate();
 
     PageResponse pageResponse = controller.getPage(Resource.Type.AlertHistory,
-        providerResources, request, predicate, pageRequest, null);
+        providerResources, request, predicate, pageRequest, sortRequest);
 
-    verify(providerModule, resourceProvider, pageRequest);
+    verify(providerModule, resourceProvider, pageRequest, sortRequest);
   }
 
   public static class TestProviderModule implements ProviderModule {
