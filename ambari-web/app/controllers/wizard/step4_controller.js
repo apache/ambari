@@ -224,28 +224,48 @@ App.WizardStep4Controller = Em.ArrayController.extend({
   },
 
   /**
+   * Checks if a filesystem is present in the Stack
+   *
+   * @method isDFSStack
+   */
+  isDFSStack: function () {
+	var bDFSStack = false;
+    var dfsServices = ['HDFS', 'GLUSTERFS'];
+    var availableServices = this.filterProperty('isInstalled',false);
+    availableServices.forEach(function(service){
+      if (dfsServices.contains(service.get('serviceName'))) {
+        console.log("found DFS " + service.get('serviceName'));
+        bDFSStack=true;
+      }
+    },this);
+    return bDFSStack;
+  },
+
+  /**
    * Checks if a filesystem is selected and only one filesystem is selected
    *
    * @method isFileSystemCheckFailed
    */
   fileSystemServiceValidation: function() {
-    var primaryDFS = this.findProperty('isPrimaryDFS',true);
-    var primaryDfsDisplayName = primaryDFS.get('displayNameOnSelectServicePage');
-    var primaryDfsServiceName = primaryDFS.get('serviceName');
-     if (this.multipleDFSs()) {
-       var dfsServices = this.filterProperty('isDFS',true).filterProperty('isSelected',true).mapProperty('serviceName');
-       var services = dfsServices.map(function (item){
-         return  {
-           serviceName: item,
-           selected: item === primaryDfsServiceName
-         };
-       });
-       this.addValidationError({
-         id: 'multipleDFS',
-         callback: this.needToAddServicePopup,
-         callbackParams: [services, 'multipleDFS', primaryDfsDisplayName]
-       });
-     }
+	if(this.isDFSStack()){
+	  var primaryDFS = this.findProperty('isPrimaryDFS',true);
+	  var primaryDfsDisplayName = primaryDFS.get('displayNameOnSelectServicePage');
+	  var primaryDfsServiceName = primaryDFS.get('serviceName');
+	  if (this.multipleDFSs()) {
+	    var dfsServices = this.filterProperty('isDFS',true).filterProperty('isSelected',true).mapProperty('serviceName');
+	    var services = dfsServices.map(function (item){
+	      return  {
+	        serviceName: item,
+	        selected: item === primaryDfsServiceName
+	      };
+	    });
+	    this.addValidationError({
+	      id: 'multipleDFS',
+	      callback: this.needToAddServicePopup,
+	      callbackParams: [services, 'multipleDFS', primaryDfsDisplayName]
+	    });
+	  }
+	}
   },
 
   /**
