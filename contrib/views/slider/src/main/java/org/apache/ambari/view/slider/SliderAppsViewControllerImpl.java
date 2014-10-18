@@ -761,7 +761,7 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
     };
     try {
       sliderClientConfiguration = client.bindArgs(sliderClientConfiguration,
-          new String[] { "usage" });
+          new String[] { "help" });
       client.init(sliderClientConfiguration);
       client.start();
     } catch (Exception e) {
