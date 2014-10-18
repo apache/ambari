@@ -979,6 +979,8 @@ public class BlueprintConfigurationProcessor {
     hadoopEnvMap.put("namenode_heapsize", new MPropertyUpdater());
     hadoopEnvMap.put("namenode_opt_newsize", new MPropertyUpdater());
     hadoopEnvMap.put("namenode_opt_maxnewsize", new MPropertyUpdater());
+    hadoopEnvMap.put("namenode_opt_permsize", new MPropertyUpdater());
+    hadoopEnvMap.put("namenode_opt_maxpermsize", new MPropertyUpdater());
     hadoopEnvMap.put("dtnode_heapsize", new MPropertyUpdater());
     mapredEnvMap.put("jtnode_opt_newsize", new MPropertyUpdater());
     mapredEnvMap.put("jtnode_opt_maxnewsize", new MPropertyUpdater());

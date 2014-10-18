@@ -45,6 +45,8 @@
         "mapreduce_userlog_retainhours" : "24",
         "dfs_replication" : "3",
         "namenode_opt_newsize" : "200m",
+        "namenode_opt_permsize" : "128m",
+        "namenode_opt_maxpermsize" : "256m",
         "hcat_conf_dir" : "",
         "nagios_user" : "nagios",
         "mapred_child_java_opts_sz" : "768",

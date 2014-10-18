@@ -115,7 +115,6 @@ import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
-import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostInstallEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpSucceededEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartEvent;
@@ -158,7 +157,7 @@ public class AmbariManagementControllerTest {
   private static final int STACK_VERSIONS_CNT = 12;
   private static final int REPOS_CNT = 3;
   private static final int STACKS_CNT = 2;
-  private static final int STACK_PROPERTIES_CNT = 99;
+  private static final int STACK_PROPERTIES_CNT = 103;
   private static final int STACK_COMPONENTS_CNT = 4;
   private static final int OS_CNT = 2;
 
