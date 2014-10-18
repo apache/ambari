@@ -1640,7 +1640,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, {
         // do not pass any globals whose name ends with _host or _hosts
         if (_configProperty.isRequiredByAgent !== false) {
           // append "m" to JVM memory options except for heapsizeExtensions
-          if (/_heapsize|_newsize|_maxnewsize$/.test(_configProperty.name) && !heapsizeExceptions.contains(_configProperty.name)) {
+          if (/_heapsize|_newsize|_maxnewsize|_permsize|_maxpermsize$/.test(_configProperty.name) && !heapsizeExceptions.contains(_configProperty.name)) {
             properties[_configProperty.name] = _configProperty.value + "m";
           } else {
             properties[_configProperty.name] = _configProperty.value;

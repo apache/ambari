@@ -1022,6 +1022,30 @@
       }
     },
     {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/HDFS/configurations/namenode_opt_permsize",
+      "StackConfigurations" : {
+        "property_description" : "NameNode permanent generation size",
+        "property_name" : "namenode_opt_permsize",
+        "property_value" : "128",
+        "service_name" : "HDFS",
+        "stack_name" : "HDP",
+        "stack_version" : "2.0.1",
+        "type" : "global.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/HDFS/configurations/namenode_opt_maxpermsize",
+      "StackConfigurations" : {
+        "property_description" : "NameNode maximum permanent generation size",
+        "property_name" : "namenode_opt_maxpermsize",
+        "property_value" : "256",
+        "service_name" : "HDFS",
+        "stack_name" : "HDP",
+        "stack_version" : "2.0.1",
+        "type" : "global.xml"
+      }
+    },
+    {
       "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/HDFS/configurations/proxyuser_group",
       "StackConfigurations" : {
         "property_description" : "Proxy user group.",

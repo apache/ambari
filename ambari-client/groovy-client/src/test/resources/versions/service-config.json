@@ -19,6 +19,8 @@
   "nodemanager_heapsize": "1024",
   "namenode_opt_newsize": "200m",
   "namenode_opt_maxnewsize": "200m",
+  "namenode_opt_permsize" : "128m",
+  "namenode_opt_maxpermsize" : "256m",
   "namenode_heapsize": "1024m",
   "namenode_formatted_mark_dir": "/var/run/hadoop/hdfs/namenode/formatted/",
   "ganglia_conf_dir": "/etc/ganglia/hdp",

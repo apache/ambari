@@ -806,7 +806,7 @@ public class AmbariMetaInfoTest {
   public void testPropertyCount() throws Exception {
     Set<PropertyInfo> properties = metaInfo.getProperties(STACK_NAME_HDP, STACK_VERSION_HDP_02, SERVICE_NAME_HDFS);
     // 3 empty properties
-    Assert.assertEquals(99, properties.size());
+    Assert.assertEquals(103, properties.size());
   }
 
   @Test

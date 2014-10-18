@@ -48,6 +48,8 @@
         "namenode_heapsize" : "1024m",
         "namenode_opt_maxnewsize" : "640m",
         "namenode_opt_newsize" : "200m",
+        "namenode_opt_permsize" : "128m",
+        "namenode_opt_maxpermsize" : "256m",
         "oozie_user" : "oozie",
         "proxyuser_group" : "users",
         "rrdcached_base_dir" : "/var/lib/ganglia/rrds",

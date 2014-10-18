@@ -1725,6 +1725,26 @@
           }
         },
         {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/HDFS/configurations/namenode_opt_permsize",
+          "StackConfigurations" : {
+            "stack_version" : "1.3.0",
+            "property_name" : "namenode_opt_permsize",
+            "filename" : "global.xml",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/HDFS/configurations/namenode_opt_maxpermsize",
+          "StackConfigurations" : {
+            "stack_version" : "1.3.0",
+            "property_name" : "namenode_opt_maxpermsize",
+            "filename" : "global.xml",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP"
+          }
+        },
+        {
           "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/HDFS/configurations/dfs.access.time.precision",
           "StackConfigurations" : {
             "stack_version" : "1.3.0",

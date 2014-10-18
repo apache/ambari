@@ -162,7 +162,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   /**
    * Regular expression for heapsize properties detection
    */
-  heapsizeRegExp: /_heapsize|_newsize|_maxnewsize$/,
+  heapsizeRegExp: /_heapsize|_newsize|_maxnewsize|_permsize|_maxpermsize$/,
 
   /**
    * Dropdown menu items in filter combobox

@@ -686,6 +686,30 @@
       }
     },
     {
+      "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/HDFS/configurations/namenode_opt_permsize",
+      "StackConfigurations" : {
+        "property_description" : "NameNode permanent generation size",
+        "property_value" : "128",
+        "stack_version" : "1.3.1",
+        "property_name" : "namenode_opt_permsize",
+        "filename" : "global.xml",
+        "service_name" : "HDFS",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/HDFS/configurations/namenode_opt_maxpermsize",
+      "StackConfigurations" : {
+        "property_description" : "NameNode maximum permanent generation size",
+        "property_value" : "256",
+        "stack_version" : "1.3.1",
+        "property_name" : "namenode_opt_maxpermsize",
+        "filename" : "global.xml",
+        "service_name" : "HDFS",
+        "stack_name" : "HDP"
+      }
+    },
+    {
       "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/HDFS/configurations/security.client.datanode.protocol.acl",
       "StackConfigurations" : {
         "property_description" : "ACL for ClientDatanodeProtocol, the client-to-datanode protocol\n    for block recovery.\n    The ACL is a comma-separated list of user and group names. The user and\n    group list is separated by a blank. For e.g. \"alice,bob users,wheel\".\n    A special value of \"*\" means all users are allowed.",

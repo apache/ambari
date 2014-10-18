@@ -87,6 +87,16 @@
     <description>NameNode maximum new generation size</description>
   </property>
   <property>
+    <name>namenode_opt_permsize</name>
+    <value>128</value>
+    <description>NameNode permanent generation size</description>
+  </property>
+  <property>
+    <name>namenode_opt_maxpermsize</name>
+    <value>256</value>
+    <description>NameNode maximum permanent generation size</description>
+  </property>
+  <property>
     <name>datanode_du_reserved</name>
     <value>1</value>
     <description>Reserved space for HDFS</description>
