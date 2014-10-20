@@ -502,7 +502,7 @@ public class UpgradeCatalog170Test {
     expect(amc.getClusters()).andReturn(clusters).anyTimes();
     expect(clusters.getClusters()).andReturn(clustersMap).anyTimes();
     expect(clusters.getClusterById(1L)).andReturn(clustersMap.values().iterator().next()).anyTimes();
-    expect(clusters.getClusters()).andReturn(clustersMap).once();
+    expect(clusters.getClusters()).andReturn(clustersMap).times(2);
     expect(cluster.getDesiredConfigByType("global")).andReturn(config).anyTimes();
     expect(cluster.getDesiredConfigByType("oozie-log4j")).andReturn(config).anyTimes();
     expect(cluster.getClusterId()).andReturn(1L);

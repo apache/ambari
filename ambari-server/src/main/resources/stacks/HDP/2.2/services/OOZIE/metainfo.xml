@@ -26,15 +26,6 @@
           <osFamily>any</osFamily>
           <packages>
             <package>
-              <name>oozie_2_2_0_0_*</name>
-            </package>
-            <package>
-              <name>oozie_2_2_0_0_*-client</name>
-            </package>
-            <package>
-              <name>falcon_2_2_0_0_*</name>
-            </package>
-            <package>
               <name>zip</name>
             </package>
             <package>
@@ -42,6 +33,28 @@
             </package>
             <package>
               <name>extjs</name>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>redhat5,redhat6,suse11</osFamily>
+          <packages>
+            <package>
+              <name>oozie_2_2_0_0_*</name>
+            </package>
+            <package>
+              <name>falcon_2_2_0_0_*</name>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>ubuntu12</osFamily>
+          <packages>
+            <package>
+              <name>oozie-2-2-0-0-.*</name>
+            </package>
+            <package>
+              <name>falcon-2-2-0-0-.*</name>
             </package>
           </packages>
         </osSpecific>

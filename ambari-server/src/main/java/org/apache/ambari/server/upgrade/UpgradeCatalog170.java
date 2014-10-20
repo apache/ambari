@@ -649,6 +649,28 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
     moveConfigGroupsGlobalToEnv();
     addMissingConfigs();
     updateClusterProvisionState();
+    removeMapred2Log4jConfig();
+  }
+
+  private void removeMapred2Log4jConfig() {
+    ConfigHelper configHelper = injector.getInstance(ConfigHelper.class);
+
+    AmbariManagementController ambariManagementController = injector.getInstance(
+            AmbariManagementController.class);
+    Clusters clusters = ambariManagementController.getClusters();
+    if (clusters == null) {
+      return;
+    }
+    Map<String, Cluster> clusterMap = clusters.getClusters();
+
+    if (clusterMap != null && !clusterMap.isEmpty()) {
+      for (final Cluster cluster : clusterMap.values()) {
+        Config config = cluster.getDesiredConfigByType(Configuration.MAPREDUCE2_LOG4J_CONFIG_TAG);
+        if (config != null) {
+          configHelper.removeConfigsByType(cluster, Configuration.MAPREDUCE2_LOG4J_CONFIG_TAG);
+        }
+      }
+    }
   }
 
   public void updateClusterProvisionState() {
