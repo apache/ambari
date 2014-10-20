@@ -47,7 +47,7 @@ App.SliderAppController = Ember.ObjectController.extend(App.AjaxErrorHandler, {
    * @type {Array}
    **/
   quickLinksOrdered: function() {
-    var copy = this.store.all('quick-link').slice(0);
+    var copy = this.get('model.quickLinks').slice(0);
     var toTail = ['Metrics UI', 'Metrics API'];
 
     if (this.get('weHaveQuicklinks')) {

@@ -67,19 +67,15 @@ test('quickLinksOrdered', function() {
   expect(2);
 
   var controller = this.subject({
-    store: Em.Object.create({
-      all: function(model) {
-        return {
-          'quick-link': [
-            Em.Object.create({ label: 'org.apache.slider.thrift'}),
-            Em.Object.create({ label: 'Metrics API'}),
-            Em.Object.create({ label: 'org.apache.slider.hbase'}),
-            Em.Object.create({ label: 'Metrics UI'}),
-            Em.Object.create({ label: 'UI'}),
-            Em.Object.create({ label: 'Some Label'})
-          ]
-        }[model];
-      }
+    model: Em.Object.create({
+      'quickLinks': [
+        Em.Object.create({ label: 'org.apache.slider.thrift'}),
+        Em.Object.create({ label: 'Metrics API'}),
+        Em.Object.create({ label: 'org.apache.slider.hbase'}),
+        Em.Object.create({ label: 'Metrics UI'}),
+        Em.Object.create({ label: 'UI'}),
+        Em.Object.create({ label: 'Some Label'})
+      ]
     }),
     weHaveQuicklinks: true
   });
