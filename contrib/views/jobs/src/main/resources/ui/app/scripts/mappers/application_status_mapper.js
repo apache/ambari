@@ -138,8 +138,8 @@ App.ApplicationStatusMapper = Em.Object.createWithMixins(App.RunPeriodically, {
    * @method getInstanceParametersSuccessCallback
    */
   getInstanceParametersSuccessCallback: function (data) {
-    var atsURLParameter = data.properties['yarn.ats.url'];
-    var resourceManagerURLParameter = data.properties['yarn.resourcemanager.url'];
+    var atsURLParameter = data.parameters['yarn.ats.url'];
+    var resourceManagerURLParameter = data.parameters['yarn.resourcemanager.url'];
     if (atsURLParameter) {
       App.set('atsURL', atsURLParameter);
       App.set('resourceManagerURL', resourceManagerURLParameter);
