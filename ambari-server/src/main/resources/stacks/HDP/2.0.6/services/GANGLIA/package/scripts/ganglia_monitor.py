@@ -33,7 +33,7 @@ class GangliaMonitor(Script):
     self.install_packages(env)
     env.set_params(params)
     self.configure(env)
-    
+
     functions.turn_off_autostart(params.gmond_service_name)
     functions.turn_off_autostart("gmetad") # since the package is installed as well
 
@@ -75,7 +75,7 @@ class GangliaMonitor(Script):
     )
 
     ganglia.config()
-    
+
     self.generate_slave_configs()
 
     Directory(path.join(params.ganglia_dir, "conf.d"),
@@ -133,7 +133,7 @@ class GangliaMonitor(Script):
 
   def generate_master_configs(self):
     import params
-     
+
     if params.has_namenodes:
       generate_daemon("gmond",
                       name = "HDPNameNode",
@@ -207,6 +207,13 @@ class GangliaMonitor(Script):
     if params.has_supervisor_server:
       generate_daemon("gmond",
                       name = "HDPSupervisor",
+                      role = "server",
+                      owner = "root",
+                      group = params.user_group)
+
+    if params.has_kafka_broker:
+      generate_daemon("gmond",
+                      name = "HDPKafka",
                       role = "server",
                       owner = "root",
                       group = params.user_group)

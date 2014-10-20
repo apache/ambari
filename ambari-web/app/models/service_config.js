@@ -481,8 +481,14 @@ App.ServiceConfigProperty = Ember.Object.extend({
       case 'knox_gateway_host':
         this.set('value', masterComponentHostsInDB.findProperty('component', 'KNOX_GATEWAY').hostName);
         break;
-      case 'kafka_broker_host':
-        this.set('value', masterComponentHostsInDB.findProperty('component', 'KAFKA_BROKER').hostName);
+      case 'kafka_broker_hosts':
+        this.set('value', masterComponentHostsInDB.filterProperty('component', 'KAFKA_BROKER').mapProperty('hostName'));
+        break;
+      case 'kafka.ganglia.metrics.host':
+        var gangliaHost =  masterComponentHostsInDB.findProperty('component', 'GANGLIA_SERVER');
+        if (gangliaHost) {
+          this.set('value', gangliaHost.hostName);
+        }
         break;
       case 'hbase.zookeeper.quorum':
         var zkHosts = masterComponentHostsInDB.filterProperty('component', 'ZOOKEEPER_SERVER').mapProperty('hostName');

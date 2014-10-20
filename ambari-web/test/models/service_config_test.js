@@ -616,3 +616,33 @@ describe('App.ServiceConfigProperty', function () {
   });
 
 });
+
+describe('initialValue', function () {
+
+  var tests = [
+    {
+      message: 'kafka.ganglia.metrics.host property should have the value of ganglia hostname when ganglia is selected',
+      localDB: {masterComponentHosts: [
+        {component: 'GANGLIA_SERVER', hostName: 'c6401'}
+      ]},
+      expected: 'c6401'
+    },
+    {
+      message: 'kafka.ganglia.metrics.host property should have the value "localhost" when ganglia is not selected',
+      localDB: {masterComponentHosts: [
+        {component: 'NAMENODE', hostName: 'c6401'}
+      ]},
+      expected: 'localhost'
+    }
+  ];
+  var serviceConfigProperty;
+  beforeEach(function () {
+    serviceConfigProperty = App.ServiceConfigProperty.create({name: 'kafka.ganglia.metrics.host', value: 'localhost'});
+  });
+  tests.forEach(function(test){
+    it(test.message, function () {
+      serviceConfigProperty.initialValue(test.localDB);
+      expect(serviceConfigProperty.get('value')).to.equal(test.expected);
+    });
+  });
+});
