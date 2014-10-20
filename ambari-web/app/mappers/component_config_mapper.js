@@ -29,7 +29,8 @@ App.componentConfigMapper = App.QuickDataMapper.create({
     $display_name_advanced: '',
     stale_configs: 'HostRoles.stale_configs',
     host_id: 'HostRoles.host_name',
-    service_id: 'HostRoles.service_name'
+    service_id: 'HostRoles.service_name',
+    admin_state: 'HostRoles.desired_admin_state'
   },
   map: function (json) {
     console.time('App.componentConfigMapper execution time');

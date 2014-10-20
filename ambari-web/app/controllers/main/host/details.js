@@ -1456,6 +1456,7 @@ App.MainHostDetailsController = Em.Controller.extend({
       lastComponents: [],
       masterComponents: [],
       runningComponents: [],
+      notDecommissionedComponents: [],
       nonDeletableComponents: [],
       unknownComponents: []
     };
@@ -1481,6 +1482,9 @@ App.MainHostDetailsController = Em.Controller.extend({
         if (workStatus === App.HostComponentStatus.unknown) {
           container.unknownComponents.push(cInstance.get('displayName'));
         }
+        if (cInstance.get('adminState') === 'INSERVICE') {
+          container.notDecommissionedComponents.push(cInstance.get('displayName'));
+        }
       });
     }
     return container;
@@ -1502,7 +1506,7 @@ App.MainHostDetailsController = Em.Controller.extend({
     } else if (container.nonDeletableComponents.length > 0) {
       this.raiseDeleteComponentsError(container.nonDeletableComponents, 'nonDeletableList');
       return;
-    } else if (container.runningComponents.length > 0) {
+    } else if (container.runningComponents.length + container.notDecommissionedComponents.length > 0) {
       this.raiseDeleteComponentsError(container.runningComponents, 'runningList');
       return;
     }
@@ -1518,7 +1522,7 @@ App.MainHostDetailsController = Em.Controller.extend({
 
   /**
    * Show popup with info about reasons why host can't be deleted
-   * @param {string[]} components
+   * @param {Array} components
    * @param {string} type
    * @method raiseDeleteComponentsError
    */
@@ -1534,7 +1538,8 @@ App.MainHostDetailsController = Em.Controller.extend({
         return this.get('components').join(", ");
       }.property(),
       componentsBody: function () {
-        return Em.I18n.t('hosts.cant.do.popup.' + type + '.body').format(this.get('components').length);
+        var componentsLength = this.get('components.length');
+        return componentsLength ? Em.I18n.t('hosts.cant.do.popup.' + type + '.body').format(this.get('components').length) : '';
       }.property(),
       componentsBodyEnd: function () {
         if (this.get('showBodyEnd')) {

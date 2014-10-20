@@ -61,7 +61,8 @@ App.hostsMapper = App.QuickDataMapper.create({
     passive_state: 'HostRoles.maintenance_state',
     work_status: 'HostRoles.state',
     stale_configs: 'HostRoles.stale_configs',
-    host_name: 'host_name'
+    host_name: 'host_name',
+    admin_state: 'HostRoles.desired_admin_state'
   },
   map: function (json, returnMapped) {
     returnMapped = !!returnMapped;

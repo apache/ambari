@@ -173,7 +173,8 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     stale_configs: 'HostRoles.stale_configs',
     ha_status: 'HostRoles.ha_state',
     display_name_advanced: 'display_name_advanced',
-    $service_id: 'none' /* will be set outside of parse function */
+    $service_id: 'none', /* will be set outside of parse function */
+    admin_state: 'HostRoles.desired_admin_state'
   },
 
   map: function (json) {

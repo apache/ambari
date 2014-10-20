@@ -20,11 +20,13 @@
   <div class="warning">
   <i class="icon-warning-sign"></i> <strong>{{componentsBody}}</strong>
   </div>
-  <div class="row-fluid">
-    <div class="tinyoffset span10 warning-list">
-    {{componentsStr}}
+  {{#if components.length}}
+    <div class="row-fluid">
+      <div class="tinyoffset span10 warning-list">
+        {{componentsStr}}
+      </div>
     </div>
-  </div>
+  {{/if}}
 
 {{#if showBodyEnd}}
   <div class="warning-details">{{{componentsBodyEnd}}}</div>

@@ -28,6 +28,7 @@ App.HostComponent = DS.Model.extend({
   host: DS.belongsTo('App.Host'),
   hostName: DS.attr('string'),
   service: DS.belongsTo('App.Service'),
+  adminState: DS.attr('string'),
   /**
    * Determine if component is client
    * @returns {bool}
