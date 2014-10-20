@@ -75,7 +75,7 @@ angular.module('ambariAdminConsole')
       controller: 'ViewsEditCtrl'
     },
     create: {
-      url: '/views/:viewId/versions/:version/new',
+      url: '/views/:viewId/new',
       templateUrl: 'views/ambariViews/create.html',
       controller: 'CreateViewInstanceCtrl'
     }
