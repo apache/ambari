@@ -50,5 +50,6 @@ test('App.SliderAppsMapper.parseQuickLinks', function () {
   });
 
   equal(mapper.get('result')[0].get('url'), 'http://host/cluster/app/application_1', 'valid YARN application URL formed');
+  equal(mapper.get('result')[0].get('id'), 'YARN application 1', 'model id set correctly');
 
 });
