@@ -230,7 +230,7 @@ App.SliderAppsMapper = App.Mapper.createWithMixins(App.RunPeriodically, {
   parse: function (data) {
     var apps = [],
       self = this,
-      appsToDelete = App.SliderApp.store.all('sliderApp').get('content').mapProperty('id');
+      appsToDelete = App.SliderApp.store.all('sliderApp').mapBy('id');
 
     App.__container__.lookup('controller:application').set('hasConfigErrors', false);
 
@@ -277,9 +277,8 @@ App.SliderAppsMapper = App.Mapper.createWithMixins(App.RunPeriodically, {
         })
       );
 
-      appsToDelete.splice(appsToDelete.indexOf(app.id), 1);
+      appsToDelete = appsToDelete.without(app.id);
     });
-
     appsToDelete.forEach(function (app) {
       var appRecord = App.SliderApp.store.getById('sliderApp', app);
       if (appRecord) {
