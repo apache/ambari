@@ -43,6 +43,7 @@ import java.lang.reflect.Method;
 import java.util.*;
 
 import static org.easymock.EasyMock.*;
+import static org.junit.Assert.assertFalse;
 
 /**
  * TaskResourceProvider tests.
@@ -293,9 +294,8 @@ public class ClientConfigResourceProviderTest {
             runtime, process);
     PowerMock.replayAll();
 
-    provider.getResources(request, predicate);
-
-
+    Set<Resource> resources = provider.getResources(request, predicate);
+    assertFalse(resources.isEmpty());
 
     // verify
     verify(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo,commandScriptDefinition,

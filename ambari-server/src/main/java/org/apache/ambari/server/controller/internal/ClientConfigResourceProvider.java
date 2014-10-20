@@ -331,6 +331,8 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
       throw new SystemException("Controller error ", e);
     }
 
+    Resource resource = new ResourceImpl(Resource.Type.ClientConfig);
+    resources.add(resource);
     return resources;
   }
 
