@@ -19,7 +19,7 @@
 <div class="app_configs">
   {{#each configCategory in view.configsByCategories}}
     {{#if configCategory.isVisible}}
-      {{#bs-panel heading=configCategory.name collapsible=true}}
+      {{#bs-panel heading=configCategory.name collapsible=true open=false}}
         <div class="container-fluid">
           {{#each configCategory.configs}}
             <div class="row">
