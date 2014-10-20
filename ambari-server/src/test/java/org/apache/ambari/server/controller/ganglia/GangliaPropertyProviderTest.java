@@ -17,19 +17,6 @@
  */
 package org.apache.ambari.server.controller.ganglia;
 
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.expect;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.configuration.ComponentSSLConfigurationTest;
 import org.apache.ambari.server.controller.internal.PropertyInfo;
@@ -50,6 +37,19 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.powermock.api.easymock.PowerMock;
 import org.powermock.core.classloader.annotations.PrepareForTest;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.expect;
 
 /**
  * Test the Ganglia property provider.
@@ -323,7 +323,7 @@ public class GangliaPropertyProviderTest {
     uriBuilder.setScheme((configuration.isGangliaSSL() ? "https" : "http"));
     uriBuilder.setHost("domU-12-31-39-0E-34-E1.compute-1.internal");
     uriBuilder.setPath("/cgi-bin/rrd.py");
-    uriBuilder.setParameter("c", "HDPJobTracker,HDPHBaseMaster,HDPResourceManager,HDPFlumeServer,HDPSlaves,HDPHistoryServer,HDPJournalNode,HDPTaskTracker,HDPHBaseRegionServer,HDPNameNode");
+    uriBuilder.setParameter("c", "HDPJobTracker,HDPHBaseMaster,HDPKafka,HDPResourceManager,HDPFlumeServer,HDPSlaves,HDPHistoryServer,HDPJournalNode,HDPTaskTracker,HDPHBaseRegionServer,HDPNameNode");
     uriBuilder.setParameter("h", "domU-12-31-39-0E-34-E3.compute-1.internal,domU-12-31-39-0E-34-E1.compute-1.internal,domU-12-31-39-0E-34-E2.compute-1.internal");
     uriBuilder.setParameter("m", "jvm.metrics.gcCount");
     uriBuilder.setParameter("s", "10");
@@ -382,7 +382,7 @@ public class GangliaPropertyProviderTest {
     expectedUri.setScheme((configuration.isGangliaSSL() ? "https" : "http"));
     expectedUri.setHost("domU-12-31-39-0E-34-E1.compute-1.internal");
     expectedUri.setPath("/cgi-bin/rrd.py");
-    expectedUri.setParameter("c", "HDPJobTracker,HDPHBaseMaster,HDPResourceManager,HDPFlumeServer,HDPSlaves,HDPHistoryServer,HDPJournalNode,HDPTaskTracker,HDPHBaseRegionServer,HDPNameNode");
+    expectedUri.setParameter("c", "HDPJobTracker,HDPHBaseMaster,HDPKafka,HDPResourceManager,HDPFlumeServer,HDPSlaves,HDPHistoryServer,HDPJournalNode,HDPTaskTracker,HDPHBaseRegionServer,HDPNameNode");
    
     expectedUri.setParameter("h", hostsList.toString());
     expectedUri.setParameter("m", "jvm.metrics.gcCount");

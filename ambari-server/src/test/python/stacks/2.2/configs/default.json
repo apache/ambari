@@ -234,7 +234,7 @@
         "jaimin-knox-1.c.pramod-thangali.internal"
       ],
       "kafka_broker_hosts": [
-        "c6402.ambari.apache.org"
+        "c6401.ambari.apache.org"
       ],
        "zookeeper_hosts": [
          "c6401.ambari.apache.org"

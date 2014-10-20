@@ -289,7 +289,6 @@
       Backoff time between shutdown retries.
     </description>
   </property>
-  <!--
   <property>
     <name>kafka.metrics.reporters</name>
     <value>kafka.ganglia.KafkaGangliaMetricsReporter</value>
@@ -297,7 +296,6 @@
       kafka ganglia metrics reporter
     </description>
   </property>
-
   <property>
     <name>kafka.ganglia.metrics.reporter.enabled</name>
     <value>true</value>
@@ -305,7 +303,6 @@
       kafka ganglia metrics reporter enable
     </description>
   </property>
-  -->
   <property>
     <name>kafka.ganglia.metrics.host</name>
     <value>localhost</value>
@@ -313,7 +310,7 @@
   </property>
   <property>
     <name>kafka.ganglia.metrics.port</name>
-    <value>8649</value>
+    <value>8671</value>
     <description> Ganglia port </description>
   </property>
   <property>

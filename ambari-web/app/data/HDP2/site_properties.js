@@ -1690,18 +1690,18 @@ module.exports =
       "isOverridable": false,
       "serviceName": "KNOX",
       "filename": "knox-env.xml",
-      "category": "Advanced knox-env.xml"
+      "category": "Advanced knox-env"
     },
 
   /********************************************* KAFKA *****************************/
     {
       "id": "puppet var",
-      "name": "kafka_broker_host",
+      "name": "kafka_broker_hosts",
       "displayName": "Kafka Broker host",
       "value": "",
       "defaultValue": "",
       "description": "The host that has been assigned to run Kafka Broker",
-      "displayType": "masterHost",
+      "displayType": "masterHosts",
       "isOverridable": false,
       "isVisible": true,
       "isRequiredByAgent": false,
@@ -1781,7 +1781,7 @@ module.exports =
       "displayType": "directory",
       "serviceName": "KAFKA",
       "filename": "kafka-broker.xml",
-      "category": "Advanced kafka-env.xml",
+      "category": "Advanced kafka-env",
       "index": 0
     },
 
@@ -3959,6 +3959,20 @@ module.exports =
       "category": "Users and Groups",
       "belongsToService": ["KNOX"],
       "index": 19
+    },
+    {
+      "id": "puppet var",
+      "name": "kafka_user",
+      "displayName": "Kafka User",
+      "isReconfigurable": false,
+      "displayType": "user",
+      "isOverridable": false,
+      "isVisible": true,
+      "serviceName": "MISC",
+      "filename": "kafka-env.xml",
+      "category": "Users and Groups",
+      "belongsToService": ["KAFKA"],
+      "index": 20
     },
     {
       "id": "puppet var",
