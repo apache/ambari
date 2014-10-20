@@ -110,7 +110,7 @@ App.MainHostDetailsController = Em.Controller.extend({
    * @param {object} component  When <code>null</code> all startable components are started.
    * @param {String} context  Context under which this command is beign sent.
    * @param {String} state - desired state of component can be 'STARTED' or 'STOPPED'
-   * @method sendStartComponentCommand
+   * @method sendComponentCommand
    */
   sendComponentCommand: function (component, context, state) {
     var data = {
@@ -213,7 +213,7 @@ App.MainHostDetailsController = Em.Controller.extend({
     var componentName = component.get('componentName');
     var displayName = component.get('displayName');
     var isLastComponent = (this.getTotalComponent(component) === 1);
-    App.ModalPopup.show({
+    return App.ModalPopup.show({
       header: Em.I18n.t('popup.confirmation.commonHeader'),
       primary: Em.I18n.t('hosts.host.deleteComponent.popup.confirm'),
       bodyClass: Em.View.extend({
@@ -869,7 +869,7 @@ App.MainHostDetailsController = Em.Controller.extend({
    */
   recommission: function (component) {
     var self = this;
-    App.showConfirmationPopup(function () {
+    return App.showConfirmationPopup(function () {
       self.runRecommission.call(self, self.get('content.hostName'), component.get('service.serviceName'));
     });
   },
@@ -1306,8 +1306,6 @@ App.MainHostDetailsController = Em.Controller.extend({
       case "onOffPassiveModeForHost":
         this.onOffPassiveModeForHost(option.context);
         break;
-      default:
-        break;
     }
   },
 
@@ -1431,7 +1429,7 @@ App.MainHostDetailsController = Em.Controller.extend({
     var components = this.get('serviceActiveComponents');
     var componentsLength = Em.isNone(components) ? 0 : components.get('length');
     if (componentsLength > 0) {
-      App.showConfirmationPopup(function () {
+      return App.showConfirmationPopup(function () {
         batchUtils.restartHostComponents(components, Em.I18n.t('rollingrestart.context.allOnSelectedHost').format(self.get('content.hostName')), "HOST");
       });
     }
@@ -1509,10 +1507,10 @@ App.MainHostDetailsController = Em.Controller.extend({
     if (container.zkServerInstalled) {
       var self = this;
       return App.showConfirmationPopup(function () {
-        self._doDeleteHost(container.unknownComponents, container.lastComponents);
+        self.confirmDeleteHost(container.unknownComponents, container.lastComponents);
       }, Em.I18n.t('hosts.host.addComponent.deleteHostWithZooKeeper'));
     } else {
-      this._doDeleteHost(container.unknownComponents, container.lastComponents);
+      this.confirmDeleteHost(container.unknownComponents, container.lastComponents);
     }
   },
 
@@ -1553,11 +1551,11 @@ App.MainHostDetailsController = Em.Controller.extend({
    * Show confirmation popup to delete host
    * @param {string[]} unknownComponents
    * @param {string[]} lastComponents
-   * @method _doDeleteHost
+   * @method confirmDeleteHost
    */
-  _doDeleteHost: function (unknownComponents, lastComponents) {
+  confirmDeleteHost: function (unknownComponents, lastComponents) {
     var self = this;
-    App.ModalPopup.show({
+    return App.ModalPopup.show({
       header: Em.I18n.t('hosts.delete.popup.title'),
       deletePopupBody: function () {
         return Em.I18n.t('hosts.delete.popup.body').format(self.get('content.publicHostName'));
@@ -1588,60 +1586,77 @@ App.MainHostDetailsController = Em.Controller.extend({
         templateName: require('templates/main/host/details/doDeleteHostPopup')
       }),
       onPrimary: function () {
-        self.set('fromDeleteHost', true);
-        var allComponents = self.get('content.hostComponents');
-        var deleteError = null;
-        var dfd = $.Deferred();
         var popup = this;
-        allComponents.forEach(function (component, index) {
-          var length = allComponents.get('length');
-          if (!deleteError) {
-            self._doDeleteHostComponent(component, function () {
-              deleteError = self.get('_deletedHostComponentResult');
-              if (index == length - 1) {
-                dfd.resolve();
-              }
-            });
-          }
-        });
-        dfd.done(function () {
-          if (!deleteError) {
-            App.ajax.send({
-              name: 'common.delete.host',
-              sender: popup,
-              data: {
-                hostName: self.get('content.hostName')
-              },
-              success: 'deleteHostSuccessCallback',
-              error: 'deleteHostErrorCallback'
-            });
-          }
-          else {
-            popup.hide();
-            deleteError.xhr.responseText = "{\"message\": \"" + deleteError.xhr.statusText + "\"}";
-            App.ajax.defaultErrorHandler(deleteError.xhr, deleteError.url, deleteError.method, deleteError.xhr.status);
-          }
-        });
-      },
-      deleteHostSuccessCallback: function (data) {
-        var dialogSelf = this;
-        App.router.get('updateController').updateHost(function () {
-          self.loadConfigs();
-          dialogSelf.hide();
-          App.router.transitionTo('hosts.index');
-        });
-        App.router.get('clusterController').getAllHostNames();
-      },
-      deleteHostErrorCallback: function (xhr, textStatus, errorThrown, opt) {
-        console.log('Error deleting host.');
-        console.log(textStatus);
-        console.log(errorThrown);
-        xhr.responseText = "{\"message\": \"" + xhr.statusText + "\"}";
-        self.loadConfigs();
-        this.hide();
-        App.ajax.defaultErrorHandler(xhr, opt.url, 'DELETE', xhr.status);
+        var completeCallback = function () {
+          popup.hide();
+        };
+        self.doDeleteHost(completeCallback);
       }
     })
+  },
+
+  /**
+   * send DELETE calls to components of host and after delete host itself
+   * @param completeCallback
+   * @method doDeleteHost
+   */
+  doDeleteHost: function (completeCallback) {
+    this.set('fromDeleteHost', true);
+    var allComponents = this.get('content.hostComponents');
+    var deleteError = null;
+    var dfd = $.Deferred();
+    var self = this;
+
+    if (allComponents.get('length') > 0) {
+      allComponents.forEach(function (component, index) {
+        var length = allComponents.get('length');
+        if (!deleteError) {
+          this._doDeleteHostComponent(component, function () {
+            deleteError = self.get('_deletedHostComponentResult');
+            if (index == length - 1) {
+              dfd.resolve();
+            }
+          });
+        }
+      }, this);
+    } else {
+      dfd.resolve();
+    }
+    dfd.done(function () {
+      if (!deleteError) {
+        App.ajax.send({
+          name: 'common.delete.host',
+          sender: self,
+          data: {
+            hostName: self.get('content.hostName')
+          },
+          callback: completeCallback,
+          success: 'deleteHostSuccessCallback',
+          error: 'deleteHostErrorCallback'
+        })
+      }
+      else {
+        completeCallback();
+        deleteError.xhr.responseText = "{\"message\": \"" + deleteError.xhr.statusText + "\"}";
+        App.ajax.defaultErrorHandler(deleteError.xhr, deleteError.url, deleteError.method, deleteError.xhr.status);
+      }
+    });
+  },
+  deleteHostSuccessCallback: function (data) {
+    var self = this
+    App.router.get('updateController').updateHost(function () {
+      self.loadConfigs();
+      App.router.transitionTo('hosts.index');
+    });
+    App.router.get('clusterController').getAllHostNames();
+  },
+  deleteHostErrorCallback: function (xhr, textStatus, errorThrown, opt) {
+    console.log('Error deleting host.');
+    console.log(textStatus);
+    console.log(errorThrown);
+    xhr.responseText = "{\"message\": \"" + xhr.statusText + "\"}";
+    this.loadConfigs();
+    App.ajax.defaultErrorHandler(xhr, opt.url, 'DELETE', xhr.status);
   },
 
   /**
@@ -1662,7 +1677,7 @@ App.MainHostDetailsController = Em.Controller.extend({
    * @method moveComponent
    */
   moveComponent: function (event) {
-    App.showConfirmationPopup(function () {
+    return App.showConfirmationPopup(function () {
       var component = event.context;
       var reassignMasterController = App.router.get('reassignMasterController');
       reassignMasterController.saveComponentToReassign(component);
