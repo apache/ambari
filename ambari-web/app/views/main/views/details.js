@@ -68,6 +68,8 @@ App.MainViewsDetailsView = Em.View.extend({
     if (iframe != null && iframe.length > 0) {
       var childrenHeight = 0;
       var iframeElement = iframe[0];
+      // set iframe height to 'auto' to get actual scrollHeight
+      iframeElement.style.height = 'auto';
       if (iframeElement.contentWindow != null
           && iframeElement.contentWindow.document != null
           && iframeElement.contentWindow.document.body != null) {
