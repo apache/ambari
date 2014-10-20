@@ -221,6 +221,7 @@ Em.I18n.translations = {
   'common.latest': 'Latest',
   'common.custom': 'Custom',
   'common.continueAnyway': 'Continue Anyway',
+  'common.property.undefined': "Undefined",
 
   'passiveState.turnOn':'Turn On Maintenance Mode',
   'passiveState.turnOff':'Turn Off Maintenance Mode',

@@ -664,7 +664,9 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
       }, this);
     } else {
       allConfigs.forEach(function (serviceConfig) {
-        this.setCompareDefaultGroupConfig(serviceConfig, serviceVersionMap[this.get('compareServiceVersion').get('version')]);
+        var serviceCfgVersionMap = serviceVersionMap[this.get('compareServiceVersion').get('version')];
+        var compareConfig = serviceCfgVersionMap[serviceConfig.name + '-' + App.config.getConfigTagFromFileName(serviceConfig.filename)]
+        this.setCompareDefaultGroupConfig(serviceConfig, compareConfig);
       }, this);
     }
   },
@@ -713,7 +715,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     compareObject.isMock = true;
     compareObject.displayType = 'label';
     compareObject = App.ServiceConfigProperty.create(compareObject);
-    compareObject.set('value', 'Undefined');
+    compareObject.set('value', Em.I18n.t('common.property.undefined'));
     return compareObject;
   },
 
@@ -744,25 +746,24 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   /**
    * set compare properties to service config of default group
    * @param serviceConfig
-   * @param serviceVersionMap
+   * @param compareConfig
    */
-  setCompareDefaultGroupConfig: function (serviceConfig, serviceVersionMap) {
-    // map the property in the compare version to compare with current serviceConfig
-    var compareConfig = serviceVersionMap[serviceConfig.name + '-' + App.config.getConfigTagFromFileName(serviceConfig.filename)];
+  setCompareDefaultGroupConfig: function (serviceConfig, compareConfig) {
     var compareObject = {};
 
     serviceConfig.compareConfigs = [];
     serviceConfig.isComparison = true;
 
     //if config isn't reconfigurable then it can't have changed value to compare
-    if (compareConfig && serviceConfig.isReconfigurable) {
+    if (compareConfig && (serviceConfig.isReconfigurable || serviceConfig.isUserProperty)) {
       compareObject = this.getComparisonConfig(serviceConfig, compareConfig);
       serviceConfig.hasCompareDiffs = serviceConfig.isMock || this.hasCompareDiffs(serviceConfig, compareObject);
       serviceConfig.compareConfigs.push(compareObject);
     } else if (serviceConfig.isUserProperty) {
-      serviceConfig.compareConfigs.push(this.getMockComparisonConfig(serviceConfig, this.get('compareServiceVersion').get('version')));
+      serviceConfig.compareConfigs.push(this.getMockComparisonConfig(serviceConfig, this.get('compareServiceVersion.version')));
       serviceConfig.hasCompareDiffs = true;
     }
+    return serviceConfig;
   },
 
   /**
@@ -798,7 +799,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
       name: name,
       filename: filename,
       serviceName: serviceName,
-      value: "Undefined",
+      value: Em.I18n.t('common.property.undefined'),
       isMock: true,
       displayType: 'label'
     };
