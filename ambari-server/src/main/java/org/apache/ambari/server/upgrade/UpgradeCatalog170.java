@@ -171,7 +171,7 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
     columns = new ArrayList<DBColumnInfo>();
     columns.add(new DBColumnInfo("group_id", Integer.class, 1, null, false));
     columns.add(new DBColumnInfo("principal_id", Integer.class, 1, null, false));
-    columns.add(new DBColumnInfo("group_name", String.class, 1, null, false));
+    columns.add(new DBColumnInfo("group_name", String.class, 255, null, false));
     columns.add(new DBColumnInfo("ldap_group", Integer.class, 1, 0, false));
     dbAccessor.createTable("groups", columns, "group_id");
 
