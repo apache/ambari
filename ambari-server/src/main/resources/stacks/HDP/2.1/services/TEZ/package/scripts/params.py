@@ -23,6 +23,20 @@ from resource_management import *
 # server configurations
 config = Script.get_config()
 
+# RPM versioning support
+rpm_version = default("/configurations/cluster-env/rpm_version", None)
+if rpm_version:
+  hadoop_bin_dir = "/usr/hdp/current/hadoop-client/bin"
+else:
+  hadoop_bin_dir = "/usr/bin"
+hadoop_conf_dir = "/etc/hadoop/conf"
+
+kinit_path_local = functions.get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+security_enabled = config['configurations']['cluster-env']['security_enabled']
+hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
+hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_name']
+hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
+
 config_dir = "/etc/tez/conf"
 
 hadoop_home = '/usr'
@@ -31,3 +45,16 @@ java64_home = config['hostLevelParams']['java_home']
 tez_user = config['configurations']['tez-env']['tez_user']
 user_group = config['configurations']['cluster-env']['user_group']
 tez_env_sh_template = config['configurations']['tez-env']['content']
+
+import functools
+# Create partial functions with common arguments for every HdfsDirectory call
+# to create hdfs directory we need to call params.HdfsDirectory in code
+HdfsDirectory = functools.partial(
+  HdfsDirectory,
+  conf_dir=hadoop_conf_dir,
+  hdfs_user=hdfs_principal_name if security_enabled else hdfs_user,
+  security_enabled=security_enabled,
+  keytab=hdfs_user_keytab,
+  kinit_path_local=kinit_path_local,
+  bin_dir=hadoop_bin_dir
+)

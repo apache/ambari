@@ -26,4 +26,24 @@
     <value>2.2.0.0</value>
     <description>Hadoop RPM version</description>
   </property>
+
+  <!-- The properties that end in tar_source describe the pattern of where the tar.gz files come from.
+  They will replace {{ hdp_stack_version }} with the rpm_version value followed by -* (which is the build number in HDP 2.2),
+  and treat {{ component_version }} as a wildcard.
+  When copying those tarballs, Ambari will look up the corresponding tar_destination_folder property to know where it
+  should be copied to.
+  All of the destination folders must begin with hdfs://
+  Please note that the spaces inside of {{ ... }} are important.
+  -->
+  <property>
+    <name>tez_tar_source</name>
+    <value>/usr/hdp/current/tez-client/lib/tez-{{ component_version }}.{{ hdp_stack_version }}.tar.gz</value>
+    <description></description>
+  </property>
+  <property>
+    <name>tez_tar_destination_folder</name>
+    <value>hdfs:///hdp/apps/{{ hdp_stack_version }}/tez/</value>
+    <description></description>
+  </property>
+
 </configuration>

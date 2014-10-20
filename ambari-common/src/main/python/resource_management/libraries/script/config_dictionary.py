@@ -24,18 +24,22 @@ class ConfigDictionary(dict):
   Immutable config dictionary
   """
   
-  def __init__(self, dictionary):
+  def __init__(self, dictionary, allow_overwrite=False):
     """
     Recursively turn dict to ConfigDictionary
     """
+    self.__allow_overwrite = allow_overwrite
     for k, v in dictionary.iteritems():
       if isinstance(v, dict):
-        dictionary[k] = ConfigDictionary(v)
+        dictionary[k] = ConfigDictionary(v, allow_overwrite=allow_overwrite)
         
     super(ConfigDictionary, self).__init__(dictionary)
 
   def __setitem__(self, name, value):
-    raise Fail("Configuration dictionary is immutable!")
+    if self.__allow_overwrite:
+      super(ConfigDictionary, self).__setitem__(name, value)
+    else:
+      raise Fail("Configuration dictionary is immutable!")
 
   def __getitem__(self, name):
     """
@@ -63,7 +67,22 @@ class ConfigDictionary(dict):
     
     return value
   
-  
+
+class MutableConfigDictionary(ConfigDictionary):
+  """
+  Mutable Configuration Dictionary
+  """
+  def __init__(self, dictionary):
+    d = dict()
+    for k, v in dictionary.iteritems():
+      if isinstance(v, dict):
+        d[k] = MutableConfigDictionary(v)
+      else:
+        d[k] = v
+
+    super(MutableConfigDictionary, self).__init__(d, allow_overwrite=True)
+
+
 class UnknownConfiguration():
   """
   Lazy failing for unknown configs.

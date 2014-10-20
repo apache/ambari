@@ -20,30 +20,39 @@ Ambari Agent
 """
 
 from resource_management import *
+from resource_management.libraries.script.config_dictionary import MutableConfigDictionary
+from resource_management.libraries.functions.dynamic_variable_interpretation import interpret_dynamic_version_property
+
 
 def tez():
   import params
 
   Directory(params.config_dir,
-    owner = params.tez_user,
-    group = params.user_group,
-    recursive = True
-  )
-
-  # TODO, tez-site.xml needs to use versioned tez.tar.gz file to allow currently running jobs to finish during a rolling upgrade.
-  XmlConfig( "tez-site.xml",
-            conf_dir = params.config_dir,
-            configurations = params.config['configurations']['tez-site'],
-            configuration_attributes=params.config['configuration_attributes']['tez-site'],
             owner = params.tez_user,
             group = params.user_group,
-            mode = 0664
+            recursive = True
   )
-  
+
+  mutable_configs = MutableConfigDictionary(params.config)
+  tez_lib_uris = params.config['configurations']['tez-site']['tez.lib.uris']
+  if tez_lib_uris:
+    found_at_least_one_replacement, new_tez_lib_uris = interpret_dynamic_version_property(tez_lib_uris, "tez", ",")
+    if found_at_least_one_replacement:
+      mutable_configs['configurations']['tez-site']['tez.lib.uris'] = new_tez_lib_uris
+
+  XmlConfig( "tez-site.xml",
+             conf_dir = params.config_dir,
+             configurations = mutable_configs['configurations']['tez-site'],
+             configuration_attributes=params.config['configuration_attributes']['tez-site'],
+             owner = params.tez_user,
+             group = params.user_group,
+             mode = 0664
+  )
+
   File(format("{config_dir}/tez-env.sh"),
-    owner=params.tez_user,
-    content=InlineTemplate(params.tez_env_sh_template)
-  )  
+       owner=params.tez_user,
+       content=InlineTemplate(params.tez_env_sh_template)
+  )
 
 
 def tez_TemplateConfig(name):
@@ -54,6 +63,6 @@ def tez_TemplateConfig(name):
 
   for x in name:
     TemplateConfig(format("{config_dir}/{x}"),
-        owner = params.tez_user
+                   owner = params.tez_user
     )
 
