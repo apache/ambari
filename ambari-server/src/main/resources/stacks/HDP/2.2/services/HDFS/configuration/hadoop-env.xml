@@ -22,68 +22,16 @@
 
 <configuration>
   <property>
-    <name>hdfs_log_dir_prefix</name>
-    <value>/var/log/hadoop</value>
-    <description>Hadoop Log Dir Prefix</description>
-  </property>
-  <property>
-    <name>hadoop_pid_dir_prefix</name>
-    <value>/var/run/hadoop</value>
-    <description>Hadoop PID Dir Prefix</description>
-  </property>
-  <property>
-    <name>hadoop_root_logger</name>
-    <value>INFO,RFA</value>
-    <description>Hadoop Root Logger</description>
-  </property>
-  <property>
-    <name>hadoop_heapsize</name>
-    <value>1024</value>
-    <description>Hadoop maximum Java heap size</description>
-  </property>
-  <property>
-    <name>namenode_heapsize</name>
-    <value>1024</value>
-    <description>NameNode Java heap size</description>
-  </property>
-  <property>
-    <name>namenode_opt_newsize</name>
-    <value>200</value>
-    <description>NameNode new generation size</description>
-  </property>
-  <property>
-    <name>namenode_opt_maxnewsize</name>
-    <value>200</value>
-    <description>NameNode maximum new generation size</description>
-  </property>
-  <property>
     <name>namenode_opt_permsize</name>
-    <value>128</value>
+    <value>128m</value>
     <description>NameNode permanent generation size</description>
   </property>
   <property>
     <name>namenode_opt_maxpermsize</name>
-    <value>256</value>
+    <value>256m</value>
     <description>NameNode maximum permanent generation size</description>
   </property>
-  <property>
-    <name>dtnode_heapsize</name>
-    <value>1024</value>
-    <description>DataNode maximum Java heap size</description>
-  </property>
-  <property>
-    <name>proxyuser_group</name>
-    <value>users</value>
-    <property-type>GROUP</property-type>
-    <description>Proxy user group.</description>
-  </property>
-  <property>
-    <name>hdfs_user</name>
-    <value>hdfs</value>
-    <property-type>USER</property-type>
-    <description>User to run HDFS as</description>
-  </property>
-  
+
   <!-- hadoop-env.sh -->
   <property>
     <name>content</name>

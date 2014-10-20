@@ -28,9 +28,6 @@
           <osFamily>any</osFamily>
           <packages>
             <package>
-              <name>hadoop_2_2_0_0_*</name>
-            </package>
-            <package>
               <name>hadoop-lzo</name>
             </package>
           </packages>
@@ -39,6 +36,9 @@
         <osSpecific>
           <osFamily>redhat5,redhat6,suse11</osFamily>
           <packages>
+            <package>
+              <name>hadoop_2_2_0_0_*</name>
+            </package>
             <package>
               <name>snappy</name>
             </package>
@@ -59,7 +59,42 @@
             </package>
           </packages>
         </osSpecific>
-            
+
+        <osSpecific>
+          <osFamily>ubuntu12</osFamily>
+          <packages>
+            <package>
+              <name>hadoop-2-2-0-0-.*-client</name>
+            </package>
+            <package>
+              <name>hadoop-2-2-0-0-.*-hdfs-datanode</name>
+            </package>
+            <package>
+              <name>hadoop-2-2-0-0-.*-hdfs-journalnode</name>
+            </package>
+            <package>
+              <name>hadoop-2-2-0-0-.*-hdfs-namenode</name>
+            </package>
+            <package>
+              <name>hadoop-2-2-0-0-.*-hdfs-secondarynamenode</name>
+            </package>
+            <package>
+              <name>hadoop-2-2-0-0-.*-hdfs-zkfc</name>
+            </package>
+            <package>
+              <name>libsnappy1</name>
+            </package>
+            <package>
+              <name>libsnappy-dev</name>
+            </package>
+            <package>
+              <name>liblzo2-2</name>
+            </package>
+            <package>
+              <name>libhdfs0-2-2-0-0-.*</name>
+            </package>
+          </packages>
+        </osSpecific>
       </osSpecifics>
 
     </service>

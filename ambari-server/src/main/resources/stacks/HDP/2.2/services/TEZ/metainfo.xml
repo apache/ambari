@@ -25,10 +25,18 @@
 
       <osSpecifics>
         <osSpecific>
-          <osFamily>any</osFamily>
+          <osFamily>redhat5,redhat6,suse11</osFamily>
           <packages>
             <package>
               <name>tez_2_2_0_0_*</name>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>ubuntu12</osFamily>
+          <packages>
+            <package>
+              <name>tez-2-2-0-0-.*</name>
             </package>
           </packages>
         </osSpecific>
