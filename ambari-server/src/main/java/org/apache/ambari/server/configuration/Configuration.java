@@ -200,6 +200,7 @@ public class Configuration {
   public static final String CLIENT_API_SSL_KEY_NAME_DEFAULT = "https.key";
   public static final String CLIENT_API_SSL_CRT_NAME_DEFAULT = "https.crt";
   public static final String GLOBAL_CONFIG_TAG = "global";
+  public static final String MAPREDUCE2_LOG4J_CONFIG_TAG = "mapreduce2-log4j";
   public static final String RCA_ENABLED_PROPERTY = "rca_enabled";
   public static final String HIVE_CONFIG_TAG = "hive-site";
   public static final String HIVE_METASTORE_PASSWORD_PROPERTY =
