@@ -17,7 +17,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import time
 import socket
 
 class StackAdvisor(object):
@@ -355,25 +354,25 @@ class DefaultStackAdvisor(StackAdvisor):
         if self.isComponentHostsPopulated(component):
           hostsForComponent = component["StackServiceComponents"]["hostnames"]
         else:
+          availableHosts = hostsList
+          if len(hostsList) > 1 and self.isComponentNotPreferableOnAmbariServerHost(component):
+            availableHosts = [hostName for hostName in hostsList if not self.isLocalHost(hostName)]
 
-          if len(hostsList) > 1 and self.isMasterComponentWithMultipleInstances(component):
+          if self.isMasterComponentWithMultipleInstances(component):
             hostsCount = self.getMinComponentCount(component)
             if hostsCount > 1: # get first 'hostsCount' available hosts
-              hostsForComponent = []
-              hostIndex = 0
-              while hostsCount > len(hostsForComponent) and hostIndex < len(hostsList):
-                currentHost = hostsList[hostIndex]
-                if self.isHostSuitableForComponent(currentHost, component):
-                  hostsForComponent.append(currentHost)
-                hostIndex += 1
+              if len(availableHosts) < hostsCount:
+                hostsCount = len(availableHosts)
+              hostsForComponent = availableHosts[:hostsCount]
             else:
-              hostsForComponent = [self.getHostForComponent(component, hostsList)]
+              hostsForComponent = [self.getHostForComponent(component, availableHosts)]
           else:
-            hostsForComponent = [self.getHostForComponent(component, hostsList)]
+            hostsForComponent = [self.getHostForComponent(component, availableHosts)]
 
         #extend 'hostsComponentsMap' with 'hostsForComponent'
         for hostName in hostsForComponent:
           hostsComponentsMap[hostName].append( { "name":componentName } )
+
     #extend 'hostsComponentsMap' with Slave and Client Components
     componentsListList = [service["components"] for service in services["services"]]
     componentsList = [item for sublist in componentsListList for item in sublist]
@@ -413,7 +412,7 @@ class DefaultStackAdvisor(StackAdvisor):
       index += 1
       host_group_name = "host-group-{0}".format(index)
       host_groups.append( { "name": host_group_name, "components": hostsComponentsMap[key] } )
-      bindings.append( { "name": host_group_name, "hosts": [{ "fqdn": key }] } )
+      bindings.append( { "name": host_group_name, "hosts": [{ "fqdn": socket.getfqdn(key) }] } )
 
     return recommendations
   pass
@@ -539,12 +538,11 @@ class DefaultStackAdvisor(StackAdvisor):
     if len(hostsList) != 1:
       scheme = self.getComponentLayoutScheme(componentName)
       if scheme is not None:
-        hostIndex = next((index for key, index in scheme.iteritems() if isinstance(key, ( int, long )) and len(hostsList) < key), scheme['else'])
-      else:
-        hostIndex = 0
-      for host in hostsList[hostIndex:]:
-        if self.isHostSuitableForComponent(host, component):
-          return host
+        for key in scheme.keys():
+          if isinstance(key, ( int, long )):
+            if len(hostsList) < key:
+              return hostsList[scheme[key]]
+        return hostsList[scheme['else']]
     return hostsList[0]
 
   def getComponentLayoutScheme(self, componentName):
@@ -560,9 +558,6 @@ class DefaultStackAdvisor(StackAdvisor):
     componentName = self.getComponentName(component)
     service = self.getNotPreferableOnServerComponents()
     return componentName in service
-
-  def isHostSuitableForComponent(self, host, component):
-    return not (self.isComponentNotPreferableOnAmbariServerHost(component) and self.isLocalHost(host))
 
   def getMastersWithMultipleInstances(self):
     return []
