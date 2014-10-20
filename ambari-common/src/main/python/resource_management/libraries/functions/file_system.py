@@ -34,10 +34,11 @@ def get_and_cache_mount_points(refresh=False):
   :return: Returns the "mounts" variable. Calculates and caches it the first time if it is None or the "refresh" param
   is set to True.
   """
+  global mounts
+
   if mounts is not None and not refresh:
     return mounts
   else:
-    global mounts
     mounts = mount.get_mounted()
     for m in mounts:
       if m["mount_point"] is not None:
