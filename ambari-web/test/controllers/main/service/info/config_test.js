@@ -1187,4 +1187,35 @@ describe("App.MainServiceInfoConfigsController", function () {
       });
     });
   });
+
+  describe("setCompareDefaultGroupConfig", function () {
+    beforeEach(function () {
+      sinon.stub(mainServiceInfoConfigsController, "getComparisonConfig").returns("compConfig");
+      sinon.stub(mainServiceInfoConfigsController, "getMockComparisonConfig").returns("mockConfig");
+      sinon.stub(mainServiceInfoConfigsController, "hasCompareDiffs").returns(true);
+    });
+    afterEach(function () {
+      mainServiceInfoConfigsController.getComparisonConfig.restore();
+      mainServiceInfoConfigsController.getMockComparisonConfig.restore();
+      mainServiceInfoConfigsController.hasCompareDiffs.restore();
+    });
+    it("expect that setCompareDefaultGroupConfig will not run anything", function () {
+      expect(mainServiceInfoConfigsController.setCompareDefaultGroupConfig({}).compareConfigs.length).to.equal(0);
+    });
+    it("expect that setCompareDefaultGroupConfig will not run anything", function () {
+      expect(mainServiceInfoConfigsController.setCompareDefaultGroupConfig({}, {}).compareConfigs.length).to.equal(0);
+    });
+    it("expect that serviceConfig.compareConfigs will be getMockComparisonConfig", function () {
+      expect(mainServiceInfoConfigsController.setCompareDefaultGroupConfig({isUserProperty: true}, null)).to.eql({compareConfigs: ["mockConfig"], isUserProperty: true, isComparison: true, hasCompareDiffs: true});
+    });
+    it("expect that serviceConfig.compareConfigs will be getComparisonConfig", function () {
+      expect(mainServiceInfoConfigsController.setCompareDefaultGroupConfig({isUserProperty: true}, {})).to.eql({compareConfigs: ["compConfig"], isUserProperty: true, isComparison: true, hasCompareDiffs: true});
+    });
+    it("expect that serviceConfig.compareConfigs will be getComparisonConfig", function () {
+      expect(mainServiceInfoConfigsController.setCompareDefaultGroupConfig({isReconfigurable: true}, {})).to.eql({compareConfigs: ["compConfig"], isReconfigurable: true, isComparison: true, hasCompareDiffs: true});
+    });
+    it("expect that serviceConfig.compareConfigs will be getComparisonConfig", function () {
+      expect(mainServiceInfoConfigsController.setCompareDefaultGroupConfig({isReconfigurable: true, isMock: true}, {})).to.eql({compareConfigs: ["compConfig"], isReconfigurable: true, isMock: true, isComparison: true, hasCompareDiffs: true});
+    });
+  });
 });
