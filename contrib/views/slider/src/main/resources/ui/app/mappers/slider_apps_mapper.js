@@ -157,9 +157,9 @@ App.SliderAppsMapper = App.Mapper.createWithMixins(App.RunPeriodically, {
    */
   parseQuickLinks : function(data) {
     var quickLinks = [],
-    appId = data.id;
-    var yarnAppId = appId;
-    var index = appId.lastIndexOf('_');
+      appId = data.id,
+      yarnAppId = appId,
+      index = appId.lastIndexOf('_');
     if (index > 0) {
       yarnAppId = appId.substring(0, index + 1);
       for (var k = (appId.length - index - 1); k < 4; k++) {
@@ -167,8 +167,8 @@ App.SliderAppsMapper = App.Mapper.createWithMixins(App.RunPeriodically, {
       }
       yarnAppId += appId.substring(index + 1);
     }
-    var yarnUI = "http://"+window.location.hostname+":8088";
-    var viewConfigs = App.SliderApp.store.all('sliderConfig');
+    var yarnUI = "http://"+window.location.hostname+":8088",
+      viewConfigs = App.SliderApp.store.all('sliderConfig');
     if (!Em.isNone(viewConfigs)) {
       var viewConfig = viewConfigs.findBy('viewConfigName', 'yarn.rm.webapp.url');
       if (!Em.isNone(viewConfig)) {
@@ -177,7 +177,7 @@ App.SliderAppsMapper = App.Mapper.createWithMixins(App.RunPeriodically, {
     }
     quickLinks.push(
       Ember.Object.create({
-        id: 'YARN application',
+        id: 'YARN application ' + yarnAppId,
         label: 'YARN application',
         url: yarnUI + '/cluster/app/application_' + yarnAppId
       })
