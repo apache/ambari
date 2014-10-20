@@ -18,6 +18,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 import os
+import subprocess
 from mock.mock import MagicMock, call, patch
 from stacks.utils.RMFTestCase import *
 
@@ -34,9 +35,9 @@ class TestHiveServer(RMFTestCase):
     self.assert_configure_default()
     self.assertNoMoreResources()
 
-  @patch("hive_service.check_fs_root")
+  @patch.object(subprocess,"Popen")
   @patch("socket.socket")
-  def test_start_default(self, socket_mock, check_fs_root_mock):
+  def test_start_default(self, socket_mock, popen_mock):
     s = socket_mock.return_value
     
     self.executeScript("2.0.6/services/HIVE/package/scripts/hive_server.py",
@@ -112,7 +113,11 @@ class TestHiveServer(RMFTestCase):
     )
 
     self.assertNoMoreResources()
-    self.assertTrue(check_fs_root_mock.called)
+    self.assertTrue(popen_mock.called)
+    popen_mock.assert_called_with(
+      ['su', '-s', '/bin/bash', '-', u'hive', '-c', "metatool -listFSRoot 2>/dev/null | grep hdfs:// | grep -v '.db$'"],
+      shell=False, preexec_fn=None, stderr=-2, stdout=-1, env=None, cwd=None
+    )
     self.assertTrue(socket_mock.called)
     self.assertTrue(s.close.called)
 

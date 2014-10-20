@@ -97,7 +97,7 @@ def hive_service(
 def check_fs_root():
   import params  
   fs_root_url = format("{fs_root}{hive_apps_whs_dir}")
-  cmd = format("metatool -listFSRoot 2>/dev/null | grep hdfs://")
+  cmd = format("metatool -listFSRoot 2>/dev/null | grep hdfs:// | grep -v '.db$'")
   code, out = call(cmd, user=params.hive_user)
   if code == 0 and fs_root_url.strip() != out.strip():
     cmd = format("metatool -updateLocation {fs_root}{hive_apps_whs_dir} {out}")
