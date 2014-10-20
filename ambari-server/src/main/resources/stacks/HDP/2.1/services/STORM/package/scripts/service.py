@@ -38,16 +38,19 @@ def service(
     tries_count = 6
 
   if name == 'ui':
-    process_cmd = "^java.+backtype.storm.ui.core$"
+    process_grep = "backtype.storm.ui.core$"
   elif name == "rest_api":
-    process_cmd = format("{java64_home}/bin/java -jar {rest_lib_dir}/`ls {rest_lib_dir} | grep -wE storm-rest-[0-9.-]+\.jar` server")
+    process_grep = format("{rest_lib_dir}/storm-rest-.*\.jar$")
   else:
-    process_cmd = format("^java.+backtype.storm.daemon.{name}$")
-
-  crt_pid_cmd = format("pgrep -f \"{process_cmd}\" && pgrep -f \"{process_cmd}\" > {pid_file}")
+    process_grep = format("storm.daemon.{name}$")
+    
+  find_proc = format("{jps_binary} -l  | grep {process_grep}")
+  write_pid = format("{find_proc} | awk {{'print $1'}} > {pid_file}")
+  crt_pid_cmd = format("{find_proc} && {write_pid}")
 
   if action == "start":
     if name == "rest_api":
+      process_cmd = format("{java64_home}/bin/java -jar {rest_lib_dir}/`ls {rest_lib_dir} | grep -wE storm-rest-[0-9.-]+\.jar` server")
       cmd = format("{process_cmd} {rest_api_conf_file} > {log_dir}/restapi.log 2>&1")
     else:
       cmd = format("env JAVA_HOME={java64_home} PATH=$PATH:{java64_home}/bin storm {name} > {log_dir}/{name}.out 2>&1")

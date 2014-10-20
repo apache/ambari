@@ -49,29 +49,26 @@ class TestStormSupervisor(TestStormBase):
       path = ['/usr/bin'],
       user = 'storm',
     )
-
-    self.assertResourceCalled('Execute', 'pgrep -f "^java.+backtype.storm.daemon.supervisor$" && pgrep -f "^java.+backtype.storm.daemon.supervisor$" > /var/run/storm/supervisor.pid',
-      logoutput = True,
-      tries = 6,
-      user = 'storm',
-      path = ['/usr/bin'],
-      try_sleep = 10,
+    self.assertResourceCalled('Execute', "/usr/jdk64/jdk1.7.0_45/bin/jps -l  | grep storm.daemon.supervisor$ && /usr/jdk64/jdk1.7.0_45/bin/jps -l  | grep storm.daemon.supervisor$ | awk {'print $1'} > /var/run/storm/supervisor.pid",
+        logoutput = True,
+        path = ['/usr/bin'],
+        tries = 6,
+        user = 'storm',
+        try_sleep = 10,
     )
     self.assertResourceCalled('Execute', 'env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 PATH=$PATH:/usr/jdk64/jdk1.7.0_45/bin storm logviewer > /var/log/storm/logviewer.out 2>&1',
-                               wait_for_finish = False,
-                               not_if = 'ls /var/run/storm/logviewer.pid >/dev/null 2>&1 && ps `cat /var/run/storm/logviewer.pid` >/dev/null 2>&1',
-                               path = ['/usr/bin'],
-                               user = 'storm'
+        wait_for_finish = False,
+        path = ['/usr/bin'],
+        user = 'storm',
+        not_if = 'ls /var/run/storm/logviewer.pid >/dev/null 2>&1 && ps `cat /var/run/storm/logviewer.pid` >/dev/null 2>&1',
     )
-
-    self.assertResourceCalled('Execute', 'pgrep -f "^java.+backtype.storm.daemon.logviewer$" && pgrep -f "^java.+backtype.storm.daemon.logviewer$" > /var/run/storm/logviewer.pid',
-                              logoutput = True,
-                              tries = 12,
-                              user = 'storm',
-                              path = ['/usr/bin'],
-                              try_sleep = 10
+    self.assertResourceCalled('Execute', "/usr/jdk64/jdk1.7.0_45/bin/jps -l  | grep storm.daemon.logviewer$ && /usr/jdk64/jdk1.7.0_45/bin/jps -l  | grep storm.daemon.logviewer$ | awk {'print $1'} > /var/run/storm/logviewer.pid",
+        logoutput = True,
+        path = ['/usr/bin'],
+        tries = 12,
+        user = 'storm',
+        try_sleep = 10,
     )
-
     self.assertNoMoreResources()
 
   def test_stop_default(self):
@@ -123,26 +120,25 @@ class TestStormSupervisor(TestStormBase):
       user = 'storm',
     )
 
-    self.assertResourceCalled('Execute', 'pgrep -f "^java.+backtype.storm.daemon.supervisor$" && pgrep -f "^java.+backtype.storm.daemon.supervisor$" > /var/run/storm/supervisor.pid',
-      logoutput = True,
-      tries = 6,
-      user = 'storm',
-      path = ['/usr/bin'],
-      try_sleep = 10,
+    self.assertResourceCalled('Execute', "/usr/jdk64/jdk1.7.0_45/bin/jps -l  | grep storm.daemon.supervisor$ && /usr/jdk64/jdk1.7.0_45/bin/jps -l  | grep storm.daemon.supervisor$ | awk {'print $1'} > /var/run/storm/supervisor.pid",
+        logoutput = True,
+        path = ['/usr/bin'],
+        tries = 6,
+        user = 'storm',
+        try_sleep = 10,
     )
     self.assertResourceCalled('Execute', 'env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 PATH=$PATH:/usr/jdk64/jdk1.7.0_45/bin storm logviewer > /var/log/storm/logviewer.out 2>&1',
-                        wait_for_finish = False,
-                        not_if = 'ls /var/run/storm/logviewer.pid >/dev/null 2>&1 && ps `cat /var/run/storm/logviewer.pid` >/dev/null 2>&1',
-                        path = ['/usr/bin'],
-                        user = 'storm'
+        wait_for_finish = False,
+        path = ['/usr/bin'],
+        user = 'storm',
+        not_if = 'ls /var/run/storm/logviewer.pid >/dev/null 2>&1 && ps `cat /var/run/storm/logviewer.pid` >/dev/null 2>&1',
     )
-
-    self.assertResourceCalled('Execute', 'pgrep -f "^java.+backtype.storm.daemon.logviewer$" && pgrep -f "^java.+backtype.storm.daemon.logviewer$" > /var/run/storm/logviewer.pid',
-                        logoutput = True,
-                        tries = 12,
-                        user = 'storm',
-                        path = ['/usr/bin'],
-                        try_sleep = 10
+    self.assertResourceCalled('Execute', "/usr/jdk64/jdk1.7.0_45/bin/jps -l  | grep storm.daemon.logviewer$ && /usr/jdk64/jdk1.7.0_45/bin/jps -l  | grep storm.daemon.logviewer$ | awk {'print $1'} > /var/run/storm/logviewer.pid",
+        logoutput = True,
+        path = ['/usr/bin'],
+        tries = 12,
+        user = 'storm',
+        try_sleep = 10,
     )
     self.assertNoMoreResources()
 

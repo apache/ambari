@@ -49,15 +49,13 @@ class TestStormRestApi(TestStormBase):
       path = ['/usr/bin'],
       user = 'storm',
     )
-
-    self.assertResourceCalled('Execute', 'pgrep -f "/usr/jdk64/jdk1.7.0_45/bin/java -jar /usr/lib/storm/contrib/storm-rest/`ls /usr/lib/storm/contrib/storm-rest | grep -wE storm-rest-[0-9.-]+\\.jar` server" && pgrep -f "/usr/jdk64/jdk1.7.0_45/bin/java -jar /usr/lib/storm/contrib/storm-rest/`ls /usr/lib/storm/contrib/storm-rest | grep -wE storm-rest-[0-9.-]+\\.jar` server" > /var/run/storm/restapi.pid',
-      logoutput = True,
-      tries = 6,
-      user = 'storm',
-      path = ['/usr/bin'],
-      try_sleep = 10,
+    self.assertResourceCalled('Execute', "/usr/jdk64/jdk1.7.0_45/bin/jps -l  | grep /usr/lib/storm/contrib/storm-rest/storm-rest-.*\\.jar$ && /usr/jdk64/jdk1.7.0_45/bin/jps -l  | grep /usr/lib/storm/contrib/storm-rest/storm-rest-.*\\.jar$ | awk {'print $1'} > /var/run/storm/restapi.pid",
+        logoutput = True,
+        path = ['/usr/bin'],
+        tries = 6,
+        user = 'storm',
+        try_sleep = 10,
     )
-
     self.assertNoMoreResources()
 
   def test_stop_default(self):
@@ -101,14 +99,13 @@ class TestStormRestApi(TestStormBase):
       user = 'storm',
     )
 
-    self.assertResourceCalled('Execute', 'pgrep -f "/usr/jdk64/jdk1.7.0_45/bin/java -jar /usr/lib/storm/contrib/storm-rest/`ls /usr/lib/storm/contrib/storm-rest | grep -wE storm-rest-[0-9.-]+\\.jar` server" && pgrep -f "/usr/jdk64/jdk1.7.0_45/bin/java -jar /usr/lib/storm/contrib/storm-rest/`ls /usr/lib/storm/contrib/storm-rest | grep -wE storm-rest-[0-9.-]+\\.jar` server" > /var/run/storm/restapi.pid',
-      logoutput = True,
-      tries = 6,
-      user = 'storm',
-      path = ['/usr/bin'],
-      try_sleep = 10,
+    self.assertResourceCalled('Execute', "/usr/jdk64/jdk1.7.0_45/bin/jps -l  | grep /usr/lib/storm/contrib/storm-rest/storm-rest-.*\\.jar$ && /usr/jdk64/jdk1.7.0_45/bin/jps -l  | grep /usr/lib/storm/contrib/storm-rest/storm-rest-.*\\.jar$ | awk {'print $1'} > /var/run/storm/restapi.pid",
+        logoutput = True,
+        path = ['/usr/bin'],
+        tries = 6,
+        user = 'storm',
+        try_sleep = 10,
     )
-
     self.assertNoMoreResources()
 
   def test_stop_secured(self):

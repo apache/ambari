@@ -50,15 +50,13 @@ class TestStormNimbus(TestStormBase):
       path = ['/usr/bin'],
       user = 'storm',
     )
-
-    self.assertResourceCalled('Execute', 'pgrep -f "^java.+backtype.storm.daemon.nimbus$" && pgrep -f "^java.+backtype.storm.daemon.nimbus$" > /var/run/storm/nimbus.pid',
-      logoutput = True,
-      tries = 6,
-      user = 'storm',
-      path = ['/usr/bin'],
-      try_sleep = 10,
+    self.assertResourceCalled('Execute', "/usr/jdk64/jdk1.7.0_45/bin/jps -l  | grep storm.daemon.nimbus$ && /usr/jdk64/jdk1.7.0_45/bin/jps -l  | grep storm.daemon.nimbus$ | awk {'print $1'} > /var/run/storm/nimbus.pid",
+        logoutput = True,
+        path = ['/usr/bin'],
+        tries = 6,
+        user = 'storm',
+        try_sleep = 10,
     )
-
     self.assertNoMoreResources()
 
   def test_stop_default(self):
@@ -101,15 +99,13 @@ class TestStormNimbus(TestStormBase):
       path = ['/usr/bin'],
       user = 'storm',
     )
-
-    self.assertResourceCalled('Execute', 'pgrep -f "^java.+backtype.storm.daemon.nimbus$" && pgrep -f "^java.+backtype.storm.daemon.nimbus$" > /var/run/storm/nimbus.pid',
-      logoutput = True,
-      tries = 6,
-      user = 'storm',
-      path = ['/usr/bin'],
-      try_sleep = 10,
+    self.assertResourceCalled('Execute', "/usr/jdk64/jdk1.7.0_45/bin/jps -l  | grep storm.daemon.nimbus$ && /usr/jdk64/jdk1.7.0_45/bin/jps -l  | grep storm.daemon.nimbus$ | awk {'print $1'} > /var/run/storm/nimbus.pid",
+        logoutput = True,
+        path = ['/usr/bin'],
+        tries = 6,
+        user = 'storm',
+        try_sleep = 10,
     )
-
     self.assertNoMoreResources()
 
   def test_stop_secured(self):
