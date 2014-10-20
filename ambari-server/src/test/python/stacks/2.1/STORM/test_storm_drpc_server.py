@@ -50,13 +50,12 @@ class TestStormDrpcServer(TestStormBase):
       path = ['/usr/bin'],
       user = 'storm',
     )
-
-    self.assertResourceCalled('Execute', 'pgrep -f "^java.+backtype.storm.daemon.drpc$" && pgrep -f "^java.+backtype.storm.daemon.drpc$" > /var/run/storm/drpc.pid',
-      logoutput = True,
-      tries = 6,
-      user = 'storm',
-      path = ['/usr/bin'],
-      try_sleep = 10,
+    self.assertResourceCalled('Execute', "/usr/jdk64/jdk1.7.0_45/bin/jps -l  | grep storm.daemon.drpc$ && /usr/jdk64/jdk1.7.0_45/bin/jps -l  | grep storm.daemon.drpc$ | awk {'print $1'} > /var/run/storm/drpc.pid",
+        logoutput = True,
+        path = ['/usr/bin'],
+        tries = 6,
+        user = 'storm',
+        try_sleep = 10,
     )
 
     self.assertNoMoreResources()
@@ -101,15 +100,13 @@ class TestStormDrpcServer(TestStormBase):
       path = ['/usr/bin'],
       user = 'storm',
     )
-
-    self.assertResourceCalled('Execute', 'pgrep -f "^java.+backtype.storm.daemon.drpc$" && pgrep -f "^java.+backtype.storm.daemon.drpc$" > /var/run/storm/drpc.pid',
-      logoutput = True,
-      tries = 6,
-      user = 'storm',
-      path = ['/usr/bin'],
-      try_sleep = 10,
+    self.assertResourceCalled('Execute', "/usr/jdk64/jdk1.7.0_45/bin/jps -l  | grep storm.daemon.drpc$ && /usr/jdk64/jdk1.7.0_45/bin/jps -l  | grep storm.daemon.drpc$ | awk {'print $1'} > /var/run/storm/drpc.pid",
+        logoutput = True,
+        path = ['/usr/bin'],
+        tries = 6,
+        user = 'storm',
+        try_sleep = 10,
     )
-
     self.assertNoMoreResources()
 
   def test_stop_secured(self):
