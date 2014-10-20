@@ -28,7 +28,7 @@ QUnit.module('App.SliderAppsMapper', {
 
 });
 
-test('App.SliderAppsMapper.parseQuickLinks', function () {
+test('parseQuickLinks', function () {
 
   var mapper = App.SliderAppsMapper;
 
@@ -51,5 +51,35 @@ test('App.SliderAppsMapper.parseQuickLinks', function () {
 
   equal(mapper.get('result')[0].get('url'), 'http://host/cluster/app/application_1', 'valid YARN application URL formed');
   equal(mapper.get('result')[0].get('id'), 'YARN application 1', 'model id set correctly');
+
+});
+
+test('parse | add/remove apps', function () {
+
+  Em.run(function () {
+
+    App.SliderAppsMapper.parse({
+      items: [
+        {id: '1', type: 't1'},
+        {id: '2', type: 't2'}
+      ]
+    });
+
+  });
+
+  deepEqual(App.SliderApp.store.all('sliderApp').mapBy('id'), ['1', '2'], 'Mapped all apps');
+
+  Em.run(function () {
+
+    App.SliderAppsMapper.parse({
+      items: [
+        {id: '2', type: 't2'},
+        {id: '3', type: 't3'}
+      ]
+    });
+
+  });
+
+  deepEqual(App.SliderApp.store.all('sliderApp').mapBy('id'), ['2', '3'], 'Delete not-existing app and add new');
 
 });
