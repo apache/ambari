@@ -303,6 +303,7 @@ public class UpgradeCatalog170Test {
     Capture<DBAccessor.DBColumnInfo> maskedColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
     Capture<DBAccessor.DBColumnInfo> stageCommandParamsColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
     Capture<DBAccessor.DBColumnInfo> stageHostParamsColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
+    Capture<List<DBAccessor.DBColumnInfo>> groupsCapture = new Capture<List<DBAccessor.DBColumnInfo>>();
     Capture<List<DBAccessor.DBColumnInfo>> alertDefinitionColumnCapture = new Capture<List<DBAccessor.DBColumnInfo>>();
     Capture<List<DBAccessor.DBColumnInfo>> alertHistoryColumnCapture = new Capture<List<DBAccessor.DBColumnInfo>>();
     Capture<List<DBAccessor.DBColumnInfo>> alertCurrentColumnCapture = new Capture<List<DBAccessor.DBColumnInfo>>();
@@ -316,6 +317,9 @@ public class UpgradeCatalog170Test {
     Capture<DBAccessor.DBColumnInfo> configDataClusterConfigCapture = new Capture<DBAccessor.DBColumnInfo>();
     Capture<DBAccessor.DBColumnInfo> configDataBlueprintConfigurationCapture = new Capture<DBAccessor.DBColumnInfo>();
     Capture<DBAccessor.DBColumnInfo> configDataHostGroupConfigurationCapture = new Capture<DBAccessor.DBColumnInfo>();
+
+    dbAccessor.createTable(eq("groups"),
+        capture(groupsCapture), eq("group_id"));
 
     setViewExpectations(dbAccessor, maskColumnCapture, systemColumnCapture);
     setViewParameterExpectations(dbAccessor, maskedColumnCapture);
@@ -378,6 +382,15 @@ public class UpgradeCatalog170Test {
     assertViewColumns(maskColumnCapture, systemColumnCapture);
     assertViewParameterColumns(maskedColumnCapture);
     assertStageColumns(stageCommandParamsColumnCapture, stageHostParamsColumnCapture);
+
+    assertEquals(4, groupsCapture.getValue().size());
+    List<DBAccessor.DBColumnInfo> columnInfoList = groupsCapture.getValue();
+    for (DBAccessor.DBColumnInfo info : columnInfoList) {
+      if (info.getName().equals("group_name")) {
+        assertEquals(Integer.valueOf(255), info.getLength());
+        break;
+      }
+    }
 
     assertEquals(12, alertDefinitionColumnCapture.getValue().size());
     assertEquals(11, alertHistoryColumnCapture.getValue().size());
