@@ -40,6 +40,9 @@
           </packages>
         </osSpecific>
       </osSpecifics>
+      <requiredServices>
+        <service>TEZ</service>
+      </requiredServices>
     </service>
   </services>
 </metainfo>

@@ -212,7 +212,7 @@ hadoop_env_sh_template = config['configurations']['hadoop-env']['content']
 java_home = config['hostLevelParams']['java_home']
 stack_version = str(config['hostLevelParams']['stack_version'])
 
-stack_is_champlain_or_further = not (stack_version.startswith('2.0') or stack_version.startswith('2.1'))
+stack_is_hdp22_or_further = not (stack_version.startswith('2.0') or stack_version.startswith('2.1'))
 
 if stack_version.startswith('2.0') and System.get_instance().os_family != "suse":
   # deprecated rhel jsvc_path

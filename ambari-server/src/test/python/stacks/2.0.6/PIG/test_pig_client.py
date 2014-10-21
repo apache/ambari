@@ -19,6 +19,7 @@ limitations under the License.
 '''
 
 from stacks.utils.RMFTestCase import *
+import json
 
 class TestPigClient(RMFTestCase):
 
@@ -52,6 +53,8 @@ class TestPigClient(RMFTestCase):
     )
     self.assertNoMoreResources()
 
+
+
   def test_configure_secured(self):
     self.executeScript("2.0.6/services/PIG/package/scripts/pig_client.py",
                        classname = "PigClient",
@@ -79,5 +82,42 @@ class TestPigClient(RMFTestCase):
       group = 'hadoop',
       mode = 0644,
       content = 'log4jproperties\nline2'
+    )
+    self.assertNoMoreResources()
+
+  def test_configure_default_hdp22(self):
+
+    config_file = "stacks/2.0.6/configs/default.json"
+    with open(config_file, "r") as f:
+      default_json = json.load(f)
+
+    default_json['hostLevelParams']['stack_version'] = '2.2'
+
+    self.executeScript("2.0.6/services/PIG/package/scripts/pig_client.py",
+                       classname = "PigClient",
+                       command = "configure",
+                       config_dict=default_json
+    )
+
+    self.assertResourceCalled('Directory', '/etc/pig/conf',
+                              recursive = True,
+                              owner = 'hdfs',
+                              group = 'hadoop'
+    )
+    self.assertResourceCalled('File', '/etc/pig/conf/pig-env.sh',
+                              owner = 'hdfs',
+                              content = InlineTemplate(self.getConfig()['configurations']['pig-env']['content'])
+    )
+    self.assertResourceCalled('File', '/etc/pig/conf/pig.properties',
+                              owner = 'hdfs',
+                              group = 'hadoop',
+                              mode = 0644,
+                              content = 'pigproperties\nline2'
+    )
+    self.assertResourceCalled('File', '/etc/pig/conf/log4j.properties',
+                              owner = 'hdfs',
+                              group = 'hadoop',
+                              mode = 0644,
+                              content = 'log4jproperties\nline2'
     )
     self.assertNoMoreResources()

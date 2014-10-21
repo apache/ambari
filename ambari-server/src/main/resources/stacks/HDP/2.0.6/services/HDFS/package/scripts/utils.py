@@ -75,14 +75,14 @@ def service(action=None, name=None, user=None, create_pid_dir=False,
     hadoop_secure_dn_pid_file = format("{hadoop_secure_dn_pid_dir}/hadoop_secure_dn.pid")
 
     # At Champlain stack and further, we may start datanode as a non-root even in secure cluster
-    if not params.stack_is_champlain_or_further or secure_ports_are_in_use:
+    if not params.stack_is_hdp22_or_further or secure_ports_are_in_use:
       user = "root"
       pid_file = format(
         "{hadoop_pid_dir_prefix}/{hdfs_user}/hadoop-{hdfs_user}-{name}.pid")
-      if params.stack_is_champlain_or_further:
+      if params.stack_is_hdp22_or_further:
         hadoop_env_exports.update(hadoop_secure_dn_exports)
 
-    if action == 'stop' and params.stack_is_champlain_or_further and \
+    if action == 'stop' and params.stack_is_hdp22_or_further and \
       os.path.isfile(hadoop_secure_dn_pid_file):
         # We need special handling for this case to handle the situation
         # when we configure non-root secure DN and then restart it
