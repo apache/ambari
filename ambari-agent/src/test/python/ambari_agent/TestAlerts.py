@@ -256,7 +256,7 @@ class TestAlerts(TestCase):
 
     res = pa.collect()
     
-    self.assertIsNotNone(collector.alerts()[0])
+    self.assertTrue(collector.alerts()[0] is not None)
     self.assertEquals('CRITICAL', collector.alerts()[0]['state'])
     
     collector.remove_by_uuid('c1f73191-4481-4435-8dae-fd380e4c0be1')
