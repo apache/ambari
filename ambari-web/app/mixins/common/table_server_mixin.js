@@ -117,6 +117,7 @@ App.TableServerMixin = Em.Mixin.create({
           });
         } else if (filter.type === 'string') {
           property.value = this.getRegExp(filter.value);
+          filterParams.push(property);
         } else {
           property.value = filter.value;
           filterParams.push(property);
