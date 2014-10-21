@@ -55,3 +55,6 @@ java64_home = config['hostLevelParams']['java_home']
 pig_properties = config['configurations']['pig-properties']['content']
 
 log4j_props = config['configurations']['pig-log4j']['content']
+
+stack_version = str(config['hostLevelParams']['stack_version'])
+stack_is_hdp22_or_further = not (stack_version.startswith('2.0') or stack_version.startswith('2.1'))

@@ -51,6 +51,7 @@ class PigServiceCheck(Script):
       mode = 0755
     )
 
+    # check for Pig-on-M/R
     Execute( format("pig {tmp_dir}/pigSmoke.sh"),
       tries     = 3,
       try_sleep = 5,
@@ -63,6 +64,34 @@ class PigServiceCheck(Script):
       conf_dir = params.hadoop_conf_dir,
       bin_dir = params.hadoop_bin_dir
     )
+
+    if params.stack_is_hdp22_or_further:
+      # cleanup results from previous test
+      ExecuteHadoop( create_file_cmd,
+        tries     = 3,
+        try_sleep = 5,
+        user      = params.smokeuser,
+        conf_dir = params.hadoop_conf_dir,
+        # for kinit run
+        keytab = params.smoke_user_keytab,
+        security_enabled = params.security_enabled,
+        kinit_path_local = params.kinit_path_local,
+        bin_dir = params.hadoop_bin_dir
+      )
+
+      # Check for Pig-on-Tez
+      Execute( format("pig -x tez {tmp_dir}/pigSmoke.sh"),
+        tries     = 3,
+        try_sleep = 5,
+        path      = format('{pig_bin_dir}:/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'),
+        user      = params.smokeuser
+      )
+
+      ExecuteHadoop( test_cmd,
+        user      = params.smokeuser,
+        conf_dir = params.hadoop_conf_dir,
+        bin_dir = params.hadoop_bin_dir
+      )
 
 if __name__ == "__main__":
   PigServiceCheck().execute()
