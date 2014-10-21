@@ -1396,8 +1396,9 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, {
       tag = 'version' + (new Date).getTime();
       coreSiteObject.tag = tag;
       var coreSiteConfigs = this.get('configs').filterProperty('filename', 'core-site.xml');
-      if (this.isConfigsChanged(coreSiteObject.properties, coreSiteConfigs))
+      if (this.isConfigsChanged(coreSiteObject.properties, coreSiteConfigs)) {
         this.get('serviceConfigTags').pushObject(coreSiteObject);
+      }
     }
 
     selectedServices.forEach(function (service) {
@@ -1579,6 +1580,60 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, {
   },
 
   /**
+   * proxyuser configs which depend on service
+   */
+  optionalCoreSiteConfigs: [
+    {
+      serviceName: 'OOZIE',
+      user: 'oozie_user'
+    },
+    {
+      serviceName: 'HIVE',
+      user: 'hive_user'
+    },
+    {
+      serviceName: 'HIVE',
+      user: 'hcat_user'
+    },
+    {
+      serviceName: 'FALCON',
+      user: 'falcon_user'
+    }
+  ],
+
+  /**
+   * push proxyuser properties to core-site if they required by dependencies
+   * @param coreSiteObj
+   * @param installedAndSelectedServices
+   * @return {Object}
+   */
+  resolveProxyuserDependecies: function (coreSiteObj, installedAndSelectedServices) {
+    var coreSiteProperties = {};
+    var optionalCoreSiteConfigs = this.get('optionalCoreSiteConfigs');
+    var proxyuserGroup = this.get('configs').findProperty('name', 'proxyuser_group');
+
+    coreSiteObj.forEach(function (_coreSiteObj) {
+      //proxyuser_group property should be added only if proxyuser properties are used
+      if (_coreSiteObj.name === proxyuserGroup.name) return;
+
+      // exclude some configs if service wasn't selected
+      var addProperty = optionalCoreSiteConfigs.every(function (config) {
+        var userValue = this.get('configs').someProperty('name', config.user) ? this.get('configs').findProperty('name', config.user).value : null
+        return (installedAndSelectedServices.someProperty('serviceName', config.serviceName) ||
+          (_coreSiteObj.name != 'hadoop.proxyuser.' + userValue + '.hosts' && _coreSiteObj.name != 'hadoop.proxyuser.' + userValue + '.groups'))
+      }, this);
+      if (addProperty) {
+        coreSiteProperties[_coreSiteObj.name] = _coreSiteObj.value;
+      }
+    }, this);
+
+    if (!App.isEmptyObject(coreSiteProperties) && proxyuserGroup) {
+      coreSiteProperties[proxyuserGroup.name] = proxyuserGroup.value;
+    }
+    return coreSiteProperties;
+  },
+
+  /**
    * Create Core Site object
    * @returns {{type: string, tag: string, properties: {}}}
    * @method createCoreSiteObj
@@ -1588,23 +1643,10 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, {
     installedAndSelectedServices.pushObjects(this.get('installedServices'));
     installedAndSelectedServices.pushObjects(this.get('selectedServices'));
     var coreSiteObj = this.get('configs').filterProperty('filename', 'core-site.xml'),
-      coreSiteProperties = {},
-    // some configs needs to be skipped if services are not selected
-      isOozieSelected = installedAndSelectedServices.someProperty('serviceName', 'OOZIE'),
-      oozieUser = this.get('configs').someProperty('name', 'oozie_user') ? this.get('configs').findProperty('name', 'oozie_user').value : null,
-      isHiveSelected = installedAndSelectedServices.someProperty('serviceName', 'HIVE'),
-      hiveUser = this.get('configs').someProperty('name', 'hive_user') ? this.get('configs').findProperty('name', 'hive_user').value : null,
-      hcatUser = this.get('configs').someProperty('name', 'hcat_user') ? this.get('configs').findProperty('name', 'hcat_user').value : null,
+      coreSiteProperties = this.resolveProxyuserDependecies(coreSiteObj, installedAndSelectedServices),
       isGLUSTERFSSelected = installedAndSelectedServices.someProperty('serviceName', 'GLUSTERFS');
 
     coreSiteObj.forEach(function (_coreSiteObj) {
-      // exclude some configs if service wasn't selected
-      if (
-        (isOozieSelected || (_coreSiteObj.name != 'hadoop.proxyuser.' + oozieUser + '.hosts' && _coreSiteObj.name != 'hadoop.proxyuser.' + oozieUser + '.groups')) &&
-        (isHiveSelected || (_coreSiteObj.name != 'hadoop.proxyuser.' + hiveUser + '.hosts' && _coreSiteObj.name != 'hadoop.proxyuser.' + hiveUser + '.groups')) &&
-        (isHiveSelected || (_coreSiteObj.name != 'hadoop.proxyuser.' + hcatUser + '.hosts' && _coreSiteObj.name != 'hadoop.proxyuser.' + hcatUser + '.groups'))) {
-        coreSiteProperties[_coreSiteObj.name] = _coreSiteObj.value;
-      }
       if (isGLUSTERFSSelected && _coreSiteObj.name == "fs.default.name") {
         coreSiteProperties[_coreSiteObj.name] =
           this.get('configs').someProperty('name', 'fs_glusterfs_default_name') ?
