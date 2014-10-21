@@ -60,6 +60,13 @@ mapreduce_jobhistory_done_dir = config['configurations']['mapred-site']['mapred.
 hostname = config["hostname"]
 hadoop_conf_dir = "/etc/hadoop/conf"
 hadoop_pid_dir_prefix = config['configurations']['hadoop-env']['hadoop_pid_dir_prefix']
+
+if security_enabled:
+  jt_principal_name = config['configurations']['mapred-site']['mapreduce.jobtracker.kerberos.principal']
+  jt_principal_name = jt_principal_name.replace('_HOST',hostname.lower())
+  jt_user_keytab = config['configurations']['mapred-site']['mapreduce.jobtracker.keytab.file']
+  kinit_cmd = format("{kinit_path_local} -kt {jt_user_keytab} {jt_principal_name}")
+
 hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_name']

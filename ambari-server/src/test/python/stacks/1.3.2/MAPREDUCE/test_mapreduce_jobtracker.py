@@ -149,6 +149,9 @@ class TestJobtracker(RMFTestCase):
                        config_file="secured.json"
     )
 
+    self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/jt.service.keytab jt/c6402.ambari.apache.org@EXAMPLE.COM',
+                       user = 'mapred',
+    )
     self.assertResourceCalled('File', '/etc/hadoop/conf/mapred.exclude',
                        owner = 'mapred',
                        content = Template('exclude_hosts_list.j2'),
