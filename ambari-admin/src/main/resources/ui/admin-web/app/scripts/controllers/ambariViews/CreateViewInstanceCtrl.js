@@ -87,7 +87,7 @@ angular.module('ambariAdminConsole')
           }
         })
         .catch(function(data) {
-          Alert.error('Cannot create instance', data.data.message);
+          Alert.error('Cannot create instance', data.message);
         });
     }
   };
