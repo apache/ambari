@@ -41,6 +41,22 @@ QUnit.module('integration/pages - index', {
 test('Slider has validation errors', function () {
 
   visit('/');
-  equal(find('.slider-errors-wrapper .error-message').length, 2, 'Error-messages exist on the page');
+  equal(find('.error-message').length, 2, 'Error-messages exist on the page');
+  ok(find('.create-app a').attr('disabled'), 'Create App button is disabled');
+
+});
+
+test('Slider has no validation errors', function () {
+
+  Em.run(function () {
+    App.__container__.lookup('controller:Slider').getParametersFromViewPropertiesSuccessCallback({
+      validations: [],
+      parameters: {}
+    });
+  });
+
+  visit('/');
+  equal(find('.error-message').length, 0, 'No error-messages on the page');
+  ok(!find('.create-app a').attr('disabled'), 'Create App button is enabled');
 
 });

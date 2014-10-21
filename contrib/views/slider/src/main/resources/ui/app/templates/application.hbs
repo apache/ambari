@@ -23,15 +23,13 @@
 
 
 {{#unless App.viewEnabled}}
-  <div class="slider-errors-wrapper">
-    {{#if App.viewErrors.length}}
-      <div class="alert alert-danger">
-        {{#each error in App.viewErrors}}
-          <h3 class="error-message">{{{error.message}}}</h3>
-        {{/each}}
-      </div>
-    {{/if}}
-  </div>
+  {{#if App.viewErrors.length}}
+    <div class="alert alert-danger">
+      {{#each error in App.viewErrors}}
+        <div class="error-message">{{{error.message}}}</div>
+      {{/each}}
+    </div>
+  {{/if}}
 {{/unless}}
 
 <div class="slider-header">
@@ -45,7 +43,7 @@
           </div>
         {{/if}}
         <div class="create-app pull-right">
-          <a href="#" class="btn btn-primary" {{action createApp}}>
+          <a href="#" class="btn btn-primary" {{bind-attr disabled="App.viewDisabled"}} {{action createApp}}>
             <i class="icon-plus"></i><span>&nbsp;{{t slider.apps.create}}</span>
           </a>
         </div>
