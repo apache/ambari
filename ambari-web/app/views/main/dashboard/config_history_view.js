@@ -53,7 +53,7 @@ App.MainConfigHistoryView = App.TableView.extend({
    * @returns {String}
    */
   filteredContentInfo: function () {
-    return this.t('hosts.filters.filteredHostsInfo').format(this.get('filteredCount'), this.get('totalCount'));
+    return this.t('tableView.filters.filteredConfigVersionInfo').format(this.get('filteredCount'), this.get('totalCount'));
   }.property('filteredCount', 'totalCount'),
 
   /**

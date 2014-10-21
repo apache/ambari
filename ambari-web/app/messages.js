@@ -2071,6 +2071,7 @@ Em.I18n.translations = {
   'tableView.filters.paginationInfo': '{0} - {1} of {2}',
   'tableView.filters.clearAllFilters': 'clear filters',
   'tableView.filters.showAll': 'Show All',
+  'tableView.filters.filteredConfigVersionInfo': '{0} of {1} versions showing',
 
   'jobs.type':'Jobs Type',
   'jobs.type.hive':'Hive',
