@@ -316,6 +316,47 @@ describe('App.InstallerStep7Controller', function () {
     });
   });
 
+  describe('#resolveYarnConfigs', function () {
+    it('should set property to true', function () {
+      var allSelectedServiceNames = ['SLIDER', 'YARN'],
+        configs = [
+          {name: 'hadoop.registry.rm.enabled', value: false, defaultValue: false}
+        ],
+        expected = [
+          {name: 'hadoop.registry.rm.enabled', value: true, defaultValue: true, forceUpdate: true}
+        ];
+      installerStep7Controller.reopen({allSelectedServiceNames: allSelectedServiceNames});
+      installerStep7Controller.resolveYarnConfigs(configs);
+      expect(configs[0]).to.eql(expected[0]);
+    });
+
+    it('should set property to false', function () {
+      var allSelectedServiceNames = ['YARN'],
+        configs = [
+          {name: 'hadoop.registry.rm.enabled', value: true, defaultValue: true},
+        ],
+        expected = [
+          {name: 'hadoop.registry.rm.enabled', value: false, defaultValue: false, forceUpdate: true}
+        ];
+      installerStep7Controller.reopen({allSelectedServiceNames: allSelectedServiceNames});
+      installerStep7Controller.resolveYarnConfigs(configs);
+      expect(configs[0]).to.eql(expected[0]);
+    });
+
+    it('should skip setting property', function () {
+      var allSelectedServiceNames = ['YARN', 'SLIDER'],
+        configs = [
+          {name: 'hadoop.registry.rm.enabled', value: true, defaultValue: true},
+        ],
+        expected = [
+          {name: 'hadoop.registry.rm.enabled', value: true, defaultValue: true}
+        ];
+      installerStep7Controller.reopen({allSelectedServiceNames: allSelectedServiceNames});
+      installerStep7Controller.resolveYarnConfigs(configs);
+      expect(configs[0]).to.eql(expected[0]);
+    });
+  });
+
   describe('#resolveStormConfigs', function () {
 
     beforeEach(function () {
@@ -421,18 +462,23 @@ describe('App.InstallerStep7Controller', function () {
   describe('#resolveServiceDependencyConfigs', function () {
     beforeEach(function () {
       sinon.stub(installerStep7Controller, 'resolveStormConfigs', Em.K);
+      sinon.stub(installerStep7Controller, 'resolveYarnConfigs', Em.K);
     });
     afterEach(function () {
       installerStep7Controller.resolveStormConfigs.restore();
+      installerStep7Controller.resolveYarnConfigs.restore();
     });
-    it('should call resolveStormConfigs if serviceName is STORM', function () {
-      var serviceName = 'STORM', configs = [
-        {},
-        {},
-        {}
-      ];
-      installerStep7Controller.resolveServiceDependencyConfigs(serviceName, configs);
-      expect(installerStep7Controller.resolveStormConfigs.calledWith(configs)).to.equal(true);
+    var serviceNames = [
+      {serviceName: 'STORM', method: "resolveStormConfigs"},
+      {serviceName: 'YARN', method: "resolveYarnConfigs"}].forEach(function(t) {
+      it("should call " + t.method + " if serviceName is " + t.serviceName, function () {
+        var configs = [
+          {},
+          {}
+        ];
+        installerStep7Controller.resolveServiceDependencyConfigs(t.serviceName, configs);
+        expect(installerStep7Controller[t.method].calledWith(configs)).to.equal(true);
+      });
     });
   });
 
@@ -1014,7 +1060,7 @@ describe('App.InstallerStep7Controller', function () {
   describe('#applyServicesConfigs', function() {
     beforeEach(function() {
       installerStep7Controller.reopen({
-        allSelectedServiceNames: [],
+        allSelectedServiceNames: []
       });
       sinon.stub(App.config, 'fileConfigsIntoTextarea', function(configs) {
         return configs;
@@ -1054,12 +1100,14 @@ describe('App.InstallerStep7Controller', function () {
       {
         allSelectedServiceNames: ['YARN'],
         fileConfigsIntoTextarea: true,
-        m: 'should run fileConfigsIntoTextarea',
+        m: 'should run fileConfigsIntoTextarea and resolveServiceDependencyConfigs',
+        resolveServiceDependencyConfigs: true,
         capacitySchedulerUi: false
       },
       {
         allSelectedServiceNames: ['YARN'],
-        m: 'shouldn\'t run fileConfigsIntoTextarea',
+        m: 'shouldn\'t run fileConfigsIntoTextarea but  run resolveServiceDependencyConfigs',
+        resolveServiceDependencyConfigs: true,
         capacitySchedulerUi: true
       },
       {
@@ -1083,7 +1131,7 @@ describe('App.InstallerStep7Controller', function () {
           expect(App.config.fileConfigsIntoTextarea.calledOnce).to.equal(false);
         }
         if (t.resolveServiceDependencyConfigs) {
-          expect(installerStep7Controller.resolveServiceDependencyConfigs.calledWith('STORM', {name: 'configs'})).to.equal(true);
+          expect(installerStep7Controller.resolveServiceDependencyConfigs.calledWith(t.allSelectedServiceNames[0], {name: 'configs'})).to.equal(true);
         } else {
           expect(installerStep7Controller.resolveServiceDependencyConfigs.calledOnce).to.equal(false);
         }

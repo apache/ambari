@@ -658,7 +658,7 @@ App.MainHostDetailsController = Em.Controller.extend({
     if (services.someProperty('serviceName', 'SLIDER')) {
       urlParams.push('(type=slider-client&tag=' + data.Clusters.desired_configs['slider-client'].tag + ')');
     }
-    if (App.get('isRMHaEnabled')) {
+    if ((services.someProperty('serviceName', 'YARN') && App.get('isHadoop22Stack')) || App.get('isRMHaEnabled')) {
       urlParams.push('(type=yarn-site&tag=' + data.Clusters.desired_configs['yarn-site'].tag + ')');
     }
     return urlParams;
@@ -712,9 +712,6 @@ App.MainHostDetailsController = Em.Controller.extend({
       configs['webhcat-site']['templeton.zookeeper.hosts'] = zksWithPort;
     }
     if (configs['hive-site']) {
-      if (App.get('isHadoop22Stack')) {
-        configs['hive-site']['hive.zookeeper.quorum'] = zksWithPort;
-      }
       configs['hive-site']['hive.cluster.delegation.token.store.zookeeper.connectString'] = zksWithPort;
     }
     if (configs['storm-site']) {
@@ -725,6 +722,14 @@ App.MainHostDetailsController = Em.Controller.extend({
     }
     if (App.get('isRMHaEnabled')) {
       configs['yarn-site']['yarn.resourcemanager.zk-address'] = zks.join(',');
+    }
+    if (App.get('isHadoop22Stack')) {
+      if (configs['hive-site']) {
+        configs['hive-site']['hive.zookeeper.quorum'] = zksWithPort;
+      }
+      if (configs['yarn-site']) {
+        configs['yarn-site']['hadoop.registry.zk.quorum'] = zksWithPort;
+      }
     }
     return true;
   },

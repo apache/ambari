@@ -146,11 +146,11 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, {
   }.property('content.services.@each.isSelected','content.services.@each.isInstalled').cacheable(),
 
   /**
-   * List of installed and selected services
+   * List of installed services
    * @type {Object[]}
    */
   installedServices: function () {
-    return this.get('content.services').filterProperty('isSelected').filterProperty('isInstalled');
+    return this.get('content.services').filterProperty('isInstalled');
   }.property('content.services').cacheable(),
 
   /**
@@ -1436,9 +1436,9 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, {
    * @method applyConfigurationsToCluster
    */
   applyConfigurationsToCluster: function (serviceConfigTags) {
-    var selectedServices = this.get('selectedServices');
+    var allServices = this.get('installedServices').concat(this.get('selectedServices'));
     var allConfigData = [];
-    selectedServices.forEach(function (service) {
+    allServices.forEach(function (service) {
       var serviceConfigData = [];
       Object.keys(service.get('configTypesRendered')).forEach(function (type) {
         var serviceConfigTag = serviceConfigTags.findProperty('type', type);
@@ -1446,25 +1446,14 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, {
           serviceConfigData.pushObject(serviceConfigTag);
         }
       }, this);
-      allConfigData.pushObject(JSON.stringify({
-        Clusters: {
-          desired_config: serviceConfigData
-        }
-      }));
-    }, this);
-    /**
-     * if some services change core-site we should put updates to cluster
-     */
-    if (this.get('content.controllerName') == 'addServiceController' && !selectedServices.someProperty('serviceName', 'HDFS')) {
-      var coreConfig = serviceConfigTags.findProperty('type', 'core-site');
-      if (coreConfig) {
+      if (serviceConfigData.length) {
         allConfigData.pushObject(JSON.stringify({
           Clusters: {
-            desired_config: [coreConfig]
+            desired_config: serviceConfigData
           }
         }));
       }
-    }
+    }, this);
     var clusterConfig = serviceConfigTags.findProperty('type', 'cluster-env');
     if (clusterConfig) {
       allConfigData.pushObject(JSON.stringify({

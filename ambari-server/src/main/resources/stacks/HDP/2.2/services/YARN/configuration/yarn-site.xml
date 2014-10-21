@@ -26,5 +26,18 @@
     <value>/etc/hadoop/conf,/usr/hdp/current/hadoop-client/*,/usr/hdp/current/hadoop-client/lib/*,/usr/hdp/current/hadoop-hdfs-client/*,/usr/hdp/current/hadoop-hdfs-client/lib/*,/usr/hdp/current/hadoop-yarn-client/*,/usr/hdp/current/hadoop-yarn-client/lib/*,/usr/hdp/current/hadoop-mapreduce-client/*,/usr/hdp/current/hadoop-mapreduce-client/lib/*</value>
     <description>Classpath for typical applications.</description>
   </property>
-
+  <property>
+    <name>hadoop.registry.rm.enabled</name>
+    <value>false</value>
+    <description>
+      Is the registry enabled: does the RM start it up, create the user and system paths, and purge service records when containers, application attempts and applications complete
+    </description>
+  </property>
+  <property>
+    <name>hadoop.registry.zk.quorum</name>
+    <value>localhost:2181</value>
+    <description>
+      List of hostname:port pairs defining the zookeeper quorum binding for the registry
+    </description>
+  </property>
 </configuration>
