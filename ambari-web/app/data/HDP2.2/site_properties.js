@@ -18,21 +18,40 @@
 
 var App = require('app');
 var hdp2properties = require('data/HDP2/site_properties').configProperties;
-var hdp22properties = hdp2properties.filter(function (item){
+var hdp22properties = hdp2properties.filter(function (item) {
   //In HDP2.2 storm.thrift.transport property is computed on server
   return item.name !== 'storm.thrift.transport' && item.name !== 'storm_rest_api_host';
 });
 
 hdp22properties.push(
-{
-  "id": "site property",
-  "name": "hive.zookeeper.quorum",
-  "displayName": "hive.zookeeper.quorum",
-  "defaultValue": "localhost:2181",
-  "displayType": "multiLine",
-  "isVisible": true,
-  "serviceName": "HIVE",
-  "category": "Advanced hive-site"
+  {
+    "id": "site property",
+    "name": "hive.zookeeper.quorum",
+    "displayName": "hive.zookeeper.quorum",
+    "defaultValue": "localhost:2181",
+    "displayType": "multiLine",
+    "isVisible": true,
+    "serviceName": "HIVE",
+    "category": "Advanced hive-site"
+  },
+  {
+    "id": "site property",
+    "name": "hadoop.registry.rm.enabled",
+    "displayName": "hadoop.registry.rm.enabled",
+    "defaultValue": "false",
+    "displayType": "checkbox",
+    "isVisible": true,
+    "serviceName": "YARN",
+    "category": "Advanced yarn-site"
+  },
+  {
+    "id": "site property",
+    "name": "hadoop.registry.zk.quorum",
+    "displayName": "hadoop.registry.zk.quorum",
+    "defaultValue": "localhost:2181",
+    "isVisible": true,
+    "serviceName": "YARN",
+    "category": "Advanced yarn-site"
 });
 
 module.exports =

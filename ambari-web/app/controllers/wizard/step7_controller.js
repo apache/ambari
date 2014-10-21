@@ -668,6 +668,8 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
       case 'STORM':
         this.resolveStormConfigs(configs);
         break;
+      case 'YARN':
+        this.resolveYarnConfigs(configs);
       default:
         break;
     }
@@ -706,6 +708,24 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
     }
   },
 
+  /**
+   * Update some Storm configs
+   * If SLIDER is selected to install or already installed,
+   * some Yarn properties must be changed
+   * @param {Ember.Enumerable} configs
+   * @method resolveYarnConfigs
+   */
+  resolveYarnConfigs: function(configs) {
+    var cfgToChange = configs.findProperty('name', 'hadoop.registry.rm.enabled');
+    if (cfgToChange) {
+      var res = this.get('allSelectedServiceNames').contains('SLIDER');
+      if (Em.get(cfgToChange, 'value') !== res) {
+        Em.set(cfgToChange, 'defaultValue', res);
+        Em.set(cfgToChange, 'value', res);
+        Em.set(cfgToChange, 'forceUpdate', true);
+      }
+    }
+  },
   /**
    * On load function
    * @method loadStep
@@ -750,9 +770,12 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
     if (this.get('allSelectedServiceNames').contains('YARN') && !App.get('supports.capacitySchedulerUi')) {
       configs = App.config.fileConfigsIntoTextarea(configs, 'capacity-scheduler.xml');
     }
-    if (this.get('allSelectedServiceNames').contains('STORM')) {
-      this.resolveServiceDependencyConfigs('STORM', configs);
-    }
+    var dependendServices = ["STORM", "YARN"];
+    dependendServices.forEach(function(serviceName){
+      if (this.get('allSelectedServiceNames').contains(serviceName)) {
+        this.resolveServiceDependencyConfigs(serviceName, configs);
+      }
+    }, this);
     //STEP 6: Distribute configs by service and wrap each one in App.ServiceConfigProperty (configs -> serviceConfigs)
     var self = this;
     this.loadServerSideConfigsRecommendations().always(function() {

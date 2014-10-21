@@ -870,7 +870,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
         // watch for properties that are not modified but have to be updated
         if (_content.get('configs').someProperty('forceUpdate')) {
           // check for already added modified properties
-          var forceUpdatedFileNames = configs.filterProperty('forceUpdate', true).mapProperty('filename').uniq();
+          var forceUpdatedFileNames = _content.get('configs').filterProperty('forceUpdate', true).mapProperty('filename').uniq();
           fileNamesToUpdate = fileNamesToUpdate.concat(forceUpdatedFileNames).uniq();
         }
       }

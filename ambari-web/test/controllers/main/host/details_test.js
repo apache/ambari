@@ -686,6 +686,17 @@ describe('App.MainHostDetailsController', function () {
       expect(controller.constructConfigUrlParams(data)).to.eql(['(type=slider-client&tag=1)']);
       App.Service.find().clear();
     });
+    it('YARN for 2.2 stack is installed', function () {
+      App.set('currentStackVersion', 'HDP-2.2.0');
+      App.store.load(App.Service, {
+        id: 'YARN',
+        service_name: 'YARN'
+      });
+      var data = {Clusters: {desired_configs: {'yarn-site': {tag: 1}}}};
+      expect(controller.constructConfigUrlParams(data)).to.eql(['(type=yarn-site&tag=1)']);
+      App.set('currentStackVersion', 'HDP-2.0.1');
+      App.Service.find().clear();
+    });
     it('isRMHaEnabled true', function () {
       sinon.stub(App, 'get').withArgs('isRMHaEnabled').returns(true);
       var data = {Clusters: {desired_configs: {'yarn-site': {tag: 1}}}};
@@ -818,6 +829,16 @@ describe('App.MainHostDetailsController', function () {
       expect(configs).to.eql({"hive-site": {
         'hive.cluster.delegation.token.store.zookeeper.connectString': "host1:2181",
         'hive.zookeeper.quorum': "host1:2181"
+      }});
+      App.set('currentStackVersion', version);
+    });
+    it('yarn-site is present and stack > 2.2', function () {
+      var version = App.get('currentStackVersion');
+      var configs = {'yarn-site': {}};
+      App.set('currentStackVersion', 'HDP-2.2.0');
+      expect(controller.setZKConfigs(configs, 'host1:2181', [])).to.be.true;
+      expect(configs).to.eql({"yarn-site": {
+        'hadoop.registry.zk.quorum': "host1:2181"
       }});
       App.set('currentStackVersion', version);
     });
