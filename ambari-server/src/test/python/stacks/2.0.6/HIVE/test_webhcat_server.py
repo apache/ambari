@@ -146,18 +146,6 @@ class TestWebHCatServer(RMFTestCase):
                               group = 'hadoop',
                               recursive = True,
                               )
-    self.assertResourceCalled('XmlConfig', 'webhcat-site.xml',
-                              owner = 'hcat',
-                              group = 'hadoop',
-                              conf_dir = '/etc/hcatalog/conf',
-                              configurations = self.getConfig()['configurations']['webhcat-site'],
-                              configuration_attributes = self.getConfig()['configuration_attributes']['webhcat-site']
-    )
-    self.assertResourceCalled('File', '/etc/hcatalog/conf/webhcat-env.sh',
-                              content = InlineTemplate(self.getConfig()['configurations']['webhcat-env']['content']),
-                              owner = 'hcat',
-                              group = 'hadoop',
-                              )
     self.assertResourceCalled('CopyFromLocal', '/usr/lib/hadoop-mapreduce/hadoop-streaming-*.jar',
                               owner='hcat',
                               mode=0755,
@@ -194,6 +182,18 @@ class TestWebHCatServer(RMFTestCase):
                               hadoop_conf_dir='/etc/hadoop/conf',
                               hdfs_user='hdfs'
     )
+    self.assertResourceCalled('XmlConfig', 'webhcat-site.xml',
+                              owner = 'hcat',
+                              group = 'hadoop',
+                              conf_dir = '/etc/hcatalog/conf',
+                              configurations = self.getConfig()['configurations']['webhcat-site'],
+                              configuration_attributes = self.getConfig()['configuration_attributes']['webhcat-site']
+    )
+    self.assertResourceCalled('File', '/etc/hcatalog/conf/webhcat-env.sh',
+                              content = InlineTemplate(self.getConfig()['configurations']['webhcat-env']['content']),
+                              owner = 'hcat',
+                              group = 'hadoop',
+                              )
 
   def assert_configure_secured(self):
     self.assertResourceCalled('HdfsDirectory', '/apps/webhcat',
@@ -244,18 +244,6 @@ class TestWebHCatServer(RMFTestCase):
                               group = 'hadoop',
                               recursive = True,
                               )
-    self.assertResourceCalled('XmlConfig', 'webhcat-site.xml',
-                              owner = 'hcat',
-                              group = 'hadoop',
-                              conf_dir = '/etc/hcatalog/conf',
-                              configurations = self.getConfig()['configurations']['webhcat-site'],
-                              configuration_attributes = self.getConfig()['configuration_attributes']['webhcat-site']
-    )
-    self.assertResourceCalled('File', '/etc/hcatalog/conf/webhcat-env.sh',
-                              content = InlineTemplate(self.getConfig()['configurations']['webhcat-env']['content']),
-                              owner = 'hcat',
-                              group = 'hadoop',
-                              )
     self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/hdfs.headless.keytab hdfs;',
                               path = ['/bin'],
                               user = 'hcat',
@@ -296,3 +284,15 @@ class TestWebHCatServer(RMFTestCase):
                               hadoop_bin_dir='/usr/bin',
                               hdfs_user='hdfs'
     )
+    self.assertResourceCalled('XmlConfig', 'webhcat-site.xml',
+                              owner = 'hcat',
+                              group = 'hadoop',
+                              conf_dir = '/etc/hcatalog/conf',
+                              configurations = self.getConfig()['configurations']['webhcat-site'],
+                              configuration_attributes = self.getConfig()['configuration_attributes']['webhcat-site']
+    )
+    self.assertResourceCalled('File', '/etc/hcatalog/conf/webhcat-env.sh',
+                              content = InlineTemplate(self.getConfig()['configurations']['webhcat-env']['content']),
+                              owner = 'hcat',
+                              group = 'hadoop',
+                              )

@@ -36,6 +36,7 @@ variables cannot be determined ahead of time, but rather, depends on what files 
 
 It assumes that {{ hdp_stack_version }} is constructed as ${major.minor.patch.rev}-${build_number}
 E.g., 998.2.2.1.0-998
+Please note that "-${build_number}" is optional.
 Whereas {{ component_version }} is up to the Component to define, may be 3.0.1 or 301.
 """
 
@@ -81,10 +82,10 @@ def __get_tar_source_and_dest_folder(tarball_prefix):
   return component_tar_source_file, component_tar_destination_folder
 
 
-def __create_regex_pattern(file_path, rpm_version):
+def __create_regex_pattern(file_path, hdp_stack_version):
   """
   :param file_path: Input file path
-  :param rpm_version: HDP rpm version, such as 2.2.0.0
+  :param hdp_stack_version: Stack version, such as 2.2.0.0
   :return: Returns an expression that uses file system regex that can be used with ls and hadoop fs -ls
   """
   # Perform the variable interpretation
@@ -94,16 +95,16 @@ def __create_regex_pattern(file_path, rpm_version):
 
   # IMPORTANT, the build version was used in HDP 2.2, but may not be needed in future versions.
   if "{{ hdp_stack_version }}" in file_path_pattern:
-    file_path_pattern = file_path_pattern.replace("{{ hdp_stack_version }}", rpm_version + "-*")   # the trailing "-*" is the build number
+    file_path_pattern = file_path_pattern.replace("{{ hdp_stack_version }}", hdp_stack_version + "*")   # the trailing "*" is the optional build number
   return file_path_pattern
 
 
-def __populate_source_and_dests(tarball_prefix, source_file_pattern, component_tar_destination_folder, rpm_version):
+def __populate_source_and_dests(tarball_prefix, source_file_pattern, component_tar_destination_folder, hdp_stack_version):
   """
   :param tarball_prefix: Prefix of the tarball must be one of tez, hive, mr, pig
   :param source_file_pattern: Regex pattern of the source file from the local file system
   :param component_tar_destination_folder: Destination folder to copy the file to in HDFS
-  :param rpm_version: Stack version number without the build version. E.g., 2.2.0.0
+  :param hdp_stack_version: Stack version number without the build version. E.g., 2.2.0.0
   :return: Returns a list of tuples (x, y), where x is the source file in the local file system,
   and y is the destination file path in HDFS
   """
@@ -115,12 +116,12 @@ def __populate_source_and_dests(tarball_prefix, source_file_pattern, component_t
     hdp_build_version = None
 
     # Attempt to retrieve the hdp_build_version and component_version.
-    # In case the build number has dots, attempt to match as many as possible.
-    pattern = "%s-(.*)\\.%s-([0-9\\.]*)\\..*" % (tarball_prefix, str(rpm_version).replace(".", "\\."))
+    # In case the build number (which is optional) has dots, attempt to match as many as possible.
+    pattern = "%s-(.*)\\.%s-?([0-9\\.]*)\\..*" % (tarball_prefix, str(hdp_stack_version).replace(".", "\\."))
     m = re.search(pattern, file_base_name)
     if m and len(m.groups()) == 2:
       component_version = str(m.group(1))
-      hdp_build_version = str(m.group(2))
+      hdp_build_version = str(m.group(2))   # optional, so may be empty.
 
     missing_a_variable = False
     # The destination_file_path will be interpreted as well.
@@ -133,13 +134,14 @@ def __populate_source_and_dests(tarball_prefix, source_file_pattern, component_t
         missing_a_variable = True
 
     if "{{ hdp_stack_version }}" in destination_file_path:
-      if hdp_build_version :
-        destination_file_path = destination_file_path.replace("{{ hdp_stack_version }}", "%s-%s" % (rpm_version, hdp_build_version))
+      if hdp_build_version and hdp_build_version.strip() != "":
+        destination_file_path = destination_file_path.replace("{{ hdp_stack_version }}", "%s-%s" %
+                                                              (hdp_stack_version, hdp_build_version))
       else:
-        missing_a_variable = True
+        destination_file_path = destination_file_path.replace("{{ hdp_stack_version }}", "%s" % hdp_stack_version)
 
     if missing_a_variable:
-      print("WARNING. Could not identify HDP stack version or Component version in file %s , "
+      print("WARNING. Could not identify Component version in file %s , "
             "so will not copy to HDFS." % str(file))
     else:
       source_and_dest_pairs.append((file, destination_file_path))
@@ -164,8 +166,6 @@ def __copy_files(source_and_dest_pairs, file_owner, kinit_if_needed):
     for (source, destination) in source_and_dest_pairs:
       try:
         destination_dir = os.path.dirname(destination)
-        create_dir_cmd = "dfs -mkdir -p %s" % destination_dir
-        test_dir_exists = "dfs -test -e %s" % destination_dir
 
         params.HdfsDirectory(destination_dir,
                              action="create",
@@ -195,25 +195,25 @@ def copy_tarballs_to_hdfs(tarball_prefix, component_user, file_owner):
   :return: Returns 0 on success, 1 if no files were copied, and in some cases may raise an exception.
 
   In order to call this function, params.py must have all of the following,
-  rpm_version, kinit_path_local, security_enabled, hdfs_user, hdfs_principal_name, hdfs_user_keytab,
+  hdp_stack_version, kinit_path_local, security_enabled, hdfs_user, hdfs_principal_name, hdfs_user_keytab,
   hadoop_bin_dir, hadoop_conf_dir, and HdfsDirectory as a partial function.
   """
   import params
 
-  if not hasattr(params, "rpm_version") or params.rpm_version is None:
-    Logger.warning("cluster-env.xml does not have rpm_version")
+  if not hasattr(params, "hdp_stack_version") or params.hdp_stack_version is None:
+    Logger.warning("Could not find hdp_stack_version")
     return 1
 
   component_tar_source_file, component_tar_destination_folder = __get_tar_source_and_dest_folder(tarball_prefix)
   if not component_tar_source_file or not component_tar_destination_folder:
     return 1
 
-  source_file_pattern = __create_regex_pattern(component_tar_source_file, params.rpm_version)
+  source_file_pattern = __create_regex_pattern(component_tar_source_file, params.hdp_stack_version)
   # This is just the last segment
   file_name_pattern = source_file_pattern.split('/')[-1:][0]
-  tar_destination_folder_pattern = __create_regex_pattern(component_tar_destination_folder, params.rpm_version)
+  tar_destination_folder_pattern = __create_regex_pattern(component_tar_destination_folder, params.hdp_stack_version)
 
-  # Pattern for searching the file in HDFS. E.g. value, hdfs:///hdp/apps/2.2.0.0-*/tez/tez-*.2.2.0.0-*.tar.gz
+  # Pattern for searching the file in HDFS. E.g. value, hdfs:///hdp/apps/2.2.0.0*/tez/tez-*.2.2.0.0*.tar.gz
   hdfs_file_pattern = os.path.join(tar_destination_folder_pattern, file_name_pattern)
   does_hdfs_file_exist_cmd = "fs -ls %s" % hdfs_file_pattern
 
@@ -241,7 +241,7 @@ def copy_tarballs_to_hdfs(tarball_prefix, component_user, file_owner):
 
   if not does_hdfs_file_exist:
     source_and_dest_pairs = __populate_source_and_dests(tarball_prefix, source_file_pattern,
-                                                        component_tar_destination_folder, params.rpm_version)
+                                                        component_tar_destination_folder, params.hdp_stack_version)
     return __copy_files(source_and_dest_pairs, file_owner, kinit_if_needed)
   return 1
 
@@ -256,16 +256,16 @@ def __map_local_file_to_hdfs_file(tarball_prefix):
   """
   import params
 
-  if not hasattr(params, "rpm_version") or params.rpm_version is None:
-    Logger.warning("cluster-env.xml does not have rpm_version")
+  if not hasattr(params, "hdp_stack_version") or params.hdp_stack_version is None:
+    Logger.warning("Could not find hdp_stack_version")
     return ""
 
   component_tar_source_file, component_tar_destination_folder = __get_tar_source_and_dest_folder(tarball_prefix)
   if not component_tar_source_file or not component_tar_destination_folder:
     return ""
 
-  source_file_pattern = __create_regex_pattern(component_tar_source_file, params.rpm_version)
-  source_and_dest_pairs = __populate_source_and_dests(tarball_prefix, source_file_pattern, component_tar_destination_folder, params.rpm_version)
+  source_file_pattern = __create_regex_pattern(component_tar_source_file, params.hdp_stack_version)
+  source_and_dest_pairs = __populate_source_and_dests(tarball_prefix, source_file_pattern, component_tar_destination_folder, params.hdp_stack_version)
   if source_and_dest_pairs and len(source_and_dest_pairs) == 1:
     return source_and_dest_pairs[0][1]
 
@@ -280,7 +280,7 @@ def interpret_dynamic_version_property(property_value, tarball_prefix, delimiter
   :return: Returns a tuple of (x, y), where x is a bool indicating if at least one variable was substituted, and y
   is the interpretation of the property value if an interpretation could be done, otherwise it remains unchanged.
 
-  Notice that params must have the rpm_version attribute.
+  Notice that params must have the hdp_stack_version attribute.
   """
   import params
 
@@ -298,7 +298,7 @@ def interpret_dynamic_version_property(property_value, tarball_prefix, delimiter
         if __contains_dynamic_variable(elem):
           # Need to do dynamic interpretation, and slight regex escaping. Must not escape " " since it is used in
           # the dynamic variable string.
-          elem_pattern = __create_regex_pattern(elem, params.rpm_version).replace(".", "\\.").replace("*", ".*")
+          elem_pattern = __create_regex_pattern(elem, params.hdp_stack_version).replace(".", "\\.").replace("*", ".*")
           p = re.compile(elem_pattern)
           m = p.match(versioned_tarball)
           if m:

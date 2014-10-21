@@ -25,7 +25,7 @@ limitations under the License.
 
   <property>
     <name>templeton.jar</name>
-    <value>/usr/hdp/current/hcatalog/share/webhcat/svr/webhcat.jar</value>
+    <value>/usr/hdp/current/hive-webhcat/share/webhcat/svr/lib/hive-webhcat-*.jar</value>
     <description>The path to the Templeton jar file.</description>
   </property>
 
@@ -35,13 +35,17 @@ limitations under the License.
     <description>Jars to add the the classpath.</description>
   </property>
 
-
   <property>
     <name>templeton.hadoop</name>
     <value>/usr/hdp/current/hadoop-client/bin/hadoop</value>
     <description>The path to the Hadoop executable.</description>
   </property>
 
+  <property>
+    <name>templeton.pig.archive</name>
+    <value>hdfs:///hdp/apps/{{ hdp_stack_version }}/pig/pig-{{ component_version }}.{{ hdp_stack_version }}.tar.gz</value>
+    <description>The path to the Pig archive in HDFS.</description>
+  </property>
 
   <property>
     <name>templeton.hcat</name>
@@ -50,8 +54,14 @@ limitations under the License.
   </property>
 
   <property>
+    <name>templeton.hive.archive</name>
+    <value>hdfs:///hdp/apps/{{ hdp_stack_version }}/hive/hive-{{ component_version }}.{{ hdp_stack_version }}.tar.gz</value>
+    <description>The path to the Hive archive.</description>
+  </property>
+
+  <property>
     <name>templeton.sqoop.archive</name>
-    <value>hdfs:///apps/webhcat/sqoop.tar.gz</value>
+    <value>hdfs:///hdp/apps/{{ hdp_stack_version }}/sqoop/sqoop-{{ component_version }}.{{ hdp_stack_version }}.tar.gz</value>
     <description>The path to the Sqoop archive in HDFS.</description>
   </property>
 
@@ -59,6 +69,12 @@ limitations under the License.
     <name>templeton.sqoop.path</name>
     <value>sqoop.tar.gz/sqoop/bin/sqoop</value>
     <description>The path to the Sqoop executable.</description>
+  </property>
+
+  <property>
+    <name>templeton.streaming.jar</name>
+    <value>hdfs:///hdp/apps/{{ hdp_stack_version }}/mr/hadoop-streaming-{{ component_version }}.{{ hdp_stack_version }}.jar</value>
+    <description>The hdfs path to the Hadoop streaming jar file.</description>
   </property>
 
 </configuration>

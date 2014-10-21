@@ -217,7 +217,8 @@
             "templeton.hive.path": "hive.tar.gz/hive/bin/hive", 
             "templeton.hadoop.conf.dir": "/etc/hadoop/conf", 
             "templeton.hcat": "/usr/bin/hcat", 
-            "templeton.pig.archive": "hdfs:///apps/webhcat/pig.tar.gz"
+            "templeton.pig.archive": "hdfs:///apps/webhcat/pig.tar.gz",
+            "templeton.sqoop.archive": "hdfs:///apps/webhcat/sqoop.tar.gz"
         }, 
         "capacity-scheduler": {
             "yarn.scheduler.capacity.node-locality-delay": "40", 
