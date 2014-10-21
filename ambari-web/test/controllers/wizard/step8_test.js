@@ -1462,4 +1462,67 @@ describe('App.WizardStep8Controller', function () {
 
   });
 
+  describe("#resolveProxyuserDependecies()", function() {
+    it("No core-site configs", function() {
+      expect(installerStep8Controller.resolveProxyuserDependecies([], [])).to.be.empty;
+    });
+    it("Only proxyuser group config", function() {
+      var configs = [{
+        name: 'proxyuser_group'
+      }];
+      installerStep8Controller.set('configs', [{
+        name: 'proxyuser_group',
+        value: 'val1'
+      }]);
+      expect(installerStep8Controller.resolveProxyuserDependecies(configs, [])).to.be.empty;
+    });
+    it("Property should be added", function() {
+      var configs = [
+        {
+          name: 'proxyuser_group'
+        },
+        {
+          name: 'hadoop.proxyuser.user.hosts',
+          value: 'val2'
+        }
+      ];
+      installerStep8Controller.set('configs', [{
+        name: 'proxyuser_group',
+        value: 'val1'
+      }]);
+      expect(installerStep8Controller.resolveProxyuserDependecies(configs, [])).to.be.eql({
+        'hadoop.proxyuser.user.hosts': 'val2',
+        'proxyuser_group': 'val1'
+      });
+    });
+    it("Property should be skipped", function() {
+      var configs = [
+        {
+          name: 'proxyuser_group'
+        },
+        {
+          name: 'hadoop.proxyuser.user.hosts',
+          value: 'val2'
+        }
+      ];
+      installerStep8Controller.set('configs', [
+        {
+          name: 'proxyuser_group',
+          value: 'val1'
+        },
+        {
+          name: 'user1',
+          value: 'user'
+        }
+      ]);
+      installerStep8Controller.set('optionalCoreSiteConfigs', [
+        {
+          serviceName: 'S1',
+          user: 'user1'
+        }
+      ]);
+      expect(installerStep8Controller.resolveProxyuserDependecies(configs, [])).to.be.empty;
+    });
+  });
+
 });
