@@ -61,6 +61,11 @@
     <description>Authorization Enabled flag</description>
   </property>
   <property>
+    <name>*.falcon.enableTLS</name>
+    <value>false</value>
+    <description>Falcon TLS Enabled flag</description>
+  </property>
+  <property>
     <name>*.falcon.security.authorization.superusergroup</name>
     <value>falcon</value>
     <description>The name of the group of super-users</description>
