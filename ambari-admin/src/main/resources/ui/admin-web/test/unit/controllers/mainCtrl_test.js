@@ -32,7 +32,11 @@ describe('#Auth', function () {
       clusterService =  _Cluster_;
       deferred = _$q_.defer();
       spyOn(clusterService, 'getStatus').andReturn(deferred.promise);
-      deferred.resolve('c1');
+      deferred.resolve({
+        Clusters: {
+          provisioning_state: 'INIT'
+        }
+      });
       $window = _$window_;
       $httpBackend = _$httpBackend_;
       $httpBackend.whenGET(/\/api\/v1\/logout\?_=\d+/).respond(200,{message: "successfully logged out"});
