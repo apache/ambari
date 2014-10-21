@@ -21,17 +21,6 @@
 -->
 
 <configuration>
-  <property>
-    <name>namenode_opt_permsize</name>
-    <value>128m</value>
-    <description>NameNode permanent generation size</description>
-  </property>
-  <property>
-    <name>namenode_opt_maxpermsize</name>
-    <value>256m</value>
-    <description>NameNode maximum permanent generation size</description>
-  </property>
-
   <!-- hadoop-env.sh -->
   <property>
     <name>content</name>
