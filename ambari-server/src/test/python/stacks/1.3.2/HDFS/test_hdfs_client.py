@@ -39,7 +39,6 @@ class Test(RMFTestCase):
     self.assertResourceCalled('Directory', '/tmp',
                               recursive = True,
                               )
-    self.printResources()
     self.assertResourceCalled('XmlConfig', 'core-site.xml',
                               conf_dir = '/tmp/123',
                               configuration_attributes = self.getConfig()['configuration_attributes']['core-site'],

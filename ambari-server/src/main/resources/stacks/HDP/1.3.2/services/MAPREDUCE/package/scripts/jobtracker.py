@@ -65,6 +65,10 @@ class Jobtracker(Script):
     conf_dir = params.conf_dir
     user_group = params.user_group
 
+    if params.security_enabled:
+      Execute(params.kinit_cmd,
+         user = params.mapred_user)
+
     File(params.exclude_file_path,
          content=Template("exclude_hosts_list.j2"),
          owner=mapred_user,
