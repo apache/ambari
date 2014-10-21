@@ -37,6 +37,8 @@ import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.HostConfig;
 import org.apache.ambari.server.state.PropertyInfo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -65,6 +67,8 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
    * input.  These properties will be stripped from the exported blueprint.
    */
   private Map<String, Collection<String>> propertiesToStrip = new HashMap<String, Collection<String>>();
+
+  private final static Logger LOG = LoggerFactory.getLogger(ClusterBlueprintRenderer.class);
 
 
   // ----- Renderer ----------------------------------------------------------
@@ -538,7 +542,16 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
 
       // property map type is currently <String, Object>
       properties = (Map) configNode.getObject().getPropertiesMap().get("properties");
-      stripRequiredProperties(properties);
+
+      if (properties != null) {
+        stripRequiredProperties(properties);
+      } else {
+        LOG.warn("Empty configuration found for configuration type = " + type +
+          " during Blueprint export.  This may occur after an upgrade of Ambari, when" +
+          "attempting to export a Blueprint from a cluster started by an older version of " +
+          "Ambari.");
+      }
+
     }
 
     /**

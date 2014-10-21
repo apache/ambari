@@ -31,7 +31,6 @@ import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.internal.ResourceImpl;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.state.PropertyInfo;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.net.InetAddress;
@@ -99,7 +98,6 @@ public class ClusterBlueprintRendererTest {
     assertTrue(propertyTree.getChild("Host/HostComponent").getObject().contains("HostRoles/component_name"));
   }
 
-  @Ignore
   @Test
   public void testFinalizeResult() throws Exception{
 
@@ -124,7 +122,6 @@ public class ClusterBlueprintRendererTest {
     Resource blueprintResource = blueprintNode.getObject();
     Map<String, Map<String, Object>> properties = blueprintResource.getPropertiesMap();
 
-    assertEquals("blueprint-testCluster", properties.get("Blueprints").get("blueprint_name"));
     assertEquals("HDP", properties.get("Blueprints").get("stack_name"));
     assertEquals("1.3.3", properties.get("Blueprints").get("stack_version"));
 
@@ -176,10 +173,70 @@ public class ClusterBlueprintRendererTest {
   //todo: collection resource
 
   private void createClusterResultTree(TreeNode<Resource> resultTree) throws Exception{
-    Resource clusterResource = new ResourceImpl(Resource.Type.Cluster);
+    Resource clusterResource = new ResourceImpl(Resource.Type.Cluster) {
+      @Override
+      public Map<String, Map<String, Object>> getPropertiesMap() {
+        Map<String, Map<String, Object>> originalMap =
+          super.getPropertiesMap();
+
+        // override the properties map for simpler testing
+        originalMap.put("Clusters/desired_configs", Collections.<String, Object>emptyMap());
+
+        return originalMap;
+      };
+
+    };
+
     clusterResource.setProperty("Clusters/cluster_name", "testCluster");
     clusterResource.setProperty("Clusters/version", "HDP-1.3.3");
+
     TreeNode<Resource> clusterTree = resultTree.addChild(clusterResource, "Cluster:1");
+
+    // add empty services resource for basic unit testing
+    Resource servicesResource = new ResourceImpl(Resource.Type.Service);
+    clusterTree.addChild(servicesResource, "services");
+
+
+    Resource configurationsResource = new ResourceImpl(Resource.Type.Configuration);
+    TreeNode<Resource> configurations = clusterTree.addChild(configurationsResource, "configurations");
+    Resource resourceOne = new ResourceImpl(Resource.Type.Configuration) {
+      @Override
+      public Map<String, Map<String, Object>> getPropertiesMap() {
+        Map<String, Map<String, Object>> originalMap =
+        super.getPropertiesMap();
+
+        // return null for properties, to simulate upgrade case
+        originalMap.put("properties", null);
+
+        return originalMap;
+      }
+    };
+
+    resourceOne.setProperty("type", "mapreduce-log4j");
+
+    configurations.addChild(resourceOne, "resourceOne");
+
+
+    Resource resourceTwo = new ResourceImpl(Resource.Type.Configuration) {
+      @Override
+      public Map<String, Map<String, Object>> getPropertiesMap() {
+        Map<String, Map<String, Object>> originalMap =
+          super.getPropertiesMap();
+
+        // return test properties, to simluate valid configuration entry
+        originalMap.put("properties", Collections.<String, Object>singletonMap("propertyOne", "valueOne"));
+
+        return originalMap;
+      }
+    };
+
+    resourceTwo.setProperty("type", "test-type-one");
+
+    configurations.addChild(resourceTwo, "resourceTwo");
+
+    Resource blueprintOne = new ResourceImpl(Resource.Type.Blueprint);
+    blueprintOne.setProperty("Blueprints/blueprint_name", "blueprint-testCluster");
+    clusterTree.addChild(blueprintOne, "Blueprints");
 
     TreeNode<Resource> hostsTree = clusterTree.addChild(null, "hosts");
     hostsTree.setProperty("isCollection", "true");
