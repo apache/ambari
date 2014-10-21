@@ -32,6 +32,7 @@ from alerts.collector import AlertCollector
 from alerts.metric_alert import MetricAlert
 from alerts.port_alert import PortAlert
 from alerts.script_alert import ScriptAlert
+from alerts.web_alert import WebAlert
 
 logger = logging.getLogger()
 
@@ -43,6 +44,7 @@ class AlertSchedulerHandler():
   TYPE_PORT = 'PORT'
   TYPE_METRIC = 'METRIC'
   TYPE_SCRIPT = 'SCRIPT'
+  TYPE_WEB = 'WEB'
 
   APS_CONFIG = { 
     'threadpool.core_threads': 3,
@@ -222,6 +224,8 @@ class AlertSchedulerHandler():
     elif source_type == AlertSchedulerHandler.TYPE_SCRIPT:
       source['stacks_dir'] = self.stacks_dir
       alert = ScriptAlert(json_definition, source)
+    elif source_type == AlertSchedulerHandler.TYPE_WEB:
+      alert = WebAlert(json_definition, source)
 
     if alert is not None:
       alert.set_cluster(clusterName, hostName)

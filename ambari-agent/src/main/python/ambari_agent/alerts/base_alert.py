@@ -22,6 +22,7 @@ import logging
 import re
 import time
 import traceback
+from collections import namedtuple
 
 logger = logging.getLogger()
 
@@ -91,9 +92,17 @@ class BaseAlert(object):
       res = self._collect()
       res_base_text = self.alert_source_meta['reporting'][res[0].lower()]['text']
     except Exception as e:
-      traceback.print_exc()
+      message = "Unable to run alert {0}".format(str(self.alert_meta['name']))
+      
+      # print the exception if in DEBUG, otherwise just log the warning
+      if logger.isEnabledFor(logging.DEBUG):
+        logger.exception(message)
+      else:
+        logger.warning(message)
+
       res = (BaseAlert.RESULT_UNKNOWN, [str(e)])
       res_base_text = "Unknown {0}"
+    
     
     if logger.isEnabledFor(logging.DEBUG):
       logger.debug("debug alert result: {0}".format(str(res)))
@@ -154,6 +163,108 @@ class BaseAlert(object):
       return self.config_value_dict[key]
     else:
       return None
+
+    
+  def _lookup_uri_property_keys(self, uri_structure):
+    '''
+    Loads the configuration lookup keys that the URI structure needs. This
+    will return a named tuple that contains the keys needed to lookup
+    parameterized URI values from the URI structure. The URI structure looks 
+    something like:
+    
+    "uri":{ 
+      "http": foo,
+      "https": bar,
+      ...
+    }
+    '''
+    
+    if uri_structure is None:
+      return None
+    
+    http_key = None
+    https_key = None
+    https_property_key = None
+    https_property_value_key = None
+    
+    if 'http' in uri_structure:
+      http_key = self._find_lookup_property(uri_structure['http'])
+    
+    if 'https' in uri_structure:
+      https_key = self._find_lookup_property(uri_structure['https'])
+      
+    if 'https_property' in uri_structure:
+      https_property_key = self._find_lookup_property(uri_structure['https_property'])
+      
+    if 'https_property_value' in uri_structure:
+      https_property_value_key = uri_structure['https_property_value']
+
+    AlertUriLookupKeys = namedtuple('AlertUriLookupKeys', 
+        'http https https_property https_property_value')
+    
+    alert_uri_lookup_keys = AlertUriLookupKeys(http=http_key, https=https_key, 
+        https_property=https_property_key, https_property_value=https_property_value_key)
+    
+    return alert_uri_lookup_keys
+
+    
+  def _get_uri_from_structure(self, alert_uri_lookup_keys):
+    '''
+    Gets the URI to use by examining the URI structure from the definition.
+    This will return a named tuple that has the uri and the SSL flag. The
+    URI structure looks something like:
+    
+    "uri":{ 
+      "http": foo,
+      "https": bar,
+      ...
+    }
+    '''
+    
+    if alert_uri_lookup_keys is None:
+      return None
+    
+    http_uri = None
+    https_uri = None
+    https_property = None
+    https_property_value = None
+
+    # attempt to parse and parameterize the various URIs; properties that
+    # do not exist int he lookup map are returned as None
+    if alert_uri_lookup_keys.http is not None:
+      http_uri = self._lookup_property_value(alert_uri_lookup_keys.http)
+    
+    if alert_uri_lookup_keys.https is not None:
+      https_uri = self._lookup_property_value(alert_uri_lookup_keys.https)
+
+    if alert_uri_lookup_keys.https_property is not None:
+      https_property = self._lookup_property_value(alert_uri_lookup_keys.https_property)
+
+    if alert_uri_lookup_keys.https_property_value is not None:
+      https_property_value = self._lookup_property_value(alert_uri_lookup_keys.https_property_value)
+
+    # without a URI, there's no way to create the structure we need    
+    if http_uri is None and https_uri is None:
+      raise Exception("Could not determine result. Either the http or https URI must be specified.")
+
+    # start out assuming plaintext
+    uri = http_uri
+    is_ssl_enabled = False
+    
+    if https_uri is not None:
+      # https without http implies SSL
+      if http_uri is None:
+        is_ssl_enabled = True
+        uri = https_uri
+      elif https_property is not None and https_property == https_property_value:
+        is_ssl_enabled = True
+        uri = https_uri
+    
+    # create a named tuple to return both the concrete URI and SSL flag
+    AlertUri = namedtuple('AlertUri', 'uri is_ssl_enabled')
+    alert_uri = AlertUri(uri=uri, is_ssl_enabled=is_ssl_enabled)
+    
+    return alert_uri
 
 
   def _collect(self):

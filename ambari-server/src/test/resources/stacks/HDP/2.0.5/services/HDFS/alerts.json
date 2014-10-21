@@ -4,28 +4,37 @@
   "NAMENODE": [
     {
       "name": "namenode_cpu",
-      "label": "NameNode host CPU Utilization",
+      "label": "NameNode Host CPU Utilization",
+      "interval": 2,
       "scope": "ANY",
+      "enabled": true,
       "source": {
         "type": "METRIC",
-        "jmx": {
-          "property_list": [
-            "java.lang:type=OperatingSystem/SystemCpuLoad"
-          ]
+        "uri": {
+          "http": "{{hdfs-site/dfs.namenode.http-address}}",
+          "https": "{{hdfs-site/dfs.namenode.https-address}}",
+          "https_property": "{{hdfs-site/dfs.http.policy}}",
+          "https_property_value": "HTTPS_ONLY"
         },
-        "host": "{{hdfs-site/dfs.namenode.secondary.http-address}}",
         "reporting": {
           "ok": {
-            "text": "System CPU Load is OK"
+            "text": "{1} CPU, load {0:.1%}"
           },
           "warning": {
-            "text": "System CPU Load is Nearing Critical",
-            "value": 70
-          },          
+            "text": "{1} CPU, load {0:.1%}",
+            "value": 200
+          },
           "critical": {
-            "text": "System CPU Load is Critical",
-            "value": 80
+            "text": "{1} CPU, load {0:.1%}",
+            "value": 250
           }
+        },
+        "jmx": {
+          "property_list": [
+            "java.lang:type=OperatingSystem/SystemCpuLoad",
+            "java.lang:type=OperatingSystem/AvailableProcessors"
+          ],
+          "value": "{0} * 100"
         }
       }
     },
@@ -73,5 +82,42 @@
       }
     }
   ],  
-  "DATANODE": []
+  "DATANODE": [
+    {
+      "name": "datanode_storage",
+      "label": "DataNode Storage",
+      "interval": 2,
+      "scope": "HOST",
+      "enabled": true,
+      "source": {
+        "type": "METRIC",
+        "uri": {
+          "http": "{{hdfs-site/dfs.datanode.http.address}}",
+          "https": "{{hdfs-site/dfs.datanode.https.address}}",
+          "https_property": "{{hdfs-site/dfs.http.policy}}",
+          "https_property_value": "HTTPS_ONLY"
+        },
+        "reporting": {
+          "ok": {
+            "text": "Remaining Capacity:[{0}], Total Capacity:[{2:d}% Used, {1}]"
+          },
+          "warning": {
+            "text": "Remaining Capacity:[{0}], Total Capacity:[{2:d}% Used, {1}]",
+            "value": 80
+          },
+          "critical": {
+            "text": "Remaining Capacity:[{0}], Total Capacity:[{2:d}% Used, {1}]",
+            "value": 90
+          }
+        },
+        "jmx": {
+          "property_list": [
+            "Hadoop:service=DataNode,name=FSDatasetState-*/Remaining",
+            "Hadoop:service=DataNode,name=FSDatasetState-*/Capacity"
+          ],
+          "value": "({1} - {0})/{1} * 100"
+        }
+      }
+    }  
+  ]
 }

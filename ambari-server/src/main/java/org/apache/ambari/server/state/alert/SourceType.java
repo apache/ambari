@@ -41,5 +41,10 @@ public enum SourceType {
   /**
    * Source is a ratio of two {@link #METRIC} values.
    */
-  PERCENT;
+  PERCENT,
+
+  /**
+   * Source is an http(s)-style request.
+   */
+  WEB;
 }

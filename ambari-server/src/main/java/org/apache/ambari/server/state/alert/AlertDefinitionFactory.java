@@ -267,6 +267,10 @@ public class AlertDefinitionFactory {
           clazz = PercentSource.class;
           break;
         }
+        case WEB: {
+          clazz = WebSource.class;
+          break;
+        }
         default:
           break;
       }

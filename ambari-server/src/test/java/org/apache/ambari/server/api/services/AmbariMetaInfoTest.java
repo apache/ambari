@@ -64,6 +64,7 @@ import org.apache.ambari.server.state.Stack;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.alert.AlertDefinition;
+import org.apache.ambari.server.state.alert.MetricSource;
 import org.apache.ambari.server.state.alert.PortSource;
 import org.apache.ambari.server.state.alert.Reporting;
 import org.apache.ambari.server.state.alert.Source;
@@ -1575,6 +1576,7 @@ public class AmbariMetaInfoTest {
     // find two different definitions and test each one
     AlertDefinition nameNodeProcess = null;
     AlertDefinition nameNodeCpu = null;
+    AlertDefinition datanodeStorage = null;
 
     Iterator<AlertDefinition> iterator = set.iterator();
     while (iterator.hasNext()) {
@@ -1586,12 +1588,16 @@ public class AmbariMetaInfoTest {
       if (definition.getName().equals("namenode_cpu")) {
         nameNodeCpu = definition;
       }
+
+      if (definition.getName().equals("datanode_storage")) {
+        datanodeStorage = definition;
+      }
     }
 
     assertNotNull(nameNodeProcess);
     assertNotNull(nameNodeCpu);
 
-    assertEquals("NameNode host CPU Utilization", nameNodeCpu.getLabel());
+    assertEquals("NameNode Host CPU Utilization", nameNodeCpu.getLabel());
 
     // test namenode_process
     Source source = nameNodeProcess.getSource();
@@ -1621,6 +1627,15 @@ public class AmbariMetaInfoTest {
     assertNotNull(reporting.getWarning());
     assertNotNull(reporting.getWarning().getText());
     assertNotNull(reporting.getWarning().getValue());
+
+    // test a metric alert
+    assertNotNull(datanodeStorage);
+    MetricSource metricSource = (MetricSource) datanodeStorage.getSource();
+    assertNotNull( metricSource.getUri() );
+    assertNotNull( metricSource.getUri().getHttpsProperty() );
+    assertNotNull( metricSource.getUri().getHttpsPropertyValue() );
+    assertNotNull( metricSource.getUri().getHttpsUri() );
+    assertNotNull( metricSource.getUri().getHttpUri() );
   }
 
   /**
@@ -1642,7 +1657,7 @@ public class AmbariMetaInfoTest {
 
     AlertDefinitionDAO dao = injector.getInstance(AlertDefinitionDAO.class);
     List<AlertDefinitionEntity> definitions = dao.findAll();
-    assertEquals(4, definitions.size());
+    assertEquals(5, definitions.size());
 
     for (AlertDefinitionEntity definition : definitions) {
       definition.setScheduleInterval(28);
@@ -1652,7 +1667,7 @@ public class AmbariMetaInfoTest {
     metaInfo.reconcileAlertDefinitions(clusters);
 
     definitions = dao.findAll();
-    assertEquals(4, definitions.size());
+    assertEquals(5, definitions.size());
 
     for (AlertDefinitionEntity definition : definitions) {
       assertEquals(28, definition.getScheduleInterval().intValue());

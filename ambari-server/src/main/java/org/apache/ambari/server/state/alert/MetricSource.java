@@ -18,7 +18,6 @@
 package org.apache.ambari.server.state.alert;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import com.google.gson.annotations.SerializedName;
@@ -32,8 +31,8 @@ import com.google.gson.annotations.SerializedName;
 public class MetricSource extends Source {
 
   @SerializedName("uri")
-  private String m_uri = null;
-  
+  private AlertUri uri = null;
+
   @SerializedName("jmx")
   private JmxInfo jmxInfo = null;
 
@@ -57,8 +56,8 @@ public class MetricSource extends Source {
   /**
    * @return the uri info, which may include port information
    */
-  public String getUri() {
-    return m_uri;
+  public AlertUri getUri() {
+    return uri;
   }
 
   /**
@@ -70,7 +69,7 @@ public class MetricSource extends Source {
     int result = super.hashCode();
     result = prime * result
         + ((gangliaInfo == null) ? 0 : gangliaInfo.hashCode());
-    result = prime * result + ((m_uri == null) ? 0 : m_uri.hashCode());
+    result = prime * result + ((uri == null) ? 0 : uri.hashCode());
     result = prime * result + ((jmxInfo == null) ? 0 : jmxInfo.hashCode());
 
     return result;
@@ -102,11 +101,11 @@ public class MetricSource extends Source {
       return false;
     }
 
-    if (m_uri == null) {
-      if (other.m_uri != null) {
+    if (uri == null) {
+      if (other.uri != null) {
         return false;
       }
-    } else if (!m_uri.equals(other.m_uri)) {
+    } else if (!uri.equals(other.uri)) {
       return false;
     }
 
@@ -120,42 +119,42 @@ public class MetricSource extends Source {
 
     return true;
   }
-  
+
   /**
    * Represents the {@code jmx} element in a Metric alert.
    */
   public static class JmxInfo {
     @SerializedName("property_list")
     private List<String> propertyList;
-    
+
     private String value;
-    
+
     public List<String> getPropertyList() {
       return propertyList;
     }
-    
+
     public String getValue() {
       return value;
     }
-    
+
     @Override
     public boolean equals(Object object) {
       if (!JmxInfo.class.isInstance(object)) {
         return false;
       }
-      
+
       JmxInfo other = (JmxInfo)object;
-      
+
       List<String> list1 = new ArrayList<String>(propertyList);
       List<String> list2 = new ArrayList<String>(other.propertyList);
-      
+
       if ((null == list1 && null != list2) || (null != list1 && null == list2)) {
         return false;
       }
-      
+
       // !!! even if out of order, this is enough to fail
       return list1.equals(list2);
-      
+
     }
   }
 }

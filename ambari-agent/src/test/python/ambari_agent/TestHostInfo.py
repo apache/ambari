@@ -187,8 +187,11 @@ class TestHostInfo(TestCase):
                                               "koji-override-0/$releasever"])
       self.assertFalse(package['repoName'] in ["AMBARI.dev-1.x"])
 
+  @patch.object(OSCheck, 'get_os_family')
   @patch.object(PackagesAnalyzer, 'subprocessWithTimeout')
-  def test_analyze_yum_output_err(self, subprocessWithTimeout_mock):
+  def test_analyze_yum_output_err(self, subprocessWithTimeout_mock, get_os_family_mock):
+    get_os_family_mock.return_value = OSConst.REDHAT_FAMILY
+    
     packageAnalyzer = PackagesAnalyzer()
 
     result = {}

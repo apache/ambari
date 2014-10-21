@@ -141,7 +141,7 @@ public class AlertEventPublisherTest {
   public void testAlertDefinitionInsertion() throws Exception {
     Assert.assertEquals(0, definitionDao.findAll().size());
     installHdfsService();
-    Assert.assertEquals(4, definitionDao.findAll().size());
+    Assert.assertEquals(5, definitionDao.findAll().size());
   }
 
   /**
