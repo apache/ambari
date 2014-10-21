@@ -251,17 +251,18 @@ def __map_local_file_to_hdfs_file(tarball_prefix):
   :param tarball_prefix: Prefix of the tarball must be one of tez, hive, mr, pig
   :return: Using the source tarball file pattern, it finds the corresponding file in the local filesystem, and
   maps it to its corresponding location in HDFS, while substituting the dynamic variables like {{ hdp_stack_version }}
-  and {{ component_version }}
+  and {{ component_version }}.
+  On success, returns a string with the path of where the file should be on HDFS, otherwise, returns an empty string.
   """
   import params
 
   if not hasattr(params, "rpm_version") or params.rpm_version is None:
     Logger.warning("cluster-env.xml does not have rpm_version")
-    return 1
+    return ""
 
   component_tar_source_file, component_tar_destination_folder = __get_tar_source_and_dest_folder(tarball_prefix)
   if not component_tar_source_file or not component_tar_destination_folder:
-    return 1
+    return ""
 
   source_file_pattern = __create_regex_pattern(component_tar_source_file, params.rpm_version)
   source_and_dest_pairs = __populate_source_and_dests(tarball_prefix, source_file_pattern, component_tar_destination_folder, params.rpm_version)
