@@ -91,6 +91,12 @@ App.initializer({
       viewEnabled: false,
 
       /**
+       * Should Slider View be disabled
+       * @type {bool}
+       */
+      viewDisabled: Em.computed.not('viewEnabled'),
+
+      /**
        * List of errors
        * @type {string[]}
        */
