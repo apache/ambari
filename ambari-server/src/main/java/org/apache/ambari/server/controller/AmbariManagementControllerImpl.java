@@ -1979,9 +1979,10 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       for (String serviceName : smokeTestServices) { // Creates smoke test commands
         Service s = cluster.getService(serviceName);
         // find service component host
-        String clientHost = getClientHostForRunningAction(cluster, s);
-        String smokeTestRole =
-            actionMetadata.getServiceCheckAction(serviceName);
+        ServiceComponent component = getClientComponentForRunningAction(cluster, s);
+        String componentName = component != null ? component.getName() : null;
+        String clientHost = getClientHostForRunningAction(cluster, s, component);
+        String smokeTestRole = actionMetadata.getServiceCheckAction(serviceName);
 
         if (clientHost == null || smokeTestRole == null) {
           LOG.info("Nothing to do for service check as could not find role or"
@@ -1995,7 +1996,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
         customCommandExecutionHelper.addServiceCheckAction(stage, clientHost,
           smokeTestRole, nowTimestamp, serviceName,
-          null, null);
+          componentName, null);
       }
 
       RoleCommandOrder rco = getRoleCommandOrder(cluster);
@@ -2880,7 +2881,17 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
   }
 
-  private String getClientHostForRunningAction(Cluster cluster,
+  protected String getClientHostForRunningAction(Cluster cluster, Service service, ServiceComponent serviceComponent)
+      throws AmbariException {
+    if (serviceComponent != null && !serviceComponent.getServiceComponentHosts().isEmpty()) {
+      Set<String> candidateHosts = serviceComponent.getServiceComponentHosts().keySet();
+      filterHostsForAction(candidateHosts, service, cluster, Resource.Type.Cluster);
+      return getHealthyHost(candidateHosts);
+    }
+    return null;
+  }
+
+  protected ServiceComponent getClientComponentForRunningAction(Cluster cluster,
       Service service) throws AmbariException {
     /*
      * We assume Cluster level here. That means that we never run service
@@ -2888,7 +2899,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
      * That also means that we can not run service check if the only host
      * that has client component is in maintenance state
      */
-    Resource.Type opLvl = Resource.Type.Cluster;
 
     StackId stackId = service.getDesiredStackVersion();
     ComponentInfo compInfo =
@@ -2899,9 +2909,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         ServiceComponent serviceComponent =
             service.getServiceComponent(compInfo.getName());
         if (!serviceComponent.getServiceComponentHosts().isEmpty()) {
-          Set<String> candidateHosts = serviceComponent.getServiceComponentHosts().keySet();
-          filterHostsForAction(candidateHosts, service, cluster, opLvl);
-          return getHealthyHost(candidateHosts);
+          return serviceComponent;
         }
       } catch (ServiceComponentNotFoundException e) {
         LOG.warn("Could not find required component to run action"
@@ -2913,17 +2921,12 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     // any component will do
     Map<String, ServiceComponent> components = service.getServiceComponents();
-    if (components.isEmpty()) {
-      return null;
-    }
-
-    for (ServiceComponent serviceComponent : components.values()) {
-      if (serviceComponent.getServiceComponentHosts().isEmpty()) {
-        continue;
+    if (!components.isEmpty()) {
+      for (ServiceComponent serviceComponent : components.values()) {
+        if (!serviceComponent.getServiceComponentHosts().isEmpty()) {
+          return serviceComponent;
+        }
       }
-      Set<String> candidateHosts = serviceComponent.getServiceComponentHosts().keySet();
-      filterHostsForAction(candidateHosts, service, cluster, opLvl);
-      return getHealthyHost(candidateHosts);
     }
     return null;
   }
@@ -2932,7 +2935,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
    * Utility method that filters out hosts from set based on their maintenance
    * state status.
    */
-  private void filterHostsForAction(Set<String> candidateHosts, Service service,
+  protected void filterHostsForAction(Set<String> candidateHosts, Service service,
                                     final Cluster cluster,
                                     final Resource.Type level)
                                     throws AmbariException {
