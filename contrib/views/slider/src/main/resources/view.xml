@@ -39,7 +39,7 @@ limitations under the License. Kerberos, LDAP, Custom. Binary/Htt
 	</parameter>
 	<parameter>
 		<name>slider.user</name>
-		<description>User this view instance should run as. Specifying an empty value runs view as YARN service user (for example 'yarn'). Specifying '{username}' runs the view as the currently logged in user. Specifying any other value runs the view as that user.
+		<description>User this view instance should run as. Specifying an empty value runs view as YARN service user (for example 'yarn'). Specifying '${username}' runs the view as the currently logged in user. Specifying any other value runs the view as that user.
 			Administrators should check that the HDFS home folder for that user is created and accessible.
         </description>
 		<required>false</required>
