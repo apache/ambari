@@ -42,26 +42,28 @@
                   </td>
                   <td class="agent-status">
                     <div class="wrapp-flume-status">
-                      <span {{bindAttr class="host.firtstAgent.healthClass"}}></span> {{host.firtstAgent.name}}
-                      <div class="btn-group display-inline-block flume-agents-actions">
-                          <a {{bindAttr class=":btn :dropdown-toggle"}} data-toggle="dropdown" href="javascript:void(null)">{{host.firtstAgent.displayStatus}}
-                              <span class="caret"></span>
-                          </a>
-                          <ul class="pull-left dropdown-menu">
-                              <li {{bindAttr class="host.firtstAgent.isStartAgentDisabled:disabled"}}>
-                                  <a href="javascript:void(null)"
-                                    {{bindAttr class="host.firtstAgent.isStartAgentDisabled:disabled"}}
-                                    {{action startFlumeAgent host.firtstAgent target="controller"}}>
-                                    {{t services.service.summary.flume.startAgent}}</a>
-                              </li>
-                              <li {{bindAttr class="host.firtstAgent.isStopAgentDisabled:disabled"}}>
-                                  <a href="javascript:void(null)"
-                                    {{bindAttr class="host.firtstAgent.isStopAgentDisabled:disabled"}}
-                                    {{action stopFlumeAgent host.firtstAgent target="controller"}}>
-                                    {{t services.service.summary.flume.stopAgent}}</a>
-                              </li>
-                          </ul>
-                      </div>
+                      <div class="pull-left"><span {{bindAttr class="host.firtstAgent.healthClass"}}></span> {{host.firtstAgent.name}}</div>
+                      <div class="btn-wrapper">
+                        <div class="btn-group display-inline-block flume-agents-actions">
+                            <a {{bindAttr class=":btn :dropdown-toggle"}} data-toggle="dropdown" href="javascript:void(null)">{{host.firtstAgent.displayStatus}}
+                                <span class="caret"></span>
+                            </a>
+                            <ul class="pull-left dropdown-menu">
+                                <li {{bindAttr class="host.firtstAgent.isStartAgentDisabled:disabled"}}>
+                                    <a href="javascript:void(null)"
+                                      {{bindAttr class="host.firtstAgent.isStartAgentDisabled:disabled"}}
+                                      {{action startFlumeAgent host.firtstAgent target="controller"}}>
+                                      {{t services.service.summary.flume.startAgent}}</a>
+                                </li>
+                                <li {{bindAttr class="host.firtstAgent.isStopAgentDisabled:disabled"}}>
+                                    <a href="javascript:void(null)"
+                                      {{bindAttr class="host.firtstAgent.isStopAgentDisabled:disabled"}}
+                                      {{action stopFlumeAgent host.firtstAgent target="controller"}}>
+                                      {{t services.service.summary.flume.stopAgent}}</a>
+                                </li>
+                            </ul>
+                        </div>
+                        </div>
                     </div>
                   </td>
                   <td>
@@ -78,7 +80,8 @@
                   {{#view view.agentView contentBinding="host"}}
                     <td class="agent-status">
                         <div class="wrapp-flume-status">
-                            <span {{bindAttr class="agent.healthClass"}}></span> {{agent.name}}
+                          <div class="pull-left"><span {{bindAttr class="agent.healthClass"}}></span> {{agent.name}}</div>
+                          <div class="btn-wrapper">
                             <div class="btn-group display-inline-block flume-agents-actions">
                                 <a {{bindAttr class=":btn :dropdown-toggle"}} data-toggle="dropdown" href="javascript:void(null)">{{agent.displayStatus}}
                                     <span class="caret"></span>
@@ -97,6 +100,7 @@
                                           {{t services.service.summary.flume.stopAgent}}</a>
                                     </li>
                                 </ul>
+                              </div>
                             </div>
                         </div>
                     </td>
