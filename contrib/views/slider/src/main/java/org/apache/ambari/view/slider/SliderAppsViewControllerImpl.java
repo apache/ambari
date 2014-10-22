@@ -212,8 +212,9 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
               if (yarnUser == null || yarnUser.trim().length() < 1) {
                 yarnUser = "yarn";
               }
-              newHadoopConfigs.put("yarn_user", yarnUser);
+              newHadoopConfigs.put("yarn_user", yarnUser); // YARN service user
             }
+            newHadoopConfigs.put("slider.user", getUserToRunAs(newHadoopConfigs)); // Slider user
             if (cluster.getDesiredConfigs().containsKey("zookeeper-env")) {
               Map<String, String> zkEnvConfigs = ambariClient.getConfiguration(
                   cluster, "zookeeper-env",
