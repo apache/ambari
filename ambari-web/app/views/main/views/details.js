@@ -84,7 +84,8 @@ App.MainViewsDetailsView = Em.View.extend({
   },
 
   src: function() {
-    return window.location.origin + this.get('controller.content.href');
+    // can't use window.location.origin because IE doesn't support it
+    return window.location.protocol + '//' + window.location.host + this.get('controller.content.href');
   }.property('controller.content')
 
 });
