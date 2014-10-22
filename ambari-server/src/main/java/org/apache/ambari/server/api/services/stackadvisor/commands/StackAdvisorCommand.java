@@ -70,7 +70,7 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
   protected static Log LOG = LogFactory.getLog(StackAdvisorCommand.class);
 
   private static final String GET_HOSTS_INFO_URI = "/api/v1/hosts"
-      + "?fields=Hosts/host_name,Hosts/total_mem,Hosts/cpu_count,Hosts/disk_info&Hosts/host_name.in(%s)";
+      + "?fields=Hosts&Hosts/host_name.in(%s)";
   private static final String GET_SERVICES_INFO_URI = "/api/v1/stacks/%s/versions/%s"
       + "?fields=Versions/stack_name,Versions/stack_version,Versions/parent_stack_version"
       + ",services/StackServices/service_name,services/StackServices/service_version"
