@@ -58,6 +58,6 @@ def setup_java():
 def install_packages():
   import params
   packages = ['unzip', 'curl']
-  if params.rpm_version:
+  if params.stack_is_hdp22_or_further:
     packages.append('hdp-select')
   Package(packages)

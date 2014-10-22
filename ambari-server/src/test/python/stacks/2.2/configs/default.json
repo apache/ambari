@@ -45,7 +45,6 @@
             "yarn.resourcemanager.scheduler.address": "c6401.ambari.apache.org:8030"
         },
         "cluster-env": {
-            "rpm_version": "2.2.0.0",
             "security_enabled": "false",
             "ignore_groupsusers_create": "false",
             "smokeuser": "ambari-qa",

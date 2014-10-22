@@ -26,11 +26,11 @@ import status_params
 config = Script.get_config()
 exec_tmp_dir = Script.get_tmp_dir()
 
-#RPM versioning support
-rpm_version = default("/configurations/cluster-env/rpm_version", None)
+hdp_stack_version = str(config['hostLevelParams']['stack_version'])
+stack_is_hdp22_or_further = not (hdp_stack_version.startswith('2.0') or hdp_stack_version.startswith('2.1'))
 
 #hadoop params
-if rpm_version:
+if stack_is_hdp22_or_further:
   hadoop_bin_dir = format("/usr/hdp/current/hadoop-client/bin")
   daemon_script = format('/usr/hdp/current/hbase-client/bin/hbase-daemon.sh')
   region_mover = format('/usr/hdp/current/hbase-client/bin/region_mover.rb')

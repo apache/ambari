@@ -25,11 +25,11 @@ from resource_management import *
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 
-#RPM versioning support
-rpm_version = default("/configurations/cluster-env/rpm_version", None)
+hdp_stack_version = str(config['hostLevelParams']['stack_version'])
+stack_is_hdp22_or_further = not (hdp_stack_version.startswith('2.0') or hdp_stack_version.startswith('2.1'))
 
 #hadoop params
-if rpm_version:
+if stack_is_hdp22_or_further:
   hadoop_bin_dir = "/usr/hdp/current/hadoop-client/bin"
   hadoop_home = '/usr/hdp/current/hadoop-client'
   pig_bin_dir = '/usr/hdp/current/pig-client/bin'
@@ -55,6 +55,3 @@ java64_home = config['hostLevelParams']['java_home']
 pig_properties = config['configurations']['pig-properties']['content']
 
 log4j_props = config['configurations']['pig-log4j']['content']
-
-stack_version = str(config['hostLevelParams']['stack_version'])
-stack_is_hdp22_or_further = not (stack_version.startswith('2.0') or stack_version.startswith('2.1'))

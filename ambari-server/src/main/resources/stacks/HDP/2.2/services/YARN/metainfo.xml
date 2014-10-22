@@ -35,10 +35,10 @@
           <osFamily>redhat5,redhat6,suse11</osFamily>
           <packages>
             <package>
-              <name>hadoop_2_2_0_0_*-yarn</name>
+              <name>hadoop_2_2_*-yarn</name>
             </package>
             <package>
-              <name>hadoop_2_2_0_0_*-mapreduce</name>
+              <name>hadoop_2_2_*-mapreduce</name>
             </package>
           </packages>
         </osSpecific>
@@ -46,10 +46,10 @@
           <osFamily>ubuntu12</osFamily>
           <packages>
             <package>
-              <name>hadoop-2-2-0-0-.*-yarn</name>
+              <name>hadoop-2-2-.*-yarn</name>
             </package>
             <package>
-              <name>hadoop-2-2-0-0-.*-mapreduce</name>
+              <name>hadoop-2-2-.*-mapreduce</name>
             </package>
           </packages>
         </osSpecific>
@@ -65,7 +65,7 @@
           <osFamily>redhat5,redhat6,suse11</osFamily>
           <packages>
             <package>
-              <name>hadoop_2_2_0_0_*-mapreduce</name>
+              <name>hadoop_2_2_*-mapreduce</name>
             </package>
           </packages>
         </osSpecific>
@@ -73,7 +73,7 @@
           <osFamily>ubuntu12</osFamily>
           <packages>
             <package>
-              <name>hadoop-2-2-0-0-.*-mapreduce</name>
+              <name>hadoop-2-2-.*-mapreduce</name>
             </package>
           </packages>
         </osSpecific>

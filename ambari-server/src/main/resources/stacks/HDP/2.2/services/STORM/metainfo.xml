@@ -34,7 +34,7 @@
           <osFamily>redhat5,redhat6,suse11</osFamily>
           <packages>
             <package>
-              <name>storm_2_2_0_0_*</name>
+              <name>storm_2_2_*</name>
             </package>
           </packages>
         </osSpecific>
@@ -42,7 +42,7 @@
           <osFamily>ubuntu12</osFamily>
           <packages>
             <package>
-              <name>storm-2-2-0-0-.*</name>
+              <name>storm-2-2-.*</name>
             </package>
           </packages>
         </osSpecific>

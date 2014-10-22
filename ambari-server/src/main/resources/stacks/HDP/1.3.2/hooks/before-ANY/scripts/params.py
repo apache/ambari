@@ -34,32 +34,17 @@ java_home = config['hostLevelParams']['java_home']
 
 ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
 
-
-#RPM versioning support
-rpm_version = default("/configurations/cluster-env/rpm_version", None)
-
-#hadoop params
-if rpm_version:
-  mapreduce_libs_path = "/usr/hdp/current/hadoop-mapreduce/*"
-  hadoop_libexec_dir = "/usr/hdp/current/hadoop/libexec"
-else:
-  mapreduce_libs_path = "/usr/lib/hadoop-mapreduce/*"
-  hadoop_libexec_dir = "/usr/lib/hadoop/libexec"
+mapreduce_libs_path = "/usr/lib/hadoop-mapreduce/*"
+hadoop_libexec_dir = "/usr/lib/hadoop/libexec"
 
 hadoop_conf_dir = "/etc/hadoop/conf"
 hadoop_conf_empty_dir = "/etc/hadoop/conf.empty"
 versioned_hdp_root = '/usr/hdp/current'
-#security params
-security_enabled = config['configurations']['cluster-env']['security_enabled']
-#java params
-java_home = config['hostLevelParams']['java_home']
+
 #hadoop params
 hdfs_log_dir_prefix = config['configurations']['hadoop-env']['hdfs_log_dir_prefix']
 hadoop_pid_dir_prefix = config['configurations']['hadoop-env']['hadoop_pid_dir_prefix']
 hadoop_root_logger = config['configurations']['hadoop-env']['hadoop_root_logger']
-
-#hadoop-env.sh
-java_home = config['hostLevelParams']['java_home']
 
 if str(config['hostLevelParams']['stack_version']).startswith('2.0') and System.get_instance().os_family != "suse":
   # deprecated rhel jsvc_path
@@ -108,7 +93,6 @@ smoke_user =  config['configurations']['cluster-env']['smokeuser']
 gmetad_user = config['configurations']['ganglia-env']["gmetad_user"]
 gmond_user = config['configurations']['ganglia-env']["gmond_user"]
 
-user_group = config['configurations']['cluster-env']['user_group']
 proxyuser_group =  default("/configurations/hadoop-env/proxyuser_group","users")
 nagios_group = config['configurations']['nagios-env']['nagios_group']
 

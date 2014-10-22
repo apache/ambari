@@ -26,11 +26,11 @@ import os
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 
-#RPM versioning support
-rpm_version = default("/configurations/cluster-env/rpm_version", None)
+hdp_stack_version = str(config['hostLevelParams']['stack_version'])
+stack_is_hdp22_or_further = not (hdp_stack_version.startswith('2.0') or hdp_stack_version.startswith('2.1'))
 
 #hadoop params
-if rpm_version:
+if stack_is_hdp22_or_further:
   hadoop_bin_dir = "/usr/hdp/current/hadoop-client/bin"
   hadoop_lib_home = "/usr/hdp/current/hadoop-client/lib"
   oozie_lib_dir = "/usr/hdp/current/oozie-client/"
@@ -72,7 +72,6 @@ oozie_hdfs_user_dir = format("/user/{oozie_user}")
 oozie_pid_dir = status_params.oozie_pid_dir
 pid_file = status_params.pid_file
 hadoop_jar_location = "/usr/lib/hadoop/"
-hdp_stack_version = config['hostLevelParams']['stack_version']
 # for HDP1 it's "/usr/share/HDP-oozie/ext.zip"
 ext_js_path = "/usr/share/HDP-oozie/ext-2.2.zip"
 security_enabled = config['configurations']['cluster-env']['security_enabled']
@@ -94,7 +93,6 @@ oozie_log_dir = config['configurations']['oozie-env']['oozie_log_dir']
 oozie_data_dir = config['configurations']['oozie-env']['oozie_data_dir']
 oozie_server_port = get_port_from_url(config['configurations']['oozie-site']['oozie.base.url'])
 oozie_server_admin_port = config['configurations']['oozie-env']['oozie_admin_port']
-oozie_env_sh_template = config['configurations']['oozie-env']['content']
 fs_root = config['configurations']['core-site']['fs.defaultFS']
 
 if str(hdp_stack_version).startswith('2.0') or str(hdp_stack_version).startswith('2.1'):
@@ -125,10 +123,7 @@ if (('oozie-log4j' in config['configurations']) and ('content' in config['config
 else:
   log4j_props = None
 
-oozie_hdfs_user_dir = format("/user/{oozie_user}")
 oozie_hdfs_user_mode = 0775
-#for create_hdfs_directory
-hostname = config["hostname"]
 hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_name']

@@ -34,7 +34,7 @@
           <osFamily>redhat5,redhat6,suse11</osFamily>
           <packages>
             <package>
-              <name>sqoop_2_2_0_0_*</name>
+              <name>sqoop_2_2_*</name>
             </package>
           </packages>
         </osSpecific>
@@ -42,7 +42,7 @@
           <osFamily>ubuntu12</osFamily>
           <packages>
             <package>
-              <name>sqoop-2-2-0-0-.*</name>
+              <name>sqoop-2-2-.*</name>
             </package>
           </packages>
         </osSpecific>
