@@ -20,6 +20,7 @@ limitations under the License.
 from resource_management import *
 import status_params
 import os
+import itertools
 
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
@@ -199,10 +200,21 @@ HdfsDirectory = functools.partial(
 )
 
 io_compression_codecs = config['configurations']['core-site']['io.compression.codecs']
-if not "com.hadoop.compression.lzo" in io_compression_codecs:
-  exclude_packages = ["lzo", "hadoop-lzo", "hadoop-lzo-native", "liblzo2-2"]
-else:
-  exclude_packages = []
+lzo_enabled = "com.hadoop.compression.lzo" in io_compression_codecs
+
+lzo_packages_to_family = {
+  "any": ["hadoop-lzo"],
+  "redhat": ["lzo", "hadoop-lzo-native"],
+  "suse": ["lzo", "hadoop-lzo-native"],
+  "ubuntu": ["liblzo2-2"]
+}
+lzo_packages_for_current_host = lzo_packages_to_family['any'] + lzo_packages_to_family[System.get_instance().os_family]
+all_lzo_packages = set(itertools.chain(*lzo_packages_to_family.values()))
+ 
+exclude_packages = []
+if not lzo_enabled:
+  exclude_packages += all_lzo_packages
+  
 name_node_params = default("/commandParams/namenode", None)
 
 #hadoop params

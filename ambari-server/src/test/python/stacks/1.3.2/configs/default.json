@@ -240,7 +240,7 @@
             "hadoop.proxyuser.hive.groups": "users", 
             "webinterface.private.actions": "false", 
             "hadoop.proxyuser.oozie.hosts": "c6402.ambari.apache.org", 
-            "io.compression.codecs": "org.apache.hadoop.io.compress.GzipCodec,org.apache.hadoop.io.compress.DefaultCodec,com.hadoop.compression.lzo.LzoCodec,com.hadoop.compression.lzo.LzopCodec,org.apache.hadoop.io.compress.SnappyCodec", 
+            "io.compression.codecs": "org.apache.hadoop.io.compress.GzipCodec,org.apache.hadoop.io.compress.DefaultCodec,org.apache.hadoop.io.compress.SnappyCodec", 
             "hadoop.security.authentication": "simple", 
             "fs.checkpoint.edits.dir": "${fs.checkpoint.dir}", 
             "fs.checkpoint.dir": "/hadoop/hdfs/namesecondary", 
@@ -248,7 +248,6 @@
             "ipc.client.idlethreshold": "8000", 
             "hadoop.proxyuser.hcat.hosts": "c6402.ambari.apache.org", 
             "hadoop.proxyuser.hive.hosts": "c6402.ambari.apache.org", 
-            "io.compression.codec.lzo.class": "com.hadoop.compression.lzo.LzoCodec", 
             "fs.checkpoint.period": "21600", 
             "ipc.client.connection.maxidletime": "30000", 
             "ipc.client.connect.max.retries": "50"

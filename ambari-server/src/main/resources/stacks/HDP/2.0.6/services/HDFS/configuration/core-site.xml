@@ -42,7 +42,7 @@
 
   <property>
     <name>io.compression.codecs</name>
-    <value>org.apache.hadoop.io.compress.GzipCodec,org.apache.hadoop.io.compress.DefaultCodec</value>
+    <value>org.apache.hadoop.io.compress.GzipCodec,org.apache.hadoop.io.compress.DefaultCodec,org.apache.hadoop.io.compress.SnappyCodec</value>
     <description>A list of the compression codec classes that can be used
                  for compression/decompression.</description>
   </property>

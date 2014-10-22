@@ -78,3 +78,6 @@ def hdfs(name=None):
        owner=tc_owner,
        content=Template("slaves.j2")
   )
+  
+  if params.lzo_enabled:
+    Package(params.lzo_packages_for_current_host)
