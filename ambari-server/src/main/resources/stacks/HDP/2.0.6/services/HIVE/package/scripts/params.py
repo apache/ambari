@@ -19,6 +19,7 @@ limitations under the License.
 """
 
 from resource_management import *
+from resource_management.libraries.functions.version import compare_versions, format_hdp_stack_version
 import status_params
 import os
 
@@ -26,22 +27,18 @@ import os
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 
-
+# This is expected to be of the form #.#.#.#
 hdp_stack_version = str(config['hostLevelParams']['stack_version'])
+hdp_stack_version = format_hdp_stack_version(hdp_stack_version)
 stack_is_hdp22_or_further = not (hdp_stack_version.startswith('2.0') or hdp_stack_version.startswith('2.1'))
 
 # Hadoop params
-# TODO, this logic assumes that the existence of HDP version is 2.2 or greater.
-# Instead, it should initialize these parameters in a file inside the HDP 2.2 stack.
-if stack_is_hdp22_or_further:
+# TODO, this logic should initialize these parameters in a file inside the HDP 2.2 stack.
+if compare_versions(hdp_stack_version, "2.2.0.0") >= 0:
   hadoop_bin_dir = "/usr/hdp/current/hadoop-client/bin"
   hadoop_home = '/usr/hdp/current/hadoop-client'
-  hadoop_streeming_jars = "/usr/hdp/current/hadoop-mapreduce-client/hadoop-streaming-*.jar"
   hive_bin = '/usr/hdp/current/hive-client/bin'
   hive_lib = '/usr/hdp/current/hive-client/lib'
-  pig_tar_file = '/usr/hdp/current/pig-client/pig.tar.gz'
-  hive_tar_file = '/usr/hdp/current/hive-client/hive.tar.gz'
-  sqoop_tar_file = '/usr/hdp/current/sqoop-client/sqoop*.tar.gz'
 
   hcat_lib = '/usr/hdp/current/hive-webhcat/share/hcatalog'
   webhcat_bin_dir = '/usr/hdp/current/hive-webhcat/sbin'
@@ -56,7 +53,7 @@ else:
   hive_tar_file = '/usr/share/HDP-webhcat/hive.tar.gz'
   sqoop_tar_file = '/usr/share/HDP-webhcat/sqoop*.tar.gz'
 
-  if str(hdp_stack_version).startswith('2.0'):
+  if compare_versions(hdp_stack_version, "2.1.0.0") < 0:
     hcat_lib = '/usr/lib/hcatalog/share/hcatalog'
     webhcat_bin_dir = '/usr/lib/hcatalog/sbin'
   # for newer versions
@@ -70,8 +67,7 @@ hive_client_conf_dir = "/etc/hive/conf"
 hive_server_conf_dir = '/etc/hive/conf.server'
 
 
-
-if str(hdp_stack_version).startswith('2.0'):
+if compare_versions(hdp_stack_version, "2.1.0.0") < 0:
   hcat_conf_dir = '/etc/hcatalog/conf'
   config_dir = '/etc/hcatalog/conf'
 # for newer versions
@@ -147,7 +143,7 @@ hive_metastore_pid = status_params.hive_metastore_pid
 java_share_dir = '/usr/share/java'
 driver_curl_target = format("{java_share_dir}/{jdbc_jar_name}")
 
-hdfs_user =  config['configurations']['hadoop-env']['hdfs_user']
+hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 user_group = config['configurations']['cluster-env']['user_group']
 artifact_dir = format("{tmp_dir}/AMBARI-artifacts/")
 
@@ -173,7 +169,7 @@ mysql_host = config['clusterHostInfo']['hive_mysql_host']
 mysql_adduser_path = format("{tmp_dir}/addMysqlUser.sh")
 
 ######## Metastore Schema
-if str(hdp_stack_version).startswith('2.0'):
+if compare_versions(hdp_stack_version, "2.1.0.0") < 0:
   init_metastore_schema = False
 else:
   init_metastore_schema = True
@@ -261,8 +257,8 @@ import functools
 #to create hdfs directory we need to call params.HdfsDirectory in code
 HdfsDirectory = functools.partial(
   HdfsDirectory,
-  conf_dir=hadoop_conf_dir,
-  hdfs_user=hdfs_user,
+  conf_dir = hadoop_conf_dir,
+  hdfs_user = hdfs_principal_name if security_enabled else hdfs_user,
   security_enabled = security_enabled,
   keytab = hdfs_user_keytab,
   kinit_path_local = kinit_path_local,

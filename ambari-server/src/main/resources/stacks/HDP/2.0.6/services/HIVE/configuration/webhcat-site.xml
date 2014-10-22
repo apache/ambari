@@ -25,7 +25,7 @@ limitations under the License.
 
   <property>
     <name>templeton.port</name>
-      <value>50111</value>
+    <value>50111</value>
     <description>The HTTP port for the main server.</description>
   </property>
 
@@ -46,7 +46,6 @@ limitations under the License.
     <value>/usr/lib/zookeeper/zookeeper.jar</value>
     <description>Jars to add the the classpath.</description>
   </property>
-
 
   <property>
     <name>templeton.hadoop</name>
@@ -116,14 +115,12 @@ limitations under the License.
   </property>
 
   <property>
-   <name>templeton.override.enabled</name>
-   <value>false</value>
-   <description>
-     Enable the override path in templeton.override.jars
-   </description>
- </property>
+    <name>templeton.override.enabled</name>
+    <value>false</value>
+    <description>Enable the override path in templeton.override.jars</description>
+  </property>
 
- <property>
+  <property>
     <name>templeton.streaming.jar</name>
     <value>hdfs:///apps/webhcat/hadoop-streaming.jar</value>
     <description>The hdfs path to the Hadoop streaming jar file.</description>
