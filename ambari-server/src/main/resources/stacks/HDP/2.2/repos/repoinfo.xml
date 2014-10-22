@@ -48,14 +48,14 @@
       <reponame>HDP</reponame>
     </repo>
     <repo>
-      <baseurl>http://s3.amazonaws.com/dev.hortonworks.com/HDP-UTILS-1.1.0.20/repos/suse11sp1</baseurl>
+      <baseurl>http://s3.amazonaws.com/dev.hortonworks.com/HDP-UTILS-1.1.0.20/repos/sles11sp1</baseurl>
       <repoid>HDP-UTILS-1.1.0.20</repoid>
       <reponame>HDP-UTILS</reponame>
     </repo>
   </os>
   <os family="ubuntu12">
     <repo>
-      <baseurl>http://s3.amazonaws.com/dev.hortonworks.com/HDP/ubuntu12/2.x/updates/2.2.0.0</baseurl>
+      <baseurl>http://s3.amazonaws.com/dev.hortonworks.com/HDP/ubuntu12/2.x/BUILDS/2.2.0.0-962</baseurl>
       <repoid>HDP-2.2</repoid>
       <reponame>HDP</reponame>
     </repo>
