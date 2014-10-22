@@ -946,7 +946,12 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
               JsonObject appTypeGlobalJson = appConfigJson.getAsJsonObject()
                   .get("global").getAsJsonObject();
               for (Entry<String, JsonElement> e : appTypeGlobalJson.entrySet()) {
-                configsMap.put(e.getKey(), e.getValue().getAsString());
+                String key = e.getKey();
+                String valueString = e.getValue().getAsString();
+                if ("application.def".equals(key)) {
+                  valueString = String.format(".slider/package/%1$s/%2$s", application.getName(), appZip.getName());
+                }
+                configsMap.put(key, valueString);
               }
               appType.setTypeConfigs(configsMap);
               // Components
