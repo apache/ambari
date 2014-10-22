@@ -61,6 +61,12 @@ def _call(command, logoutput=False, throw_on_failure=True,
     export_path_command = ""
 
   if user:
+    if env:
+      export_path_command += "export "
+      for var in env:
+        export_path_command += " " + var + "=" + env[var]
+      export_path_command += " ; "
+
     subprocess_command = ["su", "-s", "/bin/bash", "-", user, "-c", export_path_command + command]
   else:
     subprocess_command = ["/bin/bash","--login","-c", export_path_command + command]

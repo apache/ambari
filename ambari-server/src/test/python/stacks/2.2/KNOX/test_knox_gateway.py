@@ -53,6 +53,11 @@ class TestKnoxGateway(RMFTestCase):
                               owner = 'knox',
                               content = InlineTemplate(self.getConfig()['configurations']['ambari-topology']['content'])
     )
+    self.assertResourceCalled('Execute', '/usr/lib/knox/bin/knoxcli.sh create-master --master sa',
+                              user='knox',
+                              environment={'JAVA_HOME': '/usr/jdk64/jdk1.7.0_45'},
+                              not_if='test -f /var/lib/knox/data/security/master'
+    )
     self.assertResourceCalled('File', '/etc/knox/conf/ldap-log4j.properties',
                               mode=0644,
                               group='knox',

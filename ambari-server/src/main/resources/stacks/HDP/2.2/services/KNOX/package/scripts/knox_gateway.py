@@ -28,10 +28,6 @@ class KnoxGateway(Script):
     self.install_packages(env)
     import params
     env.set_params(params)
-    cmd = format('{knox_client_bin} create-master --master {knox_master_secret}')
-    Execute(cmd,
-            user=params.knox_user
-    )
     cmd = format('rm -f {knox_conf_dir}/topologies/sandbox.xml')
     Execute(cmd)
 
@@ -49,6 +45,7 @@ class KnoxGateway(Script):
     no_op_test = format('ls {knox_pid_file} >/dev/null 2>&1 && ps `cat {knox_pid_file}` >/dev/null 2>&1')
     Execute(daemon_cmd,
             user=params.knox_user,
+            environment={'JAVA_HOME': params.java_home},
             not_if=no_op_test
     )
 
@@ -58,6 +55,7 @@ class KnoxGateway(Script):
     self.configure(env)
     daemon_cmd = format('{knox_bin} stop')
     Execute(daemon_cmd,
+            environment={'JAVA_HOME': params.java_home},
             user=params.knox_user,
     )
     Execute (format("rm -f {knox_pid_file}"))
@@ -82,6 +80,7 @@ class KnoxGateway(Script):
     no_op_test = format('ls {ldap_pid_file} >/dev/null 2>&1 && ps `cat {ldap_pid_file}` >/dev/null 2>&1')
     Execute(daemon_cmd,
             user=params.knox_user,
+            environment={'JAVA_HOME': params.java_home},
             not_if=no_op_test
     )
 
@@ -91,6 +90,7 @@ class KnoxGateway(Script):
     self.configureldap(env)
     daemon_cmd = format('{ldap_bin} stop')
     Execute(daemon_cmd,
+            environment={'JAVA_HOME': params.java_home},
             user=params.knox_user,
             )
     Execute (format("rm -f {ldap_pid_file}"))
