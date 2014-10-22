@@ -228,9 +228,10 @@ public class AlertNoticeResourceProvider extends AbstractResourceProvider {
     setResourceProperty(resource, ALERT_NOTICE_HISTORY_ID,
         history.getAlertId(), requestedIds);
 
-    setResourceProperty(resource, ALERT_NOTICE_CLUSTER_NAME,
-        cluster.getClusterName(),
-        requestedIds);
+    if (null != cluster) {
+      setResourceProperty(resource, ALERT_NOTICE_CLUSTER_NAME,
+          cluster.getClusterName(), requestedIds);
+    }
 
     return resource;
   }

@@ -75,28 +75,46 @@ public class AlertDefinitionFactory {
 
   /**
    * Gets a list of all of the alert definitions defined in the specified JSON
-   * {@link File} for the given service.
+   * {@link File} for the given service. Each of the JSON files should have a
+   * mapping between the service and the alerts defined for that service. This
+   * is necessary since some services are combined in a single
+   * {@code metainfo.xml} and only have a single directory on the stack.
    *
    * @param alertDefinitionFile
+   *          the JSON file from the stack to read (not {@code null}).
    * @param serviceName
-   * @return
+   *          the name of the service to extract definitions for (not
+   *          {@code null}).
+   * @return the definitions for the specified service, or an empty set.
    * @throws AmbariException
    *           if there was a problem reading the file or parsing the JSON.
    */
   public Set<AlertDefinition> getAlertDefinitions(File alertDefinitionFile,
       String serviceName) throws AmbariException {
-    Map<String,List<AlertDefinition>> definitionMap = null;
+
+    // { MAPR : {definitions}, YARN : {definitions} }
+    Map<String, Map<String, List<AlertDefinition>>> serviceDefinitionMap = null;
 
     try {
-      Type type = new TypeToken<Map<String, List<AlertDefinition>>>(){}.getType();
+      Type type = new TypeToken<Map<String, Map<String, List<AlertDefinition>>>>() {}.getType();
 
-      definitionMap = m_gson.fromJson(new FileReader(alertDefinitionFile), type);
+      FileReader fileReader = new FileReader(alertDefinitionFile);
+      serviceDefinitionMap = m_gson.fromJson(fileReader, type);
     } catch (Exception e) {
       LOG.error("Could not read the alert definition file", e);
       throw new AmbariException("Could not read alert definition file", e);
     }
 
     Set<AlertDefinition> definitions = new HashSet<AlertDefinition>();
+
+    // it's OK if the service doesn't have any definitions; this can happen if
+    // 2 services are defined in a single metainfo.xml and only 1 service has
+    // alerts defined
+    Map<String, List<AlertDefinition>> definitionMap = serviceDefinitionMap.get(serviceName);
+    if (null == definitionMap) {
+      return definitions;
+    }
+
     for (Entry<String, List<AlertDefinition>> entry : definitionMap.entrySet()) {
       for (AlertDefinition ad : entry.getValue()) {
         ad.setServiceName(serviceName);

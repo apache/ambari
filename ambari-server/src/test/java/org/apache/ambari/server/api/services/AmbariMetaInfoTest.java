@@ -1636,6 +1636,7 @@ public class AmbariMetaInfoTest {
     assertNotNull( metricSource.getUri().getHttpsPropertyValue() );
     assertNotNull( metricSource.getUri().getHttpsUri() );
     assertNotNull( metricSource.getUri().getHttpUri() );
+    assertEquals(12345, metricSource.getUri().getDefaultPort());
   }
 
   /**

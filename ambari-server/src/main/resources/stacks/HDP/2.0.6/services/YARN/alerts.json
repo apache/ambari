@@ -1,0 +1,310 @@
+{
+  "MAPREDUCE2": {
+    "service": [],
+    "HISTORYSERVER": [
+      {
+        "name": "mapreduce_history_server_webui",
+        "label": "History Server Web UI",
+        "interval": 1,
+        "scope": "ANY",
+        "source": {
+          "type": "WEB",
+          "uri": {
+            "http": "{{mapred-site/mapreduce.jobhistory.webapp.address}}",
+            "https": "{{mapred-site/mapreduce.jobhistory.webapp.https.address}}",
+            "https_property": "{{mapred-site/mapreduce.jobhistory.http.policy}}",
+            "https_property_value": "HTTPS_ONLY"
+          },
+          "reporting": {
+            "ok": {
+              "text": "HTTP {0} response in {3:.4f} seconds"
+            },
+            "warning":{
+              "text": "HTTP {0} response in {3:.4f} seconds"
+            },
+            "critical": {
+              "text": "Connection failed to {1}:{2}"
+            }
+          }
+        }
+      },
+      {
+        "name": "mapreduce_history_server_cpu",
+        "label": "History Server CPU Utilization",
+        "interval": 5,
+        "scope": "ANY",
+        "enabled": true,
+        "source": {
+          "type": "METRIC",
+          "uri": {
+            "http": "{{mapred-site/mapreduce.jobhistory.webapp.address}}",
+            "https": "{{mapred-site/mapreduce.jobhistory.webapp.https.address}}",
+            "https_property": "{{mapred-site/mapreduce.jobhistory.http.policy}}",
+            "https_property_value": "HTTPS_ONLY"
+          },
+          "reporting": {
+            "ok": {
+              "text": "{1} CPU, load {0:.1%}"
+            },
+            "warning": {
+              "text": "{1} CPU, load {0:.1%}",
+              "value": 200
+            },
+            "critical": {
+              "text": "{1} CPU, load {0:.1%}",
+              "value": 250
+            }
+          },
+          "jmx": {
+            "property_list": [
+              "java.lang:type=OperatingSystem/SystemCpuLoad",
+              "java.lang:type=OperatingSystem/AvailableProcessors"
+            ],
+            "value": "{0} * 100"
+          }
+        }
+      },
+      {
+        "name": "mapreduce_history_server_rpc_latency",
+        "label": "History Server RPC Latency",
+        "interval": 5,
+        "scope": "ANY",
+        "enabled": true,
+        "source": {
+          "type": "METRIC",
+          "uri": {
+            "http": "{{mapred-site/mapreduce.jobhistory.webapp.address}}",
+            "https": "{{mapred-site/mapreduce.jobhistory.webapp.https.address}}",
+            "https_property": "{{mapred-site/mapreduce.jobhistory.http.policy}}",
+            "https_property_value": "HTTPS_ONLY"
+          },
+          "reporting": {
+            "ok": {
+              "text": "Average Queue Time:[{0}], Average Processing Time:[{1}]"
+            },
+            "warning": {
+              "text": "Average Queue Time:[{0}], Average Processing Time:[{1}]",
+              "value": 3000
+            },          
+            "critical": {
+              "text": "Average Queue Time:[{0}], Average Processing Time:[{1}]",
+              "value": 5000
+            }
+          },
+          "jmx": {
+            "property_list": [
+              "Hadoop:service=JobHistoryServer,name=RpcActivityForPort*/RpcQueueTimeAvgTime",
+              "Hadoop:service=JobHistoryServer,name=RpcActivityForPort*/RpcProcessingTimeAvgTime"
+            ],
+            "value": "{0}"
+          }
+        }
+      },
+      {
+        "name": "mapreduce_history_server_process",
+        "label": "History Server Process",
+        "interval": 1,
+        "scope": "ANY",
+        "enabled": true,
+        "source": {
+          "type": "PORT",
+          "uri": "{{mapred-site/mapreduce.jobhistory.webapp.address}}",
+          "default_port": 19888,
+          "reporting": {
+            "ok": {
+              "text": "TCP OK - {0:.4f} response on port {1}"
+            },
+            "critical": {
+              "text": "Connection failed: {0} on host {1}:{2}"
+            }
+          }        
+        }
+      }    
+    ]
+  },
+  "YARN": {
+    "service": [
+      {
+        "name": "yarn_nodemanager_webui_percent",
+        "label": "Percent NodeManagers Available",
+        "interval": 1,
+        "scope": "SERVICE",
+        "enabled": true,
+        "source": {
+          "type": "AGGREGATE",
+          "alert_name": "yarn_nodemanager_webui",
+          "reporting": {
+            "ok": {
+              "text": "affected: [{1}], total: [{0}]"
+            },
+            "warning": {
+              "text": "affected: [{1}], total: [{0}]",
+              "value": 0.1
+            },
+            "critical": {
+              "text": "affected: [{1}], total: [{0}]",
+              "value": 0.3
+            }
+          }
+        }
+      }    
+    ],
+    "NODEMANAGER": [
+      {
+        "name": "yarn_nodemanager_webui",
+        "label": "NodeManager Web UI",
+        "interval": 1,
+        "scope": "HOST",
+        "source": {
+          "type": "WEB",
+          "uri": {
+            "http": "{{yarn-site/yarn.nodemanager.webapp.address}}",
+            "https": "{{yarn-site/yarn.nodemanager.webapp.https.address}}",
+            "https_property": "{{yarn-site/yarn.http.policy}}",
+            "https_property_value": "HTTPS_ONLY",
+            "default_port": 8042
+          },
+          "reporting": {
+            "ok": {
+              "text": "HTTP {0} response in {3:.4f} seconds"
+            },
+            "warning":{
+              "text": "HTTP {0} response in {3:.4f} seconds"
+            },
+            "critical": {
+              "text": "Connection failed to {1}:{2}"
+            }
+          }
+        }
+      }
+    ],
+    "RESOURCEMANAGER": [
+      {
+        "name": "yarn_resourcemanager_webui",
+        "label": "ResourceManager Web UI",
+        "interval": 1,
+        "scope": "ANY",
+        "source": {
+          "type": "WEB",
+          "uri": {
+            "http": "{{yarn-site/yarn.resourcemanager.webapp.address}}",
+            "https": "{{yarn-site/yarn.resourcemanager.webapp.https.address}}",
+            "https_property": "{{yarn-site/yarn.http.policy}}",
+            "https_property_value": "HTTPS_ONLY"
+          },
+          "reporting": {
+            "ok": {
+              "text": "HTTP {0} response in {3:.4f} seconds"
+            },
+            "warning":{
+              "text": "HTTP {0} response in {3:.4f} seconds"
+            },
+            "critical": {
+              "text": "Connection failed to {1}:{2}"
+            }
+          }
+        }
+      },
+      {
+        "name": "yarn_resourcemanager_cpu",
+        "label": "ResourceManager CPU Utilization",
+        "interval": 5,
+        "scope": "ANY",
+        "enabled": true,
+        "source": {
+          "type": "METRIC",
+          "uri": {
+            "http": "{{yarn-site/yarn.resourcemanager.webapp.address}}",
+            "https": "{{yarn-site/yarn.resourcemanager.webapp.https.address}}",
+            "https_property": "{{yarn-site/yarn.http.policy}}",
+            "https_property_value": "HTTPS_ONLY"
+          },
+          "reporting": {
+            "ok": {
+              "text": "{1} CPU, load {0:.1%}"
+            },
+            "warning": {
+              "text": "{1} CPU, load {0:.1%}",
+              "value": 200
+            },
+            "critical": {
+              "text": "{1} CPU, load {0:.1%}",
+              "value": 250
+            }
+          },
+          "jmx": {
+            "property_list": [
+              "java.lang:type=OperatingSystem/SystemCpuLoad",
+              "java.lang:type=OperatingSystem/AvailableProcessors"
+            ],
+            "value": "{0} * 100"
+          }
+        }
+      },
+      {
+        "name": "yarn_resourcemanager_rpc_latency",
+        "label": "ResourceManager RPC Latency",
+        "interval": 5,
+        "scope": "ANY",
+        "enabled": true,
+        "source": {
+          "type": "METRIC",
+          "uri": {
+            "http": "{{yarn-site/yarn.resourcemanager.webapp.address}}",
+            "https": "{{yarn-site/yarn.resourcemanager.webapp.https.address}}",
+            "https_property": "{{yarn-site/yarn.http.policy}}",
+            "https_property_value": "HTTPS_ONLY"
+          },
+          "reporting": {
+            "ok": {
+              "text": "Average Queue Time:[{0}], Average Processing Time:[{1}]"
+            },
+            "warning": {
+              "text": "Average Queue Time:[{0}], Average Processing Time:[{1}]",
+              "value": 3000
+            },          
+            "critical": {
+              "text": "Average Queue Time:[{0}], Average Processing Time:[{1}]",
+              "value": 5000
+            }
+          },
+          "jmx": {
+            "property_list": [
+              "Hadoop:service=ResourceManager,name=RpcActivityForPort*/RpcQueueTimeAvgTime",
+              "Hadoop:service=ResourceManager,name=RpcActivityForPort*/RpcProcessingTimeAvgTime"
+            ],
+            "value": "{0}"
+          }
+        }
+      }
+    ],
+    "APP_TIMELINE_SERVER": [
+      {
+        "name": "yarn_app_timeline_server_webui",
+        "label": "App Timeline Web UI",
+        "interval": 1,
+        "scope": "ANY",
+        "source": {
+          "type": "WEB",
+          "uri": {
+            "http": "{{yarn-site/yarn.timeline-service.webapp.address}}",
+            "https": "{{yarn-site/yarn.timeline-service.webapp.https.address}}",
+            "https_property": "{{yarn-site/yarn.http.policy}}",
+            "https_property_value": "HTTPS_ONLY"
+          },
+          "reporting": {
+            "ok": {
+              "text": "HTTP {0} response in {3:.4f} seconds"
+            },
+            "warning":{
+              "text": "HTTP {0} response in {3:.4f} seconds"
+            },
+            "critical": {
+              "text": "Connection failed to {1}:{2}"
+            }
+          }
+        }
+      }
+    ]
+  }
+}

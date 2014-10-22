@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-'''
+"""
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -16,7 +16,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-'''
+"""
 
 import imp
 import json
@@ -121,7 +121,7 @@ class MetricAlert(BaseAlert):
 
     
   def __find_threshold(self, reporting_type):
-    ''' find the defined thresholds for alert values '''
+    """ find the defined thresholds for alert values """
     
     if not 'reporting' in self.alert_source_meta:
       return None
@@ -136,7 +136,7 @@ class MetricAlert(BaseAlert):
 
     
   def _load_jmx(self, ssl, host, port, jmx_metric):
-    ''' creates a JmxMetric object that holds info about jmx-based metrics '''
+    """ creates a JmxMetric object that holds info about jmx-based metrics """
     
     logger.debug(str(jmx_metric.property_map))
     

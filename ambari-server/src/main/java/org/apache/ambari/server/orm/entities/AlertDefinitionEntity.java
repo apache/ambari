@@ -79,7 +79,7 @@ public class AlertDefinitionEntity {
   @Column(name = "cluster_id", nullable = false)
   private Long clusterId;
 
-  @ManyToOne(fetch = FetchType.LAZY)
+  @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", insertable = false, updatable = false)
   private ClusterEntity clusterEntity;
 

@@ -1,433 +1,435 @@
 {
-  "service": [
-    {
-      "name": "datanode_process_percent",
-      "label": "Percent DataNodes Available",
-      "interval": 1,
-      "scope": "SERVICE",
-      "enabled": true,
-      "source": {
-        "type": "AGGREGATE",
-        "alert_name": "datanode_process",
-        "reporting": {
-          "ok": {
-            "text": "OK: total: <{0}>, affected: <{1}>"
-          },
-          "warning": {
-            "text": "OK: total: <{0}>, affected: <{1}>",
-            "value": 0.1
-          },
-          "critical": {
-            "text": "CRITICAL: total: <{0}>, affected <{1}>",
-            "value": 0.3
+  "HDFS":{
+    "service": [
+      {
+        "name": "datanode_process_percent",
+        "label": "Percent DataNodes Available",
+        "interval": 1,
+        "scope": "SERVICE",
+        "enabled": true,
+        "source": {
+          "type": "AGGREGATE",
+          "alert_name": "datanode_process",
+          "reporting": {
+            "ok": {
+              "text": "affected: [{1}], total: [{0}]"
+            },
+            "warning": {
+              "text": "affected: [{1}], total: [{0}]",
+              "value": 0.1
+            },
+            "critical": {
+              "text": "affected: [{1}], total: [{0}]",
+              "value": 0.3
+            }
+          }
+        }
+      },
+      {
+        "name": "datanode_storage_percent",
+        "label": "Percent DataNodes With Available Space",
+        "interval": 1,
+        "scope": "SERVICE",
+        "enabled": true,
+        "source": {
+          "type": "AGGREGATE",
+          "alert_name": "datanode_storage",
+          "reporting": {
+            "ok": {
+              "text": "affected: [{1}], total: [{0}]"
+            },
+            "warning": {
+              "text": "affected: [{1}], total: [{0}]",
+              "value": 0.1
+            },
+            "critical": {
+              "text": "affected: [{1}], total: [{0}]",
+              "value": 0.3
+            }
+          }
+        }
+      },
+      {
+        "name": "journalnode_process_percent",
+        "label": "Percent JournalNodes Available",
+        "interval": 1,
+        "scope": "SERVICE",
+        "enabled": true,
+        "source": {
+          "type": "AGGREGATE",
+          "alert_name": "journalnode_process",
+          "reporting": {
+            "ok": {
+              "text": "affected: [{1}], total: [{0}]"
+            },
+            "warning": {
+              "text": "affected: [{1}], total: [{0}]",
+              "value": 0.33
+            },
+            "critical": {
+              "text": "affected: [{1}], total: [{0}]",
+              "value": 0.50
+            }
           }
         }
       }
-    },
-    {
-      "name": "datanode_storage_percent",
-      "label": "Percent DataNodes With Available Space",
-      "interval": 1,
-      "scope": "SERVICE",
-      "enabled": true,
-      "source": {
-        "type": "AGGREGATE",
-        "alert_name": "datanode_storage",
-        "reporting": {
-          "ok": {
-            "text": "OK: total: <{0}>, affected: <{1}>"
+    ],
+    "NAMENODE": [
+      {
+        "name": "namenode_webui",
+        "label": "NameNode Web UI",
+        "interval": 1,
+        "scope": "ANY",
+        "enabled": true,
+        "source": {
+          "type": "WEB",
+          "uri": {
+            "http": "{{hdfs-site/dfs.namenode.http-address}}",
+            "https": "{{hdfs-site/dfs.namenode.https-address}}",
+            "https_property": "{{hdfs-site/dfs.http.policy}}",
+            "https_property_value": "HTTPS_ONLY"
           },
-          "warning": {
-            "text": "OK: total: <{0}>, affected: <{1}>",
-            "value": 0.1
+          "reporting": {
+            "ok": {
+              "text": "HTTP {0} response in {3:.4f} seconds"
+            },
+            "warning":{
+              "text": "HTTP {0} response in {3:.4f} seconds"
+            },
+            "critical": {
+              "text": "Connection failed to {1}:{2}"
+            }
+          }        
+        }
+      },
+      {
+        "name": "namenode_cpu",
+        "label": "NameNode Host CPU Utilization",
+        "interval": 5,
+        "scope": "ANY",
+        "enabled": true,
+        "source": {
+          "type": "METRIC",
+          "uri": {
+            "http": "{{hdfs-site/dfs.namenode.http-address}}",
+            "https": "{{hdfs-site/dfs.namenode.https-address}}",
+            "https_property": "{{hdfs-site/dfs.http.policy}}",
+            "https_property_value": "HTTPS_ONLY"
           },
-          "critical": {
-            "text": "CRITICAL: total: <{0}>, affected <{1}>",
-            "value": 0.3
+          "reporting": {
+            "ok": {
+              "text": "{1} CPU, load {0:.1%}"
+            },
+            "warning": {
+              "text": "{1} CPU, load {0:.1%}",
+              "value": 200
+            },
+            "critical": {
+              "text": "{1} CPU, load {0:.1%}",
+              "value": 250
+            }
+          },
+          "jmx": {
+            "property_list": [
+              "java.lang:type=OperatingSystem/SystemCpuLoad",
+              "java.lang:type=OperatingSystem/AvailableProcessors"
+            ],
+            "value": "{0} * 100"
           }
         }
-      }
-    },
-    {
-      "name": "journalnode_process_percent",
-      "label": "Percent JournalNodes Available",
-      "interval": 1,
-      "scope": "SERVICE",
-      "enabled": true,
-      "source": {
-        "type": "AGGREGATE",
-        "alert_name": "journalnode_process",
-        "reporting": {
-          "ok": {
-            "text": "OK: total: <{0}>, affected: <{1}>"
+      },
+      {
+        "name": "namenode_hdfs_blocks_health",
+        "label": "NameNode Blocks Health",
+        "interval": 2,
+        "scope": "ANY",
+        "enabled": true,
+        "source": {
+          "type": "METRIC",
+          "uri": {
+            "http": "{{hdfs-site/dfs.namenode.http-address}}",
+            "https": "{{hdfs-site/dfs.namenode.https-address}}",
+            "https_property": "{{hdfs-site/dfs.http.policy}}",
+            "https_property_value": "HTTPS_ONLY"
           },
-          "warning": {
-            "text": "OK: total: <{0}>, affected: <{1}>",
-            "value": 0.33
+          "reporting": {
+            "ok": {
+              "text": "Total Blocks:[{1}], Missing Blocks:[{0}]"
+            },
+            "warning": {
+              "text": "Total Blocks:[{1}], Missing Blocks:[{0}]",
+              "value": 1
+            },          
+            "critical": {
+              "text": "Total Blocks:[{1}], Missing Blocks:[{0}]",
+              "value": 1
+            }
           },
-          "critical": {
-            "text": "CRITICAL: total: <{0}>, affected <{1}>",
-            "value": 0.50
+          "jmx": {
+            "property_list": [
+              "Hadoop:service=NameNode,name=FSNamesystem/MissingBlocks",
+              "Hadoop:service=NameNode,name=FSNamesystem/BlocksTotal"
+            ],
+            "value": "{0}"
           }
         }
-      }
-    }
-  ],
-  "NAMENODE": [
-    {
-      "name": "namenode_webui",
-      "label": "NameNode Web UI",
-      "interval": 1,
-      "scope": "ANY",
-      "enabled": true,
-      "source": {
-        "type": "WEB",
-        "uri": {
-          "http": "{{hdfs-site/dfs.namenode.http-address}}",
-          "https": "{{hdfs-site/dfs.namenode.https-address}}",
-          "https_property": "{{hdfs-site/dfs.http.policy}}",
-          "https_property_value": "HTTPS_ONLY"
-        },
-        "reporting": {
-          "ok": {
-            "text": "The UI returned a response code of {0}"
+      },
+      {
+        "name": "namenode_hdfs_capacity_utilization",
+        "label": "HDFS Capacity Utilization",
+        "interval": 2,
+        "scope": "ANY",
+        "enabled": true,
+        "source": {
+          "type": "METRIC",
+          "uri": {
+            "http": "{{hdfs-site/dfs.namenode.http-address}}",
+            "https": "{{hdfs-site/dfs.namenode.https-address}}",
+            "https_property": "{{hdfs-site/dfs.http.policy}}",
+            "https_property_value": "HTTPS_ONLY"
           },
-          "warning":{
-            "text": "The UI returned a response code of {0}"
+          "reporting": {
+            "ok": {
+              "text": "Capacity Used:[{2:d}%, {0}], Capacity Remaining:[{1}]"
+            },
+            "warning": {
+              "text": "Capacity Used:[{2:d}%, {0}], Capacity Remaining:[{1}]",
+              "value": 80
+            },          
+            "critical": {
+              "text": "Capacity Used:[{2:d}%, {0}], Capacity Remaining:[{1}]",
+              "value": 90
+            }
           },
-          "critical": {
-            "text": "Connection failed to {1}:{2}"
+          "jmx": {
+            "property_list": [
+              "Hadoop:service=NameNode,name=FSNamesystemState/CapacityUsed",
+              "Hadoop:service=NameNode,name=FSNamesystemState/CapacityRemaining"
+            ],
+            "value": "{0}/({0} + {1}) * 100"
           }
-        }        
-      }
-    },
-    {
-      "name": "namenode_cpu",
-      "label": "NameNode Host CPU Utilization",
-      "interval": 5,
-      "scope": "ANY",
-      "enabled": true,
-      "source": {
-        "type": "METRIC",
-        "uri": {
-          "http": "{{hdfs-site/dfs.namenode.http-address}}",
-          "https": "{{hdfs-site/dfs.namenode.https-address}}",
-          "https_property": "{{hdfs-site/dfs.http.policy}}",
-          "https_property_value": "HTTPS_ONLY"
-        },
-        "reporting": {
-          "ok": {
-            "text": "{1} CPU, load {0:.1%}"
+        }
+      },
+      {
+        "name": "namenode_rpc_latency",
+        "label": "NameNode RPC Latency",
+        "interval": 2,
+        "scope": "ANY",
+        "enabled": true,
+        "source": {
+          "type": "METRIC",
+          "uri": {
+            "http": "{{hdfs-site/dfs.namenode.http-address}}",
+            "https": "{{hdfs-site/dfs.namenode.https-address}}",
+            "https_property": "{{hdfs-site/dfs.http.policy}}",
+            "https_property_value": "HTTPS_ONLY"
           },
-          "warning": {
-            "text": "{1} CPU, load {0:.1%}",
-            "value": 200
+          "reporting": {
+            "ok": {
+              "text": "Average Queue Time:[{0}], Average Processing Time:[{1}]"
+            },
+            "warning": {
+              "text": "Average Queue Time:[{0}], Average Processing Time:[{1}]",
+              "value": 3000
+            },          
+            "critical": {
+              "text": "Average Queue Time:[{0}], Average Processing Time:[{1}]",
+              "value": 5000
+            }
           },
-          "critical": {
-            "text": "{1} CPU, load {0:.1%}",
-            "value": 250
+          "jmx": {
+            "property_list": [
+              "Hadoop:service=NameNode,name=RpcActivityForPort*/RpcQueueTimeAvgTime",
+              "Hadoop:service=NameNode,name=RpcActivityForPort*/RpcProcessingTimeAvgTime"
+            ],
+            "value": "{0}"
           }
-        },
-        "jmx": {
-          "property_list": [
-            "java.lang:type=OperatingSystem/SystemCpuLoad",
-            "java.lang:type=OperatingSystem/AvailableProcessors"
-          ],
-          "value": "{0} * 100"
+        }
+      },
+      {
+        "name": "namenode_directory_status",
+        "label": "NameNode Directory Status",
+        "interval": 1,
+        "scope": "ANY",
+        "enabled": true,
+        "source": {
+          "type": "METRIC",
+          "uri": {
+            "http": "{{hdfs-site/dfs.namenode.http-address}}",
+            "https": "{{hdfs-site/dfs.namenode.https-address}}",
+            "https_property": "{{hdfs-site/dfs.http.policy}}",
+            "https_property_value": "HTTPS_ONLY"
+          },
+          "reporting": {
+            "ok": {
+              "text": "Directories are healthy"
+            },
+            "warning": {
+              "text": "Failed directory count: {1}",
+              "value": 1
+            },          
+            "critical": {
+              "text": "Failed directory count: {1}",
+              "value": 1
+            }
+          },
+          "jmx": {
+            "property_list": [
+              "Hadoop:service=NameNode,name=NameNodeInfo/NameDirStatuses"
+            ],
+            "value": "calculate(args)\ndef calculate(args):\n  import json\n  json_statuses = json.loads({0})\n  return len(json_statuses['failed']) if 'failed' in json_statuses else 0"
+          }
+        }
+      },
+      {
+        "name": "namenode_process",
+        "label": "NameNode Process",
+        "interval": 1,
+        "scope": "ANY",
+        "enabled": true,
+        "source": {
+          "type": "PORT",
+          "uri": "{{hdfs-site/dfs.namenode.http-address}}",
+          "default_port": 50070,
+          "reporting": {
+            "ok": {
+              "text": "TCP OK - {0:.4f} response on port {1}"
+            },
+            "critical": {
+              "text": "Connection failed: {0} on host {1}:{2}"
+            }
+          }        
         }
       }
-    },
-    {
-      "name": "namenode_hdfs_blocks_health",
-      "label": "NameNode Blocks Health",
-      "interval": 2,
-      "scope": "ANY",
-      "enabled": true,
-      "source": {
-        "type": "METRIC",
-        "uri": {
-          "http": "{{hdfs-site/dfs.namenode.http-address}}",
-          "https": "{{hdfs-site/dfs.namenode.https-address}}",
-          "https_property": "{{hdfs-site/dfs.http.policy}}",
-          "https_property_value": "HTTPS_ONLY"
-        },
-        "reporting": {
-          "ok": {
-            "text": "Total Blocks:[{1}], Missing Blocks:[{0}]"
-          },
-          "warning": {
-            "text": "Total Blocks:[{1}], Missing Blocks:[{0}]",
-            "value": 1
-          },          
-          "critical": {
-            "text": "Total Blocks:[{1}], Missing Blocks:[{0}]",
-            "value": 1
-          }
-        },
-        "jmx": {
-          "property_list": [
-            "Hadoop:service=NameNode,name=FSNamesystem/MissingBlocks",
-            "Hadoop:service=NameNode,name=FSNamesystem/BlocksTotal"
-          ],
-          "value": "{0}"
+    ],
+    "SECONDARY_NAMENODE": [
+      {
+        "name": "secondary_namenode_process",
+        "label": "Secondary NameNode Process",
+        "interval": 1,
+        "scope": "ANY",
+        "enabled": true,
+        "source": {
+          "type": "PORT",
+          "uri": "{{hdfs-site/dfs.namenode.secondary.http-address}}",
+          "default_port": 50071,
+          "reporting": {
+            "ok": {
+              "text": "TCP OK - {0:.4f} response on port {1}"
+            },
+            "critical": {
+              "text": "Connection failed: {0} on host {1}:{2}"
+            }
+          }        
         }
       }
-    },
-    {
-      "name": "namenode_hdfs_capacity_utilization",
-      "label": "HDFS Capacity Utilization",
-      "interval": 2,
-      "scope": "ANY",
-      "enabled": true,
-      "source": {
-        "type": "METRIC",
-        "uri": {
-          "http": "{{hdfs-site/dfs.namenode.http-address}}",
-          "https": "{{hdfs-site/dfs.namenode.https-address}}",
-          "https_property": "{{hdfs-site/dfs.http.policy}}",
-          "https_property_value": "HTTPS_ONLY"
-        },
-        "reporting": {
-          "ok": {
-            "text": "Capacity Used:[{2:d}%, {0}], Capacity Remaining:[{1}]"
-          },
-          "warning": {
-            "text": "Capacity Used:[{2:d}%, {0}], Capacity Remaining:[{1}]",
-            "value": 80
-          },          
-          "critical": {
-            "text": "Capacity Used:[{2:d}%, {0}], Capacity Remaining:[{1}]",
-            "value": 90
-          }
-        },
-        "jmx": {
-          "property_list": [
-            "Hadoop:service=NameNode,name=FSNamesystemState/CapacityUsed",
-            "Hadoop:service=NameNode,name=FSNamesystemState/CapacityRemaining"
-          ],
-          "value": "{0}/({0} + {1}) * 100"
+    ],
+    "JOURNALNODE": [
+      {
+        "name": "journalnode_process",
+        "label": "JournalNode Process",
+        "interval": 1,
+        "scope": "HOST",
+        "enabled": true,
+        "source": {
+          "type": "PORT",        
+          "uri": "{{hdfs-site/dfs.journalnode.http-address}}",
+          "default_port": 8480,
+          "reporting": {
+            "ok": {
+              "text": "TCP OK - {0:.4f} response on port {1}"
+            },
+            "critical": {
+              "text": "Connection failed: {0} on host {1}:{2}"
+            }
+          }        
         }
       }
-    },
-    {
-      "name": "namenode_rpc_latency",
-      "label": "NameNode RPC Latency",
-      "interval": 2,
-      "scope": "ANY",
-      "enabled": true,
-      "source": {
-        "type": "METRIC",
-        "uri": {
-          "http": "{{hdfs-site/dfs.namenode.http-address}}",
-          "https": "{{hdfs-site/dfs.namenode.https-address}}",
-          "https_property": "{{hdfs-site/dfs.http.policy}}",
-          "https_property_value": "HTTPS_ONLY"
-        },
-        "reporting": {
-          "ok": {
-            "text": "Average Queue Time:[{0}], Average Processing Time:[{1}]"
-          },
-          "warning": {
-            "text": "Average Queue Time:[{0}], Average Processing Time:[{1}]",
-            "value": 3000
-          },          
-          "critical": {
-            "text": "Average Queue Time:[{0}], Average Processing Time:[{1}]",
-            "value": 5000
-          }
-        },
-        "jmx": {
-          "property_list": [
-            "Hadoop:service=NameNode,name=RpcActivityForPort*/RpcQueueTimeAvgTime",
-            "Hadoop:service=NameNode,name=RpcActivityForPort*/RpcProcessingTimeAvgTime"
-          ],
-          "value": "{0}"
+    ],      
+    "DATANODE": [
+      {
+        "name": "datanode_process",
+        "label": "DateNode Process",
+        "interval": 1,
+        "scope": "HOST",
+        "enabled": true,
+        "source": {
+          "type": "PORT",        
+          "uri": "{{hdfs-site/dfs.datanode.address}}",
+          "default_port": 50010,
+          "reporting": {
+            "ok": {
+              "text": "TCP OK - {0:.4f} response on port {1}"
+            },
+            "critical": {
+              "text": "Connection failed: {0} on host {1}:{2}"
+            }
+          }        
         }
-      }
-    },
-    {
-      "name": "namenode_directory_status",
-      "label": "NameNode Directory Status",
-      "interval": 1,
-      "scope": "ANY",
-      "enabled": true,
-      "source": {
-        "type": "METRIC",
-        "uri": {
-          "http": "{{hdfs-site/dfs.namenode.http-address}}",
-          "https": "{{hdfs-site/dfs.namenode.https-address}}",
-          "https_property": "{{hdfs-site/dfs.http.policy}}",
-          "https_property_value": "HTTPS_ONLY"
-        },
-        "reporting": {
-          "ok": {
-            "text": "Directories are healthy"
+      },
+      {
+        "name": "datanode_webui",
+        "label": "DataNode Web UI",
+        "interval": 1,
+        "scope": "HOST",
+        "enabled": true,
+        "source": {
+          "type": "WEB",
+          "uri": {
+            "http": "{{hdfs-site/dfs.datanode.http.address}}",
+            "https": "{{hdfs-site/dfs.datanode.https.address}}",
+            "https_property": "{{hdfs-site/dfs.http.policy}}",
+            "https_property_value": "HTTPS_ONLY"
           },
-          "warning": {
-            "text": "Failed directory count: {1}",
-            "value": 1
-          },          
-          "critical": {
-            "text": "Failed directory count: {1}",
-            "value": 1
-          }
-        },
-        "jmx": {
-          "property_list": [
-            "Hadoop:service=NameNode,name=NameNodeInfo/NameDirStatuses"
-          ],
-          "value": "calculate(args)\ndef calculate(args):\n  import json\n  json_statuses = json.loads({0})\n  return len(json_statuses['failed']) if 'failed' in json_statuses else 0"
+          "reporting": {
+            "ok": {
+              "text": "HTTP {0} response in {3:.4f} seconds"
+            },
+            "warning":{
+              "text": "HTTP {0} response in {3:.4f} seconds"
+            },
+            "critical": {
+              "text": "Connection failed to {1}:{2}"
+            }
+          }        
         }
-      }
-    },
-    {
-      "name": "namenode_process",
-      "label": "NameNode Process",
-      "interval": 1,
-      "scope": "ANY",
-      "enabled": true,
-      "source": {
-        "type": "PORT",        
-        "uri": "{{hdfs-site/dfs.namenode.http-address}}",
-        "default_port": 50070,
-        "reporting": {
-          "ok": {
-            "text": "TCP OK - {0:.4f} response on port {1}"
+      },    
+      {
+        "name": "datanode_storage",
+        "label": "DataNode Storage",
+        "interval": 2,
+        "scope": "HOST",
+        "enabled": true,
+        "source": {
+          "type": "METRIC",
+          "uri": {
+            "http": "{{hdfs-site/dfs.datanode.http.address}}",
+            "https": "{{hdfs-site/dfs.datanode.https.address}}",
+            "https_property": "{{hdfs-site/dfs.http.policy}}",
+            "https_property_value": "HTTPS_ONLY"
           },
-          "critical": {
-            "text": "Connection failed: {0} on host {1}:{2}"
+          "reporting": {
+            "ok": {
+              "text": "Remaining Capacity:[{0}], Total Capacity:[{2:d}% Used, {1}]"
+            },
+            "warning": {
+              "text": "Remaining Capacity:[{0}], Total Capacity:[{2:d}% Used, {1}]",
+              "value": 80
+            },
+            "critical": {
+              "text": "Remaining Capacity:[{0}], Total Capacity:[{2:d}% Used, {1}]",
+              "value": 90
+            }
+          },
+          "jmx": {
+            "property_list": [
+              "Hadoop:service=DataNode,name=FSDatasetState-*/Remaining",
+              "Hadoop:service=DataNode,name=FSDatasetState-*/Capacity"
+            ],
+            "value": "({1} - {0})/{1} * 100"
           }
-        }        
-      }
-    }    
-  ],
-  "SECONDARY_NAMENODE": [
-    {
-      "name": "secondary_namenode_process",
-      "label": "Secondary NameNode Process",
-      "interval": 1,
-      "scope": "ANY",
-      "enabled": true,
-      "source": {
-        "type": "PORT",        
-        "uri": "{{hdfs-site/dfs.namenode.secondary.http-address}}",
-        "default_port": 50071,
-        "reporting": {
-          "ok": {
-            "text": "TCP OK - {0:.4f} response on port {1}"
-          },
-          "critical": {
-            "text": "Connection failed: {0} on host {1}:{2}"
-          }
-        }        
-      }
-    }
-  ],
-  "JOURNALNODE": [
-    {
-      "name": "journalnode_process",
-      "label": "JournalNode Process",
-      "interval": 1,
-      "scope": "HOST",
-      "enabled": true,
-      "source": {
-        "type": "PORT",        
-        "uri": "{{hdfs-site/dfs.journalnode.http-address}}",
-        "default_port": 8480,
-        "reporting": {
-          "ok": {
-            "text": "TCP OK - {0:.4f} response on port {1}"
-          },
-          "critical": {
-            "text": "Connection failed: {0} on host {1}:{2}"
-          }
-        }        
-      }
-    }
-  ],      
-  "DATANODE": [
-    {
-      "name": "datanode_process",
-      "label": "DateNode Process",
-      "interval": 1,
-      "scope": "HOST",
-      "enabled": true,
-      "source": {
-        "type": "PORT",        
-        "uri": "{{hdfs-site/dfs.datanode.address}}",
-        "default_port": 50010,
-        "reporting": {
-          "ok": {
-            "text": "TCP OK - {0:.4f} response on port {1}"
-          },
-          "critical": {
-            "text": "Connection failed: {0} on host {1}:{2}"
-          }
-        }        
-      }
-    },
-    {
-      "name": "datanode_webui",
-      "label": "DataNode Web UI",
-      "interval": 1,
-      "scope": "HOST",
-      "enabled": true,
-      "source": {
-        "type": "WEB",
-        "uri": {
-          "http": "{{hdfs-site/dfs.datanode.http.address}}",
-          "https": "{{hdfs-site/dfs.datanode.https.address}}",
-          "https_property": "{{hdfs-site/dfs.http.policy}}",
-          "https_property_value": "HTTPS_ONLY"
-        },
-        "reporting": {
-          "ok": {
-            "text": "The UI returned a response code of {0}"
-          },
-          "warning":{
-            "text": "The UI returned a response code of {0}"
-          },
-          "critical": {
-            "text": "Connection failed to {1}:{2}"
-          }
-        }        
-      }
-    },    
-    {
-      "name": "datanode_storage",
-      "label": "DataNode Storage",
-      "interval": 2,
-      "scope": "HOST",
-      "enabled": true,
-      "source": {
-        "type": "METRIC",
-        "uri": {
-          "http": "{{hdfs-site/dfs.datanode.http.address}}",
-          "https": "{{hdfs-site/dfs.datanode.https.address}}",
-          "https_property": "{{hdfs-site/dfs.http.policy}}",
-          "https_property_value": "HTTPS_ONLY"
-        },
-        "reporting": {
-          "ok": {
-            "text": "Remaining Capacity:[{0}], Total Capacity:[{2:d}% Used, {1}]"
-          },
-          "warning": {
-            "text": "Remaining Capacity:[{0}], Total Capacity:[{2:d}% Used, {1}]",
-            "value": 80
-          },
-          "critical": {
-            "text": "Remaining Capacity:[{0}], Total Capacity:[{2:d}% Used, {1}]",
-            "value": 90
-          }
-        },
-        "jmx": {
-          "property_list": [
-            "Hadoop:service=DataNode,name=FSDatasetState-*/Remaining",
-            "Hadoop:service=DataNode,name=FSDatasetState-*/Capacity"
-          ],
-          "value": "({1} - {0})/{1} * 100"
         }
-      }
-    }    
-  ]
+      }    
+    ]
+  }
 }

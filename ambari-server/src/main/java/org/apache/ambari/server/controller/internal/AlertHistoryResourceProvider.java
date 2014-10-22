@@ -214,7 +214,11 @@ public class AlertHistoryResourceProvider extends AbstractResourceProvider {
     Resource resource = new ResourceImpl(Resource.Type.AlertHistory);
     resource.setProperty(ALERT_HISTORY_ID, entity.getAlertId());
 
-    setResourceProperty(resource, ALERT_HISTORY_CLUSTER_NAME,cluster.getClusterName(), requestedIds);
+    if (null != cluster) {
+      setResourceProperty(resource, ALERT_HISTORY_CLUSTER_NAME,
+          cluster.getClusterName(), requestedIds);
+    }
+
     setResourceProperty(resource, ALERT_HISTORY_DEFINITION_ID, definition.getDefinitionId(), requestedIds);
     setResourceProperty(resource, ALERT_HISTORY_DEFINITION_NAME, definition.getDefinitionName(), requestedIds);
     setResourceProperty(resource, ALERT_HISTORY_SERVICE_NAME, entity.getServiceName(), requestedIds);

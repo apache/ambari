@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-'''
+"""
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -16,18 +16,19 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-'''
+"""
 
 import imp
 import logging
 import os
 from alerts.base_alert import BaseAlert
+from symbol import parameters
 
 logger = logging.getLogger()
 
 class ScriptAlert(BaseAlert):
   def __init__(self, alert_meta, alert_source_meta):
-    ''' ScriptAlert reporting structure is output from the script itself '''
+    """ ScriptAlert reporting structure is output from the script itself """
     
     alert_source_meta['reporting'] = {
       'ok': { 'text': '{0}' },
@@ -44,8 +45,39 @@ class ScriptAlert(BaseAlert):
       
     if 'stacks_dir' in alert_source_meta:
       self.stacks_dir = alert_source_meta['stacks_dir']
+      
+    # execute the get_tokens() method so that this script correctly populates
+    # its list of keys
+    try:
+      cmd_module = self._load_source()
+      tokens = cmd_module.get_tokens()
+        
+      # for every token, populate the array keys that this alert will need
+      if tokens is not None:
+        for token in tokens:
+          # append the key to the list of keys for this alert
+          self._find_lookup_property(token)
+    except:
+      logger.exception("Unable to parameterize tokens for script {0}".format(self.path))
+      pass
+              
     
   def _collect(self):
+    cmd_module = self._load_source()
+    if cmd_module is not None:
+      # convert the dictionary from 
+      # {'foo-site/bar': 'baz'} into 
+      # {'{{foo-site/bar}}': 'baz'}1
+      parameters = {}
+      for key in self.config_value_dict:
+        parameters['{{' + key + '}}'] = self.config_value_dict[key]
+      
+      return cmd_module.execute(parameters)
+    else:
+      return ((self.RESULT_UNKNOWN, ["Unable to execute script {0}".format(self.path)]))
+    
+
+  def _load_source(self):
     if self.path is None and self.stack_path is None:
       raise Exception("The attribute 'path' must be specified")
 
@@ -63,8 +95,8 @@ class ScriptAlert(BaseAlert):
       logger.debug("Executing script check {0}".format(path_to_script))
 
           
-    if (path_to_script.endswith('.py')):
-      cmd_module = imp.load_source(self._find_value('name'), path_to_script)
-      return cmd_module.execute()
-    else:
-      return ((self.RESULT_UNKNOWN, ["could not execute script {0}".format(path_to_script)]))
+    if (not path_to_script.endswith('.py')):
+      logger.error("Unable to execute script {0}".format(path_to_script))
+      return None
+    
+    return imp.load_source(self._find_value('name'), path_to_script)

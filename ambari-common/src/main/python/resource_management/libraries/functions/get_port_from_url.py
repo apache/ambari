@@ -27,14 +27,20 @@ import re
 
 def get_port_from_url(address):
   """
-  Return port from URL. If address is UnknownConfiguration,
-  UnknownConfiguration will be returned. If no port was found, Fail will be
-  raised.
+  Return port from URL. If the address is numeric, the address is assumed to be a port and is returned.
+  If address is UnknownConfiguration, UnknownConfiguration will be returned. 
+  If no port was found, Fail will be raised.
   """
-  if not is_empty(address):
-    port = re.findall(":([\d]{1,5})(?=/|$)", address)
-    if port:
-      return port[0]
-    raise Fail("No port in URL:{0}".format(address))
-  else:
+  if is_empty(address):
     return address
+  
+  if isinstance(address, (int, long)):
+    return address  
+  
+  port = re.findall(":([\d]{1,5})(?=/|$)", address)
+  if port:
+    return port[0]
+  elif address.isdigit():
+    return address
+
+  raise Fail("No port in URL:{0}".format(address))

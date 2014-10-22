@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-'''
+"""
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -16,11 +16,11 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-'''
+"""
 
-'''
+"""
 http://apscheduler.readthedocs.org/en/v2.1.2
-'''
+"""
 import json
 import logging
 import os
@@ -71,7 +71,7 @@ class AlertSchedulerHandler():
 
 
   def update_definitions(self, alert_commands, reschedule_jobs=False):
-    ''' updates the persisted definitions and restarts the scheduler '''
+    """ updates the persisted definitions and restarts the scheduler """
     
     with open(os.path.join(self.cachedir, self.FILENAME), 'w') as f:
       json.dump(alert_commands, f, indent=2)
@@ -85,7 +85,7 @@ class AlertSchedulerHandler():
 
 
   def start(self):
-    ''' loads definitions from file and starts the scheduler '''
+    """ loads definitions from file and starts the scheduler """
 
     if self.__scheduler is None:
       return
@@ -113,10 +113,10 @@ class AlertSchedulerHandler():
 
 
   def reschedule(self):
-    '''
+    """
     Removes jobs that are scheduled where their UUID no longer is valid. 
     Schedules jobs where the definition UUID is not currently scheduled.
-    '''
+    """
     jobs_scheduled = 0
     jobs_removed = 0
     
@@ -159,12 +159,12 @@ class AlertSchedulerHandler():
 
 
   def collector(self):
-    ''' gets the collector for reporting to the server '''
+    """ gets the collector for reporting to the server """
     return self._collector
   
 
   def __load_definitions(self):
-    ''' loads all alert commands from the file.  all clusters are stored in one file '''
+    """ loads all alert commands from the file.  all clusters are stored in one file """
     definitions = []
     
     all_commands = None
@@ -187,28 +187,28 @@ class AlertSchedulerHandler():
         configmap = command_json['configurations']
 
       for definition in command_json['alertDefinitions']:
-        obj = self.__json_to_callable(clusterName, hostName, definition)
+        alert = self.__json_to_callable(clusterName, hostName, definition)
         
-        if obj is None:
+        if alert is None:
           continue
           
         # get the config values for the alerts 'lookup keys',
         # eg: hdfs-site/dfs.namenode.http-address : host_and_port        
-        vals = self.__find_config_values(configmap, obj.get_lookup_keys())
+        vals = self.__find_config_values(configmap, alert.get_lookup_keys())
         self.__config_maps[clusterName].update(vals)
 
-        obj.set_helpers(self._collector, self.__config_maps[clusterName])
+        alert.set_helpers(self._collector, self.__config_maps[clusterName])
 
-        definitions.append(obj)
+        definitions.append(alert)
       
     return definitions
 
 
   def __json_to_callable(self, clusterName, hostName, json_definition):
-    '''
+    """
     converts the json that represents all aspects of a definition
     and makes an object that extends BaseAlert that is used for individual
-    '''
+    """
     source = json_definition['source']
     source_type = source.get('type', '')
 
@@ -234,7 +234,11 @@ class AlertSchedulerHandler():
 
 
   def __find_config_values(self, configmap, obj_keylist):
-    ''' finds templated values in the configuration map provided  by the server '''
+    """ 
+    finds templated values in the configuration map provided by the server
+    and returns a dictionary of template key to value 
+    """
+    
     if configmap is None:
       return {}
     
@@ -253,10 +257,10 @@ class AlertSchedulerHandler():
 
  
   def update_configurations(self, commands):
-    '''
+    """
     when an execution command comes in, update any necessary values.
     status commands do not contain useful configurations
-    '''
+    """
     for command in commands:
       clusterName = command['clusterName']
       if not clusterName in self.__config_maps:
@@ -270,13 +274,13 @@ class AlertSchedulerHandler():
         
 
   def schedule_definition(self,definition):
-    '''
+    """
     Schedule a definition (callable). Scheduled jobs are given the UUID
     as their name so that they can be identified later on.
     <p/>
     This function can be called with a definition that is disabled; it will
     simply NOOP.
-    '''
+    """
     # NOOP if the definition is disabled; don't schedule it
     if definition.is_enabled() == False:
       logger.info("The alert {0} with UUID {1} is disabled and will not be scheduled".format(
@@ -302,10 +306,10 @@ class AlertSchedulerHandler():
   
 
   def get_job_count(self):
-    '''
+    """
     Gets the number of jobs currently scheduled. This is mainly used for
     test verification of scheduling
-    '''
+    """
     if self.__scheduler is None:
       return 0
     
@@ -313,11 +317,11 @@ class AlertSchedulerHandler():
 
   
   def execute_alert(self, execution_commands):
-    '''
+    """
     Executes an alert immediately, ignoring any scheduled jobs. The existing
     jobs remain untouched. The result of this is stored in the alert
     collector for tranmission during the next heartbeat
-    '''
+    """
     if self.__scheduler is None or execution_commands is None:
       return
 

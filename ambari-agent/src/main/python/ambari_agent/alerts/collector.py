@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-'''
+"""
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -16,16 +16,16 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-'''
+"""
 
 import logging
 
 logger = logging.getLogger()
 
 class AlertCollector():
-  '''
+  """
   cluster -> name -> alert dict
-  '''  
+  """  
   def __init__(self):
     self.__buckets = {}
 
@@ -38,9 +38,9 @@ class AlertCollector():
 
 
   def remove(self, cluster, alert_name):
-    '''
+    """
     Removes the alert with the specified name if it exists in the dictionary
-    '''
+    """
     if not cluster in self.__buckets:
       return
     
@@ -48,9 +48,9 @@ class AlertCollector():
 
 
   def remove_by_uuid(self, alert_uuid):
-    '''
+    """
     Removes the alert with the specified uuid if it exists in the dictionary
-    '''
+    """
     for cluster,alert_map in self.__buckets.iteritems():
       for alert_name in alert_map.keys():
         alert = alert_map[alert_name]

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-'''
+"""
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -16,12 +16,11 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-'''
+"""
 
 import logging
 import re
 import time
-import traceback
 from collections import namedtuple
 
 logger = logging.getLogger()
@@ -41,7 +40,7 @@ class BaseAlert(object):
     
     
   def interval(self):
-    ''' gets the defined interval this check should run '''
+    """ gets the defined interval this check should run """
     if not self.alert_meta.has_key('interval'):
       return 1
     else:
@@ -50,40 +49,40 @@ class BaseAlert(object):
 
 
   def is_enabled(self):
-    '''
+    """
     gets whether the definition is enabled
-    '''
+    """
     return self.alert_meta['enabled']
   
 
   def get_name(self):
-    '''
+    """
     gets the unique name of the alert definition
-    '''
+    """
     return self.alert_meta['name']
 
 
   def get_uuid(self):
-    '''
+    """
     gets the unique has of the alert definition
-    '''
+    """
     return self.alert_meta['uuid']
 
 
   def set_helpers(self, collector, value_dict):
-    ''' sets helper objects for alerts without having to use them in a constructor '''
+    """ sets helper objects for alerts without having to use them in a constructor """
     self.collector = collector
     self.config_value_dict = value_dict
 
 
   def set_cluster(self, cluster, host):
-    ''' sets cluster information for the alert '''
+    """ sets cluster information for the alert """
     self.cluster = cluster
     self.host_name = host
 
 
   def collect(self):
-    ''' method used for collection.  defers to _collect() '''
+    """ method used for collection.  defers to _collect() """
     
     res = (BaseAlert.RESULT_UNKNOWN, [])
     res_base_text = "Unknown {0}"
@@ -126,7 +125,7 @@ class BaseAlert(object):
 
 
   def _find_value(self, meta_key):
-    ''' safe way to get a value when outputting result json.  will not throw an exception '''
+    """ safe way to get a value when outputting result json.  will not throw an exception """
     if self.alert_meta.has_key(meta_key):
       return self.alert_meta[meta_key]
     else:
@@ -134,14 +133,15 @@ class BaseAlert(object):
 
 
   def get_lookup_keys(self):
-    ''' returns a list of lookup keys found for this alert '''
+    """ returns a list of lookup keys found for this alert """
     return self._lookup_keys
 
 
   def _find_lookup_property(self, key):
-    '''
-    check if the supplied key is parameterized
-    '''
+    """
+    check if the supplied key is parameterized and appends the extracted key
+    to the array of keys
+    """
     keys = re.findall("{{([\S]+)}}", key)
     
     if len(keys) > 0:
@@ -153,9 +153,9 @@ class BaseAlert(object):
 
 
   def _lookup_property_value(self, key):
-    '''
+    """
     in the case of specifying a configuration path, lookup that path's value
-    '''
+    """
     if not key in self._lookup_keys:
       return key
 
@@ -166,7 +166,7 @@ class BaseAlert(object):
 
     
   def _lookup_uri_property_keys(self, uri_structure):
-    '''
+    """
     Loads the configuration lookup keys that the URI structure needs. This
     will return a named tuple that contains the keys needed to lookup
     parameterized URI values from the URI structure. The URI structure looks 
@@ -177,7 +177,7 @@ class BaseAlert(object):
       "https": bar,
       ...
     }
-    '''
+    """
     
     if uri_structure is None:
       return None
@@ -186,6 +186,7 @@ class BaseAlert(object):
     https_key = None
     https_property_key = None
     https_property_value_key = None
+    default_port = None
     
     if 'http' in uri_structure:
       http_key = self._find_lookup_property(uri_structure['http'])
@@ -199,17 +200,21 @@ class BaseAlert(object):
     if 'https_property_value' in uri_structure:
       https_property_value_key = uri_structure['https_property_value']
 
+    if 'default_port' in uri_structure:
+      default_port = uri_structure['default_port']
+
     AlertUriLookupKeys = namedtuple('AlertUriLookupKeys', 
-        'http https https_property https_property_value')
+        'http https https_property https_property_value default_port')
     
     alert_uri_lookup_keys = AlertUriLookupKeys(http=http_key, https=https_key, 
-        https_property=https_property_key, https_property_value=https_property_value_key)
+        https_property=https_property_key, 
+        https_property_value=https_property_value_key, default_port=default_port)
     
     return alert_uri_lookup_keys
 
     
   def _get_uri_from_structure(self, alert_uri_lookup_keys):
-    '''
+    """
     Gets the URI to use by examining the URI structure from the definition.
     This will return a named tuple that has the uri and the SSL flag. The
     URI structure looks something like:
@@ -219,7 +224,7 @@ class BaseAlert(object):
       "https": bar,
       ...
     }
-    '''
+    """
     
     if alert_uri_lookup_keys is None:
       return None
@@ -229,6 +234,9 @@ class BaseAlert(object):
     https_property = None
     https_property_value = None
 
+    # create a named tuple to return both the concrete URI and SSL flag
+    AlertUri = namedtuple('AlertUri', 'uri is_ssl_enabled')
+    
     # attempt to parse and parameterize the various URIs; properties that
     # do not exist int he lookup map are returned as None
     if alert_uri_lookup_keys.http is not None:
@@ -243,9 +251,14 @@ class BaseAlert(object):
     if alert_uri_lookup_keys.https_property_value is not None:
       https_property_value = self._lookup_property_value(alert_uri_lookup_keys.https_property_value)
 
-    # without a URI, there's no way to create the structure we need    
+    # without a URI, there's no way to create the structure we need - return
+    # the default port if specified, otherwise throw an exception
     if http_uri is None and https_uri is None:
-      raise Exception("Could not determine result. Either the http or https URI must be specified.")
+      if alert_uri_lookup_keys.default_port is not None:
+        alert_uri = AlertUri(uri=alert_uri_lookup_keys.default_port, is_ssl_enabled=False)
+        return alert_uri
+      else:
+        raise Exception("Could not determine result. Either the http or https URI must be specified.")
 
     # start out assuming plaintext
     uri = http_uri
@@ -260,22 +273,19 @@ class BaseAlert(object):
         is_ssl_enabled = True
         uri = https_uri
     
-    # create a named tuple to return both the concrete URI and SSL flag
-    AlertUri = namedtuple('AlertUri', 'uri is_ssl_enabled')
     alert_uri = AlertUri(uri=uri, is_ssl_enabled=is_ssl_enabled)
-    
     return alert_uri
 
 
   def _collect(self):
-    '''
+    """
     Low level function to collect alert data.  The result is a tuple as:
     res[0] = the result code
     res[1] = the list of arguments supplied to the reporting text for the result code
-    '''  
+    """  
     raise NotImplementedError
 
-  '''
+  """
   See RFC3986, Appendix B
   Tested on the following cases:
     "192.168.54.1"
@@ -284,9 +294,16 @@ class BaseAlert(object):
     "ftp://192.168.54.4:7842/foo/bar"
 
     Returns None if only a port is passsed in
-  '''
+  """
   @staticmethod
   def get_host_from_url(uri):
+    if uri is None:
+      return None
+    
+    # if not a string, return None
+    if not isinstance(uri, basestring):
+      return None    
+        
     # RFC3986, Appendix B
     parts = re.findall('^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?', uri)
 
@@ -306,10 +323,9 @@ class BaseAlert(object):
       host_and_port = parts[0][3]
 
     if -1 == host_and_port.find(':'):
-      # if no : then it might only be a port; if it's a port, return this host
       if host_and_port.isdigit():
-        return None
-
+        return None    
+      
       return host_and_port
     else:
       return host_and_port.split(':')[0]

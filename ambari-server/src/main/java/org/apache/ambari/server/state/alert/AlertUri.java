@@ -56,6 +56,13 @@ public class AlertUri {
   private String m_httpsPropertyValue;
 
   /**
+   * A default port to use on the host running the alert if no URLs can be
+   * found.
+   */
+  @SerializedName("default_port")
+  private int m_port = 0;
+
+  /**
    * Gets the plaintext (HTTP) URI that can be used to retrieve alert
    * information.
    *
@@ -63,6 +70,16 @@ public class AlertUri {
    */
   public String getHttpUri() {
     return m_httpUri;
+  }
+
+  /**
+   * Gets the default port to use on the host running the alert if none of the
+   * http properties are available.
+   *
+   * @return the default port if none of the http properties are found.
+   */
+  public int getDefaultPort() {
+    return m_port;
   }
 
   /**
@@ -117,6 +134,7 @@ public class AlertUri {
     result = prime * result
         + ((m_httpsUri == null) ? 0 : m_httpsUri.hashCode());
 
+    result = prime * result + m_port;
     return result;
   }
 
@@ -170,6 +188,9 @@ public class AlertUri {
       return false;
     }
 
+    if (m_port != other.m_port) {
+      return false;
+    }
     return true;
   }
 }

@@ -28,6 +28,7 @@ from ambari_agent.alerts.script_alert import ScriptAlert
 from ambari_agent.alerts.web_alert import WebAlert
 from ambari_agent.apscheduler.scheduler import Scheduler
 
+from collections import namedtuple
 from mock.mock import patch
 from unittest import TestCase
 
@@ -131,14 +132,6 @@ class TestAlerts(TestCase):
       "source": {
         "type": "SCRIPT",
         "path": "test_script.py",
-        "reporting": {
-          "ok": {
-            "text": "TCP OK - {0:.4f} response time on port {1}"
-          },
-          "critical": {
-            "text": "Could not load process info: {0}"
-          }
-        }
       }
     }
 
@@ -147,14 +140,14 @@ class TestAlerts(TestCase):
 
     collector = AlertCollector()
     sa = ScriptAlert(json, json['source'])
-    sa.set_helpers(collector, '')
+    sa.set_helpers(collector, {'foo-site/bar': 'rendered-bar', 'foo-site/baz':'rendered-baz'} )
     self.assertEquals(json['source']['path'], sa.path)
     self.assertEquals(json['source']['stacks_dir'], sa.stacks_dir)
 
     sa.collect()
 
     self.assertEquals('WARNING', collector.alerts()[0]['state'])
-    self.assertEquals('all is not well', collector.alerts()[0]['text'])
+    self.assertEquals('bar is rendered-bar, baz is rendered-baz', collector.alerts()[0]['text'])
 
 
   @patch.object(MetricAlert, "_load_jmx")
@@ -339,7 +332,8 @@ class TestAlerts(TestCase):
       }
     }
 
-    wa_make_web_request_mock.return_value = 200
+    WebResponse = namedtuple('WebResponse', 'status_code time_millis')
+    wa_make_web_request_mock.return_value = WebResponse(200,1.234)
 
     # run the alert and check HTTP 200    
     collector = AlertCollector()
@@ -351,7 +345,7 @@ class TestAlerts(TestCase):
     self.assertEquals('ok: 200', collector.alerts()[0]['text'])
 
     # run the alert and check HTTP 500
-    wa_make_web_request_mock.return_value = 500
+    wa_make_web_request_mock.return_value = WebResponse(500,1.234)
     collector = AlertCollector()
     alert = WebAlert(json, json['source'])
     alert.set_helpers(collector, {'hdfs-site/dfs.datanode.http.address': '1.2.3.4:80'})
@@ -361,7 +355,7 @@ class TestAlerts(TestCase):
     self.assertEquals('warning: 500', collector.alerts()[0]['text'])
 
     # run the alert and check critical
-    wa_make_web_request_mock.return_value = 0
+    wa_make_web_request_mock.return_value = WebResponse(0,0)
      
     collector = AlertCollector()
     alert = WebAlert(json, json['source'])
