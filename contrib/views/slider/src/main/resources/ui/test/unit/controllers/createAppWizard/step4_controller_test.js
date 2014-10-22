@@ -57,3 +57,77 @@ test('isSubmitDisabled', function () {
   equal(controller.get('isSubmitDisabled'), false, 'should be false after sendAppDataToServerCompleteCallback call');
 
 });
+
+test('resourcesFormatted', function () {
+
+  var cases = [
+      {
+        propertyName: 'numInstances',
+        expectedPropertyName: 'instanceCount',
+        value: '1'
+      },
+      {
+        propertyName: 'yarnMemory',
+        expectedPropertyName: 'yarnMemory',
+        value: '256'
+      },
+      {
+        propertyName: 'yarnCPU',
+        expectedPropertyName: 'yarnCpuCores',
+        value: '2'
+      },
+      {
+        propertyName: 'priority',
+        expectedPropertyName: 'priority',
+        value: 2
+      }
+    ],
+    title = '{0} should be {1}',
+    label = 'label';
+
+  var controller = this.subject({
+    newApp: Em.Object.create({
+      components: [
+        Em.Object.create({
+          name: 'c',
+          numInstances: '0',
+          yarnMemory: '512',
+          yarnCPU: '1',
+          priority: 1
+        })
+      ]
+    })
+  });
+
+  cases.forEach(function (item) {
+
+    Em.run(function () {
+      controller.get('newApp.components')[0].set(item.propertyName, item.value);
+    });
+
+    equal(controller.get('resourcesFormatted.components')[0][item.expectedPropertyName], item.value, title.format(item.expectedPropertyName, item.value));
+
+  });
+
+  Em.run(function () {
+    controller.get('newApp.components')[0].setProperties({
+      yarnLabelChecked: false,
+      yarnLabel: label
+    });
+  });
+
+  ok(!controller.get('resourcesFormatted.components')[0].yarnLabel, 'yarnLabel shouldn\'t be set');
+
+  Em.run(function () {
+    controller.get('newApp.components')[0].set('yarnLabelChecked', true);
+  });
+
+  equal(controller.get('resourcesFormatted.components')[0].yarnLabel, label, title.format('yarnLabel', '\'' + label + '\''));
+
+  Em.run(function () {
+    controller.get('newApp.components')[0].set('yarnLabel', ' ' + label + '\n');
+  });
+
+  equal(controller.get('resourcesFormatted.components')[0].yarnLabel, label, 'yarnLabel should be trimmed');
+
+});

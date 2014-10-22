@@ -98,7 +98,7 @@ App.CreateAppWizardStep4Controller = Ember.ObjectController.extend(App.AjaxError
       });
     }
     return resources;
-  }.property('newApp.components.@each'),
+  }.property('newApp.components.@each.numInstances', 'newApp.components.@each.yarnMemory', 'newApp.components.@each.yarnCPU', 'newApp.components.@each.priority', 'newApp.components.@each.yarnLabelChecked', 'newApp.components.@each.yarnLabel'),
 
   /**
    * Load all required data for step
