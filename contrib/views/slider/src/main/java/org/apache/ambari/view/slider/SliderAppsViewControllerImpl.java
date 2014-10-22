@@ -76,6 +76,7 @@ import org.apache.slider.providers.agent.application.metadata.Application;
 import org.apache.slider.providers.agent.application.metadata.Component;
 import org.apache.slider.providers.agent.application.metadata.Metainfo;
 import org.apache.slider.providers.agent.application.metadata.MetainfoParser;
+import org.apache.tools.zip.ZipEntry;
 import org.apache.tools.zip.ZipFile;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
@@ -916,11 +917,19 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
             // Create app type object
             if (metainfo.getApplication() != null) {
               Application application = metainfo.getApplication();
+              ZipEntry appConfigZipEntry = zipFile.getEntry("appConfig-default.json");
+              if (appConfigZipEntry == null) {
+                throw new IllegalStateException("Slider App package '" + appZip.getName() + "' does not contain 'appConfig-default.json' file");
+              }
+              ZipEntry resourcesZipEntry = zipFile.getEntry("resources-default.json");
+              if (resourcesZipEntry == null) {
+                throw new IllegalStateException("Slider App package '" + appZip.getName() + "' does not contain 'resources-default.json' file");
+              }
               String appConfigJsonString = IOUtils.toString(
-                  zipFile.getInputStream(zipFile.getEntry("appConfig-default.json")),
+                  zipFile.getInputStream(appConfigZipEntry),
                   "UTF-8");
               String resourcesJsonString = IOUtils.toString(
-                  zipFile.getInputStream(zipFile.getEntry("resources-default.json")),
+                  zipFile.getInputStream(resourcesZipEntry),
                   "UTF-8");
               JsonElement appConfigJson = new JsonParser()
                   .parse(appConfigJsonString);
@@ -994,9 +1003,11 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
               appTypes.add(appType);
             }
           } catch (ZipException e) {
-            logger.warn("Unable to parse app " + appZip.getAbsolutePath(), e);
+            logger.warn("Unable to parse Slider App package " + appZip.getAbsolutePath(), e);
           } catch (IOException e) {
-            logger.warn("Unable to parse app " + appZip.getAbsolutePath(), e);
+            logger.warn("Unable to parse Slider App package " + appZip.getAbsolutePath(), e);
+          } catch (Throwable e) {
+            logger.warn("Unable to parse Slider App package " + appZip.getAbsolutePath(), e);
           }
         }
       }
