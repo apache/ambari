@@ -1641,6 +1641,7 @@ public class BlueprintConfigurationProcessorTest {
     hiveSiteProperties.put("hive.metastore.uris", expectedHostName + ":" + expectedPortNum);
     hiveSiteProperties.put("javax.jdo.option.ConnectionURL", expectedHostName + ":" + expectedPortNum);
     hiveSiteProperties.put("hive.zookeeper.quorum", expectedHostName + ":" + expectedPortNum + "," + expectedHostNameTwo + ":" + expectedPortNum);
+    hiveSiteProperties.put("hive.cluster.delegation.token.store.zookeeper.connectString", expectedHostName + ":" + expectedPortNum + "," + expectedHostNameTwo + ":" + expectedPortNum);
     hiveEnvProperties.put("hive_hostname", expectedHostName);
 
 
@@ -1682,6 +1683,10 @@ public class BlueprintConfigurationProcessorTest {
     assertEquals("hive zookeeper quorum property not properly exported",
       createExportedAddress(expectedPortNum, expectedHostGroupName) + "," + createExportedAddress(expectedPortNum, expectedHostGroupNameTwo),
       hiveSiteProperties.get("hive.zookeeper.quorum"));
+
+    assertEquals("hive zookeeper connectString property not properly exported",
+      createExportedAddress(expectedPortNum, expectedHostGroupName) + "," + createExportedAddress(expectedPortNum, expectedHostGroupNameTwo),
+      hiveSiteProperties.get("hive.cluster.delegation.token.store.zookeeper.connectString"));
 
     mockSupport.verifyAll();
   }
