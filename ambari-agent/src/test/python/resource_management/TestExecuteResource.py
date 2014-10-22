@@ -162,6 +162,26 @@ class TestExecuteResource(TestCase):
     pass
 
   @patch.object(subprocess, "Popen")
+  def test_attribute_environment_non_root(self, popen_mock):
+    expected_user = 'test_user'
+
+    subproc_mock = MagicMock()
+    subproc_mock.returncode = 0
+    subproc_mock.communicate.side_effect = [["1"]]
+    popen_mock.return_value = subproc_mock
+
+    with Environment("/") as env:
+      execute_resource = Execute('echo "1"',
+                                 user=expected_user,
+                                 environment={'JAVA_HOME': '/test/java/home',
+                                              'PATH': "/bin"}
+      )
+    expected_command = 'export  PATH=$PATH:/bin JAVA_HOME=/test/java/home ; echo "1"'
+    self.assertEqual(popen_mock.call_args_list[0][0][0][4], expected_user)
+    self.assertEqual(popen_mock.call_args_list[0][0][0][6], expected_command)
+
+
+  @patch.object(subprocess, "Popen")
   def test_attribute_cwd(self, popen_mock):
     expected_cwd = "/test/work/directory"
 

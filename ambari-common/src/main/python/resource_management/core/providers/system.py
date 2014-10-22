@@ -225,8 +225,12 @@ class ExecuteProvider(Provider):
 
     for i in range (0, self.resource.tries):
       try:
+        env=self.resource.environment
+        if env and 'PATH' in env.keys():
+          env['PATH'] = "$PATH" + os.pathsep + env['PATH']
+
         shell.checked_call(self.resource.command, logoutput=self.resource.logoutput,
-                            cwd=self.resource.cwd, env=self.resource.environment,
+                            cwd=self.resource.cwd, env=env,
                             preexec_fn=_preexec_fn(self.resource), user=self.resource.user,
                             wait_for_finish=self.resource.wait_for_finish,
                             timeout=self.resource.timeout,

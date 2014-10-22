@@ -50,3 +50,10 @@ def knox():
          owner=params.knox_user,
          content=InlineTemplate(params.topology_template)
     )
+
+    cmd = format('{knox_client_bin} create-master --master {knox_master_secret}')
+    Execute(cmd,
+            user=params.knox_user,
+            environment={'JAVA_HOME': params.java_home},
+            not_if=format('test -f {knox_master_secret_path}')
+    )

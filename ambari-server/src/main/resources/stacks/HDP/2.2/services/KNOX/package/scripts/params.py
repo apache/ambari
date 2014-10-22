@@ -24,9 +24,10 @@ import status_params
 
 config = Script.get_config()
 
-rpm_version = default("/configurations/cluster-env/rpm_version", None)
+hdp_stack_version = str(config['hostLevelParams']['stack_version'])
+stack_is_hdp22_or_further = not (hdp_stack_version.startswith('2.0') or hdp_stack_version.startswith('2.1'))
 
-if rpm_version:
+if stack_is_hdp22_or_further:
   knox_bin = '/usr/hdp/current/knox-server/bin/gateway.sh'
   ldap_bin = '/usr/hdp/current/knox-server/bin/ldap.sh'
   knox_client_bin = '/usr/hdp/current/knox-server/bin/knoxcli.sh'
@@ -111,10 +112,12 @@ knox_group = default("/configurations/knox-env/knox_group", "knox")
 knox_pid_file = status_params.knox_pid_file
 ldap_pid_file = status_params.ldap_pid_file
 knox_master_secret = config['configurations']['knox-env']['knox_master_secret']
+knox_master_secret_path = '/var/lib/knox/data/security/master'
 knox_host_name = config['clusterHostInfo']['knox_gateway_hosts'][0]
 knox_host_port = config['configurations']['gateway-site']['gateway.port']
 topology_template = config['configurations']['ambari-topology']['content']
 gateway_log4j = config['configurations']['gateway-log4j']['content']
 ldap_log4j = config['configurations']['ldap-log4j']['content']
 users_ldif = config['configurations']['users-ldif']['content']
+java_home = config['hostLevelParams']['java_home']
 
