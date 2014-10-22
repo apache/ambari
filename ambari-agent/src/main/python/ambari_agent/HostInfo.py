@@ -38,7 +38,7 @@ import socket
 logger = logging.getLogger()
 
 # service cmd
-SERVICE_CMD = "/sbin/service"
+SERVICE_CMD = "service"
 
 
 class HostInfo:

@@ -469,7 +469,7 @@ class TestHostInfo(TestCase):
     self.assertEquals(result[0]['name'], 'service1')
     self.assertEquals(result[0]['desc'], '')
     self.assertEquals(str(subproc_popen.call_args_list),
-                      "[call(['/sbin/service', 'service1', 'status'], stderr=-1, stdout=-1)]")
+                      "[call(['service', 'service1', 'status'], stderr=-1, stdout=-1)]")
 
     p.returncode = 1
     p.communicate.return_value = ('out', 'err')
