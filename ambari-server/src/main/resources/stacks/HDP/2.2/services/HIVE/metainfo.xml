@@ -34,13 +34,13 @@
           <osFamily>redhat5,redhat6,suse11</osFamily>
           <packages>
             <package>
-              <name>hive_2_2_0_0_*</name>
+              <name>hive_2_2_*</name>
             </package>
             <package>
-              <name>hive_2_2_0_0_*-hcatalog</name>
+              <name>hive_2_2_*-hcatalog</name>
             </package>
             <package>
-              <name>hive_2_2_0_0_*-webhcat</name>
+              <name>hive_2_2_*-webhcat</name>
             </package>
             <package>
               <name>mysql</name>
@@ -51,13 +51,13 @@
           <osFamily>ubuntu12</osFamily>
           <packages>
             <package>
-              <name>hive-2-2-0-0-.*</name>
+              <name>hive-2-2-.*</name>
             </package>
             <package>
-              <name>hive-2-2-0-0-.*-hcatalog</name>
+              <name>hive-2-2-.*-hcatalog</name>
             </package>
             <package>
-              <name>hive-2-2-0-0-.*-webhcat</name>
+              <name>hive-2-2-.*-webhcat</name>
             </package>
           </packages>
         </osSpecific>

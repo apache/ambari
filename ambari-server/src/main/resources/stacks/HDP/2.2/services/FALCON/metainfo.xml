@@ -27,7 +27,7 @@
           <osFamily>redhat5,redhat6,suse11</osFamily>
           <packages>
             <package>
-              <name>falcon_2_2_0_0_*</name>
+              <name>falcon_2_2_*</name>
             </package>
           </packages>
         </osSpecific>
@@ -35,7 +35,7 @@
           <osFamily>ubuntu12</osFamily>
           <packages>
             <package>
-              <name>falcon-2-2-0-0-.*</name>
+              <name>falcon-2-2-.*</name>
             </package>
           </packages>
         </osSpecific>

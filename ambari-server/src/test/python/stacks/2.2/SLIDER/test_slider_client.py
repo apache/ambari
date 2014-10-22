@@ -79,7 +79,7 @@ class TestSliderClient(RMFTestCase):
                        config_file="default.json"
     )
 
-    self.assertResourceCalled('Execute', ' /usr/hdp/current/slider-client/bin/slider list',
+    self.assertResourceCalled('Execute', ' /usr/lib/slider/bin/slider list',
                               logoutput=True,
                               tries=3,
                               user='ambari-qa',

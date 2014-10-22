@@ -25,8 +25,11 @@ config = Script.get_config()
 
 # RPM versioning support
 rpm_version = default("/configurations/cluster-env/rpm_version", None)
-if rpm_version:
-  hadoop_bin_dir = "/usr/hdp/current/hadoop-client/bin"
+
+hdp_stack_version = str(config['hostLevelParams']['stack_version'])
+stack_is_hdp22_or_further = not (hdp_stack_version.startswith('2.0') or hdp_stack_version.startswith('2.1'))
+
+if stack_is_hdp22_or_further:  hadoop_bin_dir = "/usr/hdp/current/hadoop-client/bin"
 else:
   hadoop_bin_dir = "/usr/bin"
 hadoop_conf_dir = "/etc/hadoop/conf"

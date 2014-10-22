@@ -23,11 +23,11 @@ from status_params import *
 
 config = Script.get_config()
 
-#RPM versioning support
-rpm_version = default("/configurations/cluster-env/rpm_version", None)
+hdp_stack_version = str(config['hostLevelParams']['stack_version'])
+stack_is_hdp22_or_further = not (hdp_stack_version.startswith('2.0') or hdp_stack_version.startswith('2.1'))
 
 #hadoop params
-if rpm_version:
+if stack_is_hdp22_or_further:
   hadoop_bin_dir = "/usr/hdp/current/hadoop-client/bin"
   falcon_webapp_dir = "/usr/hdp/current/falcon-client/webapp"
   falcon_home = "/usr/hdp/current/falcon-client"

@@ -50,7 +50,7 @@
           <osFamily>redhat5,redhat6,suse11</osFamily>
           <packages>
             <package>
-              <name>kafka_2_2_0_0_*</name>
+              <name>kafka_2_2_*</name>
             </package>
           </packages>
         </osSpecific>
@@ -58,7 +58,7 @@
           <osFamily>ubuntu12</osFamily>
           <packages>
             <package>
-              <name>kafka-2-2-0-0-.*</name>
+              <name>kafka-2-2-.*</name>
             </package>
           </packages>
         </osSpecific>
