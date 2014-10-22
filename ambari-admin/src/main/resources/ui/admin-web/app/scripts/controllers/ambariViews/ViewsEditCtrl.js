@@ -33,19 +33,22 @@ angular.module('ambariAdminConsole')
         'description': $scope.instance.ViewInstanceInfo.description
       };
 
-      $scope.configuration = angular.copy($scope.instance.ViewInstanceInfo.properties);
-      for(var confName in $scope.configuration){
-        if( $scope.configuration.hasOwnProperty(confName) ){
-          $scope.configuration[confName] = $scope.configuration[confName] === 'null' ? '' : $scope.configuration[confName];
-        }
-      }
-      $scope.isConfigurationEmpty = angular.equals({}, $scope.configuration);
+        initConfigurations();
+        $scope.isConfigurationEmpty = angular.equals({}, $scope.configuration);
     })
     .catch(function(data) {
       Alert.error('Cannot load instance info', data.data.message);
     });
   }
 
+  function initConfigurations() {
+    $scope.configuration = angular.copy($scope.instance.ViewInstanceInfo.properties);
+    for (var confName in $scope.configuration) {
+      if ($scope.configuration.hasOwnProperty(confName)) {
+        $scope.configuration[confName] = $scope.configuration[confName] === 'null' ? '' : $scope.configuration[confName];
+      }
+    }
+  }
 
   // Get META for properties
   View.getMeta($routeParams.viewId, $routeParams.version).then(function(data) {
@@ -114,9 +117,16 @@ angular.module('ambariAdminConsole')
 
   
   $scope.editConfigurationDisabled = true;
-  $scope.togglePropertiesEditing = function() {
-     $scope.editConfigurationDisabled = !$scope.editConfigurationDisabled;
-  }
+  $scope.togglePropertiesEditing = function () {
+    $scope.editConfigurationDisabled = !$scope.editConfigurationDisabled;
+    if (!$scope.editConfigurationDisabled) {
+      $scope.configurationMeta.forEach(function (element) {
+        if (element.masked) {
+          $scope.configuration[element.name] = '';
+        }
+      });
+    }
+  };
   $scope.saveConfiguration = function() {
     if( $scope.propertiesForm.$valid ){
       return View.updateInstance($routeParams.viewId, $routeParams.version, $routeParams.instanceId, {
@@ -134,7 +144,7 @@ angular.module('ambariAdminConsole')
     }
   };
   $scope.cancelConfiguration = function() {
-    $scope.configuration = angular.copy($scope.instance.ViewInstanceInfo.properties);
+    initConfigurations();
     $scope.editConfigurationDisabled = true;
     $scope.propertiesForm.$setPristine();
   };
