@@ -82,6 +82,7 @@ msg_ids = {'Host::Ping':'host_down',
            'REGIONSERVER::RegionServer process down':'regionserver_process_down',
            'HBASE::Percent RegionServers down':'regionservers_down',
            'HIVE-METASTORE::Hive Metastore status check':'hive_metastore_process_down',
+           'HIVE-METASTORE::Hive Metastore process':'hive_metastore_process_down',
            'ZOOKEEPER::Percent ZooKeeper Servers down':'zookeepers_down',
            'ZOOKEEPER::ZooKeeper Server process down':'zookeeper_process_down',
            'OOZIE::Oozie Server status check':'oozie_down',
@@ -103,7 +104,7 @@ msg_ids = {'Host::Ping':'host_down',
            'NAMENODE::NameNode process':'namenode_process',
            'NAMENODE::Secondary NameNode process':'secondary_namenode_process',
            'JOURNALNODE::JournalNode process':'journalnode_process',
-           'ZOOKEEPER::ZooKeeper Server process':'zookeeper_server_process',
+           'ZOOKEEPER::ZooKeeper Server process':'zookeeper_process_down',
            'JOBTRACKER::JobTracker process':'jobtracker_process',
            'TASKTRACKER::TaskTracker process':'tasktracker_process',
            'GANGLIA::Ganglia Server process':'ganglia_server_process',
@@ -114,73 +115,83 @@ msg_ids = {'Host::Ping':'host_down',
            'GANGLIA::Ganglia Monitor process for ResourceManager':'ganglia_monitor_process',
            'GANGLIA::Ganglia Monitor process for HistoryServer':'ganglia_monitor_process',
            'HBASEMASTER::HBase Master process':'hbase_master_process',
+           'HBASE::Percent RegionServers live':'regionservers_down',
            'REGIONSERVER::RegionServer process':'regionserver_process',
            'NAGIOS::Nagios status log freshness':'nagios_process',
            'FLUME::Flume Agent process':'flume_agent_process',
-           'OOZIE::Oozie Server status':'oozie_server_process',
+           'OOZIE::Oozie Server status':'oozie_down',
            'HIVE-METASTORE::Hive Metastore status':'hive_metastore_process',
-           'WEBHCAT::WebHCat Server status':'webhcat_server_process',
-           'RESOURCEMANAGER::ResourceManager process':'resourcemanager_process',
-           'NODEMANAGER::NodeManager process':'nodemanager_process',
+           'WEBHCAT::WebHCat Server status':'webhcat_down',
+           'RESOURCEMANAGER::ResourceManager process':'resourcemanager_process_down',
+           'RESOURCEMANAGER::ResourceManager RPC latency':'resourcemanager_rpc_latency',
+           'RESOURCEMANAGER::ResourceManager CPU utilization':'resourcemanager_cpu_utilization',
+           'RESOURCEMANAGER::ResourceManager Web UI':'recourcemanager_ui',
+           'NODEMANAGER::NodeManager process':'nodemanager_process_down',
+           'NODEMANAGER::NodeManager health':'nodemanager_health',
+           'NODEMANAGER::Percent NodeManagers live':'nodemanagers_down',
+           'APP_TIMELINE_SERVER::App Timeline Server process':'timelineserver_process',
+           'JOBHISTORY::HistoryServer RPC latency':'historyserver_rpc_latency',
+           'JOBHISTORY::HistoryServer CPU utilization':'historyserver_cpu_utilization',
+           'JOBHISTORY::HistoryServer Web UI':'historyserver_ui',
            'JOBHISTORY::HistoryServer process':'historyserver_process'}
 
 # Determine the severity of the TVI alert based on the Nagios alert state.
 def determine_severity(state, service):
-    if severities.has_key(state):
-        severity = severities[state]
-    else: severity = 'Warning'
+  if severities.has_key(state):
+    severity = severities[state]
+  else: severity = 'Warning'
 
-    # For some alerts, warning should be converted to Degraded
-    if severity == 'Warning' and service in degraded_alert_services:
-        severity = 'Degraded'
-    elif severity != 'OK' and service in fatal_alert_services:
-        severity = 'Fatal'
+  # For some alerts, warning should be converted to Degraded
+  if severity == 'Warning' and service in degraded_alert_services:
+    severity = 'Degraded'
+  elif severity != 'OK' and service in fatal_alert_services:
+    severity = 'Fatal'
 
-    return severity
+  return severity
 
 
 # Determine the msg id for the TVI alert from based on the service which generates the Nagios alert.
 # The msg id is used to correlate a log msg to a TVI rule.
 def determine_msg_id(service, severity):
-    if msg_ids.has_key(service):
-        msg_id = msg_ids[service]
-        if severity == 'OK':
-            msg_id = '{0}_ok'.format(msg_id)
-
-        return msg_id
-    else: return 'HADOOP_UNKNOWN_MSG'
+  for k, v in msg_ids.iteritems():
+    if(k in service):
+      msg_id = v
+      if severity == 'OK':
+        msg_id = '{0}_ok'.format(msg_id)
+      return msg_id
+  return 'HADOOP_UNKNOWN_MSG'
 
 
 # Determine the domain.  Currently the domain is always 'Hadoop'.
 def determine_domain():
-    return 'Hadoop'
+  return 'Hadoop'
 
 
 # log the TVI msg to the syslog
 def log_tvi_msg(msg):
-    syslog.openlog('nagios', syslog.LOG_PID)
-    syslog.syslog(msg)
+  syslog.openlog('nagios', syslog.LOG_PID)
+  syslog.syslog(msg)
 
 
 # generate a tvi log msg from a Hadoop alert
 def generate_tvi_log_msg(alert_type, attempt, state, service, msg):
-    # Determine the TVI msg contents
-    severity = determine_severity(state, service)  # The TVI alert severity.
-    domain   = determine_domain()                  # The domain specified in the TVI alert.
-    msg_id   = determine_msg_id(service, severity) # The msg_id used to correlate to a TVI rule.
+  # Determine the TVI msg contents
+  severity = determine_severity(state, service)  # The TVI alert severity.
+  domain   = determine_domain()                  # The domain specified in the TVI alert.
+  msg_id   = determine_msg_id(service, severity) # The msg_id used to correlate to a TVI rule.
 
-    # Only log HARD alerts
-    if alert_type == 'HARD':
-        # Format and log msg
-        log_tvi_msg('{0}: {1}: {2}# {3}'.format(severity, domain, msg_id, msg))
+  # Only log HARD alerts
+  if alert_type == 'HARD':
+    # Format and log msg
+    log_tvi_msg('{0}: {1}: {2}# {3}'.format(severity, domain, msg_id, msg))
 
 
 # main method which is called when invoked on the command line
 def main():
-    generate_tvi_log_msg(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5])
+  generate_tvi_log_msg(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5])
 
 
 # run the main method
 if __name__ == '__main__':
-    main()
-    sys.exit(0)
+  main()
+  sys.exit(0)
