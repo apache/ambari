@@ -350,6 +350,8 @@ App.ChartView = Ember.View.extend({
       this.set('isPopup', true);
     }
     else {
+      //set height for empty container while graph drawing to avoid viewport shrinking by height
+      graph_container.css('height', graph_container.css('height'));
       graph_container.children().each(function (index, value) {
         $(value).children().remove();
       });
@@ -371,6 +373,7 @@ App.ChartView = Ember.View.extend({
       }
       this.set('isPopup', false);
     }
+    graph_container.css('height', 'auto');
   },
 
   /**

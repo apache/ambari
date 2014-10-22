@@ -27,9 +27,7 @@ test('getViewDisplayParametersSuccessCallback', function () {
         "description" : "description s1",
         "label" : "display s1",
         "instance_data": {
-          "java.home": "/usr/jdk64/jdk1.7.0_45"
-        },
-        "properties": {
+          "java.home": "/usr/jdk64/jdk1.7.0_45",
           "slider.user": "admin"
         }
       }
