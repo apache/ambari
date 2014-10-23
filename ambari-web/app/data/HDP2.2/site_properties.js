@@ -17,10 +17,23 @@
  */
 
 var App = require('app');
+
 var hdp2properties = require('data/HDP2/site_properties').configProperties;
+var excludedConfigs = [
+  'storm.thrift.transport', //In HDP2.2 storm.thrift.transport property is computed on server
+  'storm_rest_api_host',
+  'tez.am.container.session.delay-allocation-millis',
+  'tez.am.grouping.max-size',
+  'tez.am.grouping.min-size',
+  'tez.am.grouping.split-waves',
+  'tez.am.java.opts',
+  'tez.runtime.intermediate-input.compress.codec',
+  'tez.runtime.intermediate-input.is-compressed',
+  'tez.runtime.intermediate-output.compress.codec',
+  'tez.runtime.intermediate-output.should-compress'
+];
 var hdp22properties = hdp2properties.filter(function (item) {
-  //In HDP2.2 storm.thrift.transport property is computed on server
-  return item.name !== 'storm.thrift.transport' && item.name !== 'storm_rest_api_host';
+  return !excludedConfigs.contains(item.name);
 });
 
 hdp22properties.push(
