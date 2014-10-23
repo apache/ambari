@@ -1,6 +1,31 @@
 {
   "HBASE": {
-    "service": [],
+    "service": [
+      {
+        "name": "hbase_regionserver_process_percent",
+        "label": "Percent RegionServers Available",
+        "interval": 1,
+        "scope": "SERVICE",
+        "enabled": true,
+        "source": {
+          "type": "AGGREGATE",
+          "alert_name": "hbase_regionserver_process",
+          "reporting": {
+            "ok": {
+              "text": "affected: [{1}], total: [{0}]"
+            },
+            "warning": {
+              "text": "affected: [{1}], total: [{0}]",
+              "value": 0.1
+            },
+            "critical": {
+              "text": "affected: [{1}], total: [{0}]",
+              "value": 0.3
+            }
+          }
+        }
+      }    
+    ],
     "HBASE_MASTER": [
       {
         "name": "hbase_master_process",
@@ -11,6 +36,64 @@
           "type": "PORT",
           "uri": "{{hbase-site/hbase.master.port}}",
           "default_port": 60000,
+          "reporting": {
+            "ok": {
+              "text": "TCP OK - {0:.4f} response on port {1}"
+            },
+            "critical": {
+              "text": "Connection failed: {0} on host {1}:{2}"
+            }
+          }        
+        }
+      },
+      {
+        "name": "hbase_master_cpu",
+        "label": "HBase Maser CPU Utilization",
+        "interval": 5,
+        "scope": "ANY",
+        "enabled": true,
+        "source": {
+          "type": "METRIC",
+          "uri": {
+            "http": "{{hbase-site/hbase.master.info.port}}",
+            "https": "{{hbase-site/hbase.master.info.port}}",
+            "https_property": "{{cluster-env/security_enabled}}",
+            "https_property_value": "true",
+            "default_port": 60010
+          },
+          "reporting": {
+            "ok": {
+              "text": "{1} CPU, load {0:.1%}"
+            },
+            "warning": {
+              "text": "{1} CPU, load {0:.1%}",
+              "value": 200
+            },
+            "critical": {
+              "text": "{1} CPU, load {0:.1%}",
+              "value": 250
+            }
+          },
+          "jmx": {
+            "property_list": [
+              "java.lang:type=OperatingSystem/SystemCpuLoad",
+              "java.lang:type=OperatingSystem/AvailableProcessors"
+            ],
+            "value": "{0} * 100"
+          }
+        }
+      }
+    ],
+    "HBASE_REGIONSERVER": [
+      {
+        "name": "hbase_regionserver_process",
+        "label": "HBase RegionServer Process",
+        "interval": 1,
+        "scope": "HOST",
+        "source": {
+          "type": "PORT",
+          "uri": "{{hbase-site/hbase.regionserver.info.port}}",
+          "default_port": 60030,
           "reporting": {
             "ok": {
               "text": "TCP OK - {0:.4f} response on port {1}"

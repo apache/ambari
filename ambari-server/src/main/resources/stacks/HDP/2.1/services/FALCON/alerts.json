@@ -1,0 +1,51 @@
+{
+  "FALCON": {
+    "service": [],
+    "FALCON_SERVER": [
+      {
+        "name": "falcon_server_process",
+        "label": "Falcon Server Process",
+        "interval": 1,
+        "scope": "ANY",
+        "source": {
+          "type": "PORT",
+          "uri": "{{falcon-env/falcon_port}}",
+          "default_port": 15000,
+          "reporting": {
+            "ok": {
+              "text": "TCP OK - {0:.4f} response on port {1}"
+            },
+            "critical": {
+              "text": "Connection failed: {0} on host {1}:{2}"
+            }
+          }        
+        }
+      },
+      {
+        "name": "falcon_server_webui",
+        "label": "Falcon Server Web UI",
+        "interval": 1,
+        "scope": "ANY",
+        "enabled": true,
+        "source": {
+          "type": "WEB",
+          "uri": {
+            "http": "{{falcon-env/falcon_port}}",
+            "default_port": 15000
+          },
+          "reporting": {
+            "ok": {
+              "text": "HTTP {0} response in {3:.4f} seconds"
+            },
+            "warning":{
+              "text": "HTTP {0} response in {3:.4f} seconds"
+            },
+            "critical": {
+              "text": "Connection failed to {1}:{2}"
+            }
+          }
+        }
+      }
+    ]
+  }
+}

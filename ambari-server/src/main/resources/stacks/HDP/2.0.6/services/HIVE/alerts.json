@@ -1,0 +1,26 @@
+{
+  "HIVE": {
+    "service": [],
+    "HIVE_METASTORE": [
+      {
+        "name": "hive_metastore_process",
+        "label": "Hive Metastore Process",
+        "interval": 1,
+        "scope": "ANY",
+        "source": {
+          "type": "PORT",
+          "uri": "{{hive-site/hive.metastore.uris}}",
+          "default_port": 9083,
+          "reporting": {
+            "ok": {
+              "text": "TCP OK - {0:.4f} response on port {1}"
+            },
+            "critical": {
+              "text": "Connection failed: {0} on host {1}:{2}"
+            }
+          }        
+        }
+      }
+    ]
+  }
+}

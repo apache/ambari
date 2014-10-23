@@ -1,0 +1,26 @@
+{
+  "KNOX": {
+    "service": [],
+    "KNOX_GATEWAY": [
+      {
+        "name": "knox_gateway_process",
+        "label": "Know Gateway Process",
+        "interval": 1,
+        "scope": "HOST",
+        "source": {
+          "type": "PORT",
+          "uri": "{{gateway-site/gateway.port}}",
+          "default_port": 8443,
+          "reporting": {
+            "ok": {
+              "text": "TCP OK - {0:.4f} response on port {1}"
+            },
+            "critical": {
+              "text": "Connection failed: {0} on host {1}:{2}"
+            }
+          }
+        }
+      }
+    ]
+  }
+}
