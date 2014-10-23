@@ -49,6 +49,16 @@ import java.util.Set;
  */
 public interface AmbariManagementController {
 
+  /**
+   * Get an Ambari endpoint URI for the given path.
+   *
+   * @param path  the path (e.g. /api/v1/users)
+   *
+   * @return the Ambari endpoint URI
+   */
+  public String getAmbariServerURI(String path);
+
+
   // ----- Create -----------------------------------------------------------
 
   /**

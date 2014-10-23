@@ -20,7 +20,6 @@ package org.apache.ambari.server.view;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.ViewEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
@@ -29,15 +28,14 @@ import org.apache.ambari.server.view.configuration.ViewConfig;
 import org.apache.ambari.server.view.events.EventImpl;
 import org.apache.ambari.server.view.persistence.DataStoreImpl;
 import org.apache.ambari.server.view.persistence.DataStoreModule;
+import org.apache.ambari.view.AmbariStreamProvider;
 import org.apache.ambari.view.DataStore;
+import org.apache.ambari.view.ImpersonatorSetting;
 import org.apache.ambari.view.MaskException;
 import org.apache.ambari.view.Masker;
 import org.apache.ambari.view.ResourceProvider;
 import org.apache.ambari.view.SecurityException;
 import org.apache.ambari.view.SystemException;
-import org.apache.ambari.view.URLStreamProvider;
-import org.apache.ambari.server.controller.internal.AppCookieManager;
-import org.apache.ambari.view.ImpersonatorSetting;
 import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.ViewController;
 import org.apache.ambari.view.ViewDefinition;
@@ -51,15 +49,11 @@ import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
 import org.apache.velocity.exception.ParseErrorException;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -89,9 +83,14 @@ public class ViewContextImpl implements ViewContext, ViewController {
   private final ViewRegistry viewRegistry;
 
   /**
-   * The available stream provider.
+   * The URL stream provider.
    */
-  private final ViewURLStreamProvider streamProvider;
+  private ViewURLStreamProvider streamProvider;
+
+  /**
+   * The Ambari stream provider.
+   */
+  private ViewAmbariStreamProvider ambariStreamProvider;
 
   /**
    * The data store.
@@ -131,7 +130,6 @@ public class ViewContextImpl implements ViewContext, ViewController {
     this.viewEntity         = viewEntity;
     this.viewInstanceEntity = viewInstanceEntity;
     this.viewRegistry       = viewRegistry;
-    this.streamProvider     = ViewURLStreamProvider.getProvider();
     this.masker             = getMasker(viewEntity.getClassLoader(), viewEntity.getConfiguration());
     this.velocityContext    = initVelocityContext();
   }
@@ -275,8 +273,17 @@ public class ViewContextImpl implements ViewContext, ViewController {
   }
 
   @Override
-  public URLStreamProvider getURLStreamProvider() {
+  public org.apache.ambari.view.URLStreamProvider getURLStreamProvider() {
+    ensureURLStreamProvider();
     return streamProvider;
+  }
+
+  @Override
+  public synchronized AmbariStreamProvider getAmbariStreamProvider() {
+    if (ambariStreamProvider == null) {
+      ambariStreamProvider = viewRegistry.createAmbariStreamProvider();
+    }
+    return ambariStreamProvider;
   }
 
   @Override
@@ -311,13 +318,15 @@ public class ViewContextImpl implements ViewContext, ViewController {
 
   @Override
   public HttpImpersonatorImpl getHttpImpersonator() {
-    return new HttpImpersonatorImpl(this, this.streamProvider.getAppCookieManager());
+    ensureURLStreamProvider();
+    return new HttpImpersonatorImpl(this, streamProvider.getAppCookieManager());
   }
 
   @Override
   public ImpersonatorSetting getImpersonatorSetting() {
     return new ImpersonatorSettingImpl(this);
   }
+
 
   // ----- ViewController ----------------------------------------------------
 
@@ -351,6 +360,13 @@ public class ViewContextImpl implements ViewContext, ViewController {
   }
 
   // ----- helper methods ----------------------------------------------------
+
+  // ensure that the URL stream provider has been created
+  private synchronized void ensureURLStreamProvider() {
+    if (streamProvider == null) {
+      streamProvider = viewRegistry.createURLStreamProvider();
+    }
+  }
 
   // check for an associated instance
   private void checkInstance() {
@@ -411,64 +427,6 @@ public class ViewContextImpl implements ViewContext, ViewController {
           }
         });
     return context;
-  }
-
-  // ----- Inner class : ViewURLStreamProvider -------------------------------
-
-  /**
-   * Wrapper around internal URL stream provider.
-   */
-  protected static class ViewURLStreamProvider implements URLStreamProvider {
-    private static final int DEFAULT_REQUEST_CONNECT_TIMEOUT = 5000;
-    private static final int DEFAULT_REQUEST_READ_TIMEOUT    = 10000;
-
-    /**
-     * Internal stream provider.
-     */
-    private final org.apache.ambari.server.controller.internal.URLStreamProvider streamProvider;
-
-    // ----- Constructor -----------------------------------------------------
-
-    protected ViewURLStreamProvider(org.apache.ambari.server.controller.internal.URLStreamProvider streamProvider) {
-      this.streamProvider = streamProvider;
-    }
-
-
-    // ----- URLStreamProvider -----------------------------------------------
-
-    @Override
-    public InputStream readFrom(String spec, String requestMethod, String params, Map<String, String> headers)
-        throws IOException {
-      // adapt to org.apache.ambari.server.controller.internal.URLStreamProvider processURL signature
-      Map<String, List<String>> headerMap = new HashMap<String, List<String>>();
-      for (Map.Entry<String, String> entry : headers.entrySet()) {
-        headerMap.put(entry.getKey(), Collections.singletonList(entry.getValue()));
-      }
-      return streamProvider.processURL(spec, requestMethod, params, headerMap).getInputStream();
-    }
-
-
-    // ----- helper methods --------------------------------------------------
-
-    /**
-     * Factory method.
-     *
-     * @return a new URL stream provider.
-     */
-    protected static ViewURLStreamProvider getProvider() {
-      ComponentSSLConfiguration configuration = ComponentSSLConfiguration.instance();
-      org.apache.ambari.server.controller.internal.URLStreamProvider streamProvider =
-          new org.apache.ambari.server.controller.internal.URLStreamProvider(
-              DEFAULT_REQUEST_CONNECT_TIMEOUT, DEFAULT_REQUEST_READ_TIMEOUT,
-              configuration.getTruststorePath(),
-              configuration.getTruststorePassword(),
-              configuration.getTruststoreType());
-      return new ViewURLStreamProvider(streamProvider);
-    }
-
-    protected AppCookieManager getAppCookieManager() {
-      return streamProvider.getAppCookieManager();
-    }
   }
 
   // ----- Inner class : ParameterResolver -------------------------------

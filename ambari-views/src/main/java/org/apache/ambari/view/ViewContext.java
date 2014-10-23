@@ -20,7 +20,6 @@ package org.apache.ambari.view;
 
 import java.util.Collection;
 import java.util.Map;
-import org.apache.ambari.view.HttpImpersonator;
 
 /**
  * Context object available to the view components to provide access to
@@ -147,6 +146,13 @@ public interface ViewContext {
    * @return a stream provider
    */
   public URLStreamProvider getURLStreamProvider();
+
+  /**
+   * Get an Ambari stream provider.
+   *
+   * @return an Ambari stream provider
+   */
+  public AmbariStreamProvider getAmbariStreamProvider();
 
   /**
    * Get a data store for view persistence entities.

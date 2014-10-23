@@ -27,7 +27,10 @@ import org.apache.ambari.server.api.resources.SubResourceDefinition;
 import org.apache.ambari.server.api.resources.ViewExternalSubResourceDefinition;
 import org.apache.ambari.server.api.services.ViewExternalSubResourceService;
 import org.apache.ambari.server.api.services.ViewSubResourceService;
+import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.AmbariServer;
+import org.apache.ambari.server.controller.AmbariSessionManager;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.orm.dao.MemberDAO;
@@ -102,6 +105,8 @@ public class ViewRegistry {
   private static final String EXTRACTED_ARCHIVES_DIR = "work";
   private static final String EXTRACT_COMMAND = "extract";
   private static final String ALL_VIEWS_REG_EXP = ".*";
+  protected static final int DEFAULT_REQUEST_CONNECT_TIMEOUT = 5000;
+  protected static final int DEFAULT_REQUEST_READ_TIMEOUT    = 10000;
 
   /**
    * Thread pool
@@ -218,6 +223,12 @@ public class ViewRegistry {
    */
   @Inject
   ViewArchiveUtility archiveUtility;
+
+  /**
+   * The Ambari session manager.
+   */
+  @Inject
+  AmbariSessionManager ambariSessionManager;
 
 
   // ----- ViewRegistry ------------------------------------------------------
@@ -1369,5 +1380,39 @@ public class ViewRegistry {
       executorService = threadPoolExecutor;
     }
     return executorService;
+  }
+
+  /**
+   * Factory method to create a view URL stream provider.
+   *
+   * @return a new view URL stream provider
+   */
+  protected ViewURLStreamProvider createURLStreamProvider() {
+    ComponentSSLConfiguration configuration1 = ComponentSSLConfiguration.instance();
+    org.apache.ambari.server.controller.internal.URLStreamProvider streamProvider =
+        new org.apache.ambari.server.controller.internal.URLStreamProvider(
+            DEFAULT_REQUEST_CONNECT_TIMEOUT,
+            DEFAULT_REQUEST_READ_TIMEOUT,
+            configuration1.getTruststorePath(),
+            configuration1.getTruststorePassword(),
+            configuration1.getTruststoreType());
+    return new ViewURLStreamProvider(streamProvider);
+  }
+
+  /**
+   * Factory method to create a view Ambari stream provider.
+   *
+   * @return a new view Ambari stream provider
+   */
+  protected ViewAmbariStreamProvider createAmbariStreamProvider() {
+    ComponentSSLConfiguration configuration1 = ComponentSSLConfiguration.instance();
+    org.apache.ambari.server.controller.internal.URLStreamProvider streamProvider =
+        new org.apache.ambari.server.controller.internal.URLStreamProvider(
+            DEFAULT_REQUEST_CONNECT_TIMEOUT,
+            DEFAULT_REQUEST_READ_TIMEOUT,
+            configuration1.getTruststorePath(),
+            configuration1.getTruststorePassword(),
+            configuration1.getTruststoreType());
+    return new ViewAmbariStreamProvider(streamProvider, ambariSessionManager, AmbariServer.getController());
   }
 }

@@ -114,6 +114,7 @@ import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.context.request.RequestContextListener;
 import org.springframework.web.context.support.GenericWebApplicationContext;
 import org.springframework.web.filter.DelegatingFilterProxy;
 
@@ -275,6 +276,9 @@ public class AmbariServer {
       root.addFilter(new FilterHolder(injector.getInstance(AmbariPersistFilter.class)), "/proxy/*", 1);
       root.addFilter(new FilterHolder(new MethodOverrideFilter()), "/api/*", 1);
       root.addFilter(new FilterHolder(new MethodOverrideFilter()), "/proxy/*", 1);
+
+      // register listener to capture request context
+      root.addEventListener(new RequestContextListener());
 
       agentroot.addFilter(new FilterHolder(injector.getInstance(AmbariPersistFilter.class)), "/agent/*", 1);
       agentroot.addFilter(SecurityFilter.class, "/*", 1);
