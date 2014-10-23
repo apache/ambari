@@ -67,7 +67,8 @@ module.exports = [
     "templateName": ["snamenode_principal_name", "kerberos_domain"],
     "foreignKey": null,
     "value": "<templateName[0]>@<templateName[1]>",
-    "filename": "hdfs-site.xml"
+    "filename": "hdfs-site.xml",
+    "serviceName": "HDFS"
   },
   {
     "name": "dfs.secondary.namenode.keytab.file",
@@ -587,7 +588,8 @@ module.exports = [
     "templateName": [],
     "foreignKey": null,
     "value": "org.apache.hadoop.hbase.security.token.TokenProvider,org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint,org.apache.hadoop.hbase.security.access.AccessController",
-    "filename": "hbase-site.xml"
+    "filename": "hbase-site.xml",
+    "serviceName": "HBASE"
   },
   {
     "name": "hbase.bulkload.staging.dir",
@@ -666,7 +668,66 @@ module.exports = [
     "filename": "falcon-startup.properties.xml",
     "serviceName": "FALCON"
   },
-  /******************************************************************************************/
+
+  /***************************************KNOX***********************************************/
+  {
+    "name": "gateway.hadoop.kerberos.secured",
+    "templateName": [],
+    "foreignKey": null,
+    "value": "true",
+    "nonSecureValue": "false",
+    "filename": "gateway-site.xml",
+    "serviceName": "KNOX"
+  },
+  {
+    "name": "hadoop.proxyuser.<foreignKey[0]>.groups",
+    "templateName": ["proxyuser_group"],
+    "foreignKey": ["knox_primary_name"],
+    "value": "<templateName[0]>",
+    "filename": "core-site.xml",
+    "serviceName": "KNOX"
+  },
+  {
+    "name": "hadoop.proxyuser.<foreignKey[0]>.hosts",
+    "templateName": ["knox_gateway_hosts"],
+    "foreignKey": ["knox_primary_name"],
+    "value": "<templateName[0]>",
+    "filename": "core-site.xml",
+    "serviceName": "KNOX"
+  },
+  {
+    "name": "webhcat.proxyuser.<foreignKey[0]>.groups",
+    "templateName": ["proxyuser_group"],
+    "foreignKey": ["knox_primary_name"],
+    "value": "<templateName[0]>",
+    "filename": "webhcat-site.xml",
+    "serviceName": "KNOX"
+  },
+  {
+    "name": "webhcat.proxyuser.<foreignKey[0]>.hosts",
+    "templateName": ["knox_gateway_hosts"],
+    "foreignKey": ["knox_primary_name"],
+    "value": "<templateName[0]>",
+    "filename": "webhcat-site.xml",
+    "serviceName": "KNOX"
+  },
+  {
+    "name": "hadoop.proxyuser.<foreignKey[0]>.groups",
+    "templateName": ["proxyuser_group"],
+    "foreignKey": ["knox_primary_name"],
+    "value": "<templateName[0]>",
+    "filename": "oozie-site.xml",
+    "serviceName": "KNOX"
+  },
+  {
+    "name": "hadoop.proxyuser.<foreignKey[0]>.hosts",
+    "templateName": ["knox_gateway_hosts"],
+    "foreignKey": ["knox_primary_name"],
+    "value": "<templateName[0]>",
+    "filename": "oozie-site.xml",
+    "serviceName": "KNOX"
+  },
+/***************************************core-site***************************************************/
   {
     "name": "hadoop.proxyuser.<foreignKey[0]>.groups",
     "templateName": ["proxyuser_group"],

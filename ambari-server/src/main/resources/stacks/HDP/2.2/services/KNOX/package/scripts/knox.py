@@ -50,8 +50,13 @@ def knox():
          owner=params.knox_user,
          content=InlineTemplate(params.topology_template)
     )
+    if params.security_enabled:
+      TemplateConfig( format("{knox_conf_dir}/krb5JAASLogin.conf"),
+                      owner = params.knox_user,
+                      template_tag = None
+      )
 
-    cmd = format('{knox_client_bin} create-master --master {knox_master_secret}')
+    cmd = format('{knox_client_bin} create-master --master {knox_master_secret!p}')
     Execute(cmd,
             user=params.knox_user,
             environment={'JAVA_HOME': params.java_home},

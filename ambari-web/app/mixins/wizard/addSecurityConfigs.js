@@ -93,6 +93,10 @@ App.AddSecurityConfigs = Em.Mixin.create({
         serviceName: 'ZOOKEEPER'
       },
       {
+        name: 'knox_principal_name',
+        serviceName: 'KNOX'
+      },
+      {
         name: 'storm_principal_name',
         serviceName: 'STORM'
       }
@@ -242,7 +246,9 @@ App.AddSecurityConfigs = Em.Mixin.create({
    */
   loadUiSideSecureConfigs: function () {
     var uiConfig = [];
-    var configs = this.get('secureMapping').filterProperty('foreignKey', null);
+    var configs = this.get('secureMapping').filterProperty('foreignKey', null).filter(function(_configProperty){
+      return (App.Service.find().mapProperty('serviceName').contains(_configProperty.serviceName));
+    },this);
     configs.forEach(function (_config) {
       var value = _config.value;
       if (_config.hasOwnProperty('dependedServiceName')) {

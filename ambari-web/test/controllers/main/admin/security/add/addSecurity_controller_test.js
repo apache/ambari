@@ -86,7 +86,8 @@ describe('App.AddSecurityController', function () {
         "OOZIE",
         "NAGIOS",
         "STORM",
-        "FALCON"
+        "FALCON",
+        "KNOX"
       ];
       sinon.stub(App, 'get', function () {
         return true;

@@ -92,7 +92,8 @@ App.MainAdminSecurityController = Em.Controller.extend({
     'nagios_user': {defaultValue: 'nagios', siteName: 'nagios-env', serviceName: 'NAGIOS'},
     'user_group': {defaultValue: 'hadoop', siteName: 'hadoop-env', serviceName: 'HDFS'},
     'storm_user': {defaultValue: 'storm', siteName: 'storm-env', serviceName: 'STORM'},
-    'falcon_user': {defaultValue: 'falcon', siteName: 'falcon-env', serviceName: 'FALCON'}
+    'falcon_user': {defaultValue: 'falcon', siteName: 'falcon-env', serviceName: 'FALCON'},
+    'knox_user': {defaultValue: 'knox', siteName: 'knox-env', serviceName: 'KNOX'}
   },
 
   loadStep: function () {

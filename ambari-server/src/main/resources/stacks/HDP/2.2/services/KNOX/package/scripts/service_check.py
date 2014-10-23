@@ -19,7 +19,6 @@ limitations under the License.
 """
 
 from resource_management import *
-import socket
 import sys
 
 class KnoxServiceCheck(Script):
@@ -28,18 +27,32 @@ class KnoxServiceCheck(Script):
         import params
         env.set_params(params)
 
-        address = format("{knox_host_name}")
-        port = int(format("{knox_host_port}"))
-        s = socket.socket()
-        print "Test connectivity to knox server"
-        try:
-            s.connect((address, port))
-            print "Successfully connected to %s on port %s" % (address, port)
-            s.close()
-        except socket.error, e:
-            print "Connection to %s on port %s failed: %s" % (address, port, e)
-            sys.exit(1)
+        validateKnoxFileName = "validateKnoxStatus.py"
+        validateKnoxFilePath = format("{tmp_dir}/{validateKnoxFileName}")
+        python_executable = sys.executable
+        validateStatusCmd = format("{python_executable} {validateKnoxFilePath} -p {knox_host_port} -n {knox_host_name}")
+        if params.security_enabled:
+          kinit_cmd = format("{kinit_path_local} -kt {smoke_user_keytab} {smokeuser};")
+          smoke_cmd = format("{kinit_cmd} {validateStatusCmd}")
+        else:
+          smoke_cmd = validateStatusCmd
 
+        print "Test connectivity to knox server"
+
+
+        File(validateKnoxFilePath,
+          content=StaticFile(validateKnoxFileName),
+          mode=0755
+          )
+
+        Execute(smoke_cmd,
+          tries=3,
+          try_sleep=5,
+          path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
+          user=params.smokeuser,
+          timeout=5,
+          logoutput=True
+        )
 
 if __name__ == "__main__":
     KnoxServiceCheck().execute()

@@ -45,7 +45,8 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
       'SUPERVISOR': 'storm_user',
       'NIMBUS': 'storm_user',
       'STORM_UI_SERVER': 'storm_user',
-      'FALCON_SERVER': 'falcon_user'
+      'FALCON_SERVER': 'falcon_user',
+      'KNOX_GATEWAY': 'knox_user'
     };
     if (App.get('isHadoop22Stack')) {
       map['DRPC_SERVER'] = 'storm_user'
@@ -350,7 +351,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
   setHostComponentsSecureValue: function (result, host, addedPrincipalsHost, securityUsers, hadoopGroupId) {
     var componentsToDisplay = ['NAMENODE', 'SECONDARY_NAMENODE', 'DATANODE', 'JOBTRACKER', 'ZOOKEEPER_SERVER', 'HIVE_SERVER', 'TASKTRACKER',
       'OOZIE_SERVER', 'NAGIOS_SERVER', 'HBASE_MASTER', 'HBASE_REGIONSERVER', 'HISTORYSERVER', 'RESOURCEMANAGER', 'NODEMANAGER', 'JOURNALNODE',
-      'SUPERVISOR', 'NIMBUS', 'STORM_UI_SERVER', 'FALCON_SERVER'];
+      'SUPERVISOR', 'NIMBUS', 'STORM_UI_SERVER', 'FALCON_SERVER', 'KNOX_GATEWAY'];
     if (App.get('isHadoop22Stack')) {
       componentsToDisplay.push('DRPC_SERVER');
     }
