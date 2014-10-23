@@ -249,6 +249,7 @@
         "StackConfigurations/type",
         "StackConfigurations/final",
         "StackConfigurations/adding_forbidden",
+        "StackConfigurations/do_not_extend",
         "StackConfigurations/property_type",
         "_"
     ],

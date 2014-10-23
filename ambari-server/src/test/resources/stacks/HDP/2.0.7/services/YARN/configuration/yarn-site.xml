@@ -19,7 +19,7 @@
 
 <!-- Put site-specific property overrides in this file. -->
 
-<configuration xmlns:xi="http://www.w3.org/2001/XInclude" supports_adding_forbidden="true">
+<configuration xmlns:xi="http://www.w3.org/2001/XInclude" supports_adding_forbidden="true" supports_do_not_extend="true">
 
 <!-- ResourceManager -->
 

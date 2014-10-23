@@ -143,7 +143,7 @@ public class StackExtensionHelper {
       resultStack.getConfigTypes().putAll(parentStack.getConfigTypes());
     }
     List<PropertyInfo> mergedProperties = new ArrayList<PropertyInfo>();
-    mergeProperties(resultStack.getProperties(), parentStack.getProperties(), mergedProperties);
+    mergeProperties(resultStack.getProperties(), parentStack.getProperties(), mergedProperties, resultStack.getConfigTypes());
     resultStack.setProperties(mergedProperties);
   }
 
@@ -239,9 +239,8 @@ public class StackExtensionHelper {
       mergedServiceInfo.setAlertsFile(parentService.getAlertsFile());
 
     populateComponents(mergedServiceInfo, parentService, childService);
-
-    mergeProperties(childService.getProperties(), parentService.getProperties(), mergedServiceInfo.getProperties());
-
+    mergeProperties(childService.getProperties(), parentService.getProperties(),
+        mergedServiceInfo.getProperties(), childService.getConfigTypes());
     // Add all parent config dependencies
     if (parentService.getConfigDependencies() != null && !parentService
         .getConfigDependencies().isEmpty()) {
@@ -255,7 +254,8 @@ public class StackExtensionHelper {
   }
   
   public void mergeProperties(List<PropertyInfo> childProperties, 
-      List<PropertyInfo> parentProperties, List<PropertyInfo> mergedProperties) {
+                              List<PropertyInfo> parentProperties, List<PropertyInfo> mergedProperties, Map<String,
+      Map<String, Map<String, String>>> childConfigTypes) {
     // Add child properties not deleted
     Map<String, Set<String>> deleteMap = new HashMap<String, Set<String>>();
     Map<String, Set<String>> appendMap = new HashMap<String, Set<String>>();
@@ -281,10 +281,16 @@ public class StackExtensionHelper {
     }
     // Add all parent properties
     for (PropertyInfo parentPropertyInfo : parentProperties) {
+      String configType = ConfigHelper.fileNameToConfigType(parentPropertyInfo.getFilename());
+      boolean disableInherit = false;
+      if (childConfigTypes.containsKey(configType)){
+        disableInherit =
+          childConfigTypes.get(configType).get(Supports.KEYWORD).get(Supports.DO_NOT_EXTEND.getPropertyName()).equals("true");
+      }
       if (!deleteMap.containsKey(parentPropertyInfo.getName()) && !(appendMap
           .containsKey(parentPropertyInfo.getName())
         && appendMap.get(parentPropertyInfo.getName())
-          .contains(parentPropertyInfo.getFilename()))) {
+          .contains(parentPropertyInfo.getFilename())) && !disableInherit) {
         mergedProperties.add(parentPropertyInfo);
       }
     }
@@ -927,7 +933,8 @@ public class StackExtensionHelper {
   protected enum Supports {
 
     FINAL("supports_final"),
-    ADDING_FORBIDDEN("supports_adding_forbidden");
+    ADDING_FORBIDDEN("supports_adding_forbidden"),
+    DO_NOT_EXTEND("supports_do_not_extend");
 
     public static final String KEYWORD = "supports";
 
