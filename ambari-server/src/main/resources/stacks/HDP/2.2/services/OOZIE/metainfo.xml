@@ -56,6 +56,12 @@
             <package>
               <name>falcon-2-2-.*</name>
             </package>
+            <package>
+              <name>extjs</name>
+            </package>
+            <package>
+              <name>libxml2-utils</name>
+            </package>
           </packages>
         </osSpecific>
       </osSpecifics>
