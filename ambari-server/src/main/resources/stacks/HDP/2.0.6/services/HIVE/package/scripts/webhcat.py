@@ -21,7 +21,6 @@ Ambari Agent
 import sys
 import os.path
 import glob
-import re
 
 from resource_management import *
 from resource_management.libraries.functions.version import compare_versions
@@ -48,18 +47,6 @@ def __inject_config_variables(mutable_configs):
         found_at_least_one_replacement, new_value = interpret_dynamic_version_property(prop_value, prefix, ",")
         if found_at_least_one_replacement:
           webhcat_config[prop_name] = new_value
-
-          # Sqoop has a dependency on another property that needs to inject the tarball name
-          if prop_name == "templeton.sqoop.archive":
-            templeton_sqoop_path = mutable_configs["templeton.sqoop.path"]
-            if templeton_sqoop_path and templeton_sqoop_path.strip() != "":
-              # Need to replace "sqoop.tar.gz" with the actual file name found above.
-              p = re.compile(".*(hdfs([^,])*sqoop.*\\.tar\\.gz).*")
-              m = p.match(new_value)
-              if m and len(m.groups()) >= 1:
-                templeton_sqoop_path = templeton_sqoop_path.replace("sqoop.tar.gz", m.group(1))
-                webhcat_config["templeton.sqoop.path"] = templeton_sqoop_path
-  
   return mutable_configs
 
 
