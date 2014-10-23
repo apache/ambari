@@ -37,6 +37,7 @@ require('utils/ajax/ajax_queue');
 
 var files = ['test/init_model_test',
   'test/app_test',
+  'test/data/secure_mapping_test',
   'test/data/HDP2/secure_mapping_test',
   'test/controllers/global/background_operations_test',
   'test/controllers/global/cluster_controller_test',

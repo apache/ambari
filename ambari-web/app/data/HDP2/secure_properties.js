@@ -1095,6 +1095,51 @@ var props = {
       "isOverridable": false,
       "serviceName": "FALCON",
       "category": "Falcon Server"
+    },
+
+  /**********************************************Knox***************************************/
+    {
+      "id": "puppet var",
+      "name": "knox_gateway_hosts",
+      "displayName": "Knox Gateway hosts",
+      "value": "",
+      "defaultValue": "",
+      "description": "The hosts that has been assigned to run Knox Gateway",
+      "displayType": "masterHosts",
+      "isOverridable": false,
+      "isVisible": true,
+      "serviceName": "KNOX",
+      "category": "Knox Gateway"
+    },
+    {
+      "id": "puppet var",
+      "name": "knox_principal_name",
+      "displayName": "Principal name",
+      "value": "",
+      "defaultValue": "knox/_HOST",
+      "description": "This is the principal name for Knox Gateway",
+      "displayType": "principal",
+      "isVisible": true,
+      "isOverridable": false,
+      "serviceName": "KNOX",
+      "filename": "knox-env.xml",
+      "category": "Knox Gateway",
+      "component": "KNOX_GATEWAY"
+    },
+    {
+      "id": "puppet var",
+      "name": "knox_keytab_path",
+      "displayName": "Path to keytab file",
+      "value": "",
+      "defaultValue": "/etc/security/keytabs/knox.service.keytab",
+      "description": "This is the keytab file for Knox Gateway",
+      "displayType": "directory",
+      "isVisible": true,
+      "isOverridable": false,
+      "serviceName": "KNOX",
+      "filename": "knox-env.xml",
+      "category": "Knox Gateway",
+      "component": "KNOX_GATEWAY"
     }
   ]
 };

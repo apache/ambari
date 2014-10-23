@@ -18,17 +18,17 @@
 
 var App = require('app');
 require('utils/helper');
-var mappedHdp2Properties = require('data/HDP2/secure_mapping');
+var mappedProperties = require('data/secure_mapping');
 
-describe('hdp2SiteMapping', function () {
+describe('hdp1SiteMapping', function () {
 
   // All mapped properties should have value of string type
-  mappedHdp2Properties.forEach(function(mappedProperty){
+  mappedProperties.forEach(function(mappedProperty){
     it('Value of "' + mappedProperty.name  + '"' + ' should be string', function () {
       expect(mappedProperty.value).to.be.a('string');
     });
   });
-  mappedHdp2Properties.forEach(function(mappedProperty){
+  mappedProperties.forEach(function(mappedProperty){
     it('Value of "' + mappedProperty.name  + '"' + ' should have serviceName and filename attribute', function () {
       expect(mappedProperty).to.have.property('serviceName');
       expect(mappedProperty).to.have.property('filename');

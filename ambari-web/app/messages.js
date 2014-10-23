@@ -1094,6 +1094,7 @@ Em.I18n.translations = {
   'admin.addSecurity.falcon.user.httpUser': 'Falcon SPNEGO User',
   'admin.addSecurity.user.yarn.atsUser': 'YARN ATS User',
   'admin.addSecurity.user.yarn.atsHTTPUser': 'YARN ATS HTTP User',
+  'admin.addSecurity.knox.user': 'Knox Gateway',
   'admin.addSecurity.enable.onClose': 'You are in the process of enabling security on your cluster. ' +
     'Are you sure you want to quit? If you quit, ' +
     'you may have to re-run the security wizard from the beginning to enable security.',

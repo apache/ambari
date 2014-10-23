@@ -145,6 +145,11 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
       serviceName: 'STORM',
       configName: 'nimbus_host',
       components: ['NIMBUS']
+    },
+    {
+      serviceName: 'KNOX',
+      configName: 'knox_gateway_hosts',
+      components: ['KNOX_GATEWAY']
     }
   ],
 

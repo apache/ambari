@@ -66,7 +66,8 @@ module.exports = [
     "templateName": ["snamenode_principal_name", "kerberos_domain"],
     "foreignKey": null,
     "value": "<templateName[0]>@<templateName[1]>",
-    "filename": "hdfs-site.xml"
+    "filename": "hdfs-site.xml",
+    "serviceName": "HDFS"
   },
   {
     "name": "dfs.secondary.namenode.keytab.file",
@@ -446,7 +447,8 @@ module.exports = [
     "templateName": [],
     "foreignKey": null,
     "value": "org.apache.hadoop.hbase.security.token.TokenProvider,org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint,org.apache.hadoop.hbase.security.access.AccessController",
-    "filename": "hbase-site.xml"
+    "filename": "hbase-site.xml",
+    "serviceName": "HBASE"
   },
   {
     "name": "hbase.bulkload.staging.dir",

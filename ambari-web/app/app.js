@@ -65,7 +65,7 @@ module.exports = Em.Application.create({
       return (!!ATS && !!ATS.get('minToInstall'));
     }
     return false;
-  }.property('App.router.clusterController.isLoaded'),
+  }.property('router.clusterController.isLoaded'),
 
   clusterName: null,
   clockDistance: null, // server clock - client clock

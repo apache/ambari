@@ -23,6 +23,7 @@ from resource_management import *
 import status_params
 
 config = Script.get_config()
+tmp_dir = Script.get_tmp_dir()
 
 hdp_stack_version = str(config['hostLevelParams']['stack_version'])
 stack_is_hdp22_or_further = not (hdp_stack_version.startswith('2.0') or hdp_stack_version.startswith('2.1'))
@@ -120,4 +121,13 @@ gateway_log4j = config['configurations']['gateway-log4j']['content']
 ldap_log4j = config['configurations']['ldap-log4j']['content']
 users_ldif = config['configurations']['users-ldif']['content']
 java_home = config['hostLevelParams']['java_home']
+security_enabled = config['configurations']['cluster-env']['security_enabled']
+smokeuser = config['configurations']['cluster-env']['smokeuser']
+smoke_user_keytab = config['configurations']['cluster-env']['smokeuser_keytab']
+kinit_path_local = functions.get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+if security_enabled:
+  knox_keytab_path = config['configurations']['knox-env']['knox_keytab_path']
+  _hostname_lowercase = config['hostname'].lower()
+  knox_principal_name = config['configurations']['knox-env']['knox_principal_name'].replace('_HOST',_hostname_lowercase)
+
 

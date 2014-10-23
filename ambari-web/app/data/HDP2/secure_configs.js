@@ -149,6 +149,16 @@ var configs = [
     ],
     sites: ['falcon-startup.properties'],
     configs: configProperties.filterProperty('serviceName', 'FALCON')
+  },
+  {
+    serviceName: 'KNOX',
+    displayName: 'Knox',
+    filename: 'gateway-site.xml',
+    configCategories: [
+      App.ServiceConfigCategory.create({ name: 'Knox Gateway', displayName:  'Knox Gateway'})
+    ],
+    sites: ['gateway-site','knox-env'],
+    configs: configProperties.filterProperty('serviceName', 'KNOX')
   }
 ];
 
