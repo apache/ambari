@@ -392,8 +392,13 @@ module.exports = Em.Route.extend({
         }
       }
     },
-    unroutePath: function () {
-      return false;
+    unroutePath: function (router, context) {
+      // exclusion for transition to Admin View
+      if (context === '/adminView') {
+        this._super(router, context);
+      } else {
+        return false;
+      }
     },
     next: function (router) {
       var installerController = router.get('installerController');

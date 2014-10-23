@@ -22,7 +22,7 @@
       <div ng-show="cluster">
         <div id="cluster-name"  ng-switch on="editCluster.editingName">
           <h5 ng-switch-when="false">{{cluster.Clusters.cluster_name}}
-            <i ng-click="toggleEditName()" class="glyphicon glyphicon-edit pull-right edit-cluster-name" tooltip="Rename Cluster"></i>
+            <i ng-show="cluster.Clusters.provisioning_state == 'INSTALLED'" ng-click="toggleEditName()" class="glyphicon glyphicon-edit pull-right edit-cluster-name" tooltip="Rename Cluster"></i>
           </h5>
 
           <form ng-keyup="toggleEditName($event)" tabindex="1" name="editClusterNameForm" class="editClusterNameForm" ng-switch-when="true"
