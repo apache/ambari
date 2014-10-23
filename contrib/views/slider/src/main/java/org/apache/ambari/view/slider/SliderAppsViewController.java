@@ -104,4 +104,6 @@ public interface SliderAppsViewController {
 
   public void flexApp(String appId, Map<String, Integer> componentsMap)
       throws YarnException, IOException, InterruptedException;
+
+  public boolean appExists(String string) throws IOException, InterruptedException, YarnException;
 }

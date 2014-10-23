@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -36,7 +37,9 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.ambari.view.ViewResourceHandler;
@@ -61,6 +64,24 @@ public class SliderAppsResource {
   @GET
   @Produces({ MediaType.TEXT_PLAIN, MediaType.APPLICATION_JSON })
   public Response getApps(@Context HttpHeaders headers, @Context UriInfo uri) {
+    MultivaluedMap<String, String> queryParameters = uri.getQueryParameters();
+    if (queryParameters != null && queryParameters.containsKey("validateAppName")) {
+      List<String> appNames = queryParameters.get("validateAppName");
+      if (appNames.size() > 0) {
+        try {
+          if (sliderAppsViewController.appExists(appNames.get(0))) {
+            return Response.status(Status.CONFLICT).build();
+          }
+        } catch (IOException e) {
+          logger.warn("Unable to validate cluster name", e);
+        } catch (InterruptedException e) {
+          logger.warn("Unable to validate cluster name", e);
+        } catch (YarnException e) {
+          logger.warn("Unable to validate cluster name", e);
+        }
+        return Response.ok().build();
+      }
+    }
     return resourceHandler.handleRequest(headers, uri, null);
   }
 
