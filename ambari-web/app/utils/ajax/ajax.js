@@ -855,6 +855,30 @@ var urls = {
     'mock': '',
     'testInProduction': true
   },
+  'service.metrics.kafka.broker.topic' : {
+    'real': '/clusters/{clusterName}/services/KAFKA/components/KAFKA_BROKER?fields=metrics/kafka/server/BrokerTopicMetrics/AllTopicsBytesInPerSec/1MinuteRate[{fromSeconds},{toSeconds},{stepSeconds}],metrics/kafka/server/BrokerTopicMetrics/AllTopicsBytesOutPerSec/1MinuteRate[{fromSeconds},{toSeconds},{stepSeconds}],metrics/kafka/server/BrokerTopicMetrics/AllTopicsMessagesInPerSec/1MinuteRate[{fromSeconds},{toSeconds},{stepSeconds}]',
+    'mock': ''
+  },
+  'service.metrics.kafka.controller.KafkaController' : {
+    'real': '/clusters/{clusterName}/services/KAFKA/components/KAFKA_BROKER?fields=metrics/kafka/controller/KafkaController/ActiveControllerCount[{fromSeconds},{toSeconds},{stepSeconds}]',
+    'mock': ''
+  },
+  'service.metrics.kafka.controller.ControllerStats' : {
+    'real': '/clusters/{clusterName}/services/KAFKA/components/KAFKA_BROKER?fields=metrics/kafka/controller/ControllerStats/LeaderElectionRateAndTimeMs/1MinuteRate[{fromSeconds},{toSeconds},{stepSeconds}],metrics/kafka/controller/ControllerStats/UncleanLeaderElectionsPerSec/1MinuteRate[{fromSeconds},{toSeconds},{stepSeconds}]',
+    'mock': ''
+  },
+  'service.metrics.kafka.log.LogFlushStats' : {
+    'real': '/clusters/{clusterName}/services/KAFKA/components/KAFKA_BROKER?fields=metrics/kafka/log/LogFlushStats/LogFlushRateAndTimeMs/1MinuteRate[{fromSeconds},{toSeconds},{stepSeconds}]',
+    'mock': ''
+  },
+  'service.metrics.kafka.server.ReplicaManager' : {
+    'real': '/clusters/{clusterName}/services/KAFKA/components/KAFKA_BROKER?fields=metrics/kafka/server/ReplicaManager/PartitionCount[{fromSeconds},{toSeconds},{stepSeconds}],metrics/kafka/server/ReplicaManager/UnderReplicatedPartitions[{fromSeconds},{toSeconds},{stepSeconds}],metrics/kafka/server/BrokerTopicMetrics/ReplicaManager/LeaderCount[{fromSeconds},{toSeconds},{stepSeconds}]',
+    'mock': ''
+  },
+  'service.metrics.kafka.server.ReplicaFetcherManager' : {
+    'real': '/clusters/{clusterName}/services/KAFKA/components/KAFKA_BROKER?fields=metrics/kafka/server/ReplicaFetcherManager/Replica-MaxLag[{fromSeconds},{toSeconds},{stepSeconds}]',
+    'mock': ''
+  },
   'service.metrics.storm.nimbus': {
     'real': '/clusters/{clusterName}/services/STORM/components/NIMBUS?fields={metricsTemplate}',
     'mock': ''
