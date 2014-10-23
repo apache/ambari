@@ -23,19 +23,20 @@ App.hiveJobsMapper = App.QuickDataMapper.create({
     user: 'primaryfilters.user',
     hasTezDag: {
       custom: function(source) {
-        var query = Ember.get(source, 'otherinfo.query');
+        var query = Ember.get(source, 'otherinfo.query') || Ember.get(source, 'otherinfo.QUERY');
         return Ember.isNone(query) ? false : query.match("\"Tez\".*\"DagName:\"");
       }
     },
     queryText: {
       custom: function(source) {
-        var query = Ember.get(source, 'otherinfo.query');
+        var query = Ember.get(source, 'otherinfo.query') || Ember.get(source, 'otherinfo.QUERY');
         return Ember.isNone(query) ? '' : $.parseJSON(query).queryText;
       }
     },
     failed: {
       custom: function(source) {
-        return Ember.get(source ,'otherinfo.status') === false;
+        var status = Ember.get(source ,'otherinfo.status') || Ember.get(source ,'otherinfo.STATUS');
+        return status === false;
       }
     },
     startTime: {

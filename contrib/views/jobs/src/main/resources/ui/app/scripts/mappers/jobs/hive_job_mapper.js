@@ -53,7 +53,7 @@ App.hiveJobMapper = App.QuickDataMapper.create({
       else {
         hiveJob.endTime = json.endtime;
       }
-      json.otherinfo.query = $.parseJSON(json.otherinfo.query);
+      json.otherinfo.query = $.parseJSON(Em.get(json, 'otherinfo.query') || Em.get(json, 'otherinfo.QUERY'));
       if (json.otherinfo.query && json.otherinfo.query.queryText) {
         hiveJob.query_text = json.otherinfo.query.queryText;
       }
