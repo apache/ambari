@@ -29,7 +29,6 @@ import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.api.services.PersistKeyValueService;
 import org.apache.ambari.server.controller.*;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
@@ -49,7 +48,6 @@ import org.apache.ambari.server.orm.entities.HostGroupEntity;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.ConfigImpl;
-import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.StackId;
 
 /**
@@ -879,7 +877,7 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
     processBlueprintClusterConfigAttributes(blueprintAttributes);
 
     BlueprintConfigurationProcessor configurationProcessor = new BlueprintConfigurationProcessor(mapClusterConfigurations);
-    configurationProcessor.doUpdateForClusterCreate(blueprintHostGroups);
+    configurationProcessor.doUpdateForClusterCreate(blueprintHostGroups, stack);
     setMissingConfigurations(blueprintHostGroups);
   }
 

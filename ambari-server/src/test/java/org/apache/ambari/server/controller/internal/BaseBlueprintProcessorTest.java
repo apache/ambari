@@ -61,8 +61,8 @@ public class BaseBlueprintProcessorTest {
     mockSupport.replayAll();
 
     // create stack for testing
-    BaseBlueprintProcessor.Stack testStack =
-      new BaseBlueprintProcessor.Stack("HDP", "2.1", mockMgmtController) {
+    Stack testStack =
+      new Stack("HDP", "2.1", mockMgmtController) {
         @Override
         public Collection<DependencyInfo> getDependenciesForComponent(String component) {
           // simulate the dependencies in a given stack by overriding this method
@@ -123,8 +123,8 @@ public class BaseBlueprintProcessorTest {
     mockSupport.replayAll();
 
     // create stack for testing
-    BaseBlueprintProcessor.Stack testStack =
-      new BaseBlueprintProcessor.Stack("HDP", "2.1", mockMgmtController) {
+    Stack testStack =
+      new Stack("HDP", "2.1", mockMgmtController) {
         @Override
         public Collection<DependencyInfo> getDependenciesForComponent(String component) {
           // simulate the dependencies in a given stack by overriding this method
@@ -182,8 +182,8 @@ public class BaseBlueprintProcessorTest {
     mockSupport.replayAll();
 
     // create stack for testing
-    BaseBlueprintProcessor.Stack testStack =
-      new BaseBlueprintProcessor.Stack("HDP", "2.1", mockMgmtController) {
+    Stack testStack =
+      new Stack("HDP", "2.1", mockMgmtController) {
         @Override
         public Collection<DependencyInfo> getDependenciesForComponent(String component) {
           // simulate the dependencies in a given stack by overriding this method
@@ -241,8 +241,8 @@ public class BaseBlueprintProcessorTest {
     mockSupport.replayAll();
 
     // create stack for testing
-    BaseBlueprintProcessor.Stack testStack =
-      new BaseBlueprintProcessor.Stack("HDP", "2.1", mockMgmtController) {
+    Stack testStack =
+      new Stack("HDP", "2.1", mockMgmtController) {
         @Override
         public Collection<DependencyInfo> getDependenciesForComponent(String component) {
           // simulate the dependencies in a given stack by overriding this method
@@ -300,8 +300,8 @@ public class BaseBlueprintProcessorTest {
     mockSupport.replayAll();
 
     // create stack for testing
-    BaseBlueprintProcessor.Stack testStack =
-      new BaseBlueprintProcessor.Stack("HDP", "2.1", mockMgmtController) {
+    Stack testStack =
+      new Stack("HDP", "2.1", mockMgmtController) {
         @Override
         public Collection<DependencyInfo> getDependenciesForComponent(String component) {
           // simulate the dependencies in a given stack by overriding this method
@@ -359,8 +359,8 @@ public class BaseBlueprintProcessorTest {
     mockSupport.replayAll();
 
     // create stack for testing
-    BaseBlueprintProcessor.Stack testStack =
-      new BaseBlueprintProcessor.Stack("HDP", "2.1", mockMgmtController) {
+    Stack testStack =
+      new Stack("HDP", "2.1", mockMgmtController) {
         @Override
         public Collection<DependencyInfo> getDependenciesForComponent(String component) {
           // simulate the dependencies in a given stack by overriding this method

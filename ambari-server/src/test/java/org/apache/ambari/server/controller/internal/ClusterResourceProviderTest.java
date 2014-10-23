@@ -3070,8 +3070,8 @@ public class ClusterResourceProviderTest {
 
     ClusterResourceProvider.init(null, mockAmbariMetaInfo, null);
 
-    BaseBlueprintProcessor.Stack stack =
-      new BaseBlueprintProcessor.Stack("HDP", "2.1", mockManagementController);
+    Stack stack =
+      new Stack("HDP", "2.1", mockManagementController);
 
     ClusterResourceProvider clusterResourceProvider =
       new TestClusterResourceProvider(mockMgmtController, mockServiceProvider,
@@ -3152,8 +3152,8 @@ public class ClusterResourceProviderTest {
 
     ClusterResourceProvider.init(null, mockAmbariMetaInfo, null);
 
-    BaseBlueprintProcessor.Stack stack =
-      new BaseBlueprintProcessor.Stack("HDP", "2.1", mockManagementController);
+    Stack stack =
+      new Stack("HDP", "2.1", mockManagementController);
 
     ClusterResourceProvider clusterResourceProvider =
       new TestClusterResourceProvider(mockMgmtController, mockServiceProvider,
@@ -3233,8 +3233,8 @@ public class ClusterResourceProviderTest {
 
     ClusterResourceProvider.init(null, mockAmbariMetaInfo, null);
 
-    BaseBlueprintProcessor.Stack stack =
-      new BaseBlueprintProcessor.Stack("HDP", "2.1", mockManagementController);
+    Stack stack =
+      new Stack("HDP", "2.1", mockManagementController);
 
     ClusterResourceProvider clusterResourceProvider =
       new TestClusterResourceProvider(mockMgmtController, mockServiceProvider,
@@ -3310,8 +3310,8 @@ public class ClusterResourceProviderTest {
 
     ClusterResourceProvider.init(null, mockAmbariMetaInfo, null);
 
-    BaseBlueprintProcessor.Stack stack =
-      new BaseBlueprintProcessor.Stack("HDP", "2.1", mockManagementController);
+    Stack stack =
+      new Stack("HDP", "2.1", mockManagementController);
 
     ClusterResourceProvider clusterResourceProvider =
       new TestClusterResourceProvider(mockMgmtController, mockServiceProvider,
@@ -3386,8 +3386,8 @@ public class ClusterResourceProviderTest {
 
     ClusterResourceProvider.init(null, mockAmbariMetaInfo, null);
 
-    BaseBlueprintProcessor.Stack stack =
-      new BaseBlueprintProcessor.Stack("HDP", "2.1", mockManagementController);
+    Stack stack =
+      new Stack("HDP", "2.1", mockManagementController);
 
     ClusterResourceProvider clusterResourceProvider =
       new TestClusterResourceProvider(mockMgmtController, mockServiceProvider,
@@ -3462,8 +3462,8 @@ public class ClusterResourceProviderTest {
 
     ClusterResourceProvider.init(null, mockAmbariMetaInfo, null);
 
-    BaseBlueprintProcessor.Stack stack =
-      new BaseBlueprintProcessor.Stack("HDP", "2.1", mockManagementController);
+    Stack stack =
+      new Stack("HDP", "2.1", mockManagementController);
 
     ClusterResourceProvider clusterResourceProvider =
       new TestClusterResourceProvider(mockMgmtController, mockServiceProvider,

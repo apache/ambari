@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.StackServiceResponse;
 import org.easymock.EasyMockSupport;
 import org.junit.Test;
 
@@ -33,7 +35,9 @@ import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertTrue;
+import static junit.framework.Assert.fail;
 import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.isA;
 
 /**
  * BlueprintConfigurationProcessor unit tests.
@@ -327,9 +331,180 @@ public class BlueprintConfigurationProcessorTest {
     hostGroups.put(group2.getName(), group2);
 
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(properties);
-    Map<String, Map<String, String>> updatedProperties = updater.doUpdateForClusterCreate(hostGroups);
+    Map<String, Map<String, String>> updatedProperties = updater.doUpdateForClusterCreate(hostGroups, null);
     String updatedVal = updatedProperties.get("yarn-site").get("yarn.resourcemanager.hostname");
     assertEquals("testhost", updatedVal);
+  }
+
+  @Test
+  public void testDoUpdateForClusterCreate_SingleHostProperty__MissingComponent() throws Exception {
+    EasyMockSupport mockSupport = new EasyMockSupport();
+
+
+    AmbariManagementController mockMgmtController =
+      mockSupport.createMock(AmbariManagementController.class);
+
+    expect(mockMgmtController.getStackServices(isA(Set.class))).andReturn(Collections.<StackServiceResponse>emptySet());
+
+    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
+    Map<String, String> typeProps = new HashMap<String, String>();
+    typeProps.put("yarn.resourcemanager.hostname", "localhost");
+    typeProps.put("yarn.timeline-service.address", "localhost");
+    properties.put("yarn-site", typeProps);
+
+    Collection<String> hgComponents = new HashSet<String>();
+    hgComponents.add("NAMENODE");
+    hgComponents.add("SECONDARY_NAMENODE");
+    hgComponents.add("RESOURCEMANAGER");
+    HostGroup group1 = new TestHostGroup("group1", Collections.singleton("testhost"), hgComponents);
+
+    Collection<String> hgComponents2 = new HashSet<String>();
+    hgComponents2.add("DATANODE");
+    hgComponents2.add("HDFS_CLIENT");
+    HostGroup group2 = new TestHostGroup("group2", Collections.singleton("testhost2"), hgComponents2);
+
+    Map<String, HostGroup> hostGroups = new HashMap<String, HostGroup>();
+    hostGroups.put(group1.getName(), group1);
+    hostGroups.put(group2.getName(), group2);
+
+    mockSupport.replayAll();
+
+    Stack testStackDefinition = new Stack("HDP", "2.1", mockMgmtController) {
+      @Override
+      public Cardinality getCardinality(String component) {
+        // simulate a stack that required the APP_TIMELINE_SERVER
+        if (component.equals("APP_TIMELINE_SERVER")) {
+          return new Cardinality("1");
+        }
+
+        return null;
+      }
+    };
+
+    BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(properties);
+
+    try {
+      updater.doUpdateForClusterCreate(hostGroups, testStackDefinition);
+      fail("IllegalArgumentException should have been thrown");
+    } catch (IllegalArgumentException illegalArgumentException) {
+      // expected exception
+    }
+
+    mockSupport.verifyAll();
+  }
+
+  @Test
+  public void testDoUpdateForClusterCreate_SingleHostProperty__MultipleMatchingHostGroupsError() throws Exception {
+    EasyMockSupport mockSupport = new EasyMockSupport();
+
+
+    AmbariManagementController mockMgmtController =
+      mockSupport.createMock(AmbariManagementController.class);
+
+    expect(mockMgmtController.getStackServices(isA(Set.class))).andReturn(Collections.<StackServiceResponse>emptySet());
+
+    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
+    Map<String, String> typeProps = new HashMap<String, String>();
+    typeProps.put("yarn.resourcemanager.hostname", "localhost");
+    typeProps.put("yarn.timeline-service.address", "localhost");
+    properties.put("yarn-site", typeProps);
+
+    Collection<String> hgComponents = new HashSet<String>();
+    hgComponents.add("NAMENODE");
+    hgComponents.add("SECONDARY_NAMENODE");
+    hgComponents.add("RESOURCEMANAGER");
+    hgComponents.add("APP_TIMELINE_SERVER");
+    HostGroup group1 = new TestHostGroup("group1", Collections.singleton("testhost"), hgComponents);
+
+    Collection<String> hgComponents2 = new HashSet<String>();
+    hgComponents2.add("DATANODE");
+    hgComponents2.add("HDFS_CLIENT");
+    hgComponents2.add("APP_TIMELINE_SERVER");
+    HostGroup group2 = new TestHostGroup("group2", Collections.singleton("testhost2"), hgComponents2);
+
+    Map<String, HostGroup> hostGroups = new HashMap<String, HostGroup>();
+    hostGroups.put(group1.getName(), group1);
+    hostGroups.put(group2.getName(), group2);
+
+    mockSupport.replayAll();
+
+    Stack testStackDefinition = new Stack("HDP", "2.1", mockMgmtController) {
+      @Override
+      public Cardinality getCardinality(String component) {
+        // simulate a stack that required the APP_TIMELINE_SERVER
+        if (component.equals("APP_TIMELINE_SERVER")) {
+          return new Cardinality("0-1");
+        }
+
+        return null;
+      }
+    };
+
+    BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(properties);
+
+    try {
+      updater.doUpdateForClusterCreate(hostGroups, testStackDefinition);
+      fail("IllegalArgumentException should have been thrown");
+    } catch (IllegalArgumentException illegalArgumentException) {
+      // expected exception
+    }
+
+    mockSupport.verifyAll();
+  }
+
+  @Test
+  public void testDoUpdateForClusterCreate_SingleHostProperty__MissingOptionalComponent() throws Exception {
+    final String expectedHostName = "localhost";
+
+    EasyMockSupport mockSupport = new EasyMockSupport();
+
+    AmbariManagementController mockMgmtController =
+      mockSupport.createMock(AmbariManagementController.class);
+
+    expect(mockMgmtController.getStackServices(isA(Set.class))).andReturn(Collections.<StackServiceResponse>emptySet());
+
+    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
+    Map<String, String> typeProps = new HashMap<String, String>();
+    typeProps.put("yarn.timeline-service.address", expectedHostName);
+    properties.put("yarn-site", typeProps);
+
+    Collection<String> hgComponents = new HashSet<String>();
+    hgComponents.add("NAMENODE");
+    hgComponents.add("SECONDARY_NAMENODE");
+    hgComponents.add("RESOURCEMANAGER");
+    HostGroup group1 = new TestHostGroup("group1", Collections.singleton("testhost"), hgComponents);
+
+    Collection<String> hgComponents2 = new HashSet<String>();
+    hgComponents2.add("DATANODE");
+    hgComponents2.add("HDFS_CLIENT");
+    HostGroup group2 = new TestHostGroup("group2", Collections.singleton("testhost2"), hgComponents2);
+
+    Map<String, HostGroup> hostGroups = new HashMap<String, HostGroup>();
+    hostGroups.put(group1.getName(), group1);
+    hostGroups.put(group2.getName(), group2);
+
+    mockSupport.replayAll();
+
+    Stack testStackDefinition = new Stack("HDP", "2.1", mockMgmtController) {
+      @Override
+      public Cardinality getCardinality(String component) {
+        // simulate a stack that supports 0 or 1 instances of the APP_TIMELINE_SERVER
+        if (component.equals("APP_TIMELINE_SERVER")) {
+          return new Cardinality("0-1");
+        }
+
+        return null;
+      }
+    };
+
+    BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(properties);
+
+    Map<String, Map<String, String>> updatedProperties = updater.doUpdateForClusterCreate(hostGroups, testStackDefinition);
+    String updatedVal = updatedProperties.get("yarn-site").get("yarn.timeline-service.address");
+    assertEquals("Timeline Server config property should not have been updated",
+      expectedHostName, updatedVal);
+
+    mockSupport.verifyAll();
   }
 
   @Test
@@ -355,7 +530,7 @@ public class BlueprintConfigurationProcessorTest {
     hostGroups.put(group2.getName(), group2);
 
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(properties);
-    Map<String, Map<String, String>> updatedProperties = updater.doUpdateForClusterCreate(hostGroups);
+    Map<String, Map<String, String>> updatedProperties = updater.doUpdateForClusterCreate(hostGroups, null);
     String updatedVal = updatedProperties.get("core-site").get("fs.defaultFS");
     assertEquals("testhost:5050", updatedVal);
   }
@@ -397,7 +572,7 @@ public class BlueprintConfigurationProcessorTest {
     hostGroups.put(group3.getName(), group3);
 
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(properties);
-    Map<String, Map<String, String>> updatedProperties = updater.doUpdateForClusterCreate(hostGroups);
+    Map<String, Map<String, String>> updatedProperties = updater.doUpdateForClusterCreate(hostGroups, null);
     String updatedVal = updatedProperties.get("hbase-site").get("hbase.zookeeper.quorum");
     String[] hosts = updatedVal.split(",");
 
@@ -451,7 +626,7 @@ public class BlueprintConfigurationProcessorTest {
     hostGroups.put(group3.getName(), group3);
 
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(properties);
-    Map<String, Map<String, String>> updatedProperties = updater.doUpdateForClusterCreate(hostGroups);
+    Map<String, Map<String, String>> updatedProperties = updater.doUpdateForClusterCreate(hostGroups, null);
     String updatedVal = updatedProperties.get("webhcat-site").get("templeton.zookeeper.hosts");
     String[] hosts = updatedVal.split(",");
 
@@ -505,7 +680,7 @@ public class BlueprintConfigurationProcessorTest {
     hostGroups.put(group3.getName(), group3);
 
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(properties);
-    Map<String, Map<String, String>> updatedProperties = updater.doUpdateForClusterCreate(hostGroups);
+    Map<String, Map<String, String>> updatedProperties = updater.doUpdateForClusterCreate(hostGroups, null);
     String updatedVal = updatedProperties.get("storm-site").get("storm.zookeeper.servers");
     assertTrue(updatedVal.startsWith("["));
     assertTrue(updatedVal.endsWith("]"));
@@ -550,7 +725,7 @@ public class BlueprintConfigurationProcessorTest {
     hostGroups.put(group2.getName(), group2);
 
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(properties);
-    Map<String, Map<String, String>> updatedProperties = updater.doUpdateForClusterCreate(hostGroups);
+    Map<String, Map<String, String>> updatedProperties = updater.doUpdateForClusterCreate(hostGroups, null);
     String updatedVal = updatedProperties.get("hbase-env").get("hbase_master_heapsize");
     assertEquals("512m", updatedVal);
   }
@@ -578,7 +753,7 @@ public class BlueprintConfigurationProcessorTest {
     hostGroups.put(group2.getName(), group2);
 
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(properties);
-    Map<String, Map<String, String>> updatedProperties = updater.doUpdateForClusterCreate(hostGroups);
+    Map<String, Map<String, String>> updatedProperties = updater.doUpdateForClusterCreate(hostGroups, null);
     String updatedVal = updatedProperties.get("hbase-env").get("hbase_master_heapsize");
     assertEquals("512m", updatedVal);
   }
@@ -606,7 +781,7 @@ public class BlueprintConfigurationProcessorTest {
     hostGroups.put(group2.getName(), group2);
 
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(properties);
-    Map<String, Map<String, String>> updatedProperties = updater.doUpdateForClusterCreate(hostGroups);
+    Map<String, Map<String, String>> updatedProperties = updater.doUpdateForClusterCreate(hostGroups, null);
     String updatedVal = updatedProperties.get("yarn-site").get("yarn.resourcemanager.hostname");
     assertEquals("testhost", updatedVal);
   }
@@ -634,7 +809,7 @@ public class BlueprintConfigurationProcessorTest {
     hostGroups.put(group2.getName(), group2);
 
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(properties);
-    Map<String, Map<String, String>> updatedProperties = updater.doUpdateForClusterCreate(hostGroups);
+    Map<String, Map<String, String>> updatedProperties = updater.doUpdateForClusterCreate(hostGroups, null);
     String updatedVal = updatedProperties.get("core-site").get("fs.defaultFS");
     assertEquals("testhost:5050", updatedVal);
   }
@@ -676,7 +851,7 @@ public class BlueprintConfigurationProcessorTest {
     hostGroups.put(group3.getName(), group3);
 
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(properties);
-    Map<String, Map<String, String>> updatedProperties = updater.doUpdateForClusterCreate(hostGroups);
+    Map<String, Map<String, String>> updatedProperties = updater.doUpdateForClusterCreate(hostGroups, null);
     String updatedVal = updatedProperties.get("hbase-site").get("hbase.zookeeper.quorum");
     String[] hosts = updatedVal.split(",");
 
@@ -730,7 +905,7 @@ public class BlueprintConfigurationProcessorTest {
     hostGroups.put(group3.getName(), group3);
 
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(properties);
-    Map<String, Map<String, String>> updatedProperties = updater.doUpdateForClusterCreate(hostGroups);
+    Map<String, Map<String, String>> updatedProperties = updater.doUpdateForClusterCreate(hostGroups, null);
     String updatedVal = updatedProperties.get("webhcat-site").get("templeton.zookeeper.hosts");
     String[] hosts = updatedVal.split(",");
 
@@ -784,7 +959,7 @@ public class BlueprintConfigurationProcessorTest {
     hostGroups.put(group3.getName(), group3);
 
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(properties);
-    Map<String, Map<String, String>> updatedProperties = updater.doUpdateForClusterCreate(hostGroups);
+    Map<String, Map<String, String>> updatedProperties = updater.doUpdateForClusterCreate(hostGroups, null);
     String updatedVal = updatedProperties.get("storm-site").get("storm.zookeeper.servers");
     assertTrue(updatedVal.startsWith("["));
     assertTrue(updatedVal.endsWith("]"));
@@ -833,7 +1008,7 @@ public class BlueprintConfigurationProcessorTest {
     hostGroups.put(group2.getName(), group2);
 
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(properties);
-    Map<String, Map<String, String>> updatedProperties = updater.doUpdateForClusterCreate(hostGroups);
+    Map<String, Map<String, String>> updatedProperties = updater.doUpdateForClusterCreate(hostGroups, null);
     String updatedVal = updatedProperties.get("hive-site").get("javax.jdo.option.ConnectionURL");
     assertEquals("jdbc:mysql://testhost/hive?createDatabaseIfNotExist=true", updatedVal);
   }
@@ -865,7 +1040,7 @@ public class BlueprintConfigurationProcessorTest {
     hostGroups.put(group2.getName(), group2);
 
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(properties);
-    Map<String, Map<String, String>> updatedProperties = updater.doUpdateForClusterCreate(hostGroups);
+    Map<String, Map<String, String>> updatedProperties = updater.doUpdateForClusterCreate(hostGroups, null);
     String updatedVal = updatedProperties.get("hive-site").get("javax.jdo.option.ConnectionURL");
     assertEquals("jdbc:mysql://testhost/hive?createDatabaseIfNotExist=true", updatedVal);
   }
@@ -894,7 +1069,7 @@ public class BlueprintConfigurationProcessorTest {
     hostGroups.put(group2.getName(), group2);
 
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(properties);
-    Map<String, Map<String, String>> updatedProperties = updater.doUpdateForClusterCreate(hostGroups);
+    Map<String, Map<String, String>> updatedProperties = updater.doUpdateForClusterCreate(hostGroups, null);
     String updatedVal = updatedProperties.get("hive-env").get("javax.jdo.option.ConnectionURL");
     assertEquals("jdbc:mysql://myHost.com/hive?createDatabaseIfNotExist=true", updatedVal);
   }
@@ -981,7 +1156,7 @@ public class BlueprintConfigurationProcessorTest {
     mapOfHostGroups.put(expectedHostGroupName, mockHostGroupOne);
 
     // call top-level export method
-    configProcessor.doUpdateForClusterCreate(mapOfHostGroups);
+    configProcessor.doUpdateForClusterCreate(mapOfHostGroups, null);
 
     assertEquals("Falcon Broker URL property not properly exported",
       expectedHostName + ":" + expectedPortNum, falconStartupProperties.get("*.broker.url"));
@@ -1031,7 +1206,7 @@ public class BlueprintConfigurationProcessorTest {
     mapOfHostGroups.put(expectedHostGroupName, mockHostGroupOne);
 
     // call top-level export method
-    configProcessor.doUpdateForClusterCreate(mapOfHostGroups);
+    configProcessor.doUpdateForClusterCreate(mapOfHostGroups, null);
 
     assertEquals("Falcon Broker URL property not properly exported",
       expectedHostName + ":" + expectedPortNum, falconStartupProperties.get("*.broker.url"));
@@ -1091,7 +1266,7 @@ public class BlueprintConfigurationProcessorTest {
     Map<String, HostGroup> mapOfHostGroups = new HashMap<String, HostGroup>();
     mapOfHostGroups.put(expectedHostGroupName,mockHostGroupOne);
 
-    configProcessor.doUpdateForClusterCreate(mapOfHostGroups);
+    configProcessor.doUpdateForClusterCreate(mapOfHostGroups, null);
 
     // verify that the expected hostname was substitued for the host group name in the config
     assertEquals("HTTPS address HA property not properly exported",
