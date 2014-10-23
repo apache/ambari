@@ -43,7 +43,7 @@ class HDP21StackAdvisor(HDP206StackAdvisor):
     putHiveProperty = self.putProperty(configurations, "hive-site")
     putHiveProperty('hive.auto.convert.join.noconditionaltask.size', int(round(containerSize / 3)) * 1048576)
     putHiveProperty('hive.tez.java.opts', "-server -Xmx" + str(int(round(0.8 * containerSize)))
-                    + "m -Djava.net.preferIPv4Stack=true -XX:NewRatio=8 -XX:+UseNUMA -XX:+UseParallelGC")
+                    + "m -Djava.net.preferIPv4Stack=true -XX:NewRatio=8 -XX:+UseNUMA -XX:+UseParallelGC -XX:+PrintGCDetails -verbose:gc -XX:+PrintGCTimeStamps")
     putHiveProperty('hive.tez.container.size', containerSize)
 
   def recommendTezConfigurations(self, configurations, clusterData):
