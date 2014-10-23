@@ -26,10 +26,10 @@
   <p></p>
   <div class="col-md-5 pull-right">
     <div class="btn-group display-inline-block pull-right">
-      <a class="btn dropdown-toggle btn-primary " data-toggle="dropdown" href="#">
+      <button class="btn dropdown-toggle btn-primary " data-toggle="dropdown" {{bind-attr disabled=model.isActionPerformed}}>
         {{t common.actions}}
         <span class="caret"></span>
-      </a>
+      </button>
       <ul class="dropdown-menu">
         {{#each option in controller.availableActions}}
           <li {{bind-attr class="option.submenu.length:dropdown-submenu"}}>
