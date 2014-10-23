@@ -506,6 +506,23 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
   }
 
   @Override
+  public boolean appExists(final String appName) throws IOException, InterruptedException, YarnException {
+    return invokeSliderClientRunnable(new SliderClientContextRunnable<Boolean>() {
+      @Override
+      public Boolean run(SliderClient sliderClient) throws YarnException, IOException {
+        if (appName != null) {
+          try {
+            return sliderClient.actionExists(appName, false) == SliderClient.EXIT_SUCCESS;
+          } catch (UnknownApplicationInstanceException e) {
+            return Boolean.FALSE;
+          }
+        }
+        return Boolean.FALSE;
+      }
+    });
+  }
+
+  @Override
   public SliderApp getSliderApp(final String applicationId, final Set<String> properties)
      throws YarnException, IOException, InterruptedException {
     return invokeSliderClientRunnable(new SliderClientContextRunnable<SliderApp>() {
@@ -949,7 +966,7 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
                 String key = e.getKey();
                 String valueString = e.getValue().getAsString();
                 if ("application.def".equals(key)) {
-                  valueString = String.format(".slider/package/%1$s/%2$s", application.getName(), appZip.getName());
+                  valueString = String.format(".slider/package/%s/%s", application.getName(), appZip.getName());
                 }
                 configsMap.put(key, valueString);
               }
