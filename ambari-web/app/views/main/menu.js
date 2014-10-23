@@ -34,7 +34,7 @@ App.MainMenuView = Em.CollectionView.extend({
     var result = [];
     if (App.router.get('loggedIn')) {
 
-      if (App.router.get('clusterController.isLoaded') && App.get('clusterName')) {
+      if (App.router.get('clusterController.isLoaded') && App.get('router.clusterInstallCompleted')) {
 
           result.push(
             { label:Em.I18n.t('menu.item.dashboard'), routing:'dashboard', active:'active'},
@@ -61,8 +61,9 @@ App.MainMenuView = Em.CollectionView.extend({
 
     }
     return result;
-  }.property('App.router.loggedIn', 'App.router.clusterController.isLoaded', 'App.supports.views', 'App.supports.mirroring',
-      'App.supports.secureCluster', 'App.supports.highAvailability', 'views.length'),
+  }.property('App.router.loggedIn', 'App.supports.views', 'App.supports.mirroring',
+      'App.supports.secureCluster', 'App.supports.highAvailability', 'views.length',
+      'App.router.clusterController.isLoaded', 'App.router.clusterInstallCompleted'),
 
   itemViewClass:Em.View.extend({
 
