@@ -76,3 +76,31 @@ test('nameValidator', function() {
   equal(controller.get('isNameError'), true, 'Name `slider2` already exist');
   equal(controller.get('nameErrorMessage'), Em.I18n.t('wizard.step1.nameRepeatError'), 'Error message should be shown');
 });
+
+test('validateAppNameSuccessCallback', function () {
+
+  var selectedType = Em.Object.create({
+      id: 'HBASE',
+      configs: {
+        n0: 'v0'
+      }
+    }),
+    title = 'newApp should have {0} set';
+
+  var controller = this.subject({
+    newApp: Em.Object.create(),
+    selectedType: selectedType
+  });
+
+  Em.run(function () {
+    controller.set('appWizardController.transitionToRoute', Em.K);
+    controller.validateAppNameSuccessCallback();
+  });
+
+  deepEqual(controller.get('newApp.appType'), selectedType, title.format('appType'));
+  deepEqual(controller.get('newApp.configs'), selectedType.configs, title.format('configs'));
+  deepEqual(controller.get('newApp.predefinedConfigNames'), Em.keys(selectedType.configs), title.format('predefinedConfigNames'));
+  deepEqual(controller.get('appWizardController.newApp'), controller.get('newApp'), 'newApp should be set in CreateAppWizardController');
+  equal(controller.get('appWizardController.currentStep'), 2, 'should proceed to the next step');
+
+});

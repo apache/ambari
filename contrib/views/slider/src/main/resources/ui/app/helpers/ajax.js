@@ -149,6 +149,17 @@ var urls = {
     }
   },
 
+  'validateAppName': {
+    real: 'apps?validateAppName={name}',
+    mock: '/data/resource/empty_json.json',
+    format: function () {
+      return {
+        dataType: 'text',
+        showErrorPopup: true
+      }
+    }
+  },
+
   'createNewApp': {
     real: 'apps',
     mock: '/data/resource/empty_json.json',

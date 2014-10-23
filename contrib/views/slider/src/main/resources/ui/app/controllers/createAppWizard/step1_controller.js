@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-App.CreateAppWizardStep1Controller = Ember.Controller.extend({
+App.CreateAppWizardStep1Controller = Ember.Controller.extend(App.AjaxErrorHandler, {
 
   needs: "createAppWizard",
 
@@ -136,6 +136,46 @@ App.CreateAppWizardStep1Controller = Ember.Controller.extend({
   }.observes('newApp.name'),
 
   /**
+   * Proceed if app name has passed server validation
+   * @method {validateAppNameSuccessCallback}
+   */
+  validateAppNameSuccessCallback: function () {
+    var self = this;
+    Em.run(function () {
+      self.saveApp();
+      self.get('appWizardController').nextStep();
+    });
+  },
+
+  /**
+   * Proceed if app name has failed server validation
+   * @method {validateAppNameSuccessCallback}
+   */
+  validateAppNameErrorCallback: function (request, ajaxOptions, error, opt, params) {
+    if (request.status == 409) {
+      var self = this;
+      Bootstrap.ModalManager.open(
+        'app-name-conflict',
+        Em.I18n.t('common.error'),
+        Em.View.extend({
+          template: Em.Handlebars.compile('<div class="alert alert-danger">' +
+            Em.I18n.t('wizard.step1.validateAppNameError').format(params.name) + '</div>')
+        }),
+        [
+          Ember.Object.create({
+            title: Em.I18n.t('ok'),
+            dismiss: 'modal',
+            type: 'success'
+          })
+        ],
+        self
+      );
+    } else {
+      this.defaultErrorHandler(request, opt.url, opt.type, true);
+    }
+  },
+
+  /**
    * Save new application data to wizard controller
    * @method saveApp
    */
@@ -149,8 +189,15 @@ App.CreateAppWizardStep1Controller = Ember.Controller.extend({
 
   actions: {
     submit: function () {
-      this.saveApp();
-      this.get('appWizardController').nextStep();
+      return App.ajax.send({
+        name: 'validateAppName',
+        sender: this,
+        data: {
+          name: this.get('newApp.name')
+        },
+        success: 'validateAppNameSuccessCallback',
+        error: 'validateAppNameErrorCallback'
+      });
     }
   }
 });
