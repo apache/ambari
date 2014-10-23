@@ -104,16 +104,13 @@ if 'namenode_host' in config['clusterHostInfo']:
 else:
   ishdfs_value = None
 
-# HDFS, YARN, and MR use different settings to enable SSL
-hdfs_ssl_enabled = False
-yarn_ssl_enabled = False
-mapreduce_ssl_enabled = False
+dfs_http_policy = default('/configurations/hdfs-site/dfs.http.policy', HADOOP_HTTP_POLICY)
+yarn_http_policy = default('configurations/yarn-site/yarn.http.policy', HADOOP_HTTP_POLICY)
+mapreduce_http_policy = default('configurations/mapred-site/mapreduce.jobhistory.http.policy', HADOOP_HTTP_POLICY)
 
-# initialize all http policies to HTTP_ONLY
-dfs_http_policy = HADOOP_HTTP_POLICY
-yarn_http_policy = HADOOP_HTTP_POLICY
-mapreduce_http_policy = HADOOP_HTTP_POLICY
-
+hdfs_ssl_enabled = (dfs_http_policy == HADOOP_HTTPS_POLICY)
+yarn_ssl_enabled = (yarn_http_policy == HADOOP_HTTPS_POLICY)
+mapreduce_ssl_enabled = (mapreduce_http_policy == HADOOP_HTTPS_POLICY)
 #
 if has_namenode:
   if 'dfs.http.policy' in config['configurations']['hdfs-site']:
