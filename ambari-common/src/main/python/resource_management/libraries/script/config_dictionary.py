@@ -66,21 +66,6 @@ class ConfigDictionary(dict):
           pass
     
     return value
-  
-
-class MutableConfigDictionary(ConfigDictionary):
-  """
-  Mutable Configuration Dictionary
-  """
-  def __init__(self, dictionary):
-    d = dict()
-    for k, v in dictionary.iteritems():
-      if isinstance(v, dict):
-        d[k] = MutableConfigDictionary(v)
-      else:
-        d[k] = v
-
-    super(MutableConfigDictionary, self).__init__(d, allow_overwrite=True)
 
 
 class UnknownConfiguration():

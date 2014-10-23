@@ -26,29 +26,6 @@ from resource_management import *
 from resource_management.core.resources.system import Execute
 from resource_management.libraries.functions.version import compare_versions
 from resource_management.libraries.functions.dynamic_variable_interpretation import copy_tarballs_to_hdfs
-from resource_management.libraries.script.config_dictionary import MutableConfigDictionary
-from resource_management.libraries.functions.dynamic_variable_interpretation import interpret_dynamic_version_property
-
-
-def __inject_config_variables(mutable_configs):
-  """
-  :param mutable_configs: Mutable Configuration Dictionary
-  :return: Returns the mutable configuration dictionary where each of the dynamic properties have been injected
-  with the value of the versioned tarball or jar in HDFS.
-  """
-  if mutable_configs is not None and "configurations" in mutable_configs and \
-          mutable_configs["configurations"] is not None and "webhcat-site" in mutable_configs["configurations"]:
-    webhcat_config = mutable_configs['configurations']['webhcat-site']
-
-    properties_and_prefix_tuple_list = [('pig', 'templeton.pig.archive'), ('hive', 'templeton.hive.archive'),
-                                        ('sqoop', 'templeton.sqoop.archive'), ('hadoop-streaming', 'templeton.streaming.jar')]
-    for (prefix, prop_name) in properties_and_prefix_tuple_list:
-      prop_value = webhcat_config[prop_name]
-      if prop_value:
-        found_at_least_one_replacement, new_value = interpret_dynamic_version_property(prop_value, prefix, ",")
-        if found_at_least_one_replacement:
-          webhcat_config[prop_name] = new_value
-  return mutable_configs
 
 
 def webhcat():
@@ -151,14 +128,9 @@ def webhcat():
                     hadoop_conf_dir=params.hadoop_conf_dir
       )
 
-  mutable_configs = MutableConfigDictionary(params.config)
-  # TODO, this is specific to HDP 2.2, but it is safe to call in earlier versions.
-  # It should eventually be moved to scripts specific to the HDP 2.2 stack.
-  mutable_configs = __inject_config_variables(mutable_configs)
-
   XmlConfig("webhcat-site.xml",
             conf_dir=params.config_dir,
-            configurations=mutable_configs['configurations']['webhcat-site'],
+            configurations=params.config['configurations']['webhcat-site'],
             configuration_attributes=params.config['configuration_attributes']['webhcat-site'],
             owner=params.webhcat_user,
             group=params.user_group,

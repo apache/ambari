@@ -18,7 +18,7 @@ limitations under the License.
 
 """
 
-__all__ = ["copy_tarballs_to_hdfs", "interpret_dynamic_version_property"]
+__all__ = ["copy_tarballs_to_hdfs", ]
 import os
 import glob
 import re
@@ -47,15 +47,7 @@ TAR_SOURCE_SUFFIX = "_tar_source"
 TAR_DESTINATION_FOLDER_SUFFIX = "_tar_destination_folder"
 
 
-def __contains_dynamic_variable(string):
-  """
-  :param string: Input string to check
-  :return: Returns True if the string contains any dynamic variables to be interpreted, otherwise False.
-  """
-  return "{{ component_version }}" in string or "{{ hdp_stack_version }}" in string
-
-
-def __get_tar_source_and_dest_folder(tarball_prefix):
+def _get_tar_source_and_dest_folder(tarball_prefix):
   """
   :param tarball_prefix: Prefix of the tarball must be one of tez, hive, mr, pig
   :return: Returns a tuple of (x, y) after verifying the properties
@@ -84,7 +76,7 @@ def __get_tar_source_and_dest_folder(tarball_prefix):
   return component_tar_source_file, component_tar_destination_folder
 
 
-def __create_regex_pattern(file_path, hdp_stack_version):
+def _create_regex_pattern(file_path, hdp_stack_version):
   """
   :param file_path: Input file path
   :param hdp_stack_version: Stack version, such as 2.2.0.0
@@ -101,7 +93,7 @@ def __create_regex_pattern(file_path, hdp_stack_version):
   return file_path_pattern
 
 
-def __populate_source_and_dests(tarball_prefix, source_file_pattern, component_tar_destination_folder, hdp_stack_version):
+def _populate_source_and_dests(tarball_prefix, source_file_pattern, component_tar_destination_folder, hdp_stack_version):
   """
   :param tarball_prefix: Prefix of the tarball must be one of tez, hive, mr, pig
   :param source_file_pattern: Regex pattern of the source file from the local file system
@@ -150,7 +142,7 @@ def __populate_source_and_dests(tarball_prefix, source_file_pattern, component_t
   return source_and_dest_pairs
 
 
-def __copy_files(source_and_dest_pairs, file_owner, kinit_if_needed):
+def _copy_files(source_and_dest_pairs, file_owner, kinit_if_needed):
   """
   :param source_and_dest_pairs: List of tuples (x, y), where x is the source file in the local file system,
   and y is the destination file path in HDFS
@@ -206,14 +198,14 @@ def copy_tarballs_to_hdfs(tarball_prefix, component_user, file_owner):
     Logger.warning("Could not find hdp_stack_version")
     return 1
 
-  component_tar_source_file, component_tar_destination_folder = __get_tar_source_and_dest_folder(tarball_prefix)
+  component_tar_source_file, component_tar_destination_folder = _get_tar_source_and_dest_folder(tarball_prefix)
   if not component_tar_source_file or not component_tar_destination_folder:
     return 1
 
-  source_file_pattern = __create_regex_pattern(component_tar_source_file, params.hdp_stack_version)
+  source_file_pattern = _create_regex_pattern(component_tar_source_file, params.hdp_stack_version)
   # This is just the last segment
   file_name_pattern = source_file_pattern.split('/')[-1:][0]
-  tar_destination_folder_pattern = __create_regex_pattern(component_tar_destination_folder, params.hdp_stack_version)
+  tar_destination_folder_pattern = _create_regex_pattern(component_tar_destination_folder, params.hdp_stack_version)
 
   # Pattern for searching the file in HDFS. E.g. value, hdfs:///hdp/apps/2.2.0.0*/tez/tez-*.2.2.0.0*.tar.gz
   hdfs_file_pattern = os.path.join(tar_destination_folder_pattern, file_name_pattern)
@@ -242,73 +234,7 @@ def copy_tarballs_to_hdfs(tarball_prefix, component_user, file_owner):
     pass
 
   if not does_hdfs_file_exist:
-    source_and_dest_pairs = __populate_source_and_dests(tarball_prefix, source_file_pattern,
+    source_and_dest_pairs = _populate_source_and_dests(tarball_prefix, source_file_pattern,
                                                         component_tar_destination_folder, params.hdp_stack_version)
-    return __copy_files(source_and_dest_pairs, file_owner, kinit_if_needed)
+    return _copy_files(source_and_dest_pairs, file_owner, kinit_if_needed)
   return 1
-
-
-def __map_local_file_to_hdfs_file(tarball_prefix):
-  """
-  :param tarball_prefix: Prefix of the tarball must be one of tez, hive, mr, pig
-  :return: Using the source tarball file pattern, it finds the corresponding file in the local filesystem, and
-  maps it to its corresponding location in HDFS, while substituting the dynamic variables like {{ hdp_stack_version }}
-  and {{ component_version }}.
-  On success, returns a string with the path of where the file should be on HDFS, otherwise, returns an empty string.
-  """
-  import params
-
-  if not hasattr(params, "hdp_stack_version") or params.hdp_stack_version is None:
-    Logger.warning("Could not find hdp_stack_version")
-    return ""
-
-  component_tar_source_file, component_tar_destination_folder = __get_tar_source_and_dest_folder(tarball_prefix)
-  if not component_tar_source_file or not component_tar_destination_folder:
-    return ""
-
-  source_file_pattern = __create_regex_pattern(component_tar_source_file, params.hdp_stack_version)
-  source_and_dest_pairs = __populate_source_and_dests(tarball_prefix, source_file_pattern, component_tar_destination_folder, params.hdp_stack_version)
-  if source_and_dest_pairs and len(source_and_dest_pairs) == 1:
-    return source_and_dest_pairs[0][1]
-
-  return ""
-
-
-def interpret_dynamic_version_property(property_value, tarball_prefix, delimiter=","):
-  """
-  :param property_value: Value to scan for dynamic variables
-  :param tarball_prefix:  Prefix of the tarball must be one of tez, hive, mr, pig
-  :param delimiter: Delimiter character used in the property value, typically a comma or colon
-  :return: Returns a tuple of (x, y), where x is a bool indicating if at least one variable was substituted, and y
-  is the interpretation of the property value if an interpretation could be done, otherwise it remains unchanged.
-
-  Notice that params must have the hdp_stack_version attribute.
-  """
-  import params
-
-  found_at_least_one_replacement = False
-  versioned_tarball = __map_local_file_to_hdfs_file(tarball_prefix)
-  if versioned_tarball and versioned_tarball != "":
-    # We expect to find a file in HDFS, and must substitute it for its regex equivalent in the property inside *-site.xml
-    property_value = "" if property_value is None or property_value.strip() == "" else property_value
-
-    if property_value:
-      elements = []
-
-      for elem in property_value.split(delimiter):
-        elem = elem.strip()
-        if __contains_dynamic_variable(elem):
-          # Need to do dynamic interpretation, and slight regex escaping. Must not escape " " since it is used in
-          # the dynamic variable string.
-          elem_pattern = __create_regex_pattern(elem, params.hdp_stack_version).replace(".", "\\.").replace("*", ".*")
-          p = re.compile(elem_pattern)
-          m = p.match(versioned_tarball)
-          if m:
-            elements.append(versioned_tarball)
-            found_at_least_one_replacement = True
-        else:
-          elements.append(elem)
-
-      if found_at_least_one_replacement:
-        property_value = ",".join(elements)
-  return found_at_least_one_replacement, property_value
