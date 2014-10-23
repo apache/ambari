@@ -17,7 +17,7 @@
   limitations under the License.
 -->
 
-<configuration supports_final="true">
+<configuration supports_final="true" supports_do_not_extend="true">
 
   <property>
     <name>tez.lib.uris</name>

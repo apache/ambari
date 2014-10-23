@@ -391,18 +391,26 @@ public class StackExtensionHelperTest {
         StackExtensionHelper.Supports.FINAL.getPropertyName(), "true");
     addToPropertyMap(expectedConfigTypes, "global", StackExtensionHelper.Supports.KEYWORD, 
         StackExtensionHelper.Supports.ADDING_FORBIDDEN.getPropertyName(), "false");
+    addToPropertyMap(expectedConfigTypes, "global", StackExtensionHelper.Supports.KEYWORD,
+        StackExtensionHelper.Supports.DO_NOT_EXTEND.getPropertyName(), "false");
     addToPropertyMap(expectedConfigTypes, "hdfs-site", StackExtensionHelper.Supports.KEYWORD, 
         StackExtensionHelper.Supports.FINAL.getPropertyName(), "false");
     addToPropertyMap(expectedConfigTypes, "hdfs-site", StackExtensionHelper.Supports.KEYWORD, 
         StackExtensionHelper.Supports.ADDING_FORBIDDEN.getPropertyName(), "false");
+    addToPropertyMap(expectedConfigTypes, "hdfs-site", StackExtensionHelper.Supports.KEYWORD,
+        StackExtensionHelper.Supports.DO_NOT_EXTEND.getPropertyName(), "false");
     addToPropertyMap(expectedConfigTypes, "hadoop-policy", StackExtensionHelper.Supports.KEYWORD, 
         StackExtensionHelper.Supports.FINAL.getPropertyName(), "false");
     addToPropertyMap(expectedConfigTypes, "hadoop-policy", StackExtensionHelper.Supports.KEYWORD, 
         StackExtensionHelper.Supports.ADDING_FORBIDDEN.getPropertyName(), "false");
+    addToPropertyMap(expectedConfigTypes, "hadoop-policy", StackExtensionHelper.Supports.KEYWORD,
+        StackExtensionHelper.Supports.DO_NOT_EXTEND.getPropertyName(), "false");
     addToPropertyMap(expectedConfigTypes, "core-site", StackExtensionHelper.Supports.KEYWORD, 
         StackExtensionHelper.Supports.FINAL.getPropertyName(), "false");
     addToPropertyMap(expectedConfigTypes, "core-site", StackExtensionHelper.Supports.KEYWORD, 
         StackExtensionHelper.Supports.ADDING_FORBIDDEN.getPropertyName(), "false");
+    addToPropertyMap(expectedConfigTypes, "core-site", StackExtensionHelper.Supports.KEYWORD,
+        StackExtensionHelper.Supports.DO_NOT_EXTEND.getPropertyName(), "false");
     
     Map<String, Map<String, Map<String, String>>> configTypes = serviceInfo.getConfigTypes();
     assertEquals(4, configTypes.size());
@@ -518,6 +526,8 @@ public class StackExtensionHelperTest {
         StackExtensionHelper.Supports.FINAL.getPropertyName(), "false");
     addToPropertyMap(expectedConfigTypes, "yarn-site", StackExtensionHelper.Supports.KEYWORD, 
         StackExtensionHelper.Supports.ADDING_FORBIDDEN.getPropertyName(), "true");
+    addToPropertyMap(expectedConfigTypes, "yarn-site", StackExtensionHelper.Supports.KEYWORD,
+        StackExtensionHelper.Supports.DO_NOT_EXTEND.getPropertyName(), "true");
     
     assertEquals(expectedConfigTypes, serviceInfo.getConfigTypes());
   }
@@ -536,18 +546,26 @@ public class StackExtensionHelperTest {
         StackExtensionHelper.Supports.FINAL.getPropertyName(), "true");
     addToPropertyMap(expectedConfigTypes, "global", StackExtensionHelper.Supports.KEYWORD, 
         StackExtensionHelper.Supports.ADDING_FORBIDDEN.getPropertyName(), "false");
+    addToPropertyMap(expectedConfigTypes, "global", StackExtensionHelper.Supports.KEYWORD,
+        StackExtensionHelper.Supports.DO_NOT_EXTEND.getPropertyName(), "false");
     addToPropertyMap(expectedConfigTypes, "hdfs-site", StackExtensionHelper.Supports.KEYWORD, 
         StackExtensionHelper.Supports.FINAL.getPropertyName(), "false");
     addToPropertyMap(expectedConfigTypes, "hdfs-site", StackExtensionHelper.Supports.KEYWORD, 
         StackExtensionHelper.Supports.ADDING_FORBIDDEN.getPropertyName(), "false");
+    addToPropertyMap(expectedConfigTypes, "hdfs-site", StackExtensionHelper.Supports.KEYWORD,
+        StackExtensionHelper.Supports.DO_NOT_EXTEND.getPropertyName(), "false");
     addToPropertyMap(expectedConfigTypes, "hadoop-policy", StackExtensionHelper.Supports.KEYWORD, 
         StackExtensionHelper.Supports.FINAL.getPropertyName(), "false");
     addToPropertyMap(expectedConfigTypes, "hadoop-policy", StackExtensionHelper.Supports.KEYWORD, 
         StackExtensionHelper.Supports.ADDING_FORBIDDEN.getPropertyName(), "false");
+    addToPropertyMap(expectedConfigTypes, "hadoop-policy", StackExtensionHelper.Supports.KEYWORD,
+        StackExtensionHelper.Supports.DO_NOT_EXTEND.getPropertyName(), "false");
     addToPropertyMap(expectedConfigTypes, "core-site", StackExtensionHelper.Supports.KEYWORD, 
         StackExtensionHelper.Supports.FINAL.getPropertyName(), "false");
     addToPropertyMap(expectedConfigTypes, "core-site", StackExtensionHelper.Supports.KEYWORD, 
         StackExtensionHelper.Supports.ADDING_FORBIDDEN.getPropertyName(), "false");
+    addToPropertyMap(expectedConfigTypes, "core-site", StackExtensionHelper.Supports.KEYWORD,
+        StackExtensionHelper.Supports.DO_NOT_EXTEND.getPropertyName(), "false");
     
     assertEquals(expectedConfigTypes, serviceInfo.getConfigTypes());
   }
@@ -565,22 +583,32 @@ public class StackExtensionHelperTest {
         StackExtensionHelper.Supports.FINAL.getPropertyName(), "true");
     addToPropertyMap(expectedConfigTypes, "global", StackExtensionHelper.Supports.KEYWORD, 
         StackExtensionHelper.Supports.ADDING_FORBIDDEN.getPropertyName(), "false");
+    addToPropertyMap(expectedConfigTypes, "global", StackExtensionHelper.Supports.KEYWORD,
+        StackExtensionHelper.Supports.DO_NOT_EXTEND.getPropertyName(), "false");
     addToPropertyMap(expectedConfigTypes, "hdfs-site", StackExtensionHelper.Supports.KEYWORD, 
         StackExtensionHelper.Supports.FINAL.getPropertyName(), "false");
     addToPropertyMap(expectedConfigTypes, "hdfs-site", StackExtensionHelper.Supports.KEYWORD, 
         StackExtensionHelper.Supports.ADDING_FORBIDDEN.getPropertyName(), "false");
+    addToPropertyMap(expectedConfigTypes, "hdfs-site", StackExtensionHelper.Supports.KEYWORD,
+        StackExtensionHelper.Supports.DO_NOT_EXTEND.getPropertyName(), "false");
     addToPropertyMap(expectedConfigTypes, "hadoop-policy", StackExtensionHelper.Supports.KEYWORD, 
         StackExtensionHelper.Supports.FINAL.getPropertyName(), "false");
     addToPropertyMap(expectedConfigTypes, "hadoop-policy", StackExtensionHelper.Supports.KEYWORD, 
         StackExtensionHelper.Supports.ADDING_FORBIDDEN.getPropertyName(), "false");
+    addToPropertyMap(expectedConfigTypes, "hadoop-policy", StackExtensionHelper.Supports.KEYWORD,
+        StackExtensionHelper.Supports.DO_NOT_EXTEND.getPropertyName(), "false");
     addToPropertyMap(expectedConfigTypes, "core-site", StackExtensionHelper.Supports.KEYWORD, 
         StackExtensionHelper.Supports.FINAL.getPropertyName(), "false");
     addToPropertyMap(expectedConfigTypes, "core-site", StackExtensionHelper.Supports.KEYWORD, 
         StackExtensionHelper.Supports.ADDING_FORBIDDEN.getPropertyName(), "false");
+    addToPropertyMap(expectedConfigTypes, "core-site", StackExtensionHelper.Supports.KEYWORD,
+        StackExtensionHelper.Supports.DO_NOT_EXTEND.getPropertyName(), "false");
     addToPropertyMap(expectedConfigTypes, "yarn-site", StackExtensionHelper.Supports.KEYWORD, 
         StackExtensionHelper.Supports.FINAL.getPropertyName(), "false");
     addToPropertyMap(expectedConfigTypes, "yarn-site", StackExtensionHelper.Supports.KEYWORD, 
         StackExtensionHelper.Supports.ADDING_FORBIDDEN.getPropertyName(), "true");
+    addToPropertyMap(expectedConfigTypes, "yarn-site", StackExtensionHelper.Supports.KEYWORD,
+        StackExtensionHelper.Supports.DO_NOT_EXTEND.getPropertyName(), "true");
     
     assertEquals(expectedConfigTypes, serviceInfo.getConfigTypes());
   }
