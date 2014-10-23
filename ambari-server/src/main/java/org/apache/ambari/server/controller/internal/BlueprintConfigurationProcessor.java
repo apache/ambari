@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.controller.internal;
 
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -112,11 +113,12 @@ public class BlueprintConfigurationProcessor {
    * Update properties for cluster creation.  This involves updating topology related properties with
    * concrete topology information.
    *
-   * @param hostGroups  host groups of cluster to be deployed
+   * @param hostGroups       host groups of cluster to be deployed
+   * @param stackDefinition  stack used for cluster creation
    *
    * @return  updated properties
    */
-  public Map<String, Map<String, String>> doUpdateForClusterCreate(Map<String, ? extends HostGroup> hostGroups) {
+  public Map<String, Map<String, String>> doUpdateForClusterCreate(Map<String, ? extends HostGroup> hostGroups, Stack stackDefinition) {
     for (Map<String, Map<String, PropertyUpdater>> updaterMap : createCollectionOfUpdaters()) {
       for (Map.Entry<String, Map<String, PropertyUpdater>> entry : updaterMap.entrySet()) {
         String type = entry.getKey();
@@ -127,7 +129,7 @@ public class BlueprintConfigurationProcessor {
           Map<String, String> typeMap = properties.get(type);
           if (typeMap != null && typeMap.containsKey(propertyName)) {
             typeMap.put(propertyName, updater.updateForClusterCreate(
-                hostGroups, typeMap.get(propertyName), properties));
+                hostGroups, typeMap.get(propertyName), properties, stackDefinition));
           }
         }
       }
@@ -490,14 +492,17 @@ public class BlueprintConfigurationProcessor {
      * Update a property value.
      *
      *
-     * @param hostGroups  host groups
-     * @param origValue   original value of property
-     * @param properties  all properties
+     * @param hostGroups      host groups
+     * @param origValue       original value of property
+     * @param properties      all properties
+     * @param stackDefinition definition of stack used for this cluster
+     *                        creation attempt
      *
      * @return new property value
      */
     public String updateForClusterCreate(Map<String, ? extends HostGroup> hostGroups,
-                                         String origValue, Map<String, Map<String, String>> properties);
+                                         String origValue, Map<String, Map<String, String>> properties, Stack stackDefinition
+    );
   }
 
   /**
@@ -523,15 +528,17 @@ public class BlueprintConfigurationProcessor {
      * Update the property with the new host name which runs the associated component.
      *
      *
-     * @param hostGroups  host groups
-     * @param origValue   original value of property
-     * @param properties  all properties
+     * @param hostGroups       host groups
+     * @param origValue        original value of property
+     * @param properties       all properties
+     * @param stackDefinition  stack used for cluster creation
      *
      * @return updated property value with old host name replaced by new host name
      */
     public String updateForClusterCreate(Map<String, ? extends HostGroup> hostGroups,
                                          String origValue,
-                                         Map<String, Map<String, String>> properties)  {
+                                         Map<String, Map<String, String>> properties,
+                                         Stack stackDefinition)  {
 
       Matcher m = HOSTGROUP_REGEX.matcher(origValue);
       if (m.find()) {
@@ -544,8 +551,18 @@ public class BlueprintConfigurationProcessor {
         if (matchingGroups.size() == 1) {
           return origValue.replace("localhost", matchingGroups.iterator().next().getHostInfo().iterator().next());
         } else {
-          throw new IllegalArgumentException("Unable to update configuration property with topology information. " +
+          Cardinality cardinality = stackDefinition.getCardinality(component);
+          // if no matching host groups are found for a component whose configuration
+          // is handled by this updater, check the stack first to determine if
+          // zero is a valid cardinality for this component.  This is necessary
+          // in the case of a component in "technical preview" status, since it
+          // may be valid to have 0 or 1 instances of such a component in the cluster
+          if (matchingGroups.isEmpty() && cardinality.isValidCount(0)) {
+            return origValue;
+          } else {
+            throw new IllegalArgumentException("Unable to update configuration property with topology information. " +
               "Component '" + this.component + "' is not mapped to any host group or is mapped to multiple groups.");
+          }
         }
       }
     }
@@ -597,19 +614,21 @@ public class BlueprintConfigurationProcessor {
      * original value.
      *
      *
-     * @param hostGroups  host groups
-     * @param origValue   original value of property
-     * @param properties  all properties
+     * @param hostGroups       host groups
+     * @param origValue        original value of property
+     * @param properties       all properties
+     * @param stackDefinition  stack used for cluster creation
      *
      * @return updated property value with old host name replaced by new host name or original value
      *         if the database is external
      */
     @Override
     public String updateForClusterCreate(Map<String, ? extends HostGroup> hostGroups,
-                                         String origValue, Map<String, Map<String, String>> properties) {
+                                         String origValue, Map<String, Map<String, String>> properties,
+                                         Stack stackDefinition) {
 
       if (isDatabaseManaged(properties)) {
-        return super.updateForClusterCreate(hostGroups, origValue, properties);
+        return super.updateForClusterCreate(hostGroups, origValue, properties, stackDefinition);
       } else {
         return origValue;
       }
@@ -656,15 +675,17 @@ public class BlueprintConfigurationProcessor {
      * component.
      *
      *
-     * @param hostGroups  host groups
-     * @param origValue   original value of property
-     * @param properties  all properties
+     * @param hostGroups       host groups
+     * @param origValue        original value of property
+     * @param properties       all properties
+     * @param stackDefinition  stack used for cluster creation
      *
      * @return updated property value with old host names replaced by new host names
      */
     public String updateForClusterCreate(Map<String, ? extends HostGroup> hostGroups,
                                          String origValue,
-                                         Map<String, Map<String, String>> properties) {
+                                         Map<String, Map<String, String>> properties,
+                                         Stack stackDefinition) {
 
       Collection<String> hostStrings = getHostStrings(hostGroups, origValue);
       if (hostStrings.isEmpty()) {
@@ -709,15 +730,17 @@ public class BlueprintConfigurationProcessor {
      * Append 'm' to the original property value if it doesn't already exist.
      *
      *
-     * @param hostGroups  host groups
-     * @param origValue   original value of property
-     * @param properties  all properties
+     * @param hostGroups       host groups
+     * @param origValue        original value of property
+     * @param properties       all properties
+     * @param stackDefinition  stack used for cluster creation
      *
      * @return property with 'm' appended
      */
     public String updateForClusterCreate(Map<String, ? extends HostGroup> hostGroups,
                                          String origValue, Map<String,
-        Map<String, String>> properties) {
+                                         Map<String, String>> properties,
+                                         Stack stackDefinition) {
 
       return origValue.endsWith("m") ? origValue : origValue + 'm';
     }
@@ -741,18 +764,20 @@ public class BlueprintConfigurationProcessor {
     /**
      * Return decorated form of the updated input property value.
      *
-     * @param hostGroupMap  map of host group name to HostGroup
-     * @param origValue     original value of property
-     * @param properties    all properties
+     * @param hostGroupMap     map of host group name to HostGroup
+     * @param origValue        original value of property
+     * @param properties       all properties
+     * @param stackDefinition  stack used for cluster creation
      *
      * @return Formatted output string
      */
     @Override
     public String updateForClusterCreate(Map<String, ? extends HostGroup> hostGroupMap,
                                          String origValue,
-                                         Map<String, Map<String, String>> properties) {
+                                         Map<String, Map<String, String>> properties,
+                                         Stack stackDefinition) {
 
-      return doFormat(propertyUpdater.updateForClusterCreate(hostGroupMap, origValue, properties));
+      return doFormat(propertyUpdater.updateForClusterCreate(hostGroupMap, origValue, properties, stackDefinition));
     }
 
     /**
@@ -812,7 +837,9 @@ public class BlueprintConfigurationProcessor {
    */
   private static class OriginalValuePropertyUpdater implements PropertyUpdater {
     @Override
-    public String updateForClusterCreate(Map<String, ? extends HostGroup> hostGroups, String origValue, Map<String, Map<String, String>> properties) {
+    public String updateForClusterCreate(Map<String, ? extends HostGroup> hostGroups, String origValue,
+                                         Map<String, Map<String, String>> properties,
+                                         Stack stackDefinition) {
       // always return the original value, since these properties do not require update handling
       return origValue;
     }
