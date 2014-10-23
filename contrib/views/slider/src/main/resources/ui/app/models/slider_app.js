@@ -49,6 +49,11 @@ App.SliderApp = DS.Model.extend({
   started: DS.attr('number'),
 
   /**
+   * @type {boolean}
+   */
+  isActionPerformed: DS.attr('boolean'),
+
+  /**
    * @type {String}
    */
 

@@ -115,6 +115,7 @@ App.SliderAppController = Ember.ObjectController.extend(App.AjaxErrorHandler, {
       statusActionsMap = this.get('statusActionsMap'),
       status = this.get('model.status');
 
+    this.get('model').set('isActionPerformed', false);
     statusActionsMap[status].forEach(function(action) {
       if ('destroy' === action) {
         advanced.pushObject(appActions[action]);
@@ -166,6 +167,12 @@ App.SliderAppController = Ember.ObjectController.extend(App.AjaxErrorHandler, {
   groupedComponentsHaveErrors: false,
 
   /**
+   * Action is performed.
+   * @type {Bool}
+   **/
+  isActionRunning: false,
+
+  /**
    * Custom popup for "Destroy"-action
    * @method destroyConfirm
    */
@@ -202,6 +209,7 @@ App.SliderAppController = Ember.ObjectController.extend(App.AjaxErrorHandler, {
    */
   thaw: function() {
     var model = this.get('model');
+    this.get('model').set('isActionPerformed', true);
     return App.ajax.send({
       name: 'changeAppState',
       sender: this,
@@ -213,7 +221,8 @@ App.SliderAppController = Ember.ObjectController.extend(App.AjaxErrorHandler, {
           state: "RUNNING"
         }
       },
-      success: 'thawSuccessCallback'
+      success: 'thawSuccessCallback',
+      error: 'actionErrorCallback'
     });
   },
 
@@ -232,6 +241,7 @@ App.SliderAppController = Ember.ObjectController.extend(App.AjaxErrorHandler, {
    */
   freeze: function() {
     var model = this.get('model');
+    this.get('model').set('isActionPerformed', true);
     return App.ajax.send({
       name: 'changeAppState',
       sender: this,
@@ -242,7 +252,8 @@ App.SliderAppController = Ember.ObjectController.extend(App.AjaxErrorHandler, {
           name: model.get('name'),
           state: "FROZEN"
         }
-      }
+      },
+      error: 'actionErrorCallback'
     });
   },
 
@@ -340,13 +351,15 @@ App.SliderAppController = Ember.ObjectController.extend(App.AjaxErrorHandler, {
    * @method destroy
    */
   destroy: function() {
+    this.get('model').set('isActionPerformed', true);
     return App.ajax.send({
       name: 'destroyApp',
       sender: this,
       data: {
         id: this.get('model.id')
       },
-      complete: 'destroyCompleteCallback'
+      complete: 'destroyCompleteCallback',
+      error: 'actionErrorCallback'
     });
   },
 
@@ -356,6 +369,11 @@ App.SliderAppController = Ember.ObjectController.extend(App.AjaxErrorHandler, {
    */
   destroyCompleteCallback: function() {
     this.transitionToRoute('slider_apps');
+  },
+
+  actionErrorCallback: function() {
+    this.defaultErrorHandler(arguments[0], arguments[3].url, arguments[3].type, true);
+    this.get('model').set('isActionPerformed', false);
   },
 
   actions: {

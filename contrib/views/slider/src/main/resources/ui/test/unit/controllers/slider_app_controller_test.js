@@ -87,3 +87,55 @@ test('quickLinksOrdered', function() {
   equal(controller.get('quickLinksOrdered').objectAt(4).get('label'), 'Metrics UI', 'Metrics UI link should be before Metrics API');
   equal(controller.get('quickLinksOrdered').objectAt(5).get('label'), 'Metrics API', 'Metrics API link should be last');
 });
+
+
+test('Disable Action Button', function() {
+  expect(6);
+
+  var controller = this.subject({
+    model: Em.Object.create({
+      id: 'someId',
+      name: 'SomeName',
+      status: 'ACCEPTED'
+    }),
+    defaultErrorHandler: function() { return true; }
+  });
+
+  Em.run(function() {
+    controller.thaw();
+  });
+
+  equal(controller.get('model').get('isActionPerformed'), true, 'Perform start action');
+
+  Em.run(function() {
+    controller.set('model.status', 'RUNNING');
+    controller.get('availableActions');
+  });
+
+  equal(controller.get('model').get('isActionPerformed'), false, 'Start is done.');
+
+  Em.run(function() {
+    controller.freeze();
+  });
+
+  equal(controller.get('model').get('isActionPerformed'), true, 'Perform freeze action')
+
+  Em.run(function() {
+    controller.set('model.status', 'FROZEN');
+    controller.get('availableActions');
+  });
+
+  equal(controller.get('model').get('isActionPerformed'), false, 'Freeze is done.');
+
+  Em.run(function() {
+    controller.thaw();
+  });
+
+  equal(controller.get('model').get('isActionPerformed'), true, 'Start action performed expect for error.');
+
+  Em.run(function() {
+    controller.actionErrorCallback({requestText: 'some text'}, {url: '/some/url'}, {type: 'PUT'}, true);
+  });
+
+  equal(controller.get('model').get('isActionPerformed'), false, 'Error catched button should be enabled');
+});
