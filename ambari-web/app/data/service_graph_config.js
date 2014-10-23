@@ -89,5 +89,15 @@ App.service_graph_config = {
 		'STORM_Executors',
 		'STORM_Topologies',
 		'STORM_Tasks'
-	]
+	],
+
+  'kafka': [
+    'Kafka_BrokerTopicMetrics',
+    'Kafka_Controller',
+    'Kafka_ControllerStatus',
+    'Kafka_ReplicaManager',
+    'Kafka_LogFlush',
+    'Kafka_ReplicaFetcher'
+  ]
+
 };
