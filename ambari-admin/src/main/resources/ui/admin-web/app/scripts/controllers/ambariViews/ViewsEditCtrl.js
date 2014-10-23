@@ -119,6 +119,7 @@ angular.module('ambariAdminConsole')
   $scope.editConfigurationDisabled = true;
   $scope.togglePropertiesEditing = function () {
     $scope.editConfigurationDisabled = !$scope.editConfigurationDisabled;
+    $scope.configurationBeforeEdit = angular.copy($scope.configuration);
     if (!$scope.editConfigurationDisabled) {
       $scope.configurationMeta.forEach(function (element) {
         if (element.masked) {
@@ -144,7 +145,7 @@ angular.module('ambariAdminConsole')
     }
   };
   $scope.cancelConfiguration = function() {
-    initConfigurations();
+    $scope.configuration = angular.copy($scope.configurationBeforeEdit);
     $scope.editConfigurationDisabled = true;
     $scope.propertiesForm.$setPristine();
   };
