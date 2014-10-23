@@ -200,7 +200,7 @@ public class ShellCommandUtil {
     return sb.toString();
   }
 
-  static class Result {
+  public static class Result {
 
     Result(int exitCode, String stdout, String stderr) {
       this.exitCode = exitCode;
@@ -212,15 +212,15 @@ public class ShellCommandUtil {
     private final String stdout;
     private final String stderr;
 
-    int getExitCode() {
+    public int getExitCode() {
       return exitCode;
     }
 
-    String getStdout() {
+    public String getStdout() {
       return stdout;
     }
 
-    String getStderr() {
+    public String getStderr() {
       return stderr;
     }
 

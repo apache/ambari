@@ -37,6 +37,10 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.security.ProtectionDomain;
+import java.util.Arrays;
 import java.util.Properties;
 import java.util.Random;
 
@@ -142,5 +146,14 @@ public class TestShellCommandUtil extends TestCase {
     assertFalse(ShellCommandUtil.hideOpenSslPassword(command_pass).contains("1234"));
     assertFalse(ShellCommandUtil.hideOpenSslPassword(command_key).contains("1234"));
   }
-  
+
+  public void testResultsClassIsPublic() throws Exception {
+    Class resultClass = ShellCommandUtil.Result.class;
+
+    assertEquals(Modifier.PUBLIC, resultClass.getModifiers() & Modifier.PUBLIC);
+
+    for(Method method : resultClass.getMethods()) {
+      assertEquals(method.getName(), Modifier.PUBLIC, (method.getModifiers() & Modifier.PUBLIC));
+    }
+  }
 }
