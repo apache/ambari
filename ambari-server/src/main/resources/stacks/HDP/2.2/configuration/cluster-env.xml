@@ -21,12 +21,6 @@
 -->
 
 <configuration>
-  <!-- TODO, this property needs to be removed in AMBARI-7884. -->
-  <property>
-    <name>rpm_version</name>
-    <value>2.2.0.0</value>
-    <description>Hadoop RPM version</description>
-  </property>
 
   <!-- The properties that end in tar_source describe the pattern of where the tar.gz files come from.
   They will replace {{ hdp_stack_version }} with the "#.#.#.#" value followed by -* (which is the build number in HDP 2.2),
@@ -61,7 +55,6 @@
   </property>
 
   <!-- Pig tarball is needed by WebHCat. -->
-  <!-- TODO, pig is missing the build number. -->
   <property>
     <name>pig_tar_source</name>
     <value>/usr/hdp/current/pig-client/pig-{{ component_version }}.{{ hdp_stack_version }}.tar.gz</value>
