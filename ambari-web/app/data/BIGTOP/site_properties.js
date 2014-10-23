@@ -1643,6 +1643,36 @@ module.exports =
       "category": "FLUME_HANDLER",
       "filename": "flume-conf.xml"
     },
+    {
+      "id": "puppet var",
+      "name": "flume_conf_dir",
+      "displayName": "Flume Conf Dir",
+      "description": "Location to save configuration files",
+      "defaultValue": "/etc/flume/conf",
+      "isReconfigurable": false,
+      "displayType": "directory",
+      "isOverridable": false,
+      "isVisible": true,
+      "serviceName": "FLUME",
+      "filename": "flume-env.xml",
+      "category": "Advanced flume-env",
+      "index": 0
+    },
+    {
+      "id": "puppet var",
+      "name": "flume_log_dir",
+      "displayName": "Flume Log Dir",
+      "description": "Location to save log files",
+      "defaultValue": "/var/log/flume",
+      "isReconfigurable": false,
+      "displayType": "directory",
+      "isOverridable": false,
+      "isVisible": true,
+      "serviceName": "FLUME",
+      "filename": "flume-env.xml",
+      "category": "Advanced flume-env",
+      "index": 1
+    },
   /**********************************************HDFS***************************************/
     {
       "id": "puppet var",
