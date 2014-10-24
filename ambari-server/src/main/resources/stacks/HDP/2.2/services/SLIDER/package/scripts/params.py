@@ -43,3 +43,5 @@ slider_env_sh_template = config['configurations']['slider-env']['content']
 java64_home = config['hostLevelParams']['java_home']
 log4j_props = config['configurations']['slider-log4j']['content']
 slider_cmd = format("{slider_bin_dir}/slider")
+storm_slider_conf_dir= '/usr/hdp/current/storm-slider-client/conf'
+slider_home_dir= '/usr/hdp/current/slider-client'

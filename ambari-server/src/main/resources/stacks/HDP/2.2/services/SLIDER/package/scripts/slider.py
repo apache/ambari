@@ -40,6 +40,15 @@ def slider():
        content=InlineTemplate(params.slider_env_sh_template)
   )
 
+  Directory(params.storm_slider_conf_dir,
+            recursive=True
+  )
+
+  File(format("{storm_slider_conf_dir}/storm-slider-env.sh"),
+       mode=0755,
+       content=Template('storm-slider-env.sh.j2')
+  )
+
   if (params.log4j_props != None):
     File(format("{params.slider_conf_dir}/log4j.properties"),
          mode=0644,

@@ -91,6 +91,9 @@
             <package>
               <name>slider_2_2_*</name>
             </package>
+            <package>
+              <name>storm_2_2_*-slider-client</name>
+            </package>
           </packages>
         </osSpecific>
         <osSpecific>
@@ -98,6 +101,9 @@
           <packages>
             <package>
               <name>slider-2-2-.*</name>
+            </package>
+            <package>
+              <name>storm-2-2-.*-slider-client</name>
             </package>
           </packages>
         </osSpecific>
