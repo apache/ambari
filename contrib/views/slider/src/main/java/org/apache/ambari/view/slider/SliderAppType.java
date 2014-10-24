@@ -21,15 +21,21 @@ package org.apache.ambari.view.slider;
 import java.util.List;
 import java.util.Map;
 
+import com.google.gson.JsonObject;
+
 public class SliderAppType {
   private String id;
   private String typeName;
   private String typeVersion;
   private String typeDescription;
+  Map<String, String> typeConfigsUnsecured;
+  Map<String, String> typeConfigsSecured;
   private Map<String, String> typeConfigs;
   private List<SliderAppTypeComponent> typeComponents;
   private String typePackageFileName;
   private List<String> supportedMetrics;
+  JsonObject resourcesSecured;
+  JsonObject resourcesUnsecured;
 
   public List<String> getSupportedMetrics() {
     return supportedMetrics;
@@ -98,5 +104,4 @@ public class SliderAppType {
   public String uniqueName() {
     return getTypeName() + "-" + getTypeVersion();
   }
-
 }

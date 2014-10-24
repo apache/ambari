@@ -69,6 +69,7 @@ import org.apache.slider.common.params.ActionFreezeArgs;
 import org.apache.slider.common.params.ActionInstallKeytabArgs;
 import org.apache.slider.common.params.ActionInstallPackageArgs;
 import org.apache.slider.common.params.ActionThawArgs;
+import org.apache.slider.common.tools.SliderUtils;
 import org.apache.slider.core.exceptions.SliderException;
 import org.apache.slider.core.exceptions.UnknownApplicationInstanceException;
 import org.apache.slider.core.main.LauncherExitCodes;
@@ -779,6 +780,9 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
       }
     };
     try {
+      if (logger.isDebugEnabled()) {
+        logger.debug("Slider Client configuration: " + sliderClientConfiguration.toString());
+      }
       sliderClientConfiguration = client.bindArgs(sliderClientConfiguration,
           new String[] { "help" });
       client.init(sliderClientConfiguration);
@@ -911,8 +915,59 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
 
   @Override
   public List<SliderAppType> getSliderAppTypes(Set<String> properties) {
+    Map<String, String> hadoopConfigs = getHadoopConfigs();
+    if(hadoopConfigs==null || hadoopConfigs.isEmpty()) {
+      try {
+        // Need to determine security enablement before loading app types
+        getViewStatus();
+      } catch (Throwable t) {
+      }
+    }
+    final boolean securityEnabled = Boolean.valueOf(hadoopConfigs.get("security_enabled"));
     if (appTypes == null) {
       appTypes = loadAppTypes();
+    }
+    if (appTypes != null) {
+      for (SliderAppType appType : appTypes) {
+        Map<String, String> configs = appType.typeConfigsUnsecured;
+        JsonObject resourcesObj = appType.resourcesUnsecured;
+        if (securityEnabled) {
+          configs = appType.typeConfigsSecured;
+          if (configs == null || configs.isEmpty()) {
+            configs = appType.typeConfigsUnsecured;
+          }
+        }
+        if (securityEnabled) {
+          resourcesObj = appType.resourcesSecured;
+          if (resourcesObj == null) {
+            resourcesObj = appType.resourcesUnsecured;
+          }
+        }
+        Map<String, String> appTypeConfigs = new HashMap<String, String>();
+        for (Entry<String, String> e : configs.entrySet()) {
+          String valueString = e.getValue();
+          if (valueString != null && valueString.contains("${USER_NAME}")) {
+            valueString = valueString.replace("${USER_NAME}", getUserToRunAs(hadoopConfigs));
+          }
+          appTypeConfigs.put(e.getKey(), valueString);
+        }
+        appType.setTypeConfigs(appTypeConfigs);
+
+        if (resourcesObj != null) {
+          for (SliderAppTypeComponent component : appType.getTypeComponents()) {
+            JsonElement componentJson = resourcesObj.get(component.getName());
+            if (componentJson != null && componentJson.isJsonObject()) {
+              JsonObject componentObj = componentJson.getAsJsonObject();
+              if (componentObj.has("yarn.role.priority")) {
+                component.setPriority(Integer.parseInt(componentObj.get("yarn.role.priority").getAsString()));
+              }
+              if (componentObj.has("yarn.memory")) {
+                component.setYarnMemory(Integer.parseInt(componentObj.get("yarn.memory").getAsString()));
+              }
+            }
+          }
+        }
+      }
     }
     return appTypes;
   }
@@ -935,23 +990,15 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
             if (metainfo.getApplication() != null) {
               Application application = metainfo.getApplication();
               ZipEntry appConfigZipEntry = zipFile.getEntry("appConfig-default.json");
+              ZipEntry appConfigSecuredZipEntry = zipFile.getEntry("appConfig-secured-default.json");
               if (appConfigZipEntry == null) {
                 throw new IllegalStateException("Slider App package '" + appZip.getName() + "' does not contain 'appConfig-default.json' file");
               }
               ZipEntry resourcesZipEntry = zipFile.getEntry("resources-default.json");
+              ZipEntry resourcesSecuredZipEntry = zipFile.getEntry("resources-secured-default.json");
               if (resourcesZipEntry == null) {
                 throw new IllegalStateException("Slider App package '" + appZip.getName() + "' does not contain 'resources-default.json' file");
               }
-              String appConfigJsonString = IOUtils.toString(
-                  zipFile.getInputStream(appConfigZipEntry),
-                  "UTF-8");
-              String resourcesJsonString = IOUtils.toString(
-                  zipFile.getInputStream(resourcesZipEntry),
-                  "UTF-8");
-              JsonElement appConfigJson = new JsonParser()
-                  .parse(appConfigJsonString);
-              JsonElement resourcesJson = new JsonParser()
-                  .parse(resourcesJsonString);
               SliderAppType appType = new SliderAppType();
               appType.setId(application.getName());
               appType.setTypeName(application.getName());
@@ -959,18 +1006,15 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
               appType.setTypeVersion(application.getVersion());
               appType.setTypePackageFileName(appZip.getName());
               // Configs
-              Map<String, String> configsMap = new HashMap<String, String>();
-              JsonObject appTypeGlobalJson = appConfigJson.getAsJsonObject()
-                  .get("global").getAsJsonObject();
-              for (Entry<String, JsonElement> e : appTypeGlobalJson.entrySet()) {
-                String key = e.getKey();
-                String valueString = e.getValue().getAsString();
-                if ("application.def".equals(key)) {
-                  valueString = String.format(".slider/package/%s/%s", application.getName(), appZip.getName());
-                }
-                configsMap.put(key, valueString);
+              appType.typeConfigsUnsecured = parseAppTypeConfigs(zipFile, appConfigZipEntry, appZip.getName(), application.getName());
+              if (appConfigSecuredZipEntry != null) {
+                appType.typeConfigsSecured = parseAppTypeConfigs(zipFile, appConfigSecuredZipEntry, appZip.getName(), application.getName());
               }
-              appType.setTypeConfigs(configsMap);
+              // Resources
+              appType.resourcesUnsecured = parseAppTypeResources(zipFile, resourcesZipEntry);
+              if (resourcesSecuredZipEntry != null) {
+                appType.resourcesSecured = parseAppTypeResources(zipFile, resourcesSecuredZipEntry);
+              }
               // Components
               ArrayList<SliderAppTypeComponent> appTypeComponentList = new ArrayList<SliderAppTypeComponent>();
               for (Component component : application.getComponents()) {
@@ -993,20 +1037,6 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
                 if (component.getMaxInstanceCount() != null) {
                   appTypeComponent.setMaxInstanceCount(Integer
                       .parseInt(component.getMaxInstanceCount()));
-                }
-                if (resourcesJson != null) {
-                  JsonElement componentJson = resourcesJson.getAsJsonObject()
-                      .get("components").getAsJsonObject()
-                      .get(component.getName());
-                  if (componentJson != null && componentJson.isJsonObject()) {
-                    JsonObject componentObj = componentJson.getAsJsonObject();
-                    if (componentObj.has("yarn.role.priority")) {
-                      appTypeComponent.setPriority(Integer.parseInt(componentObj.get("yarn.role.priority").getAsString()));
-                    }
-                    if (componentObj.has("yarn.memory")) {
-                      appTypeComponent.setYarnMemory(Integer.parseInt(componentObj.get("yarn.memory").getAsString()));
-                    }
-                  }
                 }
                 appTypeComponent.setCategory(component.getCategory());
                 appTypeComponentList.add(appTypeComponent);
@@ -1035,6 +1065,29 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
       }
     }
     return appTypes;
+  }
+
+  private JsonObject parseAppTypeResources(ZipFile zipFile, ZipEntry resourcesZipEntry) throws ZipException, IOException {
+    String resourcesJsonString = IOUtils.toString(zipFile.getInputStream(resourcesZipEntry), "UTF-8");
+    JsonElement resourcesJson = new JsonParser().parse(resourcesJsonString);
+    return resourcesJson.getAsJsonObject().get("components").getAsJsonObject();
+  }
+
+  private Map<String, String> parseAppTypeConfigs(ZipFile zipFile, ZipEntry appConfigZipEntry, String zipFileName, String appName) throws IOException,
+      ZipException {
+    String appConfigJsonString = IOUtils.toString(zipFile.getInputStream(appConfigZipEntry), "UTF-8");
+    JsonElement appConfigJson = new JsonParser().parse(appConfigJsonString);
+    Map<String, String> configsMap = new HashMap<String, String>();
+    JsonObject appTypeGlobalJson = appConfigJson.getAsJsonObject().get("global").getAsJsonObject();
+    for (Entry<String, JsonElement> e : appTypeGlobalJson.entrySet()) {
+      String key = e.getKey();
+      String valueString = e.getValue().getAsString();
+      if ("application.def".equals(key)) {
+        valueString = String.format(".slider/package/%s/%s", appName, zipFileName);
+      }
+      configsMap.put(key, valueString);
+    }
+    return configsMap;
   }
 
   private List<String> getSupportedMetrics(
@@ -1135,6 +1188,17 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
       return invokeSliderClientRunnable(new SliderClientContextRunnable<String>() {
         @Override
         public String run(SliderClient sliderClient) throws YarnException, IOException, InterruptedException {
+          try {
+            File sliderJarFile = SliderUtils.findContainingJar(SliderClient.class);
+            if (sliderJarFile != null) {
+              if (logger.isDebugEnabled()) {
+                logger.debug("slider.libdir=" + sliderJarFile.getParentFile().getAbsolutePath());
+              }
+              System.setProperty("slider.libdir", sliderJarFile.getParentFile().getAbsolutePath());
+            }
+          } catch (Throwable t) {
+            logger.warn("Unable to determine 'slider.libdir' path", t);
+          }
           if (securityEnabled) {
             sliderClient.actionInstallKeytab(keytabArgs);
           }
