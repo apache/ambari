@@ -51,6 +51,7 @@ if [[ ! -d $mark_dir ]] ; then
 
   if [[ $EXIT_CODE == 0 ]] ; then
     su -s /bin/bash - ${hdfs_user} -c "yes Y | hadoop --config ${conf_dir} ${command}"
+    (( EXIT_CODE = $EXIT_CODE | $? ))
   else
     echo "ERROR: Namenode directory(s) is non empty. Will not format the namenode. List of non-empty namenode dirs ${list_of_non_empty_dirs}"
   fi

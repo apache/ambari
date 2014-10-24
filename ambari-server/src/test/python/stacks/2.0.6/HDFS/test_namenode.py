@@ -75,7 +75,7 @@ class TestNamenode(RMFTestCase):
     self.assertResourceCalled('Execute', 'ulimit -c unlimited;  su -s /bin/bash - hdfs -c \'export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf start namenode\'',
                               not_if = 'ls /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid >/dev/null 2>&1 && ps `cat /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid` >/dev/null 2>&1',
                               )
-    self.assertResourceCalled('Execute', "su -s /bin/bash - hdfs -c 'export PATH=$PATH:/usr/bin ; hadoop --config /etc/hadoop/conf dfsadmin -safemode get' | grep 'Safe mode is OFF'",
+    self.assertResourceCalled('Execute', "su -s /bin/bash - hdfs -c 'export PATH=$PATH:/usr/bin ; hdfs --config /etc/hadoop/conf dfsadmin -safemode get' | grep 'Safe mode is OFF'",
                               tries = 40,
                               only_if = None,
                               try_sleep = 10,
@@ -182,7 +182,7 @@ class TestNamenode(RMFTestCase):
     self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/hdfs.headless.keytab hdfs',
                               user = 'hdfs',
                               )
-    self.assertResourceCalled('Execute', "su -s /bin/bash - hdfs -c 'export PATH=$PATH:/usr/bin ; hadoop --config /etc/hadoop/conf dfsadmin -safemode get' | grep 'Safe mode is OFF'",
+    self.assertResourceCalled('Execute', "su -s /bin/bash - hdfs -c 'export PATH=$PATH:/usr/bin ; hdfs --config /etc/hadoop/conf dfsadmin -safemode get' | grep 'Safe mode is OFF'",
                               tries = 40,
                               only_if = None,
                               try_sleep = 10,
@@ -266,7 +266,7 @@ class TestNamenode(RMFTestCase):
     self.assertResourceCalled('Execute', 'ulimit -c unlimited;  su -s /bin/bash - hdfs -c \'export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf start namenode\'',
                               not_if = 'ls /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid >/dev/null 2>&1 && ps `cat /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid` >/dev/null 2>&1',
                               )
-    self.assertResourceCalled('Execute', "su -s /bin/bash - hdfs -c 'export PATH=$PATH:/usr/bin ; hadoop --config /etc/hadoop/conf dfsadmin -safemode get' | grep 'Safe mode is OFF'",
+    self.assertResourceCalled('Execute', "su -s /bin/bash - hdfs -c 'export PATH=$PATH:/usr/bin ; hdfs --config /etc/hadoop/conf dfsadmin -safemode get' | grep 'Safe mode is OFF'",
                               tries = 40,
                               only_if = "su -s /bin/bash - hdfs -c 'export PATH=$PATH:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn1 | grep active > /dev/null'",
                               try_sleep = 10,
@@ -335,7 +335,7 @@ class TestNamenode(RMFTestCase):
     self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/hdfs.headless.keytab hdfs',
                               user = 'hdfs',
                               )
-    self.assertResourceCalled('Execute', "su -s /bin/bash - hdfs -c 'export PATH=$PATH:/usr/bin ; hadoop --config /etc/hadoop/conf dfsadmin -safemode get' | grep 'Safe mode is OFF'",
+    self.assertResourceCalled('Execute', "su -s /bin/bash - hdfs -c 'export PATH=$PATH:/usr/bin ; hdfs --config /etc/hadoop/conf dfsadmin -safemode get' | grep 'Safe mode is OFF'",
                               tries = 40,
                               only_if = "su -s /bin/bash - hdfs -c 'export PATH=$PATH:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn1 | grep active > /dev/null'",
                               try_sleep = 10,
