@@ -20,6 +20,7 @@ var App = require('app');
 var validator = require('utils/validator');
 var stringUtils = require('utils/string_utils');
 var hostsUtils = require('utils/hosts');
+var lazyLoading = require('utils/lazy_loading');
 
 App.ServicesConfigView = Em.View.extend({
   templateName: require('templates/common/configs/services_config'),
@@ -104,9 +105,9 @@ App.ServiceConfigsByCategoryView = Ember.View.extend(App.UserPref, {
   // default,
   // cacheable )
   categoryConfigs: function () {
-    var categoryConfigs = this.get('serviceConfigs').filterProperty('category', this.get('category.name'));
+    var categoryConfigs = this.get('categoryConfigsAll');
     return this.orderContentAtLast(categoryConfigs).filterProperty('isVisible', true);
-  }.property('serviceConfigs.@each', 'categoryConfigsAll.@each.isVisible').cacheable(),
+  }.property('categoryConfigsAll.@each.isVisible').cacheable(),
 
   /**
    * This method provides all the properties which apply
@@ -348,6 +349,7 @@ App.ServiceConfigsByCategoryView = Ember.View.extend(App.UserPref, {
    */
   filteredCategoryConfigs: function () {
     $('.popover').remove();
+    if (this.get('state') !== 'inDOM') return this.get('categoryConfigs');
     var filter = this.get('parentView.filter').toLowerCase();
     var selectedFilters = this.get('parentView.columns').filterProperty('selected');
     var filteredResult = this.get('categoryConfigs').filter(function (config) {
@@ -794,10 +796,11 @@ App.ServiceConfigContainerView = Em.ContainerView.extend({
       } else {
         this.get('childViews').pushObject(this.get('view'));
       }
+      var categoriesToPush = [];
       this.get('controller.selectedService.configCategories').forEach(function (item) {
         var categoryView = item.get('isCustomView') ? (App.get('supports.capacitySchedulerUi') ? item.get('customView') : null) : App.ServiceConfigsByCategoryView;
         if (categoryView !== null) {
-          self.get('childViews.lastObject.serviceConfigsByCategoryView.childViews').pushObject(categoryView.extend({
+          categoriesToPush.pushObject(categoryView.extend({
             category: item,
             controllerBinding: controllerRoute,
             canEditBinding: 'parentView.canEdit',
@@ -806,6 +809,14 @@ App.ServiceConfigContainerView = Em.ContainerView.extend({
             supportsHostOverridesBinding: 'parentView.supportsHostOverrides'
           }));
         }
+      });
+      lazyLoading.run({
+        destination: self.get('childViews.lastObject.serviceConfigsByCategoryView.childViews'),
+        source: categoriesToPush,
+        initSize: 3,
+        chunkSize: 3,
+        delay: 200,
+        context: this
       });
     }
   },
