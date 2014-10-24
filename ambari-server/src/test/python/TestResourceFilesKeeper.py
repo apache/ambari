@@ -85,7 +85,8 @@ class TestResourceFilesKeeper(TestCase):
             "dummy_stack/HIVE/package'),\n "
             "call('../resources/TestAmbaryServer.samples/"
             "dummy_stack/HIVE/package'),\n "
-            "call('../resources/stacks/custom_actions')]")
+            "call('../resources/stacks/custom_actions'),\n "
+            "call('../resources/stacks/host_scripts')]")
 
 
 

@@ -38,6 +38,7 @@ class ResourceFilesKeeper():
   PACKAGE_DIR="package"
   STACKS_DIR="stacks"
   CUSTOM_ACTIONS_DIR="custom_actions"
+  HOST_SCRIPTS_DIR="host_scripts"
 
   # For these directories archives are created
   ARCHIVABLE_DIRS = [HOOKS_DIR, PACKAGE_DIR]
@@ -87,12 +88,19 @@ class ResourceFilesKeeper():
             self.update_directory_archive(full_path)
 
 
-    custom_actions_root = os.path.join(self.resources_dir,
-                                       self.CUSTOM_ACTIONS_DIR)
-    self.dbg_out("Updating archive for custom_actions dir at {0}...".format(
-                                       custom_actions_root))
+    # custom actions
+    custom_actions_root = os.path.join(self.resources_dir,self.CUSTOM_ACTIONS_DIR)        
+    self.dbg_out("Updating archive for {0} dir at {1}...".format(self.CUSTOM_ACTIONS_DIR, 
+        custom_actions_root))
+        
+    # agent host scripts
+    host_scripts_root = os.path.join(self.resources_dir,self.HOST_SCRIPTS_DIR)    
+    self.dbg_out("Updating archive for {0} dir at {1}...".format(self.HOST_SCRIPTS_DIR, 
+        host_scripts_root))
+    
+    # update the directories so that the .hash is generated
     self.update_directory_archive(custom_actions_root)
-
+    self.update_directory_archive(host_scripts_root)
 
 
   def list_stacks(self, stacks_root):

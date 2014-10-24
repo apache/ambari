@@ -48,6 +48,7 @@ import org.apache.ambari.server.customactions.ActionDefinition;
 import org.apache.ambari.server.customactions.ActionDefinitionManager;
 import org.apache.ambari.server.events.AlertDefinitionRegistrationEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
+import org.apache.ambari.server.metadata.AgentAlertDefinitions;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.MetainfoDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
@@ -68,10 +69,10 @@ import org.apache.ambari.server.state.alert.AlertDefinition;
 import org.apache.ambari.server.state.alert.AlertDefinitionFactory;
 import org.apache.ambari.server.state.stack.LatestRepoCallable;
 import org.apache.ambari.server.state.stack.MetricDefinition;
+import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.state.stack.RepositoryXml;
 import org.apache.ambari.server.state.stack.RepositoryXml.Os;
 import org.apache.ambari.server.state.stack.RepositoryXml.Repo;
-import org.apache.ambari.server.state.stack.OsFamily;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -157,6 +158,12 @@ public class AmbariMetaInfo {
   private AlertDefinitionFactory alertDefinitionFactory;
 
   /**
+   * All of the {@link AlertDefinition}s that are scoped for the agents.
+   */
+  @Inject
+  private AgentAlertDefinitions agentAlertDefinitions;
+
+  /**
    * Publishes the following events:
    * <ul>
    * <li>{@link AlertDefinitionRegistrationEvent} when new alerts are merged
@@ -211,6 +218,7 @@ public class AmbariMetaInfo {
     alertDefinitionFactory = injector.getInstance(AlertDefinitionFactory.class);
     alertDefinitionDao = injector.getInstance(AlertDefinitionDAO.class);
     eventPublisher = injector.getInstance(AmbariEventPublisher.class);
+    agentAlertDefinitions = injector.getInstance(AgentAlertDefinitions.class);
   }
 
   /**
@@ -1220,6 +1228,10 @@ public class AmbariMetaInfo {
    * database and merges any new or updated definitions. This method will first
    * determine the services that are installed on each cluster to prevent alert
    * definitions from undeployed services from being shown.
+   * <p/>
+   * This method will also detect "agent" alert definitions, which are
+   * definitions that should be run on agent hosts but are not associated with a
+   * service.
    *
    * @param clusters
    * @throws AmbariException
@@ -1304,6 +1316,18 @@ public class AmbariMetaInfo {
               stackDefinition.getName());
 
           continue;
+        }
+      }
+
+      // host-only alert definitions
+      List<AlertDefinition> agentDefinitions = agentAlertDefinitions.getDefinitions();
+      for (AlertDefinition agentDefinition : agentDefinitions) {
+        AlertDefinitionEntity entity = mappedEntities.get(agentDefinition.getName());
+
+        // no entity means this is new; create a new entity
+        if (null == entity) {
+          entity = alertDefinitionFactory.coerce(clusterId, agentDefinition);
+          persist.add(entity);
         }
       }
 

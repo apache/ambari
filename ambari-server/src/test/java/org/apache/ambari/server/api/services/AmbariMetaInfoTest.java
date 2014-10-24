@@ -1658,7 +1658,20 @@ public class AmbariMetaInfoTest {
 
     AlertDefinitionDAO dao = injector.getInstance(AlertDefinitionDAO.class);
     List<AlertDefinitionEntity> definitions = dao.findAll();
-    assertEquals(5, definitions.size());
+    assertEquals(6, definitions.size());
+
+    // figure out how many of these alerts were merged into from the
+    // non-stack alerts.json
+    int hostAlertCount = 0;
+    for (AlertDefinitionEntity definition : definitions) {
+      if (definition.getServiceName().equals("AMBARI")
+          && definition.getComponentName().equals("AMBARI_AGENT")) {
+        hostAlertCount++;
+      }
+    }
+
+    assertEquals(1, hostAlertCount);
+    assertEquals(5, definitions.size() - hostAlertCount);
 
     for (AlertDefinitionEntity definition : definitions) {
       definition.setScheduleInterval(28);
@@ -1668,7 +1681,7 @@ public class AmbariMetaInfoTest {
     metaInfo.reconcileAlertDefinitions(clusters);
 
     definitions = dao.findAll();
-    assertEquals(5, definitions.size());
+    assertEquals(6, definitions.size());
 
     for (AlertDefinitionEntity definition : definitions) {
       assertEquals(28, definition.getScheduleInterval().intValue());

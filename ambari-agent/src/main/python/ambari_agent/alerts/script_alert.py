@@ -40,11 +40,17 @@ class ScriptAlert(BaseAlert):
     super(ScriptAlert, self).__init__(alert_meta, alert_source_meta)
     
     self.path = None
+    self.stacks_dir = None
+    self.host_scripts_dir = None
+    
     if 'path' in alert_source_meta:
       self.path = alert_source_meta['path']
       
-    if 'stacks_dir' in alert_source_meta:
-      self.stacks_dir = alert_source_meta['stacks_dir']
+    if 'stacks_directory' in alert_source_meta:
+      self.stacks_dir = alert_source_meta['stacks_directory']
+      
+    if 'host_scripts_directory' in alert_source_meta:
+      self.host_scripts_dir = alert_source_meta['host_scripts_directory']
       
     # execute the get_tokens() method so that this script correctly populates
     # its list of keys
@@ -78,18 +84,25 @@ class ScriptAlert(BaseAlert):
     
 
   def _load_source(self):
-    if self.path is None and self.stack_path is None:
+    if self.path is None and self.stack_path is None and self.host_scripts_dir is None:
       raise Exception("The attribute 'path' must be specified")
 
+    paths = self.path.split('/')
     path_to_script = self.path
-    if not os.path.exists(self.path) and self.stacks_dir is not None:
-      paths = self.path.split('/')
+    
+    # if the path doesn't exist and stacks dir is defined, try that
+    if not os.path.exists(path_to_script) and self.stacks_dir is not None:      
       path_to_script = os.path.join(self.stacks_dir, *paths)
-      
+
+    # if the path doesn't exist and the host script dir is defined, try that
+    if not os.path.exists(path_to_script) and self.host_scripts_dir is not None:
+      path_to_script = os.path.join(self.host_scripts_dir, *paths)
+
+    # if the path can't be evaluated, throw exception      
     if not os.path.exists(path_to_script) or not os.path.isfile(path_to_script):
       raise Exception(
-        "Resolved script '{0}' does not appear to be a script".format(
-          path_to_script))
+        "Unable to find '{0}' as an absolute path or part of {1} or {2}".format(self.path,
+          self.stacks_dir, self.host_scripts_dir))
 
     if logger.isEnabledFor(logging.DEBUG):
       logger.debug("Executing script check {0}".format(path_to_script))

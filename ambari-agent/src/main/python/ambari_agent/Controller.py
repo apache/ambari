@@ -81,8 +81,11 @@ class Controller(threading.Thread):
       cache_dir = '/var/lib/ambari-agent/cache'
 
     stacks_cache_dir = os.path.join(cache_dir, FileCache.STACKS_CACHE_DIRECTORY)
+    host_scripts_cache_dir = os.path.join(cache_dir, FileCache.HOST_SCRIPTS_CACHE_DIRECTORY)
     alerts_cache_dir = os.path.join(cache_dir, 'alerts')
-    self.alert_scheduler_handler = AlertSchedulerHandler(alerts_cache_dir, stacks_cache_dir)
+    
+    self.alert_scheduler_handler = AlertSchedulerHandler(alerts_cache_dir, 
+        stacks_cache_dir, host_scripts_cache_dir)
 
 
   def __del__(self):

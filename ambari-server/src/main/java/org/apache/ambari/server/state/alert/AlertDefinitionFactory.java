@@ -19,6 +19,8 @@ package org.apache.ambari.server.state.alert;
 
 import java.io.File;
 import java.io.FileReader;
+import java.io.IOException;
+import java.io.Reader;
 import java.lang.reflect.Type;
 import java.util.HashSet;
 import java.util.List;
@@ -29,6 +31,7 @@ import java.util.UUID;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -91,18 +94,49 @@ public class AlertDefinitionFactory {
    */
   public Set<AlertDefinition> getAlertDefinitions(File alertDefinitionFile,
       String serviceName) throws AmbariException {
+    try {
+      FileReader fileReader = new FileReader(alertDefinitionFile);
+      return getAlertDefinitions(fileReader, serviceName);
+    } catch (IOException ioe) {
+      String message = "Could not read the alert definition file";
+      LOG.error(message, ioe);
+      throw new AmbariException(message, ioe);
+    }
+  }
+
+  /**
+   * Gets a list of all of the alert definitions defined in the resource pointed
+   * to by the specified reader for the given service. There should have a
+   * mapping between the service and the alerts defined for that service. This
+   * is necessary since some services are combined in a single
+   * {@code metainfo.xml} and only have a single directory on the stack.
+   * <p/>
+   * The supplied reader is closed when this method completes.
+   *
+   * @param reader
+   *          the reader to read from (not {@code null}). This will be closed
+   *          after reading is done.
+   * @param serviceName
+   *          the name of the service to extract definitions for (not
+   *          {@code null}).
+   * @return the definitions for the specified service, or an empty set.
+   * @throws AmbariException
+   *           if there was a problem reading or parsing the JSON.
+   */
+  public Set<AlertDefinition> getAlertDefinitions(Reader reader,
+      String serviceName) throws AmbariException {
 
     // { MAPR : {definitions}, YARN : {definitions} }
     Map<String, Map<String, List<AlertDefinition>>> serviceDefinitionMap = null;
 
     try {
       Type type = new TypeToken<Map<String, Map<String, List<AlertDefinition>>>>() {}.getType();
-
-      FileReader fileReader = new FileReader(alertDefinitionFile);
-      serviceDefinitionMap = m_gson.fromJson(fileReader, type);
+      serviceDefinitionMap = m_gson.fromJson(reader, type);
     } catch (Exception e) {
-      LOG.error("Could not read the alert definition file", e);
-      throw new AmbariException("Could not read alert definition file", e);
+      LOG.error("Could not read the alert definitions", e);
+      throw new AmbariException("Could not read alert definitions", e);
+    } finally {
+      IOUtils.closeQuietly(reader);
     }
 
     Set<AlertDefinition> definitions = new HashSet<AlertDefinition>();

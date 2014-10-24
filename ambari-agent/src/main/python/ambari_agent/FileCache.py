@@ -39,6 +39,7 @@ class FileCache():
 
   STACKS_CACHE_DIRECTORY="stacks"
   CUSTOM_ACTIONS_CACHE_DIRECTORY="custom_actions"
+  HOST_SCRIPTS_CACHE_DIRECTORY="host_scripts"
   HASH_SUM_FILE=".hash"
   ARCHIVE_NAME="archive.zip"
 
@@ -89,6 +90,16 @@ class FileCache():
     """
     return self.provide_directory(self.cache_dir,
                                   self.CUSTOM_ACTIONS_CACHE_DIRECTORY,
+                                  server_url_prefix)
+
+
+  def get_host_scripts_base_dir(self, server_url_prefix):
+    """
+    Returns a base directory for host scripts (host alerts, etc) which
+    are scripts that are not part of the main agent code
+    """
+    return self.provide_directory(self.cache_dir,
+                                  self.HOST_SCRIPTS_CACHE_DIRECTORY,
                                   server_url_prefix)
 
 

@@ -106,7 +106,9 @@ class CustomServiceOrchestrator():
         server_url_prefix = command['hostLevelParams']['jdk_location']
       else:
         server_url_prefix = command['commandParams']['jdk_location']
+        
       task_id = "status"
+      
       try:
         task_id = command['taskId']
         command_name = command['roleCommand']
@@ -123,18 +125,24 @@ class CustomServiceOrchestrator():
       else:
         if command_name == self.CUSTOM_COMMAND_COMMAND:
           command_name = command['hostLevelParams']['custom_command']
+
+        # forces a hash challenge on the directories to keep them updated, even
+        # if the return type is not used
+        self.file_cache.get_host_scripts_base_dir(server_url_prefix)          
         hook_dir = self.file_cache.get_hook_base_dir(command, server_url_prefix)
         base_dir = self.file_cache.get_service_base_dir(command, server_url_prefix)
+        
         script_path = self.resolve_script_path(base_dir, script, script_type)
         script_tuple = (script_path, base_dir)
 
       tmpstrucoutfile = os.path.join(self.tmp_dir,
                                     "structured-out-{0}.json".format(task_id))
 
-      if script_type.upper() != self.SCRIPT_TYPE_PYTHON:
       # We don't support anything else yet
+      if script_type.upper() != self.SCRIPT_TYPE_PYTHON:
         message = "Unknown script type {0}".format(script_type)
         raise AgentException(message)
+
       # Execute command using proper interpreter
       handle = None
       if(command.has_key('__handle')):

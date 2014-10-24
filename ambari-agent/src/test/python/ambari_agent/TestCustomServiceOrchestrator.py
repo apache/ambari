@@ -156,6 +156,7 @@ class TestCustomServiceOrchestrator(TestCase):
 
   @patch.object(CustomServiceOrchestrator, "resolve_script_path")
   @patch.object(CustomServiceOrchestrator, "resolve_hook_script_path")
+  @patch.object(FileCache, "get_host_scripts_base_dir")
   @patch.object(FileCache, "get_service_base_dir")
   @patch.object(FileCache, "get_hook_base_dir")
   @patch.object(CustomServiceOrchestrator, "dump_command_to_json")
@@ -163,8 +164,11 @@ class TestCustomServiceOrchestrator(TestCase):
   @patch.object(FileCache, "__init__")
   def test_runCommand(self, FileCache_mock,
                       run_file_mock, dump_command_to_json_mock,
-                      get_hook_base_dir_mock, get_service_base_dir_mock,
-                      resolve_hook_script_path_mock, resolve_script_path_mock):
+                      get_hook_base_dir_mock, get_service_base_dir_mock, 
+                      get_host_scripts_base_dir_mock, 
+                      resolve_hook_script_path_mock, 
+                      resolve_script_path_mock):
+    
     FileCache_mock.return_value = None
     command = {
       'role' : 'REGION_SERVER',
@@ -182,6 +186,8 @@ class TestCustomServiceOrchestrator(TestCase):
       'taskId' : '3',
       'roleCommand': 'INSTALL'
     }
+    
+    get_host_scripts_base_dir_mock.return_value = "/host_scripts"
     get_service_base_dir_mock.return_value = "/basedir/"
     resolve_script_path_mock.return_value = "/basedir/scriptpath"
     resolve_hook_script_path_mock.return_value = \
@@ -238,6 +244,7 @@ class TestCustomServiceOrchestrator(TestCase):
   @patch("shell.kill_process_with_children")
   @patch.object(CustomServiceOrchestrator, "resolve_script_path")
   @patch.object(CustomServiceOrchestrator, "resolve_hook_script_path")
+  @patch.object(FileCache, "get_host_scripts_base_dir")
   @patch.object(FileCache, "get_service_base_dir")
   @patch.object(FileCache, "get_hook_base_dir")
   @patch.object(CustomServiceOrchestrator, "dump_command_to_json")
@@ -246,6 +253,7 @@ class TestCustomServiceOrchestrator(TestCase):
   def test_cancel_command(self, FileCache_mock,
                       run_file_mock, dump_command_to_json_mock,
                       get_hook_base_dir_mock, get_service_base_dir_mock,
+                      get_host_scripts_base_dir_mock,
                       resolve_hook_script_path_mock, resolve_script_path_mock,
                       kill_process_with_children_mock):
     FileCache_mock.return_value = None
@@ -265,6 +273,8 @@ class TestCustomServiceOrchestrator(TestCase):
       'taskId' : '3',
       'roleCommand': 'INSTALL'
     }
+    
+    get_host_scripts_base_dir_mock.return_value = "/host_scripts"
     get_service_base_dir_mock.return_value = "/basedir/"
     resolve_script_path_mock.return_value = "/basedir/scriptpath"
     resolve_hook_script_path_mock.return_value = \

@@ -555,6 +555,7 @@ NR_ADJUST_OWNERSHIP_LIST = [
   ("/var/lib/ambari-server/keys/.ssh", "700", "{0}", False),
   ("/var/lib/ambari-server/resources/stacks/", "755", "{0}", True),
   ("/var/lib/ambari-server/resources/custom_actions/", "755", "{0}", True),
+  ("/var/lib/ambari-server/resources/host_scripts/", "755", "{0}", True),
   ("/etc/ambari-server/conf", "644", "{0}", True),
   ("/etc/ambari-server/conf", "755", "{0}", False),
   ("/etc/ambari-server/conf/password.dat", "640", "{0}", False),

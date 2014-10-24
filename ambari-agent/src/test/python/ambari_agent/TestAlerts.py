@@ -47,8 +47,9 @@ class TestAlerts(TestCase):
   def test_start(self, aps_add_interval_job_mock, aps_start_mock):
     test_file_path = os.path.join('ambari_agent', 'dummy_files')
     test_stack_path = os.path.join('ambari_agent', 'dummy_files')
+    test_host_scripts_path = os.path.join('ambari_agent', 'dummy_files')
 
-    ash = AlertSchedulerHandler(test_file_path, test_stack_path)
+    ash = AlertSchedulerHandler(test_file_path, test_stack_path, test_host_scripts_path)
     ash.start()
 
     self.assertTrue(aps_add_interval_job_mock.called)
@@ -136,13 +137,15 @@ class TestAlerts(TestCase):
     }
 
     # normally set by AlertSchedulerHandler
-    json['source']['stacks_dir'] = os.path.join('ambari_agent', 'dummy_files')
+    json['source']['stacks_directory'] = os.path.join('ambari_agent', 'dummy_files')
+    json['source']['host_scripts_directory'] = os.path.join('ambari_agent', 'host_scripts')
 
     collector = AlertCollector()
     sa = ScriptAlert(json, json['source'])
     sa.set_helpers(collector, {'foo-site/bar': 'rendered-bar', 'foo-site/baz':'rendered-baz'} )
     self.assertEquals(json['source']['path'], sa.path)
-    self.assertEquals(json['source']['stacks_dir'], sa.stacks_dir)
+    self.assertEquals(json['source']['stacks_directory'], sa.stacks_dir)
+    self.assertEquals(json['source']['host_scripts_directory'], sa.host_scripts_dir)
 
     sa.collect()
 
@@ -369,8 +372,9 @@ class TestAlerts(TestCase):
   def test_reschedule(self):
     test_file_path = os.path.join('ambari_agent', 'dummy_files')
     test_stack_path = os.path.join('ambari_agent', 'dummy_files')
-
-    ash = AlertSchedulerHandler(test_file_path, test_stack_path)
+    test_host_scripts_path = os.path.join('ambari_agent', 'dummy_files')
+    
+    ash = AlertSchedulerHandler(test_file_path, test_stack_path, test_host_scripts_path)
     ash.start()
     
     self.assertEquals(1, ash.get_job_count())
@@ -420,8 +424,9 @@ class TestAlerts(TestCase):
   def test_disabled_definitions(self):
     test_file_path = os.path.join('ambari_agent', 'dummy_files')
     test_stack_path = os.path.join('ambari_agent', 'dummy_files')
+    test_host_scripts_path = os.path.join('ambari_agent', 'dummy_files')
 
-    ash = AlertSchedulerHandler(test_file_path, test_stack_path)
+    ash = AlertSchedulerHandler(test_file_path, test_stack_path, test_host_scripts_path)
     ash.start()
 
     self.assertEquals(1, ash.get_job_count())
@@ -472,8 +477,9 @@ class TestAlerts(TestCase):
   def test_immediate_alert(self):
     test_file_path = os.path.join('ambari_agent', 'dummy_files')
     test_stack_path = os.path.join('ambari_agent', 'dummy_files')
+    test_host_scripts_path = os.path.join('ambari_agent', 'dummy_files')
 
-    ash = AlertSchedulerHandler(test_file_path, test_stack_path)
+    ash = AlertSchedulerHandler(test_file_path, test_stack_path, test_host_scripts_path)
     ash.start()
 
     self.assertEquals(1, ash.get_job_count())

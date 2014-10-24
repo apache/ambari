@@ -1,0 +1,19 @@
+{
+  "AMBARI": {
+    "service": [
+    ],
+    "AMBARI_AGENT" : [
+      {
+        "name": "ambari_agent_disk_usage",
+        "label": "Ambari Agent Disk Usage",
+        "interval": 1,
+        "scope": "HOST",
+        "enabled": true,
+        "source": {
+          "type": "SCRIPT",
+          "path": "alert_disk_space.py"
+        }
+      }
+    ]
+  }
+}
