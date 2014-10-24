@@ -51,7 +51,7 @@ class TestKnoxGateway(RMFTestCase):
     self.assertResourceCalled('File', '/etc/knox/conf/topologies/default.xml',
                               group='knox',
                               owner = 'knox',
-                              content = InlineTemplate(self.getConfig()['configurations']['topology']['content'])
+                              content = InlineTemplate(self.getConfig()['configurations']['ambari-topology']['content'])
     )
     self.assertResourceCalled('Execute', '/usr/lib/knox/bin/knoxcli.sh create-master --master sa',
                               user='knox',
