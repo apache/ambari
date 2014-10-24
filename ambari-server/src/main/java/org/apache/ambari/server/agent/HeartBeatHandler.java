@@ -377,7 +377,13 @@ public class HeartBeatHandler {
               scHost.updateActualConfigs(report.getConfigurationTags());
               scHost.setRestartRequired(false);
             }
-
+            // Necessary for resetting clients stale configs after starting service
+            if ((RoleCommand.INSTALL.toString().equals(report.getRoleCommand()) ||
+                (RoleCommand.CUSTOM_COMMAND.toString().equals(report.getRoleCommand()) &&
+                "INSTALL".equals(report.getCustomCommand()))) && svcComp.isClientComponent()){
+              scHost.updateActualConfigs(report.getConfigurationTags());
+              scHost.setRestartRequired(false);
+            }
             if (RoleCommand.CUSTOM_COMMAND.toString().equals(report.getRoleCommand()) &&
                 !("START".equals(report.getCustomCommand()) ||
                  "STOP".equals(report.getCustomCommand()))) {
