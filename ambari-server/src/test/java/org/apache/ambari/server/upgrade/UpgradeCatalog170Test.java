@@ -515,7 +515,7 @@ public class UpgradeCatalog170Test {
     expect(amc.getClusters()).andReturn(clusters).anyTimes();
     expect(clusters.getClusters()).andReturn(clustersMap).anyTimes();
     expect(clusters.getClusterById(1L)).andReturn(clustersMap.values().iterator().next()).anyTimes();
-    expect(clusters.getClusters()).andReturn(clustersMap).times(2);
+    expect(clusters.getClusters()).andReturn(clustersMap).times(1);
     expect(cluster.getDesiredConfigByType("global")).andReturn(config).anyTimes();
     expect(cluster.getDesiredConfigByType("oozie-log4j")).andReturn(config).anyTimes();
     expect(cluster.getClusterId()).andReturn(1L);
@@ -568,7 +568,7 @@ public class UpgradeCatalog170Test {
     expect(configGroupConfigMappingDAO.findAll()).andReturn(configGroupConfigMappingEntities).once();
     expect(userDAO.findAll()).andReturn(Collections.<UserEntity> emptyList()).times(1);
     expect(userDAO.findAll()).andReturn(Arrays.asList(userEntity1, userEntity2)).times(1);
-    expect(clusterDAO.findAll()).andReturn(Collections.<ClusterEntity> emptyList()).times(1);
+    expect(clusterDAO.findAll()).andReturn(Collections.<ClusterEntity> emptyList()).times(2);
 
     String yarnConfig = String.format("{'%s':'%s', '%s':'%s'}",
         YARN_TIMELINE_SERVICE_WEBAPP_ADDRESS_PROPERTY, "timeline:8081",
@@ -594,7 +594,7 @@ public class UpgradeCatalog170Test {
     ClusterStateEntity clusterStateEntity = createNiceMock(ClusterStateEntity.class);
 
     expect(clusterEntity.getClusterId()).andReturn(1L).anyTimes();
-    expect(clusterEntity.getConfigMappingEntities()).andReturn(Collections.singleton(configMappingEntity));
+    expect(clusterEntity.getConfigMappingEntities()).andReturn(Collections.singleton(configMappingEntity)).times(2);
     expect(clusterEntity.getClusterStateEntity()).andReturn(clusterStateEntity).anyTimes();
     expect(clusterStateEntity.getCurrentStackVersion()).andReturn(CLUSTER_STATE_STACK_HDP_2_1);
     expect(configMappingEntity.getType()).andReturn(YARN_SITE).anyTimes();
