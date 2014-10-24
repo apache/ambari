@@ -1642,8 +1642,8 @@ module.exports =
       "isRequired": false,
       "showLabel": false,
       "serviceName": "KNOX",
-      "filename": "ambari-topology.xml",
-      "category": "Advanced ambari-topology"
+      "filename": "topology.xml",
+      "category": "Advanced topology"
     },
 
     {

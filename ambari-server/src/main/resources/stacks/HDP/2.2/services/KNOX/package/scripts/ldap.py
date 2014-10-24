@@ -30,7 +30,7 @@ def ldap():
          content=params.ldap_log4j
     )
 
-    File(format("{params.knox_conf_dir}/users-ldif"),
+    File(format("{params.knox_conf_dir}/users.ldif"),
          mode=0644,
          group=params.knox_group,
          owner=params.knox_user,

@@ -110,7 +110,7 @@
         &lt;/topology&gt;
     </value>
     <description>
-        content for topology file for Knox.
+        The configuration specifies the Hadoop cluster services Knox will provide access to.
     </description>
     </property>
 </configuration>
