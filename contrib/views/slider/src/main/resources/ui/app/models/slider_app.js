@@ -189,5 +189,6 @@ App.SliderApp.Status = {
   new_saving: "NEW_SAVING",
   running: "RUNNING",
   submitted: "SUBMITTED",
-  frozen: "FROZEN"
+  frozen: "FROZEN",
+  stopped: "STOPPED"
 };
