@@ -547,6 +547,15 @@ module.exports =
       "category": "Advanced hive-site",
       "serviceName": "HIVE"
     },
+    {
+      "id": "site property",
+      "name": "hive.security.authorization.enabled",
+      "displayName": "hive.security.authorization.enabled",
+      "defaultValue": false,
+      "displayType": "checkbox",
+      "category": "Advanced hive-site",
+      "serviceName": "HIVE"
+    },
   /**********************************************tez-site*****************************************/
     {
       "id": "site property",

@@ -360,7 +360,7 @@ limitations under the License.
   <property>
     <name>hive.tez.container.size</name>
     <value>682</value>
-    <description>By default, Tez uses the java options from map tasks. Use this property to override that value. Assigned value must match value specified for mapreduce.map.child.java.opts.</description>
+    <description>By default, Tez uses the java options from map tasks. Use this property to override that value.</description>
   </property>
 
   <property>
@@ -372,7 +372,7 @@ limitations under the License.
   <property>
     <name>hive.tez.java.opts</name>
     <value>-server -Xmx545m -Djava.net.preferIPv4Stack=true -XX:NewRatio=8 -XX:+UseNUMA -XX:+UseParallelGC -XX:+PrintGCDetails -verbose:gc -XX:+PrintGCTimeStamps</value>
-    <description>Java command line options for Tez. Must be assigned the same value as mapreduce.map.child.java.opts.</description>
+    <description>Java command line options for Tez. The -Xmx parameter value is generally 80% of hive.tez.container.size.</description>
   </property>
 
   <property>
