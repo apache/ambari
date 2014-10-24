@@ -115,45 +115,60 @@ doConfigUpdate () {
   MODE=$1
   currentSiteTag
   echo "########## Performing '$MODE' $CONFIGKEY:$CONFIGVALUE on (Site:$SITE, Tag:$SITETAG)";
-  propertiesStarted=0;
+  propertiesStarted=0
+  attributesStarted=0
+  currentLevel=0
   curl -k -s -u $USERID:$PASSWD "$AMBARIURL/api/v1/clusters/$CLUSTER/configurations?type=$SITE&tag=$SITETAG" | while read -r line; do
-    ## echo ">>> $line";
-    if [ "$propertiesStarted" -eq 0 -a "`echo $line | grep "\"properties\""`" ]; then
-      propertiesStarted=1
-    fi;
-    if [ "$propertiesStarted" -eq 1 ]; then
-      if [ "$line" == "}" ]; then
+    if [ "$propertiesStarted" -eq 0 -a "$attributesStarted" -eq 0 ]; then
+      if [ "$line" = "\"properties_attributes\" : {" ]; then
+        attributesStarted=$currentLevel
+      elif [ "$line" = "\"properties\" : {" ]; then
+        propertiesStarted=$currentLevel
+      fi
+    fi
+    if [ "$propertiesStarted" -gt 0 ]; then
+      if [ "`echo $line | grep -E "},?$"`" ]; then
         ## Properties ended
         ## Add property
+        # Remove the last ,
+        propLen=${#newProperties}
+        lastChar=${newProperties:$propLen-1:1}
+        if [ "$lastChar" == "," ]; then
+          newProperties=${newProperties:0:$propLen-1}
+        fi
         if [ "$MODE" == "set" ]; then
-          newProperties="$newProperties, \"$CONFIGKEY\" : \"$CONFIGVALUE\" ";
-        elif [ "$MODE" == "delete" ]; then
-          # Remove the last ,
-          propLen=${#newProperties}
-          lastChar=${newProperties:$propLen-1:1}
-          if [ "$lastChar" == "," ]; then
-            newProperties=${newProperties:0:$propLen-1}
-          fi
+          newProperties="$newProperties, \"$CONFIGKEY\" : \"$CONFIGVALUE\" "
         fi
         newProperties=$newProperties$line
-        propertiesStarted=0;
-        
-        newTag=`date "+%s%N"`
-        newTag="version${newTag}"
-        finalJson="{ \"Clusters\": { \"desired_config\": {\"type\": \"$SITE\", \"tag\":\"$newTag\", $newProperties}}}"
-        newFile="doSet_$newTag.json"
-        echo "########## PUTting json into: $newFile"
-        echo $finalJson > $newFile
-        curl -k -u $USERID:$PASSWD -X PUT -H "X-Requested-By: ambari" "$AMBARIURL/api/v1/clusters/$CLUSTER" --data @$newFile
-        currentSiteTag
-        echo "########## NEW Site:$SITE, Tag:$SITETAG";
-      elif [ "`echo $line | grep "\"$CONFIGKEY\""`" ]; then
+        propertiesStarted=0
+      elif [ "`echo $line | grep "\\\"$CONFIGKEY\\\""`" ]; then
         echo "########## Config found. Skipping origin value"
       else
         newProperties=$newProperties$line
       fi
+    elif [ "$attributesStarted" -gt 0 ]; then
+      newProperties=$newProperties$line
     fi
-  done;
+    if [ "`echo $line | grep -E "{$"`" ]; then
+        currentLevel=$((currentLevel+1))
+    elif [ "`echo $line | grep -E "},?$"`" ]; then
+        currentLevel=$((currentLevel-1))
+        if [ "$currentLevel" == 1 ]; then
+          newTag=`date "+%s%N"`
+          newTag="version${newTag}"
+          finalJson="{ \"Clusters\": { \"desired_config\": {\"type\": \"$SITE\", \"tag\":\"$newTag\", $newProperties}}}"
+          newFile="doSet_$newTag.json"
+          echo "########## PUTting json into: $newFile"
+          echo $finalJson > $newFile
+          curl -k -u $USERID:$PASSWD -X PUT -H "X-Requested-By: ambari" "$AMBARIURL/api/v1/clusters/$CLUSTER" --data @$newFile
+          currentSiteTag
+          echo "########## NEW Site:$SITE, Tag:$SITETAG";
+        fi
+    fi
+    if [ "$attributesStarted" -eq "$currentLevel" ]; then
+      attributesStarted=0
+    fi
+  done
 }
 
 #############################################
@@ -163,22 +178,28 @@ doConfigUpdate () {
 doConfigFileUpdate () {
   FILENAME=$1
   if [ -f $FILENAME ]; then
-    if [ "1" == "`grep -n \"\"properties\"\" $FILENAME | cut -d : -f 1`" ]; then
+    if [ "1" == "`grep -n \"\\\"properties\\\"\" $FILENAME | cut -d : -f 1`" ]; then
       newTag=`date "+%s%N"`
       newTag="version${newTag}"
       newProperties=`cat $FILENAME`;
       finalJson="{ \"Clusters\": { \"desired_config\": {\"type\": \"$SITE\", \"tag\":\"$newTag\", $newProperties}}}"
-      newFile="$FILENAME"
+      newFile="doSet_$newTag.json"
       echo $finalJson>$newFile
       echo "########## PUTting file:\"$FILENAME\" into config(type:\"$SITE\", tag:$newTag) via $newFile"
       curl -k -u $USERID:$PASSWD -X PUT -H "X-Requested-By: ambari" "$AMBARIURL/api/v1/clusters/$CLUSTER" --data @$newFile
       currentSiteTag
       echo "########## NEW Site:$SITE, Tag:$SITETAG";
     else
-      echo "[ERROR] File \"$FILENAME\" should be in the following JSON format:";
+      echo "[ERROR] File \"$FILENAME\" should be in the following JSON format (\"properties_attributes\" is optional):";
       echo "[ERROR]   \"properties\": {";
       echo "[ERROR]     \"key1\": \"value1\",";
       echo "[ERROR]     \"key2\": \"value2\",";
+      echo "[ERROR]   },";
+      echo "[ERROR]   \"properties_attributes\": {";
+      echo "[ERROR]     \"final\": {";
+      echo "[ERROR]       \"key1\": \"value1\",";
+      echo "[ERROR]       \"key2\": \"value2\",";
+      echo "[ERROR]     }";
       echo "[ERROR]   }";
       exit 1;
     fi
@@ -196,28 +217,34 @@ doConfigFileUpdate () {
 doGet () {
   FILENAME=$1
   if [ -n $FILENAME -a -f $FILENAME ]; then
-    rm -f $FILENAME;
+    rm -f $FILENAME
   fi
   currentSiteTag
   echo "########## Performing 'GET' on (Site:$SITE, Tag:$SITETAG)";
-  propertiesStarted=0;
+  propertiesStarted=0
   curl -k -s -u $USERID:$PASSWD "$AMBARIURL/api/v1/clusters/$CLUSTER/configurations?type=$SITE&tag=$SITETAG" | while read -r line; do
-    ## echo ">>> $line";
-    if [ "$propertiesStarted" -eq 0 -a "`echo $line | grep "\"properties\""`" ]; then
-      propertiesStarted=1
-    fi;
-    if [ "$propertiesStarted" -eq 1 ]; then
-      if [ "$line" == "}" ]; then
-        ## Properties ended
-        propertiesStarted=0;
+    # echo ">>> $line";
+    if [ "$propertiesStarted" -eq 0 ]; then
+      if [ "`echo $line | grep "\"properties\""`" -o "`echo $line | grep "\"properties_attributes\""`" ]; then
+        propertiesStarted=$currentLevel
       fi
+    fi
+    if [ "$propertiesStarted" -gt "0" ]; then
       if [ -z $FILENAME ]; then
         echo $line
       else
         echo $line >> $FILENAME
       fi
     fi
-  done;
+    if [ "`echo $line | grep -E "{$"`" ]; then
+        currentLevel=$((currentLevel+1))
+    elif [ "`echo $line | grep -E "},?$"`" ]; then
+        currentLevel=$((currentLevel-1))
+    fi
+    if [ "$propertiesStarted" -eq "$currentLevel" ]; then
+      propertiesStarted=0
+    fi
+  done
 }
 
 case "$1" in
