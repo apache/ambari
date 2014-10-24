@@ -101,7 +101,7 @@ kadmin.local -q "addprinc -randkey slider-user@EXAMPLE.COM"
 Next, extract keytab file 
 
 ```
-kadmin.local -q "xst -k /path/to/keytab/slider-user.headless.keytab view-principal@EXAMPLE.COM"
+kadmin.local -q "xst -k /path/to/keytab/slider-user.headless.keytab slider-user@EXAMPLE.COM"
 ```
 The keytab file should then be copied over to the keytabs location on the host where the view is hosted.
 

@@ -480,9 +480,11 @@
 							<goal>run</goal>
 						</goals>
 						<configuration>
-							<target name="slider-ui-test">
-								<!-- <exec dir="${ui.directory}" executable="brunch" failonerror="false">
-									<arg value="test"/> </exec> -->
+							<target name="slider-ui-test" unless="${skipTests}">
+                <exec dir="${ui.directory}" executable="npm" failonerror="true">
+                  <env key="PYTHON" value="${basedir}/../ambari-common/src/main/unix/ambari-python-wrap" />
+                  <arg value="test"/>
+                </exec>
 							</target>
 						</configuration>
 					</execution>

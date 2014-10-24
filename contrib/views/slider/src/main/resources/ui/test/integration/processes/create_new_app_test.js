@@ -107,6 +107,15 @@ var selectors = {
 QUnit.module('integration/processes - Create New App', {
 
   setup: function () {
+
+    $.mockjax({
+      type: 'GET',
+      url: '*',
+      status: '200',
+      dataType: 'json',
+      responseText: {}
+    });
+
     Em.run(App, App.advanceReadiness);
     Em.run(function () {
       App.set('viewEnabled', true); // Important!
@@ -116,6 +125,7 @@ QUnit.module('integration/processes - Create New App', {
 
   teardown: function () {
     App.reset();
+    $.mockjax.clear();
   }
 
 });
@@ -174,11 +184,6 @@ test('basic (no errors - just valid data)', function () {
       ok(find('#step4').text().indexOf('HBASE_REGIONSERVER: ' + newApp.components.HBASE_REGIONSERVER) > -1, 'HBASE_REGIONSERVER count exists');
       ok(find('pre').text().indexOf('"' + newApp.newConfig.name + '":"' + newApp.newConfig.value + '"') > -1, 'Custom property exists');
 
-      click('button.btn-success');
-      andThen(function () {
-        /* FINISHED */
-        equal(currentURL(), '/', 'After click "Finish" user is sent to index page');
-      });
     });
   });
 
