@@ -829,7 +829,10 @@ table.no-border tr td{
 .btn-primary:active,
 .btn-primary.active,
 .btn-primary.disabled,
-.btn-primary[disabled] {
+.btn-primary[disabled],
+.btn-primary.disabled:hover,
+.btn-primary[disabled]:hover
+ {
   color: #ffffff;
   background-color: #0044cc;
   *background-color: #003bb3;

@@ -28,8 +28,14 @@
         <div class="description">Manage the configuration of your cluster and monitor the health of your services</div>
         <div class="glyphicon glyphicon-cloud"></div>
         <div class="buttons">
-        <span ng-class="{active: isActive('clusters.manageAccess')}"><a href="#/clusters/{{cluster.Clusters.cluster_name}}/manageAccess" class="btn btn-primary permission-button" ng-disabled="cluster.Clusters.provisioning_state != 'INSTALLED' ">Manage Permissions</a></span>
-          <span><a href="/#/main/dashboard" class="btn btn-primary go-dashboard-button" target="{{cluster.Clusters.cluster_name}}" ng-disabled="cluster.Clusters.provisioning_state != 'INSTALLED' ">Go to Dashboard</a></span>
+        <span ng-class="{active: isActive('clusters.manageAccess')}">
+          <a ng-show="cluster.Clusters.provisioning_state != 'INSTALLED'" href class="btn btn-primary permission-button" ng-disabled="cluster.Clusters.provisioning_state != 'INSTALLED' ">Manage Permissions</a>
+          <a ng-show="cluster.Clusters.provisioning_state == 'INSTALLED'" href="#/clusters/{{cluster.Clusters.cluster_name}}/manageAccess" class="btn btn-primary permission-button" ng-disabled="cluster.Clusters.provisioning_state != 'INSTALLED' ">Manage Permissions</a>
+        </span>
+        <span>
+          <a ng-show="cluster.Clusters.provisioning_state != 'INSTALLED'" href class="btn btn-primary go-dashboard-button" target="{{cluster.Clusters.cluster_name}}" ng-disabled="cluster.Clusters.provisioning_state != 'INSTALLED' ">Go to Dashboard</a>
+          <a ng-show="cluster.Clusters.provisioning_state == 'INSTALLED'" href="'/#/main/dashboard/metrics'" class="btn btn-primary go-dashboard-button" target="{{cluster.Clusters.cluster_name}}" ng-disabled="cluster.Clusters.provisioning_state != 'INSTALLED' ">Go to Dashboard</a>
+        </span>
         </div>
       </div>
       <div ng-hide="cluster" class="col-sm-11 thumbnail">

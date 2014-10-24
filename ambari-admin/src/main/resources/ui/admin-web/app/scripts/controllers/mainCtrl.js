@@ -58,6 +58,7 @@ angular.module('ambariAdminConsole')
     });
   };
   loadClusterData();
+
   $scope.viewInstances = [];
   View.getAllVisibleInstance().then(function(instances) {
     $scope.viewInstances = instances;
