@@ -34,11 +34,13 @@ if stack_is_hdp22_or_further:
   hadoop_libexec_dir = "/usr/hdp/current/hadoop-client/libexec"
   hadoop_bin = "/usr/hdp/current/hadoop-client/sbin"
   hadoop_bin_dir = "/usr/hdp/current/hadoop-client/bin"
+  hadoop_home = "/usr/hdp/current/hadoop-client"
 else:
   mapreduce_libs_path = "/usr/lib/hadoop-mapreduce/*"
   hadoop_libexec_dir = "/usr/lib/hadoop/libexec"
   hadoop_bin = "/usr/lib/hadoop/sbin"
   hadoop_bin_dir = "/usr/bin"
+  hadoop_home = "/usr/lib/hadoop"
 
 hadoop_conf_dir = "/etc/hadoop/conf"
 hadoop_conf_empty_dir = "/etc/hadoop/conf.empty"
