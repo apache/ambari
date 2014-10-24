@@ -652,23 +652,16 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
   }
 
   private void removeMapred2Log4jConfig() {
-    ConfigHelper configHelper = injector.getInstance(ConfigHelper.class);
+    final ClusterDAO clusterDAO = injector.getInstance(ClusterDAO.class);
 
-    AmbariManagementController ambariManagementController = injector.getInstance(
-            AmbariManagementController.class);
-    Clusters clusters = ambariManagementController.getClusters();
-    if (clusters == null) {
-      return;
-    }
-    Map<String, Cluster> clusterMap = clusters.getClusters();
-
-    if (clusterMap != null && !clusterMap.isEmpty()) {
-      for (final Cluster cluster : clusterMap.values()) {
-        Config config = cluster.getDesiredConfigByType(Configuration.MAPREDUCE2_LOG4J_CONFIG_TAG);
-        if (config != null) {
-          configHelper.removeConfigsByType(cluster, Configuration.MAPREDUCE2_LOG4J_CONFIG_TAG);
+    List<ClusterEntity> clusters = clusterDAO.findAll();
+    for (ClusterEntity cluster : clusters) {
+      for (ClusterConfigMappingEntity configMapping : cluster.getConfigMappingEntities()) {
+        if (configMapping.getType().equals(Configuration.MAPREDUCE2_LOG4J_CONFIG_TAG)) {
+          configMapping.setSelected(0);
         }
       }
+      clusterDAO.merge(cluster);
     }
   }
 
