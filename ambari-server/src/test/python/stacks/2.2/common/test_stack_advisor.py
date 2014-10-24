@@ -42,6 +42,72 @@ class TestHDP22StackAdvisor(TestCase):
     clazz = getattr(stack_advisor_impl, hdp22StackAdvisorClassName)
     self.stackAdvisor = clazz()
 
+  def test_recommendTezConfigurations(self):
+    configurations = {}
+    clusterData = {
+      "mapMemory": 3000,
+      "amMemory": 2000,
+      "reduceMemory": 2056,
+      "containers": 3,
+      "ramPerContainer": 256
+    }
+    expected = {
+      "tez-site": {
+        "properties": {
+          "tez.am.resource.memory.mb": "4000",
+          "tez.task.resource.memory.mb": "768",
+          "tez.runtime.io.sort.mb": "307",
+          "tez.runtime.unordered.output.buffer.size-mb": "57"
+        }
+      }
+    }
+    self.stackAdvisor.recommendTezConfigurations(configurations, clusterData)
+    self.assertEquals(configurations, expected)
+
+  def test_recommendTezConfigurations_amMemoryMoreThan3072(self):
+    configurations = {}
+    clusterData = {
+      "mapMemory": 4000,
+      "amMemory": 3100,
+      "reduceMemory": 2056,
+      "containers": 3,
+      "ramPerContainer": 256
+    }
+    expected = {
+      "tez-site": {
+        "properties": {
+          "tez.am.resource.memory.mb": "3100",
+          "tez.task.resource.memory.mb": "768",
+          "tez.runtime.io.sort.mb": "307",
+          "tez.runtime.unordered.output.buffer.size-mb": "57"
+        }
+      }
+    }
+    self.stackAdvisor.recommendTezConfigurations(configurations, clusterData)
+    self.assertEquals(configurations, expected)
+
+  def test_recommendTezConfigurations_mapMemoryLessThan768(self):
+    configurations = {}
+    clusterData = {
+      "mapMemory": 760,
+      "amMemory": 2000,
+      "reduceMemory": 760,
+      "containers": 3,
+      "ramPerContainer": 256
+    }
+    expected = {
+      "tez-site": {
+        "properties": {
+          "tez.am.resource.memory.mb": "4000",
+          "tez.task.resource.memory.mb": "760",
+          "tez.runtime.io.sort.mb": "304",
+          "tez.runtime.unordered.output.buffer.size-mb": "57"
+        }
+      }
+    }
+    self.stackAdvisor.recommendTezConfigurations(configurations, clusterData)
+    self.assertEquals(configurations, expected)
+
 
   def test_validateHDFSConfigurations(self):
     self.maxDiff = None

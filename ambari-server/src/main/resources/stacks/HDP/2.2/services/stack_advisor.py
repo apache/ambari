@@ -23,6 +23,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     parentRecommendConfDict = super(HDP22StackAdvisor, self).getServiceConfigurationRecommenderDict()
     childRecommendConfDict = {
       "HDFS": self.recommendHDFSConfigurations,
+      "TEZ": self.recommendTezConfigurations
     }
     parentRecommendConfDict.update(childRecommendConfDict)
     return parentRecommendConfDict
@@ -31,14 +32,31 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
   def recommendHDFSConfigurations(self, configurations, clusterData):
     self.putProperty(configurations, "hdfs-site")
 
+  def recommendTezConfigurations(self, configurations, clusterData):
+    putTezProperty = self.putProperty(configurations, "tez-site")
+    putTezProperty("tez.am.resource.memory.mb", int(clusterData['amMemory']) * 2 if int(clusterData['amMemory']) < 3072 else int(clusterData['amMemory']))
+
+    taskResourceMemory = clusterData['mapMemory'] if clusterData['mapMemory'] > 2048 else int(clusterData['reduceMemory'])
+    taskResourceMemory = min(clusterData['containers'] * clusterData['ramPerContainer'], taskResourceMemory)
+    putTezProperty("tez.task.resource.memory.mb", taskResourceMemory)
+    putTezProperty("tez.runtime.io.sort.mb", int(taskResourceMemory * 0.4) if int(taskResourceMemory * 0.4) <= 2147483644 else 2147483644)
+    putTezProperty("tez.runtime.unordered.output.buffer.size-mb", int(taskResourceMemory * 0.075))
+
   def getServiceConfigurationValidators(self):
     parentValidators = super(HDP22StackAdvisor, self).getServiceConfigurationValidators()
     childValidators = {
       "HDFS": ["hdfs-site", self.validateHDFSConfigurations],
+      "TEZ": ["tez-site", self.validateTezConfigurations]
     }
     parentValidators.update(childValidators)
     return parentValidators
 
+  def validateTezConfigurations(self, properties, recommendedDefaults, configurations):
+    validationItems = [ {"config-name": 'tez.am.resource.memory.mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'tez.am.resource.memory.mb')},
+                        {"config-name": 'tez.task.resource.memory.mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'tez.task.resource.memory.mb')},
+                        {"config-name": 'tez.runtime.io.sort.mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'tez.runtime.io.sort.mb')},
+                        {"config-name": 'tez.runtime.unordered.output.buffer.size-mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'tez.runtime.unordered.output.buffer.size-mb')},]
+    return self.toConfigurationValidationProblems(validationItems, "tez-site")
 
   def validateHDFSConfigurations(self, properties, recommendedDefaults, configurations):
     # We can not access property hadoop.security.authentication from the
