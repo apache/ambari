@@ -24,8 +24,10 @@ import glob
 import re
 
 from resource_management.libraries.functions.default import default
+from resource_management.libraries.functions.format import format
 from resource_management.libraries.resources.copy_from_local import CopyFromLocal
 from resource_management.libraries.resources.execute_hadoop import ExecuteHadoop
+from resource_management.core.resources.system import Execute
 from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger
 
