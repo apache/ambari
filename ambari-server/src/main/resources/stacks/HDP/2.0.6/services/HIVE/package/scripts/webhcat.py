@@ -23,6 +23,7 @@ import os.path
 import glob
 
 from resource_management import *
+from resource_management.core.resources.system import Execute
 from resource_management.libraries.functions.version import compare_versions
 from resource_management.libraries.functions.dynamic_variable_interpretation import copy_tarballs_to_hdfs
 from resource_management.libraries.script.config_dictionary import MutableConfigDictionary
