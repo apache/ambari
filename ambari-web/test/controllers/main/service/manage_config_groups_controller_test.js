@@ -68,4 +68,140 @@ describe('App.ManageConfigGroupsController', function() {
 			});
 		});
 	});
+  
+  describe('Host Name converting', function() {
+    describe('#convertHostNames', function() {
+      var hosts = [
+        Em.Object.create({
+          hostName: 'internal-1.com',
+          publicHostName: 'external-1.com'
+        }),
+        Em.Object.create({
+          hostName: 'internal-2.com',
+          publicHostName: 'external-2.com'
+        }),
+        Em.Object.create({
+          hostName: 'internal-3.com',
+          publicHostName: 'external-3.com'
+        })
+      ];
+
+      describe('#hostsToPublic', function() {
+        beforeEach(function() {
+          manageConfigGroupsController = App.ManageConfigGroupsController.create({
+            clusterHosts: Em.A(hosts)
+          });
+        });
+
+        var tests = [
+          {
+            hostsList: ['internal-1.com', 'internal-2.com', 'internal-3.com'],
+            e: ['external-1.com', 'external-2.com', 'external-3.com']
+          },
+          {
+            hostsList: 'internal-2.com',
+            e: 'external-2.com'
+          }
+        ];
+        var message = 'should convert internal host names `{0}` to external host names `{1}`';
+        tests.forEach(function(test) {
+          it(message.format(test.hostsList, test.e), function() {
+            expect(manageConfigGroupsController.hostsToPublic(test.hostsList)).to.eql(test.e);
+          });
+        });
+      });
+
+      describe('#publicToHostName', function() {
+        beforeEach(function() {
+          manageConfigGroupsController = App.ManageConfigGroupsController.create({
+            clusterHosts: Em.A(hosts)
+          });
+        });
+
+        var tests = [
+          {
+            hostsList: ['external-1.com', 'external-2.com', 'external-3.com'],
+            e: ['internal-1.com', 'internal-2.com', 'internal-3.com']
+          },
+          {
+            hostsList: 'external-2.com',
+            e: 'internal-2.com'
+          }
+        ];
+        var message = 'should convert internal host names `{0}` to external host names `{1}`';
+        tests.forEach(function(test) {
+          it(message.format(test.hostsList, test.e), function() {
+            expect(manageConfigGroupsController.publicToHostName(test.hostsList)).to.eql(test.e);
+          });
+        });
+      });
+    });
+
+  });
+
+  describe('#deleteHosts', function() {
+    var hosts = [
+      Em.Object.create({
+        hostName: 'internal-1.com',
+        publicHostName: 'external-1.com'
+      }),
+      Em.Object.create({
+        hostName: 'internal-2.com',
+        publicHostName: 'external-2.com'
+      }),
+      Em.Object.create({
+        hostName: 'internal-3.com',
+        publicHostName: 'external-3.com'
+      })
+    ];
+
+    beforeEach(function() {
+      manageConfigGroupsController = App.ManageConfigGroupsController.create({
+        clusterHosts: hosts
+      });
+    });
+
+    var createConfigGroupWithParentMock = function(groupHosts, groupPublicHosts, allHosts) {
+      var parentCGHosts = allHosts.filter(function(host) {
+        return !groupHosts.contains(host.get('hostName'));
+      });
+      return Em.Object.create({
+        parentConfigGroup: {
+          hosts: parentCGHosts.mapProperty('hostName'),
+          publicHosts: parentCGHosts.mapProperty('publicHostName')
+        },
+        hosts: groupHosts,
+        publicHosts: groupPublicHosts
+      });
+    };
+
+    var tests = [
+      {
+        selectedHosts: ['external-1.com', 'external-2.com'],
+        selectedConfigGroup: createConfigGroupWithParentMock(
+          ['internal-1.com', 'internal-2.com'],
+          ['external-1.com', 'external-2.com'], hosts),
+        e: []
+      },
+      {
+        selectedHosts: ['external-1.com'],
+        selectedConfigGroup: createConfigGroupWithParentMock(
+          ['internal-1.com', 'internal-2.com'],
+          ['external-1.com', 'external-2.com'], hosts),
+        e: ['external-2.com']
+      }
+    ];
+
+    tests.forEach(function(test) {
+      it('should remove {0}'.format(test.selectedHosts.slice(0)), function() {
+        manageConfigGroupsController.reopen({
+          selectedHosts: test.selectedHosts,
+          selectedConfigGroup: test.selectedConfigGroup
+        });
+        manageConfigGroupsController.deleteHosts();
+        expect(manageConfigGroupsController.get('selectedConfigGroup.publicHosts').toArray()).to.eql(test.e);
+      });
+    });
+
+  });
 });

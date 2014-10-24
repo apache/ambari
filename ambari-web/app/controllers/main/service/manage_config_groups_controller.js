@@ -401,7 +401,7 @@ App.ManageConfigGroupsController = Em.Controller.extend({
       return;
     }
     //move hosts of group to default group (available hosts)
-    this.set('selectedHosts', selectedConfigGroup.get('hosts'));
+    this.set('selectedHosts', selectedConfigGroup.get('publicHosts'));
     this.deleteHosts();
     this.get('configGroups').removeObject(selectedConfigGroup);
     this.set('selectedConfigGroup', this.get('configGroups').findProperty('isDefault'));
