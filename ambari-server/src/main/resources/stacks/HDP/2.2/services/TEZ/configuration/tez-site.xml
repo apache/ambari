@@ -21,7 +21,7 @@
 
   <property>
     <name>tez.lib.uris</name>
-    <value>hdfs:///hdp/apps/{{ hdp_stack_version }}/tez/tez-{{ component_version }}.{{ hdp_stack_version }}.tar.gz</value>
+    <value>hdfs:///hdp/apps/${hdp.version}/tez/tez-0.6.0.${hdp.version}.tar.gz</value>
     <description>Comma-delimited list of the location of the Tez libraries which will be localized for DAGs.
       Specifying a single .tar.gz or .tgz assumes that a compressed version of the tez libs is being used. This is uncompressed into a tezlibs directory when running containers, and tezlibs/;tezlibs/lib/ are added to the classpath (after . and .*).
       If multiple files are specified - files are localized as regular files, contents of directories are localized as regular files (non-recursive).
