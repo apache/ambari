@@ -272,6 +272,74 @@ public class TestHeartbeatHandler {
 
   @Test
   @SuppressWarnings("unchecked")
+  public void testRestartRequiredAfterInstallClient() throws Exception {
+    Cluster cluster = getDummyCluster();
+
+    @SuppressWarnings("serial")
+    Set<String> hostNames = new HashSet<String>(){{
+      add(DummyHostname1);
+    }};
+    clusters.mapHostsToCluster(hostNames, DummyCluster);
+    Service hdfs = cluster.addService(HDFS);
+    hdfs.persist();
+    hdfs.addServiceComponent(HDFS_CLIENT).persist();
+    hdfs.getServiceComponent(HDFS_CLIENT).addServiceComponentHost(DummyHostname1).persist();
+
+    ActionQueue aq = new ActionQueue();
+
+    ServiceComponentHost serviceComponentHost = clusters.getCluster(DummyCluster).getService(HDFS).
+        getServiceComponent(HDFS_CLIENT).getServiceComponentHost(DummyHostname1);
+
+    serviceComponentHost.setState(State.INSTALLED);
+    serviceComponentHost.setRestartRequired(true);
+
+    HeartBeat hb = new HeartBeat();
+    hb.setResponseId(0);
+    hb.setNodeStatus(new HostStatus(Status.HEALTHY, DummyHostStatus));
+    hb.setHostname(DummyHostname1);
+
+
+    List<CommandReport> reports = new ArrayList<CommandReport>();
+    CommandReport cr = new CommandReport();
+    cr.setActionId(StageUtils.getActionId(requestId, stageId));
+    cr.setServiceName(HDFS);
+    cr.setRoleCommand("INSTALL");
+    cr.setCustomCommand("EXECUTION_COMMAND");
+    cr.setTaskId(1);
+    cr.setRole(HDFS_CLIENT);
+    cr.setStatus("COMPLETED");
+    cr.setStdErr("");
+    cr.setStdOut("");
+    cr.setExitCode(215);
+    cr.setClusterName(DummyCluster);
+    cr.setConfigurationTags(new HashMap<String, Map<String,String>>() {{
+      put("global", new HashMap<String,String>() {{ put("tag", "version1"); }});
+    }});
+    reports.add(cr);
+    hb.setReports(reports);
+
+    final HostRoleCommand command = new HostRoleCommand(DummyHostname1,
+        Role.DATANODE, null, null);
+
+    ActionManager am = getMockActionManager();
+    expect(am.getTasks(anyObject(List.class))).andReturn(
+        new ArrayList<HostRoleCommand>() {{
+          add(command);
+          add(command);
+        }});
+    replay(am);
+
+    HeartBeatHandler handler = getHeartBeatHandler(am, aq);
+    handler.handleHeartBeat(hb);
+
+    Assert.assertNotNull(serviceComponentHost.getActualConfigs());
+    Assert.assertFalse(serviceComponentHost.isRestartRequired());
+    Assert.assertEquals(serviceComponentHost.getActualConfigs().size(), 1);
+
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
   public void testHeartbeatCustomCommandWithConfigs() throws Exception {
     Cluster cluster = getDummyCluster();
 
