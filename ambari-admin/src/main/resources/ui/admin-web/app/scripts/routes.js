@@ -90,7 +90,7 @@ angular.module('ambariAdminConsole')
   dashboard:{
     url: '/dashboard',
     controller: ['$window', function($window) {
-      $window.location.href = '/#/main/dashboard';
+      $window.location.replace('/#/main/dashboard');
     }],
     template: ''
   }
