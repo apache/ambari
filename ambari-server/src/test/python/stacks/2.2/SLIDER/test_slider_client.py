@@ -45,6 +45,16 @@ class TestSliderClient(RMFTestCase):
                               mode = 0755,
                               )
 
+    self.assertResourceCalled('Directory',
+                              '/usr/hdp/current/storm-slider-client/conf',
+                              recursive=True
+    )
+
+    self.assertResourceCalled('File', '/usr/hdp/current/storm-slider-client/conf/storm-slider-env.sh',
+                              content=Template('storm-slider-env.sh.j2'),
+                              mode = 0755,
+                              )
+
     self.assertResourceCalled('File',
                               '/etc/slider/conf/log4j.properties',
                               mode=0644,
