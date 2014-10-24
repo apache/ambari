@@ -29,7 +29,8 @@ App.SliderAppsView = App.TableView.extend({
     App.SliderApp.Status.new,
     App.SliderApp.Status.new_saving,
     App.SliderApp.Status.running,
-    App.SliderApp.Status.submitted
+    App.SliderApp.Status.submitted,
+    App.SliderApp.Status.stopped,
   ],
 
   content: function () {
@@ -119,7 +120,7 @@ App.SliderAppsView = App.TableView.extend({
       return this.get('parentView.statusList');
     }.property('parentView.statusList'),
     onChangeValue: function(){
-      this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'string', this.get('defaultValue'));
+      this.get('parentView').updateFilter(this.get('column'), this.get('value') == "STOPPED" ? "FROZEN" : this.get('value'), 'string', this.get('defaultValue'));
     },
     emptyValue: 'All Status'
   }),
