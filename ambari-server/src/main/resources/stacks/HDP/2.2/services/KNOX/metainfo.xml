@@ -79,7 +79,7 @@
       <configuration-dependencies>
         <config-type>gateway-site</config-type>
         <config-type>gateway-log4j</config-type>
-        <config-type>topology</config-type>
+        <config-type>ambari-topology</config-type>
       </configuration-dependencies>
     </service>
   </services>

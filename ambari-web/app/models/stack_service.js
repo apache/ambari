@@ -352,7 +352,7 @@ App.StackService.configCategories = function () {
 
   // Add custom section for every configType to all the services
   configTypes.forEach(function (type) {
-    var configTypesWithNoCustomSection = ['capacity-scheduler','mapred-queue-acls','flume-conf', 'pig-properties','topology','users-ldif'];
+    var configTypesWithNoCustomSection = ['capacity-scheduler','mapred-queue-acls','flume-conf', 'pig-properties','ambari-topology','users-ldif'];
     if (type.endsWith('-env') || type.endsWith('-log4j') || configTypesWithNoCustomSection.contains(type)) {
       return;
     }
