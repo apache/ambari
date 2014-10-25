@@ -95,7 +95,7 @@ App.MainServiceItemView = Em.View.extend({
         action: 'enableRMHighAvailability',
         label: Em.I18n.t('admin.rm_highAvailability.button.enable'),
         cssClass: 'icon-arrow-up',
-        isHidden: !App.get('supports.resourceManagerHighAvailability') || App.get('isRMHaEnabled')
+        isHidden: App.get('isRMHaEnabled')
       },
       MOVE_COMPONENT: {
         action: 'reassignMaster',
@@ -130,7 +130,7 @@ App.MainServiceItemView = Em.View.extend({
         action: this.get('controller.isSeveralClients') ? '' : 'downloadClientConfigs',
         label: Em.I18n.t('services.service.actions.downloadClientConfigs'),
         cssClass: 'icon-download-alt',
-        isHidden: !(App.get('supports.downloadClientConfigs') && this.get('controller.content.hostComponents').findProperty('isClient')),
+        isHidden: !this.get('controller.content.hostComponents').findProperty('isClient'),
         disabled: false,
         hasSubmenu: this.get('controller.isSeveralClients'),
         submenuOptions: this.get('controller.clientComponents')

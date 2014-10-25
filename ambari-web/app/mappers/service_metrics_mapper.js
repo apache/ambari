@@ -374,7 +374,7 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     }, this)
   },
   /**
-   * Map quick links to services:OOZIE,GANGLIA,NAGIOS,HUE
+   * Map quick links to services:OOZIE,GANGLIA,NAGIOS
    * @param finalJson
    * @param item
    */
@@ -384,7 +384,6 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
       OOZIE: [19],
       GANGLIA: [20],
       NAGIOS: [21],
-      HUE: [22],
       STORM: [31],
       FALCON: [32]
     };

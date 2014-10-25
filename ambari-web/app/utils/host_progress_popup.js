@@ -357,9 +357,7 @@ App.HostPopup = Em.Object.create({
           updatedService = this.createService(service);
           servicesInfo.insertAt(index, updatedService);
         }
-        if (App.get('supports.abortRequests')) {
-          updatedService.set('isAbortable', this.isAbortableByStatus(service.status));
-        }
+        updatedService.set('isAbortable', this.isAbortableByStatus(service.status));
       }, this);
       this.removeOldServices(servicesInfo, currentServices);
       this.setBackgroundOperationHeader(isServiceListHidden);
@@ -600,13 +598,12 @@ App.HostPopup = Em.Object.create({
         self.set('previousServiceId', this.get('currentServiceId'));
       }
     }
-    if (App.get('supports.abortRequests')) {
-      var operation = this.get('servicesInfo').findProperty('name', this.get('serviceName'));
-      if (!operation || (operation && operation.get('progress') == 100)) {
-        this.set('operationInfo', null);
-      } else {
-        this.set('operationInfo', operation);
-      }
+
+    var operation = this.get('servicesInfo').findProperty('name', this.get('serviceName'));
+    if (!operation || (operation && operation.get('progress') == 100)) {
+      this.set('operationInfo', null);
+    } else {
+      this.set('operationInfo', operation);
     }
   },
 
@@ -657,9 +654,9 @@ App.HostPopup = Em.Object.create({
       headerClass: Em.View.extend({
         controller: this,
         template: Ember.Handlebars.compile('{{popupHeaderName}} ' +
-            '{{#if App.supports.abortRequests}}{{#unless view.parentView.isHostListHidden}}{{#if controller.operationInfo.isAbortable}}' +
+            '{{#unless view.parentView.isHostListHidden}}{{#if controller.operationInfo.isAbortable}}' +
             '{{view controller.abortIcon servicesInfoBinding="controller.operationInfo"}}' +
-            '{{/if}}{{/unless}}{{/if}}')
+            '{{/if}}{{/unless}}')
       }),
 
       /**
@@ -957,9 +954,7 @@ App.HostPopup = Em.Object.create({
           this.set("parentView.isHostListHidden", false);
           this.set("parentView.isTaskListHidden", true);
           this.get("controller").set("popupHeaderName", this.get("controller.serviceName"));
-          if (App.get('supports.abortRequests')) {
-            this.get("controller").set("operationInfo", this.get('controller.servicesInfo').findProperty('name', this.get('controller.serviceName')));
-          }
+          this.get("controller").set("operationInfo", this.get('controller.servicesInfo').findProperty('name', this.get('controller.serviceName')));
           this.switchLevel("HOSTS_LIST");
         },
 
@@ -1006,9 +1001,8 @@ App.HostPopup = Em.Object.create({
           this.switchLevel("HOSTS_LIST");
           var servicesInfo = this.get("controller.hosts");
           this.set("controller.popupHeaderName", event.context.get("name"));
-          if (App.get('supports.abortRequests')) {
-            this.set("controller.operationInfo", event.context);
-          }
+          this.set("controller.operationInfo", event.context);
+
           //apply lazy loading on cluster with more than 100 nodes
           if (servicesInfo.length > 100) {
             this.set('hosts', servicesInfo.slice(0, 50));

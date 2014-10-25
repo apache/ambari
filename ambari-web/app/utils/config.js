@@ -164,12 +164,6 @@ App.config = Em.Object.create({
   //configs with these filenames go to appropriate category not in Advanced
   customFileNames: function () {
     var customFiles = ['flume-conf.xml'];
-    if (App.get('supports.capacitySchedulerUi')) {
-      if (App.get('isHadoop2Stack')) {
-        return customFiles.concat(['capacity-scheduler.xml']);
-      }
-      return customFiles.concat(['capacity-scheduler.xml', 'mapred-queue-acls.xml']);
-    }
     return customFiles;
   }.property('App.isHadoop2Stack'),
 
@@ -628,12 +622,6 @@ App.config = Em.Object.create({
     var stored = configs.filter(function (_config) {
       return this.get('categoriesWithCustom').contains(_config.category);
     }, this);
-    if (App.get('supports.capacitySchedulerUi')) {
-      var queueProperties = stored.filter(this.get('capacitySchedulerFilter'));
-      if (queueProperties.length) {
-        queueProperties.setEach('isQueue', true);
-      }
-    }
   },
 
   miscConfigVisibleProperty: function (configs, serviceToShow) {
@@ -697,55 +685,23 @@ App.config = Em.Object.create({
 
       // Use calculated default values for some configs
       var recommendedDefaults = {};
-      if (App.get('supports.serverRecommendValidate')) {
-        if (!storedConfigs && service.get('configTypes')) {
-          Object.keys(service.get('configTypes')).forEach(function (type) {
-            if (!recommended || !recommended[type]) {
-              return;
-            }
-            var defaults = recommended[type].properties;
-            for (var name in defaults) {
-              var config = configsByService.findProperty('name', name);
-              if (!config) {
-                continue;
-              }
-              recommendedDefaults[name] = defaults[name];
-              config.set('value', defaults[name]);
-              config.set('defaultValue', defaults[name]);
-            }
-          });
-        }
-      } else {
-        if (!storedConfigs && service.get('defaultsProviders')) {
-          service.get('defaultsProviders').forEach(function (defaultsProvider) {
-            var defaults = defaultsProvider.getDefaults(localDB);
-            for (var name in defaults) {
-              var config = configsByService.findProperty('name', name);
-              if (!config) {
-                continue;
-              }
-              if (!!defaults[name]) {
-                recommendedDefaults[name] = defaults[name];
-                config.set('value', defaults[name]);
-                config.set('defaultValue', defaults[name]);
-              } else {
-                recommendedDefaults[name] = config.get('defaultValue');
-              }
-            }
-          });
-        }
-        if (service.get('configsValidator')) {
-          service.get('configsValidator').set('recommendedDefaults', recommendedDefaults);
-          var validators = service.get('configsValidator').get('configValidators');
-          for (var validatorName in validators) {
-            var c = configsByService.findProperty('name', validatorName);
-            if (c) {
-              c.set('serviceValidator', service.get('configsValidator'));
-            }
+      if (!storedConfigs && service.get('configTypes')) {
+        Object.keys(service.get('configTypes')).forEach(function (type) {
+          if (!recommended || !recommended[type]) {
+            return;
           }
-        }
+          var defaults = recommended[type].properties;
+          for (var name in defaults) {
+            var config = configsByService.findProperty('name', name);
+            if (!config) {
+              continue;
+            }
+            recommendedDefaults[name] = defaults[name];
+            config.set('value', defaults[name]);
+            config.set('defaultValue', defaults[name]);
+          }
+        });
       }
-
       serviceConfig.set('configs', configsByService);
       renderedServiceConfigs.push(serviceConfig);
     }, this);
@@ -808,17 +764,6 @@ App.config = Em.Object.create({
       configs: [],
       configGroups: []
     });
-    serviceConfig.configCategories.filterProperty('isCustomView', true).forEach(function (category) {
-      switch (category.name) {
-        case 'CapacityScheduler':
-          if (App.get('supports.capacitySchedulerUi')) {
-            category.set('customView', App.ServiceConfigCapacityScheduler);
-          } else {
-            category.set('isCustomView', false);
-          }
-          break;
-      }
-    }, this);
     return serviceConfig;
   },
   /**
@@ -922,12 +867,12 @@ App.config = Em.Object.create({
         var fileName = item.type;
         var isHDP2 = App.get('isHadoop2Stack');
         /**
-         * Properties from mapred-queue-acls.xml are ignored unless App.supports.capacitySchedulerUi is true
+         * Properties from mapred-queue-acls.xml are ignored
          * Properties from capacity-scheduler.xml are ignored unless HDP stack version is 2.x or
-         * HDP stack version is 1.x and App.supports.capacitySchedulerUi is true.
+         * HDP stack version is 1.x
          */
-        if ((fileName !== 'mapred-queue-acls.xml' || App.get('supports.capacitySchedulerUi')) &&
-          (fileName !== 'capacity-scheduler.xml' || isHDP2 || App.get('supports.capacitySchedulerUi'))) {
+        if (fileName !== 'mapred-queue-acls.xml' &&
+          (fileName !== 'capacity-scheduler.xml' || isHDP2)) {
           var property = {
             serviceName: serviceName,
             name: item.property_name,
@@ -1363,12 +1308,10 @@ App.config = Em.Object.create({
   persistWizardStep7ConfigGroups: function () {
     var installerController = App.router.get('installerController');
     var step7Controller = App.router.get('wizardStep7Controller');
-    if (App.get('supports.hostOverridesInstaller')) {
       installerController.saveServiceConfigGroups(step7Controller, step7Controller.get('content.controllerName') == 'addServiceController');
       App.clusterStatus.setClusterStatus({
         localdb: App.db.data
       });
-    }
   },
   /**
    * exclude configs that depends on services which are uninstalled

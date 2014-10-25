@@ -114,11 +114,6 @@ require('controllers/main/charts/heatmap_metrics/heatmap_metric_hbase_memstoresi
 require('controllers/main/charts/heatmap');
 require('controllers/main/apps_controller');
 require('controllers/main/apps/item_controller');
-require('controllers/main/mirroring_controller');
-require('controllers/main/mirroring/edit_dataset_controller');
-require('controllers/main/mirroring/datasets_controller');
-require('controllers/main/mirroring/jobs_controller');
-require('controllers/main/mirroring/manage_clusters_controller');
 require('controllers/main/views_controller');
 require('controllers/main/views/details_controller');
 require('controllers/wizard/slave_component_groups_controller');

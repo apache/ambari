@@ -99,22 +99,6 @@
     </div>
   </div>
 
-  <div class="advancedOptions">
-    {{#unless App.supports.localRepositories}}
-      <h5>{{t installer.step2.advancedOptions.header}}</h5>
-      <label {{bindAttr class=":checkbox"}}>
-        {{view Ember.Checkbox checkedBinding="content.installOptions.localRepo"}}
-
-        {{t installer.step2.localRepo.label_use}}
-
-        <a href="javascript:void(null)"
-           rel="popover"
-          {{translateAttr title="installer.step2.localRepo.tooltip.title" data-content="installer.step2.localRepo.tooltip.content"}}>
-          {{t installer.step2.localRepo.tooltip.title}}</a>
-        {{t installer.step2.localRepo.label_instead}}
-      </label>
-    {{/unless}}
-  </div>
   <div class="btn-area">
     {{#unless view.parentView.controller.hideBackButton}}
       <a class="btn pull-left" {{action back}}>&larr; {{t common.back}}</a>

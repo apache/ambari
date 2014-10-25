@@ -26,95 +26,94 @@
   {{/each}}
 </form>
 
-{{#if App.supports.localRepositories}}
-  <div class="accordion" id="advancedRepoAccordion">
-    <div class="accordion-group">
-      <div class="accordion-heading" {{action "onToggleBlock" target="view"}}>
-        <i {{bindAttr class=":pull-left :accordion-toggle view.isRLCollapsed:icon-caret-right:icon-caret-down"}}></i>
-        <a class="accordion-toggle">
-          {{t installer.step1.advancedRepo.title}}
-          {{#if view.isSubmitDisabled}}
-            <span class="badge badge-important">{{view.totalErrorCnt}}</span>
-          {{/if}}
-        </a>
 
-      </div>
-      <div class="accordion-body collapse in">
-        <div class="accordion-inner">
-          <div class="alert alert-info">{{t installer.step1.advancedRepo.message}}</div>
-          <div class="alert alert-warning">{{t installer.step1.advancedRepo.importantMassage}}</div>
+<div class="accordion" id="advancedRepoAccordion">
+  <div class="accordion-group">
+    <div class="accordion-heading" {{action "onToggleBlock" target="view"}}>
+      <i {{bindAttr class=":pull-left :accordion-toggle view.isRLCollapsed:icon-caret-right:icon-caret-down"}}></i>
+      <a class="accordion-toggle">
+        {{t installer.step1.advancedRepo.title}}
+        {{#if view.isSubmitDisabled}}
+          <span class="badge badge-important">{{view.totalErrorCnt}}</span>
+        {{/if}}
+      </a>
 
-          <div class="repositories-table">
-            <div class="thead">
-              <div class="first-th">&nbsp;</div>
-              <div class="th os-th">{{t common.os}}</div>
-              <div class="th name-th">{{t common.name}}</div>
-              <div class="th url-th">{{t installer.step1.advancedRepo.localRepo.column.baseUrl}}</div>
-            </div>
-            <div class="tbody">
-              {{#each operatingSystem in view.operatingSystems}}
-                <div class="trow">
-                  <div class="os-td">
-                    <label>
-                      {{view Ember.Checkbox checkedBinding="operatingSystem.isSelected"}}
-                      <span {{bindAttr class=":os operatingSystem.isSelected::disabled-label"}}>{{operatingSystem.osType}}</span>
-                    </label>
-                  </div>
-                  <div style="width:83%">
-                    {{#each repository in operatingSystem.repositories}}
-                        <div class="sub-trow">
-                          <div class="name-td">{{repository.repoId}}</div>
-                          <div class="validation-td">
-                            {{#if repository.validation}}
-                              {{view view.popoverView repositoryBinding="repository"}}
-                            {{/if}}
-                          </div>
-                          <div {{bindAttr class=":url-td operatingSystem.isSelected::disabled-textfield repository.emptyError:textfield-error repository.invalidError:textfield-error"}}>
-                            {{view Ember.TextField valueBinding="repository.baseUrl"}}
-                          </div>
-                          <div class="clear-td">
-                            {{#if repository.clearAll}}
-                              <a {{action "clearGroupLocalRepository" repository target="view" }}>
-                                <i class="icon-remove-sign"></i>
-                              </a>
-                            {{/if}}
-                          </div>
-                          <div class="actions-td">
-                            {{#if repository.undo}}
-                              <a {{action "undoGroupLocalRepository" repository target="view" }}>
-                                <i class="icon-undo"></i>{{t common.undo}}
-                              </a>
-                            {{/if}}
-                          </div>
-                         </div>
-                    {{/each}}
-                  </div>
+    </div>
+    <div class="accordion-body collapse in">
+      <div class="accordion-inner">
+        <div class="alert alert-info">{{t installer.step1.advancedRepo.message}}</div>
+        <div class="alert alert-warning">{{t installer.step1.advancedRepo.importantMassage}}</div>
+
+        <div class="repositories-table">
+          <div class="thead">
+            <div class="first-th">&nbsp;</div>
+            <div class="th os-th">{{t common.os}}</div>
+            <div class="th name-th">{{t common.name}}</div>
+            <div class="th url-th">{{t installer.step1.advancedRepo.localRepo.column.baseUrl}}</div>
+          </div>
+          <div class="tbody">
+            {{#each operatingSystem in view.operatingSystems}}
+              <div class="trow">
+                <div class="os-td">
+                  <label>
+                    {{view Ember.Checkbox checkedBinding="operatingSystem.isSelected"}}
+                    <span {{bindAttr class=":os operatingSystem.isSelected::disabled-label"}}>{{operatingSystem.osType}}</span>
+                  </label>
                 </div>
-              {{/each}}
-            </div>
+                <div style="width:83%">
+                  {{#each repository in operatingSystem.repositories}}
+                    <div class="sub-trow">
+                      <div class="name-td">{{repository.repoId}}</div>
+                      <div class="validation-td">
+                        {{#if repository.validation}}
+                          {{view view.popoverView repositoryBinding="repository"}}
+                        {{/if}}
+                      </div>
+                      <div {{bindAttr class=":url-td operatingSystem.isSelected::disabled-textfield repository.emptyError:textfield-error repository.invalidError:textfield-error"}}>
+                        {{view Ember.TextField valueBinding="repository.baseUrl"}}
+                      </div>
+                      <div class="clear-td">
+                        {{#if repository.clearAll}}
+                          <a {{action "clearGroupLocalRepository" repository target="view" }}>
+                            <i class="icon-remove-sign"></i>
+                          </a>
+                        {{/if}}
+                      </div>
+                      <div class="actions-td">
+                        {{#if repository.undo}}
+                          <a {{action "undoGroupLocalRepository" repository target="view" }}>
+                            <i class="icon-undo"></i>{{t common.undo}}
+                          </a>
+                        {{/if}}
+                      </div>
+                    </div>
+                  {{/each}}
+                </div>
+              </div>
+            {{/each}}
           </div>
-          <div id="skip-validation">
-            <label>{{view Ember.Checkbox checkedBinding="skipValidationChecked" class="checkbox"}}{{t installer.step1.advancedRepo.skipValidation.message}}
-              <i class="icon-question-sign" rel="skip-validation-tooltip"
-                 data-toggle="tooltip" {{translateAttr title="installer.step1.advancedRepo.skipValidation.tooltip"}}></i></label>
-          </div>
-          {{#if view.emptyRepoExist}}
-            <div class="alert">{{t installer.step1.attentionNeeded}}</div>
-          {{/if}}
-          {{#if view.invalidUrlExist}}
-            <div class="alert">
-              {{t installer.step1.invalidURLAttention}}
-              <a href="javascript:void(null)" {{action "retryRepoUrls" target="view"}}>{{t installer.step1.retryRepoUrls}}</a>
-            </div>
-          {{/if}}
-          {{#if view.allRepoUnchecked}}
-            <div class="alert">{{t installer.step1.checkAtLeastOneAttention}}</div>
-          {{/if}}
         </div>
+        <div id="skip-validation">
+          <label>{{view Ember.Checkbox checkedBinding="skipValidationChecked" class="checkbox"}}{{t installer.step1.advancedRepo.skipValidation.message}}
+            <i class="icon-question-sign" rel="skip-validation-tooltip"
+               data-toggle="tooltip" {{translateAttr title="installer.step1.advancedRepo.skipValidation.tooltip"}}></i></label>
+        </div>
+        {{#if view.emptyRepoExist}}
+          <div class="alert">{{t installer.step1.attentionNeeded}}</div>
+        {{/if}}
+        {{#if view.invalidUrlExist}}
+          <div class="alert">
+            {{t installer.step1.invalidURLAttention}}
+            <a href="javascript:void(null)" {{action "retryRepoUrls" target="view"}}>{{t installer.step1.retryRepoUrls}}</a>
+          </div>
+        {{/if}}
+        {{#if view.allRepoUnchecked}}
+          <div class="alert">{{t installer.step1.checkAtLeastOneAttention}}</div>
+        {{/if}}
       </div>
     </div>
   </div>
-{{/if}}
+</div>
 
 <a class="btn pull-left" {{action back}}>&larr; {{t common.back}}</a>
 <button class="btn btn-success pull-right" {{bindAttr disabled="view.isSubmitDisabled"}} {{action next}}>{{t common.next}} &rarr;</button>

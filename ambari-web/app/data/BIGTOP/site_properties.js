@@ -2532,8 +2532,7 @@ module.exports =
         },
         {
           displayName: 'Existing Oracle Database',
-          foreignKeys: ['hive_existing_oracle_database', 'hive_existing_oracle_host'],
-          hidden: !App.supports.hiveOozieExtraDatabases
+          foreignKeys: ['hive_existing_oracle_database', 'hive_existing_oracle_host']
         }
       ],
       "description": "PostgreSQL will be installed by Ambari",
@@ -2857,25 +2856,17 @@ module.exports =
           displayName: 'New Derby Database',
           foreignKeys: ['oozie_derby_database']
         },
-        /*{
-         displayName: 'New MySQL Database',
-         foreignKeys: ['oozie_ambari_database', 'oozie_ambari_host'],
-         hidden: !App.supports.hiveOozieExtraDatabases
-         },*/
         {
           displayName: 'Existing MySQL Database',
-          foreignKeys: ['oozie_existing_mysql_database', 'oozie_existing_mysql_host'],
-          hidden: !App.supports.hiveOozieExtraDatabases
+          foreignKeys: ['oozie_existing_mysql_database', 'oozie_existing_mysql_host']
         },
         {
           displayName: 'Existing PostgreSQL Database',
-          foreignKeys: ['oozie_existing_postgresql_database', 'oozie_existing_postgresql_host'],
-          hidden: !App.supports.hiveOozieExtraDatabases
+          foreignKeys: ['oozie_existing_postgresql_database', 'oozie_existing_postgresql_host']
         },
         {
           displayName: 'Existing Oracle Database',
-          foreignKeys: ['oozie_existing_oracle_database', 'oozie_existing_oracle_host'],
-          hidden: !App.supports.hiveOozieExtraDatabases
+          foreignKeys: ['oozie_existing_oracle_database', 'oozie_existing_oracle_host']
         }
       ],
       "description": "Current Derby Database will be installed by Ambari",
@@ -3730,7 +3721,6 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "user",
       "isOverridable": false,
-      "isVisible": App.supports.customizeSmokeTestUser,
       "serviceName": "MISC",
       "filename": "cluster-env.xml",
       "category": "Users and Groups",

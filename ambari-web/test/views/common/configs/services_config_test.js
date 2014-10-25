@@ -284,20 +284,5 @@ describe('App.ServiceConfigContainerView', function () {
       });
       expect(view.get('childViews.firstObject.serviceConfigsByCategoryView.childViews')).to.have.length(2);
     });
-    it('shouldn\'t add category with custom view if capacitySchedulerUi isn\'t active', function () {
-      sinon.stub(App, 'get', function(k) {
-        if (k === 'supports.capacitySchedulerUi') return false;
-        return Em.get(App, k);
-      });
-      view.set('controller', {
-        selectedService: {
-          configCategories: [Em.Object.create({
-            isCustomView: true
-          })]
-        }
-      });
-      expect(view.get('childViews.firstObject.serviceConfigsByCategoryView.childViews')).to.be.empty;
-      App.get.restore();
-    });
   });
 });

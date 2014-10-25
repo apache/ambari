@@ -363,43 +363,6 @@
       }
     },
     {
-      "href" : "http://ec2-23-20-184-220.compute-1.amazonaws.com:8080/api/v1/clusters/tdk/configurations?type=hue-site&tag=version1",
-      "tag" : "version1",
-      "type" : "hue-site",
-      "Config" : {
-        "cluster_name" : "tdk"
-      },
-      "properties" : {
-        "hadoop_mapred_home" : "/usr/lib/hadoop/lib",
-        "smtp_host" : "localhost",
-        "use_cherrypy_server" : "false",
-        "hbase_shell_command" : "/usr/bin/hbase shell",
-        "db_name" : "sandbox",
-        "db_password" : "1111",
-        "send_debug_messages" : "1",
-        "http_host" : "0.0.0.0",
-        "django_debug_mode" : "1",
-        "pig_shell_command" : "/usr/bin/pig -l /dev/null",
-        "http_port" : "8000",
-        "db_engine" : "mysql",
-        "whitelist" : "(localhost|127\\.0\\.0\\.1):(50030|50070|50060|50075|50111)",
-        "hbase_nice_name" : "HBase Shell",
-        "backend_auth_policy" : "desktop.auth.backend.AllowAllBackend",
-        "smtp_password" : "25",
-        "default_from_email" : "sandbox@hortonworks.com",
-        "tls" : "no",
-        "db_user" : "sandbox",
-        "db_host" : "localhost",
-        "database_logging" : "0",
-        "smtp_port" : "25",
-        "time_zone" : "America/Los_Angeles",
-        "bash_shell_command" : "/bin/bash",
-        "http_500_debug_mode" : "1",
-        "db_port" : "3306",
-        "jobtracker_port" : "50030"
-      }
-    },
-    {
       "href" : "http://dev.hortonworks.com:8080/api/v1/clusters/vmc/configurations?type=global&tag=version1",
       "tag" : "version1",
       "type" : "global",

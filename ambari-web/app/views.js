@@ -246,11 +246,6 @@ require('views/main/apps_view');
 require('views/main/apps/item_view');
 require('views/main/apps/item/bar_view');
 require('views/main/apps/item/dag_view');
-require('views/main/mirroring_view');
-require('views/main/mirroring/edit_dataset_view');
-require('views/main/mirroring/datasets_view');
-require('views/main/mirroring/jobs_view');
-require('views/main/mirroring/manage_clusters_view');
 
 require('views/main/views_view');
 

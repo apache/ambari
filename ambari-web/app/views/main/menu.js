@@ -138,13 +138,11 @@ App.MainMenuView = Em.CollectionView.extend({
           url: 'serviceAccounts',
           label: Em.I18n.t('common.serviceAccounts')
         });
-        if (App.supports.secureCluster) {
-          categories.push({
-            name: 'security',
-            url: 'security/',
-            label: Em.I18n.t('common.security')
-          });
-        }
+        categories.push({
+          name: 'security',
+          url: 'security/',
+          label: Em.I18n.t('common.security')
+        });
       }
       return categories;
     }.property('')

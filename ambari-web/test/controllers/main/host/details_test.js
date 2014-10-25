@@ -1641,11 +1641,6 @@ describe('App.MainHostDetailsController', function () {
       controller.confirmDeleteHost.restore();
     });
 
-    it('App.supports.deleteHost = false', function () {
-      App.supports.deleteHost = false;
-      expect(controller.validateAndDeleteHost()).to.be.false;
-      App.supports.deleteHost = true;
-    });
     it('masterComponents exist', function () {
       controller.set('mockHostComponentsInfo', {masterComponents: [
         {}

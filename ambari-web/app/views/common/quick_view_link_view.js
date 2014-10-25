@@ -221,17 +221,15 @@ App.QuickViewLinks = Em.View.extend({
           return item.host_components.someProperty('HostRoles.component_name', 'HBASE_MASTER');
         });
         var activeMaster, standbyMasters, otherMasters;
-        if (App.supports.multipleHBaseMasters) {
-          activeMaster = masterComponents.filter(function (item) {
-            return item.host_components.someProperty('metrics.hbase.master.IsActiveMaster', 'true');
-          });
-          standbyMasters = masterComponents.filter(function (item) {
-            return item.host_components.someProperty('metrics.hbase.master.IsActiveMaster', 'false');
-          });
-          otherMasters = masterComponents.filter(function (item) {
-            return !(item.host_components.someProperty('metrics.hbase.master.IsActiveMaster', 'true') || item.host_components.someProperty('metrics.hbase.master.IsActiveMaster', 'false'));
-          });
-        }
+        activeMaster = masterComponents.filter(function (item) {
+          return item.host_components.someProperty('metrics.hbase.master.IsActiveMaster', 'true');
+        });
+        standbyMasters = masterComponents.filter(function (item) {
+          return item.host_components.someProperty('metrics.hbase.master.IsActiveMaster', 'false');
+        });
+        otherMasters = masterComponents.filter(function (item) {
+          return !(item.host_components.someProperty('metrics.hbase.master.IsActiveMaster', 'true') || item.host_components.someProperty('metrics.hbase.master.IsActiveMaster', 'false'));
+        });
         if (masterComponents.length > 1) {
           // need all hbase_masters hosts in quick links
           if (activeMaster) {
@@ -389,7 +387,6 @@ App.QuickViewLinks = Em.View.extend({
       case "oozie":
       case "ganglia":
       case "nagios":
-      case "hue":
       case "storm":
       case "falcon":
         return "_blank";

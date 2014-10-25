@@ -168,21 +168,11 @@ App.StackServiceComponent = DS.Model.extend({
     return this.get('minToInstall') == Infinity;
   }.property('stackService','isSlave'),
 
-  /** components that are not to be installed with ambari server **/
-  isNotPreferableOnAmbariServerHost: function() {
-    var service = ['STORM_UI_SERVER', 'DRPC_SERVER', 'STORM_REST_API', 'NIMBUS', 'GANGLIA_SERVER', 'NAGIOS_SERVER', 'HUE_SERVER'];
-    return service.contains(this.get('componentName'));
-  }.property('componentName'),
-
   /** @property {Number} defaultNoOfMasterHosts - default number of master hosts on Assign Master page: **/
   defaultNoOfMasterHosts: function() {
      if (this.get('isMasterAddableInstallerWizard')) {
        return this.get('componentName') == 'ZOOKEEPER_SERVER' ? 3 : this.get('minToInstall');
      }
-  }.property('componentName'),
-
-  selectionSchemeForMasterComponent: function() {
-    return App.StackServiceComponent.selectionScheme(this.get('componentName'));
   }.property('componentName'),
 
   /** @property {Boolean} coHostedComponents - components that are co-hosted with this component **/
@@ -211,31 +201,6 @@ App.StackServiceComponent = DS.Model.extend({
 });
 
 App.StackServiceComponent.FIXTURES = [];
-
-App.StackServiceComponent.selectionScheme = function (componentName){
-  switch (componentName) {
-    case 'NAMENODE' :
-      return {"else": 0};
-    case 'SECONDARY_NAMENODE' :
-      return {"else": 1};
-    case 'HBASE_MASTER':
-      return {"6": 0, "31": 2, "else": 3};
-    case 'JOBTRACKER':
-    case 'HISTORYSERVER':
-    case 'RESOURCEMANAGER':
-    case 'APP_TIMELINE_SERVER':
-      return {"31": 1, "else": 2};
-    case 'OOZIE_SERVER':
-    case 'FALCON_SERVER' :
-      return {"6": 1, "31": 2, "else": 3};
-    case 'HIVE_SERVER' :
-    case 'HIVE_METASTORE' :
-    case 'WEBHCAT_SERVER' :
-      return {"6": 1, "31": 2, "else": 4};
-    default:
-      return {"else": 0};
-  }
-};
 
 App.StackServiceComponent.coHost = {
   'HIVE_METASTORE': 'HIVE_SERVER',

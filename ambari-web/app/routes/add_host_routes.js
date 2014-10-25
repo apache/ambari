@@ -197,11 +197,7 @@ module.exports = App.WizardRoute.extend({
       wizardStep6Controller.callValidation(function() {
         wizardStep6Controller.showValidationIssuesAcceptBox(function() {
           addHostController.saveSlaveComponentHosts(wizardStep6Controller);
-          if(App.supports.hostOverrides){
-            router.transitionTo('step4');
-          }else{
-            router.transitionTo('step5');
-          }
+          router.transitionTo('step4');
         });
       });
     }

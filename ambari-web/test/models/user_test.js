@@ -103,8 +103,6 @@ describe('App.EditUserForm', function () {
             return {
               getLoginName: Em.K
             };
-          case 'supports.ldapGroupMapping':
-            return true;
           default:
             return Em.get(App, k);
         }
@@ -126,9 +124,8 @@ describe('App.EditUserForm', function () {
 
     it('should disable', function () {
       form.set('object', objectData);
-      expect(form.get('field.admin.disabled')).to.be.true;
+      expect(form.get('field.admin.disabled')).to.be.false;
     });
-
   });
 
   describe('#isValid', function () {

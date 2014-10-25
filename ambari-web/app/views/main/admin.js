@@ -33,13 +33,11 @@ App.MainAdminView = Em.View.extend({
       url: 'adminServiceAccounts',
       label: Em.I18n.t('common.serviceAccounts')
     });
-    if (App.supports.secureCluster) {
-      items.push({
-        name: 'security',
-        url: 'adminSecurity.index',
-        label: Em.I18n.t('common.security')
-      });
-    }
+    items.push({
+      name: 'security',
+      url: 'adminSecurity.index',
+      label: Em.I18n.t('common.security')
+    });
     return items;
   }.property(''),
 

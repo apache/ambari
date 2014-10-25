@@ -365,7 +365,7 @@ App.ServiceConfigRadioButtons = Ember.View.extend({
    *
    * @method handleDBConnectionProperty
    **/
-  handleDBConnectionProperty: function() {
+  handleDBConnectionProperty: function () {
     if (!['addServiceController', 'installerController'].contains(App.clusterStatus.wizardControllerName)) return;
     var handledProperties = ['oozie_database', 'hive_database'];
     var currentValue = this.get('serviceConfig.value');
@@ -375,16 +375,16 @@ App.ServiceConfigRadioButtons = Ember.View.extend({
     var currentDBType = currentValue.match(databasesTypes)[0];
     var existingDatabase = /existing/gi.test(currentValue);
     // db connection check button show up if existed db selected
-    if (App.supports.databaseConnection) {
-      var propertyAppendTo1 = this.get('categoryConfigsAll').findProperty('displayName', 'Database URL');
-      if (currentDB && existingDatabase) {
-        if (handledProperties.contains(this.get('serviceConfig.name'))) {
-          if (propertyAppendTo1) propertyAppendTo1.set('additionalView', App.CheckDBConnectionView.extend({databaseName: currentDB}));
-        }
-      } else {
-        propertyAppendTo1.set('additionalView', null);
+
+    var propertyAppendTo1 = this.get('categoryConfigsAll').findProperty('displayName', 'Database URL');
+    if (currentDB && existingDatabase) {
+      if (handledProperties.contains(this.get('serviceConfig.name'))) {
+        if (propertyAppendTo1) propertyAppendTo1.set('additionalView', App.CheckDBConnectionView.extend({databaseName: currentDB}));
       }
+    } else {
+      propertyAppendTo1.set('additionalView', null);
     }
+
     // warning msg under database type radio buttons, to warn the user to setup jdbc driver if existed db selected
     var propertyHive = this.get('categoryConfigsAll').findProperty('displayName', 'Hive Database');
     var propertyOozie = this.get('categoryConfigsAll').findProperty('displayName', 'Oozie Database');

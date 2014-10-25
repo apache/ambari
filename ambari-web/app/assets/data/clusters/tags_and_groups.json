@@ -29,9 +29,6 @@
       "hive-site" : {
         "tag" : "version1"
       },
-      "hue-site" : {
-        "tag" : "version1"
-      },
       "capacity-scheduler" : {
         "tag" : "version1"
       },

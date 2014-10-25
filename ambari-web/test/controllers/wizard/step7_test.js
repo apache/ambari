@@ -935,36 +935,16 @@ describe('App.InstallerStep7Controller', function () {
     });
     Em.A([
         {
-          hostOverridesInstaller: false,
           installedServiceNames: [],
-          m: 'hostOverridesInstaller is false, installedServiceNames is empty',
-          e: {
-            loadConfigGroups: false,
-            loadInstalledServicesConfigGroups: false
-          }
-        },
-        {
-          hostOverridesInstaller: false,
-          installedServiceNames: ['s1', 's2'],
-          m: 'hostOverridesInstaller is false, installedServiceNames is n\'t empty',
-          e: {
-            loadConfigGroups: false,
-            loadInstalledServicesConfigGroups: false
-          }
-        },
-        {
-          hostOverridesInstaller: true,
-          installedServiceNames: [],
-          m: 'hostOverridesInstaller is true, installedServiceNames is empty',
+          m: 'installedServiceNames is empty',
           e: {
             loadConfigGroups: true,
             loadInstalledServicesConfigGroups: false
           }
         },
         {
-          hostOverridesInstaller: true,
           installedServiceNames: ['s1', 's2', 's3'],
-          m: 'hostOverridesInstaller is true, installedServiceNames isn\'t empty',
+          m: 'installedServiceNames isn\'t empty',
           e: {
             loadConfigGroups: true,
             loadInstalledServicesConfigGroups: true
@@ -1101,14 +1081,7 @@ describe('App.InstallerStep7Controller', function () {
         allSelectedServiceNames: ['YARN'],
         fileConfigsIntoTextarea: true,
         m: 'should run fileConfigsIntoTextarea and resolveServiceDependencyConfigs',
-        resolveServiceDependencyConfigs: true,
-        capacitySchedulerUi: false
-      },
-      {
-        allSelectedServiceNames: ['YARN'],
-        m: 'shouldn\'t run fileConfigsIntoTextarea but  run resolveServiceDependencyConfigs',
-        resolveServiceDependencyConfigs: true,
-        capacitySchedulerUi: true
+        resolveServiceDependencyConfigs: true
       },
       {
         allSelectedServiceNames: ['STORM'],
@@ -1117,10 +1090,6 @@ describe('App.InstallerStep7Controller', function () {
       }
     ]).forEach(function(t) {
       it(t.m, function () {
-        sinon.stub(App, 'get', function (k) {
-          if (k === 'supports.capacitySchedulerUi') return t.capacitySchedulerUi;
-          return Em.get(App, k);
-        });
         installerStep7Controller.reopen({
           allSelectedServiceNames: t.allSelectedServiceNames
         });
@@ -1135,7 +1104,6 @@ describe('App.InstallerStep7Controller', function () {
         } else {
           expect(installerStep7Controller.resolveServiceDependencyConfigs.calledOnce).to.equal(false);
         }
-        App.get.restore();
       });
     });
   });

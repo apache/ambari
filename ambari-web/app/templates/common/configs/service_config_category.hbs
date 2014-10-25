@@ -31,14 +31,14 @@
             <span {{bindAttr class="errorMessage:error: :control-group :control-label-span"}}>
               <label class="control-label">
                 {{formatWordBreak displayName}}
-                {{#if App.supports.secureCluster}}
-                  {{#if isSecureConfig}}
-                    <a href="javascript:void(null);"><i class="icon-lock" rel="tooltip" data-toggle="tooltip" title="security knob"></i></a>
-                  {{/if}}
+                {{#if isSecureConfig}}
+                  <a href="javascript:void(null);"><i class="icon-lock" rel="tooltip" data-toggle="tooltip"
+                                                      title="security knob"></i></a>
                 {{/if}}
                 {{#if view.supportsHostOverrides}}
                   {{#if isRestartRequired}}
-                    <i class="icon-refresh restart-required-property" rel="tooltip" {{bindAttr title="restartRequiredMessage"}}></i>
+                    <i class="icon-refresh restart-required-property"
+                       rel="tooltip" {{bindAttr title="restartRequiredMessage"}}></i>
                   {{/if}}
                 {{/if}}
               </label>

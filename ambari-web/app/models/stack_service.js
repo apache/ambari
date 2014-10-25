@@ -189,7 +189,6 @@ App.StackService.displayOrder = [
   'SQOOP',
   'OOZIE',
   'ZOOKEEPER',
-  'HUE',
   'FALCON',
   'STORM',
   'FLUME'
@@ -252,7 +251,7 @@ App.StackService.configCategories = function () {
         App.ServiceConfigCategory.create({ name: 'NODEMANAGER', displayName: 'Node Manager'}),
         App.ServiceConfigCategory.create({ name: 'APP_TIMELINE_SERVER', displayName: 'Application Timeline Server'}),
         App.ServiceConfigCategory.create({ name: 'General', displayName: 'General'}),
-        App.ServiceConfigCategory.create({ name: 'CapacityScheduler', displayName: 'Scheduler', isCustomView: true, siteFileName: 'capacity-scheduler.xml'})
+        App.ServiceConfigCategory.create({ name: 'CapacityScheduler', displayName: 'Scheduler', siteFileName: 'capacity-scheduler.xml'})
       ]);
       break;
     case 'MAPREDUCE2':

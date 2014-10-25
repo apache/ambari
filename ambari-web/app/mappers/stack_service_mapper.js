@@ -77,23 +77,20 @@ App.stackServiceMapper = App.QuickDataMapper.create({
     var stackServiceComponents = [];
     this.rearrangeServicesForDisplayOrder(json.items, App.StackService.displayOrder);
     json.items.forEach(function (item) {
-      //@TODO: Remove the condition when Flume becomes supported service in any stack
-      if (item.StackServices.service_name !== 'FLUME' || App.supports.flume) {
-        var stackService = item.StackServices;
-        var serviceComponents = [];
-        item.serviceComponents.forEach(function (serviceComponent) {
-          var dependencies = serviceComponent.dependencies.map(function(dependecy) {
-            return { Dependencies: App.keysUnderscoreToCamelCase(App.permit(dependecy.Dependencies, ['component_name', 'scope'])) };
-          });
-          serviceComponent.StackServiceComponents.id = serviceComponent.StackServiceComponents.component_name;
-          serviceComponent.StackServiceComponents.dependencies = dependencies;
-          serviceComponents.push(serviceComponent.StackServiceComponents);
-          stackServiceComponents.push(this.parseIt(serviceComponent.StackServiceComponents, this.get('component_config')));
-        }, this);
-        stackService.stack_id = stackService.stack_name + '-' + stackService.stack_version;
-        stackService.service_components = serviceComponents;
-        result.push(this.parseIt(stackService, this.get('config')));
-      }
+      var stackService = item.StackServices;
+      var serviceComponents = [];
+      item.serviceComponents.forEach(function (serviceComponent) {
+        var dependencies = serviceComponent.dependencies.map(function (dependecy) {
+          return { Dependencies: App.keysUnderscoreToCamelCase(App.permit(dependecy.Dependencies, ['component_name', 'scope'])) };
+        });
+        serviceComponent.StackServiceComponents.id = serviceComponent.StackServiceComponents.component_name;
+        serviceComponent.StackServiceComponents.dependencies = dependencies;
+        serviceComponents.push(serviceComponent.StackServiceComponents);
+        stackServiceComponents.push(this.parseIt(serviceComponent.StackServiceComponents, this.get('component_config')));
+      }, this);
+      stackService.stack_id = stackService.stack_name + '-' + stackService.stack_version;
+      stackService.service_components = serviceComponents;
+      result.push(this.parseIt(stackService, this.get('config')));
     }, this);
     App.store.loadMany(this.get('component_model'), stackServiceComponents);
     App.store.loadMany(model, result);

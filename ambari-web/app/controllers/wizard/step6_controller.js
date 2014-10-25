@@ -409,52 +409,35 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
     var clientHeaders = headers.findProperty('name', 'CLIENT');
     var slaveComponents = this.get('content.slaveComponentHosts');
     if (!slaveComponents) { // we are at this page for the first time
-      if (!App.get('supports.serverRecommendValidate')) {
-        hostsObj.forEach(function (host) {
-          var checkboxes = host.get('checkboxes');
-          checkboxes.setEach('checked', !host.hasMaster);
-          checkboxes.setEach('isInstalled', false);
-          if (clientHeaders) {
-            checkboxes.findProperty('title', clientHeaders.get('label')).set('checked', false);
-          }
-        });
-        this.selectClientHost(hostsObj);
-
-        if (this.get('isInstallerWizard') && hostsObj.everyProperty('hasMaster', true)) {
-          var lastHost = hostsObj[hostsObj.length - 1];
-          lastHost.get('checkboxes').setEach('checked', true);
-        }
-      } else {
-        var recommendations = this.get('content.recommendations');
-        // Get all host-component pairs from recommendations
-        var componentHostPairs = recommendations.blueprint.host_groups.map(function (group) {
-          return group.components.map(function (component) {
-            return recommendations.blueprint_cluster_binding.host_groups.findProperty('name', group.name).hosts.map(function (host) {
-              return { component: component.name, host: host.fqdn};
-            });
+      var recommendations = this.get('content.recommendations');
+      // Get all host-component pairs from recommendations
+      var componentHostPairs = recommendations.blueprint.host_groups.map(function (group) {
+        return group.components.map(function (component) {
+          return recommendations.blueprint_cluster_binding.host_groups.findProperty('name', group.name).hosts.map(function (host) {
+            return { component: component.name, host: host.fqdn};
           });
         });
+      });
 
-        // Flatten results twice because of two map() call before
-        componentHostPairs = [].concat.apply([], componentHostPairs);
-        componentHostPairs = [].concat.apply([], componentHostPairs);
+      // Flatten results twice because of two map() call before
+      componentHostPairs = [].concat.apply([], componentHostPairs);
+      componentHostPairs = [].concat.apply([], componentHostPairs);
 
-        var clientComponents = App.get('components.clients');
+      var clientComponents = App.get('components.clients');
 
-        hostsObj.forEach(function (host) {
-          var checkboxes = host.get('checkboxes');
-          checkboxes.forEach(function (checkbox) {
-            var recommended = componentHostPairs.some(function (pair) {
-              var componentMatch = pair.component === checkbox.component;
-              if (checkbox.component === 'CLIENT' && !componentMatch) {
-                componentMatch = clientComponents.contains(pair.component);
-              }
-              return pair.host === host.hostName && componentMatch;
-            });
-            checkbox.checked = recommended;
+      hostsObj.forEach(function (host) {
+        var checkboxes = host.get('checkboxes');
+        checkboxes.forEach(function (checkbox) {
+          var recommended = componentHostPairs.some(function (pair) {
+            var componentMatch = pair.component === checkbox.component;
+            if (checkbox.component === 'CLIENT' && !componentMatch) {
+              componentMatch = clientComponents.contains(pair.component);
+            }
+            return pair.host === host.hostName && componentMatch;
           });
+          checkbox.checked = recommended;
         });
-      }
+      });
     } else {
       this.get('headers').forEach(function (header) {
         var nodes = slaveComponents.findProperty('componentName', header.get('name'));
@@ -526,16 +509,7 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
   },
 
   callValidation: function (successCallback) {
-    var self = this;
-    if (App.get('supports.serverRecommendValidate')) {
-      self.callServerSideValidation(successCallback);
-    } else {
-      var res = self.callClientSideValidation();
-      self.set('submitDisabled', !res);
-      if (res && successCallback) {
-        successCallback();
-      }
-    }
+    this.callServerSideValidation(successCallback);
   },
 
   /**
@@ -789,110 +763,13 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
   },
 
   /**
-   * callClientSideValidation form. Return do we have errors or not
-   * @return {bool}
-   * @method callClientSideValidation
-   */
-  callClientSideValidation: function () {
-    if (this.get('isAddHostWizard')) {
-      return this.validateEachHost(Em.I18n.t('installer.step6.error.mustSelectOneForHost'));
-    }
-    else {
-      if (this.get('isInstallerWizard')) {
-        return this.validateEachComponent() && this.validateEachHost(Em.I18n.t('installer.step6.error.mustSelectOneForSlaveHost'));
-      }
-      else {
-        if (this.get('isAddServiceWizard')) {
-          return this.validateEachComponent();
-        }
-        return true;
-      }
-    }
-  },
-
-  /**
-   * Validate all components for each host. Return do we have errors or not
-   * @return {bool}
-   * @method validateEachHost
-   */
-  validateEachHost: function (errorMsg) {
-
-    var isError = false;
-    var hosts = this.get('hosts');
-    var headers = this.get('headers');
-    for (var i = 0; i < hosts.length; i++) {
-      if (this.get('isInstallerWizard') && this.get('content.masterComponentHosts').someProperty('hostName', hosts[i].hostName)) {
-        continue;
-      }
-      var checkboxes = hosts[i].get('checkboxes');
-      isError = false;
-      headers.forEach(function (header) {
-        isError = isError || checkboxes.findProperty('title', header.get('label')).checked;
-      });
-      isError = !isError;
-      if (isError) {
-        this.set('errorMessage', errorMsg);
-        break;
-      }
-    }
-    return !isError;
-  },
-
-  /**
-   * Check for minimum required count of components to install.
-   *
-   * @return {bool}
-   * @method validateEachComponent
-   */
-  validateEachComponent: function () {
-    var isError = false;
-    var hosts = this.get('hosts');
-    var headers = this.get('headers');
-    var componentsToInstall = [];
-    headers.forEach(function (header) {
-      var checkboxes = hosts.mapProperty('checkboxes').reduce(function (cItem, pItem) {
-        return cItem.concat(pItem);
-      });
-      var selectedCount = checkboxes.filterProperty('component', header.get('name')).filterProperty('checked').length;
-      if (header.get('name') == 'CLIENT') {
-        var clientsMinCount = 0;
-        var serviceNames = this.get('installedServiceNames').concat(this.get('content.selectedServiceNames'));
-        // find max value for `minToInstall` property
-        serviceNames.forEach(function (serviceName) {
-          App.StackServiceComponent.find().filterProperty('stackService.serviceName', serviceName).filterProperty('isClient')
-            .mapProperty('minToInstall').forEach(function (ctMinCount) {
-              clientsMinCount = ctMinCount > clientsMinCount ? ctMinCount : clientsMinCount;
-            });
-        });
-        if (selectedCount < clientsMinCount) {
-          isError = true;
-          var requiredQuantity = (clientsMinCount > hosts.length ? hosts.length : clientsMinCount) - selectedCount;
-          componentsToInstall.push(requiredQuantity + ' ' + stringUtils.pluralize(requiredQuantity, Em.I18n.t('common.client')));
-        }
-      } else {
-        var stackComponent = App.StackServiceComponent.find().findProperty('componentName', header.get('name'));
-        if (selectedCount < stackComponent.get('minToInstall')) {
-          isError = true;
-          var requiredQuantity = (stackComponent.get('minToInstall') > hosts.length ? hosts.length : stackComponent.get('minToInstall')) - selectedCount;
-          componentsToInstall.push(requiredQuantity + ' ' + stringUtils.pluralize(requiredQuantity, stackComponent.get('displayName')));
-        }
-      }
-    }, this);
-    if (componentsToInstall.length) {
-      this.set('errorMessage', Em.I18n.t('installer.step6.error.mustSelectComponents').format(componentsToInstall.join(', ')));
-    }
-
-    return !isError;
-  },
-
-  /**
    * In case of any validation issues shows accept dialog box for user which allow cancel and fix issues or continue anyway
    * @metohd submit
    */
   showValidationIssuesAcceptBox: function(callback) {
     var self = this;
 
-    if (App.get('supports.serverRecommendValidate') && (self.get('anyWarnings') || self.get('anyErrors'))) {
+    if (self.get('anyWarnings') || self.get('anyErrors')) {
       App.ModalPopup.show({
         primary: Em.I18n.t('common.continueAnyway'),
         header: Em.I18n.t('installer.step6.validationIssuesAttention.header'),

@@ -1138,7 +1138,7 @@ describe('App.InstallerStep9Controller', function () {
       expect(App.ajax.send.called).to.equal(false);
     });
     it('should call App.ajax.send', function () {
-      c.set('content', {cluster: {name: 'n'}, controllerName: 'installerController'});
+      c.set('content', Ember.Object.create({cluster: {name: 'n'}, controllerName: 'installerController'}));
       c.isAllComponentsInstalled();
       expect(App.ajax.send.args[0][0].data).to.eql({cluster: 'n'});
     });

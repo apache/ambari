@@ -321,13 +321,9 @@ App.ClusterController = Em.Controller.extend({
 
         updater.updateServiceMetric(function () {
 
-          if (App.supports.hostOverrides) {
-            updater.updateComponentConfig(function () {
-              self.updateLoadStatus('componentConfigs');
-            });
-          } else {
+          updater.updateComponentConfig(function () {
             self.updateLoadStatus('componentConfigs');
-          }
+          });
 
           updater.updateComponentsState(function () {
             self.updateLoadStatus('componentsState');

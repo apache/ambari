@@ -99,7 +99,7 @@ App.ServerValidatorMixin = Em.Mixin.create({
    * @returns {*}
    */
   loadServerSideConfigsRecommendations: function() {
-    if (this.get('recommendationsConfigs') || !App.get('supports.serverRecommendValidate')) {
+    if (this.get('recommendationsConfigs')) {
       return $.Deferred().resolve();
     }
     return App.ajax.send({
@@ -136,15 +136,11 @@ App.ServerValidatorMixin = Em.Mixin.create({
 
   serverSideValidation: function () {
     var deferred = $.Deferred();
-    if (!App.get('supports.serverRecommendValidate')) {
-      deferred.resolve();
+    this.set('configValidationFailed', false);
+    if (this.get('configValidationFailed')) {
+      this.warnUser(deferred);
     } else {
-      this.set('configValidationFailed', false);
-      if (this.get('configValidationFailed')) {
-        this.warnUser(deferred);
-      } else {
-        this.runServerSideValidation(deferred);
-      }
+      this.runServerSideValidation(deferred);
     }
     return deferred;
   },

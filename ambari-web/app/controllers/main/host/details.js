@@ -1498,9 +1498,6 @@ App.MainHostDetailsController = Em.Controller.extend({
    * @method validateAndDeleteHost
    */
   validateAndDeleteHost: function () {
-    if (!App.supports.deleteHost) {
-      return false;
-    }
     var container = this.getHostComponentsInfo();
 
     if (container.masterComponents.length > 0) {

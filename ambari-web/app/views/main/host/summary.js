@@ -245,9 +245,6 @@ App.MainHostSummaryView = Em.View.extend({
    * @type {String[]}
    */
   installableClientComponents: function() {
-    if (!App.supports.deleteHost) {
-      return [];
-    }
     var clientComponents = App.StackServiceComponent.find().filterProperty('isClient');
     var installedServices = this.get('installedServices');
     var installedClients = this.get('clients').mapProperty('componentName');

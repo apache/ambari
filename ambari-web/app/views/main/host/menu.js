@@ -22,18 +22,17 @@ App.MainHostMenuView = Em.CollectionView.extend({
   tagName: 'ul',
   classNames: ["nav", "nav-tabs"],
   content: function () {
-    var array = [ {
-      label: 'Summary',
-      routing: 'summary'
-    }
-    /* { label:'Audit', routing:'audit'} */
+    var array = [
+      {
+        label: 'Summary',
+        routing: 'summary'
+      }
+      /* { label:'Audit', routing:'audit'} */
     ];
-    if (App.supports.hostOverridesHost) {
-      array.push({
-        label: 'Configs',
-        routing: 'configs'
-      });
-    }
+    array.push({
+      label: 'Configs',
+      routing: 'configs'
+    });
     return array;
   }.property(''),
 

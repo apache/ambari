@@ -50,38 +50,8 @@ App.healthIconClassYellow = 'icon-question-sign'; // bootstrap icon class for he
 App.enableExperimental = false;
 
 App.supports = {
-  addServices: true,
-  hostOverrides: true,
-  hostOverridesInstaller: true,
-  hostOverridesHost: true,
-  mirroring: false,
-  secureCluster: true,
-  secureClusterProceedPopup: false,
-  reassignMaster: true,
   stackUpgrade: false,
-  capacitySchedulerUi: false,
-  startStopAllServices: true,
-  hiveOozieExtraDatabases: true,
-  multipleHBaseMasters: true,
-  addMasters: false,
-  customizeSmokeTestUser: true,
-  hue: false,
-  falcon: true,
-  ldapGroupMapping: false,
-  localRepositories: true,
-  highAvailability: true,
-  resourceManagerHighAvailability: true,
-  deleteHost: true,
-  autoRollbackHA: false,
-  appTimelineServer: true,
-  ubuntu: true,
-  views: true,
-  flume: true,
-  databaseConnection: true,
-  configHistory: true,
-  serverRecommendValidate: true,
-  downloadClientConfigs: true,
-  abortRequests: true
+  autoRollbackHA: false
 };
 
 if (App.enableExperimental) {

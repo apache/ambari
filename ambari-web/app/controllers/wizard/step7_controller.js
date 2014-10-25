@@ -323,37 +323,35 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
     this.set('loadedClusterSiteToTagMap', siteToTagMap);
 
     //parse loaded config groups
-    if (App.get('supports.hostOverrides')) {
-      var configGroups = [];
-      if (data.config_groups.length) {
-        data.config_groups.forEach(function (item) {
-          item = item.ConfigGroup;
-          if (item.tag === serviceName) {
-            var groupHosts = item.hosts.mapProperty('host_name');
-            var newConfigGroup = App.ConfigGroup.create({
-              id: item.id,
-              name: item.group_name,
-              description: item.description,
-              isDefault: false,
-              parentConfigGroup: null,
-              service: App.Service.find().findProperty('serviceName', item.tag),
-              hosts: groupHosts,
-              publicHosts: manageCGController.hostsToPublic(groupHosts),
-              configSiteTags: []
-            });
-            groupHosts.forEach(function (host) {
-              defaultConfigGroupHosts = defaultConfigGroupHosts.without(host);
-            }, this);
-            item.desired_configs.forEach(function (config) {
-              newConfigGroup.configSiteTags.push(App.ConfigSiteTag.create({
-                site: config.type,
-                tag: config.tag
-              }));
-            }, this);
-            configGroups.push(newConfigGroup);
-          }
-        }, this);
-      }
+    var configGroups = [];
+    if (data.config_groups.length) {
+      data.config_groups.forEach(function (item) {
+        item = item.ConfigGroup;
+        if (item.tag === serviceName) {
+          var groupHosts = item.hosts.mapProperty('host_name');
+          var newConfigGroup = App.ConfigGroup.create({
+            id: item.id,
+            name: item.group_name,
+            description: item.description,
+            isDefault: false,
+            parentConfigGroup: null,
+            service: App.Service.find().findProperty('serviceName', item.tag),
+            hosts: groupHosts,
+            publicHosts: manageCGController.hostsToPublic(groupHosts),
+            configSiteTags: []
+          });
+          groupHosts.forEach(function (host) {
+            defaultConfigGroupHosts = defaultConfigGroupHosts.without(host);
+          }, this);
+          item.desired_configs.forEach(function (config) {
+            newConfigGroup.configSiteTags.push(App.ConfigSiteTag.create({
+              site: config.type,
+              tag: config.tag
+            }));
+          }, this);
+          configGroups.push(newConfigGroup);
+        }
+      }, this);
     }
     var defaultConfigGroup = App.ConfigGroup.create({
       name: App.format.role(serviceName) + " Default",
@@ -621,13 +619,6 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
     var s = App.StackService.find(component.get('serviceName')),
       defaultGroupSelected = component.get('selectedConfigGroup.isDefault');
 
-    if(!App.get('supports.serverRecommendValidate')) {
-      if (s && s.get('configsValidator')) {
-        var recommendedDefaults = this._getRecommendedDefaultsForComponent(component.get('serviceName'));
-        s.get('configsValidator').set('recommendedDefaults', recommendedDefaults);
-      }
-    }
-
     configs.forEach(function (serviceConfigProperty) {
       if (!serviceConfigProperty) return;
 
@@ -767,7 +758,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
   },
 
   applyServicesConfigs: function (configs, storedConfigs) {
-    if (this.get('allSelectedServiceNames').contains('YARN') && !App.get('supports.capacitySchedulerUi')) {
+    if (this.get('allSelectedServiceNames').contains('YARN')) {
       configs = App.config.fileConfigsIntoTextarea(configs, 'capacity-scheduler.xml');
     }
     var dependendServices = ["STORM", "YARN"];
@@ -795,11 +786,9 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
    * @method checkHostOverrideInstaller
    */
   checkHostOverrideInstaller: function () {
-    if (App.get('supports.hostOverridesInstaller')) {
-      this.loadConfigGroups(this.get('content.configGroups'));
-      if (this.get('installedServiceNames').length > 0) {
-        this.loadInstalledServicesConfigGroups(this.get('installedServiceNames'));
-      }
+    this.loadConfigGroups(this.get('content.configGroups'));
+    if (this.get('installedServiceNames').length > 0) {
+      this.loadInstalledServicesConfigGroups(this.get('installedServiceNames'));
     }
   },
 
@@ -1020,7 +1009,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
    * @method selectedServiceObserver
    */
   selectedServiceObserver: function () {
-    if (App.supports.hostOverridesInstaller && this.get('selectedService') && (this.get('selectedService.serviceName') !== 'MISC')) {
+    if (this.get('selectedService') && (this.get('selectedService.serviceName') !== 'MISC')) {
       var serviceGroups = this.get('selectedService.configGroups');
       serviceGroups.forEach(function (item, index, array) {
         if (item.isDefault) {
@@ -1304,10 +1293,6 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
 
   checkDatabaseConnectionTest: function () {
     var deferred = $.Deferred();
-    if (!App.supports.databaseConnection) {
-      deferred.resolve();
-      return deferred;
-    }
     var configMap = [
       {
         serviceName: 'OOZIE',

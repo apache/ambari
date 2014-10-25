@@ -323,9 +323,7 @@ module.exports = Em.Route.extend({
       var controller = router.get('installerController');
       var wizardStep7Controller = router.get('wizardStep7Controller');
       controller.saveServiceConfigProperties(wizardStep7Controller);
-      if (App.supports.hostOverridesInstaller) {
-        controller.saveServiceConfigGroups(wizardStep7Controller);
-      }
+      controller.saveServiceConfigGroups(wizardStep7Controller);
       controller.setDBProperty('recommendationsConfigs', wizardStep7Controller.get('recommendationsConfigs'));
       router.transitionTo('step8');
     }

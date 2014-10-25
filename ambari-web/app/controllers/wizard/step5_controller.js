@@ -249,7 +249,7 @@ App.WizardStep5Controller = Em.Controller.extend(App.BlueprintMixin, {
       return false;
     }
 
-    if (App.get('supports.serverRecommendValidate') && this.get('useServerValidation')) {
+    if (this.get('useServerValidation')) {
       self.set('submitDisabled', true);
 
       // reset previous recommendations
@@ -419,11 +419,7 @@ App.WizardStep5Controller = Em.Controller.extend(App.BlueprintMixin, {
     console.log("WizardStep5Controller: Loading step5: Assign Masters");
     this.clearStep();
     this.renderHostInfo();
-    if (App.get('supports.serverRecommendValidate')) {
-      this.loadComponentsRecommendationsFromServer(this.loadStepCallback);
-    } else {
-      this.loadComponentsRecommendationsLocally(this.loadStepCallback);
-    }
+    this.loadComponentsRecommendationsFromServer(this.loadStepCallback);
   },
 
   /**
@@ -672,84 +668,6 @@ App.WizardStep5Controller = Em.Controller.extend(App.BlueprintMixin, {
   },
 
   /**
-   * Load services info to appropriate variable and return masterComponentHosts
-   * @return {Object[]}
-   */
-  loadComponentsRecommendationsLocally: function (callback) {
-    var selectedServices = App.StackService.find().filterProperty('isSelected').mapProperty('serviceName');
-    var installedServices = App.StackService.find().filterProperty('isInstalled').mapProperty('serviceName');
-    var services = installedServices.concat(selectedServices).uniq();
-    var selectedNotInstalledServices = this.get('content.services').filterProperty('isSelected').filterProperty('isInstalled', false).mapProperty('serviceName');
-
-    var masterComponents = [];
-    //get full list from mock data
-    if (this.get('isAddServiceWizard')) {
-      masterComponents = App.StackServiceComponent.find().filterProperty('isShownOnAddServiceAssignMasterPage');
-    } else {
-      masterComponents = App.StackServiceComponent.find().filterProperty('isShownOnInstallerAssignMasterPage');
-    }
-    var masterHosts = this.get('content.masterComponentHosts'); //saved to local storage info
-
-    var resultComponents = [];
-
-    for (var index = 0; index < services.length; index++) {
-      var componentInfo = masterComponents.filterProperty('serviceName', services[index]);
-      // If service is already installed and not being added as a new service then render on UI only those master components
-      // that have already installed hostComponents.
-      // NOTE: On upgrade there might be a prior installed service with non-installed newly introduced serviceComponent
-      var isNotSelectedService = !selectedNotInstalledServices.contains(services[index]);
-      if (isNotSelectedService) {
-        componentInfo = componentInfo.filter(function (_component) {
-          return App.HostComponent.find().someProperty('componentName',_component.get('componentName'));
-        });
-      }
-
-      componentInfo.forEach(function (_componentInfo) {
-        if (this.get('multipleComponents').contains(_componentInfo.get('componentName'))) {
-          var savedComponents = masterHosts.filterProperty('component', _componentInfo.get('componentName'));
-          if (savedComponents.length) {
-            savedComponents.forEach(function (item) {
-              var multipleMasterHost = {};
-              multipleMasterHost.component_name = _componentInfo.get('componentName');
-              multipleMasterHost.display_name = _componentInfo.get('displayName');
-              multipleMasterHost.selectedHost = item.hostName;
-              multipleMasterHost.serviceId = services[index];
-              multipleMasterHost.isInstalled = item.isInstalled;
-              multipleMasterHost.isServiceCoHost = false;
-              resultComponents.push(multipleMasterHost);
-            })
-          } else {
-            var multipleMasterHosts = this.selectHostLocally(_componentInfo.get('componentName'));
-            multipleMasterHosts.forEach(function (_host) {
-              var multipleMasterHost = {};
-              multipleMasterHost.component_name = _componentInfo.get('componentName');
-              multipleMasterHost.display_name = _componentInfo.get('displayName');
-              multipleMasterHost.selectedHost = _host;
-              multipleMasterHost.serviceId = services[index];
-              multipleMasterHost.isInstalled = false;
-              multipleMasterHost.isServiceCoHost = false;
-              resultComponents.push(multipleMasterHost);
-            });
-
-          }
-        } else {
-          var savedComponent = masterHosts.findProperty('component', _componentInfo.get('componentName'));
-          var componentObj = {};
-          componentObj.component_name = _componentInfo.get('componentName');
-          componentObj.display_name = _componentInfo.get('displayName');
-          componentObj.selectedHost = savedComponent ? savedComponent.hostName : this.selectHostLocally(_componentInfo.get('componentName'));   // call the method that plays selectNode algorithm or fetches from server
-          componentObj.isInstalled = savedComponent ? savedComponent.isInstalled : false;
-          componentObj.serviceId = services[index];
-          componentObj.isServiceCoHost = App.StackServiceComponent.find().findProperty('componentName', _componentInfo.get('componentName')).get('isCoHostedComponent') && !this.get('isReassignWizard');
-          resultComponents.push(componentObj);
-        }
-      }, this);
-    }
-
-    callback(resultComponents, this);
-  },
-
-  /**
    * @param {string} componentName
    * @returns {bool}
    * @private
@@ -822,82 +740,6 @@ App.WizardStep5Controller = Em.Controller.extend(App.BlueprintMixin, {
     }, this);
   }.observes('selectedServicesMasters.@each.selectedHost'),
 
-  /**
-   * select and return host for component by scheme
-   * Scheme is an object that has keys which compared to number of hosts,
-   * if key more that number of hosts, then return value of that key.
-   * Value is index of host in hosts array.
-   *
-   * @param {object} componentName
-   * @param {object} hosts
-   * @return {string}
-   * @method getHostForComponent
-   */
-  getHostForComponent: function (componentName, hosts) {
-    var component = App.StackServiceComponent.find().findProperty('componentName', componentName);
-    if (component) {
-      var selectionScheme = App.StackServiceComponent.find().findProperty('componentName', componentName).get('selectionSchemeForMasterComponent');
-    } else {
-      return hosts[0];
-    }
-
-    if (hosts.length === 1 || $.isEmptyObject(selectionScheme)) {
-      return hosts[0];
-    } else {
-      for (var i in selectionScheme) {
-        if (window.isFinite(i)) {
-          if (hosts.length < window.parseInt(i)) {
-            return hosts[selectionScheme[i]];
-          }
-        }
-      }
-      return hosts[selectionScheme['else']]
-    }
-  },
-
-  /**
-   * Get list of host names for master component with multiple instances
-   * @param {Object} component
-   * @param {Object} hosts
-   * @returns {string[]}
-   * @method getHostsForComponent
-   */
-  getHostsForComponent: function (component, hosts) {
-    var defaultNoOfMasterHosts = component.get('defaultNoOfMasterHosts');
-    var masterHosts = [];
-    if (hosts.length < defaultNoOfMasterHosts) {
-      defaultNoOfMasterHosts = hosts.length;
-    }
-    for (var index = 0; index < defaultNoOfMasterHosts; index++) {
-      masterHosts.push(hosts[index]);
-    }
-    return masterHosts;
-  },
-
-  /**
-   * Return hostName of masterNode for specified service
-   * @param componentName
-   * @return {string|string[]}
-   * @method selectHostLocally
-   */
-  selectHostLocally: function (componentName) {
-    var component = App.StackServiceComponent.find().findProperty('componentName', componentName);
-    var hostNames = this.get('hosts').mapProperty('host_name');
-    if (hostNames.length > 1 && App.StackServiceComponent.find().filterProperty('isNotPreferableOnAmbariServerHost').mapProperty('componentName').contains(componentName)) {
-      hostNames = this.get('hosts').mapProperty('host_name').filter(function (item) {
-        return item !== location.hostname;
-      }, this);
-    }
-    if (this.get('multipleComponents').contains(componentName)) {
-      if (component.get('defaultNoOfMasterHosts') > 1) {
-        return this.getHostsForComponent(component, hostNames);
-      } else {
-        return [this.getHostForComponent(componentName, hostNames)];
-      }
-    } else {
-      return this.getHostForComponent(componentName, hostNames);
-    }
-  },
 
   /**
    * On change callback for inputs
@@ -1101,7 +943,7 @@ App.WizardStep5Controller = Em.Controller.extend(App.BlueprintMixin, {
         self.set('submitButtonClicked', false);
       };
 
-      if (App.get('supports.serverRecommendValidate')  && this.get('useServerValidation')) {
+      if (this.get('useServerValidation')) {
         self.recommendAndValidate(function () {
           self.showValidationIssuesAcceptBox(goNextStepIfValid);
         });

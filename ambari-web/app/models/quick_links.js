@@ -282,13 +282,6 @@ App.QuickLinks.FIXTURES = [
     template:'%@://%@/nagios'
   },
   {
-    id:22,
-    label:'Hue Web UI',
-    url:'%@://%@/hue',
-    service_id: 'HUE',
-    template:'%@://%@/hue'
-  },
-  {
     id:23,
     label:'ResourceManager UI',
     url:'%@://%@:%@',

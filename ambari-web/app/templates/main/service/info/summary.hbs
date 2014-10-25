@@ -16,28 +16,31 @@
 * limitations under the License.
 }}
 
-{{#if App.supports.hostOverrides}}
-  {{#if view.service.isRestartRequired}}
-    {{#if App.isAdmin}}
-      <div id="summary-restart-bar">
-        <div class="alert alert-warning clearfix">
-          <i class="icon-refresh"></i> {{{view.needToRestartMessage}}} {{t services.service.config.restartService.needToRestart}}  <a href="#" {{action showComponentsShouldBeRestarted target="view"}}>{{view.componentsCount}} {{pluralize view.componentsCount singular="t:common.component" plural="t:common.components"}}</a> {{t on}} <a href="#" {{action showHostsShouldBeRestarted target="view"}}>{{view.hostsCount}} {{pluralize view.hostsCount singular="t:common.host" plural="t:common.hosts"}}</a>
-          <span class="restart-components pull-right">&nbsp</span>
-          <div class="btn-group pull-right">
-            <button type="button" class="btn btn-default dropdown-toggle btn-warning" data-toggle="dropdown">
-              {{t hosts.host.details.needToRestart.button}}
-                <span class="caret"></span>
-            </button>
-            <ul class="dropdown-menu">
-                <li><a href="#" {{action restartAllStaleConfigComponents target="view"}}>{{t restart.service.all}}</a></li>
-              {{#if view.rollingRestartSlaveComponentName}}
-                  <li><a href="#" {{action rollingRestartStaleConfigSlaveComponents view.rollingRestartSlaveComponentName target="view"}}>{{view.rollingRestartActionName}}</a></li>
-              {{/if}}
-            </ul>
-          </div>
+{{#if view.service.isRestartRequired}}
+  {{#if App.isAdmin}}
+    <div id="summary-restart-bar">
+      <div class="alert alert-warning clearfix">
+        <i class="icon-refresh"></i> {{{view.needToRestartMessage}}} {{t services.service.config.restartService.needToRestart}}
+        <a href="#" {{action showComponentsShouldBeRestarted target="view"}}>{{view.componentsCount}} {{pluralize view.componentsCount singular="t:common.component" plural="t:common.components"}}</a> {{t on}}
+        <a href="#" {{action showHostsShouldBeRestarted target="view"}}>{{view.hostsCount}} {{pluralize view.hostsCount singular="t:common.host" plural="t:common.hosts"}}</a>
+        <span class="restart-components pull-right">&nbsp</span>
+
+        <div class="btn-group pull-right">
+          <button type="button" class="btn btn-default dropdown-toggle btn-warning" data-toggle="dropdown">
+            {{t hosts.host.details.needToRestart.button}}
+            <span class="caret"></span>
+          </button>
+          <ul class="dropdown-menu">
+            <li><a href="#" {{action restartAllStaleConfigComponents target="view"}}>{{t restart.service.all}}</a></li>
+            {{#if view.rollingRestartSlaveComponentName}}
+              <li>
+                <a href="#" {{action rollingRestartStaleConfigSlaveComponents view.rollingRestartSlaveComponentName target="view"}}>{{view.rollingRestartActionName}}</a>
+              </li>
+            {{/if}}
+          </ul>
         </div>
       </div>
-    {{/if}}
+    </div>
   {{/if}}
 {{/if}}
 
@@ -50,9 +53,9 @@
       <div class="service-content">
         <table id="summary-info" class="table no-borders table-condensed">
           <tbody>
-            {{#if view.serviceSummaryView}}
-              {{view view.serviceSummaryView}}
-            {{/if}}
+          {{#if view.serviceSummaryView}}
+            {{view view.serviceSummaryView}}
+          {{/if}}
           </tbody>
         </table>
       </div>
@@ -66,7 +69,8 @@
           {{#if controller.isNagiosInstalled}}
             <div class="btn-group">
               {{#if App.router.clusterController.isNagiosUrlLoaded}}
-                <a class="btn" target="_blank" rel="tooltip" title="Go to Nagios" {{bindAttr href="controller.nagiosUrl"}}><i class="icon-link"></i></a>
+                <a class="btn" target="_blank" rel="tooltip"
+                   title="Go to Nagios" {{bindAttr href="controller.nagiosUrl"}}><i class="icon-link"></i></a>
               {{else}}
                 <div class="spinner"></div>
               {{/if}}
@@ -106,13 +110,15 @@
         <div {{bindAttr class=":accordion collapsedSection.toggleIndex"}}>
           <div class="accordion-group box">
             <div class="accordion-heading box-header">
-              <span class="pull-left accordion-toggle" data-toggle="collapse" {{bindAttr dataParent="collapsedSection.toggleIndex" href="collapsedSection.toggleIndex"}}>
+              <span class="pull-left accordion-toggle"
+                    data-toggle="collapse" {{bindAttr dataParent="collapsedSection.toggleIndex" href="collapsedSection.toggleIndex"}}>
                 <i class="pull-left icon-caret-toggle"></i>
                 <span>{{collapsedSection.header}}</span>
               </span>
               <a class="btn pull-right" {{bindAttr href="collapsedSection.url"}} target="_blank">
                 <i class="icon-link"></i>
               </a>
+
               <div class="clearfix"></div>
             </div>
             <div class="accordion-body collapse in" {{bindAttr id="collapsedSection.id"}}>
@@ -130,38 +136,41 @@
 {{/if}}
 
 {{#if view.serviceMetricGraphs.length}}
-<div class="row-fluid">
-  <div class="span12">
-    <div class="box">
-      <div class="box-header">
-      <h4>{{controller.content.displayName}} {{t services.service.metrics}}</h4>
-        {{#if controller.isGangliaInstalled}}
-          <div class="btn-group">
-            {{#if App.router.clusterController.isGangliaUrlLoaded}}
-              <a class="btn" target="_blank" rel="tooltip" title="Go to Ganglia" {{bindAttr href="view.gangliaUrl"}}><i class="icon-link"></i></a>
-            {{else}}
-              <div class="spinner"></div>
-            {{/if}}
-          </div>
-        {{/if}}
+  <div class="row-fluid">
+    <div class="span12">
+      <div class="box">
+        <div class="box-header">
+          <h4>{{controller.content.displayName}} {{t services.service.metrics}}</h4>
+          {{#if controller.isGangliaInstalled}}
+            <div class="btn-group">
+              {{#if App.router.clusterController.isGangliaUrlLoaded}}
+                <a class="btn" target="_blank" rel="tooltip"
+                   title="Go to Ganglia" {{bindAttr href="view.gangliaUrl"}}><i class="icon-link"></i></a>
+              {{else}}
+                <div class="spinner"></div>
+              {{/if}}
+            </div>
+          {{/if}}
+        </div>
+
+        <div class="">
+          <table class="graphs">
+            {{#each graphs in view.serviceMetricGraphs}}
+              <tr>
+                {{#each graph in graphs}}
+                  <td>
+                    <div class="">
+                      {{view graph}}
+                    </div>
+                  </td>
+                {{/each}}
+              </tr>
+            {{/each}}
+          </table>
+        </div>
+
       </div>
 
-      <div class="">
-        <table class="graphs">
-          {{#each graphs in view.serviceMetricGraphs}}
-            <tr>
-              {{#each graph in graphs}}
-                <td>
-                  <div class="">
-                    {{view graph}}
-                  </div>
-                </td>
-              {{/each}}
-            </tr>
-          {{/each}}
-        </table>
-      </div>
-      
     </div>
   </div>
 </div>

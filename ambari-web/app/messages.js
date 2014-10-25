@@ -629,8 +629,6 @@ Em.I18n.translations = {
   'installer.step6.wizardStep6Host.title':'master components hosted on {0}',
   'installer.step6.addHostWizard.body':'Assign HBase master and ZooKeeper server.',
   'installer.step6.error.mustSelectOneForSlaveHost': 'You must assign at least one slave/client component to each host with no master component',
-  'installer.step6.validationIssuesAttention.header': 'Validation Issues',
-  'installer.step6.validationIssuesAttention': 'Slave and Client component assignments have issues that need attention.',
   'installer.step6.validationSlavesAndClients.hasIssues': 'Your slave and client assignment has issues. ',
   'installer.step6.validationSlavesAndClients.click': 'Click',
   'installer.step6.validationSlavesAndClients.forDetails': ' for details.',
@@ -1585,8 +1583,6 @@ Em.I18n.translations = {
   'services.oozie.client': 'Oozie Client',
   'services.oozie.clients': 'Oozie Clients',
   'services.oozie.webUi': 'Oozie Web UI',
-
-  'services.hue.webUi': 'Hue Web UI',
 
   'services.ganglia.webUi': 'Ganglia Web UI',
   'services.ganglia.monitors': 'Ganglia Monitors',

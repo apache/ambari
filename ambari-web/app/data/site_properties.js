@@ -1631,8 +1631,7 @@ module.exports =
         },
         {
           displayName: 'Existing Oracle Database',
-          foreignKeys: ['hive_existing_oracle_database', 'hive_existing_oracle_host'],
-          hidden: !App.supports.hiveOozieExtraDatabases
+          foreignKeys: ['hive_existing_oracle_database', 'hive_existing_oracle_host']
         }
       ],
       "description": "MySQL will be installed by Ambari",
@@ -1949,8 +1948,7 @@ module.exports =
         },
         {
           displayName: 'Existing MySQL Database',
-          foreignKeys: ['oozie_existing_mysql_database', 'oozie_existing_mysql_host'],
-          hidden: !App.supports.hiveOozieExtraDatabases
+          foreignKeys: ['oozie_existing_mysql_database', 'oozie_existing_mysql_host']
         },
         {
           displayName: 'Existing PostgreSQL Database',
@@ -1958,8 +1956,7 @@ module.exports =
         },
         {
           displayName: 'Existing Oracle Database',
-          foreignKeys: ['oozie_existing_oracle_database', 'oozie_existing_oracle_host'],
-          hidden: !App.supports.hiveOozieExtraDatabases
+          foreignKeys: ['oozie_existing_oracle_database', 'oozie_existing_oracle_host']
         }
       ],
       "description": "Current Derby Database will be installed by Ambari",
@@ -2276,52 +2273,6 @@ module.exports =
       "category": "Advanced zookeeper-env",
       "index": 1
     },
-  /**********************************************HUE***************************************/
-    {
-      "id": "puppet var",
-      "name": "hueserver_host",
-      "displayName": "Hue Server host",
-      "value": "",
-      "defaultValue": "",
-      "description": "The host that has been assigned to run Hue Server",
-      "displayType": "masterHost",
-      "isRequiredByAgent": false,
-      "isOverridable": false,
-      "isVisible": true,
-      "serviceName": "HUE",
-      "filename": "hue-env.xml",
-      "category": "Hue Server"
-    },
-    {
-      "id": "puppet var",
-      "name": "hue_log_dir",
-      "displayName": "HUE Log Dir",
-      "description": "Directory for HUE logs",
-      "defaultValue": "/var/log/hue",
-      "isReconfigurable": false,
-      "displayType": "directory",
-      "isOverridable": false,
-      "isRequiredByAgent": false,
-      "isVisible": true,
-      "serviceName": "HUE",
-      "filename": "hue-env.xml",
-      "category": "Advanced hue-env"
-    },
-    {
-      "id": "puppet var",
-      "name": "hue_pid_dir",
-      "displayName": "HUE Pid Dir",
-      "description": "Directory in which the pid files for HUE processes will be created",
-      "defaultValue": "/var/run/hue",
-      "isReconfigurable": false,
-      "displayType": "directory",
-      "isOverridable": false,
-      "isRequiredByAgent": false,
-      "isVisible": true,
-      "serviceName": "HUE",
-      "filename": "hue-env.xml",
-      "category": "Advanced hue-env"
-    },
   /**********************************************GANGLIA***************************************/
     {
       "id": "puppet var",
@@ -2568,7 +2519,6 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "user",
       "isOverridable": false,
-      "isVisible": App.supports.customizeSmokeTestUser,
       "serviceName": "MISC",
       "filename": "cluster-env.xml",
       "category": "Users and Groups",

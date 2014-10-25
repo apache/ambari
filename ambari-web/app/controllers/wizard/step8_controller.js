@@ -616,7 +616,6 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, {
   loadRepoInfoSuccessCallback: function (data) {
     var allRepos = [];
     data.items.forEach(function (os) {
-      if (!App.get('supports.ubuntu') && os.OperatingSystems.os_type == 'ubuntu12') return; // @todo: remove after Ubuntu support confirmation
       os.repositories.forEach(function (repository) {
         allRepos.push(Em.Object.create({
           base_url: repository.Repositories.base_url,
@@ -989,9 +988,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, {
       }
       this.createComponents();
       this.registerHostsToCluster();
-      if (App.get('supports.hostOverridesInstaller')) {
-        this.createConfigurationGroups();
-      }
+      this.createConfigurationGroups();
       this.createMasterHostComponents();
       this.createSlaveAndClientsHostComponents();
       if (this.get('content.controllerName') === 'addServiceController') {
@@ -1405,7 +1402,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, {
       Object.keys(service.get('configTypes')).forEach(function (type) {
         if (!this.get('serviceConfigTags').someProperty('type', type)) {
           var serviceVersionNotes = Em.I18n.t('dashboard.configHistory.table.notes.default').format(service.get('displayName'));
-          if (!App.supports.capacitySchedulerUi && service.get('serviceName') === 'MAPREDUCE' && (type === 'capacity-scheduler' || type === 'mapred-queue-acls')) {
+          if (service.get('serviceName') === 'MAPREDUCE' && (type === 'capacity-scheduler' || type === 'mapred-queue-acls')) {
             return;
           } else if (type === 'core-site') {
             coreSiteObject.service_config_version_note = serviceVersionNotes

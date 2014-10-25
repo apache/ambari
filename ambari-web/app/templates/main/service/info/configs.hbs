@@ -18,28 +18,33 @@
 
 <div id="serviceConfig">
   {{#if dataIsLoaded}}
-    {{#if App.supports.hostOverrides}}
-      {{#if controller.content.isRestartRequired}}
-        {{#if App.isAdmin}}
-          <div>
-            <div class="alert alert-warning clearfix">
-              <i class="icon-refresh"></i> {{t services.service.config.restartService.needToRestart}}  <a href="#" {{action showComponentsShouldBeRestarted target="controller"}}>{{view.componentsCount}} {{pluralize view.componentsCount singular="t:common.component" plural="t:common.components"}}</a> {{t on}} <a href="#" {{action showHostsShouldBeRestarted target="controller"}}>{{view.hostsCount}} {{pluralize view.hostsCount singular="t:common.host" plural="t:common.hosts"}}</a>
-              <span class="restart-components pull-right">&nbsp</span>
-              <div class="btn-group pull-right">
-                <button type="button" class="btn btn-default dropdown-toggle btn-warning" data-toggle="dropdown">
-                  {{t hosts.host.details.needToRestart.button}}
-                  <span class="caret"></span>
-                </button>
-                <ul class="dropdown-menu">
-                  <li><a href="#" {{action restartAllStaleConfigComponents target="controller"}}>{{t restart.service.all}}</a></li>
-                  {{#if view.rollingRestartSlaveComponentName}}
-                    <li><a href="#" {{action rollingRestartStaleConfigSlaveComponents view.rollingRestartSlaveComponentName target="controller"}}>{{view.rollingRestartActionName}}</a></li>
-                  {{/if}}
-                </ul>
-              </div>
+    {{#if controller.content.isRestartRequired}}
+      {{#if App.isAdmin}}
+        <div>
+          <div class="alert alert-warning clearfix">
+            <i class="icon-refresh"></i> {{t services.service.config.restartService.needToRestart}}  <a
+                  href="#" {{action showComponentsShouldBeRestarted target="controller"}}>{{view.componentsCount}} {{pluralize view.componentsCount singular="t:common.component" plural="t:common.components"}}</a> {{t on}}
+            <a href="#" {{action showHostsShouldBeRestarted target="controller"}}>{{view.hostsCount}} {{pluralize view.hostsCount singular="t:common.host" plural="t:common.hosts"}}</a>
+            <span class="restart-components pull-right">&nbsp</span>
+
+            <div class="btn-group pull-right">
+              <button type="button" class="btn btn-default dropdown-toggle btn-warning" data-toggle="dropdown">
+                {{t hosts.host.details.needToRestart.button}}
+                <span class="caret"></span>
+              </button>
+              <ul class="dropdown-menu">
+                <li>
+                  <a href="#" {{action restartAllStaleConfigComponents target="controller"}}>{{t restart.service.all}}</a>
+                </li>
+                {{#if view.rollingRestartSlaveComponentName}}
+                  <li>
+                    <a href="#" {{action rollingRestartStaleConfigSlaveComponents view.rollingRestartSlaveComponentName target="controller"}}>{{view.rollingRestartActionName}}</a>
+                  </li>
+                {{/if}}
+              </ul>
             </div>
           </div>
-        {{/if}}
+        </div>
       {{/if}}
     {{/if}}
     <div class="clearfix"></div>

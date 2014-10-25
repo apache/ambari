@@ -357,57 +357,6 @@ describe('App.WizardStep6Controller', function () {
     });
   });
 
-  describe('#validate', function () {
-    var tests = Em.A([
-      {
-        controllerName: 'addHostController',
-        method: 'validateEachHost',
-        r: true,
-        e: true
-      },
-      {
-        controllerName: 'addHostController',
-        method: 'validateEachHost',
-        r: false,
-        e: false
-      },
-      {
-        controllerName: 'addServiceController',
-        method: 'validateEachComponent',
-        r: true,
-        e: true
-      },
-      {
-        controllerName: 'addServiceController',
-        method: 'validateEachComponent',
-        r: false,
-        e: false
-      },
-      {
-        controllerName: 'installerController',
-        method: 'validateEachComponent',
-        r: true,
-        e: true
-      },
-      {
-        controllerName: 'installerController',
-        method: 'validateEachComponent',
-        r: false,
-        e: false
-      }
-    ]);
-    tests.forEach(function (test) {
-      it(test.controllerName + ' ' + test.method + ' returns ' + test.r.toString(), function () {
-        sinon.stub(controller, test.method, function () {
-          return test.r
-        });
-        controller.set('content.controllerName', test.controllerName);
-        expect(controller.callClientSideValidation()).to.equal(test.e);
-        controller[test.method].restore();
-      });
-    });
-  });
-
   describe('#getMasterComponentsForHost', function () {
     var tests = Em.A([
       {

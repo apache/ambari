@@ -450,9 +450,6 @@ App.ServiceConfigProperty = Ember.Object.extend({
       case 'webhcatserver_host':
         this.set('value', masterComponentHostsInDB.findProperty('component', 'WEBHCAT_SERVER').hostName);
         break;
-      case 'hueserver_host':
-        this.set('value', masterComponentHostsInDB.findProperty('component', 'HUE_SERVER').hostName);
-        break;
       case 'oozie_ambari_host':
         this.set('value', masterComponentHostsInDB.findProperty('component', 'OOZIE_SERVER').hostName);
         break;
@@ -883,16 +880,6 @@ App.ServiceConfigProperty = Ember.Object.extend({
               });
             }
           }
-        }
-      }
-    }
-    if (!App.get('supports.serverRecommendValidate')) {
-      var serviceValidator = this.get('serviceValidator');
-      if (serviceValidator!=null) {
-        var validationIssue = serviceValidator.validateConfig(this);
-        if (validationIssue) {
-          this.set('warnMessage', validationIssue);
-          isWarn = true;
         }
       }
     }

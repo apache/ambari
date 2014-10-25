@@ -51,8 +51,6 @@ require('models/background_operation');
 require('models/client_component');
 require('models/host_component');
 require('models/target_cluster');
-require('models/dataset');
-require('models/dataset_job');
 require('models/slave_component');
 require('classes/run_class');
 require('classes/job_class');

@@ -1040,17 +1040,10 @@ describe("App.MainServiceInfoConfigsController", function () {
       },
       {
         siteName: "mapred-queue-acls",
-        method: false,
-        capacitySchedulerUi: false
-      },
-      {
-        siteName: "mapred-queue-acls",
-        method: "createSiteObj",
-        capacitySchedulerUi: true
+        method: false
       }
     ];
 
-    var capacitySchedulerUi = App.supports.capacitySchedulerUi;
     beforeEach(function() {
       sinon.stub(mainServiceInfoConfigsController, "createCoreSiteObj", Em.K);
       sinon.stub(mainServiceInfoConfigsController, "createSiteObj", Em.K);
@@ -1060,12 +1053,10 @@ describe("App.MainServiceInfoConfigsController", function () {
     afterEach(function() {
       mainServiceInfoConfigsController.createCoreSiteObj.restore();
       mainServiceInfoConfigsController.createSiteObj.restore();
-      App.supports.capacitySchedulerUi = capacitySchedulerUi;
     });
 
     tests.forEach(function(t) {
       it("create object for " + t.siteName + " run method " + t.method, function() {
-        App.supports.capacitySchedulerUi = t.capacitySchedulerUi;
         mainServiceInfoConfigsController.set("content.serviceName", t.serviceName);
         mainServiceInfoConfigsController.createConfigObject(t.siteName, "versrion1");
         if (t.method) {

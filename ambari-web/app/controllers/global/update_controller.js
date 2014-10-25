@@ -127,9 +127,7 @@ App.UpdateController = Em.Controller.extend({
       App.updater.run(this, 'updateServiceMetricConditionally', 'isWorking', App.componentsUpdateInterval);
       App.updater.run(this, 'updateComponentsState', 'isWorking', App.componentsUpdateInterval);
       App.updater.run(this, 'graphsUpdate', 'isWorking');
-      if (App.supports.hostOverrides) {
-        App.updater.run(this, 'updateComponentConfig', 'isWorking');
-      }
+      App.updater.run(this, 'updateComponentConfig', 'isWorking');
     }
   }.observes('isWorking'),
   /**

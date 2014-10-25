@@ -123,67 +123,6 @@ describe('App.MainServiceController', function () {
 
   });
 
-  describe('#isAllServicesInstalled', function() {
-
-    beforeEach(function() {
-      sinon.stub(App.StackService, 'find', function() {
-        return [
-          {serviceName: 's1'},
-          {serviceName: 's2'},
-          {serviceName: 'HUE'}
-        ];
-      });
-      mainServiceController.set('content', {});
-    });
-
-    afterEach(function() {
-      App.StackService.find.restore();
-    });
-
-    it('should be false if content is not loaded', function() {
-      expect(mainServiceController.get('isAllServicesInstalled')).to.be.false;
-    });
-
-    var tests = Em.A([
-      {
-        hue: false,
-        content: ['', ''],
-        m: 'no hue',
-        e: true
-      },
-      {
-        hue: false,
-        content: [''],
-        m: 'no hue (2)',
-        e: false
-      },
-      {
-        hue: true,
-        content: ['', '', ''],
-        m: 'hue',
-        e: true
-      },
-      {
-        hue: false,
-        content: ['', ''],
-        m: 'hue (2)',
-        e: true
-      }
-    ]).forEach(function(test) {
-        it(test.m, function() {
-          mainServiceController.reopen({content: {content: test.content}});
-          sinon.stub(App, 'get', function(k) {
-            if ('supports.hue' == k) return test.hue;
-            return Em.get(App, k);
-          });
-          var r = mainServiceController.get('isAllServicesInstalled');
-          App.get.restore();
-          expect(r).to.equal(test.e);
-        });
-      });
-
-  });
-
   describe('#cluster', function() {
 
     var tests = Em.A([

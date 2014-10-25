@@ -60,15 +60,7 @@ describe('App.UpdateController', function () {
       expect(App.updater.run.called).to.equal(false);
     });
 
-    it('isWorking = true, App.supports.hostOverrides = false', function () {
-      App.supports.hostOverrides = false;
-      controller.set('isWorking', true);
-      expect(App.updater.run.callCount).to.equal(5);
-      controller.set('isWorking', false);
-    });
-
-    it('isWorking = true, App.supports.hostOverrides = true', function () {
-      App.supports.hostOverrides = true;
+    it('isWorking = true', function () {
       controller.set('isWorking', true);
       expect(App.updater.run.callCount).to.equal(6);
     });

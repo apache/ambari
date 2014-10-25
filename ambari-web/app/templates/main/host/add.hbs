@@ -31,9 +31,7 @@
               <li {{bindAttr class="isStep1:active view.isStep1Disabled:disabled"}}><a href="javascript:void(null);"  {{action gotoStep1 target="controller"}}>{{t installer.step2.header}}</a></li>
               <li {{bindAttr class="isStep2:active view.isStep2Disabled:disabled"}}><a href="javascript:void(null);"  {{action gotoStep2 target="controller"}}>{{t installer.step3.header}}</a></li>
               <li {{bindAttr class="isStep3:active view.isStep3Disabled:disabled"}}><a href="javascript:void(null);"  {{action gotoStep3 target="controller"}}>{{t installer.step6.header}}</a></li>
-              {{#if App.supports.hostOverrides}}
-                <li {{bindAttr class="isStep4:active view.isStep4Disabled:disabled"}}><a href="javascript:void(null);"  {{action gotoStep4 target="controller"}}>{{t addHost.step4.header}}</a></li>
-              {{/if}}
+              <li {{bindAttr class="isStep4:active view.isStep4Disabled:disabled"}}><a href="javascript:void(null);"  {{action gotoStep4 target="controller"}}>{{t addHost.step4.header}}</a></li>
               <li {{bindAttr class="isStep5:active view.isStep5Disabled:disabled"}}><a href="javascript:void(null);"  {{action gotoStep5 target="controller"}}>{{t installer.step8.header}}</a></li>
               <li {{bindAttr class="isStep6:active view.isStep6Disabled:disabled"}}><a href="javascript:void(null);"  {{action gotoStep6 target="controller"}}>{{t installer.step9.header}}</a></li>
               <li {{bindAttr class="isStep7:active view.isStep7Disabled:disabled"}}><a href="javascript:void(null);"  {{action gotoStep7 target="controller"}}>{{t installer.step10.header}}</a></li>

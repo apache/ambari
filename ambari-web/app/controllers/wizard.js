@@ -829,7 +829,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
     var fileNamesToUpdate = [];
     stepController.get('stepConfigs').forEach(function (_content) {
 
-      if (_content.serviceName === 'YARN' && !App.supports.capacitySchedulerUi) {
+      if (_content.serviceName === 'YARN') {
         _content.set('configs', App.config.textareaIntoFileConfigs(_content.get('configs'), 'capacity-scheduler.xml'));
       }
 

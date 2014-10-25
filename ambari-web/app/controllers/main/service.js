@@ -51,9 +51,6 @@ App.MainServiceController = Em.ArrayController.extend({
   isAllServicesInstalled: function () {
     if (!this.get('content.content')) return false;
     var availableServices = App.StackService.find().mapProperty('serviceName');
-    if (!App.get('supports.hue')) {
-      availableServices = availableServices.without('HUE');
-    }
     return this.get('content.content').length == availableServices.length;
   }.property('content.content.@each', 'content.content.length'),
 
