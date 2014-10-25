@@ -135,12 +135,14 @@ App.AddServiceController = App.WizardController.extend({
     var installedComponents = App.HostComponent.find();
 
     obj.forEach(function (_component) {
+      var installedComponent = installedComponents.findProperty('componentName', _component.component_name);
       masterComponentHosts.push({
         display_name: _component.display_name,
         component: _component.component_name,
         hostName: _component.selectedHost,
         serviceId: _component.serviceId,
-        isInstalled: installedComponents.someProperty('componentName', _component.component_name)
+        isInstalled: !!installedComponent,
+        workStatus: installedComponent && installedComponent.get('workStatus')
       });
     });
 
