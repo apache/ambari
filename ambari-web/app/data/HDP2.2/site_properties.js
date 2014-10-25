@@ -43,6 +43,7 @@ hdp22properties.push(
     "displayName": "hive.zookeeper.quorum",
     "defaultValue": "localhost:2181",
     "displayType": "multiLine",
+    "isRequired": false,
     "isVisible": true,
     "serviceName": "HIVE",
     "category": "Advanced hive-site"
