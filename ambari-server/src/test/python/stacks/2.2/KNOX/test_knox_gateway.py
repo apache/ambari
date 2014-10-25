@@ -51,7 +51,7 @@ class TestKnoxGateway(RMFTestCase):
     self.assertResourceCalled('File', '/etc/knox/conf/topologies/default.xml',
                               group='knox',
                               owner = 'knox',
-                              content = InlineTemplate(self.getConfig()['configurations']['ambari-topology']['content'])
+                              content = InlineTemplate(self.getConfig()['configurations']['topology']['content'])
     )
     self.assertResourceCalled('Execute', '/usr/lib/knox/bin/knoxcli.sh create-master --master sa',
                               user='knox',
@@ -64,7 +64,7 @@ class TestKnoxGateway(RMFTestCase):
                               owner = 'knox',
                               content = self.getConfig()['configurations']['ldap-log4j']['content']
     )
-    self.assertResourceCalled('File', '/etc/knox/conf/users-ldif',
+    self.assertResourceCalled('File', '/etc/knox/conf/users.ldif',
                               mode=0644,
                               group='knox',
                               owner = 'knox',
