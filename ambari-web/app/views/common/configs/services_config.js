@@ -348,37 +348,40 @@ App.ServiceConfigsByCategoryView = Ember.View.extend(App.UserPref, {
    */
   filteredCategoryConfigs: function () {
     $('.popover').remove();
-    if (this.get('state') !== 'inDOM') return this.get('categoryConfigs');
     var filter = this.get('parentView.filter').toLowerCase();
     var selectedFilters = this.get('parentView.columns').filterProperty('selected');
-    var filteredResult = this.get('categoryConfigs').filter(function (config) {
-      var passesFilters = true;
+    var filteredResult = this.get('categoryConfigs')
 
-      selectedFilters.forEach(function (filter) {
-        if (config.get(filter.attributeName) !== filter.attributeValue) {
-          passesFilters = false;
+    if (this.get('state') === 'inDOM') {
+      filteredResult = filteredResult.filter(function (config) {
+        var passesFilters = true;
+
+        selectedFilters.forEach(function (filter) {
+          if (config.get(filter.attributeName) !== filter.attributeValue) {
+            passesFilters = false;
+          }
+        });
+
+        if (!passesFilters) {
+          return false;
+        }
+
+        var searchString = config.get('defaultValue') + config.get('description') +
+          config.get('displayName') + config.get('name') + config.get('value');
+
+        if (config.get('overrides')) {
+          config.get('overrides').forEach(function (overriddenConf) {
+            searchString += overriddenConf.get('value') + overriddenConf.get('group.name');
+          });
+        }
+
+        if (filter != null && typeof searchString === "string") {
+          return searchString.toLowerCase().indexOf(filter) > -1;
+        } else {
+          return true;
         }
       });
-
-      if (!passesFilters) {
-        return false;
-      }
-
-      var searchString = config.get('defaultValue') + config.get('description') +
-        config.get('displayName') + config.get('name') + config.get('value');
-
-     if (config.get('overrides')) {
-       config.get('overrides').forEach(function(overriddenConf){
-         searchString += overriddenConf.get('value') + overriddenConf.get('group.name');
-       });
-     }
-
-     if (filter != null && typeof searchString === "string") {
-       return searchString.toLowerCase().indexOf(filter) > -1;
-     } else {
-       return true;
-     }
-    });
+    }
     filteredResult = this.sortByIndex(filteredResult);
 
     if (filter && filteredResult.length ) {
