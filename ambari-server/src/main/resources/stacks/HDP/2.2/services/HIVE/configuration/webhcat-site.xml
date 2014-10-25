@@ -96,6 +96,14 @@ limitations under the License.
   </property>
 
   <property>
+    <name>templeton.sqoop.home</name>
+    <value>sqoop-1.4.5.${hdp.version}.tar.gz/sqoop</value>
+    <description>The path to the Sqoop home within the tar. Has no effect if
+      templeton.sqoop.archive is not set.
+    </description>
+  </property>
+
+  <property>
     <name>templeton.streaming.jar</name>
     <value>hdfs:///hdp/apps/${hdp.version}/mr/hadoop-streaming-2.6.0.${hdp.version}.jar</value>
     <description>The hdfs path to the Hadoop streaming jar file.</description>
