@@ -63,21 +63,30 @@ App.ModalPopup = Ember.View.extend({
 
   didInsertElement: function () {
     if (this.autoHeight) {
-      var block = this.$().find('#modal > .modal-body').first();
-      block.css('max-height', $(window).height() - block.offset().top - 300 + $(window).scrollTop()); // fix popup height
+      var block = $('#modal > .modal-body').first();
+      if(block.offset()) {
+        block.css('max-height', $(window).height() - block.offset().top  - 300 + $(window).scrollTop()); // fix popup height
+      }
     }
     // If popup is opened from another popup it should be displayed above
-    var existedPopups = $(document).find('.modal-backdrop');
+    var existedPopups = $('.modal-backdrop');
     if (existedPopups) {
       var maxZindex = 1;
       existedPopups.each(function(index, popup) {
         if ($(popup).css('z-index') > maxZindex) {
           maxZindex = $(popup).css('z-index');
-        }
+      }
       });
-      this.$().find('.modal-backdrop').css('z-index', maxZindex * 2);
-      this.$().find('.modal').css('z-index', maxZindex * 2 + 1);
+      $('.modal-backdrop').css('z-index', maxZindex * 2);
+      $('.modal').css('z-index', maxZindex * 2 + 1);
     }
+
+    var firstInputElement = $('#modal').find(':input').not(':disabled').first();
+    this.focusElement(firstInputElement);
+  },
+
+  focusElement: function(elem) {
+    elem.focus();
   },
 
   fitHeight: function () {
