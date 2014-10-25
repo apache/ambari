@@ -94,10 +94,10 @@ vm-3.vm ZOOKEEPER ZOOKEEPER_SERVER
 
 
   def test_get_real_component(self):
-    with patch.dict(os.environ, {'NAGIOS_SERVICEDESC': 'SUPERVISOR::Supervisors process'}, clear=True):
+    with patch.dict(os.environ, {'NAGIOS__SERVICEHOST_COMPONENT': 'SUPERVISOR'}, clear=True):
       component = mm_wrapper.get_real_component()
       self.assertEqual(component, 'SUPERVISOR')
-    with patch.dict(os.environ, {'NAGIOS_SERVICEDESC': 'JOBHISTORY::HistoryServer process'}, clear=True):
+    with patch.dict(os.environ, {'NAGIOS__SERVICEHOST_COMPONENT': 'MAPREDUCE2'}, clear=True):
       component = mm_wrapper.get_real_component()
       self.assertEqual(component, 'MAPREDUCE2')
 

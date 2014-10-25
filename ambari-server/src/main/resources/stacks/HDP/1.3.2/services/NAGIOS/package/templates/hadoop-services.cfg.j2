@@ -139,6 +139,7 @@ define service {
         use                     hadoop-service
         service_description     GANGLIA::Ganglia Server process
         servicegroups           GANGLIA
+        _host_component         GANGLIA_SERVER
         check_command           check_tcp_wrapper!{{ ganglia_port }}!-w 1 -c 1
         normal_check_interval   0.25
         retry_check_interval    0.25
@@ -152,6 +153,7 @@ define service {
         use                     hadoop-service
         service_description     GANGLIA::Ganglia Monitor process for NameNode
         servicegroups           GANGLIA
+        _host_component         GANGLIA_MONITOR
         check_command           check_tcp_wrapper!{{ ganglia_collector_namenode_port }}!-w 1 -c 1
         normal_check_interval   0.25
         retry_check_interval    0.25
@@ -167,6 +169,7 @@ define service {
         use                     hadoop-service
         service_description     GANGLIA::Ganglia Monitor process for JobTracker
         servicegroups           GANGLIA
+        _host_component         GANGLIA_MONITOR
         check_command           check_tcp_wrapper!{{ ganglia_collector_jobtracker_port }}!-w 1 -c 1
         normal_check_interval   0.25
         retry_check_interval    0.25
@@ -182,6 +185,7 @@ define service {
         use                     hadoop-service
         service_description     GANGLIA::Ganglia Monitor process for HBase Master
         servicegroups           GANGLIA
+        _host_component         GANGLIA_MONITOR
         check_command           check_tcp_wrapper!{{ ganglia_collector_hbase_port }}!-w 1 -c 1
         normal_check_interval   0.25
         retry_check_interval    0.25
@@ -198,6 +202,7 @@ define service {
         use                     hadoop-service
         service_description     GANGLIA::Ganglia Monitor process for HistoryServer
         servicegroups           GANGLIA
+        _host_component         GANGLIA_MONITOR
         check_command           check_tcp_wrapper!{{ ganglia_collector_hs_port }}!-w 1 -c 1
         normal_check_interval   0.25
         retry_check_interval    0.25
@@ -216,6 +221,7 @@ define service {
         service_description     NAMENODE::Secondary NameNode process
         servicegroups           HDFS
         check_command           check_tcp_wrapper!{{ snamenode_port }}!-w 1 -c 1
+        _host_component         SECONDARY_NAMENODE
         normal_check_interval   0.5
         retry_check_interval    0.25
         max_check_attempts      3
@@ -233,6 +239,7 @@ define service {
         service_description     NAMENODE::NameNode edit logs directory status on {{ namenode_hostname }}
         servicegroups           HDFS
         check_command           check_name_dir_status!{{ namenode_port }}!{{ str(hadoop_ssl_enabled).lower() }}!{{ nagios_keytab_path }}!{{ nagios_principal_name }}!{{ kinit_path_local }}!{{ str(security_enabled).lower() }}
+        _host_component         NAMENODE
         normal_check_interval   0.5
         retry_check_interval    0.5
         max_check_attempts      3
@@ -246,6 +253,7 @@ define service {
         servicegroups           HDFS
 #        check_command           check_cpu!200%!250%
         check_command           check_cpu!{{ namenode_port }}!200%!250%!{{ str(hadoop_ssl_enabled).lower() }}!{{ nagios_keytab_path }}!{{ nagios_principal_name }}!{{ kinit_path_local }}!{{ str(security_enabled).lower() }}
+        _host_component         NAMENODE
         normal_check_interval   5
         retry_check_interval    2
         max_check_attempts      5
@@ -258,6 +266,7 @@ define service {
         service_description     NAMENODE::NameNode Web UI on {{ namenode_hostname }}
         servicegroups           HDFS
         check_command           check_webui!namenode!{{ namenode_port }}
+        _host_component         NAMENODE
         normal_check_interval   1
         retry_check_interval    1
         max_check_attempts      3
@@ -269,6 +278,7 @@ define service {
         service_description     NAMENODE::NameNode process on {{ namenode_hostname }}
         servicegroups           HDFS
         check_command           check_tcp_wrapper!{{ namenode_metadata_port }}!-w 1 -c 1
+        _host_component         NAMENODE
         normal_check_interval   0.5
         retry_check_interval    0.25
         max_check_attempts      3
@@ -280,6 +290,7 @@ define service {
         service_description     HDFS::NameNode RPC latency on {{ namenode_hostname }}
         servicegroups           HDFS
         check_command           check_rpcq_latency!NameNode!{{ namenode_port }}!3000!5000!{{ str(hadoop_ssl_enabled).lower() }}!{{ nagios_keytab_path }}!{{ nagios_principal_name }}!{{ kinit_path_local }}!{{ str(security_enabled).lower() }}
+        _host_component         NAMENODE
         normal_check_interval   5
         retry_check_interval    1
         max_check_attempts      5
@@ -293,6 +304,7 @@ define service {
         service_description     HDFS::Blocks health
         servicegroups           HDFS
         check_command           check_hdfs_blocks!$HOSTGROUPMEMBERS:namenode$!{{ namenode_port }}!{{ nn_metrics_property }}!{{ str(hadoop_ssl_enabled).lower() }}!{{ nagios_keytab_path }}!{{ nagios_principal_name }}!{{ kinit_path_local }}!{{ str(security_enabled).lower() }}
+        _host_component         DATANODE
         normal_check_interval   2
         retry_check_interval    1 
         max_check_attempts      1
@@ -304,6 +316,7 @@ define service {
         service_description     HDFS::HDFS capacity utilization
         servicegroups           HDFS
         check_command           check_hdfs_capacity!$HOSTGROUPMEMBERS:namenode$!{{ namenode_port }}!80%!90%!{{ str(hadoop_ssl_enabled).lower() }}!{{ nagios_keytab_path }}!{{ nagios_principal_name }}!{{ kinit_path_local }}!{{ str(security_enabled).lower() }}
+        _host_component         DATANODE
         normal_check_interval   2
         retry_check_interval    1 
         max_check_attempts      1
@@ -319,6 +332,7 @@ define service {
         service_description     JOBTRACKER::JobTracker Web UI
         servicegroups           MAPREDUCE
         check_command           check_webui!jobtracker!{{ jtnode_port }}
+        _host_component         JOBTRACKER
         normal_check_interval   1
         retry_check_interval    1
         max_check_attempts      3
@@ -330,6 +344,7 @@ define service {
         service_description     JOBTRACKER::HistoryServer Web UI
         servicegroups           MAPREDUCE
         check_command           check_webui!jobhistory!{{ jobhistory_port }}
+        _host_component         HISTORYSERVER
         normal_check_interval   1
         retry_check_interval    1
         max_check_attempts      3
@@ -341,6 +356,7 @@ define service {
         service_description     JOBTRACKER::JobTracker CPU utilization
         servicegroups           MAPREDUCE
         check_command           check_cpu!{{ jtnode_port }}!200%!250%!{{ str(hadoop_ssl_enabled).lower() }}!{{ nagios_keytab_path }}!{{ nagios_principal_name }}!{{ kinit_path_local }}!{{ str(security_enabled).lower() }}
+        _host_component         JOBTRACKER
         normal_check_interval   5
         retry_check_interval    2 
         max_check_attempts      5
@@ -354,6 +370,7 @@ define service {
         service_description     JOBTRACKER::JobTracker process
         servicegroups           MAPREDUCE
         check_command           check_tcp_wrapper!{{ jtnode_port }}!-w 1 -c 1
+        _host_component         JOBTRACKER
         normal_check_interval   0.5
         retry_check_interval    0.25
         max_check_attempts      4
@@ -365,6 +382,7 @@ define service {
         service_description     MAPREDUCE::JobTracker RPC latency
         servicegroups           MAPREDUCE
         check_command           check_rpcq_latency!JobTracker!{{ jtnode_port }}!3000!5000!{{ str(hadoop_ssl_enabled).lower() }}!{{ nagios_keytab_path }}!{{ nagios_principal_name }}!{{ kinit_path_local }}!{{ str(security_enabled).lower() }}
+        _host_component         JOBTRACKER
         normal_check_interval   5
         retry_check_interval    1 
         max_check_attempts      5
@@ -389,6 +407,7 @@ define service {
         service_description     TASKTRACKER::TaskTracker process
         servicegroups           MAPREDUCE
         check_command           check_tcp_wrapper!{{ tasktracker_port }}!-w 1 -c 1
+        _host_component         TASKTRACKER
         normal_check_interval   1
         retry_check_interval    0.5
         max_check_attempts      3
@@ -418,6 +437,7 @@ define service {
         service_description     DATANODE::DataNode process
         servicegroups           HDFS
         check_command           check_tcp_wrapper!{{datanode_port}}!-w 1 -c 1
+        _host_component         DATANODE
         normal_check_interval   1
         retry_check_interval    0.5
         max_check_attempts      3
@@ -429,6 +449,7 @@ define service {
         service_description     DATANODE::DataNode space
         servicegroups           HDFS
         check_command           check_datanode_storage!{{ datanode_port }}!90%!90%!{{ str(hadoop_ssl_enabled).lower() }}!{{ nagios_keytab_path }}!{{ nagios_principal_name }}!{{ kinit_path_local }}!{{ str(security_enabled).lower() }}
+        _host_component         DATANODE
         normal_check_interval   2
         retry_check_interval    1
         max_check_attempts      2
@@ -444,6 +465,7 @@ define service {
         service_description     FLUME::Flume Agent process
         servicegroups           FLUME
         check_command           check_tcp_wrapper!{{ flume_port }}!-w 1 -c 1
+        _host_component         FLUME
         normal_check_interval   1
         retry_check_interval    0.5
         max_check_attempts      3
@@ -459,6 +481,7 @@ define service {
         service_description     ZOOKEEPER::ZooKeeper Server process
         servicegroups           ZOOKEEPER
         check_command           check_tcp_wrapper!{{ clientPort }}!-w 1 -c 1
+        _host_component         ZOOKEEPER_SERVER
         normal_check_interval   1
         retry_check_interval    0.5
         max_check_attempts      3
@@ -473,6 +496,7 @@ define service {
         service_description     REGIONSERVER::RegionServer process
         servicegroups           HBASE
         check_command           check_tcp_wrapper!{{ hbase_rs_port }}!-w 1 -c 1
+        _host_component         HBASE_REGIONSERVER
         normal_check_interval   1
         retry_check_interval    0.5
         max_check_attempts      3
@@ -486,6 +510,7 @@ define service {
         service_description     HBASEMASTER::HBase Master CPU utilization
         servicegroups           HBASE
         check_command           check_cpu_ha!{{ hbase_master_hosts_in_str }}!{{ hbase_master_port }}!200%!250%!{{ str(hadoop_ssl_enabled).lower() }}!{{ nagios_keytab_path }}!{{ nagios_principal_name }}!{{ kinit_path_local }}!{{ str(security_enabled).lower() }}
+        _host_component         HBASE_MASTER
         normal_check_interval   5
         retry_check_interval    2
         max_check_attempts      5
@@ -500,6 +525,7 @@ define service {
         service_description     HBASEMASTER::HBase Master process on {{ hbasemaster }}
         servicegroups           HBASE
         check_command           check_tcp_wrapper!{{ hbase_master_rpc_port }}!-w 1 -c 1
+        _host_component         HBASE_MASTER
         normal_check_interval   0.5
         retry_check_interval    0.25
         max_check_attempts      4
@@ -515,6 +541,7 @@ define service {
         service_description     HIVE-METASTORE::Hive Metastore process
         servicegroups           HIVE
         check_command           check_tcp_wrapper!{{ hive_metastore_port }}!-w 1 -c 1
+        _host_component         HIVE_METASTORE
         normal_check_interval   0.5
         retry_check_interval    0.5
         max_check_attempts      3
@@ -527,6 +554,7 @@ define service {
         service_description     HIVE-SERVER::HiveServer2 process
         servicegroups           HIVE
         check_command           check_tcp_wrapper_sasl!{{ hive_server_port }}!{{ '--security-enabled' if security_enabled else '' }}!-w 1 -c 1
+        _host_component         HIVE_SERVER
         normal_check_interval   0.5
         retry_check_interval    0.5
         max_check_attempts      3
@@ -544,6 +572,7 @@ define service {
         {% else %}
         check_command           check_oozie_status!{{ oozie_server_port }}!{{ java64_home }}!false
         {% endif %}
+        _host_component         OOZIE_SERVER
         normal_check_interval   1
         retry_check_interval    1
         max_check_attempts      3
@@ -561,6 +590,7 @@ define service {
         {% else %}
         check_command           check_templeton_status!{{ templeton_port }}!v1!false
         {% endif %}
+        _host_component         WEBHCAT_SERVER
         normal_check_interval   1
         retry_check_interval    0.5
         max_check_attempts      3
@@ -574,6 +604,7 @@ define service {
         service_description     HUE::Hue Server status
         servicegroups           HUE
         check_command           check_hue_status
+        _host_component         HUE
         normal_check_interval   100
         retry_check_interval    0.5
         max_check_attempts      3
