@@ -428,6 +428,17 @@ The view implementation code can use the view context to check custom permission
         return Response.ok("<b>You have accessed a restricted resource.</b>").type("text/html").build();
       } 
 
+###Impersonation
+
+Views can utilize the viewContext to facilitate calls that require impersonating a user. For example, a service may expose an endpoint that accepts parameters like "doAs=johndoe" to perform some action on behalf of that user.
+The HttpImpersonator Interface provides a contract for how to perform an HTTP GET request on a URL that supports some type of "doAs" parameter, and the username.
+
+      HttpImpersonator impersonator = viewContext.getHttpImpersonator();
+      ImpersonatorSetting impersonatorSetting = viewContext.getImpersonatorSetting();
+      String result = impersonator.requestURL(urlToRead, "GET", impersonatorSetting);
+
+The ImpersonatorSetting class contains the variables that are added to the URL params. Its default constructor sets "doAs" as the default query parameter name, and the currently logged on user as its value; both of these can be changed with the overloaded constructors.
+
 ###Persistence
 
 The application data map is different than the view instance properties that are specified to instantiate the view.  The application data map may contain any arbitrary string values that the view needs to persist and may be updated or queried at any point during the life of the view instance by the application logic. 

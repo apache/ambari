@@ -29,10 +29,32 @@ public class ImpersonatorSettingImpl implements ImpersonatorSetting {
 
   public static final String DEFAULT_DO_AS_PARAM = "doAs";
 
+  /**
+   * This constructor will use DEFAULT_DO_AS_PARAM and currently logged on user.
+   * @param context View context object that will provide the currently logged on user.
+   */
   public ImpersonatorSettingImpl(ViewContext context) {
     // Default values
-    this.doAsParamName = DEFAULT_DO_AS_PARAM;
     this.username = context.getUsername();
+    this.doAsParamName = DEFAULT_DO_AS_PARAM;
+  }
+
+  /**
+   * @param context View context object that will provide the currently logged on user.
+   * @param doAsParamName The parameter name used for "doAs" impersonation.
+   */
+  public ImpersonatorSettingImpl(ViewContext context, String doAsParamName) {
+    this.username = context.getUsername();
+    this.doAsParamName = doAsParamName;
+  }
+
+  /**
+   * @param username Username value that will be used for "doAs" impersonation.
+   * @param doAsParamName The parameter name used for "doAs" impersonation.
+   */
+  public ImpersonatorSettingImpl(String username, String doAsParamName) {
+    this.username = username;
+    this.doAsParamName = doAsParamName;
   }
 
   /**
@@ -46,18 +68,4 @@ public class ImpersonatorSettingImpl implements ImpersonatorSetting {
    */
   @Override
   public String getUsername() { return this.username; }
-
-  /**
-   * Set the parameter name used for "doAs" impersonation.
-   * @param doAsParamName Query parameter name
-   */
-  @Override
-  public void setDoAsParamName(String doAsParamName) { this.doAsParamName = doAsParamName; }
-
-  /**
-   * Set the username value that will be used for "doAs" impersonation.
-   * @param username Username to impersonate as
-   */
-  @Override
-  public void setUsername(String username) { this.username = username; }
 }
