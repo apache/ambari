@@ -22,7 +22,7 @@ import subprocess
 import os
 
 N_SGN = 'NAGIOS_SERVICEGROUPNAME'
-N_SD = 'NAGIOS_SERVICEDESC'
+N_SD = 'NAGIOS__SERVICEHOST_COMPONENT'
 N_HOST = 'NAGIOS_HOSTNAME'
 
 LIST_SEPARATOR = "--"
@@ -53,14 +53,15 @@ def ignored_host_list(service, component):
   if lines:
     for l in lines:
       tokens = l.split(' ')
-      if len(tokens) == 3 and tokens[1] == service and tokens[2].strip() == component:
-        result.append(tokens[0])
+      if len(tokens) == 3 and tokens[1].strip().upper() == service.strip().upper() and \
+        tokens[2].strip().upper() == component.strip().upper():
+          result.append(tokens[0])
   return result
 
 
 def get_real_service():
   try:
-    service = os.environ[N_SGN]  # e.g. 'HBASE'
+    service = os.environ[N_SGN].strip().upper()  # e.g. 'HBASE'
   except KeyError:
     service = ''
   return service
@@ -68,15 +69,13 @@ def get_real_service():
 
 def get_real_component():
   try:
-    arr_desc = os.environ[N_SD]  # e.g. 'HBASE::Percent RegionServers live'
-    SEPARATOR = "::"
-    comp_name = arr_desc.replace(SEPARATOR, ' ').split(' ')[0]
+    comp_name = os.environ[N_SD].strip()
   except KeyError:
     comp_name = ''
   mapping = {
     'HBASEMASTER': 'HBASE_MASTER',
     'REGIONSERVER': 'HBASE_REGIONSERVER',
-    'JOBHISTORY': 'MAPREDUCE2',
+    'JOBHISTORY': 'HISTORYSERVER',
     'HIVE-METASTORE': 'HIVE_METASTORE',
     'HIVE-SERVER': 'HIVE_SERVER',
     'FLUME': 'FLUME_HANDLER',
