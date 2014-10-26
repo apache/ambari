@@ -132,6 +132,7 @@ public class AmbariServer {
   final String CONTEXT_PATH = "/";
   final String SPRING_CONTEXT_LOCATION =
       "classpath:/webapp/WEB-INF/spring-security.xml";
+  final String DISABLED_CIPHERS_SPLITTER = "\\|";
 
   @Inject
   Configuration configs;
@@ -272,8 +273,13 @@ public class AmbariServer {
 
 
       //Secured connector for 2-way auth
+      SslContextFactory contextFactoryTwoWay = new SslContextFactory();
+      if (! configs.getSrvrDisabledCiphers().isEmpty()) {
+        String [] masks = configs.getSrvrDisabledCiphers().split(DISABLED_CIPHERS_SPLITTER);
+        contextFactoryTwoWay.setExcludeCipherSuites(masks);
+      }
       SslSelectChannelConnector sslConnectorTwoWay = new
-          SslSelectChannelConnector();
+          SslSelectChannelConnector(contextFactoryTwoWay);
       sslConnectorTwoWay.setPort(configs.getTwoWayAuthPort());
 
       Map<String, String> configsMap = configs.getConfigsMap();
@@ -290,18 +296,22 @@ public class AmbariServer {
       sslConnectorTwoWay.setNeedClientAuth(configs.getTwoWaySsl());
 
       //SSL Context Factory
-      SslContextFactory contextFactory = new SslContextFactory(true);
-      contextFactory.setKeyStorePath(keystore);
-      contextFactory.setTrustStore(keystore);
-      contextFactory.setKeyStorePassword(srvrCrtPass);
-      contextFactory.setKeyManagerPassword(srvrCrtPass);
-      contextFactory.setTrustStorePassword(srvrCrtPass);
-      contextFactory.setKeyStoreType("PKCS12");
-      contextFactory.setTrustStoreType("PKCS12");
-      contextFactory.setNeedClientAuth(false);
+      SslContextFactory contextFactoryOneWay = new SslContextFactory(true);
+      contextFactoryOneWay.setKeyStorePath(keystore);
+      contextFactoryOneWay.setTrustStore(keystore);
+      contextFactoryOneWay.setKeyStorePassword(srvrCrtPass);
+      contextFactoryOneWay.setKeyManagerPassword(srvrCrtPass);
+      contextFactoryOneWay.setTrustStorePassword(srvrCrtPass);
+      contextFactoryOneWay.setKeyStoreType("PKCS12");
+      contextFactoryOneWay.setTrustStoreType("PKCS12");
+      contextFactoryOneWay.setNeedClientAuth(false);
+      if (! configs.getSrvrDisabledCiphers().isEmpty()) {
+        String [] masks = configs.getSrvrDisabledCiphers().split(DISABLED_CIPHERS_SPLITTER);
+        contextFactoryOneWay.setExcludeCipherSuites(masks);
+      }
 
       //Secured connector for 1-way auth
-      SslSelectChannelConnector sslConnectorOneWay = new SslSelectChannelConnector(contextFactory);
+      SslSelectChannelConnector sslConnectorOneWay = new SslSelectChannelConnector(contextFactoryOneWay);
       sslConnectorOneWay.setPort(configs.getOneWayAuthPort());
       sslConnectorOneWay.setAcceptors(2);
       sslConnectorTwoWay.setAcceptors(2);
@@ -386,7 +396,13 @@ public class AmbariServer {
 
         String httpsCrtPass = configsMap.get(Configuration.CLIENT_API_SSL_CRT_PASS_KEY);
 
-        SslSelectChannelConnector sapiConnector = new SslSelectChannelConnector();
+        SslContextFactory contextFactoryApi = new SslContextFactory();
+        if (! configs.getSrvrDisabledCiphers().isEmpty()) {
+          String [] masks = configs.getSrvrDisabledCiphers().split(DISABLED_CIPHERS_SPLITTER);
+          contextFactoryApi.setExcludeCipherSuites(masks);
+        }
+
+        SslSelectChannelConnector sapiConnector = new SslSelectChannelConnector(contextFactoryApi);
         sapiConnector.setPort(configs.getClientSSLApiPort());
         sapiConnector.setKeystore(httpsKeystore);
         sapiConnector.setTruststore(httpsKeystore);
