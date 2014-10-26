@@ -26,7 +26,8 @@ def falcon(type, action = None):
               owner=params.falcon_user
     )
     Directory(params.falcon_log_dir,
-              owner=params.falcon_user
+              owner=params.falcon_user,
+              recursive=True
     )
     Directory(params.falcon_webapp_dir,
               owner=params.falcon_user
