@@ -31,7 +31,7 @@ stack_is_hdp22_or_further = not (hdp_stack_version.startswith('2.0') or hdp_stac
 
 #hadoop params
 if stack_is_hdp22_or_further:
-  flume_bin = '/usr/hdp/current/flume-client/bin/flume-ng'
+  flume_bin = '/usr/hdp/current/flume-server/bin/flume-ng'
 else:
   flume_bin = '/usr/bin/flume-ng'
 
