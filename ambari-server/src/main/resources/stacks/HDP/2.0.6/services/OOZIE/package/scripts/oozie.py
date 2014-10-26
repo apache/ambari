@@ -63,6 +63,19 @@ def oozie(is_server=False # TODO: see if see can remove this
       owner=params.oozie_user
     )
 
+  if params.stack_is_hdp22_or_further:
+    File(format("{params.conf_dir}/adminusers.txt"),
+      mode=0644,
+      group=params.user_group,
+      owner=params.oozie_user,
+      content=Template('adminusers.txt.j2', oozie_user=params.oozie_user)
+    )
+  else:
+    File ( format("{params.conf_dir}/adminusers.txt"),
+           owner = params.oozie_user,
+           group = params.user_group
+    )
+
   environment = {
     "no_proxy": format("{ambari_server_hostname}")
   }
@@ -87,11 +100,6 @@ def oozie_ownership(
 ):
   import params
   
-  File ( format("{conf_dir}/adminusers.txt"),
-    owner = params.oozie_user,
-    group = params.user_group
-  )
-
   File ( format("{conf_dir}/hadoop-config.xml"),
     owner = params.oozie_user,
     group = params.user_group
