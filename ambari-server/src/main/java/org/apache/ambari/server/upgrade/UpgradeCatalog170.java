@@ -382,9 +382,11 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
     dbAccessor.executeQuery("ALTER TABLE clusterconfig ADD CONSTRAINT UQ_config_type_tag UNIQUE (cluster_id, type_name, version_tag)", true);
     dbAccessor.executeQuery("ALTER TABLE clusterconfig ADD CONSTRAINT UQ_config_type_version UNIQUE (cluster_id, type_name, version)", true);
 
-    dbAccessor.alterColumn("clusterconfig", new DBColumnInfo("config_data", char[].class, null, null, false));
-    dbAccessor.alterColumn("blueprint_configuration", new DBColumnInfo("config_data", char[].class, null, null, false));
-    dbAccessor.alterColumn("hostgroup_configuration", new DBColumnInfo("config_data", char[].class, null, null, false));
+    if (!Configuration.ORACLE_DB_NAME.equals(dbType)) {
+      dbAccessor.alterColumn("clusterconfig", new DBColumnInfo("config_data", char[].class, null, null, false));
+      dbAccessor.alterColumn("blueprint_configuration", new DBColumnInfo("config_data", char[].class, null, null, false));
+      dbAccessor.alterColumn("hostgroup_configuration", new DBColumnInfo("config_data", char[].class, null, null, false));
+    }
 
     columns.clear();
     columns.add(new DBColumnInfo("service_config_id", Long.class, null, null, false));
