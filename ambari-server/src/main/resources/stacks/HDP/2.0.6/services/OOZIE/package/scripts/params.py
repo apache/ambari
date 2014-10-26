@@ -27,7 +27,7 @@ config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 
 hdp_stack_version = str(config['hostLevelParams']['stack_version'])
-stack_is_hdp22_or_further = not (hdp_stack_version.startswith('2.0') or hdp_stack_version.startswith('2.1'))
+stack_is_hdp22_or_further = functions.version.compare_versions(hdp_stack_version, '2.1') >= 1
 
 #hadoop params
 if stack_is_hdp22_or_further:

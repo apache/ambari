@@ -100,7 +100,7 @@
               <type>env</type>
               <fileName>oozie-log4j.properties</fileName>
               <dictionaryName>oozie-log4j</dictionaryName>
-            </configFile>            
+            </configFile>
           </configFiles>
         </component>
       </components>
