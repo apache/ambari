@@ -33,6 +33,7 @@ class TestFalconClient(RMFTestCase):
                               )
     self.assertResourceCalled('Directory', '/var/log/falcon',
                               owner = 'falcon',
+                              recursive = True
                               )
     self.assertResourceCalled('Directory', '/var/lib/falcon/webapp',
                               owner = 'falcon',
