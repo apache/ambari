@@ -20,6 +20,57 @@ limitations under the License.
 <configuration supports_final="true">
 
   <property>
+    <name>hive.cbo.enable</name>
+    <value>true</value>
+    <description>Flag to control enabling Cost Based Optimizations using Calcite framework.</description>
+  </property>
+
+  <property>
+    <name>hive.zookeeper.quorum</name>
+    <value></value>
+    <description>ZooKeeper servers to talk to.</description>
+  </property>
+
+  <property>
+    <name>hive.metastore.failure.retries</name>
+    <value>5</value>
+    <description>Number of retries of metastore client in case of a failure.</description>
+  </property>
+
+  <property>
+    <name>hive.metastore.client.connect.retry.delay</name>
+    <value>5s</value>
+    <description>The delay in seconds between two consecutive metastore client retries</description>
+  </property>
+
+  <property>
+    <name>hive.metastore.client.socket.timeout</name>
+    <value>1800s</value>
+    <description>MetaStore Client socket timeout in seconds</description>
+  </property>
+
+  <property>
+    <name>hive.cluster.delegation.token.store.class</name>
+    <value>org.apache.hadoop.hive.thrift.ZooKeeperTokenStore</value>
+    <description>The delegation token store implementation class.</description>
+  </property>
+
+  <property>
+    <name>hive.cluster.delegation.token.store.zookeeper.connectString</name>
+    <value>localhost:2181</value>
+    <description>The ZooKeeper token store connect string.</description>
+  </property>
+
+  <property>
+    <name>hive.mapjoin.bucket.cache.size</name>
+    <value>10000</value>
+    <deleted>true</deleted>
+    <description>
+        Renamed to hive.smbjoin.cache.rows.
+    </description>
+  </property>
+
+  <property>
     <name>hive.security.authorization.manager</name>
     <value>org.apache.hadoop.hive.ql.security.authorization.plugin.sqlstd.SQLStdConfOnlyAuthorizerFactory</value>
     <description>the hive client authorization manager class name.
