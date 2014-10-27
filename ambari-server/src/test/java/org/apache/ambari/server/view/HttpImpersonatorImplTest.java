@@ -103,9 +103,7 @@ public class HttpImpersonatorImplTest extends TestCase {
     String requestMethod = "GET";
 
     // Test custom params
-    ImpersonatorSetting impersonatorSetting = new ImpersonatorSettingImpl(this.viewContext);
-    impersonatorSetting.setDoAsParamName("impersonate");
-    impersonatorSetting.setUsername("hive");
+    ImpersonatorSetting impersonatorSetting = new ImpersonatorSettingImpl("hive", "impersonate");
     when(this.viewContext.getImpersonatorSetting()).thenReturn(impersonatorSetting);
     String actualResult = this.viewContext.getHttpImpersonator().requestURL(urlToRead, requestMethod, impersonatorSetting);
     Assert.assertEquals(this.expectedResult, actualResult);

@@ -58,7 +58,7 @@ public class ProxyServlet extends HttpServlet {
     response.setContentType("text/html");
     response.setStatus(HttpServletResponse.SC_OK);
 
-    // Getting the result is super simply by using the impersonator and the default values in the factory.
+    // Getting the result is super simple by using the impersonator and the default values in the factory.
     String result = this.impersonator.requestURL(urlToRead, "GET", this.impersonatorSetting);
 
     PrintWriter writer = response.getWriter();

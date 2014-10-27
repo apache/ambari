@@ -31,16 +31,4 @@ public interface ImpersonatorSetting {
    * @return The username value that will be used for "doAs" impersonation.
    */
   public String getUsername();
-
-  /**
-   * Set the parameter name used for "doAs" impersonation.
-   * @param doAsParamName Query parameter name
-   */
-  public void setDoAsParamName(String doAsParamName);
-
-  /**
-   * Set the username value that will be used for "doAs" impersonation.
-   * @param username Username to impersonate as
-   */
-  public void setUsername(String username);
 }
