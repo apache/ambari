@@ -22,8 +22,7 @@ from resource_management import *
 def setup_hdp_install_directory():
   import params
   if params.stack_is_hdp22_or_further:
-    Execute(format('ambari-python-wrap /usr/bin/hdp-select set all `ambari-python-wrap /usr/bin/hdp-select versions | grep ^{hdp_stack_version} | tail -1`'),
-            not_if=format('test -d {versioned_hdp_root}'),
+    Execute(format('ambari-python-wrap /usr/bin/hdp-select -r set all `ambari-python-wrap /usr/bin/hdp-select versions | grep ^{hdp_stack_version} | tail -1`'),
             only_if=format('ls -d /usr/hdp/{hdp_stack_version}*')
     )
 
