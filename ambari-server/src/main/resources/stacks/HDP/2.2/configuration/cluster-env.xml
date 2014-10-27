@@ -90,4 +90,16 @@
     <description>Destination HDFS folder for the file.</description>
   </property>
 
+  <!-- MapReduce2 tarball -->
+  <property>
+    <name>mr_tar_source</name>
+    <value>/usr/hdp/current/hadoop-client/mr-{{ component_version }}.{{ hdp_stack_version }}.tar.gz</value>
+    <description>Source file path that uses dynamic variables and regex to copy the file to HDFS.</description>
+  </property>
+  <property>
+    <name>mr_tar_destination_folder</name>
+    <value>hdfs:///hdp/apps/{{ hdp_stack_version }}/mr/</value>
+    <description>Destination HDFS folder for the file.</description>
+  </property>
+
 </configuration>
