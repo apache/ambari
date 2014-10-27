@@ -26,7 +26,7 @@ from resource_management.core.logger import Logger
 INSTALL_CMD = "DEBIAN_FRONTEND=noninteractive /usr/bin/apt-get -q -o Dpkg::Options::='--force-confdef' --allow-unauthenticated --assume-yes install %s"
 REPO_UPDATE_CMD = "apt-get update -qq"
 REMOVE_CMD = "/usr/bin/apt-get -y -q remove %s"
-CHECK_CMD = "dpkg --get-selections %s | grep -v deinstall"
+CHECK_CMD = "dpkg --get-selections | grep ^%s | grep -v deinstall"
 
 def replace_underscores(function_to_decorate):
   def wrapper(*args):

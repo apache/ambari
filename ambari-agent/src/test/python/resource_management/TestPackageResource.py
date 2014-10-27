@@ -35,7 +35,7 @@ class TestPackageResource(TestCase):
     with Environment('/') as env:
       Package("some_package",
       )
-    call_mock.assert_has_calls([call("dpkg --get-selections some-package | grep -v deinstall"),
+    call_mock.assert_has_calls([call("dpkg --get-selections | grep ^some-package | grep -v deinstall"),
                                 call("DEBIAN_FRONTEND=noninteractive /usr/bin/apt-get -q -o Dpkg::Options::='--force-confdef'"
                                       " --allow-unauthenticated --assume-yes install some-package"),
                                 call("apt-get update -qq")
@@ -52,7 +52,7 @@ class TestPackageResource(TestCase):
     with Environment('/') as env:
       Package("some_package",
       )
-    call_mock.assert_has_calls([call("dpkg --get-selections some-package | grep -v deinstall"),
+    call_mock.assert_has_calls([call("dpkg --get-selections | grep ^some-package | grep -v deinstall"),
                                 call("DEBIAN_FRONTEND=noninteractive /usr/bin/apt-get -q -o Dpkg::Options::='--force-confdef'"
                                       " --allow-unauthenticated --assume-yes install some-package")
                               ])
@@ -69,7 +69,7 @@ class TestPackageResource(TestCase):
     with Environment('/') as env:
       Package("some_package",
       )
-    call_mock.assert_called_with('rpm -q --quiet some_package')
+    call_mock.assert_called_with('rpm -qa | grep ^some_package')
     shell_mock.assert_called_with("/usr/bin/yum -d 0 -e 0 -y install some_package")
 
   @patch.object(shell, "call")
@@ -80,7 +80,7 @@ class TestPackageResource(TestCase):
     with Environment('/') as env:
       Package("some_package",
       )
-    call_mock.assert_called_with('rpm -q --quiet some_package')
+    call_mock.assert_called_with('rpm -qa | grep ^some_package')
     shell_mock.assert_called_with("/usr/bin/zypper --quiet install --auto-agree-with-licenses --no-confirm some_package")
 
   @patch.object(shell, "call", new = MagicMock(return_value=(0, None)))

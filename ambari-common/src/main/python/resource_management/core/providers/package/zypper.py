@@ -26,7 +26,7 @@ from resource_management.core.logger import Logger
 
 INSTALL_CMD = "/usr/bin/zypper --quiet install --auto-agree-with-licenses --no-confirm %s"
 REMOVE_CMD = "/usr/bin/zypper --quiet remove --no-confirm %s"
-CHECK_CMD = "rpm -q --quiet %s"
+CHECK_CMD = "rpm -qa | grep ^%s"
 
 class ZypperProvider(PackageProvider):
   def install_package(self, name):
