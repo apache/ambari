@@ -305,6 +305,21 @@ public class ConfigurationTest {
   }
 
   @Test
+  public void testIsViewValidationEnabled() throws Exception {
+    final Properties ambariProperties = new Properties();
+    Configuration configuration = new Configuration(ambariProperties);
+    Assert.assertFalse(configuration.isViewValidationEnabled());
+
+    ambariProperties.setProperty(Configuration.VIEWS_VALIDATE, "false");
+    configuration = new Configuration(ambariProperties);
+    Assert.assertFalse(configuration.isViewValidationEnabled());
+
+    ambariProperties.setProperty(Configuration.VIEWS_VALIDATE, "true");
+    configuration = new Configuration(ambariProperties);
+    Assert.assertTrue(configuration.isViewValidationEnabled());
+  }
+
+  @Test
   public void testGetLdapServerProperties() throws Exception {
     final Properties ambariProperties = new Properties();
     final Configuration configuration = new Configuration(ambariProperties);

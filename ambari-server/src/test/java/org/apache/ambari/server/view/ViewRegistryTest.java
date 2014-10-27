@@ -1111,7 +1111,8 @@ public class ViewRegistryTest {
       return viewConfigs.get(archiveFile);
     }
 
-    public ViewConfig getViewConfigFromExtractedArchive(String archivePath)
+    @Override
+    public ViewConfig getViewConfigFromExtractedArchive(String archivePath, boolean validate)
         throws JAXBException, FileNotFoundException {
       for (File viewConfigKey: viewConfigs.keySet()) {
         if (viewConfigKey.getAbsolutePath().equals(archivePath)) {

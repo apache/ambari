@@ -19,10 +19,15 @@
 package org.apache.ambari.server.view;
 
 import org.apache.ambari.server.view.configuration.ViewConfig;
+import org.xml.sax.SAXException;
 
+import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -43,6 +48,7 @@ public class ViewArchiveUtility {
    * Constants
    */
   private static final String VIEW_XML = "view.xml";
+  private static final String VIEW_XSD = "view.xsd";
 
 
   // ----- ViewArchiveUtility ------------------------------------------------
@@ -53,6 +59,8 @@ public class ViewArchiveUtility {
    * @param archiveFile  the archive file
    *
    * @return the associated view configuration
+   *
+   * @throws JAXBException if xml is malformed
    */
   public ViewConfig getViewConfigFromArchive(File archiveFile)
       throws MalformedURLException, JAXBException {
@@ -68,17 +76,25 @@ public class ViewArchiveUtility {
   /**
    * Get the view configuration from the extracted archive file.
    *
-   * @param archivePath path to extracted archive
+   * @param archivePath  path to extracted archive
+   * @param validate     indicates whether or not the view configuration should be validated
    *
    * @return the associated view configuration
    *
    * @throws JAXBException if xml is malformed
-   * @throws java.io.FileNotFoundException if xml was not found
+   * @throws IOException if xml can not be read
+   * @throws SAXException if the validation fails
    */
-  public ViewConfig getViewConfigFromExtractedArchive(String archivePath)
-      throws JAXBException, FileNotFoundException {
+  public ViewConfig getViewConfigFromExtractedArchive(String archivePath, boolean validate)
+      throws JAXBException, IOException, SAXException {
 
-    InputStream configStream      = new FileInputStream(new File(archivePath + File.separator + VIEW_XML));
+    File configFile = new File(archivePath + File.separator + VIEW_XML);
+
+    if (validate) {
+      validateConfig(new FileInputStream(configFile));
+    }
+
+    InputStream  configStream     = new FileInputStream(configFile);
     JAXBContext  jaxbContext      = JAXBContext.newInstance(ViewConfig.class);
     Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
 
@@ -116,5 +132,25 @@ public class ViewArchiveUtility {
    */
   public JarFile getJarFile(File file) throws IOException {
     return new JarFile(file);
+  }
+
+
+  // ----- helper methods ----------------------------------------------------
+
+  /**
+   * Validate the given view descriptor file against the view schema.
+   *
+   * @param configStream  input stream of view descriptor file to be validated
+   *
+   * @throws SAXException if the validation fails
+   * @throws IOException if the descriptor file can not be read
+   */
+  protected void validateConfig(InputStream  configStream) throws SAXException, IOException {
+    SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+
+    URL schemaUrl = getClass().getClassLoader().getResource(VIEW_XSD);
+    Schema schema = schemaFactory.newSchema(schemaUrl);
+
+    schema.newValidator().validate(new StreamSource(configStream));
   }
 }

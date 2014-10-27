@@ -61,6 +61,8 @@ public class Configuration {
   public static final String BOOTSTRAP_DIR_DEFAULT = "/var/run/ambari-server/bootstrap";
   public static final String VIEWS_DIR = "views.dir";
   public static final String VIEWS_DIR_DEFAULT = "/var/lib/ambari-server/resources/views";
+  public static final String VIEWS_VALIDATE = "views.validate";
+  public static final String VIEWS_VALIDATE_DEFAULT = "false";
   public static final String WEBAPP_DIR = "webapp.dir";
   public static final String BOOTSTRAP_SCRIPT = "bootstrap.script";
   public static final String BOOTSTRAP_SCRIPT_DEFAULT = "/usr/bin/ambari_bootstrap";
@@ -529,6 +531,15 @@ public class Configuration {
     return new File(fileName);
   }
 
+  /**
+   * Determine whether or not view validation is enabled.
+   *
+   * @return true if view validation is enabled
+   */
+  public boolean isViewValidationEnabled() {
+    return "true".equalsIgnoreCase(properties.getProperty(VIEWS_VALIDATE, VIEWS_VALIDATE_DEFAULT));
+  }
+
   public File getBootStrapDir() {
     String fileName = properties.getProperty(BOOTSTRAP_DIR, BOOTSTRAP_DIR_DEFAULT);
     return new File(fileName);
@@ -616,7 +627,7 @@ public class Configuration {
    * @return null if such a file is not present, value if present.
    */
   public String getHostsMapFile() {
-    LOG.info("Hosts Mapping File " +  properties.getProperty(SRVR_HOSTS_MAPPING));
+    LOG.info("Hosts Mapping File " + properties.getProperty(SRVR_HOSTS_MAPPING));
     return properties.getProperty(SRVR_HOSTS_MAPPING);
   }
 
@@ -1015,12 +1026,12 @@ public class Configuration {
 
   public String getExecutionSchedulerThreads() {
     return properties.getProperty(EXECUTION_SCHEDULER_THREADS,
-      DEFAULT_SCHEDULER_THREAD_COUNT);
+        DEFAULT_SCHEDULER_THREAD_COUNT);
   }
 
   public String getExecutionSchedulerConnections() {
     return properties.getProperty(EXECUTION_SCHEDULER_CONNECTIONS,
-      DEFAULT_SCHEDULER_MAX_CONNECTIONS);
+        DEFAULT_SCHEDULER_MAX_CONNECTIONS);
   }
 
   public Long getExecutionSchedulerMisfireToleration() {
@@ -1032,7 +1043,7 @@ public class Configuration {
 
   public Integer getExecutionSchedulerStartDelay() {
     String delay = properties.getProperty(EXECUTION_SCHEDULER_START_DELAY,
-      DEFAULT_SCHEDULER_START_DELAY_SECONDS);
+        DEFAULT_SCHEDULER_START_DELAY_SECONDS);
     return Integer.parseInt(delay);
   }
 

@@ -1290,7 +1290,8 @@ public class ViewRegistry {
       // extract the archive and get the class loader
       ClassLoader cl = extractor.extractViewArchive(viewDefinition, archiveFile, extractedArchiveDirFile);
 
-      ViewConfig viewConfig = archiveUtility.getViewConfigFromExtractedArchive(extractedArchiveDirPath);
+      ViewConfig viewConfig = archiveUtility.getViewConfigFromExtractedArchive(extractedArchiveDirPath,
+          configuration.isViewValidationEnabled());
 
       setupViewDefinition(viewDefinition, viewConfig, cl);
 
