@@ -42,6 +42,10 @@ App.MainMenuView = Em.CollectionView.extend({
             { label:Em.I18n.t('menu.item.hosts'), routing:'hosts'}
           );
 
+          if (App.get('supports.alerts')) {
+            result.push({ label:Em.I18n.t('menu.item.alerts'), routing:'alerts'});
+          }
+
           if (App.supports.mirroring && App.Service.find().findProperty('serviceName', 'FALCON')) {
             result.push({ label:Em.I18n.t('menu.item.mirroring'), routing:'mirroring'});
           }
@@ -63,9 +67,9 @@ App.MainMenuView = Em.CollectionView.extend({
     return result;
   }.property('App.router.loggedIn', 'App.supports.views', 'App.supports.mirroring',
       'App.supports.secureCluster', 'App.supports.highAvailability', 'views.length',
-      'App.router.clusterController.isLoaded', 'App.router.clusterInstallCompleted'),
+      'App.router.clusterController.isLoaded', 'App.router.clusterInstallCompleted', 'App.supports.alerts'),
 
-  itemViewClass:Em.View.extend({
+  itemViewClass: Em.View.extend({
 
     classNameBindings: ['active', ':top-nav-dropdown'],
 

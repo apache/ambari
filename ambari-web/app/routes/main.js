@@ -266,6 +266,13 @@ module.exports = Em.Route.extend({
         }
       }),
 
+      alerts: Em.Route.extend({
+        route: '/alerts',
+        connectOutlets: function (router, context) {
+          router.get('mainHostDetailsController').connectOutlet('mainHostAlerts');
+        }
+      }),
+
       metrics: Em.Route.extend({
         route: '/metrics',
         connectOutlets: function (router, context) {
@@ -305,6 +312,27 @@ module.exports = Em.Route.extend({
   }),
 
   hostAdd: require('routes/add_host_routes'),
+
+  alerts: Em.Route.extend({
+    route: '/alerts',
+    index: Ember.Route.extend({
+      route: '/',
+      connectOutlets: function (router, context) {
+        router.get('mainController').connectOutlet('mainAlerts');
+      }
+    }),
+
+    alertDetails: Em.Route.extend({
+      route: '/:alert_id',
+      connectOutlets: function (router, host) {
+      },
+
+      index: Ember.Route.extend({
+        route: '/'
+      })
+    })
+
+  }),
 
   admin: Em.Route.extend({
     route: '/admin',

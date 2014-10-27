@@ -33,6 +33,12 @@ App.MainHostMenuView = Em.CollectionView.extend({
       label: 'Configs',
       routing: 'configs'
     });
+    if (App.get('supports.alerts')) {
+      array.push({
+        label: 'Alerts',
+        routing: 'alerts'
+      });
+    }
     return array;
   }.property(''),
 

@@ -52,7 +52,8 @@ App.enableExperimental = false;
 
 App.supports = {
   stackUpgrade: false,
-  autoRollbackHA: false
+  autoRollbackHA: false,
+  alerts: false
 };
 
 if (App.enableExperimental) {
