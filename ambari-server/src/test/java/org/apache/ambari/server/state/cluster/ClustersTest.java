@@ -203,6 +203,7 @@ public class ClustersTest {
     String h1 = "h1";
     String h2 = "h2";
     String h3 = "h3";
+    String h4 = "h4";
 
     try {
       clusters.mapHostToCluster(h1, c1);
@@ -234,6 +235,13 @@ public class ClustersTest {
     clusters.getHost(h1).persist();
     clusters.getHost(h2).persist();
     clusters.getHost(h3).persist();
+
+    try {
+        clusters.getClustersForHost(h4);
+        fail("Expected exception for invalid host");
+    } catch (HostNotFoundException e) {
+          // Expected
+    }
 
     Set<Cluster> c = clusters.getClustersForHost(h3);
     Assert.assertEquals(0, c.size());

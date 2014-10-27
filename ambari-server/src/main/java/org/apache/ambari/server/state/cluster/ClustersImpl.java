@@ -286,6 +286,9 @@ public class ClustersImpl implements Clusters {
     checkLoaded();
     r.lock();
     try {
+      if(!hostClusterMap.containsKey(hostname)){
+            throw new HostNotFoundException(hostname);
+      }
       if (LOG.isDebugEnabled()) {
         LOG.debug("Looking up clusters for hostname"
             + ", hostname=" + hostname
