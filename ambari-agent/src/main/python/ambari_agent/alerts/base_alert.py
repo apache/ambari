@@ -85,7 +85,7 @@ class BaseAlert(object):
     """ method used for collection.  defers to _collect() """
     
     res = (BaseAlert.RESULT_UNKNOWN, [])
-    res_base_text = "Unknown {0}"
+    res_base_text = "{0}"
     
     try:
       res = self._collect()
@@ -100,7 +100,7 @@ class BaseAlert(object):
         logger.warning(message)
 
       res = (BaseAlert.RESULT_UNKNOWN, [str(e)])
-      res_base_text = "Unknown {0}"
+      res_base_text = "{0}"
     
     
     if logger.isEnabledFor(logging.DEBUG):

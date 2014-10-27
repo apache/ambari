@@ -23,13 +23,22 @@ import os
 import platform
 
 def get_tokens():
+  """
+  Returns a tuple of tokens in the format {{site/property}} that will be used
+  to build the dictionary passed into execute
+  """
   return None
   
 
-def execute(parameters=None):
+def execute(parameters=None, host_name=None):
   """
-  returns a tuple containing the result code and a pre-formatted result label
+  Returns a tuple containing the result code and a pre-formatted result label
+
+  Keyword arguments:
+  parameters (dictionary): a mapping of parameter key to value
+  host_name (string): the name of this host where the alert is running
   """
+
   disk_usage = None
   try:
     disk_usage = _get_disk_usage()

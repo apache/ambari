@@ -21,6 +21,32 @@
           }        
         }
       }
+    ],
+    "HIVE_SERVER": [
+      {
+        "name": "hive_server_process",
+        "label": "HiveServer2 Process",
+        "interval": 1,
+        "scope": "ANY",
+        "enabled": true,
+        "source": {
+          "type": "SCRIPT",
+          "path": "HDP/2.0.6/services/HIVE/package/files/alert_hive_thrift_port.py"
+        }
+      }
+    ],
+    "WEBHCAT_SERVER": [
+      {
+        "name": "hive_webhcat_server_status",
+        "label": "WebHCat Server Status",
+        "interval": 1,
+        "scope": "ANY",
+        "enabled": true,
+        "source": {
+          "type": "SCRIPT",
+          "path": "HDP/2.0.6/services/HIVE/package/files/alert_webhcat_server.py"
+        }
+      }    
     ]
   }
 }

@@ -300,6 +300,17 @@
             }
           }        
         }
+      },
+      {
+        "name": "namenode_last_checkpoint",
+        "label": "NameNode Last Checkpoint",
+        "interval": 1,
+        "scope": "ANY",
+        "enabled": true,
+        "source": {
+          "type": "SCRIPT",
+          "path": "HDP/2.0.6/services/HDFS/package/files/alert_checkpoint_time.py"
+        }
       }
     ],
     "SECONDARY_NAMENODE": [

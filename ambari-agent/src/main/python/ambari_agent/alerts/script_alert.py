@@ -78,9 +78,9 @@ class ScriptAlert(BaseAlert):
       for key in self.config_value_dict:
         parameters['{{' + key + '}}'] = self.config_value_dict[key]
       
-      return cmd_module.execute(parameters)
+      return cmd_module.execute(parameters, self.host_name)
     else:
-      return ((self.RESULT_UNKNOWN, ["Unable to execute script {0}".format(self.path)]))
+      return (self.RESULT_UNKNOWN, ["Unable to execute script {0}".format(self.path)])
     
 
   def _load_source(self):

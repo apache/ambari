@@ -117,9 +117,9 @@
             "critical": {
               "text": "Connection failed: {0} on host {1}:{2}"
             }
-          }        
+          }
         }
-      }    
+      }
     ]
   },
   "YARN": {
@@ -147,7 +147,7 @@
             }
           }
         }
-      }    
+      }
     ],
     "NODEMANAGER": [
       {
@@ -175,6 +175,17 @@
               "text": "Connection failed to {1}:{2}"
             }
           }
+        }
+      },
+      {
+        "name": "yarn_nodemanager_health",
+        "label": "NodeManager Health",
+        "interval": 1,
+        "scope": "HOST",
+        "enabled": true,
+        "source": {
+          "type": "SCRIPT",
+          "path": "HDP/2.0.6/services/YARN/package/files/alert_nodemanager_health.py"
         }
       }
     ],

@@ -77,7 +77,7 @@ class MetricAlert(BaseAlert):
 
     logger.debug("Resolved value list is: {0}".format(str(value_list)))
     
-    return ((collect_result, value_list))
+    return (collect_result, value_list)
 
   
   def __get_result(self, value):
