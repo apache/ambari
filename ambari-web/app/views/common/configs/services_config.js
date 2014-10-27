@@ -352,7 +352,7 @@ App.ServiceConfigsByCategoryView = Ember.View.extend(App.UserPref, {
     var selectedFilters = this.get('parentView.columns').filterProperty('selected');
     var filteredResult = this.get('categoryConfigs')
 
-    if (this.get('state') === 'inDOM') {
+    if (selectedFilters.length > 0 || filter.length > 0 || this.get('state') === 'inDOM') {
       filteredResult = filteredResult.filter(function (config) {
         var passesFilters = true;
 
