@@ -53,10 +53,19 @@ App.CreateAppWizardStep1Controller = Ember.Controller.extend(App.AjaxErrorHandle
   nameErrorMessage: '',
 
   /**
+   * Determines if request for validating new App name is sent
+   * If true - "Next" button should be disabled
+   * Set to false after request is finished
+   * @type {bool}
+   */
+  validateAppNameRequestExecuting: false,
+
+  /**
    * Define if there are existing App types
    * @type {Boolean}
    */
   isAppTypesError: Em.computed.equal('availableTypes.content.length', 0),
+
   /**
    * Define description depending on selected App type
    * @type {string}
@@ -72,8 +81,8 @@ App.CreateAppWizardStep1Controller = Ember.Controller.extend(App.AjaxErrorHandle
    * @type {bool}
    */
   isSubmitDisabled: function () {
-    return !this.get('newApp.name') || this.get('isNameError') || this.get('isAppTypesError');
-  }.property('newApp.name', 'isNameError', 'isAppTypesError'),
+    return this.get('validateAppNameRequestExecuting') || !this.get('newApp.name') || this.get('isNameError') || this.get('isAppTypesError');
+  }.property('newApp.name', 'isNameError', 'isAppTypesError', 'validateAppNameRequestExecuting'),
 
   /**
    * Initialize new App and set it to <code>newApp</code>
@@ -149,30 +158,37 @@ App.CreateAppWizardStep1Controller = Ember.Controller.extend(App.AjaxErrorHandle
 
   /**
    * Proceed if app name has failed server validation
-   * @method {validateAppNameSuccessCallback}
+   * @method {validateAppNameErrorCallback}
    */
   validateAppNameErrorCallback: function (request, ajaxOptions, error, opt, params) {
     if (request.status == 409) {
-      var self = this;
       Bootstrap.ModalManager.open(
         'app-name-conflict',
         Em.I18n.t('common.error'),
         Em.View.extend({
-          template: Em.Handlebars.compile('<div class="alert alert-danger">' +
-            Em.I18n.t('wizard.step1.validateAppNameError').format(params.name) + '</div>')
+          classNames: ['alert', 'alert-danger'],
+          template: Em.Handlebars.compile(Em.I18n.t('wizard.step1.validateAppNameError').format(params.name))
         }),
         [
-          Ember.Object.create({
+          Em.Object.create({
             title: Em.I18n.t('ok'),
             dismiss: 'modal',
             type: 'success'
           })
         ],
-        self
+        this
       );
     } else {
       this.defaultErrorHandler(request, opt.url, opt.type, true);
     }
+  },
+
+  /**
+   * Complete-callback for validating newAppName request
+   * @method validateAppNameCompleteCallback
+   */
+  validateAppNameCompleteCallback: function() {
+    this.set('validateAppNameRequestExecuting', false);
   },
 
   /**
@@ -189,6 +205,7 @@ App.CreateAppWizardStep1Controller = Ember.Controller.extend(App.AjaxErrorHandle
 
   actions: {
     submit: function () {
+      this.set('validateAppNameRequestExecuting', true);
       return App.ajax.send({
         name: 'validateAppName',
         sender: this,
@@ -196,7 +213,8 @@ App.CreateAppWizardStep1Controller = Ember.Controller.extend(App.AjaxErrorHandle
           name: this.get('newApp.name')
         },
         success: 'validateAppNameSuccessCallback',
-        error: 'validateAppNameErrorCallback'
+        error: 'validateAppNameErrorCallback',
+        complete: 'validateAppNameCompleteCallback'
       });
     }
   }

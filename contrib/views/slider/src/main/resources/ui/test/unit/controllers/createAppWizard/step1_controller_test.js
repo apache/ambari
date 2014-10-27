@@ -38,7 +38,7 @@ test('isAppTypesError', function () {
 
 });
 
-test('nameValidator', function() {
+test('nameValidator', function () {
   expect(7);
 
   var tests = [
@@ -51,7 +51,7 @@ test('nameValidator', function() {
 
   var controller = this.subject({isNameError: false,
     store: Em.Object.create({
-      all: function(key) {
+      all: function (key) {
         return {
           sliderApp: [
             { name: 'slider2' }
@@ -61,17 +61,17 @@ test('nameValidator', function() {
     })
   });
 
-  tests.forEach(function(test) {
-    Em.run(function() {
+  tests.forEach(function (test) {
+    Em.run(function () {
       controller.set('newApp', { name: test.name});
     });
 
     equal(controller.get('isNameError'), test.e, 'Name `' + test.name + '` is' + (!!test.e ? ' not ' : ' ') + 'valid');
   });
 
-  Em.run(function() {
+  Em.run(function () {
     controller.set('newApp', { name: 'slider2'});
-  })
+  });
 
   equal(controller.get('isNameError'), true, 'Name `slider2` already exist');
   equal(controller.get('nameErrorMessage'), Em.I18n.t('wizard.step1.nameRepeatError'), 'Error message should be shown');
@@ -85,12 +85,11 @@ test('validateAppNameSuccessCallback', function () {
         n0: 'v0'
       }
     }),
-    title = 'newApp should have {0} set';
-
-  var controller = this.subject({
-    newApp: Em.Object.create(),
-    selectedType: selectedType
-  });
+    title = 'newApp should have {0} set',
+    controller = this.subject({
+      newApp: Em.Object.create(),
+      selectedType: selectedType
+    });
 
   Em.run(function () {
     controller.set('appWizardController.transitionToRoute', Em.K);
@@ -102,5 +101,28 @@ test('validateAppNameSuccessCallback', function () {
   deepEqual(controller.get('newApp.predefinedConfigNames'), Em.keys(selectedType.configs), title.format('predefinedConfigNames'));
   deepEqual(controller.get('appWizardController.newApp'), controller.get('newApp'), 'newApp should be set in CreateAppWizardController');
   equal(controller.get('appWizardController.currentStep'), 2, 'should proceed to the next step');
+
+});
+
+test('isSubmitDisabled', function () {
+
+  var controller = this.subject({
+    availableTypes: {
+      content: [
+        {}
+      ]
+    },
+    isNameError: false,
+    newApp: {
+      name: 'some'
+    }
+  });
+
+  equal(controller.get('isSubmitDisabled'), false);
+  Em.run(function () {
+    controller.set('validateAppNameRequestExecuting', true);
+  });
+
+  equal(controller.get('isSubmitDisabled'), true, 'button disabled when request executing');
 
 });

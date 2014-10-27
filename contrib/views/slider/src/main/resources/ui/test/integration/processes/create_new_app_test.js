@@ -141,6 +141,7 @@ test('basic (no errors - just valid data)', function () {
     equal(find(selectors.buttonNext).attr('disabled'), null, '"Next"-button should be enabled after user input a valid name');
   });
   click(selectors.buttonNext);
+  equal(find(selectors.buttonNext).attr('disabled'), 'disabled', '"Next"-button should be disabled after click on it');
 
   andThen(function () {
     /* STEP 2 */
