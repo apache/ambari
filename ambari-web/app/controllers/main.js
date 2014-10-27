@@ -24,13 +24,15 @@ App.MainController = Em.Controller.extend({
 
   updateTitle: function(){
     var name = App.router.get('clusterController.clusterName');
-    if (name) {
-      name = name.length > 13 ? name.substr(0, 10) + "..." : name;
-    } else {
-      name = Em.I18n.t('common.loading');
+    if(App.clusterStatus.get('isInstalled')) {
+      if (name) {
+        name = name.length > 13 ? name.substr(0, 10) + "..." : name;
+      } else {
+        name = Em.I18n.t('common.loading');
+      }
+      $('title').text('Ambari - ' + name);
     }
-    $('title').text('Ambari - ' + name);
-  }.observes('App.router.clusterController.clusterName'),
+  }.observes('App.router.clusterController.clusterName, App.clusterStatus.isInstalled'),
 
   isClusterDataLoaded: function(){
     return App.router.get('clusterController.isLoaded');
