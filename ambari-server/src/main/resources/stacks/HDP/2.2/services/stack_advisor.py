@@ -23,6 +23,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     parentRecommendConfDict = super(HDP22StackAdvisor, self).getServiceConfigurationRecommenderDict()
     childRecommendConfDict = {
       "HDFS": self.recommendHDFSConfigurations,
+      "MAPREDUCE2": self.recommendMapReduce2Configurations,
       "TEZ": self.recommendTezConfigurations
     }
     parentRecommendConfDict.update(childRecommendConfDict)
@@ -46,6 +47,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     parentValidators = super(HDP22StackAdvisor, self).getServiceConfigurationValidators()
     childValidators = {
       "HDFS": ["hdfs-site", self.validateHDFSConfigurations],
+      "MAPREDUCE2": ["mapred-site", self.validateMapReduce2Configurations],
       "TEZ": ["tez-site", self.validateTezConfigurations]
     }
     parentValidators.update(childValidators)
@@ -57,6 +59,25 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
                         {"config-name": 'tez.runtime.io.sort.mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'tez.runtime.io.sort.mb')},
                         {"config-name": 'tez.runtime.unordered.output.buffer.size-mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'tez.runtime.unordered.output.buffer.size-mb')},]
     return self.toConfigurationValidationProblems(validationItems, "tez-site")
+
+  def recommendMapReduce2Configurations(self, configurations, clusterData):
+    putMapredProperty = self.putProperty(configurations, "mapred-site")
+    putMapredProperty('yarn.app.mapreduce.am.resource.mb', int(clusterData['amMemory']))
+    putMapredProperty('yarn.app.mapreduce.am.command-opts', "-Xmx" + str(int(round(0.8 * clusterData['amMemory']))) + "m" + " -Dhdp.version=${hdp.version}")
+    putMapredProperty('mapreduce.map.memory.mb', clusterData['mapMemory'])
+    putMapredProperty('mapreduce.reduce.memory.mb', int(clusterData['reduceMemory']))
+    putMapredProperty('mapreduce.map.java.opts', "-Xmx" + str(int(round(0.8 * clusterData['mapMemory']))) + "m")
+    putMapredProperty('mapreduce.reduce.java.opts', "-Xmx" + str(int(round(0.8 * clusterData['reduceMemory']))) + "m")
+    putMapredProperty('mapreduce.task.io.sort.mb', min(int(round(0.4 * clusterData['mapMemory'])), 1024))
+
+  def validateMapReduce2Configurations(self, properties, recommendedDefaults, configurations):
+    validationItems = [ {"config-name": 'mapreduce.map.java.opts', "item": self.validateXmxValue(properties, recommendedDefaults, 'mapreduce.map.java.opts')},
+                        {"config-name": 'mapreduce.reduce.java.opts', "item": self.validateXmxValue(properties, recommendedDefaults, 'mapreduce.reduce.java.opts')},
+                        {"config-name": 'mapreduce.task.io.sort.mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'mapreduce.task.io.sort.mb')},
+                        {"config-name": 'mapreduce.map.memory.mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'mapreduce.map.memory.mb')},
+                        {"config-name": 'mapreduce.reduce.memory.mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'mapreduce.reduce.memory.mb')},
+                        {"config-name": 'yarn.app.mapreduce.am.resource.mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'yarn.app.mapreduce.am.resource.mb')}]
+    return self.toConfigurationValidationProblems(validationItems, "mapred-site")
 
   def validateHDFSConfigurations(self, properties, recommendedDefaults, configurations):
     # We can not access property hadoop.security.authentication from the

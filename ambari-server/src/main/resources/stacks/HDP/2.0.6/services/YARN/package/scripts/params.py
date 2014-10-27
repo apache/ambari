@@ -21,6 +21,7 @@ Ambari Agent
 import os
 
 from resource_management import *
+from resource_management.libraries.functions.version import compare_versions, format_hdp_stack_version
 import status_params
 
 # server configurations
@@ -28,10 +29,10 @@ config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 
 hdp_stack_version = str(config['hostLevelParams']['stack_version'])
-stack_is_hdp22_or_further = not (hdp_stack_version.startswith('2.0') or hdp_stack_version.startswith('2.1'))
+hdp_stack_version = format_hdp_stack_version(hdp_stack_version)
 
 #hadoop params
-if stack_is_hdp22_or_further:
+if compare_versions(hdp_stack_version, "2.2.0.0") >= 0:
   hadoop_libexec_dir = "/usr/hdp/current/hadoop-client/libexec"
   hadoop_bin = "/usr/hdp/current/hadoop-client/sbin"
   hadoop_bin_dir = "/usr/hdp/current/hadoop-client/bin"
@@ -149,9 +150,7 @@ jobhistory_heapsize = default("/configurations/mapred-env/jobhistory_heapsize", 
 #for create_hdfs_directory
 hostname = config["hostname"]
 hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
-hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_name']
-kinit_path_local = functions.get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
 import functools
 #create partial functions with common arguments for every HdfsDirectory call
 #to create hdfs directory we need to call params.HdfsDirectory in code

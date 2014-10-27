@@ -24,7 +24,7 @@
 
   <property>
     <name>mapreduce.admin.user.env</name>
-    <value>LD_LIBRARY_PATH=/usr/lib/hadoop/lib/native:/usr/hdp/current/hadoop-client/lib/native/Linux-amd64-64</value>
+    <value>LD_LIBRARY_PATH=/usr/hdp/${hdp.version}/hadoop/lib/native:/usr/hdp/${hdp.version}/hadoop/lib/native/Linux-amd64-64</value>
     <description>
       Additional execution environment entries for map and reduce task processes.
       This is not an additive property. You must preserve the original value if
@@ -34,10 +34,34 @@
 
   <property>
     <name>mapreduce.application.classpath</name>
-    <value>$HADOOP_MAPRED_HOME/share/hadoop/mapreduce/*,$HADOOP_MAPRED_HOME/share/hadoop/mapreduce/lib/*,/usr/hdp/current/hadoop-mapreduce-client/,/usr/hdp/current/hadoop-mapreduce-client/lib,/usr/hdp/current/hadoop-client/</value>
+    <value>$PWD/mr-framework/hadoop-2.6.0.${hdp.version}/share/hadoop/mapreduce/*:$PWD/mr-framework/hadoop-2.6.0.${hdp.version}/share/hadoop/mapreduce/lib/*:$PWD/mr-framework/hadoop-2.6.0.${hdp.version}/share/hadoop/common/*:$PWD/mr-framework/hadoop-2.6.0.${hdp.version}/share/hadoop/common/lib/*:$PWD/mr-framework/hadoop-2.6.0.${hdp.version}/share/hadoop/yarn/*:$PWD/mr-framework/hadoop-2.6.0.${hdp.version}/share/hadoop/yarn/lib/*:$PWD/mr-framework/hadoop-2.6.0.${hdp.version}/share/hadoop/hdfs/*:$PWD/mr-framework/hadoop-2.6.0.${hdp.version}/share/hadoop/hdfs/lib/*:/usr/hdp/${hdp.version}/hadoop/lib/hadoop-lzo-0.6.0.jar</value>
     <description>
       CLASSPATH for MR applications. A comma-separated list of CLASSPATH
       entries.
+    </description>
+  </property>
+
+  <property>
+    <name>mapreduce.application.framework.path</name>
+    <value>hdfs:///hdp/apps/${hdp.version}/mr/mr-2.6.0.${hdp.version}.tar.gz#mr-framework</value>
+    <description></description>
+  </property>
+
+  <property>
+    <name>yarn.app.mapreduce.am.admin-command-opts</name>
+    <value>-Xmx256m -Dhdp.version=${hdp.version}</value>
+    <description>
+      Java opts for the MR App Master processes.
+      The following symbol, if present, will be interpolated: @taskid@ is replaced
+      by current TaskID. Any other occurrences of '@' will go unchanged.
+      For example, to enable verbose gc logging to a file named for the taskid in
+      /tmp and to set the heap maximum to be a gigabyte, pass a 'value' of:
+      -Xmx1024m -verbose:gc -Xloggc:/tmp/@taskid@.gc
+
+      Usage of -Djava.library.path can cause programs to no longer function if
+      hadoop native libraries are used. These values should instead be set as part
+      of LD_LIBRARY_PATH in the map / reduce JVM env using the mapreduce.map.env and
+      mapreduce.reduce.env config settings.
     </description>
   </property>
 

@@ -455,7 +455,7 @@ MAPRED_SITE = {
   "mapreduce.tasktracker.taskmemorymanager.monitoringinterval": "DELETE_OLD",
   "mapreduce.tasktracker.tasks.sleeptimebeforesigkill": "DELETE_OLD",
   "yarn.app.mapreduce.am.admin-command-opts": "-Djava.net.preferIPv4Stack=true -Dhadoop.metrics.log.level=WARN",
-  "yarn.app.mapreduce.am.command-opts": "-Xmx312m",
+  "yarn.app.mapreduce.am.command-opts": "-Xmx312m -Dhdp.version=${hdp.version}",
   "yarn.app.mapreduce.am.log.level": "INFO",
   "yarn.app.mapreduce.am.resource.mb": "512",
   "yarn.app.mapreduce.am.staging-dir": "/user"

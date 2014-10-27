@@ -20,6 +20,7 @@ Ambari Agent
 """
 import sys
 from resource_management import *
+from resource_management.libraries.functions.dynamic_variable_interpretation import copy_tarballs_to_hdfs
 
 from yarn import yarn
 from service import service
@@ -37,6 +38,7 @@ class HistoryServer(Script):
     import params
     env.set_params(params)
     self.configure(env) # FOR SECURITY
+    copy_tarballs_to_hdfs('mr', params.mapred_user, params.hdfs_user)
     service('historyserver', action='start', serviceName='mapreduce')
 
   def stop(self, env):

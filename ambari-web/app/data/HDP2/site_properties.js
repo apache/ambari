@@ -2058,6 +2058,32 @@ module.exports =
     },
     {
       "id": "puppet var",
+      "name": "mr_tar_source",
+      "displayName": "MapReduce2 tarball source",
+      "description": "Source file path that uses dynamic variables and regex to copy the file to HDFS.",
+      "defaultValue": '',
+      "isRequired": true,
+      "isOverridable": false,
+      "isVisible": false,
+      "isEditable": false,
+      "serviceName": "MISC",
+      "filename": "cluster-env.xml"
+    },
+    {
+      "id": "puppet var",
+      "name": "mr_tar_destination_folder",
+      "displayName": "MapReduce2 tarball destination folder",
+      "description": "Destination HDFS folder for the file.",
+      "defaultValue": '',
+      "isRequired": true,
+      "isOverridable": false,
+      "isVisible": false,
+      "isEditable": false,
+      "serviceName": "MISC",
+      "filename": "cluster-env.xml"
+    },
+    {
+      "id": "puppet var",
       "name": "tez_tar_source",
       "displayName": "Tez tarball source",
       "description": "Source file path that uses dynamic variables and regex to copy the file to HDFS.",
