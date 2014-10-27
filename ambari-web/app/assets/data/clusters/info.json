@@ -1,11 +1,10 @@
 {
-  "href" : "http://ec2-23-20-184-220.compute-1.amazonaws.com:8080/api/v1/clusters",
   "items" : [
     {
-      "href" : "http://ec2-23-20-184-220.compute-1.amazonaws.com:8080/api/v1/clusters/tdk",
       "Clusters" : {
         "cluster_name" : "tdk",
-        "version" : "HDP-2.0.5"
+        "provisioning_state" : "INSTALLED",
+        "version" : "HDP-2.0.1"
       }
     }
   ]

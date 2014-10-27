@@ -536,7 +536,7 @@ var urls = {
 
   'host.host_component.slave_desired_admin_state': {
     'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{componentName}/?fields=HostRoles/desired_admin_state',
-    'mock': ''
+    'mock': '/data/hosts/HDP2/decommission_state.json'
   },
   'host.host_component.decommission_status': {
     'real': '/clusters/{clusterName}/services/{serviceName}/components/{componentName}/?fields=ServiceComponentInfo,host_components/HostRoles/state',
@@ -548,7 +548,7 @@ var urls = {
   },
   'host.host_component.decommission_status_datanode': {
     'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{componentName}?fields=metrics/dfs/namenode',
-    'mock': ''
+    'mock': '/data/hosts/HDP2/decommission_state.json'
   },
   'host.region_servers.in_inservice': {
     'real': '/clusters/{clusterName}/host_components?HostRoles/component_name=HBASE_REGIONSERVER&HostRoles/desired_admin_state=INSERVICE&fields=HostRoles/host_name&minimal_response=true',
@@ -1465,7 +1465,7 @@ var urls = {
   },
   'ambari.service.load_server_version': {
     'real': '/services/AMBARI/components/AMBARI_SERVER?fields=RootServiceComponents/component_version',
-    'mock': ''
+    'mock': '/data/ambari_components/component_version.json'
   },
   'ambari.service': {
     'real': '/services/AMBARI/components/AMBARI_SERVER',
@@ -1813,7 +1813,7 @@ var urls = {
   },
   'hosts.all': {
     'real': '/clusters/{clusterName}/hosts?minimal_response=true',
-    'mock': ''
+    'mock': '/data/hosts/HDP2/hosts.json'
   },
   'hosts.with_public_host_names': {
     'real': '/clusters/{clusterName}/hosts?fields=Hosts/public_host_name&minimal_response=true',
@@ -1829,7 +1829,7 @@ var urls = {
   },
   'hosts.confirmed': {
     'real': '/clusters/{clusterName}/hosts?fields=Hosts/cpu_count,Hosts/disk_info,Hosts/total_mem,Hosts/os_type,Hosts/os_arch,Hosts/ip,host_components/HostRoles/state&minimal_response=true',
-    'mock': ''
+    'mock': '/data/hosts/HDP2/hosts.json'
   },
   'host_components.all': {
     'real': '/clusters/{clusterName}/host_components?fields=HostRoles/host_name&minimal_response=true',
@@ -1845,11 +1845,11 @@ var urls = {
   },
   'hosts.heatmaps': {
     'real': '/clusters/{clusterName}/hosts?fields=Hosts/host_name,Hosts/public_host_name,Hosts/os_type,Hosts/ip,host_components,metrics/disk,metrics/cpu/cpu_system,metrics/cpu/cpu_user,metrics/memory/mem_total,metrics/memory/mem_free&minimal_response=true',
-    'mock': ''
+    'mock': '/data/hosts/HDP2/hosts.json'
   },
   'namenode.cpu_wio': {
     'real': '/clusters/{clusterName}/hosts/{nnHost}?fields=metrics/cpu',
-    'mock': ''
+    'mock': '/data/cluster_metrics/cpu.json'
   },
 
   'custom_action.create': {
@@ -1907,19 +1907,9 @@ var urls = {
     'real': '/clusters/{clusterName}/hosts?fields=Hosts/cpu_count,Hosts/disk_info,Hosts/total_mem,Hosts/ip,Hosts/os_type,Hosts/os_arch,Hosts/public_host_name,host_components&minimal_response=true',
     'mock': ''
   },
-  'cluster.fields': {
-    real: '/clusters/{clusterName}?fields={fields}',
-    mock: '',
-    format: function(data) {
-      return {
-        async: true,
-        fields: data.fields.join(',')
-      }
-    }
-  },
   'hosts.host_components.pre_load': {
     real: '',
-    mock: '',
+    mock: '/data/hosts/HDP2/hosts.json',
     format: function(data) {
       return {
         url: data.url
@@ -1953,7 +1943,7 @@ var urls = {
   },
   'service.serviceConfigVersions.get.total': {
     real: '/clusters/{clusterName}/configurations/service_config_versions?page_size=1&minimal_response=true',
-    mock: ''
+    mock: '/data/configurations/service_versions_total.json'
   },
   'service.serviceConfigVersion.get': {
     real: '/clusters/{clusterName}/configurations/service_config_versions?service_name={serviceName}&service_config_version={serviceConfigVersion}',

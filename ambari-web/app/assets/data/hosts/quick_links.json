@@ -48,6 +48,16 @@
         },
         {
           "HostRoles" : {
+            "component_name" : "HBASE_MASTER"
+          }
+        },
+        {
+          "HostRoles" : {
+            "component_name" : "STORM_UI_SERVER"
+          }
+        },
+        {
+          "HostRoles" : {
             "component_name" : "SQOOP"
           }
         },

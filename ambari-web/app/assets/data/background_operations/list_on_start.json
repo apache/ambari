@@ -2,35 +2,53 @@
   "href" : "http://192.168.56.101:8080/api/v1/clusters/perf/requests?to=end&page_size=10&fields=Requests",
   "items" : [
     {
-      "href" : "http://192.168.56.101:8080/api/v1/clusters/perf/requests/12",
+      "href" : "http://192.168.56.101:8080/api/v1/clusters/c1/requests/12",
       "Requests" : {
         "aborted_task_count" : 0,
-        "cluster_name" : "perf",
-        "completed_task_count" : 4,
+        "cluster_name" : "c1",
+        "completed_task_count" : 2,
+        "create_time" : 1414410974460,
+        "end_time" : 1414411113883,
+        "exclusive" : false,
         "failed_task_count" : 0,
         "id" : 12,
+        "inputs" : null,
+        "operation_level" : null,
         "progress_percent" : 100.0,
         "queued_task_count" : 0,
-        "request_context" : "Start YARN",
+        "request_context" : "Install Services",
+        "request_schedule" : null,
         "request_status" : "COMPLETED",
-        "task_count" : 4,
-        "timed_out_task_count" : 0
+        "resource_filters" : [ ],
+        "start_time" : 1414410974489,
+        "task_count" : 2,
+        "timed_out_task_count" : 0,
+        "type" : "INTERNAL_REQUEST"
       }
     },
     {
-      "href" : "http://192.168.56.101:8080/api/v1/clusters/perf/requests/13",
+      "href" : "http://192.168.56.101:8080/api/v1/clusters/c1/requests/13",
       "Requests" : {
         "aborted_task_count" : 0,
-        "cluster_name" : "perf",
-        "completed_task_count" : 0,
+        "cluster_name" : "c1",
+        "completed_task_count" : 2,
+        "create_time" : 1414411114097,
+        "end_time" : 1414411129173,
+        "exclusive" : false,
         "failed_task_count" : 0,
         "id" : 13,
-        "progress_percent" : 9.0,
-        "queued_task_count" : 2,
-        "request_context" : "Stop YARN",
-        "request_status" : "PENDING",
+        "inputs" : null,
+        "operation_level" : null,
+        "progress_percent" : 100.0,
+        "queued_task_count" : 0,
+        "request_context" : "Start Added Services",
+        "request_schedule" : null,
+        "request_status" : "COMPLETED",
+        "resource_filters" : [ ],
+        "start_time" : 1414411114179,
         "task_count" : 2,
-        "timed_out_task_count" : 0
+        "timed_out_task_count" : 0,
+        "type" : "INTERNAL_REQUEST"
       }
     }
   ]
