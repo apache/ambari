@@ -159,7 +159,7 @@ App.AddServiceController = App.WizardController.extend({
    */
   loadMasterComponentHosts: function () {
     this._super();
-    this.set('content.skipMasterStep', this.get('content.masterComponentHosts').everyProperty('isInstalled', true));
+    this.set('content.skipMasterStep', App.StackService.find().filterProperty('isSelected').filterProperty('hasMaster').everyProperty('isInstalled', true));
     this.get('isStepDisabled').findProperty('step', 2).set('value', this.get('content.skipMasterStep'));
   },
 
