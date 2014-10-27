@@ -341,7 +341,9 @@ public class BlueprintConfigurationProcessor {
           // remove properties that do not contain hostnames,
           // except in the case of HA-related properties, that
           // can contain nameservice references instead of hostnames (Fix for Bug AMBARI-7458).
-          if (! matchedHost && ! isNameServiceProperty(propertyName)) {
+          // also will not remove properties that reference the special 0.0.0.0 network
+          // address
+          if (! matchedHost && ! isNameServiceProperty(propertyName) && !isSpecialNetworkAddress(propValue)) {
             typeProperties.remove(propertyName);
           }
         }
@@ -360,6 +362,21 @@ public class BlueprintConfigurationProcessor {
    */
   private static boolean isNameServiceProperty(String propertyName) {
     return configPropertiesWithHASupport.contains(propertyName);
+  }
+
+  /**
+   * Queries a property value to determine if the value contains
+   *   a host address with all zeros (0.0.0.0).  This is a special
+   *   address that signifies that the service is available on
+   *   all network interfaces on a given machine.
+   *
+   * @param propertyValue the property value to inspect
+   *
+   * @return true if the 0.0.0.0 address is included in this string
+   *         false if the 0.0.0.0 address is not included in this string
+   */
+  private static boolean isSpecialNetworkAddress(String propertyValue) {
+    return propertyValue.contains("0.0.0.0");
   }
 
   /**
