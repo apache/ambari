@@ -296,6 +296,7 @@ module.exports = Em.Route.extend({
           controller.setDBProperty('recommendationsHostGroups', wizardStep6Controller.get('content.recommendationsHostGroups'));
           controller.setDBProperty('recommendationsConfigs', null);
           controller.loadAdvancedConfigs(wizardStep7Controller);
+          wizardStep7Controller.set('isAdvancedConfigLoaded', false);
           router.transitionTo('step7');
         });
       }
