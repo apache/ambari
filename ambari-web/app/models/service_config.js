@@ -498,12 +498,6 @@ App.ServiceConfigProperty = Ember.Object.extend({
       case 'hadoop.registry.zk.quorum':
       case 'hive.cluster.delegation.token.store.zookeeper.connectString':
         var zkHosts = masterComponentHostsInDB.filterProperty('component', 'ZOOKEEPER_SERVER').mapProperty('hostName');
-        if (this.get('name') === 'hive.zookeeper.quorum') {
-          zkHosts = masterComponentHostsInDB.
-            filterProperty('component', 'ZOOKEEPER_SERVER').
-            filterProperty('workStatus', 'STARTED').
-            mapProperty('hostName');
-        }
         var zkHostPort = zkHosts;
         var regex = "\\w*:(\\d+)";   //regex to fetch the port
         var portValue = this.get('defaultValue').match(new RegExp(regex));
