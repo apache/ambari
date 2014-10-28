@@ -554,9 +554,13 @@ NR_ADJUST_OWNERSHIP_LIST = [
   ("/var/lib/ambari-server/keys/.ssh", "700", "{0}", False),
   ("/var/lib/ambari-server/resources/stacks/", "755", "{0}", True),
   ("/var/lib/ambari-server/resources/custom_actions/", "755", "{0}", True),
+  ("/var/lib/ambari-server/resources/views", "644", "{0}", True),
+  ("/var/lib/ambari-server/resources/views", "755", "{0}", False),
+  ("/var/lib/ambari-server/resources/views/work", "755", "{0}", True),
   ("/etc/ambari-server/conf", "644", "{0}", True),
   ("/etc/ambari-server/conf", "755", "{0}", False),
   ("/etc/ambari-server/conf/password.dat", "640", "{0}", False),
+  ("/var/lib/ambari-server/keys/pass.txt", "640", "{0}", False),
   ("/etc/ambari-server/conf/ldap-password.dat", "640", "{0}", False),
   # Also, /etc/ambari-server/conf/password.dat
   # is generated later at store_password_file
@@ -691,6 +695,7 @@ def adjust_directory_permissions(ambari_user):
   if trust_store_location:
     NR_ADJUST_OWNERSHIP_LIST.append((trust_store_location, "600", "{0}", "{0}", False))
   print "Adjusting ambari-server permissions and ownership..."
+  
   for pack in NR_ADJUST_OWNERSHIP_LIST:
     file = pack[0]
     mod = pack[1]
@@ -1246,7 +1251,6 @@ def prompt_db_properties(args):
 
 # extract the system views
 def extract_views():
-
   jdk_path = find_jdk()
   if jdk_path is None:
     print_error_msg("No JDK found, please run the \"setup\" "
@@ -2269,6 +2273,7 @@ def setup(args):
 
   # Create ambari user, if needed
   retcode = check_ambari_user()
+  
   if not retcode == 0:
     err = 'Failed to create user. Exiting.'
     raise FatalException(retcode, err)
@@ -2365,6 +2370,9 @@ def setup(args):
   if not retcode == 0:
     err = 'Error while extracting system views. Exiting'
     raise FatalException(retcode, err)
+  
+  # we've already done this, but new files were created so run it one time.
+  adjust_directory_permissions(read_ambari_user())
 
 
 def proceedJDBCProperties(args):
