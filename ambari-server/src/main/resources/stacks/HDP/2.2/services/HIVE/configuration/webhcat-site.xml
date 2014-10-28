@@ -43,13 +43,13 @@ limitations under the License.
 
   <property>
     <name>templeton.pig.archive</name>
-    <value>hdfs:///hdp/apps/${hdp.version}/pig/pig-0.14.0.${hdp.version}.tar.gz</value>
+    <value>hdfs:///hdp/apps/${hdp.version}/pig/pig.tar.gz</value>
     <description>The path to the Pig archive in HDFS.</description>
   </property>
 
   <property>
     <name>templeton.pig.path</name>
-    <value>pig-0.14.0.${hdp.version}.tar.gz/pig/bin/pig</value>
+    <value>pig.tar.gz/pig/bin/pig</value>
     <description>The path to the Pig executable.</description>
   </property>
 
@@ -61,43 +61,43 @@ limitations under the License.
 
   <property>
     <name>templeton.hive.archive</name>
-    <value>hdfs:///hdp/apps/${hdp.version}/hive/hive-0.14.0.${hdp.version}.tar.gz</value>
+    <value>hdfs:///hdp/apps/${hdp.version}/hive/hive.tar.gz</value>
     <description>The path to the Hive archive.</description>
   </property>
 
   <property>
     <name>templeton.hive.home</name>
-    <value>hive-0.14.0.${hdp.version}.tar.gz/hive</value>
+    <value>hive.tar.gz/hive</value>
     <description>The path to the Hive home within the tar. Has no effect if templeton.hive.archive is not set.</description>
   </property>
 
   <property>
     <name>templeton.hcat.home</name>
-    <value>hive-0.14.0.${hdp.version}.tar.gz/hive/hcatalog</value>
+    <value>hive.tar.gz/hive/hcatalog</value>
     <description>The path to the HCat home within the tar. Has no effect if templeton.hive.archive is not set.</description>
   </property>
 
   <property>
     <name>templeton.hive.path</name>
-    <value>hive-0.14.0.${hdp.version}.tar.gz/hive/bin/hive</value>
+    <value>hive.tar.gz/hive/bin/hive</value>
     <description>The path to the Hive executable.</description>
   </property>
 
   <property>
     <name>templeton.sqoop.archive</name>
-    <value>hdfs:///hdp/apps/${hdp.version}/sqoop/sqoop-1.4.5.${hdp.version}.tar.gz</value>
+    <value>hdfs:///hdp/apps/${hdp.version}/sqoop/sqoop.tar.gz</value>
     <description>The path to the Sqoop archive in HDFS.</description>
   </property>
 
   <property>
     <name>templeton.sqoop.path</name>
-    <value>sqoop-1.4.5.${hdp.version}.tar.gz/sqoop/bin/sqoop</value>
+    <value>sqoop.tar.gz/sqoop/bin/sqoop</value>
     <description>The path to the Sqoop executable.</description>
   </property>
 
   <property>
     <name>templeton.sqoop.home</name>
-    <value>sqoop-1.4.5.${hdp.version}.tar.gz/sqoop</value>
+    <value>sqoop.tar.gz/sqoop</value>
     <description>The path to the Sqoop home within the tar. Has no effect if
       templeton.sqoop.archive is not set.
     </description>
@@ -105,7 +105,7 @@ limitations under the License.
 
   <property>
     <name>templeton.streaming.jar</name>
-    <value>hdfs:///hdp/apps/${hdp.version}/mr/hadoop-streaming-2.6.0.${hdp.version}.jar</value>
+    <value>hdfs:///hdp/apps/${hdp.version}/mapreduce/hadoop-streaming.jar</value>
     <description>The hdfs path to the Hadoop streaming jar file.</description>
   </property>
 

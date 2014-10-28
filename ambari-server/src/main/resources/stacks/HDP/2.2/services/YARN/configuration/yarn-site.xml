@@ -23,7 +23,7 @@
 
   <property>
     <name>yarn.application.classpath</name>
-    <value>/etc/hadoop/conf,/usr/hdp/current/hadoop-client/*,/usr/hdp/current/hadoop-client/lib/*,/usr/hdp/current/hadoop-hdfs-client/*,/usr/hdp/current/hadoop-hdfs-client/lib/*,/usr/hdp/current/hadoop-yarn-client/*,/usr/hdp/current/hadoop-yarn-client/lib/*,/usr/hdp/current/hadoop-mapreduce-client/*,/usr/hdp/current/hadoop-mapreduce-client/lib/*</value>
+    <value>$HADOOP_CONF_DIR,/usr/hdp/${hdp.version}/hadoop/*,/usr/hdp/${hdp.version}/hadoop/lib/*,/usr/hdp/${hdp.version}/hadoop-hdfs/*,/usr/hdp/${hdp.version}/hadoop-hdfs/lib/*,/usr/hdp/${hdp.version}/hadoop-yarn/*,/usr/hdp/${hdp.version}/hadoop-yarn/lib/*,/usr/hdp/${hdp.version}/hadoop-mapreduce/*,/usr/hdp/${hdp.version}/hadoop-mapreduce/lib/*</value>
     <description>Classpath for typical applications.</description>
   </property>
   <property>

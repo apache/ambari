@@ -2212,6 +2212,32 @@ module.exports =
       "serviceName": "MISC",
       "filename": "cluster-env.xml"
     },
+    {
+      "id": "puppet var",
+      "name": "mapreduce_tar_source",
+      "displayName": "Mapreduce tarball source",
+      "description": "Source file path that uses dynamic variables and regex to copy the file to HDFS.",
+      "defaultValue": '',
+      "isRequired": true,
+      "isOverridable": false,
+      "isVisible": false,
+      "isEditable": false,
+      "serviceName": "MISC",
+      "filename": "cluster-env.xml"
+    },
+    {
+      "id": "puppet var",
+      "name": "mapreduce_tar_destination_folder",
+      "displayName": "Mapreduce tarball destination folder",
+      "description": "Destination HDFS folder for the file.",
+      "defaultValue": '',
+      "isRequired": true,
+      "isOverridable": false,
+      "isVisible": false,
+      "isEditable": false,
+      "serviceName": "MISC",
+      "filename": "cluster-env.xml"
+    },
 
   /**********************************************MAPREDUCE2***************************************/
     {

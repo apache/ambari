@@ -41,7 +41,8 @@ class HiveServer(Script):
     self.configure(env) # FOR SECURITY
 
     # This function is needed in HDP 2.2, but it is safe to call in earlier versions.
-    copy_tarballs_to_hdfs('tez', params.tez_user, params.hdfs_user)
+    copy_tarballs_to_hdfs('mapreduce', params.tez_user, params.hdfs_user, params.user_group)
+    copy_tarballs_to_hdfs('tez', params.tez_user, params.hdfs_user, params.user_group)
 
     hive_service( 'hiveserver2',
                   action = 'start'
