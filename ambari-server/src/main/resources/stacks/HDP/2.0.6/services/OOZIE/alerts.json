@@ -1,0 +1,40 @@
+{
+  "OOZIE": {
+    "service": [],
+    "OOZIE_SERVER": [
+      {
+        "name": "oozie_server_webui",
+        "label": "Oozie Server Web UI",
+        "interval": 1,
+        "scope": "ANY",
+        "source": {
+          "type": "WEB",
+          "uri": {
+            "http": "{{oozie-site/oozie.base.url}}/oozie"
+          },
+          "reporting": {
+            "ok": {
+              "text": "HTTP {0} response in {2:.4f} seconds"
+            },
+            "warning":{
+              "text": "HTTP {0} response in {2:.4f} seconds"
+            },
+            "critical": {
+              "text": "Connection failed to {1}"
+            }
+          }
+        }
+      },
+      {
+        "name": "oozie_server_status",
+        "label": "Oozie Server Status",
+        "interval": 1,
+        "scope": "ANY",
+        "source": {
+          "type": "SCRIPT",
+          "path": "HDP/2.0.6/services/OOZIE/package/files/alert_check_oozie_server.py"
+        }
+      }
+    ]
+  }
+}

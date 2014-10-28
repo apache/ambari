@@ -16,7 +16,7 @@
               "text": "TCP OK - {0:.4f} response on port {1}"
             },
             "critical": {
-              "text": "Connection failed: {0} on host {1}:{2}"
+              "text": "Connection failed: {0} to {1}:{2}"
             }
           }
         }

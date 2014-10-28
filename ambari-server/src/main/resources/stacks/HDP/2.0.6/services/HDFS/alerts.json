@@ -91,15 +91,15 @@
           },
           "reporting": {
             "ok": {
-              "text": "HTTP {0} response in {3:.4f} seconds"
+              "text": "HTTP {0} response in {2:.4f} seconds"
             },
             "warning":{
-              "text": "HTTP {0} response in {3:.4f} seconds"
+              "text": "HTTP {0} response in {2:.4f} seconds"
             },
             "critical": {
-              "text": "Connection failed to {1}:{2}"
+              "text": "Connection failed to {1}"
             }
-          }        
+          }
         }
       },
       {
@@ -296,7 +296,7 @@
               "text": "TCP OK - {0:.4f} response on port {1}"
             },
             "critical": {
-              "text": "Connection failed: {0} on host {1}:{2}"
+              "text": "Connection failed: {0} to {1}:{2}"
             }
           }        
         }
@@ -329,7 +329,7 @@
               "text": "TCP OK - {0:.4f} response on port {1}"
             },
             "critical": {
-              "text": "Connection failed: {0} on host {1}:{2}"
+              "text": "Connection failed: {0} to {1}:{2}"
             }
           }        
         }
@@ -351,7 +351,7 @@
               "text": "TCP OK - {0:.4f} response on port {1}"
             },
             "critical": {
-              "text": "Connection failed: {0} on host {1}:{2}"
+              "text": "Connection failed: {0} to {1}:{2}"
             }
           }        
         }
@@ -373,7 +373,7 @@
               "text": "TCP OK - {0:.4f} response on port {1}"
             },
             "critical": {
-              "text": "Connection failed: {0} on host {1}:{2}"
+              "text": "Connection failed: {0} to {1}:{2}"
             }
           }        
         }
@@ -394,15 +394,15 @@
           },
           "reporting": {
             "ok": {
-              "text": "HTTP {0} response in {3:.4f} seconds"
+              "text": "HTTP {0} response in {2:.4f} seconds"
             },
             "warning":{
-              "text": "HTTP {0} response in {3:.4f} seconds"
+              "text": "HTTP {0} response in {2:.4f} seconds"
             },
             "critical": {
-              "text": "Connection failed to {1}:{2}"
+              "text": "Connection failed to {1}"
             }
-          }        
+          }
         }
       },    
       {

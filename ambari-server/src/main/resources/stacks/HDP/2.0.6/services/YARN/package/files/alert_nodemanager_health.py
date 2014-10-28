@@ -31,7 +31,7 @@ NODEMANAGER_HTTPS_ADDRESS_KEY = '{{yarn-site/yarn.nodemanager.webapp.https.addre
 YARN_HTTP_POLICY_KEY = '{{yarn-site/yarn.http.policy}}'
 
 OK_MESSAGE = 'NodeManager Healthy'
-CRITICAL_CONNECTION_MESSAGE = 'Connection failed on host {0}'
+CRITICAL_CONNECTION_MESSAGE = 'Connection failed to {0}'
 CRITICAL_NODEMANAGER_STATUS_MESSAGE = 'NodeManager returned an unexpected status of "{0}"'
 CRITICAL_NODEMANAGER_UNKNOWN_JSON_MESSAGE = 'Unable to determine NodeManager health from unexpected JSON response'
 

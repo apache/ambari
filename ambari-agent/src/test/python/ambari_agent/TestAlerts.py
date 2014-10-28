@@ -329,7 +329,7 @@ class TestAlerts(TestCase):
             "text": "warning: {0}",
           },
           "critical": {
-            "text": "critical: {1}:{2}",
+            "text": "critical: {1}",
           }
         }
       }
@@ -365,9 +365,22 @@ class TestAlerts(TestCase):
     alert.set_helpers(collector, {'hdfs-site/dfs.datanode.http.address': '1.2.3.4:80'})
     alert.collect()
     
+    # http assertion indicating that we properly determined non-SSL
     self.assertEquals('CRITICAL', collector.alerts()[0]['state'])
-    self.assertEquals('critical: 1.2.3.4:80', collector.alerts()[0]['text'])
+    self.assertEquals('critical: http://1.2.3.4:80', collector.alerts()[0]['text'])
+     
+    collector = AlertCollector()
+    alert = WebAlert(json, json['source'])
+    alert.set_helpers(collector, {
+        'hdfs-site/dfs.datanode.http.address': '1.2.3.4:80',
+        'hdfs-site/dfs.datanode.https.address': '1.2.3.4:8443',
+        'hdfs-site/dfs.http.policy': 'HTTPS_ONLY'})
 
+    alert.collect()
+    
+    # SSL assertion
+    self.assertEquals('CRITICAL', collector.alerts()[0]['state'])
+    self.assertEquals('critical: https://1.2.3.4:8443', collector.alerts()[0]['text'])
 
   def test_reschedule(self):
     test_file_path = os.path.join('ambari_agent', 'dummy_files')

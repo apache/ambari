@@ -46,41 +46,59 @@ class WebAlert(BaseAlert):
     logger.debug("Calculated web URI to be {0} (ssl={1})".format(alert_uri.uri, 
         str(alert_uri.is_ssl_enabled)))
 
+    url = self._build_web_query(alert_uri)
+    web_response = self._make_web_request(url)
+    status_code = web_response.status_code
+    time_seconds = web_response.time_millis / 1000
+
+    if status_code == 0:
+      return (self.RESULT_CRITICAL, [status_code, url, time_seconds])
+    
+    if status_code < 400:
+      return (self.RESULT_OK, [status_code, url, time_seconds])
+    
+    return (self.RESULT_WARNING, [status_code, url, time_seconds])
+
+
+  def _build_web_query(self, alert_uri):
+    """
+    Builds a URL out of the URI structure. If the URI is already a URL of
+    the form http[s]:// then this will return the URI as the URL; otherwise,
+    it will build the URL from the URI structure's elements
+    """
+    # shortcut if the supplied URI starts with the information needed
+    string_uri = str(alert_uri.uri)
+    if string_uri.startswith('http://') or string_uri.startswith('https://'):
+      return alert_uri.uri
+
+    # start building the URL manually
     host = BaseAlert.get_host_from_url(alert_uri.uri)
     if host is None:
       host = self.host_name
 
     # maybe slightly realistic
-    port = 80 
-    if alert_uri.is_ssl_enabled:
+    port = 80
+    if alert_uri.is_ssl_enabled is True:
       port = 443
-      
-    try:      
+
+    # extract the port
+    try:
       port = int(get_port_from_url(alert_uri.uri))
     except:
       pass
 
-    web_response = self._make_web_request(host, port, alert_uri.is_ssl_enabled)
-    status_code = web_response.status_code
-    time_seconds = web_response.time_millis / 1000
+    scheme = 'http'
+    if alert_uri.is_ssl_enabled is True:
+      scheme = 'https'
 
-    if status_code == 0:
-      return (self.RESULT_CRITICAL, [status_code, host, port, time_seconds])
-    
-    if status_code <= 401:
-      return (self.RESULT_OK, [status_code, host, port, time_seconds])
-    
-    return (self.RESULT_WARNING, [status_code, host, port, time_seconds])
+    return "{0}://{1}:{2}".format(scheme, host, str(port))
 
 
-  def _make_web_request(self, host, port, ssl):
+  def _make_web_request(self, url):
     """
     Makes an http(s) request to a web resource and returns the http code. If
     there was an error making the request, return 0 for the status code.
     """    
-    url = "{0}://{1}:{2}".format(
-        "https" if ssl else "http", host, str(port))
-    
     WebResponse = namedtuple('WebResponse', 'status_code time_millis')
     
     time_millis = 0
