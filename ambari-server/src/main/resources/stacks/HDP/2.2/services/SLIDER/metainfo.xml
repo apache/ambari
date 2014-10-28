@@ -92,7 +92,7 @@
               <name>slider_2_2_*</name>
             </package>
             <package>
-              <name>storm_2_2_*-slider-client</name>
+              <name>storm_2_2_*</name>
             </package>
           </packages>
         </osSpecific>
@@ -103,7 +103,7 @@
               <name>slider-2-2-.*</name>
             </package>
             <package>
-              <name>storm-2-2-.*-slider-client</name>
+              <name>storm-2-2-.*</name>
             </package>
           </packages>
         </osSpecific>
