@@ -57,6 +57,22 @@ module.exports = {
   },
 
   /**
+   * validate directory with slash at the start
+   * @param value
+   * @returns {boolean}
+   */
+  isValidDataNodeDir: function(value) {
+    var floatRegex = /(^\[[0-9a-z]+\]$)|(^\/[0-9a-z]*)/;
+    var dirs = value.replace(/,/g,' ').trim().split(new RegExp("\\s+", "g"));
+    for(var i = 0; i < dirs.length; i++){
+      if(!floatRegex.test(dirs[i])){
+        return false;
+      }
+    }
+    return true;
+  },
+
+  /**
    * validate directory doesn't start "home" or "homes"
    * @param value
    * @returns {boolean}

@@ -30,7 +30,8 @@ var excludedConfigs = [
   'tez.runtime.intermediate-input.compress.codec',
   'tez.runtime.intermediate-input.is-compressed',
   'tez.runtime.intermediate-output.compress.codec',
-  'tez.runtime.intermediate-output.should-compress'
+  'tez.runtime.intermediate-output.should-compress',
+  'dfs.datanode.data.dir'
 ];
 var hdp22properties = hdp2properties.filter(function (item) {
   return !excludedConfigs.contains(item.name);
@@ -66,7 +67,17 @@ hdp22properties.push(
     "isVisible": true,
     "serviceName": "YARN",
     "category": "Advanced yarn-site"
-});
+  },
+  {
+    "id": "site property",
+    "name": "dfs.datanode.data.dir",
+    "displayName": "DataNode directories",
+    "defaultDirectory": "/hadoop/hdfs/data",
+    "displayType": "datanodedirs",
+    "category": "DATANODE",
+    "serviceName": "HDFS",
+    "index": 1
+  });
 
 module.exports =
 {

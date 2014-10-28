@@ -296,6 +296,29 @@ describe('validator', function () {
       })
     });
   });
+  describe.only('#isValidDataNodeDir(value)', function() {
+    var tests = [
+      {m:'"dir" - invalid',i:'dir',e:false},
+      {m:'"/dir" - valid',i:'/dir',e:true},
+      {m:'"/dir1,dir2" - invalid',i:'/dir1,dir2',e:false},
+      {m:'"/dir1,/dir2" - valid',i:'/dir1,/dir2',e:true},
+      {m:'"/123" - valid',i:'/111',e:true},
+      {m:'"/abc" - valid',i:'/abc',e:true},
+      {m:'"/1a2b3c" - valid',i:'/1a2b3c',e:true},
+      {m:'"[ssd] /1a2b3c" - valid',i:'[ssd] /1a2b3c',e:true},
+      {m:'"[] /1a2b3c" - invalid',i:'[] /1a2b3c',e:false},
+      {m:'"[ssd]/1a2b3c" - invalid',i:'[ssd]/1a2b3c',e:false},
+      {m:'"[/1a2b3c]" - invalid',i:'[/1a2b3c]',e:false},
+      {m:'"[s]ss /sd" - invalid',i:'[s]ss /sd',e:false}
+
+
+    ];
+    tests.forEach(function(test) {
+      it(test.m + ' ', function () {
+        expect(validator.isValidDataNodeDir(test.i)).to.equal(test.e);
+      })
+    });
+  });
   describe('#isAllowedDir(value)', function() {
     var tests = [
       {m:'"/home" - not allowed',i:'/home',e:false},
