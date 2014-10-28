@@ -27,6 +27,7 @@ import java.lang.reflect.UndeclaredThrowableException;
 import java.net.URI;
 import java.security.PrivilegedExceptionAction;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -34,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.zip.ZipException;
 
 import org.apache.ambari.view.ViewContext;
@@ -1174,7 +1176,7 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
       appCreateFolder.mkdirs();
       File appConfigJsonFile = new File(appCreateFolder, "appConfig.json");
       File resourcesJsonFile = new File(appCreateFolder, "resources.json");
-      saveAppConfigs(configs, componentsArray, appName, securityEnabled, appConfigJsonFile);
+      saveAppConfigs(configs, componentsArray, appName, appType, securityEnabled, appConfigJsonFile);
       saveAppResources(resourcesObj, resourcesJsonFile);
 
       final ActionCreateArgs createArgs = new ActionCreateArgs();
@@ -1191,10 +1193,14 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
       installArgs.packageURI = getAppsFolderPath() + "/" + localAppPackageFileName;
       installArgs.replacePkg = true;
 
-      final ActionInstallKeytabArgs keytabArgs = new ActionInstallKeytabArgs();
+      final List<ActionInstallKeytabArgs> installKeytabActions = new ArrayList<ActionInstallKeytabArgs>();
       if (securityEnabled) {
-        keytabArgs.keytabUri = getUserToRunAsKeytab();
-        keytabArgs.folder = appName;
+        for (String keytab : getUserToRunAsKeytabs(appType)) {
+          ActionInstallKeytabArgs keytabArgs = new ActionInstallKeytabArgs();
+          keytabArgs.keytabUri = keytab;
+          keytabArgs.folder = appName;
+          installKeytabActions.add(keytabArgs);
+        }
       }
 
       return invokeSliderClientRunnable(new SliderClientContextRunnable<String>() {
@@ -1212,7 +1218,12 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
             logger.warn("Unable to determine 'slider.libdir' path", t);
           }
           if (securityEnabled) {
-            sliderClient.actionInstallKeytab(keytabArgs);
+            for (ActionInstallKeytabArgs keytabArgs : installKeytabActions) {
+              if (logger.isDebugEnabled()) {
+                logger.debug("Installing keytab " + keytabArgs.keytabUri);
+              }
+              sliderClient.actionInstallKeytab(keytabArgs);
+            }
           }
           sliderClient.actionInstallPkg(installArgs);
           sliderClient.actionCreate(appName, createArgs);
@@ -1284,25 +1295,46 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
   /*
    * When security is enabled, the AppMaster itself needs the keytab identifying the calling user.
    * The user's keytab should be at the same location as the view's keytab, and should be
-   * named as ${username}.headless.keytab
+   * named as ${username}.headless.keytab.
+   * 
+   * This method returns the list of keytabs where the first keytab is always the AppMaster's 
+   * keytab. Additional keys will be provided, only if found at the location of the view's keytab.
+   * Additional keytabs should be of the format ${username}.<APP_TYPE>.*.keytab
    */
-  private String getUserToRunAsKeytab() {
+  private List<String> getUserToRunAsKeytabs(String appType) {
+    List<String> keytabsList = new ArrayList<String>();
     String viewKeytab = viewContext.getProperties().get(PARAM_VIEW_PRINCIPAL_KEYTAB);
-    String prefix = "";
+    String folderPath = "";
     int index = viewKeytab.lastIndexOf('/');
     if (index > -1) {
-      prefix = viewKeytab.substring(0, index);
+      folderPath = viewKeytab.substring(0, index);
     }
     String username = getUserToRunAs();
-    String userKeytab = prefix + "/" + username + ".headless.keytab";
-    if (logger.isDebugEnabled()) {
-      logger.debug(username + " keytab: " + userKeytab);
+    String userKeytab = folderPath + "/" + username + ".headless.keytab";
+    File folder = new File(folderPath);
+    if (folder.exists()) {
+      final Pattern userKeytabPattern = Pattern.compile("^" + username + "\\." + appType + "\\..*\\.keytab");
+      String[] keytabNames = folder.list(new FilenameFilter() {
+        @Override
+        public boolean accept(File dir, String name) {
+          return userKeytabPattern.matcher(name).matches();
+        }
+      });
+      if (keytabNames != null) {
+        for (String keytabName : keytabNames) {
+          keytabsList.add(folderPath + "/" + keytabName);
+        }
+      }
     }
-    return userKeytab;
+    keytabsList.add(0, userKeytab);
+    if (logger.isDebugEnabled()) {
+      logger.debug(username + " keytabs: " + keytabsList);
+    }
+    return keytabsList;
   }
 
   private void saveAppConfigs(JsonObject configs, JsonArray componentsArray,
-      String appName, boolean securityEnabled, File appConfigJsonFile) throws IOException {
+      String appName, String appType, boolean securityEnabled, File appConfigJsonFile) throws IOException {
     JsonObject appConfigs = new JsonObject();
     appConfigs.addProperty("schema", "http://example.org/specification/v2.0.0");
     appConfigs.add("metadata", new JsonObject());
@@ -1319,7 +1351,7 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
     }
     if (securityEnabled) {
       JsonObject appMasterComponent = new JsonObject();
-      String userToRunAsKeytab = getUserToRunAsKeytab();
+      String userToRunAsKeytab = getUserToRunAsKeytabs(appType).get(0);
       String fileName = userToRunAsKeytab.substring(userToRunAsKeytab.lastIndexOf('/') + 1);
       appMasterComponent.add("slider.am.login.keytab.name", new JsonPrimitive(fileName));
       appMasterComponent.add("slider.hdfs.keytab.dir", new JsonPrimitive(".slider/keytabs/" + appName));

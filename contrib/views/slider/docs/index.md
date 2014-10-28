@@ -17,10 +17,10 @@ limitations under the License.
 ## Security Guide
 *Slider Apps View* can optionally connect to a Kerberos secured cluster by following the below steps.
 
-#### Step-1: Deploy a HDP cluster and secure it using *Kerberos*
+### Step-1: Deploy a HDP cluster and secure it using *Kerberos*
 After deploying a HDP cluster through Ambari, it can be secured by using the *Enable Security* button in *Admin > Seurity* page.
 
-#### Step-2: Create *Kerberos* principal for view
+### Step-2: Create *Kerberos* principal for view
 We need to provide a *Kerberos* identity for the process in which the view is run. We shall identify the user as `view-principal`. **In this document `view-principal` can be changed to any suitable name.** Since views are generally hosted by Ambari server, typically this can be named as *ambari*.
 
 On the machine where *KDC Server* is hosted, create user principal by running below command
@@ -53,7 +53,7 @@ ambari-server setup-security
 During *setup-security* the `view-principal` user should be provided along with the keytab. These same values will be provided as view parameters in *Step-4*.
 
 
-#### Step-3: Configure *proxyuser* for created principal
+### Step-3: Configure *proxyuser* for created principal
 Add the following configurations in *Custom core-site* section of *HDFS* service.
 
 * hadoop.proxyuser.`view-principal`.groups = *
@@ -74,7 +74,7 @@ This will in-turn show up in *core-site.xml* as
 ```
 Restart HDFS and YARN services.
 
-#### Step-4: Create *Slider Apps View* with security parameters
+### Step-4: Create *Slider Apps View* with security parameters
 
 From *Ambari-Admin* create a *Slider Apps View* with the below parameters populated
 
@@ -82,7 +82,7 @@ From *Ambari-Admin* create a *Slider Apps View* with the below parameters popula
 * view.kerberos.principal = `view-principal`
 * view.kerberos.principal.keytab = `/etc/security/keytabs/view-principal.headless.keytab`
 
-#### Step-5 Create *Kerberos* principal for *slider.user*
+### Step-5 Create *Kerberos* principal for *slider.user*
 We need to provide a *Kerberos* identity for the user identified in *slider.user* view parameter. 
 
 The *slider.user* view parameter has the following interpretations:
@@ -112,3 +112,43 @@ cp /path/to/keytab/slider-user.headless.keytab /etc/security/keytabs/
 Change file permissions so that only necessary users can access it.
 
 **Make sure that `slider-user` keytab is at /etc/security/keytabs/`slider-user`.headless.keytab**
+
+### Step-6 Create *Kerberos* principal for App launched by  *slider.user*
+Slider Apps contain services, and they might need their own identities when talking to HDFS and YARN. To support such Apps, keytabs have to be created that are required for specific Apps. 
+
+By default, the following keytabs have to be created for specific Apps. This user has to exist on all hosts where containers are run:
+#### HBase
+```
+kadmin.local -q "addprinc -randkey slider-user@EXAMPLE.COM"
+```
+Next, extract keytab file 
+
+```
+kadmin.local -q "xst -k /path/to/keytab/slider-user.HBASE.service.keytab slider-user@EXAMPLE.COM"
+```
+The keytab file should then be copied over to the keytabs location on the host where the view is hosted.
+
+```
+cp /path/to/keytab/slider-user.HBASE.service.keytab /etc/security/keytabs/
+```
+
+Change file permissions so that only necessary users can access it.
+
+#### Storm
+```
+kadmin.local -q "addprinc -randkey slider-user@EXAMPLE.COM"
+```
+Next, extract keytab file 
+
+```
+kadmin.local -q "xst -k /path/to/keytab/slider-user.STORM.nimbus.keytab slider-user@EXAMPLE.COM"
+kadmin.local -q "xst -k /path/to/keytab/slider-user.STORM.client.keytab slider-user@EXAMPLE.COM"
+```
+The keytab file should then be copied over to the keytabs location on the host where the view is hosted.
+
+```
+cp /path/to/keytab/slider-user.STORM.nimbus.keytab /etc/security/keytabs/
+cp /path/to/keytab/slider-user.STORM.client.keytab /etc/security/keytabs/
+```
+
+Change file permissions so that only necessary users can access it.
