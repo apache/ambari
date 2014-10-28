@@ -27,7 +27,8 @@ App.AlertDefinition = DS.Model.extend({
   enabled: DS.attr('boolean'),
   scope: DS.attr('string'),
   interval: DS.attr('number'),
-  type: DS.attr('string')
+  type: DS.attr('string'),
+  reporting: DS.hasMany('App.AlertReportDefinition')
 });
 
 App.AlertReportDefinition = DS.Model.extend({
@@ -43,23 +44,30 @@ App.AlertMetricsSourceDefinition = DS.Model.extend({
 
 App.PortAlertDefinition = App.AlertDefinition.extend({
   defaultPort: DS.attr('number'),
-  uri: DS.attr('string'),
-  reporting: DS.hasMany('App.AlertReportDefinition')
+  uri: DS.attr('string')
+});
+
+App.AlertMetricsUriDefinition = DS.Model.extend({
+  http: DS.attr('string'),
+  https: DS.attr('string'),
+  httpsProperty: DS.attr('string'),
+  httpsPropertyValue: DS.attr('string')
 });
 
 App.MetricsAlertDefinition = App.AlertDefinition.extend({
   jmx: DS.belongsTo('App.AlertMetricsSourceDefinition'),
   ganglia: DS.belongsTo('App.AlertMetricsSourceDefinition'),
-  uri: DS.attr('string'),
-  reporting: DS.hasMany('App.AlertReportDefinition')
+  uri: DS.belongsTo('App.AlertMetricsUriDefinition')
+});
+
+App.WebAlertDefinition = App.AlertDefinition.extend({
+  uri: DS.belongsTo('App.AlertMetricsUriDefinition')
 });
 
 App.AggregateAlertDefinition = App.AlertDefinition.extend({
-  alertName: DS.attr('string'),
-  reporting: DS.hasMany('App.AlertReportDefinition')
+  alertName: DS.attr('string')
 });
 
 App.ScriptAlertDefinition = App.AlertDefinition.extend({
-  location: DS.attr('string'),
-  reporting: DS.hasMany('App.AlertReportDefinition')
+  location: DS.attr('string')
 });
