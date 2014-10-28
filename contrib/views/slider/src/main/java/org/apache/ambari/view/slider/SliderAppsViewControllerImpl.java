@@ -99,7 +99,6 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
   @Inject
   private ViewContext viewContext;
   private List<SliderAppType> appTypes;
-  private Map<String, String> hadoopConfigs;
   private Integer createAppCounter = -1;
   @Inject
   private SliderAppsAlerts sliderAlerts;
@@ -827,10 +826,7 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
   }
 
   protected Map<String, String> getHadoopConfigs() {
-    if(hadoopConfigs==null || hadoopConfigs.isEmpty()) {
-      hadoopConfigs = viewContext.getInstanceData();
-    }
-    return hadoopConfigs;
+    return viewContext.getInstanceData();
   }
 
   /**
