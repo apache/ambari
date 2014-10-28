@@ -16,22 +16,37 @@
  * limitations under the License.
  */
 
-moduleFor('view:SliderApps', 'App.SliderAppsView', {
-  needs: ['controller:SliderApps']
-});
+moduleFor('controller:sliderApps', 'App.SliderAppsController');
 
-test('clearFilters', function () {
+test('showUnavailableAppsPopup', function () {
 
-  var view = this.subject({
-    content: [{}],
-    filteredContent: [{}],
-    endIndex: 2
+  var bsOpen = Bootstrap.ModalManager.open,
+    cases = [
+      {
+        message: 'message',
+        result: 'message',
+        title: 'errorMessage property should be set'
+      },
+      {
+        result: Em.I18n.t('slider.apps.undefined.issue'),
+        title: 'default error message'
+      }
+    ],
+    controller = this.subject({
+      errorMessage: null
+    });
+
+  cases.forEach(function (item) {
+
+    Em.run(function () {
+      Bootstrap.set('ModalManager.open', Em.K);
+      controller.showUnavailableAppsPopup(item.message);
+    });
+
+    equal(controller.get('errorMessage'), item.result, item.title);
+
+    Bootstrap.set('ModalManager.open', bsOpen);
+
   });
-
-  Em.run(function () {
-    view.clearAllFilters();
-  });
-
-  equal(view.get('pageContent.length'), 1, 'all content items should be displayed');
 
 });

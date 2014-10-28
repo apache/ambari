@@ -16,7 +16,13 @@
  * limitations under the License.
  */
 
-moduleFor('controller:sliderApp', 'App.SliderAppController');
+moduleFor('controller:sliderApp', 'App.SliderAppController', {
+
+  needs: [
+    'component:bs-modal'
+  ]
+
+});
 
 test('availableActions', function () {
 
@@ -60,6 +66,471 @@ test('availableActions', function () {
   });
   deepEqual(controller.get('availableActions').findBy('title', 'Advanced').submenu.mapBy('action'), ['destroy'], 'actions for FROZEN');
   ok(controller.get('availableActions').mapBy('action').contains('thaw'), 'actions for FROZEN (2)');
+
+});
+
+test('sliderAppTabs', function () {
+
+  var cases = [
+      {
+        length: 1
+      },
+      {
+        configs: {},
+        length: 1
+      },
+      {
+        configs: {
+          n0: 'v0'
+        },
+        length: 2
+      }
+    ],
+    title = 'number of tabs should be {0}',
+    controller = this.subject();
+
+  cases.forEach(function (item) {
+
+    Em.run(function () {
+      controller.set('model', {
+        configs: item.configs
+      })
+    });
+
+    equal(controller.get('sliderAppTabs.length'), item.length, title.format(item.length));
+
+  });
+
+});
+
+test('weHaveQuicklinks', function () {
+
+  var cases = [
+      {
+        content: [
+          {
+            id: '0'
+          }
+        ],
+        value: true
+      },
+      {
+        value: false
+      }
+    ],
+    title = 'should be {0}',
+    controller = this.subject();
+
+  cases.forEach(function (item) {
+
+    Em.run(function () {
+      controller.set('model', {
+        quickLinks: {
+          content: {
+            content: item.content
+          }
+        }
+      });
+    });
+
+    equal(controller.get('weHaveQuicklinks'), item.value, title.format(item.value));
+
+  });
+
+});
+
+test('destroyButtonEnabled', function () {
+
+  var cases = [
+      {
+        confirmChecked: true,
+        string: 'disabled'
+      },
+      {
+        confirmChecked: false,
+        string: 'enabled'
+      }
+    ],
+    title = 'button is {0}',
+    controller = this.subject();
+
+  cases.forEach(function (item) {
+
+    Em.run(function () {
+      controller.set('confirmChecked', item.confirmChecked);
+    });
+
+    equal(controller.get('destroyButtonEnabled'), !item.confirmChecked, title.format(item.string));
+
+  });
+
+});
+
+test('confirmDestroy', function () {
+
+  var bsRegister = Bootstrap.ModalManager.register,
+    controller = this.subject(),
+    assertionsEqual = [
+      {
+        propertyName: 'name',
+        value: 'confirm-modal'
+      },
+      {
+        propertyName: 'title',
+        value: Ember.I18n.t('sliderApp.destroy.confirm.title')
+      },
+      {
+        propertyName: 'manual',
+        value: true
+      }
+    ],
+    assertionsDeepEqual = [
+      {
+        propertyName: 'targetObject',
+        value: controller
+      },
+      {
+        propertyName: 'controller',
+        value: controller
+      },
+      {
+        propertyName: 'body',
+        value: App.DestroyAppPopupView
+      },
+      {
+        propertyName: 'footerViews',
+        value: [App.DestroyAppPopupFooterView]
+      }
+    ],
+    title = 'modalComponent.{0} should be {1}';
+
+  Em.run(function () {
+    Bootstrap.set('ModalManager.register', function (name, component) {
+      this.registeredComponent = component;
+    });
+    controller.confirmDestroy();
+  });
+
+  assertionsEqual.forEach(function (item) {
+    equal(Bootstrap.ModalManager.registeredComponent[item.propertyName], item.value, title.format(item.propertyName, item.value));
+  });
+  assertionsDeepEqual.forEach(function (item) {
+    deepEqual(Bootstrap.ModalManager.registeredComponent[item.propertyName], item.value, title.format(item.propertyName, item.value));
+  });
+
+  Bootstrap.set('ModalManager.register', bsRegister);
+
+});
+
+test('tryDoAction', function () {
+
+  var controller = this.subject({
+    currentAction: 'customMethod',
+    customMethod: function () {
+      this.set('groupedComponents', [{}]);
+    }
+  });
+
+  Em.run(function () {
+    controller.tryDoAction();
+  });
+
+  deepEqual(controller.get('groupedComponents'), [{}], 'currentAction should be executed');
+
+});
+
+test('groupComponents', function () {
+
+  var controller = this.subject({
+    appType: {
+      components: [
+        Em.Object.create({
+          name: 'c0'
+        }),
+        Em.Object.create({
+          name: 'c1'
+        })
+      ]
+    },
+    components: [
+      Em.Object.create({
+        componentName: 'c0'
+      })
+    ]
+  });
+
+  Em.run(function () {
+    controller.groupComponents();
+  });
+
+  equal(controller.get('groupedComponents')[0].count, 1, 'count should be incremented');
+  equal(controller.get('groupedComponents')[1].count, 0, 'count shouldn\'t be incremented');
+
+});
+
+test('validateGroupedComponents', function () {
+
+  var cases = [
+      {
+        count: ' 1',
+        hasErrors: true,
+        title: 'validation failure'
+      },
+      {
+        count: '-1',
+        hasErrors: true,
+        title: 'validation failure'
+      },
+      {
+        count: 1,
+        hasErrors: false,
+        title: 'validation success'
+      }
+    ],
+    controller = this.subject();
+
+  cases.forEach(function (item) {
+
+    Em.run(function () {
+      controller.set('groupedComponents', [{
+        count: item.count
+      }]);
+      controller.validateGroupedComponents();
+    });
+
+    equal(controller.get('groupedComponentsHaveErrors'), item.hasErrors, item.title);
+
+  });
+
+});
+
+test('flex', function () {
+
+  var bsOpen = Bootstrap.ModalManager.open,
+    controller = this.subject({
+      appType: {
+        components: [
+          Em.Object.create({
+            name: 'c0'
+          }),
+          Em.Object.create({
+            name: 'c1'
+          })
+        ]
+      },
+      components: [
+        Em.Object.create({
+          componentName: 'c0'
+        })
+      ]
+    });
+
+  Em.run(function () {
+    Bootstrap.set('ModalManager.open', Em.K);
+    controller.flex();
+  });
+
+  equal(controller.get('groupedComponents')[0].count, 1, 'count should be incremented');
+  equal(controller.get('groupedComponents')[1].count, 0, 'count shouldn\'t be incremented');
+
+  Bootstrap.set('ModalManager.open', bsOpen);
+
+});
+
+test('mapComponentsForFlexRequest', function () {
+
+  var controller = this.subject({
+    groupedComponents: [
+      {
+        name: 'c0',
+        count: 1
+      },
+      {
+        name: 'c1',
+        count: 0
+      }
+    ]
+  });
+
+  deepEqual(controller.mapComponentsForFlexRequest(), {
+    c0: {
+      instanceCount: 1
+    },
+    c1: {
+      instanceCount: 0
+    }
+  }, 'should map grouped components');
+
+});
+
+test('destroy', function () {
+
+  var controller = this.subject({
+    model: Em.Object.create({
+      isActionPerformed: false
+    })
+  });
+
+  Em.run(function () {
+    controller.destroy();
+  });
+
+  ok(controller.get('model.isActionPerformed'), 'model.isActionPerformed should be true');
+
+});
+
+test('actionErrorCallback', function () {
+
+  var controller = this.subject({
+    model: Em.Object.create({
+      isActionPerformed: true
+    }),
+    defaultErrorHandler: Em.K
+  });
+
+  Em.run(function () {
+    controller.actionErrorCallback(null, null, null, {
+      url: null,
+      type: null
+    });
+  });
+
+  ok(!controller.get('model.isActionPerformed'), 'model.isActionPerformed should be true');
+
+});
+
+test('actions.submitFlex', function () {
+
+  var bsClose = Bootstrap.ModalManager.close,
+    controller = this.subject({
+      model: Em.Object.create({
+        id: 0,
+        name: 'n'
+      }),
+      validateGroupedComponents: function () {
+        return false;
+      },
+      groupedComponentsHaveErrors: true
+    });
+
+  Em.run(function () {
+    Bootstrap.set('ModalManager.close', Em.K);
+    controller.send('submitFlex');
+  });
+
+  equal(controller.get('groupedComponents.length'), 0, 'should clear grouped components');
+  ok(!controller.get('groupedComponentsHaveErrors'), 'should clear components errors');
+
+  Bootstrap.set('ModalManager.close', bsClose);
+
+});
+
+test('actions.closeFlex', function () {
+
+  var controller = this.subject({
+    groupedComponents: [{}],
+    groupedComponentsHaveErrors: true
+  });
+
+  Em.run(function () {
+    controller.send('closeFlex');
+  });
+
+  equal(controller.get('groupedComponents.length'), 0, 'should clear grouped components');
+  ok(!controller.get('groupedComponentsHaveErrors'), 'should clear components errors');
+
+});
+
+test('modalConfirmed', function () {
+
+  var bsClose = Bootstrap.ModalManager.close,
+    controller = this.subject({
+      confirmChecked: true,
+      currentAction: 'customMethod',
+      customMethod: function () {
+        this.set('groupedComponents', [{}]);
+      }
+    });
+
+  Em.run(function () {
+    Bootstrap.set('ModalManager.close', Em.K);
+    controller.send('modalConfirmed');
+  });
+
+  deepEqual(controller.get('groupedComponents'), [{}], 'currentAction should be executed');
+  ok(!controller.get('confirmChecked'), 'confirmChecked should be false');
+
+  Bootstrap.set('ModalManager.close', bsClose);
+
+});
+
+test('modalCanceled', function () {
+
+  var bsClose = Bootstrap.ModalManager.close,
+    controller = this.subject({
+      confirmChecked: true
+    });
+
+  Em.run(function () {
+    Bootstrap.set('ModalManager.close', Em.K);
+    controller.send('modalCanceled');
+  });
+
+  ok(!controller.get('confirmChecked'), 'confirmChecked should be false');
+
+  Bootstrap.set('ModalManager.close', bsClose);
+
+});
+
+test('openModal', function () {
+
+  var bsOpen = Bootstrap.ModalManager.open,
+    cases = [
+      {
+        options: {
+          action: 'customMethod'
+        },
+        groupedComponents: [{}],
+        title: 'should execute currentAction'
+      },
+      {
+        options: {
+          action: 'customMethod',
+          customConfirm: 'customConfirmMethod'
+        },
+        groupedComponents: [{}, {}],
+        title: 'should execute customConfirm'
+      }
+    ],
+    controller = this.subject({
+      customMethod: function () {
+        this.set('groupedComponents', [{}]);
+      },
+      customConfirmMethod: function () {
+        this.set('groupedComponents', [{}, {}]);
+      }
+    });
+
+  Em.run(function () {
+    Bootstrap.set('ModalManager.open', Em.K);
+    controller.send('openModal', {
+      action: 'customMethod'
+    });
+  });
+
+  equal(controller.get('currentAction'), 'customMethod', 'should set currentAction');
+
+  cases.forEach(function (item) {
+
+    Em.run(function () {
+      controller.send('openModal', item.options);
+    });
+
+    deepEqual(controller.get('groupedComponents'), item.groupedComponents, item.title);
+
+  });
+
+  Bootstrap.set('ModalManager.open', bsOpen);
 
 });
 
