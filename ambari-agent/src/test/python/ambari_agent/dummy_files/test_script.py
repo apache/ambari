@@ -26,7 +26,7 @@ def get_tokens():
   return ('{{foo-site/bar}}','{{foo-site/baz}}')
   
 
-def execute(parameters=None):
+def execute(parameters=None, host_name=None):
   '''
   returns a tuple containing the result code and a pre-formatted result label
   '''
