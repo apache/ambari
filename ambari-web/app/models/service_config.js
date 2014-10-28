@@ -806,6 +806,18 @@ App.ServiceConfigProperty = Ember.Object.extend({
           break;
         case 'checkbox':
           break;
+        case 'datanodedirs':
+          if (!validator.isValidDataNodeDir(value)) {
+            this.set('errorMessage', 'dir format is wrong, can be "[{storage type}] /{dir name}"');
+            isError = true;
+          }
+          else {
+            if (!validator.isAllowedDir(value)) {
+              this.set('errorMessage', 'Cannot start with "home(s)"');
+              isError = true;
+            }
+          }
+          break;
         case 'directories':
         case 'directory':
           if (!validator.isValidDir(value)) {
