@@ -117,9 +117,14 @@ App.MainServiceController = Em.ArrayController.extend({
       return null;
     }
     var self = this;
+    var bodyMessage = Em.Object.create({
+      confirmMsg: state == 'INSTALLED' ? Em.I18n.t('services.service.stopAll.confirmMsg') : Em.I18n.t('services.service.startAll.confirmMsg'),
+      confirmButton: state == 'INSTALLED' ? Em.I18n.t('services.service.stop.confirmButton') : Em.I18n.t('services.service.start.confirmButton')
+    });
+
     return App.showConfirmationFeedBackPopup(function (query) {
       self.allServicesCall(state, query);
-    });
+    }, bodyMessage);
   },
 
   /**

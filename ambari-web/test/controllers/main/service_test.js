@@ -216,6 +216,32 @@ describe('App.MainServiceController', function () {
 
   });
 
+  describe('#startStopAllService', function() {
+    var event = { target: document.createElement("BUTTON") };
+
+    beforeEach(function() {
+      sinon.stub(mainServiceController, 'allServicesCall', Em.K);
+      sinon.spy(Em.I18n, "t");
+    });
+
+    afterEach(function() {
+      mainServiceController.allServicesCall.restore();
+      Em.I18n.t.restore();
+    });
+
+    it ("should confirm stop if state is INSTALLED", function() {
+      mainServiceController.startStopAllService(event, "INSTALLED");
+      expect(Em.I18n.t.calledWith('services.service.stopAll.confirmMsg')).to.be.ok;
+      expect(Em.I18n.t.calledWith('services.service.stop.confirmButton')).to.be.ok;
+    });
+
+    it ("should confirm start if state is not INSTALLED", function() {
+      mainServiceController.startStopAllService(event, "STARTED");
+      expect(Em.I18n.t.calledWith('services.service.startAll.confirmMsg')).to.be.ok;
+      expect(Em.I18n.t.calledWith('services.service.start.confirmButton')).to.be.ok;
+    });
+  });
+
   describe('#allServicesCall', function() {
 
     beforeEach(function() {

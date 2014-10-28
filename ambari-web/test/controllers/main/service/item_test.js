@@ -395,13 +395,29 @@ describe('App.MainServiceItemController', function () {
     var mainServiceItemController = App.MainServiceItemController.create({content: {serviceName: "HDFS"}});
     beforeEach(function () {
       sinon.spy(mainServiceItemController, "startStopPopupPrimary");
+      sinon.spy(Em.I18n, "t");
     });
     afterEach(function () {
       mainServiceItemController.startStopPopupPrimary.restore();
+      Em.I18n.t.restore();
     });
     it("start start/stop service popup", function () {
       mainServiceItemController.startStopPopup(event, "").onPrimary();
       expect(mainServiceItemController.startStopPopupPrimary.calledOnce).to.equal(true);
+    });
+
+    describe("modal messages", function() {
+      it ("should confirm stop if serviceHealth is INSTALLED", function() {
+        mainServiceItemController.startStopPopup(event, "INSTALLED");
+        expect(Em.I18n.t.calledWith('services.service.stop.confirmMsg')).to.be.ok;
+        expect(Em.I18n.t.calledWith('services.service.stop.confirmButton')).to.be.ok;
+      });
+
+      it ("should confirm start if serviceHealth is not INSTALLED", function() {
+        mainServiceItemController.startStopPopup(event, "");
+        expect(Em.I18n.t.calledWith('services.service.start.confirmMsg')).to.be.ok;
+        expect(Em.I18n.t.calledWith('services.service.start.confirmButton')).to.be.ok;
+      });
     });
   });
 
