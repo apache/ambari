@@ -1696,6 +1696,72 @@ public class BlueprintConfigurationProcessorTest {
   }
 
   @Test
+  public void testYarnConfigExportedWithDefaultZeroHostAddress() throws Exception {
+    final String expectedHostName = "c6401.apache.ambari.org";
+    final String expectedPortNum = "808080";
+    final String expectedHostGroupName = "host_group_1";
+
+    EasyMockSupport mockSupport = new EasyMockSupport();
+
+    HostGroup mockHostGroupOne = mockSupport.createMock(HostGroup.class);
+
+    expect(mockHostGroupOne.getHostInfo()).andReturn(Arrays.asList(expectedHostName, "serverTwo")).atLeastOnce();
+    expect(mockHostGroupOne.getName()).andReturn(expectedHostGroupName).atLeastOnce();
+
+    mockSupport.replayAll();
+
+    Map<String, Map<String, String>> configProperties =
+      new HashMap<String, Map<String, String>>();
+
+    Map<String, String> yarnSiteProperties =
+      new HashMap<String, String>();
+
+    configProperties.put("yarn-site", yarnSiteProperties);
+
+    // setup properties that include host information
+    yarnSiteProperties.put("yarn.log.server.url", "http://" + expectedHostName +":19888/jobhistory/logs");
+    yarnSiteProperties.put("yarn.resourcemanager.hostname", expectedHostName);
+    yarnSiteProperties.put("yarn.resourcemanager.resource-tracker.address", expectedHostName + ":" + expectedPortNum);
+    yarnSiteProperties.put("yarn.resourcemanager.webapp.address", expectedHostName + ":" + expectedPortNum);
+    yarnSiteProperties.put("yarn.resourcemanager.scheduler.address", expectedHostName + ":" + expectedPortNum);
+    yarnSiteProperties.put("yarn.resourcemanager.address", expectedHostName + ":" + expectedPortNum);
+    yarnSiteProperties.put("yarn.resourcemanager.admin.address", expectedHostName + ":" + expectedPortNum);
+    yarnSiteProperties.put("yarn.timeline-service.address", "0.0.0.0" + ":" + expectedPortNum);
+    yarnSiteProperties.put("yarn.timeline-service.webapp.address", "0.0.0.0" + ":" + expectedPortNum);
+    yarnSiteProperties.put("yarn.timeline-service.webapp.https.address", "0.0.0.0" + ":" + expectedPortNum);
+
+    BlueprintConfigurationProcessor configProcessor =
+      new BlueprintConfigurationProcessor(configProperties);
+
+    // call top-level export method
+    configProcessor.doUpdateForBlueprintExport(Arrays.asList(mockHostGroupOne));
+
+    assertEquals("Yarn Log Server URL was incorrectly exported",
+      "http://" + "%HOSTGROUP::" + expectedHostGroupName + "%" +":19888/jobhistory/logs", yarnSiteProperties.get("yarn.log.server.url"));
+    assertEquals("Yarn ResourceManager hostname was incorrectly exported",
+      createExportedHostName(expectedHostGroupName), yarnSiteProperties.get("yarn.resourcemanager.hostname"));
+    assertEquals("Yarn ResourceManager tracker address was incorrectly exported",
+      createExportedAddress(expectedPortNum, expectedHostGroupName), yarnSiteProperties.get("yarn.resourcemanager.resource-tracker.address"));
+    assertEquals("Yarn ResourceManager webapp address was incorrectly exported",
+      createExportedAddress(expectedPortNum, expectedHostGroupName), yarnSiteProperties.get("yarn.resourcemanager.webapp.address"));
+    assertEquals("Yarn ResourceManager scheduler address was incorrectly exported",
+      createExportedAddress(expectedPortNum, expectedHostGroupName), yarnSiteProperties.get("yarn.resourcemanager.scheduler.address"));
+    assertEquals("Yarn ResourceManager address was incorrectly exported",
+      createExportedAddress(expectedPortNum, expectedHostGroupName), yarnSiteProperties.get("yarn.resourcemanager.address"));
+    assertEquals("Yarn ResourceManager admin address was incorrectly exported",
+      createExportedAddress(expectedPortNum, expectedHostGroupName), yarnSiteProperties.get("yarn.resourcemanager.admin.address"));
+    assertEquals("Yarn ResourceManager timeline-service address was incorrectly exported",
+      "0.0.0.0" + ":" + expectedPortNum, yarnSiteProperties.get("yarn.timeline-service.address"));
+    assertEquals("Yarn ResourceManager timeline webapp address was incorrectly exported",
+      "0.0.0.0" + ":" + expectedPortNum, yarnSiteProperties.get("yarn.timeline-service.webapp.address"));
+    assertEquals("Yarn ResourceManager timeline webapp HTTPS address was incorrectly exported",
+      "0.0.0.0" + ":" + expectedPortNum, yarnSiteProperties.get("yarn.timeline-service.webapp.https.address"));
+
+    mockSupport.verifyAll();
+
+  }
+
+  @Test
   public void testHDFSConfigExported() throws Exception {
     final String expectedHostName = "c6401.apache.ambari.org";
     final String expectedPortNum = "808080";
