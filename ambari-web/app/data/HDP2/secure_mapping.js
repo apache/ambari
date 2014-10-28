@@ -680,6 +680,14 @@ module.exports = [
     "serviceName": "KNOX"
   },
   {
+    "name": "java.security.krb5.conf",
+    "templateName": [],
+    "foreignKey": null,
+    "value": "/etc/krb5.conf",
+    "filename": "gateway-site.xml",
+    "serviceName": "KNOX"
+  },
+  {
     "name": "hadoop.proxyuser.<foreignKey[0]>.groups",
     "templateName": ["proxyuser_group"],
     "foreignKey": ["knox_primary_name"],
