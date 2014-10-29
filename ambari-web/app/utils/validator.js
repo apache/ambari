@@ -62,7 +62,7 @@ module.exports = {
    * @returns {boolean}
    */
   isValidDataNodeDir: function(value) {
-    var floatRegex = /(^\[[0-9a-z]+\]$)|(^\/[0-9a-z]*)/;
+    var floatRegex = /^(\[[0-9a-z]+\])?(\/[0-9a-z]*)/;
     var dirs = value.replace(/,/g,' ').trim().split(new RegExp("\\s+", "g"));
     for(var i = 0; i < dirs.length; i++){
       if(!floatRegex.test(dirs[i])){

@@ -808,7 +808,7 @@ App.ServiceConfigProperty = Ember.Object.extend({
           break;
         case 'datanodedirs':
           if (!validator.isValidDataNodeDir(value)) {
-            this.set('errorMessage', 'dir format is wrong, can be "[{storage type}] /{dir name}"');
+            this.set('errorMessage', 'dir format is wrong, can be "[{storage type}]/{dir name}"');
             isError = true;
           }
           else {
