@@ -113,20 +113,23 @@ Change file permissions so that only necessary users can access it.
 
 **Make sure that `slider-user` keytab is at /etc/security/keytabs/`slider-user`.headless.keytab**
 
-### Step-6 Create *Kerberos* principal for App launched by  *slider.user*
-Slider Apps contain services, and they might need their own identities when talking to HDFS and YARN. To support such Apps, keytabs have to be created that are required for specific Apps. 
+### Step-6 Create *Kerberos* principals for App launched by  *slider.user*
+Slider Apps contain services, and they might need their own identities when talking to HDFS and YARN. To support such Apps, keytabs have to be created that are required specifically for the Apps. Each keytab should contain the identity of the principal on all hosts where the application can run.
 
 By default, the following keytabs have to be created for specific Apps. This user has to exist on all hosts where containers are run:
 #### HBase
-```
-kadmin.local -q "addprinc -randkey slider-user@EXAMPLE.COM"
-```
-Next, extract keytab file 
+For each host `host-name` in the cluster, do the following 
 
+*  ```
+kadmin.local -q "addprinc -randkey slider-user/[host-name]@EXAMPLE.COM"
 ```
-kadmin.local -q "xst -k /path/to/keytab/slider-user.HBASE.service.keytab slider-user@EXAMPLE.COM"
+Next, extract identity into a single keytab file 
+
+*  ```
+kadmin.local -q "xst -k /path/to/keytab/slider-user.HBASE.service.keytab slider-user/[host-name]@EXAMPLE.COM"
 ```
-The keytab file should then be copied over to the keytabs location on the host where the view is hosted.
+
+The keytab file containing multiple identities should then be copied over to the keytabs location on the host where the view is hosted.
 
 ```
 cp /path/to/keytab/slider-user.HBASE.service.keytab /etc/security/keytabs/
@@ -135,16 +138,19 @@ cp /path/to/keytab/slider-user.HBASE.service.keytab /etc/security/keytabs/
 Change file permissions so that only necessary users can access it.
 
 #### Storm
-```
-kadmin.local -q "addprinc -randkey slider-user@EXAMPLE.COM"
+For each host `host-name` in the cluster, do the following 
+
+*  ```
+kadmin.local -q "addprinc -randkey slider-user/[host-name]@EXAMPLE.COM"
 ```
 Next, extract keytab file 
 
+*  ```
+kadmin.local -q "xst -k /path/to/keytab/slider-user.STORM.nimbus.keytab slider-user/[host-name]@EXAMPLE.COM"
+kadmin.local -q "xst -k /path/to/keytab/slider-user.STORM.client.keytab slider-user/[host-name]@EXAMPLE.COM"
 ```
-kadmin.local -q "xst -k /path/to/keytab/slider-user.STORM.nimbus.keytab slider-user@EXAMPLE.COM"
-kadmin.local -q "xst -k /path/to/keytab/slider-user.STORM.client.keytab slider-user@EXAMPLE.COM"
-```
-The keytab file should then be copied over to the keytabs location on the host where the view is hosted.
+
+The keytab file containing multiple identities should then be copied over to the keytabs location on the host where the view is hosted.
 
 ```
 cp /path/to/keytab/slider-user.STORM.nimbus.keytab /etc/security/keytabs/
