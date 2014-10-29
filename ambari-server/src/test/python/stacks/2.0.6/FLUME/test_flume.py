@@ -299,8 +299,8 @@ class TestFlumeHandler(RMFTestCase):
 
   @patch("flume.find_expected_agent_names")
   @patch("os.unlink")
-  def test_configure_with_existing(self, os_unlink_mock, find_expected_mock):
-    find_expected_mock.return_value = ["x1"]
+  def test_configure_with_existing(self, os_unlink_mock, expected_names_mock):
+    expected_names_mock.return_value = ["x1"]
 
     self.executeScript("2.0.6/services/FLUME/package/scripts/flume_handler.py",
                        classname = "FlumeHandler",
@@ -314,8 +314,8 @@ class TestFlumeHandler(RMFTestCase):
     self.assertNoMoreResources()
 
   @patch("resource_management.libraries.script.Script.put_structured_out")
-  @patch("flume.find_expected_agent_names")
-  @patch("flume.flume_status")
+  @patch("resource_management.libraries.functions.flume_agent_helper.find_expected_agent_names")
+  @patch("resource_management.libraries.functions.flume_agent_helper.get_flume_status")
   def test_status_many_mixed(self, status_mock, expected_names_mock, structured_out_mock):
     expected_names_mock.return_value = ["a1", "a2"]
     status_mock.return_value = [{'name': 'a1', 'status': 'RUNNING'}, {'name': 'a2', 'status': 'NOT_RUNNING'}]
@@ -340,8 +340,8 @@ class TestFlumeHandler(RMFTestCase):
     self.assertNoMoreResources()
 
   @patch("resource_management.libraries.script.Script.put_structured_out")
-  @patch("flume.find_expected_agent_names")
-  @patch("flume.flume_status")
+  @patch("resource_management.libraries.functions.flume_agent_helper.find_expected_agent_names")
+  @patch("resource_management.libraries.functions.flume_agent_helper.get_flume_status")
   def test_status_many_ok(self, status_mock, expected_names_mock, structured_out_mock):
     expected_names_mock.return_value = ["a1", "a2"]
     status_mock.return_value = [{'name': 'a1', 'status': 'RUNNING'}, {'name': 'a2', 'status': 'RUNNING'}]
@@ -362,8 +362,8 @@ class TestFlumeHandler(RMFTestCase):
     self.assertNoMoreResources()
 
   @patch("resource_management.libraries.script.Script.put_structured_out")
-  @patch("flume.find_expected_agent_names")
-  @patch("flume.flume_status")
+  @patch("resource_management.libraries.functions.flume_agent_helper.find_expected_agent_names")
+  @patch("resource_management.libraries.functions.flume_agent_helper.get_flume_status")
   def test_status_many_critical(self, status_mock, expected_names_mock, structured_out_mock):
     expected_names_mock.return_value = ["a1", "a2"]
     status_mock.return_value = [{'name': 'a1', 'status': 'NOT_RUNNING'}, {'name': 'a2', 'status': 'NOT_RUNNING'}]
@@ -389,8 +389,8 @@ class TestFlumeHandler(RMFTestCase):
 
 
   @patch("resource_management.libraries.script.Script.put_structured_out")
-  @patch("flume.find_expected_agent_names")
-  @patch("flume.flume_status")
+  @patch("resource_management.libraries.functions.flume_agent_helper.find_expected_agent_names")
+  @patch("resource_management.libraries.functions.flume_agent_helper.get_flume_status")
   def test_status_single_ok(self, status_mock, expected_names_mock, structured_out_mock):
     expected_names_mock.return_value = ["a1"]
     status_mock.return_value = [{'name': 'a1', 'status': 'RUNNING'}]
@@ -411,8 +411,8 @@ class TestFlumeHandler(RMFTestCase):
     self.assertNoMoreResources()
 
   @patch("resource_management.libraries.script.Script.put_structured_out")
-  @patch("flume.find_expected_agent_names")
-  @patch("flume.flume_status")
+  @patch("resource_management.libraries.functions.flume_agent_helper.find_expected_agent_names")
+  @patch("resource_management.libraries.functions.flume_agent_helper.get_flume_status")
   def test_status_single_critical(self, status_mock, expected_names_mock, structured_out_mock):
     expected_names_mock.return_value = ['a1']
     status_mock.return_value = [{'name': 'a1', 'status': 'NOT_RUNNING'}]

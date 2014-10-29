@@ -21,13 +21,15 @@ import glob
 import json
 import os
 from resource_management import *
+from resource_management.libraries.functions.flume_agent_helper import is_flume_process_live
+from resource_management.libraries.functions.flume_agent_helper import find_expected_agent_names
 
 def flume(action = None):
   import params
 
   if action == 'config':
     # remove previously defined meta's
-    for n in find_expected_agent_names():
+    for n in find_expected_agent_names(params.flume_conf_dir):
       os.unlink(os.path.join(params.flume_conf_dir, n, 'ambari-meta.json'))
 
     Directory(params.flume_conf_dir, recursive=True)
@@ -78,7 +80,7 @@ def flume(action = None):
       if not os.path.isfile(flume_agent_conf_file):
         continue
 
-      if not is_live(flume_agent_pid_file):
+      if not is_flume_process_live(flume_agent_pid_file):
         # TODO someday make the ganglia ports configurable
         extra_args = ''
         if params.ganglia_server_host is not None:
@@ -129,6 +131,7 @@ def ambari_meta(agent_name, agent_conf):
 
   return res
 
+
 # define a map of dictionaries, where the key is agent name
 # and the dictionary is the name/value pair
 def build_flume_topology(content):
@@ -158,75 +161,8 @@ def build_flume_topology(content):
     if not k in agent_names:
       del result[k]
 
-
   return result
 
-def is_live(pid_file):
-  live = False
-
-  try:
-    check_process_status(pid_file)
-    live = True
-  except ComponentIsNotRunning:
-    pass
-
-  return live
-
-def live_status(pid_file):
-  import params
-
-  pid_file_part = pid_file.split(os.sep).pop()
-
-  res = {}
-  res['name'] = pid_file_part
-  
-  if pid_file_part.endswith(".pid"):
-    res['name'] = pid_file_part[:-4]
-
-  res['status'] = 'RUNNING' if is_live(pid_file) else 'NOT_RUNNING'
-  res['sources_count'] = 0
-  res['sinks_count'] = 0
-  res['channels_count'] = 0
-
-  flume_agent_conf_dir = params.flume_conf_dir + os.sep + res['name']
-  flume_agent_meta_file = flume_agent_conf_dir + os.sep + 'ambari-meta.json'
-
-  try:
-    with open(flume_agent_meta_file) as fp:
-      meta = json.load(fp)
-      res['sources_count'] = meta['sources_count']
-      res['sinks_count'] = meta['sinks_count']
-      res['channels_count'] = meta['channels_count']
-  except:
-    pass
-
-  return res
-  
-def flume_status():
-  import params
-
-  meta_files = find_expected_agent_names()
-  pid_files = []
-  for agent_name in meta_files:
-    pid_files.append(os.path.join(params.flume_run_dir, agent_name + '.pid'))
-
-  procs = []
-  for pid_file in pid_files:
-    procs.append(live_status(pid_file))
-
-  return procs
-
-# these are what Ambari believes should be running
-def find_expected_agent_names():
-  import params
-
-  files = glob.glob(params.flume_conf_dir + os.sep + "*/ambari-meta.json")
-  expected = []
-
-  for f in files:
-    expected.append(os.path.dirname(f).split(os.sep).pop())
-
-  return expected
 
 def cmd_target_names():
   import params
@@ -234,7 +170,8 @@ def cmd_target_names():
   if len(params.flume_command_targets) > 0:
     return params.flume_command_targets
   else:
-    return find_expected_agent_names()
+    return find_expected_agent_names(params.flume_conf_dir)
+
 
 def _set_desired_state(state):
   import params
@@ -243,6 +180,7 @@ def _set_desired_state(state):
       fp.write(state)
   except:
     pass
+
 
 def get_desired_state():
   import params

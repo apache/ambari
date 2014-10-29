@@ -17,11 +17,12 @@ limitations under the License.
 
 """
 
-from resource_management import *
 from flume import flume
-from flume import flume_status
-from flume import find_expected_agent_names
 from flume import get_desired_state
+
+from resource_management import *
+from resource_management.libraries.functions.flume_agent_helper import find_expected_agent_names
+from resource_management.libraries.functions.flume_agent_helper import get_flume_status
 
 class FlumeHandler(Script):
   def install(self, env):
@@ -57,8 +58,8 @@ class FlumeHandler(Script):
 
     env.set_params(params)
 
-    processes = flume_status()
-    expected_agents = find_expected_agent_names()
+    processes = get_flume_status(params.flume_conf_dir, params.flume_run_dir)
+    expected_agents = find_expected_agent_names(params.flume_conf_dir)
 
     json = {}
     json['processes'] = processes
