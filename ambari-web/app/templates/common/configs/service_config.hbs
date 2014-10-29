@@ -49,7 +49,7 @@
 	<div class="alert alert-info">
 	  {{t common.group}}&nbsp; 
 	  <span class="btn-group">
-		  <button {{bindAttr disabled="controller.isHostsConfigsPage"}} class="btn">{{selectedConfigGroup.displayNameHosts}}</button>
+		  <button {{bindAttr disabled="controller.isHostsConfigsPage"}} class="btn dropdown-toggle" data-toggle="dropdown">{{selectedConfigGroup.displayNameHosts}}</button>
 		  <button {{bindAttr disabled="controller.isHostsConfigsPage"}} class="btn dropdown-toggle" data-toggle="dropdown">
 		    <span class="caret"></span>
 		  </button>
