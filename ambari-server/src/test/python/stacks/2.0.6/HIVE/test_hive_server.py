@@ -137,6 +137,59 @@ class TestHiveServer(RMFTestCase):
     self.assertFalse(socket_mock.called)
 
   def assert_configure_default(self):
+    self.assertResourceCalled('HdfsDirectory', '/apps/tez/',
+                              action = ['create_delayed'],
+                              mode = 0755,
+                              owner = 'tez',
+                              security_enabled = False,
+                              keytab = UnknownConfigurationMock(),
+                              conf_dir = '/etc/hadoop/conf',
+                              hdfs_user = 'hdfs',
+                              bin_dir = '/usr/bin',
+                              kinit_path_local = "/usr/bin/kinit"
+    )
+
+    self.assertResourceCalled('HdfsDirectory', '/apps/tez/lib/',
+                              action = ['create_delayed'],
+                              mode = 0755,
+                              owner = 'tez',
+                              security_enabled = False,
+                              keytab = UnknownConfigurationMock(),
+                              conf_dir = '/etc/hadoop/conf',
+                              hdfs_user = 'hdfs',
+                              bin_dir = '/usr/bin',
+                              kinit_path_local = "/usr/bin/kinit"
+    )
+    self.assertResourceCalled('HdfsDirectory', None,
+                              security_enabled = False,
+                              keytab = UnknownConfigurationMock(),
+                              conf_dir = '/etc/hadoop/conf',
+                              hdfs_user = 'hdfs',
+                              kinit_path_local = '/usr/bin/kinit',
+                              bin_dir = '/usr/bin',
+                              action = ['create']
+    )
+
+    self.assertResourceCalled('CopyFromLocal', '/usr/lib/tez/tez*.jar',
+                              mode=0755,
+                              owner='tez',
+                              dest_dir='/apps/tez/',
+                              kinnit_if_needed='',
+                              hadoop_conf_dir='/etc/hadoop/conf',
+                              hadoop_bin_dir='/usr/bin',
+                              hdfs_user='hdfs',
+                              dest_file=None
+    )
+
+    self.assertResourceCalled('CopyFromLocal', '/usr/lib/tez/lib/*.jar',
+                              mode=0755,
+                              owner='tez',
+                              dest_dir='/apps/tez/lib/',
+                              kinnit_if_needed='',
+                              hadoop_bin_dir='/usr/bin',
+                              hadoop_conf_dir='/etc/hadoop/conf',
+                              hdfs_user='hdfs'
+    )
     self.assertResourceCalled('HdfsDirectory', '/apps/hive/warehouse',
         security_enabled = False,
         keytab = UnknownConfigurationMock(),
