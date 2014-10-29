@@ -21,7 +21,7 @@
 
   <property>
     <name>tez.lib.uris</name>
-    <value>hdfs:///hdp/apps/${hdp.version}/tez/tez.tar.gz</value>
+    <value>/hdp/apps/${hdp.version}/tez/tez.tar.gz</value>
     <description>Comma-delimited list of the location of the Tez libraries which will be localized for DAGs.
       Specifying a single .tar.gz or .tgz assumes that a compressed version of the tez libs is being used. This is uncompressed into a tezlibs directory when running containers, and tezlibs/;tezlibs/lib/ are added to the classpath (after . and .*).
       If multiple files are specified - files are localized as regular files, contents of directories are localized as regular files (non-recursive).
@@ -30,7 +30,7 @@
 
   <property>
     <name>tez.cluster.additional.classpath.prefix</name>
-    <value>/usr/hdp/current/share/lzo/0.6.0/lib/hadoop-lzo-0.6.0.jar</value>
+    <value>/usr/hdp/${hdp.version}/hadoop/lib/hadoop-lzo-0.6.0.${hdp.version}.jar:/etc/hadoop/conf/secure</value>
     <description></description>
   </property>
 
@@ -62,15 +62,21 @@
 
   <property>
     <name>tez.am.launch.cmd-opts</name>
-    <value>-server -Djava.net.preferIPv4Stack=true -XX:+PrintGCDetails -verbose:gc -XX:+PrintGCTimeStamps -XX:+UseNUMA -XX:+UseParallelGC</value>
+    <value>-XX:+PrintGCDetails -verbose:gc -XX:+PrintGCTimeStamps -XX:+UseNUMA -XX:+UseParallelGC</value>
     <description>Java options for the Tez AppMaster process. The Xmx value is derived based on tez.am.resource.memory.mb and is 80% of the value by default.
       Used only if the value is not specified explicitly by the DAG definition.
     </description>
   </property>
 
   <property>
+    <name>tez.am.launch.cluster-default.cmd-opts</name>
+    <value>-server -Djava.net.preferIPv4Stack=true -Dhdp.version=${hdp.version}</value>
+    <description>Cluster default Java options for the Tez AppMaster process. These will be prepended to the properties specified via tez.am.launch.cmd-opts</description>
+  </property>
+
+  <property>
     <name>tez.am.launch.env</name>
-    <value>LD_LIBRARY_PATH=/usr/lib/hadoop/lib/native:/usr/lib/hadoop/lib/native/Linux-amd64-64</value>
+    <value>LD_LIBRARY_PATH=/usr/hdp/${hdp.version}/hadoop/lib/native:/usr/hdp/${hdp.version}/hadoop/lib/native/Linux-amd64-64</value>
     <description>
         Additional execution environment entries for tez. This is not an additive property. You must preserve the original value if
         you want to have access to native libraries.
@@ -88,15 +94,21 @@
 
   <property>
     <name>tez.task.launch.cmd-opts</name>
-    <value>-server -Djava.net.preferIPv4Stack=true -XX:+PrintGCDetails -verbose:gc -XX:+PrintGCTimeStamps -XX:+UseNUMA -XX:+UseParallelGC</value>
+    <value>-XX:+PrintGCDetails -verbose:gc -XX:+PrintGCTimeStamps -XX:+UseNUMA -XX:+UseParallelGC</value>
     <description>Java options for tasks. The Xmx value is derived based on tez.task.resource.memory.mb and is 80% of this value by default.
       Used only if the value is not specified explicitly by the DAG definition.
     </description>
-  </property> 
+  </property>
+
+  <property>
+    <name>tez.task.launch.cluster-default.cmd-opts</name>
+    <value>-server -Djava.net.preferIPv4Stack=true -Dhdp.version=${hdp.version}</value>
+    <description>Cluster default Java options for tasks. These will be prepended to the properties specified via tez.task.launch.cmd-opts</description>
+  </property>
 
   <property>
     <name>tez.task.launch.env</name>
-    <value>LD_LIBRARY_PATH=/usr/lib/hadoop/lib/native:/usr/lib/hadoop/lib/native/Linux-amd64-64</value>
+    <value>LD_LIBRARY_PATH=/usr/hdp/${hdp.version}/hadoop/lib/native:/usr/hdp/${hdp.version}/hadoop/lib/native/Linux-amd64-64</value>
     <description>
       Additional execution environment entries for tez. This is not an additive property. You must preserve the original value if
       you want to have access to native libraries.
