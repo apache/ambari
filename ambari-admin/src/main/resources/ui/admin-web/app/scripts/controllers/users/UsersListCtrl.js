@@ -43,7 +43,10 @@ angular.module('ambariAdminConsole')
       admin: $scope.adminFilter
     }).then(function(data) {
       $scope.totalUsers = data.data.itemTotal;
-      $scope.users = data.data.items;
+      $scope.users = data.data.items.map(function (user) {
+        user.Users.encoded_name = encodeURIComponent(user.Users.user_name);
+        return user;
+      });
     });
   };
 

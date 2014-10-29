@@ -82,7 +82,7 @@ angular.module('ambariAdminConsole')
       return $http.get(Settings.baseUrl + '/privileges', {
         params:{
           'PrivilegeInfo/principal_type': 'USER',
-          'PrivilegeInfo/principal_name': userId,
+          'PrivilegeInfo/principal_name': encodeURIComponent(userId),
           'fields': '*'
         }
       });

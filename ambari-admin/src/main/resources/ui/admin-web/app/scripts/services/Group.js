@@ -123,7 +123,7 @@ angular.module('ambariAdminConsole')
 
     $http({
       method: 'POST',
-      url: Settings.baseUrl + '/groups/' + this.group_name + '/members' + '/'+ member.user_name
+      url: Settings.baseUrl + '/groups/' + this.group_name + '/members' + '/'+ encodeURIComponent(member.user_name)
     })
     .success(function(data) {
       deferred.resolve(data)

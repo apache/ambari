@@ -121,7 +121,7 @@ angular.module('ambariAdminConsole')
             
           } else {
             // Load typeahed items based on current input
-            $resource.listByName(newValue).then(function(data) {
+            $resource.listByName(encodeURIComponent(newValue)).then(function(data) {
               var items = [];
               angular.forEach(data.data.items, function(item) {
                 var name;

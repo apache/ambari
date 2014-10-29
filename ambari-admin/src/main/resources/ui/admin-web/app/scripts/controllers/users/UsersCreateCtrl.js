@@ -33,7 +33,7 @@ angular.module('ambariAdminConsole')
         'Users/active': !!$scope.user.active,
         'Users/admin': !!$scope.user.admin
       }).then(function() {
-        Alert.success('Created user <a href="#/users/' + $scope.user.user_name + '">' + $scope.user.user_name + "</a>");
+        Alert.success('Created user <a href="#/users/' + encodeURIComponent($scope.user.user_name) + '">' + $scope.user.user_name + "</a>");
         $scope.form.$setPristine();
         $location.path(targetUrl);
       }).catch(function(data) {

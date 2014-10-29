@@ -155,11 +155,7 @@ public abstract class BaseRequest implements Request {
 
   @Override
   public String getURI() {
-    try {
-      return URLDecoder.decode(m_uriInfo.getRequestUri().toASCIIString(), "UTF-8");
-    } catch (UnsupportedEncodingException e) {
-      throw new RuntimeException("Unable to decode URI: " + e, e);
-    }
+    return m_uriInfo.getRequestUri().toASCIIString();
   }
 
   @Override
@@ -314,7 +310,11 @@ public abstract class BaseRequest implements Request {
     }
 
     if (queryString != null) {
-      m_predicate = getPredicateCompiler().compile(queryString);
+      try {
+        m_predicate = getPredicateCompiler().compile(URLDecoder.decode(queryString, "UTF-8"));
+      } catch (UnsupportedEncodingException e) {
+        throw new RuntimeException("Unable to decode URI: " + e, e);
+      }
     }
   }
 
