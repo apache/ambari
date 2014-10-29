@@ -23,7 +23,7 @@
 
   <property>
     <name>yarn.application.classpath</name>
-    <value>$HADOOP_CONF_DIR,/usr/hdp/${hdp.version}/hadoop/*,/usr/hdp/${hdp.version}/hadoop/lib/*,/usr/hdp/${hdp.version}/hadoop-hdfs/*,/usr/hdp/${hdp.version}/hadoop-hdfs/lib/*,/usr/hdp/${hdp.version}/hadoop-yarn/*,/usr/hdp/${hdp.version}/hadoop-yarn/lib/*,/usr/hdp/${hdp.version}/hadoop-mapreduce/*,/usr/hdp/${hdp.version}/hadoop-mapreduce/lib/*</value>
+    <value>$HADOOP_CONF_DIR,/usr/hdp/${hdp.version}/hadoop/*,/usr/hdp/${hdp.version}/hadoop/lib/*,/usr/hdp/${hdp.version}/hadoop-hdfs/*,/usr/hdp/${hdp.version}/hadoop-hdfs/lib/*,/usr/hdp/${hdp.version}/hadoop-yarn/*,/usr/hdp/${hdp.version}/hadoop-yarn/lib/*</value>
     <description>Classpath for typical applications.</description>
   </property>
   <property>
