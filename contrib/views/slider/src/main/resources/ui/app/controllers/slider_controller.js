@@ -45,6 +45,18 @@ App.SliderController = Ember.Controller.extend(App.RunPeriodically, {
   },
 
   /**
+   * Accessing /resources/status initializes the view internals
+   * with the latest configs. This will help the view in staying
+   * updated and recover from previous config issues.
+   */
+  touchViewStatus: function() {
+    return App.ajax.send({
+      name: 'slider.getViewParams.v2',
+      sender: this
+    });
+  },
+
+  /**
    * Set Slider label and description to <code>App</code> properties
    * @param {object} data
    * @method getViewDisplayParametersSuccessCallback
