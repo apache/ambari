@@ -131,6 +131,15 @@ App.initializer({
       var sliderController = application.__container__.lookup('controller:Slider');
       sliderController.getViewDisplayParameters().done(function() {
         sliderController.run('initResources');
+      }).fail(function(){
+        // If initial view-listing failed, it might be due to bad previous-configs.
+        // We will initialize '/resources/status' to load configs again, and then
+        // attempt one more time to load view parameters.
+        sliderController.touchViewStatus().done(function() {
+          sliderController.getViewDisplayParameters().done(function() {
+            sliderController.run('initResources');
+          });
+        });
       });
       application.ApplicationTypeMapper.load();
       application.SliderAppsMapper.run('load');
