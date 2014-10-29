@@ -81,10 +81,10 @@ def webhcat():
 
   # TODO, these checks that are specific to HDP 2.2 and greater should really be in a script specific to that stack.
   if compare_versions(params.hdp_stack_version, "2.2.0.0") >= 0:
-    copy_tarballs_to_hdfs('hive', params.webhcat_user, params.hdfs_user)
-    copy_tarballs_to_hdfs('pig', params.webhcat_user, params.hdfs_user)
-    copy_tarballs_to_hdfs('hadoop-streaming', params.webhcat_user, params.hdfs_user)
-    copy_tarballs_to_hdfs('sqoop', params.webhcat_user, params.hdfs_user)
+    copy_tarballs_to_hdfs('hive', params.webhcat_user, params.hdfs_user, params.user_group)
+    copy_tarballs_to_hdfs('pig', params.webhcat_user, params.hdfs_user, params.user_group)
+    copy_tarballs_to_hdfs('hadoop-streaming', params.webhcat_user, params.hdfs_user, params.user_group)
+    copy_tarballs_to_hdfs('sqoop', params.webhcat_user, params.hdfs_user, params.user_group)
   else:
     CopyFromLocal(params.hadoop_streeming_jars,
                   owner=params.webhcat_user,

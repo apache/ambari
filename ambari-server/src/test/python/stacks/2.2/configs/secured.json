@@ -48,10 +48,10 @@
         },
         "webhcat-site": {
             "templeton.jar": "/usr/hdp/current/hive-webhcat/share/webhcat/svr/lib/hive-webhcat-*.jar",
-            "templeton.pig.archive": "hdfs:///hdp/apps/{{ hdp_stack_version }}/pig/pig-{{ component_version }}.{{ hdp_stack_version }}.tar.gz",
-            "templeton.hive.archive": "hdfs:///hdp/apps/{{ hdp_stack_version }}/hive/hive-{{ component_version }}.{{ hdp_stack_version }}.tar.gz",
-            "templeton.sqoop.archive": "hdfs:///hdp/apps/{{ hdp_stack_version }}/sqoop/sqoop-{{ component_version }}.{{ hdp_stack_version }}.tar.gz",
-            "templeton.streaming.jar": "hdfs:///hdp/apps/{{ hdp_stack_version }}/mr/hadoop-streaming-{{ component_version }}.{{ hdp_stack_version }}.jar"
+            "templeton.pig.archive": "hdfs:///hdp/apps/{{ hdp_stack_version }}/pig/pig.tar.gz",
+            "templeton.hive.archive": "hdfs:///hdp/apps/{{ hdp_stack_version }}/hive/hive.tar.gz",
+            "templeton.sqoop.archive": "hdfs:///hdp/apps/{{ hdp_stack_version }}/sqoop/sqoop.tar.gz",
+            "templeton.streaming.jar": "hdfs:///hdp/apps/{{ hdp_stack_version }}/mapreduce/hadoop-streaming.jar"
         },
         "slider-log4j": {
             "content": "log4jproperties\nline2"

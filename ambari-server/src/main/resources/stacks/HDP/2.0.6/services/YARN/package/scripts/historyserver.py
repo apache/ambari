@@ -38,7 +38,7 @@ class HistoryServer(Script):
     import params
     env.set_params(params)
     self.configure(env) # FOR SECURITY
-    copy_tarballs_to_hdfs('mr', params.mapred_user, params.hdfs_user)
+    copy_tarballs_to_hdfs('mapreduce', params.mapred_user, params.hdfs_user, params.user_group)
     service('historyserver', action='start', serviceName='mapreduce')
 
   def stop(self, env):
