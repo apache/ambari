@@ -356,6 +356,41 @@ public class AmbariAuthorizationFilterTest {
   }
 
   @Test
+  public void testParseUserNameSpecial() throws Exception {
+    String contextPath = "/api/v1/users/user%3F";
+    String username = AmbariAuthorizationFilter.parseUserName(contextPath);
+    Assert.assertEquals("user?", username);
+
+    contextPath = "/api/v1/users/a%20b";
+    username = AmbariAuthorizationFilter.parseUserName(contextPath);
+    Assert.assertEquals("a b", username);
+
+    contextPath = "/api/v1/users/a%2Bb";
+    username = AmbariAuthorizationFilter.parseUserName(contextPath);
+    Assert.assertEquals("a+b", username);
+
+    contextPath = "/api/v1/users/a%21";
+    username = AmbariAuthorizationFilter.parseUserName(contextPath);
+    Assert.assertEquals("a!", username);
+
+    contextPath = "/api/v1/users/a%3D";
+    username = AmbariAuthorizationFilter.parseUserName(contextPath);
+    Assert.assertEquals("a=", username);
+
+    contextPath = "/api/v1/users/a%2Fb";
+    username = AmbariAuthorizationFilter.parseUserName(contextPath);
+    Assert.assertEquals("a/b", username);
+
+    contextPath = "/api/v1/users/a%23";
+    username = AmbariAuthorizationFilter.parseUserName(contextPath);
+    Assert.assertEquals("a#", username);
+
+    contextPath = "/api/v1/users/%3F%3F";
+    username = AmbariAuthorizationFilter.parseUserName(contextPath);
+    Assert.assertEquals("??", username);
+  }
+
+  @Test
   public void testParseViewContextPath() throws Exception {
     final String[] pathesToTest = {
         AmbariAuthorizationFilter.VIEWS_CONTEXT_PATH_PREFIX + "MY_VIEW/1.0.0/INSTANCE1",

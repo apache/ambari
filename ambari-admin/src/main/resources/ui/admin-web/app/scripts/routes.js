@@ -41,7 +41,7 @@ angular.module('ambariAdminConsole')
       controller: 'UsersCreateCtrl'
     },
     show: {
-      url: '/users/:id',
+      url: '/users/:id*',
       templateUrl: 'views/users/show.html',
       controller: 'UsersShowCtrl'
     }

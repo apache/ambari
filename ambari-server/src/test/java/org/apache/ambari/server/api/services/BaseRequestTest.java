@@ -171,8 +171,9 @@ public abstract class BaseRequestTest {
   @Test
   public void testProcess_QueryInURI() throws Exception {
     HttpHeaders headers = createNiceMock(HttpHeaders.class);
-    String uriString = "http://localhost.com:8080/api/v1/clusters/c1?foo=foo-value&bar=bar-value";
-    URI uri = new URI(URLEncoder.encode(uriString, "UTF-8"));
+    String path = URLEncoder.encode("http://localhost.com:8080/api/v1/clusters/c1", "UTF-8");
+    String query = URLEncoder.encode("foo=foo-value&bar=bar-value", "UTF-8");
+    URI uri = new URI(path + "?" + query);
     PredicateCompiler compiler = createStrictMock(PredicateCompiler.class);
     Predicate predicate = createNiceMock(Predicate.class);
     UriInfo uriInfo = createMock(UriInfo.class);

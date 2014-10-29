@@ -68,7 +68,7 @@
           <span class="glyphicon" tooltip="{{user.Users.admin ? 'Ambari Admin' : ''}}" ng-class="{'glyphicon-flash' : user.Users.admin}"></span>
         </td>
         <td>
-          <link-to route="users.show" id="{{user.Users.user_name}}">{{user.Users.user_name}}</link-to>
+           <a href="#/users/{{user.Users.encoded_name}}">{{user.Users.user_name}}</a>
         </td>
         <td>{{user.Users.ldap_user ? 'LDAP' : 'Local'}}</td>
         <td><span ng-class="user.Users.active ? 'text-success' : 'text-danger'">{{user.Users.active ? 'Active' : 'Inactive'}}</span></td>

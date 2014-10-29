@@ -204,7 +204,7 @@ App.Router = Em.Router.extend({
       data: {
         auth: "Basic " + hash,
         usr: usr,
-        loginName: loginName
+        loginName: encodeURIComponent(loginName)
       },
       beforeSend: 'authBeforeSend',
       success: 'loginSuccessCallback',

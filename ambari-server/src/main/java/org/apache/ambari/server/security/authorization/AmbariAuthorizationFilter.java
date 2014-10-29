@@ -19,6 +19,8 @@
 package org.apache.ambari.server.security.authorization;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -222,7 +224,11 @@ public class AmbariAuthorizationFilter implements Filter {
     if (!matcher.matches()) {
       return null;
     } else {
-      return matcher.group(1);
+      try {
+        return URLDecoder.decode(matcher.group(1), "UTF-8");
+      } catch (UnsupportedEncodingException e) {
+        throw new RuntimeException("Unable to decode URI: " + e, e);
+      }
     }
   }
 

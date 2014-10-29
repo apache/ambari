@@ -24,6 +24,8 @@ import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.api.util.TreeNode;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -79,7 +81,11 @@ public class ResultPostProcessorImpl implements ResultPostProcessor {
       href = node.getProperty("href");
       int i = href.indexOf('?');
       if (i != -1) {
-        href = href.substring(0, i);
+        try {
+          href = URLDecoder.decode(href.substring(0, i), "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+          throw new RuntimeException("Unable to decode URI: " + e, e);
+        }
       }
     } else {
       String isItemsCollection = node.getProperty("isCollection");
