@@ -553,12 +553,15 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
     setResourceProperty(resource, ALERT_DEF_COMPONENT_NAME, entity.getComponentName(), requestedIds);
     setResourceProperty(resource, ALERT_DEF_ENABLED, Boolean.valueOf(entity.getEnabled()), requestedIds);
     setResourceProperty(resource, ALERT_DEF_SCOPE, entity.getScope(), requestedIds);
-    setResourceProperty(resource, ALERT_DEF_SOURCE_TYPE, entity.getSourceType(), requestedIds);
 
-    if (!isCollection && null != resource.getPropertyValue(ALERT_DEF_SOURCE_TYPE)) {
+    boolean sourceTypeRequested = setResourceProperty(resource,
+        ALERT_DEF_SOURCE_TYPE, entity.getSourceType(), requestedIds);
 
+    if (sourceTypeRequested
+        && null != resource.getPropertyValue(ALERT_DEF_SOURCE_TYPE)) {
       try {
-        Map<String, String> map = gson.<Map<String, String>>fromJson(entity.getSource(), Map.class);
+        Map<String, String> map = gson.<Map<String, String>> fromJson(
+            entity.getSource(), Map.class);
 
         for (Entry<String, String> entry : map.entrySet()) {
           String subProp = PropertyHelper.getPropertyId(ALERT_DEF_SOURCE, entry.getKey());

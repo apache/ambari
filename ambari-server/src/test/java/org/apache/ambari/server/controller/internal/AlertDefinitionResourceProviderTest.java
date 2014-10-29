@@ -204,6 +204,70 @@ public class AlertDefinitionResourceProviderTest {
   }
 
   /**
+   * Tests that the source structure returned has the entire set of
+   * subproperties on it (such as reporting)
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testGetResourcesAssertSourceType() throws Exception {
+    Request request = PropertyHelper.getReadRequest(
+        AlertDefinitionResourceProvider.ALERT_DEF_CLUSTER_NAME,
+        AlertDefinitionResourceProvider.ALERT_DEF_ID,
+        AlertDefinitionResourceProvider.ALERT_DEF_NAME,
+        AlertDefinitionResourceProvider.ALERT_DEF_LABEL,
+        AlertDefinitionResourceProvider.ALERT_DEF_SOURCE_TYPE);
+
+    AmbariManagementController amc = createMock(AmbariManagementController.class);
+    Clusters clusters = createMock(Clusters.class);
+    Cluster cluster = createMock(Cluster.class);
+    expect(amc.getClusters()).andReturn(clusters).atLeastOnce();
+    expect(clusters.getCluster((String) anyObject())).andReturn(cluster).atLeastOnce();
+    expect(cluster.getClusterId()).andReturn(Long.valueOf(1)).anyTimes();
+
+    Predicate predicate = new PredicateBuilder().property(
+        AlertDefinitionResourceProvider.ALERT_DEF_CLUSTER_NAME).equals("c1").toPredicate();
+
+    expect(dao.findAll(1L)).andReturn(getMockEntities()).atLeastOnce();
+
+    replay(amc, clusters, cluster, dao);
+
+    AlertDefinitionResourceProvider provider = createProvider(amc);
+    Set<Resource> results = provider.getResources(request, predicate);
+
+    assertEquals(1, results.size());
+
+    Resource resource = results.iterator().next();
+
+    Assert.assertEquals("my_def",
+        resource.getPropertyValue(AlertDefinitionResourceProvider.ALERT_DEF_NAME));
+
+    Map<String, String> reporting = (Map<String, String>) resource.getPropertyValue(AlertDefinitionResourceProvider.ALERT_DEF_SOURCE_REPORTING);
+
+    Assert.assertTrue(reporting.containsKey("ok"));
+    Assert.assertTrue(reporting.containsKey("critical"));
+
+    verify(amc, clusters, cluster, dao);
+
+    // make another request, this time without the source and ensure that no
+    // source properties come back
+    request = PropertyHelper.getReadRequest(
+        AlertDefinitionResourceProvider.ALERT_DEF_CLUSTER_NAME,
+        AlertDefinitionResourceProvider.ALERT_DEF_ID,
+        AlertDefinitionResourceProvider.ALERT_DEF_NAME);
+
+    results = provider.getResources(request, predicate);
+    resource = results.iterator().next();
+
+    Assert.assertEquals(
+        "my_def",
+        resource.getPropertyValue(AlertDefinitionResourceProvider.ALERT_DEF_NAME));
+
+    reporting = (Map<String, String>) resource.getPropertyValue(AlertDefinitionResourceProvider.ALERT_DEF_SOURCE_REPORTING);
+    Assert.assertNull(reporting);
+  }
+
+  /**
    * @throws Exception
    */
   @Test
