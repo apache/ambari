@@ -21,6 +21,7 @@ from resource_management import *
 import status_params
 import os
 import itertools
+import re
 
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
@@ -147,6 +148,8 @@ namenode_formatted_mark_dir = format("/var/lib/hdfs/namenode/formatted/")
 fs_checkpoint_dir = config['configurations']['hdfs-site']['dfs.namenode.checkpoint.dir']
 
 dfs_data_dir = config['configurations']['hdfs-site']['dfs.datanode.data.dir']
+dfs_data_dir = ",".join([re.sub(r'^\[.+\]', '', dfs_dir.strip()) for dfs_dir in dfs_data_dir.split(",")])
+
 data_dir_mount_file = config['configurations']['hadoop-env']['dfs.datanode.data.dir.mount.file']
 
 dfs_dn_addr = default('/configurations/hdfs-site/dfs.datanode.address', None)
