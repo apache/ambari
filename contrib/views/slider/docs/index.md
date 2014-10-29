@@ -120,12 +120,14 @@ By default, the following keytabs have to be created for specific Apps. This use
 #### HBase
 For each host `host-name` in the cluster, do the following 
 
-*  ```
+* 
+```
 kadmin.local -q "addprinc -randkey slider-user/[host-name]@EXAMPLE.COM"
 ```
-Next, extract identity into a single keytab file 
+Next, extract identities on all hosts into a single keytab file 
 
-*  ```
+* 
+```
 kadmin.local -q "xst -k /path/to/keytab/slider-user.HBASE.service.keytab slider-user/[host-name]@EXAMPLE.COM"
 ```
 
@@ -140,12 +142,14 @@ Change file permissions so that only necessary users can access it.
 #### Storm
 For each host `host-name` in the cluster, do the following 
 
-*  ```
+* 
+```
 kadmin.local -q "addprinc -randkey slider-user/[host-name]@EXAMPLE.COM"
 ```
-Next, extract keytab file 
+Next, extract all identities into a single keytab file 
 
-*  ```
+* 
+```
 kadmin.local -q "xst -k /path/to/keytab/slider-user.STORM.nimbus.keytab slider-user/[host-name]@EXAMPLE.COM"
 kadmin.local -q "xst -k /path/to/keytab/slider-user.STORM.client.keytab slider-user/[host-name]@EXAMPLE.COM"
 ```

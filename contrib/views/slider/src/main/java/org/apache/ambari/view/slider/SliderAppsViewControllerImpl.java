@@ -218,6 +218,16 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
               newHadoopConfigs.put("yarn_user", yarnUser); // YARN service user
             }
             newHadoopConfigs.put("slider.user", getUserToRunAs(newHadoopConfigs)); // Slider user
+            if (newHadoopConfigs.containsKey("security_enabled")) {
+              boolean securityEnabled = Boolean.valueOf(newHadoopConfigs.get("security_enabled"));
+              if (securityEnabled) {
+                String yarnUser = newHadoopConfigs.get("yarn_user");
+                if (yarnUser != null && yarnUser.equals(newHadoopConfigs.get("slider.user"))) {
+                  status.getValidations().add(
+                      new ViewStatus.Validation("Slider view does not support accessing secured YARN cluster as YARN superuser (" + yarnUser + ")"));
+                }
+              }
+            }
             if (cluster.getDesiredConfigs().containsKey("zookeeper-env")) {
               Map<String, String> zkEnvConfigs = ambariClient.getConfiguration(
                   cluster, "zookeeper-env",
