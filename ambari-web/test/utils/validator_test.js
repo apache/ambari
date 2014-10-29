@@ -296,7 +296,7 @@ describe('validator', function () {
       })
     });
   });
-  describe.only('#isValidDataNodeDir(value)', function() {
+  describe('#isValidDataNodeDir(value)', function() {
     var tests = [
       {m:'"dir" - invalid',i:'dir',e:false},
       {m:'"/dir" - valid',i:'/dir',e:true},
@@ -305,9 +305,9 @@ describe('validator', function () {
       {m:'"/123" - valid',i:'/111',e:true},
       {m:'"/abc" - valid',i:'/abc',e:true},
       {m:'"/1a2b3c" - valid',i:'/1a2b3c',e:true},
-      {m:'"[ssd] /1a2b3c" - valid',i:'[ssd] /1a2b3c',e:true},
+      {m:'"[ssd]/1a2b3c" - valid',i:'[ssd]/1a2b3c',e:true},
       {m:'"[] /1a2b3c" - invalid',i:'[] /1a2b3c',e:false},
-      {m:'"[ssd]/1a2b3c" - invalid',i:'[ssd]/1a2b3c',e:false},
+      {m:'"[ssd] /1a2b3c" - invalid',i:'[ssd] /1a2b3c',e:false},
       {m:'"[/1a2b3c]" - invalid',i:'[/1a2b3c]',e:false},
       {m:'"[s]ss /sd" - invalid',i:'[s]ss /sd',e:false}
 
