@@ -22,6 +22,7 @@ from resource_management import *
 from hive import hive
 from hive_service import hive_service
 from resource_management.libraries.functions.dynamic_variable_interpretation import copy_tarballs_to_hdfs
+from install_jars import install_tez_jars
 
 class HiveServer(Script):
 
@@ -32,7 +33,8 @@ class HiveServer(Script):
   def configure(self, env):
     import params
     env.set_params(params)
-
+    if not params.stack_is_hdp22_or_further:
+      install_tez_jars()
     hive(name='hiveserver2')
 
   def start(self, env):

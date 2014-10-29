@@ -211,6 +211,14 @@ hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_nam
 # Tez-related properties
 tez_user = config['configurations']['tez-env']['tez_user']
 
+# Tez jars
+tez_local_api_jars = '/usr/lib/tez/tez*.jar'
+tez_local_lib_jars = '/usr/lib/tez/lib/*.jar'
+app_dir_files = {tez_local_api_jars:None}
+
+# Tez libraries
+tez_lib_uris = default("/configurations/tez-site/tez.lib.uris", None)
+
 if System.get_instance().os_family == "ubuntu":
   mysql_configname = '/etc/mysql/my.cnf'
 else:
