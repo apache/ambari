@@ -91,6 +91,7 @@ public class Configuration {
       "security.server.passphrase_env_var";
   public static final String PASSPHRASE_KEY = "security.server.passphrase";
   public static final String SRVR_DISABLED_CIPHERS = "security.server.disabled.ciphers";
+  public static final String SRVR_DISABLED_PROTOCOLS = "security.server.disabled.protocols";
   public static final String RESOURCES_DIR_KEY = "resources.dir";
   public static final String METADETA_DIR_PATH = "metadata.path";
   public static final String SERVER_VERSION_FILE = "server.version.file";
@@ -260,6 +261,7 @@ public class Configuration {
   private static final String SRVR_CRT_PASS_FILE_DEFAULT = "pass.txt";
   private static final String SRVR_CRT_PASS_LEN_DEFAULT = "50";
   private static final String SRVR_DISABLED_CIPHERS_DEFAULT = "";
+  private static final String SRVR_DISABLED_PROTOCOLS_DEFAULT = "";
   private static final String PASSPHRASE_ENV_DEFAULT = "AMBARI_PASSPHRASE";
   private static final String RESOURCES_DIR_DEFAULT =
       "/var/lib/ambari-server/resources/";
@@ -363,7 +365,9 @@ public class Configuration {
     configsMap.put(SRVR_CRT_PASS_LEN_KEY, properties.getProperty(
         SRVR_CRT_PASS_LEN_KEY, SRVR_CRT_PASS_LEN_DEFAULT));
     configsMap.put(SRVR_DISABLED_CIPHERS, properties.getProperty(
-            SRVR_DISABLED_CIPHERS, SRVR_DISABLED_CIPHERS_DEFAULT));
+        SRVR_DISABLED_CIPHERS, SRVR_DISABLED_CIPHERS_DEFAULT));
+    configsMap.put(SRVR_DISABLED_PROTOCOLS, properties.getProperty(
+        SRVR_DISABLED_PROTOCOLS, SRVR_DISABLED_PROTOCOLS_DEFAULT));
 
     configsMap.put(CLIENT_API_SSL_KSTR_DIR_NAME_KEY, properties.getProperty(
       CLIENT_API_SSL_KSTR_DIR_NAME_KEY, configsMap.get(SRVR_KSTR_DIR_KEY)));
@@ -917,6 +921,12 @@ public class Configuration {
     String disabledCiphers = properties.getProperty(SRVR_DISABLED_CIPHERS,
             properties.getProperty(SRVR_DISABLED_CIPHERS, SRVR_DISABLED_CIPHERS_DEFAULT));
     return disabledCiphers.trim();
+  }
+
+  public String getSrvrDisabledProtocols() {
+    String disabledProtocols = properties.getProperty(SRVR_DISABLED_PROTOCOLS,
+            properties.getProperty(SRVR_DISABLED_PROTOCOLS, SRVR_DISABLED_PROTOCOLS_DEFAULT));
+    return disabledProtocols.trim();
   }
 
   public int getOneWayAuthPort() {
