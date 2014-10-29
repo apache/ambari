@@ -140,7 +140,7 @@ public class AmbariServer {
   final String CONTEXT_PATH = "/";
   final String SPRING_CONTEXT_LOCATION =
       "classpath:/webapp/WEB-INF/spring-security.xml";
-  final String DISABLED_CIPHERS_SPLITTER = "\\|";
+  final String DISABLED_ENTRIES_SPLITTER = "\\|";
 
   @Inject
   Configuration configs;
@@ -292,10 +292,7 @@ public class AmbariServer {
 
       //Secured connector for 2-way auth
       SslContextFactory contextFactoryTwoWay = new SslContextFactory();
-      if (! configs.getSrvrDisabledCiphers().isEmpty()) {
-        String [] masks = configs.getSrvrDisabledCiphers().split(DISABLED_CIPHERS_SPLITTER);
-        contextFactoryTwoWay.setExcludeCipherSuites(masks);
-      }
+      disableInsecureProtocols(contextFactoryTwoWay);
       SslSelectChannelConnector sslConnectorTwoWay = new
           SslSelectChannelConnector(contextFactoryTwoWay);
       sslConnectorTwoWay.setPort(configs.getTwoWayAuthPort());
@@ -323,10 +320,7 @@ public class AmbariServer {
       contextFactoryOneWay.setKeyStoreType("PKCS12");
       contextFactoryOneWay.setTrustStoreType("PKCS12");
       contextFactoryOneWay.setNeedClientAuth(false);
-      if (! configs.getSrvrDisabledCiphers().isEmpty()) {
-        String [] masks = configs.getSrvrDisabledCiphers().split(DISABLED_CIPHERS_SPLITTER);
-        contextFactoryOneWay.setExcludeCipherSuites(masks);
-      }
+      disableInsecureProtocols(contextFactoryOneWay);
 
       //Secured connector for 1-way auth
       SslSelectChannelConnector sslConnectorOneWay = new SslSelectChannelConnector(contextFactoryOneWay);
@@ -415,11 +409,7 @@ public class AmbariServer {
         String httpsCrtPass = configsMap.get(Configuration.CLIENT_API_SSL_CRT_PASS_KEY);
 
         SslContextFactory contextFactoryApi = new SslContextFactory();
-        if (! configs.getSrvrDisabledCiphers().isEmpty()) {
-          String [] masks = configs.getSrvrDisabledCiphers().split(DISABLED_CIPHERS_SPLITTER);
-          contextFactoryApi.setExcludeCipherSuites(masks);
-        }
-
+        disableInsecureProtocols(contextFactoryApi);
         SslSelectChannelConnector sapiConnector = new SslSelectChannelConnector(contextFactoryApi);
         sapiConnector.setPort(configs.getClientSSLApiPort());
         sapiConnector.setKeystore(httpsKeystore);
@@ -504,6 +494,21 @@ public class AmbariServer {
       LOG.error("Could not bind to server port - instance may already be running. " +
           "Terminating this instance.", bindException);
       throw bindException;
+    }
+  }
+
+  /**
+   * Disables insecure protocols and cipher suites (exact list is defined
+   * at server properties)
+   */
+  private void disableInsecureProtocols(SslContextFactory factory) {
+    if (! configs.getSrvrDisabledCiphers().isEmpty()) {
+      String [] masks = configs.getSrvrDisabledCiphers().split(DISABLED_ENTRIES_SPLITTER);
+      factory.setExcludeCipherSuites(masks);
+    }
+    if (! configs.getSrvrDisabledProtocols().isEmpty()) {
+      String [] masks = configs.getSrvrDisabledProtocols().split(DISABLED_ENTRIES_SPLITTER);
+      factory.setExcludeProtocols(masks);
     }
   }
 
