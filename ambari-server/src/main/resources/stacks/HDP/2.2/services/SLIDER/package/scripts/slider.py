@@ -30,9 +30,11 @@ def slider():
             recursive=True
   )
 
+  slider_client_config = params.config['configurations']['slider-client'] if 'configurations' in params.config and 'slider-client' in params.config['configurations'] else {}
+
   XmlConfig("slider-client.xml",
             conf_dir=params.slider_conf_dir,
-            configurations=params.config['configurations']['slider-client']
+            configurations=slider_client_config
   )
 
   File(format("{slider_conf_dir}/slider-env.sh"),
