@@ -238,8 +238,8 @@ hadoop_heapsize = config['configurations']['hadoop-env']['hadoop_heapsize']
 namenode_heapsize = config['configurations']['hadoop-env']['namenode_heapsize']
 namenode_opt_newsize = config['configurations']['hadoop-env']['namenode_opt_newsize']
 namenode_opt_maxnewsize = config['configurations']['hadoop-env']['namenode_opt_maxnewsize']
-namenode_opt_permsize = config['configurations']['hadoop-env']['namenode_opt_permsize']
-namenode_opt_maxpermsize = config['configurations']['hadoop-env']['namenode_opt_maxpermsize']
+namenode_opt_permsize = format_jvm_option("/configurations/hadoop-env/namenode_opt_permsize","128m")
+namenode_opt_maxpermsize = format_jvm_option("/configurations/hadoop-env/namenode_opt_maxpermsize","256m")
 
 jtnode_opt_newsize = "200m"
 jtnode_opt_maxnewsize = "200m"

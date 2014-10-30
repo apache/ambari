@@ -20,14 +20,15 @@ Ambari Agent
 
 """
 
-from resource_management.libraries.functions.default import *
-from resource_management.libraries.functions.format import *
-from resource_management.libraries.functions.get_kinit_path import *
-from resource_management.libraries.functions.get_unique_id_and_date import *
-from resource_management.libraries.functions.check_process_status import *
-from resource_management.libraries.functions.is_empty import *
-from resource_management.libraries.functions.substitute_vars import *
-from resource_management.libraries.functions.get_port_from_url import *
-from resource_management.libraries.functions.hive_check import *
-from resource_management.libraries.functions.version import *
-from resource_management.libraries.functions.format_jvm_option import *
+__all__ = ["format_jvm_option"]
+from resource_management.libraries.script import Script
+from resource_management.libraries.script.config_dictionary import UnknownConfiguration
+from resource_management.core.logger import Logger
+from resource_management.libraries.functions import *
+
+def format_jvm_option(name, default_value):
+  curr_dict = default(name, default_value)
+  if not "m" in curr_dict:
+    curr_dict = curr_dict + m
+  
+  return curr_dict
