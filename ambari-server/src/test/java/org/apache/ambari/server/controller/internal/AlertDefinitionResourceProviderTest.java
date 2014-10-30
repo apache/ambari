@@ -55,6 +55,7 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.alert.AlertDefinition;
 import org.apache.ambari.server.state.alert.AlertDefinitionFactory;
 import org.apache.ambari.server.state.alert.AlertDefinitionHash;
+import org.apache.ambari.server.state.alert.MetricSource;
 import org.apache.ambari.server.state.alert.Scope;
 import org.apache.ambari.server.state.alert.Source;
 import org.apache.ambari.server.state.alert.SourceType;
@@ -193,7 +194,7 @@ public class AlertDefinitionResourceProviderTest {
 
     Source source = getMockSource();
     String okJson = source.getReporting().getOk().getText();
-    Object reporting = r.getPropertyValue(AlertDefinitionResourceProvider.ALERT_DEF_SOURCE_REPORTING);
+    Object reporting = r.getPropertyValue("AlertDefinition/source/reporting");
 
     Assert.assertTrue(reporting.toString().contains(okJson));
 
@@ -242,7 +243,7 @@ public class AlertDefinitionResourceProviderTest {
     Assert.assertEquals("my_def",
         resource.getPropertyValue(AlertDefinitionResourceProvider.ALERT_DEF_NAME));
 
-    Map<String, String> reporting = (Map<String, String>) resource.getPropertyValue(AlertDefinitionResourceProvider.ALERT_DEF_SOURCE_REPORTING);
+    Map<String, String> reporting = (Map<String, String>) resource.getPropertyValue("AlertDefinition/source/reporting");
 
     Assert.assertTrue(reporting.containsKey("ok"));
     Assert.assertTrue(reporting.containsKey("critical"));
@@ -263,7 +264,8 @@ public class AlertDefinitionResourceProviderTest {
         "my_def",
         resource.getPropertyValue(AlertDefinitionResourceProvider.ALERT_DEF_NAME));
 
-    reporting = (Map<String, String>) resource.getPropertyValue(AlertDefinitionResourceProvider.ALERT_DEF_SOURCE_REPORTING);
+    reporting = (Map<String, String>) resource.getPropertyValue("AlertDefinition/source/reporting");
+
     Assert.assertNull(reporting);
   }
 
@@ -291,8 +293,7 @@ public class AlertDefinitionResourceProviderTest {
     replay(amc, clusters, cluster, dao, definitionHash);
 
     Gson gson = m_factory.getGson();
-    Source source = getMockSource();
-    String sourceJson = gson.toJson(source);
+    MetricSource source = (MetricSource)getMockSource();
     AlertDefinitionResourceProvider provider = createProvider(amc);
 
     Map<String, Object> requestProps = new HashMap<String, Object>();
@@ -303,17 +304,42 @@ public class AlertDefinitionResourceProviderTest {
     requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_SERVICE_NAME,
         "HDFS");
 
-    requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_SOURCE,
-        sourceJson);
+    requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_LABEL,
+        "Mock Label (Create)");
 
     requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_SOURCE_TYPE,
         SourceType.METRIC.name());
 
-    requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_LABEL,
-        "Mock Label (Create)");
+    // JMX
+    requestProps.put("AlertDefinition/source/jmx/value",
+        source.getJmxInfo().getValue());
+    requestProps.put("AlertDefinition/source/jmx/property_list",
+        source.getJmxInfo().getPropertyList());
+
+    // URI
+    requestProps.put("AlertDefinition/source/uri/http",
+        source.getUri().getHttpUri());
+    requestProps.put("AlertDefinition/source/uri/https",
+        source.getUri().getHttpsUri());
+    requestProps.put("AlertDefinition/source/uri/https_property",
+        source.getUri().getHttpsProperty());
+    requestProps.put("AlertDefinition/source/uri/https_property_value",
+        source.getUri().getHttpsPropertyValue());
+
+    // reporting
+    requestProps.put("AlertDefinition/source/reporting/critical/text",
+        source.getReporting().getCritical().getText());
+    requestProps.put("AlertDefinition/source/reporting/critical/value",
+        source.getReporting().getCritical().getValue());
+    requestProps.put("AlertDefinition/source/reporting/ok/text",
+        source.getReporting().getOk().getText());
+    requestProps.put("AlertDefinition/source/reporting/warning/text",
+        source.getReporting().getWarning().getText());
+    requestProps.put("AlertDefinition/source/reporting/warning/value",
+        source.getReporting().getWarning().getValue());
+
 
     Request request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), null);
-
     provider.createResources(request);
 
     Assert.assertTrue(entityCapture.hasCaptured());
@@ -333,20 +359,30 @@ public class AlertDefinitionResourceProviderTest {
 
     // verify Source
     Assert.assertNotNull(entity.getSource());
-    Source actualSource = gson.fromJson(entity.getSource(), Source.class);
+    MetricSource actualSource = gson.fromJson(entity.getSource(),
+        MetricSource.class);
+
     Assert.assertNotNull(actualSource);
 
     assertEquals(source.getReporting().getOk().getText(),
-        source.getReporting().getOk().getText());
+        actualSource.getReporting().getOk().getText());
 
     assertEquals(source.getReporting().getWarning().getText(),
-        source.getReporting().getWarning().getText());
+        actualSource.getReporting().getWarning().getText());
 
     assertEquals(source.getReporting().getCritical().getText(),
-        source.getReporting().getCritical().getText());
+        actualSource.getReporting().getCritical().getText());
+
+    Assert.assertNotNull(source.getUri().getHttpUri());
+    Assert.assertNotNull(source.getUri().getHttpsUri());
+
+    assertEquals(source.getUri().getHttpUri(),
+        actualSource.getUri().getHttpUri());
+
+    assertEquals(source.getUri().getHttpsUri(),
+        actualSource.getUri().getHttpsUri());
 
     verify(amc, clusters, cluster, dao);
-
   }
 
   /**
@@ -354,8 +390,6 @@ public class AlertDefinitionResourceProviderTest {
    */
   @Test
   public void testUpdateResources() throws Exception {
-    Gson gson = m_factory.getGson();
-
     AmbariManagementController amc = createMock(AmbariManagementController.class);
     Clusters clusters = createMock(Clusters.class);
     Cluster cluster = createMock(Cluster.class);
@@ -376,8 +410,7 @@ public class AlertDefinitionResourceProviderTest {
 
     replay(amc, clusters, cluster, dao, definitionHash);
 
-    Source source = getMockSource();
-    String sourceString = gson.toJson(source);
+    MetricSource source = (MetricSource) getMockSource();
 
     Map<String, Object> requestProps = new HashMap<String, Object>();
     requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_CLUSTER_NAME, "c1");
@@ -387,11 +420,36 @@ public class AlertDefinitionResourceProviderTest {
     requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_SERVICE_NAME, "HDFS");
     requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_SOURCE_TYPE, "METRIC");
 
-    requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_SOURCE,
-        sourceString);
-
     requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_ENABLED,
         Boolean.TRUE.toString());
+
+    // JMX
+    requestProps.put("AlertDefinition/source/jmx/value",
+        source.getJmxInfo().getValue());
+    requestProps.put("AlertDefinition/source/jmx/property_list",
+        source.getJmxInfo().getPropertyList());
+
+    // URI
+    requestProps.put("AlertDefinition/source/uri/http",
+        source.getUri().getHttpUri());
+    requestProps.put("AlertDefinition/source/uri/https",
+        source.getUri().getHttpsUri());
+    requestProps.put("AlertDefinition/source/uri/https_property",
+        source.getUri().getHttpsProperty());
+    requestProps.put("AlertDefinition/source/uri/https_property_value",
+        source.getUri().getHttpsPropertyValue());
+
+    // reporting
+    requestProps.put("AlertDefinition/source/reporting/critical/text",
+        source.getReporting().getCritical().getText());
+    requestProps.put("AlertDefinition/source/reporting/critical/value",
+        source.getReporting().getCritical().getValue());
+    requestProps.put("AlertDefinition/source/reporting/ok/text",
+        source.getReporting().getOk().getText());
+    requestProps.put("AlertDefinition/source/reporting/warning/text",
+        source.getReporting().getWarning().getText());
+    requestProps.put("AlertDefinition/source/reporting/warning/value",
+        source.getReporting().getWarning().getValue());
 
     Request request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), null);
 
@@ -430,8 +488,15 @@ public class AlertDefinitionResourceProviderTest {
     requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_SERVICE_NAME, "HDFS");
     requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_SOURCE_TYPE, "METRIC");
 
-    requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_SOURCE,
-        sourceString.replaceAll("CPU", "CPU2"));
+    // new URI
+    requestProps.put("AlertDefinition/source/uri/http",
+        source.getUri().getHttpUri() + "_foobarbaz");
+    requestProps.put("AlertDefinition/source/uri/https",
+        source.getUri().getHttpsUri() + "_foobarbaz");
+    requestProps.put("AlertDefinition/source/uri/https_property",
+        source.getUri().getHttpsProperty() + "_foobarbaz");
+    requestProps.put("AlertDefinition/source/uri/https_property_value",
+        source.getUri().getHttpsPropertyValue() + "_foobarbaz");
 
     requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_ENABLED,
         Boolean.FALSE.toString());
@@ -445,7 +510,7 @@ public class AlertDefinitionResourceProviderTest {
     Assert.assertFalse(oldInterval.equals(entity.getScheduleInterval()));
     Assert.assertFalse(oldEnabled == entity.getEnabled());
     Assert.assertFalse(oldSource.equals(entity.getSource()));
-    Assert.assertTrue(entity.getSource().contains("CPU2"));
+    Assert.assertTrue(entity.getSource().contains("_foobarbaz"));
 
     verify(amc, clusters, cluster, dao);
   }

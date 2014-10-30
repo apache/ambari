@@ -33,7 +33,10 @@ class WebAlert(BaseAlert):
     super(WebAlert, self).__init__(alert_meta, alert_source_meta)
     
     # extract any lookup keys from the URI structure
-    self.uri_property_keys = self._lookup_uri_property_keys(alert_source_meta['uri'])
+    self.uri_property_keys = None
+    if 'uri' in alert_source_meta:
+      uri = alert_source_meta['uri']
+      self.uri_property_keys = self._lookup_uri_property_keys(uri)
 
       
   def _collect(self):

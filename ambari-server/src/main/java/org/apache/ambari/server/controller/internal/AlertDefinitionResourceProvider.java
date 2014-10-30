@@ -19,6 +19,7 @@ package org.apache.ambari.server.controller.internal;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -54,6 +55,7 @@ import org.apache.ambari.server.state.alert.SourceType;
 import org.apache.commons.lang.StringUtils;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
@@ -77,10 +79,6 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
 
   protected static final String ALERT_DEF_SOURCE = "AlertDefinition/source";
   protected static final String ALERT_DEF_SOURCE_TYPE = "AlertDefinition/source/type";
-  protected static final String ALERT_DEF_SOURCE_REPORTING = "AlertDefinition/source/reporting";
-  protected static final String ALERT_DEF_SOURCE_REPORTING_OK = "AlertDefinition/source/reporting/ok";
-  protected static final String ALERT_DEF_SOURCE_REPORTING_WARNING = "AlertDefinition/source/reporting/warning";
-  protected static final String ALERT_DEF_SOURCE_REPORTING_CRITICAL = "AlertDefinition/source/reporting/critical";
 
   protected static final String ALERT_DEF_ACTION_RUN_NOW = "AlertDefinition/run_now";
 
@@ -429,67 +427,51 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
       throw new IllegalArgumentException("Service name must be specified");
     }
 
+    // on creation, source type is required
     if (bCreate && null == sourceType) {
       throw new IllegalArgumentException(String.format(
           "Source type must be specified and one of %s",
           EnumSet.allOf(SourceType.class)));
     }
 
-    // !!! Alert structures contain nested objects; reconstruct a valid
-    // JSON from the flat, exploded properties so that a Source instance can
-    // be properly persisted
-    JsonObject source = new JsonObject();
-    JsonObject reporting = new JsonObject();
-    JsonObject reportingOk = new JsonObject();
-    JsonObject reportingWarning = new JsonObject();
-    JsonObject reportingCritical = new JsonObject();
+    // !!! The AlertDefinition "Source" field is a nested JSON object;
+    // build a JSON representation from the flat properties and then
+    // serialize that JSON object as a string
+    Map<String,JsonObject> jsonObjectMapping = new HashMap<String, JsonObject>();
 
+    // for every property in the request, if it's a source property, then
+    // add it to the JSON model
     for (Entry<String, Object> entry : requestMap.entrySet()) {
-      String propCat = PropertyHelper.getPropertyCategory(entry.getKey());
-      String propName = PropertyHelper.getPropertyName(entry.getKey());
+      String propertyKey = entry.getKey();
 
-      if (propCat.equals(ALERT_DEF) && "source".equals(propName)) {
-        source.addProperty(propName, entry.getValue().toString());
+      // only handle "source" subproperties
+      if (!propertyKey.startsWith(ALERT_DEF_SOURCE)) {
+        continue;
       }
 
-      if (propCat.equals(ALERT_DEF_SOURCE)) {
-        source.addProperty(propName, entry.getValue().toString());
-      }
+      // gets a JSON object to add the property to; this will create the
+      // property and all of its parent properties recursively if necessary
+      JsonObject jsonObject = getJsonObjectMapping(ALERT_DEF_SOURCE,
+          jsonObjectMapping, propertyKey);
 
-      if (propCat.equals(ALERT_DEF_SOURCE_REPORTING)) {
-        reporting.addProperty(propName, entry.getValue().toString());
-      }
+      String propertyName = PropertyHelper.getPropertyName(propertyKey);
+      Object entryValue = entry.getValue();
 
-      if (propCat.equals(ALERT_DEF_SOURCE_REPORTING_OK)) {
-        reportingOk.addProperty(propName, entry.getValue().toString());
-      }
-
-      if (propCat.equals(ALERT_DEF_SOURCE_REPORTING_WARNING)) {
-        reportingWarning.addProperty(propName, entry.getValue().toString());
-      }
-
-      if (propCat.equals(ALERT_DEF_SOURCE_REPORTING_CRITICAL)) {
-        reportingCritical.addProperty(propName, entry.getValue().toString());
+      if( entryValue instanceof Collection<?> ){
+        JsonElement jsonElement = gson.toJsonTree(entryValue);
+        jsonObject.add(propertyName, jsonElement);
+      } else {
+        if (entryValue instanceof Number) {
+          jsonObject.addProperty(propertyName, (Number) entryValue);
+        } else {
+          jsonObject.addProperty(propertyName, entryValue.toString());
+        }
       }
     }
 
-    if (reportingOk.entrySet().size() > 0) {
-      reporting.add("ok", reportingOk);
-    }
-
-    if (reportingWarning.entrySet().size() > 0) {
-      reporting.add("warning", reportingWarning);
-    }
-
-    if (reportingCritical.entrySet().size() > 0) {
-      reporting.add("critical", reportingCritical);
-    }
-
-    if (reporting.entrySet().size() > 0) {
-      source.add("reporting", reporting);
-    }
-
-    if (bCreate && 0 == source.entrySet().size()) {
+    // "source" must be filled in when creating
+    JsonObject source = jsonObjectMapping.get(ALERT_DEF_SOURCE);
+    if (bCreate && (null == source || 0 == source.entrySet().size())) {
       throw new IllegalArgumentException("Source must be specified");
     }
 
@@ -538,6 +520,75 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
     }
 
     entity.setHash(UUID.randomUUID().toString());
+  }
+
+  /**
+   * Gets a {@link JsonObject} that the specified flattened property should be
+   * set on, creating all parent {@link JsonObject} instances as needed. This
+   * will turn {code AlertDefinition/source/reporting/critical/text} into
+   *
+   * <pre>
+   * AlertDefinition/source: {
+   *   reporting: {
+   *     critical: {
+   *       text
+   *     }
+   *   }
+   * }
+   * </pre>
+   *
+   * Where the the following {@link JsonObject} instances are created:
+   *
+   * <pre>
+   * AlertDefinition/source
+   *   Reporting
+   *     Critical
+   *       property 'text',
+   *       property 'value',
+   *       etc
+   * </pre>
+   *
+   * @param root
+   *          the flattened property which will be considered the root.
+   * @param jsonObjectMapping
+   *          a mapping of flattened property to {@link JsonObject}.
+   * @param propertyKey
+   *          the key to get the {@link JsonObject} for.
+   * @return the {@link JsonObject} that cooresponds to the specified key.
+   */
+  private JsonObject getJsonObjectMapping(String root,
+      Map<String, JsonObject> jsonObjectMapping, String propertyKey) {
+
+    // if there is already a mapping for the key, return the mapping
+    if (jsonObjectMapping.containsKey(propertyKey)) {
+      return jsonObjectMapping.get(propertyKey);
+    }
+
+    if (root.equals(propertyKey)) {
+      JsonObject jsonRoot = jsonObjectMapping.get(root);
+      if (null == jsonRoot) {
+        jsonRoot = new JsonObject();
+        jsonObjectMapping.put(root, jsonRoot);
+      }
+
+      return jsonRoot;
+    }
+
+    String propertyCategory = PropertyHelper.getPropertyCategory(propertyKey);
+    JsonObject categoryJson = jsonObjectMapping.get(propertyCategory);
+
+    if (null == categoryJson) {
+      JsonObject parent = getJsonObjectMapping(root, jsonObjectMapping,
+          propertyCategory);
+
+      categoryJson = new JsonObject();
+      jsonObjectMapping.put(propertyCategory, categoryJson);
+
+      String categoryName = PropertyHelper.getPropertyName(propertyCategory);
+      parent.add(categoryName, categoryJson);
+    }
+
+    return categoryJson;
   }
 
   private Resource toResource(boolean isCollection, String clusterName,

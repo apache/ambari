@@ -39,8 +39,12 @@ class MetricAlert(BaseAlert):
       self.metric_info = JmxMetric(alert_source_meta['jmx'])
 
     # extract any lookup keys from the URI structure
-    self.uri_property_keys = self._lookup_uri_property_keys(alert_source_meta['uri'])
-      
+    self.uri_property_keys = None
+    if 'uri' in alert_source_meta:
+      uri = alert_source_meta['uri']
+      self.uri_property_keys = self._lookup_uri_property_keys(uri)
+
+
   def _collect(self):
     if self.metric_info is None:
       raise Exception("Could not determine result. Specific metric collector is not defined.")
