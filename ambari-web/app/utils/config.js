@@ -1144,7 +1144,7 @@ App.config = Em.Object.create({
     return configData;
   },
 
-  complexConfigs: [
+  complexConfigsTemplate: [
     {
       "id": "site property",
       "name": "capacity-scheduler",
@@ -1176,7 +1176,8 @@ App.config = Em.Object.create({
     var fileConfigs = configs.filterProperty('filename', filename);
     var value = '';
     var defaultValue = '';
-    var complexConfig = this.get('complexConfigs').findProperty('filename', filename);
+    var template = this.get('complexConfigsTemplate').findProperty('filename', filename);
+    var complexConfig = $.extend({}, template);
     if (complexConfig) {
       fileConfigs.forEach(function (_config) {
         value += _config.name + '=' + _config.value + '\n';
@@ -1203,7 +1204,7 @@ App.config = Em.Object.create({
    * @return {*}
    */
   textareaIntoFileConfigs: function (configs, filename) {
-    var complexConfigName = this.get('complexConfigs').findProperty('filename', filename).name;
+    var complexConfigName = this.get('complexConfigsTemplate').findProperty('filename', filename).name;
     var configsTextarea = configs.findProperty('name', complexConfigName);
     if (configsTextarea) {
       var properties = configsTextarea.get('value').split('\n');
