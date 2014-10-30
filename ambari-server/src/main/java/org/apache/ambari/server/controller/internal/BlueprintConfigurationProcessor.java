@@ -882,6 +882,8 @@ public class BlueprintConfigurationProcessor {
     Map<String, PropertyUpdater> oozieSiteMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> stormSiteMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> falconStartupPropertiesMap = new HashMap<String, PropertyUpdater>();
+    Map<String, PropertyUpdater> kafkaBrokerMap = new HashMap<String, PropertyUpdater>();
+
 
 
     Map<String, PropertyUpdater> mapredEnvMap = new HashMap<String, PropertyUpdater>();
@@ -898,6 +900,13 @@ public class BlueprintConfigurationProcessor {
     Map<String, PropertyUpdater> multiCoreSiteMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> multiHdfsSiteMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> multiHiveSiteMap = new HashMap<String, PropertyUpdater>();
+    Map<String, PropertyUpdater> multiKafkaBrokerMap = new HashMap<String, PropertyUpdater>();
+    Map<String, PropertyUpdater> multiSliderClientMap = new HashMap<String, PropertyUpdater>();
+    Map<String, PropertyUpdater> multiYarnSiteMap = new HashMap<String, PropertyUpdater>();
+    Map<String, PropertyUpdater> multiOozieSiteMap = new HashMap<String, PropertyUpdater>();
+
+
+
 
 
     Map<String, PropertyUpdater> dbHiveSiteMap = new HashMap<String, PropertyUpdater>();
@@ -917,6 +926,7 @@ public class BlueprintConfigurationProcessor {
     singleHostTopologyUpdaters.put("nagios-env", nagiosEnvMap);
     singleHostTopologyUpdaters.put("hive-env", hiveEnvMap);
     singleHostTopologyUpdaters.put("oozie-env", oozieEnvMap);
+    singleHostTopologyUpdaters.put("kafka-broker", kafkaBrokerMap);
 
     mPropertyUpdaters.put("hadoop-env", hadoopEnvMap);
     mPropertyUpdaters.put("hbase-env", hbaseEnvMap);
@@ -928,6 +938,10 @@ public class BlueprintConfigurationProcessor {
     multiHostTopologyUpdaters.put("core-site", multiCoreSiteMap);
     multiHostTopologyUpdaters.put("hdfs-site", multiHdfsSiteMap);
     multiHostTopologyUpdaters.put("hive-site", multiHiveSiteMap);
+    multiHostTopologyUpdaters.put("kafka-broker", multiKafkaBrokerMap);
+    multiHostTopologyUpdaters.put("slider-client", multiSliderClientMap);
+    multiHostTopologyUpdaters.put("yarn-site", multiYarnSiteMap);
+    multiHostTopologyUpdaters.put("oozie-site", multiOozieSiteMap);
 
     dbHostTopologyUpdaters.put("hive-site", dbHiveSiteMap);
 
@@ -1000,6 +1014,9 @@ public class BlueprintConfigurationProcessor {
     multiHbaseSiteMap.put("hbase.zookeeper.quorum", new MultipleHostTopologyUpdater("ZOOKEEPER_SERVER"));
     multiWebhcatSiteMap.put("templeton.zookeeper.hosts", new MultipleHostTopologyUpdater("ZOOKEEPER_SERVER"));
     multiCoreSiteMap.put("ha.zookeeper.quorum", new MultipleHostTopologyUpdater("ZOOKEEPER_SERVER"));
+    multiYarnSiteMap.put("hadoop.registry.zk.quorum", new MultipleHostTopologyUpdater("ZOOKEEPER_SERVER"));
+    multiSliderClientMap.put("slider.zookeeper.quorum", new MultipleHostTopologyUpdater("ZOOKEEPER_SERVER"));
+    multiKafkaBrokerMap.put("zookeeper.connect", new MultipleHostTopologyUpdater("ZOOKEEPER_SERVER"));
 
     // STORM
     stormSiteMap.put("nimbus.host", new SingleHostTopologyUpdater("NIMBUS"));
@@ -1017,6 +1034,14 @@ public class BlueprintConfigurationProcessor {
 
     // NAGIOS
     nagiosEnvMap.put("nagios_principal_name", new SingleHostTopologyUpdater("NAGIOS_SERVER"));
+
+    // KAFKA
+    kafkaBrokerMap.put("kafka.ganglia.metrics.host", new SingleHostTopologyUpdater("GANGLIA_SERVER"));
+
+    // KNOX
+    multiCoreSiteMap.put("hadoop.proxyuser.knox.hosts", new MultipleHostTopologyUpdater("KNOX_GATEWAY"));
+    multiWebhcatSiteMap.put("webhcat.proxyuser.knox.hosts", new MultipleHostTopologyUpdater("KNOX_GATEWAY"));
+    multiOozieSiteMap.put("hadoop.proxyuser.knox.hosts", new MultipleHostTopologyUpdater("KNOX_GATEWAY"));
 
 
     // Required due to AMBARI-4933.  These no longer seem to be required as the default values in the stack
