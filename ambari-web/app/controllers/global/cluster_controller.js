@@ -79,7 +79,8 @@ App.ClusterController = Em.Controller.extend({
     'clusterStatus': false,
     'racks': false,
     'componentConfigs': false,
-    'componentsState': false
+    'componentsState': false,
+    'alertDefinitions': false
   }),
 
   /**
@@ -303,12 +304,13 @@ App.ClusterController = Em.Controller.extend({
      * 8. load hosts to model
      * 9. load services from cache with metrics to model
      * 10. update stale_configs of host-components (depends on App.supports.hostOverrides)
+     * 11. load alert definitions to model
      */
     this.loadStackServiceComponents(function (data) {
-      data.items.forEach(function(service) {
+      data.items.forEach(function (service) {
         service.StackServices.is_selected = true;
         service.StackServices.is_installed = false;
-      },this);
+      }, this);
       App.stackServiceMapper.mapStackServices(data);
       App.config.setPreDefinedServiceConfigs();
       var updater = App.router.get('updateController');
@@ -329,6 +331,10 @@ App.ClusterController = Em.Controller.extend({
             self.updateLoadStatus('componentsState');
           });
           self.updateLoadStatus('serviceMetrics');
+
+          updater.updateAlertDefinitions(function () {
+            self.updateLoadStatus('alertDefinitions');
+          });
         });
       });
     });

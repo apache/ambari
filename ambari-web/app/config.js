@@ -34,6 +34,7 @@ App.maxRetries = 3; // max number of retries for certain AJAX calls
 App.bgOperationsUpdateInterval = 6000;
 App.componentsUpdateInterval = 6000;
 App.contentUpdateInterval = 15000;
+App.alertDefinitionsUpdateInterval = 10000;
 App.maxRunsForAppBrowser = 500;
 App.pageReloadTime=3600000;
 App.singleNodeInstall = false;

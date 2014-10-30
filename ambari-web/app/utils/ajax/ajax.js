@@ -431,7 +431,7 @@ var urls = {
         data : JSON.stringify({
           RequestInfo: {
             'context': data.context,
-            'command': data.command,
+            'command': data.command
           },
           "Requests/resource_filters": [{"service_name" : data.serviceName, "component_name" : data.componentName, 'hosts': data.hosts}]
         })

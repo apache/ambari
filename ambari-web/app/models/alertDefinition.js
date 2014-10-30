@@ -22,7 +22,7 @@ App.AlertDefinition = DS.Model.extend({
 
   name: DS.attr('string'),
   label: DS.attr('string'),
-  serviceName: DS.attr('string'),
+  service: DS.belongsTo('App.Service'),
   componentName: DS.attr('string'),
   enabled: DS.attr('boolean'),
   scope: DS.attr('string'),
@@ -42,16 +42,16 @@ App.AlertMetricsSourceDefinition = DS.Model.extend({
   value: DS.attr('string')
 });
 
-App.PortAlertDefinition = App.AlertDefinition.extend({
-  defaultPort: DS.attr('number'),
-  uri: DS.attr('string')
-});
-
 App.AlertMetricsUriDefinition = DS.Model.extend({
   http: DS.attr('string'),
   https: DS.attr('string'),
   httpsProperty: DS.attr('string'),
   httpsPropertyValue: DS.attr('string')
+});
+
+App.PortAlertDefinition = App.AlertDefinition.extend({
+  defaultPort: DS.attr('number'),
+  uri: DS.attr('string')
 });
 
 App.MetricsAlertDefinition = App.AlertDefinition.extend({
@@ -71,3 +71,13 @@ App.AggregateAlertDefinition = App.AlertDefinition.extend({
 App.ScriptAlertDefinition = App.AlertDefinition.extend({
   location: DS.attr('string')
 });
+
+App.AlertDefinition.FIXTURES = [];
+App.AlertReportDefinition.FIXTURES = [];
+App.AlertMetricsSourceDefinition.FIXTURES = [];
+App.PortAlertDefinition.FIXTURES = [];
+App.AlertMetricsUriDefinition.FIXTURES = [];
+App.MetricsAlertDefinition.FIXTURES = [];
+App.WebAlertDefinition.FIXTURES = [];
+App.AggregateAlertDefinition.FIXTURES = [];
+App.ScriptAlertDefinition.FIXTURES = [];

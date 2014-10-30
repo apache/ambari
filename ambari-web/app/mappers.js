@@ -33,3 +33,4 @@ require('mappers/dataset_mapper');
 require('mappers/component_config_mapper');
 require('mappers/components_state_mapper');
 require('mappers/service_config_version_mapper');
+require('mappers/alert_definitions_mapper');
