@@ -112,6 +112,7 @@ public class ViewSubResourceProvider extends AbstractResourceProvider {
       } catch (org.apache.ambari.view.ResourceAlreadyExistsException e) {
         throw new ResourceAlreadyExistsException(e.getMessage());
       } catch (Exception e) {
+        LOG.error("Caught exception creating view sub resources.", e);
         throw new SystemException(e.getMessage(), e);
       }
     }
@@ -177,6 +178,7 @@ public class ViewSubResourceProvider extends AbstractResourceProvider {
     } catch (org.apache.ambari.view.UnsupportedPropertyException e) {
       throw new UnsupportedPropertyException(getResourceType(e), e.getPropertyIds());
     } catch (Exception e) {
+      LOG.error("Caught exception getting view sub resources.", e);
       throw new SystemException(e.getMessage(), e);
     }
   }
@@ -201,6 +203,7 @@ public class ViewSubResourceProvider extends AbstractResourceProvider {
         } catch (org.apache.ambari.view.UnsupportedPropertyException e) {
           throw new UnsupportedPropertyException(getResourceType(e), e.getPropertyIds());
         } catch (Exception e) {
+          LOG.error("Caught exception updating view sub resources.", e);
           throw new SystemException(e.getMessage(), e);
         }
       }
@@ -224,6 +227,7 @@ public class ViewSubResourceProvider extends AbstractResourceProvider {
       } catch (org.apache.ambari.view.UnsupportedPropertyException e) {
         throw new UnsupportedPropertyException(getResourceType(e), e.getPropertyIds());
       } catch (Exception e) {
+        LOG.error("Caught exception deleting view sub resources.", e);
         throw new SystemException(e.getMessage(), e);
       }
     }
