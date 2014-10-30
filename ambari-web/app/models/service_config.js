@@ -721,6 +721,7 @@ App.ServiceConfigProperty = Ember.Object.extend({
         return App.ServiceConfigRadioButtons;
         break;
       case 'directories':
+      case 'datanodedirs':
         return App.ServiceConfigTextArea;
         break;
       case 'content':
