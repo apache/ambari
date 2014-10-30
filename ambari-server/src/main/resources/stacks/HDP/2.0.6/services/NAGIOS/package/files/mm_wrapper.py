@@ -44,18 +44,23 @@ def ignored_host_list(service, component):
   :param component: current component
   :return: all hosts where specified host component is in ignored state
   """
-  try:
-    with open(IGNORE_DAT_FILE) as f:
-      lines = f.readlines()
-  except IOError:
-    return []
+  def str_norm(s):
+    return s.strip().upper()
+
   result = []
+
+  try:
+    with open(IGNORE_DAT_FILE, 'r') as f:
+      lines = filter(None, f.read().split(os.linesep))
+  except IOError:
+    return result
+
   if lines:
     for l in lines:
       tokens = l.split(' ')
-      if len(tokens) == 3 and tokens[1].strip().upper() == service.strip().upper() and \
-        tokens[2].strip().upper() == component.strip().upper():
-          result.append(tokens[0])
+      if len(tokens) == 3 and str_norm(tokens[1]) == str_norm(service)\
+                          and str_norm(tokens[2]) == str_norm(component):
+        result.append(tokens[0])
   return result
 
 
@@ -121,6 +126,7 @@ def print_usage():
 
 
 def parse_args(args):
+  # ToDo: re-organize params parsing, possibly use standard python class for that?
   if not args or not LIST_SEPARATOR in args or args[0] not in MODES:
     print_usage()
   else:
@@ -133,7 +139,11 @@ def parse_args(args):
     for arg in args:
       if not passed_separator:
         if arg != LIST_SEPARATOR:
-          hostnames.append(arg)
+          #check if was passed list of hosts instead of one
+          if ',' in arg:
+            hostnames += arg.split(',')
+          else:
+            hostnames.append(arg)
         else:
           passed_separator = True
       else:
