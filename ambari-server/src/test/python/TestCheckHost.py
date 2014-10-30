@@ -231,3 +231,55 @@ class TestCheckHost(TestCase):
     # ensure the correct function was called
     self.assertTrue(structured_out_mock.called)
     structured_out_mock.assert_called_with({})
+
+  @patch.object(Script, 'get_config')
+  @patch.object(Script, 'get_tmp_dir')
+  @patch('resource_management.libraries.script.Script.put_structured_out')
+  @patch('ambari_agent.HostInfo.HostInfo.javaProcs')
+  @patch('ambari_agent.HostInfo.HostInfo.checkLiveServices')
+  @patch('ambari_agent.HostInfo.HostInfo.getUMask')
+  @patch('ambari_agent.HostInfo.HostInfo.getTransparentHugePage')
+  @patch('ambari_agent.HostInfo.HostInfo.checkIptables')
+  @patch('ambari_agent.HostInfo.HostInfo.checkReverseLookup')
+  @patch('time.time')
+  def testLastAgentEnv(self, time_mock, checkReverseLookup_mock, checkIptables_mock, getTransparentHugePage_mock,
+                       getUMask_mock, checkLiveServices_mock, javaProcs_mock, put_structured_out_mock,
+                       get_tmp_dir_mock, get_config_mock):
+    jsonFilePath = os.path.join("../resources/custom_actions", "check_last_agent_env.json")
+    with open(jsonFilePath, "r") as jsonFile:
+      jsonPayload = json.load(jsonFile)
+
+    get_config_mock.return_value = ConfigDictionary(jsonPayload)
+    get_tmp_dir_mock.return_value = "/tmp"
+
+    checkHost = CheckHost()
+    checkHost.actionexecute(None)
+
+    # ensure the correct function was called
+    self.assertTrue(time_mock.called)
+    self.assertTrue(checkReverseLookup_mock.called)
+    self.assertTrue(checkIptables_mock.called)
+    self.assertTrue(getTransparentHugePage_mock.called)
+    self.assertTrue(getUMask_mock.called)
+    self.assertTrue(checkLiveServices_mock.called)
+    self.assertTrue(javaProcs_mock.called)
+    self.assertTrue(put_structured_out_mock.called)
+    # ensure the correct keys are in the result map
+    last_agent_env_check_result = put_structured_out_mock.call_args[0][0]
+    self.assertTrue('last_agent_env_check' in last_agent_env_check_result)
+    self.assertTrue('hostHealth' in last_agent_env_check_result['last_agent_env_check'])
+    self.assertTrue('iptablesIsRunning' in last_agent_env_check_result['last_agent_env_check'])
+    self.assertTrue('reverseLookup' in last_agent_env_check_result['last_agent_env_check'])
+    self.assertTrue('alternatives' in last_agent_env_check_result['last_agent_env_check'])
+    self.assertTrue('umask' in last_agent_env_check_result['last_agent_env_check'])
+    self.assertTrue('stackFoldersAndFiles' in last_agent_env_check_result['last_agent_env_check'])
+    self.assertTrue('existingRepos' in last_agent_env_check_result['last_agent_env_check'])
+    self.assertTrue('installedPackages' in last_agent_env_check_result['last_agent_env_check'])
+    self.assertTrue('existingUsers' in last_agent_env_check_result['last_agent_env_check'])
+
+    # try it now with errors
+    javaProcs_mock.side_effect = Exception("test exception")
+    checkHost.actionexecute(None)
+
+    #ensure the correct response is returned
+    put_structured_out_mock.assert_called_with({'last_agent_env_check': {'message': 'test exception', 'exit_code': 1}})

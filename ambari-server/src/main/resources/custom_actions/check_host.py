@@ -25,10 +25,12 @@ import subprocess
 import socket
 
 from resource_management import Script, Execute, format
+from ambari_agent.HostInfo import HostInfo
 
 CHECK_JAVA_HOME = "java_home_check"
 CHECK_DB_CONNECTION = "db_connection_check"
 CHECK_HOST_RESOLUTION = "host_resolution_check"
+CHECK_LAST_AGENT_ENV = "last_agent_env_check"
 
 DB_MYSQL = "mysql"
 DB_ORACLE = "oracle"
@@ -72,12 +74,19 @@ class CheckHost(Script):
         structured_output[CHECK_DB_CONNECTION] = {"exit_code" : 1, "message": str(exception)}
 
     if CHECK_HOST_RESOLUTION in check_execute_list:
-      try : 
+      try :
         host_resolution_structured_output = self.execute_host_resolution_check(config)
         structured_output[CHECK_HOST_RESOLUTION] = host_resolution_structured_output
       except Exception, exception :
         print "There was an unknown error while checking IP address lookups: " + str(exception)
         structured_output[CHECK_HOST_RESOLUTION] = {"exit_code" : 1, "message": str(exception)}
+    if CHECK_LAST_AGENT_ENV in check_execute_list:
+      try :
+        last_agent_env_structured_output = self.execute_last_agent_env_check()
+        structured_output[CHECK_LAST_AGENT_ENV] = last_agent_env_structured_output
+      except Exception, exception :
+        print "There was an unknown error while checking last host environment details: " + str(exception)
+        structured_output[CHECK_LAST_AGENT_ENV] = {"exit_code" : 1, "message": str(exception)}
 
     self.put_structured_out(structured_output)
 
@@ -267,6 +276,16 @@ class CheckHost(Script):
       }
     
     return host_resolution_check_structured_output
+
+  # computes and returns the host information of the agent
+  def execute_last_agent_env_check(self):
+    print "Last Agent Env check started."
+    hostInfo = HostInfo()
+    last_agent_env_check_structured_output = { }
+    hostInfo.register(last_agent_env_check_structured_output)
+    print "Last Agent Env check completed successfully."
+
+    return last_agent_env_check_structured_output
 
 if __name__ == "__main__":
   CheckHost().execute()
