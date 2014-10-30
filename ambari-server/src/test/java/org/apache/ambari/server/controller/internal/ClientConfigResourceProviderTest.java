@@ -141,6 +141,7 @@ public class ClientConfigResourceProviderTest {
     ServiceInfo serviceInfo = createNiceMock(ServiceInfo.class);
     CommandScriptDefinition commandScriptDefinition = createNiceMock(CommandScriptDefinition.class);
     Config clusterConfig = createNiceMock(Config.class);
+    DesiredConfig desiredConfig = createNiceMock(DesiredConfig.class);
     Host host = createNiceMock(Host.class);
     Service service = createNiceMock(Service.class);
     ServiceComponent serviceComponent = createNiceMock(ServiceComponent.class);
@@ -153,8 +154,8 @@ public class ClientConfigResourceProviderTest {
     Runtime runtime = createMock(Runtime.class);
     Process process = createNiceMock(Process.class);
 
-    Collection<Config> clusterConfigs = new HashSet<Config>();
-    clusterConfigs.add(clusterConfig);
+    Map<String, DesiredConfig> desiredConfigMap = new HashMap<String, DesiredConfig>();
+    desiredConfigMap.put("hive-site", desiredConfig);
     Map<String, Map<String, String>> allConfigTags = new HashMap<String, Map<String, String>>();
     Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
     Map<String, Map<String, String>> configTags = new HashMap<String,
@@ -260,7 +261,8 @@ public class ClientConfigResourceProviderTest {
     expect(componentInfo.getCommandScript()).andReturn(commandScriptDefinition);
     expect(componentInfo.getClientConfigFiles()).andReturn(clientConfigFileDefinitionList);
     expect(ambariMetaInfo.getStackRoot()).andReturn(new File(stackRoot));
-    expect(cluster.getAllConfigs()).andReturn(clusterConfigs);
+    expect(cluster.getConfig("hive-site", null)).andReturn(clusterConfig);
+    expect(cluster.getDesiredConfigs()).andReturn(desiredConfigMap);
     expect(clusters.getHostsForCluster(clusterName)).andReturn(hosts);
     expect(clusters.getHost(hostName)).andReturn(host);
 
