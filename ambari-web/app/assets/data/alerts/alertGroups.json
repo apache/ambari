@@ -1,0 +1,167 @@
+{
+  "href" : "http://c6407.ambari.apache.org:8080/api/v1/clusters/c789/alert_groups?fields=*",
+  "items" : [
+    {
+      "href" : "http://c6407.ambari.apache.org:8080/api/v1/clusters/c789/alert_groups/1",
+      "AlertGroup" : {
+        "cluster_name" : "c789",
+        "default" : true,
+        "id" : 1,
+        "name" : "MAPREDUCE2"
+      }
+    },
+    {
+      "href" : "http://c6407.ambari.apache.org:8080/api/v1/clusters/c789/alert_groups/2",
+      "AlertGroup" : {
+        "cluster_name" : "c789",
+        "default" : true,
+        "id" : 2,
+        "name" : "PIG"
+      }
+    },
+    {
+      "href" : "http://c6407.ambari.apache.org:8080/api/v1/clusters/c789/alert_groups/3",
+      "AlertGroup" : {
+        "cluster_name" : "c789",
+        "default" : true,
+        "id" : 3,
+        "name" : "FALCON"
+      }
+    },
+    {
+      "href" : "http://c6407.ambari.apache.org:8080/api/v1/clusters/c789/alert_groups/4",
+      "AlertGroup" : {
+        "cluster_name" : "c789",
+        "default" : true,
+        "id" : 4,
+        "name" : "FLUME"
+      }
+    },
+    {
+      "href" : "http://c6407.ambari.apache.org:8080/api/v1/clusters/c789/alert_groups/5",
+      "AlertGroup" : {
+        "cluster_name" : "c789",
+        "default" : true,
+        "id" : 5,
+        "name" : "NAGIOS"
+      }
+    },
+    {
+      "href" : "http://c6407.ambari.apache.org:8080/api/v1/clusters/c789/alert_groups/6",
+      "AlertGroup" : {
+        "cluster_name" : "c789",
+        "default" : true,
+        "id" : 6,
+        "name" : "HIVE"
+      }
+    },
+    {
+      "href" : "http://c6407.ambari.apache.org:8080/api/v1/clusters/c789/alert_groups/7",
+      "AlertGroup" : {
+        "cluster_name" : "c789",
+        "default" : true,
+        "id" : 7,
+        "name" : "ZOOKEEPER"
+      }
+    },
+    {
+      "href" : "http://c6407.ambari.apache.org:8080/api/v1/clusters/c789/alert_groups/8",
+      "AlertGroup" : {
+        "cluster_name" : "c789",
+        "default" : true,
+        "id" : 8,
+        "name" : "HDFS"
+      }
+    },
+    {
+      "href" : "http://c6407.ambari.apache.org:8080/api/v1/clusters/c789/alert_groups/9",
+      "AlertGroup" : {
+        "cluster_name" : "c789",
+        "default" : true,
+        "id" : 9,
+        "name" : "OOZIE"
+      }
+    },
+    {
+      "href" : "http://c6407.ambari.apache.org:8080/api/v1/clusters/c789/alert_groups/10",
+      "AlertGroup" : {
+        "cluster_name" : "c789",
+        "default" : true,
+        "id" : 10,
+        "name" : "SQOOP"
+      }
+    },
+    {
+      "href" : "http://c6407.ambari.apache.org:8080/api/v1/clusters/c789/alert_groups/11",
+      "AlertGroup" : {
+        "cluster_name" : "c789",
+        "default" : true,
+        "id" : 11,
+        "name" : "YARN"
+      }
+    },
+    {
+      "href" : "http://c6407.ambari.apache.org:8080/api/v1/clusters/c789/alert_groups/12",
+      "AlertGroup" : {
+        "cluster_name" : "c789",
+        "default" : true,
+        "id" : 12,
+        "name" : "TEZ"
+      }
+    },
+    {
+      "href" : "http://c6407.ambari.apache.org:8080/api/v1/clusters/c789/alert_groups/13",
+      "AlertGroup" : {
+        "cluster_name" : "c789",
+        "default" : true,
+        "id" : 13,
+        "name" : "HBASE"
+      }
+    },
+    {
+      "href" : "http://c6407.ambari.apache.org:8080/api/v1/clusters/c789/alert_groups/14",
+      "AlertGroup" : {
+        "cluster_name" : "c789",
+        "default" : true,
+        "id" : 14,
+        "name" : "GANGLIA"
+      }
+    },
+    {
+      "href" : "http://c6407.ambari.apache.org:8080/api/v1/clusters/c789/alert_groups/15",
+      "AlertGroup" : {
+        "cluster_name" : "c789",
+        "default" : true,
+        "id" : 15,
+        "name" : "STORM"
+      }
+    },
+    {
+      "href" : "http://c6407.ambari.apache.org:8080/api/v1/clusters/c789/alert_groups/16",
+      "AlertGroup" : {
+        "cluster_name" : "c789",
+        "default" : false,
+        "id" : 16,
+        "name" : "group lalala"
+      }
+    },
+    {
+      "href" : "http://c6407.ambari.apache.org:8080/api/v1/clusters/c789/alert_groups/17",
+      "AlertGroup" : {
+        "cluster_name" : "c789",
+        "default" : false,
+        "id" : 17,
+        "name" : "group test"
+      }
+    },
+    {
+      "href" : "http://c6407.ambari.apache.org:8080/api/v1/clusters/c789/alert_groups/18",
+      "AlertGroup" : {
+        "cluster_name" : "c789",
+        "default" : false,
+        "id" : 18,
+        "name" : "group def empty"
+      }
+    }
+  ]
+}

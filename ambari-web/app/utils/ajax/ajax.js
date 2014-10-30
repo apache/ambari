@@ -305,7 +305,60 @@ var urls = {
   },
   'alerts.load_alert_notification': {
     'real': '/alert_targets?fields=*',
-    'mock': 'data/alerts/alert_notifications.json'
+    'mock': 'data/alerts/alertNotifications.json'
+  },
+  'alerts.load_alert_groups': {
+    'real': '/clusters/{clusterName}/alert_groups?fields=*',
+    'mock': 'data/alerts/alertGroups.json'
+  },
+  'alerts.load_an_alert_group': {
+    'real': '/clusters/{clusterName}/alert_groups/{group_id}',
+    'mock': 'data/alerts/alertGroup.json'
+  },
+  'alert_groups.create': {
+    'real': '/clusters/{clusterName}/alert_groups',
+    'mock': '',
+    'format': function (data) {
+      return {
+        type: 'POST',
+        data: JSON.stringify({
+          "AlertGroup": {
+            "name": data.name,
+            "definitions": data.definitions,
+            "targets": data.targets
+          }
+        })
+      };
+    }
+  },
+  'alert_groups.update': {
+    'real': '/clusters/{clusterName}/alert_groups/{group_id}',
+    'mock': '',
+    'format': function (data) {
+      return {
+        type: 'PUT',
+        data: JSON.stringify({
+          "AlertGroup": {
+            "name": data.name,
+            "definitions": data.definitions,
+            "targets": data.targets
+          }
+        })
+      };
+    }
+  },
+  'alert_groups.delete': {
+    'real': '/clusters/{clusterName}/alert_groups/{group_id}',
+    'mock': '',
+    'format': function (data) {
+      return {
+        type: 'DELETE'
+      };
+    }
+  },
+  'alerts.load_all_alert_definitions': {
+    'real': '/clusters/{clusterName}/alert_definitions?fields=*',
+    'mock': 'data/alerts/alertDefinitions.json'
   },
   'alerts.instances': {
     'real': '/clusters/{clusterName}/alerts?fields=*',

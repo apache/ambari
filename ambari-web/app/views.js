@@ -44,6 +44,8 @@ require('views/main/menu');
 require('views/main/alert_definitions_view');
 require('views/main/alerts/definition_details_view');
 require('views/main/alerts/alert_definitions_actions_view');
+require('views/main/alerts');
+require('views/main/alerts/manage_alert_groups_view');
 require('views/main/charts');
 require('views/main/views/details');
 require('views/main/host');

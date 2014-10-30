@@ -350,6 +350,9 @@ App.ClusterController = Em.Controller.extend({
               self.updateLoadStatus('alertDefinitions');
             }
           });
+          updater.updateAlertGroups(function () {
+            self.updateLoadStatus('alertGroups');
+          });
         });
       });
       self.loadRootService().done(function (data) {

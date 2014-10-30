@@ -1,0 +1,139 @@
+{{!
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+}}
+
+
+<form class="form-horizontal mbm" autocomplete="off">
+  <div class="override-controls">
+    <div class="alert alert-info">{{view.parentView.dialogMessage}}</div>
+  {{#if view.parentView.warningMessage}}
+    <div class="text-warning">
+      {{view.parentView.warningMessage}}
+    </div>
+  {{/if}}
+    <table style="width: 100%;">
+      <tr>
+        <td>
+            <a href="#" {{action toggleShowSelectedDefs target="view" }}>{{view.defSelectMessage}}</a>
+          {{#if view.showOnlySelectedDefs}}
+             <i class='icon-ok-sign'></i>
+          {{/if}}
+        </td>
+        <td width="20%">
+          <div class="row">
+            <div class="span2" id="filter-dropdown-div">
+              <!-- services drop-down -->
+              <div class="btn-group">
+                <button class="btn dropdown-toggle" data-toggle="dropdown" href="#" {{bindAttr disabled="view.isDisabled"}}>
+                  {{t common.service}}
+                    <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu">
+                    <!-- dropdown menu links -->
+                  {{#each service in view.filterServices}}
+                    <li>
+                      <a href="#" {{action selectFilterService service target="view"}}>
+                        {{#if service.selected}}
+                            <i class='icon-ok-sign'></i>
+                        {{else}}
+                            <i class='icon-placeholder'></i>
+                        {{/if}}
+                        {{service.displayName}}
+                      </a>
+                    </li>
+                  {{/each}}
+                </ul>
+              </div>
+            </div>
+            <div class="span2" id="component-dropdown-div">
+              <!-- definition-components drop-down -->
+              <div class="btn-group">
+                <button class="btn dropdown-toggle" data-toggle="dropdown" href="#" {{bindAttr disabled="view.isDisabled"}}>
+                  {{t common.component}}
+                    <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu">
+                    <!-- dropdown menu links -->
+                  {{#each component in view.filterComponents}}
+                    <li>
+                      <a href="#" {{action selectFilterComponent component target="view"}}>
+                        {{#if component.selected}}
+                            <i class='icon-ok-sign'></i>
+                        {{else}}
+                            <i class='icon-placeholder'></i>
+                        {{/if}}
+                        {{component.displayName}}
+                      </a>
+                    </li>
+                  {{/each}}
+                </ul>
+              </div>
+            </div>
+          </div>
+        </td>
+      </tr>
+    </table>
+    <table class="table table-striped hosts-table">
+      <thead>
+        <tr class="success">
+          <th width="10%">
+            {{view Ember.Checkbox checkedBinding="view.allDefsSelected" disabledBinding="view.isDisabled"}}
+          </th>
+          <th width="35%">{{t common.alertDefinition}}</th>
+          <th width="25%">{{t common.service}}</th>
+          <th width="30%">{{t common.component}}</th>
+        </tr>
+    </thead>
+    </table>
+    <div class="hosts-table-container">
+      <table class="table table-striped hosts-table">
+        {{#each entry in view.pageContent}}
+          <tr {{bindAttr class="entry.filtered::hidden"}}>
+            <td width="10%">
+              {{view Ember.Checkbox checkedBinding="entry.selected"}}
+            </td>
+            <td width="35%">
+              {{entry.label}}
+            </td>
+            <td>
+              {{entry.serviceNameDisplay}}
+            </td>
+            <td>
+              {{entry.componentNameDisplay}}
+            </td>
+          </tr>
+        {{/each}}
+      </table>
+    </div>
+</div>
+</form>
+
+{{#if view.isPaginate}}
+  <div class="page-bar pull-right no-borders">
+    <div class="items-on-page">
+        <label>{{t common.show}}: {{view view.rowsPerPageSelectView selectionBinding="view.displayLength"}}</label>
+    </div>
+    <div class="info">{{view.paginationInfo}}</div>
+    <div class="paging_two_button">
+      {{view view.paginationFirst}}
+      {{view view.paginationLeft}}
+      {{view view.paginationRight}}
+      {{view view.paginationLast}}
+    </div>
+  </div>
+{{/if}}
+

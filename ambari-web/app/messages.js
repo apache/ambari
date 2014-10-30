@@ -234,6 +234,7 @@ Em.I18n.translations = {
   'common.configs': "Configs",
   'common.unknown': "Unknown",
   'common.install': "Install",
+  'common.alertDefinition': "Alert Definition",
 
   'passiveState.turnOn':'Turn On Maintenance Mode',
   'passiveState.turnOff':'Turn Off Maintenance Mode',
@@ -831,6 +832,7 @@ Em.I18n.translations = {
   'form.validator.invalidIp':'Please enter valid ip address',
   'form.validator.configKey':'Invalid Key. Only alphanumerics, hyphens, underscores, asterisks and periods are allowed.',
   'form.validator.configGroupName':'Invalid Group Name. Only alphanumerics, hyphens, spaces and underscores are allowed.',
+  'form.validator.alertGroupName':'Invalid Alert Group Name. Only alphanumerics, hyphens, spaces and underscores are allowed.',
   'form.validator.configKey.specific':'"{0}" is invalid Key. Only alphanumerics, hyphens, underscores, asterisks and periods are allowed.',
 
   'alerts.actions.create': 'Create Alert',
@@ -1689,6 +1691,29 @@ Em.I18n.translations = {
   'services.sqoop.clients': 'Sqoop clients',
 
   'services.hbase.master.error':'None of the HBase masters is active',
+
+  'alerts.actions.manage_alert_groups_popup.header':'Manage Alert Groups',
+  'alerts.actions.manage_alert_groups_popup.notice':'You can manage alert groups for each service in this dialog. View the list of alert groups and the alert definitions configured in them. ' +
+    'You can also add/remove alert definitions, and pick notification for that alert group.',
+  'alerts.actions.manage_alert_groups_popup.rename':'Rename',
+  'alerts.actions.manage_alert_groups_popup.duplicate':'Duplicate',
+  'alerts.actions.manage_alert_groups_popup.group_name_lable':'Name',
+  'alerts.actions.manage_alert_groups_popup.group_desc_lable':'Description',
+  'alerts.actions.manage_alert_groups_popup.notifications':'Notifications',
+  'alerts.actions.manage_alert_groups_popup.addButton':'Create new Alert Group',
+  'alerts.actions.manage_alert_groups_popup.addGroup.exist': 'Alert Group with given name already exists',
+  'alerts.actions.manage_alert_groups_popup.removeButton':'Delete Alert Group',
+  'alerts.actions.manage_alert_groups_popup.renameButton':'Rename Alert Group',
+  'alerts.actions.manage_alert_groups_popup.duplicateButton':'Duplicate Alert Group',
+  'alerts.actions.manage_alert_groups_popup.addDefinition':'Add alert definitions to selected Alert Group',
+  'alerts.actions.manage_alert_groups_popup.addDefinitionDisabled':'There are no available alert definitions to add',
+  'alerts.actions.manage_alert_groups_popup.addDefinitionToDefault': 'You cannot add alert definition to a default group',
+  'alerts.actions.manage_alert_groups_popup.removeDefinition':'Remove alert definitions from selected Alert Group',
+  'alerts.actions.manage_alert_groups_popup.selectDefsDialog.title': 'Select Alert Group\'s Alert Definitions',
+  'alerts.actions.manage_alert_groups_popup.selectDefsDialog.message': 'Select alert definitions to be added to this "{0}" Alert Group.',
+  'alerts.actions.manage_alert_groups_popup.selectDefsDialog.filter.placeHolder': 'All',
+  'alerts.actions.manage_alert_groups_popup.selectDefsDialog.selectedDefsLink': '{0} out of {1} alert definitions selected',
+  'alerts.actions.manage_alert_groups_popup.selectDefsDialog.message.warning': 'At least one alert definition needs to be selected.',
 
   'hosts.host.add':'Add New Hosts',
   'hosts.table.noHosts':'No hosts to display',

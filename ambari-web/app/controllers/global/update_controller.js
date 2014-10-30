@@ -131,6 +131,7 @@ App.UpdateController = Em.Controller.extend({
       App.updater.run(this, 'updateAlertDefinitions', 'isWorking', App.alertDefinitionsUpdateInterval);
       if (App.get('supports.alerts')) {
         App.updater.run(this, 'updateAlertDefinitionSummary', 'isWorking', App.alertDefinitionsUpdateInterval);
+        App.updater.run(this, 'updateAlertGroups', 'isWorking', App.alertGroupsUpdateInterval);
       }
     }
   }.observes('isWorking'),
@@ -464,6 +465,16 @@ App.UpdateController = Em.Controller.extend({
     var url = this.getUrl(testUrl, realUrl);
 
     App.HttpClient.get(url, App.alertDefinitionSummaryMapper, {
+      complete: callback
+    });
+  },
+
+  updateAlertGroups: function (callback) {
+    var testUrl = '/data/alerts/alertGroups.json';
+    var realUrl = '/alert_groups?fields=*';
+    var url = this.getUrl(testUrl, realUrl);
+
+    App.HttpClient.get(url, App.alertGroupsMapper, {
       complete: callback
     });
   }

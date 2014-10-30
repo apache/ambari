@@ -156,6 +156,16 @@ module.exports = {
     return configKeyRegex.test(value);
   },
 
+  /**
+   * validate alert group name
+   * @param value
+   * @return {Boolean}
+   */
+  isValidAlertGroupName: function(value) {
+    var configKeyRegex = /^[\s0-9a-z_\-]+$/i;
+    return configKeyRegex.test(value);
+  },
+
   empty:function (e) {
     switch (e) {
       case "":
