@@ -95,9 +95,14 @@ public class ViewExtractor {
             JarEntry jarEntry  = (JarEntry) enumeration.nextElement();
             String   entryPath = archivePath + File.separator + jarEntry.getName();
 
+            LOG.debug("Extracting " + entryPath);
+
             File entryFile = archiveUtility.getFile(entryPath);
 
             if (jarEntry.isDirectory()) {
+
+              LOG.debug("Making directory " + entryPath);
+
               if (!entryFile.mkdir()) {
                 msg = "Could not create archive entry directory " + entryPath + ".";
 
@@ -106,17 +111,29 @@ public class ViewExtractor {
                 throw new ExtractionException(msg);
               }
             } else {
+
+              LOG.debug("Getting input stream for " + jarEntry.getName());
+
               InputStream is = viewJarFile.getInputStream(jarEntry);
               try {
+                LOG.debug("Getting output stream for " + entryPath);
+
                 FileOutputStream fos = archiveUtility.getFileOutputStream(entryFile);
                 try {
+                  LOG.debug("Begin copying from " + jarEntry.getName() + " to "+ entryPath);
+
                   while (is.available() > 0) {
                     fos.write(is.read());
                   }
+
+                  LOG.debug("Finish copying from " + jarEntry.getName() + " to "+ entryPath);
+
                 } finally {
+                  LOG.debug("Closing output stream for " + entryPath);
                   fos.close();
                 }
               } finally {
+                LOG.debug("Closing input stream for " + jarEntry.getName());
                 is.close();
               }
             }
