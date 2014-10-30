@@ -158,10 +158,14 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
       Map<String, Map<String, String>> configurations = new TreeMap<String, Map<String, String>>();
       Map<String, Map<String, Map<String, String>>> configurationAttributes = new TreeMap<String, Map<String, Map<String, String>>>();
 
-      Collection<Config> clusterConfigs = cluster.getAllConfigs();
+      Map<String, DesiredConfig> desiredClusterConfigs = cluster.getDesiredConfigs();
 
       //Get configurations and configuration attributes
-      for (Config clusterConfig : clusterConfigs) {
+      for (Map.Entry<String, DesiredConfig> desiredConfigEntry : desiredClusterConfigs.entrySet()) {
+
+        String configType = desiredConfigEntry.getKey();
+        DesiredConfig desiredConfig = desiredConfigEntry.getValue();
+        Config clusterConfig = cluster.getConfig(configType, desiredConfig.getTag());
 
         if (clusterConfig != null) {
           Map<String, String> props = new HashMap<String, String>(clusterConfig.getProperties());
