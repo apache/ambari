@@ -2011,6 +2011,8 @@ public class BlueprintConfigurationProcessorTest {
     final String expectedHostNameTwo = "c6402.ambari.apache.org";
     final String expectedHostGroupName = "host_group_1";
     final String expectedHostGroupNameTwo = "host_group_2";
+    final String expectedPortNumberOne = "2112";
+    final String expectedPortNumberTwo = "1221";
 
     EasyMockSupport mockSupport = new EasyMockSupport();
 
@@ -2033,14 +2035,29 @@ public class BlueprintConfigurationProcessorTest {
       new HashMap<String, String>();
     Map<String, String> webHCatSiteProperties =
       new HashMap<String, String>();
+    Map<String, String> sliderClientProperties =
+      new HashMap<String, String>();
+    Map<String, String> yarnSiteProperties =
+      new HashMap<String, String>();
+    Map<String, String> kafkaBrokerProperties =
+      new HashMap<String, String>();
+
+
 
     configProperties.put("core-site", coreSiteProperties);
     configProperties.put("hbase-site", hbaseSiteProperties);
     configProperties.put("webhcat-site", webHCatSiteProperties);
+    configProperties.put("slider-client", sliderClientProperties);
+    configProperties.put("yarn-site", yarnSiteProperties);
+    configProperties.put("kafka-broker", kafkaBrokerProperties);
 
     coreSiteProperties.put("ha.zookeeper.quorum", expectedHostName + "," + expectedHostNameTwo);
     hbaseSiteProperties.put("hbase.zookeeper.quorum", expectedHostName + "," + expectedHostNameTwo);
     webHCatSiteProperties.put("templeton.zookeeper.hosts", expectedHostName + "," + expectedHostNameTwo);
+    yarnSiteProperties.put("hadoop.registry.zk.quorum", createHostAddress(expectedHostName, expectedPortNumberOne) + "," + createHostAddress(expectedHostNameTwo, expectedPortNumberTwo));
+    sliderClientProperties.put("slider.zookeeper.quorum", createHostAddress(expectedHostName, expectedPortNumberOne) + "," + createHostAddress(expectedHostNameTwo, expectedPortNumberTwo));
+    kafkaBrokerProperties.put("zookeeper.connect", createHostAddress(expectedHostName, expectedPortNumberOne) + "," + createHostAddress(expectedHostNameTwo, expectedPortNumberTwo));
+
 
     BlueprintConfigurationProcessor configProcessor =
       new BlueprintConfigurationProcessor(configProperties);
@@ -2057,6 +2074,117 @@ public class BlueprintConfigurationProcessorTest {
     assertEquals("zookeeper config not properly exported",
       createExportedHostName(expectedHostGroupName) + "," + createExportedHostName(expectedHostGroupNameTwo),
       webHCatSiteProperties.get("templeton.zookeeper.hosts"));
+    assertEquals("yarn-site zookeeper config not properly exported",
+      createExportedHostName(expectedHostGroupName, expectedPortNumberOne) + "," + createExportedHostName(expectedHostGroupNameTwo, expectedPortNumberTwo),
+      yarnSiteProperties.get("hadoop.registry.zk.quorum"));
+    assertEquals("slider-client zookeeper config not properly exported",
+      createExportedHostName(expectedHostGroupName, expectedPortNumberOne) + "," + createExportedHostName(expectedHostGroupNameTwo, expectedPortNumberTwo),
+      sliderClientProperties.get("slider.zookeeper.quorum"));
+    assertEquals("kafka zookeeper config not properly exported",
+      createExportedHostName(expectedHostGroupName, expectedPortNumberOne) + "," + createExportedHostName(expectedHostGroupNameTwo, expectedPortNumberTwo),
+      kafkaBrokerProperties.get("zookeeper.connect"));
+
+    mockSupport.verifyAll();
+
+  }
+
+  @Test
+  public void testKnoxSecurityConfigExported() throws Exception {
+    final String expectedHostName = "c6401.apache.ambari.org";
+    final String expectedHostNameTwo = "c6402.ambari.apache.org";
+    final String expectedHostGroupName = "host_group_1";
+    final String expectedHostGroupNameTwo = "host_group_2";
+
+    EasyMockSupport mockSupport = new EasyMockSupport();
+
+    HostGroup mockHostGroupOne = mockSupport.createMock(HostGroup.class);
+    HostGroup mockHostGroupTwo = mockSupport.createMock(HostGroup.class);
+
+    expect(mockHostGroupOne.getHostInfo()).andReturn(Arrays.asList(expectedHostName, "serverTwo")).atLeastOnce();
+    expect(mockHostGroupTwo.getHostInfo()).andReturn(Arrays.asList(expectedHostNameTwo, "serverTwo")).atLeastOnce();
+    expect(mockHostGroupOne.getName()).andReturn(expectedHostGroupName).atLeastOnce();
+    expect(mockHostGroupTwo.getName()).andReturn(expectedHostGroupNameTwo).atLeastOnce();
+
+    mockSupport.replayAll();
+
+    Map<String, Map<String, String>> configProperties =
+      new HashMap<String, Map<String, String>>();
+
+    Map<String, String> coreSiteProperties =
+      new HashMap<String, String>();
+    Map<String, String> webHCatSiteProperties =
+      new HashMap<String, String>();
+    Map<String, String> oozieSiteProperties =
+      new HashMap<String, String>();
+
+    configProperties.put("core-site", coreSiteProperties);
+    configProperties.put("webhcat-site", webHCatSiteProperties);
+    configProperties.put("oozie-site", oozieSiteProperties);
+
+    coreSiteProperties.put("hadoop.proxyuser.knox.hosts", expectedHostName + "," + expectedHostNameTwo);
+    webHCatSiteProperties.put("webhcat.proxyuser.knox.hosts", expectedHostName + "," + expectedHostNameTwo);
+    oozieSiteProperties.put("hadoop.proxyuser.knox.hosts", expectedHostName + "," + expectedHostNameTwo);
+
+//    multiCoreSiteMap.put("hadoop.proxyuser.knox.hosts", new MultipleHostTopologyUpdater("KNOX_GATEWAY"));
+//    multiWebhcatSiteMap.put("webhcat.proxyuser.knox.hosts", new MultipleHostTopologyUpdater("KNOX_GATEWAY"));
+//    multiOozieSiteMap.put("hadoop.proxyuser.knox.hosts", new MultipleHostTopologyUpdater("KNOX_GATEWAY"));
+
+    BlueprintConfigurationProcessor configProcessor =
+      new BlueprintConfigurationProcessor(configProperties);
+
+    // call top-level export method
+    configProcessor.doUpdateForBlueprintExport(Arrays.asList(mockHostGroupOne, mockHostGroupTwo));
+
+    assertEquals("Knox for core-site config not properly exported",
+      createExportedHostName(expectedHostGroupName) + "," + createExportedHostName(expectedHostGroupNameTwo),
+      coreSiteProperties.get("hadoop.proxyuser.knox.hosts"));
+    assertEquals("Knox config for WebHCat not properly exported",
+      createExportedHostName(expectedHostGroupName) + "," + createExportedHostName(expectedHostGroupNameTwo),
+      webHCatSiteProperties.get("webhcat.proxyuser.knox.hosts"));
+    assertEquals("Knox config for Oozie not properly exported",
+      createExportedHostName(expectedHostGroupName) + "," + createExportedHostName(expectedHostGroupNameTwo),
+      oozieSiteProperties.get("hadoop.proxyuser.knox.hosts"));
+
+    mockSupport.verifyAll();
+
+  }
+
+  @Test
+  public void testKafkaConfigExported() throws Exception {
+    final String expectedHostName = "c6401.apache.ambari.org";
+    final String expectedHostGroupName = "host_group_1";
+    final String expectedPortNumberOne = "2112";
+
+    EasyMockSupport mockSupport = new EasyMockSupport();
+
+    HostGroup mockHostGroupOne = mockSupport.createMock(HostGroup.class);
+    HostGroup mockHostGroupTwo = mockSupport.createMock(HostGroup.class);
+
+    expect(mockHostGroupOne.getHostInfo()).andReturn(Arrays.asList(expectedHostName, "serverTwo")).atLeastOnce();
+    expect(mockHostGroupOne.getName()).andReturn(expectedHostGroupName).atLeastOnce();
+
+    mockSupport.replayAll();
+
+    Map<String, Map<String, String>> configProperties =
+      new HashMap<String, Map<String, String>>();
+
+    Map<String, String> kafkaBrokerProperties =
+      new HashMap<String, String>();
+
+    configProperties.put("kafka-broker", kafkaBrokerProperties);
+
+    kafkaBrokerProperties.put("kafka.ganglia.metrics.host", createHostAddress(expectedHostName, expectedPortNumberOne));
+
+
+    BlueprintConfigurationProcessor configProcessor =
+      new BlueprintConfigurationProcessor(configProperties);
+
+    // call top-level export method
+    configProcessor.doUpdateForBlueprintExport(Arrays.asList(mockHostGroupOne, mockHostGroupTwo));
+
+    assertEquals("kafka Ganglia config not properly exported",
+      createExportedHostName(expectedHostGroupName, expectedPortNumberOne),
+      kafkaBrokerProperties.get("kafka.ganglia.metrics.host"));
 
     mockSupport.verifyAll();
 
@@ -2104,8 +2232,17 @@ public class BlueprintConfigurationProcessorTest {
     return createExportedHostName(expectedHostGroupName) + ":" + expectedPortNum;
   }
 
+  private static String createExportedHostName(String expectedHostGroupName, String expectedPortNumber) {
+    return createExportedHostName(expectedHostGroupName) + ":" + expectedPortNumber;
+  }
+
+
   private static String createExportedHostName(String expectedHostGroupName) {
     return "%HOSTGROUP::" + expectedHostGroupName + "%";
+  }
+
+  private static String createHostAddress(String hostName, String portNumber) {
+    return hostName + ":" + portNumber;
   }
 
   private class TestHostGroup implements HostGroup {
