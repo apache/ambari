@@ -73,15 +73,15 @@ vm-3.vm ZOOKEEPER ZOOKEEPER_SERVER
   @patch("__builtin__.open")
   def test_ignored_host_list(self, open_mock):
     # Check with empty file content
-    open_mock.return_value.__enter__.return_value.readlines.return_value = []
+    open_mock.return_value.__enter__.return_value.read.return_value = ""
     lst = mm_wrapper.ignored_host_list('STORM', 'SUPERVISOR')
     self.assertEqual(pprint.pformat(lst), '[]')
     # Check with dummy content
-    open_mock.return_value.__enter__.return_value.readlines.return_value = self.dummy_ignore_file.splitlines()
+    open_mock.return_value.__enter__.return_value.read.return_value = self.dummy_ignore_file
     lst = mm_wrapper.ignored_host_list('STORM', 'SUPERVISOR')
     self.assertEqual(pprint.pformat(lst), "['vm-4.vm', 'vm-3.vm']")
     # Check if service name/comp name are not defined
-    open_mock.return_value.__enter__.return_value.readlines.return_value = self.dummy_ignore_file.splitlines()
+    open_mock.return_value.__enter__.return_value.read.return_value = self.dummy_ignore_file
     lst = mm_wrapper.ignored_host_list('', '')
     self.assertEqual(pprint.pformat(lst), "[]")
 

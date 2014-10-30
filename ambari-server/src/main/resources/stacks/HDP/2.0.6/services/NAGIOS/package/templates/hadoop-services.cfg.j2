@@ -444,7 +444,7 @@ define service {
 {% endif %}
 
 {% if hostgroup_defs['resourcemanager'] %}
-# YARN::RESOURCEMANAGER Checks 
+# YARN::RESOURCEMANAGER Checks
 define service {
         hostgroup_name          nagios-server
         use                     hadoop-service
