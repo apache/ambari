@@ -298,6 +298,10 @@ var urls = {
     'real': '/clusters/{clusterName}/hosts/{hostName}?fields=legacy_alerts',
     'mock': '/data/alerts/HDP2/host_alerts.json'
   },
+  'alerts.load_alert_notification': {
+    'real': '/alert_targets?fields=*',
+    'mock': 'data/alerts/alert_notifications.json'
+  },
   'background_operations.get_most_recent': {
     'real': '/clusters/{clusterName}/requests?to=end&page_size={operationsCount}&fields=Requests',
     'mock': '/data/background_operations/list_on_start.json',

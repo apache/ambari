@@ -42,6 +42,7 @@ require('models/service/flume');
 require('models/service/storm');
 require('models/alert');
 require('models/alert_instance');
+require('models/alert_notification');
 require('models/user');
 require('models/host');
 require('models/rack');

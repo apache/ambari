@@ -1,0 +1,47 @@
+{
+  "href" : "http://c6407.ambari.apache.org:8080/api/v1/alert_targets?fields=*",
+  "items" : [
+    {
+      "href" : "http://c6407.ambari.apache.org:8080/api/v1/alert_targets/1",
+      "AlertTarget" : {
+        "description" : "The Admins",
+        "id" : 1,
+        "name" : "Administrators",
+        "notification_type" : "EMAIL",
+        "properties" : {
+          "mail.smtp.from" : "ambari@repo.ambari.apache.org",
+          "ambari.dispatch.credential.username" : "ambari",
+          "mail.smtp.host" : "repo.ambari.apache.org",
+          "mail.smtp.port" : "25",
+          "mail.smtp.auth" : "true",
+          "ambari.dispatch.credential.password" : "password",
+          "ambari.dispatch.recipients" : [
+            "ambari@repo.ambari.apache.org"
+          ],
+          "mail.smtp.tarttls.enable" : "false"
+        }
+      }
+    },
+    {
+      "href" : "http://c6407.ambari.apache.org:8080/api/v1/alert_targets/2",
+      "AlertTarget" : {
+        "description" : "another user",
+        "id" : 2,
+        "name" : "user1",
+        "notification_type" : "EMAIL",
+        "properties" : {
+          "mail.smtp.from" : "ambari@repo.ambari.apache.org",
+          "ambari.dispatch.credential.username" : "ambari",
+          "mail.smtp.host" : "repo.ambari.apache.org",
+          "mail.smtp.port" : "25",
+          "mail.smtp.auth" : "true",
+          "ambari.dispatch.credential.password" : "password",
+          "ambari.dispatch.recipients" : [
+            "ambari@repo.ambari.apache.org"
+          ],
+          "mail.smtp.tarttls.enable" : "false"
+        }
+      }
+    }
+  ]
+}

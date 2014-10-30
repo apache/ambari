@@ -31,7 +31,8 @@ App.AlertInstance = DS.Model.extend({
   maintenanceState: DS.attr('string'),
   instance: DS.attr('string'),
   state: DS.attr('string'),
-  text: DS.attr('string')
+  text: DS.attr('string'),
+  notification: DS.hasMany('App.AlertNotification')
 });
 
 App.AlertInstance.FIXTURES = [
@@ -50,7 +51,8 @@ App.AlertInstance.FIXTURES = [
     "service_name": "HDFS",
     "state": "CRITICAL",
     "text": "Connection failed: [Errno 111] Connection refused on host tr-2.c.pramod-thangali.internal:50090",
-    "alert_definition": 1
+    "alert_definition": 1,
+    "notification": 1
   },
   {
     "cluster_name" : "tdk",
@@ -67,7 +69,8 @@ App.AlertInstance.FIXTURES = [
     "service_name" : "HDFS",
     "state" : "CRITICAL",
     "text" : "Connection failed to 0.0.0.0:50075",
-    "alert_definition": 2
+    "alert_definition": 2,
+    "notification": 2
   },
   {
     "cluster_name": "tdk",
@@ -84,7 +87,8 @@ App.AlertInstance.FIXTURES = [
     "service_name": "ZOOKEEPER",
     "state": "CRITICAL",
     "text": "TCP OK - 0.0000 response on port 2181",
-    "alert_definition": 3
+    "alert_definition": 3,
+    "notification": 3
   },
   {
     "cluster_name": "tdk",
@@ -101,7 +105,8 @@ App.AlertInstance.FIXTURES = [
     "service_name": "ZOOKEEPER",
     "state": "OK",
     "text": "TCP OK - 0.0000 response on port 2181",
-    "alert_definition": 3
+    "alert_definition": 3,
+    "notification": 3
   },
   {
     "cluster_name": "tdk",
@@ -118,6 +123,7 @@ App.AlertInstance.FIXTURES = [
     "service_name": "ZOOKEEPER",
     "state": "OK",
     "text": "TCP OK - 0.0000 response on port 2181",
-    "alert_definition": 3
+    "alert_definition": 3,
+    "notification": 3
   }
 ];
