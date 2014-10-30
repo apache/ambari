@@ -335,15 +335,16 @@ public class AlertGroupResourceProvider extends
       Collection<Long> definitionIds = (Collection<Long>) requestMap.get(ALERT_GROUP_DEFINITIONS);
 
       // if targets were supplied, replace existing
-      Set<AlertTargetEntity> targets = new HashSet<AlertTargetEntity>();
-      if (null != targetIds && targetIds.size() > 0) {
+      if (null != targetIds) {
+        Set<AlertTargetEntity> targets = new HashSet<AlertTargetEntity>();
+
         List<Long> ids = new ArrayList<Long>(targetIds.size());
         ids.addAll(targetIds);
-        targets.addAll(s_dao.findTargetsById(ids));
 
-        entity.setAlertTargets(targets);
-      } else if (targetIds.size() == 0) {
-        // empty array supplied, clear out existing targets
+        if (ids.size() > 0) {
+          targets.addAll(s_dao.findTargetsById(ids));
+        }
+
         entity.setAlertTargets(targets);
       }
 

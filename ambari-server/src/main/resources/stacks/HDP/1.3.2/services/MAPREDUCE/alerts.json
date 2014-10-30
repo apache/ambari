@@ -1,0 +1,201 @@
+{
+  "MAPREDUCE":{
+    "service": [
+      {
+        "name": "mapreduce_tasktracker_process_percent",
+        "label": "Percent TaskTrackers Available",
+        "interval": 1,
+        "scope": "SERVICE",
+        "enabled": true,
+        "source": {
+          "type": "AGGREGATE",
+          "alert_name": "mapreduce_tasktracker_process",
+          "reporting": {
+            "ok": {
+              "text": "affected: [{1}], total: [{0}]"
+            },
+            "warning": {
+              "text": "affected: [{1}], total: [{0}]",
+              "value": 0.1
+            },
+            "critical": {
+              "text": "affected: [{1}], total: [{0}]",
+              "value": 0.3
+            }
+          }
+        }
+      }
+    ],
+    "JOBTRACKER": [
+      {
+        "name": "mapreduce_jobtracker_webui",
+        "label": "JobTracker Web UI",
+        "interval": 1,
+        "scope": "ANY",
+        "enabled": true,
+        "source": {
+          "type": "WEB",
+          "uri": {
+            "http": "{{mapred-site/mapred.job.tracker.http.address}}"
+          },
+          "reporting": {
+            "ok": {
+              "text": "HTTP {0} response in {2:.4f} seconds"
+            },
+            "warning":{
+              "text": "HTTP {0} response in {2:.4f} seconds"
+            },
+            "critical": {
+              "text": "Connection failed to {1}"
+            }
+          }
+        }
+      },
+      {
+        "name": "mapreduce_jobtracker_cpu",
+        "label": "JobTracker Host CPU Utilization",
+        "interval": 5,
+        "scope": "ANY",
+        "enabled": true,
+        "source": {
+          "type": "METRIC",
+          "uri": {
+            "http": "{{mapred-site/mapred.job.tracker.http.address}}"
+          },
+          "reporting": {
+            "ok": {
+              "text": "{1} CPU, load {0:.1%}"
+            },
+            "warning": {
+              "text": "{1} CPU, load {0:.1%}",
+              "value": 200
+            },
+            "critical": {
+              "text": "{1} CPU, load {0:.1%}",
+              "value": 250
+            }
+          },
+          "jmx": {
+            "property_list": [
+              "java.lang:type=OperatingSystem/SystemCpuLoad",
+              "java.lang:type=OperatingSystem/AvailableProcessors"
+            ],
+            "value": "{0} * 100"
+          }
+        }
+      },
+      {
+        "name": "mapreduce_jobtracker_rpc_latency",
+        "label": "JobTracker RPC Latency",
+        "interval": 2,
+        "scope": "ANY",
+        "enabled": true,
+        "source": {
+          "type": "METRIC",
+          "uri": {
+            "http": "{{mapred-site/mapred.job.tracker.http.address}}"
+          },
+          "reporting": {
+            "ok": {
+              "text": "Average Queue Time:[{0}], Average Processing Time:[{1}]"
+            },
+            "warning": {
+              "text": "Average Queue Time:[{0}], Average Processing Time:[{1}]",
+              "value": 3000
+            },          
+            "critical": {
+              "text": "Average Queue Time:[{0}], Average Processing Time:[{1}]",
+              "value": 5000
+            }
+          },
+          "jmx": {
+            "property_list": [
+              "Hadoop:service=JobTracker,name=RpcActivityForPort*/RpcQueueTime_avg_time",
+              "Hadoop:service=JobTracker,name=RpcActivityForPort*/RpcProcessingTime_avg_time"
+            ],
+            "value": "{0}"
+          }
+        }
+      },
+      {
+        "name": "mapreduce_jobtracker_process",
+        "label": "JobTracker Process",
+        "interval": 1,
+        "scope": "ANY",
+        "enabled": true,
+        "source": {
+          "type": "PORT",
+          "uri": "{{mapred-site/mapred.job.tracker.http.address}}",
+          "default_port": 50030,
+          "reporting": {
+            "ok": {
+              "text": "TCP OK - {0:.4f} response on port {1}"
+            },
+            "critical": {
+              "text": "Connection failed: {0} to {1}:{2}"
+            }
+          }        
+        }
+      }
+    ],
+    "TASKTRACKER": [
+      {
+        "name": "mapreduce_tasktracker_process",
+        "label": "TaskTracker Process",
+        "interval": 1,
+        "scope": "HOST",
+        "enabled": true,
+        "source": {
+          "type": "PORT",
+          "uri": "50060",
+          "default_port": 50060,
+          "reporting": {
+            "ok": {
+              "text": "TCP OK - {0:.4f} response on port {1}"
+            },
+            "critical": {
+              "text": "Connection failed: {0} to {1}:{2}"
+            }
+          }        
+        }
+      },
+      {
+        "name": "mapreduce_local_directory_space",
+        "label": "MapReduce Local Directory Space",
+        "interval": 1,
+        "scope": "ANY",
+        "enabled": true,
+        "source": {
+          "type": "SCRIPT",
+          "path": "HDP/1.3.2/services/MAPREDUCE/package/files/alert_mapreduce_directory_space.py"
+        }
+      }
+    ],
+    "HISTORYSERVER": [
+      {
+        "name": "mapreduce_historyserver_webui",
+        "label": "History Server Web UI",
+        "interval": 1,
+        "scope": "ANY",
+        "enabled": true,
+        "source": {
+          "type": "WEB",
+          "uri": {
+            "http": "{{mapred-site/mapreduce.history.server.http.address}}"
+          },
+          "reporting": {
+            "ok": {
+              "text": "HTTP {0} response in {2:.4f} seconds"
+            },
+            "warning":{
+              "text": "HTTP {0} response in {2:.4f} seconds"
+            },
+            "critical": {
+              "text": "Connection failed to {1}"
+            }
+          }
+        }
+      }
+    ]
+  }
+}

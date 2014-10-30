@@ -1,0 +1,107 @@
+{
+  "GANGLIA": {
+    "service": [],
+    "GANGLIA_SERVER": [
+      {
+        "name": "ganglia_server_process",
+        "label": "Ganglia Server Process",
+        "interval": 1,
+        "scope": "ANY",
+        "enabled": true,
+        "source": {
+          "type": "PORT",
+          "uri": "8651",
+          "default_port": 8651,
+          "reporting": {
+            "ok": {
+              "text": "TCP OK - {0:.4f} response on port {1}"
+            },
+            "critical": {
+              "text": "Connection failed: {0} to {1}:{2}"
+            }
+          }        
+        }
+      },
+      {
+        "name": "ganglia_monitor_hdfs_namenode",
+        "label": "Ganglia NameNode Process Monitor",
+        "interval": 1,
+        "scope": "ANY",
+        "enabled": true,
+        "source": {
+          "type": "PORT",
+          "uri": "8661",
+          "default_port": 8661,
+          "reporting": {
+            "ok": {
+              "text": "TCP OK - {0:.4f} response on port {1}"
+            },
+            "critical": {
+              "text": "Connection failed: {0} to {1}:{2}"
+            }
+          }        
+        }
+      },
+      {
+        "name": "ganglia_monitor_hbase_master",
+        "label": "Ganglia HBase Master Process Monitor",
+        "interval": 1,
+        "scope": "ANY",
+        "enabled": true,
+        "source": {
+          "type": "PORT",
+          "uri": "8663",
+          "default_port": 8663,
+          "reporting": {
+            "ok": {
+              "text": "TCP OK - {0:.4f} response on port {1}"
+            },
+            "critical": {
+              "text": "Connection failed: {0} to {1}:{2}"
+            }
+          }        
+        }
+      },
+      {
+        "name": "ganglia_monitor_mapreduce_jobtracker",
+        "label": "Ganglia JobTracker Process Monitor",
+        "interval": 1,
+        "scope": "ANY",
+        "enabled": true,
+        "source": {
+          "type": "PORT",
+          "uri": "8662",
+          "default_port": 8662,
+          "reporting": {
+            "ok": {
+              "text": "TCP OK - {0:.4f} response on port {1}"
+            },
+            "critical": {
+              "text": "Connection failed: {0} to {1}:{2}"
+            }
+          }        
+        }
+      },
+      {
+        "name": "ganglia_monitor_mapreduce_history_server",
+        "label": "Ganglia History Server Process Monitor",
+        "interval": 1,
+        "scope": "ANY",
+        "enabled": true,
+        "source": {
+          "type": "PORT",
+          "uri": "8666",
+          "default_port": 8666,
+          "reporting": {
+            "ok": {
+              "text": "TCP OK - {0:.4f} response on port {1}"
+            },
+            "critical": {
+              "text": "Connection failed: {0} to {1}:{2}"
+            }
+          }        
+        }
+      }
+    ]
+  }
+}

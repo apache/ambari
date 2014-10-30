@@ -106,9 +106,15 @@ public class AlertTargetResourceProviderTest {
 
     assertEquals(1, results.size());
 
-    Resource r = results.iterator().next();
+    Resource resource = results.iterator().next();
     Assert.assertEquals(ALERT_TARGET_NAME,
-        r.getPropertyValue(AlertTargetResourceProvider.ALERT_TARGET_NAME));
+        resource.getPropertyValue(AlertTargetResourceProvider.ALERT_TARGET_NAME));
+
+    // ensure that properties is null if not requested
+    Map<String, String> properties = (Map<String, String>) resource.getPropertyValue(
+        AlertTargetResourceProvider.ALERT_TARGET_PROPERTIES);
+
+    Assert.assertNull(properties);
 
     verify(m_dao);
   }
@@ -130,24 +136,38 @@ public class AlertTargetResourceProviderTest {
         ALERT_TARGET_ID.toString()).toPredicate();
 
     expect(m_dao.findTargetById(ALERT_TARGET_ID.longValue())).andReturn(
-        getMockEntities().get(0));
+        getMockEntities().get(0)).atLeastOnce();
 
     replay(m_amc, m_dao);
 
     AlertTargetResourceProvider provider = createProvider(m_amc);
     Set<Resource> results = provider.getResources(request, predicate);
-
     assertEquals(1, results.size());
+    Resource resource = results.iterator().next();
 
-    Resource r = results.iterator().next();
     Assert.assertEquals(ALERT_TARGET_ID,
-        r.getPropertyValue(AlertTargetResourceProvider.ALERT_TARGET_ID));
+        resource.getPropertyValue(AlertTargetResourceProvider.ALERT_TARGET_ID));
 
     Assert.assertEquals(ALERT_TARGET_NAME,
-        r.getPropertyValue(AlertTargetResourceProvider.ALERT_TARGET_NAME));
+        resource.getPropertyValue(AlertTargetResourceProvider.ALERT_TARGET_NAME));
 
-    Map<String, String> properties = (Map<String, String>) r.getPropertyValue(AlertTargetResourceProvider.ALERT_TARGET_PROPERTIES);
-    assertEquals( "bar", properties.get("foo") );
+    // properties were not requested, they should not be included
+    Map<String, String> properties = (Map<String, String>) resource.getPropertyValue(
+        AlertTargetResourceProvider.ALERT_TARGET_PROPERTIES);
+
+    Assert.assertNull(properties);
+
+    // ask for all fields
+    request = PropertyHelper.getReadRequest();
+    results = provider.getResources(request, predicate);
+    assertEquals(1, results.size());
+    resource = results.iterator().next();
+
+    // ensure properties is included
+    properties = (Map<String, String>) resource.getPropertyValue(
+        AlertTargetResourceProvider.ALERT_TARGET_PROPERTIES);
+
+    assertEquals("bar", properties.get("foo"));
     assertEquals( "baz", properties.get("foobar") );
 
     verify(m_amc, m_dao);

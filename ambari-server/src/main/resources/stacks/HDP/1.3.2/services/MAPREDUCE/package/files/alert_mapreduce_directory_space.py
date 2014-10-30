@@ -22,12 +22,18 @@ import collections
 import os
 import platform
 
+RESULT_CODE_OK = 'OK'
+RESULT_CODE_CRITICAL = 'CRITICAL'
+RESULT_CODE_UNKNOWN = 'UNKNOWN'
+
+MAPREDUCE_LOCAL_DIR_KEY = '{{mapred-site/mapred.local.dir}}'
+
 def get_tokens():
   """
   Returns a tuple of tokens in the format {{site/property}} that will be used
   to build the dictionary passed into execute
   """
-  return None
+  return (MAPREDUCE_LOCAL_DIR_KEY,)
   
 
 def execute(parameters=None, host_name=None):
@@ -38,31 +44,37 @@ def execute(parameters=None, host_name=None):
   parameters (dictionary): a mapping of parameter key to value
   host_name (string): the name of this host where the alert is running
   """
+  if parameters is None:
+    return (('UNKNOWN', ['There were no parameters supplied to the script.']))
 
-  disk_usage = None
-  try:
-    disk_usage = _get_disk_usage()
-  except NotImplementedError, platform_error:
-    return (('CRITICAL', [str(platform_error)]))
+  mapreduce_local_directories = None
+  if MAPREDUCE_LOCAL_DIR_KEY in parameters:
+    mapreduce_local_directories = parameters[MAPREDUCE_LOCAL_DIR_KEY]
 
-  if disk_usage is None or disk_usage.total == 0:
-    return (('CRITICAL', ['Unable to determine the disk usage']))
-  
-  result_code = 'OK'
-  percent = disk_usage.used / float(disk_usage.total) * 100
-  if percent > 50:
-    result_code = 'WARNING'
-  elif percent > 80:
-    result_code = 'CRTICAL'
-    
-  label = 'Capacity Used: [{0:.2f}%, {1}], Capacity Total: [{2}]'.format( 
-      percent, _get_formatted_size(disk_usage.used), 
-      _get_formatted_size(disk_usage.total) )
-  
-  return ((result_code, [label]))
+  if MAPREDUCE_LOCAL_DIR_KEY is None:
+    return (('UNKNOWN', ['The MapReduce Local Directory is required.']))
+
+  directory_list = mapreduce_local_directories.split(",")
+  for directory in directory_list:
+    disk_usage = None
+    try:
+      disk_usage = _get_disk_usage(directory)
+    except NotImplementedError, platform_error:
+      return (RESULT_CODE_UNKNOWN, [str(platform_error)])
+
+    if disk_usage is None or disk_usage.total == 0:
+      return (RESULT_CODE_UNKNOWN, ['Unable to determine the disk usage.'])
+
+    percent = disk_usage.used / float(disk_usage.total) * 100
+
+    if percent > 85:
+      message = 'The disk usage of {0} is {1:d}%'.format(directory,percent)
+      return (RESULT_CODE_CRITICAL, [message])
+
+  return (RESULT_CODE_OK, ["All MapReduce local directories have sufficient space."])
 
 
-def _get_disk_usage(path='/'):
+def _get_disk_usage(path):
   """
   returns a named tuple that contains the total, used, and free disk space
   in bytes
@@ -81,22 +93,3 @@ def _get_disk_usage(path='/'):
   
   DiskInfo = collections.namedtuple('DiskInfo', 'total used free')
   return DiskInfo(total=total, used=used, free=free)
-
-
-def _get_formatted_size(bytes):
-  """
-  formats the supplied bytes 
-  """  
-  if bytes < 1000:
-    return '%i' % bytes + ' B'
-  elif 1000 <= bytes < 1000000:
-    return '%.1f' % (bytes/1000.0) + ' KB'
-  elif 1000000 <= bytes < 1000000000:
-    return '%.1f' % (bytes / 1000000.0) + ' MB'
-  elif 1000000000 <= bytes < 1000000000000:
-    return '%.1f' % (bytes/1000000000.0) + ' GB'
-  else:
-    return '%.1f' % (bytes/1000000000000.0) + ' TB'
-
-if __name__ == '__main__':
-    print _get_disk_usage(os.getcwd())

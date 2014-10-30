@@ -343,7 +343,8 @@ public class AlertTargetResourceProvider extends
     resource.setProperty(ALERT_TARGET_NOTIFICATION_TYPE,
         entity.getNotificationType());
 
-    if (!isCollection) {
+    // these are expensive to deserialize; only do it if asked for
+    if (requestedIds.contains(ALERT_TARGET_PROPERTIES)) {
       String properties = entity.getProperties();
       Map<String, String> map = s_gson.<Map<String, String>> fromJson(
           properties,
