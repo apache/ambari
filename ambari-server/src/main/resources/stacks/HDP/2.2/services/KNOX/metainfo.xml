@@ -26,6 +26,7 @@
       <components>
         <component>
           <name>KNOX_GATEWAY</name>
+          <displayName>Knox Gateway</displayName>
           <category>MASTER</category>
           <cardinality>1+</cardinality>
           <commandScript>
