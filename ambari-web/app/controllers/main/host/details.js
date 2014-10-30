@@ -655,9 +655,6 @@ App.MainHostDetailsController = Em.Controller.extend({
     if (services.someProperty('serviceName', 'STORM')) {
       urlParams.push('(type=storm-site&tag=' + data.Clusters.desired_configs['storm-site'].tag + ')');
     }
-    if (services.someProperty('serviceName', 'SLIDER')) {
-      urlParams.push('(type=slider-client&tag=' + data.Clusters.desired_configs['slider-client'].tag + ')');
-    }
     if ((services.someProperty('serviceName', 'YARN') && App.get('isHadoop22Stack')) || App.get('isRMHaEnabled')) {
       urlParams.push('(type=yarn-site&tag=' + data.Clusters.desired_configs['yarn-site'].tag + ')');
     }
@@ -716,9 +713,6 @@ App.MainHostDetailsController = Em.Controller.extend({
     }
     if (configs['storm-site']) {
       configs['storm-site']['storm.zookeeper.servers'] = JSON.stringify(zks).replace(/"/g, "'");
-    }
-    if (configs['slider-client']) {
-      configs['slider-client']['slider.zookeeper.quorum'] = zksWithPort;
     }
     if (App.get('isRMHaEnabled')) {
       configs['yarn-site']['yarn.resourcemanager.zk-address'] = zks.join(',');

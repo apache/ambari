@@ -30,7 +30,6 @@
     "public_hostname": "c6401.ambari.apache.org",
     "configurations": {
         "slider-client": {
-            "slider.zookeeper.quorum": "c6401.ambari.apache.org:2181",
             "slider.yarn.queue": "default"
         },
         "core-site": {

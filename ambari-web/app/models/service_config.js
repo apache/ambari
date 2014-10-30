@@ -494,7 +494,6 @@ App.ServiceConfigProperty = Ember.Object.extend({
       case 'zookeeper.connect':
       case 'hive.zookeeper.quorum':
       case 'templeton.zookeeper.hosts':
-      case 'slider.zookeeper.quorum':
       case 'hadoop.registry.zk.quorum':
       case 'hive.cluster.delegation.token.store.zookeeper.connectString':
         var zkHosts = masterComponentHostsInDB.filterProperty('component', 'ZOOKEEPER_SERVER').mapProperty('hostName');
