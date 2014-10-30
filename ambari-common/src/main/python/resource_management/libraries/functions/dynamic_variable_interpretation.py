@@ -147,7 +147,7 @@ def copy_tarballs_to_hdfs(tarball_prefix, component_user, file_owner, group_owne
   get_hdp_version_cmd = "/usr/bin/hdp-select versions"
   code, out = shell.call(get_hdp_version_cmd)
   if code != 0 or not out.startswith(params.hdp_stack_version):
-    Logger.Warning("Could not verify HDP version by calling '%s'. Return Code: %s, Output: %s." %
+    Logger.warning("Could not verify HDP version by calling '%s'. Return Code: %s, Output: %s." %
                    (get_hdp_version_cmd, str(code), str(out)))
     return 1
 
