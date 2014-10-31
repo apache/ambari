@@ -24,6 +24,7 @@ import java.util.Collections;
 import java.util.List;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.DBAccessor;
 
 import com.google.inject.Inject;
@@ -52,6 +53,8 @@ public class UpgradeCatalog160 extends AbstractUpgradeCatalog {
 
   @Override
   protected void executeDDLUpdates() throws AmbariException, SQLException {
+    fixViewTablesForMysql();
+
     List<DBAccessor.DBColumnInfo> columns = new ArrayList<DBAccessor.DBColumnInfo>();
 
     // BP host group configuration
@@ -91,6 +94,87 @@ public class UpgradeCatalog160 extends AbstractUpgradeCatalog {
 
     dbAccessor.addFKConstraint("viewentity", "FK_viewentity_view_name",
         new String[]{"view_name", "view_instance_name"}, "viewinstance", new String[]{"view_name", "name"}, true);
+  }
+
+
+  protected void fixViewTablesForMysql() throws SQLException {
+    //fixes 1.5.1 issue for mysql with non-default db name
+    //view tables were not created
+
+    if (!Configuration.MYSQL_DB_NAME.equals(getDbType()) || "ambari".equals(configuration.getServerDBName())) {
+      //no need to run for non-mysql dbms or default db name
+      return;
+    }
+
+    List<DBAccessor.DBColumnInfo> columns = new ArrayList<DBAccessor.DBColumnInfo>();
+
+    // ========================================================================
+    // Create tables
+
+    // View
+    columns.clear();
+    columns.add(new DBAccessor.DBColumnInfo("view_name", String.class, 255, null, false));
+    columns.add(new DBAccessor.DBColumnInfo("label", String.class, 255, null, true));
+    columns.add(new DBAccessor.DBColumnInfo("version", String.class, 255, null, true));
+    columns.add(new DBAccessor.DBColumnInfo("archive", String.class, 255, null, true));
+
+    dbAccessor.createTable("viewmain", columns, "view_name");
+
+    // View Instance Data
+    columns.clear();
+    columns.add(new DBAccessor.DBColumnInfo("view_name", String.class, 255, null, false));
+    columns.add(new DBAccessor.DBColumnInfo("view_instance_name", String.class, 255, null, false));
+    columns.add(new DBAccessor.DBColumnInfo("name", String.class, 255, null, false));
+    columns.add(new DBAccessor.DBColumnInfo("value", String.class, 255, null, true));
+
+    dbAccessor.createTable("viewinstancedata", columns, "view_name", "view_instance_name", "name");
+
+    // View Instance
+    columns.clear();
+    columns.add(new DBAccessor.DBColumnInfo("view_name", String.class, 255, null, false));
+    columns.add(new DBAccessor.DBColumnInfo("name", String.class, 255, null, false));
+
+    dbAccessor.createTable("viewinstance", columns, "view_name", "name");
+
+    // View Instance Property
+    columns.clear();
+    columns.add(new DBAccessor.DBColumnInfo("view_name", String.class, 255, null, false));
+    columns.add(new DBAccessor.DBColumnInfo("view_instance_name", String.class, 255, null, false));
+    columns.add(new DBAccessor.DBColumnInfo("name", String.class, 255, null, false));
+    columns.add(new DBAccessor.DBColumnInfo("value", String.class, 255, null, true));
+
+    dbAccessor.createTable("viewinstanceproperty", columns, "view_name", "view_instance_name", "name");
+
+    // View Parameter
+    columns.clear();
+    columns.add(new DBAccessor.DBColumnInfo("view_name", String.class, 255, null, false));
+    columns.add(new DBAccessor.DBColumnInfo("name", String.class, 255, null, false));
+    columns.add(new DBAccessor.DBColumnInfo("description", String.class, 255, null, true));
+    columns.add(new DBAccessor.DBColumnInfo("required", Character.class, 1, null, true));
+
+    dbAccessor.createTable("viewparameter", columns, "view_name", "name");
+
+    // View Resource
+    columns.clear();
+    columns.add(new DBAccessor.DBColumnInfo("view_name", String.class, 255, null, false));
+    columns.add(new DBAccessor.DBColumnInfo("name", String.class, 255, null, false));
+    columns.add(new DBAccessor.DBColumnInfo("plural_name", String.class, 255, null, true));
+    columns.add(new DBAccessor.DBColumnInfo("id_property", String.class, 255, null, true));
+    columns.add(new DBAccessor.DBColumnInfo("subResource_names", String.class, 255, null, true));
+    columns.add(new DBAccessor.DBColumnInfo("provider", String.class, 255, null, true));
+    columns.add(new DBAccessor.DBColumnInfo("service", String.class, 255, null, true));
+    columns.add(new DBAccessor.DBColumnInfo("`resource`", String.class, 255, null, true));
+    dbAccessor.createTable("viewresource", columns, "view_name", "name");
+
+    // ========================================================================
+    // Add constraints
+    dbAccessor.addFKConstraint("viewparameter", "FK_viewparam_view_name", "view_name", "viewmain", "view_name", true);
+    dbAccessor.addFKConstraint("viewresource", "FK_viewres_view_name", "view_name", "viewmain", "view_name", true);
+    dbAccessor.addFKConstraint("viewinstance", "FK_viewinst_view_name", "view_name", "viewmain", "view_name", true);
+    dbAccessor.addFKConstraint("viewinstanceproperty", "FK_viewinstprop_view_name",
+      new String[]{"view_name", "view_instance_name"}, "viewinstance", new String[]{"view_name", "name"}, true);
+    dbAccessor.addFKConstraint("viewinstancedata", "FK_viewinstdata_view_name",
+      new String[]{"view_name", "view_instance_name"}, "viewinstance", new String[]{"view_name", "name"}, true);
   }
 
 
