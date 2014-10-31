@@ -61,7 +61,7 @@ class TestFlumeHandler(RMFTestCase):
 
     self.assertResourceCalled('Execute', 'pgrep -o -u flume -f ^/usr/jdk64/jdk1.7.0_45.*a1.* > /var/run/flume/a1.pid',
       logoutput = True,
-      tries = 10,
+      tries = 20,
       try_sleep = 6)
 
     self.assertNoMoreResources()
@@ -274,7 +274,7 @@ class TestFlumeHandler(RMFTestCase):
 
     self.assertResourceCalled('Execute', 'pgrep -o -u flume -f ^/usr/jdk64/jdk1.7.0_45.*b1.* > /var/run/flume/b1.pid',
       logoutput = True,
-      tries = 10,
+      tries = 20,
       try_sleep = 6)
 
     self.assertNoMoreResources()
