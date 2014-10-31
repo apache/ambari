@@ -37,10 +37,13 @@ class TestVersion(TestCase):
     l = [("2.2",   "2.2.0.0"),
          ("2.2.1", "2.2.1.0"),
          ("2.2.1.3", "2.2.1.3")]
-
+    
     for input, expected in l:
       actual = self.version_module.format_hdp_stack_version(input)
       self.assertEqual(expected, actual)
+
+    gluster_fs_actual = self.version_module.format_hdp_stack_version("GlusterFS")
+    self.assertEqual("", gluster_fs_actual)
 
   def test_comparison(self):
     # All versions to compare, from 1.0.0.0 to 3.0.0.0, and only include elements that are a multiple of 7.
@@ -59,3 +62,10 @@ class TestVersion(TestCase):
     self.assertEqual(0, self.version_module.compare_versions("2.10", "2.10.0"))
     self.assertEqual(0, self.version_module.compare_versions("2.10", "2.10.0.0"))
     self.assertEqual(0, self.version_module.compare_versions("2.10.0", "2.10.0.0"))
+
+    try:
+      self.version_module.compare_versions("", "GlusterFS")
+    except ValueError:
+      pass
+    else:
+      self.fail("Did not raise exception")

@@ -18,8 +18,8 @@ limitations under the License.
 
 """
 
+from resource_management.libraries.functions.version import format_hdp_stack_version, compare_versions
 from resource_management import *
-from resource_management.libraries.functions.version import compare_versions, format_hdp_stack_version
 import status_params
 import os
 
@@ -30,7 +30,7 @@ tmp_dir = Script.get_tmp_dir()
 # This is expected to be of the form #.#.#.#
 hdp_stack_version = str(config['hostLevelParams']['stack_version'])
 hdp_stack_version = format_hdp_stack_version(hdp_stack_version)
-stack_is_hdp22_or_further = not (hdp_stack_version.startswith('2.0') or hdp_stack_version.startswith('2.1'))
+stack_is_hdp22_or_further = hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >=0
 
 # Hadoop params
 # TODO, this logic should initialize these parameters in a file inside the HDP 2.2 stack.

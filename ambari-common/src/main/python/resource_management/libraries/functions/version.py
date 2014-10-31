@@ -36,17 +36,19 @@ def _normalize(v, desired_segments=0):
 
 def format_hdp_stack_version(input):
   """
-  :param input: Input string, e.g. "2.2"
+  :param input: Input string, e.g. "2.2" or "GlusterFS"
   :return: Returns a well-formatted HDP stack version of the form #.#.#.# as a string.
   """
   if input:
-    normalized = _normalize(str(input))
-    if len(normalized) == 2:
-      normalized = normalized + [0, 0]
-    elif len(normalized) == 3:
-      normalized = normalized + [0, ]
-    normalized = [str(x) for x in normalized]   # need to convert each number into a string
-    return ".".join(normalized)
+    strip_dots = input.replace('.', '')
+    if strip_dots.isdigit():
+      normalized = _normalize(str(input))
+      if len(normalized) == 2:
+        normalized = normalized + [0, 0]
+      elif len(normalized) == 3:
+        normalized = normalized + [0, ]
+      normalized = [str(x) for x in normalized]   # need to convert each number into a string
+      return ".".join(normalized)
   return ""
 
 

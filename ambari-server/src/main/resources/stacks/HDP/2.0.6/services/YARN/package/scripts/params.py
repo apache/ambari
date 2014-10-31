@@ -19,20 +19,21 @@ Ambari Agent
 
 """
 import os
-
+from resource_management.libraries.functions.version import format_hdp_stack_version, compare_versions
 from resource_management import *
-from resource_management.libraries.functions.version import compare_versions, format_hdp_stack_version
 import status_params
 
 # server configurations
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 
+# This is expected to be of the form #.#.#.#
 hdp_stack_version = str(config['hostLevelParams']['stack_version'])
 hdp_stack_version = format_hdp_stack_version(hdp_stack_version)
+stack_is_hdp22_or_further = hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0
 
 #hadoop params
-if compare_versions(hdp_stack_version, "2.2.0.0") >= 0:
+if stack_is_hdp22_or_further:
   hadoop_libexec_dir = "/usr/hdp/current/hadoop-client/libexec"
   hadoop_bin = "/usr/hdp/current/hadoop-client/sbin"
   hadoop_bin_dir = "/usr/hdp/current/hadoop-client/bin"

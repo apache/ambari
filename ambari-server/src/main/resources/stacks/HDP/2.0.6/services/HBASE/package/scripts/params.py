@@ -19,6 +19,7 @@ limitations under the License.
 """
 
 from functions import calc_xmn_from_xms
+from resource_management.libraries.functions.version import format_hdp_stack_version, compare_versions
 from resource_management import *
 import status_params
 
@@ -27,7 +28,8 @@ config = Script.get_config()
 exec_tmp_dir = Script.get_tmp_dir()
 
 hdp_stack_version = str(config['hostLevelParams']['stack_version'])
-stack_is_hdp22_or_further = not (hdp_stack_version.startswith('2.0') or hdp_stack_version.startswith('2.1'))
+hdp_stack_version = format_hdp_stack_version(hdp_stack_version)
+stack_is_hdp22_or_further = hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0
 
 #hadoop params
 if stack_is_hdp22_or_further:
