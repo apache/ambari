@@ -23,7 +23,7 @@
 <configuration>
   <property>
     <name>hbase_regionserver_heapsize</name>
-    <value>4096</value>
+    <value>2048</value>
     <description>HBase RegionServer Heap Size.</description>
   </property>
 </configuration>
