@@ -350,11 +350,11 @@ public class DBAccessorImpl implements DBAccessor {
       );
 
       try {
-        executeQuery(query);
+        executeQuery(query, ignoreFailure);
       } catch (SQLException e) {
         LOG.warn("Add FK constraint failed" +
                 ", constraintName = " + constraintName +
-                ", tableName = " + tableName, e);
+                ", tableName = " + tableName, e.getMessage());
         if (!ignoreFailure) {
           throw e;
         }
@@ -532,7 +532,7 @@ public class DBAccessorImpl implements DBAccessor {
       statement.execute(query);
     } catch (SQLException e) {
       if (!ignoreFailure) {
-        LOG.warn("Error executing query: " + query, e);
+        LOG.error("Error executing query: " + query, e);
         throw e;
       } else {
         LOG.warn("Error executing query: " + query + ", " +
