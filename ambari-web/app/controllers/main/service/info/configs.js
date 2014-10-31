@@ -2172,7 +2172,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     siteObj.forEach(function (_siteObj) {
       var value = _siteObj.value;
       if (_siteObj.isRequiredByAgent == false) return;
-      if (heapsizeRegExp.test(_siteObj.name) && !heapsizeException.contains(_siteObj.name)) {
+      // site object name follow the format *permsize/*heapsize and the value NOT ends with "m"
+      if (heapsizeRegExp.test(_siteObj.name) && !heapsizeException.contains(_siteObj.name) && !(_siteObj.value).endsWith("m")) {
         value += "m";
       }
       siteProperties[_siteObj.name] = value;

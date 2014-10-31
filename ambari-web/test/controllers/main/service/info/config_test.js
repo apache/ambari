@@ -442,6 +442,14 @@ describe("App.MainServiceInfoConfigsController", function () {
           {
             name: "property2",
             value: "value2&lt;"
+          },
+          {
+            name: "property_heapsize",
+            value: "value3"
+          },
+          {
+            name: "property_permsize",
+            value: "value4m"
           }
         ]),
         result: {
@@ -449,7 +457,9 @@ describe("App.MainServiceInfoConfigsController", function () {
           "tag": "version1",
           "properties": {
             "property1": "value1",
-            "property2": "value2&lt;"
+            "property2": "value2&lt;",
+            "property_heapsize": "value3m",
+            "property_permsize": "value4m"
           }
         },
         m: "default"
