@@ -100,7 +100,6 @@ module.exports = App.WizardRoute.extend({
       console.log('in addService.step1:connectOutlets');
       var controller = router.get('addServiceController');
       controller.setCurrentStep('1');
-      controller.setDBProperty('services',undefined);
       controller.set('hideBackButton', true);
       controller.dataLoading().done(function () {
         controller.loadAllPriorSteps();
