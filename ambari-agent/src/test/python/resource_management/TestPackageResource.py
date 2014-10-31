@@ -69,7 +69,7 @@ class TestPackageResource(TestCase):
     with Environment('/') as env:
       Package("some_package",
       )
-    call_mock.assert_called_with('rpm -qa some_package')
+    call_mock.assert_called_with('installed_pkgs=`rpm -qa some_package` ; [ ! -z "$installed_pkgs" ]')
     shell_mock.assert_called_with("/usr/bin/yum -d 0 -e 0 -y install some_package")
 
   @patch.object(shell, "call")
