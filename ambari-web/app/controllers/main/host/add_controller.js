@@ -159,25 +159,39 @@ App.AddHostController = App.WizardController.extend({
    * Generate clients list for selected services and save it to model
    */
   saveClients: function () {
-    var clients = [];
     var serviceComponents = App.StackServiceComponent.find();
-    var hosts = this.get('content.hosts');
-
-    this.get('content.services').filterProperty('isSelected').forEach(function (_service) {
-      var client = serviceComponents.filterProperty('serviceName', _service.get('serviceName')).findProperty('isClient');
-      if (client) {
-        clients.push({
-          component_name: client.get('componentName'),
-          display_name: client.get('displayName'),
-          isInstalled: false
-        });
-      }
-    }, this);
+    var services = this.get('content.services').filterProperty('isSelected');
+    var clients = this.getClientsToInstall(services, serviceComponents);
     this.setDBProperty('clientInfo', clients);
     this.set('content.clients', clients);
     console.log("AddHostController.saveClients: saved list ", clients);
   },
 
+  /**
+   * get list of clients which will be installed on host
+   * @param services {Array} of service objects
+   * @param components {Array} of component objects
+   * @returns {Array} returns array of clients
+   * @method getClientsToInstall;
+   */
+  getClientsToInstall: function(services, components) {
+    var clients = [];
+    services.forEach(function (_service) {
+      var serviceClients = components.filter(function(component) {
+        return (component.get('serviceName') == _service.get('serviceName') && component.get('isClient'));
+      });
+      if (serviceClients.length) {
+        serviceClients.forEach(function(client) {
+          clients.push({
+            component_name: client.get('componentName'),
+            display_name: client.get('displayName'),
+            isInstalled: false
+          });
+        });
+      }
+    }, this);
+    return clients;
+  },
   /**
    *  Apply config groups from step4 Configurations
    */
