@@ -123,19 +123,4 @@ class TestStormNimbus(TestStormBase):
     )
     self.assertResourceCalled('Execute', 'rm -f /var/run/storm/nimbus.pid')
     self.assertNoMoreResources()
-
     
-#   def call_storm_template_and_assert(self):
-#     import yaml_utils
-#     storm_yarn_template = Template(
-#                         "storm.yaml.j2", 
-#                         extra_imports=[yaml_utils.escape_yaml_propetry], 
-#                         configurations = self.getConfig()['configurations']['storm-site'])
-#     storm_yarn_content = storm_yarn_template.get_content()
-#     
-#     self.assertResourceCalled('File', '/etc/storm/conf/storm.yaml',
-#       owner = 'storm',
-#       content= storm_yarn_template, 
-#       group = 'hadoop'
-#     )
-#     return storm_yarn_content

@@ -42,15 +42,18 @@ class TestStormJaasConfiguration(TestStormBase):
     self.assert_configure_default()
 
 
-  def test_configure_secured(self):
+  @patch("storm._find_real_user_min_uid")
+  def test_configure_secured(self, find_real_user_max_pid):
+    find_real_user_max_pid.return_value = 500
     self.executeScript("2.1/services/STORM/package/scripts/nimbus.py",
                        classname = "Nimbus",
                        command = "configure",
                        config_file = "secured-storm-start.json"
     )
     self.assert_configure_secured()
-
-  def test_start_secured(self):
+  @patch("storm._find_real_user_min_uid")
+  def test_start_secured(self, find_real_user_max_pid):
+    find_real_user_max_pid.return_value = 500
     self.executeScript("2.1/services/STORM/package/scripts/nimbus.py",
                        classname = "Nimbus",
                        command = "start",
@@ -68,7 +71,16 @@ class TestStormJaasConfiguration(TestStormBase):
   
 
   def assert_configure_secured(self):
+
     storm_yarn_content = super(TestStormJaasConfiguration, self).assert_configure_secured()
+    self.assertResourceCalled('TemplateConfig', '/etc/storm/conf/client_jaas.conf',
+      owner = 'storm',
+    )
+    self.assertResourceCalled('File', '/etc/storm/conf/worker-launcher.cfg',
+      owner = 'root',
+      content = Template('worker-launcher.cfg.j2', min_user_ruid = 500),
+      group = 'hadoop',
+    )
     
     self.assertTrue(storm_yarn_content.find('_JAAS_PLACEHOLDER') == -1, 'Placeholder have to be substituted')
     self.assertTrue(storm_yarn_content.find('_storm') == -1, 'pairs start with _strom has to be removed')

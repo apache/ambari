@@ -1,4 +1,4 @@
-{#
+#
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -15,31 +15,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #}
-{% if is_compatible_to_2_2_stack %}
-StormServer {
-   com.sun.security.auth.module.Krb5LoginModule required
-   useKeyTab=true
-   keyTab="{{nimbus_keytab_path}}"
-   storeKey=true
-   useTicketCache=false
-   principal="{{nimbus_jaas_principal}}";
-};
 StormClient {
    com.sun.security.auth.module.Krb5LoginModule required
-   useKeyTab=true
-   keyTab="{{storm_keytab_path}}"
-   storeKey=true
-   useTicketCache=false
+   useTicketCache=true
+   renewTicket=true
    serviceName="{{nimbus_bare_jaas_principal}}"
-   principal="{{storm_jaas_principal}}";
-};
-{% endif %}
-Client {
-   com.sun.security.auth.module.Krb5LoginModule required
-   useKeyTab=true
-   keyTab="{{storm_keytab_path}}"
-   storeKey=true
-   useTicketCache=false
-   serviceName="zookeeper"
-   principal="{{storm_jaas_principal}}";
 };

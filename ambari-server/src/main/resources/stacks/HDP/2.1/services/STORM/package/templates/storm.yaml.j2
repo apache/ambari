@@ -41,7 +41,7 @@ storm.thrift.transport : "{% if security_enabled %}{{configurations['_storm.thri
 #
 
 storm.principal.tolocal: "backtype.storm.security.auth.KerberosPrincipalToLocal"
-storm.zookeeper.superACL: "sasl:{{storm_user}}"
+storm.zookeeper.superACL: "sasl:{{storm_bare_jaas_principal}}"
 java.security.auth.login.config: "{{conf_dir}}/storm_jaas.conf"
 nimbus.admins:
   - "{{storm_user}}"
