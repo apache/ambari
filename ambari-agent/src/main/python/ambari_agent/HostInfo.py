@@ -80,6 +80,7 @@ class HostInfo:
 
   # Packages that are used to find repos (then repos are used to find other packages)
   PACKAGES = [
+    "hadoop_2_2_*","hadoop-2-2-.*","zookeeper_2_2_*","zookeeper-2-2-.*",
     "hadoop", "zookeeper", "webhcat", "*-manager-server-db", "*-manager-daemons"
   ]
 
