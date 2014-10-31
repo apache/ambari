@@ -84,5 +84,10 @@
     <value>-Xmx768m _JAAS_PLACEHOLDER</value>
     <description>Childopts for Storm DRPC Java process.</description>
   </property>
-
+  
+  <property>
+    <name>_storm.min.ruid</name>
+    <value>null</value>
+    <description>min.user.id is set to the first real user id on the system. If value is 'null' than default value will be taken from key UID_MIN of /etc/login.defs otherwise the specified value will be used for all hosts.</description>
+  </property>
 </configuration>

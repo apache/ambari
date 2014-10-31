@@ -21,6 +21,7 @@ limitations under the License.
 from resource_management import *
 from yaml_utils import escape_yaml_propetry
 import sys
+from ambari_agent.AgentException import AgentException
 
 def storm():
   import params
@@ -48,6 +49,7 @@ def storm():
        group=params.user_group
   )
 
+
   File(format("{conf_dir}/storm-env.sh"),
     owner=params.storm_user,
     content=InlineTemplate(params.storm_env_sh_template)
@@ -57,3 +59,27 @@ def storm():
     TemplateConfig(format("{conf_dir}/storm_jaas.conf"),
                    owner=params.storm_user
     )
+    if params.is_compatible_to_2_2_stack:
+      TemplateConfig(format("{conf_dir}/client_jaas.conf"),
+                     owner=params.storm_user
+      )
+      minRuid = configurations['_storm.min.ruid'] if configurations.has_key('_storm.min.ruid') else ''
+      
+      min_user_ruid = int(minRuid) if minRuid.isdigit() else _find_real_user_min_uid()
+      
+      File(format("{conf_dir}/worker-launcher.cfg"),
+           content=Template("worker-launcher.cfg.j2",min_user_ruid = min_user_ruid), 
+           owner='root',
+           group=params.user_group
+      )
+    
+
+'''
+Finds minimal real user UID
+'''
+def _find_real_user_min_uid():
+  with open('/etc/login.defs') as f:
+    for line in f:
+      if line.strip().startswith('UID_MIN') and len(line.split()) == 2 and line.split()[1].isdigit():
+        return int(line.split()[1])
+  raise AgentException ("Unable to find UID_MIN in file /etc/login.defs. Expecting format e.g.: 'UID_MIN    500'")  

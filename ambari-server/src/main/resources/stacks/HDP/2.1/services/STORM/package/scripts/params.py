@@ -77,6 +77,9 @@ if security_enabled:
     storm_ui_host = default("/clusterHostInfo/storm_ui_server_hosts", [])
     storm_ui_jaas_principal = _storm_ui_jaas_principal_name.replace('_HOST',storm_ui_host[0].lower())
     
+    storm_bare_jaas_principal = _storm_principal_name.replace('_HOST','').replace('@'+kerberos_domain,'')
+    
+    
     
     _nimbus_principal_name = config['configurations']['storm-env']['nimbus_principal_name']
     nimbus_jaas_principal = _nimbus_principal_name.replace('_HOST',nimbus_host.lower())
