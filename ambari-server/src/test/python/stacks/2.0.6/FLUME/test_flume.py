@@ -160,11 +160,6 @@ class TestFlumeHandler(RMFTestCase):
 
     self.assertResourceCalled('Directory', '/var/log/flume', owner = 'flume')
 
-    self.assertResourceCalled('File', "/etc/flume/conf/flume-env.sh",
-      owner="flume",
-      content=InlineTemplate(self.getConfig()['configurations']['flume-env']['content'])
-    )
-
     self.assertResourceCalled('Directory', '/etc/flume/conf/a1')
 
     self.assertResourceCalled('PropertiesFile', '/etc/flume/conf/a1/flume.conf',
@@ -182,16 +177,16 @@ class TestFlumeHandler(RMFTestCase):
       content='{"channels_count": 1, "sinks_count": 1, "sources_count": 1}',
       mode = 0644)
 
+    self.assertResourceCalled('File', "/etc/flume/conf/a1/flume-env.sh",
+                              owner="flume",
+                              content=InlineTemplate(self.getConfig()['configurations']['flume-env']['content'])
+    )
+
   def assert_configure_many(self):
 
     self.assertResourceCalled('Directory', '/etc/flume/conf', recursive=True)
 
     self.assertResourceCalled('Directory', '/var/log/flume', owner = 'flume')
-
-    self.assertResourceCalled('File', "/etc/flume/conf/flume-env.sh",
-         owner="flume",
-         content=InlineTemplate(self.getConfig()['configurations']['flume-env']['content'])
-    )
 
     top = build_flume(self.getConfig()['configurations']['flume-conf']['content'])
 
@@ -209,6 +204,11 @@ class TestFlumeHandler(RMFTestCase):
       content='{"channels_count": 1, "sinks_count": 1, "sources_count": 1}',
       mode = 0644)
 
+    self.assertResourceCalled('File', "/etc/flume/conf/a1/flume-env.sh",
+                              owner="flume",
+                              content=InlineTemplate(self.getConfig()['configurations']['flume-env']['content'])
+    )
+
     # b1
     self.assertResourceCalled('Directory', '/etc/flume/conf/b1')
     self.assertResourceCalled('PropertiesFile', '/etc/flume/conf/b1/flume.conf',
@@ -222,6 +222,11 @@ class TestFlumeHandler(RMFTestCase):
       '/etc/flume/conf/b1/ambari-meta.json',
       content='{"channels_count": 1, "sinks_count": 1, "sources_count": 1}',
       mode = 0644)
+    self.assertResourceCalled('File', "/etc/flume/conf/b1/flume-env.sh",
+                              owner="flume",
+                              content=InlineTemplate(self.getConfig()['configurations']['flume-env']['content'])
+    )
+
 
   @patch("os.path.isfile")
   def test_start_single(self, os_path_isfile_mock):

@@ -33,11 +33,6 @@ def flume(action = None):
     Directory(params.flume_conf_dir, recursive=True)
     Directory(params.flume_log_dir, owner=params.flume_user)
 
-    File(format("{flume_conf_dir}/flume-env.sh"),
-         owner=params.flume_user,
-         content=InlineTemplate(params.flume_env_sh_template)
-    )
-
     flume_agents = {}
     if params.flume_conf_content is not None:
       flume_agents = build_flume_topology(params.flume_conf_content)
@@ -47,6 +42,7 @@ def flume(action = None):
       flume_agent_conf_file = os.path.join(flume_agent_conf_dir, 'flume.conf')
       flume_agent_meta_file = os.path.join(flume_agent_conf_dir, 'ambari-meta.json')
       flume_agent_log4j_file = os.path.join(flume_agent_conf_dir, 'log4j.properties')
+      flume_agent_env_file = os.path.join(flume_agent_conf_dir, 'flume-env.sh')
 
       Directory(flume_agent_conf_dir)
 
@@ -61,6 +57,11 @@ def flume(action = None):
       File(flume_agent_meta_file,
         content = json.dumps(ambari_meta(agent, flume_agents[agent])),
         mode = 0644)
+
+      File(flume_agent_env_file,
+           owner=params.flume_user,
+           content=InlineTemplate(params.flume_env_sh_template)
+      )
 
   elif action == 'start':
     # desired state for service should be STARTED
