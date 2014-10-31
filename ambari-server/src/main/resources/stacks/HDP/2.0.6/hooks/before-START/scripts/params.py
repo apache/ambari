@@ -42,6 +42,7 @@ else:
   hadoop_bin = "/usr/lib/hadoop/sbin"
   hadoop_home = '/usr'
 
+current_service = config['serviceName']
 hadoop_conf_dir = "/etc/hadoop/conf"
 #security params
 security_enabled = config['configurations']['cluster-env']['security_enabled']

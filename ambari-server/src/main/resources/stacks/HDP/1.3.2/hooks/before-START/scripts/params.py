@@ -33,6 +33,7 @@ user_group = config['configurations']['cluster-env']['user_group']
 
 #hosts
 hostname = config["hostname"]
+current_service = config['serviceName']
 ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
 rm_host = default("/clusterHostInfo/rm_host", [])
 slave_hosts = default("/clusterHostInfo/slave_hosts", [])

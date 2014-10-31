@@ -31,7 +31,8 @@ def setup_hadoop():
           only_if="test -f /selinux/enforce"
   )
 
-  install_snappy()
+  if params.current_service == "HDFS":
+    install_snappy()
 
 
   if params.has_namenode:
