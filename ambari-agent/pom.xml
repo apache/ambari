@@ -251,6 +251,7 @@
             </mapping>
             <mapping>
               <directory>${jinja.install.dir}</directory>
+              <filemode>755</filemode>
               <username>root</username>
               <groupname>root</groupname>
               <sources>
@@ -421,6 +422,7 @@
                 <prefix>${jinja.install.dir}</prefix>
                 <user>root</user>
                 <group>root</group>
+                <filemode>755</filemode>
               </mapper>
             </data>
             <data>
