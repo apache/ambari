@@ -286,9 +286,14 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
                 new ViewStatus.Validation("Ambari cluster with ID ["
                     + clusterName + "] was not found on Ambari server"));
           }
-        } catch (Throwable t) {
-          logger.warn("Exception determining view status", t);
-          status.getValidations().add(new ViewStatus.Validation(t.getMessage()));
+        } catch (Throwable e) {
+          logger.warn("Exception determining view status", e);
+          String message = e.getClass().getName() + ": " + e.getMessage();
+          if (e instanceof RuntimeException && e.getCause() != null) {
+            message = e.getCause().getClass().getName() + ": " + e.getMessage();
+          }
+          message = String.format("Unable to initialize Slider view: %s", message);
+          status.getValidations().add(new ViewStatus.Validation(message));
         }
       } else {
         status
