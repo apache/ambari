@@ -70,9 +70,13 @@ App.MainDashboardServiceFlumeView = App.TableView.extend({
 
     click: function (e) {
       var numberOfAgents = this.get('content.agents').length;
-      if($(e.target).attr('id') == "flume-host-agent-row"){
-        $(e.currentTarget).parents("table:first").find('tr').removeClass('highlight');
-        $(e.currentTarget).addClass('highlight').nextAll("tr").slice(0,numberOfAgents - 1).addClass('highlight');
+      if($(e.target).attr('class') == "agent-host-name" || $(e.target).attr('class') == "agent-host-link"){
+        var currentTargetRow = $(e.currentTarget);
+        if ($(e.target).attr('class') == "agent-host-link") {
+          currentTargetRow = currentTargetRow.parent(".agent-host-name").parent();
+        }
+        currentTargetRow.parents("table:first").find('tr').removeClass('highlight');
+        currentTargetRow.addClass('highlight').nextAll("tr").slice(0,numberOfAgents - 1).addClass('highlight');
         this.get('parentView').showAgentInfo(this.get('content'));
       }
     }

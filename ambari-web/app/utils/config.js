@@ -262,6 +262,12 @@ App.config = Em.Object.create({
         config.category = categoryMetaData.get('name');
         if (!isAdvanced) config.isUserProperty = true;
       }
+      if (isAdvanced) {
+        var advancedProperty = advancedConfigs.filterProperty('filename', config.filename).findProperty('name', config.name);
+        if (advancedProperty) {
+          config.description = advancedProperty.description;
+        }
+      }
     } else {
       var advancedProperty = null;
       var configType = this.getConfigTagFromFileName(config.filename);

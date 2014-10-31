@@ -36,7 +36,7 @@
               <tbody class="flume-agent-table-tbody">
                 {{#view view.agentView contentBinding="host"}}
                   <td {{bindAttr rowspan="host.rowspan"}} id="flume-host-agent-row" class="agent-host-name">
-                      <a href="javascript:void(null)" {{action showDetails host.agents}}>
+                      <a class="agent-host-link" href="javascript:void(null)" {{action click host target="view"}}>
                         {{host.hostName}}
                       </a>
                   </td>
