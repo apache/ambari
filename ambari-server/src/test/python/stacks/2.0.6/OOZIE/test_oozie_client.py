@@ -126,6 +126,7 @@ class TestOozieClient(RMFTestCase):
                               )
     self.assertNoMoreResources()
 
+
   def test_configure_default_hdp22(self):
     config_file = "stacks/2.0.6/configs/default.json"
     with open(config_file, "r") as f:
