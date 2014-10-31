@@ -23,7 +23,9 @@
 <configuration supports_final="false">
   <property>
     <name>content</name>
-    <description>Describe all the Flume agent configurations</description>
+    <description>Flume agent configurations. 
+    Specifying the configuration here applies to all hosts in this configuration-group. Please use host specific configuration-groups to provide different configurations on different hosts. 
+    For configuring multiple agents on the same host, provide the combined agent configurations here. Each agent should have a different name.</description>
     <value>
 # Flume agent config
     </value>
