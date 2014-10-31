@@ -56,7 +56,7 @@ class TestFlumeHandler(RMFTestCase):
       '--conf /etc/flume/conf/a1 '
       '--conf-file /etc/flume/conf/a1/flume.conf '
       '-Dflume.monitoring.type=ganglia '
-      '-Dflume.monitoring.hosts=c6401.ambari.apache.org:8655"'),
+      '-Dflume.monitoring.hosts=c6401.ambari.apache.org:8655" &'),
       wait_for_finish = False)
 
     self.assertResourceCalled('Execute', 'pgrep -o -u flume -f ^/usr/jdk64/jdk1.7.0_45.*a1.* > /var/run/flume/a1.pid',
@@ -274,7 +274,7 @@ class TestFlumeHandler(RMFTestCase):
       '--conf /etc/flume/conf/b1 '
       '--conf-file /etc/flume/conf/b1/flume.conf '
       '-Dflume.monitoring.type=ganglia '
-      '-Dflume.monitoring.hosts=c6401.ambari.apache.org:8655"'),
+      '-Dflume.monitoring.hosts=c6401.ambari.apache.org:8655" &'),
       wait_for_finish = False)
 
     self.assertResourceCalled('Execute', 'pgrep -o -u flume -f ^/usr/jdk64/jdk1.7.0_45.*b1.* > /var/run/flume/b1.pid',
