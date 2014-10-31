@@ -71,8 +71,8 @@ export JAVA_HOME={{java_home}}
 # Note that the Flume conf directory is always included in the classpath.
 #FLUME_CLASSPATH=""
 
-# export HIVE_HOME=/usr/lib/hive
-# export HCAT_HOME=/usr/lib/hive-hcatalog
+export HIVE_HOME={{flume_hive_home}}
+export HCAT_HOME={{flume_hcat_home}}
     </value>
   </property>
 </configuration>

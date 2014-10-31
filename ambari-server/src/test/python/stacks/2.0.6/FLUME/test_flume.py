@@ -441,6 +441,76 @@ class TestFlumeHandler(RMFTestCase):
     self.assertTrue('CRITICAL' == struct_out['alerts'][0]['state'])
     self.assertNoMoreResources()
 
+  def test_flume_env_not_22(self):
+    self.executeScript("2.0.6/services/FLUME/package/scripts/flume_handler.py",
+                       classname = "FlumeHandler",
+                       command = "configure",
+                       config_file="default.json")
+
+    self.assertResourceCalled('Directory', '/etc/flume/conf', recursive=True)
+
+    self.assertResourceCalled('Directory', '/var/log/flume', owner = 'flume')
+
+    self.assertResourceCalled('Directory', '/etc/flume/conf/a1')
+
+    self.assertResourceCalled('PropertiesFile', '/etc/flume/conf/a1/flume.conf',
+      mode = 0644,
+      properties = build_flume(
+        self.getConfig()['configurations']['flume-conf']['content'])['a1'])
+
+    self.assertResourceCalled('File',
+      '/etc/flume/conf/a1/log4j.properties',
+      content = Template('log4j.properties.j2', agent_name = 'a1'),
+      mode = 0644)
+
+    self.assertResourceCalled('File',
+      '/etc/flume/conf/a1/ambari-meta.json',
+      content='{"channels_count": 1, "sinks_count": 1, "sources_count": 1}',
+      mode = 0644)
+
+    content = InlineTemplate(self.getConfig()['configurations']['flume-env']['content'])
+
+    self.assertTrue(content.get_content().find('/usr/lib/hive') > -1)
+
+    self.assertResourceCalled('File', "/etc/flume/conf/a1/flume-env.sh",
+                              owner="flume",
+                              content=content)
+
+  def test_flume_env_with_22(self):
+    self.executeScript("2.0.6/services/FLUME/package/scripts/flume_handler.py",
+                       classname = "FlumeHandler",
+                       command = "configure",
+                       config_file="flume_22.json")
+
+    self.assertResourceCalled('Directory', '/etc/flume/conf', recursive=True)
+
+    self.assertResourceCalled('Directory', '/var/log/flume', owner = 'flume')
+
+    self.assertResourceCalled('Directory', '/etc/flume/conf/a1')
+
+    self.assertResourceCalled('PropertiesFile', '/etc/flume/conf/a1/flume.conf',
+      mode = 0644,
+      properties = build_flume(
+        self.getConfig()['configurations']['flume-conf']['content'])['a1'])
+
+    self.assertResourceCalled('File',
+      '/etc/flume/conf/a1/log4j.properties',
+      content = Template('log4j.properties.j2', agent_name = 'a1'),
+      mode = 0644)
+
+    self.assertResourceCalled('File',
+      '/etc/flume/conf/a1/ambari-meta.json',
+      content='{"channels_count": 1, "sinks_count": 1, "sources_count": 1}',
+      mode = 0644)
+
+    content = InlineTemplate(self.getConfig()['configurations']['flume-env']['content'])
+
+    self.assertTrue(content.get_content().find('/usr/hdp/current/hive-metastore') > -1)
+
+    self.assertResourceCalled('File', "/etc/flume/conf/a1/flume-env.sh",
+                              owner="flume",
+                              content=content)
+
 def build_flume(content):
   result = {}
   agent_names = []
