@@ -67,9 +67,10 @@ def flume(action = None):
     # desired state for service should be STARTED
     if len(params.flume_command_targets) == 0:
       _set_desired_state('STARTED')
-      
+
+    # It is important to run this command as a background process.
     flume_base = format('su -s /bin/bash {flume_user} -c "export JAVA_HOME={java_home}; '
-      '{flume_bin} agent --name {{0}} --conf {{1}} --conf-file {{2}} {{3}}"')
+      '{flume_bin} agent --name {{0}} --conf {{1}} --conf-file {{2}} {{3}}" &')
 
     for agent in cmd_target_names():
       flume_agent_conf_dir = params.flume_conf_dir + os.sep + agent
