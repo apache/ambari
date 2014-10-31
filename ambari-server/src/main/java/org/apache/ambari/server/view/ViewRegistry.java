@@ -123,7 +123,7 @@ public class ViewRegistry {
    * Mapping of view names to sub-resources.
    */
   private final Map<String, Set<SubResourceDefinition>> subResourceDefinitionsMap =
-      new HashMap<String, Set<SubResourceDefinition>>();
+      new ConcurrentHashMap<String, Set<SubResourceDefinition>>();
 
   /**
    * Mapping of view types to resource providers.
@@ -402,27 +402,12 @@ public class ViewRegistry {
    *
    * @return the set of sub-resource definitions
    */
-  public synchronized Set<SubResourceDefinition> getSubResourceDefinitions(
+  public Set<SubResourceDefinition> getSubResourceDefinitions(
       String viewName, String version) {
 
     viewName = ViewEntity.getViewName(viewName, version);
 
-    Set<SubResourceDefinition> subResourceDefinitions =
-        subResourceDefinitionsMap.get(viewName);
-
-    if (subResourceDefinitions == null) {
-      subResourceDefinitions = new HashSet<SubResourceDefinition>();
-      ViewEntity definition = getDefinition(viewName);
-      if (definition != null) {
-        if (definition.isDeployed()) {
-          for (Resource.Type type : definition.getViewResourceTypes()) {
-            subResourceDefinitions.add(new SubResourceDefinition(type));
-          }
-          subResourceDefinitionsMap.put(viewName, subResourceDefinitions);
-        }
-      }
-    }
-    return subResourceDefinitions;
+    return subResourceDefinitionsMap.get(viewName);
   }
 
   /**
@@ -820,10 +805,13 @@ public class ViewRegistry {
     List<ParameterConfig> parameterConfigurations = viewConfig.getParameters();
 
     Collection<ViewParameterEntity> parameters = new HashSet<ViewParameterEntity>();
+
+    String viewName = viewDefinition.getName();
+
     for (ParameterConfig parameterConfiguration : parameterConfigurations) {
       ViewParameterEntity viewParameterEntity =  new ViewParameterEntity();
 
-      viewParameterEntity.setViewName(viewDefinition.getName());
+      viewParameterEntity.setViewName(viewName);
       viewParameterEntity.setName(parameterConfiguration.getName());
       viewParameterEntity.setDescription(parameterConfiguration.getDescription());
       viewParameterEntity.setRequired(parameterConfiguration.isRequired());
@@ -850,7 +838,7 @@ public class ViewRegistry {
     for (ResourceConfig resourceConfiguration : resourceConfigurations) {
       ViewResourceEntity viewResourceEntity = new ViewResourceEntity();
 
-      viewResourceEntity.setViewName(viewDefinition.getName());
+      viewResourceEntity.setViewName(viewName);
       viewResourceEntity.setName(resourceConfiguration.getName());
       viewResourceEntity.setPluralName(resourceConfiguration.getPluralName());
       viewResourceEntity.setIdProperty(resourceConfiguration.getIdProperty());
@@ -884,7 +872,7 @@ public class ViewRegistry {
     }
 
     ResourceTypeEntity resourceTypeEntity = new ResourceTypeEntity();
-    resourceTypeEntity.setName(viewDefinition.getName());
+    resourceTypeEntity.setName(viewName);
 
     viewDefinition.setResourceType(resourceTypeEntity);
 
@@ -906,6 +894,12 @@ public class ViewRegistry {
     }
     viewDefinition.setView(view);
     viewDefinition.setMask(viewConfig.getMasker());
+
+    Set<SubResourceDefinition> subResourceDefinitions = new HashSet<SubResourceDefinition>();
+    for (Resource.Type type : viewDefinition.getViewResourceTypes()) {
+      subResourceDefinitions.add(new SubResourceDefinition(type));
+    }
+    subResourceDefinitionsMap.put(viewName, subResourceDefinitions);
 
     return viewDefinition;
   }

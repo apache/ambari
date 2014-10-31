@@ -40,6 +40,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -75,8 +76,6 @@ import org.apache.ambari.server.security.authorization.AmbariGrantedAuthority;
 import org.apache.ambari.server.view.configuration.InstanceConfig;
 import org.apache.ambari.server.view.configuration.InstanceConfigTest;
 import org.apache.ambari.server.view.configuration.PropertyConfig;
-import org.apache.ambari.server.view.configuration.ResourceConfig;
-import org.apache.ambari.server.view.configuration.ResourceConfigTest;
 import org.apache.ambari.server.view.configuration.ViewConfig;
 import org.apache.ambari.server.view.configuration.ViewConfigTest;
 import org.apache.ambari.server.view.events.EventImpl;
@@ -611,30 +610,28 @@ public class ViewRegistryTest {
 
   @Test
   public void testGetSubResourceDefinitions() throws Exception {
+    ViewConfig config = ViewConfigTest.getConfig();
+
     ViewEntity viewDefinition = ViewEntityTest.getViewEntity();
+
     ViewRegistry registry = ViewRegistry.getInstance();
 
-    viewDefinition.setStatus(ViewDefinition.ViewStatus.DEPLOYING);
+    registry.setupViewDefinition(viewDefinition, config, getClass().getClassLoader());
 
-    registry.addDefinition(viewDefinition);
-    Set<SubResourceDefinition> subResourceDefinitions = registry.getSubResourceDefinitions("MY_VIEW", "1.0.0");
+    Set<SubResourceDefinition> subResourceDefinitions =
+        registry.getSubResourceDefinitions(viewDefinition.getCommonName(), viewDefinition.getVersion());
 
-    Assert.assertTrue(subResourceDefinitions.isEmpty());
 
-    ResourceConfig config = ResourceConfigTest.getResourceConfigs().get(0);
-    Resource.Type type1 = new Resource.Type("myType");
+    Assert.assertEquals(3, subResourceDefinitions.size());
 
-    ResourceProvider provider1 = createNiceMock(ResourceProvider.class);
-    viewDefinition.addResourceProvider(type1, provider1);
+    Set<String> names = new HashSet<String>();
+    for (SubResourceDefinition definition : subResourceDefinitions) {
+      names.add(definition.getType().name());
+    }
 
-    viewDefinition.addResourceConfiguration(type1, config);
-
-    viewDefinition.setStatus(ViewDefinition.ViewStatus.DEPLOYED);
-
-    subResourceDefinitions = registry.getSubResourceDefinitions("MY_VIEW", "1.0.0");
-
-    Assert.assertEquals(1, subResourceDefinitions.size());
-    Assert.assertEquals("myType", subResourceDefinitions.iterator().next().getType().name());
+    Assert.assertTrue(names.contains("MY_VIEW{1.0.0}/resources"));
+    Assert.assertTrue(names.contains("MY_VIEW{1.0.0}/resource"));
+    Assert.assertTrue(names.contains("MY_VIEW{1.0.0}/subresource"));
   }
 
   @Test
