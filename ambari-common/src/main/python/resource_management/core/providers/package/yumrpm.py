@@ -26,7 +26,7 @@ from resource_management.core.logger import Logger
 
 INSTALL_CMD = "/usr/bin/yum -d 0 -e 0 -y install %s"
 REMOVE_CMD = "/usr/bin/yum -d 0 -e 0 -y erase %s"
-CHECK_CMD = "rpm -qa %s"
+CHECK_CMD = "installed_pkgs=`rpm -qa %s` ; [ ! -z \"$installed_pkgs\" ]"
 
 class YumProvider(PackageProvider):
   def install_package(self, name):
