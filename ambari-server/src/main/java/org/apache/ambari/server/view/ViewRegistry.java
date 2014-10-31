@@ -414,11 +414,13 @@ public class ViewRegistry {
       subResourceDefinitions = new HashSet<SubResourceDefinition>();
       ViewEntity definition = getDefinition(viewName);
       if (definition != null) {
-        for (Resource.Type type : definition.getViewResourceTypes()) {
-          subResourceDefinitions.add(new SubResourceDefinition(type));
+        if (definition.isDeployed()) {
+          for (Resource.Type type : definition.getViewResourceTypes()) {
+            subResourceDefinitions.add(new SubResourceDefinition(type));
+          }
+          subResourceDefinitionsMap.put(viewName, subResourceDefinitions);
         }
       }
-      subResourceDefinitionsMap.put(viewName, subResourceDefinitions);
     }
     return subResourceDefinitions;
   }

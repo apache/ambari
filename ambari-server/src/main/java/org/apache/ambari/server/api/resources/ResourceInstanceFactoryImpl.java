@@ -19,6 +19,7 @@
 
 package org.apache.ambari.server.api.resources;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -223,10 +224,12 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
         break;
 
       case ViewInstance:
-        Set<SubResourceDefinition> subResourceDefinitions =
-            ViewRegistry.getInstance().getSubResourceDefinitions(
-                mapIds.get(Resource.Type.View),
-                mapIds.get(Resource.Type.ViewVersion));
+        String viewName = mapIds.get(Resource.Type.View);
+        String version  = mapIds.get(Resource.Type.ViewVersion);
+
+        Set<SubResourceDefinition> subResourceDefinitions = (viewName == null || version == null)  ?
+            Collections.<SubResourceDefinition>emptySet() :
+            ViewRegistry.getInstance().getSubResourceDefinitions(viewName, version);
 
         resourceDefinition = new ViewInstanceResourceDefinition(subResourceDefinitions);
         break;

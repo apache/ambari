@@ -614,6 +614,13 @@ public class ViewRegistryTest {
     ViewEntity viewDefinition = ViewEntityTest.getViewEntity();
     ViewRegistry registry = ViewRegistry.getInstance();
 
+    viewDefinition.setStatus(ViewDefinition.ViewStatus.DEPLOYING);
+
+    registry.addDefinition(viewDefinition);
+    Set<SubResourceDefinition> subResourceDefinitions = registry.getSubResourceDefinitions("MY_VIEW", "1.0.0");
+
+    Assert.assertTrue(subResourceDefinitions.isEmpty());
+
     ResourceConfig config = ResourceConfigTest.getResourceConfigs().get(0);
     Resource.Type type1 = new Resource.Type("myType");
 
@@ -621,8 +628,10 @@ public class ViewRegistryTest {
     viewDefinition.addResourceProvider(type1, provider1);
 
     viewDefinition.addResourceConfiguration(type1, config);
-    registry.addDefinition(viewDefinition);
-    Set<SubResourceDefinition> subResourceDefinitions = registry.getSubResourceDefinitions("MY_VIEW", "1.0.0");
+
+    viewDefinition.setStatus(ViewDefinition.ViewStatus.DEPLOYED);
+
+    subResourceDefinitions = registry.getSubResourceDefinitions("MY_VIEW", "1.0.0");
 
     Assert.assertEquals(1, subResourceDefinitions.size());
     Assert.assertEquals("myType", subResourceDefinitions.iterator().next().getType().name());
