@@ -564,6 +564,8 @@ NR_ADJUST_OWNERSHIP_LIST = [
   ("/etc/ambari-server/conf/ldap-password.dat", "640", "{0}", False),
   ("/var/run/ambari-server/stack-recommendations/", "644", "{0}", True),
   ("/var/run/ambari-server/stack-recommendations/", "755", "{0}", False),
+  ("/var/lib/ambari-server/data/tmp/", "644", "{0}", True),
+  ("/var/lib/ambari-server/data/tmp/", "755", "{0}", False),
   # Also, /etc/ambari-server/conf/password.dat
   # is generated later at store_password_file
 ]

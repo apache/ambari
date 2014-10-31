@@ -291,6 +291,7 @@
             </mapping>
             <mapping>
               <directory>${jinja.install.dir}</directory>
+              <filemode>755</filemode>
               <username>root</username>
               <groupname>root</groupname>
               <sources>
@@ -429,6 +430,12 @@
                   <location>src/main/resources/role_command_order.json</location>
                 </source>
               </sources>
+            </mapping>
+            <mapping>
+              <directory>/var/lib/ambari-server/data/tmp</directory>
+              <filemode>755</filemode>
+              <username>root</username>
+              <groupname>root</groupname>
             </mapping>
             <mapping>
               <directory>/var/lib/ambari-server/resources/apps</directory>
@@ -584,6 +591,7 @@
                 <path>/var/run/ambari-server/stack-recommendations</path>
                 <path>/var/log/ambari-server</path>
                 <path>/var/lib/ambari-server/resources/upgrade</path>
+                <path>/var/lib/ambari-server/data/tmp</path>
               </paths>
             </data>
             <!-- TODO: should be included all subdirs, if exists-->
@@ -970,6 +978,7 @@
               <mapper>
                 <type>perm</type>
                 <prefix>${jinja.install.dir}</prefix>
+                <filemode>755</filemode>
                 <user>root</user>
                 <group>root</group>
               </mapper>
