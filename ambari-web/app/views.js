@@ -41,7 +41,7 @@ require('views/common/table_view');
 require('views/login');
 require('views/main');
 require('views/main/menu');
-require('views/main/alerts');
+require('views/main/alert_definitions_view');
 require('views/main/charts');
 require('views/main/views/details');
 require('views/main/host');

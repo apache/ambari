@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+var dateUtils = require('utils/date');
 
 App.AlertDefinition = DS.Model.extend({
 
@@ -28,7 +29,17 @@ App.AlertDefinition = DS.Model.extend({
   scope: DS.attr('string'),
   interval: DS.attr('number'),
   type: DS.attr('string'),
-  reporting: DS.hasMany('App.AlertReportDefinition')
+  reporting: DS.hasMany('App.AlertReportDefinition'),
+  alerts: DS.hasMany('App.AlertInstance'),
+
+  /**
+   * Formatted timestamp for latest alert triggering for current alertDefinition
+   * @type {string}
+   */
+  lastTriggered: function() {
+    return dateUtils.dateFormat(Math.max.apply(Math, this.get('alerts').mapProperty('latestTimestamp')));
+  }.property('alerts.@each.latestTimestamp')
+
 });
 
 App.AlertReportDefinition = DS.Model.extend({

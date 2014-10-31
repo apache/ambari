@@ -19,20 +19,65 @@
 <div id="alerts">
   <div class="box-header row">
   </div>
-  <table class="table advanced-header-table table-bordered table-striped" id="">
+  <table class="table advanced-header-table table-bordered table-striped" id="alerts-table">
     <thead>
-      <tr class="filter-row">
-      </tr>
+      {{#view view.sortView classNames="label-row" contentBinding="view.filteredContent"}}
+        {{view view.parentView.nameSort class="first"}}
+        {{view view.parentView.statusSort}}
+        {{view view.parentView.serviceSort}}
+        {{view view.parentView.lastTriggeredSort}}
+      <th><span class="icon-off"></span></th>
+      {{/view}}
+    <tr class="filter-row">
+      <th class="first">{{view view.nameFilterView}}</th>
+      <th>{{view view.stateFilterView}}</th>
+      <th>{{view view.serviceFilterView}}</th>
+      <th>{{view view.triggeredFilterView}}</th>
+      <th></th>
+    </tr>
     </thead>
     <tbody>
+      {{#if view.pageContent}}
+        {{#each alertDefinition in view.pageContent}}
+          {{#view view.AlertDefinitionView contentBinding="alertDefinition"}}
+            <td class="first">
+              <a href="#" {{action "gotoAlertDetails" alertDefinition target="controller"}}>{{alertDefinition.label}}</a>
+            </td>
+            <td>{{{view.status}}}</td>
+            <td>{{alertDefinition.service.serviceName}}</td>
+            <td>{{alertDefinition.lastTriggered}}</td>
+            <td class="last">
+              <a href="#" {{action "toggleState" alertDefinition target="controller"}} {{bindAttr class="alertDefinition.enabled:enabled:disabled"}}>
+                <span class="icon-off"></span>
+              </a>
+            </td>
+          {{/view}}
+        {{/each}}
+      {{else}}
+      <tr>
+        <td class="first"></td>
+        <td colspan="4">
+          {{t alerts.table.noAlerts}}
+        </td>
+      </tr>
+      {{/if}}
     </tbody>
   </table>
 
-  <div>
-    <div class="spinner"></div>
-  </div>
-
   <div class="page-bar">
+    <div class="filtered-info span4">
+      <label>{{view.filteredContentInfo}} - <a {{action clearFilters target="view"}}
+          href="#">{{t tableView.filters.clearAllFilters}}</a></label>
+    </div>
+    <div class="selected-hosts-info span4">
+    </div>
+    <div class="items-on-page">
+      <label>{{t common.show}}: {{view view.rowsPerPageSelectView selectionBinding="view.displayLength"}}</label>
+    </div>
+    <div class="info">{{view.paginationInfo}}</div>
+    <div class="paging_two_button">
+      <a {{bindAttr class="view.paginationLeftClass"}}{{action previousPage target="view"}}><i class="icon-arrow-left"></i></a>
+      <a {{bindAttr class="view.paginationRightClass"}}{{action nextPage target="view"}}><i class="icon-arrow-right"></i></a>
+    </div>
   </div>
 </div>
-

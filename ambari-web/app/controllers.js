@@ -66,6 +66,7 @@ require('controllers/main/admin/security/add/step3');
 require('controllers/main/admin/security/add/step4');
 require('controllers/main/admin/authentication');
 require('controllers/main/alerts_controller');
+require('controllers/main/alert_definitions_controller');
 require('controllers/main/service');
 require('controllers/main/service/item');
 require('controllers/main/service/info/summary');

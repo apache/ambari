@@ -152,6 +152,9 @@ App.alertDefinitionsMapper = App.QuickDataMapper.create({
       App.store.loadMany(App.WebAlertDefinition, webAlertDefinitions);
       App.store.loadMany(App.AggregateAlertDefinition, aggregateAlertDefinitions);
       App.store.loadMany(App.ScriptAlertDefinition, scriptAlertDefinitions);
+      if (App.router.get('mainAlertDefinitionsController')) {
+         App.router.set('mainAlertDefinitionsController.mapperTimestamp', (new Date()).getTime());
+      }
     }
   },
 

@@ -569,8 +569,7 @@ module.exports = {
         break;
       case 'select':
         return function (origin, compareValue){
-          //TODO add filter by select value
-          return true;
+          return origin == compareValue;
         };
         break;
       case 'range':

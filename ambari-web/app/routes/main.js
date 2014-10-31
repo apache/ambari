@@ -315,10 +315,10 @@ module.exports = Em.Route.extend({
 
   alerts: Em.Route.extend({
     route: '/alerts',
-    index: Ember.Route.extend({
+    index: Em.Route.extend({
       route: '/',
       connectOutlets: function (router, context) {
-        router.get('mainController').connectOutlet('mainAlerts');
+        router.get('mainController').connectOutlet('mainAlertDefinitions');
       }
     }),
 
@@ -327,7 +327,7 @@ module.exports = Em.Route.extend({
       connectOutlets: function (router, host) {
       },
 
-      index: Ember.Route.extend({
+      index: Em.Route.extend({
         route: '/'
       })
     })

@@ -819,6 +819,10 @@ Em.I18n.translations = {
   'form.validator.configGroupName':'Invalid Group Name. Only alphanumerics, hyphens, spaces and underscores are allowed.',
   'form.validator.configKey.specific':'"{0}" is invalid Key. Only alphanumerics, hyphens, underscores, asterisks and periods are allowed.',
 
+  'alerts.table.noAlerts': 'No Alerts to display',
+  'alerts.table.header.lastTriggered': 'Last Triggered',
+  'alerts.filters.filteredAlertsInfo': '{0} of {1} alerts showing',
+
   'admin.advanced.caution':'This section is for advanced user only.<br/>Proceed with caution.',
   'admin.advanced.button.uninstallIncludingData':'Uninstall cluster including all data.',
   'admin.advanced.button.uninstallKeepData':'Uninstall cluster but keep data.',
