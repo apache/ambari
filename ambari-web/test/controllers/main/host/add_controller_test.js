@@ -329,4 +329,56 @@ describe('App.AddHostController', function () {
       expect(App.ajax.send.called).to.be.true;
     });
   });
+
+  describe('#getClientsToInstall', function () {
+    var services = [
+      Em.Object.create({
+        serviceName: 'service1'
+      }),
+      Em.Object.create({
+        serviceName: 'service2'
+      })
+    ];
+    var components = [
+      Em.Object.create({
+        componentName: 'comp1',
+        displayName: 'comp1',
+        serviceName: 'service1',
+        isClient: true
+      }),
+      Em.Object.create({
+        componentName: 'comp2',
+        displayName: 'comp2',
+        serviceName: 'service1',
+        isClient: true
+      }),
+      Em.Object.create({
+        componentName: 'comp3',
+        displayName: 'comp3',
+        serviceName: 'service2',
+        isClient: false
+      }),
+      Em.Object.create({
+        componentName: 'comp4',
+        displayName: 'comp4',
+        serviceName: 'service3',
+        isClient: true
+      })
+    ];
+    var clients = [
+      {
+        component_name: 'comp1',
+        display_name: 'comp1',
+        isInstalled: false
+      },
+      {
+        component_name: 'comp2',
+        display_name: 'comp2',
+        isInstalled: false
+      }
+    ];
+    it("generatel list of clients to install", function () {
+      expect(controller.getClientsToInstall(services, components)).to.eql(clients);
+    })
+  })
 });
