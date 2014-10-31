@@ -52,21 +52,22 @@ def hbase(name=None # 'master' or 'regionserver' or 'client'
             group = params.user_group
   )
 
-  XmlConfig( "hdfs-site.xml",
+  if 'hdfs-site' in params.config['configurations']:
+    XmlConfig( "hdfs-site.xml",
             conf_dir = params.hbase_conf_dir,
             configurations = params.config['configurations']['hdfs-site'],
             configuration_attributes=params.config['configuration_attributes']['hdfs-site'],
             owner = params.hbase_user,
             group = params.user_group
-  )
+    )
 
-  XmlConfig("hdfs-site.xml",
+    XmlConfig("hdfs-site.xml",
             conf_dir=params.hadoop_conf_dir,
             configurations=params.config['configurations']['hdfs-site'],
             configuration_attributes=params.config['configuration_attributes']['hdfs-site'],
             owner=params.hdfs_user,
             group=params.user_group
-  )
+    )
 
   if 'hbase-policy' in params.config['configurations']:
     XmlConfig( "hbase-policy.xml",
