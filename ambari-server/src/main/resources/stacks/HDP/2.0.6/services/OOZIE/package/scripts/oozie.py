@@ -31,12 +31,12 @@ def oozie(is_server=False # TODO: see if see can remove this
                          owner=params.oozie_user,
                          mode=params.oozie_hdfs_user_mode
     )
-  Directory( params.conf_dir,
+  Directory(params.conf_dir,
              recursive = True,
              owner = params.oozie_user,
              group = params.user_group
   )
-  XmlConfig( "oozie-site.xml",
+  XmlConfig("oozie-site.xml",
     conf_dir = params.conf_dir,
     configurations = params.config['configurations']['oozie-site'],
     configuration_attributes=params.config['configuration_attributes']['oozie-site'],
@@ -90,14 +90,14 @@ def oozie(is_server=False # TODO: see if see can remove this
       not_if  = format("[ -f {check_db_connection_jar} ]"),
       environment=environment
     )
-    
-  oozie_ownership( )
+  pass
+
+  oozie_ownership()
   
   if is_server:      
-    oozie_server_specific( )
+    oozie_server_specific()
   
-def oozie_ownership(
-):
+def oozie_ownership():
   import params
   
   File ( format("{conf_dir}/hadoop-config.xml"),
@@ -120,8 +120,7 @@ def oozie_ownership(
     group = params.user_group
   )
   
-def oozie_server_specific(
-):
+def oozie_server_specific():
   import params
   
   File(params.pid_file,
@@ -157,4 +156,30 @@ def oozie_server_specific(
     user = params.oozie_user,
     not_if  = no_op_test
   )
+
+  if params.stack_is_hdp22_or_further:
+    # Create hive-site and tez-site configs for oozie
+    Directory(params.hive_conf_dir,
+        recursive = True,
+        owner = params.oozie_user,
+        group = params.user_group
+    )
+    if params.config['configurations']['hive-site']:
+      XmlConfig("hive-site.xml",
+        conf_dir=params.hive_conf_dir,
+        configurations=params.config['configurations']['hive-site'],
+        configuration_attributes=params.config['configuration_attributes']['hive-site'],
+        owner=params.oozie_user,
+        group=params.user_group,
+        mode=0644)
+    if params.config['configurations']['tez-site']:
+      XmlConfig( "tez-site.xml",
+        conf_dir = params.hive_conf_dir,
+        configurations = params.config['configurations']['tez-site'],
+        configuration_attributes=params.config['configuration_attributes']['tez-site'],
+        owner = params.oozie_user,
+        group = params.user_group,
+        mode = 0664
+  )
+  pass
   

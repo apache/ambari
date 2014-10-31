@@ -63,6 +63,7 @@ execute_path = oozie_bin_dir + os.pathsep + hadoop_bin_dir
 
 hadoop_conf_dir = "/etc/hadoop/conf"
 conf_dir = "/etc/oozie/conf"
+hive_conf_dir = "/etc/oozie/conf/action-conf/hive"
 oozie_user = config['configurations']['oozie-env']['oozie_user']
 smokeuser = config['configurations']['cluster-env']['smokeuser']
 user_group = config['configurations']['cluster-env']['user_group']

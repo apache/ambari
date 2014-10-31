@@ -343,3 +343,40 @@ class TestOozieServer(RMFTestCase):
                               user = 'oozie',
                               )
 
+    def test_configure_default_hdp22(self):
+      config_file = "stacks/2.0.6/configs/default.json"
+      with open(config_file, "r") as f:
+        default_json = json.load(f)
+
+      default_json['hostLevelParams']['stack_version']= '2.2'
+      self.executeScript("2.0.6/services/OOZIE/package/scripts/oozie_server.py",
+                       classname = "OozieServer",
+                       command = "configure",
+                       config_file="default.json"
+      )
+      self.assert_configure_default()
+      self.assertResourceCalled('Directory', '/etc/oozie/conf/action-conf/hive',
+                              owner = 'oozie',
+                              group = 'hadoop',
+                              recursive = True
+                              )
+      self.assertResourceCalled('XmlConfig', 'hive-site',
+                                owner = 'oozie',
+                                group = 'hadoop',
+                                mode = 0664,
+                                conf_dir = '/etc/oozie/conf/action-conf/hive',
+                                configurations = self.getConfig()['configurations']['hive-site'],
+                                configuration_attributes = self.getConfig()['configuration_attributes']['hive-site']
+      )
+      self.assertResourceCalled('XmlConfig', 'tez-site',
+                                owner = 'oozie',
+                                group = 'hadoop',
+                                mode = 0664,
+                                conf_dir = '/etc/oozie/conf/action-conf/hive',
+                                configurations = self.getConfig()['configurations']['tez-site'],
+                                configuration_attributes = self.getConfig()['configuration_attributes']['tez-site']
+      )
+      self.assertNoMoreResources()
+
+
+
