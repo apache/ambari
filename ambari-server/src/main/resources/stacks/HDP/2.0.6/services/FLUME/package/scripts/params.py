@@ -34,8 +34,12 @@ stack_is_hdp22_or_further = hdp_stack_version != "" and compare_versions(hdp_sta
 #hadoop params
 if stack_is_hdp22_or_further:
   flume_bin = '/usr/hdp/current/flume-server/bin/flume-ng'
+  flume_hive_home = '/usr/hdp/current/hive-metastore'
+  flume_hcat_home = '/usr/hdp/current/hive-webhcat'
 else:
   flume_bin = '/usr/bin/flume-ng'
+  flume_hive_home = '/usr/lib/hive'
+  flume_hcat_home = '/usr/lib/hive-hcatalog'
 
 flume_conf_dir = '/etc/flume/conf'
 java_home = config['hostLevelParams']['java_home']

@@ -8,7 +8,7 @@
         "ambari_db_rca_url": "jdbc:postgresql://c6401.ambari.apache.org/ambarirca",
         "repo_info": "[{\"baseUrl\":\"http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.0\",\"osType\":\"centos6\",\"repoId\":\"HDP-2.0._\",\"repoName\":\"HDP\",\"defaultBaseUrl\":\"http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.0\"}]",
         "jce_name": "UnlimitedJCEPolicyJDK7.zip", 
-        "stack_version": "2.0",
+        "stack_version": "2.2",
         "stack_name": "HDP", 
         "ambari_db_rca_driver": "org.postgresql.Driver", 
         "jdk_name": "jdk-7u67-linux-x64.tar.gz",
