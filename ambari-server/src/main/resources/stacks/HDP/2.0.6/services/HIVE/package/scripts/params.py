@@ -34,7 +34,7 @@ stack_is_hdp22_or_further = hdp_stack_version != "" and compare_versions(hdp_sta
 
 # Hadoop params
 # TODO, this logic should initialize these parameters in a file inside the HDP 2.2 stack.
-if compare_versions(hdp_stack_version, "2.2.0.0") >= 0:
+if stack_is_hdp22_or_further:
   hadoop_bin_dir = "/usr/hdp/current/hadoop-client/bin"
   hadoop_home = '/usr/hdp/current/hadoop-client'
   hive_bin = '/usr/hdp/current/hive-client/bin'
@@ -53,7 +53,7 @@ else:
   hive_tar_file = '/usr/share/HDP-webhcat/hive.tar.gz'
   sqoop_tar_file = '/usr/share/HDP-webhcat/sqoop*.tar.gz'
 
-  if compare_versions(hdp_stack_version, "2.1.0.0") < 0:
+  if hdp_stack_version != "" and compare_versions(hdp_stack_version, "2.1.0.0") < 0:
     hcat_lib = '/usr/lib/hcatalog/share/hcatalog'
     webhcat_bin_dir = '/usr/lib/hcatalog/sbin'
   # for newer versions
@@ -66,8 +66,7 @@ hive_conf_dir = "/etc/hive/conf"
 hive_client_conf_dir = "/etc/hive/conf"
 hive_server_conf_dir = '/etc/hive/conf.server'
 
-
-if compare_versions(hdp_stack_version, "2.1.0.0") < 0:
+if hdp_stack_version != "" and compare_versions(hdp_stack_version, "2.1.0.0") < 0:
   hcat_conf_dir = '/etc/hcatalog/conf'
   config_dir = '/etc/hcatalog/conf'
 # for newer versions
@@ -169,7 +168,7 @@ mysql_host = config['clusterHostInfo']['hive_mysql_host']
 mysql_adduser_path = format("{tmp_dir}/addMysqlUser.sh")
 
 ######## Metastore Schema
-if compare_versions(hdp_stack_version, "2.1.0.0") < 0:
+if hdp_stack_version != "" and compare_versions(hdp_stack_version, "2.1.0.0") < 0:
   init_metastore_schema = False
 else:
   init_metastore_schema = True
