@@ -42,18 +42,28 @@ module.exports = Em.Route.extend({
             console.log('current step=' + router.get('installerController.currentStep'));
             Ember.run.next(function () {
               var installerController = router.get('installerController');
-
               App.clusterStatus.updateFromServer().complete(function () {
                 var currentClusterStatus = App.clusterStatus.get('value');
-
+                //@TODO: Clean up  following states. Navigation should be done solely via currentStep stored in the localDb and API persist endpoint.
+                //       Actual currentStep value for the installer controller should always remain in sync with localdb and at persist store in the server.
                 if (currentClusterStatus) {
                   switch (currentClusterStatus.clusterState) {
                     case 'CLUSTER_NOT_CREATED_1' :
+                      var localDb = currentClusterStatus.localdb;
+                      if (localDb && localDb.Installer && localDb.Installer.currentStep) {
+                        App.db.data = currentClusterStatus.localdb;
+                        App.router.setAuthenticated(true);
+                        var controllerName = installerController.get('name');
+                        var suffixLength = 10;
+                        var currentStep = App.get('router').getWizardCurrentStep(controllerName.substr(0, controllerName.length - suffixLength));
+                        installerController.setCurrentStep(currentStep);
+                      }
                       router.transitionTo('step' + installerController.get('currentStep'));
                       break;
                     case 'CLUSTER_DEPLOY_PREP_2' :
                       installerController.setCurrentStep('8');
                       App.db.data = currentClusterStatus.localdb;
+                      App.router.setAuthenticated(true);
                       router.transitionTo('step' + installerController.get('currentStep'));
                       break;
                     case 'CLUSTER_INSTALLING_3' :
@@ -68,6 +78,7 @@ module.exports = Em.Route.extend({
                         installerController.setCurrentStep('10');
                       }
                       App.db.data = currentClusterStatus.localdb;
+                      App.router.setAuthenticated(true);
                       router.transitionTo('step' + installerController.get('currentStep'));
                       break;
                     case 'DEFAULT' :

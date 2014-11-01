@@ -124,7 +124,7 @@ App.Router = Em.Router.extend({
   },
 
   onAuthenticationSuccess: function (data) {
-    this.set('loggedIn', true);
+    this.setAuthenticated(true);
     if (data.items.length) {
       this.setClusterInstalled(data);
     }
@@ -132,7 +132,7 @@ App.Router = Em.Router.extend({
 
   onAuthenticationError: function (data) {
     if (data.status === 403) {
-      this.set('loggedIn', false);
+      this.setAuthenticated(false);
     } else {
       console.log('error in getAuthenticated');
     }
