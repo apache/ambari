@@ -455,7 +455,7 @@ public abstract class GangliaPropertyProvider extends AbstractPropertyProvider {
 
         //Check if Ganglia server component is live
         if (!hostProvider.isGangliaCollectorComponentLive(clusterName)) {
-          LOG.info("Ganglia server component is not live");
+          LOG.debug("Ganglia server component is not live");
           return Collections.emptySet();
         }
 
