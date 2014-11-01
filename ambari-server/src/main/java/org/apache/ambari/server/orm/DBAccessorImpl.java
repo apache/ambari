@@ -567,7 +567,7 @@ public class DBAccessorImpl implements DBAccessor {
 
   @Override
   public void dropSequence(String sequenceName) throws SQLException {
-    executeQuery(dbmsHelper.getDropSequenceStatement(sequenceName));
+    executeQuery(dbmsHelper.getDropSequenceStatement(sequenceName), true);
   }
 
   @Override
