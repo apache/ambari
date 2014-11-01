@@ -1075,7 +1075,8 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
           }
 
           //oozie_heapsize is added for HDP2, we should check if it exists and not add it for HDP1
-          if(cluster.getDesiredConfigByType("oozie-env").getProperties().containsKey("oozie_heapsize")) {
+          if(cluster.getDesiredConfigByType("oozie-env") != null &&
+              cluster.getDesiredConfigByType("oozie-env").getProperties().containsKey("oozie_heapsize")) {
             Map<String, String> oozieProps = new HashMap<String, String>();
             oozieProps.put("oozie_heapsize","2048m");
             oozieProps.put("oozie_permsize","256m");
