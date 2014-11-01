@@ -64,6 +64,7 @@ import javax.persistence.criteria.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -433,26 +434,28 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
       }
     }
 
-
-    // TODO: Convert all possible native queries using Criteria builder
-
     // Sequences
     if (dbAccessor.tableExists("ambari_sequences")) {
       if (dbType.equals(Configuration.POSTGRES_DB_NAME)) {
+
+        ResultSet resultSet = dbAccessor.executeSelect("select * from ambari_sequences where sequence_name in " +
+            "('cluster_id_seq','user_id_seq','host_role_command_id_seq')");
+
         try {
-          dbAccessor.executeQuery(getPostgresSequenceUpgradeQuery());
-          // Deletes
-          dbAccessor.dropSequence("host_role_command_task_id_seq");
-          dbAccessor.dropSequence("users_user_id_seq");
-          dbAccessor.dropSequence("clusters_cluster_id_seq");
-        } catch (SQLException sql) {
-          LOG.warn("Sequence update threw exception. ", sql);
+          if (!resultSet.next()) {
+            dbAccessor.executeQuery(getPostgresSequenceUpgradeQuery(), true);
+            // Deletes
+            dbAccessor.dropSequence("host_role_command_task_id_seq");
+            dbAccessor.dropSequence("users_user_id_seq");
+            dbAccessor.dropSequence("clusters_cluster_id_seq");
+          }
+        } finally {
+          resultSet.close();
         }
       }
     }
 
     //add new sequences for config groups
-    //TODO evalate possibility to automatically wrap object names in DBAcessor
     String valueColumnName = "sequence_value";
 
     dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, " + valueColumnName + ") " +
