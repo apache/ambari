@@ -80,8 +80,8 @@ App.service_graph_config = {
 		'Flume_OutgoingSum',
 		'Flume_GarbageCollection',
 		'Flume_JVMHeapUsed',
-		'Flume_JVMThreadsRunnable',
-		'Flume_CPUUser'
+		'Flume_JVMThreadsRunnable'
+		//'Flume_CPUUser'
 	],
 
 	'storm': [

@@ -38,6 +38,14 @@ App.MainServiceInfoSummaryView = Em.View.extend({
   templateName: require('templates/main/service/info/summary'),
   attributes:null,
   /**
+   * alerts collection
+   */
+  alerts: [],
+  /**
+   * associative collection of alerts
+   */
+  alertsMap: {},
+  /**
    *  @property {String} templatePathPrefix - base path for custom templates
    *    if you want to add custom template, add <service_name>.hbs file to
    *    templates/main/service/info/summary folder.
@@ -82,9 +90,60 @@ App.MainServiceInfoSummaryView = Em.View.extend({
   }.property('App.services.hasClient'),
 
   alertsControllerBinding: 'App.router.mainAlertsController',
-  alerts: function () {
-    return this.get('alertsController.alerts');
-  }.property('alertsController.alerts'),
+  /**
+   * observes changes to alerts collection
+   */
+  observeAlerts: function () {
+    var newAlerts = this.get('alertsController.alerts'),
+      currentAlerts = this.get('alerts'),
+      alertsMap;
+
+    if (currentAlerts.length === 0) {
+      alertsMap = {};
+      newAlerts.forEach(function (alert) {
+        alertsMap[alert.id] = alert;
+        currentAlerts.pushObject(alert);
+      }, this);
+      this.set('alertsMap', alertsMap);
+    } else if (newAlerts.length > 0) {
+      this.updateAlerts(newAlerts, currentAlerts);
+    } else {
+      currentAlerts.clear();
+      this.set('alertsMap', {});
+    }
+  }.observes('alertsController.alerts'),
+  /**
+   * update existing alerts according to new data
+   * @param newAlerts
+   * @param currentAlerts
+   */
+  updateAlerts: function (newAlerts, currentAlerts) {
+    var alertsMap = this.get('alertsMap');
+    var mutableFields = ['status', 'message', 'lastCheck', 'lastTime'];
+    // minimal time difference to apply changes to "lastTime" property
+    var minTimeDiff = 60000;
+    var curTime = App.dateTime();
+    currentAlerts.setEach('isLoaded', false);
+
+    newAlerts.forEach(function (alert) {
+      var currentAlert = alertsMap[alert.get('id')];
+      if (currentAlert) {
+        mutableFields.forEach(function (field) {
+          if (currentAlert.get(field) !== alert.get(field)) {
+            currentAlert.set(field, alert.get(field));
+          }
+        });
+        currentAlert.set('isLoaded', true);
+      } else {
+        alertsMap[alert.get('id')] = alert;
+        currentAlerts.pushObject(alert);
+      }
+    });
+    currentAlerts.filterProperty('isLoaded', false).slice(0).forEach(function (alert) {
+      delete alertsMap[alert.get('id')];
+      currentAlerts.removeObject(alert);
+    }, this);
+  },
 
   noTemplateService: function () {
     var serviceName = this.get("service.serviceName");
@@ -116,11 +175,13 @@ App.MainServiceInfoSummaryView = Em.View.extend({
     if (service.get("id") == "ZOOKEEPER" || service.get("id") == "FLUME") {
       var servers = service.get('hostComponents').filterProperty('isMaster');
       if (servers.length > 0) {
-        result = [{
-          'host': servers[0].get('displayName'),
-          'isComma': false,
-          'isAnd': false
-        }];
+        result = [
+          {
+            'host': servers[0].get('displayName'),
+            'isComma': false,
+            'isAnd': false
+          }
+        ];
       }
       if (servers.length > 1) {
         result[0].isComma = true;
@@ -435,6 +496,8 @@ App.MainServiceInfoSummaryView = Em.View.extend({
   },
   willDestroyElement: function(){
     this.get('alertsController').set('isUpdating', false);
+    this.get('alerts').clear();
+    this.set('alertsMap', {});
   },
 
   setAlertsWindowSize: function() {
