@@ -328,6 +328,13 @@ describe('App.config', function () {
       },
       {
         config: {
+          displayType: 'datanodedirs',
+          value: ' [DISK]/a [SSD]/b '
+        },
+        e: '[DISK]/a,[SSD]/b'
+      },
+      {
+        config: {
           displayType: 'host',
           value: ' localhost '
         },
