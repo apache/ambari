@@ -566,6 +566,11 @@ public class StackExtensionHelper {
           
           File alertsJson = new File(serviceFolder.getAbsolutePath() +
               File.separator + AmbariMetaInfo.SERVICE_ALERT_FILE_NAME);
+          
+          if (!metainfoFile.exists()) {
+            LOG.warn("Service folder " + serviceFolder.getAbsolutePath() + " doesn't contain metainfo file. Ignoring it.");
+            continue;
+          }
 
           //Reading v2 service metainfo (may contain multiple services)
           // Get services from metadata
