@@ -27,8 +27,8 @@ import re
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 
-hdp_stack_version = str(config['hostLevelParams']['stack_version'])
-hdp_stack_version = format_hdp_stack_version(hdp_stack_version)
+stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
+hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
 stack_is_hdp22_or_further = hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0
 
 #hadoop params
@@ -209,11 +209,13 @@ HdfsDirectory = functools.partial(
 io_compression_codecs = config['configurations']['core-site']['io.compression.codecs']
 lzo_enabled = "com.hadoop.compression.lzo" in io_compression_codecs
 
+underscorred_version = stack_version_unformatted.replace('.', '_')
+dashed_version = stack_version_unformatted.replace('.', '-')
 lzo_packages_to_family = {
   "any": ["hadoop-lzo"],
-  "redhat": ["lzo", "hadoop-lzo-native"],
-  "suse": ["lzo", "hadoop-lzo-native"],
-  "ubuntu": ["liblzo2-2"]
+  "redhat": ["lzo", "hadoop-lzo-native", format("hadooplzo_{underscorred_version}_*")],
+  "suse": ["lzo", "hadoop-lzo-native", format("hadooplzo_{underscorred_version}_*")],
+  "ubuntu": ["liblzo2-2", format("hadooplzo-{dashed_version}-.*")]
 }
 lzo_packages_for_current_host = lzo_packages_to_family['any'] + lzo_packages_to_family[System.get_instance().os_family]
 all_lzo_packages = set(itertools.chain(*lzo_packages_to_family.values()))

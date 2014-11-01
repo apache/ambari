@@ -25,15 +25,6 @@
 
       <osSpecifics>
         <osSpecific>
-          <osFamily>any</osFamily>
-          <packages>
-            <package>
-              <name>hadoop-lzo</name>
-            </package>
-          </packages>
-        </osSpecific>
-        
-        <osSpecific>
           <osFamily>redhat5,redhat6,suse11</osFamily>
           <packages>
             <package>
@@ -49,7 +40,7 @@
               <name>lzo</name>
             </package>
             <package>
-              <name>hadoop-lzo-native</name>
+              <name>hadooplzo_2_2_*</name>
             </package>
             <package>
               <name>hadoop_2_2_*-libhdfs</name>
@@ -86,6 +77,9 @@
             </package>
             <package>
               <name>libsnappy-dev</name>
+            </package>
+            <package>
+              <name>hadooplzo-2-2-.*</name>
             </package>
             <package>
               <name>liblzo2-2</name>
