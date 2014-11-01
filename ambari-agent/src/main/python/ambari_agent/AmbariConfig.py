@@ -56,7 +56,6 @@ passphrase_env_var_name=AMBARI_PASSPHRASE
 [heartbeat]
 state_interval = 6
 dirs=/etc/hadoop,/etc/hadoop/conf,/var/run/hadoop,/var/log/hadoop
-rpms=glusterfs,openssl,wget,net-snmp,ntpd,ganglia,nagios,glusterfs
 log_lines_count=300
 
 """
