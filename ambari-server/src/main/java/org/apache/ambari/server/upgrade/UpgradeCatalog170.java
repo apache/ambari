@@ -1040,10 +1040,10 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
 
   protected void addMissingConfigs() throws AmbariException {
     addNewConfigurationsFromXml();
-    updateOozieConfigLog4j();
+    updateOozieConfigs();
   }
 
-  protected void updateOozieConfigLog4j() throws AmbariException {
+  protected void updateOozieConfigs() throws AmbariException {
     final String PROPERTY_NAME = "log4j.appender.oozie.layout.ConversionPattern=";
     final String PROPERTY_VALUE_OLD = "%d{ISO8601} %5p %c{1}:%L - %m%n";
     final String PROPERTY_VALUE_NEW = "%d{ISO8601} %5p %c{1}:%L - SERVER[${oozie.instance.id}] %m%n";
@@ -1072,6 +1072,15 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
             prop.put("content", content);
             updateConfigurationPropertiesForCluster(cluster, "oozie-log4j",
                 prop, true, false);
+          }
+
+          //oozie_heapsize is added for HDP2, we should check if it exists and not add it for HDP1
+          if(cluster.getDesiredConfigByType("oozie-env").getProperties().containsKey("oozie_heapsize")) {
+            Map<String, String> oozieProps = new HashMap<String, String>();
+            oozieProps.put("oozie_heapsize","2048m");
+            oozieProps.put("oozie_permsize","256m");
+            updateConfigurationPropertiesForCluster(cluster, "oozie-env",
+                    oozieProps, true, false);
           }
         }
       }

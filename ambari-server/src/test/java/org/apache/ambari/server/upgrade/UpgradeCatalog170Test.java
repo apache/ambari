@@ -518,6 +518,7 @@ public class UpgradeCatalog170Test {
     expect(clusters.getClusters()).andReturn(clustersMap).times(1);
     expect(cluster.getDesiredConfigByType("global")).andReturn(config).anyTimes();
     expect(cluster.getDesiredConfigByType("oozie-log4j")).andReturn(config).anyTimes();
+    expect(cluster.getDesiredConfigByType("oozie-env")).andReturn(config).anyTimes();
     expect(cluster.getClusterId()).andReturn(1L);
     expect(cluster.getNextConfigVersion("hadoop-env")).andReturn(3L);
     expect(config.getProperties()).andReturn(globalConfigs).anyTimes();

@@ -57,6 +57,16 @@
     <value>11001</value>
     <description>The admin port Oozie server runs.</description>
   </property>
+  <property>
+    <name>oozie_heapsize</name>
+    <value>2048</value>
+    <description>Oozie heap size.</description>
+  </property>
+  <property>
+    <name>oozie_permsize</name>
+    <value>256</value>
+    <description>Oozie permanent generation size.</description>
+  </property>
 
   <!-- oozie-env.sh -->
   <property>
@@ -82,7 +92,7 @@ export JRE_HOME=${JAVA_HOME}
 # Settings for the Embedded Tomcat that runs Oozie
 # Java System properties for Oozie should be specified in this variable
 #
-# export CATALINA_OPTS=
+export CATALINA_OPTS="$CATALINA_OPTS -Xmx{{oozie_heapsize}} -XX:MaxPermSize={{oozie_permsize}}"
 
 # Oozie configuration file to load from Oozie configuration directory
 #

@@ -78,6 +78,8 @@ hadoop_jar_location = "/usr/lib/hadoop/"
 # for HDP1 it's "/usr/share/HDP-oozie/ext.zip"
 ext_js_path = "/usr/share/HDP-oozie/ext-2.2.zip"
 security_enabled = config['configurations']['cluster-env']['security_enabled']
+oozie_heapsize = config['configurations']['oozie-env']['oozie_heapsize']
+oozie_permsize = config['configurations']['oozie-env']['oozie_permsize']
 
 kinit_path_local = functions.get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
 oozie_service_keytab = config['configurations']['oozie-site']['oozie.service.HadoopAccessorService.keytab.file']
