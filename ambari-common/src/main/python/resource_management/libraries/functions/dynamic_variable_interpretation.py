@@ -22,7 +22,7 @@ __all__ = ["copy_tarballs_to_hdfs", ]
 import os
 import glob
 import re
-
+import tempfile
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.resources.copy_from_local import CopyFromLocal
@@ -144,9 +144,14 @@ def copy_tarballs_to_hdfs(tarball_prefix, component_user, file_owner, group_owne
     Logger.warning("Could not find file: %s" % str(component_tar_source_file))
     return 1
 
-  get_hdp_version_cmd = "/usr/bin/hdp-select versions"
-  code, out = shell.call(get_hdp_version_cmd)
-  if code != 0 or not out.startswith(params.hdp_stack_version):
+  # Ubuntu returns: "stdin: is not a tty", as subprocess output.
+  tmpfile = tempfile.NamedTemporaryFile()
+  with open(tmpfile.name, 'r+') as file:
+    get_hdp_version_cmd = '/usr/bin/hdp-select versions > %s' % tmpfile.name
+    code, stdoutdata = shell.call(get_hdp_version_cmd)
+    out = file.read()
+  pass
+  if code != 0 or out is None or not out.startswith(params.hdp_stack_version):
     Logger.warning("Could not verify HDP version by calling '%s'. Return Code: %s, Output: %s." %
                    (get_hdp_version_cmd, str(code), str(out)))
     return 1
