@@ -859,9 +859,12 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
       // check for configs that need to update for installed services
       if (stepController.get('installedServiceNames') && stepController.get('installedServiceNames').contains(_content.get('serviceName'))) {
         // get only modified configs
-        var configs = _content.get('configs').filterProperty('isNotDefaultValue').filter(function (config) {
-          var notAllowed = ['masterHost', 'masterHosts', 'slaveHosts', 'slaveHost'];
-          return !notAllowed.contains(config.get('displayType')) && !!config.filename;
+        var configs = _content.get('configs').filter(function (config) {
+          if (config.get('isNotDefaultValue') || (config.get('defaultValue') === null)) {
+            var notAllowed = ['masterHost', 'masterHosts', 'slaveHosts', 'slaveHost'];
+            return !notAllowed.contains(config.get('displayType')) && !!config.filename;
+          }
+          return false;
         });
         // if modified configs detected push all service's configs for update
         if (configs.length) {
