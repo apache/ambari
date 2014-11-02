@@ -166,12 +166,15 @@ App.ChartLinearTimeView = Ember.View.extend({
     var hostName = (this.get('content')) ? this.get('content.hostName') : "";
 
     var HDFSService = App.HDFSService.find().objectAt(0);
-    var nameNodeName = HDFSService ? HDFSService.get('nameNode.hostName') : "";
+    var nameNodeName = "";
     var MapReduceService = App.MapReduceService.find().objectAt(0);
     var jobTrackerNode = MapReduceService ? MapReduceService.get('jobTracker.hostName') : "";
     var YARNService = App.YARNService.find().objectAt(0);
     var resourceManager = YARNService ? YARNService.get('resourceManager.hostName') : "";
     var timeUnit = this.get('timeUnitSeconds');
+    if (HDFSService) {
+      nameNodeName = (HDFSService.get('activeNameNode')) ? HDFSService.get('activeNameNode.hostName') : HDFSService.get('nameNode.hostName');
+    }
     return {
       toSeconds: toSeconds,
       fromSeconds: toSeconds - timeUnit,

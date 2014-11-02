@@ -127,5 +127,110 @@ describe('App.ChartLinearTimeView', function () {
         expect(App.ChartLinearTimeView.TimeElapsedFormatter(test.i)).to.equal(test.e);
       });
     });
-  })
+  });
+
+  describe("#getDataForAjaxRequest()", function() {
+    var services = {
+      yarnService: [],
+      hdfsService: [],
+      mapreduceService: []
+    };
+    beforeEach(function(){
+      sinon.stub(App.HDFSService, 'find', function(){return services.hdfsService});
+      sinon.stub(App.YARNService, 'find', function(){return services.yarnService});
+      sinon.stub(App.MapReduceService, 'find', function(){return services.mapreduceService});
+      sinon.stub(App, 'dateTime').returns(1000);
+      chartLinearTimeView.set('timeUnitSeconds', 1);
+      chartLinearTimeView.set('content', null);
+    });
+    afterEach(function(){
+      App.HDFSService.find.restore();
+      App.YARNService.find.restore();
+      App.MapReduceService.find.restore();
+      App.dateTime.restore();
+    });
+
+    it("content has hostName", function() {
+      chartLinearTimeView.set('content', Em.Object.create({
+        hostName: 'host1'
+      }));
+      expect(chartLinearTimeView.getDataForAjaxRequest()).to.be.eql({
+        toSeconds: 1,
+        fromSeconds: 0,
+        stepSeconds: 15,
+        hostName: 'host1',
+        nameNodeName: '',
+        jobTrackerNode: '',
+        resourceManager: ''
+      });
+    });
+    it("get Namenode host", function() {
+      services.hdfsService = [
+        Em.Object.create({
+          nameNode: {hostName: 'host1'}
+        })
+      ];
+      expect(chartLinearTimeView.getDataForAjaxRequest()).to.be.eql({
+        toSeconds: 1,
+        fromSeconds: 0,
+        stepSeconds: 15,
+        hostName: '',
+        nameNodeName: 'host1',
+        jobTrackerNode: '',
+        resourceManager: ''
+      });
+      services.hdfsService = [];
+    });
+    it("get Namenode host HA", function() {
+      services.hdfsService = [
+        Em.Object.create({
+          activeNameNode: {hostName: 'host1'}
+        })
+      ];
+      expect(chartLinearTimeView.getDataForAjaxRequest()).to.be.eql({
+        toSeconds: 1,
+        fromSeconds: 0,
+        stepSeconds: 15,
+        hostName: '',
+        nameNodeName: 'host1',
+        jobTrackerNode: '',
+        resourceManager: ''
+      });
+      services.hdfsService = [];
+    });
+    it("get jobTracker host", function() {
+      services.mapreduceService = [
+        Em.Object.create({
+          jobTracker: {hostName: 'host1'}
+        })
+      ];
+      expect(chartLinearTimeView.getDataForAjaxRequest()).to.be.eql({
+        toSeconds: 1,
+        fromSeconds: 0,
+        stepSeconds: 15,
+        hostName: '',
+        nameNodeName: '',
+        jobTrackerNode: 'host1',
+        resourceManager: ''
+      });
+      services.mapreduceService = [];
+    });
+    it("get resourceManager host", function() {
+      services.yarnService = [
+        Em.Object.create({
+          resourceManager: {hostName: 'host1'}
+        })
+      ];
+      expect(chartLinearTimeView.getDataForAjaxRequest()).to.be.eql({
+        toSeconds: 1,
+        fromSeconds: 0,
+        stepSeconds: 15,
+        hostName: '',
+        nameNodeName: '',
+        jobTrackerNode: '',
+        resourceManager: 'host1'
+      });
+      services.yarnService = [];
+    });
+  });
 });
