@@ -1719,8 +1719,43 @@ App.config = Em.Object.create({
    * @param hostName
    *          (string) host name used to register
    */
-  getConfigGroupsForHost: function (hostName) {
+   getConfigGroupsForHost: function (hostName) {
 
+  },
+
+  /**
+   * Generate minimal config property object used in *_properties.js files.
+   * Example:
+   * <code>
+   *   var someProperties = App.config.generateConfigPropertiesByName([
+   *    'property_1', 'property_2', 'property_3'], { category: 'General', filename: 'myFileName'});
+   *   // someProperties contains Object[]
+   *   [
+   *    {
+   *      name: 'property_1',
+   *      displayName: 'property_1',
+   *      isVisible: true,
+   *      isReconfigurable: true,
+   *      category: 'General',
+   *      filename: 'myFileName'
+   *    },
+   *    .......
+   *   ]
+   * </code>
+   * @param {Array} names
+   * @param {Object} properties - additional properties which will merge with base object definition
+   * @returns {*}
+   */
+  generateConfigPropertiesByName: function(names, properties) {
+    return names.map(function (item) {
+      var baseObj = {
+        name: item,
+        displayName: item,
+        isVisible: true,
+        isReconfigurable: true
+      };
+      if (properties) return $.extend(baseObj, properties);
+      else return baseObj;
+    });
   }
-
 });
