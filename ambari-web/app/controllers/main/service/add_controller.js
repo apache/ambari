@@ -66,7 +66,7 @@ App.AddServiceController = App.WizardController.extend({
   /**
    * Load services data. Will be used at <code>Select services(step4)</code> step
    */
-  loadServices: function (isStep1) {
+  loadServices: function () {
     var services = this.getDBProperty('services');
     if (!services) {
       services = {
@@ -87,7 +87,7 @@ App.AddServiceController = App.WizardController.extend({
       App.StackService.find().forEach(function (item) {
         var isSelected = services.selectedServices.contains(item.get('serviceName'));
         var isInstalled = services.installedServices.contains(item.get('serviceName'));
-        item.set('isSelected', isSelected || (isStep1 ? isInstalled : isSelected));
+        item.set('isSelected', isSelected || (this.get("currentStep") == "1" ? isInstalled : isSelected));
         item.set('isInstalled', isInstalled);
       }, this);
       var isServiceWithSlave = App.StackService.find().filterProperty('isSelected').filterProperty('hasSlave').filterProperty('isInstalled', false).mapProperty('serviceName').length;
@@ -355,7 +355,7 @@ App.AddServiceController = App.WizardController.extend({
         this.loadMasterComponentHosts();
         this.load('hosts');
       case '1':
-        this.loadServices(true);
+        this.loadServices();
     }
   },
 
