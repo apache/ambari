@@ -617,7 +617,7 @@ describe('App.ServiceConfigProperty', function () {
 
 });
 
-describe('initialValue', function () {
+describe('#initialValue - kafka.ganglia.metrics.host', function () {
 
   var tests = [
     {
@@ -645,4 +645,101 @@ describe('initialValue', function () {
       expect(serviceConfigProperty.get('value')).to.equal(test.expected);
     });
   });
+});
+
+describe('#initialValue - hive_database', function () {
+
+  var cases = [
+      {
+        alwaysEnableManagedMySQLForHive: true,
+        currentStateName: '',
+        isManagedMySQLForHiveEnabled: false,
+        receivedValue: 'New MySQL Database',
+        value: 'New MySQL Database',
+        options: [
+          {
+            displayName: 'New MySQL Database'
+          }
+        ],
+        hidden: false
+      },
+      {
+        alwaysEnableManagedMySQLForHive: false,
+        currentStateName: 'configs',
+        isManagedMySQLForHiveEnabled: false,
+        receivedValue: 'New MySQL Database',
+        value: 'New MySQL Database',
+        options: [
+          {
+            displayName: 'New MySQL Database'
+          }
+        ],
+        hidden: false
+      },
+      {
+        alwaysEnableManagedMySQLForHive: false,
+        currentStateName: '',
+        isManagedMySQLForHiveEnabled: true,
+        receivedValue: 'New MySQL Database',
+        value: 'New MySQL Database',
+        options: [
+          {
+            displayName: 'New MySQL Database'
+          }
+        ],
+        hidden: false
+      },
+      {
+        alwaysEnableManagedMySQLForHive: false,
+        currentStateName: '',
+        isManagedMySQLForHiveEnabled: false,
+        receivedValue: 'New MySQL Database',
+        value: 'Existing MySQL Database',
+        options: [
+          {
+            displayName: 'New MySQL Database'
+          }
+        ],
+        hidden: true
+      },
+      {
+        alwaysEnableManagedMySQLForHive: false,
+        currentStateName: '',
+        isManagedMySQLForHiveEnabled: false,
+        receivedValue: 'New PostgreSQL Database',
+        value: 'New PostgreSQL Database',
+        options: [
+          {
+            displayName: 'New MySQL Database'
+          }
+        ],
+        hidden: true
+      }
+    ],
+    title = 'value should be set to {0}';
+
+  beforeEach(function () {
+    serviceConfigProperty = App.ServiceConfigProperty.create({
+      name: 'hive_database'
+    });
+  });
+
+  afterEach(function() {
+    App.get.restore();
+  });
+
+  cases.forEach(function (item) {
+    it(title.format(item.value), function () {
+      sinon.stub(App, 'get')
+        .withArgs('supports.alwaysEnableManagedMySQLForHive').returns(item.alwaysEnableManagedMySQLForHive)
+        .withArgs('router.currentState.name').returns(item.currentStateName)
+        .withArgs('isManagedMySQLForHiveEnabled').returns(item.isManagedMySQLForHiveEnabled);
+      serviceConfigProperty.set('value', item.receivedValue);
+      serviceConfigProperty.set('options', item.options);
+      serviceConfigProperty.initialValue({});
+      expect(serviceConfigProperty.get('value')).to.equal(item.value);
+      expect(serviceConfigProperty.get('options').findProperty('displayName', 'New MySQL Database').hidden).to.equal(item.hidden);
+    });
+  });
+
 });

@@ -216,8 +216,12 @@ App.ServiceConfigRadioButtons = Ember.View.extend({
   didInsertElement: function () {
     // on page render, automatically populate JDBC URLs only for default database settings
     // so as to not lose the user's customizations on these fields
-    if (['addServiceController', 'installerController'].contains(App.clusterStatus.wizardControllerName) && ['New PostgreSQL Database', 'New MySQL Database', 'New Derby Database'].contains(this.get('serviceConfig.value'))) {
-      this.onOptionsChange();
+    if (['addServiceController', 'installerController'].contains(App.clusterStatus.wizardControllerName)) {
+      if (['New PostgreSQL Database', 'New MySQL Database', 'New Derby Database'].contains(this.get('serviceConfig.value'))) {
+        this.onOptionsChange();
+      } else {
+        this.handleDBConnectionProperty();
+      }
     }
   },
 

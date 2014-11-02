@@ -476,4 +476,31 @@ describe('App.config', function () {
       setups.restoreStackVersion(this);
     });
   });
+
+  describe('#isManagedMySQLForHiveAllowed', function () {
+
+    var cases = [
+      {
+        osType: 'redhat5',
+        expected: false
+      },
+      {
+        osType: 'redhat6',
+        expected: true
+      },
+      {
+        osType: 'sles11',
+        expected: false
+      }
+    ],
+      title = 'should be {0} for {1}';
+
+    cases.forEach(function (item) {
+      it(title.format(item.expected, item.osType), function () {
+        expect(App.config.isManagedMySQLForHiveAllowed(item.osType)).to.equal(item.expected);
+      });
+    });
+
+  });
+
 });

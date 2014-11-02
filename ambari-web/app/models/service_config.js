@@ -440,6 +440,17 @@ App.ServiceConfigProperty = Ember.Object.extend({
       case 'hive_ambari_host':
         this.set('value', masterComponentHostsInDB.findProperty('component', 'HIVE_SERVER').hostName);
         break;
+      case 'hive_database':
+        var newMySQLDBOption = this.get('options').findProperty('displayName', 'New MySQL Database');
+        if (newMySQLDBOption) {
+          var isNewMySQLDBOptionHidden = !App.get('supports.alwaysEnableManagedMySQLForHive') && App.get('router.currentState.name') != 'configs' &&
+            !App.get('isManagedMySQLForHiveEnabled');
+          if (isNewMySQLDBOptionHidden && this.get('value') == 'New MySQL Database') {
+            this.set('value', 'Existing MySQL Database');
+          }
+          Em.set(newMySQLDBOption, 'hidden', isNewMySQLDBOptionHidden);
+        }
+        break;
       case 'oozieserver_host':
         this.set('value', masterComponentHostsInDB.findProperty('component', 'OOZIE_SERVER').hostName);
         break;
