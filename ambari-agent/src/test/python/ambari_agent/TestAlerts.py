@@ -18,8 +18,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-import os
+import socket
 import sys
+import os
+
 from ambari_agent.AlertSchedulerHandler import AlertSchedulerHandler
 from ambari_agent.alerts.collector import AlertCollector
 from ambari_agent.alerts.metric_alert import MetricAlert
@@ -85,8 +87,46 @@ class TestAlerts(TestCase):
     pa = PortAlert(json, json['source'])
     pa.set_helpers(collector, {'hdfs-site/my-key': 'value1'})
     self.assertEquals(6, pa.interval())
+    pa.collect()
 
-    res = pa.collect()
+
+  @patch.object(socket.socket,"connect")
+  def test_port_alert_complex_uri(self, socket_connect_mock):
+    json = { "name": "namenode_process",
+      "service": "HDFS",
+      "component": "NAMENODE",
+      "label": "NameNode process",
+      "interval": 6,
+      "scope": "host",
+      "enabled": True,
+      "uuid": "c1f73191-4481-4435-8dae-fd380e4c0be1",
+      "source": {
+        "type": "PORT",
+        "uri": "{{hdfs-site/my-key}}",
+        "default_port": 50070,
+        "reporting": {
+          "ok": {
+            "text": "TCP OK - {0:.4f} response time on port {1}"
+          },
+          "critical": {
+            "text": "Could not load process info: {0}"
+          }
+        }
+      }
+    }
+
+    collector = AlertCollector()
+
+    pa = PortAlert(json, json['source'])
+
+    # use a URI that has commas to verify that we properly parse it
+    pa.set_helpers(collector, {'hdfs-site/my-key': 'c6401.ambari.apache.org:2181,c6402.ambari.apache.org:2181,c6403.ambari.apache.org:2181'})
+    pa.host_name = 'c6402.ambari.apache.org'
+    self.assertEquals(6, pa.interval())
+
+    pa.collect()
+    self.assertEquals('OK', collector.alerts()[0]['state'])
+    self.assertTrue('response time on port 2181' in collector.alerts()[0]['text'])
 
 
   def test_port_alert_no_sub(self):
@@ -117,7 +157,7 @@ class TestAlerts(TestCase):
     pa.set_helpers(AlertCollector(), '')
     self.assertEquals('http://c6401.ambari.apache.org', pa.uri)
 
-    res = pa.collect()
+    pa.collect()
 
 
   def test_script_alert(self):

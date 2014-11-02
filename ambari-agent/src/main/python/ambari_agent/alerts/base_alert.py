@@ -89,7 +89,11 @@ class BaseAlert(object):
     
     try:
       res = self._collect()
-      res_base_text = self.alert_source_meta['reporting'][res[0].lower()]['text']
+      reporting_state = res[0].lower()
+
+      if reporting_state in self.alert_source_meta['reporting']:
+        res_base_text = self.alert_source_meta['reporting'][reporting_state]['text']
+
     except Exception as e:
       message = "Unable to run alert {0}".format(str(self.alert_meta['name']))
       

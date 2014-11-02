@@ -441,6 +441,28 @@
           }
         }
       }    
+    ],
+    "ZKFC": [
+      {
+        "name": "hdfs_zookeeper_failover_controller_process",
+        "label": "ZooKeeper Failover Controller Process",
+        "interval": 1,
+        "scope": "ANY",
+        "enabled": true,
+        "source": {
+          "type": "PORT",        
+          "uri": "{{core-site/ha.zookeeper.quorum}}",
+          "default_port": 2181,
+          "reporting": {
+            "ok": {
+              "text": "TCP OK - {0:.4f} response on port {1}"
+            },
+            "critical": {
+              "text": "Connection failed: {0} on host {1}:{2}"
+            }
+          }
+        }
+      }
     ]
   }
 }
