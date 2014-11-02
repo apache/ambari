@@ -18,6 +18,7 @@
 
 var App = require('app');
 
+var tezProperties = require('data/HDP2.2/tez_properties');
 var hdp2properties = require('data/HDP2/site_properties').configProperties;
 var excludedConfigs = [
   'storm.thrift.transport', //In HDP2.2 storm.thrift.transport property is computed on server
@@ -31,7 +32,7 @@ var excludedConfigs = [
   'tez.runtime.intermediate-input.is-compressed',
   'tez.runtime.intermediate-output.compress.codec',
   'tez.runtime.intermediate-output.should-compress',
-  'dfs.datanode.data.dir' //this property is overridden with different properties
+  'dfs.datanode.data.dir'
 ];
 var hdp22properties = hdp2properties.filter(function (item) {
   return !excludedConfigs.contains(item.name);
@@ -79,7 +80,16 @@ hdp22properties.push(
     "index": 1
   });
 
+var additionalProperties = [];
+
+tezProperties.forEach(function(config) {
+  if (!hdp22properties.findProperty('name', config.name)) additionalProperties.push(config);
+  else {
+    hdp22properties.findProperty('name', config.name).category = config.category;
+  }
+});
+
 module.exports =
 {
-  "configProperties": hdp22properties
+  "configProperties": hdp22properties.concat(additionalProperties)
 };

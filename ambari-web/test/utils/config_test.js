@@ -477,6 +477,105 @@ describe('App.config', function () {
     });
   });
 
+  describe('#generateConfigPropertiesByName', function() {
+    var tests = [
+      {
+        names: ['property_1', 'property_2'],
+        properties: undefined,
+        e: {
+          keys: ['name', 'displayName', 'isVisible', 'isReconfigurable']
+        },
+        m: 'Should generate base property object without additional fields'
+      },
+      {
+        names: ['property_1', 'property_2'],
+        properties: { category: 'SomeCat', serviceName: 'SERVICE_NAME' },
+        e: {
+          keys: ['name', 'displayName', 'isVisible', 'isReconfigurable', 'category', 'serviceName']
+        },
+        m: 'Should generate base property object without additional fields'
+      }
+    ];
+
+    tests.forEach(function(test) {
+      it(test.m, function() {
+        expect(App.config.generateConfigPropertiesByName(test.names, test.properties).length).to.eql(test.names.length);
+        expect(App.config.generateConfigPropertiesByName(test.names, test.properties).map(function(property) {
+          return Em.keys(property);
+        }).reduce(function(p, c) {
+          return p.concat(c);
+        }).uniq()).to.eql(test.e.keys);
+      });
+    });
+
+  });
+
+  describe('#generateConfigPropertiesByName', function() {
+    var tests = [
+      {
+        names: ['property_1', 'property_2'],
+        properties: undefined,
+        e: {
+          keys: ['name', 'displayName', 'isVisible', 'isReconfigurable']
+        },
+        m: 'Should generate base property object without additional fields'
+      },
+      {
+        names: ['property_1', 'property_2'],
+        properties: { category: 'SomeCat', serviceName: 'SERVICE_NAME' },
+        e: {
+          keys: ['name', 'displayName', 'isVisible', 'isReconfigurable', 'category', 'serviceName']
+        },
+        m: 'Should generate base property object without additional fields'
+      }
+    ];
+
+    tests.forEach(function(test) {
+      it(test.m, function() {
+        expect(App.config.generateConfigPropertiesByName(test.names, test.properties).length).to.eql(test.names.length);
+        expect(App.config.generateConfigPropertiesByName(test.names, test.properties).map(function(property) {
+          return Em.keys(property);
+        }).reduce(function(p, c) {
+          return p.concat(c);
+        }).uniq()).to.eql(test.e.keys);
+      });
+    });
+
+  });
+
+  describe('#generateConfigPropertiesByName', function() {
+    var tests = [
+      {
+        names: ['property_1', 'property_2'],
+        properties: undefined,
+        e: {
+          keys: ['name', 'displayName', 'isVisible', 'isReconfigurable']
+        },
+        m: 'Should generate base property object without additional fields'
+      },
+      {
+        names: ['property_1', 'property_2'],
+        properties: { category: 'SomeCat', serviceName: 'SERVICE_NAME' },
+        e: {
+          keys: ['name', 'displayName', 'isVisible', 'isReconfigurable', 'category', 'serviceName']
+        },
+        m: 'Should generate base property object without additional fields'
+      }
+    ];
+
+    tests.forEach(function(test) {
+      it(test.m, function() {
+        expect(App.config.generateConfigPropertiesByName(test.names, test.properties).length).to.eql(test.names.length);
+        expect(App.config.generateConfigPropertiesByName(test.names, test.properties).map(function(property) {
+          return Em.keys(property);
+        }).reduce(function(p, c) {
+          return p.concat(c);
+        }).uniq()).to.eql(test.e.keys);
+      });
+    });
+
+  });
+
   describe('#isManagedMySQLForHiveAllowed', function () {
 
     var cases = [
