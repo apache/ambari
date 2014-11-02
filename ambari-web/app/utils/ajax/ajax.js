@@ -1464,7 +1464,7 @@ var urls = {
     'mock': '/data/requests/host_check/jdk_name.json'
   },
   'ambari.service.load_server_version': {
-    'real': '/services/AMBARI/components/AMBARI_SERVER?fields=RootServiceComponents/component_version',
+    'real': '/services/AMBARI/components/AMBARI_SERVER?fields=RootServiceComponents/component_version,RootServiceComponents/properties/server.os_type&minimal_response=true',
     'mock': ''
   },
   'ambari.service': {

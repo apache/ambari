@@ -2849,6 +2849,7 @@ module.exports =
       "radioName": "hive-database",
       "isOverridable": false,
       "isVisible": true,
+      "isObserved": true,
       "serviceName": "HIVE",
       "filename": "hive-env.xml",
       "category": "HIVE_METASTORE",

@@ -18,32 +18,13 @@
 
 
 var App = require('app');
-require('models/cluster');
-require('controllers/wizard');
-require('controllers/installer');
 
 describe('App.InstallerController', function () {
 
-  var installerController = App.InstallerController.create();
-
-  describe('#loadStacksVersionsSuccessCallback', function() {
-    beforeEach(function () {
-      sinon.stub(App.store, 'commit', Em.K);
-    });
-    afterEach(function () {
-      App.store.commit.restore();
-    });
-    it ('Correct data', function() {
-      installerController.loadStacksVersionsSuccessCallback(require('test/stack'));
-      expect(installerController.get('content.stacks.length')).to.equal(2);
-      expect(installerController.get('content.stacks').everyProperty('isSelected')).to.equal(false);
-      expect(installerController.get('content.stacks').mapProperty('id')).to.eql(['HDP-2.1','HDP-1.3']);
-    });
-  });
-
   describe('#getServerVersionSuccessCallback', function () {
 
-    var cases = [
+    var controller = App.MainController.create(),
+      cases = [
         {
           osType: 'redhat5',
           expected: false
@@ -61,7 +42,7 @@ describe('App.InstallerController', function () {
 
     cases.forEach(function (item) {
       it(title.format(item.expected, item.osType), function () {
-        installerController.getServerVersionSuccessCallback({
+        controller.getServerVersionSuccessCallback({
           'RootServiceComponents': {
             'component_version': '',
             'properties': {
