@@ -93,31 +93,6 @@
     <description>ACL's to be used for ZooKeeper znodes.</description>
   </property>
   <property>
-    <name>yarn.resourcemanager.zk-state-store.root-node.acl</name>
-    <value> </value>
-    <description>
-      ACLs to be used for the root znode when using ZKRMStateStore in a HA
-      scenario for fencing.
-
-      ZKRMStateStore supports implicit fencing to allow a single
-      ResourceManager write-access to the store. For fencing, the
-      ResourceManagers in the cluster share read-write-admin privileges on the
-      root node, but the Active ResourceManager claims exclusive create-delete
-      permissions.
-
-      By default, when this property is not set, we use the ACLs from
-      yarn.resourcemanager.zk-acl for shared admin access and
-      rm-address:random-number for username-based exclusive create-delete
-      access.
-
-      This property allows users to set ACLs of their choice instead of using
-      the default mechanism. For fencing to work, the ACLs should be
-      carefully set differently on each ResourceManger such that all the
-      ResourceManagers have shared admin access and the Active ResourceManger
-      takes over (exclusively) the create-delete access.
-    </description>
-  </property>
-  <property>
     <name>yarn.resourcemanager.work-preserving-recovery.scheduling-wait-ms</name>
     <value>10000</value>
     <description>Set the amount of time RM waits before allocating new containers on work-preserving-recovery. Such wait period gives RM a chance to settle down resyncing with NMs in the cluster on recovery, before assigning new containers to applications.</description>
@@ -203,7 +178,7 @@
   </property>
   <property>
     <name>yarn.node-labels.manager-class</name>
-    <value>org.apache.hadoop.yarn.server.resourcemanager.nodelabels.RMNodeLabelsManager</value>
+    <value>org.apache.hadoop.yarn.server.resourcemanager.nodelabels.MemoryRMNodeLabelsManager</value>
     <description>If user want to enable this feature, specify it to "org.apache.hadoop.yarn.server.resourcemanager.nodelabels.RMNodeLabelsManager</description>
   </property>
   <property>
