@@ -42,6 +42,15 @@ App.ConfigHistoryFlowView = Em.View.extend({
   compareServiceVersion: null,
 
   /**
+   * types of actions that can't be done to service config versions
+   */
+  actionTypes: {
+    SWITCH: 'switchVersion',
+    COMPARE: 'compare',
+    REVERT: 'revert'
+  },
+
+  /**
    * In reason of absence of properties dynamic values support which passed to an action,
    * used property map to get latest values of properties for action
    */
@@ -157,6 +166,9 @@ App.ConfigHistoryFlowView = Em.View.extend({
   },
 
   serviceVersionBox: Em.View.extend({
+    actionTypes: function() {
+      return this.get('parentView.actionTypes');
+    }.property('parentView.actionTypes'),
     templateName: require('templates/common/configs/service_version_box'),
     didInsertElement: function () {
       $('.version-box').hoverIntent(function() {
@@ -314,10 +326,36 @@ App.ConfigHistoryFlowView = Em.View.extend({
   },
 
   /**
+   * check action constraints prior to invoke it
+   * @param event
+   */
+  doAction: function (event) {
+    var type = event.contexts[1],
+        controller = this.get('controller'),
+        self = this;
+
+    if (type === 'switchVersion') {
+      if (event.context.get("isDisplayed"))  return;
+    } else {
+      var isDisabled = event.context ? event.context.get('isDisabled') : false;
+      if (isDisabled) return;
+    }
+
+    function callback() {
+      self[type].call(self, event);
+    }
+
+    if (controller.hasUnsavedChanges()) {
+      controller.showSavePopup(null, callback);
+      return;
+    }
+    callback();
+  },
+
+  /**
    * switch configs view version to chosen
    */
   switchVersion: function (event) {
-    if (event.context.get("isDisplayed"))  return;
     var version = event.context.get('version');
     var versionIndex = 0;
 
@@ -339,8 +377,6 @@ App.ConfigHistoryFlowView = Em.View.extend({
    * add a second version-info-bar for the chosen version
    */
   compare: function (event) {
-    var isDisabled = event.context ? event.context.get('isDisabled') : false;
-    if (isDisabled) return;
     this.set('controller.compareServiceVersion', event.context);
     this.set('compareServiceVersion', event.context);
     this.get('controller').onConfigGroupChange();
@@ -369,8 +405,6 @@ App.ConfigHistoryFlowView = Em.View.extend({
    */
   revert: function (event) {
     var self = this;
-    var isDisabled = event.context ? event.context.get('isDisabled') : false;
-    if (isDisabled) return;
     var serviceConfigVersion = event.context || Em.Object.create({
       version: this.get('displayedServiceVersion.version'),
       serviceName: this.get('displayedServiceVersion.serviceName'),

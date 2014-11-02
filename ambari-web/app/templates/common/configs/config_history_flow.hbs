@@ -48,7 +48,7 @@
                   &nbsp;<strong>{{view.compareServiceVersion.createdDate}}</strong>
               </div>
               <div class="pull-right operations-button">
-                  <button class="btn btn-success"  {{action revert view.serviceVersionsReferences.compare target="view"}} {{bindAttr disabled="view.versionActionsDisabled" class="view.compareServiceVersion.isCurrent:hidden"}}>{{view.compareServiceVersion.makeCurrentButtonText}}</button>
+                  <button class="btn btn-success"  {{action doAction view.serviceVersionsReferences.compare view.actionTypes.REVERT target="view"}} {{bindAttr disabled="view.versionActionsDisabled" class="view.compareServiceVersion.isCurrent:hidden"}}>{{view.compareServiceVersion.makeCurrentButtonText}}</button>
               </div>
           </div>
       </div>
@@ -63,7 +63,7 @@
               <ul class="dropdown-menu">
                 {{#each serviceVersion in view.dropDownList}}
                   <li {{bindAttr class=":pointer :dropdown-submenu serviceVersion.isDisplayed:not-allowed"}}>
-                    <div class="row-fluid version-in-dropdown " {{action switchVersion serviceVersion target="view"}}>
+                    <div class="row-fluid version-in-dropdown " {{action doAction serviceVersion view.actionTypes.SWITCH target="view"}}>
                       <div class="span2">{{serviceVersion.versionText}}</div>
                       <div class="span6">{{serviceVersion.createdDate}}</div>
                       <div class="span3">{{serviceVersion.author}}</div>
@@ -77,10 +77,10 @@
                         <div class="notes">{{{serviceVersion.fullNotes}}}</div>
                       </div>
                       <div class="version-operations-buttons">
-                        <button {{bindAttr disabled="serviceVersion.disabledActionAttr.view" class=":btn serviceVersion.isDisplayed:not-allowed-cursor" title="serviceVersion.disabledActionMessages.view"}} {{action switchVersion serviceVersion target="view"}}><i class="icon-search"></i>&nbsp;{{t common.view}}</button>
+                        <button {{bindAttr disabled="serviceVersion.disabledActionAttr.view" class=":btn serviceVersion.isDisplayed:not-allowed-cursor" title="serviceVersion.disabledActionMessages.view"}} {{action doAction serviceVersion view.actionTypes.SWITCH target="view"}}><i class="icon-search"></i>&nbsp;{{t common.view}}</button>
                         {{#if App.isManager}}
-                        <button {{bindAttr disabled="serviceVersion.disabledActionAttr.compare" class=":btn serviceVersion.isDisplayed:not-allowed-cursor" title="serviceVersion.disabledActionMessages.compare"}} {{action compare serviceVersion target="view"}}><i class="icon-copy"></i>&nbsp;{{t common.compare}}</button>
-                        <button {{bindAttr disabled="serviceVersion.disabledActionAttr.revert" class=":btn serviceVersion.isCurrent:not-allowed-cursor" title="serviceVersion.disabledActionMessages.revert"}} {{action revert serviceVersion target="view"}}>{{t dashboard.configHistory.info-bar.revert.button}}</button>
+                        <button {{bindAttr disabled="serviceVersion.disabledActionAttr.compare" class=":btn serviceVersion.isDisplayed:not-allowed-cursor" title="serviceVersion.disabledActionMessages.compare"}} {{action doAction serviceVersion view.actionTypes.COMPARE target="view"}}><i class="icon-copy"></i>&nbsp;{{t common.compare}}</button>
+                        <button {{bindAttr disabled="serviceVersion.disabledActionAttr.revert" class=":btn serviceVersion.isCurrent:not-allowed-cursor" title="serviceVersion.disabledActionMessages.revert"}} {{action doAction serviceVersion view.actionTypes.REVERT target="view"}}>{{t dashboard.configHistory.info-bar.revert.button}}</button>
                         {{/if}}
                       </div>
                     </ul>
@@ -109,7 +109,7 @@
                     <button class="btn" {{action doCancel target="controller"}} {{bindAttr disabled="view.isDiscardDisabled"}}>{{t common.discard}}</button>
                     <button class="btn btn-success" {{action save target="view"}} {{bindAttr disabled="view.isSaveDisabled"}}>{{t common.save}}</button>
                 </div>
-                <button class="btn btn-success"  {{action revert view.serviceVersionsReferences.displayed target="view"}} {{bindAttr disabled="view.versionActionsDisabled" class="view.displayedServiceVersion.isCurrent:hidden"}}>{{view.displayedServiceVersion.makeCurrentButtonText}}</button>
+                <button class="btn btn-success"  {{action doAction view.serviceVersionsReferences.displayed view.actionTypes.REVERT target="view"}} {{bindAttr disabled="view.versionActionsDisabled" class="view.displayedServiceVersion.isCurrent:hidden"}}>{{view.displayedServiceVersion.makeCurrentButtonText}}</button>
             </div>
           {{/if}}
         </div>
