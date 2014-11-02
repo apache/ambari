@@ -50,7 +50,9 @@ var urls = {
   },
 
   'jobs_lastID': {
-    real: '/views/{view}/{version}/{instanceName}/proxy?url={atsURL}/ws/v1/timeline/HIVE_QUERY_ID?limit=1&secondaryFilter=tez:true',
+    // The filters "tez:true,TEZ:true" are needed because ATS is case sensitive,
+    // and in HDP 2.1, "tez" was used, while in HDP 2.2, "TEZ" was used.
+    real: '/views/{view}/{version}/{instanceName}/proxy?url={atsURL}/ws/v1/timeline/HIVE_QUERY_ID?limit=1&secondaryFilter=tez:true,TEZ:true',
     mock: '/scripts/assets/hive-queries.json',
     apiPrefix: ''
   },

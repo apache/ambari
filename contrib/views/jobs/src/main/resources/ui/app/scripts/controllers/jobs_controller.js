@@ -411,7 +411,9 @@ App.JobsController = Ember.ArrayController.extend(App.RunPeriodically, {
      * @method createJobsFiltersLink
      */
     createJobsFiltersLink: function () {
-      var link = "?fields=events,primaryfilters,otherinfo&secondaryFilter=tez:true",
+      // The filters "tez:true,TEZ:true" are needed because ATS is case sensitive,
+      // and in HDP 2.1, "tez" was used, while in HDP 2.2, "TEZ" was used.
+      var link = "?fields=events,primaryfilters,otherinfo&secondaryFilter=tez:true,TEZ:true",
         numberOfAppliedFilters = 0;
 
       if (this.get("id") !== "") {
