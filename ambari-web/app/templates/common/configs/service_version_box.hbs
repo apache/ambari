@@ -19,7 +19,7 @@
 <div {{bindAttr class=":flow-element :pull-left serviceVersion.first:first"}}>
   <div class="arrow-box pull-left"></div>
   <div class="version-box">
-    <div {{bindAttr class=":version-info :box :pull-right serviceVersion.isDisplayed:displayed serviceVersion.isDisabled:grayedOut"}} {{action switchVersion serviceVersion target="view.parentView"}}>
+    <div {{bindAttr class=":version-info :box :pull-right serviceVersion.isDisplayed:displayed serviceVersion.isDisabled:grayedOut"}} {{action doAction serviceVersion view.actionTypes.SWITCH target="view.parentView"}}>
       <div class="top-label">
         <span class="label label-info">{{serviceVersion.versionText}}</span>
         <span class="author pull-right">{{serviceVersion.author}}</span>
@@ -42,10 +42,10 @@
         <div class="notes">{{{serviceVersion.fullNotes}}}</div>
       </div>
       <div class="version-operations-buttons">
-        <button {{bindAttr disabled="serviceVersion.disabledActionAttr.view" class=":btn serviceVersion.isDisplayed:not-allowed-cursor" title="serviceVersion.disabledActionMessages.view"}} {{action switchVersion serviceVersion target="view.parentView"}}><i class="icon-search"></i>&nbsp;{{t common.view}}</button>
+        <button {{bindAttr disabled="serviceVersion.disabledActionAttr.view" class=":btn serviceVersion.isDisplayed:not-allowed-cursor" title="serviceVersion.disabledActionMessages.view"}} {{action doAction serviceVersion view.actionTypes.SWITCH target="view.parentView"}}><i class="icon-search"></i>&nbsp;{{t common.view}}</button>
         {{#if App.isManager}}
-          <button {{bindAttr disabled="serviceVersion.disabledActionAttr.compare" class=":btn serviceVersion.isDisplayed:not-allowed-cursor" title="serviceVersion.disabledActionMessages.compare"}} {{action compare serviceVersion target="view.parentView"}}><i class="icon-copy"></i>&nbsp;{{t common.compare}}</button>
-          <button {{bindAttr disabled="serviceVersion.disabledActionAttr.revert" class=":btn serviceVersion.isCurrent:not-allowed-cursor" title="serviceVersion.disabledActionMessages.revert"}} {{action revert serviceVersion target="view.parentView"}}>{{t dashboard.configHistory.info-bar.revert.button}}</button>
+          <button {{bindAttr disabled="serviceVersion.disabledActionAttr.compare" class=":btn serviceVersion.isDisplayed:not-allowed-cursor" title="serviceVersion.disabledActionMessages.compare"}} {{action doAction serviceVersion view.actionTypes.COMPARE target="view.parentView"}}><i class="icon-copy"></i>&nbsp;{{t common.compare}}</button>
+          <button {{bindAttr disabled="serviceVersion.disabledActionAttr.revert" class=":btn serviceVersion.isCurrent:not-allowed-cursor" title="serviceVersion.disabledActionMessages.revert"}} {{action doAction serviceVersion view.actionTypes.REVERT target="view.parentView"}}>{{t dashboard.configHistory.info-bar.revert.button}}</button>
         {{/if}}
       </div>
     </div>

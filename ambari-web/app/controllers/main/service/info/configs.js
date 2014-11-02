@@ -2692,12 +2692,26 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
    * @method selectConfigGroup
    */
   selectConfigGroup: function (event) {
+    var self = this;
+
+    function callback() {
+      self.doSelectConfigGroup(event);
+    }
+
     if (!this.get('isInit')) {
       if (this.hasUnsavedChanges()) {
-        this.showSavePopup(null, event);
+        this.showSavePopup(null, callback);
         return;
       }
     }
+    callback();
+  },
+  /**
+   * switch view to selected group
+   * @param event
+   * @method selectConfigGroup
+   */
+  doSelectConfigGroup: function (event) {
     //clean when switch config group
     this.loadedGroupToOverrideSiteToTagMap = {};
     if (App.get('supports.configHistory')) {
@@ -2724,10 +2738,10 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   /**
    * If some configs are changed and user navigates away or select another config-group, show this popup with propose to save changes
    * @param {String} path
-   * @param {object} event - triggered event for selecting another config-group
+   * @param {object} callback - callback with action to change configs view(change group or version)
    * @method showSavePopup
    */
-  showSavePopup: function (path, event) {
+  showSavePopup: function (path, callback) {
     var self = this;
     return App.ModalPopup.show({
       header: Em.I18n.t('common.warning'),
@@ -2756,10 +2770,10 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
         if (path) {
           self.set('forceTransition', true);
           App.router.route(path);
-        } else if (event) {
+        } else if (callback) {
           // Prevent multiple popups
           self.set('hash', self.getHash());
-          self.selectConfigGroup(event);
+          callback();
         }
         this.hide();
       },

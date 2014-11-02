@@ -30,64 +30,52 @@ describe("App.MainServiceInfoConfigsController", function () {
     var tests = [
       {
         path: false,
-        event: false,
+        callback: null,
         action: "onSave",
-        m: "save configs without path/event",
+        m: "save configs without path/callback",
         results: [
           {
             method: "restartServicePopup",
             called: true
-          },
-          {
-            method: "selectConfigGroup",
-            called: false
           }
         ]
       },
       {
         path: true,
-        event: true,
+        callback: true,
         action: "onSave",
-        m: "save configs with path/event",
+        m: "save configs with path/callback",
         results: [
           {
             method: "restartServicePopup",
             called: true
-          },
+          }
+        ]
+      },
+      {
+        path: false,
+        callback: false,
+        action: "onDiscard",
+        m: "discard changes without path/callback",
+        results: [
           {
-            method: "selectConfigGroup",
+            method: "restartServicePopup",
             called: false
           }
         ]
       },
       {
         path: false,
-        event: false,
+        callback: true,
         action: "onDiscard",
-        m: "discard changes without path/event",
+        m: "discard changes with callback",
         results: [
           {
             method: "restartServicePopup",
             called: false
           },
           {
-            method: "selectConfigGroup",
-            called: false
-          }
-        ]
-      },
-      {
-        path: false,
-        event: true,
-        action: "onDiscard",
-        m: "discard changes with event",
-        results: [
-          {
-            method: "restartServicePopup",
-            called: false
-          },
-          {
-            method: "selectConfigGroup",
+            method: "callback",
             called: true
           },
           {
@@ -98,16 +86,12 @@ describe("App.MainServiceInfoConfigsController", function () {
       },
       {
         path: true,
-        event: false,
+        callback: null,
         action: "onDiscard",
         m: "discard changes with path",
         results: [
           {
             method: "restartServicePopup",
-            called: false
-          },
-          {
-            method: "selectConfigGroup",
             called: false
           },
           {
@@ -120,7 +104,6 @@ describe("App.MainServiceInfoConfigsController", function () {
 
     beforeEach(function () {
       sinon.stub(mainServiceInfoConfigsController, "restartServicePopup", Em.K);
-      sinon.stub(mainServiceInfoConfigsController, "selectConfigGroup", Em.K);
       sinon.stub(mainServiceInfoConfigsController, "getHash", function () {
         return "hash"
       });
@@ -128,16 +111,22 @@ describe("App.MainServiceInfoConfigsController", function () {
     });
     afterEach(function () {
       mainServiceInfoConfigsController.restartServicePopup.restore();
-      mainServiceInfoConfigsController.selectConfigGroup.restore();
       mainServiceInfoConfigsController.getHash.restore();
     });
 
     tests.forEach(function (t) {
       t.results.forEach(function (r) {
         it(t.m + " " + r.method + " " + r.field, function () {
-          mainServiceInfoConfigsController.showSavePopup(t.path, t.event)[t.action]();
+          if (t.callback) {
+            t.callback = sinon.stub();
+          }
+          mainServiceInfoConfigsController.showSavePopup(t.path, t.callback)[t.action]();
           if (r.method) {
-            expect(mainServiceInfoConfigsController[r.method].calledOnce).to.equal(r.called);
+            if (r.method === 'callback') {
+              expect(t.callback.calledOnce).to.equal(r.called);
+            } else {
+              expect(mainServiceInfoConfigsController[r.method].calledOnce).to.equal(r.called);
+            }
           } else if (r.field) {
             expect(mainServiceInfoConfigsController.get(r.field)).to.equal(r.value);
           }
