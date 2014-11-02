@@ -173,7 +173,7 @@
   </property>
   <property>
     <name>yarn.nodemanager.linux-container-executor.resources-handler.class</name>
-    <value>org.apache.hadoop.yarn.server.nodemanager.util.CgroupsLCEResourcesHandler</value>
+    <value>org.apache.hadoop.yarn.server.nodemanager.util.DefaultLCEResourcesHandler</value>
     <description>Pre-requisite to use CGroups</description>
   </property>
   <property>
