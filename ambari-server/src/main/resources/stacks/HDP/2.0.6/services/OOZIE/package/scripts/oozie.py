@@ -164,15 +164,16 @@ def oozie_server_specific():
         owner = params.oozie_user,
         group = params.user_group
     )
-    if params.config['configurations']['hive-site']:
+    if 'hive-site' in params.config['configurations']:
       XmlConfig("hive-site.xml",
         conf_dir=params.hive_conf_dir,
         configurations=params.config['configurations']['hive-site'],
         configuration_attributes=params.config['configuration_attributes']['hive-site'],
         owner=params.oozie_user,
         group=params.user_group,
-        mode=0644)
-    if params.config['configurations']['tez-site']:
+        mode=0644
+    )
+    if 'tez-site' in params.config['configurations']:
       XmlConfig( "tez-site.xml",
         conf_dir = params.hive_conf_dir,
         configurations = params.config['configurations']['tez-site'],
@@ -180,6 +181,6 @@ def oozie_server_specific():
         owner = params.oozie_user,
         group = params.user_group,
         mode = 0664
-  )
+    )
   pass
   
