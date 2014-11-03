@@ -303,13 +303,13 @@ App.config = Em.Object.create({
    *   configs,
    *   mappingConfigs
    *
-   * @param configGroups
+   * @param configCategories
    * @param advancedConfigs
    * @param tags
    * @param serviceName
    * @return {object}
    */
-  mergePreDefinedWithLoaded: function (configGroups, advancedConfigs, tags, serviceName) {
+  mergePreDefinedWithLoaded: function (configCategories, advancedConfigs, tags, serviceName) {
     var configs = [];
     var contentProperties = this.createContentProperties(advancedConfigs);
     var preDefinedConfigs = this.get('preDefinedSiteProperties').concat(contentProperties);
@@ -319,7 +319,7 @@ App.config = Em.Object.create({
     tags.forEach(function (_tag) {
       var isAdvanced = null;
       var filename = (filenameExceptions.contains(_tag.siteName)) ? _tag.siteName : _tag.siteName + ".xml";
-      var siteConfig = configGroups.filter(function (serviceConfigProperties) {
+      var siteConfig = configCategories.filter(function (serviceConfigProperties) {
         return _tag.tagName === serviceConfigProperties.tag && _tag.siteName === serviceConfigProperties.type;
       });
       siteConfig = siteConfig[0] || {};
