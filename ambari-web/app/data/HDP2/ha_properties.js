@@ -213,6 +213,18 @@ module.exports =
       },
       {
         "id": "site property",
+        "name": "dfs.namenode.safemode.threshold-pct",
+        "displayName": "dfs.namenode.safemode.threshold-pct",
+        "description": "Specifies the percentage of blocks that should satisfy\n        the minimal replication requirement defined by dfs.namenode.replication.min.\n        Values less than or equal to 0 mean not to start in safe mode.\n        Values greater than 1 will make safe mode permanent.\n ",
+        "isReconfigurable": false,
+        "defaultValue": "0.99f",
+        "value": "0.99f",
+        "category": "HDFS",
+        "filename": "hdfs-site",
+        "serviceName": 'MISC'
+      },
+      {
+        "id": "site property",
         "name": "hbase.rootdir",
         "displayName": "hbase.rootdir",
         "description": "The directory shared by region servers and into which HBase persists.",
