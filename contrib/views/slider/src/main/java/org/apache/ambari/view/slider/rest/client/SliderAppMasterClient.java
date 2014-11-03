@@ -64,13 +64,13 @@ public class SliderAppMasterClient extends BaseHttpClient {
           String[] splits = content.split("\r\n");
           for (int i = 0; i < splits.length; i++) {
             String split = splits[i].trim();
-            if ("org.apache.slider.registry".equals(split)) {
+            if ("classpath:org.apache.slider.registry".equals(split)) {
               data.registryUrl = splits[i + 1].trim();
-            } else if ("org.apache.http.UI".equals(split)) {
+            } else if ("classpath:org.apache.http.UI".equals(split)) {
               data.uiUrl = splits[i + 1].trim();
-            } else if ("org.apache.slider.management".equals(split)) {
+            } else if ("classpath:org.apache.slider.management".equals(split)) {
               data.managementUrl = splits[i + 1].trim();
-            } else if ("org.apache.slider.publisher".equals(split)) {
+            } else if ("classpath:org.apache.slider.publisher".equals(split)) {
               data.publisherUrl = splits[i + 1].trim();
             }
           }
