@@ -53,7 +53,9 @@ module.exports = [
       "falcon-env": {supports: {final: false}},
       "webhcat-env": {supports: {final: false}},
       "pig-env": {supports: {final: false}},
-      "sqoop-env": {supports: {final: false}}
+      "sqoop-env": {supports: {final: false}},
+      "knox-env" : {supports: {final: false}},
+      "kafka-env": {supports: {final: false}}
     },
     configs: []
   })
