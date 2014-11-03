@@ -194,6 +194,7 @@ public class ClusterResourceProviderTest {
     StackConfigurationResponse stackConfigurationResponse4 = createNiceMock(StackConfigurationResponse.class);
     StackConfigurationResponse stackConfigurationResponse5 = createNiceMock(StackConfigurationResponse.class);
     StackConfigurationResponse stackConfigurationResponse6 = createNiceMock(StackConfigurationResponse.class);
+    StackConfigurationResponse stackConfigurationResponse7 = createNiceMock(StackConfigurationResponse.class);
     Capture<Set<StackConfigurationRequest>> serviceConfigurationRequestCapture1 = new Capture<Set<StackConfigurationRequest>>();
     Capture<Set<StackConfigurationRequest>> serviceConfigurationRequestCapture2 = new Capture<Set<StackConfigurationRequest>>();
     Capture<Set<StackLevelConfigurationRequest>> serviceLevelConfigurationRequestCapture1 = new Capture<Set<StackLevelConfigurationRequest>>();
@@ -231,16 +232,6 @@ public class ClusterResourceProviderTest {
     Capture<Map<String, String>> updateClusterPropertyMapCapture2 = new Capture<Map<String, String>>();
     Capture<Set<ClusterRequest>> updateClusterRequestCapture3 = new Capture<Set<ClusterRequest>>();
     Capture<Map<String, String>> updateClusterPropertyMapCapture3 = new Capture<Map<String, String>>();
-    Capture<Set<ClusterRequest>> updateClusterRequestCapture4 = new Capture<Set<ClusterRequest>>();
-    Capture<Map<String, String>> updateClusterPropertyMapCapture4 = new Capture<Map<String, String>>();
-    Capture<Set<ClusterRequest>> updateClusterRequestCapture5 = new Capture<Set<ClusterRequest>>();
-    Capture<Map<String, String>> updateClusterPropertyMapCapture5 = new Capture<Map<String, String>>();
-    Capture<Set<ClusterRequest>> updateClusterRequestCapture6 = new Capture<Set<ClusterRequest>>();
-    Capture<Map<String, String>> updateClusterPropertyMapCapture6 = new Capture<Map<String, String>>();
-    Capture<Set<ClusterRequest>> updateClusterRequestCapture7 = new Capture<Set<ClusterRequest>>();
-    Capture<Map<String, String>> updateClusterPropertyMapCapture7 = new Capture<Map<String, String>>();
-    Capture<Set<ClusterRequest>> updateClusterRequestCapture8 = new Capture<Set<ClusterRequest>>();
-    Capture<Map<String, String>> updateClusterPropertyMapCapture8 = new Capture<Map<String, String>>();
     Capture<Set<ClusterRequest>> persistUIStateRequestCapture = new Capture<Set<ClusterRequest>>();
     Capture<Map<String, String>> persistUIStatePropertyMapCapture = new Capture<Map<String, String>>();
 
@@ -275,6 +266,7 @@ public class ClusterResourceProviderTest {
     stackConfigurationResponses2.add(stackConfigurationResponse2);
     stackConfigurationResponses2.add(stackConfigurationResponse3);
     stackConfigurationResponses2.add(stackConfigurationResponse4);
+    stackConfigurationResponses2.add(stackConfigurationResponse7);
     
     Set<StackConfigurationResponse> stackConfigurationResponses3 = new LinkedHashSet<StackConfigurationResponse>();
     stackConfigurationResponses3.add(stackConfigurationResponse6);
@@ -401,6 +393,11 @@ public class ClusterResourceProviderTest {
     expect(stackConfigurationResponse6.getPropertyName()).andReturn("rqw").anyTimes();
     expect(stackConfigurationResponse6.getPropertyValue()).andReturn("aaaa").anyTimes();
 
+    expect(stackConfigurationResponse7.getType()).andReturn("hive-env.xml").anyTimes();
+    expect(stackConfigurationResponse7.getPropertyName()).andReturn("test-property-one");
+    expect(stackConfigurationResponse7.getPropertyValue()).andReturn("test-value-one");
+
+
     expect(blueprintConfig.getBlueprintName()).andReturn("test-blueprint").anyTimes();
     expect(blueprintConfig.getType()).andReturn("core-site").anyTimes();
     expect(blueprintConfig.getConfigData()).andReturn(new Gson().toJson(blueprintCoreConfigProperties)).anyTimes();
@@ -441,16 +438,6 @@ public class ClusterResourceProviderTest {
         capture(updateClusterPropertyMapCapture2))).andReturn(null);
     expect(managementController.updateClusters(capture(updateClusterRequestCapture3),
         capture(updateClusterPropertyMapCapture3))).andReturn(null);
-    expect(managementController.updateClusters(capture(updateClusterRequestCapture4),
-        capture(updateClusterPropertyMapCapture4))).andReturn(null);
-    expect(managementController.updateClusters(capture(updateClusterRequestCapture5),
-        capture(updateClusterPropertyMapCapture5))).andReturn(null);
-    expect(managementController.updateClusters(capture(updateClusterRequestCapture6),
-        capture(updateClusterPropertyMapCapture6))).andReturn(null);
-    expect(managementController.updateClusters(capture(updateClusterRequestCapture7),
-        capture(updateClusterPropertyMapCapture7))).andReturn(null);
-    expect(managementController.updateClusters(capture(updateClusterRequestCapture8),
-        capture(updateClusterPropertyMapCapture8))).andReturn(null);
 
     // set state for UI
     expect(managementController.updateClusters(capture(persistUIStateRequestCapture),
@@ -470,7 +457,8 @@ public class ClusterResourceProviderTest {
     replay(blueprintDAO, managementController, request, response, blueprint, stackServiceResponse1, stackServiceResponse2,
            stackServiceComponentResponse1, stackServiceComponentResponse2, stackServiceComponentResponse3,
            stackServiceComponentResponse4, stackConfigurationResponse1, stackConfigurationResponse2,
-           stackConfigurationResponse3, stackConfigurationResponse4, stackConfigurationResponse5, stackConfigurationResponse6, blueprintConfig,
+           stackConfigurationResponse3, stackConfigurationResponse4, stackConfigurationResponse5, stackConfigurationResponse6,
+           stackConfigurationResponse7, blueprintConfig,
            blueprintConfig2, blueprintConfig3, blueprintConfig4, blueprintConfig5, blueprintConfig6, hostGroup, hostGroupComponent1, hostGroupComponent2, hostGroupComponent3, hostGroupComponent4,
            hostGroupConfig, serviceResourceProvider, componentResourceProvider, hostResourceProvider,
            hostComponentResourceProvider, configGroupResourceProvider, metaInfo);
@@ -536,65 +524,49 @@ public class ClusterResourceProviderTest {
     Set<ClusterRequest> updateClusterRequest1 = updateClusterRequestCapture.getValue();
     Set<ClusterRequest> updateClusterRequest2 = updateClusterRequestCapture2.getValue();
     Set<ClusterRequest> updateClusterRequest3 = updateClusterRequestCapture3.getValue();
-    Set<ClusterRequest> updateClusterRequest4 = updateClusterRequestCapture4.getValue();
-    Set<ClusterRequest> updateClusterRequest5 = updateClusterRequestCapture5.getValue();
-    Set<ClusterRequest> updateClusterRequest6 = updateClusterRequestCapture6.getValue();
-    Set<ClusterRequest> updateClusterRequest7 = updateClusterRequestCapture7.getValue();
-    Set<ClusterRequest> updateClusterRequest8 = updateClusterRequestCapture8.getValue();
-    Set<ClusterRequest> persistUIStateRequest = persistUIStateRequestCapture.getValue();
+    Set<ClusterRequest> updateClusterRequest4 = persistUIStateRequestCapture.getValue();
+
+
+
     assertEquals(1, updateClusterRequest1.size());
     assertEquals(1, updateClusterRequest2.size());
     assertEquals(1, updateClusterRequest3.size());
     assertEquals(1, updateClusterRequest4.size());
-    assertEquals(1, updateClusterRequest5.size());
-    assertEquals(1, updateClusterRequest6.size());
-    assertEquals(1, updateClusterRequest7.size());
-    assertEquals(1, updateClusterRequest8.size());
-    assertEquals(1, persistUIStateRequest.size());
+
     ClusterRequest ucr1 = updateClusterRequest1.iterator().next();
     ClusterRequest ucr2 = updateClusterRequest2.iterator().next();
     ClusterRequest ucr3 = updateClusterRequest3.iterator().next();
     ClusterRequest ucr4 = updateClusterRequest4.iterator().next();
-    ClusterRequest ucr5 = updateClusterRequest5.iterator().next();
-    ClusterRequest ucr6 = updateClusterRequest6.iterator().next();
-    ClusterRequest ucr7 = updateClusterRequest7.iterator().next();
-    ClusterRequest ucr8 = updateClusterRequest8.iterator().next();
-    ClusterRequest ucr9 = persistUIStateRequest.iterator().next();
+
     assertEquals(clusterName, ucr1.getClusterName());
     assertEquals(clusterName, ucr2.getClusterName());
     assertEquals(clusterName, ucr3.getClusterName());
     assertEquals(clusterName, ucr4.getClusterName());
-    assertEquals(clusterName, ucr5.getClusterName());
-    assertEquals(clusterName, ucr6.getClusterName());
-    assertEquals(clusterName, ucr7.getClusterName());
-    assertEquals(clusterName, ucr8.getClusterName());
-    assertEquals(clusterName, ucr9.getClusterName());
-    assertEquals("INSTALLED", ucr9.getProvisioningState());
+
+    assertEquals("INSTALLED", ucr4.getProvisioningState());
     ConfigurationRequest cr1 = ucr1.getDesiredConfig().get(0);
     ConfigurationRequest cr2 = ucr2.getDesiredConfig().get(0);
     ConfigurationRequest cr3 = ucr3.getDesiredConfig().get(0);
-    ConfigurationRequest cr4 = ucr4.getDesiredConfig().get(0);
-    ConfigurationRequest cr5 = ucr5.getDesiredConfig().get(0);
-    ConfigurationRequest cr6 = ucr6.getDesiredConfig().get(0);
-    ConfigurationRequest cr7 = ucr7.getDesiredConfig().get(0);
-    ConfigurationRequest cr8 = ucr8.getDesiredConfig().get(0);
+
     assertEquals("1", cr1.getVersionTag());
     assertEquals("1", cr2.getVersionTag());
     assertEquals("1", cr3.getVersionTag());
-    assertEquals("1", cr4.getVersionTag());
-    assertEquals("1", cr5.getVersionTag());
-    assertEquals("1", cr6.getVersionTag());
-    assertEquals("1", cr7.getVersionTag());
+
     Map<String, ConfigurationRequest> mapConfigRequests = new HashMap<String, ConfigurationRequest>();
-    mapConfigRequests.put(cr1.getType(), cr1);
-    mapConfigRequests.put(cr2.getType(), cr2);
-    mapConfigRequests.put(cr3.getType(), cr3);
-    mapConfigRequests.put(cr4.getType(), cr4);
-    mapConfigRequests.put(cr5.getType(), cr5);
-    mapConfigRequests.put(cr6.getType(), cr6);
-    mapConfigRequests.put(cr7.getType(), cr7);
-    mapConfigRequests.put(cr8.getType(), cr8);
-    assertEquals(8, mapConfigRequests.size());
+
+    ClusterRequest[] arrayOfClusterRequests = { ucr1, ucr2, ucr3 };
+
+    // add all the associated config types to the test map
+    // with the config versioning change, there could be
+    // more than one config type associated with a ClusterRequest
+    for (ClusterRequest testClusterRequest : arrayOfClusterRequests) {
+      for (ConfigurationRequest configRequest : testClusterRequest.getDesiredConfig()) {
+        mapConfigRequests.put(configRequest.getType(), configRequest);
+      }
+    }
+
+
+    assertEquals(6, mapConfigRequests.size());
     ConfigurationRequest hiveEnvConfigRequest = mapConfigRequests.get("hive-env");
     assertEquals("New MySQL Database", hiveEnvConfigRequest.getProperties().get("hive_database"));
     ConfigurationRequest hdfsConfigRequest = mapConfigRequests.get("hdfs-site");
@@ -622,7 +594,7 @@ public class ClusterResourceProviderTest {
     assertNull(updateClusterPropertyMapCapture.getValue());
     assertNull(updateClusterPropertyMapCapture2.getValue());
     assertNull(updateClusterPropertyMapCapture3.getValue());
-    assertNull(updateClusterPropertyMapCapture4.getValue());
+    //assertNull(updateClusterPropertyMapCapture4.getValue());
 
     Request serviceRequest = serviceRequestCapture.getValue();
     assertEquals(2, serviceRequest.getProperties().size());
@@ -674,7 +646,8 @@ public class ClusterResourceProviderTest {
     verify(blueprintDAO, managementController, request, response, blueprint, stackServiceResponse1, stackServiceResponse2,
         stackServiceComponentResponse1, stackServiceComponentResponse2, stackServiceComponentResponse3,
         stackServiceComponentResponse4, stackConfigurationResponse1, stackConfigurationResponse2,
-        stackConfigurationResponse3, stackConfigurationResponse4, stackConfigurationResponse5, stackConfigurationResponse6, blueprintConfig,
+        stackConfigurationResponse3, stackConfigurationResponse4, stackConfigurationResponse5, stackConfigurationResponse6,
+        stackConfigurationResponse7, blueprintConfig,
         blueprintConfig2, hostGroup, hostGroupComponent1, hostGroupComponent2, hostGroupComponent3, hostGroupComponent4,
         hostGroupConfig, serviceResourceProvider, componentResourceProvider, hostResourceProvider,
         hostComponentResourceProvider, configGroupResourceProvider, metaInfo);
@@ -1560,14 +1533,7 @@ public class ClusterResourceProviderTest {
     Capture<Map<String, String>> updateClusterPropertyMapCapture2 = new Capture<Map<String, String>>();
     Capture<Set<ClusterRequest>> updateClusterRequestCapture3 = new Capture<Set<ClusterRequest>>();
     Capture<Map<String, String>> updateClusterPropertyMapCapture3 = new Capture<Map<String, String>>();
-    Capture<Set<ClusterRequest>> updateClusterRequestCapture4 = new Capture<Set<ClusterRequest>>();
-    Capture<Map<String, String>> updateClusterPropertyMapCapture4 = new Capture<Map<String, String>>();
-    Capture<Set<ClusterRequest>> updateClusterRequestCapture5 = new Capture<Set<ClusterRequest>>();
-    Capture<Map<String, String>> updateClusterPropertyMapCapture5 = new Capture<Map<String, String>>();
-    Capture<Set<ClusterRequest>> updateClusterRequestCapture6 = new Capture<Set<ClusterRequest>>();
-    Capture<Map<String, String>> updateClusterPropertyMapCapture6 = new Capture<Map<String, String>>();
-    Capture<Set<ClusterRequest>> updateClusterRequestCapture7 = new Capture<Set<ClusterRequest>>();
-    Capture<Map<String, String>> updateClusterPropertyMapCapture7 = new Capture<Map<String, String>>();
+
     Capture<Set<ClusterRequest>> persistUIStateRequestCapture = new Capture<Set<ClusterRequest>>();
     Capture<Map<String, String>> persistUIStatePropertyMapCapture = new Capture<Map<String, String>>();
     
@@ -1734,20 +1700,14 @@ public class ClusterResourceProviderTest {
     expect(hostGroupConfig.getConfigData()).andReturn(new Gson().toJson(mapGroupConfigProperties)).anyTimes();
 
     managementController.createCluster(capture(createClusterRequestCapture));
+    // expect three ClusterRequests to be generated for configuration
     expect(managementController.updateClusters(capture(updateClusterRequestCapture),
         capture(updateClusterPropertyMapCapture))).andReturn(null);
     expect(managementController.updateClusters(capture(updateClusterRequestCapture2),
         capture(updateClusterPropertyMapCapture2))).andReturn(null);
     expect(managementController.updateClusters(capture(updateClusterRequestCapture3),
         capture(updateClusterPropertyMapCapture3))).andReturn(null);
-    expect(managementController.updateClusters(capture(updateClusterRequestCapture4),
-        capture(updateClusterPropertyMapCapture4))).andReturn(null);
-    expect(managementController.updateClusters(capture(updateClusterRequestCapture5),
-        capture(updateClusterPropertyMapCapture5))).andReturn(null);
-    expect(managementController.updateClusters(capture(updateClusterRequestCapture6),
-        capture(updateClusterPropertyMapCapture6))).andReturn(null);
-    expect(managementController.updateClusters(capture(updateClusterRequestCapture7),
-        capture(updateClusterPropertyMapCapture7))).andReturn(null);
+
 
     // set state for UI
     expect(managementController.updateClusters(capture(persistUIStateRequestCapture),
@@ -1834,61 +1794,43 @@ public class ClusterResourceProviderTest {
     Set<ClusterRequest> updateClusterRequest1 = updateClusterRequestCapture.getValue();
     Set<ClusterRequest> updateClusterRequest2 = updateClusterRequestCapture2.getValue();
     Set<ClusterRequest> updateClusterRequest3 = updateClusterRequestCapture3.getValue();
-    Set<ClusterRequest> updateClusterRequest4 = updateClusterRequestCapture4.getValue();
-    Set<ClusterRequest> updateClusterRequest5 = updateClusterRequestCapture5.getValue();
-    Set<ClusterRequest> updateClusterRequest6 = updateClusterRequestCapture6.getValue();
-    Set<ClusterRequest> updateClusterRequest7 = updateClusterRequestCapture7.getValue();
     Set<ClusterRequest> persistUIStateRequest = persistUIStateRequestCapture.getValue();
     
     assertEquals(1, updateClusterRequest1.size());
     assertEquals(1, updateClusterRequest2.size());
     assertEquals(1, updateClusterRequest3.size());
-    assertEquals(1, updateClusterRequest4.size());
-    assertEquals(1, updateClusterRequest5.size());
-    assertEquals(1, updateClusterRequest6.size());
-    assertEquals(1, updateClusterRequest7.size());
     assertEquals(1, persistUIStateRequest.size());
     ClusterRequest ucr1 = updateClusterRequest1.iterator().next();
     ClusterRequest ucr2 = updateClusterRequest2.iterator().next();
     ClusterRequest ucr3 = updateClusterRequest3.iterator().next();
-    ClusterRequest ucr4 = updateClusterRequest4.iterator().next();
-    ClusterRequest ucr5 = updateClusterRequest5.iterator().next();
-    ClusterRequest ucr6 = updateClusterRequest6.iterator().next();
-    ClusterRequest ucr7 = updateClusterRequest7.iterator().next();
-    ClusterRequest ucr8 = persistUIStateRequest.iterator().next();
+    ClusterRequest ucr4 = persistUIStateRequest.iterator().next();
     assertEquals(clusterName, ucr1.getClusterName());
     assertEquals(clusterName, ucr2.getClusterName());
     assertEquals(clusterName, ucr3.getClusterName());
-    assertEquals(clusterName, ucr4.getClusterName());
-    assertEquals(clusterName, ucr5.getClusterName());
-    assertEquals(clusterName, ucr6.getClusterName());
-    assertEquals(clusterName, ucr7.getClusterName());
-    assertEquals(clusterName, ucr8.getClusterName());
-    assertEquals("INSTALLED", ucr8.getProvisioningState());
-    ConfigurationRequest cr1 = ucr1.getDesiredConfig().get(0);
-    ConfigurationRequest cr2 = ucr2.getDesiredConfig().get(0);
-    ConfigurationRequest cr3 = ucr3.getDesiredConfig().get(0);
-    ConfigurationRequest cr4 = ucr4.getDesiredConfig().get(0);
-    ConfigurationRequest cr5 = ucr5.getDesiredConfig().get(0);
-    ConfigurationRequest cr6 = ucr6.getDesiredConfig().get(0);
-    ConfigurationRequest cr7 = ucr7.getDesiredConfig().get(0);
 
-    assertEquals("1", cr1.getVersionTag());
-    assertEquals("1", cr2.getVersionTag());
-    assertEquals("1", cr3.getVersionTag());
-    assertEquals("1", cr4.getVersionTag());
-    assertEquals("1", cr5.getVersionTag());
-    assertEquals("1", cr6.getVersionTag());
-    assertEquals("1", cr7.getVersionTag());
+    assertEquals("INSTALLED", ucr4.getProvisioningState());
+
+    ClusterRequest[] arrayOfClusterRequests =
+      { ucr1, ucr2, ucr3 };
+
+    // assert that all ConfigRequests instances have version of "1"
+    for (ClusterRequest testRequest : arrayOfClusterRequests) {
+      for (ConfigurationRequest testConfigRequest : testRequest.getDesiredConfig()) {
+        assertEquals("1", testConfigRequest.getVersionTag());
+      }
+    }
 
     Map<String, ConfigurationRequest> mapConfigRequests = new HashMap<String, ConfigurationRequest>();
-    mapConfigRequests.put(cr1.getType(), cr1);
-    mapConfigRequests.put(cr2.getType(), cr2);
-    mapConfigRequests.put(cr3.getType(), cr3);
-    mapConfigRequests.put(cr4.getType(), cr4);
-    mapConfigRequests.put(cr5.getType(), cr5);
-    mapConfigRequests.put(cr6.getType(), cr6);
-    mapConfigRequests.put(cr7.getType(), cr7);
+
+    // add all the associated config types to the test map
+    // with the config versioning change, there could be
+    // more than one config type associated with a ClusterRequest
+    for (ClusterRequest testClusterRequest : arrayOfClusterRequests) {
+      for (ConfigurationRequest configRequest : testClusterRequest.getDesiredConfig()) {
+        mapConfigRequests.put(configRequest.getType(), configRequest);
+      }
+    }
+
     assertEquals(7, mapConfigRequests.size());
     
     ConfigurationRequest hdfsConfigRequest = mapConfigRequests.get("hdfs-site");
@@ -2268,16 +2210,6 @@ public class ClusterResourceProviderTest {
     Capture<Map<String, String>> updateClusterPropertyMapCapture2 = new Capture<Map<String, String>>();
     Capture<Set<ClusterRequest>> updateClusterRequestCapture3 = new Capture<Set<ClusterRequest>>();
     Capture<Map<String, String>> updateClusterPropertyMapCapture3 = new Capture<Map<String, String>>();
-    Capture<Set<ClusterRequest>> updateClusterRequestCapture4 = new Capture<Set<ClusterRequest>>();
-    Capture<Map<String, String>> updateClusterPropertyMapCapture4 = new Capture<Map<String, String>>();
-    Capture<Set<ClusterRequest>> updateClusterRequestCapture5 = new Capture<Set<ClusterRequest>>();
-    Capture<Map<String, String>> updateClusterPropertyMapCapture5 = new Capture<Map<String, String>>();
-    Capture<Set<ClusterRequest>> updateClusterRequestCapture6 = new Capture<Set<ClusterRequest>>();
-    Capture<Map<String, String>> updateClusterPropertyMapCapture6 = new Capture<Map<String, String>>();
-    Capture<Set<ClusterRequest>> updateClusterRequestCapture7 = new Capture<Set<ClusterRequest>>();
-    Capture<Map<String, String>> updateClusterPropertyMapCapture7 = new Capture<Map<String, String>>();
-    Capture<Set<ClusterRequest>> updateClusterRequestCapture8 = new Capture<Set<ClusterRequest>>();
-    Capture<Map<String, String>> updateClusterPropertyMapCapture8 = new Capture<Map<String, String>>();
     Capture<Set<ClusterRequest>> persistUIStateRequestCapture = new Capture<Set<ClusterRequest>>();
     Capture<Map<String, String>> persistUIStatePropertyMapCapture = new Capture<Map<String, String>>();
 
@@ -2479,16 +2411,6 @@ public class ClusterResourceProviderTest {
         capture(updateClusterPropertyMapCapture2))).andReturn(null);
     expect(managementController.updateClusters(capture(updateClusterRequestCapture3),
         capture(updateClusterPropertyMapCapture3))).andReturn(null);
-    expect(managementController.updateClusters(capture(updateClusterRequestCapture4),
-        capture(updateClusterPropertyMapCapture4))).andReturn(null);
-    expect(managementController.updateClusters(capture(updateClusterRequestCapture5),
-        capture(updateClusterPropertyMapCapture5))).andReturn(null);
-    expect(managementController.updateClusters(capture(updateClusterRequestCapture6),
-        capture(updateClusterPropertyMapCapture6))).andReturn(null);
-    expect(managementController.updateClusters(capture(updateClusterRequestCapture7),
-        capture(updateClusterPropertyMapCapture7))).andReturn(null);
-    expect(managementController.updateClusters(capture(updateClusterRequestCapture8),
-        capture(updateClusterPropertyMapCapture8))).andReturn(null);
 
     // set state for UI
     expect(managementController.updateClusters(capture(persistUIStateRequestCapture),
@@ -2577,65 +2499,46 @@ public class ClusterResourceProviderTest {
     Set<ClusterRequest> updateClusterRequest1 = updateClusterRequestCapture.getValue();
     Set<ClusterRequest> updateClusterRequest2 = updateClusterRequestCapture2.getValue();
     Set<ClusterRequest> updateClusterRequest3 = updateClusterRequestCapture3.getValue();
-    Set<ClusterRequest> updateClusterRequest4 = updateClusterRequestCapture4.getValue();
-    Set<ClusterRequest> updateClusterRequest5 = updateClusterRequestCapture5.getValue();
-    Set<ClusterRequest> updateClusterRequest6 = updateClusterRequestCapture6.getValue();
-    Set<ClusterRequest> updateClusterRequest7 = updateClusterRequestCapture7.getValue();
-    Set<ClusterRequest> updateClusterRequest8 = updateClusterRequestCapture8.getValue();
     Set<ClusterRequest> persistUIStateRequest = persistUIStateRequestCapture.getValue();
+
     assertEquals(1, updateClusterRequest1.size());
     assertEquals(1, updateClusterRequest2.size());
     assertEquals(1, updateClusterRequest3.size());
-    assertEquals(1, updateClusterRequest4.size());
-    assertEquals(1, updateClusterRequest5.size());
-    assertEquals(1, updateClusterRequest6.size());
-    assertEquals(1, updateClusterRequest7.size());
-    assertEquals(1, updateClusterRequest8.size());
+
     assertEquals(1, persistUIStateRequest.size());
+
     ClusterRequest ucr1 = updateClusterRequest1.iterator().next();
     ClusterRequest ucr2 = updateClusterRequest2.iterator().next();
     ClusterRequest ucr3 = updateClusterRequest3.iterator().next();
-    ClusterRequest ucr4 = updateClusterRequest4.iterator().next();
-    ClusterRequest ucr5 = updateClusterRequest5.iterator().next();
-    ClusterRequest ucr6 = updateClusterRequest6.iterator().next();
-    ClusterRequest ucr7 = updateClusterRequest7.iterator().next();
-    ClusterRequest ucr8 = updateClusterRequest8.iterator().next();
+
     ClusterRequest ucr9 = persistUIStateRequest.iterator().next();
     assertEquals(clusterName, ucr1.getClusterName());
     assertEquals(clusterName, ucr2.getClusterName());
     assertEquals(clusterName, ucr3.getClusterName());
-    assertEquals(clusterName, ucr4.getClusterName());
-    assertEquals(clusterName, ucr5.getClusterName());
-    assertEquals(clusterName, ucr6.getClusterName());
-    assertEquals(clusterName, ucr7.getClusterName());
-    assertEquals(clusterName, ucr8.getClusterName());
     assertEquals("INSTALLED", ucr9.getProvisioningState());
     assertEquals(clusterName, ucr9.getClusterName());
-    ConfigurationRequest cr1 = ucr1.getDesiredConfig().get(0);
-    ConfigurationRequest cr2 = ucr2.getDesiredConfig().get(0);
-    ConfigurationRequest cr3 = ucr3.getDesiredConfig().get(0);
-    ConfigurationRequest cr4 = ucr4.getDesiredConfig().get(0);
-    ConfigurationRequest cr5 = ucr5.getDesiredConfig().get(0);
-    ConfigurationRequest cr6 = ucr6.getDesiredConfig().get(0);
-    ConfigurationRequest cr7 = ucr7.getDesiredConfig().get(0);
-    ConfigurationRequest cr8 = ucr8.getDesiredConfig().get(0);
-    assertEquals("1", cr1.getVersionTag());
-    assertEquals("1", cr2.getVersionTag());
-    assertEquals("1", cr3.getVersionTag());
-    assertEquals("1", cr4.getVersionTag());
-    assertEquals("1", cr5.getVersionTag());
-    assertEquals("1", cr6.getVersionTag());
-    assertEquals("1", cr7.getVersionTag());
-    assertEquals("1", cr8.getVersionTag());
+
+    ClusterRequest[] arrayOfClusterRequests =
+      { ucr1, ucr2, ucr3 };
+
+    // assert that all ConfigRequests instances have version of "1"
+    for (ClusterRequest testRequest : arrayOfClusterRequests) {
+      for (ConfigurationRequest testConfigRequest : testRequest.getDesiredConfig()) {
+        assertEquals("1", testConfigRequest.getVersionTag());
+      }
+    }
+
     Map<String, ConfigurationRequest> mapConfigRequests = new HashMap<String, ConfigurationRequest>();
-    mapConfigRequests.put(cr1.getType(), cr1);
-    mapConfigRequests.put(cr2.getType(), cr2);
-    mapConfigRequests.put(cr3.getType(), cr3);
-    mapConfigRequests.put(cr4.getType(), cr4);
-    mapConfigRequests.put(cr5.getType(), cr5);
-    mapConfigRequests.put(cr6.getType(), cr6);
-    mapConfigRequests.put(cr7.getType(), cr7);
-    mapConfigRequests.put(cr8.getType(), cr8);
+    // add all the associated config types to the test map
+    // with the config versioning change, there could be
+    // more than one config type associated with a ClusterRequest
+    for (ClusterRequest testClusterRequest : arrayOfClusterRequests) {
+      for (ConfigurationRequest configRequest : testClusterRequest.getDesiredConfig()) {
+        mapConfigRequests.put(configRequest.getType(), configRequest);
+      }
+    }
+
+
     assertEquals(8, mapConfigRequests.size());
     ConfigurationRequest hiveEnvConfigRequest = mapConfigRequests.get("hive-env");
     assertEquals("New MySQL Database", hiveEnvConfigRequest.getProperties().get("hive_database"));
@@ -2673,7 +2576,7 @@ public class ClusterResourceProviderTest {
     assertNull(updateClusterPropertyMapCapture.getValue());
     assertNull(updateClusterPropertyMapCapture2.getValue());
     assertNull(updateClusterPropertyMapCapture3.getValue());
-    assertNull(updateClusterPropertyMapCapture5.getValue());
+    assertNull(persistUIStatePropertyMapCapture.getValue());
 
     Request serviceRequest = serviceRequestCapture.getValue();
     assertEquals(2, serviceRequest.getProperties().size());
@@ -3052,12 +2955,13 @@ public class ClusterResourceProviderTest {
     AmbariMetaInfo mockAmbariMetaInfo =
       mockSupport.createMock(AmbariMetaInfo.class);
 
-    expect(mockStackComponentResponse.getComponentName()).andReturn("OOZIE_SERVER");
+    expect(mockStackComponentResponse.getComponentName()).andReturn("OOZIE_SERVER").atLeastOnce();
     expect(mockStackComponentResponse.getCardinality()).andReturn("1");
     expect(mockStackComponentResponse.getAutoDeploy()).andReturn(new AutoDeployInfo());
 
 
-    expect(mockStackServiceResponseOne.getServiceName()).andReturn("OOZIE");
+    expect(mockStackServiceResponseOne.getServiceName()).andReturn("OOZIE").atLeastOnce();
+    expect(mockStackServiceResponseOne.getExcludedConfigTypes()).andReturn(Collections.<String>emptySet()).atLeastOnce();
     expect(mockManagementController.getStackServices(isA(Set.class))).andReturn(Collections.singleton(mockStackServiceResponseOne));
     expect(mockManagementController.getStackComponents(isA(Set.class))).andReturn(Collections.singleton(mockStackComponentResponse));
     expect(mockManagementController.getStackConfigurations(isA(Set.class))).andReturn(Collections.<StackConfigurationResponse>emptySet());
@@ -3135,12 +3039,13 @@ public class ClusterResourceProviderTest {
     AmbariMetaInfo mockAmbariMetaInfo =
       mockSupport.createMock(AmbariMetaInfo.class);
 
-    expect(mockStackComponentResponse.getComponentName()).andReturn("FALCON_SERVER");
+    expect(mockStackComponentResponse.getComponentName()).andReturn("FALCON_SERVER").atLeastOnce();
     expect(mockStackComponentResponse.getCardinality()).andReturn("1");
     expect(mockStackComponentResponse.getAutoDeploy()).andReturn(new AutoDeployInfo());
 
 
-    expect(mockStackServiceResponseOne.getServiceName()).andReturn("FALCON");
+    expect(mockStackServiceResponseOne.getServiceName()).andReturn("FALCON").atLeastOnce();
+    expect(mockStackServiceResponseOne.getExcludedConfigTypes()).andReturn(Collections.<String>emptySet()).atLeastOnce();
     expect(mockManagementController.getStackServices(isA(Set.class))).andReturn(Collections.singleton(mockStackServiceResponseOne));
     expect(mockManagementController.getStackComponents(isA(Set.class))).andReturn(Collections.singleton(mockStackComponentResponse));
     expect(mockManagementController.getStackConfigurations(isA(Set.class))).andReturn(Collections.<StackConfigurationResponse>emptySet());
@@ -3221,7 +3126,8 @@ public class ClusterResourceProviderTest {
     expect(mockStackComponentResponse.getAutoDeploy()).andReturn(new AutoDeployInfo());
 
 
-    expect(mockStackServiceResponseOne.getServiceName()).andReturn("OOZIE");
+    expect(mockStackServiceResponseOne.getServiceName()).andReturn("OOZIE").atLeastOnce();
+    expect(mockStackServiceResponseOne.getExcludedConfigTypes()).andReturn(Collections.<String>emptySet()).atLeastOnce();
     expect(mockManagementController.getStackServices(isA(Set.class))).andReturn(Collections.singleton(mockStackServiceResponseOne));
     expect(mockManagementController.getStackComponents(isA(Set.class))).andReturn(Collections.singleton(mockStackComponentResponse));
     expect(mockManagementController.getStackConfigurations(isA(Set.class))).andReturn(Collections.<StackConfigurationResponse>emptySet());
@@ -3298,7 +3204,9 @@ public class ClusterResourceProviderTest {
     expect(mockStackComponentResponse.getAutoDeploy()).andReturn(new AutoDeployInfo());
 
 
-    expect(mockStackServiceResponseOne.getServiceName()).andReturn("FALCON");
+    expect(mockStackServiceResponseOne.getServiceName()).andReturn("FALCON").atLeastOnce();
+    expect(mockStackServiceResponseOne.getExcludedConfigTypes()).andReturn(Collections.<String>emptySet()).atLeastOnce();
+
     expect(mockManagementController.getStackServices(isA(Set.class))).andReturn(Collections.singleton(mockStackServiceResponseOne));
     expect(mockManagementController.getStackComponents(isA(Set.class))).andReturn(Collections.singleton(mockStackComponentResponse));
     expect(mockManagementController.getStackConfigurations(isA(Set.class))).andReturn(Collections.<StackConfigurationResponse>emptySet());
@@ -3374,7 +3282,8 @@ public class ClusterResourceProviderTest {
     expect(mockStackComponentResponse.getCardinality()).andReturn("1");
     expect(mockStackComponentResponse.getAutoDeploy()).andReturn(new AutoDeployInfo());
 
-    expect(mockStackServiceResponseOne.getServiceName()).andReturn("HIVE");
+    expect(mockStackServiceResponseOne.getServiceName()).andReturn("HIVE").atLeastOnce();
+    expect(mockStackServiceResponseOne.getExcludedConfigTypes()).andReturn(Collections.<String>emptySet()).atLeastOnce();
     expect(mockManagementController.getStackServices(isA(Set.class))).andReturn(Collections.singleton(mockStackServiceResponseOne));
     expect(mockManagementController.getStackComponents(isA(Set.class))).andReturn(Collections.singleton(mockStackComponentResponse));
     expect(mockManagementController.getStackConfigurations(isA(Set.class))).andReturn(Collections.<StackConfigurationResponse>emptySet());
@@ -3450,7 +3359,9 @@ public class ClusterResourceProviderTest {
     expect(mockStackComponentResponse.getCardinality()).andReturn("1");
     expect(mockStackComponentResponse.getAutoDeploy()).andReturn(new AutoDeployInfo());
 
-    expect(mockStackServiceResponseOne.getServiceName()).andReturn("HBASE");
+    expect(mockStackServiceResponseOne.getServiceName()).andReturn("HBASE").atLeastOnce();
+    expect(mockStackServiceResponseOne.getExcludedConfigTypes()).andReturn(Collections.<String>emptySet()).atLeastOnce();
+
     expect(mockManagementController.getStackServices(isA(Set.class))).andReturn(Collections.singleton(mockStackServiceResponseOne));
     expect(mockManagementController.getStackComponents(isA(Set.class))).andReturn(Collections.singleton(mockStackComponentResponse));
     expect(mockManagementController.getStackConfigurations(isA(Set.class))).andReturn(Collections.<StackConfigurationResponse>emptySet());
