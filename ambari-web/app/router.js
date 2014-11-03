@@ -469,8 +469,10 @@ App.Router = Em.Router.extend({
     experimental: Em.Route.extend({
       route: '/experimental',
       enter: function (router, context) {
-        if (!App.get('isAdmin')) {
-          router.transitionTo("main");
+        if (!App.get('isAdmin') || App.get('isOperator')) {
+          Em.run.next(function () {
+            router.transitionTo("main.dashboard.widgets");
+          });
         }
       },
       connectOutlets: function (router, context) {
