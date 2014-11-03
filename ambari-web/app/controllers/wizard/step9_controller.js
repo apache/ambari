@@ -997,6 +997,8 @@ App.WizardStep9Controller = Em.Controller.extend({
         if (currentTask) {
           currentTask.Tasks.stderr = data.Tasks.stderr;
           currentTask.Tasks.stdout = data.Tasks.stdout;
+          currentTask.Tasks.output_log = data.Tasks.output_log;
+          currentTask.Tasks.error_log = data.Tasks.error_log;
         }
       }
     }
