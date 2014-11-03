@@ -262,7 +262,7 @@ describe("App.MainServiceInfoConfigsController", function () {
     });
   });
 
-  describe("rollingRestartStaleConfigSlaveComponents", function () {
+  describe("#rollingRestartStaleConfigSlaveComponents", function () {
     var tests = [
       {
         componentName: {
@@ -1388,7 +1388,7 @@ describe("App.MainServiceInfoConfigsController", function () {
     });
   });
 
-  describe("setCompareDefaultGroupConfig", function() {
+  describe("#setCompareDefaultGroupConfig", function() {
     beforeEach(function() {
       sinon.stub(mainServiceInfoConfigsController, "getComparisonConfig").returns("compConfig");
       sinon.stub(mainServiceInfoConfigsController, "getMockComparisonConfig").returns("mockConfig");
@@ -1419,4 +1419,50 @@ describe("App.MainServiceInfoConfigsController", function () {
     });
 
   });
+
+  describe('#showSaveConfigsPopup', function () {
+
+    var bodyView;
+
+    describe('#bodyClass', function () {
+      beforeEach(function() {
+        sinon.stub(App.ajax, 'send', Em.K);
+        // default implementation
+        bodyView = mainServiceInfoConfigsController.showSaveConfigsPopup().get('bodyClass').create({
+          parentView: Em.View.create()
+        });
+      });
+
+      afterEach(function() {
+        App.ajax.send.restore();
+      });
+
+      describe('#componentsFilterSuccessCallback', function () {
+        it('check components with unknown state', function () {
+          bodyView = mainServiceInfoConfigsController.showSaveConfigsPopup('', true, '', {}, '', 'unknown', '').get('bodyClass').create({
+            parentView: Em.View.create()
+          });
+          bodyView.componentsFilterSuccessCallback({
+            items: [
+              {
+                ServiceComponentInfo: {
+                  total_count: 4,
+                  started_count: 2,
+                  installed_count: 1,
+                  component_name: 'c1'
+                },
+                host_components: [
+                  {HostRoles: {host_name: 'h1'}}
+                ]
+              }
+            ]
+          });
+          var unknownHosts = bodyView.get('unknownHosts');
+          expect(unknownHosts.length).to.equal(1);
+          expect(unknownHosts[0]).to.eql({name: 'h1', components: 'C1'});
+        });
+      });
+    });
+  });
+
 });
