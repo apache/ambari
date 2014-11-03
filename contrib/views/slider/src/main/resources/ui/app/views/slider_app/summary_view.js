@@ -126,13 +126,14 @@ App.SliderAppSummaryView = Ember.View.extend({
       panelSummaryBody = panelSummary.find('.panel-body'),
       columnRight = this.$('.column-right'),
       panelAlerts = columnRight.find('.panel-alerts'),
-      panelComponents = columnRight.find('.panel-components');
+      panelComponentsBody = columnRight.find('.panel-components .panel-body'),
+      wrapperHeightDiff = columnRight.find('.panel-components').height() - panelComponentsBody.height();
     if (panelSummary.height() < panelSummaryBody.height()) {
       panelSummary.height(panelSummaryBody.height());
     }
     var marginAndBorderHeight = parseInt(panelAlerts.css('margin-bottom')) + 3;
     if (panelSummary.height() > columnRight.height()) {
-      panelComponents.height(panelSummary.height() - panelAlerts.height() - marginAndBorderHeight);
+      panelComponentsBody.height(panelSummary.height() - panelAlerts.height() - marginAndBorderHeight - wrapperHeightDiff);
     }
     else {
       panelSummary.height(columnRight.height() - marginAndBorderHeight);
