@@ -142,6 +142,8 @@ App.WizardStep9HostLogPopupBodyView = Em.View.extend({
         taskInfo.set('role', App.format.role(_task.Tasks.role));
         taskInfo.set('stderr', _task.Tasks.stderr);
         taskInfo.set('stdout', _task.Tasks.stdout);
+        taskInfo.set('outputLog', _task.Tasks.output_log);
+        taskInfo.set('errorLog', _task.Tasks.error_log);
         taskInfo.set('startTime',  date.startTime(_task.Tasks.start_time));
         taskInfo.set('duration', date.durationSummary(_task.Tasks.start_time, _task.Tasks.end_time));
         taskInfo.set('isVisible', true);
