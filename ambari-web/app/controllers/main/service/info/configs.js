@@ -1442,6 +1442,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
 
   /**
    * Show save configs popup
+   * @method showSaveConfigsPopup
+   * @return {App.ModalPopup}
    */
   showSaveConfigsPopup: function (header, flag, message, messageClass, value, status, urlParams) {
     var self = this;
@@ -1449,7 +1451,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
       this.set('forceTransition', flag);
       self.loadStep();
     }
-    App.ModalPopup.show({
+    return App.ModalPopup.show({
       header: header,
       primary: Em.I18n.t('ok'),
       secondary: null,
@@ -1494,17 +1496,31 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
                 context: view
               });
             },
+            /**
+             * Map components for their hosts
+             * Return format:
+             * <code>
+             *   {
+             *    host1: [component1, component2, ...],
+             *    host2: [component3, component4, ...]
+             *   }
+             * </code>
+             * @return {object}
+             */
             setComponents = function (item, components) {
               item.host_components.forEach(function (c) {
                 var name = c.HostRoles.host_name;
                 if (!components[name]) {
                   components[name] = [];
-                } else {
-                  components[name].push(App.format.role(item.ServiceComponentInfo.component_name));
                 }
+                components[name].push(App.format.role(item.ServiceComponentInfo.component_name));
               });
               return components;
             },
+            /**
+             * Map result of <code>setComponents</code> to array
+             * @return {{name: string, components: string}[]}
+             */
             setHosts = function (components) {
               var hosts = [];
               Em.keys(components).forEach(function (key) {
@@ -1549,7 +1565,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
           this.set('isLoaded', true);
         },
         didInsertElement: function () {
-          App.ajax.send({
+          return App.ajax.send({
             name: 'components.filter_by_status',
             sender: this,
             data: {
