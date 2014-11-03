@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.view;
 
+import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createNiceMock;
@@ -38,7 +39,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -46,7 +46,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
+import java.util.jar.JarInputStream;
 
 import javax.xml.bind.JAXBException;
 
@@ -188,12 +188,11 @@ public class ViewRegistryTest {
     File entryFile  = createNiceMock(File.class);
     File classesDir = createNiceMock(File.class);
     File libDir = createNiceMock(File.class);
+    File metaInfDir = createNiceMock(File.class);
     File fileEntry = createNiceMock(File.class);
 
-    JarFile viewJarFile = createNiceMock(JarFile.class);
-    Enumeration<JarEntry> enumeration = createMock(Enumeration.class);
+    JarInputStream viewJarFile = createNiceMock(JarInputStream.class);
     JarEntry jarEntry = createNiceMock(JarEntry.class);
-    InputStream is = createMock(InputStream.class);
     FileOutputStream fos = createMock(FileOutputStream.class);
 
     ResourceTypeEntity resourceTypeEntity = new ResourceTypeEntity();
@@ -228,11 +227,12 @@ public class ViewRegistryTest {
     files.put("/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}/view.xml", entryFile);
     files.put("/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}/WEB-INF/classes", classesDir);
     files.put("/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}/WEB-INF/lib", libDir);
+    files.put("/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}/META-INF", metaInfDir);
 
     Map<File, FileOutputStream> outputStreams = new HashMap<File, FileOutputStream>();
     outputStreams.put(entryFile, fos);
 
-    Map<File, JarFile> jarFiles = new HashMap<File, JarFile>();
+    Map<File, JarInputStream> jarFiles = new HashMap<File, JarInputStream>();
     jarFiles.put(viewArchive, viewJarFile);
 
     // set expectations
@@ -254,24 +254,22 @@ public class ViewRegistryTest {
     expect(archiveDir.mkdir()).andReturn(true);
     expect(archiveDir.toURI()).andReturn(new URI("file:./"));
 
-    expect(viewJarFile.entries()).andReturn(enumeration);
-    expect(viewJarFile.getInputStream(jarEntry)).andReturn(is);
+    expect(metaInfDir.mkdir()).andReturn(true);
 
-    expect(enumeration.hasMoreElements()).andReturn(true);
-    expect(enumeration.hasMoreElements()).andReturn(false);
-    expect(enumeration.nextElement()).andReturn(jarEntry);
+    expect(viewJarFile.getNextJarEntry()).andReturn(jarEntry);
+    expect(viewJarFile.getNextJarEntry()).andReturn(null);
 
     expect(jarEntry.getName()).andReturn("view.xml");
     expect(jarEntry.isDirectory()).andReturn(false);
 
-    expect(is.available()).andReturn(1);
-    expect(is.available()).andReturn(0);
+    expect(viewJarFile.read(anyObject(byte[].class))).andReturn(10);
+    expect(viewJarFile.read(anyObject(byte[].class))).andReturn(-1);
+    fos.write(anyObject(byte[].class), eq(0), eq(10));
 
-    expect(is.read()).andReturn(10);
-    fos.write(10);
-
+    fos.flush();
     fos.close();
-    is.close();
+    viewJarFile.closeEntry();
+    viewJarFile.close();
 
     expect(extractedArchiveDir.exists()).andReturn(false);
     expect(extractedArchiveDir.mkdir()).andReturn(true);
@@ -290,7 +288,7 @@ public class ViewRegistryTest {
 
     // replay mocks
     replay(configuration, viewDir, extractedArchiveDir, viewArchive, archiveDir, entryFile, classesDir,
-        libDir, fileEntry, viewJarFile, enumeration, jarEntry, is, fos, resourceDAO, viewDAO, viewInstanceDAO);
+        libDir, metaInfDir, fileEntry, viewJarFile, jarEntry, fos, resourceDAO, viewDAO, viewInstanceDAO);
 
     TestViewArchiveUtility archiveUtility = new TestViewArchiveUtility(viewConfigs, files, outputStreams, jarFiles);
 
@@ -320,7 +318,7 @@ public class ViewRegistryTest {
 
     // verify mocks
     verify(configuration, viewDir, extractedArchiveDir, viewArchive, archiveDir, entryFile, classesDir,
-        libDir, fileEntry, viewJarFile, enumeration, jarEntry, is, fos, resourceDAO, viewDAO, viewInstanceDAO);
+        libDir, metaInfDir, fileEntry, viewJarFile, jarEntry, fos, resourceDAO, viewDAO, viewInstanceDAO);
   }
 
   @Test
@@ -333,12 +331,11 @@ public class ViewRegistryTest {
     File entryFile  = createNiceMock(File.class);
     File classesDir = createNiceMock(File.class);
     File libDir = createNiceMock(File.class);
+    File metaInfDir = createNiceMock(File.class);
     File fileEntry = createNiceMock(File.class);
 
-    JarFile viewJarFile = createNiceMock(JarFile.class);
-    Enumeration<JarEntry> enumeration = createMock(Enumeration.class);
+    JarInputStream viewJarFile = createNiceMock(JarInputStream.class);
     JarEntry jarEntry = createNiceMock(JarEntry.class);
-    InputStream is = createMock(InputStream.class);
     FileOutputStream fos = createMock(FileOutputStream.class);
 
     ResourceTypeEntity resourceTypeEntity = new ResourceTypeEntity();
@@ -369,11 +366,12 @@ public class ViewRegistryTest {
     files.put("/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}/view.xml", entryFile);
     files.put("/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}/WEB-INF/classes", classesDir);
     files.put("/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}/WEB-INF/lib", libDir);
+    files.put("/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}/META-INF", metaInfDir);
 
     Map<File, FileOutputStream> outputStreams = new HashMap<File, FileOutputStream>();
     outputStreams.put(entryFile, fos);
 
-    Map<File, JarFile> jarFiles = new HashMap<File, JarFile>();
+    Map<File, JarInputStream> jarFiles = new HashMap<File, JarInputStream>();
     jarFiles.put(viewArchive, viewJarFile);
 
     // set expectations
@@ -395,24 +393,22 @@ public class ViewRegistryTest {
     expect(archiveDir.mkdir()).andReturn(true);
     expect(archiveDir.toURI()).andReturn(new URI("file:./"));
 
-    expect(viewJarFile.entries()).andReturn(enumeration);
-    expect(viewJarFile.getInputStream(jarEntry)).andReturn(is);
+    expect(metaInfDir.mkdir()).andReturn(true);
 
-    expect(enumeration.hasMoreElements()).andReturn(true);
-    expect(enumeration.hasMoreElements()).andReturn(false);
-    expect(enumeration.nextElement()).andReturn(jarEntry);
+    expect(viewJarFile.getNextJarEntry()).andReturn(jarEntry);
+    expect(viewJarFile.getNextJarEntry()).andReturn(null);
 
     expect(jarEntry.getName()).andReturn("view.xml");
     expect(jarEntry.isDirectory()).andReturn(false);
 
-    expect(is.available()).andReturn(1);
-    expect(is.available()).andReturn(0);
+    expect(viewJarFile.read(anyObject(byte[].class))).andReturn(10);
+    expect(viewJarFile.read(anyObject(byte[].class))).andReturn(-1);
+    fos.write(anyObject(byte[].class), eq(0), eq(10));
 
-    expect(is.read()).andReturn(10);
-    fos.write(10);
-
+    fos.flush();
     fos.close();
-    is.close();
+    viewJarFile.closeEntry();
+    viewJarFile.close();
 
     expect(extractedArchiveDir.exists()).andReturn(false);
     expect(extractedArchiveDir.mkdir()).andReturn(true);
@@ -430,7 +426,7 @@ public class ViewRegistryTest {
 
     // replay mocks
     replay(configuration, viewDir, extractedArchiveDir, viewArchive, archiveDir, entryFile, classesDir,
-        libDir, fileEntry, viewJarFile, enumeration, jarEntry, is, fos, viewDAO);
+        libDir, metaInfDir, fileEntry, viewJarFile, jarEntry, fos, viewDAO);
 
     TestViewArchiveUtility archiveUtility = new TestViewArchiveUtility(viewConfigs, files, outputStreams, jarFiles);
 
@@ -453,7 +449,7 @@ public class ViewRegistryTest {
 
     // verify mocks
     verify(configuration, viewDir, extractedArchiveDir, viewArchive, archiveDir, entryFile, classesDir,
-        libDir, fileEntry, viewJarFile, enumeration, jarEntry, is, fos, viewDAO);
+        libDir, metaInfDir, fileEntry, viewJarFile, jarEntry, fos, viewDAO);
   }
 
   @Test
@@ -1015,10 +1011,10 @@ public class ViewRegistryTest {
     File entryFile  = createNiceMock(File.class);
     File classesDir = createNiceMock(File.class);
     File libDir = createNiceMock(File.class);
+    File metaInfDir = createNiceMock(File.class);
     File fileEntry = createNiceMock(File.class);
 
-    JarFile viewJarFile = createNiceMock(JarFile.class);
-    Enumeration<JarEntry> enumeration = createMock(Enumeration.class);
+    JarInputStream viewJarFile = createNiceMock(JarInputStream.class);
     JarEntry jarEntry = createNiceMock(JarEntry.class);
     InputStream is = createMock(InputStream.class);
     FileOutputStream fos = createMock(FileOutputStream.class);
@@ -1053,11 +1049,12 @@ public class ViewRegistryTest {
     files.put("/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}/view.xml", entryFile);
     files.put("/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}/WEB-INF/classes", classesDir);
     files.put("/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}/WEB-INF/lib", libDir);
+    files.put("/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}/META-INF", metaInfDir);
 
     Map<File, FileOutputStream> outputStreams = new HashMap<File, FileOutputStream>();
     outputStreams.put(entryFile, fos);
 
-    Map<File, JarFile> jarFiles = new HashMap<File, JarFile>();
+    Map<File, JarInputStream> jarFiles = new HashMap<File, JarInputStream>();
     jarFiles.put(viewArchive, viewJarFile);
 
     // set expectations
@@ -1080,7 +1077,7 @@ public class ViewRegistryTest {
 
     // replay mocks
     replay(configuration, viewDir, extractedArchiveDir, viewArchive, archiveDir, entryFile, classesDir,
-        libDir, fileEntry, viewJarFile, enumeration, jarEntry, is, fos, viewExtractor, resourceDAO, viewDAO, viewInstanceDAO);
+        libDir, metaInfDir, fileEntry, viewJarFile, jarEntry, is, fos, viewExtractor, resourceDAO, viewDAO, viewInstanceDAO);
 
     TestViewArchiveUtility archiveUtility = new TestViewArchiveUtility(viewConfigs, files, outputStreams, jarFiles);
 
@@ -1089,17 +1086,17 @@ public class ViewRegistryTest {
 
     // verify mocks
     verify(configuration, viewDir, extractedArchiveDir, viewArchive, archiveDir, entryFile, classesDir,
-        libDir, fileEntry, viewJarFile, enumeration, jarEntry, is, fos, viewExtractor, resourceDAO, viewDAO, viewInstanceDAO);
+        libDir, metaInfDir, fileEntry, viewJarFile, jarEntry, is, fos, viewExtractor, resourceDAO, viewDAO, viewInstanceDAO);
   }
 
   public static class TestViewArchiveUtility extends ViewArchiveUtility {
     private final Map<File, ViewConfig> viewConfigs;
     private final Map<String, File> files;
     private final Map<File, FileOutputStream> outputStreams;
-    private final Map<File, JarFile> jarFiles;
+    private final Map<File, JarInputStream> jarFiles;
 
     public TestViewArchiveUtility(Map<File, ViewConfig> viewConfigs, Map<String, File> files, Map<File,
-        FileOutputStream> outputStreams, Map<File, JarFile> jarFiles) {
+        FileOutputStream> outputStreams, Map<File, JarInputStream> jarFiles) {
       this.viewConfigs = viewConfigs;
       this.files = files;
       this.outputStreams = outputStreams;
@@ -1132,7 +1129,7 @@ public class ViewRegistryTest {
     }
 
     @Override
-    public JarFile getJarFile(File file) throws IOException {
+    public JarInputStream getJarFileStream(File file) throws IOException {
       return jarFiles.get(file);
     }
   }

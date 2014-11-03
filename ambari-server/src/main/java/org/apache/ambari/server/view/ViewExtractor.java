@@ -25,15 +25,13 @@ import org.slf4j.LoggerFactory;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.Enumeration;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
+import java.util.jar.JarInputStream;
 
 /**
  * Extractor for view archives.
@@ -45,6 +43,7 @@ public class ViewExtractor {
    */
   private static final String ARCHIVE_CLASSES_DIR = "WEB-INF/classes";
   private static final String ARCHIVE_LIB_DIR     = "WEB-INF/lib";
+  private static final int    BUFFER_SIZE         = 1024;
 
   @Inject
   ViewArchiveUtility archiveUtility;
@@ -83,60 +82,66 @@ public class ViewExtractor {
         LOG.info(msg);
 
         if (archiveDir.mkdir()) {
-          JarFile viewJarFile = archiveUtility.getJarFile(viewArchive);
-          Enumeration enumeration = viewJarFile.entries();
+          JarInputStream jarInputStream = archiveUtility.getJarFileStream(viewArchive);
+          try {
+            msg = "Extracting files from " + viewArchive.getName() + ".";
+            view.setStatusDetail(msg);
+            LOG.info(msg);
 
-          msg = "Extracting files from " + viewArchive.getName() + ".";
+            // create the META-INF directory
+            File metaInfDir = archiveUtility.getFile(archivePath + File.separator + "META-INF");
+            if (!metaInfDir.mkdir()) {
+              msg = "Could not create archive META-INF directory.";
 
-          view.setStatusDetail(msg);
-          LOG.info(msg);
+              view.setStatusDetail(msg);
+              LOG.error(msg);
+              throw new ExtractionException(msg);
+            }
 
-          while (enumeration.hasMoreElements()) {
-            JarEntry jarEntry  = (JarEntry) enumeration.nextElement();
-            String   entryPath = archivePath + File.separator + jarEntry.getName();
-
-            LOG.debug("Extracting " + entryPath);
-
-            File entryFile = archiveUtility.getFile(entryPath);
-
-            if (jarEntry.isDirectory()) {
-
-              LOG.debug("Making directory " + entryPath);
-
-              if (!entryFile.mkdir()) {
-                msg = "Could not create archive entry directory " + entryPath + ".";
-
-                view.setStatusDetail(msg);
-                LOG.error(msg);
-                throw new ExtractionException(msg);
-              }
-            } else {
-
-              LOG.debug("Getting input stream for " + jarEntry.getName());
-
-              InputStream is = viewJarFile.getInputStream(jarEntry);
+            JarEntry jarEntry;
+            while ((jarEntry = jarInputStream.getNextJarEntry())!= null){
               try {
-                LOG.debug("Getting output stream for " + entryPath);
+                String   entryPath = archivePath + File.separator + jarEntry.getName();
 
-                FileOutputStream fos = archiveUtility.getFileOutputStream(entryFile);
-                try {
-                  LOG.debug("Begin copying from " + jarEntry.getName() + " to "+ entryPath);
+                LOG.debug("Extracting " + entryPath);
 
-                  while (is.available() > 0) {
-                    fos.write(is.read());
+                File entryFile = archiveUtility.getFile(entryPath);
+
+                if (jarEntry.isDirectory()) {
+
+                  LOG.debug("Making directory " + entryPath);
+
+                  if (!entryFile.mkdir()) {
+                    msg = "Could not create archive entry directory " + entryPath + ".";
+
+                    view.setStatusDetail(msg);
+                    LOG.error(msg);
+                    throw new ExtractionException(msg);
                   }
+                } else {
 
-                  LOG.debug("Finish copying from " + jarEntry.getName() + " to "+ entryPath);
+                  FileOutputStream fos = archiveUtility.getFileOutputStream(entryFile);
+                  try {
+                    LOG.debug("Begin copying from " + jarEntry.getName() + " to "+ entryPath);
 
-                } finally {
-                  LOG.debug("Closing output stream for " + entryPath);
-                  fos.close();
+                    byte[] buffer = new byte[BUFFER_SIZE];
+                    int n;
+                    while((n = jarInputStream.read(buffer)) > -1) {
+                      fos.write(buffer, 0, n);
+                    }
+                    LOG.debug("Finish copying from " + jarEntry.getName() + " to "+ entryPath);
+
+                  } finally {
+                    fos.flush();
+                    fos.close();
+                  }
                 }
               } finally {
-                LOG.debug("Closing input stream for " + jarEntry.getName());
-                is.close();
+                jarInputStream.closeEntry();
               }
             }
+          } finally {
+            jarInputStream.close();
           }
         } else {
           msg = "Could not create archive directory " + archivePath + ".";
