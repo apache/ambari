@@ -263,7 +263,7 @@
   </property>
   <property>
     <name>yarn.timeline-service.http-authentication.simple.anonymous.allowed</name>
-    <value>1</value>
+    <value>true</value>
     <description></description>
   </property>
   <property>
