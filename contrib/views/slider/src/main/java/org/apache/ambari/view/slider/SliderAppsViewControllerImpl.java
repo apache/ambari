@@ -27,7 +27,6 @@ import java.lang.reflect.UndeclaredThrowableException;
 import java.net.URI;
 import java.security.PrivilegedExceptionAction;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -218,6 +217,7 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
               newHadoopConfigs.put("yarn_user", yarnUser); // YARN service user
             }
             newHadoopConfigs.put("slider.user", getUserToRunAs(newHadoopConfigs)); // Slider user
+            status.getParameters().put(PROPERTY_SLIDER_USER, newHadoopConfigs.get("slider.user"));
             if (newHadoopConfigs.containsKey("security_enabled")) {
               boolean securityEnabled = Boolean.valueOf(newHadoopConfigs.get("security_enabled"));
               if (securityEnabled) {

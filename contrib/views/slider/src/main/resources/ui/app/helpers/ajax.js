@@ -31,7 +31,7 @@
 var urls = {
 
   'slider.getViewParams': {
-    real: '',
+    real: '?fields=ViewInstanceInfo',
     mock: '/data/resource/slider-properties.json',
     headers: {
       Accept: "text/plain; charset=utf-8",
