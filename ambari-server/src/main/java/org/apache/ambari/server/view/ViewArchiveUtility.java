@@ -37,7 +37,7 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.jar.JarFile;
+import java.util.jar.JarInputStream;
 
 /**
  * Helper class for basic view archive utility.
@@ -124,14 +124,14 @@ public class ViewArchiveUtility {
   }
 
   /**
-   * Get a new jar file instance from the given file.
+   * Get a new jar file stream from the given file.
    *
    * @param file  the file
    *
-   * @return a new jar file instance
+   * @return a new jar file stream
    */
-  public JarFile getJarFile(File file) throws IOException {
-    return new JarFile(file);
+  public JarInputStream getJarFileStream(File file) throws IOException {
+    return new JarInputStream(new FileInputStream(file));
   }
 
 
