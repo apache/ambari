@@ -125,6 +125,13 @@ def yarn(name = None):
        owner=params.yarn_user,
        group=params.user_group
     )
+    if params.node_labels_dir:
+      params.HdfsDirectory(params.node_labels_dir,
+                           action="create",
+                           owner=params.yarn_user,
+                           group=params.user_group,
+                           mode=0700
+      )
   elif name == 'apptimelineserver':
     Directory(params.ats_leveldb_dir,
        owner=params.yarn_user,

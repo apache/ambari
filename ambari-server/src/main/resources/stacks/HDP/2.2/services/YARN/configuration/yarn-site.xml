@@ -286,4 +286,9 @@
     <value>0.0.0.0</value>
     <description>Default value is 0.0.0.0, when this is set the service will bind on all interfaces.  I think these two options (blank, "0.0.0.0" sans quotes) should be the two available values, with blank as the default.</description>
   </property>
+  <property>
+    <name>yarn.node-labels.fs-store.root-dir</name>
+    <value>/system/yarn/node-labels</value>
+    <description></description>
+  </property>
 </configuration>

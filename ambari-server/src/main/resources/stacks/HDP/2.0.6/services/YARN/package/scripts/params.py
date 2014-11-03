@@ -174,3 +174,5 @@ mapred_local_dir = "/tmp/hadoop-mapred/mapred/local"
 hdfs_log_dir_prefix = config['configurations']['hadoop-env']['hdfs_log_dir_prefix']
 min_user_id = config['configurations']['yarn-env']['min_user_id']
 
+# Node labels
+node_labels_dir = default("/configurations/yarn-site/yarn.node-labels.fs-store.root-dir", None)
