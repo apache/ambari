@@ -122,8 +122,6 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
             PropertyHelper.getPropertyId("HostRoles", "host_name"),
             PropertyHelper.getPropertyId("HostRoles", "component_name"));
 
-    HOST_COMPONENT_PROPERTIES_PROVIDER.put("NAGIOS_SERVER", httpPropertyProvider);
-
     HOST_COMPONENT_PROPERTIES_PROVIDER.put("RESOURCEMANAGER", httpPropertyProvider);
   }
 
