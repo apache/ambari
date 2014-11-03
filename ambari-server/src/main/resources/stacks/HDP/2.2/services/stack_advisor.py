@@ -31,7 +31,8 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
 
 
   def recommendHDFSConfigurations(self, configurations, clusterData):
-    self.putProperty(configurations, "hdfs-site")
+    putHdfsPropery = self.putProperty(configurations, "hdfs-site")
+    putHdfsPropery("dfs.datanode.max.transfer.threads", 16384 if clusterData["hBaseInstalled"] else 4096)
 
   def recommendTezConfigurations(self, configurations, clusterData):
     putTezProperty = self.putProperty(configurations, "tez-site")
