@@ -58,7 +58,6 @@ public class HttpProxyPropertyProvider extends BaseProvider implements PropertyP
   private static final Map<String, String> PROPERTIES_TO_FILTER = new HashMap<String, String>();
 
   private static final String COMPONENT_RESOURCEMANAGER = "RESOURCEMANAGER";
-  private static final String COMPONENT_NAGIOS_SERVER = "NAGIOS_SERVER";
   private static final String CONFIG_YARN_SITE = "yarn-site";
   private static final String CONFIG_CORE_SITE = "core-site";
   private static final String PROPERTY_YARN_HTTP_POLICY = "yarn.http.policy";
@@ -67,11 +66,8 @@ public class HttpProxyPropertyProvider extends BaseProvider implements PropertyP
   private static final String PROPERTY_HADOOP_SSL_ENABLED_VALUE_TRUE = "true";
 
   static {
-    URL_TEMPLATES.put(COMPONENT_NAGIOS_SERVER, "http://%s/ambarinagios/nagios/nagios_alerts.php?q1=alerts&" +
-            "alert_type=all");
     URL_TEMPLATES.put(COMPONENT_RESOURCEMANAGER, "http://%s:8088/ws/v1/cluster/info");
     
-    MAPPINGS.put(COMPONENT_NAGIOS_SERVER, PropertyHelper.getPropertyId("HostRoles", "nagios_alerts"));
     MAPPINGS.put(COMPONENT_RESOURCEMANAGER, PropertyHelper.getPropertyId("HostRoles", "ha_state"));
 
     PROPERTIES_TO_FILTER.put(COMPONENT_RESOURCEMANAGER, "clusterInfo/haState");
@@ -143,11 +139,7 @@ public class HttpProxyPropertyProvider extends BaseProvider implements PropertyP
   private String getTemplate(String componentName, String clusterName) throws SystemException {
     String template = URL_TEMPLATES.get(componentName);
 
-    if (componentName.equals(COMPONENT_NAGIOS_SERVER)) {
-      if (configuration.isNagiosSSL()) {
-        template = template.replace("http", "https");
-      }
-    } else if (componentName.equals(COMPONENT_RESOURCEMANAGER)) {
+    if (componentName.equals(COMPONENT_RESOURCEMANAGER)) {
       try {
         Cluster cluster = this.clusters.getCluster(clusterName);
         Map<String, String> yarnConfigProperties = cluster.getDesiredConfigByType(CONFIG_YARN_SITE).getProperties();

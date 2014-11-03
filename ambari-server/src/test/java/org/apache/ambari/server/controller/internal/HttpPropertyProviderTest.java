@@ -18,19 +18,20 @@
 package org.apache.ambari.server.controller.internal;
 
 
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import com.google.inject.Injector;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.configuration.ComponentSSLConfigurationTest;
 import org.apache.ambari.server.controller.spi.Request;
@@ -45,9 +46,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
+import com.google.inject.Injector;
 
 @RunWith(Parameterized.class)
 public class HttpPropertyProviderTest {
@@ -124,91 +123,6 @@ public class HttpPropertyProviderTest {
     Assert.assertTrue(resource.getPropertiesMap().get("HostRoles").get("ha_state").equals("ACTIVE"));
     Assert.assertTrue(streamProvider.getLastSpec().equals("https://ec2-54-234-33-50.compute-1.amazonaws.com:8088" +
             "/ws/v1/cluster/info"));
-  }
-
-  @Test
-  public void testReadNagiosServer() throws Exception {
-
-    TestStreamProvider streamProvider = new TestStreamProvider(false);
-
-    Resource resource = doPopulate("NAGIOS_SERVER", Collections.<String>emptySet(), streamProvider);
-    
-    Assert.assertNotNull("Expected non-null for 'nagios_alerts'",
-      resource.getPropertyValue(PROPERTY_ID_NAGIOS_ALERTS));
-
-    Assert.assertEquals(configuration.isNagiosSSL(), streamProvider.getLastSpec().startsWith("https"));
-  }
-  
-  @Test
-  public void testReadNotRequested() throws Exception {
-   
-   Set<String> propertyIds = new HashSet<String>();
-   propertyIds.add(PropertyHelper.getPropertyId("HostRoles", "state"));
-   propertyIds.add(PROPERTY_ID_COMPONENT_NAME);
-   
-   Resource resource = doPopulate("NAGIOS_SERVER", propertyIds, new TestStreamProvider(false));
-   
-   Assert.assertNull("Expected null for 'nagios_alerts'",
-     resource.getPropertyValue(PROPERTY_ID_NAGIOS_ALERTS));    
-  }
-  
-  @Test
-  public void testReadWithRequested() throws Exception {
-    
-   Set<String> propertyIds = new HashSet<String>();
-   propertyIds.add(PropertyHelper.getPropertyId("HostRoles", "nagios_alerts"));
-   propertyIds.add(PROPERTY_ID_COMPONENT_NAME);
-   
-   Resource resource = doPopulate("NAGIOS_SERVER", propertyIds, new TestStreamProvider(false));
-   
-   Assert.assertNotNull("Expected non-null for 'nagios_alerts'",
-     resource.getPropertyValue(PROPERTY_ID_NAGIOS_ALERTS));        
-  }
-  
-  @Test
-  public void testReadWithRequestedFail() throws Exception {
-    
-   Set<String> propertyIds = new HashSet<String>();
-   propertyIds.add(PropertyHelper.getPropertyId("HostRoles", "nagios_alerts"));
-   propertyIds.add(PROPERTY_ID_COMPONENT_NAME);
-   
-   Resource resource = doPopulate("NAGIOS_SERVER", propertyIds, new TestStreamProvider(true));
-
-   Assert.assertNull("Expected null for 'nagios_alerts'",
-       resource.getPropertyValue(PROPERTY_ID_NAGIOS_ALERTS));        
-  }
-
-  @SuppressWarnings("rawtypes")
-  @Test
-  public void testReadWithRequestedJson() throws Exception {
-
-    Set<String> propertyIds = new HashSet<String>();
-    propertyIds.add(PropertyHelper.getPropertyId("HostRoles", "nagios_alerts"));
-    propertyIds.add(PROPERTY_ID_COMPONENT_NAME);
-    Resource resource = doPopulate("NAGIOS_SERVER", propertyIds, new TestStreamProvider(false));
-    Object propertyValue = resource.getPropertyValue(PROPERTY_ID_NAGIOS_ALERTS);
-
-    Assert.assertNotNull("Expected non-null for 'nagios_alerts'", propertyValue);
-    Assert.assertTrue("Expected Map for parsed JSON", propertyValue instanceof Map);
-    
-    Object alertsEntry = ((Map) propertyValue).get("alerts");
-    Object hostcountsEntry = ((Map) propertyValue).get("hostcounts");
-    
-    Assert.assertNotNull("Expected non-null for 'alerts' entry", alertsEntry);
-    Assert.assertNotNull("Expected non-null for 'hostcounts' entry", hostcountsEntry);
-    Assert.assertTrue("Expected List type for 'alerts' entry", alertsEntry instanceof List);
-    Assert.assertTrue("Expected Map type for 'hostcounts' entry", hostcountsEntry instanceof Map);
-    
-    List alertsList = (List) alertsEntry;
-    Map hostcountsMap = (Map) hostcountsEntry;
-    
-    Assert.assertEquals("Expected number of entries in 'alerts' is 1", 1, alertsList.size());
-    Assert.assertTrue("Expected Map type for 'alerts' element", alertsList.get(0) instanceof Map);
-    Assert.assertEquals("Body", ((Map) alertsList.get(0)).get("Alert Body"));
-    
-    Assert.assertEquals("Expected number of entries in 'hostcounts' is 2", 2, hostcountsMap.size());
-    Assert.assertEquals("1", hostcountsMap.get("up_hosts"));
-    Assert.assertEquals("0", hostcountsMap.get("down_hosts"));
   }
 
   @Test
