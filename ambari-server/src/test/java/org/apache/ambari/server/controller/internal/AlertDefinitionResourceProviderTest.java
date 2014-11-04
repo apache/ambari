@@ -356,6 +356,7 @@ public class AlertDefinitionResourceProviderTest {
     Assert.assertEquals("HDFS", entity.getServiceName());
     Assert.assertEquals(SourceType.METRIC, entity.getSourceType());
     Assert.assertEquals("Mock Label (Create)", entity.getLabel());
+    Assert.assertEquals(false, entity.isHostIgnored());
 
     // verify Source
     Assert.assertNotNull(entity.getSource());
@@ -472,6 +473,7 @@ public class AlertDefinitionResourceProviderTest {
     String oldHash = entity.getHash();
     Integer oldInterval = entity.getScheduleInterval();
     boolean oldEnabled = entity.getEnabled();
+    boolean oldHostIgnore = entity.isHostIgnored();
     String oldSource = entity.getSource();
 
     resetToStrict(dao);
@@ -501,6 +503,9 @@ public class AlertDefinitionResourceProviderTest {
     requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_ENABLED,
         Boolean.FALSE.toString());
 
+    requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_IGNORE_HOST,
+        Boolean.TRUE.toString());
+
     request = PropertyHelper.getUpdateRequest(requestProps, null);
 
     provider.updateResources(request, p);
@@ -509,6 +514,7 @@ public class AlertDefinitionResourceProviderTest {
     Assert.assertFalse(oldName.equals(entity.getDefinitionName()));
     Assert.assertFalse(oldInterval.equals(entity.getScheduleInterval()));
     Assert.assertFalse(oldEnabled == entity.getEnabled());
+    Assert.assertFalse(oldHostIgnore == entity.isHostIgnored());
     Assert.assertFalse(oldSource.equals(entity.getSource()));
     Assert.assertTrue(entity.getSource().contains("_foobarbaz"));
 

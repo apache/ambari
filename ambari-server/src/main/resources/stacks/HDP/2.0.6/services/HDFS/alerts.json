@@ -311,6 +311,18 @@
           "type": "SCRIPT",
           "path": "HDP/2.0.6/services/HDFS/package/files/alert_checkpoint_time.py"
         }
+      },
+      {
+        "name": "namenode_ha_health",
+        "label": "NameNode High Availability Health",
+        "interval": 1,
+        "scope": "ANY",
+        "enabled": true,
+        "ignore_host": true,
+        "source": {
+          "type": "SCRIPT",
+          "path": "HDP/2.0.6/services/HDFS/package/files/alert_ha_namenode_health.py"
+        }
       }
     ],
     "SECONDARY_NAMENODE": [

@@ -184,6 +184,7 @@ CREATE TABLE alert_definition (
   source_type VARCHAR(255) NOT NULL,
   alert_source TEXT NOT NULL,
   hash VARCHAR(64) NOT NULL,
+  ignore_host SMALLINT DEFAULT 0 NOT NULL,
   PRIMARY KEY (definition_id),
   FOREIGN KEY (cluster_id) REFERENCES clusters(cluster_id),
   CONSTRAINT uni_alert_def_name UNIQUE(cluster_id,definition_name)

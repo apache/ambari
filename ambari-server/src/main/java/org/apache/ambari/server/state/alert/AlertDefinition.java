@@ -19,6 +19,8 @@ package org.apache.ambari.server.state.alert;
 
 import java.util.HashSet;
 
+import com.google.gson.annotations.SerializedName;
+
 /**
  * The {@link AlertDefinition} class represents all of the necessary information
  * to schedule, run, and collect alerts.
@@ -45,6 +47,9 @@ public class AlertDefinition {
   private Source source = null;
   private String label = null;
   private String uuid = null;
+
+  @SerializedName("ignore_host")
+  private boolean ignoreHost = false;
 
   /**
    * Gets the cluster ID for this definition.
@@ -145,6 +150,17 @@ public class AlertDefinition {
     enabled = definitionEnabled;
   }
 
+  /**
+   * @return {@code true} if the host is ignored.
+   */
+  public boolean isHostIgnored() {
+    return ignoreHost;
+  }
+
+  public void setHostIgnored(boolean definitionHostIgnored) {
+    ignoreHost = definitionHostIgnored;
+  }
+
   public Source getSource() {
     return source;
   }
@@ -218,6 +234,10 @@ public class AlertDefinition {
     }
 
     if (enabled != other.enabled) {
+      return false;
+    }
+
+    if (ignoreHost != other.ignoreHost) {
       return false;
     }
 

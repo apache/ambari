@@ -73,7 +73,7 @@ class ScriptAlert(BaseAlert):
     if cmd_module is not None:
       # convert the dictionary from 
       # {'foo-site/bar': 'baz'} into 
-      # {'{{foo-site/bar}}': 'baz'}1
+      # {'{{foo-site/bar}}': 'baz'}
       parameters = {}
       for key in self.config_value_dict:
         parameters['{{' + key + '}}'] = self.config_value_dict[key]

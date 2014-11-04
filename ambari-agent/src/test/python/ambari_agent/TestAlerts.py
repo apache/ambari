@@ -569,3 +569,37 @@ class TestAlerts(TestCase):
     # execute the alert immediately and verify that the collector has the result
     ash.execute_alert(execution_commands)
     self.assertEquals(1, len(ash._collector.alerts()))
+
+
+  def test_skipped_alert(self):
+    json = {
+      "name": "namenode_process",
+      "service": "HDFS",
+      "component": "NAMENODE",
+      "label": "NameNode process",
+      "interval": 6,
+      "scope": "host",
+      "enabled": True,
+      "uuid": "c1f73191-4481-4435-8dae-fd380e4c0be1",
+      "source": {
+        "type": "SCRIPT",
+        "path": "test_script.py",
+      }
+    }
+
+    # normally set by AlertSchedulerHandler
+    json['source']['stacks_directory'] = os.path.join('ambari_agent', 'dummy_files')
+    json['source']['host_scripts_directory'] = os.path.join('ambari_agent', 'host_scripts')
+
+    collector = AlertCollector()
+    sa = ScriptAlert(json, json['source'])
+
+    # instruct the test alert script to be skipped
+    sa.set_helpers(collector, {'foo-site/skip': 'true'} )
+
+    self.assertEquals(json['source']['path'], sa.path)
+    self.assertEquals(json['source']['stacks_directory'], sa.stacks_dir)
+    self.assertEquals(json['source']['host_scripts_directory'], sa.host_scripts_dir)
+
+    # ensure that it was skipped
+    self.assertEquals(0,len(collector.alerts()))

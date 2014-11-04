@@ -112,6 +112,9 @@ public class AlertDefinitionEntity {
   @Enumerated(value = EnumType.STRING)
   private SourceType sourceType;
 
+  @Column(name = "ignore_host", nullable = false)
+  private Integer ignoreHost = Integer.valueOf(0);
+
   /**
    * Bi-directional many-to-many association to {@link AlertGroupEntity}
    */
@@ -291,6 +294,31 @@ public class AlertDefinitionEntity {
    */
   public void setEnabled(boolean enabled) {
     this.enabled = enabled ? Integer.valueOf(1) : Integer.valueOf(0);
+  }
+
+  /**
+   * Gets whether this alert definition will ignore the hosts reporting the
+   * alert and combine them all into a single alert entry.
+   *
+   * @return {@code true} if this alert definition is to ignore hosts and
+   *         combine all alert instances into a single entry, {@code false}
+   *         otherwise.
+   */
+  public boolean isHostIgnored() {
+    return ignoreHost == Integer.valueOf(0) ? false : true;
+  }
+
+  /**
+   * Sets whether this alert definition will ignore the hosts reporting the
+   * alert and combine them all into a single alert entry.
+   *
+   * @param ignoreHost
+   *          {@code true} if this alert definition is to ignore hosts and
+   *          combine all alert instances into a single entry, {@code false}
+   *          otherwise.
+   */
+  public void setHostIgnored(boolean ignoreHost) {
+    this.ignoreHost = ignoreHost ? Integer.valueOf(1) : Integer.valueOf(0);
   }
 
   /**

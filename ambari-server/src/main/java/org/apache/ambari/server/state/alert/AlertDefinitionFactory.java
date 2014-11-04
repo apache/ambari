@@ -180,6 +180,7 @@ public class AlertDefinitionFactory {
     definition.setClusterId(entity.getClusterId());
     definition.setComponentName(entity.getComponentName());
     definition.setEnabled(entity.getEnabled());
+    definition.setHostIgnored(entity.isHostIgnored());
     definition.setInterval(entity.getScheduleInterval());
     definition.setName(entity.getDefinitionName());
     definition.setScope(entity.getScope());
@@ -244,6 +245,7 @@ public class AlertDefinitionFactory {
     entity.setComponentName(definition.getComponentName());
     entity.setDefinitionName(definition.getName());
     entity.setEnabled(definition.isEnabled());
+    entity.setHostIgnored(definition.isHostIgnored());
     entity.setHash(UUID.randomUUID().toString());
     entity.setLabel(definition.getLabel());
     entity.setScheduleInterval(definition.getInterval());

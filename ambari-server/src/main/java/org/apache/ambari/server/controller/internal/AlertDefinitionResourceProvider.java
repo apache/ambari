@@ -76,6 +76,7 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
   protected static final String ALERT_DEF_COMPONENT_NAME = "AlertDefinition/component_name";
   protected static final String ALERT_DEF_ENABLED = "AlertDefinition/enabled";
   protected static final String ALERT_DEF_SCOPE = "AlertDefinition/scope";
+  protected static final String ALERT_DEF_IGNORE_HOST = "AlertDefinition/ignore_host";
 
   protected static final String ALERT_DEF_SOURCE = "AlertDefinition/source";
   protected static final String ALERT_DEF_SOURCE_TYPE = "AlertDefinition/source/type";
@@ -124,6 +125,7 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
     PROPERTY_IDS.add(ALERT_DEF_INTERVAL);
     PROPERTY_IDS.add(ALERT_DEF_ENABLED);
     PROPERTY_IDS.add(ALERT_DEF_SCOPE);
+    PROPERTY_IDS.add(ALERT_DEF_IGNORE_HOST);
     PROPERTY_IDS.add(ALERT_DEF_SOURCE);
     PROPERTY_IDS.add(ALERT_DEF_ACTION_RUN_NOW);
 
@@ -394,6 +396,13 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
       enabled = Boolean.TRUE;
     }
 
+    Boolean ignoreHost = null;
+    if (requestMap.containsKey(ALERT_DEF_IGNORE_HOST)) {
+      ignoreHost = Boolean.parseBoolean((String) requestMap.get(ALERT_DEF_IGNORE_HOST));
+    } else if (bCreate) {
+      ignoreHost = Boolean.FALSE;
+    }
+
     Scope scope = null;
     if (null != desiredScope && desiredScope.length() > 0) {
       scope = Scope.valueOf(desiredScope);
@@ -497,6 +506,10 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
 
     if (null != enabled) {
       entity.setEnabled(enabled.booleanValue());
+    }
+
+    if (null != ignoreHost) {
+      entity.setHostIgnored(ignoreHost.booleanValue());
     }
 
     if (null != interval) {

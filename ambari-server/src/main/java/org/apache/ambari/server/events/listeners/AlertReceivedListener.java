@@ -86,12 +86,23 @@ public class AlertReceivedListener {
       LOG.debug(event.toString());
     }
 
-    long clusterId = event.getClusterId();
     Alert alert = event.getAlert();
+    long clusterId = event.getClusterId();
+
+    AlertDefinitionEntity definition = m_definitionDao.findByName(clusterId,
+        alert.getName());
+
+    if (null == definition) {
+      LOG.warn(
+          "Received an alert for {} which is a definition that does not exist anymore",
+          alert.getName());
+
+      return;
+    }
 
     AlertCurrentEntity current = null;
 
-    if (null == alert.getHost()) {
+    if (null == alert.getHost() || definition.isHostIgnored()) {
       current = m_alertsDao.findCurrentByNameNoHost(clusterId, alert.getName());
     } else {
       current = m_alertsDao.findCurrentByHostAndName(clusterId, alert.getHost(),
@@ -99,17 +110,6 @@ public class AlertReceivedListener {
     }
 
     if (null == current) {
-      AlertDefinitionEntity definition = m_definitionDao.findByName(clusterId,
-          alert.getName());
-
-      if (null == definition) {
-        LOG.warn(
-            "Received an alert for {} which is a definition that does not exist anymore",
-            alert.getName());
-
-        return;
-      }
-
       AlertHistoryEntity history = createHistory(clusterId, definition, alert);
 
       current = new AlertCurrentEntity();
@@ -166,12 +166,17 @@ public class AlertReceivedListener {
 
   /**
    * Convenience to create a new alert.
-   * @param clusterId the cluster id
-   * @param definition the definition
-   * @param alert the alert data
+   *
+   * @param clusterId
+   *          the cluster id
+   * @param definition
+   *          the definition
+   * @param alert
+   *          the alert data
    * @return the new history record
    */
-  private AlertHistoryEntity createHistory(long clusterId, AlertDefinitionEntity definition, Alert alert) {
+  private AlertHistoryEntity createHistory(long clusterId,
+      AlertDefinitionEntity definition, Alert alert) {
     AlertHistoryEntity history = new AlertHistoryEntity();
     history.setAlertDefinition(definition);
     history.setAlertInstance(alert.getInstance());
@@ -181,8 +186,14 @@ public class AlertReceivedListener {
     history.setAlertTimestamp(Long.valueOf(alert.getTimestamp()));
     history.setClusterId(Long.valueOf(clusterId));
     history.setComponentName(alert.getComponent());
-    history.setHostName(alert.getHost());
     history.setServiceName(alert.getService());
+
+    // only set a host for the history item if the alert definition says to
+    if (definition.isHostIgnored()) {
+      history.setHostName(null);
+    } else {
+      history.setHostName(alert.getHost());
+    }
 
     return history;
   }

@@ -1577,6 +1577,7 @@ public class AmbariMetaInfoTest {
     AlertDefinition nameNodeProcess = null;
     AlertDefinition nameNodeCpu = null;
     AlertDefinition datanodeStorage = null;
+    AlertDefinition ignoreHost = null;
 
     Iterator<AlertDefinition> iterator = set.iterator();
     while (iterator.hasNext()) {
@@ -1592,14 +1593,20 @@ public class AmbariMetaInfoTest {
       if (definition.getName().equals("datanode_storage")) {
         datanodeStorage = definition;
       }
+
+      if (definition.getName().equals("hdfs_ignore_host_test")) {
+        ignoreHost = definition;
+      }
     }
 
     assertNotNull(nameNodeProcess);
     assertNotNull(nameNodeCpu);
+    assertNotNull(ignoreHost);
 
     assertEquals("NameNode Host CPU Utilization", nameNodeCpu.getLabel());
 
     // test namenode_process
+    assertFalse(nameNodeProcess.isHostIgnored());
     Source source = nameNodeProcess.getSource();
     assertNotNull(source);
     assertNotNull(((PortSource) source).getPort());
@@ -1614,6 +1621,7 @@ public class AmbariMetaInfoTest {
     assertNull(reporting.getWarning());
 
     // test namenode_cpu
+    assertFalse(nameNodeCpu.isHostIgnored());
     source = nameNodeCpu.getSource();
     assertNotNull(source);
     reporting = source.getReporting();
@@ -1630,6 +1638,7 @@ public class AmbariMetaInfoTest {
 
     // test a metric alert
     assertNotNull(datanodeStorage);
+    assertFalse(datanodeStorage.isHostIgnored());
     MetricSource metricSource = (MetricSource) datanodeStorage.getSource();
     assertNotNull( metricSource.getUri() );
     assertNotNull( metricSource.getUri().getHttpsProperty() );
@@ -1637,6 +1646,9 @@ public class AmbariMetaInfoTest {
     assertNotNull( metricSource.getUri().getHttpsUri() );
     assertNotNull( metricSource.getUri().getHttpUri() );
     assertEquals(12345, metricSource.getUri().getDefaultPort());
+
+    // ignore host
+    assertTrue(ignoreHost.isHostIgnored());
   }
 
   /**
@@ -1658,7 +1670,7 @@ public class AmbariMetaInfoTest {
 
     AlertDefinitionDAO dao = injector.getInstance(AlertDefinitionDAO.class);
     List<AlertDefinitionEntity> definitions = dao.findAll();
-    assertEquals(6, definitions.size());
+    assertEquals(7, definitions.size());
 
     // figure out how many of these alerts were merged into from the
     // non-stack alerts.json
@@ -1671,7 +1683,7 @@ public class AmbariMetaInfoTest {
     }
 
     assertEquals(1, hostAlertCount);
-    assertEquals(5, definitions.size() - hostAlertCount);
+    assertEquals(6, definitions.size() - hostAlertCount);
 
     for (AlertDefinitionEntity definition : definitions) {
       definition.setScheduleInterval(28);
@@ -1681,7 +1693,7 @@ public class AmbariMetaInfoTest {
     metaInfo.reconcileAlertDefinitions(clusters);
 
     definitions = dao.findAll();
-    assertEquals(6, definitions.size());
+    assertEquals(7, definitions.size());
 
     for (AlertDefinitionEntity definition : definitions) {
       assertEquals(28, definition.getScheduleInterval().intValue());

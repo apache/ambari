@@ -62,13 +62,25 @@
         "name": "hdfs_last_checkpoint",
         "label": "Last Checkpoint Time",
         "interval": 1,
-        "SCOPE": "service",
+        "scope": "SERVICE",
         "enabled": false,
         "source": {
           "type": "SCRIPT",
           "path": "scripts/alerts/last_checkpoint.py"
         }
-      }
+      },
+      {
+        "name": "hdfs_ignore_host_test",
+        "label": "Ignore Host Test",
+        "interval": 1,
+        "scope": "SERVICE",
+        "enabled": true,
+        "ignore_host": true,
+        "source": {
+          "type": "SCRIPT",
+          "path": "scripts/alerts/last_checkpoint.py"
+        }
+      }      
     ],
     "SECONDARY_NAMENODE": [
       {

@@ -36,6 +36,9 @@ def execute(parameters=None, host_name=None):
     
     if '{{foo-site/baz}}' in parameters:
       baz = parameters['{{foo-site/baz}}']
+
+    if '{{foo-site/skip}}' in parameters:
+      return ('SKIPPED', ['This alert is skipped and will not be in the collector'])
   
   label = "bar is {0}, baz is {1}".format(bar, baz)  
-  return (('WARNING', [label]))
+  return ('WARNING', [label])

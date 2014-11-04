@@ -30,6 +30,7 @@ class BaseAlert(object):
   RESULT_WARNING = 'WARNING'
   RESULT_CRITICAL = 'CRITICAL'
   RESULT_UNKNOWN = 'UNKNOWN'
+  RESULT_SKIPPED = 'SKIPPED'
   
   def __init__(self, alert_meta, alert_source_meta):
     self.alert_meta = alert_meta
@@ -89,7 +90,18 @@ class BaseAlert(object):
     
     try:
       res = self._collect()
-      reporting_state = res[0].lower()
+      result_state = res[0]
+      reporting_state = result_state.lower()
+
+      # if the alert reports that it should be SKIPPED, then skip it
+      # this is useful for cases where the alert might run on multiple hosts
+      # but only 1 host should report the data
+      if result_state == BaseAlert.RESULT_SKIPPED:
+        logger.debug('Alert {0} with UUID {1} was skipped.'.format(self.get_name(),
+          self.get_uuid()))
+
+        return
+
 
       if reporting_state in self.alert_source_meta['reporting']:
         res_base_text = self.alert_source_meta['reporting'][reporting_state]['text']
@@ -149,7 +161,10 @@ class BaseAlert(object):
     keys = re.findall("{{([\S]+)}}", key)
     
     if len(keys) > 0:
-      logger.debug("Found parameterized key {0} for {1}".format(str(keys), str(self)))
+      if logger.isEnabledFor(logging.DEBUG):
+        logger.debug("Found parameterized key {0} for {1}".format(
+          str(keys), str(self)))
+
       self._lookup_keys.append(keys[0])
       return keys[0]
       
