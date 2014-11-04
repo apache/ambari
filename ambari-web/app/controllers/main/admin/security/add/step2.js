@@ -122,6 +122,11 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
       components: ['RESOURCEMANAGER']
     },
     {
+      serviceName: 'YARN',
+      configName: 'apptimelineserver_host',
+      components: ['APP_TIMELINE_SERVER']
+    },
+    {
       serviceName: 'HBASE',
       configName: 'hbasemaster_host',
       components: ['HBASE_MASTER']

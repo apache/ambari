@@ -25,17 +25,6 @@ App.SecureConfigProperties = Ember.ArrayProxy.extend({
 
 var configProperties = App.SecureConfigProperties.create();
 
-// Dynamically create YARN properties
-var yarnConfigProperties = [
-  App.ServiceConfigCategory.create({ name: 'ResourceManager', displayName : 'ResourceManager'}),
-  App.ServiceConfigCategory.create({ name: 'NodeManager', displayName : 'NodeManager'})
-];
-var isATSInstalled = App.Service.find('YARN').get('hostComponents').someProperty('componentName', 'APP_TIMELINE_SERVER');
-var doesATSSupportKerberos = App.get("doesATSSupportKerberos");
-if (isATSInstalled && doesATSSupportKerberos) {
-  yarnConfigProperties.push(App.ServiceConfigCategory.create({ name: 'AppTimelineServer', displayName : 'ApplicationTimelineService'}));
-}
-
 var configs = [
   {
     serviceName: 'GENERAL',
@@ -75,8 +64,11 @@ var configs = [
     serviceName: 'YARN',
     displayName: 'YARN',
     filename: 'yarn-site',
-    configCategories: yarnConfigProperties, // these properties can be dynamic
-    sites: ['yarn-site'],
+    configCategories: [
+      App.ServiceConfigCategory.create({ name: 'ResourceManager', displayName : 'ResourceManager'}),
+      App.ServiceConfigCategory.create({ name: 'NodeManager', displayName : 'NodeManager'})
+    ], // these properties can be dynamic
+    sites: ['yarn-site', 'core-site'],
     configs: configProperties.filterProperty('serviceName', 'YARN')
   },
   {

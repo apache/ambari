@@ -27,7 +27,13 @@ require('models/service');
 describe('App.AddSecurityController', function () {
 
   var controller = App.AddSecurityController.create({
-    currentStep: null
+    currentStep: null,
+    content: Em.Object.create({
+      isATSInstalled: true,
+      services: [],
+      isNnHa: 'false',
+      serviceConfigProperties: null
+    })
   });
 
   describe('#installedServices', function () {
