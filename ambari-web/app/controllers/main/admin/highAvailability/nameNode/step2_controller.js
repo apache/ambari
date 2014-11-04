@@ -33,7 +33,7 @@ App.HighAvailabilityWizardStep2Controller = App.WizardStep5Controller.extend({
    * master components supported by Ambari
    */
 
-  multipleComponents: ['NAMENODE', 'JOURNALNODE','ZOOKEEPER_SERVER','HBASE_MASTER'],
+  multipleComponents: ['NAMENODE', 'JOURNALNODE','ZOOKEEPER_SERVER','HBASE_MASTER','RESOURCEMANAGER'],
 
   /**
    * overrides method in wizardStep5Controller
