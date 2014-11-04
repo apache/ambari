@@ -102,12 +102,6 @@
   </property>
 
   <property>
-    <name>mapreduce.job.log4j-properties-file</name>
-    <value>/etc/hadoop/conf/log4j.properties</value>
-    <description></description>
-  </property>
-
-  <property>
     <name>mapreduce.jobhistory.bind-host</name>
     <value>0.0.0.0</value>
     <description></description>
