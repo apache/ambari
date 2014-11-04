@@ -77,6 +77,8 @@ public interface ServiceComponentHost {
   public State getState();
 
   public void setState(State state);
+
+  public void setUpgradeState(UpgradeState upgradeState);
   
   public StackId getStackVersion();
 

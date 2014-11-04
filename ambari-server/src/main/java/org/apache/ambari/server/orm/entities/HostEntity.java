@@ -18,7 +18,18 @@
 
 package org.apache.ambari.server.orm.entities;
 
-import javax.persistence.*;
+import javax.persistence.Basic;
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.Lob;
+import javax.persistence.ManyToMany;
+import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import java.util.Collection;
 
 import static org.apache.commons.lang.StringUtils.defaultString;
@@ -96,6 +107,9 @@ public class HostEntity {
 
   @OneToMany(mappedBy = "hostEntity", cascade = {CascadeType.REMOVE, CascadeType.PERSIST})
   private Collection<HostComponentStateEntity> hostComponentStateEntities;
+
+  @OneToMany(mappedBy = "hostEntity", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
+  private Collection<HostVersionEntity> hostVersionEntities;
 
   @ManyToMany
   @JoinTable(name = "ClusterHostMapping",
@@ -285,6 +299,14 @@ public class HostEntity {
 
   public void setHostRoleCommandEntities(Collection<HostRoleCommandEntity> hostRoleCommandEntities) {
     this.hostRoleCommandEntities = hostRoleCommandEntities;
+  }
+
+  public Collection<HostVersionEntity> getHostVersionEntities() {
+    return hostVersionEntities;
+  }
+
+  public void setHostVersionEntities(Collection<HostVersionEntity> hostVersionEntities) { 
+    this.hostVersionEntities = hostVersionEntities;
   }
 
 }

@@ -52,10 +52,30 @@ GRANT ALL PRIVILEGES ON TABLE ambari.clusterservices TO :username;
 CREATE TABLE ambari.clusterstate (cluster_id BIGINT NOT NULL, current_cluster_state VARCHAR(255) NOT NULL, current_stack_version VARCHAR(255) NOT NULL, PRIMARY KEY (cluster_id));
 GRANT ALL PRIVILEGES ON TABLE ambari.clusterstate TO :username;
 
+CREATE TABLE cluster_version (
+  id BIGINT NOT NULL,
+  cluster_id BIGINT NOT NULL,
+  stack VARCHAR(255) NOT NULL,
+  version VARCHAR(255) NOT NULL,
+  state VARCHAR(32) NOT NULL,
+  start_time BIGINT NOT NULL,
+  end_time BIGINT,
+  user_name VARCHAR(32),
+  PRIMARY KEY (id));
+GRANT ALL PRIVILEGES ON TABLE ambari.cluster_version TO :username;
+
 CREATE TABLE ambari.hostcomponentdesiredstate (cluster_id BIGINT NOT NULL, component_name VARCHAR(255) NOT NULL, desired_stack_version VARCHAR(255) NOT NULL, desired_state VARCHAR(255) NOT NULL, host_name VARCHAR(255) NOT NULL, service_name VARCHAR(255) NOT NULL, admin_state VARCHAR(32), maintenance_state VARCHAR(32) NOT NULL, restart_required SMALLINT NOT NULL DEFAULT 0, PRIMARY KEY (cluster_id, component_name, host_name, service_name));
 GRANT ALL PRIVILEGES ON TABLE ambari.hostcomponentdesiredstate TO :username;
 
-CREATE TABLE ambari.hostcomponentstate (cluster_id BIGINT NOT NULL, component_name VARCHAR(255) NOT NULL, current_stack_version VARCHAR(255) NOT NULL, current_state VARCHAR(255) NOT NULL, host_name VARCHAR(255) NOT NULL, service_name VARCHAR(255) NOT NULL, PRIMARY KEY (cluster_id, component_name, host_name, service_name));
+CREATE TABLE ambari.hostcomponentstate (
+  cluster_id BIGINT NOT NULL,
+  component_name VARCHAR(255) NOT NULL,
+  current_stack_version VARCHAR(255) NOT NULL,
+  current_state VARCHAR(255) NOT NULL,
+  host_name VARCHAR(255) NOT NULL,
+  service_name VARCHAR(255) NOT NULL,
+  upgrade_state VARCHAR(32) NOT NULL DEFAULT 'NONE',
+  PRIMARY KEY (cluster_id, component_name, host_name, service_name));
 GRANT ALL PRIVILEGES ON TABLE ambari.hostcomponentstate TO :username;
 
 CREATE TABLE ambari.hosts (host_name VARCHAR(255) NOT NULL, cpu_count INTEGER NOT NULL, ph_cpu_count INTEGER, cpu_info VARCHAR(255) NOT NULL, discovery_status VARCHAR(2000) NOT NULL, host_attributes VARCHAR(20000) NOT NULL, ipv4 VARCHAR(255), ipv6 VARCHAR(255), public_host_name VARCHAR(255), last_registration_time BIGINT NOT NULL, os_arch VARCHAR(255) NOT NULL, os_info VARCHAR(1000) NOT NULL, os_type VARCHAR(255) NOT NULL, rack_info VARCHAR(255) NOT NULL, total_mem BIGINT NOT NULL, PRIMARY KEY (host_name));
@@ -63,6 +83,15 @@ GRANT ALL PRIVILEGES ON TABLE ambari.hosts TO :username;
 
 CREATE TABLE ambari.hoststate (agent_version VARCHAR(255) NOT NULL, available_mem BIGINT NOT NULL, current_state VARCHAR(255) NOT NULL, health_status VARCHAR(255), host_name VARCHAR(255) NOT NULL, time_in_state BIGINT NOT NULL, maintenance_state VARCHAR(512), PRIMARY KEY (host_name));
 GRANT ALL PRIVILEGES ON TABLE ambari.hoststate TO :username;
+
+CREATE TABLE host_version (
+  id BIGINT NOT NULL,
+  host_name VARCHAR(255) NOT NULL,
+  stack VARCHAR(255) NOT NULL,
+  version VARCHAR(255) NOT NULL,
+  state VARCHAR(32) NOT NULL,
+  PRIMARY KEY (id));
+GRANT ALL PRIVILEGES ON TABLE ambari.host_version TO :username;
 
 CREATE TABLE ambari.servicecomponentdesiredstate (component_name VARCHAR(255) NOT NULL, cluster_id BIGINT NOT NULL, desired_stack_version VARCHAR(255) NOT NULL, desired_state VARCHAR(255) NOT NULL, service_name VARCHAR(255) NOT NULL, PRIMARY KEY (component_name, cluster_id, service_name));
 GRANT ALL PRIVILEGES ON TABLE ambari.servicecomponentdesiredstate TO :username;
@@ -184,11 +213,13 @@ ALTER TABLE ambari.clusterconfig ADD CONSTRAINT FK_clusterconfig_cluster_id FORE
 ALTER TABLE ambari.clusterservices ADD CONSTRAINT FK_clusterservices_cluster_id FOREIGN KEY (cluster_id) REFERENCES ambari.clusters (cluster_id);
 ALTER TABLE ambari.clusterconfigmapping ADD CONSTRAINT clusterconfigmappingcluster_id FOREIGN KEY (cluster_id) REFERENCES ambari.clusters (cluster_id);
 ALTER TABLE ambari.clusterstate ADD CONSTRAINT FK_clusterstate_cluster_id FOREIGN KEY (cluster_id) REFERENCES ambari.clusters (cluster_id);
+ALTER TABLE ambari.cluster_version ADD CONSTRAINT FK_cluster_version_cluster_id FOREIGN KEY (cluster_id) REFERENCES ambari.clusters (cluster_id);
 ALTER TABLE ambari.hostcomponentdesiredstate ADD CONSTRAINT hstcmponentdesiredstatehstname FOREIGN KEY (host_name) REFERENCES ambari.hosts (host_name);
 ALTER TABLE ambari.hostcomponentdesiredstate ADD CONSTRAINT hstcmpnntdesiredstatecmpnntnme FOREIGN KEY (component_name, cluster_id, service_name) REFERENCES ambari.servicecomponentdesiredstate (component_name, cluster_id, service_name);
 ALTER TABLE ambari.hostcomponentstate ADD CONSTRAINT hstcomponentstatecomponentname FOREIGN KEY (component_name, cluster_id, service_name) REFERENCES ambari.servicecomponentdesiredstate (component_name, cluster_id, service_name);
 ALTER TABLE ambari.hostcomponentstate ADD CONSTRAINT hostcomponentstate_host_name FOREIGN KEY (host_name) REFERENCES ambari.hosts (host_name);
 ALTER TABLE ambari.hoststate ADD CONSTRAINT FK_hoststate_host_name FOREIGN KEY (host_name) REFERENCES ambari.hosts (host_name);
+ALTER TABLE ambari.host_version ADD CONSTRAINT FK_host_version_host_name FOREIGN KEY (host_name) REFERENCES ambari.hosts (host_name);
 ALTER TABLE ambari.servicecomponentdesiredstate ADD CONSTRAINT srvccmponentdesiredstatesrvcnm FOREIGN KEY (service_name, cluster_id) REFERENCES ambari.clusterservices (service_name, cluster_id);
 ALTER TABLE ambari.servicedesiredstate ADD CONSTRAINT servicedesiredstateservicename FOREIGN KEY (service_name, cluster_id) REFERENCES ambari.clusterservices (service_name, cluster_id);
 ALTER TABLE ambari.execution_command ADD CONSTRAINT FK_execution_command_task_id FOREIGN KEY (task_id) REFERENCES ambari.host_role_command (task_id);
@@ -348,6 +379,7 @@ CREATE INDEX idx_alert_group_name on ambari.alert_group(group_name);
 CREATE INDEX idx_alert_notice_state on ambari.alert_notice(notify_state);
 
 ---------inserting some data-----------
+-- In order for the first ID to be 1, must initialize the ambari_sequences table with a sequence_value of 0.
 BEGIN;
 INSERT INTO ambari.ambari_sequences (sequence_name, sequence_value)
   SELECT 'cluster_id_seq', 1
@@ -397,6 +429,10 @@ INSERT INTO ambari.ambari_sequences (sequence_name, sequence_value)
   select 'alert_current_id_seq', 0
   union all
   select 'config_id_seq', 1
+  union all
+  select 'cluster_version_id_seq', 0
+  union all
+  select 'host_version_id_seq', 0
   union all
   select 'service_config_id_seq', 1;
 

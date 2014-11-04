@@ -58,6 +58,7 @@ import org.apache.ambari.server.state.ServiceComponentHostEvent;
 import org.apache.ambari.server.state.ServiceComponentHostEventType;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
+import org.apache.ambari.server.state.UpgradeState;
 import org.apache.ambari.server.state.alert.AlertDefinitionHash;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
@@ -677,6 +678,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     stateEntity.setServiceName(serviceComponent.getServiceName());
     stateEntity.setHostName(hostName);
     stateEntity.setCurrentState(stateMachine.getCurrentState());
+    stateEntity.setUpgradeState(UpgradeState.NONE);
     stateEntity.setCurrentStackVersion(gson.toJson(new StackId()));
 
     desiredStateEntity = new HostComponentDesiredStateEntity();
@@ -766,7 +768,30 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     } finally {
       clusterGlobalLock.readLock().unlock();
     }
+  }
 
+  /***
+   * To be called during the upgrade of a specific Component in a host.
+   * The potential upgrade states are NONE (default), PENDING, IN_PROGRESS, FAILED.
+   * If the upgrade completes successfully, the upgradeState should be set back to NONE.
+   * If the upgrade fails, then the user can retry to set it back into PENDING or IN_PROGRESS.
+   * If the upgrade is aborted, then the upgradeState should be set back to NONE.
+   * @param upgradeState
+   */
+  @Override
+  public void setUpgradeState(UpgradeState upgradeState) {
+    clusterGlobalLock.readLock().lock();
+    try {
+      writeLock.lock();
+      try {
+        stateEntity.setUpgradeState(upgradeState);
+        saveIfPersisted();
+      } finally {
+        writeLock.unlock();
+      }
+    } finally {
+      clusterGlobalLock.readLock().unlock();
+    }
   }
 
   @Override

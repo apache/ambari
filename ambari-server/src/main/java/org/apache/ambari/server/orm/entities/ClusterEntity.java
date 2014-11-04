@@ -121,6 +121,9 @@ public class ClusterEntity {
   @OneToMany(mappedBy = "clusterEntity", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
   private Collection<AlertDefinitionEntity> alertDefinitionEntities;
 
+  @OneToMany(mappedBy = "clusterEntity", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
+  private Collection<ClusterVersionEntity> clusterVersionEntities;
+
   @OneToOne(cascade = CascadeType.ALL)
   @JoinColumns({
       @JoinColumn(name = "resource_id", referencedColumnName = "resource_id", nullable = false)
@@ -284,6 +287,12 @@ public class ClusterEntity {
   public Collection<AlertDefinitionEntity> getAlertDefinitionEntities() {
     return alertDefinitionEntities;
   }
+
+  public Collection<ClusterVersionEntity> getClusterVersionEntities() {
+    return clusterVersionEntities;
+  }
+
+  public void setClusterVersionEntities(Collection<ClusterVersionEntity> clusterVersionEntities) { this.clusterVersionEntities = clusterVersionEntities; }
 
   /**
    * Get the admin resource entity.

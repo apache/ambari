@@ -18,6 +18,10 @@
 
 package org.apache.ambari.server.upgrade;
 
+import java.util.List;
+
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertFalse;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.createStrictMock;
@@ -82,9 +86,25 @@ public class UpgradeCatalog200Test {
     expect(configuration.getDatabaseUrl()).andReturn(Configuration.JDBC_IN_MEMORY_URL).anyTimes();
 
     Capture<DBAccessor.DBColumnInfo> alertDefinitionIgnoreColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
+    Capture<DBAccessor.DBColumnInfo> hostComponentStateColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
+    Capture<List<DBAccessor.DBColumnInfo>> clusterVersionCapture = new Capture<List<DBAccessor.DBColumnInfo>>();
+    Capture<List<DBAccessor.DBColumnInfo>> hostVersionCapture = new Capture<List<DBAccessor.DBColumnInfo>>();
 
+    // Alert Definition
     dbAccessor.addColumn(eq("alert_definition"),
         capture(alertDefinitionIgnoreColumnCapture));
+
+    // Host Component State
+    dbAccessor.addColumn(eq("hostcomponentstate"),
+        capture(hostComponentStateColumnCapture));
+
+    // Cluster Version
+    dbAccessor.createTable(eq("cluster_version"),
+        capture(clusterVersionCapture), eq("id"));
+
+    // Host Version
+    dbAccessor.createTable(eq("host_version"),
+        capture(hostVersionCapture), eq("id"));
 
     replay(dbAccessor, configuration, resultSet);
 
@@ -99,6 +119,18 @@ public class UpgradeCatalog200Test {
 
     // verify ignore column for alert_definition
     verifyAlertDefinitionIgnoreColumn(alertDefinitionIgnoreColumnCapture);
+
+    // Verify added column in hostcomponentstate table
+    DBAccessor.DBColumnInfo upgradeStateColumn = hostComponentStateColumnCapture.getValue();
+    assertEquals("upgrade_state", upgradeStateColumn.getName());
+    assertEquals(32, (int) upgradeStateColumn.getLength());
+    assertEquals(String.class, upgradeStateColumn.getType());
+    assertEquals("NONE", upgradeStateColumn.getDefaultValue());
+    assertFalse(upgradeStateColumn.isNullable());
+
+    // Verify capture group sizes
+    assertEquals(8, clusterVersionCapture.getValue().size());
+    assertEquals(5, hostVersionCapture.getValue().size());
   }
 
   @Test
@@ -133,5 +165,20 @@ public class UpgradeCatalog200Test {
     Assert.assertEquals(Integer.valueOf(1), column.getLength());
     Assert.assertEquals(Short.class, column.getType());
     Assert.assertEquals("ignore_host", column.getName());
+  }
+
+  @Test
+  public void testGetSourceVersion() {
+    final DBAccessor dbAccessor = createNiceMock(DBAccessor.class);
+    UpgradeCatalog upgradeCatalog = getUpgradeCatalog(dbAccessor);
+    Assert.assertEquals("1.7.0", upgradeCatalog.getSourceVersion());
+  }
+
+  @Test
+  public void testGetTargetVersion() throws Exception {
+    final DBAccessor dbAccessor = createNiceMock(DBAccessor.class);
+    UpgradeCatalog upgradeCatalog = getUpgradeCatalog(dbAccessor);
+
+    Assert.assertEquals("2.0.0", upgradeCatalog.getTargetVersion());
   }
 }

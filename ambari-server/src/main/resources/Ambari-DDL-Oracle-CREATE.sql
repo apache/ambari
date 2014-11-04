@@ -24,10 +24,41 @@ CREATE TABLE serviceconfighosts (service_config_id NUMBER(19) NOT NULL, hostname
 CREATE TABLE serviceconfigmapping (service_config_id NUMBER(19) NOT NULL, config_id NUMBER(19) NOT NULL, PRIMARY KEY(service_config_id, config_id));
 CREATE TABLE clusterservices (service_name VARCHAR2(255) NOT NULL, cluster_id NUMBER(19) NOT NULL, service_enabled NUMBER(10) NOT NULL, PRIMARY KEY (service_name, cluster_id));
 CREATE TABLE clusterstate (cluster_id NUMBER(19) NOT NULL, current_cluster_state VARCHAR2(255) NULL, current_stack_version VARCHAR2(255) NULL, PRIMARY KEY (cluster_id));
+
+CREATE TABLE cluster_version (
+  id BIGINT NUMBER(19) NULL,
+  cluster_id NUMBER(19) NOT NULL,
+  stack VARCHAR2(255) NOT NULL,
+  version VARCHAR2(255) NOT NULL,
+  state VARCHAR2(32) NOT NULL,
+  start_time NUMBER(19) NOT NULL,
+  end_time NUMBER(19),
+  user_name VARCHAR2(32),
+  PRIMARY KEY (id));
+
 CREATE TABLE hostcomponentdesiredstate (cluster_id NUMBER(19) NOT NULL, component_name VARCHAR2(255) NOT NULL, desired_stack_version VARCHAR2(255) NULL, desired_state VARCHAR2(255) NOT NULL, host_name VARCHAR2(255) NOT NULL, service_name VARCHAR2(255) NOT NULL, admin_state VARCHAR2(32) NULL, maintenance_state VARCHAR2(32) NOT NULL, restart_required NUMBER(1) DEFAULT 0 NOT NULL, PRIMARY KEY (cluster_id, component_name, host_name, service_name));
-CREATE TABLE hostcomponentstate (cluster_id NUMBER(19) NOT NULL, component_name VARCHAR2(255) NOT NULL, current_stack_version VARCHAR2(255) NOT NULL, current_state VARCHAR2(255) NOT NULL, host_name VARCHAR2(255) NOT NULL, service_name VARCHAR2(255) NOT NULL, PRIMARY KEY (cluster_id, component_name, host_name, service_name));
+
+CREATE TABLE hostcomponentstate (
+  cluster_id NUMBER(19) NOT NULL,
+  component_name VARCHAR2(255) NOT NULL,
+  current_stack_version VARCHAR2(255) NOT NULL,
+  current_state VARCHAR2(255) NOT NULL,
+  host_name VARCHAR2(255) NOT NULL,
+  service_name VARCHAR2(255) NOT NULL,
+  upgrade_state VARCHAR2(255) NOT NULL DEFAULT 'NONE',
+  PRIMARY KEY (cluster_id, component_name, host_name, service_name));
+
 CREATE TABLE hosts (host_name VARCHAR2(255) NOT NULL, cpu_count INTEGER NOT NULL, cpu_info VARCHAR2(255) NULL, discovery_status VARCHAR2(2000) NULL, host_attributes CLOB NULL, ipv4 VARCHAR2(255) NULL, ipv6 VARCHAR2(255) NULL, last_registration_time INTEGER NOT NULL, os_arch VARCHAR2(255) NULL, os_info VARCHAR2(1000) NULL, os_type VARCHAR2(255) NULL, ph_cpu_count INTEGER NOT NULL, public_host_name VARCHAR2(255) NULL, rack_info VARCHAR2(255) NOT NULL, total_mem INTEGER NOT NULL, PRIMARY KEY (host_name));
 CREATE TABLE hoststate (agent_version VARCHAR2(255) NULL, available_mem NUMBER(19) NOT NULL, current_state VARCHAR2(255) NOT NULL, health_status VARCHAR2(255) NULL, host_name VARCHAR2(255) NOT NULL, time_in_state NUMBER(19) NOT NULL, maintenance_state VARCHAR2(512), PRIMARY KEY (host_name));
+
+CREATE TABLE host_version (
+  id NUMBER(19) NOT NULL,
+  host_name VARCHAR2(255) NOT NULL,
+  stack VARCHAR2(255) NOT NULL,
+  version VARCHAR2(255) NOT NULL,
+  state VARCHAR2(32) NOT NULL,
+  PRIMARY KEY (id));
+
 CREATE TABLE servicecomponentdesiredstate (component_name VARCHAR2(255) NOT NULL, cluster_id NUMBER(19) NOT NULL, desired_stack_version VARCHAR2(255) NULL, desired_state VARCHAR2(255) NOT NULL, service_name VARCHAR2(255) NOT NULL, PRIMARY KEY (component_name, cluster_id, service_name));
 CREATE TABLE servicedesiredstate (cluster_id NUMBER(19) NOT NULL, desired_host_role_mapping NUMBER(10) NOT NULL, desired_stack_version VARCHAR2(255) NULL, desired_state VARCHAR2(255) NOT NULL, service_name VARCHAR2(255) NOT NULL, maintenance_state VARCHAR2(32) NOT NULL, PRIMARY KEY (cluster_id, service_name));
 CREATE TABLE users (user_id NUMBER(10) NOT NULL, principal_id NUMBER(19) NOT NULL, create_time TIMESTAMP NULL, ldap_user NUMBER(10) DEFAULT 0, user_name VARCHAR2(255) NULL, user_password VARCHAR2(255) NULL, active INTEGER DEFAULT 1 NOT NULL, PRIMARY KEY (user_id));
@@ -89,11 +120,13 @@ ALTER TABLE serviceconfighosts ADD CONSTRAINT  FK_scvhosts_scv FOREIGN KEY (serv
 ALTER TABLE clusterservices ADD CONSTRAINT FK_clusterservices_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id);
 ALTER TABLE clusterconfigmapping ADD CONSTRAINT clusterconfigmappingcluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id);
 ALTER TABLE clusterstate ADD CONSTRAINT FK_clusterstate_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id);
+ALTER TABLE cluster_version ADD CONSTRAINT FK_cluster_version_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id);
 ALTER TABLE hostcomponentdesiredstate ADD CONSTRAINT hstcmponentdesiredstatehstname FOREIGN KEY (host_name) REFERENCES hosts (host_name);
 ALTER TABLE hostcomponentdesiredstate ADD CONSTRAINT hstcmpnntdesiredstatecmpnntnme FOREIGN KEY (component_name, cluster_id, service_name) REFERENCES servicecomponentdesiredstate (component_name, cluster_id, service_name);
 ALTER TABLE hostcomponentstate ADD CONSTRAINT hstcomponentstatecomponentname FOREIGN KEY (component_name, cluster_id, service_name) REFERENCES servicecomponentdesiredstate (component_name, cluster_id, service_name);
 ALTER TABLE hostcomponentstate ADD CONSTRAINT hostcomponentstate_host_name FOREIGN KEY (host_name) REFERENCES hosts (host_name);
 ALTER TABLE hoststate ADD CONSTRAINT FK_hoststate_host_name FOREIGN KEY (host_name) REFERENCES hosts (host_name);
+ALTER TABLE host_version ADD CONSTRAINT FK_host_version_host_name FOREIGN KEY (host_name) REFERENCES hosts (host_name);
 ALTER TABLE servicecomponentdesiredstate ADD CONSTRAINT srvccmponentdesiredstatesrvcnm FOREIGN KEY (service_name, cluster_id) REFERENCES clusterservices (service_name, cluster_id);
 ALTER TABLE servicedesiredstate ADD CONSTRAINT servicedesiredstateservicename FOREIGN KEY (service_name, cluster_id) REFERENCES clusterservices (service_name, cluster_id);
 ALTER TABLE execution_command ADD CONSTRAINT FK_execution_command_task_id FOREIGN KEY (task_id) REFERENCES host_role_command (task_id);
@@ -243,6 +276,7 @@ CREATE INDEX idx_alert_group_name on alert_group(group_name);
 CREATE INDEX idx_alert_notice_state on alert_notice(notify_state);
 
 ---------inserting some data-----------
+-- In order for the first ID to be 1, must initialize the ambari_sequences table with a sequence_value of 0.
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('host_role_command_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('user_id_seq', 1);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('group_id_seq', 0);
@@ -261,6 +295,8 @@ INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('principal_i
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('permission_id_seq', 5);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('privilege_id_seq', 1);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('config_id_seq', 1);
+INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('cluster_version_id_seq', 0);
+INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('host_version_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('service_config_id_seq', 1);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('alert_definition_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('alert_group_id_seq', 0);

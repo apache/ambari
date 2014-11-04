@@ -44,7 +44,7 @@ with patch("platform.linux_distribution", return_value = ('Suse','11','Final')):
 
 FatalException = ambari_server.FatalException
 NonFatalException = ambari_server.NonFatalException
-CURR_AMBARI_VERSION = "1.7.0"
+CURR_AMBARI_VERSION = "2.0.0"
 
 class TestAmbariServer(TestCase):
   def setUp(self):

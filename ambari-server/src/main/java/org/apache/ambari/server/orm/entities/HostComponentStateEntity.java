@@ -21,6 +21,7 @@ package org.apache.ambari.server.orm.entities;
 import java.util.Collection;
 
 import org.apache.ambari.server.state.State;
+import org.apache.ambari.server.state.UpgradeState;
 
 import javax.persistence.*;
 
@@ -50,6 +51,10 @@ public class HostComponentStateEntity {
   @Enumerated(value = EnumType.STRING)
   @Column(name = "current_state", nullable = false, insertable = true, updatable = true)
   private State currentState = State.INIT;
+
+  @Enumerated(value = EnumType.STRING)
+  @Column(name = "upgrade_state", nullable = false, insertable = true, updatable = true)
+  private UpgradeState upgradeState = UpgradeState.NONE;
 
   @Basic
   @Column(name = "current_stack_version", nullable = false, insertable = true, updatable = true)
@@ -106,6 +111,14 @@ public class HostComponentStateEntity {
     this.currentState = currentState;
   }
 
+  public UpgradeState getUpgradeState() {
+    return upgradeState;
+  }
+
+  public void setUpgradeState(UpgradeState upgradeState) {
+    this.upgradeState = upgradeState;
+  }
+
   public String getCurrentStackVersion() {
     return currentStackVersion;
   }
@@ -126,6 +139,7 @@ public class HostComponentStateEntity {
     if (currentStackVersion != null ? !currentStackVersion.equals(that.currentStackVersion) : that.currentStackVersion != null)
       return false;
     if (currentState != null ? !currentState.equals(that.currentState) : that.currentState != null) return false;
+    if (upgradeState != null ? !upgradeState.equals(that.upgradeState) : that.upgradeState != null) return false;
     if (hostName != null ? !hostName.equals(that.hostName) : that.hostName != null) return false;
     if (serviceName != null ? !serviceName.equals(that.serviceName) : that.serviceName != null) return false;
 
@@ -138,6 +152,7 @@ public class HostComponentStateEntity {
     result = 31 * result + (hostName != null ? hostName.hashCode() : 0);
     result = 31 * result + (componentName != null ? componentName.hashCode() : 0);
     result = 31 * result + (currentState != null ? currentState.hashCode() : 0);
+    result = 31 * result + (upgradeState != null ? upgradeState.hashCode() : 0);
     result = 31 * result + (currentStackVersion != null ? currentStackVersion.hashCode() : 0);
     result = 31 * result + (serviceName != null ? serviceName.hashCode() : 0);
     return result;

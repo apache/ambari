@@ -18,10 +18,12 @@
     <class>org.apache.ambari.server.orm.entities.ClusterConfigEntity</class>
     <class>org.apache.ambari.server.orm.entities.ClusterServiceEntity</class>
     <class>org.apache.ambari.server.orm.entities.ClusterStateEntity</class>
+    <class>org.apache.ambari.server.orm.entities.ClusterVersionEntity</class>
     <class>org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity</class>
     <class>org.apache.ambari.server.orm.entities.HostComponentStateEntity</class>
     <class>org.apache.ambari.server.orm.entities.HostEntity</class>
     <class>org.apache.ambari.server.orm.entities.HostStateEntity</class>
+    <class>org.apache.ambari.server.orm.entities.HostVersionEntity</class>
     <class>org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity</class>
     <class>org.apache.ambari.server.orm.entities.ServiceDesiredStateEntity</class>
     <class>org.apache.ambari.server.orm.entities.UserEntity</class>
