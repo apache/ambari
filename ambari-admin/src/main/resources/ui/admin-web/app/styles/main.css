@@ -1246,3 +1246,6 @@ button.btn.btn-xs{
 accordion .panel-group .panel{
   overflow: visible;
 }
+.break-word {
+    word-break: break-all;
+}
