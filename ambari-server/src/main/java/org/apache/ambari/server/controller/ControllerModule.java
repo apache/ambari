@@ -32,14 +32,18 @@ import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_URL;
 import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_USER;
 import static org.eclipse.persistence.config.PersistenceUnitProperties.THROW_EXCEPTIONS;
 
+import java.lang.annotation.Annotation;
 import java.security.SecureRandom;
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
 
 import org.apache.ambari.server.EagerSingleton;
+import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.actionmanager.ActionDBAccessor;
 import org.apache.ambari.server.actionmanager.ActionDBAccessorImpl;
 import org.apache.ambari.server.actionmanager.ExecutionCommandWrapper;
@@ -241,7 +245,7 @@ public class ControllerModule extends AbstractModule {
     requestStaticInjection(ExecutionCommandWrapper.class);
 
     bindServices();
-    bindEagerSingletons();
+    bindByAnnotation();
   }
 
 
@@ -340,27 +344,37 @@ public class ControllerModule extends AbstractModule {
   }
 
   /**
-   * Initializes all eager singletons that should be instantiated as soon as
+   * Initializes specially-marked interfaces that require injection.  All eager singletons that should be instantiated as soon as
    * possible and not wait for injection.
    * <p/>
    * An example of where this is needed is with a singleton that is headless; in
    * other words, it doesn't have any injections but still needs to be part of
    * the Guice framework.
    * <p/>
+   * <p/>
+   * A second example of where this is needed is when classes require static
+   * members that are available via injection.
+   * <p/>
    * This currently scans {@code org.apache.ambari.server} for any
-   * {@link EagerSingleton} instances.
+   * {@link EagerSingleton} or {@link StaticallyInject} instances.
    */
-  private void bindEagerSingletons() {
+  private void bindByAnnotation() {
     ClassPathScanningCandidateComponentProvider scanner =
         new ClassPathScanningCandidateComponentProvider(false);
 
+    @SuppressWarnings("unchecked")
+    List<Class<? extends Annotation>> classes = Arrays.asList(EagerSingleton.class,
+        StaticallyInject.class);
+
     // match only singletons that are eager listeners
-    scanner.addIncludeFilter(new AnnotationTypeFilter(EagerSingleton.class));
+    for (Class<? extends Annotation> cls : classes) {
+      scanner.addIncludeFilter(new AnnotationTypeFilter(cls));
+    }
 
     Set<BeanDefinition> beanDefinitions = scanner.findCandidateComponents("org.apache.ambari.server");
 
     if (null == beanDefinitions || beanDefinitions.size() == 0) {
-      LOG.warn("No instances of {} found to register", EagerSingleton.class);
+      LOG.warn("No instances of {} found to register", classes);
       return;
     }
 
@@ -369,8 +383,16 @@ public class ControllerModule extends AbstractModule {
       Class<?> clazz = ClassUtils.resolveClassName(className,
           ClassUtils.getDefaultClassLoader());
 
-      bind(clazz).asEagerSingleton();
-      LOG.debug("Binding singleton {} eagerly", clazz);
+      if (null != clazz.getAnnotation(EagerSingleton.class)) {
+        bind(clazz).asEagerSingleton();
+        LOG.debug("Binding singleton {} eagerly", clazz);
+      }
+
+      if (null != clazz.getAnnotation(StaticallyInject.class)) {
+        requestStaticInjection(clazz);
+        LOG.debug("Statically injecting {} ", clazz);
+      }
     }
   }
+
 }

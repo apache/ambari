@@ -305,6 +305,14 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
         resourceDefinition = new LdapSyncEventResourceDefinition();
         break;
 
+      case Upgrade:
+        resourceDefinition = new UpgradeResourceDefinition();
+        break;
+
+      case UpgradeItem:
+        resourceDefinition = new UpgradeItemResourceDefinition();
+        break;
+
       default:
         throw new IllegalArgumentException("Unsupported resource type: " + type);
     }

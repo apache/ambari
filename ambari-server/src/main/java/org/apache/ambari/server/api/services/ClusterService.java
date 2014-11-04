@@ -412,6 +412,23 @@ public class ClusterService extends BaseService {
     return new AlertNoticeService(clusterName);
   }
 
+  /**
+   * Gets the services for upgrades.
+   *
+   * @param request the request
+   * @param cluserName the cluster name
+   *
+   * @return the upgrade services
+   */
+  @Path("{clusterName}/upgrades")
+  public UpgradeService getUpgradeService(
+      @Context javax.ws.rs.core.Request request,
+      @PathParam("clusterName") String clusterName) {
+
+    hasPermission(Request.Type.valueOf(request.getMethod()), clusterName);
+    return new UpgradeService(clusterName);
+  }
+
   // ----- helper methods ----------------------------------------------------
 
   /**

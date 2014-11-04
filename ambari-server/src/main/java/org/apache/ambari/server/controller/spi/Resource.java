@@ -127,7 +127,9 @@ public interface Resource {
     ClientConfig,
     StackLevelConfiguration,
     LdapSyncEvent,
-    UserPrivilege;
+    UserPrivilege,
+    Upgrade,
+    UpgradeItem;
 
     /**
      * Get the {@link Type} that corresponds to this InternalType.
@@ -216,6 +218,8 @@ public interface Resource {
     public static final Type StackLevelConfiguration = InternalType.StackLevelConfiguration.getType();
     public static final Type LdapSyncEvent = InternalType.LdapSyncEvent.getType();
     public static final Type UserPrivilege = InternalType.UserPrivilege.getType();
+    public static final Type Upgrade = InternalType.Upgrade.getType();
+    public static final Type UpgradeItem = InternalType.UpgradeItem.getType();
 
     /**
      * The type name.

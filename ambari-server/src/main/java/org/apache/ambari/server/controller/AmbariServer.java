@@ -29,6 +29,7 @@ import javax.crypto.BadPaddingException;
 
 import org.apache.ambari.eventdb.webservice.WorkflowJsonService;
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.agent.HeartBeatHandler;
 import org.apache.ambari.server.agent.rest.AgentResource;
@@ -598,7 +599,7 @@ public class AmbariServer {
   }
 
   /**
-   * Static injection replacement to wait Persistence Service start
+   * Static injection replacement to wait Persistence Service start.
    */
   public void performStaticInjection() {
     AgentResource.init(injector.getInstance(HeartBeatHandler.class));
@@ -637,7 +638,7 @@ public class AmbariServer {
         injector.getInstance(GroupDAO.class), injector.getInstance(ViewInstanceDAO.class));
     ClusterPrivilegeResourceProvider.init(injector.getInstance(ClusterDAO.class));
     AmbariPrivilegeResourceProvider.init(injector.getInstance(ClusterDAO.class));
-
+    // !!! don't use this anti-pattern.  Use @StaticallyInject
   }
 
   /**
