@@ -18,7 +18,7 @@
 
 // All of the "name" properties have to coincide with how they will appear in the *-site.xml file
 // The "template" properties can come from the config properties in site_properties.js or secure_properties.js .
-module.exports = [
+var props = [
   {
     "name": "hadoop.security.authentication",
     "templateName": [],
@@ -786,3 +786,244 @@ module.exports = [
   }
 ];
 
+var yarn22Mapping = [
+  {
+    "name": 'hadoop.http.authentication.kerberos.principal',
+    "templateName": ["hadoop_http_principal_name", "kerberos_domain"],
+    "foreignKey": null,
+    "value": "<templateName[0]>@<templateName[1]>",
+    "serviceName": "HDFS",
+    "filename": "core-site.xml"
+  },
+  {
+    "name": 'hadoop.http.authentication.kerberos.keytab',
+    "foreignKey": null,
+    "templateName": ["hadoop_http_keytab"],
+    "value": "<templateName[0]>",
+    "serviceName": "HDFS",
+    "filename": "core-site.xml"
+  },
+  {
+    name: 'hadoop.http.authentication.kerberos.name.rules',
+    templateName: [],
+    foreignKey: null,
+    value: "",
+    "serviceName": "HDFS",
+    "filename": "core-site.xml"
+  },
+  {
+    "name": 'yarn.timeline-service.http-authentication.signature.secret',
+    "templateName": [],
+    "foreignKey": null,
+    "value": "",
+    "serviceName": "YARN",
+    "filename": "yarn-site.xml"
+  },
+  {
+    "name": 'yarn.timeline-service.http-authentication.signature.secret.file',
+    "value": "",
+    "templateName": [],
+    "foreignKey": null,
+    "serviceName": "YARN",
+    "filename": "yarn-site.xml"
+  },
+  {
+    "name": 'yarn.timeline-service.http-authentication.signer.secret.provider',
+    "value": "",
+    "templateName": [],
+    "foreignKey": null,
+    "serviceName": "YARN",
+    "filename": "yarn-site.xml"
+  },
+  {
+    "name": 'yarn.timeline-service.http-authentication.signer.secret.provider.object',
+    "value": "",
+    "templateName": [],
+    "foreignKey": null,
+    "serviceName": "YARN",
+    "filename": "yarn-site.xml"
+  },
+  {
+
+    "name": 'yarn.timeline-service.http-authentication.token.validity',
+    "templateName": [],
+    "foreignKey": null,
+    "value": "",
+    "serviceName": "YARN",
+    "filename": "yarn-site.xml"
+  },
+  {
+    "name": 'yarn.timeline-service.http-authentication.cookie.domain',
+    "value": "",
+    "templateName": [],
+    "foreignKey": null,
+    "serviceName": "YARN",
+    "filename": "yarn-site.xml"
+  },
+  {
+    "name": 'yarn.timeline-service.http-authentication.cookie.path',
+    "value": "",
+    "templateName": [],
+    "foreignKey": null,
+    "serviceName": "YARN",
+    "filename": "yarn-site.xml"
+  },
+  {
+    "name": 'yarn.timeline-service.http-authentication.simple.anonymous.allowed',
+    "value": "true",
+    "templateName": [],
+    "foreignKey": null,
+    "serviceName": "YARN",
+    "filename": "yarn-site.xml"
+  },
+  {
+    "name": 'yarn.timeline-service.http-authentication.proxyusers.*.hosts',
+    "value": "",
+    "templateName": [],
+    "foreignKey": null,
+    "serviceName": "YARN",
+    "filename": "yarn-site.xml"
+  },
+  {
+    "name": 'yarn.timeline-service.http-authentication.proxyusers.*.users',
+    "value": "",
+    "serviceName": "YARN",
+    "templateName": [],
+    "foreignKey": null,
+    "filename": "yarn-site.xml"
+  },
+  {
+    "name": 'yarn.timeline-service.http-authentication.proxyusers.*.groups',
+    "value": "",
+    "templateName": [],
+    "foreignKey": null,
+    "serviceName": "YARN",
+    "filename": "yarn-site.xml"
+  },
+  {
+    "name": 'hadoop.http.filter.initializers',
+    "value": "",
+    "templateName": [],
+    "foreignKey": null,
+    "serviceName": "HDFS",
+    "filename": "core-site.xml"
+  },
+  {
+    "name": 'hadoop.http.authentication.type',
+    "value": "simple",
+    "templateName": [],
+    "foreignKey": null,
+    "serviceName": "HDFS",
+    "filename": "core-site.xml"
+  },
+  {
+    "name": 'hadoop.http.authentication.signature.secret',
+    "value": "",
+    "templateName": [],
+    "foreignKey": null,
+    "serviceName": "YARN",
+    "filename": "core-site.xml"
+  },
+  {
+    "name": 'hadoop.http.authentication.signature.secret.file',
+    "value": "",
+    "templateName": [],
+    "foreignKey": null,
+    "serviceName": "HDFS",
+    "filename": "core-site.xml"
+  },
+  {
+    "name": 'hadoop.http.authentication.signer.secret.provider',
+    "value": "",
+    "templateName": [],
+    "foreignKey": null,
+    "serviceName": "HDFS",
+    "filename": "core-site.xml"
+  },
+  {
+    "name": 'hadoop.http.authentication.signer.secret.provider.object',
+    "value": "",
+    "templateName": [],
+    "foreignKey": null,
+    "serviceName": "HDFS",
+    "filename": "core-site.xml"
+  },
+  {
+    "name": 'hadoop.http.authentication.token.validity',
+    "value": "",
+    "templateName": [],
+    "foreignKey": null,
+    "serviceName": "HDFS",
+    "filename": "core-site.xml"
+  },
+  {
+    "name": 'hadoop.http.authentication.cookie.domain',
+    "value": "",
+    "templateName": [],
+    "foreignKey": null,
+    "serviceName": "HDFS",
+    "filename": "core-site.xml"
+  },
+  {
+    "name": 'hadoop.http.authentication.cookie.path',
+    "value": "",
+    "templateName": [],
+    "foreignKey": null,
+    "serviceName": "HDFS",
+    "filename": "core-site.xml"
+  },
+  {
+    "name": 'yarn.timeline-service.http-authentication.kerberos.name.rules',
+    "value": "",
+    "templateName": [],
+    "foreignKey": null,
+    "serviceName": "YARN",
+    "filename": "yarn-site.xml"
+  },
+  {
+    "name": 'yarn.resourcemanager.proxyusers.*.hosts',
+    "value": "",
+    "templateName": [],
+    "foreignKey": null,
+    "serviceName": "YARN",
+    "filename": "yarn-site.xml"
+  },
+  {
+    "name": 'yarn.resourcemanager.proxyusers.*.users',
+    "value": "",
+    "templateName": [],
+    "foreignKey": null,
+    "serviceName": "YARN",
+    "filename": "yarn-site.xml"
+  },
+  {
+    "name": 'yarn.resourcemanager.proxyusers.*.groups',
+    "value": "",
+    "templateName": [],
+    "foreignKey": null,
+    "serviceName": "YARN",
+    "filename": "yarn-site.xml"
+  },
+  {
+    "name": 'yarn.resourcemanager.proxy-user-privileges.enabled',
+    "value": "true",
+    "templateName": [],
+    "foreignKey": null,
+    "serviceName": "YARN",
+    "filename": "yarn-site.xml"
+  },
+  {
+    "name": 'yarn.nodemanager.linux-container-executor.cgroups.mount-path',
+    "value": "",
+    "templateName": [],
+    "foreignKey": null,
+    "serviceName": "YARN",
+    "filename": "yarn-site.xml"
+  }
+];
+
+if (App.get('isHadoop22Stack')) {
+  props.pushObjects(yarn22Mapping);
+}
+
+module.exports = props;

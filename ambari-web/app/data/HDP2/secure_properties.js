@@ -473,6 +473,19 @@ var props = {
     // YARN Application Timeline Server
     {
       "id": "puppet var",
+      "name": "apptimelineserver_host",
+      "displayName": "Application Timeline Server host",
+      "value": "",
+      "defaultValue": "",
+      "description": "The host that has been assigned to run AppTimelineServer",
+      "displayType": "masterHost",
+      "isOverridable": false,
+      "isVisible": true,
+      "serviceName": "YARN",
+      "category": "AppTimelineServer"
+    },
+    {
+      "id": "puppet var",
       "name": "apptimelineserver_principal_name",
       "displayName": "App Timeline Server Principal name",
       "value": "",

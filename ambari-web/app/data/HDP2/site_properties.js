@@ -646,7 +646,6 @@ module.exports =
       "displayType": "directory",
       "category": "Advanced hbase-site",
       "serviceName": "HBASE"
-
     },
     {
       "id": "site property",
