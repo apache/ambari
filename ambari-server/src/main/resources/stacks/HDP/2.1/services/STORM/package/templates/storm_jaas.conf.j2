@@ -15,7 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #}
-{% if is_compatible_to_2_2_stack %}
+{% if stack_is_hdp22_or_further %}
 StormServer {
    com.sun.security.auth.module.Krb5LoginModule required
    useKeyTab=true
