@@ -143,8 +143,6 @@ public class ViewInstanceResourceProviderTest {
     expect(singleton.instanceExists(viewInstanceEntity)).andReturn(false);
     expect(singleton.instanceExists(viewInstanceEntity2)).andReturn(false);
     expect(singleton.getDefinition("V1", "1.0.0")).andReturn(viewEntity).anyTimes();
-    expect(singleton.getInstanceDefinition("V1", "1.0.0", "I1")).andReturn(viewInstanceEntity);
-    expect(singleton.getInstanceDefinition("V1", "1.0.0", "I1")).andReturn(viewInstanceEntity2);
     expect(singleton.getDefinition("V1", null)).andReturn(viewEntity).anyTimes();
 
     Capture<Map<String, String>> captureProperties = new Capture<Map<String, String>>();
@@ -203,7 +201,6 @@ public class ViewInstanceResourceProviderTest {
 
     expect(singleton.instanceExists(viewInstanceEntity)).andReturn(true);
     expect(singleton.getDefinition("V1", "1.0.0")).andReturn(viewEntity).anyTimes();
-    expect(singleton.getInstanceDefinition("V1", "1.0.0", "I1")).andReturn(viewInstanceEntity);
     expect(singleton.getDefinition("V1", null)).andReturn(viewEntity);
 
     expect(singleton.checkAdmin()).andReturn(true);
@@ -242,7 +239,6 @@ public class ViewInstanceResourceProviderTest {
     viewInstanceEntity.setName("I1");
     viewInstanceEntity.setViewEntity(viewEntity);
 
-    expect(singleton.getInstanceDefinition("V1", "1.0.0", "I1")).andReturn(viewInstanceEntity);
     expect(singleton.getDefinition("V1", "1.0.0")).andReturn(viewEntity).anyTimes();
     expect(singleton.getDefinition("V1", null)).andReturn(viewEntity);
 
