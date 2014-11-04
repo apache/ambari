@@ -44,12 +44,18 @@ angular.module('ambariAdminConsole')
     $scope.group.editingUsers = '';
   };
   $scope.updateMembers = function() {
-    var newMembers = $scope.group.editingUsers.toString().split(',').filter(function(item) {return item.trim();}).map(function(item) {return item.trim()});
+    var newMembers = $scope.group.editingUsers.toString().split(',').filter(function(item) {
+      return item.trim();}
+    ).map(function(item) {
+        return item.trim()
+      }
+    );
     $scope.group.members = newMembers;
-    $scope.group.saveMembers().then(loadMembers)
-    .catch(function(data) {
-      Alert.error('Cannot update group members', data.data.message);
-    });
+    $scope.group.saveMembers().catch(function(data) {
+        Alert.error('Cannot update group members', "<div class='break-word'>" + data.message + "</div>");
+      }).finally(function() {
+        loadMembers();
+      });
     $scope.isMembersEditing = false;
   };
 
