@@ -31,11 +31,11 @@
 {{key}} : {{ escape_yaml_propetry(replace_jaas_placeholder(value)) }}
 {% endfor %}
 
-{% if is_compatible_to_2_2_stack %}
+{% if stack_is_hdp22_or_further %}
 storm.thrift.transport : "{% if security_enabled %}{{configurations['_storm.thrift.secure.transport']}}{% else %}{{configurations['_storm.thrift.nonsecure.transport']}}{% endif %}"  
 {% endif %}
 
-{% if security_enabled and is_compatible_to_2_2_stack %}
+{% if security_enabled and stack_is_hdp22_or_further %}
 #
 # Kerberos security section. For the reference please use: https://github.com/hortonworks/storm/blob/champlain/SECURITY.md for details
 #

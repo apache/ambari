@@ -60,8 +60,6 @@ if 'ganglia_server_host' in config['clusterHostInfo'] and \
 else:
   ganglia_installed = False
 
-is_compatible_to_2_2_stack = str(config['hostLevelParams']['stack_version']).startswith('2.2')
-
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 
 if security_enabled:
@@ -71,7 +69,7 @@ if security_enabled:
   storm_jaas_principal = _storm_principal_name.replace('_HOST',_hostname_lowercase)
   storm_keytab_path = config['configurations']['storm-env']['storm_keytab']
   
-  if is_compatible_to_2_2_stack:
+  if stack_is_hdp22_or_further:
     storm_ui_keytab_path = config['configurations']['storm-env']['strom_ui_keytab']
     _storm_ui_jaas_principal_name = config['configurations']['storm-env']['strom_ui_principal_name']
     storm_ui_host = default("/clusterHostInfo/storm_ui_server_hosts", [])

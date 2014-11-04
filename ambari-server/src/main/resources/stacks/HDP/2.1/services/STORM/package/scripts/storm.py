@@ -59,7 +59,7 @@ def storm():
     TemplateConfig(format("{conf_dir}/storm_jaas.conf"),
                    owner=params.storm_user
     )
-    if params.is_compatible_to_2_2_stack:
+    if params.stack_is_hdp22_or_further:
       TemplateConfig(format("{conf_dir}/client_jaas.conf"),
                      owner=params.storm_user
       )
@@ -68,7 +68,7 @@ def storm():
       min_user_ruid = int(minRuid) if minRuid.isdigit() else _find_real_user_min_uid()
       
       File(format("{conf_dir}/worker-launcher.cfg"),
-           content=Template("worker-launcher.cfg.j2",min_user_ruid = min_user_ruid), 
+           content=Template("worker-launcher.cfg.j2", min_user_ruid = min_user_ruid),
            owner='root',
            group=params.user_group
       )
