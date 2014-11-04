@@ -259,7 +259,7 @@ public class ViewInstanceResourceProvider extends AbstractResourceProvider {
   }
 
   // Convert a map of properties to a view instance entity.
-  private ViewInstanceEntity toEntity(Map<String, Object> properties) throws AmbariException {
+  private ViewInstanceEntity toEntity(Map<String, Object> properties, boolean update) throws AmbariException {
     String name = (String) properties.get(INSTANCE_NAME_PROPERTY_ID);
     if (name == null || name.isEmpty()) {
       throw new IllegalArgumentException("View instance name must be provided");
@@ -283,7 +283,11 @@ public class ViewInstanceResourceProvider extends AbstractResourceProvider {
       throw new IllegalArgumentException("View name " + viewName + " does not exist.");
     }
 
-    ViewInstanceEntity viewInstanceEntity = viewRegistry.getInstanceDefinition(commonViewName, version, name);
+    ViewInstanceEntity viewInstanceEntity = null;
+
+    if (update) {
+      viewInstanceEntity = viewRegistry.getInstanceDefinition(commonViewName, version, name);
+    }
 
     if (viewInstanceEntity == null) {
       viewInstanceEntity = new ViewInstanceEntity();
@@ -346,7 +350,7 @@ public class ViewInstanceResourceProvider extends AbstractResourceProvider {
       public Void invoke() throws AmbariException {
         try {
           ViewRegistry       viewRegistry   = ViewRegistry.getInstance();
-          ViewInstanceEntity instanceEntity = toEntity(properties);
+          ViewInstanceEntity instanceEntity = toEntity(properties, false);
 
           ViewEntity viewEntity = instanceEntity.getViewEntity();
           String     viewName   = viewEntity.getCommonName();
@@ -380,7 +384,7 @@ public class ViewInstanceResourceProvider extends AbstractResourceProvider {
       @Override
       public Void invoke() throws AmbariException {
 
-        ViewInstanceEntity instance = toEntity(properties);
+        ViewInstanceEntity instance = toEntity(properties, true);
         ViewEntity         view     = instance.getViewEntity();
 
         if (includeInstance(view.getCommonName(), view.getVersion(), instance.getInstanceName(), false)) {
