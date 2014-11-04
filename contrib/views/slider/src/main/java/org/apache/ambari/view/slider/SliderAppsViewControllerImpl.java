@@ -944,14 +944,13 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
 
   @Override
   public List<SliderAppType> getSliderAppTypes(Set<String> properties) {
-    Map<String, String> hadoopConfigs = getHadoopConfigs();
-    if(hadoopConfigs==null || hadoopConfigs.isEmpty()) {
-      try {
-        // Need to determine security enablement before loading app types
-        getViewStatus();
-      } catch (Throwable t) {
-      }
+    try {
+      // Need to determine security enablement before loading app types
+      getViewStatus();
+    } catch (Throwable t) {
+      logger.warn("Unable to determine if cluster is secured when loading app-types", t);
     }
+    Map<String, String> hadoopConfigs = getHadoopConfigs();
     final boolean securityEnabled = Boolean.valueOf(hadoopConfigs.get("security_enabled"));
     if (appTypes == null) {
       appTypes = loadAppTypes();
