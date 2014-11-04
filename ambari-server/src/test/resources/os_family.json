@@ -4,17 +4,7 @@
       "redhat",
       "fedora",
       "centos",
-      "oraclelinux",
-      "ascendos",
-      "amazon",
-      "xenserver",
-      "oel",
-      "ovs",
-      "cloudlinux",
-      "slc",
-      "scientific",
-      "psbm",
-      "centos linux"
+      "oraclelinux"
     ],
     "versions": [
       5,

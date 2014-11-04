@@ -34,6 +34,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.commons.io.IOUtils;
 
 /**
  * Class that encapsulates OS family logic
@@ -66,21 +67,22 @@ public class OsFamily {
     }
 
     private void init(String SharedResourcesPath){
+      FileInputStream inputStream = null;
       try {
         File f = new File(SharedResourcesPath, FILE_NAME);
         if (!f.exists()) throw new Exception();
-        FileInputStream inputStream = new FileInputStream(f);
+        inputStream = new FileInputStream(f);
 
         Type type = new TypeToken<Map<String, Map<String, Set<String>>>>() {}.getType();
         Gson gson = new Gson();
         osMap = gson.fromJson(new InputStreamReader(inputStream), type);
-        inputStream.close();
       } catch (Exception e) {
         LOG.error(String.format(LOAD_CONFIG_MSG, new File(SharedResourcesPath, FILE_NAME).toString()));
-        throw new RuntimeException(LOAD_CONFIG_MSG);
+        throw new RuntimeException(e);
+      } finally {
+        IOUtils.closeQuietly(inputStream);
       }
     }
-
 
     /**
      * Separate os name from os major version
