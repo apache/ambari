@@ -20,6 +20,7 @@ Ambari Agent
 """
 
 from resource_management import *
+from resource_management.libraries.functions.dynamic_variable_interpretation import copy_tarballs_to_hdfs
 
 class PigServiceCheck(Script):
   def service_check(self, env):
@@ -80,6 +81,14 @@ class PigServiceCheck(Script):
       )
 
       # Check for Pig-on-Tez
+      copy_tarballs_to_hdfs('tez', params.smokeuser, params.hdfs_user, params.user_group)
+
+      if params.security_enabled:
+        kinit_cmd = format("{kinit_path_local} -kt {smoke_user_keytab} {smokeuser};")
+        Execute(kinit_cmd,
+                user=params.smokeuser
+        )
+
       Execute( format("pig -x tez {tmp_dir}/pigSmoke.sh"),
         tries     = 3,
         try_sleep = 5,

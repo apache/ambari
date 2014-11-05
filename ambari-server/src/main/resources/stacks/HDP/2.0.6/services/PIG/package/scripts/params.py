@@ -44,6 +44,7 @@ hadoop_conf_dir = "/etc/hadoop/conf"
 pig_conf_dir = "/etc/pig/conf"
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_name']
+hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
 smokeuser = config['configurations']['cluster-env']['smokeuser']
 user_group = config['configurations']['cluster-env']['user_group']
 security_enabled = config['configurations']['cluster-env']['security_enabled']
@@ -57,3 +58,16 @@ java64_home = config['hostLevelParams']['java_home']
 pig_properties = config['configurations']['pig-properties']['content']
 
 log4j_props = config['configurations']['pig-log4j']['content']
+
+import functools
+#create partial functions with common arguments for every HdfsDirectory call
+#to create hdfs directory we need to call params.HdfsDirectory in code
+HdfsDirectory = functools.partial(
+  HdfsDirectory,
+  conf_dir=hadoop_conf_dir,
+  hdfs_user=hdfs_principal_name if security_enabled else hdfs_user,
+  security_enabled = security_enabled,
+  keytab = hdfs_user_keytab,
+  kinit_path_local = kinit_path_local,
+  bin_dir = hadoop_bin_dir
+)
