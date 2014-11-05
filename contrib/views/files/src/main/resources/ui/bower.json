@@ -30,5 +30,8 @@
     "font-awesome": {
       "main": "css/font-awesome.css"
     }
+  },
+  "resolutions": {
+    "jquery": "1.9.0"
   }
 }
