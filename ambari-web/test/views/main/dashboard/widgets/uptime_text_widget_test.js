@@ -54,25 +54,25 @@ describe('App.UptimeTextDashboardWidgetView', function() {
   describe('#uptimeProcessing', function() {
     var timestamps = [
       {
-        t: (new Date()).getTime() - 10*1000,
+        diff: 10*1000,
         e: {
           timeUnit: 's'
         }
       },
       {
-        t: (new Date()).getTime() - 3600*1000,
+        diff: 3600*1000,
         e: {
           timeUnit: 'hr'
         }
       },
       {
-        t: (new Date()).getTime() - 24*3600*1000,
+        diff: 24*3600*1000,
         e: {
           timeUnit: 'd'
         }
       },
       {
-        t: (new Date()).getTime() - 1800*1000,
+        diff: 1800*1000,
         e: {
           timeUnit: 'min'
         }
@@ -81,7 +81,7 @@ describe('App.UptimeTextDashboardWidgetView', function() {
     timestamps.forEach(function(timestamp) {
       var uptimeTextDashboardWidgetView = App.UptimeTextDashboardWidgetView.create({thresh1:40, thresh2:70});
       it('timestamp ' + timestamp.t + '. timeUnit should be ' + '"' + timestamp.e.timeUnit + '"', function() {
-        var result = uptimeTextDashboardWidgetView.uptimeProcessing(timestamp.t);
+        var result = uptimeTextDashboardWidgetView.uptimeProcessing(((new Date()).getTime() - timestamp.diff));
         expect(uptimeTextDashboardWidgetView.get('timeUnit')).to.equal(timestamp.e.timeUnit);
       });
     });

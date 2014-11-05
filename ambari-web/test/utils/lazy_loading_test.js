@@ -20,7 +20,7 @@ var lazyLoading = require('utils/lazy_loading');
 
 describe('lazy_loading', function () {
 
-  describe('#run', function () {
+  describe('#run()', function () {
     var context = Em.Object.create({isLoaded: false});
     var options = {
       destination: [],
@@ -71,7 +71,7 @@ describe('lazy_loading', function () {
     });
   });
 
-  describe('#divideIntoChunks', function () {
+  describe('#divideIntoChunks()', function () {
     var testsInfo = [
       {
         title: 'load 11 item with chunkSize - 3',
@@ -106,5 +106,93 @@ describe('lazy_loading', function () {
     });
   });
 
+  describe("#pushChunk()", function() {
+    beforeEach(function () {
+      this.clock = sinon.useFakeTimers();
+      sinon.spy(lazyLoading, 'pushChunk');
+    });
+    afterEach(function () {
+      this.clock.restore();
+      lazyLoading.pushChunk.restore();
+    });
+    it("last chunk", function() {
+      this.clock = sinon.useFakeTimers();
 
+      var destination = [],
+          chunks = [[1]],
+          context = Em.Object.create(),
+          instance = {
+            context: context,
+            timeoutRef: null,
+            terminate: Em.K
+          };
+      lazyLoading.pushChunk(chunks, 0, 10, destination, instance);
+      this.clock.tick(10);
+      expect(destination[0]).to.equal(1);
+      expect(context.get('isLoaded')).to.be.true;
+      expect(lazyLoading.pushChunk.calledTwice).to.be.false;
+    });
+    it("two chunks", function() {
+      this.clock = sinon.useFakeTimers();
+      var destination = [],
+        chunks = [[1], [2]],
+        context = Em.Object.create(),
+        instance = {
+          context: context,
+          timeoutRef: null,
+          terminate: Em.K
+        };
+      lazyLoading.pushChunk(chunks, 0, 10, destination, instance);
+      this.clock.tick(20);
+      expect(destination.length).to.equal(2);
+      expect(context.get('isLoaded')).to.be.true;
+      expect(lazyLoading.pushChunk.calledTwice).to.be.true;
+    });
+    it("terminated chunks", function() {
+      this.clock = sinon.useFakeTimers();
+      var destination = [],
+        chunks = [[1]],
+        context = Em.Object.create({isLoaded: false}),
+        instance = {
+          context: context,
+          timeoutRef: null,
+          terminate: Em.K
+        };
+      lazyLoading.pushChunk(chunks, 0, 10, destination, instance);
+      clearTimeout(instance.timeoutRef);
+      this.clock.tick(10);
+      expect(destination.length).to.empty;
+      expect(context.get('isLoaded')).to.be.false;
+      expect(lazyLoading.pushChunk.calledTwice).to.be.false;
+    });
+  });
+
+  describe("#terminate()", function() {
+    before(function () {
+      sinon.spy(lazyLoading, 'pushChunk');
+      this.clock = sinon.useFakeTimers();
+    });
+    after(function () {
+      lazyLoading.pushChunk.restore();
+      this.clock.restore();
+    });
+    it("loading terminated", function() {
+      var context = Em.Object.create({isLoaded: false});
+      var options = {
+        destination: [],
+        source: [1, 2],
+        delay: 10,
+        chunkSize: 1,
+        initSize: 1,
+        context: context
+      };
+
+      var ll = lazyLoading.run(options);
+      lazyLoading.terminate(ll);
+      this.clock.tick(10);
+      expect(options.destination.length).to.equal(1);
+      expect(context.get('isLoaded')).to.be.false;
+      expect(lazyLoading.pushChunk.calledTwice).to.be.false;
+    });
+  });
 });

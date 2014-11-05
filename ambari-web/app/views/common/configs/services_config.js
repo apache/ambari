@@ -774,6 +774,7 @@ App.ServiceConfigsByCategoryView = Ember.View.extend(App.UserPref, {
 
 App.ServiceConfigContainerView = Em.ContainerView.extend({
   view: null,
+  lazyLoading: null,
   pushView: function () {
     if (this.get('controller.selectedService')) {
       var self = this;
@@ -812,14 +813,14 @@ App.ServiceConfigContainerView = Em.ContainerView.extend({
           }));
         }
       });
-      lazyLoading.run({
+      this.set('lazyLoading', lazyLoading.run({
         destination: self.get('childViews.lastObject.serviceConfigsByCategoryView.childViews'),
         source: categoriesToPush,
         initSize: 3,
         chunkSize: 3,
         delay: 200,
         context: this
-      });
+      }));
     }
   },
   selectedServiceObserver: function () {
@@ -831,6 +832,8 @@ App.ServiceConfigContainerView = Em.ContainerView.extend({
       view.removeFromParent();
       this.set('view', view);
     }
+    //terminate lazy loading when switch service
+    if (this.get('lazyLoading')) lazyLoading.terminate(this.get('lazyLoading'));
     this.pushView();
   }.observes('controller.selectedService')
 });
