@@ -17,7 +17,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
-
+from __future__ import print_function
 from resource_management import *
 import  sys,subprocess,os
 
@@ -29,13 +29,20 @@ class ServiceCheck(Script):
         self.set_env(params.conf_dir)
         create_topic_cmd_created_output = "Created topic \"ambari_kafka_service_check\"."
         create_topic_cmd_exists_output = "Topic \"ambari_kafka_service_check\" already exists."
+	print("Running kafka create topic command", file=sys.stdout)
         create_topic_cmd = [params.kafka_home+'/bin/kafka-topics.sh', '--zookeeper '+kafka_config['zookeeper.connect'],
                             '--create --topic ambari_kafka_service_check', '--partitions 1 --replication-factor 1']
+	print(" ".join(create_topic_cmd), file=sys.stdout)
         create_topic_process = subprocess.Popen(create_topic_cmd,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
         out, err = create_topic_process.communicate()
-        if out.find(create_topic_cmd_created_output) != -1 or out.find(create_topic_cmd_exists_output) != -1:
+        if out.find(create_topic_cmd_created_output) != -1:
+	    print(out, file=sys.stdout)
+            sys.exit(0)
+        elif out.find(create_topic_cmd_exists_output) != -1:
+            print("Topic ambari_kafka_service_check exists", file=sys.stdout)
             sys.exit(0)
         else:
+	    print(out, file=sys.stderr)
             sys.exit(1)
 
     def read_kafka_config(self,kafka_conf_dir):
