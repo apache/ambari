@@ -533,6 +533,7 @@ App.ServiceConfigProperty = Ember.Object.extend({
       case 'yarn.nodemanager.local-dirs':
       case 'yarn.nodemanager.log-dirs':
       case 'mapred.local.dir':
+      case 'log.dirs':  // for Kafka Broker
         this.unionAllMountPoints(!isOnlyFirstOneNeeded, localDB);
         break;
       case 'fs.checkpoint.dir':
@@ -651,6 +652,12 @@ App.ServiceConfigProperty = Ember.Object.extend({
           setOfHostNames.push(host.hostName);
         }, this);
         components = masterComponentHostsInDB.filterProperty('component', 'NIMBUS');
+        components.forEach(function (component) {
+          setOfHostNames.push(component.hostName);
+        }, this);
+        break;
+      case 'log.dirs':
+        components = masterComponentHostsInDB.filterProperty('component', 'KAFKA_BROKER');
         components.forEach(function (component) {
           setOfHostNames.push(component.hostName);
         }, this);

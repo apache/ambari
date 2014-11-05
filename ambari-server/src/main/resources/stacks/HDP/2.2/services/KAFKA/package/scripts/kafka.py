@@ -35,6 +35,12 @@ def kafka():
     kafka_server_config = mutable_config_dict(params.config['configurations']['kafka-broker'])
     kafka_server_config['broker.id'] = brokerid
     kafka_server_config['host.name'] = params.hostname
+    kafka_data_dir = kafka_server_config['log.dirs']
+    Directory(filter(None,kafka_data_dir.split(",")),
+              owner=params.kafka_user,
+              group=params.user_group,
+              recursive=True)
+
     conf_dir = params.conf_dir
     properties_config("server.properties",
                       conf_dir=params.conf_dir,

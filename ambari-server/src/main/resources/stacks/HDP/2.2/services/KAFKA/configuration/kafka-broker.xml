@@ -23,7 +23,7 @@
 <configuration>
   <property>
     <name>log.dirs</name>
-    <value></value>
+    <value>/kafka-logs</value>
     <description>
       A comma-separated list of one or more directories in which Kafka data is stored.
       Each new partition that is created will be placed in the directory which currently has the fewest partitions.
