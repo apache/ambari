@@ -29,6 +29,7 @@ module.exports = {
    * options.source - source of items
    * options.context - the object that should know when data is completely loaded,
    * lazy loading will define "isLoaded" property for context object and update it
+   * @return {Object} - instance of lazy loading run
    */
   run: function (options) {
     var initSize = options.initSize || 25,
@@ -36,19 +37,24 @@ module.exports = {
       delay = options.delay || 300,
       destination = options.destination,
       source = options.source,
-      context = options.context,
+      self = this,
+      instance = {
+        context: options.context,
+        timeoutRef: null
+      },
       chunks;
     if (Array.isArray(destination) && Array.isArray(source)) {
       destination.pushObjects(source.slice(0, initSize));
       if(source.length > initSize) {
         chunks = this.divideIntoChunks(source.slice(initSize, source.length), chunkSize);
-        this.pushChunk(chunks, 0, delay, destination, context);
+        this.pushChunk(chunks, 0, delay, destination, instance);
       } else {
-        context.set('isLoaded', true);
+        instance.context.set('isLoaded', true);
       }
     } else {
       console.error('Lazy loading: source or destination has incorrect value');
     }
+    return instance;
   },
 
   /**
@@ -57,16 +63,16 @@ module.exports = {
    * @param index
    * @param delay
    * @param destination
-   * @param context
+   * @param instance
    */
-  pushChunk: function (chunks, index, delay, destination, context) {
+  pushChunk: function (chunks, index, delay, destination, instance) {
     var self = this;
-    setTimeout(function () {
+    instance.timeoutRef = setTimeout(function () {
       destination.pushObjects(chunks[index]);
       if (chunks.length === (++index)) {
-        context.set('isLoaded', true);
+        instance.context.set('isLoaded', true);
       } else {
-        self.pushChunk(chunks, index, delay, destination, context);
+        self.pushChunk(chunks, index, delay, destination, instance);
       }
     }, delay);
   },
@@ -94,5 +100,12 @@ module.exports = {
       chunks.push(chunk);
     }
     return chunks;
+  },
+  /**
+   * terminate lazy loading run
+   * @param instance - lazy loading instance
+   */
+  terminate: function (instance) {
+    clearTimeout(instance.timeoutRef);
   }
 };
