@@ -490,7 +490,8 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
         // if YARN has two host components, ACTIVE one should be first in component.host_components array for proper metrics mapping
         if (component.host_components.length === 2) {
           var activeRM = component.host_components.findProperty('HostRoles.ha_state', 'ACTIVE');
-          var standbyRM = component.host_components.findProperty('HostRoles.ha_state', 'STANDBY');
+          // if "second" RM isn't STARTED his ha_status is null (not STANDBY)
+          var standbyRM = component.host_components.filter(function(host_component) {return host_component.HostRoles.ha_state !== 'ACTIVE';})[0];
           if (activeRM && standbyRM) {
             component.host_components = [activeRM, standbyRM];
           }
