@@ -1724,6 +1724,7 @@ module.exports =
       "displayName": "log.dirs",
       "value": "",
       "defaultValue": "",
+      "defaultDirectory": "/kafka-logs",
       "displayType": "directories",
       "serviceName": "KAFKA",
       "filename": "kafka-broker.xml",
