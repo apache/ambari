@@ -62,3 +62,10 @@ def knox():
             environment={'JAVA_HOME': params.java_home},
             not_if=format('test -f {knox_master_secret_path}')
     )
+
+    cmd = format('{knox_client_bin} create-cert --hostname {knox_host_name_in_cluster}')
+    Execute(cmd,
+            user=params.knox_user,
+            environment={'JAVA_HOME': params.java_home},
+            not_if=format('test -f {knox_cert_store_path}')
+    )
