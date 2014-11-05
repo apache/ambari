@@ -60,7 +60,7 @@ class HostInfo:
   DEFAULT_USERS = [
     "nagios", "hive", "ambari-qa", "oozie", "hbase", "hcat", "mapred",
     "hdfs", "rrdcached", "zookeeper", "flume", "sqoop", "sqoop2",
-    "hue", "yarn", "tez", "storm", "falcon"
+    "hue", "yarn", "tez", "storm", "falcon", "kafka","knox"
   ]
 
   # Filters used to identify processed
