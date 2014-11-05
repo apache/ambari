@@ -26,7 +26,14 @@ from ambari_agent.AgentException import AgentException
 def storm():
   import params
 
-  Directory([params.log_dir, params.pid_dir, params.local_dir, params.conf_dir],
+  Directory(params.log_dir,
+            owner=params.storm_user,
+            group=params.user_group,
+            mode=0775,
+            recursive=True
+  )
+
+  Directory([params.pid_dir, params.local_dir, params.conf_dir],
             owner=params.storm_user,
             group=params.user_group,
             recursive=True
