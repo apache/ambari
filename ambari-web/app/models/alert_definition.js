@@ -18,6 +18,7 @@
 
 var App = require('app');
 var dateUtils = require('utils/date');
+var dataUtils = require('utils/data_manipulation');
 
 App.AlertDefinition = DS.Model.extend({
 
@@ -36,10 +37,45 @@ App.AlertDefinition = DS.Model.extend({
    * Formatted timestamp for latest alert triggering for current alertDefinition
    * @type {string}
    */
-  lastTriggered: function() {
+  lastTriggered: function () {
     return dateUtils.dateFormat(Math.max.apply(Math, this.get('alerts').mapProperty('latestTimestamp')));
-  }.property('alerts.@each.latestTimestamp')
+  }.property('alerts.@each.latestTimestamp'),
 
+  /**
+   * Status generates from child-alerts
+   * Format: 1 OK / 2 WARN / 1 CRIT / 1 DISABLED / 1 UNKNOWN
+   * If some there are no alerts with some state, this state isn't shown
+   * Order is equal to example
+   * @type {string}
+   */
+  status: function () {
+    var typeIcons = this.get('typeIcons'),
+        ordered = ['OK', 'WARNING', 'CRITICAL', 'DISABLED', 'UNKNOWN'],
+        grouped = dataUtils.groupPropertyValues(this.get('alerts'), 'state');
+    return ordered.map(function (state) {
+      if (grouped[state]) {
+        return grouped[state].length + ' <span class="' + typeIcons[state] + ' alert-state-' + state + '"></span>';
+      }
+      return null;
+    }).compact().join(' / ');
+  }.property('alerts.@each.state'),
+
+  /**
+   * List of css-classes for alert types
+   * @type {object}
+   */
+  typeIcons: {
+    'OK': 'icon-ok-sign',
+    'WARNING': 'icon-warning-sign',
+    'CRITICAL': 'icon-remove',
+    'DISABLED': 'icon-off',
+    'UNKNOWN': 'icon-question-sign'
+  },
+
+  // todo: in future be mapped from server response
+  description: 'Description for the Alert Definition.',
+  // todo: in future be mapped from server response
+  thresholds: 'Thresholds for the Alert Definition.'
 });
 
 App.AlertReportDefinition = DS.Model.extend({

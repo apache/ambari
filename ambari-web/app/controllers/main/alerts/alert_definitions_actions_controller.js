@@ -18,7 +18,7 @@
 
 App.MainAlertDefinitionActionsController = Em.ArrayController.extend({
 
-  name: 'mainAlertDefinitionActions',
+  name: 'mainAlertDefinitionActionsController',
 
   /**
    * List of available actions for alert definitions

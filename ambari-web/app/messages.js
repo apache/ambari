@@ -827,6 +827,14 @@ Em.I18n.translations = {
   'alerts.table.header.lastTriggered': 'Last Triggered',
   'alerts.filters.filteredAlertsInfo': '{0} of {1} alerts showing',
 
+  'alerts.thresholds': 'Thresholds',
+  'alerts.definition.details.enableDisable': 'Enable / Disable',
+  'alerts.definition.details.groups': 'Groups',
+  'alerts.definition.details.instances': 'Instances',
+  'alerts.definition.details.24-hour': '24-Hour',
+  'alerts.definition.details.notification': 'Notification',
+  'alerts.definition.details.noAlerts': 'No alert instances to show',
+
   'admin.advanced.caution':'This section is for advanced user only.<br/>Proceed with caution.',
   'admin.advanced.button.uninstallIncludingData':'Uninstall cluster including all data.',
   'admin.advanced.button.uninstallKeepData':'Uninstall cluster but keep data.',

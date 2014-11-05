@@ -19,8 +19,7 @@
 var App = require('app');
 var filters = require('views/common/filter_view'),
   sort = require('views/common/sort_view'),
-  date = require('utils/date'),
-  dataUtils = require('utils/data_manipulation');
+  date = require('utils/date');
 
 App.MainAlertDefinitionsView = App.TableView.extend({
 
@@ -38,18 +37,6 @@ App.MainAlertDefinitionsView = App.TableView.extend({
   }.property('content.length'),
 
   colPropAssoc: ['', 'label', 'state', 'service.serviceName', 'lastTriggered'],
-
-  /**
-   * List of css-classes for alert types
-   * @type {object}
-   */
-  typeIcons: {
-    'OK': 'icon-ok-sign',
-    'WARNING': 'icon-warning-sign',
-    'CRITICAL': 'icon-remove',
-    'DISABLED': 'icon-off',
-    'UNKNOWN': 'icon-question-sign'
-  },
 
   sortView: sort.wrapperView,
 
@@ -209,36 +196,7 @@ App.MainAlertDefinitionsView = App.TableView.extend({
     if (this.get('paginationRightClass') === 'paginate_next') {
       this._super();
     }
-  },
-
-  /**
-   * View for each table row with <code>alertDefinition</code>
-   * @type {Em.View}
-   */
-  AlertDefinitionView: Em.View.extend({
-
-    tagName: 'tr',
-
-    /**
-     * Status generates from child-alerts
-     * Format: 1 OK / 2 WARN / 1 CRIT / 1 DISABLED / 1 UNKNOWN
-     * If some there are no alerts with some state, this state isn't shown
-     * Order is equal to example
-     * @type {string}
-     */
-    status: function () {
-      var typeIcons = this.get('parentView.typeIcons'),
-        ordered = ['OK', 'WARNING', 'CRITICAL', 'DISABLED', 'UNKNOWN'],
-        grouped = dataUtils.groupPropertyValues(this.get('content.alerts'), 'state');
-      return ordered.map(function (state) {
-        if (grouped[state]) {
-          return grouped[state].length + ' <span class="' + typeIcons[state] + ' alert-state-' + state + '"></span>';
-        }
-        return null;
-      }).compact().join(' / ');
-    }.property('content.alerts.@each.status')
-
-  })
+  }
 
 
 });

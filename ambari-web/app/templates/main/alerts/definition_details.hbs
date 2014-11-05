@@ -1,0 +1,158 @@
+{{!
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+}}
+
+<div id="alert-definition-details">
+  <div class="row-fluid">
+    <div class="span9">
+      <div class="definition-name">
+        {{#if view.editing.label.isEditing}}
+          <div {{bindAttr class="view.editing.label.isError:error :control-group"}}>
+            {{view Em.TextField valueBinding="view.editing.label.value"}}
+          </div>
+          <div class="edit-buttons">
+            <button {{action cancelEdit view.editing.label target="view"}} class="btn">{{t common.cancel}}</button>
+            <button {{bindAttr disabled="view.editing.label.isError"}} {{action saveEdit view.editing.label target="view"}}
+                class="btn btn-primary">{{t common.save}}
+            </button>
+          </div>
+        {{else}}
+          {{{controller.content.status}}} {{controller.content.label}}
+        {{/if}}
+        {{#unless view.editing.label.isEditing}}
+          <a {{action edit view.editing.label target="view"}} class="edit-description-button"><i
+              class="icon-pencil"></i></a>
+        {{/unless}}
+      </div>
+
+      <div class="definition-details-block">
+        <strong>{{t common.description}}</strong>
+        {{#unless view.editing.description.isEditing}}
+          <a {{action edit view.editing.description target="view"}} class="pull-right edit-link">
+            <strong>{{t common.edit}}</strong>
+          </a>
+        {{/unless}}
+        <hr>
+        {{#if view.editing.description.isEditing}}
+          <div {{bindAttr class="view.editing.description.isError:error :control-group"}}>
+            {{view Em.TextArea valueBinding="view.editing.description.value"}}
+          </div>
+          <div class="edit-buttons">
+            <button {{action cancelEdit view.editing.description target="view"}}
+                class="btn">{{t common.cancel}}</button>
+            <button {{bindAttr disabled="view.editing.description.isError"}} {{action saveEdit view.editing.description target="view"}}
+                class="btn btn-primary">{{t common.save}}
+            </button>
+          </div>
+        {{else}}
+          <div class="multiline-text">
+            {{controller.content.description}}
+          </div>
+        {{/if}}
+      </div>
+      <div class="definition-details-block">
+        <strong>{{t alerts.thresholds}}</strong>
+        {{#unless view.editing.thresholds.isEditing}}
+          <a {{action edit view.editing.thresholds target="view"}} class="pull-right edit-link">
+            <strong>{{t common.edit}}</strong>
+          </a>
+        {{/unless}}
+        <hr>
+        {{#if view.editing.thresholds.isEditing}}
+          <div {{bindAttr class="view.editing.thresholds.isError:error :control-group"}}>
+            {{view Em.TextArea valueBinding="view.editing.thresholds.value"}}
+          </div>
+          <div class="edit-buttons">
+            <button {{action cancelEdit view.editing.thresholds target="view"}} class="btn">{{t common.cancel}}</button>
+            <button {{bindAttr disabled="view.editing.thresholds.isError"}} {{action saveEdit view.editing.thresholds target="view"}}
+                class="btn btn-primary">{{t common.save}}
+            </button>
+          </div>
+        {{else}}
+          <div class="multiline-text">
+            {{controller.content.thresholds}}
+          </div>
+        {{/if}}
+      </div>
+    </div>
+    <div class="span3 right-column">
+      <div class="service-name">
+        {{t common.service}}: <span class="label label-info">{{controller.content.service.serviceName}}</span>
+      </div>
+      <div>
+        <button {{action disableEnableAlertDefinition target="view"}} class="btn btn-primary"><i
+            class="icon-power-off"></i>&nbsp;{{t alerts.definition.details.enableDisable}}</button>
+        <button {{action deleteAlertDefinition target="view"}} class="btn btn-primary"><i
+            class="icon-trash"></i>&nbsp;{{t common.delete}}</button>
+      </div>
+      <div class="properties-list">
+        <span>{{t common.type}}: {{controller.content.type}}</span>
+        <table>
+          <tbody>
+          <tr>
+            <td>{{t alerts.definition.details.groups}}:</td>
+            <td>HDFS Default (Admins)</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td><strong>Group2 (Infra)</strong></td>
+          </tr>
+          </tbody>
+        </table>
+        <span>{{t alerts.table.header.lastTriggered}} : {{controller.content.lastTriggered}}</span>
+      </div>
+    </div>
+  </div>
+  <div class="definition-details-block">
+    <span class="instances-label">
+      <strong>{{t alerts.definition.details.instances}}</strong>
+    </span>
+    <hr>
+    <div>
+      <table class="table table-bordered table-striped alerts-table" id="alert-instances-table">
+        <thead>
+        <tr>
+          <th class="first">{{t common.status}}</th>
+          <th>{{t common.host}}</th>
+          <th>{{t alerts.table.header.lastTriggered}}</th>
+          <th>{{t alerts.definition.details.24-hour}}</th>
+          <th>{{t alerts.definition.details.notification}}</th>
+        </tr>
+        </thead>
+        <tbody>
+        {{#if view.pageContent}}
+          {{#each instance in view.pageContent}}
+            <tr>
+              <td class="first">{{instance.state}}</td>
+              <td><a {{action goToHostDetails instance.hostName target="view"}}>{{instance.hostName}}</a></td>
+              <td>{{instance.lastTriggered}}</td>
+              <td>10</td>
+              <td class="last">Admins</td>
+            </tr>
+          {{/each}}
+        {{else}}
+          <tr>
+            <td colspan="5">
+              {{t alerts.definition.details.noAlerts}}
+            </td>
+          </tr>
+        {{/if}}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

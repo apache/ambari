@@ -23,7 +23,7 @@
 <div id="alerts">
   <div class="box-header row">
   </div>
-  <table class="table advanced-header-table table-bordered table-striped" id="alerts-table">
+  <table class="table advanced-header-table table-bordered table-striped alerts-table" id="alert-definitions-table">
     <thead>
       {{#view view.sortView classNames="label-row" contentBinding="view.filteredContent"}}
         {{view view.parentView.nameSort class="first"}}
@@ -41,23 +41,23 @@
     </tr>
     </thead>
     <tbody>
-      {{#if view.pageContent}}
-        {{#each alertDefinition in view.pageContent}}
-          {{#view view.AlertDefinitionView contentBinding="alertDefinition"}}
-            <td class="first">
-              <a href="#" {{action "gotoAlertDetails" alertDefinition target="controller"}}>{{alertDefinition.label}}</a>
-            </td>
-            <td>{{{view.status}}}</td>
-            <td>{{alertDefinition.service.serviceName}}</td>
-            <td>{{alertDefinition.lastTriggered}}</td>
-            <td class="last">
-              <a href="#" {{action "toggleState" alertDefinition target="controller"}} {{bindAttr class="alertDefinition.enabled:enabled:disabled"}}>
-                <span class="icon-off"></span>
-              </a>
-            </td>
-          {{/view}}
-        {{/each}}
-      {{else}}
+    {{#if view.pageContent}}
+      {{#each alertDefinition in view.pageContent}}
+        <tr>
+          <td class="first">
+            <a href="#" {{action "gotoAlertDetails" alertDefinition}}>{{alertDefinition.label}}</a>
+          </td>
+          <td>{{{alertDefinition.status}}}</td>
+          <td>{{alertDefinition.service.serviceName}}</td>
+          <td>{{alertDefinition.lastTriggered}}</td>
+          <td class="last">
+            <a href="#" {{action "toggleState" alertDefinition target="controller"}} {{bindAttr class="alertDefinition.enabled:enabled:disabled"}}>
+              <span class="icon-off"></span>
+            </a>
+          </td>
+        </tr>
+      {{/each}}
+    {{else}}
       <tr>
         <td class="first"></td>
         <td colspan="4">

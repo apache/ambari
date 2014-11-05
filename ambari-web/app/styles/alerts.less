@@ -15,20 +15,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 @import 'common.less';
 
-.alert-state-OK {color: @health-status-green;}
-.alert-state-WARNING {color: @health-status-red;}
-.alert-state-CRITICAL {color: @health-status-red;}
-.alert-state-DISABLED {color: #000;}
-.alert-state-UNKNOWN {color: @health-status-yellow;}
+.alert-state-OK {
+  color: @health-status-green;
+}
 
-#alerts-table {
+.alert-state-WARNING {
+  color: @health-status-red;
+}
+
+.alert-state-CRITICAL {
+  color: @health-status-red;
+}
+
+.alert-state-DISABLED {
+  color: #000;
+}
+
+.alert-state-UNKNOWN {
+  color: @health-status-yellow;
+}
+
+.alerts-table {
 
   margin-top: 10px;
   margin-bottom: 10px;
-  font-size: 13px\9;
+  font-size: 13px \9;
 
   .filter-row {
     th {
@@ -42,7 +55,9 @@
       padding: 8px;
     }
   }
+}
 
+#alert-definitions-table {
   a {
     &.disabled {
       color: #000;
@@ -57,19 +72,19 @@
 
   .col1,
   td:first-child + td,
-  th:first-child + th{
+  th:first-child + th {
     width: 18%;
-    .filter-input-width{
-      width:90%;
+    .filter-input-width {
+      width: 90%;
     }
   }
 
   .col2,
   td:first-child + td + td,
-  th:first-child + th + th{
+  th:first-child + th + th {
     width: 17%;
-    .filter-input-width{
-      width:90%;
+    .filter-input-width {
+      width: 90%;
     }
   }
   .col3,
@@ -80,8 +95,98 @@
 
   .col4,
   td:first-child + td + td + td + td,
-  th:first-child + th + th + th + th{
+  th:first-child + th + th + th + th {
+    width: 10%;
+  }
+}
+
+#alert-instances-table {
+  .col0,
+  td:first-child,
+  th:first-child {
     width: 10%;
   }
 
+  .col1,
+  td:first-child + td,
+  th:first-child + th {
+    width: 45%;
+  }
+
+  .col2,
+  td:first-child + td + td,
+  th:first-child + th + th {
+    width: 20%;
+  }
+  .col3,
+  td:first-child + td + td + td,
+  th:first-child + th + th + th {
+    width: 10%
+  }
+
+  .col4,
+  td:first-child + td + td + td + td,
+  th:first-child + th + th + th + th {
+    width: 15%;
+  }
+}
+
+#alert-definition-details {
+  .definition-details-block {
+    margin-top: 30px;
+    .multiline-text {
+      padding-top: 4px;
+    }
+  }
+  hr {
+    margin: 10px 0 0 0;
+  }
+  .edit-description-button:hover {
+    text-decoration: none;
+  }
+
+  .service-name {
+    margin-bottom: 30px;
+  }
+
+  .right-column {
+    text-align: right;
+    button {
+      margin-top: 10px;
+      width: 100%;
+    }
+    .properties-list {
+      margin-top: 50px;
+      text-align: left;
+    }
+  }
+  .instances-label {
+    color: #0088cc;
+  }
+  .definition-name, .definition-name input {
+    font-size: 20px;
+    font-weight: bold;
+  }
+
+  .definition-name input {
+    width: 99%;
+    margin-bottom: 0px;
+    margin-top: -4px;
+    margin-left: -5px;
+  }
+
+  .edit-buttons {
+    text-align: right;
+    margin-bottom: 20px;
+  }
+
+  textarea {
+    width: 99%;
+    height: 100px;
+    margin-left: -5px;
+  }
+
+  .edit-link {
+    cursor: pointer;
+  }
 }

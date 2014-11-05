@@ -324,14 +324,10 @@ module.exports = Em.Route.extend({
 
     alertDetails: Em.Route.extend({
       route: '/:alert_id',
-      connectOutlets: function (router, host) {
-      },
-
-      index: Em.Route.extend({
-        route: '/'
-      })
+      connectOutlets: function (router, alert) {
+        router.get('mainController').connectOutlet('mainAlertDefinitionDetails', alert);
+      }
     })
-
   }),
 
   admin: Em.Route.extend({
@@ -675,5 +671,8 @@ module.exports = Em.Route.extend({
     router.get('mainHostDetailsController').set('referer', router.location.lastSetURL);
     router.get('mainHostDetailsController').set('isFromHosts', true);
     router.transitionTo('hosts.hostDetails.summary', event.context);
+  },
+  gotoAlertDetails: function (router, event) {
+    router.transitionTo('alerts.alertDetails', event.context);
   }
 });

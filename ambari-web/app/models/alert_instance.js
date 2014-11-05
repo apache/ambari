@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+var dateUtils = require('utils/date');
 
 App.AlertInstance = DS.Model.extend({
   id: DS.attr('number'),
@@ -32,7 +33,15 @@ App.AlertInstance = DS.Model.extend({
   instance: DS.attr('string'),
   state: DS.attr('string'),
   text: DS.attr('string'),
-  notification: DS.hasMany('App.AlertNotification')
+  notification: DS.hasMany('App.AlertNotification'),
+
+  /**
+   * Formatted timestamp for latest instance triggering
+   * @type {string}
+   */
+  lastTriggered: function() {
+    return dateUtils.dateFormat(this.get('latestTimestamp'));
+  }.property('latestTimestamp')
 });
 
 App.AlertInstance.FIXTURES = [

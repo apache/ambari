@@ -101,8 +101,6 @@ App.MainAlertDefinitionsController = Em.ArrayController.extend({
     })
   }),
 
-  toggleState: Em.K,
-
-  gotoAlertDetails: Em.K
+  toggleState: Em.K
 
 });

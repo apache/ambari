@@ -42,6 +42,7 @@ require('views/login');
 require('views/main');
 require('views/main/menu');
 require('views/main/alert_definitions_view');
+require('views/main/alerts/definition_details_view');
 require('views/main/alerts/alert_definitions_actions_view');
 require('views/main/charts');
 require('views/main/views/details');
