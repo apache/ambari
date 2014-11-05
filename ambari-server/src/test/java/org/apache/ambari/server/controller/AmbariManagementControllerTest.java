@@ -8412,7 +8412,9 @@ public class AmbariManagementControllerTest {
 
     schRequests.clear();
     schRequests.add(new ServiceComponentHostRequest(clusterName, serviceName, componentName1, host1, null));
-    schRequests.add(new ServiceComponentHostRequest(clusterName, serviceName, componentName2, host1, null));
+    ServiceComponentHostRequest schr2 = new ServiceComponentHostRequest(clusterName, serviceName, componentName2, host1, null);
+    schr2.setAdminState("DECOMMISSIONED");
+    schRequests.add(schr2);
     schRequests.add(new ServiceComponentHostRequest(clusterName, serviceName, componentName3, host1, null));
     schRequests.add(new ServiceComponentHostRequest(clusterName, mapred, componentName4, host1, null));
     schRequests.add(new ServiceComponentHostRequest(clusterName, mapred, componentName5, host1, null));
@@ -8490,7 +8492,10 @@ public class AmbariManagementControllerTest {
     // delete HC
     schRequests.clear();
     schRequests.add(new ServiceComponentHostRequest(clusterName, serviceName, componentName1, host1, null));
-    schRequests.add(new ServiceComponentHostRequest(clusterName, serviceName, componentName2, host1, null));
+    // DataNode must be in "DECOMMISSIONED" state.
+    ServiceComponentHostRequest schr = new ServiceComponentHostRequest(clusterName, serviceName, componentName2, host1, null);
+    schr.setAdminState("DECOMMISSIONED");
+    schRequests.add(schr);
     schRequests.add(new ServiceComponentHostRequest(clusterName, serviceName, componentName3, host1, null));
     controller.deleteHostComponents(schRequests);
 
@@ -9132,7 +9137,10 @@ public class AmbariManagementControllerTest {
 
       // confirm delete
       componentHostRequests.clear();
-      componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "DATANODE", "host2", null));
+      // DataNode must be in "DECOMMISSIONED" state.
+      ServiceComponentHostRequest schr = new ServiceComponentHostRequest("c1", null, "DATANODE", "host2", null);
+      schr.setAdminState("DECOMMISSIONED");
+      componentHostRequests.add(schr);
       amc.deleteHostComponents(componentHostRequests);
 
       sch = null;
