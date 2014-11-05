@@ -58,6 +58,11 @@ class TestKnoxGateway(RMFTestCase):
                               environment={'JAVA_HOME': '/usr/jdk64/jdk1.7.0_45'},
                               not_if='test -f /var/lib/knox/data/security/master'
     )
+    self.assertResourceCalled('Execute', '/usr/lib/knox/bin/knoxcli.sh create-cert --hostname c6401.ambari.apache.org',
+                              user='knox',
+                              environment={'JAVA_HOME': '/usr/jdk64/jdk1.7.0_45'},
+                              not_if='test -f /var/lib/knox/data/security/keystores/gateway.jks'
+    )
     self.assertResourceCalled('File', '/etc/knox/conf/ldap-log4j.properties',
                               mode=0644,
                               group='knox',
