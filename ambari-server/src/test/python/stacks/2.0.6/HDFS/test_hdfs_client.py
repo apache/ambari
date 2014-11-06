@@ -52,6 +52,12 @@ class Test(RMFTestCase):
                               content = InlineTemplate(self.getConfig()['configurations']['hdfs-log4j']['content']+
                                                        self.getConfig()['configurations']['yarn-log4j']['content']),
                               )
+    self.assertResourceCalled('PropertiesFile', '/tmp/123/runtime.properties',
+                              properties = UnknownConfigurationMock(),
+    )
+    self.assertResourceCalled('PropertiesFile', '/tmp/123/startup.properties',
+                              properties = UnknownConfigurationMock(),
+    )
     self.assertResourceCalled('Directory', '/tmp/123',
                               action = ['delete'],
                               )

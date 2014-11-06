@@ -32,6 +32,7 @@
         "update_exclude_file_only" : "false",
         "xml_configs_list":[{"hdfs-site.xml":"hdfs-site"}],
         "env_configs_list":[{"hadoop-env.sh":"hadoop-env"},{"log4j.properties":"hdfs-log4j,yarn-log4j"}],
+        "properties_configs_list":[{"runtime.properties":"falcon-runtime.properties"},{"startup.properties":"falcon-startup.properties"}],
         "output_file":"HDFS_CLIENT-configs.tar.gz"
     },
     "taskId": 152, 

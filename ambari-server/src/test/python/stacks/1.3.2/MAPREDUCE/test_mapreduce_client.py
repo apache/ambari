@@ -196,6 +196,12 @@ class TestMapreduceClient(RMFTestCase):
     self.assertResourceCalled('File', '/tmp/123/log4j.properties',
                               content = InlineTemplate("log4jproperties\nline2log4jproperties\nline2\nambari.jobhistory.database=jdbc:postgresql://c6401.ambari.apache.org/ambarirca\nambari.jobhistory.driver=org.postgresql.Driver\nambari.jobhistory.user=mapred\nambari.jobhistory.password=mapred\nambari.jobhistory.logger=${hadoop.root.logger}\n\nlog4j.appender.JHA=org.apache.ambari.log4j.hadoop.mapreduce.jobhistory.JobHistoryAppender\nlog4j.appender.JHA.database=jdbc:postgresql://c6401.ambari.apache.org/ambarirca\nlog4j.appender.JHA.driver=org.postgresql.Driver\nlog4j.appender.JHA.user=mapred\nlog4j.appender.JHA.password=mapred\n\nlog4j.logger.org.apache.hadoop.mapred.JobHistory$JobHistoryLogger=DEBUG,JHA\nlog4j.additivity.org.apache.hadoop.mapred.JobHistory$JobHistoryLogger=true\n\n"),
                               )
+    self.assertResourceCalled('PropertiesFile', '/tmp/123/runtime.properties',
+                              properties = UnknownConfigurationMock(),
+    )
+    self.assertResourceCalled('PropertiesFile', '/tmp/123/startup.properties',
+                              properties = UnknownConfigurationMock(),
+    )
     self.assertResourceCalled('Directory', '/tmp/123',
                               action = ['delete'],
                               )

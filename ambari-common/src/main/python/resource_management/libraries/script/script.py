@@ -30,6 +30,7 @@ from contextlib import closing
 
 
 from resource_management.libraries.resources import XmlConfig
+from resource_management.libraries.resources import PropertiesFile
 from resource_management.core.resources import File, Directory
 from resource_management.core.source import InlineTemplate
 
@@ -250,6 +251,10 @@ class Script(object):
     import params
     return {'configurations':params.config['configurations'][dict],
             'configuration_attributes':params.config['configuration_attributes'][dict]}
+    
+  def generate_configs_get_xml_file_dict(self, filename, dict):
+    import params
+    return params.config['configurations'][dict]
 
   def generate_configs(self, env):
     """
@@ -260,6 +265,8 @@ class Script(object):
     env.set_params(params)
     xml_configs_list = params.config['commandParams']['xml_configs_list']
     env_configs_list = params.config['commandParams']['env_configs_list']
+    properties_configs_list = params.config['commandParams']['properties_configs_list']
+    
     conf_tmp_dir = tempfile.mkdtemp()
     output_filename = os.path.join(self.get_tmp_dir(),params.config['commandParams']['output_file'])
 
@@ -274,6 +281,13 @@ class Script(object):
       for filename,dicts in file_dict.iteritems():
         File(os.path.join(conf_tmp_dir, filename),
              content=InlineTemplate(self.generate_configs_get_template_file_content(filename, dicts)))
+        
+    for file_dict in properties_configs_list:
+      for filename, dict in file_dict.iteritems():
+        PropertiesFile(os.path.join(conf_tmp_dir, filename),
+          properties=self.generate_configs_get_xml_file_dict(filename, dict)
+        )
+      
     with closing(tarfile.open(output_filename, "w:gz")) as tar:
       tar.add(conf_tmp_dir, arcname=os.path.basename("."))
       tar.close()
