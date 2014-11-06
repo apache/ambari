@@ -523,8 +523,7 @@ var props = {
       "isVisible": true,
       "isOverridable": true,
       "serviceName": "YARN",
-      "category": "AppTimelineServer",
-      "component": "APP_TIMELINE_SERVER"
+      "category": "AppTimelineServer"
     },
     {
       "id": "puppet var",
@@ -537,8 +536,7 @@ var props = {
       "isVisible": true,
       "isOverridable": true,
       "serviceName": "YARN",
-      "category": "AppTimelineServer",
-      "component": "APP_TIMELINE_SERVER"
+      "category": "AppTimelineServer"
     },
 
     // YARN Resource Manager

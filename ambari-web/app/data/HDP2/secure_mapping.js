@@ -204,7 +204,7 @@ var props = [
     "name": "yarn.timeline-service.enabled",
     "templateName": [],
     "foreignKey": null,
-    "value": "false",
+    "value": App.get('isHadoop22Stack') ? "true" : "false",
     "nonSecureValue": "false",
     "filename": "yarn-site.xml",
     "serviceName": "YARN"
