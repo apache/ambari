@@ -357,7 +357,7 @@ App.HostPopup = Em.Object.create({
           updatedService = this.createService(service);
           servicesInfo.insertAt(index, updatedService);
         }
-        updatedService.set('isAbortable', this.isAbortableByStatus(service.status));
+        updatedService.set('isAbortable',  App.get('isManager') &&  this.isAbortableByStatus(service.status));
       }, this);
       this.removeOldServices(servicesInfo, currentServices);
       this.setBackgroundOperationHeader(isServiceListHidden);
