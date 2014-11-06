@@ -299,7 +299,7 @@ public class AmbariManagementControllerImplTest {
     expect(serviceInfo.getClientComponent()).andReturn(compInfo);
     expect(compInfo.getName()).andReturn("component");
     expect(component.getServiceComponentHosts()).andReturn(Collections.<String, ServiceComponentHost>singletonMap("host", null));
-    expect(ambariMetaInfo.getServiceInfo("stack", "1.0", "service")).andReturn(serviceInfo);
+    expect(ambariMetaInfo.getService("stack", "1.0", "service")).andReturn(serviceInfo);
 
     replay(injector, cluster, service, component, serviceInfo, compInfo, ambariMetaInfo, stackId);
 
@@ -339,7 +339,7 @@ public class AmbariManagementControllerImplTest {
     ComponentInfo compInfo = createNiceMock(ComponentInfo.class);
     expect(serviceInfo.getClientComponent()).andReturn(compInfo);
     expect(compInfo.getName()).andReturn("component");
-    expect(ambariMetaInfo.getServiceInfo("stack", "1.0", "service")).andReturn(serviceInfo);
+    expect(ambariMetaInfo.getService("stack", "1.0", "service")).andReturn(serviceInfo);
 
     replay(injector, cluster, service, component1, component2, serviceInfo, compInfo, ambariMetaInfo, stackId);
 
@@ -375,7 +375,7 @@ public class AmbariManagementControllerImplTest {
 
     ServiceInfo serviceInfo = createNiceMock(ServiceInfo.class);
     expect(serviceInfo.getClientComponent()).andReturn(null);
-    expect(ambariMetaInfo.getServiceInfo("stack", "1.0", "service")).andReturn(serviceInfo);
+    expect(ambariMetaInfo.getService("stack", "1.0", "service")).andReturn(serviceInfo);
 
     replay(injector, cluster, service, component1, component2, serviceInfo, ambariMetaInfo, stackId);
 

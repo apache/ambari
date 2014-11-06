@@ -74,7 +74,7 @@ public class ServiceInfo {
 
   @XmlElementWrapper(name="excluded-config-types")
   @XmlElement(name="config-type")
-  private Set<String> excludedConfigTypes;
+  private Set<String> excludedConfigTypes = new HashSet<String>();
 
   @XmlTransient
   private Map<String, Map<String, Map<String, String>>> configTypes;
@@ -84,7 +84,13 @@ public class ServiceInfo {
   
   @JsonIgnore
   @XmlElement(name = "restartRequiredAfterChange")
-  private Boolean restartRequiredAfterChange;  
+  private Boolean restartRequiredAfterChange;
+
+  @XmlElement(name = "extends")
+  private String parent;
+
+  @XmlTransient
+  private volatile Map<String, PropertyInfo> requiredProperties;
 
   public Boolean isRestartRequiredAfterChange() {
     return restartRequiredAfterChange;
@@ -137,7 +143,7 @@ public class ServiceInfo {
   
   @XmlElementWrapper(name="requiredServices")
   @XmlElement(name="service")
-  private List<String> requiredServices;
+  private List<String> requiredServices = new ArrayList<String>();
 
   /**
    * Meaning: stores subpath from stack root to exact directory, that contains
@@ -162,6 +168,14 @@ public class ServiceInfo {
 
   public void setName(String name) {
     this.name = name;
+  }
+
+  public String getParent() {
+    return parent;
+  }
+
+  public void setParent(String parent) {
+    this.parent = parent;
   }
 
   public String getDisplayName() {
@@ -205,7 +219,7 @@ public class ServiceInfo {
   }
   /**
    * Finds ComponentInfo by component name
-   * @param componentName
+   * @param componentName  name of the component
    * @return ComponentInfo componentName or null
    */
   public ComponentInfo getComponentByName(String componentName){
@@ -229,65 +243,112 @@ public class ServiceInfo {
   }
 
   public ComponentInfo getClientComponent() {
-    if (components == null || components.isEmpty()) {
-      return null;
-    }
-    for (ComponentInfo compInfo : components) {
-      if (compInfo.isClient()) {
-        return compInfo;
+    ComponentInfo client = null;
+
+    if (components != null) {
+      for (ComponentInfo compInfo : components) {
+        if (compInfo.isClient()) {
+          client = compInfo;
+          break;
+        }
       }
     }
-    return components.get(0);
+    return client;
   }
 
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
-    sb.append("Service name:" + name + "\nversion:" + version +
-        "\ncomment:" + comment);
+    sb.append("Service name:");
+    sb.append(name);
+    sb.append("\nversion:");
+    sb.append(version);
+    sb.append("\ncomment:");
+    sb.append(comment);
     //for (PropertyInfo property : getProperties()) {
     //  sb.append("\tProperty name=" + property.getName() +
     //"\nproperty value=" + property.getValue() + "\ndescription=" + property.getDescription());
     //}
     for (ComponentInfo component : getComponents()) {
       sb.append("\n\n\nComponent:\n");
-      sb.append("name=" + component.getName());
-      sb.append("\tcategory=" + component.getCategory());
+      sb.append("name=");
+      sb.append(component.getName());
+      sb.append("\tcategory=");
+      sb.append(component.getCategory());
     }
 
     return sb.toString();
   }
-  
-  public Map<String, Map<String, Map<String, String>>> getConfigTypes() {
-    if (configTypes == null) configTypes = new HashMap<String, Map<String, Map<String, String>>>();
-    return configTypes;
-  }
 
-  public void setConfigTypes(Map<String, Map<String, Map<String, String>>> configTypes) {
-    this.configTypes = configTypes;
+  /**
+   * Obtain the config types associated with this service.
+   * The returned map is an unmodifiable view.
+   * @return unmodifiable map of config types associated with this service
+   */
+  public synchronized Map<String, Map<String, Map<String, String>>> getConfigTypeAttributes() {
+    return configTypes == null ?
+        Collections.<String, Map<String, Map<String, String>>>emptyMap() :
+        Collections.unmodifiableMap(configTypes);
   }
 
   /**
-   * @param type the config type
-   * @return <code>true</code> if the service defines the supplied type
+   * Add the given type and set it's attributes.
+   * If the type is marked for exclusion, it will not be added.
+   *
+   * @param type            configuration type
+   * @param typeAttributes  attributes associated with the type
    */
-  public boolean hasConfigType(String type) {
+  public synchronized void setTypeAttributes(String type, Map<String, Map<String, String>> typeAttributes) {
+    if (this.configTypes == null) {
+      configTypes = new HashMap<String, Map<String, Map<String, String>>>();
+    }
+
+    if (! excludedConfigTypes.contains(type)) {
+      configTypes.put(type, typeAttributes);
+    }
+  }
+
+  /**
+   * Set all types and associated attributes.  Any previously existing types and
+   * attributes are removed prior to setting the new values.
+   *
+   * @param types map of type attributes
+   */
+  public synchronized void setAllConfigAttributes(Map<String, Map<String, Map<String, String>>> types) {
+    configTypes = new HashMap<String, Map<String, Map<String, String>>>();
+    for (Map.Entry<String, Map<String, Map<String, String>>> entry : types.entrySet()) {
+      setTypeAttributes(entry.getKey(), entry.getValue());
+    }
+  }
+
+  /**
+   * Determine of the service has a dependency on the provided configuration type.
+   * @param type the config type
+   * @return <code>true</code> if the service defines a dependency on the provided type
+   */
+  public boolean hasConfigDependency(String type) {
     return configDependencies != null && configDependencies.contains(type);
   }
 
   /**
-   * The purpose of this method is to determine if a service has a property
-   * defined in a supplied set:
-   * <ul>
-   *   <li>If the type is not defined for the service, then no property can exist.</li>
-   *   <li>If the type is defined, then check each supplied property for existence.</li>
-   * </ul>
+   * Determine if the service contains the specified config type
+   * @param type  config type to check
+   * @return true if the service has the specified config type; false otherwise
+   */
+  public boolean hasConfigType(String type) {
+    return configTypes != null && configTypes.containsKey(type);
+  }
+
+  /**
+   * Determine if the service has a dependency on the provided type and contains any of the provided properties.
+   * This can be used in determining if a property is stale.
+
    * @param type the config type
    * @param keyNames the names of all the config keys for the given type 
    * @return <code>true</code> if the config is stale
    */
-  public boolean hasPropertyFor(String type, Collection<String> keyNames) {
-    if (!hasConfigType(type))
+  public boolean hasDependencyAndPropertyFor(String type, Collection<String> keyNames) {
+    if (!hasConfigDependency(type))
       return false;
 
     buildConfigLayout();
@@ -371,7 +432,7 @@ public class ServiceInfo {
 
   /**
    * Exposes (and initializes on first use) map of os-specific details.
-   * @return
+   * @return  map of OS specific details keyed by family
    */
   public Map<String, ServiceOsSpecific> getOsSpecifics() {
     if (serviceOsSpecificsMap == null) {
@@ -486,5 +547,25 @@ public class ServiceInfo {
 
   public void setExcludedConfigTypes(Set<String> excludedConfigTypes) {
     this.excludedConfigTypes = excludedConfigTypes;
+  }
+
+  //todo: ensure that required properties are never modified...
+  public Map<String, PropertyInfo> getRequiredProperties() {
+    Map<String, PropertyInfo> result = requiredProperties;
+    if (result == null) {
+      synchronized(this) {
+        result = requiredProperties;
+        if (result == null) {
+          requiredProperties = result = new HashMap<String, PropertyInfo>();
+          List<PropertyInfo> properties = getProperties();
+          for (PropertyInfo propertyInfo : properties) {
+            if (propertyInfo.isRequireInput()) {
+              result.put(propertyInfo.getName(), propertyInfo);
+            }
+          }
+        }
+      }
+    }
+    return result;
   }
 }

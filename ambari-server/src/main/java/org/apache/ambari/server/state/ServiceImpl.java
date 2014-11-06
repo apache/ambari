@@ -107,7 +107,7 @@ public class ServiceImpl implements Service {
     StackId stackId = cluster.getDesiredStackVersion();
     setDesiredStackVersion(stackId);
 
-    ServiceInfo sInfo = ambariMetaInfo.getServiceInfo(stackId.getStackName(),
+    ServiceInfo sInfo = ambariMetaInfo.getService(stackId.getStackName(),
         stackId.getStackVersion(), serviceName);
     isClientOnlyService = sInfo.isClientOnlyService();
 
@@ -145,7 +145,7 @@ public class ServiceImpl implements Service {
     }
 
     StackId stackId = getDesiredStackVersion();
-    ServiceInfo sInfo = ambariMetaInfo.getServiceInfo(stackId.getStackName(),
+    ServiceInfo sInfo = ambariMetaInfo.getService(stackId.getStackName(),
         stackId.getStackVersion(), getName());
     isClientOnlyService = sInfo.isClientOnlyService();
 

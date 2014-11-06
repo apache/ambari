@@ -141,7 +141,7 @@ public class RoleCommandOrder {
     StackInfo stackInfo;
     String rcoFileLocation = null;
     try {
-      stackInfo = ambariMetaInfo.getStackInfo(stackName, stackVersion);
+      stackInfo = ambariMetaInfo.getStack(stackName, stackVersion);
       rcoFileLocation = stackInfo.getRcoFileLocation();
     } catch (AmbariException e) {
       LOG.warn("Error getting stack info for :" + stackName + "-" + stackVersion);

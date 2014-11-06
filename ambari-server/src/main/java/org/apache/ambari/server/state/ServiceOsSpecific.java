@@ -62,6 +62,28 @@ public class ServiceOsSpecific {
     this.packages.addAll(packages);
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    ServiceOsSpecific that = (ServiceOsSpecific) o;
+
+    if (osFamily != null ? !osFamily.equals(that.osFamily) : that.osFamily != null) return false;
+    if (packages != null ? !packages.equals(that.packages) : that.packages != null) return false;
+    if (repo != null ? !repo.equals(that.repo) : that.repo != null) return false;
+
+    return true;
+  }
+
+  @Override
+  public int hashCode() {
+    int result = osFamily != null ? osFamily.hashCode() : 0;
+    result = 31 * result + (repo != null ? repo.hashCode() : 0);
+    result = 31 * result + (packages != null ? packages.hashCode() : 0);
+    return result;
+  }
+
   /**
    * The <code>repo</code> tag. It has different set of fields compared to
    * <link>org.apache.ambari.server.state.RepositoryInfo</link>,
@@ -110,6 +132,29 @@ public class ServiceOsSpecific {
       return reponame;
     }
 
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+
+      Repo repo = (Repo) o;
+
+      if (baseurl != null ? !baseurl.equals(repo.baseurl) : repo.baseurl != null) return false;
+      if (mirrorslist != null ? !mirrorslist.equals(repo.mirrorslist) : repo.mirrorslist != null) return false;
+      if (repoid != null ? !repoid.equals(repo.repoid) : repo.repoid != null) return false;
+      if (reponame != null ? !reponame.equals(repo.reponame) : repo.reponame != null) return false;
+
+      return true;
+    }
+
+    @Override
+    public int hashCode() {
+      int result = baseurl != null ? baseurl.hashCode() : 0;
+      result = 31 * result + (mirrorslist != null ? mirrorslist.hashCode() : 0);
+      result = 31 * result + (repoid != null ? repoid.hashCode() : 0);
+      result = 31 * result + (reponame != null ? reponame.hashCode() : 0);
+      return result;
+    }
   }
 
 
@@ -130,6 +175,21 @@ public class ServiceOsSpecific {
     }
 
     public Package() { }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+
+      Package that = (Package) o;
+
+      return name.equals(that.name);
+    }
+
+    @Override
+    public int hashCode() {
+      return name.hashCode();
+    }
   }
 
 

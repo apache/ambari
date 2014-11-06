@@ -244,10 +244,10 @@ public class AmbariCustomCommandExecutionHelper {
 
     StackId stackId = cluster.getDesiredStackVersion();
     AmbariMetaInfo ambariMetaInfo = managementController.getAmbariMetaInfo();
-    ServiceInfo serviceInfo = ambariMetaInfo.getServiceInfo
-      (stackId.getStackName(), stackId.getStackVersion(), serviceName);
-    StackInfo stackInfo = ambariMetaInfo.getStackInfo
-      (stackId.getStackName(), stackId.getStackVersion());
+    ServiceInfo serviceInfo = ambariMetaInfo.getService(
+        stackId.getStackName(), stackId.getStackVersion(), serviceName);
+    StackInfo stackInfo = ambariMetaInfo.getStack
+        (stackId.getStackName(), stackId.getStackVersion());
 
     CustomCommandDefinition customCommandDefinition = null;
     ComponentInfo ci = serviceInfo.getComponentByName(componentName);
@@ -473,10 +473,10 @@ public class AmbariCustomCommandExecutionHelper {
     StackId stackId = cluster.getDesiredStackVersion();
     AmbariMetaInfo ambariMetaInfo = managementController.getAmbariMetaInfo();
     ServiceInfo serviceInfo =
-        ambariMetaInfo.getServiceInfo(stackId.getStackName(),
+        ambariMetaInfo.getService(stackId.getStackName(),
             stackId.getStackVersion(), serviceName);
-    StackInfo stackInfo = ambariMetaInfo.getStackInfo(stackId.getStackName(),
-      stackId.getStackVersion());
+    StackInfo stackInfo = ambariMetaInfo.getStack(stackId.getStackName(),
+        stackId.getStackVersion());
 
 
     stage.addHostRoleExecutionCommand(hostname,

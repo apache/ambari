@@ -207,6 +207,10 @@ public class ComponentInfo {
     this.dependencies = dependencies;
   }
 
+  public void setAutoDeploy(AutoDeployInfo autoDeploy) {
+    this.autoDeploy = autoDeploy;
+  }
+
   public AutoDeployInfo getAutoDeploy() {
     return autoDeploy;
   }
@@ -225,5 +229,49 @@ public class ComponentInfo {
 
   public void setClientsToUpdateConfigs(List<String> clientsToUpdateConfigs) {
     this.clientsToUpdateConfigs = clientsToUpdateConfigs;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    ComponentInfo that = (ComponentInfo) o;
+
+    if (deleted != that.deleted) return false;
+    if (autoDeploy != null ? !autoDeploy.equals(that.autoDeploy) : that.autoDeploy != null) return false;
+    if (cardinality != null ? !cardinality.equals(that.cardinality) : that.cardinality != null) return false;
+    if (category != null ? !category.equals(that.category) : that.category != null) return false;
+    if (clientConfigFiles != null ? !clientConfigFiles.equals(that.clientConfigFiles) : that.clientConfigFiles != null)
+      return false;
+    if (commandScript != null ? !commandScript.equals(that.commandScript) : that.commandScript != null) return false;
+    if (configDependencies != null ? !configDependencies.equals(that.configDependencies) : that.configDependencies != null)
+      return false;
+    if (customCommands != null ? !customCommands.equals(that.customCommands) : that.customCommands != null)
+      return false;
+    if (dependencies != null ? !dependencies.equals(that.dependencies) : that.dependencies != null) return false;
+    if (displayName != null ? !displayName.equals(that.displayName) : that.displayName != null) return false;
+    if (name != null ? !name.equals(that.name) : that.name != null) return false;
+    if (clientConfigFiles != null ? !clientConfigFiles.equals(that.clientConfigFiles) :
+        that.clientConfigFiles != null) return false;
+
+    return true;
+  }
+
+  @Override
+  public int hashCode() {
+    int result = name != null ? name.hashCode() : 0;
+    result = 31 * result + (displayName != null ? displayName.hashCode() : 0);
+    result = 31 * result + (category != null ? category.hashCode() : 0);
+    result = 31 * result + (deleted ? 1 : 0);
+    result = 31 * result + (cardinality != null ? cardinality.hashCode() : 0);
+    result = 31 * result + (commandScript != null ? commandScript.hashCode() : 0);
+    result = 31 * result + (clientConfigFiles != null ? clientConfigFiles.hashCode() : 0);
+    result = 31 * result + (customCommands != null ? customCommands.hashCode() : 0);
+    result = 31 * result + (dependencies != null ? dependencies.hashCode() : 0);
+    result = 31 * result + (autoDeploy != null ? autoDeploy.hashCode() : 0);
+    result = 31 * result + (configDependencies != null ? configDependencies.hashCode() : 0);
+    result = 31 * result + (clientConfigFiles != null ? clientConfigFiles.hashCode() : 0);
+    return result;
   }
 }

@@ -282,7 +282,7 @@ public class HostResourceProviderTest {
     expect(healthStatus.getHealthReport()).andReturn("HEALTHY").anyTimes();
 
 
-    expect(ambariMetaInfo.getComponentCategory((String) anyObject(), (String) anyObject(),
+    expect(ambariMetaInfo.getComponent((String) anyObject(), (String) anyObject(),
         (String) anyObject(), (String) anyObject())).andReturn(componentInfo).anyTimes();
 
     expect(componentInfo.getCategory()).andReturn("MASTER").anyTimes();
@@ -391,7 +391,7 @@ public class HostResourceProviderTest {
     expect(healthStatus.getHealthReport()).andReturn("HEALTHY").anyTimes();
 
 
-    expect(ambariMetaInfo.getComponentCategory((String) anyObject(), (String) anyObject(),
+    expect(ambariMetaInfo.getComponent((String) anyObject(), (String) anyObject(),
         (String) anyObject(), (String) anyObject())).andReturn(componentInfo).anyTimes();
 
     expect(componentInfo.getCategory()).andReturn("MASTER").anyTimes();
@@ -499,7 +499,7 @@ public class HostResourceProviderTest {
     expect(healthStatus.getHealthReport()).andReturn("HEALTHY").anyTimes();
 
 
-    expect(ambariMetaInfo.getComponentCategory((String) anyObject(), (String) anyObject(),
+    expect(ambariMetaInfo.getComponent((String) anyObject(), (String) anyObject(),
         (String) anyObject(), (String) anyObject())).andReturn(componentInfo).anyTimes();
 
     expect(componentInfo.getCategory()).andReturn("MASTER").anyTimes();
@@ -684,7 +684,7 @@ public class HostResourceProviderTest {
     expect(hostResponse1.getStatus()).andReturn(HealthStatus.ALERT.name()).anyTimes();
     expect(healthStatus.getHealthStatus()).andReturn(HostHealthStatus.HealthStatus.HEALTHY).anyTimes();
     expect(healthStatus.getHealthReport()).andReturn("HEALTHY").anyTimes();
-    expect(ambariMetaInfo.getComponentCategory((String) anyObject(), (String) anyObject(),
+    expect(ambariMetaInfo.getComponent((String) anyObject(), (String) anyObject(),
         (String) anyObject(), (String) anyObject())).andReturn(componentInfo).anyTimes();
     expect(componentInfo.getCategory()).andReturn("SLAVE").anyTimes();
     expect(resourceProviderFactory.getHostResourceProvider(anyObject(Set.class), anyObject(Map.class),

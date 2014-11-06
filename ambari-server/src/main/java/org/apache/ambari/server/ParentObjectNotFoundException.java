@@ -21,7 +21,7 @@ package org.apache.ambari.server;
 /**
  * Indicates that a parent of a resource doesn't exist.
  */
-public class ParentObjectNotFoundException extends AmbariException {
+public class ParentObjectNotFoundException extends ObjectNotFoundException {
 
   /**
    * Constructor.

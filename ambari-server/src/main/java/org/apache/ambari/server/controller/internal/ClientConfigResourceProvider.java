@@ -140,7 +140,7 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
       componentInfo = managementController.getAmbariMetaInfo().
               getComponent(stackId.getStackName(), stackId.getStackVersion(), serviceName, componentName);
       packageFolder = managementController.getAmbariMetaInfo().
-              getServiceInfo(stackId.getStackName(), stackId.getStackVersion(), serviceName).getServicePackageFolder();
+              getService(stackId.getStackName(), stackId.getStackVersion(), serviceName).getServicePackageFolder();
 
       String commandScript = componentInfo.getCommandScript().getScript();
       List<ClientConfigFileDefinition> clientConfigFiles = componentInfo.getClientConfigFiles();
@@ -216,7 +216,7 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
       ServiceInfo serviceInfo = null;
       String osFamily = null;
       clusterHostInfo = StageUtils.getClusterHostInfo(managementController.getClusters().getHostsForCluster(cluster.getClusterName()), cluster);
-      serviceInfo = managementController.getAmbariMetaInfo().getServiceInfo(stackId.getStackName(),
+      serviceInfo = managementController.getAmbariMetaInfo().getService(stackId.getStackName(),
               stackId.getStackVersion(), serviceName);
       clusterHostInfo = substituteHostIndexes(clusterHostInfo);
       osFamily = clusters.getHost(hostName).getOsFamily();

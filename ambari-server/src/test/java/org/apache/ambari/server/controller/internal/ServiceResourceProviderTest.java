@@ -648,7 +648,7 @@ public class ServiceResourceProviderTest {
     expect(stackId.getStackVersion()).andReturn("V1").anyTimes();
 
 
-    expect(ambariMetaInfo.getComponentCategory((String) anyObject(), (String) anyObject(),
+    expect(ambariMetaInfo.getComponent((String) anyObject(), (String) anyObject(),
         (String) anyObject(), (String) anyObject())).andReturn(componentInfo).anyTimes();
 
     expect(componentInfo.isMaster()).andReturn(true);
@@ -699,7 +699,7 @@ public class ServiceResourceProviderTest {
     expect(stackId.getStackVersion()).andReturn("V1").anyTimes();
 
 
-    expect(ambariMetaInfo.getComponentCategory((String) anyObject(), (String) anyObject(),
+    expect(ambariMetaInfo.getComponent((String) anyObject(), (String) anyObject(),
         (String) anyObject(), (String) anyObject())).andReturn(componentInfo).anyTimes();
 
     expect(componentInfo.isMaster()).andReturn(true);
@@ -748,7 +748,7 @@ public class ServiceResourceProviderTest {
     expect(stackId.getStackVersion()).andReturn("V1").anyTimes();
 
 
-    expect(ambariMetaInfo.getComponentCategory((String) anyObject(), (String) anyObject(),
+    expect(ambariMetaInfo.getComponent((String) anyObject(), (String) anyObject(),
         (String) anyObject(), (String) anyObject())).andReturn(componentInfo).anyTimes();
 
     expect(componentInfo.isMaster()).andReturn(true);
@@ -797,7 +797,7 @@ public class ServiceResourceProviderTest {
     expect(stackId.getStackVersion()).andReturn("V1").anyTimes();
 
 
-    expect(ambariMetaInfo.getComponentCategory((String) anyObject(), (String) anyObject(),
+    expect(ambariMetaInfo.getComponent((String) anyObject(), (String) anyObject(),
         (String) anyObject(), (String) anyObject())).andReturn(componentInfo).anyTimes();
 
     expect(componentInfo.isMaster()).andReturn(true);
@@ -843,7 +843,7 @@ public class ServiceResourceProviderTest {
     expect(stackId.getStackVersion()).andReturn("V1").anyTimes();
 
 
-    expect(ambariMetaInfo.getComponentCategory((String) anyObject(), (String) anyObject(),
+    expect(ambariMetaInfo.getComponent((String) anyObject(), (String) anyObject(),
         (String) anyObject(), (String) anyObject())).andReturn(componentInfo).anyTimes();
 
     expect(componentInfo.isMaster()).andReturn(false);
@@ -890,7 +890,7 @@ public class ServiceResourceProviderTest {
     expect(stackId.getStackVersion()).andReturn("V1").anyTimes();
 
 
-    expect(ambariMetaInfo.getComponentCategory((String) anyObject(), (String) anyObject(),
+    expect(ambariMetaInfo.getComponent((String) anyObject(), (String) anyObject(),
         (String) anyObject(), (String) anyObject())).andReturn(componentInfo).anyTimes();
 
     expect(componentInfo.isMaster()).andReturn(true);
@@ -938,7 +938,7 @@ public class ServiceResourceProviderTest {
     expect(stackId.getStackVersion()).andReturn("V1").anyTimes();
 
 
-    expect(ambariMetaInfo.getComponentCategory((String) anyObject(), (String) anyObject(),
+    expect(ambariMetaInfo.getComponent((String) anyObject(), (String) anyObject(),
         (String) anyObject(), (String) anyObject())).andReturn(componentInfo).anyTimes();
 
     expect(componentInfo.isMaster()).andReturn(true);
@@ -986,7 +986,7 @@ public class ServiceResourceProviderTest {
     expect(stackId.getStackVersion()).andReturn("V1").anyTimes();
 
 
-    expect(ambariMetaInfo.getComponentCategory((String) anyObject(), (String) anyObject(),
+    expect(ambariMetaInfo.getComponent((String) anyObject(), (String) anyObject(),
         (String) anyObject(), (String) anyObject())).andReturn(componentInfo).anyTimes();
 
     expect(componentInfo.isMaster()).andReturn(true);
@@ -1032,7 +1032,7 @@ public class ServiceResourceProviderTest {
     expect(stackId.getStackVersion()).andReturn("V1").anyTimes();
 
 
-    expect(ambariMetaInfo.getComponentCategory((String) anyObject(), (String) anyObject(),
+    expect(ambariMetaInfo.getComponent((String) anyObject(), (String) anyObject(),
         (String) anyObject(), (String) anyObject())).andReturn(componentInfo).anyTimes();
 
     expect(componentInfo.isMaster()).andReturn(true);
@@ -1075,7 +1075,7 @@ public class ServiceResourceProviderTest {
     expect(stackId.getStackVersion()).andReturn("V1").anyTimes();
 
 
-    expect(ambariMetaInfo.getComponentCategory((String) anyObject(), (String) anyObject(),
+    expect(ambariMetaInfo.getComponent((String) anyObject(), (String) anyObject(),
         (String) anyObject(), (String) anyObject())).andReturn(componentInfo).anyTimes();
 
     expect(componentInfo.isMaster()).andReturn(false);
@@ -1125,7 +1125,7 @@ public class ServiceResourceProviderTest {
     expect(stackId.getStackVersion()).andReturn("V1").anyTimes();
 
 
-    expect(ambariMetaInfo.getComponentCategory((String) anyObject(), (String) anyObject(),
+    expect(ambariMetaInfo.getComponent((String) anyObject(), (String) anyObject(),
             (String) anyObject(), (String) anyObject())).andReturn(componentInfo).anyTimes();
 
     // replay
@@ -1166,7 +1166,7 @@ public class ServiceResourceProviderTest {
     expect(stackId.getStackVersion()).andReturn("V1").anyTimes();
 
 
-    expect(ambariMetaInfo.getComponentCategory((String) anyObject(), (String) anyObject(),
+    expect(ambariMetaInfo.getComponent((String) anyObject(), (String) anyObject(),
         (String) anyObject(), (String) anyObject())).andReturn(componentInfo).anyTimes();
 
     expect(componentInfo.isClient()).andReturn(true);
@@ -1209,7 +1209,7 @@ public class ServiceResourceProviderTest {
     expect(stackId.getStackVersion()).andReturn("V1").anyTimes();
 
 
-    expect(ambariMetaInfo.getComponentCategory((String) anyObject(), (String) anyObject(),
+    expect(ambariMetaInfo.getComponent((String) anyObject(), (String) anyObject(),
         (String) anyObject(), (String) anyObject())).andReturn(componentInfo).anyTimes();
 
     expect(componentInfo.isClient()).andReturn(true);
@@ -1316,7 +1316,7 @@ public class ServiceResourceProviderTest {
     expect(stackId.getStackVersion()).andReturn("V1").anyTimes();
 
 
-    expect(ambariMetaInfo.getComponentCategory((String) anyObject(), (String) anyObject(),
+    expect(ambariMetaInfo.getComponent((String) anyObject(), (String) anyObject(),
             (String) anyObject(), (String) anyObject())).andReturn(componentInfo).anyTimes();
 
     expect(componentInfo.isClient()).andReturn(false).anyTimes();
@@ -1372,7 +1372,7 @@ public class ServiceResourceProviderTest {
     expect(stackId.getStackVersion()).andReturn("V1").anyTimes();
 
 
-    expect(ambariMetaInfo.getComponentCategory((String) anyObject(), (String) anyObject(),
+    expect(ambariMetaInfo.getComponent((String) anyObject(), (String) anyObject(),
             (String) anyObject(), (String) anyObject())).andReturn(componentInfo).anyTimes();
 
     expect(componentInfo.isMaster()).andReturn(false).anyTimes();
@@ -1436,7 +1436,7 @@ public class ServiceResourceProviderTest {
     expect(stackId.getStackVersion()).andReturn("V1").anyTimes();
 
 
-    expect(ambariMetaInfo.getComponentCategory((String) anyObject(), (String) anyObject(),
+    expect(ambariMetaInfo.getComponent((String) anyObject(), (String) anyObject(),
             (String) anyObject(), (String) anyObject())).andReturn(componentInfo).anyTimes();
 
     expect(componentInfo.isClient()).andReturn(false);

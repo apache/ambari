@@ -22,6 +22,7 @@ import com.google.gson.Gson;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.state.PropertyInfo;
+import org.apache.ambari.server.state.ServiceInfo;
 
 import javax.persistence.Basic;
 import javax.persistence.CascadeType;
@@ -165,8 +166,8 @@ public class BlueprintEntity {
    * host group.  An operational configuration is achieved by overlaying host group configuration
    * on top of cluster configuration which overlays the default stack configurations.
    *
-   * @param stackInfo  stack information
-   * @param type       type of required property to check (PASSWORD|DEFAULT)
+   * @param stackInfo          stack information
+   * @param validatePasswords  whether password properties should be validated
    * @return map of required properties which are missing.  Empty map if none are missing.
    *
    * @throws IllegalArgumentException if blueprint contains invalid information
@@ -191,17 +192,17 @@ public class BlueprintEntity {
       for (HostGroupComponentEntity component : hostGroup.getComponents()) {
         //for now, AMBARI is not recognized as a service in Stacks
         if (! component.getName().equals("AMBARI_SERVER")) {
-          String service;
+          ServiceInfo service;
+          String serviceName;
           try {
-            service = stackInfo.getComponentToService(stackName, stackVersion, component.getName());
+            serviceName = stackInfo.getComponentToService(stackName, stackVersion, component.getName());
+            service = stackInfo.getService(stackName, stackVersion, serviceName);
           } catch (AmbariException e) {
             throw new IllegalArgumentException("Unable to determine the service associated with the" +
                 " component: " + component.getName());
           }
-          if (processedServices.add(service)) {
-            Map<String, PropertyInfo> serviceRequirements = stackInfo.getRequiredProperties(
-                stackName, stackVersion, service);
-
+          if (processedServices.add(serviceName)) {
+            Map<String, PropertyInfo> serviceRequirements = service.getRequiredProperties();
             for (PropertyInfo propertyInfo : serviceRequirements.values()) {
               if (! (validatePasswords ^ propertyInfo.getPropertyTypes().contains(PropertyInfo.PropertyType.PASSWORD))) {
                 String configCategory = propertyInfo.getFilename();

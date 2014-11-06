@@ -702,22 +702,13 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
       BlueprintServiceConfigRequest blueprintConfigRequest =
         new BlueprintServiceConfigRequest(service);
 
-      Set<String> excludedConfigTypes = stack.getExcludedConfigurationTypes(service);
-      if (excludedConfigTypes == null) {
-        excludedConfigTypes = Collections.emptySet();
-      }
-
       for (String serviceConfigType : stack.getConfigurationTypes(service)) {
-        // skip config types that are considered excluded,
-        // which means that they typically belong to another service
-        if (!excludedConfigTypes.contains(serviceConfigType)) {
-          // skip handling of cluster-env here
-          if (!serviceConfigType.equals("cluster-env")) {
-            if (mapClusterConfigurations.containsKey(serviceConfigType)) {
-              blueprintConfigRequest.addConfigElement(serviceConfigType,
-                mapClusterConfigurations.get(serviceConfigType),
-                mapClusterAttributes.get(serviceConfigType));
-            }
+        // skip handling of cluster-env here
+        if (!serviceConfigType.equals("cluster-env")) {
+          if (mapClusterConfigurations.containsKey(serviceConfigType)) {
+            blueprintConfigRequest.addConfigElement(serviceConfigType,
+              mapClusterConfigurations.get(serviceConfigType),
+              mapClusterAttributes.get(serviceConfigType));
           }
         }
       }

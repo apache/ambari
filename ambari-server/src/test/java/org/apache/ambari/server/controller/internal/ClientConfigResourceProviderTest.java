@@ -256,9 +256,9 @@ public class ClientConfigResourceProviderTest {
     expect(stackId.getStackVersion()).andReturn(stackVersion).anyTimes();
 
     expect(ambariMetaInfo.getComponent(stackName, stackVersion, serviceName, componentName)).andReturn(componentInfo);
-    expect(ambariMetaInfo.getServiceInfo(stackName, stackVersion, serviceName)).andReturn(serviceInfo);
+    expect(ambariMetaInfo.getService(stackName, stackVersion, serviceName)).andReturn(serviceInfo);
     expect(serviceInfo.getServicePackageFolder()).andReturn(packageFolder);
-    expect(ambariMetaInfo.getComponentCategory((String) anyObject(), (String) anyObject(),
+    expect(ambariMetaInfo.getComponent((String) anyObject(), (String) anyObject(),
             (String) anyObject(), (String) anyObject())).andReturn(componentInfo).anyTimes();
     expect(componentInfo.getCommandScript()).andReturn(commandScriptDefinition);
     expect(componentInfo.getClientConfigFiles()).andReturn(clientConfigFileDefinitionList);
@@ -271,7 +271,7 @@ public class ClientConfigResourceProviderTest {
     HashMap<String, String> rcaParams = new HashMap<String, String>();
     rcaParams.put("key","value");
     expect(managementController.getRcaParameters()).andReturn(rcaParams).anyTimes();
-    expect(ambariMetaInfo.getServiceInfo(stackName, stackVersion, serviceName)).andReturn(serviceInfo);
+    expect(ambariMetaInfo.getService(stackName, stackVersion, serviceName)).andReturn(serviceInfo);
     expect(serviceInfo.getOsSpecifics()).andReturn(new HashMap<String, ServiceOsSpecific>()).anyTimes();
     Set<String> userSet = new HashSet<String>();
     userSet.add("hdfs");

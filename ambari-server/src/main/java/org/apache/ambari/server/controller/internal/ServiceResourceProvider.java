@@ -848,7 +848,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
               + ", newDesiredState=" + newState;
           StackId sid = cluster.getDesiredStackVersion();
 
-          if ( ambariMetaInfo.getComponentCategory(
+          if ( ambariMetaInfo.getComponent(
               sid.getStackName(), sid.getStackVersion(), sc.getServiceName(),
               sch.getServiceComponentName()).isMaster()) {
             throw new AmbariException(error);
@@ -990,16 +990,16 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
             boolean hasMM        = false;
 
             for (ServiceComponentHostResponse hostComponentResponse : hostComponentResponses ) {
-              ComponentInfo componentInfo = ambariMetaInfo.getComponentCategory(stackId.getStackName(),
-                  stackId.getStackVersion(), hostComponentResponse.getServiceName(),
-                  hostComponentResponse.getComponentName());
+              try {
+                ComponentInfo componentInfo = ambariMetaInfo.getComponent(stackId.getStackName(),
+                    stackId.getStackVersion(), hostComponentResponse.getServiceName(),
+                    hostComponentResponse.getComponentName());
 
-              if (componentInfo != null) {
                 State state = getHostComponentState(hostComponentResponse);
                 // Components in MM should not affect service status,
                 // so we tend to ignore them
                 boolean isInMaintenance = ! MaintenanceState.OFF.toString().
-                        equals(hostComponentResponse.getMaintenanceState());
+                    equals(hostComponentResponse.getMaintenanceState());
 
                 if (state.equals(State.DISABLED)) {
                   hasDisabled = true;
@@ -1040,6 +1040,8 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
                     otherState = state;
                   }
                 }
+              } catch (ObjectNotFoundException e) {
+                // component doesn't exist, nothing to do
               }
             }
 
@@ -1086,13 +1088,12 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
             State   nonStartedState     = null;
 
             for (ServiceComponentHostResponse hostComponentResponse : hostComponentResponses ) {
-              ComponentInfo componentInfo = ambariMetaInfo.getComponentCategory(stackId.getStackName(),
-                  stackId.getStackVersion(), hostComponentResponse.getServiceName(),
-                  hostComponentResponse.getComponentName());
+              try {
+                ComponentInfo componentInfo = ambariMetaInfo.getComponent(stackId.getStackName(),
+                    stackId.getStackVersion(), hostComponentResponse.getServiceName(),
+                    hostComponentResponse.getComponentName());
 
-              if (componentInfo != null) {
                 if (componentInfo.isMaster()) {
-
                   String componentName = hostComponentResponse.getComponentName();
                   boolean isNameNode = false;
 
@@ -1118,6 +1119,8 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
                       nonStartedState = state;
                   }
                 }
+              } catch (ObjectNotFoundException e) {
+                // component doesn't exist, nothing to do
               }
             }
 
@@ -1162,13 +1165,12 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
             State   nonStartedState        = null;
 
             for (ServiceComponentHostResponse hostComponentResponse : hostComponentResponses ) {
-              ComponentInfo componentInfo = ambariMetaInfo.getComponentCategory(stackId.getStackName(),
-                  stackId.getStackVersion(), hostComponentResponse.getServiceName(),
-                  hostComponentResponse.getComponentName());
+              try {
+                ComponentInfo componentInfo = ambariMetaInfo.getComponent(stackId.getStackName(),
+                    stackId.getStackVersion(), hostComponentResponse.getServiceName(),
+                    hostComponentResponse.getComponentName());
 
-              if (componentInfo != null) {
                 if (componentInfo.isMaster()) {
-
                   State state = getHostComponentState(hostComponentResponse);
 
                   switch (state) {
@@ -1183,6 +1185,8 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
                       nonStartedState = state;
                   }
                 }
+              } catch (ObjectNotFoundException e) {
+                // component doesn't exist, nothing to do
               }
             }
 

@@ -21,8 +21,22 @@ package org.apache.ambari.server;
 @SuppressWarnings("serial")
 public class ObjectNotFoundException extends AmbariException {
 
-  public ObjectNotFoundException(String message) {
-    super(message);
+  /**
+   * Constructor.
+   *
+   * @param msg    message
+   * @param cause  the root cause
+   */
+  public ObjectNotFoundException(String msg, ObjectNotFoundException cause) {
+    super(msg + ".  " + cause.getMessage(), cause);
   }
 
+  /**
+   * Constructor.
+   *
+   * @param msg  message
+   */
+  public ObjectNotFoundException(String msg) {
+    super(msg);
+  }
 }

@@ -20,8 +20,14 @@
   <services>
     <service>
       <name>PIG</name>
-      <comment>Scripting platform for analyzing large datasets</comment>
+      <comment>Scripting platform for analyzing large datasets (Extended)</comment>
       <version>0.12.1.2.1.1</version>
+        <components>
+          <component>
+            <name>NewComponent</name>
+            <category>SLAVE</category>
+          </component>
+        </components>
     </service>
   </services>
 </metainfo>

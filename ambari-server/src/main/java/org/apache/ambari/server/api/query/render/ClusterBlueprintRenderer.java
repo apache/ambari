@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.api.query.render;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.query.QueryInfo;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.api.services.Request;
@@ -39,7 +40,7 @@ import org.apache.ambari.server.state.HostConfig;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
+import org.apache.ambari.server.state.ServiceInfo;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -175,9 +176,20 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
    */
   private void determinePropertiesToStrip(TreeNode<Resource> servicesNode, String stackName, String stackVersion) {
     AmbariMetaInfo stackInfo = getController().getAmbariMetaInfo();
-    for (TreeNode<Resource> service : servicesNode.getChildren()) {
-      String name = (String) service.getObject().getPropertyValue("ServiceInfo/service_name");
-      Map<String, PropertyInfo> requiredProperties = stackInfo.getRequiredProperties(stackName, stackVersion, name);
+    for (TreeNode<Resource> serviceNode : servicesNode.getChildren()) {
+      String name = (String) serviceNode.getObject().getPropertyValue("ServiceInfo/service_name");
+      ServiceInfo service;
+      try {
+        service = stackInfo.getService(stackName, stackVersion, name);
+      } catch (AmbariException e) {
+        // shouldn't ever happen.
+        // Exception indicates that service is not in the stack
+        // but we are getting the name from a running cluster.
+        throw new RuntimeException("Unexpected exception occurred while generating a blueprint.  The service '" +
+            name + "' was not found in the stack: '" + stackName + ":" + stackVersion);
+      }
+
+      Map<String, PropertyInfo> requiredProperties = service.getRequiredProperties();
       for (Map.Entry<String, PropertyInfo> entry : requiredProperties.entrySet()) {
         String propertyName = entry.getKey();
         PropertyInfo propertyInfo = entry.getValue();

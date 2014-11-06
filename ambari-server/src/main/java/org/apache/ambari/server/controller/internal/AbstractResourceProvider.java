@@ -300,11 +300,11 @@ public abstract class AbstractResourceProvider extends BaseProvider implements R
       throws SystemException, NoSuchResourceException, NoSuchParentResourceException {
     try {
       return command.invoke();
-    } catch (ObjectNotFoundException e) {
-      throw new NoSuchResourceException("The requested resource doesn't exist: " + e.getMessage(), e);
     } catch (ParentObjectNotFoundException e) {
       throw new NoSuchParentResourceException(e.getMessage(), e);
-    } catch (AmbariException e) {
+    } catch (ObjectNotFoundException e) {
+      throw new NoSuchResourceException("The requested resource doesn't exist: " + e.getMessage(), e);
+    }  catch (AmbariException e) {
       if (LOG.isErrorEnabled()) {
         LOG.error("Caught AmbariException when getting a resource", e);
       }
@@ -329,11 +329,11 @@ public abstract class AbstractResourceProvider extends BaseProvider implements R
       throws SystemException, NoSuchResourceException, NoSuchParentResourceException {
     try {
       return command.invoke();
-    } catch (ObjectNotFoundException e) {
-      throw new NoSuchResourceException("The specified resource doesn't exist: " + e.getMessage(), e);
     } catch (ParentObjectNotFoundException e) {
       throw new NoSuchParentResourceException(e.getMessage(), e);
-    } catch (AmbariException e) {
+    } catch (ObjectNotFoundException e) {
+      throw new NoSuchResourceException("The specified resource doesn't exist: " + e.getMessage(), e);
+    }  catch (AmbariException e) {
       if (LOG.isErrorEnabled()) {
         LOG.error("Caught AmbariException when modifying a resource", e);
       }

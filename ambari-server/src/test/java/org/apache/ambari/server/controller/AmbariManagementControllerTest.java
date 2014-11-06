@@ -156,7 +156,7 @@ public class AmbariManagementControllerTest {
   private static final String NAGIOS_SERVICE_NAME = "NAGIOS";
   private static final int STACK_VERSIONS_CNT = 12;
   private static final int REPOS_CNT = 3;
-  private static final int STACKS_CNT = 2;
+  private static final int STACKS_CNT = 3;
   private static final int STACK_PROPERTIES_CNT = 103;
   private static final int STACK_COMPONENTS_CNT = 4;
   private static final int OS_CNT = 2;
@@ -1718,12 +1718,6 @@ public class AmbariManagementControllerTest {
         for (ExecutionCommandWrapper ecw : stage.getExecutionCommands(host)) {
           Assert.assertFalse(
               ecw.getExecutionCommand().getHostLevelParams().get("repo_info").isEmpty());
-
-          LOG.info("Dumping host action details"
-              + ", stageId=" + stage.getStageId()
-              + ", actionId=" + stage.getActionId()
-              + ", commandDetails="
-              + StageUtils.jaxbToString(ecw.getExecutionCommand()));
         }
       }
     }
@@ -1786,20 +1780,6 @@ public class AmbariManagementControllerTest {
     stages = actionDB.getAllStages(trackAction.getRequestId());
     Assert.assertEquals(2, stages.size());
 
-    for (Stage stage : stages) {
-      LOG.info("Stage Details for Start Service"
-          + ", stageId="+ stage.getStageId()
-          + ", actionId=" + stage.getActionId());
-
-      for (String host : stage.getHosts()) {
-        LOG.info("Dumping host action details"
-            + ", stageId=" + stage.getStageId()
-            + ", actionId=" + stage.getActionId()
-            + ", commandDetails="
-            + StageUtils.jaxbToString(stage.getExecutionCommands(host).get(0)));
-      }
-    }
-
     StringBuilder sb = new StringBuilder();
     clusters.debugDump(sb);
     LOG.info("Cluster Dump: " + sb.toString());
@@ -1837,9 +1817,6 @@ public class AmbariManagementControllerTest {
     // TODO validate stages?
     stages = actionDB.getAllStages(trackAction.getRequestId());
 
-    for (Stage stage : stages) {
-      LOG.info("Stage Details for Stop Service : " + stage.toString());
-    }
     Assert.assertEquals(1, stages.size());
 
   }
@@ -7071,7 +7048,7 @@ public class AmbariManagementControllerTest {
   @Test
   public void testGetStackVersionActiveAttr() throws Exception {
 
-    for (StackInfo stackInfo: ambariMetaInfo.getStackInfos(STACK_NAME)) {
+    for (StackInfo stackInfo: ambariMetaInfo.getStacks(STACK_NAME)) {
       if (stackInfo.getVersion().equalsIgnoreCase(STACK_VERSION)) {
         stackInfo.setActive(true);
       }
@@ -8172,7 +8149,7 @@ public class AmbariManagementControllerTest {
   @Test
   public void testUpdateStacks() throws Exception {
 
-    StackInfo stackInfo = ambariMetaInfo.getStackInfo(STACK_NAME, STACK_VERSION);
+    StackInfo stackInfo = ambariMetaInfo.getStack(STACK_NAME, STACK_VERSION);
 
     for (RepositoryInfo repositoryInfo: stackInfo.getRepositories()) {
       assertFalse(INCORRECT_BASE_URL.equals(repositoryInfo.getBaseUrl()));
@@ -8182,7 +8159,7 @@ public class AmbariManagementControllerTest {
 
     controller.updateStacks();
 
-    stackInfo = ambariMetaInfo.getStackInfo(STACK_NAME, STACK_VERSION);
+    stackInfo = ambariMetaInfo.getStack(STACK_NAME, STACK_VERSION);
 
     for (RepositoryInfo repositoryInfo: stackInfo.getRepositories()) {
       assertFalse(INCORRECT_BASE_URL.equals(repositoryInfo.getBaseUrl()));

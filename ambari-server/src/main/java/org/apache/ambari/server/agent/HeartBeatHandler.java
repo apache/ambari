@@ -786,7 +786,7 @@ public class HeartBeatHandler {
       throw new AmbariException("Cannot provide stack components map. " +
         "Stack hasn't been selected yet.");
     }
-    StackInfo stack = ambariMetaInfo.getStackInfo(stackId.getStackName(),
+    StackInfo stack = ambariMetaInfo.getStack(stackId.getStackName(),
         stackId.getStackVersion());
 
     response.setClusterName(clusterName);

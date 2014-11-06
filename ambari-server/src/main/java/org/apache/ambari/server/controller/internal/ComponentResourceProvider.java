@@ -32,6 +32,7 @@ import org.apache.ambari.server.DuplicateResourceException;
 import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.ParentObjectNotFoundException;
 import org.apache.ambari.server.ServiceNotFoundException;
+import org.apache.ambari.server.StackAccessException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
@@ -427,8 +428,8 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
   // Get the components for the given requests.
   protected Set<ServiceComponentResponse> getComponents(
       Set<ServiceComponentRequest> requests) throws AmbariException {
-    Set<ServiceComponentResponse> response =
-        new HashSet<ServiceComponentResponse>();
+
+    Set<ServiceComponentResponse> response = new HashSet<ServiceComponentResponse>();
     for (ServiceComponentRequest request : requests) {
       try {
         response.addAll(getComponents(request));
@@ -438,12 +439,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
           // there will be > 1 request in case of OR predicate
           throw e;
         }
-      } catch (ParentObjectNotFoundException ee) {
-        if (requests.size() == 1) {
-          throw ee;
-        }
       }
-      
     }
     return response;
   }
@@ -503,13 +499,15 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
       ServiceComponent sc = s.getServiceComponent(request.getComponentName());
       ServiceComponentResponse serviceComponentResponse = sc.convertToResponse();
 
-      ComponentInfo componentInfo = ambariMetaInfo.getComponentCategory(stackId.getStackName(),
-          stackId.getStackVersion(), s.getName(), request.getComponentName());
-      if (componentInfo != null) {
+      try {
+        ComponentInfo componentInfo = ambariMetaInfo.getComponent(stackId.getStackName(),
+            stackId.getStackVersion(), s.getName(), request.getComponentName());
         category = componentInfo.getCategory();
         if (category != null) {
           serviceComponentResponse.setCategory(category);
         }
+      } catch (ObjectNotFoundException e) {
+        // nothing to do, component doesn't exist
       }
 
       response.add(serviceComponentResponse);
@@ -549,17 +547,18 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
           continue;
         }
 
-        ComponentInfo componentInfo = ambariMetaInfo.getComponentCategory(stackId.getStackName(),
-            stackId.getStackVersion(), s.getName(), sc.getName());
         ServiceComponentResponse serviceComponentResponse = sc.convertToResponse();
-
-        String requestedCategory = request.getComponentCategory();
-        if (componentInfo != null) {
+        try {
+          ComponentInfo componentInfo = ambariMetaInfo.getComponent(stackId.getStackName(),
+              stackId.getStackVersion(), s.getName(), sc.getName());
           category = componentInfo.getCategory();
           if (category != null) {
             serviceComponentResponse.setCategory(category);
           }
+        } catch (ObjectNotFoundException e) {
+          // component doesn't exist, nothing to do
         }
+        String requestedCategory = request.getComponentCategory();
         if (requestedCategory != null && !requestedCategory.isEmpty() &&
             category != null && !requestedCategory.equalsIgnoreCase(category)) {
           continue;

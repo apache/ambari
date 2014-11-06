@@ -228,13 +228,13 @@ public class HeartbeatMonitor implements Runnable {
     String componentName = sch.getServiceComponentName();
     Service service = cluster.getService(sch.getServiceName());
     StackId stackId = cluster.getDesiredStackVersion();
-    ServiceInfo serviceInfo = ambariMetaInfo.getServiceInfo(stackId.getStackName(),
-            stackId.getStackVersion(), serviceName);
+    ServiceInfo serviceInfo = ambariMetaInfo.getService(stackId.getStackName(),
+        stackId.getStackVersion(), serviceName);
     ComponentInfo componentInfo = ambariMetaInfo.getComponent(
             stackId.getStackName(), stackId.getStackVersion(),
             serviceName, componentName);
-    StackInfo stackInfo = ambariMetaInfo.getStackInfo(stackId.getStackName(),
-            stackId.getStackVersion());
+    StackInfo stackInfo = ambariMetaInfo.getStack(stackId.getStackName(),
+        stackId.getStackVersion());
 
     Map<String, Map<String, String>> configurations = new TreeMap<String, Map<String, String>>();
     Map<String, Map<String,  Map<String, String>>> configurationAttributes = new TreeMap<String, Map<String, Map<String, String>>>();

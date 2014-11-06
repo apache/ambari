@@ -30,7 +30,7 @@ import org.apache.ambari.server.api.util.TreeNodeImpl;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.internal.ResourceImpl;
 import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.state.PropertyInfo;
+import org.apache.ambari.server.state.ServiceInfo;
 import org.junit.Test;
 
 import java.net.InetAddress;
@@ -103,9 +103,13 @@ public class ClusterBlueprintRendererTest {
 
     AmbariManagementController controller = createMock(AmbariManagementController.class);
     AmbariMetaInfo stackInfo = createNiceMock(AmbariMetaInfo.class);
+    ServiceInfo hdfsService = new ServiceInfo();
+    hdfsService.setName("HDFS");
+    ServiceInfo mrService = new ServiceInfo();
+    mrService.setName("MAPREDUCE");
 
-    expect(stackInfo.getRequiredProperties("HDP", "1.3.3", "HDFS")).andReturn(Collections.<String, PropertyInfo>emptyMap());
-    expect(stackInfo.getRequiredProperties("HDP", "1.3.3", "MAPREDUCE")).andReturn(Collections.<String, PropertyInfo>emptyMap());
+    expect(stackInfo.getService("HDP", "1.3.3", "HDFS")).andReturn(hdfsService);
+    expect(stackInfo.getService("HDP", "1.3.3", "MAPREDUCE")).andReturn(mrService);
 
     Result result = new ResultImpl(true);
     createClusterResultTree(result.getResultTree());

@@ -25,6 +25,7 @@ import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.ServiceComponentHostNotFoundException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.ServiceComponentResponse;
@@ -88,10 +89,12 @@ public class ServiceComponentImpl implements ServiceComponent {
     this.hostComponents = new HashMap<String, ServiceComponentHost>();
 
     StackId stackId = service.getDesiredStackVersion();
-    ComponentInfo compInfo = ambariMetaInfo.getComponentCategory(
-        stackId.getStackName(), stackId.getStackVersion(), service.getName(),
-        componentName);
-    if (compInfo == null) {
+    try {
+      ComponentInfo compInfo = ambariMetaInfo.getComponent(stackId.getStackName(),
+          stackId.getStackVersion(), service.getName(), componentName);
+      this.isClientComponent = compInfo.isClient();
+      this.isMasterComponent = compInfo.isMaster();
+    } catch (ObjectNotFoundException e) {
       throw new RuntimeException("Trying to create a ServiceComponent"
           + " not recognized in stack info"
           + ", clusterName=" + service.getCluster().getClusterName()
@@ -99,9 +102,6 @@ public class ServiceComponentImpl implements ServiceComponent {
           + ", componentName=" + componentName
           + ", stackInfo=" + stackId.getStackId());
     }
-    this.isClientComponent = compInfo.isClient();
-    this.isMasterComponent = compInfo.isMaster();
-
     init();
   }
 
@@ -130,10 +130,13 @@ public class ServiceComponentImpl implements ServiceComponent {
     }
 
     StackId stackId = service.getDesiredStackVersion();
-    ComponentInfo compInfo = ambariMetaInfo.getComponentCategory(
-        stackId.getStackName(), stackId.getStackVersion(), service.getName(),
-        getName());
-    if (compInfo == null) {
+    try {
+      ComponentInfo compInfo = ambariMetaInfo.getComponent(
+          stackId.getStackName(), stackId.getStackVersion(), service.getName(),
+          getName());
+      this.isClientComponent = compInfo.isClient();
+      this.isMasterComponent = compInfo.isMaster();
+    } catch (ObjectNotFoundException e) {
       throw new AmbariException("Trying to create a ServiceComponent"
           + " not recognized in stack info"
           + ", clusterName=" + service.getCluster().getClusterName()
@@ -141,8 +144,6 @@ public class ServiceComponentImpl implements ServiceComponent {
           + ", componentName=" + getName()
           + ", stackInfo=" + stackId.getStackId());
     }
-    this.isClientComponent = compInfo.isClient();
-    this.isMasterComponent = compInfo.isMaster();
 
     persisted = true;
   }

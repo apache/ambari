@@ -96,7 +96,6 @@ public class ClusterResourceProviderTest {
     BaseBlueprintProcessor.stackInfo = null;
   }
 
-
   @Test
   public void testCreateResources() throws Exception{
     Resource.Type type = Resource.Type.Cluster;
@@ -2961,7 +2960,6 @@ public class ClusterResourceProviderTest {
 
 
     expect(mockStackServiceResponseOne.getServiceName()).andReturn("OOZIE").atLeastOnce();
-    expect(mockStackServiceResponseOne.getExcludedConfigTypes()).andReturn(Collections.<String>emptySet()).atLeastOnce();
     expect(mockManagementController.getStackServices(isA(Set.class))).andReturn(Collections.singleton(mockStackServiceResponseOne));
     expect(mockManagementController.getStackComponents(isA(Set.class))).andReturn(Collections.singleton(mockStackComponentResponse));
     expect(mockManagementController.getStackConfigurations(isA(Set.class))).andReturn(Collections.<StackConfigurationResponse>emptySet());
@@ -3045,7 +3043,6 @@ public class ClusterResourceProviderTest {
 
 
     expect(mockStackServiceResponseOne.getServiceName()).andReturn("FALCON").atLeastOnce();
-    expect(mockStackServiceResponseOne.getExcludedConfigTypes()).andReturn(Collections.<String>emptySet()).atLeastOnce();
     expect(mockManagementController.getStackServices(isA(Set.class))).andReturn(Collections.singleton(mockStackServiceResponseOne));
     expect(mockManagementController.getStackComponents(isA(Set.class))).andReturn(Collections.singleton(mockStackComponentResponse));
     expect(mockManagementController.getStackConfigurations(isA(Set.class))).andReturn(Collections.<StackConfigurationResponse>emptySet());
@@ -3127,7 +3124,6 @@ public class ClusterResourceProviderTest {
 
 
     expect(mockStackServiceResponseOne.getServiceName()).andReturn("OOZIE").atLeastOnce();
-    expect(mockStackServiceResponseOne.getExcludedConfigTypes()).andReturn(Collections.<String>emptySet()).atLeastOnce();
     expect(mockManagementController.getStackServices(isA(Set.class))).andReturn(Collections.singleton(mockStackServiceResponseOne));
     expect(mockManagementController.getStackComponents(isA(Set.class))).andReturn(Collections.singleton(mockStackComponentResponse));
     expect(mockManagementController.getStackConfigurations(isA(Set.class))).andReturn(Collections.<StackConfigurationResponse>emptySet());
@@ -3203,9 +3199,7 @@ public class ClusterResourceProviderTest {
     expect(mockStackComponentResponse.getCardinality()).andReturn("1");
     expect(mockStackComponentResponse.getAutoDeploy()).andReturn(new AutoDeployInfo());
 
-
     expect(mockStackServiceResponseOne.getServiceName()).andReturn("FALCON").atLeastOnce();
-    expect(mockStackServiceResponseOne.getExcludedConfigTypes()).andReturn(Collections.<String>emptySet()).atLeastOnce();
 
     expect(mockManagementController.getStackServices(isA(Set.class))).andReturn(Collections.singleton(mockStackServiceResponseOne));
     expect(mockManagementController.getStackComponents(isA(Set.class))).andReturn(Collections.singleton(mockStackComponentResponse));
@@ -3283,7 +3277,6 @@ public class ClusterResourceProviderTest {
     expect(mockStackComponentResponse.getAutoDeploy()).andReturn(new AutoDeployInfo());
 
     expect(mockStackServiceResponseOne.getServiceName()).andReturn("HIVE").atLeastOnce();
-    expect(mockStackServiceResponseOne.getExcludedConfigTypes()).andReturn(Collections.<String>emptySet()).atLeastOnce();
     expect(mockManagementController.getStackServices(isA(Set.class))).andReturn(Collections.singleton(mockStackServiceResponseOne));
     expect(mockManagementController.getStackComponents(isA(Set.class))).andReturn(Collections.singleton(mockStackComponentResponse));
     expect(mockManagementController.getStackConfigurations(isA(Set.class))).andReturn(Collections.<StackConfigurationResponse>emptySet());
@@ -3360,7 +3353,6 @@ public class ClusterResourceProviderTest {
     expect(mockStackComponentResponse.getAutoDeploy()).andReturn(new AutoDeployInfo());
 
     expect(mockStackServiceResponseOne.getServiceName()).andReturn("HBASE").atLeastOnce();
-    expect(mockStackServiceResponseOne.getExcludedConfigTypes()).andReturn(Collections.<String>emptySet()).atLeastOnce();
 
     expect(mockManagementController.getStackServices(isA(Set.class))).andReturn(Collections.singleton(mockStackServiceResponseOne));
     expect(mockManagementController.getStackComponents(isA(Set.class))).andReturn(Collections.singleton(mockStackComponentResponse));

@@ -30,6 +30,7 @@ import java.util.Set;
 import java.util.TreeMap;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.StackAccessException;
@@ -242,8 +243,12 @@ public class AmbariActionExecutionHelper {
             cluster.getService(serviceName)
               .getServiceComponent(componentName).getServiceComponentHosts();
           candidateHosts.addAll(componentHosts.keySet());
-          componentInfo = ambariMetaInfo.getComponentCategory(stackId.getStackName(),
-            stackId.getStackVersion(), serviceName, componentName);
+          try {
+            componentInfo = ambariMetaInfo.getComponent(stackId.getStackName(),
+                stackId.getStackVersion(), serviceName, componentName);
+          } catch (ObjectNotFoundException e) {
+            // do nothing, componentId is checked for null later
+          }
         } else {
           for (String component : cluster.getService(serviceName).getServiceComponents().keySet()) {
             Map<String, ServiceComponentHost> componentHosts =

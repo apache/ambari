@@ -156,8 +156,7 @@ public class BlueprintResourceProviderTest {
         andReturn("test-service").anyTimes();
     expect(metaInfo.getComponentToService("test-stack-name", "test-stack-version", "component2")).
         andReturn("test-service").anyTimes();
-    expect(metaInfo.getRequiredProperties("test-stack-name", "test-stack-version", "test-service")).andReturn(
-        Collections.<String, org.apache.ambari.server.state.PropertyInfo>emptyMap()).anyTimes();
+    expect(metaInfo.getService("test-stack-name", "test-stack-version", "test-service")).andReturn(service).anyTimes();
     dao.create(capture(entityCapture));
 
     replay(dao, metaInfo, request, managementController);
@@ -222,8 +221,7 @@ public class BlueprintResourceProviderTest {
         andReturn("test-service").anyTimes();
     expect(metaInfo.getComponentToService("test-stack-name", "test-stack-version", "component2")).
         andReturn("test-service").anyTimes();
-    expect(metaInfo.getRequiredProperties("test-stack-name", "test-stack-version", "test-service")).andReturn(
-        Collections.<String, org.apache.ambari.server.state.PropertyInfo>emptyMap()).anyTimes();
+    expect(metaInfo.getService("test-stack-name", "test-stack-version", "test-service")).andReturn(service).anyTimes();
     dao.create(capture(entityCapture));
 
     replay(dao, metaInfo, request, managementController);
@@ -290,8 +288,7 @@ public class BlueprintResourceProviderTest {
         andReturn("test-service").anyTimes();
     expect(metaInfo.getComponentToService("test-stack-name", "test-stack-version", "component2")).
         andReturn("test-service").anyTimes();
-    expect(metaInfo.getRequiredProperties("test-stack-name", "test-stack-version", "test-service")).andReturn(
-        Collections.<String, org.apache.ambari.server.state.PropertyInfo>emptyMap()).anyTimes();
+    expect(metaInfo.getService("test-stack-name", "test-stack-version", "test-service")).andReturn(service).anyTimes();
     dao.create(capture(entityCapture));
 
     replay(dao, metaInfo, request, managementController);
@@ -381,7 +378,7 @@ public class BlueprintResourceProviderTest {
         BlueprintResourceProvider.BLUEPRINT_NAME_PROPERTY_ID, BLUEPRINT_NAME);
 
     AbstractResourceProviderTest.TestObserver observer = new AbstractResourceProviderTest.TestObserver();
-    ((ObservableResourceProvider)provider).addObserver(observer);
+    provider.addObserver(observer);
 
     provider.deleteResources(predicate);
 
@@ -639,7 +636,6 @@ public class BlueprintResourceProviderTest {
     expect(stackServiceResponse.getServiceName()).andReturn("test-service").anyTimes();
     expect(stackServiceResponse.getStackName()).andReturn("test-stack-name").anyTimes();
     expect(stackServiceResponse.getStackVersion()).andReturn("test-stack-version").anyTimes();
-    expect(stackServiceResponse.getExcludedConfigTypes()).andReturn(Collections.<String>emptySet());
 
     expect(managementController.getStackComponents(capture(serviceComponentRequestCapture))).andReturn(setServiceComponents).anyTimes();
     expect(stackServiceComponentResponse.getCardinality()).andReturn("2").anyTimes();
@@ -673,8 +669,7 @@ public class BlueprintResourceProviderTest {
         andReturn("test-service").anyTimes();
     expect(metaInfo.getComponentToService("test-stack-name", "test-stack-version", "component2")).
         andReturn("test-service").anyTimes();
-    expect(metaInfo.getRequiredProperties("test-stack-name", "test-stack-version", "test-service")).andReturn(
-        Collections.<String, org.apache.ambari.server.state.PropertyInfo>emptyMap()).anyTimes();
+    expect(metaInfo.getService("test-stack-name", "test-stack-version", "test-service")).andReturn(service).anyTimes();
     dao.create(capture(entityCapture));
 
     replay(dao, metaInfo, request, managementController, stackServiceResponse,
@@ -751,7 +746,6 @@ public class BlueprintResourceProviderTest {
     expect(stackServiceResponse.getServiceName()).andReturn("test-service").anyTimes();
     expect(stackServiceResponse.getStackName()).andReturn("test-stack-name").anyTimes();
     expect(stackServiceResponse.getStackVersion()).andReturn("test-stack-version").anyTimes();
-    expect(stackServiceResponse.getExcludedConfigTypes()).andReturn(Collections.<String>emptySet());
 
     expect(managementController.getStackComponents(capture(serviceComponentRequestCapture))).andReturn(setServiceComponents).anyTimes();
     expect(stackServiceComponentResponse.getCardinality()).andReturn("2").anyTimes();
@@ -785,8 +779,7 @@ public class BlueprintResourceProviderTest {
         andReturn("test-service").anyTimes();
     expect(metaInfo.getComponentToService("test-stack-name", "test-stack-version", "component2")).
         andReturn("test-service").anyTimes();
-    expect(metaInfo.getRequiredProperties("test-stack-name", "test-stack-version", "test-service")).andReturn(
-        Collections.<String, org.apache.ambari.server.state.PropertyInfo>emptyMap()).anyTimes();
+    expect(metaInfo.getService("test-stack-name", "test-stack-version", "test-service")).andReturn(service).anyTimes();
     dao.create(capture(entityCapture));
 
     replay(dao, metaInfo, request, managementController, stackServiceResponse,
@@ -870,8 +863,7 @@ public class BlueprintResourceProviderTest {
         Collections.<StackServiceResponse>singleton(stackServiceResponse));
     expect(stackServiceResponse.getServiceName()).andReturn("test-service").anyTimes();
     expect(stackServiceResponse.getStackName()).andReturn("test-stack-name").anyTimes();
-    expect(stackServiceResponse.getStackVersion()).andReturn("test-stack-version").anyTimes();
-    expect(stackServiceResponse.getExcludedConfigTypes()).andReturn(Collections.<String>emptySet());
+    expect(stackServiceResponse.getStackVersion()).andReturn("test-stack-version").anyTimes();;
 
     expect(managementController.getStackComponents(capture(serviceComponentRequestCapture))).andReturn(setServiceComponents).anyTimes();
     expect(stackServiceComponentResponse.getCardinality()).andReturn("2").anyTimes();
@@ -905,8 +897,7 @@ public class BlueprintResourceProviderTest {
         andReturn("test-service").anyTimes();
     expect(metaInfo.getComponentToService("test-stack-name", "test-stack-version", "component2")).
         andReturn("test-service").anyTimes();
-    expect(metaInfo.getRequiredProperties("test-stack-name", "test-stack-version", "test-service")).andReturn(
-        Collections.<String, org.apache.ambari.server.state.PropertyInfo>emptyMap()).anyTimes();
+    expect(metaInfo.getService("test-stack-name", "test-stack-version", "test-service")).andReturn(service).anyTimes();
     dao.create(capture(entityCapture));
 
     replay(dao, metaInfo, request, managementController, stackServiceResponse,
@@ -980,7 +971,6 @@ public class BlueprintResourceProviderTest {
     expect(stackServiceResponse.getServiceName()).andReturn("test-service").anyTimes();
     expect(stackServiceResponse.getStackName()).andReturn("test-stack-name").anyTimes();
     expect(stackServiceResponse.getStackVersion()).andReturn("test-stack-version").anyTimes();
-    expect(stackServiceResponse.getExcludedConfigTypes()).andReturn(Collections.<String>emptySet());
 
     expect(managementController.getStackComponents(capture(serviceComponentRequestCapture))).andReturn(setServiceComponents).anyTimes();
     expect(stackServiceComponentResponse.getCardinality()).andReturn("2").anyTimes();
@@ -1014,8 +1004,7 @@ public class BlueprintResourceProviderTest {
         andReturn("test-service").anyTimes();
     expect(metaInfo.getComponentToService("test-stack-name", "test-stack-version", "component2")).
         andReturn("test-service").anyTimes();
-    expect(metaInfo.getRequiredProperties("test-stack-name", "test-stack-version", "test-service")).andReturn(
-        Collections.<String, org.apache.ambari.server.state.PropertyInfo>emptyMap()).anyTimes();
+    expect(metaInfo.getService("test-stack-name", "test-stack-version", "test-service")).andReturn(service).anyTimes();
 
     replay(dao, metaInfo, request, managementController, stackServiceResponse,
         stackServiceComponentResponse, stackServiceComponentResponse2);
@@ -1062,6 +1051,7 @@ public class BlueprintResourceProviderTest {
     serviceComponents.add(component1);
     serviceComponents.add(component2);
 
+
     Set<Map<String, Object>> setProperties = getTestProperties();
     ((HashSet<Map<String, String>>) ((HashSet<Map<String, Object>>) setProperties.iterator().next().get(
         BlueprintResourceProvider.HOST_GROUP_PROPERTY_ID)).iterator().next().get("components")).
@@ -1080,8 +1070,7 @@ public class BlueprintResourceProviderTest {
         andReturn(serviceComponents).anyTimes();
     expect(metaInfo.getComponentToService("test-stack-name", "test-stack-version", "component1")).
         andReturn("test-service").anyTimes();
-    expect(metaInfo.getRequiredProperties("test-stack-name", "test-stack-version", "test-service")).andReturn(
-        Collections.<String, org.apache.ambari.server.state.PropertyInfo>emptyMap()).anyTimes();
+    expect(metaInfo.getService("test-stack-name", "test-stack-version", "test-service")).andReturn(service).anyTimes();
 
     dao.create(capture(entityCapture));
 

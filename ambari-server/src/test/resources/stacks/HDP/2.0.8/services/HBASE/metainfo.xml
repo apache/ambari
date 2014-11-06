@@ -74,6 +74,9 @@
           </commandScript>
         </customCommand>
       </customCommands>
+      <excluded-config-types>
+        <config-type>global</config-type>
+    </excluded-config-types>
       <configuration-dependencies>
       </configuration-dependencies>
     </service>

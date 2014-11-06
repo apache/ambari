@@ -326,7 +326,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           + " provided when creating a cluster");
     }
     StackId stackId = new StackId(request.getStackVersion());
-    StackInfo stackInfo = ambariMetaInfo.getStackInfo(stackId.getStackName(),
+    StackInfo stackInfo = ambariMetaInfo.getStack(stackId.getStackName(),
         stackId.getStackVersion());
     if (stackInfo == null) {
       throw new StackAccessException("stackName=" + stackId.getStackName() + ", stackVersion=" + stackId.getStackVersion());
@@ -566,7 +566,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       Cluster cluster = clusters.getCluster(request.getClusterName());
 
       StackId stackId = cluster.getCurrentStackVersion();
-      List<String> monitoringServices = ambariMetaInfo.getMonitoringServiceNames(
+      Collection<String> monitoringServices = ambariMetaInfo.getMonitoringServiceNames(
         stackId.getStackName(), stackId.getStackVersion());
 
       for (String serviceName : monitoringServices) {
@@ -1414,7 +1414,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         ServiceComponent sc = cluster.getService(serviceName).
           getServiceComponent(componentName);
         StackId stackId = sc.getDesiredStackVersion();
-        ComponentInfo compInfo = ambariMetaInfo.getComponentCategory(
+        ComponentInfo compInfo = ambariMetaInfo.getComponent(
           stackId.getStackName(), stackId.getStackVersion(), serviceName,
           componentName);
         if (runSmokeTest && compInfo.isMaster() &&
@@ -1546,13 +1546,13 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     String hostname = scHost.getHostName();
     String osFamily = clusters.getHost(hostname).getOsFamily();
     StackId stackId = cluster.getDesiredStackVersion();
-    ServiceInfo serviceInfo = ambariMetaInfo.getServiceInfo(stackId.getStackName(),
-      stackId.getStackVersion(), serviceName);
+    ServiceInfo serviceInfo = ambariMetaInfo.getService(stackId.getStackName(),
+        stackId.getStackVersion(), serviceName);
     ComponentInfo componentInfo = ambariMetaInfo.getComponent(
       stackId.getStackName(), stackId.getStackVersion(),
       serviceName, componentName);
-    StackInfo stackInfo = ambariMetaInfo.getStackInfo(stackId.getStackName(),
-      stackId.getStackVersion());
+    StackInfo stackInfo = ambariMetaInfo.getStack(stackId.getStackName(),
+        stackId.getStackVersion());
 
     ExecutionCommand execCmd = stage.getExecutionCommandWrapper(scHost.getHostName(),
       scHost.getServiceComponentName()).getExecutionCommand();
@@ -1861,7 +1861,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
                 break;
               case STARTED:
                 StackId stackId = scHost.getDesiredStackVersion();
-                ComponentInfo compInfo = ambariMetaInfo.getComponentCategory(
+                ComponentInfo compInfo = ambariMetaInfo.getComponent(
                     stackId.getStackName(), stackId.getStackVersion(), scHost.getServiceName(),
                     scHost.getServiceComponentName());
 
@@ -2939,7 +2939,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     StackId stackId = service.getDesiredStackVersion();
     ComponentInfo compInfo =
-        ambariMetaInfo.getServiceInfo(stackId.getStackName(),
+        ambariMetaInfo.getService(stackId.getStackName(),
             stackId.getStackVersion(), service.getName()).getClientComponent();
     if (compInfo != null) {
       try {
@@ -3128,13 +3128,14 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     String stackName = request.getStackName();
 
     if (stackName != null) {
-      org.apache.ambari.server.state.Stack stack = ambariMetaInfo.getStack(stackName);
-      response = Collections.singleton(stack.convertToResponse());
+      // this will throw an exception if the stack doesn't exist
+      ambariMetaInfo.getStacks(stackName);
+      response = Collections.singleton(new StackResponse(stackName));
     } else {
-      Set<org.apache.ambari.server.state.Stack> supportedStackNames = ambariMetaInfo.getStackNames();
+      Collection<StackInfo> supportedStacks = ambariMetaInfo.getStacks();
       response = new HashSet<StackResponse>();
-      for (org.apache.ambari.server.state.Stack stack: supportedStackNames) {
-        response.add(stack.convertToResponse());
+      for (StackInfo stack: supportedStacks) {
+        response.add(new StackResponse(stack.getName()));
       }
     }
     return response;
@@ -3145,9 +3146,11 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     try {
       ambariMetaInfo.init();
+    } catch (AmbariException e) {
+      throw e;
     } catch (Exception e) {
       throw new AmbariException(
-        "Ambari metainormation can't be read from the stack root directory");
+          "Ambari Meta Information can't be read from the stack root directory");
     }
 
     return null;
@@ -3312,13 +3315,17 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     String stackVersion = request.getStackVersion();
 
     if (stackVersion != null) {
-      StackInfo stackInfo = ambariMetaInfo.getStackInfo(stackName, stackVersion);
+      StackInfo stackInfo = ambariMetaInfo.getStack(stackName, stackVersion);
       response = Collections.singleton(stackInfo.convertToResponse());
     } else {
-      Set<StackInfo> stackInfos = ambariMetaInfo.getStackInfos(stackName);
-      response = new HashSet<StackVersionResponse>();
-      for (StackInfo stackInfo: stackInfos) {
-        response.add(stackInfo.convertToResponse());
+      try {
+        Collection<StackInfo> stackInfos = ambariMetaInfo.getStacks(stackName);
+        response = new HashSet<StackVersionResponse>();
+        for (StackInfo stackInfo: stackInfos) {
+          response.add(stackInfo.convertToResponse());
+        }
+      } catch (StackAccessException e) {
+        response = Collections.emptySet();
       }
     }
 
@@ -3458,7 +3465,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     if (propertyName != null) {
       properties = ambariMetaInfo.getPropertiesByName(stackName, stackVersion, serviceName, propertyName);
     } else {
-      properties = ambariMetaInfo.getProperties(stackName, stackVersion, serviceName);
+      properties = ambariMetaInfo.getServiceProperties(stackName, stackVersion, serviceName);
     }
     for (PropertyInfo property: properties) {
       response.add(property.convertToResponse());

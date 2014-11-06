@@ -143,4 +143,30 @@ public class DependencyInfo {
            ", auto-deploy=" + m_autoDeploy.isEnabled() +
            "]";
   }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    DependencyInfo that = (DependencyInfo) o;
+
+    if (componentName != null ? !componentName.equals(that.componentName) : that.componentName != null) return false;
+    if (m_autoDeploy != null ? !m_autoDeploy.equals(that.m_autoDeploy) : that.m_autoDeploy != null) return false;
+    if (name != null ? !name.equals(that.name) : that.name != null) return false;
+    if (scope != null ? !scope.equals(that.scope) : that.scope != null) return false;
+    if (serviceName != null ? !serviceName.equals(that.serviceName) : that.serviceName != null) return false;
+
+    return true;
+  }
+
+  @Override
+  public int hashCode() {
+    int result = name != null ? name.hashCode() : 0;
+    result = 31 * result + (scope != null ? scope.hashCode() : 0);
+    result = 31 * result + (serviceName != null ? serviceName.hashCode() : 0);
+    result = 31 * result + (componentName != null ? componentName.hashCode() : 0);
+    result = 31 * result + (m_autoDeploy != null ? m_autoDeploy.hashCode() : 0);
+    return result;
+  }
 }

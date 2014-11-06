@@ -44,7 +44,6 @@ import org.apache.ambari.server.orm.entities.HostGroupConfigEntity;
 import org.apache.ambari.server.orm.entities.HostGroupEntity;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.ServiceInfo;
-import org.apache.ambari.server.state.PropertyInfo;
 
 import java.util.ArrayList;
 import java.util.Arrays;

@@ -72,4 +72,24 @@ public class AutoDeployInfo {
   public String getCoLocate() {
     return m_coLocate;
   }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    AutoDeployInfo that = (AutoDeployInfo) o;
+
+    if (m_enabled != that.m_enabled) return false;
+    if (m_coLocate != null ? !m_coLocate.equals(that.m_coLocate) : that.m_coLocate != null) return false;
+
+    return true;
+  }
+
+  @Override
+  public int hashCode() {
+    int result = (m_enabled ? 1 : 0);
+    result = 31 * result + (m_coLocate != null ? m_coLocate.hashCode() : 0);
+    return result;
+  }
 }

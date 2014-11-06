@@ -268,11 +268,11 @@ public class ClusterImpl implements Cluster {
       String serviceName = entry.getKey();
       ServiceInfo serviceInfo = entry.getValue();
       //collect config types for service
-      Set<PropertyInfo> properties = ambariMetaInfo.getProperties(desiredStackVersion.getStackName(), desiredStackVersion.getStackVersion(), serviceName);
+      Set<PropertyInfo> properties = ambariMetaInfo.getServiceProperties(desiredStackVersion.getStackName(),
+          desiredStackVersion.getStackVersion(), serviceName);
       for (PropertyInfo property : properties) {
         String configType = ConfigHelper.fileNameToConfigType(property.getFilename());
-        if (serviceInfo.getExcludedConfigTypes() == null ||
-          !serviceInfo.getExcludedConfigTypes().contains(configType)) {
+        if (serviceInfo.hasConfigType(configType)) {
           serviceConfigTypes.put(serviceName, configType);
         }
       }
@@ -359,7 +359,7 @@ public class ClusterImpl implements Cluster {
               for (ClusterServiceEntity serviceEntity : clusterEntity.getClusterServiceEntities()) {
                 StackId stackId = getCurrentStackVersion();
                 try {
-                  if (ambariMetaInfo.getServiceInfo(stackId.getStackName(), stackId.getStackVersion(),
+                  if (ambariMetaInfo.getService(stackId.getStackName(), stackId.getStackVersion(),
                           serviceEntity.getServiceName()) != null) {
                     services.put(serviceEntity.getServiceName(), serviceFactory.createExisting(this, serviceEntity));
                   }

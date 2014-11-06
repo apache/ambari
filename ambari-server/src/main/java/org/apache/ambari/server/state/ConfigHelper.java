@@ -417,13 +417,13 @@ public class ConfigHelper {
    * @param propertyName
    */
   public Set<String> findConfigTypesByPropertyName(StackId stackId, String propertyName, String clusterName) throws AmbariException {
-    StackInfo stack = ambariMetaInfo.getStackInfo(stackId.getStackName(),
+    StackInfo stack = ambariMetaInfo.getStack(stackId.getStackName(),
         stackId.getStackVersion());
     
     Set<String> result = new HashSet<String>();
 
     for(Service service : clusters.getCluster(clusterName).getServices().values()) {
-      Set<PropertyInfo> stackProperties = ambariMetaInfo.getProperties(stack.getName(), stack.getVersion(), service.getName());
+      Set<PropertyInfo> stackProperties = ambariMetaInfo.getServiceProperties(stack.getName(), stack.getVersion(), service.getName());
       Set<PropertyInfo> stackLevelProperties = ambariMetaInfo.getStackProperties(stack.getName(), stack.getVersion());
       stackProperties.addAll(stackLevelProperties);
       
@@ -440,18 +440,17 @@ public class ConfigHelper {
   }
   
   public Set<String> getPropertyValuesWithPropertyType(StackId stackId, PropertyType propertyType, Cluster cluster) throws AmbariException {
-    StackInfo stack = ambariMetaInfo.getStackInfo(stackId.getStackName(),
+    StackInfo stack = ambariMetaInfo.getStack(stackId.getStackName(),
         stackId.getStackVersion());
     
     Set<String> result = new HashSet<String>();
 
     for(Service service : cluster.getServices().values()) {
-      Set<PropertyInfo> stackProperties = ambariMetaInfo.getProperties(stack.getName(), stack.getVersion(), service.getName());
-
-      for (PropertyInfo stackProperty : stackProperties) {
-        if(stackProperty.getPropertyTypes().contains(propertyType)) {
-          String stackPropertyConfigType = fileNameToConfigType(stackProperty.getFilename());
-          result.add(cluster.getDesiredConfigByType(stackPropertyConfigType).getProperties().get(stackProperty.getName()));
+      Set<PropertyInfo> serviceProperties = ambariMetaInfo.getServiceProperties(stack.getName(), stack.getVersion(), service.getName());
+      for (PropertyInfo serviceProperty : serviceProperties) {
+        if(serviceProperty.getPropertyTypes().contains(propertyType)) {
+          String stackPropertyConfigType = fileNameToConfigType(serviceProperty.getFilename());
+          result.add(cluster.getDesiredConfigByType(stackPropertyConfigType).getProperties().get(serviceProperty.getName()));
         }
       }
     }
@@ -470,15 +469,15 @@ public class ConfigHelper {
   
   public String getPropertyValueFromStackDefenitions(Cluster cluster, String configType, String propertyName) throws AmbariException {
     StackId stackId = cluster.getCurrentStackVersion();
-    StackInfo stack = ambariMetaInfo.getStackInfo(stackId.getStackName(),
+    StackInfo stack = ambariMetaInfo.getStack(stackId.getStackName(),
         stackId.getStackVersion());
     
-    for(ServiceInfo serviceInfo:stack.getServices()) {     
-      Set<PropertyInfo> stackProperties = ambariMetaInfo.getProperties(stack.getName(), stack.getVersion(), serviceInfo.getName());
-      Set<PropertyInfo> stackLevelProperties = ambariMetaInfo.getStackProperties(stack.getName(), stack.getVersion());
-      stackProperties.addAll(stackLevelProperties);
+    for(ServiceInfo serviceInfo:stack.getServices()) {
+      Set<PropertyInfo> serviceProperties = ambariMetaInfo.getServiceProperties(stack.getName(), stack.getVersion(), serviceInfo.getName());
+      Set<PropertyInfo> stackProperties = ambariMetaInfo.getStackProperties(stack.getName(), stack.getVersion());
+      serviceProperties.addAll(stackProperties);
       
-      for (PropertyInfo stackProperty : stackProperties) {
+      for (PropertyInfo stackProperty : serviceProperties) {
         String stackPropertyConfigType = fileNameToConfigType(stackProperty.getFilename());
         
         if(stackProperty.getName().equals(propertyName) && stackPropertyConfigType.equals(configType)) {
@@ -493,13 +492,12 @@ public class ConfigHelper {
   
   public ServiceInfo getPropertyOwnerService(Cluster cluster, String configType, String propertyName) throws AmbariException {
     StackId stackId = cluster.getCurrentStackVersion();
-    StackInfo stack = ambariMetaInfo.getStackInfo(stackId.getStackName(),
-        stackId.getStackVersion());
+    StackInfo stack = ambariMetaInfo.getStack(stackId.getStackName(), stackId.getStackVersion());
     
     for(ServiceInfo serviceInfo:stack.getServices()) {     
-      Set<PropertyInfo> stackProperties = ambariMetaInfo.getProperties(stack.getName(), stack.getVersion(), serviceInfo.getName());
+      Set<PropertyInfo> serviceProperties = ambariMetaInfo.getServiceProperties(stack.getName(), stack.getVersion(), serviceInfo.getName());
       
-      for (PropertyInfo stackProperty : stackProperties) {
+      for (PropertyInfo stackProperty : serviceProperties) {
         String stackPropertyConfigType = fileNameToConfigType(stackProperty.getFilename());
         
         if(stackProperty.getName().equals(propertyName) && stackPropertyConfigType.equals(configType)) {
@@ -514,16 +512,14 @@ public class ConfigHelper {
   
   public Set<PropertyInfo> getServiceProperties(Cluster cluster, String serviceName) throws AmbariException {
     StackId stackId = cluster.getCurrentStackVersion();
-    StackInfo stack = ambariMetaInfo.getStackInfo(stackId.getStackName(),
-        stackId.getStackVersion());
+    StackInfo stack = ambariMetaInfo.getStack(stackId.getStackName(), stackId.getStackVersion());
     
-    return ambariMetaInfo.getProperties(stack.getName(), stack.getVersion(), serviceName);
+    return ambariMetaInfo.getServiceProperties(stack.getName(), stack.getVersion(), serviceName);
   }
   
   public Set<PropertyInfo> getStackProperties(Cluster cluster) throws AmbariException {
     StackId stackId = cluster.getCurrentStackVersion();
-    StackInfo stack = ambariMetaInfo.getStackInfo(stackId.getStackName(),
-        stackId.getStackVersion());
+    StackInfo stack = ambariMetaInfo.getStack(stackId.getStackName(), stackId.getStackVersion());
     
     return ambariMetaInfo.getStackProperties(stack.getName(), stack.getVersion());
   }
@@ -654,14 +650,14 @@ public class ConfigHelper {
       
       if (!actual.containsKey(type)) {
         // desired is set, but actual is not
-        if (!serviceInfo.hasConfigType(type)) {
+        if (!serviceInfo.hasConfigDependency(type)) {
           stale = componentInfo != null && componentInfo.hasConfigType(type);
         } else if (type.equals(Configuration.GLOBAL_CONFIG_TAG)) {
           // find out if the keys are stale by first checking the target service,
           // then all services
           Collection<String> keys = mergeKeyNames(cluster, type, tags.values());
           
-          if (serviceInfo.hasPropertyFor(type, keys) || !hasPropertyFor(stackId, type, keys)) {
+          if (serviceInfo.hasDependencyAndPropertyFor(type, keys) || !hasPropertyFor(stackId, type, keys)) {
             stale = true;
           }
         } else {
@@ -680,11 +676,11 @@ public class ConfigHelper {
           // to the service
           Collection<String> changed = findChangedKeys(cluster, type,
             tags.values(), actualTags.values());
-          if (serviceInfo.hasPropertyFor(type, changed)) {
+          if (serviceInfo.hasDependencyAndPropertyFor(type, changed)) {
             stale = true;
           }
         } else {
-          stale = serviceInfo.hasConfigType(type) || componentInfo.hasConfigType(type);
+          stale = serviceInfo.hasConfigDependency(type) || componentInfo.hasConfigType(type);
         }
       }
     }
@@ -726,7 +722,7 @@ public class ConfigHelper {
     for (ServiceInfo svc : ambariMetaInfo.getServices(stack.getStackName(),
         stack.getStackVersion()).values()) {
       
-      if (svc.hasPropertyFor(type, keys))
+      if (svc.hasDependencyAndPropertyFor(type, keys))
         return true;
       
     }

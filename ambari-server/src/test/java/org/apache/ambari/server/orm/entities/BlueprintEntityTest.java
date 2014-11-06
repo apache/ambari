@@ -22,12 +22,15 @@ import com.google.gson.Gson;
 
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.state.PropertyInfo;
+import org.apache.ambari.server.state.ServiceInfo;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -83,8 +86,11 @@ public class BlueprintEntityTest {
   @Test
   public void testValidateConfigurations_clusterConfig() throws Exception {
     AmbariMetaInfo metaInfo = createMock(AmbariMetaInfo.class);
+    ServiceInfo service = new ServiceInfo();
+    service.setName("service1");
 
-    Map<String, PropertyInfo> requiredProps = new HashMap<String, PropertyInfo>();
+    List<PropertyInfo> serviceProperties = new ArrayList<PropertyInfo>();
+
     PropertyInfo prop = new PropertyInfo();
     prop.setFilename("core-site.xml");
     prop.setName("super.secret.password");
@@ -93,7 +99,9 @@ public class BlueprintEntityTest {
     propertyTypes.add(PropertyInfo.PropertyType.PASSWORD);
     prop.setPropertyTypes(propertyTypes);
     prop.setValue(null);
-    requiredProps.put("super.secret.password", prop);
+    serviceProperties.add(prop);
+    service.getProperties().addAll(serviceProperties);
+    service.getProperties().addAll(serviceProperties);
 
     BlueprintEntity entity = new BlueprintEntity();
     entity.setStackName("stackName");
@@ -130,7 +138,7 @@ public class BlueprintEntityTest {
     entity.setHostGroups(hostGroupEntities);
 
     expect(metaInfo.getComponentToService("stackName", "version", "component1")).andReturn("service1");
-    expect(metaInfo.getRequiredProperties("stackName", "version", "service1")).andReturn(requiredProps);
+    expect(metaInfo.getService("stackName", "version", "service1")).andReturn(service);
 
     replay(metaInfo);
 
@@ -145,17 +153,20 @@ public class BlueprintEntityTest {
   @Test
   public void testValidateConfigurations_hostGroupConfig() throws Exception {
     AmbariMetaInfo metaInfo = createMock(AmbariMetaInfo.class);
+    ServiceInfo service = new ServiceInfo();
+    service.setName("service1");
 
-    Map<String, PropertyInfo> requiredProps = new HashMap<String, PropertyInfo>();
-    PropertyInfo prop = new PropertyInfo();
-    prop.setFilename("core-site.xml");
-    prop.setName("super.secret.password");
-    prop.setRequireInput(true);
+    List<PropertyInfo> serviceProperties = new ArrayList<PropertyInfo>();
+    PropertyInfo prop1 = new PropertyInfo();
+    prop1.setFilename("core-site.xml");
+    prop1.setName("super.secret.password");
+    prop1.setRequireInput(true);
     Set<PropertyInfo.PropertyType> propertyTypes = new HashSet<PropertyInfo.PropertyType>();
     propertyTypes.add(PropertyInfo.PropertyType.PASSWORD);
-    prop.setPropertyTypes(propertyTypes);
-    prop.setValue(null);
-    requiredProps.put("super.secret.password", prop);
+    prop1.setPropertyTypes(propertyTypes);
+    prop1.setValue(null);
+    serviceProperties.add(prop1);
+    service.getProperties().addAll(serviceProperties);
 
     BlueprintEntity entity = new BlueprintEntity();
     entity.setStackName("stackName");
@@ -193,7 +204,7 @@ public class BlueprintEntityTest {
     entity.setHostGroups(hostGroupEntities);
 
     expect(metaInfo.getComponentToService("stackName", "version", "component1")).andReturn("service1");
-    expect(metaInfo.getRequiredProperties("stackName", "version", "service1")).andReturn(requiredProps);
+    expect(metaInfo.getService("stackName", "version", "service1")).andReturn(service);
 
     replay(metaInfo);
 
@@ -208,16 +219,20 @@ public class BlueprintEntityTest {
   @Test
   public void testValidateConfigurations_negative() throws Exception {
     AmbariMetaInfo metaInfo = createMock(AmbariMetaInfo.class);
+    ServiceInfo service = new ServiceInfo();
+    service.setName("service1");
 
-    Map<String, PropertyInfo> requiredProps = new HashMap<String, PropertyInfo>();
-    PropertyInfo prop = new PropertyInfo();
-    prop.setFilename("core-site.xml");
-    prop.setName("super.secret.password");
-    prop.setRequireInput(true);
+    List<PropertyInfo> serviceProperties = new ArrayList<PropertyInfo>();
+
+    PropertyInfo prop1 = new PropertyInfo();
+    prop1.setFilename("core-site.xml");
+    prop1.setName("super.secret.password");
+    prop1.setRequireInput(true);
     Set<PropertyInfo.PropertyType> propertyTypes = new HashSet<PropertyInfo.PropertyType>();
     propertyTypes.add(PropertyInfo.PropertyType.PASSWORD);
-    prop.setPropertyTypes(propertyTypes);
-    prop.setValue(null);
+    prop1.setPropertyTypes(propertyTypes);
+    prop1.setValue(null);
+    serviceProperties.add(prop1);
 
     PropertyInfo prop2 = new PropertyInfo();
     prop2.setFilename("global.xml");
@@ -227,9 +242,9 @@ public class BlueprintEntityTest {
     propertyTypes2.add(PropertyInfo.PropertyType.PASSWORD);
     prop2.setPropertyTypes(propertyTypes2);
     prop2.setValue(" ");
+    serviceProperties.add(prop2);
 
-    requiredProps.put("super.secret.password", prop);
-    requiredProps.put("another.super.secret.password", prop2);
+    service.getProperties().addAll(serviceProperties);
 
     BlueprintEntity entity = new BlueprintEntity();
     entity.setStackName("stackName");
@@ -266,7 +281,7 @@ public class BlueprintEntityTest {
     entity.setHostGroups(hostGroupEntities);
 
     expect(metaInfo.getComponentToService("stackName", "version", "component1")).andReturn("service1");
-    expect(metaInfo.getRequiredProperties("stackName", "version", "service1")).andReturn(requiredProps);
+    expect(metaInfo.getService("stackName", "version", "service1")).andReturn(service);
 
     replay(metaInfo);
 
