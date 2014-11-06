@@ -2085,10 +2085,10 @@ var ajax = Em.Object.extend({
         config.sender[config.beforeSend](opt, xhr, params);
       }
     };
-    opt.success = function (data) {
+    opt.success = function (data, textStatus, request) {
       console.log("TRACE: The url is: " + opt.url);
       if (config.success) {
-        config.sender[config.success](data, opt, params);
+        config.sender[config.success](data, opt, params, request);
       }
     };
     opt.error = function (request, ajaxOptions, error) {

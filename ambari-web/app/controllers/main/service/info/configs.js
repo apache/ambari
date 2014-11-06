@@ -35,6 +35,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     items: [],
     supportsFinal: []
   },
+  requestInProgress: null,
   selectedServiceConfigTypes: [],
   selectedServiceSupportsFinal: [],
   configGroups: [],
@@ -194,9 +195,21 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   },
 
   /**
+   * register request to view to track his progress
+   * @param request
+   */
+  trackRequest: function (request) {
+    this.set('requestInProgress', request);
+  },
+
+  /**
    * clear and set properties to default value
    */
   clearStep: function () {
+    if (this.get('requestInProgress') && this.get('requestInProgress').readyState !== 4) {
+      this.get('requestInProgress').abort();
+      this.set('requestInProgress', null);
+    }
     this.set("isApplyingChanges", false);
     this.set('modifiedFileNames', []);
     this.set('isInit', true);
@@ -277,15 +290,16 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
       self.set('configTypesInfo', App.config.getConfigTypesInfoFromService(stackService));
     }
 
-    App.config.loadAdvancedConfig(serviceName, function (properties) {
+    this.trackRequest(App.config.loadAdvancedConfig(serviceName, function (properties, xhr) {
+      if (xhr.statusText === 'abort') return;
       advancedConfigs.pushObjects(properties);
       self.set('advancedConfigs', advancedConfigs);
       if (App.get('supports.configHistory')) {
-        self.loadServiceConfigVersions();
+        self.trackRequest(self.loadServiceConfigVersions());
       } else {
         self.loadServiceTagsAndGroups();
       }
-    });
+    }));
   },
 
   /**
@@ -321,6 +335,17 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   },
 
   /**
+   * error callback of loadServiceConfigVersions()
+   * override defaultCallback
+   * @param request
+   * @param ajaxOptions
+   * @param error
+   * @param opt
+   * @param params
+   */
+  loadServiceConfigVersionsError: Em.K,
+
+  /**
    * get selected service config version
    * In case selected version is undefined then take currentDefaultVersion
    * @param version
@@ -338,7 +363,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
       this.set('selectedConfigGroup', switchToGroup);
     }
 
-    App.ajax.send({
+    this.trackRequest(App.ajax.send({
       name: 'service.serviceConfigVersions.get.multiple',
       sender: this,
       data: {
@@ -346,13 +371,14 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
         serviceConfigVersions: versions
       },
       success: 'loadSelectedVersionSuccess'
-    }).complete(function () {
+    }).complete(function (xhr) {
+        if (xhr.statusText === 'abort') return;
         if (self.get('dataIsLoaded')) {
           self.onConfigGroupChange();
         } else {
           self.loadServiceTagsAndGroups();
         }
-      });
+      }));
   },
 
   /**
@@ -401,7 +427,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
    * load config groups of service
    */
   loadServiceTagsAndGroups: function () {
-    App.ajax.send({
+    this.trackRequest(App.ajax.send({
       name: 'config.tags_and_groups',
       sender: this,
       data: {
@@ -409,7 +435,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
         urlParams: "&config_groups/ConfigGroup/tag=" + this.get('content.serviceName')
       },
       success: 'loadServiceConfigsSuccess'
-    });
+    }));
   },
 
   loadServiceConfigsSuccess: function (data, opt, params) {

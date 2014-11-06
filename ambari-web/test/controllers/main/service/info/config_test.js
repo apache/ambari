@@ -1217,6 +1217,16 @@ describe("App.MainServiceInfoConfigsController", function () {
       expect(mainServiceInfoConfigsController.setCompareDefaultGroupConfig({isReconfigurable: true, isMock: true}, {})).to.eql({compareConfigs: ["compConfig"], isReconfigurable: true, isMock: true, isComparison: true, hasCompareDiffs: true});
     });
   });
+
+  describe("#trackRequest()", function () {
+    after(function(){
+      mainServiceInfoConfigsController.set('requestInProgress', null);
+    });
+    it("should set requestInProgress", function () {
+      mainServiceInfoConfigsController.trackRequest({'request': {}});
+      expect(mainServiceInfoConfigsController.get('requestInProgress')).to.eql({'request': {}});
+    });
+  });
 });
 
 describe("#setCompareDefaultGroupConfig", function() {
