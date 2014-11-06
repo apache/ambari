@@ -100,6 +100,10 @@ App.SliderController = Ember.Controller.extend(App.RunPeriodically, {
         && properties['view.slider.user'] != App.get('sliderUser')) {
       App.set('sliderUser', properties['view.slider.user']);
     }
+    if (properties['java.home'] != null
+        && properties['java.home'] != App.get('javaHome')) {
+      App.set('javaHome', properties['java.home']);
+    }
     this.initGangliaProperties();
     this.finishSliderConfiguration(data);
   },

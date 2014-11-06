@@ -43,6 +43,7 @@ public interface SliderAppsViewController {
   public static final String PROPERTY_GANGLIA_CUSTOM_CLUSTERS = "ganglia.additional.clusters";
   public static final String PROPERTY_YARN_RM_WEBAPP_URL = "yarn.rm.webapp.url";
   public static final String PROPERTY_SLIDER_USER = "view.slider.user";
+  public static final String PROPERTY_JAVA_HOME = "java.home";
   public static final String PROPERTY_SLIDER_SECURITY_ENABLED = "slider.security.enabled";
 
   public static final String METRICS_API_NAME = "Metrics API";

@@ -140,7 +140,7 @@ Em.I18n.translations = {
   'wizard.step1.logAggregation.filePatterns.include': 'Include File Patterns',
   'wizard.step1.logAggregation.filePatterns.exclude': 'Exclude File Patterns',
   'wizard.step1.typeDescription': 'Deploys {0} cluster on YARN.',
-  'wizard.step1.nameFormatError': 'App Name should consist only of letters, numbers, \'-\', \'_\' and first character should be a letter.',
+  'wizard.step1.nameFormatError': 'App Name should consist only of lower case letters, numbers, \'-\', and \'_\'. Also, first character should be a lower case letter.',
   'wizard.step1.nameRepeatError': 'App with entered Name already exists.',
   'wizard.step1.validateAppNameError': 'Application with name \'{0}\' already exists',
   'wizard.step1.noAppTypesError': 'No Slider Application packages have been installed on this server. Please contact your Ambari server administrator to install Slider Application packages into /var/lib/ambari-server/resources/apps/ folder and restart Ambari server.',
