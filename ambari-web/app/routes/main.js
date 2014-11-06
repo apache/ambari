@@ -333,7 +333,7 @@ module.exports = Em.Route.extend({
   admin: Em.Route.extend({
     route: '/admin',
     enter: function (router, transition) {
-      if (router.get('loggeIn') && !App.get('isAdmin')) {
+      if (router.get('loggedIn') && !App.get('isAdmin')) {
         Em.run.next(function () {
           router.transitionTo('main.dashboard.index');
         });
