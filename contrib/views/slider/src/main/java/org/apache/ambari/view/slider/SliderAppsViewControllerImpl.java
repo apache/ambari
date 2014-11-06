@@ -178,6 +178,7 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
             Map<String, String> ambariServerConfigs = ambariClient.getAmbariServerConfigs();
             if (ambariServerConfigs.containsKey("java.home")) {
               newHadoopConfigs.put("java.home", ambariServerConfigs.get("java.home"));
+              status.getParameters().put(PROPERTY_JAVA_HOME, ambariServerConfigs.get("java.home"));
             }
             // Configs
             if (cluster.getDesiredConfigs().containsKey("core-site")) {
@@ -307,14 +308,16 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
           new ViewStatus.Validation(
               "View parameters specifying Ambari details required"));
     }
-    if (!newHadoopConfigs.equals(viewContext.getInstanceData())) {
-      Set<String> removeKeys = new HashSet<String>(viewContext.getInstanceData().keySet());
-      for (Entry<String, String> e : newHadoopConfigs.entrySet()) {
-        viewContext.putInstanceData(e.getKey(), e.getValue());
-        removeKeys.remove(e.getKey());
-      }
-      for (String key : removeKeys) {
-        viewContext.removeInstanceData(key);
+    synchronized (viewContext) {
+      if (!newHadoopConfigs.equals(viewContext.getInstanceData())) {
+        Set<String> removeKeys = new HashSet<String>(viewContext.getInstanceData().keySet());
+        for (Entry<String, String> e : newHadoopConfigs.entrySet()) {
+          viewContext.putInstanceData(e.getKey(), e.getValue());
+          removeKeys.remove(e.getKey());
+        }
+        for (String key : removeKeys) {
+          viewContext.removeInstanceData(key);
+        }
       }
     }
     return status;
