@@ -720,7 +720,7 @@ var props = [
     "serviceName": "KNOX"
   },
   {
-    "name": "hadoop.proxyuser.<foreignKey[0]>.groups",
+    "name": "oozie.service.ProxyUserService.proxyuser.<foreignKey[0]>.groups",
     "templateName": ["proxyuser_group"],
     "foreignKey": ["knox_primary_name"],
     "value": "<templateName[0]>",
@@ -728,7 +728,7 @@ var props = [
     "serviceName": "KNOX"
   },
   {
-    "name": "hadoop.proxyuser.<foreignKey[0]>.hosts",
+    "name": "oozie.service.ProxyUserService.proxyuser.<foreignKey[0]>.hosts",
     "templateName": ["knox_gateway_hosts"],
     "foreignKey": ["knox_primary_name"],
     "value": "<templateName[0]>",
