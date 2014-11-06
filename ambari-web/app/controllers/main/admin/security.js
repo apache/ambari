@@ -83,6 +83,7 @@ App.MainAdminSecurityController = Em.Controller.extend({
     'hdfs_user': {defaultValue: 'hdfs', siteName: 'hadoop-env', serviceName: 'HDFS'},
     'yarn_user': {defaultValue: 'yarn', siteName: 'yarn-env', serviceName: 'YARN'},
     'mapred_user': {defaultValue: 'mapred', siteName: 'mapred-env', serviceName: 'MAPREDUCE'},
+    'mapred_user': {defaultValue: 'mapred', siteName: 'mapred-env', serviceName: 'MAPREDUCE2'},
     'hbase_user': {defaultValue: 'hbase', siteName: 'hbase-env', serviceName: 'HBASE'},
     'hive_user': {defaultValue: 'hive', siteName: 'hive-env', serviceName: 'HIVE'},
     'proxyuser_group': {defaultValue: 'users', siteName: 'hadoop-env', serviceName: 'HDFS'},

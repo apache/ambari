@@ -70,6 +70,12 @@ App.ClusterController = Em.Controller.extend({
     this.set('clusterDataLoadedPercent', 'width:' + (Math.floor(numLoaded / loadListLength * 100)).toString() + '%');
   },
 
+  doOnClusterLoad: function (item) {
+    if (this.get('isLoaded')) {
+      App.router.get('mainAdminSecurityController').getUpdatedSecurityStatus();
+    }
+  }.observes('isLoaded'),
+
   dataLoadList: Em.Object.create({
     'hosts': false,
     'serviceMetrics': false,
@@ -336,7 +342,6 @@ App.ClusterController = Em.Controller.extend({
         });
       });
     });
-    App.router.get('mainAdminSecurityController').getUpdatedSecurityStatus();
   },
 
   requestHosts: function (realUrl, callback) {
