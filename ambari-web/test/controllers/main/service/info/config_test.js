@@ -1282,6 +1282,16 @@ describe("App.MainServiceInfoConfigsController", function () {
     });
   });
 
+  describe("#trackRequest()", function () {
+    after(function(){
+      mainServiceInfoConfigsController.set('requestInProgress', null);
+    });
+    it("should set requestInProgress", function () {
+      mainServiceInfoConfigsController.trackRequest({'request': {}});
+      expect(mainServiceInfoConfigsController.get('requestInProgress')).to.eql({'request': {}});
+    });
+  });
+
   describe("#setValuesForOverrides", function() {
     var tests = [
       {

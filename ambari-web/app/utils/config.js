@@ -872,7 +872,7 @@ App.config = Em.Object.create({
     });
   },
 
-  loadAdvancedConfigSuccess: function (data, opt, params) {
+  loadAdvancedConfigSuccess: function (data, opt, params, request) {
     console.log("TRACE: In success function for the loadAdvancedConfig; url is ", opt.url);
     var properties = [];
     if (data.items.length) {
@@ -906,12 +906,12 @@ App.config = Em.Object.create({
         }
       }, this);
     }
-    params.callback(properties);
+    params.callback(properties, request);
   },
 
   loadAdvancedConfigError: function (request, ajaxOptions, error, opt, params) {
     console.log('ERROR: failed to load stack configs for', params.serviceName);
-    params.callback([]);
+    params.callback([], request);
   },
 
   /**
