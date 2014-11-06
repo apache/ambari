@@ -35,6 +35,7 @@
         "update_exclude_file_only" : "false",
         "xml_configs_list":[{"core-site.xml":"core-site"},{"mapred-site.xml":"mapred-site"}],
         "env_configs_list":[{"log4j.properties":"hdfs-log4j,mapreduce-log4j"}],
+        "properties_configs_list":[{"runtime.properties":"falcon-runtime.properties"},{"startup.properties":"falcon-startup.properties"}],
         "output_file":"MAPREDUCE_CLIENT-configs.tar.gz"
     },
     "taskId": 18, 

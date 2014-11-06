@@ -265,6 +265,7 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
       Map<String, Object> commandParams = new HashMap<String, Object>();
       List<Map<String, String>> xmlConfigs = new LinkedList<Map<String, String>>();
       List<Map<String, String>> envConfigs = new LinkedList<Map<String, String>>();
+      List<Map<String, String>> propertiesConfigs = new LinkedList<Map<String, String>>();
 
       //Fill file-dictionary configs from metainfo
       for (ClientConfigFileDefinition clientConfigFile : clientConfigFiles) {
@@ -272,13 +273,16 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
         fileDict.put(clientConfigFile.getFileName(), clientConfigFile.getDictionaryName());
         if (clientConfigFile.getType().equals("xml")) {
           xmlConfigs.add(fileDict);
-        } else {
+        } else if (clientConfigFile.getType().equals("env")) {
           envConfigs.add(fileDict);
+        } else if (clientConfigFile.getType().equals("properties")) {
+          propertiesConfigs.add(fileDict);
         }
       }
 
       commandParams.put("xml_configs_list", xmlConfigs);
       commandParams.put("env_configs_list", envConfigs);
+      commandParams.put("properties_configs_list", propertiesConfigs);
       commandParams.put("output_file", componentName + "-configs.tar.gz");
 
       Map<String, Object> jsonContent = new TreeMap<String, Object>();

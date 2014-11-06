@@ -97,6 +97,11 @@
               <dictionaryName>hbase-env</dictionaryName>
             </configFile>
             <configFile>
+              <type>xml</type>
+              <fileName>hbase-policy.xml</fileName>
+              <dictionaryName>hbase-policy</dictionaryName>
+            </configFile>
+            <configFile>
               <type>env</type>
               <fileName>log4j.properties</fileName>
               <dictionaryName>hbase-log4j</dictionaryName>
