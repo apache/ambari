@@ -20,7 +20,7 @@ import os
 
 from resource_management import *
 import re
-
+import hdfs
 
 def service(action=None, name=None, user=None, create_pid_dir=False,
             create_log_dir=False):
@@ -100,7 +100,15 @@ def service(action=None, name=None, user=None, create_pid_dir=False,
           pass  # Pid file content is invalid
         except OSError:
           pass  # Process is not running
+    pass
 
+    # Set HADOOP_SECURE_DN_USER correctly in hadoop-env if DN is running as root
+    # in secure mode.
+    if user == 'root':
+      params.dn_proc_user = 'root'
+      hdfs.setup_hadoop_env(replace=True)
+    pass
+  pass
 
   hadoop_env_exports_str = ''
   for exp in hadoop_env_exports.items():

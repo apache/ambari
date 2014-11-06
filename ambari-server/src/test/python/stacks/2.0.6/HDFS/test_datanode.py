@@ -19,6 +19,7 @@ limitations under the License.
 '''
 from ambari_commons import OSCheck
 import json
+import os
 from mock.mock import MagicMock, patch
 from stacks.utils.RMFTestCase import *
 
@@ -108,6 +109,20 @@ class TestDatanode(RMFTestCase):
                               owner = 'hdfs',
                               recursive = True,
                               )
+    self.assertResourceCalled('Directory', '/etc/hadoop/conf.empty',
+                              recursive=True,
+                              owner='root',
+                              group='root'
+    )
+    self.assertResourceCalled('Link', '/etc/hadoop/conf',
+                              to='/etc/hadoop/conf.empty',
+                              not_if='ls /etc/hadoop/conf'
+    )
+    self.assertResourceCalled('File', os.path.join('/etc/hadoop/conf', 'hadoop-env.sh'),
+                              owner='root',
+                              content=InlineTemplate(self.getConfig()['configurations']['hadoop-env']['content']),
+                              replace=True
+    )
     self.assertResourceCalled('File', '/var/run/hadoop/hdfs/hadoop-hdfs-datanode.pid',
                               action = ['delete'],
                               not_if='ls /var/run/hadoop/hdfs/hadoop-hdfs-datanode.pid >/dev/null 2>&1 && ps `cat /var/run/hadoop/hdfs/hadoop-hdfs-datanode.pid` >/dev/null 2>&1',
@@ -138,6 +153,20 @@ class TestDatanode(RMFTestCase):
                               owner = 'hdfs',
                               recursive = True,
                               )
+    self.assertResourceCalled('Directory', '/etc/hadoop/conf.empty',
+                              recursive=True,
+                              owner='root',
+                              group='root'
+    )
+    self.assertResourceCalled('Link', '/etc/hadoop/conf',
+                              to='/etc/hadoop/conf.empty',
+                              not_if='ls /etc/hadoop/conf'
+    )
+    self.assertResourceCalled('File', os.path.join('/etc/hadoop/conf', 'hadoop-env.sh'),
+                              owner='root',
+                              content=InlineTemplate(self.getConfig()['configurations']['hadoop-env']['content']),
+                              replace=True
+    )
     self.assertResourceCalled('File', '/var/run/hadoop/hdfs/hadoop-hdfs-datanode.pid',
                               action = ['delete'],
                               not_if='ls /var/run/hadoop/hdfs/hadoop-hdfs-datanode.pid >/dev/null 2>&1 && ps `cat /var/run/hadoop/hdfs/hadoop-hdfs-datanode.pid` >/dev/null 2>&1',
@@ -195,6 +224,20 @@ class TestDatanode(RMFTestCase):
                               owner = 'hdfs',
                               recursive = True,
                               )
+    self.assertResourceCalled('Directory', '/etc/hadoop/conf.empty',
+                              recursive=True,
+                              owner='root',
+                              group='root'
+    )
+    self.assertResourceCalled('Link', '/etc/hadoop/conf',
+                              to='/etc/hadoop/conf.empty',
+                              not_if='ls /etc/hadoop/conf'
+    )
+    self.assertResourceCalled('File', os.path.join('/etc/hadoop/conf', 'hadoop-env.sh'),
+                              owner='root',
+                              content=InlineTemplate(self.getConfig()['configurations']['hadoop-env']['content']),
+                              replace=True
+    )
     self.assertResourceCalled('File', '/var/run/hadoop/hdfs/hadoop-hdfs-datanode.pid',
                               action = ['delete'],
                               not_if='ls /var/run/hadoop/hdfs/hadoop-hdfs-datanode.pid >/dev/null 2>&1 && ps `cat /var/run/hadoop/hdfs/hadoop-hdfs-datanode.pid` >/dev/null 2>&1',
@@ -229,6 +272,20 @@ class TestDatanode(RMFTestCase):
                               owner = 'hdfs',
                               recursive = True,
                               )
+    self.assertResourceCalled('Directory', '/etc/hadoop/conf.empty',
+                              recursive=True,
+                              owner='root',
+                              group='root'
+    )
+    self.assertResourceCalled('Link', '/etc/hadoop/conf',
+                              to='/etc/hadoop/conf.empty',
+                              not_if='ls /etc/hadoop/conf'
+    )
+    self.assertResourceCalled('File', os.path.join('/etc/hadoop/conf', 'hadoop-env.sh'),
+                              owner='root',
+                              content=InlineTemplate(self.getConfig()['configurations']['hadoop-env']['content']),
+                              replace=True
+    )
     self.assertResourceCalled('File', '/var/run/hadoop/hdfs/hadoop-hdfs-datanode.pid',
                               action = ['delete'],
                               not_if='ls /var/run/hadoop/hdfs/hadoop-hdfs-datanode.pid >/dev/null 2>&1 && ps `cat /var/run/hadoop/hdfs/hadoop-hdfs-datanode.pid` >/dev/null 2>&1',
