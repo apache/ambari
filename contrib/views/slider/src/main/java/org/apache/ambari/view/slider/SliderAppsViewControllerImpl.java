@@ -585,10 +585,10 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
         return null;
       }
     }
-    if (YarnApplicationState.KILLED.equals(yarnApp.getYarnApplicationState())) {
+    if (YarnApplicationState.KILLED.equals(yarnApp.getYarnApplicationState()) || YarnApplicationState.FAILED.equals(yarnApp.getYarnApplicationState())) {
       try {
         if (sliderClient.actionExists(yarnApp.getName(), false) != LauncherExitCodes.EXIT_SUCCESS) {
-          // YARN application is killed, and no HDFS content - Application has been destroyed.
+          // YARN application is killed or failed, and no HDFS content - Application has been destroyed.
           return null;
         }
       } catch (UnknownApplicationInstanceException e) {

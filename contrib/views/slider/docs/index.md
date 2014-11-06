@@ -151,7 +151,7 @@ Next, extract all identities into a single keytab file
 * 
 ```
 kadmin.local -q "xst -k /path/to/keytab/slider-user.STORM.nimbus.keytab slider-user/[host-name]@EXAMPLE.COM"
-kadmin.local -q "xst -k /path/to/keytab/slider-user.STORM.client.keytab slider-user/[host-name]@EXAMPLE.COM"
+kadmin.local -q "xst -k /path/to/keytab/slider-user.STORM.client.keytab slider-user@EXAMPLE.COM"
 ```
 
 The keytab file containing multiple identities should then be copied over to the keytabs location on the host where the view is hosted.
