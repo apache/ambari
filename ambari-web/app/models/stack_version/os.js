@@ -16,22 +16,15 @@
  * limitations under the License.
  */
 
-//load all mappers
-require('mappers/server_data_mapper');
-require('mappers/stack_service_mapper');
-require('mappers/stack_mapper');
-require('mappers/stack_version_mapper');
-require('mappers/hosts_mapper');
-require('mappers/jobs_mapper');
-require('mappers/cluster_mapper');
-require('mappers/runs_mapper');
-require('mappers/racks_mapper');
-require('mappers/users_mapper');
-require('mappers/service_mapper');
-require('mappers/service_metrics_mapper');
-require('mappers/target_cluster_mapper');
-require('mappers/dataset_mapper');
-require('mappers/component_config_mapper');
-require('mappers/components_state_mapper');
-require('mappers/service_config_version_mapper');
-require('mappers/alert_definitions_mapper');
+var App = require('app');
+
+App.OS = DS.Model.extend({
+  id: DS.attr('string'),
+  name: DS.attr('string'),
+  stackVersion: DS.belongsTo('App.StackVersion'),
+  repositories: DS.hasMany('App.Repositories')
+});
+
+App.OS.FIXTURES = [];
+
+

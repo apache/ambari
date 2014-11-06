@@ -1149,6 +1149,10 @@ var urls = {
     'real': '/clusters/{cluster}/requests/{requestId}?fields=tasks/*',
     'mock': '/data/wizard/{mock}'
   },
+  'admin.stack_versions.all': {
+    'real': '/clusters/{clusterName}/stack_versions',
+    'mock': '/data/stack_versions/stack_version_all.json'
+  },
   'wizard.advanced_repositories.valid_url': {
     'real': '/stacks/{stackName}/versions/{stackVersion}/operating_systems/{osType}/repositories/{repoId}',
     'mock': '',
