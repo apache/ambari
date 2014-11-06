@@ -155,7 +155,7 @@ App.StackService = DS.Model.extend({
     var configTypes = this.get('configTypes');
     var serviceComponents = this.get('serviceComponents');
     if (configTypes && Object.keys(configTypes).length) {
-      var pattern = ["General", "CapacityScheduler", "FaultTolerance", "Isolation", "^Advanced", "Env$", "^Custom", "Falcon - Oozie integration", "FalconStartupSite", "FalconRuntimeSite"];
+      var pattern = ["General", "CapacityScheduler", "FaultTolerance", "Isolation", "Performance", "^Advanced", "Env$", "^Custom", "Falcon - Oozie integration", "FalconStartupSite", "FalconRuntimeSite"];
       configCategories = App.StackService.configCategories.call(this).filter(function (_configCategory) {
         var serviceComponentName = _configCategory.get('name');
         var isServiceComponent = serviceComponents.someProperty('componentName', serviceComponentName);
@@ -266,7 +266,9 @@ App.StackService.configCategories = function () {
     case 'HIVE':
       serviceConfigCategories.pushObjects([
         App.ServiceConfigCategory.create({ name: 'HIVE_METASTORE', displayName: 'Hive Metastore'}),
-        App.ServiceConfigCategory.create({ name: 'WEBHCAT_SERVER', displayName: 'WebHCat Server'})
+        App.ServiceConfigCategory.create({ name: 'WEBHCAT_SERVER', displayName: 'WebHCat Server'}),
+        App.ServiceConfigCategory.create({ name: 'General', displayName: 'General'}),
+        App.ServiceConfigCategory.create({ name: 'Performance', displayName: 'Performance'})
       ]);
       break;
     case 'HBASE':

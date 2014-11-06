@@ -18,8 +18,12 @@
 
 var App = require('app');
 
-var yarnProperties = require('data/HDP2.2/yarn_properties');
-var tezProperties = require('data/HDP2.2/tez_properties');
+var hdp22SepcificProperties = [
+  require('data/HDP2.2/yarn_properties'),
+  require('data/HDP2.2/tez_properties'),
+  require('data/HDP2.2/hive_properties')
+].reduce(function(p, c) { return c.concat(p); });
+
 var hdp2properties = require('data/HDP2/site_properties').configProperties;
 var excludedConfigs = [
   'storm.thrift.transport', //In HDP2.2 storm.thrift.transport property is computed on server
@@ -83,7 +87,7 @@ hdp22properties.push(
 
 var additionalProperties = [];
 
-yarnProperties.concat(tezProperties).forEach(function(config) {
+hdp22SepcificProperties.forEach(function(config) {
   if (!hdp22properties.findProperty('name', config.name)) additionalProperties.push(config);
   else {
     hdp22properties.findProperty('name', config.name).category = config.category;
