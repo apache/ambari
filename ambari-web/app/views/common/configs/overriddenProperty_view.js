@@ -24,7 +24,20 @@ App.ServiceConfigView.SCPOverriddenRowsView = Ember.View.extend({
   // we are declaring this from configs.hbs ( we are initializing this from UI )
   categoryConfigs: null, // just declared as viewClass need it
 
-  didInsertElement: function (){
+  init: function () {
+    this._super();
+    this.addObserver('isDefaultGroupSelected', this, 'setSwitchText');
+  },
+
+  didInsertElement: function () {
+    this.setSwitchText();
+  },
+
+  willDestroyElement: function () {
+    this.removeObserver('isDefaultGroupSelected', this, 'setSwitchText');
+  },
+
+  setSwitchText: function () {
     Em.$('body>.tooltip').remove();
     if (this.get('isDefaultGroupSelected')) {
       var overrides = this.get('serviceConfigProperty.overrides');
