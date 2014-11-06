@@ -771,8 +771,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
    * @return {Boolean}
    */
   hasCompareDiffs: function (originalConfig, compareConfig) {
-    return (originalConfig.value !== compareConfig.value) ||
-    (originalConfig.isFinal !== (compareConfig.isFinal == true));
+    return (originalConfig.value !== compareConfig.value) || (!!originalConfig.isFinal !== (compareConfig.isFinal == true));
   },
 
   /**
@@ -1195,6 +1194,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
       }
       parentOverridesArray.pushObject(newSCP);
       serviceConfigProperty.set('overrideValues', parentOverridesArray.mapProperty('value'));
+      serviceConfigProperty.set('overrideIsFinalValues', parentOverridesArray.mapProperty('isFinal'));
       console.debug("createOverrideProperty(): Added override to main-property:", serviceConfigProperty.get('name'));
     }, this);
   },
@@ -1599,7 +1599,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   buildGroupDesiredConfigs: function (configs, timeTag) {
     var sites = [];
     var time = timeTag || (new Date).getTime();
-    var siteFileNames = configs.mapProperty('filename');
+    var siteFileNames = configs.mapProperty('filename').uniq();
     sites = siteFileNames.map(function (filename) {
       return {
         type: filename.replace('.xml', ''),

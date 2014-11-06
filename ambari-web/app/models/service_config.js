@@ -224,7 +224,8 @@ App.ServiceConfigProperty = Ember.Object.extend({
   }.property('overrides', 'overrides.length', 'isOriginalSCP'),
   isOverrideChanged: function () {
     if (Em.isNone(this.get('overrides')) && this.get('overrideValues.length') === 0) return false;
-    return JSON.stringify(this.get('overrides').mapProperty('value')) !== JSON.stringify(this.get('overrideValues'));
+    return JSON.stringify(this.get('overrides').mapProperty('isFinal')) !== JSON.stringify(this.get('overrideIsFinalValues'))
+      || JSON.stringify(this.get('overrides').mapProperty('value')) !== JSON.stringify(this.get('overrideValues'));
   }.property('isOverridden', 'overrides.@each.isNotDefaultValue'),
   isRemovable: function() {
     var isOriginalSCP = this.get('isOriginalSCP');
