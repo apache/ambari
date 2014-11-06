@@ -1,0 +1,17 @@
+{
+  "FLUME": {
+    "service": [],
+    "FLUME_HANDLER": [
+      {
+        "name": "flume_agent_status",
+        "label": "Flume Agent Status",
+        "interval": 1,
+        "scope": "ANY",
+        "source": {
+          "type": "SCRIPT",
+          "path": "BIGTOP/0.8/services/FLUME/package/files/alert_flume_agent_status.py"
+        }
+      }
+    ]
+  }
+}

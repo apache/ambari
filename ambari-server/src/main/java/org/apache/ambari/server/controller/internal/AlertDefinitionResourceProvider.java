@@ -616,6 +616,7 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
     setResourceProperty(resource, ALERT_DEF_SERVICE_NAME, entity.getServiceName(), requestedIds);
     setResourceProperty(resource, ALERT_DEF_COMPONENT_NAME, entity.getComponentName(), requestedIds);
     setResourceProperty(resource, ALERT_DEF_ENABLED, Boolean.valueOf(entity.getEnabled()), requestedIds);
+    setResourceProperty(resource, ALERT_DEF_IGNORE_HOST, Boolean.valueOf(entity.isHostIgnored()), requestedIds);
     setResourceProperty(resource, ALERT_DEF_SCOPE, entity.getScope(), requestedIds);
 
     boolean sourceTypeRequested = setResourceProperty(resource,

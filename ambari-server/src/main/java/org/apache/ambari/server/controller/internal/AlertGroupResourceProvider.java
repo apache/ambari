@@ -223,6 +223,13 @@ public class AlertGroupResourceProvider extends
       LOG.info("Deleting alert target {}", groupId);
 
       final AlertGroupEntity entity = s_dao.findGroupById(groupId.longValue());
+      if (entity.isDefault()) {
+        // default groups cannot be removed
+        LOG.warn("The default alert group for {} cannot be removed",
+            entity.getServiceName());
+
+        continue;
+      }
 
       modifyResources(new Command<Void>() {
         @Override

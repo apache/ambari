@@ -1275,12 +1275,6 @@ public class AmbariMetaInfo {
         stackDefinitions.addAll(serviceDefinitions);
       }
 
-      // if there are no alert definitions defined for the cluster services
-      // then don't do anything and go to the next cluster
-      if (null == stackDefinitions || stackDefinitions.size() == 0) {
-        continue;
-      }
-
       List<AlertDefinitionEntity> persist = new ArrayList<AlertDefinitionEntity>();
       List<AlertDefinitionEntity> entities = alertDefinitionDao.findAll(clusterId);
 

@@ -522,6 +522,37 @@ public class AlertGroupResourceProviderTest {
   }
 
   /**
+   * Tests that a default group cannot be deleted via the resource provider.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testDeleteDefaultGroup() throws Exception {
+    AlertGroupEntity group = new AlertGroupEntity();
+    group.setGroupId(ALERT_GROUP_ID);
+    group.setDefault(true);
+    group.setGroupName(ALERT_GROUP_NAME);
+    group.setAlertDefinitions(getMockDefinitions());
+    group.setAlertTargets(getMockTargets());
+
+    resetToStrict(m_dao);
+    expect(m_dao.findGroupById(ALERT_GROUP_ID)).andReturn(group).anyTimes();
+
+    replay(m_dao);
+
+    AlertGroupResourceProvider provider = createProvider(m_amc);
+
+    Predicate predicate = new PredicateBuilder().property(
+        AlertGroupResourceProvider.ALERT_GROUP_CLUSTER_NAME).equals(
+        ALERT_GROUP_CLUSTER_NAME).and().property(
+        AlertGroupResourceProvider.ALERT_GROUP_ID).equals(
+        ALERT_GROUP_ID.toString()).toPredicate();
+
+    provider.deleteResources(predicate);
+    verify(m_dao);
+  }
+
+  /**
    * @param amc
    * @return
    */

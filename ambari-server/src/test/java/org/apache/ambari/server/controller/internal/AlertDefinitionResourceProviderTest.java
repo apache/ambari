@@ -161,6 +161,7 @@ public class AlertDefinitionResourceProviderTest {
         AlertDefinitionResourceProvider.ALERT_DEF_ID,
         AlertDefinitionResourceProvider.ALERT_DEF_NAME,
         AlertDefinitionResourceProvider.ALERT_DEF_LABEL,
+        AlertDefinitionResourceProvider.ALERT_DEF_IGNORE_HOST,
         AlertDefinitionResourceProvider.ALERT_DEF_SOURCE,
         AlertDefinitionResourceProvider.ALERT_DEF_SOURCE_TYPE);
 
@@ -200,6 +201,10 @@ public class AlertDefinitionResourceProviderTest {
 
     Assert.assertEquals("Mock Label",
         r.getPropertyValue(AlertDefinitionResourceProvider.ALERT_DEF_LABEL));
+
+    Assert.assertEquals(
+        Boolean.FALSE,
+        r.getPropertyValue(AlertDefinitionResourceProvider.ALERT_DEF_IGNORE_HOST));
 
     Assert.assertNotNull(r.getPropertyValue("AlertDefinition/source/type"));
   }
