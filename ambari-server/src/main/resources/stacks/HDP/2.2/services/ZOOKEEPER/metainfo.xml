@@ -21,8 +21,7 @@
     <service>
       <name>ZOOKEEPER</name>
       <displayName>ZooKeeper</displayName>
-      <version>3.4.5.2.2.0.0</version>
-
+      <version>3.4.6.2.2.0.0</version>
       <osSpecifics>
         <osSpecific>
           <osFamily>redhat5,redhat6,suse11</osFamily>

@@ -21,7 +21,7 @@
     <service>
       <name>FALCON</name>
       <displayName>Falcon</displayName>
-      <version>0.6.0.2.2.9.9</version>
+      <version>0.6.0.2.2.0.0</version>
       <osSpecifics>
         <osSpecific>
           <osFamily>redhat5,redhat6,suse11</osFamily>
