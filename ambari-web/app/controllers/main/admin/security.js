@@ -38,7 +38,13 @@ App.MainAdminSecurityController = Em.Controller.extend({
   getDisableSecurityStatus: function (status) {
     return App.db.getDisableSecurityStatus();
   },
-
+  content: Em.Object.create({
+    isATSInstalled: function() {
+      // Because the ATS component can be installed/removed at will, the check has to happen every time that security is added.
+      var yarnService = App.Service.find().findProperty('serviceName','YARN');
+      return !!yarnService && yarnService.get('hostComponents').someProperty('componentName', 'APP_TIMELINE_SERVER');
+    }.property('App.router.clusterController.isLoaded')
+  }),
   notifySecurityOff: false,
   notifySecurityAdd: false,
 
@@ -62,6 +68,12 @@ App.MainAdminSecurityController = Em.Controller.extend({
       secureServices = $.extend(true, [], require('data/HDP2/secure_configs'));
     } else {
       secureServices = $.extend(true, [], require('data/secure_configs'));
+    }
+
+    // Typically, ATS will support Kerberos in HDP 2.2 and higher
+    if (this.get('content.isATSInstalled') && App.get('doesATSSupportKerberos')) {
+      var yarnConfigCategories = secureServices.findProperty('serviceName', 'YARN').configCategories;
+      yarnConfigCategories.push(App.ServiceConfigCategory.create({ name: 'AppTimelineServer', displayName : 'Application Timeline Service'}));
     }
 
     var installedServices = App.Service.find().mapProperty('serviceName');
