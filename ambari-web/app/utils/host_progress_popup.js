@@ -358,7 +358,7 @@ App.HostPopup = Em.Object.create({
           servicesInfo.insertAt(index, updatedService);
         }
         if (App.get('supports.abortRequests')) {
-          updatedService.set('isAbortable', this.isAbortableByStatus(service.status));
+          updatedService.set('isAbortable',  App.get('isManager') &&  this.isAbortableByStatus(service.status));
         }
       }, this);
       this.removeOldServices(servicesInfo, currentServices);
