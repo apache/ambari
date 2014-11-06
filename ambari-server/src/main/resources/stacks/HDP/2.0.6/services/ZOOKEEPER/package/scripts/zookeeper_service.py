@@ -28,7 +28,7 @@ def zookeeper_service(action='start'):
 
   if action == 'start':
     daemon_cmd = format("source {config_dir}/zookeeper-env.sh ; {cmd} start")
-    no_op_test = format("ls {zk_pid_file} >/dev/null 2>&1 && ps `cat {zk_pid_file}` >/dev/null 2>&1")
+    no_op_test = format("ls {zk_pid_file} >/dev/null 2>&1 && ps -p `cat {zk_pid_file}` >/dev/null 2>&1")
     Execute(daemon_cmd,
             not_if=no_op_test,
             user=params.zk_user

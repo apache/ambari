@@ -42,7 +42,7 @@ class TestHbaseRegionServer(RMFTestCase):
     
     self.assert_configure_default()
     self.assertResourceCalled('Execute', '/usr/lib/hbase/bin/hbase-daemon.sh --config /etc/hbase/conf start regionserver',
-      not_if = 'ls /var/run/hbase/hbase-hbase-regionserver.pid >/dev/null 2>&1 && ps `cat /var/run/hbase/hbase-hbase-regionserver.pid` >/dev/null 2>&1',
+      not_if = 'ls /var/run/hbase/hbase-hbase-regionserver.pid >/dev/null 2>&1 && ps -p `cat /var/run/hbase/hbase-hbase-regionserver.pid` >/dev/null 2>&1',
       user = 'hbase'
     )
     self.assertNoMoreResources()
@@ -79,7 +79,7 @@ class TestHbaseRegionServer(RMFTestCase):
     
     self.assert_configure_secured()
     self.assertResourceCalled('Execute', '/usr/lib/hbase/bin/hbase-daemon.sh --config /etc/hbase/conf start regionserver',
-      not_if = 'ls /var/run/hbase/hbase-hbase-regionserver.pid >/dev/null 2>&1 && ps `cat /var/run/hbase/hbase-hbase-regionserver.pid` >/dev/null 2>&1',
+      not_if = 'ls /var/run/hbase/hbase-hbase-regionserver.pid >/dev/null 2>&1 && ps -p `cat /var/run/hbase/hbase-hbase-regionserver.pid` >/dev/null 2>&1',
       user = 'hbase',
     )
     self.assertNoMoreResources()

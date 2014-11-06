@@ -39,7 +39,7 @@ def service(componentName, action='start', serviceName='yarn'):
 
   if action == 'start':
     daemon_cmd = format("{cmd} start {componentName}")
-    no_op = format("ls {pid_file} >/dev/null 2>&1 && ps `cat {pid_file}` >/dev/null 2>&1")
+    no_op = format("ls {pid_file} >/dev/null 2>&1 && ps -p `cat {pid_file}` >/dev/null 2>&1")
     Execute(daemon_cmd,
             user=usr,
             not_if=no_op

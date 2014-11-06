@@ -34,7 +34,7 @@ def service(
 
   if action == 'start':
     daemon_cmd = format("{cmd} start {name}")
-    no_op = format("ls {pid_file} >/dev/null 2>&1 && ps `cat {pid_file}` >/dev/null 2>&1")
+    no_op = format("ls {pid_file} >/dev/null 2>&1 && ps -p `cat {pid_file}` >/dev/null 2>&1")
     Execute(daemon_cmd,
             user=params.mapred_user,
             not_if=no_op

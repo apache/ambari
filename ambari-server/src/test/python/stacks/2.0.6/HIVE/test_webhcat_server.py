@@ -42,7 +42,7 @@ class TestWebHCatServer(RMFTestCase):
 
     self.assert_configure_default()
     self.assertResourceCalled('Execute', 'env HADOOP_HOME=/usr /usr/lib/hcatalog/sbin/webhcat_server.sh start',
-                              not_if = 'ls /var/run/webhcat/webhcat.pid >/dev/null 2>&1 && ps `cat /var/run/webhcat/webhcat.pid` >/dev/null 2>&1',
+                              not_if = 'ls /var/run/webhcat/webhcat.pid >/dev/null 2>&1 && ps -p `cat /var/run/webhcat/webhcat.pid` >/dev/null 2>&1',
                               user = 'hcat'
     )
     self.assertNoMoreResources()
@@ -79,7 +79,7 @@ class TestWebHCatServer(RMFTestCase):
 
     self.assert_configure_secured()
     self.assertResourceCalled('Execute', 'env HADOOP_HOME=/usr /usr/lib/hcatalog/sbin/webhcat_server.sh start',
-                              not_if = 'ls /var/run/webhcat/webhcat.pid >/dev/null 2>&1 && ps `cat /var/run/webhcat/webhcat.pid` >/dev/null 2>&1',
+                              not_if = 'ls /var/run/webhcat/webhcat.pid >/dev/null 2>&1 && ps -p `cat /var/run/webhcat/webhcat.pid` >/dev/null 2>&1',
                               user = 'hcat'
     )
     self.assertNoMoreResources()

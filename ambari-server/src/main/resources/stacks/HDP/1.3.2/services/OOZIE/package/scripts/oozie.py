@@ -140,7 +140,7 @@ def oozie_server_specific(
   # this is different for HDP2
   cmd4 = format("cd {oozie_tmp_dir} && /usr/lib/oozie/bin/oozie-setup.sh -hadoop 0.20.200 {hadoop_jar_location} -extjs {ext_js_path} {jar_option} {jar_path}")
   
-  no_op_test = format("ls {pid_file} >/dev/null 2>&1 && ps `cat {pid_file}` >/dev/null 2>&1")
+  no_op_test = format("ls {pid_file} >/dev/null 2>&1 && ps -p `cat {pid_file}` >/dev/null 2>&1")
   Execute( [cmd1, cmd2, cmd3],
     not_if  = no_op_test
   )

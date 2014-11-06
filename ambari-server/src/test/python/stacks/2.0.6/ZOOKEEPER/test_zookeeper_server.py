@@ -41,7 +41,7 @@ class TestZookeeperServer(RMFTestCase):
 
     self.assert_configure_default()
     self.assertResourceCalled('Execute', 'source /etc/zookeeper/conf/zookeeper-env.sh ; env ZOOCFGDIR=/etc/zookeeper/conf ZOOCFG=zoo.cfg /usr/lib/zookeeper/bin/zkServer.sh start',
-                    not_if = 'ls /var/run/zookeeper/zookeeper_server.pid >/dev/null 2>&1 && ps `cat /var/run/zookeeper/zookeeper_server.pid` >/dev/null 2>&1',
+                    not_if = 'ls /var/run/zookeeper/zookeeper_server.pid >/dev/null 2>&1 && ps -p `cat /var/run/zookeeper/zookeeper_server.pid` >/dev/null 2>&1',
                     user = 'zookeeper'
     )
     self.assertNoMoreResources()
@@ -77,7 +77,7 @@ class TestZookeeperServer(RMFTestCase):
 
     self.assert_configure_secured()
     self.assertResourceCalled('Execute', 'source /etc/zookeeper/conf/zookeeper-env.sh ; env ZOOCFGDIR=/etc/zookeeper/conf ZOOCFG=zoo.cfg /usr/lib/zookeeper/bin/zkServer.sh start',
-                  not_if = 'ls /var/run/zookeeper/zookeeper_server.pid >/dev/null 2>&1 && ps `cat /var/run/zookeeper/zookeeper_server.pid` >/dev/null 2>&1',
+                  not_if = 'ls /var/run/zookeeper/zookeeper_server.pid >/dev/null 2>&1 && ps -p `cat /var/run/zookeeper/zookeeper_server.pid` >/dev/null 2>&1',
                   user = 'zookeeper'
     )
     self.assertNoMoreResources()

@@ -39,7 +39,7 @@ def service(componentName, action='start', serviceName='yarn'):
 
   if action == 'start':
     daemon_cmd = format("{ulimit_cmd} {cmd} start {componentName}")
-    check_process = format("ls {pid_file} >/dev/null 2>&1 && ps `cat {pid_file}` >/dev/null 2>&1")
+    check_process = format("ls {pid_file} >/dev/null 2>&1 && ps -p `cat {pid_file}` >/dev/null 2>&1")
 
     # Remove the pid file if its corresponding process is not running.
     File(pid_file,

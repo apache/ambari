@@ -27,7 +27,7 @@ def webhcat_service(action='start'):
 
   if action == 'start':
     demon_cmd = format('{cmd} start')
-    no_op_test = format('ls {pid_file} >/dev/null 2>&1 && ps `cat {pid_file}` >/dev/null 2>&1')
+    no_op_test = format('ls {pid_file} >/dev/null 2>&1 && ps -p `cat {pid_file}` >/dev/null 2>&1')
     Execute(demon_cmd,
             user=params.webhcat_user,
             not_if=no_op_test

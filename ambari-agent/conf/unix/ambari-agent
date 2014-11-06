@@ -120,7 +120,7 @@ case "$1" in
         echo "Checking for previously running Ambari Agent..."
         if [ -f $PIDFILE ]; then
           PID=`cat $PIDFILE`
-          if [ -z "`ps ax -o pid | grep $PID`" ]; then
+          if ! (ps -p $PID >/dev/null 2>/dev/null); then
             echo "$PIDFILE found with no process. Removing $PID..."
             rm -f $PIDFILE
           else
@@ -136,7 +136,7 @@ case "$1" in
         sleep 2
         PID=$!
         echo "Verifying $AMBARI_AGENT process status..."
-        if [ -z "`ps ax -o pid | grep $PID`" ]; then
+        if ! (ps -p $PID >/dev/null 2>/dev/null); then
           if [ -s $OUTFILE ]; then
             echo "ERROR: $AMBARI_AGENT start failed. For more details, see $OUTFILE:"
             echo "===================="
@@ -160,7 +160,7 @@ case "$1" in
         if [ -f $PIDFILE ]; then
           PID=`cat $PIDFILE`
           echo "Found $AMBARI_AGENT PID: $PID"
-          if [ -z "`ps ax -o pid | grep $PID`" ]; then
+          if ! (ps -p $PID >/dev/null 2>/dev/null); then
             echo "$AMBARI_AGENT not running. Stale PID File at: $PIDFILE"
             retcode=2
           else
@@ -187,7 +187,7 @@ case "$1" in
         if [ -f $PIDFILE ]; then
           PID=`cat $PIDFILE`
           echo "Found $AMBARI_AGENT PID: $PID"
-          if [ -z "`ps ax -o pid | grep $PID`" ]; then
+          if ! (ps -p $PID >/dev/null 2>/dev/null); then
             tput bold
             echo "ERROR: $AMBARI_AGENT not running. Stale PID File at: $PIDFILE"
             tput sgr0

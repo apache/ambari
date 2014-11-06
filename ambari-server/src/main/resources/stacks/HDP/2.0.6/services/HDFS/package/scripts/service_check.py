@@ -108,7 +108,7 @@ class HdfsServiceCheck(Script):
         pid_dir = format("{hadoop_pid_dir_prefix}/{hdfs_user}")
         pid_file = format("{pid_dir}/hadoop-{hdfs_user}-zkfc.pid")
         check_zkfc_process_cmd = format(
-          "ls {pid_file} >/dev/null 2>&1 && ps `cat {pid_file}` >/dev/null 2>&1")
+          "ls {pid_file} >/dev/null 2>&1 && ps -p `cat {pid_file}` >/dev/null 2>&1")
         Execute(check_zkfc_process_cmd,
                 logoutput=True,
                 try_sleep=3,

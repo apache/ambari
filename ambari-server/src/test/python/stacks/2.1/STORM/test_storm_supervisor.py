@@ -45,7 +45,7 @@ class TestStormSupervisor(TestStormBase):
 
     self.assertResourceCalled('Execute', 'env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 PATH=$PATH:/usr/jdk64/jdk1.7.0_45/bin storm supervisor > /var/log/storm/supervisor.out 2>&1',
       wait_for_finish = False,
-      not_if = 'ls /var/run/storm/supervisor.pid >/dev/null 2>&1 && ps `cat /var/run/storm/supervisor.pid` >/dev/null 2>&1',
+      not_if = 'ls /var/run/storm/supervisor.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/supervisor.pid` >/dev/null 2>&1',
       path = ['/usr/bin'],
       user = 'storm',
     )
@@ -60,7 +60,7 @@ class TestStormSupervisor(TestStormBase):
         wait_for_finish = False,
         path = ['/usr/bin'],
         user = 'storm',
-        not_if = 'ls /var/run/storm/logviewer.pid >/dev/null 2>&1 && ps `cat /var/run/storm/logviewer.pid` >/dev/null 2>&1',
+        not_if = 'ls /var/run/storm/logviewer.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/logviewer.pid` >/dev/null 2>&1',
     )
     self.assertResourceCalled('Execute', "/usr/jdk64/jdk1.7.0_45/bin/jps -l  | grep storm.daemon.logviewer$ && /usr/jdk64/jdk1.7.0_45/bin/jps -l  | grep storm.daemon.logviewer$ | awk {'print $1'} > /var/run/storm/logviewer.pid",
         logoutput = True,
@@ -78,18 +78,18 @@ class TestStormSupervisor(TestStormBase):
                        config_file="default.json"
     )
     self.assertResourceCalled('Execute', 'kill `cat /var/run/storm/supervisor.pid` >/dev/null 2>&1',
-                              not_if = '! (ls /var/run/storm/supervisor.pid >/dev/null 2>&1 && ps `cat /var/run/storm/supervisor.pid` >/dev/null 2>&1)'
+                              not_if = '! (ls /var/run/storm/supervisor.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/supervisor.pid` >/dev/null 2>&1)'
     )
     self.assertResourceCalled('Execute', 'kill -9 `cat /var/run/storm/supervisor.pid` >/dev/null 2>&1',
-                              not_if = 'sleep 2; ! (ls /var/run/storm/supervisor.pid >/dev/null 2>&1 && ps `cat /var/run/storm/supervisor.pid` >/dev/null 2>&1) || sleep 20; ! (ls /var/run/storm/supervisor.pid >/dev/null 2>&1 && ps `cat /var/run/storm/supervisor.pid` >/dev/null 2>&1)',
+                              not_if = 'sleep 2; ! (ls /var/run/storm/supervisor.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/supervisor.pid` >/dev/null 2>&1) || sleep 20; ! (ls /var/run/storm/supervisor.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/supervisor.pid` >/dev/null 2>&1)',
                               ignore_failures=True
     )
     self.assertResourceCalled('Execute', 'rm -f /var/run/storm/supervisor.pid')
     self.assertResourceCalled('Execute', 'kill `cat /var/run/storm/logviewer.pid` >/dev/null 2>&1',
-                              not_if = '! (ls /var/run/storm/logviewer.pid >/dev/null 2>&1 && ps `cat /var/run/storm/logviewer.pid` >/dev/null 2>&1)')
+                              not_if = '! (ls /var/run/storm/logviewer.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/logviewer.pid` >/dev/null 2>&1)')
 
     self.assertResourceCalled('Execute', 'kill -9 `cat /var/run/storm/logviewer.pid` >/dev/null 2>&1',
-                              not_if = 'sleep 2; ! (ls /var/run/storm/logviewer.pid >/dev/null 2>&1 && ps `cat /var/run/storm/logviewer.pid` >/dev/null 2>&1) || sleep 20; ! (ls /var/run/storm/logviewer.pid >/dev/null 2>&1 && ps `cat /var/run/storm/logviewer.pid` >/dev/null 2>&1)',
+                              not_if = 'sleep 2; ! (ls /var/run/storm/logviewer.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/logviewer.pid` >/dev/null 2>&1) || sleep 20; ! (ls /var/run/storm/logviewer.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/logviewer.pid` >/dev/null 2>&1)',
                               ignore_failures = True)
 
     self.assertResourceCalled('Execute', 'rm -f /var/run/storm/logviewer.pid')
@@ -115,7 +115,7 @@ class TestStormSupervisor(TestStormBase):
 
     self.assertResourceCalled('Execute', 'env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 PATH=$PATH:/usr/jdk64/jdk1.7.0_45/bin storm supervisor > /var/log/storm/supervisor.out 2>&1',
       wait_for_finish = False,
-      not_if = 'ls /var/run/storm/supervisor.pid >/dev/null 2>&1 && ps `cat /var/run/storm/supervisor.pid` >/dev/null 2>&1',
+      not_if = 'ls /var/run/storm/supervisor.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/supervisor.pid` >/dev/null 2>&1',
       path = ['/usr/bin'],
       user = 'storm',
     )
@@ -131,7 +131,7 @@ class TestStormSupervisor(TestStormBase):
         wait_for_finish = False,
         path = ['/usr/bin'],
         user = 'storm',
-        not_if = 'ls /var/run/storm/logviewer.pid >/dev/null 2>&1 && ps `cat /var/run/storm/logviewer.pid` >/dev/null 2>&1',
+        not_if = 'ls /var/run/storm/logviewer.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/logviewer.pid` >/dev/null 2>&1',
     )
     self.assertResourceCalled('Execute', "/usr/jdk64/jdk1.7.0_45/bin/jps -l  | grep storm.daemon.logviewer$ && /usr/jdk64/jdk1.7.0_45/bin/jps -l  | grep storm.daemon.logviewer$ | awk {'print $1'} > /var/run/storm/logviewer.pid",
         logoutput = True,
@@ -149,18 +149,18 @@ class TestStormSupervisor(TestStormBase):
                        config_file="secured.json"
     )
     self.assertResourceCalled('Execute', 'kill `cat /var/run/storm/supervisor.pid` >/dev/null 2>&1',
-                              not_if = '! (ls /var/run/storm/supervisor.pid >/dev/null 2>&1 && ps `cat /var/run/storm/supervisor.pid` >/dev/null 2>&1)'
+                              not_if = '! (ls /var/run/storm/supervisor.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/supervisor.pid` >/dev/null 2>&1)'
                               )
     self.assertResourceCalled('Execute', 'kill -9 `cat /var/run/storm/supervisor.pid` >/dev/null 2>&1',
-                              not_if = 'sleep 2; ! (ls /var/run/storm/supervisor.pid >/dev/null 2>&1 && ps `cat /var/run/storm/supervisor.pid` >/dev/null 2>&1) || sleep 20; ! (ls /var/run/storm/supervisor.pid >/dev/null 2>&1 && ps `cat /var/run/storm/supervisor.pid` >/dev/null 2>&1)',
+                              not_if = 'sleep 2; ! (ls /var/run/storm/supervisor.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/supervisor.pid` >/dev/null 2>&1) || sleep 20; ! (ls /var/run/storm/supervisor.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/supervisor.pid` >/dev/null 2>&1)',
                               ignore_failures=True
     )
     self.assertResourceCalled('Execute', 'rm -f /var/run/storm/supervisor.pid')
     self.assertResourceCalled('Execute', 'kill `cat /var/run/storm/logviewer.pid` >/dev/null 2>&1',
-                              not_if = '! (ls /var/run/storm/logviewer.pid >/dev/null 2>&1 && ps `cat /var/run/storm/logviewer.pid` >/dev/null 2>&1)')
+                              not_if = '! (ls /var/run/storm/logviewer.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/logviewer.pid` >/dev/null 2>&1)')
 
     self.assertResourceCalled('Execute', 'kill -9 `cat /var/run/storm/logviewer.pid` >/dev/null 2>&1',
-                              not_if = 'sleep 2; ! (ls /var/run/storm/logviewer.pid >/dev/null 2>&1 && ps `cat /var/run/storm/logviewer.pid` >/dev/null 2>&1) || sleep 20; ! (ls /var/run/storm/logviewer.pid >/dev/null 2>&1 && ps `cat /var/run/storm/logviewer.pid` >/dev/null 2>&1)',
+                              not_if = 'sleep 2; ! (ls /var/run/storm/logviewer.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/logviewer.pid` >/dev/null 2>&1) || sleep 20; ! (ls /var/run/storm/logviewer.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/logviewer.pid` >/dev/null 2>&1)',
                               ignore_failures = True)
 
     self.assertResourceCalled('Execute', 'rm -f /var/run/storm/logviewer.pid')

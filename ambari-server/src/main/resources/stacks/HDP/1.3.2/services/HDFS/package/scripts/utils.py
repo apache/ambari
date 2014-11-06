@@ -29,7 +29,7 @@ def service(action=None, name=None, user=None, create_pid_dir=False,
   log_dir = format("{hdfs_log_dir_prefix}/{user}")
   check_process = format(
     "ls {pid_file} >/dev/null 2>&1 &&"
-    " ps `cat {pid_file}` >/dev/null 2>&1")
+    " ps -p `cat {pid_file}` >/dev/null 2>&1")
   hadoop_daemon = format(
     "export HADOOP_LIBEXEC_DIR={hadoop_libexec_dir} && "
     "{hadoop_bin}/hadoop-daemon.sh")
