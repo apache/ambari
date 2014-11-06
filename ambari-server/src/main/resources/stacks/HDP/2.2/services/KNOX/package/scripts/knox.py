@@ -55,8 +55,6 @@ def knox():
                       owner = params.knox_user,
                       template_tag = None
       )
-    cmd = format('chown -R {knox_user}:{knox_group} {knox_data_dir} {knox_logs_dir} {knox_pid_dir} {knox_conf_dir}')
-    Execute(cmd)
 
     cmd = format('{knox_client_bin} create-master --master {knox_master_secret!p}')
     Execute(cmd,
@@ -71,4 +69,3 @@ def knox():
             environment={'JAVA_HOME': params.java_home},
             not_if=format('test -f {knox_cert_store_path}')
     )
-

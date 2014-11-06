@@ -110,9 +110,6 @@ if has_oozie:
 
 # server configurations
 knox_conf_dir = '/etc/knox/conf'
-knox_data_dir = '/var/lib/knox/data'
-knox_logs_dir = '/var/log/knox'
-knox_pid_dir = status_params.knox_pid_dir
 knox_user = default("/configurations/knox-env/knox_user", "knox")
 knox_group = default("/configurations/knox-env/knox_group", "knox")
 knox_pid_file = status_params.knox_pid_file
