@@ -34,24 +34,70 @@ java_home = config['hostLevelParams']['java_home']
 ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
 
 hdp_stack_version = str(config['hostLevelParams']['stack_version'])
+security_enabled = config['configurations']['cluster-env']['security_enabled']
 hdp_stack_version = format_hdp_stack_version(hdp_stack_version)
+hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 stack_is_hdp22_or_further = hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0
+
+# Some datanode settings
+dfs_dn_addr = default('/configurations/hdfs-site/dfs.datanode.address', None)
+dfs_dn_http_addr = default('/configurations/hdfs-site/dfs.datanode.http.address', None)
+dfs_dn_https_addr = default('/configurations/hdfs-site/dfs.datanode.https.address', None)
+dfs_http_policy = default('/configurations/hdfs-site/dfs.http.policy', None)
+secure_dn_ports_are_in_use = False
+
+def get_port(address):
+  """
+  Extracts port from the address like 0.0.0.0:1019
+  """
+  if address is None:
+    return None
+  m = re.search(r'(?:http(?:s)?://)?([\w\d.]*):(\d{1,5})', address)
+  if m is not None:
+    return int(m.group(2))
+  else:
+    return None
+
+def is_secure_port(port):
+  """
+  Returns True if port is root-owned at *nix systems
+  """
+  if port is not None:
+    return port < 1024
+  else:
+    return False
 
 #hadoop params
 if stack_is_hdp22_or_further:
   mapreduce_libs_path = "/usr/hdp/current/hadoop-mapreduce-client/*"
   hadoop_libexec_dir = "/usr/hdp/current/hadoop-client/libexec"
   hadoop_home = "/usr/hdp/current/hadoop-client"
+  if not security_enabled:
+    hadoop_secure_dn_user = '""'
+  else:
+    dfs_dn_port = get_port(dfs_dn_addr)
+    dfs_dn_http_port = get_port(dfs_dn_http_addr)
+    dfs_dn_https_port = get_port(dfs_dn_https_addr)
+    # We try to avoid inability to start datanode as a plain user due to usage of root-owned ports
+    if dfs_http_policy == "HTTPS_ONLY":
+      secure_dn_ports_are_in_use = is_secure_port(dfs_dn_port) or is_secure_port(dfs_dn_https_port)
+    elif dfs_http_policy == "HTTP_AND_HTTPS":
+      secure_dn_ports_are_in_use = is_secure_port(dfs_dn_port) or is_secure_port(dfs_dn_http_port) or is_secure_port(dfs_dn_https_port)
+    else:   # params.dfs_http_policy == "HTTP_ONLY" or not defined:
+      secure_dn_ports_are_in_use = is_secure_port(dfs_dn_port) or is_secure_port(dfs_dn_http_port)
+    if secure_dn_ports_are_in_use:
+      hadoop_secure_dn_user = hdfs_user
+    else:
+      hadoop_secure_dn_user = '""'
 else:
   mapreduce_libs_path = "/usr/lib/hadoop-mapreduce/*"
   hadoop_libexec_dir = "/usr/lib/hadoop/libexec"
   hadoop_home = "/usr/lib/hadoop"
+  hadoop_secure_dn_user = hdfs_user
 
 hadoop_conf_dir = "/etc/hadoop/conf"
 hadoop_conf_empty_dir = "/etc/hadoop/conf.empty"
 versioned_hdp_root = '/usr/hdp/current'
-#security params
-security_enabled = config['configurations']['cluster-env']['security_enabled']
 
 #hadoop params
 hdfs_log_dir_prefix = config['configurations']['hadoop-env']['hdfs_log_dir_prefix']
@@ -82,7 +128,6 @@ mapred_log_dir_prefix = default("/configurations/mapred-env/mapred_log_dir_prefi
 hadoop_env_sh_template = config['configurations']['hadoop-env']['content']
 
 #users and groups
-hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 hbase_user = config['configurations']['hbase-env']['hbase_user']
 nagios_user = config['configurations']['nagios-env']['nagios_user']
 smoke_user =  config['configurations']['cluster-env']['smokeuser']

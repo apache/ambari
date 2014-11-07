@@ -20,6 +20,7 @@ limitations under the License.
 from resource_management.libraries.functions.version import format_hdp_stack_version, compare_versions
 from resource_management import *
 import status_params
+import utils
 import os
 import itertools
 import re
@@ -29,7 +30,17 @@ tmp_dir = Script.get_tmp_dir()
 
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
 hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
+security_enabled = config['configurations']['cluster-env']['security_enabled']
 stack_is_hdp22_or_further = hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0
+hdfs_user = status_params.hdfs_user
+hadoop_pid_dir_prefix = status_params.hadoop_pid_dir_prefix
+
+# Some datanode settings
+dfs_dn_addr = default('/configurations/hdfs-site/dfs.datanode.address', None)
+dfs_dn_http_addr = default('/configurations/hdfs-site/dfs.datanode.http.address', None)
+dfs_dn_https_addr = default('/configurations/hdfs-site/dfs.datanode.https.address', None)
+dfs_http_policy = default('/configurations/hdfs-site/dfs.http.policy', None)
+secure_dn_ports_are_in_use = False
 
 #hadoop params
 if stack_is_hdp22_or_further:
@@ -38,12 +49,30 @@ if stack_is_hdp22_or_further:
   hadoop_bin = "/usr/hdp/current/hadoop-client/sbin"
   hadoop_bin_dir = "/usr/hdp/current/hadoop-client/bin"
   hadoop_home = "/usr/hdp/current/hadoop-client"
+  if not security_enabled:
+    hadoop_secure_dn_user = '""'
+  else:
+    dfs_dn_port = utils.get_port(dfs_dn_addr)
+    dfs_dn_http_port = utils.get_port(dfs_dn_http_addr)
+    dfs_dn_https_port = utils.get_port(dfs_dn_https_addr)
+    # We try to avoid inability to start datanode as a plain user due to usage of root-owned ports
+    if dfs_http_policy == "HTTPS_ONLY":
+      secure_dn_ports_are_in_use = utils.is_secure_port(dfs_dn_port) or utils.is_secure_port(dfs_dn_https_port)
+    elif dfs_http_policy == "HTTP_AND_HTTPS":
+      secure_dn_ports_are_in_use = utils.is_secure_port(dfs_dn_port) or utils.is_secure_port(dfs_dn_http_port) or utils.is_secure_port(dfs_dn_https_port)
+    else:   # params.dfs_http_policy == "HTTP_ONLY" or not defined:
+      secure_dn_ports_are_in_use = utils.is_secure_port(dfs_dn_port) or utils.is_secure_port(dfs_dn_http_port)
+    if secure_dn_ports_are_in_use:
+      hadoop_secure_dn_user = hdfs_user
+    else:
+      hadoop_secure_dn_user = '""'
 else:
   mapreduce_libs_path = "/usr/lib/hadoop-mapreduce/*"
   hadoop_libexec_dir = "/usr/lib/hadoop/libexec"
   hadoop_bin = "/usr/lib/hadoop/sbin"
   hadoop_bin_dir = "/usr/bin"
   hadoop_home = "/usr/lib/hadoop"
+  hadoop_secure_dn_user = hdfs_user
 
 hadoop_conf_dir = "/etc/hadoop/conf"
 hadoop_conf_empty_dir = "/etc/hadoop/conf.empty"
@@ -53,7 +82,6 @@ execute_path = os.environ['PATH'] + os.pathsep + hadoop_bin_dir
 ulimit_cmd = "ulimit -c unlimited; "
 
 #security params
-security_enabled = config['configurations']['cluster-env']['security_enabled']
 smoke_user_keytab = config['configurations']['cluster-env']['smokeuser_keytab']
 hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
 falcon_user = config['configurations']['falcon-env']['falcon_user']
@@ -118,7 +146,6 @@ hcat_user = config['configurations']['hive-env']['hcat_user']
 hive_user = config['configurations']['hive-env']['hive_user']
 smoke_user =  config['configurations']['cluster-env']['smokeuser']
 mapred_user = config['configurations']['mapred-env']['mapred_user']
-hdfs_user = status_params.hdfs_user
 hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_name']
 
 user_group = config['configurations']['cluster-env']['user_group']
@@ -126,8 +153,6 @@ proxyuser_group =  config['configurations']['hadoop-env']['proxyuser_group']
 nagios_group = config['configurations']['nagios-env']['nagios_group']
 
 #hadoop params
-hadoop_pid_dir_prefix = status_params.hadoop_pid_dir_prefix
-
 hdfs_log_dir_prefix = config['configurations']['hadoop-env']['hdfs_log_dir_prefix']
 hadoop_root_logger = config['configurations']['hadoop-env']['hadoop_root_logger']
 
@@ -153,11 +178,6 @@ dfs_data_dir = config['configurations']['hdfs-site']['dfs.datanode.data.dir']
 dfs_data_dir = ",".join([re.sub(r'^\[.+\]', '', dfs_dir.strip()) for dfs_dir in dfs_data_dir.split(",")])
 
 data_dir_mount_file = config['configurations']['hadoop-env']['dfs.datanode.data.dir.mount.file']
-
-dfs_dn_addr = default('/configurations/hdfs-site/dfs.datanode.address', None)
-dfs_dn_http_addr = default('/configurations/hdfs-site/dfs.datanode.http.address', None)
-dfs_dn_https_addr = default('/configurations/hdfs-site/dfs.datanode.https.address', None)
-dfs_http_policy = default('/configurations/hdfs-site/dfs.http.policy', None)
 
 # HDFS High Availability properties
 dfs_ha_enabled = False

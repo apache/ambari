@@ -47,40 +47,15 @@ def service(action=None, name=None, user=None, create_pid_dir=False,
   }
 
   if params.security_enabled and name == "datanode":
-    dfs_dn_port = get_port(params.dfs_dn_addr)
-    dfs_dn_http_port = get_port(params.dfs_dn_http_addr)
-    dfs_dn_https_port = get_port(params.dfs_dn_https_addr)
-
-    # We try to avoid inability to start datanode as a plain user due to usage of root-owned ports
-    if params.dfs_http_policy == "HTTPS_ONLY":
-      secure_ports_are_in_use = is_secure_port(dfs_dn_port) or is_secure_port(dfs_dn_https_port)
-    elif params.dfs_http_policy == "HTTP_AND_HTTPS":
-      secure_ports_are_in_use = is_secure_port(dfs_dn_port) or is_secure_port(dfs_dn_http_port) or is_secure_port(dfs_dn_https_port)
-    else:   # params.dfs_http_policy == "HTTP_ONLY" or not defined:
-      secure_ports_are_in_use = is_secure_port(dfs_dn_port) or is_secure_port(dfs_dn_http_port)
-
-    # Calculate HADOOP_SECURE_DN_* env vars, but not append them yet
-    # These variables should not be set when starting secure datanode as a non-root
-    ## On secure datanodes, user to run the datanode as after dropping privileges
-    hadoop_secure_dn_user = params.hdfs_user
-    ## Where log files are stored in the secure data environment.
-    hadoop_secure_dn_log_dir = format("{hdfs_log_dir_prefix}/{hadoop_secure_dn_user}")
     ## The directory where pid files are stored in the secure data environment.
-    hadoop_secure_dn_pid_dir = format("{hadoop_pid_dir_prefix}/{hadoop_secure_dn_user}")
-    hadoop_secure_dn_exports = {
-      'HADOOP_SECURE_DN_USER' : hadoop_secure_dn_user,
-      'HADOOP_SECURE_DN_LOG_DIR' : hadoop_secure_dn_log_dir,
-      'HADOOP_SECURE_DN_PID_DIR' : hadoop_secure_dn_pid_dir
-    }
+    hadoop_secure_dn_pid_dir = format("{hadoop_pid_dir_prefix}/{hdfs_user}")
     hadoop_secure_dn_pid_file = format("{hadoop_secure_dn_pid_dir}/hadoop_secure_dn.pid")
 
     # At Champlain stack and further, we may start datanode as a non-root even in secure cluster
-    if not params.stack_is_hdp22_or_further or secure_ports_are_in_use:
+    if not params.stack_is_hdp22_or_further or params.secure_dn_ports_are_in_use:
       user = "root"
       pid_file = format(
         "{hadoop_pid_dir_prefix}/{hdfs_user}/hadoop-{hdfs_user}-{name}.pid")
-      if params.stack_is_hdp22_or_further:
-        hadoop_env_exports.update(hadoop_secure_dn_exports)
 
     if action == 'stop' and params.stack_is_hdp22_or_further and \
       os.path.isfile(hadoop_secure_dn_pid_file):
@@ -93,7 +68,11 @@ def service(action=None, name=None, user=None, create_pid_dir=False,
           with open(hadoop_secure_dn_pid_file, 'r') as f:
             pid = f.read()
           os.kill(int(pid), 0)
-          hadoop_env_exports.update(hadoop_secure_dn_exports)
+
+          custom_export = {
+            'HADOOP_SECURE_DN_USER': params.hdfs_user
+          }
+          hadoop_env_exports.update(custom_export)
         except IOError:
           pass  # Can not open pid file
         except ValueError:
