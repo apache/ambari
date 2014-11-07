@@ -81,6 +81,7 @@
       <configuration-dependencies>
         <config-type>zookeeper-env</config-type>
         <config-type>zookeeper-log4j</config-type>
+        <config-type>zoo.cfg</config-type>
       </configuration-dependencies>
       <restartRequiredAfterChange>true</restartRequiredAfterChange>      
     </service>

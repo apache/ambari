@@ -3418,7 +3418,7 @@ module.exports =
     },
     {
       "id": "puppet var",
-      "name": "zk_data_dir",
+      "name": "dataDir",
       "displayName": "ZooKeeper directory",
       "description": "Data directory for ZooKeeper",
       "defaultValue": "",
@@ -3427,7 +3427,7 @@ module.exports =
       "displayType": "directory",
       "isVisible": true,
       "serviceName": "ZOOKEEPER",
-      "filename": "zookeeper-env.xml",
+      "filename": "zoo.cfg.xml",
       "category": "ZOOKEEPER_SERVER",
       "index": 1
     },
@@ -3442,7 +3442,7 @@ module.exports =
       "isOverridable": false,
       "isVisible": true,
       "serviceName": "ZOOKEEPER",
-      "filename": "zookeeper-env.xml",
+      "filename": "zoo.cfg.xml",
       "category": "ZOOKEEPER_SERVER",
       "index": 2
     },
@@ -3456,7 +3456,7 @@ module.exports =
       "isOverridable": false,
       "isVisible": true,
       "serviceName": "ZOOKEEPER",
-      "filename": "zookeeper-env.xml",
+      "filename": "zoo.cfg.xml",
       "category": "ZOOKEEPER_SERVER",
       "index": 3
     },
@@ -3470,7 +3470,7 @@ module.exports =
       "isOverridable": false,
       "isVisible": true,
       "serviceName": "ZOOKEEPER",
-      "filename": "zookeeper-env.xml",
+      "filename": "zoo.cfg.xml",
       "category": "ZOOKEEPER_SERVER",
       "index": 4
     },
@@ -3484,7 +3484,7 @@ module.exports =
       "isOverridable": false,
       "isVisible": true,
       "serviceName": "ZOOKEEPER",
-      "filename": "zookeeper-env.xml",
+      "filename": "zoo.cfg.xml",
       "category": "ZOOKEEPER_SERVER",
       "index": 5
     },

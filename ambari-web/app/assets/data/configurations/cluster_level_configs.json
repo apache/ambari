@@ -463,7 +463,7 @@
         "nagios_contact" : "n@n.com",
         "mapred_cluster_red_mem_mb" : "-1",
         "hive_ambari_database" : "MySQL",
-        "zk_data_dir" : "/hadoop/zookeeper",
+        "dataDir" : "/hadoop/zookeeper",
         "hive_pid_dir" : "/var/run/hive",
         "mysql_connector_url" : "${download_url}/mysql-connector-java-5.1.18.zip",
         "jtnode_opt_maxnewsize" : "200m",

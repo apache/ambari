@@ -48,15 +48,12 @@ user_group = config['configurations']['cluster-env']['user_group']
 zk_env_sh_template = config['configurations']['zookeeper-env']['content']
 
 zk_log_dir = config['configurations']['zookeeper-env']['zk_log_dir']
-zk_data_dir = config['configurations']['zookeeper-env']['zk_data_dir']
+zk_data_dir = config['configurations']['zoo.cfg']['dataDir']
 zk_pid_dir = status_params.zk_pid_dir
 zk_pid_file = status_params.zk_pid_file
 zk_server_heapsize = "-Xmx1024m"
 
-tickTime = config['configurations']['zookeeper-env']['tickTime']
-initLimit = config['configurations']['zookeeper-env']['initLimit']
-syncLimit = config['configurations']['zookeeper-env']['syncLimit']
-clientPort = config['configurations']['zookeeper-env']['clientPort']
+clientPort = config['configurations']['zoo.cfg']['clientPort']
 
 if 'zoo.cfg' in config['configurations']:
   zoo_cfg_properties_map = config['configurations']['zoo.cfg']

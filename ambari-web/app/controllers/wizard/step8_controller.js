@@ -1414,11 +1414,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, {
             var obj = this.createStormSiteObj(tag);
             obj.service_config_version_note = serviceVersionNotes;
             this.get('serviceConfigTags').pushObject(obj);
-          } else if (type === 'zoo.cfg') {
-            var obj = this.createZooCfgObj(tag);
-            obj.service_config_version_note = serviceVersionNotes;
-            this.get('serviceConfigTags').pushObject(obj);
-          } else {
+          }  else {
             var obj = this.createSiteObj(type, tag);
             obj.service_config_version_note = serviceVersionNotes;
             this.get('serviceConfigTags').pushObject(obj);
@@ -1685,20 +1681,6 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, {
     return configObj;
   },
 
-  /**
-   * Create ZooKeeper Cfg Object
-   * @param tag
-   * @returns {{type: string, tag: string, properties: {}}}
-   * @method createZooCfgObj
-   */
-  createZooCfgObj: function (tag) {
-    var configs = this.get('configs').filterProperty('filename', 'zoo.cfg');
-    var csProperties = {};
-    configs.forEach(function (_configProperty) {
-      csProperties[_configProperty.name] = _configProperty.value;
-    }, this);
-    return {type: 'zoo.cfg', tag: tag, properties: csProperties};
-  },
   /**
    * Create site obj for Storm
    * Some config-properties should be modified in custom way

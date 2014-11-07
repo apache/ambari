@@ -28,7 +28,7 @@ App.config = Em.Object.create({
   /**
    * filename exceptions used to support substandard sitenames which don't have "xml" extension
    */
-  filenameExceptions: ['zoo.cfg'],
+  filenameExceptions: [],
 
   preDefinedServiceConfigs: [],
   /**

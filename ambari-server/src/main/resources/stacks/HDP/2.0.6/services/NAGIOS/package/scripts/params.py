@@ -219,7 +219,7 @@ if has_namenode:
 
 # this is different for HDP1
 nn_metrics_property = "FSNamesystem"
-clientPort = config['configurations']['zookeeper-env']['clientPort'] #ZK 
+clientPort = config['configurations']['zoo.cfg']['clientPort'] #ZK
 
 
 java64_home = config['hostLevelParams']['java_home']
