@@ -479,6 +479,18 @@
             </organization>            
         </developer>
         <developer>
+            <id>rnettleton</id>
+            <name>Bob Nettleton</name>
+            <email>rnettleton@apache.org</email>
+            <timezone>-8</timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+                Hortonworks
+            </organization>
+        </developer>
+        <developer>
             <id>screeley</id>
             <name>Scott Creeley</name>
             <email>screeley@apache.org</email>
