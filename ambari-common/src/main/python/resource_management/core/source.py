@@ -114,8 +114,7 @@ else:
       self.context = variables.copy() if variables else {}
       if not hasattr(self, 'template_env'):
         self.template_env = JinjaEnvironment(loader=TemplateLoader(self.env),
-                                        autoescape=False, undefined=StrictUndefined,
-                                        trim_blocks=True)
+                                        autoescape=False, undefined=StrictUndefined, trim_blocks=True)
         
       self.template = self.template_env.get_template(self.name)     
     
