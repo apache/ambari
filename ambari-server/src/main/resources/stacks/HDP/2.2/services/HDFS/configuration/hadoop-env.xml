@@ -68,6 +68,9 @@ export HADOOP_SECONDARYNAMENODE_OPTS=$HADOOP_NAMENODE_OPTS
 # The following applies to multiple commands (fs, dfs, fsck, distcp etc)
 export HADOOP_CLIENT_OPTS="-Xmx${HADOOP_HEAPSIZE}m -XX:MaxPermSize=512m $HADOOP_CLIENT_OPTS"
 
+# On secure datanodes, user to run the datanode as after dropping privileges
+export HADOOP_SECURE_DN_USER=${HADOOP_SECURE_DN_USER:-{{hadoop_secure_dn_user}}}
+
 # Extra ssh options.  Empty by default.
 export HADOOP_SSH_OPTS="-o ConnectTimeout=5 -o SendEnv=HADOOP_CONF_DIR"
 
@@ -76,6 +79,9 @@ export HADOOP_LOG_DIR={{hdfs_log_dir_prefix}}/$USER
 
 # History server logs
 export HADOOP_MAPRED_LOG_DIR={{mapred_log_dir_prefix}}/$USER
+
+# Where log files are stored in the secure data environment.
+export HADOOP_SECURE_DN_LOG_DIR={{hdfs_log_dir_prefix}}/$HADOOP_SECURE_DN_USER
 
 # File naming remote slave hosts.  $HADOOP_HOME/conf/slaves by default.
 # export HADOOP_SLAVES=${HADOOP_HOME}/conf/slaves
@@ -90,6 +96,7 @@ export HADOOP_MAPRED_LOG_DIR={{mapred_log_dir_prefix}}/$USER
 
 # The directory where pid files are stored. /tmp by default.
 export HADOOP_PID_DIR={{hadoop_pid_dir_prefix}}/$USER
+export HADOOP_SECURE_DN_PID_DIR={{hadoop_pid_dir_prefix}}/$HADOOP_SECURE_DN_USER
 
 # History server pid
 export HADOOP_MAPRED_PID_DIR={{mapred_pid_dir_prefix}}/$USER
