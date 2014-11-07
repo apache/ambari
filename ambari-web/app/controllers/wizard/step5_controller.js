@@ -330,14 +330,6 @@ App.WizardStep5Controller = Em.Controller.extend(App.BlueprintMixin, {
         } else if (item.level === 'WARN') {
           master.set('warnMessage', item.message);
         }
-      } else {
-        var details = " (" + item['component-name'] + " on " + item.host + ")";
-        if (item.level === 'ERROR') {
-          anyErrors = true;
-          generalErrorMessages.push(item.message + details);
-        } else if (item.level === 'WARN') {
-          generalWarningMessages.push(item.message + details);
-        }
       }
     });
 
