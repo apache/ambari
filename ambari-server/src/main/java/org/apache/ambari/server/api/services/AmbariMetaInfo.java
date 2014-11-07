@@ -73,6 +73,8 @@ import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.state.stack.RepositoryXml;
 import org.apache.ambari.server.state.stack.RepositoryXml.Os;
 import org.apache.ambari.server.state.stack.RepositoryXml.Repo;
+import org.apache.ambari.server.state.stack.UpgradePack;
+import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -97,6 +99,7 @@ public class AmbariMetaInfo {
   public static final String RCO_FILE_NAME = "role_command_order.json";
   public static final String SERVICE_METRIC_FILE_NAME = "metrics.json";
   public static final String SERVICE_ALERT_FILE_NAME = "alerts.json";
+
   /**
    * This string is used in placeholder in places that are common for
    * all operating systems or in situations where os type is not important.
@@ -121,6 +124,8 @@ public class AmbariMetaInfo {
   private static final String REPOSITORY_FILE_NAME = "repoinfo.xml";
   private static final String REPOSITORY_FOLDER_NAME = "repos";
   public static final String REPOSITORY_XML_PROPERTY_BASEURL = "baseurl";
+  private static final String UPGRADE_PACK_FOLDER_NAME = "upgrades";
+
   // all the supported OS'es
   @Inject
   private OsFamily os_family;
@@ -967,6 +972,11 @@ public class AmbariMetaInfo {
       // Resolve hooks folder
       String stackHooksToUse = stackExtensionHelper.resolveHooksFolder(stack);
       stack.setStackHooksFolder(stackHooksToUse);
+
+      File upgradesFolder = new File(stackPath + File.separator + UPGRADE_PACK_FOLDER_NAME);
+      if (upgradesFolder.exists() && upgradesFolder.isDirectory()) {
+        stack.setUpgradesFolder(upgradesFolder.getAbsolutePath());
+      }
     }
 
     es.invokeAll(lookupList);
@@ -1344,5 +1354,57 @@ public class AmbariMetaInfo {
         eventPublisher.publish(event);
       }
     }
+  }
+
+  /**
+   * Gets upgrade packs available for a stack.
+   * @param stackName the stack name
+   * @param stackVersion the stack version
+   * @return a map of upgrade packs, keyed by the name of the upgrade pack
+   */
+  public Map<String, UpgradePack> getUpgradePacks(String stackName, String stackVersion) {
+    StackInfo stack = null;
+    try {
+      stack = getStackInfo(stackName, stackVersion);
+    } catch (AmbariException e) {
+      LOG.debug("Cannot load upgrade packs for non-existent stack {}-{}",
+          stackName, stackVersion, e);
+      return Collections.emptyMap();
+    }
+
+    File folder = new File(stack.getUpgradesFolder());
+    if (!folder.exists() || !folder.isDirectory()) {
+      LOG.error("Upgrades folder {} no longer exists", stack.getUpgradesFolder());
+      return Collections.emptyMap();
+    }
+
+    String[] fileNames = folder.list(new FilenameFilter() {
+      @Override
+      public boolean accept(File folder, String fileName) {
+        if (fileName.toLowerCase().endsWith(".xml")) {
+          return true;
+        } else {
+          return false;
+        }
+      }
+    });
+
+
+    Map<String, UpgradePack> packs = new HashMap<String, UpgradePack>();
+
+    for (String fileName : fileNames) {
+      File f = new File(folder, fileName);
+
+      String packName = FilenameUtils.removeExtension(fileName);
+
+      try {
+        UpgradePack up = StackExtensionHelper.unmarshal(UpgradePack.class, f);
+        packs.put(packName, up);
+      } catch (Exception e) {
+        LOG.error("Could not parse {} into an upgrade pack", f.getAbsolutePath());
+      }
+    }
+
+    return packs;
   }
 }

@@ -44,6 +44,8 @@ public class StackInfo implements Comparable<StackInfo>{
    */
   private String stackHooksFolder;
 
+  private String upgradesFolder = null;
+
   public String getName() {
     return name;
   }
@@ -77,7 +79,7 @@ public class StackInfo implements Comparable<StackInfo>{
   public synchronized void setServices(List<ServiceInfo> services) {
     this.services = services;
   }
-  
+
   public List<PropertyInfo> getProperties() {
     if (properties == null) properties = new ArrayList<PropertyInfo>();
     return properties;
@@ -86,7 +88,7 @@ public class StackInfo implements Comparable<StackInfo>{
   public void setProperties(List<PropertyInfo> properties) {
     this.properties = properties;
   }
-  
+
   public Map<String, Map<String, Map<String, String>>> getConfigTypes() {
     if (configTypes == null) configTypes = new HashMap<String, Map<String, Map<String, String>>>();
     return configTypes;
@@ -117,15 +119,15 @@ public class StackInfo implements Comparable<StackInfo>{
 
     return sb.toString();
   }
-  
-  
+
+
   @Override
   public int hashCode() {
     int result = 1;
     result = 31  + name.hashCode() + version.hashCode();
     return result;
   }
-  
+
   @Override
   public boolean equals(Object obj) {
     if (!(obj instanceof StackInfo)) {
@@ -190,4 +192,19 @@ public class StackInfo implements Comparable<StackInfo>{
     String oId = o.name + "-" + o.version;
     return myId.compareTo(oId);
   }
+
+  /**
+   * @param path the path to the upgrades folder
+   */
+  public void setUpgradesFolder(String path) {
+    upgradesFolder = path;
+  }
+
+  /**
+   * @return the upgrades folder, or {@code null} if not set
+   */
+  public String getUpgradesFolder() {
+    return upgradesFolder;
+  }
+
 }
