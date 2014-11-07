@@ -243,7 +243,7 @@ limitations under the License.
 
   <property>
     <name>hive.exec.max.created.files</name>
-    <value>100000L</value>
+    <value>100000</value>
     <description>Maximum number of HDFS files created by all mappers/reducers in a MapReduce job.</description>
   </property>
 
