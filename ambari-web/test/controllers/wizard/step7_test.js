@@ -333,7 +333,7 @@ describe('App.InstallerStep7Controller', function () {
     it('should set property to false', function () {
       var allSelectedServiceNames = ['YARN'],
         configs = [
-          {name: 'hadoop.registry.rm.enabled', value: true, defaultValue: true},
+          {name: 'hadoop.registry.rm.enabled', value: true, defaultValue: true}
         ],
         expected = [
           {name: 'hadoop.registry.rm.enabled', value: false, defaultValue: false, forceUpdate: true}
@@ -346,7 +346,7 @@ describe('App.InstallerStep7Controller', function () {
     it('should skip setting property', function () {
       var allSelectedServiceNames = ['YARN', 'SLIDER'],
         configs = [
-          {name: 'hadoop.registry.rm.enabled', value: true, defaultValue: true},
+          {name: 'hadoop.registry.rm.enabled', value: true, defaultValue: true}
         ],
         expected = [
           {name: 'hadoop.registry.rm.enabled', value: true, defaultValue: true}
@@ -1236,6 +1236,40 @@ describe('App.InstallerStep7Controller', function () {
       expect(component.get('configGroups.firstObject.properties.firstObject.group')).to.be.object;
     });
 
+  });
+
+  describe('#setSecureConfigs', function() {
+    var serviceConfigObj = Em.Object.create({
+      serviceName: 'HDFS',
+      configs: [
+        Em.Object.create({ name: 'hadoop.http.authentication.signature.secret.file' }),
+        Em.Object.create({ name: 'hadoop.security.authentication' })
+      ]
+    });
+    var tests = [
+      { name: 'hadoop.http.authentication.signature.secret.file', e: false },
+      { name: 'hadoop.security.authentication', e: true }
+    ];
+
+    sinon.stub(App, 'get', function(key) {
+      if (['isHadoop22Stack', 'isHadoop2Stack'].contains(key)) return true;
+      else App.get(key);
+    });
+    var controller = App.WizardStep7Controller.create({});
+    controller.get('secureConfigs').pushObjects([
+      {
+        name: 'hadoop.http.authentication.signature.secret.file',
+        serviceName: 'HDFS',
+        value: ''
+      }
+    ]);
+    controller.setSecureConfigs(serviceConfigObj, 'HDFS');
+    App.get.restore();
+    tests.forEach(function(test) {
+      it('{0} is {1}required'.format(test.name, !!test.e ? '' : 'non ' ), function() {
+        expect(serviceConfigObj.get('configs').findProperty('name', test.name).get('isRequired')).to.eql(test.e);
+      });
+    });
   });
 
 });

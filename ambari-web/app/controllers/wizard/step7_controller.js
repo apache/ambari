@@ -51,7 +51,13 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
   /**
    * used in services_config.js view to mark a config with security icon
    */
-  secureConfigs: require('data/secure_mapping'),
+  secureConfigs: function() {
+    if (App.get('isHadoop2Stack')) {
+      return require('data/HDP2/secure_mapping');
+    } else {
+      return require('data/secure_mapping');
+    }
+  }.property('isHadoop2Stack'),
 
   /**
    * config categories with secure properties
@@ -818,7 +824,12 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
           this.addSecureConfigs(selectedService, serviceName) ;
         }
       }, this);
-
+      this.get('installedServiceNames').forEach(function(serviceName) {
+        var serviceConfigObj = serviceConfigs.findProperty('serviceName', serviceName);
+        if (this.get('securityEnabled')) {
+          this.setSecureConfigs(serviceConfigObj, serviceName);
+        }
+      }, this);
       // Remove SNameNode if HA is enabled
       if (App.get('isHaEnabled')) {
         var c = serviceConfigs.findProperty('serviceName', 'HDFS').configs;
@@ -833,6 +844,25 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
     this.set('stepConfigs', serviceConfigs);
   },
 
+  /**
+   * Set secure properties for installed services. Mark secure properties and 
+   * properties with default empty value as non required to pass validation.
+   *
+   * @param {Em.Object} serviceConfigObj
+   * @param {String} serviceName
+   */
+  setSecureConfigs: function(serviceConfigObj, serviceName) {
+    var configProperties = serviceConfigObj.get('configs');
+    if (!configProperties) return;
+    var secureConfigs = this.get('secureConfigs').filterProperty('serviceName', serviceName);
+    secureConfigs.forEach(function(secureConfig) {
+      var property = configProperties.findProperty('name', secureConfig.name);
+      if (property) {
+        property.set('isRequired', secureConfig.value != "");
+        if (!property.get('isRequired')) property.set('errorMessage', '');
+      }
+    });
+  },
   /**
    *
    * @param selectedService
