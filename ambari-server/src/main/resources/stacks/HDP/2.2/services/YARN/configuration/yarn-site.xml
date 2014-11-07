@@ -42,13 +42,16 @@
   </property>
   <property>
     <name>yarn.nodemanager.recovery.enabled</name>
-    <value>1</value>
-    <description></description>
+    <value>true</value>
+    <description>Enable the node manager to recover after starting</description>
   </property>
   <property>
     <name>yarn.nodemanager.recovery.dir</name>
     <value>/hadoop/yarn/yarn-nm-recovery</value>
-    <description></description>
+    <description>
+      The local filesystem directory in which the node manager will store
+      state when recovery is enabled.
+    </description>
   </property>
   <property>
     <name>yarn.client.nodemanager-connect.retry-interval-ms</name>
@@ -62,18 +65,28 @@
   </property>
   <property>
     <name>yarn.resourcemanager.recovery.enabled</name>
-    <value>1</value>
-    <description></description>
+    <value>true</value>
+    <description>
+      Enable RM to recover state after starting.
+      If true, then yarn.resourcemanager.store.class must be specified.
+    </description>
   </property>
   <property>
     <name>yarn.resourcemanager.work-preserving-recovery.enabled</name>
-    <value>1</value>
-    <description></description>
+    <value>true</value>
+    <description>
+      Enable RM work preserving recovery. This configuration is private to YARN for experimenting the feature.
+    </description>
   </property>
   <property>
     <name>yarn.resourcemanager.store.class</name>
     <value>org.apache.hadoop.yarn.server.resourcemanager.recovery.ZKRMStateStore</value>
-    <description></description>
+    <description>
+      The class to use as the persistent store.
+      If org.apache.hadoop.yarn.server.resourcemanager.recovery.ZKRMStateStore is used,
+      the store is implicitly fenced; meaning a single ResourceManager
+      is able to use the store at any point in time.
+    </description>
   </property>
   <property>
     <name>yarn.resourcemanager.zk-address</name>
@@ -143,7 +156,7 @@
   </property>
   <property>
     <name>yarn.resourcemanager.ha.enabled</name>
-    <value>0</value>
+    <value>false</value>
     <description>enable RM HA or not</description>
   </property>
   <property>
@@ -158,12 +171,12 @@
   </property>
   <property>
     <name>yarn.nodemanager.linux-container-executor.cgroups.mount</name>
-    <value>1</value>
+    <value>true</value>
     <description>If true, YARN will automount the CGroup, however the directory needs to already exist; else, the cgroup should be mounted by the admin</description>
   </property>
   <property>
     <name>yarn.nodemanager.linux-container-executor.cgroups.strict-resource-usage</name>
-    <value>0</value>
+    <value>false</value>
     <description>Strictly limit CPU resource usage to allocated usage even if spare CPU is available</description>
   </property>
   <property>
@@ -203,8 +216,11 @@
   </property>
   <property>
     <name>yarn.nodemanager.log-aggregation.debug-enabled</name>
-    <value>0</value>
-    <description>This configuration is for debug and test purpose. By setting this configuration as true. We can break the lower bound of yarn.nodemanager.log-aggregation.roll-monitoring-interval-seconds</description>
+    <value>false</value>
+    <description>
+      This configuration is for debug and test purpose.
+      By setting this configuration as true.
+      We can break the lower bound of yarn.nodemanager.log-aggregation.roll-monitoring-interval-seconds</description>
   </property>
   <property>
     <name>yarn.nodemanager.log-aggregation.num-log-files-per-app</name>
@@ -213,7 +229,7 @@
   </property>
   <property>
     <name>yarn.resourcemanager.system-metrics-publisher.enabled</name>
-    <value>1</value>
+    <value>true</value>
     <description></description>
   </property>
   <property>
@@ -234,32 +250,43 @@
   <property>
     <name>yarn.timeline-service.ttl-enable</name>
     <value>true</value>
-    <description></description>
+    <description>
+      Enable age off of timeline store data.
+    </description>
   </property>
   <property>
     <name>yarn.timeline-service.leveldb-timeline-store.path</name>
     <value>/hadoop/yarn/timeline</value>
-    <description></description>
+    <description>Store file name for leveldb timeline store.</description>
   </property>
   <property>
     <name>yarn.timeline-service.leveldb-timeline-store.read-cache-size</name>
     <value>104857600</value>
-    <description></description>
+    <description>
+      Size of read cache for uncompressed blocks for leveldb timeline store in bytes.
+    </description>
   </property>
   <property>
     <name>yarn.timeline-service.leveldb-timeline-store.start-time-read-cache-size</name>
     <value>10000</value>
-    <description></description>
+    <description>
+      Size of cache for recently read entity start times for leveldb timeline store in number of entities.
+    </description>
   </property>
   <property>
     <name>yarn.timeline-service.leveldb-timeline-store.start-time-write-cache-size</name>
     <value>10000</value>
-    <description></description>
+    <description>
+      Size of cache for recently written entity start times for leveldb timeline store in number of entities.
+    </description>
   </property>
   <property>
     <name>yarn.timeline-service.http-authentication.type</name>
     <value>simple</value>
-    <description></description>
+    <description>
+      Defines authentication used for the Timeline Server HTTP endpoint.
+      Supported values are: simple | kerberos | $AUTHENTICATION_HANDLER_CLASSNAME
+    </description>
   </property>
   <property>
     <name>yarn.timeline-service.http-authentication.simple.anonymous.allowed</name>
@@ -268,8 +295,13 @@
   </property>
   <property>
     <name>yarn.resourcemanager.webapp.delegation-token-auth-filter.enabled</name>
-    <value>0</value>
-    <description></description>
+    <value>false</value>
+    <description>
+      Flag to enable override of the default kerberos authentication filter with
+      the RM authentication filter to allow authentication using delegation
+      tokens(fallback to kerberos if the tokens are missing).
+      Only applicable when the http authentication type is kerberos.
+    </description>
   </property>
   <property>
     <name>yarn.resourcemanager.bind-host</name>
