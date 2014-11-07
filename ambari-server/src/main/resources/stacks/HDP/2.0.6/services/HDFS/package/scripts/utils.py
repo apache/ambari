@@ -101,13 +101,13 @@ def service(action=None, name=None, user=None, create_pid_dir=False,
         except OSError:
           pass  # Process is not running
     pass
-  pass
 
-  # Set HADOOP_SECURE_DN_USER correctly in hadoop-env if DN is running as root
-  # in secure mode.
-  if name == 'datanode' and user == 'root':
-    params.dn_proc_user = 'root'
-    hdfs.setup_hadoop_env(replace=True)
+    # Set HADOOP_SECURE_DN_USER correctly in hadoop-env if DN is running as root
+    # in secure mode.
+    if user == 'root':
+      params.dn_proc_user = 'root'
+      hdfs.setup_hadoop_env(replace=True)
+    pass
   pass
 
   hadoop_env_exports_str = ''
