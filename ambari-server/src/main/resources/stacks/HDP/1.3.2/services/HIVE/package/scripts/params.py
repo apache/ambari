@@ -56,6 +56,8 @@ ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
 hive_server_host = config['clusterHostInfo']['hive_server_host'][0]
 hive_server_port = default('/configurations/hive-site/hive.server2.thrift.port',"10000")
 hive_url = format("jdbc:hive2://{hive_server_host}:{hive_server_port}")
+hive_server_principal = config['configurations']['hive-site']['hive.server2.authentication.kerberos.principal']
+hive_server2_authentication = config['configurations']['hive-site']['hive.server2.authentication']
 
 smokeuser = config['configurations']['cluster-env']['smokeuser']
 smoke_test_sql = format("{tmp_dir}/hiveserver2.sql")

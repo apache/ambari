@@ -17,72 +17,36 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-import socket
 from resource_management.core.exceptions import Fail
+from resource_management.core.resources import Execute
+from resource_management.libraries.functions import format
+import socket
 
-def check_thrift_port_sasl(address, port, timeout = 5, security_enabled = False):
+def check_thrift_port_sasl(address, port, hive_auth = "NOSASL", key = None, kinitcmd = None):
   """
   Hive thrift SASL port check
   """
+  BEELINE_CHECK_TIMEOUT = 7
 
-  #Authentification mechanism
-  mechanism = "PLAIN"
-  #Anonymous username
-  usr = "ANONYMOUS"
-  start_byte = 0x01 #START communication
-  ok_byte = 0x02 #OK
-  bad_byte = 0x03 #BAD
-  error_byte = 0x04 #ERROR
-  complete_byte = 0x05 #COMPLETE communication
-  
-  msg = bytearray()
+  if kinitcmd:
+    url = format("jdbc:hive2://{address}:{port}/;principal={key}")
+    Execute(kinitcmd)
+  else:
+    url = format("jdbc:hive2://{address}:{port}")
 
-  msg.append(start_byte)
-  msg.append(0)
-  msg.append(0)
-  msg.append(0)
-  msg.append(len(mechanism))
-  for elem in mechanism:
-    msg.append(ord(elem))
+  if hive_auth != "NOSASL":
+    cmd = format("! beeline -u '{url}' -e '' ") + "2>&1| awk '{print}'|grep Error"
+    Execute(cmd,
+            path=["/bin/", "/usr/bin/", "/usr/lib/hive/bin/", "/usr/sbin/"],
+            timeout=BEELINE_CHECK_TIMEOUT
+    )
+  else:
+    s = socket.socket()
+    s.settimeout(1)
+    try:
+      s.connect((address, port))
+    except socket.error, e:
+      raise
+    finally:
+      s.close()
 
-  msg.append(ok_byte)
-  msg.append(0)
-  msg.append(0)
-  msg.append(0)
-  msg.append(len(usr)*2+2)
-  
-  #Adding anonymous user name
-  msg.append(0)
-  for elem in usr:
-    msg.append(ord(elem))
-
-  #Adding anonymous user password
-  msg.append(0)
-  for elem in usr:
-    msg.append(ord(elem))
-
-  msg.append(complete_byte)
-  msg.append(0)
-  msg.append(0)
-  msg.append(0)
-  msg.append(0)
-
-  is_service_socket_valid = False
-  s = socket.socket()
-  s.settimeout(timeout)
-
-  try:
-    s.connect((address, port))
-    #Successfull connection, port check passed
-    is_service_socket_valid = True
-
-    # Try to send anonymous plain auth message to thrift to prevent errors in hive log
-    # Plain mechanism is not supported in security mode
-    if not security_enabled:
-      s.send(msg)
-  except socket.error, e:
-    #Expected if service unreachable
-    pass
-  finally:
-    s.close()
-    return is_service_socket_valid

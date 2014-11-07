@@ -72,7 +72,6 @@ class TestServiceCheck(RMFTestCase):
                               try_sleep = 5,
                               )
     self.assertNoMoreResources()
-    self.assertTrue(socket_mock.called)
 
   @patch("sys.exit")
   def test_service_check_secured(self, sys_exit_mock, socket_mock):
@@ -82,6 +81,11 @@ class TestServiceCheck(RMFTestCase):
                         command="service_check",
                         config_file="secured.json"
     )
+    self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa; ',)
+    self.assertResourceCalled('Execute', "! beeline -u 'jdbc:hive2://c6402.ambari.apache.org:10000/;principal=hive/_HOST@EXAMPLE.COM' -e '' 2>&1| awk '{print}'|grep Error",
+                              path = ['/bin/', '/usr/bin/', '/usr/lib/hive/bin/', '/usr/sbin/'],
+                              timeout= 7
+                              )
     self.assertResourceCalled('File', '/tmp/hcatSmoke.sh',
                         content = StaticFile('hcatSmoke.sh'),
                         mode = 0755,
@@ -122,4 +126,3 @@ class TestServiceCheck(RMFTestCase):
                               try_sleep = 5,
                               )
     self.assertNoMoreResources()
-    self.assertTrue(socket_mock.called)

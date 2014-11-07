@@ -726,7 +726,7 @@ define service {
         use                     hadoop-service
         service_description     HIVE-SERVER::HiveServer2 process
         servicegroups           HIVE
-        check_command           check_tcp_wrapper_sasl!{{ hive_server_port }}!{{ '--security-enabled' if security_enabled else '' }}!-w 1 -c 1
+        check_command           check_tcp_wrapper_sasl!{{ hive_server_port }}!{{ hive_server2_authentication }}!{{ hive_server_principal }}!{{ kinitcmd }}
         _host_component         HIVE_SERVER
         normal_check_interval   0.5
         retry_check_interval    0.5

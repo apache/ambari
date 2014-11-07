@@ -143,5 +143,5 @@ define command{
 
 define command{
         command_name check_tcp_wrapper_sasl
-        command_line /var/lib/ambari-agent/ambari-python-wrap $USER1$/mm_wrapper.py legacy_check_wrapper -- /var/lib/ambari-agent/ambari-python-wrap $USER1$/check_hive_thrift_port.py -H $HOSTADDRESS$ -p $ARG1$ $ARG2$
+        command_line /var/lib/ambari-agent/ambari-python-wrap $USER1$/mm_wrapper.py and $HOSTADDRESS$ -- /var/lib/ambari-agent/ambari-python-wrap $USER1$/check_hive_thrift_port.py -H ^^ -p $ARG1$ -a $ARG2$ -k $ARG3$ -c '$ARG4$'
        }

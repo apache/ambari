@@ -37,7 +37,9 @@ def main():
 
   parser.add_option("-H", "--host", dest="address", help="Hive thrift host")
   parser.add_option("-p", "--port", type="int", dest="port", help="Hive thrift port")
-  parser.add_option("--security-enabled", action="store_true", dest="security_enabled")
+  parser.add_option("-a", "--hive-auth", dest="hive_auth")
+  parser.add_option("-k", "--hive-principal", dest="key")
+  parser.add_option("-c", "--cmd-kinit", dest="kinitcmd")
 
   (options, args) = parser.parse_args()
 
@@ -49,23 +51,20 @@ def main():
     print "Specify hive thrift port (--port or -p)"
     exit(-1)
 
-  if options.security_enabled:
-    security_enabled = options.security_enabled
-  else:
-    security_enabled = False
-
   address = options.address
   port = options.port
 
   starttime = time()
-  if check_thrift_port_sasl(address, port, security_enabled=security_enabled):
+  try:
+    with Environment() as env:
+      check_thrift_port_sasl(address, port, options.hive_auth, options.key, options.kinitcmd)
     timetaken = time() - starttime
     print OK_MESSAGE % (timetaken, port)
-    exit(0)
-  else:
+  except:
     print CRITICAL_MESSAGE % (address, port)
     exit(2)
 
+  exit(0)
 
 if __name__ == "__main__":
   main()

@@ -228,6 +228,16 @@ security_enabled = config['configurations']['cluster-env']['security_enabled']
 nagios_keytab_path = default("/configurations/nagios-env/nagios_keytab_path", "/etc/security/keytabs/nagios.service.keytab")
 kinit_path_local = functions.get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
 
+if security_enabled:
+  smoke_user_keytab = config['configurations']['cluster-env']['smokeuser_keytab']
+  smokeuser = config['configurations']['cluster-env']['smokeuser']
+  kinitcmd = format("{kinit_path_local} -kt {smoke_user_keytab} {smokeuser}; ")
+  hive_server_principal = default("configurations/hive-site/hive.server2.authentication.kerberos.principal","hive/_HOST@EXAMPLE.COM")
+else:
+  kinitcmd = ''
+  hive_server_principal = ''
+hive_server2_authentication = default("configurations/hive-site/hive.server2.authentication","NOSASL")
+
 dfs_ha_enabled = False
 dfs_ha_nameservices = default("/configurations/hdfs-site/dfs.nameservices", None)
 dfs_ha_namenode_ids = default(format("/configurations/hdfs-site/dfs.ha.namenodes.{dfs_ha_nameservices}"), None)

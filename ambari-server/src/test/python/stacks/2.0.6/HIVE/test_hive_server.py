@@ -39,7 +39,7 @@ class TestHiveServer(RMFTestCase):
   @patch("socket.socket")
   def test_start_default(self, socket_mock, popen_mock):
     s = socket_mock.return_value
-    
+
     self.executeScript("2.0.6/services/HIVE/package/scripts/hive_server.py",
                          classname = "HiveServer",
                          command = "start",
@@ -58,15 +58,12 @@ class TestHiveServer(RMFTestCase):
     self.assertResourceCalled('Execute', '/usr/jdk64/jdk1.7.0_45/bin/java -cp /usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/share/java/mysql-connector-java.jar org.apache.ambari.server.DBConnectionVerification \'jdbc:mysql://c6402.ambari.apache.org/hive?createDatabaseIfNotExist=true\' hive \'!`"\'"\'"\' 1\' com.mysql.jdbc.Driver',
                               path=['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'], tries=5, try_sleep=10
     )
-
     self.assertNoMoreResources()
     self.assertTrue(popen_mock.called)
     popen_mock.assert_called_with(
       ['su', '-s', '/bin/bash', '-', u'hive', '-c', "metatool -listFSRoot 2>/dev/null | grep hdfs:// | grep -v '.db$'"],
       shell=False, preexec_fn=None, stderr=-2, stdout=-1, env=None, cwd=None
     )
-    self.assertTrue(socket_mock.called)
-    self.assertTrue(s.close.called)
 
   @patch("socket.socket")
   def test_stop_default(self, socket_mock):
@@ -81,7 +78,6 @@ class TestHiveServer(RMFTestCase):
     )
     
     self.assertNoMoreResources()
-    self.assertFalse(socket_mock.called)
 
     
   def test_configure_secured(self):
@@ -94,10 +90,7 @@ class TestHiveServer(RMFTestCase):
     self.assertNoMoreResources()
 
   @patch("hive_service.check_fs_root")
-  @patch("socket.socket")
-  def test_start_secured(self, socket_mock, check_fs_root_mock):
-    s = socket_mock.return_value
-
+  def test_start_secured(self, check_fs_root_mock):
     self.executeScript("2.0.6/services/HIVE/package/scripts/hive_server.py",
                        classname = "HiveServer",
                        command = "start",
@@ -115,14 +108,15 @@ class TestHiveServer(RMFTestCase):
     self.assertResourceCalled('Execute', '/usr/jdk64/jdk1.7.0_45/bin/java -cp /usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/share/java/mysql-connector-java.jar org.apache.ambari.server.DBConnectionVerification \'jdbc:mysql://c6402.ambari.apache.org/hive?createDatabaseIfNotExist=true\' hive \'!`"\'"\'"\' 1\' com.mysql.jdbc.Driver',
                               path=['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'], tries=5, try_sleep=10
     )
-
+    self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa; ',)
+    self.assertResourceCalled('Execute', "! beeline -u 'jdbc:hive2://c6402.ambari.apache.org:10000/;principal=hive/_HOST@EXAMPLE.COM' -e '' 2>&1| awk '{print}'|grep Error",
+                              path = ['/bin/', '/usr/bin/', '/usr/lib/hive/bin/', '/usr/sbin/'],
+                              timeout=7
+                              )
     self.assertNoMoreResources()
     self.assertTrue(check_fs_root_mock.called)
-    self.assertTrue(socket_mock.called)
-    self.assertTrue(s.close.called)
 
-  @patch("socket.socket")
-  def test_stop_secured(self, socket_mock):
+  def test_stop_secured(self):
     self.executeScript("2.0.6/services/HIVE/package/scripts/hive_server.py",
                        classname = "HiveServer",
                        command = "stop",
@@ -134,7 +128,6 @@ class TestHiveServer(RMFTestCase):
     )
     
     self.assertNoMoreResources()
-    self.assertFalse(socket_mock.called)
 
   def assert_configure_default(self):
     self.assertResourceCalled('HdfsDirectory', '/apps/tez/',

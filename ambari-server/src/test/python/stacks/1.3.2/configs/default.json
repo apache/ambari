@@ -281,7 +281,8 @@
             "ambari.hive.db.schema.name": "hive", 
             "hive.metastore.execute.setugi": "true", 
             "hive.auto.convert.sortmerge.join.noconditionaltask": "true", 
-            "hive.server2.enable.doAs": "true", 
+            "hive.server2.enable.doAs": "true",
+            "hive.server2.authentication": "NONE",
             "hive.optimize.mapjoin.mapreduce": "true"
         },
         "webhcat-env": {
