@@ -23,9 +23,11 @@ var modelSetup = require('test/init_model_test');
 require('utils/ajax/ajax');
 var c;
 describe('App.WizardStep5Controller', function () {
+
   beforeEach(function () {
     c = App.WizardStep5Controller.create();
   });
+
   var controller = App.WizardStep5Controller.create();
   controller.set('content', {});
   var cpu = 2, memory = 4;
@@ -719,6 +721,472 @@ describe('App.WizardStep5Controller', function () {
           });
         });
       });
+  });
+
+  describe('#anyError', function () {
+
+    Em.A([
+        {
+          servicesMasters: [
+            Em.Object.create({errorMessage: 'some message'}),
+            Em.Object.create({errorMessage: ''})
+          ],
+          generalErrorMessages: [],
+          e: true
+        },
+        {
+          servicesMasters: [
+            Em.Object.create({errorMessage: ''}),
+            Em.Object.create({errorMessage: ''})
+          ],
+          generalErrorMessages: [],
+          e: false
+        },
+        {
+          servicesMasters: [
+            Em.Object.create({errorMessage: 'some message'}),
+            Em.Object.create({errorMessage: 'some message 2'})
+          ],
+          generalErrorMessages: ['some message'],
+          e: true
+        },
+        {
+          servicesMasters: [
+            Em.Object.create({errorMessage: ''}),
+            Em.Object.create({errorMessage: ''})
+          ],
+          generalErrorMessages: ['some message'],
+          e: true
+        }
+      ]).forEach(function (test, i) {
+        it('test #' + i.toString(), function () {
+          c.setProperties({
+            servicesMasters: test.servicesMasters,
+            generalErrorMessages: test.generalErrorMessages
+          });
+          expect(c.get('anyError')).to.equal(test.e);
+        });
+      });
+
+  });
+
+  describe('#anyWarning', function () {
+
+    Em.A([
+        {
+          servicesMasters: [
+            Em.Object.create({warnMessage: 'some message'}),
+            Em.Object.create({warnMessage: ''})
+          ],
+          generalWarningMessages: [],
+          e: true
+        },
+        {
+          servicesMasters: [
+            Em.Object.create({warnMessage: ''}),
+            Em.Object.create({warnMessage: ''})
+          ],
+          generalWarningMessages: [],
+          e: false
+        },
+        {
+          servicesMasters: [
+            Em.Object.create({warnMessage: 'some message'}),
+            Em.Object.create({warnMessage: 'some message 2'})
+          ],
+          generalWarningMessages: ['some message'],
+          e: true
+        },
+        {
+          servicesMasters: [
+            Em.Object.create({warnMessage: ''}),
+            Em.Object.create({warnMessage: ''})
+          ],
+          generalWarningMessages: ['some message'],
+          e: true
+        }
+      ]).forEach(function (test, i) {
+        it('test #' + i.toString(), function () {
+          c.setProperties({
+            servicesMasters: test.servicesMasters,
+            generalWarningMessages: test.generalWarningMessages
+          });
+          expect(c.get('anyWarning')).to.equal(test.e);
+        });
+      });
+
+  });
+
+  describe('#clearRecommendations', function () {
+
+    it('should clear content.recommendations', function () {
+
+      c.set('content', {recommendations: {'s': {}}});
+      c.clearRecommendations();
+      expect(c.get('content.recommendations')).to.be.null;
+
+    });
+
+  });
+
+  describe('#updateIsSubmitDisabled', function () {
+
+    beforeEach(function () {
+      c.set('selectedServicesMasters', [
+        {isInstalled: false}
+      ]);
+    });
+
+    it('shouldn\'t change submitDisabled if thereIsNoMasters returns false', function () {
+
+      c.set('selectedServicesMasters', [
+        {isInstalled: true}
+      ]);
+      c.set('submitDisabled', false);
+      c.updateIsSubmitDisabled();
+      expect(c.get('submitDisabled')).to.equal(false);
+
+    });
+
+    it('should check servicesMasters.@each.isHostNameValid if useServerValidation is false', function () {
+
+      c.set('useServerValidation', false);
+      c.set('servicesMasters', [
+        {isHostNameValid: false},
+        {isHostNameValid: true}
+      ]);
+      c.updateIsSubmitDisabled();
+      expect(c.get('submitDisabled')).to.equal(true);
+
+      c.set('servicesMasters', [
+        {isHostNameValid: true},
+        {isHostNameValid: true}
+      ]);
+      c.updateIsSubmitDisabled();
+      expect(c.get('submitDisabled')).to.equal(false);
+
+    });
+
+
+  });
+
+  describe('#isHostNameValid', function () {
+
+    beforeEach(function () {
+      c.setProperties({
+        hosts: [
+          {host_name: 'h1'},
+          {host_name: 'h2'},
+          {host_name: 'h3'}
+        ],
+        selectedServicesMasters: [
+          {component_name: 'c1', selectedHost: 'h1'},
+          {component_name: 'c2', selectedHost: 'h2'},
+          {component_name: 'c3', selectedHost: 'h3'},
+          {component_name: 'c3', selectedHost: 'h1'}
+        ]
+      });
+    });
+
+    Em.A([
+        {
+          componentName: 'c1',
+          selectedHost: '   ',
+          m: 'empty hostName is invalid',
+          e: false
+        },
+        {
+          componentName: 'c1',
+          selectedHost: 'h4',
+          m: 'hostName not exists',
+          e: false
+        },
+        {
+          componentName: 'c4',
+          selectedHost: 'h3',
+          m: 'component not exists on host',
+          e: true
+        }
+      ]).forEach(function (test) {
+        it(test.m, function () {
+          expect(c.isHostNameValid(test.componentName, test.selectedHost)).to.equal(test.e);
+        });
+      });
+
+  });
+
+  describe('#createComponentInstallationObject', function () {
+
+    afterEach(function () {
+      App.StackServiceComponent.find.restore();
+    });
+
+    Em.A([
+        {
+          fullComponent: Em.Object.create({
+            componentName: 'c1',
+            serviceName: 's1'
+          }),
+          hostName: 'h1',
+          controllerName: 'reassignMasterController',
+          savedComponent: {
+            hostName: 'h2',
+            isInstalled: true
+          },
+          stackServiceComponents: [Em.Object.create({componentName: 'c1', isCoHostedComponent: true})],
+          e: {
+            component_name: 'c1',
+            display_name: 'C1',
+            serviceId: 's1',
+            selectedHost: 'h2',
+            isInstalled: true,
+            isServiceCoHost: false
+          }
+        },
+        {
+          fullComponent: Em.Object.create({
+            componentName: 'c1',
+            serviceName: 's1'
+          }),
+          hostName: 'h1',
+          controllerName: 'installerController',
+          stackServiceComponents: [Em.Object.create({componentName: 'c1', isCoHostedComponent: false})],
+          e: {
+            component_name: 'c1',
+            display_name: 'C1',
+            serviceId: 's1',
+            selectedHost: 'h1',
+            isInstalled: false,
+            isServiceCoHost: false
+          }
+        },
+        {
+          fullComponent: Em.Object.create({
+            componentName: 'c1',
+            serviceName: 's1'
+          }),
+          hostName: 'h1',
+          controllerName: 'installerController',
+          stackServiceComponents: [Em.Object.create({componentName: 'c1', isCoHostedComponent: true})],
+          e: {
+            component_name: 'c1',
+            display_name: 'C1',
+            serviceId: 's1',
+            selectedHost: 'h1',
+            isInstalled: false,
+            isServiceCoHost: true
+          }
+        }
+      ]).forEach(function (test, i) {
+        it('test #' + i, function () {
+          sinon.stub(App.StackServiceComponent, 'find', function () {
+            return test.stackServiceComponents;
+          });
+          c.set('content', {controllerName: test.controllerName});
+          expect(c.createComponentInstallationObject(test.fullComponent, test.hostName, test.savedComponent)).to.eql(test.e);
+        });
+      });
+
+  });
+
+  describe('#createComponentInstallationObjects', function () {
+
+    beforeEach(function() {
+      sinon.stub(App.StackServiceComponent, 'find', function() {
+        return [
+          Em.Object.create({isShownOnAddServiceAssignMasterPage: true, componentName: 'c1', serviceName: 's1'}),
+          Em.Object.create({isShownOnAddServiceAssignMasterPage: true, componentName: 'c2', serviceName: 's2'}),
+          Em.Object.create({isShownOnAddServiceAssignMasterPage: true, componentName: 'c4', serviceName: 's2'}),
+          Em.Object.create({isShownOnInstallerAssignMasterPage: true, componentName: 'c1', serviceName: 's1'}),
+          Em.Object.create({isShownOnInstallerAssignMasterPage: true, componentName: 'c2', serviceName: 's2'}),
+          Em.Object.create({isShownOnInstallerAssignMasterPage: true, componentName: 'c4', serviceName: 's2'})
+        ];
+      });
+
+      c.set('content', {
+        masterComponentHosts: [],
+        services: [
+          {serviceName: 's1', isSelected: true, isInstalled: false},
+          {serviceName: 's2', isSelected: true, isInstalled: false}
+        ],
+        recommendations: {
+          "blueprint": {
+            "host_groups": [
+              {
+                "name": "host-group-1",
+                "components": [ {"name": "c1"}, {"name": "c2"} ]
+              },
+              {
+                "name": "host-group-2",
+                "components": [ {"name": "c1"}, {"name": "c2"} ]
+              },
+              {
+                "name": "host-group-3",
+                "components": [ {"name": "c1"} ]
+              }
+            ]
+          },
+          "blueprint_cluster_binding": {
+            "host_groups": [
+              {
+                "name": "host-group-1",
+                "hosts": [ {"fqdn": "h1"} ]
+              },
+              {
+                "name": "host-group-2",
+                "hosts": [ {"fqdn": "h2"} ]
+              },
+              {
+                "name": "host-group-3",
+                "hosts": [ {"fqdn": "h3"} ]
+              }
+            ]
+          }
+        }
+      });
+
+    });
+
+    afterEach(function() {
+      App.StackServiceComponent.find.restore();
+    });
+
+    it('simple map without nothing stored/saved etc', function() {
+      var r = c.createComponentInstallationObjects();
+      expect(r.mapProperty('component_name')).to.eql(['c1', 'c2', 'c1', 'c2', 'c1']);
+      expect(r.mapProperty('serviceId')).to.eql(['s1', 's2', 's1', 's2', 's1']);
+      expect(r.mapProperty('selectedHost')).to.eql(['h1', 'h1', 'h2', 'h2', 'h3']);
+    });
+
+    it('some saved components exist', function() {
+      c.set('content.controllerName', 'addServiceController');
+      c.get('multipleComponents').push('c4');
+      c.set('content.masterComponentHosts', [
+        {hostName: 'h3', component: 'c4'}
+      ]);
+      c.get('content.recommendations.blueprint.host_groups')[2].components.push({name: 'c4'});
+      var r = c.createComponentInstallationObjects();
+      expect(r.mapProperty('component_name')).to.eql(['c1', 'c2', 'c1', 'c2', 'c1', 'c4']);
+      expect(r.mapProperty('serviceId')).to.eql(['s1', 's2', 's1', 's2', 's1', 's2']);
+      expect(r.mapProperty('selectedHost')).to.eql(['h1', 'h1', 'h2', 'h2', 'h3', 'h3']);
+    });
+
+  });
+
+  describe('#getCurrentBlueprint', function () {
+
+    beforeEach(function() {
+      sinon.stub(c, 'getCurrentSlaveBlueprint', function() {
+        return {
+          blueprint_cluster_binding: {
+            host_groups: []
+          },
+          blueprint: {
+            host_groups: []
+          }
+        };
+      });
+    });
+
+    afterEach(function() {
+      c.getCurrentSlaveBlueprint.restore();
+    });
+
+    it('should map masterHostMapping', function () {
+
+      c.reopen({masterHostMapping: [
+        {host_name: 'h1', hostInfo:{}, masterServices: [
+          {serviceId: 's1', component_name: 'c1'},
+          {serviceId: 's2', component_name: 'c2'}
+        ]},
+        {host_name: 'h2', hostInfo:{}, masterServices: [
+          {serviceId: 's1', component_name: 'c1'},
+          {serviceId: 's3', component_name: 'c3'}
+        ]}
+      ]});
+
+      var r = c.getCurrentBlueprint();
+      expect(r).to.eql({"blueprint": {"host_groups": [
+          {"name": "host-group-1", "components": [
+            {"name": "c1"},
+            {"name": "c2"}
+          ]},
+          {"name": "host-group-2", "components": [
+            {"name": "c1"},
+            {"name": "c3"}
+          ]}
+        ]}, "blueprint_cluster_binding": {"host_groups": [
+          {"name": "host-group-1", "hosts": [
+            {"fqdn": "h1"}
+          ]},
+          {"name": "host-group-2", "hosts": [
+            {"fqdn": "h2"}
+          ]}
+        ]}}
+      );
+    });
+
+  });
+
+  describe('#updateValidationsSuccessCallback', function() {
+
+    beforeEach(function() {
+      sinon.stub(App.HostComponent, 'find', function() {
+        return [];
+      });
+    });
+
+    afterEach(function() {
+      App.HostComponent.find.restore();
+    });
+
+    it('should map messages to generalErrorMessages, generalWarningMessages', function() {
+
+      var data = [
+          {
+            type: 'host-component',
+            'component-name': 'c1',
+            host: 'h1',
+            level: 'ERROR',
+            message: 'm1'
+          },
+          {
+            type: 'host-component',
+            'component-name': 'c2',
+            host: 'h2',
+            level: 'WARN',
+            message: 'm2'
+          },
+          {
+            type: 'host-component',
+            'component-name': 'c3',
+            host: 'h3',
+            level: 'ERROR',
+            message: 'm3'
+          },
+          {
+            type: 'host-component',
+            'component-name': 'c4',
+            host: 'h4',
+            level: 'WARN',
+            message: 'm4'
+          }
+        ],
+        servicesMasters = [
+          Em.Object.create({selectedHost: 'h1', component_name: 'c1'}),
+          Em.Object.create({selectedHost: 'h2', component_name: 'c2'})
+        ];
+
+      c.set('servicesMasters', servicesMasters);
+      c.updateValidationsSuccessCallback({resources: [{items: data}]});
+
+      expect(c.get('submitDisabled')).to.equal(false);
+      expect(c.get('servicesMasters').findProperty('component_name', 'c1').get('errorMessage')).to.equal('m1');
+      expect(c.get('servicesMasters').findProperty('component_name', 'c2').get('warnMessage')).to.equal('m2');
+      expect(c.get('generalErrorMessages')).to.be.empty;
+      expect(c.get('generalWarningMessages')).to.be.empty;
+    });
+
   });
 
 });
