@@ -28,7 +28,7 @@ App.MainAdminServiceAccountsController = App.MainServiceInfoConfigsController.ex
     serviceName: 'MISC'
   }),
   loadUsers: function () {
-    this.set('selectedService', this.get('content.serviceName'));
+    this.set('selectedService', this.get('content.serviceName') ? this.get('content.serviceName') : "MISC");
     this.loadServiceConfig();
   },
   loadServiceConfig: function () {
@@ -36,8 +36,8 @@ App.MainAdminServiceAccountsController = App.MainServiceInfoConfigsController.ex
       name: 'config.tags',
       sender: this,
       data: {
-        serviceName: this.get('content.serviceName'),
-        serviceConfigsDef: this.get('serviceConfigs').findProperty('serviceName', this.get('content.serviceName'))
+        serviceName: this.get('selectedService'),
+        serviceConfigsDef: this.get('serviceConfigs').findProperty('serviceName', this.get('selectedService'))
       },
       success: 'loadServiceTagSuccess'
     });
@@ -46,7 +46,7 @@ App.MainAdminServiceAccountsController = App.MainServiceInfoConfigsController.ex
     var self = this;
     var installedServices = App.Service.find().mapProperty("serviceName");
     var serviceConfigsDef = params.serviceConfigsDef;
-    var serviceName = this.get('content.serviceName');
+    var serviceName = this.get('selectedService');
     var loadedClusterSiteToTagMap = {};
 
     for (var site in data.Clusters.desired_configs) {
@@ -71,6 +71,7 @@ App.MainAdminServiceAccountsController = App.MainServiceInfoConfigsController.ex
 
       self.setContentProperty('hdfsUser', 'hdfs_user', misc_configs);
       self.setContentProperty('group', 'user_group', misc_configs);
+      self.setContentProperty('smokeuser', 'smokeuser', misc_configs);
 
       self.set('dataIsLoaded', true);
     });
