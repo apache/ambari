@@ -153,6 +153,8 @@ public abstract class AbstractControllerResourceProvider extends AbstractResourc
         return new AlertResourceProvider(propertyIds, keyPropertyIds, managementController);
       case ClientConfig:
         return new ClientConfigResourceProvider(propertyIds, keyPropertyIds, managementController);
+      case RepositoryVersion:
+        return resourceProviderFactory.getRepositoryVersionProvider();
       default:
         throw new IllegalArgumentException("Unknown type " + type);
     }

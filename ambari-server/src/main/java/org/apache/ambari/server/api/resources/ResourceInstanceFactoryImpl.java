@@ -305,6 +305,10 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
         resourceDefinition = new LdapSyncEventResourceDefinition();
         break;
 
+      case RepositoryVersion:
+        resourceDefinition = new RepositoryVersionResourceDefinition();
+        break;
+
       case Upgrade:
         resourceDefinition = new UpgradeResourceDefinition();
         break;

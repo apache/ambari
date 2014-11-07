@@ -18,17 +18,19 @@
 
 package org.apache.ambari.server.upgrade;
 
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
-import org.apache.ambari.server.orm.DBAccessor;
-import org.apache.ambari.server.orm.dao.DaoUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.orm.DBAccessor;
+import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
+import org.apache.ambari.server.orm.dao.DaoUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.inject.Inject;
+import com.google.inject.Injector;
 
 
 /**
@@ -87,6 +89,27 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
     // add ignore_host column to alert_definition
     dbAccessor.addColumn(ALERT_TABLE_DEFINITION, new DBColumnInfo(
         "ignore_host", Short.class, 1, 0, false));
+
+    ddlUpdateRepositoryVersion();
+  }
+
+  /**
+   * Creates repoversion table and all its constraints and dependencies.
+   *
+   * @throws SQLException if SQL error happens
+   */
+  private void ddlUpdateRepositoryVersion() throws SQLException {
+    final List<DBColumnInfo> columns = new ArrayList<DBColumnInfo>();
+    columns.add(new DBColumnInfo("repoversion_id",  Long.class,    null,  null, false));
+    columns.add(new DBColumnInfo("stack",           String.class,  255,   null, false));
+    columns.add(new DBColumnInfo("version",         String.class,  255,   null, false));
+    columns.add(new DBColumnInfo("display_name",    String.class,  128,   null, false));
+    columns.add(new DBColumnInfo("upgrade_package", String.class,  255,   null, false));
+    columns.add(new DBColumnInfo("repositories",    char[].class,  32672, null, false));
+    dbAccessor.createTable("repoversion", columns, "repoversion_id");
+    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, sequence_value) VALUES('repoversion_id_seq', 0)", false);
+    dbAccessor.executeQuery("ALTER TABLE repoversion ADD CONSTRAINT UQ_repoversion_display_name UNIQUE (display_name)");
+    dbAccessor.executeQuery("ALTER TABLE repoversion ADD CONSTRAINT UQ_repoversion_stack_version UNIQUE (stack, version)");
   }
 
   /**

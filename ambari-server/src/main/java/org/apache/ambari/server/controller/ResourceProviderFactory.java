@@ -52,4 +52,7 @@ public interface ResourceProviderFactory {
   ResourceProvider getMemberResourceProvider(Set<String> propertyIds,
       Map<Type, String> keyPropertyIds,
       AmbariManagementController managementController);
+
+  @Named("repositoryVersion")
+  ResourceProvider getRepositoryVersionProvider();
 }

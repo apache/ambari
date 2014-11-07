@@ -128,6 +128,7 @@ public interface Resource {
     StackLevelConfiguration,
     LdapSyncEvent,
     UserPrivilege,
+    RepositoryVersion,
     Upgrade,
     UpgradeItem;
 
@@ -218,6 +219,7 @@ public interface Resource {
     public static final Type StackLevelConfiguration = InternalType.StackLevelConfiguration.getType();
     public static final Type LdapSyncEvent = InternalType.LdapSyncEvent.getType();
     public static final Type UserPrivilege = InternalType.UserPrivilege.getType();
+    public static final Type RepositoryVersion = InternalType.RepositoryVersion.getType();
     public static final Type Upgrade = InternalType.Upgrade.getType();
     public static final Type UpgradeItem = InternalType.UpgradeItem.getType();
 

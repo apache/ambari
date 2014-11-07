@@ -198,6 +198,17 @@ GRANT ALL PRIVILEGES ON TABLE ambari.adminprincipal TO :username;
 GRANT ALL PRIVILEGES ON TABLE ambari.adminpermission TO :username;
 GRANT ALL PRIVILEGES ON TABLE ambari.adminprivilege TO :username;
 
+CREATE TABLE ambari.repo_version (
+  repo_version_id BIGINT,
+  stack VARCHAR(255) NOT NULL,
+  version VARCHAR(255) NOT NULL,
+  display_name VARCHAR(128) NOT NULL,
+  upgrade_package VARCHAR(255) NOT NULL,
+  repositories VARCHAR NOT NULL,
+  PRIMARY KEY(repo_version_id)
+);
+GRANT ALL PRIVILEGES ON TABLE ambari.repo_version TO :username;
+
 --------altering tables by creating unique constraints----------
 ALTER TABLE ambari.clusterconfig ADD CONSTRAINT UQ_config_type_tag UNIQUE (cluster_id, type_name, version_tag);
 ALTER TABLE ambari.clusterconfig ADD CONSTRAINT UQ_config_type_version UNIQUE (cluster_id, type_name, version);
@@ -205,6 +216,8 @@ ALTER TABLE ambari.viewinstance ADD CONSTRAINT UQ_viewinstance_name UNIQUE (view
 ALTER TABLE ambari.viewinstance ADD CONSTRAINT UQ_viewinstance_name_id UNIQUE (view_instance_id, view_name, name);
 ALTER TABLE ambari.serviceconfig ADD CONSTRAINT UQ_scv_service_version UNIQUE (cluster_id, service_name, version);
 ALTER TABLE ambari.adminpermission ADD CONSTRAINT UQ_perm_name_resource_type_id UNIQUE (permission_name, resource_type_id);
+ALTER TABLE ambari.repo_version ADD CONSTRAINT UQ_repo_version_display_name UNIQUE (display_name);
+ALTER TABLE ambari.repo_version ADD CONSTRAINT UQ_repo_version_stack_version UNIQUE (stack, version);
 
 --------altering tables by creating foreign keys----------
 ALTER TABLE ambari.members ADD CONSTRAINT FK_members_group_id FOREIGN KEY (group_id) REFERENCES ambari.groups (group_id);
@@ -429,6 +442,8 @@ INSERT INTO ambari.ambari_sequences (sequence_name, sequence_value)
   select 'alert_current_id_seq', 0
   union all
   select 'config_id_seq', 1
+  union all
+  select 'repo_version_id_seq', 0;
   union all
   select 'cluster_version_id_seq', 0
   union all
