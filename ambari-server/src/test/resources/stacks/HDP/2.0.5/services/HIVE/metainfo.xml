@@ -38,6 +38,9 @@
             <scriptType>PYTHON</scriptType>
             <timeout>600</timeout>
           </commandScript>
+          <configuration-dependencies>
+            <config-type>hive-site</config-type>
+          </configuration-dependencies>
         </component>
 
         <component>
@@ -80,6 +83,9 @@
             <script>scripts/hive_server.py</script>
             <scriptType>PYTHON</scriptType>
           </commandScript>
+          <configuration-dependencies>
+            <config-type>hive-site</config-type>
+          </configuration-dependencies>
         </component>
 
         <component>
@@ -126,6 +132,9 @@
             <scriptType>PYTHON</scriptType>
             <timeout>600</timeout>
           </commandScript>
+          <configuration-dependencies>
+            <config-type>hive-site</config-type>
+          </configuration-dependencies>
         </component>
 
         <component>
@@ -158,6 +167,9 @@
               <dictionaryName>hive-env</dictionaryName>
             </configFile>
           </configFiles>
+          <configuration-dependencies>
+            <config-type>hive-site</config-type>
+          </configuration-dependencies>
         </component>
         <component>
           <name>HCAT</name>
@@ -189,6 +201,9 @@
               <dictionaryName>hive-exec-log4j</dictionaryName>
             </configFile>
           </configFiles>
+          <configuration-dependencies>
+            <config-type>hive-site</config-type>
+          </configuration-dependencies>
         </component>
       </components>
 
@@ -237,7 +252,6 @@
       </commandScript>
 
       <configuration-dependencies>
-        <config-type>hive-site</config-type>
         <config-type>hive-log4j</config-type>
         <config-type>hive-exec-log4j</config-type>
       </configuration-dependencies>

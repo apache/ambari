@@ -40,6 +40,9 @@
             <scriptType>PYTHON</scriptType>
             <timeout>600</timeout>
           </commandScript>
+          <configuration-dependencies>
+            <config-type>hive-site</config-type>
+          </configuration-dependencies>
         </component>
 
         <component>
@@ -76,6 +79,9 @@
             <script>scripts/hive_server.py</script>
             <scriptType>PYTHON</scriptType>
           </commandScript>
+          <configuration-dependencies>
+            <config-type>hive-site</config-type>
+          </configuration-dependencies>
         </component>
         <component>
           <name>WEBHCAT_SERVER</name>
@@ -128,6 +134,9 @@
             <scriptType>PYTHON</scriptType>
             <timeout>600</timeout>
           </commandScript>
+          <configuration-dependencies>
+            <config-type>hive-site</config-type>
+          </configuration-dependencies>
         </component>
         <component>
           <name>MYSQL_SERVER</name>
@@ -172,6 +181,9 @@
               <dictionaryName>hive-exec-log4j</dictionaryName>
             </configFile>                         
           </configFiles>
+          <configuration-dependencies>
+            <config-type>hive-site</config-type>
+          </configuration-dependencies>
         </component>
         <component>
           <name>HCAT</name>
@@ -189,6 +201,9 @@
             </configFile>
           </configFiles>
         </component>
+        <configuration-dependencies>
+          <config-type>hive-site</config-type>
+        </configuration-dependencies>
       </components>
 
       <osSpecifics>
@@ -251,7 +266,6 @@
       </requiredServices>
 
       <configuration-dependencies>
-        <config-type>hive-site</config-type>
         <config-type>hive-log4j</config-type>
         <config-type>hive-exec-log4j</config-type>
         <config-type>hive-env</config-type>
