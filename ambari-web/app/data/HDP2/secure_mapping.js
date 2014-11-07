@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 
+var App = require('app');
 // All of the "name" properties have to coincide with how they will appear in the *-site.xml file
 // The "template" properties can come from the config properties in site_properties.js or secure_properties.js .
 var props = [
@@ -921,7 +922,7 @@ var yarn22Mapping = [
     "value": "",
     "templateName": [],
     "foreignKey": null,
-    "serviceName": "YARN",
+    "serviceName": "HDFS",
     "filename": "core-site.xml"
   },
   {
