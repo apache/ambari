@@ -22,8 +22,16 @@ var App = require('app');
  */
 App.MainChartHeatmapHbaseMemStoreSize = App.MainChartHeatmapHbaseMetrics.extend({
   name: Em.I18n.t('charts.heatmap.metrics.HbaseRegionServerMemStoreSize'),
-  maximumValue: 100,
-  defaultMetric: 'metrics.hbase.regionserver.memstoreSizeMB',
-  units: 'MB',
-  slotDefinitionLabelSuffix: 'MB'
+  maximumValue: function() {
+    return App.get('isHadoop2Stack') ? 100*1024*1024 : 100;
+  }.property('App.isHadoop2Stack'),
+  defaultMetric: function() {
+    return App.get('isHadoop2Stack') ? 'metrics.hbase.regionserver.memstoreSize' : 'metrics.hbase.regionserver.memstoreSizeMB';
+  }.property('App.isHadoop2Stack'),
+  units: function() {
+    return App.get('isHadoop2Stack') ? 'B' : 'MB';
+  }.property('App.isHadoop2Stack'),
+  slotDefinitionLabelSuffix: function() {
+    return App.get('isHadoop2Stack') ? 'B' : 'MB';
+  }.property('App.isHadoop2Stack')
 });

@@ -1904,7 +1904,7 @@
             "pointInTime": false,
             "temporal": true
           },
-          "metrics/hbase/regionserver/memstoreSizeMB": {
+          "metrics/hbase/regionserver/memstoreSize": {
             "metric": "regionserver.Server.memStoreSize",
             "pointInTime": false,
             "temporal": true
@@ -2154,7 +2154,7 @@
             "pointInTime": true,
             "temporal": false
           },
-          "metrics/hbase/regionserver/memstoreSizeMB": {
+          "metrics/hbase/regionserver/memstoreSize": {
             "metric": "Hadoop:service=HBase,name=RegionServer,sub=Server.memStoreSize",
             "pointInTime": true,
             "temporal": false
@@ -3956,7 +3956,7 @@
             "pointInTime": false,
             "temporal": true
           },
-          "metrics/hbase/regionserver/memstoreSizeMB": {
+          "metrics/hbase/regionserver/memstoreSize": {
             "metric": "regionserver.Server.memStoreSize",
             "pointInTime": false,
             "temporal": true
@@ -4271,11 +4271,11 @@
             "pointInTime": true,
             "temporal": false
           },
-          "metrics/hbase/regionserver/memstoreSizeMB": {
+          "metrics/hbase/regionserver/memstoreSize": {
             "metric": "Hadoop:service=HBase,name=RegionServer,sub=Server.memStoreSize",
             "pointInTime": true,
             "temporal": false
-          },
+          },          
           "metrics/hbase/regionserver/getRequestLatency_max": {
             "metric": "Hadoop:service=HBase,name=RegionServer,sub=Server.Get_max",
             "pointInTime": true,
