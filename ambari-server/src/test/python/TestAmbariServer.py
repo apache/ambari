@@ -32,6 +32,7 @@ import platform
 import shutil
 from pwd import getpwnam
 from ambari_server.resourceFilesKeeper import ResourceFilesKeeper, KeeperException
+from ambari_server import BackupRestore
  
 # We have to use this import HACK because the filename contains a dash
 from ambari_commons import Firewall, OSCheck, OSConst, FirewallChecks
@@ -400,6 +401,61 @@ class TestAmbariServer(TestCase):
 
     self.assertTrue(ambari_server.SERVER_DEBUG_MODE)
 
+  @patch.object(ambari_server, 'setup')
+  @patch.object(ambari_server, 'start')
+  @patch.object(ambari_server, 'stop')
+  @patch.object(ambari_server, 'reset')
+  @patch.object(ambari_server, 'backup')
+  @patch.object(ambari_server, 'restore')
+  @patch('optparse.OptionParser')
+  def test_main_test_backup(self, OptionParserMock, restore_mock, backup_mock, reset_method, stop_method,
+                           start_method, setup_method):
+    opm = OptionParserMock.return_value
+    options = MagicMock()
+    args = ["backup"]
+    opm.parse_args.return_value = (options, args)
+
+    options.dbms = None
+    options.sid_or_sname = "sname"
+    ambari_server.main()
+
+    self.assertTrue(backup_mock.called)
+    self.assertFalse(restore_mock.called)
+    self.assertFalse(setup_method.called)
+    self.assertFalse(start_method.called)
+    self.assertFalse(stop_method.called)
+    self.assertFalse(reset_method.called)
+
+    self.assertFalse(False, ambari_server.VERBOSE)
+    self.assertFalse(False, ambari_server.SILENT)
+
+  @patch.object(ambari_server, 'setup')
+  @patch.object(ambari_server, 'start')
+  @patch.object(ambari_server, 'stop')
+  @patch.object(ambari_server, 'reset')
+  @patch.object(ambari_server, 'backup')
+  @patch.object(ambari_server, 'restore')
+  @patch('optparse.OptionParser')
+  def test_main_test_restore(self, OptionParserMock, restore_mock, backup_mock, reset_method, stop_method,
+                            start_method, setup_method):
+    opm = OptionParserMock.return_value
+    options = MagicMock()
+    args = ["restore"]
+    opm.parse_args.return_value = (options, args)
+
+    options.dbms = None
+    options.sid_or_sname = "sname"
+    ambari_server.main()
+
+    self.assertTrue(restore_mock.called)
+    self.assertFalse(backup_mock.called)
+    self.assertFalse(setup_method.called)
+    self.assertFalse(start_method.called)
+    self.assertFalse(stop_method.called)
+    self.assertFalse(reset_method.called)
+
+    self.assertFalse(False, ambari_server.VERBOSE)
+    self.assertFalse(False, ambari_server.SILENT)
 
   @patch.object(ambari_server, 'setup')
   @patch.object(ambari_server, 'start')
@@ -2941,6 +2997,25 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     self.assertTrue(killMock.called)
     self.assertTrue(removeMock.called)
 
+  @patch.object(BackupRestore, "main")
+  def test_backup(self, bkrestore_mock):
+    ambari_server.backup("/some/path/file.zip")
+    self.assertTrue(bkrestore_mock.called)
+
+  @patch.object(BackupRestore, "main")
+  def test_backup_no_path(self, bkrestore_mock):
+    ambari_server.backup(None)
+    self.assertTrue(bkrestore_mock.called)
+
+  @patch.object(BackupRestore, "main")
+  def test_restore(self, bkrestore_mock):
+    ambari_server.restore("/some/path/file.zip")
+    self.assertTrue(bkrestore_mock.called)
+
+  @patch.object(BackupRestore, "main")
+  def test_restore_no_path(self, bkrestore_mock):
+    ambari_server.restore(None)
+    self.assertTrue(bkrestore_mock.called)
 
   @patch.object(ambari_server, "is_root")
   @patch.object(ambari_server, "check_database_name_property")

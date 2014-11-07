@@ -175,7 +175,7 @@ case "$1" in
           tput bold
           echo "$AMBARI_AGENT currently not running"
           tput sgr0
-          echo "Usage: /usr/sbin/ambari-agent {start|stop|restart|status}"
+          echo "Usage: /usr/sbin/ambari-agent {start|stop|restart|status|reset <server_hostname>}"
           retcode=3
         fi
         ;;
@@ -212,9 +212,33 @@ case "$1" in
         $0 start "$@"
         retcode=$?
         ;;
+  reset)
+          if [ "$#" -ne 2 ]; then
+            echo "You must supply the hostname of the Ambari Server with the restore option. (e.g. ambari-agent reset c6401.ambari.apache.org)"
+            exit 1
+          fi
+          if [ -f $PIDFILE ]; then
+            echo "$AMBARI_AGENT is running. You must stop it before using reset."
+            exit 1
+          fi
+          echo -e "Resetting $AMBARI_AGENT"
+          $PYTHON $AGENT_SCRIPT reset $2
+          retcode=$?
+
+          if [ $retcode -eq 0 ]; then
+            tput bold
+            echo "$AMBARI_AGENT has been reset successfully. Changed Ambari Server hostname to $2 and certificates were cleared."
+            tput sgr0
+          else
+            tput bold
+            echo "$AMBARI_AGENT could not be reset."
+            tput sgr0
+          fi
+          ;;
+
   *)
         tput bold
-        echo "Usage: /usr/sbin/ambari-agent {start|stop|restart|status}"
+        echo "Usage: /usr/sbin/ambari-agent {start|stop|restart|status|reset <server_hostname>}"
         tput sgr0
         retcode=1
 esac

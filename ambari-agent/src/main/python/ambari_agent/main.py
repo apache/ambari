@@ -180,6 +180,32 @@ def stop_agent():
       os.kill(pid, signal.SIGKILL)
     os._exit(1)
 
+def reset_agent(options):
+  try:
+    # update agent config file
+    agent_config = ConfigParser.ConfigParser()
+    agent_config.read(configFile)
+    server_host = agent_config.get('server', 'hostname')
+    new_host = options[2]
+    if new_host is not None and server_host != new_host:
+      print "Updating server host from " + server_host + " to " + new_host
+      agent_config.set('server', 'hostname', new_host)
+      with (open(configFile, "wb")) as new_agent_config:
+        agent_config.write(new_agent_config)
+
+    # clear agent certs
+    agent_keysdir = agent_config.get('security', 'keysdir')
+    print "Removing Agent certificates..."
+    for root, dirs, files in os.walk(agent_keysdir, topdown=False):
+      for name in files:
+        os.remove(os.path.join(root, name))
+      for name in dirs:
+        os.rmdir(os.path.join(root, name))
+  except Exception, err:
+    print("A problem occurred while trying to reset the agent: " + str(err))
+    os._exit(1)
+
+  os._exit(0)
 
 def main():
   global config
@@ -200,6 +226,9 @@ def main():
 
   if (len(sys.argv) > 1) and sys.argv[1] == 'stop':
     stop_agent()
+
+  if (len(sys.argv) > 2) and sys.argv[1] == 'reset':
+    reset_agent(sys.argv)
 
   # Check for ambari configuration file.
   config = resolve_ambari_config()

@@ -25,8 +25,9 @@ import signal
 import os
 import socket
 import tempfile
+import ConfigParser
 
-from mock.mock import MagicMock, patch, ANY
+from mock.mock import MagicMock, patch, ANY, Mock
 
 with patch("platform.linux_distribution", return_value = ('Suse','11','Final')):
   from ambari_agent import NetUtil, security
@@ -224,6 +225,44 @@ class TestMain(unittest.TestCase):
     # Restore
     ProcessHelper.pidfile = oldpid
     os.remove(tmpoutfile)
+
+  @patch("os.rmdir")
+  @patch("os.path.join")
+  @patch('__builtin__.open')
+  @patch.object(ConfigParser, "ConfigParser")
+  @patch("os._exit")
+  @patch("os.walk")
+  @patch("os.remove")
+  def test_reset(self, os_remove_mock, os_walk_mock, os_exit_mock, config_parser_mock, open_mock, os_path_join_mock, os_rmdir_mock):
+    # Agent config update
+    config_mock = MagicMock()
+    os_walk_mock.return_value = [('/', ('',), ('file1.txt', 'file2.txt'))]
+    config_parser_mock.return_value= config_mock
+    config_mock.get('server', 'hostname').return_value = "old_host"
+    main.reset_agent(["test", "reset", "new_hostname"])
+    self.assertEqual(config_mock.get.call_count, 3)
+    self.assertEqual(config_mock.set.call_count, 1)
+    self.assertEqual(os_remove_mock.call_count, 2)
+
+  @patch("os.rmdir")
+  @patch("os.path.join")
+  @patch('__builtin__.open')
+  @patch.object(ConfigParser, "ConfigParser")
+  @patch("os._exit")
+  @patch("os.walk")
+  @patch("os.remove")
+  def test_reset_invalid_path(self, os_remove_mock, os_walk_mock, os_exit_mock, config_parser_mock, open_mock, os_path_join_mock, os_rmdir_mock):
+    # Agent config file cannot be accessed
+    config_mock = MagicMock()
+    os_walk_mock.return_value = [('/', ('',), ('file1.txt', 'file2.txt'))]
+    config_parser_mock.return_value= config_mock
+    config_mock.get('server', 'hostname').return_value = "old_host"
+    open_mock.side_effect = Exception("Invalid Path!")
+    try:
+      main.reset_agent(["test", "reset", "new_hostname"])
+      self.fail("Should have thrown exception!")
+    except:
+      self.assertTrue(True)
 
 
   @patch.object(socket, "gethostbyname")

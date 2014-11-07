@@ -44,7 +44,7 @@ import json
 import base64
 from threading import Thread
 from ambari_commons import OSCheck, OSConst, Firewall
-from ambari_server import utils
+from ambari_server import utils, BackupRestore
 
 # debug settings
 VERBOSE = False
@@ -78,6 +78,8 @@ SETUP_NAGIOS_HTTPS_ACTION = "setup-nagios-https"
 ENCRYPT_PASSWORDS_ACTION = "encrypt-passwords"
 SETUP_SECURITY_ACTION = "setup-security"
 REFRESH_STACK_HASH_ACTION = "refresh-stack-hash"
+BACKUP_ACTION = "backup"
+RESTORE_ACTION = "restore"
 
 ACTION_REQUIRE_RESTART = [RESET_ACTION, UPGRADE_ACTION, UPGRADE_STACK_ACTION,
                           SETUP_SECURITY_ACTION, LDAP_SETUP_ACTION]
@@ -4387,6 +4389,25 @@ def refresh_stack_hash():
                                                 resources_location, str(ex))
     raise FatalException(-1, msg)
 
+def backup(path):
+  print "Backup requested."
+  if path is None:
+    backup_command = [BackupRestore, 'backup']
+  else:
+    backup_command = [BackupRestore, 'backup', path]
+
+
+  BackupRestore.main(backup_command)
+
+def restore(path):
+  print "Restore requested."
+  if path is None:
+    restore_command = [BackupRestore, 'restore']
+  else:
+    restore_command = [BackupRestore, 'restore', path]
+
+
+  BackupRestore.main(restore_command)
 
 #
 # Main.
@@ -4547,6 +4568,8 @@ def main():
 
   if action == UPGRADE_STACK_ACTION:
     possible_args_numbers = [2,4] # OR
+  elif action == BACKUP_ACTION or action == RESTORE_ACTION:
+    possible_args_numbers = [1,2]
   else:
     possible_args_numbers = [1]
 
@@ -4593,6 +4616,18 @@ def main():
       need_restart = setup_security(options)
     elif action == REFRESH_STACK_HASH_ACTION:
       refresh_stack_hash()
+    elif action == BACKUP_ACTION:
+      if len(args) == 2:
+        path = args[1]
+      else:
+        path = None
+      backup(path)
+    elif action == RESTORE_ACTION:
+      if len(args) == 2:
+        path = args[1]
+      else:
+        path = None
+      restore(path)
     else:
       parser.error("Invalid action")
 

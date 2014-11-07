@@ -127,9 +127,17 @@ case "$1" in
         echo -e "Refreshing stack hashes..."
         $PYTHON /usr/sbin/ambari-server.py $@
         ;;
+  backup)
+        echo -e "Backing up Ambari File System state... *this will not backup the server database*"
+        $PYTHON /usr/sbin/ambari-server.py $@
+        ;;
+  restore)
+        echo -e "Restoring Ambari File System state"
+        $PYTHON /usr/sbin/ambari-server.py $@
+        ;;
   *)
         echo "Usage: /usr/sbin/ambari-server
-        {start|stop|restart|setup|upgrade|status|upgradestack|setup-ldap|sync-ldap|setup-security|refresh-stack-hash} [options]
+        {start|stop|restart|setup|upgrade|status|upgradestack|setup-ldap|sync-ldap|setup-security|refresh-stack-hash|backup|restore} [options]
         Use usr/sbin/ambari-server <action> --help to get details on options available.
         Or, simply invoke ambari-server.py --help to print the options."
         exit 1

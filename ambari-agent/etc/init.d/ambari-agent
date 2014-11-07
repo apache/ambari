@@ -34,8 +34,11 @@ case "$1" in
         $0 stop
         $0 start
         ;;
+  reset)
+        /usr/sbin/ambari-agent $@
+        ;;
   *)
-        echo "Usage: $0 {start|stop|status|restart}"
+        echo "Usage: $0 {start|stop|status|restart|reset <server_hostname>}"
         exit 1
 esac
 
