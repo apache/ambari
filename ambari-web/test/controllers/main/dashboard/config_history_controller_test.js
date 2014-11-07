@@ -38,11 +38,13 @@ describe('MainConfigHistoryController', function () {
   describe('#load()', function () {
     it('', function () {
       sinon.stub(controller, 'updateTotalCounter', Em.K);
+      sinon.stub(controller, 'loadConfigVersionsToModel').returns({done: Em.K});
 
       controller.load();
       expect(controller.updateTotalCounter.calledOnce).to.be.true;
 
       controller.updateTotalCounter.restore();
+      controller.loadConfigVersionsToModel.restore();
     });
   });
   describe('#loadConfigVersionsToModel()', function () {

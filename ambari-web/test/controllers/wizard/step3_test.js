@@ -26,18 +26,21 @@ require('models/host');
 require('controllers/wizard/step3_controller');
 
 describe('App.WizardStep3Controller', function () {
-
-  beforeEach(function() {
-    c = App.WizardStep3Controller.create({
-      content: Em.Object.create({installedHosts: Em.A([]), installOptions: {}}),
-      wizardController: App.InstallerController.create(),
-      disablePreviousSteps: Em.K
-    });
+  var c = App.WizardStep3Controller.create({
+    content: Em.Object.create({installedHosts: Em.A([]), installOptions: {}}),
+    wizardController: App.InstallerController.create(),
+    disablePreviousSteps: Em.K
+  });
+  beforeEach(function () {
+    sinon.stub(App.db, 'getDisplayLength', Em.K);
+    sinon.stub(App.db, 'getFilterConditions').returns([]);
     sinon.stub(App.router, 'send', Em.K);
   });
 
   afterEach(function() {
+    App.db.getDisplayLength.restore();
     App.router.send.restore();
+    App.db.getFilterConditions.restore();
   });
 
   describe('#getAllRegisteredHostsCallback', function () {
@@ -222,105 +225,76 @@ describe('App.WizardStep3Controller', function () {
   describe('#loadStep', function() {
 
     beforeEach(function() {
-      sinon.stub(App.router, 'get', function(k) {
-        if ('clusterController' === k) {
-          return Em.Object.create({
-            loadAmbariProperties: Em.K
-          });
-        }
-        return Em.get(App.router, k);
+      sinon.stub(App.router, 'get').withArgs('clusterController').returns({
+        loadAmbariProperties: Em.K
       });
+      sinon.spy(c, 'clearStep');
+      sinon.stub(c, 'loadHosts', Em.K);
+      sinon.stub(c, 'disablePreviousSteps', Em.K);
     });
 
     afterEach(function() {
       App.router.get.restore();
+      c.clearStep.restore();
+      c.disablePreviousSteps.restore();
+      c.loadHosts.restore();
     });
 
     it('should set registrationStartedAt to null', function() {
-      c.set('disablePreviousSteps', Em.K);
       c.set('registrationStartedAt', {});
       c.loadStep();
       expect(c.get('registrationStartedAt')).to.be.null;
     });
     it('should call clearStep', function() {
-      c.set('disablePreviousSteps', Em.K);
-      c.set('loadHosts', Em.K);
-      sinon.spy(c, 'clearStep');
       c.loadStep();
       expect(c.get('clearStep').calledOnce).to.equal(true);
-      c.clearStep.restore();
     });
     it('should call loadHosts', function() {
-      c.set('disablePreviousSteps', Em.K);
-      c.set('loadHosts', Em.K);
-      sinon.spy(c, 'loadHosts');
       c.loadStep();
       expect(c.get('loadHosts').calledOnce).to.equal(true);
-      c.loadHosts.restore();
     });
     it('should call disablePreviousSteps', function() {
-      c.set('disablePreviousSteps', Em.K);
-      c.set('loadHosts', Em.K);
-      sinon.spy(c, 'disablePreviousSteps');
       c.loadStep();
       expect(c.get('disablePreviousSteps').calledOnce).to.equal(true);
-      c.disablePreviousSteps.restore();
     });
   });
 
   describe('#loadHosts', function() {
-
+    beforeEach(function(){
+      sinon.stub(c, 'navigateStep');
+    });
     afterEach(function() {
-      App.get.restore();
+      c.navigateStep.restore();
+      App.set('testMode', false);
     });
 
     it('should set isLoaded to true', function() {
-      sinon.stub(App, 'get', function(k) {
-        if ('testMode' === k) return true;
-        return Em.get(App, k);
-      });
-      c.set('navigateStep', Em.K);
+      App.set('testMode', true);
       c.set('content', {hosts: {}});
       c.loadHosts();
       expect(c.get('isLoaded')).to.equal(true);
     });
     it('should set bootStatus REGISTERED on testMode', function() {
-      sinon.stub(App, 'get', function(k) {
-        if ('testMode' === k) return true;
-        return Em.get(App, k);
-      });
-      c.set('navigateStep', Em.K);
+      App.set('testMode', true);
       c.set('content', {hosts: {c: {name: 'name'}}});
       c.loadHosts();
       expect(c.get('hosts').everyProperty('bootStatus', 'REGISTERED')).to.equal(true);
     });
     it('should set bootStatus DONE on "real" mode and when installOptions.manualInstall is selected', function() {
-      sinon.stub(App, 'get', function(k) {
-        if ('testMode' === k) return false;
-        return Em.get(App, k);
-      });
-      c.set('navigateStep', Em.K);
+      App.set('testMode', false);
       c.set('content.installOptions', {manualInstall: true});
       c.set('content.hosts', {c: {name: 'name'}});
       c.loadHosts();
       expect(c.get('hosts').everyProperty('bootStatus', 'DONE')).to.equal(true);
     });
     it('should set bootStatus PENDING on "real" mode and when installOptions.manualInstall is not selected', function() {
-      sinon.stub(App, 'get', function(k) {
-        if ('testMode' === k) return false;
-        return Em.get(App, k);
-      });
-      c.set('navigateStep', Em.K);
+      App.set('testMode', false);
       c.set('content', {installOptions:{manualInstall: false}, hosts: {c: {name: 'name'}}});
       c.loadHosts();
       expect(c.get('hosts').everyProperty('bootStatus', 'PENDING')).to.equal(true);
     });
     it('should set bootStatus PENDING on "real" mode and when installOptions.manualInstall is not selected', function() {
-      sinon.stub(App, 'get', function(k) {
-        if ('testMode' === k) return true;
-        return Em.get(App, k);
-      });
-      c.set('navigateStep', Em.K);
+      App.set('testMode', true);
       c.set('content', {hosts: {c: {name: 'name'}, d: {name: 'name1'}}});
       c.loadHosts();
       expect(c.get('hosts').everyProperty('isChecked', false)).to.equal(true);
@@ -398,12 +372,16 @@ describe('App.WizardStep3Controller', function () {
   });
 
   describe('#removeHosts', function() {
+    beforeEach(function(){
+      sinon.spy(App, 'showConfirmationPopup');
+    });
+    afterEach(function(){
+      App.showConfirmationPopup.restore();
+    });
 
     it('should call App.showConfirmationPopup', function() {
-      sinon.spy(App, 'showConfirmationPopup');
       c.removeHosts(Em.A([]));
       expect(App.showConfirmationPopup.calledOnce).to.equal(true);
-      App.showConfirmationPopup.restore();
     });
     it('primary should disable Submit if no more hosts', function() {
       var hosts = [{}];
@@ -415,26 +393,33 @@ describe('App.WizardStep3Controller', function () {
   });
 
   describe('#removeHost', function() {
+    before(function(){
+      sinon.stub(c, 'removeHosts', Em.K);
+    });
+    after(function(){
+      c.removeHosts.restore();
+    });
     it('should call removeHosts with array as arg', function() {
       var host = {a:''};
-      sinon.spy(c, 'removeHosts');
       c.removeHost(host);
       expect(c.removeHosts.calledWith([host]));
-      c.removeHosts.restore();
     });
   });
 
   describe('#removeSelectedHosts', function() {
+    before(function(){
+      sinon.stub(c, 'removeHosts', Em.K);
+    });
+    after(function(){
+      c.removeHosts.restore();
+    });
     it('should remove selected hosts', function() {
-      c = App.WizardStep3Controller.create({
-        wizardController: App.InstallerController.create(),
-        hosts: [
-          {isChecked: true, name: 'c1'},
-          {isChecked: false, name: 'c2'}
-        ]
-      });
-      c.removeSelectedHosts().onPrimary();
-      expect(c.get('hosts').mapProperty('name')).to.eql(['c2']);
+      c.set('hosts', [
+        {isChecked: true, name: 'c1'},
+        {isChecked: false, name: 'c2'}
+      ]);
+      c.removeSelectedHosts();
+      expect(c.removeHosts.calledWith([{isChecked: true, name: 'c1'}])).to.be.true;
     });
   });
 
@@ -491,76 +476,84 @@ describe('App.WizardStep3Controller', function () {
   });
 
   describe('#retryHost', function() {
-    it('should callretryHosts with array as arg', function() {
-      var host = {n: 'c'}, s = sinon.stub(App.router, 'get', function() {
+    before(function(){
+      sinon.spy(c, 'retryHosts');
+      sinon.stub(App.router, 'get', function() {
         return {launchBootstrap: Em.K}
       });
-      sinon.spy(c, 'retryHosts');
+      sinon.stub(c, 'doBootstrap', Em.K);
+    });
+    after(function(){
+      c.retryHosts.restore();
+      App.router.get.restore();
+      c.doBootstrap.restore();
+    });
+    it('should callretryHosts with array as arg', function() {
+      var host = {n: 'c'};
       c.set('content', {installOptions: {}});
-      c.set('doBootstrap', Em.K);
       c.retryHost(host);
       expect(c.retryHosts.calledWith([host])).to.equal(true);
-      c.retryHosts.restore();
-      s.restore();
     });
   });
 
   describe('#retrySelectedHosts', function() {
-    it('shouldn\'t do nothing if isRetryDisabled is true', function() {
-      c.set('isRetryDisabled', true);
+    beforeEach(function () {
       sinon.spy(c, 'retryHosts');
-      c.retrySelectedHosts();
-      expect(c.retryHosts.called).to.equal(false);
-      c.retryHosts.restore();
-    });
-    it('should retry hosts with FAILED bootStatus and set isRetryDisabled to true', function() {
-      var s = sinon.stub(App.router, 'get', function() {
+      sinon.stub(App.router, 'get', function () {
         return {launchBootstrap: Em.K}
       });
-      c = App.WizardStep3Controller.create({
-        wizardController: App.InstallerController.create(),
-        isRetryDisabled: false,
-        bootHosts: Em.A([Em.Object.create({name: 'c1', bootStatus: 'FAILED'}), Em.Object.create({name: 'c2', bootStatus: 'REGISTERED'})]),
-        content: {installOptions: {}},
-        doBootstrap: Em.K
-      });
-      sinon.spy(c, 'retryHosts');
+      sinon.stub(c, 'doBootstrap', Em.K);
+    });
+    afterEach(function () {
+      c.retryHosts.restore();
+      App.router.get.restore();
+      c.doBootstrap.restore();
+    });
+    it('shouldn\'t do nothing if isRetryDisabled is true', function() {
+      c.set('isRetryDisabled', true);
+      c.retrySelectedHosts();
+      expect(c.retryHosts.called).to.equal(false);
+    });
+    it('should retry hosts with FAILED bootStatus and set isRetryDisabled to true', function() {
+      c.set('isRetryDisabled', false);
+      c.set('bootHosts', Em.A([Em.Object.create({name: 'c1', bootStatus: 'FAILED'}), Em.Object.create({name: 'c2', bootStatus: 'REGISTERED'})]));
       c.retrySelectedHosts();
       expect(c.retryHosts.calledWith([{name: 'c1', bootStatus: 'RUNNING'}]));
       expect(c.get('isRetryDisabled')).to.equal(true);
-      c.retryHosts.restore();
-      s.restore();
     });
   });
 
   describe('#startBootstrap', function() {
+    beforeEach(function(){
+      sinon.stub(c, 'doBootstrap', Em.K);
+    });
+    afterEach(function(){
+      c.doBootstrap.restore();
+    });
     it('should drop numPolls and registrationStartedAt', function() {
       c.set('numPolls', 123);
       c.set('registrationStartedAt', 1234);
-      c.set('doBootstrap', Em.K);
       c.startBootstrap();
       expect(c.get('numPolls')).to.equal(0);
       expect(c.get('registrationStartedAt')).to.be.null;
     });
     it('should drop numPolls and registrationStartedAt', function() {
-      var hosts = Em.A([{name: 'c1'}, {name: 'c2'}]);
-      c = App.WizardStep3Controller.create({
-        wizardController: App.InstallerController.create(),
-        doBootstrap: Em.K,
-        setRegistrationInProgressOnce: Em.K,
-        hosts: hosts
-      });
+      c.set('hosts', Em.A([{name: 'c1'}, {name: 'c2'}]))
       c.startBootstrap();
       expect(c.get('bootHosts').mapProperty('name')).to.eql(['c1','c2']);
     });
   });
 
   describe('#setRegistrationInProgressOnce', function() {
-    it('should call Ember.run.once with "setRegistrationInProgress"', function() {
+    before(function(){
       sinon.spy(Em.run, 'once');
+    });
+    after(function(){
+      Em.run.once.restore();
+    });
+    it('should call Ember.run.once with "setRegistrationInProgress"', function() {
       c.setRegistrationInProgressOnce();
       expect(Em.run.once.firstCall.args[1]).to.equal('setRegistrationInProgress');
-      Em.run.once.restore();
     });
   });
 
@@ -584,7 +577,7 @@ describe('App.WizardStep3Controller', function () {
           Em.Object.create({bootStatus: 'RUNNING'})
         ],
         isLoaded: true,
-        e: false,
+        e: true,
         m: 'bootHosts without REGISTERED/FAILED and isLoaded is true'
       },
       {
@@ -620,7 +613,7 @@ describe('App.WizardStep3Controller', function () {
           Em.Object.create({bootStatus: 'RUNNING'})
         ],
         isLoaded: true,
-        e: false,
+        e: true,
         m: 'bootHosts with one REGISTERED and isLoaded is true'
       },
       {
@@ -629,24 +622,35 @@ describe('App.WizardStep3Controller', function () {
           Em.Object.create({bootStatus: 'RUNNING'})
         ],
         isLoaded: true,
-        e: false,
+        e: true,
         m: 'bootHosts with one FAILED and isLoaded is true'
       }
     ]);
 
+    beforeEach(function(){
+      sinon.stub(c, 'getAllRegisteredHosts', Em.K);
+      sinon.stub(c, 'disablePreviousSteps', Em.K);
+      sinon.stub(c, 'setRegistrationInProgressOnce', Em.K);
+      sinon.stub(c, 'navigateStep', Em.K);
+    });
+    afterEach(function(){
+      c.disablePreviousSteps.restore();
+      c.getAllRegisteredHosts.restore();
+      c.setRegistrationInProgressOnce.restore();
+      c.navigateStep.restore();
+    });
+
     tests.forEach(function(test) {
       it(test.m, function() {
-        sinon.stub(c, 'disablePreviousSteps', Em.K);
         c.set('bootHosts', test.bootHosts);
         c.set('isLoaded', test.isLoaded);
         c.setRegistrationInProgress();
         expect(c.get('isRegistrationInProgress')).to.equal(test.e);
-        c.disablePreviousSteps.restore();
       });
     });
   });
 
-  describe('#doBootstrap', function() {
+  describe('#doBootstrap()', function() {
     beforeEach(function() {
       sinon.spy(App.ajax, 'send');
     });
@@ -659,15 +663,11 @@ describe('App.WizardStep3Controller', function () {
       expect(App.ajax.send.called).to.equal(false);
     });
     it('should increment numPolls if stopBootstrap is false', function() {
-      c.set('stopBootstrap', false);
       c.set('numPolls', 0);
-      c.doBootstrap();
-      expect(c.get('numPolls')).to.equal(1);
-    });
-    it('should do ajax call if stopBootstrap is false', function() {
       c.set('stopBootstrap', false);
       c.doBootstrap();
-      expect(App.ajax.send.called).to.equal(true);
+      expect(App.ajax.send.calledOnce).to.be.true;
+      expect(c.get('numPolls')).to.equal(1);
     });
   });
 
@@ -716,6 +716,7 @@ describe('App.WizardStep3Controller', function () {
           Em.Object.create({bootStatus: 'DONE'})
         ]),
         data: {items:[]},
+        registrationStartedAt: 1000000,
         m: 'one host DONE',
         e: {
           bs: 'REGISTERING',
@@ -738,9 +739,22 @@ describe('App.WizardStep3Controller', function () {
           Em.Object.create({bootStatus: 'REGISTERING', name: 'c1'})
         ]),
         data: {items:[{Hosts: {host_name: 'c2'}}]},
-        m: 'one host REGISTERING but data without info about it',
+        registrationStartedAt: 0,
+        m: 'one host REGISTERING but data missing info about it, timeout',
         e: {
           bs: 'FAILED',
+          getHostInfoCalled: false
+        }
+      },
+      {
+        bootHosts: Em.A([
+          Em.Object.create({bootStatus: 'REGISTERING', name: 'c1'})
+        ]),
+        data: {items:[{Hosts: {host_name: 'c2'}}]},
+        registrationStartedAt: 1000000,
+        m: 'one host REGISTERING but data missing info about it',
+        e: {
+          bs: 'REGISTERING',
           getHostInfoCalled: false
         }
       },
@@ -756,15 +770,22 @@ describe('App.WizardStep3Controller', function () {
         }
       }
     ]);
+    beforeEach(function(){
+      sinon.spy(c, 'getHostInfo');
+      sinon.stub(App, 'dateTime').returns(1000000);
+    });
+    afterEach(function(){
+      c.getHostInfo.restore();
+      App.dateTime.restore();
+    });
     tests.forEach(function(test) {
       it(test.m, function() {
-        sinon.spy(c, 'getHostInfo');
         c.set('content.installedHosts', []);
         c.set('bootHosts', test.bootHosts);
+        c.set('registrationStartedAt', test.registrationStartedAt);
         c.isHostsRegisteredSuccessCallback(test.data);
         expect(c.get('bootHosts')[0].get('bootStatus')).to.equal(test.e.bs);
         expect(c.getHostInfo.called).to.equal(test.e.getHostInfoCalled);
-        c.getHostInfo.restore();
       });
     });
   });
@@ -1468,6 +1489,12 @@ describe('App.WizardStep3Controller', function () {
   });
 
   describe('#navigateStep', function() {
+    beforeEach(function(){
+      sinon.stub(c, 'startBootstrap', Em.K);
+    });
+    afterEach(function(){
+      c.startBootstrap.restore();
+    });
     Em.A([
         {
           isLoaded: true,
@@ -1513,7 +1540,6 @@ describe('App.WizardStep3Controller', function () {
               }
             })
           });
-          sinon.stub(c, 'startBootstrap', Em.K);
           c.navigateStep();
           if(test.e) {
             expect(c.startBootstrap.calledOnce).to.equal(true);
@@ -1521,7 +1547,6 @@ describe('App.WizardStep3Controller', function () {
           else {
             expect(c.startBootstrap.called).to.equal(false);
           }
-          c.startBootstrap.restore();
         });
       });
 

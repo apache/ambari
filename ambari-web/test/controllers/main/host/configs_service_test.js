@@ -100,4 +100,44 @@ describe('App.MainHostServiceConfigsController', function () {
     });
   });
 
+	describe("#loadStep()", function () {
+		it("should set host", function () {
+			controller.set('content', {
+				host: 'host1'
+			});
+			controller.loadStep();
+			expect(controller.get('host')).to.be.equal('host1');
+		});
+	});
+
+	describe("#renderServiceConfigs()", function () {
+		it("should call filterServiceConfigs", function () {
+			var serviceConfigs = {
+				configCategories: 'val'
+			};
+			sinon.stub(controller, 'filterServiceConfigs', function () {
+				this._super = Em.K;
+			});
+			controller.renderServiceConfigs(serviceConfigs);
+
+			expect(controller.filterServiceConfigs.calledWith('val')).to.be.true;
+			controller.filterServiceConfigs.restore();
+		});
+	});
+
+	describe("#switchHostGroup()", function () {
+		it("should call launchSwitchConfigGroupOfHostDialog", function () {
+			sinon.stub(App.config, 'launchSwitchConfigGroupOfHostDialog', Em.K);
+			sinon.stub(controller, 'onConfigGroupChange', Em.K);
+			controller.set('selectedConfigGroup', {});
+			controller.set('configGroups', []);
+			controller.set('host', {hostName: 'host1'});
+			controller.switchHostGroup();
+
+			expect(App.config.launchSwitchConfigGroupOfHostDialog.calledWith({}, [], 'host1')).to.be.true;
+			App.config.launchSwitchConfigGroupOfHostDialog.restore();
+			controller.onConfigGroupChange.restore();
+		});
+	});
+
 });

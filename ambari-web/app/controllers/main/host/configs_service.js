@@ -72,6 +72,6 @@ App.MainHostServiceConfigsController = App.MainServiceInfoConfigsController.exte
     var self = this;
     App.config.launchSwitchConfigGroupOfHostDialog(this.get('selectedConfigGroup'), this.get('configGroups'), this.get('host.hostName'), function (newGroup) {
       self.set('selectedConfigGroup', newGroup);
-    })
+    });
   }
 });
