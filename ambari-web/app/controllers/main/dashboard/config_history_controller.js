@@ -218,5 +218,34 @@ App.MainConfigHistoryController = Em.ArrayController.extend(App.TableServerMixin
         })
       }
     }, App.componentsUpdateInterval));
+  },
+
+  /**
+   * get sort properties from local db. A overridden funtion from parent
+   * @return {Array}
+   */
+  getSortProps: function () {
+    var savedSortConditions = App.db.getSortingStatuses(this.get('name')) || [],
+      sortProperties = this.get('sortProps'),
+      sortParams = [];
+
+    savedSortConditions.forEach(function (sort) {
+      var property = sortProperties.findProperty('name', sort.name);
+      if (property && (sort.status === 'sorting_asc' || sort.status === 'sorting_desc')) {
+        property.value = sort.status.replace('sorting_', '');
+        property.type = 'SORT';
+        if (property.name == 'serviceVersion'){
+          property.key = "service_name." + sort.status.replace('sorting_', '') + ",service_config_version";
+          property.value = "desc";
+        }
+        if (property.name == 'configGroup'){
+          property.key = "group_name." + sort.status.replace('sorting_', '') + ",service_config_version";
+          property.value = "desc";
+        }
+
+        sortParams.push(property);
+      }
+    });
+    return sortParams;
   }
 });
