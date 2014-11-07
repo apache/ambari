@@ -103,11 +103,22 @@ def service(action=None, name=None, user=None, create_pid_dir=False,
     pass
   pass
 
+  service_is_up = check_process if action == "start" else None
+
   # Set HADOOP_SECURE_DN_USER correctly in hadoop-env if DN is running as root
   # in secure mode.
-  if name == 'datanode' and user == 'root':
-    params.dn_proc_user = 'root'
-    hdfs.setup_hadoop_env(replace=True)
+  set_secure_dn_user_cmd="sed -i 's/export HADOOP_SECURE_DN_USER=.*/export " \
+                "HADOOP_SECURE_DN_USER=\"{0}\"/' {1}"
+  if name == 'datanode' and action == 'start':
+    if user == 'root':
+      secure_dn_user = params.hdfs_user
+    else:
+      secure_dn_user = ""
+    pass
+
+    Execute(set_secure_dn_user_cmd.format(secure_dn_user,
+              os.path.join(params.hadoop_conf_dir, 'hadoop-env.sh')),
+            not_if=service_is_up)
   pass
 
   hadoop_env_exports_str = ''
@@ -121,7 +132,6 @@ def service(action=None, name=None, user=None, create_pid_dir=False,
 
   daemon_cmd = format("{ulimit_cmd} su -s /bin/bash - {user} -c '{cmd} {action} {name}'")
 
-  service_is_up = check_process if action == "start" else None
   #remove pid file from dead process
   File(pid_file,
        action="delete",
