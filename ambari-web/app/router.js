@@ -350,7 +350,7 @@ App.Router = Em.Router.extend({
   },
 
   logOff: function (context) {
-    $('title').text('Ambari');
+    $('title').text(Em.I18n.t('app.name'));
     var hash = window.btoa(this.get('loginController.loginName') + ":" + this.get('loginController.password'));
 
     App.router.get('mainController').stopPolling();
@@ -485,7 +485,7 @@ App.Router = Em.Router.extend({
       },
       connectOutlets: function (router, context) {
         if (App.get('isAdmin') && !App.get('isOperator')) {
-          $('title').text("Ambari Experimental");
+          $('title').text(Em.I18n.t('app.name.subtitle.experimental'));
           console.log('/experimental:connectOutlet');
           router.get('applicationController').connectOutlet('experimental');
         }
