@@ -1247,6 +1247,10 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
    */
   activateSpecialConfigs: function () {
     var miscConfigs = this.get('stepConfigs').findProperty('serviceName', 'MISC').configs;
+    if(this.get('wizardController.name') == "addServiceController"){
+      miscConfigs.findProperty('name','smokeuser').set('value', this.get('content.smokeuser')).set('isEditable', false);
+      miscConfigs.findProperty('name','user_group').set('value', this.get('content.group')).set('isEditable', false);
+    }
     App.config.miscConfigVisibleProperty(miscConfigs, this.get('selectedServiceNames'));
   },
 

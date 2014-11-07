@@ -52,7 +52,9 @@ App.AddServiceController = App.WizardController.extend({
     controllerName: 'addServiceController',
     configGroups: [],
     clients: [],
-    additionalClients: []
+    additionalClients: [],
+    smokeuser: "ambari-qa",
+    group: "hadoop"
   }),
 
   setCurrentStep: function (currentStep, completed) {
