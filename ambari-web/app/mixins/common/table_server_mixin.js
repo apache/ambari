@@ -78,10 +78,8 @@ App.TableServerMixin = Em.Mixin.create({
     var savedSortConditions = App.db.getSortingStatuses(this.get('name')) || [],
       sortProperties = this.get('sortProps'),
       sortParams = [];
-
     savedSortConditions.forEach(function (sort) {
       var property = sortProperties.findProperty('name', sort.name);
-
       if (property && (sort.status === 'sorting_asc' || sort.status === 'sorting_desc')) {
         property.value = sort.status.replace('sorting_', '');
         property.type = 'SORT';
