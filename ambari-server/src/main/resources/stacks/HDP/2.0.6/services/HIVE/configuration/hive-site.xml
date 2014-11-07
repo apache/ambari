@@ -154,7 +154,7 @@ limitations under the License.
   <property>
     <name>hive.server2.authentication</name>
     <description>Authentication mode, default NONE. Options are NONE, NOSASL, KERBEROS, LDAP, PAM and CUSTOM</description>
-    <value>NOSASL</value>
+    <value>NONE</value>
   </property>
 
   <property>
