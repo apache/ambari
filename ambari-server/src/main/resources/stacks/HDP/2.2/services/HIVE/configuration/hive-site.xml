@@ -838,6 +838,13 @@ limitations under the License.
       are specified.
     </description>
   </property>
+
+  <property>
+    <name>hive.server2.authentication</name>
+    <description>Authentication mode, default NONE. Options are NONE, NOSASL, KERBEROS, LDAP, PAM and CUSTOM</description>
+    <value>NONE</value>
+  </property>
+
   <property>
     <name>hive.server2.authentication.spnego.principal</name>
     <value>/etc/security/keytabs/spnego.service.keytab</value>
