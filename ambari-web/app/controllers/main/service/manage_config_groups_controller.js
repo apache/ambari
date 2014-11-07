@@ -322,42 +322,35 @@ App.ManageConfigGroupsController = Em.Controller.extend({
 
   /**
    * add hosts callback
+   * @param {string[]} selectedHosts
+   * @method addHostsCallback
    */
   addHostsCallback: function (selectedHosts) {
     var group = this.get('selectedConfigGroup');
     if (selectedHosts) {
-      var defaultHosts = group.get('parentConfigGroup.hosts').slice();
-      var defaultPublicHosts = group.get('parentConfigGroup.publicHosts').slice();
-      var configGroupHosts = group.get('hosts');
       selectedHosts.forEach(function (hostName) {
-        configGroupHosts.pushObject(hostName);
+        group.get('hosts').pushObject(hostName);
         group.get('publicHosts').pushObject(this.hostsToPublic(hostName));
-        defaultHosts.removeObject(hostName);
-        defaultPublicHosts.removeObject(this.hostsToPublic(hostName));
+        group.get('parentConfigGroup.hosts').removeObject(hostName);
+        group.get('parentConfigGroup.publicHosts').removeObject(this.hostsToPublic(hostName));
       }, this);
-      group.set('parentConfigGroup.hosts', defaultHosts);
-      group.set('parentConfigGroup.publicHosts', this.hostsToPublic(defaultHosts));
     }
   },
 
   /**
    * delete hosts from group
+   * @method deleteHosts
    */
   deleteHosts: function () {
     if (this.get('isDeleteHostsDisabled')) {
       return;
     }
-    var groupHosts = this.get('selectedConfigGroup.hosts');
-    var defaultGroupHosts = this.get('selectedConfigGroup.parentConfigGroup.hosts').slice();
-    var defaultGroupPublicHosts = this.get('selectedConfigGroup.parentConfigGroup.publicHosts').slice();
     this.get('selectedHosts').slice().forEach(function (hostName) {
-      defaultGroupHosts.pushObject(this.publicToHostName(hostName));
-      defaultGroupPublicHosts.pushObject(hostName);
-      groupHosts.removeObject(this.publicToHostName(hostName));
+      this.get('selectedConfigGroup.parentConfigGroup.hosts').pushObject(this.publicToHostName(hostName));
+      this.get('selectedConfigGroup.parentConfigGroup.publicHosts').pushObject(hostName);
+      this.get('selectedConfigGroup.hosts').removeObject(this.publicToHostName(hostName));
       this.get('selectedConfigGroup.publicHosts').removeObject(hostName);
     }, this);
-    this.set('selectedConfigGroup.parentConfigGroup.hosts', defaultGroupHosts);
-    this.set('selectedConfigGroup.parentConfigGroup.publicHosts', this.hostsToPublic(defaultGroupHosts));
     this.set('selectedHosts', []);
   },
 

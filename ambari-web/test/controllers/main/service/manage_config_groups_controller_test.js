@@ -17,9 +17,13 @@
  */
 
 var App = require('app');
-
+var c;
 describe('App.ManageConfigGroupsController', function() {
+  var controller = App.ManageConfigGroupsController.create({});
 
+  beforeEach(function() {
+    c = App.ManageConfigGroupsController.create({});
+  });
 	var manageConfigGroupsController = App.ManageConfigGroupsController.create({});
 
 	describe('#addConfigGroup', function() {
@@ -204,4 +208,40 @@ describe('App.ManageConfigGroupsController', function() {
     });
 
   });
+
+  describe('#addHostsCallback', function() {
+
+    beforeEach(function() {
+
+      c.reopen({
+        selectedConfigGroup: Em.Object.create({
+          hosts: ['h1'],
+          publicHosts: ['p_h1'],
+          parentConfigGroup: Em.Object.create({
+            hosts: ['h2', 'h3'],
+            publicHosts: ['p_h2', 'p_h3']
+          })
+        })
+      });
+
+      sinon.stub(c, 'hostsToPublic', function(s) {return 'p_' + s;});
+
+    });
+
+    afterEach(function() {
+      c.hostsToPublic.restore();
+    });
+
+    it('should set hosts to selectedConfigGroup and remove them form default group', function () {
+
+      c.addHostsCallback(['h2', 'h3']);
+
+      expect(c.get('selectedConfigGroup.hosts')).to.include.members(['h1','h2','h3']);
+      expect(c.get('selectedConfigGroup.publicHosts')).to.include.members(['p_h1','p_h2','p_h3']);
+      expect(c.get('selectedConfigGroup.parentConfigGroup.hosts').toArray()).to.be.empty;
+      expect(c.get('selectedConfigGroup.parentConfigGroup.publicHosts').toArray()).to.be.empty;
+    });
+
+  });
+
 });
