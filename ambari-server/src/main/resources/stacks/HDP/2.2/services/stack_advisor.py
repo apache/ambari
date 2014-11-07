@@ -24,11 +24,16 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     childRecommendConfDict = {
       "HDFS": self.recommendHDFSConfigurations,
       "MAPREDUCE2": self.recommendMapReduce2Configurations,
-      "TEZ": self.recommendTezConfigurations
+      "TEZ": self.recommendTezConfigurations,
+      "YARN": self.recommendYARNConfigurations
     }
     parentRecommendConfDict.update(childRecommendConfDict)
     return parentRecommendConfDict
 
+  def recommendYARNConfigurations(self, configurations, clusterData):
+    super(HDP22StackAdvisor, self).recommendYARNConfigurations(configurations, clusterData)
+    putYarnProperty = self.putProperty(configurations, "yarn-site")
+    putYarnProperty('yarn.nodemanager.resource.cpu-vcores', clusterData['cpu'])
 
   def recommendHDFSConfigurations(self, configurations, clusterData):
     putHdfsPropery = self.putProperty(configurations, "hdfs-site")

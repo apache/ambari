@@ -85,7 +85,8 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     }
 
   def putProperty(self, config, configType):
-    config[configType] = {"properties": {}}
+    if configType not in config or "properties" not in config[configType]:
+      config[configType] = {"properties": {}}
     def appendProperty(key, value):
       config[configType]["properties"][key] = str(value)
     return appendProperty
