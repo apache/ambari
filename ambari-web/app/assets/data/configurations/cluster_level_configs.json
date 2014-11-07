@@ -436,7 +436,6 @@
         "task_controller" : "org.apache.hadoop.mapred.DefaultTaskController",
         "rca_enabled" : "true",
         "gmetad_user" : "nobody",
-        "gpl_artifacts_download_url" : "",
         "hive_metastore_user_passwd" : "hivepassword",
         "hcat_log_dir" : "/var/log/webhcat",
         "jtnode_heapsize" : "1024m",

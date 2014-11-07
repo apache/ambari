@@ -28,7 +28,6 @@
         "ganglia_runtime_dir" : "/var/run/ganglia/hdp",
         "gmetad_user" : "nobody",
         "gmond_user" : "nobody",
-        "gpl_artifacts_download_url" : "",
         "hadoop_conf_dir" : "/etc/hadoop/conf",
         "hadoop_heapsize" : "1024",
         "hadoop_pid_dir_prefix" : "/var/run/hadoop",
