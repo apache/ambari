@@ -74,7 +74,7 @@ mapred_local_dir = config['configurations']['mapred-site']['mapred.local.dir']
 
 # this is different for HDP2
 nn_metrics_property = "FSNamesystemMetrics"
-clientPort = config['configurations']['zookeeper-env']['clientPort'] #ZK 
+clientPort = config['configurations']['zoo.cfg']['clientPort'] #ZK
 
 
 java64_home = config['hostLevelParams']['java_home']

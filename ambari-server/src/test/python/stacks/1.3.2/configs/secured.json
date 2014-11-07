@@ -585,20 +585,22 @@
             "rrdcached_write_threads": "4", 
             "rrdcached_delay": "1800", 
             "rrdcached_timeout": "3600"
-        }, 
-        "zookeeper-env": {
-            "clientPort": "2181", 
-            "zk_user": "zookeeper", 
-            "zk_log_dir": "/var/log/zookeeper", 
-            "syncLimit": "5", 
-            "content": "\nexport JAVA_HOME={{java64_home}}\nexport ZOO_LOG_DIR={{zk_log_dir}}\nexport ZOOPIDFILE={{zk_pid_file}}\nexport SERVER_JVMFLAGS={{zk_server_heapsize}}\nexport JAVA=$JAVA_HOME/bin/java\nexport CLASSPATH=$CLASSPATH:/usr/share/zookeeper/*\n\n{% if security_enabled %}\nexport SERVER_JVMFLAGS=\"$SERVER_JVMFLAGS -Djava.security.auth.login.config={{zk_server_jaas_file}}\"\nexport CLIENT_JVMFLAGS=\"$CLIENT_JVMFLAGS -Djava.security.auth.login.config={{zk_client_jaas_file}}\"\n{% endif %}\n    ", 
-            "initLimit": "10", 
-            "zk_pid_dir": "/var/run/zookeeper", 
-            "zk_data_dir": "/hadoop/zookeeper", 
-            "tickTime": "2000",
-            "zookeeper_principal_name": "zookeeper/_HOST@EXAMPLE.COM",
-            "zookeeper_keytab_path": "/etc/security/keytabs/zk.service.keytab"
-        }, 
+        },
+      "zookeeper-env": {
+        "zk_user": "zookeeper",
+        "zk_log_dir": "/var/log/zookeeper",
+        "content": "\nexport JAVA_HOME={{java64_home}}\nexport ZOO_LOG_DIR={{zk_log_dir}}\nexport ZOOPIDFILE={{zk_pid_file}}\nexport SERVER_JVMFLAGS={{zk_server_heapsize}}\nexport JAVA=$JAVA_HOME/bin/java\nexport CLASSPATH=$CLASSPATH:/usr/share/zookeeper/*\n\n{% if security_enabled %}\nexport SERVER_JVMFLAGS=\"$SERVER_JVMFLAGS -Djava.security.auth.login.config={{zk_server_jaas_file}}\"\nexport CLIENT_JVMFLAGS=\"$CLIENT_JVMFLAGS -Djava.security.auth.login.config={{zk_client_jaas_file}}\"\n{% endif %}",
+        "zk_pid_dir": "/var/run/zookeeper",
+        "zookeeper_principal_name": "zookeeper/_HOST@EXAMPLE.COM",
+        "zookeeper_keytab_path": "/etc/security/keytabs/zk.service.keytab"
+      },
+      "zoo.cfg": {
+        "clientPort": "2181",
+        "syncLimit": "5",
+        "initLimit": "10",
+        "dataDir": "/hadoop/zookeeper",
+        "tickTime": "2000"
+      },
         "hdfs-log4j": {
             "content": "log4jproperties\nline2"
         },

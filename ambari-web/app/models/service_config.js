@@ -540,7 +540,7 @@ App.ServiceConfigProperty = Ember.Object.extend({
       case 'fs.checkpoint.dir':
       case 'dfs.namenode.checkpoint.dir':
       case 'yarn.timeline-service.leveldb-timeline-store.path':
-      case 'zk_data_dir':
+      case 'dataDir':
       case 'oozie_data_dir':
       case 'hbase.tmp.dir':
       case 'storm.local.dir':
@@ -629,7 +629,7 @@ App.ServiceConfigProperty = Ember.Object.extend({
           setOfHostNames.push(component.hostName);
         }, this);
         break;
-      case 'zk_data_dir':
+      case 'dataDir':
         components = masterComponentHostsInDB.filterProperty('component', 'ZOOKEEPER_SERVER');
         components.forEach(function (component) {
           setOfHostNames.push(component.hostName);

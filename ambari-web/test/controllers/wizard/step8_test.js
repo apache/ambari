@@ -905,30 +905,6 @@ describe('App.WizardStep8Controller', function () {
     });
   });
 
-  describe('#createZooCfgObj', function() {
-    it('should affect zoo.cfg properties', function() {
-      var configs = [
-          {filename: 'zoo.cfg', value: 'a&amp;b', name: 'p1'},
-          {filename: 'zoo.cfg', value: 'a&lt;b', name: 'p2'},
-          {filename: 'zoo.cfg', value: 'a&gt;b', name: 'p3'},
-          {filename: 'zoo.cfg', value: 'a&quot;b', name: 'p4'},
-          {filename: 'zoo.cfg', value: 'a&apos;b', name: 'p5'}
-        ],
-        expected = {
-          type: 'zoo.cfg',
-          tag: 'version1',
-          properties: {
-            p1: 'a&amp;b',
-            p2: 'a&lt;b',
-            p3: 'a&gt;b',
-            p4: 'a&quot;b',
-            p5: 'a&apos;b'
-          }
-        };
-      installerStep8Controller.reopen({configs: configs});
-      expect(installerStep8Controller.createZooCfgObj('version1')).to.eql(expected);
-    });
-  });
 
   describe('#createStormSiteObj', function() {
     it('should replace quote \'"\' to "\'" for some properties', function() {

@@ -28,11 +28,6 @@
     <description>ZooKeeper User.</description>
   </property>
   <property>
-    <name>zk_data_dir</name>
-    <value>/hadoop/zookeeper</value>
-    <description>Data directory for ZooKeeper.</description>
-  </property>
-  <property>
     <name>zk_log_dir</name>
     <value>/var/log/zookeeper</value>
     <description>ZooKeeper Log Dir</description>
@@ -42,26 +37,7 @@
     <value>/var/run/zookeeper</value>
     <description>ZooKeeper Pid Dir</description>
   </property>
-  <property>
-    <name>tickTime</name>
-    <value>2000</value>
-    <description>The length of a single tick in milliseconds, which is the basic time unit used by ZooKeeper</description>
-  </property>
-  <property>
-    <name>initLimit</name>
-    <value>10</value>
-    <description>Ticks to allow for sync at Init.</description>
-  </property>
-  <property>
-    <name>syncLimit</name>
-    <value>5</value>
-    <description>Ticks to allow for sync at Runtime.</description>
-  </property>
-  <property>
-    <name>clientPort</name>
-    <value>2181</value>
-    <description>Port for running ZK Server.</description>
-  </property>
+
   
   <!-- zookeeper-env.sh -->
   <property>

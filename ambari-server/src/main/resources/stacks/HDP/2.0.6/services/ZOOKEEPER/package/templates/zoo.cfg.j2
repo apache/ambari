@@ -38,32 +38,16 @@
 #
 #
 
-# The number of milliseconds of each tick
-tickTime={{tickTime}}
-# The number of ticks that the initial
-# synchronization phase can take
-initLimit={{initLimit}}
-# The number of ticks that can pass between
-# sending a request and getting an acknowledgement
-syncLimit={{syncLimit}}
-# the directory where the snapshot is stored.
-dataDir={{zk_data_dir}}
-# the port at which the clients will connect
-clientPort={{clientPort}}
-{% for host in zookeeper_hosts %}
+{% for key, value in zoo_cfg_properties_map.iteritems() -%}
+  {{key}}={{value}}
+{% endfor %}
+{% for host in zookeeper_hosts -%}
 server.{{loop.index}}={{host}}:2888:3888
 {% endfor %}
 
-{% if security_enabled %}
+{% if security_enabled -%}
 authProvider.1=org.apache.zookeeper.server.auth.SASLAuthenticationProvider
 jaasLoginRenew=3600000
 kerberos.removeHostFromPrincipal=true
 kerberos.removeRealmFromPrincipal=true
 {% endif %}
-
-{% if zoo_cfg_properties_map_length > 0 %}
-# Custom properties
-{% endif %}
-{% for key, value in zoo_cfg_properties_map.iteritems() %}
-{{key}}={{value}}
-{% endfor %}
