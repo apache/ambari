@@ -11,7 +11,6 @@
       "properties" : {
         "rca_enabled" : "true",
         "gmetad_user" : "nobody",
-        "gpl_artifacts_download_url" : "",
         "hadoop_heapsize" : "1024",
         "dfs_datanode_http_address" : "50075",
         "io_sort_mb" : "200",

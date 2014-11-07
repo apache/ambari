@@ -142,17 +142,6 @@ module.exports =
       "category": "Advanced hdfs-site",
       "serviceName": "HDFS"
     },
-    {
-      "id": "site property",
-      "name": "gpl_artifacts_download_url",
-      "displayName": "gpl_artifacts_download_url",
-      "description": "",
-      "isRequiredByAgent": false,
-      "isRequired": false,
-      "isVisible": false,
-      "category": "Advanced hdfs-site",
-      "serviceName": "HDFS"
-    },
 
   /**********************************************YARN***************************************/
     {
