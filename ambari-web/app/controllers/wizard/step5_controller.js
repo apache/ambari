@@ -727,6 +727,11 @@ App.WizardStep5Controller = Em.Controller.extend(App.BlueprintMixin, {
    * @method updateCoHosts
    */
   updateCoHosts: function () {
+    // reassign wizard has no co-host constraints
+    if (this.get('isReassignWizard')) {
+      return false;
+    }
+
     var components = App.StackServiceComponent.find().filterProperty('isOtherComponentCoHosted');
     var selectedServicesMasters = this.get('selectedServicesMasters');
     components.forEach(function (component) {

@@ -38,7 +38,8 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
     'JOBTRACKER': ['HDFS', 'ZOOKEEPER', 'HBASE', 'FLUME', 'SQOOP', 'STORM'],
     'RESOURCEMANAGER': ['HDFS', 'ZOOKEEPER', 'HBASE', 'FLUME', 'SQOOP', 'STORM'],
     'APP_TIMELINE_SERVER': ['HDFS', 'ZOOKEEPER', 'HBASE', 'FLUME', 'SQOOP', 'STORM'],
-    'OOZIE_SERVER': ['HDFS', 'ZOOKEEPER', 'HBASE', 'FLUME', 'SQOOP', 'STORM', 'HIVE']
+    'OOZIE_SERVER': ['HDFS', 'ZOOKEEPER', 'HBASE', 'FLUME', 'SQOOP', 'STORM', 'HIVE'],
+    'WEBHCAT_SERVER': ['HDFS', 'ZOOKEEPER', 'HBASE', 'FLUME', 'SQOOP', 'STORM']
   },
 
   /**
@@ -411,6 +412,9 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
         break;
       case 'OOZIE_SERVER':
         urlParams.push('(type=oozie-site&tag=' + data.Clusters.desired_configs['oozie-site'].tag + ')');
+        break;
+      case 'WEBHCAT_SERVER':
+        urlParams.push('(type=webhcat-site&tag=' + data.Clusters.desired_configs['webhcat-site'].tag + ')');
         break;
     }
     return urlParams;

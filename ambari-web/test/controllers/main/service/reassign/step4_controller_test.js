@@ -481,6 +481,12 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
         result: [
           "(type=oozie-site&tag=6)"
         ]
+      },
+      {
+        componentName: 'WEBHCAT_SERVER',
+        result: [
+          "(type=webhcat-site&tag=7)"
+        ]
       }
     ];
 
@@ -492,7 +498,8 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
           'hbase-site': {tag: 3},
           'mapred-site': {tag: 4},
           'yarn-site': {tag: 5},
-          'oozie-site': {tag: 6}
+          'oozie-site': {tag: 6},
+          'webhcat-site': {tag: 7}
         }
       }
     };
