@@ -134,13 +134,6 @@ export HADOOP_LIBEXEC_DIR={{hadoop_libexec_dir}}
 export JAVA_LIBRARY_PATH=${JAVA_LIBRARY_PATH}
 
 export HADOOP_OPTS="-Dhdp.version=$HDP_VERSION $HADOOP_OPTS"
-
-HDFS_DN_PROC_USER={{dn_proc_user}}
-if [ $HDFS_DN_PROC_USER="root" ]; then
-  export HADOOP_SECURE_DN_USER="{{hdfs_user}}"
-else
-  export HADOOP_SECURE_DN_USER=""
-fi
     </value>
   </property>
   

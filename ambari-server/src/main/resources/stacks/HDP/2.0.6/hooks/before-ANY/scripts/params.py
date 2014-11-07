@@ -136,6 +136,3 @@ if has_nagios:
 
 user_list = json.loads(config['hostLevelParams']['user_list'])
 group_list = json.loads(config['hostLevelParams']['group_list'])
-
-if security_enabled :
-  dn_proc_user=hdfs_user
