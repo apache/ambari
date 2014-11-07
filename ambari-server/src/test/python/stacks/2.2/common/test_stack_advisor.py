@@ -479,3 +479,24 @@ class TestHDP22StackAdvisor(TestCase):
     expected = []  # No warnings
     validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations)
     self.assertEquals(validation_problems, expected)
+
+  def test_recommendYARNConfigurations(self):
+    configurations = {}
+    clusterData = {
+      "cpu": 4,
+      "containers" : 5,
+      "ramPerContainer": 256
+    }
+    expected = {
+      "yarn-site": {
+        "properties": {
+          "yarn.nodemanager.resource.memory-mb": "1280",
+          "yarn.scheduler.minimum-allocation-mb": "256",
+          "yarn.scheduler.maximum-allocation-mb": "1280",
+          "yarn.nodemanager.resource.cpu-vcores": "4"
+        }
+      }
+    }
+
+    self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData)
+    self.assertEquals(configurations, expected)
