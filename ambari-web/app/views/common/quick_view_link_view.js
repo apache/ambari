@@ -190,8 +190,8 @@ App.QuickViewLinks = Em.View.extend({
    * @method setHost
    */
   setHost: function(response, serviceName) {
-    if (App.singleNodeInstall) {
-      return [App.singleNodeAlias];
+    if (App.get('singleNodeInstall')) {
+      return [App.get('singleNodeAlias')];
     }
     var hosts = [];
     switch (serviceName) {
@@ -221,7 +221,7 @@ App.QuickViewLinks = Em.View.extend({
           return item.host_components.someProperty('HostRoles.component_name', 'HBASE_MASTER');
         });
         var activeMaster, standbyMasters, otherMasters;
-        if (App.supports.multipleHBaseMasters) {
+        if (App.get('supports.multipleHBaseMasters')) {
           activeMaster = masterComponents.filter(function (item) {
             return item.host_components.someProperty('metrics.hbase.master.IsActiveMaster', 'true');
           });
@@ -283,7 +283,9 @@ App.QuickViewLinks = Em.View.extend({
         hosts[0] = this.findComponentHost(response.items, "STORM_UI_SERVER");
         break;
       default:
-        hosts[0] = this.findComponentHost(response.items, this.get('content.hostComponents') && this.get('content.hostComponents').findProperty('isMaster', true).get('componentName'));
+        if (App.StackService.find().findProperty('serviceName', serviceName).get('hasMaster')) {
+          hosts[0] = this.findComponentHost(response.items, this.get('content.hostComponents') && this.get('content.hostComponents').findProperty('isMaster', true).get('componentName'));
+        }
         break;
     }
     return hosts;
