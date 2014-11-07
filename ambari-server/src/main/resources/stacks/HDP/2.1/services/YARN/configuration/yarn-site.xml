@@ -373,7 +373,7 @@
 
   <property>
     <name>yarn.timeline-service.webapp.address</name>
-    <value>0.0.0.0:8188</value>
+    <value>localhost:8188</value>
     <description>
       The http address of the timeline service web application.
     </description>
@@ -381,7 +381,7 @@
 
   <property>
     <name>yarn.timeline-service.webapp.https.address</name>
-    <value>0.0.0.0:8190</value>
+    <value>localhost:8190</value>
     <description>
       The http address of the timeline service web application.
     </description>
@@ -389,7 +389,7 @@
 
   <property>
     <name>yarn.timeline-service.address</name>
-    <value>0.0.0.0:10200</value>
+    <value>localhost:10200</value>
     <description>
       This is default address for the timeline server to start
       the RPC server.
