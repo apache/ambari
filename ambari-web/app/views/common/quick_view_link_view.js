@@ -190,8 +190,8 @@ App.QuickViewLinks = Em.View.extend({
    * @method setHost
    */
   setHost: function(response, serviceName) {
-    if (App.singleNodeInstall) {
-      return [App.singleNodeAlias];
+    if (App.get('singleNodeInstall')) {
+      return [App.get('singleNodeAlias')];
     }
     var hosts = [];
     switch (serviceName) {
@@ -281,7 +281,9 @@ App.QuickViewLinks = Em.View.extend({
         hosts[0] = this.findComponentHost(response.items, "STORM_UI_SERVER");
         break;
       default:
-        hosts[0] = this.findComponentHost(response.items, this.get('content.hostComponents') && this.get('content.hostComponents').findProperty('isMaster', true).get('componentName'));
+        if (App.StackService.find().findProperty('serviceName', serviceName).get('hasMaster')) {
+          hosts[0] = this.findComponentHost(response.items, this.get('content.hostComponents') && this.get('content.hostComponents').findProperty('isMaster', true).get('componentName'));
+        }
         break;
     }
     return hosts;

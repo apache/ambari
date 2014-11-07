@@ -115,4 +115,399 @@ describe('App.QuickViewLinks', function () {
       })
     },this);
   });
+
+  describe('#setHost', function () {
+
+    var quickViewLinks = App.QuickViewLinks.create({
+        content: Em.Object.create()
+      }),
+      cases = [
+        {
+          singleNodeInstall: true,
+          hosts: ['host0'],
+          title: 'single node install'
+        },
+        {
+          response: {
+            items: [
+              {
+                host_components: [
+                  {
+                    HostRoles: {
+                      component_name: 'JOBTRACKER'
+                    }
+                  }
+                ],
+                Hosts: {
+                  public_host_name: 'host1'
+                }
+              },
+              {
+                host_components: [
+                  {
+                    HostRoles: {
+                      component_name: 'HISTORYSERVER'
+                    }
+                  }
+                ],
+                Hosts: {
+                  public_host_name: 'host2'
+                }
+              }
+            ]
+          },
+          serviceName: 'MAPREDUCE',
+          hosts: ['host1', 'host2']
+        },
+        {
+          response: {
+            items: [
+              {
+                host_components: [
+                  {
+                    HostRoles: {
+                      component_name: 'STORM_UI_SERVER'
+                    }
+                  }
+                ],
+                Hosts: {
+                  public_host_name: 'host3'
+                }
+              }
+            ]
+          },
+          serviceName: 'STORM',
+          hosts: ['host3']
+        },
+        {
+          serviceName: 'PIG',
+          hosts: [],
+          title: 'client only service'
+        },
+        {
+          response: {
+            items: [
+              {
+                host_components: [
+                  {
+                    HostRoles: {
+                      component_name: 'ZOOKEEPER_SERVER'
+                    }
+                  }
+                ],
+                Hosts: {
+                  public_host_name: 'host4'
+                }
+              }
+            ]
+          },
+          serviceName: 'ZOOKEEPER',
+          hosts: ['host4'],
+          setup: function () {
+            quickViewLinks.set('content', {
+              hostComponents: [
+                Em.Object.create({
+                  componentName: 'ZOOKEEPER_SERVER',
+                  isMaster: true
+                })
+              ]
+            });
+          },
+          title: 'service with master component, except HDFS, HBase, MapReduce, YARN and Storm'
+        },
+        {
+          response: {
+            items: [
+              {
+                host_components: [
+                  {
+                    HostRoles: {
+                      component_name: 'NAMENODE'
+                    }
+                  }
+                ],
+                Hosts: {
+                  public_host_name: 'host5'
+                }
+              }
+            ]
+          },
+          serviceName: 'HDFS',
+          hosts: ['host5'],
+          setup: function () {
+            quickViewLinks.set('content', {
+              snameNode: true
+            });
+          },
+          title: 'HDFS, HA disabled'
+        },
+        {
+          response: {
+            items: [
+              {
+                host_components: [
+                  {
+                    HostRoles: {
+                      component_name: 'NAMENODE'
+                    }
+                  }
+                ],
+                Hosts: {
+                  host_name: 'host6',
+                  public_host_name: 'host6'
+                }
+              },
+              {
+                host_components: [
+                  {
+                    HostRoles: {
+                      component_name: 'NAMENODE'
+                    }
+                  }
+                ],
+                Hosts: {
+                  host_name: 'host7',
+                  public_host_name: 'host7'
+                }
+              },
+              {
+                host_components: [
+                  {
+                    HostRoles: {
+                      component_name: 'NAMENODE'
+                    }
+                  }
+                ],
+                Hosts: {
+                  host_name: 'host8',
+                  public_host_name: 'host8'
+                }
+              }
+            ]
+          },
+          serviceName: 'HDFS',
+          multipleMasters: true,
+          hosts: ['host6', 'host7', 'host8'],
+          setup: function () {
+            quickViewLinks.set('content', {
+              hostComponents: [
+                Em.Object.create({
+                  componentName: 'NAMENODE',
+                  hostName: 'host6'
+                }),
+                Em.Object.create({
+                  componentName: 'NAMENODE',
+                  hostName: 'host7'
+                }),
+                Em.Object.create({
+                  componentName: 'NAMENODE',
+                  hostName: 'host8'
+                })
+              ],
+              activeNameNode: {
+                hostName: 'host6'
+              },
+              standbyNameNode: {
+                hostName: 'host7'
+              },
+              standbyNameNode2: {
+                hostName: 'host8'
+              }
+            });
+          },
+          title: 'HDFS, HA enabled'
+        },
+        {
+          response: {
+            items: [
+              {
+                host_components: [
+                  {
+                    HostRoles: {
+                      component_name: 'RESOURCEMANAGER'
+                    }
+                  }
+                ],
+                Hosts: {
+                  public_host_name: 'host9'
+                }
+              }
+            ]
+          },
+          serviceName: 'YARN',
+          hosts: ['host9'],
+          title: 'YARN, HA disabled'
+        },
+        {
+          response: {
+            items: [
+              {
+                host_components: [
+                  {
+                    HostRoles: {
+                      component_name: 'RESOURCEMANAGER'
+                    }
+                  }
+                ],
+                Hosts: {
+                  host_name: 'host10',
+                  public_host_name: 'host10'
+                }
+              },
+              {
+                host_components: [
+                  {
+                    HostRoles: {
+                      component_name: 'RESOURCEMANAGER'
+                    }
+                  }
+                ],
+                Hosts: {
+                  host_name: 'host11',
+                  public_host_name: 'host11'
+                }
+              },
+              {
+                host_components: [
+                  {
+                    HostRoles: {
+                      component_name: 'RESOURCEMANAGER'
+                    }
+                  }
+                ],
+                Hosts: {
+                  host_name: 'host12',
+                  public_host_name: 'host12'
+                }
+              }
+            ]
+          },
+          serviceName: 'YARN',
+          multipleMasters: true,
+          hosts: ['host10', 'host11', 'host12'],
+          setup: function () {
+            quickViewLinks.set('content', {
+              hostComponents: [
+                Em.Object.create({
+                  componentName: 'RESOURCEMANAGER',
+                  hostName: 'host10'
+                }),
+                Em.Object.create({
+                  componentName: 'RESOURCEMANAGER',
+                  hostName: 'host11'
+                }),
+                Em.Object.create({
+                  componentName: 'RESOURCEMANAGER',
+                  hostName: 'host12'
+                })
+              ]
+            });
+          },
+          title: 'YARN, HA enabled'
+        },
+        {
+          response: {
+            items: [
+              {
+                host_components: [
+                  {
+                    HostRoles: {
+                      component_name: 'HBASE_MASTER'
+                    },
+                    metrics: {
+                      hbase: {
+                        master: {
+                          IsActiveMaster: true
+                        }
+                      }
+                    }
+                  }
+                ],
+                Hosts: {
+                  host_name: 'host13',
+                  public_host_name: 'host13'
+                }
+              },
+              {
+                host_components: [
+                  {
+                    HostRoles: {
+                      component_name: 'HBASE_MASTER'
+                    },
+                    metrics: {
+                      hbase: {
+                        master: {
+                          IsActiveMaster: false
+                        }
+                      }
+                    }
+                  }
+                ],
+                Hosts: {
+                  host_name: 'host14',
+                  public_host_name: 'host14'
+                }
+              },
+              {
+                host_components: [
+                  {
+                    HostRoles: {
+                      component_name: 'HBASE_MASTER'
+                    }
+                  }
+                ],
+                Hosts: {
+                  host_name: 'host15',
+                  public_host_name: 'host15'
+                }
+              }
+            ]
+          },
+          serviceName: 'HBASE',
+          multipleMasters: true,
+          hosts: ['host13', 'host14', 'host15']
+        }
+      ];
+
+    before(function () {
+      sinon.stub(App.StackService, 'find', function () {
+        return [
+          Em.Object.create({
+            serviceName: 'ZOOKEEPER',
+            hasMaster: true
+          }),
+          Em.Object.create({
+            serviceName: 'PIG',
+            hasMaster: false
+          })
+        ];
+      })
+    });
+
+    after(function () {
+      App.StackService.find.restore();
+    });
+
+    afterEach(function () {
+      App.get.restore();
+    });
+
+    cases.forEach(function (item) {
+      it(item.title || item.serviceName, function () {
+        if (item.setup) {
+          item.setup();
+        }
+        sinon.stub(App, 'get').withArgs('singleNodeInstall').returns(item.singleNodeInstall).
+          withArgs('singleNodeAlias').returns('host0').
+          withArgs('isRMHaEnabled').returns(item.multipleMasters);
+        if (item.multipleMasters) {
+          expect(quickViewLinks.setHost(item.response, item.serviceName).mapProperty('publicHostName')).to.eql(item.hosts);
+        } else {
+          expect(quickViewLinks.setHost(item.response, item.serviceName)).to.eql(item.hosts);
+        }
+      });
+    });
+
+  });
+
 });
