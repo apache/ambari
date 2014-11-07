@@ -77,11 +77,7 @@ App.service_graph_config = {
 		'Flume_IncommingMMA',
 		'Flume_IncommingSum',
 		'Flume_OutgoingMMA',
-		'Flume_OutgoingSum',
-		'Flume_GarbageCollection',
-		'Flume_JVMHeapUsed',
-		'Flume_JVMThreadsRunnable'
-		//'Flume_CPUUser'
+		'Flume_OutgoingSum'
 	],
 
 	'storm': [
