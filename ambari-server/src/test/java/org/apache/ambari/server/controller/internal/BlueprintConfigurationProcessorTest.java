@@ -2124,6 +2124,7 @@ public class BlueprintConfigurationProcessorTest {
     coreSiteProperties.put("hadoop.proxyuser.knox.hosts", expectedHostName + "," + expectedHostNameTwo);
     webHCatSiteProperties.put("webhcat.proxyuser.knox.hosts", expectedHostName + "," + expectedHostNameTwo);
     oozieSiteProperties.put("hadoop.proxyuser.knox.hosts", expectedHostName + "," + expectedHostNameTwo);
+    oozieSiteProperties.put("oozie.service.ProxyUserService.proxyuser.knox.hosts", expectedHostName + "," + expectedHostNameTwo);
 
 //    multiCoreSiteMap.put("hadoop.proxyuser.knox.hosts", new MultipleHostTopologyUpdater("KNOX_GATEWAY"));
 //    multiWebhcatSiteMap.put("webhcat.proxyuser.knox.hosts", new MultipleHostTopologyUpdater("KNOX_GATEWAY"));
@@ -2144,6 +2145,9 @@ public class BlueprintConfigurationProcessorTest {
     assertEquals("Knox config for Oozie not properly exported",
       createExportedHostName(expectedHostGroupName) + "," + createExportedHostName(expectedHostGroupNameTwo),
       oozieSiteProperties.get("hadoop.proxyuser.knox.hosts"));
+    assertEquals("Knox config for Oozie not properly exported",
+        createExportedHostName(expectedHostGroupName) + "," + createExportedHostName(expectedHostGroupNameTwo),
+        oozieSiteProperties.get("oozie.service.ProxyUserService.proxyuser.knox.hosts"));
 
     mockSupport.verifyAll();
 
