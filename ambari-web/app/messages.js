@@ -128,6 +128,7 @@ Em.I18n.translations = {
   'common.users': 'Users',
   'common.issues': 'Issues',
   'common.os':'OS',
+  'common.oss':'OSs',
   'common.memory':'Memory',
   'common.maximum':'Maximum',
   'common.start':'Start',
@@ -152,6 +153,7 @@ Em.I18n.translations = {
   'common.security':'Security',
   'common.cluster':'Cluster',
   'common.repositories':'Repositories',
+  'common.stack.versions':'Stack Versions',
   'common.serviceAccounts': 'Service Accounts',
   'common.add': 'Add',
   'common.edit': 'Edit',
@@ -1163,6 +1165,12 @@ Em.I18n.translations = {
 
   'admin.misc.header': 'Service Users and Groups',
   'admin.misc.nothingToShow': 'No user accounts to display',
+
+  'admin.stackVersions.table.header.stack': "Stack",
+  'admin.stackVersions.table.header.version': "Version",
+  'admin.stackVersions.table.header.os': "OS",
+  'admin.stackVersions.table.header.installed': "Installed on",
+  'admin.stackVersions.table.header.current': "Current on",
 
   'services.service.start':'Start',
   'services.service.stop':'Stop',

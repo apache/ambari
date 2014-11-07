@@ -3,7 +3,7 @@
     {
       "StackVersion": {
         "name": "HDP 2.2.0.0",
-        "version": "2.2.0.0",
+        "version": "2.2.0.10",
         "installed_hosts": 0,
         "current_hosts": 0,
         "repositories": [
@@ -43,7 +43,7 @@
     {
       "StackVersion": {
         "name": "HDP 2.2.0.1",
-        "version": "2.2.0.1",
+        "version": "2.2.0.12",
         "installed_hosts": 2,
         "current_hosts": 3,
         "repositories": [
@@ -68,7 +68,277 @@
     {
       "StackVersion": {
         "name": "HDP 2.2.0.2",
+        "version": "2.2.0.11",
+        "installed_hosts": 5,
+        "current_hosts": 5,
+        "repositories": [
+          {
+            "os": "redhat6",
+            "baseurls": [
+              {
+                "id": "HDP-2.2.0.1-885",
+                "type": "HDP",
+                "baseurl": "http://host1/hdp"
+              },
+              {
+                "id": "HDP-UTILS-1.0.0.20",
+                "type": "HDP-UTILS",
+                "baseurl": "http://host1/hdp-utils"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "StackVersion": {
+        "name": "HDP 2.2.0.0",
+        "version": "2.2.0.1",
+        "installed_hosts": 0,
+        "current_hosts": 0,
+        "repositories": [
+          {
+            "os": "redhat6",
+            "baseurls": [
+              {
+                "id": "HDP-2.2.0.1-885",
+                "type": "HDP",
+                "baseurl": "http://host1/hdp"
+              },
+              {
+                "id": "HDP-UTILS-1.0.0.20",
+                "type": "HDP-UTILS",
+                "baseurl": "http://host1/hdp-utils"
+              }
+            ]
+          },
+          {
+            "os": "ubuntu12",
+            "baseurls": [
+              {
+                "id": "HDP-2.2.0.1-885",
+                "type": "HDP",
+                "baseurl": "http://host1/hdp"
+              },
+              {
+                "id": "HDP-UTILS-1.0.0.20",
+                "type": "HDP-UTILS",
+                "baseurl": "http://host1/hdp-utils"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "StackVersion": {
+        "name": "HDP 2.2.0.1",
         "version": "2.2.0.2",
+        "installed_hosts": 2,
+        "current_hosts": 3,
+        "repositories": [
+          {
+            "os": "redhat6",
+            "baseurls": [
+              {
+                "id": "HDP-2.2.0.1-885",
+                "type": "HDP",
+                "baseurl": "http://host1/hdp"
+              },
+              {
+                "id": "HDP-UTILS-1.0.0.20",
+                "type": "HDP-UTILS",
+                "baseurl": "http://host1/hdp-utils"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "StackVersion": {
+        "name": "HDP 2.2.0.2",
+        "version": "2.2.0.3",
+        "installed_hosts": 5,
+        "current_hosts": 5,
+        "repositories": [
+          {
+            "os": "redhat6",
+            "baseurls": [
+              {
+                "id": "HDP-2.2.0.1-885",
+                "type": "HDP",
+                "baseurl": "http://host1/hdp"
+              },
+              {
+                "id": "HDP-UTILS-1.0.0.20",
+                "type": "HDP-UTILS",
+                "baseurl": "http://host1/hdp-utils"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "StackVersion": {
+        "name": "HDP 2.2.0.0",
+        "version": "2.2.0.4",
+        "installed_hosts": 0,
+        "current_hosts": 0,
+        "repositories": [
+          {
+            "os": "redhat6",
+            "baseurls": [
+              {
+                "id": "HDP-2.2.0.1-885",
+                "type": "HDP",
+                "baseurl": "http://host1/hdp"
+              },
+              {
+                "id": "HDP-UTILS-1.0.0.20",
+                "type": "HDP-UTILS",
+                "baseurl": "http://host1/hdp-utils"
+              }
+            ]
+          },
+          {
+            "os": "ubuntu12",
+            "baseurls": [
+              {
+                "id": "HDP-2.2.0.1-885",
+                "type": "HDP",
+                "baseurl": "http://host1/hdp"
+              },
+              {
+                "id": "HDP-UTILS-1.0.0.20",
+                "type": "HDP-UTILS",
+                "baseurl": "http://host1/hdp-utils"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "StackVersion": {
+        "name": "HDP 2.2.0.1",
+        "version": "2.2.0.5",
+        "installed_hosts": 2,
+        "current_hosts": 3,
+        "repositories": [
+          {
+            "os": "redhat6",
+            "baseurls": [
+              {
+                "id": "HDP-2.2.0.1-885",
+                "type": "HDP",
+                "baseurl": "http://host1/hdp"
+              },
+              {
+                "id": "HDP-UTILS-1.0.0.20",
+                "type": "HDP-UTILS",
+                "baseurl": "http://host1/hdp-utils"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "StackVersion": {
+        "name": "HDP 2.2.0.2",
+        "version": "2.2.0.6",
+        "installed_hosts": 5,
+        "current_hosts": 5,
+        "repositories": [
+          {
+            "os": "redhat6",
+            "baseurls": [
+              {
+                "id": "HDP-2.2.0.1-885",
+                "type": "HDP",
+                "baseurl": "http://host1/hdp"
+              },
+              {
+                "id": "HDP-UTILS-1.0.0.20",
+                "type": "HDP-UTILS",
+                "baseurl": "http://host1/hdp-utils"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "StackVersion": {
+        "name": "HDP 2.2.0.0",
+        "version": "2.2.0.7",
+        "installed_hosts": 0,
+        "current_hosts": 0,
+        "repositories": [
+          {
+            "os": "redhat6",
+            "baseurls": [
+              {
+                "id": "HDP-2.2.0.1-885",
+                "type": "HDP",
+                "baseurl": "http://host1/hdp"
+              },
+              {
+                "id": "HDP-UTILS-1.0.0.20",
+                "type": "HDP-UTILS",
+                "baseurl": "http://host1/hdp-utils"
+              }
+            ]
+          },
+          {
+            "os": "ubuntu12",
+            "baseurls": [
+              {
+                "id": "HDP-2.2.0.1-885",
+                "type": "HDP",
+                "baseurl": "http://host1/hdp"
+              },
+              {
+                "id": "HDP-UTILS-1.0.0.20",
+                "type": "HDP-UTILS",
+                "baseurl": "http://host1/hdp-utils"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "StackVersion": {
+        "name": "HDP 2.2.0.1",
+        "version": "2.2.0.8",
+        "installed_hosts": 2,
+        "current_hosts": 3,
+        "repositories": [
+          {
+            "os": "redhat6",
+            "baseurls": [
+              {
+                "id": "HDP-2.2.0.1-885",
+                "type": "HDP",
+                "baseurl": "http://host1/hdp"
+              },
+              {
+                "id": "HDP-UTILS-1.0.0.20",
+                "type": "HDP-UTILS",
+                "baseurl": "http://host1/hdp-utils"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "StackVersion": {
+        "name": "HDP 2.2.0.2",
+        "version": "2.2.0.9",
         "installed_hosts": 5,
         "current_hosts": 5,
         "repositories": [

@@ -53,6 +53,7 @@ require('controllers/main/admin/highAvailability/resourceManager/step3_controlle
 require('controllers/main/admin/highAvailability/resourceManager/step4_controller');
 require('controllers/main/admin/repositories');
 require('controllers/main/admin/stack_upgrade_controller');
+require('controllers/main/admin/stack_upgrade/stack_versions_controller');
 require('controllers/main/admin/serviceAccounts_controller');
 require('controllers/main/admin/advanced');
 require('utils/polling');

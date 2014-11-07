@@ -4973,6 +4973,64 @@ ul.inline li {
   }
 }
 
+#stack_versions {
+  .table {
+    thead {
+      background: none repeat scroll 0 0 #F8F8F8;
+    }
+    // stack name/version
+    th:first-child,
+    td:first-child,
+    th:first-child + th,
+    td:first-child + td {
+      width: 25%;
+      select.filter-input-width{
+        width: 75%;
+      }
+      input.filter-input-width{
+        width: 75%;
+      }
+    }
+    // os
+    th:first-child + th + th,
+    td:first-child + td + td {
+      width: 20%;
+      word-wrap: break-word;
+      input.filter-input-width{
+        width: 75%;
+      }
+    }
+    // hosts column
+    th:first-child + th + th + th,
+    td:first-child + td + td + td,
+    th:first-child + th + th + th + th,
+    td:first-child + td + td + td + td {
+      width: 15%;
+      word-wrap: break-word;
+      input.filter-input-width {
+        width: 75%;
+      }
+    }
+  }
+  div.page-bar div.filtered-info {
+    margin-left: 17px;
+  }
+  a {
+    cursor: pointer;
+  }
+  .os-expander {
+    .icon-caret-right, .icon-caret-down {
+      vertical-align: middle;
+      margin-right: 5px;
+      margin-bottom: 2px;
+      text-decoration: none;
+    }
+  }
+  .operating-systems {
+    display: none;
+    padding-left: 13px;
+  }
+}
 .one-story-bar {
   margin-bottom: 60px;
 }

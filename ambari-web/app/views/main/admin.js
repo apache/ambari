@@ -28,6 +28,13 @@ App.MainAdminView = Em.View.extend({
       url: 'adminRepositories',
       label: Em.I18n.t('common.repositories')
     });
+    if (App.get('supports.stackUpgrade')) {
+      items.push({
+        name: 'stackVersions',
+        url: 'adminStackVersions',
+        label: Em.I18n.t('common.stack.versions')
+      });
+    }
     items.push({
       name: 'serviceAccounts',
       url: 'adminServiceAccounts',

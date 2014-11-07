@@ -137,6 +137,13 @@ App.MainMenuView = Em.CollectionView.extend({
           url: 'repositories',
           label: Em.I18n.t('common.repositories')
         });
+        if(App.get('supports.stackUpgrade')) {
+          categories.push({
+            name: 'stackVersions',
+            url: 'versions/',
+            label: Em.I18n.t('common.stack.versions')
+          });
+        }
         categories.push({
           name: 'adminServiceAccounts',
           url: 'serviceAccounts',

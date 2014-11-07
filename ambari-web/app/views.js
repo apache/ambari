@@ -94,6 +94,7 @@ require('views/main/admin/highAvailability/resourceManager/step4_view');
 require('views/main/admin/repositories');
 require('views/main/admin/serviceAccounts_view');
 require('views/main/admin/stack_upgrade');
+require('views/main/admin/stack_versions/stack_version_view');
 require('views/main/admin/advanced');
 require('views/main/admin/advanced/password');
 require('views/main/admin/audit');

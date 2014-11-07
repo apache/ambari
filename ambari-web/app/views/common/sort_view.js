@@ -17,6 +17,7 @@
  */
 
 var misc = require('utils/misc');
+var stringUtils = require('utils/string_utils');
 var App = require('app');
 
 /**
@@ -154,6 +155,16 @@ var wrapperView = Em.View.extend({
             return b - a;
           } else {
             return a - b;
+          }
+        };
+        break;
+      case 'version':
+        func = function (a, b) {
+          var res = stringUtils.compareVersions(a.get(property.get('name')), b.get(property.get('name')));
+          if (order) {
+            return res;
+          } else {
+            return -res;
           }
         };
         break;

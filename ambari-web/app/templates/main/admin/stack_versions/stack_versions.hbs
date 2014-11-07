@@ -1,0 +1,90 @@
+{{!
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+}}
+
+<div id="stack_versions">
+  <table class="table advanced-header-table table-bordered table-striped">
+    <thead>
+    {{#view view.sortView classNames="label-row" contentBinding="view.filteredContent"}}
+      {{view view.parentView.stackNameSort}}
+      {{view view.parentView.stackVersionSort}}
+      {{view view.parentView.osSort}}
+      {{view view.parentView.istalledSort}}
+      {{view view.parentView.currentSort}}
+    {{/view}}
+
+    <tr class="filter-row">
+      <th class="first">{{view view.stackNameFilterView}}</th>
+      <th>{{view view.stackVersionFilterView}}</th>
+      <th>{{view view.osFilterView}}</th>
+      <th>{{view view.currentFilterView}}</th>
+      <th>{{view view.installedFilterView}}</th>
+    </tr>
+    </thead>
+    <tbody class="services-menu">
+      {{#if view.pageContent}}
+        {{#each item in view.pageContent}}
+          {{#view view.StackVersionView contentBinding="item"}}
+            <td class="first">
+              <span class="stack-name">{{view.content.name}}</span>
+            </td>
+            <td>
+              <span class="stack-version">{{view.content.version}}</span>
+            </td>
+            <td>
+              <a href="#" class="os-expander" {{action toggleOs target="view"}}>
+                <span {{bindAttr class="view.isOsCollapsed:icon-caret-right:icon-caret-down"}}></span>
+                {{view.content.operatingSystems.length}} {{pluralize view.content.operatingSystems.length singular="t:common.os" plural="t:common.oss"}}
+              </a>
+
+              <div id="stack-{{view.content.name}}" class="operating-systems">
+                {{{view.labels}}}
+              </div>
+            </td>
+            <td>
+              <span>{{view.content.installedHostsCount}}</span>
+            </td>
+            <td>
+              <span>{{view.content.currentHostsCount}}</span>
+            </td>
+          {{/view}}
+        {{/each}}
+      {{else}}
+        <tr>
+          <td class="first" colspan="5">
+            {{t dashboard.configHistory.table.empty}}
+          </td>
+        </tr>
+      {{/if}}
+    </tbody>
+  </table>
+
+  <div class="page-bar">
+    <div class="filtered-info span4">
+      <label>{{view.filteredContentInfo}} - <a {{action clearFilters target="view"}}
+        href="#">{{t tableView.filters.clearAllFilters}}</a></label>
+    </div>
+    <div class="items-on-page">
+      <label>{{t common.show}}: {{view view.rowsPerPageSelectView selectionBinding="view.displayLength"}}</label>
+    </div>
+    <div class="info">{{view.paginationInfo}}</div>
+    <div class="paging_two_button">
+      {{view view.paginationLeft}}
+      {{view view.paginationRight}}
+    </div>
+  </div>
+</div>
