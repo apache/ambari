@@ -228,15 +228,21 @@ HdfsDirectory = functools.partial(
 
 io_compression_codecs = config['configurations']['core-site']['io.compression.codecs']
 lzo_enabled = "com.hadoop.compression.lzo" in io_compression_codecs
-
+# stack_is_hdp22_or_further
 underscorred_version = stack_version_unformatted.replace('.', '_')
 dashed_version = stack_version_unformatted.replace('.', '-')
 lzo_packages_to_family = {
   "any": ["hadoop-lzo"],
-  "redhat": ["lzo", "hadoop-lzo-native", format("hadooplzo_{underscorred_version}_*")],
-  "suse": ["lzo", "hadoop-lzo-native", format("hadooplzo_{underscorred_version}_*")],
-  "ubuntu": ["liblzo2-2", format("hadooplzo-{dashed_version}-.*")]
+  "redhat": ["lzo", "hadoop-lzo-native"],
+  "suse": ["lzo", "hadoop-lzo-native"],
+  "ubuntu": ["liblzo2-2"]
 }
+
+if stack_is_hdp22_or_further:
+  lzo_packages_to_family["redhat"] += [format("hadooplzo_{underscorred_version}_*")]
+  lzo_packages_to_family["suse"] += [format("hadooplzo_{underscorred_version}_*")]
+  lzo_packages_to_family["ubuntu"] += [format("hadooplzo_{dashed_version}_*")]
+
 lzo_packages_for_current_host = lzo_packages_to_family['any'] + lzo_packages_to_family[System.get_instance().os_family]
 all_lzo_packages = set(itertools.chain(*lzo_packages_to_family.values()))
  
