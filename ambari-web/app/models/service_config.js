@@ -388,20 +388,20 @@ App.ServiceConfigProperty = Ember.Object.extend({
         break;
       case 'yarn.timeline-service.webapp.address':
         var atsHost =  masterComponentHostsInDB.findProperty('component', 'APP_TIMELINE_SERVER');
-        if (atsHost) {
-          this.setDefaultValue("(0.0.0.0)(?=:)", atsHost.hostName);
+        if (atsHost && atsHost.hostName) {
+          this.setDefaultValue(hostWithPort,atsHost.hostName);
         }
         break;
       case 'yarn.timeline-service.webapp.https.address':
         var atsHost =  masterComponentHostsInDB.findProperty('component', 'APP_TIMELINE_SERVER');
-        if (atsHost) {
-          this.setDefaultValue("(0.0.0.0)(?=:)", atsHost.hostName);
+        if (atsHost && atsHost.hostName) {
+          this.setDefaultValue(hostWithPort,atsHost.hostName);
         }
         break;
       case 'yarn.timeline-service.address':
         var atsHost =  masterComponentHostsInDB.findProperty('component', 'APP_TIMELINE_SERVER');
-        if (atsHost) {
-          this.setDefaultValue("(0.0.0.0)(?=:)", atsHost.hostName);
+        if (atsHost && atsHost.hostName) {
+          this.setDefaultValue(hostWithPort,atsHost.hostName);
         }
         break;
       case 'nm_hosts':
