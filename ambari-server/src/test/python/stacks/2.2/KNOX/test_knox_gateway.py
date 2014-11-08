@@ -53,6 +53,8 @@ class TestKnoxGateway(RMFTestCase):
                               owner = 'knox',
                               content = InlineTemplate(self.getConfig()['configurations']['topology']['content'])
     )
+    self.assertResourceCalled('Execute', 'chown -R knox:knox /var/lib/knox/data /var/log/knox /var/run/knox /etc/knox/conf'
+    )
     self.assertResourceCalled('Execute', '/usr/lib/knox/bin/knoxcli.sh create-master --master sa',
                               user='knox',
                               environment={'JAVA_HOME': '/usr/jdk64/jdk1.7.0_45'},
