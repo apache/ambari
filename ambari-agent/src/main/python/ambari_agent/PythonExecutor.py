@@ -97,7 +97,7 @@ class PythonExecutor:
       process.communicate()
       self.event.set()
       thread.join()
-      return self.prepare_process_result(process, tmpoutfile, tmperrfile, tmpstructedoutfile, timeout=timeout)
+      return self.prepare_process_result(process, tmpoutfile, tmperrfile, tmpstructedoutfile)
     else:
       holder = Holder(pythonCommand, tmpoutfile, tmperrfile, tmpstructedoutfile, handle)
       
@@ -105,14 +105,13 @@ class PythonExecutor:
       background.start()
       return {"exitcode": 777}
 
-  def prepare_process_result (self, process, tmpoutfile, tmperrfile, tmpstructedoutfile, timeout=None):
+  def prepare_process_result (self, process, tmpoutfile, tmperrfile, tmpstructedoutfile):
     out, error, structured_out = self.read_result_from_files(tmpoutfile, tmperrfile, tmpstructedoutfile)
     # Building results
     returncode = process.returncode
 
     if self.python_process_has_been_killed:
-      error = str(error) + "\n Python script has been killed due to timeout" + \
-              (" after waiting %s secs" % str(timeout) if timeout else "")
+      error = str(error) + "\n Python script has been killed due to timeout"
       returncode = 999
     result = self.condenseOutput(out, error, returncode, structured_out)
     logger.info("Result: %s" % result)
