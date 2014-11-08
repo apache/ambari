@@ -35,7 +35,7 @@ def check_thrift_port_sasl(address, port, hive_auth = "NOSASL", key = None, kini
     url = format("jdbc:hive2://{address}:{port}")
 
   if hive_auth != "NOSASL":
-    cmd = format("! beeline -u '{url}' -e '' ") + "2>&1| awk '{print}'|grep Error"
+    cmd = format("! beeline -u '{url}' -e '' ") + "2>&1| awk '{print}'|grep -i 'Connection refused'"
     Execute(cmd,
             path=["/bin/", "/usr/bin/", "/usr/lib/hive/bin/", "/usr/sbin/"],
             timeout=BEELINE_CHECK_TIMEOUT

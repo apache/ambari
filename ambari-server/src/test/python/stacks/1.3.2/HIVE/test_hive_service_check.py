@@ -33,7 +33,7 @@ class TestServiceCheck(RMFTestCase):
                         command="service_check",
                         config_file="default.json"
     )
-    self.assertResourceCalled('Execute', "! beeline -u 'jdbc:hive2://c6402.ambari.apache.org:10000' -e '' 2>&1| awk '{print}'|grep Error",
+    self.assertResourceCalled('Execute', "! beeline -u 'jdbc:hive2://c6402.ambari.apache.org:10000' -e '' 2>&1| awk '{print}'|grep -i 'Connection refused'",
                               path = ['/bin/', '/usr/bin/', '/usr/lib/hive/bin/', '/usr/sbin/'],
                               timeout = 30,
                               )
@@ -84,7 +84,7 @@ class TestServiceCheck(RMFTestCase):
                         config_file="secured.json"
     )
     self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa; ',)
-    self.assertResourceCalled('Execute', "! beeline -u 'jdbc:hive2://c6402.ambari.apache.org:10000/;principal=hive/_HOST@EXAMPLE.COM' -e '' 2>&1| awk '{print}'|grep Error",
+    self.assertResourceCalled('Execute', "! beeline -u 'jdbc:hive2://c6402.ambari.apache.org:10000/;principal=hive/_HOST@EXAMPLE.COM' -e '' 2>&1| awk '{print}'|grep -i 'Connection refused'",
                               path = ['/bin/', '/usr/bin/', '/usr/lib/hive/bin/', '/usr/sbin/'],
                               timeout = 30,
                               )
