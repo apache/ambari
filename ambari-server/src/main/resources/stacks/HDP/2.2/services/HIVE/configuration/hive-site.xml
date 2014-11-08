@@ -221,10 +221,11 @@ limitations under the License.
 
   <property>
     <name>hive.exec.dynamic.partition.mode</name>
-    <value>strict</value>
+    <value>nonstrict</value>
     <description>
       In strict mode, the user must specify at least one static partition
       in case the user accidentally overwrites all partitions.
+      NonStrict allows all partitions of a table to be dynamic.
     </description>
   </property>
 
@@ -660,6 +661,21 @@ limitations under the License.
     </description>
   </property>
 
+  <property>
+    <name>hive.support.concurrency</name>
+    <value>false</value>
+    <description>
+      Support concurrency and use locks, needed for Transactions. Requires Zookeeper.
+    </description>
+  </property>
+
+  <property>
+    <name>hive.cli.print.header</name>
+    <value>false</value>
+    <description>
+      Whether to print the names of the columns in query output.
+    </description>
+  </property>
 
   <property>
     <name>hive.compactor.worker.timeout</name>
