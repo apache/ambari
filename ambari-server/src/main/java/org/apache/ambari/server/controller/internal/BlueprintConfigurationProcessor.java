@@ -342,8 +342,12 @@ public class BlueprintConfigurationProcessor {
           // except in the case of HA-related properties, that
           // can contain nameservice references instead of hostnames (Fix for Bug AMBARI-7458).
           // also will not remove properties that reference the special 0.0.0.0 network
-          // address
-          if (! matchedHost && ! isNameServiceProperty(propertyName) && !isSpecialNetworkAddress(propValue)) {
+          // address or properties with undefined hosts
+          if (! matchedHost &&
+              ! isNameServiceProperty(propertyName) &&
+              ! isSpecialNetworkAddress(propValue)  &&
+              ! isUndefinedAddress(propValue)) {
+
             typeProperties.remove(propertyName);
           }
         }
@@ -377,6 +381,17 @@ public class BlueprintConfigurationProcessor {
    */
   private static boolean isSpecialNetworkAddress(String propertyValue) {
     return propertyValue.contains("0.0.0.0");
+  }
+
+  /**
+   * Determine if a property has an undefined host.
+   *
+   * @param propertyValue  property value
+   *
+   * @return true if the property value contains "undefined"
+   */
+  private static boolean isUndefinedAddress(String propertyValue) {
+    return propertyValue.contains("undefined");
   }
 
   /**

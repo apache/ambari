@@ -2042,8 +2042,6 @@ public class BlueprintConfigurationProcessorTest {
     Map<String, String> kafkaBrokerProperties =
       new HashMap<String, String>();
 
-
-
     configProperties.put("core-site", coreSiteProperties);
     configProperties.put("hbase-site", hbaseSiteProperties);
     configProperties.put("webhcat-site", webHCatSiteProperties);
@@ -2231,6 +2229,48 @@ public class BlueprintConfigurationProcessorTest {
     mockSupport.verifyAll();
 
   }
+
+  @Test
+  public void testPropertyWithUndefinedHostisExported() throws Exception {
+    final String expectedHostName = "c6401.apache.ambari.org";
+    final String expectedHostGroupName = "host_group_1";
+
+    EasyMockSupport mockSupport = new EasyMockSupport();
+
+    HostGroup mockHostGroupOne = mockSupport.createMock(HostGroup.class);
+
+    expect(mockHostGroupOne.getHostInfo()).andReturn(Arrays.asList(expectedHostName, "serverTwo")).atLeastOnce();
+    expect(mockHostGroupOne.getName()).andReturn(expectedHostGroupName).atLeastOnce();
+
+    mockSupport.replayAll();
+
+    Map<String, Map<String, String>> configProperties = new HashMap<String, Map<String, String>>();
+
+    Map<String, String> properties = new HashMap<String, String>();
+    configProperties.put("storm-site", properties);
+
+    // setup properties that include host information including undefined host properties
+    properties.put("storm.zookeeper.servers", expectedHostName);
+    properties.put("nimbus.childopts", "undefined");
+    properties.put("worker.childopts", "some other info, undefined, more info");
+
+
+    BlueprintConfigurationProcessor configProcessor =
+        new BlueprintConfigurationProcessor(configProperties);
+
+    // call top-level export method
+    configProcessor.doUpdateForBlueprintExport(Arrays.asList(mockHostGroupOne));
+
+    assertEquals("Property was incorrectly exported",
+        "%HOSTGROUP::" + expectedHostGroupName + "%", properties.get("storm.zookeeper.servers"));
+    assertEquals("Property with undefined host was incorrectly exported",
+        "undefined", properties.get("nimbus.childopts"));
+    assertEquals("Property with undefined host was incorrectly exported",
+        "some other info, undefined, more info" , properties.get("worker.childopts"));
+
+    mockSupport.verifyAll();
+  }
+
 
   private static String createExportedAddress(String expectedPortNum, String expectedHostGroupName) {
     return createExportedHostName(expectedHostGroupName) + ":" + expectedPortNum;
