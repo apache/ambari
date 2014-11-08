@@ -26,7 +26,7 @@ def check_thrift_port_sasl(address, port, hive_auth = "NOSASL", key = None, kini
   """
   Hive thrift SASL port check
   """
-  BEELINE_CHECK_TIMEOUT = 7
+  BEELINE_CHECK_TIMEOUT = 30
 
   if kinitcmd:
     url = format("jdbc:hive2://{address}:{port}/;principal={key}")

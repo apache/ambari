@@ -57,38 +57,7 @@ def hive_service(
       Execute(db_connection_check_command,
               path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin', tries=5, try_sleep=10)
       
-    # AMBARI-5800 - wait for the server to come up instead of just the PID existance
-    if name == 'hiveserver2':
-      SOCKET_WAIT_SECONDS = 120
-      address=params.hive_server_host
-      port=int(params.hive_server_port)
-      
-      start_time = time.time()
-      end_time = start_time + SOCKET_WAIT_SECONDS
 
-      is_service_socket_valid = False
-      print "Waiting for the Hive server to start..."
-      if params.security_enabled:
-        kinitcmd=format("{kinit_path_local} -kt {smoke_user_keytab} {smokeuser}; ")
-      else:
-        kinitcmd=None
-
-      while time.time() < end_time:
-        try:
-          check_thrift_port_sasl(address, port, params.hive_server2_authentication,
-                                 params.hive_server_principal, kinitcmd)
-          is_service_socket_valid = True
-          break
-        except:
-          time.sleep(2)
-
-      elapsed_time = time.time() - start_time
-      
-      if is_service_socket_valid == False: 
-        raise Fail("Connection to Hive server %s on port %s failed after %d seconds" % (address, port, elapsed_time))
-      
-      print "Successfully connected to Hive at %s on port %s after %d seconds" % (address, port, elapsed_time)    
-            
   elif action == 'stop':
     demon_cmd = format("kill `cat {pid_file}` >/dev/null 2>&1 && rm -f {pid_file}")
     Execute(demon_cmd,
