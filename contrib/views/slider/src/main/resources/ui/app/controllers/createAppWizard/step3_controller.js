@@ -238,7 +238,16 @@ App.CreateAppWizardStep3Controller = Ember.ObjectController.extend({
    * @method saveConfigs
    */
   saveConfigs: function () {
-    this.set('newAppConfigs', this.get('configsObject'));
+    var configsToSet = this.get('configsObject');
+    if (configsToSet['site.global.ganglia_enabled']!=null) {
+      if (configsToSet['site.global.ganglia_server_host']!=null &&
+          configsToSet['site.global.ganglia_server_id']!=null) {
+        configsToSet['site.global.ganglia_enabled'] = "true";
+      } else {
+        configsToSet['site.global.ganglia_enabled'] = "false";
+      }
+    }
+    this.set('newAppConfigs', configsToSet);
   },
 
   actions: {
