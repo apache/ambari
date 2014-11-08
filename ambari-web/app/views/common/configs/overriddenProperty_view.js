@@ -26,7 +26,9 @@ App.ServiceConfigView.SCPOverriddenRowsView = Ember.View.extend({
 
   init: function () {
     this._super();
-    this.addObserver('isDefaultGroupSelected', this, 'setSwitchText');
+    if (this.get('controller.name') != 'mainServiceInfoConfigsController') {
+      this.addObserver('isDefaultGroupSelected', this, 'setSwitchText');
+    }
   },
 
   didInsertElement: function () {
@@ -34,7 +36,9 @@ App.ServiceConfigView.SCPOverriddenRowsView = Ember.View.extend({
   },
 
   willDestroyElement: function () {
-    this.removeObserver('isDefaultGroupSelected', this, 'setSwitchText');
+    if (this.get('controller.name') != 'mainServiceInfoConfigsController') {
+      this.removeObserver('isDefaultGroupSelected', this, 'setSwitchText');
+    }
   },
 
   setSwitchText: function () {
@@ -46,7 +50,7 @@ App.ServiceConfigView.SCPOverriddenRowsView = Ember.View.extend({
           Em.I18n.t('services.service.config_groups.switchGroupTextShort').format(overriddenSCP.get('group.displayName')));
         overriddenSCP.get('group').set('switchGroupTextFull',
           Em.I18n.t('services.service.config_groups.switchGroupTextFull').format(overriddenSCP.get('group.displayName')));
-      })
+      });
       this.set('serviceConfigProperty.overrides', overrides);
     }
     App.tooltip(this.$('[data-toggle=tooltip]'),{
