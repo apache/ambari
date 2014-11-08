@@ -231,7 +231,7 @@ App.ConfigHistoryFlowView = Em.View.extend({
           // find current in default group
           if (serviceVersion.get('isCurrent') && serviceVersion.get('groupName') == Em.I18n.t('dashboard.configHistory.table.configGroup.default')){
             serviceVersion.set('isDisplayed', true);
-            currentIndex = index;
+            currentIndex = index + 1;
           }
         });
       }else {
@@ -240,7 +240,7 @@ App.ConfigHistoryFlowView = Em.View.extend({
           // find current in selected group
           if (serviceVersion.get('isCurrent') && serviceVersion.get('groupName') == selectedGroupName){
             serviceVersion.set('isDisplayed', true);
-            currentIndex = index;
+            currentIndex = index + 1;
           }
         });
         // no current version for selected group, show default group current version
@@ -248,15 +248,14 @@ App.ConfigHistoryFlowView = Em.View.extend({
           serviceVersions.forEach(function (serviceVersion, index) {
             // find current in default group
             if (serviceVersion.get('isCurrent') && serviceVersion.get('groupName') == Em.I18n.t('dashboard.configHistory.table.configGroup.default')){
-              serviceVersion.set('isDisplayed', true);
-              currentIndex = index;
+              currentIndex = index + 1;
             }
           });
         }
       }
       // show current version as the last one
-      if (currentIndex + 1 > this.VERSIONS_IN_FLOW) {
-        startIndex = currentIndex + 1 - this.VERSIONS_IN_FLOW;
+      if (currentIndex > this.VERSIONS_IN_FLOW) {
+        startIndex = currentIndex - this.VERSIONS_IN_FLOW;
       }
       this.set('startIndex', startIndex);
       this.adjustFlowView();
