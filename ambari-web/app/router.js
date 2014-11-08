@@ -387,6 +387,8 @@ App.Router = Em.Router.extend({
 
   logOffSuccessCallback: function (data) {
     console.log("invoked logout on the server successfully");
+    var applicationController = App.router.get('applicationController');
+    applicationController.set('isPollerRunning',false);
   },
 
   logOffErrorCallback: function (req) {

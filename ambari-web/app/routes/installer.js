@@ -29,6 +29,8 @@ module.exports = Em.Route.extend({
 
     router.getAuthenticated().done(function (loggedIn) {
       if (loggedIn) {
+        var applicationController = router.get('applicationController');
+        applicationController.startKeepAlivePoller();
         // check server/web client versions match
         App.router.get('installerController').checkServerClientVersion().done(function () {
 
