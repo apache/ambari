@@ -23,6 +23,8 @@ App.ApplicationController = Em.Controller.extend(App.UserPref, {
 
   name: 'applicationController',
 
+  isPollerRunning: false,
+
   clusterName: function () {
     return (App.router.get('clusterController.clusterName') || 'My Cluster');
   }.property('App.router.clusterController.clusterName'),
@@ -49,6 +51,21 @@ App.ApplicationController = Em.Controller.extend(App.UserPref, {
 
   init: function(){
     this._super();
+  },
+
+  startKeepAlivePoller: function() {
+    if (!this.get('isPollerRunning')) {
+     this.set('isPollerRunning',true);
+      App.updater.run(this, 'getStack', 'isPollerRunning', App.sessionKeepAliveInterval);
+    }
+  },
+
+  getStack: function(callback) {
+    App.ajax.send({
+      name: 'router.login.clusters',
+      sender: this,
+      callback: callback
+    });
   },
 
   dataLoading: function () {

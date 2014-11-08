@@ -26,6 +26,8 @@ module.exports = Em.Route.extend({
     console.log('in /main:enter');
     router.getAuthenticated().done(function (loggedIn) {
       if (loggedIn) {
+        var applicationController = App.router.get('applicationController');
+        applicationController.startKeepAlivePoller();
         App.router.get('mainController').checkServerClientVersion().done(function () {
           App.router.get('mainViewsController').loadAmbariViews();
           App.router.get('clusterController').loadClusterName(false).done(function () {
