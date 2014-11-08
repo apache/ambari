@@ -243,7 +243,7 @@ public class Configuration {
   public static final String PARALLEL_STAGE_EXECUTION_KEY =
       "server.stages.parallel";
   public static final String AGENT_TASK_TIMEOUT_KEY = "agent.task.timeout";
-  public static final String AGENT_TASK_TIMEOUT_DEFAULT = "900";
+  public static final String AGENT_TASK_TIMEOUT_DEFAULT = "600";
 
   public static final String CUSTOM_ACTION_DEFINITION_KEY = "custom.action.definitions";
   private static final String CUSTOM_ACTION_DEFINITION_DEF_VALUE =
