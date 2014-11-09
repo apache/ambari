@@ -594,7 +594,6 @@ App.MainHostController = Em.ArrayController.extend({
 
     batchUtils.getComponentsFromServer({
       hosts: hosts.mapProperty('hostName'),
-      workStatus: operationData.actionToCheck,
       passiveState: 'OFF',
       displayParams: ['host_components/HostRoles/component_name']
     }, function (data) {
