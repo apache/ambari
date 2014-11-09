@@ -125,7 +125,12 @@ App.MainHostController = Em.ArrayController.extend({
         var name = controller.get('name');
         var dbValue = App.db.getDisplayLength(name);
         if (Em.isNone(this.get('viewValue'))) {
-          this.set('viewValue', dbValue || '25'); //25 is default displayLength value for hosts page
+          if (dbValue) {
+            this.set('viewValue', dbValue);
+          } else {
+            this.set('viewValue', '25'); //25 is default displayLength value for hosts page
+            App.db.setDisplayLength(name, '25');
+          }
         }
         return this.get('viewValue');
       },
@@ -144,6 +149,7 @@ App.MainHostController = Em.ArrayController.extend({
             value = 0;
           } else {
             value = startIndex;
+            App.db.setStartIndex(name, startIndex);
           }
         }
         return (value > 0) ? value - 1 : value;
