@@ -199,8 +199,10 @@ App.Poll = Em.Object.extend({
     if (currentTaskId) {
       var task = this.get('polledData').findProperty('Tasks.id', currentTaskId);
       var currentTask = polledData.findProperty('Tasks.id', currentTaskId);
-      currentTask.Tasks.stdout = task.Tasks.stdout;
-      currentTask.Tasks.stderr = task.Tasks.stderr;
+      if (task && currentTask) {
+        currentTask.Tasks.stdout = task.Tasks.stdout;
+        currentTask.Tasks.stderr = task.Tasks.stderr;
+      }
     }
     this.set('polledData', polledData);
   },
