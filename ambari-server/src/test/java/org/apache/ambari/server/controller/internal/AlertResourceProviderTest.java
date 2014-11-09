@@ -27,12 +27,19 @@ import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 import javax.persistence.EntityManager;
 
+import org.apache.ambari.server.api.query.render.AlertSummaryRenderer;
+import org.apache.ambari.server.api.services.Result;
+import org.apache.ambari.server.api.services.ResultImpl;
+import org.apache.ambari.server.api.util.TreeNode;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -51,6 +58,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -77,7 +85,7 @@ public class AlertResourceProviderTest {
   private AmbariManagementController m_amc;
 
   @Before
-  @SuppressWarnings("boxing")  
+  @SuppressWarnings("boxing")
   public void before() throws Exception {
     Injector m_injector = Guice.createInjector(new MockModule());
 
@@ -91,9 +99,9 @@ public class AlertResourceProviderTest {
     expect(cluster.getClusterId()).andReturn(Long.valueOf(1L));
 
     replay(m_amc, clusters, cluster);
-    
+
     m_dao = m_injector.getInstance(AlertsDAO.class);
-    
+
     AlertResourceProvider.init(m_injector);
   }
 
@@ -105,17 +113,17 @@ public class AlertResourceProviderTest {
   public void testGetCluster() throws Exception {
     expect(m_dao.findCurrentByCluster(
         captureLong(new Capture<Long>()))).andReturn(getClusterMockEntities()).anyTimes();
-    
+
     replay(m_dao);
 
     Request request = PropertyHelper.getReadRequest(
         AlertResourceProvider.ALERT_ID,
         AlertResourceProvider.ALERT_NAME,
         AlertResourceProvider.ALERT_LABEL);
-    
+
     Predicate predicate = new PredicateBuilder().property(
         AlertResourceProvider.ALERT_CLUSTER_NAME).equals("c1").toPredicate();
-    
+
     AlertResourceProvider provider = createProvider();
     Set<Resource> results = provider.getResources(request, predicate);
 
@@ -123,10 +131,10 @@ public class AlertResourceProviderTest {
 
     Resource r = results.iterator().next();
     assertEquals("c1", r.getPropertyValue(AlertResourceProvider.ALERT_CLUSTER_NAME));
-    
+
     verify(m_dao);
   }
-  
+
   /**
    * Test for service
    */
@@ -134,18 +142,18 @@ public class AlertResourceProviderTest {
   public void testGetService() throws Exception {
     expect(m_dao.findCurrentByService(captureLong(new Capture<Long>()),
         capture(new Capture<String>()))).andReturn(getClusterMockEntities()).anyTimes();
-    
+
     replay(m_dao);
 
     Request request = PropertyHelper.getReadRequest(
         AlertResourceProvider.ALERT_ID,
         AlertResourceProvider.ALERT_NAME,
         AlertResourceProvider.ALERT_LABEL);
-    
+
     Predicate predicate = new PredicateBuilder().property(
         AlertResourceProvider.ALERT_CLUSTER_NAME).equals("c1").and()
         .property(AlertResourceProvider.ALERT_SERVICE).equals(ALERT_VALUE_SERVICE).toPredicate();
-    
+
     AlertResourceProvider provider = createProvider();
     Set<Resource> results = provider.getResources(request, predicate);
 
@@ -154,9 +162,9 @@ public class AlertResourceProviderTest {
     Resource r = results.iterator().next();
     assertEquals("c1", r.getPropertyValue(AlertResourceProvider.ALERT_CLUSTER_NAME));
     assertEquals(ALERT_VALUE_SERVICE, r.getPropertyValue(AlertResourceProvider.ALERT_SERVICE));
-    
+
     verify(m_dao);
-  }  
+  }
 
   /**
    * Test for service
@@ -165,18 +173,18 @@ public class AlertResourceProviderTest {
   public void testGetHost() throws Exception {
     expect(m_dao.findCurrentByHost(captureLong(new Capture<Long>()),
         capture(new Capture<String>()))).andReturn(getClusterMockEntities()).anyTimes();
-    
+
     replay(m_dao);
 
     Request request = PropertyHelper.getReadRequest(
         AlertResourceProvider.ALERT_ID,
         AlertResourceProvider.ALERT_NAME,
         AlertResourceProvider.ALERT_LABEL);
-    
+
     Predicate predicate = new PredicateBuilder().property(
         AlertResourceProvider.ALERT_CLUSTER_NAME).equals("c1").and()
         .property(AlertResourceProvider.ALERT_HOST).equals(ALERT_VALUE_HOSTNAME).toPredicate();
-    
+
     AlertResourceProvider provider = createProvider();
     Set<Resource> results = provider.getResources(request, predicate);
 
@@ -185,12 +193,65 @@ public class AlertResourceProviderTest {
     Resource r = results.iterator().next();
     assertEquals("c1", r.getPropertyValue(AlertResourceProvider.ALERT_CLUSTER_NAME));
     assertEquals(ALERT_VALUE_HOSTNAME, r.getPropertyValue(AlertResourceProvider.ALERT_HOST));
-    
-    verify(m_dao);
-  }  
 
-  
-  
+    verify(m_dao);
+  }
+
+  /**
+   * Tests that the {@link AlertSummaryRenderer} correctly transforms the alert
+   * data.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testGetClusterSummary() throws Exception {
+    expect(m_dao.findCurrentByCluster(captureLong(new Capture<Long>()))).andReturn(
+        getMockEntitiesManyStates()).anyTimes();
+
+    replay(m_dao);
+
+    Request request = PropertyHelper.getReadRequest(
+        AlertResourceProvider.ALERT_ID, AlertResourceProvider.ALERT_NAME,
+        AlertResourceProvider.ALERT_LABEL, AlertResourceProvider.ALERT_STATE,
+        AlertResourceProvider.ALERT_ORIGINAL_TIMESTAMP);
+
+    Predicate predicate = new PredicateBuilder().property(
+        AlertResourceProvider.ALERT_CLUSTER_NAME).equals("c1").toPredicate();
+
+    AlertResourceProvider provider = createProvider();
+    Set<Resource> results = provider.getResources(request, predicate);
+
+    verify(m_dao);
+
+    AlertSummaryRenderer renderer = new AlertSummaryRenderer();
+    ResultImpl result = new ResultImpl(true);
+    TreeNode<Resource> resources = result.getResultTree();
+
+    AtomicInteger alertResourceId = new AtomicInteger(1);
+    for (Resource resource : results) {
+      resources.addChild(resource, "Alert " + alertResourceId.getAndIncrement());
+    }
+
+    Result summary = renderer.finalizeResult(result);
+    Assert.assertNotNull(summary);
+
+    // pull out the alerts_summary child set by the renderer
+    TreeNode<Resource> summaryResultTree = summary.getResultTree();
+    TreeNode<Resource> summaryResources = summaryResultTree.getChild("alerts_summary");
+
+    Resource summaryResource = summaryResources.getObject();
+
+    Integer okCount = (Integer) summaryResource.getPropertyValue("alerts_summary/OK/count");
+    Integer warningCount = (Integer) summaryResource.getPropertyValue("alerts_summary/WARNING/count");
+    Integer criticalCount = (Integer) summaryResource.getPropertyValue("alerts_summary/CRITICAL/count");
+    Integer unknownCount = (Integer) summaryResource.getPropertyValue("alerts_summary/UNKNOWN/count");
+
+    Assert.assertEquals(10, okCount.intValue());
+    Assert.assertEquals(2, warningCount.intValue());
+    Assert.assertEquals(1, criticalCount.intValue());
+    Assert.assertEquals(3, unknownCount.intValue());
+  }
+
   private AlertResourceProvider createProvider() {
     return new AlertResourceProvider(
         PropertyHelper.getPropertyIds(Resource.Type.Alert),
@@ -206,7 +267,7 @@ public class AlertResourceProviderTest {
     current.setAlertId(Long.valueOf(1000L));
     current.setLatestTimestamp(Long.valueOf(1L));
     current.setOriginalTimestamp(Long.valueOf(2L));
-    
+
     AlertHistoryEntity history = new AlertHistoryEntity();
     history.setAlertId(ALERT_VALUE_ID);
     history.setAlertInstance(null);
@@ -218,13 +279,76 @@ public class AlertResourceProviderTest {
     history.setComponentName(ALERT_VALUE_COMPONENT);
     history.setHostName(ALERT_VALUE_HOSTNAME);
     history.setServiceName(ALERT_VALUE_SERVICE);
-    
+
     AlertDefinitionEntity definition = new AlertDefinitionEntity();
-    
+
     history.setAlertDefinition(definition);
     current.setAlertHistory(history);
-    
+
     return Arrays.asList(current);
+  }
+
+  /**
+   * Gets a bunch of alerts with various values for state and timestamp.
+   *
+   * @return
+   */
+  private List<AlertCurrentEntity> getMockEntitiesManyStates() throws Exception {
+    // yesterday
+    AtomicLong timestamp = new AtomicLong(System.currentTimeMillis() - 86400000);
+    AtomicLong alertId = new AtomicLong(1);
+
+    int ok = 10;
+    int warning = 2;
+    int critical = 1;
+    int unknown = 3;
+    int total = ok + warning + critical + unknown;
+
+    List<AlertCurrentEntity> currents = new ArrayList<AlertCurrentEntity>(total);
+
+    for (int i = 0; i < total; i++) {
+      AlertState state = AlertState.OK;
+      String service = "HDFS";
+      String component = "NAMENODE";
+
+      if (i >= ok && i < ok + warning) {
+        state = AlertState.WARNING;
+        service = "YARN";
+        component = "RESOURCEMANAGER";
+      } else if (i >= ok + warning & i < ok + warning + critical) {
+        state = AlertState.CRITICAL;
+        service = "HIVE";
+        component = "HIVE_SERVER";
+      } else if (i >= ok + warning + critical) {
+        state = AlertState.UNKNOWN;
+        service = "FLUME";
+        component = "FLUME_HANDLER";
+      }
+
+      AlertCurrentEntity current = new AlertCurrentEntity();
+      current.setAlertId(alertId.getAndIncrement());
+      current.setOriginalTimestamp(timestamp.getAndAdd(10000));
+      current.setLatestTimestamp(timestamp.getAndAdd(10000));
+
+      AlertHistoryEntity history = new AlertHistoryEntity();
+      history.setAlertId(alertId.getAndIncrement());
+      history.setAlertInstance(null);
+      history.setAlertLabel(ALERT_VALUE_LABEL);
+      history.setAlertState(state);
+      history.setAlertText(ALERT_VALUE_TEXT);
+      history.setAlertTimestamp(current.getOriginalTimestamp());
+      history.setClusterId(Long.valueOf(1L));
+      history.setComponentName(component);
+      history.setHostName(ALERT_VALUE_HOSTNAME);
+      history.setServiceName(service);
+
+      AlertDefinitionEntity definition = new AlertDefinitionEntity();
+      history.setAlertDefinition(definition);
+      current.setAlertHistory(history);
+      currents.add(current);
+    }
+
+    return currents;
   }
 
 
@@ -238,10 +362,10 @@ public class AlertResourceProviderTest {
       binder.bind(AlertsDAO.class).toInstance(EasyMock.createMock(AlertsDAO.class));
       binder.bind(AmbariManagementController.class).toInstance(createMock(AmbariManagementController.class));
       binder.bind(DBAccessor.class).to(DBAccessorImpl.class);
-      
+
       Clusters clusters = EasyMock.createNiceMock(Clusters.class);
       Configuration configuration = EasyMock.createMock(Configuration.class);
-      
+
       binder.bind(Clusters.class).toInstance(clusters);
       binder.bind(Configuration.class).toInstance(configuration);
 

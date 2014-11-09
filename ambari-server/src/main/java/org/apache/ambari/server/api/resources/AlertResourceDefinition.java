@@ -17,25 +17,48 @@
  */
 package org.apache.ambari.server.api.resources;
 
+import org.apache.ambari.server.api.query.render.AlertSummaryRenderer;
+import org.apache.ambari.server.api.query.render.Renderer;
 import org.apache.ambari.server.controller.spi.Resource;
 
 /**
  * Definition for alert resources.
  */
 public class AlertResourceDefinition extends BaseResourceDefinition {
-  
+
+  /**
+   * Constructor.
+   *
+   */
   public AlertResourceDefinition() {
     super(Resource.Type.Alert);
   }
-  
+
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public String getPluralName() {
     return "alerts";
   }
-  
+
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public String getSingularName() {
     return "alert";
   }
-  
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Renderer getRenderer(String name) {
+    if (name != null && name.equals("summary")) {
+      return new AlertSummaryRenderer();
+    } else {
+      return super.getRenderer(name);
+    }
+  }
 }

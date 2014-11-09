@@ -47,21 +47,22 @@ import com.google.inject.Injector;
  */
 public class AlertResourceProvider extends ReadOnlyResourceProvider {
 
+  public static final String ALERT_STATE = "Alert/state";
+  public static final String ALERT_ORIGINAL_TIMESTAMP = "Alert/original_timestamp";
+
   protected static final String ALERT_CLUSTER_NAME = "Alert/cluster_name";
   protected static final String ALERT_ID = "Alert/id";
   protected static final String ALERT_NAME = "Alert/name";
   protected static final String ALERT_LATEST_TIMESTAMP = "Alert/latest_timestamp";
   protected static final String ALERT_MAINTENANCE_STATE = "Alert/maintenance_state";
-  protected static final String ALERT_ORIGINAL_TIMESTAMP = "Alert/original_timestamp";
   protected static final String ALERT_INSTANCE = "Alert/instance";
   protected static final String ALERT_LABEL = "Alert/label";
-  protected static final String ALERT_STATE = "Alert/state";
   protected static final String ALERT_TEXT = "Alert/text";
   protected static final String ALERT_COMPONENT = "Alert/component_name";
   protected static final String ALERT_HOST = "Alert/host_name";
   protected static final String ALERT_SERVICE = "Alert/service_name";
   protected static final String ALERT_SCOPE = "Alert/scope";
-  
+
   private static Set<String> pkPropertyIds = new HashSet<String>(
       Arrays.asList(ALERT_ID, ALERT_NAME));
 
@@ -78,7 +79,7 @@ public class AlertResourceProvider extends ReadOnlyResourceProvider {
   AlertResourceProvider(Set<String> propertyIds,
       Map<Resource.Type, String> keyPropertyIds,
       AmbariManagementController managementController) {
-    
+
     super(propertyIds, keyPropertyIds, managementController);
   }
 
@@ -94,11 +95,11 @@ public class AlertResourceProvider extends ReadOnlyResourceProvider {
       NoSuchResourceException, NoSuchParentResourceException {
 
     Set<String> requestPropertyIds = getRequestPropertyIds(request, predicate);
-    
+
     Set<Resource> results = new HashSet<Resource>();
 
     for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
-      
+
       String clusterName = (String) propertyMap.get(ALERT_CLUSTER_NAME);
 
       if (null == clusterName || clusterName.isEmpty()) {
@@ -108,25 +109,25 @@ public class AlertResourceProvider extends ReadOnlyResourceProvider {
       String id = (String) propertyMap.get(ALERT_ID);
       if (null != id) {
         AlertCurrentEntity entity = alertsDAO.findCurrentById(Long.parseLong(id));
-        
+
         if (null != entity) {
           results.add(toResource(false, clusterName, entity, requestPropertyIds));
         }
-        
+
       } else {
         Cluster cluster = null;
-        
+
         try {
           cluster = getManagementController().getClusters().getCluster(clusterName);
         } catch (AmbariException e) {
           throw new NoSuchResourceException("Parent Cluster resource doesn't exist", e);
         }
-        
+
         String serviceName = (String) propertyMap.get(ALERT_SERVICE);
         String hostName = (String) propertyMap.get(ALERT_HOST);
-        
+
         List<AlertCurrentEntity> entities = null;
-        
+
         if (null != hostName) {
           entities = alertsDAO.findCurrentByHost(cluster.getClusterId(),
               hostName);
@@ -134,12 +135,13 @@ public class AlertResourceProvider extends ReadOnlyResourceProvider {
           entities = alertsDAO.findCurrentByService(cluster.getClusterId(),
               serviceName);
         } else {
-          entities = alertsDAO.findCurrentByCluster(cluster.getClusterId());          
+          entities = alertsDAO.findCurrentByCluster(cluster.getClusterId());
         }
-        
-        if (null == entities)
+
+        if (null == entities) {
           entities = Collections.emptyList();
-        
+        }
+
         for (AlertCurrentEntity entity : entities) {
           results.add(toResource(true, clusterName, entity, requestPropertyIds));
         }
@@ -151,7 +153,7 @@ public class AlertResourceProvider extends ReadOnlyResourceProvider {
 
   /**
    * Converts an entity to a resource.
-   * 
+   *
    * @param isCollection {@code true} if the response is for a collection
    * @param clusterName the cluster name
    * @param entity the entity
@@ -168,7 +170,7 @@ public class AlertResourceProvider extends ReadOnlyResourceProvider {
     setResourceProperty(resource, ALERT_MAINTENANCE_STATE, entity.getMaintenanceState(), requestedIds);
     setResourceProperty(resource, ALERT_ORIGINAL_TIMESTAMP, entity.getOriginalTimestamp(), requestedIds);
     setResourceProperty(resource, ALERT_TEXT, entity.getLatestText(), requestedIds);
-    
+
     AlertHistoryEntity history = entity.getAlertHistory();
     setResourceProperty(resource, ALERT_INSTANCE, history.getAlertInstance(), requestedIds);
     setResourceProperty(resource, ALERT_LABEL, history.getAlertLabel(), requestedIds);
@@ -176,11 +178,11 @@ public class AlertResourceProvider extends ReadOnlyResourceProvider {
     setResourceProperty(resource, ALERT_COMPONENT, history.getComponentName(), requestedIds);
     setResourceProperty(resource, ALERT_HOST, history.getHostName(), requestedIds);
     setResourceProperty(resource, ALERT_SERVICE, history.getServiceName(), requestedIds);
-    
+
     AlertDefinitionEntity definition = history.getAlertDefinition();
     setResourceProperty(resource, ALERT_NAME, definition.getDefinitionName(), requestedIds);
     setResourceProperty(resource, ALERT_SCOPE, definition.getScope(), requestedIds);
-    
+
     if (isCollection) {
       // !!! want name to be populated as if it were a PK when requesting the collection
       resource.setProperty(ALERT_NAME, definition.getDefinitionName());
