@@ -229,10 +229,10 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
                 }
               }
             }
-            if (cluster.getDesiredConfigs().containsKey("zookeeper-env")) {
+            if (cluster.getDesiredConfigs().containsKey("zoo.cfg")) {
               Map<String, String> zkEnvConfigs = ambariClient.getConfiguration(
-                  cluster, "zookeeper-env",
-                  cluster.getDesiredConfigs().get("zookeeper-env"));
+                  cluster, "zoo.cfg",
+                  cluster.getDesiredConfigs().get("zoo.cfg"));
               StringBuilder zkQuorumBuilder = new StringBuilder();
               String port = zkEnvConfigs.get("clientPort");
               AmbariService zkService = ambariClient.getService(cluster,
