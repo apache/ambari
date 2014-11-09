@@ -19,7 +19,7 @@
 
 <a href="#" {{action goToSection view.content.routing target="view"}}>
   {{{unbound view.content.label}}}
-  {{#if view.alertsCount}}
+  {{#if view.hasAlertsLabel}}
     <span class="label label-important alerts-count">
       {{view.alertsCount}}
     </span>
