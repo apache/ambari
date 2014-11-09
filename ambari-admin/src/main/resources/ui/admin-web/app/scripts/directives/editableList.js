@@ -32,7 +32,7 @@ angular.module('ambariAdminConsole')
 
       var readInput = function() {
         $scope.$apply(function() {
-          $scope.input = $editBox.html();
+          $scope.input = $editBox.text();
         });
       };
 
