@@ -85,10 +85,6 @@
 			<version>${guice.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>org.glassfish.jersey.containers</groupId>
-			<artifactId>jersey-container-servlet</artifactId>
-		</dependency>
-		<dependency>
 			<groupId>com.googlecode.json-simple</groupId>
 			<artifactId>json-simple</artifactId>
 		</dependency>
@@ -98,25 +94,17 @@
 			<version>${hadoop.version}</version>
 			<scope>test</scope>
 		</dependency>
-
 		<dependency>
-			<groupId>org.glassfish.jersey.test-framework</groupId>
+			<groupId>com.sun.jersey.jersey-test-framework</groupId>
 			<artifactId>jersey-test-framework-core</artifactId>
-			<version>2.6</version>
+			<version>${jersey.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.glassfish.jersey.test-framework.providers</groupId>
-			<artifactId>jersey-test-framework-provider-grizzly2</artifactId>
-			<version>2.6</version>
+			<groupId>com.sun.jersey.jersey-test-framework</groupId>
+			<artifactId>jersey-test-framework-grizzly2</artifactId>
+			<version>${jersey.version}</version>
 			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.glassfish.jersey.test-framework.providers </groupId>
-			<artifactId>jersey-test-framework-provider-bundle </artifactId>
-			<version>2.6</version>
-			<scope>test</scope>
-			<type>pom</type>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.ambari</groupId>
@@ -442,6 +430,7 @@
 		<guice.version>3.0</guice.version>
 		<jackson.version>1.9.13</jackson.version>
 		<gson.version>2.2.2</gson.version>
+		<jersey.version>1.9</jersey.version>
 	</properties>
 
 	<build>
