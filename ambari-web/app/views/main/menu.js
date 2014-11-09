@@ -39,7 +39,7 @@ App.MainMenuView = Em.CollectionView.extend({
           result.push(
             { label:Em.I18n.t('menu.item.dashboard'), routing:'dashboard', active:'active'},
             { label:Em.I18n.t('menu.item.services'), routing:'services'},
-            { label:Em.I18n.t('menu.item.hosts'), routing:'hosts'}
+            { label:Em.I18n.t('menu.item.hosts'), routing:'hosts', hasAlertsLabel: true}
           );
 
           if (App.get('supports.alerts')) {
@@ -87,12 +87,13 @@ App.MainMenuView = Em.CollectionView.extend({
       return "";
     }.property('App.router.location.lastSetURL', 'App.router.clusterController.isLoaded'),
 
-    alertsCount:function () {
-      if (this.get('content').routing == 'hosts') {
-        return App.router.get('mainHostController.content').mapProperty('criticalAlertsCount')
-          .reduce(function(pv, cv) { return pv + parseInt(cv); }, 0);
-      }
-    }.property('App.router.mainHostController.content.@each.criticalAlertsCount'),
+    alertsCount: function () {
+      return App.router.get('mainHostController.hostsCountMap.health-status-WITH-ALERTS');
+    }.property('App.router.mainHostController.hostsCountMap'),
+
+    hasAlertsLabel: function () {
+      return this.get('content.hasAlertsLabel');
+    }.property('content.hasAlertsLabel'),
 
     templateName: require('templates/main/menu_item'),
 
