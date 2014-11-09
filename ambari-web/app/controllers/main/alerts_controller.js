@@ -145,11 +145,11 @@ App.MainAlertsController = Em.Controller.extend({
           id: _alert.description + "_" + _alert.host_name + "_" + _alert.serviceType,
           title: _alert.description,
           serviceType: _alert.service_name,
-          lastTime: _alert.status_time,
+          lastTime: _alert.last_status_time,
           status: this.get('statusNumberMap')[_alert.status] || "4",
           message: _alert.output,
           hostName: _alert.host_name,
-          lastCheck: _alert.last_status_time,
+          lastCheck: _alert.status_time,
           isLoaded: true
         }));
       }, this);
