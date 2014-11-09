@@ -79,7 +79,7 @@ public class BlueprintConfigurationProcessor {
   /**
    * Compiled regex for hostgroup token.
    */
-  private static Pattern HOSTGROUP_REGEX = Pattern.compile("%HOSTGROUP::(\\S+)%");
+  private static Pattern HOSTGROUP_REGEX = Pattern.compile("%HOSTGROUP::(\\S+?)%");
 
   /**
    * Compiled regex for hostgroup token with port information.
