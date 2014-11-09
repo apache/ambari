@@ -93,7 +93,9 @@ App.MainServiceInfoSummaryView = Em.View.extend({
   /**
    * observes changes to alerts collection
    */
-  observeAlerts: function () {
+  observeAlerts: function (view, property) {
+    //alerts should be inserted only in build-in DOM view
+    if (view.state !== "inDOM") return;
     var newAlerts = this.get('alertsController.alerts'),
       currentAlerts = this.get('alerts'),
       alertsMap;

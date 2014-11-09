@@ -127,11 +127,12 @@ describe('App.MainServiceInfoSummaryView', function() {
   });
 
   describe("#observeAlerts()", function() {
+    var mock = {state: 'inDOM'};
     it("No alerts loaded", function() {
       var alerts = [];
       view.set('alertsController.alerts', []);
-      view.set('alerts', alerts)
-      view.observeAlerts();
+      view.set('alerts', alerts);
+      view.observeAlerts(mock);
 
       expect(alerts).to.be.empty;
       expect(view.get('alertsMap')).to.be.empty;
@@ -141,8 +142,8 @@ describe('App.MainServiceInfoSummaryView', function() {
       view.set('alertsController.alerts', [{
         id: 1
       }]);
-      view.set('alerts', alerts)
-      view.observeAlerts();
+      view.set('alerts', alerts);
+      view.observeAlerts(mock);
 
       expect(alerts[0]).to.be.eql({
         "id": 1
@@ -155,9 +156,9 @@ describe('App.MainServiceInfoSummaryView', function() {
     it("No new alerts", function() {
       var alerts = [{id: 1}];
       view.set('alertsController.alerts', []);
-      view.set('alerts', alerts)
+      view.set('alerts', alerts);
       view.set('alertsMap', {'1': {id: '1'}});
-      view.observeAlerts();
+      view.observeAlerts(mock);
 
       expect(alerts).to.be.empty;
       expect(view.get('alertsMap')).to.be.empty;
@@ -173,9 +174,9 @@ describe('App.MainServiceInfoSummaryView', function() {
       view.set('alertsController.alerts', [{
         id: 1
       }]);
-      view.set('alerts', alerts)
+      view.set('alerts', alerts);
       view.set('alertsMap', {'1': {id: '1'}});
-      view.observeAlerts();
+      view.observeAlerts(mock);
 
       expect(view.updateAlerts.calledWith(
         [{
