@@ -181,6 +181,18 @@ module.exports = function (grunt) {
         dirs: ['<%= yeoman.dist %>']
       }
     },
+    imagemin: {
+      dist: {
+        files: [
+          {
+            expand: true,
+            cwd: '<%= yeoman.app %>/images',
+            src: '{,*/}*.{png,jpg,jpeg}',
+            dest: '<%= yeoman.dist %>/images'
+          }
+        ]
+      }
+    },
     svgmin: {
       dist: {
         files: [
@@ -260,24 +272,22 @@ module.exports = function (grunt) {
             cwd: '<%= yeoman.app %>',
             dest: '<%= yeoman.dist %>',
             src: [
-              '*.{ico,txt}',
+              '*.{ico,txt,php}',
               '.htaccess',
               'img/*',
               'styles/fonts/*',
               'scripts/assets/**/*'
             ]
-          },
+          }
+        ]
+      },
+      xampp: {
+        files: [
           {
             expand: true,
-            flatten: true,
-            src: '<%= yeoman.app %>/bower_components/jquery-ui/themes/base/images/*',
-            dest: '<%= yeoman.dist %>/styles/images/'
-          },
-          {
-            expand: true,
-            flatten: true,
-            src: '<%= yeoman.app %>/bower_components/font-awesome/font/*',
-            dest: '<%= yeoman.dist %>/font/'
+            flatten: false,
+            src: '<%= yeoman.dist %>/**/*',
+            dest: 'D:/xampp/htdocs/'
           }
         ]
       }
@@ -291,6 +301,7 @@ module.exports = function (grunt) {
       ],
       dist: [
         'emberTemplates',
+        'imagemin',
         'svgmin',
         'htmlmin'
       ]
@@ -385,7 +396,8 @@ module.exports = function (grunt) {
     //'uglify',
     'copy:dist',
     //'rev',
-    'usemin'
+    'usemin',
+    'copy:xampp'
   ]);
 
   grunt.registerTask('default', [

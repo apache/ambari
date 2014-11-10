@@ -102,7 +102,7 @@ module.exports = function(config) {
     },
 
     preprocessors: {
-//      '!(vendor|node_modules|test)/**/!(karma_setup|tests).js': 'coverage',
+      '!(vendor|node_modules|test)/**/!(karma_setup|tests).js': 'coverage',
       'app/templates/**/*.hbs': ['ember-precompiler-brunch', 'common-require'],
       'app!(assets)/**/!(karma_setup|tests).js': ['common-require'],
       'test/**/*.js': ['common-require']
@@ -117,7 +117,7 @@ module.exports = function(config) {
     // test results reporter to use
     // possible values: 'dots', 'progress', 'junit', 'growl', 'coverage'
 //    reporters: ['progress', 'coverage'],
-    reporters: ['progress'],
+    reporters: ['progress', 'coverage'],
 
 
     // web server port
