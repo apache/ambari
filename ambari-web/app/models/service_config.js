@@ -194,6 +194,7 @@ App.ServiceConfigProperty = Ember.Object.extend({
   serviceValidator: null,
   isNotSaved: false, // user property was added but not saved
   hasInitialValue: false, //if true then property value is defined and saved to server
+  isHiddenByFilter: false, //if true then hide this property (filtered out)
   /**
    * Usage example see on <code>App.ServiceConfigRadioButtons.handleDBConnectionProperty()</code>
    *

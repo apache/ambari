@@ -25,8 +25,8 @@
   <div class="accordion-inner service-config-section">
     <form class="form-horizontal" autocomplete="off">
 
-      {{#each view.filteredCategoryConfigs}}
-        <div {{bindAttr class=":entry-row isOverridden:overridden-property hasCompareDiffs:overridden-property"}}>
+      {{#each view.categoryConfigs}}
+        <div {{bindAttr class=":entry-row isHiddenByFilter:hide isOverridden:overridden-property hasCompareDiffs:overridden-property"}}>
           {{#if showLabel}}
             <span {{bindAttr class="errorMessage:error: :control-group :control-label-span"}}>
               <label class="control-label">
