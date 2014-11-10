@@ -351,10 +351,10 @@ App.ServiceConfigsByCategoryView = Ember.View.extend(App.UserPref, {
     $('.popover').remove();
     var filter = this.get('parentView.filter').toLowerCase();
     var selectedFilters = this.get('parentView.columns').filterProperty('selected');
-    var filteredResult = this.get('categoryConfigs');
+    var filteredResult = this.get('categoryConfigs')
 
     if (selectedFilters.length > 0 || filter.length > 0 || this.get('state') === 'inDOM') {
-      filteredResult.forEach(function (config) {
+      filteredResult = filteredResult.filter(function (config) {
         var passesFilters = true;
 
         selectedFilters.forEach(function (filter) {
@@ -364,7 +364,7 @@ App.ServiceConfigsByCategoryView = Ember.View.extend(App.UserPref, {
         });
 
         if (!passesFilters) {
-          config.set('isHiddenByFilter', true);
+          return false;
         }
 
         var searchString = config.get('defaultValue') + config.get('description') +
@@ -377,14 +377,13 @@ App.ServiceConfigsByCategoryView = Ember.View.extend(App.UserPref, {
         }
 
         if (filter != null && typeof searchString === "string") {
-          config.set('isHiddenByFilter', !(searchString.toLowerCase().indexOf(filter) > -1));
+          return searchString.toLowerCase().indexOf(filter) > -1;
         } else {
-          config.set('isHiddenByFilter', false);
+          return true;
         }
       });
     }
     filteredResult = this.sortByIndex(filteredResult);
-    filteredResult = filteredResult.filterProperty('isHiddenByFilter', false);
 
     if (filter && filteredResult.length ) {
       if (typeof this.get('category.collapsedByDefault') === 'undefined') {
@@ -402,7 +401,8 @@ App.ServiceConfigsByCategoryView = Ember.View.extend(App.UserPref, {
 
     var categoryBlock = $('.' + this.get('category.name').split(' ').join('.') + '>.accordion-body');
     filteredResult.length && !this.get('category.isCollapsed') ? categoryBlock.show() : categoryBlock.hide();
-  }.observes('categoryConfigs', 'parentView.filter', 'parentView.columns.@each.selected'),
+    return filteredResult;
+  }.property('categoryConfigs', 'parentView.filter', 'parentView.columns.@each.selected').cacheable(),
 
   /**
    * sort configs in current category by index
@@ -441,8 +441,8 @@ App.ServiceConfigsByCategoryView = Ember.View.extend(App.UserPref, {
    * Should we show config group or not
    */
   isShowBlock: function () {
-    return this.get('category.customCanAddProperty') || this.get('categoryConfigs').filterProperty('isHiddenByFilter', false).length > 0;
-  }.property('category.customCanAddProperty', 'categoryConfigs.@each.isHiddenByFilter'),
+    return this.get('category.customCanAddProperty') || this.get('filteredCategoryConfigs').length > 0;
+  }.property('category.customCanAddProperty', 'filteredCategoryConfigs.length'),
 
   didInsertElement: function () {
     var isCollapsed = this.get('category.isCollapsed') == undefined ? (this.get('category.name').indexOf('Advanced') != -1 || this.get('category.name').indexOf('CapacityScheduler') != -1) : this.get('category.isCollapsed');
