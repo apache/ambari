@@ -92,8 +92,8 @@ App.MainMenuView = Em.CollectionView.extend({
     }.property('App.router.mainHostController.hostsCountMap'),
 
     hasAlertsLabel: function () {
-      return this.get('content.hasAlertsLabel');
-    }.property('content.hasAlertsLabel'),
+      return this.get('content.hasAlertsLabel') && this.get('alertsCount') > 0;
+    }.property('content.hasAlertsLabel', 'alertsCount'),
 
     templateName: require('templates/main/menu_item'),
 
