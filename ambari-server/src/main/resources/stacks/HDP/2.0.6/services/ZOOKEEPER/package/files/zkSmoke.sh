@@ -31,7 +31,7 @@ export ZOOKEEPER_EXIT_CODE=0
 test_output_file=/tmp/zkSmoke.out
 errors_expr="ERROR|Exception"
 acceptable_expr="SecurityException"
-zkhosts=` grep "^server\.[[:digit:]]"  $conf_dir/zoo.cfg  | cut -f 2 -d '=' | cut -f 1 -d ':' | tr '\n' ' ' `
+zkhosts=` grep "^\s*server\.[[:digit:]]"  $conf_dir/zoo.cfg  | cut -f 2 -d '=' | cut -f 1 -d ':' | tr '\n' ' ' `
 zk_node1=`echo $zkhosts | tr ' ' '\n' | head -n 1`  
 echo "zk_node1=$zk_node1"
 if [[ $security_enabled == "True" ]]; then
