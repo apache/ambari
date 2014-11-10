@@ -67,12 +67,21 @@ App.MainHostStackVersionsView = App.TableView.extend({
     column: 1,
     fieldType: 'filter-input-width',
     content: function () {
-      return ['All'].concat(this.get('parentView.content').mapProperty('stack').uniq());
+      return [
+        {
+          value: '',
+          label: Em.I18n.t('common.all')
+        }
+      ].concat(this.get('parentView.content').mapProperty('stack').uniq().map(function (item) {
+        return {
+          value: item,
+          label: item
+        }
+      }));
     }.property('App.router.clusterController.isLoaded'),
     onChangeValue: function () {
-      this.get('parentView').updateFilter(this.get('column'), this.get('actualValue'), 'select');
-    },
-    emptyValue: 'All'
+      this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'select');
+    }
   }),
 
   /**
@@ -83,12 +92,21 @@ App.MainHostStackVersionsView = App.TableView.extend({
     column: 2,
     fieldType: 'filter-input-width',
     content: function () {
-      return ['All'].concat(this.get('parentView.content').mapProperty('version'));
+      return [
+        {
+          value: '',
+          label: Em.I18n.t('common.all')
+        }
+      ].concat(this.get('parentView.content').map(function (item) {
+        return {
+          value: item.get('version'),
+          label: item.get('version')
+        }
+      }));
     }.property('App.router.clusterController.isLoaded'),
     onChangeValue: function () {
-      this.get('parentView').updateFilter(this.get('column'), this.get('actualValue'), 'select');
-    },
-    emptyValue: 'All'
+      this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'select');
+    }
   }),
 
   /**
@@ -100,17 +118,31 @@ App.MainHostStackVersionsView = App.TableView.extend({
     fieldType: 'filter-input-width',
     content: function () {
       return [
-        'All',
-        'Installed',
-        'Installing',
-        'Install Failed',
-        'Uninstalled'
+        {
+          value: '',
+          label: Em.I18n.t('common.all')
+        },
+        {
+          value: 'INSTALLED',
+          label: Em.I18n.t('hosts.host.stackVersions.status.installed')
+        },
+        {
+          value: 'INSTALLING',
+          label: Em.I18n.t('hosts.host.stackVersions.status.installing')
+        },
+        {
+          value: 'INSTALL_FAILED',
+          label: Em.I18n.t('hosts.host.stackVersions.status.install_failed')
+        },
+        {
+          value: 'INIT',
+          label: Em.I18n.t('hosts.host.stackVersions.status.init')
+        }
       ];
     }.property('App.router.clusterController.isLoaded'),
     onChangeValue: function () {
-      this.get('parentView').updateFilter(this.get('column'), this.get('actualValue'), 'select');
-    },
-    emptyValue: 'All'
+      this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'select');
+    }
   }),
 
   colPropAssoc: function () {

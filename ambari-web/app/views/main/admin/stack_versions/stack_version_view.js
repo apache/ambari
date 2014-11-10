@@ -85,12 +85,21 @@ App.MainStackVersionsView = App.TableView.extend({
     column: 1,
     fieldType: 'filter-input-width',
     content: function () {
-      return ['All'].concat(App.StackVersion.find().mapProperty('name'));
+      return [
+        {
+          value: '',
+          label: Em.I18n.t('common.all')
+        }
+      ].concat(App.StackVersion.find().map(function (service) {
+        return {
+          value: service.get('name'),
+          label: service.get('name')
+        }
+      }));
     }.property('App.router.mainStackVersionsController.dataIsLoaded'),
     onChangeValue: function () {
-      this.get('parentView').updateFilter(this.get('column'), this.get('actualValue'), 'select');
-    },
-    emptyValue: Em.I18n.t('common.all')
+      this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'select');
+    }
   }),
 
   stackVersionFilterView: filters.createTextView({
@@ -142,11 +151,8 @@ App.MainStackVersionsView = App.TableView.extend({
     }.property('content.operatingSystems.length')
   }),
 
-
-  didInsertElement: function() {
-    this.get('controller').load().done(function(){
-      this.set('filteredContent',this.get('content'));
-    }, this);
+  didInsertElement: function () {
+    this.get('controller').load();
   }
 
 });

@@ -123,12 +123,21 @@ App.MainConfigHistoryView = App.TableView.extend({
     column: 1,
     fieldType: 'filter-input-width',
     content: function () {
-      return ['All'].concat(App.Service.find().mapProperty('serviceName'));
+      return [
+        {
+          value: '',
+          label: Em.I18n.t('common.all')
+        }
+      ].concat(App.Service.find().map(function (service) {
+        return {
+          value: service.get('serviceName'),
+          label: service.get('displayName')
+        }
+      }));
     }.property('App.router.clusterController.isLoaded'),
     onChangeValue: function () {
-      this.get('parentView').updateFilter(this.get('column'), this.get('actualValue'), 'select');
-    },
-    emptyValue: Em.I18n.t('common.all')
+      this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'select');
+    }
   }),
 
   configGroupFilterView: filters.createSelectView({
@@ -136,22 +145,61 @@ App.MainConfigHistoryView = App.TableView.extend({
     fieldType: 'filter-input-width',
     content: function () {
       var groupName = App.ServiceConfigVersion.find().mapProperty('groupName').uniq();
-      if (groupName.indexOf(null) > -1 ){
+      if (groupName.indexOf(null) > -1) {
         groupName.splice(groupName.indexOf(null), 1);
       }
-      return ['All'].concat(groupName);
+      return [
+        {
+          value: '',
+          label: Em.I18n.t('common.all')
+        }
+      ].concat(groupName.map(function (item) {
+        return {
+          value: item,
+          label: item
+        }
+      }));
     }.property('App.router.mainConfigHistoryController.content'),
     onChangeValue: function () {
-      this.get('parentView').updateFilter(this.get('column'), this.get('actualValue'), 'select');
-    },
-    emptyValue: Em.I18n.t('common.all')
+      this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'select');
+    }
   }),
 
   modifiedFilterView: filters.createSelectView({
     column: 3,
     appliedEmptyValue: ["", ""],
     fieldType: 'filter-input-width,modified-filter',
-    content: ['Any', 'Past 1 hour',  'Past 1 Day', 'Past 2 Days', 'Past 7 Days', 'Past 14 Days', 'Past 30 Days'],
+    content: [
+      {
+        value: 'Any',
+        label: Em.I18n.t('any')
+      },
+      {
+        value: 'Past 1 hour',
+        label: 'Past 1 hour'
+      },
+      {
+        value: 'Past 1 Day',
+        label: 'Past 1 Day'
+      },
+      {
+        value: 'Past 2 Days',
+        label: 'Past 2 Days'
+      },
+      {
+        value: 'Past 7 Days',
+        label: 'Past 7 Days'
+      },
+      {
+        value: 'Past 14 Days',
+        label: 'Past 14 Days'
+      },
+      {
+        value: 'Past 30 Days',
+        label: 'Past 30 Days'
+      }
+    ],
+    emptyValue: 'Any',
     valueBinding: "controller.modifiedFilter.optionValue",
     startTimeBinding: "controller.modifiedFilter.actualValues.startTime",
     endTimeBinding: "controller.modifiedFilter.actualValues.endTime",

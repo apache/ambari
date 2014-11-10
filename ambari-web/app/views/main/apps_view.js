@@ -164,7 +164,25 @@ App.MainAppsView = Em.View.extend({
   typeFilterView: filters.createSelectView({
     fieldType: 'input-small',
     valueBinding: "controller.filterObject.runType",
-    content: ['Any', 'Pig', 'Hive', 'MapReduce']
+    content: [
+      {
+        value: 'Any',
+        label: 'Any'
+      },
+      {
+        value: 'Pig',
+        label: 'Pig'
+      },
+      {
+        value: 'Hive',
+        label: 'Hive'
+      },
+      {
+        value: 'MapReduce',
+        label: 'MapReduce'
+      }
+    ],
+    emptyValue: 'Any'
   }),
 
   /**
@@ -244,7 +262,37 @@ App.MainAppsView = Em.View.extend({
   runDateFilterView: filters.createSelectView({
     fieldType: 'input-medium',
     valueBinding: "controller.filterObject.runDate",
-    content: ['Any', 'Past 1 Day', 'Past 2 Days', 'Past 7 Days', 'Past 14 Days', 'Past 30 Days']
+    content: [
+      {
+        value: 'Any',
+        label: Em.I18n.t('any')
+      },
+      {
+        value: 'Past 1 hour',
+        label: 'Past 1 hour'
+      },
+      {
+        value: 'Past 1 Day',
+        label: 'Past 1 Day'
+      },
+      {
+        value: 'Past 2 Days',
+        label: 'Past 2 Days'
+      },
+      {
+        value: 'Past 7 Days',
+        label: 'Past 7 Days'
+      },
+      {
+        value: 'Past 14 Days',
+        label: 'Past 14 Days'
+      },
+      {
+        value: 'Past 30 Days',
+        label: 'Past 30 Days'
+      }
+    ],
+    emptyValue: 'Any'
   }),
 
   /**

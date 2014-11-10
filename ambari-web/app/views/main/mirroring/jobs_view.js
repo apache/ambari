@@ -92,7 +92,33 @@ App.MainDatasetJobsView = App.TableView.extend({
   startFilterView: filters.createSelectView({
     fieldType: 'input-small',
     column: 2,
-    content: ['Any', 'Past 1 Day', 'Past 2 Days', 'Past 7 Days', 'Past 14 Days', 'Past 30 Days'],
+    content: [
+      {
+        value: 'Any',
+        label: Em.I18n.t('any')
+      },
+      {
+        value: 'Past 1 Day',
+        label: 'Past 1 Day'
+      },
+      {
+        value: 'Past 2 Days',
+        label: 'Past 2 Days'
+      },
+      {
+        value: 'Past 7 Days',
+        label: 'Past 7 Days'
+      },
+      {
+        value: 'Past 14 Days',
+        label: 'Past 14 Days'
+      },
+      {
+        value: 'Past 30 Days',
+        label: 'Past 30 Days'
+      }
+    ],
+    emptyValue: 'Any',
     onChangeValue: function () {
       this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'date');
     }
@@ -101,7 +127,33 @@ App.MainDatasetJobsView = App.TableView.extend({
   endFilterView: filters.createSelectView({
     fieldType: 'input-small',
     column: 3,
-    content: ['Any', 'Past 1 Day', 'Past 2 Days', 'Past 7 Days', 'Past 14 Days', 'Past 30 Days'],
+    content: [
+      {
+        value: 'Any',
+        label: Em.I18n.t('any')
+      },
+      {
+        value: 'Past 1 Day',
+        label: 'Past 1 Day'
+      },
+      {
+        value: 'Past 2 Days',
+        label: 'Past 2 Days'
+      },
+      {
+        value: 'Past 7 Days',
+        label: 'Past 7 Days'
+      },
+      {
+        value: 'Past 14 Days',
+        label: 'Past 14 Days'
+      },
+      {
+        value: 'Past 30 Days',
+        label: 'Past 30 Days'
+      }
+    ],
+    emptyValue: 'Any',
     onChangeValue: function () {
       this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'date');
     }
@@ -110,18 +162,38 @@ App.MainDatasetJobsView = App.TableView.extend({
   statusFilterView: filters.createSelectView({
     fieldType: 'input-small',
     column: 4,
-    content: ['Any', 'Waiting', 'Running', 'Suspended', 'Killed', 'Failed', 'Succeeded', 'Error'],
-    onClearValue: function () {
-      if (this.get('value') === '') {
-        this.set('value', 'Any');
+    content: [
+      {
+        value: '',
+        label: Em.I18n.t('any')
+      },
+      {
+        value: 'Waiting',
+        label: 'Waiting'
+      },
+      {
+        value: 'Running',
+        label: 'Running'
+      },
+      {
+        value: 'Suspended',
+        label: 'Suspended'
+      },
+      {
+        value: 'Killed',
+        label: 'Killed'
+      },
+      {
+        value: 'Succeeded',
+        label: 'Succeeded'
+      },
+      {
+        value: 'Error',
+        label: 'Error'
       }
-    }.observes('value'),
+    ],
     onChangeValue: function () {
-      var value = this.get('value');
-      if (value === 'Any') {
-        value = '';
-      }
-      this.get('parentView').updateFilter(this.get('column'), value, 'string');
+      this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'string');
     }
   }),
 

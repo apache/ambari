@@ -60,18 +60,26 @@ App.MainDatasetsView = App.TableView.extend({
   statusFilterView: filters.createSelectView({
     fieldType: 'input-small',
     column: 2,
-    content: ['Any', 'Scheduled', 'Suspended', 'Running'],
-    onClearValue: function () {
-      if (this.get('value') === '') {
-        this.set('value', 'Any');
+    content: [
+      {
+        value: '',
+        label: Em.I18n.t('any')
+      },
+      {
+        value: 'Scheduled',
+        label: 'Scheduled'
+      },
+      {
+        value: 'Suspended',
+        label: 'Suspended'
+      },
+      {
+        value: 'Running',
+        label: 'Running'
       }
-    }.observes('value'),
+    ],
     onChangeValue: function () {
-      var value = this.get('value');
-      if (value === 'Any') {
-        value = '';
-      }
-      this.get('parentView').updateFilter(this.get('column'), value, 'string');
+      this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'string');
     }
   }),
 
