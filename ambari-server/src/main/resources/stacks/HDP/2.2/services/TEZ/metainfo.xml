@@ -21,7 +21,7 @@
     <service>
       <name>TEZ</name>
       <displayName>Tez</displayName>
-      <version>0.6.0.2.2.0.0</version>
+      <version>0.5.2.2.2.0.0</version>
 
       <osSpecifics>
         <osSpecific>
