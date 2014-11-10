@@ -101,7 +101,7 @@ class TestHDP21StackAdvisor(TestCase):
       "hive-site": {
         "properties": {
           "hive.auto.convert.join.noconditionaltask.size": "1048576000",
-          "hive.tez.java.opts": "-server -Xmx2400m -Djava.net.preferIPv4Stack=true -XX:NewRatio=8 -XX:+UseNUMA -XX:+UseParallelGC -XX:+PrintGCDetails -verbose:gc -XX:+PrintGCTimeStamps",
+          "hive.tez.java.opts": "-server -Xmx2401m -Djava.net.preferIPv4Stack=true -XX:NewRatio=8 -XX:+UseNUMA -XX:+UseParallelGC -XX:+PrintGCDetails -verbose:gc -XX:+PrintGCTimeStamps",
           "hive.tez.container.size": "3000"
         }
       }
@@ -151,7 +151,7 @@ class TestHDP21StackAdvisor(TestCase):
       "hive-site": {
         "properties": {
           "hive.auto.convert.join.noconditionaltask.size": "268435456",
-          "hive.tez.java.opts": "-server -Xmx614m -Djava.net.preferIPv4Stack=true -XX:NewRatio=8 -XX:+UseNUMA -XX:+UseParallelGC -XX:+PrintGCDetails -verbose:gc -XX:+PrintGCTimeStamps",
+          "hive.tez.java.opts": "-server -Xmx615m -Djava.net.preferIPv4Stack=true -XX:NewRatio=8 -XX:+UseNUMA -XX:+UseParallelGC -XX:+PrintGCDetails -verbose:gc -XX:+PrintGCTimeStamps",
           "hive.tez.container.size": "768"
         }
       }
