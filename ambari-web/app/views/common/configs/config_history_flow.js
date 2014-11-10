@@ -249,6 +249,7 @@ App.ConfigHistoryFlowView = Em.View.extend({
             // find current in default group
             if (serviceVersion.get('isCurrent') && serviceVersion.get('groupName') == Em.I18n.t('dashboard.configHistory.table.configGroup.default')){
               currentIndex = index + 1;
+              serviceVersion.set('isDisplayed', true);
             }
           });
         }
