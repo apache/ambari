@@ -122,6 +122,7 @@ public class UpgradeCatalog161 extends AbstractUpgradeCatalog {
     dbAccessor.dropConstraint("viewinstancedata", "FK_viewinstdata_view_name");
     dbAccessor.dropConstraint("viewinstanceproperty", "FK_viewinstprop_view_name");
     dbAccessor.dropConstraint("viewentity", "FK_viewentity_view_name");
+    dbAccessor.dropConstraint("viewinstance", "FK_viewinst_view_name");
 
     //modify primary key of viewinstancedata
     if (Configuration.ORACLE_DB_NAME.equals(dbType)
@@ -185,6 +186,7 @@ public class UpgradeCatalog161 extends AbstractUpgradeCatalog {
         new String[]{"view_name", "view_instance_name"}, "viewinstance", new String[]{"view_name", "name"}, true);
     dbAccessor.addFKConstraint("viewentity", "FK_viewentity_view_name",
         new String[]{"view_name", "view_instance_name"}, "viewinstance", new String[]{"view_name", "name"}, true);
+    dbAccessor.addFKConstraint("viewinstance", "FK_viewinst_view_name", "view_name", "viewmain", "view_name", true);
 
     if (Configuration.POSTGRES_DB_NAME.equals(dbType)) {
       dbAccessor.executeQuery("UPDATE viewinstancedata " +
