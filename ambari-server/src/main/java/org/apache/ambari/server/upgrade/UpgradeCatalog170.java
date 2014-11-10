@@ -1110,9 +1110,12 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
         Config oldConfig = cluster.getDesiredConfigByType(PIG_PROPERTIES_CONFIG_TYPE);
         if (oldConfig != null) {
           Map<String, String> properties = oldConfig.getProperties();
-          String value = properties.remove(PIG_CONTENT_FIELD_NAME);
-          properties.put(CONTENT_FIELD_NAME, value);
-          configHelper.createConfigType(cluster, ambariManagementController, PIG_PROPERTIES_CONFIG_TYPE, properties, "ambari-upgrade");
+          
+          if(!properties.containsKey(CONTENT_FIELD_NAME)) {
+            String value = properties.remove(PIG_CONTENT_FIELD_NAME);
+            properties.put(CONTENT_FIELD_NAME, value);
+            configHelper.createConfigType(cluster, ambariManagementController, PIG_PROPERTIES_CONFIG_TYPE, properties, "ambari-upgrade");
+          }
         }
       }
     }
@@ -1136,7 +1139,7 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
             CONTENT_FIELD_NAME, cluster.getClusterName());
 
         for(String configType:configTypes) {
-          if(!configType.endsWith(ENV_CONFIGS_POSTFIX)) {
+          if(!configType.endsWith(ENV_CONFIGS_POSTFIX) && !configType.equals("pig-properties")) {
             continue;
           }
 
