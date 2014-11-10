@@ -52,7 +52,7 @@ GRANT ALL PRIVILEGES ON TABLE ambari.clusterservices TO :username;
 CREATE TABLE ambari.clusterstate (cluster_id BIGINT NOT NULL, current_cluster_state VARCHAR(255) NOT NULL, current_stack_version VARCHAR(255) NOT NULL, PRIMARY KEY (cluster_id));
 GRANT ALL PRIVILEGES ON TABLE ambari.clusterstate TO :username;
 
-CREATE TABLE cluster_version (
+CREATE TABLE ambari.cluster_version (
   id BIGINT NOT NULL,
   cluster_id BIGINT NOT NULL,
   stack VARCHAR(255) NOT NULL,
@@ -84,7 +84,7 @@ GRANT ALL PRIVILEGES ON TABLE ambari.hosts TO :username;
 CREATE TABLE ambari.hoststate (agent_version VARCHAR(255) NOT NULL, available_mem BIGINT NOT NULL, current_state VARCHAR(255) NOT NULL, health_status VARCHAR(255), host_name VARCHAR(255) NOT NULL, time_in_state BIGINT NOT NULL, maintenance_state VARCHAR(512), PRIMARY KEY (host_name));
 GRANT ALL PRIVILEGES ON TABLE ambari.hoststate TO :username;
 
-CREATE TABLE host_version (
+CREATE TABLE ambari.host_version (
   id BIGINT NOT NULL,
   host_name VARCHAR(255) NOT NULL,
   stack VARCHAR(255) NOT NULL,
