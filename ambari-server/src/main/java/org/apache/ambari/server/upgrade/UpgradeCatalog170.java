@@ -169,21 +169,21 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
 
     // add group and members tables
     columns = new ArrayList<DBColumnInfo>();
-    columns.add(new DBColumnInfo("group_id", Integer.class, 1, null, false));
-    columns.add(new DBColumnInfo("principal_id", Integer.class, 1, null, false));
+    columns.add(new DBColumnInfo("group_id", Integer.class, null, null, false));
+    columns.add(new DBColumnInfo("principal_id", Long.class, null, null, false));
     columns.add(new DBColumnInfo("group_name", String.class, 255, null, false));
     columns.add(new DBColumnInfo("ldap_group", Integer.class, 1, 0, false));
     dbAccessor.createTable("groups", columns, "group_id");
 
     columns = new ArrayList<DBColumnInfo>();
-    columns.add(new DBColumnInfo("member_id", Integer.class, 1, null, false));
-    columns.add(new DBColumnInfo("group_id", Integer.class, 1, null, false));
-    columns.add(new DBColumnInfo("user_id", Integer.class, 1, null, false));
+    columns.add(new DBColumnInfo("member_id", Integer.class, null, null, false));
+    columns.add(new DBColumnInfo("group_id", Integer.class, null, null, false));
+    columns.add(new DBColumnInfo("user_id", Integer.class, null, null, false));
     dbAccessor.createTable("members", columns, "member_id");
 
     // add admin tables and initial values prior to adding referencing columns on existing tables
     columns = new ArrayList<DBColumnInfo>();
-    columns.add(new DBColumnInfo("principal_type_id", Integer.class, 1, null,
+    columns.add(new DBColumnInfo("principal_type_id", Integer.class, null, null,
         false));
     columns.add(new DBColumnInfo("principal_type_name", String.class, null,
         null, false));
@@ -195,7 +195,7 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
 
     columns = new ArrayList<DBColumnInfo>();
     columns.add(new DBColumnInfo("principal_id", Long.class, null, null, false));
-    columns.add(new DBColumnInfo("principal_type_id", Integer.class, 1, null,
+    columns.add(new DBColumnInfo("principal_type_id", Integer.class, null, null,
         false));
 
     dbAccessor.createTable("adminprincipal", columns, "principal_id");
@@ -203,7 +203,7 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
     dbAccessor.insertRow("adminprincipal", new String[]{"principal_id", "principal_type_id"}, new String[]{"1", "1"}, true);
 
     columns = new ArrayList<DBColumnInfo>();
-    columns.add(new DBColumnInfo("resource_type_id", Integer.class, 1, null,
+    columns.add(new DBColumnInfo("resource_type_id", Integer.class, null, null,
         false));
     columns.add(new DBColumnInfo("resource_type_name", String.class, null,
         null, false));
@@ -216,7 +216,7 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
 
     columns = new ArrayList<DBColumnInfo>();
     columns.add(new DBColumnInfo("resource_id", Long.class, null, null, false));
-    columns.add(new DBColumnInfo("resource_type_id", Integer.class, 1, null,
+    columns.add(new DBColumnInfo("resource_type_id", Integer.class, null, null,
         false));
 
     dbAccessor.createTable("adminresource", columns, "resource_id");
@@ -227,7 +227,7 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
     columns.add(new DBColumnInfo("permission_id", Long.class, null, null, false));
     columns.add(new DBColumnInfo("permission_name", String.class, null, null,
         false));
-    columns.add(new DBColumnInfo("resource_type_id", Integer.class, 1, null,
+    columns.add(new DBColumnInfo("resource_type_id", Integer.class, null, null,
         false));
 
     dbAccessor.createTable("adminpermission", columns, "permission_id");
@@ -261,7 +261,7 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
     dbAccessor.addColumn("viewmain", new DBColumnInfo("system_view",
         Character.class, 1, null, true));
     dbAccessor.addColumn("viewmain", new DBColumnInfo("resource_type_id",
-        Integer.class, 1, 1, false));
+        Integer.class, null, 1, false));
     dbAccessor.addColumn("viewmain", new DBColumnInfo("description",
         String.class, 2048, null, true));
     dbAccessor.addColumn("viewparameter", new DBColumnInfo("masked",
@@ -269,13 +269,13 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
     dbAccessor.addColumn("users", new DBColumnInfo("active",
       Integer.class, 1, 1, false));
     dbAccessor.addColumn("users", new DBColumnInfo("principal_id",
-        Long.class, 1, 1, false));
+        Long.class, null, 1, false));
     dbAccessor.addColumn("viewinstance", new DBColumnInfo("resource_id",
-        Long.class, 1, 1, false));
+        Long.class, null, 1, false));
     dbAccessor.addColumn("viewinstance", new DBColumnInfo("xml_driven",
         Character.class, 1, null, true));
     dbAccessor.addColumn("clusters", new DBColumnInfo("resource_id",
-        Long.class, 1, 1, false));
+        Long.class, null, 1, false));
 
     dbAccessor.addColumn("host_role_command", new DBColumnInfo("output_log",
         String.class, 255, null, true));
