@@ -177,6 +177,7 @@ Em.I18n.translations = {
   'common.errorPopup.header': 'An error has been encountered',
   'common.use': 'Use',
   'common.stacks': 'Stacks',
+  'common.stack': 'Stack',
   'common.reset': 'Reset',
   'common.path': 'Path',
   'common.package': 'Package',
@@ -226,6 +227,10 @@ Em.I18n.translations = {
   'common.custom': 'Custom',
   'common.continueAnyway': 'Continue Anyway',
   'common.property.undefined': "Undefined",
+  'common.summary': "Summary",
+  'common.configs': "Configs",
+  'common.unknown': "Unknown",
+  'common.install': "Install",
 
   'passiveState.turnOn':'Turn On Maintenance Mode',
   'passiveState.turnOff':'Turn Off Maintenance Mode',
@@ -1703,6 +1708,14 @@ Em.I18n.translations = {
   'hosts.selectHostsDialog.message.warning': 'At least one host needs to be selected.',
 
   'hosts.host.serviceNotAvailable': 'Service not available on this host',
+
+  'hosts.host.menu.stackVersions': 'Versions',
+  'hosts.host.stackVersions.table.noVersions': 'No versions',
+  'hosts.host.stackVersions.table.filteredInfo': '{0} of {1} versions showing',
+  'hosts.host.stackVersions.status.init': 'Uninstalled',
+  'hosts.host.stackVersions.status.installed': 'Installed',
+  'hosts.host.stackVersions.status.install_failed': 'Install Failed',
+  'hosts.host.stackVersions.status.installing': 'Installing',
 
   'hosts.host.metrics.dataUnavailable':'Data Unavailable',
   'hosts.host.metrics.cpu':'CPU Usage',

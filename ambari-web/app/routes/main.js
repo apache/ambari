@@ -282,10 +282,10 @@ module.exports = Em.Route.extend({
         }
       }),
 
-      audit: Em.Route.extend({
-        route: '/audit',
+      stackVersions: Em.Route.extend({
+        route: '/stackVersions',
         connectOutlets: function (router, context) {
-          router.get('mainHostDetailsController').connectOutlet('mainHostAudit');
+          router.get('mainHostDetailsController').connectOutlet('mainHostStackVersions');
         }
       }),
 

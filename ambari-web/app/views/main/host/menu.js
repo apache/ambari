@@ -24,15 +24,21 @@ App.MainHostMenuView = Em.CollectionView.extend({
   content: function () {
     var array = [
       {
-        label: 'Summary',
+        label: Em.I18n.t('common.summary'),
         routing: 'summary'
+      },
+      {
+        label: Em.I18n.t('common.configs'),
+        routing: 'configs'
       }
       /* { label:'Audit', routing:'audit'} */
     ];
-    array.push({
-      label: 'Configs',
-      routing: 'configs'
-    });
+    if (App.supports.stackUpgrade) {
+      array.push({
+        label: Em.I18n.t('hosts.host.menu.stackVersions'),
+        routing: 'stackVersions'
+      });
+    }
     if (App.get('supports.alerts')) {
       array.push({
         label: 'Alerts',

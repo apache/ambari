@@ -55,11 +55,18 @@ App.TableView = Em.View.extend(App.UserPref, {
   defaultDisplayLength: "10",
 
   /**
-   * number of hosts in table after applying filters
+   * number of items in table after applying filters
    */
   filteredCount: function () {
     return this.get('filteredContent.length');
   }.property('filteredContent.length'),
+
+  /**
+   * total number of items in table before applying filters
+   */
+  totalCount: function () {
+    return this.get('content.length');
+  }.property('content.length'),
 
   /**
    * Do filtering, using saved in the local storage filter conditions
