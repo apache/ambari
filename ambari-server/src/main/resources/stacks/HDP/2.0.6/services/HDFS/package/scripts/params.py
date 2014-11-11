@@ -210,8 +210,15 @@ if security_enabled:
   _dn_principal_name = _dn_principal_name.replace('_HOST',hostname.lower())
   
   dn_kinit_cmd = format("{kinit_path_local} -kt {_dn_keytab} {_dn_principal_name};")
+
+  _nn_principal_name = config['configurations']['hdfs-site']['dfs.namenode.kerberos.principal']
+  _nn_keytab = config['configurations']['hdfs-site']['dfs.namenode.keytab.file']
+  _nn_principal_name = _nn_principal_name.replace('_HOST',hostname.lower())
+  
+  nn_kinit_cmd = format("{kinit_path_local} -kt {_nn_keytab} {_nn_principal_name};")
 else:
   dn_kinit_cmd = ""
+  nn_kinit_cmd = ""
 
 import functools
 #create partial functions with common arguments for every HdfsDirectory call
