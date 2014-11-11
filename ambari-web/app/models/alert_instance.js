@@ -22,10 +22,10 @@ var dateUtils = require('utils/date');
 App.AlertInstance = DS.Model.extend({
   id: DS.attr('number'),
   label: DS.attr('string'),
-  alertDefinition: DS.belongsTo('App.AlertDefinition'),
-  serviceName: DS.attr('string'),
+  alertDefinitionName: DS.attr('string'),
+  service: DS.belongsTo('App.Service'),
   componentName: DS.attr('string'),
-  hostName: DS.attr('string'),
+  host: DS.belongsTo('App.Host'),
   scope: DS.attr('string'),
   originalTimestamp: DS.attr('number'),
   latestTimestamp: DS.attr('number'),
@@ -136,3 +136,4 @@ App.AlertInstance.FIXTURES = [
     "notification": 3
   }
 ];
+App.AlertInstance.FIXTURES = [];

@@ -71,6 +71,7 @@ require('controllers/main/alerts_controller');
 require('controllers/main/alert_definitions_controller');
 require('controllers/main/alerts/alert_definitions_actions_controller');
 require('controllers/main/alerts/definition_details_controller');
+require('controllers/main/alerts/alert_instances_controller');
 require('controllers/main/service');
 require('controllers/main/service/item');
 require('controllers/main/service/info/summary');

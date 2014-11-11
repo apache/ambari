@@ -27,7 +27,7 @@ App.alertDefinitionsMapper = App.QuickDataMapper.create({
   metricsUriModel: App.AlertMetricsUriDefinition,
 
   config: {
-    id: 'AlertDefinition.id',
+    id: 'AlertDefinition.name',
     name: 'AlertDefinition.name',
     label: 'AlertDefinition.label',
     service_id: 'AlertDefinition.service_name',

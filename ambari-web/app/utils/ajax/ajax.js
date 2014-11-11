@@ -302,6 +302,18 @@ var urls = {
     'real': '/alert_targets?fields=*',
     'mock': 'data/alerts/alert_notifications.json'
   },
+  'alerts.instances': {
+    'real': '/clusters/{clusterName}/alerts?fields=*',
+    'mock': '/data/alerts/alert_instances.json'
+  },
+  'alerts.instances.by_definition': {
+    'real': '/clusters/{clusterName}/alerts?fields=*&Alert/name={definitionName}',
+    'mock': '/data/alerts/alert_instances.json'
+  },
+  'alerts.instances.by_host': {
+    'real': '/clusters/{clusterName}/alerts?fields=*&Alert/host_name={hostName}',
+    'mock': '/data/alerts/alert_instances.json'
+  },
   'background_operations.get_most_recent': {
     'real': '/clusters/{clusterName}/requests?to=end&page_size={operationsCount}&fields=Requests',
     'mock': '/data/background_operations/list_on_start.json',
