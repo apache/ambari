@@ -19,10 +19,10 @@
   <groupId>org.apache.slider</groupId>
   <artifactId>slider-core</artifactId>
   <versioning>
-    <release>0.51.0</release>
+    <release>0.60.0</release>
     <versions>
-      <version>0.51.0</version>
+      <version>0.60.0</version>
     </versions>
-    <lastUpdated>20141027000000</lastUpdated>
+    <lastUpdated>20141111220202</lastUpdated>
   </versioning>
 </metadata>
