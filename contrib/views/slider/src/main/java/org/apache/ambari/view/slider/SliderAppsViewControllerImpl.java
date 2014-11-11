@@ -1216,6 +1216,7 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
           ActionInstallKeytabArgs keytabArgs = new ActionInstallKeytabArgs();
           keytabArgs.keytabUri = keytab;
           keytabArgs.folder = appName;
+          keytabArgs.overwrite = true;
           installKeytabActions.add(keytabArgs);
         }
       }
