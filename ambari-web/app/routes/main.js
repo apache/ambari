@@ -493,11 +493,25 @@ module.exports = Em.Route.extend({
     adminStackVersions: Em.Route.extend({
       route: '/versions',
       connectOutlets: function (router) {
-        if(App.get('supports.stackUpgrade')) {
-          router.set('mainAdminController.category', "stackVersions");
-          router.get('mainAdminController').connectOutlet('mainStackVersions');
+        if (App.get('supports.stackUpgrade')) {
+          router.get('mainStackVersionsController').load();
         }
-      }
+      },
+      index: Em.Route.extend({
+        route: '/',
+        connectOutlets: function (router) {
+          if(App.get('supports.stackUpgrade')) {
+            router.set('mainAdminController.category', "stackVersions");
+            router.get('mainAdminController').connectOutlet('mainStackVersions');
+          }
+        }
+      }),
+      version: Em.Route.extend({
+        route: '/:stack_version_id',
+        connectOutlets: function (router, stackVersion) {
+          router.get('mainAdminController').connectOutlet('mainStackVersionsDetails', stackVersion);
+        }
+      })
     }),
     adminAdvanced: Em.Route.extend({
       route: '/advanced',

@@ -40,7 +40,7 @@
         {{#each item in view.pageContent}}
           {{#view view.StackVersionView contentBinding="item"}}
             <td class="first">
-              <span class="stack-name">{{view.content.name}}</span>
+              <a href="#/main/admin/versions/{{unbound view.content.id}}" class="stack-name">{{view.content.name}}</a>
             </td>
             <td>
               <span class="stack-version">{{view.content.version}}</span>
@@ -56,10 +56,10 @@
               </div>
             </td>
             <td>
-              <span>{{view.content.installedHostsCount}}</span>
+              <span>{{view.content.installedHosts.length}}</span>
             </td>
             <td>
-              <span>{{view.content.currentHostsCount}}</span>
+              <span>{{view.content.currentHosts.length}}</span>
             </td>
           {{/view}}
         {{/each}}

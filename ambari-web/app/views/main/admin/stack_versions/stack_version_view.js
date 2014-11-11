@@ -149,10 +149,6 @@ App.MainStackVersionsView = App.TableView.extend({
     labels: function() {
       return this.get('content.operatingSystems').getEach('name').join("<br />");
     }.property('content.operatingSystems.length')
-  }),
-
-  didInsertElement: function () {
-    this.get('controller').load();
-  }
+  })
 
 });

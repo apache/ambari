@@ -31,7 +31,7 @@ App.MainAdminView = Em.View.extend({
     if (App.get('supports.stackUpgrade')) {
       items.push({
         name: 'stackVersions',
-        url: 'adminStackVersions',
+        url: 'adminStackVersions.index',
         label: Em.I18n.t('common.stack.versions')
       });
     }

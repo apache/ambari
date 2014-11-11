@@ -2,50 +2,10 @@
   "items": [
     {
       "StackVersion": {
-        "name": "HDP 2.2.0.0",
-        "version": "2.2.0.10",
-        "installed_hosts": 0,
-        "current_hosts": 0,
-        "repositories": [
-          {
-            "os": "redhat6",
-            "baseurls": [
-              {
-                "id": "HDP-2.2.0.1-885",
-                "type": "HDP",
-                "baseurl": "http://host1/hdp"
-              },
-              {
-                "id": "HDP-UTILS-1.0.0.20",
-                "type": "HDP-UTILS",
-                "baseurl": "http://host1/hdp-utils"
-              }
-            ]
-          },
-          {
-            "os": "ubuntu12",
-            "baseurls": [
-              {
-                "id": "HDP-2.2.0.1-885",
-                "type": "HDP",
-                "baseurl": "http://host1/hdp"
-              },
-              {
-                "id": "HDP-UTILS-1.0.0.20",
-                "type": "HDP-UTILS",
-                "baseurl": "http://host1/hdp-utils"
-              }
-            ]
-          }
-        ]
-      }
-    },
-    {
-      "StackVersion": {
         "name": "HDP 2.2.0.1",
-        "version": "2.2.0.12",
-        "installed_hosts": 2,
-        "current_hosts": 3,
+        "version": "HDP-2.2.2",
+        "installed_hosts": ["dev01.hortonworks.com", "dev02.hortonworks.com"],
+        "current_hosts": ["dev01.hortonworks.com", "dev02.hortonworks.com"],
         "repositories": [
           {
             "os": "redhat6",
@@ -53,12 +13,12 @@
               {
                 "id": "HDP-2.2.0.1-885",
                 "type": "HDP",
-                "baseurl": "http://host1/hdp"
+                "baseurl": "http://dev01.hortonworks.com/hdp"
               },
               {
                 "id": "HDP-UTILS-1.0.0.20",
                 "type": "HDP-UTILS",
-                "baseurl": "http://host1/hdp-utils"
+                "baseurl": "http://dev01.hortonworks.com/hdp-utils"
               }
             ]
           }
@@ -68,9 +28,9 @@
     {
       "StackVersion": {
         "name": "HDP 2.2.0.2",
-        "version": "2.2.0.11",
-        "installed_hosts": 5,
-        "current_hosts": 5,
+        "version": "HDP-2.2.3",
+        "installed_hosts": ["dev01.hortonworks.com", "dev02.hortonworks.com"],
+        "current_hosts": ["dev01.hortonworks.com", "dev02.hortonworks.com"],
         "repositories": [
           {
             "os": "redhat6",
@@ -78,12 +38,12 @@
               {
                 "id": "HDP-2.2.0.1-885",
                 "type": "HDP",
-                "baseurl": "http://host1/hdp"
+                "baseurl": "http://dev01.hortonworks.com/hdp"
               },
               {
                 "id": "HDP-UTILS-1.0.0.20",
                 "type": "HDP-UTILS",
-                "baseurl": "http://host1/hdp-utils"
+                "baseurl": "http://dev01.hortonworks.com/hdp-utils"
               }
             ]
           }
@@ -94,8 +54,8 @@
       "StackVersion": {
         "name": "HDP 2.2.0.0",
         "version": "2.2.0.1",
-        "installed_hosts": 0,
-        "current_hosts": 0,
+        "installed_hosts": ["dev01.hortonworks.com", "dev02.hortonworks.com"],
+        "current_hosts": ["dev01.hortonworks.com", "dev02.hortonworks.com"],
         "repositories": [
           {
             "os": "redhat6",
@@ -103,12 +63,12 @@
               {
                 "id": "HDP-2.2.0.1-885",
                 "type": "HDP",
-                "baseurl": "http://host1/hdp"
+                "baseurl": "http://dev01.hortonworks.com/hdp"
               },
               {
                 "id": "HDP-UTILS-1.0.0.20",
                 "type": "HDP-UTILS",
-                "baseurl": "http://host1/hdp-utils"
+                "baseurl": "http://dev01.hortonworks.com/hdp-utils"
               }
             ]
           },
@@ -118,12 +78,12 @@
               {
                 "id": "HDP-2.2.0.1-885",
                 "type": "HDP",
-                "baseurl": "http://host1/hdp"
+                "baseurl": "http://dev01.hortonworks.com/hdp"
               },
               {
                 "id": "HDP-UTILS-1.0.0.20",
                 "type": "HDP-UTILS",
-                "baseurl": "http://host1/hdp-utils"
+                "baseurl": "http://dev01.hortonworks.com/hdp-utils"
               }
             ]
           }
@@ -134,8 +94,8 @@
       "StackVersion": {
         "name": "HDP 2.2.0.1",
         "version": "2.2.0.2",
-        "installed_hosts": 2,
-        "current_hosts": 3,
+        "installed_hosts": ["dev01.hortonworks.com", "dev02.hortonworks.com", "dev03.hortonworks.com"],
+        "current_hosts": ["dev01.hortonworks.com", "dev02.hortonworks.com", "dev03.hortonworks.com"],
         "repositories": [
           {
             "os": "redhat6",
@@ -143,12 +103,12 @@
               {
                 "id": "HDP-2.2.0.1-885",
                 "type": "HDP",
-                "baseurl": "http://host1/hdp"
+                "baseurl": "http://dev01.hortonworks.com/hdp"
               },
               {
                 "id": "HDP-UTILS-1.0.0.20",
                 "type": "HDP-UTILS",
-                "baseurl": "http://host1/hdp-utils"
+                "baseurl": "http://dev01.hortonworks.com/hdp-utils"
               }
             ]
           }
@@ -159,8 +119,8 @@
       "StackVersion": {
         "name": "HDP 2.2.0.2",
         "version": "2.2.0.3",
-        "installed_hosts": 5,
-        "current_hosts": 5,
+        "installed_hosts": ["dev01.hortonworks.com", "dev02.hortonworks.com", "dev03.hortonworks.com"],
+        "current_hosts": ["dev01.hortonworks.com", "dev02.hortonworks.com", "dev03.hortonworks.com"],
         "repositories": [
           {
             "os": "redhat6",
@@ -168,192 +128,12 @@
               {
                 "id": "HDP-2.2.0.1-885",
                 "type": "HDP",
-                "baseurl": "http://host1/hdp"
+                "baseurl": "http://dev01.hortonworks.com/hdp"
               },
               {
                 "id": "HDP-UTILS-1.0.0.20",
                 "type": "HDP-UTILS",
-                "baseurl": "http://host1/hdp-utils"
-              }
-            ]
-          }
-        ]
-      }
-    },
-    {
-      "StackVersion": {
-        "name": "HDP 2.2.0.0",
-        "version": "2.2.0.4",
-        "installed_hosts": 0,
-        "current_hosts": 0,
-        "repositories": [
-          {
-            "os": "redhat6",
-            "baseurls": [
-              {
-                "id": "HDP-2.2.0.1-885",
-                "type": "HDP",
-                "baseurl": "http://host1/hdp"
-              },
-              {
-                "id": "HDP-UTILS-1.0.0.20",
-                "type": "HDP-UTILS",
-                "baseurl": "http://host1/hdp-utils"
-              }
-            ]
-          },
-          {
-            "os": "ubuntu12",
-            "baseurls": [
-              {
-                "id": "HDP-2.2.0.1-885",
-                "type": "HDP",
-                "baseurl": "http://host1/hdp"
-              },
-              {
-                "id": "HDP-UTILS-1.0.0.20",
-                "type": "HDP-UTILS",
-                "baseurl": "http://host1/hdp-utils"
-              }
-            ]
-          }
-        ]
-      }
-    },
-    {
-      "StackVersion": {
-        "name": "HDP 2.2.0.1",
-        "version": "2.2.0.5",
-        "installed_hosts": 2,
-        "current_hosts": 3,
-        "repositories": [
-          {
-            "os": "redhat6",
-            "baseurls": [
-              {
-                "id": "HDP-2.2.0.1-885",
-                "type": "HDP",
-                "baseurl": "http://host1/hdp"
-              },
-              {
-                "id": "HDP-UTILS-1.0.0.20",
-                "type": "HDP-UTILS",
-                "baseurl": "http://host1/hdp-utils"
-              }
-            ]
-          }
-        ]
-      }
-    },
-    {
-      "StackVersion": {
-        "name": "HDP 2.2.0.2",
-        "version": "2.2.0.6",
-        "installed_hosts": 5,
-        "current_hosts": 5,
-        "repositories": [
-          {
-            "os": "redhat6",
-            "baseurls": [
-              {
-                "id": "HDP-2.2.0.1-885",
-                "type": "HDP",
-                "baseurl": "http://host1/hdp"
-              },
-              {
-                "id": "HDP-UTILS-1.0.0.20",
-                "type": "HDP-UTILS",
-                "baseurl": "http://host1/hdp-utils"
-              }
-            ]
-          }
-        ]
-      }
-    },
-    {
-      "StackVersion": {
-        "name": "HDP 2.2.0.0",
-        "version": "2.2.0.7",
-        "installed_hosts": 0,
-        "current_hosts": 0,
-        "repositories": [
-          {
-            "os": "redhat6",
-            "baseurls": [
-              {
-                "id": "HDP-2.2.0.1-885",
-                "type": "HDP",
-                "baseurl": "http://host1/hdp"
-              },
-              {
-                "id": "HDP-UTILS-1.0.0.20",
-                "type": "HDP-UTILS",
-                "baseurl": "http://host1/hdp-utils"
-              }
-            ]
-          },
-          {
-            "os": "ubuntu12",
-            "baseurls": [
-              {
-                "id": "HDP-2.2.0.1-885",
-                "type": "HDP",
-                "baseurl": "http://host1/hdp"
-              },
-              {
-                "id": "HDP-UTILS-1.0.0.20",
-                "type": "HDP-UTILS",
-                "baseurl": "http://host1/hdp-utils"
-              }
-            ]
-          }
-        ]
-      }
-    },
-    {
-      "StackVersion": {
-        "name": "HDP 2.2.0.1",
-        "version": "2.2.0.8",
-        "installed_hosts": 2,
-        "current_hosts": 3,
-        "repositories": [
-          {
-            "os": "redhat6",
-            "baseurls": [
-              {
-                "id": "HDP-2.2.0.1-885",
-                "type": "HDP",
-                "baseurl": "http://host1/hdp"
-              },
-              {
-                "id": "HDP-UTILS-1.0.0.20",
-                "type": "HDP-UTILS",
-                "baseurl": "http://host1/hdp-utils"
-              }
-            ]
-          }
-        ]
-      }
-    },
-    {
-      "StackVersion": {
-        "name": "HDP 2.2.0.2",
-        "version": "2.2.0.9",
-        "installed_hosts": 5,
-        "current_hosts": 5,
-        "repositories": [
-          {
-            "os": "redhat6",
-            "baseurls": [
-              {
-                "id": "HDP-2.2.0.1-885",
-                "type": "HDP",
-                "baseurl": "http://host1/hdp"
-              },
-              {
-                "id": "HDP-UTILS-1.0.0.20",
-                "type": "HDP-UTILS",
-                "baseurl": "http://host1/hdp-utils"
+                "baseurl": "http://dev01.hortonworks.com/hdp-utils"
               }
             ]
           }

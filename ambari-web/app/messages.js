@@ -154,6 +154,7 @@ Em.I18n.translations = {
   'common.cluster':'Cluster',
   'common.repositories':'Repositories',
   'common.stack.versions':'Stack Versions',
+  'common.versions':'Versions',
   'common.serviceAccounts': 'Service Accounts',
   'common.add': 'Add',
   'common.edit': 'Edit',
@@ -1176,6 +1177,16 @@ Em.I18n.translations = {
   'admin.stackVersions.table.header.os': "OS",
   'admin.stackVersions.table.header.installed': "Installed on",
   'admin.stackVersions.table.header.current': "Current on",
+
+  'admin.stackVersions.datails.versionName': "Version Name",
+  'admin.stackVersions.datails.installed.on': "Installed On",
+  'admin.stackVersions.datails.current.on': "Current On",
+  'admin.stackVersions.datails.base.url': "Base Url",
+
+  'admin.stackVersions.datails.hosts.btn.install': "Install to {0} hosts",
+  'admin.stackVersions.datails.hosts.btn.installing': "Installing...",
+  'admin.stackVersions.datails.hosts.btn.nothing': "Nothing to Install",
+  'admin.stackVersions.datails.hosts.btn.na': "Status not available",
 
   'services.service.start':'Start',
   'services.service.stop':'Stop',

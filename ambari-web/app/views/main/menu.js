@@ -140,8 +140,8 @@ App.MainMenuView = Em.CollectionView.extend({
         });
         if(App.get('supports.stackUpgrade')) {
           categories.push({
-            name: 'stackVersions',
-            url: 'versions/',
+            name: 'adminStackVersions',
+            url: 'versions',
             label: Em.I18n.t('common.stack.versions')
           });
         }

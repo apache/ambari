@@ -18,14 +18,16 @@
 
 var App = require('app');
 
-App.StackVersion = DS.Model.extend({
-  id: DS.attr('string'),
-  name: DS.attr('string'),
-  version: DS.attr('string'),
-  installedHosts: DS.attr('array'),
-  currentHosts: DS.attr('array'),
-  operatingSystems: DS.hasMany('App.OS')
+App.MainStackVersionsDetailsController = Em.Controller.extend({
+  name: 'mainStackVersionsDetailsController',
+
+  content: null,
+
+  totalHostCount: function() {
+    return App.get('allHostNames.length');
+  }.property('App.allHostNames.length'),
+
+  //TODO method that will perform stack upgrade on host
+  installStackVersion: Em.K
+
 });
-
-App.StackVersion.FIXTURES = [];
-

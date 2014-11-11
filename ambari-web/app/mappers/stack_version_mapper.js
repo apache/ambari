@@ -31,8 +31,8 @@ App.stackVersionMapper = App.QuickDataMapper.create({
     operating_systems: {
       item: 'id'
     },
-    installed_hosts_count: 'installed_hosts',
-    current_hosts_count: 'current_hosts'
+    installed_hosts: 'installed_hosts',
+    current_hosts: 'current_hosts'
   },
 
   modelOS: {
