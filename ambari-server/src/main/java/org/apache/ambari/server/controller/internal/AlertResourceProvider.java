@@ -49,10 +49,10 @@ public class AlertResourceProvider extends ReadOnlyResourceProvider {
 
   public static final String ALERT_STATE = "Alert/state";
   public static final String ALERT_ORIGINAL_TIMESTAMP = "Alert/original_timestamp";
+  public static final String ALERT_ID = "Alert/id";
+  public static final String ALERT_NAME = "Alert/name";
 
   protected static final String ALERT_CLUSTER_NAME = "Alert/cluster_name";
-  protected static final String ALERT_ID = "Alert/id";
-  protected static final String ALERT_NAME = "Alert/name";
   protected static final String ALERT_LATEST_TIMESTAMP = "Alert/latest_timestamp";
   protected static final String ALERT_MAINTENANCE_STATE = "Alert/maintenance_state";
   protected static final String ALERT_INSTANCE = "Alert/instance";

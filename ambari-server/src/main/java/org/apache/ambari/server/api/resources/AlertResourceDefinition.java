@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.api.resources;
 
+import org.apache.ambari.server.api.query.render.AlertSummaryGroupedRenderer;
 import org.apache.ambari.server.api.query.render.AlertSummaryRenderer;
 import org.apache.ambari.server.api.query.render.Renderer;
 import org.apache.ambari.server.controller.spi.Resource;
@@ -55,8 +56,14 @@ public class AlertResourceDefinition extends BaseResourceDefinition {
    */
   @Override
   public Renderer getRenderer(String name) {
-    if (name != null && name.equals("summary")) {
+    if (null == name) {
+      return super.getRenderer(name);
+    }
+
+    if (name.equals("summary")) {
       return new AlertSummaryRenderer();
+    } else if (name.equals("groupedSummary")) {
+      return new AlertSummaryGroupedRenderer();
     } else {
       return super.getRenderer(name);
     }

@@ -36,6 +36,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import javax.persistence.EntityManager;
 
+import org.apache.ambari.server.api.query.render.AlertSummaryGroupedRenderer;
 import org.apache.ambari.server.api.query.render.AlertSummaryRenderer;
 import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.api.services.ResultImpl;
@@ -252,6 +253,54 @@ public class AlertResourceProviderTest {
     Assert.assertEquals(3, unknownCount.intValue());
   }
 
+  /**
+   * Tests that the {@link AlertSummaryGroupedRenderer} correctly transforms the
+   * alert data.
+   *
+   * @throws Exception
+   */
+  @Test
+  @SuppressWarnings("unchecked")
+  public void testGetClusterGroupedSummary() throws Exception {
+    expect(m_dao.findCurrentByCluster(captureLong(new Capture<Long>()))).andReturn(
+        getMockEntitiesManyStates()).anyTimes();
+
+    replay(m_dao);
+
+    Request request = PropertyHelper.getReadRequest(
+        AlertResourceProvider.ALERT_ID, AlertResourceProvider.ALERT_NAME,
+        AlertResourceProvider.ALERT_LABEL, AlertResourceProvider.ALERT_STATE,
+        AlertResourceProvider.ALERT_ORIGINAL_TIMESTAMP);
+
+    Predicate predicate = new PredicateBuilder().property(
+        AlertResourceProvider.ALERT_CLUSTER_NAME).equals("c1").toPredicate();
+
+    AlertResourceProvider provider = createProvider();
+    Set<Resource> results = provider.getResources(request, predicate);
+
+    verify(m_dao);
+
+    AlertSummaryGroupedRenderer renderer = new AlertSummaryGroupedRenderer();
+    ResultImpl result = new ResultImpl(true);
+    TreeNode<Resource> resources = result.getResultTree();
+
+    AtomicInteger alertResourceId = new AtomicInteger(1);
+    for (Resource resource : results) {
+      resources.addChild(resource, "Alert " + alertResourceId.getAndIncrement());
+    }
+
+    Result groupedSummary = renderer.finalizeResult(result);
+    Assert.assertNotNull(groupedSummary);
+
+    // pull out the alerts_summary child set by the renderer
+    TreeNode<Resource> summaryResultTree = groupedSummary.getResultTree();
+    TreeNode<Resource> summaryResources = summaryResultTree.getChild("alerts_summary_grouped");
+
+    Resource summaryResource = summaryResources.getObject();
+    List<Object> summaryList = (List<Object>) summaryResource.getPropertyValue("alerts_summary_grouped");
+    Assert.assertEquals(4, summaryList.size());
+  }
+
   private AlertResourceProvider createProvider() {
     return new AlertResourceProvider(
         PropertyHelper.getPropertyIds(Resource.Type.Alert),
@@ -310,19 +359,23 @@ public class AlertResourceProviderTest {
       AlertState state = AlertState.OK;
       String service = "HDFS";
       String component = "NAMENODE";
+      String definitionName = "hdfs_namenode";
 
       if (i >= ok && i < ok + warning) {
         state = AlertState.WARNING;
         service = "YARN";
         component = "RESOURCEMANAGER";
+        definitionName = "yarn_resourcemanager";
       } else if (i >= ok + warning & i < ok + warning + critical) {
         state = AlertState.CRITICAL;
         service = "HIVE";
         component = "HIVE_SERVER";
+        definitionName = "hive_server";
       } else if (i >= ok + warning + critical) {
         state = AlertState.UNKNOWN;
         service = "FLUME";
         component = "FLUME_HANDLER";
+        definitionName = "flume_handler";
       }
 
       AlertCurrentEntity current = new AlertCurrentEntity();
@@ -343,6 +396,8 @@ public class AlertResourceProviderTest {
       history.setServiceName(service);
 
       AlertDefinitionEntity definition = new AlertDefinitionEntity();
+      definition.setDefinitionId(Long.valueOf(i));
+      definition.setDefinitionName(definitionName);
       history.setAlertDefinition(definition);
       current.setAlertHistory(history);
       currents.add(current);

@@ -74,17 +74,17 @@ import org.apache.ambari.server.state.AlertState;
  */
 public class AlertSummaryRenderer extends BaseRenderer implements Renderer {
 
-  private static final String OK_COUNT_PROPERTY = "alerts_summary/OK/count";
-  private static final String OK_TIMESTAMP_PROPERTY = "alerts_summary/OK/original_timestamp";
+  protected static final String OK_COUNT_PROPERTY = "alerts_summary/OK/count";
+  protected static final String OK_TIMESTAMP_PROPERTY = "alerts_summary/OK/original_timestamp";
 
-  private static final String WARN_COUNT_PROPERTY = "alerts_summary/WARNING/count";
-  private static final String WARN_TIMESTAMP_PROPERTY = "alerts_summary/WARNING/original_timestamp";
+  protected static final String WARN_COUNT_PROPERTY = "alerts_summary/WARNING/count";
+  protected static final String WARN_TIMESTAMP_PROPERTY = "alerts_summary/WARNING/original_timestamp";
 
-  private static final String CRITICAL_COUNT_PROPERTY = "alerts_summary/CRITICAL/count";
-  private static final String CRITICAL_TIMESTAMP_PROPERTY = "alerts_summary/CRITICAL/original_timestamp";
+  protected static final String CRITICAL_COUNT_PROPERTY = "alerts_summary/CRITICAL/count";
+  protected static final String CRITICAL_TIMESTAMP_PROPERTY = "alerts_summary/CRITICAL/original_timestamp";
 
-  private static final String UNKNOWN_COUNT_PROPERTY = "alerts_summary/UNKNOWN/count";
-  private static final String UNKNOWN_TIMESTAMP_PROPERTY = "alerts_summary/UNKNOWN/original_timestamp";
+  protected static final String UNKNOWN_COUNT_PROPERTY = "alerts_summary/UNKNOWN/count";
+  protected static final String UNKNOWN_TIMESTAMP_PROPERTY = "alerts_summary/UNKNOWN/original_timestamp";
 
   /**
    * {@inheritDoc}
@@ -110,8 +110,7 @@ public class AlertSummaryRenderer extends BaseRenderer implements Renderer {
     // ensure that state and original_timestamp are on the request since these
     // are required by the finalization process of this renderer
     Set<String> properties = resultTree.getObject();
-    properties.add(AlertResourceProvider.ALERT_STATE);
-    properties.add(AlertResourceProvider.ALERT_ORIGINAL_TIMESTAMP);
+    addRequiredAlertProperties(properties);
 
     return resultTree;
   }
@@ -223,5 +222,18 @@ public class AlertSummaryRenderer extends BaseRenderer implements Renderer {
     summaryTree.addChild(resource, "alerts_summary");
 
     return summary;
+  }
+
+  /**
+   * Adds properties to the backend request that are required by this renderer.
+   * This method currently adds {@link AlertResourceProvider#ALERT_STATE} and
+   * {@link AlertResourceProvider#ALERT_ORIGINAL_TIMESTAMP}.
+   *
+   * @param properties
+   *          the properties collection to add to.
+   */
+  protected void addRequiredAlertProperties(Set<String> properties) {
+    properties.add(AlertResourceProvider.ALERT_STATE);
+    properties.add(AlertResourceProvider.ALERT_ORIGINAL_TIMESTAMP);
   }
 }
