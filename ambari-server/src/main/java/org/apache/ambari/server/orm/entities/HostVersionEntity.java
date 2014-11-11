@@ -51,7 +51,6 @@ public class HostVersionEntity {
   private Long id;
 
   @Column(name = "host_name", nullable = false, insertable = false, updatable = false)
-  @Id
   private String hostName;
 
   @ManyToOne

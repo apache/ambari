@@ -1,0 +1,241 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.apache.ambari.server.orm.dao;
+
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.persist.PersistService;
+import org.apache.ambari.server.orm.GuiceJpaInitializer;
+import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.OrmTestHelper;
+
+import org.apache.ambari.server.orm.entities.ClusterEntity;
+import org.apache.ambari.server.state.ClusterVersionState;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
+import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
+import org.junit.Assert;
+
+
+/**
+ * ClusterVersionDAO unit tests.
+ */
+public class ClusterVersionDAOTest {
+
+  private static Injector injector;
+  private ClusterVersionDAO clusterVersionDAO;
+  private ClusterDAO clusterDAO;
+  private OrmTestHelper helper;
+
+  private long clusterId;
+  ClusterEntity cluster;
+  private int lastStep = -1;
+
+  ClusterVersionEntity cvA;
+  long cvAId = 0L;
+
+  ClusterVersionEntity cvB;
+  long cvBId = 0L;
+
+  ClusterVersionEntity cvC;
+  long cvCId = 0L;
+
+  @Before
+  public void before() {
+    injector = Guice.createInjector(new InMemoryDefaultTestModule());
+    clusterVersionDAO = injector.getInstance(ClusterVersionDAO.class);
+    clusterDAO = injector.getInstance(ClusterDAO.class);
+    helper = injector.getInstance(OrmTestHelper.class);
+    injector.getInstance(GuiceJpaInitializer.class);
+  }
+
+  /**
+   * Helper function to transition the cluster through several cluster versions.
+   * @param currStep Step to go to is a value from 1 - 7, inclusive.
+   */
+  private void createRecordsUntilStep(int currStep) {
+    // Fresh install on A
+    if (currStep >= 1 && lastStep <= 0) {
+      clusterId = helper.createCluster();
+      cluster = clusterDAO.findById(clusterId);
+
+      cvA = new ClusterVersionEntity(cluster, "HDP", "2.2.0.0-995", ClusterVersionState.CURRENT, System.currentTimeMillis(), System.currentTimeMillis(), "admin");
+      clusterVersionDAO.create(cvA);
+      cvAId = cvA.getId();
+    } else {
+      cluster = clusterDAO.findById(clusterId);
+      cvA = clusterVersionDAO.findByPK(cvAId);
+    }
+
+    // Install B
+    if (currStep >= 2) {
+      if (lastStep <= 1) {
+        cvB = new ClusterVersionEntity(cluster, "HDP", "2.2.0.1-998", ClusterVersionState.INSTALLED, System.currentTimeMillis(), System.currentTimeMillis(), "admin");
+        clusterVersionDAO.create(cvB);
+        cvBId = cvB.getId();
+      } else {
+        cvB = clusterVersionDAO.findByPK(cvBId);
+      }
+    }
+
+    // Switch from A to B
+    if (currStep >= 3 && lastStep <= 2) {
+      cvA.setState(ClusterVersionState.CURRENT.INSTALLED);
+      cvB.setState(ClusterVersionState.CURRENT.CURRENT);
+      clusterVersionDAO.merge(cvA);
+      clusterVersionDAO.merge(cvB);
+    }
+
+    // Start upgrading C
+    if (currStep >= 4) {
+      if (lastStep <= 3) {
+        cvC = new ClusterVersionEntity(cluster, "HDP", "2.2.1.0-100", ClusterVersionState.UPGRADING, System.currentTimeMillis(), "admin");
+        clusterVersionDAO.create(cvC);
+        cvCId = cvC.getId();
+      } else {
+        cvC = clusterVersionDAO.findByPK(cvCId);
+      }
+    }
+
+    // Fail upgrade for C
+    if (currStep >= 5 && lastStep <= 4) {
+        cvC.setState(ClusterVersionState.CURRENT.UPGRADE_FAILED);
+        cvC.setEndTime(System.currentTimeMillis());
+        clusterVersionDAO.merge(cvC);
+    }
+
+    // Retry upgrade on C
+    if (currStep >= 6 && lastStep <= 5) {
+        cvC.setState(ClusterVersionState.CURRENT.UPGRADING);
+        cvC.setEndTime(0L);
+        clusterVersionDAO.merge(cvC);
+    }
+
+    // Finalize upgrade on C to make it the current cluster version
+    if (currStep >= 7 && lastStep <= 6) {
+        cvC.setState(ClusterVersionState.CURRENT);
+        cvC.setEndTime(System.currentTimeMillis());
+        clusterVersionDAO.merge(cvC);
+
+        cvA.setState(ClusterVersionState.INSTALLED);
+        cvB.setState(ClusterVersionState.INSTALLED);
+        clusterVersionDAO.merge(cvA);
+        clusterVersionDAO.merge(cvB);
+    }
+
+    this.lastStep = currStep;
+  }
+
+  @Test
+  public void testFindByStackAndVersion() {
+    createRecordsUntilStep(1);
+    Assert.assertEquals(0, clusterVersionDAO.findByStackAndVersion("non existing", "non existing").size());
+    Assert.assertEquals(1, clusterVersionDAO.findByStackAndVersion("HDP", "2.2.0.0-995").size());
+  }
+
+  @Test
+  public void TestFindByClusterAndStackAndVersion() {
+    createRecordsUntilStep(1);
+    Assert.assertNull(clusterVersionDAO.findByClusterAndStackAndVersion(cluster.getClusterName(), "non existing", "non existing"));
+    Assert.assertNotNull(clusterVersionDAO.findByClusterAndStackAndVersion(cluster.getClusterName(), "HDP", "2.2.0.0-995"));
+  }
+
+  /**
+   * At all times the cluster should have a cluster version whose state is {@link ClusterVersionState#CURRENT}
+   */
+  @Test
+  public void TestFindByClusterAndStateCurrent() {
+    createRecordsUntilStep(1);
+    Assert.assertNotNull(clusterVersionDAO.findByClusterAndStateCurrent(cluster.getClusterName()));
+
+    createRecordsUntilStep(2);
+    Assert.assertNotNull(clusterVersionDAO.findByClusterAndStateCurrent(cluster.getClusterName()));
+
+    createRecordsUntilStep(3);
+    Assert.assertNotNull(clusterVersionDAO.findByClusterAndStateCurrent(cluster.getClusterName()));
+
+    createRecordsUntilStep(4);
+    Assert.assertNotNull(clusterVersionDAO.findByClusterAndStateCurrent(cluster.getClusterName()));
+
+    createRecordsUntilStep(5);
+    Assert.assertNotNull(clusterVersionDAO.findByClusterAndStateCurrent(cluster.getClusterName()));
+
+    createRecordsUntilStep(6);
+    Assert.assertNotNull(clusterVersionDAO.findByClusterAndStateCurrent(cluster.getClusterName()));
+
+    createRecordsUntilStep(7);
+    Assert.assertNotNull(clusterVersionDAO.findByClusterAndStateCurrent(cluster.getClusterName()));
+  }
+
+  /**
+   * Test the state of certain cluster versions.
+   */
+  @Test
+  public void TestFindByClusterAndState() {
+    createRecordsUntilStep(1);
+    Assert.assertEquals(1, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), ClusterVersionState.CURRENT).size());
+    Assert.assertEquals(0, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), ClusterVersionState.INSTALLED).size());
+    Assert.assertEquals(0, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), ClusterVersionState.UPGRADING).size());
+    Assert.assertEquals(0, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), ClusterVersionState.UPGRADE_FAILED).size());
+
+    createRecordsUntilStep(2);
+    Assert.assertEquals(1, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), ClusterVersionState.CURRENT).size());
+    Assert.assertEquals(1, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), ClusterVersionState.INSTALLED).size());
+    Assert.assertEquals(0, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), ClusterVersionState.UPGRADING).size());
+    Assert.assertEquals(0, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), ClusterVersionState.UPGRADE_FAILED).size());
+
+    createRecordsUntilStep(3);
+    Assert.assertEquals(1, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), ClusterVersionState.CURRENT).size());
+    Assert.assertEquals(1, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), ClusterVersionState.INSTALLED).size());
+    Assert.assertEquals(0, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), ClusterVersionState.UPGRADING).size());
+    Assert.assertEquals(0, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), ClusterVersionState.UPGRADE_FAILED).size());
+
+    createRecordsUntilStep(4);
+    Assert.assertEquals(1, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), ClusterVersionState.CURRENT).size());
+    Assert.assertEquals(1, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), ClusterVersionState.INSTALLED).size());
+    Assert.assertEquals(1, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), ClusterVersionState.UPGRADING).size());
+    Assert.assertEquals(0, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), ClusterVersionState.UPGRADE_FAILED).size());
+
+    createRecordsUntilStep(5);
+    Assert.assertEquals(1, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), ClusterVersionState.CURRENT).size());
+    Assert.assertEquals(1, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), ClusterVersionState.INSTALLED).size());
+    Assert.assertEquals(0, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), ClusterVersionState.UPGRADING).size());
+    Assert.assertEquals(1, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), ClusterVersionState.UPGRADE_FAILED).size());
+
+    createRecordsUntilStep(6);
+    Assert.assertEquals(1, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), ClusterVersionState.CURRENT).size());
+    Assert.assertEquals(1, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), ClusterVersionState.INSTALLED).size());
+    Assert.assertEquals(1, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), ClusterVersionState.UPGRADING).size());
+    Assert.assertEquals(0, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), ClusterVersionState.UPGRADE_FAILED).size());
+
+    createRecordsUntilStep(7);
+    Assert.assertEquals(1, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), ClusterVersionState.CURRENT).size());
+    Assert.assertEquals(2, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), ClusterVersionState.INSTALLED).size());
+    Assert.assertEquals(0, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), ClusterVersionState.UPGRADING).size());
+    Assert.assertEquals(0, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), ClusterVersionState.UPGRADE_FAILED).size());
+  }
+
+  @After
+  public void after() {
+    injector.getInstance(PersistService.class).stop();
+    injector = null;
+  }
+}

@@ -367,7 +367,7 @@ BEGIN;
   union all
   select 'config_id_seq', 1
   union all
-  select 'repo_version_id_seq', 0;
+  select 'repo_version_id_seq', 0
   union all
   select 'cluster_version_id_seq', 0
   union all

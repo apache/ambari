@@ -30,6 +30,8 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.NamedQuery;
+import javax.persistence.NamedQueries;
 import javax.persistence.TableGenerator;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
@@ -47,6 +49,16 @@ import static org.apache.commons.lang.StringUtils.defaultString;
     , initialValue = 0
     , allocationSize = 1
 )
+@NamedQueries({
+    @NamedQuery(name = "clusterVersionByClusterAndStackAndVersion", query =
+        "SELECT clusterVersion FROM ClusterVersionEntity clusterVersion JOIN clusterVersion.clusterEntity cluster " +
+        "WHERE cluster.clusterName=:clusterName AND clusterVersion.stack=:stack AND clusterVersion.version=:version"),
+    @NamedQuery(name = "clusterVersionByClusterAndState", query =
+        "SELECT clusterVersion FROM ClusterVersionEntity clusterVersion JOIN clusterVersion.clusterEntity cluster " +
+        "WHERE cluster.clusterName=:clusterName AND clusterVersion.state=:state"),
+    @NamedQuery(name = "clusterVersionByStackVersion",
+        query = "SELECT clusterVersion FROM ClusterVersionEntity clusterVersion WHERE clusterVersion.stack=:stack AND clusterVersion.version=:version"),
+})
 public class ClusterVersionEntity {
 
   @Id
@@ -54,7 +66,6 @@ public class ClusterVersionEntity {
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "cluster_version_id_generator")
   private Long id;
 
-  @Id
   @Column(name = "cluster_id", nullable = false, insertable = false, updatable = false)
   private Long clusterId;
 
@@ -86,6 +97,45 @@ public class ClusterVersionEntity {
   @Column(name = "user_name", insertable = true, updatable = true)
   private String userName = "";
 
+  /**
+   * Empty constructor primarily used by unit tests.
+   */
+  public ClusterVersionEntity() {
+  }
+
+  /**
+   * Full constructor that doesn't have the endTime
+   * @param cluster Cluster entity
+   * @param stack Stack name (e.g., HDP)
+   * @param version Stack version (e.g., 2.2.0.0-995)
+   * @param state Cluster version state
+   * @param startTime Time the cluster version reached its first state
+   * @param userName User who performed the action
+   */
+  public ClusterVersionEntity(ClusterEntity cluster, String stack, String version, ClusterVersionState state, long startTime, String userName) {
+    this.clusterId = cluster.getClusterId();
+    this.clusterEntity = cluster;
+    this.stack = stack;
+    this.version = version;
+    this.state = state;
+    this.startTime = startTime;
+    this.userName = userName;
+  }
+
+  /**
+   * Full constructor that does have the endTime
+   * @param cluster Cluster entity
+   * @param stack Stack name (e.g., HDP)
+   * @param version Stack version (e.g., 2.2.0.0-995)
+   * @param state Cluster version state
+   * @param startTime Time the cluster version reached its first state
+   * @param endTime Time the cluster version finalized its state
+   * @param userName User who performed the action
+   */
+  public ClusterVersionEntity(ClusterEntity cluster, String stack, String version, ClusterVersionState state, long startTime, long endTime, String userName) {
+    this(cluster, stack, version, state, startTime, userName);
+    this.endTime = endTime;
+  }
 
   public Long getId() {
     return id;
