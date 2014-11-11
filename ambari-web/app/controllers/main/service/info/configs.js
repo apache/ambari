@@ -2239,6 +2239,12 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
       serviceUseThis: ['YARN']
     },
     {
+      hostProperty: 'hs_host',
+      componentName: 'HISTORYSERVER',
+      serviceName: 'MAPREDUCE',
+      serviceUseThis: []
+    },
+    {
       hostProperty: 'ats_host',
       componentName: 'APP_TIMELINE_SERVER',
       serviceName: 'YARN',
