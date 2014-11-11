@@ -424,7 +424,7 @@ class TestNamenode(RMFTestCase):
         content = Template('exclude_hosts_list.j2'),
         group = 'hadoop',
     )
-    self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/dn.service.keytab dn/c6401.ambari.apache.org@EXAMPLE.COM;',
+    self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/nn.service.keytab nn/c6401.ambari.apache.org@EXAMPLE.COM;',
         user = 'hdfs',
     )
     self.assertResourceCalled('ExecuteHadoop', 'dfsadmin -refreshNodes',

@@ -133,7 +133,7 @@ def decommission():
   hdfs_user = params.hdfs_user
   conf_dir = params.hadoop_conf_dir
   user_group = params.user_group
-  dn_kinit_cmd = params.dn_kinit_cmd
+  nn_kinit_cmd = params.nn_kinit_cmd
   
   File(params.exclude_file_path,
        content=Template("exclude_hosts_list.j2"),
@@ -141,7 +141,7 @@ def decommission():
        group=user_group
   )
   
-  Execute(dn_kinit_cmd,
+  Execute(nn_kinit_cmd,
           user=hdfs_user
   )
 
