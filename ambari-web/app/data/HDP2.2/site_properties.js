@@ -53,6 +53,7 @@ hdp22properties.push(
     "isRequired": false,
     "isVisible": true,
     "serviceName": "HIVE",
+    "filename": "hive-site.xml",
     "category": "Advanced hive-site"
   },
   {
@@ -63,6 +64,7 @@ hdp22properties.push(
     "displayType": "checkbox",
     "isVisible": true,
     "serviceName": "YARN",
+    "filename": "yarn-site.xml",
     "category": "Advanced yarn-site"
   },
   {
@@ -72,6 +74,7 @@ hdp22properties.push(
     "defaultValue": "localhost:2181",
     "isVisible": true,
     "serviceName": "YARN",
+    "filename": "yarn-site.xml",
     "category": "Advanced yarn-site"
   },
   {
@@ -82,6 +85,7 @@ hdp22properties.push(
     "displayType": "datanodedirs",
     "category": "DATANODE",
     "serviceName": "HDFS",
+    "filename": "hdfs-site.xml",
     "index": 1
   });
 

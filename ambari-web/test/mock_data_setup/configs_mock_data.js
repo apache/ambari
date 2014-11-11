@@ -198,10 +198,16 @@ module.exports = {
         "filename": "capacity-scheduler.xml"
       },
       {
-        "serviceName": "YARN",
-        "name": "yarn.scheduler.capacity.root.default.capacity",
-        "value": "100",
-        "filename": "capacity-scheduler.xml"
+        "name": "hbase_log_dir",
+        "value": "/hadoop/hbase",
+        "serviceName": "HBASE",
+        "filename": "hbase-env.xml"
+      },
+      {
+        "name": "hbase_log_dir",
+        "value": "/hadoop/ams-hbase",
+        "serviceName": "AMS",
+        "filename": "ams-hbase-env.xml"
       }
     ];
   },

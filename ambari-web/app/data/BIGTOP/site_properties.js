@@ -31,6 +31,7 @@ module.exports =
       "displayType": "directories",
       "isOverridable": false,
       "serviceName": "HDFS",
+      "filename": "hdfs-site.xml",
       "category": "SECONDARY_NAMENODE",
       "index": 1
     },
@@ -42,6 +43,7 @@ module.exports =
       "unit": "seconds",
       "category": "General",
       "serviceName": "HDFS",
+      "filename": "hdfs-site.xml",
       "index": 3
     },
     {
@@ -52,6 +54,7 @@ module.exports =
       "displayType": "directories",
       "isOverridable": false,
       "serviceName": "HDFS",
+      "filename": "hdfs-site.xml",
       "category": "NAMENODE",
       "index": 1
     },
@@ -63,6 +66,7 @@ module.exports =
       "isOverridable": false,
       "category": "General",
       "serviceName": "HDFS",
+      "filename": "hdfs-site.xml",
       "index": 0
     },
     {
@@ -72,6 +76,7 @@ module.exports =
       "displayType": "int",
       "category": "DATANODE",
       "serviceName": "HDFS",
+      "filename": "hdfs-site.xml",
       "index": 3
     },
     {
@@ -95,6 +100,7 @@ module.exports =
       "displayType": "directories",
       "category": "DATANODE",
       "serviceName": "HDFS",
+      "filename": "hdfs-site.xml",
       "index": 1
     },
     {
@@ -103,7 +109,8 @@ module.exports =
       "displayName": "DataNode directories permission",
       "displayType": "int",
       "category": "DATANODE",
-      "serviceName": "HDFS"
+      "serviceName": "HDFS",
+      "filename": "hdfs-site.xml"
     },
     {
       "id": "site property",
@@ -111,7 +118,8 @@ module.exports =
       "displayName": "Block replication",
       "displayType": "int",
       "category": "General",
-      "serviceName": "HDFS"
+      "serviceName": "HDFS",
+      "filename": "hdfs-site.xml"
     },
     {
       "id": "site property",
@@ -121,6 +129,7 @@ module.exports =
       "unit": "bytes",
       "category": "General",
       "serviceName": "HDFS",
+      "filename": "hdfs-site.xml",
       "index": 2
     },
     {
@@ -129,7 +138,8 @@ module.exports =
       "displayName": "HDFS Short-circuit read",
       "displayType": "checkbox",
       "category": "Advanced hdfs-site",
-      "serviceName": "HDFS"
+      "serviceName": "HDFS",
+      "filename": "hdfs-site.xml"
     },
     {
       "id": "site property",
@@ -150,6 +160,7 @@ module.exports =
       "displayName": "yarn.acl.enable",
       "displayType": "checkbox",
       "serviceName": "YARN",
+      "filename": "yarn-site.xml",
       "category": "RESOURCEMANAGER"
     },
     {
@@ -158,6 +169,7 @@ module.exports =
       "displayName": "yarn.admin.acl",
       "isRequired": false,
       "serviceName": "YARN",
+      "filename": "yarn-site.xml",
       "category": "RESOURCEMANAGER"
     },
     {
@@ -166,6 +178,7 @@ module.exports =
       "displayName": "yarn.log-aggregation-enable",
       "displayType": "checkbox",
       "serviceName": "YARN",
+      "filename": "yarn-site.xml",
       "category": "RESOURCEMANAGER"
     },
     {
@@ -173,7 +186,8 @@ module.exports =
       "name": "yarn.resourcemanager.scheduler.class",
       "displayName": "yarn.resourcemanager.scheduler.class",
       "serviceName": "YARN",
-      "category": "CapacityScheduler"
+      "category": "CapacityScheduler",
+      "filename": "yarn-site.xml"
     },
     {
       "id": "site property",
@@ -181,6 +195,7 @@ module.exports =
       "displayName": "yarn.scheduler.minimum-allocation-mb",
       "displayType": "int",
       "serviceName": "YARN",
+      "filename": "yarn-site.xml",
       "category": "CapacityScheduler"
     },
     {
@@ -189,6 +204,7 @@ module.exports =
       "displayName": "yarn.scheduler.maximum-allocation-mb",
       "displayType": "int",
       "serviceName": "YARN",
+      "filename": "yarn-site.xml",
       "category": "CapacityScheduler"
     },
     {
@@ -197,6 +213,7 @@ module.exports =
       "displayName": "yarn.nodemanager.resource.memory-mb",
       "displayType": "int",
       "serviceName": "YARN",
+      "filename": "yarn-site.xml",
       "category": "NODEMANAGER"
     },
     {
@@ -204,6 +221,7 @@ module.exports =
       "name": "yarn.nodemanager.vmem-pmem-ratio",
       "displayName": "yarn.nodemanager.vmem-pmem-ratio",
       "serviceName": "YARN",
+      "filename": "yarn-site.xml",
       "category": "NODEMANAGER"
     },
     {
@@ -211,6 +229,7 @@ module.exports =
       "name": "yarn.nodemanager.linux-container-executor.group",
       "displayName": "yarn.nodemanager.linux-container-executor.group",
       "serviceName": "YARN",
+      "filename": "yarn-site.xml",
       "category": "NODEMANAGER"
     },
     {
@@ -220,6 +239,7 @@ module.exports =
       "defaultDirectory": "/hadoop/yarn/log",
       "displayType": "directories",
       "serviceName": "YARN",
+      "filename": "yarn-site.xml",
       "category": "NODEMANAGER"
     },
     {
@@ -229,6 +249,7 @@ module.exports =
       "defaultDirectory": "/hadoop/yarn/local",
       "displayType": "directories",
       "serviceName": "YARN",
+      "filename": "yarn-site.xml",
       "category": "NODEMANAGER"
     },
     {
@@ -237,6 +258,7 @@ module.exports =
       "displayName": "yarn.nodemanager.remote-app-log-dir",
       "displayType": "directory",
       "serviceName": "YARN",
+      "filename": "yarn-site.xml",
       "category": "NODEMANAGER"
     },
     {
@@ -244,6 +266,7 @@ module.exports =
       "name": "yarn.nodemanager.remote-app-log-dir-suffix",
       "displayName": "yarn.nodemanager.remote-app-log-dir-suffix",
       "serviceName": "YARN",
+      "filename": "yarn-site.xml",
       "category": "NODEMANAGER"
     },
     {
@@ -251,6 +274,7 @@ module.exports =
       "name": "yarn.nodemanager.aux-services",
       "displayName": "yarn.nodemanager.aux-services",
       "serviceName": "YARN",
+      "filename": "yarn-site.xml",
       "category": "NODEMANAGER"
     },
     {
@@ -258,6 +282,7 @@ module.exports =
       "name": "yarn.nodemanager.log.retain-second",
       "displayName": "yarn.nodemanager.log.retain-second",
       "serviceName": "YARN",
+      "filename": "yarn-site.xml",
       "category": "NODEMANAGER"
     },
     {
@@ -265,7 +290,8 @@ module.exports =
       "name": "yarn.log.server.url",
       "displayName": "yarn.log.server.url",
       "category": "Advanced yarn-site",
-      "serviceName": "YARN"
+      "serviceName": "YARN",
+      "filename": "yarn-site.xml"
     },
     {
       "id": "site property",
@@ -273,7 +299,8 @@ module.exports =
       "displayName": "yarn.timeline-service.enabled",
       "category": "APP_TIMELINE_SERVER",
       "displayType": "checkbox",
-      "serviceName": "YARN"
+      "serviceName": "YARN",
+      "filename": "yarn-site.xml"
     },
     {
       "id": "site property",
@@ -282,7 +309,8 @@ module.exports =
       "defaultDirectory": "/hadoop/yarn/timeline",
       "category": "APP_TIMELINE_SERVER",
       "displayType": "directory",
-      "serviceName": "YARN"
+      "serviceName": "YARN",
+      "filename": "yarn-site.xml"
     },
     {
       "id": "site property",
@@ -290,14 +318,16 @@ module.exports =
       "displayName": "yarn.timeline-service.leveldb-timeline-store.ttl-interval-ms",
       "displayType": "int",
       "category": "APP_TIMELINE_SERVER",
-      "serviceName": "YARN"
+      "serviceName": "YARN",
+      "filename": "yarn-site.xml"
     },
     {
       "id": "site property",
       "name": "yarn.timeline-service.store-class",
       "displayName": "yarn.timeline-service.store-class",
       "category": "APP_TIMELINE_SERVER",
-      "serviceName": "YARN"
+      "serviceName": "YARN",
+      "filename": "yarn-site.xml"
     },
     {
       "id": "site property",
@@ -305,7 +335,8 @@ module.exports =
       "displayName": "yarn.timeline-service.ttl-enable",
       "displayType": "checkbox",
       "category": "APP_TIMELINE_SERVER",
-      "serviceName": "YARN"
+      "serviceName": "YARN",
+      "filename": "yarn-site.xml"
     },
     {
       "id": "site property",
@@ -313,14 +344,16 @@ module.exports =
       "displayName": "yarn.timeline-service.ttl-ms",
       "displayType": "int",
       "category": "APP_TIMELINE_SERVER",
-      "serviceName": "YARN"
+      "serviceName": "YARN",
+      "filename": "yarn-site.xml"
     },
     {
       "id": "site property",
       "name": "yarn.timeline-service.generic-application-history.store-class",
       "displayName": "yarn.timeline-service.generic-application-history.store-class",
       "category": "APP_TIMELINE_SERVER",
-      "serviceName": "YARN"
+      "serviceName": "YARN",
+      "filename": "yarn-site.xml"
     },
     {
       "id": "site property",
@@ -328,7 +361,8 @@ module.exports =
       "displayName": "yarn.timeline-service.webapp.address",
       "displayType": "string",
       "category": "APP_TIMELINE_SERVER",
-      "serviceName": "YARN"
+      "serviceName": "YARN",
+      "filename": "yarn-site.xml"
     },
     {
       "id": "site property",
@@ -336,7 +370,8 @@ module.exports =
       "displayName": "yarn.timeline-service.webapp.https.address",
       "displayType": "string",
       "category": "APP_TIMELINE_SERVER",
-      "serviceName": "YARN"
+      "serviceName": "YARN",
+      "filename": "yarn-site.xml"
     },
     {
       "id": "site property",
@@ -344,7 +379,8 @@ module.exports =
       "displayName": "yarn.timeline-service.address",
       "displayType": "string",
       "category": "APP_TIMELINE_SERVER",
-      "serviceName": "YARN"
+      "serviceName": "YARN",
+      "filename": "yarn-site.xml"
     },
   /**********************************************MAPREDUCE2***************************************/
     {
@@ -354,7 +390,8 @@ module.exports =
       "displayType": "int",
       "unit": "MB",
       "category": "General",
-      "serviceName": "MAPREDUCE2"
+      "serviceName": "MAPREDUCE2",
+      "filename": "mapred-site.xml"
     },
     {
       "id": "site property",
@@ -363,7 +400,8 @@ module.exports =
       "displayType": "int",
       "unit": "MB",
       "category": "General",
-      "serviceName": "MAPREDUCE2"
+      "serviceName": "MAPREDUCE2",
+      "filename": "mapred-site.xml"
     },
     {
       "id": "site property",
@@ -372,7 +410,8 @@ module.exports =
       "displayType": "int",
       "unit": "MB",
       "category": "General",
-      "serviceName": "MAPREDUCE2"
+      "serviceName": "MAPREDUCE2",
+      "filename": "mapred-site.xml"
     },
     {
       "id": "site property",
@@ -380,6 +419,7 @@ module.exports =
       "displayName": "hadoop.security.auth_to_local",
       "displayType": "multiLine",
       "serviceName": "HDFS",
+      "filename": "core-site.xml",
       "category": "Advanced core-site"
     },
     {
@@ -388,7 +428,8 @@ module.exports =
       "displayName": "yarn.app.mapreduce.am.resource.mb",
       "displayType": "int",
       "category": "Advanced mapred-site",
-      "serviceName": "MAPREDUCE2"
+      "serviceName": "MAPREDUCE2",
+      "filename": "mapred-site.xml"
     },
 
   /**********************************************oozie-site***************************************/
@@ -401,6 +442,7 @@ module.exports =
       "isObserved": true,
       "category": "OOZIE_SERVER",
       "serviceName": "OOZIE",
+      "filename": "oozie-site.xml",
       "index": 4
     },
     {
@@ -411,6 +453,7 @@ module.exports =
       "displayType": "host",
       "category": "OOZIE_SERVER",
       "serviceName": "OOZIE",
+      "filename": "oozie-site.xml",
       "index": 5
     },
     {
@@ -431,6 +474,7 @@ module.exports =
       "isOverridable": false,
       "category": "OOZIE_SERVER",
       "serviceName": "OOZIE",
+      "filename": "oozie-site.xml",
       "index": 7
     },
     {
@@ -441,6 +485,7 @@ module.exports =
       "displayType": "advanced",
       "category": "OOZIE_SERVER",
       "serviceName": "OOZIE",
+      "filename": "oozie-site.xml",
       "index": 8
     },
 
@@ -452,6 +497,7 @@ module.exports =
       "isOverridable": false,
       "category": "HIVE_METASTORE",
       "serviceName": "HIVE",
+      "filename": "hive-site.xml",
       "index": 7
     },
     {
@@ -462,6 +508,7 @@ module.exports =
       "unit": "MB",
       "isOverridable": false,
       "serviceName": "HIVE",
+      "filename": "hive-site.xml",
       "category": "General",
       "index": 9
     },
@@ -473,6 +520,7 @@ module.exports =
       "isOverridable": false,
       "category": "HIVE_METASTORE",
       "serviceName": "HIVE",
+      "filename": "hive-site.xml",
       "index": 5
     },
     {
@@ -483,6 +531,7 @@ module.exports =
       "isOverridable": false,
       "category": "HIVE_METASTORE",
       "serviceName": "HIVE",
+      "filename": "hive-site.xml",
       "index": 6
     },
     {
@@ -493,6 +542,7 @@ module.exports =
       "isOverridable": false,
       "category": "HIVE_METASTORE",
       "serviceName": "HIVE",
+      "filename": "hive-site.xml",
       "index": 8
     },
     {
@@ -503,6 +553,7 @@ module.exports =
       "isOverridable": false,
       "isObserved": true,
       "serviceName": "HIVE",
+      "filename": "hive-site.xml",
       "category": "HIVE_METASTORE",
       "index": 4
     },
@@ -525,7 +576,8 @@ module.exports =
       "isOverridable": false,
       "isVisible": true,
       "category": "Advanced hive-site",
-      "serviceName": "HIVE"
+      "serviceName": "HIVE",
+      "filename": "hive-site.xml"
     },
     {
       "id": "site property",
@@ -635,8 +687,8 @@ module.exports =
       "defaultDirectory": "/hadoop/hbase",
       "displayType": "directory",
       "category": "Advanced hbase-site",
-      "serviceName": "HBASE"
-
+      "serviceName": "HBASE",
+      "filename": "hbase-site.xml"
     },
     {
       "id": "site property",
@@ -647,6 +699,7 @@ module.exports =
       "isOverridable": false,
       "isVisible": true,
       "serviceName": "HBASE",
+      "filename": "hbase-site.xml",
       "category": "Advanced hbase-site"
     },
     {
@@ -655,7 +708,8 @@ module.exports =
       "displayName": "hbase.regionserver.global.memstore.upperLimit",
       "displayType": "float",
       "category": "Advanced hbase-site",
-      "serviceName": "HBASE"
+      "serviceName": "HBASE",
+      "filename": "hbase-site.xml"
     },
     {
       "id": "site property",
@@ -663,7 +717,8 @@ module.exports =
       "displayName": "hbase.regionserver.global.memstore.lowerLimit",
       "displayType": "float",
       "category": "Advanced hbase-site",
-      "serviceName": "HBASE"
+      "serviceName": "HBASE",
+      "filename": "hbase-site.xml"
     },
     {
       "id": "site property",
@@ -671,7 +726,8 @@ module.exports =
       "displayName": "hstore blocking storefiles",
       "displayType": "int",
       "category": "Advanced hbase-site",
-      "serviceName": "HBASE"
+      "serviceName": "HBASE",
+      "filename": "hbase-site.xml"
     },
     {
       "id": "site property",
@@ -680,6 +736,7 @@ module.exports =
       "displayType": "int",
       "category": "General",
       "serviceName": "HBASE",
+      "filename": "hbase-site.xml",
       "index": 0
     },
     {
@@ -689,6 +746,7 @@ module.exports =
       "displayType": "float",
       "category": "General",
       "serviceName": "HBASE",
+      "filename": "hbase-site.xml",
       "index": 1
     },
     {
@@ -699,6 +757,7 @@ module.exports =
       "unit": "bytes",
       "category": "General",
       "serviceName": "HBASE",
+      "filename": "hbase-site.xml",
       "index": 2
     },
     {
@@ -708,6 +767,7 @@ module.exports =
       "displayType": "int",
       "category": "HBASE_REGIONSERVER",
       "serviceName": "HBASE",
+      "filename": "hbase-site.xml",
       "index": 2
     },
     {
@@ -718,6 +778,7 @@ module.exports =
       "unit": "ms",
       "category": "HBASE_REGIONSERVER",
       "serviceName": "HBASE",
+      "filename": "hbase-site.xml",
       "index": 3
     },
     {
@@ -727,6 +788,7 @@ module.exports =
       "displayType": "int",
       "category": "HBASE_REGIONSERVER",
       "serviceName": "HBASE",
+      "filename": "hbase-site.xml",
       "index": 4
     },
     {
@@ -735,7 +797,8 @@ module.exports =
       "displayName": "hbase.hregion.memstore.mslab.enabled",
       "displayType": "checkbox",
       "category": "Advanced hbase-site",
-      "serviceName": "HBASE"
+      "serviceName": "HBASE",
+      "filename": "hbase-site.xml"
     },
     {
       "id": "site property",
@@ -745,6 +808,7 @@ module.exports =
       "unit": "bytes",
       "category": "HBASE_REGIONSERVER",
       "serviceName": "HBASE",
+      "filename": "hbase-site.xml",
       "index": 5
     },
     {
@@ -755,6 +819,7 @@ module.exports =
       "unit": "rows",
       "category": "General",
       "serviceName": "HBASE",
+      "filename": "hbase-site.xml",
       "index": 3
     },
     {
@@ -765,6 +830,7 @@ module.exports =
       "unit": "ms",
       "category": "General",
       "serviceName": "HBASE",
+      "filename": "hbase-site.xml",
       "index": 4
     },
     {
@@ -775,6 +841,7 @@ module.exports =
       "unit": "bytes",
       "category": "General",
       "serviceName": "HBASE",
+      "filename": "hbase-site.xml",
       "index": 5
     },
     {
@@ -783,7 +850,8 @@ module.exports =
       "displayName": "hbase.coprocessor.region.classes",
       "category": "Advanced hbase-site",
       "isRequired": false,
-      "serviceName": "HBASE"
+      "serviceName": "HBASE",
+      "filename": "hbase-site.xml"
     },
     {
       "id": "site property",
@@ -791,7 +859,8 @@ module.exports =
       "displayName": "hbase.coprocessor.master.classes",
       "category": "Advanced hbase-site",
       "isRequired": false,
-      "serviceName": "HBASE"
+      "serviceName": "HBASE",
+      "filename": "hbase-site.xml"
     },
     {
       "id": "site property",
@@ -799,6 +868,7 @@ module.exports =
       "displayName": "hbase.zookeeper.quorum",
       "displayType": "multiLine",
       "serviceName": "HBASE",
+      "filename": "hbase-site.xml",
       "category": "Advanced hbase-site"
     },
 
@@ -1587,6 +1657,7 @@ module.exports =
       "displayName": "templeton.hive.archive",
       "isRequired": false,
       "serviceName": "HIVE",
+      "filename": "webhcat-site.xml",
       "category": "Advanced webhcat-site"
     },
     {
@@ -1595,6 +1666,7 @@ module.exports =
       "displayName": "templeton.pig.archive",
       "isRequired": false,
       "serviceName": "HIVE",
+      "filename": "webhcat-site.xml",
       "category": "Advanced webhcat-site"
     },
     {
@@ -1603,6 +1675,7 @@ module.exports =
       "displayName": "templeton.zookeeper.hosts",
       "displayType": "multiLine",
       "serviceName": "HIVE",
+      "filename": "webhcat-site.xml",
       "category": "Advanced webhcat-site"
     },
   /**********************************************pig.properties*****************************************/
@@ -2170,6 +2243,7 @@ module.exports =
       "unit": "MB",
       "isVisible": true,
       "serviceName": "HBASE",
+      "filename": "hbase-env.xml",
       "category": "HBASE_REGIONSERVER",
       "index": 6
     },
@@ -2180,6 +2254,7 @@ module.exports =
       "displayType": "float",
       "isVisible": true,
       "serviceName": "HBASE",
+      "filename": "hbase-env.xml",
       "category": "HBASE_REGIONSERVER",
       "index": 7
     },
@@ -2715,7 +2790,7 @@ module.exports =
       "isOverridable": false,
       "isVisible": true,
       "serviceName": "HIVE",
-      "filename": "webhcat-env.xml",
+      "filename": "hive-env.xml",
       "category": "Advanced webhcat-env"
     },
     {
@@ -2729,7 +2804,7 @@ module.exports =
       "isOverridable": false,
       "isVisible": true,
       "serviceName": "HIVE",
-      "filename": "webhcat-env.xml",
+      "filename": "hive-env.xml",
       "category": "Advanced webhcat-env"
     },
   /**********************************************OOZIE***************************************/
@@ -3426,7 +3501,7 @@ module.exports =
       "displayType": "user",
       "isOverridable": false,
       "isVisible": true,
-      "filename": "core-site.xml",
+      "filename": "hadoop-env.xml",
       "serviceName": "MISC",
       "category": "Users and Groups",
       "belongsToService": ["HIVE", "OOZIE", "FALCON"],
@@ -3553,7 +3628,7 @@ module.exports =
       "isOverridable": false,
       "isVisible": true,
       "serviceName": "MISC",
-      "filename": "webhcat-env.xml",
+      "filename": "hive-env.xml",
       "category": "Users and Groups",
       "belongsToService": ["HIVE"],
       "index": 7
@@ -3771,7 +3846,7 @@ module.exports =
       "isOverridable": false,
       "isVisible": true,
       "serviceName": "GANGLIA",
-      "filename": "nagios-env.xml",
+      "filename": "ganglia-env.xml",
       "category": "General",
       "belongsToService": ["GANGLIA"]
     },

@@ -287,7 +287,7 @@ describe('App.config', function () {
   });
 
   describe('#addAvancedConfigs()', function() {
-    before(function() {
+    beforeEach(function() {
       this.storedConfigs = modelSetup.setupStoredConfigsObject();
     });
 
@@ -303,7 +303,20 @@ describe('App.config', function () {
     });
 
     it('`capacity-scheduler.xml` property with name `content` should have `displayType` `multiLine`', function() {
+      App.config.addAdvancedConfigs(this.storedConfigs, modelSetup.setupAdvancedConfigsObject(), 'YARN');
       expect(this.storedConfigs.filterProperty('filename', 'capacity-scheduler.xml').findProperty('name','content').displayType).to.eql('multiLine');
+    });
+
+    it('storing different configs with the same name', function () {
+      App.config.addAdvancedConfigs(this.storedConfigs, modelSetup.setupAdvancedConfigsObject(), 'HBASE');
+      var properties = this.storedConfigs.filterProperty('name', 'hbase_log_dir');
+      var hbaseProperty = properties.findProperty('filename', 'hbase-env.xml');
+      var amsProperty = properties.findProperty('filename', 'ams-hbase-env.xml');
+      expect(properties).to.have.length(2);
+      expect(hbaseProperty.serviceName).to.equal('HBASE');
+      expect(hbaseProperty.value).to.equal('/hadoop/hbase');
+      expect(amsProperty.serviceName).to.equal('AMS');
+      expect(amsProperty.value).to.equal('/hadoop/ams-hbase');
     });
   });
 

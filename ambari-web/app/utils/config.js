@@ -522,7 +522,7 @@ App.config = Em.Object.create({
           configData = preDefined;
           configData.isRequiredByAgent = (configData.isRequiredByAgent !== undefined) ? configData.isRequiredByAgent : true;
           if (isAdvanced) {
-            var advanced = advancedConfigs.findProperty('name', configData.name);
+            var advanced = advancedConfigs.filterProperty('filename', configData.filename).findProperty('name', configData.name);
             this.setPropertyFromStack(configData, advanced);
           }
         }
@@ -603,8 +603,8 @@ App.config = Em.Object.create({
         var configCategory = 'Advanced ' + configType;
         var categoryMetaData = null;
         if (_config) {
-          if (this.get('configMapping').computed().someProperty('name', _config.name)) {
-          } else if (!(configsToVerifying.someProperty('name', _config.name))) {
+          if (!(this.get('configMapping').computed().someProperty('name', _config.name) ||
+            configsToVerifying.filterProperty('name', _config.name).someProperty('filename', _config.filename))) {
             if (this.get('customFileNames').contains(_config.filename)) {
               categoryMetaData = this.identifyCategory(_config);
               if (categoryMetaData != null) {
