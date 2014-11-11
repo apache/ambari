@@ -306,6 +306,7 @@ describe('validator', function () {
       {m:'"/abc" - valid',i:'/abc',e:true},
       {m:'"/1a2b3c" - valid',i:'/1a2b3c',e:true},
       {m:'"[ssd]/1a2b3c" - valid',i:'[ssd]/1a2b3c',e:true},
+      {m:'"[DISK]/1a2b3c" - valid',i:'[DISK]/1a2b3c',e:true},
       {m:'"[] /1a2b3c" - invalid',i:'[] /1a2b3c',e:false},
       {m:'"[ssd] /1a2b3c" - invalid',i:'[ssd] /1a2b3c',e:false},
       {m:'"[/1a2b3c]" - invalid',i:'[/1a2b3c]',e:false},
