@@ -426,7 +426,7 @@
 		<zookeeper.version>3.4.5</zookeeper.version>
 		<jetty.version>6.1.26</jetty.version>
 		<metrics.version>3.0.1</metrics.version>
-		<slider.version>0.51.0</slider.version>
+		<slider.version>0.60.0</slider.version>
 		<guice.version>3.0</guice.version>
 		<jackson.version>1.9.13</jackson.version>
 		<gson.version>2.2.2</gson.version>
