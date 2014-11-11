@@ -627,7 +627,7 @@ define service {
 }
 {% endif %}
 
-{% if hostgroup_defs['hbasemasters'] %}
+{% if hostgroup_defs['hbasemasters'] and hostgroup_defs['region-servers'] != None %}
 # HBASE::REGIONSERVER Checks
 define service {
         hostgroup_name          region-servers
