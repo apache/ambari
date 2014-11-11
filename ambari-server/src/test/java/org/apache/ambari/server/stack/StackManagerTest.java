@@ -18,6 +18,24 @@
 
 package org.apache.ambari.server.stack;
 
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+import java.io.File;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.metadata.ActionMetadata;
@@ -32,24 +50,6 @@ import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
-import java.io.File;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 /**
  * StackManager unit tests.
@@ -197,7 +197,6 @@ public class StackManagerTest {
     expectedServices.add("HDFS");
     expectedServices.add("HIVE");
     expectedServices.add("MAPREDUCE2");
-    expectedServices.add("NAGIOS");
     expectedServices.add("OOZIE");
     expectedServices.add("PIG");
     expectedServices.add("SQOOP");
@@ -205,6 +204,7 @@ public class StackManagerTest {
     expectedServices.add("ZOOKEEPER");
     expectedServices.add("STORM");
     expectedServices.add("FLUME");
+    expectedServices.add("FAKENAGIOS");
 
     ServiceInfo pigService = null;
     for (ServiceInfo service : services) {
@@ -391,16 +391,22 @@ public class StackManagerTest {
 
   @Test
   public void testMonitoringServicePropertyInheritance() throws Exception{
-    StackInfo stack = stackManager.getStack("HDP", "2.0.7");
+    StackInfo stack = stackManager.getStack("HDP", "2.0.8");
     Collection<ServiceInfo> allServices = stack.getServices();
     assertEquals(13, allServices.size());
+
+    boolean monitoringServiceFound = false;
+
     for (ServiceInfo serviceInfo : allServices) {
-      if (serviceInfo.getName().equals("NAGIOS")) {
+      if (serviceInfo.getName().equals("FAKENAGIOS")) {
+        monitoringServiceFound = true;
         assertTrue(serviceInfo.isMonitoringService());
       } else {
         assertNull(serviceInfo.isMonitoringService());
       }
     }
+
+    assertTrue(monitoringServiceFound);
   }
 
   @Test
@@ -408,7 +414,7 @@ public class StackManagerTest {
     StackInfo stack = stackManager.getStack("HDP", "2.0.6");
     Collection<ServiceInfo> allServices = stack.getServices();
 
-    assertEquals(12, allServices.size());
+    assertEquals(11, allServices.size());
     HashSet<String> expectedServices = new HashSet<String>();
     expectedServices.add("GANGLIA");
     expectedServices.add("HBASE");
@@ -416,7 +422,6 @@ public class StackManagerTest {
     expectedServices.add("HDFS");
     expectedServices.add("HIVE");
     expectedServices.add("MAPREDUCE2");
-    expectedServices.add("NAGIOS");
     expectedServices.add("OOZIE");
     expectedServices.add("PIG");
     expectedServices.add("ZOOKEEPER");

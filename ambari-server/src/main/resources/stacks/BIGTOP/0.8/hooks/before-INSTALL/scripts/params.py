@@ -28,7 +28,6 @@ tmp_dir = Script.get_tmp_dir()
 
 #users and groups
 hbase_user = config['configurations']['hbase-env']['hbase_user']
-nagios_user = config['configurations']['nagios-env']['nagios_user']
 smoke_user =  config['configurations']['cluster-env']['smokeuser']
 gmetad_user = config['configurations']['ganglia-env']["gmetad_user"]
 gmond_user = config['configurations']['ganglia-env']["gmond_user"]
@@ -36,14 +35,12 @@ tez_user = config['configurations']['tez-env']["tez_user"]
 
 user_group = config['configurations']['cluster-env']['user_group']
 proxyuser_group = default("/configurations/hadoop-env/proxyuser_group","users")
-nagios_group = config['configurations']['nagios-env']['nagios_group']
 
 #hosts
 hostname = config["hostname"]
 ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
 rm_host = default("/clusterHostInfo/rm_host", [])
 slave_hosts = default("/clusterHostInfo/slave_hosts", [])
-hagios_server_hosts = default("/clusterHostInfo/nagios_server_host", [])
 oozie_servers = default("/clusterHostInfo/oozie_server", [])
 hcat_server_hosts = default("/clusterHostInfo/webhcat_server_host", [])
 hive_server_host =  default("/clusterHostInfo/hive_server_host", [])
@@ -61,7 +58,6 @@ has_namenode = not len(namenode_host) == 0
 has_hs = not len(hs_host) == 0
 has_resourcemanager = not len(rm_host) == 0
 has_slaves = not len(slave_hosts) == 0
-has_nagios = not len(hagios_server_hosts) == 0
 has_oozie_server = not len(oozie_servers)  == 0
 has_hcat_server_host = not len(hcat_server_hosts)  == 0
 has_hive_server_host = not len(hive_server_host)  == 0
@@ -111,8 +107,6 @@ if has_tez:
   user_to_groups_dict[tez_user] = [proxyuser_group]
 
 user_to_gid_dict = collections.defaultdict(lambda:user_group)
-if has_nagios:
-  user_to_gid_dict[nagios_user] = nagios_group
 
 user_list = json.loads(config['hostLevelParams']['user_list'])
 group_list = json.loads(config['hostLevelParams']['group_list'])

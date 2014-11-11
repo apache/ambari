@@ -369,11 +369,9 @@
             "hadoop_pid_dir_prefix": "/var/run/hadoop",
 			      "jobhistory_http_keytab": "/etc/security/keytabs/spnego.service.keytab",
             "resourcemanager_principal_name": "rm/_HOST", 
-            "hadoop_http_principal_name": "HTTP/_HOST",
-            "nagios_keytab_path": "/etc/security/keytabs/nagios.service.keytab", 
+            "hadoop_http_principal_name": "HTTP/_HOST", 
             "namenode_principal_name": "nn/_HOST", 
-            "namenode_keytab": "/etc/security/keytabs/nn.service.keytab", 
-            "nagios_principal_name": "nagios/c6402.ambari.apache.org@EXAMPLE.COM",  
+            "namenode_keytab": "/etc/security/keytabs/nn.service.keytab",   
             "hbase_user_keytab": "/etc/security/keytabs/hbase.headless.keytab", 
             "journalnode_keytab": "/etc/security/keytabs/jn.service.keytab", 
             "hbase_master_keytab": "/etc/security/keytabs/hbase.service.keytab", 
@@ -464,14 +462,6 @@
             "mapred_user": "mapred", 
             "jobhistory_heapsize": "900", 
             "mapred_log_dir_prefix": "/var/log/hadoop-mapreduce"
-        }, 
-        "nagios-env": {
-            "hive_metastore_user_passwd": "password", 
-            "nagios_web_password": "password", 
-            "nagios_user": "nagios", 
-            "nagios_group": "nagios", 
-            "nagios_web_login": "nagiosadmin", 
-            "nagios_contact": "user@com.ua"
         }, 
         "tez-env": {
             "content": "\n# Tez specific configuration\nexport TEZ_CONF_DIR={{config_dir}}\n\n# Set HADOOP_HOME to point to a specific hadoop install directory\nexport HADOOP_HOME=${HADOOP_HOME:-{{hadoop_home}}}\n\n# The java implementation to use.\nexport JAVA_HOME={{java64_home}}", 

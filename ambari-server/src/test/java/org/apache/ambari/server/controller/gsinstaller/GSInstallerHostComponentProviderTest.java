@@ -18,15 +18,16 @@
 
 package org.apache.ambari.server.controller.gsinstaller;
 
+import java.util.HashMap;
+import java.util.Set;
+
 import junit.framework.Assert;
+
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.junit.Test;
-
-import java.util.HashMap;
-import java.util.Set;
 
 /**
  *
@@ -38,7 +39,7 @@ public class GSInstallerHostComponentProviderTest {
     ClusterDefinition clusterDefinition = new ClusterDefinition(new TestGSInstallerStateProvider());
     GSInstallerResourceProvider provider = new GSInstallerHostComponentProvider(clusterDefinition);
     Set<Resource> resources = provider.getResources(PropertyHelper.getReadRequest(), null);
-    Assert.assertEquals(33, resources.size());
+    Assert.assertEquals(32, resources.size());
   }
 
   @Test

@@ -19,21 +19,32 @@
   <schemaVersion>2.0</schemaVersion>
   <services>
     <service>
-      <name>NAGIOS</name>
-      <version>3.5.0</version>
+      <name>FAKENAGIOS</name>
+      <displayName>Monitoring Service</displayName>
+      <comment>A test service for testing out how the API handles a monitoring service</comment>
+      <version>1.0</version>
+      <monitoringService>true</monitoringService>
       <components>
         <component>
-           <name>NAGIOS_SERVER</name>
-            <dependencies>
-              <dependency>
-                <name>TEZ/TEZ_CLIENT</name>
-                <scope>host</scope>
-                <auto-deploy>
-                  <enabled>true</enabled>
-                </auto-deploy>
-              </dependency>
-            </dependencies>
+          <name>Monitoring Client</name>
+          <name>FAKE_MONITORING_CLIENT</name>
+          <category>CLIENT</category>
+          <commandScript>
+            <script>scripts/fake_monitoring.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>600</timeout>
+          </commandScript>
         </component>
+        <component>
+          <name>Monitoring Server</name>
+          <name>FAKE_MONITORING_SERVER</name>
+          <category>SERVER</category>
+          <commandScript>
+            <script>scripts/fakeios.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>600</timeout>
+          </commandScript>
+        </component>        
       </components>
     </service>
   </services>

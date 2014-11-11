@@ -17,6 +17,12 @@
  */
 package org.apache.ambari.server.controller.ganglia;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.configuration.ComponentSSLConfigurationTest;
 import org.apache.ambari.server.controller.internal.ResourceImpl;
@@ -31,12 +37,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
 /**
  * Test the Ganglia report property provider.
  */
@@ -50,14 +50,14 @@ public class GangliaReportPropertyProviderTest {
 
   @Parameterized.Parameters
   public static Collection<Object[]> configs() {
-    ComponentSSLConfiguration configuration1 =
-        ComponentSSLConfigurationTest.getConfiguration("tspath", "tspass", "tstype", false, false);
+    ComponentSSLConfiguration configuration1 = ComponentSSLConfigurationTest.getConfiguration(
+        "tspath", "tspass", "tstype", false);
 
-    ComponentSSLConfiguration configuration2 =
-        ComponentSSLConfigurationTest.getConfiguration("tspath", "tspass", "tstype", true, false);
+    ComponentSSLConfiguration configuration2 = ComponentSSLConfigurationTest.getConfiguration(
+        "tspath", "tspass", "tstype", true);
 
-    ComponentSSLConfiguration configuration3 =
-        ComponentSSLConfigurationTest.getConfiguration("tspath", "tspass", "tstype", false, true);
+    ComponentSSLConfiguration configuration3 = ComponentSSLConfigurationTest.getConfiguration(
+        "tspath", "tspass", "tstype", false);
 
     return Arrays.asList(new Object[][]{
         {configuration1},

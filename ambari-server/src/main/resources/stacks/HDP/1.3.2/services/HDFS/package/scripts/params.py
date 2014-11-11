@@ -42,7 +42,6 @@ kinit_path_local = functions.get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/
 hostname = config["hostname"]
 rm_host = default("/clusterHostInfo/rm_host", [])
 slave_hosts = default("/clusterHostInfo/slave_hosts", [])
-hagios_server_hosts = default("/clusterHostInfo/nagios_server_host", [])
 oozie_servers = default("/clusterHostInfo/oozie_server", [])
 hcat_server_hosts = default("/clusterHostInfo/webhcat_server_host", [])
 hive_server_host =  default("/clusterHostInfo/hive_server_host", [])
@@ -62,7 +61,6 @@ has_resourcemanager = not len(rm_host) == 0
 has_histroryserver = not len(hs_host) == 0
 has_hbase_masters = not len(hbase_master_hosts) == 0
 has_slaves = not len(slave_hosts) == 0
-has_nagios = not len(hagios_server_hosts) == 0
 has_oozie_server = not len(oozie_servers)  == 0
 has_hcat_server_host = not len(hcat_server_hosts)  == 0
 has_hive_server_host = not len(hive_server_host)  == 0
@@ -82,7 +80,6 @@ if has_ganglia_server:
 
 #users and groups
 hbase_user = config['configurations']['hbase-env']['hbase_user']
-nagios_user = config['configurations']['nagios-env']['nagios_user']
 oozie_user = config['configurations']['oozie-env']['oozie_user']
 webhcat_user = config['configurations']['hive-env']['hcat_user']
 hcat_user = config['configurations']['hive-env']['hcat_user']
@@ -93,7 +90,6 @@ hdfs_user = status_params.hdfs_user
 
 user_group = config['configurations']['cluster-env']['user_group']
 proxyuser_group =  config['configurations']['hadoop-env']['proxyuser_group']
-nagios_group = config['configurations']['nagios-env']['nagios_group']
 
 #hadoop params
 hadoop_conf_dir = "/etc/hadoop/conf"

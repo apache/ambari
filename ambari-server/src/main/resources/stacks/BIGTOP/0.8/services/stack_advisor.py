@@ -282,7 +282,7 @@ class BaseBIGTOP08StackAdvisor(DefaultStackAdvisor):
     return ['JOURNALNODE', 'ZKFC', 'GANGLIA_MONITOR']
 
   def getNotPreferableOnServerComponents(self):
-    return ['GANGLIA_SERVER', 'NAGIOS_SERVER']
+    return ['GANGLIA_SERVER']
 
   def getCardinalitiesDict(self):
     return {
@@ -344,7 +344,7 @@ class BIGTOP08StackAdvisor(BaseBIGTOP08StackAdvisor):
                    + "m -Djava.net.preferIPv4Stack=true -XX:+UseNUMA -XX:+UseParallelGC")
 
   def getNotPreferableOnServerComponents(self):
-    return ['STORM_UI_SERVER', 'DRPC_SERVER', 'STORM_REST_API', 'NIMBUS', 'GANGLIA_SERVER', 'NAGIOS_SERVER']
+    return ['STORM_UI_SERVER', 'DRPC_SERVER', 'STORM_REST_API', 'NIMBUS', 'GANGLIA_SERVER']
 
   def getNotValuableComponents(self):
     return ['JOURNALNODE', 'ZKFC', 'GANGLIA_MONITOR', 'APP_TIMELINE_SERVER']

@@ -499,14 +499,6 @@
             "jobhistory_heapsize": "900", 
             "mapred_log_dir_prefix": "/var/log/hadoop-mapreduce"
         },
-        "nagios-env": {
-            "hive_metastore_user_passwd": "password", 
-            "nagios_web_password": "!`\"' 1",
-            "nagios_user": "nagios", 
-            "nagios_group": "nagios", 
-            "nagios_web_login": "nagiosadmin", 
-            "nagios_contact": "user@com.ua"
-        }, 
         "tez-env": {
             "content": "\n# Tez specific configuration\nexport TEZ_CONF_DIR={{config_dir}}\n\n# Set HADOOP_HOME to point to a specific hadoop install directory\nexport HADOOP_HOME=${HADOOP_HOME:-{{hadoop_home}}}\n\n# The java implementation to use.\nexport JAVA_HOME={{java64_home}}", 
             "tez_user": "tez"
@@ -757,9 +749,6 @@
         ], 
         "ganglia_monitor_hosts": [
             "c6401.ambari.apache.org", 
-            "c6402.ambari.apache.org"
-        ], 
-        "nagios_server_host": [
             "c6402.ambari.apache.org"
         ], 
         "all_ping_ports": [

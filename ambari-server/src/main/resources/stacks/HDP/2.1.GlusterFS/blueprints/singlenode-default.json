@@ -1,10 +1,5 @@
 {
     "configurations" : [
-        {
-            "nagios-env" : {
-                "nagios_contact" : "admin@localhost"
-            }
-        }
     ],
     "host_groups" : [
         {
@@ -87,9 +82,6 @@
                 },
                 {
                     "name" : "FALCON_CLIENT"
-                },
-                {
-                    "name" : "NAGIOS_SERVER"
                 },
                 {
                     "name" : "SECONDARY_NAMENODE"

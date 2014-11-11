@@ -160,7 +160,6 @@ host {
  *
  * At the very least, every gmond must expose its XML state to 
  * queriers from localhost.
- * Also we use this port for Nagios monitoring
  */
 tcp_accept_channel {
   bind = 0.0.0.0

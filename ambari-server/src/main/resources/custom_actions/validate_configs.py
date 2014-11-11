@@ -134,7 +134,6 @@ PROPERTIES_TO_CHECK = {
   "HCAT": {
     "hive-env": ["hcat_log_dir", "hcat_pid_dir"]
   },
-  #NAGIOS - no directories to check
   #OOZIE
   "OOZIE_SERVER": {
     "oozie-env": ["oozie_data_dir", "oozie_log_dir", "oozie_pid_dir"]
@@ -299,12 +298,6 @@ USERS_TO_GROUP_MAPPING = {
   "HCAT": {
     "hive-env": {
       "hive_user": "hive_user"
-    }
-  },
-  #NAGIOS
-  "NAGIOS_SERVER": {
-    "nagios-env": {
-      "nagios_user": "nagios_group"
     }
   },
   #OOZIE

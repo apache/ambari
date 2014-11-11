@@ -233,7 +233,6 @@
             "yarn_log_dir_prefix": "/var/log/hadoop-yarn", 
             "zk_log_dir": "/var/log/zookeeper", 
             "hive_aux_jars_path": "/usr/lib/hcatalog/share/hcatalog/hcatalog-core.jar", 
-            "nagios_web_password": "!`\"' 1", 
             "tickTime": "2000", 
             "hive_ambari_database": "MySQL", 
             "falcon_user": "falcon", 
@@ -265,15 +264,12 @@
             "user_group": "hadoop", 
             "yarn_user": "yarn", 
             "gmond_user": "nobody", 
-            "nagios_web_login": "nagiosadmin", 
             "storm_user": "storm", 
-            "nagios_contact": "asd@asd.asd", 
             "hive_database": "New MySQL Database", 
             "storm_log_dir": "/var/log/storm", 
             "clientPort": "2181", 
             "oozie_derby_database": "Derby", 
             "mapred_log_dir_prefix": "/var/log/hadoop-mapreduce", 
-            "nagios_group": "nagios", 
             "hdfs_user": "hdfs", 
             "hbase_user": "hbase", 
             "oozie_database_type": "derby", 
@@ -290,7 +286,6 @@
             "hcat_user": "hcat", 
             "hadoop_heapsize": "1024", 
             "hadoop_pid_dir_prefix": "/var/run/hadoop", 
-            "nagios_user": "nagios", 
             "hbase_log_dir": "/var/log/hbase",
             "falcon_user": "falcon",
             "falcon_port": "15000",
@@ -681,9 +676,6 @@
         ], 
         "ganglia_monitor_hosts": [
             "c6401.ambari.apache.org", 
-            "c6402.ambari.apache.org"
-        ], 
-        "nagios_server_host": [
             "c6402.ambari.apache.org"
         ], 
         "all_ping_ports": [

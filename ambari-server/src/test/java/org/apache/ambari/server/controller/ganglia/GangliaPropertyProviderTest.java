@@ -17,6 +17,19 @@
  */
 package org.apache.ambari.server.controller.ganglia;
 
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.expect;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.configuration.ComponentSSLConfigurationTest;
 import org.apache.ambari.server.controller.internal.PropertyInfo;
@@ -38,19 +51,6 @@ import org.junit.runners.Parameterized;
 import org.powermock.api.easymock.PowerMock;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.expect;
-
 /**
  * Test the Ganglia property provider.
  */
@@ -68,21 +68,21 @@ public class GangliaPropertyProviderTest {
   private static final String CLUSTER_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("HostRoles", "cluster_name");
   private static final String HOST_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("HostRoles", "host_name");
   private static final String COMPONENT_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("HostRoles", "component_name");
-  
 
-  
+
+
   private ComponentSSLConfiguration configuration;
 
   @Parameterized.Parameters
   public static Collection<Object[]> configs() {
-    ComponentSSLConfiguration configuration1 =
-        ComponentSSLConfigurationTest.getConfiguration("tspath", "tspass", "tstype", false, false);
+    ComponentSSLConfiguration configuration1 = ComponentSSLConfigurationTest.getConfiguration(
+        "tspath", "tspass", "tstype", false);
 
-    ComponentSSLConfiguration configuration2 =
-        ComponentSSLConfigurationTest.getConfiguration("tspath", "tspass", "tstype", true, false);
+    ComponentSSLConfiguration configuration2 = ComponentSSLConfigurationTest.getConfiguration(
+        "tspath", "tspass", "tstype", true);
 
-    ComponentSSLConfiguration configuration3 =
-        ComponentSSLConfigurationTest.getConfiguration("tspath", "tspass", "tstype", false, true);
+    ComponentSSLConfiguration configuration3 = ComponentSSLConfigurationTest.getConfiguration(
+        "tspath", "tspass", "tstype", false);
 
     return Arrays.asList(new Object[][]{
         {configuration1},
@@ -159,17 +159,17 @@ public class GangliaPropertyProviderTest {
 
     Assert.assertEquals(1, propertyProvider.populateResources(Collections.singleton(resource), request, null).size());
 
-    
+
     List<String> metricsRegexes = new ArrayList<String>();
-    
+
     metricsRegexes.add("metrics/mapred/shuffleOutput/shuffle_exceptions_caught");
     metricsRegexes.add("metrics/mapred/shuffleOutput/shuffle_failed_outputs");
     metricsRegexes.add("metrics/mapred/shuffleOutput/shuffle_output_bytes");
     metricsRegexes.add("metrics/mapred/shuffleOutput/shuffle_success_outputs");
-    
-    
+
+
     String metricsList = getMetricsRegexes(metricsRegexes, gangliaPropertyIds, "TASKTRACKER");
-    
+
     URIBuilder expectedUri = new URIBuilder();
 
     expectedUri.setScheme((configuration.isGangliaSSL() ? "https" : "http"));
@@ -181,14 +181,14 @@ public class GangliaPropertyProviderTest {
     expectedUri.setParameter("s", "10");
     expectedUri.setParameter("e", "20");
     expectedUri.setParameter("r", "1");
-    
+
 
     URIBuilder actualUri = new URIBuilder(streamProvider.getLastSpec());
 
     Assert.assertEquals(expectedUri.getScheme(), actualUri.getScheme());
     Assert.assertEquals(expectedUri.getHost(), actualUri.getHost());
     Assert.assertEquals(expectedUri.getPath(), actualUri.getPath());
-    
+
     Assert.assertTrue(isUrlParamsEquals(actualUri, expectedUri));
 
     Assert.assertEquals(6, PropertyHelper.getProperties(resource).size());
@@ -207,7 +207,7 @@ public class GangliaPropertyProviderTest {
     Assert.assertNotNull(resource.getPropertyValue(shuffle_output_bytes));
     Assert.assertNotNull(resource.getPropertyValue(shuffle_success_outputs));
   }
-  
+
   @Test
   public void testPopulateResources_checkHostComponent() throws Exception {
     TestStreamProvider streamProvider  = new TestStreamProvider("temporal_ganglia_data.txt");
@@ -233,20 +233,20 @@ public class GangliaPropertyProviderTest {
     Map<String, TemporalInfo> temporalInfoMap = new HashMap<String, TemporalInfo>();
     temporalInfoMap.put(PROPERTY_ID, new TemporalInfoImpl(10L, 20L, 1L));
     Request  request = PropertyHelper.getReadRequest(Collections.singleton(PROPERTY_ID), temporalInfoMap);
-    
+
     expect(hostProvider.getGangliaCollectorHostName(anyObject(String.class))).andReturn("ganglia-host");
     expect(hostProvider.isGangliaCollectorComponentLive(anyObject(String.class))).andReturn(true).once();
     expect(hostProvider.isGangliaCollectorHostLive(anyObject(String.class))).andReturn(true).once();
-    
-    
+
+
     PowerMock.replay(hostProvider);
-    
+
     Set<Resource> populateResources = propertyProvider.populateResources(Collections.singleton(resource), request, null);
-    
+
     PowerMock.verify(hostProvider);
-    
+
     Assert.assertEquals(1, populateResources.size());
-    
+
   }
 
   @Test
@@ -317,7 +317,7 @@ public class GangliaPropertyProviderTest {
     Request  request = PropertyHelper.getReadRequest(Collections.singleton(PROPERTY_ID), temporalInfoMap);
 
     Assert.assertEquals(3, propertyProvider.populateResources(resources, request, null).size());
-    
+
     URIBuilder uriBuilder = new URIBuilder();
 
     uriBuilder.setScheme((configuration.isGangliaSSL() ? "https" : "http"));
@@ -331,7 +331,7 @@ public class GangliaPropertyProviderTest {
     uriBuilder.setParameter("r", "1");
 
     String expected = uriBuilder.toString();
-    
+
     Assert.assertEquals(expected, streamProvider.getLastSpec());
 
     for (Resource res : resources) {
@@ -357,16 +357,17 @@ public class GangliaPropertyProviderTest {
     Set<Resource> resources = new HashSet<Resource>();
 
     StringBuilder hostsList = new StringBuilder();
-    
+
     for (int i = 0; i < 150; ++i) {
       Resource resource = new ResourceImpl(Resource.Type.Host);
       resource.setProperty(HOST_NAME_PROPERTY_ID, "host" + i);
       resources.add(resource);
-      
-      if (hostsList.length() != 0)
+
+      if (hostsList.length() != 0) {
         hostsList.append("," + "host" + i );
-      else
-        hostsList.append("host" + i); 
+      } else {
+        hostsList.append("host" + i);
+      }
     }
 
     // only ask for one property
@@ -376,29 +377,29 @@ public class GangliaPropertyProviderTest {
 
     Assert.assertEquals(150, propertyProvider.populateResources(resources, request, null).size());
 
-    
+
     URIBuilder expectedUri = new URIBuilder();
-    
+
     expectedUri.setScheme((configuration.isGangliaSSL() ? "https" : "http"));
     expectedUri.setHost("domU-12-31-39-0E-34-E1.compute-1.internal");
     expectedUri.setPath("/cgi-bin/rrd.py");
     expectedUri.setParameter("c", "HDPJobTracker,HDPHBaseMaster,HDPKafka,HDPResourceManager,HDPFlumeServer,HDPSlaves,HDPHistoryServer,HDPJournalNode,HDPTaskTracker,HDPHBaseRegionServer,HDPNameNode");
-   
+
     expectedUri.setParameter("h", hostsList.toString());
     expectedUri.setParameter("m", "jvm.metrics.gcCount");
     expectedUri.setParameter("s", "10");
     expectedUri.setParameter("e", "20");
     expectedUri.setParameter("r", "1");
-    
+
     URIBuilder actualUri = new URIBuilder(streamProvider.getLastSpec());
-    
+
     Assert.assertEquals(expectedUri.getScheme(), actualUri.getScheme());
     Assert.assertEquals(expectedUri.getHost(), actualUri.getHost());
     Assert.assertEquals(expectedUri.getPath(), actualUri.getPath());
-    
+
     Assert.assertTrue(isUrlParamsEquals(actualUri, expectedUri));
   }
-  
+
   @Test
   public void testPopulateResources_params() throws Exception {
     TestStreamProvider streamProvider  = new TestStreamProvider("flume_ganglia_data.txt");
@@ -428,13 +429,13 @@ public class GangliaPropertyProviderTest {
     Assert.assertEquals(1, propertyProvider.populateResources(Collections.singleton(resource), request, null).size());
 
     List<String> metricsRegexes = new ArrayList<String>();
-    
+
     metricsRegexes.add(FLUME_CHANNEL_CAPACITY_PROPERTY);
 
     String metricsList = getMetricsRegexes(metricsRegexes, gangliaPropertyIds, "FLUME_HANDLER");
-    
+
     URIBuilder expectedUri = new URIBuilder();
-    
+
     expectedUri.setScheme((configuration.isGangliaSSL() ? "https" : "http"));
     expectedUri.setHost("domU-12-31-39-0E-34-E1.compute-1.internal");
     expectedUri.setPath("/cgi-bin/rrd.py");
@@ -444,15 +445,15 @@ public class GangliaPropertyProviderTest {
     expectedUri.setParameter("s", "10");
     expectedUri.setParameter("e", "20");
     expectedUri.setParameter("r", "1");
-    
+
     URIBuilder actualUri = new URIBuilder(streamProvider.getLastSpec());
 
     Assert.assertEquals(expectedUri.getScheme(), actualUri.getScheme());
     Assert.assertEquals(expectedUri.getHost(), actualUri.getHost());
     Assert.assertEquals(expectedUri.getPath(), actualUri.getPath());
-    
-    Assert.assertTrue(isUrlParamsEquals(actualUri, expectedUri));    
-    
+
+    Assert.assertTrue(isUrlParamsEquals(actualUri, expectedUri));
+
     Assert.assertEquals(3, PropertyHelper.getProperties(resource).size());
     Assert.assertNotNull(resource.getPropertyValue(FLUME_CHANNEL_CAPACITY_PROPERTY));
   }
@@ -471,7 +472,7 @@ public class GangliaPropertyProviderTest {
         CLUSTER_NAME_PROPERTY_ID,
         HOST_NAME_PROPERTY_ID,
         COMPONENT_NAME_PROPERTY_ID);
-    
+
     // flume
     Resource resource = new ResourceImpl(Resource.Type.HostComponent);
 
@@ -490,12 +491,12 @@ public class GangliaPropertyProviderTest {
     Assert.assertEquals(1, propertyProvider.populateResources(Collections.singleton(resource), request, null).size());
 
     List<String> metricsRegexes = new ArrayList<String>();
-    
+
     metricsRegexes.add("metrics/flume");
     metricsRegexes.add("metrics/cpu/cpu_wio");
-    
+
     String metricsList = getMetricsRegexes(metricsRegexes, gangliaPropertyIds, "FLUME_HANDLER");
-    
+
     URIBuilder expectedUri = new URIBuilder();
 
     expectedUri.setScheme((configuration.isGangliaSSL() ? "https" : "http"));
@@ -506,15 +507,15 @@ public class GangliaPropertyProviderTest {
     expectedUri.setParameter("m", metricsList);
     expectedUri.setParameter("e", "now");
     expectedUri.setParameter("pt", "true");
-    
+
     URIBuilder actualUri = new URIBuilder(streamProvider.getLastSpec());
 
     Assert.assertEquals(expectedUri.getScheme(), actualUri.getScheme());
     Assert.assertEquals(expectedUri.getHost(), actualUri.getHost());
     Assert.assertEquals(expectedUri.getPath(), actualUri.getPath());
-    
+
     Assert.assertTrue(isUrlParamsEquals(actualUri, expectedUri));
-       
+
     Assert.assertEquals(22, PropertyHelper.getProperties(resource).size());
     Assert.assertNotNull(resource.getPropertyValue(PROPERTY_ID2));
     Assert.assertNotNull(resource.getPropertyValue(FLUME_CHANNEL_CAPACITY_PROPERTY));
@@ -547,7 +548,7 @@ public class GangliaPropertyProviderTest {
 
     String expected = (configuration.isGangliaSSL() ? "https" : "http") +
         "://domU-12-31-39-0E-34-E1.compute-1.internal/cgi-bin/rrd.py?c=HDPFlumeServer%2CHDPSlaves&h=ip-10-39-113-33.ec2.internal&m=";
-    
+
     Assert.assertTrue(streamProvider.getLastSpec().startsWith(expected));
 
     Assert.assertEquals(33, PropertyHelper.getProperties(resource).size());
@@ -583,11 +584,11 @@ public class GangliaPropertyProviderTest {
     Assert.assertEquals(1, propertyProvider.populateResources(Collections.singleton(resource), request, null).size());
 
     List<String> metricsRegexes = new ArrayList<String>();
-    
+
     metricsRegexes.add("metrics/flume");
-    
+
     String metricsList = getMetricsRegexes(metricsRegexes, gangliaPropertyIds, "FLUME_HANDLER");
-    
+
     URIBuilder expectedUri = new URIBuilder();
 
     expectedUri.setScheme((configuration.isGangliaSSL() ? "https" : "http"));
@@ -599,14 +600,14 @@ public class GangliaPropertyProviderTest {
     expectedUri.setParameter("s", "10");
     expectedUri.setParameter("e", "20");
     expectedUri.setParameter("r", "1");
-    
+
     URIBuilder actualUri = new URIBuilder(streamProvider.getLastSpec());
 
     Assert.assertEquals(expectedUri.getScheme(), actualUri.getScheme());
     Assert.assertEquals(expectedUri.getHost(), actualUri.getHost());
     Assert.assertEquals(expectedUri.getPath(), actualUri.getPath());
-    
-    Assert.assertTrue(isUrlParamsEquals(actualUri, expectedUri));    
+
+    Assert.assertTrue(isUrlParamsEquals(actualUri, expectedUri));
 
     Assert.assertEquals(21, PropertyHelper.getProperties(resource).size());
     Assert.assertNotNull(resource.getPropertyValue(FLUME_CHANNEL_CAPACITY_PROPERTY));
@@ -641,11 +642,11 @@ public class GangliaPropertyProviderTest {
     Assert.assertEquals(1, propertyProvider.populateResources(Collections.singleton(resource), request, null).size());
 
     List<String> metricsRegexes = new ArrayList<String>();
-    
+
     metricsRegexes.add("metrics/flume/");
-    
+
     String metricsList = getMetricsRegexes(metricsRegexes, gangliaPropertyIds, "FLUME_HANDLER");
-    
+
     URIBuilder expectedUri = new URIBuilder();
 
     expectedUri.setScheme((configuration.isGangliaSSL() ? "https" : "http"));
@@ -657,13 +658,13 @@ public class GangliaPropertyProviderTest {
     expectedUri.setParameter("s", "10");
     expectedUri.setParameter("e", "20");
     expectedUri.setParameter("r", "1");
-    
+
     URIBuilder actualUri = new URIBuilder(streamProvider.getLastSpec());
 
     Assert.assertEquals(expectedUri.getScheme(), actualUri.getScheme());
     Assert.assertEquals(expectedUri.getHost(), actualUri.getHost());
     Assert.assertEquals(expectedUri.getPath(), actualUri.getPath());
-    
+
     Assert.assertTrue(isUrlParamsEquals(actualUri, expectedUri));
 
     Assert.assertEquals(21, PropertyHelper.getProperties(resource).size());
@@ -697,14 +698,14 @@ public class GangliaPropertyProviderTest {
     Request  request = PropertyHelper.getReadRequest(Collections.singleton(FLUME_CATEGORY3), temporalInfoMap);
 
     Assert.assertEquals(1, propertyProvider.populateResources(Collections.singleton(resource), request, null).size());
-    
+
     List<String> metricsRegexes = new ArrayList<String>();
-    
+
     metricsRegexes.add("metrics/flume/$1/CHANNEL/$2/");
     metricsRegexes.add(FLUME_CHANNEL_CAPACITY_PROPERTY);
 
     String metricsList = getMetricsRegexes(metricsRegexes, gangliaPropertyIds, "FLUME_HANDLER");
-    
+
     URIBuilder expectedUri = new URIBuilder();
 
     expectedUri.setScheme((configuration.isGangliaSSL() ? "https" : "http"));
@@ -716,14 +717,14 @@ public class GangliaPropertyProviderTest {
     expectedUri.setParameter("s", "10");
     expectedUri.setParameter("e", "20");
     expectedUri.setParameter("r", "1");
-    
+
     URIBuilder actualUri = new URIBuilder(streamProvider.getLastSpec());
 
     Assert.assertEquals(expectedUri.getScheme(), actualUri.getScheme());
     Assert.assertEquals(expectedUri.getHost(), actualUri.getHost());
     Assert.assertEquals(expectedUri.getPath(), actualUri.getPath());
-    
-    Assert.assertTrue(isUrlParamsEquals(actualUri, expectedUri));    
+
+    Assert.assertTrue(isUrlParamsEquals(actualUri, expectedUri));
 
     Assert.assertEquals(11, PropertyHelper.getProperties(resource).size());
     Assert.assertNotNull(resource.getPropertyValue(FLUME_CHANNEL_CAPACITY_PROPERTY));
@@ -756,14 +757,14 @@ public class GangliaPropertyProviderTest {
     Request  request = PropertyHelper.getReadRequest(Collections.singleton(FLUME_CATEGORY4), temporalInfoMap);
 
     Assert.assertEquals(1, propertyProvider.populateResources(Collections.singleton(resource), request, null).size());
-    
+
     List<String> metricsRegexes = new ArrayList<String>();
-    
+
     metricsRegexes.add("metrics/flume/$1/CHANNEL/$2");
     metricsRegexes.add(FLUME_CHANNEL_CAPACITY_PROPERTY);
 
     String metricsList = getMetricsRegexes(metricsRegexes, gangliaPropertyIds, "FLUME_HANDLER");
-    
+
     URIBuilder expectedUri = new URIBuilder();
 
     expectedUri.setScheme((configuration.isGangliaSSL() ? "https" : "http"));
@@ -775,57 +776,59 @@ public class GangliaPropertyProviderTest {
     expectedUri.setParameter("s", "10");
     expectedUri.setParameter("e", "20");
     expectedUri.setParameter("r", "1");
-    
+
     URIBuilder actualUri = new URIBuilder(streamProvider.getLastSpec());
 
     Assert.assertEquals(expectedUri.getScheme(), actualUri.getScheme());
     Assert.assertEquals(expectedUri.getHost(), actualUri.getHost());
     Assert.assertEquals(expectedUri.getPath(), actualUri.getPath());
-    
-    Assert.assertTrue(isUrlParamsEquals(actualUri, expectedUri));    
-    
+
+    Assert.assertTrue(isUrlParamsEquals(actualUri, expectedUri));
+
     Assert.assertEquals(11, PropertyHelper.getProperties(resource).size());
     Assert.assertNotNull(resource.getPropertyValue(FLUME_CHANNEL_CAPACITY_PROPERTY));
   }
-  
 
 
 
-  
+
+
   private boolean isUrlParamsEquals(URIBuilder actualUri, URIBuilder expectedUri) {
     for (final NameValuePair expectedParam : expectedUri.getQueryParams()) {
       NameValuePair actualParam = (NameValuePair) CollectionUtils.find(actualUri.getQueryParams(), new Predicate() {
-        
+
         @Override
         public boolean evaluate(Object arg0) {
-          if (!(arg0 instanceof NameValuePair))
+          if (!(arg0 instanceof NameValuePair)) {
             return false;
-          
+          }
+
           NameValuePair otherObj = (NameValuePair) arg0;
           return otherObj.getName().equals(expectedParam.getName());
         }
       });
-      
+
 
       List<String> actualParamList = new ArrayList<String>(Arrays.asList(actualParam.getValue().split(",")));
       List<String> expectedParamList = new ArrayList<String>(Arrays.asList(expectedParam.getValue().split(",")));
-      
+
       Collections.sort(actualParamList);
       Collections.sort(expectedParamList);
-      
-      if (!actualParamList.equals(expectedParamList))
+
+      if (!actualParamList.equals(expectedParamList)) {
         return false;
+      }
     }
-    
+
     return true;
   }
-  
+
   private String getMetricsRegexes(List<String> metricsRegexes,
       Map<String, Map<String, PropertyInfo>> gangliaPropertyIds,
       String componentName) {
-    
+
     StringBuilder metricsBuilder = new StringBuilder();
-    
+
     for (Map.Entry<String, PropertyInfo> entry : gangliaPropertyIds.get(componentName).entrySet())
     {
       for (String metricRegex: metricsRegexes)
@@ -842,7 +845,7 @@ public class GangliaPropertyProviderTest {
 
     private boolean isHostLive;
     private boolean isComponentLive;
-    
+
     public TestGangliaHostProvider() {
       this(true, true);
     }

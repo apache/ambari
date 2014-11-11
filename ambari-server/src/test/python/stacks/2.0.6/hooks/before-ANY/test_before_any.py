@@ -45,9 +45,6 @@ class TestHookBeforeInstall(RMFTestCase):
     self.assertResourceCalled('Group', 'users',
         ignore_failures = False,
     )
-    self.assertResourceCalled('Group', 'nagios',
-        ignore_failures = False,
-    )
     self.assertResourceCalled('User', 'hive',
         gid = 'hadoop',
         ignore_failures = False,
@@ -62,11 +59,6 @@ class TestHookBeforeInstall(RMFTestCase):
         gid = 'hadoop',
         ignore_failures = False,
         groups = [u'nobody'],
-    )
-    self.assertResourceCalled('User', 'nagios',
-        gid = 'nagios',
-        ignore_failures = False,
-        groups = [u'hadoop'],
     )
     self.assertResourceCalled('User', 'ambari-qa',
         gid = 'hadoop',

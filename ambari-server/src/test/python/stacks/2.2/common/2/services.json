@@ -1,5 +1,5 @@
 {
-  "href" : "/api/v1/stacks/HDP/versions/2.2?fields=Versions/stack_name,Versions/stack_version,Versions/parent_stack_version,services/StackServices/service_name,services/StackServices/service_version,services/components/StackServiceComponents,services/components/dependencies,services/components/auto_deploy&services/StackServices/service_name.in(HDFS,MAPREDUCE2,YARN,TEZ,NAGIOS,GANGLIA,HIVE,HBASE,PIG,SQOOP,OOZIE,ZOOKEEPER,FALCON,STORM,FLUME,SLIDER,KNOX,KAFKA)",
+  "href" : "/api/v1/stacks/HDP/versions/2.2?fields=Versions/stack_name,Versions/stack_version,Versions/parent_stack_version,services/StackServices/service_name,services/StackServices/service_version,services/components/StackServiceComponents,services/components/dependencies,services/components/auto_deploy&services/StackServices/service_name.in(HDFS,MAPREDUCE2,YARN,TEZ,GANGLIA,HIVE,HBASE,PIG,SQOOP,OOZIE,ZOOKEEPER,FALCON,STORM,FLUME,SLIDER,KNOX,KAFKA)",
   "Versions" : {
     "parent_stack_version" : "2.1",
     "stack_name" : "HDP",
@@ -620,86 +620,8 @@
       },
       "dependencies" : [ ]
     } ]
-  }, {
-    "href" : "/api/v1/stacks/HDP/versions/2.2/services/NAGIOS",
-    "StackServices" : {
-      "service_name" : "NAGIOS",
-      "service_version" : "3.5.0",
-      "stack_name" : "HDP",
-      "stack_version" : "2.2"
-    },
-    "components" : [ {
-      "href" : "/api/v1/stacks/HDP/versions/2.2/services/NAGIOS/components/NAGIOS_SERVER",
-      "StackServiceComponents" : {
-        "cardinality" : "1",
-        "component_category" : "MASTER",
-        "component_name" : "NAGIOS_SERVER",
-        "custom_commands" : [ ],
-        "display_name" : "Nagios Server",
-        "is_client" : false,
-        "is_master" : true,
-        "service_name" : "NAGIOS",
-        "stack_name" : "HDP",
-        "stack_version" : "2.2",
-        "hostnames" : [ ]
-      },
-      "dependencies" : [ {
-        "href" : "/api/v1/stacks/HDP/versions/2.2/services/NAGIOS/components/NAGIOS_SERVER/dependencies/HCAT",
-        "Dependencies" : {
-          "component_name" : "HCAT",
-          "dependent_component_name" : "NAGIOS_SERVER",
-          "dependent_service_name" : "NAGIOS",
-          "stack_name" : "HDP",
-          "stack_version" : "2.2"
-        }
-      }, {
-        "href" : "/api/v1/stacks/HDP/versions/2.2/services/NAGIOS/components/NAGIOS_SERVER/dependencies/HDFS_CLIENT",
-        "Dependencies" : {
-          "component_name" : "HDFS_CLIENT",
-          "dependent_component_name" : "NAGIOS_SERVER",
-          "dependent_service_name" : "NAGIOS",
-          "stack_name" : "HDP",
-          "stack_version" : "2.2"
-        }
-      }, {
-        "href" : "/api/v1/stacks/HDP/versions/2.2/services/NAGIOS/components/NAGIOS_SERVER/dependencies/MAPREDUCE2_CLIENT",
-        "Dependencies" : {
-          "component_name" : "MAPREDUCE2_CLIENT",
-          "dependent_component_name" : "NAGIOS_SERVER",
-          "dependent_service_name" : "NAGIOS",
-          "stack_name" : "HDP",
-          "stack_version" : "2.2"
-        }
-      }, {
-        "href" : "/api/v1/stacks/HDP/versions/2.2/services/NAGIOS/components/NAGIOS_SERVER/dependencies/OOZIE_CLIENT",
-        "Dependencies" : {
-          "component_name" : "OOZIE_CLIENT",
-          "dependent_component_name" : "NAGIOS_SERVER",
-          "dependent_service_name" : "NAGIOS",
-          "stack_name" : "HDP",
-          "stack_version" : "2.2"
-        }
-      }, {
-        "href" : "/api/v1/stacks/HDP/versions/2.2/services/NAGIOS/components/NAGIOS_SERVER/dependencies/TEZ_CLIENT",
-        "Dependencies" : {
-          "component_name" : "TEZ_CLIENT",
-          "dependent_component_name" : "NAGIOS_SERVER",
-          "dependent_service_name" : "NAGIOS",
-          "stack_name" : "HDP",
-          "stack_version" : "2.2"
-        }
-      }, {
-        "href" : "/api/v1/stacks/HDP/versions/2.2/services/NAGIOS/components/NAGIOS_SERVER/dependencies/YARN_CLIENT",
-        "Dependencies" : {
-          "component_name" : "YARN_CLIENT",
-          "dependent_component_name" : "NAGIOS_SERVER",
-          "dependent_service_name" : "NAGIOS",
-          "stack_name" : "HDP",
-          "stack_version" : "2.2"
-        }
-      } ]
-    } ]
-  }, {
+  },
+  {
     "href" : "/api/v1/stacks/HDP/versions/2.2/services/OOZIE",
     "StackServices" : {
       "service_name" : "OOZIE",

@@ -129,7 +129,6 @@ hadoop_env_sh_template = config['configurations']['hadoop-env']['content']
 
 #users and groups
 hbase_user = config['configurations']['hbase-env']['hbase_user']
-nagios_user = config['configurations']['nagios-env']['nagios_user']
 smoke_user =  config['configurations']['cluster-env']['smokeuser']
 gmetad_user = config['configurations']['ganglia-env']["gmetad_user"]
 gmond_user = config['configurations']['ganglia-env']["gmond_user"]
@@ -138,14 +137,12 @@ oozie_user = config['configurations']['oozie-env']["oozie_user"]
 
 user_group = config['configurations']['cluster-env']['user_group']
 
-hagios_server_hosts = default("/clusterHostInfo/nagios_server_host", [])
 ganglia_server_hosts = default("/clusterHostInfo/ganglia_server_host", [])
 namenode_host = default("/clusterHostInfo/namenode_host", [])
 hbase_master_hosts = default("/clusterHostInfo/hbase_master_hosts", [])
 oozie_servers = default("/clusterHostInfo/oozie_server", [])
 
 has_namenode = not len(namenode_host) == 0
-has_nagios = not len(hagios_server_hosts) == 0
 has_ganglia_server = not len(ganglia_server_hosts) == 0
 has_tez = 'tez-site' in config['configurations']
 has_hbase_masters = not len(hbase_master_hosts) == 0
@@ -154,7 +151,6 @@ has_oozie_server = not len(oozie_servers) == 0
 hbase_tmp_dir = config['configurations']['hbase-site']['hbase.tmp.dir']
 
 proxyuser_group = default("/configurations/hadoop-env/proxyuser_group","users")
-nagios_group = config['configurations']['nagios-env']['nagios_group']
 
 ignore_groupsusers_create = default("/configurations/cluster-env/ignore_groupsusers_create", False)
 
@@ -176,8 +172,6 @@ if has_oozie_server:
   user_to_groups_dict[oozie_user] = [proxyuser_group]
 
 user_to_gid_dict = collections.defaultdict(lambda:user_group)
-if has_nagios:
-  user_to_gid_dict[nagios_user] = nagios_group
 
 user_list = json.loads(config['hostLevelParams']['user_list'])
 group_list = json.loads(config['hostLevelParams']['group_list'])

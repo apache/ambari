@@ -38,9 +38,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.util.Modules;
+import javax.persistence.EntityManager;
+import javax.xml.bind.JAXBException;
+
 import junit.framework.Assert;
 
 import org.apache.ambari.server.AmbariException;
@@ -70,8 +70,8 @@ import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.alert.AlertDefinition;
-import org.apache.ambari.server.state.alert.MetricSource;
 import org.apache.ambari.server.state.alert.AlertDefinitionFactory;
+import org.apache.ambari.server.state.alert.MetricSource;
 import org.apache.ambari.server.state.alert.PortSource;
 import org.apache.ambari.server.state.alert.Reporting;
 import org.apache.ambari.server.state.alert.Source;
@@ -86,9 +86,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.AbstractModule;
-
-import javax.persistence.EntityManager;
-import javax.xml.bind.JAXBException;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.util.Modules;
 
 public class AmbariMetaInfoTest {
 
@@ -970,21 +970,6 @@ public class AmbariMetaInfoTest {
         Assert.assertEquals("0+", component.getCardinality());
       }
     }
-  }
-
-  @Test
-  public void testNagios134Dependencies() throws Exception {
-    ServiceInfo service = metaInfo.getService(STACK_NAME_HDP, "1.3.4", "NAGIOS");
-    List<ComponentInfo> componentList = service.getComponents();
-    Assert.assertEquals(1, componentList.size());
-    ComponentInfo component = componentList.get(0);
-    Assert.assertEquals("NAGIOS_SERVER", component.getName());
-    // dependencies
-    Assert.assertEquals(0, component.getDependencies().size());
-    // component auto deploy
-    Assert.assertNull(component.getAutoDeploy());
-    // cardinality
-    Assert.assertEquals("1", component.getCardinality());
   }
 
   @Test

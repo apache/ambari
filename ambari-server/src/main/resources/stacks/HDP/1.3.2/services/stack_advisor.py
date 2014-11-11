@@ -247,7 +247,7 @@ class HDP132StackAdvisor(DefaultStackAdvisor):
     return ['JOURNALNODE', 'ZKFC', 'GANGLIA_MONITOR']
 
   def getNotPreferableOnServerComponents(self):
-    return ['GANGLIA_SERVER', 'NAGIOS_SERVER']
+    return ['GANGLIA_SERVER']
 
   def getCardinalitiesDict(self):
     return {

@@ -18,14 +18,15 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import junit.framework.Assert;
-import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.apache.ambari.server.controller.spi.Request;
-import org.junit.Test;
-
 import java.util.HashSet;
 import java.util.Set;
+
+import junit.framework.Assert;
+
+import org.apache.ambari.server.controller.spi.Request;
+import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.junit.Test;
 
 /**
  *
@@ -55,7 +56,6 @@ public class RequestImplTest {
 
     //HostComponent resource properties
     Assert.assertFalse(validPropertyIds.contains("HostRoles/unsupported_property_id"));
-    Assert.assertTrue(validPropertyIds.contains("HostRoles/nagios_alerts"));
     Assert.assertTrue(validPropertyIds.contains("params/run_smoke_test"));
     Assert.assertTrue(validPropertyIds.contains("HostRoles/actual_configs"));
     Assert.assertTrue(validPropertyIds.contains("HostRoles/desired_stack_id"));

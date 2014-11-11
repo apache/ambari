@@ -20,8 +20,8 @@ package org.apache.ambari.server.metadata;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;
-import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.assertNotNull;
+import static junit.framework.Assert.assertTrue;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
@@ -31,11 +31,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 import junit.framework.Assert;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
@@ -52,7 +52,6 @@ import org.codehaus.jackson.annotate.JsonAutoDetect;
 import org.codehaus.jackson.annotate.JsonMethod;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
-import org.easymock.IExpectationSetters;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -274,16 +273,16 @@ public class RoleCommandOrderTest {
 
     InputStream testJsonIS = getClass().getClassLoader().
             getResourceAsStream(TEST_RCO_DATA_FILE);
-    
+
     ObjectMapper mapper = new ObjectMapper();
     Map<String,Object> testData = mapper.readValue(testJsonIS,
         new TypeReference<Map<String,Object>>() {});
-        
+
     rco.addDependencies(testData);
 
     mapper.setVisibility(JsonMethod.ALL, JsonAutoDetect.Visibility.ANY);
     String dump = mapper.writeValueAsString(rco.getDependencies());
-    
+
     String expected = "{\"RoleCommandPair{role=SECONDARY_NAMENODE, " +
         "cmd=UPGRADE}\":[{\"role\":{\"name\":\"NAMENODE\"},\"cmd\":\"UPGRADE\"}]," +
         "\"RoleCommandPair{role=SECONDARY_NAMENODE, cmd=START}\":[{\"role\":{\"name\":\"NAMENODE\"}," +
@@ -295,8 +294,8 @@ public class RoleCommandOrderTest {
 
     assertEquals(expected, dump);
   }
-  
-  
+
+
   @Test
   public void testInitializeDefault() throws IOException {
     RoleCommandOrder rco = injector.getInstance(RoleCommandOrder.class);
@@ -313,9 +312,9 @@ public class RoleCommandOrderTest {
 
     replay(cluster);
     replay(hdfsService);
-    
+
     rco.initialize(cluster);
-    
+
     verify(cluster);
     verify(hdfsService);
   }
@@ -333,19 +332,20 @@ public class RoleCommandOrderTest {
     Map<String,ServiceComponent> hdfsComponents = Collections.singletonMap("NAMENODE", namenode);
     expect(hdfsService.getServiceComponents()).andReturn(hdfsComponents).anyTimes();
 
-    Service nagiosService = createMock(Service.class);
-    expect(cluster.getService("NAGIOS")).andReturn(nagiosService).atLeastOnce();
-    expect(nagiosService.getCluster()).andReturn(cluster).anyTimes();
+    Service hbaseService = createMock(Service.class);
+    expect(cluster.getService("HBASE")).andReturn(hbaseService).atLeastOnce();
+    expect(hbaseService.getCluster()).andReturn(cluster).anyTimes();
 
-    ServiceComponent nagiosServer = createMock(ServiceComponent.class);
-    expect(nagiosServer.getName()).andReturn("NAGIOS_SERVER").anyTimes();
+    ServiceComponent hbaseMaster = createMock(ServiceComponent.class);
+    expect(hbaseMaster.getName()).andReturn("HBASE_MASTER").anyTimes();
 
-    Map<String,ServiceComponent> nagiosComponents = Collections.singletonMap("NAGIOS_SERVER", nagiosServer);
-    expect(nagiosService.getServiceComponents()).andReturn(nagiosComponents).anyTimes();
+    Map<String, ServiceComponent> hbaseComponents = Collections.singletonMap(
+        "HBASE_MASTER", hbaseMaster);
+    expect(hbaseService.getServiceComponents()).andReturn(hbaseComponents).anyTimes();
 
     Map<String, Service> installedServices = new HashMap<String, Service>();
     installedServices.put("HDFS", hdfsService);
-    installedServices.put("NAGIOS", nagiosService);
+    installedServices.put("HBASE", hbaseService);
     expect(cluster.getServices()).andReturn(installedServices).atLeastOnce();
 
 
@@ -356,14 +356,14 @@ public class RoleCommandOrderTest {
     expect(cluster.getCurrentStackVersion()).andReturn(new StackId("HDP", "2.0.5"));
 
     //replay
-    replay(cluster, hdfsService, nagiosService, nagiosServer, namenode);
+    replay(cluster, hdfsService, hbaseService, hbaseMaster, namenode);
 
     rco.initialize(cluster);
 
-    Set<Service> transitiveServices =
-      rco.getTransitiveServices(cluster.getService("NAGIOS"), RoleCommand.START);
+    Set<Service> transitiveServices = rco.getTransitiveServices(
+        cluster.getService("HBASE"), RoleCommand.START);
 
-    //HDFS should be started before NAGIOS start
+    // HDFS should be started before HBASE start
     Assert.assertNotNull(transitiveServices);
     Assert.assertFalse(transitiveServices.isEmpty());
     Assert.assertEquals(1, transitiveServices.size());

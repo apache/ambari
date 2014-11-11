@@ -25,6 +25,7 @@ import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -66,7 +67,6 @@ import org.slf4j.LoggerFactory;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
-import java.util.ArrayList;
 
 public class TestHeartbeatMonitor {
 
@@ -95,12 +95,12 @@ public class TestHeartbeatMonitor {
   public void teardown() {
     injector.getInstance(PersistService.class).stop();
   }
-  
+
   private void setOsFamily(Host host, String osFamily, String osVersion) {
     Map<String, String> hostAttributes = new HashMap<String, String>();
     hostAttributes.put("os_family", osFamily);
     hostAttributes.put("os_release_version", osVersion);
-    
+
     host.setHostAttributes(hostAttributes);
   }
 
@@ -121,15 +121,15 @@ public class TestHeartbeatMonitor {
       add(hostname1);
       add(hostname2);
     }};
-    
+
     ConfigFactory configFactory = injector.getInstance(ConfigFactory.class);
     Config config = configFactory.createNew(cluster, "hadoop-env",
         new HashMap<String,String>() {{ put("a", "b"); }}, new HashMap<String, Map<String,String>>());
     config.setTag("version1");
     cluster.addConfig(config);
     cluster.addDesiredConfig("_test", Collections.singleton(config));
-    
-    
+
+
     clusters.mapHostsToCluster(hostNames, clusterName);
     Service hdfs = cluster.addService(serviceName);
     hdfs.persist();
@@ -165,7 +165,7 @@ public class TestHeartbeatMonitor {
     hb.setTimestamp(System.currentTimeMillis());
     hb.setResponseId(12);
     handler.handleHeartBeat(hb);
-    
+
     List<Alert> al = new ArrayList<Alert>();
     Alert alert = new Alert("host_alert", null, "AMBARI", null, hostname1, AlertState.OK);
     al.add(alert);
@@ -189,7 +189,7 @@ public class TestHeartbeatMonitor {
     assertEquals(true, containsDATANODEStatus);
     assertEquals(true, containsNAMENODEStatus);
     assertEquals(true, containsSECONDARY_NAMENODEStatus);
-    
+
     cmds = hm.generateStatusCommands(hostname2);
     assertTrue("HeartbeatMonitor should not generate StatusCommands for host2 because it has no services", cmds.isEmpty());
   }
@@ -405,7 +405,7 @@ public class TestHeartbeatMonitor {
     }
     assertEquals(fsm.getHost(hostname).getState(), HostState.HEARTBEAT_LOST);
   }
-  
+
   @Test
   public void testHeartbeatLossWithComponent() throws AmbariException, InterruptedException,
           InvalidStateTransitionException {
@@ -413,7 +413,7 @@ public class TestHeartbeatMonitor {
     clusters.addHost(hostname1);
     setOsFamily(clusters.getHost(hostname1), "redhat", "6.3");
     clusters.getHost(hostname1).persist();
-    
+
     clusters.addCluster(clusterName);
     Cluster cluster = clusters.getCluster(clusterName);
     cluster.setDesiredStackVersion(new StackId("HDP-0.1"));
@@ -434,12 +434,12 @@ public class TestHeartbeatMonitor {
     hdfs.getServiceComponent(Role.SECONDARY_NAMENODE.name()).addServiceComponentHost(hostname1).persist();
     hdfs.addServiceComponent(Role.HDFS_CLIENT.name()).persist();
     hdfs.getServiceComponent(Role.HDFS_CLIENT.name()).addServiceComponentHost(hostname1);
-    
+
     ActionQueue aq = new ActionQueue();
     ActionManager am = mock(ActionManager.class);
     HeartbeatMonitor hm = new HeartbeatMonitor(clusters, aq, am, 10, injector);
     HeartBeatHandler handler = new HeartBeatHandler(clusters, aq, am, injector);
-    
+
     Register reg = new Register();
     reg.setHostname(hostname1);
     reg.setResponseId(12);
@@ -449,18 +449,18 @@ public class TestHeartbeatMonitor {
     hi.setOS("Centos5");
     reg.setHardwareProfile(hi);
     handler.handleRegistration(reg);
-    
+
     cluster = clusters.getClustersForHost(hostname1).iterator().next();
     for (ServiceComponentHost sch : cluster.getServiceComponentHosts(hostname1)) {
       if (sch.getServiceComponentName().equals("NAMENODE")) {
         // installing
         sch.handleEvent(new ServiceComponentHostInstallEvent(
             sch.getServiceComponentName(), sch.getHostName(), System.currentTimeMillis(), "HDP-0.1"));
-        
+
         // installed
         sch.handleEvent(new ServiceComponentHostOpSucceededEvent(sch.getServiceComponentName(),
             sch.getHostName(), System.currentTimeMillis()));
-        
+
         // started
         sch.handleEvent(new ServiceComponentHostStartedEvent(sch.getServiceComponentName(),
             sch.getHostName(), System.currentTimeMillis()));
@@ -483,14 +483,14 @@ public class TestHeartbeatMonitor {
           sch.getHostName(), System.currentTimeMillis()));
       }
     }
-    
+
     HeartBeat hb = new HeartBeat();
     hb.setHostname(hostname1);
     hb.setNodeStatus(new HostStatus(HostStatus.Status.HEALTHY, "cool"));
     hb.setTimestamp(System.currentTimeMillis());
     hb.setResponseId(12);
     handler.handleHeartBeat(hb);
-    
+
     hm.start();
     aq.enqueue(hostname1, new ExecutionCommand());
     //Heartbeat will expire and action queue will be flushed
@@ -498,72 +498,67 @@ public class TestHeartbeatMonitor {
       Thread.sleep(1);
     }
     hm.shutdown();
-    
+
 
     cluster = clusters.getClustersForHost(hostname1).iterator().next();
     for (ServiceComponentHost sch : cluster.getServiceComponentHosts(hostname1)) {
       Service s = cluster.getService(sch.getServiceName());
       ServiceComponent sc = s.getServiceComponent(sch.getServiceComponentName());
-      if (sch.getServiceComponentName().equals("NAMENODE"))
+      if (sch.getServiceComponentName().equals("NAMENODE")) {
         assertEquals(sch.getServiceComponentName(), State.UNKNOWN, sch.getState());
-      else if (sch.getServiceComponentName().equals("DATANODE"))
+      } else if (sch.getServiceComponentName().equals("DATANODE")) {
         assertEquals(sch.getServiceComponentName(), State.INSTALLING, sch.getState());
-      else if (sc.isClientComponent())
+      } else if (sc.isClientComponent()) {
         assertEquals(sch.getServiceComponentName(), State.INIT, sch.getState());
-      else if (sch.getServiceComponentName().equals("SECONDARY_NAMENODE"))
+      } else if (sch.getServiceComponentName().equals("SECONDARY_NAMENODE")) {
         assertEquals(sch.getServiceComponentName(), State.DISABLED,
           sch.getState());
+      }
     }
   }
-  
+
   @Test
   public void testStateCommandsWithAlertsGeneration() throws AmbariException, InterruptedException,
           InvalidStateTransitionException {
     Clusters clusters = injector.getInstance(Clusters.class);
-    
+
     clusters.addHost(hostname1);
     setOsFamily(clusters.getHost(hostname1), "redhat", "6.3");
     clusters.getHost(hostname1).persist();
-    
+
     clusters.addHost(hostname2);
     setOsFamily(clusters.getHost(hostname2), "redhat", "6.3");
     clusters.getHost(hostname2).persist();
     clusters.addCluster(clusterName);
-    
+
     Cluster cluster = clusters.getCluster(clusterName);
     cluster.setDesiredStackVersion(new StackId("HDP-2.0.7"));
     Set<String> hostNames = new HashSet<String>(){{
       add(hostname1);
       add(hostname2);
     }};
-    
+
     clusters.mapHostsToCluster(hostNames, clusterName);
-    
+
     Service hdfs = cluster.addService(serviceName);
-    Service nagios = cluster.addService("NAGIOS");
-    
     hdfs.persist();
-    nagios.persist();
-    
+
     hdfs.addServiceComponent(Role.DATANODE.name()).persist();
     hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost(hostname1).persist();
     hdfs.addServiceComponent(Role.NAMENODE.name()).persist();
     hdfs.getServiceComponent(Role.NAMENODE.name()).addServiceComponentHost(hostname1).persist();
     hdfs.addServiceComponent(Role.SECONDARY_NAMENODE.name()).persist();
     hdfs.getServiceComponent(Role.SECONDARY_NAMENODE.name()).addServiceComponentHost(hostname1).persist();
-    nagios.addServiceComponent(Role.NAGIOS_SERVER.name()).persist();
-    nagios.getServiceComponent(Role.NAGIOS_SERVER.name()).addServiceComponentHost(hostname1).persist();
 
     hdfs.getServiceComponent(Role.DATANODE.name()).getServiceComponentHost(hostname1).setState(State.INSTALLED);
     hdfs.getServiceComponent(Role.NAMENODE.name()).getServiceComponentHost(hostname1).setState(State.INSTALLED);
     hdfs.getServiceComponent(Role.SECONDARY_NAMENODE.name()).getServiceComponentHost(hostname1).setState(State.INSTALLED);
-    nagios.getServiceComponent(Role.NAGIOS_SERVER.name()).getServiceComponentHost(hostname1).setState(State.INSTALLED);
-    
 
     Alert alert = new Alert("datanode_madeup", null, "HDFS", "DATANODE",
      hostname1, AlertState.CRITICAL);
+
     cluster.addAlerts(Collections.singleton(alert));
-        
+
     ActionQueue aq = new ActionQueue();
     ActionManager am = mock(ActionManager.class);
     HeartbeatMonitor hm = new HeartbeatMonitor(clusters, aq, am,
@@ -587,21 +582,11 @@ public class TestHeartbeatMonitor {
     handler.handleHeartBeat(hb);
 
     List<StatusCommand> cmds = hm.generateStatusCommands(hostname1);
-    assertEquals("HeartbeatMonitor should generate StatusCommands for host1", 4, cmds.size());
+    assertEquals("HeartbeatMonitor should generate StatusCommands for host1",
+        3, cmds.size());
     assertEquals("HDFS", cmds.get(0).getServiceName());
 
-    boolean  containsNAGIOSStatus = false;
-    for (StatusCommand cmd : cmds) {
-      if (cmd.getComponentName().equals(Role.NAGIOS_SERVER.name())) {
-        containsNAGIOSStatus = true;
-        assertTrue(cmd.getClass().equals(NagiosAlertCommand.class));
-        assertEquals(1, ((NagiosAlertCommand) cmd).getAlerts().size());
-      }
-      
-    }
-    assertTrue(containsNAGIOSStatus);
-    
     cmds = hm.generateStatusCommands(hostname2);
     assertTrue("HeartbeatMonitor should not generate StatusCommands for host2 because it has no services", cmds.isEmpty());
-  }  
+  }
 }

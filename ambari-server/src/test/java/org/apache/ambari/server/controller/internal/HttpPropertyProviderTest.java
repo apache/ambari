@@ -53,27 +53,25 @@ public class HttpPropertyProviderTest {
   private static final String PROPERTY_ID_CLUSTER_NAME = PropertyHelper.getPropertyId("HostRoles", "cluster_name");
   private static final String PROPERTY_ID_HOST_NAME = PropertyHelper.getPropertyId("HostRoles", "host_name");
   private static final String PROPERTY_ID_COMPONENT_NAME = PropertyHelper.getPropertyId("HostRoles", "component_name");
-  
-  private static final String PROPERTY_ID_NAGIOS_ALERTS = PropertyHelper.getPropertyId("HostRoles", "nagios_alerts");
+
+  private static final String PROPERTY_ID_STALE_CONFIGS = PropertyHelper.getPropertyId(
+      "HostRoles", "stale_configs");
 
   private ComponentSSLConfiguration configuration;
 
   @Parameterized.Parameters
   public static Collection<Object[]> configs() {
-    ComponentSSLConfiguration configuration1 =
-        ComponentSSLConfigurationTest.getConfiguration("tspath", "tspass", "tstype", false, false);
+    ComponentSSLConfiguration configuration1 = ComponentSSLConfigurationTest.getConfiguration(
+        "tspath", "tspass", "tstype", false);
 
-    ComponentSSLConfiguration configuration2 =
-        ComponentSSLConfigurationTest.getConfiguration("tspath", "tspass", "tstype", true, false);
+    ComponentSSLConfiguration configuration2 = ComponentSSLConfigurationTest.getConfiguration(
+        "tspath", "tspass", "tstype", true);
 
-    ComponentSSLConfiguration configuration3 =
-        ComponentSSLConfigurationTest.getConfiguration("tspath", "tspass", "tstype", false, true);
+    ComponentSSLConfiguration configuration3 = ComponentSSLConfigurationTest.getConfiguration(
+        "tspath", "tspass", "tstype", false);
 
-    return Arrays.asList(new Object[][]{
-        {configuration1},
-        {configuration2},
-        {configuration3}
-    });
+    return Arrays.asList(new Object[][] { { configuration1 },
+        { configuration2 }, { configuration3 } });
   }
 
 
@@ -127,15 +125,13 @@ public class HttpPropertyProviderTest {
 
   @Test
   public void testReadGangliaServer() throws Exception {
-    
-    Resource resource = doPopulate("GANGLIA_SERVER", Collections.<String>emptySet(), new TestStreamProvider(false));
+    Resource resource = doPopulate("GANGLIA_SERVER",
+        Collections.<String> emptySet(), new TestStreamProvider(false));
 
     // !!! GANGLIA_SERVER has no current http lookup
-    Assert.assertNull("Expected null, was: " +
-      resource.getPropertyValue(PROPERTY_ID_NAGIOS_ALERTS),
-      resource.getPropertyValue(PROPERTY_ID_NAGIOS_ALERTS));
+    Assert.assertNull(resource.getPropertyValue(PROPERTY_ID_STALE_CONFIGS));
   }
-  
+
   private Resource doPopulate(String componentName,
       Set<String> requestProperties, StreamProvider streamProvider) throws Exception {
     Injector injector = createNiceMock(Injector.class);
@@ -151,9 +147,9 @@ public class HttpPropertyProviderTest {
     resource.setProperty(PROPERTY_ID_HOST_NAME, "ec2-54-234-33-50.compute-1.amazonaws.com");
     resource.setProperty(PROPERTY_ID_CLUSTER_NAME, "testCluster");
     resource.setProperty(PROPERTY_ID_COMPONENT_NAME, componentName);
-    
+
     Request request = PropertyHelper.getReadRequest(requestProperties);
-    
+
     propProvider.populateResources(Collections.singleton(resource), request, null);
 
     return resource;
@@ -167,18 +163,19 @@ public class HttpPropertyProviderTest {
     private TestStreamProvider(boolean throwErr) {
       throwError = throwErr;
     }
-    
+
     @Override
     public InputStream readFrom(String spec) throws IOException {
-      if (!isLastSpecUpdated)
+      if (!isLastSpecUpdated) {
         lastSpec = spec;
-      
+      }
+
       isLastSpecUpdated = false;
 
       if (throwError) {
         throw new IOException("Fake error");
       }
-      
+
       String responseStr = "{\"alerts\": [{\"Alert Body\": \"Body\"}],\"clusterInfo\": {\"haState\": \"ACTIVE\"},"
           + " \"hostcounts\": {\"up_hosts\":\"1\", \"down_hosts\":\"0\"}}";
         return new ByteArrayInputStream(responseStr.getBytes("UTF-8"));
@@ -195,5 +192,5 @@ public class HttpPropertyProviderTest {
       return readFrom(spec);
     }
   }
-  
+
 }

@@ -24,19 +24,15 @@ echo curl -i -X POST http://$SERVER_HOST:8080/api/v1/clusters/c1/services/MAPRED
 echo curl -i -X POST http://$SERVER_HOST:8080/api/v1/clusters/c1/services/ZOOKEEPER
 echo curl -i -X POST http://$SERVER_HOST:8080/api/v1/clusters/c1/services/HBASE
 echo curl -i -X POST http://$SERVER_HOST:8080/api/v1/clusters/c1/services/GANGLIA
-echo curl -i -X POST http://$SERVER_HOST:8080/api/v1/clusters/c1/services/NAGIOS
 echo curl -i -X POST -d '{"type": "core-site", "tag": "version1", "properties" : { "fs.default.name" : "hdfs://'${AGENT_HOSTS[0]}':8020"}}' http://$SERVER_HOST:8080/api/v1/clusters/c1/configurations
 echo curl -i -X POST -d '{"type": "hdfs-site", "tag": "version1", "properties" : { "dfs.datanode.data.dir.perm" : "750"}}' http://$SERVER_HOST:8080/api/v1/clusters/c1/configurations
 echo curl -i -X POST -d '{"type": "global", "tag": "version1", "properties" : { "hbase_hdfs_root_dir" : "/apps/hbase/"}}' http://$SERVER_HOST:8080/api/v1/clusters/c1/configurations
 echo curl -i -X POST -d '{"type": "mapred-site", "tag": "version1", "properties" : { "mapred.job.tracker" : "'${AGENT_HOSTS[0]}':50300", "mapreduce.history.server.embedded": "false", "mapreduce.history.server.http.address": "'${AGENT_HOSTS[0]}':51111"}}' http://$SERVER_HOST:8080/api/v1/clusters/c1/configurations
 echo curl -i -X POST -d '{"type": "hbase-site", "tag": "version1", "properties" : { "hbase.rootdir" : "hdfs://'${AGENT_HOSTS[0]}':8020/apps/hbase/", "hbase.cluster.distributed" : "true", "hbase.zookeeper.quorum": "'${AGENT_HOSTS[0]}'", "zookeeper.session.timeout": "60000" }}' http://$SERVER_HOST:8080/api/v1/clusters/c1/configurations
 echo curl -i -X POST -d '{"type": "hbase-env", "tag": "version1", "properties" : { "hbase_hdfs_root_dir" : "/apps/hbase/"}}' http://$SERVER_HOST:8080/api/v1/clusters/c1/configurations
-echo curl -i -X POST -d '{"type": "nagios-global", "tag": "version2", "properties" : { "nagios_web_login" : "nagiosadmin", "nagios_web_password" : "password", "nagios_contact": "a\u0040b.c" }}' http://$SERVER_HOST:8080/api/v1/clusters/c1/configurations
-echo curl -i -X POST -d '{"type": "nagios-global", "tag": "version1", "properties" : { "nagios_web_login" : "nagiosadmin", "nagios_web_password" : "password"  }}' http://$SERVER_HOST:8080/api/v1/clusters/c1/configurations
 echo curl -i -X PUT -d '{"config": {"core-site": "version1", "hdfs-site": "version1", "global" : "version1" }}'  http://$SERVER_HOST:8080/api/v1/clusters/c1/services/HDFS
 echo curl -i -X PUT -d '{"config": {"core-site": "version1", "mapred-site": "version1"}}'  http://$SERVER_HOST:8080/api/v1/clusters/c1/services/MAPREDUCE
 echo curl -i -X PUT -d '{"config": {"hbase-site": "version1", "hbase-env": "version1"}}'  http://$SERVER_HOST:8080/api/v1/clusters/c1/services/HBASE
-echo curl -i -X PUT -d '{"config": {"nagios-global": "version2" }}'  http://$SERVER_HOST:8080/api/v1/clusters/c1/services/NAGIOS
 echo curl -i -X POST http://$SERVER_HOST:8080/api/v1/clusters/c1/services/HDFS/components/NAMENODE
 echo curl -i -X POST http://$SERVER_HOST:8080/api/v1/clusters/c1/services/HDFS/components/SECONDARY_NAMENODE
 echo curl -i -X POST http://$SERVER_HOST:8080/api/v1/clusters/c1/services/HDFS/components/DATANODE
@@ -49,7 +45,6 @@ echo curl -i -X POST http://$SERVER_HOST:8080/api/v1/clusters/c1/services/HBASE/
 echo curl -i -X POST http://$SERVER_HOST:8080/api/v1/clusters/c1/services/HBASE/components/HBASE_CLIENT
 echo curl -i -X POST http://$SERVER_HOST:8080/api/v1/clusters/c1/services/GANGLIA/components/GANGLIA_SERVER
 echo curl -i -X POST http://$SERVER_HOST:8080/api/v1/clusters/c1/services/GANGLIA/components/GANGLIA_MONITOR
-echo curl -i -X POST http://$SERVER_HOST:8080/api/v1/clusters/c1/services/NAGIOS/components/NAGIOS_SERVER
 echo curl -i -X POST http://$SERVER_HOST:8080/api/v1/clusters/c1/hosts/${AGENT_HOSTS[0]}
 echo curl -i -X POST http://$SERVER_HOST:8080/api/v1/clusters/c1/hosts/${AGENT_HOSTS[0]}/host_components/NAMENODE
 echo curl -i -X POST http://$SERVER_HOST:8080/api/v1/clusters/c1/hosts/${AGENT_HOSTS[0]}/host_components/SECONDARY_NAMENODE
@@ -63,7 +58,6 @@ echo curl -i -X POST http://$SERVER_HOST:8080/api/v1/clusters/c1/hosts/${AGENT_H
 echo curl -i -X POST http://$SERVER_HOST:8080/api/v1/clusters/c1/hosts/${AGENT_HOSTS[0]}/host_components/HBASE_MASTER
 echo curl -i -X POST http://$SERVER_HOST:8080/api/v1/clusters/c1/hosts/${AGENT_HOSTS[0]}/host_components/HBASE_REGIONSERVER
 echo curl -i -X POST http://$SERVER_HOST:8080/api/v1/clusters/c1/hosts/${AGENT_HOSTS[0]}/host_components/HBASE_CLIENT
-echo curl -i -X POST http://$SERVER_HOST:8080/api/v1/clusters/c1/hosts/${AGENT_HOSTS[0]}/host_components/NAGIOS_SERVER
 echo 
 
 len=${#AGENT_HOSTS[@]}

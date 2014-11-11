@@ -18,23 +18,23 @@
 
 package org.apache.ambari.server.configuration;
 
+import java.util.Properties;
+
 import org.junit.Assert;
 import org.junit.Test;
-
-import java.util.Properties;
 
 /**
  * ComponentSSLConfiguration tests.
  */
 public class ComponentSSLConfigurationTest {
 
-  public static ComponentSSLConfiguration getConfiguration(String path, String pass, String type, boolean gangliaSSL, boolean nagiosSSL) {
+  public static ComponentSSLConfiguration getConfiguration(String path,
+      String pass, String type, boolean gangliaSSL) {
     Properties ambariProperties = new Properties();
     ambariProperties.setProperty(Configuration.SSL_TRUSTSTORE_PATH_KEY, path);
     ambariProperties.setProperty(Configuration.SSL_TRUSTSTORE_PASSWORD_KEY, pass);
     ambariProperties.setProperty(Configuration.SSL_TRUSTSTORE_TYPE_KEY, type);
     ambariProperties.setProperty(Configuration.GANGLIA_HTTPS_KEY, Boolean.toString(gangliaSSL));
-    ambariProperties.setProperty(Configuration.NAGIOS_HTTPS_KEY, Boolean.toString(nagiosSSL));
 
     Configuration configuration =  new TestConfiguration(ambariProperties);
 
@@ -47,32 +47,30 @@ public class ComponentSSLConfigurationTest {
 
   @Test
   public void testGetTruststorePath() throws Exception {
-    ComponentSSLConfiguration sslConfiguration = getConfiguration("tspath", "tspass", "tstype", true, false);
+    ComponentSSLConfiguration sslConfiguration = getConfiguration("tspath",
+        "tspass", "tstype", true);
     Assert.assertEquals("tspath", sslConfiguration.getTruststorePath());
   }
 
   @Test
   public void testGetTruststorePassword() throws Exception {
-    ComponentSSLConfiguration sslConfiguration = getConfiguration("tspath", "tspass", "tstype", true, false);
+    ComponentSSLConfiguration sslConfiguration = getConfiguration("tspath",
+        "tspass", "tstype", true);
     Assert.assertEquals("tspass", sslConfiguration.getTruststorePassword());
   }
 
   @Test
   public void testGetTruststoreType() throws Exception {
-    ComponentSSLConfiguration sslConfiguration = getConfiguration("tspath", "tspass", "tstype", true, false);
+    ComponentSSLConfiguration sslConfiguration = getConfiguration("tspath",
+        "tspass", "tstype", true);
     Assert.assertEquals("tstype", sslConfiguration.getTruststoreType());
   }
 
   @Test
   public void testIsGangliaSSL() throws Exception {
-    ComponentSSLConfiguration sslConfiguration = getConfiguration("tspath", "tspass", "tstype", true, false);
+    ComponentSSLConfiguration sslConfiguration = getConfiguration("tspath",
+        "tspass", "tstype", true);
     Assert.assertTrue(sslConfiguration.isGangliaSSL());
-  }
-
-  @Test
-  public void testIsNagiosSSL() throws Exception {
-    ComponentSSLConfiguration sslConfiguration = getConfiguration("tspath", "tspass", "tstype", true, false);
-    Assert.assertFalse(sslConfiguration.isNagiosSSL());
   }
 
   private static class TestConfiguration extends Configuration {

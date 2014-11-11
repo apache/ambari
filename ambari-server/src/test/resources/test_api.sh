@@ -20,7 +20,6 @@ curl -i -X POST http://localhost:8080/api/v1/clusters/c1/services/MAPREDUCE
 curl -i -X POST http://localhost:8080/api/v1/clusters/c1/services/ZOOKEEPER
 curl -i -X POST http://localhost:8080/api/v1/clusters/c1/services/HBASE
 curl -i -X POST http://localhost:8080/api/v1/clusters/c1/services/GANGLIA
-curl -i -X POST http://localhost:8080/api/v1/clusters/c1/services/NAGIOS
 
 curl -i -X PUT -d '{"Clusters": {"desired_config": {"type": "core-site", "tag": "version1", "properties" : { "fs.default.name" : "localhost:8020"}}}}' http://localhost:8080/api/v1/clusters/c1
 curl -i -X PUT -d '{"Clusters": {"desired_config": {"type": "core-site", "tag": "version2", "properties" : { "fs.default.name" : "localhost:8020"}}}}' http://localhost:8080/api/v1/clusters/c1
@@ -30,8 +29,6 @@ curl -i -X PUT -d '{"Clusters": {"desired_config": {"type": "global", "tag": "ve
 curl -i -X PUT -d '{"Clusters": {"desired_config": {"type": "mapred-site", "tag": "version1", "properties" : { "mapred.job.tracker" : "localhost:50300", "mapreduce.history.server.embedded": "false", "mapreduce.history.server.http.address": "localhost:51111"}}}}' http://localhost:8080/api/v1/clusters/c1
 curl -i -X PUT -d '{"Clusters": {"desired_config": {"type": "hbase-site", "tag": "version1", "properties" : { "hbase.rootdir" : "hdfs://localhost:8020/apps/hbase/", "hbase.cluster.distributed" : "true", "hbase.zookeeper.quorum": "localhost", "zookeeper.session.timeout": "60000" }}}}' http://localhost:8080/api/v1/clusters/c1
 curl -i -X PUT -d '{"Clusters": {"desired_config": {"type": "hbase-env", "tag": "version1", "properties" : { "hbase_hdfs_root_dir" : "/apps/hbase/"}}}}' http://localhost:8080/api/v1/clusters/c1
-curl -i -X PUT -d '{"Clusters": {"desired_config": {"type": "nagios-global", "tag": "version2", "properties" : { "nagios_web_login" : "nagiosadmin", "nagios_web_password" : "password", "nagios_contact": "a\u0040b.c" }}}}' http://localhost:8080/api/v1/clusters/c1
-curl -i -X PUT -d '{"Clusters": {"desired_config": {"type": "nagios-global", "tag": "version1", "properties" : { "nagios_web_login" : "nagiosadmin", "nagios_web_password" : "password"  }}}}' http://localhost:8080/api/v1/clusters/c1
 
 curl -i -X POST http://localhost:8080/api/v1/clusters/c1/services/HDFS/components/NAMENODE
 curl -i -X POST http://localhost:8080/api/v1/clusters/c1/services/HDFS/components/SECONDARY_NAMENODE
@@ -45,7 +42,6 @@ curl -i -X POST http://localhost:8080/api/v1/clusters/c1/services/HBASE/componen
 curl -i -X POST http://localhost:8080/api/v1/clusters/c1/services/HBASE/components/HBASE_CLIENT
 curl -i -X POST http://localhost:8080/api/v1/clusters/c1/services/GANGLIA/components/GANGLIA_SERVER
 curl -i -X POST http://localhost:8080/api/v1/clusters/c1/services/GANGLIA/components/GANGLIA_MONITOR
-curl -i -X POST http://localhost:8080/api/v1/clusters/c1/services/NAGIOS/components/NAGIOS_SERVER
 curl -i -X POST http://localhost:8080/api/v1/clusters/c1/hosts/$AGENT_HOST
 curl -i -X POST http://localhost:8080/api/v1/clusters/c1/hosts/$AGENT_HOST/host_components/NAMENODE
 curl -i -X POST http://localhost:8080/api/v1/clusters/c1/hosts/$AGENT_HOST/host_components/SECONDARY_NAMENODE
@@ -59,8 +55,6 @@ curl -i -X POST http://localhost:8080/api/v1/clusters/c1/hosts/$AGENT_HOST/host_
 curl -i -X POST http://localhost:8080/api/v1/clusters/c1/hosts/$AGENT_HOST/host_components/HBASE_MASTER
 curl -i -X POST http://localhost:8080/api/v1/clusters/c1/hosts/$AGENT_HOST/host_components/HBASE_REGIONSERVER
 curl -i -X POST http://localhost:8080/api/v1/clusters/c1/hosts/$AGENT_HOST/host_components/HBASE_CLIENT
-curl -i -X POST http://localhost:8080/api/v1/clusters/c1/hosts/$AGENT_HOST/host_components/NAGIOS_SERVER
-curl -i -X PUT -d '{"Hosts": {"desired_config": {"type": "core-site", "tag": "version3", "properties" : { "nagios_web_login" : "nagiosadmin", "nagios_web_password" : "password"  }}}}' http://localhost:8080/api/v1/clusters/c1/hosts/$AGENT_HOST
 curl -i -X PUT  -d '{"ServiceInfo": {"state" : "INSTALLED"}}'   http://localhost:8080/api/v1/clusters/c1/services?state=INIT
 #curl -i -X PUT  -d '{"ServiceInfo": {"state" : "STARTED"}}'   http://localhost:8080/api/v1/clusters/c1/services?state=INSTALLED
 # http://localhost:8080/api/v1/clusters/c1/requests/2

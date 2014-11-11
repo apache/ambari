@@ -18,8 +18,8 @@
         "ambari_db_rca_username": "mapred", 
         "java_home": "/usr/jdk64/jdk1.7.0_45", 
         "mysql_jdbc_url": "http://c6401.ambari.apache.org:8080/resources//mysql-connector-java.jar",
-        "group_list": "[\"hadoop\",\"nobody\",\"users\",\"nagios\"]",
-        "user_list": "[\"hive\",\"oozie\",\"nobody\",\"nagios\",\"ambari-qa\",\"flume\",\"hdfs\",\"storm\",\"mapred\",\"hbase\",\"tez\",\"zookeeper\",\"falcon\",\"sqoop\",\"yarn\",\"hcat\"]"
+        "group_list": "[\"hadoop\",\"nobody\",\"users\"]",
+        "user_list": "[\"hive\",\"oozie\",\"nobody\",\"ambari-qa\",\"flume\",\"hdfs\",\"storm\",\"mapred\",\"hbase\",\"tez\",\"zookeeper\",\"falcon\",\"sqoop\",\"yarn\",\"hcat\"]"
     }, 
     "commandType": "EXECUTION_COMMAND", 
     "roleParams": {}, 
@@ -335,14 +335,6 @@
             "jtnode_opt_maxnewsize": "200m",
             "rca_properties": "\nambari.jobhistory.database={ambari_db_rca_url}\nambari.jobhistory.driver={ambari_db_rca_driver}\nambari.jobhistory.user={ambari_db_rca_username}\nambari.jobhistory.password={ambari_db_rca_password}\nambari.jobhistory.logger=${{hadoop.root.logger}}\n\nlog4j.appender.JHA=org.apache.ambari.log4j.hadoop.mapreduce.jobhistory.JobHistoryAppender\nlog4j.appender.JHA.database={ambari_db_rca_url}\nlog4j.appender.JHA.driver={ambari_db_rca_driver}\nlog4j.appender.JHA.user={ambari_db_rca_username}\nlog4j.appender.JHA.password={ambari_db_rca_password}\n\nlog4j.logger.org.apache.hadoop.mapred.JobHistory$JobHistoryLogger=DEBUG,JHA\nlog4j.additivity.org.apache.hadoop.mapred.JobHistory$JobHistoryLogger=true\n\n"
         }, 
-        "nagios-env": {
-            "hive_metastore_user_passwd": "password", 
-            "nagios_web_password": "!`\"' 1",
-            "nagios_user": "nagios", 
-            "nagios_group": "nagios", 
-            "nagios_web_login": "nagiosadmin", 
-            "nagios_contact": "user@com.ua"
-        }, 
         "hive-env": {
             "hive_metastore_user_passwd": "password", 
             "hcat_pid_dir": "/var/run/webhcat", 
@@ -557,9 +549,6 @@
         ], 
         "ganglia_monitor_hosts": [
             "c6401.ambari.apache.org", 
-            "c6402.ambari.apache.org"
-        ], 
-        "nagios_server_host": [
             "c6402.ambari.apache.org"
         ], 
         "hive_metastore_hosts": [

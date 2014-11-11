@@ -18,15 +18,16 @@
 
 package org.apache.ambari.server.controller.gsinstaller;
 
+import java.util.HashMap;
+import java.util.Set;
+
 import junit.framework.Assert;
+
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.junit.Test;
-
-import java.util.HashMap;
-import java.util.Set;
 
 /**
  *
@@ -38,24 +39,38 @@ public class GSInstallerServiceProviderTest {
     ClusterDefinition clusterDefinition = new ClusterDefinition(new TestGSInstallerStateProvider());
     GSInstallerResourceProvider provider = new GSInstallerServiceProvider(clusterDefinition);
     Set<Resource> resources = provider.getResources(PropertyHelper.getReadRequest(), null);
-    Assert.assertEquals(12, resources.size());
+    Assert.assertEquals(11, resources.size());
   }
 
   @Test
   public void testGetResourcesWithPredicate() throws Exception {
-    ClusterDefinition clusterDefinition = new ClusterDefinition(new TestGSInstallerStateProvider());
-    GSInstallerResourceProvider provider = new GSInstallerServiceProvider(clusterDefinition);
-    Predicate predicate = new PredicateBuilder().property(GSInstallerServiceProvider.SERVICE_SERVICE_NAME_PROPERTY_ID).equals("MAPREDUCE").toPredicate();
-    Set<Resource> resources = provider.getResources(PropertyHelper.getReadRequest(), predicate);
+    ClusterDefinition clusterDefinition = new ClusterDefinition(
+        new TestGSInstallerStateProvider());
+    GSInstallerResourceProvider provider = new GSInstallerServiceProvider(
+        clusterDefinition);
+    Predicate predicate = new PredicateBuilder().property(
+        GSInstallerServiceProvider.SERVICE_SERVICE_NAME_PROPERTY_ID).equals(
+        "MAPREDUCE").toPredicate();
+    Set<Resource> resources = provider.getResources(
+        PropertyHelper.getReadRequest(), predicate);
     Assert.assertEquals(1, resources.size());
 
-    predicate = new PredicateBuilder().property(GSInstallerServiceProvider.SERVICE_SERVICE_NAME_PROPERTY_ID).equals("GANGLIA").or().
-        property(GSInstallerServiceProvider.SERVICE_SERVICE_NAME_PROPERTY_ID).equals("NAGIOS").toPredicate();
-    resources = provider.getResources(PropertyHelper.getReadRequest(), predicate);
+    predicate = new PredicateBuilder().property(
+        GSInstallerServiceProvider.SERVICE_SERVICE_NAME_PROPERTY_ID).equals(
+        "HDFS").or().property(
+        GSInstallerServiceProvider.SERVICE_SERVICE_NAME_PROPERTY_ID).equals(
+        "GANGLIA").toPredicate();
+
+    resources = provider.getResources(PropertyHelper.getReadRequest(),
+        predicate);
+
     Assert.assertEquals(2, resources.size());
 
-    predicate = new PredicateBuilder().property(GSInstallerServiceProvider.SERVICE_SERVICE_NAME_PROPERTY_ID).equals("NO SERVICE").toPredicate();
-    resources = provider.getResources(PropertyHelper.getReadRequest(), predicate);
+    predicate = new PredicateBuilder().property(
+        GSInstallerServiceProvider.SERVICE_SERVICE_NAME_PROPERTY_ID).equals(
+        "NO SERVICE").toPredicate();
+    resources = provider.getResources(PropertyHelper.getReadRequest(),
+        predicate);
     Assert.assertTrue(resources.isEmpty());
   }
 

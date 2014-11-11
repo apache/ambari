@@ -326,14 +326,6 @@
             "hadoop_heapsize": "1024", 
             "jtnode_opt_maxnewsize": "200m"
         }, 
-        "nagios-env": {
-            "hive_metastore_user_passwd": "password", 
-            "nagios_web_password": "!`\"' 1",
-            "nagios_user": "nagios", 
-            "nagios_group": "nagios", 
-            "nagios_web_login": "nagiosadmin", 
-            "nagios_contact": "user@com.ua"
-        }, 
         "hive-env": {
             "hive_metastore_user_passwd": "password", 
             "hcat_pid_dir": "/var/run/webhcat", 
@@ -539,9 +531,6 @@
         ], 
         "ganglia_monitor_hosts": [
             "c6401.ambari.apache.org", 
-            "c6402.ambari.apache.org"
-        ], 
-        "nagios_server_host": [
             "c6402.ambari.apache.org"
         ], 
         "hive_metastore_hosts": [

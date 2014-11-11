@@ -673,9 +673,6 @@
             "c6401.ambari.apache.org", 
             "c6402.ambari.apache.org"
         ], 
-        "nagios_server_host": [
-            "c6402.ambari.apache.org"
-        ], 
         "all_ping_ports": [
             "8670", 
             "8670"

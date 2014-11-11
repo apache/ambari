@@ -62,7 +62,7 @@ public class TestStagePlanner {
     RoleCommandOrder rco = injector.getInstance(RoleCommandOrder.class);
     ClusterImpl cluster = mock(ClusterImpl.class);
     when(cluster.getCurrentStackVersion()).thenReturn(new StackId("HDP-2.0.6"));
-    
+
     rco.initialize(cluster);
 
     RoleGraph rg = new RoleGraph(rco);
@@ -140,9 +140,6 @@ public class TestStagePlanner {
     stage.addHostRoleExecutionCommand("host7", Role.WEBHCAT_SERVER,
         RoleCommand.START, new ServiceComponentHostStartEvent("WEBHCAT_SERVER",
             "host7", now), "cluster1", "WEBHCAT");
-    stage.addHostRoleExecutionCommand("host8", Role.NAGIOS_SERVER,
-        RoleCommand.START, new ServiceComponentHostStartEvent("NAGIOS_SERVER",
-            "host8", now), "cluster1", "NAGIOS");
     stage.addHostRoleExecutionCommand("host4", Role.GANGLIA_MONITOR,
         RoleCommand.START, new ServiceComponentHostStartEvent("GANGLIA_MONITOR",
             "host4", now), "cluster1", "GANGLIA");
@@ -156,6 +153,6 @@ public class TestStagePlanner {
     for (Stage s: outStages) {
       System.out.println(s.toString());
     }
-    assertEquals(5, outStages.size());
+    assertEquals(4, outStages.size());
   }
 }

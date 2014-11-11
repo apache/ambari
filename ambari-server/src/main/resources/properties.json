@@ -72,7 +72,6 @@
         "HostRoles/desired_stack_id",
         "HostRoles/actual_configs",
         "params/run_smoke_test",
-        "HostRoles/nagios_alerts",
         "HostRoles/stale_configs",
         "HostRoles/desired_admin_state",
         "HostRoles/maintenance_state",

@@ -1,10 +1,5 @@
 {
     "configurations" : [
-        {
-            "nagios-env" : {
-                "nagios_contact" : "admin@localhost"
-            }
-        }
     ],
     "host_groups" : [
         {
@@ -130,9 +125,6 @@
             "components" : [
                 {
                     "name" : "AMBARI_SERVER"
-                },
-                {
-                    "name" : "NAGIOS_SERVER"
                 },
                 {
                     "name" : "ZOOKEEPER_CLIENT"
