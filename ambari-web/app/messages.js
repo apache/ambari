@@ -644,6 +644,8 @@ Em.I18n.translations = {
   'installer.step6.validationSlavesAndClients.forDetails': ' for details.',
   'installer.step6.validationSlavesAndClients.popup.header': 'Assign Slaves and Clients Issues',
   'installer.step6.validationSlavesAndClients.popup.body': 'Assignment of slave and client components has the following issues',
+  'installer.step6.validationIssuesAttention.header': 'Validation Issues',
+  'installer.step6.validationIssuesAttention': 'Slave and Client component assignments have issues that need attention.',
 
   'installer.step7.header':'Customize Services',
   'installer.step7.body':'We have come up with recommended configurations for the services you selected. Customize them as you see fit.',
