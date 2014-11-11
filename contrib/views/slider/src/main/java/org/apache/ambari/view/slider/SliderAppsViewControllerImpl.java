@@ -1370,6 +1370,11 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
       JsonObject appMasterComponent = new JsonObject();
       String userToRunAsKeytab = getUserToRunAsKeytabs(appType).get(0);
       String fileName = userToRunAsKeytab.substring(userToRunAsKeytab.lastIndexOf('/') + 1);
+      String userName = fileName.substring(0, fileName.indexOf('.'));
+      String viewPrincipalName = getViewParameterValue(PARAM_VIEW_PRINCIPAL);
+      int atIndex = viewPrincipalName.lastIndexOf('@');
+      String viewPrincipalDomain = atIndex > -1 ? viewPrincipalName.substring(atIndex+1) : "";
+      appMasterComponent.add("slider.keytab.principal.name", new JsonPrimitive(userName + "@" + viewPrincipalDomain));
       appMasterComponent.add("slider.am.login.keytab.name", new JsonPrimitive(fileName));
       appMasterComponent.add("slider.hdfs.keytab.dir", new JsonPrimitive(".slider/keytabs/" + appName));
       componentsObj.add("slider-appmaster", appMasterComponent);
