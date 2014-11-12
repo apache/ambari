@@ -145,6 +145,10 @@ def oozie_server_specific():
   #falcon el extension
   if params.has_falcon_host:
     cmd3 += format(' && cp {falcon_home}/oozie/ext/falcon-oozie-el-extension-*.jar {oozie_libext_dir}')
+  if params.lzo_enabled:
+    Package(params.lzo_packages_for_current_host)
+
+    cmd3 += format(' && cp {hadoop_lib_home}/hadoop-lzo*.jar {oozie_lib_dir}')
   # this is different for HDP1
   cmd4 = format("cd {oozie_tmp_dir} && {oozie_setup_sh} prepare-war")
 

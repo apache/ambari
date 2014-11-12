@@ -21,14 +21,15 @@ limitations under the License.
 from resource_management.libraries.functions.version import format_hdp_stack_version, compare_versions
 from resource_management import *
 import status_params
+import itertools
 import os
 
 # server configurations
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 
-hdp_stack_version = str(config['hostLevelParams']['stack_version'])
-hdp_stack_version = format_hdp_stack_version(hdp_stack_version)
+stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
+hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
 stack_is_hdp22_or_further = hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0
 
 #hadoop params
@@ -132,7 +133,6 @@ oozie_hdfs_user_mode = 0775
 hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_name']
-kinit_path_local = functions.get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
 import functools
 #create partial functions with common arguments for every HdfsDirectory call
 #to create hdfs directory we need to call params.HdfsDirectory in code
@@ -145,3 +145,26 @@ HdfsDirectory = functools.partial(
   kinit_path_local = kinit_path_local,
   bin_dir = hadoop_bin_dir
 )
+
+#LZO support
+
+io_compression_codecs = config['configurations']['core-site']['io.compression.codecs']
+lzo_enabled = "com.hadoop.compression.lzo" in io_compression_codecs
+# stack_is_hdp22_or_further
+underscorred_version = stack_version_unformatted.replace('.', '_')
+dashed_version = stack_version_unformatted.replace('.', '-')
+lzo_packages_to_family = {
+  "any": ["hadoop-lzo"],
+  "redhat": ["lzo", "hadoop-lzo-native"],
+  "suse": ["lzo", "hadoop-lzo-native"],
+  "ubuntu": ["liblzo2-2"]
+}
+
+if stack_is_hdp22_or_further:
+  lzo_packages_to_family["redhat"] += [format("hadooplzo_{underscorred_version}_*")]
+  lzo_packages_to_family["suse"] += [format("hadooplzo_{underscorred_version}_*")]
+  lzo_packages_to_family["ubuntu"] += [format("hadooplzo_{dashed_version}_*")]
+
+lzo_packages_for_current_host = lzo_packages_to_family['any'] + lzo_packages_to_family[System.get_instance().os_family]
+all_lzo_packages = set(itertools.chain(*lzo_packages_to_family.values()))
+
