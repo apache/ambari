@@ -170,6 +170,11 @@ var urls = {
     }
   },
 
+  'service.ambari': {
+    'real': '/services/AMBARI?fields=components/RootServiceComponents',
+    'mock': '/data/services/ambari.json'
+  },
+
   'service.flume.agent.command': {
     'real': '/clusters/{clusterName}/hosts/{host}/host_components/FLUME_HANDLER',
     'mock': '',

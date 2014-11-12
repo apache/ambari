@@ -86,6 +86,7 @@ App.ClusterController = Em.Controller.extend({
     'racks': false,
     'componentConfigs': false,
     'componentsState': false,
+    'rootService': false,
     'alertDefinitions': false
   }),
 
@@ -104,11 +105,11 @@ App.ClusterController = Em.Controller.extend({
         success: 'loadClusterNameSuccessCallback',
         error: 'loadClusterNameErrorCallback'
       }).complete(function () {
-          if (!App.get('currentStackVersion')) {
-            App.set('currentStackVersion', App.defaultStackVersion);
-          }
-          dfd.resolve();
-        });
+        if (!App.get('currentStackVersion')) {
+          App.set('currentStackVersion', App.defaultStackVersion);
+        }
+        dfd.resolve();
+      });
     }
     return dfd.promise()
   },
@@ -310,13 +311,14 @@ App.ClusterController = Em.Controller.extend({
      * 8. load hosts to model
      * 9. load services from cache with metrics to model
      * 10. update stale_configs of host-components (depends on App.supports.hostOverrides)
-     * 11. load alert definitions to model
+     * 11. load root service (Ambari)
+     * 12. load alert definitions to model
      */
-    this.loadStackServiceComponents(function (data) {
+    self.loadStackServiceComponents(function (data) {
       data.items.forEach(function (service) {
         service.StackServices.is_selected = true;
         service.StackServices.is_installed = false;
-      }, this);
+      }, self);
       App.stackServiceMapper.mapStackServices(data);
       App.config.setPreDefinedServiceConfigs();
       var updater = App.router.get('updateController');
@@ -343,6 +345,17 @@ App.ClusterController = Em.Controller.extend({
           });
         });
       });
+      self.loadRootService().done(function (data) {
+        App.rootServiceMapper.map(data);
+        self.updateLoadStatus('rootService');
+      });
+    });
+  },
+
+  loadRootService: function () {
+    return App.ajax.send({
+      name: 'service.ambari',
+      sender: this
     });
   },
 

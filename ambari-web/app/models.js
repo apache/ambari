@@ -63,3 +63,4 @@ require('classes/job_class');
 require('models/config_group');
 require('models/service_config_version');
 require('models/host_stack_version');
+require('models/root_service');
