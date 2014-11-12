@@ -236,6 +236,14 @@ App.MainHostController = Em.ArrayController.extend({
         });
       }
     });
+    // sort by public_host_name by default
+    if (queryParams.length === 0) {
+      queryParams.push({
+        key: 'Hosts/public_host_name',
+        value: 'asc',
+        type: 'SORT'
+      });
+    }
     return queryParams;
   },
 

@@ -110,7 +110,6 @@ App.hostsMapper = App.QuickDataMapper.create({
         return hostsWithFullInfo;
       }
 
-      hostsWithFullInfo = hostsWithFullInfo.sortProperty('public_host_name');
 
       App.Host.find().forEach(function (host) {
         if (!hostIds[host.get('hostName')]) {
