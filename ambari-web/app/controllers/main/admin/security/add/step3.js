@@ -84,7 +84,8 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
         componentName: 'HIVE_SERVER',
         principal: 'hive_metastore_http_principal_name',
         keytab: 'hive_metastore_http_keytab',
-        displayName: Em.I18n.t('admin.addSecurity.hive.user.httpUser')
+        displayName: Em.I18n.t('admin.addSecurity.hive.user.httpUser'),
+        isHadoop2Stack: true
       },
       {
         componentName: 'OOZIE_SERVER',
