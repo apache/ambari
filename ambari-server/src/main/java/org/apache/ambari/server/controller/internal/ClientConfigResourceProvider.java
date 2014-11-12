@@ -320,7 +320,7 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
               packageFolderAbsolute + " " + TMP_PATH + File.separator + "structured-out.json" + " INFO " + TMP_PATH;
 
       try {
-        executeCommand(cmd, SCRIPT_TIMEOUT);
+        executeCommand(cmd, configs.getExternalScriptTimeout());
       } catch (TimeoutException e) {
         LOG.error("Generate client configs script was killed due to timeout ", e);
         throw new SystemException("Generate client configs script was killed due to timeout ", e);
