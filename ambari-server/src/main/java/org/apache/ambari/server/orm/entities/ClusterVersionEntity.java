@@ -34,10 +34,6 @@ import javax.persistence.NamedQuery;
 import javax.persistence.NamedQueries;
 import javax.persistence.TableGenerator;
 import javax.persistence.Table;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
-
-import java.util.Date;
 
 import static org.apache.commons.lang.StringUtils.defaultString;
 

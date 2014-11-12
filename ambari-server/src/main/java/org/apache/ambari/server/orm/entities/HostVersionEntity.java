@@ -18,7 +18,7 @@
 
 package org.apache.ambari.server.orm.entities;
 
-import org.apache.ambari.server.state.HostVersionState;
+import org.apache.ambari.server.state.UpgradeState;
 
 import javax.persistence.Basic;
 import javax.persistence.Column;
@@ -30,8 +30,10 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
-import javax.persistence.Table;
+import javax.persistence.NamedQuery;
+import javax.persistence.NamedQueries;
 import javax.persistence.TableGenerator;
+import javax.persistence.Table;
 
 import static org.apache.commons.lang.StringUtils.defaultString;
 
@@ -43,6 +45,24 @@ import static org.apache.commons.lang.StringUtils.defaultString;
     , initialValue = 0
     , allocationSize = 1
 )
+@NamedQueries({
+    @NamedQuery(name = "hostVersionByClusterAndStackAndVersion", query =
+        "SELECT hostVersion FROM HostVersionEntity hostVersion JOIN hostVersion.hostEntity host JOIN ClusterEntity cluster " +
+            "WHERE cluster.clusterName=:clusterName AND hostVersion.stack=:stack AND hostVersion.version=:version"),
+
+    @NamedQuery(name = "hostVersionByClusterAndHostname", query =
+        "SELECT hostVersion FROM HostVersionEntity hostVersion JOIN hostVersion.hostEntity host JOIN ClusterEntity cluster " +
+            "WHERE cluster.clusterName=:clusterName AND hostVersion.hostName=:hostName"),
+
+    @NamedQuery(name = "hostVersionByClusterHostnameAndState", query =
+        "SELECT hostVersion FROM HostVersionEntity hostVersion JOIN hostVersion.hostEntity host JOIN ClusterEntity cluster " +
+            "WHERE cluster.clusterName=:clusterName AND hostVersion.hostName=:hostName AND hostVersion.state=:state"),
+
+    @NamedQuery(name = "hostVersionByClusterStackVersionAndHostname", query =
+        "SELECT hostVersion FROM HostVersionEntity hostVersion JOIN hostVersion.hostEntity host JOIN ClusterEntity cluster " +
+            "WHERE cluster.clusterName=:clusterName AND hostVersion.stack=:stack AND hostVersion.version=:version AND " +
+            "hostVersion.hostName=:hostName"),
+})
 public class HostVersionEntity {
 
   @Id
@@ -67,7 +87,30 @@ public class HostVersionEntity {
 
   @Column(name = "state", nullable = false, insertable = true, updatable = true)
   @Enumerated(value = EnumType.STRING)
-  private HostVersionState state = HostVersionState.CURRENT;
+  private UpgradeState state = UpgradeState.NONE;
+
+  /**
+   * Empty constructor is needed by unit tests.
+   */
+  public HostVersionEntity() {
+  }
+
+  public HostVersionEntity(String hostName, String stack, String version, UpgradeState state) {
+    this.hostName = hostName;
+    this.stack = stack;
+    this.version = version;
+    this.state = state;
+  }
+
+  /**
+   * This constructor is mainly used by the unit tests in order to construct an object without the id.
+   */
+  public HostVersionEntity(HostVersionEntity other) {
+    this.hostName = other.hostName;
+    this.stack = other.stack;
+    this.version = other.version;
+    this.state = other.state;
+  }
 
   public Long getId() {
     return id;
@@ -109,11 +152,11 @@ public class HostVersionEntity {
     this.version = version;
   }
 
-  public HostVersionState getState() {
+  public UpgradeState getState() {
     return state;
   }
 
-  public void setState(HostVersionState state) {
+  public void setState(UpgradeState state) {
     this.state = state;
   }
 

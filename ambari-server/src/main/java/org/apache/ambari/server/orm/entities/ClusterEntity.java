@@ -20,6 +20,7 @@ package org.apache.ambari.server.orm.entities;
 
 import static org.apache.commons.lang.StringUtils.defaultString;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 import javax.persistence.Basic;
@@ -293,6 +294,13 @@ public class ClusterEntity {
   }
 
   public void setClusterVersionEntities(Collection<ClusterVersionEntity> clusterVersionEntities) { this.clusterVersionEntities = clusterVersionEntities; }
+
+  public void addClusterVersionEntity(ClusterVersionEntity clusterVersionEntity) {
+    if (this.clusterVersionEntities == null) {
+      this.clusterVersionEntities = new ArrayList<ClusterVersionEntity>();
+    }
+    this.clusterVersionEntities.add(clusterVersionEntity);
+  }
 
   /**
    * Get the admin resource entity.

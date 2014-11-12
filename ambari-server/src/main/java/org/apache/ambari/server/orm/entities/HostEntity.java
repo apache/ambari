@@ -36,7 +36,7 @@ import static org.apache.commons.lang.StringUtils.defaultString;
 
 @javax.persistence.Table(name = "hosts")
 @Entity
-public class HostEntity {
+public class HostEntity implements Comparable<HostEntity> {
 
   @Id
   @Column(name = "host_name", nullable = false, insertable = true, updatable = true)
@@ -259,6 +259,11 @@ public class HostEntity {
   @Override
   public int hashCode() {
     return hostName.hashCode();
+  }
+
+  @Override
+  public int compareTo(HostEntity other) {
+    return this.hostName.compareTo(other.hostName);
   }
 
   public Collection<HostComponentDesiredStateEntity> getHostComponentDesiredStateEntities() {
