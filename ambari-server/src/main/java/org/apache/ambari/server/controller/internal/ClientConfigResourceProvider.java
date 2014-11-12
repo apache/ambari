@@ -318,7 +318,7 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
               packageFolderAbsolute + " " + TMP_PATH + File.separator + "structured-out.json" + " INFO " + TMP_PATH;
 
       try {
-        executeCommand(cmd, 1500);
+        executeCommand(cmd, configs.getExternalScriptTimeout());
       } catch (TimeoutException e) {
         throw new SystemException("Script was killed due to timeout  ", e);
       } catch (Exception e) {

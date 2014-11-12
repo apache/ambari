@@ -235,6 +235,8 @@ public class Configuration {
   public static final String DEFAULT_SCHEDULER_START_DELAY_SECONDS = "120";
   public static final String SERVER_TMP_DIR_KEY = "server.tmp.dir";
   public static final String SERVER_TMP_DIR_DEFAULT = "/var/lib/ambari-server/tmp";
+  public static final String EXTERNAL_SCRIPT_TIMEOUT_KEY = "server.script.timeout";
+  public static final String EXTERNAL_SCRIPT_TIMEOUT_DEFAULT = "5000";
   /**
    * This key defines whether stages of parallel requests are executed in
    * parallel or sequentally. Only stages from different requests
@@ -385,6 +387,8 @@ public class Configuration {
             PARALLEL_STAGE_EXECUTION_KEY, PARALLEL_STAGE_EXECUTION_DEFAULT));
     configsMap.put(SERVER_TMP_DIR_KEY, properties.getProperty(
             SERVER_TMP_DIR_KEY, SERVER_TMP_DIR_DEFAULT));
+    configsMap.put(EXTERNAL_SCRIPT_TIMEOUT_KEY, properties.getProperty(
+            EXTERNAL_SCRIPT_TIMEOUT_KEY, EXTERNAL_SCRIPT_TIMEOUT_DEFAULT));
 
     File passFile = new File(configsMap.get(SRVR_KSTR_DIR_KEY) + File.separator
         + configsMap.get(SRVR_CRT_PASS_FILE_KEY));
@@ -1035,6 +1039,10 @@ public class Configuration {
     String delay = properties.getProperty(EXECUTION_SCHEDULER_START_DELAY,
       DEFAULT_SCHEDULER_START_DELAY_SECONDS);
     return Integer.parseInt(delay);
+  }
+
+  public Integer getExternalScriptTimeout() {
+    return Integer.parseInt(properties.getProperty(EXTERNAL_SCRIPT_TIMEOUT_KEY, EXTERNAL_SCRIPT_TIMEOUT_DEFAULT));
   }
 
   public boolean getParallelStageExecution() {
