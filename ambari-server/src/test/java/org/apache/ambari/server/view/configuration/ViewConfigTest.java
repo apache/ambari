@@ -24,6 +24,9 @@ import org.apache.ambari.view.ResourceAlreadyExistsException;
 import org.apache.ambari.view.ResourceProvider;
 import org.apache.ambari.view.SystemException;
 import org.apache.ambari.view.UnsupportedPropertyException;
+import org.apache.ambari.view.ViewInstanceDefinition;
+import org.apache.ambari.view.validation.ValidationResult;
+import org.apache.ambari.view.validation.Validator;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -50,6 +53,7 @@ public class ViewConfigTest {
       "    <system>true</system>\n" +
       "    <icon64>/this/is/the/icon/url/icon64.png</icon64>\n" +
       "    <icon>/this/is/the/icon/url/icon.png</icon>\n" +
+      "    <validator-class>org.apache.ambari.server.view.configuration.ViewConfigTest$MyValidator</validator-class>" +
       "    <masker-class>org.apache.ambari.server.view.DefaultMasker</masker-class>" +
       "    <parameter>\n" +
       "        <name>p1</name>\n" +
@@ -169,6 +173,12 @@ public class ViewConfigTest {
   }
 
   @Test
+  public void testGetValidator() throws Exception {
+    ViewConfig config = getConfig();
+    Assert.assertEquals("org.apache.ambari.server.view.configuration.ViewConfigTest$MyValidator", config.getValidator());
+  }
+
+  @Test
   public void testMasker() throws Exception {
     ViewConfig config = getConfig();
     Assert.assertEquals("org.apache.ambari.server.view.DefaultMasker", config.getMasker());
@@ -247,6 +257,20 @@ public class ViewConfigTest {
 
   public static class MyViewServlet extends HttpServlet {
     // nothing
+  }
+
+  public static class MyValidator implements Validator {
+    ValidationResult result;
+
+    @Override
+    public ValidationResult validateInstance(ViewInstanceDefinition definition, ValidationContext mode) {
+      return result;
+    }
+
+    @Override
+    public ValidationResult validateProperty(String property, ViewInstanceDefinition definition, ValidationContext mode) {
+      return result;
+    }
   }
 
   public static class MyResource {

@@ -279,6 +279,21 @@ public abstract class BaseProvider {
   }
 
   /**
+   * Determine whether or not the given property id is part the given set of requested ids.  This
+   * accounts for the cases where the given properties are actually property categories.
+   *
+   * @param propertyId    the property id
+   * @param requestedIds  the requested set of property ids
+   *
+   * @return true if the given property id is part of the given set of requested ids
+   */
+  protected static boolean isPropertyRequested(String propertyId, Set<String> requestedIds) {
+    return requestedIds.contains(propertyId) ||
+        isPropertyCategoryRequested(propertyId, requestedIds) ||
+        isPropertyEntryRequested(propertyId, requestedIds);
+  }
+
+  /**
    * Set a property value on the given resource for the given id and value.
    * Make sure that the id is in the given set of requested ids.
    *
@@ -287,16 +302,9 @@ public abstract class BaseProvider {
    * @param value         the value to set
    * @param requestedIds  the requested set of property ids
    */
-  protected static boolean setResourceProperty(Resource resource, String propertyId, Object value, Set<String> requestedIds) {
-    boolean contains = requestedIds.contains(propertyId);
-
-    if (!contains) {
-      String category = PropertyHelper.getPropertyCategory(propertyId);
-      while (category != null && !contains) {
-        contains = requestedIds.contains(category);
-        category = PropertyHelper.getPropertyCategory(category);
-      }
-    }
+  protected static boolean setResourceProperty(Resource resource, String propertyId, Object value,
+                                               Set<String> requestedIds) {
+    boolean contains = requestedIds.contains(propertyId) || isPropertyCategoryRequested(propertyId, requestedIds);
 
     if (contains) {
       if (LOG.isDebugEnabled()) {
@@ -360,6 +368,47 @@ public abstract class BaseProvider {
         }
       }
       return true;
+    }
+    return false;
+  }
+
+  /**
+   * Determine whether or not any of the requested ids are an entry for the given property, if
+   * the given property is a category.  For example, if the given property is 'category/subcategory'
+   * and the set of requested ids contains 'category/subcategory/property' then this method should
+   * return true.
+   *
+   * @param propertyId    the property id
+   * @param requestedIds  the requested set of property ids
+   *
+   * @return true if the given property is a category for any of the requested ids
+   */
+  private static boolean isPropertyEntryRequested(String propertyId, Set<String> requestedIds) {
+    for (String requestedId : requestedIds) {
+      if (requestedId.startsWith(propertyId)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Determine whether or not any of the requested ids are a category for the given property.
+   * For example, if the given property is 'category/subcategory/property' and the set of requested ids
+   * contains 'category' or 'category/subcategory' then this method should return true.
+   *
+   * @param propertyId    the property id
+   * @param requestedIds  the requested set of property ids
+   *
+   * @return true if the given property's category is part of the given set of requested ids
+   */
+  private static boolean isPropertyCategoryRequested(String propertyId, Set<String> requestedIds) {
+    String category = PropertyHelper.getPropertyCategory(propertyId);
+    while (category != null ) {
+      if (requestedIds.contains(category)) {
+        return true;
+      }
+      category = PropertyHelper.getPropertyCategory(category);
     }
     return false;
   }

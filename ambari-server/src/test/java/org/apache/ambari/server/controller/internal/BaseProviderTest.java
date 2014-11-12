@@ -171,6 +171,34 @@ public class BaseProviderTest {
   }
 
   @Test
+  public void testIsPropertyRequested() {
+    Set<String> propertyIds = new HashSet<String>();
+    propertyIds.add("p1");
+    propertyIds.add("foo");
+    propertyIds.add("cat1/foo");
+    propertyIds.add("cat2/bar");
+    propertyIds.add("cat2/baz");
+    propertyIds.add("cat3/sub1/bam");
+    propertyIds.add("cat4/sub2/sub3/bat");
+    propertyIds.add("cat5/sub5");
+
+    assertTrue(BaseProvider.isPropertyRequested("foo", propertyIds));
+
+    assertTrue(BaseProvider.isPropertyRequested("cat2", propertyIds));
+
+    assertTrue(BaseProvider.isPropertyRequested("cat2/bar", propertyIds));
+
+    assertFalse(BaseProvider.isPropertyRequested("unsupported", propertyIds));
+
+    // we should allow anything under the category cat5/sub5
+    assertTrue(BaseProvider.isPropertyRequested("cat5/sub5/prop5", propertyIds));
+    assertTrue(BaseProvider.isPropertyRequested("cat5/sub5/sub5a/prop5a", propertyIds));
+
+    // we shouldn't allow anything under the category cat5/sub7
+    assertFalse(BaseProvider.isPropertyRequested("cat5/sub7/unsupported", propertyIds));
+  }
+
+  @Test
   public void testSetResourcePropertyWithMaps() {
     Set<String> propertyIds = new HashSet<String>();
     propertyIds.add("cat1/emptyMapProperty");

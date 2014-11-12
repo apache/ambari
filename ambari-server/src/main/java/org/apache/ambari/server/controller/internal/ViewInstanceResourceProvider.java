@@ -36,6 +36,9 @@ import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
 import org.apache.ambari.server.orm.entities.ViewInstancePropertyEntity;
 import org.apache.ambari.server.orm.entities.ViewParameterEntity;
 import org.apache.ambari.server.view.ViewRegistry;
+import org.apache.ambari.server.view.validation.InstanceValidationResultImpl;
+import org.apache.ambari.server.view.validation.ValidationResultImpl;
+import org.apache.ambari.view.validation.Validator;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -64,6 +67,10 @@ public class ViewInstanceResourceProvider extends AbstractResourceProvider {
   public static final String DATA_PROPERTY_ID          = "ViewInstanceInfo/instance_data";
   public static final String CONTEXT_PATH_PROPERTY_ID  = "ViewInstanceInfo/context_path";
   public static final String STATIC_PROPERTY_ID        = "ViewInstanceInfo/static";
+
+  // validation properties
+  public static final String VALIDATION_RESULT_PROPERTY_ID           = "ViewInstanceInfo/validation_result";
+  public static final String PROPERTY_VALIDATION_RESULTS_PROPERTY_ID = "ViewInstanceInfo/property_validation_results";
 
   /**
    * Property prefix values.
@@ -98,6 +105,8 @@ public class ViewInstanceResourceProvider extends AbstractResourceProvider {
     propertyIds.add(DATA_PROPERTY_ID);
     propertyIds.add(CONTEXT_PATH_PROPERTY_ID);
     propertyIds.add(STATIC_PROPERTY_ID);
+    propertyIds.add(VALIDATION_RESULT_PROPERTY_ID);
+    propertyIds.add(PROPERTY_VALIDATION_RESULTS_PROPERTY_ID);
   }
 
   // ----- Constructors ------------------------------------------------------
@@ -254,6 +263,20 @@ public class ViewInstanceResourceProvider extends AbstractResourceProvider {
     setResourceProperty(resource, CONTEXT_PATH_PROPERTY_ID,contextPath, requestedIds);
     setResourceProperty(resource, ICON_PATH_ID, getIconPath(contextPath, viewInstanceEntity.getIcon()), requestedIds);
     setResourceProperty(resource, ICON64_PATH_ID, getIconPath(contextPath, viewInstanceEntity.getIcon64()), requestedIds);
+
+    // if the view provides its own validator then run it
+    if (viewEntity.hasValidator()) {
+
+      if (isPropertyRequested(VALIDATION_RESULT_PROPERTY_ID, requestedIds) ||
+          isPropertyRequested(PROPERTY_VALIDATION_RESULTS_PROPERTY_ID, requestedIds)) {
+
+        InstanceValidationResultImpl result =
+            viewInstanceEntity.getValidationResult(viewEntity, Validator.ValidationContext.EXISTING);
+
+        setResourceProperty(resource, VALIDATION_RESULT_PROPERTY_ID, ValidationResultImpl.create(result), requestedIds);
+        setResourceProperty(resource, PROPERTY_VALIDATION_RESULTS_PROPERTY_ID, result.getPropertyResults(), requestedIds);
+      }
+    }
 
     return resource;
   }

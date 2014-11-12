@@ -19,6 +19,7 @@
 package org.apache.ambari.server.view.configuration;
 
 import org.apache.ambari.server.view.DefaultMasker;
+import org.apache.ambari.view.validation.Validator;
 import org.apache.ambari.view.Masker;
 import org.apache.ambari.view.View;
 import org.apache.commons.lang.StringUtils;
@@ -82,6 +83,17 @@ public class ViewConfig {
    * The view class.
    */
   private Class<? extends View> viewClass = null;
+
+  /**
+   * The main view class name.
+   */
+  @XmlElement(name="validator-class")
+  private String validator;
+
+  /**
+   * The view validator class.
+   */
+  private Class<? extends Validator> validatorClass = null;
 
   /**
    * The masker class name for parameters.
@@ -210,6 +222,31 @@ public class ViewConfig {
       viewClass = cl.loadClass(view).asSubclass(View.class);
     }
     return viewClass;
+  }
+
+  /**
+   * Get the view validator class name.
+   *
+   * @return the view validator class name
+   */
+  public String getValidator() {
+    return validator;
+  }
+
+  /**
+   * Get the view validator class.
+   *
+   * @param cl the class loader
+   *
+   * @return the view validator class
+   *
+   * @throws ClassNotFoundException if the class can not be loaded
+   */
+  public Class<? extends Validator> getValidatorClass(ClassLoader cl) throws ClassNotFoundException {
+    if (validatorClass == null) {
+      validatorClass = cl.loadClass(validator).asSubclass(Validator.class);
+    }
+    return validatorClass;
   }
 
   /**

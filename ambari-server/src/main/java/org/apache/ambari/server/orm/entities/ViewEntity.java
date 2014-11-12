@@ -24,6 +24,7 @@ import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.view.ViewSubResourceDefinition;
 import org.apache.ambari.server.view.configuration.ResourceConfig;
 import org.apache.ambari.server.view.configuration.ViewConfig;
+import org.apache.ambari.view.validation.Validator;
 import org.apache.ambari.view.View;
 import org.apache.ambari.view.ViewDefinition;
 
@@ -209,6 +210,12 @@ public class ViewEntity implements ViewDefinition {
    */
   @Transient
   private View view = null;
+
+  /**
+   * The view validator.
+   */
+  @Transient
+  private Validator validator = null;
 
   /**
    * The view status.
@@ -702,6 +709,33 @@ public class ViewEntity implements ViewDefinition {
    */
   public View getView() {
     return view;
+  }
+
+  /**
+   * Set the view validator.
+   *
+   * @param validator  the view validator
+   */
+  public void setValidator(Validator validator) {
+    this.validator = validator;
+  }
+
+  /**
+   * Get the associated view validator.
+   *
+   * @return the view validator
+   */
+  public Validator getValidator() {
+    return validator;
+  }
+
+  /**
+   * Determine whether or not a validator has been specified for this view.
+   *
+   * @return true if this view has a validator
+   */
+  public boolean hasValidator() {
+    return validator != null;
   }
 
   /**

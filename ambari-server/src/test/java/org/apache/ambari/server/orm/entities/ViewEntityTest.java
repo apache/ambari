@@ -26,6 +26,9 @@ import org.apache.ambari.server.view.configuration.ResourceConfigTest;
 import org.apache.ambari.server.view.configuration.ViewConfig;
 import org.apache.ambari.server.view.configuration.ViewConfigTest;
 import org.apache.ambari.view.ViewDefinition;
+import org.apache.ambari.view.ViewInstanceDefinition;
+import org.apache.ambari.view.validation.ValidationResult;
+import org.apache.ambari.view.validation.Validator;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -268,6 +271,16 @@ public class ViewEntityTest {
   }
 
   @Test
+  public void testGetSetValidator() throws Exception {
+    ViewEntity viewDefinition = getViewEntity();
+
+    Validator validator = new TestValidator();
+
+    viewDefinition.setValidator(validator);
+    Assert.assertEquals(validator, viewDefinition.getValidator());
+  }
+
+  @Test
   public void testisDeployed() throws Exception {
     ViewEntity viewDefinition = getViewEntity();
 
@@ -293,5 +306,19 @@ public class ViewEntityTest {
 
     viewDefinition.setSystem(true);
     Assert.assertTrue(viewDefinition.isSystem());
+  }
+
+  public static class TestValidator implements Validator {
+    ValidationResult result;
+
+    @Override
+    public ValidationResult validateInstance(ViewInstanceDefinition definition, ValidationContext mode) {
+      return result;
+    }
+
+    @Override
+    public ValidationResult validateProperty(String property, ViewInstanceDefinition definition, ValidationContext mode) {
+      return result;
+    }
   }
 }

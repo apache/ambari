@@ -249,6 +249,11 @@
             <xs:documentation>The View class to receive framework events.</xs:documentation>
           </xs:annotation>
         </xs:element>
+        <xs:element type="xs:string" name="validator-class" minOccurs="0" maxOccurs="1">
+          <xs:annotation>
+            <xs:documentation>The Validator class to validate view instances and properties.</xs:documentation>
+          </xs:annotation>
+        </xs:element>
         <xs:element type="xs:string" name="masker-class" minOccurs="0" maxOccurs="1">
           <xs:annotation>
             <xs:documentation>The Masker class for masking view parameters.</xs:documentation>

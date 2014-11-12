@@ -22,6 +22,7 @@ import com.google.common.collect.Sets;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.api.resources.ResourceInstanceFactoryImpl;
 import org.apache.ambari.server.api.resources.SubResourceDefinition;
 import org.apache.ambari.server.api.resources.ViewExternalSubResourceDefinition;
@@ -64,6 +65,7 @@ import org.apache.ambari.server.view.configuration.PersistenceConfig;
 import org.apache.ambari.server.view.configuration.PropertyConfig;
 import org.apache.ambari.server.view.configuration.ResourceConfig;
 import org.apache.ambari.server.view.configuration.ViewConfig;
+import org.apache.ambari.view.validation.Validator;
 import org.apache.ambari.view.Masker;
 import org.apache.ambari.view.SystemException;
 import org.apache.ambari.view.View;
@@ -461,6 +463,7 @@ public class ViewRegistry {
    *                                   does not exist
    * @throws SystemException           if the instance can not be installed
    */
+  @Transactional
   public void installViewInstance(ViewInstanceEntity instanceEntity)
       throws IllegalStateException, IllegalArgumentException, SystemException {
     ViewEntity viewEntity = getDefinition(instanceEntity.getViewName());
@@ -476,7 +479,7 @@ public class ViewRegistry {
               version + "/" + instanceName);
         }
 
-        instanceEntity.validate(viewEntity);
+        instanceEntity.validate(viewEntity, Validator.ValidationContext.PRE_CREATE);
 
         ResourceTypeEntity resourceTypeEntity = resourceTypeDAO.findByName(ViewEntity.getViewName(viewName, version));
         // create an admin resource to represent this view instance
@@ -530,7 +533,7 @@ public class ViewRegistry {
     ViewEntity viewEntity = getDefinition(instanceEntity.getViewName());
 
     if (viewEntity != null) {
-      instanceEntity.validate(viewEntity);
+      instanceEntity.validate(viewEntity, Validator.ValidationContext.PRE_UPDATE);
       instanceDAO.merge(instanceEntity);
     }
   }
@@ -541,6 +544,7 @@ public class ViewRegistry {
    * @param instanceEntity  the view instance entity
    * @throws IllegalStateException if the given instance is not in a valid state
    */
+  @Transactional
   public void uninstallViewInstance(ViewInstanceEntity instanceEntity) throws IllegalStateException {
     ViewEntity viewEntity = getDefinition(instanceEntity.getViewName());
 
@@ -577,6 +581,7 @@ public class ViewRegistry {
    * @param instanceEntity  the instance entity
    * @param key             the data key
    */
+  @Transactional
   public void removeInstanceData(ViewInstanceEntity instanceEntity, String key) {
     ViewInstanceDataEntity dataEntity = instanceEntity.getInstanceData(key);
     if (dataEntity != null) {
@@ -903,6 +908,11 @@ public class ViewRegistry {
       view = getView(viewConfig.getViewClass(cl), new ViewContextImpl(viewDefinition, this));
     }
     viewDefinition.setView(view);
+    Validator validator = null;
+    if (viewConfig.getValidator() != null) {
+      validator = getValidator(viewConfig.getValidatorClass(cl), new ViewContextImpl(viewDefinition, this));
+    }
+    viewDefinition.setValidator(validator);
     viewDefinition.setMask(viewConfig.getMasker());
 
     Set<SubResourceDefinition> subResourceDefinitions = new HashSet<SubResourceDefinition>();
@@ -927,7 +937,7 @@ public class ViewRegistry {
       properties.put(propertyConfig.getKey(), propertyConfig.getValue());
     }
     setViewInstanceProperties(viewInstanceDefinition, properties, viewConfig, viewDefinition.getClassLoader());
-    viewInstanceDefinition.validate(viewDefinition);
+    viewInstanceDefinition.validate(viewDefinition, Validator.ValidationContext.PRE_CREATE);
 
     bindViewInstance(viewDefinition, viewInstanceDefinition);
     return viewInstanceDefinition;
@@ -1031,6 +1041,19 @@ public class ViewRegistry {
 
   // get the given view class from the given class loader; inject a context
   private static View getView(Class<? extends View> clazz,
+                              final ViewContext viewContext) {
+    Injector viewInstanceInjector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(ViewContext.class)
+            .toInstance(viewContext);
+      }
+    });
+    return viewInstanceInjector.getInstance(clazz);
+  }
+
+  // get the given view validator class from the given class loader; inject a context
+  private static Validator getValidator(Class<? extends Validator> clazz,
                               final ViewContext viewContext) {
     Injector viewInstanceInjector = Guice.createInjector(new AbstractModule() {
       @Override
@@ -1302,16 +1325,8 @@ public class ViewRegistry {
         instanceEntity.setXmlDriven(true);
         instanceDefinitions.add(instanceEntity);
       }
-      // ensure that the view entity matches the db
-      syncView(viewDefinition, instanceDefinitions);
+      persistView(viewDefinition, instanceDefinitions);
 
-      onDeploy(viewDefinition);
-
-      // update the registry with the view instances
-      for (ViewInstanceEntity instanceEntity : instanceDefinitions) {
-        addInstanceDefinition(viewDefinition, instanceEntity);
-        handlerList.addViewInstance(instanceEntity);
-      }
       setViewStatus(viewDefinition, ViewEntity.ViewStatus.DEPLOYED, "Deployed " + extractedArchiveDirPath + ".");
 
     } catch (Exception e) {
@@ -1319,6 +1334,21 @@ public class ViewRegistry {
 
       setViewStatus(viewDefinition, ViewEntity.ViewStatus.ERROR, msg + " : " + e.getMessage());
       LOG.error(msg, e);
+    }
+  }
+
+  // persist the given view and its instances
+  @Transactional
+  private void persistView(ViewEntity viewDefinition, Set<ViewInstanceEntity> instanceDefinitions) throws Exception {
+    // ensure that the view entity matches the db
+    syncView(viewDefinition, instanceDefinitions);
+
+    onDeploy(viewDefinition);
+
+    // update the registry with the view instances
+    for (ViewInstanceEntity instanceEntity : instanceDefinitions) {
+      addInstanceDefinition(viewDefinition, instanceEntity);
+      handlerList.addViewInstance(instanceEntity);
     }
   }
 

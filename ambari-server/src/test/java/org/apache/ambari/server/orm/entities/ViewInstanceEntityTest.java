@@ -27,7 +27,11 @@ import org.apache.ambari.server.view.configuration.InstanceConfig;
 import org.apache.ambari.server.view.configuration.InstanceConfigTest;
 import org.apache.ambari.server.view.configuration.ViewConfig;
 import org.apache.ambari.server.view.configuration.ViewConfigTest;
+import org.apache.ambari.server.view.validation.InstanceValidationResultImpl;
+import org.apache.ambari.server.view.validation.ValidationResultImpl;
 import org.apache.ambari.view.ResourceProvider;
+import org.apache.ambari.view.validation.ValidationResult;
+import org.apache.ambari.view.validation.Validator;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.security.core.GrantedAuthority;
@@ -405,7 +409,26 @@ public class ViewInstanceEntityTest {
     ViewEntity viewEntity = ViewRegistryTest.getViewEntity(config, ambariConfig, getClass().getClassLoader(), "");
     ViewInstanceEntity viewInstanceEntity = ViewRegistryTest.getViewInstanceEntity(viewEntity, config.getInstances().get(0));
 
-    viewInstanceEntity.validate(viewEntity);
+    viewInstanceEntity.validate(viewEntity, Validator.ValidationContext.PRE_CREATE);
+  }
+
+  @Test
+  public void testValidateWithValidator() throws Exception {
+
+    Properties properties = new Properties();
+    properties.put("p1", "v1");
+
+    Configuration ambariConfig = new Configuration(properties);
+
+    ViewConfig config = ViewConfigTest.getConfig(xml_valid_instance);
+    ViewEntity viewEntity = ViewRegistryTest.getViewEntity(config, ambariConfig, getClass().getClassLoader(), "");
+    ViewInstanceEntity viewInstanceEntity = ViewRegistryTest.getViewInstanceEntity(viewEntity, config.getInstances().get(0));
+
+    ViewEntityTest.TestValidator validator = new ViewEntityTest.TestValidator();
+    validator.result = new ValidationResultImpl(true, "detail");
+    viewEntity.setValidator(validator);
+
+    viewInstanceEntity.validate(viewEntity, Validator.ValidationContext.PRE_CREATE);
   }
 
   @Test
@@ -421,11 +444,63 @@ public class ViewInstanceEntityTest {
     ViewInstanceEntity viewInstanceEntity = ViewRegistryTest.getViewInstanceEntity(viewEntity, config.getInstances().get(0));
 
     try {
-      viewInstanceEntity.validate(viewEntity);
+      viewInstanceEntity.validate(viewEntity, Validator.ValidationContext.PRE_CREATE);
       Assert.fail("Expected an IllegalStateException");
     } catch (IllegalStateException e) {
       // expected
     }
+  }
+
+  @Test
+  public void testValidateWithValidator_fail() throws Exception {
+
+    Properties properties = new Properties();
+    properties.put("p1", "v1");
+
+    Configuration ambariConfig = new Configuration(properties);
+
+    ViewConfig config = ViewConfigTest.getConfig(xml_invalid_instance);
+    ViewEntity viewEntity = ViewRegistryTest.getViewEntity(config, ambariConfig, getClass().getClassLoader(), "");
+    ViewInstanceEntity viewInstanceEntity = ViewRegistryTest.getViewInstanceEntity(viewEntity, config.getInstances().get(0));
+
+    ViewEntityTest.TestValidator validator = new ViewEntityTest.TestValidator();
+    validator.result = new ValidationResultImpl(false, "detail");
+    viewEntity.setValidator(validator);
+
+    try {
+      viewInstanceEntity.validate(viewEntity, Validator.ValidationContext.PRE_CREATE);
+      Assert.fail("Expected an IllegalStateException");
+    } catch (IllegalStateException e) {
+      // expected
+    }
+  }
+
+  @Test
+  public void testGetValidationResult() throws Exception {
+
+    Properties properties = new Properties();
+    properties.put("p1", "v1");
+
+    Configuration ambariConfig = new Configuration(properties);
+
+    ViewConfig config = ViewConfigTest.getConfig(xml_valid_instance);
+    ViewEntity viewEntity = ViewRegistryTest.getViewEntity(config, ambariConfig, getClass().getClassLoader(), "");
+    ViewInstanceEntity viewInstanceEntity = ViewRegistryTest.getViewInstanceEntity(viewEntity, config.getInstances().get(0));
+
+    ViewEntityTest.TestValidator validator = new ViewEntityTest.TestValidator();
+    validator.result = new ValidationResultImpl(true, "detail");
+    viewEntity.setValidator(validator);
+
+    InstanceValidationResultImpl result = viewInstanceEntity.getValidationResult(viewEntity, Validator.ValidationContext.PRE_CREATE);
+
+    Map<String, ValidationResult> propertyResults = result.getPropertyResults();
+
+    junit.framework.Assert.assertEquals(2, propertyResults.size());
+    junit.framework.Assert.assertTrue(propertyResults.containsKey("p1"));
+    junit.framework.Assert.assertTrue(propertyResults.containsKey("p2"));
+
+    junit.framework.Assert.assertTrue(propertyResults.get("p1").isValid());
+    junit.framework.Assert.assertTrue(propertyResults.get("p2").isValid());
   }
 
   public static ViewInstanceEntity getViewInstanceEntity(SecurityHelper securityHelper)

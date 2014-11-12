@@ -48,9 +48,13 @@ import org.apache.ambari.server.security.SecurityHelper;
 import org.apache.ambari.server.security.SecurityHelperImpl;
 import org.apache.ambari.server.security.authorization.AmbariAuthorizationFilter;
 import org.apache.ambari.server.view.configuration.InstanceConfig;
+import org.apache.ambari.server.view.validation.InstanceValidationResultImpl;
+import org.apache.ambari.server.view.validation.ValidationResultImpl;
+import org.apache.ambari.view.validation.Validator;
 import org.apache.ambari.view.ResourceProvider;
 import org.apache.ambari.view.ViewDefinition;
 import org.apache.ambari.view.ViewInstanceDefinition;
+import org.apache.ambari.view.validation.ValidationResult;
 
 /**
  * Represents an instance of a View.
@@ -158,7 +162,7 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
 
   @OneToOne(cascade = CascadeType.ALL)
   @JoinColumns({
-      @JoinColumn(name = "resource_id", referencedColumnName = "resource_id", nullable = false),
+      @JoinColumn(name = "resource_id", referencedColumnName = "resource_id", nullable = false)
   })
   private ResourceEntity resource;
 
@@ -712,26 +716,67 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
    * Validate the state of the instance.
    *
    * @param viewEntity the view entity to which this instance will be bound
+   * @param context the validation context
+   *
    * @throws IllegalStateException if the instance is not in a valid state
    */
-  public void validate(ViewEntity viewEntity) throws IllegalStateException {
+  public void validate(ViewEntity viewEntity, Validator.ValidationContext context) throws IllegalStateException {
+    InstanceValidationResultImpl result = getValidationResult(viewEntity, context);
+    if (!result.isValid()) {
+      throw new IllegalStateException(result.toJson());
+    }
+  }
 
-    // make sure that there is an instance property value defined
-    // for each required view parameter
-    Set<String> requiredParamterNames = new HashSet<String>();
-    for (ViewParameterEntity parameter : viewEntity.getParameters()) {
-      if (parameter.isRequired()) {
-        requiredParamterNames.add(parameter.getName());
+  /**
+   * Get the validation the state of the instance.
+   *
+   * @param viewEntity the view entity to which this instance will be bound
+   * @param context the validation context
+   *
+   * @return the instance validation result
+   */
+  public InstanceValidationResultImpl getValidationResult(ViewEntity viewEntity, Validator.ValidationContext context)
+      throws IllegalStateException {
+
+    Map<String, ValidationResult> propertyResults = new HashMap<String, ValidationResult>();
+
+    if (context.equals(Validator.ValidationContext.PRE_CREATE) ||
+        context.equals(Validator.ValidationContext.PRE_UPDATE)) {
+
+      // make sure that there is an instance property value defined
+      // for each required view parameter
+      Set<String> requiredParameterNames = new HashSet<String>();
+      for (ViewParameterEntity parameter : viewEntity.getParameters()) {
+        if (parameter.isRequired()) {
+          requiredParameterNames.add(parameter.getName());
+        }
+      }
+      Collection<ViewInstancePropertyEntity> propertyEntities = getProperties();
+      for (ViewInstancePropertyEntity property : propertyEntities) {
+        requiredParameterNames.remove(property.getName());
+      }
+      // required but missing instance properties...
+      for (String requiredParameterName : requiredParameterNames) {
+        propertyResults.put(requiredParameterName,
+            new ValidationResultImpl(false,
+                "No property values exist for the required parameter " + requiredParameterName + "."));
       }
     }
-    for (ViewInstancePropertyEntity property : getProperties()) {
-      requiredParamterNames.remove(property.getName());
-    }
 
-    if (!requiredParamterNames.isEmpty()) {
-      throw new IllegalStateException("No property values exist for the required parameters " +
-        requiredParamterNames);
+    ValidationResult instanceResult = null;
+    Validator         validator     = viewEntity.getValidator();
+
+    // if the view provides its own validator, run it
+    if (validator != null) {
+      instanceResult = validator.validateInstance(this, context);
+      for ( String property : getPropertyMap().keySet()) {
+        if (!propertyResults.containsKey(property)) {
+          propertyResults.put(property,
+              ValidationResultImpl.create(validator.validateProperty(property, this, context)));
+        }
+      }
     }
+    return new InstanceValidationResultImpl(ValidationResultImpl.create(instanceResult), propertyResults);
   }
 
 
