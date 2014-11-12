@@ -125,9 +125,9 @@ App.MainMenuView = Em.CollectionView.extend({
       if (itemName == 'admin') {
         categories = [];
         categories.push({
-          name: 'adminRepositories',
-          url: 'repositories',
-          label: Em.I18n.t('common.repositories')
+          name: 'stackAndUpgrade',
+          url: 'stack',
+          label: Em.I18n.t('admin.stackUpgrade.title')
         });
         if (App.get('supports.stackUpgrade')) {
           categories.push({

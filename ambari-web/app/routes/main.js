@@ -361,7 +361,7 @@ module.exports = Em.Route.extend({
        router.transitionTo('admin' + controller.get('category').capitalize());
        }, */
       route: '/',
-      redirectsTo: 'adminRepositories'
+      redirectsTo: 'stackAndUpgrade'
     }),
 
     adminAuthentication: Em.Route.extend({
@@ -483,11 +483,11 @@ module.exports = Em.Route.extend({
       adminAddSecurity: require('routes/add_security')
     }),
 
-    adminRepositories: Em.Route.extend({
-      route: '/repositories',
+    stackAndUpgrade: Em.Route.extend({
+      route: '/stack',
       connectOutlets: function (router) {
-        router.set('mainAdminController.category', "repositories");
-        router.get('mainAdminController').connectOutlet('mainAdminRepositories');
+        router.set('mainAdminController.category', "stackAndUpgrade");
+        router.get('mainAdminController').connectOutlet('mainAdminStackAndUpgrade');
       }
     }),
     adminStackVersions: Em.Route.extend({

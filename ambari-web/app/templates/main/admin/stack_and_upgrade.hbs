@@ -1,0 +1,49 @@
+{{!
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+}}
+
+<div class="admin-cluster">
+    <div class="header">
+      <strong>{{t common.stack}}: {{App.currentStackVersion}}</strong>
+    </div>
+    <table class="table table-bordered table-striped">
+      <thead>
+      <tr>
+        <th>{{t common.service}}</th>
+        <th>{{t common.version}}</th>
+        <th>{{t common.status}}</th>
+        <th>{{t common.description}}</th>
+      </tr>
+      </thead>
+      <tbody>
+      {{#each service in services}}
+      <tr>
+        <td>{{service.displayName}}</td>
+        <td>{{service.stackVersion}}</td>
+        <td>
+        {{#if service.isInstalled}}
+          <span class="label label-success">{{t common.installed}}</span>
+        {{else}}
+          <a class="path-link" {{action goToAddService service.serviceName target="controller"}}>{{t services.service.add}}</a>
+        {{/if}}
+        </td>
+        <td>{{{service.comments}}}</td>
+      </tr>
+      {{/each}}
+      </tbody>
+    </table>
+</div>

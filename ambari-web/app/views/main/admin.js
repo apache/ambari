@@ -24,9 +24,9 @@ App.MainAdminView = Em.View.extend({
   categories: function() {
     var items = [];
     items.push({
-      name: 'repositories',
-      url: 'adminRepositories',
-      label: Em.I18n.t('common.repositories')
+      name: 'stackAndUpgrade',
+      url: 'stackAndUpgrade',
+      label: Em.I18n.t('admin.stackUpgrade.title')
     });
     if (App.get('supports.stackUpgrade')) {
       items.push({

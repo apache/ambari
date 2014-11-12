@@ -29,6 +29,9 @@ App.AddServiceController = App.WizardController.extend({
    */
   hideBackButton: true,
 
+  serviceToInstall: function() {
+    return App.get('router.mainAdminStackAndUpgradeController.serviceToInstall');
+  }.property('App.router.mainAdminStackAndUpgradeController.serviceToInstall'),
   /**
    * All wizards data will be stored in this variable
    *
@@ -77,17 +80,20 @@ App.AddServiceController = App.WizardController.extend({
       };
       App.StackService.find().forEach(function (item) {
         var isInstalled = App.Service.find().someProperty('id', item.get('serviceName'));
-        item.set('isSelected', isInstalled);
+        var isSelected = item.get('serviceName') == this.get('serviceToInstall');
+        item.set('isSelected', isInstalled || isSelected);
         item.set('isInstalled', isInstalled);
         if (isInstalled) {
           services.selectedServices.push(item.get('serviceName'));
           services.installedServices.push(item.get('serviceName'));
+        } else if(isSelected) {
+          services.selectedServices.push(item.get('serviceName'));
         }
       }, this);
       this.setDBProperty('services', services);
     } else {
       App.StackService.find().forEach(function (item) {
-        var isSelected = services.selectedServices.contains(item.get('serviceName'));
+        var isSelected = services.selectedServices.contains(item.get('serviceName')) || item.get('serviceName') == this.get('serviceToInstall');
         var isInstalled = services.installedServices.contains(item.get('serviceName'));
         item.set('isSelected', isSelected || (this.get("currentStep") == "1" ? isInstalled : isSelected));
         item.set('isInstalled', isInstalled);

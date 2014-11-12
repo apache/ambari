@@ -1190,6 +1190,8 @@ Em.I18n.translations = {
   'admin.stackVersions.datails.hosts.btn.nothing': "Nothing to Install",
   'admin.stackVersions.datails.hosts.btn.na': "Status not available",
 
+  'admin.stackUpgrade.title': "Stack and upgrade",
+
   'services.service.start':'Start',
   'services.service.stop':'Stop',
   'services.service.metrics':'Service Metrics',
