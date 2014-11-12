@@ -28,9 +28,11 @@
               <span {{action "showPopup" target="App.router.backgroundOperationsController"}} >{{clusterDisplayName}} </span>
               {{#with App.router.backgroundOperationsController}}
                 {{#if allOperationsCount}}
-                  <i class="icon-caret-left ops-count"></i><span class="label operations-count" {{action "showPopup" target="App.router.backgroundOperationsController"}}> {{allOperationsCount}} {{t ops}}</span>
+                  <i class="icon-caret-left ops-count"></i><span class="label operations-count" {{action "showPopup" target="App.router.backgroundOperationsController"}}>
+                    {{allOperationsCount}} {{pluralize allOperationsCount singular="t:op" plural="t:ops"}}</span>
                 {{else}}
-                  <i class="icon-caret-left"></i><span class="label" {{action "showPopup" target="App.router.backgroundOperationsController"}}>{{allOperationsCount}} {{t ops}}</span>
+                  <i class="icon-caret-left"></i><span class="label" {{action "showPopup" target="App.router.backgroundOperationsController"}}>
+                    {{allOperationsCount}} {{pluralize allOperationsCount singular="t:op" plural="t:ops"}}</span>
                 {{/if}}
               {{/with}}
             </a>

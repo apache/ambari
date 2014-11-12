@@ -596,10 +596,10 @@ App.registerBoundHelper('pluralize', Em.View.extend({
     if (!plural) plural = singular + 's';
     else plural = this.parseValue(plural);
     if (singular && plural) {
-      if (count > 1) {
-        return plural;
-      } else {
+      if (count == 1) {
         return singular;
+      } else {
+        return plural;
       }
     }
     return '';

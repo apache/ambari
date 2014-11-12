@@ -60,6 +60,7 @@ Em.I18n.translations = {
   'yes':'Yes',
   'no':'No',
   'add': 'Add',
+  'op': 'op',
   'ops': 'ops',
 
 
