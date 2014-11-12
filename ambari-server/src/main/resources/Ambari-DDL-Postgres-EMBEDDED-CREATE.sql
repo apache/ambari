@@ -28,28 +28,75 @@ ALTER SCHEMA ambari OWNER TO :username;
 ALTER ROLE :username SET search_path TO 'ambari';
 
 ------create tables and grant privileges to db user---------
-CREATE TABLE ambari.clusters (cluster_id BIGINT NOT NULL, resource_id BIGINT NOT NULL, cluster_info VARCHAR(255) NOT NULL, cluster_name VARCHAR(100) NOT NULL UNIQUE, provisioning_state VARCHAR(255) NOT NULL DEFAULT 'INIT', desired_cluster_state VARCHAR(255) NOT NULL, desired_stack_version VARCHAR(255) NOT NULL, PRIMARY KEY (cluster_id));
+CREATE TABLE ambari.clusters (
+  cluster_id BIGINT NOT NULL,
+  resource_id BIGINT NOT NULL,
+  cluster_info VARCHAR(255) NOT NULL,
+  cluster_name VARCHAR(100) NOT NULL UNIQUE,
+  provisioning_state VARCHAR(255) NOT NULL DEFAULT 'INIT',
+  desired_cluster_state VARCHAR(255) NOT NULL,
+  desired_stack_version VARCHAR(255) NOT NULL,
+  PRIMARY KEY (cluster_id));
 GRANT ALL PRIVILEGES ON TABLE ambari.clusters TO :username;
 
-CREATE TABLE ambari.clusterconfig (config_id BIGINT NOT NULL, version_tag VARCHAR(255) NOT NULL, version BIGINT NOT NULL, type_name VARCHAR(255) NOT NULL, cluster_id BIGINT NOT NULL, config_data TEXT NOT NULL, config_attributes VARCHAR(32000), create_timestamp BIGINT NOT NULL, PRIMARY KEY (config_id));
+CREATE TABLE ambari.clusterconfig (
+  config_id BIGINT NOT NULL,
+  version_tag VARCHAR(255) NOT NULL,
+  version BIGINT NOT NULL,
+  type_name VARCHAR(255) NOT NULL,
+  cluster_id BIGINT NOT NULL,
+  config_data TEXT NOT NULL,
+  config_attributes VARCHAR(32000),
+  create_timestamp BIGINT NOT NULL,
+  PRIMARY KEY (config_id));
 GRANT ALL PRIVILEGES ON TABLE ambari.clusterconfig TO :username;
 
-CREATE TABLE ambari.clusterconfigmapping (cluster_id BIGINT NOT NULL, type_name VARCHAR(255) NOT NULL, version_tag VARCHAR(255) NOT NULL, create_timestamp BIGINT NOT NULL, selected INTEGER NOT NULL DEFAULT 0, user_name VARCHAR(255) NOT NULL DEFAULT '_db', PRIMARY KEY (cluster_id, type_name, create_timestamp));
+CREATE TABLE ambari.clusterconfigmapping (
+  cluster_id BIGINT NOT NULL,
+  type_name VARCHAR(255) NOT NULL,
+  version_tag VARCHAR(255) NOT NULL,
+  create_timestamp BIGINT NOT NULL,
+  selected INTEGER NOT NULL DEFAULT 0,
+  user_name VARCHAR(255) NOT NULL DEFAULT '_db',
+  PRIMARY KEY (cluster_id, type_name, create_timestamp));
 GRANT ALL PRIVILEGES ON TABLE ambari.clusterconfigmapping TO :username;
 
-CREATE TABLE ambari.serviceconfig (service_config_id BIGINT NOT NULL, cluster_id BIGINT NOT NULL, service_name VARCHAR(255) NOT NULL, version BIGINT NOT NULL, create_timestamp BIGINT NOT NULL, user_name VARCHAR(255) NOT NULL DEFAULT '_db', group_id BIGINT, note TEXT, PRIMARY KEY (service_config_id));
+CREATE TABLE ambari.serviceconfig (
+  service_config_id BIGINT NOT NULL,
+  cluster_id BIGINT NOT NULL,
+  service_name VARCHAR(255) NOT NULL,
+  version BIGINT NOT NULL,
+  create_timestamp BIGINT NOT NULL,
+  user_name VARCHAR(255) NOT NULL DEFAULT '_db',
+  group_id BIGINT,
+  note TEXT,
+  PRIMARY KEY (service_config_id));
 GRANT ALL PRIVILEGES ON TABLE ambari.serviceconfig TO :username;
 
-CREATE TABLE ambari.serviceconfighosts (service_config_id BIGINT NOT NULL, hostname VARCHAR(255) NOT NULL, PRIMARY KEY(service_config_id, hostname));
+CREATE TABLE ambari.serviceconfighosts (
+  service_config_id BIGINT NOT NULL,
+  hostname VARCHAR(255) NOT NULL,
+  PRIMARY KEY(service_config_id, hostname));
 GRANT ALL PRIVILEGES ON TABLE ambari.serviceconfighosts TO :username;
 
-CREATE TABLE ambari.serviceconfigmapping (service_config_id BIGINT NOT NULL, config_id BIGINT NOT NULL, PRIMARY KEY(service_config_id, config_id));
+CREATE TABLE ambari.serviceconfigmapping (
+  service_config_id BIGINT NOT NULL,
+  config_id BIGINT NOT NULL,
+  PRIMARY KEY(service_config_id, config_id));
 GRANT ALL PRIVILEGES ON TABLE ambari.serviceconfigmapping TO :username;
 
-CREATE TABLE ambari.clusterservices (service_name VARCHAR(255) NOT NULL, cluster_id BIGINT NOT NULL, service_enabled INTEGER NOT NULL, PRIMARY KEY (service_name, cluster_id));
+CREATE TABLE ambari.clusterservices (
+  service_name VARCHAR(255) NOT NULL,
+  cluster_id BIGINT NOT NULL,
+  service_enabled INTEGER NOT NULL,
+  PRIMARY KEY (service_name, cluster_id));
 GRANT ALL PRIVILEGES ON TABLE ambari.clusterservices TO :username;
 
-CREATE TABLE ambari.clusterstate (cluster_id BIGINT NOT NULL, current_cluster_state VARCHAR(255) NOT NULL, current_stack_version VARCHAR(255) NOT NULL, PRIMARY KEY (cluster_id));
+CREATE TABLE ambari.clusterstate (
+  cluster_id BIGINT NOT NULL,
+  current_cluster_state VARCHAR(255) NOT NULL,
+  current_stack_version VARCHAR(255) NOT NULL,
+  PRIMARY KEY (cluster_id));
 GRANT ALL PRIVILEGES ON TABLE ambari.clusterstate TO :username;
 
 CREATE TABLE ambari.cluster_version (
@@ -64,7 +111,17 @@ CREATE TABLE ambari.cluster_version (
   PRIMARY KEY (id));
 GRANT ALL PRIVILEGES ON TABLE ambari.cluster_version TO :username;
 
-CREATE TABLE ambari.hostcomponentdesiredstate (cluster_id BIGINT NOT NULL, component_name VARCHAR(255) NOT NULL, desired_stack_version VARCHAR(255) NOT NULL, desired_state VARCHAR(255) NOT NULL, host_name VARCHAR(255) NOT NULL, service_name VARCHAR(255) NOT NULL, admin_state VARCHAR(32), maintenance_state VARCHAR(32) NOT NULL, restart_required SMALLINT NOT NULL DEFAULT 0, PRIMARY KEY (cluster_id, component_name, host_name, service_name));
+CREATE TABLE ambari.hostcomponentdesiredstate (
+  cluster_id BIGINT NOT NULL,
+  component_name VARCHAR(255) NOT NULL,
+  desired_stack_version VARCHAR(255) NOT NULL,
+  desired_state VARCHAR(255) NOT NULL,
+  host_name VARCHAR(255) NOT NULL,
+  service_name VARCHAR(255) NOT NULL,
+  admin_state VARCHAR(32),
+  maintenance_state VARCHAR(32) NOT NULL,
+  restart_required SMALLINT NOT NULL DEFAULT 0,
+  PRIMARY KEY (cluster_id, component_name, host_name, service_name));
 GRANT ALL PRIVILEGES ON TABLE ambari.hostcomponentdesiredstate TO :username;
 
 CREATE TABLE ambari.hostcomponentstate (
@@ -78,10 +135,34 @@ CREATE TABLE ambari.hostcomponentstate (
   PRIMARY KEY (cluster_id, component_name, host_name, service_name));
 GRANT ALL PRIVILEGES ON TABLE ambari.hostcomponentstate TO :username;
 
-CREATE TABLE ambari.hosts (host_name VARCHAR(255) NOT NULL, cpu_count INTEGER NOT NULL, ph_cpu_count INTEGER, cpu_info VARCHAR(255) NOT NULL, discovery_status VARCHAR(2000) NOT NULL, host_attributes VARCHAR(20000) NOT NULL, ipv4 VARCHAR(255), ipv6 VARCHAR(255), public_host_name VARCHAR(255), last_registration_time BIGINT NOT NULL, os_arch VARCHAR(255) NOT NULL, os_info VARCHAR(1000) NOT NULL, os_type VARCHAR(255) NOT NULL, rack_info VARCHAR(255) NOT NULL, total_mem BIGINT NOT NULL, PRIMARY KEY (host_name));
+CREATE TABLE ambari.hosts (
+  host_name VARCHAR(255) NOT NULL,
+  cpu_count INTEGER NOT NULL,
+  ph_cpu_count INTEGER,
+  cpu_info VARCHAR(255) NOT NULL,
+  discovery_status VARCHAR(2000) NOT NULL,
+  host_attributes VARCHAR(20000) NOT NULL,
+  ipv4 VARCHAR(255),
+  ipv6 VARCHAR(255),
+  public_host_name VARCHAR(255),
+  last_registration_time BIGINT NOT NULL,
+  os_arch VARCHAR(255) NOT NULL,
+  os_info VARCHAR(1000) NOT NULL,
+  os_type VARCHAR(255) NOT NULL,
+  rack_info VARCHAR(255) NOT NULL,
+  total_mem BIGINT NOT NULL,
+  PRIMARY KEY (host_name));
 GRANT ALL PRIVILEGES ON TABLE ambari.hosts TO :username;
 
-CREATE TABLE ambari.hoststate (agent_version VARCHAR(255) NOT NULL, available_mem BIGINT NOT NULL, current_state VARCHAR(255) NOT NULL, health_status VARCHAR(255), host_name VARCHAR(255) NOT NULL, time_in_state BIGINT NOT NULL, maintenance_state VARCHAR(512), PRIMARY KEY (host_name));
+CREATE TABLE ambari.hoststate (
+  agent_version VARCHAR(255) NOT NULL,
+  available_mem BIGINT NOT NULL,
+  current_state VARCHAR(255) NOT NULL,
+  health_status VARCHAR(255),
+  host_name VARCHAR(255) NOT NULL,
+  time_in_state BIGINT NOT NULL,
+  maintenance_state VARCHAR(512),
+  PRIMARY KEY (host_name));
 GRANT ALL PRIVILEGES ON TABLE ambari.hoststate TO :username;
 
 CREATE TABLE ambari.host_version (
@@ -93,90 +174,346 @@ CREATE TABLE ambari.host_version (
   PRIMARY KEY (id));
 GRANT ALL PRIVILEGES ON TABLE ambari.host_version TO :username;
 
-CREATE TABLE ambari.servicecomponentdesiredstate (component_name VARCHAR(255) NOT NULL, cluster_id BIGINT NOT NULL, desired_stack_version VARCHAR(255) NOT NULL, desired_state VARCHAR(255) NOT NULL, service_name VARCHAR(255) NOT NULL, PRIMARY KEY (component_name, cluster_id, service_name));
+CREATE TABLE ambari.servicecomponentdesiredstate (
+  component_name VARCHAR(255) NOT NULL,
+  cluster_id BIGINT NOT NULL,
+  desired_stack_version VARCHAR(255) NOT NULL,
+  desired_state VARCHAR(255) NOT NULL,
+  service_name VARCHAR(255) NOT NULL,
+  PRIMARY KEY (component_name, cluster_id, service_name));
 GRANT ALL PRIVILEGES ON TABLE ambari.servicecomponentdesiredstate TO :username;
 
-CREATE TABLE ambari.servicedesiredstate (cluster_id BIGINT NOT NULL, desired_host_role_mapping INTEGER NOT NULL, desired_stack_version VARCHAR(255) NOT NULL, desired_state VARCHAR(255) NOT NULL, service_name VARCHAR(255) NOT NULL, maintenance_state VARCHAR(32) NOT NULL, PRIMARY KEY (cluster_id, service_name));
+CREATE TABLE ambari.servicedesiredstate (
+  cluster_id BIGINT NOT NULL,
+  desired_host_role_mapping INTEGER NOT NULL,
+  desired_stack_version VARCHAR(255) NOT NULL,
+  desired_state VARCHAR(255) NOT NULL,
+  service_name VARCHAR(255) NOT NULL,
+  maintenance_state VARCHAR(32) NOT NULL,
+  PRIMARY KEY (cluster_id, service_name));
 GRANT ALL PRIVILEGES ON TABLE ambari.servicedesiredstate TO :username;
 
-CREATE TABLE ambari.users (user_id INTEGER, principal_id BIGINT NOT NULL, ldap_user INTEGER NOT NULL DEFAULT 0, user_name VARCHAR(255) NOT NULL, create_time TIMESTAMP DEFAULT NOW(), user_password VARCHAR(255), active INTEGER NOT NULL DEFAULT 1, PRIMARY KEY (user_id), UNIQUE (ldap_user, user_name));
+CREATE TABLE ambari.users (
+  user_id INTEGER,
+  principal_id BIGINT NOT NULL,
+  ldap_user INTEGER NOT NULL DEFAULT 0,
+  user_name VARCHAR(255) NOT NULL,
+  create_time TIMESTAMP DEFAULT NOW(),
+  user_password VARCHAR(255),
+  active INTEGER NOT NULL DEFAULT 1,
+  PRIMARY KEY (user_id),
+  UNIQUE (ldap_user, user_name));
 GRANT ALL PRIVILEGES ON TABLE ambari.users TO :username;
 
-CREATE TABLE ambari.groups (group_id INTEGER, principal_id BIGINT NOT NULL, group_name VARCHAR(255) NOT NULL, ldap_group INTEGER NOT NULL DEFAULT 0, PRIMARY KEY (group_id), UNIQUE (ldap_group, group_name));
+CREATE TABLE ambari.groups (
+  group_id INTEGER,
+  principal_id BIGINT NOT NULL,
+  group_name VARCHAR(255) NOT NULL,
+  ldap_group INTEGER NOT NULL DEFAULT 0,
+  PRIMARY KEY (group_id),
+  UNIQUE (ldap_group, group_name));
 GRANT ALL PRIVILEGES ON TABLE ambari.groups TO :username;
 
-CREATE TABLE ambari.members (member_id INTEGER, group_id INTEGER NOT NULL, user_id INTEGER NOT NULL, PRIMARY KEY (member_id), UNIQUE(group_id, user_id));
+CREATE TABLE ambari.members (
+  member_id INTEGER,
+  group_id INTEGER NOT NULL,
+  user_id INTEGER NOT NULL,
+  PRIMARY KEY (member_id),
+  UNIQUE(group_id, user_id));
 GRANT ALL PRIVILEGES ON TABLE ambari.members TO :username;
 
-CREATE TABLE ambari.execution_command (command BYTEA, task_id BIGINT NOT NULL, PRIMARY KEY (task_id));
+CREATE TABLE ambari.execution_command (
+  command BYTEA,
+  task_id BIGINT NOT NULL,
+  PRIMARY KEY (task_id));
 GRANT ALL PRIVILEGES ON TABLE ambari.execution_command TO :username;
 
-CREATE TABLE ambari.host_role_command (task_id BIGINT NOT NULL, attempt_count SMALLINT NOT NULL, event VARCHAR(32000) NOT NULL, exitcode INTEGER NOT NULL, host_name VARCHAR(255) NOT NULL, last_attempt_time BIGINT NOT NULL, request_id BIGINT NOT NULL, role VARCHAR(255), stage_id BIGINT NOT NULL, start_time BIGINT NOT NULL, end_time BIGINT, status VARCHAR(255), std_error BYTEA, std_out BYTEA, output_log VARCHAR(255) NULL, error_log VARCHAR(255) NULL, structured_out BYTEA, role_command VARCHAR(255), command_detail VARCHAR(255), custom_command_name VARCHAR(255), PRIMARY KEY (task_id));
+CREATE TABLE ambari.host_role_command (
+  task_id BIGINT NOT NULL,
+  attempt_count SMALLINT NOT NULL,
+  event VARCHAR(32000) NOT NULL,
+  exitcode INTEGER NOT NULL,
+  host_name VARCHAR(255) NOT NULL,
+  last_attempt_time BIGINT NOT NULL,
+  request_id BIGINT NOT NULL,
+  role VARCHAR(255),
+  stage_id BIGINT NOT NULL,
+  start_time BIGINT NOT NULL,
+  end_time BIGINT,
+  status VARCHAR(255),
+  std_error BYTEA,
+  std_out BYTEA,
+  output_log VARCHAR(255) NULL,
+  error_log VARCHAR(255) NULL,
+  structured_out BYTEA,
+  role_command VARCHAR(255),
+  command_detail VARCHAR(255),
+  custom_command_name VARCHAR(255),
+  PRIMARY KEY (task_id));
 GRANT ALL PRIVILEGES ON TABLE ambari.host_role_command TO :username;
 
-CREATE TABLE ambari.role_success_criteria (role VARCHAR(255) NOT NULL, request_id BIGINT NOT NULL, stage_id BIGINT NOT NULL, success_factor FLOAT NOT NULL, PRIMARY KEY (role, request_id, stage_id));
+CREATE TABLE ambari.role_success_criteria (
+  role VARCHAR(255) NOT NULL,
+  request_id BIGINT NOT NULL,
+  stage_id BIGINT NOT NULL,
+  success_factor FLOAT NOT NULL,
+  PRIMARY KEY (role, request_id, stage_id));
 GRANT ALL PRIVILEGES ON TABLE ambari.role_success_criteria TO :username;
 
-CREATE TABLE ambari.stage (stage_id BIGINT NOT NULL, request_id BIGINT NOT NULL, cluster_id BIGINT NOT NULL, log_info VARCHAR(255) NOT NULL, request_context VARCHAR(255), cluster_host_info BYTEA NOT NULL, command_params BYTEA, host_params BYTEA, PRIMARY KEY (stage_id, request_id));
+CREATE TABLE ambari.stage (
+  stage_id BIGINT NOT NULL,
+  request_id BIGINT NOT NULL,
+  cluster_id BIGINT NOT NULL,
+  log_info VARCHAR(255) NOT NULL,
+  request_context VARCHAR(255),
+  cluster_host_info BYTEA NOT NULL,
+  command_params BYTEA,
+  host_params BYTEA,
+  PRIMARY KEY (stage_id, request_id));
 GRANT ALL PRIVILEGES ON TABLE ambari.stage TO :username;
 
-CREATE TABLE ambari.request (request_id BIGINT NOT NULL, cluster_id BIGINT, command_name VARCHAR(255), create_time BIGINT NOT NULL, end_time BIGINT NOT NULL, exclusive_execution SMALLINT NOT NULL DEFAULT 0, inputs BYTEA, request_context VARCHAR(255), request_type VARCHAR(255), request_schedule_id BIGINT, start_time BIGINT NOT NULL, status VARCHAR(255), PRIMARY KEY (request_id));
+CREATE TABLE ambari.request (
+  request_id BIGINT NOT NULL,
+  cluster_id BIGINT,
+  command_name VARCHAR(255),
+  create_time BIGINT NOT NULL,
+  end_time BIGINT NOT NULL,
+  exclusive_execution SMALLINT NOT NULL DEFAULT 0,
+  inputs BYTEA,
+  request_context VARCHAR(255),
+  request_type VARCHAR(255),
+  request_schedule_id BIGINT,
+  start_time BIGINT NOT NULL,
+  status VARCHAR(255),
+  PRIMARY KEY (request_id));
 GRANT ALL PRIVILEGES ON TABLE ambari.request TO :username;
 
-CREATE TABLE ambari.requestresourcefilter (filter_id BIGINT NOT NULL, request_id BIGINT NOT NULL, service_name VARCHAR(255), component_name VARCHAR(255), hosts BYTEA, PRIMARY KEY (filter_id));
+CREATE TABLE ambari.requestresourcefilter (
+  filter_id BIGINT NOT NULL,
+  request_id BIGINT NOT NULL,
+  service_name VARCHAR(255),
+  component_name VARCHAR(255),
+  hosts BYTEA,
+  PRIMARY KEY (filter_id));
 GRANT ALL PRIVILEGES ON TABLE ambari.requestresourcefilter TO :username;
 
-CREATE TABLE ambari.requestoperationlevel (operation_level_id BIGINT NOT NULL, request_id BIGINT NOT NULL, level_name VARCHAR(255), cluster_name VARCHAR(255), service_name VARCHAR(255), host_component_name VARCHAR(255), host_name VARCHAR(255), PRIMARY KEY (operation_level_id));
+CREATE TABLE ambari.requestoperationlevel (
+  operation_level_id BIGINT NOT NULL,
+  request_id BIGINT NOT NULL,
+  level_name VARCHAR(255),
+  cluster_name VARCHAR(255),
+  service_name VARCHAR(255),
+  host_component_name VARCHAR(255),
+  host_name VARCHAR(255),
+  PRIMARY KEY (operation_level_id));
 GRANT ALL PRIVILEGES ON TABLE ambari.requestoperationlevel TO :username;
 
-CREATE TABLE ambari.ClusterHostMapping (cluster_id BIGINT NOT NULL, host_name VARCHAR(255) NOT NULL, PRIMARY KEY (cluster_id, host_name));
+CREATE TABLE ambari.ClusterHostMapping (
+  cluster_id BIGINT NOT NULL,
+  host_name VARCHAR(255) NOT NULL,
+  PRIMARY KEY (cluster_id, host_name));
 GRANT ALL PRIVILEGES ON TABLE ambari.ClusterHostMapping TO :username;
 
-CREATE TABLE ambari.key_value_store ("key" VARCHAR(255), "value" VARCHAR, PRIMARY KEY ("key"));
+CREATE TABLE ambari.key_value_store (
+  "key" VARCHAR(255),
+  "value" VARCHAR,
+  PRIMARY KEY ("key"));
 GRANT ALL PRIVILEGES ON TABLE ambari.key_value_store TO :username;
 
-CREATE TABLE ambari.hostconfigmapping (cluster_id BIGINT NOT NULL, host_name VARCHAR(255) NOT NULL, type_name VARCHAR(255) NOT NULL, version_tag VARCHAR(255) NOT NULL, service_name VARCHAR(255), create_timestamp BIGINT NOT NULL, selected INTEGER NOT NULL DEFAULT 0, user_name VARCHAR(255) NOT NULL DEFAULT '_db', PRIMARY KEY (cluster_id, host_name, type_name, create_timestamp));
+CREATE TABLE ambari.hostconfigmapping (
+  cluster_id BIGINT NOT NULL,
+  host_name VARCHAR(255) NOT NULL,
+  type_name VARCHAR(255) NOT NULL,
+  version_tag VARCHAR(255) NOT NULL,
+  service_name VARCHAR(255),
+  create_timestamp BIGINT NOT NULL,
+  selected INTEGER NOT NULL DEFAULT 0,
+  user_name VARCHAR(255) NOT NULL DEFAULT '_db',
+  PRIMARY KEY (cluster_id, host_name, type_name, create_timestamp));
 GRANT ALL PRIVILEGES ON TABLE ambari.hostconfigmapping TO :username;
 
-CREATE TABLE ambari.metainfo ("metainfo_key" VARCHAR(255), "metainfo_value" VARCHAR, PRIMARY KEY ("metainfo_key"));
+CREATE TABLE ambari.metainfo (
+  "metainfo_key" VARCHAR(255),
+  "metainfo_value" VARCHAR,
+  PRIMARY KEY ("metainfo_key"));
 GRANT ALL PRIVILEGES ON TABLE ambari.metainfo TO :username;
 
-CREATE TABLE ambari.ambari_sequences (sequence_name VARCHAR(255) PRIMARY KEY, sequence_value BIGINT NOT NULL);
+CREATE TABLE ambari.ambari_sequences (
+  sequence_name VARCHAR(255) PRIMARY KEY,
+  sequence_value BIGINT NOT NULL);
 GRANT ALL PRIVILEGES ON TABLE ambari.ambari_sequences TO :username;
 
-CREATE TABLE ambari.configgroup (group_id BIGINT, cluster_id BIGINT NOT NULL, group_name VARCHAR(255) NOT NULL, tag VARCHAR(1024) NOT NULL, description VARCHAR(1024), create_timestamp BIGINT NOT NULL, service_name VARCHAR(255), PRIMARY KEY(group_id));
+CREATE TABLE ambari.configgroup (
+  group_id BIGINT,
+  cluster_id BIGINT NOT NULL,
+  group_name VARCHAR(255) NOT NULL,
+  tag VARCHAR(1024) NOT NULL,
+  description VARCHAR(1024),
+  create_timestamp BIGINT NOT NULL,
+  service_name VARCHAR(255),
+  PRIMARY KEY(group_id));
 GRANT ALL PRIVILEGES ON TABLE ambari.configgroup TO :username;
 
-CREATE TABLE ambari.confgroupclusterconfigmapping (config_group_id BIGINT NOT NULL, cluster_id BIGINT NOT NULL, config_type VARCHAR(255) NOT NULL, version_tag VARCHAR(255) NOT NULL, user_name VARCHAR(255) DEFAULT '_db', create_timestamp BIGINT NOT NULL, PRIMARY KEY(config_group_id, cluster_id, config_type));
+CREATE TABLE ambari.confgroupclusterconfigmapping (
+  config_group_id BIGINT NOT NULL,
+  cluster_id BIGINT NOT NULL,
+  config_type VARCHAR(255) NOT NULL,
+  version_tag VARCHAR(255) NOT NULL,
+  user_name VARCHAR(255) DEFAULT '_db',
+  create_timestamp BIGINT NOT NULL,
+  PRIMARY KEY(config_group_id, cluster_id, config_type));
 GRANT ALL PRIVILEGES ON TABLE ambari.confgroupclusterconfigmapping TO :username;
 
-CREATE TABLE ambari.configgrouphostmapping (config_group_id BIGINT NOT NULL, host_name VARCHAR(255) NOT NULL, PRIMARY KEY(config_group_id, host_name));
+CREATE TABLE ambari.configgrouphostmapping (
+  config_group_id BIGINT NOT NULL,
+  host_name VARCHAR(255) NOT NULL,
+  PRIMARY KEY(config_group_id, host_name));
 GRANT ALL PRIVILEGES ON TABLE ambari.configgrouphostmapping TO :username;
 
-CREATE TABLE ambari.requestschedule (schedule_id bigint, cluster_id bigint NOT NULL, description varchar(255), status varchar(255), batch_separation_seconds smallint, batch_toleration_limit smallint, create_user varchar(255), create_timestamp bigint, update_user varchar(255), update_timestamp bigint, minutes varchar(10), hours varchar(10), days_of_month varchar(10), month varchar(10), day_of_week varchar(10), yearToSchedule varchar(10), startTime varchar(50), endTime varchar(50), last_execution_status varchar(255), PRIMARY KEY(schedule_id));
+CREATE TABLE ambari.requestschedule (
+  schedule_id bigint,
+  cluster_id bigint NOT NULL,
+  description varchar(255),
+  status varchar(255),
+  batch_separation_seconds smallint,
+  batch_toleration_limit smallint,
+  create_user varchar(255),
+  create_timestamp bigint,
+  update_user varchar(255),
+  update_timestamp bigint,
+  minutes varchar(10),
+  hours varchar(10),
+  days_of_month varchar(10),
+  month varchar(10),
+  day_of_week varchar(10),
+  yearToSchedule varchar(10),
+  startTime varchar(50),
+  endTime varchar(50),
+  last_execution_status varchar(255),
+  PRIMARY KEY(schedule_id));
 GRANT ALL PRIVILEGES ON TABLE ambari.requestschedule TO :username;
 
-CREATE TABLE ambari.requestschedulebatchrequest (schedule_id bigint, batch_id bigint, request_id bigint, request_type varchar(255), request_uri varchar(1024), request_body BYTEA, request_status varchar(255), return_code smallint, return_message varchar(20000), PRIMARY KEY(schedule_id, batch_id));
+CREATE TABLE ambari.requestschedulebatchrequest (
+  schedule_id bigint,
+  batch_id bigint,
+  request_id bigint,
+  request_type varchar(255),
+  request_uri varchar(1024),
+  request_body BYTEA,
+  request_status varchar(255),
+  return_code smallint,
+  return_message varchar(20000),
+  PRIMARY KEY(schedule_id, batch_id));
 GRANT ALL PRIVILEGES ON TABLE ambari.requestschedulebatchrequest TO :username;
 
-CREATE TABLE ambari.blueprint (blueprint_name VARCHAR(255) NOT NULL, stack_name VARCHAR(255) NOT NULL, stack_version VARCHAR(255) NOT NULL, PRIMARY KEY(blueprint_name));
-CREATE TABLE ambari.hostgroup (blueprint_name VARCHAR(255) NOT NULL, name VARCHAR(255) NOT NULL, cardinality VARCHAR(255) NOT NULL, PRIMARY KEY(blueprint_name, name));
-CREATE TABLE ambari.hostgroup_component (blueprint_name VARCHAR(255) NOT NULL, hostgroup_name VARCHAR(255) NOT NULL, name VARCHAR(255) NOT NULL, PRIMARY KEY(blueprint_name, hostgroup_name, name));
-CREATE TABLE ambari.blueprint_configuration (blueprint_name varchar(255) NOT NULL, type_name varchar(255) NOT NULL, config_data TEXT NOT NULL, config_attributes varchar(32000), PRIMARY KEY(blueprint_name, type_name));
-CREATE TABLE ambari.hostgroup_configuration (blueprint_name VARCHAR(255) NOT NULL, hostgroup_name VARCHAR(255) NOT NULL, type_name VARCHAR(255) NOT NULL, config_data TEXT NOT NULL, config_attributes varchar(32000), PRIMARY KEY(blueprint_name, hostgroup_name, type_name));
+CREATE TABLE ambari.blueprint (
+  blueprint_name VARCHAR(255) NOT NULL,
+  stack_name VARCHAR(255) NOT NULL,
+  stack_version VARCHAR(255) NOT NULL,
+  PRIMARY KEY(blueprint_name));
+
+CREATE TABLE ambari.hostgroup (
+  blueprint_name VARCHAR(255) NOT NULL,
+  name VARCHAR(255) NOT NULL,
+  cardinality VARCHAR(255) NOT NULL,
+  PRIMARY KEY(blueprint_name, name));
+
+CREATE TABLE ambari.hostgroup_component (
+  blueprint_name VARCHAR(255) NOT NULL,
+  hostgroup_name VARCHAR(255) NOT NULL,
+  name VARCHAR(255) NOT NULL,
+  PRIMARY KEY(blueprint_name, hostgroup_name, name));
+
+CREATE TABLE ambari.blueprint_configuration (
+  blueprint_name varchar(255) NOT NULL,
+  type_name varchar(255) NOT NULL,
+  config_data TEXT NOT NULL,
+  config_attributes varchar(32000),
+  PRIMARY KEY(blueprint_name, type_name));
+
+CREATE TABLE ambari.hostgroup_configuration (
+  blueprint_name VARCHAR(255) NOT NULL,
+  hostgroup_name VARCHAR(255) NOT NULL,
+  type_name VARCHAR(255) NOT NULL,
+  config_data TEXT NOT NULL,
+  config_attributes varchar(32000),
+  PRIMARY KEY(blueprint_name, hostgroup_name, type_name));
+
 GRANT ALL PRIVILEGES ON TABLE ambari.blueprint TO :username;
 GRANT ALL PRIVILEGES ON TABLE ambari.hostgroup TO :username;
 GRANT ALL PRIVILEGES ON TABLE ambari.hostgroup_component TO :username;
 GRANT ALL PRIVILEGES ON TABLE ambari.blueprint_configuration TO :username;
 GRANT ALL PRIVILEGES ON TABLE ambari.hostgroup_configuration TO :username;
 
-CREATE TABLE ambari.viewmain (view_name VARCHAR(255) NOT NULL, label VARCHAR(255), description VARCHAR(2048), version VARCHAR(255), resource_type_id INTEGER NOT NULL, icon VARCHAR(255), icon64 VARCHAR(255), archive VARCHAR(255), mask VARCHAR(255), system_view SMALLINT NOT NULL DEFAULT 0, PRIMARY KEY(view_name));
-CREATE TABLE ambari.viewinstancedata (view_instance_id BIGINT, view_name VARCHAR(255) NOT NULL, view_instance_name VARCHAR(255) NOT NULL, name VARCHAR(255) NOT NULL, user_name VARCHAR(255) NOT NULL, value VARCHAR(2000) NOT NULL, PRIMARY KEY(view_instance_id, name, user_name));
-CREATE TABLE ambari.viewinstance (view_instance_id BIGINT, resource_id BIGINT NOT NULL, view_name VARCHAR(255) NOT NULL, name VARCHAR(255) NOT NULL, label VARCHAR(255), description VARCHAR(2048), visible CHAR(1), icon VARCHAR(255), icon64 VARCHAR(255), xml_driven CHAR(1), PRIMARY KEY(view_instance_id));
-CREATE TABLE ambari.viewinstanceproperty (view_name VARCHAR(255) NOT NULL, view_instance_name VARCHAR(255) NOT NULL, name VARCHAR(255) NOT NULL, value VARCHAR(2000) NOT NULL, PRIMARY KEY(view_name, view_instance_name, name));
-CREATE TABLE ambari.viewparameter (view_name VARCHAR(255) NOT NULL, name VARCHAR(255) NOT NULL, description VARCHAR(2048), required CHAR(1), masked CHAR(1), PRIMARY KEY(view_name, name));
-CREATE TABLE ambari.viewresource (view_name VARCHAR(255) NOT NULL, name VARCHAR(255) NOT NULL, plural_name VARCHAR(255), id_property VARCHAR(255), subResource_names VARCHAR(255), provider VARCHAR(255), service VARCHAR(255), resource VARCHAR(255), PRIMARY KEY(view_name, name));
-CREATE TABLE ambari.viewentity (id BIGINT NOT NULL, view_name VARCHAR(255) NOT NULL, view_instance_name VARCHAR(255) NOT NULL, class_name VARCHAR(255) NOT NULL, id_property VARCHAR(255), PRIMARY KEY(id));
+CREATE TABLE ambari.viewmain (
+  view_name VARCHAR(255) NOT NULL,
+  label VARCHAR(255),
+  description VARCHAR(2048),
+  version VARCHAR(255),
+  resource_type_id INTEGER NOT NULL,
+  icon VARCHAR(255),
+  icon64 VARCHAR(255),
+  archive VARCHAR(255),
+  mask VARCHAR(255),
+  system_view SMALLINT NOT NULL DEFAULT 0,
+  PRIMARY KEY(view_name));
+
+CREATE TABLE ambari.viewinstancedata (
+  view_instance_id BIGINT,
+  view_name VARCHAR(255) NOT NULL,
+  view_instance_name VARCHAR(255) NOT NULL,
+  name VARCHAR(255) NOT NULL,
+  user_name VARCHAR(255) NOT NULL,
+  value VARCHAR(2000) NOT NULL,
+  PRIMARY KEY(view_instance_id, name, user_name));
+
+CREATE TABLE ambari.viewinstance (
+  view_instance_id BIGINT,
+  resource_id BIGINT NOT NULL,
+  view_name VARCHAR(255) NOT NULL,
+  name VARCHAR(255) NOT NULL,
+  label VARCHAR(255),
+  description VARCHAR(2048),
+  visible CHAR(1),
+  icon VARCHAR(255),
+  icon64 VARCHAR(255),
+  xml_driven CHAR(1),
+  PRIMARY KEY(view_instance_id));
+
+CREATE TABLE ambari.viewinstanceproperty (
+  view_name VARCHAR(255) NOT NULL,
+  view_instance_name VARCHAR(255) NOT NULL,
+  name VARCHAR(255) NOT NULL,
+  value VARCHAR(2000) NOT NULL,
+  PRIMARY KEY(view_name, view_instance_name, name));
+
+CREATE TABLE ambari.viewparameter (
+  view_name VARCHAR(255) NOT NULL,
+  name VARCHAR(255) NOT NULL,
+  description VARCHAR(2048),
+  required CHAR(1),
+  masked CHAR(1),
+  PRIMARY KEY(view_name, name));
+
+CREATE TABLE ambari.viewresource (
+  view_name VARCHAR(255) NOT NULL,
+  name VARCHAR(255) NOT NULL,
+  plural_name VARCHAR(255),
+  id_property VARCHAR(255),
+  subResource_names VARCHAR(255),
+  provider VARCHAR(255),
+  service VARCHAR(255),
+  resource VARCHAR(255),
+  PRIMARY KEY(view_name, name));
+
+CREATE TABLE ambari.viewentity (
+  id BIGINT NOT NULL,
+  view_name VARCHAR(255) NOT NULL,
+  view_instance_name VARCHAR(255) NOT NULL,
+  class_name VARCHAR(255) NOT NULL,
+  id_property VARCHAR(255),
+  PRIMARY KEY(id));
+
 GRANT ALL PRIVILEGES ON TABLE ambari.viewmain TO :username;
 GRANT ALL PRIVILEGES ON TABLE ambari.viewinstancedata TO :username;
 GRANT ALL PRIVILEGES ON TABLE ambari.viewinstance TO :username;
@@ -185,12 +522,39 @@ GRANT ALL PRIVILEGES ON TABLE ambari.viewparameter TO :username;
 GRANT ALL PRIVILEGES ON TABLE ambari.viewresource TO :username;
 GRANT ALL PRIVILEGES ON TABLE ambari.viewentity TO :username;
 
-CREATE TABLE ambari.adminresourcetype (resource_type_id INTEGER NOT NULL, resource_type_name VARCHAR(255) NOT NULL, PRIMARY KEY(resource_type_id));
-CREATE TABLE ambari.adminresource (resource_id BIGINT NOT NULL, resource_type_id INTEGER NOT NULL, PRIMARY KEY(resource_id));
-CREATE TABLE ambari.adminprincipaltype (principal_type_id INTEGER NOT NULL, principal_type_name VARCHAR(255) NOT NULL, PRIMARY KEY(principal_type_id));
-CREATE TABLE ambari.adminprincipal (principal_id BIGINT NOT NULL, principal_type_id INTEGER NOT NULL, PRIMARY KEY(principal_id));
-CREATE TABLE ambari.adminpermission (permission_id BIGINT NOT NULL, permission_name VARCHAR(255) NOT NULL, resource_type_id INTEGER NOT NULL, PRIMARY KEY(permission_id));
-CREATE TABLE ambari.adminprivilege (privilege_id BIGINT, permission_id BIGINT NOT NULL, resource_id BIGINT NOT NULL, principal_id BIGINT NOT NULL, PRIMARY KEY(privilege_id));
+CREATE TABLE ambari.adminresourcetype (
+  resource_type_id INTEGER NOT NULL,
+  resource_type_name VARCHAR(255) NOT NULL,
+  PRIMARY KEY(resource_type_id));
+
+CREATE TABLE ambari.adminresource (
+  resource_id BIGINT NOT NULL,
+  resource_type_id INTEGER NOT NULL,
+  PRIMARY KEY(resource_id));
+
+CREATE TABLE ambari.adminprincipaltype (
+  principal_type_id INTEGER NOT NULL,
+  principal_type_name VARCHAR(255) NOT NULL,
+  PRIMARY KEY(principal_type_id));
+
+CREATE TABLE ambari.adminprincipal (
+  principal_id BIGINT NOT NULL,
+  principal_type_id INTEGER NOT NULL,
+  PRIMARY KEY(principal_id));
+
+CREATE TABLE ambari.adminpermission (
+  permission_id BIGINT NOT NULL,
+  permission_name VARCHAR(255) NOT NULL,
+  resource_type_id INTEGER NOT NULL,
+  PRIMARY KEY(permission_id));
+
+CREATE TABLE ambari.adminprivilege (
+  privilege_id BIGINT,
+  permission_id BIGINT NOT NULL,
+  resource_id BIGINT NOT NULL,
+  principal_id BIGINT NOT NULL,
+  PRIMARY KEY(privilege_id));
+
 GRANT ALL PRIVILEGES ON TABLE ambari.adminresourcetype TO :username;
 GRANT ALL PRIVILEGES ON TABLE ambari.adminresource TO :username;
 GRANT ALL PRIVILEGES ON TABLE ambari.adminprincipaltype TO :username;

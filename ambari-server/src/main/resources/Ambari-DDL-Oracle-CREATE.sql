@@ -17,13 +17,59 @@
 --
 
 ------create tables---------
-CREATE TABLE clusters (cluster_id NUMBER(19) NOT NULL, resource_id NUMBER(19) NOT NULL, cluster_info VARCHAR2(255) NULL, cluster_name VARCHAR2(100) NOT NULL UNIQUE, provisioning_state VARCHAR2(255) DEFAULT 'INIT' NOT NULL, desired_cluster_state VARCHAR2(255) NULL, desired_stack_version VARCHAR2(255) NULL, PRIMARY KEY (cluster_id));
-CREATE TABLE clusterconfig (config_id NUMBER(19) NOT NULL, version_tag VARCHAR2(255) NOT NULL, version NUMBER(19) NOT NULL, type_name VARCHAR2(255) NOT NULL, cluster_id NUMBER(19) NOT NULL, config_data CLOB NOT NULL, config_attributes CLOB, create_timestamp NUMBER(19) NOT NULL, PRIMARY KEY (config_id));
-CREATE TABLE serviceconfig (service_config_id NUMBER(19) NOT NULL, cluster_id NUMBER(19) NOT NULL, service_name VARCHAR(255) NOT NULL, version NUMBER(19) NOT NULL, create_timestamp NUMBER(19) NOT NULL, user_name VARCHAR(255) DEFAULT '_db' NOT NULL, group_id NUMBER(19), note CLOB, PRIMARY KEY (service_config_id));
-CREATE TABLE serviceconfighosts (service_config_id NUMBER(19) NOT NULL, hostname VARCHAR(255) NOT NULL, PRIMARY KEY(service_config_id, hostname));
-CREATE TABLE serviceconfigmapping (service_config_id NUMBER(19) NOT NULL, config_id NUMBER(19) NOT NULL, PRIMARY KEY(service_config_id, config_id));
-CREATE TABLE clusterservices (service_name VARCHAR2(255) NOT NULL, cluster_id NUMBER(19) NOT NULL, service_enabled NUMBER(10) NOT NULL, PRIMARY KEY (service_name, cluster_id));
-CREATE TABLE clusterstate (cluster_id NUMBER(19) NOT NULL, current_cluster_state VARCHAR2(255) NULL, current_stack_version VARCHAR2(255) NULL, PRIMARY KEY (cluster_id));
+CREATE TABLE clusters (
+  cluster_id NUMBER(19) NOT NULL,
+  resource_id NUMBER(19) NOT NULL,
+  cluster_info VARCHAR2(255) NULL,
+  cluster_name VARCHAR2(100) NOT NULL UNIQUE,
+  provisioning_state VARCHAR2(255) DEFAULT 'INIT' NOT NULL,
+  desired_cluster_state VARCHAR2(255) NULL,
+  desired_stack_version VARCHAR2(255) NULL,
+  PRIMARY KEY (cluster_id));
+
+CREATE TABLE clusterconfig (
+  config_id NUMBER(19) NOT NULL,
+  version_tag VARCHAR2(255) NOT NULL,
+  version NUMBER(19) NOT NULL,
+  type_name VARCHAR2(255) NOT NULL,
+  cluster_id NUMBER(19) NOT NULL,
+  config_data CLOB NOT NULL,
+  config_attributes CLOB,
+  create_timestamp NUMBER(19) NOT NULL,
+  PRIMARY KEY (config_id));
+
+CREATE TABLE serviceconfig (
+  service_config_id NUMBER(19) NOT NULL,
+  cluster_id NUMBER(19) NOT NULL,
+  service_name VARCHAR(255) NOT NULL,
+  version NUMBER(19) NOT NULL,
+  create_timestamp NUMBER(19) NOT NULL,
+  user_name VARCHAR(255) DEFAULT '_db' NOT NULL,
+  group_id NUMBER(19),
+  note CLOB,
+  PRIMARY KEY (service_config_id));
+
+CREATE TABLE serviceconfighosts (
+  service_config_id NUMBER(19) NOT NULL,
+  hostname VARCHAR(255) NOT NULL,
+  PRIMARY KEY(service_config_id, hostname));
+
+CREATE TABLE serviceconfigmapping (
+  service_config_id NUMBER(19) NOT NULL,
+  config_id NUMBER(19) NOT NULL,
+  PRIMARY KEY(service_config_id, config_id));
+
+CREATE TABLE clusterservices (
+  service_name VARCHAR2(255) NOT NULL,
+  cluster_id NUMBER(19) NOT NULL,
+  service_enabled NUMBER(10) NOT NULL,
+  PRIMARY KEY (service_name, cluster_id));
+
+CREATE TABLE clusterstate (
+  cluster_id NUMBER(19) NOT NULL,
+  current_cluster_state VARCHAR2(255) NULL,
+  current_stack_version VARCHAR2(255) NULL,
+  PRIMARY KEY (cluster_id));
 
 CREATE TABLE cluster_version (
   id BIGINT NUMBER(19) NULL,
@@ -36,7 +82,17 @@ CREATE TABLE cluster_version (
   user_name VARCHAR2(32),
   PRIMARY KEY (id));
 
-CREATE TABLE hostcomponentdesiredstate (cluster_id NUMBER(19) NOT NULL, component_name VARCHAR2(255) NOT NULL, desired_stack_version VARCHAR2(255) NULL, desired_state VARCHAR2(255) NOT NULL, host_name VARCHAR2(255) NOT NULL, service_name VARCHAR2(255) NOT NULL, admin_state VARCHAR2(32) NULL, maintenance_state VARCHAR2(32) NOT NULL, restart_required NUMBER(1) DEFAULT 0 NOT NULL, PRIMARY KEY (cluster_id, component_name, host_name, service_name));
+CREATE TABLE hostcomponentdesiredstate (
+  cluster_id NUMBER(19) NOT NULL,
+  component_name VARCHAR2(255) NOT NULL,
+  desired_stack_version VARCHAR2(255) NULL,
+  desired_state VARCHAR2(255) NOT NULL,
+  host_name VARCHAR2(255) NOT NULL,
+  service_name VARCHAR2(255) NOT NULL,
+  admin_state VARCHAR2(32) NULL,
+  maintenance_state VARCHAR2(32) NOT NULL,
+  restart_required NUMBER(1) DEFAULT 0 NOT NULL,
+  PRIMARY KEY (cluster_id, component_name, host_name, service_name));
 
 CREATE TABLE hostcomponentstate (
   cluster_id NUMBER(19) NOT NULL,
@@ -48,8 +104,33 @@ CREATE TABLE hostcomponentstate (
   upgrade_state VARCHAR2(255) NOT NULL DEFAULT 'NONE',
   PRIMARY KEY (cluster_id, component_name, host_name, service_name));
 
-CREATE TABLE hosts (host_name VARCHAR2(255) NOT NULL, cpu_count INTEGER NOT NULL, cpu_info VARCHAR2(255) NULL, discovery_status VARCHAR2(2000) NULL, host_attributes CLOB NULL, ipv4 VARCHAR2(255) NULL, ipv6 VARCHAR2(255) NULL, last_registration_time INTEGER NOT NULL, os_arch VARCHAR2(255) NULL, os_info VARCHAR2(1000) NULL, os_type VARCHAR2(255) NULL, ph_cpu_count INTEGER NOT NULL, public_host_name VARCHAR2(255) NULL, rack_info VARCHAR2(255) NOT NULL, total_mem INTEGER NOT NULL, PRIMARY KEY (host_name));
-CREATE TABLE hoststate (agent_version VARCHAR2(255) NULL, available_mem NUMBER(19) NOT NULL, current_state VARCHAR2(255) NOT NULL, health_status VARCHAR2(255) NULL, host_name VARCHAR2(255) NOT NULL, time_in_state NUMBER(19) NOT NULL, maintenance_state VARCHAR2(512), PRIMARY KEY (host_name));
+CREATE TABLE hosts (
+  host_name VARCHAR2(255) NOT NULL,
+  cpu_count INTEGER NOT NULL,
+  cpu_info VARCHAR2(255) NULL,
+  discovery_status VARCHAR2(2000) NULL,
+  host_attributes CLOB NULL,
+  ipv4 VARCHAR2(255) NULL,
+  ipv6 VARCHAR2(255) NULL,
+  last_registration_time INTEGER NOT NULL,
+  os_arch VARCHAR2(255) NULL,
+  os_info VARCHAR2(1000) NULL,
+  os_type VARCHAR2(255) NULL,
+  ph_cpu_count INTEGER NOT NULL,
+  public_host_name VARCHAR2(255) NULL,
+  rack_info VARCHAR2(255) NOT NULL,
+  total_mem INTEGER NOT NULL,
+  PRIMARY KEY (host_name));
+
+CREATE TABLE hoststate (
+  agent_version VARCHAR2(255) NULL,
+  available_mem NUMBER(19) NOT NULL,
+  current_state VARCHAR2(255) NOT NULL,
+  health_status VARCHAR2(255) NULL,
+  host_name VARCHAR2(255) NOT NULL,
+  time_in_state NUMBER(19) NOT NULL,
+  maintenance_state VARCHAR2(512),
+  PRIMARY KEY (host_name));
 
 CREATE TABLE host_version (
   id NUMBER(19) NOT NULL,
@@ -59,47 +140,355 @@ CREATE TABLE host_version (
   state VARCHAR2(32) NOT NULL,
   PRIMARY KEY (id));
 
-CREATE TABLE servicecomponentdesiredstate (component_name VARCHAR2(255) NOT NULL, cluster_id NUMBER(19) NOT NULL, desired_stack_version VARCHAR2(255) NULL, desired_state VARCHAR2(255) NOT NULL, service_name VARCHAR2(255) NOT NULL, PRIMARY KEY (component_name, cluster_id, service_name));
-CREATE TABLE servicedesiredstate (cluster_id NUMBER(19) NOT NULL, desired_host_role_mapping NUMBER(10) NOT NULL, desired_stack_version VARCHAR2(255) NULL, desired_state VARCHAR2(255) NOT NULL, service_name VARCHAR2(255) NOT NULL, maintenance_state VARCHAR2(32) NOT NULL, PRIMARY KEY (cluster_id, service_name));
-CREATE TABLE users (user_id NUMBER(10) NOT NULL, principal_id NUMBER(19) NOT NULL, create_time TIMESTAMP NULL, ldap_user NUMBER(10) DEFAULT 0, user_name VARCHAR2(255) NULL, user_password VARCHAR2(255) NULL, active INTEGER DEFAULT 1 NOT NULL, PRIMARY KEY (user_id));
-CREATE TABLE groups (group_id NUMBER(10) NOT NULL, principal_id NUMBER(19) NOT NULL, group_name VARCHAR2(255) NOT NULL, ldap_group NUMBER(10) DEFAULT 0, PRIMARY KEY (group_id));
-CREATE TABLE members (member_id NUMBER(10), group_id NUMBER(10) NOT NULL, user_id NUMBER(10) NOT NULL, PRIMARY KEY (member_id));
-CREATE TABLE execution_command (task_id NUMBER(19) NOT NULL, command BLOB NULL, PRIMARY KEY (task_id));
-CREATE TABLE host_role_command (task_id NUMBER(19) NOT NULL, attempt_count NUMBER(5) NOT NULL, event CLOB NULL, exitcode NUMBER(10) NOT NULL, host_name VARCHAR2(255) NOT NULL, last_attempt_time NUMBER(19) NOT NULL, request_id NUMBER(19) NOT NULL, role VARCHAR2(255) NULL, role_command VARCHAR2(255) NULL, stage_id NUMBER(19) NOT NULL, start_time NUMBER(19) NOT NULL, end_time NUMBER(19), status VARCHAR2(255) NULL, std_error BLOB NULL, std_out BLOB NULL, output_log VARCHAR2(255) NULL, error_log VARCHAR2(255) NULL, structured_out BLOB NULL,  command_detail VARCHAR2(255) NULL, custom_command_name VARCHAR2(255) NULL, PRIMARY KEY (task_id));
-CREATE TABLE role_success_criteria (role VARCHAR2(255) NOT NULL, request_id NUMBER(19) NOT NULL, stage_id NUMBER(19) NOT NULL, success_factor NUMBER(19,4) NOT NULL, PRIMARY KEY (role, request_id, stage_id));
-CREATE TABLE stage (stage_id NUMBER(19) NOT NULL, request_id NUMBER(19) NOT NULL, cluster_id NUMBER(19) NULL, log_info VARCHAR2(255) NULL, request_context VARCHAR2(255) NULL, cluster_host_info BLOB NOT NULL, command_params BLOB, host_params BLOB, PRIMARY KEY (stage_id, request_id));
-CREATE TABLE request (request_id NUMBER(19) NOT NULL, cluster_id NUMBER(19), request_schedule_id NUMBER(19), command_name VARCHAR(255), create_time NUMBER(19) NOT NULL, end_time NUMBER(19) NOT NULL, exclusive_execution NUMBER(1) DEFAULT 0 NOT NULL, inputs BLOB, request_context VARCHAR(255), request_type VARCHAR(255), start_time NUMBER(19) NOT NULL, status VARCHAR(255), PRIMARY KEY (request_id));
-CREATE TABLE requestresourcefilter (filter_id NUMBER(19) NOT NULL, request_id NUMBER(19) NOT NULL, service_name VARCHAR2(255), component_name VARCHAR2(255), hosts BLOB, PRIMARY KEY (filter_id));
-CREATE TABLE requestoperationlevel (operation_level_id NUMBER(19) NOT NULL, request_id NUMBER(19) NOT NULL, level_name VARCHAR2(255), cluster_name VARCHAR2(255), service_name VARCHAR2(255), host_component_name VARCHAR2(255), host_name VARCHAR2(255), PRIMARY KEY (operation_level_id));
-CREATE TABLE key_value_store ("key" VARCHAR2(255) NOT NULL, "value" CLOB NULL, PRIMARY KEY ("key"));
-CREATE TABLE clusterconfigmapping (type_name VARCHAR2(255) NOT NULL, create_timestamp NUMBER(19) NOT NULL, cluster_id NUMBER(19) NOT NULL, selected NUMBER(10) NOT NULL, version_tag VARCHAR2(255) NOT NULL, user_name VARCHAR(255) DEFAULT '_db', PRIMARY KEY (type_name, create_timestamp, cluster_id));
-CREATE TABLE hostconfigmapping (create_timestamp NUMBER(19) NOT NULL, host_name VARCHAR2(255) NOT NULL, cluster_id NUMBER(19) NOT NULL, type_name VARCHAR2(255) NOT NULL, selected NUMBER(10) NOT NULL, service_name VARCHAR2(255) NULL, version_tag VARCHAR2(255) NOT NULL, user_name VARCHAR(255) DEFAULT '_db', PRIMARY KEY (create_timestamp, host_name, cluster_id, type_name));
-CREATE TABLE metainfo ("metainfo_key" VARCHAR2(255) NOT NULL, "metainfo_value" CLOB NULL, PRIMARY KEY ("metainfo_key"));
-CREATE TABLE ClusterHostMapping (cluster_id NUMBER(19) NOT NULL, host_name VARCHAR2(255) NOT NULL, PRIMARY KEY (cluster_id, host_name));
-CREATE TABLE ambari_sequences (sequence_name VARCHAR2(50) NOT NULL, sequence_value NUMBER(38) NULL, PRIMARY KEY (sequence_name));
-CREATE TABLE configgroup (group_id NUMBER(19), cluster_id NUMBER(19) NOT NULL, group_name VARCHAR2(255) NOT NULL, tag VARCHAR2(1024) NOT NULL, description VARCHAR2(1024), create_timestamp NUMBER(19) NOT NULL, service_name VARCHAR(255), PRIMARY KEY(group_id));
-CREATE TABLE confgroupclusterconfigmapping (config_group_id NUMBER(19) NOT NULL, cluster_id NUMBER(19) NOT NULL, config_type VARCHAR2(255) NOT NULL, version_tag VARCHAR2(255) NOT NULL, user_name VARCHAR2(255) DEFAULT '_db', create_timestamp NUMBER(19) NOT NULL, PRIMARY KEY(config_group_id, cluster_id, config_type));
-CREATE TABLE configgrouphostmapping (config_group_id NUMBER(19) NOT NULL, host_name VARCHAR2(255) NOT NULL, PRIMARY KEY(config_group_id, host_name));
-CREATE TABLE requestschedule (schedule_id NUMBER(19), cluster_id NUMBER(19) NOT NULL, description VARCHAR2(255), status VARCHAR2(255), batch_separation_seconds smallint, batch_toleration_limit smallint, create_user VARCHAR2(255), create_timestamp NUMBER(19), update_user VARCHAR2(255), update_timestamp NUMBER(19), minutes VARCHAR2(10), hours VARCHAR2(10), days_of_month VARCHAR2(10), month VARCHAR2(10), day_of_week VARCHAR2(10), yearToSchedule VARCHAR2(10), startTime VARCHAR2(50), endTime VARCHAR2(50), last_execution_status VARCHAR2(255), PRIMARY KEY(schedule_id));
-CREATE TABLE requestschedulebatchrequest (schedule_id NUMBER(19), batch_id NUMBER(19), request_id NUMBER(19), request_type VARCHAR2(255), request_uri VARCHAR2(1024), request_body BLOB, request_status VARCHAR2(255), return_code smallint, return_message VARCHAR2(2000), PRIMARY KEY(schedule_id, batch_id));
-CREATE TABLE blueprint (blueprint_name VARCHAR2(255) NOT NULL, stack_name VARCHAR2(255) NOT NULL, stack_version VARCHAR2(255) NOT NULL, PRIMARY KEY(blueprint_name));
-CREATE TABLE hostgroup (blueprint_name VARCHAR2(255) NOT NULL, name VARCHAR2(255) NOT NULL, cardinality VARCHAR2(255) NOT NULL, PRIMARY KEY(blueprint_name, name));
-CREATE TABLE hostgroup_component (blueprint_name VARCHAR2(255) NOT NULL, hostgroup_name VARCHAR2(255) NOT NULL, name VARCHAR2(255) NOT NULL, PRIMARY KEY(blueprint_name, hostgroup_name, name));
-CREATE TABLE blueprint_configuration (blueprint_name VARCHAR2(255) NOT NULL, type_name VARCHAR2(255) NOT NULL, config_data CLOB NOT NULL, config_attributes CLOB, PRIMARY KEY(blueprint_name, type_name));
-CREATE TABLE hostgroup_configuration (blueprint_name VARCHAR2(255) NOT NULL, hostgroup_name VARCHAR2(255) NOT NULL, type_name VARCHAR2(255) NOT NULL, config_data CLOB NOT NULL, config_attributes CLOB, PRIMARY KEY(blueprint_name, hostgroup_name, type_name));
-CREATE TABLE viewmain (view_name VARCHAR(255) NOT NULL, label VARCHAR(255), description VARCHAR(2048), version VARCHAR(255), resource_type_id NUMBER(10) NOT NULL, icon VARCHAR(255), icon64 VARCHAR(255), archive VARCHAR(255), mask VARCHAR(255), system_view NUMBER(1) DEFAULT 0 NOT NULL, PRIMARY KEY(view_name));
-CREATE TABLE viewinstancedata (view_instance_id NUMBER(19), view_name VARCHAR(255) NOT NULL, view_instance_name VARCHAR(255) NOT NULL, name VARCHAR(255) NOT NULL, user_name VARCHAR(255) NOT NULL, value VARCHAR(2000) NOT NULL, PRIMARY KEY(view_instance_id, name, user_name));
-CREATE TABLE viewinstance (view_instance_id NUMBER(19), resource_id NUMBER(19) NOT NULL, view_name VARCHAR(255) NOT NULL, name VARCHAR(255) NOT NULL, label VARCHAR(255), description VARCHAR(2048), visible CHAR(1), icon VARCHAR(255), icon64 VARCHAR(255), xml_driven CHAR(1), PRIMARY KEY(view_instance_id));
-CREATE TABLE viewinstanceproperty (view_name VARCHAR(255) NOT NULL, view_instance_name VARCHAR(255) NOT NULL, name VARCHAR(255) NOT NULL, value VARCHAR(2000) NOT NULL, PRIMARY KEY(view_name, view_instance_name, name));
-CREATE TABLE viewparameter (view_name VARCHAR(255) NOT NULL, name VARCHAR(255) NOT NULL, description VARCHAR(2048), required CHAR(1), masked CHAR(1), PRIMARY KEY(view_name, name));
-CREATE TABLE viewresource (view_name VARCHAR(255) NOT NULL, name VARCHAR(255) NOT NULL, plural_name VARCHAR(255), id_property VARCHAR(255), subResource_names VARCHAR(255), provider VARCHAR(255), service VARCHAR(255), "resource" VARCHAR(255), PRIMARY KEY(view_name, name));
-CREATE TABLE viewentity (id NUMBER(19) NOT NULL, view_name VARCHAR(255) NOT NULL, view_instance_name VARCHAR(255) NOT NULL, class_name VARCHAR(255) NOT NULL, id_property VARCHAR(255), PRIMARY KEY(id));
-CREATE TABLE adminresourcetype (resource_type_id NUMBER(10) NOT NULL, resource_type_name VARCHAR(255) NOT NULL, PRIMARY KEY(resource_type_id));
-CREATE TABLE adminresource (resource_id NUMBER(19) NOT NULL, resource_type_id NUMBER(10) NOT NULL, PRIMARY KEY(resource_id));
-CREATE TABLE adminprincipaltype (principal_type_id NUMBER(10) NOT NULL, principal_type_name VARCHAR(255) NOT NULL, PRIMARY KEY(principal_type_id));
-CREATE TABLE adminprincipal (principal_id NUMBER(19) NOT NULL, principal_type_id NUMBER(10) NOT NULL, PRIMARY KEY(principal_id));
-CREATE TABLE adminpermission (permission_id NUMBER(19) NOT NULL, permission_name VARCHAR(255) NOT NULL, resource_type_id NUMBER(10) NOT NULL, PRIMARY KEY(permission_id));
-CREATE TABLE adminprivilege (privilege_id NUMBER(19), permission_id NUMBER(19) NOT NULL, resource_id NUMBER(19) NOT NULL, principal_id NUMBER(19) NOT NULL, PRIMARY KEY(privilege_id));
+CREATE TABLE servicecomponentdesiredstate (
+  component_name VARCHAR2(255) NOT NULL,
+  cluster_id NUMBER(19) NOT NULL,
+  desired_stack_version VARCHAR2(255) NULL,
+  desired_state VARCHAR2(255) NOT NULL,
+  service_name VARCHAR2(255) NOT NULL,
+  PRIMARY KEY (component_name, cluster_id, service_name));
+
+CREATE TABLE servicedesiredstate (
+  cluster_id NUMBER(19) NOT NULL,
+  desired_host_role_mapping NUMBER(10) NOT NULL,
+  desired_stack_version VARCHAR2(255) NULL,
+  desired_state VARCHAR2(255) NOT NULL,
+  service_name VARCHAR2(255) NOT NULL,
+  maintenance_state VARCHAR2(32) NOT NULL,
+  PRIMARY KEY (cluster_id, service_name));
+
+CREATE TABLE users (
+  user_id NUMBER(10) NOT NULL,
+  principal_id NUMBER(19) NOT NULL,
+  create_time TIMESTAMP NULL,
+  ldap_user NUMBER(10) DEFAULT 0,
+  user_name VARCHAR2(255) NULL,
+  user_password VARCHAR2(255) NULL,
+  active INTEGER DEFAULT 1 NOT NULL,
+  PRIMARY KEY (user_id));
+
+CREATE TABLE groups (
+  group_id NUMBER(10) NOT NULL,
+  principal_id NUMBER(19) NOT NULL,
+  group_name VARCHAR2(255) NOT NULL,
+  ldap_group NUMBER(10) DEFAULT 0,
+  PRIMARY KEY (group_id));
+
+CREATE TABLE members (
+  member_id NUMBER(10),
+  group_id NUMBER(10) NOT NULL,
+  user_id NUMBER(10) NOT NULL,
+  PRIMARY KEY (member_id));
+
+CREATE TABLE execution_command (
+  task_id NUMBER(19) NOT NULL,
+  command BLOB NULL,
+  PRIMARY KEY (task_id));
+
+CREATE TABLE host_role_command (
+  task_id NUMBER(19) NOT NULL,
+  attempt_count NUMBER(5) NOT NULL,
+  event CLOB NULL,
+  exitcode NUMBER(10) NOT NULL,
+  host_name VARCHAR2(255) NOT NULL,
+  last_attempt_time NUMBER(19) NOT NULL,
+  request_id NUMBER(19) NOT NULL,
+  role VARCHAR2(255) NULL,
+  role_command VARCHAR2(255) NULL,
+  stage_id NUMBER(19) NOT NULL,
+  start_time NUMBER(19) NOT NULL,
+  end_time NUMBER(19),
+  status VARCHAR2(255) NULL,
+  std_error BLOB NULL,
+  std_out BLOB NULL,
+  output_log VARCHAR2(255) NULL,
+  error_log VARCHAR2(255) NULL,
+  structured_out BLOB NULL,
+  command_detail VARCHAR2(255) NULL,
+  custom_command_name VARCHAR2(255) NULL,
+  PRIMARY KEY (task_id));
+
+CREATE TABLE role_success_criteria (
+  role VARCHAR2(255) NOT NULL,
+  request_id NUMBER(19) NOT NULL,
+  stage_id NUMBER(19) NOT NULL,
+  success_factor NUMBER(19, 4) NOT NULL,
+  PRIMARY KEY (role, request_id, stage_id));
+
+CREATE TABLE stage (
+  stage_id NUMBER(19) NOT NULL,
+  request_id NUMBER(19) NOT NULL,
+  cluster_id NUMBER(19) NULL,
+  log_info VARCHAR2(255) NULL,
+  request_context VARCHAR2(255) NULL,
+  cluster_host_info BLOB NOT NULL,
+  command_params BLOB,
+  host_params BLOB,
+  PRIMARY KEY (stage_id, request_id));
+
+CREATE TABLE request (
+  request_id NUMBER(19) NOT NULL,
+  cluster_id NUMBER(19),
+  request_schedule_id NUMBER(19),
+  command_name VARCHAR(255),
+  create_time NUMBER(19) NOT NULL,
+  end_time NUMBER(19) NOT NULL,
+  exclusive_execution NUMBER(1) DEFAULT 0 NOT NULL,
+  inputs BLOB,
+  request_context VARCHAR(255),
+  request_type VARCHAR(255),
+  start_time NUMBER(19) NOT NULL,
+  status VARCHAR(255),
+  PRIMARY KEY (request_id));
+
+CREATE TABLE requestresourcefilter (
+  filter_id NUMBER(19) NOT NULL,
+  request_id NUMBER(19) NOT NULL,
+  service_name VARCHAR2(255),
+  component_name VARCHAR2(255),
+  hosts BLOB,
+  PRIMARY KEY (filter_id));
+
+CREATE TABLE requestoperationlevel (
+  operation_level_id NUMBER(19) NOT NULL,
+  request_id NUMBER(19) NOT NULL,
+  level_name VARCHAR2(255),
+  cluster_name VARCHAR2(255),
+  service_name VARCHAR2(255),
+  host_component_name VARCHAR2(255),
+  host_name VARCHAR2(255),
+  PRIMARY KEY (operation_level_id));
+
+CREATE TABLE key_value_store (
+  "key" VARCHAR2(255) NOT NULL,
+  "value" CLOB NULL,
+  PRIMARY KEY ("key"));
+
+CREATE TABLE clusterconfigmapping (
+  type_name VARCHAR2(255) NOT NULL,
+  create_timestamp NUMBER(19) NOT NULL,
+  cluster_id NUMBER(19) NOT NULL,
+  selected NUMBER(10) NOT NULL,
+  version_tag VARCHAR2(255) NOT NULL,
+  user_name VARCHAR(255) DEFAULT '_db',
+  PRIMARY KEY (type_name, create_timestamp, cluster_id));
+
+CREATE TABLE hostconfigmapping (
+  create_timestamp NUMBER(19) NOT NULL,
+  host_name VARCHAR2(255) NOT NULL,
+  cluster_id NUMBER(19) NOT NULL,
+  type_name VARCHAR2(255) NOT NULL,
+  selected NUMBER(10) NOT NULL,
+  service_name VARCHAR2(255) NULL,
+  version_tag VARCHAR2(255) NOT NULL,
+  user_name VARCHAR(255) DEFAULT '_db',
+  PRIMARY KEY (create_timestamp, host_name, cluster_id, type_name));
+
+CREATE TABLE metainfo (
+  "metainfo_key" VARCHAR2(255) NOT NULL,
+  "metainfo_value" CLOB NULL,
+  PRIMARY KEY ("metainfo_key"));
+
+CREATE TABLE ClusterHostMapping (
+  cluster_id NUMBER(19) NOT NULL,
+  host_name VARCHAR2(255) NOT NULL,
+  PRIMARY KEY (cluster_id, host_name));
+
+CREATE TABLE ambari_sequences (
+  sequence_name VARCHAR2(50) NOT NULL,
+  sequence_value NUMBER(38) NULL,
+  PRIMARY KEY (sequence_name));
+
+CREATE TABLE configgroup (
+  group_id NUMBER(19),
+  cluster_id NUMBER(19) NOT NULL,
+  group_name VARCHAR2(255) NOT NULL,
+  tag VARCHAR2(1024) NOT NULL,
+  description VARCHAR2(1024),
+  create_timestamp NUMBER(19) NOT NULL,
+  service_name VARCHAR(255),
+  PRIMARY KEY(group_id));
+
+CREATE TABLE confgroupclusterconfigmapping (
+  config_group_id NUMBER(19) NOT NULL,
+  cluster_id NUMBER(19) NOT NULL,
+  config_type VARCHAR2(255) NOT NULL,
+  version_tag VARCHAR2(255) NOT NULL,
+  user_name VARCHAR2(255) DEFAULT '_db',
+  create_timestamp NUMBER(19) NOT NULL,
+  PRIMARY KEY(config_group_id, cluster_id, config_type));
+
+CREATE TABLE configgrouphostmapping (
+  config_group_id NUMBER(19) NOT NULL,
+  host_name VARCHAR2(255) NOT NULL,
+  PRIMARY KEY(config_group_id, host_name));
+
+CREATE TABLE requestschedule (
+  schedule_id NUMBER(19),
+  cluster_id NUMBER(19) NOT NULL,
+  description VARCHAR2(255),
+  status VARCHAR2(255),
+  batch_separation_seconds smallint,
+  batch_toleration_limit smallint,
+  create_user VARCHAR2(255),
+  create_timestamp NUMBER(19),
+  update_user VARCHAR2(255),
+  update_timestamp NUMBER(19),
+  minutes VARCHAR2(10),
+  hours VARCHAR2(10),
+  days_of_month VARCHAR2(10),
+  month VARCHAR2(10),
+  day_of_week VARCHAR2(10),
+  yearToSchedule VARCHAR2(10),
+  startTime VARCHAR2(50),
+  endTime VARCHAR2(50),
+  last_execution_status VARCHAR2(255),
+  PRIMARY KEY(schedule_id));
+
+CREATE TABLE requestschedulebatchrequest (
+  schedule_id NUMBER(19),
+  batch_id NUMBER(19),
+  request_id NUMBER(19),
+  request_type VARCHAR2(255),
+  request_uri VARCHAR2(1024),
+  request_body BLOB,
+  request_status VARCHAR2(255),
+  return_code smallint,
+  return_message VARCHAR2(2000),
+  PRIMARY KEY(schedule_id, batch_id));
+
+CREATE TABLE blueprint (
+  blueprint_name VARCHAR2(255) NOT NULL,
+  stack_name VARCHAR2(255) NOT NULL,
+  stack_version VARCHAR2(255) NOT NULL,
+  PRIMARY KEY(blueprint_name));
+
+CREATE TABLE hostgroup (
+  blueprint_name VARCHAR2(255) NOT NULL,
+  name VARCHAR2(255) NOT NULL,
+  cardinality VARCHAR2(255) NOT NULL,
+  PRIMARY KEY(blueprint_name, name));
+
+CREATE TABLE hostgroup_component (
+  blueprint_name VARCHAR2(255) NOT NULL,
+  hostgroup_name VARCHAR2(255) NOT NULL,
+  name VARCHAR2(255) NOT NULL,
+  PRIMARY KEY(blueprint_name, hostgroup_name, name));
+
+CREATE TABLE blueprint_configuration (
+  blueprint_name VARCHAR2(255) NOT NULL,
+  type_name VARCHAR2(255) NOT NULL,
+  config_data CLOB NOT NULL,
+  config_attributes CLOB,
+  PRIMARY KEY(blueprint_name, type_name));
+
+CREATE TABLE hostgroup_configuration (
+  blueprint_name VARCHAR2(255) NOT NULL,
+  hostgroup_name VARCHAR2(255) NOT NULL,
+  type_name VARCHAR2(255) NOT NULL,
+  config_data CLOB NOT NULL,
+  config_attributes CLOB,
+  PRIMARY KEY(blueprint_name, hostgroup_name, type_name));
+
+CREATE TABLE viewmain (view_name VARCHAR(255) NOT NULL,
+  label VARCHAR(255),
+  description VARCHAR(2048),
+  version VARCHAR(255),
+  resource_type_id NUMBER(10) NOT NULL,
+  icon VARCHAR(255),
+  icon64 VARCHAR(255),
+  archive VARCHAR(255),
+  mask VARCHAR(255),
+  system_view NUMBER(1) DEFAULT 0 NOT NULL,
+  PRIMARY KEY(view_name));
+
+CREATE TABLE viewinstancedata (
+  view_instance_id NUMBER(19),
+  view_name VARCHAR(255) NOT NULL,
+  view_instance_name VARCHAR(255) NOT NULL,
+  name VARCHAR(255) NOT NULL,
+  user_name VARCHAR(255) NOT NULL,
+  value VARCHAR(2000) NOT NULL,
+  PRIMARY KEY(view_instance_id, name, user_name));
+
+CREATE TABLE viewinstance (
+  view_instance_id NUMBER(19),
+  resource_id NUMBER(19) NOT NULL,
+  view_name VARCHAR(255) NOT NULL,
+  name VARCHAR(255) NOT NULL,
+  label VARCHAR(255),
+  description VARCHAR(2048),
+  visible CHAR(1),
+  icon VARCHAR(255),
+  icon64 VARCHAR(255),
+  xml_driven CHAR(1),
+  PRIMARY KEY(view_instance_id));
+
+CREATE TABLE viewinstanceproperty (
+  view_name VARCHAR(255) NOT NULL,
+  view_instance_name VARCHAR(255) NOT NULL,
+  name VARCHAR(255) NOT NULL,
+  value VARCHAR(2000) NOT NULL,
+  PRIMARY KEY(view_name, view_instance_name, name));
+
+CREATE TABLE viewparameter (
+  view_name VARCHAR(255) NOT NULL,
+  name VARCHAR(255) NOT NULL,
+  description VARCHAR(2048),
+  required CHAR(1),
+  masked CHAR(1),
+  PRIMARY KEY(view_name, name));
+
+CREATE TABLE viewresource (view_name VARCHAR(255) NOT NULL,
+  name VARCHAR(255) NOT NULL,
+  plural_name VARCHAR(255),
+  id_property VARCHAR(255),
+  subResource_names VARCHAR(255),
+  provider VARCHAR(255),
+  service VARCHAR(255),
+  "resource" VARCHAR(255),
+  PRIMARY KEY(view_name, name));
+
+CREATE TABLE viewentity (
+  id NUMBER(19) NOT NULL,
+  view_name VARCHAR(255) NOT NULL,
+  view_instance_name VARCHAR(255) NOT NULL,
+  class_name VARCHAR(255) NOT NULL,
+  id_property VARCHAR(255),
+  PRIMARY KEY(id));
+
+CREATE TABLE adminresourcetype (
+  resource_type_id NUMBER(10) NOT NULL,
+  resource_type_name VARCHAR(255) NOT NULL,
+  PRIMARY KEY(resource_type_id));
+
+CREATE TABLE adminresource (
+  resource_id NUMBER(19) NOT NULL,
+  resource_type_id NUMBER(10) NOT NULL,
+  PRIMARY KEY(resource_id));
+
+CREATE TABLE adminprincipaltype (
+  principal_type_id NUMBER(10) NOT NULL,
+  principal_type_name VARCHAR(255) NOT NULL,
+  PRIMARY KEY(principal_type_id));
+
+CREATE TABLE adminprincipal (
+  principal_id NUMBER(19) NOT NULL,
+  principal_type_id NUMBER(10) NOT NULL,
+  PRIMARY KEY(principal_id));
+
+CREATE TABLE adminpermission (
+  permission_id NUMBER(19) NOT NULL,
+  permission_name VARCHAR(255) NOT NULL,
+  resource_type_id NUMBER(10) NOT NULL,
+  PRIMARY KEY(permission_id));
+
+CREATE TABLE adminprivilege (
+  privilege_id NUMBER(19),
+  permission_id NUMBER(19) NOT NULL,
+  resource_id NUMBER(19) NOT NULL,
+  principal_id NUMBER(19) NOT NULL,
+  PRIMARY KEY(privilege_id));
 
 CREATE TABLE repo_version (
   repo_version_id NUMBER(19) NOT NULL,
