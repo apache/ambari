@@ -23,51 +23,42 @@ var App = require('app');
  * @type {*}
  */
 App.MainMenuView = Em.CollectionView.extend({
-  tagName:'ul',
-  classNames:['nav', 'top-nav-menu'],
+  tagName: 'ul',
+  classNames: ['nav', 'top-nav-menu'],
 
-  views: function() {
+  views: function () {
     return App.router.get('mainViewsController.ambariViews');
   }.property('App.router.mainViewsController.ambariViews'),
 
-  content: function(){
+  content: function () {
     var result = [];
     if (App.router.get('loggedIn')) {
 
       if (App.router.get('clusterController.isLoaded') && App.get('router.clusterInstallCompleted')) {
 
-          result.push(
-            { label:Em.I18n.t('menu.item.dashboard'), routing:'dashboard', active:'active'},
-            { label:Em.I18n.t('menu.item.services'), routing:'services'},
-            { label:Em.I18n.t('menu.item.hosts'), routing:'hosts', hasAlertsLabel: true}
-          );
+        result.push(
+          { label: Em.I18n.t('menu.item.dashboard'), routing: 'dashboard', active: 'active'},
+          { label: Em.I18n.t('menu.item.services'), routing: 'services'},
+          { label: Em.I18n.t('menu.item.hosts'), routing: 'hosts', hasAlertsLabel: true}
+        );
 
-          if (App.get('supports.alerts')) {
-            result.push({ label:Em.I18n.t('menu.item.alerts'), routing:'alerts'});
-          }
+        if (App.get('supports.alerts')) {
+          result.push({ label: Em.I18n.t('menu.item.alerts'), routing: 'alerts'});
+        }
 
-          if (App.supports.mirroring && App.Service.find().findProperty('serviceName', 'FALCON')) {
-            result.push({ label:Em.I18n.t('menu.item.mirroring'), routing:'mirroring'});
-          }
+        if (!App.get('isHadoop2Stack')) {
+          result.push({ label: Em.I18n.t('menu.item.jobs'), routing: 'apps'});
+        }
 
-          if (!App.get('isHadoop2Stack')) {
-            result.push({ label:Em.I18n.t('menu.item.jobs'), routing:'apps'});
-          }
-
-          if (App.get('isAdmin')) {
-            result.push({ label:Em.I18n.t('menu.item.admin'), routing:'admin'});
-          }
+        if (App.get('isAdmin')) {
+          result.push({ label: Em.I18n.t('menu.item.admin'), routing: 'admin'});
+        }
       }
-
-      if (App.get('supports.views')) {
-        result.push({ label:Em.I18n.t('menu.item.views'), routing:'views.index', isView:true, views: this.get('views').filterProperty('visible')});
-      }
-
+      result.push({ label: Em.I18n.t('menu.item.views'), routing: 'views.index', isView: true, views: this.get('views').filterProperty('visible')});
     }
     return result;
-  }.property('App.router.loggedIn', 'App.supports.views', 'App.supports.mirroring',
-      'App.supports.secureCluster', 'App.supports.highAvailability', 'views.length',
-      'App.router.clusterController.isLoaded', 'App.router.clusterInstallCompleted', 'App.supports.alerts'),
+  }.property('App.router.loggedIn', 'views.length',
+    'App.router.clusterController.isLoaded', 'App.router.clusterInstallCompleted', 'App.supports.alerts'),
 
   itemViewClass: Em.View.extend({
 
@@ -138,7 +129,7 @@ App.MainMenuView = Em.CollectionView.extend({
           url: 'repositories',
           label: Em.I18n.t('common.repositories')
         });
-        if(App.get('supports.stackUpgrade')) {
+        if (App.get('supports.stackUpgrade')) {
           categories.push({
             name: 'adminStackVersions',
             url: 'versions',

@@ -25,8 +25,6 @@ var modelSetup = setups.configs;
 
 describe('App.config', function () {
 
-  App.supports.capacitySchedulerUi = true;
-
   var loadServiceSpecificConfigs = function(context, serviceName) {
     context.configGroups = modelSetup.setupConfigGroupsObject(serviceName);
     context.advancedConfigs = modelSetup.setupAdvancedConfigsObject();

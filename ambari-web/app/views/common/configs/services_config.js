@@ -802,7 +802,7 @@ App.ServiceConfigContainerView = Em.ContainerView.extend({
       }
       var categoriesToPush = [];
       this.get('controller.selectedService.configCategories').forEach(function (item) {
-        var categoryView = item.get('isCustomView') ? (App.get('supports.capacitySchedulerUi') ? item.get('customView') : null) : App.ServiceConfigsByCategoryView;
+        var categoryView = item.get('isCustomView') ?  null : App.ServiceConfigsByCategoryView;
         if (categoryView !== null) {
           categoriesToPush.pushObject(categoryView.extend({
             category: item,

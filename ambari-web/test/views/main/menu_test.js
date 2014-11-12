@@ -42,13 +42,13 @@ describe('App.MainMenuView', function () {
     it('menu should be populated if cluster installation is completed', function () {
       App.get.withArgs('router.clusterInstallCompleted').returns(true);
       App.router.notifyPropertyChange('clusterInstallCompleted');
-      expect(mainMenuView.get('content').length > 0).to.be.true;
+      expect(mainMenuView.get('content').length > 1).to.be.true;
     });
 
     it('menu should not be populated if cluster installation is not completed', function () {
       App.get.withArgs('router.clusterInstallCompleted').returns(false);
       App.router.notifyPropertyChange('clusterInstallCompleted');
-      expect(mainMenuView.get('content').length > 0).to.be.false;
+      expect(mainMenuView.get('content').length > 1).to.be.false;
     });
 
   });

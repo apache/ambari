@@ -253,7 +253,7 @@ App.MainHostSummaryView = Em.View.extend({
       return installedServices.contains(clientComponents.get('serviceName')) && !installedClients.contains(clientComponents.get('componentName'));
     });
     return installableClients.mapProperty('componentName');
-  }.property('content.hostComponents.length', 'installedServices.length', 'App.supports.deleteHost'),
+  }.property('content.hostComponents.length', 'installedServices.length'),
 
   /**
    * List of components that may be added to the current host

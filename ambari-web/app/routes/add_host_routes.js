@@ -247,19 +247,13 @@ module.exports = App.WizardRoute.extend({
     },
     back: function(router){
       if(!router.get('wizardStep8Controller.isBackBtnDisabled')) {
-        if(App.supports.hostOverrides){
-          router.transitionTo('step4');
-        }else{
-          router.transitionTo('step3');
-        }
+        router.transitionTo('step4');
       }
     },
     next: function (router) {
       var addHostController = router.get('addHostController');
       var wizardStep8Controller = router.get('wizardStep8Controller');
-      if(App.supports.hostOverrides){
-        addHostController.applyConfigGroup();
-      }
+      addHostController.applyConfigGroup();
       addHostController.installServices(false, function () {
         addHostController.setInfoForStep9();
         // We need to do recovery based on whether we are in Add Host or Installer wizard
