@@ -121,7 +121,7 @@ public class AlertSummaryGroupedRenderer extends AlertSummaryRenderer {
       Resource resource = node.getObject();
 
       Long definitionId = (Long) resource.getPropertyValue(AlertResourceProvider.ALERT_ID);
-      String definitionName = (String) resource.getPropertyValue(AlertResourceProvider.ALERT_NAME);
+      String definitionName = (String) resource.getPropertyValue(AlertResourceProvider.ALERT_DEFINITION_NAME);
       AlertState state = (AlertState) resource.getPropertyValue(AlertResourceProvider.ALERT_STATE);
       Long originalTimestampObject = (Long) resource.getPropertyValue(AlertResourceProvider.ALERT_ORIGINAL_TIMESTAMP);
 
@@ -211,14 +211,14 @@ public class AlertSummaryGroupedRenderer extends AlertSummaryRenderer {
    * {@inheritDoc}
    * <p/>
    * Additionally adds {@link AlertResourceProvider#ALERT_ID} and
-   * {@link AlertResourceProvider#ALERT_NAME}.
+   * {@link AlertResourceProvider#ALERT_DEFINITION_NAME}.
    */
   @Override
   protected void addRequiredAlertProperties(Set<String> properties) {
     super.addRequiredAlertProperties(properties);
 
     properties.add(AlertResourceProvider.ALERT_ID);
-    properties.add(AlertResourceProvider.ALERT_NAME);
+    properties.add(AlertResourceProvider.ALERT_DEFINITION_NAME);
   }
 
   /**

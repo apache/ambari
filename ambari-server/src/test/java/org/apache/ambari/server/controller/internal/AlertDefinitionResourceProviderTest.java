@@ -92,7 +92,6 @@ public class AlertDefinitionResourceProviderTest {
     m_injector = Guice.createInjector(Modules.override(
         new InMemoryDefaultTestModule()).with(new MockModule()));
 
-    AlertDefinitionResourceProvider.init(m_injector);
     m_injector.injectMembers(m_factory);
   }
 

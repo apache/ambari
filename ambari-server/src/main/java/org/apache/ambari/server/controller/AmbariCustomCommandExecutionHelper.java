@@ -59,6 +59,7 @@ import org.apache.ambari.server.state.CustomCommandDefinition;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostComponentAdminState;
 import org.apache.ambari.server.state.MaintenanceState;
+import org.apache.ambari.server.state.PropertyInfo.PropertyType;
 import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
@@ -67,7 +68,6 @@ import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.State;
-import org.apache.ambari.server.state.PropertyInfo.PropertyType;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpInProgressEvent;
 import org.apache.ambari.server.utils.StageUtils;
@@ -254,7 +254,7 @@ public class AmbariCustomCommandExecutionHelper {
     if(ci != null){
       customCommandDefinition = ci.getCustomCommandByName(commandName);
     }
-    
+
     long nowTimestamp = System.currentTimeMillis();
 
     for (String hostName : candidateHosts) {
@@ -286,30 +286,30 @@ public class AmbariCustomCommandExecutionHelper {
       if(customCommandDefinition != null && customCommandDefinition.isBackground()){
         execCmd.setCommandType(AgentCommandType.BACKGROUND_EXECUTION_COMMAND);
       }
-      
+
       execCmd.setConfigurations(configurations);
       execCmd.setConfigurationAttributes(configurationAttributes);
       execCmd.setConfigurationTags(configTags);
-      
+
       if(actionExecutionContext.getParameters() != null && actionExecutionContext.getParameters().containsKey(KeyNames.REFRESH_ADITIONAL_COMPONENT_TAGS)){
         execCmd.setForceRefreshConfigTags(parseAndValidateComponentsMapping(actionExecutionContext.getParameters().get(KeyNames.REFRESH_ADITIONAL_COMPONENT_TAGS)));
       }
- 
+
       Map<String, String> hostLevelParams = new TreeMap<String, String>();
 
       hostLevelParams.put(CUSTOM_COMMAND, commandName);
       // Set parameters required for re-installing clients on restart
       hostLevelParams.put(REPO_INFO, getRepoInfo
         (cluster, host));
-      
+
       Set<String> userSet = configHelper.getPropertyValuesWithPropertyType(stackId, PropertyType.USER, cluster);
       String userList = gson.toJson(userSet);
       hostLevelParams.put(USER_LIST, userList);
-      
+
       Set<String> groupSet = configHelper.getPropertyValuesWithPropertyType(stackId, PropertyType.GROUP, cluster);
       String groupList = gson.toJson(groupSet);
       hostLevelParams.put(GROUP_LIST, groupList);
-      
+
       execCmd.setHostLevelParams(hostLevelParams);
 
       Map<String, String> commandParams = new TreeMap<String, String>();
@@ -357,15 +357,9 @@ public class AmbariCustomCommandExecutionHelper {
       if (roleParams == null) {
         roleParams = new TreeMap<String, String>();
       }
+
       roleParams.put(COMPONENT_CATEGORY, componentInfo.getCategory());
       execCmd.setRoleParams(roleParams);
-      
-      // if the target is NAGIOS (for example: restart command), make passive info always available
-      if (execCmd.getRole().equals(Role.NAGIOS_SERVER.name())) {
-        execCmd.setPassiveInfo(
-          maintenanceStateHelper.getMaintenanceHostComponents(clusters, cluster));
-      }
-      
     }
   }
 
@@ -382,7 +376,7 @@ public class AmbariCustomCommandExecutionHelper {
     }
     return retVal;
   }
-  
+
   private void findHostAndAddServiceCheckAction(
           final ActionExecutionContext actionExecutionContext,
           final RequestResourceFilter resourceFilter,
@@ -832,12 +826,12 @@ public class AmbariCustomCommandExecutionHelper {
         Map<String, String> extraParams = null;
         String componentName = (null == resourceFilter.getComponentName()) ? null :
             resourceFilter.getComponentName().toLowerCase();
-        
+
         if (null != componentName && requestParams.containsKey(componentName)) {
           extraParams = new HashMap<String, String>();
           extraParams.put(componentName, requestParams.get(componentName));
         }
-        
+
         if(requestParams.containsKey(KeyNames.REFRESH_ADITIONAL_COMPONENT_TAGS)){
           actionExecutionContext.getParameters().put(KeyNames.REFRESH_ADITIONAL_COMPONENT_TAGS, requestParams.get(KeyNames.REFRESH_ADITIONAL_COMPONENT_TAGS));
         }
@@ -865,21 +859,22 @@ public class AmbariCustomCommandExecutionHelper {
     String repoInfo = "";
 
     String family = os_family.find(host.getOsType());
-    if (null == family)
+    if (null == family) {
       family = host.getOsFamily();
-   
+    }
+
     // !!! check for the most specific first
-    if (repos.containsKey(host.getOsType()))
+    if (repos.containsKey(host.getOsType())) {
       repoInfo = gson.toJson(repos.get(host.getOsType()));
-    else if (null != family && repos.containsKey(family))
+    } else if (null != family && repos.containsKey(family)) {
       repoInfo = gson.toJson(repos.get(family));
-    else {
+    } else {
       LOG.warn("Could not retrieve repo information for host"
           + ", hostname=" + host.getHostName()
           + ", clusterName=" + cluster.getClusterName()
           + ", stackInfo=" + stackId.getStackId());
     }
-    
+
     return repoInfo;
   }
 }

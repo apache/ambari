@@ -81,10 +81,11 @@ public class AlertTargetResourceProviderTest {
     m_dao = createStrictMock(AlertDispatchDAO.class);
     m_amc = createMock(AmbariManagementController.class);
 
+    // create an injector which will inject the mocks
     m_injector = Guice.createInjector(Modules.override(
         new InMemoryDefaultTestModule()).with(new MockModule()));
 
-    AlertTargetResourceProvider.init(m_injector);
+    Assert.assertNotNull(m_injector);
   }
 
   /**

@@ -24,12 +24,12 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.PropertyProvider;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.SystemException;
-import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.AlertSummaryDTO;
 import org.apache.ambari.server.orm.dao.AlertsDAO;
 import org.apache.ambari.server.state.AlertState;
@@ -38,33 +38,40 @@ import org.apache.ambari.server.state.Clusters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.inject.Injector;
+import com.google.inject.Inject;
+import com.google.inject.Provider;
 
 /**
  * Property provider that adds alert summary information to endpoints.
  */
+@StaticallyInject
 public class AlertSummaryPropertyProvider extends BaseProvider implements PropertyProvider {
 
   private final static Logger LOG = LoggerFactory.getLogger(AlertSummaryPropertyProvider.class);
-  
-  private static Clusters s_clusters = null;
+
+  @Inject
+  private static Provider<Clusters> s_clusters = null;
+
+  @Inject
   private static AlertsDAO s_dao = null;
-  
+
   private Resource.Type m_resourceType = null;
   private String m_clusterPropertyId = null;
   private String m_typeIdPropertyId = null;
-  
+
+  /**
+   * Constructor.
+   *
+   * @param type
+   * @param clusterPropertyId
+   * @param typeIdPropertyId
+   */
   AlertSummaryPropertyProvider(Resource.Type type,
       String clusterPropertyId, String typeIdPropertyId) {
     super(Collections.singleton("alerts_summary"));
     m_resourceType = type;
     m_clusterPropertyId = clusterPropertyId;
     m_typeIdPropertyId = typeIdPropertyId;
-  }
-  
-  public static void init(Injector injector) {
-    s_clusters = injector.getInstance(Clusters.class);
-    s_dao = injector.getInstance(AlertsDAO.class);
   }
 
   @Override
@@ -81,22 +88,23 @@ public class AlertSummaryPropertyProvider extends BaseProvider implements Proper
       LOG.error("Could not load built-in alerts - Executor exception ({})",
           e.getMessage());
     }
-    
+
     return resources;
   }
-  
+
   private void populateResource(Resource resource, Set<String> requestedIds) throws AmbariException {
 
     AlertSummaryDTO summary = null;
 
     String clusterName = (String) resource.getPropertyValue(m_clusterPropertyId);
-    
-    if (null == clusterName)
+
+    if (null == clusterName) {
       return;
-    
+    }
+
     String typeId = null == m_typeIdPropertyId ? null : (String) resource.getPropertyValue(m_typeIdPropertyId);
-    Cluster cluster = s_clusters.getCluster(clusterName);
-    
+    Cluster cluster = s_clusters.get().getCluster(clusterName);
+
     switch (m_resourceType.getInternalType()) {
       case Cluster:
         summary = s_dao.findCurrentCounts(cluster.getClusterId(), null, null);
@@ -110,28 +118,29 @@ public class AlertSummaryPropertyProvider extends BaseProvider implements Proper
       default:
         break;
     }
-    
+
     if (null != summary) {
       Map<AlertState, Integer> map = new HashMap<AlertState, Integer>();
       map.put(AlertState.OK, Integer.valueOf(summary.getOkCount()));
       map.put(AlertState.WARNING, Integer.valueOf(summary.getWarningCount()));
       map.put(AlertState.CRITICAL, Integer.valueOf(summary.getCriticalCount()));
       map.put(AlertState.UNKNOWN, Integer.valueOf(summary.getUnknownCount()));
-      
+
       setResourceProperty(resource, "alerts_summary", map, requestedIds);
     }
-      
+
   }
 
   @Override
   public Set<String> checkPropertyIds(Set<String> propertyIds) {
     Set<String> rejects = new HashSet<String>();
-    
+
     for (String id : propertyIds) {
-      if (!id.startsWith("alerts_summary"))
+      if (!id.startsWith("alerts_summary")) {
         rejects.add(id);
+      }
     }
-    
+
     return rejects;
   }
 

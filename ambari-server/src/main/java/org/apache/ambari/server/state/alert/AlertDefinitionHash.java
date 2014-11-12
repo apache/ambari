@@ -87,7 +87,7 @@ public class AlertDefinitionHash {
    * All clusters.
    */
   @Inject
-  private Clusters m_clusters;
+  private Provider<Clusters> m_clusters;
 
   @Inject
   private ActionQueue m_actionQueue;
@@ -157,7 +157,7 @@ public class AlertDefinitionHash {
    * @throws AmbariException
    */
   public Map<String, String> getHashes(String hostName) throws AmbariException {
-    Set<Cluster> clusters = m_clusters.getClustersForHost(hostName);
+    Set<Cluster> clusters = m_clusters.get().getClustersForHost(hostName);
     if (null == clusters || clusters.size() == 0) {
       return Collections.emptyMap();
     }
@@ -321,7 +321,7 @@ public class AlertDefinitionHash {
     Cluster cluster = null;
     String clusterName = null;
     try {
-      cluster = m_clusters.getClusterById(clusterId);
+      cluster = m_clusters.get().getClusterById(clusterId);
       if (null != cluster) {
         clusterName = cluster.getClusterName();
       }
@@ -380,7 +380,7 @@ public class AlertDefinitionHash {
     Set<String> affectedHosts = new HashSet<String>();
 
     try {
-      hosts = m_clusters.getHostsForCluster(clusterName);
+      hosts = m_clusters.get().getHostsForCluster(clusterName);
     } catch (AmbariException ambariException) {
       LOG.error("Unable to lookup hosts for cluster named {}", clusterName,
           ambariException);
@@ -460,7 +460,7 @@ public class AlertDefinitionHash {
     String clusterName = null;
 
     try {
-      Cluster cluster = m_clusters.getClusterById(clusterId);
+      Cluster cluster = m_clusters.get().getClusterById(clusterId);
       clusterName = cluster.getClusterName();
     } catch (AmbariException ae) {
       LOG.error("Unable to lookup cluster for alert definition commands", ae);
@@ -503,7 +503,7 @@ public class AlertDefinitionHash {
           hostName, hash, definitions);
 
       try {
-        Cluster cluster = m_clusters.getCluster(clusterName);
+        Cluster cluster = m_clusters.get().getCluster(clusterName);
         command.addConfigs(m_configHelper.get(), cluster);
       } catch (AmbariException ae) {
         LOG.warn("Unable to add configurations to alert definition command", ae);
@@ -594,7 +594,7 @@ public class AlertDefinitionHash {
     Set<AlertDefinitionEntity> definitions = new HashSet<AlertDefinitionEntity>();
 
     try {
-      Cluster cluster = m_clusters.getCluster(clusterName);
+      Cluster cluster = m_clusters.get().getCluster(clusterName);
       if (null == cluster) {
         LOG.warn("Unable to get alert definitions for the missing cluster {}",
             clusterName);

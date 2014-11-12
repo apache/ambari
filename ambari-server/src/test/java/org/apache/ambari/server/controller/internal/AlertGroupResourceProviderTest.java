@@ -108,10 +108,11 @@ public class AlertGroupResourceProviderTest {
     m_clusters = createMock(Clusters.class);
     m_cluster = createMock(Cluster.class);
 
+    // create an injector which will inject the mocks
     m_injector = Guice.createInjector(Modules.override(
         new InMemoryDefaultTestModule()).with(new MockModule()));
 
-    AlertGroupResourceProvider.init(m_injector);
+    assertNotNull(m_injector);
 
     expect(m_amc.getClusters()).andReturn(m_clusters).atLeastOnce();
     expect(m_clusters.getCluster((String) anyObject())).andReturn(m_cluster).atLeastOnce();

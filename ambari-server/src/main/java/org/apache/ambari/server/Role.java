@@ -36,8 +36,9 @@ public class Role {
    * @return a Role instance, never <code>null</code>
    */
   public static Role valueOf(String name) {
-    if (roles.containsKey(name))
+    if (roles.containsKey(name)) {
       return roles.get(name);
+    }
 
     Role role = new Role(name);
     roles.put(name, role);
@@ -89,7 +90,6 @@ public class Role {
   public static final Role MAPREDUCE_SERVICE_CHECK = valueOf("MAPREDUCE_SERVICE_CHECK");
   public static final Role MAPREDUCE2_SERVICE_CHECK = valueOf("MAPREDUCE2_SERVICE_CHECK");
   public static final Role MYSQL_SERVER = valueOf("MYSQL_SERVER");
-  public static final Role NAGIOS_SERVER = valueOf("NAGIOS_SERVER");
   public static final Role NAMENODE = valueOf("NAMENODE");
   public static final Role NAMENODE_SERVICE_CHECK = valueOf("NAMENODE_SERVICE_CHECK");
   public static final Role OOZIE_SERVICE_CHECK = valueOf("OOZIE_SERVICE_CHECK");
@@ -130,8 +130,9 @@ public class Role {
 
   @Override
   public boolean equals(Object o) {
-    if (null == o || !Role.class.equals(o.getClass()))
+    if (null == o || !Role.class.equals(o.getClass())) {
       return false;
+    }
     
     return this == o || name.equals(((Role) o).name);
   }

@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.google.inject.Inject;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.DuplicateResourceException;
@@ -59,6 +58,7 @@ import org.apache.ambari.server.state.ServiceComponentHost;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 import com.google.inject.persist.Transactional;
@@ -327,8 +327,9 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
     hostRequest.setRackInfo((String) properties.get(HOST_RACK_INFO_PROPERTY_ID));
     
     Object o = properties.get(HOST_MAINTENANCE_STATE_PROPERTY_ID);
-    if (null != o)
+    if (null != o) {
       hostRequest.setMaintenanceState(o.toString());
+    }
     
     List<ConfigurationRequest> cr = getConfigurationRequests("Hosts", properties);
     
@@ -563,8 +564,9 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
         // do nothing
       }
 
-      if (null != request.getHostAttributes())
+      if (null != request.getHostAttributes()) {
         h.setHostAttributes(request.getHostAttributes());
+      }
 
       if (null != request.getRackInfo()) {
         h.setRackInfo(request.getRackInfo());
@@ -629,14 +631,6 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
       //todo: if attempt was made to update a property other than those
       //todo: that are allowed above, should throw exception
     }
-    
-    if (maintenanceCluster != null) {
-      try {
-        maintenanceStateHelper.createRequests(controller, requestProperties, maintenanceCluster);
-      } catch (Exception e) {
-        LOG.warn("Could not send maintenance status to Nagios (" + e.getMessage() + ")");
-      }
-    }
   }
 
 
@@ -650,8 +644,9 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
 
     for (HostRequest hostRequest : requests) {
       String hostName = hostRequest.getHostname();
-      if (null == hostName)
+      if (null == hostName) {
         continue;
+      }
 
       if (null != hostRequest.getClusterName()) {
         Cluster cluster = clusters.getCluster(hostRequest.getClusterName());
@@ -667,8 +662,9 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
 
           int i = 0;
           for (ServiceComponentHost sch : list) {
-            if ((i++) > 0)
+            if ((i++) > 0) {
               reason.append(", ");
+            }
             reason.append(sch.getServiceComponentName());
           }
 
@@ -688,8 +684,9 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
               .append(".  It belongs to clusters: ");
           int i = 0;
           for (Cluster c : clusterSet) {
-            if ((i++) > 0)
+            if ((i++) > 0) {
               reason.append(", ");
+            }
             reason.append(c.getClusterName());
           }
           throw new AmbariException(reason.toString());

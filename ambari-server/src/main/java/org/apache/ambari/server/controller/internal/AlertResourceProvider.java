@@ -19,12 +19,14 @@ package org.apache.ambari.server.controller.internal;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
@@ -40,17 +42,19 @@ import org.apache.ambari.server.orm.entities.AlertHistoryEntity;
 import org.apache.ambari.server.state.Cluster;
 
 import com.google.inject.Inject;
-import com.google.inject.Injector;
 
 /**
  * ResourceProvider for Alert instances
  */
+@StaticallyInject
 public class AlertResourceProvider extends ReadOnlyResourceProvider {
 
+  public static final String ALERT_ID = "Alert/id";
   public static final String ALERT_STATE = "Alert/state";
   public static final String ALERT_ORIGINAL_TIMESTAMP = "Alert/original_timestamp";
-  public static final String ALERT_ID = "Alert/id";
-  public static final String ALERT_NAME = "Alert/name";
+
+  public static final String ALERT_DEFINITION_ID = "Alert/definition_id";
+  public static final String ALERT_DEFINITION_NAME = "Alert/definition_name";
 
   protected static final String ALERT_CLUSTER_NAME = "Alert/cluster_name";
   protected static final String ALERT_LATEST_TIMESTAMP = "Alert/latest_timestamp";
@@ -64,23 +68,53 @@ public class AlertResourceProvider extends ReadOnlyResourceProvider {
   protected static final String ALERT_SCOPE = "Alert/scope";
 
   private static Set<String> pkPropertyIds = new HashSet<String>(
-      Arrays.asList(ALERT_ID, ALERT_NAME));
+      Arrays.asList(ALERT_ID, ALERT_DEFINITION_NAME));
 
-  private static AlertsDAO alertsDAO = null;
+  @Inject
+  private static AlertsDAO alertsDAO;
 
   /**
-   * @param injector the injector
+   * The property ids for an alert defintion resource.
    */
-  @Inject
-  public static void init(Injector injector) {
-    alertsDAO = injector.getInstance(AlertsDAO.class);
+  private static final Set<String> PROPERTY_IDS = new HashSet<String>();
+
+  /**
+   * The key property ids for an alert definition resource.
+   */
+  private static final Map<Resource.Type, String> KEY_PROPERTY_IDS = new HashMap<Resource.Type, String>();
+
+  static {
+    // properties
+    PROPERTY_IDS.add(ALERT_ID);
+    PROPERTY_IDS.add(ALERT_STATE);
+    PROPERTY_IDS.add(ALERT_ORIGINAL_TIMESTAMP);
+    PROPERTY_IDS.add(ALERT_DEFINITION_ID);
+    PROPERTY_IDS.add(ALERT_DEFINITION_NAME);
+    PROPERTY_IDS.add(ALERT_CLUSTER_NAME);
+    PROPERTY_IDS.add(ALERT_LATEST_TIMESTAMP);
+    PROPERTY_IDS.add(ALERT_MAINTENANCE_STATE);
+    PROPERTY_IDS.add(ALERT_INSTANCE);
+    PROPERTY_IDS.add(ALERT_LABEL);
+    PROPERTY_IDS.add(ALERT_TEXT);
+    PROPERTY_IDS.add(ALERT_COMPONENT);
+    PROPERTY_IDS.add(ALERT_HOST);
+    PROPERTY_IDS.add(ALERT_SERVICE);
+    PROPERTY_IDS.add(ALERT_SCOPE);
+
+    // keys
+    KEY_PROPERTY_IDS.put(Resource.Type.Cluster, ALERT_CLUSTER_NAME);
+    KEY_PROPERTY_IDS.put(Resource.Type.Service, ALERT_SERVICE);
+    KEY_PROPERTY_IDS.put(Resource.Type.Host, ALERT_HOST);
+    KEY_PROPERTY_IDS.put(Resource.Type.Alert, ALERT_ID);
   }
 
-  AlertResourceProvider(Set<String> propertyIds,
-      Map<Resource.Type, String> keyPropertyIds,
-      AmbariManagementController managementController) {
-
-    super(propertyIds, keyPropertyIds, managementController);
+  /**
+   * Constructor.
+   *
+   * @param controller
+   */
+  AlertResourceProvider(AmbariManagementController controller) {
+    super(PROPERTY_IDS, KEY_PROPERTY_IDS, controller);
   }
 
   @Override
@@ -180,12 +214,15 @@ public class AlertResourceProvider extends ReadOnlyResourceProvider {
     setResourceProperty(resource, ALERT_SERVICE, history.getServiceName(), requestedIds);
 
     AlertDefinitionEntity definition = history.getAlertDefinition();
-    setResourceProperty(resource, ALERT_NAME, definition.getDefinitionName(), requestedIds);
+    setResourceProperty(resource, ALERT_DEFINITION_ID, definition.getDefinitionId(),requestedIds);
+    setResourceProperty(resource, ALERT_DEFINITION_NAME, definition.getDefinitionName(), requestedIds);
     setResourceProperty(resource, ALERT_SCOPE, definition.getScope(), requestedIds);
 
     if (isCollection) {
-      // !!! want name to be populated as if it were a PK when requesting the collection
-      resource.setProperty(ALERT_NAME, definition.getDefinitionName());
+      // !!! want name/id to be populated as if it were a PK when requesting the
+      // collection
+      resource.setProperty(ALERT_DEFINITION_ID, definition.getDefinitionId());
+      resource.setProperty(ALERT_DEFINITION_NAME, definition.getDefinitionName());
     }
 
     return resource;

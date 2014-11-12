@@ -3963,8 +3963,6 @@ public class AmbariManagementControllerTest {
     assertEquals(1, response.getTasks().size());
     taskStatus = response.getTasks().get(0);
     Assert.assertEquals("h3", taskStatus.getHostName());
-
-    Assert.assertTrue(null != cmd.getPassiveInfo());
   }
 
   @Test
@@ -4066,9 +4064,6 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals("CLIENT", roleParams.get(ExecutionCommand.KeyNames.COMPONENT_CATEGORY));
     Assert.assertTrue(hrc.getExecutionCommandWrapper().getExecutionCommand().getCommandParams().containsKey("hdfs_client"));
     Assert.assertEquals("abc", hrc.getExecutionCommandWrapper().getExecutionCommand().getCommandParams().get("hdfs_client"));
-
-    // verify passive info is not passed when not NAGIOS
-    Assert.assertNull(hrc.getExecutionCommandWrapper().getExecutionCommand().getPassiveInfo());
   }
 
   @SuppressWarnings("serial")
@@ -7611,8 +7606,7 @@ public class AmbariManagementControllerTest {
       roleToIndex.put(Role.SQOOP, 20);
       roleToIndex.put(Role.GANGLIA_SERVER, 21);
       roleToIndex.put(Role.GANGLIA_MONITOR, 22);
-      roleToIndex.put(Role.NAGIOS_SERVER, 23);
-      roleToIndex.put(Role.AMBARI_SERVER_ACTION, 24);
+      roleToIndex.put(Role.AMBARI_SERVER_ACTION, 23);
     }
   }
 
@@ -9534,21 +9528,21 @@ public class AmbariManagementControllerTest {
       null);
 
 
-    ServiceComponentHost nagiosSch = null;
+    ServiceComponentHost monitoringServiceComponentHost = null;
     for (ServiceComponentHost sch : cluster.getServiceComponentHosts(host1)) {
       if (sch.getServiceComponentName().equals(fakeServer)) {
-        nagiosSch = sch;
+        monitoringServiceComponentHost = sch;
       }
     }
-    assertFalse(nagiosSch.isRestartRequired());
+
+    assertFalse(monitoringServiceComponentHost.isRestartRequired());
 
     createServiceComponent(clusterName, hdfsService, hdfsClient,
       State.INIT);
 
     createServiceComponentHost(clusterName, hdfsService, hdfsClient, host1, null);
 
-    assertTrue(nagiosSch.isRestartRequired());
-
+    assertTrue(monitoringServiceComponentHost.isRestartRequired());
   }
 
   @Test

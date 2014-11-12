@@ -18,10 +18,13 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.controller.StackServiceResponse;
-import org.easymock.EasyMockSupport;
-import org.junit.Test;
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertFalse;
+import static junit.framework.Assert.assertNotNull;
+import static junit.framework.Assert.assertTrue;
+import static junit.framework.Assert.fail;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.isA;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -31,13 +34,10 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertFalse;
-import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.assertTrue;
-import static junit.framework.Assert.fail;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.isA;
+import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.StackServiceResponse;
+import org.easymock.EasyMockSupport;
+import org.junit.Test;
 
 /**
  * BlueprintConfigurationProcessor unit tests.
@@ -2187,44 +2187,6 @@ public class BlueprintConfigurationProcessorTest {
     assertEquals("kafka Ganglia config not properly exported",
       createExportedHostName(expectedHostGroupName, expectedPortNumberOne),
       kafkaBrokerProperties.get("kafka.ganglia.metrics.host"));
-
-    mockSupport.verifyAll();
-
-  }
-
-  @Test
-  public void testNagiosConfigExported() throws Exception {
-    final String expectedHostName = "c6401.apache.ambari.org";
-    final String expectedHostGroupName = "host_group_1";
-
-    EasyMockSupport mockSupport = new EasyMockSupport();
-
-    HostGroup mockHostGroupOne = mockSupport.createMock(HostGroup.class);
-
-    expect(mockHostGroupOne.getHostInfo()).andReturn(Arrays.asList(expectedHostName, "serverTwo")).atLeastOnce();
-    expect(mockHostGroupOne.getName()).andReturn(expectedHostGroupName).atLeastOnce();
-
-    mockSupport.replayAll();
-
-    Map<String, Map<String, String>> configProperties =
-      new HashMap<String, Map<String, String>>();
-
-    Map<String, String> nagiosEnvProperties =
-      new HashMap<String, String>();
-
-    configProperties.put("nagios-env", nagiosEnvProperties);
-
-    nagiosEnvProperties.put("nagios_principal_name", expectedHostName);
-
-    BlueprintConfigurationProcessor configProcessor =
-      new BlueprintConfigurationProcessor(configProperties);
-
-    // call top-level export method
-    configProcessor.doUpdateForBlueprintExport(Arrays.asList(mockHostGroupOne));
-
-    assertEquals("nagios config not properly exported",
-      createExportedHostName(expectedHostGroupName),
-      nagiosEnvProperties.get("nagios_principal_name"));
 
     mockSupport.verifyAll();
 

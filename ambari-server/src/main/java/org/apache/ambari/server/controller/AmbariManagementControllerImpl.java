@@ -282,6 +282,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
   }
 
+  @Override
   public String getAmbariServerURI(String path) {
     if(masterProtocol==null || masterHostname==null || masterPort==null) {
       return null;
@@ -671,8 +672,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         String configTypeName = configType.getKey();
         Map<String, String> properties = configType.getValue();
 
-        if(configTypeName.equals(Configuration.GLOBAL_CONFIG_TAG))
+        if(configTypeName.equals(Configuration.GLOBAL_CONFIG_TAG)) {
           continue;
+        }
 
         String tag;
         if(cluster.getConfigsByType(configTypeName) == null) {
@@ -1321,6 +1323,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     return clusterUpdateCache.getIfPresent(clusterRequest);
   }
 
+  @Override
   public String getJobTrackerHost(Cluster cluster) {
     try {
       Service svc = cluster.getService("MAPREDUCE");
@@ -1672,18 +1675,13 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       clientsToUpdateConfigsList = new ArrayList<String>();
       clientsToUpdateConfigsList.add("*");
     }
+
     String clientsToUpdateConfigs = gson.toJson(clientsToUpdateConfigsList);
     hostParams.put(CLIENTS_TO_UPDATE_CONFIGS, clientsToUpdateConfigs);
     execCmd.setHostLevelParams(hostParams);
 
     Map<String, String> roleParams = new TreeMap<String, String>();
     execCmd.setRoleParams(roleParams);
-
-    // Send passive host info to the Nagios host role
-    if (execCmd.getRole().equals(Role.NAGIOS_SERVER.name())) {
-      execCmd.setPassiveInfo(
-        maintenanceStateHelper.getMaintenanceHostComponents(clusters, cluster));
-    }
   }
 
   protected ServiceOsSpecific populateServicePackagesInfo(ServiceInfo serviceInfo, Map<String, String> hostParams,
@@ -2382,14 +2380,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       }
     }
 
-    if (maintenanceCluster != null) {
-      try {
-        maintenanceStateHelper.createRequests(this, requestProperties, maintenanceCluster);
-      } catch (Exception e) {
-        LOG.warn("Could not send maintenance status to Nagios (" + e.getMessage() + ")");
-      }
-    }
-
     Cluster cluster = clusters.getCluster(clusterNames.iterator().next());
 
     return createAndPersistStages(cluster, requestProperties, null, null, null,
@@ -2440,6 +2430,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
   }
 
+  @Override
   public String findServiceName(Cluster cluster, String componentName) throws AmbariException {
     StackId stackId = cluster.getDesiredStackVersion();
     String serviceName =
@@ -3787,7 +3778,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         }
       }
 
-      this.users.processLdapSync(batchInfo);
+      users.processLdapSync(batchInfo);
       return batchInfo;
     } finally {
       ldapSyncInProgress = false;

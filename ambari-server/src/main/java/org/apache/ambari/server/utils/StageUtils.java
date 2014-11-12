@@ -120,7 +120,6 @@ public class StageUtils {
     componentToClusterInfoKeyMap.put("WEBHCAT_SERVER", "webhcat_server_host");
     componentToClusterInfoKeyMap.put("MYSQL_SERVER", "hive_mysql_host");
     componentToClusterInfoKeyMap.put("DASHBOARD", "dashboard_host");
-    componentToClusterInfoKeyMap.put("NAGIOS_SERVER", "nagios_server_host");
     componentToClusterInfoKeyMap.put("GANGLIA_SERVER", "ganglia_server_host");
     componentToClusterInfoKeyMap.put("DATANODE", "slave_hosts");
     componentToClusterInfoKeyMap.put("TASKTRACKER", "mapred_tt_hosts");

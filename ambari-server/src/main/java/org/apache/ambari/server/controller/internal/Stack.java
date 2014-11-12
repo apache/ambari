@@ -18,6 +18,13 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.StackConfigurationRequest;
@@ -29,13 +36,6 @@ import org.apache.ambari.server.controller.StackServiceRequest;
 import org.apache.ambari.server.controller.StackServiceResponse;
 import org.apache.ambari.server.state.AutoDeployInfo;
 import org.apache.ambari.server.state.DependencyInfo;
-
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * Encapsulates stack information.
@@ -388,7 +388,7 @@ class Stack {
         dependencies.put(componentName, componentDependencies);
       }
     }
-    this.serviceComponents.put(service, componentSet);
+    serviceComponents.put(service, componentSet);
   }
 
   /**
@@ -430,20 +430,6 @@ class Stack {
    */
   //todo: This information should be specified in the stack definition.
   void registerConditionalDependencies() {
-    Collection<DependencyInfo> nagiosDependencies = getDependenciesForComponent("NAGIOS_SERVER");
-    for (DependencyInfo dependency : nagiosDependencies) {
-      if (dependency.getComponentName().equals("HCAT")) {
-        dependencyConditionalServiceMap.put(dependency, "HIVE");
-      } else if (dependency.getComponentName().equals("OOZIE_CLIENT")) {
-        dependencyConditionalServiceMap.put(dependency, "OOZIE");
-      } else if (dependency.getComponentName().equals("YARN_CLIENT")) {
-        dependencyConditionalServiceMap.put(dependency, "YARN");
-      } else if (dependency.getComponentName().equals("TEZ_CLIENT")) {
-        dependencyConditionalServiceMap.put(dependency, "TEZ");
-      } else if (dependency.getComponentName().equals("MAPREDUCE2_CLIENT")) {
-        dependencyConditionalServiceMap.put(dependency, "MAPREDUCE2");
-      }
-    }
     dbDependencyInfo.put("MYSQL_SERVER", "global/hive_database");
   }
 }

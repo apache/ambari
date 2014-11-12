@@ -30,6 +30,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.agent.ActionQueue;
 import org.apache.ambari.server.agent.AlertExecutionCommand;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -58,11 +59,11 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.inject.Inject;
-import com.google.inject.Injector;
 
 /**
  * ResourceProvider for Alert Definitions
  */
+@StaticallyInject
 public class AlertDefinitionResourceProvider extends AbstractControllerResourceProvider {
 
   protected static final String ALERT_DEF = "AlertDefinition";
@@ -86,22 +87,26 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
   private static Set<String> pkPropertyIds = new HashSet<String>(
       Arrays.asList(ALERT_DEF_ID, ALERT_DEF_NAME));
 
-  private static AlertDefinitionDAO alertDefinitionDAO = null;
-
   private static Gson gson = new Gson();
 
+  @Inject
   private static AlertDefinitionHash alertDefinitionHash;
+
+  @Inject
+  private static AlertDefinitionDAO alertDefinitionDAO = null;
 
   /**
    * Used for coercing an {@link AlertDefinitionEntity} to an
    * {@link AlertDefinition}.
    */
+  @Inject
   private static AlertDefinitionFactory definitionFactory;
 
   /**
    * Used to enqueue commands to send to the agents when running an alert
    * on-demand.
    */
+  @Inject
   private static ActionQueue actionQueue;
 
   /**
@@ -132,17 +137,6 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
     // keys
     KEY_PROPERTY_IDS.put(Resource.Type.AlertDefinition, ALERT_DEF_ID);
     KEY_PROPERTY_IDS.put(Resource.Type.Cluster, ALERT_DEF_CLUSTER_NAME);
-  }
-
-  /**
-   * @param instance
-   */
-  @Inject
-  public static void init(Injector injector) {
-    alertDefinitionDAO = injector.getInstance(AlertDefinitionDAO.class);
-    alertDefinitionHash = injector.getInstance(AlertDefinitionHash.class);
-    definitionFactory = injector.getInstance(AlertDefinitionFactory.class);
-    actionQueue = injector.getInstance(ActionQueue.class);
   }
 
   /**

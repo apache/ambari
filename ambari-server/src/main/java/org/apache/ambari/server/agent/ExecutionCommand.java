@@ -91,12 +91,6 @@ public class ExecutionCommand extends AgentCommand {
   @SerializedName("componentName")
   private String componentName;
 
-  /**
-   * Used for ignoring nagios alerts at agent
-   */
-  @SerializedName("passiveInfo")
-  private Set<Map<String,String>> passiveInfo;
-
   public String getCommandId() {
     return commandId;
   }
@@ -259,21 +253,6 @@ public class ExecutionCommand extends AgentCommand {
   public Map<String, Map<String, String>> getConfigurationTags() {
     return configurationTags;
   }
-
-  /**
-   * @return the passive info for the cluster
-   */
-  public Set<Map<String, String>> getPassiveInfo() {
-    return passiveInfo;
-  }
-
-  /**
-   * @param info the passive info for the cluster
-   */
-  public void setPassiveInfo(Set<Map<String,String>> info) {
-    passiveInfo = info;
-  }
-
 
   /**
    * Contains key name strings. These strings are used inside maps

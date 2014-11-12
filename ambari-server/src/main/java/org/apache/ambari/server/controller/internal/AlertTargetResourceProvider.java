@@ -28,6 +28,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -45,13 +46,13 @@ import org.apache.commons.lang.StringUtils;
 
 import com.google.gson.Gson;
 import com.google.inject.Inject;
-import com.google.inject.Injector;
 
 /**
  * The {@link AlertTargetResourceProvider} class deals with managing the CRUD
  * operations for {@link AlertTarget}, including property coercion to and from
  * {@link AlertTargetEntity}.
  */
+@StaticallyInject
 public class AlertTargetResourceProvider extends
  AbstractResourceProvider {
 
@@ -99,18 +100,6 @@ public class AlertTargetResourceProvider extends
    * Used for serializationa and deserialization of some fields.
    */
   private static final Gson s_gson = new Gson();
-
-  /**
-   * Initializes the injectable members of this class with the specified
-   * injector.
-   *
-   * @param injector
-   *          the injector (not {@code null}).
-   */
-  @Inject
-  public static void init(Injector injector) {
-    s_dao = injector.getInstance(AlertDispatchDAO.class);
-  }
 
   /**
    * Constructor.

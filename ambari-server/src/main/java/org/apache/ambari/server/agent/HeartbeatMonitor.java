@@ -29,7 +29,6 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_VER
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -39,7 +38,6 @@ import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.state.Alert;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.CommandScriptDefinition;
@@ -290,22 +288,6 @@ public class HeartbeatMonitor implements Runnable {
     }
 
     StatusCommand statusCmd = new StatusCommand();
-    if (sch.getServiceComponentName().equals("NAGIOS_SERVER")) {
-      // this requires special treatment
-
-      Collection<Alert> clusterAlerts = cluster.getAlerts();
-      Collection<Alert> alerts = new HashSet<Alert>();
-      for (Alert alert : clusterAlerts) {
-        if (!alert.getName().equals("host_alert")) {
-          alerts.add(alert);
-        }
-      }
-      if (alerts.size() > 0) {
-        statusCmd = new NagiosAlertCommand();
-        ((NagiosAlertCommand) statusCmd).setAlerts(alerts);
-      }
-    }
-
     statusCmd.setClusterName(cluster.getClusterName());
     statusCmd.setServiceName(serviceName);
     statusCmd.setComponentName(componentName);

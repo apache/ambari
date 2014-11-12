@@ -145,12 +145,6 @@
     "HostComponent": "HostComponentProcess/component_name",
     "HostComponentProcess": "HostComponentProcess/name"
   },
-  "Alert": {
-    "Cluster": "Alert/cluster_name",
-    "Service": "Alert/service_name",
-    "Host": "Alert/host_name",
-    "Alert": "Alert/id"
-  },
   "ClientConfig": {
     "Cluster": "ServiceComponentInfo/cluster_name",
     "Service": "ServiceComponentInfo/service_name",

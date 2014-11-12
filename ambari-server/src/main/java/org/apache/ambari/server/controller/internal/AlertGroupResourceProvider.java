@@ -28,6 +28,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.controller.AlertDefinitionResponse;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
@@ -50,13 +51,13 @@ import org.apache.ambari.server.state.alert.AlertTarget;
 import org.apache.commons.lang.StringUtils;
 
 import com.google.inject.Inject;
-import com.google.inject.Injector;
 
 /**
  * The {@link AlertGroupResourceProvider} class deals with managing the CRUD
  * operations for {@link AlertGroup}, including property coercion to and from
  * {@link AlertGroupEntity}.
  */
+@StaticallyInject
 public class AlertGroupResourceProvider extends
     AbstractControllerResourceProvider {
 
@@ -98,25 +99,14 @@ public class AlertGroupResourceProvider extends
   /**
    * Group/Target DAO
    */
+  @Inject
   private static AlertDispatchDAO s_dao;
 
   /**
    * Definitions DAO
    */
-  private static AlertDefinitionDAO s_definitionDao;
-
-  /**
-   * Initializes the injectable members of this class with the specified
-   * injector.
-   *
-   * @param injector
-   *          the injector (not {@code null}).
-   */
   @Inject
-  public static void init(Injector injector) {
-    s_dao = injector.getInstance(AlertDispatchDAO.class);
-    s_definitionDao = injector.getInstance(AlertDefinitionDAO.class);
-  }
+  private static AlertDefinitionDAO s_definitionDao;
 
   /**
    * Constructor.

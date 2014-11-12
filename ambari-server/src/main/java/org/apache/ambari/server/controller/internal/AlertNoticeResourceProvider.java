@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.controller.AlertNoticeRequest;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
@@ -43,11 +44,11 @@ import org.apache.ambari.server.orm.entities.AlertTargetEntity;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 
 import com.google.inject.Inject;
-import com.google.inject.Injector;
 
 /**
  * ResourceProvider for Alert History
  */
+@StaticallyInject
 public class AlertNoticeResourceProvider extends AbstractResourceProvider {
 
   public static final String ALERT_HISTORY = "AlertNotice";
@@ -66,6 +67,7 @@ public class AlertNoticeResourceProvider extends AbstractResourceProvider {
   /**
    * Used for querying alert history.
    */
+  @Inject
   private static AlertDispatchDAO s_dao = null;
 
   /**
@@ -93,16 +95,6 @@ public class AlertNoticeResourceProvider extends AbstractResourceProvider {
     // keys
     KEY_PROPERTY_IDS.put(Resource.Type.AlertNotice, ALERT_NOTICE_ID);
     KEY_PROPERTY_IDS.put(Resource.Type.Cluster, ALERT_NOTICE_CLUSTER_NAME);
-  }
-
-  /**
-   * Static intializer for Guice.
-   *
-   * @param instance
-   */
-  @Inject
-  public static void init(Injector injector) {
-    s_dao = injector.getInstance(AlertDispatchDAO.class);
   }
 
   /**

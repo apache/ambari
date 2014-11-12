@@ -29,6 +29,7 @@ import javax.crypto.BadPaddingException;
 
 import org.apache.ambari.eventdb.webservice.WorkflowJsonService;
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.agent.HeartBeatHandler;
 import org.apache.ambari.server.agent.rest.AgentResource;
@@ -45,13 +46,6 @@ import org.apache.ambari.server.bootstrap.BootStrapImpl;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.AbstractControllerResourceProvider;
-import org.apache.ambari.server.controller.internal.AlertDefinitionResourceProvider;
-import org.apache.ambari.server.controller.internal.AlertGroupResourceProvider;
-import org.apache.ambari.server.controller.internal.AlertHistoryResourceProvider;
-import org.apache.ambari.server.controller.internal.AlertNoticeResourceProvider;
-import org.apache.ambari.server.controller.internal.AlertResourceProvider;
-import org.apache.ambari.server.controller.internal.AlertSummaryPropertyProvider;
-import org.apache.ambari.server.controller.internal.AlertTargetResourceProvider;
 import org.apache.ambari.server.controller.internal.AmbariPrivilegeResourceProvider;
 import org.apache.ambari.server.controller.internal.BlueprintResourceProvider;
 import org.apache.ambari.server.controller.internal.ClusterPrivilegeResourceProvider;
@@ -63,7 +57,6 @@ import org.apache.ambari.server.controller.internal.StackDefinedPropertyProvider
 import org.apache.ambari.server.controller.internal.StackDependencyResourceProvider;
 import org.apache.ambari.server.controller.internal.UserPrivilegeResourceProvider;
 import org.apache.ambari.server.controller.internal.ViewPermissionResourceProvider;
-import org.apache.ambari.server.controller.nagios.NagiosPropertyProvider;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.PersistenceType;
 import org.apache.ambari.server.orm.dao.BlueprintDAO;
@@ -601,8 +594,13 @@ public class AmbariServer {
   }
 
   /**
+   * Deprecated. Instead, use {@link StaticallyInject}.
+   * <p/>
    * Static injection replacement to wait Persistence Service start.
+   *
+   * @see StaticallyInject
    */
+  @Deprecated
   public void performStaticInjection() {
     AgentResource.init(injector.getInstance(HeartBeatHandler.class));
     CertificateDownload.init(injector.getInstance(CertificateManager.class));
@@ -618,19 +616,12 @@ public class AmbariServer {
         injector.getInstance(Configuration.class));
     SecurityFilter.init(injector.getInstance(Configuration.class));
     StackDefinedPropertyProvider.init(injector);
-    NagiosPropertyProvider.init(injector);
     AbstractControllerResourceProvider.init(injector.getInstance(ResourceProviderFactory.class));
     BlueprintResourceProvider.init(injector.getInstance(BlueprintDAO.class),
         injector.getInstance(Gson.class), ambariMetaInfo);
     StackDependencyResourceProvider.init(ambariMetaInfo);
     ClusterResourceProvider.init(injector.getInstance(BlueprintDAO.class), ambariMetaInfo, injector.getInstance(ConfigHelper.class));
-    AlertResourceProvider.init(injector);
-    AlertDefinitionResourceProvider.init(injector);
-    AlertHistoryResourceProvider.init(injector);
-    AlertNoticeResourceProvider.init(injector);
-    AlertGroupResourceProvider.init(injector);
-    AlertSummaryPropertyProvider.init(injector);
-    AlertTargetResourceProvider.init(injector);
+
     PermissionResourceProvider.init(injector.getInstance(PermissionDAO.class));
     ViewPermissionResourceProvider.init(injector.getInstance(PermissionDAO.class));
     PrivilegeResourceProvider.init(injector.getInstance(PrivilegeDAO.class), injector.getInstance(UserDAO.class),
@@ -640,7 +631,6 @@ public class AmbariServer {
         injector.getInstance(GroupDAO.class), injector.getInstance(ViewInstanceDAO.class));
     ClusterPrivilegeResourceProvider.init(injector.getInstance(ClusterDAO.class));
     AmbariPrivilegeResourceProvider.init(injector.getInstance(ClusterDAO.class));
-    // !!! don't use this anti-pattern.  Use @StaticallyInject
   }
 
   /**

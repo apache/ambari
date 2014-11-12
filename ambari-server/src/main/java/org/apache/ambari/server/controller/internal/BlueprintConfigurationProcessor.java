@@ -567,6 +567,7 @@ public class BlueprintConfigurationProcessor {
      *
      * @return updated property value with old host name replaced by new host name
      */
+    @Override
     public String updateForClusterCreate(Map<String, ? extends HostGroup> hostGroups,
                                          String origValue,
                                          Map<String, Map<String, String>> properties,
@@ -593,7 +594,7 @@ public class BlueprintConfigurationProcessor {
             return origValue;
           } else {
             throw new IllegalArgumentException("Unable to update configuration property with topology information. " +
-              "Component '" + this.component + "' is not mapped to any host group or is mapped to multiple groups.");
+              "Component '" + component + "' is not mapped to any host group or is mapped to multiple groups.");
           }
         }
       }
@@ -606,7 +607,7 @@ public class BlueprintConfigurationProcessor {
      * @return component name for this updater
      */
     public String getComponentName() {
-      return this.component;
+      return component;
     }
   }
 
@@ -636,7 +637,7 @@ public class BlueprintConfigurationProcessor {
     private DBTopologyUpdater(String component, String conditionalPropertyType,
                               String conditionalPropertyName) {
       super(component);
-      this.configPropertyType = conditionalPropertyType;
+      configPropertyType = conditionalPropertyType;
       this.conditionalPropertyName = conditionalPropertyName;
     }
 
@@ -714,6 +715,7 @@ public class BlueprintConfigurationProcessor {
      *
      * @return updated property value with old host names replaced by new host names
      */
+    @Override
     public String updateForClusterCreate(Map<String, ? extends HostGroup> hostGroups,
                                          String origValue,
                                          Map<String, Map<String, String>> properties,
@@ -769,6 +771,7 @@ public class BlueprintConfigurationProcessor {
      *
      * @return property with 'm' appended
      */
+    @Override
     public String updateForClusterCreate(Map<String, ? extends HostGroup> hostGroups,
                                          String origValue, Map<String,
                                          Map<String, String>> properties,
@@ -915,7 +918,6 @@ public class BlueprintConfigurationProcessor {
     Map<String, PropertyUpdater> multiYarnSiteMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> multiOozieSiteMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> dbHiveSiteMap = new HashMap<String, PropertyUpdater>();
-    Map<String, PropertyUpdater> nagiosEnvMap = new HashMap<String ,PropertyUpdater>();
 
 
     singleHostTopologyUpdaters.put("hdfs-site", hdfsSiteMap);
@@ -927,7 +929,6 @@ public class BlueprintConfigurationProcessor {
     singleHostTopologyUpdaters.put("oozie-site", oozieSiteMap);
     singleHostTopologyUpdaters.put("storm-site", stormSiteMap);
     singleHostTopologyUpdaters.put("falcon-startup.properties", falconStartupPropertiesMap);
-    singleHostTopologyUpdaters.put("nagios-env", nagiosEnvMap);
     singleHostTopologyUpdaters.put("hive-env", hiveEnvMap);
     singleHostTopologyUpdaters.put("oozie-env", oozieEnvMap);
     singleHostTopologyUpdaters.put("kafka-broker", kafkaBrokerMap);
@@ -1035,10 +1036,6 @@ public class BlueprintConfigurationProcessor {
     falconStartupPropertiesMap.put("*.broker.url", new SingleHostTopologyUpdater("FALCON_SERVER"));
     falconStartupPropertiesMap.put("*.falcon.service.authentication.kerberos.principal", new SingleHostTopologyUpdater("FALCON_SERVER"));
     falconStartupPropertiesMap.put("*.falcon.http.authentication.kerberos.principal", new SingleHostTopologyUpdater("FALCON_SERVER"));
-
-
-    // NAGIOS
-    nagiosEnvMap.put("nagios_principal_name", new SingleHostTopologyUpdater("NAGIOS_SERVER"));
 
     // KAFKA
     kafkaBrokerMap.put("kafka.ganglia.metrics.host", new SingleHostTopologyUpdater("GANGLIA_SERVER"));

@@ -72,10 +72,11 @@ public class AlertNoticeResourceProviderTest {
   public void before() {
     m_dao = createStrictMock(AlertDispatchDAO.class);
 
+    // create an injector which will inject the mocks
     m_injector = Guice.createInjector(Modules.override(
         new InMemoryDefaultTestModule()).with(new MockModule()));
 
-    AlertNoticeResourceProvider.init(m_injector);
+    Assert.assertNotNull(m_injector);
   }
 
   /**

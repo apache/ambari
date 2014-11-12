@@ -22,6 +22,7 @@ import static org.apache.ambari.server.configuration.Configuration.JDBC_IN_MEMRO
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.captureLong;
 import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.createStrictMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
@@ -50,6 +51,7 @@ import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.DBAccessorImpl;
+import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.AlertsDAO;
 import org.apache.ambari.server.orm.entities.AlertCurrentEntity;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
@@ -67,6 +69,7 @@ import com.google.inject.Binder;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
+import com.google.inject.util.Modules;
 
 /**
  * Test the AlertResourceProvider class
@@ -82,13 +85,16 @@ public class AlertResourceProviderTest {
   private static final String ALERT_VALUE_SERVICE = "service";
 
   private AlertsDAO m_dao;
-//  private Injector m_injector;
+  private Injector m_injector;
   private AmbariManagementController m_amc;
 
   @Before
   @SuppressWarnings("boxing")
   public void before() throws Exception {
-    Injector m_injector = Guice.createInjector(new MockModule());
+    m_dao = createStrictMock(AlertsDAO.class);
+
+    m_injector = Guice.createInjector(Modules.override(
+        new InMemoryDefaultTestModule()).with(new MockModule()));
 
     m_amc = m_injector.getInstance(AmbariManagementController.class);
 
@@ -100,10 +106,6 @@ public class AlertResourceProviderTest {
     expect(cluster.getClusterId()).andReturn(Long.valueOf(1L));
 
     replay(m_amc, clusters, cluster);
-
-    m_dao = m_injector.getInstance(AlertsDAO.class);
-
-    AlertResourceProvider.init(m_injector);
   }
 
 
@@ -119,7 +121,7 @@ public class AlertResourceProviderTest {
 
     Request request = PropertyHelper.getReadRequest(
         AlertResourceProvider.ALERT_ID,
-        AlertResourceProvider.ALERT_NAME,
+        AlertResourceProvider.ALERT_DEFINITION_NAME,
         AlertResourceProvider.ALERT_LABEL);
 
     Predicate predicate = new PredicateBuilder().property(
@@ -148,7 +150,7 @@ public class AlertResourceProviderTest {
 
     Request request = PropertyHelper.getReadRequest(
         AlertResourceProvider.ALERT_ID,
-        AlertResourceProvider.ALERT_NAME,
+        AlertResourceProvider.ALERT_DEFINITION_NAME,
         AlertResourceProvider.ALERT_LABEL);
 
     Predicate predicate = new PredicateBuilder().property(
@@ -179,7 +181,7 @@ public class AlertResourceProviderTest {
 
     Request request = PropertyHelper.getReadRequest(
         AlertResourceProvider.ALERT_ID,
-        AlertResourceProvider.ALERT_NAME,
+        AlertResourceProvider.ALERT_DEFINITION_NAME,
         AlertResourceProvider.ALERT_LABEL);
 
     Predicate predicate = new PredicateBuilder().property(
@@ -212,7 +214,7 @@ public class AlertResourceProviderTest {
     replay(m_dao);
 
     Request request = PropertyHelper.getReadRequest(
-        AlertResourceProvider.ALERT_ID, AlertResourceProvider.ALERT_NAME,
+        AlertResourceProvider.ALERT_ID, AlertResourceProvider.ALERT_DEFINITION_NAME,
         AlertResourceProvider.ALERT_LABEL, AlertResourceProvider.ALERT_STATE,
         AlertResourceProvider.ALERT_ORIGINAL_TIMESTAMP);
 
@@ -268,7 +270,7 @@ public class AlertResourceProviderTest {
     replay(m_dao);
 
     Request request = PropertyHelper.getReadRequest(
-        AlertResourceProvider.ALERT_ID, AlertResourceProvider.ALERT_NAME,
+        AlertResourceProvider.ALERT_ID, AlertResourceProvider.ALERT_DEFINITION_NAME,
         AlertResourceProvider.ALERT_LABEL, AlertResourceProvider.ALERT_STATE,
         AlertResourceProvider.ALERT_ORIGINAL_TIMESTAMP);
 
@@ -302,10 +304,7 @@ public class AlertResourceProviderTest {
   }
 
   private AlertResourceProvider createProvider() {
-    return new AlertResourceProvider(
-        PropertyHelper.getPropertyIds(Resource.Type.Alert),
-        PropertyHelper.getKeyPropertyIds(Resource.Type.Alert),
-        m_amc);
+    return new AlertResourceProvider(m_amc);
   }
 
   /**
@@ -414,7 +413,7 @@ public class AlertResourceProviderTest {
     @Override
     public void configure(Binder binder) {
       binder.bind(EntityManager.class).toInstance(EasyMock.createMock(EntityManager.class));
-      binder.bind(AlertsDAO.class).toInstance(EasyMock.createMock(AlertsDAO.class));
+      binder.bind(AlertsDAO.class).toInstance(m_dao);
       binder.bind(AmbariManagementController.class).toInstance(createMock(AmbariManagementController.class));
       binder.bind(DBAccessor.class).to(DBAccessorImpl.class);
 

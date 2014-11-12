@@ -84,6 +84,8 @@ public class DefaultProviderModule extends AbstractProviderModule {
         return new LdapSyncEventResourceProvider(managementController);
       case UserPrivilege:
         return new UserPrivilegeResourceProvider();
+      case Alert:
+        return new AlertResourceProvider(managementController);
       case AlertDefinition:
         return new AlertDefinitionResourceProvider(managementController);
       case AlertHistory:

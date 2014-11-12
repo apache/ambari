@@ -356,8 +356,9 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
         (String) properties.get(SERVICE_SERVICE_STATE_PROPERTY_ID));
     
     Object o = properties.get(SERVICE_MAINTENANCE_STATE_PROPERTY_ID);
-    if (null != o)
+    if (null != o) {
       svcRequest.setMaintenanceState(o.toString());
+    }
 
     return svcRequest;
   }
@@ -727,14 +728,6 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
       throw new IllegalArgumentException("Cannot handle different desired state"
           + " changes for a set of services at the same time");
     }
-    
-    if (maintenanceCluster != null) {
-      try {
-        maintenanceStateHelper.createRequests(controller, requestProperties, maintenanceCluster);
-      } catch (Exception e) {
-        LOG.warn("Could not send maintenance state to Nagios (" + e.getMessage() + ")");
-      }
-    }
 
     Cluster cluster = clusters.getCluster(clusterNames.iterator().next());
 
@@ -914,8 +907,9 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
       }
     }
     
-    for (Service service : removable)
+    for (Service service : removable) {
       service.getCluster().deleteService(service.getName());
+    }
     
     return null;
   }
@@ -1232,8 +1226,9 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
             State state = State.UNKNOWN;
             for (ServiceComponentHostResponse schr : hostComponentResponses) {
               State schState = getHostComponentState(schr);
-              if (schState.ordinal() < state.ordinal())
+              if (schState.ordinal() < state.ordinal()) {
                 state = schState;
+              }
             }
             return state;
           }
