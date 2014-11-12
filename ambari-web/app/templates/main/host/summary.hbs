@@ -69,20 +69,10 @@
             <div class="span7 row">
               {{#if view.clients.length}}
                   <div class="span3 align-right">{{t common.clients}}&nbsp;/</div>
-                  <div class="span7">
-                    {{#each component in view.clients}}
-                      {{component.displayName}}
-                      {{#if component.isInstallFailed}}
-                        <span class="health-status-installed icon-warning-sign"></span>
-                      {{/if}}
-                      {{#if component.staleConfigs}}
-                        <span class="text-warning icon-refresh"></span>
-                      {{/if}}
-                      {{#if component.service.isInPassive}}
-                        <span class="icon-medkit"></span>
-                      {{/if}}
-                      {{#unless component.isLast}},{{/unless}}
-                    {{/each}}
+                <div class="span7">
+                  {{#each component in view.clients}}
+                    {{component.displayName}}{{#if component.isInstallFailed}}&nbsp;<span class="health-status-installed icon-warning-sign"></span>{{/if}}{{#if component.staleConfigs}}&nbsp;<span class="text-warning icon-refresh"></span>{{/if}}{{#if component.service.isInPassive}}&nbsp;<span class="icon-medkit"></span>{{/if}}{{#unless component.isLast}},{{/unless}}
+                  {{/each}}
                 </div>
               {{/if}}
             </div>
@@ -144,7 +134,7 @@
                         <dt>{{t common.disk}}:</dt><dd>&nbsp;{{view.content.diskInfoBar}}</dd>
                         <dt>{{t common.memory}}:</dt><dd>&nbsp;{{view.content.memoryFormatted}}</dd>
                         <dt>{{t common.loadAvg}}:</dt><dd>&nbsp;{{view.content.loadAvg}}</dd>
-                        <dt>{{t hosts.host.summary.agentHeartbeat}}:</dt><dd>{{view.timeSinceHeartBeat}}</dd>
+                        <dt>{{t hosts.host.summary.agentHeartbeat}}:</dt><dd>&nbsp;{{view.timeSinceHeartBeat}}</dd>
                     </dl>
                 </div>
             </div>
