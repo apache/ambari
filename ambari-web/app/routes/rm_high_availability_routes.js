@@ -40,11 +40,11 @@ module.exports = App.WizardRoute.extend({
         secondary: null,
 
         onClose: function () {
-          var rMHighAvailabilityWizardController = router.get('rMHighAvailabilityWizardController');
-          var currStep = rMHighAvailabilityWizardController.get('currentStep');
+          var rMHighAvailabilityWizardController = router.get('rMHighAvailabilityWizardController'),
+            currStep = rMHighAvailabilityWizardController.get('currentStep'),
+            self = this;
 
           if (parseInt(currStep) === 4) {
-            var self = this;
             App.showConfirmationPopup(function () {
               router.get('updateController').set('isWorking', true);
               rMHighAvailabilityWizardController.finish();
@@ -59,10 +59,17 @@ module.exports = App.WizardRoute.extend({
               }});
             }, Em.I18n.t('admin.rm_highAvailability.closePopup'));
           } else {
-            this.hide();
-            rMHighAvailabilityWizardController.setCurrentStep('1');
             router.get('updateController').set('isWorking', true);
-            router.transitionTo('main.services.index');
+            rMHighAvailabilityWizardController.finish();
+            App.clusterStatus.setClusterStatus({
+              clusterName: App.router.getClusterName(),
+              clusterState: 'DEFAULT',
+              localdb: App.db.data
+            }, {alwaysCallback: function () {
+              self.hide();
+              router.transitionTo('main.services.index');
+              location.reload();
+            }});
           }
         },
         didInsertElement: function () {
