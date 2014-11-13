@@ -353,6 +353,14 @@ App.JobView = Em.View.extend({
   },
 
   /**
+   * Stop updating job info when user navigate away from job's page
+   * @method willDestroyElement
+   */
+  willDestroyElement: function() {
+    this.get('controller').stop();
+  },
+
+  /**
    * Can graph be zoomed-in
    * @type {bool}
    */
