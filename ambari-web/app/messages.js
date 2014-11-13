@@ -1121,6 +1121,7 @@ Em.I18n.translations = {
   'admin.addSecurity.hive.user.httpUser': 'Hive SPNEGO User',
   'admin.addSecurity.oozie.user.httpUser': 'Oozie SPNEGO User',
   'admin.addSecurity.falcon.user.httpUser': 'Falcon SPNEGO User',
+  'admin.addSecurity.storm.user.httpUser': 'Storm UI Server',
   'admin.addSecurity.user.yarn.atsHTTPUser': 'YARN ATS HTTP User',
   'admin.addSecurity.knox.user': 'Knox Gateway',
   'admin.addSecurity.enable.onClose': 'You are in the process of enabling security on your cluster. ' +

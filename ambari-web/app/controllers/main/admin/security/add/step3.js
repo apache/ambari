@@ -126,6 +126,13 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
         keytab: 'apptimelineserver_http_keytab',
         displayName: Em.I18n.t('admin.addSecurity.user.yarn.atsHTTPUser'),
         isHadoop2Stack: true
+      },
+      {
+        componentName: 'STORM_UI_SERVER',
+        principal: 'storm_ui_principal_name',
+        keytab: 'storm_ui_keytab',
+        displayName: Em.I18n.t('admin.addSecurity.storm.user.httpUser'),
+        isHadoop22Stack: true
       }
   ],
 
@@ -279,6 +286,8 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
       //add specific components that supported only in Hadoop2 stack
       if (component.isHadoop2Stack && !App.get('isHadoop2Stack')) return;
 
+      if (component.isHadoop22Stack && !App.get('isHadoop22Stack')) return;
+
       if (hostComponents.someProperty('componentName', component.componentName)) {
 
         if (component.componentName === "APP_TIMELINE_SERVER" && (!isATSInstalled || !doesATSSupportKerberos)) {
@@ -346,7 +355,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
   setHostComponentsSecureValue: function (result, host, addedPrincipalsHost, securityUsers, hadoopGroupId) {
     var componentsToDisplay = ['NAMENODE', 'SECONDARY_NAMENODE', 'DATANODE', 'JOBTRACKER', 'ZOOKEEPER_SERVER', 'HIVE_SERVER', 'TASKTRACKER',
       'OOZIE_SERVER', 'NAGIOS_SERVER', 'HBASE_MASTER', 'HBASE_REGIONSERVER', 'HISTORYSERVER', 'RESOURCEMANAGER', 'NODEMANAGER', 'JOURNALNODE',
-      'SUPERVISOR', 'NIMBUS', 'STORM_UI_SERVER', 'FALCON_SERVER', 'KNOX_GATEWAY', 'APP_TIMELINE_SERVER'];
+      'SUPERVISOR', 'NIMBUS', 'FALCON_SERVER', 'KNOX_GATEWAY', 'APP_TIMELINE_SERVER'];
     if (App.get('isHadoop22Stack')) {
       componentsToDisplay.push('DRPC_SERVER');
     }
