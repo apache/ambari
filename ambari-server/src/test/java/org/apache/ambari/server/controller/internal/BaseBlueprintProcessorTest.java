@@ -93,8 +93,8 @@ public class BaseBlueprintProcessorTest {
         super.registerConditionalDependencies();
 
         Map<DependencyInfo, String> dependencyConditionalServiceMap = getDependencyConditionalServiceMap();
-        Collection<DependencyInfo> nagiosDependencies = getDependenciesForComponent("FAKE_MONITORING_SERVER");
-        for (DependencyInfo dependency : nagiosDependencies) {
+        Collection<DependencyInfo> monitoringDependencies = getDependenciesForComponent("FAKE_MONITORING_SERVER");
+        for (DependencyInfo dependency : monitoringDependencies) {
           if (dependency.getComponentName().equals("HCAT")) {
             dependencyConditionalServiceMap.put(dependency, "HIVE");
           } else if (dependency.getComponentName().equals("OOZIE_CLIENT")) {
@@ -190,8 +190,8 @@ public class BaseBlueprintProcessorTest {
         super.registerConditionalDependencies();
 
         Map<DependencyInfo, String> dependencyConditionalServiceMap = getDependencyConditionalServiceMap();
-        Collection<DependencyInfo> nagiosDependencies = getDependenciesForComponent("FAKE_MONITORING_SERVER");
-        for (DependencyInfo dependency : nagiosDependencies) {
+        Collection<DependencyInfo> monitoringDependencies = getDependenciesForComponent("FAKE_MONITORING_SERVER");
+        for (DependencyInfo dependency : monitoringDependencies) {
           if (dependency.getComponentName().equals("HCAT")) {
             dependencyConditionalServiceMap.put(dependency, "HIVE");
           } else if (dependency.getComponentName().equals("OOZIE_CLIENT")) {
@@ -285,8 +285,8 @@ public class BaseBlueprintProcessorTest {
         super.registerConditionalDependencies();
 
         Map<DependencyInfo, String> dependencyConditionalServiceMap = getDependencyConditionalServiceMap();
-        Collection<DependencyInfo> nagiosDependencies = getDependenciesForComponent("FAKE_MONITORING_SERVER");
-        for (DependencyInfo dependency : nagiosDependencies) {
+        Collection<DependencyInfo> monitoringDependencies = getDependenciesForComponent("FAKE_MONITORING_SERVER");
+        for (DependencyInfo dependency : monitoringDependencies) {
           if (dependency.getComponentName().equals("HCAT")) {
             dependencyConditionalServiceMap.put(dependency, "HIVE");
           } else if (dependency.getComponentName().equals("OOZIE_CLIENT")) {
@@ -378,8 +378,8 @@ public class BaseBlueprintProcessorTest {
         super.registerConditionalDependencies();
 
         Map<DependencyInfo, String> dependencyConditionalServiceMap = getDependencyConditionalServiceMap();
-        Collection<DependencyInfo> nagiosDependencies = getDependenciesForComponent("FAKE_MONITORING_SERVER");
-        for (DependencyInfo dependency : nagiosDependencies) {
+        Collection<DependencyInfo> monitoringDependencies = getDependenciesForComponent("FAKE_MONITORING_SERVER");
+        for (DependencyInfo dependency : monitoringDependencies) {
           if (dependency.getComponentName().equals("HCAT")) {
             dependencyConditionalServiceMap.put(dependency, "HIVE");
           } else if (dependency.getComponentName().equals("OOZIE_CLIENT")) {
@@ -473,8 +473,8 @@ public class BaseBlueprintProcessorTest {
         super.registerConditionalDependencies();
 
         Map<DependencyInfo, String> dependencyConditionalServiceMap = getDependencyConditionalServiceMap();
-        Collection<DependencyInfo> nagiosDependencies = getDependenciesForComponent("FAKE_MONITORING_SERVER");
-        for (DependencyInfo dependency : nagiosDependencies) {
+        Collection<DependencyInfo> monitoringDependencies = getDependenciesForComponent("FAKE_MONITORING_SERVER");
+        for (DependencyInfo dependency : monitoringDependencies) {
           if (dependency.getComponentName().equals("HCAT")) {
             dependencyConditionalServiceMap.put(dependency, "HIVE");
           } else if (dependency.getComponentName().equals("OOZIE_CLIENT")) {
@@ -566,8 +566,8 @@ public class BaseBlueprintProcessorTest {
         super.registerConditionalDependencies();
 
         Map<DependencyInfo, String> dependencyConditionalServiceMap = getDependencyConditionalServiceMap();
-        Collection<DependencyInfo> nagiosDependencies = getDependenciesForComponent("FAKE_MONITORING_SERVER");
-        for (DependencyInfo dependency : nagiosDependencies) {
+        Collection<DependencyInfo> monitoringDependencies = getDependenciesForComponent("FAKE_MONITORING_SERVER");
+        for (DependencyInfo dependency : monitoringDependencies) {
           if (dependency.getComponentName().equals("HCAT")) {
             dependencyConditionalServiceMap.put(dependency, "HIVE");
           } else if (dependency.getComponentName().equals("OOZIE_CLIENT")) {

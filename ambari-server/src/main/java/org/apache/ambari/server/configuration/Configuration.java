@@ -190,9 +190,6 @@ public class Configuration {
   public static final String JAVAX_SSL_TRUSTSTORE_PASSWORD = "javax.net.ssl.trustStorePassword";
   public static final String JAVAX_SSL_TRUSTSTORE_TYPE = "javax.net.ssl.trustStoreType";
   public static final String GANGLIA_HTTPS_KEY = "ganglia.https";
-  public static final String NAGIOS_HTTPS_KEY = "nagios.https";
-  public static final String NAGIOS_IGNORE_FOR_SERVICES_KEY = "nagios.ignore_for_services";
-  public static final String NAGIOS_IGNORE_FOR_HOSTS_KEY = "nagios.ignore_for_hosts";
   public static final String SRVR_TWO_WAY_SSL_PORT_DEFAULT = "8441";
   public static final String SRVR_ONE_WAY_SSL_PORT_DEFAULT = "8440";
   public static final String SRVR_CRT_NAME_DEFAULT = "ca.crt";

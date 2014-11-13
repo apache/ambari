@@ -18,7 +18,11 @@
 package org.apache.ambari.server.configuration;
 
 /**
- * Configuration for SSL on components (Ganglia & Nagios).
+ * Configuration for SSL communication between Ambari and 3rd party services.
+ * Currently, the following services are supported with SSL communication:
+ * <ul>
+ * <li>Ganglia</li>
+ * </ul>
  */
 public class ComponentSSLConfiguration {
 
@@ -29,7 +33,6 @@ public class ComponentSSLConfiguration {
   private String truststorePassword;
   private String truststoreType;
   private boolean gangliaSSL;
-  private boolean nagiosSSL;
 
   /**
    * The singleton.
@@ -58,7 +61,6 @@ public class ComponentSSLConfiguration {
     truststorePassword = getPassword(configuration);
     truststoreType     = configuration.getProperty(Configuration.SSL_TRUSTSTORE_TYPE_KEY);
     gangliaSSL         = Boolean.parseBoolean(configuration.getProperty(Configuration.GANGLIA_HTTPS_KEY));
-    nagiosSSL          = Boolean.parseBoolean(configuration.getProperty(Configuration.NAGIOS_HTTPS_KEY));
   }
 
 
@@ -98,15 +100,6 @@ public class ComponentSSLConfiguration {
    */
   public boolean isGangliaSSL() {
     return gangliaSSL;
-  }
-
-  /**
-   * Indicates whether or not Nagios is setup for SSL.
-   *
-   * @return true if Nagios is setup for SSL
-   */
-  public boolean isNagiosSSL() {
-    return nagiosSSL;
   }
 
   /**

@@ -74,7 +74,6 @@ SETUP_HTTPS_ACTION = "setup-https"
 LDAP_SETUP_ACTION = "setup-ldap"
 LDAP_SYNC_ACTION = "sync-ldap"
 SETUP_GANGLIA_HTTPS_ACTION = "setup-ganglia-https"
-SETUP_NAGIOS_HTTPS_ACTION = "setup-nagios-https"
 ENCRYPT_PASSWORDS_ACTION = "encrypt-passwords"
 SETUP_SECURITY_ACTION = "setup-security"
 REFRESH_STACK_HASH_ACTION = "refresh-stack-hash"
@@ -235,7 +234,6 @@ DEFAULT_SSL_API_PORT = 8443
 SSL_DATE_FORMAT = '%b  %d %H:%M:%S %Y GMT'
 
 GANGLIA_HTTPS = 'ganglia.https'
-NAGIOS_HTTPS = 'nagios.https'
 
 JDBC_RCA_PASSWORD_ALIAS = "ambari.db.password"
 CLIENT_SECURITY_KEY = "client.security"
@@ -4349,11 +4347,10 @@ def setup_security(args):
   print 'Choose one of the following options: '
   print '  [1] Enable HTTPS for Ambari server.'
   print '  [2] Enable HTTPS for Ganglia service.'
-  print '  [3] Enable HTTPS for Nagios service.'
-  print '  [4] Encrypt passwords stored in ambari.properties file.'
-  print '  [5] Setup Ambari kerberos JAAS configuration.'
+  print '  [3] Encrypt passwords stored in ambari.properties file.'
+  print '  [4] Setup Ambari kerberos JAAS configuration.'
   print '=' * 75
-  choice = get_validated_string_input('Enter choice, (1-5): ', '0', '[1-5]',
+  choice = get_validated_string_input('Enter choice, (1-4): ', '0', '[1-4]',
                                       'Invalid choice', False, False)
 
   if choice == '1':
@@ -4362,11 +4359,8 @@ def setup_security(args):
     setup_component_https("Ganglia", "setup-ganglia-https", GANGLIA_HTTPS,
                          "ganglia_cert")
   elif choice == '3':
-    setup_component_https("Nagios", "setup-nagios-https", NAGIOS_HTTPS,
-                          "nagios_cert")
-  elif choice == '4':
     setup_master_key()
-  elif choice == '5':
+  elif choice == '4':
     setup_ambari_krb5_jaas()
   else:
     raise FatalException('Unknown option for setup-security command.')

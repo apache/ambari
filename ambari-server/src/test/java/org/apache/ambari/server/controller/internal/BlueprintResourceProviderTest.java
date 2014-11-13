@@ -18,7 +18,33 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import com.google.gson.Gson;
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.createStrictMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
+import static org.easymock.EasyMock.verify;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
@@ -30,6 +56,9 @@ import org.apache.ambari.server.controller.StackServiceComponentRequest;
 import org.apache.ambari.server.controller.StackServiceComponentResponse;
 import org.apache.ambari.server.controller.StackServiceRequest;
 import org.apache.ambari.server.controller.StackServiceResponse;
+import org.apache.ambari.server.controller.internal.BlueprintResourceProvider.BlueprintConfigPopulationStrategy;
+import org.apache.ambari.server.controller.internal.BlueprintResourceProvider.BlueprintConfigPopulationStrategyV1;
+import org.apache.ambari.server.controller.internal.BlueprintResourceProvider.BlueprintConfigPopulationStrategyV2;
 import org.apache.ambari.server.controller.predicate.EqualsPredicate;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
@@ -54,42 +83,13 @@ import org.apache.ambari.server.state.DependencyInfo;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.utils.StageUtils;
 import org.easymock.Capture;
-
-import static org.easymock.EasyMock.expectLastCall;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertNotNull;
-
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import static org.apache.ambari.server.controller.internal.BlueprintResourceProvider.*;
-import static org.easymock.EasyMock.capture;
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.createStrictMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.reset;
-import static org.easymock.EasyMock.verify;
-import static org.junit.Assert.fail;
+import com.google.gson.Gson;
 
 /**
  * BlueprintResourceProvider unit tests.
@@ -1450,7 +1450,7 @@ public class BlueprintResourceProviderTest {
   @Test
   public void testDecidePopulationStrategy_withNewSchema_attributes() throws Exception {
     Map<String, String> configMap = new HashMap<String, String>();
-    configMap.put("global/properties_attributes/final/nagios_contact", "true");
+    configMap.put("global/properties_attributes/final/foo_contact", "true");
 
     BlueprintConfigPopulationStrategy provisioner =
         provider.decidePopulationStrategy(configMap);
@@ -1462,7 +1462,7 @@ public class BlueprintResourceProviderTest {
   @Test
   public void testDecidePopulationStrategy_withNewSchema_properties() throws Exception {
     Map<String, String> configMap = new HashMap<String, String>();
-    configMap.put("global/properties/nagios_contact", "foo@ffl.dsfds");
+    configMap.put("global/properties/foo_contact", "foo@ffl.dsfds");
 
     BlueprintConfigPopulationStrategy provisioner =
         provider.decidePopulationStrategy(configMap);
@@ -1474,7 +1474,7 @@ public class BlueprintResourceProviderTest {
   @Test
   public void testDecidePopulationStrategy_unsupportedSchema() throws Exception {
     Map<String, String> configMap = new HashMap<String, String>();
-    configMap.put("global/properties/lot/nagios_contact", "foo@ffl.dsfds");
+    configMap.put("global/properties/lot/foo_contact", "foo@ffl.dsfds");
     expectedException.expect(IllegalArgumentException.class);
     expectedException.expectMessage(provider.SCHEMA_IS_NOT_SUPPORTED_MESSAGE);
 

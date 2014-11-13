@@ -254,15 +254,9 @@ class TestAmbariServer(TestCase):
 
     get_validated_string_input_mock.return_value = '3'
     ambari_server.setup_security(args)
-    self.assertTrue(setup_component_https.called)
-    setup_component_https.assert_called_with("Nagios", "setup-nagios-https",
-                          ambari_server.NAGIOS_HTTPS, "nagios_cert")
-
-    get_validated_string_input_mock.return_value = '4'
-    ambari_server.setup_security(args)
     self.assertTrue(setup_master_key.called)
 
-    get_validated_string_input_mock.return_value = '5'
+    get_validated_string_input_mock.return_value = '4'
     ambari_server.setup_security(args)
     self.assertTrue(setup_ambari_krb5_jaas.called)
 
