@@ -945,7 +945,7 @@ public class AmbariMetaInfo {
 
           if (null != metainfoDAO) {
             LOG.debug("Checking for override for base_url");
-            String key = generateRepoMetaKey(r.getRepoName(), stack.getVersion(),
+            String key = generateRepoMetaKey(stack.getName(), stack.getVersion(),
                 o.getType(), r.getRepoId(), REPOSITORY_XML_PROPERTY_BASEURL);
             MetainfoEntity entity = metainfoDAO.findByKey(key);
             if (null != entity) {
