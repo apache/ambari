@@ -341,9 +341,14 @@ App.ClusterController = Em.Controller.extend({
           self.updateLoadStatus('serviceMetrics');
 
           updater.updateAlertDefinitions(function () {
-            updater.updateAlertDefinitionSummary(function() {
+            if (App.get('supports.alerts')) {
+              updater.updateAlertDefinitionSummary(function() {
+                self.updateLoadStatus('alertDefinitions');
+              });
+            }
+            else {
               self.updateLoadStatus('alertDefinitions');
-            });
+            }
           });
         });
       });

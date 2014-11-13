@@ -319,6 +319,17 @@ var urls = {
     'real': '/clusters/{clusterName}/alerts?fields=*&Alert/host_name={hostName}',
     'mock': '/data/alerts/alert_instances.json'
   },
+  'alerts.update_alert_definition': {
+    'real': '/clusters/{clusterName}/alert_definitions/{id}',
+    'mock': '',
+    'format': function (data) {
+      return {
+        type: 'PUT',
+        data: JSON.stringify(data.data)
+      }
+    }
+
+  },
   'background_operations.get_most_recent': {
     'real': '/clusters/{clusterName}/requests?to=end&page_size={operationsCount}&fields=Requests',
     'mock': '/data/background_operations/list_on_start.json',

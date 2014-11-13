@@ -17,7 +17,6 @@
  */
 
 var App = require('app');
-var customDatePopup = require('/views/common/custom_date_popup');
 
 App.MainAlertDefinitionsController = Em.ArrayController.extend({
 
@@ -50,6 +49,24 @@ App.MainAlertDefinitionsController = Em.ArrayController.extend({
       App.ScriptAlertDefinition.find().toArray());
   }.property('mapperTimestamp'),
 
-  toggleState: Em.K
+  /**
+   * Enable/disable alertDefinition
+   * @param {object} e
+   * @returns {$.ajax}
+   * @method toggleState
+   */
+  toggleState: function(e) {
+    var alertDefinition = e.context;
+    return App.ajax.send({
+      name: 'alerts.update_alert_definition',
+      sender: this,
+      data: {
+        id: alertDefinition.get('id'),
+        data: {
+          "AlertDefinition/enabled": !alertDefinition.get('enabled')
+        }
+      }
+    });
+  }
 
 });
