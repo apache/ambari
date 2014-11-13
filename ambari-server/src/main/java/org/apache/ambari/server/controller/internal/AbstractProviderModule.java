@@ -436,6 +436,8 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
               this,
               PropertyHelper.getPropertyId("Clusters", "cluster_name")));
           providers.add(new NagiosPropertyProvider());
+          providers.add(new AlertSummaryPropertyProvider(type,
+              "Clusters/cluster_name", null));
           break;
         case Service:
           providers.add(new NagiosPropertyProvider());
