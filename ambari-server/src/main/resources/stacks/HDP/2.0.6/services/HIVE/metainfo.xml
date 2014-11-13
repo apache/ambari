@@ -128,6 +128,13 @@
                 <enabled>true</enabled>
               </auto-deploy>
             </dependency>
+            <dependency>
+              <name>PIG/PIG</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
           </dependencies>
           <commandScript>
             <script>scripts/webhcat_server.py</script>
