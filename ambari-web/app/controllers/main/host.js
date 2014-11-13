@@ -975,6 +975,7 @@ App.MainHostController = Em.ArrayController.extend({
     associations[8] = 'componentsWithStaleConfigsCount';
     associations[9] = 'componentsInPassiveStateCount';
     associations[10] = 'selected';
+    associations[11] = 'stackVersions';
     return associations;
   }.property()
 

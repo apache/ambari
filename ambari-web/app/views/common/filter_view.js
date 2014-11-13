@@ -268,7 +268,7 @@ var componentFieldView = Ember.View.extend({
    */
   clickFilterButton: function () {
     var self = this;
-    this.set('isFilterOpen', !this.get('isFilterOpen'));
+    this.toggleProperty('isFilterOpen');
     if (this.get('isFilterOpen')) {
 
       var dropDown = this.$('.filter-components');
@@ -538,6 +538,18 @@ module.exports = {
           }
           return match;
         };
+        break;
+      case 'sub-resource':
+        return function (origin, compareValue) {
+          if (Ember.isNone(compareValue) || App.isEmptyObject(compareValue)) return true;
+
+          return origin.some(function (item) {
+            for (var i in compareValue) {
+              if(item.get(i) !== compareValue[i]) return false
+            }
+            return true;
+          });
+        }
         break;
       case 'multiple':
         return function (origin, compareValue) {

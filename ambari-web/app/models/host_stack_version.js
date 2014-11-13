@@ -19,21 +19,20 @@
 var App = require('app');
 
 App.HostStackVersion = DS.Model.extend({
-  stack: DS.attr('string'),
+  stackName: DS.attr('string'),
+  stack: DS.belongsTo('App.StackVersion'),
   version: DS.attr('string'),
   /**
-   * property can have next values:
-   *  - INSTALLED
-   *  - INSTALLING
-   *  - INSTALL_FAILED
-   *  - INIT
+   * possible property value defined at App.HostStackVersion.statusDefinition
    */
   status: DS.attr('string'),
-  isCurrent: DS.attr('boolean'),
+  host: DS.belongsTo('App.Host'),
+  hostName: DS.attr('string'),
+  isCurrent: function () {
+    return this.get('status') === 'CURRENT'
+  }.property('status'),
   displayStatus: function() {
-    return this.get('status') ?
-      Em.I18n.t('hosts.host.stackVersions.status.' + this.get('status').toLowerCase()) :
-      Em.I18n.t('common.unknown');
+    return App.HostStackVersion.formatStatus(this.get('status'));
   }.property('status'),
   installEnabled: function () {
     return (this.get('status') === 'INIT' || this.get('status') === 'INSTALL_FAILED');
@@ -41,29 +40,27 @@ App.HostStackVersion = DS.Model.extend({
   installDisabled: Ember.computed.not('installEnabled')
 });
 
-App.HostStackVersion.FIXTURES = [
-  {
-    stack: 'HDP-2.2',
-    version: 'HDP-2.2.2',
-    status: 'INIT',
-    isCurrent: false
-  },
-  {
-    stack: 'HDP-2.2',
-    version: 'HDP-2.2.1',
-    status: 'INSTALLED',
-    isCurrent: true
-  },
-  {
-    stack: 'HDP-2.2',
-    version: 'HDP-2.2.3',
-    status: 'INSTALLING',
-    isCurrent: false
-  },
-  {
-    stack: 'HDP-2.3',
-    version: 'HDP-2.3.0',
-    status: 'INSTALL_FAILED',
-    isCurrent: false
-  }
+App.HostStackVersion.FIXTURES = [];
+
+/**
+ * definition of possible statuses of Stack Version
+ * @type {Array}
+ */
+App.HostStackVersion.statusDefinition = [
+  "INSTALLED",
+  "INSTALLING",
+  "INSTALL_FAILED",
+  "INIT",
+  "CURRENT"
 ];
+
+/**
+ * translate status to label
+ * @param status
+ * @return {string}
+ */
+App.HostStackVersion.formatStatus = function (status) {
+  return status ?
+    Em.I18n.t('hosts.host.stackVersions.status.' + status.toLowerCase()) :
+    Em.I18n.t('common.unknown');
+};

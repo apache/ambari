@@ -90,6 +90,7 @@ Em.I18n.translations = {
   'common.failed':'Failed',
   'common.service': 'Service',
   'common.version':'Version',
+  'common.versions':'Versions',
   'common.description':'Description',
   'common.default':'Default',
   'common.client':'Client',
@@ -1728,10 +1729,12 @@ Em.I18n.translations = {
   'hosts.host.menu.stackVersions': 'Versions',
   'hosts.host.stackVersions.table.noVersions': 'No versions',
   'hosts.host.stackVersions.table.filteredInfo': '{0} of {1} versions showing',
+  'hosts.host.stackVersions.table.labels': '{0} ({1})',
   'hosts.host.stackVersions.status.init': 'Uninstalled',
   'hosts.host.stackVersions.status.installed': 'Installed',
   'hosts.host.stackVersions.status.install_failed': 'Install Failed',
   'hosts.host.stackVersions.status.installing': 'Installing',
+  'hosts.host.stackVersions.status.current': 'Current',
 
   'hosts.host.metrics.dataUnavailable':'Data Unavailable',
   'hosts.host.metrics.cpu':'CPU Usage',
@@ -1768,6 +1771,7 @@ Em.I18n.translations = {
   'hosts.host.summary.agentHeartbeat':'Heartbeat',
   'hosts.host.summary.hostMetrics':'Host Metrics',
   'hosts.host.summary.addComponent':'Add Component',
+  'hosts.host.summary.currentVersion':'Current Version',
 
   'hosts.host.details.hostActions':'Host Actions',
   'hosts.host.details.needToRestart':'Host needs {0} {1} restarted',

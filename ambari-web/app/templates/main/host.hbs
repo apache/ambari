@@ -68,6 +68,9 @@
         {{view view.parentView.memorySort}}
         {{view view.parentView.diskUsageSort}}
         {{view view.parentView.loadAvgSort}}
+        <th {{bindAttr class="App.supports.stackUpgrade::hidden :sort-view-11"}}>
+          {{t hosts.host.menu.stackVersions}}
+        </th>
         <th class="sort-view-6">{{t common.components}}</th>
       {{/view}}
       <tr class="filter-row">
@@ -81,6 +84,9 @@
         <th>{{view view.ramFilterView}}</th>
         <th> </th>
         <th>{{view view.loadAvgFilterView}}</th>
+        <th {{bindAttr class="App.supports.stackUpgrade::hidden"}}>
+          {{view view.versionsFilterView}}
+        </th>
         <th>{{view view.componentsFilterView}}</th>
       </tr>
     </thead>
@@ -122,10 +128,19 @@
           </td>
 
           <td>{{host.loadAvg}}</td>
+          <td {{bindAttr class="App.supports.stackUpgrade::hidden"}}>
+            <a href="#" class="expander" {{action toggleVersions target="view"}}>
+              <span {{bindAttr class="view.isVersionsCollapsed:icon-caret-right:icon-caret-down"}}></span>
+              {{view.content.stackVersions.length}} {{pluralize view.content.stackVersions.length singular="t:common.version" plural="t:common.versions"}}
+            </a>
+            <div class="stack-versions collapsed-list">
+              {{{view.versionlabels}}}
+            </div>
+          </td>
           <td>
-            <a href="#" class="host-components-expander" {{action toggleComponents target="view"}}> <span {{bindAttr class="view.isComponentsCollapsed:icon-caret-right:icon-caret-down"}}></span>
+            <a href="#" class="expander" {{action toggleComponents target="view"}}> <span {{bindAttr class="view.isComponentsCollapsed:icon-caret-right:icon-caret-down"}}></span>
               {{view.content.hostComponents.length}} {{pluralize view.content.hostComponents.length singular="t:common.component" plural="t:common.components"}}</a>
-            <div id="host-{{unbound host.hostName}}" class="host-components">
+            <div class="host-components collapsed-list">
               {{{view.labels}}}
             </div>
           </td>
@@ -134,7 +149,7 @@
     {{else}}
       <tr>
         <td class="first"> </td>
-        <td colspan="11">
+        <td colspan="12">
           {{t hosts.table.noHosts}}
         </td>
       </tr>

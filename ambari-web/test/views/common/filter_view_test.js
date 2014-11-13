@@ -18,6 +18,7 @@
 
 var App = require('app');
 var filters = require('views/common/filter_view');
+require('utils/helper');
 
 describe('filters.getFilterByType', function () {
 
@@ -385,6 +386,82 @@ describe('filters.getFilterByType', function () {
     testData.forEach(function(item){
       it('Condition: ' + item.condition + ((item.result) ? ' - match ' : ' - doesn\'t match ' + 'value: ') + item.value, function () {
         expect(filter(item.value, item.condition)).to.equal(item.result);
+      })
+    });
+  });
+
+  describe('sub-resource', function () {
+
+    var filter = filters.getFilterByType('sub-resource');
+
+    var testData = [
+      {
+        title: 'condition is null',
+        condition: null,
+        value: [Em.Object.create({
+          prop1: 1
+        })],
+        result: true
+      },
+      {
+        title: 'condition is empty',
+        condition: {},
+        value: [Em.Object.create({
+          prop1: 1
+        })],
+        result: true
+      },
+      {
+        title: 'condition match one property',
+        condition: {
+          prop1: 1
+        },
+        value: [Em.Object.create({
+          prop1: 1
+        })],
+        result: true
+      },
+      {
+        title: 'condition match two properties',
+        condition: {
+          prop1: 1,
+          prop2: 2
+        },
+        value: [Em.Object.create({
+          prop1: 1,
+          prop2: 2
+        })],
+        result: true
+      },
+      {
+        title: 'only one of two properties match',
+        condition: {
+          prop1: 3,
+          prop2: 2
+        },
+        value: [Em.Object.create({
+          prop1: 1,
+          prop2: 2
+        })],
+        result: false
+      },
+      {
+        title: 'none of two properties match',
+        condition: {
+          prop1: 3,
+          prop2: 4
+        },
+        value: [Em.Object.create({
+          prop1: 1,
+          prop2: 2
+        })],
+        result: false
+      }
+    ];
+
+    testData.forEach(function (test) {
+      it(test.title, function () {
+        expect(filter(test.value, test.condition)).to.equal(test.result);
       })
     });
   });

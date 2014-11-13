@@ -41,9 +41,9 @@ App.MainHostStackVersionsView = App.TableView.extend({
   }.property('filteredCount', 'totalCount'),
 
   sortView: sort.wrapperView,
-  stackSort: sort.fieldView.extend({
+  stackNameSort: sort.fieldView.extend({
     column: 1,
-    name: 'stack',
+    name: 'stackName',
     displayName: Em.I18n.t('common.stack'),
     type: 'version'
   }),
@@ -60,10 +60,10 @@ App.MainHostStackVersionsView = App.TableView.extend({
   }),
 
   /**
-   * Filter view for stack column
+   * Filter view for stackName column
    * Based on <code>filters</code> library
    */
-  stackFilterView: filters.createSelectView({
+  stackNameFilterView: filters.createSelectView({
     column: 1,
     fieldType: 'filter-input-width',
     content: function () {
@@ -72,7 +72,7 @@ App.MainHostStackVersionsView = App.TableView.extend({
           value: '',
           label: Em.I18n.t('common.all')
         }
-      ].concat(this.get('parentView.content').mapProperty('stack').uniq().map(function (item) {
+      ].concat(this.get('parentView.content').mapProperty('stackName').uniq().map(function (item) {
         return {
           value: item,
           label: item
@@ -147,7 +147,7 @@ App.MainHostStackVersionsView = App.TableView.extend({
 
   colPropAssoc: function () {
     var associations = [];
-    associations[1] = 'stack';
+    associations[1] = 'stackName';
     associations[2] = 'version';
     associations[3] = 'status';
     return associations;

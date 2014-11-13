@@ -47,6 +47,7 @@ App.Host = DS.Model.extend({
   criticalAlertsCount: DS.attr('number'),
   passiveState: DS.attr('string'),
   index: DS.attr('number'),
+  stackVersions: DS.hasMany('App.HostStackVersion'),
 
   /**
    * Is host checked at the main Hosts page
@@ -56,6 +57,10 @@ App.Host = DS.Model.extend({
    * determine whether host is requested from server
    */
   isRequested: DS.attr('boolean'),
+
+  currentVersion: function () {
+    return this.get('stackVersions').findProperty('isCurrent').get('version');
+  }.property('stackVersions.@each.isCurrent'),
 
   /**
    * Overall CPU usage (system and user)

@@ -64,6 +64,15 @@ App.hostsMapper = App.QuickDataMapper.create({
     host_name: 'host_name',
     admin_state: 'HostRoles.desired_admin_state'
   },
+  stackVersionConfig: {
+    id: 'id',
+    stack_id: 'stack_id',
+    stack_name: 'StackVersion.name',
+    version: 'StackVersion.version',
+    status: 'StackVersion.state',
+    host_name: 'host_name',
+    host_id: 'host_name'
+  },
   map: function (json, returnMapped) {
     returnMapped = !!returnMapped;
     console.time('App.hostsMapper execution time');
@@ -71,6 +80,7 @@ App.hostsMapper = App.QuickDataMapper.create({
       var hostsWithFullInfo = [];
       var hostIds = {};
       var components = [];
+      var stackVersions = [];
       var componentsIdMap = {};
       var cacheServices = App.cache['services'];
       var loadedServiceComponentsMap = App.get('componentConfigMapper').buildServiceComponentMap(cacheServices);
@@ -93,11 +103,29 @@ App.hostsMapper = App.QuickDataMapper.create({
           }
           serviceToHostComponentIdMap[serviceName].push(component.id);
         }, this);
+
+        if (App.get('supports.stackUpgrade')) {
+          item.stack_versions.forEach(function (stackVersion) {
+            stackVersion.id = stackVersion.StackVersion.name + "_" + stackVersion.StackVersion.version + "_" + item.Hosts.host_name;
+            stackVersion.host_name = item.Hosts.host_name;
+            stackVersion.stack_id = stackVersion.StackVersion.name + stackVersion.StackVersion.version;
+            stackVersions.push(this.parseIt(stackVersion, this.stackVersionConfig));
+          }, this);
+        }
+
         item.critical_alerts_count = (item.legacy_alerts) ? item.legacy_alerts.summary.CRITICAL + item.legacy_alerts.summary.WARNING : 0;
         item.cluster_id = App.get('clusterName');
         item.index = index;
 
-
+        if (App.get('supports.stackUpgrade')) {
+          this.config = $.extend(this.config, {
+            stack_versions_key: 'stack_versions',
+            stack_versions_type: 'array',
+            stack_versions: {
+              item: 'id'
+            }
+          })
+        }
         var parsedItem = this.parseIt(item, this.config);
         parsedItem.is_requested = true;
 
@@ -120,6 +148,9 @@ App.hostsMapper = App.QuickDataMapper.create({
         if (componentsIdMap[component.get('id')]) componentsIdMap[component.get('id')].display_name_advanced = component.get('displayNameAdvanced');
       });
       App.store.commit();
+      if (App.get('supports.stackUpgrade')) {
+        App.store.loadMany(App.HostStackVersion, stackVersions);
+      }
       App.store.loadMany(App.HostComponent, components);
       App.store.loadMany(App.Host, hostsWithFullInfo);
       var itemTotal = parseInt(json.itemTotal);

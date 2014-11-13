@@ -3499,11 +3499,14 @@ table.graphs {
     margin-bottom: 0;
   }
   .filter-input-width{
-    width:68%;
+    width:65%;
   }
   .table {
     input[type="checkbox"] {
       margin: -2px 0 0 0;
+    }
+    th {
+      padding-left: 6px;
     }
     .col0,.col1,
     td:first-child,
@@ -3519,12 +3522,11 @@ table.graphs {
     .col2,
     td:first-child + td + td,
     th:first-child + th + th{
-      width: 30%;
-      padding-left: 6px;
+      width: 20%;
       padding-right: 1px;
 
       .filter-input-width{
-        width:90%;
+        width:85%;
       }
     }
     .col3, .col4,
@@ -3540,35 +3542,41 @@ table.graphs {
     .col5,
     td:first-child + td + td + td + td + td,
     th:first-child + th + th + th + th + th {
-      width: 11%!important;
+      width: 10%!important;
     }
     .col6,
     td:first-child + td + td + td + td + td + td,
     th:first-child + th + th + th + th + th + th {
-      width: 15%!important;
+      width: 11%!important;
     }
     .col7,
     td:first-child + td + td + td + td + td + td + td,
     th:first-child + th + th + th + th + th + th + th{
-      width: 11%!important;
+      width: 8%!important;
     }
 
     .col8,
     td:first-child + td + td + td + td + td + td + td + td,
     th:first-child + th + th + th + th + th + th + th + th{
-      width: 11%!important;
+      width: 10%!important;
     }
 
     .col9,
     td:first-child + td + td + td + td + td + td + td + td + td,
     th:first-child + th + th + th + th + th + th + th + th + th{
-      width: 11%!important;
+      width: 10%!important;
     }
 
     .col10,
     td:first-child + td + td + td + td + td + td + td + td + td + td,
     th:first-child + th + th + th + th + th + th + th + th + th + th{
-      width: 16%!important;
+      width: 13%!important;
+    }
+
+    .col11,
+    td:first-child + td + td + td + td + td + td + td + td + td + td + td,
+    th:first-child + th + th + th + th + th + th + th + th + th + th +th{
+      width: 13%!important;
     }
 
     td.name {
@@ -3604,6 +3612,9 @@ table.graphs {
       font-size: 12px;
       label {
         font-size: 12px;
+      }
+      li.active-filter {
+        background-color: #777777;
       }
       li {
         display: block;
@@ -3649,6 +3660,9 @@ table.graphs {
         button {
           font-size: 12px;
         }
+      }
+      select {
+        width: 150px;
       }
       ul {
         margin-left: 10px;
@@ -3720,7 +3734,7 @@ table.graphs {
       }
     }
   }
-  .host-components-expander {
+  .expander {
     .icon-caret-right, .icon-caret-down {
       vertical-align: middle;
       margin-right: 5px;
@@ -3728,9 +3742,9 @@ table.graphs {
       text-decoration: none;
     }
   }
-  .host-components {
+  .collapsed-list {
     display: none;
-    padding-left: 13px;
+    padding-left: 10px;
   }
 }
 
@@ -5671,10 +5685,10 @@ ul.inline li {
       .col2,
       td:first-child + td + td,
       th:first-child + th + th {
-        width: 25%!important;
+        width: 15%!important;
 
         .filter-input-width{
-          width:80%;
+          width:75%;
         }
       }
 

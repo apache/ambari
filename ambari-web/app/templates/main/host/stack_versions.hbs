@@ -18,13 +18,13 @@
 <table class="table advanced-header-table table-bordered table-striped">
   <thead>
   {{#view view.sortView classNames="label-row" contentBinding="view.filteredContent"}}
-    {{view view.parentView.stackSort classNames="first"}}
+    {{view view.parentView.stackNameSort classNames="first"}}
     {{view view.parentView.versionSort}}
     {{view view.parentView.statusSort}}
     <th></th>
   {{/view}}
   <tr class="filter-row">
-    <th class="first">{{view view.stackFilterView}}</th>
+    <th class="first">{{view view.stackNameFilterView}}</th>
     <th>{{view view.versionFilterView}}</th>
     <th>{{view view.statusFilterView}}</th>
     <th> </th>
@@ -34,7 +34,7 @@
   {{#if view.pageContent}}
     {{#each view.pageContent}}
       <tr>
-        <td class="first">{{this.stack}}</td>
+        <td class="first">{{this.stackName}}</td>
         <td>{{this.version}}</td>
         <td>
           {{this.displayStatus}}

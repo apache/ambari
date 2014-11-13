@@ -63,6 +63,11 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
     return [];
   }.property('controller.content'),
 
+  stackVersions: function () {
+    //TODO obtain versions from model App.StackVersion
+    return App.HostStackVersion.find().mapProperty('version').uniq();
+  }.property(),
+
   onRequestErrorHandler: function() {
     this.set('requestError', null);
     this.get('controller').get('dataSource').setEach('isRequested', false);
@@ -549,11 +554,17 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
     didInsertElement: function(){
       App.tooltip(this.$("[rel='HealthTooltip'], [rel='UsageTooltip'], [rel='ComponentsTooltip']"));
       this.set('isComponentsCollapsed', true);
+      this.set('isVersionsCollapsed', true);
     },
 
     toggleComponents: function(event) {
-      this.set('isComponentsCollapsed', !this.get('isComponentsCollapsed'));
+      this.toggleProperty('isComponentsCollapsed');
       this.$('.host-components').toggle();
+    },
+
+    toggleVersions: function(){
+      this.toggleProperty('isVersionsCollapsed');
+      this.$('.stack-versions').toggle();
     },
 
     /**
@@ -592,6 +603,16 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
     labels: function() {
       return this.get('content.hostComponents').getEach('displayName').join("<br />");
     }.property('content.hostComponents.length'),
+
+    /**
+     * String with list of host components <code>displayName</code>
+     * @returns {String}
+     */
+    versionlabels: function () {
+      return this.get('content.stackVersions').map(function (version) {
+        return Em.I18n.t('hosts.host.stackVersions.table.labels').format(version.get('version'), version.get('displayStatus'));
+      }).join("<br />");
+    }.property('content.stackVersions.length'),
 
     /**
      * CSS value for disk usage bar
@@ -820,6 +841,19 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
   }),
 
   /**
+   * Filter view for Ram column
+   * Based on <code>filters</code> library
+   */
+  ramFilterView: filters.createTextView({
+    fieldType: 'filter-input-width',
+    fieldId: 'ram_filter',
+    column: 4,
+    onChangeValue: function () {
+      this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'ambari-bandwidth');
+    }
+  }),
+
+  /**
    * Filter view for LoadAverage column
    * Based on <code>filters</code> library
    */
@@ -829,19 +863,6 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
     column: 5,
     onChangeValue: function(){
       this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'number');
-    }
-  }),
-
-  /**
-   * Filter view for Ram column
-   * Based on <code>filters</code> library
-   */
-  ramFilterView: filters.createTextView({
-    fieldType: 'filter-input-width',
-    fieldId: 'ram_filter',
-    column: 4,
-    onChangeValue: function(){
-      this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'ambari-bandwidth');
     }
   }),
 
@@ -988,6 +1009,69 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
     }),
     onChangeValue: function(){
       this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'multiple');
+    }
+  }),
+
+  versionsFilterView: filters.wrapperView.extend({
+    column: 11,
+    filterView: filters.componentFieldView.extend({
+      templateName: require('templates/main/host/version_filter'),
+      selectedVersion: null,
+      selecteStatus: null,
+      value: {},
+
+      versionSelectView: filters.createSelectView({
+        fieldType: 'filter-input-width',
+        content: function () {
+          return this.get('parentView.parentView.parentView.stackVersions').map(function (version) {
+            return {
+              value: version,
+              label: version
+            }
+          });
+        }.property('App.router.clusterController.isLoaded'),
+        onChangeValue: function () {
+          this.set('parentView.selectedVersion', this.get('value'));
+        }
+      }),
+      statusSelectView: filters.createSelectView({
+        fieldType: 'filter-input-width',
+        content: function () {
+          return App.HostStackVersion.statusDefinition.map(function (status) {
+            return {
+              value: status,
+              label: App.HostStackVersion.formatStatus(status)
+            }
+          });
+        }.property('App.router.clusterController.isLoaded'),
+        onChangeValue: function () {
+          this.set('parentView.selectedStatus', this.get('value'));
+        }
+      }),
+      /**
+       * Onclick handler for <code>Apply filter</code> button
+       */
+      applyFilter: function () {
+        this._super();
+        var self = this;
+        var filterProperties = {};
+        if (this.get('selectedVersion')) {
+          filterProperties['version'] = this.get('selectedVersion');
+        }
+        if (this.get('selectedStatus')) {
+          filterProperties['status'] = this.get('selectedStatus');
+        }
+        self.set('value', filterProperties);
+      },
+      /**
+       * Clear filter to initial state
+       */
+      clearFilter: function () {
+        this.set('value', {});
+      }
+    }),
+    onChangeValue: function () {
+      this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'sub-resource');
     }
   }),
 
