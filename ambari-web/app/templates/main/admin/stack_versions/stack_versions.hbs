@@ -56,10 +56,14 @@
               </div>
             </td>
             <td>
-              <span>{{view.content.installedHosts.length}}</span>
+              <a href="#" title='installed' {{action showHosts view.content.version view.content.installedHosts target="controller"}}>
+                <span>{{view.content.installedHosts.length}}</span>
+              </a>
             </td>
             <td>
-              <span>{{view.content.currentHosts.length}}</span>
+              <a href="#" title='current' {{action showHosts view.content.version view.content.currentHosts target="controller"}}>
+                <span>{{view.content.currentHosts.length}}</span>
+              </a>
             </td>
           {{/view}}
         {{/each}}

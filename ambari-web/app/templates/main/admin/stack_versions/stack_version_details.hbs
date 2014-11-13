@@ -44,11 +44,19 @@
         <div class="span8">
           <div class="row-fluid">
             <div class="span3">{{t admin.stackVersions.datails.installed.on}}</div>
-            <div class="span6">{{content.installedHosts.length}}/{{totalHostCount}}</div>
+            <div class="span6">
+              <a href="#" title='installed' {{action showHosts controller.content.version controller.content.currentHosts target="App.router.mainStackVersionsController"}}>
+                <span>{{content.installedHosts.length}}/{{totalHostCount}}</span>
+              </a>
+            </div>
           </div>
           <div class="row-fluid">
             <div class="span3">{{t admin.stackVersions.datails.current.on}}</div>
-            <div class="span6">{{content.currentHosts.length}}/{{totalHostCount}}</div>
+            <div class="span6">
+              <a href="#" title='current' {{action showHosts controller.content.version controller.content.currentHosts target="App.router.mainStackVersionsController"}}>
+                <span>{{content.currentHosts.length}}/{{totalHostCount}}</span>
+              </a>
+            </div>
           </div>
         </div>
         <div class="span4">
@@ -90,7 +98,7 @@
                 {{repo.type}}
               </td>
               <td>
-                {{view Ember.TextField valueBinding="repo.baseurl" className="disabled"}}
+                {{view Ember.TextField valueBinding="repo.baseurl" disabled="disabled"}}
               </td>
             </tr>
           {{/each}}

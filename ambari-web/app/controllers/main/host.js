@@ -516,6 +516,27 @@ App.MainHostController = Em.ArrayController.extend({
     App.db.setFilterConditions(this.get('name'), [filterForComponent]);
   },
 
+  /**
+   * Filter hosts by stack version and state
+   * @param {String} version
+   * @param {String} state
+   */
+  filterByStack: function (version, state) {
+    if (!version || !state)
+      return;
+    var column = 11;
+
+    var filterForStack = {
+      iColumn: column,
+      value: {
+        version: version,
+        status: state.toUpperCase()
+      },
+      type: 'sub-resource'
+    };
+    App.db.setFilterConditions(this.get('name'), [filterForStack]);
+  },
+
   showAlertsPopup: function (event) {
     var host = event.context;
     App.router.get('mainAlertsController').loadAlerts(host.get('hostName'), "HOST");
