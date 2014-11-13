@@ -44,7 +44,7 @@ SERVICE_CMD = "service"
 class HostInfo:
   # List of project names to be used to find alternatives folders etc.
   DEFAULT_PROJECT_NAMES = [
-    "hadoop*", "hadoop", "hbase", "hcatalog", "hive", "ganglia", "nagios",
+    "hadoop*", "hadoop", "hbase", "hcatalog", "hive", "ganglia",
     "oozie", "sqoop", "hue", "zookeeper", "mapred", "hdfs", "flume",
     "storm", "hive-hcatalog", "tez", "falcon", "ambari_qa", "hadoop_deploy",
     "rrdcached", "hcat", "ambari-qa", "sqoop-ambari-qa", "sqoop-ambari_qa",
@@ -58,7 +58,7 @@ class HostInfo:
 
   # Set of default users (need to be replaced with the configured user names)
   DEFAULT_USERS = [
-    "nagios", "hive", "ambari-qa", "oozie", "hbase", "hcat", "mapred",
+    "hive", "ambari-qa", "oozie", "hbase", "hcat", "mapred",
     "hdfs", "rrdcached", "zookeeper", "flume", "sqoop", "sqoop2",
     "hue", "yarn", "tez", "storm", "falcon", "kafka","knox"
   ]
@@ -86,8 +86,8 @@ class HostInfo:
 
   # Additional packages to look for (search packages that start with these)
   ADDITIONAL_PACKAGES = [
-    "rrdtool", "rrdtool-python", "nagios", "ganglia", "gmond", "gweb", "libconfuse", "ambari-log4j",
-    "hadoop", "zookeeper", "oozie", "webhcat"
+    "rrdtool", "rrdtool-python", "ganglia", "gmond", "gweb", "libconfuse", 
+    "ambari-log4j", "hadoop", "zookeeper", "oozie", "webhcat"
   ]
 
   # ignore packages from repos whose names start with these strings

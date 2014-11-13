@@ -90,8 +90,8 @@ class TestHostInfo(TestCase):
       ["hadoop-a", "2.3", "HDP"], ["zk", "3.1", "HDP"], ["webhcat", "3.1", "HDP"],
       ["hadoop-b", "2.3", "HDP-epel"], ["epel", "3.1", "HDP-epel"], ["epel-2", "3.1", "HDP-epel"],
       ["hadoop-c", "2.3", "Ambari"], ["ambari-s", "3.1", "Ambari"],
-      ["nagios", "2.3", "NAGIOS"], ["rrd", "3.1", "RRD"],
-      ["keeper-1", "2.3", "NAGIOS"], ["keeper-2", "3.1", "base"],["def-def.x86", "2.2", "DEF.3"],
+      ["ganglia", "2.3", "GANGLIA"], ["rrd", "3.1", "RRD"],
+      ["keeper-1", "2.3", "GANGLIA"], ["keeper-2", "3.1", "base"],["def-def.x86", "2.2", "DEF.3"],
       ["def.1", "1.2", "NewDEF"]
     ]
     availablePackages = [
@@ -103,7 +103,7 @@ class TestHostInfo(TestCase):
 
     packagesToLook = ["webhcat", "hadoop", "*-def"]
     reposToIgnore = ["ambari"]
-    additionalPackages = ["nagios", "rrd"]
+    additionalPackages = ["ganglia", "rrd"]
 
     repos = []
     packageAnalyzer.getInstalledRepos(packagesToLook, installedPackages + availablePackages, reposToIgnore, repos)
@@ -121,13 +121,13 @@ class TestHostInfo(TestCase):
     additionalPkgsInstalled = packageAnalyzer.getInstalledPkgsByNames(
         additionalPackages, installedPackages)
     self.assertEqual(2, len(additionalPkgsInstalled))
-    expected = ["nagios", "rrd"]
+    expected = ["ganglia", "rrd"]
     for additionalPkg in expected:
       self.assertTrue(additionalPkg in additionalPkgsInstalled)
 
     allPackages = list(set(packagesInstalled + additionalPkgsInstalled))
     self.assertEqual(7, len(allPackages))
-    expected = ["hadoop-a", "zk", "webhcat", "hadoop-b", "nagios", "rrd", "def-def.x86"]
+    expected = ["hadoop-a", "zk", "webhcat", "hadoop-b", "ganglia", "rrd", "def-def.x86"]
     for package in expected:
       self.assertTrue(package in allPackages)
 

@@ -101,17 +101,6 @@ class TestActionQueue(TestCase):
     'hostLevelParams': {}
     }
 
-  nagios_install_command = {
-    'commandType': 'EXECUTION_COMMAND',
-    'role': u'NAGIOS',
-    'roleCommand': u'INSTALL',
-    'commandId': '1-1',
-    'taskId': 6,
-    'clusterName': u'cc',
-    'serviceName': u'HDFS',
-    'hostLevelParams': {}
-    }
-
   hbase_install_command = {
     'commandType': 'EXECUTION_COMMAND',
     'role': u'HBASE',

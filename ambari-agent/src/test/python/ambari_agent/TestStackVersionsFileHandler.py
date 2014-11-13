@@ -41,8 +41,6 @@ class TestStackVersionsFileHandler(TestCase):
   @patch.object(stackVersionsFileHandler, 'touch_file')
   def test_read_stack_version(self, touch_method):
     stackVersionsFileHandler.versionsFilePath = dummyVersionsFile
-    result = stackVersionsFileHandler.read_stack_version("NAGIOS_SERVER")
-    self.assertEquals(result, '{"stackName":"HDP","stackVersion":"1.2.1"}')
     result = stackVersionsFileHandler.read_stack_version("GANGLIA_SERVER")
     self.assertEquals(result, '{"stackName":"HDP","stackVersion":"1.2.2"}')
     result = stackVersionsFileHandler.read_stack_version("NOTEXISTING")
@@ -54,21 +52,19 @@ class TestStackVersionsFileHandler(TestCase):
   def test_read_all_stack_versions(self, touch_method):
     stackVersionsFileHandler.versionsFilePath = dummyVersionsFile
     result = stackVersionsFileHandler.read_all_stack_versions()
-    self.assertEquals(len(result.keys()), 4)
-    self.assertEquals(result["NAGIOS_SERVER"],
-          '{"stackName":"HDP","stackVersion":"1.2.1"}')
+    self.assertEquals(len(result.keys()), 3)
     self.assertEquals(result["HCATALOG"],
           '{"stackName":"HDP","stackVersion":"1.2.2"}')
     self.assertTrue(touch_method.called)
 
 
   def test_extract(self):
-    s = '   NAGIOS_SERVER	\t  {"stackName":"HDP","stackVersion":"1.3.0"}  '
+    s = '   GANGLIA_SERVER	\t  {"stackName":"HDP","stackVersion":"1.3.0"}  '
     comp, ver = stackVersionsFileHandler.extract(s)
-    self.assertEqual(comp, "NAGIOS_SERVER")
+    self.assertEqual(comp, "GANGLIA_SERVER")
     self.assertEqual(ver, '{"stackName":"HDP","stackVersion":"1.3.0"}')
     # testing wrong value
-    s = "   NAGIOS_SERVER	"
+    s = "   GANGLIA_SERVER	"
     comp, ver = stackVersionsFileHandler.extract(s)
     self.assertEqual(comp, stackVersionsFileHandler.DEFAULT_VER)
     self.assertEqual(ver, stackVersionsFileHandler.DEFAULT_VER)
@@ -96,7 +92,7 @@ class TestStackVersionsFileHandler(TestCase):
       os.path.dirname(tmpfile)
     stackVersionsFileHandler.touch_file()
     stackVersionsFileHandler.write_stack_version(
-      "NAGIOS_SERVER", '"stackVersion":"1.3.0"')
+      "GANGLIA_SERVER", '"stackVersion":"1.3.0"')
     # Checking if backup file exists
     expectedBackupFile = tmpfile + ".bak"
     self.assertTrue(os.path.isfile(expectedBackupFile))
@@ -104,7 +100,7 @@ class TestStackVersionsFileHandler(TestCase):
     # Checking content of created file
     content = stackVersionsFileHandler.read_all_stack_versions()
     self.assertEquals(len(content), 1)
-    self.assertEqual(content['NAGIOS_SERVER'], '"stackVersion":"1.3.0"')
+    self.assertEqual(content['GANGLIA_SERVER'], '"stackVersion":"1.3.0"')
     self.assertTrue(os.path.isfile(tmpfile))
     os.remove(tmpfile)
     # Restoring old values

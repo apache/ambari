@@ -49,13 +49,13 @@ hostcheck_result_fileContent = """[processes]
 proc_list = 323,434
 
 [users]
-usr_list = rrdcached,ambari-qa,hive,oozie,hbase,hcat,mysql,mapred,hdfs,zookeeper,sqoop,nagios
+usr_list = rrdcached,ambari-qa,hive,oozie,hbase,hcat,mysql,mapred,hdfs,zookeeper,sqoop
 
 [repositories]
 repo_list = HDP-1.3.0,HDP-epel
 
 [directories]
-dir_list = /etc/hadoop,/etc/hbase,/etc/hcatalog,/tmp/hive,/tmp/nagios,/var/nagios
+dir_list = /etc/hadoop,/etc/hbase,/etc/hcatalog,/tmp/hive
 
 [alternatives]
 symlink_list = hcatalog-conf,hadoop-default,hadoop-log,oozie-conf
@@ -210,7 +210,7 @@ class TestHostCleanup(TestCase):
                       do_erase_alternatives_method, get_additional_dirs_method, clear_cache_mock):
     out = StringIO.StringIO()
     sys.stdout = out
-    get_additional_dirs_method.return_value = ['/tmp/hadoop-nagios','/tmp/hsperfdata_007']
+    get_additional_dirs_method.return_value = ['/tmp/hadoop-yarn','/tmp/hsperfdata_007']
     propertyMap = {PACKAGE_SECTION:['abcd', 'pqrst'], USER_SECTION:['abcd', 'pqrst'],
                    REPO_SECTION:['abcd', 'pqrst'], DIR_SECTION:['abcd', 'pqrst'],
                    PROCESS_SECTION:['abcd', 'pqrst'],
@@ -227,7 +227,7 @@ class TestHostCleanup(TestCase):
     self.assertTrue(do_erase_packages_method.called)
     self.assertTrue(do_kill_processes_method.called)
     self.assertTrue(do_erase_alternatives_method.called)
-    calls = [call(['decf']), call(['abcd', 'pqrst']), call(['/tmp/hadoop-nagios','/tmp/hsperfdata_007'])]
+    calls = [call(['decf']), call(['abcd', 'pqrst']), call(['/tmp/hadoop-yarn','/tmp/hsperfdata_007'])]
     do_erase_dir_silent_method.assert_has_calls(calls)
     do_erase_packages_method.assert_called_once_with(['abcd', 'pqrst'])
     do_erase_files_silent_method.assert_called_once_with(['abcd', 'pqrst'])

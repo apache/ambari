@@ -89,7 +89,7 @@ class StackVersionsFileHandler:
   def extract(self, statement):
     '''
     Extracts <Component>, <HDPstack version> values from lines like
-    NAGIOS	StackVersion-1.3.0
+    GANGLIA	StackVersion-1.3.0
     '''
     parts = statement.strip().split()
     if len(parts) != 2:

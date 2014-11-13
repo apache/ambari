@@ -36,7 +36,7 @@ class TestLiveStatus(TestCase):
     sys.stdout = out
     LiveStatus.SERVICES = [
       "HDFS", "MAPREDUCE", "GANGLIA", "HBASE",
-      "NAGIOS", "ZOOKEEPER", "OOZIE",
+      "ZOOKEEPER", "OOZIE",
       "KERBEROS", "TEMPLETON", "HIVE",
       "YARN", "MAPREDUCE2", "FLUME", "TEZ",
       "FALCON", "STORM"
@@ -92,8 +92,6 @@ class TestLiveStatus(TestCase):
        "componentName" : "HBASE_MASTER"},
       {"serviceName" : "HBASE",
        "componentName" : "HBASE_REGIONSERVER"},
-      {"serviceName" : "NAGIOS",
-       "componentName" : "NAGIOS_SERVER"},
       {"serviceName" : "FLUME",
        "componentName" : "FLUME_SERVER"},
       {"serviceName" : "ZOOKEEPER",

@@ -34,7 +34,7 @@ class TestActualConfigHandler(TestCase):
   def setUp(self):
     LiveStatus.SERVICES = [
       "HDFS", "MAPREDUCE", "GANGLIA", "HBASE",
-      "NAGIOS", "ZOOKEEPER", "OOZIE",
+      "ZOOKEEPER", "OOZIE",
       "KERBEROS", "TEMPLETON", "HIVE",
       "YARN", "MAPREDUCE2", "FLUME", "TEZ",
       "FALCON", "STORM"
@@ -90,8 +90,6 @@ class TestActualConfigHandler(TestCase):
        "componentName" : "HBASE_MASTER"},
       {"serviceName" : "HBASE",
        "componentName" : "HBASE_REGIONSERVER"},
-      {"serviceName" : "NAGIOS",
-       "componentName" : "NAGIOS_SERVER"},
       {"serviceName" : "FLUME",
        "componentName" : "FLUME_SERVER"},
       {"serviceName" : "ZOOKEEPER",
