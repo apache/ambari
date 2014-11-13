@@ -1276,7 +1276,7 @@ var storm22Properties = [
   },
   {
     "id": "puppet var",
-    "name": "strom_ui_principal_name",
+    "name": "storm_ui_principal_name",
     "displayName": "Storm UI principal name",
     "value": "",
     "defaultValue": "HTTP/_HOST",
@@ -1291,7 +1291,7 @@ var storm22Properties = [
   },
   {
     "id": "puppet var",
-    "name": "strom_ui_keytab",
+    "name": "storm_ui_keytab",
     "displayName": "Path to Nimbus UI keytab file",
     "value": "",
     "defaultValue": "/etc/security/keytabs/spnego.service.keytab",
