@@ -31,12 +31,15 @@ import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
 
 /**
- * RepositoryVersionDAO unit tests.
+ * CrudDAO unit tests.
+ * Uses repo_version table for in-memory DB tests.
  */
-public class RepositoryVersionDAOTest {
+public class CrudDAOTest {
 
   private static Injector injector;
-  private RepositoryVersionDAO repositoryVersionDAO;
+  private CrudDAO<RepositoryVersionEntity, Long> repositoryVersionDAO;
+  private int uniqueCounter = 0;
+  private static final long FIRST_ID = 1L;
 
   @Before
   public void before() {
@@ -47,26 +50,58 @@ public class RepositoryVersionDAOTest {
 
   private void createSingleRecord() {
     final RepositoryVersionEntity entity = new RepositoryVersionEntity();
-    entity.setDisplayName("display name");
+    entity.setDisplayName("display name" + uniqueCounter);
     entity.setRepositories("repositories");
-    entity.setStack("stack");
+    entity.setStack("stack" + uniqueCounter);
     entity.setUpgradePackage("upgrade package");
     entity.setVersion("version");
     repositoryVersionDAO.create(entity);
+    uniqueCounter++;
   }
 
   @Test
-  public void testFindByDisplayName() {
+  public void testFindByPK() {
+    Assert.assertNull(repositoryVersionDAO.findByPK(FIRST_ID));
     createSingleRecord();
-    Assert.assertNull(repositoryVersionDAO.findByDisplayName("non existing"));
-    Assert.assertNotNull(repositoryVersionDAO.findByDisplayName("display name"));
+    Assert.assertNotNull(repositoryVersionDAO.findByPK(FIRST_ID));
   }
 
   @Test
-  public void testFindByStackAndVersion() {
+  public void testFindAll() {
+    Assert.assertEquals(0, repositoryVersionDAO.findAll().size());
     createSingleRecord();
-    Assert.assertNull(repositoryVersionDAO.findByStackAndVersion("non existing", "non existing"));
-    Assert.assertNotNull(repositoryVersionDAO.findByStackAndVersion("stack", "version"));
+    createSingleRecord();
+    Assert.assertEquals(2, repositoryVersionDAO.findAll().size());
+    repositoryVersionDAO.remove(repositoryVersionDAO.findByPK(FIRST_ID));
+    Assert.assertEquals(1, repositoryVersionDAO.findAll().size());
+  }
+
+  @Test
+  public void testCreate() {
+    createSingleRecord();
+    Assert.assertTrue(repositoryVersionDAO.findAll().size() == 1);
+    createSingleRecord();
+    Assert.assertTrue(repositoryVersionDAO.findAll().size() == 2);
+  }
+
+  @Test
+  public void testMerge() {
+    createSingleRecord();
+    RepositoryVersionEntity entity = repositoryVersionDAO.findByPK(FIRST_ID);
+    entity.setDisplayName("newname");
+    repositoryVersionDAO.merge(entity);
+    entity = repositoryVersionDAO.findByPK(FIRST_ID);
+    Assert.assertEquals("newname", entity.getDisplayName());
+  }
+
+  @Test
+  public void testRemove() {
+    createSingleRecord();
+    createSingleRecord();
+    Assert.assertEquals(2, repositoryVersionDAO.findAll().size());
+    repositoryVersionDAO.remove(repositoryVersionDAO.findByPK(FIRST_ID));
+    Assert.assertEquals(1, repositoryVersionDAO.findAll().size());
+    Assert.assertNull(repositoryVersionDAO.findByPK(1L));
   }
 
   @After

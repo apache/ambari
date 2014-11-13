@@ -17,50 +17,24 @@
  */
 package org.apache.ambari.server.orm.dao;
 
-import java.util.List;
-
-import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 
-import com.google.inject.Inject;
-import com.google.inject.Provider;
 import com.google.inject.Singleton;
-import com.google.inject.persist.Transactional;
 
 /**
  * DAO for repository versions.
  *
  */
 @Singleton
-public class RepositoryVersionDAO {
-  @Inject
-  Provider<EntityManager> entityManagerProvider;
-  @Inject
-  DaoUtils daoUtils;
-
+public class RepositoryVersionDAO extends CrudDAO<RepositoryVersionEntity, Long> {
   /**
-   * Retrieves repository version by primary key.
-   *
-   * @param repositoryVersionPK primary key
-   * @return null if there is no suitable repository version
+   * Constructor.
    */
-  @RequiresSession
-  public RepositoryVersionEntity findByPK(Long repositoryVersionPK) {
-    return entityManagerProvider.get().find(RepositoryVersionEntity.class, repositoryVersionPK);
-  }
-
-  /**
-   * Retrieves all repository versions.
-   *
-   * @return list of all repository versions
-   */
-  @RequiresSession
-  public List<RepositoryVersionEntity> findAll() {
-    final TypedQuery<RepositoryVersionEntity> query = entityManagerProvider.get().createQuery("SELECT repoversion FROM RepositoryVersionEntity repoversion", RepositoryVersionEntity.class);
-    return daoUtils.selectList(query);
+  public RepositoryVersionDAO() {
+    super(RepositoryVersionEntity.class);
   }
 
   /**
@@ -89,36 +63,5 @@ public class RepositoryVersionDAO {
     query.setParameter("stack", stack);
     query.setParameter("version", version);
     return daoUtils.selectSingle(query);
-  }
-
-  /**
-   * Create repository version.
-   *
-   * @param repositoryVersion entity to create
-   */
-  @Transactional
-  public void create(RepositoryVersionEntity repositoryVersion) {
-    entityManagerProvider.get().persist(repositoryVersion);
-  }
-
-  /**
-   * Update repository version.
-   *
-   * @param repositoryVersion entity to update
-   * @return updated repository version
-   */
-  @Transactional
-  public RepositoryVersionEntity merge(RepositoryVersionEntity repositoryVersion) {
-    return entityManagerProvider.get().merge(repositoryVersion);
-  }
-
-  /**
-   * Deletes repository version.
-   *
-   * @param repositoryVersion entity to delete
-   */
-  @Transactional
-  public void remove(RepositoryVersionEntity repositoryVersion) {
-    entityManagerProvider.get().remove(merge(repositoryVersion));
   }
 }

@@ -36,7 +36,9 @@ import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
+import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 
 import com.google.gson.Gson;
@@ -84,6 +86,9 @@ public class RepositoryVersionResourceProvider extends AbstractResourceProvider 
 
   @Inject
   private RepositoryVersionDAO repositoryVersionDAO;
+
+  @Inject
+  private ClusterVersionDAO clusterVersionDAO;
 
   /**
    * Create a new resource provider.
@@ -188,13 +193,88 @@ public class RepositoryVersionResourceProvider extends AbstractResourceProvider 
   @Override
   public RequestStatus updateResources(Request request, Predicate predicate)
     throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
-    throw new UnsupportedOperationException();
+    final Set<Map<String, Object>> propertyMaps = request.getProperties();
+
+    for (Map<String, Object> propertyMap : propertyMaps) {
+      final Long id;
+      try {
+        id = Long.parseLong(propertyMap.get(REPOSITORY_VERSION_ID_PROPERTY_ID).toString());
+      } catch (Exception ex) {
+        throw new SystemException("Repository version should have numerical id");
+      }
+
+      final RepositoryVersionEntity entity = repositoryVersionDAO.findByPK(id);
+      if (entity == null) {
+        throw new NoSuchResourceException("There is no repository version with id " + id);
+      }
+
+      if (propertyMap.get(REPOSITORY_VERSION_REPOSITORIES_PROPERTY_ID) != null
+          || propertyMap.get(REPOSITORY_VERSION_UPGRADE_PACK_PROPERTY_ID) != null) {
+
+        final List<ClusterVersionEntity> clusterVersionEntities =
+            clusterVersionDAO.findByStackAndVersion(entity.getStack(), entity.getVersion());
+
+        if (!clusterVersionEntities.isEmpty()) {
+          final ClusterVersionEntity firstClusterVersion = clusterVersionEntities.get(0);
+          throw new SystemException("Repository version can't be updated as it is " +
+            firstClusterVersion.getState().name() + " on cluster " + firstClusterVersion.getClusterEntity().getClusterName());
+        }
+
+        if (propertyMap.get(REPOSITORY_VERSION_REPOSITORIES_PROPERTY_ID) != null) {
+          entity.setRepositories(propertyMap.get(REPOSITORY_VERSION_REPOSITORIES_PROPERTY_ID).toString());
+        }
+
+        if (propertyMap.get(REPOSITORY_VERSION_UPGRADE_PACK_PROPERTY_ID) != null) {
+          entity.setUpgradePackage(propertyMap.get(REPOSITORY_VERSION_UPGRADE_PACK_PROPERTY_ID).toString());
+        }
+      }
+
+      if (propertyMap.get(REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID) != null) {
+        entity.setDisplayName(propertyMap.get(REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID).toString());
+      }
+
+      repositoryVersionDAO.merge(entity);
+    }
+
+    return getRequestStatus(null);
   }
 
   @Override
   public RequestStatus deleteResources(Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
-    throw new UnsupportedOperationException();
+    final Set<Map<String, Object>> propertyMaps = getPropertyMaps(predicate);
+
+    final List<RepositoryVersionEntity> entitiesToBeRemoved = new ArrayList<RepositoryVersionEntity>();
+    for (Map<String, Object> propertyMap : propertyMaps) {
+      final Long id;
+      try {
+        id = Long.parseLong(propertyMap.get(REPOSITORY_VERSION_ID_PROPERTY_ID).toString());
+      } catch (Exception ex) {
+        throw new SystemException("Repository version should have numerical id");
+      }
+
+      final RepositoryVersionEntity entity = repositoryVersionDAO.findByPK(id);
+      if (entity == null) {
+        throw new NoSuchResourceException("There is no repository version with id " + id);
+      }
+
+      final List<ClusterVersionEntity> clusterVersionEntities =
+          clusterVersionDAO.findByStackAndVersion(entity.getStack(), entity.getVersion());
+
+      if (!clusterVersionEntities.isEmpty()) {
+        final ClusterVersionEntity firstClusterVersion = clusterVersionEntities.get(0);
+        throw new SystemException("Repository version can't be deleted as it is " +
+          firstClusterVersion.getState().name() + " on cluster " + firstClusterVersion.getClusterEntity().getClusterName());
+      }
+
+      entitiesToBeRemoved.add(entity);
+    }
+
+    for (RepositoryVersionEntity entity: entitiesToBeRemoved) {
+      repositoryVersionDAO.remove(entity);
+    }
+
+    return getRequestStatus(null);
   }
 
   @Override

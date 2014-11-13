@@ -26,8 +26,10 @@ import java.util.Set;
 import junit.framework.Assert;
 
 import org.apache.ambari.server.controller.ResourceProviderFactory;
+import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
+import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
@@ -93,6 +95,70 @@ public class RepositoryVersionResourceProviderTest {
     repositoryVersionDAO.create(entity);
 
     Assert.assertEquals(1, provider.getResources(getRequest, null).size());
+  }
+
+  @Test
+  public void testDeleteResources() throws Exception {
+    final ResourceProvider provider = injector.getInstance(ResourceProviderFactory.class).getRepositoryVersionProvider();
+
+    final Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
+    final Map<String, Object> properties = new LinkedHashMap<String, Object>();
+    properties.put(RepositoryVersionResourceProvider.REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID, "name");
+    properties.put(RepositoryVersionResourceProvider.REPOSITORY_VERSION_REPOSITORIES_PROPERTY_ID, "repositories");
+    properties.put(RepositoryVersionResourceProvider.REPOSITORY_VERSION_STACK_PROPERTY_ID, "stack");
+    properties.put(RepositoryVersionResourceProvider.REPOSITORY_VERSION_UPGRADE_PACK_PROPERTY_ID, "upgrade");
+    properties.put(RepositoryVersionResourceProvider.REPOSITORY_VERSION_VERSION_PROPERTY_ID, "version");
+    propertySet.add(properties);
+
+    final Request getRequest = PropertyHelper.getReadRequest(RepositoryVersionResourceProvider.REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID);
+    Assert.assertEquals(0, provider.getResources(getRequest, null).size());
+
+    final Request createRequest = PropertyHelper.getCreateRequest(propertySet, null);
+    provider.createResources(createRequest);
+
+    Assert.assertEquals(1, provider.getResources(getRequest, null).size());
+
+    final Predicate predicate = new PredicateBuilder().property(RepositoryVersionResourceProvider.REPOSITORY_VERSION_ID_PROPERTY_ID).equals("1").toPredicate();
+    provider.deleteResources(predicate);
+
+    Assert.assertEquals(0, provider.getResources(getRequest, null).size());
+  }
+
+  @Test
+  public void testUpdateResources() throws Exception {
+    final ResourceProvider provider = injector.getInstance(ResourceProviderFactory.class).getRepositoryVersionProvider();
+
+    final Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
+    final Map<String, Object> properties = new LinkedHashMap<String, Object>();
+    properties.put(RepositoryVersionResourceProvider.REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID, "name");
+    properties.put(RepositoryVersionResourceProvider.REPOSITORY_VERSION_REPOSITORIES_PROPERTY_ID, "repositories");
+    properties.put(RepositoryVersionResourceProvider.REPOSITORY_VERSION_STACK_PROPERTY_ID, "stack");
+    properties.put(RepositoryVersionResourceProvider.REPOSITORY_VERSION_UPGRADE_PACK_PROPERTY_ID, "upgrade");
+    properties.put(RepositoryVersionResourceProvider.REPOSITORY_VERSION_VERSION_PROPERTY_ID, "version");
+    propertySet.add(properties);
+
+    final Request getRequest = PropertyHelper.getReadRequest(
+        RepositoryVersionResourceProvider.REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID,
+        RepositoryVersionResourceProvider.REPOSITORY_VERSION_REPOSITORIES_PROPERTY_ID,
+        RepositoryVersionResourceProvider.REPOSITORY_VERSION_UPGRADE_PACK_PROPERTY_ID);
+    Assert.assertEquals(0, provider.getResources(getRequest, null).size());
+
+    final Request createRequest = PropertyHelper.getCreateRequest(propertySet, null);
+    provider.createResources(createRequest);
+
+    Assert.assertEquals(1, provider.getResources(getRequest, null).size());
+    Assert.assertEquals("name", provider.getResources(getRequest, null).iterator().next().getPropertyValue(RepositoryVersionResourceProvider.REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID));
+
+    properties.put(RepositoryVersionResourceProvider.REPOSITORY_VERSION_ID_PROPERTY_ID, "1");
+    properties.put(RepositoryVersionResourceProvider.REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID, "name2");
+    properties.put(RepositoryVersionResourceProvider.REPOSITORY_VERSION_REPOSITORIES_PROPERTY_ID, "repositories2");
+    properties.put(RepositoryVersionResourceProvider.REPOSITORY_VERSION_UPGRADE_PACK_PROPERTY_ID, "upgrade2");
+    final Request updateRequest = PropertyHelper.getUpdateRequest(properties, null);
+    provider.updateResources(updateRequest, null);
+
+    Assert.assertEquals("name2", provider.getResources(getRequest, null).iterator().next().getPropertyValue(RepositoryVersionResourceProvider.REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID));
+    Assert.assertEquals("repositories2", provider.getResources(getRequest, null).iterator().next().getPropertyValue(RepositoryVersionResourceProvider.REPOSITORY_VERSION_REPOSITORIES_PROPERTY_ID));
+    Assert.assertEquals("upgrade2", provider.getResources(getRequest, null).iterator().next().getPropertyValue(RepositoryVersionResourceProvider.REPOSITORY_VERSION_UPGRADE_PACK_PROPERTY_ID));
   }
 
   @After

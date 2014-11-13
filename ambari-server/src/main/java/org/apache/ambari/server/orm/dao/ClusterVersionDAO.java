@@ -15,22 +15,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.apache.ambari.server.orm.dao;
 
-import com.google.inject.Inject;
-import com.google.inject.Provider;
-import com.google.inject.Singleton;
-import com.google.inject.persist.Transactional;
+import java.util.List;
+
+import javax.persistence.NoResultException;
+import javax.persistence.NonUniqueResultException;
+import javax.persistence.TypedQuery;
+
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.state.ClusterVersionState;
 
-import javax.persistence.EntityManager;
-import javax.persistence.NoResultException;
-import javax.persistence.NonUniqueResultException;
-import javax.persistence.TypedQuery;
-import java.util.List;
+import com.google.inject.Singleton;
 
 /**
  * The {@link ClusterVersionDAO} class manages the {@link ClusterVersionEntity} instances associated with a cluster.
@@ -39,21 +36,12 @@ import java.util.List;
  * stack version that is {@link ClusterVersionState#UPGRADING}.
  */
 @Singleton
-public class ClusterVersionDAO {
-  @Inject
-  Provider<EntityManager> entityManagerProvider;
-  @Inject
-  DaoUtils daoUtils;
-
+public class ClusterVersionDAO extends CrudDAO<ClusterVersionEntity, Long>{
   /**
-   * Get the object with the given id.
-   *
-   * @param id Primary key id
-   * @return Return the object with the given primary key
+   * Constructor.
    */
-  @RequiresSession
-  public ClusterVersionEntity findByPK(long id) {
-    return entityManagerProvider.get().find(ClusterVersionEntity.class, id);
+  public ClusterVersionDAO() {
+    super(ClusterVersionEntity.class);
   }
 
   /**
@@ -68,7 +56,7 @@ public class ClusterVersionDAO {
     final TypedQuery<ClusterVersionEntity> query = entityManagerProvider.get().createNamedQuery("clusterVersionByStackVersion", ClusterVersionEntity.class);
     query.setParameter("stack", stack);
     query.setParameter("version", version);
-    
+
     return daoUtils.selectList(query);
   }
 
@@ -135,35 +123,5 @@ public class ClusterVersionDAO {
     query.setParameter("state", state);
 
     return daoUtils.selectList(query);
-  }
-
-  @RequiresSession
-  public List<ClusterVersionEntity> findAll() {
-    return daoUtils.selectAll(entityManagerProvider.get(), ClusterVersionEntity.class);
-  }
-
-  @Transactional
-  public void refresh(ClusterVersionEntity clusterVersionEntity) {
-    entityManagerProvider.get().refresh(clusterVersionEntity);
-  }
-
-  @Transactional
-  public void create(ClusterVersionEntity clusterVersionEntity) {
-    entityManagerProvider.get().persist(clusterVersionEntity);
-  }
-
-  @Transactional
-  public ClusterVersionEntity merge(ClusterVersionEntity clusterVersionEntity) {
-    return entityManagerProvider.get().merge(clusterVersionEntity);
-  }
-
-  @Transactional
-  public void remove(ClusterVersionEntity clusterVersionEntity) {
-    entityManagerProvider.get().remove(merge(clusterVersionEntity));
-  }
-
-  @Transactional
-  public void removeByPK(long id) {
-    remove(findByPK(id));
   }
 }

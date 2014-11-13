@@ -39,27 +39,39 @@ public class RepositoryVersionServiceTest extends BaseServiceTest {
   public List<ServiceTestInvocation> getTestInvocations() throws Exception {
     List<ServiceTestInvocation> listInvocations = new ArrayList<ServiceTestInvocation>();
 
-    RepositoryVersionService RepositoryVersionService;
+    RepositoryVersionService repositoryVersionService;
     Method m;
     Object[] args;
 
     //getRepositoryVersions
-    RepositoryVersionService = new TestRepositoryVersionService();
-    m = RepositoryVersionService.getClass().getMethod("getRepositoryVersions", HttpHeaders.class, UriInfo.class);
+    repositoryVersionService = new TestRepositoryVersionService();
+    m = repositoryVersionService.getClass().getMethod("getRepositoryVersions", HttpHeaders.class, UriInfo.class);
     args = new Object[] {getHttpHeaders(), getUriInfo()};
-    listInvocations.add(new ServiceTestInvocation(Request.Type.GET, RepositoryVersionService, m, args, null));
+    listInvocations.add(new ServiceTestInvocation(Request.Type.GET, repositoryVersionService, m, args, null));
 
     //getRepositoryVersion
-    RepositoryVersionService = new TestRepositoryVersionService();
-    m = RepositoryVersionService.getClass().getMethod("getRepositoryVersion", HttpHeaders.class, UriInfo.class, String.class);
-    args = new Object[] {getHttpHeaders(), getUriInfo(), "RepositoryVersionname"};
-    listInvocations.add(new ServiceTestInvocation(Request.Type.GET, RepositoryVersionService, m, args, null));
+    repositoryVersionService = new TestRepositoryVersionService();
+    m = repositoryVersionService.getClass().getMethod("getRepositoryVersion", HttpHeaders.class, UriInfo.class, String.class);
+    args = new Object[] {getHttpHeaders(), getUriInfo(), "RepositoryVersionName"};
+    listInvocations.add(new ServiceTestInvocation(Request.Type.GET, repositoryVersionService, m, args, null));
 
     //createRepositoryVersion
-    RepositoryVersionService = new TestRepositoryVersionService();
-    m = RepositoryVersionService.getClass().getMethod("createRepositoryVersion", String.class, HttpHeaders.class, UriInfo.class);
+    repositoryVersionService = new TestRepositoryVersionService();
+    m = repositoryVersionService.getClass().getMethod("createRepositoryVersion", String.class, HttpHeaders.class, UriInfo.class);
     args = new Object[] {"body", getHttpHeaders(), getUriInfo()};
-    listInvocations.add(new ServiceTestInvocation(Request.Type.POST, RepositoryVersionService, m, args, "body"));
+    listInvocations.add(new ServiceTestInvocation(Request.Type.POST, repositoryVersionService, m, args, "body"));
+
+    //deleteRepositoryVersion
+    repositoryVersionService = new TestRepositoryVersionService();
+    m = repositoryVersionService.getClass().getMethod("deleteRepositoryVersion", HttpHeaders.class, UriInfo.class, String.class);
+    args = new Object[] {getHttpHeaders(), getUriInfo(), "repositoryVersionName"};
+    listInvocations.add(new ServiceTestInvocation(Request.Type.DELETE, repositoryVersionService, m, args, null));
+
+    //updateRepositoryVersion
+    repositoryVersionService = new TestRepositoryVersionService();
+    m = repositoryVersionService.getClass().getMethod("updateRepositoryVersion", String.class, HttpHeaders.class, UriInfo.class, String.class);
+    args = new Object[] {"body", getHttpHeaders(), getUriInfo(), "repositoryVersionName"};
+    listInvocations.add(new ServiceTestInvocation(Request.Type.PUT, repositoryVersionService, m, args, "body"));
 
     return listInvocations;
   }

@@ -34,7 +34,6 @@ import org.junit.Test;
 import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.junit.Assert;
 
-
 /**
  * ClusterVersionDAO unit tests.
  */
@@ -98,8 +97,8 @@ public class ClusterVersionDAOTest {
 
     // Switch from A to B
     if (currStep >= 3 && lastStep <= 2) {
-      cvA.setState(ClusterVersionState.CURRENT.INSTALLED);
-      cvB.setState(ClusterVersionState.CURRENT.CURRENT);
+      cvA.setState(ClusterVersionState.INSTALLED);
+      cvB.setState(ClusterVersionState.CURRENT);
       clusterVersionDAO.merge(cvA);
       clusterVersionDAO.merge(cvB);
     }
@@ -117,14 +116,14 @@ public class ClusterVersionDAOTest {
 
     // Fail upgrade for C
     if (currStep >= 5 && lastStep <= 4) {
-        cvC.setState(ClusterVersionState.CURRENT.UPGRADE_FAILED);
+        cvC.setState(ClusterVersionState.UPGRADE_FAILED);
         cvC.setEndTime(System.currentTimeMillis());
         clusterVersionDAO.merge(cvC);
     }
 
     // Retry upgrade on C
     if (currStep >= 6 && lastStep <= 5) {
-        cvC.setState(ClusterVersionState.CURRENT.UPGRADING);
+        cvC.setState(ClusterVersionState.UPGRADING);
         cvC.setEndTime(0L);
         clusterVersionDAO.merge(cvC);
     }

@@ -17,8 +17,10 @@
  */
 package org.apache.ambari.server.api.services;
 
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -79,6 +81,38 @@ public class RepositoryVersionService extends BaseService {
    @Produces("text/plain")
    public Response createRepositoryVersion(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
     return handleRequest(headers, body, ui, Request.Type.POST, createResource(null));
+  }
+
+  /**
+   * Deletes a repository version. Handles: DELETE /repository_version/{repositoryVersionId} requests.
+   *
+   * @param headers               http headers
+   * @param ui                    uri info
+   * @param repositoryVersionId   the repository version id
+   * @return information regarding the deleted repository
+   */
+  @DELETE
+  @Path("{repositoryVersionId}")
+  @Produces("text/plain")
+  public Response deleteRepositoryVersion(@Context HttpHeaders headers, @Context UriInfo ui,
+      @PathParam("repositoryVersionId") String repositoryVersionId) {
+    return handleRequest(headers, null, ui, Request.Type.DELETE, createResource(repositoryVersionId));
+  }
+
+  /**
+   * Updates a specific repository version. Handles: PUT /repository_version/{repositoryVersionId} requests.
+   *
+   * @param headers               http headers
+   * @param ui                    uri info
+   * @param repositoryVersionId   the repository version id
+   * @return information regarding the updated repository
+   */
+  @PUT
+  @Path("{repositoryVersionId}")
+  @Produces("text/plain")
+  public Response updateRepositoryVersion(String body, @Context HttpHeaders headers, @Context UriInfo ui,
+      @PathParam("repositoryVersionId") String repositoryVersionId) {
+    return handleRequest(headers, body, ui, Request.Type.PUT, createResource(repositoryVersionId));
   }
 
   /**
