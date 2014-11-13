@@ -109,7 +109,7 @@ App.Router = Em.Router.extend({
     var authResp = (auth && auth === true);
     if (authResp) {
       App.ajax.send({
-        name: 'router.authentication',
+        name: 'router.login.clusters',
         sender: this,
         success: 'onAuthenticationSuccess',
         error: 'onAuthenticationError'

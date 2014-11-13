@@ -73,7 +73,6 @@ App.Poll = Em.Object.extend({
     $.ajax({
       type: method,
       url: url,
-      async: false,
       data: data,
       dataType: 'text',
       timeout: App.timeout,

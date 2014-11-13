@@ -526,8 +526,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
       sender: this,
       data: {
         stackUrl: App.get('stackVersionURL'),
-        stackVersion: App.get('currentStackVersionNumber'),
-        async: false
+        stackVersion: App.get('currentStackVersionNumber')
       },
       success: 'loadServiceComponentsSuccessCallback',
       error: 'loadServiceComponentsErrorCallback'

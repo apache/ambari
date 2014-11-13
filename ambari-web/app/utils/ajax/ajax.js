@@ -1475,15 +1475,6 @@ var urls = {
     'real': '/logout',
     'mock': ''
   },
-  'router.authentication': {
-    'real': '/clusters?fields=Clusters/provisioning_state',
-    'mock': '/data/clusters/info.json',
-    'format': function() {
-      return {
-        async: false
-      };
-    }
-  },
   'ambari.service.load_jdk_name': {
     'real': '/services/AMBARI/components/AMBARI_SERVER?fields=RootServiceComponents/properties/jdk.name,RootServiceComponents/properties/java.home,RootServiceComponents/properties/jdk_location',
     'mock': '/data/requests/host_check/jdk_name.json'
