@@ -168,6 +168,28 @@ var wrapperView = Em.View.extend({
           }
         };
         break;
+      case 'alert_status':
+        func = function(a, b) {
+          var a_summary = a.get('summary'),
+            b_summary = b.get('summary'),
+            st_order = a.get('order'),
+            ret = 0;
+          for(var i = 0; i < st_order.length; i++) {
+            var a_v = Em.isNone(a_summary[st_order[i]]) ? 0 : a_summary[st_order[i]],
+              b_v = Em.isNone(b_summary[st_order[i]]) ? 0 : b_summary[st_order[i]];
+            ret = b_v - a_v;
+            if (ret !== 0) {
+              break;
+            }
+          }
+          if (order) {
+            return ret;
+          }
+          else {
+            return -ret;
+          }
+        };
+        break;
       default:
         func = function (a, b) {
           if (order) {
@@ -183,7 +205,7 @@ var wrapperView = Em.View.extend({
               return 1;
             return 0;
           }
-        }
+        };
     }
     return func;
   }

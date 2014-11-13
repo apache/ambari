@@ -50,57 +50,6 @@ App.MainAlertDefinitionsController = Em.ArrayController.extend({
       App.ScriptAlertDefinition.find().toArray());
   }.property('mapperTimestamp'),
 
-  /**
-   * Object for lastTriggered-filter
-   * @type {Em.Object}
-   */
-  modifiedFilter: Em.Object.create({
-    optionValue: 'Any',
-    filterModified: function () {
-      var time = "";
-      var curTime = new Date().getTime();
-
-      switch (this.get('optionValue')) {
-        case 'Past 1 hour':
-          time = curTime - 3600000;
-          break;
-        case 'Past 1 Day':
-          time = curTime - 86400000;
-          break;
-        case 'Past 2 Days':
-          time = curTime - 172800000;
-          break;
-        case 'Past 7 Days':
-          time = curTime - 604800000;
-          break;
-        case 'Past 14 Days':
-          time = curTime - 1209600000;
-          break;
-        case 'Past 30 Days':
-          time = curTime - 2592000000;
-          break;
-        case 'Custom':
-        case 'Custom2':
-          customDatePopup.showCustomDatePopup(this, this.get('actualValues'));
-          break;
-        case 'Any':
-          time = "";
-          break;
-      }
-      if (this.get('modified') !== "Custom") {
-        this.set("actualValues.startTime", time);
-        this.set("actualValues.endTime", '');
-      }
-    }.observes('optionValue'),
-    cancel: function () {
-      this.set('optionValue', 'Any');
-    },
-    actualValues: Em.Object.create({
-      startTime: "",
-      endTime: ""
-    })
-  }),
-
   toggleState: Em.K
 
 });

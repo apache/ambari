@@ -36,7 +36,7 @@ App.MainAlertDefinitionsView = App.TableView.extend({
     return this.get('content.length');
   }.property('content.length'),
 
-  colPropAssoc: ['', 'label', 'state', 'service.serviceName', 'lastTriggered'],
+  colPropAssoc: ['', 'label', 'summary', 'service.serviceName', 'lastTriggered'],
 
   sortView: sort.wrapperView,
 
@@ -56,9 +56,9 @@ App.MainAlertDefinitionsView = App.TableView.extend({
    */
   statusSort: sort.fieldView.extend({
     column: 2,
-    name: 'status',
+    name: 'summary',
     displayName: Em.I18n.t('common.status'),
-    type: 'string'
+    type: 'alert_status'
   }),
 
   /**
@@ -78,9 +78,9 @@ App.MainAlertDefinitionsView = App.TableView.extend({
    */
   lastTriggeredSort: sort.fieldView.extend({
     column: 4,
-    name: 'memory',
+    name: 'lastTriggered',
     displayName: Em.I18n.t('alerts.table.header.lastTriggered'),
-    type: 'date'
+    type: 'number'
   }),
 
   /**
@@ -129,7 +129,7 @@ App.MainAlertDefinitionsView = App.TableView.extend({
       }
     ],
     onChangeValue: function () {
-      this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'select');
+      this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'alert_status');
     }
   }),
 
@@ -164,12 +164,6 @@ App.MainAlertDefinitionsView = App.TableView.extend({
    */
   triggeredFilterView: filters.createSelectView({
     column: 4,
-    triggeredOnSameValue: [
-      {
-        values: ['Custom', 'Custom2'],
-        displayAs: 'Custom'
-      }
-    ],
     appliedEmptyValue: ["", ""],
     fieldType: 'filter-input-width,modified-filter',
     content: [
@@ -200,23 +194,12 @@ App.MainAlertDefinitionsView = App.TableView.extend({
       {
         value: 'Past 30 Days',
         label: 'Past 30 Days'
-      },
-      {
-        value: 'Custom',
-        label: 'Custom'
-      },
-      {
-        value: 'Custom2',
-        label: 'Custom2'
       }
     ],
     emptyValue: 'Any',
-    valueBinding: "controller.modifiedFilter.optionValue",
-    startTimeBinding: "controller.modifiedFilter.actualValues.startTime",
-    endTimeBinding: "controller.modifiedFilter.actualValues.endTime",
-    onTimeChange: function () {
-      this.get('parentView').updateFilter(this.get('column'), [this.get('controller.modifiedFilter.actualValues.startTime'), this.get('controller.modifiedFilter.actualValues.endTime')], 'range');
-    }.observes('controller.modifiedFilter.actualValues.startTime', 'controller.modifiedFilter.actualValues.endTime')
+    onChangeValue: function () {
+      this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'date');
+    }
   }),
 
   /**

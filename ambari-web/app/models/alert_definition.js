@@ -18,7 +18,6 @@
 
 var App = require('app');
 var dateUtils = require('utils/date');
-var dataUtils = require('utils/data_manipulation');
 
 App.AlertDefinition = DS.Model.extend({
 
@@ -31,34 +30,49 @@ App.AlertDefinition = DS.Model.extend({
   interval: DS.attr('number'),
   type: DS.attr('string'),
   reporting: DS.hasMany('App.AlertReportDefinition'),
-  alerts: DS.hasMany('App.AlertInstance'),
+  lastTriggered: DS.attr('number'),
+
+  /**
+   * Counts of alert grouped by their status
+   * Format:
+   * <code>
+   *   {
+   *    "CRITICAL": 1,
+   *    "OK": 1,
+   *    "UNKNOWN": 0,
+   *    "WARN": 0
+   *   }
+   * </code>
+   * @type {object}
+   */
+  summary: {},
 
   /**
    * Formatted timestamp for latest alert triggering for current alertDefinition
    * @type {string}
    */
-  lastTriggered: function () {
-    return dateUtils.dateFormat(Math.max.apply(Math, this.get('alerts').mapProperty('latestTimestamp')));
-  }.property('alerts.@each.latestTimestamp'),
+  lastTriggeredFormatted: function () {
+    return dateUtils.dateFormat(this.get('lastTriggered'));
+  }.property('lastTriggered'),
 
   /**
    * Status generates from child-alerts
-   * Format: 1 OK / 2 WARN / 1 CRIT / 1 DISABLED / 1 UNKNOWN
+   * Format: 1 OK / 2 WARN / 1 CRIT / 1 UNKNOWN
    * If some there are no alerts with some state, this state isn't shown
    * Order is equal to example
    * @type {string}
    */
   status: function () {
     var typeIcons = this.get('typeIcons'),
-        ordered = ['OK', 'WARNING', 'CRITICAL', 'DISABLED', 'UNKNOWN'],
-        grouped = dataUtils.groupPropertyValues(this.get('alerts'), 'state');
-    return ordered.map(function (state) {
-      if (grouped[state]) {
-        return grouped[state].length + ' <span class="' + typeIcons[state] + ' alert-state-' + state + '"></span>';
+        order = this.get('order'),
+        summary = this.get('summary');
+    return order.map(function (state) {
+      if (summary[state]) {
+        return summary[state] + ' <span class="' + typeIcons[state] + ' alert-state-' + state + '"></span>';
       }
       return null;
     }).compact().join(' / ');
-  }.property('alerts.@each.state'),
+  }.property('summary'),
 
   /**
    * List of css-classes for alert types
@@ -71,6 +85,8 @@ App.AlertDefinition = DS.Model.extend({
     'DISABLED': 'icon-off',
     'UNKNOWN': 'icon-question-sign'
   },
+
+  order: ['OK', 'WARNING', 'CRITICAL', 'UNKNOWN'],
 
   // todo: in future be mapped from server response
   description: 'Description for the Alert Definition.',

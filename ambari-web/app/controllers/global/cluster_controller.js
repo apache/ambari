@@ -341,7 +341,9 @@ App.ClusterController = Em.Controller.extend({
           self.updateLoadStatus('serviceMetrics');
 
           updater.updateAlertDefinitions(function () {
-            self.updateLoadStatus('alertDefinitions');
+            updater.updateAlertDefinitionSummary(function() {
+              self.updateLoadStatus('alertDefinitions');
+            });
           });
         });
       });

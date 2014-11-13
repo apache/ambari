@@ -49,7 +49,7 @@
           </td>
           <td>{{{alertDefinition.status}}}</td>
           <td>{{alertDefinition.service.serviceName}}</td>
-          <td>{{alertDefinition.lastTriggered}}</td>
+          <td>{{alertDefinition.lastTriggeredFormatted}}</td>
           <td class="last">
             <a href="#" {{action "toggleState" alertDefinition target="controller"}} {{bindAttr class="alertDefinition.enabled:enabled:disabled"}}>
               <span class="icon-off"></span>

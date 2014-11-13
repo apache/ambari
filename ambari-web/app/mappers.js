@@ -35,5 +35,6 @@ require('mappers/component_config_mapper');
 require('mappers/components_state_mapper');
 require('mappers/service_config_version_mapper');
 require('mappers/alert_definitions_mapper');
+require('mappers/alert_definition_summary_mapper');
 require('mappers/alert_instances_mapper');
 require('mappers/root_service_mapper');

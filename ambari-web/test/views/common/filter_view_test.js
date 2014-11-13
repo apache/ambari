@@ -22,7 +22,6 @@ require('utils/helper');
 
 describe('filters.getFilterByType', function () {
 
-
   describe('ambari-bandwidth', function () {
 
     var filter = filters.getFilterByType('ambari-bandwidth');
@@ -465,4 +464,33 @@ describe('filters.getFilterByType', function () {
       })
     });
   });
+
+  describe('alert_status', function () {
+
+    var filter = filters.getFilterByType('alert_status');
+
+    Em.A([
+      {
+        origin: {OK: 1},
+        compareValue: 'OK',
+        e: true
+      },
+      {
+        origin: {WARN: 1},
+        compareValue: 'OK',
+        e: false
+      },
+      {
+        origin: {WARN: 0},
+        compareValue: 'WARN',
+        e: false
+      }
+    ]).forEach(function(test, i) {
+        it('test #' + (i + 1), function() {
+          expect(filter(test.origin, test.compareValue)).to.equal(test.e);
+        });
+      });
+
+  });
+
 });

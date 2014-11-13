@@ -1,0 +1,93 @@
+{
+  "href" : "http://localhost:8080/api/v1/clusters/c1/alerts?format=groupedSummary",
+  "alerts_summary_grouped" : [
+    {
+      "definition_id" : 34,
+      "definition_name" : "yarn_resourcemanager_webui",
+      "summary" : {
+        "OK" : {
+          "count" : 1,
+          "original_timestamp" : 1415732283450
+        },
+        "WARNING" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        },
+        "CRITICAL" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        },
+        "UNKNOWN" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        }
+      }
+    },
+    {
+      "definition_id" : 12,
+      "definition_name" : "ganglia_monitor_mapreduce_history_server",
+      "summary" : {
+        "OK" : {
+          "count" : 1,
+          "original_timestamp" : 1415735183450
+        },
+        "WARNING" : {
+          "count" : 3,
+          "original_timestamp" : 1415735183450
+        },
+        "CRITICAL" : {
+          "count" : 1,
+          "original_timestamp" : 1415755183450
+        },
+        "UNKNOWN" : {
+          "count" : 2,
+          "original_timestamp" : 1412335183450
+        }
+      }
+    },
+    {
+      "definition_id" : 1,
+      "definition_name" : "ganglia_monitor_hdfs_namenode",
+      "summary" : {
+        "OK" : {
+          "count" : 2,
+          "original_timestamp" : 1415735183450
+        },
+        "WARNING" : {
+          "count" : 1,
+          "original_timestamp" : 1415735183450
+        },
+        "CRITICAL" : {
+          "count" : 3,
+          "original_timestamp" : 1415855183450
+        },
+        "UNKNOWN" : {
+          "count" : 2,
+          "original_timestamp" : 1412335183450
+        }
+      }
+    },
+    {
+      "definition_id" : 1,
+      "definition_name" : "ganglia_monitor_hbase_master",
+      "summary" : {
+        "OK" : {
+          "count" : 2,
+          "original_timestamp" : 1415735183450
+        },
+        "WARNING" : {
+          "count" : 2,
+          "original_timestamp" : 1415735183450
+        },
+        "CRITICAL" : {
+          "count" : 3,
+          "original_timestamp" : 1415355183450
+        },
+        "UNKNOWN" : {
+          "count" : 2,
+          "original_timestamp" : 1412335183450
+        }
+      }
+    }
+  ]
+}

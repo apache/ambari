@@ -593,6 +593,15 @@ module.exports = {
           return true;
         };
         break;
+      case 'alert_status':
+        /**
+         * origin - alertDefinition.summary
+         * compareValue - "OK|WARN..."
+         */
+        return function (origin, compareValue) {
+          return !!origin[compareValue] && origin[compareValue] > 0;
+        };
+        break;
       case 'string':
       default:
         return function (origin, compareValue) {

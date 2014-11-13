@@ -27,7 +27,7 @@ App.alertDefinitionsMapper = App.QuickDataMapper.create({
   metricsUriModel: App.AlertMetricsUriDefinition,
 
   config: {
-    id: 'AlertDefinition.name',
+    id: 'AlertDefinition.id',
     name: 'AlertDefinition.name',
     label: 'AlertDefinition.label',
     service_id: 'AlertDefinition.service_name',
@@ -75,6 +75,13 @@ App.alertDefinitionsMapper = App.QuickDataMapper.create({
       var alertReportDefinitions = [];
       var alertMetricsSourceDefinitions = [];
       var alertMetricsUriDefinitions = [];
+      var alertDefinitions = Array.prototype.concat.call(
+        Array.prototype, App.PortAlertDefinition.find().toArray(),
+        App.MetricsAlertDefinition.find().toArray(),
+        App.WebAlertDefinition.find().toArray(),
+        App.AggregateAlertDefinition.find().toArray(),
+        App.ScriptAlertDefinition.find().toArray()
+      );
 
       json.items.forEach(function (item) {
         var convertedReportDefinitions = [];
@@ -93,6 +100,13 @@ App.alertDefinitionsMapper = App.QuickDataMapper.create({
         alertReportDefinitions = alertReportDefinitions.concat(convertedReportDefinitions);
         item.reporting = convertedReportDefinitions;
         var alertDefinition = this.parseIt(item, this.get('config'));
+
+        var oldAlertDefinition = alertDefinitions.findProperty('id', alertDefinition.id);
+        if (oldAlertDefinition) {
+          // new values will be parsed in the another mapper, so for now just use old values
+          alertDefinition.summary = oldAlertDefinition.get('summary');
+          alertDefinition.last_triggered = oldAlertDefinition.get('lastTriggered');
+        }
 
         // map properties dependent on Alert Definition type
         switch (item.AlertDefinition.source.type) {

@@ -129,6 +129,7 @@ App.UpdateController = Em.Controller.extend({
       App.updater.run(this, 'graphsUpdate', 'isWorking');
       App.updater.run(this, 'updateComponentConfig', 'isWorking');
       App.updater.run(this, 'updateAlertDefinitions', 'isWorking', App.alertDefinitionsUpdateInterval);
+      App.updater.run(this, 'updateAlertDefinitionSummary', 'isWorking', App.alertDefinitionsUpdateInterval);
     }
   }.observes('isWorking'),
   /**
@@ -453,5 +454,16 @@ App.UpdateController = Em.Controller.extend({
     App.HttpClient.get(url, App.alertDefinitionsMapper, {
       complete: callback
     });
+  },
+
+  updateAlertDefinitionSummary: function(callback) {
+    var testUrl = '/data/alerts/alert_summary.json';
+    var realUrl = '/alerts?format=groupedSummary';
+    var url = this.getUrl(testUrl, realUrl);
+
+    App.HttpClient.get(url, App.alertDefinitionSummaryMapper, {
+      complete: callback
+    });
   }
+
 });
