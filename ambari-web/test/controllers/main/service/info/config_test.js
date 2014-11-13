@@ -1338,13 +1338,11 @@ describe("App.MainServiceInfoConfigsController", function () {
       }];
     beforeEach(function() {
       sinon.stub(mainServiceInfoConfigsController, "setValueForCheckBox", Em.K);
-      sinon.stub(mainServiceInfoConfigsController, "setValidator", Em.K);
       sinon.stub(mainServiceInfoConfigsController, "setValuesForOverrides", Em.K);
       sinon.stub(mainServiceInfoConfigsController, "setEditability", Em.K);
     });
     afterEach(function() {
       mainServiceInfoConfigsController.setValueForCheckBox.restore();
-      mainServiceInfoConfigsController.setValidator.restore();
       mainServiceInfoConfigsController.setValuesForOverrides.restore();
       mainServiceInfoConfigsController.setEditability.restore();
     });
@@ -1352,9 +1350,7 @@ describe("App.MainServiceInfoConfigsController", function () {
       it("create service config. run methods to correctly set object fileds", function() {
         var result = mainServiceInfoConfigsController.createConfigProperty(t._serviceConfigProperty, t.defaultGroupSelected, t.restartData, t.serviceConfigsData);
         expect(mainServiceInfoConfigsController.setValueForCheckBox.calledWith(t.serviceConfigProperty));
-        expect(mainServiceInfoConfigsController.setValidator.calledWith(t.serviceConfigProperty, t.serviceConfigsData));
         expect(mainServiceInfoConfigsController.setValuesForOverrides.calledWith(t._serviceConfigProperty.overrides, t._serviceConfigProperty, t.serviceConfigProperty, t.defaultGroupSelected));
-        expect(mainServiceInfoConfigsController.setValidator.calledWith(t.serviceConfigProperty, t.defaultGroupSelected));
         expect(result.getProperties('overrides','isOverridable')).to.eql(t.serviceConfigProperty);
       });
     });

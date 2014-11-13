@@ -404,91 +404,6 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
     service.set('configs', serviceConfig.get('configs'));
   },
 
-  //TODO after moving validation/recommendation to BE _getRecommendedDefaultsForComponent must be deleted
-  /**
-   * Get object with recommended default values for config properties
-   * Format:
-   *  <code>
-   *    {
-   *      configName1: configValue1,
-   *      configName2: configValue2
-   *      ...
-   *    }
-   *  </code>
-   * @param {string} serviceName
-   * @returns {object}
-   * @method _getRecommendedDefaultsForComponent
-   */
-  _getRecommendedDefaultsForComponent: function (serviceName) {
-    var s = App.StackService.find(serviceName),
-      recommendedDefaults = {},
-      localDB = this.getInfoForDefaults();
-    if (s.get('defaultsProvider')) {
-      s.get('defaultsProvider').forEach(function (defaultsProvider) {
-        var d = defaultsProvider.getDefaults(localDB);
-        for (var name in d) {
-          if (d.hasOwnProperty(name)) {
-            recommendedDefaults[name] = d[name];
-          }
-        }
-      });
-    }
-    return recommendedDefaults;
-  },
-
-  //TODO after moving validation/recommendation to BE getInfoForDefaults must be deleted
-  /**
-   * Get info about hosts and host components to configDefaultsProviders
-   * Work specifically in Add Service wizard
-   * @slaveComponentHosts - contains slaves and clients as well
-   * @returns {{masterComponentHosts: Array, slaveComponentHosts: Array, hosts: {}}}
-   */
-  getInfoForDefaults: function () {
-    var slaveComponentHosts = [];
-    var hosts = this.get('content.hosts');
-    var slaveHostMap = {};
-
-    //get clients and slaves from stack
-    App.StackServiceComponent.find().forEach(function (component) {
-      if (component.get('isClient') || component.get('isSlave')) {
-        slaveHostMap[component.get('componentName')] = [];
-      }
-    });
-
-    //assign hosts of every component
-    for (var hostName in hosts) {
-      hosts[hostName].hostComponents.forEach(function (componentName) {
-        if (slaveHostMap[componentName]) {
-          slaveHostMap[componentName].push({hostName: hostName});
-        }
-      });
-    }
-
-    //push slaves and clients into @slaveComponentHosts
-    for (var componentName in slaveHostMap) {
-      if (slaveHostMap[componentName].length > 0) {
-        slaveComponentHosts.push({
-          componentName: componentName,
-          hosts: slaveHostMap[componentName]
-        })
-      }
-    }
-
-    var masterComponentHosts = App.HostComponent.find().filterProperty('isMaster', true).map(function (item) {
-      return {
-        component: item.get('componentName'),
-        serviceId: item.get('service.serviceName'),
-        host: item.get('hostName')
-      }
-    });
-
-    return {
-      masterComponentHosts: masterComponentHosts,
-      slaveComponentHosts: slaveComponentHosts,
-      hosts: hosts
-    };
-  },
-
   /**
    * By default <code>value</code>-property is string "true|false".
    * Should update it to boolean type
@@ -580,35 +495,6 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
   },
 
   /**
-   * Set <code>serviceValidator</code>-property to <code>serviceConfigProperty</code> if config's serviceName is equal
-   * to component's serviceName
-   * othervise set <code>isVisible</code>-property to <code>false</code>
-   * @param {Ember.Object} serviceConfigProperty
-   * @param {Ember.Object} component
-   * @param {object} serviceConfigsData
-   * @returns {Ember.Object} updated config-object
-   * @mrthod _updateValidatorsForConfig
-   */
-  _updateValidatorsForConfig: function (serviceConfigProperty, component, serviceConfigsData) {
-    if (serviceConfigProperty.get('serviceName') === component.get('serviceName')) {
-      if (serviceConfigsData.get('configsValidator')) {
-        var validators = serviceConfigsData.get('configsValidator').get('configValidators');
-        for (var validatorName in validators) {
-          if (validators.hasOwnProperty(validatorName)) {
-            if (serviceConfigProperty.get('name') == validatorName) {
-              serviceConfigProperty.set('serviceValidator', serviceConfigsData.get('configsValidator'));
-            }
-          }
-        }
-      }
-    }
-    else {
-      serviceConfigProperty.set('isVisible', false);
-    }
-    return serviceConfigProperty;
-  },
-
-  /**
    * Set configs with overrides, recommended defaults to component
    * @param {Ember.Object[]} configs
    * @param {Ember.Object} componentConfig
@@ -616,8 +502,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
    * @method loadComponentConfigs
    */
   loadComponentConfigs: function (configs, componentConfig, component) {
-    var s = App.StackService.find(component.get('serviceName')),
-      defaultGroupSelected = component.get('selectedConfigGroup.isDefault');
+    var defaultGroupSelected = component.get('selectedConfigGroup.isDefault');
 
     configs.forEach(function (serviceConfigProperty) {
       if (!serviceConfigProperty) return;
@@ -628,7 +513,6 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
       if (serviceConfigProperty.get('displayType') === 'checkbox') {
         this._updateValueForCheckBoxConfig(serviceConfigProperty);
       }
-      this._updateValidatorsForConfig(serviceConfigProperty, component, s);
       this._updateOverridesForConfig(serviceConfigProperty, component);
       this._updateIsEditableFlagForConfig(serviceConfigProperty, defaultGroupSelected);
 

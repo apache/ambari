@@ -247,8 +247,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
 
   restartHosts: Em.A(),
 
-  //TODO after moving validation/recommendation to BE defaultsInfo must be deleted
-  defaultsInfo: null,
   /**
    * On load function
    */
@@ -856,21 +854,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     this.set('isInit', false);
   },
 
-  //TODO after moving validation/recommendation to BE getInfoForDefaults must be deleted
-  setDefaults: function(){
-    var serviceConfig = App.config.createServiceConfig(this.get('content.serviceName'));
-    this.loadConfigs(this.get('allConfigs'), serviceConfig);
-    this.checkOverrideProperty(serviceConfig);
-    this.checkDatabaseProperties(serviceConfig);
-    this.get('stepConfigs').pushObject(serviceConfig);
-    this.set('selectedService', this.get('stepConfigs').objectAt(0));
-    this.checkForSecureConfig(this.get('selectedService'));
-    this.set('versionLoaded', true);
-    this.set('dataIsLoaded', true);
-    this.set('hash', this.getHash());
-    this.set('isInit', false);
-  }.observes('defaultsInfo'),
-
   /**
    * Changes format from Object to Array
    *
@@ -921,117 +904,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     }, this)
   },
 
-  //TODO after moving validation/recommendation to BE getInfoForDefaults must be deleted
-  /**
-   * Get info about hosts and host components to configDefaultsProviders
-   * @returns {{masterComponentHosts: Array, slaveComponentHosts: Array, hosts: {}}}
-   */
-  getInfoForDefaults: function (providers) {
-    var requiredComponents = [];
-
-    providers.forEach(function (provider) {
-      requiredComponents = provider.get('slaveHostDependency').concat(provider.get('masterHostDependency'));
-    });
-
-    if (requiredComponents.length > 0) {
-      App.ajax.send({
-        name: 'hosts.by_component.' + ((requiredComponents.length === 1) ? 'one' : 'all'),
-        sender: this,
-        data: {
-          componentNames: requiredComponents.join(',')
-        },
-        success: 'getInfoForDefaultsSuccessCallback'
-      });
-    } else {
-      //if no components required then slaveComponentHosts and hosts stay empty
-      this.set('defaultsInfo', {
-        masterComponentHosts: this.getMasterComponents(),
-        slaveComponentHosts: [],
-        hosts: {}
-      });
-    }
-  },
-
-  //TODO after moving validation/recommendation to BE getInfoForDefaultsSuccessCallback must be deleted
-  getInfoForDefaultsSuccessCallback: function (response) {
-    var defaultsInfo = {
-      masterComponentHosts: this.getMasterComponents(),
-      slaveComponentHosts: this.getSlaveComponents(response),
-      hosts: this.getHostsInfo(response)
-    };
-    this.set('defaultsInfo', defaultsInfo);
-    this.setRecommendedDefaults(this.get('advancedConfigs'));
-  },
-
-  //TODO after moving validation/recommendation to BE getSlaveComponents must be deleted
-  /**
-   * parse json response and build slave components array
-   * @param response
-   * @return {Array}
-   */
-  getSlaveComponents: function (response) {
-    var hostComponentMap = {};
-    var slaves = App.StackServiceComponent.find().filterProperty('isSlave').mapProperty('componentName');
-    var slaveComponentHosts = [];
-
-    response.items.forEach(function (host) {
-      host.host_components.forEach(function (hostComponent) {
-        if (slaves.contains(hostComponent.HostRoles.component_name)) {
-          if (!hostComponentMap[hostComponent.HostRoles.component_name]) {
-            hostComponentMap[hostComponent.HostRoles.component_name] = [];
-          }
-          hostComponentMap[hostComponent.HostRoles.component_name].push({hostName: host.Hosts.host_name});
-        }
-      })
-    });
-
-    for (var componentName in hostComponentMap) {
-      slaveComponentHosts.push({
-        componentName: componentName,
-        hosts: hostComponentMap[componentName]
-      });
-    }
-    return slaveComponentHosts;
-  },
-
-  //TODO after moving validation/recommendation to BE getMasterComponents must be deleted
-  /**
-   * build master components array of data from HostComponent model
-   * @return {Array}
-   */
-  getMasterComponents: function () {
-    var masterComponentHosts = [];
-
-    App.HostComponent.find().filterProperty('isMaster').forEach(function (masterComponent) {
-      masterComponentHosts.push({
-        component: masterComponent.get('componentName'),
-        serviceId: masterComponent.get('service.serviceName'),
-        host: masterComponent.get('hostName')
-      });
-    });
-    return masterComponentHosts;
-  },
-
-  //TODO after moving validation/recommendation to BE getHostsInfo must be deleted
-  /**
-   * parse json response and build hosts map
-   * @param response
-   * @return {Object}
-   */
-  getHostsInfo: function (response) {
-    var hosts = {};
-
-    response.items.mapProperty('Hosts').map(function (host) {
-      hosts[host.host_name] = {
-        name: host.host_name,
-        cpu: host.cpu_count,
-        memory: host.total_mem,
-        disk_info: host.disk_info
-      };
-    });
-    return hosts;
-  },
-
   /**
    * Load child components to service config object
    * @param {Array} configs - array of configs
@@ -1067,7 +939,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     var serviceConfigProperty = App.ServiceConfigProperty.create(_serviceConfigProperty);
 
     this.setValueForCheckBox(serviceConfigProperty);
-    this.setValidator(serviceConfigProperty, serviceConfigsData);
     this.setSupportsFinal(serviceConfigProperty);
     this.setValuesForOverrides(overrides, _serviceConfigProperty, serviceConfigProperty, defaultGroupSelected);
     this.setEditability(serviceConfigProperty, defaultGroupSelected);
@@ -1093,37 +964,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     }
   },
 
-  //TODO after moving validation/recommendation to BE setRecommendedDefaults must be deleted
-  /**
-   * set recommended defaults for advanced configs for current service
-   * @param {Array} advancedConfigs
-   * @mrethod setRecommendedDefaults
-   */
-  setRecommendedDefaults: function (advancedConfigs) {
-    var s = App.StackService.find().findProperty('serviceName', this.get('content.serviceName'));
-    var defaultsProvider = s.get('defaultsProviders');
-    var configsValidator = s.get('configsValidator');
-      var localDB = this.get('defaultsInfo');
-      var recommendedDefaults = {};
-      if (defaultsProvider) {
-        defaultsProvider.forEach(function (defaultsProvider) {
-          var d = defaultsProvider.getDefaults(localDB);
-          for (var name in d) {
-            if (!!d[name]) {
-              recommendedDefaults[name] = d[name];
-            } else {
-              var defaultValueFromStack = advancedConfigs.findProperty('name', name);
-              // If property default value is not declared on client, fetch it from stack definition
-              // If it's not declared with any valid value in both server stack and client, then js reference error is expected to be thrown
-              recommendedDefaults[name] = defaultValueFromStack && defaultValueFromStack.value
-            }
-          }
-        });
-      }
-      if (configsValidator) {
-        configsValidator.set('recommendedDefaults', recommendedDefaults);
-      }
-  },
   /**
    * set isEditable property of config for admin
    * if default cfg group and not on the host config page
@@ -1153,27 +993,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
       return fileName.startsWith(configType);
     });
     serviceConfigProperty.set('supportsFinal', !!matchingConfigType);
-  },
-
-  /**
-   * set serviceValidator for config property
-   * hide properties for other services
-   * @param {Ember.Object} serviceConfigProperty
-   * @param {Object} serviceConfigsData
-   * @method setValidator
-   */
-  setValidator: function (serviceConfigProperty, serviceConfigsData) {
-    if (serviceConfigProperty.get('serviceName') === this.get('content.serviceName')) {
-      if (serviceConfigsData.get('configsValidator')) {
-        for (var validatorName in serviceConfigsData.get('configsValidator.configValidators')) {
-          if (serviceConfigProperty.get("name") == validatorName) {
-            serviceConfigProperty.set('serviceValidator', serviceConfigsData.get('configsValidator'));
-          }
-        }
-      }
-    } else {
-      serviceConfigProperty.set('isVisible', false);
-    }
   },
 
   /**

@@ -236,32 +236,6 @@ describe('App.StackService', function () {
     });
   });
 
-  describe('#defaultsProviders', function () {
-    it('service name is HDFS', function () {
-      ss.set('serviceName', 'HDFS');
-      ss.propertyDidChange('defaultsProviders');
-      expect(ss.get('defaultsProviders')).to.be.undefined;
-    });
-    it('service name is HIVE', function () {
-      ss.set('serviceName', 'HIVE');
-      ss.propertyDidChange('defaultsProviders');
-      expect(ss.get('defaultsProviders')).to.not.be.empty;
-    });
-  });
-
-  describe('#configsValidator', function () {
-    it('service name is HDFS', function () {
-      ss.set('serviceName', 'HDFS');
-      ss.propertyDidChange('configsValidator');
-      expect(ss.get('configsValidator')).to.be.undefined;
-    });
-    it('service name is HIVE', function () {
-      ss.set('serviceName', 'HIVE');
-      ss.propertyDidChange('configsValidator');
-      expect(ss.get('configsValidator')).to.not.be.empty;
-    });
-  });
-
   describe('#configCategories', function () {
     it('HDFS service with no serviceComponents', function () {
       ss.set('serviceComponents', []);

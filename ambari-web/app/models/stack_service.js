@@ -19,17 +19,6 @@
 var App = require('app');
 require('utils/helper');
 require('models/service_config');
-//TODO after moving validation/recommendation to BE belove requirements must be deleted
-require('utils/configs/defaults_providers/yarn_defaults_provider');
-require('utils/configs/defaults_providers/tez_defaults_provider');
-require('utils/configs/defaults_providers/hive_defaults_provider');
-require('utils/configs/defaults_providers/storm_defaults_provider');
-require('utils/configs/defaults_providers/oozie_defaults_provider');
-require('utils/configs/validators/yarn_configs_validator');
-require('utils/configs/validators/hive_configs_validator');
-require('utils/configs/validators/tez_configs_validator');
-require('utils/configs/validators/mapreduce2_configs_validator');
-require('utils/configs/validators/storm_configs_validator');
 
 /**
  * This model loads all services supported by the stack
@@ -135,16 +124,6 @@ App.StackService = DS.Model.extend({
   customReviewHandler: function () {
     return App.StackService.reviewPageHandlers[this.get('serviceName')];
   }.property('serviceName'),
-  //TODO after moving validation/recommendation to BE defaultsProviders must be deleted
-  defaultsProviders: function () {
-    var defaultConfigsHandler = App.StackService.defaultConfigsHandler[this.get('serviceName')];
-    return defaultConfigsHandler && defaultConfigsHandler.defaultsProviders;
-  }.property('serviceName'),
-  //TODO after moving validation/recommendation to BE configsValidator must be deleted
-  configsValidator: function () {
-    var defaultConfigsHandler = App.StackService.defaultConfigsHandler[this.get('serviceName')];
-    return defaultConfigsHandler && defaultConfigsHandler.configsValidator;
-  }.property('serviceName'),
 
   /**
    * configCategories are fetched from  App.StackService.configCategories.
@@ -210,15 +189,6 @@ App.StackService.reviewPageHandlers = {
   'OOZIE': {
     'Database': 'loadOozieDbValue'
   }
-};
-
-//TODO after moving validation/recommendation to BE defaultConfigsHandler must be deleted
-App.StackService.defaultConfigsHandler = {
-  YARN: {defaultsProviders: [App.YARNDefaultsProvider.create()], configsValidator: App.YARNConfigsValidator},
-  MAPREDUCE2: {defaultsProviders: [App.YARNDefaultsProvider.create()], configsValidator: App.MapReduce2ConfigsValidator},
-  HIVE: {defaultsProviders: [App.HiveDefaultsProvider.create()], configsValidator: App.HiveConfigsValidator},
-  STORM: {defaultsProviders: [App.STORMDefaultsProvider.create()], configsValidator: App.STORMConfigsValidator},
-  TEZ: {defaultsProviders: [App.TezDefaultsProvider.create()], configsValidator: App.TezConfigsValidator}
 };
 
 App.StackService.configCategories = function () {
