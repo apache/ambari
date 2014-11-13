@@ -1579,7 +1579,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     if (commandParams == null) { // if not defined
       commandParams = new TreeMap<String, String>();
     }
-    String commandTimeout = configs.getDefaultAgentTaskTimeout();
+    String agentDefaultCommandTimeout = configs.getDefaultAgentTaskTimeout();
+    String scriptCommandTimeout = "";
     /*
      * This script is only used for
      * default commands like INSTALL/STOP/START
@@ -1590,7 +1591,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         commandParams.put(SCRIPT, script.getScript());
         commandParams.put(SCRIPT_TYPE, script.getScriptType().toString());
         if (script.getTimeout() > 0) {
-          commandTimeout = String.valueOf(script.getTimeout());
+          scriptCommandTimeout = String.valueOf(script.getTimeout());
         }
       } else {
         String message = String.format("Component %s of service %s has no " +
@@ -1598,7 +1599,17 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         throw new AmbariException(message);
       }
     }
-    commandParams.put(COMMAND_TIMEOUT, commandTimeout);
+
+    String actualTimeout = (!scriptCommandTimeout.equals("") ? scriptCommandTimeout : agentDefaultCommandTimeout);
+
+    // Because the INSTALL command can take much longer than typical commands, set the timeout to be the max
+    // between the script's service component timeout and the agent default timeout.
+    if (roleCommand.equals(RoleCommand.INSTALL) && !agentDefaultCommandTimeout.equals("") &&
+        Integer.parseInt(actualTimeout) < Integer.parseInt(agentDefaultCommandTimeout)) {
+      actualTimeout = agentDefaultCommandTimeout;
+    }
+
+    commandParams.put(COMMAND_TIMEOUT, actualTimeout);
     commandParams.put(SERVICE_PACKAGE_FOLDER,
       serviceInfo.getServicePackageFolder());
     commandParams.put(HOOKS_FOLDER, stackInfo.getStackHooksFolder());
