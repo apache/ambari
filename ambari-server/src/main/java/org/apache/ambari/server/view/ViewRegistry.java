@@ -1152,6 +1152,7 @@ public class ViewRegistry {
         instance.setResource(persistedInstance.getResource());
         instance.setViewInstanceId(persistedInstance.getViewInstanceId());
         instance.setData(persistedInstance.getData());
+        instance.setEntities(persistedInstance.getEntities());
       }
     }
   }

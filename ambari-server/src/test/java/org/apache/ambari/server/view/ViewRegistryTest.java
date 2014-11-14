@@ -67,6 +67,7 @@ import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 import org.apache.ambari.server.orm.entities.ViewEntity;
+import org.apache.ambari.server.orm.entities.ViewEntityEntity;
 import org.apache.ambari.server.orm.entities.ViewEntityTest;
 import org.apache.ambari.server.orm.entities.ViewInstanceDataEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
@@ -206,6 +207,18 @@ public class ViewRegistryTest {
 
     for (ViewInstanceEntity viewInstanceEntity : viewInstanceEntities) {
       viewInstanceEntity.putInstanceData("p1", "v1");
+
+      Collection<ViewEntityEntity> entities = new HashSet<ViewEntityEntity>();
+      ViewEntityEntity viewEntityEntity = new ViewEntityEntity();
+      viewEntityEntity.setId(99L);
+      viewEntityEntity.setIdProperty("id");
+      viewEntityEntity.setViewName("MY_VIEW{1.0.0}");
+      viewEntityEntity.setClassName("class");
+      viewEntityEntity.setViewInstanceName(viewInstanceEntity.getName());
+      viewEntityEntity.setViewInstance(viewInstanceEntity);
+      entities.add(viewEntityEntity);
+
+      viewInstanceEntity.setEntities(entities);
     }
     viewDefinition.setInstances(viewInstanceEntities);
 
@@ -314,6 +327,12 @@ public class ViewRegistryTest {
 
     for (ViewInstanceEntity viewInstanceEntity : instanceDefinitions) {
       Assert.assertEquals("v1", viewInstanceEntity.getInstanceData("p1").getValue());
+
+      Collection<ViewEntityEntity> entities = viewInstanceEntity.getEntities();
+      Assert.assertEquals(1, entities.size());
+      ViewEntityEntity viewEntityEntity = entities.iterator().next();
+      Assert.assertEquals(99L, (long) viewEntityEntity.getId());
+      Assert.assertEquals(viewInstanceEntity.getName(), viewEntityEntity.getViewInstanceName());
     }
 
     // verify mocks
