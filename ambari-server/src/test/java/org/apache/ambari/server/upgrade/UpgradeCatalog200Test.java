@@ -18,10 +18,13 @@
 
 package org.apache.ambari.server.upgrade;
 
+import java.sql.SQLException;
 import java.util.List;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;
+import static junit.framework.Assert.assertNull;
+import static junit.framework.Assert.assertTrue;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.createStrictMock;
@@ -89,6 +92,8 @@ public class UpgradeCatalog200Test {
     Capture<DBAccessor.DBColumnInfo> hostComponentStateColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
     Capture<List<DBAccessor.DBColumnInfo>> clusterVersionCapture = new Capture<List<DBAccessor.DBColumnInfo>>();
     Capture<List<DBAccessor.DBColumnInfo>> hostVersionCapture = new Capture<List<DBAccessor.DBColumnInfo>>();
+    Capture<DBAccessor.DBColumnInfo> valueColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
+    Capture<DBAccessor.DBColumnInfo> dataValueColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
 
     // Alert Definition
     dbAccessor.addColumn(eq("alert_definition"),
@@ -105,6 +110,9 @@ public class UpgradeCatalog200Test {
     // Host Version
     dbAccessor.createTable(eq("host_version"),
         capture(hostVersionCapture), eq("id"));
+
+    setViewInstancePropertyExpectations(dbAccessor, valueColumnCapture);
+    setViewInstanceDataExpectations(dbAccessor, dataValueColumnCapture);
 
     replay(dbAccessor, configuration, resultSet);
 
@@ -131,6 +139,9 @@ public class UpgradeCatalog200Test {
     // Verify capture group sizes
     assertEquals(8, clusterVersionCapture.getValue().size());
     assertEquals(5, hostVersionCapture.getValue().size());
+
+    assertViewInstancePropertyColumns(valueColumnCapture);
+    assertViewInstanceDataColumns(dataValueColumnCapture);
   }
 
   @Test
@@ -180,5 +191,39 @@ public class UpgradeCatalog200Test {
     UpgradeCatalog upgradeCatalog = getUpgradeCatalog(dbAccessor);
 
     Assert.assertEquals("2.0.0", upgradeCatalog.getTargetVersion());
+  }
+
+  private void setViewInstancePropertyExpectations(DBAccessor dbAccessor,
+                                                   Capture<DBAccessor.DBColumnInfo> valueColumnCapture)
+      throws SQLException {
+
+    dbAccessor.alterColumn(eq("viewinstanceproperty"), capture(valueColumnCapture));
+  }
+
+  private void setViewInstanceDataExpectations(DBAccessor dbAccessor,
+                                               Capture<DBAccessor.DBColumnInfo> dataValueColumnCapture)
+      throws SQLException {
+
+    dbAccessor.alterColumn(eq("viewinstancedata"), capture(dataValueColumnCapture));
+  }
+
+  private void assertViewInstancePropertyColumns(
+      Capture<DBAccessor.DBColumnInfo> valueColumnCapture) {
+    DBAccessor.DBColumnInfo column = valueColumnCapture.getValue();
+    assertEquals("value", column.getName());
+    assertEquals(2000, (int) column.getLength());
+    assertEquals(String.class, column.getType());
+    assertNull(column.getDefaultValue());
+    assertTrue(column.isNullable());
+  }
+
+  private void assertViewInstanceDataColumns(
+      Capture<DBAccessor.DBColumnInfo> dataValueColumnCapture) {
+    DBAccessor.DBColumnInfo column = dataValueColumnCapture.getValue();
+    assertEquals("value", column.getName());
+    assertEquals(2000, (int) column.getLength());
+    assertEquals(String.class, column.getType());
+    assertNull(column.getDefaultValue());
+    assertTrue(column.isNullable());
   }
 }

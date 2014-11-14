@@ -62,7 +62,7 @@ public class JsonRequestBodyParserTest {
       "{" +
       "\"Clusters\" : {\n" +
       "    \"cluster_name\" : \"unitTestCluster3\"," +
-      "    \"Category\" : { \"property2\" : \"prop2Value\"}" +
+      "    \"Category\" : { \"property2\" : null}" +
       "} } ]";
 
   String arrayJson2 = "{" +
@@ -243,7 +243,7 @@ public class JsonRequestBodyParserTest {
 
     Map<String, String> mapCluster3 = new HashMap<String, String>();
     mapCluster3.put(PropertyHelper.getPropertyId("Clusters", "cluster_name"), "unitTestCluster3");
-    mapCluster3.put(PropertyHelper.getPropertyId("Clusters/Category", "property2"), "prop2Value");
+    mapCluster3.put(PropertyHelper.getPropertyId("Clusters/Category", "property2"), null);
 
 
     for (NamedPropertySet propertySet : setProps) {

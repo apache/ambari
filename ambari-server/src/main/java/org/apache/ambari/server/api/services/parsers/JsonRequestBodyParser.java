@@ -150,16 +150,18 @@ public class JsonRequestBodyParser implements RequestBodyParser {
         }
       } else {
         // field
+        String value = child.isNull() ? null : child.asText();
+
         if (path.equals(REQUEST_INFO_PATH)) {
            requestInfoProps.put(PropertyHelper.getPropertyId(null, name),
-                   child.asText());
+               value);
         } else if (path.startsWith(REQUEST_INFO_PATH)) {
           requestInfoProps.put(PropertyHelper.getPropertyId(
               path.substring(REQUEST_INFO_PATH.length() + SLASH.length()), name),
-                  child.asText());
+              value);
         } else {
           propertySet.getProperties().put(PropertyHelper.getPropertyId(
-              path.equals(BODY_TITLE) ? "" : path, name), child.asText());
+              path.equals(BODY_TITLE) ? "" : path, name), value);
         }
       }
     }

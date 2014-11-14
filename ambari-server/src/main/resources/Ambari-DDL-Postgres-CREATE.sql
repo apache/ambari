@@ -408,7 +408,7 @@ CREATE TABLE viewinstancedata (
   view_instance_name VARCHAR(255) NOT NULL,
   name VARCHAR(255) NOT NULL,
   user_name VARCHAR(255) NOT NULL,
-  value VARCHAR(2000) NOT NULL,
+  value VARCHAR(2000),
   PRIMARY KEY(view_instance_id, name, user_name));
 
 CREATE TABLE viewinstance (
@@ -428,7 +428,7 @@ CREATE TABLE viewinstanceproperty (
   view_name VARCHAR(255) NOT NULL,
   view_instance_name VARCHAR(255) NOT NULL,
   name VARCHAR(255) NOT NULL,
-  value VARCHAR(2000) NOT NULL,
+  value VARCHAR(2000),
   PRIMARY KEY(view_name, view_instance_name, name));
 
 CREATE TABLE viewparameter (

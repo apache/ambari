@@ -90,6 +90,10 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
     dbAccessor.addColumn(ALERT_TABLE_DEFINITION, new DBColumnInfo(
         "ignore_host", Short.class, 1, 0, false));
 
+    // Alter column : make viewinstanceproperty.value & viewinstancedata.value nullable
+    dbAccessor.alterColumn("viewinstanceproperty", new DBColumnInfo("value", String.class, 2000, null, true));
+    dbAccessor.alterColumn("viewinstancedata", new DBColumnInfo("value", String.class, 2000, null, true));
+
     ddlUpdateRepositoryVersion();
   }
 
