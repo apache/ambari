@@ -219,10 +219,10 @@
             "storm_user": "storm", 
             "content": "\n#!/bin/bash\n\n# Set Storm specific environment variables here.\n\n# The java implementation to use.\nexport JAVA_HOME={{java64_home}}\n\n# export STORM_CONF_DIR=\"\"", 
             "nimbus_principal_name": "nimbus/_HOST@EXAMPLE.COM", 
-            "strom_ui_keytab": "/etc/security/keytabs/http.storm.service.keytab", 
+            "storm_ui_keytab": "/etc/security/keytabs/http.storm.service.keytab",
             "nimbus_keytab": "/etc/security/keytabs/nimbus.service.keytab", 
             "storm_keytab": "/etc/security/keytabs/storm.service.keytab", 
-            "strom_ui_principal_name": "HTTP/_HOST"
+            "storm_ui_principal_name": "HTTP/_HOST"
         }, 
         "core-site": {
             "io.serializations": "org.apache.hadoop.io.serializer.WritableSerialization", 
