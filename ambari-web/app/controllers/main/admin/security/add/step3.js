@@ -355,7 +355,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
   setHostComponentsSecureValue: function (result, host, addedPrincipalsHost, securityUsers, hadoopGroupId) {
     var componentsToDisplay = ['NAMENODE', 'SECONDARY_NAMENODE', 'DATANODE', 'JOBTRACKER', 'ZOOKEEPER_SERVER', 'HIVE_SERVER', 'TASKTRACKER',
       'OOZIE_SERVER', 'NAGIOS_SERVER', 'HBASE_MASTER', 'HBASE_REGIONSERVER', 'HISTORYSERVER', 'RESOURCEMANAGER', 'NODEMANAGER', 'JOURNALNODE',
-      'SUPERVISOR', 'NIMBUS', 'FALCON_SERVER', 'KNOX_GATEWAY', 'APP_TIMELINE_SERVER'];
+      'SUPERVISOR', 'NIMBUS', 'STORM_UI_SERVER','FALCON_SERVER', 'KNOX_GATEWAY', 'APP_TIMELINE_SERVER'];
     if (App.get('isHadoop22Stack')) {
       componentsToDisplay.push('DRPC_SERVER');
     }
