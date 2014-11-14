@@ -23,8 +23,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -40,6 +43,9 @@ import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.state.OperatingSystemInfo;
+import org.apache.ambari.server.state.StackInfo;
+import org.apache.ambari.server.state.stack.UpgradePack;
 
 import com.google.gson.Gson;
 import com.google.inject.Inject;
@@ -90,6 +96,9 @@ public class RepositoryVersionResourceProvider extends AbstractResourceProvider 
   @Inject
   private ClusterVersionDAO clusterVersionDAO;
 
+  @Inject
+  private AmbariMetaInfo ambariMetaInfo;
+
   /**
    * Create a new resource provider.
    *
@@ -136,6 +145,7 @@ public class RepositoryVersionResourceProvider extends AbstractResourceProvider 
           if (repositoryVersionDAO.findByStackAndVersion(entity.getStack(), entity.getVersion()) != null) {
             throw new AmbariException("Repository version for stack " + entity.getStack() + " and version " + entity.getVersion() + " already exists");
           }
+          validateRepositoryVersion(entity);
           repositoryVersionDAO.create(entity);
           notifyCreate(Resource.Type.RepositoryVersion, request);
           return null;
@@ -280,5 +290,50 @@ public class RepositoryVersionResourceProvider extends AbstractResourceProvider 
   @Override
   protected Set<String> getPKPropertyIds() {
     return pkPropertyIds;
+  }
+
+  /**
+   * Validates newly created repository versions to contain actual information.
+   *
+   * @param repositoryVersion repository version
+   * @throws AmbariException exception with error message
+   */
+  protected void validateRepositoryVersion(RepositoryVersionEntity repositoryVersion) throws AmbariException {
+    final StackInfo stackInfo = ambariMetaInfo.getStack(repositoryVersion.getStack(), repositoryVersion.getVersion());
+    if (stackInfo == null) {
+      throw new AmbariException("Stack " + repositoryVersion.getStack() + " " + repositoryVersion.getVersion() + " is not found");
+    }
+    final UpgradePack upgradePack = stackInfo.getUpgradePacks().get(repositoryVersion.getUpgradePackage());
+    if (upgradePack == null) {
+      throw new AmbariException("Upgrade pack " + repositoryVersion.getUpgradePackage()
+          + " is not available for stack " + repositoryVersion.getStack() + " " + repositoryVersion.getVersion());
+    }
+    final Set<String> osSupported = new HashSet<String>();
+    for (OperatingSystemInfo osInfo: ambariMetaInfo.getOperatingSystems(repositoryVersion.getStack(), repositoryVersion.getVersion())) {
+      osSupported.add(osInfo.getOsType());
+    }
+    final Set<String> osRepositoryVersion = new HashSet<String>();
+    final Matcher osMatcher = Pattern.compile("\"os\":\\s*\"(.+)\"").matcher(new Gson().fromJson(repositoryVersion.getRepositories(), Object.class).toString());
+    while (osMatcher.find()) {
+      osRepositoryVersion.add(osMatcher.group(1));
+    }
+    if (osRepositoryVersion.isEmpty()) {
+      throw new AmbariException("At least one set of repositories for OS should be provided");
+    }
+    for (String os: osRepositoryVersion) {
+      if (!osSupported.contains(os)) {
+        throw new AmbariException("Operating system type " + os + " is not supported by stack "
+            + repositoryVersion.getStack() + " " + repositoryVersion.getVersion());
+      }
+    }
+    // converting 2.2.*.* -> 2\.2\.\d+\.\d+(-\d+)?
+    String regexPattern = upgradePack.getTarget();
+    regexPattern = regexPattern.replaceAll("\\.", "\\\\.");
+    regexPattern = regexPattern.replaceAll("\\*", "\\\\d+");
+    regexPattern = regexPattern.concat("(-\\d+)?");
+    if (!Pattern.matches(regexPattern, repositoryVersion.getVersion())) {
+      throw new AmbariException("Upgrade pack " + repositoryVersion.getUpgradePackage()
+          + " can't be applied to stack " + repositoryVersion.getStack() + " " + repositoryVersion.getVersion());
+    }
   }
 }
