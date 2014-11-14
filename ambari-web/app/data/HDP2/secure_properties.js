@@ -1286,8 +1286,7 @@ var storm22Properties = [
     "isOverridable": false,
     "serviceName": "STORM",
     "filename": "storm-env.xml",
-    "category": "Nimbus",
-    "components": ["STORM_UI_SERVER"]
+    "category": "Nimbus"
   },
   {
     "id": "puppet var",
@@ -1301,8 +1300,7 @@ var storm22Properties = [
     "isOverridable": false,
     "serviceName": "STORM",
     "filename": "storm-env.xml",
-    "category": "Nimbus",
-    "components": ["STORM_UI_SERVER"]
+    "category": "Nimbus"
   }
 ];
 
