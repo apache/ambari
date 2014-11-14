@@ -107,7 +107,7 @@ App.MainConfigHistoryController = Em.ArrayController.extend(App.TableServerMixin
       var time = "";
       var curTime = new Date().getTime();
 
-      switch (this.get('optionValue')) {
+      switch (this.get('optionValue.value')) {
         case 'Past 1 hour':
           time = curTime - 3600000;
           break;

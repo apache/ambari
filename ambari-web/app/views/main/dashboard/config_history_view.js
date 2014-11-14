@@ -201,6 +201,7 @@ App.MainConfigHistoryView = App.TableView.extend({
     ],
     emptyValue: 'Any',
     valueBinding: "controller.modifiedFilter.optionValue",
+    selectedBinding: "controller.modifiedFilter.optionValue",
     startTimeBinding: "controller.modifiedFilter.actualValues.startTime",
     endTimeBinding: "controller.modifiedFilter.actualValues.endTime",
     onTimeChange: function () {
