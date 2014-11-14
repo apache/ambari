@@ -255,7 +255,7 @@ App.Router = Em.Router.extend({
     //TODO: Replace hard coded value with query. Same in templates/application.hbs
     var loginController = this.get('loginController');
     var loginData = params.loginData;
-    var privileges = loginData.privileges;
+    var privileges = loginData.privileges || [];
     var router = this;
     var permissionList = privileges.mapProperty('PrivilegeInfo.permission_name');
       var isAdmin = permissionList.contains('AMBARI.ADMIN');

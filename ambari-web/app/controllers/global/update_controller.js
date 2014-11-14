@@ -177,7 +177,7 @@ App.UpdateController = Em.Controller.extend({
       }
     }
     var mainHostController = App.router.get('mainHostController'),
-      sortProperties = mainHostController.getSortProperties();
+      sortProperties = mainHostController.getSortProps();
     if (hostDetailsFilter) {
       //if host details page opened then request info only of one displayed host
       this.get('queryParams').set('Hosts', [

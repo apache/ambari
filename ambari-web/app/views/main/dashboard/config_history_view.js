@@ -20,34 +20,12 @@ var App = require('app');
 var filters = require('views/common/filter_view');
 var sort = require('views/common/sort_view');
 
-App.MainConfigHistoryView = App.TableView.extend({
+App.MainConfigHistoryView = App.TableView.extend(App.TableServerViewMixin, {
   templateName: require('templates/main/dashboard/config_history'),
 
   controllerBinding: 'App.router.mainConfigHistoryController',
   filteringComplete: false,
-  timeOut: null,
 
-  content: function () {
-    return this.get('controller.content');
-  }.property('controller.content'),
-
-  pageContent: function () {
-    var content = this.get('filteredContent');
-    if (content.length > ((this.get('endIndex') - this.get('startIndex')) + 1)) {
-      content = content.slice(0, (this.get('endIndex') - this.get('startIndex')) + 1);
-    }
-    return content.sort(function (a, b) {
-      return a.get('index') - b.get('index');
-    });
-  }.property('filteredContent'),
-
-  filteredCount: function () {
-    return this.get('controller.filteredCount');
-  }.property('controller.filteredCount'),
-
-  totalCount: function () {
-    return this.get('controller.totalCount');
-  }.property('controller.totalCount'),
   /**
    * return filtered number of all content number information displayed on the page footer bar
    * @returns {String}
@@ -55,24 +33,6 @@ App.MainConfigHistoryView = App.TableView.extend({
   filteredContentInfo: function () {
     return this.t('tableView.filters.filteredConfigVersionInfo').format(this.get('filteredCount'), this.get('totalCount'));
   }.property('filteredCount', 'totalCount'),
-
-  /**
-   * synchronize properties of view with controller to generate query parameters
-   */
-  updatePagination: function (key) {
-    if (!Em.isNone(this.get('displayLength'))) {
-      App.db.setDisplayLength(this.get('controller.name'), this.get('displayLength'));
-      this.get('controller.paginationProps').findProperty('name', 'displayLength').value = this.get('displayLength');
-    }
-    if (!Em.isNone(this.get('startIndex'))) {
-      App.db.setStartIndex(this.get('controller.name'), this.get('startIndex'));
-      this.get('controller.paginationProps').findProperty('name', 'startIndex').value = this.get('startIndex');
-    }
-
-    if (key !== 'SKIP_REFRESH') {
-      this.refresh();
-    }
-  },
 
   didInsertElement: function () {
     this.addObserver('startIndex', this, 'updatePagination');
@@ -225,22 +185,6 @@ App.MainConfigHistoryView = App.TableView.extend({
     }
   }),
 
-  updateFilter: function (iColumn, value, type) {
-    var self = this;
-    this.set('controller.resetStartIndex', false);
-    this.saveFilterConditions(iColumn, value, type, false);
-    if (!this.get('filteringComplete')) {
-      clearTimeout(this.get('timeOut'));
-      this.set('timeOut', setTimeout(function () {
-        self.updateFilter(iColumn, value, type);
-      }, this.get('filterWaitingTime')));
-    } else {
-      clearTimeout(this.get('timeOut'));
-      this.set('controller.resetStartIndex', true);
-      this.refresh();
-    }
-  },
-
   ConfigVersionView: Em.View.extend({
     tagName: 'tr',
     showLessNotes: true,
@@ -253,7 +197,7 @@ App.MainConfigHistoryView = App.TableView.extend({
   }),
 
   /**
-   * sort content
+   * refresh table content
    */
   refresh: function () {
     var self = this;
@@ -271,13 +215,5 @@ App.MainConfigHistoryView = App.TableView.extend({
    */
   colPropAssoc: function () {
     return this.get('controller.colPropAssoc');
-  }.property('controller.colPropAssoc'),
-
-  resetStartIndex: function () {
-    if (this.get('controller.resetStartIndex') && this.get('filteredCount') > 0) {
-      this.set('startIndex', 1);
-      this.updatePagination('SKIP_REFRESH');
-    }
-  }.observes('controller.resetStartIndex')
-
+  }.property('controller.colPropAssoc')
 });

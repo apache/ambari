@@ -21,7 +21,7 @@ var filters = require('views/common/filter_view');
 var sort = require('views/common/sort_view');
 var date = require('utils/date');
 
-App.MainAlertsView = App.TableView.extend(App.TableServerProvider, {
+App.MainAlertsView = App.TableView.extend(App.TableServerViewMixin, {
   templateName:require('templates/main/alerts'),
 
   tableName: 'Alerts'

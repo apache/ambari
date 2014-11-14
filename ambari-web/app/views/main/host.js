@@ -21,10 +21,12 @@ var filters = require('views/common/filter_view');
 var sort = require('views/common/sort_view');
 var date = require('utils/date');
 
-App.MainHostView = App.TableView.extend(App.TableServerProvider, {
+App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
   templateName:require('templates/main/host'),
 
   tableName: 'Hosts',
+  updaterBinding: 'App.router.updateController',
+  filterConditions: [],
 
   /**
    * Select/deselect all visible hosts flag
@@ -36,16 +38,15 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
    * Contains all selected hosts on cluster
    */
   selectedHosts: [],
-  /**
-   * total number of installed hosts
-   */
-  totalCount: function () {
-    return this.get('controller.hostsCountMap')['TOTAL'] || 0;
-  }.property('controller.hostsCountMap'),
 
-  filteredCount: function () {
-    return this.get('controller.filteredCount');
-  }.property('controller.filteredCount'),
+  /**
+   * Request error data
+   */
+  requestError: null,
+
+  colspan: function () {
+    return App.get('supports.stackUpgrade') ? 11 : 10;
+  }.property("App.supports.stackUpgrade"),
 
   /**
    * List of hosts in cluster
@@ -76,20 +77,6 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
   }.observes('requestError'),
 
   /**
-   * Contains content to show on the current page of data page view
-   * @type {Array}
-   */
-  pageContent: function () {
-    var content = this.get('filteredContent');
-    if (content.length > this.get('endIndex') - this.get('startIndex') + 1) {
-      content = content.slice(0, this.get('endIndex') - this.get('startIndex') + 1);
-    }
-    return content.sort(function (a, b) {
-      return a.get('index') - b.get('index');
-    });
-  }.property('filteredCount'),
-
-  /**
    * flag to toggle displaying selected hosts counter
    */
   showSelectedFilter: function () {
@@ -103,6 +90,38 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
   filteredContentInfo: function () {
     return this.t('hosts.filters.filteredHostsInfo').format(this.get('filteredCount'), this.get('totalCount'));
   }.property('filteredCount', 'totalCount'),
+
+  /**
+   * request latest data filtered by new parameters
+   * called when trigger property(<code>refreshTriggers</code>) is changed
+   */
+  refresh: function () {
+    var self = this;
+    this.set('filteringComplete', false);
+    var updaterMethodName = this.get('updater.tableUpdaterMap')[this.get('tableName')];
+    this.get('updater')[updaterMethodName](function () {
+      self.set('filteringComplete', true);
+      self.propertyDidChange('pageContent');
+    }, function() {
+      self.set('requestError', arguments);
+    });
+    return true;
+  },
+  /**
+   * reset filters value by column to which filter belongs
+   * @param columns {Array}
+   */
+  resetFilterByColumns: function (columns) {
+    var filterConditions = this.get('filterConditions');
+    columns.forEach(function (iColumn) {
+      var filterCondition = filterConditions.findProperty('iColumn', iColumn);
+
+      if (filterCondition) {
+        filterCondition.value = '';
+        this.saveFilterConditions(filterCondition.iColumn, filterCondition.value, filterCondition.type, filterCondition.skipFilter);
+      }
+    }, this);
+  },
 
   /**
    * Return pagination information displayed on the page
@@ -158,7 +177,7 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
       var self = this;
       if (this.get('parentView.startIndex') === 1 || this.get('parentView.startIndex') === 0) {
         Ember.run.next(function () {
-          self.get('parentView').updateViewProperty();
+          self.get('parentView').updatePagination();
         });
       } else {
         Ember.run.next(function () {
@@ -171,24 +190,6 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
   saveStartIndex: function () {
     this.set('controller.startIndex', this.get('startIndex'));
   }.observes('startIndex'),
-
-  /**
-   * Calculates default value for startIndex property after applying filter or changing displayLength
-   */
-  updatePaging: function (controller, property) {
-    var displayLength = this.get('displayLength');
-    var filteredContentLength = this.get('filteredCount');
-    if (property == 'displayLength' && this.get('filteringComplete')) {
-      this.set('startIndex', Math.min(1, filteredContentLength));
-    } else if (!filteredContentLength) {
-      this.set('startIndex', 0);
-    } else if (this.get('startIndex') > filteredContentLength) {
-      this.set('startIndex', Math.floor((filteredContentLength - 1) / displayLength) * displayLength + 1);
-    } else if (!this.get('startIndex')) {
-      this.set('startIndex', 1);
-    }
-  },
-
 
   clearFiltersObs: function() {
     var self = this;
@@ -211,14 +212,6 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
   },
 
   /**
-   * get query parameters computed in controller
-   * @param {bool} flag should non-filters params be skipped
-   * @return {Array}
-   */
-  getQueryParameters: function (flag) {
-    return this.get('controller').getQueryParameters(flag);
-  },
-  /**
    * stub for filter function in TableView
    */
   filter: function () {
@@ -232,7 +225,8 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
     this.set('controller.isCountersUpdating', true);
     this.get('controller').updateStatusCounters();
     this.addObserver('filteringComplete', this, this.overlayObserver);
-    this.addObserver('displayLength', this, this.updatePaging);
+    this.addObserver('startIndex', this, 'updatePagination');
+    this.addObserver('displayLength', this, 'updatePagination');
     this.addObserver('filteredCount', this, this.updatePaging);
     this.overlayObserver();
   },
@@ -242,15 +236,6 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
       this.refresh();
     }
   }.observes('tableFilteringComplete'),
-
-  /**
-   * synchronize properties of view with controller to generate query parameters
-   */
-  updateViewProperty: function () {
-    this.get('controller.viewProperties').findProperty('key', 'displayLength').set('viewValue', this.get('displayLength'));
-    this.get('controller.viewProperties').findProperty('key', 'startIndex').set('viewValue', this.get('startIndex'));
-    this.refresh();
-  }.observes('startIndex'),
 
   willDestroyElement: function() {
     this.set('controller.isCountersUpdating', false);
@@ -383,7 +368,7 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
         }
         break;
       case 'f':
-        queryParams = this.getQueryParameters(true).filter(function (obj) {
+        queryParams = this.get('controller').getQueryParameters(true).filter(function (obj) {
           return !(obj.key == 'page_size' || obj.key == 'from');
         });
         break;
@@ -1081,11 +1066,5 @@ App.MainHostView = App.TableView.extend(App.TableServerProvider, {
    */
   colPropAssoc: function () {
     return this.get('controller.colPropAssoc');
-  }.property('controller.colPropAssoc'),
-
-  resetStartIndex: function () {
-    if (this.get('controller.resetStartIndex') && this.get('filteredCount') > 0) {
-      this.set('startIndex', 1);
-    }
-  }.observes('controller.resetStartIndex')
+  }.property('controller.colPropAssoc')
 });

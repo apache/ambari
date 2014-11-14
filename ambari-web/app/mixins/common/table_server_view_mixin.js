@@ -1,0 +1,114 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+var App = require('app');
+
+/**
+ * Mixin should be used for Em.View of table that uses server to filter, sort, paginate content
+ */
+App.TableServerViewMixin = Em.Mixin.create({
+  filteringComplete: true,
+  timeOut: null,
+  /**
+   * filter delay time, used to combine filters change into one content update
+   */
+  filterWaitingTime: 500,
+
+  /**
+   * count of filtered items
+   */
+  filteredCount: function () {
+    return this.get('controller.filteredCount');
+  }.property('controller.filteredCount'),
+  /**
+   * total count of items
+   */
+  totalCount: function () {
+    return this.get('controller.totalCount');
+  }.property('controller.totalCount'),
+  /**
+   * data requested from server
+   */
+  content: function () {
+    return this.get('controller.content');
+  }.property('controller.content'),
+  /**
+   * content already filtered on server-side
+   */
+  filteredContent: function () {
+    return this.get('content');
+  }.property('content'),
+  /**
+   * sort and slice recieved content by pagination parameters
+   */
+  pageContent: function () {
+    var content = this.get('filteredContent');
+    if (content.length > ((this.get('endIndex') - this.get('startIndex')) + 1)) {
+      content = content.slice(0, (this.get('endIndex') - this.get('startIndex')) + 1);
+    }
+    return content.sort(function (a, b) {
+      return a.get('index') - b.get('index');
+    });
+  }.property('filteredContent'),
+  /**
+   * compute applied filters and run content update from server
+   * @param iColumn
+   * @param value
+   * @param type
+   */
+  updateFilter: function (iColumn, value, type) {
+    var self = this;
+    this.set('controller.resetStartIndex', false);
+    this.saveFilterConditions(iColumn, value, type, false);
+    if (!this.get('filteringComplete')) {
+      clearTimeout(this.get('timeOut'));
+      this.set('timeOut', setTimeout(function () {
+        self.updateFilter(iColumn, value, type);
+      }, this.get('filterWaitingTime')));
+    } else {
+      clearTimeout(this.get('timeOut'));
+      this.set('controller.resetStartIndex', true);
+      this.refresh();
+    }
+  },
+  /**
+   * synchronize properties of view with controller to generate query parameters
+   */
+  updatePagination: function (key) {
+    if (!Em.isNone(this.get('displayLength'))) {
+      App.db.setDisplayLength(this.get('controller.name'), this.get('displayLength'));
+      this.get('controller.paginationProps').findProperty('name', 'displayLength').value = this.get('displayLength');
+    }
+    if (!Em.isNone(this.get('startIndex'))) {
+      App.db.setStartIndex(this.get('controller.name'), this.get('startIndex'));
+      this.get('controller.paginationProps').findProperty('name', 'startIndex').value = this.get('startIndex');
+    }
+
+    if (key !== 'SKIP_REFRESH') {
+      this.refresh();
+    }
+  },
+  /**
+   * when new filter applied page index should be reset to first page
+   */
+  resetStartIndex: function () {
+    if (this.get('controller.resetStartIndex') && this.get('filteredCount') > 0) {
+      this.set('startIndex', 1);
+    }
+  }.observes('controller.resetStartIndex')
+});

@@ -20,13 +20,19 @@ var App = require('app');
 var validator = require('utils/validator');
 var batchUtils = require('utils/batch_scheduled_requests');
 
-App.MainHostController = Em.ArrayController.extend({
+App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
   name: 'mainHostController',
 
   dataSource: App.Host.find(),
   clearFilters: null,
 
   filteredCount: 0,
+  /**
+   * total number of installed hosts
+   */
+  totalCount: function () {
+    return this.get('hostsCountMap')['TOTAL'] || 0;
+  }.property('hostsCountMap'),
   resetStartIndex: false,
   /**
    * flag responsible for updating status counters of hosts
@@ -118,72 +124,31 @@ App.MainHostController = Em.ArrayController.extend({
     }
   ],
 
-  viewProperties: [
-    Em.Object.create({
-      key: 'displayLength',
-      getValue: function (controller) {
-        var name = controller.get('name');
-        var dbValue = App.db.getDisplayLength(name);
-        if (Em.isNone(this.get('viewValue'))) {
-          if (dbValue) {
-            this.set('viewValue', dbValue);
-          } else {
-            this.set('viewValue', '25'); //25 is default displayLength value for hosts page
-            App.db.setDisplayLength(name, '25');
-          }
-        }
-        return this.get('viewValue');
-      },
-      viewValue: null,
-      alias: 'page_size'
-    }),
-    Em.Object.create({
-      key: 'startIndex',
-      getValue: function (controller) {
-        var name = controller.get('name');
-        var startIndex = App.db.getStartIndex(name);
-        var value = this.get('viewValue');
-
-        if (Em.isNone(value)) {
-          if (Em.isNone(startIndex)) {
-            value = 0;
-          } else {
-            value = startIndex;
-            App.db.setStartIndex(name, startIndex);
-          }
-        }
-        return (value > 0) ? value - 1 : value;
-      },
-      viewValue: null,
-      alias: 'from'
-    })
-  ],
-
   sortProps: [
     {
-      key: 'publicHostName',
-      alias: 'Hosts/public_host_name'
+      name: 'publicHostName',
+      key: 'Hosts/public_host_name'
     },
     {
-      key: 'ip',
-      alias: 'Hosts/ip'
+      name: 'ip',
+      key: 'Hosts/ip'
     },
     {
-      key: 'cpu',
-      alias: 'Hosts/cpu_count'
+      name: 'cpu',
+      key: 'Hosts/cpu_count'
     },
     {
-      key: 'memoryFormatted',
-      alias: 'Hosts/total_mem'
+      name: 'memoryFormatted',
+      key: 'Hosts/total_mem'
     },
     {
-      key: 'diskUsage',
+      name: 'diskUsage',
       //TODO disk_usage is relative property and need support from API, metrics/disk/disk_free used temporarily
-      alias: 'metrics/disk/disk_free'
+      key: 'metrics/disk/disk_free'
     },
     {
-      key: 'loadAvg',
-      alias: 'metrics/load/load_one'
+      name: 'loadAvg',
+      key: 'metrics/load/load_one'
     }
   ],
 
@@ -201,50 +166,15 @@ App.MainHostController = Em.ArrayController.extend({
     return value;
   },
 
-  /**
-   * Transform <code>viewProperties</code> to queryParameters
-   * @returns {Object[]}
-   * @method getViewProperties
-   */
-  getViewProperties: function() {
-    return this.get('viewProperties').map(function (property) {
-      return {
-        key: property.get('alias'),
-        value: property.getValue(this),
-        type: 'EQUAL'
-      };
-    }, this);
-  },
-
-  /**
-   * Transform <code>sortProps</code> to queryParameters
-   * @returns {Object[]}
-   * @method getSortProperties
-   */
-  getSortProperties: function() {
-    var savedSortConditions = App.db.getSortingStatuses(this.get('name')) || [],
-      sortProperties = this.get('sortProps'),
-      queryParams = [];
-    savedSortConditions.forEach(function (sort) {
-      var property = sortProperties.findProperty('key', sort.name);
-
-      if (property && (sort.status === 'sorting_asc' || sort.status === 'sorting_desc')) {
-        queryParams.push({
-          key: property.alias,
-          value: sort.status.replace('sorting_', ''),
-          type: 'SORT'
-        });
-      }
-    });
+  getSortProps: function () {
     // sort by public_host_name by default
-    if (queryParams.length === 0) {
-      queryParams.push({
-        key: 'Hosts/public_host_name',
-        value: 'asc',
-        type: 'SORT'
-      });
+    if (App.db.getSortingStatuses(this.get('name')) && App.db.getSortingStatuses(this.get('name')).length === 0) {
+      App.db.setSortingStatuses(this.get('name'), {
+        name: 'publicHostName',
+        status: 'sorting_asc'
+      })
     }
-    return queryParams;
+    return this._super();
   },
 
   /**
@@ -264,7 +194,7 @@ App.MainHostController = Em.ArrayController.extend({
 
     this.set('resetStartIndex', false);
 
-    queryParams.pushObjects(this.getViewProperties());
+    queryParams.pushObjects(this.getPaginationProps());
 
     savedFilterConditions.forEach(function (filter) {
       var property = filterProperties.findProperty('key', colPropAssoc[filter.iColumn]);
@@ -320,7 +250,7 @@ App.MainHostController = Em.ArrayController.extend({
     }
 
     if (!skipNonFilterProperties) {
-      queryParams.pushObjects(this.getSortProperties());
+      queryParams.pushObjects(this.getSortProps());
     }
 
     return queryParams;
