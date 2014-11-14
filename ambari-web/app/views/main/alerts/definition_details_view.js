@@ -34,6 +34,7 @@ App.MainAlertDefinitionDetailsView = App.TableView.extend({
   // stores object with editing form data (label, description, thresholds)
   editing: Em.Object.create({
     label: Em.Object.create({
+      name: 'label',
       isEditing: false,
       value: '',
       originalValue: '',
@@ -41,6 +42,7 @@ App.MainAlertDefinitionDetailsView = App.TableView.extend({
       bindingValue: 'controller.content.label'
     }),
     description: Em.Object.create({
+      name: 'description',
       isEditing: false,
       value: '',
       originalValue: '',
@@ -48,6 +50,7 @@ App.MainAlertDefinitionDetailsView = App.TableView.extend({
       bindingValue: 'controller.content.description'
     }),
     thresholds: Em.Object.create({
+      name: 'thresholds',
       isEditing: false,
       value: '',
       originalValue: '',
@@ -100,14 +103,28 @@ App.MainAlertDefinitionDetailsView = App.TableView.extend({
   },
 
   /**
-   * Save button handler
+   * Save button handler, could save label/description/thresholds of alert definition
    * @param event
+   * @returns {$.ajax}
+   * @method saveEdit
    */
   saveEdit: function (event) {
     var element = event.context;
-    // todo: add request to the server to save new value
     this.set(element.get('bindingValue'), element.get('value'));
     element.set('isEditing', false);
+
+    var data = Em.Object.create({});
+    var property_name = "AlertDefinition/" + element.get('name');
+    data.set(property_name,  element.get('value'));
+    var alertDefinition_id = this.get('controller.content.id');
+    return App.ajax.send({
+      name: 'alerts.update_alert_definition',
+      sender: this,
+      data: {
+        id: alertDefinition_id,
+        data: data
+      }
+    });
   },
 
   /**
