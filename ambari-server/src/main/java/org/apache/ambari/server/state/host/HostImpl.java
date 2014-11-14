@@ -121,7 +121,7 @@ public class HostImpl implements Host {
   private Map<Long, MaintenanceState> maintMap = null;
 
   // In-memory status, based on host components states
-  private String status;
+  private String status = HealthStatus.UNKNOWN.name();
 
   // In-memory prefix of log file paths that is retrieved when the agent registers with the server
   private String prefix;
