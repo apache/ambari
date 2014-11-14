@@ -833,44 +833,48 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
     var self = this;
 
     configsByTags.forEach(function (configSite) {
-      $.extend(configsMap, configSite.properties);
-      for (var name in configSite.properties) {
-        configTypeMap[name] = configSite.type;
-      }
+      configsMap[configSite.type] = configSite.properties;
     });
     configs.forEach(function (_config) {
       var nonServiceTab = require('data/service_configs');
-      if (!Em.isNone(configsMap[_config.name]) && ((installedServiceNames && installedServiceNames.contains(_config.serviceName) || nonServiceTab.someProperty('serviceName', _config.serviceName)))) {
+      if (_config.filename) {
+        var type = _config.filename.replace(/.xml$/, '');
+      }
+      var mappedConfigValue = type && configsMap[type] ? configsMap[type][_config.name] : null;
+      if (!Em.isNone(mappedConfigValue) && ((installedServiceNames && installedServiceNames.contains(_config.serviceName) || nonServiceTab.someProperty('serviceName', _config.serviceName)))) {
         // prevent overriding already edited properties
-        if (_config.defaultValue != configsMap[_config.name])
-          _config.value = configsMap[_config.name];
-        _config.defaultValue = configsMap[_config.name];
+        if (_config.defaultValue != mappedConfigValue) {
+          _config.value = mappedConfigValue;
+        }
+        _config.defaultValue = mappedConfigValue;
         _config.hasInitialValue = true;
         App.config.handleSpecialProperties(_config);
-        delete configsMap[_config.name];
+        delete configsMap[type][_config.name];
       }
     });
     self.setServiceDatabaseConfigs(configs);
     //add user properties
 
-    for (var name in configsMap) {
-      configs.push(configMixin.addUserProperty({
-        id: 'site property',
-        name: name,
-        serviceName: configMixin.getServiceNameByConfigType(configTypeMap[name]),
-        value: configsMap[name],
-        defaultValue: configsMap[name],
-        filename: (configMixin.get('filenameExceptions').contains(configTypeMap[name])) ? configTypeMap[name] : configTypeMap[name] + '.xml',
-        category: 'Advanced',
-        hasInitialValue: true,
-        isUserProperty: true,
-        isOverridable: true,
-        overrides: [],
-        isRequired: true,
-        isVisible: true,
-        showLabel: true
-      }, false, []));
-    }
+    Em.keys(configsMap).forEach(function (filename) {
+      Em.keys(configsMap[filename]).forEach(function (propertyName) {
+        configs.push(configMixin.addUserProperty({
+          id: 'site property',
+          name: propertyName,
+          serviceName: configMixin.getServiceNameByConfigType(filename),
+          value: configsMap[filename][propertyName],
+          defaultValue: configsMap[filename][propertyName],
+          filename: configMixin.get('filenameExceptions').contains(filename) ? filename : filename + '.xml',
+          category: 'Advanced',
+          hasInitialValue: true,
+          isUserProperty: true,
+          isOverridable: true,
+          overrides: [],
+          isRequired: true,
+          isVisible: true,
+          showLabel: true
+        }, false, []));
+      });
+    });
   },
 
   /**

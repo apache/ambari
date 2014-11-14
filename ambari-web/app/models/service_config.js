@@ -653,9 +653,11 @@ App.ServiceConfigProperty = Ember.Object.extend({
         break;
       case 'hbase.tmp.dir':
         temp = slaveComponentHostsInDB.findProperty('componentName', 'HBASE_REGIONSERVER');
-        temp.hosts.forEach(function (host) {
-          setOfHostNames.push(host.hostName);
-        }, this);
+        if (temp) {
+          temp.hosts.forEach(function (host) {
+            setOfHostNames.push(host.hostName);
+          }, this);
+        }
         break;
       case 'storm.local.dir':
         temp = slaveComponentHostsInDB.findProperty('componentName', 'SUPERVISOR');

@@ -1272,4 +1272,63 @@ describe('App.InstallerStep7Controller', function () {
     });
   });
 
+  describe('#setInstalledServiceConfigs', function () {
+
+    var controller = App.WizardStep7Controller.create({
+        installedServiceNames: ['HBASE', 'AMS']
+      }),
+      serviceConfigTags = [
+        {
+          siteName: 'hbase-site',
+          tagName: 'version1'
+        },
+        {
+          siteName: 'ams-hbase-site',
+          tagName: 'version1'
+        }
+      ],
+      configs = [
+        {
+          name: 'hbase.client.scanner.caching',
+          value: '1000',
+          serviceName: 'HBASE',
+          filename: 'hbase-site.xml'
+        },
+        {
+          name: 'hbase.client.scanner.caching',
+          value: '2000',
+          serviceName: 'AMS',
+          filename: 'ams-hbase-site.xml'
+        }
+      ],
+      configsByTags = [
+        {
+          type: 'hbase-site',
+          tag: 'version2',
+          properties: {
+            'hbase.client.scanner.caching': '1500'
+          }
+        },
+        {
+          type: 'ams-hbase-site',
+          tag: 'version2',
+          properties: {
+            'hbase.client.scanner.caching': '2500'
+          }
+        }
+      ],
+      installedServiceNames = ['HBASE', 'AMS'];
+
+    it('should handle properties with the same name', function () {
+      controller.setInstalledServiceConfigs(serviceConfigTags, configs, configsByTags, installedServiceNames);
+      var properties = configs.filterProperty('name', 'hbase.client.scanner.caching');
+      expect(properties).to.have.length(2);
+      expect(properties.findProperty('filename', 'hbase-site.xml').value).to.equal('1500');
+      expect(properties.findProperty('filename', 'hbase-site.xml').defaultValue).to.equal('1500');
+      expect(properties.findProperty('filename', 'ams-hbase-site.xml').value).to.equal('2500');
+      expect(properties.findProperty('filename', 'ams-hbase-site.xml').defaultValue).to.equal('2500');
+    });
+
+  });
+
 });

@@ -330,10 +330,10 @@ App.config = Em.Object.create({
       for (var index in properties) {
         var configsPropertyDef = preDefinedConfigs.filterProperty('name', index).findProperty('filename', filename);
         if (!configsPropertyDef) {
-          preDefinedConfigs.filterProperty('name', index).forEach(function (_preDefinedConfig) {
-            var isServiceInstalled = selectedServiceNames.contains(_preDefinedConfig.serviceName);
-            if (isServiceInstalled || _preDefinedConfig.serviceName === 'MISC') {
-              configsPropertyDef = _preDefinedConfig;
+          advancedConfigs.filterProperty('name', index).forEach(function (_advancedConfig) {
+            var isServiceInstalled = selectedServiceNames.contains(_advancedConfig.serviceName);
+            if (isServiceInstalled) {
+              configsPropertyDef = _advancedConfig;
             }
           }, this);
         }
@@ -377,7 +377,7 @@ App.config = Em.Object.create({
             serviceConfigObj.displayType = stringUtils.isSingleLine(serviceConfigObj.value) ? 'advanced' : 'multiLine';
           }
 
-          serviceConfigObj.displayName = configsPropertyDef ? configsPropertyDef.displayName : index;
+          serviceConfigObj.displayName = configsPropertyDef && configsPropertyDef.displayName ? configsPropertyDef.displayName : index;
           serviceConfigObj.options = configsPropertyDef ? configsPropertyDef.options : null;
           this.calculateConfigProperties(serviceConfigObj, isAdvanced, advancedConfigs);
 
