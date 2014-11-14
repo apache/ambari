@@ -61,8 +61,8 @@
       </div>
     </div>
   </div>
-  <div class="span6">
-    {{#unless view.isNoAlertsService}}
+  {{#unless view.isNoAlertsService}}
+    <div class="span6">
       <div class="box">
         <div class="box-header">
           <h4>{{t services.alerts.headingOfList}}</h4>
@@ -99,8 +99,8 @@
           {{/if}}
         </ul>
       </div>
-    {{/unless}}
-  </div>
+    </div>
+  {{/unless}}
 </div>
 
 {{#if view.collapsedSections}}
@@ -135,7 +135,9 @@
   </div>
 {{/if}}
 
-{{#if view.serviceMetricGraphs.length}}
+{{!todo: Enable service metrics check once MetricsSink is deployed as a service}}
+{{!#unless view.isNoServiceMetricsService}}
+  {{#if view.serviceMetricGraphs.length}}
   <div class="row-fluid">
     <div class="span12">
       <div class="box">
@@ -152,7 +154,6 @@
             </div>
           {{/if}}
         </div>
-
         <div class="">
           <table class="graphs">
             {{#each graphs in view.serviceMetricGraphs}}
@@ -168,10 +169,8 @@
             {{/each}}
           </table>
         </div>
-
       </div>
-
+      </div>
     </div>
-  </div>
-</div>
-{{/if}}
+  {{/if}}
+{{!/unless}}

@@ -33,20 +33,25 @@ App.MainChartsHeatmapController = Em.Controller.extend({
   }.property('modelRacks.@each.isLoaded'),
 
   allMetrics: function () {
-    var metrics = [
-      Em.Object.create({
-        label: Em.I18n.t('charts.heatmap.category.host'),
-        category: 'host',
-        items: [
-          App.MainChartHeatmapDiskSpaceUsedMetric.create(),
-          App.MainChartHeatmapMemoryUsedMetric.create(),
-          App.MainChartHeatmapCpuWaitIOMetric.create()
-          /*, App.MainChartHeatmapProcessRunMetric.create()*/
-        ]
-      })
-    ];
+    var metrics = [];
 
-    if (App.HDFSService.find().get('length')) {
+    // Display host heatmaps if the stack definition has a host metrics service to display it.
+    if(App.get('services.hostMetrics').length) {
+      metrics.push(
+        Em.Object.create({
+          label: Em.I18n.t('charts.heatmap.category.host'),
+          category: 'host',
+          items: [
+            App.MainChartHeatmapDiskSpaceUsedMetric.create(),
+            App.MainChartHeatmapMemoryUsedMetric.create(),
+            App.MainChartHeatmapCpuWaitIOMetric.create()
+            /*, App.MainChartHeatmapProcessRunMetric.create()*/
+          ]
+        })
+      );
+    }
+
+    if(App.HDFSService.find().get('length')) {
       metrics.push(
         Em.Object.create({
           label: Em.I18n.t('charts.heatmap.category.hdfs'),

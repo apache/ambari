@@ -95,7 +95,8 @@ class TestCustomServiceOrchestrator(TestCase):
       'clusterHostInfo':{'namenode_host' : ['1'],
                          'slave_hosts'   : ['0', '1'],
                          'all_hosts'     : ['h1.hortonworks.com', 'h2.hortonworks.com'],
-                         'all_ping_ports': ['8670:0,1']}
+                         'all_ping_ports': ['8670:0,1']},
+      'hostLevelParams':{}
     }
     
     decompress_cluster_host_info_mock.return_value = {'namenode_host' : ['h2.hortonworks.com'],
@@ -315,15 +316,15 @@ class TestCustomServiceOrchestrator(TestCase):
     self.assertTrue(os.path.exists(err))
     os.remove(out)
     os.remove(err)
-    
+
   from ambari_agent.StackVersionsFileHandler import StackVersionsFileHandler
-    
+
   @patch("shell.kill_process_with_children")
   @patch.object(FileCache, "__init__")
   @patch.object(CustomServiceOrchestrator, "resolve_script_path")
   @patch.object(CustomServiceOrchestrator, "resolve_hook_script_path")
   @patch.object(StackVersionsFileHandler, "read_stack_version")
-  def test_cancel_backgound_command(self, read_stack_version_mock, resolve_hook_script_path_mock, resolve_script_path_mock, FileCache_mock,  
+  def test_cancel_backgound_command(self, read_stack_version_mock, resolve_hook_script_path_mock, resolve_script_path_mock, FileCache_mock,
                                       kill_process_with_children_mock):
     FileCache_mock.return_value = None
     FileCache_mock.cache_dir = MagicMock()
@@ -334,9 +335,9 @@ class TestCustomServiceOrchestrator(TestCase):
     cfg.set('agent', 'tolerate_download_failures', 'true')
     cfg.set('agent', 'prefix', '.')
     cfg.set('agent', 'cache_dir', 'background_tasks')
-     
+
     actionQueue = ActionQueue(cfg, dummy_controller)
-    
+
     dummy_controller.actionQueue = actionQueue
     orchestrator = CustomServiceOrchestrator(cfg, dummy_controller)
     orchestrator.file_cache = MagicMock()
@@ -344,42 +345,42 @@ class TestCustomServiceOrchestrator(TestCase):
       return ""
     orchestrator.file_cache.get_service_base_dir = f
     actionQueue.customServiceOrchestrator = orchestrator
-    
+
     import TestActionQueue
     import copy
-    
+
     TestActionQueue.patch_output_file(orchestrator.python_executor)
     orchestrator.python_executor.prepare_process_result = MagicMock()
     orchestrator.dump_command_to_json = MagicMock()
- 
+
     lock = threading.RLock()
     complete_done = threading.Condition(lock)
-    
+
     complete_was_called = {}
     def command_complete_w(process_condenced_result, handle):
       with lock:
         complete_was_called['visited']= ''
         complete_done.wait(3)
-     
-    actionQueue.on_background_command_complete_callback = TestActionQueue.wraped(actionQueue.on_background_command_complete_callback, command_complete_w, None) 
+
+    actionQueue.on_background_command_complete_callback = TestActionQueue.wraped(actionQueue.on_background_command_complete_callback, command_complete_w, None)
     execute_command = copy.deepcopy(TestActionQueue.TestActionQueue.background_command)
     actionQueue.put([execute_command])
     actionQueue.processBackgroundQueueSafeEmpty()
-     
-    time.sleep(.1) 
-    
+
+    time.sleep(.1)
+
     orchestrator.cancel_command(19,'')
     self.assertTrue(kill_process_with_children_mock.called)
     kill_process_with_children_mock.assert_called_with(33)
-     
+
     with lock:
       complete_done.notifyAll()
 
     with lock:
       self.assertTrue(complete_was_called.has_key('visited'))
-    
+
     time.sleep(.1)
-     
+
     runningCommand = actionQueue.commandStatuses.get_command_status(19)
     self.assertTrue(runningCommand is not None)
     self.assertEqual(runningCommand['status'], ActionQueue.FAILED_STATUS)
@@ -501,12 +502,12 @@ class TestCustomServiceOrchestrator(TestCase):
     }
     dummy_controller = MagicMock()
     orchestrator = CustomServiceOrchestrator(self.config, dummy_controller)
-    
+
     import TestActionQueue
     TestActionQueue.patch_output_file(orchestrator.python_executor)
     orchestrator.python_executor.condenseOutput = MagicMock()
     orchestrator.dump_command_to_json = MagicMock()
-    
+
     ret = orchestrator.runCommand(command, "out.txt", "err.txt")
     self.assertEqual(ret['exitcode'], 777)
 

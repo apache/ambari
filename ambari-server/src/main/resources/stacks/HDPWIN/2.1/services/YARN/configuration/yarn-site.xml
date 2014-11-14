@@ -1,0 +1,214 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!-- Put site-specific property overrides in this file. -->
+<configuration supports_final="true" xmlns:xi="http://www.w3.org/2001/XInclude">
+  <property>
+    <name>yarn.nodemanager.resource.memory-mb</name>
+    <value>5120</value>
+    <description>Amount of physical memory, in MB, that can be allocated
+      for containers.</description>
+  </property>
+
+  <property>
+    <name>yarn.scheduler.minimum-allocation-mb</name>
+    <value>512</value>
+    <description>
+      The minimum allocation for every container request at the RM,
+      in MBs. Memory requests lower than this won't take effect,
+      and the specified value will get allocated at minimum.
+    </description>
+  </property>
+
+  <property>
+    <name>yarn.scheduler.maximum-allocation-mb</name>
+    <value>2048</value>
+    <description>
+      The maximum allocation for every container request at the RM,
+      in MBs. Memory requests higher than this won't take effect,
+      and will get capped to this value.
+    </description>
+  </property>
+  <property>
+    <name>yarn.nodemanager.pmem-check-enabled</name>
+    <value>true</value>
+  </property>
+  <property>
+    <name>yarn.nodemanager.vmem-check-enabled</name>
+    <value>true</value>
+  </property>
+  <!-- NodeManager -->
+  <property>
+    <name>yarn.nodemanager.address</name>
+    <value>0.0.0.0:45454</value>
+    <description>The address of the container manager in the NM.</description>
+  </property>
+  <property>
+    <name>yarn.nodemanager.resource.memory-mb</name>
+    <value>5120</value>
+    <description>Amount of physical memory, in MB, that can be allocated
+      for containers.</description>
+  </property>
+  <property>
+    <name>yarn.nodemanager.webapp.address</name>
+    <value>0.0.0.0:50060</value>
+  </property>
+  <property>
+    <name>yarn.nodemanager.vmem-pmem-ratio</name>
+    <value>2.1</value>
+    <description>Ratio between virtual memory to physical memory when
+      setting memory limits for containers. Container allocations are
+      expressed in terms of physical memory, and virtual memory usage
+      is allowed to exceed this allocation by this ratio.
+    </description>
+  </property>
+  <property>
+    <name>yarn.nodemanager.container-executor.class</name>
+    <value>org.apache.hadoop.yarn.server.nodemanager.DefaultContainerExecutor</value>
+    <description>ContainerExecutor for launching containers</description>
+  </property>
+  <property>
+    <name>yarn.nodemanager.aux-services</name>
+    <value>mapreduce_shuffle</value>
+    <description>Auxilliary services of NodeManager</description>
+  </property>
+  <property>
+    <name>yarn.nodemanager.aux-services.mapreduce_shuffle.class</name>
+    <value>org.apache.hadoop.mapred.ShuffleHandler</value>
+  </property>
+  <property>
+    <name>yarn.nodemanager.container-monitor.interval-ms</name>
+    <value>3000</value>
+    <description>The interval, in milliseconds, for which the node manager
+      waits between two cycles of monitoring its containers' memory usage.
+    </description>
+  </property>
+  <property>
+    <name>yarn.nodemanager.linux-container-executor.group</name>
+    <value>hadoop</value>
+    <description>Unix group of the NodeManager</description>
+  </property>
+  <property>
+    <name>yarn.nodemanager.log.retain-second</name>
+    <value>604800</value>
+  </property>
+  <property>
+    <name>yarn.log-aggregation-enable</name>
+    <value>true</value>
+  </property>
+  <property>
+    <name>yarn.nodemanager.remote-app-log-dir</name>
+    <value>/app-logs</value>
+  </property>
+  <property>
+    <name>yarn.nodemanager.remote-app-log-dir-suffix</name>
+    <value>logs</value>
+  </property>
+  <property>
+    <name>yarn.nodemanager.log-aggregation.compression-type</name>
+    <value>gz</value>
+  </property>
+  <property>
+    <name>yarn.nodemanager.delete.debug-delay-sec</name>
+    <value>36000</value>
+  </property>
+  <property>
+    <description>Store class name for history store, defaulting to file system store</description>
+    <name>yarn.timeline-service.generic-application-history.store-class</name>
+    <value>org.apache.hadoop.yarn.server.applicationhistoryservice.FileSystemApplicationHistoryStore</value>
+  </property>
+  <!-- Use a directory that is set up on HDFS to store generic history -->
+  <property>
+    <description>URI pointing to the location of the FileSystem path where the history will be persisted. This must be
+      supplied when using org.apache.hadoop.yarn.server.applicationhistoryservice.FileSystemApplicationHistoryStore as
+      the value for yarn.timeline-service.generic-application-history.store-class
+    </description>
+    <name>yarn.timeline-service.generic-application-history.fs-history-store.uri</name>
+    <value>/yarn/generic-history/</value>
+  </property>
+  <property>
+    <description>T-file compression types used to compress history data.</description>
+    <name>yarn.timeline-service.generic-application-history.fs-history-store.compression-type</name>
+    <value>none</value>
+  </property>
+  <property>
+    <description>Indicate to ResourceManager as well as clients whether
+      history-service is enabled or not. If enabled, ResourceManager starts
+      recording historical data that ApplicationHistory service can consume.
+      Similarly, clients can redirect to the history service when applications
+      finish if this is enabled.
+    </description>
+    <name>yarn.timeline-service.generic-application-history.enabled</name>
+    <value>false</value>
+  </property>
+  <property>
+    <description>Indicate to clients whether timeline service is enabled or not.
+      If enabled, clients will put entities and events to the timeline server.
+    </description>
+    <name>yarn.timeline-service.enabled</name>
+    <value>false</value>
+  </property>
+
+  <property>
+    <name>yarn.resourcemanager.scheduler.class</name>
+    <value>org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.CapacityScheduler</value>
+    <description>The class to use as the resource scheduler.</description>
+  </property>
+
+  <property>
+    <name>yarn.scheduler.minimum-allocation-mb</name>
+    <value>512</value>
+    <description>
+      The minimum allocation for every container request at the RM,
+      in MBs. Memory requests lower than this won't take effect,
+      and the specified value will get allocated at minimum.
+    </description>
+  </property>
+
+  <property>
+    <name>yarn.scheduler.maximum-allocation-mb</name>
+    <value>2048</value>
+    <description>
+      The maximum allocation for every container request at the RM,
+      in MBs. Memory requests higher than this won't take effect,
+      and will get capped to this value.
+    </description>
+  </property>
+
+  <property>
+    <name>yarn.resourcemanager.hostname</name>
+    <value>localhost</value>
+  </property>
+
+  <property>
+    <name>yarn.nodemanager.local-dirs</name>
+    <value>c:\hdpdata\hadoop\local</value>
+  </property>
+
+  <property>
+    <name>yarn.resourcemanager.webapp.https.address</name>
+    <value>localhost:8088</value>
+  </property>
+
+  <property>
+    <name>yarn.nodemanager.log-dirs</name>
+    <value>c:\hdpdata\hadoop\logs</value>
+  </property>
+
+  <property>
+    <name>yarn.log.server.url</name>
+    <value>http://localhost:19888/jobhistory/logs</value>
+    <description>
+      URI for the HistoryServer's log resource
+    </description>
+  </property>
+
+  <property>
+    <name>yarn.timeline-service.hostname</name>
+    <value>localhost</value>
+  </property>
+
+  <property>
+    <name>yarn.resourcemanager.webapp.address</name>
+    <value>localhost:8088</value>
+  </property>
+</configuration>

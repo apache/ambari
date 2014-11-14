@@ -223,7 +223,8 @@ public class ClientConfigResourceProviderTest {
     expect(configHelper.getEffectiveConfigProperties(cluster, configTags)).andReturn(properties);
     expect(clusterConfig.getType()).andReturn(Configuration.HIVE_CONFIG_TAG).anyTimes();
     expect(configHelper.getEffectiveConfigAttributes(cluster, configTags)).andReturn(attributes);
-    expect(configuration.getProperty("server.tmp.dir")).andReturn(Configuration.SERVER_TMP_DIR_DEFAULT);
+    expect(configuration.getProperty(Configuration.SERVER_TMP_DIR_KEY)).andReturn(Configuration.SERVER_TMP_DIR_DEFAULT);
+    expect(configuration.getProperty(Configuration.AMBARI_PYTHON_WRAP_KEY)).andReturn(Configuration.AMBARI_PYTHON_WRAP_DEFAULT);
     expect(configuration.getExternalScriptTimeout()).andReturn(Integer.parseInt(Configuration.EXTERNAL_SCRIPT_TIMEOUT_DEFAULT));
     Map<String,String> props = new HashMap<String, String>();
     props.put(Configuration.HIVE_METASTORE_PASSWORD_PROPERTY, "pass");

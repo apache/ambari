@@ -415,7 +415,7 @@ describe('App.AddHostController', function () {
   describe("#getInstallOptions()", function () {
     it("", function () {
       controller.set('installOptionsTemplate', {'prop': 'installOptionsTemplate'});
-      expect(controller.getInstallOptions()).to.be.eql({
+      expect(controller.get('getInstallOptions')).to.be.eql({
         prop: 'installOptionsTemplate'
       });
     });

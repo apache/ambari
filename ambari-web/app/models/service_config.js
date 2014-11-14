@@ -466,6 +466,9 @@ App.ServiceConfigProperty = Ember.Object.extend({
       case 'oozie_ambari_host':
         this.set('value', masterComponentHostsInDB.findProperty('component', 'OOZIE_SERVER').hostName);
         break;
+      case 'hadoop_host':
+        this.set('value', masterComponentHostsInDB.filterProperty('component', 'NAMENODE').mapProperty('hostName'));
+        break;
       case 'storm.zookeeper.servers':
       case 'zookeeperserver_hosts':
         this.set('value', masterComponentHostsInDB.filterProperty('component', 'ZOOKEEPER_SERVER').mapProperty('hostName'));
@@ -477,13 +480,19 @@ App.ServiceConfigProperty = Ember.Object.extend({
         this.set('value', masterComponentHostsInDB.findProperty('component', 'FALCON_SERVER').hostName);
         break;
       case 'drpcserver_host':
-        this.set('value', masterComponentHostsInDB.findProperty('component', 'DRPC_SERVER').hostName);
+        var drpcHost = masterComponentHostsInDB.findProperty('component', 'DRPC_SERVER');
+        if (drpcHost) {
+          this.set('value', drpcHost.hostName);
+        }
         break;
       case 'stormuiserver_host':
         this.set('value', masterComponentHostsInDB.findProperty('component', 'STORM_UI_SERVER').hostName);
         break;
       case 'storm_rest_api_host':
-        this.set('value', masterComponentHostsInDB.findProperty('component', 'STORM_REST_API').hostName);
+        var stormRresApiHost = masterComponentHostsInDB.findProperty('component', 'STORM_REST_API');
+        if(stormRresApiHost) {
+          this.set('value', stormRresApiHost.hostName);
+        }
         break;
       case 'supervisor_hosts':
         this.set('value', slaveComponentHostsInDB.findProperty('componentName', 'SUPERVISOR').hosts.mapProperty('hostName'));
@@ -686,7 +695,10 @@ App.ServiceConfigProperty = Ember.Object.extend({
       }
 
       mountPointsPerHost = mountPointsPerHost.filter(function (mPoint) {
-        return !(['/', '/home', '/boot'].contains(mPoint.mountpoint) || ['devtmpfs', 'tmpfs', 'vboxsf'].contains(mPoint.type));
+        return !(['/', '/home', '/boot'].contains(mPoint.mountpoint)
+        || ['devtmpfs', 'tmpfs', 'vboxsf'].contains(mPoint.type)
+        || mPoint.available == 0
+        || mPoint.type == 'CDFS');
       });
 
       mountPointsPerHost.forEach(function (mPoint) {
@@ -699,6 +711,7 @@ App.ServiceConfigProperty = Ember.Object.extend({
       allMountPoints.push(mountPointAsRoot);
     }
     this.set('value', '');
+    var winRegex = /^([a-z]):\\?$/;
     if (!isOnlyFirstOneNeeded) {
       allMountPoints.forEach(function (eachDrive) {
         var mPoint = this.get('value');
@@ -707,6 +720,21 @@ App.ServiceConfigProperty = Ember.Object.extend({
         }
         if (eachDrive.mountpoint === "/") {
           mPoint += this.get('defaultDirectory') + "\n";
+        } else if(winRegex.test(eachDrive.mountpoint.toLowerCase())) {
+          switch (this.get('name')) {
+            case 'dfs.datanode.data.dir':
+            case 'dfs.name.dir':
+            case 'dfs.namenode.name.dir':
+            case 'dfs.data.dir':
+            case 'dfs.datanode.data.dir':
+              var winDriveUrl = eachDrive.mountpoint.toLowerCase().replace(winRegex, "file:///$1:");
+              mPoint += winDriveUrl + this.get('defaultDirectory') + "\n";
+              break;
+            default:
+              var winDrive = eachDrive.mountpoint.toLowerCase().replace(winRegex, "$1:");
+              var winDir = this.get('defaultDirectory').replace(/\//g, "\\");
+              mPoint += winDrive + winDir + "\n";
+          }
         } else {
           mPoint += eachDrive.mountpoint + this.get('defaultDirectory') + "\n";
         }
@@ -717,6 +745,23 @@ App.ServiceConfigProperty = Ember.Object.extend({
       var mPoint = allMountPoints[0].mountpoint;
       if (mPoint === "/") {
         mPoint = this.get('defaultDirectory');
+      } else if(winRegex.test(mPoint.toLowerCase())) {
+        switch (this.get('name')) {
+          case 'fs.checkpoint.dir':
+          case 'dfs.namenode.checkpoint.dir':
+            var winDriveUrl = mPoint.toLowerCase().replace(winRegex, "file:///$1:");
+            mPoint = winDriveUrl + this.get('defaultDirectory') + "\n";
+            break;
+          case 'zk_data_dir':
+            var winDrive = mPoint.toLowerCase().replace(winRegex, "$1:");
+            var winDir = this.get('defaultDirectory').replace(/\//g, "\\\\");
+            mPoint = winDrive + winDir + "\n";
+            break;
+          default:
+            var winDrive = mPoint.toLowerCase().replace(winRegex, "$1:");
+            var winDir = this.get('defaultDirectory').replace(/\//g, "\\");
+            mPoint = winDrive + winDir + "\n";
+        }
       } else {
         mPoint = mPoint + this.get('defaultDirectory');
       }
@@ -841,7 +886,7 @@ App.ServiceConfigProperty = Ember.Object.extend({
         case 'directories':
         case 'directory':
           if (!validator.isValidDir(value)) {
-            this.set('errorMessage', 'Must be a slash at the start');
+            this.set('errorMessage', 'Must be a slash or drive at the start');
             isError = true;
           }
           else {

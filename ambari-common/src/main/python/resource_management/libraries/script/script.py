@@ -17,7 +17,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-import tarfile
 import tempfile
 
 __all__ = ["Script"]
@@ -26,19 +25,24 @@ import os
 import sys
 import json
 import logging
-from contextlib import closing
-
+import platform
 
 from resource_management.libraries.resources import XmlConfig
 from resource_management.libraries.resources import PropertiesFile
 from resource_management.core.resources import File, Directory
 from resource_management.core.source import InlineTemplate
-
 from resource_management.core.environment import Environment
 from resource_management.core.exceptions import Fail, ClientComponentHasNoStatus, ComponentIsNotRunning
 from resource_management.core.resources.packaging import Package
-from resource_management.libraries.script.config_dictionary import ConfigDictionary
+from resource_management.libraries.script.config_dictionary import ConfigDictionary, UnknownConfiguration
 
+IS_WINDOWS = platform.system() == "Windows"
+if IS_WINDOWS:
+  from resource_management.libraries.functions.install_hdp_msi import install_windows_msi
+  from resource_management.libraries.functions.reload_windows_env import reload_windows_env
+  from resource_management.libraries.functions.zip_archive import archive_dir
+else:
+  from resource_management.libraries.functions.tar_archive import archive_dir
 
 USAGE = """Usage: {0} <COMMAND> <JSON_CONFIG> <BASEDIR> <STROUTPUT> <LOGGING_LEVEL> <TMP_DIR>
 
@@ -49,6 +53,19 @@ USAGE = """Usage: {0} <COMMAND> <JSON_CONFIG> <BASEDIR> <STROUTPUT> <LOGGING_LEV
 <LOGGING_LEVEL> log level for stdout. Ex:DEBUG,INFO
 <TMP_DIR> temporary directory for executable scripts. Ex: /var/lib/ambari-agent/data/tmp
 """
+
+_PASSWORD_MAP = {"/configurations/cluster-env/hadoop.user.name":"/configurations/cluster-env/hadoop.user.password"}
+
+def get_path_form_configuration(name, configuration):
+  subdicts = filter(None, name.split('/'))
+
+  for x in subdicts:
+    if x in configuration:
+      configuration = configuration[x]
+    else:
+      return None
+
+  return configuration
 
 class Script(object):
   """
@@ -91,13 +108,13 @@ class Script(object):
     cherr.setFormatter(formatter)
     logger.addHandler(cherr)
     logger.addHandler(chout)
-    
+
     # parse arguments
-    if len(sys.argv) < 7: 
+    if len(sys.argv) < 7:
      logger.error("Script expects at least 6 arguments")
      print USAGE.format(os.path.basename(sys.argv[0])) # print to stdout
      sys.exit(1)
-    
+
     command_name = str.lower(sys.argv[1])
     command_data_file = sys.argv[2]
     basedir = sys.argv[3]
@@ -108,11 +125,23 @@ class Script(object):
     logging_level_str = logging._levelNames[logging_level]
     chout.setLevel(logging_level_str)
     logger.setLevel(logging_level_str)
-      
+
+    # on windows we need to reload some of env variables manually because there is no default paths for configs(like
+    # /etc/something/conf on linux. When this env vars created by one of the Script execution, they can not be updated
+    # in agent, so other Script executions will not be able to access to new env variables
+    if platform.system() == "Windows":
+      reload_windows_env()
+
     try:
       with open(command_data_file, "r") as f:
         pass
         Script.config = ConfigDictionary(json.load(f))
+        #load passwords here(used on windows to impersonate different users)
+        Script.passwords = {}
+        for k, v in _PASSWORD_MAP.iteritems():
+          if get_path_form_configuration(k,Script.config) and get_path_form_configuration(v,Script.config ):
+            Script.passwords[get_path_form_configuration(k,Script.config)] = get_path_form_configuration(v,Script.config)
+
     except IOError:
       logger.exception("Can not read json file with command parameters: ")
       sys.exit(1)
@@ -150,6 +179,9 @@ class Script(object):
     """
     return Script.config
 
+  @staticmethod
+  def get_password(user):
+    return Script.passwords[user]
 
   @staticmethod
   def get_tmp_dir():
@@ -170,28 +202,39 @@ class Script(object):
     self.install_packages(env)
 
 
-  def install_packages(self, env, exclude_packages=[]):
-    """
-    List of packages that are required< by service is received from the server
-    as a command parameter. The method installs all packages
-    from this list
-    """
-    config = self.get_config()
-    
-    try:
-      package_list_str = config['hostLevelParams']['package_list']
-      if isinstance(package_list_str,basestring) and len(package_list_str) > 0:
-        package_list = json.loads(package_list_str)
-        for package in package_list:
-          if not package['name'] in exclude_packages:
-            name = package['name']
-            Package(name)
-    except KeyError:
-      pass # No reason to worry
-    
-    #RepoInstaller.remove_repos(config)
+  if not IS_WINDOWS:
+    def install_packages(self, env, exclude_packages=[]):
+      """
+      List of packages that are required< by service is received from the server
+      as a command parameter. The method installs all packages
+      from this list
+      """
+      config = self.get_config()
+      try:
+        package_list_str = config['hostLevelParams']['package_list']
+        if isinstance(package_list_str, basestring) and len(package_list_str) > 0:
+          package_list = json.loads(package_list_str)
+          for package in package_list:
+            if not package['name'] in exclude_packages:
+              name = package['name']
+              Package(name)
+      except KeyError:
+        pass  # No reason to worry
 
+        # RepoInstaller.remove_repos(config)
+      pass
+  else:
+    def install_packages(self, env, exclude_packages=[]):
+      """
+      List of packages that are required< by service is received from the server
+      as a command parameter. The method installs all packages
+      from this list
+      """
+      config = self.get_config()
 
+      install_windows_msi(os.path.join(config['hostLevelParams']['jdk_location'], "hdp.msi"),
+                          config["hostLevelParams"]["agentCacheDir"], "hdp.msi", self.get_password("hadoop"))
+      pass
 
   def fail_with_error(self, message):
     """
@@ -239,56 +282,60 @@ class Script(object):
     self.fail_with_error('configure method isn\'t implemented')
 
   def generate_configs_get_template_file_content(self, filename, dicts):
-    import params
+    config = self.get_config()
     content = ''
     for dict in dicts.split(','):
-      if dict.strip() in params.config['configurations']:
-        content += params.config['configurations'][dict.strip()]['content']
+      if dict.strip() in config['configurations']:
+        try:
+          content += config['configurations'][dict.strip()]['content']
+        except Fail:
+          # 'content' section not available in the component client configuration
+          pass
 
     return content
 
   def generate_configs_get_xml_file_content(self, filename, dict):
-    import params
-    return {'configurations':params.config['configurations'][dict],
-            'configuration_attributes':params.config['configuration_attributes'][dict]}
+    config = self.get_config()
+    return {'configurations':config['configurations'][dict],
+            'configuration_attributes':config['configuration_attributes'][dict]}
     
   def generate_configs_get_xml_file_dict(self, filename, dict):
-    import params
-    return params.config['configurations'][dict]
+    config = self.get_config()
+    return config['configurations'][dict]
 
   def generate_configs(self, env):
     """
     Generates config files and stores them as an archive in tmp_dir
     based on xml_configs_list and env_configs_list from commandParams
     """
-    import params
-    env.set_params(params)
-    xml_configs_list = params.config['commandParams']['xml_configs_list']
-    env_configs_list = params.config['commandParams']['env_configs_list']
-    properties_configs_list = params.config['commandParams']['properties_configs_list']
-    
-    conf_tmp_dir = tempfile.mkdtemp()
-    output_filename = os.path.join(self.get_tmp_dir(),params.config['commandParams']['output_file'])
+    config = self.get_config()
+
+    xml_configs_list = config['commandParams']['xml_configs_list']
+    env_configs_list = config['commandParams']['env_configs_list']
+    properties_configs_list = config['commandParams']['properties_configs_list']
 
     Directory(self.get_tmp_dir(), recursive=True)
-    for file_dict in xml_configs_list:
-      for filename, dict in file_dict.iteritems():
-        XmlConfig(filename,
-                  conf_dir=conf_tmp_dir,
-                  **self.generate_configs_get_xml_file_content(filename, dict)
-        )
-    for file_dict in env_configs_list:
-      for filename,dicts in file_dict.iteritems():
-        File(os.path.join(conf_tmp_dir, filename),
-             content=InlineTemplate(self.generate_configs_get_template_file_content(filename, dicts)))
-        
-    for file_dict in properties_configs_list:
-      for filename, dict in file_dict.iteritems():
-        PropertiesFile(os.path.join(conf_tmp_dir, filename),
-          properties=self.generate_configs_get_xml_file_dict(filename, dict)
-        )
-      
-    with closing(tarfile.open(output_filename, "w:gz")) as tar:
-      tar.add(conf_tmp_dir, arcname=os.path.basename("."))
-      tar.close()
-    Directory(conf_tmp_dir, action="delete")
+
+    conf_tmp_dir = tempfile.mkdtemp(dir=self.get_tmp_dir())
+    output_filename = os.path.join(self.get_tmp_dir(), config['commandParams']['output_file'])
+
+    try:
+      for file_dict in xml_configs_list:
+        for filename, dict in file_dict.iteritems():
+          XmlConfig(filename,
+                    conf_dir=conf_tmp_dir,
+                    **self.generate_configs_get_xml_file_content(filename, dict)
+          )
+      for file_dict in env_configs_list:
+        for filename,dicts in file_dict.iteritems():
+          File(os.path.join(conf_tmp_dir, filename),
+               content=InlineTemplate(self.generate_configs_get_template_file_content(filename, dicts)))
+
+      for file_dict in properties_configs_list:
+        for filename, dict in file_dict.iteritems():
+          PropertiesFile(os.path.join(conf_tmp_dir, filename),
+            properties=self.generate_configs_get_xml_file_dict(filename, dict)
+          )
+      archive_dir(output_filename, conf_tmp_dir)
+    finally:
+      Directory(conf_tmp_dir, action="delete")

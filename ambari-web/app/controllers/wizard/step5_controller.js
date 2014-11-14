@@ -595,12 +595,12 @@ App.WizardStep5Controller = Em.Controller.extend(App.BlueprintMixin, {
                   multipleComponentHasBeenAdded[component.name] = true;
 
                   savedComponents.forEach(function(saved) {
-                    resultComponents.push(self.createComponentInstallationObject(fullComponent, host.fqdn, saved));
+                    resultComponents.push(self.createComponentInstallationObject(fullComponent, host.fqdn.toLowerCase(), saved));
                   });
                 }
               } else {
                 var savedComponent = masterHosts.findProperty('component', component.name);
-                resultComponents.push(self.createComponentInstallationObject(fullComponent, host.fqdn, savedComponent));
+                resultComponents.push(self.createComponentInstallationObject(fullComponent, host.fqdn.toLowerCase(), savedComponent));
               }
             }
           }

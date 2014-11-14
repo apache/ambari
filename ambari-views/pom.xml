@@ -133,6 +133,9 @@
                     <excludes>
                         <exclude>**/*.json</exclude>
                     </excludes>
+                    <excludes>
+                        <exclude>**/*.iml</exclude>
+                    </excludes>
                 </configuration>
                 <executions>
                     <execution>

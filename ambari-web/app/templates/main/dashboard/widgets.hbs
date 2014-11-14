@@ -32,11 +32,13 @@
               <i class="icon-refresh"></i> &nbsp; {{t dashboard.button.reset}}
             </a>
           </li>
-          <li>
-            <a target="_blank" {{bindAttr href="view.gangliaUrl"}}>
-              <i class="icon-share"></i> &nbsp; {{t dashboard.button.gangliaLink}}
-            </a>
-          </li>
+          {{#if App.router.clusterController.isGangliaInstalled}}
+            <li>
+              <a target="_blank" {{bindAttr href="view.gangliaUrl"}}>
+                <i class="icon-share"></i> &nbsp; {{t dashboard.button.gangliaLink}}
+              </a>
+            </li>
+          {{/if}}
         </ul>
       </li>
     </ul>

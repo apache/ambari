@@ -481,7 +481,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
         }
         if (serviceName == null
             || serviceName.isEmpty()) {
-          throw new AmbariException("Could not find service for component"
+          throw new ObjectNotFoundException("Could not find service for component"
               + ", componentName=" + request.getComponentName()
               + ", clusterName=" + cluster.getClusterName()
               + ", stackInfo=" + stackId.getStackId());

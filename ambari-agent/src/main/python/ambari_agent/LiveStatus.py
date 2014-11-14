@@ -65,7 +65,7 @@ class LiveStatus:
       status = self.DEAD_STATUS # CLIENT components can't have status STARTED
     elif component in self.COMPONENTS:
       statusCheck = StatusCheck(AmbariConfig.servicesToPidNames,
-                                AmbariConfig.pidPathesVars, self.globalConfig,
+                                AmbariConfig.pidPathVars, self.globalConfig,
                                 AmbariConfig.servicesToLinuxUser)
       serviceStatus = statusCheck.getStatus(self.component)
       if serviceStatus is None:

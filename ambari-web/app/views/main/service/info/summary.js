@@ -443,12 +443,21 @@ App.MainServiceInfoSummaryView = Em.View.extend({
     this.set('oldServiceName', serviceName);
   }.observes('serviceName'),
 
-  /*
-   * Alerts panel not display for PIG, SQOOP and TEZ Service
+  /**
+   * Alerts panel not displayed when alerting service (ex:Nagios)is not in stack definition.
+   * Alerts panel never displayed for PIG, SQOOP and TEZ Services
    */
   isNoAlertsService: function () {
-    return !!this.get('service.serviceName') && App.get('services.clientOnly').contains(this.get('service.serviceName'));
-  }.property(''),
+    return  !App.get('services.alerting').length ||
+    (!!this.get('service.serviceName') && App.get('services.clientOnly').contains(this.get('service.serviceName')));
+  }.property('service.serviceName', 'App.services.alerting'),
+
+  /**
+   * Service metrics panel not displayed when metrics service (ex:Ganglia) is not in stack definition.
+   */
+  isNoServiceMetricsService: function() {
+    return !App.get('services.serviceMetrics').length;
+  }.property('App.services.serviceMetrics'),
 
   gangliaUrl:function () {
     var gangliaUrl = App.router.get('clusterController.gangliaUrl');

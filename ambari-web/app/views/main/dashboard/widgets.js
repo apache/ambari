@@ -100,6 +100,9 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, {
   setWidgetsDataModel: function () {
     var services = App.Service.find();
     var self = this;
+    if(App.get('services.hostMetrics').length > 0) {
+      self.set('host_metrics_model', App.get('services.hostMetrics'));
+    }
     services.forEach(function (item) {
       switch (item.get('serviceName')) {
         case "HDFS":
@@ -140,6 +143,15 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, {
       '29' // flume
     ]; // all in order
     var hiddenFull = [['22','Region In Transition']];
+
+    // Display widgets for host metrics if the stack definition has a host metrics service to display it.
+    if (this.get('host_metrics_model') == null) {
+      var hostMetrics = ['11', '12', '13', '14'];
+      hostMetrics.forEach ( function (item) {
+        visibleFull = visibleFull.without(item);
+      }, this);
+    }
+
     if (this.get('hdfs_model') == null) {
       var hdfs= ['1', '2', '3', '4', '5', '15', '17'];
       hdfs.forEach ( function (item) {
@@ -181,6 +193,8 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, {
     obj.set('visible', visibleFull);
     obj.set('hidden', hiddenFull);
   },
+
+  host_metrics_model: null,
 
   hdfs_model: null,
 
@@ -378,17 +392,25 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, {
 
     // check each service, find out the newly added service and already deleted service
     if (this.get('hdfs_model') != null) {
-      var hdfsAndMetrics= ['1', '2', '3', '4', '5', '15', '17', '11', '12', '13', '14'];
-      hdfsAndMetrics.forEach ( function (item) {
+      var hdfs = ['1', '2', '3', '4', '5', '15', '17'];
+      hdfs.forEach ( function (item) {
         toDelete = self.removeWidget(toDelete, item);
       }, this);
     }
-    else {
-      var graphs = ['11', '12', '13', '14'];
-      graphs.forEach ( function (item) {
-        toDelete = self.removeWidget(toDelete, item);
-      }, this);
+
+    // Display widgets for host metrics if the stack definition has a host metrics service to display it.
+    if (this.get('host_metrics_model') != null) {
+      var hostMetrics = ['11', '12', '13', '14'];
+      var flag = self.containsWidget(toDelete, hostMetrics[0]);
+      if (flag) {
+        hostMetrics.forEach ( function (item) {
+          toDelete = self.removeWidget(toDelete, item);
+        }, this);
+      } else {
+        toAdd = toAdd.concat(hostMetrics);
+      }
     }
+
     if (this.get('mapreduce_model') != null) {
       var map = ['6', '7', '8', '9', '10', '16', '18'];
       var flag = self.containsWidget(toDelete, map[0]);

@@ -234,7 +234,7 @@ public class ComponentService extends BaseService {
     Response.ResponseBuilder rb = Response.status(Response.Status.OK);
     Configuration configs = new Configuration();
     String tmpDir = configs.getProperty(Configuration.SERVER_TMP_DIR_KEY);
-    File file = new File(tmpDir+File.separator+componentName+"-configs.tar.gz");
+    File file = new File(tmpDir + File.separator + componentName + "-configs" + Configuration.DEF_ARCHIVE_EXTENSION);
     InputStream resultInputStream = null;
     try {
       resultInputStream = new FileInputStream(file);
@@ -242,8 +242,8 @@ public class ComponentService extends BaseService {
       e.printStackTrace();
     }
 
-    String contentType = "application/x-ustar";
-    String outputFileName = componentName + "-configs.tar.gz";
+    String contentType = Configuration.DEF_ARCHIVE_CONTENT_TYPE;
+    String outputFileName = componentName + "-configs" + Configuration.DEF_ARCHIVE_EXTENSION;
     rb.header("Content-Disposition",  "attachment; filename=\"" + outputFileName + "\"");
     rb.entity(resultInputStream);
     return rb.type(contentType).build();

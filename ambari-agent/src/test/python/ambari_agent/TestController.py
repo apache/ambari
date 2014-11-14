@@ -385,7 +385,7 @@ class TestController(unittest.TestCase):
 
     hearbeat = MagicMock()
     self.controller.heartbeat = hearbeat
-
+    event_mock.return_value = False
     dumpsMock.return_value = "data"
 
     sendRequest = MagicMock(name="sendRequest")
@@ -512,7 +512,7 @@ class TestController(unittest.TestCase):
     response["restartAgent"] = "false"
     self.controller.heartbeatWithServer()
 
-    sleepMock.assert_called_with(
+    event_mock.assert_any_call(timeout=
       self.controller.netutil.MINIMUM_INTERVAL_BETWEEN_HEARTBEATS)
 
     # Check that server continues to heartbeat after connection errors
@@ -533,7 +533,7 @@ class TestController(unittest.TestCase):
     self.controller.heartbeatWithServer()
     self.assertTrue(sendRequest.call_count > 5)
 
-    sleepMock.assert_called_with(
+    event_mock.assert_called_with(timeout=
       self.controller.netutil.MINIMUM_INTERVAL_BETWEEN_HEARTBEATS)
 
     sys.stdout = sys.__stdout__

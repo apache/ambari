@@ -18,9 +18,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-from mock.mock import MagicMock, call, patch
-from resource_management import *
 from stacks.utils.RMFTestCase import *
+from mock.mock import MagicMock, call, patch
+from resource_management import Hook
 import json
 
 @patch("os.path.exists", new = MagicMock(return_value=True))

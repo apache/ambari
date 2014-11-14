@@ -97,13 +97,13 @@
             </goals>
             <configuration>
               <target name="ambari-web-clean">
-                <exec dir="${basedir}" executable="rm">
-                  <arg value="-rf"/>
+                <exec dir="${basedir}" executable="${executable.rmdir}">
+                  <arg value="${args.rm.clean}"/>
                   <arg value="public"/>
                   <arg value="node_modules"/>
                 </exec>
-                <exec dir="${basedir}" executable="mkdir">
-                  <arg value="public"/>
+                <exec dir="${basedir}" executable="${executable.mkdir}">
+                  <arg value="${args.mkdir.clean}"/>
                 </exec>
               </target>
             </configuration>
@@ -116,26 +116,25 @@
             </goals>
             <configuration>
               <target name="ambari-web-compile">
-                <exec dir="${basedir}" executable="npm">
-                  <env key="PYTHON" value="${project.basedir}/../ambari-common/src/main/unix/ambari-python-wrap" />
-                  <arg value="install"/>
+                <exec dir="${basedir}" executable="${executable.npm}" failonerror="true">
+                  <arg value="${args.npm.install}"/>
                 </exec>
-                <exec dir="${basedir}" executable="brunch" failonerror="true">
-                  <arg value="build"/>
+                <exec dir="${basedir}" executable="${executable.brunch}" failonerror="true">
+                  <arg value="${args.brunch.build}"/>
                 </exec>
                 <!-- sets Ambari version to make it accessible from code -->
-                <exec dir="${basedir}" executable="sh" failonerror="true">
-                  <arg value="${basedir}/set-ambari-version.sh"/>
+                <exec dir="${basedir}" executable="${executable.shell}" failonerror="true">
+                  <arg value="${basedir}${dirsep}set-ambari-version.${fileextension.shell}"/>
                   <arg value="${ambariVersion}"/>
                 </exec>
                 <!-- sets default stack and version to use for install -->
-                <exec dir="${basedir}" executable="sh" failonerror="true">
-                  <arg value="${basedir}/set-default-stack-version.sh"/>
+                <exec dir="${basedir}" executable="${executable.shell}" failonerror="true">
+                  <arg value="${basedir}${dirsep}set-default-stack-version.${fileextension.shell}"/>
                   <arg value="${defaultStackVersion}"/>
                 </exec>
                 <!-- enables experimental features if enableExperimental is set to true -->
-                <exec dir="${basedir}" executable="sh" failonerror="true">
-                  <arg value="${basedir}/toggle-experimental.sh"/>
+                <exec dir="${basedir}" executable="${executable.shell}" failonerror="true">
+                  <arg value="${basedir}${dirsep}toggle-experimental.${fileextension.shell}"/>
                   <arg value="${enableExperimental}"/>
                 </exec>
               </target>
@@ -149,22 +148,21 @@
             </goals>
             <configuration>
               <target name="ambari-web unit tests" unless="${skipTests}">
-                <exec dir="${basedir}" executable="npm" failonerror="true">
-                  <env key="PYTHON" value="${basedir}/../ambari-common/src/main/unix/ambari-python-wrap" />
-                  <arg value="test"/>
+                <exec dir="${basedir}" executable="${executable.npm}" failonerror="true">
+                  <arg value="${args.npm.test}"/>
                 </exec>
               </target>
             </configuration>
           </execution>
           <execution>
-            <id>gzip amabri-web content</id>
+            <id>gzip ambari-web content</id>
             <phase>prepare-package</phase>
             <goals>
               <goal>run</goal>
             </goals>
             <configuration>
               <target name="ambari-web-package">
-                <exec dir="${basedir}" executable="gzip" failonerror="true">
+                <exec dir="${basedir}" executable="${executable.gzip}" failonerror="true">
                   <arg value="-f"/>
                   <arg value="public/javascripts/app.js"/>
                   <arg value="public/javascripts/vendor.js"/>
@@ -218,4 +216,54 @@
       </plugin>
     </plugins>
   </build>
+  <profiles>
+    <profile>
+     <id>windows</id>
+     <activation>
+      <os>
+        <family>win</family>
+      </os>
+     </activation>
+     <properties>
+      <envClassifier>win</envClassifier>
+      <dirsep>\</dirsep>
+      <executable.brunch>cmd</executable.brunch>
+      <args.brunch.build>/C brunch build</args.brunch.build>
+      <executable.gzip>gzip</executable.gzip>
+      <executable.mkdir>cmd</executable.mkdir>
+      <args.mkdir.clean>/C mkdir public</args.mkdir.clean>
+      <executable.npm>cmd</executable.npm>
+      <args.npm.install>/C npm install</args.npm.install>
+      <args.npm.test>/C npm install</args.npm.test>
+      <executable.rmdir>cmd</executable.rmdir>
+      <args.rm.clean>/C rmdir /S /Q</args.rm.clean>
+      <executable.shell>cmd</executable.shell>
+      <fileextension.shell>cmd</fileextension.shell>
+     </properties>
+    </profile>
+    <profile>
+     <id>linux</id>
+     <activation>
+      <os>
+        <family>unix</family>
+      </os>
+     </activation>
+     <properties>
+      <envClassifier>linux</envClassifier>
+      <dirsep>/</dirsep>
+      <executable.brunch>brunch</executable.brunch>
+      <args.brunch.build>build</args.brunch.build>
+      <executable.gzip>gzip</executable.gzip>
+      <executable.mkdir>mkdir</executable.mkdir>
+      <args.mkdir.clean>public</args.mkdir.clean>
+      <executable.npm>npm</executable.npm>
+      <args.npm.install>install</args.npm.install>
+      <args.npm.test>test</args.npm.test>
+      <executable.rmdir>rm</executable.rmdir>
+      <args.rm.clean>-rf</args.rm.clean>
+      <executable.shell>sh</executable.shell>
+      <fileextension.shell>sh</fileextension.shell>
+     </properties>
+    </profile>
+  </profiles>
 </project>

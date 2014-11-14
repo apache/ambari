@@ -1,0 +1,272 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!-- Put site-specific property overrides in this file. -->
+<configuration supports_final="true">
+  <!-- file system properties -->
+  <property>
+    <name>dfs.namenode.name.dir</name>
+    <value>file:///c:/hdpdata/hdfs/nn</value>
+    <description>Determines where on the local filesystem the DFS name node
+      should store the name table.  If this is a comma-delimited list
+      of directories then the name table is replicated in all of the
+      directories, for redundancy. </description>
+    <final>true</final>
+  </property>
+  <property>
+    <name>dfs.support.append</name>
+    <value>true</value>
+    <description>to enable dfs append</description>
+    <final>true</final>
+  </property>
+  <property>
+    <name>dfs.webhdfs.enabled</name>
+    <value>true</value>
+    <description>to enable webhdfs</description>
+    <final>true</final>
+  </property>
+  <property>
+    <name>dfs.datanode.failed.volumes.tolerated</name>
+    <value>0</value>
+    <description>#of failed disks dn would tolerate</description>
+    <final>true</final>
+  </property>
+  <property>
+    <name>dfs.datanode.data.dir</name>
+    <value>file:///c:/hdpdata/hdfs/dn</value>
+    <description>Determines where on the local filesystem an DFS data node
+    should store its blocks.  If this is a comma-delimited
+    list of directories, then data will be stored in all named
+    directories, typically on different devices.
+    Directories that do not exist are ignored.
+    </description>
+    <final>true</final>
+  </property>
+  <property>
+    <name>dfs.checksum.type</name>
+    <value>CRC32</value>
+    <description>The checksum method to be used by default. To maintain
+    compatibility, it is being set to CRC32. Once all migration steps
+    are complete, we can change it to CRC32C and take advantage of the
+    additional performance benefit.</description>
+  </property>
+  <property>
+    <name>dfs.replication.max</name>
+    <value>50</value>
+    <description>Maximal block replication.
+  </description>
+  </property>
+  <property>
+    <name>dfs.heartbeat.interval</name>
+    <value>3</value>
+    <description>Determines datanode heartbeat interval in seconds.</description>
+  </property>
+  <property>
+    <name>dfs.namenode.safemode.threshold-pct</name>
+    <value>1.0f</value>
+    <description>
+        Specifies the percentage of blocks that should satisfy
+        the minimal replication requirement defined by dfs.replication.min.
+        Values less than or equal to 0 mean not to start in safe mode.
+        Values greater than 1 will make safe mode permanent.
+        </description>
+  </property>
+  <property>
+    <name>dfs.datanode.balance.bandwidthPerSec</name>
+    <value>6250000</value>
+    <description>
+        Specifies the maximum amount of bandwidth that each datanode
+        can utilize for the balancing purpose in term of
+        the number of bytes per second.
+  </description>
+  </property>
+  <property>
+    <name>dfs.datanode.address</name>
+    <value>0.0.0.0:50010</value>
+  </property>
+  <property>
+    <name>dfs.datanode.http.address</name>
+    <value>0.0.0.0:50075</value>
+  </property>
+  <property>
+    <name>dfs.datanode.https.address</name>
+    <value>0.0.0.0:50076</value>
+  </property>
+  <property>
+    <name>dfs.blocksize</name>
+    <value>134217728</value>
+    <description>The default block size for new files, in bytes.
+      You can use the following suffix (case insensitive): k(kilo),
+      m(mega), g(giga), t(tera), p(peta), e(exa) to specify the
+      size (such as 128k, 512m, 1g, etc.), Or provide complete size
+      in bytes (such as 134217728 for 128 MB).</description>
+  </property>
+  <property>
+    <name>dfs.namenode.http-address</name>
+    <value>localhost:50070</value>
+    <description>The address and the base port where the dfs namenode
+      web ui will listen on. If the port is 0 then the server will
+      start on a free port.</description>
+    <final>true</final>
+  </property>
+  <property>
+    <name>dfs.https.port</name>
+    <value>50070</value>
+    <final>true</final>
+  </property>
+  <property>
+    <name>dfs.datanode.du.reserved</name>
+    <value>1073741824</value>
+    <description>Reserved space in bytes per volume. Always leave this much space free for non dfs use.
+    </description>
+  </property>
+  <property>
+    <name>dfs.datanode.ipc.address</name>
+    <value>0.0.0.0:8010</value>
+    <description>The datanode ipc server address and port.
+      If the port is 0 then the server will start on a free port.
+    </description>
+  </property>
+  <property>
+    <name>dfs.blockreport.initialDelay</name>
+    <value>120</value>
+    <description>Delay for first block report in seconds.</description>
+  </property>
+  <property>
+    <name>dfs.datanode.du.pct</name>
+    <value>0.85f</value>
+    <description>When calculating remaining space, only use this percentage of the real available space
+    </description>
+  </property>
+  <property>
+    <name>dfs.namenode.handler.count</name>
+    <value>40</value>
+    <description>The number of server threads for the namenode.</description>
+  </property>
+  <property>
+    <name>dfs.namenode.checkpoint.dir</name>
+    <value>file:///c:/hdpdata/hdfs/snn</value>
+    <description>Determines where on the local filesystem the DFS secondary
+        name node should store the temporary images to merge.
+        If this is a comma-delimited list of directories then the image is
+        replicated in all of the directories for redundancy.
+    </description>
+  </property>
+  <property>
+    <name>dfs.namenode.checkpoint.edits.dir</name>
+    <value>file:///c:/hadoop/hdfs/namesecondary</value>
+    <description>Determines where on the local filesystem the DFS secondary
+        name node should store the temporary edits to merge.
+        If this is a comma-delimited list of directoires then teh edits is
+        replicated in all of the directoires for redundancy.
+        Default value is same as dfs.namenode.checkpoint.dir
+    </description>
+  </property>
+  <property>
+    <name>dfs.namenode.checkpoint.period</name>
+    <value>86400</value>
+    <description>The number of seconds between two periodic checkpoints.
+    </description>
+  </property>
+  <property>
+    <name>dfs.datanode.max.transfer.threads</name>
+    <value>1024</value>
+    <description>Specifies the maximum number of threads to use for
+      transferring data in and out of the DN.</description>
+  </property>
+  <!-- Permissions configuration -->
+  <property>
+    <name>dfs.permissions.enabled</name>
+    <value>true</value>
+    <description>
+        If "true", enable permission checking in HDFS.
+        If "false", permission checking is turned off,
+        but all other behavior is unchanged.
+        Switching from one parameter value to the other does not change the mode,
+        owner or group of files or directories.
+    </description>
+  </property>
+  <property>
+    <name>dfs.permissions.superusergroup</name>
+    <value>hdfs</value>
+    <description>The name of the group of super-users.</description>
+  </property>
+  <property>
+    <name>ipc.server.max.response.size</name>
+    <value>5242880</value>
+  </property>
+  <property>
+    <name>dfs.block.access.token.enable</name>
+    <value>false</value>
+    <description>
+        If "true", access tokens are used as capabilities for accessing datanodes.
+        If "false", no access tokens are checked on accessing datanodes.
+    </description>
+  </property>
+  <property>
+    <name>dfs.namenode.secondary.http-address</name>
+    <value>localhost:50090</value>
+    <description>Address of secondary namenode web server</description>
+  </property>
+  <property>
+    <name>dfs.secondary.https.port</name>
+    <value>50091</value>
+    <description>The https port where secondary-namenode binds</description>
+  </property>
+  <property>
+    <name>dfs.namenode.https-address</name>
+    <value>localhost:50701</value>
+    <description>The https address where namenode binds</description>
+  </property>
+  <property>
+    <name>dfs.datanode.data.dir.perm</name>
+    <value>755</value>
+    <description>The permissions that should be there on dfs.data.dir
+        directories. The datanode will not come up if the permissions are
+        different on existing dfs.data.dir directories. If the directories
+        don't exist, they will be created with this permission.</description>
+  </property>
+  <property>
+    <name>dfs.namenode.accesstime.precision</name>
+    <value>0</value>
+    <description>The access time for HDFS file is precise upto this value.
+               The default value is 1 hour. Setting a value of 0 disables
+               access times for HDFS.
+    </description>
+  </property>
+  <property>
+    <name>dfs.cluster.administrators</name>
+    <value>hdfs</value>
+    <description>ACL for who all can view the default servlets in the HDFS</description>
+  </property>
+  <property>
+    <name>ipc.server.read.threadpool.size</name>
+    <value>5</value>
+    <description />
+  </property>
+  <property>
+    <name>dfs.encrypt.data.transfer</name>
+    <value>false</value>
+  </property>
+  <property>
+    <name>dfs.encrypt.data.transfer.algorithm</name>
+    <value>3des</value>
+  </property>
+  <property>
+    <name>dfs.https.enable</name>
+    <value>false</value>
+  </property>
+  <property>
+    <name>dfs.replication</name>
+    <value>1</value>
+  </property>
+
+  <property>
+    <name>dfs.hosts.exclude</name>
+    <value>c:\hdp\hadoop\etc\hadoop\dfs.exclude</value>
+  </property>
+
+  <property>
+    <name>dfs.hosts</name>
+    <value>c:\hdp\hadoop\etc\hadoop\dfs.include</value>
+  </property>
+</configuration>

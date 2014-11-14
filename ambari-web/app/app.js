@@ -72,14 +72,14 @@ module.exports = Em.Application.create({
   currentStackVersion: '',
   currentStackName: function() {
     return Em.get((this.get('currentStackVersion') || this.get('defaultStackVersion')).match(/(.+)-\d.+/), '1');
-  }.property('currentStackVersion'),
+  }.property('currentStackVersion', 'defaultStackVersion'),
 
   allHostNames: [],
 
   currentStackVersionNumber: function () {
     var regExp = new RegExp(this.get('currentStackName') + '-');
     return (this.get('currentStackVersion') || this.get('defaultStackVersion')).replace(regExp, '');
-  }.property('currentStackVersion', 'currentStackName'),
+  }.property('currentStackVersion', 'defaultStackVersion', 'currentStackName'),
 
   isHadoop2Stack: function () {
     var result = true;
@@ -95,6 +95,10 @@ module.exports = Em.Application.create({
   isHadoop22Stack: function () {
     return (stringUtils.compareVersions(this.get('currentStackVersionNumber'), "2.2") > -1);
   }.property('currentStackVersionNumber'),
+
+  isHadoopWindowsStack: function() {
+    return this.get('currentStackName') == "HDPWIN";
+  }.property('currentStackName'),
 
   /**
    * If NameNode High Availability is enabled
@@ -153,6 +157,18 @@ module.exports = Em.Application.create({
 
     monitoring: function () {
       return App.StackService.find().filterProperty('isMonitoringService').mapProperty('serviceName');
+    }.property('App.router.clusterController.isLoaded'),
+
+    hostMetrics: function () {
+      return App.StackService.find().filterProperty('isHostMetricsService').mapProperty('serviceName');
+    }.property('App.router.clusterController.isLoaded'),
+
+    serviceMetrics: function () {
+      return App.StackService.find().filterProperty('isServiceMetricsService').mapProperty('serviceName');
+    }.property('App.router.clusterController.isLoaded'),
+
+    alerting: function () {
+      return App.StackService.find().filterProperty('isAlertingService').mapProperty('serviceName');
     }.property('App.router.clusterController.isLoaded'),
 
     supportsServiceCheck: function() {

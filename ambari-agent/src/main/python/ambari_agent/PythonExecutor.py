@@ -23,9 +23,10 @@ import os
 import subprocess
 import pprint
 import threading
+import platform
 from threading import Thread
 import time
-from BackgroundCommandExecutionHandle import BackgroundCommandExecutionHandle 
+from BackgroundCommandExecutionHandle import BackgroundCommandExecutionHandle
 
 from Grep import Grep
 import shell, sys
@@ -58,7 +59,7 @@ class PythonExecutor:
       tmpout =  open(tmpoutfile, 'a')
       tmperr =  open(tmperrfile, 'a')
     return tmpout, tmperr
-    
+
   def run_file(self, script, script_params, tmp_dir, tmpoutfile, tmperrfile,
                timeout, tmpstructedoutfile, logger_level, callback, task_id,
                override_output_files = True, handle = None):
@@ -84,7 +85,7 @@ class PythonExecutor:
     logger.info("Running command " + pprint.pformat(pythonCommand))
     if(handle == None) :
       tmpout, tmperr = self.open_subporcess_files(tmpoutfile, tmperrfile, override_output_files)
-      
+
       process = self.launch_python_subprocess(pythonCommand, tmpout, tmperr)
       # map task_id to pid
       callback(task_id, process.pid)
@@ -100,7 +101,7 @@ class PythonExecutor:
       return self.prepare_process_result(process, tmpoutfile, tmperrfile, tmpstructedoutfile, timeout=timeout)
     else:
       holder = Holder(pythonCommand, tmpoutfile, tmperrfile, tmpstructedoutfile, handle)
-      
+
       background = BackgroundThread(holder, self)
       background.start()
       return {"exitcode": 777}
@@ -117,7 +118,7 @@ class PythonExecutor:
     result = self.condenseOutput(out, error, returncode, structured_out)
     logger.info("Result: %s" % result)
     return result
-  
+
   def read_result_from_files(self, out_path, err_path, structured_out_path):
     out = open(out_path, 'r').read()
     error = open(err_path, 'r').read()
@@ -134,21 +135,23 @@ class PythonExecutor:
       else:
         structured_out = {}
     return out, error, structured_out
-  
+
   def launch_python_subprocess(self, command, tmpout, tmperr):
     """
     Creates subprocess with given parameters. This functionality was moved to separate method
     to make possible unit testing
     """
+    close_fds = None if platform.system() == "Windows" else True
     return subprocess.Popen(command,
       stdout=tmpout,
-      stderr=tmperr, close_fds=True)
-    
+      stderr=tmperr, close_fds=close_fds)
+
   def isSuccessfull(self, returncode):
     return not self.python_process_has_been_killed and returncode == 0
 
   def python_command(self, script, script_params):
-    python_binary = sys.executable
+    #we need manually pass python executable on windows because sys.executable will return service wrapper
+    python_binary = os.environ['PYTHON_EXE'] if 'PYTHON_EXE' in os.environ else sys.executable
     python_command = [python_binary, script] + script_params
     return python_command
 
@@ -180,31 +183,29 @@ class Holder:
     self.err_file = err_file
     self.structured_out_file = structured_out_file
     self.handle = handle
-    
+
 class BackgroundThread(threading.Thread):
   def __init__(self, holder, pythonExecutor):
     threading.Thread.__init__(self)
     self.holder = holder
     self.pythonExecutor = pythonExecutor
-  
+
   def run(self):
     process_out, process_err  = self.pythonExecutor.open_subporcess_files(self.holder.out_file, self.holder.err_file, True)
-    
+
     logger.info("Starting process command %s" % self.holder.command)
     process = self.pythonExecutor.launch_python_subprocess(self.holder.command, process_out, process_err)
-    
+
     logger.info("Process has been started. Pid = %s" % process.pid)
-    
+
     self.holder.handle.pid = process.pid
     self.holder.handle.status = BackgroundCommandExecutionHandle.RUNNING_STATUS
     self.holder.handle.on_background_command_started(self.holder.handle.command['taskId'], process.pid)
-    
+
     process.communicate()
-    
+
     self.holder.handle.exitCode = process.returncode
     process_condenced_result = self.pythonExecutor.prepare_process_result(process, self.holder.out_file, self.holder.err_file, self.holder.structured_out_file)
     logger.info("Calling callback with args %s" % process_condenced_result)
     self.holder.handle.on_background_command_complete_callback(process_condenced_result, self.holder.handle)
     logger.info("Exiting from thread for holder pid %s" % self.holder.handle.pid)
-    
-  

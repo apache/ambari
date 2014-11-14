@@ -30,6 +30,9 @@ PROVIDERS = dict(
   ubuntu=dict(
     Repository="resource_management.libraries.providers.repository.UbuntuRepositoryProvider",
   ),
+  winsrv=dict(
+
+  ),
   default=dict(
     ExecuteHadoop="resource_management.libraries.providers.execute_hadoop.ExecuteHadoopProvider",
     TemplateConfig="resource_management.libraries.providers.template_config.TemplateConfigProvider",

@@ -123,6 +123,7 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
 
     Configuration configs = new Configuration();
     String TMP_PATH = configs.getProperty(Configuration.SERVER_TMP_DIR_KEY);
+    String pythonCmd = configs.getProperty(Configuration.AMBARI_PYTHON_WRAP_KEY);
     AmbariManagementController managementController = getManagementController();
     ConfigHelper configHelper = managementController.getConfigHelper();
     Cluster cluster = null;
@@ -285,7 +286,7 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
       commandParams.put("xml_configs_list", xmlConfigs);
       commandParams.put("env_configs_list", envConfigs);
       commandParams.put("properties_configs_list", propertiesConfigs);
-      commandParams.put("output_file", componentName + "-configs.tar.gz");
+      commandParams.put("output_file", componentName + "-configs" + Configuration.DEF_ARCHIVE_EXTENSION);
 
       Map<String, Object> jsonContent = new TreeMap<String, Object>();
       jsonContent.put("configurations", configurations);
@@ -316,7 +317,7 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
         throw new SystemException("Failed to write configurations to json file ", e);
       }
 
-      String cmd = "ambari-python-wrap " + commandScriptAbsolute + " generate_configs " + jsonFileName.getAbsolutePath() + " " +
+      String cmd = pythonCmd + " " + commandScriptAbsolute + " generate_configs " + jsonFileName.getAbsolutePath() + " " +
               packageFolderAbsolute + " " + TMP_PATH + File.separator + "structured-out.json" + " INFO " + TMP_PATH;
 
       try {

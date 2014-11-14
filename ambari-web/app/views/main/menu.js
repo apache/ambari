@@ -141,11 +141,13 @@ App.MainMenuView = Em.CollectionView.extend({
           url: 'serviceAccounts',
           label: Em.I18n.t('common.serviceAccounts')
         });
-        categories.push({
-          name: 'security',
-          url: 'security/',
-          label: Em.I18n.t('common.security')
-        });
+        if (!App.get('isHadoopWindowsStack')) {
+          categories.push({
+            name: 'security',
+            url: 'security/',
+            label: Em.I18n.t('common.security')
+          });
+        }
       }
       return categories;
     }.property('')

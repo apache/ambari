@@ -99,9 +99,9 @@
             </goals>
             <configuration>
               <workingDirectory>${basedir}/src/main/resources/ui/admin-web</workingDirectory>
-              <executable>node/node</executable>
+              <executable>${basedir}/src/main/resources/ui/admin-web/node/${executable.node}</executable>
               <arguments>
-                <argument>node_modules/bower/bin/bower</argument>
+                <argument>${basedir}/src/main/resources/ui/admin-web/node_modules/bower/bin/bower</argument>
                 <argument>install</argument>
                 <argument>--allow-root</argument>
               </arguments>
@@ -115,9 +115,9 @@
             </goals>
             <configuration>
               <workingDirectory>${basedir}/src/main/resources/ui/admin-web</workingDirectory>
-              <executable>node/node</executable>
+              <executable>${basedir}/src/main/resources/ui/admin-web/node/${executable.node}</executable>
               <arguments>
-                <argument>node_modules/gulp/bin/gulp</argument>
+                <argument>${basedir}/src/main/resources/ui/admin-web/node_modules/gulp/bin/gulp</argument>
                 <argument>build</argument>
               </arguments>
             </configuration>
@@ -215,4 +215,30 @@
       </resource>
     </resources>
   </build>
+    <profiles>
+    <profile>
+        <id>windows</id>
+        <activation>
+            <os>
+                <family>win</family>
+            </os>
+        </activation>
+        <properties>
+            <envClassifier>win</envClassifier>
+            <executable.node>node.exe</executable.node>
+        </properties>
+    </profile>
+    <profile>
+        <id>linux</id>
+        <activation>
+            <os>
+                <family>unix</family>
+            </os>
+        </activation>
+        <properties>
+            <envClassifier>linux</envClassifier>
+            <executable.node>node</executable.node>
+        </properties>
+    </profile>
+  </profiles>
 </project>

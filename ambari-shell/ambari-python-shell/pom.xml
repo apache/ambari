@@ -75,7 +75,7 @@
         <executions>
           <execution>
             <configuration>
-              <executable>${project.basedir}/../../ambari-common/src/main/unix/ambari-python-wrap</executable>
+              <executable>${executable.python}</executable>
               <workingDirectory>target/ambari-python-shell-${project.version}</workingDirectory>
               <arguments>
                 <argument>${project.basedir}/src/main/python/setup.py</argument>
@@ -216,4 +216,30 @@
       </extension>
     </extensions>
   </build>
+  <profiles>
+    <profile>
+      <id>windows</id>
+        <activation>
+        <os>
+          <family>win</family>
+        </os>
+        </activation>
+          <properties>
+            <envClassifier>win</envClassifier>
+            <executable.python>python</executable.python>
+          </properties>
+      </profile>
+      <profile>
+        <id>linux</id>
+        <activation>
+          <os>
+            <family>unix</family>
+          </os>
+        </activation>
+        <properties>
+          <envClassifier>linux</envClassifier>
+          <executable.python>${project.basedir}/../../ambari-common/src/main/unix/ambari-python-wrap</executable.python>
+        </properties>
+      </profile>
+  </profiles>
 </project>

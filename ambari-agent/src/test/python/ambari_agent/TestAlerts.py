@@ -18,9 +18,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
+from stacks.utils.RMFTestCase import *
+import os
 import socket
 import sys
-import os
 
 from ambari_agent.AlertSchedulerHandler import AlertSchedulerHandler
 from ambari_agent.alerts.collector import AlertCollector
@@ -429,12 +430,12 @@ class TestAlerts(TestCase):
     
     ash = AlertSchedulerHandler(test_file_path, test_stack_path, test_host_scripts_path)
     ash.start()
-    
+
     self.assertEquals(1, ash.get_job_count())
     ash.reschedule()
     self.assertEquals(1, ash.get_job_count())
-        
-  
+
+
   def test_alert_collector_purge(self):
     json = { "name": "namenode_process",
       "service": "HDFS",
@@ -466,13 +467,13 @@ class TestAlerts(TestCase):
     self.assertEquals(6, pa.interval())
 
     res = pa.collect()
-    
+
     self.assertTrue(collector.alerts()[0] is not None)
     self.assertEquals('CRITICAL', collector.alerts()[0]['state'])
-    
+
     collector.remove_by_uuid('c1f73191-4481-4435-8dae-fd380e4c0be1')
     self.assertEquals(0,len(collector.alerts()))
-    
+
 
   def test_disabled_definitions(self):
     test_file_path = os.path.join('ambari_agent', 'dummy_files')
@@ -509,23 +510,22 @@ class TestAlerts(TestCase):
 
     pa = PortAlert(json, json['source'])
     ash.schedule_definition(pa)
-    
+
     self.assertEquals(2, ash.get_job_count())
-    
+
     json['enabled'] = False
     pa = PortAlert(json, json['source'])
     ash.schedule_definition(pa)
-    
+
     # verify disabled alert not scheduled
     self.assertEquals(2, ash.get_job_count())
-    
+
     json['enabled'] = True
     pa = PortAlert(json, json['source'])
     ash.schedule_definition(pa)
-    
+
     # verify enabled alert was scheduled
     self.assertEquals(3, ash.get_job_count())
-
 
   def test_immediate_alert(self):
     test_file_path = os.path.join('ambari_agent', 'dummy_files')
@@ -538,10 +538,10 @@ class TestAlerts(TestCase):
     self.assertEquals(1, ash.get_job_count())
     self.assertEquals(0, len(ash._collector.alerts()))
 
-    execution_commands = [ { 
+    execution_commands = [ {
         "clusterName": "c1",
-        "hostName": "c6401.ambari.apache.org",    
-        "alertDefinition": {         
+        "hostName": "c6401.ambari.apache.org",
+        "alertDefinition": {
           "name": "namenode_process",
           "service": "HDFS",
           "component": "NAMENODE",
@@ -565,7 +565,7 @@ class TestAlerts(TestCase):
           }
         }
       } ]
-    
+
     # execute the alert immediately and verify that the collector has the result
     ash.execute_alert(execution_commands)
     self.assertEquals(1, len(ash._collector.alerts()))

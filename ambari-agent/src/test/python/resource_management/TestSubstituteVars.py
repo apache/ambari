@@ -17,6 +17,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
+
+from stacks.utils.RMFTestCase import *
 from unittest import TestCase, main
 from resource_management.libraries.functions.substitute_vars import substitute_vars
 

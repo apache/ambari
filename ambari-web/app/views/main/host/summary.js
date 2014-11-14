@@ -60,6 +60,13 @@ App.MainHostSummaryView = Em.View.extend({
   },
 
   /**
+   * Host metrics panel not displayed when Metrics service (ex:Ganglia) is not in stack definition.
+   */
+  isNoHostMetricsService: function() {
+    return !App.get('services.hostMetrics').length;
+  }.property('App.services.hostMetrics'),
+
+  /**
    * Message for "restart" block
    * @type {String}
    */

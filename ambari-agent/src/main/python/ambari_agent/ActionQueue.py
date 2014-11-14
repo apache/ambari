@@ -153,11 +153,11 @@ class ActionQueue(threading.Thread):
     while not self.backgroundCommandQueue.empty():
       try:
         command = self.backgroundCommandQueue.get(False)
-        if(command.has_key('__handle') and command['__handle'].status == None): 
+        if(command.has_key('__handle') and command['__handle'].status == None):
           self.process_command(command)
       except (Queue.Empty):
         pass
-  
+
   def processStatusCommandQueueSafeEmpty(self):
     while not self.statusCommandQueue.empty():
       try:
@@ -215,17 +215,17 @@ class ActionQueue(threading.Thread):
       'status': self.IN_PROGRESS_STATUS
     })
     self.commandStatuses.put_command_status(command, in_progress_status)
-    
+
     # running command
     commandresult = self.customServiceOrchestrator.runCommand(command,
       in_progress_status['tmpout'], in_progress_status['tmperr'])
-   
-    
+
+
     # dumping results
     if isCommandBackground:
       return
     else:
-      status = self.COMPLETED_STATUS if commandresult['exitcode'] == 0 else self.FAILED_STATUS  
+      status = self.COMPLETED_STATUS if commandresult['exitcode'] == 0 else self.FAILED_STATUS
     roleResult = self.commandStatuses.generate_report_template(command)
     roleResult.update({
       'stdout': commandresult['stdout'],
@@ -250,18 +250,18 @@ class ActionQueue(threading.Thread):
     # let ambari know that configuration tags were applied
     if status == self.COMPLETED_STATUS:
       configHandler = ActualConfigHandler(self.config, self.configTags)
-      #update 
+      #update
       if command.has_key('forceRefreshConfigTags') and len(command['forceRefreshConfigTags']) > 0  :
-        
+
         forceRefreshConfigTags = command['forceRefreshConfigTags']
         logger.info("Got refresh additional component tags command")
-        
+
         for configTag in forceRefreshConfigTags :
           configHandler.update_component_tag(command['role'], configTag, command['configurationTags'][configTag])
-        
+
         roleResult['customCommand'] = self.CUSTOM_COMMAND_RESTART # force restart for component to evict stale_config on server side
         command['configurationTags'] = configHandler.read_actual_component(command['role'])
-        
+
       if command.has_key('configurationTags'):
         configHandler.write_actual(command['configurationTags'])
         roleResult['configurationTags'] = command['configurationTags']
@@ -288,17 +288,17 @@ class ActionQueue(threading.Thread):
     logger.debug('Start callback: %s' % process_condenced_result)
     logger.debug('The handle is: %s' % handle)
     status = self.COMPLETED_STATUS if handle.exitCode == 0 else self.FAILED_STATUS
-    
+
     aborted_postfix = self.customServiceOrchestrator.command_canceled_reason(handle.command['taskId'])
     if aborted_postfix:
       status = self.FAILED_STATUS
       logger.debug('Set status to: %s , reason = %s' % (status, aborted_postfix))
     else:
       aborted_postfix = ''
-      
-    
+
+
     roleResult = self.commandStatuses.generate_report_template(handle.command)
-    
+
     roleResult.update({
       'stdout': process_condenced_result['stdout'] + aborted_postfix,
       'stderr': process_condenced_result['stderr'] + aborted_postfix,
@@ -306,7 +306,7 @@ class ActionQueue(threading.Thread):
       'structuredOut': str(json.dumps(process_condenced_result['structuredOut'])) if 'structuredOut' in process_condenced_result else '',
       'status': status,
     })
-    
+
     self.commandStatuses.put_command_status(handle.command, roleResult)
 
   def execute_status_command(self, command):
@@ -371,11 +371,10 @@ class ActionQueue(threading.Thread):
     """
     Actions that are executed every time when command status changes
     """
-    self.controller.heartbeat_wait_event.set()
+    self.controller.trigger_heartbeat()
 
   # Removes all commands from the queue
   def reset(self):
     queue = self.commandQueue
     with queue.mutex:
       queue.queue.clear()
-

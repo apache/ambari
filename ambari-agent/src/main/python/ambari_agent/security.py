@@ -27,12 +27,12 @@ import json
 import pprint
 import traceback
 import hostname
+import platform
 
 logger = logging.getLogger()
 
-GEN_AGENT_KEY = "openssl req -new -newkey rsa:1024 -nodes -keyout %(keysdir)s/%(hostname)s.key\
-  -subj /OU=%(hostname)s/\
-        -out %(keysdir)s/%(hostname)s.csr"
+GEN_AGENT_KEY = 'openssl req -new -newkey rsa:1024 -nodes -keyout "%(keysdir)s'+os.sep+'%(hostname)s.key" '\
+	'-subj /OU=%(hostname)s/ -out "%(keysdir)s'+os.sep+'%(hostname)s.csr"'
 
 
 class VerifiedHTTPSConnection(httplib.HTTPSConnection):
@@ -141,30 +141,30 @@ class CachedHTTPSConnection:
 class CertificateManager():
   def __init__(self, config):
     self.config = config
-    self.keysdir = self.config.get('security', 'keysdir')
+    self.keysdir = os.path.abspath(self.config.get('security', 'keysdir'))
     self.server_crt = self.config.get('security', 'server_crt')
     self.server_url = 'https://' + self.config.get('server', 'hostname') + ':' \
        + self.config.get('server', 'url_port')
 
   def getAgentKeyName(self):
-    keysdir = self.config.get('security', 'keysdir')
+    keysdir = os.path.abspath(self.config.get('security', 'keysdir'))
     return keysdir + os.sep + hostname.hostname(self.config) + ".key"
 
   def getAgentCrtName(self):
-    keysdir = self.config.get('security', 'keysdir')
+    keysdir = os.path.abspath(self.config.get('security', 'keysdir'))
     return keysdir + os.sep + hostname.hostname(self.config) + ".crt"
 
   def getAgentCrtReqName(self):
-    keysdir = self.config.get('security', 'keysdir')
+    keysdir = os.path.abspath(self.config.get('security', 'keysdir'))
     return keysdir + os.sep + hostname.hostname(self.config) + ".csr"
 
   def getSrvrCrtName(self):
-    keysdir = self.config.get('security', 'keysdir')
+    keysdir = os.path.abspath(self.config.get('security', 'keysdir'))
     return keysdir + os.sep + "ca.crt"
 
   def checkCertExists(self):
 
-    s = self.config.get('security', 'keysdir') + os.sep + "ca.crt"
+    s = os.path.abspath(self.config.get('security', 'keysdir')) + os.sep + "ca.crt"
 
     server_crt_exists = os.path.exists(s)
 
@@ -240,10 +240,14 @@ class CertificateManager():
 
   def genAgentCrtReq(self):
     generate_script = GEN_AGENT_KEY % {'hostname': hostname.hostname(self.config),
-                                     'keysdir': self.config.get('security', 'keysdir')}
+                                     'keysdir' : os.path.abspath(self.config.get('security', 'keysdir'))}
     logger.info(generate_script)
-    p = subprocess.Popen([generate_script], shell=True, stdout=subprocess.PIPE)
-    p.communicate()
+    if platform.system() == 'Windows':
+      p = subprocess.Popen(generate_script, stdout=subprocess.PIPE)
+      p.communicate()
+    else:
+      p = subprocess.Popen([generate_script], shell=True, stdout=subprocess.PIPE)
+      p.communicate()
 
   def initSecurity(self):
     self.checkCertExists()

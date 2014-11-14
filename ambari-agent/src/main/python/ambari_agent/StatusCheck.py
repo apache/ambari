@@ -54,7 +54,7 @@ class StatusCheck:
       
   def fillDirValues(self):
     try:
-      for pidVar in self.pidPathesVars:
+      for pidVar in self.pidPathVars:
         pidVarName = pidVar['var']
         pidDefaultvalue = pidVar['defaultValue']
         if self.globalConfig.has_key(pidVarName):
@@ -64,11 +64,11 @@ class StatusCheck:
     except Exception as e:
         logger.error("Error while filling directories values " + str(e))
         
-  def __init__(self, serviceToPidDict, pidPathesVars, globalConfig,
+  def __init__(self, serviceToPidDict, pidPathVars, globalConfig,
     servicesToLinuxUser):
     
     self.serToPidDict = serviceToPidDict.copy()
-    self.pidPathesVars = pidPathesVars
+    self.pidPathVars = pidPathVars
     self.pidPathes = []
     self.sh = shellRunner()
     self.pidFilesDict = {}

@@ -758,9 +758,9 @@ def check_reverse_lookup():
   Check if host fqdn resolves to current host ip
   """
   try:
-    host_name = socket.gethostname()
+    host_name = socket.gethostname().lower()
     host_ip = socket.gethostbyname(host_name)
-    host_fqdn = socket.getfqdn()
+    host_fqdn = socket.getfqdn().lower()
     fqdn_ip = socket.gethostbyname(host_fqdn)
     return host_ip == fqdn_ip
   except socket.herror:
@@ -1317,7 +1317,7 @@ def store_remote_properties(args):
   # to the jdbc hostname since its passed onto the agents for RCA
   jdbc_hostname = args.database_host
   if (args.database_host == "localhost"):
-    jdbc_hostname = socket.getfqdn()
+    jdbc_hostname = socket.getfqdn().lower()
 
   connectionStringFormat = DATABASE_CONNECTION_STRINGS
   if args.sid_or_sname == "sid":
@@ -2944,7 +2944,7 @@ def upgrade(args):
       if os.path.lexists(jdbc_symlink):
         os.remove(jdbc_symlink)
       os.symlink(os.path.join(resources_dir,JDBC_DB_DEFAULT_DRIVER[db_name]), jdbc_symlink)
-  
+
   # check if ambari has obsolete LDAP configuration
   if properties.get_property(LDAP_PRIMARY_URL_PROPERTY) and not properties.get_property(IS_LDAP_CONFIGURED):
     args.warnings.append("Existing LDAP configuration is detected. You must run the \"ambari-server setup-ldap\" command to adjust existing LDAP configuration.")
@@ -3528,7 +3528,7 @@ def setup_master_key():
     if not is_alias_string(ldap_password) and os.path.isfile(ldap_password):
       with open(ldap_password, 'r') as passwdfile:
         ldap_password = passwdfile.read()
-  
+
   ts_password = properties.get_property(SSL_TRUSTSTORE_PASSWORD_PROPERTY)
   resetKey = False
   masterKey = None
@@ -4293,7 +4293,7 @@ def get_fqdn():
     handle.close()
     return str
   except Exception:
-    return socket.getfqdn()
+    return socket.getfqdn().lower()
 
 
 def get_ulimit_open_files():

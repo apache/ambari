@@ -31,12 +31,13 @@ class HostCheckReportFileHandler:
   HOST_CHECK_FILE = "hostcheck.result"
 
   def __init__(self, config):
-    if config != None:
+    self.hostCheckFilePath = None
+    if config is not None:
       hostCheckFileDir = config.get('agent', 'prefix')
       self.hostCheckFilePath = os.path.join(hostCheckFileDir, self.HOST_CHECK_FILE)
 
   def writeHostCheckFile(self, hostInfo):
-    if self.hostCheckFilePath == None:
+    if self.hostCheckFilePath is None:
       return
 
     try:

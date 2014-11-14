@@ -21,13 +21,14 @@ Ambari Agent
 """
 
 import time
+import os
 from resource_management import *
 
 class XmlConfigProvider(Provider):
   def action_create(self):
     filename = self.resource.filename
     xml_config_provider_config_dir = self.resource.conf_dir
-    
+
     # |e - for html-like escaping of <,>,',"
     config_content = InlineTemplate('''<!--{{time.asctime(time.localtime())}}-->
     <configuration>
@@ -48,12 +49,12 @@ class XmlConfigProvider(Provider):
     {% endfor %}
   </configuration>''', extra_imports=[time], configurations_dict=self.resource.configurations,
                                     configuration_attrs=self.resource.configuration_attributes)
-   
-  
-    Logger.info(format("Generating config: {xml_config_provider_config_dir}/{filename}"))
-    
+
+    xml_config_dest_file_path = os.path.join(xml_config_provider_config_dir, filename)
+    Logger.info("Generating config: {0}".format(xml_config_dest_file_path))
+
     with Environment.get_instance_copy() as env:
-      File (format("{xml_config_provider_config_dir}/{filename}"),
+      File (xml_config_dest_file_path,
         content = config_content,
         owner = self.resource.owner,
         group = self.resource.group,

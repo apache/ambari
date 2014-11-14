@@ -17,9 +17,13 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
+
+from stacks.utils.RMFTestCase import *
 import json
 import os
 import socket
+import subprocess
+from ambari_commons import inet_utils
 from resource_management import Script,ConfigDictionary
 from mock.mock import patch
 from mock.mock import MagicMock
@@ -60,12 +64,12 @@ class TestCheckHost(TestCase):
 
   @patch.object(Script, 'get_config')
   @patch.object(Script, 'get_tmp_dir')
-  @patch("check_host.Execute")
+  @patch("check_host.download_file")
   @patch("resource_management.libraries.script.Script.put_structured_out")
   @patch("subprocess.Popen")
   @patch("check_host.format")
   @patch("os.path.isfile")
-  def testDBConnectionCheck(self, isfile_mock, format_mock, popenMock, structured_out_mock, execute_mock, get_tmp_dir_mock, mock_config):
+  def testDBConnectionCheck(self, isfile_mock, format_mock, popenMock, structured_out_mock, download_file_mock, get_tmp_dir_mock, mock_config):
     # test, download DBConnectionVerification.jar failed
     mock_config.return_value = {"commandParams" : {"check_execute_list" : "db_connection_check",
                                                    "java_home" : "test_java_home",
@@ -75,9 +79,10 @@ class TestCheckHost(TestCase):
                                                    "db_connection_url" : "test_db_connection_url",
                                                    "user_name" : "test_user_name",
                                                    "user_passwd" : "test_user_passwd",
-                                                   "jdk_name" : "test_jdk_name"}}
+                                                   "jdk_name" : "test_jdk_name"},
+                                "hostLevelParams": { "agentCacheDir": "/nonexistent_tmp" }}
     get_tmp_dir_mock.return_value = "/tmp"
-    execute_mock.side_effect = Exception("test exception")
+    download_file_mock.side_effect = Exception("test exception")
     isfile_mock.return_value = True
     checkHost = CheckHost()
     checkHost.actionexecute(None)
@@ -85,11 +90,6 @@ class TestCheckHost(TestCase):
     self.assertEquals(structured_out_mock.call_args[0][0], {'db_connection_check': {'message': 'Error downloading ' \
                      'DBConnectionVerification.jar from Ambari Server resources. Check network access to Ambari ' \
                      'Server.\ntest exception', 'exit_code': 1}})
-    
-    self.assertEquals(format_mock.call_args_list[2][0][0], "/bin/sh -c 'cd /usr/lib/ambari-agent/ && curl -kf " \
-                      "--retry 5 {jdk_location}{check_db_connection_jar_name} -o {check_db_connection_jar_name}'")
-    
-    self.assertEquals(format_mock.call_args_list[3][0][0], "[ -f /usr/lib/ambari-agent/{check_db_connection_jar_name}]")
 
     # test, download jdbc driver failed
     mock_config.return_value = {"commandParams" : {"check_execute_list" : "db_connection_check",
@@ -100,11 +100,12 @@ class TestCheckHost(TestCase):
                                                    "db_connection_url" : "test_db_connection_url",
                                                    "user_name" : "test_user_name",
                                                    "user_passwd" : "test_user_passwd",
-                                                   "jdk_name" : "test_jdk_name"}}
+                                                   "jdk_name" : "test_jdk_name"},
+                                "hostLevelParams": { "agentCacheDir": "/nonexistent_tmp" }}
     format_mock.reset_mock()
-    execute_mock.reset_mock()
+    download_file_mock.reset_mock()
     p = MagicMock()
-    execute_mock.side_effect = [p, Exception("test exception")]
+    download_file_mock.side_effect = [p, Exception("test exception")]
 
     checkHost.actionexecute(None)
 
@@ -114,24 +115,21 @@ class TestCheckHost(TestCase):
                   'Server host to make the JDBC driver available for download and to enable testing '
                   'the database connection.\n')
     self.assertEquals(structured_out_mock.call_args[0][0]['db_connection_check']['exit_code'], 1)
-    self.assertEquals(format_mock.call_args_list[4][0][0], "/bin/sh -c 'cd /usr/lib/ambari-agent/ && curl -kf " \
-                                                            "--retry 5 {jdbc_url} -o {jdbc_name}'")
-    
-    self.assertEquals(format_mock.call_args_list[5][0][0], "[ -f /usr/lib/ambari-agent/{jdbc_name}]")
 
     # test, no connection to remote db
     mock_config.return_value = {"commandParams" : {"check_execute_list" : "db_connection_check",
                                                    "java_home" : "test_java_home",
                                                    "ambari_server_host" : "test_host",
                                                    "jdk_location" : "test_jdk_location",
-                                                   "db_name" : "postgresql",
+                                                   "db_name" : "postgres",
                                                    "db_connection_url" : "test_db_connection_url",
                                                    "user_name" : "test_user_name",
                                                    "user_passwd" : "test_user_passwd",
-                                                   "jdk_name" : "test_jdk_name"}}
+                                                   "jdk_name" : "test_jdk_name"},
+                                "hostLevelParams": { "agentCacheDir": "/nonexistent_tmp" }}
     format_mock.reset_mock()
-    execute_mock.reset_mock()
-    execute_mock.side_effect = [p, p]
+    download_file_mock.reset_mock()
+    download_file_mock.side_effect = [p, p]
     s = MagicMock()
     s.communicate.return_value = ("test message", "")
     s.returncode = 1
@@ -141,14 +139,14 @@ class TestCheckHost(TestCase):
 
     self.assertEquals(structured_out_mock.call_args[0][0], {'db_connection_check': {'message': 'test message',
                                                                                     'exit_code': 1}})
-    self.assertEquals(format_mock.call_args[0][0],'{java64_home}/bin/java -cp /usr/lib/ambari-agent/{check_db_' \
-                                                'connection_jar_name}:/usr/lib/ambari-agent/{jdbc_name} org.' \
-                                                'apache.ambari.server.DBConnectionVerification \'{db_connection_url}\' ' \
-                                                '{user_name} {user_passwd!p} {jdbc_driver}')
+    self.assertEquals(format_mock.call_args[0][0],'{java_exec} -cp '\
+            '{check_db_connection_path}{class_path_delimiter}{jdbc_path} -Djava.library.path={agent_cache_dir} '\
+            'org.apache.ambari.server.DBConnectionVerification {db_connection_url} '\
+            '{user_name} {user_passwd!p} {jdbc_driver}')
 
     # test, db connection success
-    execute_mock.reset_mock()
-    execute_mock.side_effect = [p, p]
+    download_file_mock.reset_mock()
+    download_file_mock.side_effect = [p, p]
     s.returncode = 0
 
     checkHost.actionexecute(None)
@@ -164,7 +162,8 @@ class TestCheckHost(TestCase):
                                                    "db_connection_url" : "test_db_connection_url",
                                                    "user_name" : "test_user_name",
                                                    "user_passwd" : "test_user_passwd",
-                                                   "db_name" : "postgresql"}}
+                                                   "db_name" : "postgres"},
+                                "hostLevelParams": { "agentCacheDir": "/nonexistent_tmp" }}
 
     isfile_mock.return_value = False
     checkHost.actionexecute(None)

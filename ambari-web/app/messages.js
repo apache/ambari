@@ -300,7 +300,7 @@ Em.I18n.translations = {
   'login.error.bad.connection':'Unable to connect to Ambari Server. Confirm Ambari Server is running and you can reach Ambari Server from this machine.',
 
   'graphs.noData.title': 'No Data',
-  'graphs.noData.message': 'There was no data available. Possible reasons include inaccessible Ganglia service.',
+  'graphs.noData.message': 'There was no data available. Possible reasons include inaccessible/unsupported metrics service.',
   'graphs.noDataAtTime.message': 'No available data for the time period.',
   'graphs.error.title': 'Error',
   'graphs.error.message': 'There was a problem getting data for the chart ({0}: {1})',

@@ -1,0 +1,239 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!-- Put site-specific property overrides in this file. -->
+<configuration xmlns:xi="http://www.w3.org/2001/XInclude">
+  <!-- MR AM properties -->
+  <property>
+    <name>mapreduce.framework.name</name>
+    <value>yarn</value>
+  </property>
+  <property>
+    <name>yarn.app.mapreduce.am.staging-dir</name>
+    <value>/user</value>
+  </property>
+  <property>
+    <name>mapreduce.job.hdfs-servers</name>
+    <value>${fs.defaultFS}</value>
+  </property>
+  <property>
+    <name>mapreduce.map.speculative</name>
+    <value>false</value>
+    <description>If true, then multiple instances of some map tasks
+               may be executed in parallel.</description>
+  </property>
+  <property>
+    <name>mapreduce.reduce.speculative</name>
+    <value>false</value>
+    <description>If true, then multiple instances of some reduce tasks
+               may be executed in parallel.</description>
+  </property>
+  <property>
+    <name>mapreduce.job.reduce.slowstart.completedmaps</name>
+    <value>0.05</value>
+    <description>Fraction of the number of maps in the job which should be
+      complete before reduces are scheduled for the job.
+    </description>
+  </property>
+  <property>
+    <name>mapreduce.task.timeout</name>
+    <value>600000</value>
+    <description>The number of milliseconds before a task will be
+      terminated if it neither reads an input, writes an output, nor
+      updates its status string. A value of 0 disables the timeout.
+    </description>
+  </property>
+  <property>
+    <name>jetty.connector</name>
+    <value>org.mortbay.jetty.nio.SelectChannelConnector</value>
+    <description>No description</description>
+  </property>
+  <property>
+    <name>mapred.child.root.logger</name>
+    <value>INFO,TLA</value>
+  </property>
+  <property>
+    <name>mapreduce.fileoutputcommitter.marksuccessfuljobs</name>
+    <value>true</value>
+  </property>
+  <property>
+    <name>mapreduce.job.acl-view-job</name>
+    <value>*</value>
+  </property>
+  <!-- i/o properties -->
+  <property>
+    <name>io.sort.mb</name>
+    <value>200</value>
+    <description>No description</description>
+  </property>
+  <property>
+    <name>io.sort.spill.percent</name>
+    <value>0.9</value>
+    <description>No description</description>
+  </property>
+  <property>
+    <name>io.sort.factor</name>
+    <value>100</value>
+    <description>No description</description>
+  </property>
+  <!-- map tasks' properties -->
+  <property>
+    <name>mapreduce.map.output.compress</name>
+    <value>true</value>
+    <description>Should the outputs of the maps be compressed before being
+               sent across the network. Uses SequenceFile compression.
+    </description>
+  </property>
+  <property>
+    <name>mapreduce.map.output.compress.codec</name>
+    <value>org.apache.hadoop.io.compress.SnappyCodec</value>
+    <description>If the map outputs are compressed, how should they be
+               compressed?
+    </description>
+  </property>
+  <!-- reduce tasks' properties -->
+  <property>
+    <name>mapreduce.reduce.shuffle.parallelcopies</name>
+    <value>30</value>
+    <description>The default number of parallel transfers run by reduce
+      during the copy(shuffle) phase.
+    </description>
+  </property>
+  <property>
+    <name>mapreduce.reduce.merge.inmem.threshold</name>
+    <value>1000</value>
+    <description>The threshold, in terms of the number of files
+      for the in-memory merge process. When we accumulate threshold number of files
+      we initiate the in-memory merge and spill to disk. A value of 0 or less than
+      0 indicates we want to DON'T have any threshold and instead depend only on
+      the ramfs's memory consumption to trigger the merge.
+    </description>
+  </property>
+  <property>
+    <name>mapreduce.reduce.shuffle.merge.percent</name>
+    <value>0.66</value>
+    <description>The usage threshold at which an in-memory merge will be
+      initiated, expressed as a percentage of the total memory allocated to
+      storing in-memory map outputs, as defined by
+      mapreduce.reduce.shuffle.input.buffer.percent.
+    </description>
+  </property>
+  <property>
+    <name>mapreduce.reduce.shuffle.input.buffer.percent</name>
+    <value>0.70</value>
+    <description>The percentage of memory to be allocated from the maximum heap
+      size to storing map outputs during the shuffle.
+    </description>
+  </property>
+  <!-- JobHistory Server -->
+  <property>
+    <name>mapreduce.jobhistory.intermediate-done-dir</name>
+    <value>/mapred/history/done_intermediate</value>
+  </property>
+  <property>
+    <name>mapreduce.jobhistory.done-dir</name>
+    <value>/mapred/history/done</value>
+  </property>
+  <property>
+    <name>mapreduce.jobhistory.address</name>
+    <value>localhost:10020</value>
+  </property>
+  <property>
+    <name>mapreduce.jobhistory.webapp.address</name>
+    <value>localhost:19888</value>
+  </property>
+  <property>
+    <name>mapreduce.jobhistory.webapp.https.address</name>
+    <value>localhost:19888</value>
+  </property>
+  <property>
+    <name>yarn.app.mapreduce.am.create-intermediate-jh-base-dir</name>
+    <value>false</value>
+  </property>
+  <!-- JobHistory Security Settings -->
+  <property>
+    <name>mapreduce.application.classpath</name>
+    <value>%HADOOP_CONF_DIR%,%HADOOP_COMMON_HOME%/share/hadoop/common/*,%HADOOP_COMMON_HOME%/share/hadoop/common/lib/*,%HADOOP_HDFS_HOME%/share/hadoop/hdfs/*,%HADOOP_HDFS_HOME%/share/hadoop/hdfs/lib/*,%HADOOP_MAPRED_HOME%/share/hadoop/mapreduce/*,%HADOOP_MAPRED_HOME%/share/hadoop/mapreduce/lib/*,%HADOOP_YARN_HOME%/share/hadoop/yarn/*,%HADOOP_YARN_HOME%/share/hadoop/yarn/lib/*</value>
+    <description>CLASSPATH for MR applications. A comma-separated list
+      of CLASSPATH entries</description>
+  </property>
+  <property>
+    <name>mapreduce.shuffle.ssl.enabled</name>
+    <value>false</value>
+  </property>
+  <property>
+    <name>mapreduce.ssl.enabled</name>
+    <value>false</value>
+  </property>
+  <property>
+    <name>mapreduce.job.counters.max</name>
+    <value>20000</value>
+  </property>
+  <property>
+    <name>mapreduce.job.counters.groups.max</name>
+    <value>10000</value>
+  </property>
+  <property>
+    <name>mapreduce.job.counters.group.name.max</name>
+    <value>1000</value>
+  </property>
+  <property>
+    <name>mapreduce.job.counters.counter.name.max</name>
+    <value>1000</value>
+  </property>
+  <property>
+    <name>mapreduce.cluster.local.dir</name>
+    <value>c:\hdpdata\hadoop\local</value>
+  </property>
+
+  <property>
+    <name>mapred.job.tracker.history.completed.location</name>
+    <value>/mapred/history/done</value>
+  </property>
+
+  <property>
+    <name>mapred.local.dir</name>
+    <value>c:\hdpdata\hdfs\mapred\local</value>
+  </property>
+
+  <property>
+    <name>mapreduce.map.java.opts</name>
+    <value>-Xmx756m</value>
+  </property>
+
+  <property>
+    <name>mapred.child.tmp</name>
+    <value>c:\hdp\temp\hadoop</value>
+  </property>
+
+  <property>
+    <name>mapreduce.reduce.java.opts</name>
+    <value>-Xmx756m</value>
+  </property>
+
+  <property>
+    <name>mapreduce.task.io.sort.mb</name>
+    <value>200</value>
+    <description>
+      The total amount of buffer memory to use while sorting files, in megabytes.
+      By default, gives each merge stream 1MB, which should minimize seeks.
+    </description>
+  </property>
+
+  <property>
+    <name>yarn.app.mapreduce.am.resource.mb</name>
+    <value>512</value>
+    <description>The amount of memory the MR AppMaster needs.</description>
+  </property>
+
+  <property>
+    <name>mapreduce.map.memory.mb</name>
+    <value>1024</value>
+    <description>Virtual memory for single Map task</description>
+  </property>
+
+  <property>
+    <name>mapreduce.reduce.memory.mb</name>
+    <value>1024</value>
+    <description>Virtual memory for single Reduce task</description>
+  </property>
+</configuration>

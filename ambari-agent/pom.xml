@@ -103,19 +103,26 @@
         </executions>
       </plugin>
       <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <skip>${skipSurefireTests}</skip>
+        </configuration>
+      </plugin>
+      <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>exec-maven-plugin</artifactId>
         <version>1.2</version>
         <executions>
           <execution>
             <configuration>
-              <executable>${project.basedir}/../ambari-common/src/main/unix/ambari-python-wrap</executable>
+              <executable>${executable.python}</executable>
               <workingDirectory>src/test/python</workingDirectory>
               <arguments>
                 <argument>unitTests.py</argument>
               </arguments>
               <environmentVariables>
-                <PYTHONPATH>${project.basedir}/../ambari-common/src/main/python/ambari_jinja2:${project.basedir}/../ambari-common/src/main/python/ambari_commons:${project.basedir}/../ambari-common/src/main/python/resource_management:${project.basedir}/../ambari-common/src/test/python:${project.basedir}/../ambari-common/src/main/python:${project.basedir}/src/main/python/ambari_agent:${project.basedir}/src/test/python/ambari_agent:${project.basedir}/src/test/python/resource_management:${project.basedir}/src/main/python:${project.basedir}/../ambari-server/src/main/resources/stacks/HDP/2.0.6/services/HDFS/package/files:${project.basedir}/../ambari-server/src/main/resources/stacks/HDP/1.3.2/services/HDFS/package/files:$PYTHONPATH</PYTHONPATH>
+                <PYTHONPATH>${path.python.1}${pathsep}$PYTHONPATH</PYTHONPATH>
               </environmentVariables>
               <skip>${skipTests}</skip>
             </configuration>
@@ -128,15 +135,15 @@
           <execution>
             <!-- TODO: Looks like section is unused, maybe remove? -->
             <configuration>
-              <executable>${project.basedir}/../ambari-common/src/main/unix/ambari-python-wrap</executable>
-              <workingDirectory>target/ambari-agent-${project.version}</workingDirectory>
+              <executable>${executable.python}</executable>
+              <workingDirectory>target${dirsep}ambari-agent-${project.version}</workingDirectory>
               <arguments>
-                <argument>${project.basedir}/src/main/python/setup.py</argument>
+                <argument>${project.basedir}${dirsep}src${dirsep}main${dirsep}python${dirsep}setup.py</argument>
                 <argument>clean</argument>
                 <argument>bdist_dumb</argument>
               </arguments>
               <environmentVariables>
-                <PYTHONPATH>target/ambari-agent-${project.version}:$PYTHONPATH</PYTHONPATH>
+                <PYTHONPATH>target${dirsep}ambari-agent-${project.version}${pathsep}$PYTHONPATH</PYTHONPATH>
               </environmentVariables>
             </configuration>
             <id>python-package</id>
@@ -147,14 +154,14 @@
           </execution>
           <execution>
             <configuration>
-              <executable>${project.basedir}/../ambari-common/src/main/unix/ambari-python-wrap</executable>
+              <executable>${executable.python}</executable>
               <workingDirectory>${basedir}</workingDirectory>
               <arguments>
                 <argument>${resource.keeper.script}</argument>
                 <argument>${target.cache.dir}</argument>
               </arguments>
               <environmentVariables>
-                <PYTHONPATH>target/ambari-agent-${project.version}:$PYTHONPATH</PYTHONPATH>
+                <PYTHONPATH>target${dirsep}ambari-agent-${project.version}${pathsep}$PYTHONPATH</PYTHONPATH>
               </environmentVariables>
             </configuration>
             <id>generate-hash-files</id>
@@ -213,7 +220,7 @@
               <groupname>root</groupname>
               <sources>
                 <source>
-                  <location>${project.build.directory}/${project.artifactId}-${project.version}/ambari_agent</location>
+                  <location>${project.build.directory}${dirsep}${project.artifactId}-${project.version}${dirsep}ambari_agent</location>
                 </source>
               </sources>
             </mapping>
@@ -637,6 +644,7 @@
             <exclude>**/*.erb</exclude>
             <exclude>**/*.json</exclude>
             <exclude>**/*.pydevproject</exclude>
+            <exclude>**/*.wxs</exclude>
           </excludes>
         </configuration>
         <executions>
@@ -673,6 +681,153 @@
     </extensions>
   </build>
   <profiles>
+    <profile>
+     <id>windows</id>
+     <activation>
+      <os>
+        <family>win</family>
+      </os>
+     </activation>
+     <properties>
+      <envClassifier>win</envClassifier>
+      <dirsep>\</dirsep>
+      <pathsep>;</pathsep>
+      <stack.distribution>HDPWIN</stack.distribution>
+      <executable.python>python</executable.python>
+      <executable.shell>cmd</executable.shell>
+      <fileextension.shell>cmd</fileextension.shell>
+      <fileextension.dot.shell-default>.cmd</fileextension.dot.shell-default>
+      <path.python.1>${project.basedir}\..\ambari-common\src\main\python;${project.basedir}\..\ambari-agent\src\main\python;${project.basedir}\..\ambari-common\src\main\python\ambari_jinja2;${project.basedir}\..\ambari-common\src\main\python\ambari_commons;${project.basedir}\..\ambari-common\src\test\python;${project.basedir}\src\main\python;${project.basedir}\src\main\python\ambari_agent;${project.basedir}\src\main\python\resource_management;${project.basedir}\src\test\python;${project.basedir}\src\test\python\ambari_agent;${project.basedir}\src\test\python\resource_management;${project.basedir}\..\ambari-server\src\test\python;${project.basedir}\..\ambari-server\src\main\resources\stacks\HDP\2.0.6\services\HDFS\package\files;${project.basedir}\..\ambari-server\src\main\resources\stacks\HDP\1.3.2\services\HDFS\package\files</path.python.1>
+     </properties>
+    </profile>
+    <profile>
+     <id>linux</id>
+     <activation>
+      <os>
+        <family>unix</family>
+      </os>
+     </activation>
+     <properties>
+      <envClassifier>linux</envClassifier>
+      <dirsep>/</dirsep>
+      <pathsep>:</pathsep>
+      <stack.distribution>HDP</stack.distribution>
+      <executable.python>${project.basedir}/../ambari-common/src/main/unix/ambari-python-wrap</executable.python>
+      <executable.shell>sh</executable.shell>
+      <fileextension.shell>sh</fileextension.shell>
+      <fileextension.dot.shell-default></fileextension.dot.shell-default>
+      <path.python.1>${project.basedir}/../ambari-common/src/main/python:${project.basedir}/../ambari-agent/src/main/python:${project.basedir}/../ambari-common/src/main/python/ambari_jinja2:${project.basedir}/../ambari-common/src/main/python/ambari_commons:${project.basedir}/../ambari-common/src/test/python:${project.basedir}/src/main/python:${project.basedir}/src/main/python/ambari_agent:${project.basedir}/src/main/python/resource_management:${project.basedir}/src/test/python:${project.basedir}/src/test/python/ambari_agent:${project.basedir}/src/test/python/resource_management:${project.basedir}/../ambari-server/src/test/python:${project.basedir}/../ambari-server/src/main/resources/stacks/HDP/2.0.6/services/HDFS/package/files:${project.basedir}/../ambari-server/src/main/resources/stacks/HDP/1.3.2/services/HDFS/package/files</path.python.1>
+     </properties>
+    </profile>
+    <profile>
+      <id>windows-distro</id>
+      <activation>
+        <os>
+          <family>Windows</family>
+        </os>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-assembly-plugin</artifactId>
+            <configuration>
+              <tarLongFileMode>gnu</tarLongFileMode>
+              <descriptors>
+                <descriptor>src/packages/tarball/all.xml</descriptor>
+                <descriptor>src/packages/windows.xml</descriptor>
+              </descriptors>
+            </configuration>
+            <executions>
+              <execution>
+                <id>build-windows-zip</id>
+                <phase>prepare-package</phase>
+                <goals>
+                  <goal>single</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <!-- msi creation -->
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
+            <version>1.2</version>
+            <executions>
+              <execution>
+                <id>run-heat</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>exec</goal>
+                </goals>
+                <configuration>
+                  <executable>heat.exe</executable>
+                  <arguments>
+                    <argument>dir</argument>
+                    <argument>"."</argument>
+                    <argument>-dr</argument>
+                    <argument>"AMBARI_AGENT_1.3.0_SNAPSHOT"</argument>
+                    <argument>-platform</argument>
+                    <argument>Win64</argument>
+                    <argument>-cg</argument>
+                    <argument>"AmbariAgentGroup"</argument>
+                    <argument>-gg</argument>
+                    <argument>-ke</argument>
+                    <argument>-srd</argument>
+                    <argument>-o</argument>
+                    <argument>".\..\ambari-agent-files.wxs"</argument>
+                  </arguments>
+                  <workingDirectory>${basedir}/target/${final.name}-windows-dist</workingDirectory>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.npanday.plugins</groupId>
+            <artifactId>wix-maven-plugin</artifactId>
+            <version>1.4.0-incubating</version>
+            <extensions>true</extensions>
+            <configuration>
+              <sourceFiles>
+                <sourceFile>src/main/package/msi/ambari-agent.wxs</sourceFile>
+                <sourceFile>target/ambari-agent-files.wxs</sourceFile>
+              </sourceFiles>
+              <outputDirectory>target</outputDirectory>
+              <objectFiles>
+                <objectFile>target/ambari-agent.wixobj</objectFile>
+                <objectFile>target/ambari-agent-files.wixobj</objectFile>
+              </objectFiles>
+              <outputFile>target/ambari-agent-${project.version}.msi</outputFile>
+              <extensions>
+                <extension>WixUIExtension</extension>
+              </extensions>
+            </configuration>
+            <executions>
+              <execution>
+                <id>wix-candle</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>candle</goal>
+                </goals>
+                <configuration>
+                  <arguments>-arch x64</arguments>
+                </configuration>
+              </execution>
+              <execution>
+                <id>wix-light</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>light</goal>
+                </goals>
+                <configuration>
+                  <arguments>-b ${basedir}/target/${final.name}-windows-dist</arguments>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+            <!-- end msi creation -->
+        </plugins>
+      </build>
+    </profile>
     <profile>
       <id>suse11</id>
       <properties>

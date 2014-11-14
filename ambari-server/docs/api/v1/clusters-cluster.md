@@ -66,191 +66,191 @@ Get information for the cluster "cluster001".
     
     200 OK
     {
-    	"href" : "http://your.ambari.server/api/v1/clusters/cluster001",
-    	"Clusters" : {
-    		"cluster_id" : 9,
-    		"cluster_name" : "cluster001",
-    		"health_report" : {
-    			"Host/stale_config" : 1,
-    			"Host/maintenance_state" : 0,
-    			"Host/host_state/HEALTHY" : 3,
-    			"Host/host_state/UNHEALTHY" : 0,
-    			"Host/host_state/HEARTBEAT_LOST" : 0,
-    			"Host/host_state/INIT" : 0,
-    			"Host/host_status/HEALTHY" : 3,
-    			"Host/host_status/UNHEALTHY" : 0,
-    			"Host/host_status/UNKNOWN" : 0,
-    			"Host/host_status/ALERT" : 0
-    		},
-    		"provisioning_state" : "INIT",
-    		"total_hosts" : 3,
-    		"version" : "HDP-2.0",
-    		"desired_configs" : {
-    			"capacity-scheduler" : {
-    				"user" : "admin",
-    				"tag" : "version1408514705943"
-    			},
-    			"core-site" : {
-    				"user" : "admin",
-    				"tag" : "version1409806913314"
-    			},
-    			"global" : {
-    				"user" : "admin",
-    				"tag" : "version1409806913314"
-    			},
-    			"hdfs-log4j" : {
-    				"user" : "admin",
-    				"tag" : "version1"
-    			},
-    			"hdfs-site" : {
-    				"user" : "admin",
-    				"tag" : "version1407908591996"
-    			},
-    			"mapred-site" : {
-    				"user" : "admin",
-    				"tag" : "version1408514705943"
-    			},
-    			"mapreduce2-log4j" : {
-    				"user" : "admin",
-    				"tag" : "version1408514705943"
-    			},
-    			"yarn-log4j" : {
-    				"user" : "admin",
-    				"tag" : "version1408514705943"
-    			},
-    			"yarn-site" : {
-    				"user" : "admin",
-    				"tag" : "version1408514705943"
-    			},
-    			"zoo.cfg" : {
-    				"user" : "admin",
-    				"tag" : "version1"
-    			},
-    			"zookeeper-log4j" : {
-    				"user" : "admin",
-    				"tag" : "version1"
-    			}
-    		}
-    	},
-    	"alerts" : {
-    		"summary" : {
-    			"CRITICAL" : 1,
-    			"OK" : 2,
-    			"PASSIVE" : 0,
-    			"WARNING" : 0
-    		}
-    	},
-    	"requests" : [
-    		{
-    			"href" : "http://your.ambari.server/api/v1/clusters/cluster001/requests/304",
-    			"Requests" : {
-    			"cluster_name" : "cluster001",
-    			"id" : 304
-    			}
-    		},
-    		{
-    			"href" : "http://your.ambari.server/api/v1/clusters/cluster001/requests/305",
-    			"Requests" : {
-    			"cluster_name" : "cluster001",
-    			"id" : 305
-    			}
-    		}
-    		],
-    	"services" : [
-    	{
-    		"href" : "http://your.ambari.server/api/v1/clusters/cluster001/services/GANGLIA",
-    		"ServiceInfo" : {
-    		"cluster_name" : "cluster001",
-    		"service_name" : "GANGLIA"
-    		}
-    	},
-    	{
-    		"href" : "http://your.ambari.server/api/v1/clusters/cluster001/services/HDFS",
-    		"ServiceInfo" : {
-    		"cluster_name" : "cluster001",
-    		"service_name" : "HDFS"
-    		}
-    	},
-    	{
-    		"href" : "http://your.ambari.server/api/v1/clusters/cluster001/services/MAPREDUCE2",
-    		"ServiceInfo" : {
-    		"cluster_name" : "cluster001",
-    		"service_name" : "MAPREDUCE2"
-    		}
-    	},
-    	{
-    		"href" : "http://your.ambari.server/api/v1/clusters/cluster001/services/ZOOKEEPER",
-    		"ServiceInfo" : {
-    		"cluster_name" : "cluster001",
-    		"service_name" : "ZOOKEEPER"
-    		}
-    	}
+	"href" : "http://your.ambari.server/api/v1/clusters/cluster001",
+	"Clusters" : {
+		"cluster_id" : 9,
+		"cluster_name" : "cluster001",
+		"health_report" : {
+			"Host/stale_config" : 1,
+			"Host/maintenance_state" : 0,
+			"Host/host_state/HEALTHY" : 3,
+			"Host/host_state/UNHEALTHY" : 0,
+			"Host/host_state/HEARTBEAT_LOST" : 0,
+			"Host/host_state/INIT" : 0,
+			"Host/host_status/HEALTHY" : 3,
+			"Host/host_status/UNHEALTHY" : 0,
+			"Host/host_status/UNKNOWN" : 0,
+			"Host/host_status/ALERT" : 0
+		},
+		"provisioning_state" : "INIT",
+		"total_hosts" : 3,
+		"version" : "HDP-2.0",
+		"desired_configs" : {
+			"capacity-scheduler" : {
+				"user" : "admin",
+				"tag" : "version1408514705943"
+			},
+			"core-site" : {
+				"user" : "admin",
+				"tag" : "version1409806913314"
+			},
+			"global" : {
+				"user" : "admin",
+				"tag" : "version1409806913314"
+			},
+			"hdfs-log4j" : {
+				"user" : "admin",
+				"tag" : "version1"
+			},
+			"hdfs-site" : {
+				"user" : "admin",
+				"tag" : "version1407908591996"
+			},
+			"mapred-site" : {
+				"user" : "admin",
+				"tag" : "version1408514705943"
+			},
+			"mapreduce2-log4j" : {
+				"user" : "admin",
+				"tag" : "version1408514705943"
+			},
+			"yarn-log4j" : {
+				"user" : "admin",
+				"tag" : "version1408514705943"
+			},
+			"yarn-site" : {
+				"user" : "admin",
+				"tag" : "version1408514705943"
+			},
+			"zoo.cfg" : {
+				"user" : "admin",
+				"tag" : "version1"
+			},
+			"zookeeper-log4j" : {
+				"user" : "admin",
+				"tag" : "version1"
+			}
+		}
+	},
+	"alerts" : {
+		"summary" : {
+			"CRITICAL" : 1,
+			"OK" : 2,
+			"PASSIVE" : 0,
+			"WARNING" : 0
+		}
+	},
+	"requests" : [
+		{
+			"href" : "http://your.ambari.server/api/v1/clusters/cluster001/requests/304",
+			"Requests" : {
+			"cluster_name" : "cluster001",
+			"id" : 304
+			}
+		},
+		{
+			"href" : "http://your.ambari.server/api/v1/clusters/cluster001/requests/305",
+			"Requests" : {
+			"cluster_name" : "cluster001",
+			"id" : 305
+			}
+		}
+		],
+	"services" : [
+	{
+		"href" : "http://your.ambari.server/api/v1/clusters/cluster001/services/GANGLIA",
+		"ServiceInfo" : {
+		"cluster_name" : "cluster001",
+		"service_name" : "GANGLIA"
+		}
+	},
+	{
+		"href" : "http://your.ambari.server/api/v1/clusters/cluster001/services/HDFS",
+		"ServiceInfo" : {
+		"cluster_name" : "cluster001",
+		"service_name" : "HDFS"
+		}
+	},
+	{
+		"href" : "http://your.ambari.server/api/v1/clusters/cluster001/services/MAPREDUCE2",
+		"ServiceInfo" : {
+		"cluster_name" : "cluster001",
+		"service_name" : "MAPREDUCE2"
+		}
+	},
+	{
+		"href" : "http://your.ambari.server/api/v1/clusters/cluster001/services/ZOOKEEPER",
+		"ServiceInfo" : {
+		"cluster_name" : "cluster001",
+		"service_name" : "ZOOKEEPER"
+		}
+	}
     	],
-    	"config_groups" : [
-    	{
-    		"href" : "http://your.ambari.server/api/v1/clusters/cluster001/config_groups/2",
-    		"ConfigGroup" : {
-    		 "cluster_name" : "cluster001",
-    		  "id" : 2
-    		}
-    	}
-    	],
-    	"workflows" : [ ],
-    	"hosts" : [
-    	{
-    		"href" : "http://your.ambari.server/api/v1/clusters/cluster001/hosts/host1.domain.com",
-    		"Hosts" : {
-    		  "cluster_name" : "cluster001",
-    		  "host_name" : "host1.domain.com"
-    		}
-    	},
-    	{
-    		"href" : "http://your.ambari.server/api/v1/clusters/cluster001/hosts/host2.domain.com",
-    		"Hosts" : {
-    		  "cluster_name" : "cluster001",
-    		  "host_name" : "host2.domain.com"
-    		}
-    	},
-    	{
-    		"href" : "http://your.ambari.server/api/v1/clusters/cluster001/hosts/host3.domain.com",
-    		"Hosts" : {
-    		  "cluster_name" : "cluster001",
-    		  "host_name" : "host3.domain.com"
-    		}
-    	}
-    	],
-    	"configurations" : [
-    	{
-    		"href" : "http://your.ambari.server/api/v1/clusters/cluster001/configurations?type=core-site&tag=version1",
-    		"tag" : "version1",
-    		"type" : "core-site",
-    		"Config" : {
-    		  "cluster_name" : "cluster001"
-    		}
-    	},
-    	{
-    		"href" : "http://your.ambari.server/api/v1/clusters/cluster001/configurations?type=global&tag=version1",
-    		"tag" : "version1",
-    		"type" : "global",
-    		"Config" : {
-    		  "cluster_name" : "cluster001"
-    		}
-    	},
-    	{
-    		"href" : "http://your.ambari.server/api/v1/clusters/cluster001/configurations?type=hdfs-site&tag=version1",
-    		"tag" : "version1",
-    		"type" : "hdfs-site",
-    		"Config" : {
-    		  "cluster_name" : "cluster001"
-    		}
-    	},
-    	{
-    		"href" : "http://your.ambari.server/api/v1/clusters/cluster001/configurations?type=zoo.cfg&tag=version1",
-    		"tag" : "version1",
-    		"type" : "zoo.cfg",
-    		"Config" : {
-    		  "cluster_name" : "cluster001"
-    		}
-    	},
-    	]
+	"config_groups" : [
+	{
+		"href" : "http://your.ambari.server/api/v1/clusters/cluster001/config_groups/2",
+		"ConfigGroup" : {
+		 "cluster_name" : "cluster001",
+		  "id" : 2
+		}
+	}
+	],
+	"workflows" : [ ],
+	"hosts" : [
+	{
+		"href" : "http://your.ambari.server/api/v1/clusters/cluster001/hosts/host1.domain.com",
+		"Hosts" : {
+		  "cluster_name" : "cluster001",
+		  "host_name" : "host1.domain.com"
+		}
+	},
+	{
+		"href" : "http://your.ambari.server/api/v1/clusters/cluster001/hosts/host2.domain.com",
+		"Hosts" : {
+		  "cluster_name" : "cluster001",
+		  "host_name" : "host2.domain.com"
+		}
+	},
+	{
+		"href" : "http://your.ambari.server/api/v1/clusters/cluster001/hosts/host3.domain.com",
+		"Hosts" : {
+		  "cluster_name" : "cluster001",
+		  "host_name" : "host3.domain.com"
+		}
+	}
+	],
+	"configurations" : [
+	{
+		"href" : "http://your.ambari.server/api/v1/clusters/cluster001/configurations?type=core-site&tag=version1",
+		"tag" : "version1",
+		"type" : "core-site",
+		"Config" : {
+		  "cluster_name" : "cluster001"
+		}
+	},
+	{
+		"href" : "http://your.ambari.server/api/v1/clusters/cluster001/configurations?type=global&tag=version1",
+		"tag" : "version1",
+		"type" : "global",
+		"Config" : {
+		  "cluster_name" : "cluster001"
+		}
+	},
+	{
+		"href" : "http://your.ambari.server/api/v1/clusters/cluster001/configurations?type=hdfs-site&tag=version1",
+		"tag" : "version1",
+		"type" : "hdfs-site",
+		"Config" : {
+		  "cluster_name" : "cluster001"
+		}
+	},
+	{
+		"href" : "http://your.ambari.server/api/v1/clusters/cluster001/configurations?type=zoo.cfg&tag=version1",
+		"tag" : "version1",
+		"type" : "zoo.cfg",
+		"Config" : {
+		  "cluster_name" : "cluster001"
+		}
+	},
+	]
     }

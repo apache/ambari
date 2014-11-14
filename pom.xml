@@ -108,7 +108,7 @@
             <configuration>
               <name>package-release</name>
               <value>${project.version}</value>
-              <regex>^([0-9]+)\.([0-9]+)\.([0-9]+)(\.|-)(([0-9]+)|(SNAPSHOT)).*</regex>
+              <regex>^([0-9]+)\.([0-9]+)\.([0-9]+)(\.|-)(([0-9]+)|(SNAPSHOT)|(techwin)).*</regex>
               <replacement>$5</replacement>
               <failIfNoMatch>true</failIfNoMatch>
             </configuration>
@@ -183,7 +183,7 @@
             <exclude>contrib/ambari-scom/msi/src/GUI_Ambari.sln</exclude>
             <exclude>version</exclude>
             <!--IDE and GIT files-->
-            <exclude>.idea/</exclude>
+            <exclude>**/.idea/</exclude>
             <exclude>.git/</exclude>
             <exclude>.pydevproject</exclude>
             <exclude>**/.gitignore</exclude>
@@ -193,7 +193,7 @@
             <exclude>**/.editorconfig</exclude>
               <!--gitignore content-->
             <exclude>.DS_Store</exclude>
-            <exclude>.iml/</exclude>
+            <exclude>**/*.iml</exclude>
             <exclude>.classpath</exclude>
             <exclude>.project</exclude>
             <exclude>.settings</exclude>
@@ -247,6 +247,11 @@
             <exclude>contrib/views/*/.project</exclude>
             <exclude>contrib/views/*/.settings/**</exclude>
 
+            <exclude>contrib/ambari-scom/ambari-scom-server/pass.txt</exclude>
+            <exclude>contrib/ambari-scom/ambari-scom-server/target/**</exclude>
+            <exclude>contrib/ambari-scom/*/rat.txt</exclude>
+            <exclude>contrib/ambari-scom/metrics-sink/target/**</exclude>
+
             <!--Velocity log -->
             <exclude>**/velocity.log*</exclude>
           </excludes>
@@ -298,22 +303,6 @@
   </build>
   <profiles>
     <profile>
-      <id>default</id>
-      <activation>
-         <activeByDefault>true</activeByDefault>
-      </activation>
-      <modules>
-        <module>ambari-web</module>
-        <module>ambari-project</module>
-        <module>ambari-views</module>
-        <module>ambari-admin</module>
-        <module>ambari-server</module>
-        <module>ambari-agent</module>
-        <module>ambari-client</module>
-        <module>ambari-shell</module>
-      </modules>
-    </profile>
-    <profile>
       <id>default-views</id>
       <activation>
         <property>
@@ -338,6 +327,43 @@
         <module>ambari-project</module>
         <module>ambari-views</module>
         <module>ambari-admin</module>
+        <module>ambari-server</module>
+        <module>ambari-agent</module>
+        <module>ambari-client</module>
+        <module>ambari-shell</module>
+      </modules>
+    </profile>
+    <profile>
+      <id>linux</id>
+      <activation>
+        <os>
+          <family>unix</family>
+        </os>
+      </activation>
+      <modules>
+        <module>ambari-web</module>
+        <module>ambari-project</module>
+        <module>ambari-views</module>
+        <module>ambari-admin</module>
+        <module>ambari-server</module>
+        <module>ambari-agent</module>
+        <module>ambari-client</module>
+        <module>ambari-shell</module>
+      </modules>
+    </profile>
+    <profile>
+      <id>windows</id>
+      <activation>
+        <os>
+          <family>win</family>
+        </os>
+      </activation>
+      <modules>
+        <module>ambari-web</module>
+        <module>ambari-project</module>
+        <module>ambari-views</module>
+        <module>ambari-admin</module>
+        <module>contrib/ambari-scom/metrics-sink</module>
         <module>ambari-server</module>
         <module>ambari-agent</module>
         <module>ambari-client</module>

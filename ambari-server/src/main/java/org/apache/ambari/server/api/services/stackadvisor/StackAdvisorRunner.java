@@ -37,7 +37,7 @@ public class StackAdvisorRunner {
 
   /**
    * Runs stack_advisor.py script in the specified {@code actionDirectory}.
-   * 
+   *
    * @param script stack advisor script
    * @param saCommandType {@link StackAdvisorCommandType} to run.
    * @param actionDirectory directory for the action
@@ -110,7 +110,7 @@ public class StackAdvisorRunner {
    * Gets an instance of a {@link ProcessBuilder} that's ready to execute the
    * shell command to run the stack advisor script. This will take the
    * environment variables from the current process.
-   * 
+   *
    * @param script
    * @param saCommandType
    * @param actionDirectory
@@ -126,8 +126,13 @@ public class StackAdvisorRunner {
 
     // includes the original command plus the arguments for it
     List<String> builderParameters = new ArrayList<String>();
-    builderParameters.add("sh");
-    builderParameters.add("-c");
+    if (System.getProperty("os.name").contains("Windows")) {
+      builderParameters.add("cmd");
+      builderParameters.add("/c");
+    } else {
+      builderParameters.add("sh");
+      builderParameters.add("-c");
+    }
 
     // for the 3rd argument, build a single parameter since we use -c
     // ProcessBuilder doesn't support output redirection until JDK 1.7

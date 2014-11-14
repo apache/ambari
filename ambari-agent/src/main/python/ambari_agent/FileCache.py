@@ -24,6 +24,7 @@ import os
 import shutil
 import zipfile
 import urllib2
+import urllib
 
 logger = logging.getLogger()
 
@@ -155,7 +156,7 @@ class FileCache():
     filename - file inside directory we are trying to fetch
     """
     return "{0}/{1}/{2}".format(server_url_prefix,
-                                    directory, filename)
+                                urllib.pathname2url(directory), filename)
 
 
   def fetch_url(self, url):

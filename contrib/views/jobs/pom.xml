@@ -98,7 +98,7 @@
                         </goals>
                         <configuration>
                             <workingDirectory>${basedir}/src/main/resources/ui</workingDirectory>
-                            <executable>node/node</executable>
+                            <executable>${basedir}/src/main/resources/ui/node/${executable.node}</executable>
                             <arguments>
                                 <argument>node_modules/bower/bin/bower</argument>
                                 <argument>install</argument>
@@ -114,9 +114,9 @@
                         </goals>
                         <configuration>
                             <workingDirectory>${basedir}/src/main/resources/ui</workingDirectory>
-                            <executable>node/node</executable>
+                            <executable>${basedir}/src/main/resources/ui/node/${executable.node}</executable>
                             <arguments>
-                                <argument>node_modules/.bin/grunt</argument>
+                                <argument>node_modules/grunt-cli/bin/grunt</argument>
                                 <argument>build</argument>
                             </arguments>
                         </configuration>
@@ -175,7 +175,7 @@
         <artifactId>ambari-views</artifactId>
         <version>${ambari.version}</version>
       </dependency>
-      
+
       <dependency>
         <groupId>javax.servlet</groupId>
         <artifactId>servlet-api</artifactId>
@@ -189,4 +189,30 @@
       </dependency>
 
     </dependencies>
+    <profiles>
+        <profile>
+            <id>windows</id>
+            <activation>
+                <os>
+                    <family>win</family>
+                </os>
+            </activation>
+            <properties>
+                <envClassifier>win</envClassifier>
+                <executable.node>node.exe</executable.node>
+            </properties>
+        </profile>
+        <profile>
+            <id>linux</id>
+            <activation>
+                <os>
+                    <family>unix</family>
+                </os>
+            </activation>
+            <properties>
+                <envClassifier>linux</envClassifier>
+                <executable.node>node</executable.node>
+            </properties>
+        </profile>
+    </profiles>
 </project>

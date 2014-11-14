@@ -15,10 +15,10 @@
 
 
 from urlparse import urlparse
-import time
 import logging
 import httplib
 from ssl import SSLError
+import platform
 
 ERROR_SSL_WRONG_VERSION = "SSLError: Failed to connect. Please check openssl library versions. \n" +\
               "Refer to: https://bugzilla.redhat.com/show_bug.cgi?id=1022468 for more details."
@@ -38,6 +38,23 @@ class NetUtil:
   SERVER_STATUS_REQUEST = "{0}/ca"
   # For testing purposes
   DEBUG_STOP_RETRIES_FLAG = False
+
+  # Stop implementation
+  # Typically, it waits for a certain time for the daemon/service to receive the stop signal.
+  # Received the number of seconds to wait as an argument
+  # Returns true if the application is stopping, false if continuing execution
+  stopCallback = None
+
+  def __init__(self, stop_callback=None):
+    if stop_callback is None:
+      IS_WINDOWS = platform.system() == "Windows"
+      if IS_WINDOWS:
+        from HeartbeatHandlers_windows import HeartbeatStopHandler
+      else:
+        from HeartbeatStopHandler_linux import HeartbeatStopHandler
+      stop_callback = HeartbeatStopHandler()
+
+    self.stopCallback = stop_callback
 
   def checkURL(self, url):
     """Try to connect to a given url. Result is True if url returns HTTP code 200, in any other case
@@ -78,6 +95,7 @@ class NetUtil:
 
     Returns count of retries
     """
+    connected = False
     if logger is not None:
       logger.debug("Trying to connect to %s", server_url)
 
@@ -85,11 +103,17 @@ class NetUtil:
     while (max_retries == -1 or retries < max_retries) and not self.DEBUG_STOP_RETRIES_FLAG:
       server_is_up, responseBody = self.checkURL(self.SERVER_STATUS_REQUEST.format(server_url))
       if server_is_up:
+        connected = True
         break
       else:
         if logger is not None:
           logger.warn('Server at {0} is not reachable, sleeping for {1} seconds...'.format(server_url,
             self.CONNECT_SERVER_RETRY_INTERVAL_SEC))
         retries += 1
-        time.sleep(self.CONNECT_SERVER_RETRY_INTERVAL_SEC)
-    return retries
+
+      if 0 == self.stopCallback.wait(self.CONNECT_SERVER_RETRY_INTERVAL_SEC):
+        #stop waiting
+        if logger is not None:
+          logger.info("Stop event received")
+        self.DEBUG_STOP_RETRIES_FLAG = True
+    return retries, connected

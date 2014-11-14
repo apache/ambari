@@ -303,6 +303,18 @@ public abstract class AbstractPropertyProvider extends BaseProvider implements P
     }
   }
 
+  protected PropertyInfo updatePropertyInfo(String propertyKey, String id, PropertyInfo propertyInfo) {
+    List<String> regexGroups = getRegexGroups(propertyKey, id);
+    String propertyId = propertyInfo.getPropertyId();
+    if(propertyId != null) {
+      for (String regexGroup : regexGroups) {
+        regexGroup = regexGroup.replace("/", ".");
+        propertyId = propertyId.replaceFirst(FIND_REGEX_IN_METRIC_REGEX, regexGroup);
+      }
+    }
+    return new PropertyInfo(propertyId, propertyInfo.isTemporal(), propertyInfo.isPointInTime());
+  }
+
   /**
    * Verify that the component metrics contains the property id.
    * @param componentName Name of the component

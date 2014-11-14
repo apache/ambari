@@ -1,0 +1,262 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+
+<configuration supports_final="false">
+
+  <property>
+    <name>pig-content</name>
+    <value>
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#  http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+
+# Pig configuration file. All values can be overwritten by command line arguments.
+
+# Use the "-h properties" command to see description of the properties
+
+# log4jconf log4j configuration file
+# log4jconf=./conf/log4j.properties
+
+# a file that contains pig script
+#file=
+
+# load jarfile, colon separated
+#jar=
+
+#verbose print all log messages to screen (default to print only INFO and above to screen)
+#verbose=true
+
+#exectype local|mapreduce, mapreduce is default
+#exectype=local
+
+#the default timezone: if it is not set, the default timezone for this host is used.
+#the correct timezone format is the UTC offset: e.g., +08:00.
+#pig.datetime.default.tz=
+
+#pig.logfile=
+
+#Do not spill temp files smaller than this size (bytes)
+#pig.spill.size.threshold=5000000
+
+#EXPERIMENT: Activate garbage collection when spilling a file bigger than this size (bytes)
+#This should help reduce the number of files being spilled.
+#pig.spill.gc.activation.size=40000000
+
+#the following two parameters are to help estimate the reducer number
+#pig.exec.reducers.bytes.per.reducer=1000000000
+#pig.exec.reducers.max=999
+
+#Logging properties
+#verbose=false
+#brief=false
+#debug=INFO
+#aggregate.warning=true
+
+#Performance tuning properties
+#pig.cachedbag.memusage=0.2
+#pig.skewedjoin.reduce.memusage=0.3
+#pig.exec.nocombiner=false
+#opt.multiquery=true
+
+#Following parameters are for configuring intermediate storage format
+#Supported storage types are seqfile and tfile
+#Supported codec types: tfile supports gz(gzip) and lzo, seqfile support gz(gzip), lzo, snappy, bzip2
+#pig.tmpfilecompression=false
+#pig.tmpfilecompression.storage=seqfile
+#pig.tmpfilecompression.codec=gz
+
+#pig.noSplitCombination=true
+
+#pig.exec.mapPartAgg=false
+#pig.exec.mapPartAgg.minReduction=10
+
+#exectype=mapreduce
+#pig.additional.jars=&lt;comma seperated list of jars&gt;
+#udf.import.list=&lt;comma seperated list of imports&gt;
+#stop.on.failure=false
+
+#Use this option only when your Pig job will otherwise die because of
+#using more counters than hadoop configured limit
+#pig.disable.counter=true
+
+# By default, pig will allow 1GB of data to be replicated using
+# the distributed cache when doing fragment-replicated join.
+# pig.join.replicated.max.bytes=1000000000
+
+# Use this option to turn on UDF timers. This will cause two
+# counters to be tracked for every UDF and LoadFunc in your script:
+# approx_microsecs measures approximate time spent inside a UDF
+# approx_invocations reports the approximate number of times the UDF was invoked
+# pig.udf.profile=false
+
+#When enabled, 'describe' prints a multi-line formatted schema
+#(similar to an indended json) rather than on a single line.
+#pig.pretty.print.schema=true
+
+#pig.sql.type=hcat
+hcat.bin=c:\hdp\hcatalog-@hcat.version@\\bin\\hcat.py
+
+############################ SchemaTuple ############################
+
+# Setting this value will turn on the SchemaTuple feature (PIG-2632)
+# This will attempt to use code generation for more efficient within
+# the pig code. This can lead to both CPU, serialization, and memory
+# benefits (currently, the potential memory benefits are the largest).
+
+# This parameter will enable the optimization in all available cases
+#pig.schematuple=true
+
+# Certain cases can be turned off by uncommenting the following. These will
+# all be off by default, but will all be turned on if pig.schematuple is set
+# to true.
+
+# This will disable SchemaTuples in the case of udfs. Currently,
+# the input to UDF's will be SchemaTuples.
+
+#pig.schematuple.udf=false
+
+# This is currently not implemented. In the future, LoadFunc's with known
+# schema's should output SchemaTuples
+
+#pig.schematuple.load=false
+
+# This will use SchemaTuples in replicated joins. The potential memory saving
+# here is significant. It will use SchemaTuples when it builds the HashMap of
+# the join key to related values.
+
+#pig.schematuple.fr_join=false
+
+# In the current implementation of merge join, all of the Tuples in the left relation
+# that share a given key will be stored in a List in memory. This will use SchemaTuples
+# instead in that List.
+
+#pig.schematuple.merge_join=false
+
+#####################################################################
+
+##### Set up optional Pig Progress Notification Listener ############
+
+# Note that only one PPNL can be set up. If you need several, write a PPNL that will chain them.
+# pig.notification.listener = &lt;fully qualified class name of a PPNL implementation&gt;
+
+# Optionally, you can supply a single String argument to pass to your PPNL.
+# pig.notification.listener.arg = &lt;somevalue&gt;
+
+#####################################################################
+
+########## Override the default Reducer Estimator logic #############
+
+# By default, the logic to estimate the number of reducers to use for a given job lives in:
+#   org.apache.pig.backend.hadoop.executionengine.mapReduceLayer.InputSizeReducerEstimator
+# This logic can be replaced by implementing the following interface:
+#   org.apache.pig.backend.hadoop.executionengine.mapReduceLayer.PigReducerEstimator
+
+# This class will be invoked to estimate the number of reducers to use.
+# pig.exec.reducer.estimator = &lt;fully qualified class name of a PigReducerEstimator implementation&gt;
+
+# Optionally, you can supply a single String argument to pass to your PigReducerEstimator.
+# pig.exec.reducer.estimator.arg = &lt;somevalue&gt;
+
+#####################################################################
+
+###### Override the default Pig Stats Output Size Reader logic ######
+
+# By default, the size of reducers output is computed as the total size of
+# output files. But since not every storage is file-based, this logic is not
+# always applicable. If that is the case, the logic can be replaced by
+# implementing the following interface:
+#   org.apache.pig.backend.hadoop.executionengine.mapReduceLayer.PigStatsOutputSizeReader
+
+# This class will be invoked to compute the size of reducers output.
+# pig.stats.output.size.reader = &lt;fully qualified class name of a PigStatsOutputSizeReader implementation&gt;
+
+# If you need to register more than one reader, you can register them as a comma
+# separated list. Every reader implements a boolean supports(POStore sto) method.
+# When there are more than one reader, they are consulted in order, and the
+# first one whose supports() method returns true will be used.
+#
+#####################################################################
+
+#pig.load.default.statements=
+
+#####################################################################
+
+########### Override hadoop configs programatically #################
+
+# By default, Pig expects hadoop configs (hadoop-site.xml and core-site.xml)
+# to be present on the classpath. There are cases when these configs are
+# needed to be passed programatically, such as while using the PigServer API.
+# In such cases, you can override hadoop configs by setting the property
+# "pig.use.overriden.hadoop.configs".
+#
+# When this property is set to true, Pig ignores looking for hadoop configs
+# in the classpath and instead picks it up from Properties/Configuration
+# object passed to it.
+
+# pig.use.overriden.hadoop.configs=false
+#
+######################################################################
+
+# Check if the script needs to check multiple stores writing
+# to the same location. When set to true, stops the execution
+# of script right away.
+pig.location.check.strict=false
+
+######################################################################
+
+# This key is used to define the default load func. Pig will fallback
+# on PigStorage as default in case this is undefined.
+
+# pig.default.load.func=&lt;fully qualified class name of a LoadFunc implementation&gt;
+# For eg, pig.default.load.func=org.apache.pig.custom.MyCustomStorage
+
+# This key is used to define the default store func. Pig will fallback
+# on PigStorage as default in case this is undefined.
+
+# pig.default.store.func=&lt;fully qualified class name of a StoreFunc implementation&gt;
+# For eg, pig.default.store.func=org.apache.pig.custom.MyCustomStorage
+
+# This option is used to define whether to support recovery to handle the
+# application master getting restarted.
+# pig.output.committer.recovery.support=true
+
+# Set this option to true if you need to use the old partition filter optimizer.
+# Note: Old filter optimizer PColFilterOptimizer will be deprecated in the future.
+# pig.exec.useOldPartitionFilterOptimizer=true
+
+    </value>
+  </property>
+
+</configuration>

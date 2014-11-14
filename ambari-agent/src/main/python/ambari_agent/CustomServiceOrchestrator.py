@@ -64,7 +64,7 @@ class CustomServiceOrchestrator():
     self.public_fqdn = hostname.public_hostname(config)
     # cache reset will be called on every agent registration
     controller.registration_listeners.append(self.file_cache.reset)
-    
+
     # Clean up old status command files if any
     try:
       os.unlink(self.status_commands_stdout)
@@ -88,7 +88,7 @@ class CustomServiceOrchestrator():
                     "reason - {reason} . Killing process {pid}"
         .format(tid = str(task_id), reason = reason, pid = pid))
         shell.kill_process_with_children(pid)
-      else: 
+      else:
         logger.warn("Unable to find pid by taskId = %s"%task_id)
 
   def runCommand(self, command, tmpoutfile, tmperrfile, forced_command_name = None,
@@ -101,7 +101,7 @@ class CustomServiceOrchestrator():
       script_type = command['commandParams']['script_type']
       script = command['commandParams']['script']
       timeout = int(command['commandParams']['command_timeout'])
-      
+
       if 'hostLevelParams' in command and 'jdk_location' in command['hostLevelParams']:
         server_url_prefix = command['hostLevelParams']['jdk_location']
       else:
@@ -149,7 +149,7 @@ class CustomServiceOrchestrator():
         handle = command['__handle']
         handle.on_background_command_started = self.map_task_to_process
         del command['__handle']
-      
+
       json_path = self.dump_command_to_json(command)
       pre_hook_tuple = self.resolve_hook_script_path(hook_dir,
           self.PRE_HOOK_PREFIX, command_name, script_type)
@@ -187,7 +187,7 @@ class CustomServiceOrchestrator():
         if cancel_reason:
           ret['stdout'] += cancel_reason
           ret['stderr'] += cancel_reason
-  
+
           with open(tmpoutfile, "a") as f:
             f.write(cancel_reason)
           with open(tmperrfile, "a") as f:
@@ -213,7 +213,7 @@ class CustomServiceOrchestrator():
         if not isinstance(pid, int):
           return '\nCommand aborted. ' + pid
     return None
-        
+
   def requestComponentStatus(self, command):
     """
      Component status is determined by exit code, returned by runCommand().
@@ -262,6 +262,8 @@ class CustomServiceOrchestrator():
     # Perform few modifications to stay compatible with the way in which
     public_fqdn = self.public_fqdn
     command['public_hostname'] = public_fqdn
+    # Add cache dir to make it visible for commands
+    command["hostLevelParams"]["agentCacheDir"] = self.config.get('agent', 'cache_dir')
     # Now, dump the json file
     command_type = command['commandType']
     from ActionQueue import ActionQueue  # To avoid cyclic dependency

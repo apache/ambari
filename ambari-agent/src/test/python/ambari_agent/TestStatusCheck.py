@@ -47,7 +47,7 @@ class TestStatusCheck(TestCase):
 
   def setUp(self):
 
-    self.pidPathesVars = [
+    self.pidPathVars = [
       {'var' : '',
       'defaultValue' : PID_DIR}
     ]
@@ -84,7 +84,7 @@ class TestStatusCheck(TestCase):
   @patch.object(StatusCheck, 'getIsLive')
   def test_live(self, get_is_live_mock):
 
-    statusCheck = StatusCheck(self.serviceToPidDict, self.pidPathesVars,
+    statusCheck = StatusCheck(self.serviceToPidDict, self.pidPathVars,
       self.globalConfig, self.servicesToLinuxUser)
 
     self.assertTrue(StatusCheck.USER_PATTERN in self.serviceToPidDict[COMPONENT_LIVE])
@@ -108,11 +108,11 @@ class TestStatusCheck(TestCase):
     logger_info_mock.side_effect = my_side_effect
     
     # call this three times
-    statusCheck = StatusCheck(self.serviceToPidDict, self.pidPathesVars,
+    statusCheck = StatusCheck(self.serviceToPidDict, self.pidPathVars,
       self.globalConfig, self.servicesToLinuxUser)
-    statusCheck = StatusCheck(self.serviceToPidDict, self.pidPathesVars,
+    statusCheck = StatusCheck(self.serviceToPidDict, self.pidPathVars,
       self.globalConfig, self.servicesToLinuxUser)
-    statusCheck = StatusCheck(self.serviceToPidDict, self.pidPathesVars,
+    statusCheck = StatusCheck(self.serviceToPidDict, self.pidPathVars,
       self.globalConfig, self.servicesToLinuxUser)
     # logged not more then once
     self.assert_(TestStatusCheck.timesLogged <= 1, "test_dont_relog_serToPidDict logged more then once")
@@ -129,7 +129,7 @@ class TestStatusCheck(TestCase):
     self.pidFilesDict[one_more_pid_file_name] = one_more_pid_full_path
     self.is_live_values[one_more_pid_full_path] = False
 
-    statusCheck = StatusCheck(self.serviceToPidDict, self.pidPathesVars,
+    statusCheck = StatusCheck(self.serviceToPidDict, self.pidPathVars,
       self.globalConfig, self.servicesToLinuxUser)
 
     statusCheck.pidFilesDict = self.pidFilesDict
@@ -149,7 +149,7 @@ class TestStatusCheck(TestCase):
     badServiceToPidDict = self.serviceToPidDict.copy()
     badServiceToPidDict['BAD_COMPONENT'] = 'prefix' + StatusCheck.USER_PATTERN
 
-    statusCheck = StatusCheck(badServiceToPidDict, self.pidPathesVars,
+    statusCheck = StatusCheck(badServiceToPidDict, self.pidPathVars,
       self.globalConfig, self.servicesToLinuxUser)
 
     statusCheck.pidFilesDict = self.pidFilesDict
@@ -162,7 +162,7 @@ class TestStatusCheck(TestCase):
   # Ensure that status checker return False for dead process
   @patch.object(StatusCheck, 'getIsLive')
   def test_dead(self, get_is_live_mock):
-    statusCheck = StatusCheck(self.serviceToPidDict, self.pidPathesVars,
+    statusCheck = StatusCheck(self.serviceToPidDict, self.pidPathVars,
       self.globalConfig, self.servicesToLinuxUser)
 
     statusCheck.pidFilesDict = self.pidFilesDict

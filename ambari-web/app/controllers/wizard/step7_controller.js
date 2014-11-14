@@ -874,21 +874,33 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
   },
 
   /**
-   * Check if Oozie or Hive use existing database then need
+   * Check if Oozie, Hive or MetricsSink use existing database then need
    * to restore missed properties
    *
    * @param {Object[]} configs
    **/
   setServiceDatabaseConfigs: function (configs) {
     var serviceNames = this.get('installedServiceNames').filter(function (serviceName) {
-      return ['OOZIE', 'HIVE'].contains(serviceName);
+      return ['OOZIE', 'HIVE', 'HDFS'].contains(serviceName);
     });
     serviceNames.forEach(function (serviceName) {
-      var dbTypeConfig = configs.findProperty('name', serviceName.toLowerCase() + '_database');
+      var propertyPrefix = serviceName.toLowerCase();
+      if(/HDFS/gi.test(serviceName)) propertyPrefix = 'sink';
+      var dbTypeConfig = configs.findProperty('name', propertyPrefix + '_database');
       if (!/existing/gi.test(dbTypeConfig.value)) return;
-      var dbHostName = serviceName.toLowerCase() + '_hostname';
-      var database = dbTypeConfig.value.match(/MySQL|PostgreSQL|Oracle|Derby/gi)[0];
-      var existingDBConfig = configs.findProperty('name', serviceName.toLowerCase() + '_existing_' + database.toLowerCase() + '_host');
+      var dbHostName = propertyPrefix + '_hostname';
+      var database = dbTypeConfig.value.match(/MySQL|PostgreSQL|Oracle|Derby|MSSQL/gi)[0];
+      var dbPrefix = database.toLowerCase();
+      if(database.toLowerCase() == 'mssql') {
+        dbHostName = 'sink.dbservername';
+        if(/integrated/gi.test(dbTypeConfig.value)) {
+          dbPrefix = 'mssql_server';
+        } else {
+          dbPrefix = 'mssql_server_2';
+        }
+      }
+      var propertyName = propertyPrefix + '_existing_' + dbPrefix + '_host';
+      var existingDBConfig = configs.findProperty('name', propertyName);
       if (!existingDBConfig.value)
         existingDBConfig.value = existingDBConfig.defaultValue = configs.findProperty('name', dbHostName).value;
     }, this);

@@ -87,6 +87,24 @@ App.StackService = DS.Model.extend({
     return services.contains(this.get('serviceName'));
   }.property('serviceName'),
 
+  // Is the service required for reporting host metrics
+  isHostMetricsService: function () {
+      var services = ['GANGLIA'];
+      return services.contains(this.get('serviceName'));
+  }.property('serviceName'),
+
+  // Is the service required for reporting hadoop service metrics
+  isServiceMetricsService: function () {
+      var services = ['GANGLIA'];
+      return services.contains(this.get('serviceName'));
+  }.property('serviceName'),
+
+  // Is the service required for reporting aleerts
+  isAlertingService: function () {
+      var services = ['NAGIOS'];
+      return services.contains(this.get('serviceName'));
+  }.property('serviceName'),
+
   coSelectedServices: function () {
     var coSelectedServices = App.StackService.coSelected[this.get('serviceName')];
     if (!!coSelectedServices) {
@@ -122,7 +140,7 @@ App.StackService = DS.Model.extend({
   }.property('configTypes'),
 
   customReviewHandler: function () {
-    return App.StackService.reviewPageHandlers[this.get('serviceName')];
+    return App.get('isHadoopWindowsStack')? App.StackService.reviewWindowsPageHandlers[this.get('serviceName')] : App.StackService.reviewPageHandlers[this.get('serviceName')];
   }.property('serviceName'),
 
   /**
@@ -134,7 +152,7 @@ App.StackService = DS.Model.extend({
     var configTypes = this.get('configTypes');
     var serviceComponents = this.get('serviceComponents');
     if (configTypes && Object.keys(configTypes).length) {
-      var pattern = ["General", "CapacityScheduler", "FaultTolerance", "Isolation", "Performance", "^Advanced", "Env$", "^Custom", "Falcon - Oozie integration", "FalconStartupSite", "FalconRuntimeSite"];
+      var pattern = ["MetricsSink", "General", "CapacityScheduler", "FaultTolerance", "Isolation", "Performance", "^Advanced", "Env$", "^Custom", "Falcon - Oozie integration", "FalconStartupSite", "FalconRuntimeSite"];
       configCategories = App.StackService.configCategories.call(this).filter(function (_configCategory) {
         var serviceComponentName = _configCategory.get('name');
         var isServiceComponent = serviceComponents.someProperty('componentName', serviceComponentName);
@@ -191,10 +209,30 @@ App.StackService.reviewPageHandlers = {
   }
 };
 
+App.StackService.reviewWindowsPageHandlers = {
+  'HIVE': {
+    'Database': 'loadHiveDbValue'
+  },
+  'HDFS': {
+    'Database': 'loadSinkDbValue'
+  },
+  'NAGIOS': {
+    'Administrator': 'loadNagiosAdminValue'
+  },
+  'OOZIE': {
+    'Database': 'loadOozieDbValue'
+  }
+};
+
 App.StackService.configCategories = function () {
   var serviceConfigCategories = [];
   switch (this.get('serviceName')) {
     case 'HDFS':
+      if (App.get('isHadoopWindowsStack')) {
+        serviceConfigCategories.pushObjects([
+          App.ServiceConfigCategory.create({ name: 'MetricsSink', displayName: 'Metrics Sink'})
+        ]);
+      }
       serviceConfigCategories.pushObjects([
         App.ServiceConfigCategory.create({ name: 'NAMENODE', displayName: 'NameNode'}),
         App.ServiceConfigCategory.create({ name: 'SECONDARY_NAMENODE', displayName: 'Secondary NameNode'}),

@@ -20,6 +20,8 @@ Ambari Agent
 
 """
 
+import platform
+
 from resource_management.libraries.functions.default import *
 from resource_management.libraries.functions.format import *
 from resource_management.libraries.functions.get_kinit_path import *
@@ -31,3 +33,10 @@ from resource_management.libraries.functions.get_port_from_url import *
 from resource_management.libraries.functions.hive_check import *
 from resource_management.libraries.functions.version import *
 from resource_management.libraries.functions.format_jvm_option import *
+
+IS_WINDOWS = platform.system() == "Windows"
+
+if IS_WINDOWS:
+  from resource_management.libraries.functions.windows_service_utils import *
+  from resource_management.libraries.functions.install_hdp_msi import *
+  from resource_management.libraries.functions.reload_windows_env import *

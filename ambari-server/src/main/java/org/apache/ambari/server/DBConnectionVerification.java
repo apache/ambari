@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server;
 
+import org.apache.commons.lang.StringUtils;
+
 import java.sql.*;
 
 public class DBConnectionVerification {
@@ -30,7 +32,11 @@ public class DBConnectionVerification {
     Connection conn = null;
     try {
        Class.forName(driver);
-       conn = DriverManager.getConnection(url, username, password);
+       if(url.contains("integratedSecurity=true")) {
+         conn = DriverManager.getConnection(url);
+       } else {
+         conn = DriverManager.getConnection(url, username, password);
+       }
        System.out.println("Connected to DB Successfully!");
     } catch (Exception e) {
        System.out.println("ERROR: Unable to connect to the DB. Please check DB connection properties.");

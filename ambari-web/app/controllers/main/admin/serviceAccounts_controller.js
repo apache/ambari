@@ -58,11 +58,11 @@ App.MainAdminServiceAccountsController = App.MainServiceInfoConfigsController.ex
     App.router.get('configurationController').getConfigsByTags(this.get('serviceConfigTags')).done(function (configGroups) {
       var configSet = App.config.mergePreDefinedWithLoaded(configGroups, [], self.get('serviceConfigTags'), serviceName);
 
-      var misc_configs = configSet.configs.filterProperty('serviceName', self.get('selectedService')).filterProperty('category', 'Users and Groups').filterProperty('isVisible', true);
+      var misc_configs = configSet.configs.filterProperty('serviceName', self.get('selectedService')).filterProperty('category', 'Users and Groups').filterProperty('isVisible', true).rejectProperty('displayType', 'password');
 
       misc_configs = App.config.miscConfigVisibleProperty(misc_configs, installedServices);
 
-      var sortOrder = self.get('configs').filterProperty('serviceName', self.get('selectedService')).filterProperty('category', 'Users and Groups').filterProperty('isVisible', true).mapProperty('name');
+      var sortOrder = self.get('configs').filterProperty('serviceName', self.get('selectedService')).filterProperty('category', 'Users and Groups').filterProperty('isVisible', true).rejectProperty('displayType', 'password').mapProperty('name');
 
 
       self.setProxyUserGroupLabel(misc_configs);

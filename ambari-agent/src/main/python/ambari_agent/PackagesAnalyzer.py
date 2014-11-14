@@ -77,7 +77,7 @@ class PackagesAnalyzer:
   # All installed packages in systems supporting yum
   def allInstalledPackages(self, allInstalledPackages):
     osType = OSCheck.get_os_family()
-    
+
     if osType == OSConst.SUSE_FAMILY:
       return self.lookUpZypperPackages(
         ["zypper", "search", "--installed-only", "--details"],
@@ -90,11 +90,11 @@ class PackagesAnalyzer:
     elif osType == OSConst.UBUNTU_FAMILY:
        return self.lookUpAptPackages(
         LIST_INSTALLED_PACKAGES_UBUNTU,
-        allInstalledPackages)   
+        allInstalledPackages)
 
   def allAvailablePackages(self, allAvailablePackages):
     osType = OSCheck.get_os_family()
-    
+
     if osType == OSConst.SUSE_FAMILY:
       return self.lookUpZypperPackages(
         ["zypper", "search", "--uninstalled-only", "--details"],
@@ -107,16 +107,16 @@ class PackagesAnalyzer:
     elif osType == OSConst.UBUNTU_FAMILY:
        return self.lookUpAptPackages(
         LIST_AVAILABLE_PACKAGES_UBUNTU,
-        allAvailablePackages)   
-      
-  def lookUpAptPackages(self, command, allPackages):   
+        allAvailablePackages)
+
+  def lookUpAptPackages(self, command, allPackages):
     try:
       result = self.subprocessWithTimeout(command)
       if 0 == result['retCode']:
         for x in result['out'].split('\n'):
           if x.strip():
             allPackages.append(x.split(' '))
-      
+
     except:
       pass
 

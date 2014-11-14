@@ -46,45 +46,47 @@
     <div class="ambari-agents">
       <h5>{{t installer.step2.sshKey}}</h5>
 
-      <label class="radio">
-        {{view view.providingSSHKeyRadioButton}}
-        {{t installer.step2.useSsh.provide}}
-        <a href="javascript:void(null)"
-           rel="popover"
-          {{translateAttr title="installer.step2.useSsh.tooltip.title" data-content="installer.step2.useSsh.tooltip.content"}}>
-          {{t installer.step2.useSsh.tooltip.title}}</a>
-        {{t installer.step2.useSsh.provide_id_rsa}}
-      </label>
+      {{#if isSSHRegistrationEnabled}}
+        <label class="radio">
+          {{view view.providingSSHKeyRadioButton}}
+          {{t installer.step2.useSsh.provide}}
+          <a href="javascript:void(null)"
+             rel="popover"
+            {{translateAttr title="installer.step2.useSsh.tooltip.title" data-content="installer.step2.useSsh.tooltip.content"}}>
+            {{t installer.step2.useSsh.tooltip.title}}</a>
+          {{t installer.step2.useSsh.provide_id_rsa}}
+        </label>
 
-      <div class="ssh-key-input">
-        {{#if view.isFileApi}}
-          {{view App.SshKeyFileUploader disabledBinding="view.sshKeyState"}}
-        {{/if}}
-        <div {{bindAttr class="sshKeyError:error :controls :control-group"}}>
-          {{view Ember.TextArea class="span6" rows="3" id="sshKey"
-          placeholder="ssh private key" disabledBinding="view.sshKeyState" valueBinding="content.installOptions.sshKey"}}
-          {{#if sshKeyError}}
-            <span class="help-inline">{{sshKeyError}}</span>
+        <div class="ssh-key-input">
+          {{#if view.isFileApi}}
+            {{view App.SshKeyFileUploader disabledBinding="view.sshKeyState"}}
           {{/if}}
-        </div>
-        <div>
-          <label class="ssh-user pull-left">
-            {{t installer.step2.sshUser}}
-            <a href="javascript:void(null)"
-               rel="popover"
-              {{translateAttr title="installer.step2.sshUser.link" data-content="installer.step2.sshUser.toolTip"}}>
-              {{t installer.step2.sshUser.link}}</a>
-            {{t installer.step2.sshUser.account}}
-          </label>
-
-          <div {{bindAttr class="sshUserError:error :control-group"}}>
-            {{view view.textFieldView valueBinding="content.installOptions.sshUser" isEnabledBinding="content.installOptions.useSsh"}}
-            {{#if sshUserError}}
-              <span class="help-inline">{{sshUserError}}</span>
+          <div {{bindAttr class="sshKeyError:error :controls :control-group"}}>
+            {{view Ember.TextArea class="span6" rows="3" id="sshKey"
+            placeholder="ssh private key" disabledBinding="view.sshKeyState" valueBinding="content.installOptions.sshKey"}}
+            {{#if sshKeyError}}
+              <span class="help-inline">{{sshKeyError}}</span>
             {{/if}}
           </div>
+          <div>
+            <label class="ssh-user pull-left">
+              {{t installer.step2.sshUser}}
+              <a href="javascript:void(null)"
+                 rel="popover"
+                {{translateAttr title="installer.step2.sshUser.link" data-content="installer.step2.sshUser.toolTip"}}>
+                {{t installer.step2.sshUser.link}}</a>
+              {{t installer.step2.sshUser.account}}
+            </label>
+
+            <div {{bindAttr class="sshUserError:error :control-group"}}>
+              {{view view.textFieldView valueBinding="content.installOptions.sshUser" isEnabledBinding="content.installOptions.useSsh"}}
+              {{#if sshUserError}}
+                <span class="help-inline">{{sshUserError}}</span>
+              {{/if}}
+            </div>
+          </div>
         </div>
-      </div>
+      {{/if}}
 
       <label class="radio">
         {{view view.manualRegistrationRadioButton}}

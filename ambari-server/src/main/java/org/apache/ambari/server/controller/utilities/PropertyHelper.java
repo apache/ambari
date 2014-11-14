@@ -44,6 +44,7 @@ public class PropertyHelper {
 
   private static final String PROPERTIES_FILE = "properties.json";
   private static final String GANGLIA_PROPERTIES_FILE = "ganglia_properties.json";
+  private static final String SQLSERVER_PROPERTIES_FILE = "sqlserver_properties.json";
   private static final String JMX_PROPERTIES_FILE = "jmx_properties.json";
   private static final String KEY_PROPERTIES_FILE = "key_properties.json";
   private static final char EXTERNAL_PATH_SEP = '/';
@@ -51,6 +52,7 @@ public class PropertyHelper {
   private static final Map<Resource.InternalType, Set<String>> PROPERTY_IDS = readPropertyIds(PROPERTIES_FILE);
   private static final Map<Resource.InternalType, Map<String, Map<String, PropertyInfo>>> JMX_PROPERTY_IDS = readPropertyProviderIds(JMX_PROPERTIES_FILE);
   private static final Map<Resource.InternalType, Map<String, Map<String, PropertyInfo>>> GANGLIA_PROPERTY_IDS = readPropertyProviderIds(GANGLIA_PROPERTIES_FILE);
+    private static final Map<Resource.InternalType, Map<String, Map<String, PropertyInfo>>> SQLSERVER_PROPERTY_IDS = readPropertyProviderIds(SQLSERVER_PROPERTIES_FILE);
   private static final Map<Resource.InternalType, Map<Resource.Type, String>> KEY_PROPERTY_IDS = readKeyPropertyIds(KEY_PROPERTIES_FILE);
 
   /**
@@ -112,6 +114,10 @@ public class PropertyHelper {
 
   public static Map<String, Map<String, PropertyInfo>> getGangliaPropertyIds(Resource.Type resourceType) {
     return GANGLIA_PROPERTY_IDS.get(resourceType.getInternalType());
+  }
+
+  public static Map<String, Map<String, PropertyInfo>> getSQLServerPropertyIds(Resource.Type resourceType) {
+    return SQLSERVER_PROPERTY_IDS.get(resourceType.getInternalType());
   }
 
   public static Map<String, Map<String, PropertyInfo>> getJMXPropertyIds(Resource.Type resourceType) {

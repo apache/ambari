@@ -98,6 +98,16 @@ App.WizardStep4Controller = Em.ArrayController.extend({
   },
 
   /**
+   * Check if the stack definition has any monitoring service (alerting, metrics services) that has not been selected
+   * @return {bool}
+   * @method isMonitoringServiceNotSelected
+   */
+  isMonitoringServiceNotSelected: function () {
+    var stackMonitoringServices = this.filterProperty('isMonitoringService',true);
+    return stackMonitoringServices.length && stackMonitoringServices.someProperty('isSelected',false);
+  },
+
+  /**
    * Check whether user turned on monitoring service and go to next step
    * @method validateMonitoring
    */
@@ -291,7 +301,7 @@ App.WizardStep4Controller = Em.ArrayController.extend({
         },this);
       }
     },this);
-    
+
     if (missingDependencies.length > 0) {
       for(var i = 0; i < missingDependencies.length; i++) {
         this.addValidationError({

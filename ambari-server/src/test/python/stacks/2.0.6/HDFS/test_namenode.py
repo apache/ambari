@@ -411,8 +411,8 @@ class TestNamenode(RMFTestCase):
                               bin_dir = '/usr/bin',
                               kinit_override = True)
     self.assertNoMoreResources()    
-    
-    
+
+
   def test_decommission_secured(self):
     self.executeScript("2.0.6/services/HDFS/package/scripts/namenode.py",
                        classname = "NameNode",
@@ -510,7 +510,7 @@ class TestNamenode(RMFTestCase):
                               recursive = True,
                               mode = 0755,
                               )
-  
+
   @patch("resource_management.libraries.script.Script.put_structured_out")
   def test_rebalance_hdfs(self, pso):
     Popen_Mock.return_value = 1
@@ -526,7 +526,7 @@ class TestNamenode(RMFTestCase):
         self.fail("Exception was not thrown")
       except  resource_management.core.exceptions.Fail:
         pass ##expected
-       
+
       pso.reset_mock()
       Popen_Mock.return_value = 0
       ll = subprocess.Popen()

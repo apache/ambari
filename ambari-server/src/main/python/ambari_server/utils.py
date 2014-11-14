@@ -18,7 +18,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 import os
+import re
 import signal
+import socket
 import sys
 import time
 import glob
@@ -69,6 +71,22 @@ def check_exitcode(exitcode_file_path):
     except IOError:
       pass
   return exitcode
+
+
+def save_pid(pid, pidfile):
+  """
+    Save pid to pidfile.
+  """
+  try:
+    pfile = open(pidfile, "w")
+    pfile.write("%s\n" % pid)
+  except IOError:
+    pass
+  finally:
+    try:
+      pfile.close()
+    except:
+      pass
 
 
 def save_main_pid_ex(pids, pidfile, exclude_list=[], kill_exclude_list=False):
@@ -222,3 +240,25 @@ def get_postgre_running_status(OS_FAMILY):
     return os.path.join(get_ubuntu_pg_version(), "main")
   else:
     return PG_STATUS_RUNNING_DEFAULT
+
+
+def compare_versions(version1, version2):
+  def normalize(v):
+    return [int(x) for x in re.sub(r'(\.0+)*$', '', v).split(".")]
+  return cmp(normalize(version1), normalize(version2))
+  pass
+
+
+def check_reverse_lookup():
+  """
+  Check if host fqdn resolves to current host ip
+  """
+  try:
+    host_name = socket.gethostname().lower()
+    host_ip = socket.gethostbyname(host_name)
+    host_fqdn = socket.getfqdn().lower()
+    fqdn_ip = socket.gethostbyname(host_fqdn)
+    return host_ip == fqdn_ip
+  except socket.error:
+    pass
+  return False

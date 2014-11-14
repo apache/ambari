@@ -21,6 +21,12 @@ App.WizardStep1View = Em.View.extend({
 
   templateName: require('templates/wizard/step1'),
 
+  /**
+   * Is Repositories Accordion collapsed
+   * @type {bool}
+   */
+  isRLCollapsed: true,
+
   didInsertElement: function () {
     if (this.get('isRLCollapsed')) {
       this.$('.accordion-body').hide();
@@ -112,12 +118,6 @@ App.WizardStep1View = Em.View.extend({
       return 0;
     }
   }.property('allRepositories.@each.emptyError', 'isNoOsChecked', 'allRepositories.@each.validation'),
-
-  /**
-   * Is Repositories Accordion collapsed
-   * @type {bool}
-   */
-  isRLCollapsed: true,
 
   /**
    * Checkbox for each stack

@@ -87,6 +87,7 @@
         <artifactId>apache-rat-plugin</artifactId>
         <configuration>
           <excludes>
+            <exclude>**/*.iml</exclude>
             <exclude>src/main/resources/blueprints/**</exclude>
             <exclude>src/test/resources/**</exclude>
           </excludes>

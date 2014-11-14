@@ -24,6 +24,9 @@ import os
 import subprocess
 import socket
 
+from ambari_commons import os_utils
+from ambari_commons.os_check import OSCheck, OSConst
+from ambari_commons.inet_utils import download_file
 from resource_management import Script, Execute, format
 from ambari_agent.HostInfo import HostInfo
 
@@ -35,15 +38,18 @@ CHECK_LAST_AGENT_ENV = "last_agent_env_check"
 DB_MYSQL = "mysql"
 DB_ORACLE = "oracle"
 DB_POSTGRESQL = "postgres"
+DB_MSSQL = "mssql"
 
 JDBC_DRIVER_MYSQL = "com.mysql.jdbc.Driver"
 JDBC_DRIVER_ORACLE = "oracle.jdbc.driver.OracleDriver"
 JDBC_DRIVER_POSTGRESQL = "org.postgresql.Driver"
+JDBC_DRIVER_MSSQL = "com.microsoft.sqlserver.jdbc.SQLServerDriver"
 
 JDBC_DRIVER_SYMLINK_MYSQL = "mysql-jdbc-driver.jar"
 JDBC_DRIVER_SYMLINK_ORACLE = "oracle-jdbc-driver.jar"
 JDBC_DRIVER_SYMLINK_POSTGRESQL = "postgres-jdbc-driver.jar"
-
+JDBC_DRIVER_SYMLINK_MSSQL = "sqljdbc4.jar"
+JDBC_AUTH_SYMLINK_MSSQL = "sqljdbc_auth.dll"
 
 class CheckHost(Script):
   def actionexecute(self, env):
@@ -96,8 +102,11 @@ class CheckHost(Script):
     java64_home = config['commandParams']['java_home']
 
     print "Java home to check: " + java64_home
+    java_bin = "java"
+    if OSCheck.is_windows_family():
+      java_bin = "java.exe"
   
-    if not os.path.isfile(os.path.join(java64_home, "bin", "java")):
+    if not os.path.isfile(os.path.join(java64_home, "bin", java_bin)):
       print "Java home doesn't exist!"
       java_home_check_structured_output = {"exit_code" : 1, "message": "Java home doesn't exist!"}
     else:
@@ -130,11 +139,26 @@ class CheckHost(Script):
       jdbc_url = jdk_location + JDBC_DRIVER_SYMLINK_POSTGRESQL
       jdbc_driver = JDBC_DRIVER_POSTGRESQL
       jdbc_name = JDBC_DRIVER_SYMLINK_POSTGRESQL
+    elif db_name == DB_MSSQL:
+      jdbc_url = jdk_location + JDBC_DRIVER_SYMLINK_MSSQL
+      jdbc_driver = JDBC_DRIVER_MSSQL
+      jdbc_name = JDBC_DRIVER_SYMLINK_MSSQL
   
     db_connection_url = config['commandParams']['db_connection_url']
     user_name = config['commandParams']['user_name']
     user_passwd = config['commandParams']['user_passwd']
-    java_exec = os.path.join(java64_home, "bin","java")
+    agent_cache_dir = os.path.abspath(config["hostLevelParams"]["agentCacheDir"])
+    check_db_connection_url = jdk_location + check_db_connection_jar_name
+    jdbc_path = os.path.join(agent_cache_dir, jdbc_name)
+    check_db_connection_path = os.path.join(agent_cache_dir, check_db_connection_jar_name)
+
+    java_bin = "java"
+    class_path_delimiter = ":"
+    if OSCheck.is_windows_family():
+      java_bin = "java.exe"
+      class_path_delimiter = ";"
+
+    java_exec = os.path.join(java64_home, "bin",java_bin)
 
     if ('jdk_name' not in config['commandParams'] or config['commandParams']['jdk_name'] == None \
         or config['commandParams']['jdk_name'] == '') and not os.path.isfile(java_exec):
@@ -145,18 +169,14 @@ class CheckHost(Script):
       return db_connection_check_structured_output
 
     environment = { "no_proxy": format("{ambari_server_hostname}") }
-    artifact_dir = format("{tmp_dir}/AMBARI-artifacts/")
-    java_dir = os.path.dirname(java64_home)
-
     # download and install java if it doesn't exists
     if not os.path.isfile(java_exec):
+      jdk_name = config['commandParams']['jdk_name']
+      jdk_url = "{}/{}".format(jdk_location, jdk_name)
+      jdk_download_target = os.path.join(agent_cache_dir, jdk_name)
+      java_dir = os.path.dirname(java64_home)
       try:
-        jdk_name = config['commandParams']['jdk_name']
-        jdk_curl_target = format("{artifact_dir}/{jdk_name}")
-        Execute(format("mkdir -p {artifact_dir} ; curl -kf "
-                "--retry 10 {jdk_location}/{jdk_name} -o {jdk_curl_target}"),
-                path = ["/bin","/usr/bin/"],
-                environment = environment)
+        download_file(jdk_url, jdk_download_target)
       except Exception, e:
         message = "Error downloading JDK from Ambari Server resources. Check network access to " \
                   "Ambari Server.\n" + str(e)
@@ -165,13 +185,20 @@ class CheckHost(Script):
         return db_connection_check_structured_output
 
       if jdk_name.endswith(".bin"):
-        install_cmd = format("mkdir -p {java_dir} ; chmod +x {jdk_curl_target}; cd {java_dir} ; echo A | " \
+        install_cmd = format("mkdir -p {java_dir} ; chmod +x {jdk_download_target}; cd {java_dir} ; echo A | " \
                            "{jdk_curl_target} -noregister > /dev/null 2>&1")
+        install_path = ["/bin","/usr/bin/"]
       elif jdk_name.endswith(".gz"):
-        install_cmd = format("mkdir -p {java_dir} ; cd {java_dir} ; tar -xf {jdk_curl_target} > /dev/null 2>&1")
+        install_cmd = format("mkdir -p {java_dir} ; cd {java_dir} ; tar -xf {jdk_download_target} > /dev/null 2>&1")
+        install_path = ["/bin","/usr/bin/"]
+      elif jdk_name.endswith(".exe"):
+        install_cmd = "{} /s INSTALLDIR={} STATIC=1 WEB_JAVA=0 /L \\var\\log\\ambari-agent".format(
+          os_utils.quote_path(jdk_download_target), os_utils.quote_path(java64_home),
+        )
+        install_path = [java_dir]
 
       try:
-        Execute(install_cmd, path = ["/bin","/usr/bin/"])
+        Execute(install_cmd, path = install_path)
       except Exception, e:
         message = "Error installing java.\n" + str(e)
         print message
@@ -180,10 +207,8 @@ class CheckHost(Script):
 
     # download DBConnectionVerification.jar from ambari-server resources
     try:
-      cmd = format("/bin/sh -c 'cd /usr/lib/ambari-agent/ && curl -kf "
-                   "--retry 5 {jdk_location}{check_db_connection_jar_name} "
-                   "-o {check_db_connection_jar_name}'")
-      Execute(cmd, not_if=format("[ -f /usr/lib/ambari-agent/{check_db_connection_jar_name}]"), environment = environment)
+      download_file(check_db_connection_url, check_db_connection_path)
+
     except Exception, e:
       message = "Error downloading DBConnectionVerification.jar from Ambari Server resources. Check network access to " \
                 "Ambari Server.\n" + str(e)
@@ -192,11 +217,12 @@ class CheckHost(Script):
       return db_connection_check_structured_output
   
     # download jdbc driver from ambari-server resources
-  
     try:
-      cmd = format("/bin/sh -c 'cd /usr/lib/ambari-agent/ && curl -kf "
-                   "--retry 5 {jdbc_url} -o {jdbc_name}'")
-      Execute(cmd, not_if=format("[ -f /usr/lib/ambari-agent/{jdbc_name}]"), environment = environment)
+      download_file(jdbc_url, jdbc_path)
+      if db_name == DB_MSSQL:
+        jdbc_auth_path = os.path.join(agent_cache_dir, JDBC_AUTH_SYMLINK_MSSQL)
+        jdbc_auth_url = jdk_location + JDBC_AUTH_SYMLINK_MSSQL
+        download_file(jdbc_auth_url, jdbc_auth_path)
     except Exception, e:
       message = format("Error: Ambari Server cannot download the database JDBC driver and is unable to test the " \
                 "database connection. You must run ambari-server setup --jdbc-db={db_name} " \
@@ -208,11 +234,10 @@ class CheckHost(Script):
   
   
     # try to connect to db
-  
-    db_connection_check_command = format("{java64_home}/bin/java -cp /usr/lib/ambari-agent/{check_db_connection_jar_name}:" \
-           "/usr/lib/ambari-agent/{jdbc_name} org.apache.ambari.server.DBConnectionVerification '{db_connection_url}' " \
+    db_connection_check_command = format("{java_exec} -cp {check_db_connection_path}{class_path_delimiter}" \
+           "{jdbc_path} -Djava.library.path={agent_cache_dir} org.apache.ambari.server.DBConnectionVerification {db_connection_url} " \
            "{user_name} {user_passwd!p} {jdbc_driver}")
-  
+    print "INFO db_connection_check_command: " + db_connection_check_command
     process = subprocess.Popen(db_connection_check_command,
                                stdout=subprocess.PIPE,
                                stdin=subprocess.PIPE,
@@ -229,7 +254,7 @@ class CheckHost(Script):
       db_connection_check_structured_output = {"exit_code" : 1, "message":  stdoutdata + stderrdata }
   
     return db_connection_check_structured_output
-  
+
   # check whether each host in the command can be resolved to an IP address
   def execute_host_resolution_check(self, config):
     print "IP address forward resolution check started."

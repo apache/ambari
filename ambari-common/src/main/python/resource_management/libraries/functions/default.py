@@ -20,7 +20,7 @@ Ambari Agent
 
 """
 
-__all__ = ["default"]
+__all__ = ['default', 'default_string']
 from resource_management.libraries.script import Script
 from resource_management.libraries.script.config_dictionary import UnknownConfiguration
 from resource_management.core.logger import Logger
@@ -38,3 +38,7 @@ def default(name, default_value):
       return default_value
 
   return curr_dict
+
+def default_string(name, default_value, delimiter):
+  default_list = default(name, default_value)
+  return delimiter.join(default_list)

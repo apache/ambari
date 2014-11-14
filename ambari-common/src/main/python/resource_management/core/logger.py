@@ -26,7 +26,7 @@ from resource_management.libraries.script.config_dictionary import UnknownConfig
 
 class Logger:
   logger = logging.getLogger("resource_management")
-  
+
   # unprotected_strings : protected_strings map
   sensitive_strings = {}
 
@@ -41,8 +41,8 @@ class Logger:
   @staticmethod
   def info(text):
     Logger.logger.info(Logger.get_protected_text(text))
-  
-  @staticmethod  
+
+  @staticmethod
   def debug(text):
     Logger.logger.debug(Logger.get_protected_text(text))
 
@@ -57,11 +57,11 @@ class Logger:
   @staticmethod
   def info_resource(resource):
     Logger.info(Logger.get_protected_text(Logger._get_resource_repr(resource)))
-  
-  @staticmethod  
+
+  @staticmethod
   def debug_resource(resource):
     Logger.debug(Logger.get_protected_text(Logger._get_resource_repr(resource)))
-    
+
   @staticmethod
   def get_protected_text(text):
     """
@@ -69,17 +69,17 @@ class Logger:
     """
     for unprotected_string, protected_string in Logger.sensitive_strings.iteritems():
       text = text.replace(unprotected_string, protected_string)
-      
+
     return text
-    
-  @staticmethod  
+
+  @staticmethod
   def _get_resource_repr(resource):
     MESSAGE_MAX_LEN = 256
     logger_level = logging._levelNames[Logger.logger.level]
-    
+
     arguments_str = ""
     for x,y in resource.arguments.iteritems():
-      
+
       # strip unicode 'u' sign
       if isinstance(y, unicode):
         # don't show long messages
@@ -87,7 +87,7 @@ class Logger:
           y = '...'
         val = repr(y).lstrip('u')
       # don't show dicts of configurations
-      # usually too long  
+      # usually too long
       elif logger_level != 'DEBUG' and isinstance(y, dict):
         val = "..."
       # for configs which didn't come
@@ -95,14 +95,17 @@ class Logger:
         val = "[EMPTY]"
       # correctly output 'mode' (as they are octal values like 0755)
       elif y and x == 'mode':
-        val = oct(y)
+        try:
+          val = oct(y)
+        except:
+          val = repr(y)
       else:
         val = repr(y)
-      
-      
+
+
       arguments_str += "'{0}': {1}, ".format(x, val)
-      
-    if arguments_str:  
+
+    if arguments_str:
       arguments_str = arguments_str[:-2]
-    
+
     return unicode("{0} {{{1}}}").format(resource, arguments_str)

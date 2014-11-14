@@ -466,5 +466,3 @@ class TestHDP206StackAdvisor(TestCase):
         pass
       actualItems.append(next)
     self.checkEqual(expectedItems, actualItems)
-
-

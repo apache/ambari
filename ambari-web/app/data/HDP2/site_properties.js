@@ -47,6 +47,203 @@ module.exports =
       "index": 3
     },
     {
+      "id": "puppet var",
+      "name": "hadoop.user.name",
+      "displayName": "Hadoop User Name",
+      "description": "User to run Hadoop services under",
+      "defaultValue": "hadoop",
+      "isReconfigurable": false,
+      "displayType": "user",
+      "isOverridable": false,
+      "isVisible": App.get('isHadoopWindowsStack'),
+      "serviceName": "MISC",
+      "filename": "cluster-env.xml",
+      "category": "Users and Groups",
+      "belongsToService": ["HDFS"],
+      "index": 0
+    },
+    {
+      "id": "puppet var",
+      "name": "hadoop.user.password",
+      "displayName": "Hadoop User Password",
+      "description": "Password for hadoop user",
+      "isReconfigurable": false,
+      "displayType": "password",
+      "isOverridable": false,
+      "isVisible": App.get('isHadoopWindowsStack'),
+      "serviceName": "MISC",
+      "filename": "cluster-env.xml",
+      "category": "Users and Groups",
+      "belongsToService": ["HDFS"],
+      "index": 1
+    },
+    {
+      "id": "puppet var",
+      "name": "hadoop_host",
+      "displayName": "Hadoop host",
+      "value": "",
+      "defaultValue": "",
+      "description": "A hadoop host from where metrics will be uploaded",
+      "displayType": "masterHost",
+      "isOverridable": false,
+      "isVisible": true,
+      "isRequiredByAgent": false,
+      "serviceName": "HDFS",
+      "category": "MetricsSink",
+      "index": 0
+    },
+    {
+      "id": "puppet var",
+      "name": "sink_existing_mssql_server_database",
+      "displayName": "Database Type",
+      "value": "",
+      "defaultValue": "MSSQL",
+      "description": "Using an existing MSSQL database for Metrics Sink",
+      "displayType": "masterHost",
+      "isOverridable": false,
+      "isVisible": false,
+      "isReconfigurable": false,
+      "serviceName": "HDFS",
+      "category": "MetricsSink",
+      "index": 1
+    },
+    {
+      "id": "puppet var",
+      "name": "sink_existing_mssql_server_2_database",
+      "displayName": "Database Type",
+      "value": "",
+      "defaultValue": "MSSQL",
+      "description": "Using an existing MSSQL database for Metrics Sink",
+      "displayType": "masterHost",
+      "isOverridable": false,
+      "isVisible": false,
+      "isReconfigurable": false,
+      "serviceName": "HDFS",
+      "category": "MetricsSink",
+      "index": 1
+    },
+    {
+      "id": "puppet var",
+      "name": "sink_database",
+      "displayName": "Metrics Sink Database",
+      "value": "",
+      "defaultValue": "Existing MSSQL Server database with sql auth",
+      "options": [
+        {
+          displayName: 'Existing MSSQL Server database with integrated authentication',
+          foreignKeys: ['sink_existing_mssql_server_database', 'sink_existing_mssql_server_host']
+        },
+        {
+          displayName: 'Existing MSSQL Server database with sql auth',
+          foreignKeys: ['sink_existing_mssql_server_2_database', 'sink_existing_mssql_server_2_host']
+        }
+      ],
+      "displayType": "radio button",
+      "isReconfigurable": false,
+      "radioName": "sink-database",
+      "isOverridable": false,
+      "isVisible": true,
+      "serviceName": "HDFS",
+      "category": "MetricsSink",
+      "index": 2
+    },
+    {
+      "id": "site property",
+      "name": "sink.dbservername",
+      "displayName": "Database Host",
+      "description": "Specify the host on which the database is hosted",
+      "defaultValue": "",
+      "isReconfigurable": true,
+      "displayType": "host",
+      "isOverridable": false,
+      "isObserved": true,
+      "isVisible": false,
+      "category": "MetricsSink",
+      "serviceName": "HDFS",
+      "index": 2
+    },
+    {
+      "id": "puppet var",
+      "name": "sink_existing_mssql_server_host",
+      "displayName": "Database Host",
+      "description": "Specify the host on which the existing database is hosted",
+      "defaultValue": "",
+      "displayType": "host",
+      "isOverridable": false,
+      "isRequiredByAgent": false,
+      "isVisible": false,
+      "isObserved": true,
+      "serviceName": "HDFS",
+      "category": "MetricsSink",
+      "index": 3
+    },
+    {
+      "id": "puppet var",
+      "name": "sink_existing_mssql_server_2_host",
+      "displayName": "Database Host",
+      "description": "Specify the host on which the existing database is hosted",
+      "defaultValue": "",
+      "displayType": "host",
+      "isOverridable": false,
+      "isRequiredByAgent": false,
+      "isVisible": false,
+      "isObserved": true,
+      "serviceName": "HDFS",
+      "category": "MetricsSink",
+      "index": 3
+    },
+    {
+      "id": "site property",
+      "name": "sink.db.schema.name",
+      "displayName": "Database Name",
+      "isOverridable": false,
+      "displayType": "host",
+      "isObserved": true,
+      "category": "MetricsSink",
+      "serviceName": "HDFS",
+      "index": 4
+    },
+    {
+      "id": "site property",
+      "name": "sink.dblogin",
+      "displayName": "Database Username",
+      "isOverridable": false,
+      "displayType": "user",
+      "category": "MetricsSink",
+      "serviceName": "HDFS",
+      "index": 5
+    },
+    {
+      "id": "site property",
+      "name": "sink.dbpassword",
+      "displayName": "Database Password",
+      "isOverridable": false,
+      "displayType": "password",
+      "category": "MetricsSink",
+      "serviceName": "HDFS",
+      "index": 6
+    },
+    {
+      "id": "site property",
+      "name": "sink.jdbc.driver",
+      "displayName": "JDBC Driver Class",
+      "isOverridable": false,
+      "category": "MetricsSink",
+      "serviceName": "HDFS",
+      "index": 7
+    },
+    {
+      "id": "site property",
+      "name": "sink.jdbc.url",
+      "displayName": "Database URL",
+      "isOverridable": false,
+      "displayType": "advanced",
+      "category": "MetricsSink",
+      "serviceName": "HDFS",
+      "index": 8
+    },
+
+    {
       "id": "site property",
       "name": "dfs.namenode.name.dir",
       "displayName": "NameNode directories",
@@ -450,7 +647,7 @@ module.exports =
       "name": "oozie.service.JPAService.jdbc.username",
       "displayName": "Database Username",
       "isOverridable": false,
-      "displayType": "host",
+      "displayType": "user",
       "category": "OOZIE_SERVER",
       "serviceName": "OOZIE",
       "filename": "oozie-site.xml",
@@ -516,7 +713,7 @@ module.exports =
       "id": "site property",
       "name": "javax.jdo.option.ConnectionUserName",
       "displayName": "Database Username",
-      "displayType": "host",
+      "displayType": "user",
       "isOverridable": false,
       "category": "HIVE_METASTORE",
       "serviceName": "HIVE",
@@ -2890,6 +3087,38 @@ module.exports =
       "category": "HIVE_METASTORE",
       "index": 1
     },
+    {
+      "id": "puppet var",
+      "name": "hive_existing_mssql_server_database",
+      "displayName": "Database Type",
+      "value": "",
+      "defaultValue": "MSSQL",
+      "description": "Using an existing MSSQL database for Hive Metastore",
+      "displayType": "masterHost",
+      "isOverridable": false,
+      "isVisible": false,
+      "isReconfigurable": false,
+      "serviceName": "HIVE",
+      "filename": "hive-env.xml",
+      "category": "HIVE_METASTORE",
+      "index": 1
+    },
+    {
+      "id": "puppet var",
+      "name": "hive_existing_mssql_server_2_database",
+      "displayName": "Database Type",
+      "value": "",
+      "defaultValue": "MSSQL",
+      "description": "Using an existing MSSQL database for Hive Metastore",
+      "displayType": "masterHost",
+      "isOverridable": false,
+      "isVisible": false,
+      "isReconfigurable": false,
+      "serviceName": "HIVE",
+      "filename": "hive-env.xml",
+      "category": "HIVE_METASTORE",
+      "index": 1
+    },
     // for existing PostgreSQL
     {
       "id": "puppet var",
@@ -2934,6 +3163,7 @@ module.exports =
       "description": "MySQL will be installed by Ambari",
       "displayType": "masterHost",
       "isOverridable": false,
+      "isReconfigurable": false,
       "isVisible": false,
       "serviceName": "HIVE",
       "filename": "hive-env.xml",
@@ -2949,19 +3179,33 @@ module.exports =
       "options": [
         {
           displayName: 'New MySQL Database',
-          foreignKeys: ['hive_ambari_database', 'hive_ambari_host']
+          foreignKeys: ['hive_ambari_database', 'hive_ambari_host'],
+          hidden: App.get('isHadoopWindowsStack')
         },
         {
           displayName: 'Existing MySQL Database',
-          foreignKeys: ['hive_existing_mysql_database', 'hive_existing_mysql_host']
+          foreignKeys: ['hive_existing_mysql_database', 'hive_existing_mysql_host'],
+          hidden: App.get('isHadoopWindowsStack')
         },
         {
           displayName: 'Existing PostgreSQL Database',
-          foreignKeys: ['hive_existing_postgresql_database', 'hive_existing_postgresql_host']
+          foreignKeys: ['hive_existing_postgresql_database', 'hive_existing_postgresql_host'],
+          hidden: App.get('isHadoopWindowsStack')
         },
         {
           displayName: 'Existing Oracle Database',
-          foreignKeys: ['hive_existing_oracle_database', 'hive_existing_oracle_host']
+          foreignKeys: ['hive_existing_oracle_database', 'hive_existing_oracle_host'],
+          hidden: App.get('isHadoopWindowsStack')
+        },
+        {
+          displayName: 'Existing MSSQL Server database with integrated authentication',
+          foreignKeys: ['hive_existing_mssql_server_database', 'hive_existing_mssql_server_host'],
+          hidden: !App.get('isHadoopWindowsStack')
+        },
+        {
+          displayName: 'Existing MSSQL Server database with sql auth',
+          foreignKeys: ['hive_existing_mssql_server_2_database', 'hive_existing_mssql_server_2_host'],
+          hidden: !App.get('isHadoopWindowsStack')
         }
       ],
       "description": "MySQL will be installed by Ambari",
@@ -3053,6 +3297,38 @@ module.exports =
       "isRequiredByAgent": false,
       "isOverridable": false,
       "isVisible": false,
+      "serviceName": "HIVE",
+      "filename": "hive-env.xml",
+      "category": "HIVE_METASTORE",
+      "index": 3
+    },
+    {
+      "id": "puppet var",
+      "name": "hive_existing_mssql_server_host",
+      "displayName": "Database Host",
+      "description": "Specify the host on which the existing database is hosted",
+      "defaultValue": "",
+      "displayType": "host",
+      "isOverridable": false,
+      "isRequiredByAgent": false,
+      "isVisible": false,
+      "isObserved": true,
+      "serviceName": "HIVE",
+      "filename": "hive-env.xml",
+      "category": "HIVE_METASTORE",
+      "index": 3
+    },
+    {
+      "id": "puppet var",
+      "name": "hive_existing_mssql_server_2_host",
+      "displayName": "Database Host",
+      "description": "Specify the host on which the existing database is hosted",
+      "defaultValue": "",
+      "displayType": "host",
+      "isOverridable": false,
+      "isRequiredByAgent": false,
+      "isVisible": false,
+      "isObserved": true,
       "serviceName": "HIVE",
       "filename": "hive-env.xml",
       "category": "HIVE_METASTORE",
@@ -3258,6 +3534,7 @@ module.exports =
       "description": "MySQL will be installed by Ambari",
       "displayType": "masterHost",
       "isVisible": false,
+      "isReconfigurable": false,
       "isOverridable": false,
       "serviceName": "OOZIE",
       "filename": "oozie-env.xml",
@@ -3300,6 +3577,38 @@ module.exports =
     },
     {
       "id": "puppet var",
+      "name": "oozie_existing_mssql_server_database",
+      "displayName": "Database Type",
+      "value": "",
+      "defaultValue": "MSSQL",
+      "description": "Using an existing MSSQL database with integrated authentication for Oozie Metastore",
+      "displayType": "masterHost",
+      "isVisible": false,
+      "isReconfigurable": false,
+      "isOverridable": false,
+      "serviceName": "OOZIE",
+      "filename": "oozie-env.xml",
+      "category": "OOZIE_SERVER",
+      "index": 1
+    },
+    {
+      "id": "puppet var",
+      "name": "oozie_existing_mssql_server_2_database",
+      "displayName": "Database Type",
+      "value": "",
+      "defaultValue": "MSSQL",
+      "description": "Using an existing MSSQL database with sql auth for Oozie Metastore",
+      "displayType": "masterHost",
+      "isVisible": false,
+      "isReconfigurable": false,
+      "isOverridable": false,
+      "serviceName": "OOZIE",
+      "filename": "oozie-env.xml",
+      "category": "OOZIE_SERVER",
+      "index": 1
+    },
+    {
+      "id": "puppet var",
       "name": "oozie_database",
       "displayName": "Oozie Database",
       "value": "",
@@ -3307,19 +3616,33 @@ module.exports =
       "options": [
         {
           displayName: 'New Derby Database',
-          foreignKeys: ['oozie_derby_database']
+          foreignKeys: ['oozie_derby_database'],
+          hidden: App.get('isHadoopWindowsStack')
         },
         {
           displayName: 'Existing MySQL Database',
-          foreignKeys: ['oozie_existing_mysql_database', 'oozie_existing_mysql_host']
+          foreignKeys: ['oozie_existing_mysql_database', 'oozie_existing_mysql_host'],
+          hidden: App.get('isHadoopWindowsStack')
         },
         {
           displayName: 'Existing PostgreSQL Database',
-          foreignKeys: ['oozie_existing_postgresql_database', 'oozie_existing_postgresql_host']
+          foreignKeys: ['oozie_existing_postgresql_database', 'oozie_existing_postgresql_host'],
+          hidden: App.get('isHadoopWindowsStack')
         },
         {
           displayName: 'Existing Oracle Database',
-          foreignKeys: ['oozie_existing_oracle_database', 'oozie_existing_oracle_host']
+          foreignKeys: ['oozie_existing_oracle_database', 'oozie_existing_oracle_host'],
+          hidden: App.get('isHadoopWindowsStack')
+        },
+        {
+          displayName: 'Existing MSSQL Server database with integrated authentication',
+          foreignKeys: ['oozie_existing_mssql_server_database', 'oozie_existing_mssql_server_host'],
+          hidden: !App.get('isHadoopWindowsStack')
+        },
+        {
+          displayName: 'Existing MSSQL Server database with sql auth',
+          foreignKeys: ['oozie_existing_mssql_server_2_database', 'oozie_existing_mssql_server_2_host'],
+          hidden: !App.get('isHadoopWindowsStack')
         }
       ],
       "description": "Current Derby Database will be installed by Ambari",
@@ -3425,6 +3748,38 @@ module.exports =
       "serviceName": "OOZIE",
       "filename": "oozie-env.xml",
       "category": "OOZIE_SERVER"
+    },
+    {
+      "id": "puppet var",
+      "name": "oozie_existing_mssql_server_host",
+      "displayName": "Database Host",
+      "description": "Specify the host on which the existing database is hosted",
+      "defaultValue": "",
+      "displayType": "host",
+      "isOverridable": false,
+      "isRequiredByAgent": false,
+      "isVisible": false,
+      "isObserved": true,
+      "serviceName": "OOZIE",
+      "filename": "oozie-env.xml",
+      "category": "OOZIE_SERVER",
+      "index": 3
+    },
+    {
+      "id": "puppet var",
+      "name": "oozie_existing_mssql_server_2_host",
+      "displayName": "Database Host",
+      "description": "Specify the host on which the existing database is hosted",
+      "defaultValue": "",
+      "displayType": "host",
+      "isOverridable": false,
+      "isRequiredByAgent": false,
+      "isVisible": false,
+      "isObserved": true,
+      "serviceName": "OOZIE",
+      "filename": "oozie-env.xml",
+      "category": "OOZIE_SERVER",
+      "index": 3
     },
     {
       "id": "puppet var",
@@ -3883,13 +4238,13 @@ module.exports =
     {
       "id": "puppet var",
       "name": "proxyuser_group",
-      "displayName": "Proxy group for Hive, WebHCat, Oozie and Falcon",
+      "displayName": "Proxy group for Hive, Oozie and Falcon",
       "description": "",
       "defaultValue": "users",
       "isReconfigurable": false,
       "displayType": "user",
       "isOverridable": false,
-      "isVisible": true,
+      "isVisible": !App.get('isHadoopWindowsStack'),
       "filename": "hadoop-env.xml",
       "serviceName": "MISC",
       "category": "Users and Groups",
@@ -3919,12 +4274,12 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "user",
       "isOverridable": false,
-      "isVisible": true,
+      "isVisible": !App.get('isHadoopWindowsStack'),
       "serviceName": "MISC",
       "filename": "hadoop-env.xml",
       "category": "Users and Groups",
       "belongsToService": ["HDFS"],
-      "index": 1
+      "index": 2
     },
     {
       "id": "puppet var",
@@ -3935,12 +4290,12 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "user",
       "isOverridable": false,
-      "isVisible": true,
+      "isVisible": !App.get('isHadoopWindowsStack'),
       "serviceName": "MISC",
       "filename": "mapred-env.xml",
       "category": "Users and Groups",
       "belongsToService": ["MAPREDUCE2"],
-      "index": 2
+      "index": 3
     },
     {
       "id": "puppet var",
@@ -3951,12 +4306,12 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "user",
       "isOverridable": false,
-      "isVisible": true,
+      "isVisible": !App.get('isHadoopWindowsStack'),
       "serviceName": "MISC",
       "filename": "yarn-env.xml",
       "category": "Users and Groups",
       "belongsToService": ["YARN"],
-      "index": 3
+      "index": 4
     },
     {
       "id": "puppet var",
@@ -3967,12 +4322,12 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "user",
       "isOverridable": false,
-      "isVisible": true,
+      "isVisible": !App.get('isHadoopWindowsStack'),
       "serviceName": "MISC",
       "filename": "hbase-env.xml",
       "category": "Users and Groups",
       "belongsToService": ["HBASE"],
-      "index": 4
+      "index": 5
     },
     {
       "id": "puppet var",
@@ -3983,12 +4338,12 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "user",
       "isOverridable": false,
-      "isVisible": true,
+      "isVisible": !App.get('isHadoopWindowsStack'),
       "serviceName": "MISC",
       "filename": "hive-env.xml",
       "category": "Users and Groups",
       "belongsToService": ["HIVE"],
-      "index": 5
+      "index": 6
     },
     {
       "id": "puppet var",
@@ -3999,7 +4354,7 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "user",
       "isOverridable": false,
-      "isVisible": true,
+      "isVisible": !App.get('isHadoopWindowsStack'),
       "serviceName": "MISC",
       "filename": "hive-env.xml",
       "category": "Users and Groups",
@@ -4015,7 +4370,7 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "user",
       "isOverridable": false,
-      "isVisible": true,
+      "isVisible": !App.get('isHadoopWindowsStack'),
       "serviceName": "MISC",
       "filename": "hive-env.xml",
       "category": "Users and Groups",
@@ -4031,12 +4386,12 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "user",
       "isOverridable": false,
-      "isVisible": true,
+      "isVisible": !App.get('isHadoopWindowsStack'),
       "serviceName": "MISC",
       "filename": "oozie-env.xml",
       "category": "Users and Groups",
       "belongsToService": ["OOZIE"],
-      "index": 8
+      "index": 9
     },
     {
       "id": "puppet var",
@@ -4047,12 +4402,12 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "user",
       "isOverridable": false,
-      "isVisible": true,
+      "isVisible": !App.get('isHadoopWindowsStack'),
       "serviceName": "MISC",
       "filename": "falcon-env.xml",
       "category": "Users and Groups",
       "belongsToService": ["FALCON"],
-      "index": 10
+      "index": 11
     },
     {
       "id": "puppet var",
@@ -4063,12 +4418,12 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "user",
       "isOverridable": false,
-      "isVisible": true,
+      "isVisible": !App.get('isHadoopWindowsStack'),
       "serviceName": "MISC",
       "filename": "storm-env.xml",
       "category": "Users and Groups",
       "belongsToService": ["STORM"],
-      "index": 9
+      "index": 10
     },
     {
       "id": "puppet var",
@@ -4079,12 +4434,12 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "user",
       "isOverridable": false,
-      "isVisible": true,
+      "isVisible": !App.get('isHadoopWindowsStack'),
       "serviceName": "MISC",
       "filename": "zookeeper-env.xml",
       "category": "Users and Groups",
       "belongsToService": ["ZOOKEEPER"],
-      "index": 11
+      "index": 12
     },
     {
       "id": "puppet var",
@@ -4111,7 +4466,7 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "user",
       "isOverridable": false,
-      "isVisible": true,
+      "isVisible": !App.get('isHadoopWindowsStack'),
       "serviceName": "MISC",
       "filename": "ganglia-env.xml",
       "category": "Users and Groups",
@@ -4127,7 +4482,7 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "advanced",
       "isOverridable": false,
-      "isVisible": false,
+      "isVisible": !App.get('isHadoopWindowsStack'),
       "serviceName": "MISC",
       "filename": "ganglia-env.xml",
       "category": "Users and Groups",
@@ -4142,12 +4497,12 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "user",
       "isOverridable": false,
-      "isVisible": true,
+      "isVisible": !App.get('isHadoopWindowsStack'),
       "serviceName": "MISC",
       "filename": "nagios-env.xml",
       "category": "Users and Groups",
       "belongsToService": ["NAGIOS"],
-      "index": 14
+      "index": 15
     },
     {
       "id": "puppet var",
@@ -4158,12 +4513,12 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "user",
       "isOverridable": false,
-      "isVisible": true,
+      "isVisible": !App.get('isHadoopWindowsStack'),
       "serviceName": "MISC",
       "filename": "nagios-env.xml",
       "category": "Users and Groups",
       "belongsToService": ["NAGIOS"],
-      "index": 13
+      "index": 14
     },
     {
       "id": "puppet var",
@@ -4174,6 +4529,7 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "user",
       "isOverridable": false,
+      "isVisible": !App.get('isHadoopWindowsStack'),
       "serviceName": "MISC",
       "filename": "cluster-env.xml",
       "category": "Users and Groups",
@@ -4188,12 +4544,12 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "user",
       "isOverridable": false,
-      "isVisible": true,
+      "isVisible": !App.get('isHadoopWindowsStack'),
       "serviceName": "MISC",
       "filename": "tez-env.xml",
       "category": "Users and Groups",
       "belongsToService": ["TEZ"],
-      "index": 15
+      "index": 16
     },
     {
       "id": "puppet var",
@@ -4204,7 +4560,7 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "user",
       "isOverridable": false,
-      "isVisible": true,
+      "isVisible": !App.get('isHadoopWindowsStack'),
       "serviceName": "MISC",
       "filename": "cluster-env.xml",
       "category": "Users and Groups",
@@ -4222,7 +4578,7 @@ module.exports =
       "filename": "sqoop-env.xml",
       "category": "Users and Groups",
       "belongsToService": ["SQOOP"],
-      "index": 17
+      "index": 18
     },
     {
       "id": "puppet var",
@@ -4290,7 +4646,7 @@ module.exports =
       "displayType": "checkbox",
       "isReconfigurable": true,
       "isOverridable": false,
-      "isVisible": true,
+      "isVisible": !App.get('isHadoopWindowsStack'),
       "serviceName": "MISC",
       "filename": "cluster-env.xml",
       "category": "Users and Groups"

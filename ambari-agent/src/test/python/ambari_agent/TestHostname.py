@@ -34,7 +34,7 @@ class TestHostname(TestCase):
     hostname.cached_hostname = None
     hostname.cached_public_hostname = None
     config = AmbariConfig()
-    self.assertEquals(hostname.hostname(config), socket.getfqdn(),
+    self.assertEquals(hostname.hostname(config), socket.getfqdn().lower(),
                       "hostname should equal the socket-based hostname")
     pass
 

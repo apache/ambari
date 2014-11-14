@@ -1,0 +1,210 @@
+<?xml version="1.0"?>
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+<metainfo>
+  <schemaVersion>2.0</schemaVersion>
+  <services>
+    <service>
+      <name>HIVE</name>
+      <displayName>Hive</displayName>
+      <comment>Data warehouse system for ad-hoc queries &amp; analysis of large datasets and table &amp; storage management service</comment>
+      <version>0.12.0.2.0</version>
+      <components>
+
+        <component>
+          <name>HIVE_METASTORE</name>
+          <displayName>Hive Metastore</displayName>
+          <category>MASTER</category>
+          <cardinality>1</cardinality>
+          <auto-deploy>
+            <enabled>true</enabled>
+            <co-locate>HIVE/HIVE_SERVER</co-locate>
+          </auto-deploy>
+          <commandScript>
+            <script>scripts/hive_metastore.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>1200</timeout>
+          </commandScript>
+        </component>
+
+        <component>
+          <name>HIVE_SERVER</name>
+          <displayName>HiveServer2</displayName>
+          <category>MASTER</category>
+          <cardinality>1</cardinality>
+          <dependencies>
+            <dependency>
+              <name>ZOOKEEPER/ZOOKEEPER_SERVER</name>
+              <scope>cluster</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+                <co-locate>HIVE/HIVE_SERVER</co-locate>
+              </auto-deploy>
+            </dependency>
+            <dependency>
+              <name>TEZ/TEZ_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+            <dependency>
+              <name>YARN/YARN_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+            <dependency>
+              <name>MAPREDUCE2/MAPREDUCE2_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+          </dependencies>
+          <commandScript>
+            <script>scripts/hive_server.py</script>
+            <scriptType>PYTHON</scriptType>
+          </commandScript>
+        </component>
+        <component>
+          <name>WEBHCAT_SERVER</name>
+          <displayName>WebHCat Server</displayName>
+          <category>MASTER</category>
+          <cardinality>1</cardinality>
+          <clientsToUpdateConfigs>
+            <client>HCAT</client>
+          </clientsToUpdateConfigs>
+          <dependencies>
+            <dependency>
+              <name>HDFS/HDFS_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+            <dependency>
+              <name>MAPREDUCE2/MAPREDUCE2_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+            <dependency>
+              <name>ZOOKEEPER/ZOOKEEPER_SERVER</name>
+              <scope>cluster</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+                <co-locate>HIVE/WEBHCAT_SERVER</co-locate>
+              </auto-deploy>
+            </dependency>
+            <dependency>
+              <name>ZOOKEEPER/ZOOKEEPER_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+            <dependency>
+              <name>YARN/YARN_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+          </dependencies>
+          <commandScript>
+            <script>scripts/webhcat_server.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>1200</timeout>
+          </commandScript>
+        </component>
+        <component>
+          <name>MYSQL_SERVER</name>
+          <displayName>MySQL Server</displayName>
+          <category>MASTER</category>
+          <cardinality>1</cardinality>
+          <commandScript>
+            <script>scripts/mysql_server.py</script>
+            <scriptType>PYTHON</scriptType>
+          </commandScript>
+        </component>
+
+        <component>
+          <name>HIVE_CLIENT</name>
+          <displayName>Hive Client</displayName>
+          <category>CLIENT</category>
+          <cardinality>0+</cardinality>
+          <commandScript>
+            <script>scripts/hive_client.py</script>
+            <scriptType>PYTHON</scriptType>
+          </commandScript>
+          <configFiles>
+            <configFile>
+              <type>xml</type>
+              <fileName>hive-site.xml</fileName>
+              <dictionaryName>hive-site</dictionaryName>
+            </configFile>
+            <configFile>
+              <type>env</type>
+              <fileName>hive-env.cmd</fileName>
+              <dictionaryName>hive-env</dictionaryName>
+            </configFile>
+          </configFiles>
+        </component>
+        <component>
+          <name>HCAT</name>
+          <displayName>HCat Client</displayName>
+          <category>CLIENT</category>
+          <cardinality>0+</cardinality>
+          <commandScript>
+            <script>scripts/hcat_client.py</script>
+            <scriptType>PYTHON</scriptType>
+          </commandScript>
+          <configFiles>
+            <configFile>
+              <type>env</type>
+              <fileName>hcat-env.cmd</fileName>
+              <dictionaryName>hcat-env</dictionaryName>
+            </configFile>
+          </configFiles>
+        </component>
+
+      </components>
+
+      <commandScript>
+        <script>scripts/service_check.py</script>
+        <scriptType>PYTHON</scriptType>
+        <timeout>1200</timeout>
+      </commandScript>
+
+      <requiredServices>
+        <service>ZOOKEEPER</service>
+        <service>YARN</service>
+        <service>TEZ</service>
+      </requiredServices>
+
+      <configuration-dependencies>
+        <config-type>hive-site</config-type>
+        <config-type>hive-env</config-type>
+        <config-type>webhcat-site</config-type>
+      </configuration-dependencies>
+    </service>
+
+  </services>
+</metainfo>

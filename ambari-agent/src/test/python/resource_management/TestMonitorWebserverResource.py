@@ -16,6 +16,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
+from stacks.utils.RMFTestCase import *
 from unittest import TestCase
 from mock.mock import patch, MagicMock
 from resource_management import *

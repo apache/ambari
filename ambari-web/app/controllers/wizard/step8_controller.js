@@ -226,6 +226,38 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, {
   },
 
   /**
+   * Remove unused Sink configs
+   * @param {Ember.Enumerable} configs
+   * @returns {Ember.Enumerable}
+   * @method removeSinkConfigs
+   */
+  removeSinkConfigs: function (configs) {
+    var sinkDb = configs.findProperty('name', 'sink_database');
+    var sinkDbType = configs.findProperty('name', 'sink_database_type');
+    if (sinkDbType) {
+      var sink_properties = Em.A([]);
+
+      switch (sinkDb.value) {
+        case 'Existing MSSQL Server database with integrated authentication':
+          configs.findProperty('name', 'sink.dbservername').value = configs.findProperty('name', 'sink_existing_mssql_server_host').value;
+          sinkDbType.value = 'mssql';
+          sink_properties = Em.A(['sink_existing_mssql_server_2_database', 'sink_existing_mssql_server_2_host']);
+          break;
+        case 'Existing MSSQL Server database with sql auth':
+          configs.findProperty('name', 'sink.dbservername').value = configs.findProperty('name', 'sink_existing_mssql_server_2_host').value;
+          sinkDbType.value = 'mssql';
+          sink_properties = Em.A(['sink_existing_mssql_server_database', 'sink_existing_mssql_server_host']);
+          break;
+      }
+
+      sink_properties.forEach(function (property) {
+        configs = configs.without(configs.findProperty('name', property));
+      });
+    }
+    return configs;
+  },
+
+  /**
    * Remove unused Hive configs
    * @param {Ember.Enumerable} configs
    * @returns {Ember.Enumerable}
@@ -244,7 +276,9 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, {
             hiveDbType.value = 'mysql';
           }
           hive_properties = Em.A(['hive_existing_mysql_host', 'hive_existing_mysql_database', 'hive_existing_oracle_host',
-            'hive_existing_oracle_database', 'hive_existing_postgresql_host', 'hive_existing_postgresql_database']);
+            'hive_existing_oracle_database', 'hive_existing_postgresql_host', 'hive_existing_postgresql_database',
+            'hive_existing_mssql_server_database', 'hive_existing_mssql_server_host',
+            'hive_existing_mssql_server_2_database', 'hive_existing_mssql_server_2_host']);
           break;
         case 'New PostgreSQL Database':
           if (configs.someProperty('name', 'hive_ambari_host')) {
@@ -258,19 +292,41 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, {
           configs.findProperty('name', 'hive_hostname').value = configs.findProperty('name', 'hive_existing_mysql_host').value;
           hiveDbType.value = 'mysql';
           hive_properties = Em.A(['hive_ambari_host', 'hive_ambari_database', 'hive_existing_oracle_host',
-            'hive_existing_oracle_database', 'hive_existing_postgresql_host', 'hive_existing_postgresql_database']);
+            'hive_existing_oracle_database', 'hive_existing_postgresql_host', 'hive_existing_postgresql_database',
+            'hive_existing_mssql_server_database', 'hive_existing_mssql_server_host',
+            'hive_existing_mssql_server_2_database', 'hive_existing_mssql_server_2_host']);
           break;
         case Em.I18n.t('services.service.config.hive.oozie.postgresql'):
           configs.findProperty('name', 'hive_hostname').value = configs.findProperty('name', 'hive_existing_postgresql_host').value;
           hiveDbType.value = 'postgres';
           hive_properties = Em.A(['hive_ambari_host', 'hive_ambari_database', 'hive_existing_oracle_host',
-            'hive_existing_oracle_database', 'hive_existing_mysql_host', 'hive_existing_mysql_database']);
+            'hive_existing_oracle_database', 'hive_existing_mysql_host', 'hive_existing_mysql_database',
+            'hive_existing_mssql_server_database', 'hive_existing_mssql_server_host',
+            'hive_existing_mssql_server_2_database', 'hive_existing_mssql_server_2_host']);
+          break;
+        case 'Existing MSSQL Server database with integrated authentication':
+          configs.findProperty('name', 'hive_hostname').value = configs.findProperty('name', 'hive_existing_mssql_server_2_host').value;
+          hiveDbType.value = 'mssql';
+          hive_properties = Em.A(['hive_ambari_host', 'hive_ambari_database', 'hive_existing_oracle_host',
+            'hive_existing_oracle_database', 'hive_existing_postgresql_host', 'hive_existing_postgresql_database',
+            'hive_existing_mysql_host', 'hive_existing_mysql_database', 'hive_existing_mssql_server_database',
+            'hive_existing_mssql_server_host', 'hive_existing_mssql_server_2_database', 'hive_existing_mssql_server_2_host']);
+          break;
+        case 'Existing MSSQL Server database with sql auth':
+          configs.findProperty('name', 'hive_hostname').value = configs.findProperty('name', 'hive_existing_mssql_server_host').value;
+          hiveDbType.value = 'mssql';
+          hive_properties = Em.A(['hive_ambari_host', 'hive_ambari_database', 'hive_existing_oracle_host',
+            'hive_existing_oracle_database', 'hive_existing_postgresql_host', 'hive_existing_postgresql_database',
+            'hive_existing_mysql_host', 'hive_existing_mysql_database', 'hive_existing_mssql_server_database',
+            'hive_existing_mssql_server_host', 'hive_existing_mssql_server_database', 'hive_existing_mssql_server_host']);
           break;
         default:
           configs.findProperty('name', 'hive_hostname').value = configs.findProperty('name', 'hive_existing_oracle_host').value;
           hiveDbType.value = 'oracle';
           hive_properties = Em.A(['hive_ambari_host', 'hive_ambari_database', 'hive_existing_mysql_host',
-            'hive_existing_mysql_database', 'hive_existing_postgresql_host', 'hive_existing_postgresql_database']);
+            'hive_existing_mysql_database', 'hive_existing_postgresql_host', 'hive_existing_postgresql_database',
+            'hive_existing_mssql_server_database', 'hive_existing_mssql_server_host',
+            'hive_existing_mssql_server_2_database', 'hive_existing_mssql_server_2_host']);
           break;
       }
 
@@ -299,25 +355,51 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, {
           oozieDbType.value = 'derby';
           oozie_properties = Em.A(['oozie_ambari_host', 'oozie_ambari_database', 'oozie_existing_mysql_host',
             'oozie_existing_mysql_database', 'oozie_existing_oracle_host', 'oozie_existing_oracle_database',
-            'oozie_existing_postgresql_host', 'oozie_existing_postgresql_database']);
+            'oozie_existing_postgresql_host', 'oozie_existing_postgresql_database',
+            'oozie_existing_mssql_server_database', 'oozie_existing_mssql_server_host',
+            'oozie_existing_mssql_server_2_database', 'oozie_existing_mssql_server_2_host']);
           break;
         case 'Existing MySQL Database':
           configs.findProperty('name', 'oozie_hostname').value = configs.findProperty('name', 'oozie_existing_mysql_host').value;
           oozieDbType.value = 'mysql';
           oozie_properties = Em.A(['oozie_ambari_host', 'oozie_ambari_database', 'oozie_existing_oracle_host',
-            'oozie_existing_oracle_database', 'oozie_derby_database', 'oozie_existing_postgresql_host', 'oozie_existing_postgresql_database']);
+            'oozie_existing_oracle_database', 'oozie_derby_database', 'oozie_existing_postgresql_host', 'oozie_existing_postgresql_database',
+            'oozie_existing_mssql_server_database', 'oozie_existing_mssql_server_host',
+            'oozie_existing_mssql_server_2_database', 'oozie_existing_mssql_server_2_host']);
           break;
         case Em.I18n.t('services.service.config.hive.oozie.postgresql'):
           configs.findProperty('name', 'oozie_hostname').value = configs.findProperty('name', 'oozie_existing_postgresql_host').value;
           oozieDbType.value = 'postgresql';
           oozie_properties = Em.A(['oozie_ambari_host', 'oozie_ambari_database', 'oozie_existing_oracle_host',
-            'oozie_existing_oracle_database', 'oozie_existing_mysql_host', 'oozie_existing_mysql_database']);
+            'oozie_existing_oracle_database', 'oozie_existing_mysql_host', 'oozie_existing_mysql_database',
+            'oozie_existing_mssql_server_database', 'oozie_existing_mssql_server_host',
+            'oozie_existing_mssql_server_2_database', 'oozie_existing_mssql_server_2_host']);
+          break;
+        case 'Existing MSSQL Server database with integrated authentication':
+          configs.findProperty('name', 'oozie_hostname').value = configs.findProperty('name', 'oozie_existing_mysql_host').value;
+          oozieDbType.value = 'mssql';
+          hive_properties = Em.A(['hive_ambari_host', 'hive_ambari_database', 'oozie_existing_oracle_host',
+            'oozie_existing_oracle_database', 'oozie_existing_postgresql_host', 'oozie_existing_postgresql_database',
+            'oozie_existing_mysql_host', 'oozie_existing_mysql_database',
+            'oozie_existing_mssql_server_database', 'oozie_existing_mssql_server_host',
+            'oozie_existing_mssql_server_2_database', 'oozie_existing_mssql_server_2_host']);
+          break;
+        case 'Existing MSSQL Server database with sql auth':
+          configs.findProperty('name', 'oozie_hostname').value = configs.findProperty('name', 'oozie_existing_mysql_host').value;
+          oozieDbType.value = 'mssql';
+          hive_properties = Em.A(['hive_ambari_host', 'hive_ambari_database', 'oozie_existing_oracle_host',
+            'oozie_existing_oracle_database', 'oozie_existing_postgresql_host', 'oozie_existing_postgresql_database',
+            'oozie_existing_mysql_host', 'oozie_existing_mysql_database',
+            'oozie_existing_mssql_server_database', 'oozie_existing_mssql_server_host',
+            'oozie_existing_mssql_server_database', 'oozie_existing_mssql_server_host']);
           break;
         default:
           configs.findProperty('name', 'oozie_hostname').value = configs.findProperty('name', 'oozie_existing_oracle_host').value;
           oozieDbType.value = 'oracle';
           oozie_properties = Em.A(['oozie_ambari_host', 'oozie_ambari_database', 'oozie_existing_mysql_host',
-            'oozie_existing_mysql_database', 'oozie_derby_database', 'oozie_existing_postgresql_host', 'oozie_existing_postgresql_database']);
+            'oozie_existing_mysql_database', 'oozie_derby_database', 'oozie_existing_postgresql_host',
+            'oozie_existing_postgresql_database', 'oozie_existing_mssql_server_database', 'oozie_existing_mssql_server_host',
+            'oozie_existing_mssql_server_2_database', 'oozie_existing_mssql_server_2_host']);
           break;
       }
       oozie_properties.forEach(function (property) {
@@ -336,6 +418,9 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, {
     var configs = this.get('content.serviceConfigProperties');
     if (configs.someProperty('name', 'hive_database')) {
       configs = this.removeHiveConfigs(configs);
+    }
+    if (configs.someProperty('name', 'sink_database')) {
+      configs = this.removeSinkConfigs(configs);
     }
     if (configs.someProperty('name', 'oozie_database')) {
       configs = this.removeOozieConfigs(configs);
@@ -579,7 +664,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, {
                 base_url: repo.get('baseUrl'),
                 os_type: repo.get('osType'),
                 repo_id: repo.get('repoId')
-              }));  
+              }));
             }, this);
           }
         }, this);
@@ -719,14 +804,33 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, {
         hostsCount + ' ' + Em.I18n.t('installer.step8.hosts'));
   },
 
+/**
+   * Set displayed MetricsSink DB value based on DB type
+   * @param {Ember.Object} dbComponent
+   * @method loadSinkDbValue
+   */
+  loadSinkDbValue: function () {
+    var db, serviceConfigProperties = this.get('wizardController').getDBProperty('serviceConfigProperties'),
+    sinkDb = serviceConfigProperties.findProperty('name', 'sink_database');
+    if (sinkDb.value === 'Existing MSSQL Server database with integrated authentication') {
+      db = serviceConfigProperties.findProperty('name', 'sink_existing_mssql_server_database');
+      return db.value + ' (' + sinkDb.value + ')';
+    }
+    else {
+      if (sinkDb.value === 'Existing MSSQL Server database with sql auth') {
+        db = serviceConfigProperties.findProperty('name', 'sink_existing_mssql_server_2_database');
+        return db.value + ' (' + sinkDb.value + ')';
+      }
+    }
+  },
+
   /**
    * Set dispalyed Hive DB value based on DB type
    * @param {Ember.Object} dbComponent
    * @method loadHiveDbValue
    */
   loadHiveDbValue: function () {
-    var db,
-      serviceConfigPreoprties = this.get('wizardController').getDBProperty('serviceConfigProperties'),
+    var db, serviceConfigPreoprties = this.get('wizardController').getDBProperty('serviceConfigProperties'),
       hiveDb = serviceConfigPreoprties.findProperty('name', 'hive_database');
     if (hiveDb.value === 'New MySQL Database') {
       return 'MySQL (New Database)';
@@ -743,9 +847,22 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, {
           db = serviceConfigPreoprties.findProperty('name', 'hive_existing_postgresql_database');
           return db.value + ' (' + hiveDb.value + ')';
         }
-        else { // existing oracle database
-          db = serviceConfigPreoprties.findProperty('name', 'hive_existing_oracle_database');
-          return db.value + ' (' + hiveDb.value + ')';
+        else {
+          if (hiveDb.value === 'Existing MSSQL Server database with integrated authentication') {
+            db = serviceConfigPreoprties.findProperty('name', 'hive_existing_mssql_server_database');
+            return db.value + ' (' + hiveDb.value + ')';
+          }
+          else {
+            if (hiveDb.value === 'Existing MSSQL Server database with sql auth') {
+              db = serviceConfigPreoprties.findProperty('name', 'hive_existing_mssql_server_2_database');
+              return db.value + ' (' + hiveDb.value + ')';
+            }
+            else {
+              // existing oracle database
+              db = serviceConfigPreoprties.findProperty('name', 'hive_existing_oracle_database');
+              return db.value + ' (' + hiveDb.value + ')';
+            }
+          }
         }
       }
     }
@@ -802,9 +919,22 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, {
           db = this.get('wizardController').getDBProperty('serviceConfigProperties').findProperty('name', 'oozie_existing_postgresql_database');
           return db.value + ' (' + oozieDb.value + ')';
         }
-        else { // existing oracle database
-          db = this.get('wizardController').getDBProperty('serviceConfigProperties').findProperty('name', 'oozie_existing_oracle_database');
-          return db.value + ' (' + oozieDb.value + ')';
+        else {
+          if (oozieDb.value === 'Existing MSSQL Server database with integrated authentication') {
+            db = this.get('wizardController').getDBProperty('serviceConfigProperties').findProperty('name', 'oozie_existing_mssql_server_database');
+            return db.value + ' (' + oozieDb.value + ')';
+          }
+          else {
+            if (oozieDb.value === 'Existing MSSQL Server database with sql auth') {
+              db = this.get('wizardController').getDBProperty('serviceConfigProperties').findProperty('name', 'oozie_existing_mssql_server_2_database');
+              return db.value + ' (' + oozieDb.value + ')';
+            }
+            else {
+              // existing oracle database
+              db = this.get('wizardController').getDBProperty('serviceConfigProperties').findProperty('name', 'oozie_existing_oracle_database');
+              return db.value + ' (' + oozieDb.value + ')';
+            }
+          }
         }
       }
     }

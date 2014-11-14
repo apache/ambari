@@ -52,23 +52,22 @@ class TestMain(unittest.TestCase):
     sys.stdout = sys.__stdout__
 
 
+  @patch("ambari_agent.HeartbeatStopHandler_linux")
   @patch("os._exit")
   @patch("os.getpid")
   @patch.object(ProcessHelper, "stopAgent")
-  def test_signal_handler(self, stopAgent_mock, os_getpid_mock, os_exit_mock):
+  def test_signal_handler(self, stopAgent_mock, os_getpid_mock, os_exit_mock, heartbeat_handler_mock):
     # testing exit of children
     main.agentPid = 4444
     os_getpid_mock.return_value = 5555
     main.signal_handler("signum", "frame")
-    self.assertTrue(os_exit_mock.called)
-
+    heartbeat_handler_mock.set_stop.assert_called()
     os_exit_mock.reset_mock()
 
     # testing exit of main process
     os_getpid_mock.return_value = main.agentPid
     main.signal_handler("signum", "frame")
-    self.assertFalse(os_exit_mock.called)
-    self.assertTrue(stopAgent_mock.called)
+    heartbeat_handler_mock.set_stop.assert_called()
 
 
   @patch.object(main.logger, "addHandler")
@@ -122,7 +121,7 @@ class TestMain(unittest.TestCase):
 
   @patch("signal.signal")
   def test_bind_signal_handlers(self, signal_mock):
-    main.bind_signal_handlers()
+    main.bind_signal_handlers(os.getpid())
     # Check if on SIGINT/SIGTERM agent is configured to terminate
     signal_mock.assert_any_call(signal.SIGINT, main.signal_handler)
     signal_mock.assert_any_call(signal.SIGTERM, main.signal_handler)
@@ -269,7 +268,7 @@ class TestMain(unittest.TestCase):
   @patch.object(main, "setup_logging")
   @patch.object(main, "bind_signal_handlers")
   @patch.object(main, "stop_agent")
-  @patch.object(main, "resolve_ambari_config")
+  @patch.object(AmbariConfig, "getConfigFile")
   @patch.object(main, "perform_prestart_checks")
   @patch.object(main, "daemonize")
   @patch.object(main, "update_log_level")
@@ -285,21 +284,25 @@ class TestMain(unittest.TestCase):
   def test_main(self, ping_port_init_mock, ping_port_start_mock, data_clean_init_mock,data_clean_start_mock,
                 parse_args_mock, join_mock, start_mock, Controller_init_mock, try_to_connect_mock,
                 update_log_level_mock, daemonize_mock, perform_prestart_checks_mock,
-                resolve_ambari_config_mock, stop_mock, bind_signal_handlers_mock,
+                ambari_config_mock,
+                stop_mock, bind_signal_handlers_mock,
                 setup_logging_mock, socket_mock):
     data_clean_init_mock.return_value = None
     Controller_init_mock.return_value = None
     ping_port_init_mock.return_value = None
     options = MagicMock()
     parse_args_mock.return_value = (options, MagicMock)
-
+    try_to_connect_mock.return_value = (0, True)
+    # use default unix config
+    ambari_config_mock.return_value = os.path.abspath("../../../conf/unix/ambari-agent.ini")
     #testing call without command-line arguments
+
     main.main()
 
     self.assertTrue(setup_logging_mock.called)
     self.assertTrue(bind_signal_handlers_mock.called)
     self.assertTrue(stop_mock.called)
-    self.assertTrue(resolve_ambari_config_mock.called)
+    #self.assertTrue(resolve_ambari_config_mock.called)
     self.assertTrue(perform_prestart_checks_mock.called)
     self.assertTrue(daemonize_mock.called)
     self.assertTrue(update_log_level_mock.called)

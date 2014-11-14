@@ -1,0 +1,291 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+
+<configuration supports_final="true">
+
+  <!-- Hive Configuration can either be stored in this file or in the hadoop configuration files  -->
+  <!-- that are implied by Hadoop setup variables.                                                -->
+  <!-- Aside from Hadoop setup variables - this file is provided as a convenience so that Hive    -->
+  <!-- users do not have to edit hadoop configuration files (that may be managed as a centralized -->
+  <!-- resource).                                                                                 -->
+
+  <!-- Hive Execution Parameters -->
+
+  <property>
+    <name>hive.metastore.uris</name>
+    <value>thrift://localhost:9083</value>
+  </property>
+
+  <property>
+    <name>hive.metastore.connect.retries</name>
+    <value>5</value>
+    <description>Number of retries while opening a connection to metastore</description>
+  </property>
+
+  <property>
+    <name>hive.metastore.ds.retry.attempts</name>
+    <value>0</value>
+    <description>The number of times to retry a metastore call if there were a connection error</description>
+  </property>
+
+  <property>
+    <name>hive.metastore.ds.retry.interval</name>
+    <value>1000</value>
+    <description>The number of miliseconds between metastore retry attempts</description>
+  </property>
+
+  <property>
+    <name>hive.metastore.execute.setugi</name>
+    <value>true</value>
+  </property>
+
+  <property>
+    <name>hive.hmshandler.retry.attempts</name>
+    <value>5</value>
+    <description>The number of times to retry a HMSHandler call if there were a connection error</description>
+  </property>
+
+  <property>
+    <name>hive.hmshandler.retry.interval</name>
+    <value>1000</value>
+    <description>The number of miliseconds between HMSHandler retry attempts</description>
+  </property>
+
+  <property>
+    <name>javax.jdo.option.ConnectionURL</name>
+    <value></value>
+    <description>JDBC connect string for a JDBC metastore</description>
+  </property>
+
+  <property>
+    <name>javax.jdo.option.ConnectionDriverName</name>
+    <value>com.microsoft.sqlserver.jdbc.SQLServerDriver</value>
+    <description>Driver class name for a JDBC metastore</description>
+  </property>
+
+  <property>
+    <name>ambari.hive.db.schema.name</name>
+    <value>hive</value>
+    <description>Database name used as the Hive Metastore</description>
+  </property>
+
+  <property>
+    <name>javax.jdo.option.ConnectionUserName</name>
+    <value>hive</value>
+    <description>username to use against metastore database</description>
+  </property>
+
+  <property require-input="true">
+    <name>javax.jdo.option.ConnectionPassword</name>
+    <value></value>
+    <type>PASSWORD</type>
+    <description>password to use against metastore database</description>
+  </property>
+
+  <property>
+    <name>hive.metastore.warehouse.dir</name>
+    <value>/hive/warehouse</value>
+    <description>location of default database for the warehouse</description>
+  </property>
+
+  <property>
+    <name>hive.hwi.listen.host</name>
+    <value>0.0.0.0</value>
+    <description>This is the host address the Hive Web Interface will listen on</description>
+  </property>
+
+  <property>
+    <name>hive.hwi.listen.port</name>
+    <value>9999</value>
+    <description>This is the port the Hive Web Interface will listen on</description>
+  </property>
+
+  <property>
+    <name>hive.hwi.war.file</name>
+    <value>lib\hive-hwi-@hive.version@.war</value>
+    <description>This is the WAR file with the jsp content for Hive Web Interface</description>
+  </property>
+
+  <property>
+    <name>hive.server2.transport.mode</name>
+    <value>binary</value>
+    <description>Server transport mode. "binary" or "http".</description>
+  </property>
+
+  <property>
+    <name>hive.server2.thrift.http.port</name>
+    <value>10001</value>
+    <description>Port number when in HTTP mode.</description>
+  </property>
+
+  <property>
+    <name>hive.server2.thrift.http.path</name>
+    <value>/</value>
+    <description>Path component of URL endpoint when in HTTP mode.</description>
+  </property>
+
+  <property>
+    <name>hive.server2.thrift.http.min.worker.threads</name>
+    <value>5</value>
+    <description>Minimum number of worker threads when in HTTP mode.</description>
+  </property>
+
+  <property>
+    <name>hive.server2.thrift.http.max.worker.threads</name>
+    <value>100</value>
+    <description>Maximum number of worker threads when in HTTP mode.</description>
+  </property>
+
+  <property>
+    <name>hive.server2.thrift.port</name>
+    <value>10001</value>
+    <description>HiveServer2 thrift port</description>
+  </property>
+
+  <property>
+    <name>hive.server2.enable.doAs</name>
+    <value>false</value>
+  </property>
+
+  <property>
+    <name>hive.security.authorization.enabled</name>
+    <value>true</value>
+    <description>enable or disable the hive client authorization</description>
+  </property>
+
+  <property>
+    <name>hive.security.authorization.manager</name>
+    <value>org.apache.hadoop.hive.ql.security.authorization.StorageBasedAuthorizationProvider</value>
+  </property>
+
+  <property>
+    <name>hive.optimize.mapjoin.mapreduce</name>
+    <value>true</value>
+  </property>
+
+  <property>
+    <name>hive.enforce.bucketing</name>
+    <value>true</value>
+  </property>
+
+  <property>
+    <name>hive.enforce.sorting</name>
+    <value>true</value>
+  </property>
+
+  <property>
+    <name>hive.optimize.index.filter</name>
+    <value>true</value>
+  </property>
+
+  <property>
+    <name>hive.mapred.reduce.tasks.speculative.execution</name>
+    <value>false</value>
+  </property>
+
+  <property>
+    <name>hive.orc.splits.include.file.footer</name>
+    <value>false</value>
+  </property>
+
+  <property>
+    <name>hive.exec.local.cache</name>
+    <value>true</value>
+  </property>
+
+  <property>
+    <name>hive.vectorized.execution.enabled</name>
+    <value>true</value>
+  </property>
+
+  <property>
+    <name>hive.vectorized.groupby.flush.percent</name>
+    <value>1.0</value>
+  </property>
+
+  <property>
+    <name>hive.vectorized.groupby.checkinterval</name>
+    <value>1024</value>
+  </property>
+
+  <property>
+    <name>hive.vectorized.groupby.maxentries</name>
+    <value>1024</value>
+  </property>
+
+  <property>
+    <name>hive.optimize.bucketmapjoin.sortedmerge</name>
+    <value>false</value>
+  </property>
+
+  <property>
+    <name>hive.optimize.bucketmapjoin</name>
+    <value>true</value>
+  </property>
+
+  <property>
+    <name>hive.enforce.sortmergebucketmapjoin</name>
+    <value>true</value>
+  </property>
+
+  <property>
+    <name>hive.convert.join.bucket.mapjoin.tez</name>
+    <value>false</value>
+  </property>
+
+  <property>
+    <name>hive.auto.convert.sortmerge.join</name>
+    <value>true</value>
+  </property>
+
+  <property>
+    <name>hive.auto.convert.sortmerge.join.noconditionaltask</name>
+    <value>true</value>
+  </property>
+
+  <property>
+    <name>hive.server2.tez.sessions.per.default.queue</name>
+    <value>1</value>
+  </property>
+
+  <property>
+    <name>hive.server2.tez.initialize.default.sessions</name>
+    <value>false</value>
+  </property>
+
+  <property>
+    <name>hive.server2.tez.default.queues</name>
+    <value>default</value>
+  </property>
+
+  <property>
+    <name>hive.stats.dbclass</name>
+    <value>fs</value>
+  </property>
+
+  <property>
+    <name>hive.compute.query.using.stats</name>
+    <value>true</value>
+  </property>
+
+
+  <property>
+    <name>hive.querylog.location</name>
+    <value>c:\hadoop\logs\hive</value>
+  </property>
+
+  <property>
+    <name>hive.log.dir</name>
+    <value>c:\hadoop\logs\hive</value>
+  </property>
+
+  <property>
+    <name>hive.stats.autogather</name>
+    <value>true</value>
+  </property>
+
+  <property>
+    <name>hive.execution.engine</name>
+    <value>mr</value>
+  </property>
+</configuration>

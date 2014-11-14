@@ -109,6 +109,7 @@
 		<dependency>
 			<groupId>org.apache.ambari</groupId>
 			<artifactId>ambari-views</artifactId>
+            <version>${ambari.version}</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
@@ -448,13 +449,14 @@
 						</goals>
 						<configuration>
 							<target name="slider-ui-clean">
-								<exec dir="${ui.directory}" executable="rm" failonerror="false">
-									<arg value="-rf" />
-									<arg value="public" />
-								</exec>
-								<exec dir="${ui.directory}" executable="mkdir" failonerror="false">
-									<arg value="public" />
-								</exec>
+                                <exec dir="${ui.directory}" executable="${executable.rmdir}">
+                                    <arg value="${args.rm.clean}"/>
+                                    <arg value="public"/>
+                                    <arg value="node_modules"/>
+                                </exec>
+                                <exec dir="${ui.directory}" executable="${executable.mkdir}">
+                                    <arg value="${args.mkdir.clean}"/>
+                                </exec>
 							</target>
 						</configuration>
 					</execution>
@@ -466,19 +468,18 @@
 						</goals>
 						<configuration>
 							<target name="slider-ui-compile">
-								<exec dir="${ui.directory}" executable="npm" failonerror="false">
-									<env key="PYTHON" value="${project.basedir}/../src/main/unix/ambari-python-wrap" />
-									<arg value="install" />
-								</exec>
-								<exec dir="${ui.directory}" executable="brunch"
-									failonerror="false">
-									<arg value="build" />
-								</exec>
-								<exec dir="${ui.directory}" executable="gzip" failonerror="false">
-									<arg value="public/javascripts/app.js" />
-									<arg value="public/javascripts/vendor.js" />
-									<arg value="public/stylesheets/app.css" />
-								</exec>
+                                <exec dir="${ui.directory}" executable="${executable.npm}" failonerror="true">
+                                    <arg value="${args.npm.install}"/>
+                                </exec>
+                                <exec dir="${ui.directory}" executable="${executable.brunch}" failonerror="true">
+                                    <arg value="${args.brunch.build}"/>
+                                </exec>
+                                <exec dir="${ui.directory}" executable="${executable.gzip}" failonerror="false">
+                                    <arg value="-f"/>
+                                    <arg value="public/javascripts/app.js"/>
+                                    <arg value="public/javascripts/vendor.js"/>
+                                    <arg value="public/stylesheets/app.css"/>
+                                </exec>
 							</target>
 						</configuration>
 					</execution>
@@ -631,4 +632,54 @@
 			</plugins>
 		</pluginManagement>
 	</build>
+    <profiles>
+        <profile>
+            <id>windows</id>
+            <activation>
+                <os>
+                    <family>win</family>
+                </os>
+            </activation>
+            <properties>
+                <envClassifier>win</envClassifier>
+                <dirsep>\</dirsep>
+                <executable.brunch>cmd</executable.brunch>
+                <args.brunch.build>/C brunch build</args.brunch.build>
+                <executable.gzip>gzip</executable.gzip>
+                <executable.mkdir>cmd</executable.mkdir>
+                <args.mkdir.clean>/C mkdir public</args.mkdir.clean>
+                <executable.npm>cmd</executable.npm>
+                <args.npm.install>/C npm install</args.npm.install>
+                <args.npm.test>/C npm install</args.npm.test>
+                <executable.rmdir>cmd</executable.rmdir>
+                <args.rm.clean>/C rmdir /S /Q</args.rm.clean>
+                <executable.shell>cmd</executable.shell>
+                <fileextension.shell>cmd</fileextension.shell>
+            </properties>
+        </profile>
+        <profile>
+            <id>linux</id>
+            <activation>
+                <os>
+                    <family>unix</family>
+                </os>
+            </activation>
+            <properties>
+                <envClassifier>linux</envClassifier>
+                <dirsep>/</dirsep>
+                <executable.brunch>brunch</executable.brunch>
+                <args.brunch.build>build</args.brunch.build>
+                <executable.gzip>gzip</executable.gzip>
+                <executable.mkdir>mkdir</executable.mkdir>
+                <args.mkdir.clean>public</args.mkdir.clean>
+                <executable.npm>npm</executable.npm>
+                <args.npm.install>install</args.npm.install>
+                <args.npm.test>test</args.npm.test>
+                <executable.rmdir>rm</executable.rmdir>
+                <args.rm.clean>-rf</args.rm.clean>
+                <executable.shell>sh</executable.shell>
+                <fileextension.shell>sh</fileextension.shell>
+            </properties>
+        </profile>
+    </profiles>
 </project>

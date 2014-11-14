@@ -1,0 +1,502 @@
+<?xml version="1.0"?>
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one
+  or more contributor license agreements.  See the NOTICE file
+  distributed with this work for additional information
+  regarding copyright ownership.  The ASF licenses this file
+  to you under the Apache License, Version 2.0 (the
+  "License"); you may not use this file except in compliance
+  with the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<configuration  supports_final="true">
+
+    <!--
+        Refer to the oozie-default.xml file for the complete list of
+        Oozie configuration properties and their default values.
+    -->
+
+    <property>
+        <name>oozie.service.ActionService.executor.ext.classes</name>
+        <value>
+            org.apache.oozie.action.email.EmailActionExecutor,
+            org.apache.oozie.action.hadoop.HiveActionExecutor,
+            org.apache.oozie.action.hadoop.ShellActionExecutor,
+            org.apache.oozie.action.hadoop.SqoopActionExecutor,
+            org.apache.oozie.action.hadoop.DistcpActionExecutor
+        </value>
+    </property>
+
+    <property>
+        <name>oozie.service.SchemaService.wf.ext.schemas</name>
+        <value>
+            shell-action-0.1.xsd,shell-action-0.2.xsd,email-action-0.1.xsd,hive-action-0.2.xsd,
+            hive-action-0.3.xsd,hive-action-0.4.xsd,hive-action-0.5.xsd,sqoop-action-0.2.xsd,
+            sqoop-action-0.3.xsd,sqoop-action-0.4.xsd,ssh-action-0.1.xsd,ssh-action-0.2.xsd,distcp-action-0.1.xsd,
+            oozie-sla-0.1.xsd,oozie-sla-0.2.xsd
+        </value>
+    </property>
+
+    <property>
+        <name>oozie.system.id</name>
+        <value>oozie-${user.name}</value>
+        <description>
+            The Oozie system ID.
+        </description>
+    </property>
+
+    <property>
+        <name>oozie.systemmode</name>
+        <value>NORMAL</value>
+        <description>
+            System mode for  Oozie at startup.
+        </description>
+    </property>
+
+    <property>
+        <name>oozie.service.AuthorizationService.security.enabled</name>
+        <value>true</value>
+        <description>
+            Specifies whether security (user name/admin role) is enabled or not.
+            If disabled any user can manage Oozie system and manage any job.
+        </description>
+    </property>
+
+    <property>
+        <name>oozie.service.PurgeService.older.than</name>
+        <value>30</value>
+        <description>
+            Jobs older than this value, in days, will be purged by the PurgeService.
+        </description>
+    </property>
+
+    <property>
+        <name>oozie.service.PurgeService.purge.interval</name>
+        <value>3600</value>
+        <description>
+            Interval at which the purge service will run, in seconds.
+        </description>
+    </property>
+
+    <property>
+        <name>oozie.service.CallableQueueService.queue.size</name>
+        <value>10000</value>
+        <description>Max callable queue size</description>
+    </property>
+
+    <property>
+        <name>oozie.service.CallableQueueService.threads</name>
+        <value>10</value>
+        <description>Number of threads used for executing callables</description>
+    </property>
+
+    <property>
+        <name>oozie.service.CallableQueueService.callable.concurrency</name>
+        <value>3</value>
+        <description>
+            Maximum concurrency for a given callable type.
+            Each command is a callable type (submit, start, run, signal, job, jobs, suspend,resume, etc).
+            Each action type is a callable type (Map-Reduce, Pig, SSH, FS, sub-workflow, etc).
+            All commands that use action executors (action-start, action-end, action-kill and action-check) use
+            the action type as the callable type.
+        </description>
+    </property>
+
+    <property>
+		<name>oozie.service.coord.normal.default.timeout
+		</name>
+		<value>120</value>
+		<description>Default timeout for a coordinator action input check (in minutes) for normal job.
+            -1 means infinite timeout</description>
+	</property>
+
+    <property>
+        <name>oozie.db.schema.name</name>
+        <value>oozie</value>
+        <description>
+            Oozie DataBase Name
+        </description>
+    </property>
+
+    <property>
+        <name>oozie.service.JPAService.create.db.schema</name>
+        <value>true</value>
+        <description>
+            Creates Oozie DB.
+
+            If set to true, it creates the DB schema if it does not exist. If the DB schema exists is a NOP.
+            If set to false, it does not create the DB schema. If the DB schema does not exist it fails start up.
+        </description>
+    </property>
+
+    <property>
+        <name>oozie.service.JPAService.jdbc.driver</name>
+        <value>com.microsoft.sqlserver.jdbc.SQLServerDriver</value>
+        <description>
+            JDBC driver class.
+        </description>
+    </property>
+
+    <property>
+        <name>oozie.service.JPAService.jdbc.url</name>
+        <value></value>
+        <description>
+            JDBC URL.
+        </description>
+    </property>
+
+    <property>
+        <name>oozie.service.JPAService.jdbc.username</name>
+        <value>oozie</value>
+        <description>
+            DB user name.
+        </description>
+    </property>
+
+    <property>
+        <name>oozie.service.JPAService.jdbc.password</name>
+        <value>oozie</value>
+        <description>
+            DB user password.
+
+            IMPORTANT: if password is emtpy leave a 1 space string, the service trims the value,
+                       if empty Configuration assumes it is NULL.
+        </description>
+    </property>
+
+    <property>
+        <name>oozie.service.JPAService.pool.max.active.conn</name>
+        <value>10</value>
+        <description>
+             Max number of connections.
+        </description>
+    </property>
+
+    <property>
+        <name>oozie.service.HadoopAccessorService.kerberos.enabled</name>
+        <value>false</value>
+        <description>
+            Indicates if Oozie is configured to use Kerberos.
+        </description>
+    </property>
+
+    <property>
+        <name>local.realm</name>
+        <value>LOCALHOST</value>
+        <description>
+            Kerberos Realm used by Oozie and Hadoop. Using 'local.realm' to be aligned with Hadoop configuration
+        </description>
+    </property>
+
+    <property>
+        <name>oozie.service.HadoopAccessorService.keytab.file</name>
+        <value>${user.home}/oozie.keytab</value>
+        <description>
+            Location of the Oozie user keytab file.
+        </description>
+    </property>
+
+    <property>
+        <name>oozie.service.HadoopAccessorService.kerberos.principal</name>
+        <value>${user.name}/localhost@${local.realm}</value>
+        <description>
+            Kerberos principal for Oozie service.
+        </description>
+    </property>
+
+    <property>
+        <name>oozie.service.HadoopAccessorService.jobTracker.whitelist</name>
+        <value> </value>
+        <description>
+            Whitelisted job tracker for Oozie service.
+        </description>
+    </property>
+
+    <property>
+        <name>oozie.service.HadoopAccessorService.nameNode.whitelist</name>
+        <value> </value>
+        <description>
+            Whitelisted job tracker for Oozie service.
+        </description>
+    </property>
+
+    <property>
+        <name>oozie.service.HadoopAccessorService.hadoop.configurations</name>
+        <value>*=c:\hdp\hadoop\etc\hadoop</value>
+        <description>
+            Comma separated AUTHORITY=HADOOP_CONF_DIR, where AUTHORITY is the HOST:PORT of
+            the Hadoop service (JobTracker, HDFS). The wildcard '*' configuration is
+            used when there is no exact match for an authority. The HADOOP_CONF_DIR contains
+            the relevant Hadoop *-site.xml files. If the path is relative is looked within
+            the Oozie configuration directory; though the path can be absolute (i.e. to point
+            to Hadoop client conf/ directories in the local filesystem.
+        </description>
+    </property>
+
+    <property>
+        <name>oozie.service.WorkflowAppService.system.libpath</name>
+        <value>/user/${user.name}/share/lib</value>
+        <description>
+            System library path to use for workflow applications.
+            This path is added to workflow application if their job properties sets
+            the property 'oozie.use.system.libpath' to true.
+        </description>
+    </property>
+
+    <property>
+        <name>use.system.libpath.for.mapreduce.and.pig.jobs</name>
+        <value>false</value>
+        <description>
+            If set to true, submissions of MapReduce and Pig jobs will include
+            automatically the system library path, thus not requiring users to
+            specify where the Pig JAR files are. Instead, the ones from the system
+            library path are used.
+        </description>
+    </property>
+
+    <property>
+        <name>oozie.authentication.type</name>
+        <value>simple</value>
+        <description>
+            Defines authentication used for Oozie HTTP endpoint.
+            Supported values are: simple | basic | kerberos | #AUTHENTICATION_HANDLER_CLASSNAME#
+        </description>
+    </property>
+
+    <property>
+        <name>oozie.authentication.token.validity</name>
+        <value>36000</value>
+        <description>
+            Indicates how long (in seconds) an authentication token is valid before it has
+            to be renewed.
+        </description>
+    </property>
+
+    <property>
+        <name>oozie.authentication.signature.secret</name>
+        <value>oozie</value>
+        <description>
+            The signature secret for signing the authentication tokens.
+            If not set a random secret is generated at startup time.
+            In order to authentiation to work correctly across multiple hosts
+            the secret must be the same across al the hosts.
+        </description>
+    </property>
+
+    <!--<property>
+      <name>oozie.authentication.cookie.domain</name>
+      <value></value>
+      <description>
+        The domain to use for the HTTP cookie that stores the authentication token.
+        In order to authentiation to work correctly across multiple hosts
+        the domain must be correctly set.
+      </description>
+    </property>-->
+
+    <property>
+        <name>oozie.authentication.simple.anonymous.allowed</name>
+        <value>true</value>
+        <description>
+            Indicates if anonymous requests are allowed.
+            This setting is meaningful only when using 'simple' authentication.
+        </description>
+    </property>
+
+    <property>
+        <name>oozie.authentication.kerberos.principal</name>
+        <value>HTTP/localhost@${local.realm}</value>
+        <description>
+            Indicates the Kerberos principal to be used for HTTP endpoint.
+            The principal MUST start with 'HTTP/' as per Kerberos HTTP SPNEGO specification.
+        </description>
+    </property>
+
+    <property>
+        <name>oozie.authentication.kerberos.keytab</name>
+        <value>${oozie.service.HadoopAccessorService.keytab.file}</value>
+        <description>
+            Location of the keytab file with the credentials for the principal.
+            Referring to the same keytab file Oozie uses for its Kerberos credentials for Hadoop.
+        </description>
+    </property>
+
+    <property>
+        <name>oozie.authentication.kerberos.name.rules</name>
+        <value>DEFAULT</value>
+        <description>
+            The kerberos names rules is to resolve kerberos principal names, refer to Hadoop's
+            KerberosName for more details.
+        </description>
+    </property>
+
+    <!-- Proxyuser Configuration -->
+
+    <!--
+
+    <property>
+        <name>oozie.service.ProxyUserService.proxyuser.#USER#.hosts</name>
+        <value>*</value>
+        <description>
+            List of hosts the '#USER#' user is allowed to perform 'doAs'
+            operations.
+
+            The '#USER#' must be replaced with the username o the user who is
+            allowed to perform 'doAs' operations.
+
+            The value can be the '*' wildcard or a list of hostnames.
+
+            For multiple users copy this property and replace the user name
+            in the property name.
+        </description>
+    </property>
+
+    <property>
+        <name>oozie.service.ProxyUserService.proxyuser.#USER#.groups</name>
+        <value>*</value>
+        <description>
+            List of groups the '#USER#' user is allowed to impersonate users
+            from to perform 'doAs' operations.
+
+            The '#USER#' must be replaced with the username o the user who is
+            allowed to perform 'doAs' operations.
+
+            The value can be the '*' wildcard or a list of groups.
+
+            For multiple users copy this property and replace the user name
+            in the property name.
+        </description>
+    </property>
+
+    -->
+
+
+  <property>
+    <name>oozie.service.coord.push.check.requeue.interval</name>
+    <value>30000</value>
+  </property>
+
+  <property>
+    <name>oozie.services.ext</name>
+    <value>org.apache.oozie.service.JMSAccessorService,
+                org.apache.oozie.service.PartitionDependencyManagerService,
+                org.apache.oozie.service.HCatAccessorService</value>
+  </property>
+
+  <property>
+    <name>oozie.credentials.credentialclasses</name>
+    <value>hcat=org.apache.oozie.action.hadoop.HCatCredentials</value>
+  </property>
+
+  <property>
+    <name>oozie.service.URIHandlerService.uri.handlers</name>
+    <value>org.apache.oozie.dependency.FSURIHandler,
+                org.apache.oozie.dependency.HCatURIHandler</value>
+  </property>
+
+  <property>
+    <name>oozie.service.ELService.ext.functions.coord-job-submit-data</name>
+    <value>now=org.apache.oozie.extensions.OozieELExtensions#ph1_now_echo,
+                today=org.apache.oozie.extensions.OozieELExtensions#ph1_today_echo,
+                yesterday=org.apache.oozie.extensions.OozieELExtensions#ph1_yesterday_echo,
+                currentMonth=org.apache.oozie.extensions.OozieELExtensions#ph1_currentMonth_echo,
+                lastMonth=org.apache.oozie.extensions.OozieELExtensions#ph1_lastMonth_echo,
+                currentYear=org.apache.oozie.extensions.OozieELExtensions#ph1_currentYear_echo,
+                lastYear=org.apache.oozie.extensions.OozieELExtensions#ph1_lastYear_echo,
+                dataIn=org.apache.oozie.extensions.OozieELExtensions#ph1_dataIn_echo,
+                instanceTime=org.apache.oozie.coord.CoordELFunctions#ph1_coord_nominalTime_echo_wrap,
+                formatTime=org.apache.oozie.coord.CoordELFunctions#ph1_coord_formatTime_echo,
+                dateOffset=org.apache.oozie.coord.CoordELFunctions#ph1_coord_dateOffset_echo,
+                user=org.apache.oozie.coord.CoordELFunctions#coord_user</value>
+  </property>
+
+  <property>
+    <name>oozie.service.ProxyUserService.proxyuser.hadoop.hosts</name>
+    <value>*</value>
+  </property>
+
+  <property>
+    <name>oozie.service.ELService.ext.functions.coord-sla-submit</name>
+    <value>instanceTime=org.apache.oozie.coord.CoordELFunctions#ph1_coord_nominalTime_echo_fixed,
+                user=org.apache.oozie.coord.CoordELFunctions#coord_user</value>
+  </property>
+
+  <property>
+    <name>oozie.service.ELService.ext.functions.coord-sla-create</name>
+    <value>instanceTime=org.apache.oozie.coord.CoordELFunctions#ph2_coord_nominalTime,
+                user=org.apache.oozie.coord.CoordELFunctions#coord_user</value>
+  </property>
+
+  <property>
+    <name>oozie.service.ProxyUserService.proxyuser.hadoop.groups</name>
+    <value>*</value>
+  </property>
+
+  <property>
+    <name>oozie.service.ELService.ext.functions.coord-action-create</name>
+    <value>now=org.apache.oozie.extensions.OozieELExtensions#ph2_now,
+                today=org.apache.oozie.extensions.OozieELExtensions#ph2_today,
+                yesterday=org.apache.oozie.extensions.OozieELExtensions#ph2_yesterday,
+                currentMonth=org.apache.oozie.extensions.OozieELExtensions#ph2_currentMonth,
+                lastMonth=org.apache.oozie.extensions.OozieELExtensions#ph2_lastMonth,
+                currentYear=org.apache.oozie.extensions.OozieELExtensions#ph2_currentYear,
+                lastYear=org.apache.oozie.extensions.OozieELExtensions#ph2_lastYear,
+                latest=org.apache.oozie.coord.CoordELFunctions#ph2_coord_latest_echo,
+                future=org.apache.oozie.coord.CoordELFunctions#ph2_coord_future_echo,
+                formatTime=org.apache.oozie.coord.CoordELFunctions#ph2_coord_formatTime,
+                user=org.apache.oozie.coord.CoordELFunctions#coord_user</value>
+  </property>
+
+  <property>
+    <name>oozie.service.ELService.ext.functions.coord-job-submit-instances</name>
+    <value>now=org.apache.oozie.extensions.OozieELExtensions#ph1_now_echo,
+                today=org.apache.oozie.extensions.OozieELExtensions#ph1_today_echo,
+                yesterday=org.apache.oozie.extensions.OozieELExtensions#ph1_yesterday_echo,
+                currentMonth=org.apache.oozie.extensions.OozieELExtensions#ph1_currentMonth_echo,
+                lastMonth=org.apache.oozie.extensions.OozieELExtensions#ph1_lastMonth_echo,
+                currentYear=org.apache.oozie.extensions.OozieELExtensions#ph1_currentYear_echo,
+                lastYear=org.apache.oozie.extensions.OozieELExtensions#ph1_lastYear_echo,
+                formatTime=org.apache.oozie.coord.CoordELFunctions#ph1_coord_formatTime_echo,
+                latest=org.apache.oozie.coord.CoordELFunctions#ph2_coord_latest_echo,
+                future=org.apache.oozie.coord.CoordELFunctions#ph2_coord_future_echo</value>
+  </property>
+
+  <property>
+    <name>oozie.service.ELService.ext.functions.coord-action-start</name>
+    <value>now=org.apache.oozie.extensions.OozieELExtensions#ph2_now,
+                today=org.apache.oozie.extensions.OozieELExtensions#ph2_today,
+                yesterday=org.apache.oozie.extensions.OozieELExtensions#ph2_yesterday,
+                currentMonth=org.apache.oozie.extensions.OozieELExtensions#ph2_currentMonth,
+                lastMonth=org.apache.oozie.extensions.OozieELExtensions#ph2_lastMonth,
+                currentYear=org.apache.oozie.extensions.OozieELExtensions#ph2_currentYear,
+                lastYear=org.apache.oozie.extensions.OozieELExtensions#ph2_lastYear,
+                latest=org.apache.oozie.coord.CoordELFunctions#ph3_coord_latest,
+                future=org.apache.oozie.coord.CoordELFunctions#ph3_coord_future,
+                dataIn=org.apache.oozie.extensions.OozieELExtensions#ph3_dataIn,
+                instanceTime=org.apache.oozie.coord.CoordELFunctions#ph3_coord_nominalTime,
+                dateOffset=org.apache.oozie.coord.CoordELFunctions#ph3_coord_dateOffset,
+                formatTime=org.apache.oozie.coord.CoordELFunctions#ph3_coord_formatTime,
+                user=org.apache.oozie.coord.CoordELFunctions#coord_user</value>
+  </property>
+
+  <property>
+    <name>oozie.service.ELService.ext.functions.coord-action-create-inst</name>
+    <value>now=org.apache.oozie.extensions.OozieELExtensions#ph2_now_inst,
+                today=org.apache.oozie.extensions.OozieELExtensions#ph2_today_inst,
+                yesterday=org.apache.oozie.extensions.OozieELExtensions#ph2_yesterday_inst,
+                currentMonth=org.apache.oozie.extensions.OozieELExtensions#ph2_currentMonth_inst,
+                lastMonth=org.apache.oozie.extensions.OozieELExtensions#ph2_lastMonth_inst,
+                currentYear=org.apache.oozie.extensions.OozieELExtensions#ph2_currentYear_inst,
+                lastYear=org.apache.oozie.extensions.OozieELExtensions#ph2_lastYear_inst,
+                latest=org.apache.oozie.coord.CoordELFunctions#ph2_coord_latest_echo,
+                future=org.apache.oozie.coord.CoordELFunctions#ph2_coord_future_echo,
+                formatTime=org.apache.oozie.coord.CoordELFunctions#ph2_coord_formatTime,
+                user=org.apache.oozie.coord.CoordELFunctions#coord_user</value>
+  </property>
+</configuration>

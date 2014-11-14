@@ -21,12 +21,15 @@ limitations under the License.
 import os.path
 import logging
 import subprocess
+import platform
+from shell import shellRunner
 from Facter import Facter
 
 logger = logging.getLogger()
 
 class Hardware:
   SSH_KEY_PATTERN = 'ssh.*key'
+  WINDOWS_GET_DRIVES_CMD ="foreach ($drive in [System.IO.DriveInfo]::getdrives()){$available = $drive.TotalFreeSpace;$used = $drive.TotalSize-$drive.TotalFreeSpace;$percent = ($used*100)/$drive.TotalSize;$size = $drive.TotalSize;$type = $drive.DriveFormat;$mountpoint = $drive.RootDirectory.FullName;echo \"$available $used $percent% $size $type $mountpoint\"}"
 
   def __init__(self):
     self.hardware = {}
@@ -59,8 +62,15 @@ class Hardware:
 
   @staticmethod
   def osdisks():
-    """ Run df to find out the disks on the host. Only works on linux 
-    platforms. Note that this parser ignores any filesystems with spaces 
+    if platform.system() == "Windows":
+      return Hardware._osdisks_win()
+    else:
+      return Hardware._osdisks_linux()
+
+  @staticmethod
+  def _osdisks_linux():
+    """ Run df to find out the disks on the host. Only works on linux
+    platforms. Note that this parser ignores any filesystems with spaces
     and any mounts with spaces. """
     mounts = []
     df = subprocess.Popen(["df", "-kPT"], stdout=subprocess.PIPE)
@@ -72,6 +82,25 @@ class Hardware:
         mounts.append(mountinfo)
       pass
     pass
+    return mounts
+
+  @staticmethod
+  def _osdisks_win():
+    mounts = []
+    runner = shellRunner()
+    command_result = runner.runPowershell(script_block=Hardware.WINDOWS_GET_DRIVES_CMD)
+    if command_result.exitCode != 0:
+      return mounts
+    else:
+      for drive in [line for line in command_result.output.split(os.linesep) if line != '']:
+        available, used, percent, size, type, mountpoint = drive.split(" ")
+        mounts.append({"available": available,
+                       "used": used,
+                       "percent": percent,
+                       "size": size,
+                       "type": type,
+                       "mountpoint": mountpoint})
+
     return mounts
 
   def get(self):

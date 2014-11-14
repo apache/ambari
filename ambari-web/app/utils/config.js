@@ -642,7 +642,7 @@ App.config = Em.Object.create({
 
   miscConfigVisibleProperty: function (configs, serviceToShow) {
     configs.forEach(function (item) {
-      if (item.belongsToService && item.belongsToService.length) {
+      if (item.get('isVisible') && item.belongsToService && item.belongsToService.length) {
         item.set("isVisible", item.belongsToService.some(function (cur) {
           return serviceToShow.contains(cur)
         }));
@@ -844,8 +844,9 @@ App.config = Em.Object.create({
     params.callback(properties);
   },
 
-  loadClusterConfigError: function (request, ajaxOptions, error, opt) {
+  loadClusterConfigError: function (request, ajaxOptions, error, opt, params) {
     console.log('ERROR: Failed to load cluster-env configs');
+    params.callback([]);
   },
 
 

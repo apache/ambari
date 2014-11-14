@@ -281,7 +281,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
    * Remove all data for installOptions step
    */
   clearInstallOptions: function () {
-    var installOptions = jQuery.extend({}, this.get('installOptionsTemplate'));
+    var installOptions = this.get('getInstallOptions');
     this.set('content.installOptions', installOptions);
     this.setDBProperty('installOptions', installOptions);
     this.set('content.hosts', {});
@@ -503,6 +503,10 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
     }, this);
   },
 
+  getInstallOptions: function() {
+    return jQuery.extend({}, App.get('isHadoopWindowsStack')? this.get('installWindowsOptionsTemplate') : this.get('installOptionsTemplate'));
+  }.property('App.isHadoopWindowsStack'),
+
   installOptionsTemplate: {
     hostNames: "", //string
     manualInstall: false, //true, false
@@ -512,6 +516,17 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
     sshKey: "", //string
     bootRequestId: null, //string
     sshUser: "root" //string
+  },
+
+  installWindowsOptionsTemplate: {
+    hostNames: "", //string
+    manualInstall: true, //true, false
+    useSsh: false, //bool
+    javaHome: App.defaultJavaHome, //string
+    localRepo: false, //true, false
+    sshKey: "", //string
+    bootRequestId: null, //string
+    sshUser: "" //string
   },
 
   loadedServiceComponents: null,

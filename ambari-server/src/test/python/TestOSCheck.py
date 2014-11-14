@@ -28,6 +28,7 @@ from unittest import TestCase
 from mock.mock import patch
 
 from ambari_commons import OSCheck
+from ambari_commons.os_check import get_os_distribution
 import os_check_type
 
 utils = __import__('ambari_server.utils').utils
@@ -45,11 +46,13 @@ class TestOSCheck(TestCase):
     # 1 - Any system
     mock_exists.return_value = False
     mock_linux_distribution.return_value = ('my_os', '', '')
+    OSCheck._dist = get_os_distribution()
     result = OSCheck.get_os_type()
     self.assertEquals(result, 'my_os')
 
     # 2 - Negative case
     mock_linux_distribution.return_value = ('', 'aaaa', 'bbbbb')
+    OSCheck._dist = get_os_distribution()
     try:
       result = OSCheck.get_os_type()
       self.fail("Should throw exception in OSCheck.get_os_type()")
@@ -61,12 +64,14 @@ class TestOSCheck(TestCase):
     # 3 - path exist: '/etc/oracle-release'
     mock_exists.return_value = True
     mock_linux_distribution.return_value = ('some_os', '', '')
+    OSCheck._dist = get_os_distribution()
     result = OSCheck.get_os_type()
     self.assertEquals(result, 'oraclelinux')
 
     # 4 - Common system
     mock_exists.return_value = False
     mock_linux_distribution.return_value = ('CenToS', '', '')
+    OSCheck._dist = get_os_distribution()
     result = OSCheck.get_os_type()
     self.assertEquals(result, 'centos')
 
@@ -74,16 +79,19 @@ class TestOSCheck(TestCase):
     mock_exists.return_value = False
     # Red Hat Enterprise Linux Server release 6.5 (Santiago)
     mock_linux_distribution.return_value = ('Red Hat Enterprise Linux Server', '6.5', 'Santiago')
+    OSCheck._dist = get_os_distribution()
     result = OSCheck.get_os_type()
     self.assertEquals(result, 'redhat')
 
     # Red Hat Enterprise Linux Workstation release 6.4 (Santiago)
     mock_linux_distribution.return_value = ('Red Hat Enterprise Linux Workstation', '6.4', 'Santiago')
+    OSCheck._dist = get_os_distribution()
     result = OSCheck.get_os_type()
     self.assertEquals(result, 'redhat')
 
     # Red Hat Enterprise Linux AS release 4 (Nahant Update 3)
     mock_linux_distribution.return_value = ('Red Hat Enterprise Linux AS', '4', 'Nahant Update 3')
+    OSCheck._dist = get_os_distribution()
     result = OSCheck.get_os_type()
     self.assertEquals(result, 'redhat')
 
@@ -94,18 +102,21 @@ class TestOSCheck(TestCase):
     # 1 - Any system
     mock_exists.return_value = False
     mock_linux_distribution.return_value = ('MY_os', '', '')
+    OSCheck._dist = get_os_distribution()
     result = OSCheck.get_os_family()
     self.assertEquals(result, 'my_os')
 
     # 2 - Redhat
     mock_exists.return_value = False
     mock_linux_distribution.return_value = ('Centos Linux', '', '')
+    OSCheck._dist = get_os_distribution()
     result = OSCheck.get_os_family()
     self.assertEquals(result, 'redhat')
 
     # 3 - Ubuntu
     mock_exists.return_value = False
     mock_linux_distribution.return_value = ('Ubuntu', '', '')
+    OSCheck._dist = get_os_distribution()
     result = OSCheck.get_os_family()
     self.assertEquals(result, 'ubuntu')
 
@@ -113,16 +124,19 @@ class TestOSCheck(TestCase):
     mock_exists.return_value = False
     mock_linux_distribution.return_value = (
     'suse linux enterprise server', '', '')
+    OSCheck._dist = get_os_distribution()
     result = OSCheck.get_os_family()
     self.assertEquals(result, 'suse')
 
     mock_exists.return_value = False
     mock_linux_distribution.return_value = ('SLED', '', '')
+    OSCheck._dist = get_os_distribution()
     result = OSCheck.get_os_family()
     self.assertEquals(result, 'suse')
 
     # 5 - Negative case
     mock_linux_distribution.return_value = ('', '111', '2222')
+    OSCheck._dist = get_os_distribution()
     try:
       result = OSCheck.get_os_family()
       self.fail("Should throw exception in OSCheck.get_os_family()")
@@ -136,11 +150,13 @@ class TestOSCheck(TestCase):
 
     # 1 - Any system
     mock_linux_distribution.return_value = ('', '123.45', '')
+    OSCheck._dist = get_os_distribution()
     result = OSCheck.get_os_version()
     self.assertEquals(result, '123.45')
 
     # 2 - Negative case
     mock_linux_distribution.return_value = ('ssss', '', 'ddddd')
+    OSCheck._dist = get_os_distribution()
     try:
       result = OSCheck.get_os_version()
       self.fail("Should throw exception in OSCheck.get_os_version()")
@@ -154,11 +170,13 @@ class TestOSCheck(TestCase):
 
     # 1
     mock_linux_distribution.return_value = ('', '123.45.67', '')
+    OSCheck._dist = get_os_distribution()
     result = OSCheck.get_os_major_version()
     self.assertEquals(result, '123')
 
     # 2
     mock_linux_distribution.return_value = ('Suse', '11', '')
+    OSCheck._dist = get_os_distribution()
     result = OSCheck.get_os_major_version()
     self.assertEquals(result, '11')
 
@@ -167,11 +185,13 @@ class TestOSCheck(TestCase):
 
     # 1 - Any system
     mock_linux_distribution.return_value = ('', '', 'MY_NEW_RELEASE')
+    OSCheck._dist = get_os_distribution()
     result = OSCheck.get_os_release_name()
     self.assertEquals(result, 'my_new_release')
 
     # 2 - Negative case
     mock_linux_distribution.return_value = ('aaaa', 'bbbb', '')
+    OSCheck._dist = get_os_distribution()
     try:
       result = OSCheck.get_os_release_name()
       self.fail("Should throw exception in OSCheck.get_os_release_name()")
@@ -233,6 +253,7 @@ class TestOSCheck(TestCase):
     mock_linux_distribution.return_value = ('aaa', '11', 'bb')
     base_args = ["os_check_type.py", "aaa11"]
     sys.argv = list(base_args)
+    OSCheck._dist = get_os_distribution()
 
     try:
       os_check_type.main()
@@ -244,6 +265,7 @@ class TestOSCheck(TestCase):
     mock_linux_distribution.return_value = ('ddd', '33', 'bb')
     base_args = ["os_check_type.py", "zzz_x77"]
     sys.argv = list(base_args)
+    OSCheck._dist = get_os_distribution()
 
     try:
       os_check_type.main()

@@ -97,6 +97,7 @@ App.ClusterController = Em.Controller.extend({
     var dfd = $.Deferred();
 
     if (App.get('clusterName') && !reload) {
+      App.set('clusterName', this.get('clusterName'));
       dfd.resolve();
     } else {
       App.ajax.send({

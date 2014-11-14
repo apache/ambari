@@ -1,0 +1,207 @@
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+<configuration supports_final="false">
+  <!--advanced properties-->
+  <property>
+    <name>*.workflow.engine.impl</name>
+    <value>org.apache.falcon.workflow.engine.OozieWorkflowEngine</value>
+    <description></description>
+  </property>
+  <property>
+    <name>*.oozie.process.workflow.builder</name>
+    <value>org.apache.falcon.workflow.OozieProcessWorkflowBuilder</value>
+    <description></description>
+  </property>
+  <property>
+    <name>*.oozie.feed.workflow.builder</name>
+    <value>org.apache.falcon.workflow.OozieFeedWorkflowBuilder</value>
+    <description></description>
+  </property>
+  <property>
+    <name>*.SchedulableEntityManager.impl</name>
+    <value>org.apache.falcon.resource.SchedulableEntityManager</value>
+    <description></description>
+  </property>
+  <property>
+    <name>*.ConfigSyncService.impl</name>
+    <value>org.apache.falcon.resource.ConfigSyncService</value>
+    <description></description>
+  </property>
+  <property>
+    <name>*.ProcessInstanceManager.impl</name>
+    <value>org.apache.falcon.resource.InstanceManager</value>
+    <description></description>
+  </property>
+  <property>
+    <name>*.catalog.service.impl</name>
+    <value>org.apache.falcon.catalog.HiveCatalogService</value>
+    <description></description>
+  </property>
+  <property>
+    <name>*.application.services</name>
+    <value>org.apache.falcon.security.AuthenticationInitializationService,\
+      org.apache.falcon.service.ProcessSubscriberService,\
+      org.apache.falcon.entity.store.ConfigurationStore,\
+      org.apache.falcon.rerun.service.RetryService,\
+      org.apache.falcon.rerun.service.LateRunService,\
+      org.apache.falcon.service.LogCleanupService
+    </value>
+    <description></description>
+  </property>
+  <property>
+    <name>*.configstore.listeners</name>
+    <value>org.apache.falcon.entity.v0.EntityGraph,\
+      org.apache.falcon.entity.ColoClusterRelation,\
+      org.apache.falcon.group.FeedGroupMap,\
+      org.apache.falcon.service.SharedLibraryHostingService
+    </value>
+    <description></description>
+  </property>
+  <property>
+    <name>*.broker.impl.class</name>
+    <value>org.apache.activemq.ActiveMQConnectionFactory</value>
+    <description></description>
+  </property>
+  <property>
+    <name>*.shared.libs</name>
+    <value>activemq-core,ant,geronimo-j2ee-management,hadoop-distcp,jms,json-simple,oozie-client,spring-jms</value>
+    <description></description>
+  </property>
+  <!--common properties-->
+  <property>
+    <name>*.domain</name>
+    <value>${falcon.app.type}</value>
+    <description></description>
+  </property>
+  <property>
+    <name>*.config.store.uri</name>
+    <value>file:///hadoop/falcon/store</value>
+    <description>Location to store user entity configurations</description>
+  </property>
+  <property>
+    <name>*.system.lib.location</name>
+    <value>${falcon.home}/server/webapp/${falcon.app.type}/WEB-INF/lib</value>
+    <description>Location of libraries that is shipped to Hadoop</description>
+  </property>
+  <property>
+    <name>*.retry.recorder.path</name>
+    <value>${falcon.log.dir}/retry</value>
+    <description></description>
+  </property>
+  <property>
+    <name>*.falcon.cleanup.service.frequency</name>
+    <value>days(1)</value>
+    <description></description>
+  </property>
+  <property>
+    <name>*.broker.url</name>
+    <value>tcp://localhost:61616</value>
+    <description>Default Active MQ url</description>
+  </property>
+  <property>
+    <name>*.broker.ttlInMins</name>
+    <value>4320</value>
+    <description></description>
+  </property>
+  <property>
+    <name>*.entity.topic</name>
+    <value>FALCON.ENTITY.TOPIC</value>
+    <description></description>
+  </property>
+  <property>
+    <name>*.max.retry.failure.count</name>
+    <value>1</value>
+    <description></description>
+  </property>
+  <property>
+    <name>*.internal.queue.size</name>
+    <value>1000</value>
+    <description></description>
+  </property>
+  <!--properties without default values-->
+  <property>
+    <name>*.falcon.http.authentication.cookie.domain</name>
+    <value>EXAMPLE.COM</value>
+    <description></description>
+  </property>
+  <property>
+    <name>*.falcon.http.authentication.blacklisted.users</name>
+    <value></value>
+    <description>Comma separated list of black listed users</description>
+  </property>
+  <!--authentication properties-->
+  <property>
+    <name>*.falcon.authentication.type</name>
+    <value>simple</value>
+    <description></description>
+  </property>
+  <property>
+    <name>*.falcon.http.authentication.type</name>
+    <value>simple</value>
+    <description></description>
+  </property>
+  <property>
+    <name>*.falcon.http.authentication.token.validity</name>
+    <value>36000</value>
+    <description></description>
+  </property>
+  <property>
+    <name>*.falcon.http.authentication.signature.secret</name>
+    <value>falcon</value>
+    <description></description>
+  </property>
+  <property>
+    <name>*.falcon.http.authentication.simple.anonymous.allowed</name>
+    <value>true</value>
+    <description>Indicates if anonymous requests are allowed when using 'simple' authentication</description>
+  </property>
+  <property>
+    <name>*.falcon.http.authentication.kerberos.name.rules</name>
+    <value>DEFAULT</value>
+    <description>The kerberos names rules is to resolve kerberos principal names, refer to Hadoop's KerberosName for more details.</description>
+  </property>
+  <!--kerberos params, must be set during security enabling-->
+  <property>
+    <name>*.falcon.service.authentication.kerberos.principal</name>
+    <value>falcon/_HOST@EXAMPLE.COM</value>
+    <description></description>
+  </property>
+  <property>
+    <name>*.falcon.service.authentication.kerberos.keytab</name>
+    <value>/etc/security/keytabs/falcon.service.keytab</value>
+    <description></description>
+  </property>
+  <property>
+    <name>*.dfs.namenode.kerberos.principal</name>
+    <value>nn/_HOST@EXAMPLE.COM</value>
+    <description>name node principal to talk to config store</description>
+  </property>
+  <property>
+    <name>*.falcon.http.authentication.kerberos.principal</name>
+    <value>HTTP/_HOST@EXAMPLE.COM</value>
+    <description>Indicates the Kerberos principal to be used for HTTP endpoint</description>
+  </property>
+  <property>
+    <name>*.falcon.http.authentication.kerberos.keytab</name>
+    <value>/etc/security/keytabs/spnego.service.keytab</value>
+    <description>Location of the keytab file with the credentials for the HTTP principal</description>
+  </property>
+</configuration>

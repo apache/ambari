@@ -23,7 +23,8 @@ import doctest
 from os.path import dirname, split, isdir
 import logging.handlers
 import logging
-from random import shuffle
+#TODO Add an option to randomize the tests' execution
+#from random import shuffle
 
 LOG_FILE_NAME='tests.log'
 SELECTED_PREFIX = "_"
@@ -55,7 +56,8 @@ def all_tests_suite():
   for directory in os.listdir(src_dir):
     if os.path.isdir(directory):
       files_list += os.listdir(src_dir + os.sep + directory)
-  shuffle(files_list)
+  #TODO Add an option to randomize the tests' execution
+  #shuffle(files_list)
   tests_list = []
 
   logger.info('------------------------TESTS LIST:-------------------------------------')

@@ -45,4 +45,3 @@ class TestCertGeneration(TestCase):
   def tearDown(self):
     shutil.rmtree(self.tmpdir)
 
-

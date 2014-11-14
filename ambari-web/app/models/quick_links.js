@@ -388,10 +388,9 @@ App.QuickLinks.FIXTURES = [
     url:'%@://%@:%@/',
     service_id: 'STORM',
     template:'%@://%@:%@/',
-    http_config: 'stormuiserver_host',
-    https_config: 'stormuiserver_host',
+    http_config: 'ui.port',
     site: 'storm-site',
-    regex: portRegex,
+    regex: '^(\\d+)$',
     default_http_port: 8744
   },
   {

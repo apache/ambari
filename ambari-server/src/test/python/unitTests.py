@@ -90,7 +90,8 @@ def stack_test_executor(base_folder, service, stack, custom_tests, executor_resu
 
   tests = get_test_files(base_folder, mask = test_mask)
 
-  shuffle(tests)
+  #TODO Add an option to randomize the tests' execution
+  #shuffle(tests)
   modules = [os.path.basename(s)[:-3] for s in tests]
   suites = [unittest.defaultTestLoader.loadTestsFromName(name) for name in
     modules]
@@ -183,7 +184,8 @@ def main():
     test_mask = TEST_MASK
 
   tests = get_test_files(pwd, mask=test_mask, recursive=False)
-  shuffle(tests)
+  #TODO Add an option to randomize the tests' execution
+  #shuffle(tests)
   modules = [os.path.basename(s)[:-3] for s in tests]
   suites = [unittest.defaultTestLoader.loadTestsFromName(name) for name in
     modules]

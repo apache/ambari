@@ -75,7 +75,7 @@
         <executions>
           <execution>
             <configuration>
-              <executable>${project.basedir}/../../ambari-common/src/main/unix/ambari-python-wrap</executable>
+              <executable>python</executable>
               <workingDirectory>src/test/python</workingDirectory>
               <arguments>
                 <argument>unitTests.py</argument>
@@ -93,7 +93,7 @@
           </execution>
           <execution>
             <configuration>
-              <executable>${project.basedir}/../../ambari-common/src/main/unix/ambari-python-wrap</executable>
+              <executable>python</executable>
               <workingDirectory>target/python-client-${project.version}</workingDirectory>
               <arguments>
                 <argument>${project.basedir}/src/main/python/setup.py</argument>
@@ -115,7 +115,7 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>rpm-maven-plugin</artifactId>
-        <version>2.0.1</version>
+        <version>2.1-alpha-2</version>
         <executions>
           <execution>
             <phase>none</phase>
