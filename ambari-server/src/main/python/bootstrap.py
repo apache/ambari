@@ -364,12 +364,11 @@ class Bootstrap(threading.Thread):
     setupFile = self.getRemoteName(self.SETUP_SCRIPT_FILENAME)
     passphrase = os.environ[AMBARI_PASSPHRASE_VAR_NAME]
     server = self.shared_state.ambari_server
-    user_run_as = self.shared_state.user_run_as
     version = self.getAmbariVersion()
     port = self.getAmbariPort()
     passwordFile = self.getPasswordFile()
     return "sudo -S python " + str(setupFile) + " " + str(expected_hostname) + \
-           " " + str(passphrase) + " " + str(server)+ " " + str(user_run_as) + " " + str(version) + \
+           " " + str(passphrase) + " " + str(server) + " " + str(version) + \
            " " + str(port) + " < " + str(passwordFile)
 
 
@@ -377,11 +376,10 @@ class Bootstrap(threading.Thread):
     setupFile=self.getRemoteName(self.SETUP_SCRIPT_FILENAME)
     passphrase=os.environ[AMBARI_PASSPHRASE_VAR_NAME]
     server=self.shared_state.ambari_server
-    user_run_as = self.shared_state.user_run_as
     version=self.getAmbariVersion()
     port=self.getAmbariPort()
     return "sudo python " + str(setupFile) + " " + str(expected_hostname) + \
-           " " + str(passphrase) + " " + str(server)+ " " + str(user_run_as) + " " + str(version) + \
+           " " + str(passphrase) + " " + str(server) + " " + str(version) + \
            " " + str(port)
 
 
@@ -622,7 +620,7 @@ class PBootstrap:
 class SharedState:
   def __init__(self, user, sshkey_file, script_dir, boottmpdir, setup_agent_file,
                ambari_server, cluster_os_type, ambari_version, server_port,
-               user_run_as, password_file = None):
+               password_file = None):
     self.hostlist_to_remove_password_file = None
     self.user = user
     self.sshkey_file = sshkey_file
@@ -632,7 +630,6 @@ class SharedState:
     self.ambari_server = ambari_server
     self.cluster_os_type = cluster_os_type
     self.ambari_version = ambari_version
-    self.user_run_as = user_run_as
     self.password_file = password_file
     self.statuses = None
     self.server_port = server_port
@@ -647,11 +644,9 @@ def main(argv=None):
   if len(onlyargs) < 3:
     sys.stderr.write("Usage: <comma separated hosts> "
                      "<tmpdir for storage> <user> <sshkey_file> <agent setup script>"
-                     " <ambari-server name> <cluster os type> <ambari version> <ambari port> <user_run_as> <passwordFile>\n")
+                     " <ambari-server name> <cluster os type> <ambari version> <ambari port> <passwordFile>\n")
     sys.exit(2)
     pass
-  
-
   #Parse the input
   hostList = onlyargs[0].split(",")
   bootdir =  onlyargs[1]
@@ -662,8 +657,7 @@ def main(argv=None):
   cluster_os_type = onlyargs[6]
   ambariVersion = onlyargs[7]
   server_port = onlyargs[8]
-  user_run_as = onlyargs[9]
-  passwordFile = onlyargs[10]
+  passwordFile = onlyargs[9]
 
   # ssh doesn't like open files
   subprocess.Popen(["chmod", "600", sshkey_file], stdout=subprocess.PIPE)
@@ -675,10 +669,10 @@ def main(argv=None):
                " using " + scriptDir + " cluster primary OS: " + cluster_os_type +
                " with user '" + user + "' sshKey File " + sshkey_file + " password File " + passwordFile +\
                " using tmp dir " + bootdir + " ambari: " + ambariServer +"; server_port: " + server_port +\
-               "; ambari version: " + ambariVersion+"; user_run_as: " + user_run_as)
+               "; ambari version: " + ambariVersion)
   sharedState = SharedState(user, sshkey_file, scriptDir, bootdir, setupAgentFile,
                        ambariServer, cluster_os_type, ambariVersion,
-                       server_port, user_run_as, passwordFile)
+                       server_port, passwordFile)
   pbootstrap = PBootstrap(hostList, sharedState)
   pbootstrap.run()
   return 0 # Hack to comply with current usage

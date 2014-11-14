@@ -150,11 +150,10 @@ class BSRunner extends Thread {
   public void run() {
     String hostString = createHostString(sshHostInfo.getHosts());
     String user = sshHostInfo.getUser();
-    String userRunAs = sshHostInfo.getUserRunAs();
     if (user == null || user.isEmpty()) {
       user = DEFAULT_USER;
     }
-    String commands[] = new String[12];
+    String commands[] = new String[11];
     String shellCommand[] = new String[3];
     BSStat stat = BSStat.RUNNING;
     String scriptlog = "";
@@ -194,14 +193,13 @@ class BSRunner extends Thread {
       commands[7] = this.clusterOsFamily;
       commands[8] = this.projectVersion;
       commands[9] = this.serverPort+"";
-      commands[10] = userRunAs;
       if (this.passwordFile != null) {
-        commands[11] = this.passwordFile.toString();
+        commands[10] = this.passwordFile.toString();
       }
       LOG.info("Host= " + hostString + " bs=" + this.bsScript + " requestDir=" +
           requestIdDir + " user=" + user + " keyfile=" + this.sshKeyFile +
           " passwordFile " + this.passwordFile + " server=" + this.ambariHostname +
-          " version=" + projectVersion + " serverPort=" + this.serverPort + " userRunAs="+ userRunAs);
+          " version=" + projectVersion + " serverPort=" + this.serverPort);
 
       String[] env = new String[] { "AMBARI_PASSPHRASE=" + agentSetupPassword };
       if (this.verbose)
