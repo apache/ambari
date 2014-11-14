@@ -35,8 +35,14 @@ limitations under the License.
   </property>
 
   <property>
+    <name>hive.metastore.connect.retries</name>
+    <value>24</value>
+    <description>Number of retries while opening a connection to metastore</description>
+  </property>
+
+  <property>
     <name>hive.metastore.failure.retries</name>
-    <value>5</value>
+    <value>24</value>
     <description>Number of retries upon failure of Thrift metastore calls</description>
   </property>
 
