@@ -33,7 +33,7 @@ App.MainHostMenuView = Em.CollectionView.extend({
       }
       /* { label:'Audit', routing:'audit'} */
     ];
-    if (App.supports.stackUpgrade) {
+    if (App.get('supports.stackUpgrade')) {
       array.push({
         label: Em.I18n.t('hosts.host.menu.stackVersions'),
         routing: 'stackVersions'
@@ -50,9 +50,10 @@ App.MainHostMenuView = Em.CollectionView.extend({
 
   init: function(){ this._super(); this.activateView(); },
 
-  activateView:function () {
+  activateView: function () {
+    var defaultRoute = App.router.get('currentState.name') || "summary";
     $.each(this._childViews, function () {
-      this.set('active', (this.get('content.routing') == 'summary' ? "active" : ""));
+      this.set('active', (this.get('content.routing') == defaultRoute ? "active" : ""));
     });
   },
 
