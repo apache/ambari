@@ -62,18 +62,21 @@ def installAgent(projectVersion):
   return execOsCommand(Command, tries=3, try_sleep=10)
 
 
-def configureAgent(server_hostname):
+def configureAgent(server_hostname, user_run_as):
   """ Configure the agent so that it has all the configs knobs properly installed """
   osCommand = ["sed", "-i.bak", "s/hostname=localhost/hostname=" + server_hostname +
+                                "/g", "/etc/ambari-agent/conf/ambari-agent.ini"]
+  execOsCommand(osCommand)
+  osCommand = ["sed", "-i.bak", "s/run_as_user=.*$/run_as_user=" + user_run_as +
                                 "/g", "/etc/ambari-agent/conf/ambari-agent.ini"]
   execOsCommand(osCommand)
   return
 
 
-def runAgent(passPhrase, expected_hostname):
+def runAgent(passPhrase, expected_hostname, user_run_as):
   os.environ[AMBARI_PASSPHRASE_VAR] = passPhrase
-  agent_retcode = subprocess.call("/usr/sbin/ambari-agent restart --expected-hostname=" +
-                                  expected_hostname, shell=True)
+  agent_retcode = subprocess.call("su - {0} -c '/usr/sbin/ambari-agent restart --expected-hostname={1}'".format(user_run_as, expected_hostname)
+                                  , shell=True)
   for i in range(3):
     time.sleep(1)
     ret = execOsCommand(["tail", "-20", "/var/log/ambari-agent/ambari-agent.log"])
@@ -168,8 +171,9 @@ def checkServerReachability(host, port):
 #               0        Expected host name
 #               1        Password
 #               2        Host name
-#      X        3        Project Version (Ambari)
-#      X        4        Server port
+#               3        User to run agent as
+#      X        4        Project Version (Ambari)
+#      X        5        Server port
 
 
 def parseArguments(argv=None):
@@ -182,28 +186,30 @@ def parseArguments(argv=None):
   expected_hostname = args[0]
   passPhrase = args[1]
   hostname = args[2]
+  user_run_as = args[3]
   projectVersion = ""
   server_port = 8080
 
-  if len(args) > 3:
-    projectVersion = args[3]
-
   if len(args) > 4:
+    projectVersion = args[4]
+
+  if len(args) > 5:
     try:
-      server_port = int(args[4])
+      server_port = int(args[5])
     except (Exception):
       server_port = 8080
 
-  return expected_hostname, passPhrase, hostname, projectVersion, server_port
+  return expected_hostname, passPhrase, hostname, user_run_as, projectVersion, server_port
 
 
 def main(argv=None):
   # Parse passed arguments
   expected_hostname, passPhrase, hostname,\
-  projectVersion, server_port = parseArguments(argv)
+  user_run_as, projectVersion, server_port = parseArguments(argv)
 
   checkServerReachability(hostname, server_port)
-
+  
+  projectVersion = "1.7.0"
   if projectVersion == "null" or projectVersion == "{ambariVersion}" or projectVersion == "":
     retcode = getOptimalVersion("")
   else:
@@ -224,9 +230,9 @@ def main(argv=None):
                                         "versions of ambari-agent:"+retcode["log"][0].strip()})
   else:
       sys.exit(retcode)
-
-  configureAgent(hostname)
-  sys.exit(runAgent(passPhrase, expected_hostname))
+  
+  configureAgent(hostname, user_run_as)
+  sys.exit(runAgent(passPhrase, expected_hostname, user_run_as))
 
 if __name__ == '__main__':
   logging.basicConfig(level=logging.DEBUG)

@@ -50,6 +50,9 @@ public class SshHostInfo {
 
   @XmlElement
   private String password;
+  
+  @XmlElement
+  private String userRunAs;
 
   public String getSshKey() {
     return sshKey;
@@ -89,6 +92,17 @@ public class SshHostInfo {
 
   public void setPassword(String password) {
     this.password = password;
+  }
+  
+  public String getUserRunAs() {
+    // TODO: remove this once UI supports customizing ambari run-as-user
+    if(userRunAs == null)
+      return "root";
+    return userRunAs;
+  }
+
+  public void setUserRunAs(String userRunAs) {
+    this.userRunAs = userRunAs;
   }
 
   public String hostListAsString() {

@@ -156,8 +156,12 @@ class shellRunnerLinux:
     except Exception:
       logger.warn("can not switch user for RUN_COMMAND.")
     code = 0
-    cmd = " "
-    cmd = cmd.join(script)
+    
+    cmd = script
+    
+    if isinstance(script, list):
+      cmd = " ".join(script)
+
     p = subprocess.Popen(cmd, preexec_fn=_changeUid, stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE, shell=True, close_fds=True)
     out, err = p.communicate()

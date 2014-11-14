@@ -23,6 +23,7 @@ import signal
 from optparse import OptionParser
 import sys
 import traceback
+import getpass
 import os
 import time
 import platform
@@ -35,6 +36,7 @@ from PingPortListener import PingPortListener
 import hostname
 from DataCleaner import DataCleaner
 import socket
+from ambari_agent import shell
 logger = logging.getLogger()
 
 formatstr = "%(levelname)s %(asctime)s %(filename)s:%(lineno)d - %(message)s"
@@ -153,7 +155,7 @@ def stop_agent():
     pid = f.read()
     pid = int(pid)
     f.close()
-    os.killpg(os.getpgid(pid), signal.SIGTERM)
+    kill_process_group(pid, signal.SIGTERM)
     time.sleep(5)
     if os.path.exists(ProcessHelper.pidfile):
       raise Exception("PID file still exists.")
@@ -162,8 +164,11 @@ def stop_agent():
     if pid == -1:
       print ("Agent process is not running")
     else:
-      os.killpg(os.getpgid(pid), signal.SIGKILL)
+      kill_process_group(pid, signal.SIGKILL) 
     os._exit(1)
+    
+def kill_process_group(pid, sig):
+  shell.shellRunner().run("sudo kill -{0} -$(ps -o pgid= {1} | grep -o [0-9]*)".format(sig, pid))
 
 def reset_agent(options):
   try:
@@ -204,8 +209,10 @@ def main(heartbeat_stop_callback=None):
 
   expected_hostname = options.expected_hostname
 
-  setup_logging(options.verbose)
+  current_user = getpass.getuser()
 
+  setup_logging(options.verbose)
+  
   default_cfg = {'agent': {'prefix': '/home/ambari'}}
   config.load(default_cfg)
 
