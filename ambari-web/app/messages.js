@@ -844,6 +844,8 @@ Em.I18n.translations = {
   'alerts.filters.filteredAlertsInfo': '{0} of {1} alerts showing',
 
   'alerts.thresholds': 'Thresholds',
+  'alerts.definition.details.enable': 'Enable',
+  'alerts.definition.details.disable': 'Disable',
   'alerts.definition.details.enableDisable': 'Enable / Disable',
   'alerts.definition.details.groups': 'Groups',
   'alerts.definition.details.instances': 'Instances',

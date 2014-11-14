@@ -94,8 +94,13 @@
         {{t common.service}}: <span class="label label-info">{{controller.content.service.serviceName}}</span>
       </div>
       <div>
-        <button {{action disableEnableAlertDefinition target="view"}} class="btn btn-primary"><i
-            class="icon-power-off"></i>&nbsp;{{t alerts.definition.details.enableDisable}}</button>
+        {{#if controller.content.enabled}}
+          <button {{action toggleState target="view"}} class="btn btn-danger"><i
+             class="icon-power-off"></i>&nbsp;{{t alerts.definition.details.disable}}</button>
+        {{else}}
+          <button {{action toggleState target="view"}} class="btn btn-success"><i
+             class="icon-power-off"></i>&nbsp;{{t alerts.definition.details.enable}}</button>
+        {{/if}}
         <button {{action deleteAlertDefinition target="view"}} class="btn btn-primary"><i
             class="icon-trash"></i>&nbsp;{{t common.delete}}</button>
       </div>

@@ -120,10 +120,21 @@ App.MainAlertDefinitionDetailsView = App.TableView.extend({
 
   /**
    * "Disable / Enable" button handler
-   * @param event
+   * @returns {$.ajax}
+   * @method toggleState
    */
-  disableEnableAlertDefinition: function (event) {
-    // todo: provide disabling/enabling of alert definition
+  toggleState: function() {
+    var alertDefinition = this.get('controller.content');
+    return App.ajax.send({
+      name: 'alerts.update_alert_definition',
+      sender: this,
+      data: {
+        id: alertDefinition.get('id'),
+        data: {
+          "AlertDefinition/enabled": !alertDefinition.get('enabled')
+        }
+      }
+    });
   },
 
   /**
