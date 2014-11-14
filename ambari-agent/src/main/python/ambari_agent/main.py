@@ -153,16 +153,16 @@ def stop_agent():
     pid = f.read()
     pid = int(pid)
     f.close()
-    os.kill(pid, signal.SIGTERM)
+    os.killpg(os.getpgid(pid), signal.SIGTERM)
     time.sleep(5)
     if os.path.exists(ProcessHelper.pidfile):
       raise Exception("PID file still exists.")
     os._exit(0)
-  except Exception, err:
+  except Exception:
     if pid == -1:
       print ("Agent process is not running")
     else:
-      os.kill(pid, signal.SIGKILL)
+      os.killpg(os.getpgid(pid), signal.SIGKILL)
     os._exit(1)
 
 def reset_agent(options):
