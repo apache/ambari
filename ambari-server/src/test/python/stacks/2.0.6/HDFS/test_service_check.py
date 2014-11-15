@@ -17,10 +17,9 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-
+from stacks.utils.RMFTestCase import *
 import resource_management.libraries.functions
 from mock.mock import MagicMock, call, patch
-from stacks.utils.RMFTestCase import *
 
 @patch.object(resource_management.libraries.functions, "get_unique_id_and_date", new = MagicMock(return_value=''))
 class TestServiceCheck(RMFTestCase):

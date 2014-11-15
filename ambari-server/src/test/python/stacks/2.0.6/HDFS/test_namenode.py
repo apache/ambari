@@ -18,9 +18,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 from ambari_commons import OSCheck
 '''
+from stacks.utils.RMFTestCase import *
 from ambari_commons import OSCheck
 from mock.mock import MagicMock, patch
-from stacks.utils.RMFTestCase import *
 import resource_management
 
 import subprocess

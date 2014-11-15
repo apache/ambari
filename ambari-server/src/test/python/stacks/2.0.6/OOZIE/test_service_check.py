@@ -17,10 +17,9 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-
+from stacks.utils.RMFTestCase import *
 import resource_management.libraries.functions
 from mock.mock import MagicMock, call, patch
-from stacks.utils.RMFTestCase import *
 
 class TestServiceCheck(RMFTestCase):
   def test_service_check_default(self):
