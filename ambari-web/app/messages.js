@@ -841,6 +841,7 @@ Em.I18n.translations = {
 
   'alerts.table.noAlerts': 'No Alerts to display',
   'alerts.table.header.lastTriggered': 'Last Triggered',
+  'alerts.table.header.notification': 'Notification',
   'alerts.filters.filteredAlertsInfo': '{0} of {1} alerts showing',
 
   'alerts.thresholds': 'Thresholds',

@@ -1,0 +1,87 @@
+{{!
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+}}
+
+<div id="alerts">
+  <div class="box-header row">
+  </div>
+
+  {{#if App.router.mainAlertInstancesController.isLoaded}}
+
+  <table class="table advanced-header-table table-bordered table-striped alerts-table" id="host-alerts-table">
+    <thead>
+      {{#view view.sortView classNames="label-row" contentBinding="view.filteredContent"}}
+        {{view view.parentView.nameSort class="first"}}
+        {{view view.parentView.statusSort}}
+        {{view view.parentView.serviceSort}}
+        {{view view.parentView.lastTriggeredSort}}
+        {{view view.parentView.formattedNotificationsSort}}
+      {{/view}}
+    <tr class="filter-row">
+      <th class="first">{{view view.nameFilterView}}</th>
+      <th>{{view view.stateFilterView}}</th>
+      <th>{{view view.serviceFilterView}}</th>
+      <th>{{view view.triggeredFilterView}}</th>
+      <th>{{view view.formattedNotificationsView}}</th>
+      <th></th>
+    </tr>
+    </thead>
+    <tbody>
+    {{#if view.pageContent}}
+      {{#each alertInstance in view.pageContent}}
+        <tr>
+          <td class="first">
+            <a href="#">{{alertInstance.label}}</a>
+          </td>
+          <td>{{{alertInstance.status}}}</td>
+          <td>{{alertInstance.service.serviceName}}</td>
+          <td>{{alertInstance.lastTriggered}}</td>
+          <td>{{alertInstance.formattedNotifications}}</td>
+        </tr>
+      {{/each}}
+    {{else}}
+      <tr>
+        <td class="first"></td>
+        <td colspan="4">
+          {{t alerts.table.noAlerts}}
+        </td>
+      </tr>
+    {{/if}}
+    </tbody>
+  </table>
+
+  {{else}}
+    <div class="spinner"></div>
+  {{/if}}
+
+  <div class="page-bar">
+    <div class="filtered-info span4">
+      <label>{{view.filteredContentInfo}} - <a {{action clearFilters target="view"}}
+          href="#">{{t tableView.filters.clearAllFilters}}</a></label>
+    </div>
+    <div class="selected-hosts-info span4">
+    </div>
+    <div class="items-on-page">
+      <label>{{t common.show}}: {{view view.rowsPerPageSelectView selectionBinding="view.displayLength"}}</label>
+    </div>
+    <div class="info">{{view.paginationInfo}}</div>
+    <div class="paging_two_button">
+      <a {{bindAttr class="view.paginationLeftClass"}}{{action previousPage target="view"}}><i class="icon-arrow-left"></i></a>
+      <a {{bindAttr class="view.paginationRightClass"}}{{action nextPage target="view"}}><i class="icon-arrow-right"></i></a>
+    </div>
+  </div>
+</div>

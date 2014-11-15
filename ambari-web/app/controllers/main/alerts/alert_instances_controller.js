@@ -34,7 +34,6 @@ App.MainAlertInstancesController = Em.Controller.extend({
   sourceName: null,
 
   fetchAlertInstances: function () {
-    this.set('isLoaded', false);
     switch (this.get('sourceType')) {
       case 'HOST':
         App.ajax.send({
@@ -75,18 +74,21 @@ App.MainAlertInstancesController = Em.Controller.extend({
   },
 
   loadAlertInstances: function () {
+    this.set('isLoaded', false);
     this.set('sourceType', null);
     this.set('sourceName', null);
     this.fetchAlertInstances();
   },
 
   loadAlertInstancesByHost: function (hostName) {
+    this.set('isLoaded', false);
     this.set('sourceType', 'HOST');
     this.set('sourceName', hostName);
     this.fetchAlertInstances();
   },
 
   loadAlertInstancesByAlertDefinition: function (definitionName) {
+    this.set('isLoaded', false);
     this.set('sourceType', 'ALERT_DEFINITION');
     this.set('sourceName', definitionName);
     this.fetchAlertInstances();

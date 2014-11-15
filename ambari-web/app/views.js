@@ -65,6 +65,7 @@ require('views/main/host/configs_service_menu');
 require('views/main/host/metrics');
 require('views/main/host/stack_versions_view');
 require('views/main/host/add_view');
+require('views/main/host/host_alerts_view');
 require('views/main/host/metrics/cpu');
 require('views/main/host/metrics/disk');
 require('views/main/host/metrics/load');

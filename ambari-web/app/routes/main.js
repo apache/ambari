@@ -272,6 +272,14 @@ module.exports = Em.Route.extend({
         route: '/alerts',
         connectOutlets: function (router, context) {
           router.get('mainHostDetailsController').connectOutlet('mainHostAlerts');
+        },
+        enter: function(router) {
+          var hostName = router.get('mainHostDetailsController.content.hostName');
+          router.get('mainAlertInstancesController').loadAlertInstancesByHost(hostName);
+          router.set('mainAlertInstancesController.isUpdating', true);
+        },
+        exit: function(router) {
+          router.set('mainAlertInstancesController.isUpdating', false);
         }
       }),
 

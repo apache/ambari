@@ -190,3 +190,46 @@
     cursor: pointer;
   }
 }
+
+#host-alerts-table {
+  a {
+    &.disabled {
+      color: #000;
+    }
+  }
+
+  .col0,
+  td:first-child,
+  th:first-child {
+    width: 30%;
+  }
+
+  .col1,
+  td:first-child + td,
+  th:first-child + th {
+    width: 10%;
+    .filter-input-width {
+      width: 90%;
+    }
+  }
+
+  .col2,
+  td:first-child + td + td,
+  th:first-child + th + th {
+    width: 20%;
+    .filter-input-width {
+      width: 90%;
+    }
+  }
+  .col3,
+  td:first-child + td + td + td,
+  th:first-child + th + th + th {
+    width: 20%
+  }
+
+  .col4,
+  td:first-child + td + td + td + td,
+  th:first-child + th + th + th + th {
+    width: 20%;
+  }
+}

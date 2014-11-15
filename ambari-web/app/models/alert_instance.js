@@ -35,105 +35,39 @@ App.AlertInstance = DS.Model.extend({
   text: DS.attr('string'),
   notification: DS.hasMany('App.AlertNotification'),
 
+  formattedNotifications: function () {
+    return this.get('notification').mapProperty('name').join(', ');
+  }.property('notification'),
+
+  /**
+   * Status icon markup
+   * @type {App.AlertDefinition[]}
+   */
+  status: function () {
+    var typeIcons = this.get('typeIcons');
+    var state = this.get('state');
+    return '<span class="' + typeIcons[state] + ' alert-state-' + state + '"></span>';
+  }.property('state'),
+
   /**
    * Formatted timestamp for latest instance triggering
    * @type {string}
    */
   lastTriggered: function() {
     return dateUtils.dateFormat(this.get('latestTimestamp'));
-  }.property('latestTimestamp')
+  }.property('latestTimestamp'),
+
+  /**
+   * List of css-classes for alert instance status
+   * @type {object}
+   */
+  typeIcons: {
+    'OK': 'icon-ok-sign',
+    'WARNING': 'icon-warning-sign',
+    'CRITICAL': 'icon-remove',
+    'DISABLED': 'icon-off',
+    'UNKNOWN': 'icon-question-sign'
+  }
 });
 
-App.AlertInstance.FIXTURES = [
-  {
-    "id": 1,
-    "cluster_name": "tdk",
-    "component_name": "SECONDARY_NAMENODE",
-    "host_name": "tr-2.c.pramod-thangali.internal",
-    "instance": null,
-    "label": "Secondary NameNode Process",
-    "latest_timestamp": 1414664775337,
-    "maintenance_state": "OFF",
-    "name": "secondary_namenode_process",
-    "original_timestamp": 1414585335334,
-    "scope": "ANY",
-    "service_name": "HDFS",
-    "state": "CRITICAL",
-    "text": "Connection failed: [Errno 111] Connection refused on host tr-2.c.pramod-thangali.internal:50090",
-    "alert_definition": 1,
-    "notification": 1
-  },
-  {
-    "cluster_name" : "tdk",
-    "component_name" : "DATANODE",
-    "host_name" : "tr-3.c.pramod-thangali.internal",
-    "id" : 2,
-    "instance" : null,
-    "label" : "DataNode Web UI",
-    "latest_timestamp" : 1414666905645,
-    "maintenance_state" : "OFF",
-    "name" : "datanode_webui",
-    "original_timestamp" : 1414585365674,
-    "scope" : "HOST",
-    "service_name" : "HDFS",
-    "state" : "CRITICAL",
-    "text" : "Connection failed to 0.0.0.0:50075",
-    "alert_definition": 2,
-    "notification": 2
-  },
-  {
-    "cluster_name": "tdk",
-    "component_name": "ZOOKEEPER_SERVER",
-    "host_name": "tr-1.c.pramod-thangali.internal",
-    "id": 3,
-    "instance": null,
-    "label": "ZooKeeper Server Process",
-    "latest_timestamp": 1414665174611,
-    "maintenance_state": "OFF",
-    "name": "zookeeper_server_process",
-    "original_timestamp": 1414585014606,
-    "scope": "ANY",
-    "service_name": "ZOOKEEPER",
-    "state": "CRITICAL",
-    "text": "TCP OK - 0.0000 response on port 2181",
-    "alert_definition": 3,
-    "notification": 3
-  },
-  {
-    "cluster_name": "tdk",
-    "component_name": "ZOOKEEPER_SERVER",
-    "host_name": "tr-2.c.pramod-thangali.internal",
-    "id": 4,
-    "instance": null,
-    "label": "ZooKeeper Server Process",
-    "latest_timestamp": 1414665135341,
-    "maintenance_state": "OFF",
-    "name": "zookeeper_server_process",
-    "original_timestamp": 1414585035316,
-    "scope": "ANY",
-    "service_name": "ZOOKEEPER",
-    "state": "OK",
-    "text": "TCP OK - 0.0000 response on port 2181",
-    "alert_definition": 3,
-    "notification": 3
-  },
-  {
-    "cluster_name": "tdk",
-    "component_name": "ZOOKEEPER_SERVER",
-    "host_name": "tr-3.c.pramod-thangali.internal",
-    "id": 5,
-    "instance": null,
-    "label": "ZooKeeper Server Process",
-    "latest_timestamp": 1414665165640,
-    "maintenance_state": "OFF",
-    "name": "zookeeper_server_process",
-    "original_timestamp": 1414585065616,
-    "scope": "ANY",
-    "service_name": "ZOOKEEPER",
-    "state": "OK",
-    "text": "TCP OK - 0.0000 response on port 2181",
-    "alert_definition": 3,
-    "notification": 3
-  }
-];
 App.AlertInstance.FIXTURES = [];
