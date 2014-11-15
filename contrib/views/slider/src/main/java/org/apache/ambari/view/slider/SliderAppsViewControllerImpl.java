@@ -861,7 +861,11 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
 
     Map<String, String> hadoopConfigs = getHadoopConfigs();
     for(Entry<String, String> entry: hadoopConfigs.entrySet()) {
-      yarnConfig.set(entry.getKey(), entry.getValue());
+      String entryValue = entry.getValue();
+      if (entryValue == null) {
+        entryValue = "";
+      }
+      yarnConfig.set(entry.getKey(), entryValue);
     }
     yarnConfig.set(PROPERTY_SLIDER_SECURITY_ENABLED, hadoopConfigs.get("security_enabled"));
     if (hadoopConfigs.containsKey(PROPERTY_SLIDER_ZK_QUORUM)) {
