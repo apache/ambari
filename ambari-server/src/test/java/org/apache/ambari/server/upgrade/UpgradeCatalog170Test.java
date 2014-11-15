@@ -300,6 +300,8 @@ public class UpgradeCatalog170Test {
     Capture<DBAccessor.DBColumnInfo> clusterConfigAttributesColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
     Capture<DBAccessor.DBColumnInfo> maskColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
     Capture<DBAccessor.DBColumnInfo> systemColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
+    Capture<DBAccessor.DBColumnInfo> valueColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
+    Capture<DBAccessor.DBColumnInfo> dataValueColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
     Capture<DBAccessor.DBColumnInfo> maskedColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
     Capture<DBAccessor.DBColumnInfo> stageCommandParamsColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
     Capture<DBAccessor.DBColumnInfo> stageHostParamsColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
@@ -323,6 +325,8 @@ public class UpgradeCatalog170Test {
 
     setViewExpectations(dbAccessor, maskColumnCapture, systemColumnCapture);
     setViewParameterExpectations(dbAccessor, maskedColumnCapture);
+    setViewInstancePropertyExpectations(dbAccessor, valueColumnCapture);
+    setViewInstanceDataExpectations(dbAccessor, dataValueColumnCapture);
     setClusterConfigExpectations(dbAccessor, clusterConfigAttributesColumnCapture);
     setStageExpectations(dbAccessor, stageCommandParamsColumnCapture, stageHostParamsColumnCapture);
 
@@ -381,6 +385,8 @@ public class UpgradeCatalog170Test {
     assertClusterConfigColumns(clusterConfigAttributesColumnCapture);
     assertViewColumns(maskColumnCapture, systemColumnCapture);
     assertViewParameterColumns(maskedColumnCapture);
+    assertViewInstancePropertyColumns(valueColumnCapture);
+    assertViewInstanceDataColumns(dataValueColumnCapture);
     assertStageColumns(stageCommandParamsColumnCapture, stageHostParamsColumnCapture);
 
     assertEquals(4, groupsCapture.getValue().size());
@@ -778,6 +784,20 @@ public class UpgradeCatalog170Test {
     dbAccessor.addColumn(eq("viewparameter"), capture(maskedColumnCapture));
   }
 
+  private void setViewInstancePropertyExpectations(DBAccessor dbAccessor,
+                                                   Capture<DBAccessor.DBColumnInfo> valueColumnCapture)
+      throws SQLException {
+
+    dbAccessor.alterColumn(eq("viewinstanceproperty"), capture(valueColumnCapture));
+  }
+
+  private void setViewInstanceDataExpectations(DBAccessor dbAccessor,
+                                                   Capture<DBAccessor.DBColumnInfo> dataValueColumnCapture)
+      throws SQLException {
+
+    dbAccessor.alterColumn(eq("viewinstancedata"), capture(dataValueColumnCapture));
+  }
+
   private void assertViewColumns(
     Capture<DBAccessor.DBColumnInfo> maskColumnCapture,
     Capture<DBAccessor.DBColumnInfo> systemColumnCapture) {
@@ -803,6 +823,26 @@ public class UpgradeCatalog170Test {
     assertEquals("masked", column.getName());
     assertEquals(1, (int) column.getLength());
     assertEquals(Character.class, column.getType());
+    assertNull(column.getDefaultValue());
+    assertTrue(column.isNullable());
+  }
+
+  private void assertViewInstancePropertyColumns(
+      Capture<DBAccessor.DBColumnInfo> valueColumnCapture) {
+    DBAccessor.DBColumnInfo column = valueColumnCapture.getValue();
+    assertEquals("value", column.getName());
+    assertEquals(2000, (int) column.getLength());
+    assertEquals(String.class, column.getType());
+    assertNull(column.getDefaultValue());
+    assertTrue(column.isNullable());
+  }
+
+  private void assertViewInstanceDataColumns(
+      Capture<DBAccessor.DBColumnInfo> dataValueColumnCapture) {
+    DBAccessor.DBColumnInfo column = dataValueColumnCapture.getValue();
+    assertEquals("value", column.getName());
+    assertEquals(2000, (int) column.getLength());
+    assertEquals(String.class, column.getType());
     assertNull(column.getDefaultValue());
     assertTrue(column.isNullable());
   }
