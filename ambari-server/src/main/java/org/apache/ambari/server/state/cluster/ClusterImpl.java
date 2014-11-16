@@ -94,8 +94,6 @@ import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.scheduler.RequestExecution;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.Predicate;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -2075,46 +2073,6 @@ public class ClusterImpl implements Cluster {
     chr.setHealthyStatusHosts(healthyStatusHosts);
 
     return chr;
-  }
-
-  @Override
-  public void addAlerts(Collection<Alert> alerts) {
-    try {
-      writeLock.lock();
-
-      for (final Alert alert : alerts) {
-        if (clusterAlerts.size() > 0) {
-          CollectionUtils.filter(clusterAlerts, new Predicate() {
-            @Override
-            public boolean evaluate(Object obj) {
-              Alert collectedAlert = (Alert) obj;
-              return !collectedAlert.almostEquals(alert);
-            }
-          });
-        }
-
-        if (LOG.isDebugEnabled()) {
-          LOG.debug("Adding alert for name={} service={}, on host={}",
-              alert.getName(), alert.getService(), alert.getHost());
-        }
-      }
-
-      clusterAlerts.addAll(alerts);
-
-    } finally {
-      writeLock.unlock();
-    }
-  }
-
-  @Override
-  public Collection<Alert> getAlerts() {
-    try {
-      readLock.lock();
-
-      return Collections.unmodifiableSet(clusterAlerts);
-    } finally {
-      readLock.unlock();
-    }
   }
 
   @Override

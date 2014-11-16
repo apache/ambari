@@ -63,49 +63,6 @@ class FlumeHandler(Script):
 
     json = {}
     json['processes'] = processes
-    json['alerts'] = []
-
-    alert = {}
-    alert['name'] = 'flume_agent'
-    alert['label'] = 'Flume Agent process'
-
-    if len(processes) == 0 and len(expected_agents) == 0:
-      alert['state'] = 'OK'
-
-      if not params.hostname is None:
-        alert['text'] = 'No agents defined on ' + params.hostname
-      else:
-        alert['text'] = 'No agents defined'
-
-    else:
-      crit = []
-      ok = []
-
-      for proc in processes:
-        if not proc.has_key('status') or proc['status'] == 'NOT_RUNNING':
-          crit.append(proc['name'])
-        else:
-          ok.append(proc['name'])
-
-      text_arr = []
-
-      if len(crit) > 0:
-        text_arr.append("{0} {1} NOT running".format(", ".join(crit),
-          "is" if len(crit) == 1 else "are"))
-
-      if len(ok) > 0:
-        text_arr.append("{0} {1} running".format(", ".join(ok),
-          "is" if len(ok) == 1 else "are"))
-
-      plural = len(crit) > 1 or len(ok) > 1
-      alert['text'] = "Agent{0} {1} {2}".format(
-        "s" if plural else "",
-        " and ".join(text_arr),
-        "" if params.hostname is None else "on " + str(params.hostname))
-
-      alert['state'] = 'CRITICAL' if len(crit) > 0 else 'OK'
-
-    json['alerts'].append(alert)
     self.put_structured_out(json)
 
     # only throw an exception if there are agents defined and there is a 

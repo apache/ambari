@@ -103,8 +103,7 @@ class TestFlumeHandler(RMFTestCase):
     
     # test that the method was called with empty processes
     self.assertTrue(structured_out_mock.called)
-    structured_out_mock.assert_called_with({'processes': [],
-      'alerts': [{'text': 'No agents defined on c6401.ambari.apache.org', 'state': 'OK', 'name': 'flume_agent', 'label': 'Flume Agent process'}]})
+    structured_out_mock.assert_called_with({'processes': []})
     self.assertNoMoreResources()
 
   @patch("resource_management.libraries.script.Script.put_structured_out")
@@ -127,7 +126,6 @@ class TestFlumeHandler(RMFTestCase):
     # call_args[0] is a tuple, whose first element is the actual call argument
     struct_out = structured_out_mock.call_args[0][0]
     self.assertTrue(struct_out.has_key('processes'))
-    self.assertTrue(struct_out.has_key('alerts'))
 
     self.assertNoMoreResources()
     
@@ -151,7 +149,6 @@ class TestFlumeHandler(RMFTestCase):
     # call_args[0] is a tuple, whose first element is the actual call argument
     struct_out = structured_out_mock.call_args[0][0]
     self.assertTrue(struct_out.has_key('processes'))
-    self.assertTrue(struct_out.has_key('alerts'))
     self.assertNoMoreResources()    
 
   def assert_configure_default(self):
@@ -318,128 +315,6 @@ class TestFlumeHandler(RMFTestCase):
     self.assert_configure_default()
     self.assertNoMoreResources()
 
-  @patch("resource_management.libraries.script.Script.put_structured_out")
-  @patch("resource_management.libraries.functions.flume_agent_helper.find_expected_agent_names")
-  @patch("resource_management.libraries.functions.flume_agent_helper.get_flume_status")
-  def test_status_many_mixed(self, status_mock, expected_names_mock, structured_out_mock):
-    expected_names_mock.return_value = ["a1", "a2"]
-    status_mock.return_value = [{'name': 'a1', 'status': 'RUNNING'}, {'name': 'a2', 'status': 'NOT_RUNNING'}]
-
-    try:
-      self.executeScript("2.0.6/services/FLUME/package/scripts/flume_handler.py",
-                       classname = "FlumeHandler",
-                       command = "status",
-                       config_file="default.json")
-    except:
-      # expected since ComponentIsNotRunning gets raised
-      pass
-      
-    self.assertTrue(structured_out_mock.called)
-
-    # call_args[0] is a tuple, whose first element is the actual call argument
-    struct_out = structured_out_mock.call_args[0][0]
-    self.assertTrue(struct_out.has_key('processes'))
-    self.assertTrue(struct_out.has_key('alerts'))
-    self.assertTrue('Agent a2 is NOT running and a1 is running on c6401.ambari.apache.org' == struct_out['alerts'][0]['text'])
-    self.assertTrue('CRITICAL' == struct_out['alerts'][0]['state'])
-    self.assertNoMoreResources()
-
-  @patch("resource_management.libraries.script.Script.put_structured_out")
-  @patch("resource_management.libraries.functions.flume_agent_helper.find_expected_agent_names")
-  @patch("resource_management.libraries.functions.flume_agent_helper.get_flume_status")
-  def test_status_many_ok(self, status_mock, expected_names_mock, structured_out_mock):
-    expected_names_mock.return_value = ["a1", "a2"]
-    status_mock.return_value = [{'name': 'a1', 'status': 'RUNNING'}, {'name': 'a2', 'status': 'RUNNING'}]
-
-    self.executeScript("2.0.6/services/FLUME/package/scripts/flume_handler.py",
-                       classname = "FlumeHandler",
-                       command = "status",
-                       config_file="default.json")
-      
-    self.assertTrue(structured_out_mock.called)
-
-    # call_args[0] is a tuple, whose first element is the actual call argument
-    struct_out = structured_out_mock.call_args[0][0]
-    self.assertTrue(struct_out.has_key('processes'))
-    self.assertTrue(struct_out.has_key('alerts'))
-    self.assertTrue('Agents a1, a2 are running on c6401.ambari.apache.org' == struct_out['alerts'][0]['text'])
-    self.assertTrue('OK' == struct_out['alerts'][0]['state'])
-    self.assertNoMoreResources()
-
-  @patch("resource_management.libraries.script.Script.put_structured_out")
-  @patch("resource_management.libraries.functions.flume_agent_helper.find_expected_agent_names")
-  @patch("resource_management.libraries.functions.flume_agent_helper.get_flume_status")
-  def test_status_many_critical(self, status_mock, expected_names_mock, structured_out_mock):
-    expected_names_mock.return_value = ["a1", "a2"]
-    status_mock.return_value = [{'name': 'a1', 'status': 'NOT_RUNNING'}, {'name': 'a2', 'status': 'NOT_RUNNING'}]
-
-    try:
-      self.executeScript("2.0.6/services/FLUME/package/scripts/flume_handler.py",
-                       classname = "FlumeHandler",
-                       command = "status",
-                       config_file="default.json")
-    except:
-      # expected since ComponentIsNotRunning gets raised
-      pass
-      
-    self.assertTrue(structured_out_mock.called)
-
-    # call_args[0] is a tuple, whose first element is the actual call argument
-    struct_out = structured_out_mock.call_args[0][0]
-    self.assertTrue(struct_out.has_key('processes'))
-    self.assertTrue(struct_out.has_key('alerts'))
-    self.assertTrue('Agents a1, a2 are NOT running on c6401.ambari.apache.org' == struct_out['alerts'][0]['text'])
-    self.assertTrue('CRITICAL' == struct_out['alerts'][0]['state'])
-    self.assertNoMoreResources()
-
-
-  @patch("resource_management.libraries.script.Script.put_structured_out")
-  @patch("resource_management.libraries.functions.flume_agent_helper.find_expected_agent_names")
-  @patch("resource_management.libraries.functions.flume_agent_helper.get_flume_status")
-  def test_status_single_ok(self, status_mock, expected_names_mock, structured_out_mock):
-    expected_names_mock.return_value = ["a1"]
-    status_mock.return_value = [{'name': 'a1', 'status': 'RUNNING'}]
-
-    self.executeScript("2.0.6/services/FLUME/package/scripts/flume_handler.py",
-                       classname = "FlumeHandler",
-                       command = "status",
-                       config_file="default.json")
-      
-    self.assertTrue(structured_out_mock.called)
-
-    # call_args[0] is a tuple, whose first element is the actual call argument
-    struct_out = structured_out_mock.call_args[0][0]
-    self.assertTrue(struct_out.has_key('processes'))
-    self.assertTrue(struct_out.has_key('alerts'))
-    self.assertTrue('Agent a1 is running on c6401.ambari.apache.org' == struct_out['alerts'][0]['text'])
-    self.assertTrue('OK' == struct_out['alerts'][0]['state'])
-    self.assertNoMoreResources()
-
-  @patch("resource_management.libraries.script.Script.put_structured_out")
-  @patch("resource_management.libraries.functions.flume_agent_helper.find_expected_agent_names")
-  @patch("resource_management.libraries.functions.flume_agent_helper.get_flume_status")
-  def test_status_single_critical(self, status_mock, expected_names_mock, structured_out_mock):
-    expected_names_mock.return_value = ['a1']
-    status_mock.return_value = [{'name': 'a1', 'status': 'NOT_RUNNING'}]
-
-    try:
-      self.executeScript("2.0.6/services/FLUME/package/scripts/flume_handler.py",
-                       classname = "FlumeHandler",
-                       command = "status",
-                       config_file="default.json")
-    except:
-      # expected since ComponentIsNotRunning gets raised
-      pass
-      
-    self.assertTrue(structured_out_mock.called)
-
-    # call_args[0] is a tuple, whose first element is the actual call argument
-    struct_out = structured_out_mock.call_args[0][0]
-    self.assertTrue(struct_out.has_key('processes'))
-    self.assertTrue(struct_out.has_key('alerts'))
-    self.assertTrue('Agent a1 is NOT running on c6401.ambari.apache.org' == struct_out['alerts'][0]['text'])
-    self.assertTrue('CRITICAL' == struct_out['alerts'][0]['state'])
-    self.assertNoMoreResources()
 
   def test_flume_env_not_22(self):
     self.executeScript("2.0.6/services/FLUME/package/scripts/flume_handler.py",

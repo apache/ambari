@@ -24,13 +24,14 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.locks.ReadWriteLock;
 
-import com.google.common.collect.ListMultimap;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.ClusterResponse;
+import org.apache.ambari.server.controller.ServiceConfigVersionResponse;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.state.scheduler.RequestExecution;
-import org.apache.ambari.server.controller.ServiceConfigVersionResponse;
+
+import com.google.common.collect.ListMultimap;
 
 public interface Cluster {
 
@@ -351,17 +352,6 @@ public interface Cluster {
    * @return list of failed events
    */
   List<ServiceComponentHostEvent> processServiceComponentHostEvents(ListMultimap<String, ServiceComponentHostEvent> eventMap);
-
-  
-  /**
-   * Adds alerts for the current cluster.
-   */
-  public void addAlerts(Collection<Alert> alerts);
-  
-  /**
-   * @return a collection of current known alerts.
-   */
-  public Collection<Alert> getAlerts();
 
   /**
    * Determine whether or not access to this cluster resource should be allowed based

@@ -225,7 +225,7 @@ public class HeartBeatHandler {
     // NOTE: This step must be after processing command/status reports
     processHostStatus(heartbeat, hostname);
 
-    calculateHostAlerts(heartbeat, hostname);
+    processAlerts(heartbeat, hostname);
 
     // Send commands if node is active
     if (hostObject.getState().equals(HostState.HEALTHY)) {
@@ -236,8 +236,19 @@ public class HeartBeatHandler {
     return response;
   }
 
-  protected void calculateHostAlerts(HeartBeat heartbeat, String hostname)
-          throws AmbariException {
+  /**
+   * Extracts all of the {@link Alert}s from the heartbeat and fires
+   * {@link AlertEvent}s for each one.
+   *
+   * @param heartbeat
+   *          the heartbeat to process.
+   * @param hostname
+   *          the host that the heartbeat is for.
+   * @throws AmbariException
+   */
+  protected void processAlerts(HeartBeat heartbeat, String hostname)
+      throws AmbariException {
+
     if (null == hostname || null == heartbeat) {
       return;
     }
@@ -252,10 +263,6 @@ public class HeartBeatHandler {
         AlertEvent event = new AlertReceivedEvent(cluster.getClusterId(), alert);
         alertEventPublisher.publish(event);
       }
-    }
-
-    for (Cluster cluster : clusterFsm.getClustersForHost(hostname)) {
-      cluster.addAlerts(heartbeat.getNodeStatus().getAlerts());
     }
   }
 
@@ -533,25 +540,6 @@ public class HeartBeatHandler {
                       " (" + e.getMessage() + ")");
                 }
               }
-
-              if (null != status.getAlerts()) {
-                List<Alert> clusterAlerts = new ArrayList<Alert>();
-                for (AgentAlert aa : status.getAlerts()) {
-                  Alert alert = new Alert(aa.getName(), aa.getInstance(),
-                      scHost.getServiceName(), scHost.getServiceComponentName(),
-                      scHost.getHostName(), aa.getState());
-                  alert.setLabel(aa.getLabel());
-                  alert.setText(aa.getText());
-
-                  clusterAlerts.add(alert);
-                }
-
-               if (0 != clusterAlerts.size()) {
-                cl.addAlerts(clusterAlerts);
-              }
-              }
-
-
             } else {
               // TODO: What should be done otherwise?
             }

@@ -28,7 +28,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -39,7 +38,6 @@ import java.util.Set;
 
 import javax.persistence.EntityManager;
 
-import com.google.common.collect.Multimap;
 import junit.framework.Assert;
 
 import org.apache.ambari.server.AmbariException;
@@ -54,13 +52,11 @@ import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
+import org.apache.ambari.server.orm.entities.ClusterStateEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostStateEntity;
 import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntity;
-import org.apache.ambari.server.orm.entities.ClusterStateEntity;
 import org.apache.ambari.server.state.AgentVersion;
-import org.apache.ambari.server.state.Alert;
-import org.apache.ambari.server.state.AlertState;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -85,7 +81,6 @@ import org.apache.ambari.server.state.host.HostHealthyHeartbeatEvent;
 import org.apache.ambari.server.state.host.HostRegistrationRequestEvent;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -611,39 +606,6 @@ public class ClusterTest {
     c1.setProvisioningState(State.INSTALLED);
     Assert.assertEquals(State.INSTALLED,
         c1.getProvisioningState());    
-  }
-  
-  @Test
-  public void testAlertUpdates() {
-    
-    Set<Alert> alerts = new HashSet<Alert>();
-    alerts.add(new Alert("alert_1", "instance1", "service", "component", "host1", AlertState.OK));
-    alerts.add(new Alert("alert_1", "instance2", "service", "component", "host1", AlertState.OK));
-    
-    c1.addAlerts(alerts);
-    
-    Collection<Alert> result = c1.getAlerts();
-    assertEquals(2, result.size());
-    for (Alert a : result) {
-      assertEquals("alert_1", a.getName());
-    }
-    
-    // add an alert that removes the previous 2 with the same name
-    alerts = new HashSet<Alert>();
-    alerts.add(new Alert("alert_1", null, "service", "component", "host1", AlertState.WARNING));
-    c1.addAlerts(alerts);
-    
-    result = c1.getAlerts();
-    assertEquals(1, result.size());
-    
-    // add alerts that remove the old type, regardless of instance name
-    alerts = new HashSet<Alert>();    
-    alerts.add(new Alert("alert_1", "instance1", "service", "component", "host1", AlertState.OK));
-    alerts.add(new Alert("alert_1", "instance2", "service", "component", "host1", AlertState.OK));
-    c1.addAlerts(alerts);
-    
-    result = c1.getAlerts();
-    assertEquals(2, result.size());
   }
 
   @Test

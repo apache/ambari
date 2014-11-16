@@ -25,7 +25,6 @@ import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -39,8 +38,6 @@ import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
-import org.apache.ambari.server.state.Alert;
-import org.apache.ambari.server.state.AlertState;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -166,26 +163,20 @@ public class TestHeartbeatMonitor {
     hb.setResponseId(12);
     handler.handleHeartBeat(hb);
 
-    List<Alert> al = new ArrayList<Alert>();
-    Alert alert = new Alert("host_alert", null, "AMBARI", null, hostname1, AlertState.OK);
-    al.add(alert);
-    for (Map.Entry<String, Cluster> entry : clusters.getClusters().entrySet()) {
-      Cluster cl = entry.getValue();
-      cl.addAlerts(al);
-    }
-
     List<StatusCommand> cmds = hm.generateStatusCommands(hostname1);
     assertTrue("HeartbeatMonitor should generate StatusCommands for host1", cmds.size() == 3);
     assertEquals("HDFS", cmds.get(0).getServiceName());
     boolean  containsDATANODEStatus = false;
     boolean  containsNAMENODEStatus = false;
     boolean  containsSECONDARY_NAMENODEStatus = false;
+
     for (StatusCommand cmd : cmds) {
       containsDATANODEStatus |= cmd.getComponentName().equals("DATANODE");
       containsNAMENODEStatus |= cmd.getComponentName().equals("NAMENODE");
       containsSECONDARY_NAMENODEStatus |= cmd.getComponentName().equals("SECONDARY_NAMENODE");
       assertTrue(cmd.getConfigurations().size() > 0);
     }
+
     assertEquals(true, containsDATANODEStatus);
     assertEquals(true, containsNAMENODEStatus);
     assertEquals(true, containsSECONDARY_NAMENODEStatus);
@@ -553,11 +544,6 @@ public class TestHeartbeatMonitor {
     hdfs.getServiceComponent(Role.DATANODE.name()).getServiceComponentHost(hostname1).setState(State.INSTALLED);
     hdfs.getServiceComponent(Role.NAMENODE.name()).getServiceComponentHost(hostname1).setState(State.INSTALLED);
     hdfs.getServiceComponent(Role.SECONDARY_NAMENODE.name()).getServiceComponentHost(hostname1).setState(State.INSTALLED);
-
-    Alert alert = new Alert("datanode_madeup", null, "HDFS", "DATANODE",
-     hostname1, AlertState.CRITICAL);
-
-    cluster.addAlerts(Collections.singleton(alert));
 
     ActionQueue aq = new ActionQueue();
     ActionManager am = mock(ActionManager.class);
