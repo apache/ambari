@@ -43,6 +43,7 @@ import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.ExecutionCommandDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
+import org.apache.ambari.server.serveraction.MockServerAction;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartEvent;
 import org.apache.ambari.server.utils.StageUtils;
@@ -52,6 +53,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import static org.junit.Assert.assertEquals;
@@ -67,6 +69,10 @@ public class TestActionDBAccessorImpl {
   private String hostName = "host1";
   private String clusterName = "cluster1";
   private String actionName = "validate_kerberos";
+
+  private String serverHostName = StageUtils.getHostName(); // "_localhost_";
+  private String serverActionName = MockServerAction.class.getName();
+
   private Injector injector;
   ActionDBAccessor db;
   ActionManager am;
@@ -85,13 +91,18 @@ public class TestActionDBAccessorImpl {
       .with(new TestActionDBAccessorModule()));
     injector.getInstance(GuiceJpaInitializer.class);
     injector.injectMembers(this);
+
+    // Add this host's name since it is needed for server-side actions.
+    clusters.addHost(serverHostName);
+    clusters.getHost(serverHostName).persist();
+
     clusters.addHost(hostName);
     clusters.getHost(hostName).persist();
     clusters.addCluster(clusterName);
     db = injector.getInstance(ActionDBAccessorImpl.class);
 
     am = new ActionManager(5000, 1200000, new ActionQueue(), clusters, db,
-        new HostsMap((String) null), null, injector.getInstance(UnitOfWork.class),
+        new HostsMap((String) null), injector.getInstance(UnitOfWork.class),
 		injector.getInstance(RequestFactory.class), null);
   }
 
@@ -157,7 +168,7 @@ public class TestActionDBAccessorImpl {
             "(command report status should be ignored)",
             HostRoleStatus.ABORTED,s.getHostRoleStatus(hostname, "HBASE_MASTER"));
   }
-  
+
   @Test
   public void testGetStagesInProgress() throws AmbariException {
     String hostname = "host1";
@@ -168,7 +179,7 @@ public class TestActionDBAccessorImpl {
     db.persistActions(request);
     assertEquals(2, stages.size());
   }
-  
+
   @Test
   public void testGetStagesInProgressWithFailures() throws AmbariException {
     String hostname = "host1";
@@ -268,6 +279,46 @@ public class TestActionDBAccessorImpl {
   }
 
   @Test
+  public void testServerActionScheduled() throws InterruptedException, AmbariException {
+    populateActionDBWithServerAction(db, serverHostName, requestId, stageId);
+
+    final String roleName = Role.AMBARI_SERVER_ACTION.toString();
+    Stage stage = db.getStage(StageUtils.getActionId(requestId, stageId));
+    assertEquals(HostRoleStatus.PENDING, stage.getHostRoleStatus(serverHostName, roleName));
+    List<HostRoleCommandEntity> entities =
+        hostRoleCommandDAO.findByHostRole(serverHostName, requestId, stageId, roleName);
+
+    assertEquals(HostRoleStatus.PENDING, entities.get(0).getStatus());
+    stage.setHostRoleStatus(serverHostName, roleName, HostRoleStatus.QUEUED);
+
+    entities = hostRoleCommandDAO.findByHostRole(serverHostName, requestId, stageId, roleName);
+    assertEquals(HostRoleStatus.QUEUED, stage.getHostRoleStatus(serverHostName, roleName));
+    assertEquals(HostRoleStatus.PENDING, entities.get(0).getStatus());
+
+    db.hostRoleScheduled(stage, serverHostName, roleName);
+
+    entities = hostRoleCommandDAO.findByHostRole(
+        serverHostName, requestId, stageId, roleName);
+    assertEquals(HostRoleStatus.QUEUED, entities.get(0).getStatus());
+
+
+    Thread thread = new Thread() {
+      @Override
+      public void run() {
+        Stage stage1 = db.getStage("23-31");
+        stage1.setHostRoleStatus(serverHostName, roleName, HostRoleStatus.COMPLETED);
+        db.hostRoleScheduled(stage1, serverHostName, roleName);
+      }
+    };
+
+    thread.start();
+    thread.join();
+
+    entities = hostRoleCommandDAO.findByHostRole(serverHostName, requestId, stageId, roleName);
+    assertEquals("Concurrent update failed", HostRoleStatus.COMPLETED, entities.get(0).getStatus());
+  }
+
+  @Test
   public void testUpdateHostRole() throws Exception {
     populateActionDB(db, hostName, requestId, stageId);
     StringBuilder sb = new StringBuilder();
@@ -310,7 +361,7 @@ public class TestActionDBAccessorImpl {
     populateActionDB(db, hostName, requestId + 1, stageId);
     List<Long> requestIdsResult =
       db.getRequestsByStatus(null, BaseRequest.DEFAULT_PAGE_SIZE, false);
-    
+
     assertNotNull("List of request IDs is null", requestIdsResult);
     assertEquals("Request IDs not matches", requestIds, requestIdsResult);
   }
@@ -520,7 +571,26 @@ public class TestActionDBAccessorImpl {
     List<RequestResourceFilter> resourceFilters = new
       ArrayList<RequestResourceFilter>() {{ add(resourceFilter); }};
     ExecuteActionRequest executeActionRequest = new ExecuteActionRequest
-      ("cluster1", null, actionName, resourceFilters, null, null, false);
+        ("cluster1", null, actionName, resourceFilters, null, null, false);
+    Request request = new Request(stages, clusters);
+    db.persistActions(request);
+  }
+
+  private void populateActionDBWithServerAction(ActionDBAccessor db, String hostname,
+                                                long requestId, long stageId) throws AmbariException {
+    Stage s = new Stage(requestId, "/a/b", "cluster1", 1L, "action db accessor test",
+        "", "commandParamsStage", "hostParamsStage");
+    s.setStageId(stageId);
+    s.addServerActionCommand(serverActionName, Role.AMBARI_SERVER_ACTION, RoleCommand.ACTIONEXECUTE, clusterName, null, null, 300);
+    List<Stage> stages = new ArrayList<Stage>();
+    stages.add(s);
+    final RequestResourceFilter resourceFilter = new RequestResourceFilter("AMBARI", "SERVER", Arrays.asList(hostname));
+    List<RequestResourceFilter> resourceFilters = new
+        ArrayList<RequestResourceFilter>() {{
+          add(resourceFilter);
+        }};
+    ExecuteActionRequest executeActionRequest = new ExecuteActionRequest
+        ("cluster1", null, serverActionName, resourceFilters, null, null, false);
     Request request = new Request(stages, clusters);
     db.persistActions(request);
   }

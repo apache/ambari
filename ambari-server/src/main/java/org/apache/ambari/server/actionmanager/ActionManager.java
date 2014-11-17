@@ -28,7 +28,6 @@ import org.apache.ambari.server.api.services.BaseRequest;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.ExecuteActionRequest;
 import org.apache.ambari.server.controller.HostsMap;
-import org.apache.ambari.server.serveraction.ServerActionManager;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.utils.StageUtils;
 import org.slf4j.Logger;
@@ -60,12 +59,12 @@ public class ActionManager {
   public ActionManager(@Named("schedulerSleeptime") long schedulerSleepTime,
                        @Named("actionTimeout") long actionTimeout,
                        ActionQueue aq, Clusters fsm, ActionDBAccessor db, HostsMap hostsMap,
-                       ServerActionManager serverActionManager, UnitOfWork unitOfWork,
+                       UnitOfWork unitOfWork,
                        RequestFactory requestFactory, Configuration configuration) {
     this.actionQueue = aq;
     this.db = db;
     scheduler = new ActionScheduler(schedulerSleepTime, actionTimeout, db,
-        actionQueue, fsm, 2, hostsMap, serverActionManager, unitOfWork, configuration);
+        actionQueue, fsm, 2, hostsMap, unitOfWork, configuration);
     requestCounter = new AtomicLong(
         db.getLastPersistedRequestIdWhenInitialized());
     this.requestFactory = requestFactory;

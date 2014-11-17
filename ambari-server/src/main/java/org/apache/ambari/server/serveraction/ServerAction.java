@@ -18,23 +18,67 @@
 
 package org.apache.ambari.server.serveraction;
 
-public class ServerAction {
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.actionmanager.HostRoleCommand;
+import org.apache.ambari.server.agent.CommandReport;
+import org.apache.ambari.server.agent.ExecutionCommand;
+
+import java.util.concurrent.ConcurrentMap;
+
+/**
+ * ServerAction is an interface to be implemented by all server-based actions/tasks.
+ */
+public interface ServerAction {
 
   public static final String ACTION_NAME = "ACTION_NAME";
 
-  /**
-   * The commands supported by the server. A command is a named alias to the
-   * action implementation at the server
-   */
-  public static class Command {
-    /**
-     * Finalize the upgrade request
-     */
-    public static final String FINALIZE_UPGRADE = "FINALIZE_UPGRADE";
-  }
 
-  public static class PayloadName {
-    public final static String CURRENT_STACK_VERSION = "current_stack_version";
-    public final static String CLUSTER_NAME = "cluster_name";
-  }
+  /**
+   * Gets the ExecutionCommand property of this ServerAction.
+   *
+   * @return the ExecutionCommand property of this ServerAction
+   */
+  ExecutionCommand getExecutionCommand();
+
+  /**
+   * Sets the ExecutionCommand property of this ServerAction.
+   * <p/>
+   * This property is expected to be set by the creator of this ServerAction before calling execute.
+   *
+   * @param command the ExecutionCommand data to set
+   */
+  void setExecutionCommand(ExecutionCommand command);
+
+
+  /**
+   * Gets the HostRoleCommand property of this ServerAction.
+   *
+   * @return the HostRoleCommand property of this ServerAction
+   */
+  HostRoleCommand getHostRoleCommand();
+
+  /**
+   * Sets the HostRoleCommand property of this ServerAction.
+   * <p/>
+   * This property is expected to be set by the creator of this ServerAction before calling execute.
+   *
+   * @param hostRoleCommand the HostRoleCommand data to set
+   */
+  void setHostRoleCommand(HostRoleCommand hostRoleCommand);
+
+  /**
+   * Executes this ServerAction
+   * <p/>
+   * This is typically called by the ServerActionExecutor in it's own thread, but there is no
+   * guarantee that this is the case.  It is expected that the ExecutionCommand and HostRoleCommand
+   * properties are set before calling this method.
+   *
+   * @param requestSharedDataContext a Map to be used a shared data among all ServerActions related
+   *                                 to a given request
+   * @return a CommandReport declaring the status of the task
+   * @throws AmbariException
+   * @throws InterruptedException
+   */
+  CommandReport execute(ConcurrentMap<String, Object> requestSharedDataContext)
+      throws AmbariException, InterruptedException;
 }

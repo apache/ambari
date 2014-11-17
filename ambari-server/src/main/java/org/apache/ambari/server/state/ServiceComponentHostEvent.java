@@ -122,6 +122,8 @@ public abstract class ServiceComponentHostEvent
         return new ServiceComponentHostDisableEvent(serviceComponentName, hostName, opTimestamp);
       case HOST_SVCCOMP_RESTORE:
         return new ServiceComponentHostRestoreEvent(serviceComponentName, hostName, opTimestamp);
+      case HOST_SVCCOMP_SERVER_ACTION:
+        return new ServiceComponentHostServerActionEvent(serviceComponentName, hostName, opTimestamp);
     }
     return null;
   }

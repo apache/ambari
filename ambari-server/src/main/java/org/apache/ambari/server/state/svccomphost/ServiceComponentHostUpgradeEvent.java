@@ -18,11 +18,10 @@
 
 package org.apache.ambari.server.state.svccomphost;
 
-import org.apache.ambari.server.state.ServiceComponentHostEvent;
 import org.apache.ambari.server.state.ServiceComponentHostEventType;
 
 public class ServiceComponentHostUpgradeEvent extends
-    ServiceComponentHostEvent {
+    ServiceComponentHostServerActionEvent {
 
 
   public ServiceComponentHostUpgradeEvent(String serviceComponentName,

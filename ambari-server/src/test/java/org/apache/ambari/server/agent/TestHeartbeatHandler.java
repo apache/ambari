@@ -77,7 +77,6 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.HostsMap;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
-import org.apache.ambari.server.serveraction.ServerActionManager;
 import org.apache.ambari.server.state.Alert;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -723,7 +722,7 @@ public class TestHeartbeatHandler {
     clusters.addCluster(DummyCluster);
     ActionDBAccessor db = injector.getInstance(ActionDBAccessorImpl.class);
     ActionManager am = new ActionManager(5000, 1200000, new ActionQueue(), clusters, db,
-        new HostsMap((String) null), null, unitOfWork, injector.getInstance(RequestFactory.class), null);
+        new HostsMap((String) null), unitOfWork, injector.getInstance(RequestFactory.class), null);
     populateActionDB(db, DummyHostname1);
     Stage stage = db.getAllStages(requestId).get(0);
     Assert.assertEquals(stageId, stage.getStageId());
@@ -2109,13 +2108,12 @@ public class TestHeartbeatHandler {
   private ActionManager getMockActionManager() {
     ActionQueue actionQueueMock = createNiceMock(ActionQueue.class);
     Clusters clustersMock = createNiceMock(Clusters.class);
-    ServerActionManager serverActionManagerMock = createNiceMock(ServerActionManager.class);
     Configuration configurationMock = createNiceMock(Configuration.class);
 
     ActionManager actionManager = createMockBuilder(ActionManager.class).
             addMockedMethod("getTasks").
             withConstructor((long)0, (long)0, actionQueueMock, clustersMock,
-                    actionDBAccessor, new HostsMap((String) null), serverActionManagerMock, unitOfWork,
+                    actionDBAccessor, new HostsMap((String) null), unitOfWork,
                     injector.getInstance(RequestFactory.class), configurationMock).
             createMock();
     return actionManager;

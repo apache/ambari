@@ -91,8 +91,6 @@ import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.entities.ExecutionCommandEntity;
 import org.apache.ambari.server.security.authorization.Users;
 import org.apache.ambari.server.serveraction.ServerAction;
-import org.apache.ambari.server.serveraction.ServerActionManager;
-import org.apache.ambari.server.serveraction.ServerActionManagerImpl;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -7138,25 +7136,6 @@ public class AmbariManagementControllerTest {
     assertEquals(0, response.getCustomCommands().size());
   }
 
-  @Test
-  public void testServerActionForUpgradeFinalization() throws AmbariException {
-    String clusterName = "foo1";
-    StackId currentStackId = new StackId("HDP-0.1");
-    StackId newStackId = new StackId("HDP-0.2");
-
-    createCluster(clusterName);
-    Cluster c = clusters.getCluster(clusterName);
-    c.setDesiredStackVersion(currentStackId);
-    Assert.assertTrue(c.getCurrentStackVersion().equals(currentStackId));
-
-    ServerActionManager serverActionManager = new ServerActionManagerImpl(clusters);
-    Map<String, String> payload = new HashMap<String, String>();
-    payload.put(ServerAction.PayloadName.CLUSTER_NAME, clusterName);
-    payload.put(ServerAction.PayloadName.CURRENT_STACK_VERSION, newStackId.getStackId());
-    serverActionManager.executeAction(ServerAction.Command.FINALIZE_UPGRADE, payload);
-    Assert.assertTrue(c.getCurrentStackVersion().equals(newStackId));
-  }
-
   // disabled as upgrade feature is disabled
   @Ignore
   @Test
@@ -7485,9 +7464,7 @@ public class AmbariManagementControllerTest {
           currRoleOrder = expectedTasks.getRoleOrder(command.getRole());
           ExecutionCommand execCommand = command.getExecutionCommandWrapper().getExecutionCommand();
           Assert.assertTrue(
-              execCommand.getCommandParams().containsKey(ServerAction.PayloadName.CURRENT_STACK_VERSION));
-          Assert.assertTrue(
-              execCommand.getCommandParams().containsKey(ServerAction.PayloadName.CLUSTER_NAME));
+              execCommand.getRoleParams().containsKey(ServerAction.ACTION_NAME));
           Assert.assertEquals(RoleCommand.EXECUTE, execCommand.getRoleCommand());
         } else {
           Assert.assertTrue(command.toString(), expectedTasks.isTaskExpected(command.getRole(), command.getHostName()));

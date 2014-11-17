@@ -74,6 +74,10 @@ public enum ServiceComponentHostEventType {
   /**
    * Recovering host component from disable state
    */
-  HOST_SVCCOMP_RESTORE
+  HOST_SVCCOMP_RESTORE,
+  /**
+   * Triggering a server-side action
+   */
+  HOST_SVCCOMP_SERVER_ACTION
 
 }

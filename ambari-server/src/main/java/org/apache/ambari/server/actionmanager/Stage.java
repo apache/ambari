@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.actionmanager;
 
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -39,7 +40,7 @@ import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.serveraction.ServerAction;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ServiceComponentHostEvent;
-import org.apache.ambari.server.state.svccomphost.ServiceComponentHostUpgradeEvent;
+import org.apache.ambari.server.state.svccomphost.ServiceComponentHostServerActionEvent;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -302,14 +303,38 @@ public class Stage {
 
 
   /**
-   *  Creates server-side execution command. As of now, it seems to
-   *  be used only for server upgrade
+   * Creates server-side execution command.
+   * <p/>
+   * The action name for this command is expected to be the classname of a
+   * {@link org.apache.ambari.server.serveraction.ServerAction} implementation which will be
+   * instantiated and invoked as needed.
+   *
+   * @param actionName    a String declaring the action name (in the form of a classname) to execute
+   * @param role          the Role for this command
+   * @param command       the RoleCommand for this command
+   * @param clusterName   a String identifying the cluster on which to to execute this command
+   * @param event         a ServiceComponentHostServerActionEvent
+   * @param commandParams a Map of String to String data used to pass to the action - this may be
+   *                      empty or null if no data is relevant
+   * @param timeout       an Integer declaring the timeout for this action - if null, a default
+   *                      timeout will be used
    */
-  public synchronized void addServerActionCommand(String actionName, Role role,  RoleCommand command, String clusterName,
-      ServiceComponentHostUpgradeEvent event, String hostName) {
-    ExecutionCommandWrapper commandWrapper = addGenericExecutionCommand(clusterName, hostName, role, command, event);
+  public synchronized void addServerActionCommand(String actionName, Role role, RoleCommand command,
+                                                  String clusterName, ServiceComponentHostServerActionEvent event,
+                                                  @Nullable Map<String, String> commandParams,
+                                                  @Nullable Integer timeout) {
+    ExecutionCommandWrapper commandWrapper = addGenericExecutionCommand(clusterName, StageUtils.getHostName(), role, command, event);
     ExecutionCommand cmd = commandWrapper.getExecutionCommand();
-    
+
+    Map<String, String> cmdParams = new HashMap<String, String>();
+    if (commandParams != null) {
+      cmdParams.putAll(commandParams);
+    }
+    if (timeout != null) {
+      cmdParams.put(ExecutionCommand.KeyNames.COMMAND_TIMEOUT, NumberFormat.getIntegerInstance().format(timeout));
+    }
+    cmd.setCommandParams(cmdParams);
+
     Map<String, String> roleParams = new HashMap<String, String>();
     roleParams.put(ServerAction.ACTION_NAME, actionName);
     cmd.setRoleParams(roleParams);

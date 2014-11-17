@@ -212,7 +212,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
     if (clusterEntity != null) {
       clusterId = clusterEntity.getClusterId();
     }
-    
+
     requestEntity.setClusterId(clusterId);
     requestDAO.create(requestEntity);
 
@@ -547,6 +547,11 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
       }
     });
     return commands;
+  }
+
+  @Override
+  public List<HostRoleCommand> getTasksByHostRoleAndStatus(String hostname, String role, HostRoleStatus status) {
+    return getTasks(hostRoleCommandDAO.findTaskIdsByHostRoleAndStatus(hostname, role, status));
   }
 
   @Override

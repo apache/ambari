@@ -149,6 +149,11 @@ public interface ActionDBAccessor {
   public Collection<HostRoleCommand> getTasks(Collection<Long> taskIds);
 
   /**
+   * Get a List of host role commands where the role and status are as specified
+   */
+  public List<HostRoleCommand> getTasksByHostRoleAndStatus(String hostname, String role, HostRoleStatus status);
+
+  /**
    * Get all stages that contain tasks with specified host role statuses
    */
   public List<Stage> getStagesByHostRoleStatus(Set<HostRoleStatus> statuses);
