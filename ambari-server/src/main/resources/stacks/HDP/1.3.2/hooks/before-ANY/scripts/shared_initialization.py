@@ -113,4 +113,11 @@ def setup_hadoop_env():
          owner=tc_owner,
          content=InlineTemplate(params.hadoop_env_sh_template)
     )
+    XmlConfig("core-site.xml",
+              conf_dir=params.hadoop_conf_dir,
+              configurations=params.config['configurations']['core-site'],
+              configuration_attributes=params.config['configuration_attributes']['core-site'],
+              owner=params.hdfs_user,
+              group=params.user_group
+    )
 
