@@ -169,8 +169,50 @@ public class AlertGroupResourceProviderTest {
     assertEquals(ALERT_GROUP_CLUSTER_NAME,
         r.getPropertyValue(AlertGroupResourceProvider.ALERT_GROUP_CLUSTER_NAME));
 
-    // verify definitions do not come back in collections
+    // verify definitions do not come back when not requested
     assertNull(r.getPropertyValue(AlertGroupResourceProvider.ALERT_GROUP_DEFINITIONS));
+
+    verify(m_amc, m_clusters, m_cluster, m_dao);
+  }
+
+  /**
+   * @throws Exception
+   */
+  @Test
+  public void testGetResourcesAllProperties() throws Exception {
+    Request request = PropertyHelper.getReadRequest();
+
+    Predicate predicate = new PredicateBuilder().property(
+        AlertGroupResourceProvider.ALERT_GROUP_CLUSTER_NAME).equals("c1").toPredicate();
+
+    expect(m_dao.findAllGroups(ALERT_GROUP_CLUSTER_ID)).andReturn(
+        getMockEntities());
+
+    replay(m_amc, m_clusters, m_cluster, m_dao);
+
+    AlertGroupResourceProvider provider = createProvider(m_amc);
+    Set<Resource> results = provider.getResources(request, predicate);
+
+    assertEquals(1, results.size());
+
+    Resource r = results.iterator().next();
+
+    assertEquals(ALERT_GROUP_NAME,
+        r.getPropertyValue(AlertGroupResourceProvider.ALERT_GROUP_NAME));
+
+    assertEquals(ALERT_GROUP_ID,
+        r.getPropertyValue(AlertGroupResourceProvider.ALERT_GROUP_ID));
+
+    assertEquals(ALERT_GROUP_CLUSTER_NAME,
+        r.getPropertyValue(AlertGroupResourceProvider.ALERT_GROUP_CLUSTER_NAME));
+
+
+    // verify definitions do not come back when not requested
+    List<AlertDefinitionResponse> definitions = (List<AlertDefinitionResponse>) r.getPropertyValue(AlertGroupResourceProvider.ALERT_GROUP_DEFINITIONS);
+
+    assertNotNull(definitions);
+    assertEquals(1, definitions.size());
+    assertEquals(ALERT_DEF_NAME, definitions.get(0).getName());
 
     verify(m_amc, m_clusters, m_cluster, m_dao);
   }
@@ -181,11 +223,7 @@ public class AlertGroupResourceProviderTest {
   @Test
   @SuppressWarnings("unchecked")
   public void testGetSingleResource() throws Exception {
-    Request request = PropertyHelper.getReadRequest(
-        AlertGroupResourceProvider.ALERT_GROUP_ID,
-        AlertGroupResourceProvider.ALERT_GROUP_NAME,
-        AlertGroupResourceProvider.ALERT_GROUP_CLUSTER_NAME,
-        AlertGroupResourceProvider.ALERT_GROUP_DEFAULT);
+    Request request = PropertyHelper.getReadRequest();
 
     AmbariManagementController amc = createMock(AmbariManagementController.class);
 

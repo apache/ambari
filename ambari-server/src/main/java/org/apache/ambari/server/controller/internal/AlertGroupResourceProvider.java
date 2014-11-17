@@ -390,22 +390,15 @@ public class AlertGroupResourceProvider extends
     resource.setProperty(ALERT_GROUP_ID, entity.getGroupId());
     resource.setProperty(ALERT_GROUP_NAME, entity.getGroupName());
     resource.setProperty(ALERT_GROUP_CLUSTER_NAME, clusterName);
-    resource.setProperty(ALERT_GROUP_DEFAULT, entity.isDefault());
 
-    if( !isCollection ){
-      Set<AlertTargetEntity> targetEntities = entity.getAlertTargets();
+    setResourceProperty(resource, ALERT_GROUP_DEFAULT, entity.isDefault(),
+        requestedIds);
+
+    // only set the definitions if requested
+    if (BaseProvider.isPropertyRequested(ALERT_GROUP_DEFINITIONS, requestedIds)) {
       Set<AlertDefinitionEntity> definitions = entity.getAlertDefinitions();
-
-      List<AlertTarget> targets = new ArrayList<AlertTarget>(
-          targetEntities.size());
-
       List<AlertDefinitionResponse> definitionList = new ArrayList<AlertDefinitionResponse>(
           definitions.size());
-
-      for (AlertTargetEntity targetEntity : targetEntities) {
-        AlertTarget target = AlertTarget.coerce(targetEntity);
-        targets.add(target);
-      }
 
       for (AlertDefinitionEntity definition : definitions) {
         AlertDefinitionResponse response = AlertDefinitionResponse.coerce(definition);
@@ -413,6 +406,19 @@ public class AlertGroupResourceProvider extends
       }
 
       resource.setProperty(ALERT_GROUP_DEFINITIONS, definitionList);
+    }
+
+    if( !isCollection ){
+      Set<AlertTargetEntity> targetEntities = entity.getAlertTargets();
+
+      List<AlertTarget> targets = new ArrayList<AlertTarget>(
+          targetEntities.size());
+
+      for (AlertTargetEntity targetEntity : targetEntities) {
+        AlertTarget target = AlertTarget.coerce(targetEntity);
+        targets.add(target);
+      }
+
       resource.setProperty(ALERT_GROUP_TARGETS, targets);
     }
 

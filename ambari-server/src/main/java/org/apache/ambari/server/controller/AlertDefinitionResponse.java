@@ -33,6 +33,7 @@ public class AlertDefinitionResponse {
   private String name = null;
   private String label = null;
   private Long definitionId;
+  private boolean enabled = true;
 
   /**
    * @return the definitionId
@@ -114,6 +115,27 @@ public class AlertDefinitionResponse {
     label = definitionLabel;
   }
 
+
+  /**
+   * Gets whether this definition is enabled.
+   *
+   * @return {@code true} if enabled.
+   */
+  @JsonProperty("enabled")
+  public boolean isEnabled() {
+    return enabled;
+  }
+
+  /**
+   * Sets whether this definition is enabled.
+   *
+   * @param enabled
+   *          {@code true} if enabled.
+   */
+  public void setEnabled(boolean enabled) {
+    this.enabled = enabled;
+  }
+
   @Override
   public String toString() {
     return name;
@@ -137,6 +159,7 @@ public class AlertDefinitionResponse {
     response.setLabel(entity.getLabel());
     response.setName(entity.getDefinitionName());
     response.setServiceName(entity.getServiceName());
+    response.setEnabled(entity.getEnabled());
 
     return response;
   }
