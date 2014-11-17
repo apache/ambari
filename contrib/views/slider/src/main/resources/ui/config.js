@@ -20,6 +20,7 @@ exports.config = {
   paths: {
     watched: ['app', 'envs', 'vendor', 'test']
   },
+  fileListInterval: 500,
   files: {
     javascripts: {
       joinTo: {
