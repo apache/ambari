@@ -17,12 +17,12 @@
  */
 package org.apache.ambari.server.orm.dao;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
 
 import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
 
+import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 
 import com.google.inject.Inject;
@@ -37,18 +37,23 @@ import com.google.inject.persist.Transactional;
 public class UpgradeDAO {
 
   @Inject
-  private Provider<EntityManager> m_entityManagerProvider;
+  private Provider<EntityManager> entityManagerProvider;
 
-  // !!! TODO tie into JPA framework.  For now, just return skeleton classes
-  private AtomicLong m_idGen = new AtomicLong(1L);
-  private List<UpgradeEntity> m_entities = new ArrayList<UpgradeEntity>();
+  @Inject
+  private DaoUtils daoUtils;
 
   /**
    * @param clusterId the cluster id
    * @return the list of upgrades initiated for the cluster
    */
+  @RequiresSession
   public List<UpgradeEntity> findUpgrades(long clusterId) {
-    return m_entities;
+    TypedQuery<UpgradeEntity> query = entityManagerProvider.get().createNamedQuery(
+        "UpgradeEntity.findAllForCluster", UpgradeEntity.class);
+
+    query.setParameter("clusterId", Long.valueOf(clusterId));
+
+    return daoUtils.selectList(query);
   }
 
   /**
@@ -56,22 +61,37 @@ public class UpgradeDAO {
    * @param upgradeId the id
    * @return the entity, or {@code null} if not found
    */
+  @RequiresSession
   public UpgradeEntity findUpgrade(long upgradeId) {
-    for (UpgradeEntity ue : m_entities) {
-      if (ue.getId().longValue() == upgradeId) {
-        return ue;
-      }
-    }
-    return null;
+    TypedQuery<UpgradeEntity> query = entityManagerProvider.get().createNamedQuery(
+        "UpgradeEntity.findUpgrade", UpgradeEntity.class);
+
+    query.setParameter("upgradeId", Long.valueOf(upgradeId));
+
+    return daoUtils.selectSingle(query);
   }
 
   /**
    * Creates the upgrade entity in the database
+   * @param entity the entity
    */
   @Transactional
   public void create(UpgradeEntity entity) {
-    entity.setId(Long.valueOf(m_idGen.getAndIncrement()));
-    m_entities.add(entity);
+    entityManagerProvider.get().persist(entity);
+  }
+
+  /**
+   * Removes all upgrades associated with the cluster.
+   * @param clusterId the cluster id
+   */
+  @Transactional
+  public void removeAll(long clusterId) {
+    List<UpgradeEntity> entities = findUpgrades(clusterId);
+
+    for (UpgradeEntity entity : entities) {
+      entityManagerProvider.get().remove(entity);
+    }
+
   }
 
 

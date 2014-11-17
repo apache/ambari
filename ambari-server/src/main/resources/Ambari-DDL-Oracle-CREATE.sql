@@ -676,6 +676,27 @@ CREATE INDEX idx_alert_history_state on alert_history(alert_state);
 CREATE INDEX idx_alert_group_name on alert_group(group_name);
 CREATE INDEX idx_alert_notice_state on alert_notice(notify_state);
 
+-- upgrade tables
+CREATE TABLE upgrade (
+  upgrade_id BIGINT NOT NULL,
+  cluster_id BIGINT NOT NULL,
+  state VARCHAR2(255) DEFAULT 'NONE' NOT NULL,
+  PRIMARY KEY (upgrade_id),
+  FOREIGN KEY (cluster_id) REFERENCES clusters(cluster_id)
+);
+
+CREATE TABLE upgrade_item (
+  upgrade_item_id BIGINT NOT NULL,
+  upgrade_id BIGINT NOT NULL,
+  state VARCHAR2(255) DEFAULT 'NONE' NOT NULL,
+  hosts CLOB,
+  tasks CLOB,
+  item_text VARCHAR2(1024),
+  PRIMARY KEY (upgrade_item_id),
+  FOREIGN KEY (upgrade_id) REFERENCES upgrade(upgrade_id)
+);
+
+
 ---------inserting some data-----------
 -- In order for the first ID to be 1, must initialize the ambari_sequences table with a sequence_value of 0.
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('host_role_command_id_seq', 0);
@@ -706,6 +727,8 @@ INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('alert_histo
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('alert_notice_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('alert_current_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('repo_version_id_seq', 0);
+INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('upgrade_id_seq', 0);
+INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('upgrade_item_id_seq', 0);
 
 INSERT INTO metainfo("metainfo_key", "metainfo_value") values ('version', '${ambariVersion}');
 

@@ -18,21 +18,18 @@
 package org.apache.ambari.server.state.stack.upgrade;
 
 import javax.xml.bind.annotation.XmlSeeAlso;
-import javax.xml.bind.annotation.XmlType;
 
 
 /**
  * Base class to identify the items that could possibly occur during an upgrade
  */
 @XmlSeeAlso(value={ExecuteTask.class, ConfigureTask.class, ManualTask.class})
-@XmlType
 public abstract class Task {
 
   /**
    * @return the type of the task
    */
   public abstract Type getType();
-
 
   /**
    * Identifies the type of task.
@@ -49,6 +46,13 @@ public abstract class Task {
     /**
      * Task that displays a message and must be confirmed before continuing
      */
-    MANUAL
+    MANUAL;
+
+    /**
+     * @return {@code true} if the task is manual or automated.
+     */
+    public boolean isManual() {
+      return this == MANUAL;
+    }
   }
 }

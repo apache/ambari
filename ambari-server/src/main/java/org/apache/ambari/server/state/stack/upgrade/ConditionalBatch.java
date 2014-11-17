@@ -17,6 +17,10 @@
  */
 package org.apache.ambari.server.state.stack.upgrade;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
@@ -43,4 +47,9 @@ public class ConditionalBatch extends Batch {
     return Batch.Type.CONDITIONAL;
   }
 
+  @Override
+  public List<Set<String>> getHostGroupings(Set<String> hosts) {
+    // TODO
+    return Collections.singletonList(hosts);
+  }
 }

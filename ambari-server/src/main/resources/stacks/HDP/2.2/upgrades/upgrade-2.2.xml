@@ -16,6 +16,7 @@
    limitations under the License.
 -->
 <upgrade xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <target>2.2.*.*</target>
   <order>
     <service name="ZOOKEEPER">
       <component>ZOOKEEPER_SERVER</component>
@@ -28,20 +29,33 @@
     </service>
   </order>
   <processing>
-    <service name="HDFS">
-      <component name="NAMENODE">
-        <upgrade>
-          <task xsi:type="execute">
-            <command>su - {hdfs-user} -c 'hdp-select hadoop-hdfs-namenode {version}'</command>
-          </task>
-        </upgrade>
+    <service name="ZOOKEEPER">
+      <component name="ZOOKEEPER_SERVER">
+        <batch xsi:type="count">
+          <count>1</count>
+        </batch>
       </component>
     </service>
     <service name="HDFS">
+      <component name="NAMENODE">
+        <pre-upgrade>
+          <task xsi:type="execute">
+            <command>su - {hdfs-user} -c 'hdfs dfsadmin -rollingUpgrade prepare'</command>
+          </task>
+          <task xsi:type="execute">
+            <command>su - {hdfs-user} -c 'hdfs dfsadmin -rollingUpgrade query'</command>
+            <until>Proceed with rolling upgrade</until>
+          </task>
+        </pre-upgrade>
+        <post-upgrade>
+          <task xsi:type="execute">
+            <command>su - {hdfs-user} -c 'hdfs dfsadmin -rollingUpgrade finalize'</command>
+          </task>
+        </post-upgrade>
+      </component>
       <component name="DATANODE">
-        <batch xsi:type="conditional">
-          <initial>10</initial>
-          <remaining>25</remaining>
+        <batch xsi:type="percent">
+          <percent>20</percent>
         </batch>
         <upgrade>
           <task xsi:type="execute">

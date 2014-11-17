@@ -57,6 +57,7 @@ import org.apache.ambari.server.orm.dao.ClusterStateDAO;
 import org.apache.ambari.server.orm.dao.ConfigGroupHostMappingDAO;
 import org.apache.ambari.server.orm.dao.HostConfigMappingDAO;
 import org.apache.ambari.server.orm.dao.ServiceConfigDAO;
+import org.apache.ambari.server.orm.dao.UpgradeDAO;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
 import org.apache.ambari.server.orm.entities.ClusterConfigMappingEntity;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
@@ -192,6 +193,9 @@ public class ClusterImpl implements Cluster {
 
   @Inject
   private AlertDispatchDAO alertDispatchDAO;
+
+  @Inject
+  private UpgradeDAO upgradeDAO;
 
   private volatile boolean svcHostsLoaded = false;
 
@@ -1377,6 +1381,7 @@ public class ClusterImpl implements Cluster {
     long clusterId = getClusterId();
     alertDefinitionDAO.removeAll(clusterId);
     alertDispatchDAO.removeAllGroups(clusterId);
+    upgradeDAO.removeAll(clusterId);
     clusterDAO.removeByPK(clusterId);
   }
 

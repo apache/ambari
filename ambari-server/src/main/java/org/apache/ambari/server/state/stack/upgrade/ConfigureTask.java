@@ -21,6 +21,7 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 
 /**
@@ -31,8 +32,11 @@ import javax.xml.bind.annotation.XmlType;
 @XmlType(name="configure")
 public class ConfigureTask extends Task {
 
+  @XmlTransient
+  private Task.Type type = Task.Type.CONFIGURE;
+
   @XmlElement(name="type")
-  public String config;
+  public String configType;
 
   @XmlElement(name="key")
   public String key;
@@ -41,7 +45,8 @@ public class ConfigureTask extends Task {
   public String value;
 
   @Override
-  public Task.Type getType() {
-    return Task.Type.CONFIGURE;
+  public Type getType() {
+    return type;
   }
+
 }

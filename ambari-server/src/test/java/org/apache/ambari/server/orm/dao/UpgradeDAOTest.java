@@ -20,34 +20,18 @@ package org.apache.ambari.server.orm.dao;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import java.util.UUID;
 
-import org.apache.ambari.server.controller.RootServiceResponseFactory;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
-import org.apache.ambari.server.orm.entities.AlertCurrentEntity;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
-import org.apache.ambari.server.orm.entities.AlertGroupEntity;
-import org.apache.ambari.server.orm.entities.AlertHistoryEntity;
-import org.apache.ambari.server.orm.entities.AlertNoticeEntity;
-import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.orm.entities.UpgradeItemEntity;
-import org.apache.ambari.server.state.AlertState;
-import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.MaintenanceState;
-import org.apache.ambari.server.state.NotificationState;
 import org.apache.ambari.server.state.UpgradeState;
-import org.apache.ambari.server.state.alert.Scope;
-import org.apache.ambari.server.state.alert.SourceType;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -84,21 +68,22 @@ public class UpgradeDAOTest {
 
     // create upgrade entities
     UpgradeEntity entity = new UpgradeEntity();
-    dao.create(entity);
+    entity.setClusterId(Long.valueOf(1));
 
     // create 2 items
     List<UpgradeItemEntity> items = new ArrayList<UpgradeItemEntity>();
     UpgradeItemEntity item = new UpgradeItemEntity();
-    item.setId(Long.valueOf(entity.getId().longValue() + 1000));
     item.setState(UpgradeState.IN_PROGRESS);
+    item.setUpgradeEntity(entity);
     items.add(item);
 
     item = new UpgradeItemEntity();
-    item.setId(Long.valueOf(entity.getId().longValue() + 1001));
     item.setState(UpgradeState.PENDING);
+    item.setUpgradeEntity(entity);
     items.add(item);
 
     entity.setUpgradeItems(items);
+    dao.create(entity);
   }
 
   @After
@@ -115,7 +100,7 @@ public class UpgradeDAOTest {
   }
 
   @Test
-  public void test() throws Exception {
+  public void testFindUpgrade() throws Exception {
     List<UpgradeEntity> items = dao.findUpgrades(clusterId.longValue());
     assertTrue(items.size() > 0);
 

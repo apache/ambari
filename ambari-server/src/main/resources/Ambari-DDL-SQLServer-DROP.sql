@@ -201,3 +201,9 @@ IF OBJECT_ID('adminprincipaltype', 'U') IS NOT NULL DROP TABLE adminprincipaltyp
 GO
 IF OBJECT_ID('adminresourcetype', 'U') IS NOT NULL DROP TABLE adminresourcetype
 GO
+
+IF OBJECT_ID('upgrade_item', 'U') IS NOT NULL DROP TABLE upgrade_item
+GO
+IF OBJECT_ID('upgrade', 'U') IS NOT NULL DROP TABLE upgrade
+GO
+

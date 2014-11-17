@@ -19,14 +19,19 @@ package org.apache.ambari.server.controller.internal;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StaticallyInject;
+import org.apache.ambari.server.actionmanager.ActionManager;
+import org.apache.ambari.server.actionmanager.RequestFactory;
+import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
@@ -38,12 +43,22 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
+import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.UpgradeDAO;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.orm.entities.UpgradeItemEntity;
 import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.UpgradeState;
+import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceComponent;
+import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.stack.UpgradePack;
+import org.apache.ambari.server.state.stack.UpgradePack.ProcessingComponent;
+import org.apache.ambari.server.state.stack.upgrade.CountBatch;
+import org.apache.ambari.server.state.stack.upgrade.PercentBatch;
+import org.apache.ambari.server.state.stack.upgrade.Task;
 
+import com.google.gson.Gson;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 
@@ -64,9 +79,16 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   private static final Map<Resource.Type, String> KEY_PROPERTY_IDS = new HashMap<Resource.Type, String>();
 
   @Inject
-  private static UpgradeDAO m_dao = null;
+  private static UpgradeDAO m_upgradeDAO = null;
   @Inject
   private static Provider<AmbariMetaInfo> m_metaProvider = null;
+  @Inject
+  private static RepositoryVersionDAO m_repoVersionDAO = null;
+  @Inject
+  private RequestFactory requestFactory;
+  @Inject
+  private StageFactory stageFactory;
+
 
   static {
     // properties
@@ -94,30 +116,26 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       UnsupportedPropertyException, ResourceAlreadyExistsException,
       NoSuchParentResourceException {
 
+    Set<Map<String, Object>> requestMaps = request.getProperties();
 
-    UpgradeEntity entity = new UpgradeEntity();
+    if (requestMaps.size() > 1) {
+      throw new SystemException("Can only initiate one upgrade per request.");
+    }
 
-    m_dao.create(entity);
+    for (final Map<String, Object> requestMap : requestMaps) {
+      createResources(new Command<Void>() {
+        @Override
+        public Void invoke() throws AmbariException {
+          UpgradePack up = validateRequest(requestMap);
 
-    List<UpgradeItemEntity> items = new ArrayList<UpgradeItemEntity>();
-    UpgradeItemEntity item = new UpgradeItemEntity();
-    item.setId(Long.valueOf(entity.getId().longValue() + 1000));
-    item.setState(UpgradeState.IN_PROGRESS);
-    items.add(item);
+          createUpgrade(up, requestMap);
 
-    item = new UpgradeItemEntity();
-    item.setId(Long.valueOf(entity.getId().longValue() + 1001));
-    item.setState(UpgradeState.PENDING);
-    items.add(item);
+          return null;
+        };
+      });
+    }
 
-
-    entity.setUpgradeItems(items);
-
-
-    /*
     notifyCreate(Resource.Type.Upgrade, request);
-    */
-
     return getRequestStatus(null);
   }
 
@@ -143,7 +161,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         throw new NoSuchResourceException(String.format("Cluster %s could not be loaded", clusterName));
       }
 
-      List<UpgradeEntity> upgrades = m_dao.findUpgrades(cluster.getClusterId());
+      List<UpgradeEntity> upgrades = m_upgradeDAO.findUpgrades(cluster.getClusterId());
 
       for (UpgradeEntity entity : upgrades) {
         results.add(toResource(entity, clusterName, requestPropertyIds));
@@ -191,6 +209,272 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     setResourceProperty(resource, UPGRADE_CLUSTER_NAME, clusterName, requestedIds);
 
     return resource;
+  }
+
+  private UpgradePack validateRequest(Map<String, Object> requestMap) throws AmbariException {
+    String clusterName = (String) requestMap.get(UPGRADE_CLUSTER_NAME);
+    String version = (String) requestMap.get(UPGRADE_VERSION);
+
+    if (null == clusterName) {
+      throw new AmbariException(String.format("%s is required", UPGRADE_CLUSTER_NAME));
+    }
+
+    if (null == version) {
+      throw new AmbariException(String.format("%s is required", UPGRADE_VERSION));
+    }
+
+    Cluster cluster = getManagementController().getClusters().getCluster(clusterName);
+    StackId stack = cluster.getDesiredStackVersion();
+    RepositoryVersionEntity versionEntity = m_repoVersionDAO.findByStackAndVersion(
+        stack.getStackId(), version);
+
+    if (null == versionEntity) {
+      throw new AmbariException(String.format("Version %s for stack %s was not found",
+          version, stack.getStackVersion()));
+    }
+
+    Map<String, UpgradePack> packs = m_metaProvider.get().getUpgradePacks(
+        stack.getStackName(), stack.getStackVersion());
+
+    UpgradePack up = packs.get(versionEntity.getUpgradePackage());
+
+    if (null == up) {
+      throw new AmbariException(String.format(
+          "Upgrade pack %s not found", versionEntity.getUpgradePackage()));
+    }
+
+    // !!! validate all hosts have the version installed
+
+    return up;
+  }
+
+  private UpgradeEntity createUpgrade(UpgradePack pack, Map<String, Object> requestMap)
+    throws AmbariException {
+
+    String clusterName = (String) requestMap.get(UPGRADE_CLUSTER_NAME);
+
+    if (null == clusterName) {
+      throw new AmbariException(String.format("%s is required", UPGRADE_CLUSTER_NAME));
+    }
+
+    Cluster cluster = getManagementController().getClusters().getCluster(clusterName);
+    Map<String, Service> clusterServices = cluster.getServices();
+
+    Map<String, Map<String, ProcessingComponent>> tasks = pack.getTasks();
+
+    List<StageHolder> preUpgrades = new ArrayList<StageHolder>();
+    List<StageHolder> restart = new ArrayList<StageHolder>();
+    List<StageHolder> postUpgrades = new ArrayList<StageHolder>();
+
+    for (Entry<String, List<String>> entry : pack.getOrder().entrySet()) {
+      String serviceName = entry.getKey();
+      List<String> componentNames = entry.getValue();
+
+      // !!! if the upgrade pack doesn't define any tasks, skip
+      if (!tasks.containsKey(serviceName)) {
+        continue;
+      }
+
+      // !!! if the service isn't installed, skip
+      if (!clusterServices.containsKey(serviceName)) {
+        continue;
+      }
+
+      Service service = clusterServices.get(serviceName);
+      Map<String, ServiceComponent> components = service.getServiceComponents();
+
+      for (String componentName : componentNames) {
+        // !!! if the upgrade pack has no tasks for component, skip
+        if (!tasks.get(serviceName).containsKey(componentName)) {
+          continue;
+        }
+
+        // !!! if the component is not installed with the cluster, skip
+        if (!components.containsKey(componentName)) {
+          continue;
+        }
+
+        ProcessingComponent pc = tasks.get(serviceName).get(componentName);
+
+        List<Set<String>> groupings = computeHostGroupings(pc,
+            components.get(componentName).getServiceComponentHosts().keySet());
+
+        preUpgrades.addAll(buildUpgradeStages(pc, true, groupings));
+        restart.addAll(buildRollingRestart(pc, groupings));
+        postUpgrades.addAll(buildUpgradeStages(pc, false, groupings));
+      }
+    }
+
+
+    Gson gson = new Gson();
+
+    UpgradeEntity entity = new UpgradeEntity();
+
+    List<UpgradeItemEntity> items = new ArrayList<UpgradeItemEntity>();
+    for (StageHolder holder : preUpgrades) {
+      holder.upgradeItemEntity.setHosts(gson.toJson(holder.hosts));
+      holder.upgradeItemEntity.setTasks(gson.toJson(holder.taskHolder.tasks));
+      items.add(holder.upgradeItemEntity);
+    }
+
+    for (StageHolder holder : restart) {
+      holder.upgradeItemEntity.setHosts(gson.toJson(holder.hosts));
+      items.add(holder.upgradeItemEntity);
+    }
+
+    for (StageHolder holder : postUpgrades) {
+      holder.upgradeItemEntity.setHosts(gson.toJson(holder.hosts));
+      holder.upgradeItemEntity.setTasks(gson.toJson(holder.taskHolder.tasks));
+      items.add(holder.upgradeItemEntity);
+    }
+
+    entity.setClusterId(Long.valueOf(cluster.getClusterId()));
+    entity.setUpgradeItems(items);
+
+    m_upgradeDAO.create(entity);
+
+//    RequestStageContainer req = createRequest();
+//
+//    req.getRequestStatusResponse();
+
+//  TODO req.persist();
+    return entity;
+  }
+
+  private List<StageHolder> buildUpgradeStages(ProcessingComponent pc,
+      boolean preUpgrade, List<Set<String>> hostGroups) {
+
+    List<TaskHolder> taskHolders = buildStageStrategy(
+        preUpgrade ? pc.preTasks : pc.postTasks);
+
+    List<StageHolder> stages = new ArrayList<StageHolder>();
+
+    StringBuilder sb = new StringBuilder(preUpgrade ? "Preparing " : "Finalizing ");
+    sb.append("%s on %d host(s).  Phase %s/%s");
+    String textFormat = sb.toString();
+
+    for (TaskHolder taskHolder : taskHolders) {
+      int i = 1;
+      for (Set<String> hostGroup : hostGroups) {
+        StageHolder stage = new StageHolder();
+        stage.hosts = hostGroup;
+        stage.taskHolder = taskHolder;
+        stage.upgradeItemEntity = new UpgradeItemEntity();
+        stage.upgradeItemEntity.setText(String.format(textFormat,
+            pc.name,
+            Integer.valueOf(hostGroup.size()),
+            Integer.valueOf(i++),
+            Integer.valueOf(hostGroups.size())));
+        stages.add(stage);
+      }
+    }
+
+    return stages;
+  }
+
+  /**
+   * Builds the stages for the rolling restart portion
+   * @param pc the information from the upgrade pack
+   * @param hostGroups a list of the host groupings
+   * @return the list of stages that need to be created
+   */
+  private List<StageHolder> buildRollingRestart(ProcessingComponent pc, List<Set<String>> hostGroups) {
+    List<StageHolder> stages = new ArrayList<StageHolder>();
+
+    String textFormat = "Restarting %s on %d host(s), Phase %d/%d";
+
+    int i = 1;
+    for (Set<String> hostGroup : hostGroups) {
+      // !!! each of these is its own stage
+      StageHolder stage = new StageHolder();
+      stage.hosts = hostGroup;
+      stage.upgradeItemEntity = new UpgradeItemEntity();
+      stage.upgradeItemEntity.setText(String.format(textFormat, pc.name,
+          Integer.valueOf(hostGroup.size()),
+          Integer.valueOf(i++),
+          Integer.valueOf(hostGroups.size())));
+      stages.add(stage);
+    }
+
+    return stages;
+  }
+
+
+  /**
+   * Calculates how the hosts will be executing their upgrades.
+   */
+  private List<Set<String>> computeHostGroupings(ProcessingComponent taskBuckets, Set<String> allHosts) {
+    if (null == taskBuckets.batch) {
+      return Collections.singletonList(allHosts);
+    } else {
+      return taskBuckets.batch.getHostGroupings(allHosts);
+    }
+  }
+
+  /**
+   * For all the tasks for a component, separate out the manual from the
+   * automated steps into the stages they should executed.
+   *
+   * @param tasks a list of tasks
+   * @return the list of stages
+   */
+  private List<TaskHolder> buildStageStrategy(List<Task> tasks) {
+    if (null == tasks)
+      return Collections.emptyList();
+
+    List<TaskHolder> holders = new ArrayList<TaskHolder>();
+    TaskHolder holder = new TaskHolder();
+
+    holders.add(holder);
+    int i = 0;
+    for (Task t : tasks) {
+      // !!! TODO should every manual task get its own stage?
+      if (i > 0 && t.getType().isManual() != tasks.get(i-1).getType().isManual()) {
+        holder = new TaskHolder();
+        holders.add(holder);
+      }
+
+      holder.tasks.add(t);
+      i++;
+    }
+
+    return holders;
+  }
+
+  private static class TaskHolder {
+    private List<Task> tasks = new ArrayList<Task>();
+  }
+
+  private static class StageHolder {
+    private TaskHolder taskHolder;
+    private UpgradeItemEntity upgradeItemEntity;
+    private Set<String> hosts;
+
+    @Override
+    public String toString() {
+      // TODO Auto-generated method stub
+      return upgradeItemEntity.toString();
+    }
+  }
+
+
+  private RequestStageContainer createRequest() {
+
+    ActionManager actionManager = getManagementController().getActionManager();
+
+    RequestStageContainer requestStages = new RequestStageContainer(
+        actionManager.getNextRequestId(), null, requestFactory, actionManager);
+
+    /*
+    List<Stage> stages = doStageCreation(requestStages, cluster, changedServices, changedComponents,
+        changedHosts, requestParameters, requestProperties,
+        runSmokeTest, reconfigureClients);
+    LOG.debug("Created {} stages", ((stages != null) ? stages.size() : 0));
+
+    requestStages.addStages(stages);
+    updateServiceStates(changedServices, changedComponents, changedHosts, ignoredHosts);
+    */
+    return requestStages;
   }
 
 }

@@ -18,9 +18,9 @@
 package org.apache.ambari.server.controller.internal;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -52,6 +52,7 @@ public class UpgradeItemResourceProvider extends AbstractControllerResourceProvi
   protected static final String UPGRADE_ID = "UpgradeItem/upgrade_id";
   protected static final String UPGRADE_ITEM_ID = "UpgradeItem/id";
   protected static final String UPGRADE_ITEM_STATE = "UpgradeItem/state";
+  protected static final String UPGRADE_ITEM_TEXT = "UpgradeItem/text";
 
   private static final Set<String> PK_PROPERTY_IDS = new HashSet<String>(
       Arrays.asList(UPGRADE_ID, UPGRADE_ITEM_ID));
@@ -69,6 +70,7 @@ public class UpgradeItemResourceProvider extends AbstractControllerResourceProvi
     PROPERTY_IDS.add(UPGRADE_ID);
     PROPERTY_IDS.add(UPGRADE_ITEM_ID);
     PROPERTY_IDS.add(UPGRADE_ITEM_STATE);
+    PROPERTY_IDS.add(UPGRADE_ITEM_TEXT);
 
     // keys
     KEY_PROPERTY_IDS.put(Resource.Type.UpgradeItem, UPGRADE_ITEM_ID);
@@ -114,9 +116,11 @@ public class UpgradeItemResourceProvider extends AbstractControllerResourceProvi
         throw new NoSuchResourceException(String.format("Cannot load upgrade for %s", upgradeIdStr));
       }
 
-      List<UpgradeItemEntity> items = upgrade.getUpgradeItems();
-      for (UpgradeItemEntity entity : items) {
-        results.add(toResource(entity, upgradeId, requestPropertyIds));
+      Collection<UpgradeItemEntity> items = upgrade.getUpgradeItems();
+      if (null != items) {
+        for (UpgradeItemEntity entity : items) {
+          results.add(toResource(entity, upgradeId, requestPropertyIds));
+        }
       }
     }
 
@@ -150,6 +154,7 @@ public class UpgradeItemResourceProvider extends AbstractControllerResourceProvi
     setResourceProperty(resource, UPGRADE_ID, Long.valueOf(upgradeId), requestedIds);
     setResourceProperty(resource, UPGRADE_ITEM_ID, entity.getId(), requestedIds);
     setResourceProperty(resource, UPGRADE_ITEM_STATE, entity.getState(), requestedIds);
+    setResourceProperty(resource, UPGRADE_ITEM_TEXT, entity.getText(), requestedIds);
 
     return resource;
   }

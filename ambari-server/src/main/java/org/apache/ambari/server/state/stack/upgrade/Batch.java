@@ -17,6 +17,9 @@
  */
 package org.apache.ambari.server.state.stack.upgrade;
 
+import java.util.List;
+import java.util.Set;
+
 import javax.xml.bind.annotation.XmlSeeAlso;
 import javax.xml.bind.annotation.XmlType;
 
@@ -48,4 +51,10 @@ public abstract class Batch {
      */
     CONDITIONAL
   }
+
+  /**
+   * @param hosts all the hosts
+   * @return a list of host sets defined by the specific batching
+   */
+  public abstract List<Set<String>> getHostGroupings(Set<String> hosts);
 }

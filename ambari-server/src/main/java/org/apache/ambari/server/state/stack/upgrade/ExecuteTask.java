@@ -21,6 +21,7 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 
 /**
@@ -31,11 +32,14 @@ import javax.xml.bind.annotation.XmlType;
 @XmlType(name="execute")
 public class ExecuteTask extends Task {
 
+  @XmlTransient
+  private Task.Type type = Task.Type.EXECUTE;
+
   @XmlElement(name="command")
   public String command;
 
   @Override
   public Task.Type getType() {
-    return Task.Type.EXECUTE;
+    return type;
   }
 }

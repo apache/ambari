@@ -147,7 +147,7 @@ public class UpgradePackTest {
     assertEquals(Task.Type.CONFIGURE, pc.tasks.get(1).getType());
     assertEquals(ConfigureTask.class, pc.tasks.get(1).getClass());
     assertEquals("hdfs-site",
-        ConfigureTask.class.cast(pc.tasks.get(1)).config);
+        ConfigureTask.class.cast(pc.tasks.get(1)).configType);
     assertEquals("myproperty",
         ConfigureTask.class.cast(pc.tasks.get(1)).key);
     assertEquals("mynewvalue",

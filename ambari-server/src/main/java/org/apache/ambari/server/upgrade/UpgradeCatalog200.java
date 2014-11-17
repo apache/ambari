@@ -26,6 +26,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
 import org.apache.ambari.server.orm.dao.DaoUtils;
+import org.apache.ambari.server.state.UpgradeState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -153,6 +154,30 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
     // New sequences
     dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, sequence_value) VALUES('cluster_version_id_seq', 0)", false);
     dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, sequence_value) VALUES('host_version_id_seq', 0)", false);
+
+
+
+    // upgrade tables
+    columns = new ArrayList<DBColumnInfo>();
+    columns.add(new DBAccessor.DBColumnInfo("upgrade_id", Long.class, null, null, false));
+    columns.add(new DBAccessor.DBColumnInfo("cluster_id", Long.class, null, null, false));
+    columns.add(new DBAccessor.DBColumnInfo("state", String.class, 255, UpgradeState.NONE.name(), false));
+    dbAccessor.createTable("upgrade", columns, "upgrade_id");
+    dbAccessor.addFKConstraint("upgrade", "fk_upgrade_cluster_id", "cluster_id", "clusters", "cluster_id", false);
+    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, sequence_value) VALUES('upgrade_id_seq', 0)", false);
+
+    columns = new ArrayList<DBColumnInfo>();
+    columns.add(new DBAccessor.DBColumnInfo("upgrade_item_id", Long.class, null, null, false));
+    columns.add(new DBAccessor.DBColumnInfo("upgrade_id", Long.class, null, null, false));
+    columns.add(new DBAccessor.DBColumnInfo("state", String.class, 255, UpgradeState.NONE.name(), false));
+    columns.add(new DBAccessor.DBColumnInfo("hosts", char[].class, 32672, null, true));
+    columns.add(new DBAccessor.DBColumnInfo("tasks", char[].class, 32672, null, true));
+    columns.add(new DBAccessor.DBColumnInfo("item_text", String.class, 1024, null, true));
+    dbAccessor.createTable("upgrade_item", columns, "upgrade_item_id");
+    dbAccessor.addFKConstraint("upgrade", "fk_upgrade_item_upgrade_id", "upgrade_id", "upgrade", "upgrade_id", false);
+    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, sequence_value) VALUES('upgrade_item_id_seq', 0)", false);
+
+
   }
 
   // ----- UpgradeCatalog ----------------------------------------------------

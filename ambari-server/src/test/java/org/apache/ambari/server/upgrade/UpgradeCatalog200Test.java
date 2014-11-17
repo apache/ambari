@@ -95,6 +95,9 @@ public class UpgradeCatalog200Test {
     Capture<DBAccessor.DBColumnInfo> valueColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
     Capture<DBAccessor.DBColumnInfo> dataValueColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
 
+    Capture<List<DBAccessor.DBColumnInfo>> upgradeCapture = new Capture<List<DBAccessor.DBColumnInfo>>();
+    Capture<List<DBAccessor.DBColumnInfo>> upgradeItemCapture = new Capture<List<DBAccessor.DBColumnInfo>>();
+
     // Alert Definition
     dbAccessor.addColumn(eq("alert_definition"),
         capture(alertDefinitionIgnoreColumnCapture));
@@ -110,6 +113,12 @@ public class UpgradeCatalog200Test {
     // Host Version
     dbAccessor.createTable(eq("host_version"),
         capture(hostVersionCapture), eq("id"));
+
+    // Upgrade
+    dbAccessor.createTable(eq("upgrade"), capture(upgradeCapture), eq("upgrade_id"));
+    // Upgrade item
+    dbAccessor.createTable(eq("upgrade_item"), capture(upgradeItemCapture), eq("upgrade_item_id"));
+
 
     setViewInstancePropertyExpectations(dbAccessor, valueColumnCapture);
     setViewInstanceDataExpectations(dbAccessor, dataValueColumnCapture);
@@ -142,6 +151,9 @@ public class UpgradeCatalog200Test {
 
     assertViewInstancePropertyColumns(valueColumnCapture);
     assertViewInstanceDataColumns(dataValueColumnCapture);
+
+    assertEquals(3, upgradeCapture.getValue().size());
+    assertEquals(6, upgradeItemCapture.getValue().size());
   }
 
   @Test

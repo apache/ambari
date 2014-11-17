@@ -755,6 +755,29 @@ CREATE INDEX idx_alert_history_state on ambari.alert_history(alert_state);
 CREATE INDEX idx_alert_group_name on ambari.alert_group(group_name);
 CREATE INDEX idx_alert_notice_state on ambari.alert_notice(notify_state);
 
+-- upgrade tables
+CREATE TABLE ambari.upgrade (
+  upgrade_id BIGINT NOT NULL,
+  cluster_id BIGINT NOT NULL,
+  state VARCHAR(255) DEFAULT 'NONE' NOT NULL,
+  PRIMARY KEY (upgrade_id),
+  FOREIGN KEY (cluster_id) REFERENCES ambari.clusters(cluster_id)
+);
+
+CREATE TABLE ambari.upgrade_item (
+  upgrade_item_id BIGINT NOT NULL,
+  upgrade_id BIGINT NOT NULL,
+  state VARCHAR(255) DEFAULT 'NONE' NOT NULL,
+  hosts TEXT,
+  tasks TEXT,
+  item_text VARCHAR(1024),
+  PRIMARY KEY (upgrade_item_id),
+  FOREIGN KEY (upgrade_id) REFERENCES ambari.upgrade(upgrade_id)
+);
+
+GRANT ALL PRIVILEGES ON TABLE ambari.upgrade TO :username;
+GRANT ALL PRIVILEGES ON TABLE ambari.upgrade_item TO :username;
+
 ---------inserting some data-----------
 -- In order for the first ID to be 1, must initialize the ambari_sequences table with a sequence_value of 0.
 BEGIN;
@@ -813,7 +836,11 @@ INSERT INTO ambari.ambari_sequences (sequence_name, sequence_value)
   union all
   select 'host_version_id_seq', 0
   union all
-  select 'service_config_id_seq', 1;
+  select 'service_config_id_seq', 1
+  union all
+  select 'upgrade_id_seq', 0 
+  union all
+  select 'upgrade_item_id_seq', 0;
 
 INSERT INTO ambari.adminresourcetype (resource_type_id, resource_type_name)
   SELECT 1, 'AMBARI'
