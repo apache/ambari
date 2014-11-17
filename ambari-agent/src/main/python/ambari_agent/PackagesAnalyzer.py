@@ -40,7 +40,7 @@ class PackagesAnalyzer:
 
   def launch_subprocess(self, command):
     isShell = not isinstance(command, (list, tuple))
-    return subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=isShell)
+    return subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=isShell, close_fds=True)
 
   def watchdog_func(self, command):
     self.event.wait(self.TIMEOUT_SECONDS)
