@@ -147,4 +147,11 @@ class TestHookBeforeInstall(RMFTestCase):
         content = InlineTemplate(self.getConfig()['configurations']['hadoop-env']['content']),
         owner = 'hdfs',
     )
+    self.assertResourceCalled('XmlConfig', 'core-site.xml',
+        owner = 'hdfs',
+        group = 'hadoop',
+        conf_dir = '/etc/hadoop/conf',
+        configuration_attributes = self.getConfig()['configuration_attributes']['core-site'],
+        configurations = self.getConfig()['configurations']['core-site'],
+    )
     self.assertNoMoreResources()
