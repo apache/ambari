@@ -295,6 +295,4 @@ App.MainAlertDefinitionsView = App.TableView.extend({
       this._super();
     }
   }
-
-
 });
