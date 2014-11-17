@@ -20,41 +20,41 @@
   <div class="row-fluid">
     <div class="span9">
       <div class="definition-name">
-        {{#if view.editing.label.isEditing}}
-          <div {{bindAttr class="view.editing.label.isError:error :control-group"}}>
-            {{view Em.TextField valueBinding="view.editing.label.value"}}
+        {{#if controller.editing.label.isEditing}}
+          <div {{bindAttr class="controller.editing.label.isError:error :control-group"}}>
+            {{view Em.TextField valueBinding="controller.editing.label.value"}}
           </div>
           <div class="edit-buttons">
-            <button {{action cancelEdit view.editing.label target="view"}} class="btn">{{t common.cancel}}</button>
-            <button {{bindAttr disabled="view.editing.label.isError"}} {{action saveEdit view.editing.label target="view"}}
+            <button {{action cancelEdit controller.editing.label target="controller"}} class="btn">{{t common.cancel}}</button>
+            <button {{bindAttr disabled="controller.editing.label.isError"}} {{action saveEdit controller.editing.label target="controller"}}
                 class="btn btn-primary">{{t common.save}}
             </button>
           </div>
         {{else}}
           {{{controller.content.status}}} {{controller.content.label}}
         {{/if}}
-        {{#unless view.editing.label.isEditing}}
-          <a {{action edit view.editing.label target="view"}} class="edit-description-button"><i
+        {{#unless controller.editing.label.isEditing}}
+          <a {{action edit controller.editing.label target="controller"}} class="edit-description-button"><i
               class="icon-pencil"></i></a>
         {{/unless}}
       </div>
 
       <div class="definition-details-block">
         <strong>{{t common.description}}</strong>
-        {{#unless view.editing.description.isEditing}}
-          <a {{action edit view.editing.description target="view"}} class="pull-right edit-link">
+        {{#unless controller.editing.description.isEditing}}
+          <a {{action edit controller.editing.description target="controller"}} class="pull-right edit-link">
             <strong>{{t common.edit}}</strong>
           </a>
         {{/unless}}
         <hr>
-        {{#if view.editing.description.isEditing}}
-          <div {{bindAttr class="view.editing.description.isError:error :control-group"}}>
-            {{view Em.TextArea valueBinding="view.editing.description.value"}}
+        {{#if controller.editing.description.isEditing}}
+          <div {{bindAttr class="controller.editing.description.isError:error :control-group :text-area-edit"}}>
+            {{view Em.TextArea valueBinding="controller.editing.description.value"}}
           </div>
           <div class="edit-buttons">
-            <button {{action cancelEdit view.editing.description target="view"}}
+            <button {{action cancelEdit controller.editing.description target="controller"}}
                 class="btn">{{t common.cancel}}</button>
-            <button {{bindAttr disabled="view.editing.description.isError"}} {{action saveEdit view.editing.description target="view"}}
+            <button {{bindAttr disabled="controller.editing.description.isError"}} {{action saveEdit controller.editing.description target="controller"}}
                 class="btn btn-primary">{{t common.save}}
             </button>
           </div>
@@ -66,42 +66,36 @@
       </div>
       <div class="definition-details-block">
         <strong>{{t alerts.thresholds}}</strong>
-        {{#unless view.editing.thresholds.isEditing}}
-          <a {{action edit view.editing.thresholds target="view"}} class="pull-right edit-link">
+        {{#unless App.router.mainAlertDefinitionConfigsController.canEdit}}
+          <a {{action editConfigs target="App.router.mainAlertDefinitionConfigsController"}} class="pull-right edit-link">
             <strong>{{t common.edit}}</strong>
           </a>
         {{/unless}}
         <hr>
-        {{#if view.editing.thresholds.isEditing}}
-          <div {{bindAttr class="view.editing.thresholds.isError:error :control-group"}}>
-            {{view Em.TextArea valueBinding="view.editing.thresholds.value"}}
-          </div>
+        {{view App.AlertDefinitionConfigsView contentBinding="view.controller.content" canEdit=false}}
+        {{#if App.router.mainAlertDefinitionConfigsController.canEdit}}
           <div class="edit-buttons">
-            <button {{action cancelEdit view.editing.thresholds target="view"}} class="btn">{{t common.cancel}}</button>
-            <button {{bindAttr disabled="view.editing.thresholds.isError"}} {{action saveEdit view.editing.thresholds target="view"}}
+            <button {{action cancelEditConfigs target="App.router.mainAlertDefinitionConfigsController"}} class="btn">{{t common.cancel}}</button>
+            <button {{bindAttr disabled="controller.editing.thresholds.isError"}} {{action saveConfigs target="App.router.mainAlertDefinitionConfigsController"}}
                 class="btn btn-primary">{{t common.save}}
             </button>
-          </div>
-        {{else}}
-          <div class="multiline-text">
-            {{controller.content.thresholds}}
           </div>
         {{/if}}
       </div>
     </div>
     <div class="span3 right-column">
       <div class="service-name">
-        {{t common.service}}: <span class="label label-info">{{controller.content.service.serviceName}}</span>
+        {{t common.service}}: <span class="label label-info">{{controller.content.service.displayName}}</span>
       </div>
       <div>
         {{#if controller.content.enabled}}
-          <button {{action toggleState target="view"}} class="btn btn-danger"><i
+          <button {{action toggleState target="controller"}} class="btn btn-danger"><i
              class="icon-power-off"></i>&nbsp;{{t alerts.definition.details.disable}}</button>
         {{else}}
-          <button {{action toggleState target="view"}} class="btn btn-success"><i
+          <button {{action toggleState target="controller"}} class="btn btn-success"><i
              class="icon-power-off"></i>&nbsp;{{t alerts.definition.details.enable}}</button>
         {{/if}}
-        <button {{action deleteAlertDefinition target="view"}} class="btn btn-primary"><i
+        <button {{action deleteAlertDefinition target="controller"}} class="btn btn-primary"><i
             class="icon-trash"></i>&nbsp;{{t common.delete}}</button>
       </div>
       <div class="properties-list">

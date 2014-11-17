@@ -91,7 +91,7 @@ App.AlertDefinition = DS.Model.extend({
   // todo: in future be mapped from server response
   description: 'Description for the Alert Definition.',
   // todo: in future be mapped from server response
-  thresholds: 'Thresholds for the Alert Definition.'
+  thresholds: '5-10'
 });
 
 App.AlertReportDefinition = DS.Model.extend({

@@ -42,9 +42,9 @@ describe('App.MainAlertDefinitionActionsController', function () {
 
     it('should call proper methods', function () {
 
-      controller.actionHandler({action: 'createNewAlertDefinition'});
-      controller.actionHandler({action: 'manageAlertGroups'});
-      controller.actionHandler({action: 'manageNotifications'});
+      controller.actionHandler({context: {action: 'createNewAlertDefinition'}});
+      controller.actionHandler({context: {action: 'manageAlertGroups'}});
+      controller.actionHandler({context: {action: 'manageNotifications'}});
       expect(controller.createNewAlertDefinition.calledOnce).to.be.ok;
       expect(controller.manageAlertGroups.calledOnce).to.be.ok;
       expect(controller.manageNotifications.calledOnce).to.be.ok;

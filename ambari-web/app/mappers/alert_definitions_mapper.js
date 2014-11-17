@@ -118,17 +118,19 @@ App.alertDefinitionsMapper = App.QuickDataMapper.create({
             var jmxMetric = item.AlertDefinition.source.jmx;
             var gangliaMetric = item.AlertDefinition.source.ganglia;
             if (jmxMetric) {
-              alertReportDefinitions.jmx_id = item.AlertDefinition.id + 'jmx';
+              alertDefinition.jmx_id = item.AlertDefinition.id + 'jmx';
               alertMetricsSourceDefinitions.push({
-                id: item.AlertDefinition.id + 'jmx',
-                value: jmxMetric.value
+                id: alertDefinition.jmx_id,
+                value: jmxMetric.value,
+                property_list: jmxMetric.property_list
               });
             }
             if (gangliaMetric) {
-              alertReportDefinitions.ganglia_id = item.AlertDefinition.id + 'ganglia';
+              alertDefinition.ganglia_id = item.AlertDefinition.id + 'ganglia';
               alertMetricsSourceDefinitions.push({
-                id: alertReportDefinitions.ganglia_id,
-                value: gangliaMetric.value
+                id: alertDefinition.ganglia_id,
+                value: gangliaMetric.value,
+                property_list: gangliaMetric.property_list
               });
             }
 

@@ -47,6 +47,7 @@ require('models/alert');
 require('models/alert_definition');
 require('models/alert_instance');
 require('models/alert_notification');
+require('models/alert_config');
 require('models/alert_group');
 require('models/user');
 require('models/host');
