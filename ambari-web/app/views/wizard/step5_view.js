@@ -73,7 +73,7 @@ App.InputHostView = Em.TextField.extend(App.SelectHost, {
    */
   changeHandler: function() {
     if (!this.shouldChangeHandlerBeCalled()) return;
-    var host = this.get('controller.hosts').findProperty('host_info', this.get('value'));
+    var host = this.get('controller.hosts').findProperty('host_name', this.get('value'));
     if (Em.isNone(host)) {
       this.get('controller').updateIsHostNameValidFlag(this.get("component.component_name"), this.get("component.serviceComponentId"), false);
       return;
@@ -84,11 +84,14 @@ App.InputHostView = Em.TextField.extend(App.SelectHost, {
 
   didInsertElement: function () {
     this.initContent();
-    var value = this.get('content').findProperty('host_name', this.get('component.selectedHost')).get('host_info');
+    var value = this.get('content').findProperty('host_name', this.get('component.selectedHost')).get('host_name');
     this.set("value", value);
     var content = this.get('content').mapProperty('host_info'),
       self = this,
-      typeahead = this.$().typeahead({items: 10, source: content, minLength: 0});
+      updater = function (item) {
+        return self.get('content').findProperty('host_info', item).get('host_name');
+      },
+      typeahead = this.$().typeahead({items: 10, source: content, updater: updater, minLength: 0});
     typeahead.on('blur', function() {
       self.change();
     }).on('keyup', function(e) {

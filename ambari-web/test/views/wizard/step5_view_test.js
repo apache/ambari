@@ -163,10 +163,10 @@ describe('App.InputHostView', function() {
       expect(view.initContent.calledOnce).to.equal(true);
     });
 
-    it('should set selectedHost host_info to value', function() {
+    it('should set selectedHost host_name to value', function() {
       view.set('value', '');
       view.didInsertElement();
-      expect(view.get('value')).to.equal('h1 info');
+      expect(view.get('value')).to.equal('h1');
     });
 
   });
@@ -177,7 +177,7 @@ describe('App.InputHostView', function() {
       view.get('controller').reopen({multipleComponents: ['HBASE_MASTER', 'ZOOKEEPER_SERVER']});
       view.set('component', {component_name: 'ZOOKEEPER_SERVER', serviceComponentId: 1});
       view.set('controller.hosts', [Em.Object.create({host_info: 'h1 info', host_name: 'h1'})]);
-      view.set('value', 'h1 info');
+      view.set('value', 'h1');
       view.set('controller.rebalanceComponentHostsCounter', 0);
       view.set('controller.componentToRebalance', '');
       sinon.stub(view.get('controller'), 'assignHostToMaster', Em.K);
