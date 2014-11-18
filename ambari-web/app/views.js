@@ -143,6 +143,7 @@ require('views/main/dashboard/widgets/metrics_load');
 require('views/main/dashboard/widgets/namenode_uptime');
 require('views/main/dashboard/widgets/jobtracker_uptime');
 require('views/main/dashboard/widgets/hdfs_links');
+require('views/main/dashboard/widgets/yarn_links');
 require('views/main/dashboard/widgets/mapreduce_links');
 require('views/main/dashboard/widgets/hbase_links');
 require('views/main/dashboard/widgets/hbase_master_heap');

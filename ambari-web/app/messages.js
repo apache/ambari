@@ -2003,6 +2003,7 @@ Em.I18n.translations = {
   'dashboard.widgets.ResourceManagerUptime': 'ResourceManager Uptime',
   'dashboard.widgets.NodeManagersLive': 'NodeManagers Live',
   'dashboard.widgets.YARNMemory': 'YARN Memory',
+  'dashboard.widgets.YARNLinks': 'YARN Links',
 
   'dashboard': {
     'widgets': {

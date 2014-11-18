@@ -138,7 +138,7 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, {
       '18', '1', '6', '5', '9',
       '3', '7', '15', '16', '20',
       '19', '21', '23',
-      '24', '25', '26', '27',// all yarn
+      '24', '25', '26', '27', '30',// all yarn
       '28', // storm
       '29' // flume
     ]; // all in order
@@ -172,7 +172,7 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, {
       hiddenFull = [];
     }
     if (this.get('yarn_model') == null) {
-      var yarn = ['24', '25', '26', '27'];
+      var yarn = ['24', '25', '26', '27', '30'];
       yarn.forEach ( function (item) {
         visibleFull = visibleFull.without(item);
       }, this);
@@ -434,7 +434,7 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, {
       }
     }
     if (this.get('yarn_model') != null) {
-      var yarn = ['24', '25', '26', '27'];
+      var yarn = ['24', '25', '26', '27', '30'];
       var flag = self.containsWidget(toDelete, yarn[0]);
       if (flag) {
         yarn.forEach ( function (item) {
@@ -521,7 +521,8 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, {
       '26': App.NodeManagersLiveView,
       '27': App.YARNMemoryPieChartView,
       '28': App.SuperVisorUpView,
-      '29': App.FlumeAgentUpView
+      '29': App.FlumeAgentUpView,
+      '30': App.YARNLinksView
     }, id);
   },
 
@@ -539,7 +540,7 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, {
     hidden: [],
     threshold: {1: [80, 90], 2: [85, 95], 3: [90, 95], 4: [80, 90], 5: [1000, 3000], 6: [70, 90], 7: [90, 95], 8: [50, 75], 9: [30000, 120000],
       10: [], 11: [], 12: [], 13: [], 14: [], 15: [], 16: [], 17: [], 18: [], 19: [], 20: [70, 90], 21: [10, 19.2], 22: [3, 10], 23: [],
-      24: [70, 90], 25: [], 26: [50, 75], 27: [50, 75], 28: [85, 95], 29: [85, 95]} // id:[thresh1, thresh2]
+      24: [70, 90], 25: [], 26: [50, 75], 27: [50, 75], 28: [85, 95], 29: [85, 95], 30:[]} // id:[thresh1, thresh2]
   }),
 
   /**
