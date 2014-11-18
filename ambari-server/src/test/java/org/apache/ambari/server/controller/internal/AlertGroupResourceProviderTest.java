@@ -213,6 +213,7 @@ public class AlertGroupResourceProviderTest {
     assertNotNull(definitions);
     assertEquals(1, definitions.size());
     assertEquals(ALERT_DEF_NAME, definitions.get(0).getName());
+    assertEquals(SourceType.METRIC, definitions.get(0).getSourceType());
 
     verify(m_amc, m_clusters, m_cluster, m_dao);
   }
@@ -263,6 +264,7 @@ public class AlertGroupResourceProviderTest {
 
     assertEquals(1, definitions.size());
     assertEquals(ALERT_DEF_NAME, definitions.get(0).getName());
+    assertEquals(SourceType.METRIC, definitions.get(0).getSourceType());
 
     assertEquals(1, targets.size());
     assertEquals(ALERT_TARGET_NAME, targets.get(0).getName());

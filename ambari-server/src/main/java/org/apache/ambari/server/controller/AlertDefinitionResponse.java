@@ -18,6 +18,7 @@
 package org.apache.ambari.server.controller;
 
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
+import org.apache.ambari.server.state.alert.SourceType;
 import org.codehaus.jackson.annotate.JsonProperty;
 
 
@@ -34,6 +35,7 @@ public class AlertDefinitionResponse {
   private String label = null;
   private Long definitionId;
   private boolean enabled = true;
+  private SourceType sourceType;
 
   /**
    * @return the definitionId
@@ -136,6 +138,26 @@ public class AlertDefinitionResponse {
     this.enabled = enabled;
   }
 
+  /**
+   * Gets the type of alert.
+   *
+   * @return the sourceType
+   */
+  @JsonProperty("source_type")
+  public SourceType getSourceType() {
+    return sourceType;
+  }
+
+  /**
+   * Sets the type of alert.
+   *
+   * @param sourceType
+   *          the sourceType to set
+   */
+  public void setSourceType(SourceType sourceType) {
+    this.sourceType = sourceType;
+  }
+
   @Override
   public String toString() {
     return name;
@@ -160,6 +182,7 @@ public class AlertDefinitionResponse {
     response.setName(entity.getDefinitionName());
     response.setServiceName(entity.getServiceName());
     response.setEnabled(entity.getEnabled());
+    response.setSourceType(entity.getSourceType());
 
     return response;
   }
