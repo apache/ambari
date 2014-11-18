@@ -18,24 +18,31 @@
 
 
 var App = require('app');
+require('views/main/admin/highAvailability/nameNode/step8_view');
 
-App.HighAvailabilityWizardStep4View = Em.View.extend({
+describe('App.HighAvailabilityWizardStep8View', function () {
+  var view = App.HighAvailabilityWizardStep8View.create({
+    controller: Em.Object.create({
+      content: {},
+      pullCheckPointStatus: Em.K
+    })
+  });
 
-  templateName: require('templates/main/admin/highAvailability/nameNode/step4'),
-
-  didInsertElement: function() {
-    this.get('controller').pullCheckPointStatus();
-  },
-
-  step4BodyText: function () {
-    var nN = this.get('controller.content.masterComponentHosts').findProperty('isCurNameNode', true);
-    return Em.I18n.t('admin.highAvailability.wizard.step4.body').format(this.get('controller.content.hdfsUser'), nN.hostName);
-  }.property('controller.content.masterComponentHosts'),
-
-  nnCheckPointText: function () {
-    return (this.get('controller.isNextEnabled')) ?
-      Em.I18n.t('admin.highAvailability.wizard.step4.ckCreated') :
-      Em.I18n.t('admin.highAvailability.wizard.step4.ckNotCreated');
-  }.property('controller.isNextEnabled')
-
+  describe("#step8BodyText", function() {
+    it("", function() {
+      view.set('controller.content.masterComponentHosts', [
+        {
+          isCurNameNode: true,
+          hostName: 'host1'
+        },
+        {
+          isAddNameNode: true,
+          hostName: 'host2'
+        }
+      ]);
+      view.set('controller.content.hdfsUser', 'user');
+      view.propertyDidChange('step8BodyText');
+      expect(view.get('step8BodyText')).to.equal(Em.I18n.t('admin.highAvailability.wizard.step8.body').format('user', 'host1', 'host2'));
+    });
+  });
 });

@@ -20,6 +20,7 @@
 var App = require('app');
 
 App.HighAvailabilityWizardView = Em.View.extend({
+  templateName: require('templates/main/admin/highAvailability/nameNode/wizard'),
 
   isLoaded: false,
 
@@ -41,6 +42,12 @@ App.HighAvailabilityWizardView = Em.View.extend({
     });
   },
 
+  /**
+   * success callback of <code>loadHosts</code>
+   * @param data
+   * @param opt
+   * @param params
+   */
   loadHostsSuccessCallback: function (data, opt, params) {
     var hosts = {};
 
@@ -59,6 +66,9 @@ App.HighAvailabilityWizardView = Em.View.extend({
     this.set('isLoaded', true);
   },
 
+  /**
+   * error callback of <code>loadHosts</code>
+   */
   loadHostsErrorCallback: function(){
     this.set('isLoaded', true);
   },
@@ -69,8 +79,6 @@ App.HighAvailabilityWizardView = Em.View.extend({
       this.get('controller').setLowerStepsDisable(currentStep);
     }
   },
-
-  templateName: require('templates/main/admin/highAvailability/nameNode/wizard'),
 
   isStep1Disabled: function () {
     return this.isStepDisabled(1);

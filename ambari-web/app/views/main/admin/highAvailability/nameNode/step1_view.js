@@ -29,6 +29,6 @@ App.HighAvailabilityWizardStep1View = Em.View.extend({
 
   showInputError: function () {
     return !this.get('controller.isNameServiceIdValid') && this.get('controller.content.nameServiceId').length != 0 ;
-  }.property('controller.isNameServiceIdValid', 'controller.nameServiceId')
+  }.property('controller.isNameServiceIdValid', 'controller.content.nameServiceId')
 
 });
