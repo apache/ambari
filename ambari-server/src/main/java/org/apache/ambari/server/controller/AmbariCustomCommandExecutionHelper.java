@@ -48,17 +48,12 @@ import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.internal.RequestOperationLevel;
 import org.apache.ambari.server.controller.internal.RequestResourceFilter;
+import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.CommandScriptDefinition;
-import org.apache.ambari.server.state.ComponentInfo;
-import org.apache.ambari.server.state.ConfigHelper;
-import org.apache.ambari.server.state.CustomCommandDefinition;
-import org.apache.ambari.server.state.Host;
-import org.apache.ambari.server.state.HostComponentAdminState;
-import org.apache.ambari.server.state.MaintenanceState;
+import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.PropertyInfo.PropertyType;
 import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.Service;
@@ -68,6 +63,15 @@ import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.State;
+import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.CommandScriptDefinition;
+import org.apache.ambari.server.state.ComponentInfo;
+import org.apache.ambari.server.state.ConfigHelper;
+import org.apache.ambari.server.state.CustomCommandDefinition;
+import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.HostComponentAdminState;
+import org.apache.ambari.server.state.MaintenanceState;
+
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpInProgressEvent;
 import org.apache.ambari.server.utils.StageUtils;
@@ -232,11 +236,20 @@ public class AmbariCustomCommandExecutionHelper {
               }
             }
     );
-    if (! ignoredHosts.isEmpty()) {
+
+    // Filter unhealthy hosts
+    Set<String> filteredHosts = filterUnhealthHosts(candidateHosts, actionExecutionContext, resourceFilter);
+
+    if (!ignoredHosts.isEmpty()) {
       String message = String.format("Some hosts (%s) have been ignored " +
                       "because components on them are in Maintenance state.",
               ignoredHosts);
       LOG.debug(message);
+    } else if (!filteredHosts.isEmpty()) {
+      String message = String.format("Some hosts (%s) have been ignored " +
+            "because they are in unknown state",
+         filteredHosts);
+      LOG.warn(message);
     } else if (candidateHosts.isEmpty()) {
       String message = "Invalid request : No hosts specified.";
       throw new AmbariException(message);
@@ -245,9 +258,9 @@ public class AmbariCustomCommandExecutionHelper {
     StackId stackId = cluster.getDesiredStackVersion();
     AmbariMetaInfo ambariMetaInfo = managementController.getAmbariMetaInfo();
     ServiceInfo serviceInfo = ambariMetaInfo.getService(
-        stackId.getStackName(), stackId.getStackVersion(), serviceName);
+       stackId.getStackName(), stackId.getStackVersion(), serviceName);
     StackInfo stackInfo = ambariMetaInfo.getStack
-        (stackId.getStackName(), stackId.getStackVersion());
+       (stackId.getStackName(), stackId.getStackVersion());
 
     CustomCommandDefinition customCommandDefinition = null;
     ComponentInfo ci = serviceInfo.getComponentByName(componentName);
@@ -876,5 +889,75 @@ public class AmbariCustomCommandExecutionHelper {
     }
 
     return repoInfo;
+  }
+
+  private ServiceComponent getServiceComponent ( ActionExecutionContext actionExecutionContext,
+                                                RequestResourceFilter resourceFilter){
+    try {
+      Cluster cluster = clusters.getCluster(actionExecutionContext.getClusterName());
+      Service service = cluster.getService(resourceFilter.getServiceName());
+
+      return service.getServiceComponent(resourceFilter.getComponentName());
+    } catch (Exception e) {
+      LOG.debug(String.format( "Unknown error appears during getting service component: %s", e.getMessage()));
+    }
+    return null;
+  }
+
+  /**
+   * Filter host according to status of host/host components
+   * @param hostname Host name to check
+   * @param actionExecutionContext Received request to execute a command
+   * @param resourceFilter Resource filter
+   * @return True if host need to be filtered, False if Not
+   * @throws AmbariException
+   */
+  private boolean filterUnhealthHostItem(String hostname,
+                                         ActionExecutionContext actionExecutionContext,
+                                         RequestResourceFilter resourceFilter) throws AmbariException {
+
+    RequestOperationLevel operationLevel = actionExecutionContext.getOperationLevel();
+    ServiceComponent serviceComponent = getServiceComponent(actionExecutionContext, resourceFilter);
+    if (serviceComponent != null && operationLevel != null
+                                && operationLevel.getLevel() == Resource.Type.Service // compare operation is allowed only for Service operation level
+                                && actionExecutionContext.getResourceFilters().size() > 1  // Check if operation was started in a chain
+                                && !serviceComponent.isMasterComponent()
+       ){
+
+      return !(clusters.getHost(hostname).getState() == HostState.HEALTHY);
+    } else if (serviceComponent != null && operationLevel != null
+                                        && operationLevel.getLevel() == Resource.Type.Host  // compare operation is allowed only for host component operation level
+                                        && actionExecutionContext.getResourceFilters().size() > 1  // Check if operation was started in a chain
+                                        && serviceComponent.getServiceComponentHosts().containsKey(hostname)  // Check if host is assigned to host component
+                                        && !serviceComponent.isMasterComponent()
+       ){
+
+      State hostState = serviceComponent.getServiceComponentHosts().get(hostname).getState();
+
+      return hostState == State.UNKNOWN;
+    }
+    return false;
+  }
+
+
+  /**
+   * Filter hosts according to status of host/host components
+   * @param hosts Host name set to filter
+   * @param actionExecutionContext Received request to execute a command
+   * @param resourceFilter Resource filter
+   * @return Set of excluded hosts
+   * @throws AmbariException
+   */
+  private Set<String> filterUnhealthHosts(Set<String> hosts,
+                                          ActionExecutionContext actionExecutionContext,
+                                          RequestResourceFilter resourceFilter) throws AmbariException {
+    Set<String> removedHosts = new HashSet<String>();
+    for (String hostname : hosts) {
+      if (filterUnhealthHostItem(hostname, actionExecutionContext, resourceFilter)){
+        removedHosts.add(hostname);
+      }
+    }
+    hosts.removeAll(removedHosts);
+    return removedHosts;
   }
 }

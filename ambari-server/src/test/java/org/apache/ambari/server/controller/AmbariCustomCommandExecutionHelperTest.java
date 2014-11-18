@@ -19,6 +19,7 @@ package org.apache.ambari.server.controller;
 
 import static org.mockito.Matchers.any;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -35,8 +36,10 @@ import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.internal.ComponentResourceProviderTest;
+import org.apache.ambari.server.controller.internal.RequestOperationLevel;
 import org.apache.ambari.server.controller.internal.RequestResourceFilter;
 import org.apache.ambari.server.controller.internal.ServiceResourceProviderTest;
+import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.state.Clusters;
@@ -143,7 +146,133 @@ public class AmbariCustomCommandExecutionHelperTest {
     }
   }
 
-  
+  @Test
+  public void testHostsFilterHealthy(){
+    try {
+      createClusterFixture();
+
+      Map<String, String> requestProperties = new HashMap<String, String>() {
+        {
+          put("context" , "Restart all components for GANGLIA");
+          put("operation_level/level", "SERVICE");
+          put("operation_level/service_name", "GANGLIA");
+          put("operation_level/cluster_name", "c1");
+        }
+      };
+
+      ExecuteActionRequest actionRequest = new ExecuteActionRequest(
+         "c1", "RESTART", null,
+         Arrays.asList(
+            new RequestResourceFilter("GANGLIA", "GANGLIA_SERVER", Collections.singletonList("c6401")),
+            new RequestResourceFilter("GANGLIA", "GANGLIA_MONITOR", Collections.singletonList("c6401")),
+            new RequestResourceFilter("GANGLIA", "GANGLIA_MONITOR", Collections.singletonList("c6402"))
+         ),
+         new RequestOperationLevel(Resource.Type.Service, "c1", "GANGLIA", null, null),
+         new HashMap<String, String>(){{}},
+         false);
+
+      controller.createAction(actionRequest, requestProperties);
+
+      //clusters.getHost("c6402").setState(HostState.HEARTBEAT_LOST);
+
+      Mockito.verify(am, Mockito.times(1)).sendActions(stagesCaptor.capture(), any(ExecuteActionRequest.class));
+
+      List<Stage> stages = stagesCaptor.getValue();
+      Assert.assertEquals(1, stages.size());
+
+      Stage stage = stages.get(0);
+       // Check if was generated command, one for each host
+      Assert.assertEquals(2, stage.getHostRoleCommands().size());
+    }catch (Exception e) {
+      Assert.fail(e.getMessage());
+    }
+  }
+
+  @Test
+  public void testHostsFilterUnhealthyHost(){
+    try {
+      createClusterFixture();
+
+      // Set custom status to host
+      clusters.getHost("c6402").setState(HostState.HEARTBEAT_LOST);
+      Map<String, String> requestProperties = new HashMap<String, String>() {
+        {
+          put("context" , "Restart all components for GANGLIA");
+          put("operation_level/level", "SERVICE");
+          put("operation_level/service_name", "GANGLIA");
+          put("operation_level/cluster_name", "c1");
+        }
+      };
+
+      ExecuteActionRequest actionRequest = new ExecuteActionRequest(
+         "c1", "RESTART", null,
+         Arrays.asList(
+            new RequestResourceFilter("GANGLIA", "GANGLIA_SERVER", Collections.singletonList("c6401")),
+            new RequestResourceFilter("GANGLIA", "GANGLIA_MONITOR", Collections.singletonList("c6401")),
+            new RequestResourceFilter("GANGLIA", "GANGLIA_MONITOR", Collections.singletonList("c6402"))
+         ),
+         new RequestOperationLevel(Resource.Type.Service, "c1", "GANGLIA", null, null),
+         new HashMap<String, String>(){{}},
+         false);
+
+      controller.createAction(actionRequest, requestProperties);
+
+      Mockito.verify(am, Mockito.times(1)).sendActions(stagesCaptor.capture(), any(ExecuteActionRequest.class));
+
+      List<Stage> stages = stagesCaptor.getValue();
+      Assert.assertEquals(1, stages.size());
+
+      Stage stage = stages.get(0);
+      // Check if was generated command for one health host
+      Assert.assertEquals(1, stage.getHostRoleCommands().size());
+    }catch (Exception e) {
+      Assert.fail(e.getMessage());
+    }
+  }
+
+  @Test
+  public void testHostsFilterUnhealthyComponent(){
+    try {
+      createClusterFixture();
+
+      // Set custom status to host
+      clusters.getCluster("c1").getService("GANGLIA").getServiceComponent("GANGLIA_MONITOR").getServiceComponentHost("c6402")
+         .setState(State.UNKNOWN);
+      Map<String, String> requestProperties = new HashMap<String, String>() {
+        {
+          put("context" , "Restart all components for GANGLIA");
+          put("operation_level/level", "SERVICE");
+          put("operation_level/service_name", "GANGLIA");
+          put("operation_level/cluster_name", "c1");
+        }
+      };
+
+      ExecuteActionRequest actionRequest = new ExecuteActionRequest(
+         "c1", "RESTART", null,
+         Arrays.asList(
+            new RequestResourceFilter("GANGLIA", "GANGLIA_SERVER", Collections.singletonList("c6401")),
+            new RequestResourceFilter("GANGLIA", "GANGLIA_MONITOR", Collections.singletonList("c6401")),
+            new RequestResourceFilter("GANGLIA", "GANGLIA_MONITOR", Collections.singletonList("c6402"))
+         ),
+         new RequestOperationLevel(Resource.Type.Host, "c1", "GANGLIA", null, null),
+         new HashMap<String, String>(){{}},
+         false);
+
+      controller.createAction(actionRequest, requestProperties);
+
+      Mockito.verify(am, Mockito.times(1)).sendActions(stagesCaptor.capture(), any(ExecuteActionRequest.class));
+
+      List<Stage> stages = stagesCaptor.getValue();
+      Assert.assertEquals(1, stages.size());
+
+      Stage stage = stages.get(0);
+      // Check if was generated command for one health host
+      Assert.assertEquals(1, stage.getHostRoleCommands().size());
+    }catch (Exception e) {
+      Assert.fail(e.getMessage());
+    }
+  }
+
   private void createClusterFixture() throws AmbariException {
     createCluster("c1");
     addHost("c6401","c1");
@@ -151,14 +280,21 @@ public class AmbariCustomCommandExecutionHelperTest {
     
     clusters.getCluster("c1");
     createService("c1", "YARN", null);
-    
-    createServiceComponent("c1","YARN","RESOURCEMANAGER", State.INIT);
-    createServiceComponent("c1","YARN","NODEMANAGER", State.INIT);
+    createService("c1", "GANGLIA", null);
+
+    createServiceComponent("c1", "YARN","RESOURCEMANAGER", State.INIT);
+    createServiceComponent("c1", "YARN", "NODEMANAGER", State.INIT);
+    createServiceComponent("c1", "GANGLIA", "GANGLIA_SERVER", State.INIT);
+    createServiceComponent("c1", "GANGLIA", "GANGLIA_MONITOR", State.INIT);
     
     createServiceComponentHost("c1","YARN","RESOURCEMANAGER","c6401", null);
     createServiceComponentHost("c1","YARN","NODEMANAGER","c6401", null);
+    createServiceComponentHost("c1","GANGLIA","GANGLIA_SERVER","c6401", State.INIT);
+    createServiceComponentHost("c1","GANGLIA","GANGLIA_MONITOR","c6401", State.INIT);
     
     createServiceComponentHost("c1","YARN","NODEMANAGER","c6402", null);
+    createServiceComponentHost("c1","GANGLIA","GANGLIA_MONITOR","c6402", State.INIT);
+
   }
   private void addHost(String hostname, String clusterName) throws AmbariException {
     clusters.addHost(hostname);
