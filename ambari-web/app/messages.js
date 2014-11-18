@@ -1197,6 +1197,8 @@ Em.I18n.translations = {
   'admin.stackVersions.datails.hosts.btn.installing': "Installing...",
   'admin.stackVersions.datails.hosts.btn.nothing': "Nothing to Install",
   'admin.stackVersions.datails.hosts.btn.na': "Status not available",
+  'admin.stackVersions.datails.install.hosts.popup.title': "Install {0} version",
+
   'admin.stackVersions.hosts.popup.header': "Version Status: {0}",
   'admin.stackVersions.hosts.popup.title': "{0} Version is {1} on {2} hosts:",
   'admin.stackVersions.hosts.popup.primary': "Go to Hosts",

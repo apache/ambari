@@ -21,45 +21,20 @@ var App = require('app');
 App.MainStackVersionsDetailsView = Em.View.extend({
 
   templateName: require('templates/main/admin/stack_versions/stack_version_details'),
-  /**
-   * list of hostsStackVersions objects for current config version
-   * {Array}
-   */
-  hostStackVersions: function() {
-    return App.HostStackVersion.find().filterProperty('version', this.get('controller.content.version'));
-  }.property('controller.content.version'),
-
-  /**
-   * list of hosts on which this stack version is not installed
-   * {Array}
-   */
-  notInstalledHosts: function() {
-    return this.get('hostStackVersions').filterProperty('installEnabled');
-  }.property('hostStackVersions'),
-
-  /**
-   * true if install stack version is in progress at least on 1 host
-   * {Boolean}
-   */
-  installInProgress: function() {
-    return this.get('hostStackVersions').someProperty('status', 'INSTALLING');
-  }.property('hostStackVersions'),
 
   /**
    * installation status of stack version on hosts
    * {String}
    */
   status: function() {
-    if (this.get('installInProgress'))  {
+    if (this.get('controller.installInProgress'))  {
       return 'INSTALLING'
-    } else if (this.get('notInstalledHosts.length') == 0) {
+    } else if (this.get('controller.allInstalled')) {
       return 'ALL_INSTALLED';
-    } else if (this.get('notInstalledHosts.length') > 0) {
-      return 'INSTALL';
     } else {
-      return 'UNDEFINED';
+      return 'INSTALL';
     }
-  }.property('notInstalledHosts.length'),
+  }.property('controller.installInProgress', 'controller.allInstalled'),
 
   /**
    * text on install buttons
@@ -67,20 +42,17 @@ App.MainStackVersionsDetailsView = Em.View.extend({
    */
   stackTextStatus: function() {
     switch(this.get('status')) {
-      case 'INSTALL':
-        return Em.I18n.t('admin.stackVersions.datails.hosts.btn.install').format(this.get('notInstalledHosts.length'));
-        break;
       case 'INSTALLING':
         return Em.I18n.t('admin.stackVersions.datails.hosts.btn.installing');
         break;
       case 'ALL_INSTALLED':
         return Em.I18n.t('admin.stackVersions.datails.hosts.btn.nothing');
         break;
-      default:
-        return Em.I18n.t('admin.stackVersions.datails.hosts.btn.na');
+      case 'INSTALL':
+        return Em.I18n.t('admin.stackVersions.datails.hosts.btn.install').format(this.get('controller.content.notInstalledHostStacks.length'));
         break;
     }
-  }.property('status', 'notInstalledHosts'),
+  }.property('status', 'controller.content.notInstalledHostStacks.length'),
 
   /**
    * class on install buttons
@@ -92,7 +64,7 @@ App.MainStackVersionsDetailsView = Em.View.extend({
         return 'btn-success';
         break;
       case 'INSTALLING':
-        return 'btn-primary disabled';
+        return 'btn-primary';
         break;
       default:
         return 'disabled';

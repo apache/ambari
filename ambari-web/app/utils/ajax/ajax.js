@@ -1083,7 +1083,7 @@ var urls = {
   },
   'admin.high_availability.polling': {
     'real': '/clusters/{clusterName}/requests/{requestId}?fields=tasks/*,Requests/*',
-    'mock': ''
+    'mock': '/data/background_operations/host_upgrade_tasks.json'
   },
   'admin.high_availability.getNnCheckPointStatus': {
     'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/NAMENODE',
@@ -1244,6 +1244,20 @@ var urls = {
     'real': '/clusters/{clusterName}/stack_versions',
     'mock': '/data/stack_versions/stack_version_all.json'
   },
+  'admin.stack_version.install.repo_version': {
+    'type': 'POST',
+    'real': 'clusters/{clusterName}/requests',
+    'format': function(data) {
+      return {
+        type: 'POST',
+        dataType: 'text',
+        data: data.data
+      }
+    },
+    'mock': ''
+  },
+
+
   'wizard.advanced_repositories.valid_url': {
     'real': '/stacks/{stackName}/versions/{stackVersion}/operating_systems/{osType}/repositories/{repoId}',
     'mock': '',

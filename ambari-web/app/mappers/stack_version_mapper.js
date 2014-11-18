@@ -31,6 +31,11 @@ App.stackVersionMapper = App.QuickDataMapper.create({
     operating_systems: {
       item: 'id'
     },
+    host_stack_versions_key: 'host_stack_versions',
+    host_stack_versions_type: 'array',
+    host_stack_versions: {
+      item: 'id'
+    },
     installed_hosts: 'installed_hosts',
     current_hosts: 'current_hosts'
   },
@@ -67,6 +72,7 @@ App.stackVersionMapper = App.QuickDataMapper.create({
         var stack = item.StackVersion;
         stack.id = item.StackVersion.name + item.StackVersion.version;
         var osArray = [];
+        var hostStackVersions = [];
 
         if (Em.get(item, 'StackVersion.repositories')) {
           item.StackVersion.repositories.forEach(function (os) {
@@ -88,7 +94,11 @@ App.stackVersionMapper = App.QuickDataMapper.create({
             osArray.pushObject(os);
           }, this);
         }
-
+        //TODO change loading form current api
+        App.HostStackVersion.find().filterProperty('version', item.StackVersion.version).forEach(function(hv) {
+          hostStackVersions.push({id: hv.get('id')});
+        });
+        stack.host_stack_versions = hostStackVersions;
         stack.operating_systems = osArray;
         resultStack.push(this.parseIt(stack, this.get('modelStack')));
       }, this);

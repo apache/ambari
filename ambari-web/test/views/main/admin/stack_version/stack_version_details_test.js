@@ -22,53 +22,10 @@ require('views/main/admin/stack_versions/stack_version_view');
 var mainStackVersionsDetailsView;
 
 describe('App.MainStackVersionsDetailsView', function () {
-  var hostStackVersions = [
-    {
-      installEnabled: true,
-      status: "INIT"
-    },
-    {
-      installEnabled: true,
-      status: "INSTALL_FAILED"
-    },
-    {
-      installEnabled: false,
-      status: "INSTALLED"
-    }
-  ];
+
   beforeEach(function () {
-    mainStackVersionsDetailsView = App.MainStackVersionsDetailsView.create({hostStackVersions: hostStackVersions});
+    mainStackVersionsDetailsView = App.MainStackVersionsDetailsView.create();
   });
-
-  describe('#notInstalledHosts', function () {
-    it("list on host without current config version", function() {
-      var notInstalled = [
-        {
-          installEnabled: true,
-          status: "INIT"
-        },
-        {
-          installEnabled: true,
-          status: "INSTALL_FAILED"
-        }
-      ];
-      expect(mainStackVersionsDetailsView.get('notInstalledHosts')).to.eql(notInstalled);
-    });
-  });
-
-  describe('#installInProgress', function () {
-    it("stack version install is not in progress", function() {
-      expect(mainStackVersionsDetailsView.get('installInProgress')).to.be.false;
-    });
-    it("stack version install is in progress", function() {
-      mainStackVersionsDetailsView.get('hostStackVersions').pushObject({
-        installEnabled: false,
-        status: "INSTALLING"
-      });
-      expect(mainStackVersionsDetailsView.get('installInProgress')).to.be.true;
-    });
-  });
-
 
   describe('#statusClass', function () {
     var tests = [
@@ -82,7 +39,7 @@ describe('App.MainStackVersionsDetailsView', function () {
       },
       {
         status: "INSTALLING",
-        buttonClass: 'btn-primary disabled'
+        buttonClass: 'btn-primary'
       }
     ].forEach(function(t) {
       it("status is " + t.status + " class is " + t.buttonClass, function() {

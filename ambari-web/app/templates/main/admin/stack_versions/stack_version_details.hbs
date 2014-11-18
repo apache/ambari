@@ -44,15 +44,15 @@
         <div class="span8">
           <div class="row-fluid">
             <div class="span3">{{t admin.stackVersions.datails.installed.on}}</div>
-            <div class="span6">
-              <a href="#" title='installed' {{action showHosts controller.content.version controller.content.currentHosts target="App.router.mainStackVersionsController"}}>
+            <div class="span6" {{bindAttr class="controller.content.noInstalledHosts:not-active-link"}}>
+              <a href="#" title='installed' {{action showHosts controller.content.version controller.content.installedHosts target="App.router.mainStackVersionsController"}}>
                 <span>{{content.installedHosts.length}}/{{totalHostCount}}</span>
               </a>
             </div>
           </div>
           <div class="row-fluid">
             <div class="span3">{{t admin.stackVersions.datails.current.on}}</div>
-            <div class="span6">
+            <div class="span6" {{bindAttr class="controller.content.noCurrentHosts:not-active-link"}}>
               <a href="#" title='current' {{action showHosts controller.content.version controller.content.currentHosts target="App.router.mainStackVersionsController"}}>
                 <span>{{content.currentHosts.length}}/{{totalHostCount}}</span>
               </a>
@@ -60,8 +60,8 @@
           </div>
         </div>
         <div class="span4">
-          <a {{bindAttr class="view.statusClass :btn :stack-status-button"}} {{action installStackVersion target="controller"}}>
-            <i {{bindAttr class="view.installInProgress:icon-cog"}}>&nbsp;</i>{{view.stackTextStatus}}
+          <a {{bindAttr class="view.statusClass :btn :stack-status-button"}} {{action installStackVersion content target="controller"}}>
+            <i {{bindAttr class="installInProgress:icon-cog"}}>&nbsp;</i>{{view.stackTextStatus}}
           </a>
         </div>
       </div>

@@ -73,19 +73,21 @@ App.MainStackVersionsController = Em.ArrayController.extend({
     var status = event.currentTarget.title.toCapital();
     var version = event.contexts[0];
     var hosts = event.contexts[1];
-    return App.ModalPopup.show({
-      bodyClass: Ember.View.extend({
-        title: Em.I18n.t('admin.stackVersions.hosts.popup.title').format(version, status, hosts.length),
-        template: Em.Handlebars.compile('<h4>{{view.title}}</h4><span class="limited-height-2">'+ hosts.join('<br/>') + '</span>')
-      }),
-      header: Em.I18n.t('admin.stackVersions.hosts.popup.header').format(status),
-      primary: Em.I18n.t('admin.stackVersions.hosts.popup.primary'),
-      secondary: Em.I18n.t('common.close'),
-      onPrimary: function() {
-        this.hide();
-        self.filterHostsByStack(version, status);
-      }
-    });
+    if (hosts.length) {
+      return App.ModalPopup.show({
+        bodyClass: Ember.View.extend({
+          title: Em.I18n.t('admin.stackVersions.hosts.popup.title').format(version, status, hosts.length),
+          template: Em.Handlebars.compile('<h4>{{view.title}}</h4><span class="limited-height-2">'+ hosts.join('<br/>') + '</span>')
+        }),
+        header: Em.I18n.t('admin.stackVersions.hosts.popup.header').format(status),
+        primary: Em.I18n.t('admin.stackVersions.hosts.popup.primary'),
+        secondary: Em.I18n.t('common.close'),
+        onPrimary: function() {
+          this.hide();
+          self.filterHostsByStack(version, status);
+        }
+      });
+    }
   }
 
 });
