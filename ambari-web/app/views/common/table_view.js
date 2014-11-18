@@ -21,6 +21,11 @@ var filters = require('views/common/filter_view');
 
 App.TableView = Em.View.extend(App.UserPref, {
 
+  init: function() {
+    this.set('filterConditions', []);
+    this._super();
+  },
+
   /**
    * Defines to show pagination or show all records
    * @type {Boolean}

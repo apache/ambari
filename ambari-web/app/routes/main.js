@@ -271,12 +271,10 @@ module.exports = Em.Route.extend({
       alerts: Em.Route.extend({
         route: '/alerts',
         connectOutlets: function (router, context) {
-          router.get('mainHostDetailsController').connectOutlet('mainHostAlerts');
-        },
-        enter: function(router) {
           var hostName = router.get('mainHostDetailsController.content.hostName');
           router.get('mainAlertInstancesController').loadAlertInstancesByHost(hostName);
           router.set('mainAlertInstancesController.isUpdating', true);
+          router.get('mainHostDetailsController').connectOutlet('mainHostAlerts');
         },
         exit: function(router) {
           router.set('mainAlertInstancesController.isUpdating', false);
@@ -335,7 +333,12 @@ module.exports = Em.Route.extend({
     alertDetails: Em.Route.extend({
       route: '/:alert_id',
       connectOutlets: function (router, alert) {
+        router.get('mainAlertInstancesController').loadAlertInstancesByAlertDefinition(alert.get('id'));
+        router.set('mainAlertInstancesController.isUpdating', true);
         router.get('mainController').connectOutlet('mainAlertDefinitionDetails', alert);
+      },
+      exit: function(router) {
+        router.set('mainAlertInstancesController.isUpdating', false);
       }
     })
   }),

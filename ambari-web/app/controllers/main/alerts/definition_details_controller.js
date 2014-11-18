@@ -20,6 +20,11 @@ App.MainAlertDefinitionDetailsController = Em.Controller.extend({
 
   name: 'mainAlertDefinitionDetailsController',
 
+  alerts: function () {
+    return App.AlertInstance.find().toArray()
+      .filterProperty('definitionId', this.get('content.id'));
+  }.property('App.router.mainAlertInstancesController.isLoaded'),
+
   // stores object with editing form data (label, description, thresholds)
   editing: Em.Object.create({
     label: Em.Object.create({

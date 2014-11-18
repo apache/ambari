@@ -22,7 +22,8 @@ var dateUtils = require('utils/date');
 App.AlertInstance = DS.Model.extend({
   id: DS.attr('number'),
   label: DS.attr('string'),
-  alertDefinitionName: DS.attr('string'),
+  definitionName: DS.attr('string'),
+  definitionId: DS.attr('number'),
   service: DS.belongsTo('App.Service'),
   componentName: DS.attr('string'),
   host: DS.belongsTo('App.Host'),

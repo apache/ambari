@@ -36,6 +36,15 @@ describe('App.TableView', function () {
     App.db.cleanUp();
   });
 
+  describe('#init', function() {
+
+    it('should set filterConditions on instance', function() {
+      var tableView = App.TableView.create();
+      expect(tableView.get('filterConditions') === App.TableView.prototype.filterConditions).to.be.false;
+    });
+
+  });
+
   describe('#updatePaging', function() {
 
     beforeEach(function() {

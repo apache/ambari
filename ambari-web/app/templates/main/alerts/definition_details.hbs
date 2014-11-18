@@ -122,6 +122,9 @@
     </span>
     <hr>
     <div>
+
+      {{#if App.router.mainAlertInstancesController.isLoaded}}
+
       <table class="table table-bordered table-striped alerts-table" id="alert-instances-table">
         <thead>
         <tr>
@@ -137,7 +140,7 @@
           {{#each instance in view.pageContent}}
             <tr>
               <td class="first">{{instance.state}}</td>
-              <td><a {{action goToHostDetails instance.hostName target="view"}}>{{instance.hostName}}</a></td>
+              <td><a {{action goToHostDetails instance.hostName target="view"}}>{{instance.host.hostName}}</a></td>
               <td>{{instance.lastTriggered}}</td>
               <td>10</td>
               <td class="last">Admins</td>
@@ -152,6 +155,11 @@
         {{/if}}
         </tbody>
       </table>
+
+      {{else}}
+        <div class="spinner"></div>
+      {{/if}}
+
     </div>
   </div>
 </div>

@@ -27,7 +27,6 @@ App.MainAlertDefinitionDetailsView = App.TableView.extend({
   },
 
   content: function () {
-    // todo: replace with this.get('controller.content.alerts') when this relationship will be provided
-    return App.AlertInstance.find().toArray();
-  }.property()
+    return this.get('controller.alerts');
+  }.property('controller.alerts.@each')
 });

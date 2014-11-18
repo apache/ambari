@@ -44,9 +44,7 @@
     {{#if view.pageContent}}
       {{#each alertInstance in view.pageContent}}
         <tr>
-          <td class="first">
-            <a href="#">{{alertInstance.label}}</a>
-          </td>
+          <td class="first">{{alertInstance.label}}</td>
           <td>{{{alertInstance.status}}}</td>
           <td>{{alertInstance.service.serviceName}}</td>
           <td>{{alertInstance.lastTriggered}}</td>

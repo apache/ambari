@@ -53,7 +53,7 @@ App.MainAlertInstancesController = Em.Controller.extend({
           sender: this,
           data: {
             clusterName: App.router.get('clusterName'),
-            definitionName: this.get('sourceName')
+            definitionId: this.get('sourceName')
           },
           success: 'getAlertInstancesSuccessCallback',
           error: 'getAlertInstancesErrorCallback'
