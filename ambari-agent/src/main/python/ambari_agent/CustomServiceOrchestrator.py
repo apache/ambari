@@ -76,7 +76,7 @@ class CustomServiceOrchestrator():
 
   def map_task_to_process(self, task_id, processId):
     with self.commands_in_progress_lock:
-      logger.debug('Maps taskId=%s to pid=%s'%(task_id, processId))
+      logger.debug('Maps taskId=%s to pid=%s' % (task_id, processId))
       self.commands_in_progress[task_id] = processId
 
   def cancel_command(self, task_id, reason):
@@ -86,12 +86,12 @@ class CustomServiceOrchestrator():
         self.commands_in_progress[task_id] = reason
         logger.info("Canceling command with task_id - {tid}, " \
                     "reason - {reason} . Killing process {pid}"
-        .format(tid = str(task_id), reason = reason, pid = pid))
+                    .format(tid=str(task_id), reason=reason, pid=pid))
         shell.kill_process_with_children(pid)
-      else:
-        logger.warn("Unable to find pid by taskId = %s"%task_id)
+      else: 
+        logger.warn("Unable to find pid by taskId = %s" % task_id)
 
-  def runCommand(self, command, tmpoutfile, tmperrfile, forced_command_name = None,
+  def runCommand(self, command, tmpoutfile, tmperrfile, forced_command_name=None,
                  override_output_files = True):
     """
     forced_command_name may be specified manually. In this case, value, defined at
@@ -113,14 +113,14 @@ class CustomServiceOrchestrator():
         task_id = command['taskId']
         command_name = command['roleCommand']
       except KeyError:
-        pass # Status commands have no taskId
+        pass  # Status commands have no taskId
 
-      if forced_command_name is not None: # If not supplied as an argument
+      if forced_command_name is not None:  # If not supplied as an argument
         command_name = forced_command_name
 
       if command_name == self.CUSTOM_ACTION_COMMAND:
         base_dir = self.file_cache.get_custom_actions_base_dir(server_url_prefix)
-        script_tuple = (os.path.join(base_dir, script) , base_dir)
+        script_tuple = (os.path.join(base_dir, 'scripts', script), base_dir)
         hook_dir = None
       else:
         if command_name == self.CUSTOM_COMMAND_COMMAND:
@@ -145,7 +145,7 @@ class CustomServiceOrchestrator():
 
       # Execute command using proper interpreter
       handle = None
-      if(command.has_key('__handle')):
+      if command.has_key('__handle'):
         handle = command['__handle']
         handle.on_background_command_started = self.map_task_to_process
         del command['__handle']
@@ -164,7 +164,7 @@ class CustomServiceOrchestrator():
       # Executing hooks and script
       ret = None
       from ActionQueue import ActionQueue
-      if(command.has_key('commandType') and command['commandType'] == ActionQueue.BACKGROUND_EXECUTION_COMMAND and len(filtered_py_file_list) > 1):
+      if command.has_key('commandType') and command['commandType'] == ActionQueue.BACKGROUND_EXECUTION_COMMAND and len(filtered_py_file_list) > 1:
         raise AgentException("Background commands are supported without hooks only")
 
       for py_file, current_base_dir in filtered_py_file_list:
@@ -205,6 +205,7 @@ class CustomServiceOrchestrator():
         'exitcode': 1,
       }
     return ret
+
   def command_canceled_reason(self, task_id):
     with self.commands_in_progress_lock:
       if self.commands_in_progress.has_key(task_id):#Background command do not push in this collection (TODO)

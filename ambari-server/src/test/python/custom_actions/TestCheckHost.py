@@ -29,7 +29,6 @@ from mock.mock import patch
 from mock.mock import MagicMock
 from unittest import TestCase
 
-check_host = __import__('check_host')
 from check_host import CheckHost
 
 class TestCheckHost(TestCase):

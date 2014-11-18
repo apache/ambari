@@ -1,0 +1,77 @@
+{
+    "configuration_attributes": {}, 
+    "roleCommand": "ACTIONEXECUTE", 
+    "clusterName": "cc", 
+    "hostname": "0b3.vm", 
+    "passiveInfo": [], 
+    "hostLevelParams": {
+        "jdk_location": "http://0b3.vm:8080/resources/", 
+        "ambari_db_rca_password": "mapred", 
+        "java_home": "/usr/jdk64/jdk1.7.0_67", 
+        "ambari_db_rca_url": "jdbc:postgresql://0b3.vm/ambarirca", 
+        "jce_name": "UnlimitedJCEPolicyJDK7.zip", 
+        "oracle_jdbc_url": "http://0b3.vm:8080/resources//ojdbc6.jar", 
+        "stack_version": "2.1", 
+        "stack_name": "HDP", 
+        "db_name": "ambari", 
+        "ambari_db_rca_driver": "org.postgresql.Driver", 
+        "jdk_name": "jdk-7u67-linux-x64.tar.gz", 
+        "ambari_db_rca_username": "mapred", 
+        "db_driver_filename": "mysql-connector-java.jar", 
+        "mysql_jdbc_url": "http://0b3.vm:8080/resources//mysql-connector-java.jar"
+    }, 
+    "commandType": "EXECUTION_COMMAND", 
+    "roleParams": {
+        "base_urls": "[{\"id\": \"HDP-2.2.0.0-885\", \"type\": \"HDP\",\"baseurl\": \"http://host1/hdp\"}, {\"id\": \"HDP-UTILS-1.0.0.20\", \"type\": \"HDP-UTILS\", \"baseurl\": \"http://host1/hdp-utils\"}]", 
+        "package_list": "[\"python-rrdtool-1.4.5\", \"libganglia-3.5.0-99\", \"ganglia-*\"]"
+    }, 
+    "serviceName": "null", 
+    "role": "install_packages", 
+    "forceRefreshConfigTags": [], 
+    "taskId": 61, 
+    "public_hostname": "0b3.vm", 
+    "configurations": {}, 
+    "commandParams": {
+        "command_timeout": "60", 
+        "script_type": "PYTHON", 
+        "base_urls": "[{\"id\": \"HDP-2.2.0.0-885\", \"type\": \"HDP\",\"baseurl\": \"http://host1/hdp\"}, {\"id\": \"HDP-UTILS-1.0.0.20\", \"type\": \"HDP-UTILS\", \"baseurl\": \"http://host1/hdp-utils\"}]", 
+        "package_list": "[\"python-rrdtool-1.4.5\", \"libganglia-3.5.0-99\", \"ganglia-*\"]", 
+        "script": "install_packages.py"
+    }, 
+    "commandId": "14-1", 
+    "clusterHostInfo": {
+        "snamenode_host": [
+            "0b3.vm"
+        ], 
+        "nm_hosts": [
+            "0b3.vm"
+        ], 
+        "app_timeline_server_hosts": [
+            "0b3.vm"
+        ], 
+        "all_ping_ports": [
+            "8670"
+        ], 
+        "rm_host": [
+            "0b3.vm"
+        ], 
+        "all_hosts": [
+            "0b3.vm"
+        ], 
+        "slave_hosts": [
+            "0b3.vm"
+        ], 
+        "namenode_host": [
+            "0b3.vm"
+        ], 
+        "ambari_server_host": [
+            "0b3.vm"
+        ], 
+        "zookeeper_hosts": [
+            "0b3.vm"
+        ], 
+        "hs_host": [
+            "0b3.vm"
+        ]
+    }
+}

@@ -22,9 +22,9 @@
   <actionDefinition>
     <actionName>check_host</actionName>
     <actionType>SYSTEM</actionType>
-    <inputs></inputs>
-    <targetService></targetService>
-    <targetComponent></targetComponent>
+    <inputs/>
+    <targetService/>
+    <targetComponent/>
     <defaultTimeout>60</defaultTimeout>
     <description>General check for host</description>
     <targetType>ANY</targetType>
@@ -32,11 +32,21 @@
   <actionDefinition>
     <actionName>validate_configs</actionName>
     <actionType>SYSTEM</actionType>
-    <inputs></inputs>
-    <targetService></targetService>
-    <targetComponent></targetComponent>
+    <inputs/>
+    <targetService/>
+    <targetComponent/>
     <defaultTimeout>60</defaultTimeout>
     <description>Validate if provided service config can be applied to specified hosts</description>
+    <targetType>ALL</targetType>
+  </actionDefinition>
+  <actionDefinition>
+    <actionName>install_packages</actionName>
+    <actionType>SYSTEM</actionType>
+    <inputs>base_urls, package_list</inputs>
+    <targetService/>
+    <targetComponent/>
+    <defaultTimeout>60</defaultTimeout>
+    <description>Distribute repositories and install packages</description>
     <targetType>ALL</targetType>
   </actionDefinition>
 </actionDefinitions>

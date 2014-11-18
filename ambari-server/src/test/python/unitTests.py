@@ -30,6 +30,7 @@ SERVICE_EXCLUDE = ["configs"]
 
 TEST_MASK = '[Tt]est*.py'
 CUSTOM_TEST_MASK = '_[Tt]est*.py'
+
 def get_parent_path(base, directory_name):
   """
   Returns absolute path for directory_name, if directory_name present in base.
@@ -43,7 +44,8 @@ def get_parent_path(base, directory_name):
     done = True if os.path.split(base)[-1] == directory_name else False
   return base
 
-def get_test_files(path, mask = None, recursive=True):
+
+def get_test_files(path, mask=None, recursive=True):
   """
   Returns test files for path recursively
   """
@@ -52,13 +54,14 @@ def get_test_files(path, mask = None, recursive=True):
 
   for item in directory_items:
     add_to_pythonpath = False
-    if os.path.isfile(path + "/" + item):
+    p = os.path.join(path, item)
+    if os.path.isfile(p):
       if fnmatch.fnmatch(item, mask):
         add_to_pythonpath = True
         current.append(item)
-    elif os.path.isdir(path + "/" + item):
+    elif os.path.isdir(p):
       if recursive:
-        current.extend(get_test_files(path + "/" + item, mask = mask))
+        current.extend(get_test_files(p, mask = mask))
     if add_to_pythonpath:
       sys.path.append(path)
   return current
@@ -102,10 +105,12 @@ def stack_test_executor(base_folder, service, stack, custom_tests, executor_resu
   sys.stdout.flush()
   sys.stderr.flush()
   exit_code = 0 if textRunner.wasSuccessful() else 1
-  executor_result.put({'exit_code':exit_code,
-                  'tests_run':textRunner.testsRun,
-                  'errors':[(str(item[0]),str(item[1]),"ERROR") for item in textRunner.errors],
-                  'failures':[(str(item[0]),str(item[1]),"FAIL") for item in textRunner.failures]})
+  executor_result.put({'exit_code': exit_code,
+                       'tests_run': textRunner.testsRun,
+                       'errors': [(str(item[0]), str(item[1]), "ERROR") for item
+                                  in textRunner.errors],
+                       'failures': [(str(item[0]), str(item[1]), "FAIL") for
+                                    item in textRunner.failures]})
   executor_result.put(0) if textRunner.wasSuccessful() else executor_result.put(1)
 
 def main():
@@ -115,37 +120,36 @@ def main():
       custom_tests = True
   pwd = os.path.abspath(os.path.dirname(__file__))
 
-  ambari_server_folder = get_parent_path(pwd,'ambari-server')
-  ambari_agent_folder = os.path.join(ambari_server_folder,"../ambari-agent")
-  ambari_common_folder = os.path.join(ambari_server_folder,"../ambari-common")
-  sys.path.append(ambari_common_folder + "/src/main/python")
-  sys.path.append(ambari_common_folder + "/src/main/python/ambari_jinja2")
-  sys.path.append(ambari_common_folder + "/src/main/python")
-  sys.path.append(ambari_common_folder + "/src/test/python")
-  sys.path.append(ambari_agent_folder + "/src/main/python")
-  sys.path.append(ambari_server_folder + "/src/test/python")
-  sys.path.append(ambari_server_folder + "/src/main/python")
-  sys.path.append(ambari_server_folder + "/src/main/resources/scripts")
-  sys.path.append(ambari_server_folder + "/src/main/resources/custom_actions")
+  ambari_server_folder = get_parent_path(pwd, 'ambari-server')
+  ambari_agent_folder = os.path.join(ambari_server_folder, "../ambari-agent")
+  ambari_common_folder = os.path.join(ambari_server_folder, "../ambari-common")
+  sys.path.append(os.path.join(ambari_common_folder, "src/main/python"))
+  sys.path.append(os.path.join(ambari_common_folder, "src/main/python/ambari_jinja2"))
+  sys.path.append(os.path.join(ambari_common_folder, "src/test/python"))
+  sys.path.append(os.path.join(ambari_agent_folder, "src/main/python"))
+  sys.path.append(os.path.join(ambari_server_folder, "src/test/python"))
+  sys.path.append(os.path.join(ambari_server_folder, "src/main/python"))
+  sys.path.append(os.path.join(ambari_server_folder, "src/main/resources/scripts"))
+  sys.path.append(os.path.join(ambari_server_folder, "src/main/resources/custom_actions/scripts"))
   
-  stacks_folder = pwd+'/stacks'
+  stacks_folder = os.path.join(pwd, 'stacks')
   #generate test variants(path, service, stack)
   test_variants = []
   for stack in os.listdir(stacks_folder):
-    current_stack_dir = stacks_folder+"/"+stack
+    current_stack_dir = os.path.join(stacks_folder, stack)
     if os.path.isdir(current_stack_dir) and stack not in STACK_EXCLUDE:
       for service in os.listdir(current_stack_dir):
-        current_service_dir = current_stack_dir+"/"+service
+        current_service_dir = os.path.join(current_stack_dir, service)
         if os.path.isdir(current_service_dir) and service not in SERVICE_EXCLUDE:
           if service == 'hooks':
             for hook in os.listdir(current_service_dir):
-              test_variants.append({'directory':current_service_dir + "/" + hook,
-                                    'service':hook,
-                                    'stack':stack})
+              test_variants.append({'directory': os.path.join(current_service_dir, hook),
+                                    'service': hook,
+                                    'stack': stack})
           else:
-            test_variants.append({'directory':current_service_dir,
-                                  'service':service,
-                                  'stack':stack})
+            test_variants.append({'directory': current_service_dir,
+                                  'service': service,
+                                  'stack': stack})
 
   #run tests for every service in every stack in separate process
   has_failures = False
@@ -155,7 +159,7 @@ def main():
   for variant in test_variants:
     executor_result = multiprocessing.Queue()
     sys.stderr.write( "Running tests for stack:{0} service:{1}\n"
-                      .format(variant['stack'],variant['service']))
+                      .format(variant['stack'], variant['service']))
     process = multiprocessing.Process(target=stack_test_executor,
                                       args=(variant['directory'],
                                             variant['service'],
@@ -183,18 +187,27 @@ def main():
   else:
     test_mask = TEST_MASK
 
-  tests = get_test_files(pwd, mask=test_mask, recursive=False)
-  #TODO Add an option to randomize the tests' execution
-  #shuffle(tests)
-  modules = [os.path.basename(s)[:-3] for s in tests]
-  suites = [unittest.defaultTestLoader.loadTestsFromName(name) for name in
-    modules]
-  testSuite = unittest.TestSuite(suites)
-  textRunner = unittest.TextTestRunner(verbosity=2).run(testSuite)
-  test_runs += textRunner.testsRun
-  test_errors.extend([(str(item[0]),str(item[1]),"ERROR") for item in textRunner.errors])
-  test_failures.extend([(str(item[0]),str(item[1]),"FAIL") for item in textRunner.failures])
-  tests_status = textRunner.wasSuccessful() and not has_failures
+  test_dirs = [
+    (os.path.join(pwd, 'custom_actions'), "\nRunning tests for custom actions\n"),
+    (pwd, "\nRunning tests for ambari-server\n"),
+  ]
+
+  for test_dir, msg in test_dirs:
+    sys.stderr.write(msg)
+    tests = get_test_files(test_dir, mask=test_mask, recursive=False)
+    #TODO Add an option to randomize the tests' execution
+    #shuffle(tests)
+    modules = [os.path.basename(s)[:-3] for s in tests]
+    suites = [unittest.defaultTestLoader.loadTestsFromName(name) for name in
+      modules]
+    testSuite = unittest.TestSuite(suites)
+    textRunner = unittest.TextTestRunner(verbosity=2).run(testSuite)
+    test_runs += textRunner.testsRun
+    test_errors.extend(
+      [(str(item[0]), str(item[1]), "ERROR") for item in textRunner.errors])
+    test_failures.extend(
+      [(str(item[0]), str(item[1]), "FAIL") for item in textRunner.failures])
+    tests_status = textRunner.wasSuccessful() and not has_failures
 
   if not tests_status:
     sys.stderr.write("----------------------------------------------------------------------\n")

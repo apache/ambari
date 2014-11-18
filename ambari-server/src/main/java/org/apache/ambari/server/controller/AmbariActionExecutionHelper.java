@@ -78,9 +78,6 @@ public class AmbariActionExecutionHelper {
    * @throws AmbariException
    */
   public void validateAction(ExecuteActionRequest actionRequest) throws AmbariException {
-
-
-
     if (actionRequest.getActionName() == null || actionRequest.getActionName().isEmpty()) {
       throw new AmbariException("Action name must be specified");
     }

@@ -34,24 +34,41 @@ with patch("platform.linux_distribution", return_value = ('Suse','11','Final')):
   from resource_management.libraries.script.script import Script
   from resource_management.libraries.script.config_dictionary import UnknownConfiguration
 
+PATH_TO_STACKS = "main/resources/stacks/HDP"
+PATH_TO_STACK_TESTS = "test/python/stacks/"
 
-PATH_TO_STACKS = os.path.normpath("main/resources/stacks/HDP")
-PATH_TO_STACK_TESTS = os.path.normpath("test/python/stacks/")
+PATH_TO_CUSTOM_ACTIONS = "main/resources/custom_actions"
+PATH_TO_CUSTOM_ACTION_TESTS = "test/python/custom_actions"
+
 
 class RMFTestCase(TestCase):
+
+  # (default) build all paths to test stack scripts
+  TARGET_STACKS = 'TARGET_STACKS'
+
+  # (default) build all paths to test custom action scripts
+  TARGET_CUSTOM_ACTIONS = 'TARGET_CUSTOM_ACTIONS'
+
   def executeScript(self, path, classname=None, command=None, config_file=None,
                     config_dict=None,
                     # common mocks for all the scripts
                     config_overrides = None,
                     shell_mock_value = (0, "OK."), 
                     os_type=('Suse','11','Final'),
-                    kinit_path_local="/usr/bin/kinit"
+                    kinit_path_local="/usr/bin/kinit",
+                    target=TARGET_STACKS
                     ):
     norm_path = os.path.normpath(path)
     src_dir = RMFTestCase._getSrcFolder()
-    stack_version = norm_path.split(os.sep)[0]
-    stacks_path = os.path.join(src_dir, PATH_TO_STACKS)
-    configs_path = os.path.join(src_dir, PATH_TO_STACK_TESTS, stack_version, "configs")
+    if target == self.TARGET_STACKS:
+      stack_version = norm_path.split(os.sep)[0]
+      stacks_path = os.path.join(src_dir, PATH_TO_STACKS)
+      configs_path = os.path.join(src_dir, PATH_TO_STACK_TESTS, stack_version, "configs")
+    elif target == self.TARGET_CUSTOM_ACTIONS:
+      stacks_path = os.path.join(src_dir, PATH_TO_CUSTOM_ACTIONS)
+      configs_path = os.path.join(src_dir, PATH_TO_CUSTOM_ACTION_TESTS, "configs")
+    else:
+      raise RuntimeError("Wrong target value %s", target)
     script_path = os.path.join(stacks_path, norm_path)
     if config_file is not None and config_dict is None:
       config_file_path = os.path.join(configs_path, config_file)
@@ -80,8 +97,8 @@ class RMFTestCase(TestCase):
     try:
       with patch.object(platform, 'linux_distribution', return_value=os_type):
         script_module = imp.load_source(classname, script_path)
-    except IOError:
-      raise RuntimeError("Cannot load class %s from %s",classname, norm_path)
+    except IOError, err:
+      raise RuntimeError("Cannot load class %s from %s: %s" % (classname, norm_path, err.message))
     
     script_class_inst = RMFTestCase._get_attr(script_module, classname)()
     method = RMFTestCase._get_attr(script_class_inst, command)
