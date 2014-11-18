@@ -2809,6 +2809,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
         this.hide();
       },
       onDiscard: function () {
+        self.set('preSelectedConfigVersion', null);
         if (path) {
           self.set('forceTransition', true);
           App.router.route(path);
