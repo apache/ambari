@@ -27,7 +27,7 @@ import org.apache.commons.lang.StringUtils;
  */
 public class VersionUtils {
   /**
-   * Compares two versions strings of the form N.N.N.N
+   * Compares two versions strings of the form N.N.N.N or even N.N.N.N-### (which should ignore everything after the dash).
    *
    * @param version1
    * @param version2
@@ -40,6 +40,13 @@ public class VersionUtils {
     version1 = StringUtils.trim(version1);
     version2 = StringUtils.trim(version2);
 
+    if (version1.indexOf('-') >=0) {
+      version1 = version1.substring(0, version1.indexOf('-'));
+    }
+    if (version2.indexOf('-') >=0) {
+      version2 = version2.substring(0, version2.indexOf('-'));
+    }
+
     if (version1 == null || version1.isEmpty()) {
       throw new IllegalArgumentException("version1 cannot be null or empty");
     }
@@ -49,7 +56,6 @@ public class VersionUtils {
     if (maxLengthToCompare < 0) {
       throw new IllegalArgumentException("maxLengthToCompare cannot be less than 0");
     }
-
 
     if(BootStrapImpl.DEV_VERSION.equals(version1.trim())) return 0;
 

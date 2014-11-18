@@ -80,6 +80,7 @@ import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.state.Alert;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostHealthStatus;
 import org.apache.ambari.server.state.HostState;
@@ -2158,7 +2159,6 @@ public class TestHeartbeatHandler {
     hostAttributes.put("os_release_version", "6.3");
     clusters.getHost(DummyHostname1).setHostAttributes(hostAttributes);
 
-
     clusters.getHost(DummyHostname1).persist();
     clusters.addCluster(DummyCluster);
 
@@ -2166,6 +2166,7 @@ public class TestHeartbeatHandler {
     StackId stackId = new StackId(DummyStackId);
     cluster.setDesiredStackVersion(stackId);
     cluster.setCurrentStackVersion(stackId);
+    cluster.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.CURRENT);
     return cluster;
   }
 

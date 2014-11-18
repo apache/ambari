@@ -40,12 +40,16 @@ import org.apache.ambari.server.agent.DiskInfo;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
+import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
 import org.apache.ambari.server.orm.dao.ConfigGroupHostMappingDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
+import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.ResourceDAO;
 import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
+import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
+import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
@@ -60,6 +64,7 @@ import org.apache.ambari.server.state.HostHealthStatus;
 import org.apache.ambari.server.state.HostHealthStatus.HealthStatus;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.RepositoryInfo;
+import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.state.host.HostFactory;
@@ -67,6 +72,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.GrantedAuthority;
 
+import com.google.common.collect.Sets;
 import com.google.gson.Gson;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -94,6 +100,10 @@ public class ClustersImpl implements Clusters {
   ClusterDAO clusterDAO;
   @Inject
   HostDAO hostDAO;
+  @Inject
+  ClusterVersionDAO clusterVersionDAO;
+  @Inject
+  HostVersionDAO hostVersionDAO;
   @Inject
   ResourceDAO resourceDAO;
   @Inject
@@ -314,6 +324,12 @@ public class ClustersImpl implements Clusters {
     }
   }
 
+  /**
+   * Register a host by creating a {@link HostEntity} object in the database and setting its state to
+   * {@link HostState#INIT}. This does not add the host the cluster.
+   * @param hostname Host to be added
+   * @throws AmbariException
+   */
   @Override
   public void addHost(String hostname) throws AmbariException {
     checkLoaded();
@@ -377,42 +393,13 @@ public class ClustersImpl implements Clusters {
           if (attributes != null && !attributes.isEmpty()){
             host.setHostAttributes(attributes);
           }
+          host.refresh();
+
 
           Set<String> hostClusterNames = hostClusters.get(hostname);
           for (String clusterName : hostClusterNames) {
             if (clusterName != null && !clusterName.isEmpty()) {
-              Cluster cluster = clusterMap.get(clusterName);
-
-              for (Cluster c : hostClusterMap.get(hostname)) {
-                if (c.getClusterName().equals(clusterName)) {
-                  throw new DuplicateResourceException("Attempted to create a host which already exists: clusterName=" +
-                      clusterName + ", hostName=" + hostname);
-                }
-              }
-
-              if (!isOsSupportedByClusterStack(cluster, host)) {
-                String message = "Trying to map host to cluster where stack does not"
-                    + " support host's os type"
-                    + ", clusterName=" + clusterName
-                    + ", clusterStackId=" + cluster.getDesiredStackVersion().getStackId()
-                    + ", hostname=" + hostname
-                    + ", hostOsFamily=" + host.getOsFamily();
-                LOG.warn(message);
-                throw new AmbariException(message);
-              }
-
-              mapHostClusterEntities(hostname, cluster.getClusterId());
-              host.refresh();
-              cluster.refresh();
-              hostClusterMap.get(hostname).add(cluster);
-              clusterHostMap.get(clusterName).add(host);
-
-              if (LOG.isDebugEnabled()) {
-                LOG.debug("Mapping a host to a cluster"
-                    + ", clusterName=" + clusterName
-                    + ", clusterId=" + cluster.getClusterId()
-                    + ", hostname=" + hostname);
-              }
+              mapHostToCluster(hostname, clusterName);
             }
           }
         }
@@ -462,9 +449,35 @@ public class ClustersImpl implements Clusters {
     return clusterMap;
   }
 
+  /**
+   *  For each host, attempts to map it to the cluster, and apply the cluster's current version to the host.
+   * @param hostnames Collection of host names
+   * @param clusterName Cluster name
+   * @throws AmbariException
+   */
   @Override
-  public void mapHostToCluster(String hostname,
-                               String clusterName) throws AmbariException {
+  public void mapHostsToCluster(Set<String> hostnames, String clusterName) throws AmbariException {
+    checkLoaded();
+    w.lock();
+    try {
+      ClusterVersionEntity clusterVersionEntity = clusterVersionDAO.findByClusterAndStateCurrent(clusterName);
+      for (String hostname : hostnames) {
+        mapHostToCluster(hostname, clusterName, clusterVersionEntity);
+      }
+    } finally {
+      w.unlock();
+    }
+  }
+
+  /**
+   * Attempts to map the host to the cluster via clusterhostmapping table if not already present, and add a host_version
+   * record for the cluster's currently applied (stack, version) if not already present.
+   * @param hostname Host name
+   * @param clusterName Cluster name
+   * @param currentClusterVersion Cluster's current stack version
+   * @throws AmbariException May throw a DuplicateResourceException.
+   */
+  public void mapHostToCluster(String hostname, String clusterName, ClusterVersionEntity currentClusterVersion) throws AmbariException {
     checkLoaded();
     w.lock();
 
@@ -491,6 +504,8 @@ public class ClustersImpl implements Clusters {
       }
 
       mapHostClusterEntities(hostname, cluster.getClusterId());
+      cluster.mapHostVersions(Sets.newHashSet(hostname), currentClusterVersion, RepositoryVersionState.CURRENT);
+
       host.refresh();
       cluster.refresh();
       hostClusterMap.get(hostname).add(cluster);
@@ -507,8 +522,24 @@ public class ClustersImpl implements Clusters {
     }
   }
 
+  /**
+   * Attempts to map the host to the cluster via clusterhostmapping table if not already present, and add a host_version
+   * record for the cluster's currently applied (stack, version) if not already present. This function is overloaded.
+   * @param hostname Host name
+   * @param clusterName Cluster name
+   * @throws AmbariException May throw a DuplicateResourceException.
+   */
+  @Override
+  public void mapHostToCluster(String hostname,
+                               String clusterName) throws AmbariException {
+    checkLoaded();
+
+    ClusterVersionEntity clusterVersionEntity = clusterVersionDAO.findByClusterAndStateCurrent(clusterName);
+    mapHostToCluster(hostname, clusterName, clusterVersionEntity);
+  }
+
   @Transactional
-  void mapHostClusterEntities(String hostName, Long clusterId) {
+  private void mapHostClusterEntities(String hostName, Long clusterId) {
     HostEntity hostEntity = hostDAO.findByName(hostName);
     ClusterEntity clusterEntity = clusterDAO.findById(clusterId);
 
@@ -528,20 +559,6 @@ public class ClustersImpl implements Clusters {
       return Collections.unmodifiableMap(clusters);
     } finally {
       r.unlock();
-    }
-  }
-
-  @Override
-  public void mapHostsToCluster(Set<String> hostnames,
-                                             String clusterName) throws AmbariException {
-    checkLoaded();
-    w.lock();
-    try {
-      for (String hostname : hostnames) {
-        mapHostToCluster(hostname, clusterName);
-      }
-    } finally {
-      w.unlock();
     }
   }
 
@@ -617,6 +634,12 @@ public class ClustersImpl implements Clusters {
         clusterSet.remove(cluster);
       }
       clusterHostMap.remove(cluster.getClusterName());
+
+      Collection<ClusterVersionEntity> clusterVersions = cluster.getAllClusterVersions();
+      for (ClusterVersionEntity clusterVersion : clusterVersions) {
+        clusterVersionDAO.remove(clusterVersion);
+      }
+
       clusters.remove(clusterName);
     } finally {
       w.unlock();
@@ -691,11 +714,17 @@ public class ClustersImpl implements Clusters {
     w.lock();
 
     try {
+      deleteConfigGroupHostMapping(hostname);
+
+      Collection<HostVersionEntity> hostVersions = hosts.get(hostname).getAllHostVersions();
+      for (HostVersionEntity hostVersion : hostVersions) {
+        hostVersionDAO.remove(hostVersion);
+      }
+
       HostEntity entity = hostDAO.findByName(hostname);
       hostDAO.refresh(entity);
       hostDAO.remove(entity);
       hosts.remove(hostname);
-      deleteConfigGroupHostMapping(hostname);
     } catch (Exception e) {
       throw new AmbariException("Could not remove host", e);
     } finally {

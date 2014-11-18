@@ -26,6 +26,7 @@ import org.apache.ambari.server.agent.AgentEnv;
 import org.apache.ambari.server.agent.DiskInfo;
 import org.apache.ambari.server.agent.HostInfo;
 import org.apache.ambari.server.controller.HostResponse;
+import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 
 public interface Host {
@@ -365,4 +366,10 @@ public interface Host {
    * @return the maintenance state
    */
   public MaintenanceState getMaintenanceState(long clusterId);
+
+  /**
+   * Get all of the HostVersionEntity objects for the host.
+   * @return
+   */
+  public List<HostVersionEntity> getAllHostVersions();
 }

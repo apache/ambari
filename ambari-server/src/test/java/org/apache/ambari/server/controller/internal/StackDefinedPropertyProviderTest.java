@@ -45,6 +45,7 @@ import org.apache.ambari.server.controller.utilities.StreamProvider;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.StackId;
@@ -83,7 +84,9 @@ public class StackDefinedPropertyProviderTest {
     clusters.addCluster("c1");
 
     Cluster cluster = clusters.getCluster("c1");
-    cluster.setDesiredStackVersion(new StackId("HDP-2.0.5"));
+    StackId stackId = new StackId("HDP-2.0.5");
+    cluster.setDesiredStackVersion(stackId);
+    cluster.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.CURRENT);
 
     clusters.addHost("h1");
     Host host = clusters.getHost("h1");

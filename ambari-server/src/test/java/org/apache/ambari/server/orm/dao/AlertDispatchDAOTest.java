@@ -55,6 +55,7 @@ import org.apache.ambari.server.orm.entities.AlertNoticeEntity;
 import org.apache.ambari.server.orm.entities.AlertTargetEntity;
 import org.apache.ambari.server.state.AlertState;
 import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
@@ -685,7 +686,9 @@ public class AlertDispatchDAOTest {
     m_clusters.addCluster(clusterName);
 
     Cluster cluster = m_clusters.getCluster(clusterName);
-    cluster.setDesiredStackVersion(new StackId("HDP", "2.0.6"));
+    StackId stackId = new StackId("HDP", "2.0.6");
+    cluster.setDesiredStackVersion(stackId);
+    cluster.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.CURRENT);
 
     addHost();
     m_clusters.mapHostToCluster(HOSTNAME, cluster.getClusterName());

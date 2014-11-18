@@ -30,6 +30,24 @@ public class TestVersionUtils {
   public ExpectedException expectedException = ExpectedException.none();
 
   @Test
+  public void testStackVersions() {
+    Assert.assertTrue(VersionUtils.areVersionsEqual("2.2.0.0", "2.2.0.0", false));
+    Assert.assertTrue(VersionUtils.areVersionsEqual("2.2.0.0-111", "2.2.0.0-999", false));
+
+    Assert.assertEquals(-1, VersionUtils.compareVersions("2.2.0.0", "2.2.0.1"));
+    Assert.assertEquals(-1, VersionUtils.compareVersions("2.2.0.0", "2.2.0.10"));
+    Assert.assertEquals(-1, VersionUtils.compareVersions("2.2.2.0.20", "2.2.2.145"));
+
+    Assert.assertEquals(1, VersionUtils.compareVersions("2.2.0.1", "2.2.0.0"));
+    Assert.assertEquals(1, VersionUtils.compareVersions("2.2.0.10", "2.2.0.0"));
+    Assert.assertEquals(1, VersionUtils.compareVersions("2.2.2.145", "2.2.2.20"));
+
+    Assert.assertEquals(-1, VersionUtils.compareVersions("2.2.0.0-200", "2.2.0.1-100"));
+    Assert.assertEquals(-1, VersionUtils.compareVersions("2.2.0.0-101", "2.2.0.10-20"));
+    Assert.assertEquals(-1, VersionUtils.compareVersions("2.2.2.0.20-996", "2.2.2.145-846"));
+  }
+
+  @Test
   public void testVersionCompareSuccess() {
     Assert.assertTrue(VersionUtils.areVersionsEqual("1.2.3", "1.2.3", false));
     Assert.assertTrue(VersionUtils.areVersionsEqual("1.2.3", "1.2.3", true));

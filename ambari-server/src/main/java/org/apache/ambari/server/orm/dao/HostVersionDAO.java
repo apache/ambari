@@ -35,7 +35,7 @@ import java.util.List;
  * The {@link org.apache.ambari.server.orm.dao.HostVersionDAO} class manages the {@link org.apache.ambari.server.orm.entities.HostVersionEntity}
  * instances associated with a host. Each host can have multiple stack versions in {@link org.apache.ambari.server.state.RepositoryVersionState#INSTALLED}
  * which are installed, exactly one stack version that is either {@link org.apache.ambari.server.state.RepositoryVersionState#CURRENT} or
- * {@link org.apache.ambari.server.state.RepositoryVersionState.#UPGRADING}.
+ * {@link org.apache.ambari.server.state.RepositoryVersionState#UPGRADING}.
  */
 @Singleton
 public class HostVersionDAO {
@@ -74,6 +74,21 @@ public class HostVersionDAO {
   }
 
   /**
+   * Retrieve all of the host versions for the given host name across all clusters.
+   *
+   * @param hostName FQDN of host
+   * @return Return all of the host versions that match the criteria.
+   */
+  @RequiresSession
+  public List<HostVersionEntity> findByHost(String hostName) {
+    final TypedQuery<HostVersionEntity> query = entityManagerProvider.get()
+        .createNamedQuery("hostVersionByHostname", HostVersionEntity.class);
+    query.setParameter("hostName", hostName);
+
+    return daoUtils.selectList(query);
+  }
+
+  /**
    * Retrieve all of the host versions for the given cluster name and host name.
    *
    * @param clusterName Cluster name
@@ -85,21 +100,6 @@ public class HostVersionDAO {
     final TypedQuery<HostVersionEntity> query = entityManagerProvider.get()
         .createNamedQuery("hostVersionByClusterAndHostname", HostVersionEntity.class);
     query.setParameter("clusterName", clusterName);
-    query.setParameter("hostName", hostName);
-
-    return daoUtils.selectList(query);
-  }
-
-  /**
-   * Retrieve all of the host versions for the given and host name.
-   *
-   * @param hostName FQDN of host
-   * @return Return all of the host versions that match the criteria.
-   */
-  @RequiresSession
-  public List<HostVersionEntity> findByHost(String hostName) {
-    final TypedQuery<HostVersionEntity> query = entityManagerProvider.get()
-        .createNamedQuery("hostVersionByHostname", HostVersionEntity.class);
     query.setParameter("hostName", hostName);
 
     return daoUtils.selectList(query);

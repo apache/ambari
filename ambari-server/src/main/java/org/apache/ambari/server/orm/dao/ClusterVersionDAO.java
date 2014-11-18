@@ -31,9 +31,9 @@ import com.google.inject.Singleton;
 
 /**
  * The {@link ClusterVersionDAO} class manages the {@link ClusterVersionEntity} instances associated with a cluster.
- * Each cluster can have multiple stack versions {@link RepositoryVersionState#INSTALLED},
- * exactly one stack version that is {@link RepositoryVersionState#CURRENT}, and at most one
- * stack version that is {@link RepositoryVersionState#UPGRADING}.
+ * Each cluster can have multiple stack versions {@link org.apache.ambari.server.state.RepositoryVersionState#INSTALLED},
+ * exactly one stack version that is {@link org.apache.ambari.server.state.RepositoryVersionState#CURRENT}, and at most one
+ * stack version that is {@link org.apache.ambari.server.state.RepositoryVersionState#UPGRADING}.
  */
 @Singleton
 public class ClusterVersionDAO extends CrudDAO<ClusterVersionEntity, Long>{
@@ -80,11 +80,12 @@ public class ClusterVersionDAO extends CrudDAO<ClusterVersionEntity, Long>{
   }
 
   /**
-   * Get the cluster version for the given cluster name.
+   * Retrieve all of the cluster versions for the given cluster.
    *
    * @param clusterName Cluster name
    * @return Return all of the cluster versions associated with the given cluster.
    */
+  @RequiresSession
   public List<ClusterVersionEntity> findByCluster(String  clusterName) {
     final TypedQuery<ClusterVersionEntity> query = entityManagerProvider.get()
         .createNamedQuery("clusterVersionByCluster", ClusterVersionEntity.class);
@@ -94,11 +95,11 @@ public class ClusterVersionDAO extends CrudDAO<ClusterVersionEntity, Long>{
   }
 
   /**
-   * Retrieve the single cluster version whose state is {@link RepositoryVersionState#CURRENT}, of which there should be exactly one at all times
+   * Retrieve the single cluster version whose state is {@link org.apache.ambari.server.state.RepositoryVersionState#CURRENT}, of which there should be exactly one at all times
    * for the given cluster.
    *
    * @param clusterName Cluster name
-   * @return Returns the single cluster version for this cluster whose state is {@link RepositoryVersionState#CURRENT}, or {@code null} otherwise.
+   * @return Returns the single cluster version for this cluster whose state is {@link org.apache.ambari.server.state.RepositoryVersionState#CURRENT}, or {@code null} otherwise.
    */
   @RequiresSession
   public ClusterVersionEntity findByClusterAndStateCurrent(String clusterName) {

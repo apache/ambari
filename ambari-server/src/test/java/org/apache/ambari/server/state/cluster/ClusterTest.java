@@ -58,6 +58,7 @@ import org.apache.ambari.server.orm.entities.HostStateEntity;
 import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntity;
 import org.apache.ambari.server.state.AgentVersion;
 import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigFactory;
@@ -132,7 +133,9 @@ public class ClusterTest {
     host.setHostAttributes(hostAttributes);
     
     host.persist();
-    c1.setDesiredStackVersion(new StackId("HDP-0.1"));
+    StackId stackId = new StackId("HDP-0.1");
+    c1.setDesiredStackVersion(stackId);
+    c1.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.CURRENT);
     clusters.mapHostToCluster("h1", "c1");
   }
 

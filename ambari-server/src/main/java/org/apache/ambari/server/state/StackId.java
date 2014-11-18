@@ -86,12 +86,13 @@ public class StackId implements Comparable<StackId> {
       return true;
     }
     StackId s = (StackId) object;
-    return stackVersion.equals(s.stackVersion);
+    return stackName.equals(s.stackName) && stackVersion.equals(s.stackVersion);
   }
 
   @Override
   public int hashCode() {
-    int result = stackVersion != null ? stackVersion.hashCode() : 0;
+    int result = stackName != null ? stackName.hashCode() : 0;
+    result = 31 * result + (stackVersion != null ? stackVersion.hashCode() : 0);
     return result;
   }
 

@@ -103,6 +103,7 @@ import org.apache.ambari.server.security.ldap.LdapSyncDto;
 import org.apache.ambari.server.stageplanner.RoleGraph;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.CommandScriptDefinition;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.Config;
@@ -360,6 +361,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       StackId newStackId = new StackId(request.getStackVersion());
       c.setDesiredStackVersion(newStackId);
       clusters.setCurrentStackVersion(request.getClusterName(), newStackId);
+      // TODO Alejandro, this needs to use the repo version, e.g., 2.2.0.0.-994
+      // For the sake of having the end-to-end workflow work, use as is.
+      c.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), getAuthName(), RepositoryVersionState.CURRENT);
     }
 
     if (request.getHostNames() != null) {
@@ -1225,6 +1229,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     if (currentVersion == null) {
       cluster.setCurrentStackVersion(desiredVersion);
     }
+    // Rolling Upgrade: unlike the workflow for creating a cluster, updating a cluster via the API will not
+    // create any ClusterVersionEntity changes because those have to go through the Rolling Upgrade process.
 
     boolean requiresHostListUpdate =
         request.getHostNames() != null && !request.getHostNames().isEmpty();

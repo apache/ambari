@@ -29,6 +29,7 @@ import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
@@ -106,8 +107,10 @@ public class EventsTest {
     host.persist();
 
     m_cluster = m_clusters.getCluster(m_clusterName);
-    m_cluster.setDesiredStackVersion(new StackId("HDP", "2.0.6"));
     Assert.assertNotNull(m_cluster);
+    StackId stackId = new StackId("HDP", "2.0.6");
+    m_cluster.setDesiredStackVersion(stackId);
+    m_cluster.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.CURRENT);
 
     m_clusters.mapHostToCluster(HOSTNAME, m_clusterName);
   }

@@ -28,6 +28,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.ClusterResponse;
 import org.apache.ambari.server.controller.ServiceConfigVersionResponse;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
+import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.state.scheduler.RequestExecution;
 
@@ -81,8 +82,20 @@ public interface Cluster {
    * @param svcCompHost
    */  
   public void removeServiceComponentHost(ServiceComponentHost svcCompHost) throws AmbariException;
-  
-  
+
+
+  /**
+   * Get the ClusterVersionEntity object whose state is CURRENT.
+   * @return
+   */
+  public ClusterVersionEntity getCurrentClusterVersion();
+
+  /**
+   * Get all of the ClusterVersionEntity objects for the cluster.
+   * @return
+   */
+  public Collection<ClusterVersionEntity> getAllClusterVersions();
+
   /**
    * Get desired stack version
    * @return
@@ -106,7 +119,37 @@ public interface Cluster {
    * @param stackVersion
    */
   public void setCurrentStackVersion(StackId stackVersion) throws AmbariException;
-  
+
+  /**
+   * Create host versions for all of the hosts with the applied desired state using the cluster's current stack version.
+   * @param hostNames Collection of host names
+   * @param desiredState Desired state must be {@link RepositoryVersionState#CURRENT} or {@link RepositoryVersionState#UPGRADING}
+   * @throws AmbariException
+   */
+  public void mapHostVersions(Set<String> hostNames, ClusterVersionEntity currentClusterVersion, RepositoryVersionState desiredState) throws AmbariException;
+
+  /**
+   * Create a cluster version for the given stack and version, whose initial state must either
+   * be either {@link RepositoryVersionState#CURRENT} (if no other cluster version exists) or
+   * {@link RepositoryVersionState#UPGRADING} (if at exactly one CURRENT cluster version already exists).
+   * @param stack Stack name
+   * @param version Stack version
+   * @param userName User performing the operation
+   * @param state Initial state
+   * @throws AmbariException
+   */
+  public void createClusterVersion(String stack, String version, String userName, RepositoryVersionState state) throws AmbariException;
+
+
+  /**
+   * Transition an existing cluster version from one state to another.
+   * @param stack Stack name
+   * @param version Stack version
+   * @param state Desired state
+   * @throws AmbariException
+   */
+  public void transitionClusterVersion(String stack, String version, RepositoryVersionState state) throws AmbariException;
+
   /**
    * Gets whether the cluster is still initializing or has finished with its
    * deployment requests.

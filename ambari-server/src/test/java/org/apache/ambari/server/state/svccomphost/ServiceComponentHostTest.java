@@ -36,6 +36,7 @@ import org.apache.ambari.server.orm.dao.HostComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntityPK;
 import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigFactory;
@@ -101,8 +102,10 @@ public class ServiceComponentHostTest {
     clusters.addHost("h1");
     setOsFamily(clusters.getHost("h1"), "redhat", "5.9");
     clusters.getHost("h1").persist();
-    clusters.getCluster("C1").setDesiredStackVersion(
-        new StackId("HDP-0.1"));
+    StackId stackId = new StackId("HDP-0.1");
+    Cluster c1 = clusters.getCluster("C1");
+    c1.setDesiredStackVersion(stackId);
+    c1.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.CURRENT);
     metaInfo.init();
     clusters.mapHostToCluster("h1","C1");
   }
@@ -704,8 +707,10 @@ public class ServiceComponentHostTest {
     clusters.addHost(hostName);
     setOsFamily(clusters.getHost(hostName), "redhat", "5.9");
     clusters.getHost(hostName).persist();
-    clusters.getCluster(clusterName).setDesiredStackVersion(
-        new StackId(stackVersion));
+    Cluster c2 = clusters.getCluster(clusterName);
+    StackId stackId = new StackId(stackVersion);
+    c2.setDesiredStackVersion(stackId);
+    c2.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.CURRENT);
     metaInfo.init();
     clusters.mapHostToCluster(hostName, clusterName);
 
@@ -928,8 +933,11 @@ public class ServiceComponentHostTest {
     clusters.addHost(hostName);
     setOsFamily(clusters.getHost(hostName), "redhat", "5.9");
     clusters.getHost(hostName).persist();
-    clusters.getCluster(clusterName).setDesiredStackVersion(
-        new StackId(stackVersion));
+    Cluster c2 = clusters.getCluster(clusterName);
+    StackId stackId = new StackId(stackVersion);
+    c2.setDesiredStackVersion(stackId);
+    c2.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.CURRENT);
+
     metaInfo.init();
     clusters.mapHostToCluster(hostName, clusterName);
 
@@ -1059,8 +1067,10 @@ public class ServiceComponentHostTest {
     clusters.addHost(hostName);
     setOsFamily(clusters.getHost(hostName), "redhat", "5.9");
     clusters.getHost(hostName).persist();
-    clusters.getCluster(clusterName).setDesiredStackVersion(
-        new StackId(stackVersion));
+    Cluster c2 = clusters.getCluster(clusterName);
+    StackId stackId = new StackId(stackVersion);
+    c2.setDesiredStackVersion(stackId);
+    c2.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.CURRENT);
     metaInfo.init();
     clusters.mapHostToCluster(hostName, clusterName);
 

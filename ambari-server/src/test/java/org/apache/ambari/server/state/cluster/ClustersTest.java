@@ -48,6 +48,7 @@ import org.apache.ambari.server.orm.entities.ClusterStateEntity;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntityPK;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntityPK;
 import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigFactory;
@@ -214,10 +215,17 @@ public class ClustersTest {
 
     clusters.addCluster(c1);
     clusters.addCluster(c2);
-    clusters.getCluster(c1).setDesiredStackVersion(new StackId("HDP-0.1"));
-    clusters.getCluster(c2).setDesiredStackVersion(new StackId("HDP-0.1"));
+
+    Cluster cluster1 = clusters.getCluster(c1);
+    Cluster cluster2 = clusters.getCluster(c2);
     Assert.assertNotNull(clusters.getCluster(c1));
     Assert.assertNotNull(clusters.getCluster(c2));
+    StackId stackId = new StackId("HDP-0.1");
+    cluster1.setDesiredStackVersion(stackId);
+    cluster1.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.CURRENT);
+    cluster2.setDesiredStackVersion(stackId);
+    cluster2.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.CURRENT);
+
     try {
       clusters.mapHostToCluster(h1, c1);
       fail("Expected exception for invalid host");
@@ -293,8 +301,15 @@ public class ClustersTest {
     String h3 = "h3";
     clusters.addCluster(c1);
     clusters.addCluster(c2);
-    clusters.getCluster(c1).setDesiredStackVersion(new StackId("HDP-0.1"));
-    clusters.getCluster(c2).setDesiredStackVersion(new StackId("HDP-0.1"));
+    Cluster cluster1 = clusters.getCluster(c1);
+    Cluster cluster2 = clusters.getCluster(c2);
+    Assert.assertNotNull(clusters.getCluster(c1));
+    Assert.assertNotNull(clusters.getCluster(c2));
+    StackId stackId = new StackId("HDP-0.1");
+    cluster1.setDesiredStackVersion(stackId);
+    cluster1.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.CURRENT);
+    cluster2.setDesiredStackVersion(stackId);
+    cluster2.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.CURRENT);
     clusters.addHost(h1);
     clusters.addHost(h2);
     clusters.addHost(h3);
@@ -321,8 +336,10 @@ public class ClustersTest {
     clusters.addCluster(c1);
 
     Cluster cluster = clusters.getCluster(c1);
-    cluster.setDesiredStackVersion(new StackId("HDP-0.1"));
-    cluster.setCurrentStackVersion(new StackId("HDP-0.1"));
+    StackId stackId = new StackId("HDP-0.1");
+    cluster.setDesiredStackVersion(stackId);
+    cluster.setCurrentStackVersion(stackId);
+    cluster.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.CURRENT);
 
     final Config config1 = injector.getInstance(ConfigFactory.class).createNew(cluster, "t1",
         new HashMap<String, String>() {{
@@ -411,11 +428,10 @@ public class ClustersTest {
     Assert.assertEquals(0, injector.getProvider(EntityManager.class).get().createQuery("SELECT config FROM ClusterConfigEntity config").getResultList().size());
     Assert.assertEquals(0, injector.getProvider(EntityManager.class).get().createQuery("SELECT state FROM ClusterStateEntity state").getResultList().size());
     Assert.assertEquals(0, injector.getProvider(EntityManager.class).get().createQuery("SELECT config FROM ClusterConfigMappingEntity config").getResultList().size());
-    
   }
+
   @Test
   public void testSetCurrentStackVersion() throws AmbariException {
-
     String c1 = "foo3";
 
     try

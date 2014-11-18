@@ -339,6 +339,12 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
   }
 
 
+  /**
+   * Accepts a request with registered hosts and if the request contains a cluster name then will map all of the
+   * hosts onto that cluster.
+   * @param requests Request that must contain registered hosts, and optionally a cluster.
+   * @throws AmbariException
+   */
   protected synchronized void createHosts(Set<HostRequest> requests)
       throws AmbariException {
 
@@ -426,7 +432,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
     Map<String, Set<String>> hostClustersMap = new HashMap<String, Set<String>>();
     Map<String, Map<String, String>> hostAttributes = new HashMap<String, Map<String, String>>();
     for (HostRequest request : requests) {
-      if (request.getHostname() != null) {
+      if (request.getHostname() != null && !request.getHostname().isEmpty() && request.getClusterName() != null && !request.getClusterName().isEmpty()) {
         Set<String> clusterSet = new HashSet<String>();
         clusterSet.add(request.getClusterName());
         hostClustersMap.put(request.getHostname(), clusterSet);
@@ -538,14 +544,15 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
     // We don't expect batch requests for different clusters, that's why
     // nothing bad should happen if value is overwritten few times
     String maintenanceCluster = null;
-    
-    for (HostRequest request : requests) {
-      if (request.getHostname() == null
-          || request.getHostname().isEmpty()) {
-        throw new IllegalArgumentException("Invalid arguments, hostname should"
-            + " be provided");
-      }
 
+    for (HostRequest request : requests) {
+      if (request.getHostname() == null || request.getHostname().isEmpty()) {
+        throw new IllegalArgumentException("Invalid arguments, hostname should be provided");
+      }
+    }
+
+
+    for (HostRequest request : requests) {
       if (LOG.isDebugEnabled()) {
         LOG.debug("Received a updateHost request"
             + ", hostname=" + request.getHostname()
@@ -555,10 +562,8 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
       Host h = clusters.getHost(request.getHostname());
 
       try {
-        //todo: the below method throws an exception when trying to create a duplicate mapping.
-        //todo: this is done to detect duplicates during host create.  Unless it is allowable to
-        //todo: add a host to a cluster by modifying the cluster_name prop, we should not do this mapping here.
-        //todo: Determine if it is allowable to associate a host to a cluster via this mechanism.
+        // The below method call throws an exception when trying to create a duplicate mapping in the clusterhostmapping
+        // table. This is done to detect duplicates during host create. In order to be robust, handle these gracefully.
         clusters.mapHostToCluster(request.getHostname(), request.getClusterName());
       } catch (DuplicateResourceException e) {
         // do nothing
@@ -592,6 +597,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
         }
       }
 
+      // Create configurations
       if (null != request.getClusterName() && null != request.getDesiredConfigs()) {
         Cluster c = clusters.getCluster(request.getClusterName());
 

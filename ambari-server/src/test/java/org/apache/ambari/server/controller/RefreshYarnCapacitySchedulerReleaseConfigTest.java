@@ -98,8 +98,9 @@ public class RefreshYarnCapacitySchedulerReleaseConfigTest {
     
     Assert.assertEquals(true, configHelper.isStaleConfigs(clusters.getCluster("c1").getService("YARN").getServiceComponent("RESOURCEMANAGER").getServiceComponentHost("c6401")));
   }
+
   @Test
-  public void testAllRequeiresRestart() throws AmbariException{
+  public void testAllRequiresRestart() throws AmbariException{
     createClusterFixture("HDP-2.0.7");
     Cluster cluster = clusters.getCluster("c1");
     
@@ -117,6 +118,7 @@ public class RefreshYarnCapacitySchedulerReleaseConfigTest {
     Assert.assertEquals(4, resps.size());
     
   }
+
   @Test
   public void testConfigInComponent() throws Exception {
     StackServiceRequest requestWithParams = new StackServiceRequest("HDP", "2.0.6", "YARN");
@@ -128,7 +130,8 @@ public class RefreshYarnCapacitySchedulerReleaseConfigTest {
       Assert.assertEquals(responseWithParams.getServiceName(), "YARN");
       Assert.assertTrue(responseWithParams.getConfigTypes().containsKey("capacity-scheduler"));
     }
-  }  
+  }
+
   @Test
   public void testConfigInComponentOverwrited() throws Exception {
     StackServiceRequest requestWithParams = new StackServiceRequest("HDP", "2.0.7", "YARN");
@@ -140,7 +143,8 @@ public class RefreshYarnCapacitySchedulerReleaseConfigTest {
       Assert.assertEquals(responseWithParams.getServiceName(), "YARN");
       Assert.assertTrue(responseWithParams.getConfigTypes().containsKey("capacity-scheduler"));
     }
-  }  
+  }
+
   private void createClusterFixture(String stackName) throws AmbariException {
     createCluster("c1", stackName);
     addHost("c6401","c1");
@@ -159,6 +163,7 @@ public class RefreshYarnCapacitySchedulerReleaseConfigTest {
     createServiceComponentHost("c1","YARN","NODEMANAGER","c6402", null);
     createServiceComponentHost("c1","YARN","YARN_CLIENT","c6402", null);
   }
+
   private void addHost(String hostname, String clusterName) throws AmbariException {
     clusters.addHost(hostname);
     setOsFamily(clusters.getHost(hostname), "redhat", "6.3");
@@ -167,6 +172,7 @@ public class RefreshYarnCapacitySchedulerReleaseConfigTest {
     if (null != clusterName)
       clusters.mapHostToCluster(hostname, clusterName);
   }
+
   private void setOsFamily(Host host, String osFamily, String osVersion) {
     Map<String, String> hostAttributes = new HashMap<String, String>();
     hostAttributes.put("os_family", osFamily);
@@ -231,7 +237,4 @@ public class RefreshYarnCapacitySchedulerReleaseConfigTest {
         put("hive-group", new HashMap<String,String>() {{ put("tag", "version1"); }});
       }}));
   }
-  
-  
-
 }

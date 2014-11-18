@@ -186,7 +186,23 @@ public class HostVersionDAOTest {
   public void testFindAll() {
     Assert.assertEquals(3, hostVersionDAO.findAll().size());
   }
+  
+  /**
+   * Test the {@link HostVersionDAO#findByHost(String)} method.
+   */
+  @Test
+  public void testFindByHost() {
+    Assert.assertEquals(1, hostVersionDAO.findByHost("test_host1").size());
+    Assert.assertEquals(1, hostVersionDAO.findByHost("test_host2").size());
+    Assert.assertEquals(1, hostVersionDAO.findByHost("test_host3").size());
 
+    addMoreVersions();
+
+    Assert.assertEquals(3, hostVersionDAO.findByHost("test_host1").size());
+    Assert.assertEquals(3, hostVersionDAO.findByHost("test_host2").size());
+    Assert.assertEquals(3, hostVersionDAO.findByHost("test_host3").size());
+  }
+  
   /**
    * Test the {@link HostVersionDAO#findByClusterStackAndVersion(String, String, String)} method.
    */
@@ -219,23 +235,7 @@ public class HostVersionDAOTest {
   }
 
   /**
-   * Test the {@link HostVersionDAO#findByHost(String)} method.
-   */
-  @Test
-  public void testFindByHost() {
-    Assert.assertEquals(1, hostVersionDAO.findByHost("test_host1").size());
-    Assert.assertEquals(1, hostVersionDAO.findByHost("test_host2").size());
-    Assert.assertEquals(1, hostVersionDAO.findByHost("test_host3").size());
-
-    addMoreVersions();
-
-    Assert.assertEquals(3, hostVersionDAO.findByHost("test_host1").size());
-    Assert.assertEquals(3, hostVersionDAO.findByHost("test_host2").size());
-    Assert.assertEquals(3, hostVersionDAO.findByHost("test_host3").size());
-  }
-
-  /**
-   * Test the {@link HostVersionDAO#findByClusterHostAndState(String, String, org.apache.ambari.server.state.UpgradeState)} method.
+   * Test the {@link HostVersionDAO#findByClusterHostAndState(String, String, org.apache.ambari.server.state.RepositoryVersionState)} method.
    */
   @Test
   public void testFindByClusterHostAndState() {

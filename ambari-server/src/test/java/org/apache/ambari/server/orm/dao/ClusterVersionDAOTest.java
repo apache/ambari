@@ -149,23 +149,23 @@ public class ClusterVersionDAOTest {
     Assert.assertEquals(0, clusterVersionDAO.findByStackAndVersion("non existing", "non existing").size());
     Assert.assertEquals(1, clusterVersionDAO.findByStackAndVersion("HDP", "2.2.0.0-995").size());
   }
-
+  
+  @Test
+  public void testFindByCluster() {
+    createRecordsUntilStep(1);
+    Assert.assertEquals(0, clusterVersionDAO.findByCluster("non existing").size());
+    Assert.assertEquals(1, clusterVersionDAO.findByCluster(cluster.getClusterName()).size());
+  }
+  
   @Test
   public void testFindByClusterAndStackAndVersion() {
     createRecordsUntilStep(1);
     Assert.assertNull(clusterVersionDAO.findByClusterAndStackAndVersion(cluster.getClusterName(), "non existing", "non existing"));
     Assert.assertNotNull(clusterVersionDAO.findByClusterAndStackAndVersion(cluster.getClusterName(), "HDP", "2.2.0.0-995"));
   }
-
-  @Test
-  public void testFindByCluster() {
-    createRecordsUntilStep(1);
-    Assert.assertTrue(clusterVersionDAO.findByCluster("non existing").isEmpty());
-    Assert.assertNotNull(clusterVersionDAO.findByCluster(cluster.getClusterName()));
-  }
-
+  
   /**
-   * At all times the cluster should have a cluster version whose state is {@link RepositoryVersionState#CURRENT}
+   * At all times the cluster should have a cluster version whose state is {@link org.apache.ambari.server.state.RepositoryVersionState#CURRENT}
    */
   @Test
   public void testFindByClusterAndStateCurrent() {

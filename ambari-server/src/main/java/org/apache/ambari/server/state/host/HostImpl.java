@@ -39,9 +39,11 @@ import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.HostConfigMappingDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.HostStateDAO;
+import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostStateEntity;
+import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.state.AgentVersion;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -107,6 +109,7 @@ public class HostImpl implements Host {
   private HostStateEntity hostStateEntity;
   private HostDAO hostDAO;
   private HostStateDAO hostStateDAO;
+  private HostVersionDAO hostVersionDAO;
   private ClusterDAO clusterDAO;
   private Clusters clusters;
   private HostConfigMappingDAO hostConfigMappingDAO;
@@ -229,6 +232,7 @@ public class HostImpl implements Host {
     this.persisted = persisted;
     hostDAO = injector.getInstance(HostDAO.class);
     hostStateDAO = injector.getInstance(HostStateDAO.class);
+    hostVersionDAO = injector.getInstance(HostVersionDAO.class);
     gson = injector.getInstance(Gson.class);
     clusterDAO = injector.getInstance(ClusterDAO.class);
     clusters = injector.getInstance(Clusters.class);
@@ -1315,6 +1319,15 @@ public class HostImpl implements Host {
     } finally {
       readLock.unlock();
     }
+  }
+
+  /**
+   * Get all of the HostVersionEntity objects for the host.
+   * @return
+   */
+  @Override
+  public List<HostVersionEntity> getAllHostVersions() {
+    return hostVersionDAO.findByHost(this.getHostName());
   }
 
 }

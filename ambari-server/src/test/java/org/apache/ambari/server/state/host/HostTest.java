@@ -43,6 +43,7 @@ import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostStateEntity;
 import org.apache.ambari.server.state.AgentVersion;
 import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigFactory;
@@ -358,6 +359,8 @@ public class HostTest {
     
     clusters.addCluster("c1");
     Cluster c1 = clusters.getCluster("c1");
+    StackId stackId = new StackId("HDP-0.1");
+    c1.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.CURRENT);
     Assert.assertEquals("c1", c1.getClusterName());
     Assert.assertEquals(1, c1.getClusterId());
     clusters.addHost("h1");
@@ -371,7 +374,7 @@ public class HostTest {
     host.setHostAttributes(hostAttributes);
     
     host.persist();
-    c1.setDesiredStackVersion(new StackId("HDP-0.1"));
+    c1.setDesiredStackVersion(stackId);
     clusters.mapHostToCluster("h1", "c1");
     
     ConfigFactory configFactory = injector.getInstance(ConfigFactory.class);
@@ -430,7 +433,9 @@ public class HostTest {
     host.setHostAttributes(hostAttributes);
     
     host.persist();
-    c1.setDesiredStackVersion(new StackId("HDP-0.1"));
+    StackId stackId = new StackId("HDP-0.1");
+    c1.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.CURRENT);
+    c1.setDesiredStackVersion(stackId);
     clusters.mapHostToCluster("h1", "c1");
 
     HostEntity entity = hostDAO.findByName("h1");

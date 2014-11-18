@@ -39,7 +39,7 @@ import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntityPK;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntityPK;
-import org.apache.ambari.server.state.svccomphost.ServiceComponentHostImpl;
+import org.apache.ambari.server.state.RepositoryVersionState;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -78,8 +78,11 @@ public class ServiceComponentTest {
     serviceName = "HDFS";
     clusters.addCluster(clusterName);
     cluster = clusters.getCluster(clusterName);
-    cluster.setDesiredStackVersion(new StackId("HDP-0.1"));
+    StackId stackId = new StackId("HDP-0.1");
+    cluster.setDesiredStackVersion(stackId);
     Assert.assertNotNull(cluster);
+    cluster.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.CURRENT);
+
     Service s = serviceFactory.createNew(cluster, serviceName);
     cluster.addService(s);
     s.persist();
