@@ -67,7 +67,7 @@
 
 if [ -d "/usr/lib/bigtop-tomcat" ]; then
   export OOZIE_CONFIG=${OOZIE_CONFIG:-/etc/oozie/conf}
-  export CATALINA_BASE=${CATALINA_BASE:-/var/lib/oozie/oozie-server}
+  export CATALINA_BASE=${CATALINA_BASE:-{{oozie_server_dir}}}
   export CATALINA_TMPDIR=${CATALINA_TMPDIR:-/var/tmp/oozie}
   export OOZIE_CATALINA_HOME=/usr/lib/bigtop-tomcat
 fi
@@ -122,7 +122,7 @@ export OOZIE_ADMIN_PORT={{oozie_server_admin_port}}
 # The base URL for callback URLs to Oozie
 #
 # export OOZIE_BASE_URL="http://${OOZIE_HTTP_HOSTNAME}:${OOZIE_HTTP_PORT}/oozie"
-export JAVA_LIBRARY_PATH=/usr/lib/hadoop/lib/native/Linux-amd64-64
+export JAVA_LIBRARY_PATH={{hadoop_lib_home}}/native/Linux-amd64-64
     </value>
   </property>
 

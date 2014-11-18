@@ -24,6 +24,26 @@ import os
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 
+#RPM versioning support
+rpm_version = default("/configurations/cluster-env/rpm_version", None)
+
+#hadoop params
+if rpm_version:
+  mapreduce_libs_path = "/usr/bigtop/current/hadoop-mapreduce-client/*"
+  hadoop_libexec_dir = "/usr/bigtop/current/hadoop-client/libexec"
+  hadoop_bin = "/usr/bigtop/current/hadoop-client/sbin"
+  hadoop_bin_dir = "/usr/bigtop/current/hadoop-client/bin"
+else:
+  mapreduce_libs_path = "/usr/lib/hadoop-mapreduce/*"
+  hadoop_libexec_dir = "/usr/lib/hadoop/libexec"
+  hadoop_bin = "/usr/lib/hadoop/sbin"
+  hadoop_bin_dir = "/usr/bin"
+
+hadoop_conf_dir = "/etc/hadoop/conf"
+hadoop_conf_empty_dir = "/etc/hadoop/conf.empty"
+limits_conf_dir = "/etc/security/limits.d"
+
+execute_path = os.environ['PATH'] + os.pathsep + hadoop_bin_dir
 ulimit_cmd = "ulimit -c unlimited; "
 
 #security params
@@ -96,17 +116,13 @@ user_group = config['configurations']['cluster-env']['user_group']
 proxyuser_group =  config['configurations']['hadoop-env']['proxyuser_group']
 
 #hadoop params
-hadoop_conf_dir = "/etc/hadoop/conf"
 hadoop_pid_dir_prefix = status_params.hadoop_pid_dir_prefix
-hadoop_bin = "/usr/lib/hadoop/sbin"
 
 hdfs_log_dir_prefix = config['configurations']['hadoop-env']['hdfs_log_dir_prefix']
 hadoop_root_logger = config['configurations']['hadoop-env']['hadoop_root_logger']
 
 dfs_domain_socket_path = config['configurations']['hdfs-site']['dfs.domain.socket.path']
 dfs_domain_socket_dir = os.path.dirname(dfs_domain_socket_path)
-
-hadoop_libexec_dir = "/usr/lib/hadoop/libexec"
 
 jn_edits_dir = config['configurations']['hdfs-site']['dfs.journalnode.edits.dir']
 
@@ -124,6 +140,13 @@ namenode_formatted_mark_dir = format("/var/lib/hdfs/namenode/formatted/")
 fs_checkpoint_dir = config['configurations']['hdfs-site']['dfs.namenode.checkpoint.dir']
 
 dfs_data_dir = config['configurations']['hdfs-site']['dfs.datanode.data.dir']
+data_dir_mount_file = config['configurations']['hadoop-env']['dfs.datanode.data.dir.mount.file']
+
+dfs_dn_addr = default('/configurations/hdfs-site/dfs.datanode.address', None)
+dfs_dn_http_addr = default('/configurations/hdfs-site/dfs.datanode.http.address', None)
+dfs_dn_https_addr = default('/configurations/hdfs-site/dfs.datanode.https.address', None)
+dfs_http_policy = default('/configurations/hdfs-site/dfs.http.policy', None)
+
 # HDFS High Availability properties
 dfs_ha_enabled = False
 dfs_ha_nameservices = default("/configurations/hdfs-site/dfs.nameservices", None)
@@ -174,10 +197,9 @@ HdfsDirectory = functools.partial(
   hdfs_user=hdfs_user,
   security_enabled = security_enabled,
   keytab = hdfs_user_keytab,
-  kinit_path_local = kinit_path_local
+  kinit_path_local = kinit_path_local,
+  bin_dir = hadoop_bin_dir
 )
-
-limits_conf_dir = "/etc/security/limits.d"
 
 io_compression_codecs = config['configurations']['core-site']['io.compression.codecs']
 if not "com.hadoop.compression.lzo" in io_compression_codecs:
@@ -187,14 +209,15 @@ else:
 name_node_params = default("/commandParams/namenode", None)
 
 #hadoop params
-hadoop_conf_empty_dir = "/etc/hadoop/conf.empty"
-
 hadoop_env_sh_template = config['configurations']['hadoop-env']['content']
 
 #hadoop-env.sh
 java_home = config['hostLevelParams']['java_home']
+stack_version = str(config['hostLevelParams']['stack_version'])
 
-if str(config['hostLevelParams']['stack_version']).startswith('2.0') and System.get_instance().os_family != "suse":
+stack_is_champlain_or_further = not (stack_version.startswith('2.0') or stack_version.startswith('2.1'))
+
+if stack_version.startswith('2.0') and System.get_instance().os_family != "suse":
   # deprecated rhel jsvc_path
   jsvc_path = "/usr/libexec/bigtop-utils"
 else:
@@ -214,5 +237,4 @@ ttnode_heapsize = "1024m"
 
 dtnode_heapsize = config['configurations']['hadoop-env']['dtnode_heapsize']
 mapred_pid_dir_prefix = default("/configurations/mapred-env/mapred_pid_dir_prefix","/var/run/hadoop-mapreduce")
-mapreduce_libs_path = "/usr/lib/hadoop-mapreduce/*"
 mapred_log_dir_prefix = default("/configurations/mapred-env/mapred_log_dir_prefix","/var/log/hadoop-mapreduce")

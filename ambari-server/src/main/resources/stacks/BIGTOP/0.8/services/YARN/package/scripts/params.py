@@ -18,6 +18,7 @@ limitations under the License.
 Ambari Agent
 
 """
+import os
 
 from resource_management import *
 import status_params
@@ -26,7 +27,32 @@ import status_params
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 
-config_dir = "/etc/hadoop/conf"
+#RPM versioning support
+rpm_version = default("/configurations/cluster-env/rpm_version", None)
+
+#hadoop params
+if rpm_version:
+  hadoop_libexec_dir = "/usr/bigtop/current/hadoop-client/libexec"
+  hadoop_bin = "/usr/bigtop/current/hadoop-client/sbin"
+  hadoop_bin_dir = "/usr/bigtop/current/hadoop-client/bin"
+  hadoop_yarn_home = '/usr/bigtop/current/hadoop-yarn-client'
+  hadoop_mapred2_jar_location = '/usr/bigtop/current/hadoop-mapreduce-client'
+  mapred_bin = '/usr/bigtop/current/hadoop-mapreduce-client/sbin'
+  yarn_bin = '/usr/bigtop/current/hadoop-yarn-client/sbin'
+  yarn_container_bin = '/usr/bigtop/current/hadoop-yarn-client/bin'
+else:
+  hadoop_libexec_dir = "/usr/lib/hadoop/libexec"
+  hadoop_bin = "/usr/lib/hadoop/sbin"
+  hadoop_bin_dir = "/usr/bin"
+  hadoop_yarn_home = '/usr/lib/hadoop-yarn'
+  hadoop_mapred2_jar_location = "/usr/lib/hadoop-mapreduce"
+  mapred_bin = "/usr/lib/hadoop-mapreduce/sbin"
+  yarn_bin = "/usr/lib/hadoop-yarn/sbin"
+  yarn_container_bin = "/usr/lib/hadoop-yarn/bin"
+
+hadoop_conf_dir = "/etc/hadoop/conf"
+limits_conf_dir = "/etc/security/limits.d"
+execute_path = os.environ['PATH'] + os.pathsep + hadoop_bin_dir + os.pathsep + yarn_container_bin
 
 ulimit_cmd = "ulimit -c unlimited;"
 
@@ -49,8 +75,6 @@ rm_nodes_exclude_path = default("/configurations/yarn-site/yarn.resourcemanager.
 java64_home = config['hostLevelParams']['java_home']
 hadoop_ssl_enabled = default("/configurations/core-site/hadoop.ssl.enabled", False)
 
-hadoop_libexec_dir = '/usr/lib/hadoop/libexec'
-hadoop_yarn_home = '/usr/lib/hadoop-yarn'
 yarn_heapsize = config['configurations']['yarn-env']['yarn_heapsize']
 resourcemanager_heapsize = config['configurations']['yarn-env']['resourcemanager_heapsize']
 nodemanager_heapsize = config['configurations']['yarn-env']['nodemanager_heapsize']
@@ -77,8 +101,6 @@ hs_webui_address = config['configurations']['mapred-site']['mapreduce.jobhistory
 nm_local_dirs = config['configurations']['yarn-site']['yarn.nodemanager.local-dirs']
 nm_log_dirs = config['configurations']['yarn-site']['yarn.nodemanager.log-dirs']
 
-
-hadoop_mapred2_jar_location = "/usr/lib/hadoop-mapreduce"
 distrAppJarName = "hadoop-yarn-applications-distributedshell-2.*.jar"
 hadoopMapredExamplesJarName = "hadoop-mapreduce-examples-2.*.jar"
 
@@ -90,19 +112,16 @@ yarn_log_dir = format("{yarn_log_dir_prefix}/{yarn_user}")
 mapred_job_summary_log = format("{mapred_log_dir_prefix}/{mapred_user}/hadoop-mapreduce.jobsummary.log")
 yarn_job_summary_log = format("{yarn_log_dir_prefix}/{yarn_user}/hadoop-mapreduce.jobsummary.log")
 
-mapred_bin = "/usr/lib/hadoop-mapreduce/sbin"
-yarn_bin = "/usr/lib/hadoop-yarn/sbin"
-
 user_group = config['configurations']['cluster-env']['user_group']
-limits_conf_dir = "/etc/security/limits.d"
-hadoop_conf_dir = "/etc/hadoop/conf"
-yarn_container_bin = "/usr/lib/hadoop-yarn/bin"
 
 #exclude file
 exclude_hosts = default("/clusterHostInfo/decom_nm_hosts", [])
 exclude_file_path = default("/configurations/yarn-site/yarn.resourcemanager.nodes.exclude-path","/etc/hadoop/conf/yarn.exclude")
 
 hostname = config['hostname']
+
+ats_host = set(default("/clusterHostInfo/app_timeline_server_hosts", []))
+has_ats = not len(ats_host) == 0
 
 if security_enabled:
   _rm_principal_name = config['configurations']['yarn-site']['yarn.resourcemanager.principal']
@@ -112,10 +131,11 @@ if security_enabled:
   rm_kinit_cmd = format("{kinit_path_local} -kt {_rm_keytab} {_rm_principal_name};")
 
   # YARN timeline security options are only available in HDP Champlain
-  _yarn_timelineservice_principal_name = config['configurations']['yarn-site']['yarn.timeline-service.principal']
-  _yarn_timelineservice_principal_name = _yarn_timelineservice_principal_name.replace('_HOST', hostname.lower())
-  _yarn_timelineservice_keytab = config['configurations']['yarn-site']['yarn.timeline-service.keytab']
-  yarn_timelineservice_kinit_cmd = format("{kinit_path_local} -kt {_yarn_timelineservice_keytab} {_yarn_timelineservice_principal_name};")
+  if has_ats:
+    _yarn_timelineservice_principal_name = config['configurations']['yarn-site']['yarn.timeline-service.principal']
+    _yarn_timelineservice_principal_name = _yarn_timelineservice_principal_name.replace('_HOST', hostname.lower())
+    _yarn_timelineservice_keytab = config['configurations']['yarn-site']['yarn.timeline-service.keytab']
+    yarn_timelineservice_kinit_cmd = format("{kinit_path_local} -kt {_yarn_timelineservice_keytab} {_yarn_timelineservice_principal_name};")
 else:
   rm_kinit_cmd = ""
   yarn_timelineservice_kinit_cmd = ""
@@ -128,7 +148,6 @@ jobhistory_heapsize = default("/configurations/mapred-env/jobhistory_heapsize", 
 
 #for create_hdfs_directory
 hostname = config["hostname"]
-hadoop_conf_dir = "/etc/hadoop/conf"
 hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_name']
@@ -142,11 +161,11 @@ HdfsDirectory = functools.partial(
   hdfs_user=hdfs_user,
   security_enabled = security_enabled,
   keytab = hdfs_user_keytab,
-  kinit_path_local = kinit_path_local
+  kinit_path_local = kinit_path_local,
+  bin_dir = hadoop_bin_dir
 )
 update_exclude_file_only = config['commandParams']['update_exclude_file_only']
 
-hadoop_bin = "/usr/lib/hadoop/sbin"
 mapred_tt_group = default("/configurations/mapred-site/mapreduce.tasktracker.group", user_group)
 
 #taskcontroller.cfg

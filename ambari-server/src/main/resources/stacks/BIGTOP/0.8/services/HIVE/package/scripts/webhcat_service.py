@@ -15,23 +15,26 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
-"""
+Ambari Agent
 
+"""
 from resource_management import *
 
-config = Script.get_config()
+def webhcat_service(action='start'):
+  import params
 
-security_enabled = config['configurations']['cluster-env']['security_enabled']
-smokeuser = config['configurations']['cluster-env']['smokeuser']
-user_group = config['configurations']['cluster-env']['user_group']
-sqoop_env_sh_template = config['configurations']['sqoop-env']['content']
+  cmd = format('env HADOOP_HOME={hadoop_home} {webhcat_bin_dir}/webhcat_server.sh')
 
-sqoop_conf_dir = "/usr/lib/sqoop/conf"
-hbase_home = "/usr"
-hive_home = "/usr"
-zoo_conf_dir = "/etc/zookeeper"
-sqoop_lib = "/usr/lib/sqoop/lib"
-sqoop_user = config['configurations']['sqoop-env']['sqoop_user']
-
-smoke_user_keytab = config['configurations']['cluster-env']['smokeuser_keytab']
-kinit_path_local = functions.get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+  if action == 'start':
+    demon_cmd = format('{cmd} start')
+    no_op_test = format('ls {webhcat_pid_file} >/dev/null 2>&1 && ps -p `cat {webhcat_pid_file}` >/dev/null 2>&1')
+    Execute(demon_cmd,
+            user=params.webhcat_user,
+            not_if=no_op_test
+    )
+  elif action == 'stop':
+    demon_cmd = format('{cmd} stop')
+    Execute(demon_cmd,
+            user=params.webhcat_user
+    )
+    Execute(format('rm -f {webhcat_pid_file}'))

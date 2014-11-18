@@ -23,6 +23,7 @@ import socket
 import sys
 
 from hcat_service_check import hcat_service_check
+from webhcat_service_check import webhcat_service_check
 
 class HiveServiceCheck(Script):
   def service_check(self, env):
@@ -31,17 +32,15 @@ class HiveServiceCheck(Script):
 
     address=format("{hive_server_host}")
     port=int(format("{hive_server_port}"))
-    s = socket.socket()
     print "Test connectivity to hive server"
-    try:
-      s.connect((address, port))
+    if check_thrift_port_sasl(address, port, security_enabled=params.security_enabled):
       print "Successfully connected to %s on port %s" % (address, port)
-      s.close()
-    except socket.error, e:
-      print "Connection to %s on port %s failed: %s" % (address, port, e)
-      sys.exit(1)
+    else:
+      print "Connection to %s on port %s failed" % (address, port)
+      exit(1)
 
     hcat_service_check()
+    webhcat_service_check()
 
 if __name__ == "__main__":
   HiveServiceCheck().execute()

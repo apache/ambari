@@ -28,7 +28,7 @@ class AfterInstallHook(Hook):
     import params
 
     env.set_params(params)
-    setup_hadoop_env()
+    setup_hdp_install_directory()
     setup_config()
 
 if __name__ == "__main__":

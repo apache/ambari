@@ -22,12 +22,14 @@ import sys
 from resource_management import *
 
 from oozie import oozie
+from oozie import correct_hadoop_auth_jar_files
 from oozie_service import oozie_service
 
          
 class OozieClient(Script):
   def install(self, env):
     self.install_packages(env)
+    correct_hadoop_auth_jar_files()
     self.configure(env)
     
   def configure(self, env):

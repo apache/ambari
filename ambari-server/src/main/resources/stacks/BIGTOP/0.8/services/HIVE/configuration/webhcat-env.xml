@@ -27,7 +27,7 @@
     <description>webhcat-env.sh content</description>
     <value>
 # The file containing the running pid
-PID_FILE={{pid_file}}
+PID_FILE={{webhcat_pid_file}}
 
 TEMPLETON_LOG_DIR={{templeton_log_dir}}/
 
@@ -47,7 +47,7 @@ CONSOLE_LOG={{templeton_log_dir}}/webhcat-console.log
 #HCAT_PREFIX=hive_prefix
 
 # Set HADOOP_HOME to point to a specific hadoop install directory
-export HADOOP_HOME=/usr/lib/hadoop
+export HADOOP_HOME={{hadoop_home}}
     </value>
   </property>
   

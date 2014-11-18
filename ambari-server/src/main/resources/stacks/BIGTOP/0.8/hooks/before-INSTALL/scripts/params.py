@@ -19,12 +19,14 @@ limitations under the License.
 
 from resource_management import *
 from resource_management.core.system import System
-import os
 import json
 import collections
 
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
+
+#RPM versioning support
+rpm_version = default("/configurations/cluster-env/rpm_version", None)
 
 #users and groups
 hbase_user = config['configurations']['hbase-env']['hbase_user']
@@ -35,6 +37,8 @@ tez_user = config['configurations']['tez-env']["tez_user"]
 
 user_group = config['configurations']['cluster-env']['user_group']
 proxyuser_group = default("/configurations/hadoop-env/proxyuser_group","users")
+
+hdfs_log_dir_prefix = config['configurations']['hadoop-env']['hdfs_log_dir_prefix']
 
 #hosts
 hostname = config["hostname"]

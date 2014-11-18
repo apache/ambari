@@ -31,11 +31,16 @@ ganglia_shell_cmds_dir = "/usr/libexec/hdp/ganglia"
 gmetad_user = config['configurations']['ganglia-env']["gmetad_user"]
 gmond_user = config['configurations']['ganglia-env']["gmond_user"]
 
-gmond_app_str = default("/configurations/hadoop-env/enabled_app_servers", None)
-gmond_apps = [] if gmond_app_str is None else gmond_app_str.split(',')
-gmond_apps = [x.strip() for x in gmond_apps]
-gmond_allowed_apps = ["Application1", "Application2", "Application3"]
-gmond_apps = set(gmond_apps) & set(gmond_allowed_apps)
+gmond_add_clusters_str = default("/configurations/ganglia-env/additional_clusters", None)
+if gmond_add_clusters_str and gmond_add_clusters_str.isspace():
+  gmond_add_clusters_str = None
+
+gmond_app_strs = [] if gmond_add_clusters_str is None else gmond_add_clusters_str.split(',')
+gmond_apps = []
+
+for x in gmond_app_strs:
+  a,b = x.strip().split(':')
+  gmond_apps.append((a.strip(),b.strip()))
 
 if System.get_instance().os_family == "ubuntu":
   gmond_service_name = "ganglia-monitor"
@@ -103,12 +108,12 @@ has_nimbus_server = not len(nimbus_server_hosts) == 0
 has_supervisor_server = not len(supervisor_server_hosts) == 0
 
 ganglia_cluster_names = {
-  "jtnode_host": [("HDPJournalNode", 8654)],
+  "jn_hosts": [("HDPJournalNode", 8654)],
   "flume_hosts": [("HDPFlumeServer", 8655)],
   "hbase_rs_hosts": [("HDPHBaseRegionServer", 8656)],
   "nm_hosts": [("HDPNodeManager", 8657)],
   "mapred_tt_hosts": [("HDPTaskTracker", 8658)],
-  "slave_hosts": [("HDPDataNode", 8659), ("HDPSlaves", 8660)],
+  "slave_hosts": [("HDPDataNode", 8659)],
   "namenode_host": [("HDPNameNode", 8661)],
   "jtnode_host": [("HDPJobTracker", 8662)],
   "hbase_master_hosts": [("HDPHBaseMaster", 8663)],
@@ -116,12 +121,12 @@ ganglia_cluster_names = {
   "hs_host": [("HDPHistoryServer", 8666)],
   "nimbus_hosts": [("HDPNimbus", 8649)],
   "supervisor_hosts": [("HDPSupervisor", 8650)],
-  "Application1": [("Application1", 8667)],
-  "Application2": [("Application2", 8668)],
-  "Application3": [("Application3", 8669)]
+  "ReservedPort1": [("ReservedPort1", 8667)],
+  "ReservedPort2": [("ReservedPort2", 8668)],
+  "ReservedPort3": [("ReservedPort3", 8669)]
 }
 
-ganglia_clusters = []
+ganglia_clusters = [("HDPSlaves", 8660)]
 
 for key in ganglia_cluster_names:
   property_name = format("/clusterHostInfo/{key}")
@@ -129,10 +134,10 @@ for key in ganglia_cluster_names:
   if not len(hosts) == 0:
     for x in ganglia_cluster_names[key]:
       ganglia_clusters.append(x)
+
 if len(gmond_apps) > 0:
   for gmond_app in gmond_apps:
-    for x in ganglia_cluster_names[gmond_app]:
-      ganglia_clusters.append(x)
+    ganglia_clusters.append(gmond_app)
 
 ganglia_apache_config_file = "/etc/apache2/conf.d/ganglia.conf"
 ganglia_web_path="/var/www/html/ganglia"

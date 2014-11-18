@@ -30,8 +30,13 @@ def flume(action = None):
     for n in find_expected_agent_names():
       os.unlink(os.path.join(params.flume_conf_dir, n, 'ambari-meta.json'))
 
-    Directory(params.flume_conf_dir)
+    Directory(params.flume_conf_dir, recursive=True)
     Directory(params.flume_log_dir, owner=params.flume_user)
+
+    File(format("{flume_conf_dir}/flume-env.sh"),
+         owner=params.flume_user,
+         content=InlineTemplate(params.flume_env_sh_template)
+    )
 
     flume_agents = {}
     if params.flume_conf_content is not None:
@@ -63,7 +68,7 @@ def flume(action = None):
       _set_desired_state('STARTED')
       
     flume_base = format('su -s /bin/bash {flume_user} -c "export JAVA_HOME={java_home}; '
-      '/usr/bin/flume-ng agent --name {{0}} --conf {{1}} --conf-file {{2}} {{3}}"')
+      '{flume_bin} agent --name {{0}} --conf {{1}} --conf-file {{2}} {{3}}"')
 
     for agent in cmd_target_names():
       flume_agent_conf_dir = params.flume_conf_dir + os.sep + agent

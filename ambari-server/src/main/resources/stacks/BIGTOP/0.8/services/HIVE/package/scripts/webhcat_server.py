@@ -18,28 +18,36 @@ limitations under the License.
 Ambari Agent
 
 """
+import sys
 from resource_management import *
 
-class WebHCatServiceCheck(Script):
-  def service_check(self, env):
-    import params
+from webhcat import webhcat
+from webhcat_service import webhcat_service
 
+class WebHCatServer(Script):
+  def install(self, env):
+    self.install_packages(env)
+  def configure(self, env):
+    import params
+    env.set_params(params)
+    webhcat()
+
+  def start(self, env):
+    import params
+    env.set_params(params)
+    self.configure(env) # FOR SECURITY
+    webhcat_service(action = 'start')
+
+  def stop(self, env):
+    import params
     env.set_params(params)
 
-    File(format("{tmp_dir}/templetonSmoke.sh"),
-         content= StaticFile('templetonSmoke.sh'),
-         mode=0755
-    )
+    webhcat_service(action = 'stop')
 
-    cmd = format("{tmp_dir}/templetonSmoke.sh {webhcat_server_host[0]} {smokeuser} {smokeuser_keytab}"
-                 " {security_param} {kinit_path_local}",
-                 smokeuser_keytab=params.smoke_user_keytab if params.security_enabled else "no_keytab")
-
-    Execute(cmd,
-            tries=3,
-            try_sleep=5,
-            path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
-            logoutput=True)
+  def status(self, env):
+    import status_params
+    env.set_params(status_params)
+    check_process_status(status_params.webhcat_pid_file)
 
 if __name__ == "__main__":
-  WebHCatServiceCheck().execute()
+  WebHCatServer().execute()

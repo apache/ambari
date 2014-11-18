@@ -35,7 +35,7 @@ def service(componentName, action='start', serviceName='yarn'):
     pid_file = format("{yarn_pid_dir}/yarn-{yarn_user}-{componentName}.pid")
     usr = params.yarn_user
 
-  cmd = format("export HADOOP_LIBEXEC_DIR={hadoop_libexec_dir} && {daemon} --config {config_dir}")
+  cmd = format("export HADOOP_LIBEXEC_DIR={hadoop_libexec_dir} && {daemon} --config {hadoop_conf_dir}")
 
   if action == 'start':
     daemon_cmd = format("{ulimit_cmd} {cmd} start {componentName}")

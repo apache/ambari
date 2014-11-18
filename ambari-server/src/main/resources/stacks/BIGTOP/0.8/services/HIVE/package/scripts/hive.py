@@ -44,7 +44,21 @@ def hive(name=None):
   # The reason is that stale-configs are service-level, not component.
   for conf_dir in params.hive_conf_dirs_list:
     fill_conf_dir(conf_dir)
-    
+
+  XmlConfig("hive-site.xml",
+            conf_dir=params.hive_config_dir,
+            configurations=params.config['configurations']['hive-site'],
+            configuration_attributes=params.config['configuration_attributes']['hive-site'],
+            owner=params.hive_user,
+            group=params.user_group,
+            mode=0644)
+
+  File(format("{hive_config_dir}/hive-env.sh"),
+       owner=params.hive_user,
+       group=params.user_group,
+       content=InlineTemplate(params.hive_env_sh_template)
+  )
+
   if name == 'metastore' or name == 'hiveserver2':
     jdbc_connector()
     
@@ -92,7 +106,7 @@ def hive(name=None):
     crt_directory(params.hive_pid_dir)
     crt_directory(params.hive_log_dir)
     crt_directory(params.hive_var_lib)
-    
+
 def fill_conf_dir(component_conf_dir):
   import params
   
@@ -110,20 +124,7 @@ def fill_conf_dir(component_conf_dir):
             group=params.user_group,
             mode=0644)
 
-  XmlConfig("hive-site.xml",
-            conf_dir=component_conf_dir,
-            configurations=params.config['configurations']['hive-site'],
-            configuration_attributes=params.config['configuration_attributes']['hive-site'],
-            owner=params.hive_user,
-            group=params.user_group,
-            mode=0644)
-  
-  File(format("{component_conf_dir}/hive-env.sh"),
-       owner=params.hive_user,
-       group=params.user_group,
-       content=InlineTemplate(params.hive_env_sh_template)
-  )
-  
+
   crt_file(format("{component_conf_dir}/hive-default.xml.template"))
   crt_file(format("{component_conf_dir}/hive-env.sh.template"))
 
@@ -188,6 +189,7 @@ def jdbc_connector():
     Execute(cmd,
             not_if=format("test -f {target}"),
             creates=params.target,
+            environment= {'PATH' : params.execute_path },
             path=["/bin", "/usr/bin/"])
   elif params.hive_jdbc_driver == "org.postgresql.Driver":
     cmd = format("hive mkdir -p {artifact_dir} ; cp /usr/share/java/{jdbc_jar_name} {target}")
@@ -195,6 +197,7 @@ def jdbc_connector():
     Execute(cmd,
             not_if=format("test -f {target}"),
             creates=params.target,
+            environment= {'PATH' : params.execute_path },
             path=["/bin", "usr/bin/"])
 
   elif params.hive_jdbc_driver == "oracle.jdbc.driver.OracleDriver":

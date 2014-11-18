@@ -21,7 +21,8 @@
 #
 conf_dir=$1
 data=$2
-echo "scan 'ambarismoketest'" | hbase --config $conf_dir shell > /tmp/hbase_chk_verify
+hbase_cmd=$3
+echo "scan 'ambarismoketest'" | $hbase_cmd --config $conf_dir shell > /tmp/hbase_chk_verify
 cat /tmp/hbase_chk_verify
 echo "Looking for $data"
 grep -q $data /tmp/hbase_chk_verify

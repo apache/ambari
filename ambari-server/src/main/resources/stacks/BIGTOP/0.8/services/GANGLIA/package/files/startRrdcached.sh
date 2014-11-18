@@ -31,7 +31,7 @@ rrdcachedRunningPid=`getRrdcachedRunningPid`;
 # Only attempt to start rrdcached if there's not already one running.
 if [ -z "${rrdcachedRunningPid}" ]
 then
-    su - ${GMETAD_USER} -s /bin/bash -c "${RRDCACHED_BIN} -p ${RRDCACHED_PID_FILE} \
+    su -s /bin/bash - ${GMETAD_USER} -c "${RRDCACHED_BIN} -p ${RRDCACHED_PID_FILE} \
              -m 664 -l unix:${RRDCACHED_ALL_ACCESS_UNIX_SOCKET} \
              -m 777 -P FLUSH,STATS,HELP -l unix:${RRDCACHED_LIMITED_ACCESS_UNIX_SOCKET} \
              -b ${RRDCACHED_BASE_DIR} -B -t ${RRDCACHED_WRITE_THREADS} \

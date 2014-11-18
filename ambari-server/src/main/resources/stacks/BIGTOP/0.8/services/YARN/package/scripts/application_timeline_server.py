@@ -49,7 +49,9 @@ class ApplicationTimelineServer(Script):
   def status(self, env):
     import status_params
     env.set_params(status_params)
-    check_process_status(status_params.yarn_historyserver_pid_file)
+    Execute(format("mv {yarn_historyserver_pid_file_old} {yarn_historyserver_pid_file}"),
+            only_if = format("test -e {yarn_historyserver_pid_file_old}", user=status_params.yarn_user))
+    functions.check_process_status(status_params.yarn_historyserver_pid_file)
 
 if __name__ == "__main__":
   ApplicationTimelineServer().execute()

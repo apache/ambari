@@ -21,7 +21,7 @@
   -->
   <os family="redhat6">
     <repo>
-      <baseurl>http://bigtop01.cloudera.org:8080/job/Bigtop-trunk-Repository/label=centos6/lastSuccessfulBuild/artifact/repo/</baseurl>
+      <baseurl>http://bigtop.s3.amazonaws.com/releases/0.8.0/redhat/6/x86_64</baseurl>
       <repoid>BIGTOP-0.8</repoid>
       <reponame>BIGTOP</reponame>
     </repo>

@@ -28,7 +28,7 @@
   </property>
   <property>
     <name>hive_database</name>
-    <value>New PosgreSQL Database</value>
+    <value>New PostgreSQL Database</value>
     <description>
       Property that determines whether the HIVE DB is managed by Ambari.
     </description>

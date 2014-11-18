@@ -41,8 +41,12 @@ class PostgreSQLServer(Script):
     self.update_pghda_conf(env)
     self.update_postgresql_conf(env)
 
-    # restart the postgresql server for the changes to take effect
-    self.stop(env)
+    # Reload the settings and start the postgresql server for the changes to take effect
+    # Note: Don't restart the postgresql server because when Ambari server and the hive metastore on the same machine,
+    # they will share the same postgresql server instance. Restarting the postgresql database may cause the ambari server database connection lost
+    postgresql_service(postgresql_daemon_name=params.postgresql_daemon_name, action = 'reload')
+
+    # ensure the postgresql server is started because the add hive metastore user requires the server is running.
     self.start(env)
 
     # create the database and hive_metastore_user

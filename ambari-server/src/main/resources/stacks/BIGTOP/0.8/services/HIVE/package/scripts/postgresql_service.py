@@ -37,3 +37,5 @@ def postgresql_service(postgresql_daemon_name=None, action='start'):
       logoutput = True,
       not_if = status_cmd
     )
+  else:
+    Execute(cmd, logoutput = True)

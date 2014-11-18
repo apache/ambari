@@ -26,16 +26,31 @@ import status_params
 config = Script.get_config()
 exec_tmp_dir = Script.get_tmp_dir()
 
+#RPM versioning support
+rpm_version = default("/configurations/cluster-env/rpm_version", None)
+
+#hadoop params
+if rpm_version:
+  hadoop_bin_dir = format("/usr/bigtop/current/hadoop-client/bin")
+  daemon_script = format('/usr/bigtop/current/hbase-client/bin/hbase-daemon.sh')
+  region_mover = format('/usr/bigtop/current/hbase-client/bin/region_mover.rb')
+  region_drainer = format('/usr/bigtop/current/hbase-client/bin/draining_servers.rb')
+  hbase_cmd = format('/usr/bigtop/current/hbase-client/bin/hbase')
+else:
+  hadoop_bin_dir = "/usr/bin"
+  daemon_script = "/usr/lib/hbase/bin/hbase-daemon.sh"
+  region_mover = "/usr/lib/hbase/bin/region_mover.rb"
+  region_drainer = "/usr/lib/hbase/bin/draining_servers.rb"
+  hbase_cmd = "/usr/lib/hbase/bin/hbase"
+
+hadoop_conf_dir = "/etc/hadoop/conf"
 hbase_conf_dir = "/etc/hbase/conf"
-daemon_script = "/usr/lib/hbase/bin/hbase-daemon.sh"
-region_mover = "/usr/lib/hbase/bin/region_mover.rb"
-region_drainer = "/usr/lib/hbase/bin/draining_servers.rb"
-hbase_cmd = "/usr/lib/hbase/bin/hbase"
 hbase_excluded_hosts = config['commandParams']['excluded_hosts']
-hbase_drain_only = config['commandParams']['mark_draining_only']
+hbase_drain_only = default("/commandParams/mark_draining_only",False)
 hbase_included_hosts = config['commandParams']['included_hosts']
 
 hbase_user = status_params.hbase_user
+hbase_principal_name = config['configurations']['hbase-env']['hbase_principal_name']
 smokeuser = config['configurations']['cluster-env']['smokeuser']
 _authentication = config['configurations']['core-site']['hadoop.security.authentication']
 security_enabled = config['configurations']['cluster-env']['security_enabled']
@@ -72,7 +87,7 @@ if 'slave_hosts' in config['clusterHostInfo']:
   rs_hosts = default('/clusterHostInfo/hbase_rs_hosts', '/clusterHostInfo/slave_hosts') #if hbase_rs_hosts not given it is assumed that region servers on same nodes as slaves
 else:
   rs_hosts = default('/clusterHostInfo/hbase_rs_hosts', '/clusterHostInfo/all_hosts') 
-  
+
 smoke_test_user = config['configurations']['cluster-env']['smokeuser']
 smokeuser_permissions = "RWXCA"
 service_check_data = functions.get_unique_id_and_date()
@@ -89,7 +104,7 @@ smoke_user_keytab = config['configurations']['cluster-env']['smokeuser_keytab']
 hbase_user_keytab = config['configurations']['hbase-env']['hbase_user_keytab']
 kinit_path_local = functions.get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
 if security_enabled:
-  kinit_cmd = format("{kinit_path_local} -kt {hbase_user_keytab} {hbase_user};")
+  kinit_cmd = format("{kinit_path_local} -kt {hbase_user_keytab} {hbase_principal_name};")
 else:
   kinit_cmd = ""
 
@@ -105,7 +120,6 @@ hbase_hdfs_root_dir = config['configurations']['hbase-site']['hbase.rootdir']
 hbase_staging_dir = "/apps/hbase/staging"
 #for create_hdfs_directory
 hostname = config["hostname"]
-hadoop_conf_dir = "/etc/hadoop/conf"
 hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_name']
@@ -119,5 +133,6 @@ HdfsDirectory = functools.partial(
   hdfs_user=hdfs_user,
   security_enabled = security_enabled,
   keytab = hdfs_user_keytab,
-  kinit_path_local = kinit_path_local
+  kinit_path_local = kinit_path_local,
+  bin_dir = hadoop_bin_dir
 )

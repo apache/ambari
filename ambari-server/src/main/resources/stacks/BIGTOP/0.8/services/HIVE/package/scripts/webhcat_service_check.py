@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -15,39 +16,26 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
-Ambari Agent
-
 """
-import sys
+
 from resource_management import *
 
-from webhcat import webhcat
-from webhcat_service import webhcat_service
+def webhcat_service_check():
+  import params
+  File(format("{tmp_dir}/templetonSmoke.sh"),
+       content= StaticFile('templetonSmoke.sh'),
+       mode=0755
+  )
 
-class WebHCatServer(Script):
-  def install(self, env):
-    self.install_packages(env)
-  def configure(self, env):
-    import params
-    env.set_params(params)
-    webhcat()
+  cmd = format("{tmp_dir}/templetonSmoke.sh {webhcat_server_host[0]} {smokeuser} {smokeuser_keytab}"
+               " {security_param} {kinit_path_local}",
+               smokeuser_keytab=params.smoke_user_keytab if params.security_enabled else "no_keytab")
 
-  def start(self, env):
-    import params
-    env.set_params(params)
-    self.configure(env) # FOR SECURITY
-    webhcat_service(action = 'start')
+  Execute(cmd,
+          tries=3,
+          try_sleep=5,
+          path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
+          logoutput=True)
 
-  def stop(self, env):
-    import params
-    env.set_params(params)
 
-    webhcat_service(action = 'stop')
 
-  def status(self, env):
-    import status_params
-    env.set_params(status_params)
-    check_process_status(status_params.pid_file)
-
-if __name__ == "__main__":
-  WebHCatServer().execute()

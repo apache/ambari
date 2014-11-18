@@ -20,6 +20,8 @@ Ambari Agent
 """
 from resource_management import *
 import sys
+import os.path
+import glob
 
 
 def webhcat():
@@ -56,6 +58,7 @@ def webhcat():
             recursive=True)
 
   Directory(params.config_dir,
+            recursive=True,
             owner=params.webhcat_user,
             group=params.user_group)
 
@@ -84,10 +87,45 @@ def webhcat():
             path='/bin'
     )
 
-  CopyFromLocal('/usr/lib/hadoop-mapreduce/hadoop-streaming-*.jar',
+  CopyFromLocal(params.hadoop_streeming_jars,
                 owner=params.webhcat_user,
                 mode=0755,
                 dest_dir=params.webhcat_apps_dir,
                 kinnit_if_needed=kinit_if_needed,
-                hdfs_user=params.hdfs_user
+                hdfs_user=params.hdfs_user,
+                hadoop_bin_dir=params.hadoop_bin_dir,
+                hadoop_conf_dir=params.hadoop_conf_dir
   )
+
+  if (os.path.isfile(params.pig_tar_file)):
+    CopyFromLocal(params.pig_tar_file,
+                  owner=params.webhcat_user,
+                  mode=0755,
+                  dest_dir=params.webhcat_apps_dir,
+                  kinnit_if_needed=kinit_if_needed,
+                  hdfs_user=params.hdfs_user,
+                  hadoop_bin_dir=params.hadoop_bin_dir,
+                  hadoop_conf_dir=params.hadoop_conf_dir
+    )
+
+  if (os.path.isfile(params.hive_tar_file)):
+    CopyFromLocal(params.hive_tar_file,
+                  owner=params.webhcat_user,
+                  mode=0755,
+                  dest_dir=params.webhcat_apps_dir,
+                  kinnit_if_needed=kinit_if_needed,
+                  hdfs_user=params.hdfs_user,
+                  hadoop_bin_dir=params.hadoop_bin_dir,
+                  hadoop_conf_dir=params.hadoop_conf_dir
+    )
+
+  if (len(glob.glob(params.sqoop_tar_file)) > 0):
+    CopyFromLocal(params.sqoop_tar_file,
+                  owner=params.webhcat_user,
+                  mode=0755,
+                  dest_dir=params.webhcat_apps_dir,
+                  kinnit_if_needed=kinit_if_needed,
+                  hdfs_user=params.hdfs_user,
+                  hadoop_bin_dir=params.hadoop_bin_dir,
+                  hadoop_conf_dir=params.hadoop_conf_dir
+    )

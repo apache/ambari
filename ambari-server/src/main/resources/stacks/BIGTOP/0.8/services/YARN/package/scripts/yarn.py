@@ -85,7 +85,7 @@ def yarn(name = None):
   )
 
   XmlConfig("core-site.xml",
-            conf_dir=params.config_dir,
+            conf_dir=params.hadoop_conf_dir,
             configurations=params.config['configurations']['core-site'],
             configuration_attributes=params.config['configuration_attributes']['core-site'],
             owner=params.hdfs_user,
@@ -94,7 +94,7 @@ def yarn(name = None):
   )
 
   XmlConfig("mapred-site.xml",
-            conf_dir=params.config_dir,
+            conf_dir=params.hadoop_conf_dir,
             configurations=params.config['configurations']['mapred-site'],
             configuration_attributes=params.config['configuration_attributes']['mapred-site'],
             owner=params.yarn_user,
@@ -103,7 +103,7 @@ def yarn(name = None):
   )
 
   XmlConfig("yarn-site.xml",
-            conf_dir=params.config_dir,
+            conf_dir=params.hadoop_conf_dir,
             configurations=params.config['configurations']['yarn-site'],
             configuration_attributes=params.config['configuration_attributes']['yarn-site'],
             owner=params.yarn_user,
@@ -112,7 +112,7 @@ def yarn(name = None):
   )
 
   XmlConfig("capacity-scheduler.xml",
-            conf_dir=params.config_dir,
+            conf_dir=params.hadoop_conf_dir,
             configurations=params.config['configurations']['capacity-scheduler'],
             configuration_attributes=params.config['configuration_attributes']['capacity-scheduler'],
             owner=params.yarn_user,
@@ -147,7 +147,7 @@ def yarn(name = None):
        content=Template('mapreduce.conf.j2')
   )
 
-  File(format("{config_dir}/yarn-env.sh"),
+  File(format("{hadoop_conf_dir}/yarn-env.sh"),
        owner=params.yarn_user,
        group=params.user_group,
        mode=0755,
@@ -161,7 +161,7 @@ def yarn(name = None):
          mode=06050
     )
 
-    File(format("{config_dir}/container-executor.cfg"),
+    File(format("{hadoop_conf_dir}/container-executor.cfg"),
          group=params.user_group,
          mode=0644,
          content=Template('container-executor.cfg.j2')
@@ -175,7 +175,7 @@ def yarn(name = None):
     tc_mode = None
     tc_owner = params.hdfs_user
 
-  File(format("{config_dir}/mapred-env.sh"),
+  File(format("{hadoop_conf_dir}/mapred-env.sh"),
        owner=tc_owner,
        content=InlineTemplate(params.mapred_env_sh_template)
   )

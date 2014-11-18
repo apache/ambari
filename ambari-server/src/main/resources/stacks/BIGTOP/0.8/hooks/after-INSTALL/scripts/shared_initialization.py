@@ -19,25 +19,11 @@ limitations under the License.
 import os
 from resource_management import *
 
-def setup_hadoop_env():
+def setup_hdp_install_directory():
   import params
-  if params.has_namenode:
-    if params.security_enabled:
-      tc_owner = "root"
-    else:
-      tc_owner = params.hdfs_user
-    Directory(params.hadoop_conf_empty_dir,
-              recursive=True,
-              owner='root',
-              group='root'
-    )
-    Link(params.hadoop_conf_dir,
-         to=params.hadoop_conf_empty_dir,
-         not_if=format("ls {hadoop_conf_dir}")
-    )
-    File(os.path.join(params.hadoop_conf_dir, 'hadoop-env.sh'),
-         owner=tc_owner,
-         content=InlineTemplate(params.hadoop_env_sh_template)
+  if params.rpm_version:
+    Execute(format('ambari-python-wrap /usr/bin/bigtop-select set all `ambari-python-wrap /usr/bin/bigtop-select versions | grep ^{rpm_version}- | tail -1`'),
+            only_if=format('ls -d /usr/bigtop/{rpm_version}-*')
     )
 
 def setup_config():
@@ -49,4 +35,4 @@ def setup_config():
               configuration_attributes=params.config['configuration_attributes']['core-site'],
               owner=params.hdfs_user,
               group=params.user_group
-  )
+    )

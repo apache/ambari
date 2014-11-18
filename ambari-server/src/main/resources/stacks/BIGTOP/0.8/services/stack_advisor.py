@@ -25,7 +25,7 @@ from stack_advisor import DefaultStackAdvisor
 
 class BaseBIGTOP08StackAdvisor(DefaultStackAdvisor):
 
-  def getLayoutValidationItems(self, services, hosts):
+  def getComponentLayoutValidations(self, services, hosts):
     """Returns array of Validation objects about issues with hostnames components assigned to"""
     items = []
 
@@ -70,7 +70,7 @@ class BaseBIGTOP08StackAdvisor(DefaultStackAdvisor):
            items.append({"type": 'host-component', "level": 'ERROR', "message": message, "component-name": componentName})
 
     # Validating host-usage
-    usedHostsListList = [component["StackServiceComponents"]["hostnames"] for component in componentsList if not self.isNotValuable(component)]
+    usedHostsListList = [component["StackServiceComponents"]["hostnames"] for component in componentsList if not self.isComponentNotValuable(component)]
     usedHostsList = [item for sublist in usedHostsListList for item in sublist]
     nonUsedHostsList = [item for item in hostsList if item not in usedHostsList]
     for host in nonUsedHostsList:
@@ -78,7 +78,7 @@ class BaseBIGTOP08StackAdvisor(DefaultStackAdvisor):
 
     return items
 
-  def getServiceConfiguratorDict(self):
+  def getServiceConfigurationRecommenderDict(self):
     return {
       "YARN": self.recommendYARNConfigurations,
       "MAPREDUCE2": self.recommendMapReduce2Configurations
@@ -106,7 +106,7 @@ class BaseBIGTOP08StackAdvisor(DefaultStackAdvisor):
     putMapredProperty('mapreduce.reduce.java.opts', "-Xmx" + str(int(round(0.8 * clusterData['reduceMemory']))) + "m")
     putMapredProperty('mapreduce.task.io.sort.mb', min(int(round(0.4 * clusterData['mapMemory'])), 1024))
 
-  def getClusterData(self, servicesList, hosts, components):
+  def getConfigurationClusterSummary(self, servicesList, hosts, components):
 
     hBaseInstalled = False
     if 'HBASE' in servicesList:
@@ -201,7 +201,7 @@ class BaseBIGTOP08StackAdvisor(DefaultStackAdvisor):
         if siteName in recommendedDefaults:
           siteProperties = getSiteProperties(configurations, siteName)
           if siteProperties is not None:
-            resultItems = method(siteProperties, recommendedDefaults[siteName]["properties"])
+            resultItems = method(siteProperties, recommendedDefaults[siteName]["properties"], configurations)
             items.extend(resultItems)
     return items
 
@@ -259,7 +259,7 @@ class BaseBIGTOP08StackAdvisor(DefaultStackAdvisor):
       return self.getWarnItem("Value is less than the recommended default of -Xmx" + defaultValueXmx)
     return None
 
-  def validateMapReduce2Configurations(self, properties, recommendedDefaults):
+  def validateMapReduce2Configurations(self, properties, recommendedDefaults, configurations):
     validationItems = [ {"config-name": 'mapreduce.map.java.opts', "item": self.validateXmxValue(properties, recommendedDefaults, 'mapreduce.map.java.opts')},
                         {"config-name": 'mapreduce.reduce.java.opts', "item": self.validateXmxValue(properties, recommendedDefaults, 'mapreduce.reduce.java.opts')},
                         {"config-name": 'mapreduce.task.io.sort.mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'mapreduce.task.io.sort.mb')},
@@ -269,7 +269,7 @@ class BaseBIGTOP08StackAdvisor(DefaultStackAdvisor):
                         {"config-name": 'yarn.app.mapreduce.am.command-opts', "item": self.validateXmxValue(properties, recommendedDefaults, 'yarn.app.mapreduce.am.command-opts')} ]
     return self.toConfigurationValidationProblems(validationItems, "mapred-site")
 
-  def validateYARNConfigurations(self, properties, recommendedDefaults):
+  def validateYARNConfigurations(self, properties, recommendedDefaults, configurations):
     validationItems = [ {"config-name": 'yarn.nodemanager.resource.memory-mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'yarn.nodemanager.resource.memory-mb')},
                         {"config-name": 'yarn.scheduler.minimum-allocation-mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'yarn.scheduler.minimum-allocation-mb')},
                         {"config-name": 'yarn.scheduler.maximum-allocation-mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'yarn.scheduler.maximum-allocation-mb')} ]
@@ -290,7 +290,7 @@ class BaseBIGTOP08StackAdvisor(DefaultStackAdvisor):
       'HBASE_MASTER': {"min": 1},
       }
 
-  def selectionSchemes(self):
+  def getComponentLayoutSchemes(self):
     return {
       'NAMENODE': {"else": 0},
       'SECONDARY_NAMENODE': {"else": 1},
@@ -308,16 +308,15 @@ class BaseBIGTOP08StackAdvisor(DefaultStackAdvisor):
 
 class BIGTOP08StackAdvisor(BaseBIGTOP08StackAdvisor):
 
-  def recommendServiceConfigurations(self, service):
-    calculator = super(BIGTOP08StackAdvisor, self).recommendServiceConfigurations(service)
-    if calculator is None:
-      return {
-        "OOZIE": self.recommendOozieConfigurations,
-        "HIVE": self.recommendHiveConfigurations,
-        "TEZ": self.recommendTezConfigurations
-      }.get(service, None)
-    else:
-      return calculator
+  def getServiceConfigurationRecommenderDict(self):
+    parentRecommendConfDict = super(BIGTOP08StackAdvisor, self).getServiceConfigurationRecommenderDict()
+    childRecommendConfDict = {
+      "OOZIE": self.recommendOozieConfigurations,
+      "HIVE": self.recommendHiveConfigurations,
+      "TEZ": self.recommendTezConfigurations
+    }
+    parentRecommendConfDict.update(childRecommendConfDict)
+    return parentRecommendConfDict
 
   def recommendOozieConfigurations(self, configurations, clusterData):
     if "FALCON_SERVER" in clusterData["components"]:
@@ -349,24 +348,8 @@ class BIGTOP08StackAdvisor(BaseBIGTOP08StackAdvisor):
   def getNotValuableComponents(self):
     return ['JOURNALNODE', 'ZKFC', 'GANGLIA_MONITOR', 'APP_TIMELINE_SERVER']
 
-  def selectionSchemes(self):
-    return {
-      'NAMENODE': {"else": 0},
-      'SECONDARY_NAMENODE': {"else": 1},
-      'HBASE_MASTER': {6: 0, 31: 2, "else": 3},
-
-      'HISTORYSERVER': {31: 1, "else": 2},
-      'RESOURCEMANAGER': {31: 1, "else": 2},
-
-      'OOZIE_SERVER': {6: 1, 31: 2, "else": 3},
-
-      'HIVE_SERVER': {6: 1, 31: 2, "else": 4},
-      'HIVE_METASTORE': {6: 1, 31: 2, "else": 4},
-      'WEBHCAT_SERVER': {6: 1, 31: 2, "else": 4},
-      }
-
-  def selectionScheme(self):
-    parentSchemes = super(BIGTOP08StackAdvisor, self).selectionSchemes()
+  def getComponentLayoutSchemes(self):
+    parentSchemes = super(BIGTOP08StackAdvisor, self).getComponentLayoutSchemes()
     childSchemes = {
         'APP_TIMELINE_SERVER': {31: 1, "else": 2},
         'FALCON_SERVER': {6: 1, 31: 2, "else": 3}
@@ -383,13 +366,13 @@ class BIGTOP08StackAdvisor(BaseBIGTOP08StackAdvisor):
     parentValidators.update(childValidators)
     return parentValidators
 
-  def validateHiveConfigurations(self, properties, recommendedDefaults):
+  def validateHiveConfigurations(self, properties, recommendedDefaults, configurations):
     validationItems = [ {"config-name": 'hive.tez.container.size', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'hive.tez.container.size')},
                         {"config-name": 'hive.tez.java.opts', "item": self.validateXmxValue(properties, recommendedDefaults, 'hive.tez.java.opts')},
                         {"config-name": 'hive.auto.convert.join.noconditionaltask.size', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'hive.auto.convert.join.noconditionaltask.size')} ]
     return self.toConfigurationValidationProblems(validationItems, "hive-site")
 
-  def validateTezConfigurations(self, properties, recommendedDefaults):
+  def validateTezConfigurations(self, properties, recommendedDefaults, configurations):
     validationItems = [ {"config-name": 'tez.am.resource.memory.mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'tez.am.resource.memory.mb')},
                         {"config-name": 'tez.am.java.opts', "item": self.validateXmxValue(properties, recommendedDefaults, 'tez.am.java.opts')} ]
     return self.toConfigurationValidationProblems(validationItems, "tez-site")
@@ -437,3 +420,24 @@ def formatXmxSizeToBytes(value):
     modifier == 'p': 1024 * 1024 * 1024 * 1024 * 1024
     }[1]
   return to_number(value) * m
+
+def getPort(address):
+  """
+  Extracts port from the address like 0.0.0.0:1019
+  """
+  if address is None:
+    return None
+  m = re.search(r'(?:http(?:s)?://)?([\w\d.]*):(\d{1,5})', address)
+  if m is not None:
+    return int(m.group(2))
+  else:
+    return None
+
+def isSecurePort(port):
+  """
+  Returns True if port is root-owned at *nix systems
+  """
+  if port is not None:
+    return port < 1024
+  else:
+    return False

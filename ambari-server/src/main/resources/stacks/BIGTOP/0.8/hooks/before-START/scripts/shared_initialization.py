@@ -38,7 +38,8 @@ def setup_hadoop():
     Directory(params.hdfs_log_dir_prefix,
               recursive=True,
               owner='root',
-              group='root'
+              group=params.user_group,
+              mode=0775
     )
     Directory(params.hadoop_pid_dir_prefix,
               recursive=True,
@@ -162,10 +163,11 @@ def install_snappy():
   so_src_dir_x64 = format("{hadoop_home}/lib64")
   so_src_x86 = format("{so_src_dir_x86}/{snappy_so}")
   so_src_x64 = format("{so_src_dir_x64}/{snappy_so}")
-  Execute(
-    format("mkdir -p {so_target_dir_x86}; ln -sf {so_src_x86} {so_target_x86}"))
-  Execute(
-    format("mkdir -p {so_target_dir_x64}; ln -sf {so_src_x64} {so_target_x64}"))
+  if params.has_namenode:
+    Execute(
+      format("mkdir -p {so_target_dir_x86}; ln -sf {so_src_x86} {so_target_x86}"))
+    Execute(
+      format("mkdir -p {so_target_dir_x64}; ln -sf {so_src_x64} {so_target_x64}"))
 
 
 def create_javahome_symlink():

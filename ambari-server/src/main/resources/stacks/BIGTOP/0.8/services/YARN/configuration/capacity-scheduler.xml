@@ -15,7 +15,7 @@
    limitations under the License.
 -->
 
-<configuration supports_final="false">
+<configuration supports_final="false" supports_adding_forbidden="true">
 
   <property>
     <name>yarn.scheduler.capacity.maximum-applications</name>
@@ -117,6 +117,14 @@
       attempts to schedule rack-local containers.
       Typically this should be set to number of nodes in the cluster, By default is setting
       approximately number of nodes in one rack which is 40.
+    </description>
+  </property>
+
+  <property>
+    <name>yarn.scheduler.capacity.default.minimum-user-limit-percent</name>
+    <value>100</value>
+    <description>
+      Default minimum queue resource limit depends on the number of users who have submitted applications.
     </description>
   </property>
 

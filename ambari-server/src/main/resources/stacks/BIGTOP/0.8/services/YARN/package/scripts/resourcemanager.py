@@ -78,10 +78,10 @@ class Resourcemanager(Script):
     env.set_params(params)
     rm_kinit_cmd = params.rm_kinit_cmd
     yarn_user = params.yarn_user
-    conf_dir = params.config_dir
+    conf_dir = params.hadoop_conf_dir
     user_group = params.user_group
 
-    yarn_refresh_cmd = format("{rm_kinit_cmd} /usr/bin/yarn --config {conf_dir} rmadmin -refreshNodes")
+    yarn_refresh_cmd = format("{rm_kinit_cmd} yarn --config {conf_dir} rmadmin -refreshNodes")
 
     File(params.exclude_file_path,
          content=Template("exclude_hosts_list.j2"),
@@ -91,6 +91,7 @@ class Resourcemanager(Script):
 
     if params.update_exclude_file_only == False:
       Execute(yarn_refresh_cmd,
+            environment= {'PATH' : params.execute_path },
             user=yarn_user)
       pass
     pass

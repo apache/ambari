@@ -68,5 +68,10 @@
     <value>4</value>
     <description>(-t) Specifies the number of threads used for writing RRD files. The default is 4. Increasing this number will allow rrdcached to have more simultaneous I/O requests into the kernel. This may allow the kernel to re-order disk writes, resulting in better disk throughput.</description>
   </property>
+  <property>
+    <name>additional_clusters</name>
+    <value> </value>
+    <description>Add additional desired Ganglia metrics cluster in the form "name1:port1,name2:port2". Ensure that the names and ports are unique across all cluster and ports are available on ganglia server host. Ambari has reserved ports 8667-8669 within its own pool.</description>
+  </property>
 
 </configuration>

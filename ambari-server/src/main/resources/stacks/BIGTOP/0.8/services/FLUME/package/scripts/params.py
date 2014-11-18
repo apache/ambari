@@ -26,9 +26,17 @@ proxyuser_group =  config['configurations']['hadoop-env']['proxyuser_group']
 
 security_enabled = False
 
-java_home = config['hostLevelParams']['java_home']
+#RPM versioning support
+rpm_version = default("/configurations/cluster-env/rpm_version", None)
+
+#hadoop params
+if rpm_version:
+  flume_bin = '/usr/bigtop/current/flume-client/bin/flume-ng'
+else:
+  flume_bin = '/usr/bin/flume-ng'
 
 flume_conf_dir = '/etc/flume/conf'
+java_home = config['hostLevelParams']['java_home']
 flume_log_dir = '/var/log/flume'
 flume_run_dir = '/var/run/flume'
 flume_user = 'flume'
@@ -49,6 +57,8 @@ else:
 
 targets = default('/commandParams/flume_handler', None)
 flume_command_targets = [] if targets is None else targets.split(',')
+
+flume_env_sh_template = config['configurations']['flume-env']['content']
 
 ganglia_server_hosts = default('/clusterHostInfo/ganglia_server_host', [])
 ganglia_server_host = None

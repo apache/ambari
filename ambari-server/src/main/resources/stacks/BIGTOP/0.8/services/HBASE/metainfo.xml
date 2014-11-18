@@ -24,7 +24,7 @@
       <comment>Non-relational distributed database and centralized service for configuration management &amp;
         synchronization
       </comment>
-      <version>0.98.2.686</version>
+      <version>0.98.2.687</version>
       <components>
         <component>
           <name>HBASE_MASTER</name>

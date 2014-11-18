@@ -31,28 +31,26 @@ class HdfsServiceCheck(Script):
 
     safemode_command = "dfsadmin -safemode get | grep OFF"
 
-    create_dir_cmd = format("fs -mkdir {dir} ; hadoop fs -chmod 777 {dir}")
-    test_dir_exists = format("hadoop fs -test -e {dir}")
+    create_dir_cmd = format("fs -mkdir {dir}")
+    chmod_command = format("fs -chmod 777 {dir}")
+    test_dir_exists = format("su -s /bin/bash - {smoke_user} -c '{hadoop_bin_dir}/hadoop --config {hadoop_conf_dir} fs -test -e {dir}'")
     cleanup_cmd = format("fs -rm {tmp_file}")
     #cleanup put below to handle retries; if retrying there wil be a stale file
     #that needs cleanup; exit code is fn of second command
     create_file_cmd = format(
-      "{cleanup_cmd}; hadoop fs -put /etc/passwd {tmp_file}")
+      "{cleanup_cmd}; hadoop --config {hadoop_conf_dir} fs -put /etc/passwd {tmp_file}")
     test_cmd = format("fs -test -e {tmp_file}")
-
-    log_dir = format("{hdfs_log_dir_prefix}/{smoke_user}")
-    Directory(log_dir, owner=params.smoke_user, recursive=True)
-
     if params.security_enabled:
       Execute(format(
-        "su - {smoke_user} -c '{kinit_path_local} -kt {smoke_user_keytab} "
+        "su -s /bin/bash - {smoke_user} -c '{kinit_path_local} -kt {smoke_user_keytab} "
         "{smoke_user}'"))
     ExecuteHadoop(safemode_command,
                   user=params.smoke_user,
                   logoutput=True,
                   conf_dir=params.hadoop_conf_dir,
                   try_sleep=3,
-                  tries=20
+                  tries=20,
+                  bin_dir=params.hadoop_bin_dir
     )
     ExecuteHadoop(create_dir_cmd,
                   user=params.smoke_user,
@@ -60,21 +58,32 @@ class HdfsServiceCheck(Script):
                   not_if=test_dir_exists,
                   conf_dir=params.hadoop_conf_dir,
                   try_sleep=3,
-                  tries=5
+                  tries=5,
+                  bin_dir=params.hadoop_bin_dir
+    )
+    ExecuteHadoop(chmod_command,
+                  user=params.smoke_user,
+                  logoutput=True,
+                  conf_dir=params.hadoop_conf_dir,
+                  try_sleep=3,
+                  tries=5,
+                  bin_dir=params.hadoop_bin_dir
     )
     ExecuteHadoop(create_file_cmd,
                   user=params.smoke_user,
                   logoutput=True,
                   conf_dir=params.hadoop_conf_dir,
                   try_sleep=3,
-                  tries=5
+                  tries=5,
+                  bin_dir=params.hadoop_bin_dir
     )
     ExecuteHadoop(test_cmd,
                   user=params.smoke_user,
                   logoutput=True,
                   conf_dir=params.hadoop_conf_dir,
                   try_sleep=3,
-                  tries=5
+                  tries=5,
+                  bin_dir=params.hadoop_bin_dir
     )
     if params.has_journalnode_hosts:
       journalnode_port = params.journalnode_port
@@ -83,7 +92,7 @@ class HdfsServiceCheck(Script):
       checkWebUIFilePath = format("{tmp_dir}/{checkWebUIFileName}")
       comma_sep_jn_hosts = ",".join(params.journalnode_hosts)
       checkWebUICmd = format(
-        "su - {smoke_test_user} -c 'python {checkWebUIFilePath} -m "
+        "su -s /bin/bash - {smoke_test_user} -c 'python {checkWebUIFilePath} -m "
         "{comma_sep_jn_hosts} -p {journalnode_port}'")
       File(checkWebUIFilePath,
            content=StaticFile(checkWebUIFileName))
