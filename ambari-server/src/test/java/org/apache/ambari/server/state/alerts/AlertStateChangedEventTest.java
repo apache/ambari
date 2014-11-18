@@ -19,6 +19,7 @@ package org.apache.ambari.server.state.alerts;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -35,6 +36,7 @@ import org.apache.ambari.server.orm.entities.AlertGroupEntity;
 import org.apache.ambari.server.orm.entities.AlertHistoryEntity;
 import org.apache.ambari.server.orm.entities.AlertNoticeEntity;
 import org.apache.ambari.server.orm.entities.AlertTargetEntity;
+import org.apache.ambari.server.state.AlertState;
 import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Before;
@@ -101,8 +103,73 @@ public class AlertStateChangedEventTest {
    */
   @Test
   public void testAlertNoticeCreationFromEvent() throws Exception {
+    AlertTargetEntity alertTarget = EasyMock.createMock(AlertTargetEntity.class);
+    AlertGroupEntity alertGroup = EasyMock.createMock(AlertGroupEntity.class);
+    List<AlertGroupEntity> groups = new ArrayList<AlertGroupEntity>();
+    Set<AlertTargetEntity> targets = new HashSet<AlertTargetEntity>();
+
+    targets.add(alertTarget);
+    groups.add(alertGroup);
+
+    EasyMock.expect(alertGroup.getAlertTargets()).andReturn(targets).once();
+    EasyMock.expect(alertTarget.getAlertStates()).andReturn(
+        EnumSet.of(AlertState.OK, AlertState.CRITICAL)).atLeastOnce();
+
+    EasyMock.expect(
+        dispatchDao.findGroupsByDefinition(EasyMock.anyObject(AlertDefinitionEntity.class))).andReturn(
+        groups).once();
+
+    dispatchDao.create(EasyMock.anyObject(AlertNoticeEntity.class));
+    EasyMock.expectLastCall().once();
+
+    EasyMock.replay(alertTarget, alertGroup, dispatchDao);
+
     AlertHistoryEntity history = EasyMock.createNiceMock(AlertHistoryEntity.class);
     AlertStateChangeEvent event = EasyMock.createNiceMock(AlertStateChangeEvent.class);
+    EasyMock.expect(history.getAlertState()).andReturn(AlertState.CRITICAL).atLeastOnce();
+    EasyMock.expect(event.getNewHistoricalEntry()).andReturn(history).atLeastOnce();
+
+    EasyMock.replay(history, event);
+
+    // async publishing
+    eventPublisher.publish(event);
+    EasyMock.verify(dispatchDao, history, event);
+  }
+
+  /**
+   * Tests that an {@link AlertNoticeEntity} is not created for a target that
+   * does not match the {@link AlertState} of the alert.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testAlertNoticeSkippedForTarget() throws Exception {
+    AlertTargetEntity alertTarget = EasyMock.createMock(AlertTargetEntity.class);
+    AlertGroupEntity alertGroup = EasyMock.createMock(AlertGroupEntity.class);
+    List<AlertGroupEntity> groups = new ArrayList<AlertGroupEntity>();
+    Set<AlertTargetEntity> targets = new HashSet<AlertTargetEntity>();
+
+    targets.add(alertTarget);
+    groups.add(alertGroup);
+
+    EasyMock.expect(alertGroup.getAlertTargets()).andReturn(targets).once();
+    EasyMock.expect(alertTarget.getAlertStates()).andReturn(
+        EnumSet.of(AlertState.OK, AlertState.CRITICAL)).atLeastOnce();
+
+    EasyMock.expect(
+        dispatchDao.findGroupsByDefinition(EasyMock.anyObject(AlertDefinitionEntity.class))).andReturn(
+        groups).once();
+
+    // dispatchDao should be strict enough to throw an exception on verify
+    // that the create alert notice method was not called
+    EasyMock.replay(alertTarget, alertGroup, dispatchDao);
+
+    AlertHistoryEntity history = EasyMock.createNiceMock(AlertHistoryEntity.class);
+    AlertStateChangeEvent event = EasyMock.createNiceMock(AlertStateChangeEvent.class);
+
+    // use WARNING to ensure that the target (which only cares about OK/CRIT)
+    // does not receive the alert notice
+    EasyMock.expect(history.getAlertState()).andReturn(AlertState.WARNING).atLeastOnce();
     EasyMock.expect(event.getNewHistoricalEntry()).andReturn(history).atLeastOnce();
 
     EasyMock.replay(history, event);
@@ -117,31 +184,12 @@ public class AlertStateChangedEventTest {
    */
   private class MockModule implements Module {
     /**
-    *
-    */
+     * {@inheritDoc}
+     */
     @Override
     public void configure(Binder binder) {
-      AlertTargetEntity alertTarget = EasyMock.createMock(AlertTargetEntity.class);
-      AlertGroupEntity alertGroup = EasyMock.createMock(AlertGroupEntity.class);
-      List<AlertGroupEntity> groups = new ArrayList<AlertGroupEntity>();
-      Set<AlertTargetEntity> targets = new HashSet<AlertTargetEntity>();
-
-      targets.add(alertTarget);
-      groups.add(alertGroup);
-
-      EasyMock.expect(alertGroup.getAlertTargets()).andReturn(targets).once();
-
       AlertDispatchDAO dispatchDao = EasyMock.createMock(AlertDispatchDAO.class);
-      EasyMock.expect(
-          dispatchDao.findGroupsByDefinition(EasyMock.anyObject(AlertDefinitionEntity.class))).andReturn(
-          groups).once();
-
-      dispatchDao.create(EasyMock.anyObject(AlertNoticeEntity.class));
-      EasyMock.expectLastCall().once();
-
       binder.bind(AlertDispatchDAO.class).toInstance(dispatchDao);
-
-      EasyMock.replay(alertTarget, alertGroup, dispatchDao);
     }
   }
 }

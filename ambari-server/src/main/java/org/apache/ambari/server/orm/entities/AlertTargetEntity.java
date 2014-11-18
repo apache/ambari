@@ -23,12 +23,17 @@ import java.util.Set;
 
 import javax.persistence.Basic;
 import javax.persistence.CascadeType;
+import javax.persistence.CollectionTable;
 import javax.persistence.Column;
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.Lob;
 import javax.persistence.ManyToMany;
 import javax.persistence.NamedQueries;
@@ -36,6 +41,8 @@ import javax.persistence.NamedQuery;
 import javax.persistence.PreRemove;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
+
+import org.apache.ambari.server.state.AlertState;
 
 /**
  * The {@link AlertTargetEntity} class represents audience that will receive
@@ -75,6 +82,18 @@ public class AlertTargetEntity {
   @ManyToMany(mappedBy = "alertTargets", cascade = { CascadeType.MERGE,
       CascadeType.REFRESH })
   private Set<AlertGroupEntity> alertGroups;
+
+  /**
+   * Gets the alert states that this target will be notified for. If this is
+   * either empty or {@code null}, then it is implied that all alert states are
+   * of interest to the target. A target without an alert states does not make
+   * sense which is why the absence of states implies all states.
+   */
+  @Enumerated(value = EnumType.STRING)
+  @ElementCollection(targetClass = AlertState.class)
+  @CollectionTable(name = "alert_target_states", joinColumns = @JoinColumn(name = "target_id"))
+  @Column(name = "alert_state")
+  private Set<AlertState> alertStates;
 
   /**
    * Gets the unique ID of this alert target.
@@ -149,6 +168,31 @@ public class AlertTargetEntity {
    */
   public String getTargetName() {
     return targetName;
+  }
+
+  /**
+   * Gets the alert states that will cause a triggered alert to be sent to this
+   * target. A target may be associated with a group where an alert has changed
+   * state, but if that new state is not of interest to the target, it will not
+   * be sent.
+   *
+   * @return the set of alert states or {@code null} or empty to imply all.
+   */
+  public Set<AlertState> getAlertStates() {
+    return alertStates;
+  }
+
+  /**
+   * Sets the alert states that will cause a triggered alert to be sent to this
+   * target. A target may be associated with a group where an alert has changed
+   * state, but if that new state is not of interest to the target, it will not
+   * be sent.
+   *
+   * @param alertStates
+   *          the set of alert states or {@code null} or empty to imply all.
+   */
+  public void setAlertStates(Set<AlertState> alertStates) {
+    this.alertStates = alertStates;
   }
 
   /**

@@ -18,6 +18,8 @@
 package org.apache.ambari.server.controller.internal;
 
 import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertNotNull;
+import static junit.framework.Assert.assertNull;
 import static junit.framework.Assert.assertTrue;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMock;
@@ -28,9 +30,13 @@ import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.resetToStrict;
 import static org.easymock.EasyMock.verify;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -45,6 +51,7 @@ import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.AlertDispatchDAO;
 import org.apache.ambari.server.orm.entities.AlertTargetEntity;
+import org.apache.ambari.server.state.AlertState;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.alert.TargetType;
@@ -92,6 +99,7 @@ public class AlertTargetResourceProviderTest {
    * @throws Exception
    */
   @Test
+  @SuppressWarnings("unchecked")
   public void testGetResourcesNoPredicate() throws Exception {
     Request request = PropertyHelper.getReadRequest(
         AlertTargetResourceProvider.ALERT_TARGET_DESCRIPTION,
@@ -115,7 +123,10 @@ public class AlertTargetResourceProviderTest {
     Map<String, String> properties = (Map<String, String>) resource.getPropertyValue(
         AlertTargetResourceProvider.ALERT_TARGET_PROPERTIES);
 
-    Assert.assertNull(properties);
+    Collection<String> alertStates = (Collection<String>) resource.getPropertyValue(AlertTargetResourceProvider.ALERT_TARGET_STATES);
+
+    assertNull(properties);
+    assertNull(alertStates);
 
     verify(m_dao);
   }
@@ -130,7 +141,8 @@ public class AlertTargetResourceProviderTest {
         AlertTargetResourceProvider.ALERT_TARGET_DESCRIPTION,
         AlertTargetResourceProvider.ALERT_TARGET_ID,
         AlertTargetResourceProvider.ALERT_TARGET_NAME,
-        AlertTargetResourceProvider.ALERT_TARGET_NOTIFICATION_TYPE);
+        AlertTargetResourceProvider.ALERT_TARGET_NOTIFICATION_TYPE,
+        AlertTargetResourceProvider.ALERT_TARGET_STATES);
 
     Predicate predicate = new PredicateBuilder().property(
         AlertTargetResourceProvider.ALERT_TARGET_ID).equals(
@@ -152,11 +164,18 @@ public class AlertTargetResourceProviderTest {
     Assert.assertEquals(ALERT_TARGET_NAME,
         resource.getPropertyValue(AlertTargetResourceProvider.ALERT_TARGET_NAME));
 
+    // alert states were requested
+    Collection<String> alertStates = (Collection<String>) resource.getPropertyValue(AlertTargetResourceProvider.ALERT_TARGET_STATES);
+    Assert.assertNotNull(alertStates);
+    Assert.assertEquals(2, alertStates.size());
+    Assert.assertTrue(alertStates.contains(AlertState.CRITICAL));
+    Assert.assertTrue(alertStates.contains(AlertState.WARNING));
+
     // properties were not requested, they should not be included
     Map<String, String> properties = (Map<String, String>) resource.getPropertyValue(
         AlertTargetResourceProvider.ALERT_TARGET_PROPERTIES);
 
-    Assert.assertNull(properties);
+    assertNull(properties);
 
     // ask for all fields
     request = PropertyHelper.getReadRequest();
@@ -201,6 +220,11 @@ public class AlertTargetResourceProviderTest {
     assertEquals(ALERT_TARGET_TYPE, entity.getNotificationType());
     assertEquals(ALERT_TARGET_PROPS, entity.getProperties());
 
+    // no alert states were set explicitely in the request, so all should be set
+    // by the backend
+    assertNotNull(entity.getAlertStates());
+    assertEquals(EnumSet.allOf(AlertState.class), entity.getAlertStates());
+
     verify(m_amc, m_dao);
   }
 
@@ -208,7 +232,7 @@ public class AlertTargetResourceProviderTest {
    * @throws Exception
    */
   @Test
-  public void testCreateWithRecipientArray() throws Exception {
+  public void testCreateResourceWithRecipientArray() throws Exception {
     Capture<List<AlertTargetEntity>> listCapture = new Capture<List<AlertTargetEntity>>();
 
     m_dao.createTargets(capture(listCapture));
@@ -234,8 +258,56 @@ public class AlertTargetResourceProviderTest {
         "{\"ambari.dispatch.recipients\":\"[\\\"ambari@ambari.apache.org\\\"]\"}",
         entity.getProperties());
 
+    // no alert states were set explicitely in the request, so all should be set
+    // by the backend
+    assertNotNull(entity.getAlertStates());
+    assertEquals(EnumSet.allOf(AlertState.class), entity.getAlertStates());
+
     verify(m_amc, m_dao);
   }
+
+  /**
+   * @throws Exception
+   */
+  @Test
+  @SuppressWarnings("unchecked")
+  public void testCreateResourceWithAlertStates() throws Exception {
+    Capture<List<AlertTargetEntity>> listCapture = new Capture<List<AlertTargetEntity>>();
+
+    m_dao.createTargets(capture(listCapture));
+    expectLastCall();
+
+    replay(m_amc, m_dao);
+
+    AlertTargetResourceProvider provider = createProvider(m_amc);
+    Map<String, Object> requestProps = getCreationProperties();
+    requestProps.put(
+        AlertTargetResourceProvider.ALERT_TARGET_STATES,
+        new ArrayList(Arrays.asList(AlertState.OK.name(),
+            AlertState.UNKNOWN.name())));
+
+    Request request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), null);
+
+    provider.createResources(request);
+
+    Assert.assertTrue(listCapture.hasCaptured());
+    AlertTargetEntity entity = listCapture.getValue().get(0);
+    Assert.assertNotNull(entity);
+
+    assertEquals(ALERT_TARGET_NAME, entity.getTargetName());
+    assertEquals(ALERT_TARGET_DESC, entity.getDescription());
+    assertEquals(ALERT_TARGET_TYPE, entity.getNotificationType());
+    assertEquals(ALERT_TARGET_PROPS, entity.getProperties());
+
+    Set<AlertState> alertStates = entity.getAlertStates();
+    assertNotNull(alertStates);
+    assertEquals(2, alertStates.size());
+    assertTrue(alertStates.contains(AlertState.OK));
+    assertTrue(alertStates.contains(AlertState.UNKNOWN));
+
+    verify(m_amc, m_dao);
+  }
+
 
   /**
    * @throws Exception
@@ -344,6 +416,7 @@ public class AlertTargetResourceProviderTest {
   /**
    * @return
    */
+  @SuppressWarnings({ "rawtypes", "unchecked" })
   private List<AlertTargetEntity> getMockEntities() throws Exception {
     AlertTargetEntity entity = new AlertTargetEntity();
     entity.setTargetId(ALERT_TARGET_ID);
@@ -351,6 +424,10 @@ public class AlertTargetResourceProviderTest {
     entity.setTargetName(ALERT_TARGET_NAME);
     entity.setNotificationType(ALERT_TARGET_TYPE);
     entity.setProperties(ALERT_TARGET_PROPS);
+
+    entity.setAlertStates(new HashSet(Arrays.asList(AlertState.CRITICAL,
+        AlertState.WARNING)));
+
     return Arrays.asList(entity);
   }
 

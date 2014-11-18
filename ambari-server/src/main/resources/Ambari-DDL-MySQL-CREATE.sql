@@ -651,6 +651,12 @@ CREATE TABLE alert_target (
   PRIMARY KEY (target_id)
 );
 
+CREATE TABLE alert_target_states (
+  target_id BIGINT NOT NULL,
+  alert_state VARCHAR(255) NOT NULL,
+  FOREIGN KEY (target_id) REFERENCES alert_target(target_id)
+);
+
 CREATE TABLE alert_group_target (
   group_id BIGINT NOT NULL,
   target_id BIGINT NOT NULL,

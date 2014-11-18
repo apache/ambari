@@ -25,7 +25,6 @@ import java.util.List;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
-import org.apache.ambari.server.orm.dao.DaoUtils;
 import org.apache.ambari.server.state.UpgradeState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,10 +38,9 @@ import com.google.inject.Injector;
  */
 public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
 
-  private static final String ALERT_TABLE_DEFINITION = "alert_definition";
-
-  @Inject
-  private DaoUtils daoUtils;
+  private static final String ALERT_DEFINITION_TABLE = "alert_definition";
+  private static final String ALERT_TARGET_TABLE = "alert_target";
+  private static final String ALERT_TARGET_STATES_TABLE = "alert_target_states";
 
   /**
    * {@inheritDoc}
@@ -88,8 +86,17 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
     prepareRollingUpgradesDDL();
 
     // add ignore_host column to alert_definition
-    dbAccessor.addColumn(ALERT_TABLE_DEFINITION, new DBColumnInfo(
+    dbAccessor.addColumn(ALERT_DEFINITION_TABLE, new DBColumnInfo(
         "ignore_host", Short.class, 1, 0, false));
+
+    // create alert_target_states table
+    ArrayList<DBColumnInfo> columns = new ArrayList<DBColumnInfo>();
+    columns.add(new DBColumnInfo("target_id", Long.class, null, null, false));
+    columns.add(new DBColumnInfo("alert_state", String.class, 255, null, false));
+    dbAccessor.createTable(ALERT_TARGET_STATES_TABLE, columns, "target_id");
+    dbAccessor.addFKConstraint(ALERT_TARGET_STATES_TABLE,
+        "fk_alert_target_states_target_id", "target_id", ALERT_TARGET_TABLE,
+        "target_id", false);
 
     // Alter column : make viewinstanceproperty.value & viewinstancedata.value nullable
     dbAccessor.alterColumn("viewinstanceproperty", new DBColumnInfo("value", String.class, 2000, null, true));

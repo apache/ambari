@@ -711,6 +711,12 @@ CREATE TABLE ambari.alert_target (
   PRIMARY KEY (target_id)
 );
 
+CREATE TABLE ambari.alert_target_states (
+  target_id BIGINT NOT NULL,
+  alert_state VARCHAR(255) NOT NULL,
+  FOREIGN KEY (target_id) REFERENCES ambari.alert_target(target_id)
+);
+
 CREATE TABLE ambari.alert_group_target (
   group_id BIGINT NOT NULL,
   target_id BIGINT NOT NULL,
@@ -743,6 +749,7 @@ GRANT ALL PRIVILEGES ON TABLE ambari.alert_history TO :username;
 GRANT ALL PRIVILEGES ON TABLE ambari.alert_current TO :username;
 GRANT ALL PRIVILEGES ON TABLE ambari.alert_group TO :username;
 GRANT ALL PRIVILEGES ON TABLE ambari.alert_target TO :username;
+GRANT ALL PRIVILEGES ON TABLE ambari.alert_target_states TO :username;
 GRANT ALL PRIVILEGES ON TABLE ambari.alert_group_target TO :username;
 GRANT ALL PRIVILEGES ON TABLE ambari.alert_grouping TO :username;
 GRANT ALL PRIVILEGES ON TABLE ambari.alert_notice TO :username;

@@ -20,6 +20,8 @@ package org.apache.ambari.server.controller.internal;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -41,6 +43,7 @@ import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.AlertDispatchDAO;
 import org.apache.ambari.server.orm.entities.AlertTargetEntity;
+import org.apache.ambari.server.state.AlertState;
 import org.apache.ambari.server.state.alert.AlertTarget;
 import org.apache.commons.lang.StringUtils;
 
@@ -63,6 +66,7 @@ public class AlertTargetResourceProvider extends
   protected static final String ALERT_TARGET_NOTIFICATION_TYPE = "AlertTarget/notification_type";
   protected static final String ALERT_TARGET_PROPERTIES = "AlertTarget/properties";
   protected static final String ALERT_TARGET_GROUPS = "AlertTarget/groups";
+  protected static final String ALERT_TARGET_STATES = "AlertTarget/alert_states";
 
   private static final Set<String> PK_PROPERTY_IDS = new HashSet<String>(
       Arrays.asList(ALERT_TARGET_ID, ALERT_TARGET_NAME));
@@ -85,6 +89,7 @@ public class AlertTargetResourceProvider extends
     PROPERTY_IDS.add(ALERT_TARGET_NOTIFICATION_TYPE);
     PROPERTY_IDS.add(ALERT_TARGET_PROPERTIES);
     PROPERTY_IDS.add(ALERT_TARGET_GROUPS);
+    PROPERTY_IDS.add(ALERT_TARGET_STATES);
 
     // keys
     KEY_PROPERTY_IDS.put(Resource.Type.AlertTarget, ALERT_TARGET_ID);
@@ -218,6 +223,7 @@ public class AlertTargetResourceProvider extends
    * @param requestMaps
    * @throws AmbariException
    */
+  @SuppressWarnings("unchecked")
   private void createAlertTargets(Set<Map<String, Object>> requestMaps)
       throws AmbariException {
     List<AlertTargetEntity> entities = new ArrayList<AlertTargetEntity>();
@@ -227,6 +233,7 @@ public class AlertTargetResourceProvider extends
       String name = (String) requestMap.get(ALERT_TARGET_NAME);
       String description = (String) requestMap.get(ALERT_TARGET_DESCRIPTION);
       String notificationType = (String) requestMap.get(ALERT_TARGET_NOTIFICATION_TYPE);
+      Collection<String> alertStates = (Collection<String>) requestMap.get(ALERT_TARGET_STATES);
 
       if (StringUtils.isEmpty(name)) {
         throw new IllegalArgumentException(
@@ -244,10 +251,22 @@ public class AlertTargetResourceProvider extends
             "Alert targets must be created with their connection properties");
       }
 
+      // set the states that this alert target cares about
+      final Set<AlertState> alertStateSet;
+      if (null != alertStates) {
+        alertStateSet = new HashSet<AlertState>(alertStates.size());
+        for (String state : alertStates) {
+          alertStateSet.add(AlertState.valueOf(state));
+        }
+      } else {
+        alertStateSet = EnumSet.allOf(AlertState.class);
+      }
+
       entity.setDescription(description);
       entity.setNotificationType(notificationType);
       entity.setProperties(properties);
       entity.setTargetName(name);
+      entity.setAlertStates(alertStateSet);
 
       entities.add(entity);
     }
@@ -263,6 +282,7 @@ public class AlertTargetResourceProvider extends
    * @throws AmbariException
    *           if the entity could not be found.
    */
+  @SuppressWarnings("unchecked")
   private void updateAlertTargets(Set<Map<String, Object>> requestMaps)
       throws AmbariException {
 
@@ -286,6 +306,7 @@ public class AlertTargetResourceProvider extends
       String name = (String) requestMap.get(ALERT_TARGET_NAME);
       String description = (String) requestMap.get(ALERT_TARGET_DESCRIPTION);
       String notificationType = (String) requestMap.get(ALERT_TARGET_NOTIFICATION_TYPE);
+      Collection<String> alertStates = (Collection<String>) requestMap.get(ALERT_TARGET_STATES);
 
       if (!StringUtils.isBlank(name)) {
         entity.setTargetName(name);
@@ -302,6 +323,23 @@ public class AlertTargetResourceProvider extends
       String properties = extractProperties(requestMap);
       if (!StringUtils.isEmpty(properties)) {
         entity.setProperties(properties);
+      }
+
+      // a null alert state implies that the key was not set and no update
+      // should occur for this field, while an empty list implies all alert
+      // states should be set
+      if (null != alertStates) {
+        final Set<AlertState> alertStateSet;
+        if (alertStates.isEmpty()) {
+          alertStateSet = EnumSet.allOf(AlertState.class);
+        } else {
+          alertStateSet = new HashSet<AlertState>(alertStates.size());
+          for (String state : alertStates) {
+            alertStateSet.add(AlertState.valueOf(state));
+          }
+        }
+
+        entity.setAlertStates(alertStateSet);
       }
 
       s_dao.merge(entity);
@@ -341,6 +379,9 @@ public class AlertTargetResourceProvider extends
 
       resource.setProperty(ALERT_TARGET_PROPERTIES, map);
     }
+
+    setResourceProperty(resource, ALERT_TARGET_STATES, entity.getAlertStates(),
+        requestedIds);
 
     return resource;
   }

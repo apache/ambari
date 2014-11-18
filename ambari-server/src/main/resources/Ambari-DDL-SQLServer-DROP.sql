@@ -166,6 +166,8 @@ IF OBJECT_ID('alert_grouping', 'U') IS NOT NULL DROP TABLE alert_grouping
 GO
 IF OBJECT_ID('alert_group_target', 'U') IS NOT NULL DROP TABLE alert_group_target
 GO
+IF OBJECT_ID('alert_target_states', 'U') IS NOT NULL DROP TABLE alert_target_states
+GO
 IF OBJECT_ID('alert_target', 'U') IS NOT NULL DROP TABLE alert_target
 GO
 IF OBJECT_ID('alert_group', 'U') IS NOT NULL DROP TABLE alert_group

@@ -31,6 +31,7 @@ import org.apache.ambari.server.orm.entities.AlertGroupEntity;
 import org.apache.ambari.server.orm.entities.AlertHistoryEntity;
 import org.apache.ambari.server.orm.entities.AlertNoticeEntity;
 import org.apache.ambari.server.orm.entities.AlertTargetEntity;
+import org.apache.ambari.server.state.AlertState;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.NotificationState;
 import org.apache.commons.logging.Log;
@@ -72,7 +73,12 @@ public class AlertStateChangedListener {
   }
 
   /**
-   * Listens for when an alert's state has changed.
+   * Listens for when an alert's state has changed and creates
+   * {@link AlertNoticeEntity} instances when appropriate to notify
+   * {@link AlertTargetEntity}.
+   * <p/>
+   * {@link AlertNoticeEntity} are only created when the target has the
+   * {@link AlertState} in its list of states.
    */
   @Subscribe
   @AllowConcurrentEvents
@@ -100,6 +106,10 @@ public class AlertStateChangedListener {
       }
 
       for (AlertTargetEntity target : targets) {
+        if (!isAlertTargetInterested(target, history)) {
+          continue;
+        }
+
         AlertNoticeEntity notice = new AlertNoticeEntity();
         notice.setUuid(UUID.randomUUID().toString());
         notice.setAlertTarget(target);
@@ -109,5 +119,29 @@ public class AlertStateChangedListener {
         m_alertsDispatchDao.create(notice);
       }
     }
+  }
+
+  /**
+   * Gets whether the {@link AlertTargetEntity} is interested in receiving a
+   * notification about the {@link AlertHistoryEntity}'s state change.
+   *
+   * @param target
+   *          the target (not {@code null}).
+   * @param history
+   *          the history entry that represents the state change (not
+   *          {@code null}).
+   * @return {@code true} if the target cares about this state change,
+   *         {@code false} otherwise.
+   */
+  private boolean isAlertTargetInterested(AlertTargetEntity target,
+      AlertHistoryEntity history) {
+    Set<AlertState> alertStates = target.getAlertStates();
+    if (null != alertStates && alertStates.size() > 0) {
+      if (!alertStates.contains(history.getAlertState())) {
+        return false;
+      }
+    }
+
+    return true;
   }
 }

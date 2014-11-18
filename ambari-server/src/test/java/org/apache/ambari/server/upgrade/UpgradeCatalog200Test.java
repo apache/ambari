@@ -18,9 +18,6 @@
 
 package org.apache.ambari.server.upgrade;
 
-import java.sql.SQLException;
-import java.util.List;
-
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertNull;
@@ -36,6 +33,8 @@ import static org.easymock.EasyMock.verify;
 
 import java.lang.reflect.Field;
 import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.List;
 
 import javax.persistence.EntityManager;
 
@@ -94,6 +93,7 @@ public class UpgradeCatalog200Test {
     Capture<List<DBAccessor.DBColumnInfo>> hostVersionCapture = new Capture<List<DBAccessor.DBColumnInfo>>();
     Capture<DBAccessor.DBColumnInfo> valueColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
     Capture<DBAccessor.DBColumnInfo> dataValueColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
+    Capture<List<DBAccessor.DBColumnInfo>> alertTargetStatesCapture = new Capture<List<DBAccessor.DBColumnInfo>>();
 
     Capture<List<DBAccessor.DBColumnInfo>> upgradeCapture = new Capture<List<DBAccessor.DBColumnInfo>>();
     Capture<List<DBAccessor.DBColumnInfo>> upgradeItemCapture = new Capture<List<DBAccessor.DBColumnInfo>>();
@@ -101,6 +101,9 @@ public class UpgradeCatalog200Test {
     // Alert Definition
     dbAccessor.addColumn(eq("alert_definition"),
         capture(alertDefinitionIgnoreColumnCapture));
+
+    dbAccessor.createTable(eq("alert_target_states"),
+        capture(alertTargetStatesCapture), eq("target_id"));
 
     // Host Component State
     dbAccessor.addColumn(eq("hostcomponentstate"),
@@ -136,6 +139,9 @@ public class UpgradeCatalog200Test {
 
     // verify ignore column for alert_definition
     verifyAlertDefinitionIgnoreColumn(alertDefinitionIgnoreColumnCapture);
+
+    // verify new table for alert target states
+    verifyAlertTargetStatesTable(alertTargetStatesCapture);
 
     // Verify added column in hostcomponentstate table
     DBAccessor.DBColumnInfo upgradeStateColumn = hostComponentStateColumnCapture.getValue();
@@ -188,6 +194,16 @@ public class UpgradeCatalog200Test {
     Assert.assertEquals(Integer.valueOf(1), column.getLength());
     Assert.assertEquals(Short.class, column.getType());
     Assert.assertEquals("ignore_host", column.getName());
+  }
+
+  /**
+   * Verifies alert_target_states table.
+   *
+   * @param alertTargetStatesColumnCapture
+   */
+  private void verifyAlertTargetStatesTable(
+      Capture<List<DBAccessor.DBColumnInfo>> alertTargetStatesCapture) {
+    Assert.assertEquals(2, alertTargetStatesCapture.getValue().size());
   }
 
   @Test
