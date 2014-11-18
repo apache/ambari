@@ -132,7 +132,6 @@ class OSConst:
 
 
 class OSCheck:
-  _dist = get_os_distribution()
 
   @staticmethod
   def get_os_os():
@@ -144,7 +143,7 @@ class OSCheck:
     """
     # Read content from /etc/*-release file
     # Full release name
-    os_os = OSCheck._dist[0].lower()
+    os_os = get_os_distribution()[0].lower()
 
     return os_os
 
@@ -161,7 +160,7 @@ class OSCheck:
     """
     # Read content from /etc/*-release file
     # Full release name
-    operatingSystem  = OSCheck._dist[2].lower()
+    operatingSystem  = get_os_distribution()[2].lower()
 
     # special cases
     if os.path.exists('/etc/oracle-release'):
@@ -199,7 +198,7 @@ class OSCheck:
 
     In case cannot detect raises exception.
     """
-    dist = OSCheck._dist[3]
+    dist = get_os_distribution()[3]
 
     if dist:
       return dist
@@ -222,7 +221,7 @@ class OSCheck:
 
     In case cannot detect raises exception.
     """
-    dist = OSCheck._dist[4].lower()
+    dist = get_os_distribution()[4].lower()
 
     if dist:
       return dist
