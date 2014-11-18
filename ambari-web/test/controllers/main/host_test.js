@@ -147,7 +147,7 @@ describe('MainHostController', function () {
         { value: 'a1.*', expected: '.*a1.*' },
         { value: 'a1.*.a2.a3', expected: '.*a1.*.a2.a3.*' },
         { value: 'a1.*.a2...a3', expected: '.*a1.*.a2...a3.*' }
-      ]
+      ];
 
     tests.forEach(function(test){
       it(message.format(test.value, test.expected), function() {
@@ -184,4 +184,34 @@ describe('MainHostController', function () {
       expect(mock.checkRegionServerState.calledWith('host1')).to.be.true;
     });
   });
+
+  describe('#getQueryParameters', function() {
+    beforeEach(function() {
+      hostController = App.MainHostController.create({});
+      sinon.spy(hostController, 'getRegExp');
+      sinon.stub(App.db, 'getFilterConditions', function() {
+        return [{
+          iColumn: 1,
+          skipFilter: false,
+          type: "string",
+          value: "someval"
+        }];
+      });
+    });
+    
+    afterEach(function() {
+      App.db.getFilterConditions.restore();
+      hostController.getRegExp.restore();
+    });
+
+    it('should call #getRegExp with value `someval` on host name filter', function() {
+      hostController.getQueryParameters();
+      expect(hostController.getRegExp.calledWith('someval')).to.ok;
+    });
+
+    it('result should include host name filter converted value', function() {
+      expect(hostController.getQueryParameters().findProperty('key', 'Hosts/host_name').value).to.equal('.*someval.*');
+    });
+  });
+  
 });

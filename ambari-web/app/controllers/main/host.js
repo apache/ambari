@@ -68,8 +68,8 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
    */
   filterProperties: [
     {
-      key: 'publicHostName',
-      alias: 'Hosts/public_host_name',
+      key: 'hostName',
+      alias: 'Hosts/host_name',
       type: 'MATCH'
     },
     {
@@ -126,8 +126,8 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
 
   sortProps: [
     {
-      name: 'publicHostName',
-      key: 'Hosts/public_host_name'
+      name: 'hostName',
+      key: 'Hosts/host_name'
     },
     {
       name: 'ip',
@@ -167,12 +167,12 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
   },
 
   getSortProps: function () {
-    // sort by public_host_name by default
+    // sort by host_name by default
     if (App.db.getSortingStatuses(this.get('name')) && App.db.getSortingStatuses(this.get('name')).length === 0) {
       App.db.setSortingStatuses(this.get('name'), {
-        name: 'publicHostName',
+        name: 'hostName',
         status: 'sorting_asc'
-      })
+      });
     }
     return this._super();
   },
@@ -205,7 +205,7 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
           type: property.type,
           isFilter: true
         };
-        if (filter.type === 'string' && sortProperties.someProperty('key', colPropAssoc[filter.iColumn])) {
+        if (filter.type === 'string' && sortProperties.someProperty('name', colPropAssoc[filter.iColumn])) {
           result.value = this.getRegExp(filter.value);
         }
         if (filter.type === 'number' || filter.type === 'ambari-bandwidth') {
@@ -916,7 +916,7 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
   colPropAssoc: function () {
     var associations = [];
     associations[0] = 'healthClass';
-    associations[1] = 'publicHostName';
+    associations[1] = 'hostName';
     associations[2] = 'ip';
     associations[3] = 'cpu';
     associations[4] = 'memoryFormatted';
