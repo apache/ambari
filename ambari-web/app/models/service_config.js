@@ -469,6 +469,27 @@ App.ServiceConfigProperty = Ember.Object.extend({
       case 'hadoop_host':
         this.set('value', masterComponentHostsInDB.filterProperty('component', 'NAMENODE').mapProperty('hostName'));
         break;
+      case 'sink_existing_mssql_server_host':
+      case 'sink_existing_mssql_server_2_host':
+        var nameNodeHost = masterComponentHostsInDB.findProperty('component', 'NAMENODE').hostName;
+        this.set('value', nameNodeHost).set('defaultValue', nameNodeHost);
+        break;
+      case 'hive_existing_mysql_host':
+      case 'hive_existing_postgresql_host':
+      case 'hive_existing_oracle_host':
+      case 'hive_existing_mssql_server_host':
+      case 'hive_existing_mssql_server_2_host':
+        var hiveServerHost = masterComponentHostsInDB.findProperty('component', 'HIVE_SERVER').hostName;
+        this.set('value', hiveServerHost).set('defaultValue', hiveServerHost);
+        break;
+      case 'oozie_existing_mysql_host':
+      case 'oozie_existing_postgresql_host':
+      case 'oozie_existing_oracle_host':
+      case 'oozie_existing_mssql_server_host':
+      case 'oozie_existing_mssql_server_2_host':
+        var oozieServerHost = masterComponentHostsInDB.findProperty('component', 'OOZIE_SERVER').hostName;
+        this.set('value', oozieServerHost).set('defaultValue', oozieServerHost);
+        break;
       case 'storm.zookeeper.servers':
       case 'zookeeperserver_hosts':
         this.set('value', masterComponentHostsInDB.filterProperty('component', 'ZOOKEEPER_SERVER').mapProperty('hostName'));
