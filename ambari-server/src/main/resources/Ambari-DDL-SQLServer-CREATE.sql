@@ -268,7 +268,7 @@ CREATE TABLE upgrade (
   cluster_id BIGINT NOT NULL,
   state VARCHAR(255) DEFAULT 'NONE' NOT NULL,
   PRIMARY KEY (upgrade_id),
-  FOREIGN KEY (cluster_id) REFERENCES ambari.clusters(cluster_id)
+  FOREIGN KEY (cluster_id) REFERENCES clusters(cluster_id)
 );
 
 CREATE TABLE upgrade_item (
