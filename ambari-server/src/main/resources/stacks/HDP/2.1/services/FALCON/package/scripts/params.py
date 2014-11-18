@@ -50,7 +50,12 @@ proxyuser_group =  config['configurations']['hadoop-env']['proxyuser_group']
 java_home = config['hostLevelParams']['java_home']
 falcon_local_dir = config['configurations']['falcon-env']['falcon_local_dir']
 falcon_log_dir = config['configurations']['falcon-env']['falcon_log_dir']
+
+# falcon-startup.properties
 store_uri = config['configurations']['falcon-startup.properties']['*.config.store.uri']
+# If these properties are present, the directories need to be created.
+falcon_graph_storage_directory = default("/configurations/falcon-startup.properties/*.falcon.graph.storage.directory", None)  # explicitly set in HDP 2.2 and higher
+falcon_graph_serialize_path = default("/configurations/falcon-startup.properties/*.falcon.graph.serialize.path", None)        # explicitly set in HDP 2.2 and higher
 
 falcon_embeddedmq_data = config['configurations']['falcon-env']['falcon.embeddedmq.data']
 falcon_embeddedmq_enabled = config['configurations']['falcon-env']['falcon.embeddedmq']

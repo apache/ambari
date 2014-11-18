@@ -33,7 +33,8 @@
       org.apache.falcon.entity.store.ConfigurationStore,\
       org.apache.falcon.rerun.service.RetryService,\
       org.apache.falcon.rerun.service.LateRunService,\
-      org.apache.falcon.service.LogCleanupService
+      org.apache.falcon.service.LogCleanupService,\
+      org.apache.falcon.metadata.MetadataMappingService
     </value>
     <description>Falcon Services</description>
   </property>
@@ -84,6 +85,33 @@
     <name>*.falcon.security.authorization.provider</name>
     <value>org.apache.falcon.security.DefaultAuthorizationProvider</value>
     <description>Authorization Provider Implementation Fully Qualified Class Name</description>
+  </property>
+
+  <!-- Falcon Graph and Storage -->
+  <property>
+    <name>*.falcon.graph.blueprints.graph</name>
+    <value>com.thinkaurelius.titan.core.TitanFactory</value>
+    <description></description>
+  </property>
+  <property>
+    <name>*.falcon.graph.storage.directory</name>
+    <value>/hadoop/falcon/data/lineage/graphdb</value>
+    <description></description>
+  </property>
+  <property>
+    <name>*.falcon.graph.storage.backend</name>
+    <value>berkeleyje</value>
+    <description></description>
+  </property>
+  <property>
+    <name>*.falcon.graph.serialize.path</name>
+    <value>/hadoop/falcon/data/lineage</value>
+    <description></description>
+  </property>
+  <property>
+    <name>*.falcon.graph.preserve.history</name>
+    <value>false</value>
+    <description></description>
   </property>
 
 </configuration>

@@ -575,6 +575,8 @@ App.ServiceConfigProperty = Ember.Object.extend({
       case 'oozie_data_dir':
       case 'hbase.tmp.dir':
       case 'storm.local.dir':
+      case '*.falcon.graph.storage.directory':
+      case '*.falcon.graph.serialize.path':
         this.unionAllMountPoints(isOnlyFirstOneNeeded, localDB);
         break;
       case '*.broker.url':
@@ -688,6 +690,13 @@ App.ServiceConfigProperty = Ember.Object.extend({
         components = masterComponentHostsInDB.filterProperty('component', 'NIMBUS');
         components.forEach(function (component) {
           setOfHostNames.push(component.hostName);
+        }, this);
+        break;
+      case '*.falcon.graph.storage.directory':
+      case '*.falcon.graph.serialize.path':
+        components = masterComponentHostsInDB.findProperty('componentName', 'FALCON_SERVER');
+        components.hosts.forEach(function (host) {
+          setOfHostNames.push(host.hostName);
         }, this);
         break;
       case 'log.dirs':
