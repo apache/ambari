@@ -1,11 +1,4 @@
 {
-	"configurations" : [
-		{
-			"nagios-env" : {
-				"nagios_contact": "me@my-awesome-domain.example"
-			}
-		}
-	],
   "host_groups" : [
     {
       "name" : "host_group_1",
@@ -48,9 +41,6 @@
         },
         {
           "name" : "GANGLIA_SERVER"
-        },
-        {
-          "name" : "NAGIOS_SERVER"
         }
       ],
       "cardinality" : "1"
