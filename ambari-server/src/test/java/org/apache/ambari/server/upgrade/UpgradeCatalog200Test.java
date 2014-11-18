@@ -88,6 +88,7 @@ public class UpgradeCatalog200Test {
     expect(configuration.getDatabaseUrl()).andReturn(Configuration.JDBC_IN_MEMORY_URL).anyTimes();
 
     Capture<DBAccessor.DBColumnInfo> alertDefinitionIgnoreColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
+    Capture<DBAccessor.DBColumnInfo> alertDefinitionDescriptionColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
     Capture<DBAccessor.DBColumnInfo> hostComponentStateColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
     Capture<List<DBAccessor.DBColumnInfo>> clusterVersionCapture = new Capture<List<DBAccessor.DBColumnInfo>>();
     Capture<List<DBAccessor.DBColumnInfo>> hostVersionCapture = new Capture<List<DBAccessor.DBColumnInfo>>();
@@ -101,6 +102,9 @@ public class UpgradeCatalog200Test {
     // Alert Definition
     dbAccessor.addColumn(eq("alert_definition"),
         capture(alertDefinitionIgnoreColumnCapture));
+
+    dbAccessor.addColumn(eq("alert_definition"),
+        capture(alertDefinitionDescriptionColumnCapture));
 
     dbAccessor.createTable(eq("alert_target_states"),
         capture(alertTargetStatesCapture), eq("target_id"));
@@ -119,9 +123,9 @@ public class UpgradeCatalog200Test {
 
     // Upgrade
     dbAccessor.createTable(eq("upgrade"), capture(upgradeCapture), eq("upgrade_id"));
+
     // Upgrade item
     dbAccessor.createTable(eq("upgrade_item"), capture(upgradeItemCapture), eq("upgrade_item_id"));
-
 
     setViewInstancePropertyExpectations(dbAccessor, valueColumnCapture);
     setViewInstanceDataExpectations(dbAccessor, dataValueColumnCapture);
@@ -137,8 +141,9 @@ public class UpgradeCatalog200Test {
     upgradeCatalog.executeDDLUpdates();
     verify(dbAccessor, configuration, resultSet);
 
-    // verify ignore column for alert_definition
+    // verify columns for alert_definition
     verifyAlertDefinitionIgnoreColumn(alertDefinitionIgnoreColumnCapture);
+    verifyAlertDefinitionDescriptionColumn(alertDefinitionDescriptionColumnCapture);
 
     // verify new table for alert target states
     verifyAlertTargetStatesTable(alertTargetStatesCapture);
@@ -183,7 +188,7 @@ public class UpgradeCatalog200Test {
   }
 
   /**
-   * Verifies new ignore column.
+   * Verifies new ignore column for alert definition.
    *
    * @param alertDefinitionIgnoreColumnCapture
    */
@@ -194,6 +199,19 @@ public class UpgradeCatalog200Test {
     Assert.assertEquals(Integer.valueOf(1), column.getLength());
     Assert.assertEquals(Short.class, column.getType());
     Assert.assertEquals("ignore_host", column.getName());
+  }
+
+  /**
+   * Verifies new description column for alert definition.
+   *
+   * @param alertDefinitionIgnoreColumnCapture
+   */
+  private void verifyAlertDefinitionDescriptionColumn(
+      Capture<DBAccessor.DBColumnInfo> alertDefinitionDescriptionColumnCapture) {
+    DBColumnInfo column = alertDefinitionDescriptionColumnCapture.getValue();
+    Assert.assertEquals(null, column.getDefaultValue());
+    Assert.assertEquals(char[].class, column.getType());
+    Assert.assertEquals("description", column.getName());
   }
 
   /**

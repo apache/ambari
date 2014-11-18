@@ -92,6 +92,11 @@ public class AlertDefinitionEntity {
   @Column(name = "label", nullable = true, length = 255)
   private String label;
 
+  @Lob
+  @Basic
+  @Column(name = "description", nullable = true, length = 32672)
+  private String description;
+
   @Column(name = "scope", length = 255)
   @Enumerated(value = EnumType.STRING)
   private Scope scope;
@@ -432,6 +437,25 @@ public class AlertDefinitionEntity {
    */
   public String getLabel() {
     return label;
+  }
+
+  /**
+   * Gets the optional description for this alert definition.
+   *
+   * @return the description, or {@code null} if none.
+   */
+  public String getDescription() {
+    return description;
+  }
+
+  /**
+   * Gets the optional description for this alert definition.
+   *
+   * @param description
+   *          the description to set or {@code null} for none.
+   */
+  public void setDescription(String description) {
+    this.description = description;
   }
 
   /**

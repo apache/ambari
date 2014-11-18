@@ -33,6 +33,7 @@ public class AlertDefinitionResponse {
   private String componentName = null;
   private String name = null;
   private String label = null;
+  private String description = null;
   private Long definitionId;
   private boolean enabled = true;
   private SourceType sourceType;
@@ -117,6 +118,22 @@ public class AlertDefinitionResponse {
     label = definitionLabel;
   }
 
+  /**
+   * @return the description for the definition or {@code null} if none.
+   */
+  @JsonProperty("description")
+  public String getDescription() {
+    return description;
+  }
+
+  /**
+   * Sets the description for this definition.
+   *
+   * @param definitionDescription
+   */
+  public void setDescription(String definitionDescription) {
+    description = definitionDescription;
+  }
 
   /**
    * Gets whether this definition is enabled.
@@ -179,6 +196,7 @@ public class AlertDefinitionResponse {
     response.setDefinitionId(entity.getDefinitionId());
     response.setComponentName(entity.getComponentName());
     response.setLabel(entity.getLabel());
+    response.setDescription(entity.getDescription());
     response.setName(entity.getDefinitionName());
     response.setServiceName(entity.getServiceName());
     response.setEnabled(entity.getEnabled());

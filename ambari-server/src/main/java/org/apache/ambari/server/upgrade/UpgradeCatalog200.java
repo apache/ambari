@@ -89,6 +89,9 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
     dbAccessor.addColumn(ALERT_DEFINITION_TABLE, new DBColumnInfo(
         "ignore_host", Short.class, 1, 0, false));
 
+    dbAccessor.addColumn(ALERT_DEFINITION_TABLE, new DBColumnInfo(
+        "description", char[].class, 32672, null, true));
+
     // create alert_target_states table
     ArrayList<DBColumnInfo> columns = new ArrayList<DBColumnInfo>();
     columns.add(new DBColumnInfo("target_id", Long.class, null, null, false));

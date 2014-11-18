@@ -4,6 +4,7 @@
       {
         "name": "datanode_process_percent",
         "label": "Percent DataNodes Available",
+        "description": "The percentage of DataNodes that are responding to the process check compared to those that are not.",
         "interval": 1,
         "scope": "SERVICE",
         "enabled": true,
@@ -28,6 +29,7 @@
       {
         "name": "datanode_storage_percent",
         "label": "Percent DataNodes With Available Space",
+        "description": "The percentage of DataNodes that report they have sufficient space compared to those that are not.",
         "interval": 1,
         "scope": "SERVICE",
         "enabled": true,
@@ -52,6 +54,7 @@
       {
         "name": "journalnode_process_percent",
         "label": "Percent JournalNodes Available",
+        "description": "The percentage of JournalNodes that are responding to the process check compared to those that are not.",
         "interval": 1,
         "scope": "SERVICE",
         "enabled": true,
@@ -78,6 +81,7 @@
       {
         "name": "namenode_webui",
         "label": "NameNode Web UI",
+        "description": "An HTTP-style request to the NameNode webpage to verify that it can be accessed.",
         "interval": 1,
         "scope": "ANY",
         "enabled": true,
@@ -105,6 +109,7 @@
       {
         "name": "namenode_cpu",
         "label": "NameNode Host CPU Utilization",
+        "description": "Checks that the CPU of the NameNode is below a certain load percentage.",
         "interval": 5,
         "scope": "ANY",
         "enabled": true,
@@ -141,6 +146,7 @@
       {
         "name": "namenode_hdfs_blocks_health",
         "label": "NameNode Blocks Health",
+        "description": "Checks to see if the NameNode is reporting any blocks as missing.",
         "interval": 2,
         "scope": "ANY",
         "enabled": true,
@@ -177,6 +183,7 @@
       {
         "name": "namenode_hdfs_capacity_utilization",
         "label": "HDFS Capacity Utilization",
+        "description": "Checks the overall capacity remaining reported by the NameNode and triggers if it falls between a certain threshold",
         "interval": 2,
         "scope": "ANY",
         "enabled": true,
@@ -213,6 +220,7 @@
       {
         "name": "namenode_rpc_latency",
         "label": "NameNode RPC Latency",
+        "description": "Check the TCP latency reported by the NameNode.",
         "interval": 2,
         "scope": "ANY",
         "enabled": true,
@@ -249,6 +257,7 @@
       {
         "name": "namenode_directory_status",
         "label": "NameNode Directory Status",
+        "description": "Checks the NameNode's NameDirStatuses metric to see if any directories report a failure.",
         "interval": 1,
         "scope": "ANY",
         "enabled": true,
@@ -284,6 +293,7 @@
       {
         "name": "namenode_process",
         "label": "NameNode Process",
+        "description": "Checks that the NameNode process responds to a TCP port request.",
         "interval": 1,
         "scope": "ANY",
         "enabled": true,
@@ -304,6 +314,7 @@
       {
         "name": "namenode_last_checkpoint",
         "label": "NameNode Last Checkpoint",
+        "description": "Checks the last time that the NameNode performed a checkpoint. This script will also check for the number of uncommitted transactions.",
         "interval": 1,
         "scope": "ANY",
         "enabled": true,
@@ -315,6 +326,7 @@
       {
         "name": "namenode_ha_health",
         "label": "NameNode High Availability Health",
+        "description": "When running in HA mode, this will check the states of both the Active and Standby NameNode to ensure that there is exactly 1 of each.",
         "interval": 1,
         "scope": "ANY",
         "enabled": true,
@@ -329,6 +341,7 @@
       {
         "name": "secondary_namenode_process",
         "label": "Secondary NameNode Process",
+        "description": "Checks that the Secondary NameNode process responds to a TCP port request.",
         "interval": 1,
         "scope": "ANY",
         "enabled": true,
@@ -351,6 +364,7 @@
       {
         "name": "journalnode_process",
         "label": "JournalNode Process",
+        "description": "Checks that the JournalNode process responds to a TCP port request.",
         "interval": 1,
         "scope": "HOST",
         "enabled": true,
@@ -373,6 +387,7 @@
       {
         "name": "datanode_process",
         "label": "DateNode Process",
+        "description": "Checks that the DateNode process responds to a TCP port request.",
         "interval": 1,
         "scope": "HOST",
         "enabled": true,
@@ -393,6 +408,7 @@
       {
         "name": "datanode_webui",
         "label": "DataNode Web UI",
+        "description": "An HTTP-style request to the DataNode webpage to verify that it can be accessed.",
         "interval": 1,
         "scope": "HOST",
         "enabled": true,
@@ -420,6 +436,7 @@
       {
         "name": "datanode_storage",
         "label": "DataNode Storage",
+        "description": "Checks the capacity remaining on a DataNode and triggers if below a certain percentage.",
         "interval": 2,
         "scope": "HOST",
         "enabled": true,
@@ -458,6 +475,7 @@
       {
         "name": "hdfs_zookeeper_failover_controller_process",
         "label": "ZooKeeper Failover Controller Process",
+        "description": "Checks that the ZooKeeper Failover Controller process responds to a TCP port request.",
         "interval": 1,
         "scope": "ANY",
         "enabled": true,

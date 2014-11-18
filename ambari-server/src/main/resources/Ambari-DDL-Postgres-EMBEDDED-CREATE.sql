@@ -651,6 +651,7 @@ CREATE TABLE ambari.alert_definition (
   component_name VARCHAR(255),
   scope VARCHAR(255) DEFAULT 'ANY' NOT NULL,
   label VARCHAR(255),
+  description TEXT,
   enabled SMALLINT DEFAULT 1 NOT NULL,
   schedule_interval INTEGER NOT NULL,
   source_type VARCHAR(255) NOT NULL,

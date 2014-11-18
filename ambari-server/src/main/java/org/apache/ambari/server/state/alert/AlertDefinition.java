@@ -46,6 +46,7 @@ public class AlertDefinition {
   private boolean enabled = true;
   private Source source = null;
   private String label = null;
+  private String description = null;
   private String uuid = null;
 
   @SerializedName("ignore_host")
@@ -186,6 +187,21 @@ public class AlertDefinition {
   }
 
   /**
+   * @return the description
+   */
+  public String getDescription() {
+    return description;
+  }
+
+  /**
+   * @param description
+   *          the description to set
+   */
+  public void setDescription(String description) {
+    this.description = description;
+  }
+
+  /**
    * Sets the UUID of the definition
    *
    * @param definitionUuid
@@ -250,6 +266,14 @@ public class AlertDefinition {
         return false;
       }
     } else if (!label.equals(other.label)) {
+      return false;
+    }
+
+    if (description == null) {
+      if (other.description != null) {
+        return false;
+      }
+    } else if (!description.equals(other.description)) {
       return false;
     }
 

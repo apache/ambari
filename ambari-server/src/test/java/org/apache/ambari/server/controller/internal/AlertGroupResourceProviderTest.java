@@ -88,6 +88,7 @@ public class AlertGroupResourceProviderTest {
   private static final Long ALERT_DEF_ID = Long.valueOf(10);
   private static final String ALERT_DEF_NAME = "Mock Definition";
   private static final String ALERT_DEF_LABEL = "Mock Label";
+  private static final String ALERT_DEF_DESCRIPTION = "Mock Description";
 
   private static String DEFINITION_UUID = UUID.randomUUID().toString();
 
@@ -631,6 +632,7 @@ public class AlertGroupResourceProviderTest {
     entity.setDefinitionId(ALERT_DEF_ID);
     entity.setDefinitionName(ALERT_DEF_NAME);
     entity.setLabel(ALERT_DEF_LABEL);
+    entity.setDescription(ALERT_DEF_DESCRIPTION);
     entity.setEnabled(true);
     entity.setHash(DEFINITION_UUID);
     entity.setScheduleInterval(Integer.valueOf(2));

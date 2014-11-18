@@ -160,6 +160,7 @@ public class AlertDefinitionResourceProviderTest {
         AlertDefinitionResourceProvider.ALERT_DEF_ID,
         AlertDefinitionResourceProvider.ALERT_DEF_NAME,
         AlertDefinitionResourceProvider.ALERT_DEF_LABEL,
+        AlertDefinitionResourceProvider.ALERT_DEF_DESCRIPTION,
         AlertDefinitionResourceProvider.ALERT_DEF_IGNORE_HOST,
         AlertDefinitionResourceProvider.ALERT_DEF_SOURCE,
         AlertDefinitionResourceProvider.ALERT_DEF_SOURCE_TYPE);
@@ -202,6 +203,10 @@ public class AlertDefinitionResourceProviderTest {
         r.getPropertyValue(AlertDefinitionResourceProvider.ALERT_DEF_LABEL));
 
     Assert.assertEquals(
+        "Mock Description",
+        r.getPropertyValue(AlertDefinitionResourceProvider.ALERT_DEF_DESCRIPTION));
+
+    Assert.assertEquals(
         Boolean.FALSE,
         r.getPropertyValue(AlertDefinitionResourceProvider.ALERT_DEF_IGNORE_HOST));
 
@@ -221,6 +226,7 @@ public class AlertDefinitionResourceProviderTest {
         AlertDefinitionResourceProvider.ALERT_DEF_ID,
         AlertDefinitionResourceProvider.ALERT_DEF_NAME,
         AlertDefinitionResourceProvider.ALERT_DEF_LABEL,
+        AlertDefinitionResourceProvider.ALERT_DEF_DESCRIPTION,
         AlertDefinitionResourceProvider.ALERT_DEF_SOURCE_TYPE);
 
     AmbariManagementController amc = createMock(AmbariManagementController.class);
@@ -311,6 +317,9 @@ public class AlertDefinitionResourceProviderTest {
     requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_LABEL,
         "Mock Label (Create)");
 
+    requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_DESCRIPTION,
+        "Mock Description (Create)");
+
     requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_SOURCE_TYPE,
         SourceType.METRIC.name());
 
@@ -360,6 +369,7 @@ public class AlertDefinitionResourceProviderTest {
     Assert.assertEquals("HDFS", entity.getServiceName());
     Assert.assertEquals(SourceType.METRIC, entity.getSourceType());
     Assert.assertEquals("Mock Label (Create)", entity.getLabel());
+    Assert.assertEquals("Mock Description (Create)", entity.getDescription());
     Assert.assertEquals(false, entity.isHostIgnored());
 
     // verify Source
@@ -422,6 +432,7 @@ public class AlertDefinitionResourceProviderTest {
     requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_INTERVAL, "1");
     requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_NAME, "my_def");
     requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_LABEL, "Label");
+    requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_DESCRIPTION,"Description");
     requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_SERVICE_NAME, "HDFS");
     requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_SOURCE_TYPE, "METRIC");
 
@@ -456,7 +467,8 @@ public class AlertDefinitionResourceProviderTest {
     requestProps.put("AlertDefinition/source/reporting/warning/value",
         source.getReporting().getWarning().getValue());
 
-    Request request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), null);
+    Request request = PropertyHelper.getCreateRequest(
+        Collections.singleton(requestProps), null);
 
     AlertDefinitionResourceProvider provider = createProvider(amc);
 
@@ -479,6 +491,7 @@ public class AlertDefinitionResourceProviderTest {
     boolean oldEnabled = entity.getEnabled();
     boolean oldHostIgnore = entity.isHostIgnored();
     String oldSource = entity.getSource();
+    String oldDescription = entity.getDescription();
 
     resetToStrict(dao);
     expect(dao.findById(1L)).andReturn(entity).anyTimes();
@@ -491,6 +504,7 @@ public class AlertDefinitionResourceProviderTest {
     requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_INTERVAL, "2");
     requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_NAME, "my_def2");
     requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_LABEL, "Label 2");
+    requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_DESCRIPTION,"Description 2");
     requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_SERVICE_NAME, "HDFS");
     requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_SOURCE_TYPE, "METRIC");
 
@@ -516,6 +530,7 @@ public class AlertDefinitionResourceProviderTest {
 
     Assert.assertFalse(oldHash.equals(entity.getHash()));
     Assert.assertFalse(oldName.equals(entity.getDefinitionName()));
+    Assert.assertFalse(oldDescription.equals(entity.getDescription()));
     Assert.assertFalse(oldInterval.equals(entity.getScheduleInterval()));
     Assert.assertFalse(oldEnabled == entity.getEnabled());
     Assert.assertFalse(oldHostIgnore == entity.isHostIgnored());
@@ -606,6 +621,7 @@ public class AlertDefinitionResourceProviderTest {
     entity.setDefinitionId(Long.valueOf(1L));
     entity.setDefinitionName("my_def");
     entity.setLabel("Mock Label");
+    entity.setDescription("Mock Description");
     entity.setEnabled(true);
     entity.setHash(DEFINITION_UUID);
     entity.setScheduleInterval(Integer.valueOf(2));

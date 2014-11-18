@@ -72,6 +72,7 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
   protected static final String ALERT_DEF_ID = "AlertDefinition/id";
   protected static final String ALERT_DEF_NAME = "AlertDefinition/name";
   protected static final String ALERT_DEF_LABEL = "AlertDefinition/label";
+  protected static final String ALERT_DEF_DESCRIPTION = "AlertDefinition/description";
   protected static final String ALERT_DEF_INTERVAL = "AlertDefinition/interval";
   protected static final String ALERT_DEF_SERVICE_NAME = "AlertDefinition/service_name";
   protected static final String ALERT_DEF_COMPONENT_NAME = "AlertDefinition/component_name";
@@ -127,6 +128,7 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
     PROPERTY_IDS.add(ALERT_DEF_ID);
     PROPERTY_IDS.add(ALERT_DEF_NAME);
     PROPERTY_IDS.add(ALERT_DEF_LABEL);
+    PROPERTY_IDS.add(ALERT_DEF_DESCRIPTION);
     PROPERTY_IDS.add(ALERT_DEF_INTERVAL);
     PROPERTY_IDS.add(ALERT_DEF_ENABLED);
     PROPERTY_IDS.add(ALERT_DEF_SCOPE);
@@ -376,6 +378,7 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
     String componentName = (String) requestMap.get(ALERT_DEF_COMPONENT_NAME);
     String type = (String) requestMap.get(ALERT_DEF_SOURCE_TYPE);
     String label = (String) requestMap.get(ALERT_DEF_LABEL);
+    String description = (String) requestMap.get(ALERT_DEF_DESCRIPTION);
     String desiredScope = (String) requestMap.get(ALERT_DEF_SCOPE);
 
     Integer interval = null;
@@ -498,6 +501,10 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
       entity.setLabel(label);
     }
 
+    if (null != description) {
+      entity.setDescription(description);
+    }
+
     if (null != enabled) {
       entity.setEnabled(enabled.booleanValue());
     }
@@ -606,6 +613,7 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
     resource.setProperty(ALERT_DEF_NAME, entity.getDefinitionName());
     resource.setProperty(ALERT_DEF_LABEL, entity.getLabel());
 
+    setResourceProperty(resource, ALERT_DEF_DESCRIPTION, entity.getDescription(), requestedIds);
     setResourceProperty(resource, ALERT_DEF_INTERVAL, entity.getScheduleInterval(), requestedIds);
     setResourceProperty(resource, ALERT_DEF_SERVICE_NAME, entity.getServiceName(), requestedIds);
     setResourceProperty(resource, ALERT_DEF_COMPONENT_NAME, entity.getComponentName(), requestedIds);

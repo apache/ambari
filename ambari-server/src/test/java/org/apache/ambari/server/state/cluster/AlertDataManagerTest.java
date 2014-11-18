@@ -285,6 +285,7 @@ public class AlertDataManagerTest {
     AlertDefinitionEntity definition = new AlertDefinitionEntity();
     definition.setDefinitionName("to_aggregate");
     definition.setLabel("My Label");
+    definition.setLabel("My Description");
     definition.setServiceName("SERVICE");
     definition.setComponentName(null);
     definition.setClusterId(clusterId);

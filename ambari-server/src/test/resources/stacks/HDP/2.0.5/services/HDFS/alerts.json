@@ -6,6 +6,7 @@
       {
         "name": "namenode_cpu",
         "label": "NameNode Host CPU Utilization",
+        "description": "A description of namenode_cpu",
         "interval": 2,
         "scope": "ANY",
         "enabled": true,
@@ -42,6 +43,7 @@
       {
         "name": "namenode_process",
         "label": "NameNode process",
+        "description": "A description of namenode_process",
         "interval": 1,
         "scope": "ANY",
         "source": {
@@ -61,6 +63,7 @@
       {
         "name": "hdfs_last_checkpoint",
         "label": "Last Checkpoint Time",
+        "description": "A description of hdfs_last_checkpoint",
         "interval": 1,
         "scope": "SERVICE",
         "enabled": false,
@@ -72,6 +75,7 @@
       {
         "name": "hdfs_ignore_host_test",
         "label": "Ignore Host Test",
+        "description": "A description of hdfs_ignore_host_test",
         "interval": 1,
         "scope": "SERVICE",
         "enabled": true,
@@ -86,6 +90,7 @@
       {
         "name": "secondary_namenode_process",
         "label": "Secondary NameNode process",
+        "description": "A description of secondary_namenode_process",
         "interval": 1,
         "scope": "ANY",
         "source": {
@@ -99,6 +104,7 @@
       {
         "name": "datanode_storage",
         "label": "DataNode Storage",
+        "description": "A description of datanode_storage",
         "interval": 2,
         "scope": "HOST",
         "enabled": true,

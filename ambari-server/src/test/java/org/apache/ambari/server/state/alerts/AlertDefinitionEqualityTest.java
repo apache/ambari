@@ -80,6 +80,7 @@ public class AlertDefinitionEqualityTest extends TestCase {
     definition.setScope(Scope.ANY);
     definition.setServiceName("ServiceName");
     definition.setLabel("Label");
+    definition.setDescription("Description");
     definition.setSource(getSource(sourceType));
 
     return definition;

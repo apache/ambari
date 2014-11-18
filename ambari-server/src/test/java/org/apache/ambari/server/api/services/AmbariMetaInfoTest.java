@@ -1489,6 +1489,7 @@ public class AmbariMetaInfoTest {
 
     // test namenode_process
     assertFalse(nameNodeProcess.isHostIgnored());
+    assertEquals("A description of namenode_process", nameNodeProcess.getDescription());
     Source source = nameNodeProcess.getSource();
     assertNotNull(source);
     assertNotNull(((PortSource) source).getPort());
@@ -1504,6 +1505,7 @@ public class AmbariMetaInfoTest {
 
     // test namenode_cpu
     assertFalse(nameNodeCpu.isHostIgnored());
+    assertEquals("A description of namenode_cpu", nameNodeCpu.getDescription());
     source = nameNodeCpu.getSource();
     assertNotNull(source);
     reporting = source.getReporting();
@@ -1520,6 +1522,7 @@ public class AmbariMetaInfoTest {
 
     // test a metric alert
     assertNotNull(datanodeStorage);
+    assertEquals("A description of datanode_storage", datanodeStorage.getDescription());
     assertFalse(datanodeStorage.isHostIgnored());
     MetricSource metricSource = (MetricSource) datanodeStorage.getSource();
     assertNotNull( metricSource.getUri() );

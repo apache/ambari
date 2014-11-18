@@ -186,6 +186,7 @@ public class AlertDefinitionFactory {
     definition.setScope(entity.getScope());
     definition.setServiceName(entity.getServiceName());
     definition.setLabel(entity.getLabel());
+    definition.setDescription(entity.getDescription());
     definition.setUuid(entity.getHash());
 
     try{
@@ -248,6 +249,7 @@ public class AlertDefinitionFactory {
     entity.setHostIgnored(definition.isHostIgnored());
     entity.setHash(UUID.randomUUID().toString());
     entity.setLabel(definition.getLabel());
+    entity.setDescription(definition.getDescription());
     entity.setScheduleInterval(definition.getInterval());
     entity.setServiceName(definition.getServiceName());
 
