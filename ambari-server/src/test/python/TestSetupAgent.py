@@ -47,7 +47,7 @@ class TestSetupAgent(TestCase):
   def test_configureAgent(self, execOsCommand_mock):
     # Test if expected_hostname is passed
     hostname = "test.hst"
-    setup_agent.configureAgent(hostname)
+    setup_agent.configureAgent(hostname, "root")
     cmdStr = str(execOsCommand_mock.call_args_list[0][0])
     self.assertTrue(hostname in cmdStr)
 
@@ -62,7 +62,7 @@ class TestSetupAgent(TestCase):
     call_mock.return_value = 0
     execOsCommand_mock.return_value = {'log': 'log', 'exitstatus': 0}
     # Test if expected_hostname is passed
-    ret = setup_agent.runAgent(passphrase, expected_hostname)
+    ret = setup_agent.runAgent(passphrase, expected_hostname, "root")
     cmdStr = str(call_mock.call_args_list[0][0])
     self.assertTrue(expected_hostname in cmdStr)
     self.assertEqual(ret, 0)
@@ -71,7 +71,7 @@ class TestSetupAgent(TestCase):
     execOsCommand_mock.reset_mock()
     # Key 'log' not found
     execOsCommand_mock.return_value = None
-    ret = setup_agent.runAgent(passphrase, expected_hostname)
+    ret = setup_agent.runAgent(passphrase, expected_hostname, "root")
     cmdStr = str(call_mock.call_args_list[0][0])
     self.assertTrue(expected_hostname in cmdStr)
     self.assertEqual(ret, 0)
@@ -80,7 +80,7 @@ class TestSetupAgent(TestCase):
     # Retcode id not 0
     call_mock.return_value = 2
     execOsCommand_mock.return_value = {'log': 'log', 'exitstatus': 2}
-    ret = setup_agent.runAgent(passphrase, expected_hostname)
+    ret = setup_agent.runAgent(passphrase, expected_hostname, "root")
     cmdStr = str(call_mock.call_args_list[0][0])
     self.assertTrue(expected_hostname in cmdStr)
     self.assertEqual(ret, 2)

@@ -19,20 +19,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+run_as_user=`cat /etc/ambari-agent/conf/ambari-agent.ini | grep run_as_user | tr -d ' ' | awk -F '=' '{ print $2}'`
+
+if [ "$EUID" != `id -u $run_as_user` ] ; then
+  command_prefx="su - $run_as_user -c"
+else
+  command_prefx="bash -c"
+fi
+
 case "$1" in
   start)
-        /usr/sbin/ambari-agent $@
+        $command_prefx "/usr/sbin/ambari-agent $@"
         ;;
   stop)
-        /usr/sbin/ambari-agent $@
+        $command_prefx "/usr/sbin/ambari-agent $@"
         ;;
   status)
-        /usr/sbin/ambari-agent $@
+        $command_prefx "/usr/sbin/ambari-agent $@"
         exit $?
         ;;
   restart)
-        $0 stop
-        $0 start
+        $command_prefx "$0 stop"
+        $command_prefx "$0 start"
         ;;
   reset)
         /usr/sbin/ambari-agent $@

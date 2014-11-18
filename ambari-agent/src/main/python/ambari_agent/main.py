@@ -23,6 +23,7 @@ import signal
 from optparse import OptionParser
 import sys
 import traceback
+import getpass
 import os
 import time
 import platform
@@ -35,6 +36,7 @@ from PingPortListener import PingPortListener
 import hostname
 from DataCleaner import DataCleaner
 import socket
+from ambari_agent import shell
 logger = logging.getLogger()
 
 formatstr = "%(levelname)s %(asctime)s %(filename)s:%(lineno)d - %(message)s"
@@ -204,8 +206,10 @@ def main(heartbeat_stop_callback=None):
 
   expected_hostname = options.expected_hostname
 
-  setup_logging(options.verbose)
+  current_user = getpass.getuser()
 
+  setup_logging(options.verbose)
+  
   default_cfg = {'agent': {'prefix': '/home/ambari'}}
   config.load(default_cfg)
 
