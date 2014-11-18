@@ -176,8 +176,14 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
     var additionalConfigs = (component.configs_Hadoop2 && isHadoop2Stack) ? component.configs_Hadoop2 : component.configs;
 
     for (var site in additionalConfigs) {
-      for (var property in additionalConfigs[site]) {
-        configs[site][property] = additionalConfigs[site][property].replace('<replace-value>', replaceValue);
+      if (additionalConfigs.hasOwnProperty(site)) {
+        for (var property in additionalConfigs[site]) {
+          if (additionalConfigs[site].hasOwnProperty(property)) {
+            if (App.get('isHaEnabled') && componentName === 'NAMENODE' && property === 'fs.defaultFS') continue;
+
+            configs[site][property] = additionalConfigs[site][property].replace('<replace-value>', replaceValue);
+          }
+        }
       }
     }
     return true;
