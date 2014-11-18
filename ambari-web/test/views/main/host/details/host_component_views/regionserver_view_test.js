@@ -17,19 +17,25 @@
  */
 
 var App = require('app');
+require('views/main/host/details/host_component_views/regionserver_view');
 
-App.RegionServerComponentView = App.HostComponentView.extend(App.Decommissionable, {
+describe('App.RegionServerComponentView', function () {
+  var view = App.RegionServerComponentView.create();
 
-  componentForCheckDecommission: 'HBASE_MASTER',
-
-  setDesiredAdminState: function (desiredAdminState) {
-    switch (desiredAdminState) {
-      case "INSERVICE":
-        this.setStatusAs(desiredAdminState);
-        break;
-      case "DECOMMISSIONED":
-        this.setStatusAs("RS_DECOMMISSIONED");
-        break;
-    }
-  }
+  describe("#setDesiredAdminState()", function () {
+    beforeEach(function () {
+      sinon.stub(view, 'setStatusAs', Em.K);
+    });
+    afterEach(function () {
+      view.setStatusAs.restore();
+    });
+    it("INSERVICE state)", function () {
+      view.setDesiredAdminState('INSERVICE');
+      expect(view.setStatusAs.calledWith('INSERVICE')).to.be.true;
+    });
+    it("DECOMMISSIONED state)", function () {
+      view.setDesiredAdminState('DECOMMISSIONED');
+      expect(view.setStatusAs.calledWith('RS_DECOMMISSIONED')).to.be.true;
+    });
+  });
 });

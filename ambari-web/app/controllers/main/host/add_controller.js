@@ -79,6 +79,14 @@ App.AddHostController = App.WizardController.extend({
   },
 
   /**
+   * return new object extended from installOptionsTemplate
+   * @return Object
+   */
+  getInstallOptions: function () {
+    return jQuery.extend({}, this.get('installOptionsTemplate'));
+  },
+
+  /**
    * Remove host from model. Used at <code>Confirm hosts</code> step
    * @param hosts Array of hosts, which we want to delete
    */

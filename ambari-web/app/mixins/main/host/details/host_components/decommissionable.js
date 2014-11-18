@@ -33,18 +33,6 @@ App.Decommissionable = Em.Mixin.create({
   componentForCheckDecommission: '',
 
   /**
-   * Received from server object with data about decommission
-   * @type {Object}
-   */
-  decommissionedStatusObject: null,
-
-  /**
-   * Received from server desired_admin_state value
-   * @type {String}
-   */
-  desiredAdminState: null,
-
-  /**
    * Is component in decommission process right know
    * @type {bool}
    */
@@ -145,6 +133,13 @@ App.Decommissionable = Em.Mixin.create({
   }.property('workStatus', 'isDecommissioning'),
 
   /**
+   * load Recommission/Decommission status of component
+   */
+  loadComponentDecommissionStatus: function () {
+    return this.getDesiredAdminState();
+  },
+
+  /**
    * Get desired_admin_state status from server
    */
   getDesiredAdminState: function(){
@@ -161,27 +156,29 @@ App.Decommissionable = Em.Mixin.create({
   },
 
   /**
-   * Set received value or null to <code>desiredAdminState</code>
+   * pass received value or null to <code>setDesiredAdminState</code>
    * @param {Object} response
    * @returns {String|null}
    */
   getDesiredAdminStateSuccessCallback: function (response) {
     var status = response.HostRoles.desired_admin_state;
-    if ( status != null) {
-      this.set('desiredAdminState', status);
+    if (status != null) {
+      this.setDesiredAdminState(status);
       return status;
     }
     return null;
   },
 
   /**
-   * Set null to <code>desiredAdminState</code> if server returns error
-   * @returns {null}
+   * error callback of <code>getDesiredAdminState</code>
    */
-  getDesiredAdminStateErrorCallback: function () {
-    this.set('desiredAdminState', null);
-    return null;
-  },
+  getDesiredAdminStateErrorCallback: Em.K,
+
+  /**
+   * compute decommission state by desiredAdminState
+   * @param {Object} status
+   */
+  setDesiredAdminState: Em.K,
 
   /**
    * Get component decommission status from server
@@ -202,7 +199,7 @@ App.Decommissionable = Em.Mixin.create({
   },
 
   /**
-   * Set received value or null to <code>decommissionedStatusObject</code>
+   * pass received value or null to <code>setDecommissionStatus</code>
    * @param {Object} response
    * @returns {Object|null}
    */
@@ -210,7 +207,7 @@ App.Decommissionable = Em.Mixin.create({
     var statusObject = response.ServiceComponentInfo;
     if ( statusObject != null) {
       statusObject.component_state = response.host_components[0].HostRoles.state;
-      this.set('decommissionedStatusObject', statusObject);
+      this.setDecommissionStatus(statusObject);
       return statusObject;
     }
     return null;
@@ -220,9 +217,41 @@ App.Decommissionable = Em.Mixin.create({
    * Set null to <code>decommissionedStatusObject</code> if server returns error
    * @returns {null}
    */
-  getDecommissionStatusErrorCallback: function () {
-    this.set('decommissionedStatusObject', null);
-    return null;
+  getDecommissionStatusErrorCallback: Em.K,
+
+  /**
+   * compute decommission state by component info
+   * @param {Object} status
+   */
+  setDecommissionStatus: Em.K,
+
+  /**
+   * set decommission and recommission flags according to status
+   * @param status
+   */
+  setStatusAs: function (status) {
+    switch (status) {
+      case "INSERVICE":
+        this.set('isComponentRecommissionAvailable', false);
+        this.set('isComponentDecommissioning', false);
+        this.set('isComponentDecommissionAvailable', this.get('isStart'));
+        break;
+      case "DECOMMISSIONING":
+        this.set('isComponentRecommissionAvailable', true);
+        this.set('isComponentDecommissioning', true);
+        this.set('isComponentDecommissionAvailable', false);
+        break;
+      case "DECOMMISSIONED":
+        this.set('isComponentRecommissionAvailable', true);
+        this.set('isComponentDecommissioning', false);
+        this.set('isComponentDecommissionAvailable', false);
+        break;
+      case "RS_DECOMMISSIONED":
+        this.set('isComponentRecommissionAvailable', true);
+        this.set('isComponentDecommissioning', this.get('isStart'));
+        this.set('isComponentDecommissionAvailable', false);
+        break;
+    }
   },
 
   /**
@@ -255,11 +284,6 @@ App.Decommissionable = Em.Mixin.create({
     this.$('.components-health').css({opacity: 1.0});
     this.doBlinking();
   }.observes('workStatus','isComponentRecommissionAvailable', 'isDecommissioning'),
-
-  /**
-   * Should be redeclared in views that use this mixin
-   */
-  loadComponentDecommissionStatus: function() {},
 
   didInsertElement: function() {
     this._super();

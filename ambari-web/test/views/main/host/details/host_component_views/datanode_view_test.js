@@ -1,0 +1,301 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+var App = require('app');
+require('views/main/host/details/host_component_views/datanode_view');
+
+describe('App.DataNodeComponentView', function () {
+  var view = App.DataNodeComponentView.create({
+    content: {
+      hostName: 'host1'
+    }
+  });
+
+  describe("#getDNDecommissionStatus()", function () {
+    beforeEach(function () {
+      this.stub = sinon.stub(App.HDFSService, 'find');
+      sinon.stub(App.ajax, 'send');
+    });
+    afterEach(function () {
+      App.ajax.send.restore();
+      this.stub.restore();
+    });
+    it("snameNode absent and no activeNameNode", function () {
+      this.stub.returns([
+        Em.Object.create({
+          snameNode: null,
+          activeNameNode: null,
+          nameNode: {hostName: 'host1'}
+        })
+      ]);
+      view.getDNDecommissionStatus();
+      expect(App.ajax.send.getCall(0).args[0].data).to.eql({
+        "hostName": "host1",
+        "componentName": "NAMENODE"
+      });
+    });
+    it("snameNode present and no activeNameNode", function () {
+      this.stub.returns([
+        Em.Object.create({
+          snameNode: {},
+          activeNameNode: null,
+          nameNode: {hostName: 'host1'}
+        })
+      ]);
+      view.getDNDecommissionStatus();
+      expect(App.ajax.send.getCall(0).args[0].data).to.eql({
+        "hostName": "host1",
+        "componentName": "NAMENODE"
+      });
+    });
+    it("snameNode absent and activeNameNode valid", function () {
+      this.stub.returns([
+        Em.Object.create({
+          snameNode: null,
+          activeNameNode: {hostName: 'host2'},
+          nameNode: {hostName: 'host1'}
+        })
+      ]);
+      view.getDNDecommissionStatus();
+      expect(App.ajax.send.getCall(0).args[0].data).to.eql({
+        "hostName": "host2",
+        "componentName": "NAMENODE"
+      });
+    });
+  });
+
+  describe("#getDNDecommissionStatusSuccessCallback()", function () {
+    beforeEach(function () {
+      sinon.stub(view, 'computeStatus', Em.K);
+      view.set('decommissionedStatusObject', null);
+    });
+    afterEach(function () {
+      view.computeStatus.restore();
+    });
+    it("metric null", function () {
+      var data = {
+        metrics: {
+          dfs: {
+            namenode: null
+          }
+        }
+      };
+      expect(view.getDNDecommissionStatusSuccessCallback(data)).to.equal(null);
+      expect(view.computeStatus.calledOnce).to.be.false;
+    });
+    it("metric valid", function () {
+      var data = {
+        metrics: {
+          dfs: {
+            namenode: "status"
+          }
+        }
+      };
+      expect(view.getDNDecommissionStatusSuccessCallback(data)).to.equal("status");
+      expect(view.computeStatus.calledOnce).to.be.true;
+    });
+  });
+
+  describe("#getDNDecommissionStatusErrorCallback()", function () {
+    it("reset to null", function () {
+      expect(view.getDNDecommissionStatusErrorCallback()).to.be.null;
+      expect(view.get('decommissionedStatusObject')).to.be.null;
+    });
+  });
+
+  describe("#loadComponentDecommissionStatus()", function () {
+    before(function () {
+      sinon.stub(view, 'getDNDecommissionStatus', Em.K);
+    });
+    after(function () {
+      view.getDNDecommissionStatus.restore();
+    });
+    it("call getDNDecommissionStatus()", function () {
+      view.loadComponentDecommissionStatus();
+      expect(view.getDNDecommissionStatus.calledOnce).to.be.true;
+    });
+  });
+
+  describe("#setDesiredAdminState()", function () {
+    before(function () {
+      sinon.stub(view, 'setStatusAs', Em.K);
+    });
+    after(function () {
+      view.setStatusAs.restore();
+    });
+    it("call getDNDecommissionStatus()", function () {
+      view.setDesiredAdminState('status');
+      expect(view.setStatusAs.calledWith('status')).to.be.true;
+    });
+  });
+
+  describe("#computeStatus()", function () {
+    beforeEach(function () {
+      sinon.stub(view, 'getDesiredAdminState', Em.K);
+      sinon.stub(view, 'setStatusAs', Em.K);
+      this.stub = sinon.stub(App, 'get');
+    });
+    afterEach(function () {
+      view.getDesiredAdminState.restore();
+      view.setStatusAs.restore();
+      this.stub.restore();
+    });
+    var testCases = [
+      {
+        title: 'No live nodes',
+        data: {
+          curObj: {},
+          isHadoop2Stack: true
+        },
+        result: {
+          getDesiredAdminStateCalled: true,
+          status: "",
+          setStatusAsCalled: false
+        }
+      },
+      {
+        title: 'Live nodes In Service',
+        data: {
+          "curObj": {
+            "LiveNodes": {
+              "host1": {
+                "adminState": "In Service"
+              }
+            }
+          },
+          isHadoop2Stack: true
+        },
+        result: {
+          getDesiredAdminStateCalled: false,
+          status: "INSERVICE",
+          setStatusAsCalled: true
+        }
+      },
+      {
+        title: 'Live nodes In Progress',
+        data: {
+          "curObj": {
+            "LiveNodes": {
+              "host1": {
+                "adminState": "Decommission In Progress"
+              }
+            }
+          },
+          isHadoop2Stack: true
+        },
+        result: {
+          getDesiredAdminStateCalled: false,
+          status: "DECOMMISSIONING",
+          setStatusAsCalled: true
+        }
+      },
+      {
+        title: 'Live nodes Decommissioned',
+        data: {
+          "curObj": {
+            "LiveNodes": {
+              "host1": {
+                "adminState": "Decommissioned"
+              }
+            }
+          },
+          isHadoop2Stack: true
+        },
+        result: {
+          getDesiredAdminStateCalled: false,
+          status: "DECOMMISSIONED",
+          setStatusAsCalled: true
+        }
+      },
+      {
+        title: 'nodes DECOMMISSIONING',
+        data: {
+          "curObj": {
+            "DecomNodes": {
+              "host1": {}
+            }
+          },
+          isHadoop2Stack: false
+        },
+        result: {
+          getDesiredAdminStateCalled: false,
+          status: "DECOMMISSIONING",
+          setStatusAsCalled: true
+        }
+      },
+      {
+        title: 'nodes DECOMMISSIONED',
+        data: {
+          "curObj": {
+            "DeadNodes": {
+              "host1": {}
+            }
+          },
+          isHadoop2Stack: false
+        },
+        result: {
+          getDesiredAdminStateCalled: false,
+          status: "DECOMMISSIONED",
+          setStatusAsCalled: true
+        }
+      },
+      {
+        title: 'nodes INSERVICE',
+        data: {
+          "curObj": {
+            "LiveNodes": {
+              "host1": {}
+            }
+          },
+          isHadoop2Stack: false
+        },
+        result: {
+          getDesiredAdminStateCalled: false,
+          status: "INSERVICE",
+          setStatusAsCalled: true
+        }
+      },
+      {
+        title: 'namenode down',
+        data: {
+          "curObj": {},
+          isHadoop2Stack: false
+        },
+        result: {
+          getDesiredAdminStateCalled: true,
+          status: "",
+          setStatusAsCalled: false
+        }
+      }
+    ];
+    testCases.forEach(function (test) {
+      it(test.title + ", isHadoop2Stack:" + test.data.isHadoop2Stack, function () {
+        this.stub.withArgs('isHadoop2Stack').returns(test.data.isHadoop2Stack);
+        view.computeStatus(test.data.curObj);
+        expect(view.getDesiredAdminState.called).to.equal(test.result.getDesiredAdminStateCalled);
+        expect(view.setStatusAs.calledWith(test.result.status)).to.equal(test.result.setStatusAsCalled);
+      });
+    }, this);
+    it("data is null", function () {
+      view.computeStatus(null);
+      expect(view.getDesiredAdminState.called).to.be.false;
+      expect(view.setStatusAs.called).to.be.false;
+    });
+  });
+
+});

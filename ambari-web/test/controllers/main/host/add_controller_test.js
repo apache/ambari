@@ -415,7 +415,7 @@ describe('App.AddHostController', function () {
   describe("#getInstallOptions()", function () {
     it("", function () {
       controller.set('installOptionsTemplate', {'prop': 'installOptionsTemplate'});
-      expect(controller.get('getInstallOptions')).to.be.eql({
+      expect(controller.getInstallOptions()).to.be.eql({
         prop: 'installOptionsTemplate'
       });
     });
@@ -1217,6 +1217,7 @@ describe('App.AddHostController', function () {
       sinon.stub(controller, 'loadMasterComponentHosts', Em.K);
       sinon.stub(controller, 'loadSlaveComponentHosts', Em.K);
       sinon.stub(controller, 'load', Em.K);
+      sinon.stub(controller, 'saveClusterStatus', Em.K);
     });
     afterEach(function () {
       this.mock.restore();
@@ -1227,6 +1228,7 @@ describe('App.AddHostController', function () {
       controller.loadMasterComponentHosts.restore();
       controller.loadSlaveComponentHosts.restore();
       controller.load.restore();
+      controller.saveClusterStatus.restore();
     });
     testCases.forEach(function (test) {
       it("current step - " + test.currentStep, function () {

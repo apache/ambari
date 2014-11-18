@@ -22,58 +22,40 @@ App.NodeManagerComponentView = App.HostComponentView.extend(App.Decommissionable
 
   componentForCheckDecommission: 'RESOURCEMANAGER',
 
-  /**
-   * load Recommission/Decommission status for nodeManager from nodeManagers list
-   */
-  loadComponentDecommissionStatus: function () {
-    var hostName = this.get('content.hostName');
-    var dfd = $.Deferred();
+  setDesiredAdminState: function (desiredAdminState) {
     var self = this;
-    this.getDesiredAdminState().done( function () {
-      var desired_admin_state = self.get('desiredAdminState');
-      self.set('desiredAdminState', null);
-      switch(desired_admin_state) {
-        case "INSERVICE":
-          // can be decommissioned if already started
-          self.set('isComponentRecommissionAvailable', false);
-          self.set('isComponentDecommissioning', false);
-          self.set('isComponentDecommissionAvailable', self.get('isStart'));
-          break;
-        case "DECOMMISSIONED":
-          var deferred = $.Deferred();
-          self.getDecommissionStatus().done( function() {
-            var curObj = self.get('decommissionedStatusObject'),
-                rmComponent = self.get('content.service.hostComponents').findProperty('componentName', self.get('componentForCheckDecommission'));
+    switch (desiredAdminState) {
+      case "INSERVICE":
+        // can be decommissioned if already started
+        this.setStatusAs(desiredAdminState);
+        break;
+      case "DECOMMISSIONED":
+        this.getDecommissionStatus();
+        break;
+    }
+  },
 
-            rmComponent.set('workStatus', curObj.component_state);
-            self.set('decommissionedStatusObject', null);
-            if (curObj && curObj.rm_metrics) {
-              // Update RESOURCEMANAGER status
-              var nodeManagersArray = App.parseJSON(curObj.rm_metrics.cluster.nodeManagers);
-              if (nodeManagersArray.findProperty('HostName', hostName)){
-                // decommisioning ..
-                self.set('isComponentRecommissionAvailable', true);
-                self.set('isComponentDecommissioning', true);
-                self.set('isComponentDecommissionAvailable', false);
-              } else {
-                // decommissioned ..
-                self.set('isComponentRecommissionAvailable', true);
-                self.set('isComponentDecommissioning', false);
-                self.set('isComponentDecommissionAvailable', false);
-              }
-            } else {
-              // in this case ResourceManager not started. Set status to Decommissioned
-              self.set('isComponentRecommissionAvailable', true);
-              self.set('isComponentDecommissioning', false);
-              self.set('isComponentDecommissionAvailable', false);
-            }
-            deferred.resolve(curObj);
-          });
-          break;
+  /**
+   * set decommission status according to component status and resource manager metrics
+   */
+  setDecommissionStatus: function (curObj) {
+    var rmComponent = this.get('content.service.hostComponents').findProperty('componentName', this.get('componentForCheckDecommission')),
+        hostName = this.get('content.hostName');
+
+    rmComponent.set('workStatus', curObj.component_state);
+    if (curObj.rm_metrics) {
+      // Update RESOURCEMANAGER status
+      var nodeManagersArray = App.parseJSON(curObj.rm_metrics.cluster.nodeManagers);
+      if (nodeManagersArray.findProperty('HostName', hostName)) {
+        // decommisioning ..
+        this.setStatusAs('DECOMMISSIONING');
+      } else {
+        // decommissioned ..
+        this.setStatusAs('DECOMMISSIONED');
       }
-      dfd.resolve(desired_admin_state);
-    });
-    return dfd.promise();
+    } else {
+      // in this case ResourceManager not started. Set status to Decommissioned
+      this.setStatusAs('DECOMMISSIONED');
+    }
   }
-
 });

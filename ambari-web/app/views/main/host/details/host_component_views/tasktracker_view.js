@@ -22,52 +22,32 @@ App.TaskTrackerComponentView = App.HostComponentView.extend(App.Decommissionable
 
   componentForCheckDecommission: 'JOBTRACKER',
 
-  /**
-   * load Recommission/Decommission status for TaskTracker from JobTracker/AliveNodes list
-   */
-  loadComponentDecommissionStatus: function () {
+  setDesiredAdminState: function (desiredAdminState) {
+    switch (desiredAdminState) {
+      case "INSERVICE":
+        // can be decommissioned if already started
+        this.setStatusAs('INSERVICE');
+        break;
+      case "DECOMMISSIONED":
+        this.getDecommissionStatus();
+        break;
+    }
+  },
+
+  setDecommissionStatus: function (curObj) {
     var hostName = this.get('content.hostName');
-    var dfd = $.Deferred();
-    var self = this;
-    this.getDesiredAdminState().done( function () {
-      var desired_admin_state = self.get('desiredAdminState');
-      self.set('desiredAdminState', null);
-      switch(desired_admin_state) {
-        case "INSERVICE":
-          // can be decommissioned if already started
-          self.set('isComponentRecommissionAvailable', false);
-          self.set('isComponentDecommissioning', false);
-          self.set('isComponentDecommissionAvailable', self.get('isStart'));
-          break;
-        case "DECOMMISSIONED":
-          var deferred = $.Deferred();
-          self.getDecommissionStatus().done( function() {
-            var curObj = self.get('decommissionedStatusObject');
-            self.set('decommissionedStatusObject', null);
-            if (curObj) {
-              var aliveNodesArray = App.parseJSON(curObj.AliveNodes);
-              if (aliveNodesArray != null) {
-                if (aliveNodesArray.findProperty('hostname', hostName)){
-                  //decommissioning ..
-                  self.set('isComponentRecommissionAvailable', true);
-                  self.set('isComponentDecommissioning', true);
-                  self.set('isComponentDecommissionAvailable', false);
-                } else {
-                  //decommissioned
-                  self.set('isComponentRecommissionAvailable', true);
-                  self.set('isComponentDecommissioning', false);
-                  self.set('isComponentDecommissionAvailable', false);
-                }
-              }
 
-            }
-            deferred.resolve(curObj);
-          });
-          break;
+    if (curObj) {
+      var aliveNodesArray = App.parseJSON(curObj.AliveNodes);
+      if (!Em.isNone(aliveNodesArray)) {
+        if (aliveNodesArray.findProperty('hostname', hostName)) {
+          //decommissioning ..
+          this.setStatusAs("DECOMMISSIONING");
+        } else {
+          //decommissioned
+          this.setStatusAs("DECOMMISSIONED");
+        }
       }
-      dfd.resolve(desired_admin_state);
-    });
-    return dfd.promise();
+    }
   }
-
 });

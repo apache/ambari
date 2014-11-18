@@ -153,16 +153,35 @@ describe('App.MainHostDetailsView', function () {
   });
 
   describe('#didInsertElement()', function () {
-    it('isLoaded should be set as true', function () {
-      view.didInsertElement();
-      expect(view.get('isLoaded')).to.be.true;
-    });
-    it('router should reditect to main.hosts.index', function () {
-      App.router.set('mainHostDetailsController.content', {
-        isLoaded: false
+    beforeEach(function () {
+      sinon.stub(App.router, 'get', function () {
+        return {
+          updateHost: function (callback) {
+            callback();
+          }
+        }
       });
+      sinon.stub(App.router, 'transitionTo', Em.K);
+      sinon.stub(App, 'tooltip', Em.K);
+    });
+    afterEach(function () {
+      App.router.transitionTo.restore();
+      App.router.get.restore();
+      App.tooltip.restore();
+    });
+    it('host loaded', function () {
+      view.set('content.isLoaded', true);
       view.didInsertElement();
-      expect(App.router.get('currentState.name')).to.equal('index');
+      expect(App.router.get.calledWith('updateController')).to.be.true;
+      expect(App.tooltip.calledOnce).to.be.true;
+      expect(App.router.transitionTo.calledWith('main.hosts.index')).to.be.false;
+    });
+    it('host is not loaded', function () {
+      view.set('content.isLoaded', false);
+      view.didInsertElement();
+      expect(App.router.get.calledWith('updateController')).to.be.true;
+      expect(App.tooltip.calledOnce).to.be.true;
+      expect(App.router.transitionTo.calledWith('main.hosts.index')).to.be.true;
     });
   });
 });
