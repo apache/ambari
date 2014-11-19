@@ -80,7 +80,19 @@ angular.module('ambariAdminConsole')
       controller: 'CreateViewInstanceCtrl'
     }
   },
-  clusters:{
+  stackVersions: {
+    list: {
+      url: '/stackVersions',
+      templateUrl: 'views/stackVersions/list.html',
+      controller: 'StackVersionsListCtrl'
+    },
+    create: {
+      url: '/stackVersions/create',
+      templateUrl: 'views/stackVersions/create.html',
+      controller: 'StackVersionsCreateCtrl'
+    }
+  },
+  clusters: {
     manageAccess: {
       url: '/clusters/:id/manageAccess',
       templateUrl: 'views/clusters/manageAccess.html',

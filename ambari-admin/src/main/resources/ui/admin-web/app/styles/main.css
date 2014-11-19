@@ -1247,5 +1247,23 @@ accordion .panel-group .panel{
   overflow: visible;
 }
 .break-word {
-    word-break: break-all;
+  word-break: break-all;
+}
+
+#stack-versions .table .col-small {
+  width: 15%
+}
+
+#stack-versions .table .col-medium {
+  width: 30%
+}
+
+#stack-versions .table-bar {
+  padding-top: 4px;
+  border: 1px solid #E4E4E4;
+  color: #7B7B7B;
+}
+
+#stack-versions .table-bar .filtered-info {
+  margin-top: 8px;
 }
