@@ -117,11 +117,11 @@ public class SQLProviderModule extends DefaultProviderModule implements HostInfo
               SCOMMetricHelper.getJMXPropertyIds(type),
               urlStreamProvider,
               this,
+              this,
               PropertyHelper.getPropertyId("ServiceComponentInfo", "cluster_name"),
               null,
               PropertyHelper.getPropertyId("ServiceComponentInfo", "component_name"),
-              PropertyHelper.getPropertyId("ServiceComponentInfo", "state"),
-              Collections.singleton("STARTED")));
+              PropertyHelper.getPropertyId("ServiceComponentInfo", "state")));
 
       providers.add(new SQLPropertyProvider(
               SCOMMetricHelper.getSqlServerPropertyIds(type),
@@ -135,11 +135,11 @@ public class SQLProviderModule extends DefaultProviderModule implements HostInfo
               SCOMMetricHelper.getJMXPropertyIds(type),
               urlStreamProvider,
               this,
+              this,
               PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
               PropertyHelper.getPropertyId("HostRoles", "host_name"),
               PropertyHelper.getPropertyId("HostRoles", "component_name"),
-              PropertyHelper.getPropertyId("HostRoles", "state"),
-              Collections.singleton("STARTED")));
+              PropertyHelper.getPropertyId("HostRoles", "state")));
 
       providers.add(new SQLPropertyProvider(
               SCOMMetricHelper.getSqlServerPropertyIds(type),

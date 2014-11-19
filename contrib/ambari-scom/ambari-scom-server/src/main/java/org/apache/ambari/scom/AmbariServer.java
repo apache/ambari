@@ -311,11 +311,9 @@ public class AmbariServer {
       LOG.info("In-memory database is used - creating default users");
       Users users = injector.getInstance(Users.class);
 
-      users.createDefaultRoles();
-      users.createUser("admin", "admin");
-      users.createUser("user", "user");
       try {
-        users.promoteToAdmin(users.getLocalUser("admin"));
+        users.createUser("admin", "admin", true, true, false);
+        users.createUser("user", "user", true, false, false);
       } catch (AmbariException e) {
         throw new RuntimeException(e);
       }

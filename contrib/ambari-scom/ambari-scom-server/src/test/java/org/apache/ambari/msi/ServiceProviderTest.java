@@ -41,7 +41,7 @@ public class ServiceProviderTest {
     ClusterDefinition clusterDefinition = new ClusterDefinition(new TestStateProvider(), new TestClusterDefinitionProvider(), new TestHostInfoProvider());
     ServiceProvider provider = new ServiceProvider(clusterDefinition);
     Set<Resource> resources = provider.getResources(PropertyHelper.getReadRequest(), null);
-    Assert.assertEquals(8, resources.size());
+    Assert.assertEquals(7, resources.size());
   }
 
   @Test
