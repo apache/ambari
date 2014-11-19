@@ -137,7 +137,9 @@ App.MainAlertDefinitionDetailsController = Em.Controller.extend({
    * Router transition to host level alerts page
    * @param event
    */
-  goToHostDetails: function (event) {
-    // todo: provide transition to host level alert details
+  goToHostAlerts: function (event) {
+    if (event && event.context) {
+      App.router.transitionTo('main.hosts.hostDetails.alerts', event.context);
+    }
   }
 });

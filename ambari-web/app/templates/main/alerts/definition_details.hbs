@@ -140,7 +140,7 @@
           {{#each instance in view.pageContent}}
             <tr>
               <td class="first">{{instance.state}}</td>
-              <td><a {{action goToHostDetails instance.hostName target="view"}}>{{instance.host.hostName}}</a></td>
+              <td><a {{action goToHostAlerts instance.host target="controller"}} href="#">{{instance.host.hostName}}</a></td>
               <td>{{instance.lastTriggered}}</td>
               <td>10</td>
               <td class="last">Admins</td>
