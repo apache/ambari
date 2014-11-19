@@ -119,6 +119,10 @@ public abstract class AbstractControllerResourceProvider extends AbstractResourc
         return new StackResourceProvider(propertyIds, keyPropertyIds, managementController);
       case StackVersion:
         return new StackVersionResourceProvider(propertyIds, keyPropertyIds, managementController);
+      case ClusterStackVersion:
+        return new ClusterStackVersionResourceProvider(managementController);
+      case HostStackVersion:
+        return new HostStackVersionResourceProvider(managementController);
       case StackService:
         return new StackServiceResourceProvider(propertyIds, keyPropertyIds, managementController);
       case StackServiceComponent:

@@ -119,7 +119,7 @@ public class RequestService extends BaseService {
    * @param body        http body
    * @param headers     http headers
    * @param ui          uri info
-   * @return information regarding the created services
+   * @return information regarding the updated requests
    */
   @PUT
   @Path("{requestId}")
@@ -136,7 +136,7 @@ public class RequestService extends BaseService {
    * @param body        http body
    * @param headers     http headers
    * @param ui          uri info
-   * @return information regarding the created services
+   * @return information regarding the created requests
    */
   @POST
   @Produces("text/plain")

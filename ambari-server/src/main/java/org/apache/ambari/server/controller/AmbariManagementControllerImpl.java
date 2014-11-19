@@ -1633,24 +1633,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     hostParams.put(REPO_INFO, repoInfo);
     hostParams.putAll(getRcaParameters());
 
-    // Write down os specific info for the service
-    ServiceOsSpecific anyOs = null;
-    if (serviceInfo.getOsSpecifics().containsKey(AmbariMetaInfo.ANY_OS)) {
-      anyOs = serviceInfo.getOsSpecifics().get(AmbariMetaInfo.ANY_OS);
-    }
-
-    ServiceOsSpecific hostOs = populateServicePackagesInfo(serviceInfo, hostParams, osFamily);
-
-    // Build package list that is relevant for host
     List<ServiceOsSpecific.Package> packages =
-      new ArrayList<ServiceOsSpecific.Package>();
-    if (anyOs != null) {
-      packages.addAll(anyOs.getPackages());
-    }
-
-    if (hostOs != null) {
-      packages.addAll(hostOs.getPackages());
-    }
+            getPackagesForServiceHost(serviceInfo, hostParams, osFamily);
     String packageList = gson.toJson(packages);
     hostParams.put(PACKAGE_LIST, packageList);
 
@@ -1684,12 +1668,21 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     execCmd.setRoleParams(roleParams);
   }
 
+  /**
+   * Computes os-dependent packages for service/host. Does not take into
+   * account package dependencies for ANY_OS. Instead of this method
+   * you should use getPackagesForServiceHost()
+   * because it takes into account both os-dependent and os-independent lists
+   * of packages for service.
+   * @param hostParams may be modified (appended SERVICE_REPO_INFO)
+   * @return a list of os-dependent packages for host
+   */
   protected ServiceOsSpecific populateServicePackagesInfo(ServiceInfo serviceInfo, Map<String, String> hostParams,
                                                         String osFamily) {
     ServiceOsSpecific hostOs = new ServiceOsSpecific(osFamily);
-    List<ServiceOsSpecific> foundedOSSpecifics = getOSSpecificsByFamily(serviceInfo.getOsSpecifics(), osFamily);
-    if (!foundedOSSpecifics.isEmpty()) {
-      for (ServiceOsSpecific osSpecific : foundedOSSpecifics) {
+    List<ServiceOsSpecific> foundOSSpecifics = getOSSpecificsByFamily(serviceInfo.getOsSpecifics(), osFamily);
+    if (!foundOSSpecifics.isEmpty()) {
+      for (ServiceOsSpecific osSpecific : foundOSSpecifics) {
         hostOs.addPackages(osSpecific.getPackages());
       }
       // Choose repo that is relevant for host
@@ -1699,8 +1692,31 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         hostParams.put(SERVICE_REPO_INFO, serviceRepoInfo);
       }
     }
-
     return hostOs;
+  }
+
+  @Override
+  public List<ServiceOsSpecific.Package> getPackagesForServiceHost(ServiceInfo serviceInfo, Map<String, String> hostParams, String osFamily) {
+    // Write down os specific info for the service
+    ServiceOsSpecific anyOs = null;
+    if (serviceInfo.getOsSpecifics().containsKey(AmbariMetaInfo.ANY_OS)) {
+      anyOs = serviceInfo.getOsSpecifics().get(AmbariMetaInfo.ANY_OS);
+    }
+
+    ServiceOsSpecific hostOs = populateServicePackagesInfo(serviceInfo, hostParams, osFamily);
+
+    // Build package list that is relevant for host
+    List<ServiceOsSpecific.Package> packages =
+            new ArrayList<ServiceOsSpecific.Package>();
+    if (anyOs != null) {
+      packages.addAll(anyOs.getPackages());
+    }
+
+    if (hostOs != null) {
+      packages.addAll(hostOs.getPackages());
+    }
+
+    return packages;
   }
 
   private List<ServiceOsSpecific> getOSSpecificsByFamily(Map<String, ServiceOsSpecific> osSpecifics, String osFamily) {

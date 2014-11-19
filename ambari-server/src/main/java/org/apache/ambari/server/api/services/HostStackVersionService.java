@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -42,12 +43,18 @@ public class HostStackVersionService extends BaseService {
   private String hostName;
 
   /**
+   * Parent cluster name.
+   */
+  private String clusterName;
+
+  /**
    * Constructor.
    *
    * @param hostName name of the host
    */
-  public HostStackVersionService(String hostName) {
+  public HostStackVersionService(String hostName, String clusterName) {
     this.hostName = hostName;
+    this.clusterName = clusterName;
   }
 
   /**
@@ -62,12 +69,12 @@ public class HostStackVersionService extends BaseService {
   @GET
   @Produces("text/plain")
   public Response getHostStackVersions(@Context HttpHeaders headers, @Context UriInfo ui) {
-    return handleRequest(headers, null, ui, Request.Type.GET, createResource(hostName, null));
+    return handleRequest(headers, null, ui, Request.Type.GET, createResource(ui, clusterName, hostName, null));
   }
 
   /**
    * Gets a single host stack version.
-   * Handles: GET /host/{hostname}/host_versions/{stackversionid} requests.
+   * Handles: GET /hosts/{hostname}/host_versions/{stackversionid} requests.
    *
    * @param headers        http headers
    * @param ui             uri info
@@ -80,7 +87,22 @@ public class HostStackVersionService extends BaseService {
   @Produces("text/plain")
   public Response getHostStackVersion(@Context HttpHeaders headers, @Context UriInfo ui,
       @PathParam("stackVersionId") String stackVersionId) {
-    return handleRequest(headers, null, ui, Request.Type.GET, createResource(hostName, stackVersionId));
+    return handleRequest(headers, null, ui, Request.Type.GET, createResource(ui, clusterName, hostName, stackVersionId));
+  }
+
+  /**
+   * Handles: POST /clusters/{clusterID}/hosts/{hostname}/host_versions requests
+   * Distribute repositories/install packages on host.
+   *
+   * @param body        http body
+   * @param headers     http headers
+   * @param ui          uri info
+   * @return information regarding the created services
+   */
+  @POST
+  @Produces("text/plain")
+  public Response createRequests(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
+    return handleRequest(headers, body, ui, Request.Type.POST, createResource(ui, clusterName, hostName, null));
   }
 
   /**
@@ -100,12 +122,16 @@ public class HostStackVersionService extends BaseService {
   /**
    * Create a host stack version resource instance.
    *
+   * @param clusterName
    * @param hostName host name
    * @param stackVersionId host stack version id
    * @return a host host version resource instance
    */
-  private ResourceInstance createResource(String hostName, String stackVersionId) {
+  private ResourceInstance createResource(UriInfo ui, String clusterName, String hostName, String stackVersionId) {
     final Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
+    if (clusterName != null) {
+      mapIds.put(Resource.Type.Cluster, clusterName);
+    }
     mapIds.put(Resource.Type.Host, hostName);
     mapIds.put(Resource.Type.HostStackVersion, stackVersionId);
     return createResource(Resource.Type.HostStackVersion, mapIds);

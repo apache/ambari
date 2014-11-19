@@ -29,9 +29,10 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-
+import static org.hamcrest.CoreMatchers.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
@@ -111,6 +112,8 @@ import org.apache.ambari.server.state.ServiceComponentFactory;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceComponentHostFactory;
 import org.apache.ambari.server.state.ServiceFactory;
+import org.apache.ambari.server.state.ServiceInfo;
+import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.State;
@@ -10340,6 +10343,38 @@ public class AmbariManagementControllerTest {
     resp = updateHostComponents(Collections.singleton(req), requestProperties, false);
     assertNotNull(resp);
 
+  }
+
+  @Test
+  public void testGetPackagesForServiceHost() throws Exception {
+    ServiceInfo service = ambariMetaInfo.getStack("HDP", "2.0.1").getService("HIVE");
+    HashMap<String, String> hostParams = new HashMap<String, String>();
+
+    Map<String, ServiceOsSpecific.Package> packages = new HashMap<String, ServiceOsSpecific.Package>();
+    String [] packageNames = {"hive", "mysql-connector-java", "mysql", "mysql-server", "mysql-client"};
+    for (String packageName : packageNames) {
+      ServiceOsSpecific.Package pkg = new ServiceOsSpecific.Package();
+      pkg.setName(packageName);
+      packages.put(packageName, pkg);
+    }
+
+    List<ServiceOsSpecific.Package> rhel5Packages = controller.getPackagesForServiceHost(service, hostParams, "redhat5");
+    List<ServiceOsSpecific.Package> expectedRhel5 = Arrays.asList(
+            packages.get("hive"),
+            packages.get("mysql-connector-java"),
+            packages.get("mysql"),
+            packages.get("mysql-server")
+    );
+
+    List<ServiceOsSpecific.Package> sles11Packages = controller.getPackagesForServiceHost(service, hostParams, "suse11");
+    List<ServiceOsSpecific.Package> expectedSles11 = Arrays.asList(
+            packages.get("hive"),
+            packages.get("mysql-connector-java"),
+            packages.get("mysql"),
+            packages.get("mysql-client")
+    );
+    assertThat(rhel5Packages, is(expectedRhel5));
+    assertThat(sles11Packages, is(expectedSles11));
   }
 
   // this is a temporary measure as a result of moving updateHostComponents from AmbariManagementController

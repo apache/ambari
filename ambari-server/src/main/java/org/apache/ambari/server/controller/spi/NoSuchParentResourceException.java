@@ -32,4 +32,13 @@ public class NoSuchParentResourceException extends Exception {
   public NoSuchParentResourceException(String msg, Throwable throwable) {
     super(msg, throwable);
   }
+
+  /**
+   * Constructor.
+   *
+   * @param msg        the message
+   */
+  public NoSuchParentResourceException(String msg) {
+    super(msg);
+  }
 }

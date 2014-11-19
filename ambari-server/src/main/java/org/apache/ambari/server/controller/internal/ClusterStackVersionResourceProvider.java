@@ -17,38 +17,64 @@
  */
 package org.apache.ambari.server.controller.internal;
 
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JDK_LOCATION;
+
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.ambari.server.AmbariException;
+import com.google.gson.Gson;
+import com.google.inject.Provider;
 import org.apache.ambari.server.StaticallyInject;
+import org.apache.ambari.server.actionmanager.ActionManager;
+import org.apache.ambari.server.actionmanager.RequestFactory;
+import org.apache.ambari.server.actionmanager.Stage;
+import org.apache.ambari.server.actionmanager.StageFactory;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.controller.ActionExecutionContext;
+import org.apache.ambari.server.controller.AmbariActionExecutionHelper;
+import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.Resource.Type;
 import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
-import org.apache.ambari.server.controller.spi.Resource.Type;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
+import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
+import org.apache.ambari.server.orm.entities.OperatingSystemEntity;
+import org.apache.ambari.server.orm.entities.RepositoryEntity;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.RepositoryVersionState;
+import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.ServiceInfo;
+import org.apache.ambari.server.state.ServiceOsSpecific;
+import org.apache.ambari.server.utils.StageUtils;
 
 import com.google.inject.Inject;
+import org.apache.ambari.server.state.StackId;
 
 /**
  * Resource provider for cluster stack versions resources.
  */
 @StaticallyInject
-public class ClusterStackVersionResourceProvider extends AbstractResourceProvider {
+public class ClusterStackVersionResourceProvider extends AbstractControllerResourceProvider {
 
   // ----- Property ID constants ---------------------------------------------
 
@@ -59,6 +85,13 @@ public class ClusterStackVersionResourceProvider extends AbstractResourceProvide
   protected static final String CLUSTER_STACK_VERSION_STATE_PROPERTY_ID                = PropertyHelper.getPropertyId("ClusterStackVersions", "state");
   protected static final String CLUSTER_STACK_VERSION_HOST_STATES_PROPERTY_ID          = PropertyHelper.getPropertyId("ClusterStackVersions", "host_states");
 
+  protected static final String STACK_VERSION_REPO_VERSION_PROPERTY_ID = PropertyHelper.getPropertyId("StackVersion", "repository_version");
+  protected static final String STACK_VERSION_STACK_PROPERTY_ID    = PropertyHelper.getPropertyId("StackVersion", "stack");
+  protected static final String STACK_VERSION_VERSION_PROPERTY_ID    = PropertyHelper.getPropertyId("StackVersion", "version");
+
+  protected static final String INSTALL_PACKAGES_ACTION = "install_packages";
+  protected static final String INSTALL_PACKAGES_FULL_NAME = "Distribute repositories/install packages";
+
   @SuppressWarnings("serial")
   private static Set<String> pkPropertyIds = new HashSet<String>() {
     {
@@ -66,6 +99,9 @@ public class ClusterStackVersionResourceProvider extends AbstractResourceProvide
       add(CLUSTER_STACK_VERSION_ID_PROPERTY_ID);
       add(CLUSTER_STACK_VERSION_STACK_PROPERTY_ID);
       add(CLUSTER_STACK_VERSION_VERSION_PROPERTY_ID);
+      add(STACK_VERSION_REPO_VERSION_PROPERTY_ID);
+      add(STACK_VERSION_STACK_PROPERTY_ID);
+      add(STACK_VERSION_VERSION_PROPERTY_ID);
     }
   };
 
@@ -78,6 +114,9 @@ public class ClusterStackVersionResourceProvider extends AbstractResourceProvide
       add(CLUSTER_STACK_VERSION_VERSION_PROPERTY_ID);
       add(CLUSTER_STACK_VERSION_STATE_PROPERTY_ID);
       add(CLUSTER_STACK_VERSION_HOST_STATES_PROPERTY_ID);
+      add(STACK_VERSION_REPO_VERSION_PROPERTY_ID);
+      add(STACK_VERSION_STACK_PROPERTY_ID);
+      add(STACK_VERSION_VERSION_PROPERTY_ID);
     }
   };
 
@@ -97,11 +136,26 @@ public class ClusterStackVersionResourceProvider extends AbstractResourceProvide
   @Inject
   private static HostVersionDAO hostVersionDAO;
 
+  @Inject
+  private static RepositoryVersionDAO repositoryVersionDAO;
+
+  private static Gson gson = StageUtils.getGson();
+
+  @Inject
+  private static Provider<AmbariActionExecutionHelper> actionExecutionHelper;
+
+  @Inject
+  private static StageFactory stageFactory;
+
+  @Inject
+  private static RequestFactory requestFactory;
+
   /**
    * Constructor.
    */
-  public ClusterStackVersionResourceProvider() {
-    super(propertyIds, keyPropertyIds);
+  public ClusterStackVersionResourceProvider(
+          AmbariManagementController managementController) {
+    super(propertyIds, keyPropertyIds, managementController);
   }
 
   @Override
@@ -159,10 +213,168 @@ public class ClusterStackVersionResourceProvider extends AbstractResourceProvide
 
   @Override
   public RequestStatus createResources(Request request) throws SystemException,
-      UnsupportedPropertyException, ResourceAlreadyExistsException,
-      NoSuchParentResourceException {
-    throw new SystemException("Method not supported");
+          UnsupportedPropertyException, ResourceAlreadyExistsException,
+          NoSuchParentResourceException {
+    Iterator<Map<String, Object>> iterator = request.getProperties().iterator();
+    String clName;
+    String desiredRepoVersion;
+    String stackName;
+    String stackVersion;
+    if (request.getProperties().size() != 1) {
+      throw new UnsupportedOperationException("Multiple requests cannot be executed at the same time.");
+    }
+
+    Map<String, Object> propertyMap = iterator.next();
+    if (!propertyMap.containsKey(CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID) ||
+            !propertyMap.containsKey(STACK_VERSION_REPO_VERSION_PROPERTY_ID)) {
+      throw new IllegalArgumentException(
+              String.format("%s or %s not defined",
+                      CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID,
+                      STACK_VERSION_REPO_VERSION_PROPERTY_ID));
+    }
+    clName = (String) propertyMap.get(CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID);
+    desiredRepoVersion = (String) propertyMap.get(STACK_VERSION_REPO_VERSION_PROPERTY_ID);
+
+    Cluster cluster;
+    Map<String, Host> hostsForCluster;
+
+    AmbariManagementController managementController = getManagementController();
+    AmbariMetaInfo ami = managementController.getAmbariMetaInfo();
+    try {
+      cluster = managementController.getClusters().getCluster(clName);
+      hostsForCluster = managementController.getClusters().getHostsForCluster(clName);
+    } catch (AmbariException e) {
+      throw new NoSuchParentResourceException(e.getMessage(), e);
+    }
+
+    String stackId;
+    if (propertyMap.containsKey(STACK_VERSION_STACK_PROPERTY_ID) &&
+            propertyMap.containsKey(STACK_VERSION_VERSION_PROPERTY_ID)) {
+      stackName = (String) propertyMap.get(STACK_VERSION_STACK_PROPERTY_ID);
+      stackVersion = (String) propertyMap.get(STACK_VERSION_VERSION_PROPERTY_ID);
+      stackId = new StackId(stackName, stackVersion).getStackId();
+      if (! ami.isSupportedStack(stackName, stackVersion)) {
+        throw new NoSuchParentResourceException(String.format("Stack %s is not supported",
+                stackId));
+      }
+    } else { // Using stack that is current for cluster
+      StackId currentStackVersion = cluster.getCurrentStackVersion();
+      stackName = currentStackVersion.getStackName();
+      stackVersion = currentStackVersion.getStackVersion();
+      stackId = currentStackVersion.getStackId();
+    }
+
+    RepositoryVersionEntity repoVersionEnt = repositoryVersionDAO.findByStackAndVersion(stackId, desiredRepoVersion);
+    if (repoVersionEnt == null) {
+      throw new IllegalArgumentException(String.format(
+              "Repo version %s is not available for stack %s",
+              desiredRepoVersion, stackId));
+    }
+    List<OperatingSystemEntity> operatingSystems = repoVersionEnt.getOperatingSystems();
+    Map<String, List<RepositoryEntity>> perOsRepos = new HashMap<String, List<RepositoryEntity>>();
+    for (OperatingSystemEntity operatingSystem : operatingSystems) {
+      perOsRepos.put(operatingSystem.getOsType(), operatingSystem.getRepositories());
+    }
+
+    RequestStageContainer req = createRequest();
+    String stageName = String.format(INSTALL_PACKAGES_FULL_NAME);
+
+    Map<String, String> hostLevelParams = new HashMap<String, String>();
+    hostLevelParams.put(JDK_LOCATION, getManagementController().getJdkResourceUrl());
+
+    Stage stage = stageFactory.createNew(req.getId(),
+            "/tmp/ambari",
+            cluster.getClusterName(),
+            cluster.getClusterId(),
+            stageName,
+            "{}",
+            "{}",
+            StageUtils.getGson().toJson(hostLevelParams));
+
+    long stageId = req.getLastStageId() + 1;
+    if (0L == stageId) {
+      stageId = 1L;
+    }
+    stage.setStageId(stageId);
+    req.addStages(Collections.singletonList(stage));
+
+    for (Host host : hostsForCluster.values()) {
+      // Determine repositories for host
+      final List<RepositoryEntity> repoInfo = perOsRepos.get(host.getOsFamily());
+      if (repoInfo == null) {
+        throw new SystemException(String.format("Repositories for os type %s are " +
+                        "not defined. Repo version=%s, stackId=%s",
+                        host.getOsFamily(), desiredRepoVersion, stackId));
+      }
+      // For every host at cluster, determine packages for all installed services
+      List<ServiceOsSpecific.Package> packages = new ArrayList<ServiceOsSpecific.Package>();
+      Set<String> servicesOnHost = new HashSet<String>();
+      List<ServiceComponentHost> components = cluster.getServiceComponentHosts(host.getHostName());
+      for (ServiceComponentHost component : components) {
+        servicesOnHost.add(component.getServiceName());
+      }
+
+      for (String serviceName : servicesOnHost) {
+        ServiceInfo info;
+        try {
+          info = ami.getService(stackName, stackVersion, serviceName);
+        } catch (AmbariException e) {
+          throw new SystemException("Cannot enumerate services", e);
+        }
+
+        List<ServiceOsSpecific.Package> packagesForService = managementController.getPackagesForServiceHost(info,
+                new HashMap<String, String>(), // Contents are ignored
+                host.getOsFamily());
+        packages.addAll(packagesForService);
+      }
+      final String packageList = gson.toJson(packages);
+      final String repoList = gson.toJson(repoInfo);
+
+      Map<String, String> params = new HashMap<String, String>() {{
+        put("base_urls", repoList);
+        put("package_list", packageList);
+      }};
+
+      // add host to this stage
+      RequestResourceFilter filter = new RequestResourceFilter(null, null,
+              Collections.singletonList(host.getHostName()));
+
+      ActionExecutionContext actionContext = new ActionExecutionContext(
+              cluster.getClusterName(), INSTALL_PACKAGES_ACTION,
+              Collections.singletonList(filter),
+              params);
+      actionContext.setTimeout((short) 60);
+
+      try {
+        actionExecutionHelper.get().addExecutionCommandsToStage(actionContext, stage);
+      } catch (AmbariException e) {
+        throw new SystemException("Can not modify stage", e);
+      }
+    }
+
+    try {
+      req.persist();
+
+      //TODO: create cluster version entity
+      //clusterVersionDAO.create();
+    } catch (AmbariException e) {
+      throw new SystemException("Can not persist request", e);
+    }
+    return getRequestStatus(req.getRequestStatusResponse());
   }
+
+
+
+  private RequestStageContainer createRequest() {
+    ActionManager actionManager = getManagementController().getActionManager();
+
+    RequestStageContainer requestStages = new RequestStageContainer(
+            actionManager.getNextRequestId(), null, requestFactory, actionManager);
+    requestStages.setRequestContext(String.format(INSTALL_PACKAGES_FULL_NAME));
+
+    return requestStages;
+  }
+
 
   @Override
   public RequestStatus updateResources(Request request, Predicate predicate)

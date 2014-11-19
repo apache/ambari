@@ -22,8 +22,8 @@
     }, 
     "commandType": "EXECUTION_COMMAND", 
     "roleParams": {
-        "base_urls": "[{\"id\": \"HDP-2.2.0.0-885\", \"type\": \"HDP\",\"baseurl\": \"http://host1/hdp\"}, {\"id\": \"HDP-UTILS-1.0.0.20\", \"type\": \"HDP-UTILS\", \"baseurl\": \"http://host1/hdp-utils\"}]", 
-        "package_list": "[\"python-rrdtool-1.4.5\", \"libganglia-3.5.0-99\", \"ganglia-*\"]"
+        "base_urls": "[{\"name\":\"HDP-UTILS\",\"baseUrl\":\"http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos5/2.x/updates/2.2.0.0\",\"repositoryId\":\"HDP-UTILS-1.1.0.20\"},{\"name\":\"HDP\",\"baseUrl\":\"http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos5/2.x/updates/2.2.0.0\",\"repositoryId\":\"HDP-2.2\"}]",
+        "package_list": "[{\"name\":\"hadoop_2_2_*\"},{\"name\":\"snappy\"},{\"name\":\"snappy-devel\"},{\"name\":\"lzo\"},{\"name\":\"hadooplzo_2_2_*\"},{\"name\":\"hadoop_2_2_*-libhdfs\"},{\"name\":\"ambari-log4j\"}]"
     }, 
     "serviceName": "null", 
     "role": "install_packages", 
@@ -34,8 +34,8 @@
     "commandParams": {
         "command_timeout": "60", 
         "script_type": "PYTHON", 
-        "base_urls": "[{\"id\": \"HDP-2.2.0.0-885\", \"type\": \"HDP\",\"baseurl\": \"http://host1/hdp\"}, {\"id\": \"HDP-UTILS-1.0.0.20\", \"type\": \"HDP-UTILS\", \"baseurl\": \"http://host1/hdp-utils\"}]", 
-        "package_list": "[\"python-rrdtool-1.4.5\", \"libganglia-3.5.0-99\", \"ganglia-*\"]", 
+        "base_urls": "[{\"name\":\"HDP-UTILS\",\"baseUrl\":\"http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos5/2.x/updates/2.2.0.0\",\"repositoryId\":\"HDP-UTILS-1.1.0.20\"},{\"name\":\"HDP\",\"baseUrl\":\"http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos5/2.x/updates/2.2.0.0\",\"repositoryId\":\"HDP-2.2\"}]",
+        "package_list": "[{\"name\":\"hadoop_2_2_*\"},{\"name\":\"snappy\"},{\"name\":\"snappy-devel\"},{\"name\":\"lzo\"},{\"name\":\"hadooplzo_2_2_*\"},{\"name\":\"hadoop_2_2_*-libhdfs\"},{\"name\":\"ambari-log4j\"}]",
         "script": "install_packages.py"
     }, 
     "commandId": "14-1", 

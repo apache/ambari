@@ -44,8 +44,15 @@ class InstallPackages(Script):
 
     # Parse parameters
     config = Script.get_config()
-    base_urls = json.loads(config['commandParams']['base_urls'])
-    package_list = json.loads(config['commandParams']['package_list'])
+
+    # Select dict that contains parameters
+    try:
+      base_urls = json.loads(config['roleParams']['base_urls'])
+      package_list = json.loads(config['roleParams']['package_list'])
+    except KeyError:
+      # Last try
+      base_urls = json.loads(config['commandParams']['base_urls'])
+      package_list = json.loads(config['commandParams']['package_list'])
 
     # Install/update repositories
     installed_repositories = []
@@ -63,7 +70,7 @@ class InstallPackages(Script):
     if not delayed_fail:
       try:
         for package in package_list:
-          Package(package)
+          Package(package['name'])
         package_install_result = True
       except Exception, err:
         print "Can not install packages."
@@ -87,18 +94,18 @@ class InstallPackages(Script):
     template = "repo_suse_rhel.j2" if OSCheck.is_redhat_family() or OSCheck.is_suse_family() else "repo_ubuntu.j2"
 
     repo = {
-      'repoName': url_info['id']
+      'repoName': url_info['repositoryId']
     }
 
-    if not 'baseurl' in url_info:
+    if not 'baseUrl' in url_info:
       repo['baseurl'] = None
     else:
-      repo['baseurl'] = url_info['baseurl']
+      repo['baseurl'] = url_info['baseUrl']
 
     if not 'mirrorsList' in url_info:
       repo['mirrorsList'] = None
     else:
-      repo['mirrorsList'] = url_info['mirrorslist']
+      repo['mirrorsList'] = url_info['mirrorsList']
 
     ubuntu_components = [repo['repoName']] + self.UBUNTU_REPO_COMPONENTS_POSTFIX
 

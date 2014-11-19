@@ -43,25 +43,29 @@ class TestInstallPackages(RMFTestCase):
     self.assertEquals(put_structured_out.call_args[0][0],
                       {'package_installation_result': 'SUCCESS',
                        'ambari_repositories': []})
-    self.assertResourceCalled('Repository', 'HDP-2.2.0.0-885',
-                              base_url=u'http://host1/hdp',
+    self.assertResourceCalled('Repository', 'HDP-UTILS-1.1.0.20',
+                              base_url='http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos5/2.x/updates/2.2.0.0',
                               action=['create'],
-                              components=[u'HDP-2.2.0.0-885', 'main'],
+                              components=[u'HDP-UTILS-1.1.0.20', 'main'],
                               repo_template='repo_suse_rhel.j2',
-                              repo_file_name=u'HDP-2.2.0.0-885',
+                              repo_file_name='HDP-UTILS-1.1.0.20',
                               mirror_list=None,
     )
-    self.assertResourceCalled('Repository', 'HDP-UTILS-1.0.0.20',
-                              base_url=u'http://host1/hdp-utils',
+    self.assertResourceCalled('Repository', 'HDP-2.2',
+                              base_url='http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos5/2.x/updates/2.2.0.0',
                               action=['create'],
-                              components=[u'HDP-UTILS-1.0.0.20', 'main'],
+                              components=[u'HDP-2.2', 'main'],
                               repo_template='repo_suse_rhel.j2',
-                              repo_file_name=u'HDP-UTILS-1.0.0.20',
+                              repo_file_name='HDP-2.2',
                               mirror_list=None,
     )
-    self.assertResourceCalled('Package', 'python-rrdtool-1.4.5', )
-    self.assertResourceCalled('Package', 'libganglia-3.5.0-99', )
-    self.assertResourceCalled('Package', 'ganglia-*', )
+    self.assertResourceCalled('Package', 'hadoop_2_2_*',)
+    self.assertResourceCalled('Package', 'snappy',)
+    self.assertResourceCalled('Package', 'snappy-devel',)
+    self.assertResourceCalled('Package', 'lzo',)
+    self.assertResourceCalled('Package', 'hadooplzo_2_2_*',)
+    self.assertResourceCalled('Package', 'hadoop_2_2_*-libhdfs',)
+    self.assertResourceCalled('Package', 'ambari-log4j',)
     self.assertNoMoreResources()
 
 
@@ -80,25 +84,29 @@ class TestInstallPackages(RMFTestCase):
     self.assertEquals(put_structured_out.call_args[0][0],
                       {'package_installation_result': 'SUCCESS',
                        'ambari_repositories': ["HDP-UTILS-1.0.0.20"]})
-    self.assertResourceCalled('Repository', 'HDP-2.2.0.0-885',
-                              base_url=u'http://host1/hdp',
+    self.assertResourceCalled('Repository', 'HDP-UTILS-1.1.0.20',
+                              base_url='http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos5/2.x/updates/2.2.0.0',
                               action=['create'],
-                              components=[u'HDP-2.2.0.0-885', 'main'],
+                              components=[u'HDP-UTILS-1.1.0.20', 'main'],
                               repo_template='repo_suse_rhel.j2',
-                              repo_file_name=u'HDP-2.2.0.0-885',
+                              repo_file_name='HDP-UTILS-1.1.0.20',
                               mirror_list=None,
     )
-    self.assertResourceCalled('Repository', 'HDP-UTILS-1.0.0.20',
-                              base_url=u'http://host1/hdp-utils',
+    self.assertResourceCalled('Repository', 'HDP-2.2',
+                              base_url='http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos5/2.x/updates/2.2.0.0',
                               action=['create'],
-                              components=[u'HDP-UTILS-1.0.0.20', 'main'],
+                              components=[u'HDP-2.2', 'main'],
                               repo_template='repo_suse_rhel.j2',
-                              repo_file_name=u'HDP-UTILS-1.0.0.20',
+                              repo_file_name='HDP-2.2',
                               mirror_list=None,
     )
-    self.assertResourceCalled('Package', 'python-rrdtool-1.4.5', )
-    self.assertResourceCalled('Package', 'libganglia-3.5.0-99', )
-    self.assertResourceCalled('Package', 'ganglia-*', )
+    self.assertResourceCalled('Package', 'hadoop_2_2_*',)
+    self.assertResourceCalled('Package', 'snappy',)
+    self.assertResourceCalled('Package', 'snappy-devel',)
+    self.assertResourceCalled('Package', 'lzo',)
+    self.assertResourceCalled('Package', 'hadooplzo_2_2_*',)
+    self.assertResourceCalled('Package', 'hadoop_2_2_*-libhdfs',)
+    self.assertResourceCalled('Package', 'ambari-log4j',)
     self.assertNoMoreResources()
 
 

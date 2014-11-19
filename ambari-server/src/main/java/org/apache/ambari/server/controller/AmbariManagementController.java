@@ -35,11 +35,14 @@ import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentFactory;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceFactory;
+import org.apache.ambari.server.state.ServiceInfo;
+import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -718,5 +721,15 @@ public interface AmbariManagementController {
    * @throws AmbariException
    */
   public Set<StackConfigurationResponse> getStackLevelConfigurations(Set<StackLevelConfigurationRequest> requests) throws AmbariException;
+
+  /**
+   * @param serviceInfo service info for a given service
+   * @param hostParams parameter map. May be changed during method execution
+   * @param osFamily os family for host
+   * @return a full list of package dependencies for a service that should be
+   * installed on a host
+   */
+  List<ServiceOsSpecific.Package> getPackagesForServiceHost(ServiceInfo serviceInfo,
+                                                            Map<String, String> hostParams, String osFamily);
 }
 

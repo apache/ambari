@@ -249,7 +249,7 @@ public class HostService extends BaseService {
   public HostStackVersionService getHostStackVersionService(@Context javax.ws.rs.core.Request request,
       @PathParam("hostName") String hostName) {
 
-    return new HostStackVersionService(hostName);
+    return new HostStackVersionService(hostName, m_clusterName);
   }
 
   /**
@@ -264,11 +264,9 @@ public class HostService extends BaseService {
    * @return a host resource instance
    */
   ResourceInstance createHostResource(String clusterName, String hostName, UriInfo ui) {
-    boolean isAttached = ui.getRequestUri().toString().contains("/clusters/");
-
     Map<Resource.Type,String> mapIds = new HashMap<Resource.Type, String>();
     mapIds.put(Resource.Type.Host, hostName);
-    if (isAttached) {
+    if (clusterName != null) {
       mapIds.put(Resource.Type.Cluster, clusterName);
     }
 

@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -95,6 +96,21 @@ public class ClusterStackVersionService extends BaseService {
     stackVersionProperties.put(Resource.Type.Cluster, clusterName);
     stackVersionProperties.put(Resource.Type.ClusterStackVersion, stackVersionId);
     return new RepositoryVersionService(stackVersionProperties);
+  }
+
+  /**
+   * Handles: POST /{clustername}/stack_versions requests
+   * Distribute repositories/install packages.
+   *
+   * @param body        http body
+   * @param headers     http headers
+   * @param ui          uri info
+   * @return information regarding the created services
+   */
+  @POST
+  @Produces("text/plain")
+  public Response createRequests(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
+    return handleRequest(headers, body, ui, Request.Type.POST, createResource(null));
   }
 
   /**
