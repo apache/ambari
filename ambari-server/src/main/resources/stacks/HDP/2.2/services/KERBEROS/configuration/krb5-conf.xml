@@ -1,0 +1,186 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+
+<configuration>
+  <property>
+    <name>logging_default</name>
+    <value>FILE:/var/log/krb5libs.log</value>
+  </property>
+  <property>
+    <name>logging_kdc</name>
+    <value>FILE:/var/log/krb5kdc.log</value>
+  </property>
+  <property>
+    <name>logging_admin_server</name>
+    <value>FILE:/var/log/kadmind.log</value>
+  </property>
+
+  <property>
+    <name>libdefaults_dns_lookup_realm</name>
+    <value>false</value>
+  </property>
+  <property>
+    <name>libdefaults_dns_lookup_kdc</name>
+    <value>false</value>
+  </property>
+  <property>
+    <name>libdefaults_ticket_lifetime</name>
+    <value>24h</value>
+  </property>
+  <property>
+    <name>libdefaults_renew_lifetime</name>
+    <value>7d</value>
+  </property>
+  <property>
+    <name>libdefaults_forwardable</name>
+    <value>true</value>
+  </property>
+  <property>
+    <name>libdefaults_default_tgs_enctypes</name>
+    <description>
+      a space-delimited list of session key encryption types supported by the KDC or Active
+      Directory
+    </description>
+    <value>
+      aes256-cts-hmac-sha1-96 aes128-cts-hmac-sha1-96 des3-cbc-sha1 arcfour-hmac-md5
+      camellia256-cts-cmac camellia128-cts-cmac des-cbc-crc des-cbc-md5 des-cbc-md4
+    </value>
+  </property>
+  <property>
+    <name>libdefaults_default_tkt_enctypes</name>
+    <description>
+      a space-delimited list of session key encryption types supported by the KDC or Active
+      Directory
+    </description>
+    <value>
+      aes256-cts-hmac-sha1-96 aes128-cts-hmac-sha1-96 des3-cbc-sha1 arcfour-hmac-md5
+      camellia256-cts-cmac camellia128-cts-cmac des-cbc-crc des-cbc-md5 des-cbc-md4
+    </value>
+  </property>
+
+  <property require-input="true">
+    <name>realm</name>
+    <description>
+      The realm to use when creating service principals
+    </description>
+    <value/>
+  </property>
+  <property require-input="true">
+    <name>domains</name>
+    <description>
+      A comma-delimited list of domain names that the realm serves (optional)
+    </description>
+    <value/>
+  </property>
+  <property require-input="true">
+    <name>kdc_type</name>
+    <description>
+      The type of KDC being used. Either mit-kdc or active-directory
+    </description>
+    <value>mit-kdc</value>
+  </property>
+  <property require-input="true">
+    <name>kdc_host</name>
+    <description>
+      The IP address or FQDN of the KDC or Active Directory server, optionally a port number may be
+      provided
+    </description>
+    <value/>
+  </property>
+  <property>
+    <name>admin_server_host</name>
+    <description>
+      The IP address or FQDN of the administrative Kerberos server, optionally a port number may be
+      provided
+    </description>
+    <value/>
+  </property>
+  <property>
+    <name>test_principal</name>
+    <description>
+      The principal that may be used to test the Kerberos configuration (this will not be retained)
+    </description>
+    <value/>
+  </property>
+  <property>
+    <name>test_password</name>
+    <description>
+      The password for the administrative principal (either this value or the keytab value is
+      required to be set, neither is expected to be retained)
+    </description>
+    <value/>
+    <property-type>PASSWORD</property-type>
+  </property>
+  <property>
+    <name>test_keytab</name>
+    <description>
+      The base64-encoded keytab for the test principal (either this value or the password
+      value is required to be set, neither is expected to be retained)
+    </description>
+    <value>
+
+    </value>
+  </property>
+
+
+  <property>
+    <name>conf_dir</name>
+    <description>The krb5.conf configuration directory</description>
+    <value>/etc</value>
+  </property>
+  <property>
+    <name>content</name>
+    <description>The jinja template for the krb5.conf file</description>
+    <value>
+[libdefaults]
+  renew_lifetime = {{libdefaults_renew_lifetime}}
+  forwardable = {{libdefaults_forwardable}}
+  default_realm = {{realm|upper()}}
+  ticket_lifetime = {{libdefaults_ticket_lifetime}}
+  dns_lookup_realm = {{libdefaults_dns_lookup_realm}}
+  dns_lookup_kdc = {{libdefaults_dns_lookup_kdc}}
+
+{% if domains %}
+[domain_realm]
+{% for domain in domains %}
+  {{domain}} = {{realm|upper()}}
+{% endfor %}
+{% endif %}
+
+[logging]
+  default = {{logging_default}}
+{#
+# The following options are unused unless a managed KDC is installed
+  admin_server = {{logging_admin_server}}
+  kdc = {{logging_admin_kdc}}
+#}
+
+[realms]
+  {{realm}} = {
+    admin_server = {{admin_server_host|default(kdc_host, True)}}
+    kdc = {{kdc_host}}
+  }
+
+{# Append additional realm declarations should be placed below #}
+    </value>
+  </property>
+</configuration>
