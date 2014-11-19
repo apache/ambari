@@ -17,23 +17,23 @@
 }}
 
 <div class="jobs-custom-dates">
-  <div>
+  <div {{bindAttr class=":control-group view.isValid.isStartDateError:error"}}>
     <label>{{t jobs.customDateFilter.startTime}}</label>
     {{view Ember.TextField valueBinding="controller.customDateFormFields.startDate" class="input-small datepicker"}}
     {{view Ember.Select contentBinding="view.hourOptions" selectionBinding="controller.customDateFormFields.hoursForStart" class="input-mini"}}
     {{view Ember.Select contentBinding="view.minuteOptions" selectionBinding="controller.customDateFormFields.minutesForStart" class="input-mini"}}
     {{view Ember.Select contentBinding="view.middayPeriodOptions" selectionBinding="controller.customDateFormFields.middayPeriodForStart" class="input-mini"}}
-    <span class="help-inline">{{controller.filterObject.errorMessages.startDate}}</span>
+    <span class="help-inline">{{view.validationErrors.startDate}}</span>
   </div>
   <div>
 
   </div>
-  <div>
+  <div {{bindAttr class=":control-group view.isValid.isEndDateError:error"}}>
     <label>{{t jobs.customDateFilter.endTime}}</label>
     {{view Ember.TextField valueBinding="controller.customDateFormFields.endDate" class="input-small datepicker"}}
     {{view Ember.Select contentBinding="view.hourOptions" selectionBinding="controller.customDateFormFields.hoursForEnd" class="input-mini"}}
     {{view Ember.Select contentBinding="view.minuteOptions" selectionBinding="controller.customDateFormFields.minutesForEnd" class="input-mini"}}
     {{view Ember.Select contentBinding="view.middayPeriodOptions" selectionBinding="controller.customDateFormFields.middayPeriodForEnd" class="input-mini"}}
-    <span class="help-inline">{{controller.filterObject.errorMessages.endDate}}</span>
+    <span class="help-inline">{{view.validationErrors.endDate}}</span>
   </div>
 </div>

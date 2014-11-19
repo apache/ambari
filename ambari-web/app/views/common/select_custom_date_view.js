@@ -16,6 +16,8 @@
  * limitations under the License.
  */
 
+var App = require('app');
+
 App.JobsCustomDatesSelectView = Em.View.extend({
 
   name: 'jobsCustomDatesSelectView',
@@ -31,6 +33,8 @@ App.JobsCustomDatesSelectView = Em.View.extend({
   didInsertElement: function () {
     $('.datepicker').datepicker({
       format: 'mm/dd/yyyy'
+    }).on('changeDate', function() {
+      $(this).datepicker('hide');
     });
   }
 });

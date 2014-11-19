@@ -42,22 +42,23 @@ module.exports = Em.Object.create({
     endDate: ''
   }),
 
-  showCustomDatePopup: function (context, valueObject) {
+  showCustomDatePopup: function (context) {
     var self = this;
 
-    App.ModalPopup.show({
+    return App.ModalPopup.show({
       header: Em.I18n.t('jobs.table.custom.date.header'),
       onPrimary: function () {
         self.validate();
-        if(self.get('errors.isStartDateError') || self.get('errors.isEndDateError')){
+        if(self.get('errors.isStartDateError') || self.get('errors.isEndDateError')) {
           return false;
         }
 
         var windowStart = self.createCustomStartDate();
         var windowEnd = self.createCustomEndDate();
-
-        valueObject.set("endTime", windowEnd.getTime());
-        valueObject.set("startTime", windowStart.getTime());
+        context.set('actualValues', {
+          endTime: windowEnd.getTime(),
+          startTime: windowStart.getTime()
+        });
         this.hide();
       },
       onSecondary: function () {
@@ -65,7 +66,9 @@ module.exports = Em.Object.create({
         this.hide();
       },
       bodyClass: App.JobsCustomDatesSelectView.extend({
-        controller: self
+        controller: self,
+        validationErrors: self.get('errorMessages'),
+        isValid: self.get('errors')
       })
     });
   },

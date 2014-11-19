@@ -102,6 +102,44 @@ App.MainConfigHistoryController = Em.ArrayController.extend(App.TableServerMixin
   ],
 
   modifiedFilter: Em.Object.create({
+    content: [
+      {
+        value: 'Any',
+        label: Em.I18n.t('any')
+      },
+      {
+        value: 'Past 1 hour',
+        label: 'Past 1 hour'
+      },
+      {
+        value: 'Past 1 Day',
+        label: 'Past 1 Day'
+      },
+      {
+        value: 'Past 2 Days',
+        label: 'Past 2 Days'
+      },
+      {
+        value: 'Past 7 Days',
+        label: 'Past 7 Days'
+      },
+      {
+        value: 'Past 14 Days',
+        label: 'Past 14 Days'
+      },
+      {
+        value: 'Past 30 Days',
+        label: 'Past 30 Days'
+      },
+      {
+        value: 'Custom',
+        label: 'Custom'
+      },
+      {
+        value: 'Custom2',
+        label: 'Custom'
+      }
+    ],
     optionValue: 'Any',
     filterModified: function () {
       var time = "";
@@ -134,13 +172,15 @@ App.MainConfigHistoryController = Em.ArrayController.extend(App.TableServerMixin
           time = "";
           break;
       }
-      if (this.get('modified') !== "Custom") {
-        this.set("actualValues.startTime", time);
-        this.set("actualValues.endTime", '');
+      if (!["Custom", "Custom2"].contains(this.get('optionValue.value'))) {
+        this.set("actualValues", {
+          endTime: '',
+          startTime: time
+        });
       }
     }.observes('optionValue'),
     cancel: function () {
-      this.set('optionValue', 'Any');
+      this.set('optionValue', this.get('content').findProperty('value', 'Any'));
     },
     actualValues: Em.Object.create({
       startTime: "",

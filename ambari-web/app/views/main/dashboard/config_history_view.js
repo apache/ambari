@@ -129,44 +129,19 @@ App.MainConfigHistoryView = App.TableView.extend(App.TableServerViewMixin, {
     column: 3,
     appliedEmptyValue: ["", ""],
     fieldType: 'filter-input-width,modified-filter',
-    content: [
+    triggeredOnSameValue: [
       {
-        value: 'Any',
-        label: Em.I18n.t('any')
-      },
-      {
-        value: 'Past 1 hour',
-        label: 'Past 1 hour'
-      },
-      {
-        value: 'Past 1 Day',
-        label: 'Past 1 Day'
-      },
-      {
-        value: 'Past 2 Days',
-        label: 'Past 2 Days'
-      },
-      {
-        value: 'Past 7 Days',
-        label: 'Past 7 Days'
-      },
-      {
-        value: 'Past 14 Days',
-        label: 'Past 14 Days'
-      },
-      {
-        value: 'Past 30 Days',
-        label: 'Past 30 Days'
+        values: ['Custom', 'Custom2'],
+        displayAs: 'Custom'
       }
     ],
     emptyValue: 'Any',
     valueBinding: "controller.modifiedFilter.optionValue",
     selectedBinding: "controller.modifiedFilter.optionValue",
-    startTimeBinding: "controller.modifiedFilter.actualValues.startTime",
-    endTimeBinding: "controller.modifiedFilter.actualValues.endTime",
+    contentBinding: "controller.modifiedFilter.content",
     onTimeChange: function () {
       this.get('parentView').updateFilter(this.get('column'), [this.get('controller.modifiedFilter.actualValues.startTime'), this.get('controller.modifiedFilter.actualValues.endTime')], 'range');
-    }.observes('controller.modifiedFilter.actualValues.startTime', 'controller.modifiedFilter.actualValues.endTime')
+    }.observes('controller.modifiedFilter.actualValues')
   }),
 
   authorFilterView: filters.createTextView({

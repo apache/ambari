@@ -207,7 +207,7 @@ var wrapperView = Ember.View.extend({
       // now hide option with current value
       $select.find('option[value="{0}"]'.format(this.get('value'))).css('display', 'none');
       // and show option that was hidden
-      $select.find('option[value="{0}"'.format(hiddenValue)).css('display', 'block');
+      $select.find('option[value="{0}"]'.format(hiddenValue)).css('display', 'block');
     }
   }
 });
