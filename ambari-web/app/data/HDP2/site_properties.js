@@ -1578,6 +1578,54 @@ module.exports =
       "filename": "falcon-startup.properties.xml"
     },
 
+    // Falcon Graph and Storage
+    {
+      "id": "site property",
+      "name": "*.falcon.graph.blueprints.graph",
+      "displayName": "*.falcon.graph.blueprints.graph",
+      "category": "FalconStartupSite",
+      "serviceName": "FALCON",
+      "filename": "falcon-startup.properties.xml"
+    },
+    {
+      "id": "site property",
+      "name": "*.falcon.graph.storage.directory",
+      "displayName": "*.falcon.graph.storage.directory",
+      "defaultDirectory": "/hadoop/falcon/data/lineage/graphdb",
+      "displayType": "directory",
+      "category": "FalconStartupSite",
+      "serviceName": "FALCON",
+      "filename": "falcon-startup.properties.xml"
+    },
+    {
+      "id": "site property",
+      "name": "*.falcon.graph.storage.backend",
+      "displayName": "*.falcon.graph.storage.backend",
+      "category": "FalconStartupSite",
+      "serviceName": "FALCON",
+      "filename": "falcon-startup.properties.xml"
+    },
+    {
+      "id": "site property",
+      "name": "*.falcon.graph.serialize.path",
+      "displayName": "*.falcon.graph.serialize.path",
+      "defaultDirectory": "/hadoop/falcon/data/lineage",
+      "displayType": "directory",
+      "category": "FalconStartupSite",
+      "serviceName": "FALCON",
+      "filename": "falcon-startup.properties.xml"
+    },
+    {
+      "id": "site property",
+      "name": "*.falcon.graph.preserve.history",
+      "displayName": "*.falcon.graph.preserve.history",
+      "defaultValue": false,
+      "displayType": "checkbox",
+      "category": "FalconStartupSite",
+      "serviceName": "FALCON",
+      "filename": "falcon-startup.properties.xml"
+    },
+
   /**********************************************webhcat-site***************************************/
     {
       "id": "site property",

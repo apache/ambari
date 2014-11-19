@@ -54,6 +54,23 @@ def falcon(type, action = None):
                    properties=params.falcon_startup_properties,
                    mode=0644
     )
+
+    if params.falcon_graph_storage_directory:
+      Directory(params.falcon_graph_storage_directory,
+                owner=params.falcon_user,
+                group=params.user_group,
+                mode=0775,
+                recursive=True
+      )
+
+    if params.falcon_graph_serialize_path:
+      Directory(params.falcon_graph_serialize_path,
+                owner=params.falcon_user,
+                group=params.user_group,
+                mode=0775,
+                recursive=True
+      )
+
   if type == 'server':
     if action == 'config':
       if params.store_uri[0:4] == "hdfs":
