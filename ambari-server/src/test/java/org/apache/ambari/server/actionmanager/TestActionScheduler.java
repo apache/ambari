@@ -496,7 +496,7 @@ public class TestActionScheduler {
 
     List<Stage> stages = new ArrayList<Stage>();
     Map<String, String> payload = new HashMap<String, String>();
-    final Stage s = getStageWithServerAction(1, 977, payload, "test", 300);
+    final Stage s = getStageWithServerAction(1, 977, payload, "test", 1200);
     stages.add(s);
 
     ActionDBAccessor db = mock(ActionDBAccessor.class);

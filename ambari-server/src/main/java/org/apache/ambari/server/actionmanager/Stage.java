@@ -331,7 +331,7 @@ public class Stage {
       cmdParams.putAll(commandParams);
     }
     if (timeout != null) {
-      cmdParams.put(ExecutionCommand.KeyNames.COMMAND_TIMEOUT, NumberFormat.getIntegerInstance().format(timeout));
+      cmdParams.put(ExecutionCommand.KeyNames.COMMAND_TIMEOUT, Long.toString(timeout));
     }
     cmd.setCommandParams(cmdParams);
 
