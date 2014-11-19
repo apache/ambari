@@ -596,9 +596,19 @@ module.exports = {
       case 'alert_status':
         /**
          * origin - alertDefinition.summary
-         * compareValue - "OK|WARN..."
+         * compareValue - "OK|WARNING|CRITICAL|UNKNOWN|PENDING"
+         * PENDING means that OK is 0, WARNING is 0, CRITICAL is 0 and UNKNOWN is 0
          */
         return function (origin, compareValue) {
+          if ('PENDING' === compareValue) {
+            var isPending = true;
+            Em.keys(origin).forEach(function(state) {
+              if (origin[state] && origin[state] > 0) {
+                isPending = false;
+              }
+            });
+            return isPending;
+          }
           return !!origin[compareValue] && origin[compareValue] > 0;
         };
         break;

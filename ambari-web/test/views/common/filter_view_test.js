@@ -484,6 +484,21 @@ describe('filters.getFilterByType', function () {
         origin: {WARN: 0},
         compareValue: 'WARN',
         e: false
+      },
+      {
+        origin: {OK: 0, WARN: 0},
+        compareValue: 'PENDING',
+        e: true
+      },
+      {
+        origin: {},
+        compareValue: 'PENDING',
+        e: true
+      },
+      {
+        origin: {OK: 1},
+        compareValue: 'PENDING',
+        e: false
       }
     ]).forEach(function(test, i) {
         it('test #' + (i + 1), function() {

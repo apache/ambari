@@ -120,12 +120,12 @@ App.MainAlertDefinitionsView = App.TableView.extend({
         label: 'CRITICAL'
       },
       {
-        value: 'DISABLED',
-        label: 'DISABLED'
-      },
-      {
         value: 'UNKNOWN',
         label: 'UNKNOWN'
+      },
+      {
+        value: 'PENDING',
+        label: 'PENDING'
       }
     ],
     onChangeValue: function () {

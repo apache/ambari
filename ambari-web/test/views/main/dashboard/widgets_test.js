@@ -118,7 +118,7 @@ describe('App.MainDashboardWidgetsView', function() {
           yarn_model: {}
         },
         e: {
-          visibleL: total_widgets_count - 1,
+          visibleL: total_widgets_count,
           hiddenL: 1
         },
         m: 'All models are not null'
