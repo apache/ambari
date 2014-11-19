@@ -26,6 +26,12 @@ App.alertDefinitionsMapper = App.QuickDataMapper.create({
   metricsSourceModel: App.AlertMetricsSourceDefinition,
   metricsUriModel: App.AlertMetricsUriDefinition,
 
+  portModel: App.PortAlertDefinition,
+  metricsModel: App.MetricsAlertDefinition,
+  webModel: App.WebAlertDefinition,
+  aggregateModel: App.AggregateAlertDefinition,
+  scriptModel: App.ScriptAlertDefinition,
+
   config: {
     id: 'AlertDefinition.id',
     name: 'AlertDefinition.name',
@@ -67,21 +73,22 @@ App.alertDefinitionsMapper = App.QuickDataMapper.create({
   map: function (json) {
     if (json && json.items) {
 
-      var portAlertDefinitions = [];
-      var metricsAlertDefinitions = [];
-      var webAlertDefinitions = [];
-      var aggregateAlertDefinitions = [];
-      var scriptAlertDefinitions = [];
-      var alertReportDefinitions = [];
-      var alertMetricsSourceDefinitions = [];
-      var alertMetricsUriDefinitions = [];
-      var alertDefinitions = Array.prototype.concat.call(
-        Array.prototype, App.PortAlertDefinition.find().toArray(),
-        App.MetricsAlertDefinition.find().toArray(),
-        App.WebAlertDefinition.find().toArray(),
-        App.AggregateAlertDefinition.find().toArray(),
-        App.ScriptAlertDefinition.find().toArray()
-      );
+      var portAlertDefinitions = [],
+        metricsAlertDefinitions = [],
+        webAlertDefinitions = [],
+        aggregateAlertDefinitions = [],
+        scriptAlertDefinitions = [],
+        alertReportDefinitions = [],
+        alertMetricsSourceDefinitions = [],
+        alertMetricsUriDefinitions = [],
+        alertGroupsMap = App.cache['previousAlertGroupsMap'],
+        alertDefinitions = Array.prototype.concat.call(
+          Array.prototype, App.PortAlertDefinition.find().toArray(),
+          App.MetricsAlertDefinition.find().toArray(),
+          App.WebAlertDefinition.find().toArray(),
+          App.AggregateAlertDefinition.find().toArray(),
+          App.ScriptAlertDefinition.find().toArray()
+        );
 
       json.items.forEach(function (item) {
         var convertedReportDefinitions = [];
@@ -100,6 +107,10 @@ App.alertDefinitionsMapper = App.QuickDataMapper.create({
         alertReportDefinitions = alertReportDefinitions.concat(convertedReportDefinitions);
         item.reporting = convertedReportDefinitions;
         var alertDefinition = this.parseIt(item, this.get('config'));
+
+        if (alertGroupsMap[alertDefinition.id]) {
+          alertDefinition.groups = alertGroupsMap[alertDefinition.id];
+        }
 
         var oldAlertDefinition = alertDefinitions.findProperty('id', alertDefinition.id);
         if (oldAlertDefinition) {
@@ -163,11 +174,11 @@ App.alertDefinitionsMapper = App.QuickDataMapper.create({
       App.store.loadMany(this.get('metricsSourceModel'), alertMetricsSourceDefinitions);
       this.setMetricsSourcePropertyLists(this.get('metricsSourceModel'), alertMetricsSourceDefinitions);
       App.store.loadMany(this.get('metricsUriModel'), alertMetricsUriDefinitions);
-      App.store.loadMany(App.PortAlertDefinition, portAlertDefinitions);
-      App.store.loadMany(App.MetricsAlertDefinition, metricsAlertDefinitions);
-      App.store.loadMany(App.WebAlertDefinition, webAlertDefinitions);
-      App.store.loadMany(App.AggregateAlertDefinition, aggregateAlertDefinitions);
-      App.store.loadMany(App.ScriptAlertDefinition, scriptAlertDefinitions);
+      App.store.loadMany(this.get('portModel'), portAlertDefinitions);
+      App.store.loadMany(this.get('metricsModel'), metricsAlertDefinitions);
+      App.store.loadMany(this.get('webModel'), webAlertDefinitions);
+      App.store.loadMany(this.get('aggregateModel'), aggregateAlertDefinitions);
+      App.store.loadMany(this.get('scriptModel'), scriptAlertDefinitions);
       if (App.router.get('mainAlertDefinitionsController')) {
          App.router.set('mainAlertDefinitionsController.mapperTimestamp', (new Date()).getTime());
       }

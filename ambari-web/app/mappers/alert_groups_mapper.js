@@ -17,8 +17,12 @@
 
 var App = require('app');
 
-var stringUtils = require('utils/string_utils');
-
+/**
+ * Mapper for <code>App.AlertGroup</code>
+ * Save general information
+ * Use <code>App.cache['previousAlertGroupsMap']</code> to store map alertDefinitions-alertGroups. This map is used
+ * in the <code>App.AlertDefinitionsMapper</code> to correctly link alertDefinitions and alertGroups
+ */
 App.alertGroupsMapper = App.QuickDataMapper.create({
 
   model: App.AlertGroup,
@@ -27,18 +31,66 @@ App.alertGroupsMapper = App.QuickDataMapper.create({
     id: 'AlertGroup.id',
     name: 'AlertGroup.name',
     default: 'AlertGroup.default',
-    definitions: 'AlertGroup.definitions',
     targets: 'AlertGroup.targets'
   },
 
+  /**
+   * Map for alertGroup's alertDefinitions
+   * Store alertDefinitions to alertGroup-properties basing on alertDefinitionType
+   * Format: key - alertDefinitionType, value - alertGroup-property where alertDefinition should be saved
+   * @type {object}
+   */
+  typesMap: {
+    PORT: 'port_alert_definitions',
+    METRIC: 'metrics_alert_definitions',
+    WEB: 'web_alert_definitions',
+    AGGREGATE: 'aggregate_alert_definitions',
+    SCRIPT: 'script_alert_definitions'
+  },
+
   map: function (json) {
-    if (json && json.items) {
-      var alertGroups = [];
-      var self = this;
-      json.items.forEach (function(item) {
-       alertGroups.push(self.parseIt(item, self.get('config')));
+    if (!Em.isNone(json, 'items')) {
+
+      var alertGroups = [],
+        self = this,
+        typesMap = this.get('typesMap'),
+        /**
+         * AlertGroups-map for <code>App.AlertDefinitionsMappers</code>
+         * Format:
+         * <code>
+         *   {
+         *    alert_definition1_id: [alert_group1_id, alert_group2_id],
+         *    alert_definition2_id: [alert_group3_id, alert_group1_id],
+         *    ...
+         *   }
+         * </code>
+         * @type {object}
+         */
+        alertDefinitionsGroupsMap = {};
+
+      json.items.forEach(function(item) {
+        var group = self.parseIt(item, self.get('config'));
+        Em.keys(typesMap).forEach(function(k) {
+          group[typesMap[k]] = [];
+        });
+        if (item.AlertGroup.definitions) {
+          item.AlertGroup.definitions.forEach(function(definition) {
+              var type = typesMap[definition.source_type];
+            if (!group[type].contains(definition.id)) {
+              group[type].push(definition.id);
+            }
+            if (Em.isNone(alertDefinitionsGroupsMap[definition.id])) {
+              alertDefinitionsGroupsMap[definition.id] = [];
+            }
+            alertDefinitionsGroupsMap[definition.id].push(group.id);
+          });
+        }
+        alertGroups.push(group);
       }, this);
+
+      App.cache['previousAlertGroupsMap'] = alertDefinitionsGroupsMap;
       App.store.loadMany(this.get('model'), alertGroups);
+      App.store.commit();
     }
   }
 });

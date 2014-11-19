@@ -29,6 +29,7 @@ App.AlertDefinition = DS.Model.extend({
   scope: DS.attr('string'),
   interval: DS.attr('number'),
   type: DS.attr('string'),
+  groups: DS.hasMany('App.AlertGroup'),
   reporting: DS.hasMany('App.AlertReportDefinition'),
   lastTriggered: DS.attr('number'),
 

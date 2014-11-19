@@ -341,19 +341,20 @@ App.ClusterController = Em.Controller.extend({
           });
           self.updateLoadStatus('serviceMetrics');
 
-          updater.updateAlertDefinitions(function () {
-            if (App.get('supports.alerts')) {
-              updater.updateAlertDefinitionSummary(function() {
-                self.updateLoadStatus('alertDefinitions');
+          if (App.get('supports.alerts')) {
+            updater.updateAlertGroups(function () {
+              updater.updateAlertDefinitions(function() {
+                updater.updateAlertDefinitionSummary(function () {
+                  self.updateLoadStatus('alertGroups');
+                  self.updateLoadStatus('alertDefinitions');
+                });
               });
-            }
-            else {
-              self.updateLoadStatus('alertDefinitions');
-            }
-          });
-          updater.updateAlertGroups(function () {
+            });
+          }
+          else {
             self.updateLoadStatus('alertGroups');
-          });
+            self.updateLoadStatus('alertDefinitions');
+          }
         });
       });
       self.loadRootService().done(function (data) {

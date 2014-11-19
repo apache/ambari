@@ -1,13 +1,651 @@
 {
-  "href" : "http://localhost:8080/api/v1/clusters/c1/alerts?format=groupedSummary",
+  "href" : "http://host:8080/api/v1/clusters/tdk/alerts?format=groupedSummary",
   "alerts_summary_grouped" : [
     {
-      "definition_id" : 34,
+      "definition_id" : 10,
+      "definition_name" : "ganglia_monitor_mapreduce_history_server",
+      "summary" : {
+        "OK" : {
+          "count" : 1,
+          "original_timestamp" : 1416397285093
+        },
+        "WARNING" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        },
+        "CRITICAL" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        },
+        "UNKNOWN" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        }
+      }
+    },
+    {
+      "definition_id" : 1,
       "definition_name" : "yarn_resourcemanager_webui",
       "summary" : {
         "OK" : {
           "count" : 1,
-          "original_timestamp" : 1415732283450
+          "original_timestamp" : 1416397471466
+        },
+        "WARNING" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        },
+        "CRITICAL" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        },
+        "UNKNOWN" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        }
+      }
+    },
+    {
+      "definition_id" : 19,
+      "definition_name" : "mapreduce_history_server_process",
+      "summary" : {
+        "OK" : {
+          "count" : 1,
+          "original_timestamp" : 1416397465241
+        },
+        "WARNING" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        },
+        "CRITICAL" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        },
+        "UNKNOWN" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        }
+      }
+    },
+    {
+      "definition_id" : 26,
+      "definition_name" : "namenode_rpc_latency",
+      "summary" : {
+        "OK" : {
+          "count" : 1,
+          "original_timestamp" : 1416397285482
+        },
+        "WARNING" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        },
+        "CRITICAL" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        },
+        "UNKNOWN" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        }
+      }
+    },
+    {
+      "definition_id" : 2,
+      "definition_name" : "namenode_webui",
+      "summary" : {
+        "OK" : {
+          "count" : 1,
+          "original_timestamp" : 1416397285443
+        },
+        "WARNING" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        },
+        "CRITICAL" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        },
+        "UNKNOWN" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        }
+      }
+    },
+    {
+      "definition_id" : 15,
+      "definition_name" : "yarn_app_timeline_server_webui",
+      "summary" : {
+        "OK" : {
+          "count" : 1,
+          "original_timestamp" : 1416397350207
+        },
+        "WARNING" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        },
+        "CRITICAL" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        },
+        "UNKNOWN" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        }
+      }
+    },
+    {
+      "definition_id" : 5,
+      "definition_name" : "namenode_last_checkpoint",
+      "summary" : {
+        "OK" : {
+          "count" : 1,
+          "original_timestamp" : 1416397285530
+        },
+        "WARNING" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        },
+        "CRITICAL" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        },
+        "UNKNOWN" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        }
+      }
+    },
+    {
+      "definition_id" : 24,
+      "definition_name" : "datanode_storage",
+      "summary" : {
+        "OK" : {
+          "count" : 1,
+          "original_timestamp" : 1416397285587
+        },
+        "WARNING" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        },
+        "CRITICAL" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        },
+        "UNKNOWN" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        }
+      }
+    },
+    {
+      "definition_id" : 14,
+      "definition_name" : "yarn_nodemanager_webui",
+      "summary" : {
+        "OK" : {
+          "count" : 1,
+          "original_timestamp" : 1416397531030
+        },
+        "WARNING" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        },
+        "CRITICAL" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        },
+        "UNKNOWN" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        }
+      }
+    },
+    {
+      "definition_id" : 27,
+      "definition_name" : "datanode_storage_percent",
+      "summary" : {
+        "OK" : {
+          "count" : 1,
+          "original_timestamp" : 1416397300122
+        },
+        "WARNING" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        },
+        "CRITICAL" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        },
+        "UNKNOWN" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        }
+      }
+    },
+    {
+      "definition_id" : 16,
+      "definition_name" : "ganglia_monitor_yarn_resourcemanager",
+      "summary" : {
+        "OK" : {
+          "count" : 1,
+          "original_timestamp" : 1416397285097
+        },
+        "WARNING" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        },
+        "CRITICAL" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        },
+        "UNKNOWN" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        }
+      }
+    },
+    {
+      "definition_id" : 18,
+      "definition_name" : "mapreduce_history_server_webui",
+      "summary" : {
+        "OK" : {
+          "count" : 1,
+          "original_timestamp" : 1416397471999
+        },
+        "WARNING" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        },
+        "CRITICAL" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        },
+        "UNKNOWN" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        }
+      }
+    },
+    {
+      "definition_id" : 21,
+      "definition_name" : "zookeeper_server_process_percent",
+      "summary" : {
+        "OK" : {
+          "count" : 1,
+          "original_timestamp" : 1416397300320
+        },
+        "WARNING" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        },
+        "CRITICAL" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        },
+        "UNKNOWN" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        }
+      }
+    },
+    {
+      "definition_id" : 9,
+      "definition_name" : "secondary_namenode_process",
+      "summary" : {
+        "OK" : {
+          "count" : 1,
+          "original_timestamp" : 1416397465287
+        },
+        "WARNING" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        },
+        "CRITICAL" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        },
+        "UNKNOWN" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        }
+      }
+    },
+    {
+      "definition_id" : 4,
+      "definition_name" : "datanode_webui",
+      "summary" : {
+        "OK" : {
+          "count" : 1,
+          "original_timestamp" : 1416397285439
+        },
+        "WARNING" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        },
+        "CRITICAL" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        },
+        "UNKNOWN" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        }
+      }
+    },
+    {
+      "definition_id" : 32,
+      "definition_name" : "yarn_resourcemanager_cpu",
+      "summary" : {
+        "OK" : {
+          "count" : 1,
+          "original_timestamp" : 1416397645425
+        },
+        "WARNING" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        },
+        "CRITICAL" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        },
+        "UNKNOWN" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        }
+      }
+    },
+    {
+      "definition_id" : 29,
+      "definition_name" : "namenode_cpu",
+      "summary" : {
+        "OK" : {
+          "count" : 1,
+          "original_timestamp" : 1416397345252
+        },
+        "WARNING" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        },
+        "CRITICAL" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        },
+        "UNKNOWN" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        }
+      }
+    },
+    {
+      "definition_id" : 30,
+      "definition_name" : "mapreduce_history_server_rpc_latency",
+      "summary" : {
+        "OK" : {
+          "count" : 1,
+          "original_timestamp" : 1416397645512
+        },
+        "WARNING" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        },
+        "CRITICAL" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        },
+        "UNKNOWN" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        }
+      }
+    },
+    {
+      "definition_id" : 6,
+      "definition_name" : "ganglia_monitor_hbase_master",
+      "summary" : {
+        "OK" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        },
+        "WARNING" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        },
+        "CRITICAL" : {
+          "count" : 1,
+          "original_timestamp" : 1416397105073
+        },
+        "UNKNOWN" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        }
+      }
+    },
+    {
+      "definition_id" : 23,
+      "definition_name" : "namenode_hdfs_blocks_health",
+      "summary" : {
+        "OK" : {
+          "count" : 1,
+          "original_timestamp" : 1416397285485
+        },
+        "WARNING" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        },
+        "CRITICAL" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        },
+        "UNKNOWN" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        }
+      }
+    },
+    {
+      "definition_id" : 31,
+      "definition_name" : "yarn_resourcemanager_rpc_latency",
+      "summary" : {
+        "OK" : {
+          "count" : 1,
+          "original_timestamp" : 1416397645406
+        },
+        "WARNING" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        },
+        "CRITICAL" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        },
+        "UNKNOWN" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        }
+      }
+    },
+    {
+      "definition_id" : 13,
+      "definition_name" : "zookeeper_server_process",
+      "summary" : {
+        "OK" : {
+          "count" : 1,
+          "original_timestamp" : 1416397285083
+        },
+        "WARNING" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        },
+        "CRITICAL" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        },
+        "UNKNOWN" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        }
+      }
+    },
+    {
+      "definition_id" : 7,
+      "definition_name" : "datanode_process",
+      "summary" : {
+        "OK" : {
+          "count" : 1,
+          "original_timestamp" : 1416397285159
+        },
+        "WARNING" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        },
+        "CRITICAL" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        },
+        "UNKNOWN" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        }
+      }
+    },
+    {
+      "definition_id" : 20,
+      "definition_name" : "datanode_process_percent",
+      "summary" : {
+        "OK" : {
+          "count" : 1,
+          "original_timestamp" : 1416397300169
+        },
+        "WARNING" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        },
+        "CRITICAL" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        },
+        "UNKNOWN" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        }
+      }
+    },
+    {
+      "definition_id" : 11,
+      "definition_name" : "namenode_process",
+      "summary" : {
+        "OK" : {
+          "count" : 1,
+          "original_timestamp" : 1416397285181
+        },
+        "WARNING" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        },
+        "CRITICAL" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        },
+        "UNKNOWN" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        }
+      }
+    },
+    {
+      "definition_id" : 8,
+      "definition_name" : "ganglia_monitor_hdfs_namenode",
+      "summary" : {
+        "OK" : {
+          "count" : 1,
+          "original_timestamp" : 1416397285108
+        },
+        "WARNING" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        },
+        "CRITICAL" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        },
+        "UNKNOWN" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        }
+      }
+    },
+    {
+      "definition_id" : 25,
+      "definition_name" : "namenode_hdfs_capacity_utilization",
+      "summary" : {
+        "OK" : {
+          "count" : 1,
+          "original_timestamp" : 1416397285491
+        },
+        "WARNING" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        },
+        "CRITICAL" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        },
+        "UNKNOWN" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        }
+      }
+    },
+    {
+      "definition_id" : 22,
+      "definition_name" : "yarn_nodemanager_webui_percent",
+      "summary" : {
+        "OK" : {
+          "count" : 1,
+          "original_timestamp" : 1416397541852
+        },
+        "WARNING" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        },
+        "CRITICAL" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        },
+        "UNKNOWN" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        }
+      }
+    },
+    {
+      "definition_id" : 3,
+      "definition_name" : "namenode_directory_status",
+      "summary" : {
+        "OK" : {
+          "count" : 1,
+          "original_timestamp" : 1416397285527
+        },
+        "WARNING" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        },
+        "CRITICAL" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        },
+        "UNKNOWN" : {
+          "count" : 0,
+          "original_timestamp" : 0
+        }
+      }
+    },
+    {
+      "definition_id" : 17,
+      "definition_name" : "yarn_nodemanager_health",
+      "summary" : {
+        "OK" : {
+          "count" : 1,
+          "original_timestamp" : 1416397530178
         },
         "WARNING" : {
           "count" : 0,
@@ -25,67 +663,45 @@
     },
     {
       "definition_id" : 12,
-      "definition_name" : "ganglia_monitor_mapreduce_history_server",
+      "definition_name" : "ganglia_server_process",
       "summary" : {
         "OK" : {
           "count" : 1,
-          "original_timestamp" : 1415735183450
+          "original_timestamp" : 1416397285115
         },
         "WARNING" : {
-          "count" : 3,
-          "original_timestamp" : 1415735183450
+          "count" : 0,
+          "original_timestamp" : 0
         },
         "CRITICAL" : {
-          "count" : 1,
-          "original_timestamp" : 1415755183450
+          "count" : 0,
+          "original_timestamp" : 0
         },
         "UNKNOWN" : {
-          "count" : 2,
-          "original_timestamp" : 1412335183450
+          "count" : 0,
+          "original_timestamp" : 0
         }
       }
     },
     {
-      "definition_id" : 1,
-      "definition_name" : "ganglia_monitor_hdfs_namenode",
+      "definition_id" : 28,
+      "definition_name" : "mapreduce_history_server_cpu",
       "summary" : {
         "OK" : {
-          "count" : 2,
-          "original_timestamp" : 1415735183450
-        },
-        "WARNING" : {
           "count" : 1,
-          "original_timestamp" : 1415735183450
-        },
-        "CRITICAL" : {
-          "count" : 3,
-          "original_timestamp" : 1415855183450
-        },
-        "UNKNOWN" : {
-          "count" : 2,
-          "original_timestamp" : 1412335183450
-        }
-      }
-    },
-    {
-      "definition_id" : 1,
-      "definition_name" : "ganglia_monitor_hbase_master",
-      "summary" : {
-        "OK" : {
-          "count" : 2,
-          "original_timestamp" : 1415735183450
+          "original_timestamp" : 1416397645535
         },
         "WARNING" : {
-          "count" : 2,
-          "original_timestamp" : 1415735183450
+          "count" : 0,
+          "original_timestamp" : 0
         },
         "CRITICAL" : {
-          "count" : 3,
-          "original_timestamp" : 1415355183450
+          "count" : 0,
+          "original_timestamp" : 0
         },
         "UNKNOWN" : {
-          "count" : 2,
-          "original_timestamp" : 1412335183450
+          "count" : 0,
+          "original_timestamp" : 0
         }
       }
     }

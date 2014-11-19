@@ -1,0 +1,436 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements. See the NOTICE file distributed with this
+ * work for additional information regarding copyright ownership. The ASF
+ * licenses this file to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
+var App = require('app');
+
+require('mappers/alert_definitions_mapper');
+var testHelpers = require('test/helpers');
+
+describe('App.alertDefinitionsMapper', function () {
+
+  describe('#map', function () {
+
+    var json = {
+      items: [
+        {
+          "AlertDefinition" : {
+            "component_name" : "RESOURCEMANAGER",
+            "enabled" : true,
+            "id" : 1,
+            "ignore_host" : false,
+            "interval" : 5,
+            "label" : "ResourceManager RPC Latency",
+            "name" : "yarn_resourcemanager_rpc_latency",
+            "scope" : "ANY",
+            "service_name" : "YARN",
+            "source" : {
+              "jmx" : {
+                "property_list" : [
+                  "Hadoop:service=ResourceManager,name=RpcActivityForPort*/RpcQueueTimeAvgTime",
+                  "Hadoop:service=ResourceManager,name=RpcActivityForPort*/RpcProcessingTimeAvgTime"
+                ],
+                "value" : "{0}"
+              },
+              "reporting" : {
+                "ok" : {
+                  "text" : "Average Queue Time:[{0}], Average Processing Time:[{1}]"
+                },
+                "warning" : {
+                  "text" : "Average Queue Time:[{0}], Average Processing Time:[{1}]",
+                  "value" : 3000.0
+                },
+                "critical" : {
+                  "text" : "Average Queue Time:[{0}], Average Processing Time:[{1}]",
+                  "value" : 5000.0
+                }
+              },
+              "type" : "METRIC",
+              "uri" : {
+                "http" : "{{yarn-site/yarn.resourcemanager.webapp.address}}",
+                "https" : "{{yarn-site/yarn.resourcemanager.webapp.https.address}}",
+                "https_property" : "{{yarn-site/yarn.http.policy}}",
+                "https_property_value" : "HTTPS_ONLY",
+                "default_port" : 0.0
+              }
+            }
+          }
+        },
+        {
+          "AlertDefinition" : {
+            "component_name" : "RESOURCEMANAGER",
+            "enabled" : true,
+            "id" : 2,
+            "ignore_host" : false,
+            "interval" : 1,
+            "label" : "ResourceManager Web UI",
+            "name" : "yarn_resourcemanager_webui",
+            "scope" : "ANY",
+            "service_name" : "YARN",
+            "source" : {
+              "reporting" : {
+                "ok" : {
+                  "text" : "HTTP {0} response in {2:.4f} seconds"
+                },
+                "warning" : {
+                  "text" : "HTTP {0} response in {2:.4f} seconds"
+                },
+                "critical" : {
+                  "text" : "Connection failed to {1}"
+                }
+              },
+              "type" : "WEB",
+              "uri" : {
+                "http" : "{{yarn-site/yarn.resourcemanager.webapp.address}}",
+                "https" : "{{yarn-site/yarn.resourcemanager.webapp.https.address}}",
+                "https_property" : "{{yarn-site/yarn.http.policy}}",
+                "https_property_value" : "HTTPS_ONLY",
+                "default_port" : 0.0
+              }
+            }
+          }
+        },
+        {
+          "AlertDefinition" : {
+            "component_name" : null,
+            "enabled" : true,
+            "id" : 3,
+            "ignore_host" : false,
+            "interval" : 1,
+            "label" : "Percent NodeManagers Available",
+            "name" : "yarn_nodemanager_webui_percent",
+            "scope" : "SERVICE",
+            "service_name" : "YARN",
+            "source" : {
+              "alert_name" : "yarn_nodemanager_webui",
+              "reporting" : {
+                "ok" : {
+                  "text" : "affected: [{1}], total: [{0}]"
+                },
+                "warning" : {
+                  "text" : "affected: [{1}], total: [{0}]",
+                  "value" : 0.1
+                },
+                "critical" : {
+                  "text" : "affected: [{1}], total: [{0}]",
+                  "value" : 0.3
+                }
+              },
+              "type" : "AGGREGATE"
+            }
+          }
+        },
+        {
+          "AlertDefinition" : {
+            "component_name" : "NODEMANAGER",
+            "enabled" : true,
+            "id" : 4,
+            "ignore_host" : false,
+            "interval" : 1,
+            "label" : "NodeManager Health",
+            "name" : "yarn_nodemanager_health",
+            "scope" : "HOST",
+            "service_name" : "YARN",
+            "source" : {
+              "path" : "HDP/2.0.6/services/YARN/package/files/alert_nodemanager_health.py",
+              "type" : "SCRIPT"
+            }
+          }
+        },
+        {
+          "AlertDefinition" : {
+            "component_name" : "ZOOKEEPER_SERVER",
+            "enabled" : true,
+            "id" : 5,
+            "ignore_host" : false,
+            "interval" : 1,
+            "label" : "ZooKeeper Server Process",
+            "name" : "zookeeper_server_process",
+            "scope" : "ANY",
+            "service_name" : "ZOOKEEPER",
+            "source" : {
+              "default_port" : 2181.0,
+              "reporting" : {
+                "ok" : {
+                  "text" : "TCP OK - {0:.4f} response on port {1}"
+                },
+                "critical" : {
+                  "text" : "Connection failed: {0} to {1}:{2}"
+                }
+              },
+              "type" : "PORT",
+              "uri" : "{{zookeeper-env/clientPort}}"
+            }
+          }
+        }
+      ]
+    };
+
+    beforeEach(function () {
+
+      App.alertDefinitionsMapper.setProperties({
+        'model': {},
+
+        'portModel': {},
+        'metricsModel': {},
+        'webModel': {},
+        'aggregateModel': {},
+        'scriptModel': {},
+
+        'reportModel': {},
+        'metricsSourceModel': {},
+        'metricsUriModel': {}
+      });
+
+      sinon.stub(App.PortAlertDefinition, 'find', function() {return [];});
+      sinon.stub(App.MetricsAlertDefinition, 'find', function() {return [];});
+      sinon.stub(App.WebAlertDefinition, 'find', function() {return [];});
+      sinon.stub(App.AggregateAlertDefinition, 'find', function() {return [];});
+      sinon.stub(App.ScriptAlertDefinition, 'find', function() {return [];});
+
+      sinon.stub(App.store, 'commit', Em.K);
+      sinon.stub(App.store, 'loadMany', function (type, content) {
+        type.content = content;
+      });
+
+      sinon.stub(App.router, 'get', function() {return false;});
+      App.cache['previousAlertGroupsMap'] = {};
+
+      sinon.stub(App.alertDefinitionsMapper, 'setMetricsSourcePropertyLists', Em.K);
+
+    });
+
+    afterEach(function () {
+
+      App.store.commit.restore();
+      App.store.loadMany.restore();
+
+      App.alertDefinitionsMapper.setProperties({
+        'model': App.AlertDefinition,
+
+        'portModel': App.PortAlertDefinition,
+        'metricsModel': App.MetricsAlertDefinition,
+        'webModel': App.WebAlertDefinition,
+        'aggregateModel': App.AggregateAlertDefinition,
+        'scriptModel': App.ScriptAlertDefinition,
+
+        'reportModel': App.AlertReportDefinition,
+        'metricsSourceModel': App.AlertMetricsSourceDefinition,
+        'metricsUriModel': App.AlertMetricsUriDefinition
+      });
+
+      App.PortAlertDefinition.find.restore();
+      App.MetricsAlertDefinition.find.restore();
+      App.WebAlertDefinition.find.restore();
+      App.AggregateAlertDefinition.find.restore();
+      App.ScriptAlertDefinition.find.restore();
+
+      App.router.get.restore();
+      App.cache['previousAlertGroupsMap'] = {};
+
+      App.alertDefinitionsMapper.setMetricsSourcePropertyLists.restore();
+
+    });
+
+    describe('should parse METRIC alertDefinitions', function () {
+
+      var data = {items: [json.items[0]]},
+        expected = [{
+          id: 1,
+          "name": "yarn_resourcemanager_rpc_latency",
+          "label": "ResourceManager RPC Latency",
+          "service_id": "YARN",
+          "component_name": "RESOURCEMANAGER",
+          "enabled": true,
+          "scope": "ANY",
+          "interval": 5,
+          "type": "METRIC",
+          "jmx_id": "1jmx",
+          "uri_id": "1uri"
+        }],
+        expectedMetricsSource = [{
+          "id":"1jmx",
+          "value":"{0}",
+          "property_list":[
+            "Hadoop:service=ResourceManager,name=RpcActivityForPort*/RpcQueueTimeAvgTime",
+            "Hadoop:service=ResourceManager,name=RpcActivityForPort*/RpcProcessingTimeAvgTime"
+          ]
+        }],
+        expectedMetricsUri = [{
+          "id":"1uri",
+          "http":"{{yarn-site/yarn.resourcemanager.webapp.address}}",
+          "https":"{{yarn-site/yarn.resourcemanager.webapp.https.address}}",
+          "https_property":"{{yarn-site/yarn.http.policy}}",
+          "https_property_value":"HTTPS_ONLY"
+        }];
+
+
+      beforeEach(function () {
+
+        App.alertDefinitionsMapper.map(data);
+
+      });
+
+      it('parsing metrics model', function() {
+        testHelpers.nestedExpect(expected, App.alertDefinitionsMapper.get('metricsModel.content'));
+      });
+
+      it('parse metrics source', function() {
+        testHelpers.nestedExpect(expectedMetricsSource, App.alertDefinitionsMapper.get('metricsSourceModel.content'));
+      });
+
+      it('parse metrics uri', function() {
+        testHelpers.nestedExpect(expectedMetricsUri, App.alertDefinitionsMapper.get('metricsUriModel.content'));
+      });
+
+    });
+
+    describe('should parse WEB alertDefinitions', function () {
+
+      var data = {items: [json.items[1]]},
+        expected = [
+          {
+            "id": 2,
+            "name": "yarn_resourcemanager_webui",
+            "label": "ResourceManager Web UI",
+            "service_id": "YARN",
+            "component_name": "RESOURCEMANAGER",
+            "enabled": true,
+            "scope": "ANY",
+            "interval": 1,
+            "type": "WEB",
+            "uri_id": "2uri"
+          }
+        ],
+        expectedMetricsUri = [{
+          "id":"2uri",
+          "http":"{{yarn-site/yarn.resourcemanager.webapp.address}}",
+          "https":"{{yarn-site/yarn.resourcemanager.webapp.https.address}}",
+          "https_property":"{{yarn-site/yarn.http.policy}}",
+          "https_property_value":"HTTPS_ONLY"
+        }];
+
+      beforeEach(function () {
+
+        App.alertDefinitionsMapper.map(data);
+
+      });
+
+      it('parsing web model', function() {
+        testHelpers.nestedExpect(expected, App.alertDefinitionsMapper.get('webModel.content'));
+      });
+
+
+      it('parse metrics uri', function() {
+        testHelpers.nestedExpect(expectedMetricsUri, App.alertDefinitionsMapper.get('metricsUriModel.content'));
+      });
+
+    });
+
+    it('should parse AGGREGATE alertDefinitions', function () {
+
+      var data = {items: [json.items[2]]},
+        expected = [
+          {
+            "id":3,
+            "name":"yarn_nodemanager_webui_percent",
+            "label":"Percent NodeManagers Available",
+            "service_id":"YARN",
+            "component_name":null,
+            "enabled":true,
+            "scope":"SERVICE",
+            "interval":1,
+            "type":"AGGREGATE",
+            "alert_name":"yarn_nodemanager_webui"
+          }
+        ];
+      App.alertDefinitionsMapper.map(data);
+
+      testHelpers.nestedExpect(expected, App.alertDefinitionsMapper.get('aggregateModel.content'));
+
+    });
+
+    it('should parse SCRIPT alertDefinitions', function () {
+
+      var data = {items: [json.items[3]]},
+        expected = [
+          {
+            "id":4,
+            "name":"yarn_nodemanager_health",
+            "label":"NodeManager Health",
+            "service_id":"YARN",
+            "component_name":"NODEMANAGER",
+            "enabled":true,
+            "scope":"HOST",
+            "interval":1,
+            "type":"SCRIPT",
+            "location":"HDP/2.0.6/services/YARN/package/files/alert_nodemanager_health.py"
+          }
+        ];
+      App.alertDefinitionsMapper.map(data);
+
+      testHelpers.nestedExpect(expected, App.alertDefinitionsMapper.get('scriptModel.content'));
+
+    });
+
+    it('should parse PORT alertDefinitions', function () {
+
+      var data = {items: [json.items[4]]},
+        expected = [
+          {
+            "id":5,
+            "name":"zookeeper_server_process",
+            "label":"ZooKeeper Server Process",
+            "service_id":"ZOOKEEPER",
+            "component_name":"ZOOKEEPER_SERVER",
+            "enabled":true,
+            "scope":"ANY",
+            "interval":1,
+            "type":"PORT",
+            "default_port":2181,
+            "uri":"{{zookeeper-env/clientPort}}"
+          }
+        ];
+      App.alertDefinitionsMapper.map(data);
+
+      testHelpers.nestedExpect(expected, App.alertDefinitionsMapper.get('portModel.content'));
+
+    });
+
+    it('should set groups from App.cache.previousAlertGroupsMap', function () {
+
+      App.cache['previousAlertGroupsMap'] = {
+        1: [5,1],
+        2: [4,3],
+        3: [3,2],
+        4: [2,5],
+        5: [1,4]
+      };
+
+      App.alertDefinitionsMapper.map(json);
+
+      expect(App.alertDefinitionsMapper.get('portModel.content')[0].groups).to.eql([1, 4]);
+      expect(App.alertDefinitionsMapper.get('metricsModel.content')[0].groups).to.eql([5, 1]);
+      expect(App.alertDefinitionsMapper.get('webModel.content')[0].groups).to.eql([4, 3]);
+      expect(App.alertDefinitionsMapper.get('aggregateModel.content')[0].groups).to.eql([3, 2]);
+      expect(App.alertDefinitionsMapper.get('scriptModel.content')[0].groups).to.eql([2, 5]);
+
+
+    });
+
+  });
+
+});

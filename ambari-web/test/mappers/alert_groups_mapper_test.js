@@ -1,0 +1,162 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements. See the NOTICE file distributed with this
+ * work for additional information regarding copyright ownership. The ASF
+ * licenses this file to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
+var App = require('app');
+
+require('mappers/alert_groups_mapper');
+var testHelpers = require('test/helpers');
+
+describe('App.alertGroupsMapper', function () {
+
+  describe('#map', function () {
+
+    var json = {
+      items: [
+        {
+          "AlertGroup" : {
+            "default" : true,
+            "definitions" : [
+              {
+                "id" : 8,
+                "source_type" : "PORT"
+              },
+              {
+                "id" : 9,
+                "source_type" : "AGGREGATE"
+              }
+            ],
+            "id" : 3,
+            "name" : "ZOOKEEPER"
+          }
+        },
+        {
+          "AlertGroup" : {
+            "default" : true,
+            "definitions" : [
+              {
+                "id" : 1,
+                "source_type" : "METRIC"
+              },
+              {
+                "id" : 2,
+                "source_type" : "WEB"
+              },
+              {
+                "id" : 3,
+                "source_type" : "WEB"
+              },
+              {
+                "id" : 4,
+                "source_type" : "AGGREGATE"
+              },
+              {
+                "id" : 5,
+                "source_type" : "METRIC"
+              },
+              {
+                "id" : 6,
+                "source_type" : "SCRIPT"
+              },
+              {
+                "id" : 7,
+                "source_type" : "WEB"
+              }
+            ],
+            "id" : 2,
+            "name" : "YARN"
+          }
+        }
+      ]
+    };
+
+    beforeEach(function () {
+
+      sinon.stub(App.store, 'commit', Em.K);
+      sinon.stub(App.store, 'loadMany', function (type, content) {
+        type.content = content;
+      });
+
+      App.alertGroupsMapper.set('model', {});
+      App.cache['previousAlertGroupsMap'] = {};
+
+    });
+
+    afterEach(function () {
+
+      App.store.commit.restore();
+      App.store.loadMany.restore();
+      App.alertGroupsMapper.set('model', App.AlertGroup);
+      App.cache['previousAlertGroupsMap'] = {};
+
+    });
+
+    it('should parse alert groups', function() {
+
+      var expected = [
+        {
+          id: 3,
+          name: 'ZOOKEEPER',
+          default: true,
+          port_alert_definitions: [8],
+          metrics_alert_definitions: [],
+          web_alert_definitions: [],
+          aggregate_alert_definitions: [9],
+          script_alert_definitions: []
+        },
+        {
+          id: 2,
+          name: 'YARN',
+          default: true,
+          port_alert_definitions: [],
+          metrics_alert_definitions: [1, 5],
+          web_alert_definitions: [2, 3, 7],
+          aggregate_alert_definitions: [4],
+          script_alert_definitions: [6]
+        }
+      ];
+
+      App.alertGroupsMapper.map(json);
+
+      var mapped = App.alertGroupsMapper.get('model.content');
+
+      testHelpers.nestedExpect(expected, mapped);
+
+    });
+
+    it('should set App.cache.previousAlertGroupsMap', function () {
+
+      var expected = {
+        8: [3],
+        9: [3],
+        1: [2],
+        2: [2],
+        3: [2],
+        4: [2],
+        5: [2],
+        6: [2],
+        7: [2]
+      };
+
+      App.alertGroupsMapper.map(json);
+
+      expect(App.cache['previousAlertGroupsMap']).to.eql(expected);
+
+    });
+
+  });
+
+});
