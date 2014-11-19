@@ -51,7 +51,7 @@
           supported_enctypes = {{libdefaults_default_tgs_enctypes}}
       }
 
-      {# Append additional realm declarations should be placed below #}
+      {# Append additional realm declarations below #}
     </value>
   </property>
 </configuration>

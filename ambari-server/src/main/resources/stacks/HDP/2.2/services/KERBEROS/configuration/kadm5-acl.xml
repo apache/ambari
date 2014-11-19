@@ -30,7 +30,7 @@
     <value>
       */admin@{{realm}}	*
 
-      {# Append additional realm declarations should be placed below #}
+      {# Append additional realm declarations below #}
     </value>
   </property>
 </configuration>

@@ -161,7 +161,7 @@
 
 {% if domains %}
 [domain_realm]
-{% for domain in domains %}
+{% for domain in domains.split(',') %}
   {{domain}} = {{realm|upper()}}
 {% endfor %}
 {% endif %}
@@ -180,7 +180,7 @@
     kdc = {{kdc_host}}
   }
 
-{# Append additional realm declarations should be placed below #}
+{# Append additional realm declarations below #}
     </value>
   </property>
 </configuration>
