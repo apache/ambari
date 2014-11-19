@@ -664,9 +664,9 @@ App.ServiceConfigProperty = Ember.Object.extend({
         break;
       case '*.falcon.graph.storage.directory':
       case '*.falcon.graph.serialize.path':
-        components = masterComponentHostsInDB.findProperty('componentName', 'FALCON_SERVER');
-        components.hosts.forEach(function (host) {
-          setOfHostNames.push(host.hostName);
+        components = masterComponentHostsInDB.filterProperty('component', 'FALCON_SERVER');
+        components.forEach(function (component) {
+          setOfHostNames.push(component.hostName);
         }, this);
         break;
       case 'log.dirs':
