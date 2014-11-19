@@ -36,6 +36,7 @@ App.StackService = DS.Model.extend({
   stackVersion: DS.attr('string'),
   isSelected: DS.attr('boolean', {defaultValue: true}),
   isInstalled: DS.attr('boolean', {defaultValue: false}),
+  isInstallable: DS.attr('boolean', {defaultValue: true}),
   stack: DS.belongsTo('App.Stack'),
   serviceComponents: DS.hasMany('App.StackServiceComponent'),
   configs: DS.attr('array'),
@@ -78,8 +79,8 @@ App.StackService = DS.Model.extend({
 
   isHiddenOnSelectServicePage: function () {
     var hiddenServices = ['MAPREDUCE2'];
-    return hiddenServices.contains(this.get('serviceName'));
-  }.property('serviceName'),
+    return hiddenServices.contains(this.get('serviceName')) || !this.get('isInstallable');
+  }.property('serviceName', 'isInstallable'),
 
   // Is the service required for monitoring of other hadoop ecosystem services
   isMonitoringService: function () {

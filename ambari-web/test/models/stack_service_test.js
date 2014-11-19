@@ -109,10 +109,17 @@ describe('App.StackService', function () {
     var testCases = [
       {
         serviceName: 'HDFS',
+        isInstallable: true,
         result: false
       },
       {
         serviceName: 'MAPREDUCE2',
+        isInstallable: true,
+        result: true
+      },
+      {
+        serviceName: 'KERBEROS',
+        isInstallable: false,
         result: true
       }
     ];
@@ -120,6 +127,7 @@ describe('App.StackService', function () {
     testCases.forEach(function (test) {
       it('service name - ' + test.serviceName, function () {
         ss.set('serviceName', test.serviceName);
+        ss.set('isInstallable', test.isInstallable);
         ss.propertyDidChange('isHiddenOnSelectServicePage');
         expect(ss.get('isHiddenOnSelectServicePage')).to.equal(test.result);
       });

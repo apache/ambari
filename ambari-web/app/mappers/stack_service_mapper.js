@@ -33,6 +33,7 @@ App.stackServiceMapper = App.QuickDataMapper.create({
     stack_version: 'stack_version',
     is_selected: 'is_selected',
     is_installed: 'is_installed',
+    is_installable: 'is_installable',
     required_services: 'required_services',
     service_check_supported: 'service_check_supported',
     service_components_key: 'service_components',
@@ -90,6 +91,9 @@ App.stackServiceMapper = App.QuickDataMapper.create({
       }, this);
       stackService.stack_id = stackService.stack_name + '-' + stackService.stack_version;
       stackService.service_components = serviceComponents;
+      // @todo: replace with server response value after API implementation
+      stackService.is_installable = !['KERBEROS'].contains(stackService.service_name);
+      stackService.is_selected = stackService.is_installable;
       result.push(this.parseIt(stackService, this.get('config')));
     }, this);
     App.store.loadMany(this.get('component_model'), stackServiceComponents);

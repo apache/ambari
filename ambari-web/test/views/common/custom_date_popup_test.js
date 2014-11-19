@@ -54,8 +54,8 @@ describe('CustomDatePopup', function() {
       customDatePopup.set('customDateFormFields.startDate', '11/11/11');
       customDatePopup.set('customDateFormFields.endDate', '11/12/11');
       popup.onPrimary();
-      expect(context.get('actualValues.startTime')).to.be.equal(1320966000000);
-      expect(context.get('actualValues.endTime')).to.equal(1321052400000);
+      expect(context.get('actualValues.startTime')).to.equal(new Date('11/11/11 01:00 AM').getTime());
+      expect(context.get('actualValues.endTime')).to.equal(new Date('11/12/11 01:00 AM').getTime());
     });
   });
 });

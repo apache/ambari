@@ -103,7 +103,7 @@ module.exports = App.WizardRoute.extend({
       controller.set('hideBackButton', true);
       controller.dataLoading().done(function () {
         controller.loadAllPriorSteps();
-        controller.connectOutlet('wizardStep4', controller.get('content.services'));
+        controller.connectOutlet('wizardStep4', controller.get('content.services').filterProperty('isInstallable', true));
       })
     },
     next: function (router) {
