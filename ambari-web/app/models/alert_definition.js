@@ -83,6 +83,22 @@ App.AlertDefinition = DS.Model.extend({
   }.property('summary'),
 
   /**
+   * if this definition is in state: CRIT / WARNING, if true, will show up in alerts fast access popup
+   * @type {boolean}
+   */
+  isCriticalOrWarning: function () {
+    var summary = this.get('summary');
+    var status = ['WARNING', 'CRITICAL'];
+    var result = false;
+    status.forEach(function (state) {
+      if (summary[state]) {
+        result = true;
+      }
+    });
+    return result;
+  }.property('summary'),
+
+  /**
    * List of css-classes for alert types
    * @type {object}
    */

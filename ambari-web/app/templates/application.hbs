@@ -35,6 +35,15 @@
                     {{allOperationsCount}} {{pluralize allOperationsCount singular="t:op" plural="t:ops"}}</span>
                 {{/if}}
               {{/with}}
+              {{#with App.router.mainAlertDefinitionsController}}
+                {{#if allAlertsCount}}
+                  <span class="label alerts-count" {{action "showPopup" target="App.router.mainAlertDefinitionsController"}}>
+                  {{allAlertsCount}} {{pluralize allAlertsCount singular="alert" plural="alerts"}}</span>
+                {{else}}
+                  <span class="label" {{action "showPopup" target="App.router.mainAlertDefinitionsController"}}>
+                  {{allAlertsCount}} {{pluralize allAlertsCount singular="alert" plural="alerts"}}</span>
+                {{/if}}
+              {{/with}}
             </a>
           {{else}}
             <a class="logo"><img src="/img/logo-white.png" alt="Apache Ambari" title="Apache Ambari"></a>

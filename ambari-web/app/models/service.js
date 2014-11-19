@@ -29,7 +29,6 @@ App.Service = DS.Model.extend({
   workStatus: DS.attr('string'),
   rand: DS.attr('string'),
   toolTipContent: DS.attr('string'),
-  criticalAlertsCount: DS.attr('number'),
   quickLinks: DS.hasMany('App.QuickLinks'),  // mapped in app/mappers/service_metrics_mapper.js method - mapQuickLinks
   hostComponents: DS.hasMany('App.HostComponent'),
   serviceConfigsTemplate: App.config.get('preDefinedServiceConfigs'),
@@ -141,7 +140,12 @@ App.Service = DS.Model.extend({
     }
     hostsMsg += "</ul>";
     return this.t('services.service.config.restartService.TooltipMessage').format(hcCount, hostCount, hostsMsg);
-  }.property('restartRequiredHostsAndComponents')
+  }.property('restartRequiredHostsAndComponents'),
+
+  criticalAlertsCount: function () {
+    var controller = App.router.get('mainAlertDefinitionsController');
+    return controller.getCriticalAlertsCountForService(this);
+  }.property('App.router.mainAlertDefinitionsController.content.@each.isCriticalOrWarning')
 });
 
 App.Service.Health = {

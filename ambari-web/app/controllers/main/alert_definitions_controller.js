@@ -63,6 +63,80 @@ App.MainAlertDefinitionsController = Em.ArrayController.extend({
         }
       }
     });
+  },
+
+  /**
+   *  alerts number to show up on top-nav bar: number of critical/warning alerts
+   */
+  allAlertsCount: function () {
+    return this.get('content').filterProperty('isCriticalOrWarning').get('length');
+  }.property('content.@each.isCriticalOrWarning'),
+
+  /**
+   *  calcuale critical/warning count for each service, to show up the label on services menu
+   */
+  getCriticalAlertsCountForService: function(service) {
+    var alertsForService = this.get('content').filterProperty('service', service);
+    return alertsForService.filterProperty('isCriticalOrWarning').get('length');
+  },
+
+  /**
+   * Onclick handler for alerts number located right to bg ops number
+   */
+  showPopup: function(){
+    var self = this;
+    return App.ModalPopup.show({
+      header: Em.I18n.t('alerts.fastAccess.popup.header').format(self.get('allAlertsCount')),
+      classNames: ['sixty-percent-width-modal', 'alerts-popup'],
+      secondary: null,
+      isHideBodyScroll: true,
+      closeModelPopup: function () {
+        this.hide();
+      },
+      onPrimary: function () {
+        this.closeModelPopup();
+      },
+      onClose: function () {
+        this.closeModelPopup();
+      },
+
+      bodyClass: App.TableView.extend({
+        templateName: require('templates/common/alerts_popup'),
+        controller: self,
+
+        contents: function () {
+          // show crit/warn alerts only.
+          return this.get('controller.content').filterProperty('isCriticalOrWarning');
+        }.property('controller.content.@each.isCriticalOrWarning'),
+
+        isLoaded: function () {
+          return this.get('controller.content.length');
+        }.property('controller.content.length'),
+
+        isAlertEmptyList: function () {
+          return !this.get('contents.length');
+        }.property('contents.length'),
+
+        gotoAlertDetails: function (event) {
+          this.get('parentView').closeModelPopup();
+          App.router.transitionTo('main.alerts.alertDetails', event.context);
+        },
+
+        gotoService: function (event) {
+          this.get('parentView').closeModelPopup();
+          App.router.transitionTo('main.services.service', event.context);
+        },
+
+        showMore: function () {
+          this.get('parentView').closeModelPopup();
+          App.router.transitionTo('main.alerts.index');
+        },
+
+        totalCount: function () {
+          return this.get('contents.length');
+        }.property('contents.length')
+      })
+    })
   }
 
 });

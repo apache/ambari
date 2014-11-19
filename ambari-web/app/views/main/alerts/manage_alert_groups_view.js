@@ -67,7 +67,6 @@ App.MainAlertsManageAlertGroupView = Em.View.extend({
   },
 
   didInsertElement: function () {
-
     this.onLoad();
     App.tooltip($("[rel='button-info']"));
     App.tooltip($("[rel='button-info-dropdown']"), {placement: 'left'});

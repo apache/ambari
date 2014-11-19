@@ -20,9 +20,9 @@
   {{view App.MainDashboardServiceHealthView class="service-health" serviceBinding="view.content"}}&nbsp;
   <span>{{unbound view.content.displayName}}</span>
   {{#if view.alertsCount}}
-    <span class="label operations-count">
-      {{view.alertsCount}}
-    </span>
+      <span class="label operations-count">
+        {{view.alertsCount}}
+      </span>
   {{/if}}
   <i rel="tooltip" {{action goToConfigs target="view"}}{{bindAttr class=":icon-refresh :restart-required-service view.content.isRestartRequired::hidden" data-original-title="view.restartRequiredMessage"}}></i>
 </a>

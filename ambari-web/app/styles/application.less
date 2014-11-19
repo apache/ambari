@@ -60,6 +60,42 @@
   100% { color: #118fff; }
 }
 
+@-webkit-keyframes redPulse {
+  from { background-color: #FF0000; }
+  50% { background-color: #A80000; }
+  to { background-color: #FF0000; }
+}
+
+@-moz-keyframes redPulse {
+  from { background-color: #FF0000; }
+  50% { background-color: #A80000; }
+  to { background-color: #FF0000; }
+}
+
+@keyframes redPulse {
+  0% { background-color: #FF0000; }
+  50% { background-color: #A80000; }
+  100% { background-color: #FF0000; }
+}
+
+@-webkit-keyframes redPulseInner {
+  from { color: #FF0000; }
+  50% { color: #A80000; }
+  to { color: #FF0000; }
+}
+
+@-moz-keyframes redPulseInner {
+  from { color: #FF0000; }
+  50% { color: #A80000; }
+  to { color: #FF0000; }
+}
+
+@keyframes redPulseInner {
+  0% { color: #FF0000; }
+  50% { color: #A80000; }
+  100% { color: #FF0000; }
+}
+
 .gradient(@color: #FAFAFA, @start: #FFFFFF, @stop: #F2F2F2) {
   background: @color;
   background: -webkit-gradient(linear, left top, left bottom, color-stop(0, @start), color-stop(1, @stop));
@@ -182,7 +218,19 @@ footer {
         animation-duration: 1s;
         animation-iteration-count: infinite;
       }
-      .label  {
+      .label.alerts-count {
+        background-color: red;
+        -webkit-animation-name: redPulse;
+        -webkit-animation-duration: 1s;
+        -webkit-animation-iteration-count: infinite;
+        -moz-animation-name: redPulse;
+        -moz-animation-duration: 1s;
+        -moz-animation-iteration-count: infinite;
+        animation-name: redPulse;
+        animation-duration: 1s;
+        animation-iteration-count: infinite;
+      }
+      .label {
          padding: 3px 5px 3px;
          color: @top-nav-ops-count-color;
          text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
@@ -283,6 +331,10 @@ footer {
         }
         .operations-count {
           background: #953B39;
+          padding: 1px 4px;
+          float: right;
+          margin-right: 10px;
+          margin-top: 3px;
         }
       }
       .top-nav-dropdown-menu > li{
@@ -2046,6 +2098,100 @@ width:100%;
   }
 }
 
+/*****start styles for alerts popup*****/
+.alerts-popup {
+  .modal-body, .modal-footer, .modal-header {
+    min-width: 600px;
+  }
+  #alert-info {
+    .log-list-wrap:hover {
+      background-color: #e6e6e6;
+    }
+  }
+}
+.alerts-popup-wrap {
+  .top-wrap {
+    width: 100%;
+    border-bottom: 1px solid #CCC;
+    text-align: center;
+    font-size: 15px;
+    padding: 0 0 20px 0;
+    height: 20px;
+    .status-top {
+      width: 10%;
+      padding-left: 20px;
+    }
+    .name-top {
+      width: 40%;
+      padding-left: 110px;
+    }
+    .service-top {
+      width: 15%;
+      padding-left: 5px;
+    }
+    .last-triggered-top {
+      width: 20%;
+      padding-left: 5px;
+    }
+    .status-top,.name-top,.service-top,.last-triggered-top {
+      float: left;
+      text-align: left;
+    }
+    .select-wrap {
+      float: right;
+      margin-top: -8px;
+      select {
+        width: 140px;
+      }
+    }
+  }
+  #alert-info{
+    overflow: auto;
+    max-height: 340px;
+    width: 100%;
+    .alert-list-wrap {
+      padding: 10px 10px 10px 20px;
+      border-top: 1px solid #CCC;
+      border-bottom: 1px solid #CCC;
+    }
+    .alert-list-line-cursor{
+      width: 100%;
+      min-height: 20px;
+      .status-icon {
+        padding-left: 5px;
+        float: left;
+        width: 10%;
+        min-width: 30px;
+      }
+      .name-text {
+        padding-left: 10px;
+        width: 40%;
+        float: left;
+      }
+      .service-text {
+        padding-left: 5px;
+        width: 15%;
+        float: left;
+      }
+      .last-triggered-text {
+        padding-left: 5px;
+        color: #808080;
+        font-size: 12px;
+      }
+    }
+    .show-more {
+      width: 98.8%;
+      min-height: 20px;
+      cursor: pointer;
+      border-top: 1px solid #CCC;
+      text-align: center;
+      padding: 10px 10px 10px 0px;
+      font-size: 16px;
+    }
+  }
+}
+/*****end styles for alert popup*****/
+
 
 /*****start styles for install tasks logs*****/
 .task-list-main-warp, .task-detail-info {
@@ -2743,6 +2889,13 @@ width:100%;
       .label {
         padding: 0 0 0 3px;
       }
+      .label.operations-count {
+        padding: 1px 4px;
+        background: #953B39;
+        float: right;
+        margin-right: 10px;
+        margin-top: 3px;
+      }
     }
 
     li.clients {
@@ -2769,9 +2922,6 @@ width:100%;
   .start-stop-all-service-button {
     margin: 5px 5px 10px 10px;
     text-align: center;
-  }
-  .operations-count {
-    background: #953B39;
   }
   .icon-medkit {
     padding-left:6px;

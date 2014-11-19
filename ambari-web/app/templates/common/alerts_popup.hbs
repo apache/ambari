@@ -1,0 +1,52 @@
+{{!
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+}}
+
+<div class="alerts-popup-wrap">
+  {{#if view.isLoaded}}
+    <div class="alert-list-main-warp">
+      <div class="top-wrap">
+        <div class="status-top"></div>
+        <div class="name-top">{{t alerts.fastAccess.popup.body.name}}</div>
+        <div class="service-top">{{t common.service}}</div>
+        <div class="last-triggered-top">{{t alerts.table.header.lastTriggered}}</div>
+
+      </div>
+        <div id="alert-info">
+          {{#if view.isAlertEmptyList}}
+            <div class="alert-list-wrap">{{t alerts.fastAccess.popup.body.noalerts}}</div>
+          {{else}}
+            {{#each alertDefinition in view.contents}}
+              <div class="alert-list-wrap">
+                <div class="alert-list-line-cursor">
+                  <div class="status-icon">{{{alertDefinition.status}}}</div>
+                  <div class="name-text"><a href="#" {{action "gotoAlertDetails" alertDefinition target="view"}}>{{alertDefinition.label}}</a></div>
+                  <div class="service-text"><a href="#" {{action "gotoService" alertDefinition.service target="view"}}>{{alertDefinition.service.displayName}}</a></div>
+                  <div class="last-triggered-text">{{alertDefinition.lastTriggeredFormatted}}</div>
+                </div>
+              </div>
+            {{/each}}
+          {{/if}}
+          <div class="show-more" {{action "showMore" target="view"}}><a href="#">{{t alerts.fastAccess.popup.body.showmore}}</a>
+          </div>
+        </div>
+    </div>
+  {{else}}
+    <div class="spinner"></div>
+  {{/if}}
+</div>
+
