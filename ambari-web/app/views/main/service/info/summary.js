@@ -37,14 +37,7 @@ App.AlertItemView = Em.View.extend({
 App.MainServiceInfoSummaryView = Em.View.extend({
   templateName: require('templates/main/service/info/summary'),
   attributes:null,
-  /**
-   * alerts collection
-   */
-  alerts: [],
-  /**
-   * associative collection of alerts
-   */
-  alertsMap: {},
+
   /**
    *  @property {String} templatePathPrefix - base path for custom templates
    *    if you want to add custom template, add <service_name>.hbs file to
@@ -88,64 +81,6 @@ App.MainServiceInfoSummaryView = Em.View.extend({
   servicesHaveClients: function() {
     return App.get('services.hasClient');
   }.property('App.services.hasClient'),
-
-  alertsControllerBinding: 'App.router.mainAlertsController',
-  /**
-   * observes changes to alerts collection
-   */
-  observeAlerts: function (view, property) {
-    //alerts should be inserted only in build-in DOM view
-    if (view.state !== "inDOM") return;
-    var newAlerts = this.get('alertsController.alerts'),
-      currentAlerts = this.get('alerts'),
-      alertsMap;
-
-    if (currentAlerts.length === 0) {
-      alertsMap = {};
-      newAlerts.forEach(function (alert) {
-        alertsMap[alert.id] = alert;
-        currentAlerts.pushObject(alert);
-      }, this);
-      this.set('alertsMap', alertsMap);
-    } else if (newAlerts.length > 0) {
-      this.updateAlerts(newAlerts, currentAlerts);
-    } else {
-      currentAlerts.clear();
-      this.set('alertsMap', {});
-    }
-  }.observes('alertsController.alerts'),
-  /**
-   * update existing alerts according to new data
-   * @param newAlerts
-   * @param currentAlerts
-   */
-  updateAlerts: function (newAlerts, currentAlerts) {
-    var alertsMap = this.get('alertsMap');
-    var mutableFields = ['status', 'message', 'lastCheck', 'lastTime'];
-    // minimal time difference to apply changes to "lastTime" property
-    var minTimeDiff = 60000;
-    var curTime = App.dateTime();
-    currentAlerts.setEach('isLoaded', false);
-
-    newAlerts.forEach(function (alert) {
-      var currentAlert = alertsMap[alert.get('id')];
-      if (currentAlert) {
-        mutableFields.forEach(function (field) {
-          if (currentAlert.get(field) !== alert.get(field)) {
-            currentAlert.set(field, alert.get(field));
-          }
-        });
-        currentAlert.set('isLoaded', true);
-      } else {
-        alertsMap[alert.get('id')] = alert;
-        currentAlerts.pushObject(alert);
-      }
-    });
-    currentAlerts.filterProperty('isLoaded', false).slice(0).forEach(function (alert) {
-      delete alertsMap[alert.get('id')];
-      currentAlerts.removeObject(alert);
-    }, this);
-  },
 
   noTemplateService: function () {
     var serviceName = this.get("service.serviceName");
@@ -443,14 +378,6 @@ App.MainServiceInfoSummaryView = Em.View.extend({
     this.set('oldServiceName', serviceName);
   }.observes('serviceName'),
 
-  /**
-   * Alerts panel not displayed when alerting service (ex:Nagios)is not in stack definition.
-   * Alerts panel never displayed for PIG, SQOOP and TEZ Services
-   */
-  isNoAlertsService: function () {
-    return  !App.get('services.alerting').length ||
-    (!!this.get('service.serviceName') && App.get('services.clientOnly').contains(this.get('service.serviceName')));
-  }.property('service.serviceName', 'App.services.alerting'),
 
   /**
    * Service metrics panel not displayed when metrics service (ex:Ganglia) is not in stack definition.
@@ -482,15 +409,9 @@ App.MainServiceInfoSummaryView = Em.View.extend({
   }.property('App.router.clusterController.gangliaUrl', 'service.serviceName'),
 
   didInsertElement:function () {
-    var alertsController = this.get('alertsController');
-    alertsController.loadAlerts(this.get('service.serviceName'), "SERVICE");
-    alertsController.set('isUpdating', true);
-    //TODO delegate style calculation to css
-    // We have to make the height of the Alerts section
-    // match the height of the Summary section.
+    // adjust the summary table height
     var summaryTable = document.getElementById('summary-info');
-    var alertsList = document.getElementById('summary-alerts-list');
-    if (summaryTable && alertsList) {
+    if (summaryTable) {
       var rows = $(summaryTable).find('tr');
       if (rows != null && rows.length > 0) {
         var minimumHeightSum = 20;
@@ -499,40 +420,7 @@ App.MainServiceInfoSummaryView = Em.View.extend({
         if (summaryActualHeight <= minimumHeightSum) {
           $(summaryTable).attr('style', "height:" + minimumHeightSum + "px;");
         }
-      } else if (alertsList.clientHeight > 0) {
-        $(summaryTable).append('<tr><td></td></tr>');
-        $(summaryTable).attr('style', "height:" + alertsList.clientHeight + "px;");
       }
     }
-  },
-  willDestroyElement: function(){
-    this.get('alertsController').set('isUpdating', false);
-    this.get('alerts').clear();
-    this.set('alertsMap', {});
-  },
-
-  setAlertsWindowSize: function() {
-    // for alerts window
-    var summaryTable = document.getElementById('summary-info');
-    var alertsList = document.getElementById('summary-alerts-list');
-    var alertsNum = this.get('alerts').length;
-    if (summaryTable && alertsList && alertsNum != null) {
-      var summaryActualHeight = summaryTable.clientHeight;
-      var alertsActualHeight = alertsNum * 60;
-      var alertsMinHeight = 58;
-      if (alertsNum == 0) {
-        $(alertsList).attr('style', "height:" + alertsMinHeight + "px;");
-      } else if ( alertsNum <= 4) {
-        // set window size to actual alerts height
-        $(alertsList).attr('style', "height:" + alertsActualHeight + "px;");
-      } else {
-        // set window size : sum of first 4 alerts height
-        $(alertsList).attr('style', "height:" + 240 + "px;");
-      }
-      var curSize = alertsList.clientHeight;
-      if ( summaryActualHeight >= curSize) {
-        $(alertsList).attr('style', "height:" + summaryActualHeight + "px;");
-      }
-    }
-  }.observes('alertsController.isLoaded')
+  }
 });

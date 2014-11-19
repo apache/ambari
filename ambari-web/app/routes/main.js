@@ -631,12 +631,6 @@ module.exports = Em.Route.extend({
           } else {
             router.transitionTo('services.index');
           }
-        },
-        exit: function(router) {
-          var request = router.get('mainAlertsController.servicesRequest');
-          if (request) {
-            request.abort();
-          }
         }
       }),
       metrics: Em.Route.extend({

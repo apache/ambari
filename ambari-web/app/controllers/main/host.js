@@ -468,29 +468,6 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
   },
 
   showAlertsPopup: function (event) {
-    var host = event.context;
-    App.router.get('mainAlertsController').loadAlerts(host.get('hostName'), "HOST");
-    App.ModalPopup.show({
-      header: this.t('services.alerts.headingOfList'),
-      bodyClass: Ember.View.extend({
-        templateName: require('templates/main/host/alerts_popup'),
-        controllerBinding: 'App.router.mainAlertsController',
-        alerts: function () {
-          return this.get('controller.alerts');
-        }.property('controller.alerts'),
-
-        closePopup: function () {
-          this.get('parentView').hide();
-        }
-      }),
-      primary: Em.I18n.t('common.close'),
-      secondary: null,
-      didInsertElement: function () {
-        this.$().find('.modal-footer').addClass('align-center');
-        this.$().children('.modal').css({'margin-top': '-350px'});
-      }
-    });
-    event.stopPropagation();
   },
 
   /**

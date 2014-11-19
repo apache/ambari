@@ -365,7 +365,6 @@ Em.I18n.translations = {
   'services.alerts.lastCheck': 'Last Checked {0}',
   'services.alerts.brLastCheck': '<br>Last Checked {0}',
   'services.alerts.occurredOn': 'Occurred on {0}, {1}',
-  'services.alerts.headingOfList': 'Alerts and Health Checks',
   'services.alerts.goToService': 'Go to Service',
   'services.alerts.goToNagios': 'Go to Nagios Web UI',
 

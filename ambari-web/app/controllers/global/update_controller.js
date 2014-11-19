@@ -157,7 +157,7 @@ App.UpdateController = Em.Controller.extend({
     var realUrl = '/hosts?<parameters>fields=Hosts/host_name,Hosts/maintenance_state,Hosts/public_host_name,Hosts/cpu_count,Hosts/ph_cpu_count,' +
       'Hosts/host_status,Hosts/last_heartbeat_time,Hosts/ip,host_components/HostRoles/state,host_components/HostRoles/maintenance_state,' +
       'host_components/HostRoles/stale_configs,host_components/HostRoles/service_name,host_components/HostRoles/desired_admin_state,' +
-        'metrics/disk,metrics/load/load_one,Hosts/total_mem,legacy_alerts/summary<hostAuxiliaryInfo>&minimal_response=true';
+        'metrics/disk,metrics/load/load_one,Hosts/total_mem&minimal_response=true';
     var hostAuxiliaryInfo = ',Hosts/os_arch,Hosts/os_type,metrics/cpu/cpu_system,metrics/cpu/cpu_user,metrics/memory/mem_total,metrics/memory/mem_free';
 
     if (App.router.get('currentState.name') == 'index' && App.router.get('currentState.parentState.name') == 'hosts') {
@@ -427,7 +427,7 @@ App.UpdateController = Em.Controller.extend({
   },
   updateServices: function (callback) {
     var testUrl = '/data/services/HDP2/services.json';
-    var componentConfigUrl = this.getUrl(testUrl, '/services?fields=legacy_alerts/summary,ServiceInfo/state,ServiceInfo/maintenance_state&minimal_response=true');
+    var componentConfigUrl = this.getUrl(testUrl, '/services?fields=ServiceInfo/state,ServiceInfo/maintenance_state&minimal_response=true');
     App.HttpClient.get(componentConfigUrl, App.serviceMapper, {
       complete: callback
     });

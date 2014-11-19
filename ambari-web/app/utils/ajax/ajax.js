@@ -300,14 +300,6 @@ var urls = {
     'type': 'DELETE'
   },
 
-  'alerts.get_by_service': {
-    'real': '/clusters/{clusterName}/services/{serviceName}?fields=legacy_alerts',
-    'mock': '/data/alerts/HDP2/service_alerts.json'
-  },
-  'alerts.get_by_host': {
-    'real': '/clusters/{clusterName}/hosts/{hostName}?fields=legacy_alerts',
-    'mock': '/data/alerts/HDP2/host_alerts.json'
-  },
   'alerts.load_alert_notification': {
     'real': '/alert_targets?fields=*',
     'mock': 'data/alerts/alertNotifications.json'
@@ -1939,7 +1931,7 @@ var urls = {
     }
   },
   'host.status.counters': {
-    'real': '/clusters/{clusterName}?fields=legacy_alerts,Clusters/health_report,Clusters/total_hosts&minimal_response=true',
+    'real': '/clusters/{clusterName}?fields=Clusters/health_report,Clusters/total_hosts&minimal_response=true',
     'mock': '/data/hosts/HDP2/host_status_counters.json'
   },
   'components.filter_by_status': {

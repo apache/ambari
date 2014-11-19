@@ -587,52 +587,6 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, {
   }.property('App.router.clusterController.gangliaUrl'),
 
   showAlertsPopup: function (event) {
-    var service = event.context;
-    App.router.get('mainAlertsController').loadAlerts(service.get('serviceName'), "SERVICE");
-    App.ModalPopup.show({
-      header: this.t('services.alerts.headingOfList'),
-      bodyClass: Ember.View.extend({
-        templateName: require('templates/main/dashboard/alert_notification_popup'),
-        service: service,
-        controllerBinding: 'App.router.mainAlertsController',
-        warnAlerts: function () {
-          return this.get('controller.alerts').filterProperty('isOk', false).filterProperty('ignoredForServices', false);
-        }.property('controller.alerts'),
-
-        warnAlertsCount: function () {
-          return this.get('warnAlerts').length;
-        }.property('warnAlerts'),
-
-        warnAlertsMessage: function() {
-          return Em.I18n.t('services.alerts.head').format(this.get('warnAlertsCount'));
-        }.property('warnAlertsCount'),
-
-        nagiosUrl: function () {
-          return App.router.get('clusterController.nagiosUrl');
-        }.property('App.router.clusterController.nagiosUrl'),
-
-        closePopup: function () {
-          this.get('parentView').hide();
-        },
-
-        viewNagiosUrl: function () {
-          window.open(this.get('nagiosUrl'), "_blank");
-          this.closePopup();
-        },
-
-        selectService: function () {
-          App.router.transitionTo('services.service.summary', service);
-          this.closePopup();
-        }
-      }),
-      primary: Em.I18n.t('common.close'),
-      secondary : null,
-      didInsertElement: function () {
-        this.$().find('.modal-footer').addClass('align-center');
-        this.$().children('.modal').css({'margin-top': '-350px'});
-      }
-    });
-    event.stopPropagation();
   }
 
 });
