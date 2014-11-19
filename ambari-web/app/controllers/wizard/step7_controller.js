@@ -837,9 +837,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
     });
     configs.forEach(function (_config) {
       var nonServiceTab = require('data/service_configs');
-      if (_config.filename) {
-        var type = _config.filename.replace(/.xml$/, '');
-      }
+      var type = _config.filename ? App.config.getConfigTagFromFileName(_config.filename) : null;
       var mappedConfigValue = type && configsMap[type] ? configsMap[type][_config.name] : null;
       if (!Em.isNone(mappedConfigValue) && ((installedServiceNames && installedServiceNames.contains(_config.serviceName) || nonServiceTab.someProperty('serviceName', _config.serviceName)))) {
         // prevent overriding already edited properties

@@ -615,131 +615,199 @@ describe('App.ServiceConfigProperty', function () {
     });
   });
 
-});
+  describe('#initialValue', function () {
 
-describe('#initialValue - kafka.ganglia.metrics.host', function () {
+    var cases = {
+      'kafka.ganglia.metrics.host': [
+        {
+          message: 'kafka.ganglia.metrics.host property should have the value of ganglia hostname when ganglia is selected',
+          localDB: {
+            masterComponentHosts: [
+              {
+                component: 'GANGLIA_SERVER',
+                hostName: 'c6401'
+              }
+            ]
+          },
+          expected: 'c6401'
+        },
+        {
+          message: 'kafka.ganglia.metrics.host property should have the value "localhost" when ganglia is not selected',
+          localDB: {
+            masterComponentHosts: [
+              {
+                component: 'NAMENODE',
+                hostName: 'c6401'
+              }
+            ]
+          },
+          expected: 'localhost'
+        }
+      ],
+      'hive_database': [
+        {
+          alwaysEnableManagedMySQLForHive: true,
+          currentStateName: '',
+          isManagedMySQLForHiveEnabled: false,
+          receivedValue: 'New MySQL Database',
+          value: 'New MySQL Database',
+          options: [
+            {
+              displayName: 'New MySQL Database'
+            }
+          ],
+          hidden: false
+        },
+        {
+          alwaysEnableManagedMySQLForHive: false,
+          currentStateName: 'configs',
+          isManagedMySQLForHiveEnabled: false,
+          receivedValue: 'New MySQL Database',
+          value: 'New MySQL Database',
+          options: [
+            {
+              displayName: 'New MySQL Database'
+            }
+          ],
+          hidden: false
+        },
+        {
+          alwaysEnableManagedMySQLForHive: false,
+          currentStateName: '',
+          isManagedMySQLForHiveEnabled: true,
+          receivedValue: 'New MySQL Database',
+          value: 'New MySQL Database',
+          options: [
+            {
+              displayName: 'New MySQL Database'
+            }
+          ],
+          hidden: false
+        },
+        {
+          alwaysEnableManagedMySQLForHive: false,
+          currentStateName: '',
+          isManagedMySQLForHiveEnabled: false,
+          receivedValue: 'New MySQL Database',
+          value: 'Existing MySQL Database',
+          options: [
+            {
+              displayName: 'New MySQL Database'
+            }
+          ],
+          hidden: true
+        },
+        {
+          alwaysEnableManagedMySQLForHive: false,
+          currentStateName: '',
+          isManagedMySQLForHiveEnabled: false,
+          receivedValue: 'New PostgreSQL Database',
+          value: 'New PostgreSQL Database',
+          options: [
+            {
+              displayName: 'New MySQL Database'
+            }
+          ],
+          hidden: true
+        }
+      ],
+      'hbase.zookeeper.quorum': [
+        {
+          filename: 'hbase-site.xml',
+          value: 'host0,host1',
+          defaultValue: 'host0,host1',
+          title: 'should set ZooKeeper Server hostnames'
+        },
+        {
+          filename: 'ams-hbase-site.xml',
+          value: 'localhost',
+          defaultValue: '',
+          title: 'should ignore ZooKeeper Server hostnames'
+        }
+      ],
+      'hbase.tmp.dir': [
+        {
+          filename: 'hbase-site.xml',
+          isUnionAllMountPointsCalled: true,
+          title: 'unionAllMountPoints should be called'
+        },
+        {
+          filename: 'ams-hbase-site.xml',
+          isUnionAllMountPointsCalled: false,
+          title: 'unionAllMountPoints shouldn\'t be called'
+        }
+      ]
+    };
 
-  var tests = [
-    {
-      message: 'kafka.ganglia.metrics.host property should have the value of ganglia hostname when ganglia is selected',
-      localDB: {masterComponentHosts: [
-        {component: 'GANGLIA_SERVER', hostName: 'c6401'}
-      ]},
-      expected: 'c6401'
-    },
-    {
-      message: 'kafka.ganglia.metrics.host property should have the value "localhost" when ganglia is not selected',
-      localDB: {masterComponentHosts: [
-        {component: 'NAMENODE', hostName: 'c6401'}
-      ]},
-      expected: 'localhost'
-    }
-  ];
-  var serviceConfigProperty;
-  beforeEach(function () {
-    serviceConfigProperty = App.ServiceConfigProperty.create({name: 'kafka.ganglia.metrics.host', value: 'localhost'});
-  });
-  tests.forEach(function(test){
-    it(test.message, function () {
-      serviceConfigProperty.initialValue(test.localDB);
-      expect(serviceConfigProperty.get('value')).to.equal(test.expected);
+    cases['kafka.ganglia.metrics.host'].forEach(function(item){
+      it(item.message, function () {
+        serviceConfigProperty.setProperties({
+          name: 'kafka.ganglia.metrics.host',
+          value: 'localhost'
+        });
+        serviceConfigProperty.initialValue(item.localDB);
+        expect(serviceConfigProperty.get('value')).to.equal(item.expected);
+      });
     });
-  });
-});
 
-describe('#initialValue - hive_database', function () {
-
-  var cases = [
-      {
-        alwaysEnableManagedMySQLForHive: true,
-        currentStateName: '',
-        isManagedMySQLForHiveEnabled: false,
-        receivedValue: 'New MySQL Database',
-        value: 'New MySQL Database',
-        options: [
-          {
-            displayName: 'New MySQL Database'
-          }
-        ],
-        hidden: false
-      },
-      {
-        alwaysEnableManagedMySQLForHive: false,
-        currentStateName: 'configs',
-        isManagedMySQLForHiveEnabled: false,
-        receivedValue: 'New MySQL Database',
-        value: 'New MySQL Database',
-        options: [
-          {
-            displayName: 'New MySQL Database'
-          }
-        ],
-        hidden: false
-      },
-      {
-        alwaysEnableManagedMySQLForHive: false,
-        currentStateName: '',
-        isManagedMySQLForHiveEnabled: true,
-        receivedValue: 'New MySQL Database',
-        value: 'New MySQL Database',
-        options: [
-          {
-            displayName: 'New MySQL Database'
-          }
-        ],
-        hidden: false
-      },
-      {
-        alwaysEnableManagedMySQLForHive: false,
-        currentStateName: '',
-        isManagedMySQLForHiveEnabled: false,
-        receivedValue: 'New MySQL Database',
-        value: 'Existing MySQL Database',
-        options: [
-          {
-            displayName: 'New MySQL Database'
-          }
-        ],
-        hidden: true
-      },
-      {
-        alwaysEnableManagedMySQLForHive: false,
-        currentStateName: '',
-        isManagedMySQLForHiveEnabled: false,
-        receivedValue: 'New PostgreSQL Database',
-        value: 'New PostgreSQL Database',
-        options: [
-          {
-            displayName: 'New MySQL Database'
-          }
-        ],
-        hidden: true
-      }
-    ],
-    title = 'value should be set to {0}';
-
-  beforeEach(function () {
-    serviceConfigProperty = App.ServiceConfigProperty.create({
-      name: 'hive_database'
+    cases['hive_database'].forEach(function (item) {
+      var title = 'hive_database value should be set to {0}';
+      it(title.format(item.value), function () {
+        sinon.stub(App, 'get')
+          .withArgs('supports.alwaysEnableManagedMySQLForHive').returns(item.alwaysEnableManagedMySQLForHive)
+          .withArgs('router.currentState.name').returns(item.currentStateName)
+          .withArgs('isManagedMySQLForHiveEnabled').returns(item.isManagedMySQLForHiveEnabled);
+        serviceConfigProperty.setProperties({
+          name: 'hive_database',
+          value: item.receivedValue,
+          options: item.options
+        });
+        serviceConfigProperty.initialValue({});
+        expect(serviceConfigProperty.get('value')).to.equal(item.value);
+        expect(serviceConfigProperty.get('options').findProperty('displayName', 'New MySQL Database').hidden).to.equal(item.hidden);
+        App.get.restore();
+      });
     });
-  });
 
-  afterEach(function() {
-    App.get.restore();
-  });
-
-  cases.forEach(function (item) {
-    it(title.format(item.value), function () {
-      sinon.stub(App, 'get')
-        .withArgs('supports.alwaysEnableManagedMySQLForHive').returns(item.alwaysEnableManagedMySQLForHive)
-        .withArgs('router.currentState.name').returns(item.currentStateName)
-        .withArgs('isManagedMySQLForHiveEnabled').returns(item.isManagedMySQLForHiveEnabled);
-      serviceConfigProperty.set('value', item.receivedValue);
-      serviceConfigProperty.set('options', item.options);
-      serviceConfigProperty.initialValue({});
-      expect(serviceConfigProperty.get('value')).to.equal(item.value);
-      expect(serviceConfigProperty.get('options').findProperty('displayName', 'New MySQL Database').hidden).to.equal(item.hidden);
+    cases['hbase.zookeeper.quorum'].forEach(function (item) {
+      it(item.title, function () {
+        serviceConfigProperty.setProperties({
+          name: 'hbase.zookeeper.quorum',
+          value: 'localhost',
+          'filename': item.filename
+        });
+        serviceConfigProperty.initialValue({
+          masterComponentHosts: {
+            filterProperty: function () {
+              return {
+                mapProperty: function () {
+                  return ['host0', 'host1'];
+                }
+              };
+            }
+          }
+        });
+        expect(serviceConfigProperty.get('value')).to.equal(item.value);
+        expect(serviceConfigProperty.get('defaultValue')).to.equal(item.defaultValue);
+      });
     });
-  });
 
+    cases['hbase.tmp.dir'].forEach(function (item) {
+      var isOnlyFirstOneNeeded = true,
+        localDB = {
+          p: 'v'
+        };
+      it(item.title, function () {
+        sinon.stub(serviceConfigProperty, 'unionAllMountPoints', Em.K);
+        serviceConfigProperty.setProperties({
+          name: 'hbase.tmp.dir',
+          filename: item.filename
+        });
+        serviceConfigProperty.initialValue(localDB);
+        expect(serviceConfigProperty.unionAllMountPoints.calledWith(isOnlyFirstOneNeeded, localDB)).to.equal(item.isUnionAllMountPointsCalled);
+        serviceConfigProperty.unionAllMountPoints.restore();
+      });
+    });
+
+  });
 });

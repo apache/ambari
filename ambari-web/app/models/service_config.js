@@ -531,8 +531,10 @@ App.ServiceConfigProperty = Ember.Object.extend({
         }
         break;
       case 'hbase.zookeeper.quorum':
-        var zkHosts = masterComponentHostsInDB.filterProperty('component', 'ZOOKEEPER_SERVER').mapProperty('hostName');
-        this.setDefaultValue("(\\w*)", zkHosts);
+        if (this.get('filename') == 'hbase-site.xml') {
+          var zkHosts = masterComponentHostsInDB.filterProperty('component', 'ZOOKEEPER_SERVER').mapProperty('hostName');
+          this.setDefaultValue("(\\w*)", zkHosts);
+        }
         break;
       case 'zookeeper.connect':
       case 'hive.zookeeper.quorum':
@@ -568,12 +570,16 @@ App.ServiceConfigProperty = Ember.Object.extend({
       case 'log.dirs':  // for Kafka Broker
         this.unionAllMountPoints(!isOnlyFirstOneNeeded, localDB);
         break;
+      case 'hbase.tmp.dir':
+        if (this.get('filename') == 'hbase-site.xml') {
+          this.unionAllMountPoints(isOnlyFirstOneNeeded, localDB);
+        }
+        break;
       case 'fs.checkpoint.dir':
       case 'dfs.namenode.checkpoint.dir':
       case 'yarn.timeline-service.leveldb-timeline-store.path':
       case 'dataDir':
       case 'oozie_data_dir':
-      case 'hbase.tmp.dir':
       case 'storm.local.dir':
       case '*.falcon.graph.storage.directory':
       case '*.falcon.graph.serialize.path':
@@ -676,11 +682,9 @@ App.ServiceConfigProperty = Ember.Object.extend({
         break;
       case 'hbase.tmp.dir':
         temp = slaveComponentHostsInDB.findProperty('componentName', 'HBASE_REGIONSERVER');
-        if (temp) {
-          temp.hosts.forEach(function (host) {
-            setOfHostNames.push(host.hostName);
-          }, this);
-        }
+        temp.hosts.forEach(function (host) {
+          setOfHostNames.push(host.hostName);
+        }, this);
         break;
       case 'storm.local.dir':
         temp = slaveComponentHostsInDB.findProperty('componentName', 'SUPERVISOR');
