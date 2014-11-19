@@ -37,10 +37,10 @@ angular.module('ambariAdminConsole')
         icon64_path: '',
         properties: viewVersion.ViewVersionInfo.parameters,
         description: ''
-      };    
+      };
     });
   }
-    
+
 
   $scope.$watch(function(scope) {
     return scope.version;
@@ -66,6 +66,7 @@ angular.module('ambariAdminConsole')
   $scope.nameValidationPattern = /^\s*\w*\s*$/;
 
   $scope.save = function() {
+  if (!$scope.form.instanceCreateForm.submitted) {
     $scope.form.instanceCreateForm.submitted = true;
     if($scope.form.instanceCreateForm.$valid){
       View.createInstance($scope.instance)
@@ -77,10 +78,13 @@ angular.module('ambariAdminConsole')
           } else {
             $location.path('/views/' + $scope.instance.view_name + '/versions/' + $scope.instance.version + '/instances/' + $scope.instance.instance_name + '/edit');
           }
+          $scope.form.instanceCreateForm.submitted = false;
         })
         .catch(function(data) {
           Alert.error('Cannot create instance', data.message);
+         $scope.form.instanceCreateForm.submitted = false;
         });
+      }
     }
   };
 
