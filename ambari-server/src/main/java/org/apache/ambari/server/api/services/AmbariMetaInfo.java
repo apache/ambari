@@ -498,7 +498,7 @@ public class AmbariMetaInfo {
     }
     return needRestartServices;
   }
-  
+
   public Collection<StackInfo> getStacks() {
     return stackManager.getStacks();
   }
@@ -517,8 +517,7 @@ public class AmbariMetaInfo {
     StackInfo stackInfoResult = stackManager.getStack(stackName, version);
 
     if (stackInfoResult == null) {
-      throw new StackAccessException("stackName=" + stackName
-          + ", stackVersion=" + version);
+      throw new StackAccessException("Stack " + stackName + " " + version + " is not found in Ambari metainfo");
     }
 
     return stackInfoResult;

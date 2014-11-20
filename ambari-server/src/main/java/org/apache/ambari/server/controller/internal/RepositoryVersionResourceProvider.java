@@ -20,13 +20,14 @@ package org.apache.ambari.server.controller.internal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
@@ -44,9 +45,17 @@ import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.OperatingSystemInfo;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.stack.UpgradePack;
+import org.apache.commons.lang.StringUtils;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.github.fge.jackson.JsonLoader;
+import com.github.fge.jsonschema.core.report.ProcessingMessage;
+import com.github.fge.jsonschema.core.report.ProcessingReport;
+import com.github.fge.jsonschema.main.JsonSchema;
+import com.github.fge.jsonschema.main.JsonSchemaFactory;
 import com.google.gson.Gson;
 import com.google.inject.Inject;
 
@@ -89,6 +98,22 @@ public class RepositoryVersionResourceProvider extends AbstractResourceProvider 
       put(Resource.Type.RepositoryVersion, REPOSITORY_VERSION_ID_PROPERTY_ID);
     }
   };
+
+  /**
+   * Json schema used for repositories validation.
+   */
+  private static JsonSchema repositoriesJsonSchema;
+  static {
+    final String schema = "{\"type\":\"array\",\"$schema\":\"http://json-schema.org/draft-04/schema#\","
+        + "\"items\":{\"type\":\"object\",\"required\":[\"baseurls\",\"os\"],\"properties\":{\"baseurls\":{\"type\":\"array\",\"items\":"
+        + "{\"type\":\"object\",\"required\":[\"type\",\"baseurl\",\"id\"],\"properties\":{\"type\":{\"type\":\"string\"},\"baseurl\":"
+        + "{\"type\":\"string\"},\"id\":{\"type\":\"string\"}}},\"minItems\":1},\"os\":{\"type\":\"string\"}}}\r\n,\"minItems\":1}";
+    try {
+      repositoriesJsonSchema = JsonSchemaFactory.byDefault().getJsonSchema(JsonLoader.fromString(schema));
+    } catch (Exception e) {
+      LOG.error("Could not create instance of json schema for validating repositories");
+    }
+  }
 
   @Inject
   private RepositoryVersionDAO repositoryVersionDAO;
@@ -205,46 +230,54 @@ public class RepositoryVersionResourceProvider extends AbstractResourceProvider 
     throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
     final Set<Map<String, Object>> propertyMaps = request.getProperties();
 
-    for (Map<String, Object> propertyMap : propertyMaps) {
-      final Long id;
-      try {
-        id = Long.parseLong(propertyMap.get(REPOSITORY_VERSION_ID_PROPERTY_ID).toString());
-      } catch (Exception ex) {
-        throw new SystemException("Repository version should have numerical id");
-      }
+    modifyResources(new Command<Void>() {
+      @Override
+      public Void invoke() throws AmbariException {
+        for (Map<String, Object> propertyMap : propertyMaps) {
+          final Long id;
+          try {
+            id = Long.parseLong(propertyMap.get(REPOSITORY_VERSION_ID_PROPERTY_ID).toString());
+          } catch (Exception ex) {
+            throw new AmbariException("Repository version should have numerical id");
+          }
 
-      final RepositoryVersionEntity entity = repositoryVersionDAO.findByPK(id);
-      if (entity == null) {
-        throw new NoSuchResourceException("There is no repository version with id " + id);
-      }
+          final RepositoryVersionEntity entity = repositoryVersionDAO.findByPK(id);
+          if (entity == null) {
+            throw new ObjectNotFoundException("There is no repository version with id " + id);
+          }
 
-      if (propertyMap.get(REPOSITORY_VERSION_REPOSITORIES_PROPERTY_ID) != null
-          || propertyMap.get(REPOSITORY_VERSION_UPGRADE_PACK_PROPERTY_ID) != null) {
+          if (propertyMap.get(REPOSITORY_VERSION_REPOSITORIES_PROPERTY_ID) != null
+              || propertyMap.get(REPOSITORY_VERSION_UPGRADE_PACK_PROPERTY_ID) != null) {
 
-        final List<ClusterVersionEntity> clusterVersionEntities =
-            clusterVersionDAO.findByStackAndVersion(entity.getStack(), entity.getVersion());
+            final List<ClusterVersionEntity> clusterVersionEntities =
+                clusterVersionDAO.findByStackAndVersion(entity.getStack(), entity.getVersion());
 
-        if (!clusterVersionEntities.isEmpty()) {
-          final ClusterVersionEntity firstClusterVersion = clusterVersionEntities.get(0);
-          throw new SystemException("Repository version can't be updated as it is " +
-            firstClusterVersion.getState().name() + " on cluster " + firstClusterVersion.getClusterEntity().getClusterName());
+            if (!clusterVersionEntities.isEmpty()) {
+              final ClusterVersionEntity firstClusterVersion = clusterVersionEntities.get(0);
+              throw new AmbariException("Repository version can't be updated as it is " +
+                firstClusterVersion.getState().name() + " on cluster " + firstClusterVersion.getClusterEntity().getClusterName());
+            }
+
+            if (propertyMap.get(REPOSITORY_VERSION_REPOSITORIES_PROPERTY_ID) != null) {
+              final Object repositories = propertyMap.get(REPOSITORY_VERSION_REPOSITORIES_PROPERTY_ID);
+              entity.setRepositories(new Gson().toJson(repositories));
+            }
+
+            if (propertyMap.get(REPOSITORY_VERSION_UPGRADE_PACK_PROPERTY_ID) != null) {
+              entity.setUpgradePackage(propertyMap.get(REPOSITORY_VERSION_UPGRADE_PACK_PROPERTY_ID).toString());
+            }
+          }
+
+          if (propertyMap.get(REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID) != null) {
+            entity.setDisplayName(propertyMap.get(REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID).toString());
+          }
+
+          validateRepositoryVersion(entity);
+          repositoryVersionDAO.merge(entity);
         }
-
-        if (propertyMap.get(REPOSITORY_VERSION_REPOSITORIES_PROPERTY_ID) != null) {
-          entity.setRepositories(propertyMap.get(REPOSITORY_VERSION_REPOSITORIES_PROPERTY_ID).toString());
-        }
-
-        if (propertyMap.get(REPOSITORY_VERSION_UPGRADE_PACK_PROPERTY_ID) != null) {
-          entity.setUpgradePackage(propertyMap.get(REPOSITORY_VERSION_UPGRADE_PACK_PROPERTY_ID).toString());
-        }
+        return null;
       }
-
-      if (propertyMap.get(REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID) != null) {
-        entity.setDisplayName(propertyMap.get(REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID).toString());
-      }
-
-      repositoryVersionDAO.merge(entity);
-    }
+    });
 
     return getRequestStatus(null);
   }
@@ -299,41 +332,76 @@ public class RepositoryVersionResourceProvider extends AbstractResourceProvider 
    * @throws AmbariException exception with error message
    */
   protected void validateRepositoryVersion(RepositoryVersionEntity repositoryVersion) throws AmbariException {
-    final StackInfo stackInfo = ambariMetaInfo.getStack(repositoryVersion.getStack(), repositoryVersion.getVersion());
-    if (stackInfo == null) {
-      throw new AmbariException("Stack " + repositoryVersion.getStack() + " " + repositoryVersion.getVersion() + " is not found");
+    final StackId requiredStack = new StackId(repositoryVersion.getStack());
+    final String stackName = requiredStack.getStackName();
+    final String stackMajorVersion = requiredStack.getStackVersion();
+    final String stackFullName = requiredStack.getStackId();
+
+    // check that stack exists
+    final StackInfo stackInfo = ambariMetaInfo.getStack(stackName, stackMajorVersion);
+    if (stackInfo.getUpgradePacks() == null) {
+      throw new AmbariException("Stack " + stackFullName + " doesn't have upgrade packages");
     }
-    final UpgradePack upgradePack = stackInfo.getUpgradePacks().get(repositoryVersion.getUpgradePackage());
-    if (upgradePack == null) {
-      throw new AmbariException("Upgrade pack " + repositoryVersion.getUpgradePackage()
-          + " is not available for stack " + repositoryVersion.getStack() + " " + repositoryVersion.getVersion());
+
+    // check that given repositories node is a valid json
+    ProcessingReport jsonValidationReport;
+    JsonNode repositoriesJson;
+    try {
+      repositoriesJson = JsonLoader.fromString(repositoryVersion.getRepositories());
+      jsonValidationReport = repositoriesJsonSchema.validate(repositoriesJson);
+    } catch (Exception ex) {
+      throw new AmbariException("Could not process repositories json");
     }
+    if (!jsonValidationReport.isSuccess()) {
+      final StringBuilder errors = new StringBuilder();
+      final Iterator<ProcessingMessage> iterator = jsonValidationReport.iterator();
+      while (iterator.hasNext()) {
+        errors.append(iterator.next().toString());
+      }
+      throw new AmbariException("Failed to validate repositories json: " + errors.toString());
+    }
+
+    // check that repositories contain only supported operating systems
     final Set<String> osSupported = new HashSet<String>();
-    for (OperatingSystemInfo osInfo: ambariMetaInfo.getOperatingSystems(repositoryVersion.getStack(), repositoryVersion.getVersion())) {
+    for (OperatingSystemInfo osInfo: ambariMetaInfo.getOperatingSystems(stackName, stackMajorVersion)) {
       osSupported.add(osInfo.getOsType());
     }
     final Set<String> osRepositoryVersion = new HashSet<String>();
-    final Matcher osMatcher = Pattern.compile("\"os\":\\s*\"(.+)\"").matcher(new Gson().fromJson(repositoryVersion.getRepositories(), Object.class).toString());
-    while (osMatcher.find()) {
-      osRepositoryVersion.add(osMatcher.group(1));
+    final Iterator<JsonNode> repositoriesIterator = repositoriesJson.elements();
+    while (repositoriesIterator.hasNext()) {
+      osRepositoryVersion.add(repositoriesIterator.next().get("os").asText());
     }
     if (osRepositoryVersion.isEmpty()) {
       throw new AmbariException("At least one set of repositories for OS should be provided");
     }
     for (String os: osRepositoryVersion) {
       if (!osSupported.contains(os)) {
-        throw new AmbariException("Operating system type " + os + " is not supported by stack "
-            + repositoryVersion.getStack() + " " + repositoryVersion.getVersion());
+        throw new AmbariException("Operating system type " + os + " is not supported by stack " + stackFullName);
       }
     }
-    // converting 2.2.*.* -> 2\.2\.\d+\.\d+(-\d+)?
+
+    // check that upgrade pack for the stack exists
+    final UpgradePack upgradePack = stackInfo.getUpgradePacks().get(repositoryVersion.getUpgradePackage());
+    if (upgradePack == null) {
+      throw new AmbariException("Upgrade pack " + repositoryVersion.getUpgradePackage()
+          + " is not available for stack " + stackFullName);
+    }
+
+    // check that upgrade pack has <target> node
+    if (StringUtils.isBlank(upgradePack.getTarget())) {
+      throw new AmbariException("Upgrade pack " + repositoryVersion.getUpgradePackage()
+          + " is corrupted, it should contain <target> node");
+    }
+
+    // check that upgrade pack can be applied to selected stack
+    // converting 2.2.*.* -> 2\.2(\.\d+)?(\.\d+)?(-\d+)?
     String regexPattern = upgradePack.getTarget();
-    regexPattern = regexPattern.replaceAll("\\.", "\\\\.");
-    regexPattern = regexPattern.replaceAll("\\*", "\\\\d+");
+    regexPattern = regexPattern.replaceAll("\\.", "\\\\."); // . -> \.
+    regexPattern = regexPattern.replaceAll("\\\\\\.\\*", "(\\\\\\.\\\\d+)?"); // \.* -> (\.\d+)?
     regexPattern = regexPattern.concat("(-\\d+)?");
     if (!Pattern.matches(regexPattern, repositoryVersion.getVersion())) {
       throw new AmbariException("Upgrade pack " + repositoryVersion.getUpgradePackage()
-          + " can't be applied to stack " + repositoryVersion.getStack() + " " + repositoryVersion.getVersion());
+          + " can't be applied to stack " + stackFullName);
     }
   }
 }

@@ -62,9 +62,12 @@ public class RepositoryVersionResourceProviderTest {
 
   private static Injector injector;
 
+  private static Object jsonStructureRedhat6 = new Gson().fromJson("[{\"os\":\"redhat6\",\"baseurls\":[{\"id\":\"HDP-2.2.0.1-885\",\"type\":\"HDP\",\"baseurl\":\"http://host1/hdp\"},{\"id\":\"HDP-UTILS-1.0.0.20\",\"type\":\"HDP-UTILS\",\"baseurl\":\"http://host1/hdp-utils\"}]}]", Object.class);
+  private static Object jsonStructureRedhat7 = new Gson().fromJson("[{\"os\":\"redhat7\",\"baseurls\":[{\"id\":\"HDP-2.2.0.1-885\",\"type\":\"HDP\",\"baseurl\":\"http://host1/hdp\"},{\"id\":\"HDP-UTILS-1.0.0.20\",\"type\":\"HDP-UTILS\",\"baseurl\":\"http://host1/hdp-utils\"}]}]", Object.class);
+
   @Before
   public void before() throws Exception {
-    final Set<String> validVersions = Sets.newHashSet("1.1.1.1", "1.1.343432.2", "1.1.343432.2-234234324");
+    final Set<String> validVersions = Sets.newHashSet("1.1", "1.1-17", "1.1.1.1", "1.1.343432.2", "1.1.343432.2-234234324");
     final AmbariMetaInfo ambariMetaInfo = Mockito.mock(AmbariMetaInfo.class);
     final AbstractModule injectorModule = new InMemoryDefaultTestModule() {
       protected void configure() {
@@ -138,8 +141,8 @@ public class RepositoryVersionResourceProviderTest {
     final Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
     final Map<String, Object> properties = new LinkedHashMap<String, Object>();
     properties.put(RepositoryVersionResourceProvider.REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID, "name");
-    properties.put(RepositoryVersionResourceProvider.REPOSITORY_VERSION_REPOSITORIES_PROPERTY_ID, "[{\"os\":\"redhat6\"}]");
-    properties.put(RepositoryVersionResourceProvider.REPOSITORY_VERSION_STACK_PROPERTY_ID, "HDP");
+    properties.put(RepositoryVersionResourceProvider.REPOSITORY_VERSION_REPOSITORIES_PROPERTY_ID, jsonStructureRedhat6);
+    properties.put(RepositoryVersionResourceProvider.REPOSITORY_VERSION_STACK_PROPERTY_ID, "HDP-1.1");
     properties.put(RepositoryVersionResourceProvider.REPOSITORY_VERSION_UPGRADE_PACK_PROPERTY_ID, "pack1");
     properties.put(RepositoryVersionResourceProvider.REPOSITORY_VERSION_VERSION_PROPERTY_ID, "1.1.1.1");
     propertySet.add(properties);
@@ -159,8 +162,8 @@ public class RepositoryVersionResourceProviderTest {
     final RepositoryVersionDAO repositoryVersionDAO = injector.getInstance(RepositoryVersionDAO.class);
     final RepositoryVersionEntity entity = new RepositoryVersionEntity();
     entity.setDisplayName("name");
-    entity.setRepositories("[{\"os\":\"redhat6\"}]");
-    entity.setStack("HDP");
+    entity.setRepositories("[{\"os\":\"redhat6\",\"baseurls\":[{\"id\":\"HDP-2.2.0.1-885\",\"type\":\"HDP\",\"baseurl\":\"http://host1/hdp\"},{\"id\":\"HDP-UTILS-1.0.0.20\",\"type\":\"HDP-UTILS\",\"baseurl\":\"http://host1/hdp-utils\"}]}]");
+    entity.setStack("HDP-1.1");
     entity.setUpgradePackage("pack1");
     entity.setVersion("1.1.1.1");
 
@@ -179,12 +182,16 @@ public class RepositoryVersionResourceProviderTest {
 
     final RepositoryVersionEntity entity = new RepositoryVersionEntity();
     entity.setDisplayName("name");
-    entity.setStack("HDP");
+    entity.setStack("HDP-1.1");
     entity.setUpgradePackage("pack1");
-    entity.setVersion("1.1.1.1");
-    entity.setRepositories(new Gson().toJson("[{\"os\":\"redhat6\"}]"));
+    entity.setVersion("1.1");
+    entity.setRepositories("[{\"os\":\"redhat6\",\"baseurls\":[{\"id\":\"HDP-2.2.0.1-885\",\"type\":\"HDP\",\"baseurl\":\"http://host1/hdp\"},{\"id\":\"HDP-UTILS-1.0.0.20\",\"type\":\"HDP-UTILS\",\"baseurl\":\"http://host1/hdp-utils\"}]}]");
 
     // test valid usecases
+    provider.validateRepositoryVersion(entity);
+    entity.setVersion("1.1-17");
+    provider.validateRepositoryVersion(entity);
+    entity.setVersion("1.1.1.1");
     provider.validateRepositoryVersion(entity);
     entity.setVersion("1.1.343432.2");
     provider.validateRepositoryVersion(entity);
@@ -192,7 +199,14 @@ public class RepositoryVersionResourceProviderTest {
     provider.validateRepositoryVersion(entity);
 
     // test invalid usecases
-    entity.setRepositories("[{\"os\":\"redhat8\"}]");
+    entity.setRepositories("[{\"os\":\"redhat8\",\"baseurls\":[{\"type\":\"HDP\",\"baseurl\":\"http://host1/hdp\"},{\"id\":\"HDP-UTILS-1.0.0.20\",\"type\":\"HDP-UTILS\",\"baseurl\":\"http://host1/hdp-utils\"}]}]");
+    try {
+      provider.validateRepositoryVersion(entity);
+      Assert.fail("Should throw exception");
+    } catch (Exception ex) {
+    }
+
+    entity.setRepositories("[{\"os\":\"redhat8\",\"baseurls\":[{\"id\":\"HDP-2.2.0.1-885\",\"type\":\"HDP\",\"baseurl\":\"http://host1/hdp\"},{\"id\":\"HDP-UTILS-1.0.0.20\",\"type\":\"HDP-UTILS\",\"baseurl\":\"http://host1/hdp-utils\"}]}]");
     try {
       provider.validateRepositoryVersion(entity);
       Assert.fail("Should throw exception");
@@ -228,8 +242,8 @@ public class RepositoryVersionResourceProviderTest {
     final Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
     final Map<String, Object> properties = new LinkedHashMap<String, Object>();
     properties.put(RepositoryVersionResourceProvider.REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID, "name");
-    properties.put(RepositoryVersionResourceProvider.REPOSITORY_VERSION_REPOSITORIES_PROPERTY_ID, "[{\"os\":\"redhat6\"}]");
-    properties.put(RepositoryVersionResourceProvider.REPOSITORY_VERSION_STACK_PROPERTY_ID, "HDP");
+    properties.put(RepositoryVersionResourceProvider.REPOSITORY_VERSION_REPOSITORIES_PROPERTY_ID, jsonStructureRedhat6);
+    properties.put(RepositoryVersionResourceProvider.REPOSITORY_VERSION_STACK_PROPERTY_ID, "HDP-1.1");
     properties.put(RepositoryVersionResourceProvider.REPOSITORY_VERSION_UPGRADE_PACK_PROPERTY_ID, "pack1");
     properties.put(RepositoryVersionResourceProvider.REPOSITORY_VERSION_VERSION_PROPERTY_ID, "1.1.1.1");
     propertySet.add(properties);
@@ -255,8 +269,8 @@ public class RepositoryVersionResourceProviderTest {
     final Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
     final Map<String, Object> properties = new LinkedHashMap<String, Object>();
     properties.put(RepositoryVersionResourceProvider.REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID, "name");
-    properties.put(RepositoryVersionResourceProvider.REPOSITORY_VERSION_REPOSITORIES_PROPERTY_ID, "[{\"os\":\"redhat6\"}]");
-    properties.put(RepositoryVersionResourceProvider.REPOSITORY_VERSION_STACK_PROPERTY_ID, "HDP");
+    properties.put(RepositoryVersionResourceProvider.REPOSITORY_VERSION_REPOSITORIES_PROPERTY_ID, jsonStructureRedhat6);
+    properties.put(RepositoryVersionResourceProvider.REPOSITORY_VERSION_STACK_PROPERTY_ID, "HDP-1.1");
     properties.put(RepositoryVersionResourceProvider.REPOSITORY_VERSION_UPGRADE_PACK_PROPERTY_ID, "pack1");
     properties.put(RepositoryVersionResourceProvider.REPOSITORY_VERSION_VERSION_PROPERTY_ID, "1.1.1.1");
     propertySet.add(properties);
@@ -275,13 +289,14 @@ public class RepositoryVersionResourceProviderTest {
 
     properties.put(RepositoryVersionResourceProvider.REPOSITORY_VERSION_ID_PROPERTY_ID, "1");
     properties.put(RepositoryVersionResourceProvider.REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID, "name2");
-    properties.put(RepositoryVersionResourceProvider.REPOSITORY_VERSION_REPOSITORIES_PROPERTY_ID, "[{\"os\":\"redhat7\"}]");
+    properties.put(RepositoryVersionResourceProvider.REPOSITORY_VERSION_REPOSITORIES_PROPERTY_ID, jsonStructureRedhat7);
     properties.put(RepositoryVersionResourceProvider.REPOSITORY_VERSION_UPGRADE_PACK_PROPERTY_ID, "pack2");
     final Request updateRequest = PropertyHelper.getUpdateRequest(properties, null);
     provider.updateResources(updateRequest, null);
 
     Assert.assertEquals("name2", provider.getResources(getRequest, null).iterator().next().getPropertyValue(RepositoryVersionResourceProvider.REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID));
-    Assert.assertEquals("[{\"os\":\"redhat7\"}]", new Gson().toJson(provider.getResources(getRequest, null).iterator().next().getPropertyValue(RepositoryVersionResourceProvider.REPOSITORY_VERSION_REPOSITORIES_PROPERTY_ID)));
+    Assert.assertEquals("[{\"os\":\"redhat7\",\"baseurls\":[{\"id\":\"HDP-2.2.0.1-885\",\"type\":\"HDP\",\"baseurl\":\"http://host1/hdp\"},{\"id\":\"HDP-UTILS-1.0.0.20\",\"type\":\"HDP-UTILS\",\"baseurl\":\"http://host1/hdp-utils\"}]}]",
+        new Gson().toJson(provider.getResources(getRequest, null).iterator().next().getPropertyValue(RepositoryVersionResourceProvider.REPOSITORY_VERSION_REPOSITORIES_PROPERTY_ID)));
     Assert.assertEquals("pack2", provider.getResources(getRequest, null).iterator().next().getPropertyValue(RepositoryVersionResourceProvider.REPOSITORY_VERSION_UPGRADE_PACK_PROPERTY_ID));
   }
 

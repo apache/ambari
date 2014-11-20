@@ -279,6 +279,17 @@ A "contributor" is any person that distributes its contribution under this licen
 (D) If you distribute any portion of the software in source code form, you may do so only under this license by including a complete copy of this license with your distribution. If you distribute any portion of the software in compiled or object code form, you may only do so under a license that complies with this license.
 (E) The software is licensed "as-is." You bear the risk of using it. The contributors give no express warranties, guarantees or conditions. You may have additional consumer rights under your local laws which this license cannot change. To the extent permitted under your local laws, the contributors exclude the implied warranties of merchantability, fitness for a particular purpose and non-infringement.
 
+For fge/json-schema, used to validate json structures:
+http://github.com/fge/json-schema-validator/blob/master/LICENSE
+
+This software is dual-licensed under:
+the Lesser General Public License (LGPL) version 3.0 or, at your option, any later version;
+the Apache Software License (ASL) version 2.0.
+
+LGPL 3.0: https://www.gnu.org/licenses/lgpl-3.0.txt
+ASL 2.0: http://www.apache.org/licenses/LICENSE-2.0.txt
+Apache Software License version 2.0 selected.
+
 For Kokki, resource management library derived from:
 
 Copyright (c) 2009 Samuel Stauffer <samuel@descolada.com>
