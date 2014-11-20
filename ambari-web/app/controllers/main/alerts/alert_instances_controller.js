@@ -19,60 +19,86 @@
 var App = require('app');
 
 App.MainAlertInstancesController = Em.Controller.extend({
+
   name: 'mainAlertInstancesController',
+
+  /**
+   * Are alertInstances loaded
+   * @type {boolean}
+   */
   isLoaded: false,
+
   /**
    * Causes automatic updates of content if set to true
+   * @type {boolean}
    */
   isUpdating: false,
-  updateTimer: null,
-  updateInterval: App.alertInstancesUpdateInterval,
+
   /**
-   * "HOST" or "ALERT_DEFINITION"
+   * Times for alert instances updater
+   * Used in <code>scheduleUpdate</code>
+   * @type {number|null}
    */
-  sourceType: null,
+  updateTimer: null,
+
+  /**
+   * @type {string|null} sourceName - hostName or alertDefinitionId
+   */
   sourceName: null,
 
+  /**
+   * @type {string|null} sourceType - 'HOST'|'ALERT_DEFINITION'
+   */
+  sourceType: null,
+
+  /**
+   * Load alert instances from server (all, for selected host, for selected alert definition)
+   * @returns {$.ajax}
+   * @method fetchAlertInstances
+   */
   fetchAlertInstances: function () {
-    switch (this.get('sourceType')) {
+    var sourceType = this.get('sourceType'),
+      sourceName = this.get('sourceName'),
+      ajaxData = {
+        sender: this,
+        success: 'getAlertInstancesSuccessCallback',
+        error: 'getAlertInstancesErrorCallback'
+      };
+
+    switch (sourceType) {
       case 'HOST':
-        App.ajax.send({
+        $.extend(ajaxData, {
           name: 'alerts.instances.by_host',
-          sender: this,
           data: {
-            clusterName: App.router.get('clusterName'),
-            hostName: this.get('sourceName')
-          },
-          success: 'getAlertInstancesSuccessCallback',
-          error: 'getAlertInstancesErrorCallback'
+            hostName: sourceName
+          }
         });
         break;
+
       case 'ALERT_DEFINITION':
-        App.ajax.send({
+        $.extend(ajaxData, {
           name: 'alerts.instances.by_definition',
-          sender: this,
           data: {
-            clusterName: App.router.get('clusterName'),
-            definitionId: this.get('sourceName')
-          },
-          success: 'getAlertInstancesSuccessCallback',
-          error: 'getAlertInstancesErrorCallback'
+            definitionId: sourceName
+          }
         });
         break;
+
       default:
-        App.ajax.send({
-          name: 'alerts.instances',
-          sender: this,
-          data: {
-            clusterName: App.router.get('clusterName')
-          },
-          success: 'getAlertInstancesSuccessCallback',
-          error: 'getAlertInstancesErrorCallback'
+        $.extend(ajaxData, {
+          name: 'alerts.instances'
         });
         break;
     }
+
+    return App.ajax.send(ajaxData);
   },
 
+  /**
+   * Pseudo for <code>fetchAlertInstances</code>
+   * Used to get all alert instances
+   * @method loadAlertInstances
+   */
   loadAlertInstances: function () {
     this.set('isLoaded', false);
     this.set('sourceType', null);
@@ -80,6 +106,12 @@ App.MainAlertInstancesController = Em.Controller.extend({
     this.fetchAlertInstances();
   },
 
+  /**
+   * Pseudo for <code>fetchAlertInstances</code>
+   * Used to get alert instances for some host
+   * @param {string} hostName
+   * @method loadAlertInstancesByHost
+   */
   loadAlertInstancesByHost: function (hostName) {
     this.set('isLoaded', false);
     this.set('sourceType', 'HOST');
@@ -87,10 +119,16 @@ App.MainAlertInstancesController = Em.Controller.extend({
     this.fetchAlertInstances();
   },
 
-  loadAlertInstancesByAlertDefinition: function (definitionName) {
+  /**
+   * Pseudo for <code>fetchAlertInstances</code>
+   * Used to get alert instances for some alert definition
+   * @param {string} definitionId
+   * @method loadAlertInstancesByAlertDefinition
+   */
+  loadAlertInstancesByAlertDefinition: function (definitionId) {
     this.set('isLoaded', false);
     this.set('sourceType', 'ALERT_DEFINITION');
-    this.set('sourceName', definitionName);
+    this.set('sourceName', definitionId);
     this.fetchAlertInstances();
   },
 
@@ -100,18 +138,29 @@ App.MainAlertInstancesController = Em.Controller.extend({
       this.set('updateTimer', setTimeout(function () {
         self.fetchAlertInstances();
         self.scheduleUpdate();
-      }, this.get('updateInterval')));
-    } else {
+      }, App.get('alertInstancesUpdateInterval')));
+    }
+    else {
       clearTimeout(this.get('updateTimer'));
     }
   }.observes('isUpdating'),
 
+  /**
+   * Success-callback for alert instances request
+   * @param {object} json
+   * @method getAlertInstancesSuccessCallback
+   */
   getAlertInstancesSuccessCallback: function (json) {
     App.alertInstanceMapper.map(json);
     this.set('isLoaded', true);
   },
 
+  /**
+   * Error-callback for alert instances request
+   * @method getAlertInstancesErrorCallback
+   */
   getAlertInstancesErrorCallback: function () {
     this.set('isLoaded', true);
   }
+
 });

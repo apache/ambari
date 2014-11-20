@@ -20,7 +20,7 @@ var App = require('app');
 
 var controller;
 
-describe('App.MainAlertDefinitionActionsController', function () {
+describe('App.MainAlertInstancesController', function () {
 
   beforeEach(function () {
     controller = App.MainAlertInstancesController.create({});
@@ -43,6 +43,7 @@ describe('App.MainAlertDefinitionActionsController', function () {
         controller.loadAlertInstancesByHost('host');
         console.log(App.ajax.send.args[0]);
         expect(App.ajax.send.args[0][0].name).to.equal('alerts.instances.by_host');
+        expect(App.ajax.send.args[0][0].data.hostName).to.equal('host');
 
       });
 
@@ -51,6 +52,7 @@ describe('App.MainAlertDefinitionActionsController', function () {
         controller.loadAlertInstancesByAlertDefinition('1');
         console.log(App.ajax.send.args[0]);
         expect(App.ajax.send.args[0][0].name).to.equal('alerts.instances.by_definition');
+        expect(App.ajax.send.args[0][0].data.definitionId).to.equal('1');
 
       });
 

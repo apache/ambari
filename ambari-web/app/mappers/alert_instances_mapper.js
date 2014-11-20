@@ -18,7 +18,9 @@
 var App = require('app');
 
 App.alertInstanceMapper = App.QuickDataMapper.create({
+
   model : App.AlertInstance,
+
   config : {
     id: 'Alert.id',
     label: 'Alert.label',
@@ -34,5 +36,27 @@ App.alertInstanceMapper = App.QuickDataMapper.create({
     instance: 'Alert.instance',
     state: 'Alert.state',
     text: 'Alert.text'
+  },
+
+  map: function(json) {
+    if (json.items) {
+      var self = this,
+        alertInstances = [],
+        model = this.get('model'),
+        alertsToDelete = model.find().mapProperty('id');
+
+      json.items.forEach(function (item) {
+        var alert = this.parseIt(item, this.get('config'));
+        alertInstances.push(alert);
+        alertsToDelete = alertsToDelete.without(alert.id);
+      }, this);
+
+      alertsToDelete.forEach(function(alertId) {
+        self.deleteRecord(model.find(alertId));
+      });
+
+      App.store.loadMany(model, alertInstances);
+    }
   }
+
 });
