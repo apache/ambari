@@ -209,7 +209,6 @@ def main(argv=None):
 
   checkServerReachability(hostname, server_port)
   
-  projectVersion = "1.7.0"
   if projectVersion == "null" or projectVersion == "{ambariVersion}" or projectVersion == "":
     retcode = getOptimalVersion("")
   else:
