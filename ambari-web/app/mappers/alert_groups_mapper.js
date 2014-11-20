@@ -53,6 +53,7 @@ App.alertGroupsMapper = App.QuickDataMapper.create({
 
       var alertGroups = [],
         self = this,
+        groupsToDelete = App.AlertGroup.find().mapProperty('id'),
         typesMap = this.get('typesMap'),
         /**
          * AlertGroups-map for <code>App.AlertDefinitionsMappers</code>
@@ -70,6 +71,7 @@ App.alertGroupsMapper = App.QuickDataMapper.create({
 
       json.items.forEach(function(item) {
         var group = self.parseIt(item, self.get('config'));
+        groupsToDelete = groupsToDelete.without(group.id);
         Em.keys(typesMap).forEach(function(k) {
           group[typesMap[k]] = [];
         });
@@ -87,6 +89,10 @@ App.alertGroupsMapper = App.QuickDataMapper.create({
         }
         alertGroups.push(group);
       }, this);
+
+      groupsToDelete.forEach(function(groupId) {
+        self.deleteRecord(App.AlertGroup.find(groupId));
+      });
 
       App.cache['previousAlertGroupsMap'] = alertDefinitionsGroupsMap;
       App.store.loadMany(this.get('model'), alertGroups);

@@ -157,6 +157,46 @@ describe('App.alertGroupsMapper', function () {
 
     });
 
+    describe('should delete not existing groups', function () {
+
+      var groups = [
+        {id: 1},
+        {id: 2},
+        {id: 3},
+        {id: 4}
+      ];
+
+      beforeEach(function () {
+
+        sinon.stub(App.AlertGroup, 'find', function() {
+          if (arguments.length) {
+            return groups.findProperty('id', arguments[0]);
+          }
+          return groups;
+        });
+
+        sinon.stub(App.alertGroupsMapper, 'deleteRecord', Em.K);
+
+      });
+
+      afterEach(function () {
+        App.AlertGroup.find.restore();
+        App.alertGroupsMapper.deleteRecord.restore();
+      });
+
+      it('should call deleteRecord with not existing groups', function () {
+
+        App.alertGroupsMapper.map(json);
+        expect(App.alertGroupsMapper.deleteRecord.calledTwice).to.be.true;
+        // first call
+        expect(App.alertGroupsMapper.deleteRecord.args[0][0].id).to.equal(1);
+        // second call
+        expect(App.alertGroupsMapper.deleteRecord.args[1][0].id).to.equal(4);
+
+      });
+
+    });
+
   });
 
 });

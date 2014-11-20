@@ -220,8 +220,7 @@ App.MainAlertDefinitionsView = App.TableView.extend({
      * @method updateContent
      */
     updateContent: function() {
-      var content = this.get('content');
-      var newContent = [
+      this.set('content', [
         {
           value: '',
           label: Em.I18n.t('common.all') + ' (' + this.get('parentView.controller.content.length') + ')'
@@ -231,19 +230,7 @@ App.MainAlertDefinitionsView = App.TableView.extend({
           value: group.get('id'),
           label: group.get('displayNameDefinitions')
         };
-      }));
-      newContent.forEach(function(contentItem) {
-        var c = content.findProperty('value', contentItem.value);
-        if (!c) {
-          content.pushObject(contentItem);
-        }
-      });
-      content.mapProperty('value').forEach(function(v) {
-        if (!newContent.someProperty('value', v)) {
-          content = content.without(content.findProperty('value', v));
-        }
-      });
-      this.propertyDidChange('content');
+      })));
     }.observes('App.router.clusterController.isLoaded', 'controller.mapperTimestamp'),
 
     onChangeValue: function () {
