@@ -508,4 +508,32 @@ describe('filters.getFilterByType', function () {
 
   });
 
+  describe('alert_group', function () {
+
+    var filter = filters.getFilterByType('alert_group');
+
+    Em.A([
+        {
+          origin: [{id: 1}, {id: 2}, {id: 3}],
+          compareValue: 1,
+          e: true
+        },
+        {
+          origin: [],
+          compareValue: 1,
+          e: false
+        },
+        {
+          origin: [{id: 2}, {id: 3}],
+          compareValue: 1,
+          e: false
+        }
+      ]).forEach(function(test, i) {
+        it('test #' + (i + 1), function() {
+          expect(filter(test.origin, test.compareValue)).to.equal(test.e);
+        });
+      });
+
+  });
+
 });

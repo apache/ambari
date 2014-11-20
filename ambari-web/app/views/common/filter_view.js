@@ -549,7 +549,7 @@ module.exports = {
             }
             return true;
           });
-        }
+        };
         break;
       case 'multiple':
         return function (origin, compareValue) {
@@ -610,6 +610,11 @@ module.exports = {
             return isPending;
           }
           return !!origin[compareValue] && origin[compareValue] > 0;
+        };
+        break;
+      case 'alert_group':
+        return function (origin, compareValue) {
+          return origin.mapProperty('id').contains(compareValue);
         };
         break;
       case 'string':

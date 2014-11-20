@@ -16,6 +16,10 @@
 * limitations under the License.
 }}
 
+<div class="pull-left advanced-header-table groups-filter">
+  {{view view.alertGroupFilterView}}
+</div>
+
 <div class="pull-right">
   {{view App.MainAlertDefinitionActionsView controllerBinding="App.router.mainAlertDefinitionActionsController"}}
 </div>
@@ -30,7 +34,7 @@
         {{view view.parentView.statusSort}}
         {{view view.parentView.serviceSort}}
         {{view view.parentView.lastTriggeredSort}}
-      <th><span class="icon-off"></span></th>
+        <th><span class="icon-off"></span></th>
       {{/view}}
     <tr class="filter-row">
       <th class="first">{{view view.nameFilterView}}</th>

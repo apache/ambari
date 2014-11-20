@@ -128,10 +128,10 @@ App.UpdateController = Em.Controller.extend({
       App.updater.run(this, 'updateComponentsState', 'isWorking', App.componentsUpdateInterval);
       App.updater.run(this, 'graphsUpdate', 'isWorking');
       App.updater.run(this, 'updateComponentConfig', 'isWorking');
-      App.updater.run(this, 'updateAlertDefinitions', 'isWorking', App.alertDefinitionsUpdateInterval);
       if (App.get('supports.alerts')) {
-        App.updater.run(this, 'updateAlertDefinitionSummary', 'isWorking', App.alertDefinitionsUpdateInterval);
         App.updater.run(this, 'updateAlertGroups', 'isWorking', App.alertGroupsUpdateInterval);
+        App.updater.run(this, 'updateAlertDefinitions', 'isWorking', App.alertDefinitionsUpdateInterval);
+        App.updater.run(this, 'updateAlertDefinitionSummary', 'isWorking', App.alertDefinitionsUpdateInterval);
       }
     }
   }.observes('isWorking'),

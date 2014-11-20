@@ -36,7 +36,7 @@ App.MainAlertDefinitionsView = App.TableView.extend({
     return this.get('content.length');
   }.property('content.length'),
 
-  colPropAssoc: ['', 'label', 'summary', 'service.serviceName', 'lastTriggered'],
+  colPropAssoc: ['', 'label', 'summary', 'service.serviceName', 'lastTriggered', 'groups'],
 
   sortView: sort.wrapperView,
 
@@ -199,6 +199,55 @@ App.MainAlertDefinitionsView = App.TableView.extend({
     emptyValue: 'Any',
     onChangeValue: function () {
       this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'date');
+    }
+  }),
+
+  alertGroupFilterView: filters.createSelectView({
+
+    column: 5,
+
+    fieldType: 'filter-input-width',
+
+    content: [],
+
+    didInsertElement: function() {
+      this._super();
+      this.updateContent();
+    },
+
+    /**
+     * Update list of <code>App.AlertGroup</code> used in the filter
+     * @method updateContent
+     */
+    updateContent: function() {
+      var content = this.get('content');
+      var newContent = [
+        {
+          value: '',
+          label: Em.I18n.t('common.all') + ' (' + this.get('parentView.controller.content.length') + ')'
+        }
+      ].concat(App.AlertGroup.find().map(function (group) {
+        return {
+          value: group.get('id'),
+          label: group.get('displayNameDefinitions')
+        };
+      }));
+      newContent.forEach(function(contentItem) {
+        var c = content.findProperty('value', contentItem.value);
+        if (!c) {
+          content.pushObject(contentItem);
+        }
+      });
+      content.mapProperty('value').forEach(function(v) {
+        if (!newContent.someProperty('value', v)) {
+          content = content.without(content.findProperty('value', v));
+        }
+      });
+      this.propertyDidChange('content');
+    }.observes('App.router.clusterController.isLoaded', 'controller.mapperTimestamp'),
+
+    onChangeValue: function () {
+      this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'alert_group');
     }
   }),
 
