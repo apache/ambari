@@ -17,20 +17,36 @@
  */
 package org.apache.ambari.server.state.services;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.lang.reflect.Type;
-import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.Executor;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.Unmarshaller;
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+
+import org.apache.ambari.server.AmbariService;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.events.AlertEvent;
 import org.apache.ambari.server.notifications.DispatchCallback;
 import org.apache.ambari.server.notifications.DispatchCredentials;
@@ -45,6 +61,9 @@ import org.apache.ambari.server.orm.entities.AlertNoticeEntity;
 import org.apache.ambari.server.orm.entities.AlertTargetEntity;
 import org.apache.ambari.server.state.AlertState;
 import org.apache.ambari.server.state.NotificationState;
+import org.apache.commons.io.IOUtils;
+import org.apache.velocity.VelocityContext;
+import org.apache.velocity.app.Velocity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,7 +78,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.reflect.TypeToken;
 import com.google.inject.Inject;
-import com.google.inject.Singleton;
+import com.google.inject.Provider;
 
 /**
  * The {@link AlertNoticeDispatchService} is used to scan the database for
@@ -69,14 +88,30 @@ import com.google.inject.Singleton;
  * The dispatch system will then make a callback to
  * {@link AlertNoticeDispatchCallback} so that the {@link NotificationState} can
  * be updated to its final value.
+ * <p/>
+ * This class uses the templates that are defined via
+ * {@link Configuration#getAlertTemplateFile()} or the fallback internal
+ * template {@code alert-templates.xml}. These files are parsed during
+ * {@link #startUp()}. If there is a problem parsing them, the service will
+ * still startup normally, producing an error in logs. It will fall back to
+ * simple string concatenation for {@link Notification} content in this case.
  */
-@Singleton
+@AmbariService
 public class AlertNoticeDispatchService extends AbstractScheduledService {
-
   /**
    * Logger.
    */
   private static final Logger LOG = LoggerFactory.getLogger(AlertNoticeDispatchService.class);
+
+  /**
+   * The log tag to pass to Apache Velocity during rendering.
+   */
+  private static final String VELOCITY_LOG_TAG = "ambari-alerts";
+
+  /**
+   * The internal Ambari templates that ship.
+   */
+  private static final String AMBARI_ALERT_TEMPLATES = "alert-templates.xml";
 
   /**
    * The property containing the dispatch authentication username.
@@ -105,16 +140,34 @@ public class AlertNoticeDispatchService extends AbstractScheduledService {
   private AlertDispatchDAO m_dao;
 
   /**
-   * The factory used to get an {@link NotificationDispatcher} instance to submit to the
-   * {@link #m_executor}.
+   * The factory used to get an {@link NotificationDispatcher} instance to
+   * submit to the {@link #m_executor}.
    */
   @Inject
   private DispatchFactory m_dispatchFactory;
 
   /**
+   * The alert templates to use when rendering content for a
+   * {@link Notification}.
+   */
+  private AlertTemplates m_alertTemplates;
+
+  /**
+   * The configuration instance to get Ambari properties.
+   */
+  @Inject
+  private Configuration m_configuration;
+
+  /**
+   * Ambari meta information used fro alert {@link Notification}s.
+   */
+  @Inject
+  private Provider<AmbariMetaInfo> m_metaInfo;
+
+  /**
    * The executor responsible for dispatching.
    */
-  private final ThreadPoolExecutor m_executor;
+  private Executor m_executor;
 
   /**
    * Constructor.
@@ -134,6 +187,67 @@ public class AlertNoticeDispatchService extends AbstractScheduledService {
 
   /**
    * {@inheritDoc}
+   * <p/>
+   * Parse the XML template for {@link Notification} content. If there is a
+   * problem parsing the content, the service will still startup normally but
+   * the {@link Notification} content will fallback to plaintext.
+   */
+  @Override
+  protected void startUp() throws Exception {
+    super.startUp();
+
+    InputStream inputStream = null;
+    String alertTemplatesFile = null;
+
+    try {
+      alertTemplatesFile = m_configuration.getAlertTemplateFile();
+      if (null != alertTemplatesFile) {
+        File file = new File(alertTemplatesFile);
+        inputStream = new FileInputStream(file);
+      }
+    } catch (Exception exception) {
+      LOG.warn("Unable to load alert template file {}", alertTemplatesFile,
+          exception);
+    }
+
+    try {
+      JAXBContext context = JAXBContext.newInstance(AlertTemplates.class);
+      Unmarshaller unmarshaller = context.createUnmarshaller();
+
+      // if the file provided via the configuration is not available, use
+      // the internal one
+      if (null == inputStream) {
+        inputStream = ClassLoader.getSystemResourceAsStream(AMBARI_ALERT_TEMPLATES);
+      }
+
+      m_alertTemplates = (AlertTemplates) unmarshaller.unmarshal(inputStream);
+    } catch (Exception exception) {
+      LOG.error(
+          "Unable to load alert template file {}, outbound notifications will not be formatted",
+          AMBARI_ALERT_TEMPLATES,
+          exception);
+    } finally {
+      if (null != inputStream) {
+        IOUtils.closeQuietly(inputStream);
+      }
+    }
+  }
+
+
+  /**
+   * Sets the {@link Executor} to use when dispatching {@link Notification}s.
+   * This should only be used by unit tests to provide a mock executor.
+   *
+   * @param executor
+   *          the executor to use (not {@code null).
+
+   */
+  protected void setExecutor(Executor executor) {
+    m_executor = executor;
+  }
+
+  /**
+   * {@inheritDoc}
    */
   @Override
   protected void runOneIteration() throws Exception {
@@ -145,10 +259,10 @@ public class AlertNoticeDispatchService extends AbstractScheduledService {
     LOG.info("There are {} pending alert notices about to be dispatched..."
         + pending.size());
 
-    // combine all histories by target
-    Map<AlertTargetEntity, List<AlertNoticeEntity>> aggregateMap = new HashMap<AlertTargetEntity, List<AlertNoticeEntity>>(
-        pending.size());
+    Map<AlertTargetEntity, List<AlertNoticeEntity>> aggregateMap =
+        new HashMap<AlertTargetEntity, List<AlertNoticeEntity>>(pending.size());
 
+    // combine all histories by target
     for (AlertNoticeEntity notice : pending) {
       AlertTargetEntity target = notice.getAlertTarget();
 
@@ -161,6 +275,7 @@ public class AlertNoticeDispatchService extends AbstractScheduledService {
       notices.add(notice);
     }
 
+    // now that all of the notices are grouped by target, dispatch them
     Set<AlertTargetEntity> targets = aggregateMap.keySet();
     for (AlertTargetEntity target : targets) {
       List<AlertNoticeEntity> notices = aggregateMap.get(target);
@@ -168,7 +283,9 @@ public class AlertNoticeDispatchService extends AbstractScheduledService {
         continue;
       }
 
+      String targetType = target.getNotificationType();
       String propertiesJson = target.getProperties();
+
       AlertTargetProperties targetProperties = m_gson.fromJson(propertiesJson,
           AlertTargetProperties.class);
 
@@ -178,46 +295,36 @@ public class AlertNoticeDispatchService extends AbstractScheduledService {
       notification.Callback = new AlertNoticeDispatchCallback();
       notification.CallbackIds = new ArrayList<String>(notices.size());
 
-      // !!! FIXME: temporary until velocity templates are implemented
-      String subject = "OK ({0}), Warning ({1}), Critical ({2})";
-      StringBuilder buffer = new StringBuilder(512);
+      List<AlertHistoryEntity> histories = new ArrayList<AlertHistoryEntity>(
+          notices.size());
 
-      int okCount = 0;
-      int warningCount = 0;
-      int criticalCount = 0;
-
+      // add callback IDs so that the notices can be marked as DELIVERED or
+      // FAILED, and create a list of just the alert histories
       for (AlertNoticeEntity notice : notices) {
         AlertHistoryEntity history = notice.getAlertHistory();
+        histories.add(history);
+
         notification.CallbackIds.add(notice.getUuid());
-
-        AlertState alertState = history.getAlertState();
-        switch (alertState) {
-          case CRITICAL:
-            criticalCount++;
-            break;
-          case OK:
-            okCount++;
-            break;
-          case UNKNOWN:
-            // !!! hmmmmmm
-            break;
-          case WARNING:
-            warningCount++;
-            break;
-          default:
-            break;
-        }
-
-        buffer.append(history.getAlertLabel());
-        buffer.append(": ");
-        buffer.append(history.getAlertText());
-        buffer.append("\n");
       }
 
-      notification.Subject = MessageFormat.format(subject, okCount,
-          warningCount, criticalCount);
+      // populate the subject and body fields; if there is a problem
+      // generating the content, then mark the notices as FAILED
+      try {
+        renderNotificationContent(notification, histories, target);
+      } catch (Exception exception) {
+        LOG.error("Unable to create notification for alerts", exception);
 
-      notification.Body = buffer.toString();
+        // there was a problem generating content for the target; mark all
+        // notices as FAILED and skip this target
+        List<String> failedNoticeIds = new ArrayList<String>(notices.size());
+        for (AlertNoticeEntity notice : notices) {
+          failedNoticeIds.add(notice.getUuid());
+        }
+
+        // mark these as failed
+        notification.Callback.onFailure(failedNoticeIds);
+        continue;
+      }
 
       // set dispatch credentials
       if (properties.containsKey(AMBARI_DISPATCH_CREDENTIAL_USERNAME)
@@ -228,6 +335,7 @@ public class AlertNoticeDispatchService extends AbstractScheduledService {
         notification.Credentials = credentials;
       }
 
+      // create recipients
       if (null != targetProperties.Recipients) {
         List<Recipient> recipients = new ArrayList<Recipient>(
             targetProperties.Recipients.size());
@@ -244,7 +352,8 @@ public class AlertNoticeDispatchService extends AbstractScheduledService {
       // set all other dispatch properties
       notification.DispatchProperties = properties;
 
-      NotificationDispatcher dispatcher = m_dispatchFactory.getDispatcher(target.getNotificationType());
+      // dispatch
+      NotificationDispatcher dispatcher = m_dispatchFactory.getDispatcher(targetType);
       DispatchRunnable runnable = new DispatchRunnable(dispatcher, notification);
 
       m_executor.execute(runnable);
@@ -254,12 +363,74 @@ public class AlertNoticeDispatchService extends AbstractScheduledService {
   /**
    * {@inheritDoc}
    * <p/>
-   * Returns a schedule that starts after 1 minute and runs every minute after
-   * {@link #runOneIteration()} completes.
+   * Returns a schedule that starts after 2 minute and runs every 2 minutes
+   * after {@link #runOneIteration()} completes.
    */
   @Override
   protected Scheduler scheduler() {
-    return Scheduler.newFixedDelaySchedule(1, 1, TimeUnit.MINUTES);
+    return Scheduler.newFixedDelaySchedule(2, 2, TimeUnit.MINUTES);
+  }
+
+  /**
+   * Generates the content for the {@link Notification} from the
+   * {@link #m_alertTemplates}. If there is a problem with the templates, this
+   * will fallback to non-formatted content.
+   *
+   * @param notification
+   *          the notification (not {@code null}).
+   * @param histories
+   *          the alerts to generate the content fron (not {@code null}.
+   * @param target
+   *          the target of the {@link Notification}.
+   */
+  private void renderNotificationContent(Notification notification,
+      List<AlertHistoryEntity> histories, AlertTargetEntity target)
+      throws IOException {
+    String targetType = target.getNotificationType();
+
+    // build the velocity objects for template rendering
+    AmbariInfo ambari = new AmbariInfo(m_metaInfo.get());
+    AlertInfo summary = new AlertInfo(histories);
+    DispatchInfo dispatch = new DispatchInfo(target);
+
+    // get the template for this target type
+    final Writer subjectWriter = new StringWriter();
+    final Writer bodyWriter = new StringWriter();
+    final AlertTemplate template = m_alertTemplates.getTemplate(targetType);
+    if (null != template) {
+      // create the velocity context for template rendering
+      VelocityContext velocityContext = new VelocityContext();
+      velocityContext.put("ambari", ambari);
+      velocityContext.put("summary", summary);
+      velocityContext.put("dispatch", dispatch);
+
+      // render the template and assign the content to the notification
+      String subjectTemplate = template.getSubject();
+      String bodyTemplate = template.getBody();
+
+      // render the subject
+      Velocity.evaluate(velocityContext, subjectWriter, VELOCITY_LOG_TAG,
+          subjectTemplate);
+
+      // render the body
+      Velocity.evaluate(velocityContext, bodyWriter, VELOCITY_LOG_TAG,
+          bodyTemplate);
+    } else {
+      // a null template is possible from parsing incorrectly or not
+      // having the correct type defined for the target
+      for (AlertHistoryEntity alert : histories) {
+        subjectWriter.write("Apache Ambari Alert Summary");
+        bodyWriter.write(alert.getAlertState().name());
+        bodyWriter.write(" ");
+        bodyWriter.write(alert.getAlertDefinition().getLabel());
+        bodyWriter.write(" ");
+        bodyWriter.write(alert.getAlertText());
+        bodyWriter.write("\n");
+      }
+    }
+
+    notification.Subject = subjectWriter.toString();
+    notification.Body = bodyWriter.toString();
   }
 
   /**
@@ -393,6 +564,400 @@ public class AlertNoticeDispatchService extends AbstractScheduledService {
             "Unable to update the alert notice with UUID {} to {}, notifications will continue to be sent",
             uuid, state, exception);
       }
+    }
+  }
+
+  /**
+   * The {@link AlertInfo} class encapsulates all of the alert information for
+   * the {@link Notification}. This includes customized structures to better
+   * organize information about each of the services, hosts, and alert states.
+   */
+  public final static class AlertInfo {
+    private int m_okCount = 0;
+    private int m_warningCount = 0;
+    private int m_criticalCount = 0;
+    private int m_unknownCount = 0;
+
+    /**
+     * The hosts that have at least 1 alert reported.
+     */
+    private final Set<String> m_hosts = new HashSet<String>();
+
+    /**
+     * The services that have at least 1 alert reported.
+     */
+    private final Set<String> m_services = new HashSet<String>();
+
+    /**
+     * All of the alerts for the {@link Notification}.
+     */
+    private final List<AlertHistoryEntity> m_alerts;
+
+    /**
+     * A mapping of service to alerts where the alerts are also grouped by state
+     * for that service.
+     */
+    private final Map<String, Map<AlertState, List<AlertHistoryEntity>>> m_alertsByServiceAndState =
+        new HashMap<String, Map<AlertState, List<AlertHistoryEntity>>>();
+
+    /**
+     * A mapping of all services by state.
+     */
+    private final Map<String, Set<String>> m_servicesByState = new HashMap<String, Set<String>>();
+
+    /**
+     * A mapping of all alerts by the service that owns them.
+     */
+    private final Map<String, List<AlertHistoryEntity>> m_alertsByService = new HashMap<String, List<AlertHistoryEntity>>();
+
+    /**
+     * Constructor.
+     *
+     * @param histories
+     */
+    protected AlertInfo(List<AlertHistoryEntity> histories) {
+      m_alerts = histories;
+
+      // group all alerts by their service and severity
+      for (AlertHistoryEntity history : m_alerts) {
+        AlertState alertState = history.getAlertState();
+        String serviceName = history.getServiceName();
+        String hostName = history.getHostName();
+
+        if( null != hostName ){
+          m_hosts.add(hostName);
+        }
+
+        if (null != serviceName) {
+          m_services.add(serviceName);
+        }
+
+        // group alerts by service name & state
+        Map<AlertState, List<AlertHistoryEntity>> service = m_alertsByServiceAndState.get(serviceName);
+        if (null == service) {
+          service = new HashMap<AlertState, List<AlertHistoryEntity>>();
+          m_alertsByServiceAndState.put(serviceName, service);
+        }
+
+        List<AlertHistoryEntity> alertList = service.get(alertState);
+        if (null == alertList) {
+          alertList = new ArrayList<AlertHistoryEntity>();
+          service.put(alertState, alertList);
+        }
+
+        alertList.add(history);
+
+        // group services by alert states
+        Set<String> services = m_servicesByState.get(alertState.name());
+        if (null == services) {
+          services = new HashSet<String>();
+          m_servicesByState.put(alertState.name(), services);
+        }
+
+        services.add(serviceName);
+
+        // group alerts by service
+        List<AlertHistoryEntity> alertsByService = m_alertsByService.get(serviceName);
+        if (null == alertsByService) {
+          alertsByService = new ArrayList<AlertHistoryEntity>();
+          m_alertsByService.put(serviceName, alertsByService);
+        }
+
+        alertsByService.add(history);
+
+        // keep track of totals
+        switch (alertState) {
+          case CRITICAL:
+            m_criticalCount++;
+            break;
+          case OK:
+            m_okCount++;
+            break;
+          case UNKNOWN:
+            m_unknownCount++;
+            break;
+          case WARNING:
+            m_warningCount++;
+            break;
+          default:
+            m_unknownCount++;
+            break;
+        }
+      }
+    }
+
+    /**
+     * Gets the total number of OK alerts in the {@link Notification}.
+     *
+     * @return the OK count.
+     */
+    public int getOkCount() {
+      return m_okCount;
+    }
+
+    /**
+     * Gets the total number of WARNING alerts in the {@link Notification}.
+     *
+     * @return the WARNING count.
+     */
+    public int getWarningCount() {
+      return m_warningCount;
+    }
+
+    /**
+     * Gets the total number of CRITICAL alerts in the {@link Notification}.
+     *
+     * @return the CRITICAL count.
+     */
+    public int getCriticalCount() {
+      return m_criticalCount;
+    }
+
+    /**
+     * Gets the total number of UNKNOWN alerts in the {@link Notification}.
+     *
+     * @return the UNKNOWN count.
+     */
+    public int getUnknownCount() {
+      return m_unknownCount;
+    }
+
+    /**
+     * Gets the total count of all alerts in the {@link Notification}
+     *
+     * @return the total count of all alerts.
+     */
+    public int getTotalCount() {
+      return m_okCount + m_warningCount + m_criticalCount + m_unknownCount;
+    }
+
+    /**
+     * Gets all of the services that have alerts being reporting in this
+     * notification dispatch.
+     *
+     * @return the list of services.
+     */
+    public Set<String> getServices() {
+      return m_services;
+    }
+
+    /**
+     * Gets all of the alerts in the {@link Notification}.
+     *
+     * @return all of the alerts.
+     */
+    public List<AlertHistoryEntity> getAlerts() {
+      return m_alerts;
+    }
+
+    /**
+     * Gets all of the alerts in the {@link Notification} by service name.
+     *
+     * @param serviceName
+     *          the service name.
+     * @return the alerts for that service, or {@code null} none.
+     */
+    public List<AlertHistoryEntity> getAlerts(String serviceName) {
+      return m_alertsByService.get(serviceName);
+    }
+
+    /**
+     * Gets all of the alerts for a given service and alert state level.
+     *
+     * @param serviceName
+     *          the name of the service.
+     * @param alertState
+     *          the alert state level.
+     * @return the list of alerts or {@code null} for none.
+     */
+    public List<AlertHistoryEntity> getAlerts(String serviceName,
+        String alertState) {
+
+      Map<AlertState, List<AlertHistoryEntity>> serviceAlerts = m_alertsByServiceAndState.get(serviceName);
+      if (null == serviceAlerts) {
+        return null;
+      }
+
+      AlertState state = AlertState.valueOf(alertState);
+      return serviceAlerts.get(state);
+    }
+
+    /**
+     * Gets a list of services that have an alert being reporting for the given
+     * state.
+     *
+     * @param alertState
+     *          the state to get the services for.
+     * @return the services or {@code null} if none.
+     */
+    public Set<String> getServicesByAlertState(String alertState) {
+      return m_servicesByState.get(alertState);
+    }
+  }
+
+  /**
+   * The {@link AmbariInfo} class is used to provide the template engine with
+   * information about the Ambari installation.
+   */
+  public final static class AmbariInfo {
+    private String m_hostName = null;
+    private String m_url = null;
+    private String m_version = null;
+
+    /**
+     * Constructor.
+     *
+     * @param metaInfo
+     */
+    protected AmbariInfo(AmbariMetaInfo metaInfo) {
+      m_version = metaInfo.getServerVersion();
+    }
+
+    /**
+     * @return the hostName
+     */
+    public String getHostName() {
+      return m_hostName;
+    }
+
+    /**
+     * @return the url
+     */
+    public String getUrl() {
+      return m_url;
+    }
+
+    /**
+     * Gets the Ambari server version.
+     *
+     * @return the version
+     */
+    public String getServerVersion() {
+      return m_version;
+    }
+  }
+
+  /**
+   * The {@link DispatchInfo} class is used to provide the template engine with
+   * information about the intended target of the notification.
+   */
+  public static final class DispatchInfo {
+    private String m_targetName;
+    private String m_targetDescription;
+
+    /**
+     * Constructor.
+     *
+     * @param target
+     *          the {@link AlertTargetEntity} receiving the notification.
+     */
+    protected DispatchInfo(AlertTargetEntity target) {
+      m_targetName = target.getTargetName();
+      m_targetDescription = target.getDescription();
+    }
+
+    /**
+     * Gets the name of the notification target.
+     *
+     * @return the name of the target.
+     */
+    public String getTargetName() {
+      return m_targetName;
+    }
+
+    /**
+     * Gets the description of the notification target.
+     *
+     * @return the target description.
+     */
+    public String getTargetDescription() {
+      return m_targetDescription;
+    }
+  }
+
+  /**
+   * The {@link AlertTemplates} class represnts the {@link AlertTemplates} that
+   * have been loaded, either by the {@link Configuration} or by the backup
+   * {@code alert-templates.xml} file.
+   */
+  @XmlRootElement(name = "alert-templates")
+  private final static class AlertTemplates {
+    /**
+     * The alert templates defined.
+     */
+    @XmlElement(name = "alert-template", required = true)
+    private List<AlertTemplate> m_templates;
+
+    /**
+     * Gets the alert template given the specified template type.
+     *
+     * @param type
+     *          the template type.
+     * @return the template, or {@code null} if none.
+     * @see AlertTargetEntity#getNotificationType()
+     */
+    public AlertTemplate getTemplate(String type) {
+      for (AlertTemplate template : m_templates) {
+        if (type.equals(template.getType())) {
+          return template;
+        }
+      }
+
+      return null;
+    }
+  }
+
+  /**
+   * The {@link AlertTemplate} class represents a template for a specified alert
+   * target type that can be used when creating the content for dispatching
+   * {@link Notification}s.
+   */
+  private final static class AlertTemplate {
+    /**
+     * The type that this template is for.
+     *
+     * @see AlertTargetEntity#getNotificationType()
+     */
+    @XmlAttribute(name = "type", required = true)
+    private String m_type;
+
+    /**
+     * The subject template for the {@link Notification}.
+     */
+    @XmlElement(name = "subject", required = true)
+    private String m_subject;
+
+    /**
+     * The body template for the {@link Notification}.
+     */
+    @XmlElement(name = "body", required = true)
+    private String m_body;
+
+    /**
+     * Gets the template type.
+     *
+     * @return the template type.
+     */
+    public String getType() {
+      return m_type;
+    }
+
+    /**
+     * Gets the subject template.
+     *
+     * @return the subject template.
+     */
+    public String getSubject() {
+      return m_subject;
+    }
+
+    /**
+     * Gets the body template.
+     *
+     * @return the body template.
+     */
+    public String getBody() {
+      return m_body;
     }
   }
 }

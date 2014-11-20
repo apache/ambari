@@ -331,8 +331,14 @@ public class Configuration {
 
   private static final String SERVER_HTTP_SESSION_INACTIVE_TIMEOUT = "server.http.session.inactive_timeout";
 
+  /**
+   * The full path to the XML file that describes the different alert templates.
+   */
+  private static final String ALERT_TEMPLATE_FILE = "alerts.template.file";
+
   private static final Logger LOG = LoggerFactory.getLogger(
       Configuration.class);
+
   private Properties properties;
   private Map<String, String> configsMap;
   private CredentialProvider credentialProvider = null;
@@ -810,8 +816,9 @@ public class Configuration {
     String passwdProp = properties.getProperty(SCOM_JDBC_SINK_USER_PASSWD_KEY);
     if (passwdProp != null) {
       String dbpasswd = readPasswordFromStore(passwdProp);
-      if (dbpasswd != null)
+      if (dbpasswd != null) {
         return dbpasswd;
+      }
     }
     return readPasswordFromFile(passwdProp, SCOM_JDBC_SINK_USER_PASSWD_DEFAULT);
   }
@@ -1208,5 +1215,15 @@ public class Configuration {
     return Integer.parseInt(properties.getProperty(
         SERVER_HTTP_SESSION_INACTIVE_TIMEOUT,
         "1800"));
+  }
+
+  /**
+   * Gets the location of the XML alert template file which contains the
+   * velocity templates for outbound notifications.
+   *
+   * @return the location of the template file, or {@code null} if not defined.
+   */
+  public String getAlertTemplateFile() {
+    return properties.getProperty(ALERT_TEMPLATE_FILE);
   }
 }

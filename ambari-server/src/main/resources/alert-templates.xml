@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+<alert-templates>
+  <alert-template type="EMAIL">
+    <subject>
+      <![CDATA[Alert Summary: OK[$summary.getOkCount()], Warning[$summary.getWarningCount()], Critical[$summary.getCriticalCount()], Unknown[$summary.getUnknownCount()]]]>
+    </subject>
+    <body>
+      <![CDATA[
+#set( $alertStates = ["OK", "WARNING", "CRITICAL", "UNKNOWN"] )
+#set( $services = $summary.getServices() )
+<html>
+  <style type="text/css">
+    .ok{
+      color: green;
+    }
+    .warning{
+      color: ffff00;
+    }
+    .critical{
+      color: red;
+    }
+    .unknown{
+      color: brown;
+    }
+    .section{
+      background-color: #eee;
+      padding: 20px;
+      margin-top: 10px;
+      margin-left: 20px;
+      margin-right: 20px;
+      text-align: left;
+      border-radius: 10px;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+    .footer{
+      margin-top: 10px;
+      margin-left: 20px;
+      margin-right: 20px;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 12px;
+    }
+    .alert{    
+      margin: 5px;
+      font-weight: normal;
+      font-size: 14px;   
+    }
+    .alertText{
+      font-size: 12px;
+    }
+    h1{
+      margin: 0 0 0.5em 0;
+      color: #343434;
+      font-weight: normal;
+      font-size: 20px;
+    }
+    table {
+      width: 100%;
+    }
+    tr{
+      margin-botton: 5px;
+    }    
+    td{
+      text-align: left;
+      vertical-align: top;
+    }
+  </style>
+  <div class="section">
+    <h1>Services Reporting Alerts</h1>  
+      #foreach( $alertState in $alertStates )
+        #if( $summary.getServicesByAlertState($alertState)  )
+          <div class="alert">
+            <span class="$alertState">$alertState</span> $summary.getServicesByAlertState($alertState)
+          </div>
+        #end
+      #end
+  </div>
+
+  #foreach( $service in $services )
+    <div class="section">
+      <h1>$service</h1>
+      <table>
+        #foreach( $alertState in $alertStates )
+            #foreach( $alert in $summary.getAlerts($service,$alertState) )
+              <tr class="alert">
+                <td width="100px">
+                  <div class="$alertState">
+                    $alertState
+                  </div>
+                </td>
+                <td>
+                  $alert.getAlertDefinition().getLabel()
+                  <br/>
+                  <span class="alertText">
+                    $alert.getAlertText()
+                  <span>
+                </td>
+              </tr>
+            #end
+        #end
+      </table>
+    </div>
+  #end
+  <div class="footer">
+    This notification was sent to $dispatch.getTargetName()
+    <br/>
+    Apache Ambari $ambari.getServerVersion()
+  </div>
+</html>
+      ]]>
+    </body>
+  </alert-template>
+  <alert-template type="SNMP">
+    <subject>
+      <![CDATA[Alert Summary: OK[$summary.getOkCount()], Warning[$summary.getWarningCount()], Critical[$summary.getCriticalCount()], Unknown[$summary.getUnknownCount()]]]>
+    </subject>
+    <body>
+      <![CDATA[
+#set( $alertStates = ["OK", "WARNING", "CRITICAL", "UNKNOWN"] )
+#set( $services = $summary.getServices() )
+#foreach( $service in $services )
+#foreach( $alert in $summary.getAlerts($service) )
+[$service] [$alert.getAlertState()] [$alert.getAlertDefinition().getLabel()] [$alert.getAlertText()]
+#end
+#end
+      ]]>
+    </body>
+  </alert-template>  
+</alert-templates>

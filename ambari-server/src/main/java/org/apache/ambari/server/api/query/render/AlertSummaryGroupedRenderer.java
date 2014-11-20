@@ -120,7 +120,7 @@ public class AlertSummaryGroupedRenderer extends AlertSummaryRenderer {
     for (TreeNode<Resource> node : resultTree.getChildren()) {
       Resource resource = node.getObject();
 
-      Long definitionId = (Long) resource.getPropertyValue(AlertResourceProvider.ALERT_ID);
+      Long definitionId = (Long) resource.getPropertyValue(AlertResourceProvider.ALERT_DEFINITION_ID);
       String definitionName = (String) resource.getPropertyValue(AlertResourceProvider.ALERT_DEFINITION_NAME);
       AlertState state = (AlertState) resource.getPropertyValue(AlertResourceProvider.ALERT_STATE);
       Long originalTimestampObject = (Long) resource.getPropertyValue(AlertResourceProvider.ALERT_ORIGINAL_TIMESTAMP);

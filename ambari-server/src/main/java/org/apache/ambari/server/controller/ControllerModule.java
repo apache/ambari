@@ -34,6 +34,7 @@ import static org.eclipse.persistence.config.PersistenceUnitProperties.THROW_EXC
 
 import java.lang.annotation.Annotation;
 import java.security.SecureRandom;
+import java.text.MessageFormat;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -42,6 +43,7 @@ import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
 
+import org.apache.ambari.server.AmbariService;
 import org.apache.ambari.server.EagerSingleton;
 import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.actionmanager.ActionDBAccessor;
@@ -91,7 +93,6 @@ import org.apache.ambari.server.state.host.HostImpl;
 import org.apache.ambari.server.state.scheduler.RequestExecution;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
 import org.apache.ambari.server.state.scheduler.RequestExecutionImpl;
-import org.apache.ambari.server.state.services.AlertNoticeDispatchService;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostImpl;
 import org.apache.ambari.server.view.ViewInstanceHandlerList;
@@ -109,6 +110,7 @@ import org.springframework.security.crypto.password.StandardPasswordEncoder;
 import org.springframework.util.ClassUtils;
 import org.springframework.web.filter.DelegatingFilterProxy;
 
+import com.google.common.util.concurrent.AbstractScheduledService;
 import com.google.common.util.concurrent.ServiceManager;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -242,7 +244,6 @@ public class ControllerModule extends AbstractModule {
 
     requestStaticInjection(ExecutionCommandWrapper.class);
 
-    bindServices();
     bindByAnnotation();
   }
 
@@ -324,46 +325,26 @@ public class ControllerModule extends AbstractModule {
   }
 
   /**
-   * Bind all {@link com.google.common.util.concurrent.Service} singleton
-   * instances and then register them with a singleton {@link ServiceManager}.
-   */
-  private void bindServices() {
-    Set<com.google.common.util.concurrent.Service> services =
-        new HashSet<com.google.common.util.concurrent.Service>();
-
-    AlertNoticeDispatchService alertNoticeDispatchService =
-        new AlertNoticeDispatchService();
-
-    bind(AlertNoticeDispatchService.class).toInstance(
-        alertNoticeDispatchService);
-
-    services.add(alertNoticeDispatchService);
-    ServiceManager manager = new ServiceManager(services);
-    bind(ServiceManager.class).toInstance(manager);
-  }
-
-  /**
-   * Initializes specially-marked interfaces that require injection.  All eager singletons that should be instantiated as soon as
-   * possible and not wait for injection.
+   * Initializes specially-marked interfaces that require injection.
    * <p/>
    * An example of where this is needed is with a singleton that is headless; in
    * other words, it doesn't have any injections but still needs to be part of
    * the Guice framework.
    * <p/>
-   * <p/>
    * A second example of where this is needed is when classes require static
    * members that are available via injection.
    * <p/>
    * This currently scans {@code org.apache.ambari.server} for any
-   * {@link EagerSingleton} or {@link StaticallyInject} instances.
+   * {@link EagerSingleton} or {@link StaticallyInject} or {@link AmbariService}
+   * instances.
    */
+  @SuppressWarnings("unchecked")
   private void bindByAnnotation() {
     ClassPathScanningCandidateComponentProvider scanner =
         new ClassPathScanningCandidateComponentProvider(false);
 
-    @SuppressWarnings("unchecked")
-    List<Class<? extends Annotation>> classes = Arrays.asList(EagerSingleton.class,
-        StaticallyInject.class);
+    List<Class<? extends Annotation>> classes = Arrays.asList(
+        EagerSingleton.class, StaticallyInject.class, AmbariService.class);
 
     // match only singletons that are eager listeners
     for (Class<? extends Annotation> cls : classes) {
@@ -376,6 +357,9 @@ public class ControllerModule extends AbstractModule {
       LOG.warn("No instances of {} found to register", classes);
       return;
     }
+
+    Set<com.google.common.util.concurrent.Service> services =
+        new HashSet<com.google.common.util.concurrent.Service>();
 
     for (BeanDefinition beanDefinition : beanDefinitions) {
       String className = beanDefinition.getBeanClassName();
@@ -391,7 +375,34 @@ public class ControllerModule extends AbstractModule {
         requestStaticInjection(clazz);
         LOG.debug("Statically injecting {} ", clazz);
       }
-    }
-  }
 
+      // Ambari services are registered with Guava
+      if (null != clazz.getAnnotation(AmbariService.class)) {
+        // safety check to ensure it's actually a Guava service
+        if (!AbstractScheduledService.class.isAssignableFrom(clazz)) {
+          String message = MessageFormat.format(
+              "Unable to register service {0} because it is not an AbstractScheduledService",
+              clazz);
+
+          LOG.warn(message);
+          throw new RuntimeException(message);
+        }
+
+        // instantiate the service, register as singleton via toInstance()
+        AbstractScheduledService service = null;
+        try {
+          service = (AbstractScheduledService) clazz.newInstance();
+          bind((Class<AbstractScheduledService>) clazz).toInstance(service);
+          services.add(service);
+          LOG.debug("Registering service {} ", clazz);
+        } catch (Exception exception) {
+          LOG.error("Unable to register {} as a service", clazz, exception);
+          throw new RuntimeException(exception);
+        }
+      }
+    }
+
+    ServiceManager manager = new ServiceManager(services);
+    bind(ServiceManager.class).toInstance(manager);
+  }
 }

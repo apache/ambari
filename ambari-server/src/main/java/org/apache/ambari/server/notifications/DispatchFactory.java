@@ -31,7 +31,7 @@ import com.google.inject.Singleton;
  * {@link NotificationDispatcher} based on a supplied type.
  */
 @Singleton
-public final class DispatchFactory {
+public class DispatchFactory {
 
   /**
    * Mapping of dispatch type to dispatcher singleton.

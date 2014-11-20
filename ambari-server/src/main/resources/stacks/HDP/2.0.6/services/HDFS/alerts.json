@@ -386,8 +386,8 @@
     "DATANODE": [
       {
         "name": "datanode_process",
-        "label": "DateNode Process",
-        "description": "Checks that the DateNode process responds to a TCP port request.",
+        "label": "DataNode Process",
+        "description": "Checks that the DataNode process responds to a TCP port request.",
         "interval": 1,
         "scope": "HOST",
         "enabled": true,

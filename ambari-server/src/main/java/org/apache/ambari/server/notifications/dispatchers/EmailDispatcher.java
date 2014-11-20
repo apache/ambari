@@ -22,7 +22,6 @@ import java.util.Properties;
 import java.util.Timer;
 
 import javax.mail.Authenticator;
-import javax.mail.Message;
 import javax.mail.Message.RecipientType;
 import javax.mail.MessagingException;
 import javax.mail.PasswordAuthentication;
@@ -113,7 +112,8 @@ public class EmailDispatcher implements NotificationDispatcher {
     session = Session.getInstance(properties, authenticator);
 
     try {
-      Message message = new MimeMessage(session);
+      // !!! at some point in the future we can worry about multipart
+      MimeMessage message = new MimeMessage(session);
 
       for (Recipient recipient : notification.Recipients) {
         InternetAddress address = new InternetAddress(recipient.Identifier);
@@ -121,7 +121,7 @@ public class EmailDispatcher implements NotificationDispatcher {
       }
 
       message.setSubject(notification.Subject);
-      message.setText(notification.Body);
+      message.setText(notification.Body, "UTF-8", "html");
 
       Transport.send(message);
 

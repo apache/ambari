@@ -372,7 +372,7 @@
     "DATANODE": [
       {
         "name": "datanode_process",
-        "label": "DateNode Process",
+        "label": "DataNode Process",
         "interval": 1,
         "scope": "HOST",
         "enabled": true,
