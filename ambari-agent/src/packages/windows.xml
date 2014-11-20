@@ -78,5 +78,10 @@
       <outputDirectory>data</outputDirectory>
       <filtered>true</filtered>
     </file>
+    <file>
+      <source>${basedir}/src/main/package/msi/ambari-agent.wxs</source>
+      <outputDirectory>../../</outputDirectory>
+      <filtered>true</filtered>
+    </file>
   </files>
 </assembly>

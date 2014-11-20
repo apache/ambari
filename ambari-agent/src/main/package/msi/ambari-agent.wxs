@@ -16,23 +16,37 @@
    limitations under the License.
 -->
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-  <Product Id="BA555A14-081D-4521-9B35-BC37C50CF5A9" Name="Ambari Agent 1.3.0-SNAPSHOT" Language="1033"
-           Version="1.3.0.0" Manufacturer="Apache Software Foundation"
-           UpgradeCode="6A5C01ED-C9B3-45C0-8A69-4512AC9F65F7">
+  <?define Version = "${ambariVersion}" ?>
+  <Product Id="efc59d96-ea09-4a0d-ba90-317dc53cb6da" Name="Ambari Agent ${ambariVersion}" Language="1033"
+           Version="$(var.Version)" Manufacturer="Apache Software Foundation">
     <Package Description="Ambari Agent for Windows" Comments="Ambari Agent for Windows" InstallerVersion="200"
              Compressed="yes" Platform="x64"/>
+
     <Media Id="1" Cabinet="simple.cab" EmbedCab="yes"/>
+
     <Directory Id="TARGETDIR" Name="SourceDir">
-      <Directory Id="ProgramFiles64Folder">
-        <Directory Id="AMBARI_AGENT_1.3.0_SNAPSHOT" Name="ambari-agent-1.3.0-SNAPSHOT">
+      <Directory Id="AmbariDirectory" Name="ambari">
+        <Directory Id="AGENT_INSTALL_DIRECTORY" Name="ambari-agent-$(var.Version)">
         </Directory>
       </Directory>
     </Directory>
+
     <Feature Id="DefaultFeature" Title="Main Feature" Level="1">
       <ComponentGroupRef Id="AmbariAgentGroup"/>
     </Feature>
-    <Property Id="WIXUI_INSTALLDIR" Value="AMBARI_AGENT_1.3.0_SNAPSHOT"/>
-    <UI/>
-    <UIRef Id="WixUI_InstallDir"/>
+    <Property Id="WIXUI_INSTALLDIR" Value="AGENT_INSTALL_DIRECTORY"/>
+    <UI>
+      <UIRef Id="WixUI_InstallDir" />
+      <Publish Dialog="WelcomeDlg"
+               Control="Next"
+               Event="NewDialog"
+               Value="InstallDirDlg"
+               Order="2">1</Publish>
+      <Publish Dialog="InstallDirDlg"
+               Control="Back"
+               Event="NewDialog"
+               Value="WelcomeDlg"
+               Order="2">1</Publish>
+    </UI>
   </Product>
 </Wix>

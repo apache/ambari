@@ -1271,7 +1271,7 @@
                     <argument>dir</argument>
                     <argument>"."</argument>
                     <argument>-dr</argument>
-                    <argument>"AMBARI_SERVER_MSI"</argument>
+                    <argument>"SERVER_INSTALL_DIRECTORY"</argument>
                     <argument>-platform</argument>
                     <argument>Win64</argument>
                     <argument>-cg</argument>
@@ -1302,7 +1302,7 @@
                 <objectFile>target/ambari-server.wixobj</objectFile>
                 <objectFile>target/ambari-server-files.wixobj</objectFile>
               </objectFiles>
-              <outputFile>target/ambari-server-${ambariVersion}.msi</outputFile>
+              <outputFile>target/ambari-server-${project.version}.msi</outputFile>
               <extensions>
                 <extension>WixUIExtension</extension>
               </extensions>

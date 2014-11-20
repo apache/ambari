@@ -16,45 +16,35 @@
    limitations under the License.
 -->
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-<?define Version = "${ambariVersion}" ?>
-<?define UpgradeCode = "c8f5c145-c0aa-4d50-b1f5-ac9bc4055fb8" ?>
-  <Product Id="*" Name="Ambari Server ${ambariVersion}-SNAPSHOT" Language="1033"
-           Version="$(var.Version)" Manufacturer="Apache Software Foundation"
-           UpgradeCode="$(var.UpgradeCode)">
+  <?define Version = "${ambariVersion}" ?>
+  <Product Id="c8f5c145-c0aa-4d50-b1f5-ac9bc4055fb8" Name="Ambari Server ${ambariVersion}" Language="1033"
+           Version="$(var.Version)" Manufacturer="Apache Software Foundation">
     <Package Description="Ambari Server for Windows" Comments="Ambari Server for Windows" InstallerVersion="200"
              Compressed="yes" Platform="x64"/>
 
-    <!-- upgrade rules -->
-    <Upgrade Id="$(var.UpgradeCode)">
-      <UpgradeVersion Minimum="$(var.Version)" IncludeMinimum="no" OnlyDetect="yes" Property="NEWERVERSIONDETECTED" />
-      <UpgradeVersion Minimum="0.0.0.0" Maximum="$(var.Version)" IncludeMinimum="yes" IncludeMaximum="yes" Property="OLDERVERSIONBEINGUPGRADED" />
-    </Upgrade>
-
-    <InstallExecuteSequence>
-      <RemoveExistingProducts After="InstallInitialize" />
-      <Custom Action="NewerVersion" After="FindRelatedProducts">NEWERVERSIONDETECTED</Custom>
-      <Custom Action="BackupConfiguration" After='InstallInitialize'>OLDERVERSIONBEINGUPGRADED</Custom>
-    </InstallExecuteSequence>
-
-    <CustomAction Id="NewerVersion" Error="A later version of Ambari Server is already installed." />
-    <!-- backup ambari.properties before installing new bits-->
-    <CustomAction Id="BackupConfiguration"
-                  Directory="AMBARI_SERVER_MSI"
-                  ExeCommand='cmd.exe /c copy conf\ambari.properties conf\ambari.properties.backup'
-                  Return="check" />
-
     <Media Id="1" Cabinet="simple.cab" EmbedCab="yes"/>
     <Directory Id="TARGETDIR" Name="SourceDir">
-      <Directory Id="ProgramFiles64Folder">
-        <Directory Id="AMBARI_SERVER_MSI" Name="ambari-server">
+      <Directory Id="AmbariDirectory" Name="ambari">
+        <Directory Id="SERVER_INSTALL_DIRECTORY" Name="ambari-server-$(var.Version)">
         </Directory>
       </Directory>
     </Directory>
     <Feature Id="DefaultFeature" Title="Main Feature" Level="1">
       <ComponentGroupRef Id="AmbariServerGroup"/>
     </Feature>
-    <UI/>
-    <Property Id="WIXUI_INSTALLDIR" Value="AMBARI_SERVER_MSI"/>
-    <UIRef Id="WixUI_InstallDir"/>
+    <Property Id="WIXUI_INSTALLDIR" Value="SERVER_INSTALL_DIRECTORY"/>
+    <UI>
+      <UIRef Id="WixUI_InstallDir" />
+      <Publish Dialog="WelcomeDlg"
+               Control="Next"
+               Event="NewDialog"
+               Value="InstallDirDlg"
+               Order="2">1</Publish>
+      <Publish Dialog="InstallDirDlg"
+               Control="Back"
+               Event="NewDialog"
+               Value="WelcomeDlg"
+               Order="2">1</Publish>
+    </UI>
   </Product>
 </Wix>
