@@ -148,7 +148,20 @@ App.MainAlertDefinitionActionsController = Em.ArrayController.extend({
     });
   },
 
-
-  manageNotifications: Em.K
+  /**
+   *  "Manage Alert Notifications" handler
+   */
+  manageNotifications: function () {
+    return App.ModalPopup.show({
+      header: Em.I18n.t('alerts.actions.manage_alert_notifications_popup.header'),
+      bodyClass: App.ManageAlertNotificationsView.extend({
+        controllerBinding: 'App.router.manageAlertNotificationsController'
+      }),
+      classNames: ['sixty-percent-width-modal', 'manage-configuration-group-popup'],
+      secondary: null,
+      primary: Em.I18n.t('common.close'),
+      didInsertElement: Em.K
+    });
+  }
 
 });

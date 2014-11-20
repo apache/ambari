@@ -1,0 +1,108 @@
+{{!
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+}}
+
+{{#if controller.isLoaded}}
+  <div class="row-fluid  manage-configuration-group-content">
+    <div class="span12">
+      <div class="row-fluid">
+        <div class="span4">
+          <span>&nbsp;</span>
+          {{view Em.Select
+          contentBinding="alertNotifications"
+          optionLabelPath="content.name"
+          multiple="multiple"
+          class="group-select"
+          selectionBinding="view.selectedAlertNotification"
+          }}
+          <div class="btn-toolbar pull-right">
+            <button rel="button-info" class="btn"
+              {{translateAttr data-original-title="alerts.actions.manage_alert_notifications_popup.addButton"}}
+              {{action addAlertNotification target="controller"}}><i class="icon-plus"></i></button>
+            <button rel="button-info" class="btn"
+              {{translateAttr data-original-title="alerts.actions.manage_alert_notifications_popup.removeButton"}}
+              {{bindAttr disabled="view.isRemoveButtonDisabled"}}
+              {{action deleteAlertNotification target="controller"}}><i class="icon-minus"></i></button>
+            <div class="btn-group dropup">
+              <button class="btn dropdown-toggle" data-toggle="dropdown">
+                <i class="icon-cog"></i>&nbsp;<span class="caret"></span>
+              </button>
+              <ul class="dropdown-menu">
+                <li {{bindAttr class="view.isEditButtonDisabled:disabled"}}>
+                  <a href="" rel="button-info-dropdown"
+                    {{translateAttr data-original-title="alerts.actions.manage_alert_notifications_popup.editButton"}}
+                    {{action editAlertNotification target="controller"}}>{{t common.edit}}</a>
+                </li>
+                <li {{bindAttr class="view.isDuplicateButtonDisabled:disabled"}}>
+                  <a href="" rel="button-info-dropdown"
+                    {{translateAttr data-original-title="alerts.actions.manage_alert_notifications_popup.duplicateButton"}}
+                    {{action duplicateAlertNotification target="controller"}}>{{t common.duplicate}}</a>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="span8">
+          <span>&nbsp;</span>
+
+          <div class="row-fluid">
+            <div class="span12 pull-right">
+              {{#if selectedAlertNotification}}
+              <div class="row-fluid">
+                <div class="span3">{{t common.name}}</div>
+                <div class="span9">{{selectedAlertNotification.name}}</div>
+              </div>
+              <div class="row-fluid">
+                <div class="span3">{{t common.groups}}</div>
+                <div class="span9">{{view.selectedAlertNotificationGroups}}</div>
+              </div>
+              <div class="row-fluid">
+                <div class="span3">{{t alerts.actions.manage_alert_notifications_popup.method}}</div>
+                <div class="span9">{{selectedAlertNotification.type}}</div>
+              </div>
+              {{#if view.showEmailDetails}}
+                <div class="row-fluid">
+                  <div class="span3">{{t alerts.actions.manage_alert_notifications_popup.email}}</div>
+                  <div class="span9">{{selectedAlertNotification.properties.email}}</div>
+                </div>
+              {{/if}}
+              {{#if view.showSNMPDetails}}
+              {{/if}}
+                <div class="row-fluid">
+                  <div class="span3">{{t common.description}}</div>
+                  <div class="span9">{{selectedAlertNotification.description}}</div>
+                </div>
+              {{/if}}
+            </div>
+          </div>
+        </div>
+        <div class="clearfix"></div>
+        <div class="row-fluid">
+          <div class="span12 text-error" id="manage-config-group-error-div">
+            {{#if view.errorMessage}}
+              {{errorMessage}}
+            {{else}}
+              &nbsp;
+            {{/if}}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{{else}}
+  <div class="spinner"></div>
+{{/if}}

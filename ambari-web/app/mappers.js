@@ -38,4 +38,5 @@ require('mappers/alert_definitions_mapper');
 require('mappers/alert_definition_summary_mapper');
 require('mappers/alert_instances_mapper');
 require('mappers/alert_groups_mapper');
+require('mappers/alert_notification_mapper');
 require('mappers/root_service_mapper');

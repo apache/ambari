@@ -364,6 +364,10 @@ var urls = {
     'real': '/clusters/{clusterName}/alerts?fields=*',
     'mock': '/data/alerts/alert_instances.json'
   },
+  'alerts.notifications': {
+    'real': '/alert_targets?fields=*',
+    'mock': ''
+  },
   'alerts.instances.by_definition': {
     'real': '/clusters/{clusterName}/alerts?fields=*&Alert/definition_id={definitionId}',
     'mock': '/data/alerts/alert_instances.json'
