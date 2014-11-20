@@ -340,7 +340,11 @@ module.exports = Em.Route.extend({
       exit: function(router) {
         router.set('mainAlertInstancesController.isUpdating', false);
       }
-    })
+    }),
+
+    back: function (router, event) {
+      window.history.back();
+    }
   }),
 
   admin: Em.Route.extend({

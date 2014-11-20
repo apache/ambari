@@ -38,7 +38,8 @@
               class="icon-pencil"></i></a>
         {{/unless}}
       </div>
-
+      <div><a href="javascript:void(null)" data-toggle="modal" {{action back}}><i
+            class="icon-arrow-left"></i>&nbsp;{{t common.back}}</a></div>
       <div class="definition-details-block">
         <strong>{{t common.description}}</strong>
         {{#unless controller.editing.description.isEditing}}
