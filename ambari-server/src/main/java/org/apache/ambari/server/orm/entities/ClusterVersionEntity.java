@@ -18,7 +18,7 @@
 
 package org.apache.ambari.server.orm.entities;
 
-import org.apache.ambari.server.state.ClusterVersionState;
+import org.apache.ambari.server.state.RepositoryVersionState;
 
 import javax.persistence.Basic;
 import javax.persistence.Column;
@@ -52,6 +52,9 @@ import static org.apache.commons.lang.StringUtils.defaultString;
     @NamedQuery(name = "clusterVersionByClusterAndState", query =
         "SELECT clusterVersion FROM ClusterVersionEntity clusterVersion JOIN clusterVersion.clusterEntity cluster " +
         "WHERE cluster.clusterName=:clusterName AND clusterVersion.state=:state"),
+    @NamedQuery(name = "clusterVersionByCluster", query =
+        "SELECT clusterVersion FROM ClusterVersionEntity clusterVersion JOIN clusterVersion.clusterEntity cluster " +
+        "WHERE cluster.clusterName=:clusterName"),
     @NamedQuery(name = "clusterVersionByStackVersion",
         query = "SELECT clusterVersion FROM ClusterVersionEntity clusterVersion WHERE clusterVersion.stack=:stack AND clusterVersion.version=:version"),
 })
@@ -79,7 +82,7 @@ public class ClusterVersionEntity {
 
   @Column(name = "state", nullable = false, insertable = true, updatable = true)
   @Enumerated(value = EnumType.STRING)
-  private ClusterVersionState state = ClusterVersionState.CURRENT;
+  private RepositoryVersionState state = RepositoryVersionState.CURRENT;
 
   @Basic
   @Column(name = "start_time", nullable = false, insertable = true, updatable = true)
@@ -108,7 +111,7 @@ public class ClusterVersionEntity {
    * @param startTime Time the cluster version reached its first state
    * @param userName User who performed the action
    */
-  public ClusterVersionEntity(ClusterEntity cluster, String stack, String version, ClusterVersionState state, long startTime, String userName) {
+  public ClusterVersionEntity(ClusterEntity cluster, String stack, String version, RepositoryVersionState state, long startTime, String userName) {
     this.clusterId = cluster.getClusterId();
     this.clusterEntity = cluster;
     this.stack = stack;
@@ -128,7 +131,7 @@ public class ClusterVersionEntity {
    * @param endTime Time the cluster version finalized its state
    * @param userName User who performed the action
    */
-  public ClusterVersionEntity(ClusterEntity cluster, String stack, String version, ClusterVersionState state, long startTime, long endTime, String userName) {
+  public ClusterVersionEntity(ClusterEntity cluster, String stack, String version, RepositoryVersionState state, long startTime, long endTime, String userName) {
     this(cluster, stack, version, state, startTime, userName);
     this.endTime = endTime;
   }
@@ -173,11 +176,11 @@ public class ClusterVersionEntity {
     this.version = version;
   }
 
-  public ClusterVersionState getState() {
+  public RepositoryVersionState getState() {
     return state;
   }
 
-  public void setState(ClusterVersionState state) {
+  public void setState(RepositoryVersionState state) {
     this.state = state;
   }
 

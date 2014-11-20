@@ -413,6 +413,24 @@ public class ClusterService extends BaseService {
   }
 
   /**
+   * Gets the cluster stack versions service.
+   *
+   * @param request
+   *          the request
+   * @param clusterName
+   *          the cluster name
+   *
+   * @return the cluster stack versions service
+   */
+  @Path("{clusterName}/stack_versions")
+  public ClusterStackVersionService getClusterStackVersionService(@Context javax.ws.rs.core.Request request,
+      @PathParam("clusterName") String clusterName) {
+
+    hasPermission(Request.Type.valueOf(request.getMethod()), clusterName);
+    return new ClusterStackVersionService(clusterName);
+  }
+
+  /**
    * Gets the services for upgrades.
    *
    * @param request the request

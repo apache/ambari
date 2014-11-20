@@ -15,43 +15,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.apache.ambari.server.api.resources;
-
-
-import java.util.HashSet;
-import java.util.Set;
 
 import org.apache.ambari.server.controller.spi.Resource;
 
 /**
- * Host resource definition.
+ * Stack Version Resource Definition for hosts and clusters.
  */
-public class HostResourceDefinition extends BaseResourceDefinition {
-
-  /**
-   * Constructor.
-   */
-  public HostResourceDefinition() {
-    super(Resource.Type.Host);
+public class ComponentStackVersionResourceDefinition extends BaseResourceDefinition {
+  public ComponentStackVersionResourceDefinition(Resource.Type type) {
+    super(type);
   }
 
   @Override
   public String getPluralName() {
-    return "hosts";
+    return "stack_versions";
   }
 
   @Override
   public String getSingularName() {
-    return "host";
-  }
-
-  @Override
-  public Set<SubResourceDefinition> getSubResourceDefinitions() {
-    Set<SubResourceDefinition> subs = new HashSet<SubResourceDefinition>();
-    subs.add(new SubResourceDefinition(Resource.Type.HostComponent));
-    subs.add(new SubResourceDefinition(Resource.Type.Alert));
-    subs.add(new SubResourceDefinition(Resource.Type.HostStackVersion));
-    return subs;
+    return "stack_version";
   }
 }

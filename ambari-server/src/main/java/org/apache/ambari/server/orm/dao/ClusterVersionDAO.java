@@ -25,15 +25,15 @@ import javax.persistence.TypedQuery;
 
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
-import org.apache.ambari.server.state.ClusterVersionState;
+import org.apache.ambari.server.state.RepositoryVersionState;
 
 import com.google.inject.Singleton;
 
 /**
  * The {@link ClusterVersionDAO} class manages the {@link ClusterVersionEntity} instances associated with a cluster.
- * Each cluster can have multiple stack versions {@link ClusterVersionState#INSTALLED},
- * exactly one stack version that is {@link ClusterVersionState#CURRENT}, and at most one
- * stack version that is {@link ClusterVersionState#UPGRADING}.
+ * Each cluster can have multiple stack versions {@link RepositoryVersionState#INSTALLED},
+ * exactly one stack version that is {@link RepositoryVersionState#CURRENT}, and at most one
+ * stack version that is {@link RepositoryVersionState#UPGRADING}.
  */
 @Singleton
 public class ClusterVersionDAO extends CrudDAO<ClusterVersionEntity, Long>{
@@ -80,18 +80,32 @@ public class ClusterVersionDAO extends CrudDAO<ClusterVersionEntity, Long>{
   }
 
   /**
-   * Retrieve the single cluster version whose state is {@link ClusterVersionState#CURRENT}, of which there should be exactly one at all times
+   * Get the cluster version for the given cluster name.
+   *
+   * @param clusterName Cluster name
+   * @return Return all of the cluster versions associated with the given cluster.
+   */
+  public List<ClusterVersionEntity> findByCluster(String  clusterName) {
+    final TypedQuery<ClusterVersionEntity> query = entityManagerProvider.get()
+        .createNamedQuery("clusterVersionByCluster", ClusterVersionEntity.class);
+    query.setParameter("clusterName", clusterName);
+
+    return daoUtils.selectList(query);
+  }
+
+  /**
+   * Retrieve the single cluster version whose state is {@link RepositoryVersionState#CURRENT}, of which there should be exactly one at all times
    * for the given cluster.
    *
    * @param clusterName Cluster name
-   * @return Returns the single cluster version for this cluster whose state is {@link ClusterVersionState#CURRENT}, or {@code null} otherwise.
+   * @return Returns the single cluster version for this cluster whose state is {@link RepositoryVersionState#CURRENT}, or {@code null} otherwise.
    */
   @RequiresSession
   public ClusterVersionEntity findByClusterAndStateCurrent(String clusterName) {
     final TypedQuery<ClusterVersionEntity> query = entityManagerProvider.get()
         .createNamedQuery("clusterVersionByClusterAndState", ClusterVersionEntity.class);
     query.setParameter("clusterName", clusterName);
-    query.setParameter("state", ClusterVersionState.CURRENT);
+    query.setParameter("state", RepositoryVersionState.CURRENT);
 
     try {
       List results = query.getResultList();
@@ -116,7 +130,7 @@ public class ClusterVersionDAO extends CrudDAO<ClusterVersionEntity, Long>{
    * @return Returns a list of cluster versions for the given cluster and a state.
    */
   @RequiresSession
-  public List<ClusterVersionEntity> findByClusterAndState(String clusterName, ClusterVersionState state) {
+  public List<ClusterVersionEntity> findByClusterAndState(String clusterName, RepositoryVersionState state) {
     final TypedQuery<ClusterVersionEntity> query = entityManagerProvider.get()
         .createNamedQuery("clusterVersionByClusterAndState", ClusterVersionEntity.class);
     query.setParameter("clusterName", clusterName);

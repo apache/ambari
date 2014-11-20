@@ -19,11 +19,11 @@
 package org.apache.ambari.server.state;
 
 /**
- * There must be exactly one cluster version that is in a CURRENT state.
- * There may be 0 or more cluster versions in an INSTALLED state.
- * A new cluster version transitions from UPGRADING -> CURRENT | UPGRADE_FAILED
- * The operation to transition a new cluster version into CURRENT must be atomic and change the existing cluster version
- * from CURRENT to INSTALLED.
+ * There must be exactly one repository version that is in a CURRENT state for a particular cluster or host.
+ * There may be 0 or more repository versions in an INSTALLED state.
+ * A repository version state transitions from UPGRADING -> CURRENT | UPGRADE_FAILED
+ * The operation to transition a repository version state into CURRENT must be atomic and change the existing
+ * relation between repository version and cluster or host from CURRENT to INSTALLED.
  *
  * <pre>
  * Step 1: Initial Configuration
@@ -60,22 +60,22 @@ package org.apache.ambari.server.state;
  * INSTALLED -> UPGRADING
  * </pre>
  */
-public enum ClusterVersionState {
+public enum RepositoryVersionState {
   /**
-   * Cluster version that is installed and supported but not the active version.
+   * Repository version that is installed and supported but not the active version.
    */
   INSTALLED,
   /**
-   * Cluster version that is installed and supported and is the active version.
+   * Repository version that is installed and supported and is the active version.
    */
   CURRENT,
   /**
-   * Cluster version that is in the process of upgrading to become the CURRENT active version,
+   * Repository version that is in the process of upgrading to become the CURRENT active version,
    * and the previous active version transitions to an INSTALLED state.
    */
   UPGRADING,
   /**
-   * Cluster version that during the upgrade process failed to become the active version and must be remedied.
+   * Repository version that during the upgrade process failed to become the active version and must be remedied.
    */
   UPGRADE_FAILED;
 }

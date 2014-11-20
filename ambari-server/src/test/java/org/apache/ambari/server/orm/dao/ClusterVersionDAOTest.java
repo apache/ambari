@@ -26,7 +26,7 @@ import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
 
 import org.apache.ambari.server.orm.entities.ClusterEntity;
-import org.apache.ambari.server.state.ClusterVersionState;
+import org.apache.ambari.server.state.RepositoryVersionState;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -76,7 +76,7 @@ public class ClusterVersionDAOTest {
       clusterId = helper.createCluster();
       cluster = clusterDAO.findById(clusterId);
 
-      cvA = new ClusterVersionEntity(cluster, "HDP", "2.2.0.0-995", ClusterVersionState.CURRENT, System.currentTimeMillis(), System.currentTimeMillis(), "admin");
+      cvA = new ClusterVersionEntity(cluster, "HDP", "2.2.0.0-995", RepositoryVersionState.CURRENT, System.currentTimeMillis(), System.currentTimeMillis(), "admin");
       clusterVersionDAO.create(cvA);
       cvAId = cvA.getId();
     } else {
@@ -87,7 +87,7 @@ public class ClusterVersionDAOTest {
     // Install B
     if (currStep >= 2) {
       if (lastStep <= 1) {
-        cvB = new ClusterVersionEntity(cluster, "HDP", "2.2.0.1-998", ClusterVersionState.INSTALLED, System.currentTimeMillis(), System.currentTimeMillis(), "admin");
+        cvB = new ClusterVersionEntity(cluster, "HDP", "2.2.0.1-998", RepositoryVersionState.INSTALLED, System.currentTimeMillis(), System.currentTimeMillis(), "admin");
         clusterVersionDAO.create(cvB);
         cvBId = cvB.getId();
       } else {
@@ -97,8 +97,8 @@ public class ClusterVersionDAOTest {
 
     // Switch from A to B
     if (currStep >= 3 && lastStep <= 2) {
-      cvA.setState(ClusterVersionState.INSTALLED);
-      cvB.setState(ClusterVersionState.CURRENT);
+      cvA.setState(RepositoryVersionState.INSTALLED);
+      cvB.setState(RepositoryVersionState.CURRENT);
       clusterVersionDAO.merge(cvA);
       clusterVersionDAO.merge(cvB);
     }
@@ -106,7 +106,7 @@ public class ClusterVersionDAOTest {
     // Start upgrading C
     if (currStep >= 4) {
       if (lastStep <= 3) {
-        cvC = new ClusterVersionEntity(cluster, "HDP", "2.2.1.0-100", ClusterVersionState.UPGRADING, System.currentTimeMillis(), "admin");
+        cvC = new ClusterVersionEntity(cluster, "HDP", "2.2.1.0-100", RepositoryVersionState.UPGRADING, System.currentTimeMillis(), "admin");
         clusterVersionDAO.create(cvC);
         cvCId = cvC.getId();
       } else {
@@ -116,26 +116,26 @@ public class ClusterVersionDAOTest {
 
     // Fail upgrade for C
     if (currStep >= 5 && lastStep <= 4) {
-        cvC.setState(ClusterVersionState.UPGRADE_FAILED);
+        cvC.setState(RepositoryVersionState.UPGRADE_FAILED);
         cvC.setEndTime(System.currentTimeMillis());
         clusterVersionDAO.merge(cvC);
     }
 
     // Retry upgrade on C
     if (currStep >= 6 && lastStep <= 5) {
-        cvC.setState(ClusterVersionState.UPGRADING);
+        cvC.setState(RepositoryVersionState.UPGRADING);
         cvC.setEndTime(0L);
         clusterVersionDAO.merge(cvC);
     }
 
     // Finalize upgrade on C to make it the current cluster version
     if (currStep >= 7 && lastStep <= 6) {
-        cvC.setState(ClusterVersionState.CURRENT);
+        cvC.setState(RepositoryVersionState.CURRENT);
         cvC.setEndTime(System.currentTimeMillis());
         clusterVersionDAO.merge(cvC);
 
-        cvA.setState(ClusterVersionState.INSTALLED);
-        cvB.setState(ClusterVersionState.INSTALLED);
+        cvA.setState(RepositoryVersionState.INSTALLED);
+        cvB.setState(RepositoryVersionState.INSTALLED);
         clusterVersionDAO.merge(cvA);
         clusterVersionDAO.merge(cvB);
     }
@@ -151,17 +151,24 @@ public class ClusterVersionDAOTest {
   }
 
   @Test
-  public void TestFindByClusterAndStackAndVersion() {
+  public void testFindByClusterAndStackAndVersion() {
     createRecordsUntilStep(1);
     Assert.assertNull(clusterVersionDAO.findByClusterAndStackAndVersion(cluster.getClusterName(), "non existing", "non existing"));
     Assert.assertNotNull(clusterVersionDAO.findByClusterAndStackAndVersion(cluster.getClusterName(), "HDP", "2.2.0.0-995"));
   }
 
+  @Test
+  public void testFindByCluster() {
+    createRecordsUntilStep(1);
+    Assert.assertTrue(clusterVersionDAO.findByCluster("non existing").isEmpty());
+    Assert.assertNotNull(clusterVersionDAO.findByCluster(cluster.getClusterName()));
+  }
+
   /**
-   * At all times the cluster should have a cluster version whose state is {@link ClusterVersionState#CURRENT}
+   * At all times the cluster should have a cluster version whose state is {@link RepositoryVersionState#CURRENT}
    */
   @Test
-  public void TestFindByClusterAndStateCurrent() {
+  public void testFindByClusterAndStateCurrent() {
     createRecordsUntilStep(1);
     Assert.assertNotNull(clusterVersionDAO.findByClusterAndStateCurrent(cluster.getClusterName()));
 
@@ -188,48 +195,48 @@ public class ClusterVersionDAOTest {
    * Test the state of certain cluster versions.
    */
   @Test
-  public void TestFindByClusterAndState() {
+  public void testFindByClusterAndState() {
     createRecordsUntilStep(1);
-    Assert.assertEquals(1, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), ClusterVersionState.CURRENT).size());
-    Assert.assertEquals(0, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), ClusterVersionState.INSTALLED).size());
-    Assert.assertEquals(0, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), ClusterVersionState.UPGRADING).size());
-    Assert.assertEquals(0, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), ClusterVersionState.UPGRADE_FAILED).size());
+    Assert.assertEquals(1, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), RepositoryVersionState.CURRENT).size());
+    Assert.assertEquals(0, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), RepositoryVersionState.INSTALLED).size());
+    Assert.assertEquals(0, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), RepositoryVersionState.UPGRADING).size());
+    Assert.assertEquals(0, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), RepositoryVersionState.UPGRADE_FAILED).size());
 
     createRecordsUntilStep(2);
-    Assert.assertEquals(1, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), ClusterVersionState.CURRENT).size());
-    Assert.assertEquals(1, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), ClusterVersionState.INSTALLED).size());
-    Assert.assertEquals(0, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), ClusterVersionState.UPGRADING).size());
-    Assert.assertEquals(0, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), ClusterVersionState.UPGRADE_FAILED).size());
+    Assert.assertEquals(1, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), RepositoryVersionState.CURRENT).size());
+    Assert.assertEquals(1, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), RepositoryVersionState.INSTALLED).size());
+    Assert.assertEquals(0, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), RepositoryVersionState.UPGRADING).size());
+    Assert.assertEquals(0, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), RepositoryVersionState.UPGRADE_FAILED).size());
 
     createRecordsUntilStep(3);
-    Assert.assertEquals(1, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), ClusterVersionState.CURRENT).size());
-    Assert.assertEquals(1, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), ClusterVersionState.INSTALLED).size());
-    Assert.assertEquals(0, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), ClusterVersionState.UPGRADING).size());
-    Assert.assertEquals(0, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), ClusterVersionState.UPGRADE_FAILED).size());
+    Assert.assertEquals(1, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), RepositoryVersionState.CURRENT).size());
+    Assert.assertEquals(1, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), RepositoryVersionState.INSTALLED).size());
+    Assert.assertEquals(0, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), RepositoryVersionState.UPGRADING).size());
+    Assert.assertEquals(0, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), RepositoryVersionState.UPGRADE_FAILED).size());
 
     createRecordsUntilStep(4);
-    Assert.assertEquals(1, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), ClusterVersionState.CURRENT).size());
-    Assert.assertEquals(1, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), ClusterVersionState.INSTALLED).size());
-    Assert.assertEquals(1, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), ClusterVersionState.UPGRADING).size());
-    Assert.assertEquals(0, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), ClusterVersionState.UPGRADE_FAILED).size());
+    Assert.assertEquals(1, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), RepositoryVersionState.CURRENT).size());
+    Assert.assertEquals(1, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), RepositoryVersionState.INSTALLED).size());
+    Assert.assertEquals(1, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), RepositoryVersionState.UPGRADING).size());
+    Assert.assertEquals(0, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), RepositoryVersionState.UPGRADE_FAILED).size());
 
     createRecordsUntilStep(5);
-    Assert.assertEquals(1, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), ClusterVersionState.CURRENT).size());
-    Assert.assertEquals(1, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), ClusterVersionState.INSTALLED).size());
-    Assert.assertEquals(0, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), ClusterVersionState.UPGRADING).size());
-    Assert.assertEquals(1, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), ClusterVersionState.UPGRADE_FAILED).size());
+    Assert.assertEquals(1, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), RepositoryVersionState.CURRENT).size());
+    Assert.assertEquals(1, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), RepositoryVersionState.INSTALLED).size());
+    Assert.assertEquals(0, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), RepositoryVersionState.UPGRADING).size());
+    Assert.assertEquals(1, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), RepositoryVersionState.UPGRADE_FAILED).size());
 
     createRecordsUntilStep(6);
-    Assert.assertEquals(1, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), ClusterVersionState.CURRENT).size());
-    Assert.assertEquals(1, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), ClusterVersionState.INSTALLED).size());
-    Assert.assertEquals(1, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), ClusterVersionState.UPGRADING).size());
-    Assert.assertEquals(0, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), ClusterVersionState.UPGRADE_FAILED).size());
+    Assert.assertEquals(1, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), RepositoryVersionState.CURRENT).size());
+    Assert.assertEquals(1, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), RepositoryVersionState.INSTALLED).size());
+    Assert.assertEquals(1, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), RepositoryVersionState.UPGRADING).size());
+    Assert.assertEquals(0, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), RepositoryVersionState.UPGRADE_FAILED).size());
 
     createRecordsUntilStep(7);
-    Assert.assertEquals(1, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), ClusterVersionState.CURRENT).size());
-    Assert.assertEquals(2, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), ClusterVersionState.INSTALLED).size());
-    Assert.assertEquals(0, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), ClusterVersionState.UPGRADING).size());
-    Assert.assertEquals(0, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), ClusterVersionState.UPGRADE_FAILED).size());
+    Assert.assertEquals(1, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), RepositoryVersionState.CURRENT).size());
+    Assert.assertEquals(2, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), RepositoryVersionState.INSTALLED).size());
+    Assert.assertEquals(0, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), RepositoryVersionState.UPGRADING).size());
+    Assert.assertEquals(0, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), RepositoryVersionState.UPGRADE_FAILED).size());
   }
 
   @After

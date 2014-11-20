@@ -18,8 +18,7 @@
 
 package org.apache.ambari.server.orm.entities;
 
-import org.apache.ambari.server.state.UpgradeState;
-
+import org.apache.ambari.server.state.RepositoryVersionState;
 import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -54,6 +53,10 @@ import static org.apache.commons.lang.StringUtils.defaultString;
         "SELECT hostVersion FROM HostVersionEntity hostVersion JOIN hostVersion.hostEntity host JOIN ClusterEntity cluster " +
             "WHERE cluster.clusterName=:clusterName AND hostVersion.hostName=:hostName"),
 
+    @NamedQuery(name = "hostVersionByHostname", query =
+        "SELECT hostVersion FROM HostVersionEntity hostVersion JOIN hostVersion.hostEntity host " +
+            "WHERE hostVersion.hostName=:hostName"),
+
     @NamedQuery(name = "hostVersionByClusterHostnameAndState", query =
         "SELECT hostVersion FROM HostVersionEntity hostVersion JOIN hostVersion.hostEntity host JOIN ClusterEntity cluster " +
             "WHERE cluster.clusterName=:clusterName AND hostVersion.hostName=:hostName AND hostVersion.state=:state"),
@@ -87,7 +90,7 @@ public class HostVersionEntity {
 
   @Column(name = "state", nullable = false, insertable = true, updatable = true)
   @Enumerated(value = EnumType.STRING)
-  private UpgradeState state = UpgradeState.NONE;
+  private RepositoryVersionState state;
 
   /**
    * Empty constructor is needed by unit tests.
@@ -95,7 +98,7 @@ public class HostVersionEntity {
   public HostVersionEntity() {
   }
 
-  public HostVersionEntity(String hostName, String stack, String version, UpgradeState state) {
+  public HostVersionEntity(String hostName, String stack, String version, RepositoryVersionState state) {
     this.hostName = hostName;
     this.stack = stack;
     this.version = version;
@@ -152,11 +155,11 @@ public class HostVersionEntity {
     this.version = version;
   }
 
-  public UpgradeState getState() {
+  public RepositoryVersionState getState() {
     return state;
   }
 
-  public void setState(UpgradeState state) {
+  public void setState(RepositoryVersionState state) {
     this.state = state;
   }
 

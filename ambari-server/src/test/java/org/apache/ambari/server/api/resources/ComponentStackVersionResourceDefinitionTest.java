@@ -24,26 +24,25 @@ import org.junit.Test;
 import java.util.Set;
 
 /**
- * RepositoryVersionResourceDefinition tests.
+ * ComponentStackVersionResourceDefinition tests.
  */
-public class RepositoryVersionResourceDefinitionTest {
+public class ComponentStackVersionResourceDefinitionTest {
   @Test
   public void testGetPluralName() throws Exception {
-    final RepositoryVersionResourceDefinition resourceDefinition = new RepositoryVersionResourceDefinition();
-    Assert.assertEquals("repository_versions", resourceDefinition.getPluralName());
+    final ComponentStackVersionResourceDefinition resourceDefinition = new ComponentStackVersionResourceDefinition(null);
+    Assert.assertEquals("stack_versions", resourceDefinition.getPluralName());
   }
 
   @Test
   public void testGetSingularName() throws Exception {
-    RepositoryVersionResourceDefinition resourceDefinition = new RepositoryVersionResourceDefinition();
-    Assert.assertEquals("repository_version", resourceDefinition.getSingularName());
+    final ComponentStackVersionResourceDefinition resourceDefinition = new ComponentStackVersionResourceDefinition(null);
+    Assert.assertEquals("stack_version", resourceDefinition.getSingularName());
   }
 
   @Test
   public void testGetSubResourceDefinitions() throws Exception {
-    RepositoryVersionResourceDefinition resourceDefinition = new RepositoryVersionResourceDefinition();
-    Set<SubResourceDefinition> subResourceDefinitions = resourceDefinition.getSubResourceDefinitions ();
-
+    final ComponentStackVersionResourceDefinition resourceDefinition = new ComponentStackVersionResourceDefinition(null);
+    final Set<SubResourceDefinition> subResourceDefinitions = resourceDefinition.getSubResourceDefinitions ();
     Assert.assertEquals(0, subResourceDefinitions.size());
   }
 }

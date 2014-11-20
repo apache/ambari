@@ -69,6 +69,7 @@ public class ClusterResourceDefinition extends BaseResourceDefinition {
     setChildren.add(new SubResourceDefinition(Resource.Type.ClusterPrivilege));
     setChildren.add(new SubResourceDefinition(Resource.Type.AlertDefinition));
     setChildren.add(new SubResourceDefinition(Resource.Type.Alert));
+    setChildren.add(new SubResourceDefinition(Resource.Type.ClusterStackVersion));
 
     return setChildren;
   }

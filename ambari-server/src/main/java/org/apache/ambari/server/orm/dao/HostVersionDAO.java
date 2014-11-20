@@ -22,19 +22,20 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
+
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
-import org.apache.ambari.server.state.UpgradeState;
-
+import org.apache.ambari.server.state.RepositoryVersionState;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
+
 import java.util.List;
 
 /**
  * The {@link org.apache.ambari.server.orm.dao.HostVersionDAO} class manages the {@link org.apache.ambari.server.orm.entities.HostVersionEntity}
- * instances associated with a host. Each host can have multiple stack versions in {@link org.apache.ambari.server.state.UpgradeState#NONE}
- * which are installed, exactly one stack version that is either {@link org.apache.ambari.server.state.UpgradeState#PENDING} or
- * {@link org.apache.ambari.server.state.UpgradeState#IN_PROGRESS}.
+ * instances associated with a host. Each host can have multiple stack versions in {@link org.apache.ambari.server.state.RepositoryVersionState#INSTALLED}
+ * which are installed, exactly one stack version that is either {@link org.apache.ambari.server.state.RepositoryVersionState#CURRENT} or
+ * {@link org.apache.ambari.server.state.RepositoryVersionState.#UPGRADING}.
  */
 @Singleton
 public class HostVersionDAO {
@@ -90,15 +91,30 @@ public class HostVersionDAO {
   }
 
   /**
+   * Retrieve all of the host versions for the given and host name.
+   *
+   * @param hostName FQDN of host
+   * @return Return all of the host versions that match the criteria.
+   */
+  @RequiresSession
+  public List<HostVersionEntity> findByHost(String hostName) {
+    final TypedQuery<HostVersionEntity> query = entityManagerProvider.get()
+        .createNamedQuery("hostVersionByHostname", HostVersionEntity.class);
+    query.setParameter("hostName", hostName);
+
+    return daoUtils.selectList(query);
+  }
+
+  /**
    * Retrieve all of the host versions for the given cluster name, host name, and state.
    *
    * @param clusterName Cluster name
    * @param hostName FQDN of host
-   * @param state Upgrade state
+   * @param state repository version state
    * @return Return all of the host versions that match the criteria.
    */
   @RequiresSession
-  public List<HostVersionEntity> findByClusterHostAndState(String  clusterName, String hostName, UpgradeState state) {
+  public List<HostVersionEntity> findByClusterHostAndState(String  clusterName, String hostName, RepositoryVersionState state) {
     final TypedQuery<HostVersionEntity> query = entityManagerProvider.get()
         .createNamedQuery("hostVersionByClusterHostnameAndState", HostVersionEntity.class);
     query.setParameter("clusterName", clusterName);

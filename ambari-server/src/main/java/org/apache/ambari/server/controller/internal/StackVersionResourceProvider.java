@@ -58,7 +58,7 @@ public class StackVersionResourceProvider extends ReadOnlyResourceProvider {
 
   private static final String STACK_ACTIVE_PROPERTY_ID = PropertyHelper
       .getPropertyId("Versions", "active");
-  
+
   private static final String STACK_CONFIG_TYPES = PropertyHelper
       .getPropertyId("Versions", "config_types");
 
@@ -103,7 +103,7 @@ public class StackVersionResourceProvider extends ReadOnlyResourceProvider {
 
       setResourceProperty(resource, STACK_VERSION_PROPERTY_ID,
           response.getStackVersion(), requestedIds);
-      
+
       setResourceProperty(resource, STACK_MIN_VERSION_PROPERTY_ID,
           response.getMinUpgradeVersion(), requestedIds);
 
@@ -112,7 +112,7 @@ public class StackVersionResourceProvider extends ReadOnlyResourceProvider {
 
       setResourceProperty(resource, STACK_PARENT_PROPERTY_ID,
         response.getParentVersion(), requestedIds);
-      
+
       setResourceProperty(resource, STACK_CONFIG_TYPES,
           response.getConfigTypes(), requestedIds);
 
@@ -127,7 +127,7 @@ public class StackVersionResourceProvider extends ReadOnlyResourceProvider {
         (String) properties.get(STACK_NAME_PROPERTY_ID),
         (String) properties.get(STACK_VERSION_PROPERTY_ID));
   }
-  
+
   @Override
   protected Set<String> getPKPropertyIds() {
     return pkPropertyIds;

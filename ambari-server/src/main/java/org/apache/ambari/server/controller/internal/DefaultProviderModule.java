@@ -100,6 +100,10 @@ public class DefaultProviderModule extends AbstractProviderModule {
         return new UpgradeResourceProvider(managementController);
       case UpgradeItem:
         return new UpgradeItemResourceProvider(managementController);
+      case ClusterStackVersion:
+        return new ClusterStackVersionResourceProvider();
+      case HostStackVersion:
+        return new HostStackVersionResourceProvider();
 
       default:
         return AbstractControllerResourceProvider.getResourceProvider(type, propertyIds,

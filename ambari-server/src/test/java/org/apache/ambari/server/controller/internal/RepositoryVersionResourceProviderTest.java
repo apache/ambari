@@ -50,7 +50,6 @@ import org.mockito.stubbing.Answer;
 
 import com.google.common.collect.Sets;
 import com.google.gson.Gson;
-import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
@@ -69,7 +68,7 @@ public class RepositoryVersionResourceProviderTest {
   public void before() throws Exception {
     final Set<String> validVersions = Sets.newHashSet("1.1", "1.1-17", "1.1.1.1", "1.1.343432.2", "1.1.343432.2-234234324");
     final AmbariMetaInfo ambariMetaInfo = Mockito.mock(AmbariMetaInfo.class);
-    final AbstractModule injectorModule = new InMemoryDefaultTestModule() {
+    final InMemoryDefaultTestModule injectorModule = new InMemoryDefaultTestModule() {
       protected void configure() {
         super.configure();
         bind(AmbariMetaInfo.class).toInstance(ambariMetaInfo);
@@ -136,7 +135,7 @@ public class RepositoryVersionResourceProviderTest {
 
   @Test
   public void testCreateResources() throws Exception {
-    final ResourceProvider provider = injector.getInstance(ResourceProviderFactory.class).getRepositoryVersionProvider();
+    final ResourceProvider provider = injector.getInstance(ResourceProviderFactory.class).getRepositoryVersionResourceProvider();
 
     final Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
     final Map<String, Object> properties = new LinkedHashMap<String, Object>();
@@ -158,7 +157,7 @@ public class RepositoryVersionResourceProviderTest {
 
   @Test
   public void testGetResources() throws Exception {
-    final ResourceProvider provider = injector.getInstance(ResourceProviderFactory.class).getRepositoryVersionProvider();
+    final ResourceProvider provider = injector.getInstance(ResourceProviderFactory.class).getRepositoryVersionResourceProvider();
     final RepositoryVersionDAO repositoryVersionDAO = injector.getInstance(RepositoryVersionDAO.class);
     final RepositoryVersionEntity entity = new RepositoryVersionEntity();
     entity.setDisplayName("name");
@@ -178,7 +177,7 @@ public class RepositoryVersionResourceProviderTest {
   @Test
   public void testValidateRepositoryVersion() throws Exception {
     final RepositoryVersionResourceProvider provider = (RepositoryVersionResourceProvider)
-        injector.getInstance(ResourceProviderFactory.class).getRepositoryVersionProvider();
+        injector.getInstance(ResourceProviderFactory.class).getRepositoryVersionResourceProvider();
 
     final RepositoryVersionEntity entity = new RepositoryVersionEntity();
     entity.setDisplayName("name");
@@ -237,7 +236,7 @@ public class RepositoryVersionResourceProviderTest {
 
   @Test
   public void testDeleteResources() throws Exception {
-    final ResourceProvider provider = injector.getInstance(ResourceProviderFactory.class).getRepositoryVersionProvider();
+    final ResourceProvider provider = injector.getInstance(ResourceProviderFactory.class).getRepositoryVersionResourceProvider();
 
     final Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
     final Map<String, Object> properties = new LinkedHashMap<String, Object>();
@@ -264,7 +263,7 @@ public class RepositoryVersionResourceProviderTest {
 
   @Test
   public void testUpdateResources() throws Exception {
-    final ResourceProvider provider = injector.getInstance(ResourceProviderFactory.class).getRepositoryVersionProvider();
+    final ResourceProvider provider = injector.getInstance(ResourceProviderFactory.class).getRepositoryVersionResourceProvider();
 
     final Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
     final Map<String, Object> properties = new LinkedHashMap<String, Object>();

@@ -54,5 +54,5 @@ public interface ResourceProviderFactory {
       AmbariManagementController managementController);
 
   @Named("repositoryVersion")
-  ResourceProvider getRepositoryVersionProvider();
+  ResourceProvider getRepositoryVersionResourceProvider();
 }
