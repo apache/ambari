@@ -63,16 +63,17 @@
         <span class="cluster-installation-progress-label" ng-show="cluster.Clusters.provisioning_state == 'INIT'"><a href="/#/">Cluster creation in progress...</a></span>
       </div>
 
-      <ul class="nav nav-pills nav-stacked">
-        <li ng-class="{active: isActive('stackVersions.list')}">
-          <a href="#/stackVersions">Versions</a>
-        </li>
-      </ul>
+
       <div ng-hide="cluster">
         <ul class="nav nav-pills nav-stacked">
           <li><p class="noclusters">No clusters</p></li>
         </ul>
       </div>
+      <ul class="nav nav-pills nav-stacked">
+        <li ng-class="{active: isActive('stackVersions.list')}">
+          <a href="#/stackVersions">Versions</a>
+        </li>
+      </ul>
     </div>
   </div>
 

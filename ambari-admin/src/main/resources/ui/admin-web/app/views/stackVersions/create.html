@@ -1,0 +1,97 @@
+<!--
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+-->
+
+<ol class="breadcrumb">
+  <li><a href="#/clusters/{{clusterName}}/stackversions">Versions</a></li>
+  <li class="active">Register Version</li>
+</ol>
+<hr>
+<form class="form-horizontal register-version-form" role="form" name="form-registerVersionForm" novalidate>
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <h3 class="panel-title">Details</h3>
+    </div>
+    <div class="panel-body">
+      <div class="form-group">
+        <div class="col-sm-3"><label class="control-label">Stack</label></div>
+        <div class="col-sm-3">
+          <select class="form-control"
+                  ng-model="upgradeStack.value"
+                  ng-options="o as o for o in upgradeStack.options"
+            ></select>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="col-sm-3"><label class="control-label">Upgrade Pack</label></div>
+        <div class="col-sm-3">
+          <select class="form-control"
+            ng-model="upgradePack.value"
+            ng-options="o as o for o in upgradePack.options"
+          ></select>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="col-sm-3"><label for="" class="control-label">Version Name</label></div>
+        <div class="col-sm-3"><input type="text" class="form-control" placeholder="Version Name"></div>
+      </div>
+    </div>
+  </div>
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <h3 class="panel-title">Repositories</h3>
+    </div>
+    <div class="panel-body ">
+      <div class="alert alert-info" role="alert">
+        Provide Base URLs for the Operating Systems you are configuring. Uncheck all other Operating Systems.
+      </div>
+      <div class="border-bottom bottom-margin clearfix">
+        <div class="col-sm-3"><h5><label>OS</label></h5></div>
+        <div class="col-sm-3"><h5><label>Name</label></h5></div>
+        <div class="col-sm-6"><h5><label>Base URL</label></h5></div>
+      </div>
+      <div class="clearfix border-bottom bottom-margin" ng-repeat="repository in repositories">
+        <div class="col-sm-3">
+          <div class="checkbox">
+            <label>
+              <input type="checkbox" ng-model="repository.selected"> {{repository.os}}
+            </label>
+          </div>
+        </div>
+        <div class="col-sm-9">
+          <div class="form-group" ng-repeat="package in repository.packages">
+            <div class="col-sm-4"><label class="control-label">{{package.label}}</label></div>
+            <div class="col-sm-8"><input type="text" class="form-control" ng-model="package.value"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearfix">
+        <div class="col-sm-12">
+          <div class="checkbox">
+            <label>
+              <input type="checkbox" ng-model="repository.selected"> Skip Repository Base URL validation (Advanced) <span class="glyphicon glyphicon-question-sign" tooltip="Tooltip text"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-12">
+    <button class="btn btn-primary pull-right left-margin">Save</button>
+    <button class="btn btn-default pull-right">Cancel</button>
+  </div>
+</form>

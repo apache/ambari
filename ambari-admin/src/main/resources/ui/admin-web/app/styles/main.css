@@ -338,6 +338,9 @@ a.gotoinstance{
   box-shadow: none;
   border-radius: 0;
 }
+.border-bottom {
+  border-bottom: 1px solid #ebebeb;
+}
 
 .views-list-table .panel-group .panel:nth-child(even) .panel-heading{
   background: #f9f9f9;
@@ -471,7 +474,7 @@ a.gotoinstance{
   margin-left: 10px;
 }
 
-.create-view-form{
+.create-view-form, .register-version-form{
   padding-bottom: 50px;
 }
 
