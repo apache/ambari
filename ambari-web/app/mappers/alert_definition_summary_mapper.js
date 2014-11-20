@@ -23,13 +23,7 @@ App.alertDefinitionSummaryMapper = App.QuickDataMapper.create({
 
   map: function(data) {
     if (!data.alerts_summary_grouped) return;
-    var alertDefinitions = Array.prototype.concat.call(
-      Array.prototype, App.PortAlertDefinition.find().toArray(),
-      App.MetricsAlertDefinition.find().toArray(),
-      App.WebAlertDefinition.find().toArray(),
-      App.AggregateAlertDefinition.find().toArray(),
-      App.ScriptAlertDefinition.find().toArray()
-    );
+    var alertDefinitions = App.AlertDefinition.getAllDefinitions();
     data.alerts_summary_grouped.forEach(function(alertDefinitionSummary) {
       var alertDefinition = alertDefinitions.findProperty('id', alertDefinitionSummary.definition_id);
       if (alertDefinition) {

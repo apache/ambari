@@ -174,10 +174,12 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
         })
       }),
       App.AlertConfigProperties.Metrics.create({
-        value: alertDefinition.get('jmx.propertyList') ? alertDefinition.get('jmx.propertyList').join('\n') : alertDefinition.get('ganglia.propertyList').join('\n')
+        value: alertDefinition.get('jmx.propertyList') ? alertDefinition.get('jmx.propertyList').join(',\n') : alertDefinition.get('ganglia.propertyList').join(',\n'),
+        isJMXMetric: !!alertDefinition.get('jmx.propertyList')
       }),
       App.AlertConfigProperties.FormatString.create({
-        value: alertDefinition.get('jmx.value') ? alertDefinition.get('jmx.value') : alertDefinition.get('ganglia.value')
+        value: alertDefinition.get('jmx.value') ? alertDefinition.get('jmx.value') : alertDefinition.get('ganglia.value'),
+        isJMXMetric: !!alertDefinition.get('jmx.value')
       })
     ];
   },
@@ -306,9 +308,49 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
    * Save edit configs button handler
    */
   saveConfigs: function () {
-    //todo: write logic for saving alert definition properties to server
     this.get('configs').setEach('isDisabled', true);
     this.set('canEdit', false);
+
+    var propertiesToUpdate = this.getPropertiesToUpdate();
+
+    App.ajax.send({
+      name: 'alerts.update_alert_definition',
+      sender: this,
+      data: {
+        id: this.get('content.id'),
+        data: propertiesToUpdate
+      }
+    });
+  },
+
+  /**
+   * Create object with new values to put it on server
+   * @returns {Object}
+   */
+  getPropertiesToUpdate: function () {
+    var propertiesToUpdate = {};
+    this.get('configs').filterProperty('wasChanged').forEach(function (property) {
+      if (property.get('apiProperty').contains('source.')) {
+        if (!propertiesToUpdate['AlertDefinition/source']) {
+          propertiesToUpdate['AlertDefinition/source'] = this.get('content.rawSourceData');
+        }
+
+        var sourcePath = propertiesToUpdate['AlertDefinition/source'];
+        property.get('apiProperty').replace('source.', '').split('.').forEach(function (path, index, array) {
+          // check if it is last path
+          if (array.length - index === 1) {
+            sourcePath[path] = property.get('apiFormattedValue');
+          } else {
+            sourcePath = sourcePath[path];
+          }
+        });
+
+      } else {
+        propertiesToUpdate['AlertDefinition/' + property.get('apiProperty')] = property.get('apiFormattedValue');
+      }
+    }, this);
+
+    return propertiesToUpdate;
   }
 
 });

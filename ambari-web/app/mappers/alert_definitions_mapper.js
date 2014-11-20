@@ -74,21 +74,16 @@ App.alertDefinitionsMapper = App.QuickDataMapper.create({
     if (json && json.items) {
 
       var portAlertDefinitions = [],
-        metricsAlertDefinitions = [],
-        webAlertDefinitions = [],
-        aggregateAlertDefinitions = [],
-        scriptAlertDefinitions = [],
-        alertReportDefinitions = [],
-        alertMetricsSourceDefinitions = [],
-        alertMetricsUriDefinitions = [],
-        alertGroupsMap = App.cache['previousAlertGroupsMap'],
-        alertDefinitions = Array.prototype.concat.call(
-          Array.prototype, App.PortAlertDefinition.find().toArray(),
-          App.MetricsAlertDefinition.find().toArray(),
-          App.WebAlertDefinition.find().toArray(),
-          App.AggregateAlertDefinition.find().toArray(),
-          App.ScriptAlertDefinition.find().toArray()
-        );
+          metricsAlertDefinitions = [],
+          webAlertDefinitions = [],
+          aggregateAlertDefinitions = [],
+          scriptAlertDefinitions = [],
+          alertReportDefinitions = [],
+          alertMetricsSourceDefinitions = [],
+          alertMetricsUriDefinitions = [],
+          alertGroupsMap = App.cache['previousAlertGroupsMap'],
+          alertDefinitions = App.AlertDefinition.getAllDefinitions(),
+          rawSourceData = {};
 
       json.items.forEach(function (item) {
         var convertedReportDefinitions = [];
@@ -106,6 +101,9 @@ App.alertDefinitionsMapper = App.QuickDataMapper.create({
 
         alertReportDefinitions = alertReportDefinitions.concat(convertedReportDefinitions);
         item.reporting = convertedReportDefinitions;
+
+        rawSourceData[item.AlertDefinition.id] = item.AlertDefinition.source;
+
         var alertDefinition = this.parseIt(item, this.get('config'));
 
         if (alertGroupsMap[alertDefinition.id]) {
@@ -179,8 +177,9 @@ App.alertDefinitionsMapper = App.QuickDataMapper.create({
       App.store.loadMany(this.get('webModel'), webAlertDefinitions);
       App.store.loadMany(this.get('aggregateModel'), aggregateAlertDefinitions);
       App.store.loadMany(this.get('scriptModel'), scriptAlertDefinitions);
+      this.setAlertDefinitionsRawSourceData(rawSourceData);
       if (App.router.get('mainAlertDefinitionsController')) {
-         App.router.set('mainAlertDefinitionsController.mapperTimestamp', (new Date()).getTime());
+        App.router.set('mainAlertDefinitionsController.mapperTimestamp', (new Date()).getTime());
       }
     }
   },
@@ -194,5 +193,16 @@ App.alertDefinitionsMapper = App.QuickDataMapper.create({
     data.forEach(function (record) {
       model.find().findProperty('id', record.id).set('propertyList', record.property_list);
     });
+  },
+
+  /**
+   * set rawSourceDate properties for <code>App.AlertDefinition</code> records
+   * @param rawSourceData
+   */
+  setAlertDefinitionsRawSourceData: function (rawSourceData) {
+    var allDefinitions = App.AlertDefinition.getAllDefinitions();
+    for (var alertDefinitionId in rawSourceData) {
+      allDefinitions.findProperty('id', +alertDefinitionId).set('rawSourceData', rawSourceData[alertDefinitionId]);
+    }
   }
 });

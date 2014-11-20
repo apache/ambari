@@ -42,11 +42,7 @@ App.MainAlertDefinitionsController = Em.ArrayController.extend({
    * @type {App.AlertDefinition[]}
    */
   content: function() {
-    return Array.prototype.concat.call(Array.prototype, App.PortAlertDefinition.find().toArray(),
-      App.MetricsAlertDefinition.find().toArray(),
-      App.WebAlertDefinition.find().toArray(),
-      App.AggregateAlertDefinition.find().toArray(),
-      App.ScriptAlertDefinition.find().toArray());
+    return App.AlertDefinition.getAllDefinitions();
   }.property('mapperTimestamp'),
 
   /**

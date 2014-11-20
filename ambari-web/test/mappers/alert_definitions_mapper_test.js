@@ -210,6 +210,7 @@ describe('App.alertDefinitionsMapper', function () {
       App.cache['previousAlertGroupsMap'] = {};
 
       sinon.stub(App.alertDefinitionsMapper, 'setMetricsSourcePropertyLists', Em.K);
+      sinon.stub(App.alertDefinitionsMapper, 'setAlertDefinitionsRawSourceData', Em.K);
 
     });
 
@@ -242,6 +243,7 @@ describe('App.alertDefinitionsMapper', function () {
       App.cache['previousAlertGroupsMap'] = {};
 
       App.alertDefinitionsMapper.setMetricsSourcePropertyLists.restore();
+      App.alertDefinitionsMapper.setAlertDefinitionsRawSourceData.restore();
 
     });
 

@@ -163,7 +163,7 @@ describe('App.MainAlertDefinitionConfigsController', function () {
       expect(result.someProperty('value', 60)).to.be.true;
       expect(result.someProperty('value', '10-20')).to.be.true;
       expect(result.someProperty('value', '{\"http\":\"{{mapred-site/mapreduce.jobhistory.webapp.address}}\",\"https\":\"{{mapred-site/mapreduce.jobhistory.webapp.https.address}}\"}')).to.be.true;
-      expect(result.someProperty('value', 'property1\nproperty2')).to.be.true;
+      expect(result.someProperty('value', 'property1,\nproperty2')).to.be.true;
       expect(result.someProperty('value', 'jmxValue')).to.be.true;
     });
 
@@ -297,6 +297,14 @@ describe('App.MainAlertDefinitionConfigsController', function () {
 
   describe('#saveConfigs()', function () {
 
+    beforeEach(function () {
+      sinon.spy(App.ajax, 'send');
+    });
+
+    afterEach(function () {
+      App.ajax.send.restore();
+    });
+
     it('should set previousValue, isDisabled for each config and change canEdit flag', function () {
 
       controller.set('configs', [
@@ -311,8 +319,90 @@ describe('App.MainAlertDefinitionConfigsController', function () {
 
       expect(controller.get('configs').someProperty('isDisabled', false)).to.be.false;
       expect(controller.get('canEdit')).to.be.false;
+      expect(App.ajax.send.calledOnce).to.be.true;
     });
 
   });
 
-});
+  describe('#getPropertiesToUpdate()', function () {
+
+    beforeEach(function () {
+      controller.set('content', {
+        rawSourceData: {
+          path1: 'value',
+          path2: {
+            path3: 'value'
+          }
+        }
+      });
+    });
+
+    var testCases = [
+      {
+        m: 'should ignore configs with wasChanged false',
+        configs: [
+          Em.Object.create({
+            wasChanged: false,
+            apiProperty: 'name1',
+            apiFormattedValue: 'test1'
+          }),
+          Em.Object.create({
+            wasChanged: true,
+            apiProperty: 'name2',
+            apiFormattedValue: 'test2'
+          }),
+          Em.Object.create({
+            wasChanged: false,
+            apiProperty: 'name3',
+            apiFormattedValue: 'test3'
+          })
+        ],
+        result: {
+          'AlertDefinition/name2': 'test2'
+        }
+      },
+      {
+        m: 'should correctly map deep source properties',
+        configs: [
+          Em.Object.create({
+            wasChanged: true,
+            apiProperty: 'name1',
+            apiFormattedValue: 'test1'
+          }),
+          Em.Object.create({
+            wasChanged: true,
+            apiProperty: 'source.path1',
+            apiFormattedValue: 'value1'
+          }),
+          Em.Object.create({
+            wasChanged: true,
+            apiProperty: 'source.path2.path3',
+            apiFormattedValue: 'value2'
+          })
+        ],
+        result: {
+          'AlertDefinition/name1': 'test1',
+          'AlertDefinition/source': {
+            path1: 'value1',
+            path2: {
+              path3: 'value2'
+            }
+          }
+        }
+      }
+    ];
+
+    testCases.forEach(function (testCase) {
+
+      it(testCase.m, function () {
+
+        controller.set('configs', testCase.configs);
+        var result = controller.getPropertiesToUpdate();
+
+        expect(result).to.eql(testCase.result);
+      });
+    });
+  });
+
+})
+;

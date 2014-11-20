@@ -70,6 +70,36 @@ App.AlertConfigProperty = Ember.Object.extend({
   classNames: '',
 
   /**
+   * name of property related to config
+   * @type {String}
+   */
+  apiProperty: '',
+
+  /**
+   * for some metrics properties may be set true or false
+   * depending on what property is related to (JMX or Ganglia)
+   */
+  isJMXMetric: null,
+
+  /**
+   * value converted to appropriate format for sending to server
+   * should be computed property
+   * should be defined in child class
+   * @type {*}
+   */
+  apiFormattedValue: function () {
+    return this.get('value');
+  }.property('value'),
+
+  /**
+   * define if property was changed by user
+   * @type {Boolean}
+   */
+  wasChanged: function () {
+    return this.get('previousValue') !== null && this.get('value') !== this.get('previousValue');
+  }.property('value', 'previousValue'),
+
+  /**
    * view class according to <code>displayType</code>
    * @type {Em.View}
    */
@@ -96,35 +126,52 @@ App.AlertConfigProperties = {
   AlertName: App.AlertConfigProperty.extend({
     label: 'Alert Name',
     displayType: 'textField',
-    classNames: 'alert-text-input'
+    classNames: 'alert-text-input',
+    apiProperty: 'name'
   }),
   AlertNameSelected: App.AlertConfigProperty.extend({
     label: 'Alert Name',
-    displayType: 'select'
+    displayType: 'select',
+    apiProperty: 'name'
   }),
   Service: App.AlertConfigProperty.extend({
     label: 'Service',
-    displayType: 'select'
+    displayType: 'select',
+    apiProperty: 'service_name',
+    apiFormattedValue: function () {
+      return App.StackService.find().findProperty('displayName', this.get('value')).get('serviceName');
+    }.property('value')
   }),
   Component: App.AlertConfigProperty.extend({
     label: 'Component',
-    displayType: 'select'
+    displayType: 'select',
+    apiProperty: 'component_name',
+    apiFormattedValue: function () {
+      return App.StackServiceComponent.find().findProperty('displayName', this.get('value')).get('componentName');
+    }.property('value')
   }),
   Scope: App.AlertConfigProperty.extend({
     label: 'Scope',
     options: ['Any', 'Host', 'Service'],
-    displayType: 'select'
+    displayType: 'select',
+    apiProperty: 'scope',
+    apiFormattedValue: function () {
+      return this.get('value').toUpperCase();
+    }.property('value')
   }),
   Description: App.AlertConfigProperty.extend({
     label: 'Description',
     displayType: 'textArea',
-    classNames: 'alert-config-text-area'
+    classNames: 'alert-config-text-area',
+    // todo: check value after API will be provided
+    apiProperty: 'description'
   }),
   Interval: App.AlertConfigProperty.extend({
     label: 'Interval',
     displayType: 'textField',
     unit: 'Second',
-    classNames: 'alert-interval-input'
+    classNames: 'alert-interval-input',
+    apiProperty: 'interval'
   }),
   Thresholds: App.AlertConfigProperty.extend({
     label: 'Thresholds',
@@ -133,6 +180,8 @@ App.AlertConfigProperties = {
     from: '',
     to: '',
     value: '',
+    // todo: check value after API will be provided
+    apiProperty: 'thresholds',
 
     setFromTo: function () {
       this.set('doNotChangeValue', true);
@@ -153,35 +202,54 @@ App.AlertConfigProperties = {
   URI: App.AlertConfigProperty.extend({
     label: 'URI',
     displayType: 'textField',
-    classNames: 'alert-text-input'
+    classNames: 'alert-text-input',
+    apiProperty: 'source.uri'
   }),
   URIExtended: App.AlertConfigProperty.extend({
     label: 'URI',
     displayType: 'textArea',
-    classNames: 'alert-config-text-area'
+    classNames: 'alert-config-text-area',
+    apiProperty: 'source.uri',
+    apiFormattedValue: function () {
+      var result = {};
+      try {
+        result = JSON.parse(this.get('value'));
+      } catch (e) {
+        console.error('Wrong format of URI');
+      }
+      return result;
+    }.property('value')
   }),
   DefaultPort: App.AlertConfigProperty.extend({
     label: 'Default Port',
     displayType: 'textField',
-    classNames: 'alert-port-input'
+    classNames: 'alert-port-input',
+    apiProperty: 'source.default_port'
   }),
   Path: App.AlertConfigProperty.extend({
     label: 'Path',
     displayType: 'textField',
-    classNames: 'alert-text-input'
+    classNames: 'alert-text-input',
+    apiProperty: 'source.path'
   }),
   Metrics: App.AlertConfigProperty.extend({
     label: 'JMX/Ganglia Metrics',
     displayType: 'textArea',
-    classNames: 'alert-config-text-area'
+    classNames: 'alert-config-text-area',
+    apiProperty: function () {
+      return this.get('isJMXMetric') ? 'source.jmx.property_list' : 'source.ganglia.property_list'
+    }.property('isJMXMetric'),
+    apiFormattedValue: function () {
+      return this.get('value').split(',\n');
+    }.property('value')
   }),
   FormatString: App.AlertConfigProperty.extend({
     label: 'Format String',
     displayType: 'textArea',
-    classNames: 'alert-config-text-area'
+    classNames: 'alert-config-text-area',
+    apiProperty: function () {
+      return this.get('isJMXMetric') ? 'source.jmx.value' : 'source.ganglia.value'
+    }.property('isJMXMetric')
   })
 
 };
-
-
-

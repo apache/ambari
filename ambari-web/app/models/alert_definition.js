@@ -34,6 +34,13 @@ App.AlertDefinition = DS.Model.extend({
   lastTriggered: DS.attr('number'),
 
   /**
+   * Raw data from AlertDefinition/source
+   * used to format request content for updating alert definition
+   * @type {Object}
+   */
+  rawSourceData: {},
+
+  /**
    * Counts of alert grouped by their status
    * Format:
    * <code>
@@ -93,6 +100,20 @@ App.AlertDefinition = DS.Model.extend({
   description: 'Description for the Alert Definition.',
   // todo: in future be mapped from server response
   thresholds: '5-10'
+});
+
+App.AlertDefinition.reopenClass({
+
+  getAllDefinitions: function () {
+    return Array.prototype.concat.call(
+        Array.prototype, App.PortAlertDefinition.find().toArray(),
+        App.MetricsAlertDefinition.find().toArray(),
+        App.WebAlertDefinition.find().toArray(),
+        App.AggregateAlertDefinition.find().toArray(),
+        App.ScriptAlertDefinition.find().toArray()
+    )
+  }
+
 });
 
 App.AlertReportDefinition = DS.Model.extend({
