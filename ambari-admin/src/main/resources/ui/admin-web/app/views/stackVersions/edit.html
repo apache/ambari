@@ -1,0 +1,118 @@
+<!--
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+-->
+
+<div class="clearfix">
+  <ol class="breadcrumb pull-left">
+    <li><a href="#/stackVersions">Versions</a></li>
+    <li class="active">{{stackVersion.version}}</li>
+  </ol>
+  <div class="pull-right top-margin-4" ng-switch="deleteEnabled">
+    <button ng-switch-when="false" class="btn disabled btn-default" tooltip="Cannot Delete Static Instances">Deregister
+      Version
+    </button>
+    <button ng-switch-when="true" class="btn btn-danger" ng-click="deleteInstance(stackVersion)">Deregister Version
+    </button>
+  </div>
+</div>
+<hr>
+<form class="form-horizontal edit-version-form" role="form" name="form-editVersionForm" novalidate>
+  <div class="panel panel-default">
+    <div class="panel-heading clearfix">
+      <h3 class="panel-title pull-left">Details</h3>
+      <div class="pull-right" ng-switch="editVersionDisabled">
+        <a href ng-switch-when="true" ng-click="toggleVersionEdit()" ng-show="editVersionDisabled" class="settings-edit-toggle"> <span class="glyphicon glyphicon-pencil" ></span> Edit</a>
+        <span ng-switch-when="false"> <span class="glyphicon glyphicon-pencil" ></span> Edit</span>
+      </div>
+    </div>
+    <div class="panel-body">
+      <div class="form-group">
+        <div class="col-sm-3"><label class="control-label">Stack</label></div>
+        <div class="col-sm-9">{{stackVersion.stack}}</div>
+      </div>
+      <div class="form-group">
+        <div class="col-sm-3"><label class="control-label">Upgrade Pack</label></div>
+        <div class="col-sm-9">{{stackVersion.upgrade_pack}}</div>
+      </div>
+      <div class="form-group">
+        <div class="col-sm-3"><label class="control-label">Version Name</label></div>
+        <div class="col-sm-3"><input type="text" class="form-control" placeholder="Version Name" ng-model="stackVersion.display_name" ng-disabled="editVersionDisabled"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <h3 class="panel-title">Clusters</h3>
+    </div>
+    <div class="panel-body">
+      <div ng-repeat="cluster in stackVersion.deployment_info">
+        <div class="col-sm-4">
+          <a href>
+            <i class="glyphicon glyphicon-cloud"></i>
+            {{cluster.cluster}}
+          </a>&nbsp;
+          <button type="button" class="btn btn-default">{{cluster.status}}</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <h3 class="panel-title">Repositories</h3>
+    </div>
+    <div class="panel-body ">
+      <div class="alert alert-info" role="alert">
+        Provide Base URLs for the Operating Systems you are configuring. Uncheck all other Operating Systems.
+      </div>
+      <div class="border-bottom bottom-margin clearfix">
+        <div class="col-sm-3"><h5><label>OS</label></h5></div>
+        <div class="col-sm-3"><h5><label>Name</label></h5></div>
+        <div class="col-sm-6"><h5><label>Base URL</label></h5></div>
+      </div>
+      <div class="clearfix border-bottom bottom-margin" ng-repeat="repository in stackVersion.repositories">
+        <div class="col-sm-3">
+          <div class="checkbox">
+            <label>
+              <input type="checkbox" ng-model="repository.selected"> {{repository.os}}
+            </label>
+          </div>
+        </div>
+        <div class="col-sm-9">
+          <div class="form-group" ng-repeat="baseUrl in repository.baseurls">
+            <div class="col-sm-4"><label class="control-label">{{baseUrl.type}}</label></div>
+            <div class="col-sm-8"><input type="text" class="form-control" ng-model="baseUrl.baseurl"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearfix">
+        <div class="col-sm-12">
+          <div class="checkbox">
+            <label>
+              <input type="checkbox" ng-model="skipValidation"> Skip Repository Base URL validation (Advanced) <span class="glyphicon glyphicon-question-sign" tooltip="Tooltip text"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-12">
+    <button class="btn btn-primary pull-right left-margin" ng-click="save()">Save</button>
+    <button class="btn btn-default pull-right" ng-click="cancel()">Cancel</button>
+  </div>
+</form>

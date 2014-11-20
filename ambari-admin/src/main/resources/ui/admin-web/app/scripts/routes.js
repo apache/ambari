@@ -90,6 +90,11 @@ angular.module('ambariAdminConsole')
       url: '/stackVersions/create',
       templateUrl: 'views/stackVersions/create.html',
       controller: 'StackVersionsCreateCtrl'
+    },
+    edit: {
+      url: '/stackVersions/:versionId/edit',
+      templateUrl: 'views/stackVersions/edit.html',
+      controller: 'StackVersionsEditCtrl'
     }
   },
   clusters: {

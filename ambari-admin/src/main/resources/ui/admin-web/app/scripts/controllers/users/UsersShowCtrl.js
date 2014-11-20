@@ -126,7 +126,7 @@ angular.module('ambariAdminConsole')
       })
       .catch(function() {
         $scope.user.active = !$scope.user.active;
-      });;
+      });
     }
   };    
   $scope.toggleUserAdmin = function() {
@@ -145,7 +145,7 @@ angular.module('ambariAdminConsole')
       })
       .catch(function() {
         $scope.user.admin = !$scope.user.admin;
-      });;
+      });
         
     }
   };    

@@ -87,6 +87,122 @@ angular.module('ambariAdminConsole')
 
       deferred.resolve(parse(mockData));
       return deferred.promise;
+    },
+    get: function (version) {
+      var deferred = $q.defer();
+      var mockData = {
+        "RepositoryVersion": {
+          "id": "1",
+          "display_name": "HDP 2.2.0.1",
+          "stack": "HDP-2.2",
+          "version": "2.2.0.1-885",
+          "upgrade_pack": "pack1",
+          "repositories": [
+            {
+              "os": "redhat6",
+              "baseurls": [
+                {
+                  "id": "HDP-2.2.0.1-885",
+                  "type": "HDP",
+                  "baseurl": "http://host1/hdp"
+                },
+                {
+                  "id": "HDP-UTILS-1.0.0.20",
+                  "type": "HDP-UTILS",
+                  "baseurl": "http://host1/hdp-utils"
+                }
+              ]
+            }
+          ],
+          "deployment_info": [
+            {
+              "cluster": "myCluster",
+              "status": "CURRENT",
+              "totalHostCount": 100,
+              "hosts": ["host1", "host2"]
+            },
+            {
+              "cluster": "anotherCluster",
+              "status": "INSTALLED",
+              "totalHostCount": 100,
+              "hosts": ["host1", "host2"]
+            }
+          ]
+        }
+      };
+
+      deferred.resolve(mockData.RepositoryVersion);
+      return deferred.promise;
+    },
+    getStackRepositories: function () {
+      var deferred = $q.defer();
+      var mockData = {
+        "repositories": [
+          {
+            "os": "redhat5",
+            "baseurls": [
+              {
+                "id": "HDP-2.2.0.1-885",
+                "type": "HDP",
+                "baseurl": ""
+              },
+              {
+                "id": "HDP-UTILS-1.0.0.20",
+                "type": "HDP-UTILS",
+                "baseurl": ""
+              }
+            ]
+          },
+          {
+            "os": "redhat6",
+            "baseurls": [
+              {
+                "id": "HDP-2.2.0.1-885",
+                "type": "HDP",
+                "baseurl": ""
+              },
+              {
+                "id": "HDP-UTILS-1.0.0.20",
+                "type": "HDP-UTILS",
+                "baseurl": ""
+              }
+            ]
+          },
+          {
+            "os": "sles11",
+            "baseurls": [
+              {
+                "id": "HDP-2.2.0.1-885",
+                "type": "HDP",
+                "baseurl": ""
+              },
+              {
+                "id": "HDP-UTILS-1.0.0.20",
+                "type": "HDP-UTILS",
+                "baseurl": ""
+              }
+            ]
+          },
+          {
+            "os": "ubuntu12",
+            "baseurls": [
+              {
+                "id": "HDP-2.2.0.1-885",
+                "type": "HDP",
+                "baseurl": ""
+              },
+              {
+                "id": "HDP-UTILS-1.0.0.20",
+                "type": "HDP-UTILS",
+                "baseurl": ""
+              }
+            ]
+          }
+        ]
+      };
+
+      deferred.resolve(mockData.repositories);
+      return deferred.promise;
     }
   };
 }]);

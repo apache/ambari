@@ -474,7 +474,7 @@ a.gotoinstance{
   margin-left: 10px;
 }
 
-.create-view-form, .register-version-form{
+.create-view-form, .register-version-form, .edit-version-form {
   padding-bottom: 50px;
 }
 

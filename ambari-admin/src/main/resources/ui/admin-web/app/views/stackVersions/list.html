@@ -56,9 +56,10 @@
     <tbody>
     <tr ng-repeat="stack in stacks">
       <td class="col-small">{{stack.name}}</td>
-      <td class="col-medium"><a href>{{stack.version}}</a></td>
+      <td class="col-medium"><a href="#/stackVersions/{{stack.version}}/edit">{{stack.version}}</a></td>
       <td class="col-small">
         <a href ng-show="stack.cluster">
+          <i class="glyphicon glyphicon-cloud"></i>
           {{stack.cluster}}
         </a>
         <span ng-show="!stack.cluster">None</span>
