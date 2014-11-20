@@ -95,6 +95,10 @@ public class ActionExecutionContext {
     return timeout;
   }
 
+  public void setTimeout(Short timeout) {
+    this.timeout = timeout;
+  }
+
   public List<RequestResourceFilter> getResourceFilters() {
     return resourceFilters;
   }

@@ -49,4 +49,13 @@
     <description>Distribute repositories and install packages</description>
     <targetType>ALL</targetType>
   </actionDefinition>
+  <actionDefinition>
+    <actionName>ru_execute_tasks</actionName>
+    <actionType>SYSTEM</actionType>
+    <inputs>tasks</inputs>
+    <targetService/>
+    <targetComponent/>
+    <description>Perform upgrade action</description>
+    <targetType>ANY</targetType>
+  </actionDefinition>
 </actionDefinitions>

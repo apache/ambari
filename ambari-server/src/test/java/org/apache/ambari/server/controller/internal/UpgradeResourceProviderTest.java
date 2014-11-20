@@ -17,22 +17,18 @@
  */
 package org.apache.ambari.server.controller.internal;
 
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.capture;
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.createStrictMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+import org.apache.ambari.server.actionmanager.ActionManager;
+import org.apache.ambari.server.actionmanager.HostRoleCommand;
+import org.apache.ambari.server.actionmanager.RequestStatus;
+import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
@@ -44,21 +40,17 @@ import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
-import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
-import org.easymock.Capture;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.google.inject.Binder;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.google.inject.Module;
 import com.google.inject.persist.PersistService;
-import com.google.inject.util.Modules;
 
 /**
  * UpgradeResourceDefinition tests.
@@ -67,30 +59,57 @@ public class UpgradeResourceProviderTest {
 
   private UpgradeDAO upgradeDao = null;
   private RepositoryVersionDAO repoVersionDao = null;
-  private Injector m_injector;
+  private Injector injector;
+  private Clusters clusters;
 
   @Before
-  public void before() {
-    upgradeDao = createStrictMock(UpgradeDAO.class);
-    repoVersionDao = createStrictMock(RepositoryVersionDAO.class);
+  public void before() throws Exception {
 
-    m_injector = Guice.createInjector(Modules.override(
-        new InMemoryDefaultTestModule()).with(new Module() {
+    injector = Guice.createInjector(new InMemoryDefaultTestModule());
+    injector.getInstance(GuiceJpaInitializer.class);
 
-          @Override
-          public void configure(Binder binder) {
-            // TODO Auto-generated method stub
-            binder.bind(UpgradeDAO.class).toInstance(upgradeDao);
-            binder.bind(RepositoryVersionDAO.class).toInstance(repoVersionDao);
-          }
-        }));
-    m_injector.getInstance(GuiceJpaInitializer.class);
+    upgradeDao = injector.getInstance(UpgradeDAO.class);
+    repoVersionDao = injector.getInstance(RepositoryVersionDAO.class);
+
+    RepositoryVersionEntity repoVersionEntity = new RepositoryVersionEntity();
+    repoVersionEntity.setDisplayName("My New Version");
+    repoVersionEntity.setRepositories("");
+    repoVersionEntity.setStack("HDP-2.1.1");
+    repoVersionEntity.setUpgradePackage("upgrade_test");
+    repoVersionEntity.setVersion("2.2.2.2");
+
+    repoVersionDao.create(repoVersionEntity);
+
+    clusters = injector.getInstance(Clusters.class);
+    clusters.addCluster("c1");
+    Cluster cluster = clusters.getCluster("c1");
+    cluster.setDesiredStackVersion(new StackId("HDP-2.1.1"));
+
+    clusters.addHost("h1");
+    Host host = clusters.getHost("h1");
+    Map<String, String> hostAttributes = new HashMap<String, String>();
+    hostAttributes.put("os_family", "redhat");
+    hostAttributes.put("os_release_version", "6.3");
+    host.setHostAttributes(hostAttributes);
+    host.persist();
+
+    clusters.mapHostToCluster("h1", "c1");
+
+    // add a single ZK server
+    Service service = cluster.addService("ZOOKEEPER");
+    service.setDesiredStackVersion(cluster.getDesiredStackVersion());
+    service.persist();
+
+    ServiceComponent component = service.addServiceComponent("ZOOKEEPER_SERVER");
+    component.addServiceComponentHost("h1");
+
+
   }
 
   @After
   public void after() {
-    m_injector.getInstance(PersistService.class).stop();
-    m_injector = null;
+    injector.getInstance(PersistService.class).stop();
+    injector = null;
   }
 
   /**
@@ -98,23 +117,13 @@ public class UpgradeResourceProviderTest {
    */
   @Test
   public void testCreateResources() throws Exception {
-    AmbariManagementController amc = createMock(AmbariManagementController.class);
-    Clusters clusters = createMock(Clusters.class);
-    Cluster cluster = createCluster();
 
-    expect(amc.getClusters()).andReturn(clusters).atLeastOnce();
-    expect(clusters.getCluster((String) anyObject())).andReturn(cluster).atLeastOnce();
+    Cluster cluster = clusters.getCluster("c1");
 
-    RepositoryVersionEntity repoVersionEntity = new RepositoryVersionEntity();
-    repoVersionEntity.setUpgradePackage("upgrade_test");
+    List<UpgradeEntity> upgrades = upgradeDao.findUpgrades(cluster.getClusterId());
+    assertEquals(0, upgrades.size());
 
-    expect(repoVersionDao.findByStackAndVersion((String)anyObject(),(String)anyObject())).andReturn(repoVersionEntity).atLeastOnce();
-
-    Capture<UpgradeEntity> entityCapture = new Capture<UpgradeEntity>();
-    upgradeDao.create(capture(entityCapture));
-    expectLastCall();
-
-    replay(amc, clusters, cluster, upgradeDao, repoVersionDao);
+    AmbariManagementController amc = injector.getInstance(AmbariManagementController.class);
 
     UpgradeResourceProvider provider = createProvider(amc);
 
@@ -125,17 +134,27 @@ public class UpgradeResourceProviderTest {
     Request request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), null);
     provider.createResources(request);
 
-    assertTrue(entityCapture.hasCaptured());
-    UpgradeEntity entity = entityCapture.getValue();
-    assertNotNull(entity);
-    assertEquals(Long.valueOf(1), entity.getClusterId());
+
+    upgrades = upgradeDao.findUpgrades(cluster.getClusterId());
+    assertEquals(1, upgrades.size());
+
+    UpgradeEntity entity = upgrades.get(0);
+    assertEquals(cluster.getClusterId(), entity.getClusterId().longValue());
     assertEquals(3, entity.getUpgradeItems().size());
 
     assertTrue(entity.getUpgradeItems().get(0).getText().contains("Preparing"));
     assertTrue(entity.getUpgradeItems().get(1).getText().contains("Restarting"));
     assertTrue(entity.getUpgradeItems().get(2).getText().contains("Finalizing"));
 
-    verify(amc, clusters, cluster, upgradeDao);
+    ActionManager am = injector.getInstance(ActionManager.class);
+    List<Long> requests = am.getRequestsByStatus(RequestStatus.IN_PROGRESS, 100, true);
+
+    assertEquals(1, requests.size());
+    List<Stage> stages = am.getRequestStatus(requests.get(0).longValue());
+    assertEquals(3, stages.size());
+
+    List<HostRoleCommand> tasks = am.getRequestTasks(requests.get(0).longValue());
+    assertEquals(3, tasks.size());
   }
 
 
@@ -147,36 +166,5 @@ public class UpgradeResourceProviderTest {
     return new UpgradeResourceProvider(amc);
   }
 
-  private Cluster createCluster() {
-    Cluster cluster = createMock(Cluster.class);
-
-    expect(cluster.getClusterId()).andReturn(Long.valueOf(1)).anyTimes();
-    expect(cluster.getDesiredStackVersion()).andReturn(new StackId("HDP-2.1.1")).atLeastOnce();
-
-    final ServiceComponentHost zk_server_host_comp = createStrictMock(ServiceComponentHost.class);
-    Map<String, ServiceComponentHost> zk_host_comp_map = new HashMap<String, ServiceComponentHost>() {{
-      put("h1", zk_server_host_comp);
-    }};
-
-    final ServiceComponent zk_server_comp = createStrictMock(ServiceComponent.class);
-    expect(zk_server_comp.getServiceComponentHosts()).andReturn(zk_host_comp_map).atLeastOnce();
-
-    Map<String, ServiceComponent> zk_comp_map = new HashMap<String, ServiceComponent>() {{
-      put("ZOOKEEPER_SERVER", zk_server_comp);
-    }};
-
-    final Service zk = createStrictMock(Service.class);
-    expect(zk.getServiceComponents()).andReturn(zk_comp_map).atLeastOnce();
-
-    Map<String, Service> servicesMap = new HashMap<String, Service>() {{
-      put("ZOOKEEPER", zk);
-    }};
-    expect(cluster.getServices()).andReturn(servicesMap).anyTimes();
-
-    replay(zk_server_host_comp, zk_server_comp, zk);
-
-
-    return cluster;
-  }
 
 }

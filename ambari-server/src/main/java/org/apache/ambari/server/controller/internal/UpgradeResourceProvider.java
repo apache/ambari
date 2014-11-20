@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.server.controller.internal;
 
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JDK_LOCATION;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -30,9 +32,13 @@ import java.util.Set;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.actionmanager.ActionManager;
+import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.RequestFactory;
+import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.controller.ActionExecutionContext;
+import org.apache.ambari.server.controller.AmbariActionExecutionHelper;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
@@ -54,9 +60,8 @@ import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.ambari.server.state.stack.UpgradePack.ProcessingComponent;
-import org.apache.ambari.server.state.stack.upgrade.CountBatch;
-import org.apache.ambari.server.state.stack.upgrade.PercentBatch;
 import org.apache.ambari.server.state.stack.upgrade.Task;
+import org.apache.ambari.server.utils.StageUtils;
 
 import com.google.gson.Gson;
 import com.google.inject.Inject;
@@ -85,9 +90,11 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   @Inject
   private static RepositoryVersionDAO m_repoVersionDAO = null;
   @Inject
-  private RequestFactory requestFactory;
+  private static Provider<RequestFactory> requestFactory;
   @Inject
-  private StageFactory stageFactory;
+  private static Provider<StageFactory> stageFactory;
+  @Inject
+  private static Provider<AmbariActionExecutionHelper> actionExecutionHelper;
 
 
   static {
@@ -305,7 +312,6 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       }
     }
 
-
     Gson gson = new Gson();
 
     UpgradeEntity entity = new UpgradeEntity();
@@ -333,11 +339,24 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
     m_upgradeDAO.create(entity);
 
-//    RequestStageContainer req = createRequest();
-//
-//    req.getRequestStatusResponse();
+    RequestStageContainer req = createRequest((String) requestMap.get(UPGRADE_VERSION));
 
-//  TODO req.persist();
+    for (StageHolder holder : preUpgrades) {
+      createUpgradeTaskStage(cluster, req, holder);
+    }
+
+    for (StageHolder holder : restart) {
+      createRestartStage(cluster, req, holder);
+    }
+
+    for (StageHolder holder : postUpgrades) {
+      createUpgradeTaskStage(cluster, req, holder);
+    }
+
+    req.getRequestStatusResponse();
+
+    req.persist();
+
     return entity;
   }
 
@@ -449,32 +468,81 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     private TaskHolder taskHolder;
     private UpgradeItemEntity upgradeItemEntity;
     private Set<String> hosts;
-
-    @Override
-    public String toString() {
-      // TODO Auto-generated method stub
-      return upgradeItemEntity.toString();
-    }
   }
 
 
-  private RequestStageContainer createRequest() {
-
+  private RequestStageContainer createRequest(String version) {
     ActionManager actionManager = getManagementController().getActionManager();
 
     RequestStageContainer requestStages = new RequestStageContainer(
-        actionManager.getNextRequestId(), null, requestFactory, actionManager);
+        actionManager.getNextRequestId(), null, requestFactory.get(), actionManager);
+    requestStages.setRequestContext(String.format("Upgrading to %s", version));
 
-    /*
-    List<Stage> stages = doStageCreation(requestStages, cluster, changedServices, changedComponents,
-        changedHosts, requestParameters, requestProperties,
-        runSmokeTest, reconfigureClients);
-    LOG.debug("Created {} stages", ((stages != null) ? stages.size() : 0));
-
-    requestStages.addStages(stages);
-    updateServiceStates(changedServices, changedComponents, changedHosts, ignoredHosts);
-    */
     return requestStages;
+  }
+
+  /**
+   * Creates a stage and appends it to the request.
+   * @param cluster the cluster
+   * @param request the request container
+   * @param holder the holder
+   * @throws AmbariException
+   */
+  private void createUpgradeTaskStage(Cluster cluster, RequestStageContainer request,
+      StageHolder holder) throws AmbariException {
+
+    Map<String, String> hostLevelParams = new HashMap<String, String>();
+    hostLevelParams.put(JDK_LOCATION, getManagementController().getJdkResourceUrl());
+
+    Stage stage = stageFactory.get().createNew(request.getId().longValue(),
+        "/tmp/ambari",
+        cluster.getClusterName(),
+        cluster.getClusterId(),
+        holder.upgradeItemEntity.getText(),
+        "{}", "{}",
+        StageUtils.getGson().toJson(hostLevelParams));
+
+    long stageId = request.getLastStageId() + 1;
+    if (0L == stageId) {
+      stageId = 1L;
+    }
+
+    stage.setStageId(stageId);
+
+    // add each host to this stage
+    RequestResourceFilter filter = new RequestResourceFilter("", "",
+        new ArrayList<String>(holder.hosts));
+
+    // !!! TODO when the custom action is underway, change this
+    Map<String, String> params = new HashMap<String, String>();
+    params.put("tasks", "TheTaskInfo");
+
+    ActionExecutionContext actionContext = new ActionExecutionContext(
+        cluster.getClusterName(), "ru_execute_tasks",
+        Collections.singletonList(filter),
+        params);
+    actionContext.setTimeout(Short.valueOf((short)60));
+
+    // !!! TODO validate the action is valid
+
+    actionExecutionHelper.get().addExecutionCommandsToStage(actionContext, stage);
+
+    // need to set meaningful text on the command
+    for (Map<String, HostRoleCommand> map : stage.getHostRoleCommands().values()) {
+      for (HostRoleCommand hrc : map.values()) {
+        hrc.setCommandDetail(holder.upgradeItemEntity.getText());
+      }
+    }
+
+    request.addStages(Collections.singletonList(stage));
+  }
+
+  private void createRestartStage(Cluster cluster, RequestStageContainer request,
+      StageHolder holder) throws AmbariException {
+
+    // !!! TODO make a restart command
+    createUpgradeTaskStage(cluster, request, holder);
+
   }
 
 }

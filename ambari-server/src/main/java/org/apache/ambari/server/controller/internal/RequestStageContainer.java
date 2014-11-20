@@ -60,6 +60,8 @@ public class RequestStageContainer {
    */
   private ActionManager actionManager;
 
+  private String requestContext = null;
+
   /**
    * Logger
    */
@@ -120,6 +122,15 @@ public class RequestStageContainer {
   }
 
   /**
+   * Sets the context for the request (optional operation)
+   *
+   * @param context the new context
+   */
+  public void setRequestContext(String context) {
+    requestContext = context;
+  }
+
+  /**
    * Determine the projected state for a host component from the existing stages.
    *
    * @param host       host name
@@ -173,6 +184,11 @@ public class RequestStageContainer {
   public void persist() throws AmbariException {
     if (!stages.isEmpty()) {
       Request request = requestFactory.createNewFromStages(stages);
+
+      if (null != requestContext) {
+        request.setRequestContext(requestContext);
+      }
+
       if (request != null && request.getStages()!= null && !request.getStages().isEmpty()) {
         if (LOG.isDebugEnabled()) {
           LOG.debug(String.format("Triggering Action Manager, request=%s", request));

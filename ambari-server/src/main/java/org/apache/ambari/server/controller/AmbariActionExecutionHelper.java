@@ -48,6 +48,7 @@ import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpInProgressEvent;
 import org.apache.ambari.server.utils.StageUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -335,7 +336,7 @@ public class AmbariActionExecutionHelper {
       Map<String, Map<String, String>> configurations = new TreeMap<String, Map<String, String>>();
       Map<String, Map<String, Map<String, String>>> configurationAttributes = new TreeMap<String, Map<String, Map<String, String>>>();
       Map<String, Map<String, String>> configTags = null;
-      if (!serviceName.isEmpty() && null != cluster) {
+      if (!StringUtils.isEmpty(serviceName) && null != cluster) {
         configTags = managementController.findConfigurationTagsWithOverrides(cluster, hostName);
       }
 
