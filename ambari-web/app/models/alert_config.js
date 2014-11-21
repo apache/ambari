@@ -70,8 +70,11 @@ App.AlertConfigProperty = Ember.Object.extend({
   classNames: '',
 
   /**
-   * name of property related to config
-   * @type {String}
+   * name or names of properties related to config
+   * may be either string for one property or array of strings for multiple properties
+   * if this property is array, then <code>apiFormattedValue</code> should also be an array
+   * example: <code>apiProperty[0]</code> relates to <code>apiFormattedValue[0]</code>
+   * @type {String|Array}
    */
   apiProperty: '',
 
@@ -180,8 +183,6 @@ App.AlertConfigProperties = {
     from: '',
     to: '',
     value: '',
-    // todo: check value after API will be provided
-    apiProperty: 'thresholds',
 
     setFromTo: function () {
       this.set('doNotChangeValue', true);
@@ -197,7 +198,18 @@ App.AlertConfigProperties = {
     }.observes('from', 'to'),
 
     // flag for providing correct from, to and value recomputing
-    doNotChangeValue: false
+    doNotChangeValue: false,
+
+    apiProperty: [
+      'source.reporting.warning.value',
+      'source.reporting.critical.value'
+    ],
+    apiFormattedValue: function () {
+      return [
+          +this.get('from'),
+          +this.get('to')
+      ]
+    }.property('from', 'to')
   }),
   URI: App.AlertConfigProperty.extend({
     label: 'URI',

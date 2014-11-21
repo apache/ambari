@@ -51,6 +51,32 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
   }.property(),
 
   /**
+   * Compute thresholds from value using <code>content.reporting</code>
+   * @type {Number|Null}
+   */
+  thresholdsFrom: function () {
+    var warning = this.get('content.reporting').findProperty('type', 'warning');
+    if (warning && warning.get('value')) {
+      return warning.get('value');
+    } else {
+      return null;
+    }
+  }.property('content.reporting.@each.value'),
+
+  /**
+   * Compute thresholds to value using <code>content.reporting</code>
+   * @type {Number|Null}
+   */
+  thresholdsTo: function () {
+    var critical = this.get('content.reporting').findProperty('type', 'critical');
+    if (critical && critical.get('value')) {
+      return critical.get('value');
+    } else {
+      return null;
+    }
+  }.property('content.reporting.@each.value'),
+
+  /**
    * Change options of "Component", after changing value of "Service" config
    */
   onServiceSelect: function () {
@@ -120,9 +146,9 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
         value: alertDefinition.get('interval')
       }),
       App.AlertConfigProperties.Thresholds.create({
-        value: alertDefinition.get('thresholds'),
-        from: alertDefinition.get('thresholds').split('-')[0],
-        to: alertDefinition.get('thresholds').split('-')[1]
+        value: this.get('thresholdsFrom') + '-' + this.get('thresholdsTo'),
+        from: this.get('thresholdsFrom'),
+        to: this.get('thresholdsTo')
       }),
       App.AlertConfigProperties.URI.create({
         value: alertDefinition.get('uri')
@@ -161,9 +187,9 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
         value: alertDefinition.get('interval')
       }),
       App.AlertConfigProperties.Thresholds.create({
-        value: alertDefinition.get('thresholds'),
-        from: alertDefinition.get('thresholds').split('-')[0],
-        to: alertDefinition.get('thresholds').split('-')[1]
+        value: this.get('thresholdsFrom') + '-' + this.get('thresholdsTo'),
+        from: this.get('thresholdsFrom'),
+        to: this.get('thresholdsTo')
       }),
       App.AlertConfigProperties.URIExtended.create({
         value: JSON.stringify({
@@ -212,9 +238,9 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
         value: alertDefinition.get('interval')
       }),
       App.AlertConfigProperties.Thresholds.create({
-        value: alertDefinition.get('thresholds'),
-        from: alertDefinition.get('thresholds').split('-')[0],
-        to: alertDefinition.get('thresholds').split('-')[1]
+        value: this.get('thresholdsFrom') + '-' + this.get('thresholdsTo'),
+        from: this.get('thresholdsFrom'),
+        to: this.get('thresholdsTo')
       }),
       App.AlertConfigProperties.URIExtended.create({
         value: JSON.stringify({
@@ -255,9 +281,9 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
         value: alertDefinition.get('interval')
       }),
       App.AlertConfigProperties.Thresholds.create({
-        value: alertDefinition.get('thresholds'),
-        from: alertDefinition.get('thresholds').split('-')[0],
-        to: alertDefinition.get('thresholds').split('-')[1]
+        value: this.get('thresholdsFrom') + '-' + this.get('thresholdsTo'),
+        from: this.get('thresholdsFrom'),
+        to: this.get('thresholdsTo')
       }),
       App.AlertConfigProperties.Path.create({
         value: alertDefinition.get('location')
@@ -330,24 +356,32 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
   getPropertiesToUpdate: function () {
     var propertiesToUpdate = {};
     this.get('configs').filterProperty('wasChanged').forEach(function (property) {
-      if (property.get('apiProperty').contains('source.')) {
-        if (!propertiesToUpdate['AlertDefinition/source']) {
-          propertiesToUpdate['AlertDefinition/source'] = this.get('content.rawSourceData');
-        }
-
-        var sourcePath = propertiesToUpdate['AlertDefinition/source'];
-        property.get('apiProperty').replace('source.', '').split('.').forEach(function (path, index, array) {
-          // check if it is last path
-          if (array.length - index === 1) {
-            sourcePath[path] = property.get('apiFormattedValue');
-          } else {
-            sourcePath = sourcePath[path];
-          }
-        });
-
-      } else {
-        propertiesToUpdate['AlertDefinition/' + property.get('apiProperty')] = property.get('apiFormattedValue');
+      var apiProperties = property.get('apiProperty');
+      var apiFormattedValues = property.get('apiFormattedValue');
+      if (!Em.isArray(property.get('apiProperty'))) {
+        apiProperties = [property.get('apiProperty')];
+        apiFormattedValues = [property.get('apiFormattedValue')];
       }
+      apiProperties.forEach(function (apiProperty, i) {
+        if (apiProperty.contains('source.')) {
+          if (!propertiesToUpdate['AlertDefinition/source']) {
+            propertiesToUpdate['AlertDefinition/source'] = this.get('content.rawSourceData');
+          }
+
+          var sourcePath = propertiesToUpdate['AlertDefinition/source'];
+          apiProperty.replace('source.', '').split('.').forEach(function (path, index, array) {
+            // check if it is last path
+            if (array.length - index === 1) {
+              sourcePath[path] = apiFormattedValues[i];
+            } else {
+              sourcePath = sourcePath[path];
+            }
+          });
+
+        } else {
+          propertiesToUpdate['AlertDefinition/' + apiProperty] = apiFormattedValues[i];
+        }
+      }, this);
     }, this);
 
     return propertiesToUpdate;

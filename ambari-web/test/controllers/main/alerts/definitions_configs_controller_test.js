@@ -102,7 +102,20 @@ describe('App.MainAlertDefinitionConfigsController', function () {
         scope: 'HOST',
         description: 'alertDefinitionDescription',
         interval: 60,
-        thresholds: '10-20',
+        reporting: [
+          Em.Object.create({
+            type: 'warning',
+            value: 10
+          }),
+          Em.Object.create({
+            type: 'critical',
+            value: 20
+          }),
+          Em.Object.create({
+            type: 'ok',
+            value: 30
+          })
+        ],
         uri: 'alertDefinitionUri',
         defaultPort: '777'
       }));
@@ -134,7 +147,20 @@ describe('App.MainAlertDefinitionConfigsController', function () {
         scope: 'HOST',
         description: 'alertDefinitionDescription',
         interval: 60,
-        thresholds: '10-20',
+        reporting: [
+          Em.Object.create({
+            type: 'warning',
+            value: 10
+          }),
+          Em.Object.create({
+            type: 'critical',
+            value: 20
+          }),
+          Em.Object.create({
+            type: 'ok',
+            value: 30
+          })
+        ],
         uri: {
           "http": "{{mapred-site/mapreduce.jobhistory.webapp.address}}",
           "https": "{{mapred-site/mapreduce.jobhistory.webapp.https.address}}",
@@ -180,7 +206,20 @@ describe('App.MainAlertDefinitionConfigsController', function () {
         scope: 'HOST',
         description: 'alertDefinitionDescription',
         interval: 60,
-        thresholds: '10-20',
+        reporting: [
+          Em.Object.create({
+            type: 'warning',
+            value: 10
+          }),
+          Em.Object.create({
+            type: 'critical',
+            value: 20
+          }),
+          Em.Object.create({
+            type: 'ok',
+            value: 30
+          })
+        ],
         uri: {
           "http": "{{mapred-site/mapreduce.jobhistory.webapp.address}}",
           "https": "{{mapred-site/mapreduce.jobhistory.webapp.https.address}}",
@@ -216,7 +255,20 @@ describe('App.MainAlertDefinitionConfigsController', function () {
         scope: 'HOST',
         description: 'alertDefinitionDescription',
         interval: 60,
-        thresholds: '10-20',
+        reporting: [
+          Em.Object.create({
+            type: 'warning',
+            value: 10
+          }),
+          Em.Object.create({
+            type: 'critical',
+            value: 20
+          }),
+          Em.Object.create({
+            type: 'ok',
+            value: 30
+          })
+        ],
         location: 'path to script'
       }));
 
@@ -388,6 +440,20 @@ describe('App.MainAlertDefinitionConfigsController', function () {
               path3: 'value2'
             }
           }
+        }
+      },
+      {
+        m: 'should correctly multiple apiProperties',
+        configs: [
+          Em.Object.create({
+            wasChanged: true,
+            apiProperty: ['name1', 'name2'],
+            apiFormattedValue: ['value1', 'value2']
+          })
+        ],
+        result: {
+          'AlertDefinition/name1': 'value1',
+          'AlertDefinition/name2': 'value2'
         }
       }
     ];
