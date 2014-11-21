@@ -36,6 +36,8 @@ App.ManageAlertGroupsController = Em.Controller.extend({
 
   alertDefinitions: [],
 
+  alertNotifications: [],
+
   // load alert definitions for all services
   loadAlertDefinitions: function () {
     App.ajax.send({
@@ -72,6 +74,37 @@ App.ManageAlertGroupsController = Em.Controller.extend({
 
   onLoadAlertDefinitionsError: function () {
     console.error('Unable to load all alert definitions.');
+  },
+
+  // load all alert notifications
+  loadAlertNotifications: function () {
+    App.ajax.send({
+      name: 'alerts.load_alert_notification',
+      sender: this,
+      success: 'onLoadAlertNotificationsSuccess',
+      error: 'onLoadAlertNotificationsError'
+    });
+  },
+
+  onLoadAlertNotificationsSuccess: function (data) {
+    var alertNotifications = [];
+    if (data && data.items) {
+      data.items.forEach( function(target) {
+        if (target && target.AlertTarget) {
+          alertNotifications.pushObject (Em.Object.create({
+            name: target.AlertTarget.name,
+            type: target.AlertTarget.notification_type,
+            description: target.AlertTarget.description,
+            id: target.AlertTarget.id
+          }));
+        }
+      });
+    }
+    this.set('alertNotifications', alertNotifications);
+  },
+
+  onLoadAlertNotificationsError: function () {
+    console.error('Unable to load all alert notifications.');
   },
 
   loadAlertGroups: function () {
@@ -112,7 +145,7 @@ App.ManageAlertGroupsController = Em.Controller.extend({
         default: data.AlertGroup.default,
         id: data.AlertGroup.id,
         definitions: data.AlertGroup.definitions,
-        targets: data.AlertGroup.targets
+        notifications: data.AlertGroup.targets
       }));
     }
     if (this.get('alertGroupsCount') == alertGroups.length) {
@@ -358,7 +391,7 @@ App.ManageAlertGroupsController = Em.Controller.extend({
         var originalGroup = originalGroups.findProperty('id', group.get('id'));
         if (originalGroup) {
           if (!(JSON.stringify(group.get('definitions').slice().sort()) === JSON.stringify(originalGroup.get('definitions').slice().sort()))
-           || !(JSON.stringify(group.get('targets').slice().sort()) === JSON.stringify(originalGroup.get('targets').slice().sort()))) {
+           || !(JSON.stringify(group.get('notifications').slice().sort()) === JSON.stringify(originalGroup.get('notifications').slice().sort()))) {
             groupsToSet.push(group.set('id', originalGroup.get('id')));
           } else if (group.get('name') !== originalGroup.get('name') ) {
             // should update name
@@ -378,7 +411,7 @@ App.ManageAlertGroupsController = Em.Controller.extend({
       toSet: groupsToSet,
       toCreate: groupsToCreate
     };
-  }.property('selectedAlertGroup.definitions.@each', 'selectedAlertGroup.definitions.length', 'alertGroups', 'isLoaded'),
+  }.property('selectedAlertGroup.definitions.@each', 'selectedAlertGroup.definitions.length', 'selectedAlertGroup.notifications.@each', 'selectedAlertGroup.notifications.length', 'alertGroups', 'isLoaded'),
 
   isDefsModified: function () {
     var modifiedGroups = this.get('defsModifiedAlertGroups');
@@ -403,7 +436,7 @@ App.ManageAlertGroupsController = Em.Controller.extend({
   },
 
   /**
-   * ==============on API side: following are four functions to an alert group: create, delete, update definitions/targets/label of a group ===========
+   * ==============on API side: following are four functions to an alert group: create, delete, update definitions/notificationss/label of a group ===========
    */
   /**
    * Create a new alert group
@@ -412,15 +445,15 @@ App.ManageAlertGroupsController = Em.Controller.extend({
    * @return  Returns the created alert group
    */
   postNewAlertGroup: function (newAlertGroupData, callback) {
-    // create a new group with name , definition and target
+    // create a new group with name , definition and notifications
     var data = {
       'name': newAlertGroupData.get('name')
     };
     if (newAlertGroupData.get('definitions').length > 0) {
       data.definitions = newAlertGroupData.get('definitions').mapProperty('id');
     }
-    if (newAlertGroupData.get('targets').length > 0) {
-      data.targets = newAlertGroupData.get('targets').mapProperty('id');
+    if (newAlertGroupData.get('notifications').length > 0) {
+      data.targets = newAlertGroupData.get('notifications').mapProperty('id');
     }
     var sendData = {
       name: 'alert_groups.create',
@@ -446,7 +479,7 @@ App.ManageAlertGroupsController = Em.Controller.extend({
 
   /**
    * PUTs the new alert group information on the server.
-   * Changes possible here are the name, definitions, targets
+   * Changes possible here are the name, definitions, notifications
    *
    * @param {App.ConfigGroup} alertGroup
    * @param {Function} successCallback
@@ -459,7 +492,7 @@ App.ManageAlertGroupsController = Em.Controller.extend({
         "group_id": alertGroup.id,
         'name': alertGroup.get('name'),
         'definitions': alertGroup.get('definitions').mapProperty('id'),
-        'targets': alertGroup.get('targets').mapProperty('id')
+        'targets': alertGroup.get('notifications').mapProperty('id')
       },
       success: 'successFunction',
       error: 'errorFunction',
@@ -604,8 +637,8 @@ App.ManageAlertGroupsController = Em.Controller.extend({
         var newAlertGroup = App.AlertGroupComplex.create({
           name: this.get('alertGroupName').trim(),
           definitions: [],
-          targets: []
-        })    ;
+          notifications: []
+        });
         self.get('alertGroups').pushObject(newAlertGroup);
         this.hide();
       }

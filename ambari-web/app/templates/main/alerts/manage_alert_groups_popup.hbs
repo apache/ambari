@@ -66,12 +66,14 @@
                   <a rel="button-info" {{bindAttr data-original-title="view.removeDefinitionTooltip" class=":btn isDeleteDefinitionsDisabled:disabled"}} {{action deleteDefinitions target="controller"}} ><i class="icon-minus"></i></a>
               </div>
             </div>
-            <div class="row-fluid">
-              <div class="span2">{{t alerts.actions.manage_alert_groups_popup.notifications}}</div>
-              <div class="span10">
-                {{#each target in selectedAlertGroup.targets}}
-                  {{target.name}}&nbsp;&nbsp;
-                {{/each}}
+
+            <div class="row-fluid">&nbsp;</div>
+            <div class="clearfix"></div>
+
+            <div class="row-fluid notification-editable-list">
+              <div class="span3 title"><span class="icon-envelope-alt"></span>&nbsp;{{t alerts.actions.manage_alert_groups_popup.notifications}}</div>
+              <div class="span8">
+                {{view App.EditableList itemsBinding="selectedAlertGroup.notifications" resourcesBinding="selectedAlertGroup.alertNotifications" nameBinding="selectedAlertGroup.displayName"}}
               </div>
             </div>
 

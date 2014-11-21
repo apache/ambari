@@ -105,7 +105,6 @@ App.AlertGroup.FIXTURES = [];
 App.AlertGroupComplex = Ember.Object.extend({
   id: null,
   name: null,
-  description: null,
   default: null,
   definitions: [],
   targets: [],
@@ -114,6 +113,11 @@ App.AlertGroupComplex = Ember.Object.extend({
    * all alert definitions that belong to all services
    */
   alertDefinitionsBinding: 'App.router.manageAlertGroupsController.alertDefinitions',
+  /**
+   * all alert notifications
+   */
+  alertNotificationsBinding: 'App.router.manageAlertGroupsController.alertNotifications',
+
 
   displayName: function () {
     var name = this.get('name');
@@ -152,6 +156,7 @@ App.AlertGroupComplex = Ember.Object.extend({
   isAddDefinitionsDisabled: function () {
     return (this.get('default') || this.get('availableDefinitions.length') === 0);
   }.property('availableDefinitions.length')
+
 });
 
 

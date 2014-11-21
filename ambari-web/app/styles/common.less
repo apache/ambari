@@ -27,3 +27,158 @@
 * Health status(service/host/host component health)icon colors ends
 ***********************************************************************/
 
+.editable-list-container.well{
+  padding: 10px;
+  position: relative;
+  margin-bottom: 25px;
+  cursor: pointer;
+}
+.editable-list-container.well.edit-mode{
+  cursor: default;
+}
+.editable-list-container.well.disabled{
+  background: white;
+}
+
+.editable-list-container .items-box{
+
+}
+.editable-list-container .items-box ul.items-list{
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+.editable-list-container .items-box ul.items-list li.item{
+  display: inline-block;
+  padding: 4px 8px;
+  margin: 0 5px 5px 2px;
+  background: white;
+  border: 1px solid #ebebeb;
+  max-width: 100%;
+  white-space: nowrap;
+  position: relative;
+}
+
+.editable-list-container.edit-mode .items-box ul.items-list li.item{
+  padding-right: 25px;
+}
+
+.editable-list-container .items-box ul.items-list li.item .close{
+  margin: -2px 0 0 5px;
+  width: 13px;
+  outline: none;
+  position: absolute;
+  display: none;
+}
+.editable-list-container.edit-mode .items-box ul.items-list li.item .close{
+  display: inline-block;
+}
+
+.editable-list-container .items-box ul.items-list li a{
+  text-decoration: none;
+}
+
+.editable-list-container.edit-mode .items-box ul.items-list li.item.add-item-input .ember-text-field{
+  display: inline-block!important;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  position: relative;
+  padding: 0px 0px;
+  margin: 0px 0px;
+  border: none;
+  width: 50px;
+  height: 18px;
+  -webkit-box-shadow: none;
+  -moz-box-shadow: none;
+  box-shadow: none;
+  -webkit-transition: none;
+  -moz-transition: none;
+  -o-transition: none;
+  transition: none;
+}
+
+.editable-list-container .items-box ul.items-list li.item.add-item{
+  color: #ddd;
+}
+
+.typeahead-box{
+  position: absolute;
+  left: 0;
+  margin-top: 5px;
+  background: white;
+  border: 1px solid #ebebeb;
+  z-index: 1000;
+  min-width: 65px;
+}
+.typeahead-box ul{
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+.typeahead-box ul li{
+  padding: 3px 5px;
+  display: block;
+  cursor: pointer;
+}
+
+.typeahead-box ul li.selected, .typeahead-box ul li:hover{
+  background: #eee;
+}
+
+.editable-list-container .actions-panel{
+  position: absolute;
+  right: 5px;
+  bottom: -30px;
+  padding: 2px 5px 5px 5px;
+  background: #f5f5f5;
+  border: 1px solid #e3e3e3;
+  border-top: none;
+  border-radius: 0 0 4px 4px;
+
+  -webkit-transition: all 0.3s;
+  -o-transition: all 0.3s;
+  transition: all 0.3s;
+
+  -ms-transform-origin: 0% 0%; /* IE 9 */
+  -webkit-transform-origin: 0% 0%; /* Chrome, Safari, Opera */
+  transform-origin: 0% 0%;
+
+  -webkit-transform: rotateX(0deg);
+  -ms-transform: rotateX(0deg);
+  -o-transform: rotateX(0deg);
+  transform: rotateX(0deg);
+
+  .btn-xs {
+    padding: 1px 5px;
+    font-size: 12px;
+    line-height: 1.5;
+    border-radius: 3px;
+  }
+  .icon-remove {
+    color: #000000;
+  }
+  .icon-ok {
+    color: white;
+  }
+}
+
+.editable-list-container.disabled .pencil-box{
+  display: none;
+}
+.editable-list-container .pencil-box{
+  position: absolute;
+  right: 5px;
+  top: 5px;
+  opacity: 0;
+  -webkit-transition: all 0.3s;
+  -o-transition: all 0.3s;
+  transition: all 0.3s;
+}
+.editable-list-container:hover .pencil-box{
+  opacity: 1;
+}
+.editable-list-container.edit-mode:hover .pencil-box{
+  opacity: 0;
+}
+

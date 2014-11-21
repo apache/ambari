@@ -57,13 +57,14 @@ App.MainAlertsManageAlertGroupView = Em.View.extend({
 
   onLoad: function () {
     if (this.get('controller.isLoaded')) {
-      this.set('selectedAlertGroup', this.get('controller.alertGroups')[0])
+      this.set('selectedAlertGroup', this.get('controller.alertGroups')[0]);
     }
   }.observes('controller.isLoaded', 'controller.alertGroups'),
 
   willInsertElement: function() {
     this.get('controller').loadAlertGroups();
     this.get('controller').loadAlertDefinitions();
+    this.get('controller').loadAlertNotifications();
   },
 
   didInsertElement: function () {
