@@ -114,5 +114,18 @@ describe('App.MainAlertDefinitionDetailsController', function () {
       expect(App.get('router').transitionTo.calledOnce).to.be.true;
     });
   });
+  
+  describe("#deleteAlertDefinition()", function() {
+    beforeEach(function() {
+      sinon.stub(App.get('router'), 'transitionTo', Em.K);
+    });
+    afterEach(function() {
+     App.get('router').transitionTo.restore();
+    });
+    it("deleteAlertDefinitionSuccess", function() {
+      controller.deleteAlertDefinitionSuccess();
+      expect(App.get('router').transitionTo.calledWith('main.alerts.index')).to.be.true;
+    });
+  });
 
 });

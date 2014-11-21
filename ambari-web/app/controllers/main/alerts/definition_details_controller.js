@@ -120,8 +120,32 @@ App.MainAlertDefinitionDetailsController = Em.Controller.extend({
    * "Delete" button handler
    * @param event
    */
-  deleteAlertDefinition: function (event) {
-    // todo: provide deleting of alert definition
+  deleteAlertDefinition : function(event) {
+    var alertDefinition = this.get('content');
+    var self = this;
+    App.showConfirmationPopup(function() {
+      App.ajax.send({
+        name : 'alerts.delete_alert_definition',
+        sender : self,
+        success : 'deleteAlertDefinitionSuccess',
+        error : 'deleteAlertDefinitionError',
+        data : {
+          id : alertDefinition.get('id')
+        }
+      });
+    }, null, function() {
+    });
+  },
+
+  deleteAlertDefinitionSuccess : function() {
+    App.router.transitionTo('main.alerts.index');
+  },
+
+  deleteAlertDefinitionError : function(xhr, textStatus, errorThrown, opt) {
+    console.log(textStatus);
+    console.log(errorThrown);
+    xhr.responseText = "{\"message\": \"" + xhr.statusText + "\"}";
+    App.ajax.defaultErrorHandler(xhr, opt.url, 'DELETE', xhr.status);
   },
 
   /**
