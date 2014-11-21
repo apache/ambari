@@ -201,6 +201,8 @@ describe('App.alertDefinitionsMapper', function () {
       sinon.stub(App.AggregateAlertDefinition, 'find', function() {return [];});
       sinon.stub(App.ScriptAlertDefinition, 'find', function() {return [];});
 
+      sinon.stub(App.alertDefinitionsMapper, 'deleteRecord', Em.K);
+
       sinon.stub(App.store, 'commit', Em.K);
       sinon.stub(App.store, 'loadMany', function (type, content) {
         type.content = content;
@@ -238,6 +240,8 @@ describe('App.alertDefinitionsMapper', function () {
       App.WebAlertDefinition.find.restore();
       App.AggregateAlertDefinition.find.restore();
       App.ScriptAlertDefinition.find.restore();
+
+      App.alertDefinitionsMapper.deleteRecord.restore();
 
       App.router.get.restore();
       App.cache['previousAlertGroupsMap'] = {};
@@ -430,6 +434,33 @@ describe('App.alertDefinitionsMapper', function () {
       expect(App.alertDefinitionsMapper.get('aggregateModel.content')[0].groups).to.eql([3, 2]);
       expect(App.alertDefinitionsMapper.get('scriptModel.content')[0].groups).to.eql([2, 5]);
 
+
+    });
+
+    describe('should delete not existing definitions', function () {
+
+      var definitions = [
+        Em.Object.create({id: 100500, type: 'PORT'})
+      ];
+
+      beforeEach(function () {
+
+        sinon.stub(App.AlertDefinition, 'getAllDefinitions', function () {
+          return definitions;
+        });
+
+      });
+
+      afterEach(function() {
+        App.AlertDefinition.getAllDefinitions.restore();
+      });
+
+      it('should delete PORT alert definition with id 100500', function () {
+
+        App.alertDefinitionsMapper.map(json);
+        expect(App.alertDefinitionsMapper.deleteRecord.calledOnce).to.be.true;
+        expect(App.alertDefinitionsMapper.deleteRecord.args[0][0].id).to.equal(100500);
+      });
 
     });
 

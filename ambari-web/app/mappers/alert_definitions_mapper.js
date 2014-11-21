@@ -73,7 +73,8 @@ App.alertDefinitionsMapper = App.QuickDataMapper.create({
   map: function (json) {
     if (json && json.items) {
 
-      var portAlertDefinitions = [],
+      var self = this,
+          portAlertDefinitions = [],
           metricsAlertDefinitions = [],
           webAlertDefinitions = [],
           aggregateAlertDefinitions = [],
@@ -83,6 +84,7 @@ App.alertDefinitionsMapper = App.QuickDataMapper.create({
           alertMetricsUriDefinitions = [],
           alertGroupsMap = App.cache['previousAlertGroupsMap'],
           alertDefinitions = App.AlertDefinition.getAllDefinitions(),
+          alertDefinitionsToDelete = alertDefinitions.mapProperty('id'),
           rawSourceData = {};
 
       json.items.forEach(function (item) {
@@ -116,6 +118,8 @@ App.alertDefinitionsMapper = App.QuickDataMapper.create({
           alertDefinition.summary = oldAlertDefinition.get('summary');
           alertDefinition.last_triggered = oldAlertDefinition.get('lastTriggered');
         }
+
+        alertDefinitionsToDelete = alertDefinitionsToDelete.without(alertDefinition.id);
 
         // map properties dependent on Alert Definition type
         switch (item.AlertDefinition.source.type) {
@@ -167,6 +171,10 @@ App.alertDefinitionsMapper = App.QuickDataMapper.create({
         }
       }, this);
 
+      alertDefinitionsToDelete.forEach(function(definitionId) {
+        self.deleteRecord(alertDefinitions.findProperty('id', definitionId));
+      });
+
       // load all mapped data to model
       App.store.loadMany(this.get('reportModel'), alertReportDefinitions);
       App.store.loadMany(this.get('metricsSourceModel'), alertMetricsSourceDefinitions);
@@ -203,7 +211,9 @@ App.alertDefinitionsMapper = App.QuickDataMapper.create({
   setAlertDefinitionsRawSourceData: function (rawSourceData) {
     var allDefinitions = App.AlertDefinition.getAllDefinitions();
     for (var alertDefinitionId in rawSourceData) {
-      allDefinitions.findProperty('id', +alertDefinitionId).set('rawSourceData', rawSourceData[alertDefinitionId]);
+      if (rawSourceData.hasOwnProperty(alertDefinitionId)) {
+        allDefinitions.findProperty('id', +alertDefinitionId).set('rawSourceData', rawSourceData[alertDefinitionId]);
+      }
     }
   }
 });

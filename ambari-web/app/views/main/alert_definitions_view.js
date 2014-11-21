@@ -202,6 +202,10 @@ App.MainAlertDefinitionsView = App.TableView.extend({
     }
   }),
 
+  /**
+   * Filtering header for <label>alertDefinition</label> groups
+   * @type {Em.View}
+   */
   alertGroupFilterView: filters.createSelectView({
 
     column: 5,
@@ -220,6 +224,8 @@ App.MainAlertDefinitionsView = App.TableView.extend({
      * @method updateContent
      */
     updateContent: function() {
+      var value = this.get('value');
+
       this.set('content', [
         {
           value: '',
@@ -231,6 +237,8 @@ App.MainAlertDefinitionsView = App.TableView.extend({
           label: group.get('displayNameDefinitions')
         };
       })));
+
+      this.set('selected', this.get('content').findProperty('value', value));
     }.observes('App.router.clusterController.isLoaded', 'controller.mapperTimestamp'),
 
     onChangeValue: function () {
