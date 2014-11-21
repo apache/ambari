@@ -331,12 +331,13 @@ module.exports = Em.Route.extend({
     }),
 
     alertDetails: Em.Route.extend({
-      route: '/:alert_id',
-      connectOutlets: function (router, alert) {
-        router.get('mainAlertInstancesController').loadAlertInstancesByAlertDefinition(alert.get('id'));
-        router.set('mainAlertInstancesController.isUpdating', true);
-        router.get('mainController').connectOutlet('mainAlertDefinitionDetails', alert);
+
+      route: '/:alert_definition_id',
+
+      connectOutlets: function (router, alertDefinition) {
+        router.get('mainController').connectOutlet('mainAlertDefinitionDetails', alertDefinition);
       },
+
       exit: function(router) {
         router.set('mainAlertInstancesController.isUpdating', false);
       }

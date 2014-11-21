@@ -22,6 +22,34 @@ App.MainAlertDefinitionDetailsView = App.TableView.extend({
 
   templateName: require('templates/main/alerts/definition_details'),
 
+  /**
+   * Determines if <code>controller.content</code> is loaded
+   * @type {bool}
+   */
+  isLoaded: false,
+
+  willInsertElement: function () {
+    var self = this,
+      updater = App.router.get('updateController');
+    if (self.get('controller.content.isLoaded')) {
+      self.set('isLoaded', true);
+      self.get('controller').loadAlertInstances();
+    }
+    else {
+      updater.updateAlertGroups(function () {
+        updater.updateAlertDefinitions(function () {
+          updater.updateAlertDefinitionSummary(function () {
+            self.set('isLoaded', true);
+            // App.AlertDefinition doesn't represents real models
+            // Real model (see AlertDefinition types) should be used
+            self.set('controller.content', App.AlertDefinition.getAllDefinitions().findProperty('id', parseInt(self.get('controller.content.id'))));
+            self.get('controller').loadAlertInstances();
+          });
+        });
+      });
+    }
+  },
+
   didInsertElement: function () {
     this.filter();
   },

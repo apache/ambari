@@ -16,6 +16,8 @@
 * limitations under the License.
 }}
 
+{{#if view.isLoaded}}
+
 <div id="alert-definition-details">
   <div class="row-fluid">
     <div class="span9">
@@ -164,3 +166,6 @@
     </div>
   </div>
 </div>
+{{else}}
+  <div class="spinner"></div>
+{{/if}}

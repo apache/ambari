@@ -181,6 +181,7 @@ App.alertDefinitionsMapper = App.QuickDataMapper.create({
       if (App.router.get('mainAlertDefinitionsController')) {
         App.router.set('mainAlertDefinitionsController.mapperTimestamp', (new Date()).getTime());
       }
+      App.store.commit();
     }
   },
 

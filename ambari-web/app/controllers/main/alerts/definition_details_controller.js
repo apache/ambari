@@ -60,6 +60,16 @@ App.MainAlertDefinitionDetailsController = Em.Controller.extend({
   }.observes('editing.description.value'),
 
   /**
+   * Load alert instances for current alertDefinition
+   * Start updating loaded data
+   * @method loadAlertInstances
+   */
+  loadAlertInstances: function() {
+    App.router.get('mainAlertInstancesController').loadAlertInstancesByAlertDefinition(this.get('content.id'));
+    App.router.set('mainAlertInstancesController.isUpdating', true);
+  },
+
+  /**
    * Edit button handler
    * @param event
    */
