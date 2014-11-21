@@ -408,7 +408,7 @@ module.exports = Em.Route.extend({
         }
       },
 
-      index: Ember.Route.extend({
+      index: Em.Route.extend({
         route: '/',
         connectOutlets: function (router, context) {
           var controller = router.get('mainAdminController');
@@ -497,6 +497,18 @@ module.exports = Em.Route.extend({
       }),
 
       adminAddSecurity: require('routes/add_security')
+    }),
+
+    adminKerberos: Em.Route.extend({
+      route: '/kerberos',
+      index: Em.Route.extend({
+        route: '/',
+        connectOutlets: function (router, context) {
+          router.set('mainAdminController.category', "kerberos");
+          router.get('mainAdminController').connectOutlet('mainAdminKerberos');
+        }
+      }),
+      adminAddKerberos:  require('routes/add_kerberos_routes')
     }),
 
     stackAndUpgrade: Em.Route.extend({

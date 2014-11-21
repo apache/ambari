@@ -1451,6 +1451,95 @@
           "dependencies" : [ ]
         }
       ]
+    },
+    {
+      "href" : "http://c6403.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/KERBEROS",
+      "StackServices" : {
+        "comments" : "A computer network authentication protocol which works on\n        the basis of 'tickets' to allow nodes communicating over a\n        non-secure network to prove their identity to one another in a\n        secure manner.\n      ",
+        "custom_commands" : [ ],
+        "display_name" : "Kerberos",
+        "required_services" : [ ],
+        "service_check_supported" : true,
+        "service_name" : "KERBEROS",
+        "service_version" : "1.10.3-10",
+        "stack_name" : "HDP",
+        "stack_version" : "2.1",
+        "user_name" : null,
+        "config_types" : {
+          "kadm5-acl" : {
+            "supports" : {
+              "adding_forbidden" : "false",
+              "do_not_extend" : "false",
+              "final" : "false"
+            }
+          },
+          "kdc-conf" : {
+            "supports" : {
+              "adding_forbidden" : "false",
+              "do_not_extend" : "false",
+              "final" : "false"
+            }
+          },
+          "krb5-conf" : {
+            "supports" : {
+              "adding_forbidden" : "false",
+              "do_not_extend" : "false",
+              "final" : "false"
+            }
+          }
+        }
+      },
+      "serviceComponents" : [
+        {
+          "href" : "http://c6403.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/KERBEROS/components/KDC_SERVER",
+          "StackServiceComponents" : {
+            "cardinality" : "0-1",
+            "component_category" : "MASTER",
+            "component_name" : "KDC_SERVER",
+            "custom_commands" : [ ],
+            "display_name" : "Kerberos KDC",
+            "is_client" : false,
+            "is_master" : true,
+            "service_name" : "KERBEROS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.1"
+          },
+          "dependencies" : [
+            {
+              "href" : "http://c6403.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/KERBEROS/components/KDC_SERVER/dependencies/KERBEROS_CLIENT",
+              "Dependencies" : {
+                "component_name" : "KERBEROS_CLIENT",
+                "dependent_component_name" : "KDC_SERVER",
+                "dependent_service_name" : "KERBEROS",
+                "scope" : "cluster",
+                "stack_name" : "HDP",
+                "stack_version" : "2.1"
+              }
+            }
+          ]
+        },
+        {
+          "href" : "http://c6403.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/KERBEROS/components/KERBEROS_CLIENT",
+          "StackServiceComponents" : {
+            "cardinality" : "ALL",
+            "component_category" : "CLIENT",
+            "component_name" : "KERBEROS_CLIENT",
+            "custom_commands" : [
+              "SET_KEYTAB"
+            ],
+            "display_name" : "Kerberos Client",
+            "is_client" : true,
+            "is_master" : false,
+            "service_name" : "KERBEROS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.1"
+          },
+          "auto_deploy" : {
+            "enabled" : true
+          },
+          "dependencies" : [ ]
+        }
+      ]
     }
   ]
 }

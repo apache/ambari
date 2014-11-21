@@ -16,30 +16,10 @@
  * limitations under the License.
  */
 
+App.KerberosProgressPageController = App.KerberosWizardController.extend(App.wizardProgressPageControllerMixin, {
 
-var App = require('app');
-
-App.WizardStep8View = Em.View.extend(App.wizardDeployProgressViewMixin, {
-
-  templateName: require('templates/wizard/step8'),
-
-  didInsertElement: function () {
-    this.get('controller').loadStep();
-  },
-
-  /**
-   * Print review-report
-   * @method printReview
-   */
-  printReview: function () {
-    var o = $("#step8-info");
-    o.jqprint();
-  },
-
-  /**
-   * Reference to modalPopup to make sure only one instance is created
-   * @type {App.ModalPopup|null}
-   */
-  modalPopup: null
+  name: 'kerberosProgressPageController',
+  clusterDeployState: 'KERBEROS__DEPLOY',
+  tasksMessagesPrefix: 'admin.kerberos.wizard.step',
+  isRollback: false
 });
-

@@ -19,27 +19,21 @@
 
 var App = require('app');
 
-App.WizardStep8View = Em.View.extend(App.wizardDeployProgressViewMixin, {
-
-  templateName: require('templates/wizard/step8'),
+App.KerberosProgressPageView = Em.View.extend(App.wizardProgressPageViewMixin, {
 
   didInsertElement: function () {
     this.get('controller').loadStep();
   },
 
-  /**
-   * Print review-report
-   * @method printReview
-   */
-  printReview: function () {
-    var o = $("#step8-info");
-    o.jqprint();
-  },
+  headerTitle: function () {
+    var currentStep = App.router.get('kerberosWizardController.currentStep');
+    return  Em.I18n.t('admin.kerberos.wizard.step' + currentStep + '.header');
+  }.property(),
 
-  /**
-   * Reference to modalPopup to make sure only one instance is created
-   * @type {App.ModalPopup|null}
-   */
-  modalPopup: null
+  noticeInProgress: function () {
+    var currentStep = App.router.get('kerberosWizardController.currentStep');
+    return  Em.I18n.t('admin.kerberos.wizard.step' + currentStep + '.notice.inProgress');
+  }.property(),
+
+  notice: Em.I18n.t('admin.kerberos.wizard.progressPage.notice.inProgress')
 });
-

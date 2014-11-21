@@ -114,6 +114,23 @@ Ember.isBlank = function(obj) {
   return Ember.isEmpty(obj) || (typeof obj === 'string' && obj.match(/\S/) === null);
 };
 
+/**
+ *
+ */
+Ember.RadioButton = Ember.Checkbox.extend({
+  tagName : "input",
+  type : "radio",
+  attributeBindings : [ "type", "name", "value", "checked", "style" ],
+  style: "vertical-align: middle; margin: 0px;" ,
+  click : function() {
+    this.set("selection", this.$().val())
+  },
+  checked : function() {
+    return this.get("value") == this.get("selection");
+  }.property('value','selection')
+});
+
+
 Em.View.reopen({
   /**
    * overwritten set method of Ember.View to avoid uncaught errors

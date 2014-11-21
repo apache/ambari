@@ -1,175 +1,153 @@
 {
-  "hosts": ["ab2test-5.c.pramod-thangali.internal", "ab2test-6.c.pramod-thangali.internal", "ab2test-7.c.pramod-thangali.internal"],
-  "services": ["HDFS", "MAPREDUCE2", "YARN", "TEZ", "NAGIOS", "GANGLIA", "HIVE", "SQOOP", "OOZIE", "ZOOKEEPER", "FALCON", "STORM", "FLUME", "PIG"],
-  "recommendations": {
-  "blueprint": {
-    "host_groups": [
-      {
-        "name": "host-group-3",
-        "components": [
-          {
-            "name": "NAMENODE"
-          },
-          {
-            "name": "STORM_UI_SERVER"
-          },
-          {
-            "name": "GANGLIA_SERVER"
-          },
-          {
-            "name": "ZOOKEEPER_SERVER"
-          },
-          {
-            "name": "STORM_REST_API"
-          },
-          {
-            "name": "NIMBUS"
-          },
-          {
-            "name": "DRPC_SERVER"
-          },
-          {
-            "name": "MYSQL_SERVER"
-          },
-          {
-            "name": "NAGIOS_SERVER"
-          }
-        ]
+  "resources" : [
+    {
+      "href" : "http://c6403.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.2/recommendations/5",
+      "hosts" : [
+        "c6403.ambari.apache.org"
+      ],
+      "services": ["HDFS", "MAPREDUCE2", "YARN", "TEZ", "NAGIOS", "GANGLIA", "HIVE", "SQOOP", "OOZIE", "ZOOKEEPER", "FALCON", "STORM", "FLUME", "PIG"],
+      "Recommendation" : {
+        "id" : 5
       },
-      {
-        "name": "host-group-1",
-        "components": [
-          {
-            "name": "YARN_CLIENT"
-          },
-          {
-            "name": "NODEMANAGER"
-          },
-          {
-            "name": "HDFS_CLIENT"
-          },
-          {
-            "name": "HIVE_CLIENT"
-          },
-          {
-            "name": "SQOOP"
-          },
-          {
-            "name": "GANGLIA_MONITOR"
-          },
-          {
-            "name": "DATANODE"
-          },
-          {
-            "name": "FLUME_HANDLER"
-          },
-          {
-            "name": "MAPREDUCE2_CLIENT"
-          },
-          {
-            "name": "SUPERVISOR"
-          },
-          {
-            "name": "OOZIE_CLIENT"
-          },
-          {
-            "name": "ZOOKEEPER_CLIENT"
-          },
-          {
-            "name": "PIG"
-          },
-          {
-            "name": "ZOOKEEPER_SERVER"
-          },
-          {
-            "name": "JOURNALNODE"
-          },
-          {
-            "name": "ZKFC"
-          },
-          {
-            "name": "TEZ_CLIENT"
-          },
-          {
-            "name": "FALCON_CLIENT"
-          },
-          {
-            "name": "HCAT"
-          }
-        ]
+      "Versions" : {
+        "stack_name" : "HDP",
+        "stack_version" : "2.2"
       },
-      {
-        "name": "host-group-2",
-        "components": [
-          {
-            "name": "FALCON_SERVER"
-          },
-          {
-            "name": "OOZIE_SERVER"
-          },
-          {
-            "name": "HIVE_SERVER"
-          },
-          {
-            "name": "APP_TIMELINE_SERVER"
-          },
-          {
-            "name": "HISTORYSERVER"
-          },
-          {
-            "name": "HIVE_METASTORE"
-          },
-          {
-            "name": "ZOOKEEPER_SERVER"
-          },
-          {
-            "name": "RESOURCEMANAGER"
-          },
-          {
-            "name": "WEBHCAT_SERVER"
-          },
-          {
-            "name": "SECONDARY_NAMENODE"
-          }
-        ]
+      "recommendations" : {
+        "blueprint" : {
+          "host_groups" : [
+            {
+              "name" : "host-group-1",
+              "components" : [
+                {
+                  "name" : "NODEMANAGER"
+                },
+                {
+                  "name" : "HIVE_CLIENT"
+                },
+                {
+                  "name" : "HDFS_CLIENT"
+                },
+                {
+                  "name" : "APP_TIMELINE_SERVER"
+                },
+                {
+                  "name" : "SLIDER"
+                },
+                {
+                  "name" : "RESOURCEMANAGER"
+                },
+                {
+                  "name" : "WEBHCAT_SERVER"
+                },
+                {
+                  "name" : "DATANODE"
+                },
+                {
+                  "name" : "FLUME_HANDLER"
+                },
+                {
+                  "name" : "SUPERVISOR"
+                },
+                {
+                  "name" : "NAMENODE"
+                },
+                {
+                  "name" : "HBASE_CLIENT"
+                },
+                {
+                  "name" : "OOZIE_CLIENT"
+                },
+                {
+                  "name" : "HBASE_REGIONSERVER"
+                },
+                {
+                  "name" : "KAFKA_BROKER"
+                },
+                {
+                  "name" : "HISTORYSERVER"
+                },
+                {
+                  "name" : "PIG"
+                },
+                {
+                  "name" : "KNOX_GATEWAY"
+                },
+                {
+                  "name" : "HCAT"
+                },
+                {
+                  "name" : "YARN_CLIENT"
+                },
+                {
+                  "name" : "SQOOP"
+                },
+                {
+                  "name" : "GANGLIA_SERVER"
+                },
+                {
+                  "name" : "HIVE_METASTORE"
+                },
+                {
+                  "name" : "DRPC_SERVER"
+                },
+                {
+                  "name" : "NIMBUS"
+                },
+                {
+                  "name" : "GANGLIA_MONITOR"
+                },
+                {
+                  "name" : "MYSQL_SERVER"
+                },
+                {
+                  "name" : "MAPREDUCE2_CLIENT"
+                },
+                {
+                  "name" : "OOZIE_SERVER"
+                },
+                {
+                  "name" : "HIVE_SERVER"
+                },
+                {
+                  "name" : "HBASE_MASTER"
+                },
+                {
+                  "name" : "STORM_UI_SERVER"
+                },
+                {
+                  "name" : "ZOOKEEPER_CLIENT"
+                },
+                {
+                  "name" : "ZOOKEEPER_SERVER"
+                },
+                {
+                  "name" : "TEZ_CLIENT"
+                },
+                {
+                  "name" : "SECONDARY_NAMENODE"
+                },
+                {
+                  "name" : "NAGIOS_SERVER"
+                }
+              ]
+            }
+          ],
+          "configurations" : { }
+        },
+        "blueprint_cluster_binding" : {
+          "host_groups" : [
+            {
+              "name" : "host-group-1",
+              "hosts" : [
+                {
+                  "name" : "c6403.ambari.apache.org"
+                }
+              ]
+            }
+          ]
+        }
       }
-    ],
-    "configurations": {
-      "core-site": {},
-      "global": {
-        "properties": {}
-      },
-      "hbase-site": {},
-      "hdfs-site": {},
-      "yarn-site": {}
     }
-  },
-  "blueprint_cluster_binding": {
-    "host_groups": [
-      {
-        "name": "host-group-3",
-        "hosts": [
-          {
-            "fqdn": "ab2test-5.c.pramod-thangali.internal"
-          }
-        ]
-      },
-      {
-        "name": "host-group-1",
-        "hosts": [
-          {
-            "fqdn": "ab2test-7.c.pramod-thangali.internal"
-          }
-        ]
-      },
-      {
-        "name": "host-group-2",
-        "hosts": [
-          {
-            "fqdn": "ab2test-6.c.pramod-thangali.internal"
-          }
-        ]
-      }
-    ]
-  }
-}}
+  ]
+}

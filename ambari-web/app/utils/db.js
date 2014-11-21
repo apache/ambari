@@ -34,6 +34,7 @@ var InitialData =  {
   'Installer' : {},
   'AddHost' : {},
   'AddService' : {},
+  'KerberosWizard': {},
   'StackUpgrade' : {},
   'ReassignMaster' : {},
   'AddSecurity': {},
@@ -526,6 +527,12 @@ App.db.setReassignMasterWizardReassignHosts = function (reassignHosts) {
   localStorage.setObject('ambari', App.db.data);
 };
 
+App.db.setKerberosWizardConfigTag = function (tag) {
+  App.db.data = localStorage.getObject('ambari');
+  App.db.data.KerberosWizard[tag.name] = tag.value;
+  localStorage.setObject('ambari', App.db.data);
+};
+
 /*
  *  getter methods
  */
@@ -840,6 +847,11 @@ App.db.getConfigs = function () {
 App.db.getReassignMasterWizardReassignHosts = function () {
   App.db.data = localStorage.getObject('ambari');
   return App.db.data.ReassignMaster.reassignHosts;
+};
+
+App.db.getKerberosWizardConfigTag = function (tag) {
+  App.db.data = localStorage.getObject('ambari');
+  return App.db.data.KerberosWizard[tag];
 };
 
 module.exports = App.db;

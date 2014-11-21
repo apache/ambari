@@ -24,7 +24,9 @@ App.ConfigurationController = Em.Controller.extend({
   /**
    * get configs by tags
    * return Deferred object with configs as argument
-   * @param tags
+   * @param tags {Object}
+   * ** siteName
+   * ** tagName (optional)
    * @return {object}
    */
   getConfigsByTags: function (tags) {
@@ -74,10 +76,34 @@ App.ConfigurationController = Em.Controller.extend({
    * @return {Array}
    */
   loadFromServer: function (tags) {
-    var dfd = $.Deferred();
-    var loadedConfigs = [];
     var self = this;
+    var dfd = $.Deferred();
+    if (!tags.everyProperty('tagName')) {
+      var configTags;
+      var jqXhr =  this.loadConfigTags();
+      jqXhr.done(function (data) {
+        configTags = data.Clusters.desired_configs;
+        tags.forEach(function (_tag) {
+          if (_tag.siteName && !_tag.tagName) {
+            _tag.tagName = configTags[_tag.siteName].tag;
+          }
+        }, self);
+        self.loadConfigsByTags(tags,dfd);
+      });
+    } else {
+      self.loadConfigsByTags(tags,dfd);
+    }
+    return dfd.promise();
+  },
 
+  /**
+   *  loadConfigsByTags: Loads properties for a config tag
+   *  @params tags
+   *  @params dfd jqXhr promise
+   */
+  loadConfigsByTags: function (tags,dfd) {
+    var self = this;
+    var loadedConfigs = [];
     App.config.loadConfigsByTags(tags).done(function (data) {
       if (data.items) {
         data.items.forEach(function (item) {
@@ -86,10 +112,20 @@ App.ConfigurationController = Em.Controller.extend({
         });
       }
     }).complete(function () {
-        self.saveToDB(loadedConfigs);
-        dfd.resolve(loadedConfigs);
-      });
-    return dfd.promise();
+      self.saveToDB(loadedConfigs);
+      dfd.resolve(loadedConfigs);
+    });
+  },
+
+  /**
+   * loadConfigTags: Loads all config tags applied to the cluster
+   * @return: jqXhr promise
+   */
+  loadConfigTags: function () {
+    return App.ajax.send({
+      name: 'config.tags',
+      sender: this
+    });
   },
 
   /**

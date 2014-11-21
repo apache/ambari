@@ -41,7 +41,8 @@ App.HighAvailabilityWizardController = App.WizardController.extend({
     serviceName: 'MISC',
     hdfsUser:"hdfs",
     nameServiceId: '',
-    failedTask : null
+    failedTask : null,
+    requestIds: null
   }),
 
   setCurrentStep: function (currentStep, completed) {

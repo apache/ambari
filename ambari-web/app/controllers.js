@@ -58,6 +58,15 @@ require('controllers/main/admin/stack_versions/stack_version_details_controller'
 require('controllers/main/admin/serviceAccounts_controller');
 require('controllers/main/admin/advanced');
 require('utils/polling');
+require('controllers/main/admin/kerberos');
+require('controllers/main/admin/kerberos/wizard_controller');
+require('controllers/main/admin/kerberos/progress_controller');
+require('controllers/main/admin/kerberos/step1_controller');
+require('controllers/main/admin/kerberos/step2_controller');
+require('controllers/main/admin/kerberos/step3_controller');
+require('controllers/main/admin/kerberos/step4_controller');
+require('controllers/main/admin/kerberos/step5_controller');
+require('controllers/main/admin/kerberos/step6_controller');
 require('controllers/main/admin/security');
 require('controllers/main/admin/security/security_progress_controller');
 require('controllers/main/admin/security/disable');

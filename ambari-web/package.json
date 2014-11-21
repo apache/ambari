@@ -13,6 +13,7 @@
     "uglify-js-brunch": ">= 1.0 < 1.5",
     "clean-css-brunch": ">= 1.0 < 1.5",
     "ember-precompiler-brunch": ">= 1.0 < 1.5",
+    "ember-radio-button": "0.1.2",
     "less-brunch": ">= 1.0 < 1.5",
     "cssstyle": "0.2.3"
   },

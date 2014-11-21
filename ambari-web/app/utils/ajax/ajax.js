@@ -121,7 +121,7 @@ var urls = {
 
   'common.host.host_component.update': {
     'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{componentName}?{urlParams}',
-    'mock': '/data/wizard/deploy/poll_1.json',
+    'mock': '/data/wizard/deploy/2_hosts/poll_9.json',
     'type': 'PUT',
     'format': function (data) {
       return {
@@ -159,11 +159,11 @@ var urls = {
   },
 
   'common.across.services.configurations': {
+    'type': 'PUT',
     'real':'/clusters/{clusterName}',
-    'mock':'',
+    'mock':'/data/services/ambari.json',
     'format': function(data) {
       return {
-        type: 'PUT',
         dataType: 'text',
         data: data.data
       }
@@ -288,6 +288,11 @@ var urls = {
   },
   'common.delete.cluster': {
     'real': '/clusters/{name}',
+    'type': 'DELETE'
+  },
+  'common.delete.service': {
+    'real': '/clusters/{clusterName}/services/{serviceName}',
+    'mock': '/data/services/ambari.json',
     'type': 'DELETE'
   },
   'common.delete.request_schedule': {
@@ -1145,6 +1150,24 @@ var urls = {
       }
     }
   },
+  'common.create_component': {
+    'real': '/clusters/{clusterName}/services?ServiceInfo/service_name={serviceName}',
+    'mock': '',
+    'type': 'POST',
+    'format': function(data) {
+      return {
+        data: JSON.stringify({
+          "components": [
+            {
+              "ServiceComponentInfo": {
+                "component_name": data.componentName
+              }
+            }
+          ]
+        })
+      }
+    }
+  },
   'admin.high_availability.create_zkfc': {
     'real': '/clusters/{clusterName}/services?ServiceInfo/service_name=HDFS',
     'mock': '',
@@ -1321,11 +1344,11 @@ var urls = {
   },
 
   'wizard.step8.create_selected_services': {
+    'type': 'POST',
     'real':'/clusters/{cluster}/services',
-    'mock':'',
+    'mock':'/data/stacks/HDP-2.1/recommendations.json',
     'format': function(data) {
       return {
-        type: 'POST',
         dataType: 'text',
         data: data.data
       }

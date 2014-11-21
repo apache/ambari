@@ -60,7 +60,8 @@ App.supports = {
   stackUpgrade: false,
   autoRollbackHA: false,
   alerts: true,
-  alwaysEnableManagedMySQLForHive: false
+  alwaysEnableManagedMySQLForHive: false,
+  automatedKerberos: false
 };
 
 if (App.enableExperimental) {

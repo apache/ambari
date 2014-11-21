@@ -322,6 +322,9 @@ App.Router = Em.Router.extend({
           } else if (clusterStatusOnServer && (clusterStatusOnServer.wizardControllerName === App.router.get('addSecurityController.name') || clusterStatusOnServer.wizardControllerName === App.router.get('mainAdminSecurityDisableController.name'))) {
             // if wizardControllerName == "addSecurityController", then it means someone closed the browser or the browser was crashed when we were last in Add Security wizard
             route = 'main.admin.adminSecurity';
+          } else if (clusterStatusOnServer && (clusterStatusOnServer.wizardControllerName === App.router.get('kerberosWizardController.name'))) {
+            // if wizardControllerName == "adminKerberosController", then it means someone closed the browser or the browser was crashed when we were last in Add Kerberos wizard
+            route = 'main.admin.adminKerberos';
           } else if (clusterStatusOnServer && clusterStatusOnServer.wizardControllerName === App.router.get('addServiceController.name')) {
             // if wizardControllerName == "addHostController", then it means someone closed the browser or the browser was crashed when we were last in Add Hosts wizard
             route = 'main.serviceAdd';

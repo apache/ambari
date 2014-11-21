@@ -16,30 +16,29 @@
  * limitations under the License.
  */
 
-
 var App = require('app');
 
-App.WizardStep8View = Em.View.extend(App.wizardDeployProgressViewMixin, {
+App.KerberosWizardStep1View = Em.View.extend({
 
-  templateName: require('templates/wizard/step8'),
+  templateName: require('templates/main/admin/kerberos/step1'),
 
   didInsertElement: function () {
-    this.get('controller').loadStep();
+    var controller = this.get('controller');
+    controller.loadStep();
   },
 
   /**
-   * Print review-report
-   * @method printReview
+   * whenever the KDC type is changed, all checkboxes for the precondition should be unchecked
    */
-  printReview: function () {
-    var o = $("#step8-info");
-    o.jqprint();
-  },
+  resetCheckBoxes: function () {
+    var options = this.get('controller.options');
+    options.forEach(function (option) {
+      option.preConditions.forEach(function (_condition) {
+        _condition.set('checked', false);
+      });
+    }, this)
+  }.observes('controller.selectedItem')
 
-  /**
-   * Reference to modalPopup to make sure only one instance is created
-   * @type {App.ModalPopup|null}
-   */
-  modalPopup: null
 });
+
 

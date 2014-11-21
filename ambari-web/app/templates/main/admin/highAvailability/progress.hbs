@@ -22,7 +22,7 @@
   {{#each task in controller.tasks}}
   {{#view view.taskView contentBinding="task"}}
     <div class="item">
-      <div {{bindAttr class=":pull-left view.linkClass controller.isHA:span4 controller.isRMHA:span5 controller.isRollback:span3 controller.isReassign:span5"}}>
+      <div {{bindAttr class=":pull-left view.linkClass isKerberosWizard:span4 controller.isHA:span4 controller.isRMHA:span5 controller.isRollback:span3 controller.isReassign:span5"}}>
         <i {{bindAttr class="view.icon view.iconColor"}}></i>
         <a {{action "showHostProgressPopup" task target="controller"}} >{{task.title}}</a>
       </div>
@@ -58,6 +58,9 @@
   {{/view}}
   {{/each}}
   <div class="btn-area">
+    {{#if view.showBackButton}}
+       <button class="btn pull-left" {{bindAttr disabled="controller.isBackButtonDisabled"}} {{action back target="controller"}}>&larr; {{t common.back}}</button>
+    {{/if}}
     <button class="btn btn-success pull-right" {{bindAttr disabled="controller.isSubmitDisabled"}} {{action done target="controller"}}>{{view.submitButtonText}}</button>
   </div>
 </div>

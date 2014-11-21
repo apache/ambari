@@ -19,7 +19,7 @@
 var App = require('app');
 var stringUtils = require('utils/string_utils');
 
-App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, {
+App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wizardDeployProgressControllerMixin, {
 
   name: 'wizardStep8Controller',
 
@@ -93,6 +93,13 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, {
   isBackBtnDisabled: false,
 
   /**
+   * This flag when turned to true launches deploy progress bar
+   */
+  isDeployStarted: function() {
+    this.get('isSubmitDisabled');
+  }.property('isSubmitDisabled'),
+
+  /**
    * Is error appears while <code>ajaxQueue</code> executes
    * @type {bool}
    */
@@ -110,12 +117,6 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, {
    * @type {Object[]}
    */
   serviceConfigTags: [],
-
-  /**
-   * Ajax-requests queue
-   * @type {App.ajaxQueue}
-   */
-  ajaxRequestsQueue: null,
 
   /**
    * Is cluster security enabled
@@ -152,12 +153,6 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, {
   installedServices: function () {
     return this.get('content.services').filterProperty('isInstalled');
   }.property('content.services').cacheable(),
-
-  /**
-   * Ajax-requests count
-   * @type {number}
-   */
-  ajaxQueueLength: 0,
 
   /**
    * Current cluster name
@@ -964,8 +959,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, {
       return App.showConfirmationPopup(function () {
         self.submitProceed();
       }, Em.I18n.t('installer.step8.securityConfirmationPopupBody'));
-    }
-    else {
+    } else {
       return this.submitProceed();
     }
   },
@@ -1535,7 +1529,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, {
           if (service.get('serviceName') === 'MAPREDUCE' && (type === 'capacity-scheduler' || type === 'mapred-queue-acls')) {
             return;
           } else if (type === 'core-site') {
-            coreSiteObject.service_config_version_note = serviceVersionNotes
+            coreSiteObject.service_config_version_note = serviceVersionNotes;
             this.get('serviceConfigTags').pushObject(coreSiteObject);
           } else if (type === 'storm-site') {
             var obj = this.createStormSiteObj(tag);
@@ -1826,53 +1820,5 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, {
       }
     }, this);
     return {type: 'storm-site', tag: tag, properties: stormProperties};
-  },
-
-  /**
-   * Navigate to next step after all requests are sent
-   * @method ajaxQueueFinished
-   */
-  ajaxQueueFinished: function () {
-    console.log('everything is loaded');
-    App.router.send('next');
-  },
-
-  /**
-   * We need to do a lot of ajax calls async in special order. To do this,
-   * generate array of ajax objects and then send requests step by step. All
-   * ajax objects are stored in <code>ajaxRequestsQueue</code>
-   *
-   * @param {Object} params object with ajax-request parameters like url, type, data etc
-   * @method addRequestToAjaxQueue
-   */
-  addRequestToAjaxQueue: function (params) {
-    if (App.get('testMode')) return;
-
-    params = jQuery.extend({
-      sender: this,
-      error: 'ajaxQueueRequestErrorCallback'
-    }, params);
-    params.data['cluster'] = this.get('clusterName');
-
-    this.get('ajaxRequestsQueue').addRequest(params);
-  },
-
-  /**
-   * Error callback for each queued ajax-request
-   * @param {object} xhr
-   * @param {string} status
-   * @param {string} error
-   * @method ajaxQueueRequestErrorCallback
-   */
-  ajaxQueueRequestErrorCallback: function (xhr, status, error) {
-    var responseText = JSON.parse(xhr.responseText);
-    var controller = App.router.get(App.clusterStatus.wizardControllerName);
-    controller.registerErrPopup(Em.I18n.t('common.error'), responseText.message);
-    this.set('hasErrorOccurred', true);
-    // an error will break the ajax call chain and allow submission again
-    this.set('isSubmitDisabled', false);
-    this.set('isBackBtnDisabled', false);
-    App.router.get(this.get('content.controllerName')).setStepsEnable();
   }
-
 });

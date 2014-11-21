@@ -72,20 +72,24 @@ App.config = Em.Object.create({
     return fileName.endsWith('.xml') ? fileName.slice(0, -4) : fileName;
   },
 
-  setPreDefinedServiceConfigs: function () {
+  setPreDefinedServiceConfigs: function (isMiscTabToBeAdded) {
     var configs = this.get('preDefinedSiteProperties');
     var services = [];
-    var nonServiceTab = require('data/service_configs');
     var stackServices = App.StackService.find().filterProperty('id');
     // Only include services that has configTypes related to them for service configuration page
-    // Also Remove HCatalog from this list. HCatalog has hive-site affiliated to it but none of the properties of it should be exposed under HCatalog Service
-    // HCatalog should be eventually made a part of Hive Service. See AMBARI-6302 description for further details
     var servicesWithConfigTypes = stackServices.filter(function (service) {
       var configtypes = service.get('configTypes');
       return configtypes && !!Object.keys(configtypes).length;
     }, this);
 
-    var allTabs = servicesWithConfigTypes.concat(nonServiceTab);
+    var allTabs;
+    if (isMiscTabToBeAdded) {
+      var nonServiceTab = require('data/service_configs');
+      allTabs = servicesWithConfigTypes.concat(nonServiceTab);
+    } else {
+      allTabs = servicesWithConfigTypes;
+    }
+
     allTabs.forEach(function (service) {
       var serviceConfigs = configs.filterProperty('serviceName', service.get('serviceName'));
       service.set('configs', serviceConfigs);

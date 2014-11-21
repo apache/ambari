@@ -16,30 +16,10 @@
  * limitations under the License.
  */
 
-
 var App = require('app');
 
-App.WizardStep8View = Em.View.extend(App.wizardDeployProgressViewMixin, {
+App.KerberosWizardStep5View = Em.View.extend({
 
-  templateName: require('templates/wizard/step8'),
+  templateName: require('templates/main/admin/kerberos/step5')
 
-  didInsertElement: function () {
-    this.get('controller').loadStep();
-  },
-
-  /**
-   * Print review-report
-   * @method printReview
-   */
-  printReview: function () {
-    var o = $("#step8-info");
-    o.jqprint();
-  },
-
-  /**
-   * Reference to modalPopup to make sure only one instance is created
-   * @type {App.ModalPopup|null}
-   */
-  modalPopup: null
 });
-

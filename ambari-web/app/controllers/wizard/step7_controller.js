@@ -41,6 +41,8 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
 
   slaveHostToGroup: null,
 
+  addMiscTabToPage: true,
+
   /**
    * Is Submit-click processing now
    * @type {bool}
@@ -623,7 +625,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
       advancedConfigs,
       this.get('selectedServiceNames').concat(this.get('installedServiceNames'))
     );
-    App.config.setPreDefinedServiceConfigs();
+    App.config.setPreDefinedServiceConfigs(this.get('addMiscTabToPage'));
     //STEP 4: Add advanced configs
     App.config.addAdvancedConfigs(configs, advancedConfigs);
     //STEP 5: Add custom configs
@@ -670,7 +672,9 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
    * @method checkHostOverrideInstaller
    */
   checkHostOverrideInstaller: function () {
-    this.loadConfigGroups(this.get('content.configGroups'));
+    if (this.get('wizardController.name') !== 'kerberosWizardController') {
+      this.loadConfigGroups(this.get('content.configGroups'));
+    }
     if (this.get('installedServiceNames').length > 0) {
       this.loadInstalledServicesConfigGroups(this.get('installedServiceNames'));
     }
@@ -887,15 +891,15 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
     });
     serviceNames.forEach(function (serviceName) {
       var propertyPrefix = serviceName.toLowerCase();
-      if(/HDFS/gi.test(serviceName)) propertyPrefix = 'sink';
+      if (/HDFS/gi.test(serviceName)) propertyPrefix = 'sink';
       var dbTypeConfig = configs.findProperty('name', propertyPrefix + '_database');
       if (!/existing/gi.test(dbTypeConfig.value)) return;
       var dbHostName = propertyPrefix + '_hostname';
       var database = dbTypeConfig.value.match(/MySQL|PostgreSQL|Oracle|Derby|MSSQL/gi)[0];
       var dbPrefix = database.toLowerCase();
-      if(database.toLowerCase() == 'mssql') {
+      if (database.toLowerCase() == 'mssql') {
         dbHostName = 'sink.dbservername';
-        if(/integrated/gi.test(dbTypeConfig.value)) {
+        if (/integrated/gi.test(dbTypeConfig.value)) {
           dbPrefix = 'mssql_server';
         } else {
           dbPrefix = 'mssql_server_2';
@@ -1127,12 +1131,19 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
    * @method activateSpecialConfigs
    */
   activateSpecialConfigs: function () {
-    var miscConfigs = this.get('stepConfigs').findProperty('serviceName', 'MISC').configs;
-    if (this.get('wizardController.name') == "addServiceController") {
-      miscConfigs.findProperty('name', 'smokeuser').set('value', this.get('content.smokeuser')).set('isEditable', false);
-      miscConfigs.findProperty('name', 'user_group').set('value', this.get('content.group')).set('isEditable', false);
+    if (this.get('addMiscTabToPage')) {
+      var miscConfigs = this.get('stepConfigs').findProperty('serviceName', 'MISC').configs;
+      if (this.get('wizardController.name') == "addServiceController") {
+        miscConfigs.findProperty('name', 'smokeuser').set('value', this.get('content.smokeuser')).set('isEditable', false);
+        miscConfigs.findProperty('name', 'user_group').set('value', this.get('content.group')).set('isEditable', false);
+      }
+      App.config.miscConfigVisibleProperty(miscConfigs, this.get('selectedServiceNames'));
     }
-    App.config.miscConfigVisibleProperty(miscConfigs, this.get('selectedServiceNames'));
+    var wizardController = this.get('wizardController');
+    if (wizardController.get('name') === "kerberosWizardController")  {
+      var kerberosConfigs =  this.get('stepConfigs').findProperty('serviceName', 'KERBEROS').configs;
+      kerberosConfigs.findProperty('name', 'kdc_type').set('value', wizardController.get('content.kerberosOption'));
+    }
   },
 
   /**
