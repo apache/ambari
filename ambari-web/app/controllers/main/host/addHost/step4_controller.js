@@ -27,12 +27,18 @@ App.AddHostStep4Controller= Em.Controller.extend({
     App.ajax.send({
       name: 'config_groups.all_fields',
       sender: this,
-      success: 'successLoadingConfigGroup'
+      success: 'successLoadingConfigGroup',
+      error: 'errorLoadingConfigGroup'
     });
   },
 
   successLoadingConfigGroup: function (data) {
     App.router.get('addHostController.content').set('configGroups',data.items);
+    this.set('isConfigGroupLoaded', true);
+  },
+
+  errorLoadingConfigGroup: function(data) {
+    App.router.get('addHostController.content').set('configGroups', []);
     this.set('isConfigGroupLoaded', true);
   },
 

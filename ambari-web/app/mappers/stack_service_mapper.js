@@ -76,6 +76,7 @@ App.stackServiceMapper = App.QuickDataMapper.create({
     var model = this.get('model');
     var result = [];
     var stackServiceComponents = [];
+    var nonInstallableServices = ['KERBEROS'];
     this.rearrangeServicesForDisplayOrder(json.items, App.StackService.displayOrder);
     json.items.forEach(function (item) {
       var stackService = item.StackServices;
@@ -92,8 +93,10 @@ App.stackServiceMapper = App.QuickDataMapper.create({
       stackService.stack_id = stackService.stack_name + '-' + stackService.stack_version;
       stackService.service_components = serviceComponents;
       // @todo: replace with server response value after API implementation
-      stackService.is_installable = !['KERBEROS'].contains(stackService.service_name);
-      stackService.is_selected = stackService.is_installable;
+      if (nonInstallableServices.contains(stackService.service_name)) {
+        stackService.is_installable = false;
+        stackService.is_selected = false;
+      }
       result.push(this.parseIt(stackService, this.get('config')));
     }, this);
     App.store.loadMany(this.get('component_model'), stackServiceComponents);

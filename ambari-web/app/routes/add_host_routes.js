@@ -210,19 +210,19 @@ module.exports = App.WizardRoute.extend({
       var controller = router.get('addHostController');
       var addHostStep4Controller = router.get('addHostStep4Controller');
       controller.setCurrentStep('4');
-      addHostStep4Controller.loadConfigGroups();
-      addHostStep4Controller.set('isConfigGroupLoaded', false);
-      addHostStep4Controller.configGroupsLoading().done(function () {
-        controller.dataLoading().done(function () {
+      controller.dataLoading().done(function () {
+        addHostStep4Controller.loadConfigGroups();
+        addHostStep4Controller.set('isConfigGroupLoaded', false);
+        addHostStep4Controller.configGroupsLoading().done(function () {
           controller.loadAllPriorSteps();
           controller.loadServiceConfigGroups();
           addHostStep4Controller.set('wizardController', controller);
           controller.connectOutlet('addHostStep4', controller.get('content'));
-        })
-      })
+        });
+      });
     },
     back: function(router){
-        router.transitionTo('step3');
+      router.transitionTo('step3');
     },
     next: function (router) {
       var addHostController = router.get('addHostController');
