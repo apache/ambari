@@ -68,8 +68,8 @@
               <span class="help-inline">{{sshKeyError}}</span>
             {{/if}}
           </div>
-          <div>
-            <label class="ssh-user pull-left">
+          <div class="row-fluid">
+            <label class="ssh-user pull-left span5">
               {{t installer.step2.sshUser}}
               <a href="javascript:void(null)"
                  rel="popover"
@@ -85,6 +85,24 @@
               {{/if}}
             </div>
           </div>
+          <div class="row-fluid">
+            <label class="ssh-user pull-left span5">
+              {{t installer.step2.agentUser}}
+              <a href="javascript:void(null)"
+                 rel="popover"
+                {{translateAttr title="installer.step2.sshUser.link" data-content="installer.step2.sshUser.toolTip"}}>
+                {{t installer.step2.sshUser.link}}</a>
+              {{t installer.step2.sshUser.account}}
+            </label>
+
+            <div {{bindAttr class="agentUserError:error :control-group"}}>
+              {{view view.textFieldView valueBinding="content.installOptions.agentUser" isEnabledBinding="content.installOptions.useSsh"}}
+              {{#if agentUserError}}
+                <span class="help-inline">{{agentUserError}}</span>
+              {{/if}}
+            </div>
+          </div>
+
         </div>
       {{/if}}
 

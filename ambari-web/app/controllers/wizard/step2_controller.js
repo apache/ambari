@@ -94,6 +94,14 @@ App.WizardStep2Controller = Em.Controller.extend({
   }.property('content.installOptions.sshUser'),
 
   /**
+   * "Shortcut" to <code>content.installOptions.agentUser</code>
+   * @type {string}
+   */
+  agentUser: function () {
+    return this.get('content.installOptions.agentUser');
+  }.property('content.installOptions.agentUser'),
+
+  /**
    * Installed type based on <code>manualInstall</code>
    * @type {string}
    */
@@ -140,12 +148,23 @@ App.WizardStep2Controller = Em.Controller.extend({
   }.property('sshUser', 'hasSubmitted', 'manualInstall'),
 
   /**
+   * Error-message if <code>agentUser</code> is empty, null otherwise
+   * @type {string|null}
+   */
+  agentUserError: function () {
+    if (this.get('manualInstall') === false && Em.isEmpty(this.get('agentUser').trim())) {
+      return Em.I18n.t('installer.step2.sshUser.required');
+    }
+    return null;
+  }.property('agentUser', 'hasSubmitted', 'manualInstall'),
+
+  /**
    * is Submit button disabled
    * @type {bool}
    */
   isSubmitDisabled: function () {
-    return (this.get('hostsError') || this.get('sshKeyError') || this.get('sshUserError'));
-  }.property('hostsError', 'sshKeyError', 'sshUserError'),
+    return (this.get('hostsError') || this.get('sshKeyError') || this.get('sshUserError') || this.get('agentUserError'));
+  }.property('hostsError', 'sshKeyError', 'sshUserError', 'agentUserError'),
 
   installedHostNames: function () {
     var installedHostsName = [];
@@ -273,7 +292,7 @@ App.WizardStep2Controller = Em.Controller.extend({
       this.set('hostsError', Em.I18n.t('installer.step2.hostName.error.already_installed'));
     }
 
-    if (this.get('hostsError') || this.get('sshUserError') || this.get('sshKeyError')) {
+    if (this.get('hostsError') || this.get('sshUserError') || this.get('agentUserError') || this.get('sshKeyError')) {
       return false;
     }
 
@@ -361,7 +380,13 @@ App.WizardStep2Controller = Em.Controller.extend({
    */
   setupBootStrap: function () {
     var self = this;
-    var bootStrapData = JSON.stringify({'verbose': true, 'sshKey': this.get('sshKey'), 'hosts': this.get('hostNameArr'), 'user': this.get('sshUser')});
+    var bootStrapData = JSON.stringify({
+      'verbose': true,
+      'sshKey': this.get('sshKey'),
+      'hosts': this.get('hostNameArr'),
+      'user': this.get('sshUser'),
+      'userRunAs': this.get('agentUser')
+    });
     App.router.get(this.get('content.controllerName')).launchBootstrap(bootStrapData, function (requestId) {
       if (requestId == '0') {
         var controller = App.router.get(App.clusterStatus.wizardControllerName);

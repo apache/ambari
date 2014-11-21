@@ -473,6 +473,22 @@ describe('App.WizardStep3Controller', function () {
       c.retryHosts(Em.A([]));
       expect(installer.launchBootstrap.calledOnce).to.be.true;
     });
+    it('bootstrap data passed correctly', function () {
+      var controller = App.WizardStep2Controller.create({
+        sshKey: 'key',
+        hostNameArr: ['host0', 'host1'],
+        sshUser: 'root',
+        agentUser: 'user'
+      });
+      controller.setupBootStrap();
+      expect(installer.launchBootstrap.firstCall.args[0]).to.equal(JSON.stringify({
+        verbose: true,
+        sshKey: 'key',
+        hosts: ['host0', 'host1'],
+        user: 'root',
+        userRunAs: 'user'
+      }));
+    });
   });
 
   describe('#retryHost', function() {

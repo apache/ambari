@@ -515,7 +515,8 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
     localRepo: false, //true, false
     sshKey: "", //string
     bootRequestId: null, //string
-    sshUser: "root" //string
+    sshUser: "root", //string
+    agentUser: "root" //string
   },
 
   installWindowsOptionsTemplate: {
@@ -526,7 +527,8 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
     localRepo: false, //true, false
     sshKey: "", //string
     bootRequestId: null, //string
-    sshUser: "" //string
+    sshUser: "", //string
+    agentUser: "" //string
   },
 
   loadedServiceComponents: null,

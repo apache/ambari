@@ -474,6 +474,7 @@ Em.I18n.translations = {
   'installer.step2.sshUser.toolTip':'An account that can execute sudo without entering a password',
   'installer.step2.sshUser.placeholder':'Enter user name',
   'installer.step2.sshUser.required':'User name is required',
+  'installer.step2.agentUser':'Ambari Agent user (root or',
   'installer.step2.bootStrap.error':'Errors were encountered while setting up Ambari Agents on the hosts.',
   'installer.step2.bootStrap.inProgress':'Please wait while Ambari Agents are being set up on the hosts. This can take several minutes depending on the number of hosts.',
   'installer.step2.bootStrap.header':'Setting Up Ambari Agents',

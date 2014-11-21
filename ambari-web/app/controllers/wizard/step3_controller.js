@@ -349,7 +349,8 @@ App.WizardStep3Controller = Em.Controller.extend({
         'verbose': true,
         'sshKey': this.get('content.installOptions.sshKey'),
         'hosts': hosts.mapProperty('name'),
-        'user': this.get('content.installOptions.sshUser')}
+        'user': this.get('content.installOptions.sshUser'),
+        'userRunAs': this.get('content.installOptions.agentUser')}
     );
     this.set('numPolls', 0);
     this.set('registrationStartedAt', null);
