@@ -18,15 +18,26 @@
 
 package org.apache.ambari.server.controller;
 
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.CLIENTS_TO_UPDATE_CONFIGS;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMMAND_TIMEOUT;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMPONENT_CATEGORY;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.CUSTOM_COMMAND;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.DB_DRIVER_FILENAME;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.DB_NAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.GROUP_LIST;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOOKS_FOLDER;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JAVA_HOME;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JCE_NAME;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JDK_LOCATION;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JDK_NAME;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.MYSQL_JDBC_URL;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.ORACLE_JDBC_URL;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.REPO_INFO;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT_TYPE;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_PACKAGE_FOLDER;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_NAME;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_VERSION;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.USER_LIST;
 
 import java.util.ArrayList;
@@ -71,7 +82,6 @@ import org.apache.ambari.server.state.CustomCommandDefinition;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostComponentAdminState;
 import org.apache.ambari.server.state.MaintenanceState;
-
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpInProgressEvent;
 import org.apache.ambari.server.utils.StageUtils;
@@ -890,6 +900,75 @@ public class AmbariCustomCommandExecutionHelper {
 
     return repoInfo;
   }
+
+
+  /**
+   * Helper method to fill execution command information
+   * @param actionExecutionContext the context
+   * @param cluster the cluster for the command
+   * @return a wrapper of the imporant JSON structures to add to a stage.
+   */
+  public ExecuteCommandJson getCommandJson(ActionExecutionContext actionExecContext,
+      Cluster cluster) throws AmbariException {
+
+    Map<String, String> commandParamsStage = StageUtils.getCommandParamsStage(actionExecContext);
+    Map<String, String> hostParamsStage = new HashMap<String, String>();
+    Map<String, Set<String>> clusterHostInfo;
+    String clusterHostInfoJson = "{}";
+
+    if (null != cluster) {
+      clusterHostInfo = StageUtils.getClusterHostInfo(
+        clusters.getHostsForCluster(cluster.getClusterName()), cluster);
+      hostParamsStage = createDefaultHostParams(cluster);
+      StackId stackId = cluster.getDesiredStackVersion();
+      String componentName = null;
+      String serviceName = null;
+      if (actionExecContext.getOperationLevel() != null) {
+        componentName = actionExecContext.getOperationLevel().getHostComponentName();
+        serviceName = actionExecContext.getOperationLevel().getServiceName();
+      }
+      if (serviceName != null && componentName != null) {
+        ComponentInfo componentInfo = ambariMetaInfo.getComponent(
+                stackId.getStackName(), stackId.getStackVersion(),
+                serviceName, componentName);
+        List<String> clientsToUpdateConfigsList = componentInfo.getClientsToUpdateConfigs();
+        if (clientsToUpdateConfigsList == null) {
+          clientsToUpdateConfigsList = new ArrayList<String>();
+          clientsToUpdateConfigsList.add("*");
+        }
+        String clientsToUpdateConfigs = gson.toJson(clientsToUpdateConfigsList);
+        hostParamsStage.put(CLIENTS_TO_UPDATE_CONFIGS, clientsToUpdateConfigs);
+      }
+      clusterHostInfoJson = StageUtils.getGson().toJson(clusterHostInfo);
+    }
+
+    String hostParamsStageJson = StageUtils.getGson().toJson(hostParamsStage);
+    String commandParamsStageJson = StageUtils.getGson().toJson(commandParamsStage);
+
+    return new ExecuteCommandJson(clusterHostInfoJson, commandParamsStageJson,
+        hostParamsStageJson);
+  }
+
+  Map<String, String> createDefaultHostParams(Cluster cluster) {
+    StackId stackId = cluster.getDesiredStackVersion();
+    TreeMap<String, String> hostLevelParams = new TreeMap<String, String>();
+    hostLevelParams.put(JDK_LOCATION, managementController.getJdkResourceUrl());
+    hostLevelParams.put(JAVA_HOME, managementController.getJavaHome());
+    hostLevelParams.put(JDK_NAME, managementController.getJDKName());
+    hostLevelParams.put(JCE_NAME, managementController.getJCEName());
+    hostLevelParams.put(STACK_NAME, stackId.getStackName());
+    hostLevelParams.put(STACK_VERSION, stackId.getStackVersion());
+    hostLevelParams.put(DB_NAME, managementController.getServerDB());
+    hostLevelParams.put(MYSQL_JDBC_URL, managementController.getMysqljdbcUrl());
+    hostLevelParams.put(ORACLE_JDBC_URL, managementController.getOjdbcUrl());
+    hostLevelParams.put(DB_DRIVER_FILENAME, configs.getMySQLJarName());
+    hostLevelParams.putAll(managementController.getRcaParameters());
+
+    return hostLevelParams;
+  }
+
+
+
 
   private ServiceComponent getServiceComponent ( ActionExecutionContext actionExecutionContext,
                                                 RequestResourceFilter resourceFilter){

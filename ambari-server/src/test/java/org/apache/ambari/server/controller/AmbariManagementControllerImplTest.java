@@ -119,62 +119,62 @@ public class AmbariManagementControllerImplTest {
     injector.injectMembers(capture(controllerCapture));
     expect(injector.getInstance(Gson.class)).andReturn(null);
     expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(null);
-    
+
     //replay
     replay(injector);
-    
-    
+
+
     AmbariManagementControllerImpl controller = new AmbariManagementControllerImpl(null, null, injector);
-    
+
     class AmbariConfigsSetter{
        public void setConfigs(AmbariManagementController controller, String masterProtocol, String masterHostname, Integer masterPort) throws Exception{
          // masterProtocol
          Class<?> c = controller.getClass();
          Field f = c.getDeclaredField("masterProtocol");
          f.setAccessible(true);
-         
+
          Field modifiersField = Field.class.getDeclaredField("modifiers");
          modifiersField.setAccessible(true);
          modifiersField.setInt(f, f.getModifiers() & ~Modifier.FINAL);
-         
+
          f.set(controller, masterProtocol);
-         
+
          // masterHostname
          f = c.getDeclaredField("masterHostname");
          f.setAccessible(true);
-         
+
          modifiersField = Field.class.getDeclaredField("modifiers");
          modifiersField.setAccessible(true);
          modifiersField.setInt(f, f.getModifiers() & ~Modifier.FINAL);
-         
+
          f.set(controller, masterHostname);
-         
+
          // masterPort
          f = c.getDeclaredField("masterPort");
          f.setAccessible(true);
-         
+
          modifiersField = Field.class.getDeclaredField("modifiers");
          modifiersField.setAccessible(true);
          modifiersField.setInt(f, f.getModifiers() & ~Modifier.FINAL);
-         
+
          f.set(controller, masterPort);
        }
     }
 
     AmbariConfigsSetter ambariConfigsSetter = new AmbariConfigsSetter();
-    
+
     ambariConfigsSetter.setConfigs(controller, "http", "hostname", 8080);
     assertEquals("http://hostname:8080/jdk_path", controller.getAmbariServerURI("/jdk_path"));
-    
+
     ambariConfigsSetter.setConfigs(controller, "https", "somesecuredhost", 8443);
     assertEquals("https://somesecuredhost:8443/mysql_path", controller.getAmbariServerURI("/mysql_path"));
 
     ambariConfigsSetter.setConfigs(controller, "https", "othersecuredhost", 8443);
     assertEquals("https://othersecuredhost:8443/oracle/ojdbc/", controller.getAmbariServerURI("/oracle/ojdbc/"));
-    
+
     verify(injector);
   }
-  
+
   @Test
   public void testGetClusters() throws Exception {
     // member state mocks
@@ -584,7 +584,7 @@ public class AmbariManagementControllerImplTest {
 
     MaintenanceStateHelper maintHelper = createNiceMock(MaintenanceStateHelper.class);
     expect(maintHelper.getEffectiveState(componentHost)).andReturn(MaintenanceState.OFF).anyTimes();
-    
+
     // requests
     ServiceComponentHostRequest request1 = new ServiceComponentHostRequest(
         "cluster1", null, "component1", "host1", null);
@@ -595,7 +595,7 @@ public class AmbariManagementControllerImplTest {
     // expectations
     // constructor init
     injector.injectMembers(capture(controllerCapture));
-    
+
     expect(injector.getInstance(Gson.class)).andReturn(null);
     expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(maintHelper).anyTimes();
 
@@ -850,7 +850,7 @@ public class AmbariManagementControllerImplTest {
     injector.injectMembers(capture(controllerCapture));
     expect(injector.getInstance(Gson.class)).andReturn(null);
     expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(maintHelper).anyTimes();
-    
+
     // getHostComponent
     expect(clusters.getCluster("cluster1")).andReturn(cluster).times(3);
     expect(clusters.getClustersForHost("host1")).andReturn(Collections.singleton(cluster)).anyTimes();
@@ -927,7 +927,7 @@ public class AmbariManagementControllerImplTest {
     final ServiceComponentHost componentHost2 = createNiceMock(ServiceComponentHost.class);
     ServiceComponentHostResponse response1 = createNiceMock(ServiceComponentHostResponse.class);
     ServiceComponentHostResponse response2 = createNiceMock(ServiceComponentHostResponse.class);
-    
+
     MaintenanceStateHelper maintHelper = createNiceMock(MaintenanceStateHelper.class);
     expect(maintHelper.getEffectiveState(
       anyObject(ServiceComponentHost.class),
@@ -1456,6 +1456,7 @@ public class AmbariManagementControllerImplTest {
     Injector injector = createNiceMock(Injector.class);
     Configuration configuration = createNiceMock(Configuration.class);
 
+
     expect(cluster.getDesiredStackVersion()).andReturn(stackId);
     expect(stackId.getStackName()).andReturn(SOME_STACK_NAME).anyTimes();
     expect(stackId.getStackVersion()).andReturn(SOME_STACK_VERSION).anyTimes();
@@ -1483,8 +1484,17 @@ public class AmbariManagementControllerImplTest {
     f.setAccessible(true);
     f.set(ambariManagementControllerImpl, configuration);
 
-    TreeMap<String, String> defaultHostParams =
-            ambariManagementControllerImpl.createDefaultHostParams(cluster);
+    AmbariCustomCommandExecutionHelper helper = new AmbariCustomCommandExecutionHelper();
+    Class<?> helperClass = AmbariCustomCommandExecutionHelper.class;
+    f = helperClass.getDeclaredField("managementController");
+    f.setAccessible(true);
+    f.set(helper, ambariManagementControllerImpl);
+
+    f = helperClass.getDeclaredField("configs");
+    f.setAccessible(true);
+    f.set(helper, configuration);
+
+    Map<String, String> defaultHostParams = helper.createDefaultHostParams(cluster);
 
     assertEquals(defaultHostParams.size(), 10);
     assertEquals(defaultHostParams.get(DB_DRIVER_FILENAME), MYSQL_JAR);

@@ -39,7 +39,9 @@ import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.ActionExecutionContext;
 import org.apache.ambari.server.controller.AmbariActionExecutionHelper;
+import org.apache.ambari.server.controller.AmbariCustomCommandExecutionHelper;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.ExecuteCommandJson;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -95,6 +97,9 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   private static Provider<StageFactory> stageFactory;
   @Inject
   private static Provider<AmbariActionExecutionHelper> actionExecutionHelper;
+  @Inject
+  private static Provider<AmbariCustomCommandExecutionHelper> commandExecutionHelper;
+
 
 
   static {
@@ -218,6 +223,13 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     return resource;
   }
 
+  /**
+   * Validates a singular API request.
+   *
+   * @param requestMap the map of properties
+   * @return the validated upgrade pack
+   * @throws AmbariException
+   */
   private UpgradePack validateRequest(Map<String, Object> requestMap) throws AmbariException {
     String clusterName = (String) requestMap.get(UPGRADE_CLUSTER_NAME);
     String version = (String) requestMap.get(UPGRADE_VERSION);
@@ -307,7 +319,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
             components.get(componentName).getServiceComponentHosts().keySet());
 
         preUpgrades.addAll(buildUpgradeStages(pc, true, groupings));
-        restart.addAll(buildRollingRestart(pc, groupings));
+        restart.addAll(buildRollingRestart(serviceName, pc, groupings));
         postUpgrades.addAll(buildUpgradeStages(pc, false, groupings));
       }
     }
@@ -397,7 +409,8 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
    * @param hostGroups a list of the host groupings
    * @return the list of stages that need to be created
    */
-  private List<StageHolder> buildRollingRestart(ProcessingComponent pc, List<Set<String>> hostGroups) {
+  private List<StageHolder> buildRollingRestart(String serviceName, ProcessingComponent pc,
+      List<Set<String>> hostGroups) {
     List<StageHolder> stages = new ArrayList<StageHolder>();
 
     String textFormat = "Restarting %s on %d host(s), Phase %d/%d";
@@ -406,6 +419,8 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     for (Set<String> hostGroup : hostGroups) {
       // !!! each of these is its own stage
       StageHolder stage = new StageHolder();
+      stage.service = serviceName;
+      stage.component = pc.name;
       stage.hosts = hostGroup;
       stage.upgradeItemEntity = new UpgradeItemEntity();
       stage.upgradeItemEntity.setText(String.format(textFormat, pc.name,
@@ -465,6 +480,8 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   }
 
   private static class StageHolder {
+    private String service;
+    private String component;
     private TaskHolder taskHolder;
     private UpgradeItemEntity upgradeItemEntity;
     private Set<String> hosts;
@@ -506,7 +523,6 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     if (0L == stageId) {
       stageId = 1L;
     }
-
     stage.setStageId(stageId);
 
     // add each host to this stage
@@ -523,7 +539,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         params);
     actionContext.setTimeout(Short.valueOf((short)60));
 
-    // !!! TODO validate the action is valid
+    // !!! TODO verify the action is valid
 
     actionExecutionHelper.get().addExecutionCommandsToStage(actionContext, stage);
 
@@ -540,9 +556,42 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   private void createRestartStage(Cluster cluster, RequestStageContainer request,
       StageHolder holder) throws AmbariException {
 
-    // !!! TODO make a restart command
-    createUpgradeTaskStage(cluster, request, holder);
+    // add each host to this stage
+    RequestResourceFilter filter = new RequestResourceFilter(holder.service, holder.component,
+        new ArrayList<String>(holder.hosts));
 
+    ActionExecutionContext actionContext = new ActionExecutionContext(
+        cluster.getClusterName(), "RESTART",
+        Collections.singletonList(filter),
+        Collections.<String, String>emptyMap());
+    actionContext.setTimeout(Short.valueOf((short)-1));
+
+    ExecuteCommandJson jsons = commandExecutionHelper.get().getCommandJson(
+        actionContext, cluster);
+
+    Stage stage = stageFactory.get().createNew(request.getId().longValue(),
+        "/tmp/ambari",
+        cluster.getClusterName(),
+        cluster.getClusterId(),
+        holder.upgradeItemEntity.getText(),
+        jsons.getClusterHostInfo(),
+        jsons.getCommandParamsForStage(),
+        jsons.getHostParamsForStage());
+
+    long stageId = request.getLastStageId() + 1;
+    if (0L == stageId) {
+      stageId = 1L;
+    }
+    stage.setStageId(stageId);
+
+    // !!! TODO verify the action is valid
+
+    Map<String, String> requestParams = new HashMap<String, String>();
+    requestParams.put("command", "RESTART");
+
+    commandExecutionHelper.get().addExecutionCommandsToStage(actionContext, stage, requestParams);
+
+    request.addStages(Collections.singletonList(stage));
   }
 
 }
