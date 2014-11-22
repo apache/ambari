@@ -184,8 +184,8 @@ public class UpgradeCatalog200Test {
     assertViewInstancePropertyColumns(valueColumnCapture);
     assertViewInstanceDataColumns(dataValueColumnCapture);
 
-    assertEquals(3, upgradeCapture.getValue().size());
-    assertEquals(6, upgradeItemCapture.getValue().size());
+    assertEquals(4, upgradeCapture.getValue().size());
+    assertEquals(7, upgradeItemCapture.getValue().size());
   }
 
   @Test

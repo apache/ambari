@@ -22,22 +22,38 @@ import java.util.Collections;
 import java.util.List;
 
 public enum HostRoleStatus {
-  PENDING(0), //Not queued for a host
-  QUEUED(1), //Queued for a host (or has already been sent to host, but host did not answer yet)
-  IN_PROGRESS(2), //Host reported it is working (we received an IN_PROGRESS command status from host)
-  COMPLETED(3), //Host reported success
-  FAILED(4), //Failed
-  TIMEDOUT(5), //Host did not respond in time
-  ABORTED(6); //Operation was abandoned
-  private final int status;
+  /**
+   * Not queued for a host.
+   */
+  PENDING,
+  /**
+   * Queued for a host, or has already been sent to host, but host did not answer yet.
+   */
+  QUEUED,
+  /**
+   * Host reported it is working, received an IN_PROGRESS command status from host.
+   */
+  IN_PROGRESS,
+  /**
+   * Host reported success
+   */
+  COMPLETED,
+  /**
+   * Failed
+   */
+  FAILED,
+  /**
+   * Host did not respond in time
+   */
+  TIMEDOUT,
+  /**
+   * Operation was abandoned
+   */
+  ABORTED;
 
   private static List<HostRoleStatus> COMPLETED_STATES = Arrays.asList(FAILED, TIMEDOUT, ABORTED, COMPLETED);
   private static List<HostRoleStatus> FAILED_STATES = Arrays.asList(FAILED, TIMEDOUT, ABORTED);
 
-
-  private HostRoleStatus(int status) {
-    this.status = status;
-  }
 
   /**
    * Indicates whether or not it is a valid failure state.

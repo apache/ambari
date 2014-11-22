@@ -38,6 +38,7 @@ import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.UpgradeDAO;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
+import org.apache.ambari.server.orm.entities.UpgradeItemEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
@@ -45,6 +46,7 @@ import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.UpgradeState;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -153,8 +155,18 @@ public class UpgradeResourceProviderTest {
     List<Long> requests = am.getRequestsByStatus(RequestStatus.IN_PROGRESS, 100, true);
 
     assertEquals(1, requests.size());
+    assertEquals(requests.get(0), entity.getRequestId());
+
+
     List<Stage> stages = am.getRequestStatus(requests.get(0).longValue());
     assertEquals(3, stages.size());
+    for (int i = 0; i < stages.size(); i++) {
+      Stage stage = stages.get(i);
+      UpgradeItemEntity upgradeItem = entity.getUpgradeItems().get(i);
+      assertEquals(stage.getStageId(), upgradeItem.getStageId().longValue());
+      assertEquals(UpgradeState.NONE, upgradeItem.getState());
+    }
+
 
     List<HostRoleCommand> tasks = am.getRequestTasks(requests.get(0).longValue());
     assertEquals(3, tasks.size());

@@ -700,14 +700,17 @@ CREATE INDEX idx_alert_notice_state on alert_notice(notify_state);
 CREATE TABLE upgrade (
   upgrade_id BIGINT NOT NULL,
   cluster_id BIGINT NOT NULL,
+  request_id BIGINT NOT NULL,
   state VARCHAR(255) DEFAULT 'NONE' NOT NULL,
   PRIMARY KEY (upgrade_id),
-  FOREIGN KEY (cluster_id) REFERENCES clusters(cluster_id)
+  FOREIGN KEY (cluster_id) REFERENCES clusters(cluster_id),
+  FOREIGN KEY (request_id) REFERENCES request(request_id)
 );
 
 CREATE TABLE upgrade_item (
   upgrade_item_id BIGINT NOT NULL,
   upgrade_id BIGINT NOT NULL,
+  stage_id BIGINT NOT NULL,
   state VARCHAR(255) DEFAULT 'NONE' NOT NULL,
   hosts TEXT,
   tasks TEXT,

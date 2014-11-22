@@ -69,18 +69,20 @@ public class UpgradeDAOTest {
     // create upgrade entities
     UpgradeEntity entity = new UpgradeEntity();
     entity.setClusterId(Long.valueOf(1));
+    entity.setRequestId(Long.valueOf(1));
 
     // create 2 items
     List<UpgradeItemEntity> items = new ArrayList<UpgradeItemEntity>();
     UpgradeItemEntity item = new UpgradeItemEntity();
     item.setState(UpgradeState.IN_PROGRESS);
-    item.setUpgradeEntity(entity);
+    item.setStageId(Long.valueOf(1L));
     items.add(item);
 
     item = new UpgradeItemEntity();
     item.setState(UpgradeState.PENDING);
-    item.setUpgradeEntity(entity);
+    item.setStageId(Long.valueOf(1L));
     items.add(item);
+
 
     entity.setUpgradeItems(items);
     dao.create(entity);

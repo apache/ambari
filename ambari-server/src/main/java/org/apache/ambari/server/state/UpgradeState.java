@@ -26,6 +26,10 @@ public enum UpgradeState {
    */
   NONE,
   /**
+   * Upgrade is complete
+   */
+  COMPLETE,
+  /**
    * Upgrade is pending
    */
   PENDING,

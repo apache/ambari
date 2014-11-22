@@ -21,10 +21,13 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.StaticallyInject;
+import org.apache.ambari.server.actionmanager.HostRoleCommand;
+import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
@@ -39,6 +42,7 @@ import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.orm.dao.UpgradeDAO;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.orm.entities.UpgradeItemEntity;
+import org.apache.ambari.server.state.UpgradeState;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -53,6 +57,7 @@ public class UpgradeItemResourceProvider extends AbstractControllerResourceProvi
   protected static final String UPGRADE_ITEM_ID = "UpgradeItem/id";
   protected static final String UPGRADE_ITEM_STATE = "UpgradeItem/state";
   protected static final String UPGRADE_ITEM_TEXT = "UpgradeItem/text";
+  protected static final String UPGRADE_ITEM_STAGE_ID= "UpgradeItem/stage_id";
 
   private static final Set<String> PK_PROPERTY_IDS = new HashSet<String>(
       Arrays.asList(UPGRADE_ID, UPGRADE_ITEM_ID));
@@ -119,7 +124,7 @@ public class UpgradeItemResourceProvider extends AbstractControllerResourceProvi
       Collection<UpgradeItemEntity> items = upgrade.getUpgradeItems();
       if (null != items) {
         for (UpgradeItemEntity entity : items) {
-          results.add(toResource(entity, upgradeId, requestPropertyIds));
+          results.add(toResource(upgrade, entity, requestPropertyIds));
         }
       }
     }
@@ -148,15 +153,77 @@ public class UpgradeItemResourceProvider extends AbstractControllerResourceProvi
     return PK_PROPERTY_IDS;
   }
 
-  private Resource toResource(UpgradeItemEntity entity, long upgradeId, Set<String> requestedIds) {
+  private Resource toResource(UpgradeEntity upgrade, UpgradeItemEntity item, Set<String> requestedIds) {
     ResourceImpl resource = new ResourceImpl(Resource.Type.UpgradeItem);
 
-    setResourceProperty(resource, UPGRADE_ID, Long.valueOf(upgradeId), requestedIds);
-    setResourceProperty(resource, UPGRADE_ITEM_ID, entity.getId(), requestedIds);
-    setResourceProperty(resource, UPGRADE_ITEM_STATE, entity.getState(), requestedIds);
-    setResourceProperty(resource, UPGRADE_ITEM_TEXT, entity.getText(), requestedIds);
+    setResourceProperty(resource, UPGRADE_ID, upgrade.getId(), requestedIds);
+    setResourceProperty(resource, UPGRADE_ITEM_ID, item.getId(), requestedIds);
+    if (isPropertyRequested(UPGRADE_ITEM_STATE, requestedIds)) {
+      UpgradeState state = calculateState(upgrade, item);
+      setResourceProperty(resource, UPGRADE_ITEM_STATE, state, requestedIds);
+    }
+    setResourceProperty(resource, UPGRADE_ITEM_TEXT, item.getText(), requestedIds);
 
     return resource;
   }
+
+  private UpgradeState calculateState(UpgradeEntity upgrade, UpgradeItemEntity item) {
+    long requestId = upgrade.getRequestId().longValue();
+    long stageId = item.getStageId().longValue();
+
+    List<HostRoleCommand> commands = getManagementController().getActionManager().getRequestTasks(requestId);
+
+    int pending = 0;
+    int complete = 0;
+    int in_progress = 0;
+    int failed = 0;
+
+    for (HostRoleCommand command : commands) {
+      if (stageId != command.getStageId()) {
+        continue;
+      }
+
+      HostRoleStatus status = command.getStatus();
+      if (status.isFailedState()) {
+        failed++;
+      } else {
+        switch (status) {
+          case COMPLETED:
+            complete++;
+            break;
+          case IN_PROGRESS:
+            in_progress++;
+            break;
+          case PENDING:
+            pending++;
+            break;
+          case QUEUED:
+            in_progress++;
+            break;
+          case FAILED:
+          case ABORTED:
+          case TIMEDOUT:
+            failed++;
+            break;
+          default:
+            break;
+        }
+      }
+    }
+
+    if (failed > 0) {
+      return UpgradeState.FAILED;
+    } else if (in_progress > 0) {
+      return UpgradeState.IN_PROGRESS;
+    } else if (pending > 0) {
+      return UpgradeState.PENDING;
+    } else if (complete > 0) {
+      return UpgradeState.COMPLETE;
+    }
+
+    return UpgradeState.NONE;
+  }
+
+
 
 }

@@ -77,7 +77,8 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
   protected static final String UPGRADE_ID = "Upgrade/id";
   protected static final String UPGRADE_CLUSTER_NAME = "Upgrade/cluster_name";
-  protected static final String UPGRADE_VERSION = "Upgrade/version";
+  protected static final String UPGRADE_VERSION = "Upgrade/repository_version";
+  protected static final String UPGRADE_REQUEST_ID = "Upgrade/request_id";
 
   private static final Set<String> PK_PROPERTY_IDS = new HashSet<String>(
       Arrays.asList(UPGRADE_ID, UPGRADE_CLUSTER_NAME));
@@ -100,13 +101,12 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   @Inject
   private static Provider<AmbariCustomCommandExecutionHelper> commandExecutionHelper;
 
-
-
   static {
     // properties
     PROPERTY_IDS.add(UPGRADE_ID);
     PROPERTY_IDS.add(UPGRADE_CLUSTER_NAME);
     PROPERTY_IDS.add(UPGRADE_VERSION);
+    PROPERTY_IDS.add(UPGRADE_REQUEST_ID);
 
     // keys
     KEY_PROPERTY_IDS.put(Resource.Type.Upgrade, UPGRADE_ID);
@@ -219,6 +219,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
     setResourceProperty(resource, UPGRADE_ID, entity.getId(), requestedIds);
     setResourceProperty(resource, UPGRADE_CLUSTER_NAME, clusterName, requestedIds);
+    setResourceProperty(resource, UPGRADE_REQUEST_ID, entity.getRequestId(), requestedIds);
 
     return resource;
   }
@@ -349,8 +350,6 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     entity.setClusterId(Long.valueOf(cluster.getClusterId()));
     entity.setUpgradeItems(items);
 
-    m_upgradeDAO.create(entity);
-
     RequestStageContainer req = createRequest((String) requestMap.get(UPGRADE_VERSION));
 
     for (StageHolder holder : preUpgrades) {
@@ -367,7 +366,11 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
     req.getRequestStatusResponse();
 
+    entity.setRequestId(req.getId());
+
     req.persist();
+
+    m_upgradeDAO.create(entity);
 
     return entity;
   }
@@ -487,7 +490,6 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     private Set<String> hosts;
   }
 
-
   private RequestStageContainer createRequest(String version) {
     ActionManager actionManager = getManagementController().getActionManager();
 
@@ -524,6 +526,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       stageId = 1L;
     }
     stage.setStageId(stageId);
+    holder.upgradeItemEntity.setStageId(Long.valueOf(stageId));
 
     // add each host to this stage
     RequestResourceFilter filter = new RequestResourceFilter("", "",
@@ -583,6 +586,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       stageId = 1L;
     }
     stage.setStageId(stageId);
+    holder.upgradeItemEntity.setStageId(Long.valueOf(stageId));
 
     // !!! TODO verify the action is valid
 

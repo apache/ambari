@@ -180,14 +180,17 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
     columns = new ArrayList<DBColumnInfo>();
     columns.add(new DBAccessor.DBColumnInfo("upgrade_id", Long.class, null, null, false));
     columns.add(new DBAccessor.DBColumnInfo("cluster_id", Long.class, null, null, false));
+    columns.add(new DBAccessor.DBColumnInfo("request_id", Long.class, null, null, false));
     columns.add(new DBAccessor.DBColumnInfo("state", String.class, 255, UpgradeState.NONE.name(), false));
     dbAccessor.createTable("upgrade", columns, "upgrade_id");
     dbAccessor.addFKConstraint("upgrade", "fk_upgrade_cluster_id", "cluster_id", "clusters", "cluster_id", false);
+    dbAccessor.addFKConstraint("upgrade", "fk_upgrade_request_id", "request_id", "request", "request_id", false);
     dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, sequence_value) VALUES('upgrade_id_seq', 0)", false);
 
     columns = new ArrayList<DBColumnInfo>();
     columns.add(new DBAccessor.DBColumnInfo("upgrade_item_id", Long.class, null, null, false));
     columns.add(new DBAccessor.DBColumnInfo("upgrade_id", Long.class, null, null, false));
+    columns.add(new DBAccessor.DBColumnInfo("stage_id", Long.class, null, null, false));
     columns.add(new DBAccessor.DBColumnInfo("state", String.class, 255, UpgradeState.NONE.name(), false));
     columns.add(new DBAccessor.DBColumnInfo("hosts", char[].class, 32672, null, true));
     columns.add(new DBAccessor.DBColumnInfo("tasks", char[].class, 32672, null, true));

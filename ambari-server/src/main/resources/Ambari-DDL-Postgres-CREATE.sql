@@ -684,23 +684,26 @@ CREATE INDEX idx_alert_group_name on alert_group(group_name);
 CREATE INDEX idx_alert_notice_state on alert_notice(notify_state);
 
 -- upgrade tables
-CREATE TABLE ambari.upgrade (
+CREATE TABLE upgrade (
   upgrade_id BIGINT NOT NULL,
   cluster_id BIGINT NOT NULL,
+  request_id BIGINT NOT NULL,
   state VARCHAR(255) DEFAULT 'NONE' NOT NULL,
   PRIMARY KEY (upgrade_id),
-  FOREIGN KEY (cluster_id) REFERENCES ambari.clusters(cluster_id)
+  FOREIGN KEY (cluster_id) REFERENCES clusters(cluster_id),
+  FOREIGN KEY (request_id) REFERENCES request(request_id)
 );
 
-CREATE TABLE ambari.upgrade_item (
+CREATE TABLE upgrade_item (
   upgrade_item_id BIGINT NOT NULL,
   upgrade_id BIGINT NOT NULL,
+  stage_id BIGINT NOT NULL,
   state VARCHAR(255) DEFAULT 'NONE' NOT NULL,
   hosts TEXT,
   tasks TEXT,
   item_text VARCHAR(1024),
   PRIMARY KEY (upgrade_item_id),
-  FOREIGN KEY (upgrade_id) REFERENCES ambari.upgrade(upgrade_id)
+  FOREIGN KEY (upgrade_id) REFERENCES upgrade(upgrade_id)
 );
 
 ---------inserting some data-----------

@@ -67,6 +67,10 @@ public class UpgradeItemEntity {
   @Column(name = "item_text", length = 1024)
   private String itemText = null;
 
+  @Basic
+  @Column(name = "stage_id", nullable = false)
+  private Long stageId = Long.valueOf(0L);
+
   @ManyToOne
   @JoinColumn(name = "upgrade_id", referencedColumnName = "upgrade_id", nullable = false)
   private UpgradeEntity upgradeEntity;
@@ -151,6 +155,14 @@ public class UpgradeItemEntity {
 
   public void setUpgradeEntity(UpgradeEntity entity) {
     upgradeEntity = entity;
+  }
+
+  public Long getStageId() {
+    return stageId;
+  }
+
+  public void setStageId(Long id) {
+    stageId = id;
   }
 
 

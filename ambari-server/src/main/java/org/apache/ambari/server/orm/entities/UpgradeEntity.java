@@ -17,7 +17,6 @@
  */
 package org.apache.ambari.server.orm.entities;
 
-import java.util.Collection;
 import java.util.List;
 
 import javax.persistence.CascadeType;
@@ -25,6 +24,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -63,6 +63,9 @@ public class UpgradeEntity {
   @Enumerated(value=EnumType.STRING)
   @Column(name = "state", nullable = false)
   private UpgradeState state = UpgradeState.NONE;
+
+  @Column(name="request_id", nullable = false)
+  private Long requestId;
 
   @OneToMany(mappedBy = "upgradeEntity", cascade = { CascadeType.ALL })
   private List<UpgradeItemEntity> upgradeItemEntities;
@@ -126,6 +129,20 @@ public class UpgradeEntity {
       entity.setUpgradeEntity(this);
     }
     upgradeItemEntities = items;
+  }
+
+  /**
+   * @return the request id
+   */
+  public Long getRequestId() {
+    return requestId;
+  }
+
+  /**
+   * @param id the request id
+   */
+  public void setRequestId(Long id) {
+    requestId = id;
   }
 
 }
