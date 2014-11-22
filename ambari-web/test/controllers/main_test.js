@@ -34,7 +34,7 @@ describe('App.InstallerController', function () {
           expected: true
         },
         {
-          osType: 'sles11',
+          osType: 'suse11',
           expected: false
         }
       ],

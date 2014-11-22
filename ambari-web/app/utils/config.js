@@ -53,7 +53,7 @@ App.config = Em.Object.create({
    * @returns {boolean}
    */
   isManagedMySQLForHiveAllowed: function (osType) {
-    var osList = ['redhat5', 'sles11'];
+    var osList = ['redhat5', 'suse11'];
     return !osList.contains(osType);
   },
 
