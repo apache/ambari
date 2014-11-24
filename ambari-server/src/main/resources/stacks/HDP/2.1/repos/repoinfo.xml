@@ -16,7 +16,7 @@
    limitations under the License.
 -->
 <reposinfo>
-  <latest>http://s3.amazonaws.com/dev.hortonworks.com/HDP/hdp_urlinfo.json</latest>
+  <latest>http://public-repo-1.hortonworks.com/HDP/hdp_urlinfo.json</latest>
   <os type="redhat6">
     <repo>
       <baseurl>REPLACE_WITH_CENTOS6_URL</baseurl>
@@ -24,7 +24,7 @@
       <reponame>HDP</reponame>
     </repo>
     <repo>
-      <baseurl>http://s3.amazonaws.com/dev.hortonworks.com/HDP-UTILS-1.1.0.19/repos/centos6</baseurl>
+      <baseurl>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.19/repos/centos6</baseurl>
       <repoid>HDP-UTILS-1.1.0.19</repoid>
       <reponame>HDP-UTILS</reponame>
     </repo>
@@ -36,7 +36,7 @@
       <reponame>HDP</reponame>
     </repo>
     <repo>
-      <baseurl>http://s3.amazonaws.com/dev.hortonworks.com/HDP-UTILS-1.1.0.19/repos/centos5</baseurl>
+      <baseurl>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.19/repos/centos5</baseurl>
       <repoid>HDP-UTILS-1.1.0.19</repoid>
       <reponame>HDP-UTILS</reponame>
     </repo>
@@ -48,7 +48,7 @@
       <reponame>HDP</reponame>
     </repo>
     <repo>
-      <baseurl>http://s3.amazonaws.com/dev.hortonworks.com/HDP-UTILS-1.1.0.19/repos/suse11sp3</baseurl>
+      <baseurl>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.19/repos/suse11sp3</baseurl>
       <repoid>HDP-UTILS-1.1.0.19</repoid>
       <reponame>HDP-UTILS</reponame>
     </repo>
@@ -60,7 +60,7 @@
       <reponame>HDP</reponame>
     </repo>
     <repo>
-      <baseurl>http://s3.amazonaws.com/dev.hortonworks.com/HDP-UTILS-1.1.0.19/repos/ubuntu12</baseurl>
+      <baseurl>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.19/repos/ubuntu12</baseurl>
       <repoid>HDP-UTILS-1.1.0.19</repoid>
       <reponame>HDP-UTILS</reponame>
     </repo>
