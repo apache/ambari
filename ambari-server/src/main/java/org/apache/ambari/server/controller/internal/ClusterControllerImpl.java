@@ -32,6 +32,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import org.apache.ambari.server.controller.spi.ClusterController;
+import org.apache.ambari.server.controller.spi.ExtendedResourceProvider;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.PageRequest;
@@ -39,6 +40,7 @@ import org.apache.ambari.server.controller.spi.PageResponse;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.PropertyProvider;
 import org.apache.ambari.server.controller.spi.ProviderModule;
+import org.apache.ambari.server.controller.spi.QueryResponse;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.spi.Resource;
@@ -72,8 +74,8 @@ public class ClusterControllerImpl implements ClusterController {
   /**
    * Map of resource providers keyed by resource type.
    */
-  private final Map<Resource.Type, ResourceProvider> resourceProviders =
-      new HashMap<Resource.Type, ResourceProvider>();
+  private final Map<Resource.Type, ExtendedResourceProviderWrapper> resourceProviders =
+      new HashMap<Resource.Type, ExtendedResourceProviderWrapper>();
 
   /**
    * Map of property provider lists keyed by resource type.
@@ -109,18 +111,15 @@ public class ClusterControllerImpl implements ClusterController {
   // ----- ClusterController -------------------------------------------------
 
   @Override
-  public Set<Resource> getResources(Type type, Request request, Predicate predicate)
+  public QueryResponse getResources(Type type, Request request, Predicate predicate)
       throws UnsupportedPropertyException, NoSuchResourceException,
              NoSuchParentResourceException, SystemException {
-    Set<Resource> resources;
+    QueryResponse queryResponse = null;
 
-    ResourceProvider provider = ensureResourceProvider(type);
+    ExtendedResourceProviderWrapper provider = ensureResourceProviderWrapper(type);
     ensurePropertyProviders(type);
 
-    if (provider == null) {
-      resources = Collections.emptySet();
-    } else {
-
+    if (provider != null) {
       if (LOG.isDebugEnabled()) {
         LOG.debug("Using resource provider "
             + provider.getClass().getName()
@@ -130,15 +129,16 @@ public class ClusterControllerImpl implements ClusterController {
       checkProperties(type, request, predicate);
 
       // get the resources
-      resources = provider.getResources(request, predicate);
+      queryResponse = provider.queryForResources(request, predicate);
 
       // if a specific resource was asked for and not found then throw exception
-      if (predicate != null && (resources == null || resources.isEmpty())) {
+      if (predicate != null &&
+          (queryResponse == null || queryResponse.getResources() == null || queryResponse.getResources().isEmpty())) {
         throw new NoSuchResourceException(
             "The requested resource doesn't exist: " + type.toString() + " not found, " + predicate);
       }
     }
-    return resources;
+    return queryResponse == null ? new QueryResponseImpl(Collections.<Resource>emptySet()) : queryResponse;
   }
 
   @Override
@@ -157,16 +157,16 @@ public class ClusterControllerImpl implements ClusterController {
   }
 
   @Override
-  public Iterable<Resource> getIterable(Type type, Set<Resource> providerResources,
+  public Iterable<Resource> getIterable(Type type, QueryResponse queryResponse,
                                         Request request, Predicate predicate,
                                         PageRequest pageRequest,
                                         SortRequest sortRequest)
       throws NoSuchParentResourceException, UnsupportedPropertyException, NoSuchResourceException, SystemException {
-    return getPage(type, providerResources, request, predicate, pageRequest, sortRequest).getIterable();
+    return getPage(type, queryResponse, request, predicate, pageRequest, sortRequest).getIterable();
   }
 
   @Override
-  public PageResponse getPage(Type type, Set<Resource> providerResources,
+  public PageResponse getPage(Type type, QueryResponse queryResponse,
                               Request request, Predicate predicate,
                               PageRequest pageRequest, SortRequest sortRequest)
       throws UnsupportedPropertyException,
@@ -174,21 +174,17 @@ public class ClusterControllerImpl implements ClusterController {
       NoSuchResourceException,
       NoSuchParentResourceException {
 
-    ResourceProvider provider = ensureResourceProvider(type);
+    Set<Resource> providerResources = queryResponse.getResources();
 
-    ResourcePredicateEvaluator evaluator = provider instanceof ResourcePredicateEvaluator ?
-        (ResourcePredicateEvaluator) provider : DEFAULT_RESOURCE_PREDICATE_EVALUATOR;
+    ExtendedResourceProviderWrapper provider  = ensureResourceProviderWrapper(type);
 
     int totalCount = 0;
     Set<Resource> resources = providerResources;
 
     if (!providerResources.isEmpty()) {
-      Request.PageInfo pageInfo = request.getPageInfo();
-      Request.SortInfo sortInfo = request.getSortInfo();
-
       // determine if the provider has already paged & sorted the results
-      boolean providerAlreadyPaged = (null != pageInfo && pageInfo.isResponsePaged());
-      boolean providerAlreadySorted = (null != sortInfo && sortInfo.isResponseSorted());
+      boolean providerAlreadyPaged  = queryResponse.isPagedResponse();
+      boolean providerAlreadySorted = queryResponse.isSortedResponse();
 
       // conditionally create a comparator if there is a sort
       Comparator<Resource> resourceComparator = comparator;
@@ -216,16 +212,16 @@ public class ClusterControllerImpl implements ClusterController {
         switch (pageRequest.getStartingPoint()) {
           case Beginning:
             return getPageFromOffset(pageRequest.getPageSize(), 0, resources,
-                predicate, evaluator);
+                predicate, provider);
           case End:
             return getPageToOffset(pageRequest.getPageSize(), -1, resources,
-                predicate, evaluator);
+                predicate, provider);
           case OffsetStart:
             return getPageFromOffset(pageRequest.getPageSize(),
-                pageRequest.getOffset(), resources, predicate, evaluator);
+                pageRequest.getOffset(), resources, predicate, provider);
           case OffsetEnd:
             return getPageToOffset(pageRequest.getPageSize(),
-                pageRequest.getOffset(), resources, predicate, evaluator);
+                pageRequest.getOffset(), resources, predicate, provider);
           case PredicateStart:
           case PredicateEnd:
             // TODO : need to support the following cases for pagination
@@ -234,12 +230,12 @@ public class ClusterControllerImpl implements ClusterController {
             break;
         }
       } else if (providerAlreadyPaged) {
-        totalCount = pageInfo.getTotalCount();
+        totalCount = queryResponse.getTotalResourceCount();
       }
     }
 
     return new PageResponseImpl(new ResourceIterable(resources, predicate,
-      evaluator), 0, null, null, totalCount);
+        provider), 0, null, null, totalCount);
   }
 
   /**
@@ -345,16 +341,27 @@ public class ClusterControllerImpl implements ClusterController {
 
   @Override
   public ResourceProvider ensureResourceProvider(Type type) {
-    synchronized (resourceProviders) {
-      if (!resourceProviders.containsKey(type)) {
-        resourceProviders.put(type, providerModule.getResourceProvider(type));
-      }
-    }
-    return resourceProviders.get(type);
+    return ensureResourceProviderWrapper(type);
   }
 
 
   // ----- helper methods ----------------------------------------------------
+
+  /**
+   * Get the extended resource provider for the given type, creating it if required.
+   *
+   * @param type  the resource type
+   *
+   * @return the resource provider
+   */
+  private ExtendedResourceProviderWrapper ensureResourceProviderWrapper(Type type) {
+    synchronized (resourceProviders) {
+      if (!resourceProviders.containsKey(type)) {
+        resourceProviders.put(type, new ExtendedResourceProviderWrapper(providerModule.getResourceProvider(type)));
+      }
+    }
+    return resourceProviders.get(type);
+  }
 
   /**
    * Get an iterable set of resources filtered by the given request and
@@ -405,9 +412,9 @@ public class ClusterControllerImpl implements ClusterController {
       NoSuchResourceException,
       NoSuchParentResourceException {
 
-    Set<Resource> providerResources = getResources(type, request, predicate);
-    populateResources(type, providerResources, request, predicate);
-    return getPage(type, providerResources, request, predicate, pageRequest, sortRequest);
+    QueryResponse queryResponse = getResources(type, request, predicate);
+    populateResources(type, queryResponse.getResources(), request, predicate);
+    return getPage(type, queryResponse, request, predicate, pageRequest, sortRequest);
   }
 
   /**
@@ -879,6 +886,107 @@ public class ClusterControllerImpl implements ClusterController {
       } else {
         return -1 * compareValues(val1, val2);
       }
+    }
+  }
+
+
+  // ----- inner class : ExtendedResourceProviderWrapper ---------------------
+
+  /**
+   * Wrapper class that allows the cluster controller to treat all resource providers the same.
+   */
+  private static class ExtendedResourceProviderWrapper implements ExtendedResourceProvider, ResourcePredicateEvaluator {
+
+    /**
+     * The delegate resource provider.
+     */
+    private final ResourceProvider resourceProvider;
+
+    /**
+     * The delegate predicate evaluator. {@code null} if the given delegate resource provider is not an
+     * instance of {@link ResourcePredicateEvaluator}
+     */
+    private final ResourcePredicateEvaluator evaluator;
+
+    /**
+     * The delegate extended resource provider.  {@code null} if the given delegate resource provider is not an
+     * instance of {@link ExtendedResourceProvider}
+     */
+    private final ExtendedResourceProvider extendedResourceProvider;
+
+
+    // ----- Constructors ----------------------------------------------------
+
+    /**
+     * Constructor.
+     *
+     * @param resourceProvider  the delegate resource provider
+     */
+    public ExtendedResourceProviderWrapper(ResourceProvider resourceProvider) {
+      this.resourceProvider = resourceProvider;
+
+      extendedResourceProvider = resourceProvider instanceof ExtendedResourceProvider ?
+          (ExtendedResourceProvider) resourceProvider : null;
+
+      evaluator = resourceProvider instanceof ResourcePredicateEvaluator ?
+          (ResourcePredicateEvaluator) resourceProvider : DEFAULT_RESOURCE_PREDICATE_EVALUATOR;
+    }
+
+
+    // ----- ExtendedResourceProvider ----------------------------------------
+
+    @Override
+    public QueryResponse queryForResources(Request request, Predicate predicate)
+        throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
+      return extendedResourceProvider == null ?
+          new QueryResponseImpl(resourceProvider.getResources(request, predicate)) :
+          extendedResourceProvider.queryForResources(request, predicate);
+    }
+
+
+    // ----- ResourceProvider ------------------------------------------------
+
+    @Override
+    public RequestStatus createResources(Request request)
+        throws SystemException, UnsupportedPropertyException,
+               ResourceAlreadyExistsException, NoSuchParentResourceException {
+      return resourceProvider.createResources(request);
+    }
+
+    @Override
+    public Set<Resource> getResources(Request request, Predicate predicate)
+        throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
+      return resourceProvider.getResources(request, predicate);
+    }
+
+    @Override
+    public RequestStatus updateResources(Request request, Predicate predicate)
+        throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
+      return resourceProvider.updateResources(request, predicate);
+    }
+
+    @Override
+    public RequestStatus deleteResources(Predicate predicate)
+        throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
+      return resourceProvider.deleteResources(predicate);
+    }
+
+    @Override
+    public Map<Type, String> getKeyPropertyIds() {
+      return resourceProvider.getKeyPropertyIds();
+    }
+
+    @Override
+    public Set<String> checkPropertyIds(Set<String> propertyIds) {
+      return resourceProvider.checkPropertyIds(propertyIds);
+    }
+
+
+    // ----- ResourcePredicateEvaluator --------------------------------------
+
+    @Override
+    public boolean evaluate(Predicate predicate, Resource resource) {
+      return evaluator.evaluate(predicate, resource);
     }
   }
 }

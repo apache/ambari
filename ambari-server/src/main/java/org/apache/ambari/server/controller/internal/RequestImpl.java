@@ -25,8 +25,10 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.apache.ambari.server.controller.spi.PageRequest;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
+import org.apache.ambari.server.controller.spi.SortRequest;
 import org.apache.ambari.server.controller.spi.TemporalInfo;
 
 /**
@@ -61,13 +63,14 @@ public class RequestImpl implements Request {
    * An optional page request which a concrete {@link ResourceProvider} can use
    * to return a slice of results.
    */
-  private PageInfo m_pageInfo = null;
+  private PageRequest m_pageRequest = null;
 
   /**
    * An optional sort request which a concrete {@link ResourceProvider} can use
    * to return sorted results.
    */
-  private SortInfo m_sortInfo = null;
+  private SortRequest m_sortRequest = null;
+
 
   // ----- Constructors ------------------------------------------------------
 
@@ -80,8 +83,23 @@ public class RequestImpl implements Request {
    * @param mapTemporalInfo        temporal info
    */
   public RequestImpl(Set<String> propertyIds, Set<Map<String, Object>> properties,
-                     Map<String, String> requestInfoProperties, Map<String,
-                     TemporalInfo> mapTemporalInfo) {
+                     Map<String, String> requestInfoProperties, Map<String,TemporalInfo> mapTemporalInfo) {
+    this(propertyIds, properties, requestInfoProperties, mapTemporalInfo, null, null);
+  }
+
+  /**
+   * Create a request.
+   *
+   * @param propertyIds            property ids associated with the request; may be null
+   * @param properties             resource properties associated with the request; may be null
+   * @param requestInfoProperties  request properties; may be null
+   * @param mapTemporalInfo        temporal info
+   * @param sortRequest            the sort request information; may be null
+   * @param pageRequest            the page request information; may be null
+   */
+  public RequestImpl(Set<String> propertyIds, Set<Map<String, Object>> properties,
+                     Map<String, String> requestInfoProperties, Map<String, TemporalInfo> mapTemporalInfo,
+                     SortRequest sortRequest, PageRequest pageRequest) {
     this.propertyIds = propertyIds == null ?
         Collections.unmodifiableSet(new HashSet<String>()) :
         Collections.unmodifiableSet(propertyIds);
@@ -95,8 +113,10 @@ public class RequestImpl implements Request {
         Collections.unmodifiableMap(requestInfoProperties);
 
     setTemporalInfo(mapTemporalInfo);
-  }
 
+    m_sortRequest = sortRequest;
+    m_pageRequest = pageRequest;
+  }
 
   // ----- Request -----------------------------------------------------------
 
@@ -124,50 +144,14 @@ public class RequestImpl implements Request {
     m_mapTemporalInfo = mapTemporalInfo;
   }
 
-  /**
-   * {@inheritDoc}
-   */
   @Override
-  public PageInfo getPageInfo() {
-    return m_pageInfo;
+  public PageRequest getPageRequest() {
+    return m_pageRequest;
   }
 
-  /**
-   * {@inheritDoc}
-   */
   @Override
-  public SortInfo getSortInfo() {
-    return m_sortInfo;
-  }
-
-  /**
-   * Sets the pagination request that a {@link ResourceProvider} can optionally
-   * use when creating its result set.
-   * <p/>
-   * If the result set is being paginated by the {@link ResourceProvider}, then
-   * {@link PageInfo#isResponsePaged()} must be invoked with {@code true} by the
-   * provider.
-   *
-   * @param pageInfo
-   *          the page request, or {@code null} if none.
-   */
-  public void setPageInfo(PageInfo pageInfo) {
-    m_pageInfo = pageInfo;
-  }
-
-  /**
-   * Sets the sorting request that a {@link ResourceProvider} can optionally use
-   * when creating its result set.
-   * <p/>
-   * If the result set is being paginated by the {@link ResourceProvider}, then
-   * {@link SortInfo#isResponseSorted()} must be invoked with {@code true} by
-   * the provider.
-   *
-   * @param sortInfo
-   *          the sort request, or {@code null} if none.
-   */
-  public void setSortInfo(SortInfo sortInfo) {
-    m_sortInfo = sortInfo;
+  public SortRequest getSortRequest() {
+    return m_sortRequest;
   }
 
   @Override

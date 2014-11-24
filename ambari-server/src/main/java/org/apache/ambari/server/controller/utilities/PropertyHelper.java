@@ -29,10 +29,10 @@ import java.util.regex.Pattern;
 
 import org.apache.ambari.server.controller.internal.PropertyInfo;
 import org.apache.ambari.server.controller.internal.RequestImpl;
+import org.apache.ambari.server.controller.spi.PageRequest;
 import org.apache.ambari.server.controller.spi.Request;
-import org.apache.ambari.server.controller.spi.Request.PageInfo;
-import org.apache.ambari.server.controller.spi.Request.SortInfo;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.SortRequest;
 import org.apache.ambari.server.controller.spi.TemporalInfo;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
@@ -373,23 +373,18 @@ public class PropertyHelper {
    *          request info properties
    * @param mapTemporalInfo
    *          the temporal info
-   * @param pageInfo
+   * @param pageRequest
    *          an optional page request, or {@code null} for none.
-   * @param sortInfo
+   * @param sortRequest
    *          an optional sort request, or {@code null} for none.
    */
   public static Request getReadRequest(Set<String> propertyIds,
       Map<String, String> requestInfoProperties,
-      Map<String, TemporalInfo> mapTemporalInfo, PageInfo pageInfo,
-      SortInfo sortInfo) {
+      Map<String, TemporalInfo> mapTemporalInfo, PageRequest pageRequest,
+      SortRequest sortRequest) {
 
-    RequestImpl request = new RequestImpl(propertyIds, null,
-        requestInfoProperties,
-        mapTemporalInfo);
-
-    request.setPageInfo(pageInfo);
-    request.setSortInfo(sortInfo);
-    return request;
+    return  new RequestImpl(propertyIds, null, requestInfoProperties,
+        mapTemporalInfo, sortRequest, pageRequest);
   }
 
   /**

@@ -23,12 +23,24 @@ import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
+import org.apache.ambari.server.api.query.JpaPredicateVisitor;
+import org.apache.ambari.server.api.query.JpaSortBuilder;
+import org.apache.ambari.server.controller.spi.Predicate;
+import org.apache.ambari.server.controller.spi.Request;
+import org.apache.ambari.server.controller.utilities.PredicateHelper;
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.orm.entities.StageEntityPK;
+import org.apache.ambari.server.orm.entities.StageEntity_;
 import org.apache.ambari.server.utils.StageUtils;
+import org.eclipse.persistence.config.HintValues;
+import org.eclipse.persistence.config.QueryHints;
+
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Order;
+import javax.persistence.metamodel.SingularAttribute;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Collection;
@@ -138,5 +150,76 @@ public class StageDAO {
   @Transactional
   public void removeByPK(StageEntityPK stageEntityPK) {
     remove(findByPK(stageEntityPK));
+  }
+
+  /**
+   * Finds all {@link org.apache.ambari.server.orm.entities.StageEntity} that match the provided
+   * {@link org.apache.ambari.server.controller.spi.Predicate}. This method will make JPA do the heavy lifting
+   * of providing a slice of the result set.
+   *
+   * @param request
+   * @return
+   */
+  @Transactional
+  public List<StageEntity> findAll(Request request, Predicate predicate) {
+    EntityManager entityManager = entityManagerProvider.get();
+
+    // convert the Ambari predicate into a JPA predicate
+    StagePredicateVisitor visitor = new StagePredicateVisitor();
+    PredicateHelper.visit(predicate, visitor);
+
+    CriteriaQuery<StageEntity> query = visitor.getCriteriaQuery();
+    javax.persistence.criteria.Predicate jpaPredicate = visitor.getJpaPredicate();
+
+    if (jpaPredicate != null) {
+      query.where(jpaPredicate);
+    }
+
+    // sorting
+    JpaSortBuilder<StageEntity> sortBuilder = new JpaSortBuilder<StageEntity>();
+    List<Order> sortOrders = sortBuilder.buildSortOrders(request.getSortRequest(), visitor);
+    query.orderBy(sortOrders);
+
+    TypedQuery<StageEntity> typedQuery = entityManager.createQuery(query);
+
+    // !!! https://bugs.eclipse.org/bugs/show_bug.cgi?id=398067
+    // ensure that an associated entity with a JOIN is not stale; this causes
+    // the associated StageEntity to be stale
+    typedQuery.setHint(QueryHints.REFRESH, HintValues.TRUE);
+
+    return daoUtils.selectList(typedQuery);
+  }
+
+  /**
+   * The {@link org.apache.ambari.server.orm.dao.StageDAO.StagePredicateVisitor} is used to convert an Ambari
+   * {@link org.apache.ambari.server.controller.spi.Predicate} into a JPA {@link javax.persistence.criteria.Predicate}.
+   */
+  private final class StagePredicateVisitor extends
+      JpaPredicateVisitor<StageEntity> {
+
+    /**
+     * Constructor.
+     *
+     */
+    public StagePredicateVisitor() {
+      super(entityManagerProvider.get(), StageEntity.class);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Class<StageEntity> getEntityClass() {
+      return StageEntity.class;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<? extends SingularAttribute<?, ?>> getPredicateMapping(
+        String propertyId) {
+      return StageEntity_.getPredicateMapping().get(propertyId);
+    }
   }
 }

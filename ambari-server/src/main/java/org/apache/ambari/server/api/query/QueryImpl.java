@@ -37,6 +37,7 @@ import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.api.services.ResultImpl;
 import org.apache.ambari.server.api.util.TreeNode;
 import org.apache.ambari.server.api.util.TreeNodeImpl;
+import org.apache.ambari.server.controller.internal.QueryResponseImpl;
 import org.apache.ambari.server.controller.predicate.AndPredicate;
 import org.apache.ambari.server.controller.predicate.EqualsPredicate;
 import org.apache.ambari.server.controller.spi.ClusterController;
@@ -46,9 +47,8 @@ import org.apache.ambari.server.controller.spi.PageRequest;
 import org.apache.ambari.server.controller.spi.PageRequest.StartingPoint;
 import org.apache.ambari.server.controller.spi.PageResponse;
 import org.apache.ambari.server.controller.spi.Predicate;
+import org.apache.ambari.server.controller.spi.QueryResponse;
 import org.apache.ambari.server.controller.spi.Request;
-import org.apache.ambari.server.controller.spi.Request.PageInfo;
-import org.apache.ambari.server.controller.spi.Request.SortInfo;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.spi.Schema;
@@ -378,13 +378,14 @@ public class QueryImpl implements Query, ResourceInstance {
     Set<Resource> resourceSet = new LinkedHashSet<Resource>();
     Set<Resource> providerResourceSet = new LinkedHashSet<Resource>();
 
-    Set<Resource> queryResources = doQuery(resourceType, request, queryPredicate);
+    QueryResponse queryResponse = doQuery(resourceType, request, queryPredicate);
+
     // If there is a page request and the predicate does not contain properties
     // that need to be set
     if ((pageRequest != null || sortRequest != null ) &&
       !populateResourceRequired(resourceType)) {
       PageResponse pageResponse = clusterController.getPage(resourceType,
-        queryResources, request, queryPredicate, pageRequest, sortRequest);
+          queryResponse, request, queryPredicate, pageRequest, sortRequest);
 
       // build a new set
       for (Resource r : pageResponse.getIterable()) {
@@ -392,15 +393,15 @@ public class QueryImpl implements Query, ResourceInstance {
         providerResourceSet.add(r);
       }
     } else {
-      resourceSet.addAll(queryResources);
-      providerResourceSet.addAll(queryResources);
+      resourceSet.addAll(queryResponse.getResources());
+      providerResourceSet.addAll(queryResponse.getResources());
     }
 
     populatedQueryResults.put(null, new QueryResult(
-      request, queryPredicate, userPredicate, getKeyValueMap(), resourceSet));
+      request, queryPredicate, userPredicate, getKeyValueMap(), new QueryResponseImpl(resourceSet)));
 
     queryResults.put(null, new QueryResult(
-      request, queryPredicate, userPredicate, getKeyValueMap(), queryResources));
+      request, queryPredicate, userPredicate, getKeyValueMap(), queryResponse));
 
     clusterController.populateResources(resourceType, providerResourceSet, request, queryPredicate);
     queryForSubResources();
@@ -423,23 +424,23 @@ public class QueryImpl implements Query, ResourceInstance {
       Set<Resource> providerResourceSet = new HashSet<Resource>();
 
       for (QueryResult queryResult : populatedQueryResults.values()) {
-        for (Resource resource : queryResult.getProviderResourceSet()) {
+        for (Resource resource : queryResult.getQueryResponse().getResources()) {
           Map<Resource.Type, String> map = getKeyValueMap(resource, queryResult.getKeyValueMap());
 
           Predicate     queryPredicate = subResource.createPredicate(map, subResource.processedPredicate);
           Set<Resource> resourceSet    = new LinkedHashSet<Resource>();
 
           try {
-            Set<Resource> queryResources = subResource.doQuery(resourceType, request, queryPredicate);
+            Set<Resource> queryResources = subResource.doQuery(resourceType, request, queryPredicate).getResources();
             providerResourceSet.addAll(queryResources);
             resourceSet.addAll(queryResources);
           } catch (NoSuchResourceException e) {
             // do nothing ...
           }
           subResource.queryResults.put(resource,
-              new QueryResult(request, queryPredicate, subResourcePredicate, map, resourceSet));
+              new QueryResult(request, queryPredicate, subResourcePredicate, map, new QueryResponseImpl(resourceSet)));
           subResource.populatedQueryResults.put(resource,
-            new QueryResult(request, queryPredicate, subResourcePredicate, map, resourceSet));
+            new QueryResult(request, queryPredicate, subResourcePredicate, map, new QueryResponseImpl(resourceSet)));
         }
       }
       clusterController.populateResources(resourceType, providerResourceSet, request, null);
@@ -450,7 +451,7 @@ public class QueryImpl implements Query, ResourceInstance {
   /**
    * Query the cluster controller for the resources.
    */
-  private Set<Resource> doQuery(Resource.Type type, Request request, Predicate predicate)
+  private QueryResponse doQuery(Resource.Type type, Request request, Predicate predicate)
       throws UnsupportedPropertyException,
       SystemException,
       NoSuchResourceException,
@@ -547,7 +548,7 @@ public class QueryImpl implements Query, ResourceInstance {
       if (queryParentResource == parentResource) {
 
         Iterable<Resource> iterResource = clusterController.getIterable(
-            resourceDefinition.getType(), queryResult.getProviderResourceSet(),
+            resourceDefinition.getType(), queryResult.getQueryResponse(),
             queryResult.getRequest(), queryResult.getPredicate(), null, null);
 
         for (Resource resource : iterResource) {
@@ -719,7 +720,7 @@ public class QueryImpl implements Query, ResourceInstance {
       Predicate queryUserPredicate = queryResult.getUserPredicate();
       Request   queryRequest       = queryResult.getRequest();
 
-      Set<Resource> providerResourceSet = queryResult.getProviderResourceSet();
+      QueryResponse queryResponse = queryResult.getQueryResponse();
 
       if (hasSubResourcePredicate() && queryUserPredicate != null) {
         queryPredicate = getExtendedPredicate(parentResource, queryUserPredicate);
@@ -729,12 +730,12 @@ public class QueryImpl implements Query, ResourceInstance {
 
       if (pageRequest == null) {
         iterResource = clusterController.getIterable(
-          resourceType, providerResourceSet, queryRequest, queryPredicate,
+          resourceType, queryResponse, queryRequest, queryPredicate,
           null, sortRequest
         );
       } else {
         PageResponse pageResponse = clusterController.getPage(
-          resourceType, providerResourceSet, queryRequest, queryPredicate,
+          resourceType, queryResponse, queryRequest, queryPredicate,
           pageRequest, sortRequest
         );
         iterResource = pageResponse.getIterable();
@@ -899,16 +900,6 @@ public class QueryImpl implements Query, ResourceInstance {
   private Request createRequest() {
     Map<String, String> requestInfoProperties = new HashMap<String, String>();
 
-    PageInfo pageInfo = null;
-    if (null != pageRequest) {
-      pageInfo = new PageInfo(pageRequest);
-    }
-
-    SortInfo sortInfo = null;
-    if (null != sortRequest) {
-      sortInfo = new SortInfo(sortRequest);
-    }
-
     if (pageRequest != null) {
       requestInfoProperties.put(BaseRequest.PAGE_SIZE_PROPERTY_KEY,
           Integer.toString(pageRequest.getPageSize() + pageRequest.getOffset()));
@@ -921,7 +912,7 @@ public class QueryImpl implements Query, ResourceInstance {
 
     if (allProperties) {
       return PropertyHelper.getReadRequest(Collections.<String> emptySet(),
-          requestInfoProperties, null, pageInfo, sortInfo);
+          requestInfoProperties, null, pageRequest, sortRequest);
     }
 
     Map<String, TemporalInfo> mapTemporalInfo    = new HashMap<String, TemporalInfo>();
@@ -939,7 +930,7 @@ public class QueryImpl implements Query, ResourceInstance {
     }
 
     return PropertyHelper.getReadRequest(setProperties, requestInfoProperties,
-        mapTemporalInfo, pageInfo, sortInfo);
+        mapTemporalInfo, pageRequest, sortRequest);
   }
 
 
@@ -1009,17 +1000,18 @@ public class QueryImpl implements Query, ResourceInstance {
     private final Predicate predicate;
     private final Predicate userPredicate;
     private final Map<Resource.Type, String> keyValueMap;
-    private final Set<Resource> providerResourceSet;
+    private final QueryResponse queryResponse;
 
     // ----- Constructor -----------------------------------------------------
 
     private  QueryResult(Request request, Predicate predicate, Predicate userPredicate,
-                         Map<Resource.Type, String> keyValueMap, Set<Resource> providerResourceSet) {
-      this.request             = request;
-      this.predicate           = predicate;
-      this.userPredicate       = userPredicate;
-      this.keyValueMap         = keyValueMap;
-      this.providerResourceSet = providerResourceSet;
+                         Map<Resource.Type, String> keyValueMap,
+                         QueryResponse queryResponse) {
+      this.request        = request;
+      this.predicate      = predicate;
+      this.userPredicate  = userPredicate;
+      this.keyValueMap    = keyValueMap;
+      this.queryResponse  = queryResponse;
     }
 
     // ----- accessors -------------------------------------------------------
@@ -1040,8 +1032,8 @@ public class QueryImpl implements Query, ResourceInstance {
       return keyValueMap;
     }
 
-    public Set<Resource> getProviderResourceSet() {
-      return providerResourceSet;
+    public QueryResponse getQueryResponse() {
+      return queryResponse;
     }
   }
 }

@@ -37,7 +37,7 @@ public interface ClusterController extends SchemaFactory {
    * @param request     the request object which defines the desired set of properties
    * @param predicate   the predicate object which filters which resources are returned
    *
-   * @return an iterable object of the requested resources
+   * @return the query response
    *
    * @throws UnsupportedPropertyException thrown if the request or predicate contain
    *                                      unsupported property ids
@@ -45,7 +45,7 @@ public interface ClusterController extends SchemaFactory {
    * @throws NoSuchResourceException no matching resource(s) found
    * @throws NoSuchParentResourceException a specified parent resource doesn't exist
    */
-  Set<Resource> getResources(Resource.Type type, Request request, Predicate predicate)
+  QueryResponse getResources(Resource.Type type, Request request, Predicate predicate)
       throws UnsupportedPropertyException,
       NoSuchResourceException,
       NoSuchParentResourceException,
@@ -74,12 +74,12 @@ public interface ClusterController extends SchemaFactory {
    * Get an iterable set of resources from the given set of resources filtered by the
    * given request and predicate objects.
    *
-   * @param type               type of resources
-   * @param providerResources  set of populated Resources
-   * @param request            the request
-   * @param predicate          the predicate object which filters which resources are returned
-   * @param pageRequest        the page request for a paginated response
-   * @param sortRequest        the sortRequest object which defines if the resources need to be sorted
+   * @param type           type of resources
+   * @param queryResponse  the response from the resource query
+   * @param request        the request
+   * @param predicate      the predicate object which filters which resources are returned
+   * @param pageRequest    the page request for a paginated response
+   * @param sortRequest    the sortRequest object which defines if the resources need to be sorted
    *
    * @return a page response representing the requested page of resources
    *
@@ -89,7 +89,7 @@ public interface ClusterController extends SchemaFactory {
    * @throws NoSuchResourceException no matching resource(s) found
    * @throws NoSuchParentResourceException a specified parent resource doesn't exist
    */
-  Iterable<Resource> getIterable(Resource.Type type, Set<Resource> providerResources,
+  Iterable<Resource> getIterable(Resource.Type type, QueryResponse queryResponse,
                                  Request request, Predicate predicate,
                                  PageRequest pageRequest,
                                  SortRequest sortRequest)
@@ -102,11 +102,11 @@ public interface ClusterController extends SchemaFactory {
    * Get a page of resources from the given set filtered by the given request,
    * predicate objects and page request.
    *
-   * @param type               type of resources
-   * @param providerResources  set of populated Resources
-   * @param request            the request
-   * @param predicate          the predicate object which filters which resources are returned
-   * @param pageRequest        the page request for a paginated response
+   * @param type           type of resources
+   * @param queryResponse  the response from the resource query
+   * @param request        the request
+   * @param predicate      the predicate object which filters which resources are returned
+   * @param pageRequest    the page request for a paginated response
    *
    * @return a page response representing the requested page of resources
    *
@@ -116,7 +116,7 @@ public interface ClusterController extends SchemaFactory {
    * @throws NoSuchResourceException no matching resource(s) found
    * @throws NoSuchParentResourceException a specified parent resource doesn't exist
    */
-  PageResponse getPage(Resource.Type type, Set<Resource> providerResources,
+  PageResponse getPage(Resource.Type type, QueryResponse queryResponse,
                        Request request, Predicate predicate,
                        PageRequest pageRequest, SortRequest sortRequest)
       throws UnsupportedPropertyException,

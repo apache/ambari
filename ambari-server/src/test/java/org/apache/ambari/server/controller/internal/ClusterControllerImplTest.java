@@ -48,8 +48,6 @@ import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.PropertyProvider;
 import org.apache.ambari.server.controller.spi.ProviderModule;
 import org.apache.ambari.server.controller.spi.Request;
-import org.apache.ambari.server.controller.spi.Request.PageInfo;
-import org.apache.ambari.server.controller.spi.Request.SortInfo;
 import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
@@ -907,7 +905,7 @@ public class ClusterControllerImplTest {
   }
 
   /**
-   * Tests that when a {@link ResourceProviderPageResponse} is present on the
+   * Tests that when a {@link PageResponse} is present on the
    * {@link Request}, in-memory paging is not performed.
    *
    * @throws Exception
@@ -951,21 +949,15 @@ public class ClusterControllerImplTest {
     Set<Resource> providerResources = new LinkedHashSet<Resource>();
     providerResources.add(new ResourceImpl(Resource.Type.AlertHistory));
 
-    PageInfo pageInfo = new PageInfo(pageRequest);
-    pageInfo.setResponsePaged(true);
-
-    SortInfo sortInfo = new SortInfo(sortRequest);
-    sortInfo.setResponseSorted(true);
-
     Request request = PropertyHelper.getReadRequest(propertyIds, null, null,
-        pageInfo, sortInfo);
+        pageRequest, sortRequest);
 
     Predicate predicate = new PredicateBuilder().property(
         AlertHistoryResourceProvider.ALERT_HISTORY_HOSTNAME).equals(
         "c6401.ambari.apache.org").toPredicate();
 
     PageResponse pageResponse = controller.getPage(Resource.Type.AlertHistory,
-        providerResources, request, predicate, pageRequest, sortRequest);
+        new QueryResponseImpl(providerResources, true, true, 0), request, predicate, pageRequest, sortRequest);
 
     verify(providerModule, resourceProvider, pageRequest, sortRequest);
   }

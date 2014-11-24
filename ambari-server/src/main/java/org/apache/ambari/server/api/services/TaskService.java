@@ -47,14 +47,20 @@ public class TaskService extends BaseService {
   private String m_requestId;
 
   /**
+   * Parent stage id.
+   */
+  private String m_stageId;
+
+  /**
    * Constructor.
-   *
    * @param clusterName  cluster id
    * @param requestId    request id
+   * @param stageId      stage id
    */
-  public TaskService(String clusterName, String requestId) {
+  public TaskService(String clusterName, String requestId, String stageId) {
     m_clusterName = clusterName;
     m_requestId = requestId;
+    m_stageId = stageId;
   }
 
   /**
@@ -74,7 +80,7 @@ public class TaskService extends BaseService {
                           @PathParam("taskId") String taskId) {
 
     return handleRequest(headers, body, ui, Request.Type.GET,
-        createTaskResource(m_clusterName, m_requestId, taskId));
+        createTaskResource(m_clusterName, m_requestId, m_stageId, taskId));
   }
 
   /**
@@ -90,7 +96,7 @@ public class TaskService extends BaseService {
   @Produces("text/plain")
   public Response getComponents(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
     return handleRequest(headers, body, ui, Request.Type.GET,
-        createTaskResource(m_clusterName, m_requestId, null));
+        createTaskResource(m_clusterName, m_requestId, m_stageId, null));
   }
 
   /**
@@ -98,14 +104,16 @@ public class TaskService extends BaseService {
    *
    * @param clusterName  cluster name
    * @param requestId    request id
+   * @param stageId      stage id
    * @param taskId       task id
    *
    * @return a task resource instance
    */
-  ResourceInstance createTaskResource(String clusterName, String requestId, String taskId) {
+  ResourceInstance createTaskResource(String clusterName, String requestId, String stageId, String taskId) {
     Map<Resource.Type,String> mapIds = new HashMap<Resource.Type, String>();
     mapIds.put(Resource.Type.Cluster, clusterName);
     mapIds.put(Resource.Type.Request, requestId);
+    mapIds.put(Resource.Type.Stage, stageId);
     mapIds.put(Resource.Type.Task, taskId);
 
     return createResource(Resource.Type.Task, mapIds);

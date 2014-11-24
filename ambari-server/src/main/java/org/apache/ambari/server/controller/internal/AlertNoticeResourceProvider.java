@@ -27,9 +27,11 @@ import java.util.Set;
 
 import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.controller.AlertNoticeRequest;
+import org.apache.ambari.server.controller.spi.ExtendedResourceProvider;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
+import org.apache.ambari.server.controller.spi.QueryResponse;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.spi.Resource;
@@ -49,9 +51,8 @@ import com.google.inject.Inject;
  * ResourceProvider for Alert History
  */
 @StaticallyInject
-public class AlertNoticeResourceProvider extends AbstractResourceProvider {
+public class AlertNoticeResourceProvider extends AbstractResourceProvider implements ExtendedResourceProvider {
 
-  public static final String ALERT_HISTORY = "AlertNotice";
   public static final String ALERT_NOTICE_ID = "AlertNotice/id";
   public static final String ALERT_NOTICE_STATE = "AlertNotice/notification_state";
   public static final String ALERT_NOTICE_UUID = "AlertNotice/uuid";
@@ -99,8 +100,6 @@ public class AlertNoticeResourceProvider extends AbstractResourceProvider {
 
   /**
    * Constructor.
-   *
-   * @param controller
    */
   AlertNoticeResourceProvider() {
     super(PROPERTY_IDS, KEY_PROPERTY_IDS);
@@ -155,23 +154,10 @@ public class AlertNoticeResourceProvider extends AbstractResourceProvider {
     Set<String> requestPropertyIds = getRequestPropertyIds(request, predicate);
     Set<Resource> results = new LinkedHashSet<Resource>();
 
-    Request.PageInfo pageInfo = request.getPageInfo();
-    Request.SortInfo sortInfo = request.getSortInfo();
-
     AlertNoticeRequest noticeRequest = new AlertNoticeRequest();
-    noticeRequest.Predicate = predicate;
-
-    if (null != pageInfo) {
-      noticeRequest.Pagination = pageInfo.getPageRequest();
-
-      pageInfo.setResponsePaged(true);
-      pageInfo.setTotalCount(s_dao.getNoticesCount(predicate));
-    }
-
-    if (null != sortInfo) {
-      sortInfo.setResponseSorted(true);
-      noticeRequest.Sort = sortInfo.getSortRequest();
-    }
+    noticeRequest.Predicate  = predicate;
+    noticeRequest.Pagination = request.getPageRequest();
+    noticeRequest.Sort       = request.getSortRequest();
 
     List<AlertNoticeEntity> entities = s_dao.findAllNotices(noticeRequest);
     for (AlertNoticeEntity entity : entities) {
@@ -181,16 +167,26 @@ public class AlertNoticeResourceProvider extends AbstractResourceProvider {
     return results;
   }
 
+  @Override
+  public QueryResponse queryForResources(Request request, Predicate predicate)
+      throws SystemException, UnsupportedPropertyException,
+      NoSuchResourceException, NoSuchParentResourceException {
+
+    return new QueryResponseImpl(
+        getResources(request, predicate),
+        request.getSortRequest() != null,
+        request.getPageRequest() != null,
+        s_dao.getNoticesCount(predicate));
+  }
+
   /**
    * Converts the {@link AlertNoticeEntity} to a {@link Resource}.
    *
-   * @param clusterName
-   *          the name of the cluster (not {@code null}).
    * @param entity
    *          the entity to convert (not {@code null}).
    * @param requestedIds
    *          the properties requested (not {@code null}).
-   * @return
+   * @return the new {@link Resource}
    */
   private Resource toResource(AlertNoticeEntity entity,
       Set<String> requestedIds) {

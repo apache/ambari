@@ -46,6 +46,10 @@ public abstract class BaseResourceDefinition implements ResourceDefinition {
    */
   private Resource.Type m_type;
 
+  /**
+   * The sub-resource type definitions.
+   */
+  private final Set<SubResourceDefinition> subResourceDefinitions;
 
   /**
    * Constructor.
@@ -54,6 +58,22 @@ public abstract class BaseResourceDefinition implements ResourceDefinition {
    */
   public BaseResourceDefinition(Resource.Type resourceType) {
     m_type = resourceType;
+    subResourceDefinitions = Collections.emptySet();
+  }
+
+  /**
+   * Constructor.
+   *
+   * @param resourceType  the resource type
+   * @param subTypes      the sub-resource types
+   */
+  public BaseResourceDefinition(Resource.Type resourceType, Resource.Type ... subTypes) {
+    m_type = resourceType;
+    subResourceDefinitions =  new HashSet<SubResourceDefinition>();
+
+    for (Resource.Type subType : subTypes) {
+      subResourceDefinitions.add(new SubResourceDefinition(subType));
+    }
   }
 
   @Override
@@ -63,7 +83,7 @@ public abstract class BaseResourceDefinition implements ResourceDefinition {
 
   @Override
   public Set<SubResourceDefinition> getSubResourceDefinitions() {
-    return Collections.emptySet();
+    return subResourceDefinitions;
   }
 
   @Override

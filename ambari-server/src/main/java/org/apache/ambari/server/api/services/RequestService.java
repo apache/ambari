@@ -97,11 +97,19 @@ public class RequestService extends BaseService {
   }
 
   /**
+   * Gets the stage sub-resource.
+   */
+  @Path("{requestId}/stages")
+  public StageService getStageHandler(@PathParam("requestId") String requestId) {
+    return new StageService(m_clusterName, requestId);
+  }
+
+  /**
    * Gets the tasks sub-resource.
    */
   @Path("{requestId}/tasks")
   public TaskService getTaskHandler(@PathParam("requestId") String requestId) {
-    return new TaskService(m_clusterName, requestId);
+    return new TaskService(m_clusterName, requestId, null);
   }
 
   /**

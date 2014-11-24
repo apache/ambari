@@ -19,15 +19,13 @@
 package org.apache.ambari.server.api.resources;
 
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-
 import org.apache.ambari.server.api.services.Request;
 import org.apache.ambari.server.api.util.TreeNode;
 import org.apache.ambari.server.controller.internal.RequestResourceProvider;
 import org.apache.ambari.server.controller.spi.Resource;
+
+import java.util.Arrays;
+import java.util.List;
 
 
 /**
@@ -39,7 +37,7 @@ public class RequestResourceDefinition extends BaseResourceDefinition {
    * Constructor.
    */
   public RequestResourceDefinition() {
-    super(Resource.Type.Request);
+    super(Resource.Type.Request, Resource.Type.Stage, Resource.Type.Task);
   }
 
   @Override
@@ -50,11 +48,6 @@ public class RequestResourceDefinition extends BaseResourceDefinition {
   @Override
   public String getSingularName() {
     return "request";
-  }
-
-  @Override
-  public Set<SubResourceDefinition> getSubResourceDefinitions() {
-      return Collections.singleton(new SubResourceDefinition(Resource.Type.Task));
   }
 
   @Override

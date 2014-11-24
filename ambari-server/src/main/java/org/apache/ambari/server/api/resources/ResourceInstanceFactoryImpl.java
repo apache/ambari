@@ -325,6 +325,10 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
         resourceDefinition = new UpgradeItemResourceDefinition();
         break;
 
+      case Stage:
+        resourceDefinition = new SimpleResourceDefinition(Resource.Type.Stage, "stage", "stages", Resource.Type.Task);
+        break;
+
       default:
         throw new IllegalArgumentException("Unsupported resource type: " + type);
     }

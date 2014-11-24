@@ -132,7 +132,8 @@ public interface Resource {
     ClusterStackVersion,
     HostStackVersion,
     Upgrade,
-    UpgradeItem;
+    UpgradeItem,
+    Stage;
 
     /**
      * Get the {@link Type} that corresponds to this InternalType.
@@ -226,6 +227,7 @@ public interface Resource {
     public static final Type HostStackVersion = InternalType.HostStackVersion.getType();
     public static final Type Upgrade = InternalType.Upgrade.getType();
     public static final Type UpgradeItem = InternalType.UpgradeItem.getType();
+    public static final Type Stage = InternalType.Stage.getType();
 
     /**
      * The type name.
