@@ -177,7 +177,13 @@ App.MainServiceItemView = Em.View.extend({
     return $.extend(true, {}, option, fields);
   },
 
-  maintenance: function(){
+  maintenance: [],
+
+  observeMaintenance: function() {
+    Em.run.once(this, 'observeMaintenanceOnce');
+  }.observes('controller.isStopDisabled','controller.isClientsOnlyService', 'controller.content.isRestartRequired'),
+
+  observeMaintenanceOnce: function() {
     var self = this;
     var options = [];
     var service = this.get('controller.content');
@@ -287,8 +293,21 @@ App.MainServiceItemView = Em.View.extend({
       options.push(actionMap.DOWNLOAD_CLIENT_CONFIGS);
     }
 
-    return options;
-  }.property('controller.content', 'controller.isStopDisabled','controller.isClientsOnlyService', 'controller.content.isRestartRequired', 'isPassive'),
+    if (!this.get('maintenance').length) {
+      this.set('maintenance', options);
+    } else {
+      this.get('maintenance').forEach(function(option, index) {
+        if ( JSON.stringify(option) != JSON.stringify(options[index])  ) {
+          self.get('maintenance').removeAt(index).insertAt(index, options[index]);
+        }
+      });
+      options.forEach(function(opt, index) {
+        if ( JSON.stringify(opt) != JSON.stringify(self.get('maintenance')[index])  ) {
+          self.get('maintenance').push(opt);
+        }
+      });
+    }
+  },
 
   isMaintenanceActive: function() {
     return this.get('maintenance').length !== 0;
