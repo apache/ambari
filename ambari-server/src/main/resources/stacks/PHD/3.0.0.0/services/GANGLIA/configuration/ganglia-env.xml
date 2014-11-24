@@ -1,0 +1,77 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+
+<configuration>
+  <property>
+    <name>ganglia_conf_dir</name>
+    <value>/etc/ganglia/hdp</value>
+    <description>Config directory for Ganglia</description>
+  </property>
+  <property>
+    <name>ganglia_runtime_dir</name>
+    <value>/var/run/ganglia/hdp</value>
+    <description>Run directories for Ganglia</description>
+  </property>
+  <property>
+    <name>gmetad_user</name>
+    <value>nobody</value>
+    <property-type>USER GROUP</property-type>
+    <description>User </description>
+  </property>
+    <property>
+    <name>gmond_user</name>
+    <value>nobody</value>
+    <property-type>USER GROUP</property-type>
+    <description>User </description>
+  </property>
+  <property>
+    <name>rrdcached_base_dir</name>
+    <value>/var/lib/ganglia/rrds</value>
+    <description>Default directory for saving the rrd files on ganglia server</description>
+  </property>
+  <property>
+    <name>rrdcached_timeout</name>
+    <value>3600</value>
+    <description>(-w) Data is written to disk every timeout seconds. If this option is not specified the default interval of 300 seconds will be used.</description>
+  </property>
+  <property>
+    <name>rrdcached_flush_timeout</name>
+    <value>7200</value>
+      <description>(-f) Every timeout seconds the entire cache is searched for old values which are written to disk. This only concerns files to which updates have stopped, so setting this to a high value, such as 3600 seconds, is acceptable in most cases. This timeout defaults to 3600 seconds.</description>
+  </property>
+  <property>
+    <name>rrdcached_delay</name>
+    <value>1800</value>
+    <description>(-z) If specified, rrdcached will delay writing of each RRD for a random number of seconds in the range [0,delay). This will avoid too many writes being queued simultaneously. This value should be no greater than the value specified in -w. By default, there is no delay.</description>
+  </property>
+  <property>
+    <name>rrdcached_write_threads</name>
+    <value>4</value>
+    <description>(-t) Specifies the number of threads used for writing RRD files. The default is 4. Increasing this number will allow rrdcached to have more simultaneous I/O requests into the kernel. This may allow the kernel to re-order disk writes, resulting in better disk throughput.</description>
+  </property>
+  <property>
+    <name>additional_clusters</name>
+    <value> </value>
+    <description>Add additional desired Ganglia metrics cluster in the form "name1:port1,name2:port2". Ensure that the names and ports are unique across all cluster and ports are available on ganglia server host. Ambari has reserved ports 8667-8669 within its own pool.</description>
+  </property>
+
+</configuration>
