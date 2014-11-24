@@ -121,25 +121,14 @@ App.MainHostStackVersionsView = App.TableView.extend({
         {
           value: '',
           label: Em.I18n.t('common.all')
-        },
-        {
-          value: 'INSTALLED',
-          label: Em.I18n.t('hosts.host.stackVersions.status.installed')
-        },
-        {
-          value: 'INSTALLING',
-          label: Em.I18n.t('hosts.host.stackVersions.status.installing')
-        },
-        {
-          value: 'INSTALL_FAILED',
-          label: Em.I18n.t('hosts.host.stackVersions.status.install_failed')
-        },
-        {
-          value: 'INIT',
-          label: Em.I18n.t('hosts.host.stackVersions.status.init')
         }
-      ];
-    }.property('App.router.clusterController.isLoaded'),
+      ].concat(App.HostStackVersion.statusDefinition.map(function (status) {
+        return {
+          value: status,
+          label: App.HostStackVersion.formatStatus(status)
+        }
+      }));
+    }.property(),
     onChangeValue: function () {
       this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'select');
     }

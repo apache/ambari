@@ -541,11 +541,11 @@ module.exports = {
         break;
       case 'sub-resource':
         return function (origin, compareValue) {
-          if (Ember.isNone(compareValue) || App.isEmptyObject(compareValue)) return true;
+          if (!Array.isArray(compareValue) || compareValue.length === 0) return true;
 
           return origin.some(function (item) {
-            for (var i in compareValue) {
-              if(item.get(i) !== compareValue[i]) return false
+            for (var i = 0, l = compareValue.length; i < l; i++) {
+              if(item.get(compareValue[i].property) !== compareValue[i].value) return false
             }
             return true;
           });

@@ -404,7 +404,7 @@ describe('filters.getFilterByType', function () {
       },
       {
         title: 'condition is empty',
-        condition: {},
+        condition: [],
         value: [Em.Object.create({
           prop1: 1
         })],
@@ -412,9 +412,12 @@ describe('filters.getFilterByType', function () {
       },
       {
         title: 'condition match one property',
-        condition: {
-          prop1: 1
-        },
+        condition: [
+          {
+            property: 'prop1',
+            value: 1
+          }
+        ],
         value: [Em.Object.create({
           prop1: 1
         })],
@@ -422,10 +425,16 @@ describe('filters.getFilterByType', function () {
       },
       {
         title: 'condition match two properties',
-        condition: {
-          prop1: 1,
-          prop2: 2
-        },
+        condition: [
+          {
+            property: 'prop1',
+            value: 1
+          },
+          {
+            property: 'prop2',
+            value: 2
+          }
+        ],
         value: [Em.Object.create({
           prop1: 1,
           prop2: 2
@@ -434,10 +443,16 @@ describe('filters.getFilterByType', function () {
       },
       {
         title: 'only one of two properties match',
-        condition: {
-          prop1: 3,
-          prop2: 2
-        },
+        condition: [
+          {
+            property: 'prop1',
+            value: 3
+          },
+          {
+            property: 'prop2',
+            value: 2
+          }
+        ],
         value: [Em.Object.create({
           prop1: 1,
           prop2: 2
@@ -446,10 +461,16 @@ describe('filters.getFilterByType', function () {
       },
       {
         title: 'none of two properties match',
-        condition: {
-          prop1: 3,
-          prop2: 4
-        },
+        condition: [
+          {
+            property: 'prop1',
+            value: 3
+          },
+          {
+            property: 'prop2',
+            value: 4
+          }
+        ],
         value: [Em.Object.create({
           prop1: 1,
           prop2: 2

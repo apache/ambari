@@ -68,59 +68,64 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
    */
   filterProperties: [
     {
-      key: 'hostName',
-      alias: 'Hosts/host_name',
+      name: 'hostName',
+      key: 'Hosts/host_name',
       type: 'MATCH'
     },
     {
-      key: 'ip',
-      alias: 'Hosts/ip',
+      name: 'ip',
+      key: 'Hosts/ip',
       type: 'MATCH'
     },
     {
-      key: 'cpu',
-      alias: 'Hosts/cpu_count',
+      name: 'cpu',
+      key: 'Hosts/cpu_count',
       type: 'EQUAL'
     },
     {
-      key: 'memoryFormatted',
-      alias: 'Hosts/total_mem',
+      name: 'memoryFormatted',
+      key: 'Hosts/total_mem',
       type: 'EQUAL'
     },
     {
-      key: 'loadAvg',
-      alias: 'metrics/load/load_one',
+      name: 'loadAvg',
+      key: 'metrics/load/load_one',
       type: 'EQUAL'
     },
     {
-      key: 'hostComponents',
-      alias: 'host_components/HostRoles/component_name',
+      name: 'hostComponents',
+      key: 'host_components/HostRoles/component_name',
       type: 'MULTIPLE'
     },
     {
-      key: 'healthClass',
-      alias: 'Hosts/host_status',
+      name: 'healthClass',
+      key: 'Hosts/host_status',
       type: 'EQUAL'
     },
     {
-      key: 'criticalAlertsCount',
-      alias: 'legacy_alerts/summary/CRITICAL{0}|legacy_alerts/summary/WARNING{1}',
+      name: 'criticalAlertsCount',
+      key: 'legacy_alerts/summary/CRITICAL{0}|legacy_alerts/summary/WARNING{1}',
       type: 'CUSTOM'
     },
     {
-      key: 'componentsWithStaleConfigsCount',
-      alias: 'host_components/HostRoles/stale_configs',
+      name: 'componentsWithStaleConfigsCount',
+      key: 'host_components/HostRoles/stale_configs',
       type: 'EQUAL'
     },
     {
-      key: 'componentsInPassiveStateCount',
-      alias: 'host_components/HostRoles/maintenance_state',
+      name: 'componentsInPassiveStateCount',
+      key: 'host_components/HostRoles/maintenance_state',
       type: 'MULTIPLE'
     },
     {
-      key: 'selected',
-      alias: 'Hosts/host_name',
+      name: 'selected',
+      key: 'Hosts/host_name',
       type: 'MULTIPLE'
+    },
+    {
+      name: 'stackVersions',
+      key: 'stack_versions/HostStackVersions',
+      type: 'EQUAL'
     }
   ],
 
@@ -197,10 +202,10 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
     queryParams.pushObjects(this.getPaginationProps());
 
     savedFilterConditions.forEach(function (filter) {
-      var property = filterProperties.findProperty('key', colPropAssoc[filter.iColumn]);
+      var property = filterProperties.findProperty('name', colPropAssoc[filter.iColumn]);
       if (property && filter.value.length > 0 && !filter.skipFilter) {
         var result = {
-          key: property.alias,
+          key: property.key,
           value: filter.value,
           type: property.type,
           isFilter: true
@@ -229,7 +234,15 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
           // enter a comparison type, eg > 1, just do regular match
           result.value = this.convertMemory(filter.value);
           queryParams.push(result);
-        } else if (result.value) {
+        } else if (filter.type === 'sub-resource') {
+          filter.value.forEach(function (item) {
+            queryParams.push({
+              key: result.key + "/" + item.property,
+              value: item.value,
+              type: 'EQUAL'
+            });
+          }, this);
+        } else {
           queryParams.push(result);
         }
 
@@ -458,10 +471,16 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
 
     var filterForStack = {
       iColumn: column,
-      value: {
-        version: version,
-        status: state.toUpperCase()
-      },
+      value: [
+        {
+          property: 'version',
+          value: version
+        },
+        {
+          property: 'state',
+          value: state.toUpperCase()
+        }
+      ],
       type: 'sub-resource'
     };
     App.db.setFilterConditions(this.get('name'), [filterForStack]);

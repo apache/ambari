@@ -15,36 +15,41 @@
       },
       "stack_versions": [
         {
-          "StackVersion": {
-            "name": "HDP-2.2",
+          "HostStackVersions": {
+            "id": 1,
+            "stack": "HDP-2.2",
             "version": "2.2.0.1-885",
             "state": "INIT"
           }
         },
         {
-          "StackVersion":  {
-            "name": "HDP-2.2",
+          "HostStackVersions":  {
+            "id": 2,
+            "stack": "HDP-2.2",
             "version": "2.2.1.1-885",
             "state": "INSTALLED"
           }
         },
         {
-          "StackVersion": {
-            "name": "HDP-2.2",
+          "HostStackVersions": {
+            "id": 3,
+            "stack": "HDP-2.2",
             "version": "2.2.2.1-885",
             "state": "INSTALL_FAILED"
           }
         },
         {
-          "StackVersion":  {
-            "name": "HDP-2.3",
+          "HostStackVersions":  {
+            "id": 4,
+            "stack": "HDP-2.3",
             "version": "2.3.0.1-885",
             "state": "INSTALLING"
           }
         },
         {
-          "StackVersion": {
-            "name": "HDP-2.3",
+          "HostStackVersions": {
+            "id": 5,
+            "stack": "HDP-2.3",
             "version": "2.3.1.1-885",
             "state": "CURRENT"
           }

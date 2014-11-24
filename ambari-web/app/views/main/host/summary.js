@@ -96,6 +96,7 @@ App.MainHostSummaryView = Em.View.extend({
   willInsertElement: function() {
     this.set('sortedComponents', []);
     this.sortedComponentsFormatter();
+    this.addObserver('content.hostComponents.length', this, 'sortedComponentsFormatter');
   },
 
   didInsertElement: function () {
@@ -171,7 +172,7 @@ App.MainHostSummaryView = Em.View.extend({
         }
       }
     }, this);
-  }.observes('content.hostComponents.length'),
+  },
 
   /**
    * List of installed clients
