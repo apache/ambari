@@ -16,37 +16,53 @@
    limitations under the License.
 }}
 
-<div class="panel panel-default panel-history">
-  <div class="panel-heading">
-    <span class="panel-title">
-      {{t 'common.history'}}
-    </span>
+<div class="panel-history">
+  <div class="title-row">
+    <h3 class="pull-left"> {{t 'common.history'}}</h3>
   </div>
-  
-  <table class="table table-bordered table-striped ">
+  <table class="table table-striped ">
     <thead> 
       <tr class="label-row">
-        <th class="first">{{t 'job.name'}}</th>
-        <th>{{t 'job.started'}}</th> 
+        <th>{{t 'common.date'}}</th>
+        <th>{{t 'scripts.script'}}</th>
         <th>{{t 'job.status'}}</th> 
-        <th></th> 
+        <th>{{t 'history.duration'}}</th>
+        <th>{{t 'common.actions'}}</th>
       </tr>
     </thead>
     <tbody> 
-    {{#each jobs}}
-      {{#view view.historyTableRow}}
-        <tr> 
-          <td class="first">{{#link-to 'job' this.id }} {{this.title}}{{/link-to}}</td>
-          <td><span class="date">{{showDate this.dateStarted 'YYYY-MM-DD HH:mm'}}</span></td>
-          <td><span {{bind-attr class=":label view.labelClass"}}>{{this.status}}</span></td>
-          <td>{{#link-to 'job.results' this.id }} {{t 'job.results'}} {{/link-to}}</td>
-        </tr>
-      {{/view}}
+    {{#each paginatedContent}}
+      <tr>
+        <td>{{#link-to 'script.job' this.id }} {{showDate this.dateStarted 'YYYY-MM-DD HH:mm'}} {{/link-to}}</td>
+        <td>
+          {{#view 'view.scriptLink' scriptId=this.scriptId allIds=controller.scriptIds}}{{this.title}}{{/view}}
+        </td>
+        <td>
+          <h4>
+            <span {{bind-attr class=":label jobSuccess:label-success jobError:label-danger jobInProgress:label-warning "}} class="label label-success">{{status}}</span>
+          </h4>
+        </td>
+        <td>{{#unless jobInProgress}}{{durationTime}}{{/unless}}</td>
+        <td>
+          {{#unless jobInProgress}}
+            <a {{action 'logsPopup' this}} href="#" title="Logs"> <i class="fa fa-file-text-o"></i></a>
+            <a {{action 'resultsPopup' this}} href="#" title="Results"> <i class="fa fa-table"></i></a>
+          {{/unless}}
+          <a href="#" {{action 'deleteJob' this}} title="Delete"><i class="fa fa-trash-o"></i></a>
+        </td>
+      </tr>
     {{/each}}
     </tbody>
   </table>
-
   {{#unless content}}
-    <div class="panel-footer empty-table-footer">{{t 'job.noJobs'}}</div>
+    <div class="alert alert-info" role="alert">{{t 'history.no_jobs_message'}}</div>
   {{/unless}}
 </div>
+
+{{#if content}}
+  {{partial 'partials/paginationControls'}}
+{{/if}}
+
+{{#if content}}
+  {{partial 'partials/paginationControls'}}
+{{/if}}

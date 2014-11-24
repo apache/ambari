@@ -20,7 +20,6 @@ package org.apache.ambari.view.pig.resources.jobs.models;
 
 import org.apache.ambari.view.pig.persistence.utils.PersonalResource;
 import org.apache.commons.beanutils.BeanUtils;
-import org.codehaus.jackson.annotate.JsonIgnore;
 
 import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
@@ -42,23 +41,16 @@ import java.util.Map;
  * COMPLETED      KILLED        FAILED
  */
 public class PigJob implements Serializable, PersonalResource {
-
-  public enum Status {
-    UNKNOWN,
-    SUBMITTING, SUBMITTED, RUNNING,  // in progress
-    SUBMIT_FAILED, COMPLETED, FAILED, KILLED  // finished
-  }
-
-  public boolean isInProgress() {
-    return status == Status.SUBMITTED || status == Status.SUBMITTING ||
-        status == Status.RUNNING;
-  }
-
-  public static final int RUN_STATE_RUNNING = 1;
-  public static final int RUN_STATE_SUCCEEDED = 2;
-  public static final int RUN_STATE_FAILED = 3;
-  public static final int RUN_STATE_PREP = 4;
-  public static final int RUN_STATE_KILLED = 5;
+  public static final String PIG_JOB_STATE_UNKNOWN = "UNKNOWN";
+  // in progress
+  public static final String PIG_JOB_STATE_SUBMITTING = "SUBMITTING";
+  public static final String PIG_JOB_STATE_SUBMITTED = "SUBMITTED";
+  public static final String PIG_JOB_STATE_RUNNING = "RUNNING";
+  // finished
+  public static final String PIG_JOB_STATE_SUBMIT_FAILED = "SUBMIT_FAILED";
+  public static final String PIG_JOB_STATE_COMPLETED = "COMPLETED";
+  public static final String PIG_JOB_STATE_FAILED = "FAILED";
+  public static final String PIG_JOB_STATE_KILLED = "KILLED";
 
   public PigJob() {
   }
@@ -96,10 +88,11 @@ public class PigJob implements Serializable, PersonalResource {
 
   private String statusDir;
   private Long dateStarted = 0L;
+  private Long duration = 0L;
   private String jobId = null;
 
   // status fields (not reliable)
-  private Status status = Status.UNKNOWN;
+  private String status = PIG_JOB_STATE_UNKNOWN;
   private Integer percentComplete = null;
 
   @Override
@@ -117,6 +110,11 @@ public class PigJob implements Serializable, PersonalResource {
   @Override
   public int hashCode() {
     return id.hashCode();
+  }
+
+  public boolean isInProgress() {
+    return status.equals(PIG_JOB_STATE_SUBMITTED) || status.equals(PIG_JOB_STATE_SUBMITTING) ||
+        status.equals(PIG_JOB_STATE_RUNNING);
   }
 
   @Override
@@ -139,11 +137,11 @@ public class PigJob implements Serializable, PersonalResource {
     this.owner = owner;
   }
 
-  public Status getStatus() {
+  public String getStatus() {
     return status;
   }
 
-  public void setStatus(Status status) {
+  public void setStatus(String status) {
     this.status = status;
   }
 
@@ -201,6 +199,14 @@ public class PigJob implements Serializable, PersonalResource {
 
   public void setDateStarted(Long dateStarted) {
     this.dateStarted = dateStarted;
+  }
+
+  public Long getDuration() {
+    return duration;
+  }
+
+  public void setDuration(Long duration) {
+    this.duration = duration;
   }
 
   public Integer getPercentComplete() {

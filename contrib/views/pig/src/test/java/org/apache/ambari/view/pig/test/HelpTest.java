@@ -21,6 +21,7 @@ package org.apache.ambari.view.pig.test;
 import org.apache.ambari.view.pig.HDFSTest;
 import org.apache.ambari.view.pig.resources.files.FileService;
 import org.apache.ambari.view.pig.services.HelpService;
+import org.apache.ambari.view.pig.utils.HdfsApi;
 import org.json.simple.JSONObject;
 import org.junit.*;
 
@@ -44,7 +45,7 @@ public class HelpTest extends HDFSTest {
   @AfterClass
   public static void shutDown() throws Exception {
     HDFSTest.shutDown(); // super
-    FileService.setHdfsApi(null); //cleanup API connection
+    HdfsApi.dropAllConnections(); //cleanup API connection
   }
 
   @Test
@@ -53,7 +54,7 @@ public class HelpTest extends HDFSTest {
     Assert.assertEquals(200, response.getStatus());
 
     JSONObject obj = (JSONObject)response.getEntity();
-    Assert.assertTrue(obj.containsKey("dataworker.defaultFs"));
-    Assert.assertEquals(hdfsURI, obj.get("dataworker.defaultFs"));
+    Assert.assertTrue(obj.containsKey("webhdfs.url"));
+    Assert.assertEquals(hdfsURI, obj.get("webhdfs.url"));
   }
 }

@@ -21,10 +21,7 @@ package org.apache.ambari.view.pig.test;
 import org.apache.ambari.view.pig.HDFSTest;
 import org.apache.ambari.view.pig.resources.files.FileResource;
 import org.apache.ambari.view.pig.resources.files.FileService;
-import org.apache.ambari.view.pig.utils.BadRequestFormattedException;
-import org.apache.ambari.view.pig.utils.FilePaginator;
-import org.apache.ambari.view.pig.utils.NotFoundFormattedException;
-import org.apache.ambari.view.pig.utils.ServiceFormattedException;
+import org.apache.ambari.view.pig.utils.*;
 import org.json.simple.JSONObject;
 import org.junit.*;
 import org.junit.rules.ExpectedException;
@@ -61,7 +58,7 @@ public class FileTest extends HDFSTest {
   @AfterClass
   public static void shutDown() throws Exception {
     HDFSTest.shutDown(); // super
-    FileService.setHdfsApi(null); //cleanup API connection
+    HdfsApi.dropAllConnections(); //cleanup API connection
   }
 
   private Response doCreateFile() throws IOException, InterruptedException {

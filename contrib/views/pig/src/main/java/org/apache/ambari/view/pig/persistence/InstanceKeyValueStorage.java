@@ -30,9 +30,9 @@ import javax.ws.rs.WebApplicationException;
 
 /**
  * Persistent storage engine for storing java beans to
- * properties file
- * Path to file should be in 'dataworker.storagePath' parameter
+ * instance data
  */
+@Deprecated
 public class InstanceKeyValueStorage extends KeyValueStorage {
   private final static Logger LOG =
       LoggerFactory.getLogger(InstanceKeyValueStorage.class);

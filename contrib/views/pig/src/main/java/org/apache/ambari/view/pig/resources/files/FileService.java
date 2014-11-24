@@ -164,7 +164,7 @@ public class FileService extends BaseService {
    */
   public static void hdfsSmokeTest(ViewContext context) {
     try {
-      HdfsApi api = connectToHDFSApi(context);
+      HdfsApi api = HdfsApi.connectToHDFSApi(context);
       api.getStatus();
     } catch (WebApplicationException ex) {
       throw ex;

@@ -113,7 +113,7 @@ abstract public class CRUDResourceManager<T extends Indexed> {
 
   protected Storage getPigStorage() {
     if (storage == null) {
-      storage = StorageUtil.getStorage(getContext());
+      storage = StorageUtil.getInstance(getContext()).getStorage();
     }
     return storage;
   }

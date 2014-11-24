@@ -55,7 +55,11 @@ public class PersonalCRUDResourceManager<T extends PersonalResource> extends CRU
 
   @Override
   public T save(T object) {
-    object.setOwner(this.context.getUsername());
+    if (!ignorePermissions) {
+      // in threads permissions should be ignored,
+      // because context.getUsername doesn't work. See BUG-27093.
+      object.setOwner(this.context.getUsername());
+    }
     return super.save(object);
   }
 
@@ -67,7 +71,7 @@ public class PersonalCRUDResourceManager<T extends PersonalResource> extends CRU
   }
 
   @Override
-  protected ViewContext getContext() {
+  public ViewContext getContext() {
     return context;
   }
 
@@ -88,10 +92,14 @@ public class PersonalCRUDResourceManager<T extends PersonalResource> extends CRU
     return result;
   }
 
-  protected String getUsername() {
+  protected static String getUsername(ViewContext context) {
     String userName = context.getProperties().get("dataworker.username");
-    if (userName == null)
+    if (userName == null || userName.compareTo("null") == 0 || userName.compareTo("") == 0)
       userName = context.getUsername();
     return userName;
+  }
+
+  protected String getUsername() {
+    return getUsername(context);
   }
 }

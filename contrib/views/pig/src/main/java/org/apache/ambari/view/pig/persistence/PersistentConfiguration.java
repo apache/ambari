@@ -28,6 +28,7 @@ import java.io.File;
  * Configuration enables all necessary options for PropertiesConfiguration:
  * auto-save, auto-reloading, no delimiter parsing and other
  */
+@Deprecated
 public class PersistentConfiguration extends PropertiesConfiguration {
   /**
    * Constructor

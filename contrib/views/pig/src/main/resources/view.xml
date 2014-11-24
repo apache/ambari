@@ -19,18 +19,33 @@
     <label>Pig</label>
     <version>0.1.0</version>
 
-    <!-- HDFS parameters -->
+    <!-- HDFS Configs -->
     <parameter>
-        <name>dataworker.defaultFs</name>
-        <description>FileSystem URI</description>
+        <name>webhdfs.url</name>
+        <description>WebHDFS FileSystem URI (example: webhdfs://namenode:50070)</description>
         <required>true</required>
     </parameter>
 
     <parameter>
-        <name>dataworker.hdfs.username</name>
-        <description>HDFS user.name and doAs</description>
+        <name>webhdfs.username</name>
+        <description>User and doAs for proxy user for HDFS</description>
         <required>false</required>
     </parameter>
+
+    <!-- WebHCat Configs -->
+    <parameter>
+        <name>webhcat.url</name>
+        <description>WebHCat URL (example: http://webhcat.host:50111/templeton)</description>
+        <required>true</required>
+    </parameter>
+
+    <parameter>
+        <name>webhcat.username</name>
+        <description>User and doAs for proxy user for WebHCat</description>
+        <required>false</required>
+    </parameter>
+
+    <!-- General Configs -->
 
     <parameter>
         <name>dataworker.username</name>
@@ -39,34 +54,21 @@
     </parameter>
 
     <parameter>
-        <name>dataworker.scripts.path</name>
-        <description>Directory to store scripts</description>
-        <required>true</required>
-    </parameter>
-    <parameter>
-        <name>dataworker.jobs.path</name>
-        <description>Directory to store jobs (for templeton status dir)</description>
+        <name>scripts.dir</name>
+        <description>HDFS directory path to store Pig scripts (example: /users/${username})</description>
         <required>true</required>
     </parameter>
 
-    <!-- Pig parameters -->
+    <parameter>
+        <name>jobs.dir</name>
+        <description>HDFS directory path to store Pig job status (example: /users/${username})</description>
+        <required>true</required>
+    </parameter>
 
     <parameter>
-        <name>dataworker.storagePath</name>
-        <description>Persistent storage path</description>
+        <name>store.dir</name>
+        <description>HDFS directory to store meta information about Pig scripts and jobs (example: /users/${username})</description>
         <required>false</required>
-    </parameter>
-
-    <parameter>
-        <name>dataworker.webhcat.url</name>
-        <description>Templeton url</description>
-        <required>true</required>
-    </parameter>
-
-    <parameter>
-        <name>dataworker.webhcat.user</name>
-        <description>Templeton user.name and doAs</description>
-        <required>true</required>
     </parameter>
 
     <resource>
@@ -105,5 +107,24 @@
         <name>pig</name>
         <service-class>org.apache.ambari.view.pig.PigServiceRouter</service-class>
     </resource>
+
+    <persistence>
+        <entity>
+            <class>org.apache.ambari.view.pig.persistence.DataStoreStorage$SmokeTestEntity</class>
+            <id-property>id</id-property>
+        </entity>
+        <entity>
+            <class>org.apache.ambari.view.pig.resources.jobs.models.PigJob</class>
+            <id-property>id</id-property>
+        </entity>
+        <entity>
+            <class>org.apache.ambari.view.pig.resources.scripts.models.PigScript</class>
+            <id-property>id</id-property>
+        </entity>
+        <entity>
+            <class>org.apache.ambari.view.pig.resources.udf.models.UDF</class>
+            <id-property>id</id-property>
+        </entity>
+    </persistence>
 
 </view>

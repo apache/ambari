@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-var App = require('app');
+window.App = require('app');
 
 App.ApplicationAdapter = DS.RESTAdapter.extend({
   namespace: App.getNamespaceUrl(),
@@ -28,11 +28,18 @@ App.ApplicationAdapter = DS.RESTAdapter.extend({
 App.FileAdapter = App.ApplicationAdapter.extend({
   pathForType: function() {
     return 'resources/file';
-  },
+  }
+});
+
+App.JobAdapter = App.ApplicationAdapter.extend({
+  deleteRecord: function (store, type, record)  {
+    var id = record.get('id');
+    return this.ajax(this.buildURL(type.typeKey, id)+ '?remove=true', "DELETE");
+  }
 });
 
 App.FileSerializer = DS.RESTSerializer.extend({
-  primaryKey:'filePath',
+  primaryKey:'filePath'
 });
 
 App.IsodateTransform = DS.Transform.extend({  
@@ -50,114 +57,114 @@ App.IsodateTransform = DS.Transform.extend({
   }
 });
 
+App.FileSaver = Ember.Object.extend({
+  save: function(fileContents, mimeType, filename) {
+    window.saveAs(new Blob([fileContents], {type: mimeType}), filename);
+  }
+});
+
+App.register('lib:fileSaver', App.FileSaver);
+
+
+
 Ember.Handlebars.registerBoundHelper('showDate', function(date,format) {
   return moment(date).format(format)
 });
 
 Em.TextField.reopen(Em.I18n.TranslateableAttributes)
 
-//////////////////////////////////
-// Templates
-//////////////////////////////////
-
 require('translations');
-
-require('templates/application');
-require('templates/index');
-require('templates/pig/loading');
-
-require('templates/pig');
-require('templates/pig/index');
-require('templates/pig/scriptList');
-require('templates/pig/scriptEdit');
-require('templates/pig/scriptEditIndex');
-require('templates/pig/scriptResults');
-require('templates/pig/scriptResultsNav');
-require('templates/pig/job');
-require('templates/pig/jobEdit');
-require('templates/pig/jobStatus');
-require('templates/pig/jobResults');
-require('templates/pig/jobResultsOutput');
-require('templates/pig/history');
-require('templates/pig/udfs');
-require('templates/pig/errorLog');
-
-require('templates/pig/util/script-nav');
-require('templates/pig/util/alert');
-require('templates/pig/util/alert-content');
-require('templates/pig/util/pigHelper');
-require('templates/pig/modal/confirmdelete');
-require('templates/pig/modal/createUdf');
-require('templates/pig/modal/modalLayout');
-require('templates/pig/modal/createScript');
-
-require('templates/splash');
-
-//////////////////////////////////
-// Models
-//////////////////////////////////
-
-require('models/pig_script');
-require('models/pig_job');
-require('models/file');
-require('models/udf');
-
-/////////////////////////////////
-// Controllers
-/////////////////////////////////
-
-require('controllers/pig');
-require('controllers/poll');
-require('controllers/edit');
-require('controllers/pigScriptEdit');
-require('controllers/pigScriptList');
-require('controllers/pigScriptEditResults');
-require('controllers/pigUdfs');
-require('controllers/pigHistory');
-require('controllers/pigJob');
-require('controllers/jobResults');
-require('controllers/splash');
-require('controllers/errorLog');
-require('controllers/util/pigUtilAlert');
-require('controllers/modal/pigModal');
-
-/////////////////////////////////
-// Views
-/////////////////////////////////
-
-require('views/pig');
-require('views/pig/scriptList');
-require('views/pig/scriptEdit');
-require('views/pig/scriptResults');
-require('views/pig/scriptResultsNav');
-require('views/pig/pigHistory');
-require('views/pig/pigUdfs');
-require('views/pig/pigJob');
-require('views/pig/jobResults');
-require('views/pig/modal/pigModal');
-require('views/pig/modal/confirmDelete');
-require('views/pig/modal/createUdf');
-require('views/pig/modal/createScript');
-require('views/pig/util/pigUtilAlert');
-
-/////////////////////////////////
-// Routes
-/////////////////////////////////
-
-require('routes/pig');
-require('routes/pigHistory');
-require('routes/pigIndex');
-require('routes/pigScriptEdit');
-require('routes/pigScriptEditIndex');
-require('routes/pigScriptEditResults');
-require('routes/pigScriptList');
-require('routes/pigUdfs');
-require('routes/pigJob');
-require('routes/jobResults');
-require('routes/splash');
-
-/////////////////////////////////
-// Router
-/////////////////////////////////
-
 require('router');
+
+
+// mixins
+require("mixins/fileHandler");
+require("mixins/pagination");
+
+//routes
+require("routes/pig");
+require("routes/pigHistory");
+require("routes/pigScripts");
+require("routes/pigUdfs");
+require("routes/script");
+require("routes/scriptEdit");
+require("routes/scriptHistory");
+require("routes/scriptJob");
+require("routes/splash");
+
+//models
+require("models/file");
+require("models/pig_job");
+require("models/pig_script");
+require("models/udf");
+
+//views
+require("views/pig");
+require("views/pig/alert");
+require("views/pig/history");
+require("views/pig/loading");
+require("views/pig/scripts");
+require("views/pig/udfs");
+require("views/script/edit");
+require("views/script/job");
+
+//controllers
+require("controllers/errorLog");
+require("controllers/modal/confirmAway");
+require("controllers/modal/confirmDelete");
+require("controllers/modal/deleteJob");
+require("controllers/modal/createScript");
+require("controllers/modal/createUdf");
+require("controllers/modal/gotoCopy");
+require("controllers/modal/logDownload");
+require("controllers/modal/pigModal");
+require("controllers/modal/resultsDownload");
+require("controllers/page");
+require("controllers/pig");
+require("controllers/pigAlert");
+require("controllers/pigHistory");
+require("controllers/pigScripts");
+require("controllers/pigUdfs");
+require("controllers/script");
+require("controllers/scriptEdit");
+require("controllers/scriptHistory");
+require("controllers/scriptJob");
+require("controllers/splash");
+
+//templates
+require("templates/application");
+require("templates/components/pigHelper");
+require("templates/components/scriptListRow");
+require("templates/loading");
+require("templates/modal/confirmAway");
+require("templates/modal/confirmDelete");
+require("templates/modal/createScript");
+require("templates/modal/deleteJob");
+require("templates/modal/createUdf");
+require("templates/modal/gotoCopy");
+require("templates/modal/logDownload");
+require("templates/modal/modalLayout");
+require("templates/modal/resultsDownload");
+require("templates/partials/alert-content");
+require("templates/partials/paginationControls");
+require("templates/pig");
+require("templates/pig/alert");
+require("templates/pig/errorLog");
+require("templates/pig/history");
+require("templates/pig/loading");
+require("templates/pig/scripts");
+require("templates/pig/udfs");
+require("templates/script");
+require("templates/script/edit");
+require("templates/script/history");
+require("templates/script/job");
+require("templates/splash");
+require('templates/error');
+
+//components
+require("components/codeMirror");
+require("components/helpers-data");
+require("components/jobProgress");
+require("components/pigHelper");
+require("components/scriptListRow");
+require("components/tabControl");

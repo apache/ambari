@@ -18,6 +18,50 @@
 
 var App = require('app');
 
-App.PigUdfsController = Em.ArrayController.extend({
-  
+App.PigUdfsController = Em.ArrayController.extend(App.Pagination,{
+  actions:{
+    createUdfModal:function () {
+      return this.send('openModal','createUdf',this.store.createRecord('udf'));
+    },
+    createUdf:function (udf) {
+      return udf.save().then(this.onCreateSuccess.bind(this),this.onCreateFail.bind(this));
+    },
+    deleteUdf:function(udf){
+      udf.deleteRecord();
+      return udf.save().then(this.onDeleteSuccess.bind(this),this.onDeleteFail.bind(this));
+    }
+  },
+  onCreateSuccess:function (model) {
+    this.send('showAlert', {
+      message: Em.I18n.t('udfs.alert.udf_created',{name : model.get('name')}),
+      status:'success'
+    });
+  },
+  onCreateFail:function (error) {
+    var trace = null;
+    if (error && error.responseJSON.trace) {
+      trace = error.responseJSON.trace;
+    }
+    this.send('showAlert', {
+      message:Em.I18n.t('udfs.alert.create_failed'),
+      status:'error',trace:trace
+    });
+  },
+  onDeleteSuccess: function(model){
+    this.send('showAlert', {
+      message: Em.I18n.t('udfs.alert.udf_deleted',{name : model.get('name')}),
+      status:'success'
+    });
+  },
+  onDeleteFail:function(error){
+    var trace = null;
+    if (error && error.responseJSON.trace)
+      trace = error.responseJSON.trace;
+
+    this.send('showAlert', {
+      message: Em.I18n.t('udfs.alert.delete_failed'),
+      status:'error',
+      trace:trace
+    });
+  }
 });

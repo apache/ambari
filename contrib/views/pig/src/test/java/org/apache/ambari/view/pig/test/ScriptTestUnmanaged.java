@@ -23,6 +23,7 @@ import org.apache.ambari.view.ViewResourceHandler;
 import org.apache.ambari.view.pig.BasePigTest;
 import org.apache.ambari.view.pig.resources.files.FileService;
 import org.apache.ambari.view.pig.resources.scripts.ScriptService;
+import org.apache.ambari.view.pig.utils.HdfsApi;
 import org.apache.ambari.view.pig.utils.MisconfigurationFormattedException;
 import org.junit.*;
 import org.junit.rules.ExpectedException;
@@ -45,7 +46,7 @@ public class ScriptTestUnmanaged extends BasePigTest {
 
   @AfterClass
   public static void shutDown() throws Exception {
-    FileService.setHdfsApi(null); //cleanup API connection
+    HdfsApi.dropAllConnections(); //cleanup API connection
   }
 
   @Before
@@ -67,7 +68,7 @@ public class ScriptTestUnmanaged extends BasePigTest {
   public void createScriptAutoCreateNoDefaultFS() {
     Map<String, String> properties = new HashMap<String, String>();
     properties.put("dataworker.storagePath", pigStorageFile.toString());
-    properties.put("dataworker.scripts.path", "/tmp/.pigscripts");
+    properties.put("scripts.dir", "/tmp/.pigscripts");
 
     expect(context.getProperties()).andReturn(properties).anyTimes();
     expect(context.getUsername()).andReturn("ambari-qa").anyTimes();

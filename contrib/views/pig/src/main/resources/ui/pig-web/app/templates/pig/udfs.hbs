@@ -16,15 +16,12 @@
    limitations under the License.
 }}
 
-<div class="panel panel-default panel-udfs">
-  <div class="panel-heading">
-    <span class="panel-title">
-      {{t 'udfs.udfs'}}
-    </span>
-    <a {{action "createUdfModal"}} class="btn btn-default btn-sm pull-right upload-udf"><span class="glyphicon glyphicon-plus"></span> {{t 'common.create'}}</a>
+<div class="panel-udfs">
+  <div class="title-row">
+    <h3 class="pull-left">{{t 'udfs.udfs'}}</h3>
+    <a {{action "createUdfModal"}} class="btn btn-default pull-right upload-udf"><span class="glyphicon glyphicon-plus"></span> {{t 'udfs.create'}}</a>
   </div>
-  
-  <table class="table table-bordered table-striped">
+  <table class="table table-striped">
     <thead> 
       <tr class="label-row">
         <th class="first">{{t 'common.name'}}</th> 
@@ -34,7 +31,7 @@
       </tr>
     </thead>
     <tbody>
-    {{#each content}}
+    {{#each paginatedContent}}
         <tr> 
           <td> {{this.name}}</td>
           <td> {{this.path}}</td>
@@ -45,7 +42,12 @@
     </tbody>
   </table>
 
+  {{#if content}}
+    {{partial 'partials/paginationControls'}}
+  {{/if}}
+
   {{#unless content}}
-    <div class="panel-footer empty-table-footer">{{t 'udfs.noUDFs'}}</div>
+    <div class="alert alert-info" role="alert">{{t 'udfs.noUDFs'}}</div>
   {{/unless}}
+
 </div>

@@ -52,7 +52,7 @@ public class TempletonApi {
 
   /**
    * TempletonApi constructor
-   * @param api dataworker.webhcat.url
+   * @param api webhcat.url
    * @param username templeton username
    * @param doAs doAs argument
    * @param context context with URLStreamProvider

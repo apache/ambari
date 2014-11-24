@@ -19,6 +19,7 @@
 package org.apache.ambari.view.pig.test;
 
 import org.apache.ambari.view.pig.BasePigTest;
+import org.apache.ambari.view.pig.resources.jobs.JobResourceManager;
 import org.apache.ambari.view.pig.resources.jobs.JobService;
 import org.apache.ambari.view.pig.resources.jobs.models.PigJob;
 import org.apache.ambari.view.pig.templeton.client.TempletonApi;
@@ -38,12 +39,23 @@ import javax.ws.rs.core.UriInfo;
 import java.io.*;
 import java.net.URI;
 import java.util.HashMap;
+import java.util.List;
 
 import static org.easymock.EasyMock.*;
 
 public class JobTest extends BasePigTest {
   private JobService jobService;
   @Rule public ExpectedException thrown = ExpectedException.none();
+
+  @BeforeClass
+  public static void startUp() throws Exception {
+    BasePigTest.startUp(); // super
+  }
+
+  @AfterClass
+  public static void shutDown() throws Exception {
+    BasePigTest.shutDown(); // super
+  }
 
   @Override
   @Before
@@ -57,20 +69,21 @@ public class JobTest extends BasePigTest {
   public void tearDown() throws Exception {
     super.tearDown();
     jobService.getResourceManager().setTempletonApi(null);
-    JobService.setHdfsApi(null);
+    HdfsApi.dropAllConnections();
   }
 
-  private Response doCreateJob(String title, String pigScript, String templetonArguments) {
-    return doCreateJob(title, pigScript, templetonArguments, null);
+  public static Response doCreateJob(String title, String pigScript, String templetonArguments, JobService jobService) {
+    return doCreateJob(title, pigScript, templetonArguments, null, null, jobService);
   }
 
-  private Response doCreateJob(String title, String pigScript, String templetonArguments, String forcedContent) {
+  public static Response doCreateJob(String title, String pigScript, String templetonArguments, String forcedContent, String scriptId, JobService jobService) {
     JobService.PigJobRequest request = new JobService.PigJobRequest();
     request.job = new PigJob();
     request.job.setTitle(title);
     request.job.setPigScript(pigScript);
     request.job.setTempletonArguments(templetonArguments);
     request.job.setForcedContent(forcedContent);
+    request.job.setScriptId(scriptId);
 
     UriInfo uriInfo = createNiceMock(UriInfo.class);
     URI uri = UriBuilder.fromUri("http://host/a/b").build();
@@ -94,7 +107,7 @@ public class JobTest extends BasePigTest {
     FSDataOutputStream stream = new FSDataOutputStream(do_stream);
     expect(hdfsApi.create(anyString(), eq(true))).andReturn(stream);
     replay(hdfsApi);
-    JobService.setHdfsApi(hdfsApi);
+    HdfsApi.setInstance(context, hdfsApi);
 
     TempletonApi api = createNiceMock(TempletonApi.class);
     jobService.getResourceManager().setTempletonApi(api);
@@ -102,7 +115,7 @@ public class JobTest extends BasePigTest {
     expect(api.runPigQuery((File) anyObject(), anyString(), eq("-useHCatalog"))).andReturn(data);
     replay(api);
 
-    Response response = doCreateJob("Test", "/tmp/script.pig", "-useHCatalog");
+    Response response = doCreateJob("Test", "/tmp/script.pig", "-useHCatalog", jobService);
 
     Assert.assertEquals("-useHCatalog", do_stream.toString());
     Assert.assertEquals(201, response.getStatus());
@@ -111,11 +124,51 @@ public class JobTest extends BasePigTest {
     Assert.assertTrue(obj.containsKey("job"));
     Assert.assertNotNull(((PigJob) obj.get("job")).getId());
     Assert.assertFalse(((PigJob) obj.get("job")).getId().isEmpty());
-    Assert.assertTrue(((PigJob) obj.get("job")).getStatusDir().startsWith("/tmp/.pigjobs/ambari-qa/test"));
+    Assert.assertTrue(((PigJob) obj.get("job")).getStatusDir().startsWith("/tmp/.pigjobs/test"));
 
     PigJob job = ((PigJob) obj.get("job"));
-    Assert.assertEquals(PigJob.Status.SUBMITTED, job.getStatus());
+    Assert.assertEquals(PigJob.PIG_JOB_STATE_SUBMITTED, job.getStatus());
     Assert.assertTrue(job.isInProgress());
+  }
+
+  @Test
+  public void testListJobs() throws Exception {
+    HdfsApi hdfsApi = createNiceMock(HdfsApi.class);
+    expect(hdfsApi.copy(eq("/tmp/script.pig"), startsWith("/tmp/.pigjobs/"))).andReturn(true).anyTimes();
+
+    ByteArrayOutputStream do_stream = new ByteArrayOutputStream();
+
+    FSDataOutputStream stream = new FSDataOutputStream(do_stream);
+    expect(hdfsApi.create(anyString(), eq(true))).andReturn(stream).anyTimes();
+    replay(hdfsApi);
+    HdfsApi.setInstance(context, hdfsApi);
+
+    TempletonApi api = createNiceMock(TempletonApi.class);
+    jobService.getResourceManager().setTempletonApi(api);
+    TempletonApi.JobData data = api.new JobData();
+    expect(api.runPigQuery((File) anyObject(), anyString(), (String) isNull())).andReturn(data).anyTimes();
+    replay(api);
+
+    Response response = doCreateJob("Test", "/tmp/script.pig", null, null, "x42", jobService);
+    Assert.assertEquals(201, response.getStatus());
+
+    response = doCreateJob("Test", "/tmp/script.pig", null, null, "x42", jobService);
+    Assert.assertEquals(201, response.getStatus());
+
+    response = doCreateJob("Test", "/tmp/script.pig", null, null, "100", jobService);
+    Assert.assertEquals(201, response.getStatus());
+
+    response = jobService.getJobList("x42");
+    Assert.assertEquals(200, response.getStatus());
+    JSONObject obj = (JSONObject)response.getEntity();
+    Assert.assertTrue(obj.containsKey("jobs"));
+    Assert.assertEquals(2, ((List) obj.get("jobs")).size());
+
+    response = jobService.getJobList(null);
+    Assert.assertEquals(200, response.getStatus());
+    obj = (JSONObject)response.getEntity();
+    Assert.assertTrue(obj.containsKey("jobs"));
+    Assert.assertTrue(((List) obj.get("jobs")).size() > 2);
   }
 
   @Test
@@ -128,7 +181,7 @@ public class JobTest extends BasePigTest {
     FSDataOutputStream stream = new FSDataOutputStream(do_stream);
     expect(hdfsApi.create(anyString(), eq(true))).andReturn(stream);
     replay(hdfsApi);
-    JobService.setHdfsApi(hdfsApi);
+    HdfsApi.setInstance(context, hdfsApi);
 
     TempletonApi api = createNiceMock(TempletonApi.class);
     jobService.getResourceManager().setTempletonApi(api);
@@ -137,10 +190,10 @@ public class JobTest extends BasePigTest {
     replay(api);
 
     properties.put("dataworker.username", "luke");
-    Response response = doCreateJob("Test", "/tmp/script.pig", "-useHCatalog");
+    Response response = doCreateJob("Test", "/tmp/script.pig", "-useHCatalog", jobService);
     JSONObject obj = (JSONObject)response.getEntity();
     Assert.assertTrue(obj.containsKey("job"));
-    Assert.assertTrue(((PigJob) obj.get("job")).getStatusDir().startsWith("/tmp/.pigjobs/luke/test"));
+    Assert.assertTrue(((PigJob) obj.get("job")).getStatusDir().startsWith("/tmp/.pigjobs/test"));
   }
 
   @Test
@@ -153,7 +206,7 @@ public class JobTest extends BasePigTest {
     FSDataOutputStream stream = new FSDataOutputStream(do_stream);
     expect(hdfsApi.create(anyString(), eq(true))).andReturn(stream);
     replay(hdfsApi);
-    JobService.setHdfsApi(hdfsApi);
+    HdfsApi.setInstance(context, hdfsApi);
 
     TempletonApi api = createNiceMock(TempletonApi.class);
     jobService.getResourceManager().setTempletonApi(api);
@@ -161,7 +214,7 @@ public class JobTest extends BasePigTest {
     expect(api.runPigQuery((File) anyObject(), anyString(), (String) isNull())).andReturn(data);
     replay(api);
 
-    Response response = doCreateJob("Test", "/tmp/script.pig", null);
+    Response response = doCreateJob("Test", "/tmp/script.pig", null, jobService);
 
     Assert.assertEquals("", do_stream.toString());
     Assert.assertEquals(201, response.getStatus());
@@ -170,10 +223,10 @@ public class JobTest extends BasePigTest {
     Assert.assertTrue(obj.containsKey("job"));
     Assert.assertNotNull(((PigJob) obj.get("job")).getId());
     Assert.assertFalse(((PigJob) obj.get("job")).getId().isEmpty());
-    Assert.assertTrue(((PigJob) obj.get("job")).getStatusDir().startsWith("/tmp/.pigjobs/ambari-qa/test"));
+    Assert.assertTrue(((PigJob) obj.get("job")).getStatusDir().startsWith("/tmp/.pigjobs/test"));
 
     PigJob job = ((PigJob) obj.get("job"));
-    Assert.assertEquals(PigJob.Status.SUBMITTED, job.getStatus());
+    Assert.assertEquals(PigJob.PIG_JOB_STATE_SUBMITTED, job.getStatus());
     Assert.assertTrue(job.isInProgress());
   }
 
@@ -187,7 +240,7 @@ public class JobTest extends BasePigTest {
     FSDataOutputStream stream = new FSDataOutputStream(do_stream);
     expect(hdfsApi.create(anyString(), eq(true))).andReturn(stream);
     replay(hdfsApi);
-    JobService.setHdfsApi(hdfsApi);
+    HdfsApi.setInstance(context, hdfsApi);
 
     TempletonApi api = createNiceMock(TempletonApi.class);
     jobService.getResourceManager().setTempletonApi(api);
@@ -196,7 +249,7 @@ public class JobTest extends BasePigTest {
     replay(api);
 
     thrown.expect(ServiceFormattedException.class);
-    doCreateJob("Test", null, "-useHCatalog");
+    doCreateJob("Test", null, "-useHCatalog", jobService);
   }
 
   @Test
@@ -211,7 +264,7 @@ public class JobTest extends BasePigTest {
     expect(hdfsApi.create(endsWith("script.pig"), eq(true))).andReturn(scriptStream);
     expect(hdfsApi.create(endsWith("params"), eq(true))).andReturn(templetonArgsStream);
     replay(hdfsApi);
-    JobService.setHdfsApi(hdfsApi);
+    HdfsApi.setInstance(context, hdfsApi);
 
     TempletonApi api = createNiceMock(TempletonApi.class);
     jobService.getResourceManager().setTempletonApi(api);
@@ -219,7 +272,7 @@ public class JobTest extends BasePigTest {
     expect(api.runPigQuery((File) anyObject(), anyString(), eq("-useHCatalog"))).andReturn(data);
     replay(api);
 
-    Response response = doCreateJob("Test", null, "-useHCatalog", "pwd");  // with forcedContent
+    Response response = doCreateJob("Test", null, "-useHCatalog", "pwd", null, jobService);  // with forcedContent
     Assert.assertEquals(201, response.getStatus());
     Assert.assertEquals("-useHCatalog", baTempletonArgsStream.toString());
     Assert.assertEquals("pwd", baScriptStream.toString());
@@ -235,7 +288,7 @@ public class JobTest extends BasePigTest {
     FSDataOutputStream stream = new FSDataOutputStream(do_stream);
     expect(hdfsApi.create(anyString(), eq(true))).andReturn(stream);
     replay(hdfsApi);
-    JobService.setHdfsApi(hdfsApi);
+    HdfsApi.setInstance(context, hdfsApi);
 
     TempletonApi api = createNiceMock(TempletonApi.class);
     jobService.getResourceManager().setTempletonApi(api);
@@ -244,7 +297,7 @@ public class JobTest extends BasePigTest {
     replay(api);
 
     thrown.expect(BadRequestFormattedException.class);
-    doCreateJob(null, "/tmp/1.pig", "-useHCatalog");
+    doCreateJob(null, "/tmp/1.pig", "-useHCatalog", jobService);
   }
 
   @Test
@@ -257,7 +310,7 @@ public class JobTest extends BasePigTest {
     FSDataOutputStream stream = new FSDataOutputStream(do_stream);
     expect(hdfsApi.create(anyString(), eq(true))).andReturn(stream);
     replay(hdfsApi);
-    JobService.setHdfsApi(hdfsApi);
+    HdfsApi.setInstance(context, hdfsApi);
 
     TempletonApi api = createNiceMock(TempletonApi.class);
     jobService.getResourceManager().setTempletonApi(api);
@@ -266,7 +319,7 @@ public class JobTest extends BasePigTest {
     replay(api);
 
     thrown.expect(ServiceFormattedException.class);
-    doCreateJob("Test", "/tmp/script.pig", "-useHCatalog");
+    doCreateJob("Test", "/tmp/script.pig", "-useHCatalog", jobService);
   }
 
   @Test
@@ -279,7 +332,7 @@ public class JobTest extends BasePigTest {
     FSDataOutputStream stream = new FSDataOutputStream(do_stream);
     expect(hdfsApi.create(anyString(), eq(true))).andReturn(stream);
     replay(hdfsApi);
-    JobService.setHdfsApi(hdfsApi);
+    HdfsApi.setInstance(context, hdfsApi);
 
     TempletonApi api = createNiceMock(TempletonApi.class);
     jobService.getResourceManager().setTempletonApi(api);
@@ -289,11 +342,11 @@ public class JobTest extends BasePigTest {
     replay(api);
 
     thrown.expect(ServiceFormattedException.class);
-    doCreateJob("Test", "/tmp/script.pig", "-useHCatalog");
+    doCreateJob("Test", "/tmp/script.pig", "-useHCatalog", jobService);
   }
 
   @Test
-  public void testKillJob() throws Exception {
+  public void testKillJobNoRemove() throws Exception {
     HdfsApi hdfsApi = createNiceMock(HdfsApi.class);
     expect(hdfsApi.copy(eq("/tmp/script.pig"), startsWith("/tmp/.pigjobs/"))).andReturn(true);
 
@@ -302,7 +355,7 @@ public class JobTest extends BasePigTest {
     FSDataOutputStream stream = new FSDataOutputStream(do_stream);
     expect(hdfsApi.create(anyString(), eq(true))).andReturn(stream);
     replay(hdfsApi);
-    JobService.setHdfsApi(hdfsApi);
+    HdfsApi.setInstance(context, hdfsApi);
 
     TempletonApi api = createStrictMock(TempletonApi.class);
     jobService.getResourceManager().setTempletonApi(api);
@@ -311,16 +364,55 @@ public class JobTest extends BasePigTest {
     expect(api.runPigQuery((File) anyObject(), anyString(), eq("-useHCatalog"))).andReturn(data);
     replay(api);
 
-    Response response = doCreateJob("Test", "/tmp/script.pig", "-useHCatalog");
+    Response response = doCreateJob("Test", "/tmp/script.pig", "-useHCatalog", jobService);
     Assert.assertEquals(201, response.getStatus());
 
     reset(api);
     api.killJob(eq("job_id_##"));
+    expect(api.checkJob(anyString())).andReturn(api.new JobInfo()).anyTimes();
     replay(api);
     JSONObject obj = (JSONObject)response.getEntity();
     PigJob job = ((PigJob)obj.get("job"));
-    response = jobService.killJob(job.getId());
+    response = jobService.killJob(job.getId(), null);
     Assert.assertEquals(204, response.getStatus());
+
+    response = jobService.getJob(job.getId());  // it should still be present in DB
+    Assert.assertEquals(200, response.getStatus());
+  }
+
+  @Test
+  public void testKillJobWithRemove() throws Exception {
+    HdfsApi hdfsApi = createNiceMock(HdfsApi.class);
+    expect(hdfsApi.copy(eq("/tmp/script.pig"), startsWith("/tmp/.pigjobs/"))).andReturn(true);
+
+    ByteArrayOutputStream do_stream = new ByteArrayOutputStream();
+
+    FSDataOutputStream stream = new FSDataOutputStream(do_stream);
+    expect(hdfsApi.create(anyString(), eq(true))).andReturn(stream);
+    replay(hdfsApi);
+    HdfsApi.setInstance(context, hdfsApi);
+
+    TempletonApi api = createStrictMock(TempletonApi.class);
+    jobService.getResourceManager().setTempletonApi(api);
+    TempletonApi.JobData data = api.new JobData();
+    data.id = "job_id_##";
+    expect(api.runPigQuery((File) anyObject(), anyString(), eq("-useHCatalog"))).andReturn(data);
+    replay(api);
+
+    Response response = doCreateJob("Test", "/tmp/script.pig", "-useHCatalog", jobService);
+    Assert.assertEquals(201, response.getStatus());
+
+    reset(api);
+    api.killJob(eq("job_id_##"));
+    expect(api.checkJob(anyString())).andReturn(api.new JobInfo()).anyTimes();
+    replay(api);
+    JSONObject obj = (JSONObject)response.getEntity();
+    PigJob job = ((PigJob)obj.get("job"));
+    response = jobService.killJob(job.getId(), "true");
+    Assert.assertEquals(204, response.getStatus());
+
+    thrown.expect(NotFoundFormattedException.class); // it should not be present in DB
+    jobService.getJob(job.getId());
   }
 
   @Test
@@ -333,7 +425,7 @@ public class JobTest extends BasePigTest {
     FSDataOutputStream stream = new FSDataOutputStream(do_stream);
     expect(hdfsApi.create(anyString(), eq(true))).andReturn(stream);
     replay(hdfsApi);
-    JobService.setHdfsApi(hdfsApi);
+    HdfsApi.setInstance(context, hdfsApi);
 
     TempletonApi api = createNiceMock(TempletonApi.class);
     jobService.getResourceManager().setTempletonApi(api);
@@ -342,13 +434,13 @@ public class JobTest extends BasePigTest {
     expect(api.runPigQuery((File) anyObject(), anyString(), eq("-useHCatalog"))).andReturn(data);
     replay(api);
 
-    Response response = doCreateJob("Test", "/tmp/script.pig", "-useHCatalog");
+    Response response = doCreateJob("Test", "/tmp/script.pig", "-useHCatalog", jobService);
 
     Assert.assertEquals("-useHCatalog", do_stream.toString());
     Assert.assertEquals(201, response.getStatus());
 
     PigJob job = ((PigJob) ((JSONObject)response.getEntity()).get("job"));
-    Assert.assertEquals(PigJob.Status.SUBMITTED, job.getStatus());
+    Assert.assertEquals(PigJob.PIG_JOB_STATE_SUBMITTED, job.getStatus());
     Assert.assertTrue(job.isInProgress());
 
     // Retrieve status:
@@ -360,20 +452,20 @@ public class JobTest extends BasePigTest {
     response = jobService.getJob(job.getId());
     Assert.assertEquals(200, response.getStatus());
     job = ((PigJob) ((JSONObject)response.getEntity()).get("job"));
-    Assert.assertEquals(PigJob.Status.SUBMITTED, job.getStatus());
+    Assert.assertEquals(PigJob.PIG_JOB_STATE_SUBMITTED, job.getStatus());
 
     // RUNNING
     reset(api);
     info = api.new JobInfo();
     info.status = new HashMap<String, Object>();
-    info.status.put("runState", (double)PigJob.RUN_STATE_RUNNING);
+    info.status.put("runState", (double) JobResourceManager.RUN_STATE_RUNNING);
     info.percentComplete = "30% complete";
     expect(api.checkJob(eq("job_id_#"))).andReturn(info);
     replay(api);
     response = jobService.getJob(job.getId());
     Assert.assertEquals(200, response.getStatus());
     job = ((PigJob) ((JSONObject)response.getEntity()).get("job"));
-    Assert.assertEquals(PigJob.Status.RUNNING, job.getStatus());
+    Assert.assertEquals(PigJob.PIG_JOB_STATE_RUNNING, job.getStatus());
     Assert.assertTrue(job.isInProgress());
     Assert.assertEquals(30, (Object) job.getPercentComplete());
 
@@ -381,13 +473,13 @@ public class JobTest extends BasePigTest {
     reset(api);
     info = api.new JobInfo();
     info.status = new HashMap<String, Object>();
-    info.status.put("runState", (double)PigJob.RUN_STATE_SUCCEEDED);
+    info.status.put("runState", (double) JobResourceManager.RUN_STATE_SUCCEEDED);
     expect(api.checkJob(eq("job_id_#"))).andReturn(info);
     replay(api);
     response = jobService.getJob(job.getId());
     Assert.assertEquals(200, response.getStatus());
     job = ((PigJob) ((JSONObject)response.getEntity()).get("job"));
-    Assert.assertEquals(PigJob.Status.COMPLETED, job.getStatus());
+    Assert.assertEquals(PigJob.PIG_JOB_STATE_COMPLETED, job.getStatus());
     Assert.assertFalse(job.isInProgress());
     Assert.assertNull(job.getPercentComplete());
 
@@ -395,38 +487,38 @@ public class JobTest extends BasePigTest {
     reset(api);
     info = api.new JobInfo();
     info.status = new HashMap<String, Object>();
-    info.status.put("runState", (double)PigJob.RUN_STATE_PREP);
+    info.status.put("runState", (double) JobResourceManager.RUN_STATE_PREP);
     expect(api.checkJob(eq("job_id_#"))).andReturn(info);
     replay(api);
     response = jobService.getJob(job.getId());
     Assert.assertEquals(200, response.getStatus());
     job = ((PigJob) ((JSONObject)response.getEntity()).get("job"));
-    Assert.assertEquals(PigJob.Status.RUNNING, job.getStatus());
+    Assert.assertEquals(PigJob.PIG_JOB_STATE_RUNNING, job.getStatus());
 
     // FAILED
     reset(api);
     info = api.new JobInfo();
     info.status = new HashMap<String, Object>();
-    info.status.put("runState", (double)PigJob.RUN_STATE_FAILED);
+    info.status.put("runState", (double) JobResourceManager.RUN_STATE_FAILED);
     expect(api.checkJob(eq("job_id_#"))).andReturn(info);
     replay(api);
     response = jobService.getJob(job.getId());
     Assert.assertEquals(200, response.getStatus());
     job = ((PigJob) ((JSONObject)response.getEntity()).get("job"));
-    Assert.assertEquals(PigJob.Status.FAILED, job.getStatus());
+    Assert.assertEquals(PigJob.PIG_JOB_STATE_FAILED, job.getStatus());
     Assert.assertFalse(job.isInProgress());
 
     // KILLED
     reset(api);
     info = api.new JobInfo();
     info.status = new HashMap<String, Object>();
-    info.status.put("runState", (double)PigJob.RUN_STATE_KILLED);
+    info.status.put("runState", (double) JobResourceManager.RUN_STATE_KILLED);
     expect(api.checkJob(eq("job_id_#"))).andReturn(info);
     replay(api);
     response = jobService.getJob(job.getId());
     Assert.assertEquals(200, response.getStatus());
     job = ((PigJob) ((JSONObject)response.getEntity()).get("job"));
-    Assert.assertEquals(PigJob.Status.KILLED, job.getStatus());
+    Assert.assertEquals(PigJob.PIG_JOB_STATE_KILLED, job.getStatus());
     Assert.assertFalse(job.isInProgress());
   }
 }

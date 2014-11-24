@@ -17,8 +17,8 @@
 }}
 
 <div class="container-fluid">
-  <h1>Welcome to Apache Pig UI</h1>
-  <h2>Please wait while we test connection to services</h2>
+  <h1>{{t 'splash.welcome'}}</h1>
+  <h2>{{t 'splash.please_wait'}}</h2>
 
   <div class="progress progress-striped active">
     <div class="progress-bar" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" {{bind-attr style="progressBarStyle"}}>
@@ -39,37 +39,37 @@
             <span class="glyphicon glyphicon-arrow-right"></span>
           {{/if}}
         </td>
-        <td>Storage test</td>
+        <td>{{t 'splash.storage_test'}}</td>
       </tr>
 
       <tr>
-          <td>
-            {{#if hdfsTestDone}}
-              {{#if hdfsTest}}
-                  <span class="glyphicon glyphicon-ok green"></span>
-              {{else}}
-                  <span class="glyphicon glyphicon-remove red"></span>
-              {{/if}}
+        <td>
+          {{#if hdfsTestDone}}
+            {{#if hdfsTest}}
+              <span class="glyphicon glyphicon-ok green"></span>
             {{else}}
-                <span class="glyphicon glyphicon-arrow-right"></span>
+              <span class="glyphicon glyphicon-remove red"></span>
             {{/if}}
-          </td>
-          <td>HDFS test</td>
+          {{else}}
+            <span class="glyphicon glyphicon-arrow-right"></span>
+          {{/if}}
+        </td>
+        <td>{{t 'splash.hdfs_test'}}</td>
       </tr>
 
       <tr>
-          <td>
-            {{#if webhcatTestDone}}
-              {{#if webhcatTest}}
-                  <span class="glyphicon glyphicon-ok green"></span>
-              {{else}}
-                  <span class="glyphicon glyphicon-remove red"></span>
-              {{/if}}
+        <td>
+          {{#if webhcatTestDone}}
+            {{#if webhcatTest}}
+                <span class="glyphicon glyphicon-ok green"></span>
             {{else}}
-                <span class="glyphicon glyphicon-arrow-right"></span>
+                <span class="glyphicon glyphicon-remove red"></span>
             {{/if}}
-          </td>
-          <td>WebHCat test</td>
+          {{else}}
+              <span class="glyphicon glyphicon-arrow-right"></span>
+          {{/if}}
+        </td>
+        <td>{{t 'splash.webhcat_test'}}</td>
       </tr>
 
     </tbody>
@@ -80,17 +80,17 @@
   <p>{{{errors}}}</p>
   {{/if}}
   {{#if stackTrace}}
-      <a href="#" {{action "toggleStackTrace" post}}>
-        {{#if isExpanded}}
-            <span class="glyphicon glyphicon-collapse-down"></span> Collapse Stack Trace
-        {{else}}
-            <span class="glyphicon glyphicon-expand"></span> Expand Stack Trace
-        {{/if}}
-      </a>
+    <a href="#" {{action "toggleStackTrace" post}}>
+      {{#if isExpanded}}
+          <span class="glyphicon glyphicon-collapse-down"></span> Collapse Stack Trace
+      {{else}}
+          <span class="glyphicon glyphicon-expand"></span> Expand Stack Trace
+      {{/if}}
+    </a>
     {{#if isExpanded}}
-        <pre class="prettyprint">
-{{stackTrace}}
-        </pre>
+      <pre class="prettyprint">
+        {{stackTrace}}
+      </pre>
     {{/if}}
   {{/if}}
 </div>

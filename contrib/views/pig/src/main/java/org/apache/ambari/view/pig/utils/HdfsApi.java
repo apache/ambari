@@ -18,6 +18,7 @@
 
 package org.apache.ambari.view.pig.utils;
 
+import org.apache.ambari.view.ViewContext;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.*;
 import org.apache.hadoop.fs.permission.FsPermission;
@@ -29,10 +30,13 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
 import java.security.PrivilegedExceptionAction;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.hadoop.security.UserGroupInformation;
 import org.json.simple.JSONArray;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.LinkedHashMap;
 
@@ -44,6 +48,9 @@ public class HdfsApi {
 
   private FileSystem fs;
   private UserGroupInformation ugi;
+
+  private final static Logger LOG =
+      LoggerFactory.getLogger(HdfsApi.class);
 
   /**
    * Constructor
@@ -284,4 +291,57 @@ public class HdfsApi {
     return json;
   }
 
+
+  private static Map<String, HdfsApi> viewSingletonObjects = new HashMap<String, HdfsApi>();
+  /**
+   * Returns HdfsApi object specific to instance
+   * @param context View Context instance
+   * @return Hdfs business delegate object
+   */
+  public static HdfsApi getInstance(ViewContext context) {
+    if (!viewSingletonObjects.containsKey(context.getInstanceName()))
+      viewSingletonObjects.put(context.getInstanceName(), connectToHDFSApi(context));
+    return viewSingletonObjects.get(context.getInstanceName());
+  }
+
+  public static void setInstance(ViewContext context, HdfsApi api) {
+    viewSingletonObjects.put(context.getInstanceName(), api);
+  }
+
+  public static HdfsApi connectToHDFSApi(ViewContext context) {
+    HdfsApi api = null;
+    Thread.currentThread().setContextClassLoader(null);
+
+    String defaultFS = context.getProperties().get("webhdfs.url");
+    if (defaultFS == null) {
+      String message = "webhdfs.url is not configured!";
+      LOG.error(message);
+      throw new MisconfigurationFormattedException("webhdfs.url");
+    }
+
+    try {
+      api = new HdfsApi(defaultFS, getHdfsUsername(context));
+      LOG.info("HdfsApi connected OK");
+    } catch (IOException e) {
+      String message = "HdfsApi IO error: " + e.getMessage();
+      LOG.error(message);
+      throw new ServiceFormattedException(message, e);
+    } catch (InterruptedException e) {
+      String message = "HdfsApi Interrupted error: " + e.getMessage();
+      LOG.error(message);
+      throw new ServiceFormattedException(message, e);
+    }
+    return api;
+  }
+
+  public static String getHdfsUsername(ViewContext context) {
+    String userName = context.getProperties().get("webhdfs.username");
+    if (userName == null || userName.compareTo("null") == 0 || userName.compareTo("") == 0)
+      userName = context.getUsername();
+    return userName;
+  }
+
+  public static void dropAllConnections() {
+    viewSingletonObjects.clear();
+  }
 }

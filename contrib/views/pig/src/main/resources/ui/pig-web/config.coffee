@@ -16,12 +16,25 @@
 
 exports.config = 
 
+  watcher:
+    usePolling: true
+
+  fileListInterval: 512
+
   files: 
     javascripts: 
       defaultExtension: 'js'
       joinTo: 
         'static/javascripts/app.js': /^app/
         'static/javascripts/vendor.js': /^bower_components|vendor/
+      order:
+        before: [
+          'bower_components/jquery/dist/jquery.js',
+          'vendor/jquery-ui/core.js',
+          'vendor/jquery-ui/widget.js',
+          'vendor/jquery-ui/mouse.js',
+          'vendor/jquery-ui/position.js',
+        ]
 
     stylesheets:
       defaultExtension: 'css'
@@ -33,19 +46,15 @@ exports.config =
       defaultExtension: 'hbs'
       joinTo: 'static/javascripts/app.js' : /^app/
       paths:
-        jquery: 'bower_components/jquery/jquery.js'
+        jquery: 'bower_components/jquery/dist/jquery.js'
         handlebars: 'bower_components/handlebars/handlebars.js'
         ember: 'bower_components/ember/ember.js'
 
   modules:
     addSourceURLs: true
 
-
-  paths:
-    public: '/usr/lib/ambari-server/web/views-debug/PIG/0.1.0/MyPig/'
-
   overrides:
-    production:
-        paths:
-          public: 'public'
-
+    development:
+      fileListInterval: 64
+      paths:
+        public: '/usr/lib/ambari-server/web/views-debug/PIG/0.1.0/MyPig/'

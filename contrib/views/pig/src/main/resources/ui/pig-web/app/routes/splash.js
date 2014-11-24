@@ -20,13 +20,15 @@ var App = require('app');
 
 App.SplashRoute = Em.Route.extend({
   model: function() {
-    return Ember.Object.create({storageTest: null,
-                                storageTestDone: null,
-                                webhcatTest: null,
-                                webhcatTestDone: null,
-                                hdfsTest: null,
-                                hdfsTestDone: null,
-                                percent: 0});
+    return Ember.Object.create({
+      storageTest: null,
+      storageTestDone: null,
+      webhcatTest: null,
+      webhcatTestDone: null,
+      hdfsTest: null,
+      hdfsTestDone: null,
+      percent: 0
+    });
   },
   renderTemplate: function() {
     this.render('splash');
@@ -41,7 +43,7 @@ App.SplashRoute = Em.Route.extend({
           if (previousTransition) {
             previousTransition.retry();
           } else {
-            self.transitionTo('pig.scriptList');
+            self.transitionTo('pig.scripts');
           }
         }, 1000);
       }

@@ -19,11 +19,15 @@
 package org.apache.ambari.view.pig.persistence.utils;
 
 import org.apache.ambari.view.ViewContext;
+import org.apache.ambari.view.pig.persistence.DataStoreStorage;
 import org.apache.ambari.view.pig.persistence.InstanceKeyValueStorage;
 import org.apache.ambari.view.pig.persistence.LocalKeyValueStorage;
 import org.apache.ambari.view.pig.persistence.Storage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Storage factory, creates storage of Local or Persistence API type.
@@ -33,17 +37,38 @@ import org.slf4j.LoggerFactory;
  * Storage is singleton.
  */
 public class StorageUtil {
-  private static Storage storageInstance = null;
+  private Storage storageInstance = null;
 
   protected final static Logger LOG =
       LoggerFactory.getLogger(StorageUtil.class);
 
+
+  private static Map<String, StorageUtil> viewSingletonObjects = new HashMap<String, StorageUtil>();
+  public static StorageUtil getInstance(ViewContext context) {
+    if (!viewSingletonObjects.containsKey(context.getInstanceName()))
+      viewSingletonObjects.put(context.getInstanceName(), new StorageUtil(context));
+    return viewSingletonObjects.get(context.getInstanceName());
+  }
+
+  public static void dropAllConnections() {
+    viewSingletonObjects.clear();
+  }
+
+  private ViewContext context;
+
+  /**
+   * Constructor of storage util
+   * @param context View Context instance
+   */
+  public StorageUtil(ViewContext context) {
+    this.context = context;
+  }
+
   /**
    * Get storage instance. If one is not created, creates instance.
-   * @param context View Context instance
    * @return storage instance
    */
-  public synchronized static Storage getStorage(ViewContext context) {
+  public synchronized Storage getStorage() {
     if (storageInstance == null) {
       String fileName = context.getProperties().get("dataworker.storagePath");
       if (fileName != null) {
@@ -53,7 +78,7 @@ public class StorageUtil {
       } else {
         LOG.debug("Using Persistence API to store data");
         // If not specifed, use ambari-views Persistence API
-        storageInstance = new InstanceKeyValueStorage(context);
+        storageInstance = new DataStoreStorage(context);
       }
     }
     return storageInstance;
@@ -64,7 +89,7 @@ public class StorageUtil {
    * Used in unit tests.
    * @param storage storage instance
    */
-  public static void setStorage(Storage storage) {
+  public void setStorage(Storage storage) {
     storageInstance = storage;
   }
 }

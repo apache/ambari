@@ -19,10 +19,24 @@
 var App = require('app');
 
 App.PigHistoryRoute = Em.Route.extend({
+  actions:{
+    error:function (error) {
+      this.controllerFor('pig').set('category',"");
+      var trace = (error.responseJSON)?error.responseJSON.trace:null;
+      this.send('showAlert', {message:Em.I18n.t('history.load_error'),status:'error',trace:trace});
+    }
+  },
   enter: function() {
     this.controllerFor('pig').set('category',"history");
   },
   model: function() {
     return this.store.find('job');
+  },
+  setupController:function (controller,model) {
+    var scripts = this.modelFor('pig');
+    var filtered = model.filter(function(job) {
+      return job.get('status') != 'SUBMIT_FAILED' && scripts.get('content').isAny('id',job.get('scriptId').toString());
+    });
+    controller.set('model',model);
   }
 });

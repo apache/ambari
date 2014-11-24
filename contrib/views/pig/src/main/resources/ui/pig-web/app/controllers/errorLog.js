@@ -19,5 +19,5 @@
 var App = require('app');
 
 App.PigErrorLogController = Ember.ObjectController.extend({
-  errorLog: null,
+  errorLog: 'No trace'
 });

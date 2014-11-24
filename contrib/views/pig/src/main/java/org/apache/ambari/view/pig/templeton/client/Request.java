@@ -69,6 +69,7 @@ public class Request<RESPONSE> {
     InputStream inputStream = context.getURLStreamProvider().readFrom(resource.toString(), "GET",
         null, new HashMap<String, String>());
 
+    LOG.info(String.format("curl \"" + resource.toString() + "\""));
     String responseJson = IOUtils.toString(inputStream);
     LOG.debug(String.format("RESPONSE => %s", responseJson));
     return gson.fromJson(responseJson, responseClass);
@@ -100,10 +101,14 @@ public class Request<RESPONSE> {
     LOG.debug("POST " + resource.toString());
     LOG.debug("data: " + data.toString());
 
+    StringBuilder curlBuilder = new StringBuilder();
+
     UriBuilder builder = UriBuilder.fromPath("host/");
     for(String key : data.keySet()) {
-      for(String value : data.get(key))
+      for(String value : data.get(key)) {
         builder.queryParam(key, value);
+        curlBuilder.append(String.format("-d %s=\"%s\"", key, value.replace("\"", "\\\"")));
+      }
     }
 
     if (data != null)
@@ -112,6 +117,7 @@ public class Request<RESPONSE> {
     Map<String, String> headers = new HashMap<String, String>();
     headers.put("Content-Type", "application/x-www-form-urlencoded");
 
+    LOG.info(String.format("curl " + curlBuilder.toString() + " \"" + resource.toString() + "\""));
     InputStream inputStream = context.getURLStreamProvider().readFrom(resource.toString(),
         "POST", builder.build().getRawQuery(), headers);
     String responseJson = IOUtils.toString(inputStream);
@@ -150,10 +156,14 @@ public class Request<RESPONSE> {
   public RESPONSE put(WebResource resource, MultivaluedMapImpl data) throws IOException {
     LOG.debug("PUT " + resource.toString());
 
+    StringBuilder curlBuilder = new StringBuilder();
+
     UriBuilder builder = UriBuilder.fromPath("host/");
     for(String key : data.keySet()) {
-      for(String value : data.get(key))
+      for(String value : data.get(key)) {
         builder.queryParam(key, value);
+        curlBuilder.append(String.format("-d %s=\"%s\"", key, value.replace("\"", "\\\"")));
+      }
     }
 
     if (data != null)
@@ -161,6 +171,8 @@ public class Request<RESPONSE> {
 
     Map<String, String> headers = new HashMap<String, String>();
     headers.put("Content-Type", "application/x-www-form-urlencoded");
+
+    LOG.info(String.format("curl -X PUT " + curlBuilder.toString() + " \"" + resource.toString() + "\""));
 
     InputStream inputStream = context.getURLStreamProvider().readFrom(resource.toString(),
         "PUT", builder.build().getRawQuery(), headers);
@@ -200,10 +212,14 @@ public class Request<RESPONSE> {
   public RESPONSE delete(WebResource resource, MultivaluedMapImpl data) throws IOException {
     LOG.debug("DELETE " + resource.toString());
 
+    StringBuilder curlBuilder = new StringBuilder();
+
     UriBuilder builder = UriBuilder.fromPath("host/");
     for(String key : data.keySet()) {
-      for(String value : data.get(key))
+      for(String value : data.get(key)) {
         builder.queryParam(key, value);
+        curlBuilder.append(String.format("-d %s=\"%s\"", key, value.replace("\"", "\\\"")));
+      }
     }
 
     if (data != null)
@@ -211,6 +227,8 @@ public class Request<RESPONSE> {
 
     Map<String, String> headers = new HashMap<String, String>();
     headers.put("Content-Type", "application/x-www-form-urlencoded");
+
+    LOG.info(String.format("curl -X DELETE " + curlBuilder.toString() + " \"" + resource.toString() + "\""));
 
     InputStream inputStream = context.getURLStreamProvider().readFrom(resource.toString(),
         "DELETE", builder.build().getRawQuery(), headers);

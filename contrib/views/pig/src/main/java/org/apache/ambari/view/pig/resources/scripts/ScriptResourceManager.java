@@ -23,6 +23,7 @@ import org.apache.ambari.view.pig.persistence.utils.ItemNotFound;
 import org.apache.ambari.view.pig.resources.PersonalCRUDResourceManager;
 import org.apache.ambari.view.pig.resources.scripts.models.PigScript;
 import org.apache.ambari.view.pig.services.BaseService;
+import org.apache.ambari.view.pig.utils.HdfsApi;
 import org.apache.ambari.view.pig.utils.MisconfigurationFormattedException;
 import org.apache.ambari.view.pig.utils.ServiceFormattedException;
 import org.apache.hadoop.fs.FSDataOutputStream;
@@ -59,11 +60,11 @@ public class ScriptResourceManager extends PersonalCRUDResourceManager<PigScript
   }
 
   private void createDefaultScriptFile(PigScript object) {
-    String userScriptsPath = context.getProperties().get("dataworker.scripts.path");
+    String userScriptsPath = context.getProperties().get("scripts.dir");
     if (userScriptsPath == null) {
-      String msg = "dataworker.scripts.path is not configured!";
+      String msg = "scripts.dir is not configured!";
       LOG.error(msg);
-      throw new MisconfigurationFormattedException("dataworker.scripts.path");
+      throw new MisconfigurationFormattedException("scripts.dir");
     }
     int checkId = 0;
 
@@ -73,12 +74,11 @@ public class ScriptResourceManager extends PersonalCRUDResourceManager<PigScript
       String normalizedName = object.getTitle().replaceAll("[^a-zA-Z0-9 ]+", "").replaceAll(" ", "_").toLowerCase();
       String timestamp = new SimpleDateFormat("yyyy-MM-dd_hh-mm").format(new Date());
       newFilePath = String.format(userScriptsPath +
-              "/%s/%s-%s%s.pig", getUsername(),
-          normalizedName, timestamp, (checkId == 0)?"":"_"+checkId);
+              "/%s-%s%s.pig", normalizedName, timestamp, (checkId == 0)?"":"_"+checkId);
       LOG.debug("Trying to create new file " + newFilePath);
 
       try {
-        FSDataOutputStream stream = BaseService.getHdfsApi(context).create(newFilePath, false);
+        FSDataOutputStream stream = HdfsApi.getInstance(context).create(newFilePath, false);
         stream.close();
         fileCreated = true;
         LOG.debug("File created successfully!");

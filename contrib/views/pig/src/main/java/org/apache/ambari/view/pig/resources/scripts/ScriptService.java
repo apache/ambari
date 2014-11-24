@@ -111,7 +111,7 @@ public class ScriptService extends BaseService {
     try {
       LOG.debug("Getting all scripts");
       List allScripts = getResourceManager().readAll(
-          new OnlyOwnersFilteringStrategy(this.context.getUsername()));
+          new OnlyOwnersFilteringStrategy(this.context.getUsername()));  //TODO: move strategy to PersonalCRUDRM
 
       JSONObject object = new JSONObject();
       object.put("scripts", allScripts);

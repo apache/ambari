@@ -18,5 +18,44 @@
 
 var App = require('app');
 
-App.PigModalController = Ember.ObjectController.extend({ 
+App.PigModalComponent = Ember.Component.extend({
+  didClose:'removeModal',
+  size:'',
+  large:function () {
+    return this.get('size') =='lg';
+  }.property('size'),
+  small:function () {
+    return this.get('size') =='sm';
+  }.property('size'),
+  layoutName:'modal/modalLayout',
+  actions: {
+    ok: function() {
+      this.$('.modal').modal('hide');
+      this.sendAction('ok');
+    },
+    cancel:function () {
+      this.$('.modal').modal('hide');
+      this.sendAction('close');
+    },
+    option:function () {
+      this.$('.modal').modal('hide');
+      this.sendAction('option');
+    }
+  },
+  keyUp:function (e) {
+    if (e.keyCode == 27) {
+      this.sendAction('close');
+    }
+  },
+  show: function() {
+    var modal = this.$('.modal').modal();
+    modal.off('hidden.bs.modal');
+    modal.off('shown.bs.modal');
+    modal.on('shown.bs.modal',function () {
+      this.find('input').first().focus();
+    }.bind(modal));
+    modal.on('hidden.bs.modal', function() {
+      this.sendAction('didClose');
+    }.bind(this));
+  }.on('didInsertElement')
 });

@@ -26,6 +26,10 @@ App.Job = DS.Model.extend({
   templetonArguments:DS.attr('string'),
   owner: DS.attr('string'),
   forcedContent:DS.attr('string'),
+  duration: DS.attr('number'),
+  durationTime:function () {
+    return moment.duration(this.get('duration'), "seconds").format("h [hrs], m [min], s [sec]");
+  }.property('duration'),
 
   sourceFile:DS.attr('string'),
   sourceFileContent:DS.attr('string'),
@@ -39,7 +43,7 @@ App.Job = DS.Model.extend({
   percentStatus:function () {
     if (this.get('isTerminated')) {
       return 100;
-    };
+    }
     return (this.get('status')==='COMPLETED')?100:(this.get('percentComplete')||0);
   }.property('status','percentComplete'),
 
@@ -86,5 +90,28 @@ App.Job = DS.Model.extend({
   },
   needsPing:function () {
     return this.pingStatusMap[this.get('status')];
-  }.property('status')
+  }.property('status'),
+
+  jobSuccess:function () {
+    return this.get('status') == 'COMPLETED';
+  }.property('status'),
+
+  jobError:function () {
+    return this.get('status') == 'SUBMIT_FAILED' || this.get('status') == 'KILLED' || this.get('status') == 'FAILED';
+  }.property('status'),
+
+  jobInProgress:function () {
+    return this.get('status') == 'SUBMITTING' || this.get('status') == 'SUBMITTED' || this.get('status') == 'RUNNING';
+  }.property('status'),
+
+  argumentsArray:function (q,w) {
+    if (arguments.length >1) {
+      var oldargs = (this.get('templetonArguments'))?this.get('templetonArguments').w():[];
+      if (w.length != oldargs.length) {
+        this.set('templetonArguments',w.join('\t'));
+      }
+    }
+    var args = this.get('templetonArguments');
+    return (args && args.length > 0)?args.w():[];
+  }.property('templetonArguments')
 });

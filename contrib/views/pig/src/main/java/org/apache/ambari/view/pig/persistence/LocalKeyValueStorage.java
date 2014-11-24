@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
  * properties file
  * Path to file should be in 'dataworker.storagePath' parameter
  */
+@Deprecated
 public class LocalKeyValueStorage extends KeyValueStorage {
   private final static Logger LOG =
       LoggerFactory.getLogger(LocalKeyValueStorage.class);

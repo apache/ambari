@@ -24,28 +24,47 @@ Ember.I18n.translations = {
     'name':"Name",
     'path':"Path",
     'owner':"Owner",
+    'save':"Save",
     'delete':"Delete",
-    'created':"Created",
     'created':"Created",
     'history':"History",
     'clone':"Clone",
     'cancel':"Cancel",
+    'discard_changes':"Discard changes",
     'arguments':"Arguments",
     'errorLog':"Stack Trace",
-    'showErrorLog':"Show Stack Trace"
+    'showErrorLog':"Show Stack Trace",
+    'warning':"Warning",
+    'close':"Close",
+    'download':"Download",
+    'show':'Show:',
+    'actions':'Actions',
+    'date':'Date',
+    'success':'Success',
+    'error':'Error',
+    'copy':'Copy'
   },
   'scripts':{
+    'script':"Script",
     'scripts':"Scripts",
     'newscript': "New Script",
     'title': "Name",
     'path': "Script HDFS Location (optional)",
-    'noScripts': "No scripts to display",
+    'not_run_message': "Not run",
+    'noScripts': "No pig scripts have been created. To get started, click New Script.",
+    'last_executed':'Last Executed',
+    'last_results':'Last Results',
+    'no_jobs_message':'This script has not been executed',
     'modal':{
       'create_script':'New Script',
+      'unsaved_changes_warning':'You have unsaved changes in script.',
       'script_title_placeholder': 'Script name',
       'file_path_placeholder':'Full path to script file',
       'file_path_hint':'Leave empty to create file automatically.',
-      'file_path_hint':'Leave empty to create file automatically.',
+      'copy_created_massage':'{{title}} created successfully.',
+      'copy_created':'Copy Created',
+      'continue_editing':'Continue Editing',
+      'go_to_copy':'Go to Copy',
 
       'error_empty_title':'Title can not be empty!',
 
@@ -63,14 +82,19 @@ Ember.I18n.translations = {
       'delete_failed':'Delete failed!',
       'save_error':'Error while saving script',
       'save_error_reason':'{{message}}',
-    },
+      'rename_unfinished':'Please rename script first.'
+    }
   },
   'editor':{
     'title_updated':'Title updated.',
     'pig_argument':'Pig argument',
     'pighelper':'PIG helper',
     'udfhelper':'UDF helper',
+    'actions':'Actions',
     'save':'Save',
+    'params':'Params',
+    'arguments':'Arguments',
+    'no_arguments_message':'This pig script has no arguments defined.',
     'execute':'Execute',
     'explain':'Explain',
     'syntax_check':'Syntax check'
@@ -82,8 +106,12 @@ Ember.I18n.translations = {
     'logs':'Logs',
     'job_status':'Job status: ',
     'status':'Status',
-    'started':'Date started',
+    'jobId':'Job ID',
+    'started':'Started',
     'noJobs': "No jobs to display",
+    'kill_job': "Kill job",
+    'script_details': "Script Details",
+    'script_contents': "Script contents",
     'alert':{
       'job_started' :'Job started!',
       'job_killed' :'{{title}} job killed!',
@@ -93,6 +121,9 @@ Ember.I18n.translations = {
       'stdout_error' :'Error loading STDOUT. \n Status: {{status}} Message: {{message}}',
       'stderr_error' :'Error loading STDERR. \n Status: {{status}} Message: {{message}}',
       'exit_error' :'Error loading EXITCODE. \n Status: {{status}} Message: {{message}}',
+      'promise_error' :'Error loading file. \n Status: {{status}} Message: {{message}}',
+      'job_deleted' :'Job deleted successfully',
+      'delete_filed' :'Failed to delete job'
     },
     'job_results':{
       'stdout':'Stdout',
@@ -100,25 +131,41 @@ Ember.I18n.translations = {
       'exitcode':'Exit code',
       'stdout_loading':'Loading stdout...',
       'stderr_loading':'Loading stderr...',
-      'exitcode_loading':'Loading exitcode...',
+      'exitcode_loading':'Loading exitcode...'
     },
+    'modal':{
+      'confirm_delete_massage':'Are you sure you want to delete {{title}} job?'
+    }
   },
   'udfs':{
     'udfs':'UDFs',
+    'create':'Create UDF',
     'tooltips':{
-      'path':'Path of this script file on HDFS',
+      'path':'Path of this script file on HDFS'
     },
     'noUDFs': "No UDFs to display",
     'alert':{
       'udf_created':'{{name}} created!',
       'udf_deleted':'{{name}} deleted!',
       'create_failed':'Failed to create UDF!',
-      'delete_failed':'Delete failed!',
+      'delete_failed':'Delete failed!'
     },
     'modal':{
       'create_udf':'Create UDF',
       'udf_name':'UDF name',
-      'hdfs_path':'HDFS path',
+      'hdfs_path':'HDFS path'
     }
+  },
+  'history':{
+    'duration':'Duration',
+    'no_jobs_message':'No jobs was run',
+    'load_error':'Error loading pig history.'
+  },
+  'splash':{
+    'welcome':'Welcome to Apache Pig UI',
+    'please_wait':'Please wait while we test connection to services',
+    'storage_test':'Storage test',
+    'hdfs_test':'HDFS test',
+    'webhcat_test':'WebHCat test'
   }
 };

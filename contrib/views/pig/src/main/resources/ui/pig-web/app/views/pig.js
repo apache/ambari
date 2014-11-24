@@ -19,41 +19,58 @@
 var App = require('app');
 
 App.PigView = Em.View.extend({
+  hideScript:true,
   selectedBinding: 'controller.category',
-  navs: Ember.computed(function() {
-    var items = [ 
-      {name:'scripts',url:'pig.scriptList',label: Em.I18n.t('scripts.scripts')},
-      {name:'udfs',url:'pig.udfs',label:Em.I18n.t('udfs.udfs')},
-      {name:'history',url:'pig.history',label:Em.I18n.t('common.history')}
-    ];
-    this.get('controller.openScripts').forEach(function(scripts){
-      items.push(scripts);
-    });
-    return items;
-  }).property('controller.openScripts'),
+  navs: [
+    {name:'scripts',url:'pig.scripts',label: Em.I18n.t('scripts.scripts'),icon:'fa-file-code-o'},
+    {name:'udfs',url:'pig.udfs',label:Em.I18n.t('udfs.udfs'),icon:'fa-plug'},
+    {name:'history',url:'pig.history',label:Em.I18n.t('common.history'),icon:'fa-clock-o'}
+  ],
+
+  initToolip:function () {
+    this.$('button.close_script').tooltip({title:Em.I18n.t('common.close'),placement:'bottom',container:'body'});
+  }.on('didInsertElement'),
+
+  showSideBar:function () {
+    Em.run.later(this, function (show) {
+      this.$('.nav-script-wrap').toggleClass('in',show);
+    },!!this.get('controller.activeScript'),250);
+  }.observes('controller.activeScript'),
+
   navItemsView : Ember.CollectionView.extend({
-    classNames: ['list-group'],
     tagName: 'div',
+    classNames:['list-group', 'nav-main'],
     content: function () { 
       return this.get('parentView.navs')
     }.property('parentView.navs'),
+    mouseEnter:function  (argument) {
+      this.get('parentView').$('.nav-script-wrap').addClass('reveal');
+    },
+    mouseLeave:function  (argument) {
+      this.get('parentView').$('.nav-script-wrap').removeClass('reveal');
+    },
     itemViewClass: Ember.View.extend(Ember.ViewTargetActionSupport,{
       tagName: 'a',
-      templateName: 'pig/util/script-nav',
-      classNames: ['list-group-item pig-nav-item'],
+      template: Em.Handlebars.compile(
+        '<i class="fa fa-fw fa-2x {{unbound view.content.icon}}"></i> '+
+        '<span>{{view.content.label}}</span>'
+      ),
+      classNames: ['list-group-item pig-nav-item text-left'],
       classNameBindings: ['isActive:active'],
       action: 'gotoSection',
       click: function(e) {
         if (e.target.type=="button") {
           return false;
-        };
+        }
         this.triggerAction({
           actionContext:this.content
         }); 
       },
       isActive: function () {
         return this.get('content.name') === this.get('parentView.parentView.selected');
-      }.property('content.name', 'parentView.parentView.selected')
+      }.property('content.name', 'parentView.parentView.selected'),
+
+      hideLabel:Em.computed.bool('controller.activeScript')
     })
   })
 });

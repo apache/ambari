@@ -22,6 +22,7 @@ package org.apache.ambari.view.pig.test;
 import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.ViewResourceHandler;
 import org.apache.ambari.view.pig.HDFSTest;
+import org.apache.ambari.view.pig.persistence.DataStoreStorage;
 import org.apache.ambari.view.pig.persistence.InstanceKeyValueStorage;
 import org.apache.ambari.view.pig.persistence.Storage;
 import org.apache.ambari.view.pig.resources.files.FileService;
@@ -29,6 +30,7 @@ import org.apache.ambari.view.pig.resources.scripts.ScriptService;
 import org.apache.ambari.view.pig.persistence.utils.StorageUtil;
 import org.apache.ambari.view.pig.resources.scripts.models.PigScript;
 import org.apache.ambari.view.pig.services.BaseService;
+import org.apache.ambari.view.pig.utils.HdfsApi;
 import org.apache.ambari.view.pig.utils.MisconfigurationFormattedException;
 import org.apache.ambari.view.pig.utils.NotFoundFormattedException;
 import org.json.simple.JSONObject;
@@ -56,7 +58,7 @@ public class ScriptTestHDFSUnmanaged extends HDFSTest {
   @AfterClass
   public static void shutDown() throws Exception {
     HDFSTest.shutDown(); // super
-    FileService.setHdfsApi(null); //cleanup API connection
+    HdfsApi.dropAllConnections();
   }
 
   @Override
@@ -64,8 +66,8 @@ public class ScriptTestHDFSUnmanaged extends HDFSTest {
   public void setUp() throws Exception {
     handler = createNiceMock(ViewResourceHandler.class);
     context = createNiceMock(ViewContext.class);
-    FileService.setHdfsApi(null); //cleanup API connection
-    StorageUtil.setStorage(null);
+    HdfsApi.dropAllConnections();
+    StorageUtil.dropAllConnections();
   }
 
   @Test
@@ -77,8 +79,8 @@ public class ScriptTestHDFSUnmanaged extends HDFSTest {
         .getAbsoluteFile();
 
     properties.put("dataworker.storagePath", pigStorageFile.toString());
-//        properties.put("dataworker.scripts.path", "/tmp/.pigscripts");
-    properties.put("dataworker.defaultFs", hdfsURI);
+//        properties.put("scripts.dir", "/tmp/.pigscripts");
+    properties.put("webhdfs.url", hdfsURI);
 
     expect(context.getProperties()).andReturn(properties).anyTimes();
     expect(context.getUsername()).andReturn("ambari-qa").anyTimes();
@@ -99,8 +101,8 @@ public class ScriptTestHDFSUnmanaged extends HDFSTest {
         .getAbsoluteFile();
 
     properties.put("dataworker.storagePath", pigStorageFile.toString());
-    properties.put("dataworker.scripts.path", "/tmp/.pigscripts");
-    properties.put("dataworker.defaultFs", hdfsURI);
+    properties.put("scripts.dir", "/tmp/.pigscripts");
+    properties.put("webhdfs.url", hdfsURI);
 
     expect(context.getProperties()).andReturn(properties).anyTimes();
     expect(context.getUsername()).andReturn("ambari-qa").anyTimes();
@@ -110,12 +112,12 @@ public class ScriptTestHDFSUnmanaged extends HDFSTest {
 
     Response createdScript = doCreateScript("Test", null);
     String createdScriptPath = ((PigScript) ((JSONObject) createdScript.getEntity()).get("script")).getPigScript();
-    Assert.assertTrue(createdScriptPath.startsWith("/tmp/.pigscripts/ambari-qa/"));
+    Assert.assertTrue(createdScriptPath.startsWith("/tmp/.pigscripts/"));
 
     properties.put("dataworker.username", "luke");
     Response createdScript2 = doCreateScript("Test", null);
     String createdScriptPath2 = ((PigScript) ((JSONObject) createdScript2.getEntity()).get("script")).getPigScript();
-    Assert.assertTrue(createdScriptPath2.startsWith("/tmp/.pigscripts/luke/"));
+    Assert.assertTrue(createdScriptPath2.startsWith("/tmp/.pigscripts/"));
   }
 
   @Test
@@ -127,34 +129,34 @@ public class ScriptTestHDFSUnmanaged extends HDFSTest {
         .getAbsoluteFile();
 
 //        properties.put("dataworker.storagePath", pigStorageFile.toString());
-    properties.put("dataworker.scripts.path", "/tmp/.pigscripts");
-    properties.put("dataworker.defaultFs", hdfsURI);
+    properties.put("scripts.dir", "/tmp/.pigscripts");
+    properties.put("webhdfs.url", hdfsURI);
 
     expect(context.getProperties()).andReturn(properties).anyTimes();
     expect(context.getUsername()).andReturn("ambari-qa").anyTimes();
 
     replay(handler, context);
 
-    Storage storage = StorageUtil.getStorage(context);
-    Assert.assertEquals(InstanceKeyValueStorage.class.getSimpleName(), storage.getClass().getSimpleName());
+    Storage storage = StorageUtil.getInstance(context).getStorage();
+    Assert.assertEquals(DataStoreStorage.class.getSimpleName(), storage.getClass().getSimpleName());
   }
 
   @Test
   public void hdfsApiNoUsernameProvided() throws IOException, InterruptedException {
     Map<String, String> properties = new HashMap<String, String>();
-    properties.put("dataworker.defaultFs", hdfsURI);
+    properties.put("webhdfs.url", hdfsURI);
 
     expect(context.getProperties()).andReturn(properties).anyTimes();
     expect(context.getUsername()).andReturn("ambari-qa").anyTimes();
 
     replay(context);
 
-    // no dataworker.hdfs.username property
-    Assert.assertEquals("ambari-qa", BaseService.getHdfsUsername(context));
+    // no webhdfs.username property
+    Assert.assertEquals("ambari-qa", HdfsApi.getHdfsUsername(context));
 
-    // with dataworker.hdfs.username property
-    properties.put("dataworker.hdfs.username", "luke");
-    Assert.assertEquals("luke", BaseService.getHdfsUsername(context));
+    // with webhdfs.username property
+    properties.put("webhdfs.username", "luke");
+    Assert.assertEquals("luke", HdfsApi.getHdfsUsername(context));
   }
 
   private Response doCreateScript(String title, String path) {

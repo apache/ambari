@@ -20,6 +20,7 @@ package org.apache.ambari.view.pig.services;
 
 import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.ViewResourceHandler;
+import org.apache.ambari.view.pig.persistence.DataStoreStorage;
 import org.apache.ambari.view.pig.persistence.InstanceKeyValueStorage;
 import org.apache.ambari.view.pig.resources.files.FileService;
 import org.apache.ambari.view.pig.resources.jobs.JobResourceManager;
@@ -59,8 +60,8 @@ public class HelpService extends BaseService {
   @Produces(MediaType.APPLICATION_JSON)
   public Response config(){
     JSONObject object = new JSONObject();
-    String fs = context.getProperties().get("dataworker.defaultFs");
-    object.put("dataworker.defaultFs", fs);
+    String fs = context.getProperties().get("webhdfs.url");
+    object.put("webhdfs.url", fs);
     return Response.ok(object).build();
   }
 
@@ -111,7 +112,7 @@ public class HelpService extends BaseService {
   @Path("/storageStatus")
   @Produces(MediaType.APPLICATION_JSON)
   public Response storageStatus(){
-    InstanceKeyValueStorage.storageSmokeTest(context);
+    DataStoreStorage.storageSmokeTest(context);
     return getOKResponse();
   }
 

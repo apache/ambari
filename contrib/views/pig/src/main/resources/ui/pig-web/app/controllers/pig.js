@@ -19,8 +19,85 @@
 var App = require('app');
 
 App.PigController = Em.ArrayController.extend({
+  needs:['scriptEdit'],
   category: 'scripts',
-  openScripts: function() {
-    return this.get('content').filterBy('opened',true);
-  }.property('content.@each.opened')
+  actions:{
+    closeScript:function () {
+      this.transitionToRoute('pig.scripts');
+    },
+    saveScript: function (script,onSuccessCallback) {
+      var onSuccess = onSuccessCallback || function(model){
+          //this.set('disableScriptControls',false);
+          this.send('showAlert', {'message':Em.I18n.t('scripts.alert.script_saved',{title: script.get('title')}),status:'success'});
+        }.bind(this),
+        onFail = function(error){
+          var trace = null;
+          if (error && error.responseJSON.trace)
+            trace = error.responseJSON.trace;
+          this.send('showAlert', {'message':Em.I18n.t('scripts.alert.save_error'),status:'error',trace:trace});
+        }.bind(this);
+
+      return script.get('pigScript').then(function(file){
+        return Ember.RSVP.all([file.save(),script.save()]).then(onSuccess,onFail);
+      },onFail);
+    },
+    deletescript:function (script) {
+      return this.send('openModal','confirmDelete',script);
+    },
+    confirmdelete:function (script) {
+      var onSuccess = function(model){
+            this.transitionToRoute('pig.scripts');
+            this.send('showAlert', {'message':Em.I18n.t('scripts.alert.script_deleted',{title : model.get('title')}),status:'success'});
+          }.bind(this);
+      var onFail = function(error){
+            var trace = null;
+            if (error && error.responseJSON.trace)
+              trace = error.responseJSON.trace;
+            this.send('showAlert', {'message':Em.I18n.t('scripts.alert.delete_failed'),status:'error',trace:trace});
+          }.bind(this);
+      script.deleteRecord();
+      return script.save().then(onSuccess,onFail);
+    },
+    copyScript:function (script) {
+      script.get('pigScript').then(function (file) {
+
+        var newScript = this.store.createRecord('script',{
+          title:script.get('title')+' (copy)',
+          templetonArguments:script.get('templetonArguments')
+        });
+
+        newScript.save().then(function (savedScript) {
+          savedScript.get('pigScript').then(function (newFile) {
+            newFile.set('fileContent',file.get('fileContent'));
+            newFile.save().then(function () {
+              this.send('showAlert', {'message':script.get('title') + ' is copied.',status:'success'});
+              if (this.get('activeScript')) {
+                this.send('openModal','gotoCopy',savedScript);
+              }
+            }.bind(this));
+          }.bind(this));
+        }.bind(this));
+      }.bind(this));
+    }
+  },
+
+  activeScriptId:null,
+
+  disableScriptControls:Em.computed.alias('controllers.scriptEdit.isRenaming'),
+
+  activeScript:function () {
+    return (this.get('activeScriptId'))?this.get('content').findBy('id',this.get('activeScriptId').toString()):null;
+  }.property('activeScriptId',"content.[]"),
+
+  /*
+   *Is script or script file is dirty.
+   * @return {boolean}
+   */
+  scriptDirty:function () {
+    return this.get('activeScript.isDirty') || this.get('activeScript.pigScript.isDirty');
+  }.property('activeScript.pigScript.isDirty','activeScript.isDirty'),
+
+  saveEnabled:function () {
+    return this.get('scriptDirty') && !this.get('disableScriptControls');
+  }.property('scriptDirty','disableScriptControls')
 });

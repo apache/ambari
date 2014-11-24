@@ -23,7 +23,7 @@ App.PigRoute = Em.Route.extend({
     App.set('previousTransition', transition);
   },
   redirect: function () {
-    testsConducted = App.get("smokeTests");
+    var testsConducted = App.get("smokeTests");
     if (!testsConducted) {
         App.set("smokeTests", true);
         this.transitionTo('splash');
@@ -34,38 +34,19 @@ App.PigRoute = Em.Route.extend({
       var location = (nav.hasOwnProperty('url'))?[nav.url]:['pig.scriptEdit',nav.get('id')];
       this.transitionTo.apply(this,location);
     },
-    close:function (script) {
-      var self = this;
-      script.close().save().then(function() {
-        if (self.get('controller.category') == script.get('name')) {
-          opened = self.get('controller.openScripts');
-          if (opened.length > 0 && opened.filterBy('id',script.get('id')).length == 0){
-            self.transitionTo('pig.scriptEdit',opened.get(0));
-          } else {
-            self.transitionTo('pig.scriptList');
-          }
-        }
-        self.send('showAlert', {'message':Em.I18n.t('scripts.alert.script_saved',{title: script.get('title')}), status:'success'});
-      },function (error) {
-        //script.open();
-        var trace = null;
-        if (error && error.responseJSON.trace)
-          trace = error.responseJSON.trace;
-        self.send('showAlert', {'message': Em.I18n.t('scripts.alert.save_error_reason',{message:error.statusText}) , status:'error', trace:trace});
-      });
-    },
     showAlert:function (alert) {
-      var pigUtilAlert = this.controllerFor('pigUtilAlert');
-      return pigUtilAlert.content.pushObject(Em.Object.create(alert));
+      var pigAlert = this.controllerFor('pigAlert');
+      return pigAlert.content.pushObject(Em.Object.create(alert));
     },
-    openModal: function(modalName,controller) {
-      return this.render(modalName, {
+    openModal: function(modal,content) {
+      this.controllerFor(modal).set('content', content);
+      return this.render(['modal',modal].join('/'), {
         into: 'pig',
         outlet: 'modal',
-        controller:'pigModal'
+        controller:modal
       });
     },
-    closeModal: function() {
+    removeModal: function() {
       return this.disconnectOutlet({
         outlet: 'modal',
         parentView: 'pig'
@@ -77,6 +58,24 @@ App.PigRoute = Em.Route.extend({
   },
   renderTemplate: function() {
     this.render('pig');
-    this.render('pig/util/alert', {into:'pig',outlet:'alert',controller: 'pigUtilAlert' });
+    this.render('pig/alert', {into:'pig',outlet:'alert',controller:'pigAlert'});
+  }
+});
+
+App.PigIndexRoute = Em.Route.extend({
+  redirect:function () {
+    this.transitionTo('pig.scripts');
+  }
+});
+
+App.ErrorRoute = Ember.Route.extend({
+  setupController:function (controller,error) {
+    var data;
+    if(!(error instanceof Error)) {
+      data = JSON.parse(error.responseText);
+    } else {
+      data = error;
+    }
+    controller.set('model',data);
   }
 });

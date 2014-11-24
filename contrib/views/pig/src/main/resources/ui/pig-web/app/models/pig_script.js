@@ -18,18 +18,8 @@
 
 var App = require('app');
 
-App.OpenedScript = Ember.Mixin.create({
-  opened:DS.attr('boolean'),
-  open:function (argument) {
-    return this.set('opened',true);
-  },
-  close:function (argument) {
-    return this.set('opened',false);
-  }
-});
-
-App.Script = DS.Model.extend(App.OpenedScript,{
-  title:DS.attr('string', { defaultValue: 'New script'}),
+App.Script = DS.Model.extend({
+  title:DS.attr('string'),
   pigScript:DS.belongsTo('file', { async: true }),
   dateCreated:DS.attr('isodate', { defaultValue: moment()}),
   templetonArguments:DS.attr('string', { defaultValue: '-useHCatalog'}),
@@ -40,4 +30,19 @@ App.Script = DS.Model.extend(App.OpenedScript,{
   label:function (){
     return this.get('title');
   }.property('title'),
+
+  argumentsArray:function (q,w) {
+    if (arguments.length >1) {
+      var oldargs = (this.get('templetonArguments'))?this.get('templetonArguments').w():[];
+      if (w.length != oldargs.length) {
+        this.set('templetonArguments',w.join('\t'));
+      }
+    }
+    var args = this.get('templetonArguments');
+    return (args && args.length > 0)?args.w():[];
+  }.property('templetonArguments'),
+
+  dateCreatedUnix:function () {
+    return moment(this.get('dateCreated')).unix();
+  }.property('dateCreated')
 });

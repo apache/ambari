@@ -25,11 +25,13 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 /**
  * Persistence API to Apache Configuration adapter
  */
+@Deprecated
 public class ContextConfigurationAdapter implements Configuration {
   private ViewContext context;
 
@@ -53,7 +55,8 @@ public class ContextConfigurationAdapter implements Configuration {
 
   @Override
   public boolean containsKey(String s) {
-    return context.getInstanceData().containsKey(s);
+    Map<String, String> data = context.getInstanceData();
+    return data.containsKey(s);
   }
 
   @Override

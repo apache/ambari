@@ -21,6 +21,7 @@ package org.apache.ambari.view.pig.resources.jobs;
 import com.google.inject.Inject;
 import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.ViewResourceHandler;
+import org.apache.ambari.view.pig.persistence.utils.Indexed;
 import org.apache.ambari.view.pig.persistence.utils.ItemNotFound;
 import org.apache.ambari.view.pig.persistence.utils.OnlyOwnersFilteringStrategy;
 import org.apache.ambari.view.pig.resources.files.FileResource;
@@ -31,6 +32,8 @@ import org.apache.ambari.view.pig.utils.FilePaginator;
 import org.apache.ambari.view.pig.utils.NotFoundFormattedException;
 import org.apache.ambari.view.pig.utils.ServiceFormattedException;
 import org.json.simple.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.*;
@@ -56,6 +59,9 @@ import java.util.concurrent.Callable;
 public class JobService extends BaseService {
   @Inject
   ViewResourceHandler handler;
+
+  protected final static Logger LOG =
+      LoggerFactory.getLogger(JobService.class);
 
   protected JobResourceManager resourceManager = null;
 
@@ -108,7 +114,8 @@ public class JobService extends BaseService {
    */
   @DELETE
   @Path("{jobId}")
-  public Response killJob(@PathParam("jobId") String jobId) throws IOException {
+  public Response killJob(@PathParam("jobId") String jobId,
+                          @QueryParam("remove") final String remove) throws IOException {
     try {
       PigJob job = null;
       try {
@@ -117,6 +124,9 @@ public class JobService extends BaseService {
         throw new NotFoundFormattedException(itemNotFound.getMessage(), itemNotFound);
       }
       getResourceManager().killJob(job);
+      if (remove != null && remove.compareTo("true") == 0) {
+        getResourceManager().delete(jobId);
+      }
       return Response.status(204).build();
     } catch (WebApplicationException ex) {
       throw ex;
@@ -206,10 +216,20 @@ public class JobService extends BaseService {
    */
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  public Response getJobList(@Context HttpHeaders headers, @Context UriInfo ui) {
+  public Response getJobList(@QueryParam("scriptId") final String scriptId) {
     try {
       List allJobs = getResourceManager().readAll(
-          new OnlyOwnersFilteringStrategy(this.context.getUsername()));
+          new OnlyOwnersFilteringStrategy(this.context.getUsername()) {
+            @Override
+            public boolean isConform(Indexed item) {
+              if (scriptId == null)
+                return super.isConform(item);
+              else {
+                PigJob job = (PigJob) item;
+                return (job.getScriptId() != null && scriptId.compareTo(job.getScriptId()) == 0 && super.isConform(item));
+              }
+            }
+          });  //TODO: move strategy to PersonalCRUDRM
 
       JSONObject object = new JSONObject();
       object.put("jobs", allJobs);

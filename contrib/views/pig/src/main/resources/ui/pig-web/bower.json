@@ -3,20 +3,30 @@
   "version": "0.0.1",
   "main": "public/app.js",
   "dependencies": {
-    "ember": "1.4.0",
-    "ember-data": "1.0.0-beta.5",
+    "ember": "1.6.0",
+    "ember-data": "1.0.0-beta.7",
     "handlebars": "~1.3.0",
-    "bootstrap": "3.0.x",
+    "bootstrap": "3.1.x",
     "codemirror": ">=3.2",
-    "moment": "~2.5.1",
-    "ember-i18n": "~1.6.0"
+    "moment": "~2.8.1",
+    "ember-i18n": "~1.6.0",
+    "font-awesome": "4.2",
+    "file-saver": "*"
   },
   "overrides": {
-    "cldr":{
-      "main":"plurals.js"
+    "bootstrap": {
+      "main": [
+        "./dist/js/bootstrap.js"
+      ]
     },
-    "ember-i18n":{
+    "cldr": {
+      "main": "plurals.js"
+    },
+    "ember-i18n": {
       "scripts": []
+    },
+    "file-saver": {
+      "main": "FileSaver.js"
     }
   }
 }

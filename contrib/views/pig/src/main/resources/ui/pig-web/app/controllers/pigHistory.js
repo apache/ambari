@@ -18,11 +18,23 @@
 
 var App = require('app');
 
-App.PigHistoryController = Em.ArrayController.extend({
-  content: [],
-  jobs: function() {
-    return this.get('content').filter(function(job, index, enumerable){
-      return job.get('status') != 'SUBMIT_FAILED';
-    });
-  }.property('content.@each.status')
+App.PigHistoryController = Em.ArrayController.extend(App.Pagination,{
+  needs:['pig'],
+  sortProperties: ['dateStarted'],
+  sortAscending: false,
+  scriptIds:Em.computed.mapBy('controllers.pig.content','id'),
+  actions:{
+    logsPopup:function (job) {
+      this.send('openModal','logDownload',job);
+    },
+    resultsPopup:function (job) {
+      this.send('openModal','resultsDownload',job);
+    },
+    goToScript:function (id) {
+      this.transitionToRoute('script.edit',id);
+    },
+    deleteJob:function (job) {
+      this.send('openModal','deleteJob',job);
+    }
+  }
 });

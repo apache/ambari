@@ -66,7 +66,7 @@ public interface Storage {
    * @param model bean class
    * @param id identifier
    */
-  void delete(Class model, int id);
+  void delete(Class model, int id) throws ItemNotFound;
 
   /**
    * Check is object exists

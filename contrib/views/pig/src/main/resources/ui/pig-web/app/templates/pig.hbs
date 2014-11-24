@@ -18,11 +18,37 @@
 
 <div class="container-fluid">
   <div class="row">
-    <div class="col-md-2 navigation">
-      {{view view.navItemsView}}
+    <div class="col-md-3 navigation">
+      <div class="well">
+
+        {{view view.navItemsView}}
+        <div class="nav-script-wrap">
+          <div class=" nav-script" >
+            <div>
+              <button type="button" class="close_script" {{action closeScript}}>
+                <i class="fa fa-times"></i>
+              </button>
+            </div>
+            <div class="script-title">
+              {{#if activeScript.label}}
+                <span>{{activeScript.label}}</span>
+                {{else}}
+                <span>...</span>
+              {{/if}}
+            </div>
+           <ul class="script-actions list-unstyled">
+              <li><a href="#" {{action "saveScript" activeScript}} {{bind-attr class=":btn :btn-block saveEnabled::disabled"}} ><i class="fa fa-fw fa-save"></i> {{t 'common.save'}}</a></li>
+              <li><a href="#" {{action "copyScript" activeScript}} {{bind-attr class=":btn :btn-block disableScriptControls:disabled"}} ><i class="fa fa-fw fa-copy"></i> {{t 'common.copy'}}</a></li>
+              <li class="divider"></li>
+              <li><a href="#" {{action "deletescript" activeScript}} {{bind-attr class=":btn :btn-block disableScriptControls:disabled"}}  ><i class="fa fa-fw fa-trash-o"></i> {{t 'common.delete'}}</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
       {{outlet alert}}
     </div>
-    <div class="col-md-10">
+    <div class="col-md-9">
       {{outlet}}
     </div>
   </div>

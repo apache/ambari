@@ -48,6 +48,7 @@ public abstract class HDFSTest extends BasePigTest {
 
   @AfterClass
   public static void shutDown() throws Exception {
+    BasePigTest.shutDown();
     hdfsCluster.shutdown();
     hdfsCluster = null;
   }
@@ -55,6 +56,6 @@ public abstract class HDFSTest extends BasePigTest {
   @Override
   protected void setupProperties(Map<String, String> properties, File baseDir) throws Exception {
     super.setupProperties(properties, baseDir);
-    properties.put("dataworker.defaultFs", hdfsURI);
+    properties.put("webhdfs.url", hdfsURI);
   }
 }

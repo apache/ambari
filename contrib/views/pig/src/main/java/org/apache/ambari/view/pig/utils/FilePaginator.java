@@ -44,7 +44,7 @@ public class FilePaginator {
    */
   public FilePaginator(String filePath, ViewContext context) {
     this.filePath = filePath;
-    hdfsApi = BaseService.getHdfsApi(context);
+    hdfsApi = HdfsApi.getInstance(context);
   }
 
   /**

@@ -48,6 +48,10 @@ public abstract class BasePigTest {
     FileUtil.fullyDelete(baseDir);
   }
 
+  @AfterClass
+  public static void shutDown() throws Exception {
+  }
+
   @Before
   public void setUp() throws Exception {
     handler = createNiceMock(ViewResourceHandler.class);
@@ -56,19 +60,20 @@ public abstract class BasePigTest {
     properties = new HashMap<String, String>();
     baseDir = new File(DATA_DIRECTORY)
         .getAbsoluteFile();
-    pigStorageFile = new File("./target/BasePigTest/storage.dat")
+    pigStorageFile = new File("./target/PigTest/storage.dat")
         .getAbsoluteFile();
 
     properties.put("dataworker.storagePath", pigStorageFile.toString());
-    properties.put("dataworker.webhcat.url", "localhost:50111/templeton/v1");
-    properties.put("dataworker.webhcat.user", "admin");
-    properties.put("dataworker.scripts.path", "/tmp/.pigscripts");
-    properties.put("dataworker.jobs.path", "/tmp/.pigjobs");
+    properties.put("webhcat.url", "localhost:50111/templeton/v1");
+    properties.put("webhcat.username", "admin");
+    properties.put("scripts.dir", "/tmp/.pigscripts");
+    properties.put("jobs.dir", "/tmp/.pigjobs");
 
     setupProperties(properties, baseDir);
 
     expect(context.getProperties()).andReturn(properties).anyTimes();
     expect(context.getUsername()).andReturn("ambari-qa").anyTimes();
+    expect(context.getInstanceName()).andReturn("MyPig").anyTimes();
 
     replay(handler, context);
   }
