@@ -62,7 +62,13 @@ App.MainAlertDefinitionActionsController = Em.ArrayController.extend({
     }
   },
 
-  createNewAlertDefinition: Em.K,
+  /**
+   * Start "Create Alert Definition" wizard
+   * @method createNewAlertDefinition
+   */
+  createNewAlertDefinition: function() {
+    App.router.transitionTo('alertAdd');
+  },
 
   /**
    *  handler when clicking on "Manage Alert Groups", a popup will show up

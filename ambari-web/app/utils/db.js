@@ -38,6 +38,9 @@ var InitialData =  {
   'StackUpgrade' : {},
   'ReassignMaster' : {},
   'AddSecurity': {},
+  'AddAlertDefinition': {
+    content: {}
+  },
   'HighAvailabilityWizard': {},
   'RMHighAvailabilityWizard': {},
   'RollbackHighAvailabilityWizard': {},

@@ -348,6 +348,8 @@ module.exports = Em.Route.extend({
     }
   }),
 
+  alertAdd: require('routes/add_alert_definition_routes'),
+
   admin: Em.Route.extend({
     route: '/admin',
     enter: function (router, transition) {

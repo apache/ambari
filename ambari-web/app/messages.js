@@ -839,6 +839,11 @@ Em.I18n.translations = {
   'form.validator.alertGroupName':'Invalid Alert Group Name. Only alphanumerics, hyphens, spaces and underscores are allowed.',
   'form.validator.configKey.specific':'"{0}" is invalid Key. Only alphanumerics, hyphens, underscores, asterisks and periods are allowed.',
 
+  'alerts.add.header': 'Create Alert Definition',
+  'alerts.add.step1.header': 'Choose Type',
+  'alerts.add.step2.header': 'Configure',
+  'alerts.add.step3.header': 'Review',
+
   'alerts.fastAccess.popup.header': '{0} critical or warning alerts',
   'alerts.fastAccess.popup.body.name': 'Alert name',
   'alerts.fastAccess.popup.body.showmore': 'Show all Alerts',
