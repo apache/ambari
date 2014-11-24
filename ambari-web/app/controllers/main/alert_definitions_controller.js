@@ -90,6 +90,13 @@ App.MainAlertDefinitionsController = Em.ArrayController.extend({
   }.property('content.@each.isCriticalOrWarning'),
 
   /**
+   * if critical alerts exist, if true, the alert badge should be red.
+   */
+  isCriticalAlerts: function () {
+    return this.get('content').someProperty('isCritical');
+  }.property('content.@each.isCritical'),
+
+  /**
    *  calcuale critical/warning count for each service, to show up the label on services menu
    */
   getCriticalAlertsCountForService: function(service) {

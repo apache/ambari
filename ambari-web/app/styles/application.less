@@ -60,42 +60,6 @@
   100% { color: #118fff; }
 }
 
-@-webkit-keyframes redPulse {
-  from { background-color: #FF0000; }
-  50% { background-color: #A80000; }
-  to { background-color: #FF0000; }
-}
-
-@-moz-keyframes redPulse {
-  from { background-color: #FF0000; }
-  50% { background-color: #A80000; }
-  to { background-color: #FF0000; }
-}
-
-@keyframes redPulse {
-  0% { background-color: #FF0000; }
-  50% { background-color: #A80000; }
-  100% { background-color: #FF0000; }
-}
-
-@-webkit-keyframes redPulseInner {
-  from { color: #FF0000; }
-  50% { color: #A80000; }
-  to { color: #FF0000; }
-}
-
-@-moz-keyframes redPulseInner {
-  from { color: #FF0000; }
-  50% { color: #A80000; }
-  to { color: #FF0000; }
-}
-
-@keyframes redPulseInner {
-  0% { color: #FF0000; }
-  50% { color: #A80000; }
-  100% { color: #FF0000; }
-}
-
 .gradient(@color: #FAFAFA, @start: #FFFFFF, @stop: #F2F2F2) {
   background: @color;
   background: -webkit-gradient(linear, left top, left bottom, color-stop(0, @start), color-stop(1, @stop));
@@ -218,17 +182,11 @@ footer {
         animation-duration: 1s;
         animation-iteration-count: infinite;
       }
-      .label.alerts-count {
-        background-color: red;
-        -webkit-animation-name: redPulse;
-        -webkit-animation-duration: 1s;
-        -webkit-animation-iteration-count: infinite;
-        -moz-animation-name: redPulse;
-        -moz-animation-duration: 1s;
-        -moz-animation-iteration-count: infinite;
-        animation-name: redPulse;
-        animation-duration: 1s;
-        animation-iteration-count: infinite;
+      .label.alert-crit-count {
+        background-color: @health-status-red;
+      }
+      .label.alerts-warn-count {
+        background-color: @health-status-orange;
       }
       .label {
          padding: 3px 5px 3px;

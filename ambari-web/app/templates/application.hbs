@@ -37,7 +37,7 @@
               {{/with}}
               {{#with App.router.mainAlertDefinitionsController}}
                 {{#if allAlertsCount}}
-                  <span class="label alerts-count" {{action "showPopup" target="App.router.mainAlertDefinitionsController"}}>
+                  <span {{bindAttr class=":label isCriticalAlerts:alert-crit-count:alert-warn-count"}} {{action "showPopup" target="App.router.mainAlertDefinitionsController"}}>
                   {{allAlertsCount}} {{pluralize allAlertsCount singular="alert" plural="alerts"}}</span>
                 {{else}}
                   <span class="label" {{action "showPopup" target="App.router.mainAlertDefinitionsController"}}>

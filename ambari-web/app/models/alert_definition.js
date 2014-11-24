@@ -87,15 +87,27 @@ App.AlertDefinition = DS.Model.extend({
    * @type {boolean}
    */
   isCriticalOrWarning: function () {
+    return this.get('isCritical') || this.get('isWarning');
+  }.property('isCritical', 'isWarning'),
+
+  /**
+   * if this definition is in state: CRIT
+   * @type {boolean}
+   */
+  isCritical: function () {
     var summary = this.get('summary');
-    var status = ['WARNING', 'CRITICAL'];
-    var result = false;
-    status.forEach(function (state) {
-      if (summary[state]) {
-        result = true;
-      }
-    });
-    return result;
+    var state = 'CRITICAL';
+    return summary[state];
+  }.property('summary'),
+
+  /**
+   * if this definition is in state: WARNING
+   * @type {boolean}
+   */
+  isWarning: function () {
+    var summary = this.get('summary');
+    var state = 'WARNING';
+    return summary[state];
   }.property('summary'),
 
   /**
