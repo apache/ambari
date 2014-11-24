@@ -16,7 +16,7 @@
    limitations under the License.
 -->
 <reposinfo>
-  <latest>http://s3.amazonaws.com/dev.hortonworks.com/HDP/hdp_urlinfo.json</latest>
+  <latest>http://public-repo-1.hortonworks.com/HDP/hdp_urlinfo.json</latest>
   <os family="redhat6">
     <repo>
       <baseurl>http://public-repo-1.hortonworks.com/HDP/centos6/1.x/updates/1.3.7.0</baseurl>
