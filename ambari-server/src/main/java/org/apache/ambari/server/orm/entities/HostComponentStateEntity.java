@@ -18,8 +18,7 @@
 
 package org.apache.ambari.server.orm.entities;
 
-import java.util.Collection;
-
+import org.apache.ambari.server.state.SecurityState;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.UpgradeState;
 
@@ -55,6 +54,10 @@ public class HostComponentStateEntity {
   @Enumerated(value = EnumType.STRING)
   @Column(name = "upgrade_state", nullable = false, insertable = true, updatable = true)
   private UpgradeState upgradeState = UpgradeState.NONE;
+
+  @Enumerated(value = EnumType.STRING)
+  @Column(name = "security_state", nullable = false, insertable = true, updatable = true)
+  private SecurityState securityState = SecurityState.UNSECURED;
 
   @Basic
   @Column(name = "current_stack_version", nullable = false, insertable = true, updatable = true)
@@ -109,6 +112,14 @@ public class HostComponentStateEntity {
 
   public void setCurrentState(State currentState) {
     this.currentState = currentState;
+  }
+
+  public SecurityState getSecurityState() {
+    return securityState;
+  }
+
+  public void setSecurityState(SecurityState securityState) {
+    this.securityState = securityState;
   }
 
   public UpgradeState getUpgradeState() {

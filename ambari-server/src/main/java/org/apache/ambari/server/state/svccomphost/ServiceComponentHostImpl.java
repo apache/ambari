@@ -46,6 +46,7 @@ import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntityPK;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.SecurityState;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostComponentAdminState;
@@ -770,6 +771,71 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     }
   }
 
+  @Override
+  public SecurityState getSecurityState() {
+    clusterGlobalLock.readLock().lock();
+    try {
+      readLock.lock();
+      try {
+        return stateEntity.getSecurityState();
+      } finally {
+        readLock.unlock();
+      }
+    } finally {
+      clusterGlobalLock.readLock().unlock();
+    }
+  }
+
+  @Override
+  public void setSecurityState(SecurityState securityState) {
+    clusterGlobalLock.readLock().lock();
+    try {
+      writeLock.lock();
+      try {
+        stateEntity.setSecurityState(securityState);
+        saveIfPersisted();
+      } finally {
+        writeLock.unlock();
+      }
+    } finally {
+      clusterGlobalLock.readLock().unlock();
+    }
+  }
+
+  @Override
+  public SecurityState getDesiredSecurityState() {
+    clusterGlobalLock.readLock().lock();
+    try {
+      readLock.lock();
+      try {
+        return desiredStateEntity.getSecurityState();
+      } finally {
+        readLock.unlock();
+      }
+    } finally {
+      clusterGlobalLock.readLock().unlock();
+    }
+  }
+
+  @Override
+  public void setDesiredSecurityState(SecurityState securityState) throws AmbariException {
+    if(!securityState.isEndpoint())
+      throw new AmbariException("The security state must be an endpoint state");
+
+    clusterGlobalLock.readLock().lock();
+    try {
+      writeLock.lock();
+      try {
+        desiredStateEntity.setSecurityState(securityState);
+        saveIfPersisted();
+      } finally {
+        writeLock.unlock();
+      }
+    } finally {
+      clusterGlobalLock.readLock().unlock();
+    }
+  }
+
   /***
    * To be called during the upgrade of a specific Component in a host.
    * The potential upgrade states are NONE (default), PENDING, IN_PROGRESS, FAILED.
@@ -1198,6 +1264,8 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
           .append(", desiredState=").append(getDesiredState())
           .append(", stackVersion=").append(getStackVersion())
           .append(", state=").append(getState())
+          .append(", securityState=").append(getSecurityState())
+          .append(", desiredSecurityState=").append(getDesiredSecurityState())
           .append(" }");
       } finally {
         readLock.unlock();

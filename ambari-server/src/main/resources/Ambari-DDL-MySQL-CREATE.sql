@@ -100,6 +100,7 @@ CREATE TABLE hostcomponentdesiredstate (
   service_name VARCHAR(255) NOT NULL,
   admin_state VARCHAR(32),
   maintenance_state VARCHAR(32) NOT NULL DEFAULT 'ACTIVE',
+  security_state VARCHAR(32) NOT NULL DEFAULT 'UNSECURED',
   restart_required TINYINT(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (cluster_id, component_name, host_name, service_name));
 
@@ -111,6 +112,7 @@ CREATE TABLE hostcomponentstate (
   host_name VARCHAR(255) NOT NULL,
   service_name VARCHAR(255) NOT NULL,
   upgrade_state VARCHAR(32) NOT NULL DEFAULT 'NONE',
+  security_state VARCHAR(32) NOT NULL DEFAULT 'UNSECURED',
   PRIMARY KEY (cluster_id, component_name, host_name, service_name));
 
 CREATE TABLE hosts (
@@ -164,6 +166,7 @@ CREATE TABLE servicedesiredstate (
   desired_state VARCHAR(255) NOT NULL,
   service_name VARCHAR(255) NOT NULL,
   maintenance_state VARCHAR(32) NOT NULL DEFAULT 'ACTIVE',
+  security_state VARCHAR(32) NOT NULL DEFAULT 'UNSECURED',
   PRIMARY KEY (cluster_id, service_name));
 
 CREATE TABLE users (

@@ -19,6 +19,7 @@
 package org.apache.ambari.server.orm.entities;
 
 import org.apache.ambari.server.state.MaintenanceState;
+import org.apache.ambari.server.state.SecurityState;
 import org.apache.ambari.server.state.State;
 import org.apache.commons.lang.StringUtils;
 
@@ -53,7 +54,10 @@ public class ServiceDesiredStateEntity {
   @Enumerated(value = EnumType.STRING)
   private MaintenanceState maintenanceState = MaintenanceState.OFF;
   
-  
+  @Column(name = "security_state", nullable = false, insertable = true, updatable = true)
+  @Enumerated(value = EnumType.STRING)
+  private SecurityState securityState = SecurityState.UNSECURED;
+
   @OneToOne
   @javax.persistence.JoinColumns(
       {
@@ -108,6 +112,14 @@ public class ServiceDesiredStateEntity {
   
   public void setMaintenanceState(MaintenanceState state) {
     maintenanceState = state;
+  }
+
+  public SecurityState getSecurityState() {
+    return securityState;
+  }
+
+  public void setSecurityState(SecurityState securityState) {
+    this.securityState = securityState;
   }
 
   @Override

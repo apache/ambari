@@ -30,6 +30,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.JoinColumns;
 import javax.persistence.ManyToOne;
 
+import org.apache.ambari.server.state.SecurityState;
 import org.apache.ambari.server.state.HostComponentAdminState;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.State;
@@ -59,6 +60,11 @@ public class HostComponentDesiredStateEntity {
   @Column(name = "desired_state", nullable = false, insertable = true, updatable = true)
   @Enumerated(value = EnumType.STRING)
   private State desiredState = State.INIT;
+
+  @Basic
+  @Column(name = "security_state", nullable = false, insertable = true, updatable = true)
+  @Enumerated(value = EnumType.STRING)
+  private SecurityState securityState = SecurityState.UNSECURED;
 
   @Basic
   @Column(name = "desired_stack_version", insertable = true, updatable = true)
@@ -125,6 +131,14 @@ public class HostComponentDesiredStateEntity {
 
   public void setDesiredState(State desiredState) {
     this.desiredState = desiredState;
+  }
+
+  public SecurityState getSecurityState() {
+    return securityState;
+  }
+
+  public void setSecurityState(SecurityState securityState) {
+    this.securityState = securityState;
   }
 
   public String getDesiredStackVersion() {

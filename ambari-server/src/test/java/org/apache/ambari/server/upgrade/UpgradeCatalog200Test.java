@@ -43,6 +43,7 @@ import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.state.SecurityState;
 import org.easymock.Capture;
 import org.junit.After;
 import org.junit.Assert;
@@ -90,6 +91,9 @@ public class UpgradeCatalog200Test {
     Capture<DBAccessor.DBColumnInfo> alertDefinitionIgnoreColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
     Capture<DBAccessor.DBColumnInfo> alertDefinitionDescriptionColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
     Capture<DBAccessor.DBColumnInfo> hostComponentStateColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
+    Capture<DBAccessor.DBColumnInfo> hostComponentStateSecurityStateColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
+    Capture<DBAccessor.DBColumnInfo> hostComponentDesiredStateSecurityStateColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
+    Capture<DBAccessor.DBColumnInfo> serviceDesiredStateSecurityStateColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
     Capture<List<DBAccessor.DBColumnInfo>> clusterVersionCapture = new Capture<List<DBAccessor.DBColumnInfo>>();
     Capture<List<DBAccessor.DBColumnInfo>> hostVersionCapture = new Capture<List<DBAccessor.DBColumnInfo>>();
     Capture<DBAccessor.DBColumnInfo> valueColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
@@ -112,6 +116,18 @@ public class UpgradeCatalog200Test {
     // Host Component State
     dbAccessor.addColumn(eq("hostcomponentstate"),
         capture(hostComponentStateColumnCapture));
+
+    // Host Component State: security State
+    dbAccessor.addColumn(eq("hostcomponentstate"),
+        capture(hostComponentStateSecurityStateColumnCapture));
+
+    // Host Component Desired State: security State
+    dbAccessor.addColumn(eq("hostcomponentdesiredstate"),
+        capture(hostComponentDesiredStateSecurityStateColumnCapture));
+
+    // Service Desired State: security State
+    dbAccessor.addColumn(eq("servicedesiredstate"),
+        capture(serviceDesiredStateSecurityStateColumnCapture));
 
     // Cluster Version
     dbAccessor.createTable(eq("cluster_version"),
@@ -155,6 +171,11 @@ public class UpgradeCatalog200Test {
     assertEquals(String.class, upgradeStateColumn.getType());
     assertEquals("NONE", upgradeStateColumn.getDefaultValue());
     assertFalse(upgradeStateColumn.isNullable());
+
+    // verify security_state columns
+    verifyComponentSecurityStateColumn(hostComponentStateSecurityStateColumnCapture);
+    verifyComponentSecurityStateColumn(hostComponentDesiredStateSecurityStateColumnCapture);
+    verifyServiceSecurityStateColumn(serviceDesiredStateSecurityStateColumnCapture);
 
     // Verify capture group sizes
     assertEquals(8, clusterVersionCapture.getValue().size());
@@ -222,6 +243,34 @@ public class UpgradeCatalog200Test {
   private void verifyAlertTargetStatesTable(
       Capture<List<DBAccessor.DBColumnInfo>> alertTargetStatesCapture) {
     Assert.assertEquals(2, alertTargetStatesCapture.getValue().size());
+  }
+
+  /**
+   * Verifies new security_state column in servicedesiredsstate table.
+   *
+   * @param securityStateColumnCapture
+   */
+  private void verifyServiceSecurityStateColumn(
+      Capture<DBAccessor.DBColumnInfo> securityStateColumnCapture) {
+    DBColumnInfo column = securityStateColumnCapture.getValue();
+    Assert.assertEquals(SecurityState.UNSECURED.toString(), column.getDefaultValue());
+    Assert.assertEquals(Integer.valueOf(32), column.getLength());
+    Assert.assertEquals(String.class, column.getType());
+    Assert.assertEquals("security_state", column.getName());
+  }
+
+  /**
+   * Verifies new security_state column in hostcomponentdesiredstate and hostcomponentstate tables
+   *
+   * @param securityStateColumnCapture
+   */
+  private void verifyComponentSecurityStateColumn(
+      Capture<DBAccessor.DBColumnInfo> securityStateColumnCapture) {
+    DBColumnInfo column = securityStateColumnCapture.getValue();
+    Assert.assertEquals(SecurityState.UNSECURED.toString(), column.getDefaultValue());
+    Assert.assertEquals(Integer.valueOf(32), column.getLength());
+    Assert.assertEquals(String.class, column.getType());
+    Assert.assertEquals("security_state", column.getName());
   }
 
   @Test

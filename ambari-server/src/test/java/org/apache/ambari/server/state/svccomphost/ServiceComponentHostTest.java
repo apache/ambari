@@ -33,8 +33,11 @@ import org.apache.ambari.server.controller.ServiceComponentHostResponse;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.HostComponentDesiredStateDAO;
+import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntityPK;
+import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
+import org.apache.ambari.server.orm.entities.HostComponentStateEntityPK;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.Clusters;
@@ -44,6 +47,7 @@ import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostConfig;
 import org.apache.ambari.server.state.MaintenanceState;
+import org.apache.ambari.server.state.SecurityState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentFactory;
@@ -166,6 +170,8 @@ public class ServiceComponentHostTest {
 
     Assert.assertEquals(State.INIT, impl.getState());
     Assert.assertEquals(State.INIT, impl.getDesiredState());
+    Assert.assertEquals(SecurityState.UNSECURED, impl.getSecurityState());
+    Assert.assertEquals(SecurityState.UNSECURED, impl.getDesiredSecurityState());
     Assert.assertEquals(c.getClusterName(), impl.getClusterName());
     Assert.assertEquals(c.getClusterId(), impl.getClusterId());
     Assert.assertEquals(s.getName(), impl.getServiceName());
@@ -1100,5 +1106,58 @@ public class ServiceComponentHostTest {
   }
 
 
+  @Test
+  public void testSecurityState() throws Exception {
+    String stackVersion="HDP-2.0.6";
+    String clusterName = "c2";
+    String hostName = "h3";
 
+    clusters.addCluster(clusterName);
+    clusters.addHost(hostName);
+    setOsFamily(clusters.getHost(hostName), "redhat", "5.9");
+    clusters.getHost(hostName).persist();
+    Cluster c2 = clusters.getCluster(clusterName);
+    StackId stackId = new StackId(stackVersion);
+    c2.setDesiredStackVersion(stackId);
+    c2.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.CURRENT);
+    metaInfo.init();
+    clusters.mapHostToCluster(hostName, clusterName);
+
+    Cluster cluster = clusters.getCluster(clusterName);
+
+    ServiceComponentHost sch1 = createNewServiceComponentHost(cluster, "HDFS", "NAMENODE", hostName);
+
+    HostComponentDesiredStateDAO daoHostComponentDesiredState = injector.getInstance(HostComponentDesiredStateDAO.class);
+    HostComponentDesiredStateEntity entityHostComponentDesiredState;
+    HostComponentDesiredStateEntityPK pkHostComponentDesiredState = new HostComponentDesiredStateEntityPK();
+    pkHostComponentDesiredState.setClusterId(cluster.getClusterId());
+    pkHostComponentDesiredState.setComponentName(sch1.getServiceComponentName());
+    pkHostComponentDesiredState.setServiceName(sch1.getServiceName());
+    pkHostComponentDesiredState.setHostName(hostName);
+
+    HostComponentStateDAO daoHostComponentState = injector.getInstance(HostComponentStateDAO.class);
+    HostComponentStateEntity entityHostComponentState;
+    HostComponentStateEntityPK pkHostComponentState = new HostComponentStateEntityPK();
+    pkHostComponentState.setClusterId(cluster.getClusterId());
+    pkHostComponentState.setComponentName(sch1.getServiceComponentName());
+    pkHostComponentState.setServiceName(sch1.getServiceName());
+    pkHostComponentState.setHostName(hostName);
+
+    for(SecurityState state: SecurityState.values()) {
+      sch1.setSecurityState(state);
+      entityHostComponentState = daoHostComponentState.findByPK(pkHostComponentState);
+      Assert.assertNotNull(entityHostComponentState);
+      Assert.assertEquals(state, entityHostComponentState.getSecurityState());
+
+      try {
+        sch1.setDesiredSecurityState(state);
+        Assert.assertTrue(state.isEndpoint());
+        entityHostComponentDesiredState = daoHostComponentDesiredState.findByPK(pkHostComponentDesiredState);
+        Assert.assertNotNull(entityHostComponentDesiredState);
+        Assert.assertEquals(state, entityHostComponentDesiredState.getSecurityState());
+      } catch (AmbariException e) {
+        Assert.assertFalse(state.isEndpoint());
+      }
+    }
+  }
 }

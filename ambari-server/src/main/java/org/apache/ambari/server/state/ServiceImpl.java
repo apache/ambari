@@ -350,6 +350,48 @@ public class ServiceImpl implements Service {
   }
 
   @Override
+  public SecurityState getSecurityState() {
+    clusterGlobalLock.readLock().lock();
+    try {
+      readWriteLock.readLock().lock();
+      try {
+        return serviceDesiredStateEntity.getSecurityState();
+      } finally {
+        readWriteLock.readLock().unlock();
+      }
+    } finally {
+      clusterGlobalLock.readLock().unlock();
+    }
+  }
+
+  @Override
+  public void setSecurityState(SecurityState securityState) throws AmbariException {
+    if(!securityState.isEndpoint())
+      throw new AmbariException("The security state must be an endpoint state");
+
+    clusterGlobalLock.readLock().lock();
+    try {
+      readWriteLock.writeLock().lock();
+      try {
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Setting DesiredSecurityState of Service"
+              + ", clusterName=" + cluster.getClusterName()
+              + ", clusterId=" + cluster.getClusterId()
+              + ", serviceName=" + getName()
+              + ", oldDesiredSecurityState=" + getSecurityState()
+              + ", newDesiredSecurityState=" + securityState);
+        }
+        serviceDesiredStateEntity.setSecurityState(securityState);
+        saveIfPersisted();
+      } finally {
+        readWriteLock.writeLock().unlock();
+      }
+    } finally {
+      clusterGlobalLock.readLock().unlock();
+    }
+  }
+
+  @Override
   public StackId getDesiredStackVersion() {
     clusterGlobalLock.readLock().lock();
     try {

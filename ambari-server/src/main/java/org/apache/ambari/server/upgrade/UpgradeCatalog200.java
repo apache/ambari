@@ -25,6 +25,7 @@ import java.util.List;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
+import org.apache.ambari.server.state.SecurityState;
 import org.apache.ambari.server.state.UpgradeState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -88,6 +89,14 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
     // add ignore_host column to alert_definition
     dbAccessor.addColumn(ALERT_DEFINITION_TABLE, new DBColumnInfo(
         "ignore_host", Short.class, 1, 0, false));
+
+    // add security_state to various tables
+    dbAccessor.addColumn("hostcomponentdesiredstate", new DBColumnInfo(
+        "security_state", String.class, 32, SecurityState.UNSECURED.toString(), false));
+    dbAccessor.addColumn("hostcomponentstate", new DBColumnInfo(
+        "security_state", String.class, 32, SecurityState.UNSECURED.toString(), false));
+    dbAccessor.addColumn("servicedesiredstate", new DBColumnInfo(
+        "security_state", String.class, 32, SecurityState.UNSECURED.toString(), false));
 
     dbAccessor.addColumn(ALERT_DEFINITION_TABLE, new DBColumnInfo(
         "description", char[].class, 32672, null, true));
