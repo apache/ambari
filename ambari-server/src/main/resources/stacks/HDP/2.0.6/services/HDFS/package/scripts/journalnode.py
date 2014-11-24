@@ -34,6 +34,11 @@ class JournalNode(Script):
 
     env.set_params(params)
     self.configure(env)
+    Directory(params.hadoop_pid_dir_prefix,
+              mode=0755,
+              owner=params.hdfs_user,
+              group=params.user_group
+    )
     service(
       action="start", name="journalnode", user=params.hdfs_user,
       create_pid_dir=True,

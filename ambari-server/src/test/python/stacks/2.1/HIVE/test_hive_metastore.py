@@ -109,6 +109,9 @@ class TestHiveMetastore(RMFTestCase):
     self.assertNoMoreResources()
 
   def assert_configure_default(self):
+    self.assertResourceCalled('Directory', '/etc/hive',
+        mode = 0755
+    )
     self.assertResourceCalled('Directory', '/etc/hive/conf.server',
         owner = 'hive',
         group = 'hadoop',
@@ -201,6 +204,9 @@ class TestHiveMetastore(RMFTestCase):
     )
 
   def assert_configure_secured(self):
+    self.assertResourceCalled('Directory', '/etc/hive',
+        mode = 0755
+    )
     self.assertResourceCalled('Directory', '/etc/hive/conf.server',
         owner = 'hive',
         group = 'hadoop',

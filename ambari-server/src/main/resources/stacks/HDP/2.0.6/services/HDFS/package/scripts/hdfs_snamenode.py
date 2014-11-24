@@ -36,6 +36,11 @@ def snamenode(action=None, format=False):
          owner=params.hdfs_user,
          group=params.user_group)
   elif action == "start" or action == "stop":
+    Directory(params.hadoop_pid_dir_prefix,
+              mode=0755,
+              owner=params.hdfs_user,
+              group=params.user_group
+    )
     service(
       action=action,
       name="secondarynamenode",

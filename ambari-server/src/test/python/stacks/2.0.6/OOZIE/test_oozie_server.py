@@ -176,41 +176,55 @@ class TestOozieServer(RMFTestCase):
                               )
     self.assertResourceCalled('Directory', '/var/run/oozie',
                               owner = 'oozie',
+                              group = 'hadoop',
                               recursive = True,
                               mode = 0755,
                               )
     self.assertResourceCalled('Directory', '/var/log/oozie',
                               owner = 'oozie',
+                              group = 'hadoop',
                               recursive = True,
                               mode = 0755,
                               )
     self.assertResourceCalled('Directory', '/var/tmp/oozie',
                               owner = 'oozie',
+                              group = 'hadoop',
+                              recursive = True,
+                              mode = 0755,
+                              )
+    self.assertResourceCalled('Directory', '/hadoop/oozie',
+                              owner = 'oozie',
+                              group = 'hadoop',
                               recursive = True,
                               mode = 0755,
                               )
     self.assertResourceCalled('Directory', '/hadoop/oozie/data',
                               owner = 'oozie',
+                              group = 'hadoop',
                               recursive = True,
                               mode = 0755,
                               )
     self.assertResourceCalled('Directory', '/var/lib/oozie/',
                               owner = 'oozie',
+                              group = 'hadoop',
                               recursive = True,
                               mode = 0755,
                               )
     self.assertResourceCalled('Directory', '/var/lib/oozie/oozie-server/webapps/',
                               owner = 'oozie',
+                              group = 'hadoop',
                               recursive = True,
                               mode = 0755,
                               )
     self.assertResourceCalled('Directory', '/var/lib/oozie/oozie-server/conf',
                               owner = 'oozie',
+                              group = 'hadoop',
                               recursive = True,
                               mode = 0755,
                               )
     self.assertResourceCalled('Directory', '/var/lib/oozie/oozie-server',
                               owner = 'oozie',
+                              group = 'hadoop',
                               recursive = True,
                               mode = 0755,
                               )
@@ -220,7 +234,7 @@ class TestOozieServer(RMFTestCase):
     self.assertResourceCalled('Execute', 'cd /usr/lib/oozie && mkdir -p /var/tmp/oozie',
                               not_if = 'ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1',
                               )
-    self.assertResourceCalled('Execute', 'cd /usr/lib/oozie && chown oozie:hadoop /var/tmp/oozie && mkdir -p /usr/lib/oozie/libext && cp /usr/share/HDP-oozie/ext-2.2.zip /usr/lib/oozie/libext && cp /usr/lib/falcon/oozie/ext/falcon-oozie-el-extension-*.jar /usr/lib/oozie/libext',
+    self.assertResourceCalled('Execute', 'cd /usr/lib/oozie && chown oozie:hadoop /var/tmp/oozie && mkdir -p /usr/lib/oozie/libext && cp /usr/share/HDP-oozie/ext-2.2.zip /usr/lib/oozie/libext && chown oozie:hadoop /usr/lib/oozie/libext/ext-2.2.zip  && chown -RL oozie:hadoop /var/lib/oozie/oozie-server/conf && cp /usr/lib/falcon/oozie/ext/falcon-oozie-el-extension-*.jar /usr/lib/oozie/libext && chown oozie:hadoop /usr/lib/oozie/libext/falcon-oozie-el-extension-*.jar',
                               not_if = 'ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1',
                               )
     self.assertResourceCalled('Execute', 'cd /var/tmp/oozie && /usr/lib/oozie/bin/oozie-setup.sh prepare-war',
@@ -291,41 +305,55 @@ class TestOozieServer(RMFTestCase):
 
     self.assertResourceCalled('Directory', '/var/run/oozie',
                               owner = 'oozie',
+                              group = 'hadoop',
                               recursive = True,
                               mode = 0755,
                               )
     self.assertResourceCalled('Directory', '/var/log/oozie',
                               owner = 'oozie',
+                              group = 'hadoop',
                               recursive = True,
                               mode = 0755,
                               )
     self.assertResourceCalled('Directory', '/var/tmp/oozie',
                               owner = 'oozie',
+                              group = 'hadoop',
+                              recursive = True,
+                              mode = 0755,
+                              )
+    self.assertResourceCalled('Directory', '/hadoop/oozie',
+                              owner = 'oozie',
+                              group = 'hadoop',
                               recursive = True,
                               mode = 0755,
                               )
     self.assertResourceCalled('Directory', '/hadoop/oozie/data',
                               owner = 'oozie',
+                              group = 'hadoop',
                               recursive = True,
                               mode = 0755,
                               )
     self.assertResourceCalled('Directory', '/var/lib/oozie/',
                               owner = 'oozie',
+                              group = 'hadoop',
                               recursive = True,
                               mode = 0755,
                               )
     self.assertResourceCalled('Directory', '/var/lib/oozie/oozie-server/webapps/',
                               owner = 'oozie',
+                              group = 'hadoop',
                               recursive = True,
                               mode = 0755,
                               )
     self.assertResourceCalled('Directory', '/var/lib/oozie/oozie-server/conf',
                               owner = 'oozie',
+                              group = 'hadoop',
                               recursive = True,
                               mode = 0755,
                               )
     self.assertResourceCalled('Directory', '/var/lib/oozie/oozie-server',
                               owner = 'oozie',
+                              group = 'hadoop',
                               recursive = True,
                               mode = 0755,
                               )
@@ -335,7 +363,7 @@ class TestOozieServer(RMFTestCase):
     self.assertResourceCalled('Execute', 'cd /usr/lib/oozie && mkdir -p /var/tmp/oozie',
                               not_if = 'ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1',
                               )
-    self.assertResourceCalled('Execute', 'cd /usr/lib/oozie && chown oozie:hadoop /var/tmp/oozie && mkdir -p /usr/lib/oozie/libext && cp /usr/share/HDP-oozie/ext-2.2.zip /usr/lib/oozie/libext && cp /usr/lib/falcon/oozie/ext/falcon-oozie-el-extension-*.jar /usr/lib/oozie/libext',
+    self.assertResourceCalled('Execute', 'cd /usr/lib/oozie && chown oozie:hadoop /var/tmp/oozie && mkdir -p /usr/lib/oozie/libext && cp /usr/share/HDP-oozie/ext-2.2.zip /usr/lib/oozie/libext && chown oozie:hadoop /usr/lib/oozie/libext/ext-2.2.zip  && chown -RL oozie:hadoop /var/lib/oozie/oozie-server/conf && cp /usr/lib/falcon/oozie/ext/falcon-oozie-el-extension-*.jar /usr/lib/oozie/libext && chown oozie:hadoop /usr/lib/oozie/libext/falcon-oozie-el-extension-*.jar',
                               not_if = 'ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1',
                               )
     self.assertResourceCalled('Execute', 'cd /var/tmp/oozie && /usr/lib/oozie/bin/oozie-setup.sh prepare-war',

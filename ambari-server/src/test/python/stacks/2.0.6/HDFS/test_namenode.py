@@ -60,6 +60,11 @@ class TestNamenode(RMFTestCase):
                               content = Template('exclude_hosts_list.j2'),
                               group = 'hadoop',
                               )
+    self.assertResourceCalled('Directory', '/var/run/hadoop',
+                              owner = 'hdfs',
+                              group = 'hadoop',
+                              mode = 0755
+                              )
     self.assertResourceCalled('Directory', '/var/run/hadoop/hdfs',
                               owner = 'hdfs',
                               recursive = True,
@@ -164,6 +169,11 @@ class TestNamenode(RMFTestCase):
                               content = Template('exclude_hosts_list.j2'),
                               group = 'hadoop',
                               )
+    self.assertResourceCalled('Directory', '/var/run/hadoop',
+                              owner = 'hdfs',
+                              group = 'hadoop',
+                              mode = 0755
+                              )
     self.assertResourceCalled('Directory', '/var/run/hadoop/hdfs',
                               owner = 'hdfs',
                               recursive = True,
@@ -251,6 +261,11 @@ class TestNamenode(RMFTestCase):
                               content = Template('exclude_hosts_list.j2'),
                               group = 'hadoop',
                               )
+    self.assertResourceCalled('Directory', '/var/run/hadoop',
+                              owner = 'hdfs',
+                              group = 'hadoop',
+                              mode = 0755
+                              )
     self.assertResourceCalled('Directory', '/var/run/hadoop/hdfs',
                               owner = 'hdfs',
                               recursive = True,
@@ -316,6 +331,11 @@ class TestNamenode(RMFTestCase):
                               owner = 'hdfs',
                               content = Template('exclude_hosts_list.j2'),
                               group = 'hadoop',
+                              )
+    self.assertResourceCalled('Directory', '/var/run/hadoop',
+                              owner = 'hdfs',
+                              group = 'hadoop',
+                              mode = 0755
                               )
     self.assertResourceCalled('Directory', '/var/run/hadoop/hdfs',
                               owner = 'hdfs',

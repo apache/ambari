@@ -26,6 +26,10 @@ def hbase(name=None # 'master' or 'regionserver' or 'client'
               ):
   import params
 
+  Directory( params.hbase_conf_dir_prefix,
+      mode=0755
+  )
+
   Directory( params.hbase_conf_dir,
       owner = params.hbase_user,
       group = params.user_group,
@@ -34,6 +38,14 @@ def hbase(name=None # 'master' or 'regionserver' or 'client'
 
   Directory (params.tmp_dir,
              owner = params.hbase_user,
+             mode=0775,
+             recursive = True
+  )
+
+  Directory (params.local_dir,
+             owner = params.hbase_user,
+             group = params.user_group,
+             mode=0775,
              recursive = True
   )
 

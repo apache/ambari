@@ -29,6 +29,10 @@ class TestTezClient(RMFTestCase):
                        config_file="default.json"
     )
 
+    self.assertResourceCalled('Directory', '/etc/tez',
+      mode = 0755
+    )
+
     self.assertResourceCalled('Directory', '/etc/tez/conf',
       owner = 'tez',
       group = 'hadoop',

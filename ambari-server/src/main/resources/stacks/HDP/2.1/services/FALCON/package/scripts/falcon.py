@@ -18,6 +18,7 @@ limitations under the License.
 """
 
 from resource_management import *
+import os.path
 
 def falcon(type, action = None):
   import params
@@ -35,24 +36,31 @@ def falcon(type, action = None):
     Directory(params.falcon_home,
               owner=params.falcon_user
     )
+    Directory(params.falcon_conf_dir_prefix,
+              mode=0755
+    )
     Directory(params.falcon_conf_dir,
               owner=params.falcon_user,
               recursive=True
     )
     File(params.falcon_conf_dir + '/falcon-env.sh',
-         content=InlineTemplate(params.falcon_env_sh_template)
+         content=InlineTemplate(params.falcon_env_sh_template),
+         owner=params.falcon_user
     )
     File(params.falcon_conf_dir + '/client.properties',
          content=Template('client.properties.j2'),
-         mode=0644
+         mode=0644,
+         owner=params.falcon_user
     )
     PropertiesFile(params.falcon_conf_dir + '/runtime.properties',
                    properties=params.falcon_runtime_properties,
-                   mode=0644
+                   mode=0644,
+                   owner=params.falcon_user
     )
     PropertiesFile(params.falcon_conf_dir + '/startup.properties',
                    properties=params.falcon_startup_properties,
-                   mode=0644
+                   mode=0644,
+                   owner=params.falcon_user
     )
 
     if params.falcon_graph_storage_directory:
@@ -90,6 +98,9 @@ def falcon(type, action = None):
                 recursive=True
       )
       if params.falcon_embeddedmq_enabled == True:
+        Directory(os.path.abspath(os.path.join(params.falcon_embeddedmq_data, "..")),
+                  owner=params.falcon_user
+        )
         Directory(params.falcon_embeddedmq_data,
                   owner=params.falcon_user,
                   recursive=True

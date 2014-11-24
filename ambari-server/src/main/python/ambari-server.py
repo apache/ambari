@@ -2035,6 +2035,7 @@ class RetCodeException(Exception):
 def install_jdk(dest_file):
   print "Installing JDK to {0}".format(JDK_INSTALL_DIR)
   retcode, out, err = run_os_command(CREATE_JDK_DIR_CMD)
+  retcode, out, err = run_os_command(MAKE_FILE_EXECUTABLE_CMD.format(JDK_INSTALL_DIR))
   savedPath = os.getcwd()
   os.chdir(JDK_INSTALL_DIR)
 

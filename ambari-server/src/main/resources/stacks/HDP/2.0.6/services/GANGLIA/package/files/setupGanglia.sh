@@ -118,7 +118,7 @@ done
 createDirectory ${GANGLIA_CONF_DIR};
 createDirectory ${GANGLIA_RUNTIME_DIR};
 # So rrdcached can drop its PID files in here.
-chmod a+w ${GANGLIA_RUNTIME_DIR};
+chmod -R o+rw ${GANGLIA_RUNTIME_DIR};
 chown ${owner}:${group} ${GANGLIA_CONF_DIR};
 
 if [ -n "${gmondClusterName}" ]

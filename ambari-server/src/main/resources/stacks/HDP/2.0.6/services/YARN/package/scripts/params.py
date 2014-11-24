@@ -109,6 +109,8 @@ hadoopMapredExamplesJarName = "hadoop-mapreduce-examples-2.*.jar"
 yarn_pid_dir = status_params.yarn_pid_dir
 mapred_pid_dir = status_params.mapred_pid_dir
 
+yarn_data_dir = "/hadoop/yarn"
+
 mapred_log_dir = format("{mapred_log_dir_prefix}/{mapred_user}")
 yarn_log_dir = format("{yarn_log_dir_prefix}/{yarn_user}")
 mapred_job_summary_log = format("{mapred_log_dir_prefix}/{mapred_user}/hadoop-mapreduce.jobsummary.log")

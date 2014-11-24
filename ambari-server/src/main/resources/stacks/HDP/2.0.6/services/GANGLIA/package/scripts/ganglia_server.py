@@ -80,6 +80,10 @@ class GangliaServer(Script):
 def change_permission():
   import params
 
+  Directory(os.path.abspath(os.path.join(params.ganglia_runtime_dir, "..")),
+            mode=0755,
+            recursive=True
+  )
   Directory(params.dwoo_path,
             mode=0755,
             recursive=True

@@ -40,6 +40,11 @@ class TestDatanode(RMFTestCase):
                        config_file="default.json"
     )
     self.assert_configure_default()
+    self.assertResourceCalled('Directory', '/var/run/hadoop',
+                              owner = 'hdfs',
+                              group = 'hadoop',
+                              mode = 0755
+                              )
     self.assertResourceCalled('Directory', '/var/run/hadoop/hdfs',
                               owner = 'hdfs',
                               recursive = True,
@@ -64,6 +69,11 @@ class TestDatanode(RMFTestCase):
                        command = "stop",
                        config_file="default.json"
     )
+    self.assertResourceCalled('Directory', '/var/run/hadoop',
+                              owner = 'hdfs',
+                              group = 'hadoop',
+                              mode = 0755
+                              )
     self.assertResourceCalled('Directory', '/var/run/hadoop/hdfs',
                               owner = 'hdfs',
                               recursive = True,
@@ -100,6 +110,11 @@ class TestDatanode(RMFTestCase):
                        config_file="secured.json"
     )
     self.assert_configure_secured()
+    self.assertResourceCalled('Directory', '/var/run/hadoop',
+                              owner = 'hdfs',
+                              group = 'hadoop',
+                              mode = 0755
+                              )
     self.assertResourceCalled('Directory', '/var/run/hadoop/hdfs',
                               owner = 'hdfs',
                               recursive = True,
@@ -130,6 +145,11 @@ class TestDatanode(RMFTestCase):
                        config_dict = secured_json
     )
     self.assert_configure_secured()
+    self.assertResourceCalled('Directory', '/var/run/hadoop',
+                              owner = 'hdfs',
+                              group = 'hadoop',
+                              mode = 0755
+                              )
     self.assertResourceCalled('Directory', '/var/run/hadoop/hdfs',
                               owner = 'hdfs',
                               recursive = True,
@@ -163,6 +183,11 @@ class TestDatanode(RMFTestCase):
                        config_dict = secured_json
     )
     self.assert_configure_secured()
+    self.assertResourceCalled('Directory', '/var/run/hadoop',
+                              owner = 'hdfs',
+                              group = 'hadoop',
+                              mode = 0755
+                              )
     self.assertResourceCalled('Directory', '/var/run/hadoop/hdfs',
                               owner = 'hdfs',
                               recursive = True,
@@ -187,6 +212,11 @@ class TestDatanode(RMFTestCase):
                        command = "stop",
                        config_file="secured.json"
     )
+    self.assertResourceCalled('Directory', '/var/run/hadoop',
+                              owner = 'hdfs',
+                              group = 'hadoop',
+                              mode = 0755
+                              )
     self.assertResourceCalled('Directory', '/var/run/hadoop/hdfs',
                               owner = 'hdfs',
                               recursive = True,
@@ -221,6 +251,11 @@ class TestDatanode(RMFTestCase):
                        command = "stop",
                        config_dict = secured_json
     )
+    self.assertResourceCalled('Directory', '/var/run/hadoop',
+                              owner = 'hdfs',
+                              group = 'hadoop',
+                              mode = 0755
+                              )
     self.assertResourceCalled('Directory', '/var/run/hadoop/hdfs',
                               owner = 'hdfs',
                               recursive = True,
@@ -257,6 +292,11 @@ class TestDatanode(RMFTestCase):
                        command = "stop",
                        config_dict = secured_json
     )
+    self.assertResourceCalled('Directory', '/var/run/hadoop',
+                              owner = 'hdfs',
+                              group = 'hadoop',
+                              mode = 0755
+                              )
     self.assertResourceCalled('Directory', '/var/run/hadoop/hdfs',
                               owner = 'hdfs',
                               recursive = True,

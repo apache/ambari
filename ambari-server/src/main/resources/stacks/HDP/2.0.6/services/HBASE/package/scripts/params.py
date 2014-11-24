@@ -46,7 +46,8 @@ else:
   hbase_cmd = "/usr/lib/hbase/bin/hbase"
 
 hadoop_conf_dir = "/etc/hadoop/conf"
-hbase_conf_dir = "/etc/hbase/conf"
+hbase_conf_dir_prefix = "/etc/hbase"
+hbase_conf_dir = format("{hbase_conf_dir_prefix}/conf")
 hbase_excluded_hosts = config['commandParams']['excluded_hosts']
 hbase_drain_only = default("/commandParams/mark_draining_only",False)
 hbase_included_hosts = config['commandParams']['included_hosts']

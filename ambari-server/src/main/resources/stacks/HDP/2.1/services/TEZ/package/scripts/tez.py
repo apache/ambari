@@ -24,6 +24,9 @@ from resource_management import *
 def tez():
   import params
 
+  Directory(params.config_dir_prefix,
+            mode=0755
+  )
   Directory(params.config_dir,
             owner = params.tez_user,
             group = params.user_group,

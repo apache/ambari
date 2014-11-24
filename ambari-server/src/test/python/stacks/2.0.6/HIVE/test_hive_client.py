@@ -28,6 +28,9 @@ class TestHiveClient(RMFTestCase):
                        command = "configure",
                        config_file="default_client.json"
     )
+    self.assertResourceCalled('Directory', '/etc/hive',
+        mode = 0755
+    )
     self.assertResourceCalled('Directory', '/etc/hive/conf.server',
         owner = 'hive',
         group = 'hadoop',
@@ -120,6 +123,9 @@ class TestHiveClient(RMFTestCase):
                        classname = "HiveClient",
                        command = "configure",
                        config_file="secured_client.json"
+    )
+    self.assertResourceCalled('Directory', '/etc/hive',
+        mode = 0755
     )
     self.assertResourceCalled('Directory', '/etc/hive/conf.server',
         owner = 'hive',

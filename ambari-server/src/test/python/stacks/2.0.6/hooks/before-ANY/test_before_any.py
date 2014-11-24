@@ -134,9 +134,19 @@ class TestHookBeforeInstall(RMFTestCase):
     self.assertResourceCalled('Execute', '/tmp/changeUid.sh hbase /home/hbase,/tmp/hbase,/usr/bin/hbase,/var/log/hbase,/hadoop/hbase 2>/dev/null',
         not_if = 'test $(id -u hbase) -gt 1000',
     )
+    self.assertResourceCalled('Directory', '/hadoop',
+        mode = 0755
+    )
+    self.assertResourceCalled('Directory', '/etc/hadoop',
+        mode = 0755
+    )
+    self.assertResourceCalled('Directory', '/hadoop/hdfs',
+        owner = 'hdfs',
+        group = 'hadoop'
+    )
     self.assertResourceCalled('Directory', '/etc/hadoop/conf.empty',
-        owner = 'root',
-        group = 'root',
+        owner = 'hdfs',
+        group = 'hadoop',
         recursive = True,
     )
     self.assertResourceCalled('Link', '/etc/hadoop/conf',
@@ -146,5 +156,6 @@ class TestHookBeforeInstall(RMFTestCase):
     self.assertResourceCalled('File', '/etc/hadoop/conf/hadoop-env.sh',
         content = InlineTemplate(self.getConfig()['configurations']['hadoop-env']['content']),
         owner = 'hdfs',
+        group = 'hadoop'
     )
     self.assertNoMoreResources()

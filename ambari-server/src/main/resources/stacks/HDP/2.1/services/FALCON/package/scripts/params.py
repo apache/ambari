@@ -39,7 +39,8 @@ else:
   falcon_home = '/usr/lib/falcon'
 
 hadoop_conf_dir = "/etc/hadoop/conf"
-falcon_conf_dir = '/etc/falcon/conf'
+falcon_conf_dir_prefix = "/etc/falcon"
+falcon_conf_dir = format("{falcon_conf_dir_prefix}/conf")
 oozie_user = config['configurations']['oozie-env']['oozie_user']
 falcon_user = config['configurations']['falcon-env']['falcon_user']
 smoke_user =  config['configurations']['cluster-env']['smokeuser']

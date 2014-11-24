@@ -33,6 +33,7 @@ def pig():
 
   File(format("{pig_conf_dir}/pig-env.sh"),
     owner=params.hdfs_user,
+    mode=0755,
     content=InlineTemplate(params.pig_env_sh_template)
   )
 

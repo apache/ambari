@@ -35,6 +35,11 @@ class TestYarnClient(RMFTestCase):
                        config_file="default.json"
     )
 
+    self.assertResourceCalled('Directory', '/var/run/hadoop-yarn',
+      owner = 'yarn',
+      group = 'hadoop',
+      recursive = True,
+    )
     self.assertResourceCalled('Directory', '/var/run/hadoop-yarn/yarn',
       owner = 'yarn',
       group = 'hadoop',
@@ -45,7 +50,17 @@ class TestYarnClient(RMFTestCase):
       group = 'hadoop',
       recursive = True,
     )
+    self.assertResourceCalled('Directory', '/var/run/hadoop-mapreduce',
+      owner = 'mapred',
+      group = 'hadoop',
+      recursive = True,
+    )
     self.assertResourceCalled('Directory', '/var/run/hadoop-mapreduce/mapred',
+      owner = 'mapred',
+      group = 'hadoop',
+      recursive = True,
+    )
+    self.assertResourceCalled('Directory', '/var/log/hadoop-mapreduce',
       owner = 'mapred',
       group = 'hadoop',
       recursive = True,
@@ -59,6 +74,10 @@ class TestYarnClient(RMFTestCase):
       owner = 'yarn',
       recursive = True,
       ignore_failures = True,
+    )
+    self.assertResourceCalled('Directory', '/hadoop/yarn',
+      owner = 'yarn',
+      group = 'hadoop'
     )
     self.assertResourceCalled('XmlConfig', 'core-site.xml',
       owner = 'hdfs',
@@ -153,6 +172,11 @@ class TestYarnClient(RMFTestCase):
                        command = "configure",
                        config_file="secured.json"
     )
+    self.assertResourceCalled('Directory', '/var/run/hadoop-yarn',
+      owner = 'yarn',
+      group = 'hadoop',
+      recursive = True,
+    )
     self.assertResourceCalled('Directory', '/var/run/hadoop-yarn/yarn',
       owner = 'yarn',
       group = 'hadoop',
@@ -163,7 +187,17 @@ class TestYarnClient(RMFTestCase):
       group = 'hadoop',
       recursive = True,
     )
+    self.assertResourceCalled('Directory', '/var/run/hadoop-mapreduce',
+      owner = 'mapred',
+      group = 'hadoop',
+      recursive = True,
+    )
     self.assertResourceCalled('Directory', '/var/run/hadoop-mapreduce/mapred',
+      owner = 'mapred',
+      group = 'hadoop',
+      recursive = True,
+    )
+    self.assertResourceCalled('Directory', '/var/log/hadoop-mapreduce',
       owner = 'mapred',
       group = 'hadoop',
       recursive = True,
@@ -177,6 +211,10 @@ class TestYarnClient(RMFTestCase):
       owner = 'yarn',
       recursive = True,
       ignore_failures = True,
+    )
+    self.assertResourceCalled('Directory', '/hadoop/yarn',
+      owner = 'yarn',
+      group = 'hadoop'
     )
     self.assertResourceCalled('XmlConfig', 'core-site.xml',
       owner = 'hdfs',
@@ -288,6 +326,11 @@ class TestYarnClient(RMFTestCase):
                        config_overrides = { 'roleParams' : { "component_category": "CLIENT" } }
     )
 
+    self.assertResourceCalled('Directory', '/var/run/hadoop-yarn',
+      owner = 'yarn',
+      group = 'hadoop',
+      recursive = True,
+    )
     self.assertResourceCalled('Directory', '/var/run/hadoop-yarn/yarn',
       owner = 'yarn',
       group = 'hadoop',
@@ -298,7 +341,17 @@ class TestYarnClient(RMFTestCase):
       group = 'hadoop',
       recursive = True,
     )
+    self.assertResourceCalled('Directory', '/var/run/hadoop-mapreduce',
+      owner = 'mapred',
+      group = 'hadoop',
+      recursive = True,
+    )
     self.assertResourceCalled('Directory', '/var/run/hadoop-mapreduce/mapred',
+      owner = 'mapred',
+      group = 'hadoop',
+      recursive = True,
+    )
+    self.assertResourceCalled('Directory', '/var/log/hadoop-mapreduce',
       owner = 'mapred',
       group = 'hadoop',
       recursive = True,
@@ -312,6 +365,10 @@ class TestYarnClient(RMFTestCase):
       owner = 'yarn',
       recursive = True,
       ignore_failures = True,
+    )
+    self.assertResourceCalled('Directory', '/hadoop/yarn',
+      owner = 'yarn',
+      group = 'hadoop'
     )
     self.assertResourceCalled('XmlConfig', 'core-site.xml',
       owner = 'hdfs',

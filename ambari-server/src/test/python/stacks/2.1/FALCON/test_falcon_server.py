@@ -74,24 +74,31 @@ class TestFalconServer(RMFTestCase):
     self.assertResourceCalled('Directory', '/usr/lib/falcon',
                               owner = 'falcon',
                               )
+    self.assertResourceCalled('Directory', '/etc/falcon',
+                              mode = 0755
+    )
     self.assertResourceCalled('Directory', '/etc/falcon/conf',
                               owner = 'falcon',
                               recursive = True
     )
     self.assertResourceCalled('File', '/etc/falcon/conf/falcon-env.sh',
                               content = InlineTemplate(self.getConfig()['configurations']['falcon-env']['content']),
+                              owner = 'falcon'
                               )
     self.assertResourceCalled('File', '/etc/falcon/conf/client.properties',
                               content = Template('client.properties.j2'),
                               mode = 0644,
+                              owner = 'falcon'
                               )
     self.assertResourceCalled('PropertiesFile', '/etc/falcon/conf/runtime.properties',
                               mode = 0644,
                               properties = self.getConfig()['configurations']['falcon-runtime.properties'],
+                              owner = 'falcon'
                               )
     self.assertResourceCalled('PropertiesFile', '/etc/falcon/conf/startup.properties',
                               mode = 0644,
                               properties = self.getConfig()['configurations']['falcon-startup.properties'],
+                              owner = 'falcon'
                               )
     self.assertResourceCalled('HdfsDirectory', '/apps/falcon',
                               security_enabled = False,
@@ -116,6 +123,9 @@ class TestFalconServer(RMFTestCase):
     self.assertResourceCalled('Directory', '/hadoop/falcon',
                               owner = 'falcon',
                               recursive = True,
+                              )
+    self.assertResourceCalled('Directory', '/hadoop/falcon/embeddedmq',
+                              owner = 'falcon'
                               )
     self.assertResourceCalled('Directory', '/hadoop/falcon/embeddedmq/data',
                               owner = 'falcon',

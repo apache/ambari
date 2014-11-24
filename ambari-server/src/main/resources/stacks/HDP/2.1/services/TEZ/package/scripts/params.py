@@ -41,7 +41,8 @@ hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_name']
 hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
 
-config_dir = "/etc/tez/conf"
+config_dir_prefix = "/etc/tez"
+config_dir = format("{config_dir_prefix}/conf")
 
 hadoop_home = '/usr'
 java64_home = config['hostLevelParams']['java_home']

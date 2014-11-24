@@ -85,6 +85,8 @@ fi
 cd $OOZIE_EXAMPLES_DIR
 
 tar -zxf oozie-examples.tar.gz
+chmod -R o+rx examples
+
 sed -i "s|nameNode=hdfs://localhost:8020|nameNode=$NAMENODE|g"  examples/apps/map-reduce/job.properties
 sed -i "s|nameNode=hdfs://localhost:9000|nameNode=$NAMENODE|g"  examples/apps/map-reduce/job.properties
 sed -i "s|jobTracker=localhost:8021|jobTracker=$JOBTRACKER|g" examples/apps/map-reduce/job.properties

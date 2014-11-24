@@ -63,17 +63,19 @@ def yarn(name = None):
   if name == "nodemanager":
     Directory(params.nm_local_dirs.split(',') + params.nm_log_dirs.split(','),
               owner=params.yarn_user,
+              group=params.user_group,
               recursive=True,
               ignore_failures=True,
+              mode=0775
               )
 
-  Directory([params.yarn_pid_dir, params.yarn_log_dir],
+  Directory([params.yarn_pid_dir_prefix, params.yarn_pid_dir, params.yarn_log_dir],
             owner=params.yarn_user,
             group=params.user_group,
             recursive=True
   )
 
-  Directory([params.mapred_pid_dir, params.mapred_log_dir],
+  Directory([params.mapred_pid_dir_prefix, params.mapred_pid_dir, params.mapred_log_dir_prefix, params.mapred_log_dir],
             owner=params.mapred_user,
             group=params.user_group,
             recursive=True
@@ -82,6 +84,10 @@ def yarn(name = None):
             owner=params.yarn_user,
             recursive=True,
             ignore_failures=True,
+  )
+  Directory(params.yarn_data_dir,
+            owner=params.yarn_user,
+            group=params.user_group
   )
 
   XmlConfig("core-site.xml",

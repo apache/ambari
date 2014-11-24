@@ -158,6 +158,10 @@ class TestGangliaServer(RMFTestCase):
            '/bin',
            '/usr/bin'],
     )
+    self.assertResourceCalled('Directory', '/var/run/ganglia',
+        mode=0755,
+        recursive=True
+    )
     self.assertResourceCalled('Directory', '/var/lib/ganglia-web/dwoo',
         recursive = True,
         mode = 0755,

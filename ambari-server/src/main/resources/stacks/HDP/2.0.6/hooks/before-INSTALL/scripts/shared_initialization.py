@@ -48,7 +48,7 @@ def setup_java():
   if params.jdk_name.endswith(".bin"):
     install_cmd = format("mkdir -p {java_dir} ; chmod +x {jdk_curl_target}; cd {java_dir} ; echo A | {jdk_curl_target} -noregister > /dev/null 2>&1")
   elif params.jdk_name.endswith(".gz"):
-    install_cmd = format("mkdir -p {java_dir} ; cd {java_dir} ; tar -xf {jdk_curl_target} > /dev/null 2>&1")
+    install_cmd = format("mkdir -p {java_dir} ; chmod a+x {java_dir} ; cd {java_dir} ; tar -xf {jdk_curl_target} > /dev/null 2>&1")
 
   Execute(install_cmd,
           path = ["/bin","/usr/bin/"],

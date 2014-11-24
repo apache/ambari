@@ -30,6 +30,9 @@ class TestHBaseClient(RMFTestCase):
                    config_file="secured.json"
     )
 
+    self.assertResourceCalled('Directory', '/etc/hbase',
+      mode = 0755
+    )
     self.assertResourceCalled('Directory', '/etc/hbase/conf',
       owner = 'hbase',
       group = 'hadoop',
@@ -37,6 +40,13 @@ class TestHBaseClient(RMFTestCase):
     )
     self.assertResourceCalled('Directory', '/hadoop/hbase',
       owner = 'hbase',
+      mode=0775,
+      recursive = True,
+    )
+    self.assertResourceCalled('Directory', '/hadoop/hbase/local',
+      owner = 'hbase',
+      group = 'hadoop',
+      mode=0775,
       recursive = True,
     )
     self.assertResourceCalled('Directory', '/hadoop/hbase/local/jars',
@@ -101,7 +111,9 @@ class TestHBaseClient(RMFTestCase):
                    command = "configure",
                    config_file="default.json"
     )
-    
+    self.assertResourceCalled('Directory', '/etc/hbase',
+      mode = 0755
+    )
     self.assertResourceCalled('Directory', '/etc/hbase/conf',
       owner = 'hbase',
       group = 'hadoop',
@@ -109,6 +121,13 @@ class TestHBaseClient(RMFTestCase):
     )
     self.assertResourceCalled('Directory', '/hadoop/hbase',
       owner = 'hbase',
+      mode=0775,
+      recursive = True,
+    )
+    self.assertResourceCalled('Directory', '/hadoop/hbase/local',
+      owner = 'hbase',
+      group = 'hadoop',
+      mode=0775,
       recursive = True,
     )
     self.assertResourceCalled('Directory', '/hadoop/hbase/local/jars',

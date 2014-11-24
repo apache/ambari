@@ -39,7 +39,11 @@ def hive(name=None):
                          mode=params.hive_hdfs_user_mode
     )
     params.HdfsDirectory(None, action="create")
-  
+
+  Directory(params.hive_conf_dir_prefix,
+            mode=0755
+  )
+
   # We should change configurations for client as well as for server.
   # The reason is that stale-configs are service-level, not component.
   for conf_dir in params.hive_conf_dirs_list:

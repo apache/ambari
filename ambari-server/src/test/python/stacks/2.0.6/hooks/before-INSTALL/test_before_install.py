@@ -45,7 +45,7 @@ class TestHookBeforeInstall(RMFTestCase):
         path = ['/bin', '/usr/bin/'],
         environment = {'no_proxy': 'c6401.ambari.apache.org'},
     )
-    self.assertResourceCalled('Execute', 'mkdir -p /usr/jdk64 ; cd /usr/jdk64 ; tar -xf /tmp/AMBARI-artifacts//jdk-7u67-linux-x64.tar.gz > /dev/null 2>&1',
+    self.assertResourceCalled('Execute', 'mkdir -p /usr/jdk64 ; chmod a+x /usr/jdk64 ; cd /usr/jdk64 ; tar -xf /tmp/AMBARI-artifacts//jdk-7u67-linux-x64.tar.gz > /dev/null 2>&1',
         not_if = 'test -e /usr/jdk64/jdk1.7.0_45/bin/java',
         path = ['/bin', '/usr/bin/'],
     )

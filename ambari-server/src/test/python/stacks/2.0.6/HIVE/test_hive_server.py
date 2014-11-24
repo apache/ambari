@@ -221,6 +221,9 @@ class TestHiveServer(RMFTestCase):
         bin_dir = '/usr/bin',
         action = ['create'],
     )
+    self.assertResourceCalled('Directory', '/etc/hive',
+        mode = 0755
+    )
     self.assertResourceCalled('Directory', '/etc/hive/conf.server',
         owner = 'hive',
         group = 'hadoop',
@@ -364,6 +367,9 @@ class TestHiveServer(RMFTestCase):
         bin_dir = '/usr/bin',
         kinit_path_local = '/usr/bin/kinit',
         action = ['create'],
+    )
+    self.assertResourceCalled('Directory', '/etc/hive',
+        mode = 0755
     )
     self.assertResourceCalled('Directory', '/etc/hive/conf.server',
         owner = 'hive',

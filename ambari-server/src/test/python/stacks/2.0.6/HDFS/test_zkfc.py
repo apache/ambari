@@ -59,6 +59,11 @@ class TestZkfc(RMFTestCase):
                               content = Template('slaves.j2'),
                               owner = 'hdfs',
                               )
+    self.assertResourceCalled('Directory', '/var/run/hadoop',
+                              owner = 'hdfs',
+                              group = 'hadoop',
+                              mode = 0755
+                              )
     self.assertResourceCalled('Directory', '/var/run/hadoop/hdfs',
                               owner = 'hdfs',
                               recursive = True,
@@ -138,6 +143,11 @@ class TestZkfc(RMFTestCase):
     self.assertResourceCalled('File', '/etc/hadoop/conf/slaves',
                               content = Template('slaves.j2'),
                               owner = 'root',
+                              )
+    self.assertResourceCalled('Directory', '/var/run/hadoop',
+                              owner = 'hdfs',
+                              group = 'hadoop',
+                              mode = 0755
                               )
     self.assertResourceCalled('Directory', '/var/run/hadoop/hdfs',
                               owner = 'hdfs',

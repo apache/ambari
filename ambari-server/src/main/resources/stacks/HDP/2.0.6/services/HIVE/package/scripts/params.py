@@ -62,9 +62,10 @@ else:
     webhcat_bin_dir = '/usr/lib/hive-hcatalog/sbin'
 
 hadoop_conf_dir = "/etc/hadoop/conf"
-hive_conf_dir = "/etc/hive/conf"
-hive_client_conf_dir = "/etc/hive/conf"
-hive_server_conf_dir = '/etc/hive/conf.server'
+hive_conf_dir_prefix = "/etc/hive"
+hive_conf_dir = format("{hive_conf_dir_prefix}/conf")
+hive_client_conf_dir = format("{hive_conf_dir_prefix}/conf")
+hive_server_conf_dir = format("{hive_conf_dir_prefix}/conf.server")
 
 if hdp_stack_version != "" and compare_versions(hdp_stack_version, "2.1.0.0") < 0:
   hcat_conf_dir = '/etc/hcatalog/conf'

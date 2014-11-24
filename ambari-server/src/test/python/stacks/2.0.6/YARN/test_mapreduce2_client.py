@@ -34,6 +34,11 @@ class TestMapReduce2Client(RMFTestCase):
                        config_file="default.json"
     )
 
+    self.assertResourceCalled('Directory', '/var/run/hadoop-yarn',
+      owner = 'yarn',
+      group = 'hadoop',
+      recursive = True,
+    )
     self.assertResourceCalled('Directory', '/var/run/hadoop-yarn/yarn',
       owner = 'yarn',
       group = 'hadoop',
@@ -44,7 +49,17 @@ class TestMapReduce2Client(RMFTestCase):
       group = 'hadoop',
       recursive = True,
     )
+    self.assertResourceCalled('Directory', '/var/run/hadoop-mapreduce',
+      owner = 'mapred',
+      group = 'hadoop',
+      recursive = True,
+    )
     self.assertResourceCalled('Directory', '/var/run/hadoop-mapreduce/mapred',
+      owner = 'mapred',
+      group = 'hadoop',
+      recursive = True,
+    )
+    self.assertResourceCalled('Directory', '/var/log/hadoop-mapreduce',
       owner = 'mapred',
       group = 'hadoop',
       recursive = True,
@@ -58,6 +73,10 @@ class TestMapReduce2Client(RMFTestCase):
       owner = 'yarn',
       recursive = True,
       ignore_failures = True,
+    )
+    self.assertResourceCalled('Directory', '/hadoop/yarn',
+      owner = 'yarn',
+      group = 'hadoop'
     )
     self.assertResourceCalled('XmlConfig', 'core-site.xml',
       owner = 'hdfs',
@@ -152,6 +171,11 @@ class TestMapReduce2Client(RMFTestCase):
                        command = "configure",
                        config_file="secured.json"
     )
+    self.assertResourceCalled('Directory', '/var/run/hadoop-yarn',
+      owner = 'yarn',
+      group = 'hadoop',
+      recursive = True,
+    )
     self.assertResourceCalled('Directory', '/var/run/hadoop-yarn/yarn',
       owner = 'yarn',
       group = 'hadoop',
@@ -162,7 +186,17 @@ class TestMapReduce2Client(RMFTestCase):
       group = 'hadoop',
       recursive = True,
     )
+    self.assertResourceCalled('Directory', '/var/run/hadoop-mapreduce',
+      owner = 'mapred',
+      group = 'hadoop',
+      recursive = True,
+    )
     self.assertResourceCalled('Directory', '/var/run/hadoop-mapreduce/mapred',
+      owner = 'mapred',
+      group = 'hadoop',
+      recursive = True,
+    )
+    self.assertResourceCalled('Directory', '/var/log/hadoop-mapreduce',
       owner = 'mapred',
       group = 'hadoop',
       recursive = True,
@@ -176,6 +210,10 @@ class TestMapReduce2Client(RMFTestCase):
       owner = 'yarn',
       recursive = True,
       ignore_failures = True,
+    )
+    self.assertResourceCalled('Directory', '/hadoop/yarn',
+      owner = 'yarn',
+      group = 'hadoop'
     )
     self.assertResourceCalled('XmlConfig', 'core-site.xml',
       owner = 'hdfs',

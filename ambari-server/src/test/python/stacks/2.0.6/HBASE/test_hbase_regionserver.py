@@ -105,6 +105,9 @@ class TestHbaseRegionServer(RMFTestCase):
     self.assertNoMoreResources()
 
   def assert_configure_default(self):
+    self.assertResourceCalled('Directory', '/etc/hbase',
+      mode = 0755
+    )
     self.assertResourceCalled('Directory', '/etc/hbase/conf',
       owner = 'hbase',
       group = 'hadoop',
@@ -112,6 +115,13 @@ class TestHbaseRegionServer(RMFTestCase):
     )
     self.assertResourceCalled('Directory', '/hadoop/hbase',
       owner = 'hbase',
+      mode=0775,
+      recursive = True,
+    )
+    self.assertResourceCalled('Directory', '/hadoop/hbase/local',
+      owner = 'hbase',
+      group = 'hadoop',
+      mode=0775,
       recursive = True,
     )
     self.assertResourceCalled('Directory', '/hadoop/hbase/local/jars',
@@ -204,6 +214,9 @@ class TestHbaseRegionServer(RMFTestCase):
                               )
 
   def assert_configure_secured(self):
+    self.assertResourceCalled('Directory', '/etc/hbase',
+      mode = 0755
+    )
     self.assertResourceCalled('Directory', '/etc/hbase/conf',
       owner = 'hbase',
       group = 'hadoop',
@@ -211,6 +224,13 @@ class TestHbaseRegionServer(RMFTestCase):
     )
     self.assertResourceCalled('Directory', '/hadoop/hbase',
       owner = 'hbase',
+      mode=0775,
+      recursive = True,
+    )
+    self.assertResourceCalled('Directory', '/hadoop/hbase/local',
+      owner = 'hbase',
+      group = 'hadoop',
+      mode=0775,
       recursive = True,
     )
     self.assertResourceCalled('Directory', '/hadoop/hbase/local/jars',

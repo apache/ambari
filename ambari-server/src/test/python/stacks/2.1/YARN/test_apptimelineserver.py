@@ -75,6 +75,11 @@ class TestAppTimelineServer(RMFTestCase):
     self.assertNoMoreResources()
 
   def assert_configure_default(self):
+    self.assertResourceCalled('Directory', '/var/run/hadoop-yarn',
+                              owner = 'yarn',
+                              group = 'hadoop',
+                              recursive = True,
+                              )
     self.assertResourceCalled('Directory', '/var/run/hadoop-yarn/yarn',
                               owner = 'yarn',
                               group = 'hadoop',
@@ -85,7 +90,17 @@ class TestAppTimelineServer(RMFTestCase):
                               group = 'hadoop',
                               recursive = True,
                               )
+    self.assertResourceCalled('Directory', '/var/run/hadoop-mapreduce',
+                              owner = 'mapred',
+                              group = 'hadoop',
+                              recursive = True,
+                              )
     self.assertResourceCalled('Directory', '/var/run/hadoop-mapreduce/mapred',
+                              owner = 'mapred',
+                              group = 'hadoop',
+                              recursive = True,
+                              )
+    self.assertResourceCalled('Directory', '/var/log/hadoop-mapreduce',
                               owner = 'mapred',
                               group = 'hadoop',
                               recursive = True,
@@ -99,6 +114,10 @@ class TestAppTimelineServer(RMFTestCase):
                               owner = 'yarn',
                               recursive = True,
                               ignore_failures = True,
+                              )
+    self.assertResourceCalled('Directory', '/hadoop/yarn',
+                              owner = 'yarn',
+                              group = 'hadoop'
                               )
     self.assertResourceCalled('XmlConfig', 'core-site.xml',
                               owner = 'hdfs',

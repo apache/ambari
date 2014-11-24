@@ -128,9 +128,10 @@ def oozie_server_specific():
     not_if="ls {pid_file} >/dev/null 2>&1 && !(ps `cat {pid_file}` >/dev/null 2>&1)"
   )
   
-  oozie_server_directorties = [params.oozie_pid_dir, params.oozie_log_dir, params.oozie_tmp_dir, params.oozie_data_dir, params.oozie_lib_dir, params.oozie_webapps_dir, params.oozie_webapps_conf_dir, params.oozie_server_dir]
+  oozie_server_directorties = [params.oozie_pid_dir, params.oozie_log_dir, params.oozie_tmp_dir, os.path.abspath(os.path.join(params.oozie_data_dir, "..")), params.oozie_data_dir, params.oozie_lib_dir, params.oozie_webapps_dir, params.oozie_webapps_conf_dir, params.oozie_server_dir]
   Directory( oozie_server_directorties,
     owner = params.oozie_user,
+    group = params.user_group,
     mode = 0755,
     recursive = True
   )
@@ -139,12 +140,12 @@ def oozie_server_specific():
   cmd2 = format("cd {oozie_home} && mkdir -p {oozie_tmp_dir}")
   
   # this is different for HDP1
-  cmd3 = format("cd {oozie_home} && chown {oozie_user}:{user_group} {oozie_tmp_dir} && mkdir -p {oozie_libext_dir} && cp {ext_js_path} {oozie_libext_dir}")
+  cmd3 = format("cd {oozie_home} && chown {oozie_user}:{user_group} {oozie_tmp_dir} && mkdir -p {oozie_libext_dir} && cp {ext_js_path} {oozie_libext_dir} && chown {oozie_user}:{user_group} {oozie_libext_dir}/{ext_js_file}  && chown -RL {oozie_user}:{user_group} {oozie_webapps_conf_dir}")
   if params.jdbc_driver_name=="com.mysql.jdbc.Driver" or params.jdbc_driver_name=="oracle.jdbc.driver.OracleDriver":
     cmd3 += format(" && cp {jdbc_driver_jar} {oozie_libext_dir}")
   #falcon el extension
   if params.has_falcon_host:
-    cmd3 += format(' && cp {falcon_home}/oozie/ext/falcon-oozie-el-extension-*.jar {oozie_libext_dir}')
+    cmd3 += format(' && cp {falcon_home}/oozie/ext/falcon-oozie-el-extension-*.jar {oozie_libext_dir} && chown {oozie_user}:{user_group} {oozie_libext_dir}/falcon-oozie-el-extension-*.jar')
   if params.lzo_enabled:
     Package(params.lzo_packages_for_current_host)
 

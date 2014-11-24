@@ -39,6 +39,12 @@ def namenode(action=None, do_format=True):
          group=params.user_group
     )
 
+    Directory(params.hadoop_pid_dir_prefix,
+              mode=0755,
+              owner=params.hdfs_user,
+              group=params.user_group
+    )
+
     service(
       action="start", name="namenode", user=params.hdfs_user,
       create_pid_dir=True,

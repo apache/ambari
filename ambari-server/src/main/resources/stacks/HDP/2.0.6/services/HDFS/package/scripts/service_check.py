@@ -95,7 +95,8 @@ class HdfsServiceCheck(Script):
         "su -s /bin/bash - {smoke_test_user} -c 'python {checkWebUIFilePath} -m "
         "{comma_sep_jn_hosts} -p {journalnode_port}'")
       File(checkWebUIFilePath,
-           content=StaticFile(checkWebUIFileName))
+           content=StaticFile(checkWebUIFileName),
+           mode=0775)
 
       Execute(checkWebUICmd,
               logoutput=True,
