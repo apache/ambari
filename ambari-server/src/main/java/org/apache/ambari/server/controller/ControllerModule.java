@@ -244,7 +244,7 @@ public class ControllerModule extends AbstractModule {
 
     requestStaticInjection(ExecutionCommandWrapper.class);
 
-    bindByAnnotation();
+    bindByAnnotation(null);
   }
 
 
@@ -334,28 +334,39 @@ public class ControllerModule extends AbstractModule {
    * A second example of where this is needed is when classes require static
    * members that are available via injection.
    * <p/>
-   * This currently scans {@code org.apache.ambari.server} for any
-   * {@link EagerSingleton} or {@link StaticallyInject} or {@link AmbariService}
-   * instances.
+   * If {@code beanDefinitions} is empty or null this will scan 
+   * {@code org.apache.ambari.server} (currently) for any {@link EagerSingleton}
+   * or {@link StaticallyInject} or {@link AmbariService} instances.
+   *
+   * @param beanDefinitions the set of bean definitions. If it is empty or
+   *                        {@code null} scan will occur.
+   *
+   * @return the set of bean definitions that was found during scan if
+   *         {@code beanDefinitions} was null or empty. Else original
+   *         {@code beanDefinitions} will be returned.
+   *
    */
+  // Method is protected and returns a set of bean definitions for testing convenience.
   @SuppressWarnings("unchecked")
-  private void bindByAnnotation() {
-    ClassPathScanningCandidateComponentProvider scanner =
-        new ClassPathScanningCandidateComponentProvider(false);
-
+  protected Set<BeanDefinition> bindByAnnotation(Set<BeanDefinition> beanDefinitions) {
     List<Class<? extends Annotation>> classes = Arrays.asList(
         EagerSingleton.class, StaticallyInject.class, AmbariService.class);
 
-    // match only singletons that are eager listeners
-    for (Class<? extends Annotation> cls : classes) {
-      scanner.addIncludeFilter(new AnnotationTypeFilter(cls));
-    }
+    if (null == beanDefinitions || beanDefinitions.size() == 0) {
+      ClassPathScanningCandidateComponentProvider scanner =
+          new ClassPathScanningCandidateComponentProvider(false);
 
-    Set<BeanDefinition> beanDefinitions = scanner.findCandidateComponents("org.apache.ambari.server");
+      // match only singletons that are eager listeners
+      for (Class<? extends Annotation> cls : classes) {
+        scanner.addIncludeFilter(new AnnotationTypeFilter(cls));
+      }
+
+      beanDefinitions = scanner.findCandidateComponents("org.apache.ambari.server");
+    }
 
     if (null == beanDefinitions || beanDefinitions.size() == 0) {
       LOG.warn("No instances of {} found to register", classes);
-      return;
+      return beanDefinitions;
     }
 
     Set<com.google.common.util.concurrent.Service> services =
@@ -404,5 +415,7 @@ public class ControllerModule extends AbstractModule {
 
     ServiceManager manager = new ServiceManager(services);
     bind(ServiceManager.class).toInstance(manager);
+
+    return beanDefinitions;
   }
 }

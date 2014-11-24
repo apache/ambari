@@ -21,10 +21,39 @@ package org.apache.ambari.server.orm;
 import com.google.inject.AbstractModule;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.ControllerModule;
+import org.springframework.beans.factory.config.BeanDefinition;
 
+import java.util.Collections;
 import java.util.Properties;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class InMemoryDefaultTestModule extends AbstractModule {
+
+  /**
+   * Saves all {@link ControllerModule} logic, but changes bean discovery mechanism.
+   * In this implementation scan for {@link org.apache.ambari.server.EagerSingleton}
+   * and {@link org.apache.ambari.server.StaticallyInject} and
+   * {@link org.apache.ambari.server.AmbariService} annotations will not be run for every test.
+   */
+  private static class BeanDefinitionsCachingTestControllerModule extends ControllerModule {
+
+    // Access should be synchronised to allow concurrent test runs.
+    private static final AtomicReference<Set<BeanDefinition>> foundBeanDefinitions
+        = new AtomicReference<Set<BeanDefinition>>(null);
+
+    public BeanDefinitionsCachingTestControllerModule(Properties properties) throws Exception {
+      super(properties);
+    }
+
+    @Override
+    protected Set<BeanDefinition> bindByAnnotation(Set<BeanDefinition> beanDefinitions) {
+      Set<BeanDefinition> newBeanDefinitions = super.bindByAnnotation(foundBeanDefinitions.get());
+      foundBeanDefinitions.compareAndSet(null, Collections.unmodifiableSet(newBeanDefinitions));
+      return null;
+    }
+  }
+
   Properties properties = new Properties();
 
   @Override
@@ -39,7 +68,7 @@ public class InMemoryDefaultTestModule extends AbstractModule {
     properties.setProperty(Configuration.SHARED_RESOURCES_DIR_KEY, "src/test/resources/");
 
     try {
-      install(new ControllerModule(properties));
+      install(new BeanDefinitionsCachingTestControllerModule(properties));
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
