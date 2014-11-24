@@ -49,8 +49,6 @@ class Heartbeat:
 
     nodeStatus = { "status" : "HEALTHY",
                    "cause" : "NONE" }
-    nodeStatus["alerts"] = []
-
 
     heartbeat = { 'responseId'        : int(id),
                   'timestamp'         : timestamp,
@@ -94,8 +92,6 @@ class Heartbeat:
         logger.debug("agentEnv: %s", str(nodeInfo))
         logger.debug("mounts: %s", str(mounts))
 
-    nodeStatus["alerts"] = hostInfo.createAlerts(nodeStatus["alerts"])
-    
     if self.collector is not None:
       heartbeat['alerts'] = self.collector.alerts()
     

@@ -33,6 +33,21 @@ public abstract class AmbariEvent {
     SERVICE_INSTALL_SUCCESS,
 
     /**
+     * A service was successfully removed.
+     */
+    SERVICE_REMOVED_SUCCESS,
+
+    /**
+     * A service component was successfully installed.
+     */
+    SERVICE_COMPONENT_INSTALL_SUCCESS,
+
+    /**
+     * A service component was successfully uninstalled.
+     */
+    SERVICE_COMPONENT_UNINSTALLED_SUCCESS,
+
+    /**
      * An alert definition is registered with the system.
      */
     ALERT_DEFINITION_REGISTRATION,
@@ -41,6 +56,26 @@ public abstract class AmbariEvent {
      * An alert definition is removed from the system.
      */
     ALERT_DEFINITION_REMOVAL,
+
+    /**
+     * The alert definition has was invalidated.
+     */
+    ALERT_DEFINITION_HASH_INVALIDATION,
+
+    /**
+     * The alert definition was disabled.
+     */
+    ALERT_DEFINITION_DISABLED,
+
+    /**
+     * A host was added to the cluster.
+     */
+    HOST_ADDED,
+
+    /**
+     * A host was removed from the cluster.
+     */
+    HOST_REMOVED,
 
     /**
      * A host/service/component has had a maintenance mode change.

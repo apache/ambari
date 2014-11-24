@@ -25,8 +25,8 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.ambari.server.events.AlertStateChangeEvent;
-import org.apache.ambari.server.events.listeners.AlertServiceStateListener;
-import org.apache.ambari.server.events.listeners.AlertStateChangedListener;
+import org.apache.ambari.server.events.listeners.alerts.AlertServiceStateListener;
+import org.apache.ambari.server.events.listeners.alerts.AlertStateChangedListener;
 import org.apache.ambari.server.events.publishers.AlertEventPublisher;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;

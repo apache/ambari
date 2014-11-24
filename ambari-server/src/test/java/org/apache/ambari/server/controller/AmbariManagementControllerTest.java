@@ -83,6 +83,7 @@ import org.apache.ambari.server.controller.internal.RequestResourceFilter;
 import org.apache.ambari.server.controller.internal.ServiceResourceProviderTest;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.customactions.ActionDefinition;
+import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
@@ -93,7 +94,6 @@ import org.apache.ambari.server.security.authorization.Users;
 import org.apache.ambari.server.serveraction.ServerAction;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.ConfigHelper;
@@ -103,6 +103,7 @@ import org.apache.ambari.server.state.HostComponentAdminState;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.RepositoryInfo;
+import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentFactory;
@@ -123,6 +124,7 @@ import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStoppedEve
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.easymock.Capture;
+import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -8383,8 +8385,8 @@ public class AmbariManagementControllerTest {
     controller.deleteHostComponents(schRequests);
     ServiceComponentHost sch = sc1.getServiceComponentHost(host1);
     assertTrue(sch.isRestartRequired());
-  }  
-  
+  }
+
   @Test
   public void testDeleteHost() throws Exception {
     String clusterName = "foo1";
@@ -8878,8 +8880,13 @@ public class AmbariManagementControllerTest {
         properties.setProperty(Configuration.OS_VERSION_KEY,
             "centos5");
         properties.setProperty(Configuration.SHARED_RESOURCES_DIR_KEY, "src/test/resources/");
+
         try {
           install(new ControllerModule(properties));
+
+          // ambari events interfere with the workflow of this test
+          bind(AmbariEventPublisher.class).toInstance(
+              EasyMock.createMock(AmbariEventPublisher.class));
         } catch (Exception e) {
           throw new RuntimeException(e);
         }

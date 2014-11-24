@@ -24,16 +24,15 @@ import java.util.Map;
 
 import junit.framework.Assert;
 
-import org.apache.ambari.server.events.MaintenanceModeEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.MaintenanceState;
+import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentFactory;
@@ -122,6 +121,49 @@ public class EventsTest {
   public void teardown() throws Exception {
     m_injector.getInstance(PersistService.class).stop();
     m_injector = null;
+  }
+
+  /**
+   * Tests that {@link ServiceInstalledEvent}s are fired correctly.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testServiceInstalledEvent() throws Exception {
+    Class<?> eventClass = ServiceInstalledEvent.class;
+    Assert.assertFalse(m_listener.isEventReceived(eventClass));
+    installHdfsService();
+    Assert.assertTrue(m_listener.isEventReceived(eventClass));
+  }
+
+  /**
+   * Tests that {@link ServiceRemovedEvent}s are fired correctly.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testServiceRemovedEvent() throws Exception {
+    Class<?> eventClass = ServiceRemovedEvent.class;
+    Assert.assertFalse(m_listener.isEventReceived(eventClass));
+    installHdfsService();
+    m_cluster.deleteAllServices();
+    Assert.assertTrue(m_listener.isEventReceived(eventClass));
+  }
+
+  /**
+   * Tests that {@link ServiceComponentUninstalledEvent}s are fired correctly.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testServiceComponentUninstalledEvent() throws Exception {
+    Class<?> eventClass = ServiceComponentUninstalledEvent.class;
+    installHdfsService();
+
+    Assert.assertFalse(m_listener.isEventReceived(eventClass));
+    m_cluster.getServiceComponentHosts(HOSTNAME).get(0).delete();
+
+    Assert.assertTrue(m_listener.isEventReceived(eventClass));
   }
 
   /**

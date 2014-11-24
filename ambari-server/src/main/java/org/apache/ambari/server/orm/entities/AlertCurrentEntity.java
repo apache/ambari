@@ -53,7 +53,11 @@ import org.apache.ambari.server.state.MaintenanceState;
     @NamedQuery(name = "AlertCurrentEntity.findByHostAndName", query = "SELECT alert FROM AlertCurrentEntity alert WHERE alert.alertHistory.clusterId = :clusterId AND alert.alertHistory.alertDefinition.definitionName = :definitionName AND alert.alertHistory.hostName = :hostName"),
     @NamedQuery(name = "AlertCurrentEntity.findByNameAndNoHost", query = "SELECT alert FROM AlertCurrentEntity alert WHERE alert.alertHistory.clusterId = :clusterId AND alert.alertHistory.alertDefinition.definitionName = :definitionName AND alert.alertHistory.hostName IS NULL"),
     @NamedQuery(name = "AlertCurrentEntity.removeByHistoryId", query = "DELETE FROM AlertCurrentEntity alert WHERE alert.alertHistory.alertId = :historyId"),
-    @NamedQuery(name = "AlertCurrentEntity.removeByDefinitionId", query = "DELETE FROM AlertCurrentEntity alert WHERE alert.alertDefinition.definitionId = :definitionId") })
+    @NamedQuery(name = "AlertCurrentEntity.removeByDefinitionId", query = "DELETE FROM AlertCurrentEntity alert WHERE alert.alertDefinition.definitionId = :definitionId"),
+    @NamedQuery(name = "AlertCurrentEntity.removeDisabled", query = "DELETE FROM AlertCurrentEntity alert WHERE alert.alertDefinition.enabled = 0"),
+    @NamedQuery(name = "AlertCurrentEntity.removeByService", query = "DELETE FROM AlertCurrentEntity alert WHERE alert.alertHistory.serviceName = :serviceName"),
+    @NamedQuery(name = "AlertCurrentEntity.removeByHost", query = "DELETE FROM AlertCurrentEntity alert WHERE alert.alertHistory.hostName = :hostName"),
+    @NamedQuery(name = "AlertCurrentEntity.removeByHostComponent", query = "DELETE FROM AlertCurrentEntity alert WHERE alert.alertHistory.serviceName = :serviceName AND alert.alertHistory.componentName = :componentName AND alert.alertHistory.hostName = :hostName") })
 public class AlertCurrentEntity {
 
   @Id

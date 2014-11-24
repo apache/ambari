@@ -24,9 +24,9 @@ import junit.framework.Assert;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.events.AlertDefinitionDeleteEvent;
 import org.apache.ambari.server.events.AmbariEvent;
-import org.apache.ambari.server.events.listeners.AlertLifecycleListener;
-import org.apache.ambari.server.events.listeners.AlertServiceStateListener;
-import org.apache.ambari.server.events.listeners.AlertStateChangedListener;
+import org.apache.ambari.server.events.listeners.alerts.AlertLifecycleListener;
+import org.apache.ambari.server.events.listeners.alerts.AlertServiceStateListener;
+import org.apache.ambari.server.events.listeners.alerts.AlertStateChangedListener;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
@@ -129,6 +129,21 @@ public class AlertEventPublisherTest {
     Assert.assertEquals(0, dispatchDao.findAllGroups().size());
     installHdfsService();
     Assert.assertEquals(1, dispatchDao.findAllGroups().size());
+  }
+
+  /**
+   * Tests that a default {@link AlertGroupEntity} is removed when a service is
+   * removed.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testDefaultAlertGroupRemoved() throws Exception {
+    Assert.assertEquals(0, dispatchDao.findAllGroups().size());
+    installHdfsService();
+    Assert.assertEquals(1, dispatchDao.findAllGroups().size());
+    cluster.getService("HDFS").delete();
+    Assert.assertEquals(0, dispatchDao.findAllGroups().size());
   }
 
   /**

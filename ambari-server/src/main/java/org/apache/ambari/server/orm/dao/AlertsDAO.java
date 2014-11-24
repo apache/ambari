@@ -436,6 +436,87 @@ public class AlertsDAO {
   }
 
   /**
+   * Remove all current alerts that are disabled.
+   *
+   * @return the number of alerts removed.
+   */
+  @Transactional
+  public int removeCurrentDisabledAlerts() {
+    TypedQuery<AlertCurrentEntity> query = entityManagerProvider.get().createNamedQuery(
+        "AlertCurrentEntity.removeDisabled", AlertCurrentEntity.class);
+
+    return query.executeUpdate();
+  }
+
+  /**
+   * Remove the current alert that matches the given service. This is used in
+   * cases where the service was removed from the cluster.
+   *
+   * @param serviceName
+   *          the name of the service that the current alerts are being removed
+   *          for (not {@code null}).
+   * @return the number of alerts removed.
+   */
+  @Transactional
+  public int removeCurrentByService(String serviceName) {
+
+    TypedQuery<AlertCurrentEntity> query = entityManagerProvider.get().createNamedQuery(
+        "AlertCurrentEntity.removeByService", AlertCurrentEntity.class);
+
+    query.setParameter("serviceName", serviceName);
+    return query.executeUpdate();
+  }
+
+  /**
+   * Remove the current alert that matches the given host. This is used in cases
+   * where the host was removed from the cluster.
+   *
+   * @param hostName
+   *          the name of the host that the current alerts are being removed for
+   *          (not {@code null}).
+   * @return the number of alerts removed.
+   */
+  @Transactional
+  public int removeCurrentByHost(String hostName) {
+
+    TypedQuery<AlertCurrentEntity> query = entityManagerProvider.get().createNamedQuery(
+        "AlertCurrentEntity.removeByHost", AlertCurrentEntity.class);
+
+    query.setParameter("hostName", hostName);
+    return query.executeUpdate();
+  }
+
+  /**
+   * Remove the current alert that matches the given service, component and
+   * host. This is used in cases where the component was removed from the host.
+   *
+   * @param serviceName
+   *          the name of the service that the current alerts are being removed
+   *          for (not {@code null}).
+   * @param componentName
+   *          the name of the component that the current alerts are being
+   *          removed for (not {@code null}).
+   * @param hostName
+   *          the name of the host that the current alerts are being removed for
+   *          (not {@code null}).
+   * @return the number of alerts removed.
+   */
+  @Transactional
+  public int removeCurrentByServiceComponentHost(String serviceName,
+      String componentName,
+      String hostName) {
+
+    TypedQuery<AlertCurrentEntity> query = entityManagerProvider.get().createNamedQuery(
+        "AlertCurrentEntity.removeByHostComponent", AlertCurrentEntity.class);
+
+    query.setParameter("serviceName", serviceName);
+    query.setParameter("componentName", componentName);
+    query.setParameter("hostName", hostName);
+
+    return query.executeUpdate();
+  }
+
+  /**
    * Persists a new alert.
    *
    * @param alert

@@ -29,6 +29,7 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.ServiceResponse;
 import org.apache.ambari.server.events.MaintenanceModeEvent;
 import org.apache.ambari.server.events.ServiceInstalledEvent;
+import org.apache.ambari.server.events.ServiceRemovedEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.ClusterServiceDAO;
@@ -699,6 +700,14 @@ public class ServiceImpl implements Service {
         if (persisted) {
           removeEntities();
           persisted = false;
+
+          // publish the service removed event
+          StackId stackId = cluster.getDesiredStackVersion();
+
+          ServiceRemovedEvent event = new ServiceRemovedEvent(getClusterId(),
+              stackId.getStackName(), stackId.getStackVersion(), getName());
+
+          eventPublisher.publish(event);
         }
       } finally {
         readWriteLock.writeLock().unlock();

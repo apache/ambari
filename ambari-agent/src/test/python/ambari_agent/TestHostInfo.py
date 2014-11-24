@@ -529,21 +529,6 @@ class TestHostInfo(TestCase):
     self.assertTrue(Firewall().getFirewallObject().check_iptables())
 
 
-  @patch.object(HostInfo, "osdiskAvailableSpace")
-  def test_createAlerts(self, osdiskAvailableSpace_mock):
-    hostInfo = HostInfo()
-    osdiskAvailableSpace_mock.return_value = {
-      'size': '100',
-      'used': '50',
-      'available': '50',
-      'percent': '50%',
-      'mountpoint': '/testmount',
-      'type': 'ext4',
-      'device': 'device'}
-    result = hostInfo.createAlerts([])
-    self.assertEquals(1, len(result))
-
-
   @patch.object(socket, "getfqdn")
   @patch.object(socket, "gethostbyname")
   @patch.object(socket, "gethostname")

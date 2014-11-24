@@ -47,7 +47,7 @@ import org.apache.ambari.server.controller.spi.SortRequest;
 import org.apache.ambari.server.controller.spi.SortRequest.Order;
 import org.apache.ambari.server.controller.spi.SortRequestProperty;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
-import org.apache.ambari.server.events.listeners.AlertMaintenanceModeListener;
+import org.apache.ambari.server.events.listeners.alerts.AlertMaintenanceModeListener;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.AlertDaoHelper;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
@@ -58,11 +58,11 @@ import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.AlertHistoryEntity;
 import org.apache.ambari.server.state.AlertState;
 import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.MaintenanceState;
+import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentFactory;
@@ -164,6 +164,7 @@ public class AlertsDAOTest {
         history.setAlertText(definition.getDefinitionName() + " " + i);
         history.setAlertTimestamp(calendar.getTimeInMillis());
         history.setHostName("h1");
+        history.setComponentName("Component " + i);
 
         history.setAlertState(AlertState.OK);
         if (i == 0 || i == 5) {
@@ -973,6 +974,72 @@ public class AlertsDAOTest {
       assertTrue(lastServiceName.compareTo(currentServiceName) >= 0);
       lastServiceName = currentServiceName;
     }
+  }
+
+  @Test
+  public void testRemoveCurrenyByService() throws Exception {
+    List<AlertCurrentEntity> currentAlerts = m_dao.findCurrent();
+    assertNotNull(currentAlerts);
+    assertEquals(5, currentAlerts.size());
+
+    m_dao.removeCurrentByService("Service 1");
+    m_dao.removeCurrentByService("Service 2");
+
+    currentAlerts = m_dao.findCurrent();
+    assertEquals(3, currentAlerts.size());
+  }
+
+  @Test
+  public void testRemoveCurrenyByHost() throws Exception {
+    List<AlertCurrentEntity> currentAlerts = m_dao.findCurrent();
+    assertNotNull(currentAlerts);
+    assertEquals(5, currentAlerts.size());
+
+    // there is no h2 host
+    m_dao.removeCurrentByHost("h2");
+    currentAlerts = m_dao.findCurrent();
+    assertEquals(5, currentAlerts.size());
+
+    // there is an h1 host
+    m_dao.removeCurrentByHost("h1");
+    currentAlerts = m_dao.findCurrent();
+    assertEquals(0, currentAlerts.size());
+  }
+
+  @Test
+  public void testRemoveCurrenyByComponentHost() throws Exception {
+    List<AlertCurrentEntity> currentAlerts = m_dao.findCurrent();
+    assertNotNull(currentAlerts);
+    assertEquals(5, currentAlerts.size());
+
+    AlertCurrentEntity entity = m_dao.findCurrentByHostAndName(
+        m_clusterId.longValue(), "h1", "Alert Definition 1");
+
+    assertNotNull(entity);
+
+    m_dao.removeCurrentByServiceComponentHost(
+        entity.getAlertHistory().getServiceName(),
+        entity.getAlertHistory().getComponentName(),
+        entity.getAlertHistory().getHostName());
+
+    currentAlerts = m_dao.findCurrent();
+    assertEquals(4, currentAlerts.size());
+  }
+
+  @Test
+  public void testRemoveCurrentDisabled() throws Exception {
+    List<AlertCurrentEntity> currentAlerts = m_dao.findCurrent();
+    assertNotNull(currentAlerts);
+    assertEquals(5, currentAlerts.size());
+
+    AlertDefinitionEntity definition = currentAlerts.get(0).getAlertHistory().getAlertDefinition();
+    definition.setEnabled(false);
+    m_definitionDao.merge(definition);
+
+    m_dao.removeCurrentDisabledAlerts();
+
+    currentAlerts = m_dao.findCurrent();
+    assertEquals(4, currentAlerts.size());
   }
 
   private Cluster initializeNewCluster() throws Exception {

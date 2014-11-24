@@ -78,7 +78,7 @@ public class MockEventListener {
    * @param event
    */
   @Subscribe
-  public void onEvent(MaintenanceModeEvent event) {
+  public void onEvent(AmbariEvent event) {
     handleEvent(event);
   }
 

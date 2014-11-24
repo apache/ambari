@@ -44,6 +44,9 @@ import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.events.AlertDefinitionDisabledEvent;
+import org.apache.ambari.server.events.AlertHashInvalidationEvent;
+import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.state.Cluster;
@@ -109,6 +112,16 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
    */
   @Inject
   private static ActionQueue actionQueue;
+
+  /**
+   * Publishes the following events:
+   * <ul>
+   * <li>{@link AlertDefinitionDisabledEvent} when an alert definition is
+   * disabled</li>
+   * </ul>
+   */
+  @Inject
+  private static AmbariEventPublisher eventPublisher;
 
   /**
    * The property ids for an alert defintion resource.
@@ -187,16 +200,17 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
       }
     }
 
-    Set<String> invalidatedHosts = new HashSet<String>();
-
-    // !!! TODO multi-create in a transaction
     for (AlertDefinitionEntity entity : entities) {
       alertDefinitionDAO.create(entity);
-      invalidatedHosts.addAll(alertDefinitionHash.invalidateHosts(entity));
-    }
+      long clusterId = entity.getClusterId();
 
-    // build alert definition commands for all agent hosts affected
-    alertDefinitionHash.enqueueAgentCommands(clusterName, invalidatedHosts);
+      // invalidate the hash and publish the event
+      final Set<String> invalidatedHosts = alertDefinitionHash.invalidateHosts(entity);
+      AlertHashInvalidationEvent event = new AlertHashInvalidationEvent(
+          clusterId, invalidatedHosts);
+
+      eventPublisher.publish(event);
+    }
   }
 
   @Override
@@ -246,9 +260,6 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
       throws SystemException, UnsupportedPropertyException,
       NoSuchResourceException, NoSuchParentResourceException {
 
-    String clusterName = null;
-    Clusters clusters = getManagementController().getClusters();
-
     // check the predicate to see if there is a reques to run
     // the alert definition immediately
     if( null != predicate ){
@@ -263,8 +274,7 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
       }
     }
 
-    // if an AlertDefinition property body was specified, perform the update\
-    Set<String> invalidatedHosts = new HashSet<String>();
+    // if an AlertDefinition property body was specified, perform the update
     for (Map<String, Object> requestPropMap : request.getProperties()) {
       for (Map<String, Object> propertyMap : getPropertyMaps(requestPropMap, predicate)) {
         String stringId = (String) propertyMap.get(ALERT_DEF_ID);
@@ -275,36 +285,35 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
           continue;
         }
 
-        if (null == clusterName) {
-          try {
-            Cluster cluster = clusters.getClusterById(entity.getClusterId());
-            if (null != cluster) {
-              clusterName = cluster.getClusterName();
-            }
-          } catch (AmbariException ae) {
-            throw new IllegalArgumentException("Invalid cluster ID", ae);
-          }
-        }
+        // capture the state of the old entity
+        boolean oldEnabled = entity.getEnabled();
 
-        try{
+        try {
           populateEntity(entity, propertyMap);
           alertDefinitionDAO.merge(entity);
-          invalidatedHosts.addAll(alertDefinitionHash.invalidateHosts(entity));
-        }
-        catch( AmbariException ae ){
+
+          // invalidate and publish the definition hash
+          Set<String> invalidatedHosts = alertDefinitionHash.invalidateHosts(entity);
+          AlertHashInvalidationEvent event = new AlertHashInvalidationEvent(
+              entity.getClusterId(), invalidatedHosts);
+
+          eventPublisher.publish(event);
+        } catch (AmbariException ae) {
           LOG.error("Unable to find cluster when updating alert definition", ae);
+        }
+
+        // if the old state was enabled and the new state is not, trigger
+        // a disabled event
+        if (oldEnabled && !entity.getEnabled()) {
+          AlertDefinitionDisabledEvent event = new AlertDefinitionDisabledEvent(
+              entity.getClusterId(), entity.getDefinitionId());
+
+          eventPublisher.publish(event);
         }
       }
     }
 
-    // build alert definition commands for all agent hosts affected; only
-    // update agents and broadcast update event if there are actual invalidated
-    // hosts
-    if (invalidatedHosts.size() > 0) {
-      alertDefinitionHash.enqueueAgentCommands(clusterName, invalidatedHosts);
-      notifyUpdate(Resource.Type.AlertDefinition, request, predicate);
-    }
-
+    notifyUpdate(Resource.Type.AlertDefinition, request, predicate);
     return getRequestStatus(null);
   }
 
@@ -318,17 +327,11 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
 
     Set<Long> definitionIds = new HashSet<Long>();
 
-    String clusterName = null;
     for (final Resource resource : resources) {
       Long id = (Long) resource.getPropertyValue(ALERT_DEF_ID);
       definitionIds.add(id);
-
-      if (null == clusterName) {
-        clusterName = (String) resource.getPropertyValue(ALERT_DEF_CLUSTER_NAME);
-      }
     }
 
-    final Set<String> invalidatedHosts = new HashSet<String>();
     for (Long definitionId : definitionIds) {
       LOG.info("Deleting alert definition {}", definitionId);
 
@@ -337,15 +340,22 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
       modifyResources(new Command<Void>() {
         @Override
         public Void invoke() throws AmbariException {
+          long clusterId = entity.getClusterId();
+
+          // remove the entity
           alertDefinitionDAO.remove(entity);
-          invalidatedHosts.addAll(alertDefinitionHash.invalidateHosts(entity));
+
+          // publish the hash invalidation
+          final Set<String> invalidatedHosts = alertDefinitionHash.invalidateHosts(entity);
+          AlertHashInvalidationEvent event = new AlertHashInvalidationEvent(
+              clusterId, invalidatedHosts);
+
+          eventPublisher.publish(event);
+
           return null;
         }
       });
     }
-
-    // build alert definition commands for all agent hosts affected
-    alertDefinitionHash.enqueueAgentCommands(clusterName, invalidatedHosts);
 
     notifyDelete(Resource.Type.AlertDefinition, predicate);
     return getRequestStatus(null);

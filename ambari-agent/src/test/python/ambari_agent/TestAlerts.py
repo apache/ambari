@@ -126,8 +126,12 @@ class TestAlerts(TestCase):
     self.assertEquals(6, pa.interval())
 
     pa.collect()
-    self.assertEquals('OK', collector.alerts()[0]['state'])
-    self.assertTrue('response time on port 2181' in collector.alerts()[0]['text'])
+    
+    alerts = collector.alerts()
+    self.assertEquals(0, len(collector.alerts()))
+    
+    self.assertEquals('OK', alerts[0]['state'])
+    self.assertTrue('response time on port 2181' in alerts[0]['text'])
 
 
   def test_port_alert_no_sub(self):
@@ -190,8 +194,11 @@ class TestAlerts(TestCase):
 
     sa.collect()
 
-    self.assertEquals('WARNING', collector.alerts()[0]['state'])
-    self.assertEquals('bar is rendered-bar, baz is rendered-baz', collector.alerts()[0]['text'])
+    alerts = collector.alerts()
+    self.assertEquals(0, len(collector.alerts()))
+
+    self.assertEquals('WARNING', alerts[0]['state'])
+    self.assertEquals('bar is rendered-bar, baz is rendered-baz', alerts[0]['text'])
 
 
   @patch.object(MetricAlert, "_load_jmx")
@@ -239,9 +246,12 @@ class TestAlerts(TestCase):
     ma = MetricAlert(json, json['source'])
     ma.set_helpers(collector, {'hdfs-site/dfs.datanode.http.address': '1.2.3.4:80'})
     ma.collect()
-
-    self.assertEquals('CRITICAL', collector.alerts()[0]['state'])
-    self.assertEquals('crit_arr: 1 3 223', collector.alerts()[0]['text'])
+    
+    alerts = collector.alerts()
+    self.assertEquals(0, len(collector.alerts()))
+    
+    self.assertEquals('CRITICAL', alerts[0]['state'])
+    self.assertEquals('crit_arr: 1 3 223', alerts[0]['text'])
 
     del json['source']['jmx']['value']
     collector = AlertCollector()
@@ -249,8 +259,11 @@ class TestAlerts(TestCase):
     ma.set_helpers(collector, {'hdfs-site/dfs.datanode.http.address': '1.2.3.4:80'})
     ma.collect()
 
-    self.assertEquals('OK', collector.alerts()[0]['state'])
-    self.assertEquals('ok_arr: 1 3 None', collector.alerts()[0]['text'])
+    alerts = collector.alerts()
+    self.assertEquals(0, len(collector.alerts()))
+
+    self.assertEquals('OK', alerts[0]['state'])
+    self.assertEquals('ok_arr: 1 3 None', alerts[0]['text'])
 
 
   @patch.object(MetricAlert, "_load_jmx")
@@ -385,8 +398,11 @@ class TestAlerts(TestCase):
     alert.set_helpers(collector, {'hdfs-site/dfs.datanode.http.address': '1.2.3.4:80'})
     alert.collect()
 
-    self.assertEquals('OK', collector.alerts()[0]['state'])
-    self.assertEquals('ok: 200', collector.alerts()[0]['text'])
+    alerts = collector.alerts()
+    self.assertEquals(0, len(collector.alerts()))
+
+    self.assertEquals('OK', alerts[0]['state'])
+    self.assertEquals('ok: 200', alerts[0]['text'])
 
     # run the alert and check HTTP 500
     wa_make_web_request_mock.return_value = WebResponse(500,1.234)
@@ -395,8 +411,11 @@ class TestAlerts(TestCase):
     alert.set_helpers(collector, {'hdfs-site/dfs.datanode.http.address': '1.2.3.4:80'})
     alert.collect()
     
-    self.assertEquals('WARNING', collector.alerts()[0]['state'])
-    self.assertEquals('warning: 500', collector.alerts()[0]['text'])
+    alerts = collector.alerts()
+    self.assertEquals(0, len(collector.alerts()))
+    
+    self.assertEquals('WARNING', alerts[0]['state'])
+    self.assertEquals('warning: 500', alerts[0]['text'])
 
     # run the alert and check critical
     wa_make_web_request_mock.return_value = WebResponse(0,0)
@@ -406,9 +425,12 @@ class TestAlerts(TestCase):
     alert.set_helpers(collector, {'hdfs-site/dfs.datanode.http.address': '1.2.3.4:80'})
     alert.collect()
     
+    alerts = collector.alerts()
+    self.assertEquals(0, len(collector.alerts()))    
+    
     # http assertion indicating that we properly determined non-SSL
-    self.assertEquals('CRITICAL', collector.alerts()[0]['state'])
-    self.assertEquals('critical: http://1.2.3.4:80', collector.alerts()[0]['text'])
+    self.assertEquals('CRITICAL', alerts[0]['state'])
+    self.assertEquals('critical: http://1.2.3.4:80', alerts[0]['text'])
      
     collector = AlertCollector()
     alert = WebAlert(json, json['source'])
@@ -419,9 +441,12 @@ class TestAlerts(TestCase):
 
     alert.collect()
     
+    alerts = collector.alerts()
+    self.assertEquals(0, len(collector.alerts()))    
+    
     # SSL assertion
-    self.assertEquals('CRITICAL', collector.alerts()[0]['state'])
-    self.assertEquals('critical: https://1.2.3.4:8443', collector.alerts()[0]['text'])
+    self.assertEquals('CRITICAL', alerts[0]['state'])
+    self.assertEquals('critical: https://1.2.3.4:8443', alerts[0]['text'])
 
   def test_reschedule(self):
     test_file_path = os.path.join('ambari_agent', 'dummy_files')
@@ -468,8 +493,11 @@ class TestAlerts(TestCase):
 
     res = pa.collect()
 
-    self.assertTrue(collector.alerts()[0] is not None)
-    self.assertEquals('CRITICAL', collector.alerts()[0]['state'])
+    alerts = collector.alerts()
+    self.assertEquals(0, len(collector.alerts()))
+
+    self.assertTrue(alerts[0] is not None)
+    self.assertEquals('CRITICAL', alerts[0]['state'])
 
     collector.remove_by_uuid('c1f73191-4481-4435-8dae-fd380e4c0be1')
     self.assertEquals(0,len(collector.alerts()))

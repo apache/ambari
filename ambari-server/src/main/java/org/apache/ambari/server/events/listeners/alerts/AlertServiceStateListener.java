@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.ambari.server.events.listeners;
+package org.apache.ambari.server.events.listeners.alerts;
 
 import java.text.MessageFormat;
 import java.util.Set;
@@ -26,10 +26,12 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.ControllerModule;
 import org.apache.ambari.server.events.ServiceInstalledEvent;
+import org.apache.ambari.server.events.ServiceRemovedEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.AlertDispatchDAO;
+import org.apache.ambari.server.orm.dao.AlertsDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.AlertGroupEntity;
 import org.apache.ambari.server.state.alert.AlertDefinition;
@@ -45,8 +47,9 @@ import com.google.inject.Singleton;
 
 /**
  * The {@link AlertServiceStateListener} class handles
- * {@link ServiceInstalledEvent} and ensures that {@link AlertDefinitionEntity}
- * and {@link AlertGroupEntity} instances are correctly populated.
+ * {@link ServiceInstalledEvent} and {@link ServiceRemovedEvent} and ensures
+ * that {@link AlertDefinitionEntity} and {@link AlertGroupEntity} instances are
+ * correctly populated or cleaned up.
  */
 @Singleton
 @EagerSingleton
@@ -85,6 +88,12 @@ public class AlertServiceStateListener {
    */
   @Inject
   private AlertDefinitionDAO m_definitionDao;
+
+  /**
+   * Used for removing current alerts when a service is removed.
+   */
+  @Inject
+  private AlertsDAO m_alertsDao;
 
   /**
    * Constructor.
@@ -145,6 +154,30 @@ public class AlertServiceStateListener {
           "Unable to populate alert definitions from the database during installation of {0}",
           serviceName);
       LOG.error(message, ae);
+    }
+  }
+
+  /**
+   * Removes any current alerts associated with the specified service and the
+   * service's default alert group.
+   *
+   * @param event
+   *          the published event being handled (not {@code null}).
+   */
+  @Subscribe
+  @AllowConcurrentEvents
+  public void onAmbariEvent(ServiceRemovedEvent event) {
+    LOG.debug(event);
+
+    // remove any current alerts
+    m_alertsDao.removeCurrentByService(event.getServiceName());
+
+    // remove the default group for the service
+    AlertGroupEntity group = m_alertDispatchDao.findGroupByName(
+        event.getClusterId(), event.getServiceName());
+
+    if (null != group && group.isDefault()) {
+      m_alertDispatchDao.remove(group);
     }
   }
 }

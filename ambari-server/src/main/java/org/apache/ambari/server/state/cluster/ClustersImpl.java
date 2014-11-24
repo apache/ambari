@@ -39,6 +39,8 @@ import org.apache.ambari.server.HostNotFoundException;
 import org.apache.ambari.server.agent.DiskInfo;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.events.HostRemovedEvent;
+import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
 import org.apache.ambari.server.orm.dao.ConfigGroupHostMappingDAO;
@@ -122,6 +124,12 @@ public class ClustersImpl implements Clusters {
   private ConfigGroupHostMappingDAO configGroupHostMappingDAO;
   @Inject
   private SecurityHelper securityHelper;
+
+  /**
+   * Used to publish events relating to cluster CRUD operations.
+   */
+  @Inject
+  private AmbariEventPublisher eventPublisher;
 
   @Inject
   public ClustersImpl() {
@@ -417,10 +425,11 @@ public class ClustersImpl implements Clusters {
     r.lock();
     try {
       for (String host : hostSet) {
-        if (!hosts.containsKey(host))
+        if (!hosts.containsKey(host)) {
           throw new HostNotFoundException(host);
-        else
+        } else {
           hostMap.put(host, hosts.get(host));
+        }
       }
     } finally {
       r.unlock();
@@ -437,10 +446,11 @@ public class ClustersImpl implements Clusters {
     try {
       for (String c : clusterSet) {
         if (c != null) {
-          if (!clusters.containsKey(c))
+          if (!clusters.containsKey(c)) {
             throw new ClusterNotFoundException(c);
-          else
+          } else {
             clusterMap.put(c, clusters.get(c));
+          }
         }
       }
     } finally {
@@ -574,6 +584,7 @@ public class ClustersImpl implements Clusters {
   }
 
 
+  @Override
   public void debugDump(StringBuilder sb) {
     r.lock();
     try {
@@ -645,13 +656,13 @@ public class ClustersImpl implements Clusters {
       w.unlock();
     }
   }
-  
+
   @Override
   public void unmapHostFromCluster(String hostname, String clusterName)
       throws AmbariException {
 
     checkLoaded();
-    
+
     w.lock();
 
     try {
@@ -679,9 +690,9 @@ public class ClustersImpl implements Clusters {
     } finally {
       w.unlock();
     }
-    
+
   }
-  
+
   @Transactional
   private void unmapHostClusterEntities(String hostName, long clusterId) {
     HostEntity hostEntity = hostDAO.findByName(hostName);
@@ -703,14 +714,15 @@ public class ClustersImpl implements Clusters {
       }
     }
   }
-  
+
   @Override
   public void deleteHost(String hostname) throws AmbariException {
     checkLoaded();
 
-    if (!hosts.containsKey(hostname))
+    if (!hosts.containsKey(hostname)) {
       return;
-    
+    }
+
     w.lock();
 
     try {
@@ -725,12 +737,17 @@ public class ClustersImpl implements Clusters {
       hostDAO.refresh(entity);
       hostDAO.remove(entity);
       hosts.remove(hostname);
+
+      // publish the event
+      HostRemovedEvent event = new HostRemovedEvent(hostname);
+      eventPublisher.publish(event);
+
     } catch (Exception e) {
       throw new AmbariException("Could not remove host", e);
     } finally {
       w.unlock();
     }
-    
+
   }
 
   @Override

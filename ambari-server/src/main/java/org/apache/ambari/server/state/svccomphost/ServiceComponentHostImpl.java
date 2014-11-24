@@ -31,7 +31,9 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.AlertDefinitionCommand;
 import org.apache.ambari.server.controller.ServiceComponentHostResponse;
+import org.apache.ambari.server.events.AlertHashInvalidationEvent;
 import org.apache.ambari.server.events.MaintenanceModeEvent;
+import org.apache.ambari.server.events.ServiceComponentUninstalledEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.dao.HostComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
@@ -46,13 +48,13 @@ import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntityPK;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.SecurityState;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostComponentAdminState;
 import org.apache.ambari.server.state.HostConfig;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.MaintenanceState;
+import org.apache.ambari.server.state.SecurityState;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceComponentHostEvent;
@@ -561,12 +563,17 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
         return;
       }
 
+      // invalidate the host
       String hostName = impl.getHostName();
       impl.alertDefinitionHash.invalidate(impl.getClusterName(), hostName);
-      impl.alertDefinitionHash.enqueueAgentCommands(impl.getClusterName(),
-          Collections.singleton(hostName));
 
+      // publish the event
+      AlertHashInvalidationEvent hashInvalidationEvent = new AlertHashInvalidationEvent(
+          impl.getClusterId(), Collections.singletonList(hostName));
+
+      impl.eventPublisher.publish(hashInvalidationEvent);
       impl.updateLastOpInfo(event.getType(), event.getOpTimestamp());
+
     }
   }
 
@@ -819,8 +826,9 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
   @Override
   public void setDesiredSecurityState(SecurityState securityState) throws AmbariException {
-    if(!securityState.isEndpoint())
+    if(!securityState.isEndpoint()) {
       throw new AmbariException("The security state must be an endpoint state");
+    }
 
     clusterGlobalLock.readLock().lock();
     try {
@@ -1402,6 +1410,8 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
   @Override
   public void delete() {
+    boolean fireRemovalEvent = false;
+
     clusterGlobalLock.writeLock().lock();
     try {
       writeLock.lock();
@@ -1409,12 +1419,12 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
         if (persisted) {
           removeEntities();
           persisted = false;
+          fireRemovalEvent = true;
         }
+
         clusters.getCluster(getClusterName()).removeServiceComponentHost(this);
       } catch (AmbariException ex) {
-        if (LOG.isDebugEnabled()) {
-          LOG.error(ex.getMessage());
-        }
+        LOG.error("Unable to remove a service component from a host", ex);
       } finally {
         writeLock.unlock();
       }
@@ -1422,6 +1432,23 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
       clusterGlobalLock.writeLock().unlock();
     }
 
+    // publish event for the removal of the SCH after the removal is
+    // completed, but only if it was persisted
+    if (fireRemovalEvent) {
+      long clusterId = getClusterId();
+      StackId stackId = getStackVersion();
+      String stackVersion = stackId.getStackVersion();
+      String stackName = stackId.getStackName();
+      String serviceName = getServiceName();
+      String componentName = getServiceComponentName();
+      String hostName = getHostName();
+
+      ServiceComponentUninstalledEvent event = new ServiceComponentUninstalledEvent(
+          clusterId, stackName, stackVersion, serviceName, componentName,
+          hostName);
+
+      eventPublisher.publish(event);
+    }
   }
 
   @Transactional

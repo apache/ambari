@@ -29,7 +29,7 @@ import com.google.inject.Singleton;
  * single-threaded, serial {@link EventBus}.
  */
 @Singleton
-public final class AmbariEventPublisher {
+public class AmbariEventPublisher {
 
   /**
    * A single threaded event bus for processing Ambari events in serial.

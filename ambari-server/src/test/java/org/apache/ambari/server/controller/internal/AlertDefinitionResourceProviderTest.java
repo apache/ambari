@@ -410,9 +410,7 @@ public class AlertDefinitionResourceProviderTest {
     Cluster cluster = createMock(Cluster.class);
     expect(amc.getClusters()).andReturn(clusters).atLeastOnce();
     expect(clusters.getCluster((String) anyObject())).andReturn(cluster).atLeastOnce();
-    expect(clusters.getClusterById(EasyMock.anyInt())).andReturn(cluster).atLeastOnce();
     expect(cluster.getClusterId()).andReturn(Long.valueOf(1)).atLeastOnce();
-    expect(cluster.getClusterName()).andReturn("c1").atLeastOnce();
 
     Capture<AlertDefinitionEntity> entityCapture = new Capture<AlertDefinitionEntity>();
     dao.create(capture(entityCapture));

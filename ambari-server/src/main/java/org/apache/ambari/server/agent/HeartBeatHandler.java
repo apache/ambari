@@ -215,7 +215,7 @@ public class HeartBeatHandler {
       return createRegisterCommand();
     }
 
-    //Examine heartbeat for command reports
+    // Examine heartbeat for command reports
     processCommandReports(heartbeat, hostname, clusterFsm, now);
 
     // Examine heartbeart for component live status reports
@@ -225,6 +225,7 @@ public class HeartBeatHandler {
     // NOTE: This step must be after processing command/status reports
     processHostStatus(heartbeat, hostname);
 
+    // Example heartbeat for alerts from the host or its components
     processAlerts(heartbeat, hostname);
 
     // Send commands if node is active

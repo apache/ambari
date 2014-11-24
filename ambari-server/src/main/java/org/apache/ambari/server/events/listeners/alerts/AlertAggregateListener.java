@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.ambari.server.events.listeners;
+package org.apache.ambari.server.events.listeners.alerts;
 
 import java.text.MessageFormat;
 
@@ -100,20 +100,20 @@ public class AlertAggregateListener {
       int denominator = summary.getOkCount();
       double value = (double)(numerator) / denominator;
 
-      if (value > reporting.getCritical().getValue().doubleValue()) {
+      if (value > reporting.getCritical().getValue()) {
         alert.setState(AlertState.CRITICAL);
         alert.setText(MessageFormat.format(reporting.getCritical().getText(),
-            Integer.valueOf(denominator), Integer.valueOf(numerator)));
+            denominator, numerator));
 
-      } else if (value > reporting.getWarning().getValue().doubleValue()) {
+      } else if (value > reporting.getWarning().getValue()) {
         alert.setState(AlertState.WARNING);
         alert.setText(MessageFormat.format(reporting.getWarning().getText(),
-            Integer.valueOf(denominator), Integer.valueOf(numerator)));
+            denominator, numerator));
 
       } else {
         alert.setState(AlertState.OK);
         alert.setText(MessageFormat.format(reporting.getOk().getText(),
-            Integer.valueOf(denominator), Integer.valueOf(numerator)));
+            denominator, numerator));
       }
 
     }

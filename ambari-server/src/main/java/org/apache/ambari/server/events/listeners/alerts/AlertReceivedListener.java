@@ -15,9 +15,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.ambari.server.events.listeners;
+package org.apache.ambari.server.events.listeners.alerts;
 
+import java.util.List;
+import java.util.Map;
+
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.EagerSingleton;
+import org.apache.ambari.server.controller.RootServiceResponseFactory.Services;
 import org.apache.ambari.server.events.AlertEvent;
 import org.apache.ambari.server.events.AlertReceivedEvent;
 import org.apache.ambari.server.events.AlertStateChangeEvent;
@@ -29,13 +34,19 @@ import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.AlertHistoryEntity;
 import org.apache.ambari.server.state.Alert;
 import org.apache.ambari.server.state.AlertState;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.MaintenanceState;
+import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceComponentHost;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.eventbus.AllowConcurrentEvents;
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.google.inject.Singleton;
 
 /**
@@ -56,6 +67,12 @@ public class AlertReceivedListener {
 
   @Inject
   private AlertDefinitionDAO m_definitionDao;
+
+  /**
+   * Used for looking up whether an alert has a valid service/component/host
+   */
+  @Inject
+  private Provider<Clusters> m_clusters;
 
   /**
    * Receives and publishes {@link AlertEvent} instances.
@@ -100,6 +117,22 @@ public class AlertReceivedListener {
       return;
     }
 
+    // it's possible that a definition which is disabled will still have a
+    // running alert returned; this will ensure we don't record it
+    if (!definition.getEnabled()) {
+      LOG.debug(
+          "Received an alert for {} which is disabled. No more alerts should be received for this definition.",
+          alert.getName());
+
+      return;
+    }
+
+    // jobs that were running when a service/component/host was changed
+    // which invalidate the alert should not be reported
+    if (!isValid(alert)) {
+      return;
+    }
+
     AlertCurrentEntity current = null;
 
     if (null == alert.getHost() || definition.isHostIgnored()) {
@@ -115,13 +148,13 @@ public class AlertReceivedListener {
       current = new AlertCurrentEntity();
       current.setMaintenanceState(MaintenanceState.OFF);
       current.setAlertHistory(history);
-      current.setLatestTimestamp(Long.valueOf(alert.getTimestamp()));
+      current.setLatestTimestamp(alert.getTimestamp());
       current.setOriginalTimestamp(Long.valueOf(alert.getTimestamp()));
 
       m_alertsDao.create(current);
 
     } else if (alert.getState() == current.getAlertHistory().getAlertState()) {
-      current.setLatestTimestamp(Long.valueOf(alert.getTimestamp()));
+      current.setLatestTimestamp(alert.getTimestamp());
       current.setLatestText(alert.getText());
 
       current = m_alertsDao.merge(current);
@@ -162,6 +195,110 @@ public class AlertReceivedListener {
 
       m_alertEventPublisher.publish(alertChangedEvent);
     }
+  }
+
+  /**
+   * Gets whether the specified alert is valid for its reported cluster,
+   * service, component, and host. This method is necessary for the case where a
+   * component has been removed from a host, but the alert data is going to be
+   * returned before the agent alert job can be unscheduled.
+   *
+   * @param alert
+   *          the alert.
+   * @return {@code true} if the alert is for a valid combination of
+   *         cluster/service/component/host.
+   */
+  private boolean isValid(Alert alert) {
+    String clusterName = alert.getCluster();
+    String serviceName = alert.getService();
+    String componentName = alert.getComponent();
+    String hostName = alert.getHost();
+
+    // if the alert is not bound to a cluster, then it's most likely a
+    // host alert and is always valid
+    if( null == clusterName ){
+      return true;
+    }
+
+    // AMBARI is always a valid service
+    String ambariServiceName = Services.AMBARI.name();
+    if (ambariServiceName.equals(serviceName)) {
+      return true;
+    }
+
+    final Cluster cluster;
+    try {
+      cluster = m_clusters.get().getCluster(clusterName);
+      if (null == cluster) {
+        LOG.error("Unable to process alert {} for an invalid cluster named {}",
+            alert.getName(), clusterName);
+
+        return false;
+      }
+    } catch (AmbariException ambariException) {
+      LOG.error("Unable to process alert {} for an invalid cluster named {}",
+          alert.getName(), clusterName, ambariException);
+
+      return false;
+    }
+
+    Map<String, Service> services = cluster.getServices();
+    Service service = services.get(serviceName);
+    if (null == service) {
+      LOG.error("Unable to process alert {} for an invalid service named {}",
+          alert.getName(), serviceName);
+
+      return false;
+    }
+
+    if (null != hostName) {
+      List<Host> hosts = m_clusters.get().getHosts();
+      if (null == hosts) {
+        LOG.error("Unable to process alert {} for an invalid host named {}",
+            alert.getName(), hostName);
+
+        return false;
+      }
+
+      boolean validHost = false;
+      for (Host host : hosts) {
+        if (hostName.equals(host.getHostName())) {
+          validHost = true;
+          break;
+        }
+      }
+
+      if (!validHost) {
+        LOG.error("Unable to process alert {} for an invalid host named {}",
+            alert.getName(), hostName);
+
+        return false;
+      }
+    }
+
+    // if the alert is for a host/component then verify that the component
+    // is actually installed on that host
+    if (null != hostName && null != componentName) {
+      boolean validServiceComponentHost = false;
+      List<ServiceComponentHost> serviceComponentHosts = cluster.getServiceComponentHosts(hostName);
+
+      for (ServiceComponentHost serviceComponentHost : serviceComponentHosts) {
+        if (componentName.equals(serviceComponentHost.getServiceComponentName())) {
+          validServiceComponentHost = true;
+          break;
+        }
+      }
+
+      if (!validServiceComponentHost) {
+        LOG.warn(
+            "Unable to process alert {} for an invalid service {} and component {} on host {}",
+            alert.getName(), serviceName, componentName, hostName);
+
+        return false;
+      }
+    }
+
+    return true;
   }
 
   /**

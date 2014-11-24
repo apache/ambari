@@ -15,12 +15,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.ambari.server.events.listeners;
+package org.apache.ambari.server.events.listeners.alerts;
 
 import java.util.Set;
 
 import org.apache.ambari.server.EagerSingleton;
 import org.apache.ambari.server.events.AlertDefinitionDeleteEvent;
+import org.apache.ambari.server.events.AlertHashInvalidationEvent;
 import org.apache.ambari.server.events.AlertDefinitionRegistrationEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.state.alert.AggregateDefinitionMapping;
@@ -60,6 +61,12 @@ public class AlertLifecycleListener {
    */
   @Inject
   private Provider<AlertDefinitionHash> m_alertDefinitionHash;
+
+  /**
+   * Used to publish events when an alert definition has a lifecycle event.
+   */
+  @Inject
+  private AmbariEventPublisher m_eventPublisher;
 
   /**
    * Constructor.
@@ -118,10 +125,12 @@ public class AlertLifecycleListener {
     m_aggregateMapping.removeAssociatedAggregate(event.getClusterId(),
         definition.getName());
 
+    // invalidate and publish
     AlertDefinitionHash hashHelper = m_alertDefinitionHash.get();
     Set<String> invalidatedHosts = hashHelper.invalidateHosts(definition);
+    AlertHashInvalidationEvent hashInvalidationEvent = new AlertHashInvalidationEvent(
+        definition.getClusterId(), invalidatedHosts);
 
-    hashHelper.enqueueAgentCommands(definition.getClusterId(),
-        invalidatedHosts);
+    m_eventPublisher.publish(hashInvalidationEvent);
   }
 }

@@ -389,7 +389,7 @@ public class AlertDefinitionHashTest extends TestCase {
     hosts.add(HOSTNAME);
 
     // should invalidate both alert commands, and add a new definition command
-    m_hash.enqueueAgentCommands(CLUSTERNAME, hosts);
+    m_hash.enqueueAgentCommands(1L, hosts);
     assertEquals(1, actionQueue.size(HOSTNAME));
     assertEquals(1, actionQueue.size("anotherHost"));
   }

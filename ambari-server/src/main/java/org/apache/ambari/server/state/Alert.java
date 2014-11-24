@@ -178,8 +178,14 @@ public class Alert {
   /**
    * @return
    */
+  @JsonProperty("cluster")
   public String getCluster() {
     return cluster;
+  }
+
+  @JsonProperty("cluster")
+  public void setCluster(String cluster){
+    this.cluster = cluster;
   }
 
   @Override

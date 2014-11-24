@@ -20,6 +20,7 @@ package org.apache.ambari.server.state.alert;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -29,8 +30,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.ActionQueue;
@@ -80,6 +80,9 @@ public class AlertDefinitionHash {
   @Inject
   private AlertDefinitionDAO m_definitionDao;
 
+  /**
+   * Used to coerce {@link AlertDefinitionEntity} into {@link AlertDefinition}.
+   */
   @Inject
   private AlertDefinitionFactory m_factory;
 
@@ -89,6 +92,10 @@ public class AlertDefinitionHash {
   @Inject
   private Provider<Clusters> m_clusters;
 
+  /**
+   * Used to enqueue {@link AlertDefinitionCommand} on the heartbeat response
+   * queue.
+   */
   @Inject
   private ActionQueue m_actionQueue;
 
@@ -101,9 +108,11 @@ public class AlertDefinitionHash {
   private Provider<ConfigHelper> m_configHelper;
 
   /**
-   * !!! TODO: this class needs some thoughts on locking
+   * Due to the nature of the asynchronous events for alerts and Ambari, this
+   * lock will ensure that only a single writer is writing to the
+   * {@link ActionQueue}.
    */
-  private ReadWriteLock m_lock = new ReentrantReadWriteLock();
+  private ReentrantLock m_actionQueueLock = new ReentrantLock();
 
   /**
    * The hashes for all hosts for any cluster. The key is the hostname and the
@@ -146,33 +155,6 @@ public class AlertDefinitionHash {
   }
 
   /**
-   * Gets a mapping between cluster and alert definition hashes for all of the
-   * clusters that the given host belongs to.
-   *
-   * @param hostName
-   *          the host name (not {@code null}).
-   * @return a mapping between cluster and alert definition hash or an empty map
-   *         (never @code null).
-   * @see #getHash(String, String)
-   * @throws AmbariException
-   */
-  public Map<String, String> getHashes(String hostName) throws AmbariException {
-    Set<Cluster> clusters = m_clusters.get().getClustersForHost(hostName);
-    if (null == clusters || clusters.size() == 0) {
-      return Collections.emptyMap();
-    }
-
-    Map<String, String> hashes = new HashMap<String, String>();
-    for (Cluster cluster : clusters) {
-      String clusterName = cluster.getClusterName();
-      String hash = getHash(clusterName, hostName);
-      hashes.put(clusterName, hash);
-    }
-
-    return hashes;
-  }
-
-  /**
    * Invalidate all cached hashes causing subsequent lookups to recalculate.
    */
   public void invalidateAll() {
@@ -207,7 +189,7 @@ public class AlertDefinitionHash {
   }
 
   /**
-   * Gets whether the alert definition has for the specified host has been
+   * Gets whether the alert definition hash for the specified host has been
    * calculated and cached.
    *
    * @param hostName
@@ -314,7 +296,7 @@ public class AlertDefinitionHash {
    * @return the hosts that were invalidated, or an empty set (never
    *         {@code null}).
    */
-  public Set<String> invalidateHosts(long clusterId,
+  private Set<String> invalidateHosts(long clusterId,
       SourceType definitionSourceType, String definitionName,
       String definitionServiceName, String definitionComponentName) {
 
@@ -388,9 +370,12 @@ public class AlertDefinitionHash {
       return affectedHosts;
     }
 
+    String ambariServiceName = Services.AMBARI.name();
+    String agentComponentName = Components.AMBARI_AGENT.name();
+
     // intercept host agent alerts; they affect all hosts
-    if (Services.AMBARI.equals(definitionServiceName)
-        && Components.AMBARI_AGENT.equals(definitionComponentName)) {
+    if (ambariServiceName.equals(definitionServiceName)
+        && agentComponentName.equals(definitionComponentName)) {
       affectedHosts.addAll(hosts.keySet());
       return affectedHosts;
     }
@@ -456,7 +441,7 @@ public class AlertDefinitionHash {
    * @param hosts
    *          the hosts to push {@link AlertDefinitionCommand}s for.
    */
-  public void enqueueAgentCommands(long clusterId, Set<String> hosts) {
+  public void enqueueAgentCommands(long clusterId, Collection<String> hosts) {
     String clusterName = null;
 
     try {
@@ -483,7 +468,7 @@ public class AlertDefinitionHash {
    * @param hosts
    *          the hosts to push {@link AlertDefinitionCommand}s for.
    */
-  public void enqueueAgentCommands(String clusterName, Set<String> hosts) {
+  private void enqueueAgentCommands(String clusterName, Collection<String> hosts) {
     if (null == clusterName) {
       LOG.warn("Unable to create alert definition agent commands because of a null cluster name");
       return;
@@ -493,29 +478,39 @@ public class AlertDefinitionHash {
       return;
     }
 
-    for (String hostName : hosts) {
-      List<AlertDefinition> definitions = getAlertDefinitions(clusterName,
-          hostName);
+    try {
+      m_actionQueueLock.lock();
+      for (String hostName : hosts) {
+        List<AlertDefinition> definitions = getAlertDefinitions(clusterName,
+            hostName);
 
-      String hash = getHash(clusterName, hostName);
+        String hash = getHash(clusterName, hostName);
 
-      AlertDefinitionCommand command = new AlertDefinitionCommand(clusterName,
-          hostName, hash, definitions);
+        AlertDefinitionCommand command = new AlertDefinitionCommand(
+            clusterName, hostName, hash, definitions);
 
-      try {
-        Cluster cluster = m_clusters.get().getCluster(clusterName);
-        command.addConfigs(m_configHelper.get(), cluster);
-      } catch (AmbariException ae) {
-        LOG.warn("Unable to add configurations to alert definition command", ae);
+        try {
+          Cluster cluster = m_clusters.get().getCluster(clusterName);
+          command.addConfigs(m_configHelper.get(), cluster);
+        } catch (AmbariException ae) {
+          LOG.warn("Unable to add configurations to alert definition command",
+              ae);
+        }
+
+        // unlike other commands, the alert definitions commands are really
+        // designed to be 1:1 per change; if multiple invalidations happened
+        // before the next heartbeat, there would be several commands that would
+        // force the agents to reschedule their alerts more than once
+        m_actionQueue.dequeue(hostName,
+            AgentCommandType.ALERT_DEFINITION_COMMAND);
+
+        m_actionQueue.dequeue(hostName,
+            AgentCommandType.ALERT_EXECUTION_COMMAND);
+
+        m_actionQueue.enqueue(hostName, command);
       }
-
-      // unlike other commands, the alert definitions commands are really
-      // designed to be 1:1 per change; if multiple invalidations happened
-      // before the next heartbeat, there would be several commands that would
-      // force the agents to reschedule their alerts more than once
-      m_actionQueue.dequeue(hostName, AgentCommandType.ALERT_DEFINITION_COMMAND);
-      m_actionQueue.dequeue(hostName, AgentCommandType.ALERT_EXECUTION_COMMAND);
-      m_actionQueue.enqueue(hostName, command);
+    } finally {
+      m_actionQueueLock.unlock();
     }
   }
 
