@@ -149,18 +149,19 @@ def decommission():
        group=user_group
   )
   
-  Execute(nn_kinit_cmd,
-          user=hdfs_user
-  )
+  if not params.update_exclude_file_only:
+    Execute(nn_kinit_cmd,
+            user=hdfs_user
+    )
 
-  if params.dfs_ha_enabled:
-    # due to a bug in hdfs, refreshNodes will not run on both namenodes so we
-    # need to execute each command scoped to a particular namenode
-    nn_refresh_cmd = format('dfsadmin -fs hdfs://{namenode_rpc} -refreshNodes')
-  else:
-    nn_refresh_cmd = format('dfsadmin -refreshNodes')
-  ExecuteHadoop(nn_refresh_cmd,
-                user=hdfs_user,
-                conf_dir=conf_dir,
-                kinit_override=True,
-                bin_dir=params.hadoop_bin_dir)
+    if params.dfs_ha_enabled:
+      # due to a bug in hdfs, refreshNodes will not run on both namenodes so we
+      # need to execute each command scoped to a particular namenode
+      nn_refresh_cmd = format('dfsadmin -fs hdfs://{namenode_rpc} -refreshNodes')
+    else:
+      nn_refresh_cmd = format('dfsadmin -refreshNodes')
+    ExecuteHadoop(nn_refresh_cmd,
+                  user=hdfs_user,
+                  conf_dir=conf_dir,
+                  kinit_override=True,
+                  bin_dir=params.hadoop_bin_dir)

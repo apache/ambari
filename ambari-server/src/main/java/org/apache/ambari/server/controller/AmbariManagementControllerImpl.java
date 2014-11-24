@@ -144,6 +144,8 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
+import org.apache.ambari.server.controller.internal.RequestResourceFilter;
+import org.apache.ambari.server.state.HostComponentAdminState;
 
 @Singleton
 public class AmbariManagementControllerImpl implements AmbariManagementController {
@@ -2584,7 +2586,59 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     for (Entry<ServiceComponent, Set<ServiceComponentHost>> entry
             : safeToRemoveSCHs.entrySet()) {
       for (ServiceComponentHost componentHost : entry.getValue()) {
+        String included_hostname = componentHost.getHostName();
+        String serviceName = entry.getKey().getServiceName();
+        String master_component_name = null;
+        String slave_component_name = componentHost.getServiceComponentName();
+        HostComponentAdminState desiredAdminState = componentHost.getComponentAdminState();
+        State slaveState = componentHost.getState();
+        //Delete hostcomponents
         entry.getKey().deleteServiceComponentHosts(componentHost.getHostName());
+        // If deleted hostcomponents support decomission and were decommited and stopped 
+        if (AmbariCustomCommandExecutionHelper.masterToSlaveMappingForDecom.containsValue(slave_component_name) 
+                && desiredAdminState.equals(HostComponentAdminState.DECOMMISSIONED)
+                && slaveState.equals(State.INSTALLED)) {
+
+          for (Entry<String, String> entrySet : AmbariCustomCommandExecutionHelper.masterToSlaveMappingForDecom.entrySet()) {
+            if (entrySet.getValue().equals(slave_component_name)) {
+              master_component_name = entrySet.getKey();
+            }
+          }
+          //Clear exclud file or draining list except HBASE
+          if (!serviceName.equals(Service.Type.HBASE.toString())) {
+            HashMap<String, String> requestProperties = new HashMap<String, String>();
+            requestProperties.put("context", "Remove host " + 
+                    included_hostname + " from exclude file");
+            requestProperties.put("exclusive", "true");
+            HashMap<String, String> params = new HashMap<String, String>();
+            params.put("included_hosts", included_hostname);
+            params.put("slave_type", slave_component_name);
+            params.put(AmbariCustomCommandExecutionHelper.UPDATE_EXCLUDE_FILE_ONLY, "true");
+
+            //Create filter for RECOMISSION command
+            RequestResourceFilter resourceFilter
+                    = new RequestResourceFilter(serviceName, master_component_name, null);
+            //Create request for RECOMISSION command
+            ExecuteActionRequest actionRequest = new ExecuteActionRequest(
+                    entry.getKey().getClusterName(), AmbariCustomCommandExecutionHelper.DECOMMISSION_COMMAND_NAME, null,
+                    Collections.singletonList(resourceFilter), null, params, true);
+            //Send request
+            createAction(actionRequest, requestProperties);
+          }
+         
+          //Mark master component as needed to restart for remove host info from components UI
+          Cluster cluster = clusters.getCluster(entry.getKey().getClusterName());
+          Service service = cluster.getService(serviceName);
+          ServiceComponent sc = service.getServiceComponent(master_component_name);
+
+          if (sc != null && sc.isMasterComponent()) {
+            for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
+              sch.setRestartRequired(true);
+            }
+          }
+
+        }
+
       }
     }
 

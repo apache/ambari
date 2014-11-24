@@ -103,7 +103,7 @@ public class AmbariCustomCommandExecutionHelper {
   private final static Logger LOG =
       LoggerFactory.getLogger(AmbariCustomCommandExecutionHelper.class);
   // TODO: Remove the hard-coded mapping when stack definition indicates which slave types can be decommissioned
-  private static final Map<String, String> masterToSlaveMappingForDecom = new HashMap<String, String>();
+  public static final Map<String, String> masterToSlaveMappingForDecom = new HashMap<String, String>();
 
   static {
     masterToSlaveMappingForDecom.put("NAMENODE", "DATANODE");
@@ -112,11 +112,11 @@ public class AmbariCustomCommandExecutionHelper {
     masterToSlaveMappingForDecom.put("JOBTRACKER", "TASKTRACKER");
   }
 
-  private static String DECOM_INCLUDED_HOSTS = "included_hosts";
-  private static String DECOM_EXCLUDED_HOSTS = "excluded_hosts";
-  private static String DECOM_SLAVE_COMPONENT = "slave_type";
-  private static String HBASE_MARK_DRAINING_ONLY = "mark_draining_only";
-  private static String UPDATE_EXCLUDE_FILE_ONLY = "update_exclude_file_only";
+  public static String DECOM_INCLUDED_HOSTS = "included_hosts";
+  public static String DECOM_EXCLUDED_HOSTS = "excluded_hosts";
+  public static String DECOM_SLAVE_COMPONENT = "slave_type";
+  public static String HBASE_MARK_DRAINING_ONLY = "mark_draining_only";
+  public static String UPDATE_EXCLUDE_FILE_ONLY = "update_exclude_file_only";
   private static String ALIGN_MAINTENANCE_STATE = "align_maintenance_state";
   @Inject
   private ActionMetadata actionMetadata;
@@ -138,7 +138,7 @@ public class AmbariCustomCommandExecutionHelper {
   private OsFamily os_family;
 
   protected static final String SERVICE_CHECK_COMMAND_NAME = "SERVICE_CHECK";
-  protected static final String DECOMMISSION_COMMAND_NAME = "DECOMMISSION";
+  public static final String DECOMMISSION_COMMAND_NAME = "DECOMMISSION";
 
 
   private Boolean isServiceCheckCommand(String command, String service) {
@@ -648,16 +648,43 @@ public class AmbariCustomCommandExecutionHelper {
     }
 
     // Filtering hosts based on Maintenance State
-    MaintenanceStateHelper.HostPredicate hostPredicate =
-      new MaintenanceStateHelper.HostPredicate() {
-        @Override
-        public boolean shouldHostBeRemoved(final String hostname)
-                throws AmbariException {
-          return ! maintenanceStateHelper.isOperationAllowed(
-                  cluster, actionExecutionContext.getOperationLevel(),
-                  resourceFilter, serviceName, slaveCompType, hostname);
-        }
-    };
+    MaintenanceStateHelper.HostPredicate hostPredicate
+            = new MaintenanceStateHelper.HostPredicate() {
+              @Override
+              public boolean shouldHostBeRemoved(final String hostname)
+              throws AmbariException {
+                //Get UPDATE_EXCLUDE_FILE_ONLY parameter as string
+                String upd_excl_file_only_str = actionExecutionContext.getParameters()
+                .get(UPDATE_EXCLUDE_FILE_ONLY);
+              
+                String decom_incl_hosts_str = actionExecutionContext.getParameters()
+                .get(DECOM_INCLUDED_HOSTS);                
+                if ((upd_excl_file_only_str != null &&
+                        !upd_excl_file_only_str.trim().equals(""))){
+                  upd_excl_file_only_str = upd_excl_file_only_str.trim();
+                }
+                 
+                boolean upd_excl_file_only = false;
+                //Parse of possible forms of value
+                if (upd_excl_file_only_str != null &&
+                        !upd_excl_file_only_str.equals("") &&
+                        (upd_excl_file_only_str.equals("\"true\"") 
+                        || upd_excl_file_only_str.equals("'true'") 
+                        || upd_excl_file_only_str.equals("true"))){
+                  upd_excl_file_only = true;
+                }
+
+                // If we just clear *.exclude and component have been already removed we will skip check
+                if (upd_excl_file_only && decom_incl_hosts_str != null
+                        && !decom_incl_hosts_str.trim().equals("")) {
+                  return upd_excl_file_only;
+                } else {
+                  return !maintenanceStateHelper.isOperationAllowed(
+                          cluster, actionExecutionContext.getOperationLevel(),
+                          resourceFilter, serviceName, slaveCompType, hostname);
+                }
+              }
+            };
     // Filter excluded hosts
     Set<String> filteredExcludedHosts = new HashSet<String>(excludedHosts);
     Set<String> ignoredHosts = maintenanceStateHelper.filterHostsInMaintenanceState(

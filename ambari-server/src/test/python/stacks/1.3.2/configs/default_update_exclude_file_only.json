@@ -1,0 +1,608 @@
+{
+    "roleCommand": "INSTALL", 
+    "clusterName": "cl1", 
+    "hostname": "c6402.ambari.apache.org", 
+    "hostLevelParams": {
+        "jdk_location": "http://c6401.ambari.apache.org:8080/resources/", 
+        "ambari_db_rca_password": "mapred", 
+        "ambari_db_rca_url": "jdbc:postgresql://c6401.ambari.apache.org/ambarirca", 
+        "jce_name": "UnlimitedJCEPolicyJDK7.zip", 
+        "oracle_jdbc_url": "http://c6401.ambari.apache.org:8080/resources//ojdbc6.jar", 
+        "repo_info": "[{\"baseUrl\":\"http://public-repo-1.hortonworks.com/HDP/centos6/1.x/updates/1.3.3.0\",\"osType\":\"centos6\",\"repoId\":\"HDP-1.3.4\",\"repoName\":\"HDP\",\"defaultBaseUrl\":\"http://public-repo-1.hortonworks.com/HDP/centos6/1.x/updates/1.3.3.0\"}]", 
+        "package_list": "[{\"type\":\"rpm\",\"name\":\"lzo\"},{\"type\":\"rpm\",\"name\":\"hadoop\"},{\"type\":\"rpm\",\"name\":\"hadoop-libhdfs\"},{\"type\":\"rpm\",\"name\":\"hadoop-native\"},{\"type\":\"rpm\",\"name\":\"hadoop-pipes\"},{\"type\":\"rpm\",\"name\":\"hadoop-sbin\"},{\"type\":\"rpm\",\"name\":\"hadoop-lzo\"},{\"type\":\"rpm\",\"name\":\"hadoop-lzo-native\"},{\"type\":\"rpm\",\"name\":\"snappy\"},{\"type\":\"rpm\",\"name\":\"snappy-devel\"},{\"type\":\"rpm\",\"name\":\"ambari-log4j\"}]", 
+        "stack_version": "1.3.4", 
+        "stack_name": "HDP", 
+        "db_name": "ambari", 
+        "ambari_db_rca_driver": "org.postgresql.Driver", 
+        "jdk_name": "jdk-7u67-linux-x64.tar.gz",
+        "ambari_db_rca_username": "mapred", 
+        "java_home": "/usr/jdk64/jdk1.7.0_45", 
+        "mysql_jdbc_url": "http://c6401.ambari.apache.org:8080/resources//mysql-connector-java.jar",
+        "group_list": "[\"hadoop\",\"nobody\",\"users\"]",
+        "user_list": "[\"hive\",\"oozie\",\"nobody\",\"ambari-qa\",\"flume\",\"hdfs\",\"storm\",\"mapred\",\"hbase\",\"tez\",\"zookeeper\",\"falcon\",\"sqoop\",\"yarn\",\"hcat\"]"
+    }, 
+    "commandType": "EXECUTION_COMMAND", 
+    "roleParams": {}, 
+    "serviceName": "HIVE",
+    "role": "HIVE_SERVER",
+    "commandParams": {
+        "command_timeout": "600", 
+        "service_package_folder": "HDFS",
+        "script_type": "PYTHON",
+        "script": "scripts/datanode.py",
+        "excluded_hosts": "host1,host2",
+        "mark_draining_only" : "false",
+        "update_exclude_file_only" : "true",
+        "xml_configs_list":[{"core-site.xml":"core-site"},{"mapred-site.xml":"mapred-site"}],
+        "env_configs_list":[{"log4j.properties":"hdfs-log4j,mapreduce-log4j"}],
+        "properties_configs_list":[{"runtime.properties":"falcon-runtime.properties"},{"startup.properties":"falcon-startup.properties"}],
+        "output_file":"MAPREDUCE_CLIENT-configs.tar.gz"
+    },
+    "taskId": 18, 
+    "public_hostname": "c6402.ambari.apache.org", 
+    "configurations": {
+        "mapred-site": {
+            "ambari.mapred.child.java.opts.memory": "768", 
+            "mapred.job.reduce.input.buffer.percent": "0.0", 
+            "mapred.job.map.memory.mb": "1536", 
+            "mapred.output.compression.type": "BLOCK", 
+            "mapred.jobtracker.maxtasks.per.job": "-1", 
+            "mapred.hosts": "/etc/hadoop/conf/mapred.include", 
+            "mapred.map.output.compression.codec": "org.apache.hadoop.io.compress.SnappyCodec", 
+            "mapred.child.root.logger": "INFO,TLA", 
+            "mapred.tasktracker.tasks.sleeptime-before-sigkill": "250", 
+            "io.sort.spill.percent": "0.9", 
+            "mapred.reduce.parallel.copies": "30", 
+            "mapred.userlog.retain.hours": "24", 
+            "mapred.reduce.tasks.speculative.execution": "false", 
+            "io.sort.mb": "200", 
+            "mapreduce.cluster.administrators": " hadoop", 
+            "mapred.jobtracker.blacklist.fault-timeout-window": "180", 
+            "mapred.job.tracker.history.completed.location": "/mapred/history/done", 
+            "mapred.job.shuffle.input.buffer.percent": "0.7", 
+            "io.sort.record.percent": ".2", 
+            "mapred.cluster.max.reduce.memory.mb": "4096", 
+            "mapred.job.reuse.jvm.num.tasks": "1", 
+            "mapreduce.jobhistory.intermediate-done-dir": "/mr-history/tmp", 
+            "mapred.job.tracker.http.address": "c6402.ambari.apache.org:50030", 
+            "mapred.job.tracker.persist.jobstatus.hours": "1", 
+            "mapred.healthChecker.script.path": "/etc/hadoop/conf/health_check", 
+            "mapreduce.jobtracker.staging.root.dir": "/user", 
+            "mapred.job.shuffle.merge.percent": "0.66", 
+            "mapred.cluster.reduce.memory.mb": "2048", 
+            "mapred.job.tracker.persist.jobstatus.dir": "/mapred/jobstatus", 
+            "mapreduce.tasktracker.group": "hadoop", 
+            "mapred.tasktracker.map.tasks.maximum": "4", 
+            "mapred.child.java.opts": "-server -Xmx${ambari.mapred.child.java.opts.memory}m -Djava.net.preferIPv4Stack=true", 
+            "mapred.jobtracker.retirejob.check": "10000", 
+            "mapred.job.tracker": "c6402.ambari.apache.org:50300", 
+            "mapreduce.history.server.embedded": "false", 
+            "io.sort.factor": "100", 
+            "hadoop.job.history.user.location": "none", 
+            "mapreduce.reduce.input.limit": "10737418240", 
+            "mapred.reduce.slowstart.completed.maps": "0.05", 
+            "mapred.cluster.max.map.memory.mb": "6144", 
+            "mapreduce.history.server.http.address": "c6402.ambari.apache.org:51111", 
+            "mapred.jobtracker.taskScheduler": "org.apache.hadoop.mapred.CapacityTaskScheduler", 
+            "mapred.max.tracker.blacklists": "16", 
+            "mapred.local.dir": "/hadoop/mapred,/hadoop/mapred1",
+            "mapred.healthChecker.interval": "135000", 
+            "mapred.jobtracker.restart.recover": "false", 
+            "mapred.jobtracker.blacklist.fault-bucket-width": "15", 
+            "mapred.jobtracker.retirejob.interval": "21600000", 
+            "tasktracker.http.threads": "50", 
+            "mapred.job.tracker.persist.jobstatus.active": "false", 
+            "mapred.system.dir": "/mapred/system", 
+            "mapred.tasktracker.reduce.tasks.maximum": "2", 
+            "mapred.cluster.map.memory.mb": "1536", 
+            "mapred.hosts.exclude": "/etc/hadoop/conf/mapred.exclude", 
+            "mapred.queue.names": "default", 
+            "mapreduce.jobhistory.webapp.address": "c6402.ambari.apache.org:19888", 
+            "mapreduce.fileoutputcommitter.marksuccessfuljobs": "false", 
+            "mapred.job.reduce.memory.mb": "2048", 
+            "mapreduce.jobhistory.done-dir": "/mr-history/done", 
+            "mapred.healthChecker.script.timeout": "60000", 
+            "jetty.connector": "org.mortbay.jetty.nio.SelectChannelConnector", 
+            "mapreduce.jobtracker.split.metainfo.maxsize": "50000000", 
+            "mapred.job.tracker.handler.count": "50", 
+            "mapred.inmem.merge.threshold": "1000", 
+            "mapred.task.tracker.task-controller": "org.apache.hadoop.mapred.DefaultTaskController", 
+            "mapred.jobtracker.completeuserjobs.maximum": "0", 
+            "mapred.task.timeout": "600000", 
+            "mapred.map.tasks.speculative.execution": "false"
+        }, 
+        "oozie-site": {
+            "oozie.service.PurgeService.purge.interval": "3600", 
+            "oozie.service.CallableQueueService.queue.size": "1000", 
+            "oozie.service.SchemaService.wf.ext.schemas": "shell-action-0.1.xsd,email-action-0.1.xsd,hive-action-0.2.xsd,sqoop-action-0.2.xsd,ssh-action-0.1.xsd,distcp-action-0.1.xsd,hive-action-0.3.xsd",
+            "oozie.service.JPAService.jdbc.url": "jdbc:derby:${oozie.data.dir}/${oozie.db.schema.name}-db;create=true", 
+            "oozie.service.HadoopAccessorService.nameNode.whitelist": " ", 
+            "use.system.libpath.for.mapreduce.and.pig.jobs": "false", 
+            "oozie.service.JPAService.create.db.schema": "false", 
+            "oozie.authentication.kerberos.name.rules": "DEFAULT", 
+            "oozie.service.ActionService.executor.ext.classes": "org.apache.oozie.action.email.EmailActionExecutor,\norg.apache.oozie.action.hadoop.HiveActionExecutor,\norg.apache.oozie.action.hadoop.ShellActionExecutor,\norg.apache.oozie.action.hadoop.SqoopActionExecutor,\norg.apache.oozie.action.hadoop.DistcpActionExecutor", 
+            "oozie.service.AuthorizationService.authorization.enabled": "true", 
+            "oozie.base.url": "http://c6402.ambari.apache.org:11000/oozie", 
+            "oozie.service.JPAService.jdbc.password": "q", 
+            "oozie.service.coord.normal.default.timeout": "120", 
+            "oozie.service.JPAService.pool.max.active.conn": "10", 
+            "oozie.service.PurgeService.older.than": "30", 
+            "oozie.db.schema.name": "oozie", 
+            "oozie.service.HadoopAccessorService.hadoop.configurations": "*=/etc/hadoop/conf", 
+            "oozie.service.HadoopAccessorService.jobTracker.whitelist": " ", 
+            "oozie.service.CallableQueueService.callable.concurrency": "3", 
+            "oozie.service.JPAService.jdbc.username": "oozie", 
+            "oozie.service.CallableQueueService.threads": "10", 
+            "oozie.systemmode": "NORMAL", 
+            "oozie.service.WorkflowAppService.system.libpath": "/user/${user.name}/share/lib", 
+            "oozie.authentication.type": "simple", 
+            "oozie.service.JPAService.jdbc.driver": "org.apache.derby.jdbc.EmbeddedDriver", 
+            "oozie.system.id": "oozie-${user.name}"
+        }, 
+        "webhcat-site": {
+            "templeton.pig.path": "pig.tar.gz/pig/bin/pig", 
+            "templeton.exec.timeout": "60000", 
+            "templeton.override.enabled": "false", 
+            "templeton.jar": "/usr/lib/hcatalog/share/webhcat/svr/webhcat.jar", 
+            "templeton.zookeeper.hosts": "c6401.ambari.apache.org:2181", 
+            "templeton.hive.properties": "hive.metastore.local=false,hive.metastore.uris=thrift://c6402.ambari.apache.org:9083,hive.metastore.sasl.enabled=yes,hive.metastore.execute.setugi=true,hive.metastore.warehouse.dir=/apps/hive/warehouse", 
+            "templeton.storage.class": "org.apache.hcatalog.templeton.tool.ZooKeeperStorage", 
+            "templeton.hive.archive": "hdfs:///apps/webhcat/hive.tar.gz", 
+            "templeton.streaming.jar": "hdfs:///apps/webhcat/hadoop-streaming.jar", 
+            "templeton.port": "50111", 
+            "templeton.libjars": "/usr/lib/zookeeper/zookeeper.jar", 
+            "templeton.hadoop": "/usr/bin/hadoop", 
+            "templeton.hive.path": "hive.tar.gz/hive/bin/hive", 
+            "templeton.hadoop.conf.dir": "/etc/hadoop/conf", 
+            "templeton.hcat": "/usr/bin/hcat", 
+            "templeton.pig.archive": "hdfs:///apps/webhcat/pig.tar.gz"
+        }, 
+        "hdfs-site": {
+            "dfs.namenode.avoid.write.stale.datanode": "true", 
+            "dfs.access.time.precision": "0", 
+            "ipc.server.max.response.size": "5242880", 
+            "dfs.web.ugi": "gopher,gopher", 
+            "dfs.support.append": "true", 
+            "dfs.cluster.administrators": " hdfs", 
+            "dfs.replication": "3", 
+            "ambari.dfs.datanode.http.port": "50075", 
+            "dfs.block.size": "134217728", 
+            "dfs.data.dir": "/hadoop/hdfs/data", 
+            "dfs.datanode.du.reserved": "1073741824", 
+            "dfs.webhdfs.enabled": "true", 
+            "dfs.namenode.handler.count": "100", 
+            "dfs.datanode.http.address": "0.0.0.0:50075",
+            "dfs.datanode.socket.write.timeout": "0", 
+            "ipc.server.read.threadpool.size": "5", 
+            "dfs.balance.bandwidthPerSec": "6250000", 
+            "dfs.datanode.address": "0.0.0.0:${ambari.dfs.datanode.port}", 
+            "dfs.blockreport.initialDelay": "120", 
+            "dfs.datanode.failed.volumes.tolerated": "0", 
+            "dfs.permissions.supergroup": "hdfs", 
+            "dfs.https.address": "c6401.ambari.apache.org:50470", 
+            "ambari.dfs.datanode.port": "50010", 
+            "dfs.namenode.avoid.read.stale.datanode": "true", 
+            "dfs.name.dir": "/hadoop/hdfs/namenode", 
+            "dfs.hosts": "/etc/hadoop/conf/dfs.include", 
+            "dfs.namenode.stale.datanode.interval": "30000", 
+            "dfs.heartbeat.interval": "3", 
+            "dfs.secondary.https.port": "50490", 
+            "dfs.permissions": "true", 
+            "dfs.datanode.ipc.address": "0.0.0.0:8010", 
+            "dfs.block.local-path-access.user": "hbase", 
+            "dfs.block.access.token.enable": "true", 
+            "dfs.datanode.data.dir.perm": "750", 
+            "dfs.secondary.http.address": "c6402.ambari.apache.org:50090", 
+            "dfs.http.address": "c6401.ambari.apache.org:50070", 
+            "dfs.https.port": "50070", 
+            "dfs.replication.max": "50", 
+            "dfs.datanode.max.xcievers": "4096", 
+            "dfs.namenode.write.stale.datanode.ratio": "1.0f", 
+            "dfs.hosts.exclude": "/etc/hadoop/conf/dfs.exclude",  
+            "dfs.safemode.threshold.pct": "1.0f", 
+            "dfs.umaskmode": "077"
+        }, 
+        "hbase-site": {
+            "hbase.client.keyvalue.maxsize": "10485760", 
+            "hbase.hstore.compactionThreshold": "3", 
+            "hbase.rootdir": "hdfs://c6401.ambari.apache.org:8020/apps/hbase/data", 
+            "hbase.regionserver.handler.count": "60", 
+            "dfs.client.read.shortcircuit": "true", 
+            "hbase.regionserver.global.memstore.lowerLimit": "0.38", 
+            "hbase.hregion.memstore.block.multiplier": "2", 
+            "hbase.hregion.memstore.flush.size": "134217728", 
+            "hbase.superuser": "hbase", 
+            "hbase.zookeeper.property.clientPort": "2181", 
+            "hbase.rpc.engine": "org.apache.hadoop.hbase.ipc.WritableRpcEngine", 
+            "hbase.regionserver.global.memstore.upperLimit": "0.4", 
+            "zookeeper.session.timeout": "60000", 
+            "hbase.tmp.dir": "/hadoop/hbase", 
+            "hbase.hregion.max.filesize": "10737418240", 
+            "hfile.block.cache.size": "0.40", 
+            "hbase.security.authentication": "simple", 
+            "hbase.zookeeper.quorum": "c6401.ambari.apache.org", 
+            "zookeeper.znode.parent": "/hbase-unsecure", 
+            "hbase.hstore.blockingStoreFiles": "10",
+            "hbase.master.port": "60000",
+            "hbase.hregion.majorcompaction": "86400000", 
+            "hbase.security.authorization": "false", 
+            "hbase.cluster.distributed": "true", 
+            "hbase.hregion.memstore.mslab.enabled": "true", 
+            "hbase.client.scanner.caching": "100", 
+            "hbase.zookeeper.useMulti": "true"
+        }, 
+        "core-site": {
+            "io.serializations": "org.apache.hadoop.io.serializer.WritableSerialization", 
+            "hadoop.proxyuser.hcat.groups": "users", 
+            "fs.checkpoint.size": "67108864", 
+            "hadoop.proxyuser.oozie.groups": "users", 
+            "fs.default.name": "hdfs://c6401.ambari.apache.org:8020", 
+            "io.file.buffer.size": "131072", 
+            "hadoop.proxyuser.hive.groups": "users", 
+            "webinterface.private.actions": "false", 
+            "hadoop.proxyuser.oozie.hosts": "c6402.ambari.apache.org", 
+            "io.compression.codecs": "org.apache.hadoop.io.compress.GzipCodec,org.apache.hadoop.io.compress.DefaultCodec,org.apache.hadoop.io.compress.SnappyCodec", 
+            "hadoop.security.authentication": "simple", 
+            "fs.checkpoint.edits.dir": "${fs.checkpoint.dir}", 
+            "fs.checkpoint.dir": "/hadoop/hdfs/namesecondary", 
+            "fs.trash.interval": "360", 
+            "ipc.client.idlethreshold": "8000", 
+            "hadoop.proxyuser.hcat.hosts": "c6402.ambari.apache.org", 
+            "hadoop.proxyuser.hive.hosts": "c6402.ambari.apache.org", 
+            "fs.checkpoint.period": "21600", 
+            "ipc.client.connection.maxidletime": "30000", 
+            "ipc.client.connect.max.retries": "50"
+        }, 
+        "hive-site": {
+            "hive.enforce.sorting": "true", 
+            "javax.jdo.option.ConnectionPassword": "!`\"' 1", 
+            "javax.jdo.option.ConnectionDriverName": "com.mysql.jdbc.Driver", 
+            "hive.optimize.bucketmapjoin.sortedmerge": "true", 
+            "fs.file.impl.disable.cache": "true", 
+            "hive.auto.convert.join.noconditionaltask": "true", 
+            "hive.map.aggr": "true", 
+            "hive.security.authorization.enabled": "false", 
+            "hive.optimize.reducededuplication.min.reducer": "1", 
+            "hive.optimize.bucketmapjoin": "true", 
+            "hive.metastore.uris": "thrift://c6402.ambari.apache.org:9083", 
+            "hive.mapjoin.bucket.cache.size": "10000", 
+            "hive.auto.convert.join.noconditionaltask.size": "1000000000", 
+            "javax.jdo.option.ConnectionUserName": "hive", 
+            "hive.metastore.cache.pinobjtypes": "Table,Database,Type,FieldSchema,Order", 
+            "hive.metastore.warehouse.dir": "/apps/hive/warehouse", 
+            "hive.metastore.client.socket.timeout": "60",
+            "hive.auto.convert.join": "true", 
+            "hive.enforce.bucketing": "true", 
+            "hive.mapred.reduce.tasks.speculative.execution": "false", 
+            "javax.jdo.option.ConnectionURL": "jdbc:mysql://c6402.ambari.apache.org/hive?createDatabaseIfNotExist=true", 
+            "hive.auto.convert.sortmerge.join": "true", 
+            "fs.hdfs.impl.disable.cache": "true", 
+            "hive.security.authorization.manager": "org.apache.hcatalog.security.HdfsAuthorizationProvider", 
+            "ambari.hive.db.schema.name": "hive", 
+            "hive.metastore.execute.setugi": "true", 
+            "hive.auto.convert.sortmerge.join.noconditionaltask": "true", 
+            "hive.server2.enable.doAs": "true", 
+            "hive.optimize.mapjoin.mapreduce": "true"
+        },
+        "webhcat-env": {
+            "content": "\n# The file containing the running pid\nPID_FILE={{pid_file}}\n\nTEMPLETON_LOG_DIR={{templeton_log_dir}}/\n\n\nWEBHCAT_LOG_DIR={{templeton_log_dir}}/\n\n# The console error log\nERROR_LOG={{templeton_log_dir}}/webhcat-console-error.log\n\n# The console log\nCONSOLE_LOG={{templeton_log_dir}}/webhcat-console.log\n\n#TEMPLETON_JAR=templeton_jar_name\n\n#HADOOP_PREFIX=hadoop_prefix\n\n#HCAT_PREFIX=hive_prefix\n\n# Set HADOOP_HOME to point to a specific hadoop install directory\nexport HADOOP_HOME=/usr/lib/hadoop\n    "
+        },
+        "hcat-env": {
+            "content": "JAVA_HOME={{java64_home}}\n      HCAT_PID_DIR={{hcat_pid_dir}}/\n      HCAT_LOG_DIR={{hcat_log_dir}}/\n      HCAT_CONF_DIR={{hcat_conf_dir}}\n      HADOOP_HOME=${HADOOP_HOME:-{{hadoop_home}}}\n      #DBROOT is the path where the connector jars are downloaded\n      DBROOT={{hcat_dbroot}}\n      USER={{hcat_user}}\n      METASTORE_PORT={{hive_metastore_port}}"
+        },
+        "oozie-env": {
+            "oozie_derby_database": "Derby", 
+            "oozie_admin_port": "11001", 
+            "oozie_pid_dir": "/var/run/oozie", 
+            "content": "\n#!/bin/bash\n\n#Set JAVA HOME\nexport JAVA_HOME={{java_home}}\nexport JRE_HOME={{java_home}}\n\n# Set Oozie specific environment variables here.\n\n# Settings for the Embedded Tomcat that runs Oozie\n# Java System properties for Oozie should be specified in this variable\n#\n# export CATALINA_OPTS=\n\n# Oozie configuration file to load from Oozie configuration directory\n#\n# export OOZIE_CONFIG_FILE=oozie-site.xml\n\n# Oozie logs directory\n#\nexport OOZIE_LOG={{oozie_log_dir}}\n\n# Oozie pid directory\n#\nexport CATALINA_PID={{pid_file}}\n\n#Location of the data for oozie\nexport OOZIE_DATA={{oozie_data_dir}}\n\n# Oozie Log4J configuration file to load from Oozie configuration directory\n#\n# export OOZIE_LOG4J_FILE=oozie-log4j.properties\n\n# Reload interval of the Log4J configuration file, in seconds\n#\n# export OOZIE_LOG4J_RELOAD=10\n\n# The port Oozie server runs\n#\nexport OOZIE_HTTP_PORT={{oozie_server_port}}\n\n# The admin port Oozie server runs\n#\nexport OOZIE_ADMIN_PORT={{oozie_server_admin_port}}\n\n# The host name Oozie server runs on\n#\n# export OOZIE_HTTP_HOSTNAME=`hostname -f`\n\n# The base URL for callback URLs to Oozie\n#\n# export OOZIE_BASE_URL=\"http://${OOZIE_HTTP_HOSTNAME}:${OOZIE_HTTP_PORT}/oozie\"\nexport JAVA_LIBRARY_PATH=/usr/lib/hadoop/lib/native/Linux-amd64-64\n    ", 
+            "oozie_user": "oozie", 
+            "oozie_database": "New Derby Database", 
+            "oozie_data_dir": "/hadoop/oozie/data", 
+            "oozie_log_dir": "/var/log/oozie"
+        }, 
+        "pig-env": {
+            "content": "\nJAVA_HOME={{java64_home}}\nHADOOP_HOME=${HADOOP_HOME:-{{hadoop_home}}}\n    "
+        }, 
+        "sqoop-env": {
+            "content": "\n# Set Hadoop-specific environment variables here.\n\n#Set path to where bin/hadoop is available\n#Set path to where bin/hadoop is available\nexport HADOOP_HOME=${HADOOP_HOME:-/usr/lib/hadoop}\n\n#set the path to where bin/hbase is available\nexport HBASE_HOME=${HBASE_HOME:-/usr/lib/hbase}\n\n#Set the path to where bin/hive is available\nexport HIVE_HOME=${HIVE_HOME:-/usr/lib/hive}\n\n#Set the path for where zookeper config dir is\nexport ZOOCFGDIR=${ZOOCFGDIR:-/etc/zookeeper/conf}\n\n# add libthrift in hive to sqoop class path first so hive imports work\nexport SQOOP_USER_CLASSPATH=\"`ls ${HIVE_HOME}/lib/libthrift-*.jar 2> /dev/null`:${SQOOP_USER_CLASSPATH}\"\n    ",
+            "sqoop_user": "sqoop"
+        }, 
+        "mapred-env": {
+            "mapreduce_userlog_retainhours": "24", 
+            "mapred_red_tasks_max": "2", 
+            "scheduler_name": "org.apache.hadoop.mapred.CapacityTaskScheduler", 
+            "mapred_hosts_exclude": "", 
+            "mapred_hosts_include": "", 
+            "mapred_jobstatus_dir": "/mapred/jobstatus", 
+            "rca_enabled": "true", 
+            "mapred_job_map_mem_mb": "-1", 
+            "mapred_cluster_map_mem_mb": "-1", 
+            "maxtasks_per_job": "-1", 
+            "io_sort_mb": "200", 
+            "mapred_cluster_red_mem_mb": "-1", 
+            "mapred_local_dir": "/hadoop/mapred", 
+            "lzo_enabled": "true", 
+            "mapred_child_java_opts_sz": "768", 
+            "jtnode_heapsize": "1024m", 
+            "task_controller": "org.apache.hadoop.mapred.DefaultTaskController", 
+            "mapred_map_tasks_max": "4", 
+            "snappy_enabled": "true", 
+            "io_sort_spill_percent": "0.9", 
+            "mapred_system_dir": "/mapred/system", 
+            "jtnode_opt_newsize": "200m", 
+            "mapred_user": "mapred", 
+            "hadoop_heapsize": "1024", 
+            "jtnode_opt_maxnewsize": "200m",
+            "rca_properties": "\nambari.jobhistory.database={ambari_db_rca_url}\nambari.jobhistory.driver={ambari_db_rca_driver}\nambari.jobhistory.user={ambari_db_rca_username}\nambari.jobhistory.password={ambari_db_rca_password}\nambari.jobhistory.logger=${{hadoop.root.logger}}\n\nlog4j.appender.JHA=org.apache.ambari.log4j.hadoop.mapreduce.jobhistory.JobHistoryAppender\nlog4j.appender.JHA.database={ambari_db_rca_url}\nlog4j.appender.JHA.driver={ambari_db_rca_driver}\nlog4j.appender.JHA.user={ambari_db_rca_username}\nlog4j.appender.JHA.password={ambari_db_rca_password}\n\nlog4j.logger.org.apache.hadoop.mapred.JobHistory$JobHistoryLogger=DEBUG,JHA\nlog4j.additivity.org.apache.hadoop.mapred.JobHistory$JobHistoryLogger=true\n\n"
+        }, 
+        "hive-env": {
+            "hive_metastore_user_passwd": "password", 
+            "hcat_pid_dir": "/var/run/webhcat", 
+            "hcat_user": "hcat", 
+            "hive_ambari_database": "MySQL", 
+            "hive_dbroot": "/usr/lib/hive/lib/", 
+            "webhcat_user": "hcat", 
+            "hive_conf_dir": "/etc/hive/conf", 
+            "content": "\n if [ \"$SERVICE\" = \"cli\" ]; then\n   if [ -z \"$DEBUG\" ]; then\n     export HADOOP_OPTS=\"$HADOOP_OPTS -XX:NewRatio=12 -Xms10m -XX:MaxHeapFreeRatio=40 -XX:MinHeapFreeRatio=15 -XX:+UseParNewGC -XX:-UseGCOverheadLimit\"\n   else\n     export HADOOP_OPTS=\"$HADOOP_OPTS -XX:NewRatio=12 -Xms10m -XX:MaxHeapFreeRatio=40 -XX:MinHeapFreeRatio=15 -XX:-UseGCOverheadLimit\"\n   fi\n fi\n\n# The heap size of the jvm stared by hive shell script can be controlled via:\n\nexport HADOOP_HEAPSIZE=\"{{hive_heapsize}}\"\nexport HADOOP_CLIENT_OPTS=\"-Xmx${HADOOP_HEAPSIZE}m $HADOOP_CLIENT_OPTS\"\n\n# Larger heap size may be required when running queries over large number of files or partitions.\n# By default hive shell scripts use a heap size of 256 (MB).  Larger heap size would also be\n# appropriate for hive server (hwi etc).\n\n\n# Set HADOOP_HOME to point to a specific hadoop install directory\nHADOOP_HOME=${HADOOP_HOME:-{{hadoop_home}}}\n\n# Hive Configuration Directory can be controlled by:\nexport HIVE_CONF_DIR={{conf_dir}}\n\n# Folder containing extra ibraries required for hive compilation/execution can be controlled by:\nif [ \"${HIVE_AUX_JARS_PATH}\" != \"\" ]; then\n  export HIVE_AUX_JARS_PATH={{hive_aux_jars_path}}:${HIVE_AUX_JARS_PATH}\nelse\n  export HIVE_AUX_JARS_PATH={{hive_aux_jars_path}}\nfi\nexport METASTORE_PORT={{hive_metastore_port}}\n    ", 
+            "hive_database_name": "hive", 
+            "hive_database_type": "mysql", 
+            "hive_pid_dir": "/var/run/hive", 
+            "hive_log_dir": "/var/log/hive", 
+            "hive_user": "hive", 
+            "hcat_log_dir": "/var/log/webhcat", 
+            "hive_aux_jars_path": "/usr/lib/hcatalog/share/hcatalog/hcatalog-core.jar", 
+            "hive_database": "New MySQL Database"
+        }, 
+        "hadoop-env": {
+            "namenode_opt_maxnewsize": "200m", 
+            "hdfs_log_dir_prefix": "/var/log/hadoop",
+            "namenode_heapsize": "1024m", 
+            "namenode_opt_newsize": "200m",
+            "namenode_opt_permsize" : "128m",
+            "namenode_opt_maxpermsize" : "256m",
+            "content": "\n# Set Hadoop-specific environment variables here.\n\n# The only required environment variable is JAVA_HOME.  All others are\n# optional.  When running a distributed configuration it is best to\n# set JAVA_HOME in this file, so that it is correctly defined on\n# remote nodes.\n\n# The java implementation to use.  Required.\nexport JAVA_HOME={{java_home}}\nexport HADOOP_HOME_WARN_SUPPRESS=1\n\n# Hadoop Configuration Directory\n#TODO: if env var set that can cause problems\nexport HADOOP_CONF_DIR=${HADOOP_CONF_DIR:-{{hadoop_conf_dir}}}\n\n# Hadoop home directory\nexport HADOOP_HOME=${HADOOP_HOME:-/usr/lib/hadoop}\n\n# this is different for HDP1 #\n# Path to jsvc required by secure HDP 2.0 datanode\n# export JSVC_HOME={{jsvc_path}}\n\n\n# The maximum amount of heap to use, in MB. Default is 1000.\nexport HADOOP_HEAPSIZE=\"{{hadoop_heapsize}}\"\n\nexport HADOOP_NAMENODE_INIT_HEAPSIZE=\"-Xms{{namenode_heapsize}}\"\n\n# Extra Java runtime options.  Empty by default.\nexport HADOOP_OPTS=\"-Djava.net.preferIPv4Stack=true ${HADOOP_OPTS}\"\n\n# History server logs\nexport HADOOP_MAPRED_LOG_DIR={{hdfs_log_dir_prefix}}/$USER\n\n# Command specific options appended to HADOOP_OPTS when specified\nexport HADOOP_NAMENODE_OPTS=\"-server -XX:ParallelGCThreads=8 -XX:+UseConcMarkSweepGC -XX:ErrorFile={{hdfs_log_dir_prefix}}/$USER/hs_err_pid%p.log -XX:NewSize={{namenode_opt_newsize}} -XX:MaxNewSize={{namenode_opt_maxnewsize}} -XX:PermSize={{namenode_opt_permsize}} -XX:MaxPermSize={{namenode_opt_maxpermsize}} -Xloggc:{{hdfs_log_dir_prefix}}/$USER/gc.log-`date +'%Y%m%d%H%M'` -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps -Xms{{namenode_heapsize}} -Xmx{{namenode_heapsize}} -Dhadoop.security.logger=INFO,DRFAS -Dhdfs.audit.logger=INFO,DRFAAUDIT ${HADOOP_NAMENODE_OPTS}\"\nexport HADOOP_JOBTRACKER_OPTS=\"-server -XX:ParallelGCThreads=8 -XX:+UseConcMarkSweepGC -XX:ErrorFile={{hdfs_log_dir_prefix}}/$USER/hs_err_pid%p.log -XX:NewSize={{jtnode_opt_newsize}} -XX:MaxNewSize={{jtnode_opt_maxnewsize}} -Xloggc:{{hdfs_log_dir_prefix}}/$USER/gc.log-`date +'%Y%m%d%H%M'` -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps -Xmx{{jtnode_heapsize}} -Dhadoop.security.logger=INFO,DRFAS -Dmapred.audit.logger=INFO,MRAUDIT -Dhadoop.mapreduce.jobsummary.logger=INFO,JSA -Dmapred.log.dir=$HADOOP_MAPRED_LOG_DIR ${HADOOP_JOBTRACKER_OPTS}\"\n\nHADOOP_TASKTRACKER_OPTS=\"-server -Xmx{{ttnode_heapsize}} -Dhadoop.security.logger=ERROR,console -Dmapred.audit.logger=ERROR,console ${HADOOP_TASKTRACKER_OPTS}\"\nHADOOP_DATANODE_OPTS=\"-Xmx{{dtnode_heapsize}} -Dhadoop.security.logger=ERROR,DRFAS ${HADOOP_DATANODE_OPTS}\"\nHADOOP_BALANCER_OPTS=\"-server -Xmx{{hadoop_heapsize}}m ${HADOOP_BALANCER_OPTS}\"\n\nexport HADOOP_SECONDARYNAMENODE_OPTS=\"-server -XX:ParallelGCThreads=8 -XX:+UseConcMarkSweepGC -XX:ErrorFile={{hdfs_log_dir_prefix}}/$USER/hs_err_pid%p.log -XX:NewSize={{namenode_opt_newsize}} -XX:MaxNewSize={{namenode_opt_maxnewsize}} -XX:PermSize={{namenode_opt_permsize}} -XX:MaxPermSize={{namenode_opt_maxpermsize}} -Xloggc:{{hdfs_log_dir_prefix}}/$USER/gc.log-`date +'%Y%m%d%H%M'` -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps ${HADOOP_NAMENODE_INIT_HEAPSIZE} -Xmx{{namenode_heapsize}} -Dhadoop.security.logger=INFO,DRFAS -Dhdfs.audit.logger=INFO,DRFAAUDIT ${HADOOP_SECONDARYNAMENODE_OPTS}\"\n\n# The following applies to multiple commands (fs, dfs, fsck, distcp etc)\nexport HADOOP_CLIENT_OPTS=\"-Xmx${HADOOP_HEAPSIZE}m $HADOOP_CLIENT_OPTS\"\n# On secure datanodes, user to run the datanode as after dropping privileges\nexport HADOOP_SECURE_DN_USER={{hdfs_user}}\n\n# Extra ssh options.  Empty by default.\nexport HADOOP_SSH_OPTS=\"-o ConnectTimeout=5 -o SendEnv=HADOOP_CONF_DIR\"\n\n# Where log files are stored.  $HADOOP_HOME/logs by default.\nexport HADOOP_LOG_DIR={{hdfs_log_dir_prefix}}/$USER\n\n# Where log files are stored in the secure data environment.\nexport HADOOP_SECURE_DN_LOG_DIR={{hdfs_log_dir_prefix}}/$HADOOP_SECURE_DN_USER\n\n# File naming remote slave hosts.  $HADOOP_HOME/conf/slaves by default.\n# export HADOOP_SLAVES=${HADOOP_HOME}/conf/slaves\n\n# host:path where hadoop code should be rsync'd from.  Unset by default.\n# export HADOOP_MASTER=master:/home/$USER/src/hadoop\n\n# Seconds to sleep between slave commands.  Unset by default.  This\n# can be useful in large clusters, where, e.g., slave rsyncs can\n# otherwise arrive faster than the master can service them.\n# export HADOOP_SLAVE_SLEEP=0.1\n\n# The directory where pid files are stored. /tmp by default.\nexport HADOOP_PID_DIR={{hadoop_pid_dir_prefix}}/$USER\nexport HADOOP_SECURE_DN_PID_DIR={{hadoop_pid_dir_prefix}}/$HADOOP_SECURE_DN_USER\n\n# History server pid\nexport HADOOP_MAPRED_PID_DIR={{mapred_pid_dir_prefix}}/$USER\n\nYARN_RESOURCEMANAGER_OPTS=\"-Dyarn.server.resourcemanager.appsummary.logger=INFO,RMSUMMARY\"\n\n# A string representing this instance of hadoop. $USER by default.\nexport HADOOP_IDENT_STRING=$USER\n\n# The scheduling priority for daemon processes.  See 'man nice'.\n\n# export HADOOP_NICENESS=10\n\n# Use libraries from standard classpath\nJAVA_JDBC_LIBS=\"\"\n#Add libraries required by mysql connector\nfor jarFile in `ls /usr/share/java/*mysql* 2>/dev/null`\ndo\n  JAVA_JDBC_LIBS=${JAVA_JDBC_LIBS}:$jarFile\ndone\n#Add libraries required by oracle connector\nfor jarFile in `ls /usr/share/java/*ojdbc* 2>/dev/null`\ndo\n  JAVA_JDBC_LIBS=${JAVA_JDBC_LIBS}:$jarFile\ndone\n#Add libraries required by nodemanager\nMAPREDUCE_LIBS={{mapreduce_libs_path}}\nexport HADOOP_CLASSPATH=${HADOOP_CLASSPATH}${JAVA_JDBC_LIBS}:${MAPREDUCE_LIBS}\n\n# Setting path to hdfs command line\nexport HADOOP_LIBEXEC_DIR={{hadoop_libexec_dir}}\n\n#Mostly required for hadoop 2.0\nexport JAVA_LIBRARY_PATH=${JAVA_LIBRARY_PATH}:/usr/lib/hadoop/lib/native/Linux-amd64-64\n    ", 
+            "hdfs_user": "hdfs",
+            "dtnode_heapsize": "1024m", 
+            "proxyuser_group": "users",
+            "hadoop_heapsize": "1024", 
+            "hadoop_pid_dir_prefix": "/var/run/hadoop",
+            "dfs.datanode.data.dir.mount.file": "/etc/hadoop/conf/dfs_data_dir_mount.hist"
+        },
+        "cluster-env": {
+            "security_enabled": "false",
+            "ignore_groupsusers_create": "false",
+            "smokeuser": "ambari-qa",
+            "kerberos_domain": "EXAMPLE.COM",
+            "user_group": "hadoop"
+        },
+
+      "hbase-env": {
+            "hbase_pid_dir": "/var/run/hbase", 
+            "hbase_user": "hbase", 
+            "hbase_master_heapsize": "1024m", 
+            "content": "\n# Set environment variables here.\n\n# The java implementation to use. Java 1.6 required.\nexport JAVA_HOME={{java64_home}}\n\n# HBase Configuration directory\nexport HBASE_CONF_DIR=${HBASE_CONF_DIR:-{{hbase_conf_dir}}}\n\n# Extra Java CLASSPATH elements. Optional.\nexport HBASE_CLASSPATH=${HBASE_CLASSPATH}\n\n# The maximum amount of heap to use, in MB. Default is 1000.\n# export HBASE_HEAPSIZE=1000\n\n# Extra Java runtime options.\n# Below are what we set by default. May only work with SUN JVM.\n# For more on why as well as other possible settings,\n# see http://wiki.apache.org/hadoop/PerformanceTuning\nexport HBASE_OPTS=\"-XX:+UseConcMarkSweepGC -XX:ErrorFile={{log_dir}}/hs_err_pid%p.log\"\nexport SERVER_GC_OPTS=\"-verbose:gc -XX:+PrintGCDetails -XX:+PrintGCDateStamps -Xloggc:{{log_dir}}/gc.log-`date +'%Y%m%d%H%M'`\"\n# Uncomment below to enable java garbage collection logging.\n# export HBASE_OPTS=\"$HBASE_OPTS -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCDateStamps -Xloggc:$HBASE_HOME/logs/gc-hbase.log\"\n\n# Uncomment and adjust to enable JMX exporting\n# See jmxremote.password and jmxremote.access in $JRE_HOME/lib/management to configure remote password access.\n# More details at: http://java.sun.com/javase/6/docs/technotes/guides/management/agent.html\n#\n# export HBASE_JMX_BASE=\"-Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false\"\nexport HBASE_MASTER_OPTS=\"-Xmx{{master_heapsize}}\"\nexport HBASE_REGIONSERVER_OPTS=\"-Xmn{{regionserver_xmn_size}} -XX:CMSInitiatingOccupancyFraction=70  -Xms{{regionserver_heapsize}} -Xmx{{regionserver_heapsize}}\"\n# export HBASE_THRIFT_OPTS=\"$HBASE_JMX_BASE -Dcom.sun.management.jmxremote.port=10103\"\n# export HBASE_ZOOKEEPER_OPTS=\"$HBASE_JMX_BASE -Dcom.sun.management.jmxremote.port=10104\"\n\n# File naming hosts on which HRegionServers will run. $HBASE_HOME/conf/regionservers by default.\nexport HBASE_REGIONSERVERS=${HBASE_CONF_DIR}/regionservers\n\n# Extra ssh options. Empty by default.\n# export HBASE_SSH_OPTS=\"-o ConnectTimeout=1 -o SendEnv=HBASE_CONF_DIR\"\n\n# Where log files are stored. $HBASE_HOME/logs by default.\nexport HBASE_LOG_DIR={{log_dir}}\n\n# A string representing this instance of hbase. $USER by default.\n# export HBASE_IDENT_STRING=$USER\n\n# The scheduling priority for daemon processes. See 'man nice'.\n# export HBASE_NICENESS=10\n\n# The directory where pid files are stored. /tmp by default.\nexport HBASE_PID_DIR={{pid_dir}}\n\n# Seconds to sleep between slave commands. Unset by default. This\n# can be useful in large clusters, where, e.g., slave rsyncs can\n# otherwise arrive faster than the master can service them.\n# export HBASE_SLAVE_SLEEP=0.1\n\n# Tell HBase whether it should manage it's own instance of Zookeeper or not.\nexport HBASE_MANAGES_ZK=false\n\n{% if security_enabled %}\nexport HBASE_OPTS=\"$HBASE_OPTS -Djava.security.auth.login.config={{client_jaas_config_file}}\"\nexport HBASE_MASTER_OPTS=\"$HBASE_MASTER_OPTS -Djava.security.auth.login.config={{master_jaas_config_file}}\"\nexport HBASE_REGIONSERVER_OPTS=\"$HBASE_REGIONSERVER_OPTS -Djava.security.auth.login.config={{regionserver_jaas_config_file}}\"\n{% endif %}\n    ", 
+            "hbase_regionserver_heapsize": "1024m",
+            "hbase_regionserver_xmn_max": "512",
+            "hbase_regionserver_xmn_ratio": "0.2",
+            "hbase_log_dir": "/var/log/hbase"
+        }, 
+        "ganglia-env": {
+            "gmond_user": "nobody", 
+            "ganglia_runtime_dir": "/var/run/ganglia/hdp", 
+            "ganglia_conf_dir": "/etc/ganglia/hdp", 
+            "rrdcached_base_dir": "/var/lib/ganglia/rrds", 
+            "rrdcached_flush_timeout": "7200", 
+            "gmetad_user": "nobody", 
+            "rrdcached_write_threads": "4", 
+            "rrdcached_delay": "1800", 
+            "rrdcached_timeout": "3600"
+        },
+        "zookeeper-env": {
+          "zk_user": "zookeeper",
+          "zk_log_dir": "/var/log/zookeeper",
+          "content": "\nexport JAVA_HOME={{java64_home}}\nexport ZOO_LOG_DIR={{zk_log_dir}}\nexport ZOOPIDFILE={{zk_pid_file}}\nexport SERVER_JVMFLAGS={{zk_server_heapsize}}\nexport JAVA=$JAVA_HOME/bin/java\nexport CLASSPATH=$CLASSPATH:/usr/share/zookeeper/*\n\n{% if security_enabled %}\nexport SERVER_JVMFLAGS=\"$SERVER_JVMFLAGS -Djava.security.auth.login.config={{zk_server_jaas_file}}\"\nexport CLIENT_JVMFLAGS=\"$CLIENT_JVMFLAGS -Djava.security.auth.login.config={{zk_client_jaas_file}}\"\n{% endif %}",
+          "zk_pid_dir": "/var/run/zookeeper",
+          "zookeeper_principal_name": "zookeeper/_HOST@EXAMPLE.COM",
+          "zookeeper_keytab_path": "/etc/security/keytabs/zk.service.keytab"
+        },
+        "zoo.cfg": {
+          "clientPort": "2181",
+          "syncLimit": "5",
+          "initLimit": "10",
+          "dataDir": "/hadoop/zookeeper",
+          "tickTime": "2000"
+        },
+        "hdfs-log4j": {
+            "content": "log4jproperties\nline2"
+        },
+        "mapreduce-log4j": {
+            "content": "log4jproperties\nline2"
+        },
+        "hbase-log4j": {
+            "content": "log4jproperties\nline2"
+        },
+        "hive-log4j": {
+            "content": "log4jproperties\nline2"
+        },
+        "hive-exec-log4j": {
+            "content": "log4jproperties\nline2"
+        },
+        "zookeeper-log4j": {
+            "content": "log4jproperties\nline2"
+        },
+        "pig-log4j": {
+            "content": "log4jproperties\nline2"
+        },
+        "pig-properties": {
+          "content": "pigproperties\nline2"
+        },
+        "oozie-log4j": {
+            "content": "log4jproperties\nline2"
+        }
+    }, 
+    "configuration_attributes": {
+      "mapred-site": {
+        "final": {
+          "mapred.healthChecker.script.path": "true",
+          "mapreduce.jobtracker.staging.root.dir": "true"
+        }
+      },
+      "oozie-site": {
+        "final": {
+          "oozie.service.PurgeService.purge.interval": "true",
+          "oozie.service.CallableQueueService.queue.size": "true"
+        }
+      },
+      "webhcat-site": {
+        "final": {
+          "templeton.pig.path": "true",
+          "templeton.exec.timeout": "true",
+          "templeton.override.enabled": "true"
+        }
+      },
+      "hdfs-site": {
+        "final": {
+          "dfs.web.ugi": "true",
+          "dfs.support.append": "true",
+          "dfs.cluster.administrators": "true"
+        }
+      },
+      "hbase-site": {
+        "final": {
+          "hbase.client.keyvalue.maxsize": "true",
+          "hbase.hstore.compactionThreshold": "true",
+          "hbase.rootdir": "true"
+        }
+      },
+      "core-site": {
+        "final": {
+          "hadoop.proxyuser.hive.groups": "true",
+          "webinterface.private.actions": "true",
+          "hadoop.proxyuser.oozie.hosts": "true"
+        }
+      },
+      "hive-site": {
+        "final": {
+          "javax.jdo.option.ConnectionPassword": "true",
+          "javax.jdo.option.ConnectionDriverName": "true",
+          "hive.optimize.bucketmapjoin.sortedmerge": "true"
+        }
+      }
+    },
+    "configurationTags": {
+        "mapred-site": {
+            "tag": "version1"
+        }, 
+        "oozie-site": {
+            "tag": "version1"
+        }, 
+        "webhcat-site": {
+            "tag": "version1"
+        }, 
+        "global": {
+            "tag": "version1"
+        }, 
+        "hdfs-site": {
+            "tag": "version1"
+        }, 
+        "hbase-site": {
+            "tag": "version1"
+        }, 
+        "core-site": {
+            "tag": "version1"
+        }, 
+        "hive-site": {
+            "tag": "version1"
+        },
+        "hdfs-log4j": {
+            "tag": "version1"
+        },
+        "yarn-log4j": {
+            "tag": "version1"
+        },
+        "hbase-log4j": {
+            "tag": "version1"
+        },
+        "hive-log4j": {
+            "tag": "version1"
+        },
+        "hive-exec-log4j": {
+            "tag": "version1"
+        },
+        "zookeeper-log4j": {
+            "tag": "version1"
+        },
+        "oozie-log4j": {
+            "tag": "version1"
+        },
+        "pig-log4j": {
+            "tag": "version1"
+        }
+    }, 
+    "commandId": "1-1", 
+    "clusterHostInfo": {
+        "ambari_server_host": [
+            "c6401.ambari.apache.org"
+        ],
+        "snamenode_host": [
+            "c6402.ambari.apache.org"
+        ], 
+        "ganglia_monitor_hosts": [
+            "c6401.ambari.apache.org", 
+            "c6402.ambari.apache.org"
+        ], 
+        "hive_metastore_hosts": [
+            "c6402.ambari.apache.org"
+        ], 
+        "all_ping_ports": [
+            "8670", 
+            "8670"
+        ], 
+        "mapred_tt_hosts": [
+            "c6401.ambari.apache.org", 
+            "c6402.ambari.apache.org"
+        ], 
+        "all_hosts": [
+            "c6401.ambari.apache.org", 
+            "c6402.ambari.apache.org"
+        ], 
+        "hbase_rs_hosts": [
+            "c6401.ambari.apache.org", 
+            "c6402.ambari.apache.org"
+        ], 
+        "slave_hosts": [
+            "c6401.ambari.apache.org", 
+            "c6402.ambari.apache.org"
+        ], 
+        "namenode_host": [
+            "c6401.ambari.apache.org"
+        ], 
+        "ganglia_server_host": [
+            "c6402.ambari.apache.org"
+        ], 
+        "hbase_master_hosts": [
+            "c6401.ambari.apache.org"
+        ], 
+        "hive_mysql_host": [
+            "c6402.ambari.apache.org"
+        ], 
+        "oozie_server": [
+            "c6402.ambari.apache.org"
+        ], 
+        "webhcat_server_host": [
+            "c6402.ambari.apache.org"
+        ], 
+        "jtnode_host": [
+            "c6402.ambari.apache.org"
+        ], 
+        "zookeeper_hosts": [
+            "c6402.ambari.apache.org"
+        ], 
+        "hs_host": [
+            "c6402.ambari.apache.org"
+        ], 
+        "hive_server_host": [
+            "c6402.ambari.apache.org"
+        ]
+    }
+}

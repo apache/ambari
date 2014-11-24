@@ -2133,7 +2133,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     pg_status, retcode, out, err = ambari_server.check_postgre_up()
     self.assertEqual(0, retcode)
 
-    ambari_server.OS = 'suse'
+    ambari_server.OS_TYPE = OSConst.OS_SUSE
     p.poll.return_value = 4
     get_postgre_status_mock.return_value = "stopped", 0, "", ""
     pg_status, retcode, out, err = ambari_server.check_postgre_up()

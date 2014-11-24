@@ -164,7 +164,7 @@ HdfsDirectory = functools.partial(
   kinit_path_local = kinit_path_local,
   bin_dir = hadoop_bin_dir
 )
-update_exclude_file_only = config['commandParams']['update_exclude_file_only']
+update_exclude_file_only = default("/commandParams/update_exclude_file_only",False)
 
 mapred_tt_group = default("/configurations/mapred-site/mapreduce.tasktracker.group", user_group)
 

@@ -40,7 +40,7 @@ user_group = config['configurations']['cluster-env']['user_group']
 hdfs_log_dir_prefix = config['configurations']['hadoop-env']['hdfs_log_dir_prefix']
 mapred_log_dir_prefix = hdfs_log_dir_prefix
 mapred_local_dir = config['configurations']['mapred-site']['mapred.local.dir']
-update_exclude_file_only = config['commandParams']['update_exclude_file_only']
+update_exclude_file_only = default("/commandParams/update_exclude_file_only",False)
 
 hadoop_jar_location = "/usr/lib/hadoop/"
 smokeuser = config['configurations']['cluster-env']['smokeuser']
