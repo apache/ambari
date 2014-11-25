@@ -61,7 +61,7 @@ describe('App.MainServiceItemView', function () {
     });
   });
 
-  describe('#observeMaintenance', function () {
+  describe.skip('#observeMaintenance', function () {
 
     var mastersExcludedCommands = {
         NAMENODE: ["DECOMMISSION", "REBALANCEHDFS"],
