@@ -29,6 +29,12 @@ App.MainAlertDefinitionsView = App.TableView.extend({
     return this.get('controller.content');
   }.property('controller.content.@each'),
 
+  didInsertElement: function () {
+    Em.run.later(this, function () {
+      App.tooltip($(".enable-disable-button"));
+    }, 50) ;
+  },
+
   /**
    * @type {number}
    */
@@ -36,7 +42,7 @@ App.MainAlertDefinitionsView = App.TableView.extend({
     return this.get('content.length');
   }.property('content.length'),
 
-  colPropAssoc: ['', 'label', 'summary', 'service.serviceName', 'lastTriggered', 'groups'],
+  colPropAssoc: ['', 'label', 'summary', 'service.serviceName', 'lastTriggered', 'groups', 'enabled'],
 
   sortView: sort.wrapperView,
 
@@ -47,7 +53,7 @@ App.MainAlertDefinitionsView = App.TableView.extend({
   nameSort: sort.fieldView.extend({
     column: 1,
     name: 'label',
-    displayName: Em.I18n.t('common.name')
+    displayName: Em.I18n.t('alerts.table.header.definitionName')
   }),
 
   /**
@@ -58,7 +64,8 @@ App.MainAlertDefinitionsView = App.TableView.extend({
     column: 2,
     name: 'summary',
     displayName: Em.I18n.t('common.status'),
-    type: 'alert_status'
+    type: 'alert_status',
+    status: 'sorting_desc'
   }),
 
   /**
@@ -81,6 +88,16 @@ App.MainAlertDefinitionsView = App.TableView.extend({
     name: 'lastTriggered',
     displayName: Em.I18n.t('alerts.table.header.lastTriggered'),
     type: 'number'
+  }),
+
+  /**
+   * Sorting header for <label>alertDefinition.enabled</label>
+   * @type {Em.View}
+   */
+  enabledSort: sort.fieldView.extend({
+    template:Em.Handlebars.compile('<span {{bindAttr class="view.status :column-name"}}><span class="icon-off"></span></span>'),
+    column: 6,
+    name: 'enabled'
   }),
 
   /**
@@ -203,20 +220,60 @@ App.MainAlertDefinitionsView = App.TableView.extend({
   }),
 
   /**
+   * Filtering header for <label>alertDefinition.enabled</label>
+   * @type {Em.View}
+   */
+  enabledFilterView:  filters.createSelectView({
+    column: 6,
+    fieldType: 'filter-input-width',
+    content: [
+      {
+        value: '',
+        label: Em.I18n.t('common.all')
+      },
+      {
+        value: 'enabled',
+        label: Em.I18n.t('alerts.table.state.enabled')
+      },
+      {
+        value: 'disabled',
+        label: Em.I18n.t('alerts.table.state.disabled')
+      }
+    ],
+    onChangeValue: function () {
+      this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'enable_disable');
+    }
+  }),
+
+  /**
    * Filtering header for <label>alertDefinition</label> groups
    * @type {Em.View}
    */
   alertGroupFilterView: filters.createSelectView({
-
     column: 5,
-
     fieldType: 'filter-input-width',
-
+    template: Ember.Handlebars.compile(
+      '<div class="btn-group display-inline-block">' +
+        '<a class="btn dropdown-toggle" data-toggle="dropdown" href="#">' +
+          '<span class="filters-label">Groups:&nbsp;&nbsp;</span>' +
+          '<span>{{view.selected.label}}&nbsp;<span class="caret"></span></span>' +
+        '</a>' +
+          '<ul class="dropdown-menu">' +
+            '{{#each category in view.content}}' +
+              '<li {{bindAttr class=":category-item category.selected:active"}}>' +
+                '<a {{action selectCategory category target="view"}} href="#">' +
+                   '<span {{bindAttr class="category.class"}}></span>{{category.label}}</a>' +
+              '</li>'+
+            '{{/each}}' +
+          '</ul>'+
+      '</div>'
+    ),
     content: [],
 
     didInsertElement: function() {
       this._super();
       this.updateContent();
+      this.set('value', '');
     },
 
     /**
@@ -224,26 +281,42 @@ App.MainAlertDefinitionsView = App.TableView.extend({
      * @method updateContent
      */
     updateContent: function() {
-      var value = this.get('value');
+      var alertGroups = App.AlertGroup.find().map(function (group) {
+        return Em.Object.create({
+          value: group.get('id'),
+          label: group.get('displayNameDefinitions'),
+          default: group.get('default')
+        });
+      });
+      var defaultGroups = alertGroups.filterProperty('default');
+      defaultGroups.forEach(function(defaultGroup) {
+        alertGroups.removeObject(defaultGroup);
+      });
+      var sortedGroups = defaultGroups.sortProperty('label').concat(alertGroups.sortProperty('label'));
 
       this.set('content', [
-        {
+        Em.Object.create({
           value: '',
           label: Em.I18n.t('common.all') + ' (' + this.get('parentView.controller.content.length') + ')'
-        }
-      ].concat(App.AlertGroup.find().map(function (group) {
-        return {
-          value: group.get('id'),
-          label: group.get('displayNameDefinitions')
-        };
-      })));
-
-      this.set('selected', this.get('content').findProperty('value', value));
+        })
+      ].concat(sortedGroups));
+      this.onValueChange();
     }.observes('App.router.clusterController.isLoaded', 'controller.mapperTimestamp'),
 
-    onChangeValue: function () {
-      this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'alert_group');
-    }
+    selectCategory: function (event) {
+      var category = event.context;
+      this.set('value', category.value);
+      this.get('parentView').updateFilter(this.get('column'), category.value, 'alert_group');
+    },
+
+    onValueChange: function () {
+      var value = this.get('value');
+      if (value != undefined ) {
+        this.get('content').setEach('selected', false);
+        this.set('selected', this.get('content').findProperty('value', value));
+        this.get('content').findProperty('value', value).set('selected', true);
+      }
+    }.observes('value')
   }),
 
   /**

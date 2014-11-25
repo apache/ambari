@@ -46,13 +46,30 @@ App.MainAlertDefinitionsController = Em.ArrayController.extend({
   }.property('mapperTimestamp'),
 
   /**
-   * Enable/disable alertDefinition
-   * @param {object} e
-   * @returns {$.ajax}
+   * Enable/disable alertDefinition confirmation popup
+   * @param {object} event
    * @method toggleState
    */
-  toggleState: function(e) {
-    var alertDefinition = e.context;
+  toggleState: function(event) {
+    var alertDefinition = event.context;
+    var self = this;
+    var bodyMessage = Em.Object.create({
+      confirmMsg: alertDefinition.get('enabled') ? Em.I18n.t('alerts.table.state.enabled.confirm.msg') : Em.I18n.t('alerts.table.state.disabled.confirm.msg'),
+      confirmButton: alertDefinition.get('enabled') ? Em.I18n.t('alerts.table.state.enabled.confirm.btn') : Em.I18n.t('alerts.table.state.disabled.confirm.btn')
+    });
+
+    return App.showConfirmationFeedBackPopup(function (query) {
+      self.toggleDefinitionState (alertDefinition);
+    }, bodyMessage);
+  },
+
+  /**
+   * Enable/disable alertDefinition
+   * @param {object} alertDefinition
+   * @returns {$.ajax}
+   * @method toggleDefinitionState
+   */
+  toggleDefinitionState: function(alertDefinition) {
     return App.ajax.send({
       name: 'alerts.update_alert_definition',
       sender: this,

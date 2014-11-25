@@ -855,8 +855,17 @@ Em.I18n.translations = {
 
   'alerts.table.noAlerts': 'No Alerts to display',
   'alerts.table.header.lastTriggered': 'Last Triggered',
+  'alerts.table.header.definitionName': 'Definition Name',
   'alerts.table.header.notification': 'Notification',
-  'alerts.filters.filteredAlertsInfo': '{0} of {1} alerts showing',
+  'alerts.table.state.enabled': 'Enabled',
+  'alerts.table.state.disabled': 'Disabled',
+  'alerts.table.state.enabled.tooltip': 'Disable this alert definition',
+  'alerts.table.state.disabled.tooltip': 'Enable this alert definition',
+  'alerts.table.state.enabled.confirm.msg': 'You are about to Disable this alert definition.',
+  'alerts.table.state.disabled.confirm.msg': 'You are about to Enable this alert definition.',
+  'alerts.table.state.enabled.confirm.btn': 'Confirm Disable',
+  'alerts.table.state.disabled.confirm.btn': 'Confirm Enable',
+  'alerts.filters.filteredAlertsInfo': '{0} of {1} definitions showing',
 
   'alerts.thresholds': 'Thresholds',
   'alerts.definition.details.enable': 'Enable',

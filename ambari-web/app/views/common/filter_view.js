@@ -617,6 +617,11 @@ module.exports = {
           return origin.mapProperty('id').contains(compareValue);
         };
         break;
+      case 'enable_disable':
+        return function (origin, compareValue) {
+          return origin == (compareValue == 'enabled');
+        };
+        break;
       case 'string':
       default:
         return function (origin, compareValue) {

@@ -30,7 +30,7 @@ describe('App.MainAlertDefinitionsController', function() {
 
   });
 
-  describe('#toggleState', function() {
+  describe('#toggleDefinitionState', function() {
 
     beforeEach(function() {
       sinon.stub(App.ajax, 'send', Em.K);
@@ -47,7 +47,7 @@ describe('App.MainAlertDefinitionsController', function() {
 
     it('should do ajax-request', function() {
       var alertDefinition = controller.get('content')[0];
-      controller.toggleState({context: alertDefinition});
+      controller.toggleDefinitionState(alertDefinition);
       expect(App.ajax.send.calledOnce).to.be.true;
     });
 

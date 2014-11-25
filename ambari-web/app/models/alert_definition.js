@@ -110,6 +110,10 @@ App.AlertDefinition = DS.Model.extend({
     'UNKNOWN': 'icon-question-sign'
   },
 
+  /**
+   * Sort on load definitions by this severity order
+   */
+  severityOrder: ['CRITICAL', 'WARNING', 'OK', 'UNKNOWN', 'PENDING'],
   order: ['OK', 'WARNING', 'CRITICAL', 'UNKNOWN'],
 
   // todo: in future be mapped from server response

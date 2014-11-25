@@ -16,12 +16,13 @@
 * limitations under the License.
 }}
 
-<div class="pull-left advanced-header-table groups-filter">
-  {{view view.alertGroupFilterView}}
+
+<div id="alert-actions-button" class="pull-left">
+  {{view App.MainAlertDefinitionActionsView controllerBinding="App.router.mainAlertDefinitionActionsController"}}
 </div>
 
-<div class="pull-right">
-  {{view App.MainAlertDefinitionActionsView controllerBinding="App.router.mainAlertDefinitionActionsController"}}
+<div id="alert-groups-filter" class="pull-left advanced-header-table groups-filter">
+  {{view view.alertGroupFilterView}}
 </div>
 
 <div id="alerts">
@@ -34,14 +35,14 @@
         {{view view.parentView.statusSort}}
         {{view view.parentView.serviceSort}}
         {{view view.parentView.lastTriggeredSort}}
-        <th><span class="icon-off"></span></th>
+        {{view view.parentView.enabledSort}}
       {{/view}}
     <tr class="filter-row">
       <th class="first">{{view view.nameFilterView}}</th>
       <th>{{view view.stateFilterView}}</th>
       <th>{{view view.serviceFilterView}}</th>
       <th>{{view view.triggeredFilterView}}</th>
-      <th></th>
+      <th>{{view view.enabledFilterView}}</th>
     </tr>
     </thead>
     <tbody>
@@ -54,10 +55,20 @@
           <td>{{{alertDefinition.status}}}</td>
           <td>{{alertDefinition.service.serviceName}}</td>
           <td>{{alertDefinition.lastTriggeredFormatted}}</td>
-          <td class="last">
-            <a href="#" {{action "toggleState" alertDefinition target="controller"}} {{bindAttr class="alertDefinition.enabled:enabled:disabled"}}>
-              <span class="icon-off"></span>
-            </a>
+          <td class="last toggle-state-button">
+            {{#if alertDefinition.enabled}}
+              {{t alerts.table.state.enabled}} &nbsp;&nbsp;
+              <a href="#" {{action "toggleState" alertDefinition target="controller"}} {{bindAttr class=":enable-disable-button alertDefinition.enabled:enabled:disabled"}}
+                {{bindAttr data-original-title="alerts.table.state.enabled.tooltip"}}>
+                  <span class="icon-off"></span>
+              </a>
+            {{else}}
+              {{t alerts.table.state.disabled}} &nbsp;
+              <a href="#" {{action "toggleState" alertDefinition target="controller"}} {{bindAttr class=":enable-disable-button alertDefinition.enabled:enabled:disabled"}}
+                {{bindAttr data-original-title="alerts.table.state.disabled.tooltip"}}>
+                  <span class="icon-off"></span>
+              </a>
+            {{/if}}
           </td>
         </tr>
       {{/each}}
