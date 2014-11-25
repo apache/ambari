@@ -129,6 +129,7 @@ public class SQLProviderModule extends DefaultProviderModule implements HostInfo
               PropertyHelper.getPropertyId("ServiceComponentInfo", "cluster_name"),
               null,
               PropertyHelper.getPropertyId("ServiceComponentInfo", "component_name"),
+              PropertyHelper.getPropertyId("ServiceComponentInfo", "service_name"),
               connectionFactory));
     } else if (type.equals(Resource.Type.HostComponent)) {
       providers.add(new JMXPropertyProvider(
@@ -147,6 +148,7 @@ public class SQLProviderModule extends DefaultProviderModule implements HostInfo
               PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
               PropertyHelper.getPropertyId("HostRoles", "host_name"),
               PropertyHelper.getPropertyId("HostRoles", "component_name"),
+              PropertyHelper.getPropertyId("HostRoles", "service_name"),
               connectionFactory));
     }
     putPropertyProviders(type, providers);

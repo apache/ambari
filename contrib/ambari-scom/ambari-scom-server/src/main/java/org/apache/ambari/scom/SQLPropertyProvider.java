@@ -38,6 +38,7 @@ import java.sql.Statement;
 import java.text.NumberFormat;
 import java.text.ParsePosition;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -57,29 +58,33 @@ public class SQLPropertyProvider extends AbstractPropertyProvider {
 
   private final String componentNamePropertyId;
 
+  private final String serviceNamePropertyId;
+
   private final ConnectionFactory connectionFactory;
 
 
   // ----- Constants ---------------------------------------------------------
 
   private static final String GET_METRICS_STATEMENT =
-                  "SELECT  s.RecordTypeContext, s.RecordTypeName, s.NodeName, s.ServiceName, mn.Name AS MetricName, s.RecordTimeStamp, mp.MetricValue\n" +
-                  "FROM HadoopMetrics.dbo.MetricPair mp\n" +
-                  "     INNER JOIN (\n" +
-                  "         SELECT mr.RecordID AS RecordID, mr.RecordTimeStamp AS RecordTimeStamp, rt.Context AS RecordTypeContext, rt.Name AS RecordTypeName, nd.Name AS NodeName, sr.Name AS ServiceName\n" +
-                  "         FROM HadoopMetrics.dbo.MetricRecord mr\n" +
-                  "              INNER JOIN HadoopMetrics.dbo.RecordType rt ON (mr.RecordTypeId = rt.RecordTypeId)\n" +
-                  "              INNER JOIN HadoopMetrics.dbo.Node nd ON (mr.NodeID = nd.NodeID)\n" +
-                  "              INNER JOIN HadoopMetrics.dbo.Service sr ON (mr.ServiceID = sr.ServiceID)\n" +
-                  "         WHERE rt.Context in (%s)\n" +
-                  "               AND rt.Name in (%s)\n" +
-                  "               AND (nd.Name in (%s))\n" +
-                  "               AND (sr.Name in (%s))\n" +
-                  "               AND mr.RecordTimestamp >= %d\n" +
-                  "               AND mr.RecordTimestamp <= %d\n" +
-                  "     ) s ON (mp.RecordID = s.RecordID)\n" +
-                  "     INNER JOIN HadoopMetrics.dbo.MetricName mn ON (mp.MetricID = mn.MetricID)\n" +
-                  "WHERE (mn.Name in (%s))";
+    "SELECT  s.RecordTypeContext, s.RecordTypeName, s.TagPairs, s.NodeName, s.ServiceName, mn.Name AS MetricName, s.RecordTimeStamp, mp.MetricValue\n" +
+      "FROM HadoopMetrics.dbo.MetricPair mp\n" +
+      "     INNER JOIN (\n" +
+      "         SELECT mr.RecordID AS RecordID, mr.RecordTimeStamp AS RecordTimeStamp, rt.Context AS RecordTypeContext, rt.Name AS RecordTypeName, ts.TagPairs AS TagPairs, nd.Name AS NodeName, sr.Name AS ServiceName\n" +
+      "         FROM HadoopMetrics.dbo.MetricRecord mr\n" +
+      "              INNER JOIN HadoopMetrics.dbo.RecordType rt ON (mr.RecordTypeId = rt.RecordTypeId)\n" +
+      "              INNER JOIN HadoopMetrics.dbo.TagSet ts ON (mr.TagSetID = ts.TagSetID)\n" +
+      "              INNER JOIN HadoopMetrics.dbo.Node nd ON (mr.NodeID = nd.NodeID)\n" +
+      "              INNER JOIN HadoopMetrics.dbo.Service sr ON (mr.ServiceID = sr.ServiceID)\n" +
+      "         WHERE rt.Context in (%s)\n" +
+      "               AND rt.Name in (%s)\n" +
+      "               AND (ts.TagPairs LIKE %s)\n" +
+      "               AND (nd.Name in (%s))\n" +
+      "               AND (sr.Name in (%s))\n" +
+      "               AND mr.RecordTimestamp >= %d\n" +
+      "               AND mr.RecordTimestamp <= %d\n" +
+      "     ) s ON (mp.RecordID = s.RecordID)\n" +
+      "     INNER JOIN HadoopMetrics.dbo.MetricName mn ON (mp.MetricID = mn.MetricID)\n" +
+      "WHERE (mn.Name in (%s))";
 
   protected final static Logger LOG = LoggerFactory.getLogger(SQLPropertyProvider.class);
 
@@ -87,18 +92,20 @@ public class SQLPropertyProvider extends AbstractPropertyProvider {
   // ----- Constructors ------------------------------------------------------
 
   public SQLPropertyProvider(
-      Map<String, Map<String, PropertyInfo>> componentPropertyInfoMap,
-      HostInfoProvider hostProvider,
-      String clusterNamePropertyId,
-      String hostNamePropertyId,
-      String componentNamePropertyId,
-      ConnectionFactory connectionFactory) {
+    Map<String, Map<String, PropertyInfo>> componentPropertyInfoMap,
+    HostInfoProvider hostProvider,
+    String clusterNamePropertyId,
+    String hostNamePropertyId,
+    String componentNamePropertyId,
+    String serviceNamePropertyId,
+    ConnectionFactory connectionFactory) {
     super(componentPropertyInfoMap);
-    this.hostProvider             = hostProvider;
-    this.clusterNamePropertyId    = clusterNamePropertyId;
-    this.hostNamePropertyId       = hostNamePropertyId;
-    this.componentNamePropertyId  = componentNamePropertyId;
-    this.connectionFactory        = connectionFactory;
+    this.hostProvider = hostProvider;
+    this.clusterNamePropertyId = clusterNamePropertyId;
+    this.hostNamePropertyId = hostNamePropertyId;
+    this.componentNamePropertyId = componentNamePropertyId;
+    this.serviceNamePropertyId = serviceNamePropertyId;
+    this.connectionFactory = connectionFactory;
   }
 
 
@@ -106,7 +113,7 @@ public class SQLPropertyProvider extends AbstractPropertyProvider {
 
   @Override
   public Set<Resource> populateResources(Set<Resource> resources, Request request, Predicate predicate)
-      throws SystemException {
+    throws SystemException {
     Set<Resource> keepers = new HashSet<Resource>();
     try {
       Connection connection = connectionFactory.getConnection();
@@ -126,9 +133,9 @@ public class SQLPropertyProvider extends AbstractPropertyProvider {
       }
     } catch (SQLException e) {
       if (LOG.isErrorEnabled()) {
-        LOG.error("Error during populateResources call : caught exception", e);
+        LOG.error("Error during populateResources call.");
+        LOG.debug("Error during populateResources call : caught exception", e);
       }
-      throw new SystemException("Error during populateResources call : caught exception", e);
     }
     return keepers;
   }
@@ -146,6 +153,7 @@ public class SQLPropertyProvider extends AbstractPropertyProvider {
     }
 
     String componentName = (String) resource.getPropertyValue(componentNamePropertyId);
+    String serviceName = (String) resource.getPropertyValue(serviceNamePropertyId);
 
     if (getComponentMetrics().get(componentName) == null) {
       // no metrics defined for the given component ... nothing to do.
@@ -153,25 +161,29 @@ public class SQLPropertyProvider extends AbstractPropertyProvider {
     }
 
     String clusterName = (String) resource.getPropertyValue(clusterNamePropertyId);
-    String hostName    = getHost(resource, clusterName, componentName);
+    String hostName = getHost(resource, clusterName, componentName);
 
     if (hostName == null) {
       throw new SystemException(
-          "Unable to get metrics.  No host name for " + componentName, null);
+        "Unable to get metrics.  No host name for " + componentName, null);
     }
 
     Set<MetricDefinition> metricsDefinitionSet = new HashSet<MetricDefinition>();
     for (String id : ids) {
       Map<String, PropertyInfo> propertyInfoMap = getPropertyInfoMap(componentName, id);
 
-      for (Map.Entry<String, PropertyInfo> entry: propertyInfoMap.entrySet()) {
-        String       propertyKey  = entry.getKey();
+      for (Map.Entry<String, PropertyInfo> entry : propertyInfoMap.entrySet()) {
+        String propertyKey = entry.getKey();
         PropertyInfo propertyInfo = entry.getValue();
-        String       propertyId   = propertyInfo.getPropertyId();
+        if (containsArguments(propertyKey)) {
+          propertyInfo = updatePropertyInfo(propertyKey, id, propertyInfo);
+        }
+
+        String propertyId = propertyInfo.getPropertyId();
         TemporalInfo temporalInfo = request.getTemporalInfo(id);
 
         if ((propertyInfo.isPointInTime() && temporalInfo == null) ||
-            (propertyInfo.isTemporal()    && temporalInfo != null)) {
+          (propertyInfo.isTemporal() && temporalInfo != null)) {
 
           long startTime;
           long endTime;
@@ -179,31 +191,44 @@ public class SQLPropertyProvider extends AbstractPropertyProvider {
           if (temporalInfo != null) {
             Long endTimeSeconds = temporalInfo.getEndTime();
 
-            endTime   = endTimeSeconds != -1 ? endTimeSeconds * 1000 : Long.MAX_VALUE;
+            endTime = endTimeSeconds != -1 ? endTimeSeconds * 1000 : Long.MAX_VALUE;
             startTime = temporalInfo.getStartTime() * 1000;
           } else {
             startTime = 0L;
-            endTime   = Long.MAX_VALUE;
+            endTime = Long.MAX_VALUE;
           }
 
-          String[] parts = propertyId.split("\\.");
-          int      size  = parts.length;
-
-          if (size >= 3) {
-
+          String category = "";
+          String recordTypeContext = "";
+          String recordTypeName = "";
+          String metricName = "";
+          String tagPairsPattern = "";
+          int dotIndex = propertyId.lastIndexOf('.');
+          if (dotIndex != -1) {
+            category = propertyId.substring(0, dotIndex);
+            metricName = propertyId.substring(dotIndex + 1);
+          }
+          String[] parts = category.split("\\.");
+          if (parts.length >= 2) {
+            recordTypeContext = parts[0];
+            recordTypeName = parts[1];
+            if (containsArguments(propertyKey) && parts.length > 2) {
+              tagPairsPattern = StringUtils.join(Arrays.copyOfRange(parts, 2, parts.length), ".");
+            }
             metricsDefinitionSet.add(
-                    new MetricDefinition(
-                            startTime,
-                            endTime,
-                            parts[size - 3],
-                            parts[size - 2],
-                            parts[size - 1],
-                            componentName.toLowerCase(),
-                            hostName,
-                            propertyKey,
-                            temporalInfo)
+              new MetricDefinition(
+                startTime,
+                endTime,
+                recordTypeContext,
+                recordTypeName,
+                tagPairsPattern,
+                metricName,
+                serviceName != null && serviceName.toLowerCase().equals("hbase") ? serviceName.toLowerCase() : componentName.toLowerCase(),
+                hostName,
+                propertyKey,
+                id,
+                temporalInfo)
             );
-
           } else {
             if (LOG.isWarnEnabled()) {
               LOG.warn("Can't get metrics for " + id + " : " + propertyId);
@@ -215,24 +240,29 @@ public class SQLPropertyProvider extends AbstractPropertyProvider {
 
     Map<MetricDefinition, List<DataPoint>> results = getMetric(metricsDefinitionSet, statement);
 
-    for(MetricDefinition metricDefinition : metricsDefinitionSet) {
-        List<DataPoint> dataPoints = results.containsKey(metricDefinition) ? results.get(metricDefinition) : new ArrayList<DataPoint>();
-        TemporalInfo temporalInfo = metricDefinition.getTemporalInfo();
-        String propertyKey = metricDefinition.getPropertyKey();
-        if (dataPoints != null) {
-          if (temporalInfo == null){
-            // return the value of the last data point
-            int length = dataPoints.size();
-            Serializable value  = length > 0 ? dataPoints.get(length - 1).getValue() : 0;
-            resource.setProperty(propertyKey, value);
+    for (MetricDefinition metricDefinition : metricsDefinitionSet) {
+      List<DataPoint> dataPoints = results.containsKey(metricDefinition) ? results.get(metricDefinition) : new ArrayList<DataPoint>();
+      TemporalInfo temporalInfo = metricDefinition.getTemporalInfo();
+      String propertyKey = metricDefinition.getPropertyKey();
+      String requestedPropertyKey = metricDefinition.getRequestedPropertyKey();
+      if (dataPoints != null) {
+        if (temporalInfo == null) {
+          // return the value of the last data point
+          int length = dataPoints.size();
+          Serializable value = length > 0 ? dataPoints.get(length - 1).getValue() : 0;
+          resource.setProperty(propertyKey, value);
+        } else {
+          Number[][] dp = new Number[dataPoints.size()][2];
+          for (int i = 0; i < dp.length; i++) {
+            dp[i][0] = dataPoints.get(i).getValue();
+            dp[i][1] = dataPoints.get(i).getTimestamp() / 1000;
+          }
+          if (containsArguments(propertyKey)) {
+            resource.setProperty(requestedPropertyKey, dp);
           } else {
-            Number[][] dp = new Number[dataPoints.size()][2];
-            for (int i = 0; i < dp.length; i++) {
-              dp[i][0] = dataPoints.get(i).getValue();
-              dp[i][1] = dataPoints.get(i).getTimestamp();
-            }
             resource.setProperty(propertyKey, dp);
           }
+        }
       }
     }
 
@@ -246,6 +276,7 @@ public class SQLPropertyProvider extends AbstractPropertyProvider {
       StringBuilder query = new StringBuilder();
       Set<String> recordTypeContexts = new HashSet<String>();
       Set<String> recordTypeNamess = new HashSet<String>();
+      Set<String> tagPairsPatterns = new HashSet<String>();
       Set<String> nodeNames = new HashSet<String>();
       Set<String> serviceNames = new HashSet<String>();
       Set<String> metricNames = new HashSet<String>();
@@ -257,6 +288,7 @@ public class SQLPropertyProvider extends AbstractPropertyProvider {
 
         recordTypeContexts.add(metricDefinition.getRecordTypeContext());
         recordTypeNamess.add(metricDefinition.getRecordTypeName());
+        tagPairsPatterns.add(metricDefinition.getTagPairsPattern());
         nodeNames.add(metricDefinition.getNodeName());
         serviceNames.add(metricDefinition.getServiceName());
         metricNames.add(metricDefinition.getMetricName());
@@ -264,29 +296,37 @@ public class SQLPropertyProvider extends AbstractPropertyProvider {
         endTime = metricDefinition.getEndTime();
       }
 
-      query.append(String.format(GET_METRICS_STATEMENT,
-              "'" + StringUtils.join(recordTypeContexts, "','") + "'",
-              "'" + StringUtils.join(recordTypeNamess, "','") + "'",
-              "'" + StringUtils.join(nodeNames, "','") + "'",
-              "'" + StringUtils.join(serviceNames, "','") + "'",
-              startTime,
-              endTime,
-              "'" + StringUtils.join(metricNames, "','") + "'"
-      ));
+      for (String tagPairsPattern : tagPairsPatterns) {
+        if (query.length() != 0) {
+          query.append("\nUNION\n");
+        }
+        query.append(String.format(GET_METRICS_STATEMENT,
+          "'" + StringUtils.join(recordTypeContexts, "','") + "'",
+          "'" + StringUtils.join(recordTypeNamess, "','") + "'",
+          "'%" + tagPairsPattern + "%'",
+          "'" + StringUtils.join(nodeNames, "','") + "'",
+          "'" + StringUtils.join(serviceNames, "','") + "'",
+          startTime,
+          endTime,
+          "'" + StringUtils.join(metricNames, "','") + "'"
+        ));
+      }
 
-      ResultSet rs = statement.executeQuery(query.toString());
+      ResultSet rs = null;
+      if (query.length() != 0) {
+        rs = statement.executeQuery(query.toString());
+      }
 
       if (rs != null) {
         //(RecordTimeStamp bigint, MetricValue NVARCHAR(512))
         while (rs.next()) {
-          MetricDefinition metricDefinition = new MetricDefinition(rs.getString("RecordTypeContext"), rs.getString("RecordTypeName"), rs.getString("MetricName"), rs.getString("ServiceName"), rs.getString("NodeName"));
+          MetricDefinition metricDefinition = new MetricDefinition(rs.getString("RecordTypeContext"), rs.getString("RecordTypeName"), rs.getString("TagPairs"), rs.getString("MetricName"), rs.getString("ServiceName"), rs.getString("NodeName"));
           ParsePosition parsePosition = new ParsePosition(0);
-          NumberFormat  numberFormat  = NumberFormat.getInstance();
-          Number parsedNumber  = numberFormat.parse(rs.getNString("MetricValue"), parsePosition);
-          if(results.containsKey(metricDefinition)) {
-              results.get(metricDefinition).add(new DataPoint(rs.getLong("RecordTimeStamp"), parsedNumber));
-          }
-          else {
+          NumberFormat numberFormat = NumberFormat.getInstance();
+          Number parsedNumber = numberFormat.parse(rs.getNString("MetricValue"), parsePosition);
+          if (results.containsKey(metricDefinition)) {
+            results.get(metricDefinition).add(new DataPoint(rs.getLong("RecordTimeStamp"), parsedNumber));
+          } else {
             List<DataPoint> dataPoints = new ArrayList<DataPoint>();
             dataPoints.add(new DataPoint(rs.getLong("RecordTimeStamp"), parsedNumber));
             results.put(metricDefinition, dataPoints);
@@ -302,8 +342,8 @@ public class SQLPropertyProvider extends AbstractPropertyProvider {
   // get the hostname for a given resource
   private String getHost(Resource resource, String clusterName, String componentName) throws SystemException {
     return hostNamePropertyId == null ?
-        hostProvider.getHostName(clusterName, componentName) :
-        hostProvider.getHostName((String) resource.getPropertyValue(hostNamePropertyId));
+      hostProvider.getHostName(clusterName, componentName) :
+      hostProvider.getHostName((String) resource.getPropertyValue(hostNamePropertyId));
   }
 
 
@@ -321,8 +361,8 @@ public class SQLPropertyProvider extends AbstractPropertyProvider {
     /**
      * Construct a data point from the given value and timestamp.
      *
-     * @param timestamp  the timestamp
-     * @param value      the value
+     * @param timestamp the timestamp
+     * @param value     the value
      */
     private DataPoint(long timestamp, Number value) {
       this.timestamp = timestamp;
@@ -333,6 +373,7 @@ public class SQLPropertyProvider extends AbstractPropertyProvider {
 
     /**
      * Get the timestamp value.
+     *
      * @return the timestamp
      */
     public long getTimestamp() {
@@ -341,6 +382,7 @@ public class SQLPropertyProvider extends AbstractPropertyProvider {
 
     /**
      * Get the value.
+     *
      * @return the value
      */
     public Number getValue() {
@@ -351,7 +393,7 @@ public class SQLPropertyProvider extends AbstractPropertyProvider {
 
     @Override
     public String toString() {
-      return "{" +value + " : " + timestamp + "}";
+      return "{" + value + " : " + timestamp + "}";
     }
   }
 
@@ -361,28 +403,33 @@ public class SQLPropertyProvider extends AbstractPropertyProvider {
 
     String recordTypeContext;
     String recordTypeName;
+    String tagPairsPattern;
     String metricName;
     String serviceName;
     String nodeName;
 
     String propertyKey;
+    String requestedPropertyKey;
     TemporalInfo temporalInfo;
 
-    private MetricDefinition(long startTime, long endTime, String recordTypeContext, String recordTypeName, String metricName, String serviceName, String nodeName, String propertyKey, TemporalInfo temporalInfo) {
+    private MetricDefinition(long startTime, long endTime, String recordTypeContext, String recordTypeName, String tagPairsPattern, String metricName, String serviceName, String nodeName, String propertyKey, String requestedPropertyKey, TemporalInfo temporalInfo) {
       this.startTime = startTime;
       this.endTime = endTime;
       this.recordTypeContext = recordTypeContext;
       this.recordTypeName = recordTypeName;
+      this.tagPairsPattern = tagPairsPattern;
       this.metricName = metricName;
       this.serviceName = serviceName;
       this.nodeName = nodeName;
       this.propertyKey = propertyKey;
+      this.requestedPropertyKey = requestedPropertyKey;
       this.temporalInfo = temporalInfo;
     }
 
-    private MetricDefinition(String recordTypeContext, String recordTypeName, String metricName, String serviceName, String nodeName) {
+    private MetricDefinition(String recordTypeContext, String recordTypeName, String tagPairsPattern, String metricName, String serviceName, String nodeName) {
       this.recordTypeContext = recordTypeContext;
       this.recordTypeName = recordTypeName;
+      this.tagPairsPattern = tagPairsPattern;
       this.metricName = metricName;
       this.serviceName = serviceName;
       this.nodeName = nodeName;
@@ -420,6 +467,14 @@ public class SQLPropertyProvider extends AbstractPropertyProvider {
       this.recordTypeName = recordTypeName;
     }
 
+    public String getTagPairsPattern() {
+      return tagPairsPattern;
+    }
+
+    public void getTagPairsPattern(String tagPairsPattern) {
+      this.tagPairsPattern = tagPairsPattern;
+    }
+
     public String getMetricName() {
       return metricName;
     }
@@ -452,6 +507,14 @@ public class SQLPropertyProvider extends AbstractPropertyProvider {
       this.propertyKey = propertyKey;
     }
 
+    public String getRequestedPropertyKey() {
+      return requestedPropertyKey;
+    }
+
+    public void setRequestedPropertyKey(String requestedPropertyKey) {
+      this.requestedPropertyKey = requestedPropertyKey;
+    }
+
     public TemporalInfo getTemporalInfo() {
       return temporalInfo;
     }
@@ -468,12 +531,15 @@ public class SQLPropertyProvider extends AbstractPropertyProvider {
       MetricDefinition that = (MetricDefinition) o;
 
       if (metricName != null ? !metricName.equals(that.metricName) : that.metricName != null) return false;
-      if (nodeName != null ? !nodeName.equals(that.nodeName) : that.nodeName != null) return false;
+      if (nodeName != null ? !nodeName.equalsIgnoreCase(that.nodeName) : that.nodeName != null) return false;
       if (recordTypeContext != null ? !recordTypeContext.equals(that.recordTypeContext) : that.recordTypeContext != null)
         return false;
       if (recordTypeName != null ? !recordTypeName.equals(that.recordTypeName) : that.recordTypeName != null)
         return false;
       if (serviceName != null ? !serviceName.equals(that.serviceName) : that.serviceName != null) return false;
+      if (tagPairsPattern != null ? !(tagPairsPattern.contains(that.tagPairsPattern) ||
+        that.tagPairsPattern.contains(tagPairsPattern)) : that.tagPairsPattern != null)
+        return false;
 
       return true;
     }
@@ -484,7 +550,7 @@ public class SQLPropertyProvider extends AbstractPropertyProvider {
       result = 31 * result + (recordTypeName != null ? recordTypeName.hashCode() : 0);
       result = 31 * result + (metricName != null ? metricName.hashCode() : 0);
       result = 31 * result + (serviceName != null ? serviceName.hashCode() : 0);
-      result = 31 * result + (nodeName != null ? nodeName.hashCode() : 0);
+      result = 31 * result + (nodeName != null ? nodeName.toLowerCase().hashCode() : 0);
       return result;
     }
   }

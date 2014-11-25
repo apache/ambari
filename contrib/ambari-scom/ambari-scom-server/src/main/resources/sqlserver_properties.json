@@ -147,87 +147,87 @@
         "temporal":true
       },
       "metrics/jvm/gcCount":{
-        "metric":"jvm.metrics.gcCount",
+        "metric":"jvm.JvmMetrics.gcCount",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/gcTimeMillis":{
-        "metric":"jvm.metrics.gcTimeMillis",
+        "metric":"jvm.JvmMetrics.gcTimeMillis",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/logError":{
-        "metric":"jvm.metrics.logError",
+        "metric":"jvm.JvmMetrics.logError",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/logFatal":{
-        "metric":"jvm.metrics.logFatal",
+        "metric":"jvm.JvmMetrics.logFatal",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/logInfo":{
-        "metric":"jvm.metrics.logInfo",
+        "metric":"jvm.JvmMetrics.logInfo",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/logWarn":{
-        "metric":"jvm.metrics.logWarn",
+        "metric":"jvm.JvmMetrics.logWarn",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/maxMemoryM":{
-        "metric":"jvm.metrics.maxMemoryM",
+        "metric":"jvm.JvmMetrics.maxMemoryM",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/memHeapCommittedM":{
-        "metric":"jvm.metrics.memHeapCommittedM",
+        "metric":"jvm.JvmMetrics.memHeapCommittedM",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/memHeapUsedM":{
-        "metric":"jvm.metrics.memHeapUsedM",
+        "metric":"jvm.JvmMetrics.memHeapUsedM",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/memNonHeapCommittedM":{
-        "metric":"jvm.metrics.memNonHeapCommittedM",
+        "metric":"jvm.JvmMetrics.memNonHeapCommittedM",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/memNonHeapUsedM":{
-        "metric":"jvm.metrics.memNonHeapUsedM",
+        "metric":"jvm.JvmMetrics.memNonHeapUsedM",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/threadsBlocked":{
-        "metric":"jvm.metrics.threadsBlocked",
+        "metric":"jvm.JvmMetrics.threadsBlocked",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/threadsNew":{
-        "metric":"jvm.metrics.threadsNew",
+        "metric":"jvm.JvmMetrics.threadsNew",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/threadsRunnable":{
-        "metric":"jvm.metrics.threadsRunnable",
+        "metric":"jvm.JvmMetrics.threadsRunnable",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/threadsTerminated":{
-        "metric":"jvm.metrics.threadsTerminated",
+        "metric":"jvm.JvmMetrics.threadsTerminated",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/threadsTimedWaiting":{
-        "metric":"jvm.metrics.threadsTimedWaiting",
+        "metric":"jvm.JvmMetrics.threadsTimedWaiting",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/threadsWaiting":{
-        "metric":"jvm.metrics.threadsWaiting",
+        "metric":"jvm.JvmMetrics.threadsWaiting",
         "pointInTime":true,
         "temporal":true
       },
@@ -1651,6 +1651,11 @@
         "pointInTime": false,
         "temporal": true
       },
+      "metrics/dfs/FSNamesystem/CapacityTotal": {
+        "metric": "dfs.FSNamesystem.CapacityTotal",
+        "pointInTime": false,
+        "temporal": true
+      },
       "metrics/rpcdetailed/setOwner_num_ops": {
         "metric": "rpcdetailed.rpcdetailed.SetOwnerNumOps",
         "pointInTime": true,
@@ -1668,6 +1673,11 @@
       },
       "metrics/dfs/FSNamesystem/CapacityUsedGB": {
         "metric": "dfs.FSNamesystem.CapacityUsedGB",
+        "pointInTime": false,
+        "temporal": true
+      },
+      "metrics/dfs/FSNamesystem/CapacityUsed": {
+        "metric": "dfs.FSNamesystem.CapacityUsed",
         "pointInTime": false,
         "temporal": true
       },
@@ -2138,6 +2148,11 @@
       },
       "metrics/dfs/FSNamesystem/CapacityRemainingGB": {
         "metric": "dfs.FSNamesystem.CapacityRemainingGB",
+        "pointInTime": false,
+        "temporal": true
+      },
+      "metrics/dfs/FSNamesystem/CapacityRemaining": {
+        "metric": "dfs.FSNamesystem.CapacityRemaining",
         "pointInTime": false,
         "temporal": true
       },
@@ -3634,7 +3649,7 @@
         "temporal": true
       },
       "metrics/jvm/maxMemoryM": {
-        "metric": "jvm.metrics.maxMemoryM",
+        "metric": "jvm.JvmMetrics.maxMemoryM",
         "pointInTime": true,
         "temporal": true
       },
@@ -3997,82 +4012,82 @@
         "temporal":true
       },
       "metrics/jvm/gcCount":{
-        "metric":"jvm.metrics.gcCount",
+        "metric":"jvm.JvmMetrics.gcCount",
         "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/gcTimeMillis":{
-        "metric":"jvm.metrics.gcTimeMillis",
+        "metric":"jvm.JvmMetrics.gcTimeMillis",
         "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/logError":{
-        "metric":"jvm.metrics.logError",
+        "metric":"jvm.JvmMetrics.logError",
         "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/logFatal":{
-        "metric":"jvm.metrics.logFatal",
+        "metric":"jvm.JvmMetrics.logFatal",
         "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/logInfo":{
-        "metric":"jvm.metrics.logInfo",
+        "metric":"jvm.JvmMetrics.logInfo",
         "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/logWarn":{
-        "metric":"jvm.metrics.logWarn",
+        "metric":"jvm.JvmMetrics.logWarn",
         "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/memHeapCommittedM":{
-        "metric":"jvm.metrics.memHeapCommittedM",
+        "metric":"jvm.JvmMetrics.memHeapCommittedM",
         "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/memHeapUsedM":{
-        "metric":"jvm.metrics.memHeapUsedM",
+        "metric":"jvm.JvmMetrics.memHeapUsedM",
         "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/memNonHeapCommittedM":{
-        "metric":"jvm.metrics.memNonHeapCommittedM",
+        "metric":"jvm.JvmMetrics.memNonHeapCommittedM",
         "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/memNonHeapUsedM":{
-        "metric":"jvm.metrics.memNonHeapUsedM",
+        "metric":"jvm.JvmMetrics.memNonHeapUsedM",
         "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/threadsBlocked":{
-        "metric":"jvm.metrics.threadsBlocked",
+        "metric":"jvm.JvmMetrics.threadsBlocked",
         "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/threadsNew":{
-        "metric":"jvm.metrics.threadsNew",
+        "metric":"jvm.JvmMetrics.threadsNew",
         "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/threadsRunnable":{
-        "metric":"jvm.metrics.threadsRunnable",
+        "metric":"jvm.JvmMetrics.threadsRunnable",
         "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/threadsTerminated":{
-        "metric":"jvm.metrics.threadsTerminated",
+        "metric":"jvm.JvmMetrics.threadsTerminated",
         "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/threadsTimedWaiting":{
-        "metric":"jvm.metrics.threadsTimedWaiting",
+        "metric":"jvm.JvmMetrics.threadsTimedWaiting",
         "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/threadsWaiting":{
-        "metric":"jvm.metrics.threadsWaiting",
+        "metric":"jvm.JvmMetrics.threadsWaiting",
         "pointInTime":false,
         "temporal":true
       },
@@ -4725,87 +4740,87 @@
         "temporal":true
       },
       "metrics/jvm/gcCount":{
-        "metric":"jvm.metrics.gcCount",
+        "metric":"jvm.JvmMetrics.gcCount",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/gcTimeMillis":{
-        "metric":"jvm.metrics.gcTimeMillis",
+        "metric":"jvm.JvmMetrics.gcTimeMillis",
         "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/logError":{
-        "metric":"jvm.metrics.logError",
+        "metric":"jvm.JvmMetrics.logError",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/logFatal":{
-        "metric":"jvm.metrics.logFatal",
+        "metric":"jvm.JvmMetrics.logFatal",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/logInfo":{
-        "metric":"jvm.metrics.logInfo",
+        "metric":"jvm.JvmMetrics.logInfo",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/logWarn":{
-        "metric":"jvm.metrics.logWarn",
+        "metric":"jvm.JvmMetrics.logWarn",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/maxMemoryM":{
-        "metric":"jvm.metrics.maxMemoryM",
+        "metric":"jvm.JvmMetrics.maxMemoryM",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/memHeapCommittedM":{
-        "metric":"jvm.metrics.memHeapCommittedM",
+        "metric":"jvm.JvmMetrics.memHeapCommittedM",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/memHeapUsedM":{
-        "metric":"jvm.metrics.memHeapUsedM",
+        "metric":"jvm.JvmMetrics.memHeapUsedM",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/memNonHeapCommittedM":{
-        "metric":"jvm.metrics.memNonHeapCommittedM",
+        "metric":"jvm.JvmMetrics.memNonHeapCommittedM",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/memNonHeapUsedM":{
-        "metric":"jvm.metrics.memNonHeapUsedM",
+        "metric":"jvm.JvmMetrics.memNonHeapUsedM",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/threadsBlocked":{
-        "metric":"jvm.metrics.threadsBlocked",
+        "metric":"jvm.JvmMetrics.threadsBlocked",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/threadsNew":{
-        "metric":"jvm.metrics.threadsNew",
+        "metric":"jvm.JvmMetrics.threadsNew",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/threadsRunnable":{
-        "metric":"jvm.metrics.threadsRunnable",
+        "metric":"jvm.JvmMetrics.threadsRunnable",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/threadsTerminated":{
-        "metric":"jvm.metrics.threadsTerminated",
+        "metric":"jvm.JvmMetrics.threadsTerminated",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/threadsTimedWaiting":{
-        "metric":"jvm.metrics.threadsTimedWaiting",
+        "metric":"jvm.JvmMetrics.threadsTimedWaiting",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/threadsWaiting":{
-        "metric":"jvm.metrics.threadsWaiting",
+        "metric":"jvm.JvmMetrics.threadsWaiting",
         "pointInTime":true,
         "temporal":true
       },
@@ -6282,112 +6297,112 @@
         "temporal":true
       },
       "metrics/hbase/master/cluster_requests":{
-        "metric":"hbase.master.cluster_requests",
+        "metric":"master.Server.clusterRequests",
         "pointInTime":false,
         "temporal":true
       },
       "metrics/hbase/master/splitSize_avg_time":{
-        "metric":"hbase.master.splitSize_avg_time",
+        "metric":"master.FileSystem.HlogSplitSize_mean",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/master/splitSize_num_ops":{
-        "metric":"hbase.master.splitSize_num_ops",
+        "metric":"master.FileSystem.HlogSplitSize_num_ops",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/master/splitTime_avg_time":{
-        "metric":"hbase.master.splitTime_avg_time",
+        "metric":"master.FileSystem.HlogSplitTime_mean",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/master/splitTime_num_ops":{
-        "metric":"hbase.master.splitTime_num_ops",
+        "metric":"master.FileSystem.HlogSplitTime_num_ops",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/gcCount":{
-        "metric":"jvm.metrics.gcCount",
+        "metric":"jvm.JvmMetrics.gcCount",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/gcTimeMillis":{
-        "metric":"jvm.metrics.gcTimeMillis",
+        "metric":"jvm.JvmMetrics.gcTimeMillis",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/logError":{
-        "metric":"jvm.metrics.logError",
+        "metric":"jvm.JvmMetrics.logError",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/logFatal":{
-        "metric":"jvm.metrics.logFatal",
+        "metric":"jvm.JvmMetrics.logFatal",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/logInfo":{
-        "metric":"jvm.metrics.logInfo",
+        "metric":"jvm.JvmMetrics.logInfo",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/logWarn":{
-        "metric":"jvm.metrics.logWarn",
+        "metric":"jvm.JvmMetrics.logWarn",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/maxMemoryM":{
-        "metric":"jvm.metrics.maxMemoryM",
+        "metric":"jvm.JvmMetrics.maxMemoryM",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/memHeapCommittedM":{
-        "metric":"jvm.metrics.memHeapCommittedM",
+        "metric":"jvm.JvmMetrics.memHeapCommittedM",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/memHeapUsedM":{
-        "metric":"jvm.metrics.memHeapUsedM",
+        "metric":"jvm.JvmMetrics.memHeapUsedM",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/memNonHeapCommittedM":{
-        "metric":"jvm.metrics.memNonHeapCommittedM",
+        "metric":"jvm.JvmMetrics.memNonHeapCommittedM",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/memNonHeapUsedM":{
-        "metric":"jvm.metrics.memNonHeapUsedM",
+        "metric":"jvm.JvmMetrics.memNonHeapUsedM",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/threadsBlocked":{
-        "metric":"jvm.metrics.threadsBlocked",
+        "metric":"jvm.JvmMetrics.threadsBlocked",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/threadsNew":{
-        "metric":"jvm.metrics.threadsNew",
+        "metric":"jvm.JvmMetrics.threadsNew",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/threadsRunnable":{
-        "metric":"jvm.metrics.threadsRunnable",
+        "metric":"jvm.JvmMetrics.threadsRunnable",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/threadsTerminated":{
-        "metric":"jvm.metrics.threadsTerminated",
+        "metric":"jvm.JvmMetrics.threadsTerminated",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/threadsTimedWaiting":{
-        "metric":"jvm.metrics.threadsTimedWaiting",
+        "metric":"jvm.JvmMetrics.threadsTimedWaiting",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/threadsWaiting":{
-        "metric":"jvm.metrics.threadsWaiting",
+        "metric":"jvm.JvmMetrics.threadsWaiting",
         "pointInTime":true,
         "temporal":true
       },
@@ -7405,87 +7420,87 @@
         "temporal":true
       },
       "metrics/jvm/gcCount":{
-        "metric":"jvm.metrics.gcCount",
+        "metric":"jvm.JvmMetrics.gcCount",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/gcTimeMillis":{
-        "metric":"jvm.metrics.gcTimeMillis",
+        "metric":"jvm.JvmMetrics.gcTimeMillis",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/logError":{
-        "metric":"jvm.metrics.logError",
+        "metric":"jvm.JvmMetrics.logError",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/logFatal":{
-        "metric":"jvm.metrics.logFatal",
+        "metric":"jvm.JvmMetrics.logFatal",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/logInfo":{
-        "metric":"jvm.metrics.logInfo",
+        "metric":"jvm.JvmMetrics.logInfo",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/logWarn":{
-        "metric":"jvm.metrics.logWarn",
+        "metric":"jvm.JvmMetrics.logWarn",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/maxMemoryM":{
-        "metric":"jvm.metrics.maxMemoryM",
+        "metric":"jvm.JvmMetrics.maxMemoryM",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/memHeapCommittedM":{
-        "metric":"jvm.metrics.memHeapCommittedM",
+        "metric":"jvm.JvmMetrics.memHeapCommittedM",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/memHeapUsedM":{
-        "metric":"jvm.metrics.memHeapUsedM",
+        "metric":"jvm.JvmMetrics.memHeapUsedM",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/memNonHeapCommittedM":{
-        "metric":"jvm.metrics.memNonHeapCommittedM",
+        "metric":"jvm.JvmMetrics.memNonHeapCommittedM",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/memNonHeapUsedM":{
-        "metric":"jvm.metrics.memNonHeapUsedM",
+        "metric":"jvm.JvmMetrics.memNonHeapUsedM",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/threadsBlocked":{
-        "metric":"jvm.metrics.threadsBlocked",
+        "metric":"jvm.JvmMetrics.threadsBlocked",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/threadsNew":{
-        "metric":"jvm.metrics.threadsNew",
+        "metric":"jvm.JvmMetrics.threadsNew",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/threadsRunnable":{
-        "metric":"jvm.metrics.threadsRunnable",
+        "metric":"jvm.JvmMetrics.threadsRunnable",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/threadsTerminated":{
-        "metric":"jvm.metrics.threadsTerminated",
+        "metric":"jvm.JvmMetrics.threadsTerminated",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/threadsTimedWaiting":{
-        "metric":"jvm.metrics.threadsTimedWaiting",
+        "metric":"jvm.JvmMetrics.threadsTimedWaiting",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/threadsWaiting":{
-        "metric":"jvm.metrics.threadsWaiting",
+        "metric":"jvm.JvmMetrics.threadsWaiting",
         "pointInTime":true,
         "temporal":true
       },
@@ -8937,497 +8952,497 @@
         "temporal":true
       },
       "metrics/hbase/regionserver/blockCacheCount":{
-        "metric":"hbase.regionserver.blockCacheCount",
+        "metric":"regionserver.Server.blockCacheCount",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/blockCacheEvictedCount":{
-        "metric":"hbase.regionserver.blockCacheEvictedCount",
+        "metric":"regionserver.Server.blockCacheEvictedCount",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/blockCacheFree":{
-        "metric":"hbase.regionserver.blockCacheFree",
+        "metric":"regionserver.Server.blockCacheFree",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/blockCacheHitCachingRatio":{
-        "metric":"hbase.regionserver.blockCacheHitCachingRatio",
+        "metric":"regionserver.Server.blockCacheHitCachingRatio",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/blockCacheHitCount":{
-        "metric":"hbase.regionserver.blockCacheHitCount",
+        "metric":"regionserver.Server.blockCacheHitCount",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/blockCacheHitRatio":{
-        "metric":"hbase.regionserver.blockCacheHitRatio",
+        "metric":"regionserver.Server.blockCacheHitRatio",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/blockCacheMissCount":{
-        "metric":"hbase.regionserver.blockCacheMissCount",
+        "metric":"regionserver.Server.blockCacheMissCount",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/blockCacheSize":{
-        "metric":"hbase.regionserver.blockCacheSize",
+        "metric":"regionserver.Server.blockCacheSize",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/compactionQueueSize":{
-        "metric":"hbase.regionserver.compactionQueueSize",
+        "metric":"regionserver.Server.compactionQueueLength",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/compactionSize_avg_time":{
-        "metric":"hbase.regionserver.compactionSize_avg_time",
+        "metric":"regionserver.Server.compactionSize_avg_time",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/compactionSize_num_ops":{
-        "metric":"hbase.regionserver.compactionSize_num_ops",
+        "metric":"regionserver.Server.compactionSize_num_ops",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/compactionTime_avg_time":{
-        "metric":"hbase.regionserver.compactionTime_avg_time",
+        "metric":"regionserver.Server.compactionTime_avg_time",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/compactionTime_num_ops":{
-        "metric":"hbase.regionserver.compactionTime_num_ops",
+        "metric":"regionserver.Server.compactionTime_num_ops",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/deleteRequestLatency_75th_percentile":{
-        "metric":"hbase.regionserver.deleteRequestLatency_75th_percentile",
+        "metric":"regionserver.Server.deleteRequestLatency_75th_percentile",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/deleteRequestLatency_95th_percentile":{
-        "metric":"hbase.regionserver.deleteRequestLatency_95th_percentile",
+        "metric":"regionserver.Server.deleteRequestLatency_95th_percentile",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/deleteRequestLatency_99th_percentile":{
-        "metric":"hbase.regionserver.deleteRequestLatency_99th_percentile",
+        "metric":"regionserver.Server.deleteRequestLatency_99th_percentile",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/deleteRequestLatency_max":{
-        "metric":"hbase.regionserver.deleteRequestLatency_max",
+        "metric":"regionserver.Server.deleteRequestLatency_max",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/deleteRequestLatency_mean":{
-        "metric":"hbase.regionserver.deleteRequestLatency_mean",
+        "metric":"regionserver.Server.deleteRequestLatency_mean",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/deleteRequestLatency_median":{
-        "metric":"hbase.regionserver.deleteRequestLatency_median",
+        "metric":"regionserver.Server.deleteRequestLatency_median",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/deleteRequestLatency_min":{
-        "metric":"hbase.regionserver.deleteRequestLatency_min",
+        "metric":"regionserver.Server.deleteRequestLatency_min",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/deleteRequestLatency_num_ops":{
-        "metric":"hbase.regionserver.deleteRequestLatency_num_ops",
+        "metric":"regionserver.Server.deleteRequestLatency_num_ops",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/deleteRequestLatency_std_dev":{
-        "metric":"hbase.regionserver.deleteRequestLatency_std_dev",
+        "metric":"regionserver.Server.deleteRequestLatency_std_dev",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/flushQueueSize":{
-        "metric":"hbase.regionserver.flushQueueSize",
+        "metric":"regionserver.Server.flushQueueLength",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/flushSize_avg_time":{
-        "metric":"hbase.regionserver.flushSize_avg_time",
+        "metric":"regionserver.Server.flushSize_avg_time",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/flushSize_num_ops":{
-        "metric":"hbase.regionserver.flushSize_num_ops",
+        "metric":"regionserver.Server.flushSize_num_ops",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/flushTime_avg_time":{
-        "metric":"hbase.regionserver.flushTime_avg_time",
+        "metric":"regionserver.Server.flushTime_avg_time",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/flushTime_num_ops":{
-        "metric":"hbase.regionserver.flushTime_num_ops",
+        "metric":"regionserver.Server.flushTime_num_ops",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/fsReadLatencyHistogram_75th_percentile":{
-        "metric":"hbase.regionserver.fsReadLatencyHistogram_75th_percentile",
+        "metric":"regionserver.Server.fsReadLatencyHistogram_75th_percentile",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/fsReadLatencyHistogram_95th_percentile":{
-        "metric":"hbase.regionserver.fsReadLatencyHistogram_95th_percentile",
+        "metric":"regionserver.Server.fsReadLatencyHistogram_95th_percentile",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/fsReadLatencyHistogram_99th_percentile":{
-        "metric":"hbase.regionserver.fsReadLatencyHistogram_99th_percentile",
+        "metric":"regionserver.Server.fsReadLatencyHistogram_99th_percentile",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/fsReadLatencyHistogram_max":{
-        "metric":"hbase.regionserver.fsReadLatencyHistogram_max",
+        "metric":"regionserver.Server.fsReadLatencyHistogram_max",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/fsReadLatencyHistogram_mean":{
-        "metric":"hbase.regionserver.fsReadLatencyHistogram_mean",
+        "metric":"regionserver.Server.fsReadLatencyHistogram_mean",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/fsReadLatencyHistogram_median":{
-        "metric":"hbase.regionserver.fsReadLatencyHistogram_median",
+        "metric":"regionserver.Server.fsReadLatencyHistogram_median",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/fsReadLatencyHistogram_min":{
-        "metric":"hbase.regionserver.fsReadLatencyHistogram_min",
+        "metric":"regionserver.Server.fsReadLatencyHistogram_min",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/fsReadLatencyHistogram_num_ops":{
-        "metric":"hbase.regionserver.fsReadLatencyHistogram_num_ops",
+        "metric":"regionserver.Server.fsReadLatencyHistogram_num_ops",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/fsReadLatencyHistogram_std_dev":{
-        "metric":"hbase.regionserver.fsReadLatencyHistogram_std_dev",
+        "metric":"regionserver.Server.fsReadLatencyHistogram_std_dev",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/fsReadLatency_avg_time":{
-        "metric":"hbase.regionserver.fsReadLatency_avg_time",
+        "metric":"regionserver.Server.fsReadLatency_avg_time",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/fsReadLatency_num_ops":{
-        "metric":"hbase.regionserver.fsReadLatency_num_ops",
+        "metric":"regionserver.Server.fsReadLatency_num_ops",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/fsSyncLatency_avg_time":{
-        "metric":"hbase.regionserver.fsSyncLatency_avg_time",
+        "metric":"regionserver.Server.fsSyncLatency_avg_time",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/fsSyncLatency_num_ops":{
-        "metric":"hbase.regionserver.fsSyncLatency_num_ops",
+        "metric":"regionserver.Server.fsSyncLatency_num_ops",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/fsWriteLatencyHistogram_75th_percentile":{
-        "metric":"hbase.regionserver.fsWriteLatencyHistogram_75th_percentile",
+        "metric":"regionserver.Server.fsWriteLatencyHistogram_75th_percentile",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/fsWriteLatencyHistogram_95th_percentile":{
-        "metric":"hbase.regionserver.fsWriteLatencyHistogram_95th_percentile",
+        "metric":"regionserver.Server.fsWriteLatencyHistogram_95th_percentile",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/fsWriteLatencyHistogram_99th_percentile":{
-        "metric":"hbase.regionserver.fsWriteLatencyHistogram_99th_percentile",
+        "metric":"regionserver.Server.fsWriteLatencyHistogram_99th_percentile",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/fsWriteLatencyHistogram_max":{
-        "metric":"hbase.regionserver.fsWriteLatencyHistogram_max",
+        "metric":"regionserver.Server.fsWriteLatencyHistogram_max",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/fsWriteLatencyHistogram_mean":{
-        "metric":"hbase.regionserver.fsWriteLatencyHistogram_mean",
+        "metric":"regionserver.Server.fsWriteLatencyHistogram_mean",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/fsWriteLatencyHistogram_median":{
-        "metric":"hbase.regionserver.fsWriteLatencyHistogram_median",
+        "metric":"regionserver.Server.fsWriteLatencyHistogram_median",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/fsWriteLatencyHistogram_min":{
-        "metric":"hbase.regionserver.fsWriteLatencyHistogram_min",
+        "metric":"regionserver.Server.fsWriteLatencyHistogram_min",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/fsWriteLatencyHistogram_num_ops":{
-        "metric":"hbase.regionserver.fsWriteLatencyHistogram_num_ops",
+        "metric":"regionserver.Server.fsWriteLatencyHistogram_num_ops",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/fsWriteLatencyHistogram_std_dev":{
-        "metric":"hbase.regionserver.fsWriteLatencyHistogram_std_dev",
+        "metric":"regionserver.Server.fsWriteLatencyHistogram_std_dev",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/fsWriteLatency_avg_time":{
-        "metric":"hbase.regionserver.fsWriteLatency_avg_time",
+        "metric":"regionserver.Server.fsWriteLatency_avg_time",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/fsWriteLatency_num_ops":{
-        "metric":"hbase.regionserver.fsWriteLatency_num_ops",
+        "metric":"regionserver.Server.fsWriteLatency_num_ops",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/getRequestLatency_75th_percentile":{
-        "metric":"hbase.regionserver.getRequestLatency_75th_percentile",
+        "metric":"regionserver.Server.getRequestLatency_75th_percentile",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/getRequestLatency_95th_percentile":{
-        "metric":"hbase.regionserver.getRequestLatency_95th_percentile",
+        "metric":"regionserver.Server.getRequestLatency_95th_percentile",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/getRequestLatency_99th_percentile":{
-        "metric":"hbase.regionserver.getRequestLatency_99th_percentile",
+        "metric":"regionserver.Server.getRequestLatency_99th_percentile",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/getRequestLatency_max":{
-        "metric":"hbase.regionserver.getRequestLatency_max",
+        "metric":"regionserver.Server.getRequestLatency_max",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/getRequestLatency_mean":{
-        "metric":"hbase.regionserver.getRequestLatency_mean",
+        "metric":"regionserver.Server.getRequestLatency_mean",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/getRequestLatency_median":{
-        "metric":"hbase.regionserver.getRequestLatency_median",
+        "metric":"regionserver.Server.getRequestLatency_median",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/getRequestLatency_min":{
-        "metric":"hbase.regionserver.getRequestLatency_min",
+        "metric":"regionserver.Server.getRequestLatency_min",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/getRequestLatency_num_ops":{
-        "metric":"hbase.regionserver.getRequestLatency_num_ops",
+        "metric":"regionserver.Server.getRequestLatency_num_ops",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/getRequestLatency_std_dev":{
-        "metric":"hbase.regionserver.getRequestLatency_std_dev",
+        "metric":"regionserver.Server.getRequestLatency_std_dev",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/hdfsBlocksLocalityIndex":{
-        "metric":"hbase.regionserver.hdfsBlocksLocalityIndex",
+        "metric":"regionserver.Server.hdfsBlocksLocalityIndex",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/hlogFileCount":{
-        "metric":"hbase.regionserver.hlogFileCount",
+        "metric":"regionserver.Server.hlogFileCount",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/memstoreSizeMB":{
-        "metric":"hbase.regionserver.memstoreSizeMB",
+        "metric":"regionserver.Server.memstoreSizeMB",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/putRequestLatency_75th_percentile":{
-        "metric":"hbase.regionserver.putRequestLatency_75th_percentile",
+        "metric":"regionserver.Server.putRequestLatency_75th_percentile",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/putRequestLatency_95th_percentile":{
-        "metric":"hbase.regionserver.putRequestLatency_95th_percentile",
+        "metric":"regionserver.Server.putRequestLatency_95th_percentile",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/putRequestLatency_99th_percentile":{
-        "metric":"hbase.regionserver.putRequestLatency_99th_percentile",
+        "metric":"regionserver.Server.putRequestLatency_99th_percentile",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/putRequestLatency_max":{
-        "metric":"hbase.regionserver.putRequestLatency_max",
+        "metric":"regionserver.Server.putRequestLatency_max",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/putRequestLatency_mean":{
-        "metric":"hbase.regionserver.putRequestLatency_mean",
+        "metric":"regionserver.Server.putRequestLatency_mean",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/putRequestLatency_median":{
-        "metric":"hbase.regionserver.putRequestLatency_median",
+        "metric":"regionserver.Server.putRequestLatency_median",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/putRequestLatency_min":{
-        "metric":"hbase.regionserver.putRequestLatency_min",
+        "metric":"regionserver.Server.putRequestLatency_min",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/putRequestLatency_num_ops":{
-        "metric":"hbase.regionserver.putRequestLatency_num_ops",
+        "metric":"regionserver.Server.putRequestLatency_num_ops",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/putRequestLatency_std_dev":{
-        "metric":"hbase.regionserver.putRequestLatency_std_dev",
+        "metric":"regionserver.Server.putRequestLatency_std_dev",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/readRequestsCount":{
-        "metric":"hbase.regionserver.readRequestsCount",
+        "metric":"regionserver.Server.readRequestCount",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/regions":{
-        "metric":"hbase.regionserver.regions",
+        "metric":"regionserver.Server.regionCount",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/requests":{
-        "metric":"hbase.regionserver.requests",
+        "metric":"regionserver.Server.requests",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/rootIndexSizeKB":{
-        "metric":"hbase.regionserver.rootIndexSizeKB",
+        "metric":"regionserver.Server.rootIndexSizeKB",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/storefileIndexSizeMB":{
-        "metric":"hbase.regionserver.storefileIndexSizeMB",
+        "metric":"regionserver.Server.storefileIndexSizeMB",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/storefiles":{
-        "metric":"hbase.regionserver.storefiles",
+        "metric":"regionserver.Server.storefiles",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/stores":{
-        "metric":"hbase.regionserver.stores",
+        "metric":"regionserver.Server.stores",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/totalStaticBloomSizeKB":{
-        "metric":"hbase.regionserver.totalStaticBloomSizeKB",
+        "metric":"regionserver.Server.totalStaticBloomSizeKB",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/totalStaticIndexSizeKB":{
-        "metric":"hbase.regionserver.totalStaticIndexSizeKB",
+        "metric":"regionserver.Server.totalStaticIndexSizeKB",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/writeRequestsCount":{
-        "metric":"hbase.regionserver.writeRequestsCount",
+        "metric":"regionserver.Server.writeRequestCount",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/gcCount":{
-        "metric":"jvm.metrics.gcCount",
+        "metric":"jvm.JvmMetrics.gcCount",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/gcTimeMillis":{
-        "metric":"jvm.metrics.gcTimeMillis",
+        "metric":"jvm.JvmMetrics.gcTimeMillis",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/logError":{
-        "metric":"jvm.metrics.logError",
+        "metric":"jvm.JvmMetrics.logError",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/logFatal":{
-        "metric":"jvm.metrics.logFatal",
+        "metric":"jvm.JvmMetrics.logFatal",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/logInfo":{
-        "metric":"jvm.metrics.logInfo",
+        "metric":"jvm.JvmMetrics.logInfo",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/logWarn":{
-        "metric":"jvm.metrics.logWarn",
+        "metric":"jvm.JvmMetrics.logWarn",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/maxMemoryM":{
-        "metric":"jvm.metrics.maxMemoryM",
+        "metric":"jvm.JvmMetrics.maxMemoryM",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/memHeapCommittedM":{
-        "metric":"jvm.metrics.memHeapCommittedM",
+        "metric":"jvm.JvmMetrics.memHeapCommittedM",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/memHeapUsedM":{
-        "metric":"jvm.metrics.memHeapUsedM",
+        "metric":"jvm.JvmMetrics.memHeapUsedM",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/memNonHeapCommittedM":{
-        "metric":"jvm.metrics.memNonHeapCommittedM",
+        "metric":"jvm.JvmMetrics.memNonHeapCommittedM",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/memNonHeapUsedM":{
-        "metric":"jvm.metrics.memNonHeapUsedM",
+        "metric":"jvm.JvmMetrics.memNonHeapUsedM",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/threadsBlocked":{
-        "metric":"jvm.metrics.threadsBlocked",
+        "metric":"jvm.JvmMetrics.threadsBlocked",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/threadsNew":{
-        "metric":"jvm.metrics.threadsNew",
+        "metric":"jvm.JvmMetrics.threadsNew",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/threadsRunnable":{
-        "metric":"jvm.metrics.threadsRunnable",
+        "metric":"jvm.JvmMetrics.threadsRunnable",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/threadsTerminated":{
-        "metric":"jvm.metrics.threadsTerminated",
+        "metric":"jvm.JvmMetrics.threadsTerminated",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/threadsTimedWaiting":{
-        "metric":"jvm.metrics.threadsTimedWaiting",
+        "metric":"jvm.JvmMetrics.threadsTimedWaiting",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/threadsWaiting":{
-        "metric":"jvm.metrics.threadsWaiting",
+        "metric":"jvm.JvmMetrics.threadsWaiting",
         "pointInTime":true,
         "temporal":true
       },
@@ -10844,87 +10859,87 @@
         "temporal":true
       },
       "metrics/jvm/gcCount":{
-        "metric":"jvm.metrics.gcCount",
+        "metric":"jvm.JvmMetrics.gcCount",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/gcTimeMillis":{
-        "metric":"jvm.metrics.gcTimeMillis",
+        "metric":"jvm.JvmMetrics.gcTimeMillis",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/logError":{
-        "metric":"jvm.metrics.logError",
+        "metric":"jvm.JvmMetrics.logError",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/logFatal":{
-        "metric":"jvm.metrics.logFatal",
+        "metric":"jvm.JvmMetrics.logFatal",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/logInfo":{
-        "metric":"jvm.metrics.logInfo",
+        "metric":"jvm.JvmMetrics.logInfo",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/logWarn":{
-        "metric":"jvm.metrics.logWarn",
+        "metric":"jvm.JvmMetrics.logWarn",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/maxMemoryM":{
-        "metric":"jvm.metrics.maxMemoryM",
+        "metric":"jvm.JvmMetrics.maxMemoryM",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/memHeapCommittedM":{
-        "metric":"jvm.metrics.memHeapCommittedM",
+        "metric":"jvm.JvmMetrics.memHeapCommittedM",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/memHeapUsedM":{
-        "metric":"jvm.metrics.memHeapUsedM",
+        "metric":"jvm.JvmMetrics.memHeapUsedM",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/memNonHeapCommittedM":{
-        "metric":"jvm.metrics.memNonHeapCommittedM",
+        "metric":"jvm.JvmMetrics.memNonHeapCommittedM",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/memNonHeapUsedM":{
-        "metric":"jvm.metrics.memNonHeapUsedM",
+        "metric":"jvm.JvmMetrics.memNonHeapUsedM",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/threadsBlocked":{
-        "metric":"jvm.metrics.threadsBlocked",
+        "metric":"jvm.JvmMetrics.threadsBlocked",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/threadsNew":{
-        "metric":"jvm.metrics.threadsNew",
+        "metric":"jvm.JvmMetrics.threadsNew",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/threadsRunnable":{
-        "metric":"jvm.metrics.threadsRunnable",
+        "metric":"jvm.JvmMetrics.threadsRunnable",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/threadsTerminated":{
-        "metric":"jvm.metrics.threadsTerminated",
+        "metric":"jvm.JvmMetrics.threadsTerminated",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/threadsTimedWaiting":{
-        "metric":"jvm.metrics.threadsTimedWaiting",
+        "metric":"jvm.JvmMetrics.threadsTimedWaiting",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/threadsWaiting":{
-        "metric":"jvm.metrics.threadsWaiting",
+        "metric":"jvm.JvmMetrics.threadsWaiting",
         "pointInTime":true,
         "temporal":true
       },
@@ -11949,8 +11964,8 @@
         "pointInTime": true,
         "temporal": true
       },
-      "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/AppsCompleted": {
-        "metric": "yarn.QueueMetrics.Queue=(.+).AppsCompleted",
+      "metrics/yarn/Queue/$1/AppsCompleted": {
+        "metric": "yarn.QueueMetrics.Queue:(.+),.AppsCompleted",
         "pointInTime": false,
         "temporal": true
       },
@@ -11979,8 +11994,8 @@
         "pointInTime": false,
         "temporal": true
       },
-      "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/AppsSubmitted": {
-        "metric": "yarn.QueueMetrics.Queue=(.+).AppsSubmitted",
+      "metrics/yarn/Queue/$1/AppsSubmitted": {
+        "metric": "yarn.QueueMetrics.Queue:(.+),.AppsSubmitted",
         "pointInTime": false,
         "temporal": true
       },
@@ -11999,8 +12014,8 @@
         "pointInTime": false,
         "temporal": true
       },
-      "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/AllocatedContainers": {
-        "metric": "yarn.QueueMetrics.Queue=(.+).AllocatedContainers",
+      "metrics/yarn/Queue/$1/AllocatedContainers": {
+        "metric": "yarn.QueueMetrics.Queue:(.+),.AllocatedContainers",
         "pointInTime": false,
         "temporal": true
       },
@@ -12009,8 +12024,8 @@
         "pointInTime": false,
         "temporal": true
       },
-      "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/AppsKilled": {
-        "metric": "yarn.QueueMetrics.Queue=(.+).AppsKilled",
+      "metrics/yarn/Queue/$1/AppsKilled": {
+        "metric": "yarn.QueueMetrics.Queue:(.+),.AppsKilled",
         "pointInTime": false,
         "temporal": true
       },
@@ -12034,8 +12049,8 @@
         "pointInTime": false,
         "temporal": true
       },
-      "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/AppsFailed": {
-        "metric": "yarn.QueueMetrics.Queue=(.+).AppsFailed",
+      "metrics/yarn/Queue/$1/AppsFailed": {
+        "metric": "yarn.QueueMetrics.Queue:(.+),.AppsFailed",
         "pointInTime": false,
         "temporal": true
       },
@@ -12079,8 +12094,8 @@
         "pointInTime": false,
         "temporal": true
       },
-      "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/AppsRunning": {
-        "metric": "yarn.QueueMetrics.Queue=(.+).AppsRunning",
+      "metrics/yarn/Queue/$1/AppsRunning": {
+        "metric": "yarn.QueueMetrics.Queue:(.+),.AppsRunning",
         "pointInTime": false,
         "temporal": true
       },
@@ -12154,8 +12169,8 @@
         "pointInTime": true,
         "temporal": true
       },
-      "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/PendingContainers": {
-        "metric": "yarn.QueueMetrics.Queue=(.+).PendingContainers",
+      "metrics/yarn/Queue/$1/PendingContainers": {
+        "metric": "yarn.QueueMetrics.Queue:(.+),.PendingContainers",
         "pointInTime": false,
         "temporal": true
       },
@@ -12259,13 +12274,13 @@
         "pointInTime": true,
         "temporal": true
       },
-      "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/AvailableMB": {
-        "metric": "yarn.QueueMetrics.Queue=(.+).AvailableMB",
+      "metrics/yarn/Queue/$1/AvailableMB": {
+        "metric": "yarn.QueueMetrics.Queue:(.+),.AvailableMB",
         "pointInTime": false,
         "temporal": true
       },
-      "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/PendingMB": {
-        "metric": "yarn.QueueMetrics.Queue=(.+).PendingMB",
+      "metrics/yarn/Queue/$1/PendingMB": {
+        "metric": "yarn.QueueMetrics.Queue:(.+),.PendingMB",
         "pointInTime": false,
         "temporal": true
       },
@@ -12304,8 +12319,8 @@
         "pointInTime": true,
         "temporal": true
       },
-      "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/AppsPending": {
-        "metric": "yarn.QueueMetrics.Queue=(.+).AppsPending",
+      "metrics/yarn/Queue/$1/AppsPending": {
+        "metric": "yarn.QueueMetrics.Queue:(.+),.AppsPending",
         "pointInTime": false,
         "temporal": true
       },
@@ -12354,8 +12369,8 @@
         "pointInTime": false,
         "temporal": true
       },
-      "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/AllocatedMB": {
-        "metric": "yarn.QueueMetrics.Queue=(.+).AllocatedMB",
+      "metrics/yarn/Queue/$1/AllocatedMB": {
+        "metric": "yarn.QueueMetrics.Queue:(.+),.AllocatedMB",
         "pointInTime": false,
         "temporal": true
       },
@@ -12394,8 +12409,8 @@
         "pointInTime": true,
         "temporal": true
       },
-      "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/ReservedContainers": {
-        "metric": "yarn.QueueMetrics.Queue=(.+).ReservedContainers",
+      "metrics/yarn/Queue/$1/ReservedContainers": {
+        "metric": "yarn.QueueMetrics.Queue:(.+),.ReservedContainers",
         "pointInTime": false,
         "temporal": true
       }
@@ -12761,6 +12776,11 @@
         "pointInTime": false,
         "temporal": true
       },
+      "metrics/dfs/FSNamesystem/CapacityTotal": {
+        "metric": "dfs.FSNamesystem.CapacityTotal",
+        "pointInTime": false,
+        "temporal": true
+      },
       "metrics/rpcdetailed/setOwner_num_ops": {
         "metric": "rpcdetailed.rpcdetailed.SetOwnerNumOps",
         "pointInTime": true,
@@ -12778,6 +12798,11 @@
       },
       "metrics/dfs/FSNamesystem/CapacityUsedGB": {
         "metric": "dfs.FSNamesystem.CapacityUsedGB",
+        "pointInTime": false,
+        "temporal": true
+      },
+      "metrics/dfs/FSNamesystem/CapacityUsed": {
+        "metric": "dfs.FSNamesystem.CapacityUsed",
         "pointInTime": false,
         "temporal": true
       },
@@ -13250,6 +13275,16 @@
         "metric": "dfs.FSNamesystem.CapacityRemainingGB",
         "pointInTime": false,
         "temporal": true
+      },
+      "metrics/dfs/FSNamesystem/CapacityRemaining": {
+        "metric": "dfs.FSNamesystem.CapacityRemaining",
+        "pointInTime": false,
+        "temporal": true
+      },
+      "metrics/dfs/FSNamesystem/CapacityNonDFSUsed":{
+         "metric": "dfs.FSNamesystem.CapacityUsedNonDFS",
+         "pointInTime": false,
+         "temporal": true
       },
       "metrics/dfs/namenode/Transactions_avg_time": {
         "metric": "dfs.namenode.TransactionsAvgTime",
@@ -14669,7 +14704,7 @@
         "temporal": true
       },
       "metrics/jvm/maxMemoryM": {
-        "metric": "jvm.metrics.maxMemoryM",
+        "metric": "jvm.JvmMetrics.maxMemoryM",
         "pointInTime": true,
         "temporal": true
       },
@@ -15016,82 +15051,82 @@
         "temporal":true
       },
       "metrics/jvm/gcCount":{
-        "metric":"jvm.metrics.gcCount",
+        "metric":"jvm.JvmMetrics.gcCount",
         "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/gcTimeMillis":{
-        "metric":"jvm.metrics.gcTimeMillis",
+        "metric":"jvm.JvmMetrics.gcTimeMillis",
         "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/logError":{
-        "metric":"jvm.metrics.logError",
+        "metric":"jvm.JvmMetrics.logError",
         "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/logFatal":{
-        "metric":"jvm.metrics.logFatal",
+        "metric":"jvm.JvmMetrics.logFatal",
         "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/logInfo":{
-        "metric":"jvm.metrics.logInfo",
+        "metric":"jvm.JvmMetrics.logInfo",
         "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/logWarn":{
-        "metric":"jvm.metrics.logWarn",
+        "metric":"jvm.JvmMetrics.logWarn",
         "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/memHeapCommittedM":{
-        "metric":"jvm.metrics.memHeapCommittedM",
+        "metric":"jvm.JvmMetrics.memHeapCommittedM",
         "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/memHeapUsedM":{
-        "metric":"jvm.metrics.memHeapUsedM",
+        "metric":"jvm.JvmMetrics.memHeapUsedM",
         "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/memNonHeapCommittedM":{
-        "metric":"jvm.metrics.memNonHeapCommittedM",
+        "metric":"jvm.JvmMetrics.memNonHeapCommittedM",
         "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/memNonHeapUsedM":{
-        "metric":"jvm.metrics.memNonHeapUsedM",
+        "metric":"jvm.JvmMetrics.memNonHeapUsedM",
         "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/threadsBlocked":{
-        "metric":"jvm.metrics.threadsBlocked",
+        "metric":"jvm.JvmMetrics.threadsBlocked",
         "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/threadsNew":{
-        "metric":"jvm.metrics.threadsNew",
+        "metric":"jvm.JvmMetrics.threadsNew",
         "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/threadsRunnable":{
-        "metric":"jvm.metrics.threadsRunnable",
+        "metric":"jvm.JvmMetrics.threadsRunnable",
         "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/threadsTerminated":{
-        "metric":"jvm.metrics.threadsTerminated",
+        "metric":"jvm.JvmMetrics.threadsTerminated",
         "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/threadsTimedWaiting":{
-        "metric":"jvm.metrics.threadsTimedWaiting",
+        "metric":"jvm.JvmMetrics.threadsTimedWaiting",
         "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/threadsWaiting":{
-        "metric":"jvm.metrics.threadsWaiting",
+        "metric":"jvm.JvmMetrics.threadsWaiting",
         "pointInTime":false,
         "temporal":true
       },
@@ -15743,87 +15778,87 @@
         "temporal":true
       },
       "metrics/jvm/gcCount":{
-        "metric":"jvm.metrics.gcCount",
+        "metric":"jvm.JvmMetrics.gcCount",
         "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/gcTimeMillis":{
-        "metric":"jvm.metrics.gcTimeMillis",
+        "metric":"jvm.JvmMetrics.gcTimeMillis",
         "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/logError":{
-        "metric":"jvm.metrics.logError",
+        "metric":"jvm.JvmMetrics.logError",
         "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/logFatal":{
-        "metric":"jvm.metrics.logFatal",
+        "metric":"jvm.JvmMetrics.logFatal",
         "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/logInfo":{
-        "metric":"jvm.metrics.logInfo",
+        "metric":"jvm.JvmMetrics.logInfo",
         "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/logWarn":{
-        "metric":"jvm.metrics.logWarn",
+        "metric":"jvm.JvmMetrics.logWarn",
         "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/maxMemoryM":{
-        "metric":"jvm.metrics.maxMemoryM",
+        "metric":"jvm.JvmMetrics.maxMemoryM",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/memHeapCommittedM":{
-        "metric":"jvm.metrics.memHeapCommittedM",
+        "metric":"jvm.JvmMetrics.memHeapCommittedM",
         "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/memHeapUsedM":{
-        "metric":"jvm.metrics.memHeapUsedM",
+        "metric":"jvm.JvmMetrics.memHeapUsedM",
         "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/memNonHeapCommittedM":{
-        "metric":"jvm.metrics.memNonHeapCommittedM",
+        "metric":"jvm.JvmMetrics.memNonHeapCommittedM",
         "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/memNonHeapUsedM":{
-        "metric":"jvm.metrics.memNonHeapUsedM",
+        "metric":"jvm.JvmMetrics.memNonHeapUsedM",
         "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/threadsBlocked":{
-        "metric":"jvm.metrics.threadsBlocked",
+        "metric":"jvm.JvmMetrics.threadsBlocked",
         "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/threadsNew":{
-        "metric":"jvm.metrics.threadsNew",
+        "metric":"jvm.JvmMetrics.threadsNew",
         "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/threadsRunnable":{
-        "metric":"jvm.metrics.threadsRunnable",
+        "metric":"jvm.JvmMetrics.threadsRunnable",
         "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/threadsTerminated":{
-        "metric":"jvm.metrics.threadsTerminated",
+        "metric":"jvm.JvmMetrics.threadsTerminated",
         "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/threadsTimedWaiting":{
-        "metric":"jvm.metrics.threadsTimedWaiting",
+        "metric":"jvm.JvmMetrics.threadsTimedWaiting",
         "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/threadsWaiting":{
-        "metric":"jvm.metrics.threadsWaiting",
+        "metric":"jvm.JvmMetrics.threadsWaiting",
         "pointInTime":false,
         "temporal":true
       },
@@ -17195,112 +17230,112 @@
         "temporal":true
       },
       "metrics/hbase/master/cluster_requests":{
-        "metric":"hbase.master.cluster_requests",
+        "metric":"master.Server.cluster_requests",
         "pointInTime":false,
         "temporal":true
       },
       "metrics/hbase/master/splitSize_avg_time":{
-        "metric":"hbase.master.splitSize_avg_time",
+        "metric":"master.FileSystem.HlogSplitSize_avg_time",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/master/splitSize_num_ops":{
-        "metric":"hbase.master.splitSize_num_ops",
+        "metric":"master.FileSystem.HlogSplitSize_num_ops",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/master/splitTime_avg_time":{
-        "metric":"hbase.master.splitTime_avg_time",
+        "metric":"master.FileSystem.HlogSplitTime_mean",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/master/splitTime_num_ops":{
-        "metric":"hbase.master.splitTime_num_ops",
+        "metric":"master.FileSystem.HlogSplitTime_num_ops",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/gcCount":{
-        "metric":"jvm.metrics.gcCount",
+        "metric":"jvm.JvmMetrics.gcCount",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/gcTimeMillis":{
-        "metric":"jvm.metrics.gcTimeMillis",
+        "metric":"jvm.JvmMetrics.gcTimeMillis",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/logError":{
-        "metric":"jvm.metrics.logError",
+        "metric":"jvm.JvmMetrics.logError",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/logFatal":{
-        "metric":"jvm.metrics.logFatal",
+        "metric":"jvm.JvmMetrics.logFatal",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/logInfo":{
-        "metric":"jvm.metrics.logInfo",
+        "metric":"jvm.JvmMetrics.logInfo",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/logWarn":{
-        "metric":"jvm.metrics.logWarn",
+        "metric":"jvm.JvmMetrics.logWarn",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/maxMemoryM":{
-        "metric":"jvm.metrics.maxMemoryM",
+        "metric":"jvm.JvmMetrics.maxMemoryM",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/memHeapCommittedM":{
-        "metric":"jvm.metrics.memHeapCommittedM",
+        "metric":"jvm.JvmMetrics.memHeapCommittedM",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/memHeapUsedM":{
-        "metric":"jvm.metrics.memHeapUsedM",
+        "metric":"jvm.JvmMetrics.memHeapUsedM",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/memNonHeapCommittedM":{
-        "metric":"jvm.metrics.memNonHeapCommittedM",
+        "metric":"jvm.JvmMetrics.memNonHeapCommittedM",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/memNonHeapUsedM":{
-        "metric":"jvm.metrics.memNonHeapUsedM",
+        "metric":"jvm.JvmMetrics.memNonHeapUsedM",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/threadsBlocked":{
-        "metric":"jvm.metrics.threadsBlocked",
+        "metric":"jvm.JvmMetrics.threadsBlocked",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/threadsNew":{
-        "metric":"jvm.metrics.threadsNew",
+        "metric":"jvm.JvmMetrics.threadsNew",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/threadsRunnable":{
-        "metric":"jvm.metrics.threadsRunnable",
+        "metric":"jvm.JvmMetrics.threadsRunnable",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/threadsTerminated":{
-        "metric":"jvm.metrics.threadsTerminated",
+        "metric":"jvm.JvmMetrics.threadsTerminated",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/threadsTimedWaiting":{
-        "metric":"jvm.metrics.threadsTimedWaiting",
+        "metric":"jvm.JvmMetrics.threadsTimedWaiting",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/threadsWaiting":{
-        "metric":"jvm.metrics.threadsWaiting",
+        "metric":"jvm.JvmMetrics.threadsWaiting",
         "pointInTime":true,
         "temporal":true
       },
@@ -18317,87 +18352,87 @@
         "temporal":true
       },
       "metrics/jvm/gcCount":{
-        "metric":"jvm.metrics.gcCount",
+        "metric":"jvm.JvmMetrics.gcCount",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/gcTimeMillis":{
-        "metric":"jvm.metrics.gcTimeMillis",
+        "metric":"jvm.JvmMetrics.gcTimeMillis",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/logError":{
-        "metric":"jvm.metrics.logError",
+        "metric":"jvm.JvmMetrics.logError",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/logFatal":{
-        "metric":"jvm.metrics.logFatal",
+        "metric":"jvm.JvmMetrics.logFatal",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/logInfo":{
-        "metric":"jvm.metrics.logInfo",
+        "metric":"jvm.JvmMetrics.logInfo",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/logWarn":{
-        "metric":"jvm.metrics.logWarn",
+        "metric":"jvm.JvmMetrics.logWarn",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/maxMemoryM":{
-        "metric":"jvm.metrics.maxMemoryM",
+        "metric":"jvm.JvmMetrics.maxMemoryM",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/memHeapCommittedM":{
-        "metric":"jvm.metrics.memHeapCommittedM",
+        "metric":"jvm.JvmMetrics.memHeapCommittedM",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/memHeapUsedM":{
-        "metric":"jvm.metrics.memHeapUsedM",
+        "metric":"jvm.JvmMetrics.memHeapUsedM",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/memNonHeapCommittedM":{
-        "metric":"jvm.metrics.memNonHeapCommittedM",
+        "metric":"jvm.JvmMetrics.memNonHeapCommittedM",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/memNonHeapUsedM":{
-        "metric":"jvm.metrics.memNonHeapUsedM",
+        "metric":"jvm.JvmMetrics.memNonHeapUsedM",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/threadsBlocked":{
-        "metric":"jvm.metrics.threadsBlocked",
+        "metric":"jvm.JvmMetrics.threadsBlocked",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/threadsNew":{
-        "metric":"jvm.metrics.threadsNew",
+        "metric":"jvm.JvmMetrics.threadsNew",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/threadsRunnable":{
-        "metric":"jvm.metrics.threadsRunnable",
+        "metric":"jvm.JvmMetrics.threadsRunnable",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/threadsTerminated":{
-        "metric":"jvm.metrics.threadsTerminated",
+        "metric":"jvm.JvmMetrics.threadsTerminated",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/threadsTimedWaiting":{
-        "metric":"jvm.metrics.threadsTimedWaiting",
+        "metric":"jvm.JvmMetrics.threadsTimedWaiting",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/threadsWaiting":{
-        "metric":"jvm.metrics.threadsWaiting",
+        "metric":"jvm.JvmMetrics.threadsWaiting",
         "pointInTime":true,
         "temporal":true
       },
@@ -19764,497 +19799,497 @@
         "temporal":true
       },
       "metrics/hbase/regionserver/blockCacheCount":{
-        "metric":"hbase.regionserver.blockCacheCount",
+        "metric":"regionserver.Server.blockCacheCount",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/blockCacheEvictedCount":{
-        "metric":"hbase.regionserver.blockCacheEvictedCount",
+        "metric":"regionserver.Server.blockCacheEvictedCount",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/blockCacheFree":{
-        "metric":"hbase.regionserver.blockCacheFree",
+        "metric":"regionserver.Server.blockCacheFree",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/blockCacheHitCachingRatio":{
-        "metric":"hbase.regionserver.blockCacheHitCachingRatio",
+        "metric":"regionserver.Server.blockCacheHitCachingRatio",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/blockCacheHitCount":{
-        "metric":"hbase.regionserver.blockCacheHitCount",
+        "metric":"regionserver.Server.blockCacheHitCount",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/blockCacheHitRatio":{
-        "metric":"hbase.regionserver.blockCacheHitRatio",
+        "metric":"regionserver.Server.blockCacheHitRatio",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/blockCacheMissCount":{
-        "metric":"hbase.regionserver.blockCacheMissCount",
+        "metric":"regionserver.Server.blockCacheMissCount",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/blockCacheSize":{
-        "metric":"hbase.regionserver.blockCacheSize",
+        "metric":"regionserver.Server.blockCacheSize",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/compactionQueueSize":{
-        "metric":"hbase.regionserver.compactionQueueSize",
+        "metric":"regionserver.Server.compactionQueueLength",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/compactionSize_avg_time":{
-        "metric":"hbase.regionserver.compactionSize_avg_time",
+        "metric":"regionserver.Server.compactionSize_avg_time",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/compactionSize_num_ops":{
-        "metric":"hbase.regionserver.compactionSize_num_ops",
+        "metric":"regionserver.Server.compactionSize_num_ops",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/compactionTime_avg_time":{
-        "metric":"hbase.regionserver.compactionTime_avg_time",
+        "metric":"regionserver.Server.compactionTime_avg_time",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/compactionTime_num_ops":{
-        "metric":"hbase.regionserver.compactionTime_num_ops",
+        "metric":"regionserver.Server.compactionTime_num_ops",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/deleteRequestLatency_75th_percentile":{
-        "metric":"hbase.regionserver.deleteRequestLatency_75th_percentile",
+        "metric":"regionserver.Server.deleteRequestLatency_75th_percentile",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/deleteRequestLatency_95th_percentile":{
-        "metric":"hbase.regionserver.deleteRequestLatency_95th_percentile",
+        "metric":"regionserver.Server.deleteRequestLatency_95th_percentile",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/deleteRequestLatency_99th_percentile":{
-        "metric":"hbase.regionserver.deleteRequestLatency_99th_percentile",
+        "metric":"regionserver.Server.deleteRequestLatency_99th_percentile",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/deleteRequestLatency_max":{
-        "metric":"hbase.regionserver.deleteRequestLatency_max",
+        "metric":"regionserver.Server.deleteRequestLatency_max",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/deleteRequestLatency_mean":{
-        "metric":"hbase.regionserver.deleteRequestLatency_mean",
+        "metric":"regionserver.Server.deleteRequestLatency_mean",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/deleteRequestLatency_median":{
-        "metric":"hbase.regionserver.deleteRequestLatency_median",
+        "metric":"regionserver.Server.deleteRequestLatency_median",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/deleteRequestLatency_min":{
-        "metric":"hbase.regionserver.deleteRequestLatency_min",
+        "metric":"regionserver.Server.deleteRequestLatency_min",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/deleteRequestLatency_num_ops":{
-        "metric":"hbase.regionserver.deleteRequestLatency_num_ops",
+        "metric":"regionserver.Server.deleteRequestLatency_num_ops",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/deleteRequestLatency_std_dev":{
-        "metric":"hbase.regionserver.deleteRequestLatency_std_dev",
+        "metric":"regionserver.Server.deleteRequestLatency_std_dev",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/flushQueueSize":{
-        "metric":"hbase.regionserver.flushQueueSize",
+        "metric":"regionserver.Server.flushQueueLength",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/flushSize_avg_time":{
-        "metric":"hbase.regionserver.flushSize_avg_time",
+        "metric":"regionserver.Server.flushSize_avg_time",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/flushSize_num_ops":{
-        "metric":"hbase.regionserver.flushSize_num_ops",
+        "metric":"regionserver.Server.flushSize_num_ops",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/flushTime_avg_time":{
-        "metric":"hbase.regionserver.flushTime_avg_time",
+        "metric":"regionserver.Server.flushTime_avg_time",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/flushTime_num_ops":{
-        "metric":"hbase.regionserver.flushTime_num_ops",
+        "metric":"regionserver.Server.flushTime_num_ops",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/fsReadLatencyHistogram_75th_percentile":{
-        "metric":"hbase.regionserver.fsReadLatencyHistogram_75th_percentile",
+        "metric":"regionserver.Server.fsReadLatencyHistogram_75th_percentile",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/fsReadLatencyHistogram_95th_percentile":{
-        "metric":"hbase.regionserver.fsReadLatencyHistogram_95th_percentile",
+        "metric":"regionserver.Server.fsReadLatencyHistogram_95th_percentile",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/fsReadLatencyHistogram_99th_percentile":{
-        "metric":"hbase.regionserver.fsReadLatencyHistogram_99th_percentile",
+        "metric":"regionserver.Server.fsReadLatencyHistogram_99th_percentile",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/fsReadLatencyHistogram_max":{
-        "metric":"hbase.regionserver.fsReadLatencyHistogram_max",
+        "metric":"regionserver.Server.fsReadLatencyHistogram_max",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/fsReadLatencyHistogram_mean":{
-        "metric":"hbase.regionserver.fsReadLatencyHistogram_mean",
+        "metric":"regionserver.Server.fsReadLatencyHistogram_mean",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/fsReadLatencyHistogram_median":{
-        "metric":"hbase.regionserver.fsReadLatencyHistogram_median",
+        "metric":"regionserver.Server.fsReadLatencyHistogram_median",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/fsReadLatencyHistogram_min":{
-        "metric":"hbase.regionserver.fsReadLatencyHistogram_min",
+        "metric":"regionserver.Server.fsReadLatencyHistogram_min",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/fsReadLatencyHistogram_num_ops":{
-        "metric":"hbase.regionserver.fsReadLatencyHistogram_num_ops",
+        "metric":"regionserver.Server.fsReadLatencyHistogram_num_ops",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/fsReadLatencyHistogram_std_dev":{
-        "metric":"hbase.regionserver.fsReadLatencyHistogram_std_dev",
+        "metric":"regionserver.Server.fsReadLatencyHistogram_std_dev",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/fsReadLatency_avg_time":{
-        "metric":"hbase.regionserver.fsReadLatency_avg_time",
+        "metric":"regionserver.Server.fsReadLatency_avg_time",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/fsReadLatency_num_ops":{
-        "metric":"hbase.regionserver.fsReadLatency_num_ops",
+        "metric":"regionserver.Server.fsReadLatency_num_ops",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/fsSyncLatency_avg_time":{
-        "metric":"hbase.regionserver.fsSyncLatency_avg_time",
+        "metric":"regionserver.Server.fsSyncLatency_avg_time",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/fsSyncLatency_num_ops":{
-        "metric":"hbase.regionserver.fsSyncLatency_num_ops",
+        "metric":"regionserver.Server.fsSyncLatency_num_ops",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/fsWriteLatencyHistogram_75th_percentile":{
-        "metric":"hbase.regionserver.fsWriteLatencyHistogram_75th_percentile",
+        "metric":"regionserver.Server.fsWriteLatencyHistogram_75th_percentile",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/fsWriteLatencyHistogram_95th_percentile":{
-        "metric":"hbase.regionserver.fsWriteLatencyHistogram_95th_percentile",
+        "metric":"regionserver.Server.fsWriteLatencyHistogram_95th_percentile",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/fsWriteLatencyHistogram_99th_percentile":{
-        "metric":"hbase.regionserver.fsWriteLatencyHistogram_99th_percentile",
+        "metric":"regionserver.Server.fsWriteLatencyHistogram_99th_percentile",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/fsWriteLatencyHistogram_max":{
-        "metric":"hbase.regionserver.fsWriteLatencyHistogram_max",
+        "metric":"regionserver.Server.fsWriteLatencyHistogram_max",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/fsWriteLatencyHistogram_mean":{
-        "metric":"hbase.regionserver.fsWriteLatencyHistogram_mean",
+        "metric":"regionserver.Server.fsWriteLatencyHistogram_mean",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/fsWriteLatencyHistogram_median":{
-        "metric":"hbase.regionserver.fsWriteLatencyHistogram_median",
+        "metric":"regionserver.Server.fsWriteLatencyHistogram_median",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/fsWriteLatencyHistogram_min":{
-        "metric":"hbase.regionserver.fsWriteLatencyHistogram_min",
+        "metric":"regionserver.Server.fsWriteLatencyHistogram_min",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/fsWriteLatencyHistogram_num_ops":{
-        "metric":"hbase.regionserver.fsWriteLatencyHistogram_num_ops",
+        "metric":"regionserver.Server.fsWriteLatencyHistogram_num_ops",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/fsWriteLatencyHistogram_std_dev":{
-        "metric":"hbase.regionserver.fsWriteLatencyHistogram_std_dev",
+        "metric":"regionserver.Server.fsWriteLatencyHistogram_std_dev",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/fsWriteLatency_avg_time":{
-        "metric":"hbase.regionserver.fsWriteLatency_avg_time",
+        "metric":"regionserver.Server.fsWriteLatency_avg_time",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/fsWriteLatency_num_ops":{
-        "metric":"hbase.regionserver.fsWriteLatency_num_ops",
+        "metric":"regionserver.Server.fsWriteLatency_num_ops",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/getRequestLatency_75th_percentile":{
-        "metric":"hbase.regionserver.getRequestLatency_75th_percentile",
+        "metric":"regionserver.Server.getRequestLatency_75th_percentile",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/getRequestLatency_95th_percentile":{
-        "metric":"hbase.regionserver.getRequestLatency_95th_percentile",
+        "metric":"regionserver.Server.getRequestLatency_95th_percentile",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/getRequestLatency_99th_percentile":{
-        "metric":"hbase.regionserver.getRequestLatency_99th_percentile",
+        "metric":"regionserver.Server.getRequestLatency_99th_percentile",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/getRequestLatency_max":{
-        "metric":"hbase.regionserver.getRequestLatency_max",
+        "metric":"regionserver.Server.getRequestLatency_max",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/getRequestLatency_mean":{
-        "metric":"hbase.regionserver.getRequestLatency_mean",
+        "metric":"regionserver.Server.getRequestLatency_mean",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/getRequestLatency_median":{
-        "metric":"hbase.regionserver.getRequestLatency_median",
+        "metric":"regionserver.Server.getRequestLatency_median",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/getRequestLatency_min":{
-        "metric":"hbase.regionserver.getRequestLatency_min",
+        "metric":"regionserver.Server.getRequestLatency_min",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/getRequestLatency_num_ops":{
-        "metric":"hbase.regionserver.getRequestLatency_num_ops",
+        "metric":"regionserver.Server.getRequestLatency_num_ops",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/getRequestLatency_std_dev":{
-        "metric":"hbase.regionserver.getRequestLatency_std_dev",
+        "metric":"regionserver.Server.getRequestLatency_std_dev",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/hdfsBlocksLocalityIndex":{
-        "metric":"hbase.regionserver.hdfsBlocksLocalityIndex",
+        "metric":"regionserver.Server.hdfsBlocksLocalityIndex",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/hlogFileCount":{
-        "metric":"hbase.regionserver.hlogFileCount",
+        "metric":"regionserver.Server.hlogFileCount",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/memstoreSizeMB":{
-        "metric":"hbase.regionserver.memstoreSizeMB",
+        "metric":"regionserver.Server.memstoreSizeMB",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/putRequestLatency_75th_percentile":{
-        "metric":"hbase.regionserver.putRequestLatency_75th_percentile",
+        "metric":"regionserver.Server.putRequestLatency_75th_percentile",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/putRequestLatency_95th_percentile":{
-        "metric":"hbase.regionserver.putRequestLatency_95th_percentile",
+        "metric":"regionserver.Server.putRequestLatency_95th_percentile",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/putRequestLatency_99th_percentile":{
-        "metric":"hbase.regionserver.putRequestLatency_99th_percentile",
+        "metric":"regionserver.Server.putRequestLatency_99th_percentile",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/putRequestLatency_max":{
-        "metric":"hbase.regionserver.putRequestLatency_max",
+        "metric":"regionserver.Server.putRequestLatency_max",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/putRequestLatency_mean":{
-        "metric":"hbase.regionserver.putRequestLatency_mean",
+        "metric":"regionserver.Server.putRequestLatency_mean",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/putRequestLatency_median":{
-        "metric":"hbase.regionserver.putRequestLatency_median",
+        "metric":"regionserver.Server.putRequestLatency_median",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/putRequestLatency_min":{
-        "metric":"hbase.regionserver.putRequestLatency_min",
+        "metric":"regionserver.Server.putRequestLatency_min",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/putRequestLatency_num_ops":{
-        "metric":"hbase.regionserver.putRequestLatency_num_ops",
+        "metric":"regionserver.Server.putRequestLatency_num_ops",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/putRequestLatency_std_dev":{
-        "metric":"hbase.regionserver.putRequestLatency_std_dev",
+        "metric":"regionserver.Server.putRequestLatency_std_dev",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/readRequestsCount":{
-        "metric":"hbase.regionserver.readRequestsCount",
+        "metric":"regionserver.Server.readRequestCount",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/regions":{
-        "metric":"hbase.regionserver.regions",
+        "metric":"regionserver.Server.regionCount",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/requests":{
-        "metric":"hbase.regionserver.requests",
+        "metric":"regionserver.Server.requests",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/rootIndexSizeKB":{
-        "metric":"hbase.regionserver.rootIndexSizeKB",
+        "metric":"regionserver.Server.rootIndexSizeKB",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/storefileIndexSizeMB":{
-        "metric":"hbase.regionserver.storefileIndexSizeMB",
+        "metric":"regionserver.Server.storefileIndexSizeMB",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/storefiles":{
-        "metric":"hbase.regionserver.storefiles",
+        "metric":"regionserver.Server.storefiles",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/stores":{
-        "metric":"hbase.regionserver.stores",
+        "metric":"regionserver.Server.stores",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/totalStaticBloomSizeKB":{
-        "metric":"hbase.regionserver.totalStaticBloomSizeKB",
+        "metric":"regionserver.Server.totalStaticBloomSizeKB",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/totalStaticIndexSizeKB":{
-        "metric":"hbase.regionserver.totalStaticIndexSizeKB",
+        "metric":"regionserver.Server.totalStaticIndexSizeKB",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/writeRequestsCount":{
-        "metric":"hbase.regionserver.writeRequestsCount",
+        "metric":"regionserver.Server.writeRequestCount",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/gcCount":{
-        "metric":"jvm.metrics.gcCount",
+        "metric":"jvm.JvmMetrics.gcCount",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/gcTimeMillis":{
-        "metric":"jvm.metrics.gcTimeMillis",
+        "metric":"jvm.JvmMetrics.gcTimeMillis",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/logError":{
-        "metric":"jvm.metrics.logError",
+        "metric":"jvm.JvmMetrics.logError",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/logFatal":{
-        "metric":"jvm.metrics.logFatal",
+        "metric":"jvm.JvmMetrics.logFatal",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/logInfo":{
-        "metric":"jvm.metrics.logInfo",
+        "metric":"jvm.JvmMetrics.logInfo",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/logWarn":{
-        "metric":"jvm.metrics.logWarn",
+        "metric":"jvm.JvmMetrics.logWarn",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/maxMemoryM":{
-        "metric":"jvm.metrics.maxMemoryM",
+        "metric":"jvm.JvmMetrics.maxMemoryM",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/memHeapCommittedM":{
-        "metric":"jvm.metrics.memHeapCommittedM",
+        "metric":"jvm.JvmMetrics.memHeapCommittedM",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/memHeapUsedM":{
-        "metric":"jvm.metrics.memHeapUsedM",
+        "metric":"jvm.JvmMetrics.memHeapUsedM",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/memNonHeapCommittedM":{
-        "metric":"jvm.metrics.memNonHeapCommittedM",
+        "metric":"jvm.JvmMetrics.memNonHeapCommittedM",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/memNonHeapUsedM":{
-        "metric":"jvm.metrics.memNonHeapUsedM",
+        "metric":"jvm.JvmMetrics.memNonHeapUsedM",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/threadsBlocked":{
-        "metric":"jvm.metrics.threadsBlocked",
+        "metric":"jvm.JvmMetrics.threadsBlocked",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/threadsNew":{
-        "metric":"jvm.metrics.threadsNew",
+        "metric":"jvm.JvmMetrics.threadsNew",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/threadsRunnable":{
-        "metric":"jvm.metrics.threadsRunnable",
+        "metric":"jvm.JvmMetrics.threadsRunnable",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/threadsTerminated":{
-        "metric":"jvm.metrics.threadsTerminated",
+        "metric":"jvm.JvmMetrics.threadsTerminated",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/threadsTimedWaiting":{
-        "metric":"jvm.metrics.threadsTimedWaiting",
+        "metric":"jvm.JvmMetrics.threadsTimedWaiting",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/threadsWaiting":{
-        "metric":"jvm.metrics.threadsWaiting",
+        "metric":"jvm.JvmMetrics.threadsWaiting",
         "pointInTime":true,
         "temporal":true
       },
@@ -21581,87 +21616,87 @@
         "temporal":true
       },
       "metrics/jvm/gcCount":{
-        "metric":"jvm.metrics.gcCount",
+        "metric":"jvm.JvmMetrics.gcCount",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/gcTimeMillis":{
-        "metric":"jvm.metrics.gcTimeMillis",
+        "metric":"jvm.JvmMetrics.gcTimeMillis",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/logError":{
-        "metric":"jvm.metrics.logError",
+        "metric":"jvm.JvmMetrics.logError",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/logFatal":{
-        "metric":"jvm.metrics.logFatal",
+        "metric":"jvm.JvmMetrics.logFatal",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/logInfo":{
-        "metric":"jvm.metrics.logInfo",
+        "metric":"jvm.JvmMetrics.logInfo",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/logWarn":{
-        "metric":"jvm.metrics.logWarn",
+        "metric":"jvm.JvmMetrics.logWarn",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/maxMemoryM":{
-        "metric":"jvm.metrics.maxMemoryM",
+        "metric":"jvm.JvmMetrics.maxMemoryM",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/memHeapCommittedM":{
-        "metric":"jvm.metrics.memHeapCommittedM",
+        "metric":"jvm.JvmMetrics.memHeapCommittedM",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/memHeapUsedM":{
-        "metric":"jvm.metrics.memHeapUsedM",
+        "metric":"jvm.JvmMetrics.memHeapUsedM",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/memNonHeapCommittedM":{
-        "metric":"jvm.metrics.memNonHeapCommittedM",
+        "metric":"jvm.JvmMetrics.memNonHeapCommittedM",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/memNonHeapUsedM":{
-        "metric":"jvm.metrics.memNonHeapUsedM",
+        "metric":"jvm.JvmMetrics.memNonHeapUsedM",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/threadsBlocked":{
-        "metric":"jvm.metrics.threadsBlocked",
+        "metric":"jvm.JvmMetrics.threadsBlocked",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/threadsNew":{
-        "metric":"jvm.metrics.threadsNew",
+        "metric":"jvm.JvmMetrics.threadsNew",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/threadsRunnable":{
-        "metric":"jvm.metrics.threadsRunnable",
+        "metric":"jvm.JvmMetrics.threadsRunnable",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/threadsTerminated":{
-        "metric":"jvm.metrics.threadsTerminated",
+        "metric":"jvm.JvmMetrics.threadsTerminated",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/threadsTimedWaiting":{
-        "metric":"jvm.metrics.threadsTimedWaiting",
+        "metric":"jvm.JvmMetrics.threadsTimedWaiting",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/threadsWaiting":{
-        "metric":"jvm.metrics.threadsWaiting",
+        "metric":"jvm.JvmMetrics.threadsWaiting",
         "pointInTime":true,
         "temporal":true
       },
@@ -22686,8 +22721,8 @@
         "pointInTime": true,
         "temporal": true
       },
-      "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/AppsCompleted": {
-        "metric": "yarn.QueueMetrics.Queue=(.+).AppsCompleted",
+      "metrics/yarn/Queue/$1/AppsCompleted": {
+        "metric": "yarn.QueueMetrics.Queue:(.+),.AppsCompleted",
         "pointInTime": false,
         "temporal": true
       },
@@ -22716,8 +22751,8 @@
         "pointInTime": false,
         "temporal": true
       },
-      "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/AppsSubmitted": {
-        "metric": "yarn.QueueMetrics.Queue=(.+).AppsSubmitted",
+      "metrics/yarn/Queue/$1/AppsSubmitted": {
+        "metric": "yarn.QueueMetrics.Queue:(.+),.AppsSubmitted",
         "pointInTime": false,
         "temporal": true
       },
@@ -22736,8 +22771,8 @@
         "pointInTime": false,
         "temporal": true
       },
-      "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/AllocatedContainers": {
-        "metric": "yarn.QueueMetrics.Queue=(.+).AllocatedContainers",
+      "metrics/yarn/Queue/$1/AllocatedContainers": {
+        "metric": "yarn.QueueMetrics.Queue:(.+),.AllocatedContainers",
         "pointInTime": false,
         "temporal": true
       },
@@ -22746,8 +22781,8 @@
         "pointInTime": false,
         "temporal": true
       },
-      "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/AppsKilled": {
-        "metric": "yarn.QueueMetrics.Queue=(.+).AppsKilled",
+      "metrics/yarn/Queue/$1/AppsKilled": {
+        "metric": "yarn.QueueMetrics.Queue:(.+),.AppsKilled",
         "pointInTime": false,
         "temporal": true
       },
@@ -22771,8 +22806,8 @@
         "pointInTime": false,
         "temporal": true
       },
-      "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/AppsFailed": {
-        "metric": "yarn.QueueMetrics.Queue=(.+).AppsFailed",
+      "metrics/yarn/Queue/$1/AppsFailed": {
+        "metric": "yarn.QueueMetrics.Queue:(.+),.AppsFailed",
         "pointInTime": false,
         "temporal": true
       },
@@ -22816,8 +22851,8 @@
         "pointInTime": false,
         "temporal": true
       },
-      "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/AppsRunning": {
-        "metric": "yarn.QueueMetrics.Queue=(.+).AppsRunning",
+      "metrics/yarn/Queue/$1/AppsRunning": {
+        "metric": "yarn.QueueMetrics.Queue:(.+),.AppsRunning",
         "pointInTime": false,
         "temporal": true
       },
@@ -22891,8 +22926,8 @@
         "pointInTime": true,
         "temporal": true
       },
-      "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/PendingContainers": {
-        "metric": "yarn.QueueMetrics.Queue=(.+).PendingContainers",
+      "metrics/yarn/Queue/$1/PendingContainers": {
+        "metric": "yarn.QueueMetrics.Queue:(.+),.PendingContainers",
         "pointInTime": false,
         "temporal": true
       },
@@ -22996,13 +23031,13 @@
         "pointInTime": true,
         "temporal": true
       },
-      "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/AvailableMB": {
-        "metric": "yarn.QueueMetrics.Queue=(.+).AvailableMB",
+      "metrics/yarn/Queue/$1/AvailableMB": {
+        "metric": "yarn.QueueMetrics.Queue:(.+),.AvailableMB",
         "pointInTime": false,
         "temporal": true
       },
-      "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/PendingMB": {
-        "metric": "yarn.QueueMetrics.Queue=(.+).PendingMB",
+      "metrics/yarn/Queue/$1/PendingMB": {
+        "metric": "yarn.QueueMetrics.Queue:(.+),.PendingMB",
         "pointInTime": false,
         "temporal": true
       },
@@ -23041,8 +23076,8 @@
         "pointInTime": true,
         "temporal": true
       },
-      "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/AppsPending": {
-        "metric": "yarn.QueueMetrics.Queue=(.+).AppsPending",
+      "metrics/yarn/Queue/$1/AppsPending": {
+        "metric": "yarn.QueueMetrics.Queue:(.+),.AppsPending",
         "pointInTime": false,
         "temporal": true
       },
@@ -23091,8 +23126,8 @@
         "pointInTime": false,
         "temporal": true
       },
-      "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/AllocatedMB": {
-        "metric": "yarn.QueueMetrics.Queue=(.+).AllocatedMB",
+      "metrics/yarn/Queue/$1/AllocatedMB": {
+        "metric": "yarn.QueueMetrics.Queue:(.+),.AllocatedMB",
         "pointInTime": false,
         "temporal": true
       },
@@ -23131,8 +23166,8 @@
         "pointInTime": true,
         "temporal": true
       },
-      "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/ReservedContainers": {
-        "metric": "yarn.QueueMetrics.Queue=(.+).ReservedContainers",
+      "metrics/yarn/Queue/$1/ReservedContainers": {
+        "metric": "yarn.QueueMetrics.Queue:(.+),.ReservedContainers",
         "pointInTime": false,
         "temporal": true
       }

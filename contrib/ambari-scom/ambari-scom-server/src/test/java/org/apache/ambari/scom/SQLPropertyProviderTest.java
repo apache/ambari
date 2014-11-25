@@ -55,6 +55,7 @@ public class SQLPropertyProviderTest {
   private static final String CLUSTER_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("HostRoles", "cluster_name");
   private static final String HOST_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("HostRoles", "host_name");
   private static final String COMPONENT_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("HostRoles", "component_name");
+  private static final String SERVICE_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("HostRoles", "service_name");
 
   @Test
   public void testPopulateResources() throws Exception {
@@ -91,6 +92,7 @@ public class SQLPropertyProviderTest {
         CLUSTER_NAME_PROPERTY_ID,
         HOST_NAME_PROPERTY_ID,
         COMPONENT_NAME_PROPERTY_ID,
+        SERVICE_NAME_PROPERTY_ID,
         connectionFactory);
 
     // namenode
@@ -99,6 +101,7 @@ public class SQLPropertyProviderTest {
     resource.setProperty(CLUSTER_NAME_PROPERTY_ID, "c1");
     resource.setProperty(HOST_NAME_PROPERTY_ID, "domU-12-31-39-0E-34-E1.compute-1.internal");
     resource.setProperty(COMPONENT_NAME_PROPERTY_ID, "DATANODE");
+    resource.setProperty(SERVICE_NAME_PROPERTY_ID, "HDFS");
 
     // only ask for one property
     Map<String, TemporalInfo> temporalInfoMap = new HashMap<String, TemporalInfo>();
@@ -113,7 +116,7 @@ public class SQLPropertyProviderTest {
 
     for (int i = 0; i < datapoints.length; ++i) {
       Assert.assertEquals((long) i, datapoints[i][0]);
-      Assert.assertEquals(999990L + i, datapoints[i][1]);
+      Assert.assertEquals((999990L + i)/1000, datapoints[i][1]);
     }
 
     // verify
@@ -157,6 +160,7 @@ public class SQLPropertyProviderTest {
         CLUSTER_NAME_PROPERTY_ID,
         HOST_NAME_PROPERTY_ID,
         COMPONENT_NAME_PROPERTY_ID,
+        SERVICE_NAME_PROPERTY_ID,
         connectionFactory);
 
     // namenode
@@ -165,6 +169,7 @@ public class SQLPropertyProviderTest {
     resource.setProperty(CLUSTER_NAME_PROPERTY_ID, "c1");
     resource.setProperty(HOST_NAME_PROPERTY_ID, "domU-12-31-39-0E-34-E1.compute-1.internal");
     resource.setProperty(COMPONENT_NAME_PROPERTY_ID, "DATANODE");
+    resource.setProperty(SERVICE_NAME_PROPERTY_ID, "HDFS");
 
     // only ask for one property
     Map<String, TemporalInfo> temporalInfoMap = new HashMap<String, TemporalInfo>();
@@ -179,7 +184,7 @@ public class SQLPropertyProviderTest {
 
     for (int i = 0; i < datapoints.length; ++i) {
       Assert.assertEquals((long) i, datapoints[i][0]);
-      Assert.assertEquals(999990L + i, datapoints[i][1]);
+      Assert.assertEquals((999990L + i) / 1000, datapoints[i][1]);
     }
 
     // verify
@@ -223,6 +228,7 @@ public class SQLPropertyProviderTest {
         CLUSTER_NAME_PROPERTY_ID,
         HOST_NAME_PROPERTY_ID,
         COMPONENT_NAME_PROPERTY_ID,
+        SERVICE_NAME_PROPERTY_ID,
         connectionFactory);
 
     // namenode
@@ -231,6 +237,7 @@ public class SQLPropertyProviderTest {
     resource.setProperty(CLUSTER_NAME_PROPERTY_ID, "c1");
     resource.setProperty(HOST_NAME_PROPERTY_ID, "domU-12-31-39-0E-34-E1.compute-1.internal");
     resource.setProperty(COMPONENT_NAME_PROPERTY_ID, "DATANODE");
+    resource.setProperty(SERVICE_NAME_PROPERTY_ID, "HDFS");
 
     // only ask for one property
     Map<String, TemporalInfo> temporalInfoMap = new HashMap<String, TemporalInfo>();
@@ -284,6 +291,7 @@ public class SQLPropertyProviderTest {
         CLUSTER_NAME_PROPERTY_ID,
         null,
         COMPONENT_NAME_PROPERTY_ID,
+        SERVICE_NAME_PROPERTY_ID,
         connectionFactory);
 
     // namenode
@@ -291,6 +299,7 @@ public class SQLPropertyProviderTest {
 
     resource.setProperty(CLUSTER_NAME_PROPERTY_ID, "c1");
     resource.setProperty(COMPONENT_NAME_PROPERTY_ID, "DATANODE");
+    resource.setProperty(SERVICE_NAME_PROPERTY_ID, "HDFS");
 
     // only ask for one property
     Map<String, TemporalInfo> temporalInfoMap = new HashMap<String, TemporalInfo>();
@@ -322,6 +331,7 @@ public class SQLPropertyProviderTest {
     expect(resultSet.next()).andReturn(true);
     expect(resultSet.getString("RecordTypeContext")).andReturn("rpc");
     expect(resultSet.getString("RecordTypeName")).andReturn("rpc");
+    expect(resultSet.getString("TagPairs")).andReturn("");
     expect(resultSet.getString("MetricName")).andReturn("RpcSlowResponse_num_ops");
     expect(resultSet.getString("ServiceName")).andReturn("datanode");
     expect(resultSet.getString("NodeName")).andReturn("host1");
@@ -330,6 +340,7 @@ public class SQLPropertyProviderTest {
     expect(resultSet.next()).andReturn(true);
     expect(resultSet.getString("RecordTypeContext")).andReturn("rpc");
     expect(resultSet.getString("RecordTypeName")).andReturn("rpc");
+    expect(resultSet.getString("TagPairs")).andReturn("");
     expect(resultSet.getString("MetricName")).andReturn("RpcSlowResponse_num_ops");
     expect(resultSet.getString("ServiceName")).andReturn("datanode");
     expect(resultSet.getString("NodeName")).andReturn("host1");
@@ -338,6 +349,7 @@ public class SQLPropertyProviderTest {
     expect(resultSet.next()).andReturn(true);
     expect(resultSet.getString("RecordTypeContext")).andReturn("rpc");
     expect(resultSet.getString("RecordTypeName")).andReturn("rpc");
+    expect(resultSet.getString("TagPairs")).andReturn("");
     expect(resultSet.getString("MetricName")).andReturn("RpcSlowResponse_num_ops");
     expect(resultSet.getString("ServiceName")).andReturn("datanode");
     expect(resultSet.getString("NodeName")).andReturn("host1");
@@ -346,6 +358,7 @@ public class SQLPropertyProviderTest {
     expect(resultSet.next()).andReturn(true);
     expect(resultSet.getString("RecordTypeContext")).andReturn("rpc");
     expect(resultSet.getString("RecordTypeName")).andReturn("rpc");
+    expect(resultSet.getString("TagPairs")).andReturn("");
     expect(resultSet.getString("MetricName")).andReturn("RpcSlowResponse_num_ops");
     expect(resultSet.getString("ServiceName")).andReturn("datanode");
     expect(resultSet.getString("NodeName")).andReturn("host1");
@@ -362,6 +375,7 @@ public class SQLPropertyProviderTest {
         CLUSTER_NAME_PROPERTY_ID,
         HOST_NAME_PROPERTY_ID,
         COMPONENT_NAME_PROPERTY_ID,
+        SERVICE_NAME_PROPERTY_ID,
         connectionFactory);
 
     // namenode
@@ -370,6 +384,7 @@ public class SQLPropertyProviderTest {
     resource.setProperty(CLUSTER_NAME_PROPERTY_ID, "c1");
     resource.setProperty(HOST_NAME_PROPERTY_ID, "domU-12-31-39-0E-34-E1.compute-1.internal");
     resource.setProperty(COMPONENT_NAME_PROPERTY_ID, "DATANODE");
+    resource.setProperty(SERVICE_NAME_PROPERTY_ID, "HDFS");
 
     // only ask for one property
     Map<String, TemporalInfo> temporalInfoMap = new HashMap<String, TemporalInfo>();
@@ -400,6 +415,7 @@ public class SQLPropertyProviderTest {
     expect(resultSet.next()).andReturn(true);
     expect(resultSet.getString("RecordTypeContext")).andReturn("rpc");
     expect(resultSet.getString("RecordTypeName")).andReturn("rpc");
+    expect(resultSet.getString("TagPairs")).andReturn("");
     expect(resultSet.getString("MetricName")).andReturn("RpcQueueTime_avg_time");
     expect(resultSet.getString("ServiceName")).andReturn("datanode");
     expect(resultSet.getString("NodeName")).andReturn("host1");
@@ -408,6 +424,7 @@ public class SQLPropertyProviderTest {
     expect(resultSet.next()).andReturn(true);
     expect(resultSet.getString("RecordTypeContext")).andReturn("rpc");
     expect(resultSet.getString("RecordTypeName")).andReturn("rpc");
+    expect(resultSet.getString("TagPairs")).andReturn("");
     expect(resultSet.getString("MetricName")).andReturn("RpcQueueTime_avg_time");
     expect(resultSet.getString("ServiceName")).andReturn("datanode");
     expect(resultSet.getString("NodeName")).andReturn("host1");
@@ -417,6 +434,7 @@ public class SQLPropertyProviderTest {
     expect(resultSet.next()).andReturn(true);
     expect(resultSet.getString("RecordTypeContext")).andReturn("rpc");
     expect(resultSet.getString("RecordTypeName")).andReturn("rpc");
+    expect(resultSet.getString("TagPairs")).andReturn("");
     expect(resultSet.getString("MetricName")).andReturn("RpcSlowResponse_num_ops");
     expect(resultSet.getString("ServiceName")).andReturn("datanode");
     expect(resultSet.getString("NodeName")).andReturn("host1");
@@ -425,6 +443,7 @@ public class SQLPropertyProviderTest {
     expect(resultSet.next()).andReturn(true);
     expect(resultSet.getString("RecordTypeContext")).andReturn("rpc");
     expect(resultSet.getString("RecordTypeName")).andReturn("rpc");
+    expect(resultSet.getString("TagPairs")).andReturn("");
     expect(resultSet.getString("MetricName")).andReturn("RpcSlowResponse_num_ops");
     expect(resultSet.getString("ServiceName")).andReturn("datanode");
     expect(resultSet.getString("NodeName")).andReturn("host1");
@@ -441,6 +460,7 @@ public class SQLPropertyProviderTest {
         CLUSTER_NAME_PROPERTY_ID,
         HOST_NAME_PROPERTY_ID,
         COMPONENT_NAME_PROPERTY_ID,
+        SERVICE_NAME_PROPERTY_ID,
         connectionFactory);
 
     // namenode
@@ -449,6 +469,7 @@ public class SQLPropertyProviderTest {
     resource.setProperty(CLUSTER_NAME_PROPERTY_ID, "c1");
     resource.setProperty(HOST_NAME_PROPERTY_ID, "domU-12-31-39-0E-34-E1.compute-1.internal");
     resource.setProperty(COMPONENT_NAME_PROPERTY_ID, "DATANODE");
+    resource.setProperty(SERVICE_NAME_PROPERTY_ID, "HDFS");
 
     // ask for two properties ... on temporal, one point in time
     Map<String, TemporalInfo> temporalInfoMap = new HashMap<String, TemporalInfo>();
@@ -469,7 +490,7 @@ public class SQLPropertyProviderTest {
 
     for (int i = 0; i < datapoints.length; ++i) {
       Assert.assertEquals((long) i, datapoints[i][0]);
-      Assert.assertEquals(999990L + i, datapoints[i][1]);
+      Assert.assertEquals((999990L + i) / 1000, datapoints[i][1]);
     }
 
     // check the point in time value ... should be the last value of the time series...
