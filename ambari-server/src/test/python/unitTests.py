@@ -22,6 +22,8 @@ import os
 import sys
 from random import shuffle
 import fnmatch
+import tempfile
+import shutil
 
 #excluded directories with non-test staff from stack and service scanning,
 #also we can add service or stack to skip here
@@ -30,6 +32,10 @@ SERVICE_EXCLUDE = ["configs"]
 
 TEST_MASK = '[Tt]est*.py'
 CUSTOM_TEST_MASK = '_[Tt]est*.py'
+
+oldtmpdirpath = tempfile.gettempdir()
+newtmpdirpath = os.path.join(oldtmpdirpath, "ambari-test")
+tempfile.tempdir = newtmpdirpath
 
 def get_parent_path(base, directory_name):
   """
@@ -114,6 +120,7 @@ def stack_test_executor(base_folder, service, stack, custom_tests, executor_resu
   executor_result.put(0) if textRunner.wasSuccessful() else executor_result.put(1)
 
 def main():
+  if not os.path.exists(newtmpdirpath): os.makedirs(newtmpdirpath)
   custom_tests = False
   if len(sys.argv) > 1:
     if sys.argv[1] == "true":
@@ -221,6 +228,10 @@ def main():
   sys.stderr.write("Total run:{0}\n".format(test_runs))
   sys.stderr.write("Total errors:{0}\n".format(len(test_errors)))
   sys.stderr.write("Total failures:{0}\n".format(len(test_failures)))
+
+  shutil.rmtree(newtmpdirpath)
+  tempfile.tempdir = oldtmpdirpath
+  tempfile.oldtmpdirpath = None
 
   if tests_status:
     sys.stderr.write("OK\n")
