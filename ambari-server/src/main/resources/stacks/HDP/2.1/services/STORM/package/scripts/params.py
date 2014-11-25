@@ -30,7 +30,7 @@ hdp_stack_version = format_hdp_stack_version(hdp_stack_version)
 stack_is_hdp22_or_further = hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0
 
 #hadoop params
-if stack_is_hdp22_or_further:
+if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
   rest_lib_dir = '/usr/hdp/current/storm-client/contrib/storm-rest'
   storm_bin_dir = "/usr/hdp/current/storm-client/bin"
 else:
@@ -69,7 +69,7 @@ if security_enabled:
   storm_jaas_principal = _storm_principal_name.replace('_HOST',_hostname_lowercase)
   storm_keytab_path = config['configurations']['storm-env']['storm_keytab']
   
-  if stack_is_hdp22_or_further:
+  if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
     storm_ui_keytab_path = config['configurations']['storm-env']['storm_ui_keytab']
     _storm_ui_jaas_principal_name = config['configurations']['storm-env']['storm_ui_principal_name']
     storm_ui_host = default("/clusterHostInfo/storm_ui_server_hosts", [])

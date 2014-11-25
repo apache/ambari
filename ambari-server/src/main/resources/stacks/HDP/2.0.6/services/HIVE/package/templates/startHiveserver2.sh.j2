@@ -20,7 +20,7 @@
 #
 
 HIVE_SERVER2_OPTS=" -hiveconf hive.log.file=hiveserver2.log -hiveconf hive.log.dir=$5"
-{% if hive_authorization_enabled == True and str(hdp_stack_version).startswith('2.1') %}
+{% if hive_authorization_enabled == True and stack_is_hdp21 %}
 # HiveServer 2 -hiveconf options
 HIVE_SERVER2_OPTS="${HIVE_SERVER2_OPTS} -hiveconf hive.security.authenticator.manager=org.apache.hadoop.hive.ql.security.SessionStateUserAuthenticator -hiveconf hive.security.authorization.manager=org.apache.hadoop.hive.ql.security.authorization.plugin.sqlstd.SQLStdHiveAuthorizerFactory "
 {% endif %}

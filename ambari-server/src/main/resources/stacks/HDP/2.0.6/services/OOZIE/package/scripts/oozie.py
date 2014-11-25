@@ -63,7 +63,7 @@ def oozie(is_server=False # TODO: see if see can remove this
       owner=params.oozie_user
     )
 
-  if params.stack_is_hdp22_or_further:
+  if params.hdp_stack_version != "" and compare_versions(params.hdp_stack_version, '2.2') >= 0:
     File(format("{params.conf_dir}/adminusers.txt"),
       mode=0644,
       group=params.user_group,
@@ -162,7 +162,7 @@ def oozie_server_specific():
     not_if  = no_op_test
   )
 
-  if params.stack_is_hdp22_or_further:
+  if params.hdp_stack_version != "" and compare_versions(params.hdp_stack_version, '2.2') >= 0:
     # Create hive-site and tez-site configs for oozie
     Directory(params.hive_conf_dir,
         recursive = True,

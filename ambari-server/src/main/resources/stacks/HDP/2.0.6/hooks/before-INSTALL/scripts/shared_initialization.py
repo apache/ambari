@@ -58,6 +58,6 @@ def setup_java():
 def install_packages():
   import params
   packages = ['unzip', 'curl']
-  if params.stack_is_hdp22_or_further:
+  if params.hdp_stack_version != "" and compare_versions(params.hdp_stack_version, '2.2') >= 0:
     packages.append('hdp-select')
   Package(packages)

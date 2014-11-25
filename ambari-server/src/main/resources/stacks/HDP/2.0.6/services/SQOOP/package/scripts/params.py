@@ -24,10 +24,9 @@ config = Script.get_config()
 
 hdp_stack_version = str(config['hostLevelParams']['stack_version'])
 hdp_stack_version = format_hdp_stack_version(hdp_stack_version)
-stack_is_hdp22_or_further = hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0
 
 #hadoop params
-if stack_is_hdp22_or_further:
+if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
   sqoop_conf_dir = '/etc/sqoop/conf'
   sqoop_lib = '/usr/hdp/current/sqoop-client/lib'
   hadoop_home = '/usr/hdp/current/hbase-client'

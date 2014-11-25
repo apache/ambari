@@ -30,10 +30,9 @@ tmp_dir = Script.get_tmp_dir()
 
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
 hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
-stack_is_hdp22_or_further = hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0
 
 #hadoop params
-if stack_is_hdp22_or_further:
+if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
   hadoop_bin_dir = "/usr/hdp/current/hadoop-client/bin"
   hadoop_lib_home = "/usr/hdp/current/hadoop-client/lib"
   oozie_lib_dir = "/usr/hdp/current/oozie-client/"
@@ -102,7 +101,7 @@ oozie_server_port = get_port_from_url(config['configurations']['oozie-site']['oo
 oozie_server_admin_port = config['configurations']['oozie-env']['oozie_admin_port']
 fs_root = config['configurations']['core-site']['fs.defaultFS']
 
-if str(hdp_stack_version).startswith('2.0') or str(hdp_stack_version).startswith('2.1'):
+if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.0') >= 0 and compare_versions(hdp_stack_version, '2.2') < 0:
   put_shared_lib_to_hdfs_cmd = format("hadoop --config {hadoop_conf_dir} dfs -put {oozie_shared_lib} {oozie_hdfs_user_dir}")
 # for newer
 else:
@@ -161,7 +160,7 @@ lzo_packages_to_family = {
   "ubuntu": ["liblzo2-2"]
 }
 
-if stack_is_hdp22_or_further:
+if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
   lzo_packages_to_family["redhat"] += [format("hadooplzo_{underscorred_version}_*")]
   lzo_packages_to_family["suse"] += [format("hadooplzo_{underscorred_version}_*")]
   lzo_packages_to_family["ubuntu"] += [format("hadooplzo_{dashed_version}_*")]

@@ -33,7 +33,7 @@ class HiveServer(Script):
   def configure(self, env):
     import params
     env.set_params(params)
-    if not params.stack_is_hdp22_or_further:
+    if not (params.hdp_stack_version != "" and compare_versions(params.hdp_stack_version, '2.2') >=0):
       install_tez_jars()
     hive(name='hiveserver2')
 

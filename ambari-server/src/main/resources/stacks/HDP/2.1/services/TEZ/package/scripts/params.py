@@ -27,9 +27,8 @@ config = Script.get_config()
 # This is expected to be of the form #.#.#.#
 hdp_stack_version = str(config['hostLevelParams']['stack_version'])
 hdp_stack_version = format_hdp_stack_version(hdp_stack_version)
-stack_is_hdp22_or_further = hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0
 
-if stack_is_hdp22_or_further:
+if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
   hadoop_bin_dir = "/usr/hdp/current/hadoop-client/bin"
 else:
   hadoop_bin_dir = "/usr/bin"

@@ -26,10 +26,9 @@ config = Script.get_config()
 
 hdp_stack_version = str(config['hostLevelParams']['stack_version'])
 hdp_stack_version = format_hdp_stack_version(hdp_stack_version)
-stack_is_hdp22_or_further = hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0
 
 #hadoop params
-if stack_is_hdp22_or_further:
+if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
   mapreduce_libs_path = "/usr/hdp/current/hadoop-mapreduce-client/*"
   hadoop_libexec_dir = "/usr/hdp/current/hadoop-client/libexec"
   hadoop_lib_home = "/usr/hdp/current/hadoop-client/lib"
@@ -124,7 +123,7 @@ else:
 #hadoop-env.sh
 java_home = config['hostLevelParams']['java_home']
 
-if str(config['hostLevelParams']['stack_version']).startswith('2.0') and System.get_instance().os_family != "suse":
+if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.0') >= 0 and compare_versions(hdp_stack_version, '2.1') < 0 and System.get_instance().os_family != "suse":
   # deprecated rhel jsvc_path
   jsvc_path = "/usr/libexec/bigtop-utils"
 else:

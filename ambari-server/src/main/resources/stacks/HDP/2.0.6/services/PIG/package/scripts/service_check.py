@@ -66,7 +66,7 @@ class PigServiceCheck(Script):
       bin_dir = params.hadoop_bin_dir
     )
 
-    if params.stack_is_hdp22_or_further:
+    if params.hdp_stack_version != "" and compare_versions(params.hdp_stack_version, '2.2') >= 0:
       # cleanup results from previous test
       ExecuteHadoop( create_file_cmd,
         tries     = 3,

@@ -31,7 +31,6 @@ tmp_dir = Script.get_tmp_dir()
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
 hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
 security_enabled = config['configurations']['cluster-env']['security_enabled']
-stack_is_hdp22_or_further = hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0
 hdfs_user = status_params.hdfs_user
 hadoop_pid_dir_prefix = status_params.hadoop_pid_dir_prefix
 
@@ -43,7 +42,7 @@ dfs_http_policy = default('/configurations/hdfs-site/dfs.http.policy', None)
 secure_dn_ports_are_in_use = False
 
 #hadoop params
-if stack_is_hdp22_or_further:
+if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
   mapreduce_libs_path = "/usr/hdp/current/hadoop-mapreduce-client/*"
   hadoop_libexec_dir = "/usr/hdp/current/hadoop-client/libexec"
   hadoop_bin = "/usr/hdp/current/hadoop-client/sbin"
@@ -241,7 +240,7 @@ lzo_packages_to_family = {
   "ubuntu": ["liblzo2-2"]
 }
 
-if stack_is_hdp22_or_further:
+if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
   lzo_packages_to_family["redhat"] += [format("hadooplzo_{underscorred_version}_*")]
   lzo_packages_to_family["suse"] += [format("hadooplzo_{underscorred_version}_*")]
   lzo_packages_to_family["ubuntu"] += [format("hadooplzo_{dashed_version}_*")]
@@ -261,7 +260,7 @@ hadoop_env_sh_template = config['configurations']['hadoop-env']['content']
 #hadoop-env.sh
 java_home = config['hostLevelParams']['java_home']
 
-if hdp_stack_version.startswith('2.0') and System.get_instance().os_family != "suse":
+if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.0') >= 0 and compare_versions(hdp_stack_version, '2.1') < 0 and System.get_instance().os_family != "suse":
   # deprecated rhel jsvc_path
   jsvc_path = "/usr/libexec/bigtop-utils"
 else:

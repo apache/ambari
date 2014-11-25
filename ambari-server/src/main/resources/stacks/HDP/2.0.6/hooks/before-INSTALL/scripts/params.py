@@ -28,7 +28,6 @@ tmp_dir = Script.get_tmp_dir()
 
 hdp_stack_version = str(config['hostLevelParams']['stack_version'])
 hdp_stack_version = format_hdp_stack_version(hdp_stack_version)
-stack_is_hdp22_or_further = hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0
 
 #users and groups
 hbase_user = config['configurations']['hbase-env']['hbase_user']

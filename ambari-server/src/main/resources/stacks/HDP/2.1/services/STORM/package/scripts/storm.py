@@ -66,7 +66,7 @@ def storm():
     TemplateConfig(format("{conf_dir}/storm_jaas.conf"),
                    owner=params.storm_user
     )
-    if params.stack_is_hdp22_or_further:
+    if params.hdp_stack_version != "" and compare_versions(params.hdp_stack_version, '2.2') >= 0:
       TemplateConfig(format("{conf_dir}/client_jaas.conf"),
                      owner=params.storm_user
       )
