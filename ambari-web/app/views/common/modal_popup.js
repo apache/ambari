@@ -63,7 +63,7 @@ App.ModalPopup = Ember.View.extend({
 
   didInsertElement: function () {
     if (this.autoHeight) {
-      var block = $('#modal > .modal-body').first();
+      var block = this.$().find('#modal > .modal-body').first();
       if(block.offset()) {
         block.css('max-height', $(window).height() - block.offset().top  - 300 + $(window).scrollTop()); // fix popup height
       }
@@ -77,11 +77,11 @@ App.ModalPopup = Ember.View.extend({
           maxZindex = $(popup).css('z-index');
       }
       });
-      $('.modal-backdrop').css('z-index', maxZindex * 2);
-      $('.modal').css('z-index', maxZindex * 2 + 1);
+      this.$().find('.modal-backdrop').css('z-index', maxZindex * 2);
+      this.$().find('.modal').css('z-index', maxZindex * 2 + 1);
     }
 
-    var firstInputElement = $('#modal').find(':input').not(':disabled').first();
+    var firstInputElement = this.$('#modal').find(':input').not(':disabled').first();
     this.focusElement(firstInputElement);
   },
 

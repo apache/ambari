@@ -25,12 +25,15 @@ describe('App.ModalPopup', function() {
 
   beforeEach(function () {
     popup = App.ModalPopup.create(
-        {
-          primary: 'test',
-          secondary: 'test',
-          header: 'test',
-          body: '<p>text</p><input type="text"><input type="checkbox"><input type="button">'
+      {
+        primary: 'test',
+        secondary: 'test',
+        header: 'test',
+        body: '<p>text</p><input type="text"><input type="checkbox"><input type="button">',
+        $: function () {
+          return $(this);
         }
+      }
     );
   });
 
