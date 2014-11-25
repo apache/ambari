@@ -33,6 +33,9 @@ class AmbariService(WinService):
   _svc_display_name_ = "Ambari Service"
   _svc_description_ = "Ambari Service"
 
+  def _adjustPythonPath(self, current_dir):
+    pass
+
   # Sets the current dir and adjusts the PYTHONPATH env variable before calling SvcDoRun()
   def SvcRun(self):
     self.ReportServiceStatus(win32service.SERVICE_START_PENDING)
@@ -53,13 +56,10 @@ class AmbariService(WinService):
       # the script resides in the sbin/ambari_commons subdir
       self.options.current_dir = os.path.normpath(script_path + "\\..\\..")
       os.chdir(self.options.current_dir)
+    else:
+      self.options.current_dir = os.getcwd()
 
-      python_path = os.path.normpath(script_path + "\\..")
-
-      #update the environment vars: set PYTHONPATH = $script_dir\sbin;%PYTHONPATH%
-      if os.environ.has_key(ENV_PYTHON_PATH):
-        python_path += os.pathsep + os.environ[ENV_PYTHON_PATH]
-      os.environ[ENV_PYTHON_PATH] = python_path
+    self._adjustPythonPath(self.options.current_dir)
 
     self.SvcDoRun()
     pass

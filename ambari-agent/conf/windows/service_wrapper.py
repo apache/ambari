@@ -24,17 +24,14 @@ import win32api
 import win32event
 import win32service
 
-from ambari_commons.ambari_service import AmbariService
+from ambari_commons.ambari_service import AmbariService, ENV_PYTHON_PATH
 from ambari_commons.exceptions import *
 from ambari_commons.logging_utils import *
 from ambari_commons.os_windows import WinServiceController
-from ambari_agent.AmbariConfig import *
+from ambari_agent.AmbariConfig import AmbariConfig, SETUP_ACTION, START_ACTION, DEBUG_ACTION, STOP_ACTION, STATUS_ACTION
 from ambari_agent.HeartbeatHandlers_windows import HeartbeatStopHandler
 
 AMBARI_VERSION_VAR = "AMBARI_VERSION_VAR"
-
-ENV_PYTHONPATH = "PYTHONPATH"
-
 
 def parse_options():
   # parse env cmd
@@ -61,6 +58,22 @@ class AmbariAgentService(AmbariService):
   AmbariService._AdjustServiceVersion()
 
   heartbeat_stop_handler = None
+
+  # Adds the necessary script dir to the Python's modules path
+  def _adjustPythonPath(self, current_dir):
+    iPos = 0
+    python_path = os.path.join(current_dir, "sbin")
+    sys.path.insert(iPos, python_path)
+
+    # Add the alerts and apscheduler subdirs to the path, for the imports to work correctly without
+    #  having to modify the files in these 2 subdirectories
+    agent_path = os.path.join(current_dir, "sbin", "ambari_agent")
+    iPos += 1
+    sys.path.insert(iPos, agent_path)
+    for subdir in os.listdir(agent_path):
+      full_subdir = os.path.join(agent_path, subdir)
+      iPos += 1
+      sys.path.insert(iPos, full_subdir)
 
   def SvcDoRun(self):
     parse_options()

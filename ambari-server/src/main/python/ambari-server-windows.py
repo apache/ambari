@@ -20,7 +20,7 @@ limitations under the License.
 
 import optparse
 
-from ambari_commons.ambari_service import AmbariService
+from ambari_commons.ambari_service import AmbariService, ENV_PYTHON_PATH
 from ambari_commons.logging_utils import *
 from ambari_commons.os_utils import remove_file
 from ambari_commons.os_windows import SvcStatusCallback
@@ -89,6 +89,11 @@ class AmbariServerService(AmbariService):
   AmbariService._svc_description_ = "Ambari Server"
 
   AmbariService._AdjustServiceVersion()
+
+  # Adds the necessary script dir to the Python's modules path
+  def _adjustPythonPath(self, current_dir):
+    python_path = os.path.join(current_dir, "sbin")
+    sys.path.insert(0, python_path)
 
   def SvcDoRun(self):
     scmStatus = SvcStatusCallback(self)
