@@ -349,21 +349,7 @@ module.exports = App.WizardRoute.extend({
   backToHostsList: function (router, event) {
     App.router.get('updateController').set('isWorking', true);
     router.transitionTo('hosts.index');
-  },
-
-  gotoStep1: Em.Router.transitionTo('step1'),
-
-  gotoStep2: Em.Router.transitionTo('step2'),
-
-  gotoStep3: Em.Router.transitionTo('step3'),
-
-  gotoStep4: Em.Router.transitionTo('step4'),
-
-  gotoStep5: Em.Router.transitionTo('step5'),
-
-  gotoStep6: Em.Router.transitionTo('step6'),
-
-  gotoStep7: Em.Router.transitionTo('step7')
+  }
 
 
 });

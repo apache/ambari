@@ -130,12 +130,6 @@ module.exports = App.WizardRoute.extend({
           }
         });
     }
-  }),
-
-  gotoStep1: Em.Router.transitionTo('step1'),
-
-  gotoStep2: Em.Router.transitionTo('step2'),
-
-  gotoStep3: Em.Router.transitionTo('step3')
+  })
 
 });

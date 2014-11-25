@@ -18,25 +18,9 @@
 
 var App = require('app');
 
-App.MainAdminSecurityAddMenuView = Em.View.extend({
+App.MainAdminSecurityAddMenuView = Em.View.extend(App.WizardMenuMixin, {
 
-  templateName: require('templates/main/admin/security/add/menu'),
-
-  isStep1Disabled: function () {
-    return this.get('controller.isStepDisabled').findProperty('step',1).get('value');
-  }.property('controller.isStepDisabled.@each.value').cacheable(),
-
-  isStep2Disabled: function () {
-    return this.get('controller.isStepDisabled').findProperty('step',2).get('value');
-  }.property('controller.isStepDisabled.@each.value').cacheable(),
-
-  isStep3Disabled: function () {
-    return this.get('controller.isStepDisabled').findProperty('step',3).get('value');
-  }.property('controller.isStepDisabled.@each.value').cacheable(),
-
-  isStep4Disabled: function () {
-    return this.get('controller.isStepDisabled').findProperty('step',4).get('value');
-  }.property('controller.isStepDisabled.@each.value').cacheable()
+  templateName: require('templates/main/admin/security/add/menu')
 
 });
 

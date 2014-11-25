@@ -19,9 +19,33 @@
 var App = require('app');
 
 App.WizardRoute = Em.Route.extend({
+
+  gotoStep0: Em.Router.transitionTo('step0'),
+
+  gotoStep1: Em.Router.transitionTo('step1'),
+
+  gotoStep2: Em.Router.transitionTo('step2'),
+
+  gotoStep3: Em.Router.transitionTo('step3'),
+
+  gotoStep4: Em.Router.transitionTo('step4'),
+
+  gotoStep5: Em.Router.transitionTo('step5'),
+
+  gotoStep6: Em.Router.transitionTo('step6'),
+
+  gotoStep7: Em.Router.transitionTo('step7'),
+
+  gotoStep8: Em.Router.transitionTo('step8'),
+
+  gotoStep9: Em.Router.transitionTo('step9'),
+
+  gotoStep10: Em.Router.transitionTo('step10'),
+
   isRoutable: function() {
     return (typeof this.get('route') === 'string' && App.router.get('loggedIn'));
   }.property('App.router.loggedIn')
+
 });
 
 App.Router = Em.Router.extend({

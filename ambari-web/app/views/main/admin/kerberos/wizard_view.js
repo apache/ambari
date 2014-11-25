@@ -18,25 +18,9 @@
 
 var App = require('app');
 
-App.KerberosWizardView = Em.View.extend({
+App.KerberosWizardView = Em.View.extend(App.WizardMenuMixin, {
 
   templateName: require('templates/main/admin/kerberos/wizard'),
-
-  isStep1Disabled: function () {
-    return this.get('controller.isStepDisabled').findProperty('step',1).get('value');
-  }.property('controller.isStepDisabled.@each.value').cacheable(),
-
-  isStep2Disabled: function () {
-    return this.get('controller.isStepDisabled').findProperty('step',2).get('value');
-  }.property('controller.isStepDisabled.@each.value').cacheable(),
-
-  isStep3Disabled: function () {
-    return this.get('controller.isStepDisabled').findProperty('step',3).get('value');
-  }.property('controller.isStepDisabled.@each.value').cacheable(),
-
-  isStep4Disabled: function () {
-    return this.get('controller.isStepDisabled').findProperty('step',4).get('value');
-  }.property('controller.isStepDisabled.@each.value').cacheable(),
 
   isStep5Disabled: true,
 

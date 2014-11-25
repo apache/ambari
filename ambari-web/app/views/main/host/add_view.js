@@ -19,43 +19,11 @@
 
 var App = require('app');
 
-App.AddHostView = Em.View.extend({
+App.AddHostView = Em.View.extend(App.WizardMenuMixin, {
 
   templateName: require('templates/main/host/add'),
 
   isLoaded: false,
-
-  isStep1Disabled: function () {
-    return this.isStepDisabled(1);
-  }.property('controller.isStepDisabled.@each.value').cacheable(),
-
-  isStep2Disabled: function () {
-    return this.isStepDisabled(2);
-  }.property('controller.isStepDisabled.@each.value').cacheable(),
-
-  isStep3Disabled: function () {
-    return this.isStepDisabled(3);
-  }.property('controller.isStepDisabled.@each.value').cacheable(),
-
-  isStep4Disabled: function () {
-    return this.isStepDisabled(4);
-  }.property('controller.isStepDisabled.@each.value').cacheable(),
-
-  isStep5Disabled: function () {
-    return this.isStepDisabled(5);
-  }.property('controller.isStepDisabled.@each.value').cacheable(),
-
-  isStep6Disabled: function () {
-    return this.isStepDisabled(6);
-  }.property('controller.isStepDisabled.@each.value').cacheable(),
-
-  isStep7Disabled: function () {
-    return this.isStepDisabled(7);
-  }.property('controller.isStepDisabled.@each.value').cacheable(),
-
-  isStepDisabled: function (index) {
-    return this.get('controller.isStepDisabled').findProperty('step', index).get('value');
-  },
 
   willInsertElement: function () {
     if (this.get('controller').getDBProperty('hosts')) {

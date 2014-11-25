@@ -19,52 +19,8 @@
 
 var App = require('app');
 
-App.InstallerView = Em.View.extend({
+App.InstallerView = Em.View.extend(App.WizardMenuMixin, {
 
-  templateName: require('templates/installer'),
-
-  isStep0Disabled: function () {
-    return this.get('controller.isStepDisabled').findProperty('step',0).get('value');
-  }.property('controller.isStepDisabled.@each.value').cacheable(),
-
-  isStep1Disabled: function () {
-    return this.get('controller.isStepDisabled').findProperty('step',1).get('value');
-  }.property('controller.isStepDisabled.@each.value').cacheable(),
-
-  isStep2Disabled: function () {
-    return this.get('controller.isStepDisabled').findProperty('step',2).get('value');
-  }.property('controller.isStepDisabled.@each.value').cacheable(),
-
-  isStep3Disabled: function () {
-    return this.get('controller.isStepDisabled').findProperty('step',3).get('value');
-  }.property('controller.isStepDisabled.@each.value').cacheable(),
-
-  isStep4Disabled: function () {
-    return this.get('controller.isStepDisabled').findProperty('step',4).get('value');
-  }.property('controller.isStepDisabled.@each.value').cacheable(),
-
-  isStep5Disabled: function () {
-    return this.get('controller.isStepDisabled').findProperty('step',5).get('value');
-  }.property('controller.isStepDisabled.@each.value').cacheable(),
-
-  isStep6Disabled: function () {
-    return this.get('controller.isStepDisabled').findProperty('step',6).get('value');
-  }.property('controller.isStepDisabled.@each.value').cacheable(),
-
-  isStep7Disabled: function () {
-    return this.get('controller.isStepDisabled').findProperty('step',7).get('value');
-  }.property('controller.isStepDisabled.@each.value').cacheable(),
-
-  isStep8Disabled: function () {
-    return this.get('controller.isStepDisabled').findProperty('step',8).get('value');
-  }.property('controller.isStepDisabled.@each.value').cacheable(),
-
-  isStep9Disabled: function () {
-    return this.get('controller.isStepDisabled').findProperty('step',9).get('value');
-  }.property('controller.isStepDisabled.@each.value').cacheable(),
-
-  isStep10Disabled: function () {
-    return this.get('controller.isStepDisabled').findProperty('step',10).get('value');
-  }.property('controller.isStepDisabled.@each.value').cacheable()
+  templateName: require('templates/installer')
 
 });

@@ -18,24 +18,8 @@
 
 var App = require('app');
 
-App.AddAlertDefinitionView = Em.View.extend({
+App.AddAlertDefinitionView = Em.View.extend(App.WizardMenuMixin, {
 
-  templateName: require('templates/main/alerts/add_alert_definition/add_alert_definition'),
-
-  isStep1Disabled: function () {
-    return this.isStepDisabled(1);
-  }.property('controller.isStepDisabled.@each.value').cacheable(),
-
-  isStep2Disabled: function () {
-    return this.isStepDisabled(2);
-  }.property('controller.isStepDisabled.@each.value').cacheable(),
-
-  isStep3Disabled: function () {
-    return this.isStepDisabled(3);
-  }.property('controller.isStepDisabled.@each.value').cacheable(),
-
-  isStepDisabled: function (index) {
-    return this.get('controller.isStepDisabled').findProperty('step', index).get('value');
-  }
+  templateName: require('templates/main/alerts/add_alert_definition/add_alert_definition')
 
 });

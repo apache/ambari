@@ -19,7 +19,7 @@
 
 var App = require('app');
 
-App.RMHighAvailabilityWizardView = Em.View.extend({
+App.RMHighAvailabilityWizardView = Em.View.extend(App.WizardMenuMixin, {
 
   didInsertElement: function() {
     var currentStep = this.get('controller.currentStep');
@@ -29,26 +29,6 @@ App.RMHighAvailabilityWizardView = Em.View.extend({
   },
 
   templateName: require('templates/main/admin/highAvailability/resourceManager/wizard'),
-
-  isStep1Disabled: function () {
-    return this.isStepDisabled(1);
-  }.property('controller.isStepDisabled.@each.value').cacheable(),
-
-  isStep2Disabled: function () {
-    return this.isStepDisabled(2);
-  }.property('controller.isStepDisabled.@each.value').cacheable(),
-
-  isStep3Disabled: function () {
-    return this.isStepDisabled(3);
-  }.property('controller.isStepDisabled.@each.value').cacheable(),
-
-  isStep4Disabled: function () {
-    return this.isStepDisabled(4);
-  }.property('controller.isStepDisabled.@each.value').cacheable(),
-
-  isStepDisabled: function (index) {
-    return this.get('controller.isStepDisabled').findProperty('step', index).get('value');
-  },
 
   isLoaded: false,
 

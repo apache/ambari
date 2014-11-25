@@ -19,31 +19,15 @@
 
 var App = require('app');
 
-App.RollbackHighAvailabilityWizardView = Em.View.extend({
+App.RollbackHighAvailabilityWizardView = Em.View.extend(App.WizardMenuMixin, {
+
+  templateName: require('templates/main/admin/highAvailability/nameNode/rollbackHA/rollback_wizard'),
 
   didInsertElement: function() {
     var currentStep = this.get('controller.currentStep');
     if (currentStep > 4) {
       this.get('controller').setLowerStepsDisable(currentStep);
     }
-  },
-
-  templateName: require('templates/main/admin/highAvailability/nameNode/rollbackHA/rollback_wizard'),
-
-  isStep1Disabled: function () {
-    return this.isStepDisabled(1);
-  }.property('controller.isStepDisabled.@each.value').cacheable(),
-
-  isStep2Disabled: function () {
-    return this.isStepDisabled(2);
-  }.property('controller.isStepDisabled.@each.value').cacheable(),
-
-  isStep3Disabled: function () {
-    return this.isStepDisabled(3);
-  }.property('controller.isStepDisabled.@each.value').cacheable(),
-
-  isStepDisabled: function (index) {
-    return this.get('controller.isStepDisabled').findProperty('step', index).get('value');
   }
 
 });

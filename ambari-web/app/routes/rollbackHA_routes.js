@@ -150,12 +150,6 @@ module.exports = App.WizardRoute.extend({
       router.transitionTo('main.index');
       location.reload();
     }
-  }),
-
-  gotoStep1: Em.Router.transitionTo('step1'),
-
-  gotoStep2: Em.Router.transitionTo('step2'),
-
-  gotoStep3: Em.Router.transitionTo('step3')
+  })
 
 });

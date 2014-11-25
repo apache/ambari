@@ -19,22 +19,8 @@
 
 var App = require('app');
 
-App.StackUpgradeView = Em.View.extend({
-  templateName: require('templates/main/admin/stack_upgrade'),
+App.StackUpgradeView = Em.View.extend(App.WizardMenuMixin, {
 
-  isStep1Disabled: function () {
-    return this.isStepDisabled(1);
-  }.property('controller.isStepDisabled.@each.value').cacheable(),
+  templateName: require('templates/main/admin/stack_upgrade')
 
-  isStep2Disabled: function () {
-    return this.isStepDisabled(2);
-  }.property('controller.isStepDisabled.@each.value').cacheable(),
-
-  isStep3Disabled: function () {
-    return this.isStepDisabled(3);
-  }.property('controller.isStepDisabled.@each.value').cacheable(),
-
-  isStepDisabled: function (index) {
-    return this.get('controller.isStepDisabled').findProperty('step', index).get('value');
-  }
 });

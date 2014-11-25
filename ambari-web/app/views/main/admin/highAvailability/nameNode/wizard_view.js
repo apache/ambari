@@ -19,7 +19,8 @@
 
 var App = require('app');
 
-App.HighAvailabilityWizardView = Em.View.extend({
+App.HighAvailabilityWizardView = Em.View.extend(App.WizardMenuMixin, {
+
   templateName: require('templates/main/admin/highAvailability/nameNode/wizard'),
 
   isLoaded: false,
@@ -69,7 +70,7 @@ App.HighAvailabilityWizardView = Em.View.extend({
   /**
    * error callback of <code>loadHosts</code>
    */
-  loadHostsErrorCallback: function(){
+  loadHostsErrorCallback: function() {
     this.set('isLoaded', true);
   },
 
@@ -78,46 +79,6 @@ App.HighAvailabilityWizardView = Em.View.extend({
     if (currentStep > 4) {
       this.get('controller').setLowerStepsDisable(currentStep);
     }
-  },
-
-  isStep1Disabled: function () {
-    return this.isStepDisabled(1);
-  }.property('controller.isStepDisabled.@each.value').cacheable(),
-
-  isStep2Disabled: function () {
-    return this.isStepDisabled(2);
-  }.property('controller.isStepDisabled.@each.value').cacheable(),
-
-  isStep3Disabled: function () {
-    return this.isStepDisabled(3);
-  }.property('controller.isStepDisabled.@each.value').cacheable(),
-
-  isStep4Disabled: function () {
-    return this.isStepDisabled(4);
-  }.property('controller.isStepDisabled.@each.value').cacheable(),
-
-  isStep5Disabled: function () {
-    return this.isStepDisabled(5);
-  }.property('controller.isStepDisabled.@each.value').cacheable(),
-
-  isStep6Disabled: function () {
-    return this.isStepDisabled(6);
-  }.property('controller.isStepDisabled.@each.value').cacheable(),
-
-  isStep7Disabled: function () {
-    return this.isStepDisabled(7);
-  }.property('controller.isStepDisabled.@each.value').cacheable(),
-
-  isStep8Disabled: function () {
-    return this.isStepDisabled(8);
-  }.property('controller.isStepDisabled.@each.value').cacheable(),
-
-  isStep9Disabled: function () {
-    return this.isStepDisabled(9);
-  }.property('controller.isStepDisabled.@each.value').cacheable(),
-
-  isStepDisabled: function (index) {
-    return this.get('controller.isStepDisabled').findProperty('step', index).get('value');
   }
 
 });
