@@ -28,24 +28,24 @@
     {{/view}}
 
     <tr class="filter-row">
-      <th class="first">{{view view.stackNameFilterView}}</th>
-      <th>{{view view.stackVersionFilterView}}</th>
-      <th>{{view view.osFilterView}}</th>
-      <th>{{view view.currentFilterView}}</th>
-      <th>{{view view.installedFilterView}}</th>
+      <th class="first stack-name-filter">{{view view.stackNameFilterView}}</th>
+      <th class="repo-version-filter">{{view view.stackVersionFilterView}}</th>
+      <th class="os-type-filter">{{view view.osFilterView}}</th>
+      <th class="installed-hosts-filter">{{view view.installedFilterView}}</th>
+      <th class="current-hosts-filter">{{view view.currentFilterView}}</th>
     </tr>
     </thead>
     <tbody class="services-menu">
       {{#if view.pageContent}}
         {{#each item in view.pageContent}}
           {{#view view.StackVersionView contentBinding="item"}}
-            <td class="first">
+            <td class="first stack-name">
               <a href="#/main/admin/versions/{{unbound view.content.id}}" class="stack-name">{{view.content.name}}</a>
             </td>
-            <td>
-              <span class="stack-version">{{view.content.version}}</span>
+            <td class="repo-version">
+              <span>{{view.content.version}}</span>
             </td>
-            <td>
+            <td class="os-types">
               <a href="#" class="os-expander" {{action toggleOs target="view"}}>
                 <span {{bindAttr class="view.isOsCollapsed:icon-caret-right:icon-caret-down"}}></span>
                 {{view.content.operatingSystems.length}} {{pluralize view.content.operatingSystems.length singular="t:common.os" plural="t:common.oss"}}
@@ -55,7 +55,7 @@
                 {{{view.labels}}}
               </div>
             </td>
-            <td>
+            <td class="installed-hosts-count">
               <span  {{bindAttr class="view.content.noInstalledHosts:not-active-link"}}>
                 <a href="#"
                   title='installed' {{action showHosts view.content.version view.content.installedHosts target="controller"}}>
@@ -63,7 +63,7 @@
                 </a>
               </span>
             </td>
-            <td>
+            <td class="current-hosts-count">
               <span {{bindAttr class="view.content.noCurrentHosts:not-active-link"}}>
                 <a href="#"
                   title='current' {{action showHosts view.content.version view.content.currentHosts target="controller"}}>
@@ -75,7 +75,7 @@
         {{/each}}
       {{else}}
         <tr>
-          <td class="first" colspan="5">
+          <td class="first empty-table" colspan="5">
             {{t dashboard.configHistory.table.empty}}
           </td>
         </tr>

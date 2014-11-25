@@ -24,9 +24,9 @@
     <th></th>
   {{/view}}
   <tr class="filter-row">
-    <th class="first">{{view view.stackNameFilterView}}</th>
-    <th>{{view view.versionFilterView}}</th>
-    <th>{{view view.statusFilterView}}</th>
+    <th class="first stack-name-filter">{{view view.stackNameFilterView}}</th>
+    <th class="repo-version-filter">{{view view.versionFilterView}}</th>
+    <th class="status-filter">{{view view.statusFilterView}}</th>
     <th> </th>
   </tr>
   </thead>
@@ -34,15 +34,15 @@
   {{#if view.pageContent}}
     {{#each view.pageContent}}
       <tr>
-        <td class="first">{{this.stackName}}</td>
-        <td>{{this.version}}</td>
-        <td>
+        <td class="first stack-name">{{this.stackName}}</td>
+        <td class="repo-version">{{this.version}}</td>
+        <td class="host-stack-version-status">
           {{this.displayStatus}}
           {{#if this.isCurrent}}
             <span class="label label-success">{{t common.current}}</span>
           {{/if}}
         </td>
-        <td><button class="btn" {{bindAttr disabled="this.installDisabled"}}><i class="icon-off"></i>&nbsp;{{t common.install}}</button></td>
+        <td class="install-repo-version"><button class="btn" {{bindAttr disabled="this.installDisabled"}}><i class="icon-off"></i>&nbsp;{{t common.install}}</button></td>
       </tr>
     {{/each}}
   {{else}}

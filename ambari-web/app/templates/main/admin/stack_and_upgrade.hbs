@@ -70,17 +70,17 @@
     <tbody>
     {{#each service in services}}
       <tr>
-        <td>{{service.displayName}}</td>
-        <td>{{service.stackVersion}}</td>
-        <td>
+        <td class="service-display-name">{{service.displayName}}</td>
+        <td class="service-stack-version">{{service.stackVersion}}</td>
+        <td class="stack-version-state">
           {{#if service.isInstalled}}
             <span class="label label-success">{{t common.installed}}</span>
           {{else}}
-            <a
-              class="path-link" {{action goToAddService service.serviceName target="controller"}}>{{t services.service.add}}</a>
+            <a class="path-link" {{action goToAddService service.serviceName target="controller"}}>
+              {{t services.service.add}}</a>
           {{/if}}
         </td>
-        <td>{{{service.comments}}}</td>
+        <td class="service-description">{{{service.comments}}}</td>
       </tr>
     {{/each}}
     </tbody>
