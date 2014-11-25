@@ -104,6 +104,7 @@ require('views/main/admin/highAvailability/resourceManager/step3_view');
 require('views/main/admin/highAvailability/resourceManager/step4_view');
 require('views/main/admin/serviceAccounts_view');
 require('views/main/admin/stack_upgrade');
+require('views/main/admin/upgrade_version_box_view');
 require('views/main/admin/stack_and_upgrade_view');
 require('views/main/admin/stack_versions/stack_version_view');
 require('views/main/admin/stack_versions/stack_version_details_view');

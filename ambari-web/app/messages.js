@@ -91,7 +91,7 @@ Em.I18n.translations = {
   'common.failed':'Failed',
   'common.service': 'Service',
   'common.version':'Version',
-  'common.versions':'Versions',
+  'common.downgrade':'Downgrade',
   'common.description':'Description',
   'common.default':'Default',
   'common.client':'Client',
@@ -1248,6 +1248,13 @@ Em.I18n.translations = {
   'admin.stackVersions.hosts.popup.primary': "Go to Hosts",
 
   'admin.stackUpgrade.title': "Stack and upgrade",
+  'admin.stackUpgrade.hostsOnline': "{0}/{1} hosts online",
+  'admin.stackUpgrade.state.available': "Upgrade Available",
+  'admin.stackUpgrade.state.notAvailable': "No Upgrade Available",
+  'admin.stackUpgrade.state.resume': "Resume Upgrade",
+  'admin.stackUpgrade.state.finalize': "Finalize",
+  'admin.stackUpgrade.hosts': "hosts",
+  'admin.stackUpgrade.host': "host",
 
   'services.service.start':'Start',
   'services.service.stop':'Stop',

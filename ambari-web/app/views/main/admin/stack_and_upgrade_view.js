@@ -20,6 +20,70 @@ var App = require('app');
 var stringUtils = require('utils/string_utils');
 
 App.MainAdminStackAndUpgradeView = Em.View.extend({
-  templateName: require('templates/main/admin/stack_and_upgrade')
+  templateName: require('templates/main/admin/stack_and_upgrade'),
+
+  hostsOnlineLabel: function () {
+    var hostsCountMap = App.router.get('mainHostController.hostsCountMap');
+    return Em.I18n.t('admin.stackUpgrade.hostsOnline').format(hostsCountMap.HEALTHY, hostsCountMap.TOTAL);
+  }.property('App.router.mainHostController.hostsCountMap'),
+
+  upgradeStateLabel: function () {
+    return "";
+  }.property(),
+
+  willInsertElement: function () {
+    if (App.get('supports.stackUpgrade')) this.get('controller').loadVersionsInfo();
+  },
+
+  sourceVersionView: App.UpgradeVersionBoxView.extend({
+    version: function () {
+      return this.get('controller.currentVersion');
+    }.property('controller.currentVersion'),
+    btnClass: 'btn-danger',
+    action: function () {
+      return {
+        method: ['UPGRADING', 'UPGRADED', 'UPGRADE_FAILED'].contains(this.get('version.state')) && 'downgrade',
+        label: ['UPGRADING', 'UPGRADED', 'UPGRADE_FAILED'].contains(this.get('version.state')) && Em.I18n.t('common.downgrade')
+      };
+    }.property('version.state'),
+    hostsCount: function () {
+      return this.get('version.current_hosts.length');
+    }.property('version.current_hosts.length')
+  }),
+  targetVersionView: App.UpgradeVersionBoxView.extend({
+    versions: function () {
+      return this.get('controller.targetVersions');
+    }.property('controller.targetVersions'),
+    btnClass: 'btn-success',
+    versionName: function () {
+      if (!this.get('hasVersionsToUpgrade')) return Em.I18n.t('admin.stackUpgrade.state.notAvailable');
+      return this.get('version.stack') + "-" + this.get('version.version');
+    }.property('version.stack', 'version.version', 'hasVersionsToUpgrade'),
+    hasVersionsToUpgrade: function () {
+      return this.get('versions.length') > 0;
+    }.property('versions.length'),
+    selectedVersion: null,
+    versionsSelectContent: function () {
+      return this.get('versions').map(function (version) {
+        return {
+          label: version.stack + "-" + version.version,
+          value: version.id
+        }
+      });
+    }.property('versions.length'),
+    action: function () {
+      var methodName = null,
+          labelName = null,
+          versions = this.get('versions');
+      if (versions.length > 0) {
+        labelName = Em.I18n.t('common.upgrade');
+        methodName = 'upgrade';
+      }
+      return {
+        method: methodName,
+        label: labelName
+      };
+    }.property('versions.length')
+  })
 });
 

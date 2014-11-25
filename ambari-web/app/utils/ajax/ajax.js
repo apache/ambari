@@ -1268,7 +1268,7 @@ var urls = {
     'mock': '/data/wizard/{mock}'
   },
   'admin.stack_versions.all': {
-    'real': '/clusters/{clusterName}/stack_versions',
+    'real': '/clusters/{clusterName}/stack_versions?fields=ClusterStackVersions/*&minimal_response=true',
     'mock': '/data/stack_versions/stack_version_all.json'
   },
   'admin.stack_version.install.repo_version': {

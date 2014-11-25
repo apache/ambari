@@ -1,8 +1,9 @@
 {
   "items": [
     {
-      "StackVersion": {
-        "name": "HDP 2.2.0.1",
+      "ClusterStackVersions": {
+        "state": "CURRENT",
+        "stack": "HDP",
         "version": "2.2.0.1-885",
         "installed_hosts": ["dev01.hortonworks.com", "dev02.hortonworks.com"],
         "current_hosts": ["dev01.hortonworks.com", "dev02.hortonworks.com"],
@@ -26,8 +27,9 @@
       }
     },
     {
-      "StackVersion": {
-        "name": "HDP 2.2.1.1",
+      "ClusterStackVersions": {
+        "state": "INSTALLED",
+        "stack": "HDP",
         "version": "2.2.1.1-885",
         "installed_hosts": ["dev01.hortonworks.com", "dev02.hortonworks.com"],
         "current_hosts": ["dev01.hortonworks.com", "dev02.hortonworks.com"],
@@ -51,8 +53,9 @@
       }
     },
     {
-      "StackVersion": {
-        "name": "HDP 2.2.2.0",
+      "ClusterStackVersions": {
+        "state": "INSTALLED",
+        "stack": "HDP",
         "version": "2.2.2.1-885",
         "installed_hosts": ["dev01.hortonworks.com", "dev02.hortonworks.com"],
         "current_hosts": ["dev01.hortonworks.com", "dev02.hortonworks.com"],
@@ -91,8 +94,9 @@
       }
     },
     {
-      "StackVersion": {
-        "name": "HDP 2.3.0.1",
+      "ClusterStackVersions": {
+        "state": "INSTALLED",
+        "stack": "HDP",
         "version": "2.3.0.1-885",
         "installed_hosts": [],
         "current_hosts": [],
@@ -116,8 +120,9 @@
       }
     },
     {
-      "StackVersion": {
-        "name": "HDP 2.2.0.2",
+      "ClusterStackVersions": {
+        "state": "INSTALLED",
+        "stack": "HDP",
         "version": "2.2.0.3",
         "installed_hosts": ["dev01.hortonworks.com", "dev02.hortonworks.com", "dev03.hortonworks.com"],
         "current_hosts": ["dev01.hortonworks.com", "dev02.hortonworks.com", "dev03.hortonworks.com"],

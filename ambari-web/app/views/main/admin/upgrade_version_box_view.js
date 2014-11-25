@@ -18,26 +18,24 @@
 
 
 var App = require('app');
-var controller;
-require('controllers/main/admin/stack_and_upgrade_controller');
 
-describe('App.MainAdminStackAndUpgradeController', function() {
-
-  beforeEach(function() {
-    controller = App.MainAdminStackAndUpgradeController.create({});
-  });
-
-  describe("goToAddService" , function() {
-    beforeEach(function() {
-      sinon.stub(App.get('router'), 'transitionTo', Em.K);
-    });
-    afterEach(function() {
-     App.get('router').transitionTo.restore();
-    });
-    it("routes to Addservice Wizard", function() {
-      controller.goToAddService({context: "serviceName"});
-      expect(App.get('router').transitionTo.calledOnce).to.be.true;
-      expect(controller.get('serviceToInstall')).to.be.equal("serviceName");
-    });
-  })
+App.UpgradeVersionBoxView = Em.View.extend({
+  version: null,
+  versionName: function () {
+    return this.get('version.stack') + "-" + this.get('version.version');
+  }.property('version.stack', 'version.version'),
+  btnClass: 'btn-default',
+  hostsCount: null,
+  /**
+   * run action by name of method
+   * @param event
+   * @return {Boolean}
+   */
+  runAction: function (event) {
+    if (typeof this.get('controller')[event.context] === 'function') {
+      this.get('controller')[event.context]();
+      return true;
+    }
+    return false;
+  }
 });

@@ -16,34 +16,73 @@
 * limitations under the License.
 }}
 
-<div class="admin-cluster">
-    <div class="header">
-      <strong>{{t common.stack}}: {{App.currentStackVersion}}</strong>
+<div id="stack-upgrade-page">
+  {{#if App.supports.stackUpgrade}}
+    <div class="header bottom-border">
+      <strong>{{t common.upgrade}}</strong>
+      <span class="pull-right">{{view.hostsOnlineLabel}}</span>
     </div>
-    <table class="table table-bordered table-striped">
-      <thead>
-      <tr>
-        <th>{{t common.service}}</th>
-        <th>{{t common.version}}</th>
-        <th>{{t common.status}}</th>
-        <th>{{t common.description}}</th>
-      </tr>
-      </thead>
-      <tbody>
-      {{#each service in services}}
+    <div class="row-fluid upgrade-flow">
+      {{#view view.sourceVersionView classNames="span2 offset3 box"}}
+        <div class="version-name"><strong>{{view.versionName}}</strong></div>
+        <div>
+          {{#if view.action.label}}
+            <button {{bindAttr class=":btn view.btnClass"}} {{action runAction view.action.method target="view"}}>{{view.action.label}}</button>
+          {{else}}
+            {{view.hostsCount}}
+            &nbsp;{{pluralize view.hostsCount singular="t:admin.stackUpgrade.host" plural="t:admin.stackUpgrade.hosts"}}
+          {{/if}}
+        </div>
+      {{/view}}
+      <div class="span1">
+        <div class="go-to"></div>
+        <div>{{view.upgradeStateLabel}}</div>
+      </div>
+      {{#view view.targetVersionView classNames="span2 box"}}
+        {{view Em.Select classBinding="view.hasVersionsToUpgrade::hidden"
+        contentBinding="view.versionsSelectContent"
+        optionValuePath="content.value"
+        optionLabelPath="content.label"
+        selectionBinding="view.selectedVersion"
+        }}
+        <div {{bindAttr class="view.hasVersionsToUpgrade:hidden :version-name"}}><strong>{{view.versionName}}</strong>
+        </div>
+        <div>
+          {{#if view.action.label}}
+            <button {{bindAttr class=":btn view.btnClass"}} {{action runAction view.action.method target="view"}}>{{view.action.label}}</button>
+          {{/if}}
+        </div>
+      {{/view}}
+    </div>
+  {{/if}}
+  <div class="header bottom-border">
+    <strong>{{t common.stack}}: {{App.currentStackVersion}}</strong>
+  </div>
+  <table class="table table-bordered table-striped">
+    <thead>
+    <tr>
+      <th>{{t common.service}}</th>
+      <th>{{t common.version}}</th>
+      <th>{{t common.status}}</th>
+      <th>{{t common.description}}</th>
+    </tr>
+    </thead>
+    <tbody>
+    {{#each service in services}}
       <tr>
         <td>{{service.displayName}}</td>
         <td>{{service.stackVersion}}</td>
         <td>
-        {{#if service.isInstalled}}
-          <span class="label label-success">{{t common.installed}}</span>
-        {{else}}
-          <a class="path-link" {{action goToAddService service.serviceName target="controller"}}>{{t services.service.add}}</a>
-        {{/if}}
+          {{#if service.isInstalled}}
+            <span class="label label-success">{{t common.installed}}</span>
+          {{else}}
+            <a
+              class="path-link" {{action goToAddService service.serviceName target="controller"}}>{{t services.service.add}}</a>
+          {{/if}}
         </td>
         <td>{{{service.comments}}}</td>
       </tr>
-      {{/each}}
-      </tbody>
-    </table>
+    {{/each}}
+    </tbody>
+  </table>
 </div>
