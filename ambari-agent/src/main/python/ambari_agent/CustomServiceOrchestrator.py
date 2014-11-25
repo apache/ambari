@@ -193,10 +193,10 @@ class CustomServiceOrchestrator():
           with open(tmperrfile, "a") as f:
             f.write(cancel_reason)
 
-    except Exception: # We do not want to let agent fail completely
+    except Exception, e: # We do not want to let agent fail completely
       exc_type, exc_obj, exc_tb = sys.exc_info()
       message = "Catched an exception while executing "\
-        "custom service command: {0}: {1}".format(exc_type, exc_obj)
+        "custom service command: {0}: {1}; {2}".format(exc_type, exc_obj, str(e))
       logger.exception(message)
       ret = {
         'stdout' : message,

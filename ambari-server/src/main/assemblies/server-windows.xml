@@ -166,6 +166,7 @@
         <include>Ambari-DDL-SQLServer-*.sql</include>
         <include>custom_action_definitions/**</include>
         <include>custom_actions/**</include>
+        <include>host_scripts/**</include>
         <include>stacks/stack_advisor.py</include>
         <include>scripts/**</include>
         <include>stacks/HDPWIN/**</include>

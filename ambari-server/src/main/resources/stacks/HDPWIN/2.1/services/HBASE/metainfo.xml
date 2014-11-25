@@ -49,7 +49,7 @@
             </dependency>
           </dependencies>
           <commandScript>
-            <script>scripts/hbase_master.py</script>
+            <script>scripts\hbase_master.py</script>
             <scriptType>PYTHON</scriptType>
             <timeout>600</timeout>
           </commandScript>
@@ -57,7 +57,7 @@
             <customCommand>
               <name>DECOMMISSION</name>
               <commandScript>
-                <script>scripts/hbase_master.py</script>
+                <script>scripts\hbase_master.py</script>
                 <scriptType>PYTHON</scriptType>
                 <timeout>600</timeout>
               </commandScript>
@@ -71,7 +71,7 @@
           <category>SLAVE</category>
           <cardinality>1+</cardinality>
           <commandScript>
-            <script>scripts/hbase_regionserver.py</script>
+            <script>scripts\hbase_regionserver.py</script>
             <scriptType>PYTHON</scriptType>
           </commandScript>
         </component>
@@ -82,7 +82,7 @@
           <category>CLIENT</category>
           <cardinality>1+</cardinality>
           <commandScript>
-            <script>scripts/hbase_client.py</script>
+            <script>scripts\hbase_client.py</script>
             <scriptType>PYTHON</scriptType>
           </commandScript>
           <configFiles>
@@ -106,7 +106,7 @@
       </components>
 
       <commandScript>
-        <script>scripts/service_check.py</script>
+        <script>scripts\service_check.py</script>
         <scriptType>PYTHON</scriptType>
         <timeout>300</timeout>
       </commandScript>

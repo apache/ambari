@@ -25,17 +25,9 @@
 <!-- Put site-specific property overrides in this file. -->
 
 <configuration>
-
-  <property>
-    <name>dfs.datanode.data.dir.mount.file</name>
-    <value>c:\hadoop\hdfs\dfs_data_dir_mount.hist</value>
-    <description>File path that contains the last known mount point for each data dir. This file is used to avoid creating a DFS data dir on the root drive (and filling it up) if a path was previously mounted on a drive.</description>
-  </property>
-
   <property>
     <name>dfs.datanode.data.dir.mount.file</name>
     <value>file:///c:/hadoop/conf/dfs_data_dir_mount.hist</value>
     <description>File path that contains the last known mount point for each data dir. This file is used to avoid creating a DFS data dir on the root drive (and filling it up) if a path was previously mounted on a drive.</description>
   </property>
-
 </configuration>

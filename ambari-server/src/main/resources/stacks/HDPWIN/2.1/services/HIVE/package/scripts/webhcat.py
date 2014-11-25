@@ -25,6 +25,6 @@ import sys
 def webhcat():
   import params
   XmlConfig("webhcat-site.xml",
-            conf_dir=params.config_dir,
+            conf_dir=params.hcat_config_dir,
             configurations=params.config['configurations']['webhcat-site']
   )

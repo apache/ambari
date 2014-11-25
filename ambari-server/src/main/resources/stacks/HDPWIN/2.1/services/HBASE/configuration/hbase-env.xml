@@ -125,3 +125,6 @@ set HBASE_USE_GC_LOGFILE=true
 
 @rem Tell HBase whether it should manage it's own instance of Zookeeper or not.
 @rem set HBASE_MANAGES_ZK=true
+    </value>
+  </property>
+</configuration>
