@@ -42,19 +42,19 @@ class AptProvider(PackageProvider):
     if not self._check_existence(name):
       cmd = INSTALL_CMD % (name)
       Logger.info("Installing package %s ('%s')" % (name, cmd))
-      code, out = shell.call(cmd)
+      code, out = shell.call(cmd, sudo=True)
       
       # apt-get update wasn't done too long
       if code:
         Logger.info("Execution of '%s' returned %d. %s" % (cmd, code, out))
         Logger.info("Failed to install package %s. Executing `%s`" % (name, REPO_UPDATE_CMD))
-        code, out = shell.call(REPO_UPDATE_CMD)
+        code, out = shell.call(REPO_UPDATE_CMD, sudo=True)
         
         if code:
           Logger.info("Execution of '%s' returned %d. %s" % (REPO_UPDATE_CMD, code, out))
           
         Logger.info("Retrying to install package %s" % (name))
-        shell.checked_call(cmd)
+        shell.checked_call(cmd, sudo=True)
     else:
       Logger.info("Skipping installing existent package %s" % (name))
 
@@ -67,7 +67,7 @@ class AptProvider(PackageProvider):
     if self._check_existence(name):
       cmd = REMOVE_CMD % (name)
       Logger.info("Removing package %s ('%s')" % (name, cmd))
-      shell.checked_call(cmd)
+      shell.checked_call(cmd, sudo=True)
     else:
       Logger.info("Skipping removing non-existent package %s" % (name))
 

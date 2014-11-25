@@ -33,7 +33,7 @@ class YumProvider(PackageProvider):
     if not self._check_existence(name):
       cmd = INSTALL_CMD % (name)
       Logger.info("Installing package %s ('%s')" % (name, cmd))
-      shell.checked_call(cmd)
+      shell.checked_call(cmd, sudo=True)
     else:
       Logger.info("Skipping installing existent package %s" % (name))
 
@@ -44,7 +44,7 @@ class YumProvider(PackageProvider):
     if self._check_existence(name):
       cmd = REMOVE_CMD % (name)
       Logger.info("Removing package %s ('%s')" % (name, cmd))
-      shell.checked_call(cmd)
+      shell.checked_call(cmd, sudo=True)
     else:
       Logger.info("Skipping removing non-existent package %s" % (name))
 

@@ -20,6 +20,7 @@ limitations under the License.
 import os
 import subprocess
 from mock.mock import MagicMock, call, patch
+from resource_management.core import shell
 from stacks.utils.RMFTestCase import *
 
 import socket
@@ -35,6 +36,7 @@ class TestHiveServer(RMFTestCase):
     self.assert_configure_default()
     self.assertNoMoreResources()
 
+  @patch.object(shell, "call", new=MagicMock(return_value=(0, '')))
   @patch.object(subprocess,"Popen")
   @patch("socket.socket")
   def test_start_default(self, socket_mock, popen_mock):
@@ -47,7 +49,10 @@ class TestHiveServer(RMFTestCase):
     )
 
     self.assert_configure_default()
-
+    self.assertResourceCalled('Execute', 'metatool -updateLocation hdfs://c6401.ambari.apache.org:8020/apps/hive/warehouse ',
+        environment = {'PATH' : os.environ['PATH'] + os.pathsep + "/usr/lib/hive/bin" + os.pathsep + "/usr/bin"},
+        user = 'hive',
+    )
     self.assertResourceCalled('Execute', 'env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /tmp/start_hiveserver2_script /var/log/hive/hive-server2.out /var/log/hive/hive-server2.log /var/run/hive/hive-server.pid /etc/hive/conf.server /var/log/hive',
                               not_if = 'ls /var/run/hive/hive-server.pid >/dev/null 2>&1 && ps -p `cat /var/run/hive/hive-server.pid` >/dev/null 2>&1',
                               environment = {'HADOOP_HOME' : '/usr'},
@@ -60,11 +65,6 @@ class TestHiveServer(RMFTestCase):
     )
 
     self.assertNoMoreResources()
-    self.assertTrue(popen_mock.called)
-    popen_mock.assert_called_with(
-      ['su', '-s', '/bin/bash', '-', u'hive', '-c', "metatool -listFSRoot 2>/dev/null | grep hdfs:// | grep -v '.db$'"],
-      shell=False, preexec_fn=None, stderr=-2, stdout=-1, env=None, cwd=None
-    )
     self.assertTrue(socket_mock.called)
     self.assertTrue(s.close.called)
 

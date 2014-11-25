@@ -24,6 +24,7 @@ import sys
 from resource_management.core import Environment, Fail
 from resource_management.core.resources import File
 from resource_management.core.system import System
+from resource_management.core import sudo
 import resource_management.core.providers.system
 import resource_management
 
@@ -76,17 +77,16 @@ class TestFileResource(TestCase):
     self.assertTrue(dirname_mock.called)
 
   @patch("resource_management.core.providers.system._ensure_metadata")
-  @patch("__builtin__.open")
+  @patch.object(sudo, "read_file")
+  @patch.object(sudo, "create_file")
   @patch.object(os.path, "exists")
   @patch.object(os.path, "isdir")
-  def test_action_create_non_existent_file(self, isdir_mock, exists_mock, open_mock, ensure_mock):
+  def test_action_create_non_existent_file(self, isdir_mock, exists_mock, create_file_mock, read_file_mock, ensure_mock):
     """
     Tests if 'create' action create new non existent file and write proper data
     """
     isdir_mock.side_effect = [False, True]
     exists_mock.return_value = False
-    new_file = MagicMock()
-    open_mock.return_value = new_file
     with Environment('/') as env:
       File('/directory/file',
            action='create',
@@ -95,24 +95,21 @@ class TestFileResource(TestCase):
       )
     
 
-    open_mock.assert_called_with('/directory/file', 'wb')
-    new_file.__enter__().write.assert_called_with('file-content')
-    self.assertEqual(open_mock.call_count, 1)
+    create_file_mock.assert_called_with('/directory/file', 'file-content')
+    self.assertEqual(create_file_mock.call_count, 1)
     ensure_mock.assert_called()
 
 
   @patch("resource_management.core.providers.system._ensure_metadata")
-  @patch("__builtin__.open")
+  @patch.object(sudo, "read_file")
+  @patch.object(sudo, "create_file")
   @patch.object(os.path, "exists")
   @patch.object(os.path, "isdir")
-  def test_action_create_replace(self, isdir_mock, exists_mock, open_mock, ensure_mock):
+  def test_action_create_replace(self, isdir_mock, exists_mock, create_file_mock, read_file_mock, ensure_mock):
     """
     Tests if 'create' action rewrite existent file with new data
     """
     isdir_mock.side_effect = [False, True]
-    old_file, new_file = MagicMock(), MagicMock()
-    open_mock.side_effect = [old_file, new_file]
-    old_file.read.return_value = 'old-content'
     exists_mock.return_value = True
 
     with Environment('/') as env:
@@ -123,16 +120,11 @@ class TestFileResource(TestCase):
            content='new-content'
       )
 
-    
-    old_file.read.assert_called()
-    new_file.__enter__().write.assert_called_with('new-content')
-    ensure_mock.assert_called()
-    self.assertEqual(open_mock.call_count, 2)
-    open_mock.assert_any_call('/directory/file', 'rb')
-    open_mock.assert_any_call('/directory/file', 'wb')
+    read_file_mock.assert_called_with('/directory/file')    
+    create_file_mock.assert_called_with('/directory/file', 'new-content')
 
 
-  @patch.object(os, "unlink")
+  @patch.object(sudo, "unlink")
   @patch.object(os.path, "exists")
   @patch.object(os.path, "isdir")
   def test_action_delete_is_directory(self, isdir_mock, exist_mock, unlink_mock):
@@ -158,7 +150,7 @@ class TestFileResource(TestCase):
     self.assertEqual(exist_mock.call_count, 0)
     self.assertEqual(unlink_mock.call_count, 0)
 
-  @patch.object(os, "unlink")
+  @patch.object(sudo, "unlink")
   @patch.object(os.path, "exists")
   @patch.object(os.path, "isdir")
   def test_action_delete(self, isdir_mock, exist_mock, unlink_mock):
@@ -204,15 +196,15 @@ class TestFileResource(TestCase):
 
   @patch.object(resource_management.core.Environment, "backup_file")
   @patch("resource_management.core.providers.system._ensure_metadata")
-  @patch("__builtin__.open")
+  @patch.object(sudo, "read_file")
+  @patch.object(sudo, "create_file")
   @patch.object(os.path, "exists")
   @patch.object(os.path, "isdir")
-  def test_attribute_backup(self, isdir_mock, exists_mock, open_mock, ensure_mock, backup_file_mock):
+  def test_attribute_backup(self, isdir_mock, exists_mock, create_file_mock,  read_file_mock, ensure_mock, backup_file_mock):
     """
     Tests 'backup' attribute
     """
     isdir_mock.side_effect = [False, True, False, True]
-    open_mock.return_value = MagicMock()
     exists_mock.return_value = True
 
     with Environment('/') as env:
@@ -271,13 +263,13 @@ class TestFileResource(TestCase):
 
   @patch("resource_management.core.providers.system._coerce_uid")
   @patch("resource_management.core.providers.system._coerce_gid")
-  @patch.object(os, "chown")
-  @patch.object(os, "chmod")
+  @patch.object(sudo, "chown")
+  @patch.object(sudo, "chmod")
   @patch.object(os, "stat")
-  @patch("__builtin__.open")
+  @patch.object(sudo, "create_file")
   @patch.object(os.path, "exists")
   @patch.object(os.path, "isdir")
-  def test_ensure_metadata(self, isdir_mock, exists_mock, open_mock, stat_mock, chmod_mock, chown_mock, gid_mock,
+  def test_ensure_metadata(self, isdir_mock, exists_mock, create_file_mock, stat_mock, chmod_mock, chown_mock, gid_mock,
                            uid_mock):
     """
     Tests if _ensure_metadata changes owner, usergroup and permissions of file to proper values
@@ -305,8 +297,8 @@ class TestFileResource(TestCase):
       )
     
 
-    open_mock.assert_called_with('/directory/file', 'wb')
-    self.assertEqual(open_mock.call_count, 1)
+    create_file_mock.assert_called_with('/directory/file', 'file-content')
+    self.assertEqual(create_file_mock.call_count, 1)
     stat_mock.assert_called_with('/directory/file')
     self.assertEqual(chmod_mock.call_count, 1)
     self.assertEqual(chown_mock.call_count, 2)
@@ -333,21 +325,18 @@ class TestFileResource(TestCase):
 
   @patch("resource_management.core.providers.system._ensure_metadata")
   @patch("resource_management.core.providers.system.FileProvider._get_content")
-  @patch("__builtin__.open")
+  @patch.object(sudo, "read_file")
+  @patch.object(sudo, "create_file")
   @patch.object(os.path, "exists")
   @patch.object(os.path, "isdir")
-  def test_action_create_encoding(self, isdir_mock, exists_mock, open_mock, get_content_mock ,ensure_mock):
+  def test_action_create_encoding(self, isdir_mock, exists_mock, create_file_mock, read_file_mock, get_content_mock ,ensure_mock):
 
     isdir_mock.side_effect = [False, True]
-    exists_mock.return_value = True
     content_mock = MagicMock()
     old_content_mock = MagicMock()
     get_content_mock.return_value = content_mock
-    new_file = MagicMock()
-    open_mock.return_value = new_file
-    enter_file_mock = MagicMock()
-    enter_file_mock.read = MagicMock(return_value=old_content_mock)
-    new_file.__enter__ = MagicMock(return_value=enter_file_mock)
+    read_file_mock.return_value = old_content_mock
+    exists_mock.return_value = True
     with Environment('/') as env:
       File('/directory/file',
            action='create',
@@ -357,7 +346,7 @@ class TestFileResource(TestCase):
       )
 
 
-    open_mock.assert_called_with('/directory/file', 'wb')
+    read_file_mock.assert_called_with('/directory/file')
     content_mock.encode.assert_called_with('UTF-8')
     old_content_mock.decode.assert_called_with('UTF-8')
 

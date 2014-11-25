@@ -21,7 +21,7 @@ limitations under the License.
 from resource_management import *
 import sys
 import time
-from resource_management.core.shell import call
+from resource_management.core import shell
 
 def hive_service(
     name,
@@ -98,7 +98,7 @@ def check_fs_root():
   import params  
   fs_root_url = format("{fs_root}{hive_apps_whs_dir}")
   cmd = format("metatool -listFSRoot 2>/dev/null | grep hdfs:// | grep -v '.db$'")
-  code, out = call(cmd, user=params.hive_user)
+  code, out = shell.call(cmd, user=params.hive_user)
   if code == 0 and fs_root_url.strip() != out.strip():
     cmd = format("metatool -updateLocation {fs_root}{hive_apps_whs_dir} {out}")
     Execute(cmd,

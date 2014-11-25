@@ -76,7 +76,7 @@ class Execute(Resource):
   creates = ResourceArgument()
   cwd = ResourceArgument()
   # this runs command with a specific env variables, env={'JAVA_HOME': '/usr/jdk'}
-  environment = ResourceArgument()
+  environment = ResourceArgument(default={})
   user = ResourceArgument()
   group = ResourceArgument()
   returns = ForcedListArgument(default=0)
@@ -102,6 +102,7 @@ class Execute(Resource):
   - try_sleep
   """
   wait_for_finish = BooleanArgument(default=True)
+  sudo = BooleanArgument(default=False)
 
 
 class ExecuteScript(Resource):

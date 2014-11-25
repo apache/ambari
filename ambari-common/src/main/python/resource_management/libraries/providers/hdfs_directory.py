@@ -104,8 +104,8 @@ class HdfsDirectoryProvider(Provider):
                    chown_cmd=' && '.join(chown_commands)),
             user=hdp_hdfs_user,
             path=bin_dir,
-            not_if=format("su - {hdp_hdfs_user} -c 'export PATH=$PATH:{bin_dir} ; "
-                          "hadoop --config {hdp_conf_dir} fs -ls {dir_list_str}'")
+            not_if=format("sudo -Hsu {hdp_hdfs_user} <<< "
+                          "'export PATH=$PATH:{bin_dir} ; hadoop --config {hdp_conf_dir} fs -ls {dir_list_str}'")
     )
 
     directories_list[:] = []

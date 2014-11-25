@@ -20,6 +20,7 @@ from unittest import TestCase
 from mock.mock import patch, MagicMock
 
 from resource_management.core import Environment, Fail
+from resource_management.core import sudo
 from resource_management.core.system import System
 from resource_management.core.resources.system import Link
 
@@ -31,8 +32,8 @@ class TestLinkResource(TestCase):
   @patch.object(os.path, "realpath")
   @patch.object(os.path, "lexists")
   @patch.object(os.path, "islink")
-  @patch.object(os, "unlink")
-  @patch.object(os, "symlink")
+  @patch.object(sudo, "unlink")
+  @patch.object(sudo, "symlink")
   def test_action_create_relink(self, symlink_mock, unlink_mock, 
                          islink_mock, lexists_mock,
                          realmock):
@@ -67,7 +68,7 @@ class TestLinkResource(TestCase):
                        str(e))
         
   @patch.object(os.path, "lexists")
-  @patch.object(os, "symlink")
+  @patch.object(sudo, "symlink")
   def test_action_create_symlink_clean_create(self, symlink_mock, lexists_mock):
     lexists_mock.return_value = False
     
@@ -81,7 +82,7 @@ class TestLinkResource(TestCase):
   @patch.object(os.path, "isdir")
   @patch.object(os.path, "exists")  
   @patch.object(os.path, "lexists")
-  @patch.object(os, "link")
+  @patch.object(sudo, "link")
   def test_action_create_hardlink_clean_create(self, link_mock, lexists_mock,
                                         exists_mock, isdir_mock):
     lexists_mock.return_value = False
@@ -134,7 +135,7 @@ class TestLinkResource(TestCase):
         self.assertEqual("Failed to apply Link['/some_path'], cannot create hard link to a directory (/a/b/link_to_path)",
                        str(e)) 
         
-  @patch.object(os, "unlink")
+  @patch.object(sudo, "unlink")
   @patch.object(os.path, "exists")
   def test_action_delete(self, exists_mock, unlink_mock):     
     exists_mock.return_value = True

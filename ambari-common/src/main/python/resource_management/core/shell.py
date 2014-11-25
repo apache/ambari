@@ -32,15 +32,15 @@ from exceptions import ExecuteTimeoutException
 from resource_management.core.logger import Logger
 
 def checked_call(command, logoutput=False, 
-         cwd=None, env=None, preexec_fn=None, user=None, wait_for_finish=True, timeout=None, path=None):
-  return _call(command, logoutput, True, cwd, env, preexec_fn, user, wait_for_finish, timeout, path)
+         cwd=None, env=None, preexec_fn=None, user=None, wait_for_finish=True, timeout=None, path=None, sudo=False):
+  return _call(command, logoutput, True, cwd, env, preexec_fn, user, wait_for_finish, timeout, path, sudo)
 
 def call(command, logoutput=False, 
-         cwd=None, env=None, preexec_fn=None, user=None, wait_for_finish=True, timeout=None, path=None):
-  return _call(command, logoutput, False, cwd, env, preexec_fn, user, wait_for_finish, timeout, path)
+         cwd=None, env=None, preexec_fn=None, user=None, wait_for_finish=True, timeout=None, path=None, sudo=False):
+  return _call(command, logoutput, False, cwd, env, preexec_fn, user, wait_for_finish, timeout, path, sudo)
             
 def _call(command, logoutput=False, throw_on_failure=True, 
-         cwd=None, env=None, preexec_fn=None, user=None, wait_for_finish=True, timeout=None, path=None):
+         cwd=None, env=None, preexec_fn=None, user=None, wait_for_finish=True, timeout=None, path=None, sudo=False):
   """
   Execute shell command
   
@@ -55,22 +55,21 @@ def _call(command, logoutput=False, throw_on_failure=True,
   if isinstance(command, (list, tuple)):
     command = ' '.join(quote_bash_args(x) for x in command)
 
-  if path:
-    export_path_command = "export PATH=$PATH" + os.pathsep + os.pathsep.join(path) + " ; "
-  else:
-    export_path_command = ""
-
+  # In case we will use sudo, we have to put all the environment inside the command, 
+  # since Popen environment gets reset within sudo.
+  export_command = reduce(lambda str,x: '{0} {1}={2}'.format(str,x,quote_bash_args(env[x])), env, 'export') + '; ' if env else ''
+      
   if user:
-    if env:
-      export_path_command += "export "
-      for var in env:
-        export_path_command += " " + var + "=" + env[var]
-      export_path_command += " ; "
-
-    subprocess_command = ["su", "-s", "/bin/bash", "-", user, "-c", export_path_command + command]
+    bash_run_command = "/usr/bin/sudo -Hsu {0} <<< {1}".format(quote_bash_args(user), quote_bash_args(export_command + command))
+    # Go to home directory. In case we are in folder, which user cannot open, we might run into troubles with some utils
+    cwd = os.path.expanduser('~'+user) if not cwd and os.path.exists(os.path.expanduser('~'+user)) else cwd
+  elif sudo:
+    bash_run_command = "/usr/bin/sudo -s <<< {0}".format(quote_bash_args(export_command + command))
   else:
-    subprocess_command = ["/bin/bash","--login","-c", export_path_command + command]
-
+    bash_run_command = command
+    
+  subprocess_command = ["/bin/bash","--login","-c", bash_run_command]
+    
   proc = subprocess.Popen(subprocess_command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                           cwd=cwd, env=env, shell=False,
                           preexec_fn=preexec_fn)

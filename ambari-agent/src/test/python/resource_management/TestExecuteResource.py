@@ -16,7 +16,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-from stacks.utils.RMFTestCase import *
 from unittest import TestCase
 from mock.mock import patch, MagicMock, call
 
@@ -91,8 +90,8 @@ class TestExecuteResource(TestCase):
       execute_resource = Execute('echo "1"',
                                  path=["/test/one", "test/two"]
       )
-    expected_command = 'export PATH=$PATH:/test/one:test/two ; echo "1"'
-    self.assertEqual(popen_mock.call_args_list[0][0][0][3], expected_command)
+    expected_command = ['/bin/bash', '--login', '-c', 'echo "1"']
+    self.assertEqual(popen_mock.call_args_list[0][0][0], expected_command)
 
   @patch('time.sleep')
   @patch.object(subprocess, "Popen")
@@ -177,9 +176,8 @@ class TestExecuteResource(TestCase):
                                  environment={'JAVA_HOME': '/test/java/home',
                                               'PATH': "/bin"}
       )
-    expected_command = 'export  PATH=$PATH:/bin JAVA_HOME=/test/java/home ; echo "1"'
-    self.assertEqual(popen_mock.call_args_list[0][0][0][4], expected_user)
-    self.assertEqual(popen_mock.call_args_list[0][0][0][6], expected_command)
+    expected_command = '/usr/bin/sudo -Hsu test_user <<< \'export PATH=' + os.environ['PATH'] + ':/bin JAVA_HOME=/test/java/home; echo "1"\'' 
+    self.assertEqual(popen_mock.call_args_list[0][0][0][3], expected_command)
 
 
   @patch.object(subprocess, "Popen")

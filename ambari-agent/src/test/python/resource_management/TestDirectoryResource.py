@@ -16,24 +16,23 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-from stacks.utils.RMFTestCase import *
 from unittest import TestCase
 from mock.mock import patch, MagicMock
 import os
 import shutil
 from resource_management.core.system import System
-from resource_management.core import Environment, Fail
+from resource_management.core import Environment, Fail, sudo
 from resource_management.core.resources import Directory
 
 @patch.object(System, "os_family", new = 'redhat')
-class TestFileResource(TestCase):
+class TestDirectoryResource(TestCase):
   
   @patch.object(os.path, "exists")
-  @patch.object(os, "makedirs")
+  @patch.object(sudo, "makedirs")
   @patch.object(os.path, "isdir")
   @patch.object(os, "stat")
-  @patch.object(os,"chmod")
-  @patch.object(os,"chown")
+  @patch.object(sudo,"chmod")
+  @patch.object(sudo,"chown")
   @patch("resource_management.core.providers.system._coerce_uid")
   @patch("resource_management.core.providers.system._coerce_gid")
   def test_create_directory_recursive(self, _coerce_gid_mock, _coerce_uid_mock,
@@ -57,16 +56,16 @@ class TestFileResource(TestCase):
       
     os_makedirs_mock.assert_called_with('/a/b/c/d', 0777)
     os_chmod_mock.assert_called_with('/a/b/c/d', 0777)
-    os_chown_mock.assert_any_call('/a/b/c/d', 66, -1)
-    os_chown_mock.assert_any_call('/a/b/c/d', -1, 77)
+    os_chown_mock.assert_any_call('/a/b/c/d', 'hdfs', None)
+    os_chown_mock.assert_any_call('/a/b/c/d', None, 'hadoop')
   
   @patch.object(os.path, "exists")
   @patch.object(os.path, "dirname")
   @patch.object(os.path, "isdir")
-  @patch.object(os, "mkdir")
+  @patch.object(sudo, "makedir")
   @patch.object(os, "stat")
-  @patch.object(os,"chmod")
-  @patch.object(os,"chown")
+  @patch.object(sudo,"chmod")
+  @patch.object(sudo,"chown")
   @patch("resource_management.core.providers.system._coerce_uid")
   @patch("resource_management.core.providers.system._coerce_gid")
   def test_create_directory_not_recursive(self, _coerce_gid_mock, _coerce_uid_mock,
@@ -90,8 +89,8 @@ class TestFileResource(TestCase):
       
     mkdir_mock.assert_called_with('/a/b/c/d', 0777)
     os_chmod_mock.assert_called_with('/a/b/c/d', 0777)
-    os_chown_mock.assert_any_call('/a/b/c/d', 66, -1)
-    os_chown_mock.assert_any_call('/a/b/c/d', -1, 77)
+    os_chown_mock.assert_any_call('/a/b/c/d', 'hdfs', None)
+    os_chown_mock.assert_any_call('/a/b/c/d', None, 'hadoop')
     
   @patch.object(os.path, "exists")
   @patch.object(os.path, "dirname")

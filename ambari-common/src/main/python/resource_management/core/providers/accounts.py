@@ -60,7 +60,7 @@ class UserProvider(Provider):
 
     command.append(self.resource.username)
 
-    shell.checked_call(command)
+    shell.checked_call(command, sudo=True)
 
   def action_remove(self):
     if self.user:
@@ -98,7 +98,7 @@ class GroupProvider(Provider):
         
     command.append(self.resource.group_name)
 
-    shell.checked_call(command)
+    shell.checked_call(command, sudo=True)
 
     group = self.group
 

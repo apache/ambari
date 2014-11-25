@@ -28,6 +28,7 @@ import pwd
 import time
 import shutil
 from resource_management.core import shell
+from resource_management.core import sudo
 from resource_management.core.base import Fail
 from resource_management.core import ExecuteTimeoutException
 from resource_management.core.providers import Provider
@@ -58,27 +59,29 @@ def _coerce_gid(group):
 
 def _ensure_metadata(path, user, group, mode=None):
   stat = os.stat(path)
-
+  
   if mode:
     existing_mode = stat.st_mode & 07777
     if existing_mode != mode:
       Logger.info("Changing permission for %s from %o to %o" % (
       path, existing_mode, mode))
-      os.chmod(path, mode)
-
+      sudo.chmod(path, mode)
+  
   if user:
     uid = _coerce_uid(user)
     if stat.st_uid != uid:
       Logger.info(
         "Changing owner for %s from %d to %s" % (path, stat.st_uid, user))
-      os.chown(path, uid, -1)
+      
+      sudo.chown(path, user, None)
+      
 
   if group:
     gid = _coerce_gid(group)
     if stat.st_gid != gid:
       Logger.info(
         "Changing group for %s from %d to %s" % (path, stat.st_gid, group))
-      os.chown(path, -1, gid)
+      sudo.chown(path, None, group)
 
 
 class FileProvider(Provider):
@@ -99,9 +102,8 @@ class FileProvider(Provider):
       reason = "it doesn't exist"
     elif self.resource.replace:
       if content is not None:
-        with open(path, "rb") as fp:
-          old_content = fp.read()
-          old_content = old_content.decode(self.resource.encoding) if self.resource.encoding else old_content
+        old_content = sudo.read_file(path)
+        old_content = old_content.decode(self.resource.encoding) if self.resource.encoding else old_content
         if content != old_content:
           write = True
           reason = "contents don't match"
@@ -110,10 +112,11 @@ class FileProvider(Provider):
 
     if write:
       Logger.info("Writing %s because %s" % (self.resource, reason))
-      with open(path, "wb") as fp:
-        if content:
-          content = content.encode(self.resource.encoding) if self.resource.encoding else content
-          fp.write(content)
+
+      if content:
+        content = content.encode(self.resource.encoding) if self.resource.encoding else content
+        
+      sudo.create_file(path, content)
 
     _ensure_metadata(self.resource.path, self.resource.owner,
                         self.resource.group, mode=self.resource.mode)
@@ -126,7 +129,7 @@ class FileProvider(Provider):
     
     if os.path.exists(path):
       Logger.info("Deleting %s" % self.resource)
-      os.unlink(path)
+      sudo.unlink(path)
 
   def _get_content(self):
     content = self.resource.content
@@ -142,20 +145,21 @@ class FileProvider(Provider):
 class DirectoryProvider(Provider):
   def action_create(self):
     path = self.resource.path
+
     if not os.path.exists(path):
       Logger.info("Creating directory %s" % self.resource)
       if self.resource.recursive:
-        os.makedirs(path, self.resource.mode or 0755)
+        sudo.makedirs(path, self.resource.mode or 0755)
       else:
         dirname = os.path.dirname(path)
         if not os.path.isdir(dirname):
           raise Fail("Applying %s failed, parent directory %s doesn't exist" % (self.resource, dirname))
         
-        os.mkdir(path, self.resource.mode or 0755)
+        sudo.makedir(path, self.resource.mode or 0755)
       
     if not os.path.isdir(path):
       raise Fail("Applying %s failed, file %s already exists" % (self.resource, path))
-
+    
     _ensure_metadata(path, self.resource.owner, self.resource.group,
                         mode=self.resource.mode)
 
@@ -181,7 +185,7 @@ class LinkProvider(Provider):
         raise Fail(
           "%s trying to create a symlink with the same name as an existing file or directory" % self)
       Logger.info("%s replacing old symlink to %s" % (self.resource, oldpath))
-      os.unlink(path)
+      sudo.unlink(path)
       
     if self.resource.hard:
       if not os.path.exists(self.resource.to):
@@ -190,19 +194,19 @@ class LinkProvider(Provider):
         raise Fail("Failed to apply %s, cannot create hard link to a directory (%s)" % (self.resource, self.resource.to))
       
       Logger.info("Creating hard %s" % self.resource)
-      os.link(self.resource.to, path)
+      sudo.link(self.resource.to, path)
     else:
       if not os.path.exists(self.resource.to):
         Logger.info("Warning: linking to nonexistent location %s" % self.resource.to)
         
       Logger.info("Creating symbolic %s" % self.resource)
-      os.symlink(self.resource.to, path)
+      sudo.symlink(self.resource.to, path)
 
   def action_delete(self):
     path = self.resource.path
     if os.path.exists(path):
       Logger.info("Deleting %s" % self.resource)
-      os.unlink(path)
+      sudo.unlink(path)
 
 
 def _preexec_fn(resource):
@@ -223,18 +227,26 @@ class ExecuteProvider(Provider):
 
     Logger.debug("Executing %s" % self.resource)
 
+    env = self.resource.environment
+    
+    # append current PATH, to self.resource.environment['PATH'] and self.resource.path
+    if 'PATH' in env:
+      env['PATH'] = os.pathsep.join([os.environ['PATH'], env['PATH']])
+    if self.resource.path:
+      if not 'PATH' in env:
+        env['PATH'] = ''
+      path = os.pathsep.join(self.resource.path) if isinstance(self.resource.path, (list, tuple)) else self.resource.path
+      env['PATH'] = os.pathsep.join([os.environ['PATH'], path])
+          
     for i in range (0, self.resource.tries):
       try:
-        env=self.resource.environment
-        if env and 'PATH' in env.keys():
-          env['PATH'] = "$PATH" + os.pathsep + env['PATH']
-
         shell.checked_call(self.resource.command, logoutput=self.resource.logoutput,
                             cwd=self.resource.cwd, env=env,
                             preexec_fn=_preexec_fn(self.resource), user=self.resource.user,
                             wait_for_finish=self.resource.wait_for_finish,
                             timeout=self.resource.timeout,
-                            path=self.resource.path)
+                            path=self.resource.path,
+                            sudo=self.resource.sudo)
         break
       except Fail as ex:
         if i == self.resource.tries-1: # last try

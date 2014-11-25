@@ -95,9 +95,6 @@ public class SshHostInfo {
   }
   
   public String getUserRunAs() {
-    // TODO: remove this once UI supports customizing ambari run-as-user
-    if(userRunAs == null)
-      return "root";
     return userRunAs;
   }
 
