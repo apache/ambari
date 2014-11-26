@@ -235,24 +235,6 @@ public interface AmbariManagementController {
       throws AmbariException;
 
   /**
-   * Update the host component identified by the given request object with the
-   * values carried by the given request object.
-   *
-   *
-   *
-   * @param requests           the request object which defines which host component to
-   *                           update and the values to set
-   * @param requestProperties  the request properties
-   * @param runSmokeTest       indicates whether or not to run a smoke test
-   *
-   * @return a track action response
-   *
-   * @throws AmbariException thrown if the resource cannot be updated
-   */
-  public RequestStatusResponse updateHostComponents(
-      Set<ServiceComponentHostRequest> requests, Map<String, String> requestProperties, boolean runSmokeTest) throws AmbariException;
-
-  /**
    * Updates the users specified.
    *
    * @param requests the users to modify

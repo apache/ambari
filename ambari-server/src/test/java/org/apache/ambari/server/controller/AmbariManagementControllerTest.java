@@ -77,6 +77,7 @@ import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.ComponentResourceProviderTest;
+import org.apache.ambari.server.controller.internal.HostComponentResourceProviderTest;
 import org.apache.ambari.server.controller.internal.HostResourceProviderTest;
 import org.apache.ambari.server.controller.internal.RequestOperationLevel;
 import org.apache.ambari.server.controller.internal.RequestResourceFilter;
@@ -365,7 +366,7 @@ public class AmbariManagementControllerTest {
   }
 
   private long stopServiceComponentHosts(String clusterName,
-      String serviceName) throws AmbariException {
+      String serviceName) throws Exception {
     Cluster c = clusters.getCluster(clusterName);
     Service s = c.getService(serviceName);
     Set<ServiceComponentHostRequest> requests = new
@@ -380,8 +381,8 @@ public class AmbariManagementControllerTest {
     }
     Map<String, String> mapRequestProps = new HashMap<String, String>();
     mapRequestProps.put("context", "Called from a test");
-    RequestStatusResponse resp = controller.updateHostComponents(requests,
-      mapRequestProps, false);
+    RequestStatusResponse resp = HostComponentResourceProviderTest.updateHostComponents(controller, injector, requests,
+        mapRequestProps, false);
 
     // manually change live state to started as no running action manager
     for (ServiceComponent sc :
@@ -1505,16 +1506,11 @@ public class AmbariManagementControllerTest {
     clusters.getHost("h2").persist();
     clusters.getHost("h3").persist();
 
-    Map<String, String> hostAttrs =
-        new HashMap<String, String>();
-    hostAttrs.put("attr1", "val1");
-    hostAttrs.put("attr2", "val2");
-
-    String clusterName = "c1";
+   String clusterName = "c1";
 
     HostRequest r1 = new HostRequest("h1", clusterName, null);
-    HostRequest r2 = new HostRequest("h2", clusterName, hostAttrs);
-    HostRequest r3 = new HostRequest("h3", null, hostAttrs);
+    HostRequest r2 = new HostRequest("h2", clusterName, null);
+    HostRequest r3 = new HostRequest("h3", null, null);
 
     Set<HostRequest> set1 = new HashSet<HostRequest>();
     set1.add(r1);
@@ -1525,13 +1521,6 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals(1, clusters.getClustersForHost("h1").size());
     Assert.assertEquals(1, clusters.getClustersForHost("h2").size());
     Assert.assertEquals(0, clusters.getClustersForHost("h3").size());
-
-    Assert.assertEquals(4, clusters.getHost("h2").getHostAttributes().size());
-    Assert.assertEquals(2, clusters.getHost("h3").getHostAttributes().size());
-    Assert.assertEquals("val1",
-        clusters.getHost("h2").getHostAttributes().get("attr1"));
-    Assert.assertEquals("val2",
-        clusters.getHost("h2").getHostAttributes().get("attr2"));
   }
 
   @Test
@@ -2334,7 +2323,7 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
-  public void testServiceComponentHostsWithDecommissioned() throws AmbariException {
+  public void testServiceComponentHostsWithDecommissioned() throws Exception {
 
     final String host1 = "h1";
     final String host2 = "h2";
@@ -2408,7 +2397,7 @@ public class AmbariManagementControllerTest {
     r = new ServiceComponentHostRequest(clusterName, "HDFS", "DATANODE", host2, null);
     r.setAdminState("DECOMMISSIONED");
     try {
-      controller.updateHostComponents(Collections.singleton(r), new HashMap<String, String>(), false);
+      updateHostComponents(Collections.singleton(r), new HashMap<String, String>(), false);
       Assert.fail("Must throw exception when decommission attribute is updated.");
     } catch (IllegalArgumentException ex) {
       Assert.assertTrue(ex.getMessage().contains("Property adminState cannot be modified through update"));
@@ -3363,7 +3352,7 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
-  public void testServiceComponentHostUpdateRecursive() throws AmbariException {
+  public void testServiceComponentHostUpdateRecursive() throws Exception {
     String clusterName = "foo1";
     createCluster(clusterName);
     String serviceName1 = "HDFS";
@@ -3444,7 +3433,7 @@ public class AmbariManagementControllerTest {
           componentName1, host1,
           State.STARTED.toString());
       reqs.add(req1);
-      controller.updateHostComponents(reqs, Collections.<String, String>emptyMap(), true);
+      updateHostComponents(reqs, Collections.<String, String>emptyMap(), true);
       fail("Expected failure for invalid transition");
     } catch (Exception e) {
       // Expected
@@ -3472,7 +3461,7 @@ public class AmbariManagementControllerTest {
       reqs.add(req3);
       reqs.add(req4);
       reqs.add(req5);
-      controller.updateHostComponents(reqs, Collections.<String, String>emptyMap(), true);
+      updateHostComponents(reqs, Collections.<String, String>emptyMap(), true);
       fail("Expected failure for invalid states");
     } catch (Exception e) {
       // Expected
@@ -3494,7 +3483,7 @@ public class AmbariManagementControllerTest {
     reqs.add(req3);
     reqs.add(req4);
     reqs.add(req5);
-    RequestStatusResponse trackAction = controller.updateHostComponents(reqs,
+    RequestStatusResponse trackAction = updateHostComponents(reqs,
         Collections.<String, String>emptyMap(), true);
     Assert.assertNotNull(trackAction);
 
@@ -3527,14 +3516,14 @@ public class AmbariManagementControllerTest {
         State.INSTALLED.toString());
     reqs.add(req1);
     reqs.add(req2);
-    trackAction = controller.updateHostComponents(reqs, Collections.<String,
+    trackAction = updateHostComponents(reqs, Collections.<String,
         String>emptyMap(), true);
     Assert.assertNull(trackAction);
   }
 
   @Ignore
   @Test
-  public void testServiceComponentHostUpdateStackId() throws AmbariException {
+  public void testServiceComponentHostUpdateStackId() throws Exception {
     String clusterName = "foo1";
     createCluster(clusterName);
     String serviceName1 = "HDFS";
@@ -3614,7 +3603,7 @@ public class AmbariManagementControllerTest {
     Map<String,String> mapRequestProps = new HashMap<String, String>();
     mapRequestProps.put("context", "testServiceComponentHostUpdateStackId");
 
-    RequestStatusResponse resp = controller.updateHostComponents(reqs, mapRequestProps, true);
+    RequestStatusResponse resp = updateHostComponents(reqs, mapRequestProps, true);
     List<Stage> stages = actionDB.getAllStages(resp.getRequestId());
     Assert.assertEquals(1, stages.size());
     Assert.assertEquals(2, stages.get(0).getOrderedHostRoleCommands().size());
@@ -3659,7 +3648,7 @@ public class AmbariManagementControllerTest {
     req3.setDesiredStackId("HDP-0.2");
     reqs.add(req3);
 
-    resp = controller.updateHostComponents(reqs, Collections.<String, String>emptyMap(), true);
+    resp = updateHostComponents(reqs, Collections.<String, String>emptyMap(), true);
     stages = actionDB.getAllStages(resp.getRequestId());
     Assert.assertEquals(2, stages.size());
     Assert.assertEquals(2, stages.get(0).getOrderedHostRoleCommands().size());
@@ -3687,7 +3676,7 @@ public class AmbariManagementControllerTest {
 
   @Ignore
   @Test
-  public void testServiceComponentHostUpdateStackIdError() throws AmbariException {
+  public void testServiceComponentHostUpdateStackIdError() throws Exception {
     String clusterName = "foo1";
     createCluster(clusterName);
     String serviceName1 = "HDFS";
@@ -3818,7 +3807,7 @@ public class AmbariManagementControllerTest {
     req1.setDesiredStackId("HDP-0.2");
     reqs.add(req1);
 
-    RequestStatusResponse resp = controller.updateHostComponents(reqs,
+    RequestStatusResponse resp = updateHostComponents(reqs,
         Collections.<String,String>emptyMap(), true);
     Assert.assertNull(resp);
 
@@ -3831,14 +3820,14 @@ public class AmbariManagementControllerTest {
         State.INSTALLED.toString());
     req1.setDesiredStackId("HDP-0.2");
     reqs.add(req1);
-    resp = controller.updateHostComponents(reqs, Collections.<String,String>emptyMap(), true);
+    resp = updateHostComponents(reqs, Collections.<String,String>emptyMap(), true);
     Assert.assertNull(resp);
   }
 
   private void updateHostAndCompareExpectedFailure(Set<ServiceComponentHostRequest> reqs,
                                                    String expectedMessage) {
     try {
-      controller.updateHostComponents(reqs, Collections.<String,String>emptyMap(), true);
+      updateHostComponents(reqs, Collections.<String,String>emptyMap(), true);
       fail("Expected failure: " + expectedMessage);
     } catch (Exception e) {
       LOG.info("Actual exception message: " + e.getMessage());
@@ -4758,7 +4747,7 @@ public class AmbariManagementControllerTest {
     schReqs.clear();
     schReqs.add(new ServiceComponentHostRequest(clusterName, serviceName,
             componentName1, host1, null));
-    Assert.assertNull(controller.updateHostComponents(schReqs, Collections.<String, String>emptyMap(), true));
+    Assert.assertNull(updateHostComponents(schReqs, Collections.<String, String>emptyMap(), true));
 
     configVersions.clear();
     configVersions.put("typeC", "v1");
@@ -4785,7 +4774,7 @@ public class AmbariManagementControllerTest {
     schReqs.clear();
     schReqs.add(new ServiceComponentHostRequest(clusterName, serviceName,
             componentName1, host1, null));
-    Assert.assertNull(controller.updateHostComponents(schReqs, Collections.<String, String>emptyMap(), true));
+    Assert.assertNull(updateHostComponents(schReqs, Collections.<String, String>emptyMap(), true));
 
     // update configs at SC level
     configVersions.clear();
@@ -4799,7 +4788,7 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
-  public void testConfigUpdates() throws AmbariException {
+  public void testConfigUpdates() throws Exception {
     String clusterName = "foo1";
     createCluster(clusterName);
     clusters.getCluster(clusterName)
@@ -4906,7 +4895,7 @@ public class AmbariManagementControllerTest {
     schReqs.clear();
     schReqs.add(new ServiceComponentHostRequest(clusterName, serviceName,
         componentName1, host1, null));
-    Assert.assertNull(controller.updateHostComponents(schReqs, Collections.<String, String>emptyMap(), true));
+    Assert.assertNull(updateHostComponents(schReqs, Collections.<String, String>emptyMap(), true));
 
     configVersions.clear();
     configVersions.put("typeC", "v1");
@@ -4933,7 +4922,7 @@ public class AmbariManagementControllerTest {
     schReqs.clear();
     schReqs.add(new ServiceComponentHostRequest(clusterName, serviceName,
         componentName1, host1, null));
-    Assert.assertNull(controller.updateHostComponents(schReqs, Collections.<String, String>emptyMap(), true));
+    Assert.assertNull(updateHostComponents(schReqs, Collections.<String, String>emptyMap(), true));
 
     // update configs at SC level
     configVersions.clear();
@@ -5042,7 +5031,7 @@ public class AmbariManagementControllerTest {
     schReqs.clear();
     schReqs.add(new ServiceComponentHostRequest(clusterName, serviceName,
       componentName1, host1, null));
-    Assert.assertNull(controller.updateHostComponents(schReqs, Collections.<String, String>emptyMap(), true));
+    Assert.assertNull(updateHostComponents(schReqs, Collections.<String, String>emptyMap(), true));
 
     // Reconfigure SCH level
     configVersions.clear();
@@ -5050,7 +5039,7 @@ public class AmbariManagementControllerTest {
     schReqs.clear();
     schReqs.add(new ServiceComponentHostRequest(clusterName, serviceName,
       componentName1, host1, null));
-    Assert.assertNull(controller.updateHostComponents(schReqs, Collections.<String, String>emptyMap(), true));
+    Assert.assertNull(updateHostComponents(schReqs, Collections.<String, String>emptyMap(), true));
 
     // Clear Entity Manager
     entityManager.clear();
@@ -5284,8 +5273,7 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
-  public void testReconfigureClientWithServiceStarted() throws
-    AmbariException {
+  public void testReconfigureClientWithServiceStarted() throws Exception {
     String clusterName = "foo1";
     createCluster(clusterName);
     clusters.getCluster(clusterName)
@@ -5774,7 +5762,7 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
-  public void testReInstallClientComponent() throws AmbariException {
+  public void testReInstallClientComponent() throws Exception {
     String clusterName = "foo1";
     createCluster(clusterName);
     clusters.getCluster(clusterName)
@@ -5818,7 +5806,7 @@ public class AmbariManagementControllerTest {
     Set<ServiceComponentHostRequest> setReqs = new
       HashSet<ServiceComponentHostRequest>();
     setReqs.add(schr);
-    RequestStatusResponse resp = controller.updateHostComponents(setReqs,
+    RequestStatusResponse resp = updateHostComponents(setReqs,
       Collections.<String, String>emptyMap(), false);
 
     Assert.assertNotNull(resp);
@@ -5960,7 +5948,7 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
-  public void testDecommissonDatanodeAction() throws AmbariException {
+  public void testDecommissonDatanodeAction() throws Exception {
     String clusterName = "foo1";
     createCluster(clusterName);
     clusters.getCluster(clusterName)
@@ -6087,13 +6075,13 @@ public class AmbariManagementControllerTest {
         componentName1, host2, State.INSTALLED.toString());
     Set<ServiceComponentHostRequest> requests = new HashSet<ServiceComponentHostRequest>();
     requests.add(r);
-    controller.updateHostComponents(requests, Collections.<String, String>emptyMap(), true);
+    updateHostComponents(requests, Collections.<String, String>emptyMap(), true);
     s.getServiceComponent(componentName1).getServiceComponentHost(host2).setState(State.INSTALLED);
     r = new ServiceComponentHostRequest(clusterName, serviceName,
         componentName1, host2, State.STARTED.toString());
     requests.clear();
     requests.add(r);
-    controller.updateHostComponents(requests, Collections.<String, String>emptyMap(), true);
+    updateHostComponents(requests, Collections.<String, String>emptyMap(), true);
     s.getServiceComponent(componentName1).getServiceComponentHost(host2).setState(State.STARTED);
 
     params = new HashMap<String, String>(){{
@@ -7616,7 +7604,7 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
-  public void testServiceStopWhileStopping() throws AmbariException {
+  public void testServiceStopWhileStopping() throws Exception {
     String clusterName = "foo1";
     createCluster(clusterName);
     clusters.getCluster(clusterName)
@@ -7733,7 +7721,7 @@ public class AmbariManagementControllerTest {
           Set<ServiceComponentHostRequest> reqs1 = new
             HashSet<ServiceComponentHostRequest>();
           reqs1.add(r1);
-          controller.updateHostComponents(reqs1, Collections.<String, String>emptyMap(), true);
+          updateHostComponents(reqs1, Collections.<String, String>emptyMap(), true);
           Assert.assertEquals(State.INSTALLED, sch.getDesiredState());
         }
       }
@@ -7890,7 +7878,7 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
-  public void testUpdateHostComponentsBadState() throws AmbariException {
+  public void testUpdateHostComponentsBadState() throws Exception {
     String clusterName = "foo1";
     createCluster(clusterName);
     clusters.getCluster(clusterName)
@@ -7971,7 +7959,7 @@ public class AmbariManagementControllerTest {
     Map<String, String> requestProps = new HashMap<String, String>();
     requestProps.put("datanode", "dn_value");
     requestProps.put("namenode", "nn_value");
-    RequestStatusResponse rsr = controller.updateHostComponents(Collections.singleton(schr), requestProps, false);
+    RequestStatusResponse rsr = updateHostComponents(Collections.singleton(schr), requestProps, false);
 
     List<Stage> stages = actionDB.getAllStages(rsr.getRequestId());
     Assert.assertEquals(1, stages.size());
@@ -7988,7 +7976,6 @@ public class AmbariManagementControllerTest {
     for (ServiceComponentHost sch : clusters.getCluster(clusterName).getServiceComponentHosts(host2)) {
       Assert.assertEquals(State.UNKNOWN, sch.getState());
     }
-
   }
 
   @Test
@@ -8452,7 +8439,7 @@ public class AmbariManagementControllerTest {
     // disable HC for non-clients
     schRequests.add(new ServiceComponentHostRequest(clusterName, serviceName, componentName1, host1, "DISABLED"));
     schRequests.add(new ServiceComponentHostRequest(clusterName, serviceName, componentName2, host1, "DISABLED"));
-    controller.updateHostComponents(schRequests, new HashMap<String,String>(), false);
+    updateHostComponents(schRequests, new HashMap<String,String>(), false);
 
     // delete HC
     schRequests.clear();
@@ -8635,7 +8622,7 @@ public class AmbariManagementControllerTest {
     schRequests.clear();
     // disable HC, DN was already stopped
     schRequests.add(new ServiceComponentHostRequest(clusterName, serviceName, componentName1, host1, "DISABLED"));
-    controller.updateHostComponents(schRequests, new HashMap<String,String>(), false);
+    updateHostComponents(schRequests, new HashMap<String,String>(), false);
 
     // delete HC
     schRequests.clear();
@@ -9003,21 +8990,21 @@ public class AmbariManagementControllerTest {
       componentHostRequests.clear();
       componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "NAMENODE", "host1", "DISABLED"));
 
-      amc.updateHostComponents(componentHostRequests, mapRequestProps, true);
+      updateHostComponents(amc, componentHostRequests, mapRequestProps, true);
 
       Assert.assertEquals(State.DISABLED, componentHost.getState());
 
       componentHostRequests.clear();
       componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "NAMENODE", "host1", "INSTALLED"));
 
-      amc.updateHostComponents(componentHostRequests, mapRequestProps, true);
+      updateHostComponents(amc, componentHostRequests, mapRequestProps, true);
 
       Assert.assertEquals(State.INSTALLED, componentHost.getState());
 
       componentHostRequests.clear();
       componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "NAMENODE", "host1", "DISABLED"));
 
-      amc.updateHostComponents(componentHostRequests, mapRequestProps, true);
+      updateHostComponents(amc, componentHostRequests, mapRequestProps, true);
 
       Assert.assertEquals(State.DISABLED, componentHost.getState());
 
@@ -9029,7 +9016,7 @@ public class AmbariManagementControllerTest {
       componentHostRequests.clear();
       componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "NAMENODE", "host2", "INSTALLED"));
 
-      amc.updateHostComponents(componentHostRequests, mapRequestProps, true);
+      updateHostComponents(amc, componentHostRequests, mapRequestProps, true);
 
       namenodes = cluster.getService("HDFS").getServiceComponent("NAMENODE").getServiceComponentHosts();
       Assert.assertEquals(2, namenodes.size());
@@ -9071,7 +9058,7 @@ public class AmbariManagementControllerTest {
       componentHost.handleEvent(new ServiceComponentHostOpSucceededEvent(componentHost.getServiceComponentName(), componentHost.getHostName(), System.currentTimeMillis()));
       componentHostRequests.clear();
       componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "NAMENODE", "host1", "INSTALLED"));
-      amc.updateHostComponents(componentHostRequests, mapRequestProps, true);
+      updateHostComponents(amc, componentHostRequests, mapRequestProps, true);
       assertEquals(State.INSTALLED, namenodes.get("host1").getState());
 
       // make unknown
@@ -9087,7 +9074,7 @@ public class AmbariManagementControllerTest {
       // make disabled
       componentHostRequests.clear();
       componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "DATANODE", "host2", "DISABLED"));
-      amc.updateHostComponents(componentHostRequests, mapRequestProps, false);
+      updateHostComponents(amc, componentHostRequests, mapRequestProps, false);
       org.junit.Assert.assertEquals(State.DISABLED, sch.getState());
 
       // ServiceComponentHost remains in disabled after service stop
@@ -9770,8 +9757,8 @@ public class AmbariManagementControllerTest {
     // passivate a host
     HostRequest hr = new HostRequest(host1, clusterName, requestProperties);
     hr.setMaintenanceState(MaintenanceState.ON.name());
-    HostResourceProviderTest.updateHosts(controller, Collections.singleton(hr),
-        new HashMap<String, String>());
+    HostResourceProviderTest.updateHosts(controller, Collections.singleton(hr)
+    );
 
     Host host = hosts.get(host1);
     Assert.assertEquals(MaintenanceState.ON,
@@ -9793,8 +9780,8 @@ public class AmbariManagementControllerTest {
 
     // reset
     hr.setMaintenanceState(MaintenanceState.OFF.name());
-    HostResourceProviderTest.updateHosts(controller, Collections.singleton(hr),
-        new HashMap<String, String>());
+    HostResourceProviderTest.updateHosts(controller, Collections.singleton(hr)
+    );
 
     host = hosts.get(host1);
     Assert.assertEquals(MaintenanceState.OFF,
@@ -9817,8 +9804,8 @@ public class AmbariManagementControllerTest {
     Set<HostRequest> set = new HashSet<HostRequest>();
     set.add(hr1);
     set.add(hr2);
-    HostResourceProviderTest.updateHosts(controller, set,
-        new HashMap<String, String>());
+    HostResourceProviderTest.updateHosts(controller, set
+    );
 
     host = hosts.get(host1);
     Assert.assertEquals(MaintenanceState.ON,
@@ -9836,8 +9823,8 @@ public class AmbariManagementControllerTest {
     set.add(hr1);
     set.add(hr2);
 
-    HostResourceProviderTest.updateHosts(controller, set,
-        new HashMap<String, String>());
+    HostResourceProviderTest.updateHosts(controller, set
+    );
     host = hosts.get(host1);
     Assert.assertEquals(MaintenanceState.OFF,
         host.getMaintenanceState(cluster.getClusterId()));
@@ -10334,7 +10321,7 @@ public class AmbariManagementControllerTest {
 
     Map<String, String> requestProperties = new HashMap<String, String>();
     requestProperties.put("namenode", "p1");
-    RequestStatusResponse resp = controller.updateHostComponents(Collections.singleton(req), requestProperties, false);
+    RequestStatusResponse resp = updateHostComponents(Collections.singleton(req), requestProperties, false);
 
     // succeed in creating a task
     assertNotNull(resp);
@@ -10346,13 +10333,31 @@ public class AmbariManagementControllerTest {
     }
 
     // no new commands since no targeted info
-    resp = controller.updateHostComponents(Collections.singleton(req), new HashMap<String, String>(), false);
+    resp = updateHostComponents(Collections.singleton(req), new HashMap<String, String>(), false);
     assertNull(resp);
 
     // role commands added for targeted command
-    resp = controller.updateHostComponents(Collections.singleton(req), requestProperties, false);
+    resp = updateHostComponents(Collections.singleton(req), requestProperties, false);
     assertNotNull(resp);
 
+  }
+
+  // this is a temporary measure as a result of moving updateHostComponents from AmbariManagementController
+  // to HostComponentResourceProvider.  Eventually the tests should be moved out of this class.
+  private RequestStatusResponse updateHostComponents(Set<ServiceComponentHostRequest> requests,
+                                                     Map<String, String> requestProperties,
+                                                     boolean runSmokeTest) throws Exception {
+
+    return updateHostComponents(controller, requests, requestProperties, runSmokeTest);
+  }
+
+  private RequestStatusResponse updateHostComponents(AmbariManagementController controller,
+                                                     Set<ServiceComponentHostRequest> requests,
+                                                     Map<String, String> requestProperties,
+                                                     boolean runSmokeTest) throws Exception {
+
+    return HostComponentResourceProviderTest.updateHostComponents(
+        controller, injector, requests, requestProperties, runSmokeTest);
   }
 
 

@@ -599,49 +599,6 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
   }
 
   /**
-   * Create host and host_component resources.
-   *
-   * @param blueprintHostGroups  host groups specified in blueprint
-   * @param clusterName          cluster name
-   *
-   * @throws SystemException                an unexpected exception occurred
-   * @throws UnsupportedPropertyException   an invalid property was specified
-   * @throws ResourceAlreadyExistsException attempt to create a host or host_component which already exists
-   * @throws NoSuchParentResourceException  a required parent resource is missing
-   */
-  private void createHostAndComponentResources(Map<String, HostGroupImpl> blueprintHostGroups, String clusterName)
-      throws SystemException, UnsupportedPropertyException, ResourceAlreadyExistsException, NoSuchParentResourceException {
-
-    ResourceProvider hostProvider = getResourceProvider(Resource.Type.Host);
-    ResourceProvider hostComponentProvider = getResourceProvider(Resource.Type.HostComponent);
-    for (HostGroupImpl group : blueprintHostGroups.values()) {
-      for (String host : group.getHostInfo()) {
-        Map<String, Object> hostProperties = new HashMap<String, Object>();
-        hostProperties.put("Hosts/cluster_name", clusterName);
-        hostProperties.put("Hosts/host_name", host);
-
-        hostProvider.createResources(new RequestImpl(
-            null, Collections.singleton(hostProperties), null, null));
-
-        // create clusters/hosts/host_components
-        Set<Map<String, Object>> setHostComponentRequestProps = new HashSet<Map<String, Object>>();
-        for (String hostComponent : group.getComponents()) {
-          // AMBARI_SERVER is not recognized by Ambari as a component
-          if (! hostComponent.equals("AMBARI_SERVER")) {
-            Map<String, Object> hostComponentProperties = new HashMap<String, Object>();
-            hostComponentProperties.put("HostRoles/cluster_name", clusterName);
-            hostComponentProperties.put("HostRoles/host_name", host);
-            hostComponentProperties.put("HostRoles/component_name", hostComponent);
-            setHostComponentRequestProps.add(hostComponentProperties);
-          }
-        }
-        hostComponentProvider.createResources(new RequestImpl(
-            null, setHostComponentRequestProps, null, null));
-      }
-    }
-  }
-
-  /**
    * Create component resources.
    *
    * @param blueprintHostGroups  host groups specified in blueprint
@@ -1158,8 +1115,9 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
       for (Map.Entry<String, Map<String, Config>> entry : groupConfigs.entrySet()) {
         String service = entry.getKey();
         Map<String, Config> serviceConfigs = entry.getValue();
+        String hostGroupName = getConfigurationGroupName(entity.getBlueprintName(), entity.getName());
         ConfigGroupRequest request = new ConfigGroupRequest(
-            null, clusterName, entity.getName(), service, "Host Group Configuration",
+            null, clusterName, hostGroupName, service, "Host Group Configuration",
             new HashSet<String>(group.getHostInfo()), serviceConfigs);
 
         ((ConfigGroupResourceProvider) getResourceProvider(Resource.Type.ConfigGroup)).

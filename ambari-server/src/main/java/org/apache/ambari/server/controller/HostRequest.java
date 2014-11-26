@@ -31,6 +31,9 @@ public class HostRequest {
   private String rackInfo;
   private List<ConfigurationRequest> desiredConfigs; // UPDATE
   private String maintenanceState; // UPDATE
+  private String blueprint;
+  private String hostgroup;
+  private String hostToClone;
 
   public HostRequest(String hostname, String clusterName, Map<String, String> hostAttributes) {
     this.hostname = hostname;
@@ -94,6 +97,30 @@ public class HostRequest {
     return maintenanceState;
   }
 
+  public void setBlueprintName(String blueprintName) {
+    blueprint = blueprintName;
+  }
+
+  public String getBlueprintName() {
+    return blueprint;
+  }
+
+  public void setHostGroupName(String hostgroupName) {
+    hostgroup = hostgroupName;
+  }
+
+  public String getHostGroupName() {
+    return hostgroup;
+  }
+
+  public void setHostToClone(String hostname) {
+    hostToClone = hostname;
+  }
+
+  public String getHostToClone() {
+    return hostToClone;
+  }
+
   public String toString() {
     StringBuilder sb = new StringBuilder();
     sb.append("{ hostname=").append(hostname).append(", clusterName=").append(clusterName);
@@ -105,7 +132,9 @@ public class HostRequest {
           sb.append(",");
         }
         ++i;
-        sb.append(attr.getKey() + "=" + attr.getValue());
+        sb.append(attr.getKey());
+        sb.append("=");
+        sb.append(attr.getValue());
       }
       sb.append(']');
     }

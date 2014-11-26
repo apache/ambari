@@ -341,11 +341,10 @@ public interface Cluster {
   public void addConfigGroup(ConfigGroup configGroup) throws AmbariException;
 
   /**
-   * Get all config groups associated with this cluster
-   * @return
-   * @throws AmbariException
+   * Get config groups associated with this cluster
+   * @return unmodifiable map of config group id to config group.  Will not return null.
    */
-  public Map<Long, ConfigGroup> getConfigGroups() throws AmbariException;
+  public Map<Long, ConfigGroup> getConfigGroups();
 
   /**
    * Delete this config group identified by the config group id

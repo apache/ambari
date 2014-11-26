@@ -24,8 +24,12 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StackAccessException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
+import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.spi.SystemException;
+import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.orm.dao.BlueprintDAO;
 import org.apache.ambari.server.orm.entities.BlueprintConfigEntity;
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
@@ -37,6 +41,7 @@ import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DependencyInfo;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -440,6 +445,82 @@ public abstract class BaseBlueprintProcessor extends AbstractControllerResourceP
     msg += ".  To disable topology validation and create the blueprint, " +
            "add the following to the end of the url: '?validate_topology=false'";
     throw new IllegalArgumentException(msg);
+  }
+
+  /**
+   * Create host and host_component resources.
+   *
+   * @param blueprintHostGroups  host groups specified in blueprint
+   * @param clusterName          cluster name
+   *
+   * @throws SystemException                an unexpected exception occurred
+   * @throws UnsupportedPropertyException   an invalid property was specified
+   * @throws ResourceAlreadyExistsException attempt to create a host or host_component which already exists
+   * @throws NoSuchParentResourceException  a required parent resource is missing
+   */
+  protected void createHostAndComponentResources(Map<String, HostGroupImpl> blueprintHostGroups, String clusterName)
+      throws SystemException, UnsupportedPropertyException, ResourceAlreadyExistsException, NoSuchParentResourceException {
+
+    createHostAndComponentResources(blueprintHostGroups, clusterName, getResourceProvider(Resource.Type.Host));
+  }
+
+  /**
+   * Create host and host_component resources via the specified host resource provider.
+   *
+   * @param blueprintHostGroups  host groups specified in blueprint
+   * @param clusterName          cluster name
+   * @param hostProvider         host resource provider
+   *
+   * @throws SystemException                an unexpected exception occurred
+   * @throws UnsupportedPropertyException   an invalid property was specified
+   * @throws ResourceAlreadyExistsException attempt to create a host or host_component which already exists
+   * @throws NoSuchParentResourceException  a required parent resource is missing
+   */
+  protected void createHostAndComponentResources(Map<String, HostGroupImpl> blueprintHostGroups,
+                                                 String clusterName,
+                                                 ResourceProvider hostProvider)
+                                                 throws SystemException,
+                                                        UnsupportedPropertyException,
+                                                        ResourceAlreadyExistsException,
+                                                        NoSuchParentResourceException {
+
+    ResourceProvider hostComponentProvider = getResourceProvider(Resource.Type.HostComponent);
+    for (HostGroupImpl group : blueprintHostGroups.values()) {
+      for (String host : group.getHostInfo()) {
+        Map<String, Object> hostProperties = new HashMap<String, Object>();
+        hostProperties.put("Hosts/cluster_name", clusterName);
+        hostProperties.put("Hosts/host_name", host);
+
+        hostProvider.createResources(new RequestImpl(
+            null, Collections.singleton(hostProperties), null, null));
+
+        // create clusters/hosts/host_components
+        Set<Map<String, Object>> setHostComponentRequestProps = new HashSet<Map<String, Object>>();
+        for (String hostComponent : group.getComponents()) {
+          // AMBARI_SERVER is not recognized by Ambari as a component
+          if (! hostComponent.equals("AMBARI_SERVER")) {
+            Map<String, Object> hostComponentProperties = new HashMap<String, Object>();
+            hostComponentProperties.put("HostRoles/cluster_name", clusterName);
+            hostComponentProperties.put("HostRoles/host_name", host);
+            hostComponentProperties.put("HostRoles/component_name", hostComponent);
+            setHostComponentRequestProps.add(hostComponentProperties);
+          }
+        }
+        hostComponentProvider.createResources(new RequestImpl(
+            null, setHostComponentRequestProps, null, null));
+      }
+    }
+  }
+
+  /**
+   * Get a config group name based on a bp and host group.
+   *
+   * @param bpName         blueprint name
+   * @param hostGroupName  host group name
+   * @return  config group name
+   */
+  protected String getConfigurationGroupName(String bpName, String hostGroupName) {
+    return String.format("%s:%s", bpName, hostGroupName);
   }
 
 

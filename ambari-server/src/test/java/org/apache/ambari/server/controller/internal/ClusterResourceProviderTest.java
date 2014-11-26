@@ -420,6 +420,7 @@ public class ClusterResourceProviderTest {
     expect(blueprint.getHostGroups()).andReturn(Collections.singleton(hostGroup)).anyTimes();
     expect(hostGroup.getName()).andReturn("group1").anyTimes();
     expect(hostGroup.getComponents()).andReturn(hostGroupComponents).anyTimes();
+    expect(hostGroup.getBlueprintName()).andReturn(blueprintName).anyTimes();
     expect(hostGroupComponent1.getName()).andReturn("component1").anyTimes();
     expect(hostGroupComponent2.getName()).andReturn("component2").anyTimes();
     expect(hostGroupComponent3.getName()).andReturn("component3").anyTimes();
@@ -634,7 +635,7 @@ public class ClusterResourceProviderTest {
     assertEquals(1, configGroupRequests.size());
     ConfigGroupRequest configGroupRequest = configGroupRequests.iterator().next();
     assertEquals(clusterName, configGroupRequest.getClusterName());
-    assertEquals("group1", configGroupRequest.getGroupName());
+    assertEquals(blueprintName + ":group1", configGroupRequest.getGroupName());
     assertEquals("service1", configGroupRequest.getTag());
     assertEquals("Host Group Configuration", configGroupRequest.getDescription());
     Set<String> hosts = configGroupRequest.getHosts();
@@ -1688,6 +1689,7 @@ public class ClusterResourceProviderTest {
 
     expect(blueprint.getHostGroups()).andReturn(Collections.singleton(hostGroup)).anyTimes();
     expect(hostGroup.getName()).andReturn("group1").anyTimes();
+    expect(hostGroup.getBlueprintName()).andReturn(blueprintName).anyTimes();
     expect(hostGroup.getComponents()).andReturn(hostGroupComponents).anyTimes();
     expect(hostGroupComponent1.getName()).andReturn("component1").anyTimes();
     expect(hostGroupComponent2.getName()).andReturn("component2").anyTimes();
@@ -1886,7 +1888,7 @@ public class ClusterResourceProviderTest {
     assertEquals(1, configGroupRequests.size());
     ConfigGroupRequest configGroupRequest = configGroupRequests.iterator().next();
     assertEquals(clusterName, configGroupRequest.getClusterName());
-    assertEquals("group1", configGroupRequest.getGroupName());
+    assertEquals(blueprintName + ":group1", configGroupRequest.getGroupName());
     assertEquals("service1", configGroupRequest.getTag());
     assertEquals("Host Group Configuration", configGroupRequest.getDescription());
     Set<String> hosts = configGroupRequest.getHosts();
@@ -2392,6 +2394,7 @@ public class ClusterResourceProviderTest {
 
     expect(blueprint.getHostGroups()).andReturn(Collections.singleton(hostGroup)).anyTimes();
     expect(hostGroup.getName()).andReturn("group1").anyTimes();
+    expect(hostGroup.getBlueprintName()).andReturn(blueprintName).anyTimes();
     expect(hostGroup.getComponents()).andReturn(hostGroupComponents).anyTimes();
     expect(hostGroupComponent1.getName()).andReturn("component1").anyTimes();
     expect(hostGroupComponent2.getName()).andReturn("component2").anyTimes();
@@ -2616,7 +2619,7 @@ public class ClusterResourceProviderTest {
     assertEquals(1, configGroupRequests.size());
     ConfigGroupRequest configGroupRequest = configGroupRequests.iterator().next();
     assertEquals(clusterName, configGroupRequest.getClusterName());
-    assertEquals("group1", configGroupRequest.getGroupName());
+    assertEquals(blueprintName + ":group1", configGroupRequest.getGroupName());
     assertEquals("service1", configGroupRequest.getTag());
     assertEquals("Host Group Configuration", configGroupRequest.getDescription());
     Set<String> hosts = configGroupRequest.getHosts();

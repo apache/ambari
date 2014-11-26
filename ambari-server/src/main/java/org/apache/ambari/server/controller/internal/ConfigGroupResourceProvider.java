@@ -17,8 +17,6 @@
  */
 package org.apache.ambari.server.controller.internal;
 
-import com.google.common.collect.MapDifference;
-import com.google.common.collect.Maps;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.ConfigGroupNotFoundException;
@@ -180,19 +178,13 @@ public class ConfigGroupResourceProvider extends
       for (Map<String, Object> propertyMap : getPropertyMaps(iterator.next(), predicate)) {
         requests.add(getConfigGroupRequest(propertyMap));
       }
-
-      modifyResources(new Command<Void>() {
-        @Override
-        public Void invoke() throws AmbariException {
-          updateConfigGroups(requests);
-          return null;
-        }
-      });
     }
+
+    RequestStatus status = updateResources(requests);
 
     notifyUpdate(Resource.Type.ConfigGroup, request, predicate);
 
-    return getRequestStatus(null);
+    return status;
   }
 
   @Override
@@ -263,6 +255,23 @@ public class ConfigGroupResourceProvider extends
     }
 
     return getRequestStatus(null, associatedResources);
+  }
+
+  public RequestStatus updateResources(final Set<ConfigGroupRequest> requests)
+      throws SystemException,
+      UnsupportedPropertyException,
+      NoSuchResourceException,
+      NoSuchParentResourceException {
+
+    modifyResources(new Command<Void>() {
+      @Override
+      public Void invoke() throws AmbariException {
+        updateConfigGroups(requests);
+        return null;
+      }
+    });
+
+    return getRequestStatus(null);
   }
 
   private synchronized  Set<ConfigGroupResponse> getConfigGroups

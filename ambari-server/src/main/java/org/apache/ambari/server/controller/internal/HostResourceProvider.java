@@ -38,6 +38,7 @@ import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.controller.HostRequest;
 import org.apache.ambari.server.controller.HostResponse;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
+import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -48,6 +49,7 @@ import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.orm.entities.BlueprintEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -55,19 +57,19 @@ import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
-import com.google.inject.persist.Transactional;
 
 
 /**
  * Resource provider for host resources.
  */
-public class HostResourceProvider extends AbstractControllerResourceProvider {
+public class HostResourceProvider extends BaseBlueprintProcessor {
 
   // ----- Property ID constants ---------------------------------------------
 
@@ -114,6 +116,13 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
   protected static final String HOST_DESIRED_CONFIGS_PROPERTY_ID = 
       PropertyHelper.getPropertyId("Hosts", "desired_configs");
 
+  protected static final String BLUEPRINT_PROPERTY_ID =
+      PropertyHelper.getPropertyId(null, "blueprint");
+  protected static final String HOSTGROUP_PROPERTY_ID =
+      PropertyHelper.getPropertyId(null, "host_group");
+  protected static final String HOST_NAME_NO_CATEGORY_PROPERTY_ID =
+      PropertyHelper.getPropertyId(null, "host_name");
+
   private static Set<String> pkPropertyIds =
       new HashSet<String>(Arrays.asList(new String[]{
           HOST_NAME_PROPERTY_ID}));
@@ -140,31 +149,31 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
   // ----- ResourceProvider ------------------------------------------------
 
   @Override
-  public RequestStatus createResources(Request request)
+  public RequestStatus createResources(final Request request)
       throws SystemException,
           UnsupportedPropertyException,
           ResourceAlreadyExistsException,
           NoSuchParentResourceException {
 
-    final Set<HostRequest> requests = new HashSet<HostRequest>();
-    for (Map<String, Object> propertyMap : request.getProperties()) {
-      requests.add(getRequest(propertyMap));
+    RequestStatusResponse createResponse = null;
+    if (isHostGroupRequest(request)) {
+      createResponse = addHostsUsingHostgroup(request);
+    } else {
+      createResources(new Command<Void>() {
+        @Override
+        public Void invoke() throws AmbariException {
+          createHosts(request);
+          return null;
+        }
+      });
     }
-    createResources(new Command<Void>() {
-      @Override
-      public Void invoke() throws AmbariException {
-        createHosts(requests);
-        return null;
-      }
-    });
 
     notifyCreate(Resource.Type.Host, request);
 
-    return getRequestStatus(null);
+    return getRequestStatus(createResponse);
   }
 
   @Override
-  @Transactional
   public Set<Resource> getResources(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
@@ -256,7 +265,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
     modifyResources(new Command<Void>() {
       @Override
       public Void invoke() throws AmbariException {
-        updateHosts(requests, request.getRequestInfoProperties());
+        updateHosts(requests);
         return null;
       }
     });
@@ -292,6 +301,10 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
   public Set<String> checkPropertyIds(Set<String> propertyIds) {
     Set<String> baseUnsupported = super.checkPropertyIds(propertyIds);
 
+    baseUnsupported.remove(BLUEPRINT_PROPERTY_ID);
+    baseUnsupported.remove(HOSTGROUP_PROPERTY_ID);
+    baseUnsupported.remove(HOST_NAME_NO_CATEGORY_PROPERTY_ID);
+
     return checkConfigPropertyIds(baseUnsupported, "Hosts");
   }
 
@@ -307,6 +320,25 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
   // ----- utility methods ---------------------------------------------------
 
   /**
+   * Determine if a request is a high level "add hosts" call or a simple lower level request
+   * to add a host resources.
+   *
+   * @param request  current request
+   * @return true if this is a high level "add hosts" request;
+   *         false if it is a simple create host resources request
+   */
+  private boolean isHostGroupRequest(Request request) {
+    boolean isHostGroupRequest = false;
+    Set<Map<String, Object>> properties = request.getProperties();
+    if (properties != null && ! properties.isEmpty()) {
+      //todo: for now, either all or none of the hosts need to specify a hg.  Unable to mix.
+      String hgName = (String) properties.iterator().next().get(HOSTGROUP_PROPERTY_ID);
+      isHostGroupRequest = hgName != null && ! hgName.isEmpty();
+    }
+    return isHostGroupRequest;
+  }
+
+  /**
    * Get a host request object from a map of property values.
    *
    * @param properties  the predicate
@@ -320,11 +352,13 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
     }
 
     HostRequest hostRequest = new HostRequest(
-        (String) properties.get(HOST_NAME_PROPERTY_ID),
+        getHostNameFromProperties(properties),
         (String) properties.get(HOST_CLUSTER_NAME_PROPERTY_ID),
         null);
     hostRequest.setPublicHostName((String) properties.get(HOST_PUBLIC_NAME_PROPERTY_ID));
     hostRequest.setRackInfo((String) properties.get(HOST_RACK_INFO_PROPERTY_ID));
+    hostRequest.setBlueprintName((String) properties.get(BLUEPRINT_PROPERTY_ID));
+    hostRequest.setHostGroupName((String) properties.get(HOSTGROUP_PROPERTY_ID));
     
     Object o = properties.get(HOST_MAINTENANCE_STATE_PROPERTY_ID);
     if (null != o) {
@@ -342,14 +376,15 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
   /**
    * Accepts a request with registered hosts and if the request contains a cluster name then will map all of the
    * hosts onto that cluster.
-   * @param requests Request that must contain registered hosts, and optionally a cluster.
+   * @param request Request that must contain registered hosts, and optionally a cluster.
    * @throws AmbariException
    */
-  protected synchronized void createHosts(Set<HostRequest> requests)
+  protected synchronized void createHosts(Request request)
       throws AmbariException {
 
-    if (requests.isEmpty()) {
-      LOG.warn("Received an empty requests set");
+    Set<Map<String, Object>> propertySet = request.getProperties();
+    if (propertySet == null || propertySet.isEmpty()) {
+      LOG.warn("Received a create host request with no associated property sets");
       return;
     }
 
@@ -359,43 +394,14 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
     Set<String> duplicates = new HashSet<String>();
     Set<String> unknowns = new HashSet<String>();
     Set<String> allHosts = new HashSet<String>();
-    for (HostRequest request : requests) {
-      if (request.getHostname() == null
-          || request.getHostname().isEmpty()) {
-        throw new IllegalArgumentException("Invalid arguments, hostname"
-            + " cannot be null");
-      }
 
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("Received a createHost request"
-            + ", hostname=" + request.getHostname()
-            + ", request=" + request);
-      }
 
-      if (allHosts.contains(request.getHostname())) {
-        // throw dup error later
-        duplicates.add(request.getHostname());
-        continue;
-      }
-      allHosts.add(request.getHostname());
-
-      try {
-        // ensure host is registered
-        clusters.getHost(request.getHostname());
-      }
-      catch (HostNotFoundException e) {
-        unknowns.add(request.getHostname());
-        continue;
-      }
-
-      if (request.getClusterName() != null) {
-        try {
-          // validate that cluster_name is valid
-          clusters.getCluster(request.getClusterName());
-        } catch (ClusterNotFoundException e) {
-          throw new ParentObjectNotFoundException("Attempted to add a host to a cluster which doesn't exist: "
-              + " clusterName=" + request.getClusterName());
-        }
+    Set<HostRequest> hostRequests = new HashSet<HostRequest>();
+    for (Map<String, Object> propertyMap : propertySet) {
+      HostRequest hostRequest = getRequest(propertyMap);
+      hostRequests.add(hostRequest);
+      if (! propertyMap.containsKey(HOSTGROUP_PROPERTY_ID)) {
+        createHostResource(clusters, duplicates, unknowns, allHosts, hostRequest);
       }
     }
 
@@ -431,22 +437,183 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
 
     Map<String, Set<String>> hostClustersMap = new HashMap<String, Set<String>>();
     Map<String, Map<String, String>> hostAttributes = new HashMap<String, Map<String, String>>();
-    for (HostRequest request : requests) {
-      if (request.getHostname() != null && !request.getHostname().isEmpty() && request.getClusterName() != null && !request.getClusterName().isEmpty()) {
+
+    for (HostRequest hostRequest : hostRequests) {
+      if (hostRequest.getHostname() != null &&
+          !hostRequest.getHostname().isEmpty() &&
+          hostRequest.getClusterName() != null &&
+          !hostRequest.getClusterName().isEmpty()){
+
         Set<String> clusterSet = new HashSet<String>();
-        clusterSet.add(request.getClusterName());
-        hostClustersMap.put(request.getHostname(), clusterSet);
-        if (request.getHostAttributes() != null) {
-          hostAttributes.put(request.getHostname(), request.getHostAttributes());
+        clusterSet.add(hostRequest.getClusterName());
+        hostClustersMap.put(hostRequest.getHostname(), clusterSet);
+        if (hostRequest.getHostAttributes() != null) {
+          hostAttributes.put(hostRequest.getHostname(), hostRequest.getHostAttributes());
         }
       }
     }
     clusters.updateHostWithClusterAndAttributes(hostClustersMap, hostAttributes);
   }
 
-
-  protected Set<HostResponse> getHosts(Set<HostRequest> requests)
+  private void createHostResource(Clusters clusters, Set<String> duplicates,
+                                  Set<String> unknowns, Set<String> allHosts,
+                                  HostRequest request)
       throws AmbariException {
+
+
+    if (request.getHostname() == null
+        || request.getHostname().isEmpty()) {
+      throw new IllegalArgumentException("Invalid arguments, hostname"
+          + " cannot be null");
+    }
+
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Received a createHost request"
+          + ", hostname=" + request.getHostname()
+          + ", request=" + request);
+    }
+
+    if (allHosts.contains(request.getHostname())) {
+      // throw dup error later
+      duplicates.add(request.getHostname());
+      return;
+    }
+    allHosts.add(request.getHostname());
+
+    try {
+      // ensure host is registered
+      clusters.getHost(request.getHostname());
+    }
+    catch (HostNotFoundException e) {
+      unknowns.add(request.getHostname());
+      return;
+    }
+
+    if (request.getClusterName() != null) {
+      try {
+        // validate that cluster_name is valid
+        clusters.getCluster(request.getClusterName());
+      } catch (ClusterNotFoundException e) {
+        throw new ParentObjectNotFoundException("Attempted to add a host to a cluster which doesn't exist: "
+            + " clusterName=" + request.getClusterName());
+      }
+    }
+  }
+
+
+  /**
+   * Add hosts based on a blueprint and hostgroup.  This will create the necessary resources and install/start all
+   * if the components on the hosts.
+   *
+   * @param request  add hosts request
+   * @return async request response
+   *
+   * @throws ResourceAlreadyExistsException  if an added host already exists in the cluster
+   * @throws SystemException                 in an unknown exception occurs
+   * @throws NoSuchParentResourceException   a parent resource doesnt exist
+   * @throws UnsupportedPropertyException    an unsupported property was specified for the request
+   */
+  private RequestStatusResponse addHostsUsingHostgroup(final Request request)
+      throws ResourceAlreadyExistsException,
+      SystemException,
+      NoSuchParentResourceException,
+      UnsupportedPropertyException {
+
+    //todo: idempotency of request.  Need to define failure models ...
+    Set<Map<String, Object>> propertySet = request.getProperties();
+    if (propertySet == null || propertySet.isEmpty()) {
+      LOG.warn("Received a create host request with no associated property sets");
+      return null;
+    }
+
+    Set<String> addedHosts = new HashSet<String>();
+    // all hosts will have same cluster
+    String clusterName = null;
+    for (Map<String, Object> properties : propertySet) {
+      clusterName = (String) properties.get(HOST_CLUSTER_NAME_PROPERTY_ID);
+      String bpName = (String) properties.get(BLUEPRINT_PROPERTY_ID);
+      String hgName = (String) properties.get(HOSTGROUP_PROPERTY_ID);
+      String hostname = getHostNameFromProperties(properties);
+
+      addedHosts.add(hostname);
+
+      String configGroupName = getConfigurationGroupName(bpName, hgName);
+      BlueprintEntity blueprint = getExistingBlueprint(bpName);
+      Stack stack = parseStack(blueprint);
+      Map<String, HostGroupImpl> blueprintHostGroups = parseBlueprintHostGroups(blueprint, stack);
+      addHostToHostgroup(hgName, hostname, blueprintHostGroups);
+      createHostAndComponentResources(blueprintHostGroups, clusterName, this);
+      //todo: optimize: update once per hostgroup with added hosts
+      addHostToExistingConfigGroups(configGroupName, clusterName, hostname);
+    }
+    return ((HostComponentResourceProvider) getResourceProvider(Resource.Type.HostComponent)).
+        installAndStart(clusterName, addedHosts);
+  }
+
+  /**
+   * Add the new host to an existing config group.
+   *
+   * @param configGroupName  name of the config group
+   * @param clusterName      cluster name
+   * @param hostName         host name
+   *
+   * @throws SystemException                an unknown exception occurred
+   * @throws UnsupportedPropertyException   an unsupported property was specified in the request
+   * @throws NoSuchParentResourceException  a parent resource doesn't exist
+   */
+  private void addHostToExistingConfigGroups(String configGroupName, String clusterName, String hostName)
+      throws SystemException,
+      UnsupportedPropertyException,
+      NoSuchParentResourceException {
+
+    Clusters clusters;
+    Cluster cluster;
+    try {
+      clusters = getManagementController().getClusters();
+      cluster = clusters.getCluster(clusterName);
+    } catch (AmbariException e) {
+      throw new IllegalArgumentException(
+          String.format("Attempt to add hosts to a non-existent cluster: '%s'", clusterName));
+    }
+    Map<Long, ConfigGroup> configGroups = cluster.getConfigGroups();
+    for (ConfigGroup group : configGroups.values()) {
+      if (group.getName().equals(configGroupName)) {
+        try {
+          group.addHost(clusters.getHost(hostName));
+          group.persist();
+        } catch (AmbariException e) {
+          // shouldn't occur, this host was just added to the cluster
+          throw new SystemException(String.format(
+              "Unable to obtain newly created host '%s' from cluster '%s'", hostName, clusterName));
+        }
+      }
+    }
+  }
+
+  /**
+   * Associate a host with a host group.
+   *
+   * @param hostGroupName        name of host group
+   * @param hostname             host name
+   * @param blueprintHostGroups  map of host group name to host group
+   *
+   * @throws IllegalArgumentException if the specified host group doesn't exist
+   */
+  private void addHostToHostgroup(String hostGroupName, String hostname, Map<String, HostGroupImpl> blueprintHostGroups)
+      throws IllegalArgumentException {
+
+    HostGroupImpl hostGroup = blueprintHostGroups.get(hostGroupName);
+    if (hostGroup == null) {
+      // this case should have been caught sooner
+      throw new IllegalArgumentException(String.format("Invalid host_group specified '%s'. " +
+          "All request host groups must have a corresponding host group in the specified blueprint", hostGroupName));
+    }
+
+    hostGroup.addHostInfo(hostname);
+  }
+
+
+  protected Set<HostResponse> getHosts(Set<HostRequest> requests) throws AmbariException {
     Set<HostResponse> response = new HashSet<HostResponse>();
 
     AmbariManagementController controller = getManagementController();
@@ -529,9 +696,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
     return response;
   }
 
-  protected synchronized void updateHosts(Set<HostRequest> requests,
-      Map<String, String> requestProperties)
-      throws AmbariException {
+  protected synchronized void updateHosts(Set<HostRequest> requests) throws AmbariException {
 
     if (requests.isEmpty()) {
       LOG.warn("Received an empty requests set");
@@ -541,20 +706,15 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
     AmbariManagementController controller = getManagementController();
     Clusters                   clusters   = controller.getClusters();
 
-    // We don't expect batch requests for different clusters, that's why
-    // nothing bad should happen if value is overwritten few times
-    String maintenanceCluster = null;
-
     for (HostRequest request : requests) {
       if (request.getHostname() == null || request.getHostname().isEmpty()) {
         throw new IllegalArgumentException("Invalid arguments, hostname should be provided");
       }
     }
 
-
     for (HostRequest request : requests) {
       if (LOG.isDebugEnabled()) {
-        LOG.debug("Received a updateHost request"
+        LOG.debug("Received an updateHost request"
             + ", hostname=" + request.getHostname()
             + ", request=" + request);
       }
@@ -592,7 +752,6 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
               "maintenance state to one of " + EnumSet.of(MaintenanceState.OFF, MaintenanceState.ON));
           } else {
             h.setMaintenanceState(c.getClusterId(), newState);
-            maintenanceCluster = c.getClusterName();
           }
         }
       }
@@ -709,5 +868,22 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
         clusters.deleteHost(hostRequest.getHostname());
       }
     }
+  }
+
+  /**
+   * Obtain the hostname from the request properties.  The hostname property name may differ
+   * depending on the request type.  For the low level host resource creation calls, it is always
+   * "Hosts/host_name".  For multi host "add host from hostgroup", the hostname property is a top level
+   * property "host_name".
+   *
+   * @param properties  request properties
+   *
+   * @return the host name for the host request
+   */
+  private String getHostNameFromProperties(Map<String, Object> properties) {
+    String hostname = (String) properties.get(HOST_NAME_PROPERTY_ID);
+
+    return hostname != null ? hostname :
+        (String) properties.get(HOST_NAME_NO_CATEGORY_PROPERTY_ID);
   }
 }

@@ -51,11 +51,13 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+
 import static org.powermock.api.easymock.PowerMock.replayAll;
 import java.net.InetAddress;
 import static org.powermock.api.easymock.PowerMock.*;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -1153,7 +1155,15 @@ public class HostResourceProviderTest {
 
   public static void createHosts(AmbariManagementController controller, Set<HostRequest> requests) throws AmbariException {
     HostResourceProvider provider = getHostProvider(controller);
-    provider.createHosts(requests);
+    Set<Map<String, Object>> properties = new HashSet<Map<String, Object>>();
+
+    for (HostRequest request : requests) {
+      Map<String, Object> requestProperties = new HashMap<String, Object>();
+      requestProperties.put(HostResourceProvider.HOST_NAME_PROPERTY_ID, request.getHostname());
+      requestProperties.put(HostResourceProvider.HOST_CLUSTER_NAME_PROPERTY_ID, request.getClusterName());
+      properties.add(requestProperties);
+    }
+    provider.createHosts(PropertyHelper.getCreateRequest(properties, Collections.<String, String>emptyMap()));
   }
 
   public static Set<HostResponse> getHosts(AmbariManagementController controller,
@@ -1168,11 +1178,9 @@ public class HostResourceProviderTest {
     provider.deleteHosts(requests);
   }
   
-  public static void updateHosts(AmbariManagementController controller, Set<HostRequest> requests,
-      Map<String, String> requestProperties)
+  public static void updateHosts(AmbariManagementController controller, Set<HostRequest> requests)
       throws AmbariException {
     HostResourceProvider provider = getHostProvider(controller);
-    provider.updateHosts(requests, requestProperties);
+    provider.updateHosts(requests);
   }
-  
 }

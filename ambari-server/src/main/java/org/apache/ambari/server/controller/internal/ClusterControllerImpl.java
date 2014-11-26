@@ -339,9 +339,20 @@ public class ClusterControllerImpl implements ClusterController {
     return null;
   }
 
+
+  /**
+   * Provides a non-wrapped resource provider..
+   *
+   * @param type  type of resource provider to obtain
+   * @return a non-wrapped resource provider
+   */
   @Override
   public ResourceProvider ensureResourceProvider(Type type) {
-    return ensureResourceProviderWrapper(type);
+    //todo: in some cases it is necessary to down cast the returned resource provider
+    //todo: to a concrete type.  Perhaps we can provided a 'T getDelegate()' method
+    //todo: on the wrapper so no casting would be necessary.
+    ExtendedResourceProviderWrapper providerWrapper = ensureResourceProviderWrapper(type);
+    return providerWrapper == null ? null : providerWrapper.resourceProvider;
   }
 
 

@@ -483,7 +483,7 @@ public class ClusterImpl implements Cluster {
   }
 
   @Override
-  public Map<Long, ConfigGroup> getConfigGroups() throws AmbariException {
+  public Map<Long, ConfigGroup> getConfigGroups() {
     loadConfigGroups();
     clusterGlobalLock.readLock().lock();
     try {
