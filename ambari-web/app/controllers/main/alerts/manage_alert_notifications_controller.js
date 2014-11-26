@@ -19,10 +19,13 @@
 var App = require('app');
 
 App.ManageAlertNotificationsController = Em.Controller.extend({
+
   name: 'manageAlertNotificationsController',
+
   isLoaded: false,
 
   /**
+   * List of all Alert Notifications
    * @type {App.AlertNotification[]}
    */
   alertNotifications: function () {
@@ -33,15 +36,21 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
   }.property('isLoaded'),
 
   /**
+   * Selected Alert Notification
    * @type {App.AlertNotification}
    */
   selectedAlertNotification: null,
 
+  /**
+   * Load all Alert Notifications from server
+   * Don't do anything if controller not isLoaded
+   * @returns {$.ajax|null}
+   */
   loadAlertNotifications: function () {
     if (this.get('isLoaded')) {
-      return;
+      return null;
     }
-    App.ajax.send({
+    return App.ajax.send({
       name: 'alerts.notifications',
       sender: this,
       data: {},
@@ -50,11 +59,20 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
     });
   },
 
+  /**
+   * Success-callback for load alert notifications request
+   * @param {object} json
+   * @method getAlertNotificationsSuccessCallback
+   */
   getAlertNotificationsSuccessCallback: function (json) {
     App.alertNotificationMapper.map(json);
     this.set('isLoaded', true);
   },
 
+  /**
+   * Error-callback for load alert notifications request
+   * @method getAlertNotificationsErrorCallback
+   */
   getAlertNotificationsErrorCallback: function () {
     this.set('isLoaded', true);
   },

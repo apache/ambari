@@ -24,26 +24,30 @@
         <div class="name-top">{{t alerts.fastAccess.popup.body.name}}</div>
         <div class="service-top">{{t common.service}}</div>
         <div class="last-triggered-top">{{t alerts.table.header.lastTriggered}}</div>
-
       </div>
-        <div id="alert-info">
-          {{#if view.isAlertEmptyList}}
-            <div class="alert-list-wrap">{{t alerts.fastAccess.popup.body.noalerts}}</div>
-          {{else}}
-            {{#each alertDefinition in view.contents}}
-              <div class="alert-list-wrap">
-                <div class="alert-list-line-cursor">
-                  <div class="status-icon">{{{alertDefinition.status}}}</div>
-                  <div class="name-text"><a href="#" {{action "gotoAlertDetails" alertDefinition target="view"}}>{{alertDefinition.label}}</a></div>
-                  <div class="service-text"><a href="#" {{action "gotoService" alertDefinition.service target="view"}}>{{alertDefinition.service.displayName}}</a></div>
-                  <div class="last-triggered-text">{{alertDefinition.lastTriggeredFormatted}}</div>
+      <div id="alert-info">
+        {{#if view.isAlertEmptyList}}
+          <div class="alert-list-wrap">{{t alerts.fastAccess.popup.body.noalerts}}</div>
+        {{else}}
+          {{#each alertDefinition in view.content}}
+            <div class="alert-list-wrap">
+              <div class="alert-list-line-cursor">
+                <div class="status-icon">{{{alertDefinition.status}}}</div>
+                <div class="name-text">
+                  <a href="#" {{action "gotoAlertDetails" alertDefinition target="view"}}>{{alertDefinition.label}}</a>
                 </div>
+                <div class="service-text">
+                  <a href="#" {{action "gotoService" alertDefinition.service target="view"}}>{{alertDefinition.service.displayName}}</a>
+                </div>
+                <div class="last-triggered-text">{{alertDefinition.lastTriggeredFormatted}}</div>
               </div>
-            {{/each}}
-          {{/if}}
-          <div class="show-more" {{action "showMore" target="view"}}><a href="#">{{t alerts.fastAccess.popup.body.showmore}}</a>
-          </div>
+            </div>
+          {{/each}}
+        {{/if}}
+        <div class="show-more" {{action "showMore" target="view"}}>
+          <a href="#">{{t alerts.fastAccess.popup.body.showmore}}</a>
         </div>
+      </div>
     </div>
   {{else}}
     <div class="spinner"></div>

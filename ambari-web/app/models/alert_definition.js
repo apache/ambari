@@ -97,7 +97,7 @@ App.AlertDefinition = DS.Model.extend({
   isCritical: function () {
     var summary = this.get('summary');
     var state = 'CRITICAL';
-    return summary[state];
+    return !!summary[state];
   }.property('summary'),
 
   /**
@@ -107,7 +107,7 @@ App.AlertDefinition = DS.Model.extend({
   isWarning: function () {
     var summary = this.get('summary');
     var state = 'WARNING';
-    return summary[state];
+    return !!summary[state];
   }.property('summary'),
 
   /**

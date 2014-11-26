@@ -78,6 +78,7 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
 
   /**
    * Change options of "Component", after changing value of "Service" config
+   * @method onServiceSelect
    */
   onServiceSelect: function () {
     var serviceProperty = this.get('configs').findProperty('label', 'Service');
@@ -89,6 +90,7 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
 
   /**
    * Render array of configs for appropriate alert definition type
+   * @method renderConfigs
    */
   renderConfigs: function () {
     var alertDefinition = this.get('content');
@@ -120,6 +122,7 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
 
   /**
    * Render config properties for port-type alert definition
+   * @method renderPortConfigs
    * @returns {Array}
    */
   renderPortConfigs: function () {
@@ -161,6 +164,7 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
 
   /**
    * Render config properties for metric-type alert definition
+   * @method renderMetricConfigs
    * @returns {Array}
    */
   renderMetricConfigs: function () {
@@ -212,6 +216,7 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
 
   /**
    * Render config properties for web-type alert definition
+   * @method renderWebConfigs
    * @returns {Array}
    */
   renderWebConfigs: function () {
@@ -255,6 +260,7 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
 
   /**
    * Render config properties for script-type alert definition
+   * @method renderScriptConfigs
    * @returns {Array}
    */
   renderScriptConfigs: function () {
@@ -293,6 +299,7 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
 
   /**
    * Render config properties for aggregate-type alert definition
+   * @method renderAggregateConfigs
    * @returns {Array}
    */
   renderAggregateConfigs: function () {
@@ -310,6 +317,7 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
 
   /**
    * Edit configs button handler
+   * @method editConfigs
    */
   editConfigs: function () {
     this.get('configs').forEach(function (property) {
@@ -321,6 +329,7 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
 
   /**
    * Cancel edit configs button handler
+   * @method cancelEditConfigs
    */
   cancelEditConfigs: function () {
     this.get('configs').forEach(function (property) {
@@ -332,25 +341,26 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
 
   /**
    * Save edit configs button handler
+   * @method saveConfigs
+   * @return {$.ajax}
    */
   saveConfigs: function () {
     this.get('configs').setEach('isDisabled', true);
     this.set('canEdit', false);
 
-    var propertiesToUpdate = this.getPropertiesToUpdate();
-
-    App.ajax.send({
+    return App.ajax.send({
       name: 'alerts.update_alert_definition',
       sender: this,
       data: {
         id: this.get('content.id'),
-        data: propertiesToUpdate
+        data: this.getPropertiesToUpdate()
       }
     });
   },
 
   /**
    * Create object with new values to put it on server
+   * @method getPropertiesToUpdate
    * @returns {Object}
    */
   getPropertiesToUpdate: function () {

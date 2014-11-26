@@ -231,7 +231,7 @@ App.ManageAlertGroupsController = Em.Controller.extend({
   },
 
   /**
-   * lauch a table view of all availavle definitions to choose
+   * Launch a table view of all available definitions to choose
    */
   launchDefsSelectionDialog : function(initialDefs, selectedDefs, validServices, validComponents, callback, popupDescription) {
 
@@ -481,7 +481,7 @@ App.ManageAlertGroupsController = Em.Controller.extend({
    * PUTs the new alert group information on the server.
    * Changes possible here are the name, definitions, notifications
    *
-   * @param {App.ConfigGroup} alertGroup
+   * @param {App.AlertGroup} alertGroup
    * @param {Function} successCallback
    * @param {Function} errorCallback
    */

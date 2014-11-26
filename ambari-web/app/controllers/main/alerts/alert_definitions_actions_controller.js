@@ -71,16 +71,24 @@ App.MainAlertDefinitionActionsController = Em.ArrayController.extend({
   },
 
   /**
-   *  handler when clicking on "Manage Alert Groups", a popup will show up
+   * Handler when clicking on "Manage Alert Groups", a popup will show up
+   * @method manageAlertGroups
+   * @return {App.ModalPopup}
    */
   manageAlertGroups: function () {
+
     return App.ModalPopup.show({
+
       header: Em.I18n.t('alerts.actions.manage_alert_groups_popup.header'),
+
       bodyClass: App.MainAlertsManageAlertGroupView.extend({
         controllerBinding: 'App.router.manageAlertGroupsController'
       }),
+
       classNames: ['sixty-percent-width-modal', 'manage-configuration-group-popup'],
+
       primary: Em.I18n.t('common.save'),
+
       onPrimary: function () {
         var modifiedAlertGroups = this.get('subViewController.defsModifiedAlertGroups');
         // Save modified Alert-groups
@@ -136,37 +144,44 @@ App.MainAlertDefinitionActionsController = Em.ArrayController.extend({
         };
         runNextQuery();
       },
-      onSecondary: function () {
-        this.hide();
-      },
-      onClose: function () {
-        this.hide();
-      },
+
       subViewController: function () {
         return App.router.get('manageAlertGroupsController');
       }.property('App.router.manageAlertGroupsController'),
+
       updateButtons: function () {
         var modified = this.get('subViewController.isDefsModified');
         this.set('disablePrimary', !modified);
       }.observes('subViewController.isDefsModified'),
-      secondary: Em.I18n.t('common.cancel'),
+
       didInsertElement: Em.K
+
     });
   },
 
   /**
-   *  "Manage Alert Notifications" handler
+   * "Manage Alert Notifications" handler
+   * @method manageNotifications
+   * @return {App.ModalPopup}
    */
   manageNotifications: function () {
+
     return App.ModalPopup.show({
+
       header: Em.I18n.t('alerts.actions.manage_alert_notifications_popup.header'),
+
       bodyClass: App.ManageAlertNotificationsView.extend({
         controllerBinding: 'App.router.manageAlertNotificationsController'
       }),
+
       classNames: ['sixty-percent-width-modal', 'manage-configuration-group-popup'],
+
       secondary: null,
+
       primary: Em.I18n.t('common.close'),
+
       didInsertElement: Em.K
+
     });
   }
 

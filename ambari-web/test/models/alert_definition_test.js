@@ -57,4 +57,55 @@ describe('App.AlertDefinition', function() {
 
   });
 
+  describe('#isCriticalOrWarning', function () {
+
+    Em.A([
+      {summary: {CRITICAL: 1}, e: true},
+      {summary: {WARNING: 1}, e: true},
+      {summary: {OK: 1}, e: false},
+      {summary: {UNKNOWN: 1}, e: false},
+      {summary: {}, e: false}
+    ]).forEach(function (test, i) {
+        it('test ' + (i + 1), function () {
+          model.set('summary', test.summary);
+          expect(model.get('isCriticalOrWarning')).to.equal(test.e);
+        });
+      });
+
+  });
+
+  describe('#isCritical', function () {
+
+    Em.A([
+        {summary: {CRITICAL: 1}, e: true},
+        {summary: {WARNING: 1}, e: false},
+        {summary: {OK: 1}, e: false},
+        {summary: {UNKNOWN: 1}, e: false},
+        {summary: {}, e: false}
+      ]).forEach(function (test, i) {
+        it('test ' + (i + 1), function () {
+          model.set('summary', test.summary);
+          expect(model.get('isCritical')).to.equal(test.e);
+        });
+      });
+
+  });
+
+  describe('#isWarning', function () {
+
+    Em.A([
+        {summary: {CRITICAL: 1}, e: false},
+        {summary: {WARNING: 1}, e: true},
+        {summary: {OK: 1}, e: false},
+        {summary: {UNKNOWN: 1}, e: false},
+        {summary: {}, e: false}
+      ]).forEach(function (test, i) {
+        it('test ' + (i + 1), function () {
+          model.set('summary', test.summary);
+          expect(model.get('isWarning')).to.equal(test.e);
+        });
+      });
+
+  });
+
 });

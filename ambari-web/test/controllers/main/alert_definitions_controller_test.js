@@ -53,4 +53,36 @@ describe('App.MainAlertDefinitionsController', function() {
 
   });
 
+  describe('#showPopup', function () {
+
+    describe('#bodyClass', function () {
+
+      var bodyView;
+
+      beforeEach(function () {
+        controller.reopen({content: [
+          App.AlertDefinition.createRecord({summary: {CRITICAL: 1}}),
+          App.AlertDefinition.createRecord({summary: {WARNING: 1}}),
+          App.AlertDefinition.createRecord({summary: {OK: 1}}),
+          App.AlertDefinition.createRecord({summary: {UNKNOWN: 1}})
+        ]});
+        bodyView = controller.showPopup().get('bodyClass').create();
+      });
+
+      it('#content', function () {
+        expect(bodyView.get('content.length')).to.equal(2);
+      });
+
+      it('#isLoaded', function () {
+        expect(bodyView.get('isLoaded')).to.be.true;
+      });
+
+      it('#isAlertEmptyList', function () {
+        expect(bodyView.get('isAlertEmptyList')).to.be.false;
+      });
+
+    });
+
+  });
+
 });

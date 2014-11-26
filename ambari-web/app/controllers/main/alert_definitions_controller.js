@@ -49,6 +49,7 @@ App.MainAlertDefinitionsController = Em.ArrayController.extend({
    * Enable/disable alertDefinition confirmation popup
    * @param {object} event
    * @method toggleState
+   * @return {App.ModalPopup}
    */
   toggleState: function(event) {
     var alertDefinition = event.context;
@@ -83,21 +84,25 @@ App.MainAlertDefinitionsController = Em.ArrayController.extend({
   },
 
   /**
-   *  alerts number to show up on top-nav bar: number of critical/warning alerts
+   * Alerts number to show up on top-nav bar: number of critical/warning alerts
+   * @type {number}
    */
   allAlertsCount: function () {
     return this.get('content').filterProperty('isCriticalOrWarning').get('length');
   }.property('content.@each.isCriticalOrWarning'),
 
   /**
-   * if critical alerts exist, if true, the alert badge should be red.
+   * If critical alerts exist, if true, the alert badge should be red.
+   * @type {boolean}
    */
   isCriticalAlerts: function () {
     return this.get('content').someProperty('isCritical');
   }.property('content.@each.isCritical'),
 
   /**
-   *  calcuale critical/warning count for each service, to show up the label on services menu
+   * Calculate critical/warning count for each service, to show up the label on services menu
+   * @method getCriticalAlertsCountForService
+   * @return {number}
    */
   getCriticalAlertsCountForService: function(service) {
     var alertsForService = this.get('content').filterProperty('service', service);
@@ -105,60 +110,58 @@ App.MainAlertDefinitionsController = Em.ArrayController.extend({
   },
 
   /**
-   * Onclick handler for alerts number located right to bg ops number
+   * Onclick handler for alerts number located right to bg ops number (see application.hbs)
+   * @method showPopup
+   * @return {App.ModalPopup}
    */
-  showPopup: function(){
-    var self = this;
-    return App.ModalPopup.show({
-      header: Em.I18n.t('alerts.fastAccess.popup.header').format(self.get('allAlertsCount')),
-      classNames: ['sixty-percent-width-modal', 'alerts-popup'],
-      secondary: null,
-      isHideBodyScroll: true,
-      closeModelPopup: function () {
-        this.hide();
-      },
-      onPrimary: function () {
-        this.closeModelPopup();
-      },
-      onClose: function () {
-        this.closeModelPopup();
-      },
+  showPopup: function() {
 
-      bodyClass: App.TableView.extend({
+    var self = this;
+
+    return App.ModalPopup.show({
+
+      header: Em.I18n.t('alerts.fastAccess.popup.header').format(self.get('allAlertsCount')),
+
+      classNames: ['sixty-percent-width-modal', 'alerts-popup'],
+
+      secondary: null,
+
+      isHideBodyScroll: true,
+
+      bodyClass: Em.View.extend({
+
         templateName: require('templates/common/alerts_popup'),
+
         controller: self,
 
-        contents: function () {
+        content: function () {
           // show crit/warn alerts only.
           return this.get('controller.content').filterProperty('isCriticalOrWarning');
         }.property('controller.content.@each.isCriticalOrWarning'),
 
         isLoaded: function () {
-          return this.get('controller.content.length');
+          return !!this.get('controller.content.length');
         }.property('controller.content.length'),
 
         isAlertEmptyList: function () {
-          return !this.get('contents.length');
-        }.property('contents.length'),
+          return !this.get('content.length');
+        }.property('content.length'),
 
         gotoAlertDetails: function (event) {
-          this.get('parentView').closeModelPopup();
+          this.get('parentView').hide();
           App.router.transitionTo('main.alerts.alertDetails', event.context);
         },
 
         gotoService: function (event) {
-          this.get('parentView').closeModelPopup();
+          this.get('parentView').hide();
           App.router.transitionTo('main.services.service', event.context);
         },
 
         showMore: function () {
-          this.get('parentView').closeModelPopup();
+          this.get('parentView').hide();
           App.router.transitionTo('main.alerts.index');
-        },
+        }
 
-        totalCount: function () {
-          return this.get('contents.length');
-        }.property('contents.length')
       })
     })
   }

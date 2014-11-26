@@ -47,6 +47,7 @@ App.MainAlertDefinitionDetailsController = Em.Controller.extend({
 
   /**
    * Validation function to define if label field populated correctly
+   * @method labelValidation
    */
   labelValidation: function () {
     this.set('editing.label.isError', !this.get('editing.label.value').trim());
@@ -54,6 +55,7 @@ App.MainAlertDefinitionDetailsController = Em.Controller.extend({
 
   /**
    * Validation function to define if description field populated correctly
+   * @method descriptionValidation
    */
   descriptionValidation: function () {
     this.set('editing.description.isError', !this.get('editing.description.value').trim());
@@ -71,7 +73,8 @@ App.MainAlertDefinitionDetailsController = Em.Controller.extend({
 
   /**
    * Edit button handler
-   * @param event
+   * @param {object} event
+   * @method edit
    */
   edit: function (event) {
     var element = event.context;
@@ -83,7 +86,8 @@ App.MainAlertDefinitionDetailsController = Em.Controller.extend({
 
   /**
    * Cancel button handler
-   * @param event
+   * @param {object} event
+   * @method cancelEdit
    */
   cancelEdit: function (event) {
     var element = event.context;
@@ -93,7 +97,7 @@ App.MainAlertDefinitionDetailsController = Em.Controller.extend({
 
   /**
    * Save button handler, could save label/description/thresholds of alert definition
-   * @param event
+   * @param {object} event
    * @returns {$.ajax}
    * @method saveEdit
    */
@@ -118,9 +122,10 @@ App.MainAlertDefinitionDetailsController = Em.Controller.extend({
 
   /**
    * "Delete" button handler
-   * @param event
+   * @param {object} event
+   * @method deleteAlertDefinition
    */
-  deleteAlertDefinition : function(event) {
+  deleteAlertDefinition: function(event) {
     var alertDefinition = this.get('content');
     var self = this;
     App.showConfirmationPopup(function() {
@@ -137,10 +142,18 @@ App.MainAlertDefinitionDetailsController = Em.Controller.extend({
     });
   },
 
+  /**
+   * Success-callback for <code>deleteAlertDefinition</code>
+   * @method deleteAlertDefinitionSuccess
+   */
   deleteAlertDefinitionSuccess : function() {
     App.router.transitionTo('main.alerts.index');
   },
 
+  /**
+   * Error-callback for <code>deleteAlertDefinition</code>
+   * @method deleteAlertDefinitionError
+   */
   deleteAlertDefinitionError : function(xhr, textStatus, errorThrown, opt) {
     console.log(textStatus);
     console.log(errorThrown);
@@ -169,7 +182,8 @@ App.MainAlertDefinitionDetailsController = Em.Controller.extend({
 
   /**
    * Router transition to host level alerts page
-   * @param event
+   * @param {object} event
+   * @method goToHostAlerts
    */
   goToHostAlerts: function (event) {
     if (event && event.context) {

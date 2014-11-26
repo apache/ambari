@@ -22,6 +22,9 @@ App.ManageAlertNotificationsView = Em.View.extend({
 
   templateName: require('templates/main/alerts/manage_alert_notifications_popup'),
 
+  /**
+   * @type {App.AlertNotification}
+   */
   selectedAlertNotification: null,
 
   selectedAlertNotificationGroups: function () {
@@ -35,27 +38,37 @@ App.ManageAlertNotificationsView = Em.View.extend({
 
   isDuplicateButtonDisabled: true,
 
+  /**
+   * Show EMAIL information if selected alert notification has type EMAIL
+   * @type {boolean}
+   */
   showEmailDetails: function () {
     return this.get('controller.selectedAlertNotification.type') === 'EMAIL';
   }.property('controller.selectedAlertNotification.type'),
 
+  /**
+   * Show SNMP information if selected alert notification has type SNMP
+   * @type {boolean}
+   */
   showSNMPDetails: function () {
     return this.get('controller.selectedAlertNotification.type') === 'SNMP';
   }.property('controller.selectedAlertNotification.type'),
 
+  /**
+   * Enable/disable "edit"/"remove"/"duplicate" buttons basing on <code>controller.selectedAlertNotification</code>
+   * @method buttonObserver
+   */
   buttonObserver: function () {
     var selectedAlertNotification = this.get('controller.selectedAlertNotification');
-    if (selectedAlertNotification) {
-      this.set('isEditButtonDisabled', false);
-      this.set('isRemoveButtonDisabled', false);
-      this.set('isDuplicateButtonDisabled', false);
-    } else {
-      this.set('isEditButtonDisabled', true);
-      this.set('isRemoveButtonDisabled', true);
-      this.set('isDuplicateButtonDisabled', true);
-    }
+    this.set('isEditButtonDisabled', !selectedAlertNotification);
+    this.set('isRemoveButtonDisabled', !selectedAlertNotification);
+    this.set('isDuplicateButtonDisabled', !selectedAlertNotification);
   }.observes('controller.selectedAlertNotification'),
 
+  /**
+   * Prevent user select more than 1 alert notification
+   * @method onAlertNotificationSelect
+   */
   onAlertNotificationSelect: function () {
     var selectedAlertNotification = this.get('selectedAlertNotification');
     var length = selectedAlertNotification.length;
@@ -67,6 +80,11 @@ App.ManageAlertNotificationsView = Em.View.extend({
     }
   }.observes('selectedAlertNotification'),
 
+  /**
+   * Set first alert notification as selected (if they are already loaded)
+   * Add some tooltips on manage buttons
+   * @method onLoad
+   */
   onLoad: function () {
     if (this.get('controller.isLoaded')) {
       var notifications = this.get('controller.alertNotifications');
@@ -88,10 +106,6 @@ App.ManageAlertNotificationsView = Em.View.extend({
 
   didInsertElement: function () {
     this.onLoad();
-  },
-
-  errorMessage: function () {
-    return this.get('controller.errorMessage');
-  }.property('controller.errorMessage')
+  }
 
 });
