@@ -27,7 +27,8 @@ def hive(name=None):
   XmlConfig("hive-site.xml",
             conf_dir = params.hive_conf_dir,
             configurations = params.config['configurations']['hive-site'],
-            owner=params.hive_user
+            owner=params.hive_user,
+            configuration_attributes=params.config['configuration_attributes']['hive-site']
   )
   if name in ["hiveserver2","metastore"]:
     Execute(format("cmd /c hadoop fs -mkdir -p {hive_warehouse_dir}"), logoutput=True, user=params.hadoop_user)

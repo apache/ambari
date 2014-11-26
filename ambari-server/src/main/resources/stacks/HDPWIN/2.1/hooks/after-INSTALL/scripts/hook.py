@@ -35,7 +35,8 @@ class AfterInstallHook(Hook):
               conf_dir=params.hadoop_conf_dir,
               configurations=params.config['configurations']['core-site'],
               owner=params.hdfs_user,
-              mode="f"
+              mode="f",
+              configuration_attributes=params.config['configuration_attributes']['core-site']
     )
     download_file(os.path.join(params.config['hostLevelParams']['jdk_location'], "sqljdbc4.jar"),
                   os.path.join(params.hadoop_common_dir, "sqljdbc4.jar")

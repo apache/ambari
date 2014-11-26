@@ -25,5 +25,6 @@ def hbase():
   import params
   XmlConfig("hbase-site.xml",
              conf_dir = params.hbase_conf_dir,
-             configurations = params.config['configurations']['hbase-site']
+             configurations = params.config['configurations']['hbase-site'],
+             configuration_attributes=params.config['configuration_attributes']['hbase-site']
   )

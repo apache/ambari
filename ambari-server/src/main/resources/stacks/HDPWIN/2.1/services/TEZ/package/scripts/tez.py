@@ -26,5 +26,6 @@ def tez():
               conf_dir=params.tez_conf_dir,
               configurations=params.config['configurations']['tez-site'],
               owner=params.tez_user,
-              mode="f"
+              mode="f",
+              configuration_attributes=params.config['configuration_attributes']['tez-site']
     )

@@ -34,7 +34,8 @@ def yarn():
             conf_dir=params.config_dir,
             configurations=params.config['configurations']['yarn-site'],
             owner=params.yarn_user,
-            mode='f'
+            mode='f',
+            configuration_attributes=params.config['configuration_attributes']['yarn-site']
   )
   XmlConfig("capacity-scheduler.xml",
             conf_dir=params.config_dir,

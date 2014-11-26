@@ -27,7 +27,8 @@ def oozie():
             conf_dir = params.oozie_conf_dir,
             configurations = params.config['configurations']['oozie-site'],
             owner = params.oozie_user,
-            mode = 'f'
+            mode = 'f',
+            configuration_attributes=params.config['configuration_attributes']['oozie-site']
   )
 
   File(format("{oozie_conf_dir}/oozie-env.cmd"),

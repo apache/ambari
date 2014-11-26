@@ -39,14 +39,16 @@ def hdfs(component=None):
               conf_dir=params.hadoop_conf_dir,
               configurations=params.config['configurations']['hadoop-policy'],
               owner=params.hdfs_user,
-              mode="f"
+              mode="f",
+              configuration_attributes=params.config['configuration_attributes']['hadoop-policy']
     )
 
   XmlConfig("hdfs-site.xml",
             conf_dir=params.hadoop_conf_dir,
             configurations=params.config['configurations']['hdfs-site'],
             owner=params.hdfs_user,
-            mode="f"
+            mode="f",
+            configuration_attributes=params.config['configuration_attributes']['hdfs-site']
   )
   File(format("{params.hadoop_conf_dir}/hadoop-metrics2.properties"),
        content=Template("hadoop-metrics2.properties.j2"),
