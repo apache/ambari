@@ -104,6 +104,33 @@ public class ServiceModuleTest {
   }
 
   @Test
+  public void testResolve_Version() throws Exception {
+    String version = "1.1";
+
+    // specified in child only
+    ServiceInfo info = new ServiceInfo();
+    ServiceInfo parentInfo = new ServiceInfo();
+    info.setVersion(version);
+
+    ServiceModule service = resolveService(info, parentInfo);
+    assertEquals(version, service.getModuleInfo().getVersion());
+
+    // specified in parent only
+    info.setVersion(null);
+    parentInfo.setVersion(version);
+
+    service = resolveService(info, parentInfo);
+    assertEquals(version, service.getModuleInfo().getVersion());
+
+    // specified in both
+    info.setVersion(version);
+    parentInfo.setVersion("1.0");
+
+    service = resolveService(info, parentInfo);
+    assertEquals(version, service.getModuleInfo().getVersion());
+  }
+
+  @Test
   public void testResolve_RequiredServices() throws Exception {
     List<String> requiredServices = new ArrayList<String>();
     requiredServices.add("foo");

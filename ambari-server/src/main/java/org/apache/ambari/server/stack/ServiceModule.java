@@ -101,6 +101,9 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> {
     if (serviceInfo.getDisplayName() == null) {
       serviceInfo.setDisplayName(parent.getDisplayName());
     }
+    if (serviceInfo.getVersion() == null) {
+      serviceInfo.setVersion(parent.getVersion());
+    }
 
     if (serviceInfo.getRequiredServices() == null) {
       serviceInfo.setRequiredServices(parent.getRequiredServices() != null ?
