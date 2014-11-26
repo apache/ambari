@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.regex.*;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StaticallyInject;
@@ -57,6 +58,7 @@ import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.orm.entities.UpgradeItemEntity;
 import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.StackId;
@@ -68,6 +70,8 @@ import org.apache.ambari.server.utils.StageUtils;
 import com.google.gson.Gson;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Manages the ability to start and get status of upgrades.
@@ -100,6 +104,8 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   private static Provider<AmbariActionExecutionHelper> actionExecutionHelper;
   @Inject
   private static Provider<AmbariCustomCommandExecutionHelper> commandExecutionHelper;
+  @Inject
+  private ConfigHelper configHelper;
 
   static {
     // properties
@@ -112,6 +118,9 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     KEY_PROPERTY_IDS.put(Resource.Type.Upgrade, UPGRADE_ID);
     KEY_PROPERTY_IDS.put(Resource.Type.Cluster, UPGRADE_CLUSTER_NAME);
   }
+
+  private static final Logger LOG =
+      LoggerFactory.getLogger(UpgradeResourceProvider.class);
 
   /**
    * Constructor.
@@ -268,6 +277,46 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     return up;
   }
 
+  /**
+   * Inject variables into the list of {@link org.apache.ambari.server.orm.entities.UpgradeItemEntity} items, whose
+   * tasks may use strings like {{configType/propertyName}} that need to be retrieved from the properties.
+   * @param configHelper Configuration Helper
+   * @param cluster Cluster
+   * @param items Collection of items whose tasks will be injected.
+   * @return Return the collection of items with the injected properties.
+   */
+  private List<UpgradeItemEntity> injectVariables(ConfigHelper configHelper, Cluster cluster, List<UpgradeItemEntity> items) {
+    final String regexp = "(\\{\\{.*?\\}\\})";
+
+    for (UpgradeItemEntity upgradeItem : items) {
+      String task = upgradeItem.getTasks();
+      if (task != null && !task.isEmpty()) {
+        Matcher m = Pattern.compile(regexp).matcher(task);
+        while(m.find()) {
+          String origVar = m.group(1);
+          String formattedVar = origVar.substring(2, origVar.length() - 2).trim();
+
+          int posConfigFile = formattedVar.indexOf("/");
+          if (posConfigFile > 0) {
+            String configType = formattedVar.substring(0, posConfigFile);
+            String propertyName = formattedVar.substring(posConfigFile + 1, formattedVar.length());
+            try {
+              // TODO, some properties use 0.0.0.0 to indicate the current host.
+              // Right now, ru_execute_tasks.py is responsible for replacing 0.0.0.0 with the hostname.
+
+              String configValue = configHelper.getPropertyValueFromStackDefinitions(cluster, configType, propertyName);
+              task = task.replace(origVar, configValue);
+            } catch (Exception err) {
+              LOG.error(String.format("Exception trying to retrieve property %s/%s. Error: %s", configType, propertyName, err.getMessage()));
+            }
+          }
+        }
+        upgradeItem.setTasks(task);
+      }
+    }
+    return items;
+  }
+
   private UpgradeEntity createUpgrade(UpgradePack pack, Map<String, Object> requestMap)
     throws AmbariException {
 
@@ -278,6 +327,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     }
 
     Cluster cluster = getManagementController().getClusters().getCluster(clusterName);
+    ConfigHelper configHelper = getManagementController().getConfigHelper();
     Map<String, Service> clusterServices = cluster.getServices();
 
     Map<String, Map<String, ProcessingComponent>> tasks = pack.getTasks();
@@ -341,25 +391,32 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       items.add(holder.upgradeItemEntity);
     }
 
+    // This should be the last thing just before finalizing
     for (StageHolder holder : postUpgrades) {
       holder.upgradeItemEntity.setHosts(gson.toJson(holder.hosts));
       holder.upgradeItemEntity.setTasks(gson.toJson(holder.taskHolder.tasks));
       items.add(holder.upgradeItemEntity);
     }
 
+    items = injectVariables(configHelper, cluster, items);
+
     entity.setClusterId(Long.valueOf(cluster.getClusterId()));
     entity.setUpgradeItems(items);
 
     RequestStageContainer req = createRequest((String) requestMap.get(UPGRADE_VERSION));
 
+    // All of the Pre-Upgrades occur first, potentially in several stages.
+    // Should include things like entering safe mode, backing up data, changing the version using hdp-select, etc.
     for (StageHolder holder : preUpgrades) {
       createUpgradeTaskStage(cluster, req, holder);
     }
 
+    // The restart occurs after all of the Pre-Upgrades are done, and is meant to change the pointers and configs.
     for (StageHolder holder : restart) {
       createRestartStage(cluster, req, holder);
     }
 
+    // Post-Upgrades require the user to click on the "Finalize" button.
     for (StageHolder holder : postUpgrades) {
       createUpgradeTaskStage(cluster, req, holder);
     }
@@ -534,7 +591,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
     // !!! TODO when the custom action is underway, change this
     Map<String, String> params = new HashMap<String, String>();
-    params.put("tasks", "TheTaskInfo");
+    params.put("tasks", holder.upgradeItemEntity.getTasks());
 
     ActionExecutionContext actionContext = new ActionExecutionContext(
         cluster.getClusterName(), "ru_execute_tasks",

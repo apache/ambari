@@ -101,6 +101,13 @@ def service(action=None, name=None, user=None, create_pid_dir=False,
   Execute(daemon_cmd,
           not_if=service_is_up
   )
+
+  #After performing the desired action, perform additional tasks.
+  if action == "start":
+    Execute("hdfs dfsadmin -report -live",
+            user=params.hdfs_principal_name if params.security_enabled else params.hdfs_user
+    )
+
   if action == "stop":
     File(pid_file,
          action="delete",

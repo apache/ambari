@@ -69,6 +69,9 @@ class TestSNamenode(RMFTestCase):
     self.assertResourceCalled('Execute', 'ulimit -c unlimited;  su -s /bin/bash - hdfs -c \'export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf start secondarynamenode\'',
                               not_if = 'ls /var/run/hadoop/hdfs/hadoop-hdfs-secondarynamenode.pid >/dev/null 2>&1 && ps -p `cat /var/run/hadoop/hdfs/hadoop-hdfs-secondarynamenode.pid` >/dev/null 2>&1',
                               )
+    self.assertResourceCalled('Execute', 'hdfs dfsadmin -report -live',
+                              user='hdfs'
+                              )
     self.assertNoMoreResources()
 
   def test_stop_default(self):
@@ -147,6 +150,9 @@ class TestSNamenode(RMFTestCase):
                               )
     self.assertResourceCalled('Execute', 'ulimit -c unlimited;  su -s /bin/bash - hdfs -c \'export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf start secondarynamenode\'',
                               not_if = 'ls /var/run/hadoop/hdfs/hadoop-hdfs-secondarynamenode.pid >/dev/null 2>&1 && ps -p `cat /var/run/hadoop/hdfs/hadoop-hdfs-secondarynamenode.pid` >/dev/null 2>&1',
+                              )
+    self.assertResourceCalled('Execute', 'hdfs dfsadmin -report -live',
+                              user='hdfs'
                               )
     self.assertNoMoreResources()
 

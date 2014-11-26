@@ -33,6 +33,25 @@ def zookeeper_service(action='start'):
             not_if=no_op_test,
             user=params.zk_user
     )
+
+    if params.security_enabled:
+      kinit_cmd = format("{kinit_path_local} -kt {smoke_user_keytab} {smokeuser};")
+
+      Execute(kinit_cmd,
+              user=params.smokeuser
+      )
+
+    # Ensure that a quorum is still formed.
+    create_command = format("echo 'create /zk_test mydata' | {zk_cli_shell}")
+    list_command = format("echo 'ls /' | {zk_cli_shell}")
+    delete_command = format("echo 'delete /zk_test ' | {zk_cli_shell}")
+    Execute(create_command,
+            user=params.smokeuser)
+    Execute(list_command,
+            user=params.smokeuser)
+    Execute(delete_command,
+            user=params.smokeuser)
+
   elif action == 'stop':
     daemon_cmd = format("source {config_dir}/zookeeper-env.sh ; {cmd} stop")
     rm_pid = format("rm -f {zk_pid_file}")

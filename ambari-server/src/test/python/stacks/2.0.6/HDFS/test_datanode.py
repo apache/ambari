@@ -60,6 +60,10 @@ class TestDatanode(RMFTestCase):
     self.assertResourceCalled('Execute', 'ulimit -c unlimited;  su -s /bin/bash - hdfs -c \'export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf start datanode\'',
                               not_if = 'ls /var/run/hadoop/hdfs/hadoop-hdfs-datanode.pid >/dev/null 2>&1 && ps -p `cat /var/run/hadoop/hdfs/hadoop-hdfs-datanode.pid` >/dev/null 2>&1',
                               )
+    self.assertResourceCalled('Execute',
+                              'hdfs dfsadmin -report -live',
+                              user='hdfs'
+                              )
     self.assertNoMoreResources()
 
   @patch("os.path.exists", new = MagicMock(return_value=False))
@@ -130,6 +134,10 @@ class TestDatanode(RMFTestCase):
     self.assertResourceCalled('Execute', 'ulimit -c unlimited;  su -s /bin/bash - root -c \'export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf start datanode\'',
                               not_if = 'ls /var/run/hadoop/hdfs/hadoop-hdfs-datanode.pid >/dev/null 2>&1 && ps -p `cat /var/run/hadoop/hdfs/hadoop-hdfs-datanode.pid` >/dev/null 2>&1',
                               )
+    self.assertResourceCalled('Execute',
+                              'hdfs dfsadmin -report -live',
+                              user='hdfs'
+                              )
     self.assertNoMoreResources()
 
   def test_start_secured_HDP22_root(self):
@@ -164,6 +172,10 @@ class TestDatanode(RMFTestCase):
                               )
     self.assertResourceCalled('Execute', 'ulimit -c unlimited;  su -s /bin/bash - root -c \'export HADOOP_LIBEXEC_DIR=/usr/hdp/current/hadoop-client/libexec && /usr/hdp/current/hadoop-client/sbin/hadoop-daemon.sh --config /etc/hadoop/conf start datanode\'',
                               not_if = 'ls /var/run/hadoop/hdfs/hadoop-hdfs-datanode.pid >/dev/null 2>&1 && ps -p `cat /var/run/hadoop/hdfs/hadoop-hdfs-datanode.pid` >/dev/null 2>&1',
+                              )
+    self.assertResourceCalled('Execute',
+                              'hdfs dfsadmin -report -live',
+                              user='hdfs'
                               )
     self.assertNoMoreResources()
 
@@ -202,6 +214,10 @@ class TestDatanode(RMFTestCase):
                               )
     self.assertResourceCalled('Execute', 'ulimit -c unlimited;  su -s /bin/bash - hdfs -c \'export HADOOP_LIBEXEC_DIR=/usr/hdp/current/hadoop-client/libexec && /usr/hdp/current/hadoop-client/sbin/hadoop-daemon.sh --config /etc/hadoop/conf start datanode\'',
                               not_if = 'ls /var/run/hadoop/hdfs/hadoop-hdfs-datanode.pid >/dev/null 2>&1 && ps -p `cat /var/run/hadoop/hdfs/hadoop-hdfs-datanode.pid` >/dev/null 2>&1',
+                              )
+    self.assertResourceCalled('Execute',
+                              'hdfs dfsadmin -report -live',
+                              user='hdfs'
                               )
     self.assertNoMoreResources()
 

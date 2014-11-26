@@ -31,11 +31,11 @@ class ZookeeperServiceCheck(Script):
          content=StaticFile('zkSmoke.sh')
     )
 
-    cmd_qourum = format("{tmp_dir}/zkSmoke.sh {smoke_script} {smokeuser} {config_dir} {clientPort} "
+    cmd_quorum = format("{tmp_dir}/zkSmoke.sh {zk_cli_shell} {smokeuser} {config_dir} {clientPort} "
                   "{security_enabled} {kinit_path_local} {smokeUserKeytab}",
                   smokeUserKeytab=params.smoke_user_keytab if params.security_enabled else "no_keytab")
 
-    Execute(cmd_qourum,
+    Execute(cmd_quorum,
             tries=3,
             try_sleep=5,
             path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',

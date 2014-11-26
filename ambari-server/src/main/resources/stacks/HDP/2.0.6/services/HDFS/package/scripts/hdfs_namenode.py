@@ -17,6 +17,7 @@ limitations under the License.
 
 """
 
+from resource_management.core.shell import checked_call
 from resource_management import *
 from utils import service
 
@@ -50,6 +51,11 @@ def namenode(action=None, do_format=True):
       create_pid_dir=True,
       create_log_dir=True
     )
+
+    if params.security_enabled:
+      Execute(format("{kinit_path_local} -kt {hdfs_user_keytab} {hdfs_principal_name}"),
+              user = params.hdfs_user)
+
     if params.dfs_ha_enabled:
       dfs_check_nn_status_cmd = format("su -s /bin/bash - {hdfs_user} -c 'export PATH=$PATH:{hadoop_bin_dir} ; hdfs --config {hadoop_conf_dir} haadmin -getServiceState {namenode_id} | grep active > /dev/null'")
     else:
@@ -57,9 +63,21 @@ def namenode(action=None, do_format=True):
 
     namenode_safe_mode_off = format("su -s /bin/bash - {hdfs_user} -c 'export PATH=$PATH:{hadoop_bin_dir} ; hdfs --config {hadoop_conf_dir} dfsadmin -safemode get' | grep 'Safe mode is OFF'")
 
-    if params.security_enabled:
-      Execute(format("{kinit_path_local} -kt {hdfs_user_keytab} {hdfs_principal_name}"),
-              user = params.hdfs_user)
+    # If HA is enabled and it is in standby, then stay in safemode, otherwise, leave safemode.
+    leave_safe_mode = True
+    if dfs_check_nn_status_cmd is not None:
+      code, out = shell.checked_call(dfs_check_nn_status_cmd, throw_on_failure=False)
+      if code != 0:
+        leave_safe_mode = False
+
+    if leave_safe_mode:
+      # First check if Namenode is not in 'safemode OFF' (equivalent to safemode ON), if so, then leave it
+      code, out = shell.checked_call(namenode_safe_mode_off, throw_on_failure=False)
+      if code != 0:
+        leave_safe_mode_cmd = format("su -s /bin/bash - {hdfs_user} -c 'export PATH=$PATH:{hadoop_bin_dir} ; hdfs --config {hadoop_conf_dir} dfsadmin -safemode leave'")
+        Execute(leave_safe_mode_cmd)
+
+    # Verify if Namenode should be in safemode OFF
     Execute(namenode_safe_mode_off,
             tries=40,
             try_sleep=10,

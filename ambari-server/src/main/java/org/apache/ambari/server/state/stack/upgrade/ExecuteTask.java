@@ -35,8 +35,47 @@ public class ExecuteTask extends Task {
   @XmlTransient
   private Task.Type type = Task.Type.EXECUTE;
 
+  /**
+   * Command to run under normal conditions.
+   */
   @XmlElement(name="command")
   public String command;
+
+  /**
+   * Run the command only if this condition is first met.
+   */
+  @XmlElement(name="first")
+  public String first;
+
+  /**
+   * Run the command unless this condition is met.
+   */
+  @XmlElement(name="unless")
+  public String unless;
+
+  /**
+   * Command to run if a failure occurs.
+   */
+  @XmlElement(name="onfailure")
+  public String onfailure;
+
+  /**
+   * Run the command up to x times, until it succeeds.
+   */
+  @XmlElement(name="upto")
+  public String upto;
+
+  /**
+   * If "until" is specified, then sleep this many seconds between attempts.
+   */
+  @XmlElement(name="every")
+  public String every;
+
+  /**
+   * Comma delimited list of return codes to ignore
+   */
+  @XmlElement(name="ignore")
+  public String ignore;
 
   @Override
   public Task.Type getType() {

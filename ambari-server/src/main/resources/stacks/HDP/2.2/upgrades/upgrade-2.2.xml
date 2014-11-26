@@ -15,6 +15,20 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 -->
+
+<!-- Sample Usage of tasks.
+<task xsi:type="execute">
+  <command>echo 'Hello World'</command>
+</task>
+<task xsi:type="configure">
+  <key>prop1</key>
+  <value>value1</value>
+</task>
+<task xsi:type="manual">
+  <message>Please perform the following manual step</message>
+</task>
+-->
+
 <upgrade xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <target>2.2.*.*</target>
   <order>
@@ -23,9 +37,9 @@
       <component>ZOOKEEPER_CLIENT</component>
     </service>
     <service name="HDFS">
-      <component>JOURNALNODE</component>
       <component>NAMENODE</component>
       <component>DATANODE</component>
+      <component>JOURNALNODE</component>
     </service>
   </order>
   <processing>
@@ -34,35 +48,152 @@
         <batch xsi:type="count">
           <count>1</count>
         </batch>
+        <!-- TODO, optimization
+        <pre-upgrade>
+          Find the leader by running
+          echo stat | nc localhost 2181
+          on the ZK nodes until one of them replies with a value (standalone or replicated).
+          Store that leader, and perform the upgrade on the leader last, this is only an optimization and is optional.
+        </pre-upgrade>
+        -->
+
+        <!-- ZK Server Restart (or Start, implicitly) must do the following:
+        Before continuing to the next ZK host, make sure that a quorum is established.
+        Start the shell, /usr/hdp/current/zookeeper-client/bin/zkCli.sh
+        Then run,
+        $ create /zk_test mydata
+        $ ls /
+        [hiveserver2, zookeeper, zk_test]
+
+        Finally, delete it,
+        $ delete /zk_test
+
+        $ quit
+        -->
       </component>
     </service>
     <service name="HDFS">
       <component name="NAMENODE">
         <pre-upgrade>
+          <!-- Backup the image,
+          Enter Safemode if not already in it,
+
+          $ su hdfs -c 'hdfs dfsadmin -safemode get'
+          Safe mode is OFF
+
+          $ su hdfs -c 'hdfs dfsadmin -safemode enter'
+          Safe mode is OFF
+
+          $ su hdfs -c 'hdfs dfsadmin -rollingUpgrade prepare'
+          PREPARE rolling upgrade ...
+          Proceed with rolling upgrade:
+          Block Pool ID: BP-1917654970-192.168.64.107-1416527263491
+          Start Time: Fri Nov 21 22:31:03 UTC 2014 (=1416609063176)
+          Finalize Time: <NOT FINALIZED>
+
+          $ su hdfs -c 'hdfs dfsadmin -rollingUpgrade query'
+          QUERY rolling upgrade ...
+          Proceed with rolling upgrade:
+          Block Pool ID: BP-1917654970-192.168.64.107-1416527263491
+          Start Time: Sat Nov 22 02:44:21 UTC 2014 (=1416624261594)
+          Finalize Time: <NOT FINALIZED>
+
+          This should be the last thing called on each service once the user decides to commit to finalizing the entire upgrade.
+          $ su hdfs -c 'hdfs dfsadmin -rollingUpgrade finalize'
+          FINALIZE rolling upgrade ...
+          There is no rolling upgrade in progress or rolling upgrade has already been finalized.
+          -->
           <task xsi:type="execute">
-            <command>su - {hdfs-user} -c 'hdfs dfsadmin -rollingUpgrade prepare'</command>
+            <command>su - {{hadoop-env/hdfs_user}} -c 'hdfs dfsadmin -safemode enter'</command>
+            <upto>10</upto>
+            <every>6</every>
           </task>
+
           <task xsi:type="execute">
-            <command>su - {hdfs-user} -c 'hdfs dfsadmin -rollingUpgrade query'</command>
-            <until>Proceed with rolling upgrade</until>
+            <command>su - {{hadoop-env/hdfs_user}} -c 'hdfs dfsadmin -rollingUpgrade prepare'</command>
+            <onfailure>su - {{hadoop-env/hdfs_user}} -c 'hdfs dfsadmin -safemode leave'</onfailure>   <!-- TODO, stay in safemode if in HA. -->
+          </task>
+
+          <task xsi:type="execute">
+            <command>su - {{hadoop-env/hdfs_user}} -c 'hdfs dfsadmin -rollingUpgrade query'</command>
+            <onfailure>su - {{hadoop-env/hdfs_user}} -c 'hdfs dfsadmin -safemode leave'</onfailure>   <!-- TODO, stay in safemode if in HA. -->
+          </task>
+
+          <!-- Apparently, the HDFS Namenode restart requires safemode to be OFF when not in HA. -->
+          <task xsi:type="execute">
+            <command>su - {{hadoop-env/hdfs_user}} -c 'hdfs dfsadmin -safemode leave'</command>
+            <upto>60</upto>
+            <every>1</every>
           </task>
         </pre-upgrade>
+
+        <!-- This step should be done once the user clicks on the "Finalize" button. So the name post-upgrade is misleading. -->
         <post-upgrade>
           <task xsi:type="execute">
-            <command>su - {hdfs-user} -c 'hdfs dfsadmin -rollingUpgrade finalize'</command>
+            <command>su - {{hadoop-env/hdfs_user}} -c 'hdfs dfsadmin -rollingUpgrade finalize'</command>
+          </task>
+          <task xsi:type="execute">
+            <command>su - {{hadoop-env/hdfs_user}} -c 'hdfs dfsadmin -safemode leave'</command>       <!-- TODO, stay in safemode if in HA. -->
           </task>
         </post-upgrade>
       </component>
+
       <component name="DATANODE">
         <batch xsi:type="percent">
           <percent>20</percent>
         </batch>
-        <upgrade>
+        <pre-upgrade>
+          <!-- Shutdown the datanode,
+
+          Will retry 50 times.
+          Property dfs.datanode.ipc.address = 0.0.0.0:8010 needs to evaluate to current host.
+          $ su hdfs -c 'hdfs dfsadmin -shutdownDatanode <DATANODE_HOST:IPC_PORT> upgrade'
+          E.g.,
+          $ su hdfs -c 'hdfs dfsadmin -shutdownDatanode c6407.ambari.apache.org:8010 upgrade'
+
+          Will retry 50 times.
+          $ su hdfs -c 'hdfs dfsadmin -getDatanodeInfo c6407.ambari.apache.org:8010'
+          Datanode unreachable.
+
+          Change the version,
+          $ hdp-select set hadoop-hdfs-datanode 2.2.0.1-885
+
+          Start the datanode,
+          $ su - hdfs -c '/usr/hdp/current/hadoop-hdfs-datanode/../hadoop/sbin/hadoop-daemon.sh start datanode'
+          starting datanode, logging to /var/log/hadoop/hdfs/hadoop-hdfs-datanode-c6407.ambari.apache.org.out
+
+          Verify it is live,
+          $ su - hdfs -c 'hdfs dfsadmin -report -live'
+          Live datanodes (1):
+          -->
           <task xsi:type="execute">
-            <command>su - {hdfs-user} -c 'hdp-select hadoop-hdfs-datanode {version}'</command>
+            <first>su {{hadoop-env/hdfs_user}} -c 'hdfs dfsadmin -getDatanodeInfo {{hdfs-site/dfs.datanode.ipc.address}}'</first>
+            <command>su {{hadoop-env/hdfs_user}} -c 'hdfs dfsadmin -shutdownDatanode {{hdfs-site/dfs.datanode.ipc.address}} upgrade'</command>
           </task>
+
+          <!-- After shutting down the datanode, this command is expected to fail with 255, so ignore only that return code. -->
+          <task xsi:type="execute">
+            <command>su {{hadoop-env/hdfs_user}} -c 'hdfs dfsadmin -getDatanodeInfo {{hdfs-site/dfs.datanode.ipc.address}}'</command>
+            <ignore>255</ignore>
+          </task>
+
+          <!-- TODO, move this to HDFS Datanode restart. -->
+          <task xsi:type="execute">
+            <command>hdp-select set hadoop-hdfs-datanode {{version}}</command>
+          </task>
+        </pre-upgrade>
+      </component>
+
+      <component name="JOURNALNODE">
+        <!-- Recommended after the Namenode, and only needed when HA is enabled. -->
+        <batch xsi:type="count">
+          <count>1</count>
+        </batch>
+        <upgrade>
+          <!-- TODO -->
         </upgrade>
       </component>
+
     </service>
   </processing>
 </upgrade>

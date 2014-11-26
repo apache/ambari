@@ -467,7 +467,7 @@ public class ConfigHelper {
     return result;
   }
   
-  public String getPropertyValueFromStackDefenitions(Cluster cluster, String configType, String propertyName) throws AmbariException {
+  public String getPropertyValueFromStackDefinitions(Cluster cluster, String configType, String propertyName) throws AmbariException {
     StackId stackId = cluster.getCurrentStackVersion();
     StackInfo stack = ambariMetaInfo.getStack(stackId.getStackName(),
         stackId.getStackVersion());

@@ -31,9 +31,9 @@ from exceptions import Fail
 from exceptions import ExecuteTimeoutException
 from resource_management.core.logger import Logger
 
-def checked_call(command, logoutput=False, 
+def checked_call(command, logoutput=False, throw_on_failure=True, 
          cwd=None, env=None, preexec_fn=None, user=None, wait_for_finish=True, timeout=None, path=None, sudo=False):
-  return _call(command, logoutput, True, cwd, env, preexec_fn, user, wait_for_finish, timeout, path, sudo)
+  return _call(command, logoutput, throw_on_failure, cwd, env, preexec_fn, user, wait_for_finish, timeout, path, sudo)
 
 def call(command, logoutput=False, 
          cwd=None, env=None, preexec_fn=None, user=None, wait_for_finish=True, timeout=None, path=None, sudo=False):

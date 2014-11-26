@@ -256,7 +256,7 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
         Map<String, String> properties = new HashMap<String, String>();
         
         for(String propertyName:propertyNames) {
-          String propertyValue = configHelper.getPropertyValueFromStackDefenitions(cluster, configType, propertyName);
+          String propertyValue = configHelper.getPropertyValueFromStackDefinitions(cluster, configType, propertyName);
           
           if(propertyValue == null) {
             LOG.info("Config " + propertyName + " from " + configType + " is not found in xml definitions." +

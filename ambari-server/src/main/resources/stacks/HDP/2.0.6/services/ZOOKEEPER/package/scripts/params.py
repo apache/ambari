@@ -34,11 +34,11 @@ hdp_stack_version = format_hdp_stack_version(hdp_stack_version)
 if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
   zk_home = '/usr/hdp/current/zookeeper-client'
   zk_bin = '/usr/hdp/current/zookeeper-client/bin'
-  smoke_script = '/usr/hdp/current/zookeeper-client/bin/zkCli.sh'
+  zk_cli_shell = '/usr/hdp/current/zookeeper-client/bin/zkCli.sh'
 else:
   zk_home = '/usr'
   zk_bin = '/usr/lib/zookeeper/bin'
-  smoke_script = "/usr/lib/zookeeper/bin/zkCli.sh"
+  zk_cli_shell = "/usr/lib/zookeeper/bin/zkCli.sh"
 
 config_dir = "/etc/zookeeper/conf"
 zk_user =  config['configurations']['zookeeper-env']['zk_user']
