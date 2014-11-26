@@ -584,8 +584,8 @@ public class AlertDefinitionHash {
    *         {@code null}).
    */
   private Set<AlertDefinitionEntity> getAlertDefinitionEntities(
-      String clusterName,
-      String hostName) {
+      String clusterName, String hostName) {
+
     Set<AlertDefinitionEntity> definitions = new HashSet<AlertDefinitionEntity>();
 
     try {
@@ -598,45 +598,41 @@ public class AlertDefinitionHash {
       }
 
       long clusterId = cluster.getClusterId();
+
+      // services and components
       List<ServiceComponentHost> serviceComponents = cluster.getServiceComponentHosts(hostName);
-      if (null == serviceComponents || serviceComponents.size() == 0) {
-        LOG.warn(
-            "Unable to get alert definitions for {} since there are no service components defined",
-            hostName);
+      if (null == serviceComponents || !serviceComponents.isEmpty()) {
+        for (ServiceComponentHost serviceComponent : serviceComponents) {
+          String serviceName = serviceComponent.getServiceName();
+          String componentName = serviceComponent.getServiceComponentName();
 
-        return Collections.emptySet();
-      }
+          // add all alerts for this service/component pair
+          definitions.addAll(m_definitionDao.findByServiceComponent(clusterId,
+              serviceName, componentName));
+        }
 
-      for (ServiceComponentHost serviceComponent : serviceComponents) {
-        String serviceName = serviceComponent.getServiceName();
-        String componentName = serviceComponent.getServiceComponentName();
+        // for every service, get the master components and see if the host
+        // is a master
+        Set<String> services = new HashSet<String>();
+        for (Entry<String, Service> entry : cluster.getServices().entrySet()) {
+          Service service = entry.getValue();
+          Map<String, ServiceComponent> components = service.getServiceComponents();
+          for (Entry<String, ServiceComponent> component : components.entrySet()) {
+            if (component.getValue().isMasterComponent()) {
+              Map<String, ServiceComponentHost> hosts = component.getValue().getServiceComponentHosts();
 
-        // add all alerts for this service/component pair
-        definitions.addAll(m_definitionDao.findByServiceComponent(
-            clusterId, serviceName, componentName));
-      }
-
-      // for every service, get the master components and see if the host
-      // is a master
-      Set<String> services = new HashSet<String>();
-      for (Entry<String, Service> entry : cluster.getServices().entrySet()) {
-        Service service = entry.getValue();
-        Map<String, ServiceComponent> components = service.getServiceComponents();
-        for (Entry<String, ServiceComponent> component : components.entrySet()) {
-          if (component.getValue().isMasterComponent()) {
-            Map<String, ServiceComponentHost> hosts = component.getValue().getServiceComponentHosts();
-
-            if( hosts.containsKey( hostName ) ){
-              services.add(service.getName());
+              if (hosts.containsKey(hostName)) {
+                services.add(service.getName());
+              }
             }
           }
         }
-      }
 
-      // add all service scoped alerts
-      if( services.size() > 0 ){
-        definitions.addAll(m_definitionDao.findByServiceMaster(clusterId,
-            services));
+        // add all service scoped alerts
+        if (services.size() > 0) {
+          definitions.addAll(m_definitionDao.findByServiceMaster(clusterId,
+              services));
+        }
       }
 
       // add any alerts not bound to a service (host level alerts)

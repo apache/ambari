@@ -17,13 +17,26 @@
  */
 package org.apache.ambari.server.events.listeners.alerts;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.EagerSingleton;
+import org.apache.ambari.server.events.AlertHashInvalidationEvent;
+import org.apache.ambari.server.events.HostAddedEvent;
 import org.apache.ambari.server.events.HostRemovedEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
+import org.apache.ambari.server.metadata.AgentAlertDefinitions;
+import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.AlertsDAO;
 import org.apache.ambari.server.orm.entities.AlertCurrentEntity;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
+import org.apache.ambari.server.state.alert.AlertDefinition;
+import org.apache.ambari.server.state.alert.AlertDefinitionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.eventbus.AllowConcurrentEvents;
 import com.google.common.eventbus.Subscribe;
@@ -31,8 +44,9 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 /**
- * The {@link AlertHostListener} class handles {@link HostRemovedEvent} and
- * ensures that {@link AlertCurrentEntity} instances are properly cleaned up
+ * The {@link AlertHostListener} class handles {@link HostAddedEvent} and
+ * {@link HostRemovedEvent} and ensures that {@link AlertCurrentEntity}
+ * instances are properly cleaned up
  */
 @Singleton
 @EagerSingleton
@@ -40,13 +54,44 @@ public class AlertHostListener {
   /**
    * Logger.
    */
-  private static Log LOG = LogFactory.getLog(AlertHostListener.class);
+  private final static Logger LOG = LoggerFactory.getLogger(AlertHostListener.class);
 
   /**
    * Used for removing current alerts when a service is removed.
    */
   @Inject
   private AlertsDAO m_alertsDao;
+
+  /**
+   * Used for checking to see if definitions already exist for a cluster.
+   */
+  @Inject
+  private AlertDefinitionDAO m_alertDefinitionDao;
+
+  /**
+   * Used to publish events when an alert definition has a lifecycle event.
+   */
+  @Inject
+  private AmbariEventPublisher m_eventPublisher;
+
+  /**
+   * All of the {@link AlertDefinition}s that are scoped for the agents.
+   */
+  @Inject
+  private AgentAlertDefinitions m_agentAlertDefinitions;
+
+  /**
+   * Used when a host is added to a cluster to coerce an {@link AlertDefinition}
+   * into an {@link AlertDefinitionEntity}.
+   */
+  @Inject
+  private AlertDefinitionFactory m_alertDefinitionFactory;
+
+  /**
+   * Used to prevent multiple threads from trying to create host alerts
+   * simultaneously.
+   */
+  private Lock m_hostAlertLock = new ReentrantLock();
 
   /**
    * Constructor.
@@ -59,15 +104,69 @@ public class AlertHostListener {
   }
 
   /**
-   * Removes any current alerts associated with the specified host.
-   *
-   * @param event
-   *          the published event being handled (not {@code null}).
+   * Handles the {@link HostAddedEvent} by performing the following actions:
+   * <ul>
+   * <li>Ensures that all host-level alerts are loaded for the cluster. This is
+   * especially useful when creating a cluster and no alerts were loaded on
+   * Ambari startup</li>
+   * <li>Broadcasts the {@link AlertHashInvalidationEvent} in order to push host
+   * alert definitions</li>
+   * </ul>
+   */
+  @Subscribe
+  @AllowConcurrentEvents
+  public void onAmbariEvent(HostAddedEvent event) {
+    LOG.debug("Received event {}", event);
+
+    long clusterId = event.getClusterId();
+
+    // load the host-only alert definitions
+    List<AlertDefinition> agentDefinitions = m_agentAlertDefinitions.getDefinitions();
+
+    // lock to prevent multiple threads from trying to create alert
+    // definitions at the same time
+    m_hostAlertLock.lock();
+
+    try {
+      for (AlertDefinition agentDefinition : agentDefinitions) {
+        AlertDefinitionEntity definition = m_alertDefinitionDao.findByName(
+            clusterId, agentDefinition.getName());
+
+        // this host definition does not exist, add it
+        if (null == definition) {
+          definition = m_alertDefinitionFactory.coerce(clusterId,
+              agentDefinition);
+
+          try {
+            m_alertDefinitionDao.create(definition);
+          } catch (AmbariException ambariException) {
+            LOG.error(
+                "Unable to create a host alert definition name {} in cluster {}",
+                definition.getDefinitionName(), definition.getClusterId(),
+                ambariException);
+          }
+        }
+      }
+    } finally {
+      m_hostAlertLock.unlock();
+    }
+
+    AlertHashInvalidationEvent invalidationEvent = new AlertHashInvalidationEvent(
+        event.getClusterId(), Collections.singletonList(event.getHostName()));
+
+    m_eventPublisher.publish(invalidationEvent);
+  }
+
+  /**
+   * Handles the {@link HostRemovedEvent} by performing the following actions:
+   * <ul>
+   * <li>Removes all {@link AlertCurrentEntity} for the removed host</li>
+   * </ul>
    */
   @Subscribe
   @AllowConcurrentEvents
   public void onAmbariEvent(HostRemovedEvent event) {
-    LOG.debug(event);
+    LOG.debug("Received event {}", event);
 
     // remove any current alerts for the removed host
     m_alertsDao.removeCurrentByHost(event.getHostName());

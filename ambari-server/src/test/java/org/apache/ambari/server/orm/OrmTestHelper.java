@@ -20,12 +20,15 @@ package org.apache.ambari.server.orm;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -59,11 +62,22 @@ import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
+import org.apache.ambari.server.state.RepositoryVersionState;
+import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceComponent;
+import org.apache.ambari.server.state.ServiceComponentFactory;
+import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.ServiceComponentHostFactory;
+import org.apache.ambari.server.state.ServiceFactory;
+import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.alert.Scope;
 import org.apache.ambari.server.state.alert.SourceType;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.util.Assert;
 
 import com.google.inject.Inject;
 import com.google.inject.Injector;
@@ -289,9 +303,129 @@ public class OrmTestHelper {
     clusterDAO.create(clusterEntity);
 
     clusterEntity = clusterDAO.findByName(clusterEntity.getClusterName());
-    Assert.notNull(clusterEntity);
-    Assert.isTrue(clusterEntity.getClusterId() > 0);
+    assertNotNull(clusterEntity);
+    assertTrue(clusterEntity.getClusterId() > 0);
     return clusterEntity.getClusterId();
+  }
+
+  public Cluster buildNewCluster(Clusters clusters,
+      ServiceFactory serviceFactory, ServiceComponentFactory componentFactory,
+      ServiceComponentHostFactory schFactory, String hostName) throws Exception {
+    String clusterName = "cluster-" + System.currentTimeMillis();
+    clusters.addCluster(clusterName);
+    Cluster cluster = clusters.getCluster(clusterName);
+    cluster = initializeClusterWithStack(cluster);
+
+    addHost(clusters, cluster, hostName);
+
+    installHdfsService(cluster, serviceFactory, componentFactory, schFactory, hostName);
+    installYarnService(cluster, serviceFactory, componentFactory, schFactory,
+        hostName);
+    return cluster;
+  }
+
+  public Cluster initializeClusterWithStack(Cluster cluster) throws Exception {
+    StackId stackId = new StackId("HDP", "2.0.6");
+    cluster.setDesiredStackVersion(stackId);
+    cluster.createClusterVersion(stackId.getStackName(),
+        stackId.getStackVersion(), "admin", RepositoryVersionState.CURRENT);
+    return cluster;
+  }
+
+  /**
+   * @throws Exception
+   */
+  public void addHost(Clusters clusters, Cluster cluster, String hostName)
+      throws Exception {
+    clusters.addHost(hostName);
+
+    Host host = clusters.getHost(hostName);
+    Map<String, String> hostAttributes = new HashMap<String, String>();
+    hostAttributes.put("os_family", "redhat");
+    hostAttributes.put("os_release_version", "6.4");
+    host.setHostAttributes(hostAttributes);
+    host.setState(HostState.HEALTHY);
+    host.persist();
+
+    clusters.mapHostToCluster(hostName, cluster.getClusterName());
+  }
+
+  /**
+   * Calls {@link Service#persist()} to mock a service install along with
+   * creating a single {@link Host} and {@link ServiceComponentHost}.
+   */
+  public void installHdfsService(Cluster cluster,
+      ServiceFactory serviceFactory, ServiceComponentFactory componentFactory,
+      ServiceComponentHostFactory schFactory, String hostName) throws Exception {
+    String serviceName = "HDFS";
+    Service service = serviceFactory.createNew(cluster, serviceName);
+    cluster.addService(service);
+    service.persist();
+    service = cluster.getService(serviceName);
+    assertNotNull(service);
+
+    ServiceComponent datanode = componentFactory.createNew(service, "DATANODE");
+
+    service.addServiceComponent(datanode);
+    datanode.setDesiredState(State.INSTALLED);
+    datanode.persist();
+
+    ServiceComponentHost sch = schFactory.createNew(datanode, hostName);
+
+    datanode.addServiceComponentHost(sch);
+    sch.setDesiredState(State.INSTALLED);
+    sch.setState(State.INSTALLED);
+    sch.setDesiredStackVersion(new StackId("HDP-2.0.6"));
+    sch.setStackVersion(new StackId("HDP-2.0.6"));
+
+    sch.persist();
+
+    ServiceComponent namenode = componentFactory.createNew(service, "NAMENODE");
+
+    service.addServiceComponent(namenode);
+    namenode.setDesiredState(State.INSTALLED);
+    namenode.persist();
+
+    sch = schFactory.createNew(namenode, hostName);
+    namenode.addServiceComponentHost(sch);
+    sch.setDesiredState(State.INSTALLED);
+    sch.setState(State.INSTALLED);
+    sch.setDesiredStackVersion(new StackId("HDP-2.0.6"));
+    sch.setStackVersion(new StackId("HDP-2.0.6"));
+
+    sch.persist();
+  }
+
+  /**
+   * Calls {@link Service#persist()} to mock a service install along with
+   * creating a single {@link Host} and {@link ServiceComponentHost}.
+   */
+  public void installYarnService(Cluster cluster,
+      ServiceFactory serviceFactory, ServiceComponentFactory componentFactory,
+      ServiceComponentHostFactory schFactory, String hostName) throws Exception {
+    String serviceName = "YARN";
+    Service service = serviceFactory.createNew(cluster, serviceName);
+    cluster.addService(service);
+    service.persist();
+    service = cluster.getService(serviceName);
+    assertNotNull(service);
+
+    ServiceComponent resourceManager = componentFactory.createNew(service,
+        "RESOURCEMANAGER");
+
+    service.addServiceComponent(resourceManager);
+    resourceManager.setDesiredState(State.INSTALLED);
+    resourceManager.persist();
+
+    ServiceComponentHost sch = schFactory.createNew(resourceManager, hostName);
+
+    resourceManager.addServiceComponentHost(sch);
+    sch.setDesiredState(State.INSTALLED);
+    sch.setState(State.INSTALLED);
+    sch.setDesiredStackVersion(new StackId("HDP-2.0.6"));
+    sch.setStackVersion(new StackId("HDP-2.0.6"));
+
+    sch.persist();
   }
 
   /**
@@ -324,7 +458,7 @@ public class OrmTestHelper {
     AlertDefinitionEntity definition = new AlertDefinitionEntity();
     definition.setDefinitionName("Alert Definition "
         + System.currentTimeMillis());
-    definition.setServiceName("Service " + System.currentTimeMillis());
+    definition.setServiceName("AMBARI");
     definition.setComponentName(null);
     definition.setClusterId(clusterId);
     definition.setHash(UUID.randomUUID().toString());
@@ -385,8 +519,8 @@ public class OrmTestHelper {
 
     List<AlertGroupEntity> defaultGroups = alertDispatchDAO.findAllGroups(clusterId);
     assertEquals(2, defaultGroups.size());
-    assertNotNull(alertDispatchDAO.findDefaultServiceGroup("HDFS"));
-    assertNotNull(alertDispatchDAO.findDefaultServiceGroup("OOZIE"));
+    assertNotNull(alertDispatchDAO.findDefaultServiceGroup(clusterId, "HDFS"));
+    assertNotNull(alertDispatchDAO.findDefaultServiceGroup(clusterId, "OOZIE"));
 
     return defaultGroups;
   }

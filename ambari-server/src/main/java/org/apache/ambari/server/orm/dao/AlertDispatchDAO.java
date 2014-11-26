@@ -17,7 +17,11 @@
  */
 package org.apache.ambari.server.orm.dao;
 
+import java.text.MessageFormat;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
@@ -25,9 +29,11 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Order;
 import javax.persistence.metamodel.SingularAttribute;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.query.JpaPredicateVisitor;
 import org.apache.ambari.server.api.query.JpaSortBuilder;
 import org.apache.ambari.server.controller.AlertNoticeRequest;
+import org.apache.ambari.server.controller.RootServiceResponseFactory.Services;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.utilities.PredicateHelper;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
@@ -35,7 +41,10 @@ import org.apache.ambari.server.orm.entities.AlertGroupEntity;
 import org.apache.ambari.server.orm.entities.AlertNoticeEntity;
 import org.apache.ambari.server.orm.entities.AlertNoticeEntity_;
 import org.apache.ambari.server.orm.entities.AlertTargetEntity;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.NotificationState;
+import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.alert.AlertGroup;
 
 import com.google.inject.Inject;
@@ -53,13 +62,26 @@ public class AlertDispatchDAO {
    * JPA entity manager
    */
   @Inject
-  Provider<EntityManager> entityManagerProvider;
+  private Provider<EntityManager> entityManagerProvider;
 
   /**
    * DAO utilities for dealing mostly with {@link TypedQuery} results.
    */
   @Inject
-  DaoUtils daoUtils;
+  private DaoUtils daoUtils;
+
+  /**
+   * Used to retrieve a cluster and its services when creating a default
+   * {@link AlertGroupEntity} for a service.
+   */
+  @Inject
+  private Provider<Clusters> m_clusters;
+
+  /**
+   * A lock that ensures that group writes are protected. This is useful since
+   * groups can be created through different events/threads in the system.
+   */
+  private final Lock m_groupLock = new ReentrantLock();
 
   /**
    * Gets an alert group with the specified ID.
@@ -256,18 +278,22 @@ public class AlertDispatchDAO {
   }
 
   /**
-   * Gets the default group for the specified service.
+   * Gets the default group for the specified cluster and service.
    *
+   * @param clusterId
+   *          the cluster that the group belongs to
    * @param serviceName
    *          the name of the service (not {@code null}).
    * @return the default group, or {@code null} if the service name is not valid
    *         for an installed service; otherwise {@code null} should not be
    *         possible.
    */
-  public AlertGroupEntity findDefaultServiceGroup(String serviceName) {
+  public AlertGroupEntity findDefaultServiceGroup(long clusterId,
+      String serviceName) {
     TypedQuery<AlertGroupEntity> query = entityManagerProvider.get().createNamedQuery(
         "AlertGroupEntity.findServiceDefaultGroup", AlertGroupEntity.class);
 
+    query.setParameter("clusterId", clusterId);
     query.setParameter("serviceName", serviceName);
     return daoUtils.selectSingle(query);
   }
@@ -361,6 +387,49 @@ public class AlertDispatchDAO {
   @Transactional
   public void create(AlertGroupEntity alertGroup) {
     entityManagerProvider.get().persist(alertGroup);
+  }
+
+  /**
+   * Creates a default group in the specified cluster and service. If the
+   * service is not valid, then this will throw an {@link AmbariException}.
+   *
+   * @param clusterId
+   *          the cluster that the group is in.
+   * @param serviceName
+   *          the name of the group which is also the service name.
+   */
+  public AlertGroupEntity createDefaultGroup(long clusterId, String serviceName)
+      throws AmbariException {
+    // AMBARI is a special service that we let through, otherwise we need to
+    // verify that the service exists before we create the default group
+    String ambariServiceName = Services.AMBARI.name();
+    if (!ambariServiceName.equals(serviceName)) {
+      Cluster cluster = m_clusters.get().getClusterById(clusterId);
+      Map<String, Service> services = cluster.getServices();
+
+      if (!services.containsKey(serviceName)) {
+        String message = MessageFormat.format(
+            "Unable to create a default alert group for unknown service {0} in cluster {1}",
+            serviceName, cluster.getClusterName());
+        throw new AmbariException(message);
+      }
+    }
+
+    AlertGroupEntity group = new AlertGroupEntity();
+
+    m_groupLock.lock();
+    try {
+      group.setClusterId(clusterId);
+      group.setDefault(true);
+      group.setGroupName(serviceName);
+      group.setServiceName(serviceName);
+
+      create(group);
+    } finally {
+      m_groupLock.unlock();
+    }
+
+    return group;
   }
 
   /**

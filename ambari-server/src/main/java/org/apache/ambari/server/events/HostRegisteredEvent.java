@@ -18,17 +18,17 @@
 package org.apache.ambari.server.events;
 
 /**
- * The {@link HostRemovedEvent} class is fired when a host is removed from the
- * cluster.
+ * The {@link HostRegisteredEvent} class is fired when a host registered with
+ * the server.
  */
-public class HostRemovedEvent extends HostEvent {
+public class HostRegisteredEvent extends HostEvent {
   /**
    * Constructor.
    *
    * @param hostName
    */
-  public HostRemovedEvent(String hostName) {
-    super(AmbariEventType.HOST_REMOVED, hostName);
+  public HostRegisteredEvent(String hostName) {
+    super(AmbariEventType.HOST_REGISTERED, hostName);
   }
 
   /**
@@ -36,7 +36,7 @@ public class HostRemovedEvent extends HostEvent {
    */
   @Override
   public String toString() {
-    StringBuilder buffer = new StringBuilder("HostRemovedEvent{ ");
+    StringBuilder buffer = new StringBuilder("HostRegistered{ ");
     buffer.append("hostName=").append(m_hostName);
     buffer.append("}");
     return buffer.toString();

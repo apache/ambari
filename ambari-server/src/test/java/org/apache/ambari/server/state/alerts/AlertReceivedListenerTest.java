@@ -19,10 +19,7 @@ package org.apache.ambari.server.state.alerts;
 
 import static org.junit.Assert.assertEquals;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import org.apache.ambari.server.events.AlertReceivedEvent;
@@ -38,23 +35,18 @@ import org.apache.ambari.server.state.Alert;
 import org.apache.ambari.server.state.AlertState;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.Host;
-import org.apache.ambari.server.state.Service;
-import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.ServiceComponentFactory;
+import org.apache.ambari.server.state.ServiceComponentHostFactory;
+import org.apache.ambari.server.state.ServiceFactory;
 import org.apache.ambari.server.state.alert.Scope;
 import org.apache.ambari.server.state.alert.SourceType;
-import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.google.inject.Binder;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.google.inject.Module;
 import com.google.inject.persist.PersistService;
-import com.google.inject.util.Modules;
-
 
 /**
  * Tests the {@link AlertReceivedListener}.
@@ -62,76 +54,66 @@ import com.google.inject.util.Modules;
 public class AlertReceivedListenerTest {
 
   private static final String ALERT_DEFINITION = "alert_definition_";
-  private static final String CLUSTER_NAME = "c1";
-  private static final String SERVICE = "Service";
-  private static final String COMPONENT = "Component";
   private static final String HOST1 = "h1";
   private static final String ALERT_LABEL = "My Label";
+  private Injector m_injector;
+  private AlertsDAO m_dao;
+  private AlertDefinitionDAO m_definitionDao;
 
-  private Long clusterId;
-  private Injector injector;
-  private OrmTestHelper helper;
-  private AlertsDAO dao;
-  private AlertDefinitionDAO definitionDao;
+  private Clusters m_clusters;
+  private Cluster m_cluster;
 
-  private Clusters clusters;
-  private Cluster cluster;
+  private OrmTestHelper m_helper;
+  private ServiceFactory m_serviceFactory;
+  private ServiceComponentFactory m_componentFactory;
+  private ServiceComponentHostFactory m_schFactory;
 
   @Before
   public void setup() throws Exception {
-    clusters = EasyMock.createNiceMock(Clusters.class);
-    cluster = EasyMock.createNiceMock(Cluster.class);
+    m_injector = Guice.createInjector(new InMemoryDefaultTestModule());
+    m_injector.getInstance(GuiceJpaInitializer.class);
 
-    injector = Guice.createInjector(Modules.override(
-        new InMemoryDefaultTestModule()).with(new MockModule()));
+    m_helper = m_injector.getInstance(OrmTestHelper.class);
+    m_clusters = m_injector.getInstance(Clusters.class);
+    m_serviceFactory = m_injector.getInstance(ServiceFactory.class);
+    m_componentFactory = m_injector.getInstance(ServiceComponentFactory.class);
+    m_schFactory = m_injector.getInstance(ServiceComponentHostFactory.class);
 
-    injector.getInstance(GuiceJpaInitializer.class);
-    helper = injector.getInstance(OrmTestHelper.class);
-    clusterId = helper.createCluster();
-    dao = injector.getInstance(AlertsDAO.class);
-    definitionDao = injector.getInstance(AlertDefinitionDAO.class);
+    // install YARN so there is at least 1 service installed and no
+    // unexpected alerts since the test YARN service doesn't have any alerts
+    m_cluster = m_helper.buildNewCluster(m_clusters, m_serviceFactory,
+        m_componentFactory, m_schFactory, HOST1);
 
-    List<Host> hosts = new ArrayList<Host>();
-    Host host = EasyMock.createNiceMock(Host.class);
-    EasyMock.expect(host.getHostName()).andReturn(HOST1).anyTimes();
-    hosts.add(host);
+    m_dao = m_injector.getInstance(AlertsDAO.class);
+    m_definitionDao = m_injector.getInstance(AlertDefinitionDAO.class);
 
-    Map<String,Service> services = new HashMap<String, Service>();
-    services.put("Service 1", EasyMock.createNiceMock(Service.class));
-
-    List<ServiceComponentHost> schs = new ArrayList<ServiceComponentHost>();
-    ServiceComponentHost sch = EasyMock.createNiceMock(ServiceComponentHost.class);
-    EasyMock.expect(sch.getServiceComponentName()).andReturn("Component 1").anyTimes();
-    schs.add(sch);
-
-    // setup isValid expectations
-    EasyMock.expect(clusters.getCluster(CLUSTER_NAME)).andReturn(cluster).anyTimes();
-    EasyMock.expect(clusters.getHosts()).andReturn(hosts).anyTimes();
-    EasyMock.expect(cluster.getServices()).andReturn(services).anyTimes();
-    EasyMock.expect(cluster.getServiceComponentHosts(HOST1)).andReturn(schs).anyTimes();
-
-    EasyMock.replay(clusters, cluster, sch, host);
-
-    // create 5 definitions
+    // create 5 definitions, some with HDFS and some with YARN
     for (int i = 0; i < 5; i++) {
+      String serviceName = "HDFS";
+      String componentName = "DATANODE";
+      if (i >= 3) {
+        serviceName = "YARN";
+        componentName = "RESOURCEMANAGER";
+      }
+
       AlertDefinitionEntity definition = new AlertDefinitionEntity();
       definition.setDefinitionName(ALERT_DEFINITION + i);
-      definition.setServiceName(SERVICE + " " + i);
-      definition.setComponentName(COMPONENT + " " + i);
-      definition.setClusterId(clusterId);
+      definition.setServiceName(serviceName);
+      definition.setComponentName(componentName);
+      definition.setClusterId(m_cluster.getClusterId());
       definition.setHash(UUID.randomUUID().toString());
       definition.setScheduleInterval(Integer.valueOf(60));
       definition.setScope(Scope.SERVICE);
       definition.setSource("{\"type\" : \"SCRIPT\"}");
       definition.setSourceType(SourceType.SCRIPT);
-      definitionDao.create(definition);
+      m_definitionDao.create(definition);
     }
   }
 
   @After
   public void teardown() {
-    injector.getInstance(PersistService.class).stop();
-    injector = null;
+    m_injector.getInstance(PersistService.class).stop();
+    m_injector = null;
   }
 
   /**
@@ -140,38 +122,39 @@ public class AlertReceivedListenerTest {
   @Test
   public void testDisabledAlert() {
     String definitionName = ALERT_DEFINITION + "1";
-    String serviceName = "Service 1";
-    String componentName = "Component 1";
+    String componentName = "DATANODE";
 
-    Alert alert1 = new Alert(definitionName, null, serviceName, componentName,
+    Alert alert1 = new Alert(definitionName, null, "HDFS", componentName,
         HOST1, AlertState.OK);
 
-    alert1.setCluster(CLUSTER_NAME);
+    alert1.setCluster(m_cluster.getClusterName());
     alert1.setLabel(ALERT_LABEL);
-    alert1.setText(serviceName + " " + componentName + " is OK");
+    alert1.setText("HDFS " + componentName + " is OK");
     alert1.setTimestamp(1L);
 
     // verify that the listener works with a regular alert
-    AlertReceivedListener listener = injector.getInstance(AlertReceivedListener.class);
-    AlertReceivedEvent event1 = new AlertReceivedEvent(clusterId, alert1);
+    AlertReceivedListener listener = m_injector.getInstance(AlertReceivedListener.class);
+    AlertReceivedEvent event1 = new AlertReceivedEvent(
+        m_cluster.getClusterId(), alert1);
     listener.onAlertEvent(event1);
 
-    List<AlertCurrentEntity> allCurrent = dao.findCurrent();
+    List<AlertCurrentEntity> allCurrent = m_dao.findCurrent();
     assertEquals(1, allCurrent.size());
 
     // disable definition
-    AlertDefinitionEntity definition = definitionDao.findByName(clusterId, definitionName);
+    AlertDefinitionEntity definition = m_definitionDao.findByName(
+        m_cluster.getClusterId(), definitionName);
     definition.setEnabled(false);
-    definitionDao.merge(definition);
+    m_definitionDao.merge(definition);
 
     // remove disabled
-    dao.removeCurrentDisabledAlerts();
-    allCurrent = dao.findCurrent();
+    m_dao.removeCurrentDisabledAlerts();
+    allCurrent = m_dao.findCurrent();
     assertEquals(0, allCurrent.size());
 
     // verify no new alerts for disabled
     listener.onAlertEvent(event1);
-    allCurrent = dao.findCurrent();
+    allCurrent = m_dao.findCurrent();
     assertEquals(0, allCurrent.size());
   }
 
@@ -181,36 +164,36 @@ public class AlertReceivedListenerTest {
   @Test
   public void testInvalidHost() {
     String definitionName = ALERT_DEFINITION + "1";
-    String serviceName = "Service 1";
-    String componentName = "Component 1";
+    String componentName = "DATANODE";
 
-    Alert alert1 = new Alert(definitionName, null, serviceName, componentName,
+    Alert alert1 = new Alert(definitionName, null, "HDFS", componentName,
         HOST1, AlertState.OK);
 
-    alert1.setCluster(CLUSTER_NAME);
+    alert1.setCluster(m_cluster.getClusterName());
     alert1.setLabel(ALERT_LABEL);
-    alert1.setText(serviceName + " " + componentName + " is OK");
+    alert1.setText("HDFS " + componentName + " is OK");
     alert1.setTimestamp(1L);
 
     // verify that the listener works with a regular alert
-    AlertReceivedListener listener = injector.getInstance(AlertReceivedListener.class);
-    AlertReceivedEvent event1 = new AlertReceivedEvent(clusterId, alert1);
+    AlertReceivedListener listener = m_injector.getInstance(AlertReceivedListener.class);
+    AlertReceivedEvent event1 = new AlertReceivedEvent(
+        m_cluster.getClusterId(), alert1);
     listener.onAlertEvent(event1);
 
-    List<AlertCurrentEntity> allCurrent = dao.findCurrent();
+    List<AlertCurrentEntity> allCurrent = m_dao.findCurrent();
     assertEquals(1, allCurrent.size());
 
     // invalid host
     alert1.setHost("INVALID");
 
     // remove all
-    dao.removeCurrentByHost(HOST1);
-    allCurrent = dao.findCurrent();
+    m_dao.removeCurrentByHost(HOST1);
+    allCurrent = m_dao.findCurrent();
     assertEquals(0, allCurrent.size());
 
     // verify no new alerts for disabled
     listener.onAlertEvent(event1);
-    allCurrent = dao.findCurrent();
+    allCurrent = m_dao.findCurrent();
     assertEquals(0, allCurrent.size());
   }
 
@@ -219,22 +202,22 @@ public class AlertReceivedListenerTest {
    */
   @Test
   public void testInvalidAlertDefinition() {
-    String serviceName = "Service 1";
-    String componentName = "Component 1";
+    String componentName = "DATANODE";
 
-    Alert alert1 = new Alert("missing_alert_definition_name", null,
-        serviceName, componentName, HOST1, AlertState.OK);
+    Alert alert1 = new Alert("missing_alert_definition_name", null, "HDFS",
+        componentName, HOST1, AlertState.OK);
 
     alert1.setLabel(ALERT_LABEL);
-    alert1.setText(serviceName + " " + componentName + " is OK");
+    alert1.setText("HDFS " + componentName + " is OK");
     alert1.setTimestamp(1L);
 
     // bad alert definition name means no current alerts
-    AlertReceivedListener listener = injector.getInstance(AlertReceivedListener.class);
-    AlertReceivedEvent event1 = new AlertReceivedEvent(clusterId, alert1);
+    AlertReceivedListener listener = m_injector.getInstance(AlertReceivedListener.class);
+    AlertReceivedEvent event1 = new AlertReceivedEvent(
+        m_cluster.getClusterId(), alert1);
     listener.onAlertEvent(event1);
 
-    List<AlertCurrentEntity> allCurrent = dao.findCurrent();
+    List<AlertCurrentEntity> allCurrent = m_dao.findCurrent();
     assertEquals(0, allCurrent.size());
   }
 
@@ -244,47 +227,36 @@ public class AlertReceivedListenerTest {
   @Test
   public void testInvalidServiceComponentHost() {
     String definitionName = ALERT_DEFINITION + "1";
-    String serviceName = "Service 1";
-    String componentName = "Component 1";
+    String componentName = "DATANODE";
 
-    Alert alert1 = new Alert(definitionName, null, serviceName, componentName,
+    Alert alert1 = new Alert(definitionName, null, "HDFS", componentName,
         HOST1, AlertState.OK);
 
-    alert1.setCluster(CLUSTER_NAME);
+    alert1.setCluster(m_cluster.getClusterName());
     alert1.setLabel(ALERT_LABEL);
-    alert1.setText(serviceName + " " + componentName + " is OK");
+    alert1.setText("HDFS " + componentName + " is OK");
     alert1.setTimestamp(1L);
 
     // verify that the listener works with a regular alert
-    AlertReceivedListener listener = injector.getInstance(AlertReceivedListener.class);
-    AlertReceivedEvent event1 = new AlertReceivedEvent(clusterId, alert1);
+    AlertReceivedListener listener = m_injector.getInstance(AlertReceivedListener.class);
+    AlertReceivedEvent event1 = new AlertReceivedEvent(
+        m_cluster.getClusterId(), alert1);
     listener.onAlertEvent(event1);
 
-    List<AlertCurrentEntity> allCurrent = dao.findCurrent();
+    List<AlertCurrentEntity> allCurrent = m_dao.findCurrent();
     assertEquals(1, allCurrent.size());
 
     // invalid host
     alert1.setComponent("INVALID");
 
     // remove all
-    dao.removeCurrentByHost(HOST1);
-    allCurrent = dao.findCurrent();
+    m_dao.removeCurrentByHost(HOST1);
+    allCurrent = m_dao.findCurrent();
     assertEquals(0, allCurrent.size());
 
     // verify no new alerts for disabled
     listener.onAlertEvent(event1);
-    allCurrent = dao.findCurrent();
+    allCurrent = m_dao.findCurrent();
     assertEquals(0, allCurrent.size());
-  }
-
-  /**
-   *
-   */
-  private class MockModule implements Module {
-    @Override
-    public void configure(Binder binder) {
-      binder.bind(Clusters.class).toInstance(clusters);
-      binder.bind(Cluster.class).toInstance(cluster);
-    }
   }
 }

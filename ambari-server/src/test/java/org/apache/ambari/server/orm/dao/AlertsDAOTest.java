@@ -29,13 +29,9 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.TimeZone;
 import java.util.UUID;
-
-import junit.framework.Assert;
 
 import org.apache.ambari.server.controller.AlertHistoryRequest;
 import org.apache.ambari.server.controller.internal.AlertHistoryResourceProvider;
@@ -60,17 +56,12 @@ import org.apache.ambari.server.state.AlertState;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
-import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.MaintenanceState;
-import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.Service;
-import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentFactory;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceComponentHostFactory;
 import org.apache.ambari.server.state.ServiceFactory;
-import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.alert.Scope;
 import org.apache.ambari.server.state.alert.SourceType;
 import org.junit.After;
@@ -91,7 +82,7 @@ public class AlertsDAOTest {
   final static Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
 
   private Clusters m_clusters;
-  private Long m_clusterId;
+  private Cluster m_cluster;
   private Injector m_injector;
   private OrmTestHelper m_helper;
   private AlertsDAO m_dao;
@@ -101,6 +92,7 @@ public class AlertsDAOTest {
   private ServiceComponentFactory m_componentFactory;
   private ServiceComponentHostFactory m_schFactory;
   private AmbariEventPublisher m_eventPublisher;
+  private EventBus m_synchronizedBus;
 
   private AlertDaoHelper m_alertHelper;
 
@@ -112,7 +104,6 @@ public class AlertsDAOTest {
     m_injector = Guice.createInjector(new InMemoryDefaultTestModule());
     m_injector.getInstance(GuiceJpaInitializer.class);
     m_helper = m_injector.getInstance(OrmTestHelper.class);
-    m_clusterId = m_helper.createCluster();
     m_dao = m_injector.getInstance(AlertsDAO.class);
     m_definitionDao = m_injector.getInstance(AlertDefinitionDAO.class);
     m_serviceFactory = m_injector.getInstance(ServiceFactory.class);
@@ -122,22 +113,27 @@ public class AlertsDAOTest {
     m_clusters = m_injector.getInstance(Clusters.class);
     m_alertHelper = m_injector.getInstance(AlertDaoHelper.class);
 
-    // register a listener
-    EventBus synchronizedBus = new EventBus();
-    synchronizedBus.register(m_injector.getInstance(AlertMaintenanceModeListener.class));
-
     // !!! need a synchronous op for testing
+    m_synchronizedBus = new EventBus();
     Field field = AmbariEventPublisher.class.getDeclaredField("m_eventBus");
     field.setAccessible(true);
-    field.set(m_eventPublisher, synchronizedBus);
+    field.set(m_eventPublisher, m_synchronizedBus);
+
+    // install YARN so there is at least 1 service installed and no
+    // unexpected alerts since the test YARN service doesn't have any alerts
+    m_cluster = m_clusters.getClusterById(m_helper.createCluster());
+    m_helper.initializeClusterWithStack(m_cluster);
+    m_helper.addHost(m_clusters, m_cluster, HOSTNAME);
+    m_helper.installYarnService(m_cluster, m_serviceFactory,
+        m_componentFactory, m_schFactory, HOSTNAME);
 
     // create 5 definitions
     for (int i = 0; i < 5; i++) {
       AlertDefinitionEntity definition = new AlertDefinitionEntity();
       definition.setDefinitionName("Alert Definition " + i);
-      definition.setServiceName("Service " + i);
-      definition.setComponentName(null);
-      definition.setClusterId(m_clusterId);
+      definition.setServiceName("YARN");
+      definition.setComponentName("Component " + i);
+      definition.setClusterId(m_cluster.getClusterId());
       definition.setHash(UUID.randomUUID().toString());
       definition.setScheduleInterval(Integer.valueOf(60));
       definition.setScope(Scope.SERVICE);
@@ -158,13 +154,13 @@ public class AlertsDAOTest {
       for (int i = 0; i < 10; i++) {
         AlertHistoryEntity history = new AlertHistoryEntity();
         history.setServiceName(definition.getServiceName());
-        history.setClusterId(m_clusterId);
+        history.setClusterId(m_cluster.getClusterId());
         history.setAlertDefinition(definition);
         history.setAlertLabel(definition.getDefinitionName() + " " + i);
         history.setAlertText(definition.getDefinitionName() + " " + i);
         history.setAlertTimestamp(calendar.getTimeInMillis());
+        history.setComponentName(definition.getComponentName());
         history.setHostName("h1");
-        history.setComponentName("Component " + i);
 
         history.setAlertState(AlertState.OK);
         if (i == 0 || i == 5) {
@@ -214,7 +210,7 @@ public class AlertsDAOTest {
    */
   @Test
   public void testFindAll() {
-    List<AlertHistoryEntity> alerts = m_dao.findAll(m_clusterId);
+    List<AlertHistoryEntity> alerts = m_dao.findAll(m_cluster.getClusterId());
     assertNotNull(alerts);
     assertEquals(50, alerts.size());
   }
@@ -235,18 +231,21 @@ public class AlertsDAOTest {
   @Test
   public void testFindCurrentByService() {
     List<AlertCurrentEntity> currentAlerts = m_dao.findCurrent();
+    int currentAlertExpectedCount = currentAlerts.size();
+    assertEquals(5, currentAlertExpectedCount);
+
     AlertCurrentEntity current = currentAlerts.get(0);
     AlertHistoryEntity history = current.getAlertHistory();
 
     assertNotNull(history);
 
-    currentAlerts = m_dao.findCurrentByService(m_clusterId,
+    currentAlerts = m_dao.findCurrentByService(m_cluster.getClusterId(),
         history.getServiceName());
 
     assertNotNull(currentAlerts);
-    assertEquals(1, currentAlerts.size());
+    assertEquals(currentAlertExpectedCount, currentAlerts.size());
 
-    currentAlerts = m_dao.findCurrentByService(m_clusterId, "foo");
+    currentAlerts = m_dao.findCurrentByService(m_cluster.getClusterId(), "foo");
 
     assertNotNull(currentAlerts);
     assertEquals(0, currentAlerts.size());
@@ -256,13 +255,13 @@ public class AlertsDAOTest {
    * Test looking up current by a host name.
    */
   @Test
-  public void testFindCurrentByHost() {
+  public void testFindCurrentByHost() throws Exception {
     // create a host
     AlertDefinitionEntity hostDef = new AlertDefinitionEntity();
     hostDef.setDefinitionName("Host Alert Definition ");
-    hostDef.setServiceName("HostService");
+    hostDef.setServiceName("YARN");
     hostDef.setComponentName(null);
-    hostDef.setClusterId(m_clusterId);
+    hostDef.setClusterId(m_cluster.getClusterId());
     hostDef.setHash(UUID.randomUUID().toString());
     hostDef.setScheduleInterval(Integer.valueOf(60));
     hostDef.setScope(Scope.HOST);
@@ -273,7 +272,7 @@ public class AlertsDAOTest {
     // history for the definition
     AlertHistoryEntity history = new AlertHistoryEntity();
     history.setServiceName(hostDef.getServiceName());
-    history.setClusterId(m_clusterId);
+    history.setClusterId(m_cluster.getClusterId());
     history.setAlertDefinition(hostDef);
     history.setAlertLabel(hostDef.getDefinitionName());
     history.setAlertText(hostDef.getDefinitionName());
@@ -289,12 +288,12 @@ public class AlertsDAOTest {
     m_dao.create(current);
 
     List<AlertCurrentEntity> currentAlerts = m_dao.findCurrentByHost(
-        m_clusterId, history.getHostName());
+        m_cluster.getClusterId(), history.getHostName());
 
     assertNotNull(currentAlerts);
     assertEquals(1, currentAlerts.size());
 
-    currentAlerts = m_dao.findCurrentByHost(m_clusterId, "foo");
+    currentAlerts = m_dao.findCurrentByHost(m_cluster.getClusterId(), "foo");
 
     assertNotNull(currentAlerts);
     assertEquals(0, currentAlerts.size());
@@ -310,21 +309,22 @@ public class AlertsDAOTest {
     allStates.add(AlertState.WARNING);
     allStates.add(AlertState.CRITICAL);
 
-    List<AlertHistoryEntity> history = m_dao.findAll(m_clusterId, allStates);
+    List<AlertHistoryEntity> history = m_dao.findAll(m_cluster.getClusterId(),
+        allStates);
     assertNotNull(history);
     assertEquals(50, history.size());
 
-    history = m_dao.findAll(m_clusterId,
+    history = m_dao.findAll(m_cluster.getClusterId(),
         Collections.singletonList(AlertState.OK));
     assertNotNull(history);
     assertEquals(40, history.size());
 
-    history = m_dao.findAll(m_clusterId,
+    history = m_dao.findAll(m_cluster.getClusterId(),
         Collections.singletonList(AlertState.CRITICAL));
     assertNotNull(history);
     assertEquals(10, history.size());
 
-    history = m_dao.findAll(m_clusterId,
+    history = m_dao.findAll(m_cluster.getClusterId(),
         Collections.singletonList(AlertState.WARNING));
     assertNotNull(history);
     assertEquals(0, history.size());
@@ -339,14 +339,14 @@ public class AlertsDAOTest {
     calendar.set(2014, Calendar.JANUARY, 1);
 
     // on or after 1/1/2014
-    List<AlertHistoryEntity> history = m_dao.findAll(m_clusterId,
+    List<AlertHistoryEntity> history = m_dao.findAll(m_cluster.getClusterId(),
         calendar.getTime(), null);
 
     assertNotNull(history);
     assertEquals(50, history.size());
 
     // on or before 1/1/2014
-    history = m_dao.findAll(m_clusterId, null, calendar.getTime());
+    history = m_dao.findAll(m_cluster.getClusterId(), null, calendar.getTime());
     assertNotNull(history);
     assertEquals(1, history.size());
 
@@ -357,17 +357,17 @@ public class AlertsDAOTest {
     calendar.set(2014, Calendar.JANUARY, 10);
     Date endDate = calendar.getTime();
 
-    history = m_dao.findAll(m_clusterId, startDate, endDate);
+    history = m_dao.findAll(m_cluster.getClusterId(), startDate, endDate);
     assertNotNull(history);
     assertEquals(6, history.size());
 
     // after 3/1
     calendar.set(2014, Calendar.MARCH, 5);
-    history = m_dao.findAll(m_clusterId, calendar.getTime(), null);
+    history = m_dao.findAll(m_cluster.getClusterId(), calendar.getTime(), null);
     assertNotNull(history);
     assertEquals(0, history.size());
 
-    history = m_dao.findAll(m_clusterId, endDate, startDate);
+    history = m_dao.findAll(m_cluster.getClusterId(), endDate, startDate);
     assertNotNull(history);
     assertEquals(0, history.size());
   }
@@ -375,10 +375,10 @@ public class AlertsDAOTest {
   @Test
   public void testFindCurrentByHostAndName() throws Exception {
     AlertCurrentEntity entity = m_dao.findCurrentByHostAndName(
-        m_clusterId.longValue(), "h2", "Alert Definition 1");
+        m_cluster.getClusterId(), "h2", "Alert Definition 1");
     assertNull(entity);
 
-    entity = m_dao.findCurrentByHostAndName(m_clusterId.longValue(), "h1",
+    entity = m_dao.findCurrentByHostAndName(m_cluster.getClusterId(), "h1",
         "Alert Definition 1");
 
     assertNotNull(entity);
@@ -391,16 +391,20 @@ public class AlertsDAOTest {
    */
   @Test
   public void testFindCurrentSummary() throws Exception {
-    AlertSummaryDTO summary = m_dao.findCurrentCounts(m_clusterId.longValue(),
+    AlertSummaryDTO summary = m_dao.findCurrentCounts(m_cluster.getClusterId(),
         null, null);
+
     assertEquals(5, summary.getOkCount());
 
-    AlertHistoryEntity h1 = m_dao.findCurrentByCluster(m_clusterId.longValue()).get(
+    AlertHistoryEntity h1 = m_dao.findCurrentByCluster(m_cluster.getClusterId()).get(
         2).getAlertHistory();
-    AlertHistoryEntity h2 = m_dao.findCurrentByCluster(m_clusterId.longValue()).get(
+
+    AlertHistoryEntity h2 = m_dao.findCurrentByCluster(m_cluster.getClusterId()).get(
         3).getAlertHistory();
-    AlertHistoryEntity h3 = m_dao.findCurrentByCluster(m_clusterId.longValue()).get(
+
+    AlertHistoryEntity h3 = m_dao.findCurrentByCluster(m_cluster.getClusterId()).get(
         4).getAlertHistory();
+
     h1.setAlertState(AlertState.WARNING);
     m_dao.merge(h1);
     h2.setAlertState(AlertState.CRITICAL);
@@ -413,7 +417,7 @@ public class AlertsDAOTest {
     int crit = 0;
     int unk = 0;
 
-    for (AlertCurrentEntity h : m_dao.findCurrentByCluster(m_clusterId.longValue())) {
+    for (AlertCurrentEntity h : m_dao.findCurrentByCluster(m_cluster.getClusterId())) {
       switch (h.getAlertHistory().getAlertState()) {
         case CRITICAL:
           crit++;
@@ -431,7 +435,7 @@ public class AlertsDAOTest {
 
     }
 
-    summary = m_dao.findCurrentCounts(m_clusterId.longValue(), null, null);
+    summary = m_dao.findCurrentCounts(m_cluster.getClusterId(), null, null);
     // !!! db-to-db compare
     assertEquals(ok, summary.getOkCount());
     assertEquals(warn, summary.getWarningCount());
@@ -444,20 +448,19 @@ public class AlertsDAOTest {
     assertEquals(1, summary.getCriticalCount());
     assertEquals(1, summary.getCriticalCount());
 
-    summary = m_dao.findCurrentCounts(m_clusterId.longValue(), "Service 0",
-        null);
-    assertEquals(1, summary.getOkCount());
-    assertEquals(0, summary.getWarningCount());
-    assertEquals(0, summary.getCriticalCount());
-    assertEquals(0, summary.getCriticalCount());
-
-    summary = m_dao.findCurrentCounts(m_clusterId.longValue(), null, "h1");
+    summary = m_dao.findCurrentCounts(m_cluster.getClusterId(), "YARN", null);
     assertEquals(2, summary.getOkCount());
     assertEquals(1, summary.getWarningCount());
     assertEquals(1, summary.getCriticalCount());
     assertEquals(1, summary.getCriticalCount());
 
-    summary = m_dao.findCurrentCounts(m_clusterId.longValue(), "foo", null);
+    summary = m_dao.findCurrentCounts(m_cluster.getClusterId(), null, "h1");
+    assertEquals(2, summary.getOkCount());
+    assertEquals(1, summary.getWarningCount());
+    assertEquals(1, summary.getCriticalCount());
+    assertEquals(1, summary.getCriticalCount());
+
+    summary = m_dao.findCurrentCounts(m_cluster.getClusterId(), "foo", null);
     assertEquals(0, summary.getOkCount());
     assertEquals(0, summary.getWarningCount());
     assertEquals(0, summary.getCriticalCount());
@@ -469,9 +472,9 @@ public class AlertsDAOTest {
     // definition
     AlertDefinitionEntity definition = new AlertDefinitionEntity();
     definition.setDefinitionName("many_per_cluster");
-    definition.setServiceName("ServiceName");
+    definition.setServiceName("YARN");
     definition.setComponentName(null);
-    definition.setClusterId(m_clusterId);
+    definition.setClusterId(m_cluster.getClusterId());
     definition.setHash(UUID.randomUUID().toString());
     definition.setScheduleInterval(Integer.valueOf(60));
     definition.setScope(Scope.SERVICE);
@@ -487,7 +490,7 @@ public class AlertsDAOTest {
     history.setAlertState(AlertState.OK);
     history.setAlertText("");
     history.setAlertTimestamp(Long.valueOf(1L));
-    history.setClusterId(m_clusterId);
+    history.setClusterId(m_cluster.getClusterId());
     history.setComponentName("");
     history.setHostName("h1");
     history.setServiceName("ServiceName");
@@ -506,7 +509,7 @@ public class AlertsDAOTest {
     history.setAlertState(AlertState.OK);
     history.setAlertText("");
     history.setAlertTimestamp(Long.valueOf(1L));
-    history.setClusterId(m_clusterId);
+    history.setClusterId(m_cluster.getClusterId());
     history.setComponentName("");
     history.setHostName("h2");
     history.setServiceName("ServiceName");
@@ -518,27 +521,27 @@ public class AlertsDAOTest {
     m_dao.merge(current);
 
     AlertSummaryDTO summary = m_dao.findAggregateCounts(
-        m_clusterId.longValue(), "many_per_cluster");
+        m_cluster.getClusterId(), "many_per_cluster");
     assertEquals(2, summary.getOkCount());
     assertEquals(0, summary.getWarningCount());
     assertEquals(0, summary.getCriticalCount());
     assertEquals(0, summary.getUnknownCount());
 
     AlertCurrentEntity c = m_dao.findCurrentByHostAndName(
-        m_clusterId.longValue(),
+        m_cluster.getClusterId(),
         "h2", "many_per_cluster");
     AlertHistoryEntity h = c.getAlertHistory();
     h.setAlertState(AlertState.CRITICAL);
     m_dao.merge(h);
 
-    summary = m_dao.findAggregateCounts(m_clusterId.longValue(),
+    summary = m_dao.findAggregateCounts(m_cluster.getClusterId(),
         "many_per_cluster");
     assertEquals(2, summary.getOkCount());
     assertEquals(0, summary.getWarningCount());
     assertEquals(1, summary.getCriticalCount());
     assertEquals(0, summary.getUnknownCount());
 
-    summary = m_dao.findAggregateCounts(m_clusterId.longValue(), "foo");
+    summary = m_dao.findAggregateCounts(m_cluster.getClusterId(), "foo");
     assertEquals(0, summary.getOkCount());
     assertEquals(0, summary.getWarningCount());
     assertEquals(0, summary.getCriticalCount());
@@ -601,7 +604,10 @@ public class AlertsDAOTest {
    */
   @Test
   public void testMaintenanceMode() throws Exception {
-    Cluster cluster = initializeNewCluster();
+    m_synchronizedBus.register(m_injector.getInstance(AlertMaintenanceModeListener.class));
+
+    m_helper.installHdfsService(m_cluster, m_serviceFactory,
+        m_componentFactory, m_schFactory, HOSTNAME);
 
     List<AlertCurrentEntity> currents = m_dao.findCurrent();
     for (AlertCurrentEntity current : currents) {
@@ -613,7 +619,7 @@ public class AlertsDAOTest {
     namenode.setDefinitionName("NAMENODE");
     namenode.setServiceName("HDFS");
     namenode.setComponentName("NAMENODE");
-    namenode.setClusterId(cluster.getClusterId());
+    namenode.setClusterId(m_cluster.getClusterId());
     namenode.setHash(UUID.randomUUID().toString());
     namenode.setScheduleInterval(Integer.valueOf(60));
     namenode.setScope(Scope.ANY);
@@ -625,7 +631,7 @@ public class AlertsDAOTest {
     datanode.setDefinitionName("DATANODE");
     datanode.setServiceName("HDFS");
     datanode.setComponentName("DATANODE");
-    datanode.setClusterId(cluster.getClusterId());
+    datanode.setClusterId(m_cluster.getClusterId());
     datanode.setHash(UUID.randomUUID().toString());
     datanode.setScheduleInterval(Integer.valueOf(60));
     datanode.setScope(Scope.HOST);
@@ -637,7 +643,7 @@ public class AlertsDAOTest {
     aggregate.setDefinitionName("DATANODE_UP");
     aggregate.setServiceName("HDFS");
     aggregate.setComponentName(null);
-    aggregate.setClusterId(cluster.getClusterId());
+    aggregate.setClusterId(m_cluster.getClusterId());
     aggregate.setHash(UUID.randomUUID().toString());
     aggregate.setScheduleInterval(Integer.valueOf(60));
     aggregate.setScope(Scope.SERVICE);
@@ -650,7 +656,7 @@ public class AlertsDAOTest {
     nnHistory.setAlertState(AlertState.OK);
     nnHistory.setServiceName(namenode.getServiceName());
     nnHistory.setComponentName(namenode.getComponentName());
-    nnHistory.setClusterId(cluster.getClusterId());
+    nnHistory.setClusterId(m_cluster.getClusterId());
     nnHistory.setAlertDefinition(namenode);
     nnHistory.setAlertLabel(namenode.getDefinitionName());
     nnHistory.setAlertText(namenode.getDefinitionName());
@@ -670,7 +676,7 @@ public class AlertsDAOTest {
     dnHistory.setAlertState(AlertState.WARNING);
     dnHistory.setServiceName(datanode.getServiceName());
     dnHistory.setComponentName(datanode.getComponentName());
-    dnHistory.setClusterId(cluster.getClusterId());
+    dnHistory.setClusterId(m_cluster.getClusterId());
     dnHistory.setAlertDefinition(datanode);
     dnHistory.setAlertLabel(datanode.getDefinitionName());
     dnHistory.setAlertText(datanode.getDefinitionName());
@@ -690,7 +696,7 @@ public class AlertsDAOTest {
     aggregateHistory.setAlertState(AlertState.CRITICAL);
     aggregateHistory.setServiceName(aggregate.getServiceName());
     aggregateHistory.setComponentName(aggregate.getComponentName());
-    aggregateHistory.setClusterId(cluster.getClusterId());
+    aggregateHistory.setClusterId(m_cluster.getClusterId());
     aggregateHistory.setAlertDefinition(aggregate);
     aggregateHistory.setAlertLabel(aggregate.getDefinitionName());
     aggregateHistory.setAlertText(aggregate.getDefinitionName());
@@ -713,7 +719,7 @@ public class AlertsDAOTest {
     }
 
     // turn on HDFS MM
-    Service hdfs = m_clusters.getClusterById(cluster.getClusterId()).getService(
+    Service hdfs = m_clusters.getClusterById(m_cluster.getClusterId()).getService(
         "HDFS");
 
     hdfs.setMaintenanceState(MaintenanceState.ON);
@@ -735,7 +741,7 @@ public class AlertsDAOTest {
 
     // turn on host MM
     Host host = m_clusters.getHost(HOSTNAME);
-    host.setMaintenanceState(cluster.getClusterId(), MaintenanceState.ON);
+    host.setMaintenanceState(m_cluster.getClusterId(), MaintenanceState.ON);
 
     // only NAMENODE and DATANODE should be in MM; the aggregate should not
     // since the host is in MM
@@ -750,7 +756,7 @@ public class AlertsDAOTest {
     }
 
     // turn host MM off
-    host.setMaintenanceState(cluster.getClusterId(), MaintenanceState.OFF);
+    host.setMaintenanceState(m_cluster.getClusterId(), MaintenanceState.OFF);
 
     currents = m_dao.findCurrent();
     assertEquals(3, currents.size());
@@ -760,7 +766,7 @@ public class AlertsDAOTest {
 
     // turn a component MM on
     ServiceComponentHost nnComponent = null;
-    List<ServiceComponentHost> schs = cluster.getServiceComponentHosts(HOSTNAME);
+    List<ServiceComponentHost> schs = m_cluster.getServiceComponentHosts(HOSTNAME);
     for (ServiceComponentHost sch : schs) {
       if ("NAMENODE".equals(sch.getServiceComponentName())) {
         sch.setMaintenanceState(MaintenanceState.ON);
@@ -789,8 +795,9 @@ public class AlertsDAOTest {
    */
   @Test
   public void testAlertHistoryPredicate() throws Exception {
-    Cluster cluster = initializeNewCluster();
-    m_alertHelper.populateData(cluster);
+    m_helper.installHdfsService(m_cluster, m_serviceFactory,
+        m_componentFactory, m_schFactory, HOSTNAME);
+    m_alertHelper.populateData(m_cluster);
 
     Predicate clusterPredicate = null;
     Predicate hdfsPredicate = null;
@@ -881,8 +888,9 @@ public class AlertsDAOTest {
    */
   @Test
   public void testAlertHistoryPagination() throws Exception {
-    Cluster cluster = initializeNewCluster();
-    m_alertHelper.populateData(cluster);
+    m_helper.installHdfsService(m_cluster, m_serviceFactory,
+        m_componentFactory, m_schFactory, HOSTNAME);
+    m_alertHelper.populateData(m_cluster);
 
     AlertHistoryRequest request = new AlertHistoryRequest();
     request.Pagination = null;
@@ -920,8 +928,9 @@ public class AlertsDAOTest {
    */
   @Test
   public void testAlertHistorySorting() throws Exception {
-    Cluster cluster = initializeNewCluster();
-    m_alertHelper.populateData(cluster);
+    m_helper.installHdfsService(m_cluster, m_serviceFactory,
+        m_componentFactory, m_schFactory, HOSTNAME);
+    m_alertHelper.populateData(m_cluster);
 
     List<SortRequestProperty> sortProperties = new ArrayList<SortRequestProperty>();
     SortRequest sortRequest = new SortRequestImpl(sortProperties);
@@ -982,11 +991,14 @@ public class AlertsDAOTest {
     assertNotNull(currentAlerts);
     assertEquals(5, currentAlerts.size());
 
-    m_dao.removeCurrentByService("Service 1");
-    m_dao.removeCurrentByService("Service 2");
-
+    // assert none removed for HDFS
+    m_dao.removeCurrentByService("HDFS");
     currentAlerts = m_dao.findCurrent();
-    assertEquals(3, currentAlerts.size());
+    assertEquals(5, currentAlerts.size());
+
+    m_dao.removeCurrentByService("YARN");
+    currentAlerts = m_dao.findCurrent();
+    assertEquals(0, currentAlerts.size());
   }
 
   @Test
@@ -1013,7 +1025,7 @@ public class AlertsDAOTest {
     assertEquals(5, currentAlerts.size());
 
     AlertCurrentEntity entity = m_dao.findCurrentByHostAndName(
-        m_clusterId.longValue(), "h1", "Alert Definition 1");
+        m_cluster.getClusterId(), "h1", "Alert Definition 1");
 
     assertNotNull(entity);
 
@@ -1040,82 +1052,5 @@ public class AlertsDAOTest {
 
     currentAlerts = m_dao.findCurrent();
     assertEquals(4, currentAlerts.size());
-  }
-
-  private Cluster initializeNewCluster() throws Exception {
-    String clusterName = "cluster-" + System.currentTimeMillis();
-    m_clusters.addCluster(clusterName);
-
-    Cluster cluster = m_clusters.getCluster(clusterName);
-    StackId stackId = new StackId("HDP", "2.0.6");
-    cluster.setDesiredStackVersion(stackId);
-    cluster.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.CURRENT);
-
-    addHost();
-    m_clusters.mapHostToCluster(HOSTNAME, cluster.getClusterName());
-
-    installHdfsService(cluster);
-    return cluster;
-  }
-
-  /**
-   * @throws Exception
-   */
-  private void addHost() throws Exception {
-    m_clusters.addHost(HOSTNAME);
-
-    Host host = m_clusters.getHost(HOSTNAME);
-    Map<String, String> hostAttributes = new HashMap<String, String>();
-    hostAttributes.put("os_family", "redhat");
-    hostAttributes.put("os_release_version", "6.4");
-    host.setHostAttributes(hostAttributes);
-    host.setState(HostState.HEALTHY);
-    host.persist();
-  }
-
-  /**
-   * Calls {@link Service#persist()} to mock a service install along with
-   * creating a single {@link Host} and {@link ServiceComponentHost}.
-   */
-  private void installHdfsService(Cluster cluster) throws Exception {
-    String serviceName = "HDFS";
-    Service service = m_serviceFactory.createNew(cluster, serviceName);
-    cluster.addService(service);
-    service.persist();
-    service = cluster.getService(serviceName);
-    Assert.assertNotNull(service);
-
-    ServiceComponent datanode = m_componentFactory.createNew(service,
-        "DATANODE");
-
-    service.addServiceComponent(datanode);
-    datanode.setDesiredState(State.INSTALLED);
-    datanode.persist();
-
-    ServiceComponentHost sch = m_schFactory.createNew(datanode, HOSTNAME);
-
-    datanode.addServiceComponentHost(sch);
-    sch.setDesiredState(State.INSTALLED);
-    sch.setState(State.INSTALLED);
-    sch.setDesiredStackVersion(new StackId("HDP-2.0.6"));
-    sch.setStackVersion(new StackId("HDP-2.0.6"));
-
-    sch.persist();
-
-    ServiceComponent namenode = m_componentFactory.createNew(service,
-        "NAMENODE");
-
-    service.addServiceComponent(namenode);
-    namenode.setDesiredState(State.INSTALLED);
-    namenode.persist();
-
-    sch = m_schFactory.createNew(namenode, HOSTNAME);
-    namenode.addServiceComponentHost(sch);
-    sch.setDesiredState(State.INSTALLED);
-    sch.setState(State.INSTALLED);
-    sch.setDesiredStackVersion(new StackId("HDP-2.0.6"));
-    sch.setStackVersion(new StackId("HDP-2.0.6"));
-
-    sch.persist();
   }
 }

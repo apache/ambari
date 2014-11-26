@@ -24,6 +24,7 @@ import java.util.Set;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.RootServiceResponseFactory;
 import org.apache.ambari.server.events.AlertDefinitionDeleteEvent;
 import org.apache.ambari.server.events.AlertDefinitionRegistrationEvent;
@@ -56,25 +57,25 @@ public class AlertDefinitionDAO {
    * JPA entity manager
    */
   @Inject
-  Provider<EntityManager> entityManagerProvider;
+  private Provider<EntityManager> entityManagerProvider;
 
   /**
    * DAO utilities for dealing mostly with {@link TypedQuery} results.
    */
   @Inject
-  DaoUtils daoUtils;
+  private DaoUtils daoUtils;
 
   /**
    * Alert history DAO.
    */
   @Inject
-  AlertsDAO alertsDao;
+  private AlertsDAO alertsDao;
 
   /**
    * Alert dispatch DAO.
    */
   @Inject
-  AlertDispatchDAO dispatchDao;
+  private AlertDispatchDAO dispatchDao;
 
   /**
    * Publishes the following events:
@@ -284,15 +285,24 @@ public class AlertDefinitionDAO {
    *          the definition to persist (not {@code null}).
    */
   @Transactional
-  public void create(AlertDefinitionEntity alertDefinition) {
+  public void create(AlertDefinitionEntity alertDefinition)
+      throws AmbariException {
     entityManagerProvider.get().persist(alertDefinition);
 
-    AlertGroupEntity group = dispatchDao.findDefaultServiceGroup(alertDefinition.getServiceName());
+    AlertGroupEntity group = dispatchDao.findDefaultServiceGroup(
+        alertDefinition.getClusterId(), alertDefinition.getServiceName());
 
-    if (null != group) {
-      group.addAlertDefinition(alertDefinition);
-      dispatchDao.merge(group);
+    if (null == group) {
+      // create the default alert group for the new service; this MUST be done
+      // before adding definitions so that they are properly added to the
+      // default group
+      String serviceName = alertDefinition.getServiceName();
+      group = dispatchDao.createDefaultGroup(alertDefinition.getClusterId(),
+          serviceName);
     }
+
+    group.addAlertDefinition(alertDefinition);
+    dispatchDao.merge(group);
 
     // publish the alert definition registration
     AlertDefinition coerced = alertDefinitionFactory.coerce(alertDefinition);
@@ -339,7 +349,8 @@ public class AlertDefinitionDAO {
    * @param alertDefinition
    *          the definition to create or update (not {@code null}).
    */
-  public void createOrUpdate(AlertDefinitionEntity alertDefinition) {
+  public void createOrUpdate(AlertDefinitionEntity alertDefinition)
+      throws AmbariException {
     if (null == alertDefinition.getDefinitionId()) {
       create(alertDefinition);
     } else {

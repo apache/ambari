@@ -51,7 +51,7 @@ import javax.persistence.UniqueConstraint;
     @NamedQuery(name = "AlertGroupEntity.findByName", query = "SELECT alertGroup FROM AlertGroupEntity alertGroup WHERE alertGroup.groupName = :groupName"),
     @NamedQuery(name = "AlertGroupEntity.findByNameInCluster", query = "SELECT alertGroup FROM AlertGroupEntity alertGroup WHERE alertGroup.groupName = :groupName AND alertGroup.clusterId = :clusterId"),
     @NamedQuery(name = "AlertGroupEntity.findByAssociatedDefinition", query = "SELECT alertGroup FROM AlertGroupEntity alertGroup WHERE :alertDefinition MEMBER OF alertGroup.alertDefinitions"),
-    @NamedQuery(name = "AlertGroupEntity.findServiceDefaultGroup", query = "SELECT alertGroup FROM AlertGroupEntity alertGroup WHERE alertGroup.serviceName = :serviceName AND alertGroup.isDefault = 1") })
+    @NamedQuery(name = "AlertGroupEntity.findServiceDefaultGroup", query = "SELECT alertGroup FROM AlertGroupEntity alertGroup WHERE alertGroup.clusterId = :clusterId AND alertGroup.serviceName = :serviceName AND alertGroup.isDefault = 1") })
 public class AlertGroupEntity {
 
   @Id
@@ -352,5 +352,20 @@ public class AlertGroupEntity {
   public int hashCode() {
     int result = null != groupId ? groupId.hashCode() : 0;
     return result;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String toString() {
+    StringBuilder buffer = new StringBuilder();
+    buffer.append(getClass().getSimpleName());
+    buffer.append("{");
+    buffer.append("id=").append(groupId);
+    buffer.append(", name=").append(groupName);
+    buffer.append(", default=").append(isDefault);
+    buffer.append("}");
+    return buffer.toString();
   }
 }

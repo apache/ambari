@@ -18,27 +18,34 @@
 package org.apache.ambari.server.events;
 
 /**
- * The {@link HostRemovedEvent} class is fired when a host is removed from the
- * cluster.
+ * The {@link HostAddedEvent} is fired when a host is added to a cluster.
  */
-public class HostRemovedEvent extends HostEvent {
+public class HostAddedEvent extends ClusterEvent {
+
+  /**
+   * The host's name.
+   */
+  protected final String m_hostName;
+
   /**
    * Constructor.
    *
+   * @param clusterId
+   *          the ID of the cluster.
    * @param hostName
+   *          the name of the host.
    */
-  public HostRemovedEvent(String hostName) {
-    super(AmbariEventType.HOST_REMOVED, hostName);
+  public HostAddedEvent(long clusterId, String hostName) {
+    super(AmbariEventType.HOST_ADDED, clusterId);
+    m_hostName = hostName;
   }
 
   /**
-   * {@inheritDoc}
+   * Gets the host's name that the event belongs to.
+   *
+   * @return the hostName
    */
-  @Override
-  public String toString() {
-    StringBuilder buffer = new StringBuilder("HostRemovedEvent{ ");
-    buffer.append("hostName=").append(m_hostName);
-    buffer.append("}");
-    return buffer.toString();
+  public String getHostName() {
+    return m_hostName;
   }
 }

@@ -355,4 +355,21 @@ public class AlertHistoryEntity {
     return result;
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String toString() {
+    StringBuilder buffer = new StringBuilder();
+    buffer.append(getClass().getSimpleName());
+    buffer.append("{");
+    buffer.append("id=").append(alertId);
+    buffer.append(", serviceName=").append(serviceName);
+    buffer.append(", componentName=").append(componentName);
+    buffer.append(", state=").append(alertState);
+    buffer.append(", label=").append(alertLabel);
+    buffer.append("}");
+    return buffer.toString();
+  }
+
 }

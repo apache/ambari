@@ -295,4 +295,17 @@ public class AlertTargetEntity {
     return result;
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String toString() {
+    StringBuilder buffer = new StringBuilder();
+    buffer.append(getClass().getSimpleName());
+    buffer.append("{");
+    buffer.append("id=").append(targetId);
+    buffer.append(", name=").append(targetName);
+    buffer.append("}");
+    return buffer.toString();
+  }
 }

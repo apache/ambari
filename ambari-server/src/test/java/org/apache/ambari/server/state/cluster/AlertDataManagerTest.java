@@ -50,7 +50,12 @@ import org.apache.ambari.server.orm.entities.AlertNoticeEntity;
 import org.apache.ambari.server.orm.entities.AlertTargetEntity;
 import org.apache.ambari.server.state.Alert;
 import org.apache.ambari.server.state.AlertState;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.MaintenanceState;
+import org.apache.ambari.server.state.ServiceComponentFactory;
+import org.apache.ambari.server.state.ServiceComponentHostFactory;
+import org.apache.ambari.server.state.ServiceFactory;
 import org.apache.ambari.server.state.alert.AggregateDefinitionMapping;
 import org.apache.ambari.server.state.alert.AggregateSource;
 import org.apache.ambari.server.state.alert.AlertDefinition;
@@ -78,80 +83,101 @@ import com.google.inject.persist.PersistService;
 public class AlertDataManagerTest {
 
   private static final String ALERT_DEFINITION = "Alert Definition 1";
-  private static final String SERVICE = "service1";
+  private static final String SERVICE = "HDFS";
   private static final String COMPONENT = "component1";
   private static final String HOST1 = "h1";
   private static final String HOST2 = "h2";
   private static final String ALERT_LABEL = "My Label";
 
-  private Long clusterId;
-  private Injector injector;
-  private OrmTestHelper helper;
-  private AlertsDAO dao;
-  private AlertDispatchDAO dispatchDao;
-  private AlertDefinitionDAO definitionDao;
+  private Injector m_injector;
+  private OrmTestHelper m_helper;
+  private Clusters m_clusters;
+  private Cluster m_cluster;
+  private AlertsDAO m_dao;
+  private AlertDispatchDAO m_dispatchDao;
+  private AlertDefinitionDAO m_definitionDao;
+
+  private ServiceFactory m_serviceFactory;
+  private ServiceComponentFactory m_componentFactory;
+  private ServiceComponentHostFactory m_schFactory;
 
   @Before
   public void setup() throws Exception {
-    injector = Guice.createInjector(new InMemoryDefaultTestModule());
-    injector.getInstance(GuiceJpaInitializer.class);
-    helper = injector.getInstance(OrmTestHelper.class);
-    clusterId = helper.createCluster();
-    dao = injector.getInstance(AlertsDAO.class);
-    dispatchDao = injector.getInstance(AlertDispatchDAO.class);
-    definitionDao = injector.getInstance(AlertDefinitionDAO.class);
+    m_injector = Guice.createInjector(new InMemoryDefaultTestModule());
+    m_injector.getInstance(GuiceJpaInitializer.class);
+    m_helper = m_injector.getInstance(OrmTestHelper.class);
+    m_dao = m_injector.getInstance(AlertsDAO.class);
+    m_dispatchDao = m_injector.getInstance(AlertDispatchDAO.class);
+    m_definitionDao = m_injector.getInstance(AlertDefinitionDAO.class);
+    m_clusters = m_injector.getInstance(Clusters.class);
+    m_serviceFactory = m_injector.getInstance(ServiceFactory.class);
+    m_componentFactory = m_injector.getInstance(ServiceComponentFactory.class);
+    m_schFactory = m_injector.getInstance(ServiceComponentHostFactory.class);
+
+    // install YARN so there is at least 1 service installed and no
+    // unexpected alerts since the test YARN service doesn't have any alerts
+    m_cluster = m_helper.buildNewCluster(m_clusters, m_serviceFactory,
+        m_componentFactory, m_schFactory, HOST1);
+
+    m_helper.addHost(m_clusters, m_cluster, HOST2);
 
     // create 5 definitions
     for (int i = 0; i < 5; i++) {
       AlertDefinitionEntity definition = new AlertDefinitionEntity();
       definition.setDefinitionName("Alert Definition " + i);
-      definition.setServiceName("Service " + i);
-      definition.setComponentName(null);
-      definition.setClusterId(clusterId);
+      definition.setServiceName(SERVICE);
+      definition.setComponentName(COMPONENT);
+      definition.setClusterId(m_cluster.getClusterId());
       definition.setHash(UUID.randomUUID().toString());
       definition.setScheduleInterval(Integer.valueOf(60));
       definition.setScope(Scope.SERVICE);
       definition.setSource("{\"type\" : \"SCRIPT\"}");
       definition.setSourceType(SourceType.SCRIPT);
-      definitionDao.create(definition);
+      m_definitionDao.create(definition);
     }
   }
 
   @After
   public void teardown() {
-    injector.getInstance(PersistService.class).stop();
-    injector = null;
+    m_injector.getInstance(PersistService.class).stop();
+    m_injector = null;
   }
 
   @Test
   public void testAlertRecords() {
-    Alert alert1 = new Alert(ALERT_DEFINITION, null, SERVICE, COMPONENT, HOST1, AlertState.OK);
+    Alert alert1 = new Alert(ALERT_DEFINITION, null, SERVICE, COMPONENT, HOST1,
+        AlertState.OK);
     alert1.setLabel(ALERT_LABEL);
     alert1.setText("Component component1 is OK");
     alert1.setTimestamp(1L);
 
-    Alert alert2 = new Alert(ALERT_DEFINITION, null, SERVICE, COMPONENT, HOST2, AlertState.CRITICAL);
+    Alert alert2 = new Alert(ALERT_DEFINITION, null, SERVICE, COMPONENT, HOST2,
+        AlertState.CRITICAL);
     alert2.setLabel(ALERT_LABEL);
     alert2.setText("Component component2 is not OK");
 
-    AlertReceivedListener listener = injector.getInstance(AlertReceivedListener.class);
+    AlertReceivedListener listener = m_injector.getInstance(AlertReceivedListener.class);
 
-    AlertReceivedEvent event1 = new AlertReceivedEvent(clusterId.longValue(),
+    AlertReceivedEvent event1 = new AlertReceivedEvent(
+        m_cluster.getClusterId(),
         alert1);
 
-    AlertReceivedEvent event2 = new AlertReceivedEvent(clusterId.longValue(),
+    AlertReceivedEvent event2 = new AlertReceivedEvent(
+        m_cluster.getClusterId(),
         alert2);
 
     listener.onAlertEvent(event1);
     listener.onAlertEvent(event2);
 
-    List<AlertCurrentEntity> allCurrent = dao.findCurrentByService(clusterId.longValue(), SERVICE);
+    List<AlertCurrentEntity> allCurrent = m_dao.findCurrentByService(
+        m_cluster.getClusterId(), SERVICE);
     assertEquals(2, allCurrent.size());
 
-    List<AlertHistoryEntity> allHistory = dao.findAll(clusterId.longValue());
+    List<AlertHistoryEntity> allHistory = m_dao.findAll(m_cluster.getClusterId());
     assertEquals(2, allHistory.size());
 
-    AlertCurrentEntity current = dao.findCurrentByHostAndName(clusterId.longValue(), HOST1, ALERT_DEFINITION);
+    AlertCurrentEntity current = m_dao.findCurrentByHostAndName(
+        m_cluster.getClusterId(), HOST1, ALERT_DEFINITION);
     assertNotNull(current);
     assertEquals(HOST1, current.getAlertHistory().getHostName());
     assertEquals(ALERT_DEFINITION, current.getAlertHistory().getAlertDefinition().getDefinitionName());
@@ -165,17 +191,20 @@ public class AlertDataManagerTest {
     Long historyId = current.getAlertHistory().getAlertId();
 
     // no new history since the state is the same
-    Alert alert3 = new Alert(ALERT_DEFINITION, null, SERVICE, COMPONENT, HOST1, AlertState.OK);
+    Alert alert3 = new Alert(ALERT_DEFINITION, null, SERVICE, COMPONENT, HOST1,
+        AlertState.OK);
     alert3.setLabel(ALERT_LABEL);
     alert3.setText("Component component1 is OK");
     alert3.setTimestamp(2L);
 
-    AlertReceivedEvent event3 = new AlertReceivedEvent(clusterId.longValue(),
+    AlertReceivedEvent event3 = new AlertReceivedEvent(
+        m_cluster.getClusterId(),
         alert3);
 
     listener.onAlertEvent(event3);
 
-    current = dao.findCurrentByHostAndName(clusterId.longValue(), HOST1, ALERT_DEFINITION);
+    current = m_dao.findCurrentByHostAndName(m_cluster.getClusterId(), HOST1,
+        ALERT_DEFINITION);
     assertNotNull(current);
     assertEquals(currentId, current.getAlertId());
     assertEquals(historyId, current.getAlertHistory().getAlertId());
@@ -187,24 +216,27 @@ public class AlertDataManagerTest {
     assertEquals(1L, current.getOriginalTimestamp().longValue());
     assertEquals(2L, current.getLatestTimestamp().longValue());
 
-    allCurrent = dao.findCurrentByService(clusterId.longValue(), SERVICE);
+    allCurrent = m_dao.findCurrentByService(m_cluster.getClusterId(), SERVICE);
     assertEquals(2, allCurrent.size());
 
-    allHistory = dao.findAll(clusterId.longValue());
+    allHistory = m_dao.findAll(m_cluster.getClusterId());
     assertEquals(2, allHistory.size());
 
     // change to warning
-    Alert alert4 = new Alert(ALERT_DEFINITION, null, SERVICE, COMPONENT, HOST1, AlertState.WARNING);
+    Alert alert4 = new Alert(ALERT_DEFINITION, null, SERVICE, COMPONENT, HOST1,
+        AlertState.WARNING);
     alert4.setLabel(ALERT_LABEL);
     alert4.setText("Component component1 is about to go down");
     alert4.setTimestamp(3L);
 
-    AlertReceivedEvent event4 = new AlertReceivedEvent(clusterId.longValue(),
+    AlertReceivedEvent event4 = new AlertReceivedEvent(
+        m_cluster.getClusterId(),
         alert4);
 
     listener.onAlertEvent(event4);
 
-    current = dao.findCurrentByHostAndName(clusterId.longValue(), HOST1, ALERT_DEFINITION);
+    current = m_dao.findCurrentByHostAndName(m_cluster.getClusterId(), HOST1,
+        ALERT_DEFINITION);
     assertNotNull(current);
     assertEquals(current.getAlertId(), currentId);
     assertFalse(historyId.equals(current.getAlertHistory().getAlertId()));
@@ -216,10 +248,10 @@ public class AlertDataManagerTest {
     assertEquals(3L, current.getOriginalTimestamp().longValue());
     assertEquals(3L, current.getLatestTimestamp().longValue());
 
-    allCurrent = dao.findCurrentByService(clusterId.longValue(), SERVICE);
+    allCurrent = m_dao.findCurrentByService(m_cluster.getClusterId(), SERVICE);
     assertEquals(2, allCurrent.size());
 
-    allHistory = dao.findAll(clusterId.longValue());
+    allHistory = m_dao.findAll(m_cluster.getClusterId());
     assertEquals(3, allHistory.size());
   }
 
@@ -231,24 +263,24 @@ public class AlertDataManagerTest {
    */
   @Test
   public void testAlertNotices() throws Exception {
-    List<AlertNoticeEntity> notices = dispatchDao.findAllNotices();
+    List<AlertNoticeEntity> notices = m_dispatchDao.findAllNotices();
     assertEquals( 0, notices.size() );
 
-    List<AlertDefinitionEntity> definitions = definitionDao.findAll(clusterId);
+    List<AlertDefinitionEntity> definitions = m_definitionDao.findAll(m_cluster.getClusterId());
     AlertDefinitionEntity definition = definitions.get(0);
 
     AlertHistoryEntity history = new AlertHistoryEntity();
     history.setServiceName(definition.getServiceName());
-    history.setClusterId(clusterId);
+    history.setClusterId(m_cluster.getClusterId());
     history.setAlertDefinition(definition);
     history.setAlertLabel(definition.getDefinitionName());
     history.setAlertText(definition.getDefinitionName());
     history.setAlertTimestamp(System.currentTimeMillis());
     history.setHostName(HOST1);
     history.setAlertState(AlertState.OK);
-    dao.create(history);
+    m_dao.create(history);
 
-    List<AlertHistoryEntity> histories = dao.findAll(clusterId);
+    List<AlertHistoryEntity> histories = m_dao.findAll(m_cluster.getClusterId());
     assertEquals(1, histories.size());
 
     AlertCurrentEntity currentAlert = new AlertCurrentEntity();
@@ -256,26 +288,28 @@ public class AlertDataManagerTest {
     currentAlert.setMaintenanceState(MaintenanceState.OFF);
     currentAlert.setOriginalTimestamp(System.currentTimeMillis());
     currentAlert.setLatestTimestamp(System.currentTimeMillis());
-    dao.create(currentAlert);
+    m_dao.create(currentAlert);
 
-    AlertTargetEntity target = helper.createAlertTarget();
+    AlertTargetEntity target = m_helper.createAlertTarget();
     Set<AlertTargetEntity> targets = new HashSet<AlertTargetEntity>();
     targets.add(target);
 
-    AlertGroupEntity group = helper.createAlertGroup(clusterId, targets);
+    AlertGroupEntity group = m_helper.createAlertGroup(
+        m_cluster.getClusterId(), targets);
     group.addAlertDefinition( definitions.get(0) );
-    dispatchDao.merge(group);
+    m_dispatchDao.merge(group);
 
     Alert alert1 = new Alert(ALERT_DEFINITION, null, SERVICE, COMPONENT, HOST1,
         AlertState.OK);
 
-    AlertStateChangeEvent event = new AlertStateChangeEvent(clusterId, alert1,
+    AlertStateChangeEvent event = new AlertStateChangeEvent(
+        m_cluster.getClusterId(), alert1,
         currentAlert, AlertState.CRITICAL);
 
-    AlertStateChangedListener listener = injector.getInstance(AlertStateChangedListener.class);
+    AlertStateChangedListener listener = m_injector.getInstance(AlertStateChangedListener.class);
     listener.onAlertEvent(event);
 
-    notices = dispatchDao.findAllNotices();
+    notices = m_dispatchDao.findAllNotices();
     assertEquals(1, notices.size());
   }
 
@@ -286,22 +320,22 @@ public class AlertDataManagerTest {
     definition.setDefinitionName("to_aggregate");
     definition.setLabel("My Label");
     definition.setLabel("My Description");
-    definition.setServiceName("SERVICE");
+    definition.setServiceName(SERVICE);
     definition.setComponentName(null);
-    definition.setClusterId(clusterId);
+    definition.setClusterId(m_cluster.getClusterId());
     definition.setHash(UUID.randomUUID().toString());
     definition.setScheduleInterval(Integer.valueOf(60));
     definition.setScope(Scope.HOST);
     definition.setSource("{\"type\" : \"SCRIPT\"}");
     definition.setSourceType(SourceType.SCRIPT);
-    definitionDao.create(definition);
+    m_definitionDao.create(definition);
 
     // create aggregate of definition
     AlertDefinitionEntity aggDef = new AlertDefinitionEntity();
     aggDef.setDefinitionName("aggregate_test");
-    aggDef.setServiceName("SERVICE");
+    aggDef.setServiceName(SERVICE);
     aggDef.setComponentName(null);
-    aggDef.setClusterId(clusterId);
+    aggDef.setClusterId(m_cluster.getClusterId());
     aggDef.setHash(UUID.randomUUID().toString());
     aggDef.setScheduleInterval(Integer.valueOf(60));
     aggDef.setScope(Scope.SERVICE);
@@ -336,7 +370,7 @@ public class AlertDataManagerTest {
 
     aggDef.setSource(gson.toJson(source));
     aggDef.setSourceType(SourceType.AGGREGATE);
-    definitionDao.create(aggDef);
+    m_definitionDao.create(aggDef);
 
     // add current and history across four hosts
     for (int i = 0; i < 4; i++) {
@@ -347,21 +381,21 @@ public class AlertDataManagerTest {
       history.setAlertState(AlertState.OK);
       history.setAlertText("OK");
       history.setAlertTimestamp(Long.valueOf(1));
-      history.setClusterId(clusterId);
+      history.setClusterId(m_cluster.getClusterId());
       history.setComponentName(definition.getComponentName());
       history.setHostName("h" + (i+1));
       history.setServiceName(definition.getServiceName());
-      dao.create(history);
+      m_dao.create(history);
 
       AlertCurrentEntity current = new AlertCurrentEntity();
       current.setAlertHistory(history);
       current.setLatestText(history.getAlertText());
       current.setLatestTimestamp(Long.valueOf(1L));
       current.setOriginalTimestamp(Long.valueOf(1L));
-      dao.merge(current);
+      m_dao.merge(current);
     }
 
-    AlertEventPublisher publisher = injector.getInstance(AlertEventPublisher.class);
+    AlertEventPublisher publisher = m_injector.getInstance(AlertEventPublisher.class);
 
     // !!! need a synchronous op for testing
     field = AlertEventPublisher.class.getDeclaredField("m_eventBus");
@@ -377,17 +411,17 @@ public class AlertDataManagerTest {
       }
     });
 
-    AlertAggregateListener listener = injector.getInstance(AlertAggregateListener.class);
+    AlertAggregateListener listener = m_injector.getInstance(AlertAggregateListener.class);
     AlertDefinitionFactory factory = new AlertDefinitionFactory();
-    AggregateDefinitionMapping aggregateMapping = injector.getInstance(AggregateDefinitionMapping.class);
+    AggregateDefinitionMapping aggregateMapping = m_injector.getInstance(AggregateDefinitionMapping.class);
 
     AlertDefinition aggregateDefinition = factory.coerce(aggDef);
-    aggregateMapping.registerAggregate(clusterId.longValue(),
+    aggregateMapping.registerAggregate(m_cluster.getClusterId(),
         aggregateDefinition );
 
     AggregateSource as = (AggregateSource) aggregateDefinition.getSource();
     AlertDefinition aggregatedDefinition = aggregateMapping.getAggregateDefinition(
-        clusterId.longValue(), as.getAlertName());
+        m_cluster.getClusterId(), as.getAlertName());
 
     assertNotNull(aggregatedDefinition);
 
@@ -400,7 +434,8 @@ public class AlertDataManagerTest {
         definition.getComponentName(),
         "h1",
         AlertState.OK);
-    AlertReceivedEvent event = new AlertReceivedEvent(clusterId.longValue(), alert);
+    AlertReceivedEvent event = new AlertReceivedEvent(m_cluster.getClusterId(),
+        alert);
 
     listener.onAlertEvent(event);
     assertNotNull(ref.get());
@@ -408,10 +443,10 @@ public class AlertDataManagerTest {
     assertTrue(ref.get().getText().indexOf("0/4") > -1);
 
     // check if one is critical, still ok
-    AlertCurrentEntity current = dao.findCurrentByHostAndName(
-        clusterId.longValue(), "h1", definition.getDefinitionName());
+    AlertCurrentEntity current = m_dao.findCurrentByHostAndName(
+        m_cluster.getClusterId(), "h1", definition.getDefinitionName());
     current.getAlertHistory().setAlertState(AlertState.CRITICAL);
-    dao.merge(current.getAlertHistory());
+    m_dao.merge(current.getAlertHistory());
 
     listener.onAlertEvent(event);
     assertEquals("aggregate_test", ref.get().getName());
@@ -419,10 +454,11 @@ public class AlertDataManagerTest {
     assertTrue(ref.get().getText().indexOf("1/4") > -1);
 
     // two are either warning or critical, warning
-    current = dao.findCurrentByHostAndName(
-        clusterId.longValue(), "h2", definition.getDefinitionName());
+    current = m_dao.findCurrentByHostAndName(
+m_cluster.getClusterId(), "h2",
+        definition.getDefinitionName());
     current.getAlertHistory().setAlertState(AlertState.WARNING);
-    dao.merge(current.getAlertHistory());
+    m_dao.merge(current.getAlertHistory());
 
     listener.onAlertEvent(event);
     assertEquals("aggregate_test", ref.get().getName());
@@ -430,10 +466,11 @@ public class AlertDataManagerTest {
     assertTrue(ref.get().getText().indexOf("2/4") > -1);
 
     // three make it critical
-    current = dao.findCurrentByHostAndName(
-        clusterId.longValue(), "h3", definition.getDefinitionName());
+    current = m_dao.findCurrentByHostAndName(
+m_cluster.getClusterId(), "h3",
+        definition.getDefinitionName());
     current.getAlertHistory().setAlertState(AlertState.CRITICAL);
-    dao.merge(current.getAlertHistory());
+    m_dao.merge(current.getAlertHistory());
 
     listener.onAlertEvent(event);
     assertEquals("aggregate_test", ref.get().getName());

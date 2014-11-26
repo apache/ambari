@@ -503,8 +503,7 @@ public class AlertsDAO {
    */
   @Transactional
   public int removeCurrentByServiceComponentHost(String serviceName,
-      String componentName,
-      String hostName) {
+      String componentName, String hostName) {
 
     TypedQuery<AlertCurrentEntity> query = entityManagerProvider.get().createNamedQuery(
         "AlertCurrentEntity.removeByHostComponent", AlertCurrentEntity.class);

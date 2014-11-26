@@ -91,7 +91,8 @@ public class AlertHashInvalidationListener {
       return;
     }
 
-    m_alertDefinitionHash.get().enqueueAgentCommands(clusterId, hosts);
+    AlertDefinitionHash hash = m_alertDefinitionHash.get();
+    hash.enqueueAgentCommands(clusterId, hosts);
   }
 
   /**

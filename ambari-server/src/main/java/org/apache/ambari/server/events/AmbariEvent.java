@@ -68,6 +68,11 @@ public abstract class AmbariEvent {
     ALERT_DEFINITION_DISABLED,
 
     /**
+     * A host was registered with the server.
+     */
+    HOST_REGISTERED,
+
+    /**
      * A host was added to the cluster.
      */
     HOST_ADDED,

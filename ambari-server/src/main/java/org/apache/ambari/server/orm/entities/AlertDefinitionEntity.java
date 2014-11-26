@@ -536,4 +536,22 @@ public class AlertDefinitionEntity {
     int result = null != definitionId ? definitionId.hashCode() : 0;
     return result;
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String toString() {
+    StringBuilder buffer = new StringBuilder();
+    buffer.append(getClass().getSimpleName());
+    buffer.append("{");
+    buffer.append("id=").append(definitionId);
+    buffer.append(", name=").append(definitionName);
+    buffer.append(", serviceName=").append(serviceName);
+    buffer.append(", componentName=").append(componentName);
+    buffer.append(", enabled=").append(enabled);
+    buffer.append(", hash=").append(hash);
+    buffer.append("}");
+    return buffer.toString();
+  }
 }

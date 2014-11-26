@@ -39,11 +39,12 @@ import org.apache.ambari.server.HostNotFoundException;
 import org.apache.ambari.server.agent.DiskInfo;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.events.HostAddedEvent;
+import org.apache.ambari.server.events.HostRegisteredEvent;
 import org.apache.ambari.server.events.HostRemovedEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
-import org.apache.ambari.server.orm.dao.ConfigGroupHostMappingDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.ResourceDAO;
@@ -120,8 +121,6 @@ public class ClustersImpl implements Clusters {
   AmbariMetaInfo ambariMetaInfo;
   @Inject
   Gson gson;
-  @Inject
-  private ConfigGroupHostMappingDAO configGroupHostMappingDAO;
   @Inject
   private SecurityHelper securityHelper;
 
@@ -341,12 +340,14 @@ public class ClustersImpl implements Clusters {
   @Override
   public void addHost(String hostname) throws AmbariException {
     checkLoaded();
+
     String duplicateMessage = "Duplicate entry for Host"
         + ", hostName= " + hostname;
 
     if (hosts.containsKey(hostname)) {
       throw new AmbariException(duplicateMessage);
     }
+
     r.lock();
 
     try {
@@ -371,6 +372,10 @@ public class ClustersImpl implements Clusters {
     } finally {
       r.unlock();
     }
+
+    // publish the event
+    HostRegisteredEvent event = new HostRegisteredEvent(hostname);
+    eventPublisher.publish(event);
   }
 
   private boolean isOsSupportedByClusterStack(Cluster c, Host h) throws AmbariException {
@@ -558,6 +563,10 @@ public class ClustersImpl implements Clusters {
 
     clusterDAO.merge(clusterEntity);
     hostDAO.merge(hostEntity);
+
+    // publish the event for adding a host to a cluster
+    HostAddedEvent event = new HostAddedEvent(clusterId, hostName);
+    eventPublisher.publish(event);
   }
 
   @Override
