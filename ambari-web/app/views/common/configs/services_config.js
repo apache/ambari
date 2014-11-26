@@ -105,7 +105,7 @@ App.ServiceConfigsByCategoryView = Ember.View.extend(App.UserPref, {
   // cacheable )
   categoryConfigs: function () {
     var categoryConfigs = this.get('categoryConfigsAll');
-    return this.orderContentAtLast(categoryConfigs).filterProperty('isVisible', true);
+    return this.orderContentAtLast(this.sortByIndex(categoryConfigs)).filterProperty('isVisible', true);
   }.property('categoryConfigsAll.@each.isVisible').cacheable(),
 
   /**

@@ -613,4 +613,112 @@ describe('App.config', function () {
 
   });
 
+  describe('#createAdvancedPropertyObject', function() {
+    var tests = [
+      {
+        name: 'proxyuser_group',
+        cases: [
+          {
+            key: 'displayType',
+            e: 'user'
+          },
+          {
+            key: 'serviceName',
+            e: 'MISC'
+          },
+          {
+            key: 'belongsToService',
+            e: ['HIVE', 'OOZIE']
+          }
+        ]
+      },
+      {
+        name: 'oozie.service.JPAService.jdbc.password',
+        cases: [
+          {
+            key: 'displayType',
+            e: 'password'
+          }
+        ]
+      }
+    ];
+
+    var properties = [];
+    modelSetup.advancedConfigs.items.forEach(function(item) {
+      properties.push(App.config.createAdvancedPropertyObject(item.StackConfigurations));
+    });
+    
+    tests.forEach(function(test) {
+      test.cases.forEach(function(testCase) {
+        it('config property `{0}` `{1}` key should be`{2}`'.format(test.name, testCase.key, testCase.e), function() {
+          var property = properties.findProperty('name', test.name);
+          expect(Em.get(property, testCase.key)).to.eql(testCase.e);
+        });
+      });
+    });
+  });
+
+  describe('#mergePreDefinedWithLoaded', function() {
+    var result;
+
+    before(function() {
+      setups.setupStackVersion(this, 'HDP-2.2');
+      loadServiceModelsData(['HDFS', 'STORM']);
+      App.config.loadAdvancedConfigSuccess(modelSetup.advancedConfigs, { url: '/serviceName/configurations'}, {
+        callback: function(advancedConfigs) {
+          App.config.loadClusterConfigSuccess(modelSetup.advancedClusterConfigs, { url: '/cluster/configurations'}, {
+            callback: function(clusterConfigs) {
+              var configCategories = modelSetup.setupConfigGroupsObject();
+              var tags = [
+                {newTagName: null, tagName: 'version1', siteName: 'hadoop-env'},
+                {newTagName: null, tagName: 'version1', siteName: 'hdfs-site'},
+                {newTagName: null, tagName: 'version1', siteName: 'cluster-env'},
+                {newTagName: null, tagName: 'version1', siteName: 'storm-env'}
+              ];
+              var serviceName = 'STORM';
+              result = App.config.mergePreDefinedWithLoaded(configCategories, advancedConfigs.concat(clusterConfigs), tags, serviceName);
+            }
+          });
+        }
+      });
+    });
+
+    after(function() {
+      setups.restoreStackVersion(this);
+      removeServiceModelData(['HDFS', 'STORM']);
+    });
+    
+    var propertyTests = [
+      {
+        name: 'hdfs_user',
+        cases: [
+          {
+            key: 'displayType',
+            e: 'user'
+          },
+          {
+            key: 'isVisible',
+            e: true
+          },
+          {
+            key: 'serviceName',
+            e: 'MISC'
+          },
+          {
+            key: 'category',
+            e: 'Users and Groups'
+          }
+        ]
+      }
+    ];
+    propertyTests.forEach(function(test) {
+      test.cases.forEach(function(testCase) {
+        it('config property `{0}` `{1}` key should be`{2}`'.format(test.name, testCase.key, testCase.e), function() {
+          var property = result.configs.findProperty('name', test.name);
+          expect(Em.get(property, testCase.key)).to.equal(testCase.e);
+        });
+      });
+    });
+  });
+
 });

@@ -313,7 +313,10 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
       if (xhr.statusText === 'abort') return;
       advancedConfigs.pushObjects(properties);
       self.set('advancedConfigs', advancedConfigs);
-      self.trackRequest(self.loadServiceConfigVersions());
+      self.trackRequest(App.config.loadClusterConfig(function(clusterProperties) {
+        self.get('advancedConfigs').pushObjects(clusterProperties);
+        self.trackRequest(self.loadServiceConfigVersions());
+      }));
     }));
   },
 

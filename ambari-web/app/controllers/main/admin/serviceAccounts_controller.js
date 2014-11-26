@@ -55,26 +55,34 @@ App.MainAdminServiceAccountsController = App.MainServiceInfoConfigsController.ex
       }
     }
     this.setServiceConfigTags(loadedClusterSiteToTagMap);
-    App.router.get('configurationController').getConfigsByTags(this.get('serviceConfigTags')).done(function (configGroups) {
-      var configSet = App.config.mergePreDefinedWithLoaded(configGroups, [], self.get('serviceConfigTags'), serviceName);
-
-      var misc_configs = configSet.configs.filterProperty('serviceName', self.get('selectedService')).filterProperty('category', 'Users and Groups').filterProperty('isVisible', true).rejectProperty('displayType', 'password');
-
-      misc_configs = App.config.miscConfigVisibleProperty(misc_configs, installedServices);
-
-      var sortOrder = self.get('configs').filterProperty('serviceName', self.get('selectedService')).filterProperty('category', 'Users and Groups').filterProperty('isVisible', true).rejectProperty('displayType', 'password').mapProperty('name');
-
-
-      self.setProxyUserGroupLabel(misc_configs);
-
-      self.set('users', self.sortByOrder(sortOrder, misc_configs));
-
-      self.setContentProperty('hdfsUser', 'hdfs_user', misc_configs);
-      self.setContentProperty('group', 'user_group', misc_configs);
-      self.setContentProperty('smokeuser', 'smokeuser', misc_configs);
-
-      self.set('dataIsLoaded', true);
+    // load server stored configurations
+    App.router.get('configurationController').getConfigsByTags(this.get('serviceConfigTags')).done(function (serverConfigs) {
+      // load configurations list for installed services
+      App.config.loadAdvancedConfigPartial(installedServices, {
+        queryFilter: 'configurations/StackConfigurations/property_type.matches(.*[USER,GROUP].*)'
+      }, function(advancedConfigs) {
+        // load cluster configs
+        App.config.loadClusterConfig(function(clusterConfigs) {
+          self.createConfigObject(serverConfigs, advancedConfigs.concat(clusterConfigs));
+        });
+      });
     });
+  },
+
+  /**
+   * Generate configuration object that will be rendered
+   *
+   * @param {Object[]} serverConfigs
+   * @param {Object[]} advancedConfigs
+   */
+  createConfigObject: function(serverConfigs, advancedConfigs) {
+    var configSet = App.config.mergePreDefinedWithLoaded(serverConfigs, advancedConfigs, this.get('serviceConfigTags'), this.get('selectedService'));
+    var miscConfigs = configSet.configs.filterProperty('serviceName', this.get('selectedService')).filterProperty('category', 'Users and Groups').filterProperty('isVisible', true).rejectProperty('displayType', 'password');
+
+    miscConfigs = App.config.miscConfigVisibleProperty(miscConfigs, App.Service.find().mapProperty('serviceName'));
+
+    this.set('users', miscConfigs.filterProperty('isVisible'));
+    this.set('dataIsLoaded', true);
   },
   /**
    * set config value to property of "content"

@@ -30,12 +30,10 @@ module.exports = {
       },
       {
         "tag":"version1",
-        "type":"global",
+        "type":"hadoop-env",
         "properties":{
           "hadoop_heapsize":"1024",
-          "storm_log_dir": "/var/log/storm",
-          "stormuiserver_host": "c6401.ambari.apache.org",
-          "nonexistent_property": "some value"
+          "hdfs_user": "hdfs"
         }
       },
       {
@@ -73,6 +71,15 @@ module.exports = {
         }
       },
       {
+        "tag": "version1",
+        "type": "storm-env",
+        "properties": {
+          "nonexistent_property": "some value",
+          "storm_log_dir": "/var/log/storm",
+          "stormuiserver_host": "c6401.ambari.apache.org"
+        }
+      },
+      {
         "tag":"version1",
         "type":"zoo.cfg",
         "properties": {
@@ -86,9 +93,9 @@ module.exports = {
   },
   setupServiceConfigTagsObject: function(serviceName) {
     var configTags = {
-      STORM: ['global','storm-site'],
-      HDFS: ['global','hdfs-site','core-site','hdfs-log4j'],
-      ZOOKEEPER: ['global', 'zoo.cfg']
+      STORM: ['storm-env','storm-site'],
+      HDFS: ['hadoop-env','hdfs-site','core-site','hdfs-log4j'],
+      ZOOKEEPER: ['hadoop-env', 'zoo.cfg']
     };
     var configTagsObject = [];
     if (serviceName) {
@@ -265,7 +272,7 @@ module.exports = {
         "name":"nonexistent_property",
         "value":"some value",
         "defaultValue":"some value",
-        "filename":"global.xml",
+        "filename":"storm-env.xml",
         "isUserProperty":false,
         "isOverridable":true,
         "showLabel":true,
@@ -339,7 +346,7 @@ module.exports = {
         "name":"storm_log_dir",
         "value":"/var/log/storm",
         "defaultValue":"/var/log/storm",
-        "filename":"global.xml",
+        "filename":"storm-env.xml",
         "isUserProperty":false,
         "isOverridable":true,
         "showLabel":true,
@@ -356,5 +363,144 @@ module.exports = {
         "displayName":"storm_log_dir"
       }
     ];
+  },
+
+  advancedConfigs: {
+    items: [
+      {
+        "StackConfigurations" : {
+          "final" : "false",
+          "property_description" : "Proxy user group.",
+          "property_name" : "proxyuser_group",
+          "property_type" : [
+            "GROUP"
+          ],
+          "property_value" : "users",
+          "service_name" : "HDFS",
+          "stack_name" : "HDP",
+          "stack_version" : "2.2",
+          "type" : "hadoop-env.xml"
+        }
+      },
+      {
+        "StackConfigurations" : {
+          "final" : "true",
+          "property_description" : "dfs.datanode.data.dir description",
+          "property_name" : "dfs.datanode.data.dir",
+          "property_type" : [ ],
+          "property_value" : "/hadoop/hdfs/data",
+          "service_name" : "HDFS",
+          "stack_name" : "HDP",
+          "stack_version" : "2.2",
+          "type" : "hdfs-site.xml"
+        }
+      },
+      {
+        "StackConfigurations" : {
+          "final" : "true",
+          "property_description" : "to enable dfs append",
+          "property_name" : "dfs.support.append",
+          "property_type" : [ ],
+          "property_value" : "true",
+          "service_name" : "HDFS",
+          "stack_name" : "HDP",
+          "stack_version" : "2.2",
+          "type" : "hdfs-site.xml"
+        }
+      },
+      {
+        "StackConfigurations" : {
+          "final" : "false",
+          "property_description" : "User to run HDFS as",
+          "property_name" : "hdfs_user",
+          "property_type" : [
+            "USER"
+          ],
+          "property_value" : "hdfs",
+          "service_name" : "HDFS",
+          "stack_name" : "HDP",
+          "stack_version" : "2.2",
+          "type" : "hadoop-env.xml"
+        }
+      },
+      {
+        "StackConfigurations" : {
+          "final" : "false",
+          "property_description" : "The permissions that should be there on dfs.datanode.data.dir\n      directories. The datanode will not come up if the permissions are\n      different on existing dfs.datanode.data.dir directories. If the directories\n      don't exist, they will be created with this permission.",
+          "property_name" : "dfs.datanode.data.dir.perm",
+          "property_type" : [ ],
+          "property_value" : "750",
+          "service_name" : "HDFS",
+          "stack_name" : "HDP",
+          "stack_version" : "2.2",
+          "type" : "hdfs-site.xml"
+        }
+      },
+      {
+        "StackConfigurations" : {
+          "final" : "false",
+          "property_description" : "\n      DB user password.\n\n      IMPORTANT: if password is emtpy leave a 1 space string, the service trims the value,\n      if empty Configuration assumes it is NULL.\n    ",
+          "property_name" : "oozie.service.JPAService.jdbc.password",
+          "property_type" : [
+            "PASSWORD"
+          ],
+          "property_value" : " ",
+          "service_name" : "OOZIE",
+          "stack_name" : "HDP",
+          "stack_version" : "2.2",
+          "type" : "oozie-site.xml"
+        }
+      },
+      {
+        "StackConfigurations" : {
+          "final" : "false",
+          "property_description" : "prop description",
+          "property_name" : "storm_log_dir",
+          "property_type" : [],
+          "property_value" : " ",
+          "service_name" : "STORM",
+          "stack_name" : "HDP",
+          "stack_version" : "2.2",
+          "type" : "storm-env.xml"
+        }
+      }
+
+    ]
+  },
+  
+  advancedClusterConfigs: {
+    items: [
+      {
+        "StackConfigurations" : {
+          "property_type" : [ ]
+        },
+        "StackLevelConfigurations" : {
+          "final" : "false",
+          "property_description" : "Whether to ignore failures on users and group creation",
+          "property_name" : "ignore_groupsusers_create",
+          "property_value" : "false",
+          "stack_name" : "HDP",
+          "stack_version" : "2.2",
+          "type" : "cluster-env.xml"
+        }
+      },
+      {
+        "StackConfigurations" : {
+          "property_type" : [
+            "GROUP"
+          ]
+        },
+        "StackLevelConfigurations" : {
+          "final" : "false",
+          "property_description" : "Hadoop user group.",
+          "property_name" : "user_group",
+          "property_value" : "hadoop",
+          "stack_name" : "HDP",
+          "stack_version" : "2.2",
+          "type" : "cluster-env.xml"
+        }
+      }
+    ]
   }
+  
 }

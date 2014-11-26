@@ -570,6 +570,10 @@ var urls = {
     'real': '{stackVersionUrl}/services/{serviceName}/configurations?fields=*',
     'mock': '/data/wizard/stack/hdp/version{stackVersion}/{serviceName}.json'
   },
+  'config.advanced.partial': {
+    'real': '{stackVersionUrl}/services/?StackServices/service_name.in({serviceList})&fields=configurations/*{queryFilter}',
+    'mock': ''
+  },
   'config.config_types': {
     'real': '{stackVersionUrl}/services/{serviceName}?fields=StackServices/config_types',
     'mock': ''

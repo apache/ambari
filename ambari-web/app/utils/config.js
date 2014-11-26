@@ -336,7 +336,7 @@ App.config = Em.Object.create({
         if (!configsPropertyDef) {
           advancedConfigs.filterProperty('name', index).forEach(function (_advancedConfig) {
             var isServiceInstalled = selectedServiceNames.contains(_advancedConfig.serviceName);
-            if (isServiceInstalled) {
+            if (isServiceInstalled || _advancedConfig.serviceName == 'MISC') {
               configsPropertyDef = _advancedConfig;
             }
           }, this);
@@ -370,8 +370,6 @@ App.config = Em.Object.create({
         }
 
         if (!this.getBySitename(serviceConfigObj.get('filename')).someProperty('name', index)) {
-          isAdvanced = advancedConfigs.filterProperty('name', index).someProperty('filename', filename);
-          serviceConfigObj.id = 'site property';
           if (configsPropertyDef) {
             if (configsPropertyDef.isRequiredByAgent === false) {
               continue;
@@ -381,31 +379,14 @@ App.config = Em.Object.create({
             serviceConfigObj.displayType = stringUtils.isSingleLine(serviceConfigObj.value) ? 'advanced' : 'multiLine';
           }
 
+          isAdvanced = advancedConfigs.filterProperty('name', index).someProperty('filename', filename);
+          serviceConfigObj.id = 'site property';
           serviceConfigObj.displayName = configsPropertyDef && configsPropertyDef.displayName ? configsPropertyDef.displayName : index;
           serviceConfigObj.options = configsPropertyDef ? configsPropertyDef.options : null;
+          serviceConfigObj.serviceName = configsPropertyDef && configsPropertyDef.serviceName ? configsPropertyDef.serviceName : serviceName;
+          serviceConfigObj.belongsToService = configsPropertyDef && configsPropertyDef.belongsToService ? configsPropertyDef.belongsToService : [];
           this.calculateConfigProperties(serviceConfigObj, isAdvanced, advancedConfigs);
-
-          if (serviceConfigObj.get('displayType') == 'directories'
-            && (serviceConfigObj.get('category') == 'DataNode'
-              || serviceConfigObj.get('category') == 'NameNode')) {
-            var dirs = serviceConfigObj.get('value').split(',').sort();
-            serviceConfigObj.set('value', dirs.join(','));
-            serviceConfigObj.set('defaultValue', dirs.join(','));
-          }
-
-          if (serviceConfigObj.get('displayType') == 'directory'
-            && serviceConfigObj.get('category') == 'SNameNode') {
-            var dirs = serviceConfigObj.get('value').split(',').sort();
-            serviceConfigObj.set('value', dirs[0]);
-            serviceConfigObj.set('defaultValue', dirs[0]);
-          }
-
-          if (serviceConfigObj.get('displayType') == 'masterHosts') {
-            if (typeof(serviceConfigObj.get('value')) == 'string') {
-              var value = serviceConfigObj.get('value').replace(/\[|]|'|&apos;/g, "").split(',');
-              serviceConfigObj.set('value', value);
-            }
-          }
+          this.setValueByDisplayType(serviceConfigObj);
           configs.push(serviceConfigObj);
         } else {
           mappingConfigs.push(serviceConfigObj);
@@ -415,6 +396,27 @@ App.config = Em.Object.create({
     return {
       configs: configs,
       mappingConfigs: mappingConfigs
+    }
+  },
+
+  setValueByDisplayType: function(serviceConfigObj) {
+    if (serviceConfigObj.get('displayType') == 'directories' && (serviceConfigObj.get('category') == 'DataNode' || serviceConfigObj.get('category') == 'NameNode')) {
+      var dirs = serviceConfigObj.get('value').split(',').sort();
+      serviceConfigObj.set('value', dirs.join(','));
+      serviceConfigObj.set('defaultValue', dirs.join(','));
+    }
+
+    if (serviceConfigObj.get('displayType') == 'directory' && serviceConfigObj.get('category') == 'SNameNode') {
+      var dirs = serviceConfigObj.get('value').split(',').sort();
+      serviceConfigObj.set('value', dirs[0]);
+      serviceConfigObj.set('defaultValue', dirs[0]);
+    }
+
+    if (serviceConfigObj.get('displayType') == 'masterHosts') {
+      if (typeof(serviceConfigObj.get('value')) == 'string') {
+        var value = serviceConfigObj.get('value').replace(/\[|]|'|&apos;/g, "").split(',');
+        serviceConfigObj.set('value', value);
+      }
     }
   },
 
@@ -604,7 +606,7 @@ App.config = Em.Object.create({
     if (advancedConfigs) {
       advancedConfigs.forEach(function (_config) {
         var configType = this.getConfigTagFromFileName(_config.filename);
-        var configCategory = 'Advanced ' + configType;
+        var configCategory = _config.category || 'Advanced ' + configType;
         var categoryMetaData = null;
         if (_config) {
           if (!(this.get('configMapping').computed().someProperty('name', _config.name) ||
@@ -617,7 +619,7 @@ App.config = Em.Object.create({
             }
             _config.id = "site property";
             _config.category = configCategory;
-            _config.displayName = _config.name;
+            _config.displayName = _config.displayName || _config.name;
             _config.defaultValue = _config.value;
             // make all advanced configs optional and populated by default
             /*
@@ -647,6 +649,10 @@ App.config = Em.Object.create({
   miscConfigVisibleProperty: function (configs, serviceToShow) {
     configs.forEach(function (item) {
       if (item.get('isVisible') && item.belongsToService && item.belongsToService.length) {
+        if (item.get('belongsToService').contains('Cluster') && item.get('displayType') == 'user') {
+          item.set('isVisible', true);
+          return;
+        }
         item.set("isVisible", item.belongsToService.some(function (cur) {
           return serviceToShow.contains(cur)
         }));
@@ -830,19 +836,10 @@ App.config = Em.Object.create({
     var properties = [];
     if (data.items.length) {
       data.items.forEach(function (item) {
-        item = item.StackLevelConfigurations;
-        item.isVisible = true;
-        var serviceName = 'Cluster';
-        properties.push({
-          serviceName: serviceName,
-          name: item.property_name,
-          value: item.property_value,
-          description: item.property_description,
-          isVisible: item.isVisible,
-          isFinal: item.final === "true",
-          defaultIsFinal: item.final === "true",
-          filename: item.filename || item.type
-        });
+        item.StackLevelConfigurations.property_type = item.StackConfigurations.property_type || [];
+        item.StackLevelConfigurations.service_name = 'Cluster';
+        var property = this.createAdvancedPropertyObject(item.StackLevelConfigurations);
+        if (property) properties.push(property);
       }, this);
     }
     params.callback(properties);
@@ -856,8 +853,9 @@ App.config = Em.Object.create({
 
   /**
    * Generate serviceProperties save it to localDB
-   * called form stepController step6WizardController
+   * called from stepController step6WizardController
    *
+   * @method loadAdvancedConfig
    * @param serviceName
    * @param callback
    * @return {object|null}
@@ -877,38 +875,41 @@ App.config = Em.Object.create({
     });
   },
 
+  /**
+   * Load advanced configs by service names etc.
+   * Use this method when you need to get configs for
+   * particular services by single request
+   *
+   * @method loadAdvancedConfigPartial
+   * @param {String[]} serviceNames
+   * @param {Object} opt
+   * @param {Function} callback
+   * @returns {jqXHR}
+   */
+  loadAdvancedConfigPartial: function(serviceNames, opt, callback) {
+    var data = {
+      serviceList: serviceNames.join(','),
+      stackVersionUrl: App.get('stackVersionURL'),
+      stackVersion: App.get('currentStackVersionNumber'),
+      queryFilter: ('&' + opt.queryFilter) || '',
+      callback: callback
+    };
+    return App.ajax.send({
+      name: 'config.advanced.partial',
+      sender: this,
+      data: data,
+      success: 'loadAdvancedConfigPartialSuccess',
+      error: 'loadAdvancedConfigError'
+    });
+  },
+
   loadAdvancedConfigSuccess: function (data, opt, params, request) {
     console.log("TRACE: In success function for the loadAdvancedConfig; url is ", opt.url);
     var properties = [];
     if (data.items.length) {
       data.items.forEach(function (item) {
-        item = item.StackConfigurations;
-        item.isVisible = true;
-        var serviceName = item.service_name;
-        var fileName = item.type;
-        var isHDP2 = App.get('isHadoop2Stack');
-        /**
-         * Properties from mapred-queue-acls.xml are ignored
-         * Properties from capacity-scheduler.xml are ignored unless HDP stack version is 2.x or
-         * HDP stack version is 1.x
-         */
-        if (fileName !== 'mapred-queue-acls.xml' &&
-          (fileName !== 'capacity-scheduler.xml' || isHDP2)) {
-          var property = {
-            serviceName: serviceName,
-            name: item.property_name,
-            value: item.property_value,
-            description: item.property_description,
-            isVisible: item.isVisible,
-            isFinal: item.final === "true",
-            defaultIsFinal: item.final === "true",
-            filename: item.filename || fileName
-          };
-          if (item.property_type.contains('PASSWORD')) {
-            property.displayType = "password";
-          }
-          properties.push(property);
-        }
+        var property = this.createAdvancedPropertyObject(item.StackConfigurations);
+        if (property) properties.push(property);
       }, this);
     }
     params.callback(properties, request);
@@ -917,6 +918,87 @@ App.config = Em.Object.create({
   loadAdvancedConfigError: function (request, ajaxOptions, error, opt, params) {
     console.log('ERROR: failed to load stack configs for', params.serviceName);
     params.callback([], request);
+  },
+
+  loadAdvancedConfigPartialSuccess: function(data, opt, params, request) {
+    var properties = [];
+    var configurations = data.items.mapProperty('configurations').reduce(function(p,c) { return p.concat(c); });
+    configurations.forEach(function(item) {
+      var property = this.createAdvancedPropertyObject(item.StackConfigurations);
+      if (property) properties.push(property);
+    }, this);
+    params.callback(properties, request);
+  },
+
+  /**
+   * Bootstrap configuration property object according to
+   * format that we using in our application.
+   *
+   * @method createAdvancedPropertyObject
+   * @param {Object} item
+   * @returns {Object|Boolean} 
+   */
+  createAdvancedPropertyObject: function(item) {
+    var serviceName = item.service_name;
+    var fileName = item.type;
+    var isHDP2 = App.get('isHadoop2Stack');
+    /**
+     * Properties from mapred-queue-acls.xml are ignored
+     * Properties from capacity-scheduler.xml are ignored unless HDP stack version is 2.x or
+     * HDP stack version is 1.x
+     */
+    if (fileName == 'mapred-queue-acls.xml' || (fileName == 'capacity-scheduler.xml' && !isHDP2)) return false;
+    item.isVisible = true;
+    var property = {
+      serviceName: serviceName,
+      name: item.property_name,
+      value: item.property_value,
+      description: item.property_description,
+      isVisible: item.isVisible,
+      isFinal: item.final === "true",
+      defaultIsFinal: item.final === "true",
+      filename: item.filename || fileName
+    };
+
+    return $.extend(property, this.advancedConfigIdentityData(item));
+  },
+  
+  /**
+   * Add aditional properties to advanced property config object.
+   * Additional logic based on `property_type`.
+   *
+   * @method advancedConfigIdentityData
+   * @param {Object} config
+   * @return {Object}
+   */
+  advancedConfigIdentityData: function(config) {
+    var propertyData = {};
+    var proxyUserGroupServices = App.get('isHadoop2Stack') ? ['HIVE', 'OOZIE', 'FALCON'] : ['HIVE', 'OOZIE'];
+
+    if (config.property_type.contains('USER') || config.property_type.contains('GROUP')) {
+      propertyData.id = "puppet var";
+      propertyData.category = 'Users and Groups';
+      propertyData.isVisible = !App.get('isHadoopWindowsStack');
+      propertyData.serviceName = 'MISC';
+      propertyData.isOverridable = false;
+      propertyData.isReconfigurable = false;
+      propertyData.displayName = App.format.normalizeName(config.property_name);
+      propertyData.displayType = 'user';
+      if (config.service_name) {
+        var propertyIndex = config.service_name == 'Cluster' ? 30 : App.StackService.find().mapProperty('serviceName').indexOf(config.service_name);
+        propertyData.belongsToService = [config.service_name];
+        propertyData.index = propertyIndex;
+      } else {
+        propertyData.index = 30;
+      }
+      if (config.property_name == 'proxyuser_group') propertyData.belongsToService = proxyUserGroupServices;
+    }
+
+    if (config.property_type.contains('PASSWORD')) {
+      propertyData.displayType = "password";
+    }
+
+    return propertyData;
   },
 
   /**
