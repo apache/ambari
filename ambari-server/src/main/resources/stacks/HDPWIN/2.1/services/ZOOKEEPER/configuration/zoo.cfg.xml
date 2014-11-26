@@ -22,26 +22,28 @@
 
 <configuration>
   <property>
-    <name>zk_user</name>
-    <value>zookeeper</value>
-    <description>ZooKeeper User.</description>
+    <name>tickTime</name>
+    <value>2000</value>
+    <description>The length of a single tick in milliseconds, which is the basic time unit used by ZooKeeper</description>
   </property>
-  <!-- zookeeper-env.sh -->
   <property>
-    <name>content</name>
-    <description>zookeeper-env.sh content</description>
-    <value>
-export JAVA_HOME={{java64_home}}
-export ZOO_LOG_DIR={{zk_log_dir}}
-export ZOOPIDFILE={{zk_pid_file}}
-export SERVER_JVMFLAGS={{zk_server_heapsize}}
-export JAVA=$JAVA_HOME/bin/java
-export CLASSPATH=$CLASSPATH:/usr/share/zookeeper/*
-
-{% if security_enabled %}
-export SERVER_JVMFLAGS="$SERVER_JVMFLAGS -Djava.security.auth.login.config={{zk_server_jaas_file}}"
-export CLIENT_JVMFLAGS="$CLIENT_JVMFLAGS -Djava.security.auth.login.config={{zk_client_jaas_file}}"
-{% endif %}
-    </value>
+    <name>initLimit</name>
+    <value>10</value>
+    <description>Ticks to allow for sync at Init.</description>
+  </property>
+  <property>
+    <name>syncLimit</name>
+    <value>5</value>
+    <description>Ticks to allow for sync at Runtime.</description>
+  </property>
+  <property>
+    <name>clientPort</name>
+    <value>2181</value>
+    <description>Port for running ZK Server.</description>
+  </property>
+  <property>
+    <name>dataDir</name>
+    <value>C:\\\\hadoop\\\\zookeeper</value>
+    <description>Data directory for ZooKeeper.</description>
   </property>
 </configuration>

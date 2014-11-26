@@ -30,14 +30,11 @@ hdp_root = os.environ["HADOOP_NODE_INSTALL_ROOT"]
 zk_user = "hadoop"
 
 # notused zk_log_dir = config['configurations']['zookeeper-env']['zk_log_dir']
-#todo zk_data_dir must be dynamically changed
-zk_data_dir = "c:\\\\hadoop\\\\zookeeper"
-zk_data_dir = config['configurations']['zookeeper-env']['zk_data_dir']
-
-tickTime = config['configurations']['zookeeper-env']['tickTime']
-initLimit = config['configurations']['zookeeper-env']['initLimit']
-syncLimit = config['configurations']['zookeeper-env']['syncLimit']
-clientPort = config['configurations']['zookeeper-env']['clientPort']
+zk_data_dir = config['configurations']['zoo.cfg']['dataDir']
+tickTime = config['configurations']['zoo.cfg']['tickTime']
+initLimit = config['configurations']['zoo.cfg']['initLimit']
+syncLimit = config['configurations']['zoo.cfg']['syncLimit']
+clientPort = config['configurations']['zoo.cfg']['clientPort']
 
 if 'zoo.cfg' in config['configurations']:
   zoo_cfg_properties_map = config['configurations']['zoo.cfg']

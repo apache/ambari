@@ -39,8 +39,9 @@ CREATE TABLE serviceconfigmapping (service_config_id BIGINT NOT NULL, config_id 
 CREATE TABLE clusterconfigmapping (cluster_id BIGINT NOT NULL, type_name VARCHAR(255) NOT NULL, version_tag VARCHAR(255) NOT NULL, create_timestamp BIGINT NOT NULL, selected INTEGER NOT NULL DEFAULT 0, user_name VARCHAR(255) NOT NULL DEFAULT '_db', PRIMARY KEY CLUSTERED (cluster_id, type_name, create_timestamp));
 CREATE TABLE clusterservices (service_name VARCHAR(255) NOT NULL, cluster_id BIGINT NOT NULL, service_enabled INTEGER NOT NULL, PRIMARY KEY CLUSTERED (service_name, cluster_id));
 CREATE TABLE clusterstate (cluster_id BIGINT NOT NULL, current_cluster_state VARCHAR(255) NOT NULL, current_stack_version VARCHAR(255) NOT NULL, PRIMARY KEY CLUSTERED (cluster_id));
+CREATE TABLE cluster_version (id BIGINT NOT NULL, cluster_id BIGINT NOT NULL, stack VARCHAR(255) NOT NULL, version VARCHAR(255) NOT NULL, state VARCHAR(255) NOT NULL, start_time BIGINT NOT NULL, end_time BIGINT, user_name VARCHAR(255), PRIMARY KEY (id));
 CREATE TABLE hostcomponentdesiredstate (cluster_id BIGINT NOT NULL, component_name VARCHAR(255) NOT NULL, desired_stack_version VARCHAR(255) NOT NULL, desired_state VARCHAR(255) NOT NULL, host_name VARCHAR(255) NOT NULL, service_name VARCHAR(255) NOT NULL, admin_state VARCHAR(32), maintenance_state VARCHAR(32) NOT NULL, security_state VARCHAR(32) NOT NULL DEFAULT 'UNSECURED', restart_required BIT NOT NULL DEFAULT 0, PRIMARY KEY CLUSTERED (cluster_id, component_name, host_name, service_name));
-CREATE TABLE hostcomponentstate (cluster_id BIGINT NOT NULL, component_name VARCHAR(255) NOT NULL, current_stack_version VARCHAR(255) NOT NULL, current_state VARCHAR(255) NOT NULL, host_name VARCHAR(255) NOT NULL, service_name VARCHAR(255), security_state VARCHAR(32) NOT NULL DEFAULT 'UNSECURED' NOT NULL, PRIMARY KEY CLUSTERED (cluster_id, component_name, host_name, service_name));
+CREATE TABLE hostcomponentstate (cluster_id BIGINT NOT NULL, component_name VARCHAR(255) NOT NULL, current_stack_version VARCHAR(255) NOT NULL, current_state VARCHAR(255) NOT NULL, host_name VARCHAR(255) NOT NULL, service_name VARCHAR(255) NOT NULL, upgrade_state VARCHAR(32) NOT NULL DEFAULT 'NONE', security_state VARCHAR(32) NOT NULL DEFAULT 'UNSECURED', PRIMARY KEY CLUSTERED (cluster_id, component_name, host_name, service_name));
 CREATE TABLE hosts (host_name VARCHAR(255) NOT NULL, cpu_count INTEGER NOT NULL, ph_cpu_count INTEGER, cpu_info VARCHAR(255) NOT NULL, discovery_status VARCHAR(2000) NOT NULL, host_attributes VARCHAR(MAX) NOT NULL, ipv4 VARCHAR(255), ipv6 VARCHAR(255), public_host_name VARCHAR(255), last_registration_time BIGINT NOT NULL, os_arch VARCHAR(255) NOT NULL, os_info VARCHAR(1000) NOT NULL, os_type VARCHAR(255) NOT NULL, rack_info VARCHAR(255) NOT NULL, total_mem BIGINT NOT NULL, PRIMARY KEY CLUSTERED (host_name));
 CREATE TABLE hoststate (agent_version VARCHAR(255) NOT NULL, available_mem BIGINT NOT NULL, current_state VARCHAR(255) NOT NULL, health_status VARCHAR(255), host_name VARCHAR(255) NOT NULL, time_in_state BIGINT NOT NULL, maintenance_state VARCHAR(512), PRIMARY KEY CLUSTERED (host_name));
 CREATE TABLE servicecomponentdesiredstate (component_name VARCHAR(255) NOT NULL, cluster_id BIGINT NOT NULL, desired_stack_version VARCHAR(255) NOT NULL, desired_state VARCHAR(255) NOT NULL, service_name VARCHAR(255) NOT NULL, PRIMARY KEY CLUSTERED (component_name, cluster_id, service_name));
@@ -83,6 +84,7 @@ CREATE TABLE adminprincipaltype (principal_type_id INTEGER NOT NULL, principal_t
 CREATE TABLE adminprincipal (principal_id BIGINT NOT NULL, principal_type_id INTEGER NOT NULL, PRIMARY KEY(principal_id));
 CREATE TABLE adminpermission (permission_id BIGINT NOT NULL, permission_name VARCHAR(255) NOT NULL, resource_type_id INTEGER NOT NULL, PRIMARY KEY(permission_id));
 CREATE TABLE adminprivilege (privilege_id BIGINT, permission_id BIGINT NOT NULL, resource_id BIGINT NOT NULL, principal_id BIGINT NOT NULL, PRIMARY KEY(privilege_id));
+CREATE TABLE host_version (id BIGINT NOT NULL, host_name VARCHAR(255) NOT NULL, stack VARCHAR(255) NOT NULL, version VARCHAR(255) NOT NULL, state VARCHAR(32) NOT NULL, PRIMARY KEY (id));
 
 -- altering tables by creating unique constraints----------
 --------altering tables to add constraints----------
@@ -103,6 +105,7 @@ ALTER TABLE clusterconfig ADD CONSTRAINT FK_clusterconfig_cluster_id FOREIGN KEY
 ALTER TABLE clusterservices ADD CONSTRAINT FK_clusterservices_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id);
 ALTER TABLE clusterconfigmapping ADD CONSTRAINT clusterconfigmappingcluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id);
 ALTER TABLE clusterstate ADD CONSTRAINT FK_clusterstate_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id);
+ALTER TABLE cluster_version ADD CONSTRAINT FK_cluster_version_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id);
 ALTER TABLE hostcomponentdesiredstate ADD CONSTRAINT hstcmponentdesiredstatehstname FOREIGN KEY (host_name) REFERENCES hosts (host_name);
 ALTER TABLE hostcomponentdesiredstate ADD CONSTRAINT hstcmpnntdesiredstatecmpnntnme FOREIGN KEY (component_name, cluster_id, service_name) REFERENCES servicecomponentdesiredstate (component_name, cluster_id, service_name);
 ALTER TABLE hostcomponentstate ADD CONSTRAINT hstcomponentstatecomponentname FOREIGN KEY (component_name, cluster_id, service_name) REFERENCES servicecomponentdesiredstate (component_name, cluster_id, service_name);
@@ -152,6 +155,7 @@ ALTER TABLE adminprivilege ADD CONSTRAINT FK_privilege_principal_id FOREIGN KEY 
 ALTER TABLE users ADD CONSTRAINT FK_users_principal_id FOREIGN KEY (principal_id) REFERENCES adminprincipal(principal_id);
 ALTER TABLE groups ADD CONSTRAINT FK_groups_principal_id FOREIGN KEY (principal_id) REFERENCES adminprincipal(principal_id);
 ALTER TABLE clusters ADD CONSTRAINT FK_clusters_resource_id FOREIGN KEY (resource_id) REFERENCES adminresource(resource_id);
+ALTER TABLE host_version ADD CONSTRAINT FK_host_version_host_name FOREIGN KEY (host_name) REFERENCES hosts (host_name);
 
 -- Alerting Framework
 CREATE TABLE alert_definition (
@@ -168,6 +172,7 @@ CREATE TABLE alert_definition (
   source_type VARCHAR(255) NOT NULL,
   alert_source TEXT NOT NULL,
   hash VARCHAR(64) NOT NULL,
+  ignore_host SMALLINT DEFAULT 0 NOT NULL,
   PRIMARY KEY (definition_id),
   FOREIGN KEY (cluster_id) REFERENCES clusters(cluster_id),
   CONSTRAINT uni_alert_def_name UNIQUE(cluster_id,definition_name)
@@ -309,6 +314,8 @@ BEGIN TRANSACTION
   UNION ALL
   SELECT 'operation_level_id_seq', 1
   UNION ALL
+  SELECT 'cluster_version_id_seq', 0
+  UNION ALL
   SELECT 'view_instance_id_seq', 1
   UNION ALL
   SELECT 'resource_type_id_seq', 4
@@ -341,7 +348,9 @@ BEGIN TRANSACTION
   UNION ALL
   SELECT 'upgrade_id_seq', 0
   UNION ALL
-  SELECT 'upgrade_item_id_seq', 0;
+  SELECT 'upgrade_item_id_seq', 0
+  UNION ALL
+  SELECT 'host_version_id_seq', 0;
 
   insert into adminresourcetype (resource_type_id, resource_type_name)
     select 1, 'AMBARI'

@@ -47,7 +47,6 @@ IF OBJECT_ID('job', 'U') IS NOT NULL DROP TABLE job
 GO
 IF OBJECT_ID('workflow', 'U') IS NOT NULL DROP TABLE workflow
 GO
-
 IF OBJECT_ID('qrtz_locks', 'U') IS NOT NULL DROP TABLE qrtz_locks
 GO
 IF OBJECT_ID('qrtz_scheduler_state', 'U') IS NOT NULL DROP TABLE qrtz_scheduler_state
@@ -70,7 +69,6 @@ IF OBJECT_ID('qrtz_triggers', 'U') IS NOT NULL DROP TABLE qrtz_triggers
 GO
 IF OBJECT_ID('qrtz_job_details', 'U') IS NOT NULL DROP TABLE qrtz_job_details
 GO
-
 IF OBJECT_ID('viewentity', 'U') IS NOT NULL DROP TABLE viewentity
 GO
 IF OBJECT_ID('viewresource', 'U') IS NOT NULL DROP TABLE viewresource
@@ -85,7 +83,6 @@ IF OBJECT_ID('viewinstance', 'U') IS NOT NULL DROP TABLE viewinstance
 GO
 IF OBJECT_ID('viewmain', 'U') IS NOT NULL DROP TABLE viewmain
 GO
-
 IF OBJECT_ID('hostgroup_configuration', 'U') IS NOT NULL DROP TABLE hostgroup_configuration
 GO
 IF OBJECT_ID('blueprint_configuration', 'U') IS NOT NULL DROP TABLE blueprint_configuration
@@ -96,7 +93,6 @@ IF OBJECT_ID('hostgroup', 'U') IS NOT NULL DROP TABLE hostgroup
 GO
 IF OBJECT_ID('blueprint', 'U') IS NOT NULL DROP TABLE blueprint
 GO
-
 IF OBJECT_ID('configgrouphostmapping', 'U') IS NOT NULL DROP TABLE configgrouphostmapping
 GO
 IF OBJECT_ID('confgroupclusterconfigmapping', 'U') IS NOT NULL DROP TABLE confgroupclusterconfigmapping
@@ -131,13 +127,17 @@ IF OBJECT_ID('roles', 'U') IS NOT NULL DROP TABLE roles
 GO
 IF OBJECT_ID('stage', 'U') IS NOT NULL DROP TABLE stage
 GO
+IF OBJECT_ID('upgrade_item', 'U') IS NOT NULL DROP TABLE upgrade_item
+GO
+IF OBJECT_ID('upgrade', 'U') IS NOT NULL DROP TABLE upgrade
+GO
 IF OBJECT_ID('requestoperationlevel', 'U') IS NOT NULL DROP TABLE requestoperationlevel
 GO
 IF OBJECT_ID('requestresourcefilter', 'U') IS NOT NULL DROP TABLE requestresourcefilter
 GO
-IF OBJECT_ID('request', 'U') IS NOT NULL DROP TABLE request
-GO
 IF OBJECT_ID('requestschedulebatchrequest', 'U') IS NOT NULL DROP TABLE requestschedulebatchrequest
+GO
+IF OBJECT_ID('request', 'U') IS NOT NULL DROP TABLE request
 GO
 IF OBJECT_ID('requestschedule', 'U') IS NOT NULL DROP TABLE requestschedule
 GO
@@ -146,6 +146,8 @@ GO
 IF OBJECT_ID('hostcomponentdesiredstate', 'U') IS NOT NULL DROP TABLE hostcomponentdesiredstate
 GO
 IF OBJECT_ID('hostcomponentstate', 'U') IS NOT NULL DROP TABLE hostcomponentstate
+GO
+IF OBJECT_ID('host_version', 'U') IS NOT NULL DROP TABLE host_version
 GO
 IF OBJECT_ID('hosts', 'U') IS NOT NULL DROP TABLE hosts
 GO
@@ -159,7 +161,6 @@ IF OBJECT_ID('clusterservices', 'U') IS NOT NULL DROP TABLE clusterservices
 GO
 IF OBJECT_ID('clusterconfigmapping', 'U') IS NOT NULL DROP TABLE clusterconfigmapping
 GO
-
 IF OBJECT_ID('alert_notice', 'U') IS NOT NULL DROP TABLE alert_notice
 GO
 IF OBJECT_ID('alert_grouping', 'U') IS NOT NULL DROP TABLE alert_grouping
@@ -178,34 +179,27 @@ IF OBJECT_ID('alert_history', 'U') IS NOT NULL DROP TABLE alert_history
 GO
 IF OBJECT_ID('alert_definition', 'U') IS NOT NULL DROP TABLE alert_definition
 GO
-
 IF OBJECT_ID('serviceconfighosts', 'U') IS NOT NULL DROP TABLE serviceconfighosts
 GO
 IF OBJECT_ID('serviceconfigmapping', 'U') IS NOT NULL DROP TABLE serviceconfigmapping
 GO
 IF OBJECT_ID('serviceconfig', 'U') IS NOT NULL DROP TABLE serviceconfig
 GO
-
 IF OBJECT_ID('clusterconfig', 'U') IS NOT NULL DROP TABLE clusterconfig
+GO
+IF OBJECT_ID('cluster_version', 'U') IS NOT NULL DROP TABLE cluster_version
+GO
+IF OBJECT_ID('adminprivilege', 'U') IS NOT NULL DROP TABLE adminprivilege
+GO
+IF OBJECT_ID('adminpermission', 'U') IS NOT NULL DROP TABLE adminpermission
 GO
 IF OBJECT_ID('clusters', 'U') IS NOT NULL DROP TABLE clusters
 GO
-
-IF OBJECT_ID('adminprivilege', 'U') IS NOT NULL DROP TABLE adminprivilege
-GO
 IF OBJECT_ID('adminresource', 'U') IS NOT NULL DROP TABLE adminresource
 GO
-IF OBJECT_ID('adminpermission', 'U') IS NOT NULL DROP TABLE adminpermission
+IF OBJECT_ID('adminresourcetype', 'U') IS NOT NULL DROP TABLE adminresourcetype
 GO
 IF OBJECT_ID('adminprincipal', 'U') IS NOT NULL DROP TABLE adminprincipal
 GO
 IF OBJECT_ID('adminprincipaltype', 'U') IS NOT NULL DROP TABLE adminprincipaltype
 GO
-IF OBJECT_ID('adminresourcetype', 'U') IS NOT NULL DROP TABLE adminresourcetype
-GO
-
-IF OBJECT_ID('upgrade_item', 'U') IS NOT NULL DROP TABLE upgrade_item
-GO
-IF OBJECT_ID('upgrade', 'U') IS NOT NULL DROP TABLE upgrade
-GO
-

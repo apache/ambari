@@ -105,7 +105,8 @@ module.exports =
       "isReconfigurable": false,
       "serviceName": "HDFS",
       "category": "MetricsSink",
-      "index": 1
+      "index": 1,
+      "filename": "cluster-env.xml"
     },
     {
       "id": "puppet var",
@@ -120,7 +121,8 @@ module.exports =
       "isReconfigurable": false,
       "serviceName": "HDFS",
       "category": "MetricsSink",
-      "index": 1
+      "index": 1,
+      "filename": "cluster-env.xml"
     },
     {
       "id": "puppet var",
@@ -145,7 +147,8 @@ module.exports =
       "isVisible": true,
       "serviceName": "HDFS",
       "category": "MetricsSink",
-      "index": 2
+      "index": 2,
+      "filename": "cluster-env.xml"
     },
     {
       "id": "site property",
@@ -160,7 +163,8 @@ module.exports =
       "isVisible": false,
       "category": "MetricsSink",
       "serviceName": "HDFS",
-      "index": 2
+      "index": 2,
+      "filename": "cluster-env.xml"
     },
     {
       "id": "puppet var",
@@ -175,7 +179,8 @@ module.exports =
       "isObserved": true,
       "serviceName": "HDFS",
       "category": "MetricsSink",
-      "index": 3
+      "index": 3,
+      "filename": "cluster-env.xml"
     },
     {
       "id": "puppet var",
@@ -190,7 +195,8 @@ module.exports =
       "isObserved": true,
       "serviceName": "HDFS",
       "category": "MetricsSink",
-      "index": 3
+      "index": 3,
+      "filename": "cluster-env.xml"
     },
     {
       "id": "site property",
@@ -201,7 +207,8 @@ module.exports =
       "isObserved": true,
       "category": "MetricsSink",
       "serviceName": "HDFS",
-      "index": 4
+      "index": 4,
+      "filename": "cluster-env.xml"
     },
     {
       "id": "site property",
@@ -211,7 +218,8 @@ module.exports =
       "displayType": "user",
       "category": "MetricsSink",
       "serviceName": "HDFS",
-      "index": 5
+      "index": 5,
+      "filename": "cluster-env.xml"
     },
     {
       "id": "site property",
@@ -221,7 +229,8 @@ module.exports =
       "displayType": "password",
       "category": "MetricsSink",
       "serviceName": "HDFS",
-      "index": 6
+      "index": 6,
+      "filename": "cluster-env.xml"
     },
     {
       "id": "site property",
@@ -230,7 +239,8 @@ module.exports =
       "isOverridable": false,
       "category": "MetricsSink",
       "serviceName": "HDFS",
-      "index": 7
+      "index": 7,
+      "filename": "cluster-env.xml"
     },
     {
       "id": "site property",
@@ -240,7 +250,8 @@ module.exports =
       "displayType": "advanced",
       "category": "MetricsSink",
       "serviceName": "HDFS",
-      "index": 8
+      "index": 8,
+      "filename": "cluster-env.xml"
     },
 
     {
