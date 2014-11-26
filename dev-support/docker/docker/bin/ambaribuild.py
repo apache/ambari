@@ -14,6 +14,7 @@
 
 import subprocess, time, sys
 import json
+import datetime
 from optparse import OptionParser
 
 SKIP_TEST="-DskipTests"
@@ -29,14 +30,12 @@ def git_deep_cleaning():
 	return proc.wait()
 
 def ambariUnitTest():
-	git_deep_cleaning()
 	proc = subprocess.Popen("mvn -fae clean install",
 			shell=True,
 			cwd="/tmp/ambari")
 	return proc.wait()
 
 def buildAmbari(stack_distribution):
-	git_deep_cleaning()
 	stack_distribution_param = ""
 	if stack_distribution is not None:
 		stack_distribution_param = "-Dstack.distribution=" + stack_distribution
@@ -134,35 +133,57 @@ def create_cluster():
 
 # Loop to not to exit Docker container
 def no_exit():
+	print ""
 	print "loop to not to exit docker container..."
+	print ""
 	while True:
 		time.sleep(NO_EXIT_SLEEP_TIME)
 
 class ParseResult:
+	is_deep_clean = False
 	is_rebuild = False
 	stack_distribution = None
 	is_test = False
 	is_install_server = False
 	is_install_agent = False
 	is_deploy = False
+	is_server_debug = False
 
 def parse(argv):
 	result = ParseResult()
 	if len(argv) >=2:
 		parser = OptionParser()
+		parser.add_option("-c", "--clean",
+				dest="is_deep_clean",
+				action="store_true",
+				default=False,
+				help="if this option is set, git clean -xdf is executed for the ambari local git repo")
+
 		parser.add_option("-b", "--rebuild",
 				dest="is_rebuild",
 				action="store_true",
 				default=False,
 				help="set this flag if you want to rebuild Ambari code")
+
 		parser.add_option("-s", "--stack_distribution",
 				dest="stack_distribution",
 				help="set a stack distribution. [HDP|PHD|BIGTOP]. Make sure -b is also set when you set a stack distribution")
+
+		parser.add_option("-d", "--server_debug",
+				dest="is_server_debug",
+				action="store_true",
+				default=False,
+				help="set a debug option for ambari-server")
+
 		(options, args) = parser.parse_args(argv[1:])
+		if options.is_deep_clean:
+			result.is_deep_clean = True
 		if options.is_rebuild:
 			result.is_rebuild = True
 		if options.stack_distribution:
 			result.stack_distribution = options.stack_distribution
+		if options.is_server_debug:
+			result.is_server_debug = True
 
 	if argv[0] == "test":
 		result.is_test = True
@@ -187,6 +208,8 @@ if __name__ == "__main__":
 		print "specify one of test, server, agent or deploy"
 		sys.exit(1)
 
+	start = datetime.datetime.utcnow()
+
 	# test: execute unit test
 	# server: install ambari-server
 	#    with or without rebuild
@@ -197,8 +220,15 @@ if __name__ == "__main__":
 
 	parsed_args = parse(sys.argv[1:])
 
+	if parsed_args.is_deep_clean:
+		retcode = git_deep_cleaning()
+		if retcode != 0: sys.exit(retcode)
+
 	if parsed_args.is_test:
 		retcode = ambariUnitTest()
+		end = datetime.datetime.utcnow()
+		print ""
+		print "Duration: " + str((end-start).seconds) + " seconds"
 		sys.exit(retcode)
 
 	if parsed_args.is_rebuild:
@@ -210,7 +240,7 @@ if __name__ == "__main__":
 		if retcode != 0: sys.exit(retcode)
 		retcode = setup_ambari_server()
 		if retcode != 0: sys.exit(retcode)
-		retcode = start_ambari_server()
+		retcode = start_ambari_server(parsed_args.is_server_debug)
 		if retcode != 0: sys.exit(retcode)
 		retcode = start_dependant_services()
 		if retcode != 0: sys.exit(retcode)
@@ -229,5 +259,9 @@ if __name__ == "__main__":
 		retcode = create_cluster()
 		if retcode != 0: sys.exit(retcode)
 
-	no_exit()
+	end = datetime.datetime.utcnow()
 
+	print ""
+	print "Duration: " + str((end-start).seconds) + " seconds"
+	print "Parameters: " + str(sys.argv)
+	no_exit()

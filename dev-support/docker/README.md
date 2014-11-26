@@ -17,7 +17,7 @@ how to build
 --------------------
 
 ```
-docker build -t ambari/build ./docker
+docker build -t ambari/build ./dev-support/docker/docker
 ```
 
 how to run
@@ -32,19 +32,21 @@ docker run --privileged -t -i -p 80:80 -p 5005:5005 -p 8080:8080 -h node1.mydoma
 # build, install ambari and deploy hadoop in container
 cd {ambari src}
 docker rm ambari1
-docker run --privileged -t -p 80:80 -p 5005:5005 -p 8080:8080 -h node1.mydomain.com --name ambari1 -v ${AMBARI_SRC:-$(pwd)}:/tmp/ambari ambari/build /tmp/ambari-build-docker/bin/ambaribuild.py [test|server|agent|deploy] [-b] [-s [HDP|BIGTOP|PHD]]
+docker run --privileged -t -p 80:80 -p 5005:5005 -p 8080:8080 -h node1.mydomain.com --name ambari1 -v ${AMBARI_SRC:-$(pwd)}:/tmp/ambari ambari/build /tmp/ambari-build-docker/bin/ambaribuild.py [test|server|agent|deploy] [-b] [-s [HDP|BIGTOP|PHD]] [-d] [-c]
 where
 test: mvn test
 server: install and run ambari-server
 agent: install and run ambari-server and ambari-agent
 deploy: install and run ambari-server and ambari-agent, and deploy a hadoop
 -b option to rebuild ambari
+-d option to start ambari-server with --debug option
+-c option to clean local git repo. "git clean -xdf"
 ```
 
 how to run unit test
 --------------------
 ```
-cd docker
+cd dev-support/docker/docker
 python -m bin.test.ambaribuild_test
 
 ```

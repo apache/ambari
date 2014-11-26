@@ -15,6 +15,7 @@ FROM centos:centos6
 RUN echo root:changeme | chpasswd
 
 ## Install some basic utilities that aren't in the default image
+RUN yum clean all -y && yum update -y
 RUN yum -y install vim wget rpm-build sudo which telnet tar openssh-server openssh-clients ntp git python-setuptools httpd
 # phantomjs dependency
 RUN yum -y install fontconfig freetype libfreetype.so.6 libfontconfig.so.1 libstdc++.so.6
