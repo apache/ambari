@@ -32,24 +32,7 @@ module.exports = [
       App.ServiceConfigCategory.create({ name: 'Users and Groups', displayName : 'Users and Groups'})
     ],
     configTypes: {
-      "cluster-env": {supports: {final: false}},
-      "hadoop-env": {supports: {final: false}},
-      "mapred-env": {supports: {final: false}},
-      "yarn-env": {supports: {final: false}},
-      "hbase-env": {supports: {final: false}},
-      "ganglia-env": {supports: {final: false}},
-      "nagios-env": {supports: {final: false}},
-      "oozie-env": {supports: {final: false}},
-      "zookeeper-env": {supports: {final: false}},
-      "hive-env": {supports: {final: false}},
-      "tez-env": {supports: {final: false}},
-      "storm-env": {supports: {final: false}},
-      "falcon-env": {supports: {final: false}},
-      "webhcat-env": {supports: {final: false}},
-      "pig-env": {supports: {final: false}},
-      "sqoop-env": {supports: {final: false}},
-      "knox-env" : {supports: {final: false}},
-      "kafka-env": {supports: {final: false}}
+      "cluster-env": {supports: {final: false}}
     },
     configs: []
   })

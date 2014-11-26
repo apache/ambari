@@ -587,6 +587,44 @@ describe('App.config', function () {
 
   });
 
+  describe('#setPreDefinedServiceConfigs', function() {
+    beforeEach(function() {
+      sinon.stub(App.StackService, 'find', function() {
+        return [
+          Em.Object.create({
+            id: 'HDFS',
+            serviceName: 'HDFS',
+            configTypes: {
+              'hadoop-env': {},
+              'hdfs-site': {}
+            }
+          }),
+          Em.Object.create({
+            id: 'OOZIE',
+            serviceName: 'OOZIE',
+            configTypes: {
+              'oozie-env': {},
+              'oozie-site': {}
+            }
+          })
+        ];
+      });
+      App.config.setPreDefinedServiceConfigs(true);
+    });
+    afterEach(function() {
+      App.StackService.find.restore();
+    });
+
+    it('should include service MISC', function() {
+      expect(App.config.get('preDefinedServiceConfigs').findProperty('serviceName', 'MISC')).to.be.ok;
+    });
+
+    it('should include -env config types according to stack services', function() {
+      var miscCategory = App.config.get('preDefinedServiceConfigs').findProperty('serviceName', 'MISC');
+      expect(Em.keys(miscCategory.get('configTypes'))).to.eql(['cluster-env', 'hadoop-env', 'oozie-env']);
+    });
+  });
+  
   describe('#isManagedMySQLForHiveAllowed', function () {
 
     var cases = [

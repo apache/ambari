@@ -85,6 +85,16 @@ App.config = Em.Object.create({
     var allTabs;
     if (isMiscTabToBeAdded) {
       var nonServiceTab = require('data/service_configs');
+      var miscService = nonServiceTab.findProperty('serviceName', 'MISC');
+      var tagTypes = {};
+      servicesWithConfigTypes.mapProperty('configTypes').forEach(function(configTypes) {
+        for (var fileName in configTypes) {
+          if (fileName.endsWith('-env') && !miscService.get('configTypes')[fileName]) {
+            tagTypes[fileName] = configTypes[fileName];
+          }
+        }
+      });
+      miscService.set('configTypes', $.extend(miscService.get('configTypes'), tagTypes));
       allTabs = servicesWithConfigTypes.concat(nonServiceTab);
     } else {
       allTabs = servicesWithConfigTypes;

@@ -124,8 +124,6 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
    */
   serviceConfigTags: [],
 
-  serviceConfigsData: require('data/service_configs'),
-
   /**
    * Are advanced configs loaded
    * @type {bool}
