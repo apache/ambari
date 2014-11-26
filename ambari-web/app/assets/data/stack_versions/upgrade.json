@@ -1,0 +1,70 @@
+{
+  "items": [
+    {
+      "UpgradeItem": {
+        "upgrade_item_id": 1,
+        "step_index": 1,
+        "status": "COMPLETED",
+        "stage_id": 124321,
+        "command": "Restart Zookeeper Server on host1",
+        "type": "auto",
+        "description": ""
+      }
+    },
+    {
+      "UpgradeItem": {
+        "upgrade_item_id": 2,
+        "step_index": 2,
+        "status": "WARNING",
+        "stage_id": 124321,
+        "command": "Restart Zookeeper Server on host2",
+        "type": "auto",
+        "description": ""
+      }
+    },
+    {
+      "UpgradeItem": {
+        "upgrade_item_id": 3,
+        "step_index": 3,
+        "status": "IN_PROGRESS",
+        "stage_id": 124321,
+        "command": "Run manual steps",
+        "type": "manual",
+        "description": "List of manual steps"
+      }
+    },
+    {
+      "UpgradeItem": {
+        "upgrade_item_id": 4,
+        "step_index": 4,
+        "status": "PENDING",
+        "stage_id": 124321,
+        "command": "Restart Datanode on 2 hosts",
+        "type": "auto",
+        "description": ""
+      }
+    },
+    {
+      "UpgradeItem": {
+        "upgrade_item_id": 5,
+        "step_index": 5,
+        "status": "PENDING",
+        "stage_id": 124321,
+        "command": "Restart Datanode on 2 hosts",
+        "type": "auto",
+        "description": ""
+      }
+    },
+    {
+      "UpgradeItem": {
+        "upgrade_item_id": 6,
+        "step_index": 6,
+        "status": "FAILED",
+        "stage_id": 124321,
+        "command": "Restart Zookeeper Server on host3",
+        "type": "auto",
+        "description": ""
+      }
+    }
+  ]
+}

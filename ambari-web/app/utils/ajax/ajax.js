@@ -1267,6 +1267,10 @@ var urls = {
     'real': '/clusters/{cluster}/requests/{requestId}?fields=tasks/*',
     'mock': '/data/wizard/{mock}'
   },
+  'admin.upgrade.tasks': {
+    'real': '/clusters/{clusterName}/upgrades/{id}/upgrade_items',
+    'mock': '/data/stack_versions/upgrade.json'
+  },
   'admin.stack_versions.all': {
     'real': '/clusters/{clusterName}/stack_versions?fields=ClusterStackVersions/*&minimal_response=true',
     'mock': '/data/stack_versions/stack_version_all.json'

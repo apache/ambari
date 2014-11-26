@@ -20,12 +20,29 @@
 var App = require('app');
 
 App.UpgradeVersionBoxView = Em.View.extend({
+  /**
+   * @type {object|null}
+   */
   version: null,
+
+  /**
+   * @type {string}
+   */
   versionName: function () {
+    if (Em.isNone(this.get('version'))) return "";
     return this.get('version.stack') + "-" + this.get('version.version');
   }.property('version.stack', 'version.version'),
+
+  /**
+   * @type {string}
+   */
   btnClass: 'btn-default',
-  hostsCount: null,
+
+  /**
+   * @type {number}
+   */
+  hostsCount: 0,
+
   /**
    * run action by name of method
    * @param event

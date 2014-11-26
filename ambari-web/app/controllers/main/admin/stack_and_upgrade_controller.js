@@ -22,6 +22,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend({
   name: 'mainAdminStackAndUpgradeController',
 
   serviceToInstall: null,
+  upgradeTasks: [],
 
   /**
    * version that currently applied to server
@@ -78,6 +79,33 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend({
   },
 
   /**
+   * load upgrade tasks by upgrade id
+   * @return {$.ajax}
+   */
+  loadUpgradeTasks: function () {
+    //TODO should make call with actual upgrade id
+    var upgradeId = 1;
+    return App.ajax.send({
+      name: 'admin.upgrade.tasks',
+      sender: this,
+      data: {
+        id: upgradeId
+      },
+      success: 'loadUpgradeTasksSuccessCallback'
+    });
+  },
+
+  /**
+   * parse and push upgrade tasks to controller
+   * @param data
+   */
+  loadUpgradeTasksSuccessCallback: function (data) {
+    this.set("upgradeTasks", data.items.map(function (item) {
+      return item.UpgradeItem;
+    }));
+  },
+
+  /**
    * start cluster downgrade
    */
   downgrade: function () {
@@ -88,6 +116,8 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend({
    */
   upgrade: function () {
     //TODO start actual upgrade
+    this.loadUpgradeTasks();
+    this.openUpgradeDialog();
   },
   /**
    * resume upgrade process
@@ -100,5 +130,26 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend({
    */
   finalize: function () {
     //TODO start actual finalize
+  },
+
+  /**
+   * show dialog with tasks of upgrade
+   * @return {App.ModalPopup}
+   */
+  openUpgradeDialog: function () {
+    var upgradeVersion = 'HDP-2.2.1';
+
+    return App.ModalPopup.show({
+      header: Em.I18n.t('admin.stackUpgrade.dialog.header').format(upgradeVersion),
+      bodyClass: Em.View.extend({
+        controller: this,
+        templateName: require('templates/main/admin/stack_upgrade/stack_upgrade_dialog'),
+        tasks: function () {
+          return this.get('controller.upgradeTasks');
+        }.property('controller.upgradeTasks')
+      }),
+      primary: null,
+      secondary: null
+    });
   }
 });

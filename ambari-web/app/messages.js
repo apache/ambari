@@ -1264,6 +1264,12 @@ Em.I18n.translations = {
   'admin.stackUpgrade.state.finalize': "Finalize",
   'admin.stackUpgrade.hosts': "hosts",
   'admin.stackUpgrade.host': "host",
+  'admin.stackUpgrade.dialog.header': "Upgrade to {0} in progress",
+  'admin.stackUpgrade.dialog.operationFailed': "This operation failed.",
+  'admin.stackUpgrade.dialog.errorLink': "See error message",
+  'admin.stackUpgrade.dialog.stop': "Stop Upgrade",
+  'admin.stackUpgrade.dialog.continue': "Ignore and Continue",
+  'admin.stackUpgrade.dialog.manualDone': "I have preformed the manual steps above.",
 
   'services.service.start':'Start',
   'services.service.stop':'Stop',

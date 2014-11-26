@@ -18,7 +18,7 @@
 
 
 var App = require('app');
-require('views/main/admin/upgrade_version_box_view');
+require('views/main/admin/stack_upgrade/upgrade_version_box_view');
 
 describe('App.UpgradeVersionBoxView', function () {
   var view = App.UpgradeVersionBoxView.create({
@@ -28,7 +28,12 @@ describe('App.UpgradeVersionBoxView', function () {
   });
 
   describe("#versionName", function () {
-    it("", function () {
+    it("version is null", function () {
+      view.set('version', null);
+      view.propertyDidChange('versionName');
+      expect(view.get('versionName')).to.be.empty;
+    });
+    it("version is loaded", function () {
       view.set('version', Em.Object.create({
         stack: 'HDP',
         version: '2.2'

@@ -105,4 +105,55 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       }]);
     });
   });
+
+  describe("#loadUpgradeTasks()", function() {
+    before(function () {
+      sinon.stub(App.ajax, 'send', Em.K);
+    });
+    after(function () {
+      App.ajax.send.restore();
+    });
+    it("make ajax call", function() {
+      controller.loadUpgradeTasks();
+      expect(App.ajax.send.getCall(0).args[0]).to.eql({
+        name: 'admin.upgrade.tasks',
+        sender: controller,
+        data: {
+          id: 1
+        },
+        success: 'loadUpgradeTasksSuccessCallback'
+      })
+    });
+  });
+
+  describe("#loadUpgradeTasksSuccessCallback()", function() {
+    it("", function() {
+      var data = {"items": [
+        {
+          "UpgradeItem": {
+            "id": 1
+          }
+        }
+      ]};
+      controller.loadUpgradeTasksSuccessCallback(data);
+      expect(controller.get('upgradeTasks')).to.eql([
+        {
+          "id": 1
+        }
+      ]);
+    });
+  });
+
+  describe("#openUpgradeDialog()", function () {
+    before(function () {
+      sinon.stub(App.ModalPopup, 'show', Em.K);
+    });
+    after(function () {
+      App.ModalPopup.show.restore();
+    });
+    it("should open dialog", function () {
+      controller.openUpgradeDialog();
+      expect(App.ModalPopup.show.calledOnce).to.be.true;
+    });
+  });
 });
