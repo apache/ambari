@@ -281,7 +281,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
    * Remove all data for installOptions step
    */
   clearInstallOptions: function () {
-    var installOptions = this.get('getInstallOptions');
+    var installOptions = this.getInstallOptions();
     this.set('content.installOptions', installOptions);
     this.setDBProperty('installOptions', installOptions);
     this.set('content.hosts', {});
@@ -504,8 +504,8 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
   },
 
   getInstallOptions: function() {
-    return jQuery.extend({}, App.get('isHadoopWindowsStack')? this.get('installWindowsOptionsTemplate') : this.get('installOptionsTemplate'));
-  }.property('App.isHadoopWindowsStack'),
+    return jQuery.extend({}, App.get('isHadoopWindowsStack') ? this.get('installWindowsOptionsTemplate') : this.get('installOptionsTemplate'));
+  },
 
   installOptionsTemplate: {
     hostNames: "", //string

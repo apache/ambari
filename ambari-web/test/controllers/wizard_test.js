@@ -97,4 +97,66 @@ describe('App.WizardController', function () {
     });
   });
 
+  describe('#getInstallOptions', function () {
+
+    var cases = [
+        {
+          isHadoopWindowsStack: true,
+          expected: {
+            useSsh: false
+          }
+        },
+        {
+          isHadoopWindowsStack: false,
+          expected: {
+            useSsh: true
+          }
+        }
+      ],
+      title = 'should return {0}';
+
+    beforeEach(function () {
+      sinon.stub(wizardController, 'get')
+        .withArgs('installOptionsTemplate').returns({useSsh: true})
+        .withArgs('installWindowsOptionsTemplate').returns({useSsh: false});
+    });
+
+    afterEach(function () {
+      App.get.restore();
+      wizardController.get.restore();
+    });
+
+    cases.forEach(function (item) {
+      it(title.format(item.expected), function () {
+        sinon.stub(App, 'get').withArgs('isHadoopWindowsStack').returns(item.isHadoopWindowsStack);
+        expect(wizardController.getInstallOptions()).to.eql(item.expected);
+      });
+    });
+
+  });
+
+  describe('#clearInstallOptions', function () {
+
+    wizardController.setProperties({
+      content: {},
+      name: 'wizard'
+    });
+
+    beforeEach(function () {
+      sinon.stub(App, 'get').withArgs('isHadoopWindowsStack').returns(false);
+    });
+
+    afterEach(function () {
+      App.get.restore();
+    });
+
+    it('should clear install options', function () {
+      wizardController.clearInstallOptions();
+      expect(wizardController.get('content.installOptions')).to.eql(wizardController.get('installOptionsTemplate'));
+      expect(wizardController.get('content.hosts')).to.eql({});
+      expect(wizardController.getDBProperty('installOptions')).to.eql(wizardController.get('installOptionsTemplate'))
+      expect(wizardController.getDBProperty('hosts')).to.eql({});
+    });
+  });
+
 });
