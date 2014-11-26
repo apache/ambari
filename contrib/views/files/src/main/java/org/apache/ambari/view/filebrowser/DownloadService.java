@@ -51,6 +51,7 @@ import org.apache.ambari.view.filebrowser.utils.ServiceFormattedException;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.ambari.view.ViewContext;
+import org.apache.hadoop.security.AccessControlException;
 import org.json.simple.JSONObject;
 //import org.glassfish.jersey.server.ChunkedOutput;
 
@@ -100,34 +101,44 @@ public class DownloadService extends HdfsService {
     }
   }
 
-  private void zipFile(ZipOutputStream zip, String path) throws InterruptedException, IOException {
+  private void zipFile(ZipOutputStream zip, String path) {
     try {
-      zip.putNextEntry(new ZipEntry(path.substring(1)));
       FSDataInputStream in = getApi(context).open(path);
+      zip.putNextEntry(new ZipEntry(path.substring(1)));
       byte[] chunk = new byte[1024];
       while (in.read(chunk) != -1) {
         zip.write(chunk);
       }
     } catch (IOException ex) {
-      String msg = "Error zipping file " + path.substring(1) + ": "
+      logger.error("Error zipping file " + path.substring(1) + " (file ignored): "
+          + ex.getMessage());
+    } catch (InterruptedException ex) {
+      String msg = "Error zipping file " + path.substring(1) + " (file ignored): "
           + ex.getMessage();
       logger.error(msg);
-      zip.write(ex.getMessage().getBytes());
-      throw new ServiceFormattedException(ex.getMessage(), ex);
     } finally {
-      zip.closeEntry();
+      try {
+        zip.closeEntry();
+      } catch (IOException ex) {
+        logger.error("Error closing entry " + path.substring(1) + " (file ignored): "
+            + ex.getMessage());
+      }
     }
   }
 
   private void zipDirectory(ZipOutputStream zip, String path) {
     try {
       zip.putNextEntry(new ZipEntry(path.substring(1) + "/"));
-      zip.closeEntry();
     } catch (IOException ex) {
-      String msg = "Error zipping directory " + path.substring(1) + "/" + ": "
-          + ex.getMessage();
-      logger.error(msg);
-      throw new ServiceFormattedException(msg, ex);
+      logger.error("Error zipping directory " + path.substring(1) + "/ (directory ignored)" + ": "
+          + ex.getMessage());
+    } finally {
+      try {
+        zip.closeEntry();
+      } catch (IOException ex) {
+        logger.error("Error zipping directory " + path.substring(1) + "/ (directory ignored)" + ": "
+            + ex.getMessage());
+      }
     }
   }
 
@@ -156,7 +167,14 @@ public class DownloadService extends HdfsService {
               String path = files.poll();
               FileStatus status = api.getFileStatus(path);
               if (status.isDirectory()) {
-                FileStatus[] subdir = api.listdir(path);
+                FileStatus[] subdir;
+                try {
+                  subdir = api.listdir(path);
+                } catch (AccessControlException ex) {
+                  logger.error("Error zipping directory " + path.substring(1) + "/ (directory ignored)" + ": "
+                      + ex.getMessage());
+                  continue;
+                }
                 for (FileStatus file : subdir) {
                   files.add(org.apache.hadoop.fs.Path
                       .getPathWithoutSchemeAndAuthority(file.getPath())
@@ -240,10 +258,13 @@ public class DownloadService extends HdfsService {
   @GET
   @Path("/zip")
   @Consumes(MediaType.APPLICATION_JSON)
-  @Produces(MediaType.APPLICATION_OCTET_STREAM)
+  @Produces("application/zip")
   public Response zipByRequestId(@QueryParam("requestId") String requestId) {
     try {
       String json = context.getInstanceData(requestId);
+      if (json == null) {
+        throw new NotFoundFormattedException("Request is old", null);
+      }
       DownloadRequest request = gson.fromJson(json, DownloadRequest.class);
       context.removeInstanceData(requestId);
       return downloadGZip(request);

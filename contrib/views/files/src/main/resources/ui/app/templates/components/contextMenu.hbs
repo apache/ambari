@@ -20,9 +20,9 @@
 <div id="context-menu">
   <ul class="dropdown-menu dropdown-context compressed-context" role="menu">
     {{#if view.target.content.isDirectory}} 
-    <li><a tabindex="-1" href="#" {{action 'open'}}>Open folder</a></li>
+      <li {{bind-attr class="view.target.content.readAccess::disabled"}}><a tabindex="-1" href="#" {{action 'open'}}>Open folder</a></li>
     {{else}}
-    <li><a tabindex="-1" href="#" {{action 'download'}}>Download</a></li>
+      <li {{bind-attr class="view.target.content.readAccess::disabled"}}><a tabindex="-1" href="#" {{action 'download'}}>Download</a></li>
     {{/if}}
     <li><a tabindex="-1" href="#" {{action 'moveFile' 'cut' view.target.content}}>Move</a></li>
     <li><a tabindex="-1" href="#" {{action 'showChmod'}} >Permissions</a></li>

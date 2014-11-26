@@ -25,9 +25,11 @@ App.FileController = Ember.ObjectController.extend({
   },
   actions:{
     download:function (option) {
-      this.store.linkFor([this.get('content')],option).then(function (link) {
-        window.location.href = link;
-      },Em.run.bind(this,this.sendAlert));
+      if (this.get('content.readAccess')) {
+        this.store.linkFor([this.get('content')],option).then(function (link) {
+          window.location.href = link;
+        },Em.run.bind(this,this.sendAlert));
+      }
     },
     showChmod:function () {
       this.toggleProperty('chmodVisible',true);
@@ -56,17 +58,20 @@ App.FileController = Ember.ObjectController.extend({
         .then(null,Em.run.bind(this,this.chmodErrorCallback,record));
     },
     open:function (file) {
+      if (!this.get('content.readAccess')) {
+        return false;
+      }
       if (this.get('content.isDirectory')) {
         return this.transitionToRoute('files',{queryParams: {path: this.get('content.id')}});
       } else{
         return this.send('download');
-      };
+      }
     },
     deleteFile:function (deleteForever) {
       this.store
         .remove(this.get('content'),!deleteForever)
-        .then(null,Em.run.bind(this,this.sendAlert));
-    },
+        .then(null,Em.run.bind(this,this.deleteErrorCallback,this.get('content')));
+    }
   },
   selected:false,
   isRenaming:false,
@@ -95,10 +100,15 @@ App.FileController = Ember.ObjectController.extend({
 
   chmodErrorCallback:function (record,error) {
     record.rollback();
-    this.sendAlert(error);
+    this.sendAlert({message:'Permissions change failed'});
+  },
+
+  deleteErrorCallback:function (record,error) {
+    this.parentController.model.pushRecord(record);
+    this.send('showAlert',error);
   },
 
   sendAlert:function (error) {
     this.send('showAlert',error);
-  },
+  }
 });

@@ -58,7 +58,7 @@ public class FileOperationService extends HdfsService {
   public Response listdir(@QueryParam("path") String path) {
     try {
       return Response.ok(
-          HdfsApi.fileStatusToJSON(getApi(context).listdir(path))).build();
+          getApi(context).fileStatusToJSON(getApi(context).listdir(path))).build();
     } catch (WebApplicationException ex) {
       throw ex;
     } catch (FileNotFoundException ex) {
@@ -82,7 +82,7 @@ public class FileOperationService extends HdfsService {
       HdfsApi api = getApi(context);
       ResponseBuilder result;
       if (api.rename(request.src, request.dst)) {
-        result = Response.ok(HdfsApi.fileStatusToJSON(api
+        result = Response.ok(getApi(context).fileStatusToJSON(api
             .getFileStatus(request.dst)));
       } else {
         result = Response.ok(new BoolResult(false)).status(422);
@@ -109,7 +109,7 @@ public class FileOperationService extends HdfsService {
       HdfsApi api = getApi(context);
       ResponseBuilder result;
       if (api.chmod(request.path, request.mode)) {
-        result = Response.ok(HdfsApi.fileStatusToJSON(api
+        result = Response.ok(getApi(context).fileStatusToJSON(api
             .getFileStatus(request.path)));
       } else {
         result = Response.ok(new BoolResult(false)).status(422);
@@ -137,7 +137,7 @@ public class FileOperationService extends HdfsService {
       HdfsApi api = getApi(context);
       ResponseBuilder result;
       if (api.copy(request.src, request.dst)) {
-        result = Response.ok(HdfsApi.fileStatusToJSON(api
+        result = Response.ok(getApi(context).fileStatusToJSON(api
             .getFileStatus(request.dst)));
       } else {
         result = Response.ok(new BoolResult(false)).status(422);
@@ -163,7 +163,7 @@ public class FileOperationService extends HdfsService {
       HdfsApi api = getApi(context);
       ResponseBuilder result;
       if (api.mkdir(request.path)) {
-        result = Response.ok(HdfsApi.fileStatusToJSON(api.getFileStatus(request.path)));
+        result = Response.ok(getApi(context).fileStatusToJSON(api.getFileStatus(request.path)));
       } else {
         result = Response.ok(new BoolResult(false)).status(422);
       }

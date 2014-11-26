@@ -75,7 +75,7 @@ public class HelpService extends HdfsService {
   @Produces(MediaType.TEXT_PLAIN)
   public Response filesystem() {
     return Response.ok(
-        context.getProperties().get("dataworker.defaultFs")).build();
+        context.getProperties().get("webhdfs.url")).build();
   }
 
   /**
@@ -89,7 +89,7 @@ public class HelpService extends HdfsService {
     try {
       HdfsApi api = getApi(context);
       return Response
-          .ok(HdfsApi.fileStatusToJSON(api.getFileStatus(api.getHomeDir()
+          .ok(getApi(context).fileStatusToJSON(api.getFileStatus(api.getHomeDir()
               .toString()))).build();
     } catch (WebApplicationException ex) {
       throw ex;
@@ -127,7 +127,7 @@ public class HelpService extends HdfsService {
     try {
       HdfsApi api = getApi(context);
       return Response.ok(
-          HdfsApi.fileStatusToJSON(api.getFileStatus(api.getTrashDir()
+          getApi(context).fileStatusToJSON(api.getFileStatus(api.getTrashDir()
               .toString()))).build();
     } catch (WebApplicationException ex) {
       throw ex;

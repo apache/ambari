@@ -22,9 +22,9 @@
     "uglify-js-brunch": "^1.7.7",
     "clean-css-brunch": "^1.7.1",
     "bower": "^1.2.8",
-    "brunch": "^1.7.13",
+    "brunch": "1.7.17",
     "scaffolt": "^0.4.3",
-    "ember-precompiler-brunch": "^1.5.1",
+    "ember-precompiler-brunch": ">= 1.5.0",
     "less-brunch": "^1.7.2"
   },
   "devDependencies": {},

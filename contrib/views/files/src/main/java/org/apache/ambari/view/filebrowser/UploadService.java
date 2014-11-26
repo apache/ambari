@@ -77,7 +77,7 @@ public class UploadService extends HdfsService {
       String filePath = path + contentDisposition.getFileName();
       uploadFile(filePath, uploadedInputStream);
       return Response.ok(
-          HdfsApi.fileStatusToJSON(getApi(context).getFileStatus(filePath)))
+          getApi(context).fileStatusToJSON(getApi(context).getFileStatus(filePath)))
           .build();
     } catch (WebApplicationException ex) {
       throw ex;
@@ -118,7 +118,7 @@ public class UploadService extends HdfsService {
         }
         ze = zip.getNextEntry();
       }
-      return Response.ok(HdfsApi.fileStatusToJSON(api.listdir(path))).build();
+      return Response.ok(getApi(context).fileStatusToJSON(api.listdir(path))).build();
     } catch (WebApplicationException ex) {
       throw ex;
     } catch (Exception ex) {

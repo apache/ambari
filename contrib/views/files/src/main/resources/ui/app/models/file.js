@@ -18,7 +18,7 @@
 
 var App = require('app');
 
-var a = DS.attr;
+var dsa = DS.attr;
 
 App.File = DS.Model.extend({
   path: function() {
@@ -28,15 +28,18 @@ App.File = DS.Model.extend({
     var path = this.get('id');
     return path.substring(0,path.lastIndexOf('/'))||'/';
   }.property('id'),
-  isDirectory: a('boolean'),
-  len: a('number'),
-  owner: a('string'),
-  group: a('string'),
-  permission: a('string'),
-  accessTime: a('isodate'),
-  modificationTime: a('isodate'),
-  blockSize: a('number'),
-  replication: a('number'),
+  isDirectory: dsa('boolean'),
+  readAccess: dsa('boolean'),
+  writeAccess: dsa('boolean'),
+  executeAccess: dsa('boolean'),
+  len: dsa('number'),
+  owner: dsa('string'),
+  group: dsa('string'),
+  permission: dsa('string'),
+  accessTime: dsa('isodate'),
+  modificationTime: dsa('isodate'),
+  blockSize: dsa('number'),
+  replication: dsa('number'),
   name:function () {
     var splitpath = this.get('path').split('/');
     return splitpath.get(splitpath.length-1);

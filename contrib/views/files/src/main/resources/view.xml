@@ -20,16 +20,16 @@
     <version>0.1.0</version>
 
     <parameter>
-        <name>dataworker.defaultFs</name>
-        <description>The FileSystem URI (for example, hdfs://c6401.ambari.apache.org:8020)</description>
+        <name>webhdfs.url</name>
+        <description>WebHDFS FileSystem URI (example: webhdfs://namenode:50070)</description>
         <required>true</required>
     </parameter>
     <parameter>
-        <name>dataworker.username</name>
-        <description>The username (defaults to ViewContext username)</description>
+        <name>webhdfs.username</name>
+        <description>User and doAs for proxy user for HDFS</description>
         <required>false</required>
     </parameter>
-    
+
     <resource>
         <name>files</name>
         <service-class>org.apache.ambari.view.filebrowser.FileBrowserService</service-class>

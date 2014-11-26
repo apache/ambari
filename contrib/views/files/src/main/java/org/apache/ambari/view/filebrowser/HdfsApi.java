@@ -20,12 +20,16 @@ package org.apache.ambari.view.filebrowser;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.*;
+import org.apache.hadoop.fs.permission.AccessControlException;
+import org.apache.hadoop.fs.permission.FsAction;
 import org.apache.hadoop.fs.permission.FsPermission;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
 import java.security.PrivilegedExceptionAction;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.hadoop.security.UserGroupInformation;
@@ -261,7 +265,7 @@ public class HdfsApi {
     return ugi.doAs(new PrivilegedExceptionAction<Boolean>() {
       public Boolean run() throws Exception {
         try {
-          fs.setPermission(new Path(path), new FsPermission(permissions));
+          fs.setPermission(new Path(path), FsPermission.valueOf(permissions));
         } catch (Exception ex) {
           return false;
         }
@@ -313,7 +317,7 @@ public class HdfsApi {
    * @return The JSON representation of the file status.
    */
 
-  public static Map<String, Object> fileStatusToJSON(FileStatus status) {
+  public Map<String, Object> fileStatusToJSON(FileStatus status) {
     Map<String, Object> json = new LinkedHashMap<String, Object>();
     json.put("path", Path.getPathWithoutSchemeAndAuthority(status.getPath())
         .toString());
@@ -327,6 +331,9 @@ public class HdfsApi {
     json.put("modificationTime", status.getModificationTime());
     json.put("blockSize", status.getBlockSize());
     json.put("replication", status.getReplication());
+    json.put("readAccess", checkAccessPermissions(status, FsAction.READ, ugi));
+    json.put("writeAccess", checkAccessPermissions(status, FsAction.WRITE, ugi));
+    json.put("executeAccess", checkAccessPermissions(status, FsAction.EXECUTE, ugi));
     return json;
   }
 
@@ -341,7 +348,7 @@ public class HdfsApi {
    * @return The JSON representation of the file status array.
    */
   @SuppressWarnings("unchecked")
-  public static JSONArray fileStatusToJSON(FileStatus[] status) {
+  public JSONArray fileStatusToJSON(FileStatus[] status) {
     JSONArray json = new JSONArray();
     if (status != null) {
       for (FileStatus s : status) {
@@ -351,4 +358,23 @@ public class HdfsApi {
     return json;
   }
 
+  public static boolean checkAccessPermissions(FileStatus stat, FsAction mode, UserGroupInformation ugi) {
+    FsPermission perm = stat.getPermission();
+    String user = ugi.getShortUserName();
+    List<String> groups = Arrays.asList(ugi.getGroupNames());
+    if (user.equals(stat.getOwner())) {
+      if (perm.getUserAction().implies(mode)) {
+        return true;
+      }
+    } else if (groups.contains(stat.getGroup())) {
+      if (perm.getGroupAction().implies(mode)) {
+        return true;
+      }
+    } else {
+      if (perm.getOtherAction().implies(mode)) {
+        return true;
+      }
+    }
+    return false;
+  }
 }

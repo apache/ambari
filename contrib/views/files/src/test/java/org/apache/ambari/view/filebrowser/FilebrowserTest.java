@@ -84,7 +84,7 @@ public class FilebrowserTest{
     MiniDFSCluster.Builder builder = new MiniDFSCluster.Builder(conf);
     hdfsCluster = builder.build();
     String hdfsURI = hdfsCluster.getURI() + "/";
-    properties.put("dataworker.defaultFs", hdfsURI);
+    properties.put("webhdfs.url", hdfsURI);
     expect(context.getProperties()).andReturn(properties).anyTimes();
     expect(context.getUsername()).andReturn(System.getProperty("user.name")).anyTimes();
     replay(handler, context, httpHeaders, uriInfo);
@@ -158,7 +158,7 @@ public class FilebrowserTest{
   @Test
   public void testUsername() throws Exception {
     Assert.assertEquals(System.getProperty("user.name"), fileBrowserService.upload().getUsername(context));
-    properties.put("dataworker.username", "test-user");
+    properties.put("webhdfs.username", "test-user");
     Assert.assertEquals("test-user", fileBrowserService.upload().getUsername(context));
   }
 

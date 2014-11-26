@@ -64,13 +64,13 @@ public abstract class HdfsService {
   public HdfsApi getApi(ViewContext context) {
     if (_api == null) {
       Thread.currentThread().setContextClassLoader(null);
-      String defaultFs = context.getProperties().get("dataworker.defaultFs");
+      String defaultFs = context.getProperties().get("webhdfs.url");
       if (defaultFs == null)
-        throw new MisconfigurationFormattedException("dataworker.defaultFs");
+        throw new MisconfigurationFormattedException("webhdfs.url");
       try {
         _api = new HdfsApi(defaultFs, getUsername(context));
       } catch (Exception ex) {
-        throw new ServiceFormattedException("HdfsApi connection failed. Check \"dataworker.defaultFs\" property", ex);
+        throw new ServiceFormattedException("HdfsApi connection failed. Check \"webhdfs.url\" property", ex);
       }
     }
     return _api;
@@ -82,7 +82,7 @@ public abstract class HdfsService {
    * @return user name
    */
   public String getUsername(ViewContext context) {
-    String username = context.getProperties().get("dataworker.username");
+    String username = context.getProperties().get("webhdfs.username");
     if (username == null || username.isEmpty())
       username = context.getUsername();
     return username;

@@ -17,8 +17,12 @@
 
 exports.config = 
 
+  watcher:
+    usePolling: true
+
+  fileListInterval: 512
+
   files: 
-    
     javascripts: 
       defaultExtension: 'js'
       joinTo: 
@@ -35,17 +39,14 @@ exports.config =
       defaultExtension: 'hbs'
       joinTo: 'javascripts/app.js' : /^app/
       paths:
-        jquery: 'bower_components/jquery/jquery.js'
+        jquery: 'bower_components/jquery/dist/jquery.js'
         handlebars: 'bower_components/handlebars/handlebars.js'
         ember: 'bower_components/ember/ember.js'
 
   modules:
     addSourceURLs: true
 
-  paths:
-    public: '/usr/lib/ambari-server/web/views-debug/FILES/0.1.0/MyFiles/'
-
   overrides:
-    production:
+    development:
       paths:
-        public: 'public'
+        public: '/usr/lib/ambari-server/web/views-debug/FILES/0.1.0/MyFiles/'

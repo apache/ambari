@@ -5,7 +5,7 @@
   "dependencies": {
     "ember": "1.7.0",
     "ember-data": "1.0.0-beta.9",
-    "jquery": "1.9.0",
+    "jquery": "2.x",
     "bootstrap": "3.1.x",
     "ember-uploader": "~0.2.7",
     "ladda-bootstrap": "git://github.com/msurguy/ladda-bootstrap.git#~0.1.0",
@@ -15,9 +15,6 @@
     "font-awesome": "~4.0.3"
   },
   "overrides": {
-    "jquery": {
-      "main": "jquery.js"
-    },
     "ember-uploader": {
       "main": "dist/ember-uploader.js"
     },
@@ -30,8 +27,5 @@
     "font-awesome": {
       "main": "css/font-awesome.css"
     }
-  },
-  "resolutions": {
-    "jquery": "1.9.0"
   }
 }

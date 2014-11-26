@@ -55,10 +55,12 @@
     {{#unless isMoving}}
       <ul class="list-inline file-actions text-right">
         <li>
-        {{#if content.isDirectory}}
-          <a href="#" {{action 'download' 'zip'}} data-toggle="tooltip" data-placement="bottom" title="Download zip"><i class="fa fa-archive fa-fw fa-lg"></i></a>  
-        {{else}}
-          <a href="#" {{action 'download' 'browse'}} data-toggle="tooltip" data-placement="bottom" title="Download"><i class="fa fa-download fa-fw fa-lg"></i></a>  
+        {{#if content.readAccess}}
+          {{#if content.isDirectory}}
+            <a href="#" {{action 'download' 'zip'}} data-toggle="tooltip" data-placement="bottom" title="Download zip"><i class="fa fa-archive fa-fw fa-lg"></i></a>
+          {{else}}
+            <a href="#" {{action 'download' 'browse'}} data-toggle="tooltip" data-placement="bottom" title="Download"><i class="fa fa-download fa-fw fa-lg"></i></a>
+          {{/if}}
         {{/if}}
         </li>
         <li>

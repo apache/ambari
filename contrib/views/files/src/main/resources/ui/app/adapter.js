@@ -147,11 +147,10 @@ function getNamespaceUrl() {
     instance = parts[2];
     version = '';
   }
-  var namespaceUrl = 'api/v1/views' + view + version + '/instances' + instance + '/';
-  return namespaceUrl;
+  return 'api/v1/views' + view + version + '/instances' + instance + '/';
 }
 
-App.Store = DS.Store.extend({
+App.ApplicationStore = DS.Store.extend({
   adapter: DS.RESTAdapter.extend({
     namespace: getNamespaceUrl() + 'resources/files',
     headers: {
@@ -252,24 +251,25 @@ App.Store = DS.Store.extend({
   },
   /**
    * get dowload link
-   * @param  {Array} file     records for download
+   * @param  {Array} files     records for download
    * @param  {String} option            browse, zip or concat
    * @param  {Boolean} download
    * @return {Promise}
    */
   linkFor:function (files, option, download) {
-    var resolver = Ember.RSVP.defer('promiseLabel');
-    var adapter = this.adapterFor(this.modelFor('file')),
-        download = download || true;
-        option = option || "browse";
+    var resolver = Ember.RSVP.defer('promiseLabel'),
+    adapter = this.adapterFor(this.modelFor('file')),
+    query = {},
+    download = download || true;
+    option = option || "browse";
 
     if (option == 'browse') {
-      var query = { "path": files.get('firstObject.path'), "download": download };
-      resolver.resolve(adapter.downloadUrl('browse',query))
+      query = { "path": files.get('firstObject.path'), "download": download };
+      resolver.resolve(adapter.downloadUrl('browse',query));
       return resolver.promise;
-    };
+    }
 
-    var query = {
+    query = {
       "entries": [],
       "download": download
     };
@@ -278,7 +278,7 @@ App.Store = DS.Store.extend({
       query.entries.push(item.get('path'));
     });
 
-    resolver.resolve(adapter.linkFor(option, query))
+    resolver.resolve(adapter.linkFor(option, query));
 
     return resolver.promise.then(function(response) {
       return adapter.downloadUrl(option,response);
@@ -286,7 +286,7 @@ App.Store = DS.Store.extend({
       throw reason;
     });
   }
-})
+});
 
 App.FileSerializer = DS.RESTSerializer.extend({
   primaryKey:'path',
@@ -300,7 +300,7 @@ App.FileSerializer = DS.RESTSerializer.extend({
   },
   extractChmod:function(store, type, payload, id, requestType) {
     return this.extractSingle(store, type, payload, id, requestType);
-  },
+  }
 });
 
 App.Uploader = Ember.Uploader.create({
