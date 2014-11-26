@@ -19,10 +19,13 @@
 var App = require('app');
 require('views/main/service/item');
 
+var view;
+
 describe('App.MainServiceItemView', function () {
 
   describe('#mastersExcludedCommands', function () {
-    var view = App.MainServiceItemView.create({
+
+    view = App.MainServiceItemView.create({
       controller: Em.Object.create({
         content: Em.Object.create({
           hostComponents: []
@@ -61,7 +64,7 @@ describe('App.MainServiceItemView', function () {
     });
   });
 
-  describe.skip('#observeMaintenance', function () {
+  describe('#observeMaintenance', function () {
 
     var mastersExcludedCommands = {
         NAMENODE: ["DECOMMISSION", "REBALANCEHDFS"],
@@ -323,8 +326,14 @@ describe('App.MainServiceItemView', function () {
 
     beforeEach(function () {
 
+      view = App.MainServiceItemView.create({});
+
       sinon.stub(App, 'get', function (k) {
         switch (k) {
+          case 'supports.autoRollbackHA':
+          case 'isRMHaEnabled':
+          case 'isHaEnabled':
+            return false;
           case 'components.rollinRestartAllowed':
             return ["DATANODE", "JOURNALNODE", "ZKFC", "NODEMANAGER", "GANGLIA_MONITOR", "HBASE_REGIONSERVER", "SUPERVISOR", "FLUME_HANDLER"];
           case 'components.reassignable':
@@ -375,20 +384,22 @@ describe('App.MainServiceItemView', function () {
 
     testCases.forEach(function (testCase) {
 
-      var view = App.MainServiceItemView.create({
-        controller: Em.Object.create({
-          content: Em.Object.create({})
-        })
-      });
-
       it('Maintenance for ' + testCase.serviceName + ' service', function () {
-        view.set('controller.content', Em.Object.create({
-          hostComponents: testCase.hostComponents,
-          serviceName: testCase.serviceName,
-          displayName: testCase.displayName,
-          serviceTypes: testCase.serviceTypes,
-          passiveState: 'OFF'
-        }));
+        view.reopen({
+          controller: Em.Object.create({
+            content: Em.Object.create({
+              hostComponents: testCase.hostComponents,
+              serviceName: testCase.serviceName,
+              displayName: testCase.displayName,
+              serviceTypes: testCase.serviceTypes,
+              passiveState: 'OFF'
+            }),
+            isSeveralClients: false,
+            clientComponents: []
+          }),
+          mastersExcludedCommands: mastersExcludedCommands,
+          hasConfigTab: hasConfigTab
+        });
         if (testCase.controller) {
           testCase.controller.forEach(function (item) {
             Object.keys(item).forEach(function (key) {
@@ -396,16 +407,9 @@ describe('App.MainServiceItemView', function () {
             });
           });
         }
-        view.set('controller.isSeveralClients', false);
-        view.set('controller.clientComponents', []);
-        view.set('mastersExcludedCommands', mastersExcludedCommands);
-        view.set('hasConfigTab', hasConfigTab);
         view.observeMaintenanceOnce();
         expect(view.get('maintenance')).to.eql(testCase.result);
-      });
-
-      it('Change isPassive option in maintenance for ' + testCase.serviceName + ' service', function () {
-        var oldMaintenance = JSON.parse(JSON.stringify(view.maintenance));
+        var oldMaintenance = JSON.parse(JSON.stringify(view.get('maintenance')));
         view.set('controller.content.passiveState', 'ON');
         view.observeMaintenanceOnce();
         expect(view.get('maintenance')).to.not.eql(oldMaintenance);
