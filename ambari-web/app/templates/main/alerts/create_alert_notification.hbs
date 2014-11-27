@@ -1,0 +1,74 @@
+{{!
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+}}
+
+<div id="create-edit-alert-notification">
+
+  <form class="form-horizontal">
+
+    <div class="control-group">
+      <label class="control-label" for="inputName">{{controller.inputFields.name.label}}</label>
+
+      <div class="controls">
+        {{view Em.TextField valueBinding="controller.inputFields.name.value" id="inputName" class="input-xlarge"}}
+      </div>
+    </div>
+
+    <div class="control-group">
+      <label class="control-label" for="inputGroups">{{controller.inputFields.groups.label}}</label>
+
+      <div class="controls">
+        {{view Em.TextField valueBinding="controller.inputFields.groups.value" id="inputGroups" class="input-xlarge"}}
+      </div>
+    </div>
+
+    <div class="control-group">
+      <label class="control-label" for="inputMethod">{{controller.inputFields.method.label}}</label>
+
+      <div class="controls">
+        {{view Em.Select contentBinding="controller.methods" selectionBinding="controller.inputFields.method.value" id="inputMethod" class="input-xlarge"}}
+      </div>
+    </div>
+
+    {{#if view.isEmailMethodSelected}}
+      <div class="control-group">
+        <label class="control-label" for="inputEmail">{{controller.inputFields.email.label}}</label>
+
+        <div class="controls">
+          {{view Em.TextField valueBinding="controller.inputFields.email.value" id="inputEmail" class="input-xlarge"}}
+        </div>
+      </div>
+    {{/if}}
+
+    <div class="control-group">
+      <label class="control-label">{{controller.inputFields.severityFilter.label}}</label>
+
+      <div class="controls">
+        {{view App.AlertSeverityFilterView selectionBinding="controller.inputFields.severityFilter.value"}}
+      </div>
+    </div>
+
+    <div class="control-group">
+      <label class="control-label" for="inputDescription">{{controller.inputFields.description.label}}</label>
+
+      <div class="controls">
+        {{view Em.TextArea valueBinding="controller.inputFields.description.value" id="inputDescription" rows="4" class="input-xlarge"}}
+      </div>
+    </div>
+
+  </form>
+</div>

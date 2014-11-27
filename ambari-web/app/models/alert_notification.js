@@ -23,22 +23,9 @@ App.AlertNotification = DS.Model.extend({
   name: DS.attr('string'),
   type: DS.attr('string'),
   description: DS.attr('string'),
-  properties: DS.attr('string')
+
+  properties: {},
+  alertStates: []
 });
 
-App.AlertNotification.FIXTURES = [
-  {
-    "description" : "Admins",
-    "id" : 1,
-    "name" : "Administrators",
-    "type" : "EMAIL",
-    "properties" : ""
-  },
-  {
-    "description" : "Operators",
-    "id" : 2,
-    "name" : "Operators",
-    "type" : "SNMP",
-    "properties" : ""
-  }
-];
+App.AlertNotification.FIXTURES = [];

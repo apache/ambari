@@ -53,6 +53,7 @@ require('views/main/alerts/add_alert_definition/step3_view');
 require('views/main/alerts');
 require('views/main/alerts/manage_alert_groups_view');
 require('views/main/alerts/manage_alert_notifications_view');
+require('views/main/alerts/severity_filter_view');
 require('views/main/charts');
 require('views/main/views/details');
 require('views/main/host');

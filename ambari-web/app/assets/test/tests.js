@@ -50,6 +50,7 @@ var files = ['test/init_model_test',
   'test/controllers/main/alerts/definitions_details_controller_test',
   'test/controllers/main/alerts/alert_instances_controller_test',
   'test/controllers/main/alerts/add_alert_definition/step1_controller_test',
+  'test/controllers/main/alerts/manage_alert_notifications_controller_test',
   'test/controllers/main/admin/stack_and_upgrade_controller_test',
   'test/controllers/main/admin/stack_version/stack_version_details_controller_test',
   'test/controllers/main/admin/serviceAccounts_controller_test',
@@ -239,6 +240,7 @@ var files = ['test/init_model_test',
   'test/models/host_stack_version_test',
   //contains test with fake timers that affect Date
   'test/utils/lazy_loading_test'
+
 ];
 App.initialize();
 describe('Ambari Web Unit tests', function() {

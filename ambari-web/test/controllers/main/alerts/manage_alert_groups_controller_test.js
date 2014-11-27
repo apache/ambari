@@ -17,12 +17,8 @@
  */
 
 var App = require('app');
-var c;
 describe('App.ManageAlertGroupsController', function() {
 
-  beforeEach(function() {
-    c = App.ManageAlertGroupsController.create({});
-  });
   var manageAlertGroupsController = App.ManageAlertGroupsController.create({});
 
   describe('#addAlertGroup', function() {

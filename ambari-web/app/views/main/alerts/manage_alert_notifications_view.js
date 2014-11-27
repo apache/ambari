@@ -71,12 +71,11 @@ App.ManageAlertNotificationsView = Em.View.extend({
    */
   onAlertNotificationSelect: function () {
     var selectedAlertNotification = this.get('selectedAlertNotification');
-    var length = selectedAlertNotification.length;
-    if (selectedAlertNotification && length) {
-      this.set('controller.selectedAlertNotification', selectedAlertNotification[length - 1]);
+    if (selectedAlertNotification && selectedAlertNotification.length) {
+      this.set('controller.selectedAlertNotification', selectedAlertNotification[selectedAlertNotification.length - 1]);
     }
-    if (selectedAlertNotification && length > 1) {
-      this.set('selectedAlertNotification', selectedAlertNotification[length - 1]);
+    if (selectedAlertNotification && selectedAlertNotification.length > 1) {
+      this.set('selectedAlertNotification', selectedAlertNotification[selectedAlertNotification.length - 1]);
     }
   }.observes('selectedAlertNotification'),
 
@@ -90,6 +89,7 @@ App.ManageAlertNotificationsView = Em.View.extend({
       var notifications = this.get('controller.alertNotifications');
       if (notifications && notifications.length) {
         this.set('selectedAlertNotification', notifications[0]);
+        this.buttonObserver();
       }  else {
         this.set('selectedAlertNotification', null);
       }

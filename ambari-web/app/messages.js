@@ -1791,11 +1791,14 @@ Em.I18n.translations = {
 
   'alerts.actions.manage_alert_notifications_popup.header':'Manage Alert Notifications',
   'alerts.actions.manage_alert_notifications_popup.addButton':'Create new Alert Notification',
+  'alerts.actions.manage_alert_notifications_popup.addHeader':'Create Alert Notification',
   'alerts.actions.manage_alert_notifications_popup.removeButton':'Delete Alert Notification',
   'alerts.actions.manage_alert_notifications_popup.editButton':'Edit Alert Notification',
+  'alerts.actions.manage_alert_notifications_popup.editHeader':'Edit Notification',
   'alerts.actions.manage_alert_notifications_popup.duplicateButton':'Duplicate Alert Notification',
   'alerts.actions.manage_alert_notifications_popup.method':'Method',
   'alerts.actions.manage_alert_notifications_popup.email':'Email',
+  'alerts.actions.manage_alert_notifications_popup.severityFilter':'Severity Filter',
 
   'hosts.host.add':'Add New Hosts',
   'hosts.table.noHosts':'No hosts to display',

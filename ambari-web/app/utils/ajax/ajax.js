@@ -386,11 +386,32 @@ var urls = {
   'alerts.delete_alert_definition': {
     'real': '/clusters/{clusterName}/alert_definitions/{id}',
     'mock': '',
+    'type': 'DELETE'
+  },
+  'alerts.create_alert_notification': {
+    'real': '/alert_targets',
+    'mock': '',
     'format': function (data) {
       return {
-        type: 'DELETE'
+        type: 'POST',
+        data: JSON.stringify(data.data)
       }
     }
+  },
+  'alerts.update_alert_notification': {
+    'real': '/alert_targets/{id}',
+    'mock': '',
+    'format': function (data) {
+      return {
+        type: 'PUT',
+        data: JSON.stringify(data.data)
+      }
+    }
+  },
+  'alerts.delete_alert_notification': {
+    'real': '/alert_targets/{id}',
+    'mock': '',
+    'type': 'DELETE'
   },
   'background_operations.get_most_recent': {
     'real': '/clusters/{clusterName}/requests?to=end&page_size={operationsCount}&fields=Requests',
