@@ -27,6 +27,12 @@ angular.module('ambariAdminConsole')
       var viewVersion = data.data;
       $scope.view = viewVersion;
 
+      var parameters = viewVersion.ViewVersionInfo.parameters;
+
+      angular.forEach(parameters, function (item) {
+        item.value = item.default;
+      });
+
       $scope.instance = {
         view_name: viewVersion.ViewVersionInfo.view_name,
         version: viewVersion.ViewVersionInfo.version,
@@ -35,7 +41,7 @@ angular.module('ambariAdminConsole')
         visible: true,
         icon_path: '',
         icon64_path: '',
-        properties: viewVersion.ViewVersionInfo.parameters,
+        properties: parameters,
         description: ''
       };
     });

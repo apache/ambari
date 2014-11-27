@@ -136,12 +136,17 @@
   <div class="panel-body">
     <form name="propertiesForm" class="form-horizontal property-form" ng-hide="isConfigurationEmpty" novalidate>
       <fieldset>
-        <div class="form-group" ng-repeat="property in configurationMeta" ng-class="{'has-error' : property.required && propertiesForm[property.name].$error.required && !editConfigurationDisabled}" tooltip="{{property.description}}">
-          <label for="" class="control-label col-sm-3" ng-class="{'not-required': !property.required}">{{property.name}}{{property.required ? '*' : ''}}</label>
-          <div class="col-sm-9">
-            <input type="{{property.masked ? 'password' : 'text'}}" class="form-control propertie-input" ng-required="property.required"  ng-disabled="editConfigurationDisabled" name="{{property.name}}" ng-model="configuration[property.name]">
-            <div class="alert alert-danger no-margin-bottom top-margin" ng-show='property.required && propertiesForm[property.name].$error.required && !editConfigurationDisabled'>
-              This field is required.
+        <div class="form-group" ng-repeat="property in configurationMeta" ng-class="{'has-error' : property.required && propertiesForm[property.name].$error.required && !editConfigurationDisabled}">
+          <label for="" class="control-label col-sm-3" ng-class="{'not-required': !property.required}">{{property.label || property.name}}{{property.required ? '*' : ''}}</label>
+          <div ng-switch="property.type">
+            <div class="col-sm-9 checkbox" ng-switch-when="boolean">
+              <input type="checkbox" class="propertie-input" ng-disabled="editConfigurationDisabled" name="{{property.name}}" ng-model="configuration[property.name]" ng-true-value="true" ng-false-value="false" popover="{{property.description}}" popover-title="{{property.name}}" popover-trigger="mouseenter">
+            </div>
+            <div class="col-sm-9" ng-switch-default>
+              <input type="{{property.masked ? 'password' : 'text'}}" class="form-control propertie-input" ng-required="property.required"  ng-disabled="editConfigurationDisabled" name="{{property.name}}" ng-model="configuration[property.name]" popover="{{property.description}}" popover-title="{{property.name}}" popover-trigger="mouseenter" placeholder="{{property.placeholder}}">
+              <div class="alert alert-danger no-margin-bottom top-margin" ng-show='property.required && propertiesForm[property.name].$error.required && !editConfigurationDisabled'>
+                This field is required.
+              </div>
             </div>
           </div>
         </div>

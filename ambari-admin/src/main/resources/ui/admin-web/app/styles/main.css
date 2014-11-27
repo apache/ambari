@@ -1270,3 +1270,12 @@ accordion .panel-group .panel{
 #stack-versions .table-bar .filtered-info {
   margin-top: 8px;
 }
+
+.checkbox input[type="checkbox"].viewproperty-input,
+.checkbox input[type="checkbox"].propertie-input {
+  margin-left: 0;
+}
+
+.popover-content {
+  word-wrap: break-word;
+}
