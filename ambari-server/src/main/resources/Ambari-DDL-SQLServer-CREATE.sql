@@ -279,16 +279,25 @@ CREATE TABLE upgrade (
   FOREIGN KEY (request_id) REFERENCES request(request_id)
 );
 
+CREATE TABLE upgrade_group (
+  upgrade_group_id BIGINT NOT NULL,
+  upgrade_id BIGINT NOT NULL,
+  group_name VARCHAR(255) DEFAULT '' NOT NULL,
+  group_title VARCHAR(1024) DEFAULT '' NOT NULL,
+  PRIMARY KEY (upgrade_group_id),
+  FOREIGN KEY (upgrade_id) REFERENCES upgrade(upgrade_id)
+);
+
 CREATE TABLE upgrade_item (
   upgrade_item_id BIGINT NOT NULL,
-  upgrade_id BIGINT NOT NULL,
+  upgrade_group_id BIGINT NOT NULL,
   stage_id BIGINT NOT NULL,
   state VARCHAR(255) DEFAULT 'NONE' NOT NULL,
   hosts TEXT,
   tasks TEXT,
   item_text VARCHAR(1024),
   PRIMARY KEY (upgrade_item_id),
-  FOREIGN KEY (upgrade_id) REFERENCES upgrade(upgrade_id)
+  FOREIGN KEY (upgrade_group_id) REFERENCES upgrade_group(upgrade_group_id)
 );
 
 ---------inserting some data-----------

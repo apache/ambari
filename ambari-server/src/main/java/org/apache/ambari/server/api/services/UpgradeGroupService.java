@@ -34,23 +34,21 @@ import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.controller.spi.Resource;
 
 /**
- * Endpoint for cluster upgrade items.
+ * Endpoint for cluster upgrade groupings.
  */
-public class UpgradeItemService extends BaseService {
+public class UpgradeGroupService extends BaseService {
 
   private String m_clusterName = null;
   private String m_upgradeId = null;
-  private String m_upgradeGroupId = null;
 
-  UpgradeItemService(String clusterName, String upgradeId, String upgradeGroupId) {
+  UpgradeGroupService(String clusterName, String upgradeId) {
     m_clusterName = clusterName;
     m_upgradeId = upgradeId;
-    m_upgradeGroupId = upgradeGroupId;
   }
 
   @GET
   @Produces("text/plain")
-  public Response getUpgrades(String body,
+  public Response getGroups(String body,
       @Context HttpHeaders headers,
       @Context UriInfo ui) {
     return handleRequest(headers, body, ui, Request.Type.GET,
@@ -58,39 +56,40 @@ public class UpgradeItemService extends BaseService {
   }
 
   @GET
-  @Path("{upgradeItemId}")
+  @Path("{upgradeGroupId}")
   @Produces("text/plain")
-  public Response getUpgradeItem(String body,
+  public Response getGroup(String body,
       @Context HttpHeaders headers,
-      @Context UriInfo ui, @PathParam("upgradeItemId") Long id) {
+      @Context UriInfo ui, @PathParam("upgradeGroupId") Long id) {
     return handleRequest(headers, body, ui, Request.Type.GET,
         createResourceInstance(id));
   }
 
-  @PUT
-  @Path("{upgradeItemId}")
+  @GET
+  @Path("{upgradeGroupId}/upgrade_items")
   @Produces("text/plain")
-  public Response updateUpgradeItem(String body,
+  public UpgradeItemService getUpgradeItems(String body,
       @Context HttpHeaders headers,
-      @Context UriInfo ui, @PathParam("upgradeItemId") Long id) {
-    return handleRequest(headers, body, ui, Request.Type.PUT,
-        createResourceInstance(id));
+      @Context UriInfo ui,
+      @PathParam("upgradeGroupId") Long groupId) {
+    return new UpgradeItemService(m_clusterName, m_upgradeId, groupId.toString());
   }
 
+
+
   /**
-   * @param upgradeItemId the specific item id
+   * @param groupId the specific group id
    * @return the resource instance
    */
-  private ResourceInstance createResourceInstance(Long upgradeItemId) {
+  private ResourceInstance createResourceInstance(Long groupId) {
     Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
     mapIds.put(Resource.Type.Cluster, m_clusterName);
     mapIds.put(Resource.Type.Upgrade, m_upgradeId);
-    mapIds.put(Resource.Type.UpgradeGroup, m_upgradeGroupId);
 
-    if (null != upgradeItemId) {
-      mapIds.put(Resource.Type.UpgradeItem, upgradeItemId.toString());
+    if (null != groupId) {
+      mapIds.put(Resource.Type.UpgradeGroup, groupId.toString());
     }
 
-    return createResource(Resource.Type.UpgradeItem, mapIds);
+    return createResource(Resource.Type.UpgradeGroup, mapIds);
   }
 }

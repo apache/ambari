@@ -56,6 +56,7 @@ import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.UpgradeDAO;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
+import org.apache.ambari.server.orm.entities.UpgradeGroupEntity;
 import org.apache.ambari.server.orm.entities.UpgradeItemEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ConfigHelper;
@@ -70,6 +71,7 @@ import org.apache.ambari.server.utils.StageUtils;
 import com.google.gson.Gson;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -104,8 +106,6 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   private static Provider<AmbariActionExecutionHelper> actionExecutionHelper;
   @Inject
   private static Provider<AmbariCustomCommandExecutionHelper> commandExecutionHelper;
-  @Inject
-  private ConfigHelper configHelper;
 
   static {
     // properties
@@ -401,7 +401,14 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     items = injectVariables(configHelper, cluster, items);
 
     entity.setClusterId(Long.valueOf(cluster.getClusterId()));
-    entity.setUpgradeItems(items);
+
+    // !!! a separate task will create proper groups.  for now, just one.
+    UpgradeGroupEntity group = new UpgradeGroupEntity();
+    group.setName("CLUSTER_UPGRADE");
+    group.setTitle("Cluster Upgrade");
+    group.setItems(items);
+
+    entity.setUpgradeGroups(Collections.singletonList(group));
 
     RequestStageContainer req = createRequest((String) requestMap.get(UPGRADE_VERSION));
 

@@ -23,6 +23,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
@@ -30,9 +31,11 @@ import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
+import org.apache.ambari.server.orm.entities.UpgradeGroupEntity;
 import org.apache.ambari.server.orm.entities.UpgradeItemEntity;
 import org.apache.ambari.server.state.UpgradeState;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -71,6 +74,10 @@ public class UpgradeDAOTest {
     entity.setClusterId(Long.valueOf(1));
     entity.setRequestId(Long.valueOf(1));
 
+    UpgradeGroupEntity group = new UpgradeGroupEntity();
+    group.setName("group_name");
+    group.setTitle("group title");
+
     // create 2 items
     List<UpgradeItemEntity> items = new ArrayList<UpgradeItemEntity>();
     UpgradeItemEntity item = new UpgradeItemEntity();
@@ -83,8 +90,8 @@ public class UpgradeDAOTest {
     item.setStageId(Long.valueOf(1L));
     items.add(item);
 
-
-    entity.setUpgradeItems(items);
+    group.setItems(items);
+    entity.setUpgradeGroups(Collections.singletonList(group));
     dao.create(entity);
   }
 
@@ -108,6 +115,15 @@ public class UpgradeDAOTest {
 
     UpgradeEntity entity = dao.findUpgrade(items.get(0).getId().longValue());
     assertNotNull(entity);
+    assertEquals(1, entity.getUpgradeGroups().size());
+
+    UpgradeGroupEntity group = dao.findUpgradeGroup(
+        entity.getUpgradeGroups().get(0).getId().longValue());
+
+    assertNotNull(group);
+    Assert.assertNotSame(entity.getUpgradeGroups().get(0), group);
+    assertEquals("group_name", group.getName());
+    assertEquals("group title", group.getTitle());
   }
 
 }

@@ -38,6 +38,7 @@ import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.UpgradeDAO;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
+import org.apache.ambari.server.orm.entities.UpgradeGroupEntity;
 import org.apache.ambari.server.orm.entities.UpgradeItemEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -145,11 +146,16 @@ public class UpgradeResourceProviderTest {
 
     UpgradeEntity entity = upgrades.get(0);
     assertEquals(cluster.getClusterId(), entity.getClusterId().longValue());
-    assertEquals(3, entity.getUpgradeItems().size());
 
-    assertTrue(entity.getUpgradeItems().get(0).getText().contains("Preparing"));
-    assertTrue(entity.getUpgradeItems().get(1).getText().contains("Restarting"));
-    assertTrue(entity.getUpgradeItems().get(2).getText().contains("Finalizing"));
+    assertEquals(1, entity.getUpgradeGroups().size());
+
+    UpgradeGroupEntity group = entity.getUpgradeGroups().get(0);
+
+    assertEquals(3, group.getItems().size());
+
+    assertTrue(group.getItems().get(0).getText().contains("Preparing"));
+    assertTrue(group.getItems().get(1).getText().contains("Restarting"));
+    assertTrue(group.getItems().get(2).getText().contains("Finalizing"));
 
     ActionManager am = injector.getInstance(ActionManager.class);
     List<Long> requests = am.getRequestsByStatus(RequestStatus.IN_PROGRESS, 100, true);
@@ -162,7 +168,7 @@ public class UpgradeResourceProviderTest {
     assertEquals(3, stages.size());
     for (int i = 0; i < stages.size(); i++) {
       Stage stage = stages.get(i);
-      UpgradeItemEntity upgradeItem = entity.getUpgradeItems().get(i);
+      UpgradeItemEntity upgradeItem = group.getItems().get(i);
       assertEquals(stage.getStageId(), upgradeItem.getStageId().longValue());
       assertEquals(UpgradeState.NONE, upgradeItem.getState());
     }

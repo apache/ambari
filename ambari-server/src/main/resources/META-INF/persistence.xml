@@ -65,6 +65,7 @@
     <class>org.apache.ambari.server.orm.entities.ServiceDesiredStateEntity</class>
     <class>org.apache.ambari.server.orm.entities.StageEntity</class>
     <class>org.apache.ambari.server.orm.entities.UpgradeEntity</class>
+    <class>org.apache.ambari.server.orm.entities.UpgradeGroupEntity</class>
     <class>org.apache.ambari.server.orm.entities.UpgradeItemEntity</class>
     <class>org.apache.ambari.server.orm.entities.UserEntity</class>
     <class>org.apache.ambari.server.orm.entities.ViewEntity</class>

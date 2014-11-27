@@ -777,19 +777,29 @@ CREATE TABLE ambari.upgrade (
   FOREIGN KEY (request_id) REFERENCES ambari.request(request_id)
 );
 
+CREATE TABLE ambari.upgrade_group (
+  upgrade_group_id BIGINT NOT NULL,
+  upgrade_id BIGINT NOT NULL,
+  group_name VARCHAR(255) DEFAULT '' NOT NULL,
+  group_title VARCHAR(1024) DEFAULT '' NOT NULL,
+  PRIMARY KEY (upgrade_group_id),
+  FOREIGN KEY (upgrade_id) REFERENCES ambari.upgrade(upgrade_id)
+);
+
 CREATE TABLE ambari.upgrade_item (
   upgrade_item_id BIGINT NOT NULL,
-  upgrade_id BIGINT NOT NULL,
+  upgrade_group_id BIGINT NOT NULL,
   stage_id BIGINT NOT NULL,
   state VARCHAR(255) DEFAULT 'NONE' NOT NULL,
   hosts TEXT,
   tasks TEXT,
   item_text VARCHAR(1024),
   PRIMARY KEY (upgrade_item_id),
-  FOREIGN KEY (upgrade_id) REFERENCES ambari.upgrade(upgrade_id)
+  FOREIGN KEY (upgrade_group_id) REFERENCES ambari.upgrade_group(upgrade_group_id)
 );
 
 GRANT ALL PRIVILEGES ON TABLE ambari.upgrade TO :username;
+GRANT ALL PRIVILEGES ON TABLE ambari.upgrade_group TO :username;
 GRANT ALL PRIVILEGES ON TABLE ambari.upgrade_item TO :username;
 
 ---------inserting some data-----------
@@ -853,6 +863,8 @@ INSERT INTO ambari.ambari_sequences (sequence_name, sequence_value)
   select 'service_config_id_seq', 1
   union all
   select 'upgrade_id_seq', 0 
+  union all
+  select 'upgrade_group_id_seq', 0 
   union all
   select 'upgrade_item_id_seq', 0;
 

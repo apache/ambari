@@ -98,6 +98,8 @@ public class DefaultProviderModule extends AbstractProviderModule {
         return new AlertNoticeResourceProvider();
       case Upgrade:
         return new UpgradeResourceProvider(managementController);
+      case UpgradeGroup:
+        return new UpgradeGroupResourceProvider(managementController);
       case UpgradeItem:
         return new UpgradeItemResourceProvider(managementController);
       case ClusterStackVersion:

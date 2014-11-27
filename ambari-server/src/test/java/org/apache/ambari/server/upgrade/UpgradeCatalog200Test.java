@@ -101,6 +101,7 @@ public class UpgradeCatalog200Test {
     Capture<List<DBAccessor.DBColumnInfo>> alertTargetStatesCapture = new Capture<List<DBAccessor.DBColumnInfo>>();
 
     Capture<List<DBAccessor.DBColumnInfo>> upgradeCapture = new Capture<List<DBAccessor.DBColumnInfo>>();
+    Capture<List<DBAccessor.DBColumnInfo>> upgradeGroupCapture = new Capture<List<DBAccessor.DBColumnInfo>>();
     Capture<List<DBAccessor.DBColumnInfo>> upgradeItemCapture = new Capture<List<DBAccessor.DBColumnInfo>>();
 
     // Alert Definition
@@ -140,8 +141,12 @@ public class UpgradeCatalog200Test {
     // Upgrade
     dbAccessor.createTable(eq("upgrade"), capture(upgradeCapture), eq("upgrade_id"));
 
+    // Upgrade Group item
+    dbAccessor.createTable(eq("upgrade_group"), capture(upgradeGroupCapture), eq("upgrade_group_id"));
+
     // Upgrade item
     dbAccessor.createTable(eq("upgrade_item"), capture(upgradeItemCapture), eq("upgrade_item_id"));
+
 
     setViewInstancePropertyExpectations(dbAccessor, valueColumnCapture);
     setViewInstanceDataExpectations(dbAccessor, dataValueColumnCapture);
@@ -185,6 +190,7 @@ public class UpgradeCatalog200Test {
     assertViewInstanceDataColumns(dataValueColumnCapture);
 
     assertEquals(4, upgradeCapture.getValue().size());
+    assertEquals(4, upgradeGroupCapture.getValue().size());
     assertEquals(7, upgradeItemCapture.getValue().size());
   }
 

@@ -33,6 +33,7 @@ import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
+import javax.persistence.TypedQuery;
 
 import org.apache.ambari.server.state.UpgradeState;
 
@@ -68,7 +69,7 @@ public class UpgradeEntity {
   private Long requestId;
 
   @OneToMany(mappedBy = "upgradeEntity", cascade = { CascadeType.ALL })
-  private List<UpgradeItemEntity> upgradeItemEntities;
+  private List<UpgradeGroupEntity> upgradeGroupEntities;
 
 
   /**
@@ -117,18 +118,18 @@ public class UpgradeEntity {
   /**
    * @return the upgrade items
    */
-  public List<UpgradeItemEntity> getUpgradeItems() {
-    return upgradeItemEntities;
+  public List<UpgradeGroupEntity> getUpgradeGroups() {
+    return upgradeGroupEntities;
   }
 
   /**
    * @param items the upgrade items
    */
-  public void setUpgradeItems(List<UpgradeItemEntity> items) {
-    for (UpgradeItemEntity entity : items) {
+  public void setUpgradeGroups(List<UpgradeGroupEntity> items) {
+    for (UpgradeGroupEntity entity : items) {
       entity.setUpgradeEntity(this);
     }
-    upgradeItemEntities = items;
+    upgradeGroupEntities = items;
   }
 
   /**

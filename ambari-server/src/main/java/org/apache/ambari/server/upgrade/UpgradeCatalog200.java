@@ -188,15 +188,25 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
     dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, sequence_value) VALUES('upgrade_id_seq', 0)", false);
 
     columns = new ArrayList<DBColumnInfo>();
-    columns.add(new DBAccessor.DBColumnInfo("upgrade_item_id", Long.class, null, null, false));
+    columns.add(new DBAccessor.DBColumnInfo("upgrade_group_id", Long.class, null, null, false));
     columns.add(new DBAccessor.DBColumnInfo("upgrade_id", Long.class, null, null, false));
+    columns.add(new DBAccessor.DBColumnInfo("group_name", String.class, 255, "", false));
+    columns.add(new DBAccessor.DBColumnInfo("group_title", String.class, 1024, "", false));
+    dbAccessor.createTable("upgrade_group", columns, "upgrade_group_id");
+    dbAccessor.addFKConstraint("upgrade_group", "fk_upgrade_group_upgrade_id", "upgrade_id", "upgrade", "upgrade_id", false);
+    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, sequence_value) VALUES('upgrade_group_id_seq', 0)", false);
+
+
+    columns = new ArrayList<DBColumnInfo>();
+    columns.add(new DBAccessor.DBColumnInfo("upgrade_item_id", Long.class, null, null, false));
+    columns.add(new DBAccessor.DBColumnInfo("upgrade_group_id", Long.class, null, null, false));
     columns.add(new DBAccessor.DBColumnInfo("stage_id", Long.class, null, null, false));
     columns.add(new DBAccessor.DBColumnInfo("state", String.class, 255, UpgradeState.NONE.name(), false));
     columns.add(new DBAccessor.DBColumnInfo("hosts", char[].class, 32672, null, true));
     columns.add(new DBAccessor.DBColumnInfo("tasks", char[].class, 32672, null, true));
     columns.add(new DBAccessor.DBColumnInfo("item_text", String.class, 1024, null, true));
     dbAccessor.createTable("upgrade_item", columns, "upgrade_item_id");
-    dbAccessor.addFKConstraint("upgrade", "fk_upgrade_item_upgrade_id", "upgrade_id", "upgrade", "upgrade_id", false);
+    dbAccessor.addFKConstraint("upgrade_item", "fk_upgrade_item_upgrade_group_id", "upgrade_group_id", "upgrade_group", "upgrade_group_id", false);
     dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, sequence_value) VALUES('upgrade_item_id_seq', 0)", false);
 
 

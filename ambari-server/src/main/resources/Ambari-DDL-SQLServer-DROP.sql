@@ -129,6 +129,8 @@ IF OBJECT_ID('stage', 'U') IS NOT NULL DROP TABLE stage
 GO
 IF OBJECT_ID('upgrade_item', 'U') IS NOT NULL DROP TABLE upgrade_item
 GO
+IF OBJECT_ID('upgrade_group', 'U') IS NOT NULL DROP TABLE upgrade_group
+GO
 IF OBJECT_ID('upgrade', 'U') IS NOT NULL DROP TABLE upgrade
 GO
 IF OBJECT_ID('requestoperationlevel', 'U') IS NOT NULL DROP TABLE requestoperationlevel

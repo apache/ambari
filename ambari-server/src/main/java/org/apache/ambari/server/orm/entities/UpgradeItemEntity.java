@@ -27,14 +27,15 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
-import javax.persistence.Transient;
 
 import org.apache.ambari.server.state.UpgradeState;
 
 /**
- * Models a single upgrade item as part of an entire {@link UpgradeEntity}
+ * Models a single upgrade item as part of
  */
 @Table(name = "upgrade_item")
 @Entity
@@ -48,8 +49,8 @@ public class UpgradeItemEntity {
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "upgrade_item_id_generator")
   private Long upgradeItemId;
 
-  @Column(name = "upgrade_id", nullable = false, insertable = false, updatable = false)
-  private Long upgradeId;
+  @Column(name = "upgrade_group_id", nullable = false, insertable = false, updatable = false)
+  private Long upgradeGroupId;
 
   @Enumerated(value=EnumType.STRING)
   @Column(name = "state", length=255, nullable = false)
@@ -72,8 +73,8 @@ public class UpgradeItemEntity {
   private Long stageId = Long.valueOf(0L);
 
   @ManyToOne
-  @JoinColumn(name = "upgrade_id", referencedColumnName = "upgrade_id", nullable = false)
-  private UpgradeEntity upgradeEntity;
+  @JoinColumn(name = "upgrade_group_id", referencedColumnName = "upgrade_group_id", nullable = false)
+  private UpgradeGroupEntity upgradeGroupEntity;
 
 
   /**
@@ -147,14 +148,15 @@ public class UpgradeItemEntity {
     itemText = text;
   }
 
-
-
-  public UpgradeEntity getUpgradeEntity() {
-    return upgradeEntity;
+  /**
+   * @return the group entity
+   */
+  public UpgradeGroupEntity getGroupEntity() {
+    return upgradeGroupEntity;
   }
 
-  public void setUpgradeEntity(UpgradeEntity entity) {
-    upgradeEntity = entity;
+  public void setGroupEntity(UpgradeGroupEntity entity) {
+    upgradeGroupEntity = entity;
   }
 
   public Long getStageId() {

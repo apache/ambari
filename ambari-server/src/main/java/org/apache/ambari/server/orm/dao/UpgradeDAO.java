@@ -24,6 +24,9 @@ import javax.persistence.TypedQuery;
 
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
+import org.apache.ambari.server.orm.entities.UpgradeGroupEntity;
+import org.eclipse.persistence.config.HintValues;
+import org.eclipse.persistence.config.QueryHints;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -92,6 +95,20 @@ public class UpgradeDAO {
       entityManagerProvider.get().remove(entity);
     }
 
+  }
+
+  /**
+   * @param groupId the group id
+   * @return the group, or {@code null} if not found
+   */
+  public UpgradeGroupEntity findUpgradeGroup(long groupId) {
+
+    TypedQuery<UpgradeGroupEntity> query = entityManagerProvider.get().createQuery(
+        "SELECT p FROM UpgradeGroupEntity p WHERE p.upgradeGroupId = :groupId", UpgradeGroupEntity.class);
+    query.setParameter("groupId", Long.valueOf(groupId));
+    query.setHint(QueryHints.REFRESH, HintValues.TRUE);
+
+    return daoUtils.selectSingle(query);
   }
 
 

@@ -89,12 +89,14 @@ public class UpgradeService extends BaseService {
   }
 
   /**
-   * Gets the tasks sub-resource.
+   * Gets the groups sub-resource.
    */
-  @Path("{upgradeId}/upgrade_items")
-  public UpgradeItemService getUpgradeItemHandler(@PathParam("upgradeId") String upgradeId) {
-    return new UpgradeItemService(m_clusterName, upgradeId);
+  @Path("{upgradeId}/upgrade_groups")
+  public UpgradeGroupService getUpgradeGroupHandler(@PathParam("upgradeId") String upgradeId) {
+    return new UpgradeGroupService(m_clusterName, upgradeId);
   }
+
+
 
   /**
    * @param upgradeId the upgrade id

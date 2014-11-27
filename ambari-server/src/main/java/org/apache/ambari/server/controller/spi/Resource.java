@@ -132,6 +132,7 @@ public interface Resource {
     ClusterStackVersion,
     HostStackVersion,
     Upgrade,
+    UpgradeGroup,
     UpgradeItem,
     Stage;
 
@@ -226,6 +227,7 @@ public interface Resource {
     public static final Type ClusterStackVersion = InternalType.ClusterStackVersion.getType();
     public static final Type HostStackVersion = InternalType.HostStackVersion.getType();
     public static final Type Upgrade = InternalType.Upgrade.getType();
+    public static final Type UpgradeGroup = InternalType.UpgradeGroup.getType();
     public static final Type UpgradeItem = InternalType.UpgradeItem.getType();
     public static final Type Stage = InternalType.Stage.getType();
 
