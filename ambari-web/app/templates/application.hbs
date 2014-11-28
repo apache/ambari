@@ -57,13 +57,13 @@
               </button>
               <ul class="dropdown-menu">
                   <li><a href="" {{action showAboutPopup target="controller"}}>{{t app.aboutAmbari}}</a></li>
-                  {{#if App.isAdmin}}{{#unless App.isOperator}}
+                  {{#isAccessible upgrade_ONLY_ADMIN}}
                     <li><a href="" {{action goToAdminView target="controller"}}>{{t app.manageAmbari}}</a></li>
-                  {{/unless}}{{/if}}
+                  {{/isAccessible}}
                 {{#if isClusterDataLoaded}}
-                  {{#if App.isAdmin}}
+                  {{#isAccessible upgrade_ADMIN}}
                       <li><a href="" {{action showSettingsPopup target="controller"}}>{{t app.settings}}</a></li>
-                  {{/if}}
+                  {{/isAccessible}}
                 {{/if}}
                   <li class="break"></li>
                   <li><a href="" {{action logoff}}>{{t app.signout}}</a></li>

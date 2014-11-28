@@ -29,7 +29,7 @@
 
   </div>
   <div class="version-info-bar-wrapper">
-    {{#if App.isManager}}
+    {{#isAccessible MANAGER}}
       <div {{bindAttr class="view.showCompareVersionBar::hidden :version-info-bar"}}>
           <div class="row-fluid">
               <div class="span1 remove-compare-bar" {{action removeCompareVersionBar target="view"}} data-toggle="arrow-tooltip" {{translateAttr data-original-title="services.service.config.configHistory.dismissIcon.tooltip"}}>
@@ -52,7 +52,7 @@
               </div>
           </div>
       </div>
-    {{/if}}
+    {{/isAccessible}}
       <div class="version-info-bar">
         <div class="row-fluid">
             <div class="btn-group pull-left">
@@ -78,10 +78,10 @@
                       </div>
                       <div class="version-operations-buttons">
                         <button {{bindAttr disabled="serviceVersion.disabledActionAttr.view" class=":btn serviceVersion.isDisplayed:not-allowed-cursor" title="serviceVersion.disabledActionMessages.view"}} {{action doAction serviceVersion view.actionTypes.SWITCH target="view"}}><i class="icon-search"></i>&nbsp;{{t common.view}}</button>
-                        {{#if App.isManager}}
+                        {{#isAccessible MANAGER}}
                         <button {{bindAttr disabled="serviceVersion.disabledActionAttr.compare" class=":btn serviceVersion.isDisplayed:not-allowed-cursor" title="serviceVersion.disabledActionMessages.compare"}} {{action doAction serviceVersion view.actionTypes.COMPARE target="view"}}><i class="icon-copy"></i>&nbsp;{{t common.compare}}</button>
                         <button {{bindAttr disabled="serviceVersion.disabledActionAttr.revert" class=":btn serviceVersion.isCurrent:not-allowed-cursor" title="serviceVersion.disabledActionMessages.revert"}} {{action doAction serviceVersion view.actionTypes.REVERT target="view"}}>{{t dashboard.configHistory.info-bar.revert.button}}</button>
-                        {{/if}}
+                        {{/isAccessible}}
                       </div>
                     </ul>
                   </li>
@@ -107,7 +107,7 @@
                 <strong>{{view.displayedServiceVersion.author}}</strong>&nbsp;{{t dashboard.configHistory.info-bar.authoredOn}}&nbsp;<strong>{{view.displayedServiceVersion.createdDate}}</strong>
               {{/if}}
             </div>
-          {{#if App.isManager}}
+          {{#isAccessible MANAGER}}
             <div class="pull-right operations-button">
                 <div {{bindAttr class="view.displayedServiceVersion.isCurrent::hidden"}}>
                     <button class="btn" {{action doCancel target="controller"}} {{bindAttr disabled="view.isDiscardDisabled"}}>{{t common.discard}}</button>
@@ -115,7 +115,7 @@
                 </div>
                 <button class="btn btn-success"  {{action doAction view.serviceVersionsReferences.displayed view.actionTypes.REVERT target="view"}} {{bindAttr disabled="view.versionActionsDisabled" class="view.displayedServiceVersion.isCurrent:hidden"}}>{{view.displayedServiceVersion.makeCurrentButtonText}}</button>
             </div>
-          {{/if}}
+          {{/isAccessible}}
         </div>
       </div>
   </div>

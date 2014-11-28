@@ -202,7 +202,7 @@ App.MainDatasetJobsView = App.TableView.extend({
     tagName: 'tr',
 
     showActions: function () {
-      return ['RUNNING', 'SUSPENDED'].contains(this.get('content.status')) && App.get('isAdmin');
+      return ['RUNNING', 'SUSPENDED'].contains(this.get('content.status')) && App.isAccessible('ADMIN');
     }.property('content.status')
   }),
 

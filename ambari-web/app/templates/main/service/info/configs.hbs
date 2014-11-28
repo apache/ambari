@@ -19,7 +19,7 @@
 <div id="serviceConfig">
   {{#if dataIsLoaded}}
     {{#if controller.content.isRestartRequired}}
-      {{#if App.isAdmin}}
+      {{#isAccessible ADMIN}}
         <div>
           <div class="alert alert-warning clearfix">
             <i class="icon-refresh"></i> {{t services.service.config.restartService.needToRestart}}  <a
@@ -45,11 +45,11 @@
             </div>
           </div>
         </div>
-      {{/if}}
+      {{/isAccessible}}
     {{/if}}
     <div class="clearfix"></div>
     {{view App.ServiceConfigView filterBinding="controller.filter" columnsBinding="controller.filterColumns" canEditBinding="controller.isCurrentSelected" showConfigHistoryFeatureBinding="controller.showConfigHistoryFeature"}}
-    {{#if App.isAdmin}}
+    {{#isAccessible ADMIN}}
       {{#unless showConfigHistoryFeature}}
           <p class="pull-right">
               <!--<input class="btn btn-primary" type="button" value="Save" {{!bindAttr disabled="isSubmitDisabled"}} />-->
@@ -58,7 +58,7 @@
                 {{action restartServicePopup target="controller"}}>{{t common.save}}</a>
           </p>
       {{/unless}}
-    {{/if}}
+    {{/isAccessible}}
   {{else}}
     <div class="spinner"></div>
   {{/if}}

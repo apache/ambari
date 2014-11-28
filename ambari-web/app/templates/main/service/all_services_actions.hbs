@@ -16,7 +16,7 @@
 * limitations under the License.
 }}
 
-{{#if App.isAdmin}}
+{{#isAccessible ADMIN}}
   <div class="service-button" style="margin-top: 10px;">
     <div class="btn-group display-inline-block span11 offset1">
       <a class="btn dropdown-toggle span10" data-toggle="dropdown" href="#">{{t common.actions}}
@@ -49,4 +49,4 @@
       </ul>
     </div>
   </div>
-{{/if}}
+{{/isAccessible}}

@@ -34,9 +34,45 @@ module.exports = Em.Application.create({
   }),
   isAdmin: false,
   isOperator: false,
-  isManager: function() {
-    return this.get('isAdmin') || this.get('isOperator');
-  }.property('isAdmin','isOperator'),
+  /**
+   * indicate whether stack upgrade is running or not
+   * @type {boolean}
+   */
+  isUpgrading: false,
+  /**
+   * compute user access rights by permission type
+   * types:
+   *  - ADMIN
+   *  - MANAGER
+   *  - OPERATOR
+   *  - ONLY_ADMIN
+   * prefix "upgrade_" mean that element will not be unconditionally blocked while stack upgrade running
+   * @param type {string}
+   * @return {boolean}
+   */
+  isAccessible: function (type) {
+    if (this.get('isUpgrading') && !type.contains('upgrade_')) {
+      return false;
+    }
+
+    if (type.contains('upgrade_')) {
+      //slice off "upgrade_" prefix to have actual permission type
+      type = type.slice(8);
+    }
+
+    switch (type) {
+      case 'ADMIN':
+        return this.get('isAdmin');
+      case 'MANAGER':
+        return this.get('isAdmin') || this.get('isOperator');
+      case 'OPERATOR':
+        return this.get('isOperator');
+      case 'ONLY_ADMIN':
+        return this.get('isAdmin') && !this.get('isOperator');
+      default:
+        return false;
+    }
+  },
 
   isStackServicesLoaded: false,
   /**

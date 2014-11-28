@@ -18,11 +18,11 @@
 
 <div class="span7">
   {{#if view.isUpgradeFailed}}
-    {{#if App.isAdmin}}
+    {{#isAccessible ADMIN}}
       <a href="#" {{action "upgradeComponent" view.content target="controller"}} >
         <i title="Component upgrade failed" class="components-health icon-arrow-up"></i>
       </a>
-    {{/if}}
+    {{/isAccessible}}
   {{else}}
     <span rel='componentHealthTooltip' {{bindAttr class="view.statusClass view.statusIconClass :components-health" data-original-title="view.componentTextStatus"}}></span>&nbsp;
   {{/if}}
@@ -42,7 +42,7 @@
   {{/unless}}
 </div>
 <div class="span5 pull-right">
-  {{#if App.isAdmin}}
+  {{#isAccessible ADMIN}}
     <div class="btn-group pull-right">
       <a {{ bindAttr class="view.disabled :btn :dropdown-toggle"}} data-toggle="dropdown">
         {{view.componentTextStatus}}
@@ -140,5 +140,5 @@
       {{/each}}
       </ul>
     </div>
-  {{/if}}
+  {{/isAccessible}}
 </div>

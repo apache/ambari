@@ -50,7 +50,7 @@ App.MainMenuView = Em.CollectionView.extend({
           result.push({ label: Em.I18n.t('menu.item.jobs'), routing: 'apps'});
         }
 
-        if (App.get('isAdmin')) {
+        if (App.isAccessible('upgrade_ADMIN')) {
           result.push({ label: Em.I18n.t('menu.item.admin'), routing: 'admin'});
         }
       }

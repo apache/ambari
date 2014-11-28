@@ -1077,7 +1077,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   setEditability: function (serviceConfigProperty, defaultGroupSelected) {
     serviceConfigProperty.set('isEditable', false);
     if (serviceConfigProperty.get('isComparison')) return;
-    if (App.get('isAdmin') && defaultGroupSelected && !this.get('isHostsConfigsPage') && !serviceConfigProperty.get('group')) {
+    if (App.isAccessible('ADMIN') && defaultGroupSelected && !this.get('isHostsConfigsPage') && !serviceConfigProperty.get('group')) {
       serviceConfigProperty.set('isEditable', serviceConfigProperty.get('isReconfigurable'));
     } else if (serviceConfigProperty.get('group') && this.get('selectedConfigGroup.name') === serviceConfigProperty.get('group.name')) {
       serviceConfigProperty.set('isEditable', true);

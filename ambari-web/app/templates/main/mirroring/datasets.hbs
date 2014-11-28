@@ -25,7 +25,7 @@
         <div class="pull-left">
           <h4>{{t mirroring.dataset.dataSets}}</h4>
         </div>
-        {{#if App.isAdmin}}
+        {{#isAccessible ADMIN}}
           <div class="mirroring-top-nav pull-right btn-group">
             <button {{bindAttr disabled="controller.actionsDisabled"}} class="btn">{{t common.actions}}</button>
             <button {{bindAttr disabled="controller.actionsDisabled"}} class="btn dropdown-toggle" data-toggle="dropdown">
@@ -44,7 +44,7 @@
               </li>
             </ul>
           </div>
-        {{/if}}
+        {{/isAccessible}}
       </div>
       <table class="table advanced-header-table table-bordered dataset-thead">
         <thead>

@@ -485,7 +485,7 @@ App.Router = Em.Router.extend({
     adminView: Em.Route.extend({
       route: '/adminView',
       enter: function (router) {
-        if (!router.get('loggedIn') || !App.get('isAdmin') || App.get('isOperator')) {
+        if (!router.get('loggedIn') || !App.isAccessible('upgrade_ADMIN') || App.isAccessible('upgrade_OPERATOR')) {
           Em.run.next(function () {
             router.transitionTo('login');
           });
@@ -498,7 +498,7 @@ App.Router = Em.Router.extend({
     experimental: Em.Route.extend({
       route: '/experimental',
       enter: function (router, context) {
-        if (App.get('isOperator')) {
+        if (App.isAccessible('upgrade_OPERATOR')) {
           Em.run.next(function () {
             if (router.get('clusterInstallCompleted')) {
               router.transitionTo("main.dashboard.widgets");
@@ -506,14 +506,14 @@ App.Router = Em.Router.extend({
               router.route("installer");
             }
           });
-        } else if (!App.get('isAdmin')) {
+        } else if (!App.isAccessible('upgrade_ADMIN')) {
           Em.run.next(function () {
             router.transitionTo("main.views.index");
           });
         }
       },
       connectOutlets: function (router, context) {
-        if (App.get('isAdmin') && !App.get('isOperator')) {
+        if (App.isAccessible('upgrade_ONLY_ADMIN')) {
           $('title').text(Em.I18n.t('app.name.subtitle.experimental'));
           console.log('/experimental:connectOutlet');
           router.get('applicationController').connectOutlet('experimental');

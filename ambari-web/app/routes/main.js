@@ -353,7 +353,7 @@ module.exports = Em.Route.extend({
   admin: Em.Route.extend({
     route: '/admin',
     enter: function (router, transition) {
-      if (router.get('loggedIn') && !App.get('isAdmin')) {
+      if (router.get('loggedIn') && !App.isAccessible('upgrade_ADMIN')) {
         Em.run.next(function () {
           router.transitionTo('main.dashboard.index');
         });
@@ -361,7 +361,7 @@ module.exports = Em.Route.extend({
     },
 
     routePath: function (router, event) {
-      if (!App.isAdmin) {
+      if (!App.isAccessible('upgrade_ADMIN')) {
         Em.run.next(function () {
           App.router.transitionTo('main.dashboard.index');
         });

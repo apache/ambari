@@ -42,7 +42,11 @@
             <span class="label label-success">{{t common.current}}</span>
           {{/if}}
         </td>
-        <td class="install-repo-version"><button class="btn" {{bindAttr disabled="this.installDisabled"}}><i class="icon-off"></i>&nbsp;{{t common.install}}</button></td>
+        <td class="install-repo-version">
+          {{#isAccessible ADMIN}}
+            <button class="btn" {{bindAttr disabled="this.installDisabled"}}><i class="icon-off"></i>&nbsp;{{t common.install}}</button>
+          {{/isAccessible}}
+        </td>
       </tr>
     {{/each}}
   {{else}}

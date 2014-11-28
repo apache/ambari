@@ -254,6 +254,13 @@ Em.Handlebars.registerHelper('highlight', function (property, words, fn) {
 
   return new Em.Handlebars.SafeString(property);
 });
+
+Em.Handlebars.registerHelper('isAccessible', function (context, options) {
+  if (App.isAccessible(context)) {
+    return options.fn(this);
+  }
+});
+
 /**
  * @namespace App
  */

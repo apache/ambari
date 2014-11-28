@@ -164,7 +164,7 @@ App.TableView = Em.View.extend(App.UserPref, {
     console.log('Persist did NOT find the key');
     var displayLengthDefault = this.get('defaultDisplayLength');
     this.set('displayLength', displayLengthDefault);
-    if (App.get('isAdmin')) {
+    if (App.isAccessible('upgrade_ADMIN')) {
       this.saveDisplayLength();
     }
     this.filter();
@@ -372,7 +372,7 @@ App.TableView = Em.View.extend(App.UserPref, {
     Em.run.next(function() {
       App.db.setDisplayLength(self.get('controller.name'), self.get('displayLength'));
       if (!App.get('testMode')) {
-        if (App.get('isAdmin')) {
+        if (App.isAccessible('upgrade_ADMIN')) {
           self.postUserPref(self.displayLengthKey(), self.get('displayLength'));
         }
       }

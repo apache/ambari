@@ -69,7 +69,7 @@
               {{#if view.canEdit}}
                 {{#if isPropertyOverridable}}
                   {{#if view.supportsHostOverrides}}
-                    {{#if App.isAdmin}}
+                    {{#isAccessible ADMIN}}
                       {{#unless this.isComparison}}
                           <a class="btn btn-small" href="#" data-toggle="tooltip"
                             {{action "createOverrideProperty" this target="view"}}
@@ -77,7 +77,7 @@
                               <i class="icon-plus-sign"></i>
                           </a>
                       {{/unless}}
-                    {{/if}}
+                    {{/isAccessible}}
                   {{/if}}
                 {{/if}}
                 {{#unless cantBeUndone}}
@@ -90,7 +90,7 @@
                   {{/if}}
                 {{/unless}}
                 {{#if isRemovable}}
-                  {{#if App.isAdmin}}
+                  {{#isAccessible ADMIN}}
                     {{#unless this.isComparison}}
                         <a class="btn btn-small" href="#" data-toggle="tooltip"
                           {{action "removeProperty" this target="view"}}
@@ -98,7 +98,7 @@
                             <i class="icon-minus-sign"></i>
                         </a>
                     {{/unless}}
-                  {{/if}}
+                  {{/isAccessible}}
                 {{/if}}
                 {{#unless isEditable}}
                   {{#if group}}
@@ -125,7 +125,7 @@
       {{/each}}
 
       {{! For Advanced, Advanced Core Site, Advanced HDFS Site sections, show the 'Add Property' link.}}
-      {{#if App.isAdmin}}
+      {{#isAccessible ADMIN}}
         {{#if view.canEdit}}
           {{#if view.category.customCanAddProperty }}
             <div>
@@ -133,7 +133,7 @@
             </div>
           {{/if}}
         {{/if}}
-      {{/if}}
+      {{/isAccessible}}
     </form>
   </div>
 </div>

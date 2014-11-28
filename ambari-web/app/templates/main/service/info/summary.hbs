@@ -17,7 +17,7 @@
 }}
 
 {{#if view.service.isRestartRequired}}
-  {{#if App.isAdmin}}
+  {{#isAccessible ADMIN}}
     <div id="summary-restart-bar">
       <div class="alert alert-warning clearfix">
         <i class="icon-refresh"></i> {{{view.needToRestartMessage}}} {{t services.service.config.restartService.needToRestart}}
@@ -41,7 +41,7 @@
         </div>
       </div>
     </div>
-  {{/if}}
+  {{/isAccessible}}
 {{/if}}
 
 <div class="row-fluid service-block">

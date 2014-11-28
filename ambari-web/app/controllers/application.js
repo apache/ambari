@@ -111,7 +111,7 @@ App.ApplicationController = Em.Controller.extend(App.UserPref, {
 
   showSettingsPopup: function() {
     // Settings only for admins
-    if (!App.get('isAdmin')) return;
+    if (!App.isAccessible('upgrade_ADMIN')) return;
 
     var self = this;
     var curValue = null;

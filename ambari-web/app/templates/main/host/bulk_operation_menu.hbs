@@ -19,10 +19,10 @@
 <div class="dropdown bulk-menu">
   <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">{{t common.actions}} <span class="caret"></span></a>
   <ul class="dropdown-menu">
-    {{#if App.isAdmin}}
+    {{#isAccessible ADMIN}}
       <li><a href="#" {{action addHost}}><i class="icon-plus icon-white"></i> {{t hosts.host.add}}</a></li>
       <li class="divider"></li>
-    {{/if}}
+    {{/isAccessible}}
     <li class="dropdown-submenu">
       <a {{bindAttr class="view.parentView.showSelectedFilter::disabled"}} tabindex="-1" href="javascript:void(null);">{{view.menuItems.s.label}}
         ({{view.parentView.selectedHosts.length}})</a>

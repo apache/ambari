@@ -34,7 +34,7 @@
             class="icon-arrow-left"></i>&nbsp;{{t common.back}}</a></div>
     <div class="content">
       {{view App.MainHostMenuView}}
-      {{#if App.isAdmin}}
+      {{#isAccessible ADMIN}}
         <div class="service-button">
           <div class="btn-group display-inline-block">
             <a href="javascript:void(null)" {{bindAttr class=":btn :dropdown-toggle"}} data-toggle="dropdown">
@@ -67,7 +67,7 @@
             </ul>
           </div>
         </div>
-      {{/if}}
+      {{/isAccessible}}
       {{outlet}}
     </div>
   </div>

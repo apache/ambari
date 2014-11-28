@@ -461,4 +461,76 @@ describe('App', function () {
       })
     })
   });
+
+  describe("#isAccessible()", function() {
+    it("Upgrade running, element should be blocked", function() {
+      App.set('isUpgrading', true);
+      App.set('isAdmin', true);
+      expect(App.isAccessible('ADMIN')).to.be.false;
+    });
+    it("Upgrade running, upgrade element should not be blocked", function() {
+      App.set('isUpgrading', true);
+      App.set('isAdmin', true);
+      expect(App.isAccessible('upgrade_ADMIN')).to.be.true;
+    });
+    it("ADMIN type, isAdmin true", function() {
+      App.set('isUpgrading', false);
+      App.set('isAdmin', true);
+      expect(App.isAccessible('ADMIN')).to.be.true;
+    });
+    it("ADMIN type, isAdmin false", function() {
+      App.set('isUpgrading', false);
+      App.set('isAdmin', false);
+      expect(App.isAccessible('ADMIN')).to.be.false;
+    });
+    it("MANAGER type, isOperator false", function() {
+      App.set('isUpgrading', false);
+      App.set('isAdmin', true);
+      App.set('isOperator', false);
+      expect(App.isAccessible('MANAGER')).to.be.true;
+    });
+    it("MANAGER type, isAdmin false", function() {
+      App.set('isUpgrading', false);
+      App.set('isAdmin', false);
+      App.set('isOperator', true);
+      expect(App.isAccessible('MANAGER')).to.be.true;
+    });
+    it("MANAGER type, isAdmin and isOperator false", function() {
+      App.set('isUpgrading', false);
+      App.set('isAdmin', false);
+      App.set('isOperator', false);
+      expect(App.isAccessible('MANAGER')).to.be.false;
+    });
+    it("OPERATOR type, isOperator false", function() {
+      App.set('isUpgrading', false);
+      App.set('isOperator', false);
+      expect(App.isAccessible('OPERATOR')).to.be.false;
+    });
+    it("OPERATOR type, isOperator false", function() {
+      App.set('isUpgrading', false);
+      App.set('isOperator', true);
+      expect(App.isAccessible('OPERATOR')).to.be.true;
+    });
+    it("ONLY_ADMIN type, isAdmin false", function() {
+      App.set('isUpgrading', false);
+      App.set('isAdmin', false);
+      expect(App.isAccessible('ONLY_ADMIN')).to.be.false;
+    });
+    it("ONLY_ADMIN type, isAdmin true, isOperator false", function() {
+      App.set('isUpgrading', false);
+      App.set('isAdmin', true);
+      App.set('isOperator', false);
+      expect(App.isAccessible('ONLY_ADMIN')).to.be.true;
+    });
+    it("ONLY_ADMIN type, isAdmin true, isOperator true", function() {
+      App.set('isUpgrading', false);
+      App.set('isAdmin', true);
+      App.set('isOperator', true);
+      expect(App.isAccessible('ONLY_ADMIN')).to.be.false;
+    });
+    it("unknown type", function() {
+      App.set('isUpgrading', false);
+      expect(App.isAccessible('')).to.be.false;
+    });
+  });
 });

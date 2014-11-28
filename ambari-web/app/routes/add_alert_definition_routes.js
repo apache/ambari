@@ -23,7 +23,7 @@ module.exports = App.WizardRoute.extend({
   route: '/alerts/add',
 
   enter: function (router) {
-    if (App.get('isAdmin')) {
+    if (App.isAccessible('ADMIN')) {
       Em.run.next(function () {
         var addAlertDefinitionController = router.get('addAlertDefinitionController');
         App.router.get('updateController').set('isWorking', false);

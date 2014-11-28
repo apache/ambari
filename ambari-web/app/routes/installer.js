@@ -38,7 +38,7 @@ module.exports = Em.Route.extend({
           $('title').text('Ambari - ' + name);
 
           App.router.get('mainViewsController').loadAmbariViews();
-          if (App.get('isAdmin')) {
+          if (App.isAccessible('ADMIN')) {
             router.get('mainController').stopPolling();
             console.log('In installer with successful authenticated');
             console.log('current step=' + router.get('installerController.currentStep'));

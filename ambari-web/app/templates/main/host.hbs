@@ -20,9 +20,9 @@
 
   <div class="box-header row">
     <div class="hosts-actions pull-left">
-      {{#if App.isAdmin}}
+      {{#isAccessible ADMIN}}
         {{view App.HostTableMenuView}}
-      {{/if}}
+      {{/isAccessible}}
     </div>
     <div class="health-status-bar pull-left">
       {{#view view.statusFilter categoriesBinding="view.categories"}}

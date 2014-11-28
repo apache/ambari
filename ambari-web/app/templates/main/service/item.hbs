@@ -52,7 +52,7 @@
     {{/if}}
   </div>
 
-{{#if App.isAdmin}}
+{{#isAccessible ADMIN}}
 <div class="service-button">
   {{#if view.isMaintenanceActive}}
     <div class="btn-group display-inline-block">
@@ -105,5 +105,5 @@
     </div>
   {{/if}}
 </div>
-{{/if}}
+{{/isAccessible}}
 {{outlet}}

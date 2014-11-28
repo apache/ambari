@@ -23,7 +23,7 @@ module.exports = App.WizardRoute.extend({
 
   enter: function (router) {
     console.log('in /service/add:enter');
-    if (App.get('isAdmin')) {
+    if (App.isAccessible('ADMIN')) {
       Em.run.next(function () {
         var addServiceController = router.get('addServiceController');
         App.router.get('updateController').set('isWorking', false);

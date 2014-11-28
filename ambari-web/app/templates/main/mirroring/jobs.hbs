@@ -34,7 +34,7 @@
       </tr>
     </table>
   </div>
-  {{#if App.isAdmin}}
+  {{#isAccessible ADMIN}}
     <div class="top-right">
       <div class="btn-group pull-right">
         <button class="btn">{{t common.actions}}</button>
@@ -78,7 +78,7 @@
       <span {{bindAttr class=":label view.dataset.isRunning:label-info  view.dataset.isSuspended:label-warning  view.dataset.isSubmitted:label-success :pull-right :dataset-status"}}>
         {{view.dataset.statusFormatted}}</span>
     </div>
-  {{/if}}
+  {{/isAccessible}}
   <div class="bottom-right">{{t common.download}}: <a href="javascript:void(null);" {{action downloadEntity target="controller"}}>{{t mirroring.dataset.entity}}.xml</a></div>
 </div>
 {{/if}}
