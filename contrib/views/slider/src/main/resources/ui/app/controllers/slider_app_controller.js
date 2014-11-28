@@ -115,7 +115,7 @@ App.SliderAppController = Ember.ObjectController.extend(App.AjaxErrorHandler, {
       statusActionsMap = this.get('statusActionsMap'),
       status = this.get('model.status');
 
-    this.get('model').set('isActionPerformed', false);
+    if (this.get('model.isActionFinished')) this.get('model').set('isActionPerformed', false);
     statusActionsMap[status].forEach(function(action) {
       if ('destroy' === action) {
         advanced.pushObject(appActions[action]);
@@ -167,12 +167,6 @@ App.SliderAppController = Ember.ObjectController.extend(App.AjaxErrorHandler, {
   groupedComponentsHaveErrors: false,
 
   /**
-   * Action is performed.
-   * @type {Bool}
-   **/
-  isActionRunning: false,
-
-  /**
    * Custom popup for "Destroy"-action
    * @method destroyConfirm
    */
@@ -209,7 +203,7 @@ App.SliderAppController = Ember.ObjectController.extend(App.AjaxErrorHandler, {
    */
   thaw: function() {
     var model = this.get('model');
-    this.get('model').set('isActionPerformed', true);
+    this.setStartAction();
     return App.ajax.send({
       name: 'changeAppState',
       sender: this,
@@ -241,7 +235,7 @@ App.SliderAppController = Ember.ObjectController.extend(App.AjaxErrorHandler, {
    */
   freeze: function() {
     var model = this.get('model');
-    this.get('model').set('isActionPerformed', true);
+    this.setStartAction();
     return App.ajax.send({
       name: 'changeAppState',
       sender: this,
@@ -351,7 +345,7 @@ App.SliderAppController = Ember.ObjectController.extend(App.AjaxErrorHandler, {
    * @method destroy
    */
   destroy: function() {
-    this.get('model').set('isActionPerformed', true);
+    this.setStartAction();
     return App.ajax.send({
       name: 'destroyApp',
       sender: this,
@@ -465,6 +459,11 @@ App.SliderAppController = Ember.ObjectController.extend(App.AjaxErrorHandler, {
         }
       }
     }
+  },
+
+  setStartAction: function() {
+    this.get('model').set('isActionPerformed' , true);
+    this.get('model').set('statusBeforeAction' , this.get('model.status'));
   }
 
 });

@@ -562,12 +562,16 @@ test('quickLinksOrdered', function() {
 
 test('Disable Action Button', function() {
   expect(6);
-
   var controller = this.subject({
-    model: Em.Object.create({
+    model: Em.Object.extend({
+      isActionFinished: function() {
+        return this.get('status') != this.get('statusBeforeAction');
+      }.property('statusBeforeAction', 'status')
+    }).create({
       id: 'someId',
       name: 'SomeName',
-      status: 'ACCEPTED'
+      status: 'ACCEPTED',
+      statusBeforeAction: ''
     }),
     defaultErrorHandler: function() { return true; }
   });

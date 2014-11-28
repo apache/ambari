@@ -59,7 +59,7 @@ test('parse | add/remove apps', function () {
   Em.run(function () {
 
     App.SliderAppsMapper.parse({
-      items: [
+      apps: [
         {id: '1', type: 't1'},
         {id: '2', type: 't2'}
       ]
@@ -72,7 +72,7 @@ test('parse | add/remove apps', function () {
   Em.run(function () {
 
     App.SliderAppsMapper.parse({
-      items: [
+      apps: [
         {id: '2', type: 't2'},
         {id: '3', type: 't3'}
       ]

@@ -239,7 +239,7 @@ App.SliderAppsMapper = App.Mapper.createWithMixins(App.RunPeriodically, {
       this.set('isWarningPopupShown', false);
     }
 
-    data.items.forEach(function (app) {
+    data.apps.forEach(function (app) {
       var componentsId = app.components ? self.parseComponents(app) : [],
         configs = app.configs ? self.parseConfigs(app) : {},
         quickLinks = self.parseQuickLinks(app),
@@ -285,6 +285,8 @@ App.SliderAppsMapper = App.Mapper.createWithMixins(App.RunPeriodically, {
         appRecord.destroyRecord();
       }
     });
-    App.SliderApp.store.pushMany('sliderApp', apps);
+    apps.forEach(function(app) {
+      App.SliderApp.store.push('sliderApp', app, true);
+    });
   }
 });

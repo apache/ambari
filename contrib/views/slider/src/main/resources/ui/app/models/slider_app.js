@@ -34,6 +34,12 @@ App.SliderApp = DS.Model.extend({
   status: DS.attr('string'),
 
   /**
+   * Status before performed action
+   * @type {string}
+   */
+  statusBeforeAction: DS.attr('string'),
+
+  /**
    * @type {displayStatus}
    */
   displayStatus: DS.attr('string'),
@@ -52,6 +58,13 @@ App.SliderApp = DS.Model.extend({
    * @type {boolean}
    */
   isActionPerformed: DS.attr('boolean'),
+
+  /**
+   * @type {boolean}
+   */
+  isActionFinished: function() {
+    return this.get('status') != this.get('statusBeforeAction');
+  }.property('statusBeforeAction', 'status'),
 
   /**
    * @type {String}

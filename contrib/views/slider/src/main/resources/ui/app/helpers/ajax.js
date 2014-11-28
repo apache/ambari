@@ -99,7 +99,7 @@ var urls = {
   },
 
   'mapper.applicationApps': {
-    real: 'apps/?fields=*',
+    real: '?fields=apps/*',
     mock: '/data/apps/apps.json',
     headers: {
       Accept: "text/plain; charset=utf-8",
