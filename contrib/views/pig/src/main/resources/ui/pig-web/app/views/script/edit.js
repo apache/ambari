@@ -32,7 +32,7 @@ App.ScriptEditView = Em.View.extend({
     }
   }.observes('controller.titleWarn'),
   actions:{
-    insertUdf:function () {
+    insertUdf:function (udf) {
       var code = this.get('controller.content.pigScript.fileContent'),
       registered = 'REGISTER ' + udf.get('path') + '\n' + code;
       this.set('controller.content.pigScript.fileContent',registered);
