@@ -62,7 +62,7 @@ def public_hostname(config):
   try:
     if config.has_option('agent', 'public_hostname_script'):
       scriptname = config.get('agent', 'public_hostname_script')
-      output = subprocess.Popen([scriptname], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+      output = subprocess.Popen(scriptname, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
       out, err = output.communicate()
       if (0 == output.returncode and 0 != len(out.strip())):
         cached_public_hostname = out.strip()
