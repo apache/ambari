@@ -21,12 +21,14 @@ Ambari Agent
 
 from resource_management.core.providers.package import PackageProvider
 from resource_management.core import shell
+from resource_management.core.shell import string_cmd_from_args_list
 from resource_management.core.logger import Logger
 
-INSTALL_CMD = "DEBIAN_FRONTEND=noninteractive /usr/bin/apt-get -q -o Dpkg::Options::='--force-confdef' --allow-unauthenticated --assume-yes install %s"
-REPO_UPDATE_CMD = "apt-get update -qq"
-REMOVE_CMD = "/usr/bin/apt-get -y -q remove %s"
-CHECK_CMD = "dpkg --get-selections | grep ^%s$ | grep -v deinstall"
+INSTALL_CMD_ENV = {'DEBIAN_FRONTEND':'noninteractive'}
+INSTALL_CMD = ['/usr/bin/apt-get', '-q', '-o', "Dpkg::Options::=--force-confdef", '--allow-unauthenticated', '--assume-yes', 'install']
+REPO_UPDATE_CMD = ['/usr/bin/apt-get', 'update','-qq']
+REMOVE_CMD = ['/usr/bin/apt-get', '-y', '-q', 'remove']
+CHECK_CMD = "dpkg --get-selections | grep -v deinstall | awk '{print $1}' | grep ^%s$"
 
 def replace_underscores(function_to_decorate):
   def wrapper(*args):
@@ -40,14 +42,14 @@ class AptProvider(PackageProvider):
   @replace_underscores
   def install_package(self, name):
     if not self._check_existence(name):
-      cmd = INSTALL_CMD % (name)
-      Logger.info("Installing package %s ('%s')" % (name, cmd))
-      code, out = shell.call(cmd, sudo=True)
+      cmd = INSTALL_CMD + [name]
+      Logger.info("Installing package %s ('%s')" % (name, string_cmd_from_args_list(cmd)))
+      code, out = shell.call(cmd, sudo=True, env=INSTALL_CMD_ENV)
       
       # apt-get update wasn't done too long
       if code:
         Logger.info("Execution of '%s' returned %d. %s" % (cmd, code, out))
-        Logger.info("Failed to install package %s. Executing `%s`" % (name, REPO_UPDATE_CMD))
+        Logger.info("Failed to install package %s. Executing `%s`" % (name, string_cmd_from_args_list(REPO_UPDATE_CMD)))
         code, out = shell.call(REPO_UPDATE_CMD, sudo=True)
         
         if code:
@@ -65,8 +67,8 @@ class AptProvider(PackageProvider):
   @replace_underscores
   def remove_package(self, name):
     if self._check_existence(name):
-      cmd = REMOVE_CMD % (name)
-      Logger.info("Removing package %s ('%s')" % (name, cmd))
+      cmd = REMOVE_CMD + [name]
+      Logger.info("Removing package %s ('%s')" % (name, string_cmd_from_args_list(cmd)))
       shell.checked_call(cmd, sudo=True)
     else:
       Logger.info("Skipping removing non-existent package %s" % (name))

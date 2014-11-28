@@ -176,8 +176,8 @@ class TestExecuteResource(TestCase):
                                  environment={'JAVA_HOME': '/test/java/home',
                                               'PATH': "/bin"}
       )
-    expected_command = '/usr/bin/sudo -Hsu test_user <<< \'export PATH=' + os.environ['PATH'] + ':/bin JAVA_HOME=/test/java/home; echo "1"\'' 
-    self.assertEqual(popen_mock.call_args_list[0][0][0][3], expected_command)
+    expected_command = ['/usr/bin/sudo', '-Hi', 'su', '-', 'test_user', '-s', '/bin/bash', '-c', 'export  PATH=' + os.environ['PATH'] + ':/bin JAVA_HOME=/test/java/home ; echo "1"']
+    self.assertEqual(popen_mock.call_args_list[0][0][0], expected_command)
 
 
   @patch.object(subprocess, "Popen")

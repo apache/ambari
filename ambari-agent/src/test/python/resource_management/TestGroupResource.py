@@ -45,7 +45,7 @@ class TestGroupResource(TestCase):
     
 
     self.assertEqual(popen_mock.call_count, 1)
-    popen_mock.assert_called_with(['/bin/bash', '--login', '-c', "/usr/bin/sudo -s <<< 'groupadd -p secure hadoop'"], shell=False, preexec_fn=None, stderr=-2, stdout=-1, env=None, cwd=None)
+    popen_mock.assert_called_with(['/bin/bash', '--login', '-c', "/usr/bin/sudo  -Hi groupadd -p secure hadoop"], shell=False, preexec_fn=None, stderr=-2, stdout=-1, env={}, cwd=None)
     getgrnam_mock.assert_called_with('hadoop')
 
 
@@ -66,7 +66,7 @@ class TestGroupResource(TestCase):
     
 
     self.assertEqual(popen_mock.call_count, 1)
-    popen_mock.assert_called_with(['/bin/bash', '--login', '-c', "/usr/bin/sudo -s <<< 'groupmod -p secure -g 2 mapred'"], shell=False, preexec_fn=None, stderr=-2, stdout=-1, env=None, cwd=None)
+    popen_mock.assert_called_with(['/bin/bash', '--login', '-c', "/usr/bin/sudo  -Hi groupmod -p secure -g 2 mapred"], shell=False, preexec_fn=None, stderr=-2, stdout=-1, env={}, cwd=None)
     getgrnam_mock.assert_called_with('mapred')
 
 
@@ -90,7 +90,7 @@ class TestGroupResource(TestCase):
     except Fail:
       pass
     self.assertEqual(popen_mock.call_count, 1)
-    popen_mock.assert_called_with(['/bin/bash', '--login', '-c', "/usr/bin/sudo -s <<< 'groupmod -p secure -g 2 mapred'"], shell=False, preexec_fn=None, stderr=-2, stdout=-1, env=None, cwd=None)
+    popen_mock.assert_called_with(['/bin/bash', '--login', '-c', "/usr/bin/sudo  -Hi groupmod -p secure -g 2 mapred"], shell=False, preexec_fn=None, stderr=-2, stdout=-1, env={}, cwd=None)
     getgrnam_mock.assert_called_with('mapred')
 
 
@@ -110,7 +110,7 @@ class TestGroupResource(TestCase):
     
 
     self.assertEqual(popen_mock.call_count, 1)
-    popen_mock.assert_called_with(['/bin/bash', '--login', '-c', 'groupdel mapred'], shell=False, preexec_fn=None, stderr=-2, stdout=-1, env=None, cwd=None)
+    popen_mock.assert_called_with(['/bin/bash', '--login', '-c', 'groupdel mapred'], shell=False, preexec_fn=None, stderr=-2, stdout=-1, env={}, cwd=None)
     getgrnam_mock.assert_called_with('mapred')
 
 
@@ -134,5 +134,5 @@ class TestGroupResource(TestCase):
       pass
 
     self.assertEqual(popen_mock.call_count, 1)
-    popen_mock.assert_called_with(['/bin/bash', '--login', '-c', 'groupdel mapred'], shell=False, preexec_fn=None, stderr=-2, stdout=-1, env=None, cwd=None)
+    popen_mock.assert_called_with(['/bin/bash', '--login', '-c', 'groupdel mapred'], shell=False, preexec_fn=None, stderr=-2, stdout=-1, env={}, cwd=None)
     getgrnam_mock.assert_called_with('mapred')

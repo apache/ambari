@@ -28,7 +28,7 @@ def chown(path, owner, group):
   if owner:
     shell.checked_call(["chown", owner, path], sudo=True)
   if group:
-    shell.checked_call(["chgrp", owner, path], sudo=True)
+    shell.checked_call(["chgrp", group, path], sudo=True)
     
 # os.chmod replacement
 def chmod(path, mode):

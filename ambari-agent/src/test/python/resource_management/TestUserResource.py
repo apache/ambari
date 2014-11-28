@@ -38,7 +38,7 @@ class TestUserResource(TestCase):
     with Environment('/') as env:
       user = User("mapred", action = "create", shell = "/bin/bash")
 
-    popen_mock.assert_called_with(['/bin/bash', '--login', '-c', "/usr/bin/sudo -s <<< 'useradd -m -s /bin/bash mapred'"], shell=False, preexec_fn=None, stderr=-2, stdout=-1, env=None, cwd=None)
+    popen_mock.assert_called_with(['/bin/bash', '--login', '-c', "/usr/bin/sudo  -Hi useradd -m -s /bin/bash mapred"], shell=False, preexec_fn=None, stderr=-2, stdout=-1, env={}, cwd=None)
     self.assertEqual(popen_mock.call_count, 1)
 
   @patch.object(subprocess, "Popen")
@@ -52,7 +52,7 @@ class TestUserResource(TestCase):
     with Environment('/') as env:
       user = User("mapred", action = "create", shell = "/bin/bash")
 
-    popen_mock.assert_called_with(['/bin/bash', '--login', '-c', "/usr/bin/sudo -s <<< 'usermod -s /bin/bash mapred'"], shell=False, preexec_fn=None, stderr=-2, stdout=-1, env=None, cwd=None)
+    popen_mock.assert_called_with(['/bin/bash', '--login', '-c', "/usr/bin/sudo  -Hi usermod -s /bin/bash mapred"], shell=False, preexec_fn=None, stderr=-2, stdout=-1, env={}, cwd=None)
     self.assertEqual(popen_mock.call_count, 1)
 
   @patch.object(subprocess, "Popen")
@@ -66,7 +66,7 @@ class TestUserResource(TestCase):
     with Environment('/') as env:
       user = User("mapred", action = "remove", shell = "/bin/bash")
 
-    popen_mock.assert_called_with(['/bin/bash', '--login', '-c', 'userdel mapred'], shell=False, preexec_fn=None, stderr=-2, stdout=-1, env=None, cwd=None)
+    popen_mock.assert_called_with(['/bin/bash', '--login', '-c', 'userdel mapred'], shell=False, preexec_fn=None, stderr=-2, stdout=-1, env={}, cwd=None)
     self.assertEqual(popen_mock.call_count, 1)
 
   @patch.object(subprocess, "Popen")
@@ -81,7 +81,7 @@ class TestUserResource(TestCase):
       user = User("mapred", action = "create", comment = "testComment", 
           shell = "/bin/bash")
 
-    popen_mock.assert_called_with(['/bin/bash', '--login', '-c', "/usr/bin/sudo -s <<< 'usermod -c testComment -s /bin/bash mapred'"], shell=False, preexec_fn=None, stderr=-2, stdout=-1, env=None, cwd=None)
+    popen_mock.assert_called_with(['/bin/bash', '--login', '-c', "/usr/bin/sudo  -Hi usermod -c testComment -s /bin/bash mapred"], shell=False, preexec_fn=None, stderr=-2, stdout=-1, env={}, cwd=None)
     self.assertEqual(popen_mock.call_count, 1)
 
   @patch.object(subprocess, "Popen")
@@ -96,7 +96,7 @@ class TestUserResource(TestCase):
       user = User("mapred", action = "create", home = "/test/home", 
           shell = "/bin/bash")
 
-    popen_mock.assert_called_with(['/bin/bash', '--login', '-c', "/usr/bin/sudo -s <<< 'usermod -s /bin/bash -d /test/home mapred'"], shell=False, preexec_fn=None, stderr=-2, stdout=-1, env=None, cwd=None)
+    popen_mock.assert_called_with(['/bin/bash', '--login', '-c', "/usr/bin/sudo  -Hi usermod -s /bin/bash -d /test/home mapred"], shell=False, preexec_fn=None, stderr=-2, stdout=-1, env={}, cwd=None)
     self.assertEqual(popen_mock.call_count, 1)
 
   @patch.object(subprocess, "Popen")
@@ -111,7 +111,7 @@ class TestUserResource(TestCase):
       user = User("mapred", action = "create", password = "secure", 
           shell = "/bin/bash")    
 
-    popen_mock.assert_called_with(['/bin/bash', '--login', '-c', "/usr/bin/sudo -s <<< 'usermod -s /bin/bash -p secure mapred'"], shell=False, preexec_fn=None, stderr=-2, stdout=-1, env=None, cwd=None)
+    popen_mock.assert_called_with(['/bin/bash', '--login', '-c', "/usr/bin/sudo  -Hi usermod -s /bin/bash -p secure mapred"], shell=False, preexec_fn=None, stderr=-2, stdout=-1, env={}, cwd=None)
     self.assertEqual(popen_mock.call_count, 1)
 
   @patch.object(subprocess, "Popen")
@@ -125,7 +125,7 @@ class TestUserResource(TestCase):
     with Environment('/') as env:
       user = User("mapred", action = "create", shell = "/bin/sh")
 
-    popen_mock.assert_called_with(['/bin/bash', '--login', '-c', "/usr/bin/sudo -s <<< 'usermod -s /bin/sh mapred'"], shell=False, preexec_fn=None, stderr=-2, stdout=-1, env=None, cwd=None)
+    popen_mock.assert_called_with(['/bin/bash', '--login', '-c', "/usr/bin/sudo  -Hi usermod -s /bin/sh mapred"], shell=False, preexec_fn=None, stderr=-2, stdout=-1, env={}, cwd=None)
     self.assertEqual(popen_mock.call_count, 1)
 
   @patch.object(subprocess, "Popen")
@@ -139,7 +139,7 @@ class TestUserResource(TestCase):
     with Environment('/') as env:
       user = User("mapred", action = "create", uid = "1", shell = "/bin/bash")
 
-    popen_mock.assert_called_with(['/bin/bash', '--login', '-c', "/usr/bin/sudo -s <<< 'usermod -s /bin/bash -u 1 mapred'"], shell=False, preexec_fn=None, stderr=-2, stdout=-1, env=None, cwd=None)
+    popen_mock.assert_called_with(['/bin/bash', '--login', '-c', "/usr/bin/sudo  -Hi usermod -s /bin/bash -u 1 mapred"], shell=False, preexec_fn=None, stderr=-2, stdout=-1, env={}, cwd=None)
     self.assertEqual(popen_mock.call_count, 1)
 
   @patch.object(subprocess, "Popen")
@@ -153,7 +153,7 @@ class TestUserResource(TestCase):
     with Environment('/') as env:
       user = User("mapred", action = "create", gid = "1", shell = "/bin/bash")
 
-    popen_mock.assert_called_with(['/bin/bash', '--login', '-c', "/usr/bin/sudo -s <<< 'usermod -s /bin/bash -g 1 mapred'"], shell=False, preexec_fn=None, stderr=-2, stdout=-1, env=None, cwd=None)
+    popen_mock.assert_called_with(['/bin/bash', '--login', '-c', "/usr/bin/sudo  -Hi usermod -s /bin/bash -g 1 mapred"], shell=False, preexec_fn=None, stderr=-2, stdout=-1, env={}, cwd=None)
     self.assertEqual(popen_mock.call_count, 1)
 
   @patch.object(subprocess, "Popen")
@@ -168,7 +168,7 @@ class TestUserResource(TestCase):
       user = User("mapred", action = "create", groups = ['1','2','3'], 
           shell = "/bin/bash")
 
-    popen_mock.assert_called_with(['/bin/bash', '--login', '-c', "/usr/bin/sudo -s <<< 'usermod -G 1,2,3 -s /bin/bash mapred'"], shell=False, preexec_fn=None, stderr=-2, stdout=-1, env=None, cwd=None)
+    popen_mock.assert_called_with(['/bin/bash', '--login', '-c', "/usr/bin/sudo  -Hi usermod -G 1,2,3 -s /bin/bash mapred"], shell=False, preexec_fn=None, stderr=-2, stdout=-1, env={}, cwd=None)
     self.assertEqual(popen_mock.call_count, 1)
 
   @patch.object(subprocess, "Popen")
@@ -181,5 +181,5 @@ class TestUserResource(TestCase):
     with Environment('/') as env:
       user = User("mapred", action = "create")
 
-    popen_mock.assert_called_with(['/bin/bash', '--login', '-c', "/usr/bin/sudo -s <<< 'useradd -m mapred'"], shell=False, preexec_fn=None, stderr=-2, stdout=-1, env=None, cwd=None)
+    popen_mock.assert_called_with(['/bin/bash', '--login', '-c', "/usr/bin/sudo  -Hi useradd -m mapred"], shell=False, preexec_fn=None, stderr=-2, stdout=-1, env={}, cwd=None)
     self.assertEqual(popen_mock.call_count, 1)

@@ -74,6 +74,13 @@ class Execute(Resource):
   command = ResourceArgument(default=lambda obj: obj.name)
   
   creates = ResourceArgument()
+  """
+  cwd won't work for:
+  - commands run as sudo
+  - commands run as user (which uses sudo as well)
+  
+  This is because non-interactive sudo commands doesn't support that.
+  """
   cwd = ResourceArgument()
   # this runs command with a specific env variables, env={'JAVA_HOME': '/usr/jdk'}
   environment = ResourceArgument(default={})
@@ -102,8 +109,14 @@ class Execute(Resource):
   - try_sleep
   """
   wait_for_finish = BooleanArgument(default=True)
+  output_file = ResourceArgument()
+  """
+  For calling more advanced commands use as_sudo(command) option.
+  Example:
+  command1 = as_sudo(["cat,"/etc/passwd"]) + " | grep user"
+  command2 = as_sudo(["ls", "/root/example.txt") + " && " + as_sudo(["rm","-f","example.txt"])
+  """
   sudo = BooleanArgument(default=False)
-
 
 class ExecuteScript(Resource):
   action = ForcedListArgument(default="run")
