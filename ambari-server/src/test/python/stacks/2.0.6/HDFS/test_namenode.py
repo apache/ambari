@@ -22,10 +22,11 @@ from stacks.utils.RMFTestCase import *
 from ambari_commons import OSCheck
 from mock.mock import MagicMock, patch
 import resource_management
+from resource_management.core import shell
 
 import subprocess
 
-
+@patch.object(shell, "call", new=MagicMock(return_value=(1,"")))
 class TestNamenode(RMFTestCase):
 
   def test_configure_default(self):
@@ -83,11 +84,12 @@ class TestNamenode(RMFTestCase):
     self.assertResourceCalled('Execute', 'hdfs dfsadmin -report -live',
                               user='hdfs'
                               )
+    self.assertResourceCalled('Execute', "su -s /bin/bash - hdfs -c 'export PATH=$PATH:/usr/bin ; hdfs --config /etc/hadoop/conf dfsadmin -safemode leave'",)
     self.assertResourceCalled('Execute', "su -s /bin/bash - hdfs -c 'export PATH=$PATH:/usr/bin ; hdfs --config /etc/hadoop/conf dfsadmin -safemode get' | grep 'Safe mode is OFF'",
-                              tries = 40,
-                              only_if = None,
-                              try_sleep = 10,
-                              )
+        tries = 40,
+        only_if = None,
+        try_sleep = 10,
+    )
     self.assertResourceCalled('HdfsDirectory', '/tmp',
                               security_enabled = False,
                               keytab = UnknownConfigurationMock(),
@@ -198,11 +200,12 @@ class TestNamenode(RMFTestCase):
     self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/hdfs.headless.keytab hdfs',
                               user='hdfs',
                               )
+    self.assertResourceCalled('Execute', "su -s /bin/bash - hdfs -c 'export PATH=$PATH:/usr/bin ; hdfs --config /etc/hadoop/conf dfsadmin -safemode leave'",)
     self.assertResourceCalled('Execute', "su -s /bin/bash - hdfs -c 'export PATH=$PATH:/usr/bin ; hdfs --config /etc/hadoop/conf dfsadmin -safemode get' | grep 'Safe mode is OFF'",
-                              tries = 40,
-                              only_if = None,
-                              try_sleep = 10,
-                              )
+        tries = 40,
+        only_if = None,
+        try_sleep = 10,
+    )
     self.assertResourceCalled('HdfsDirectory', '/tmp',
                               security_enabled = True,
                               keytab = '/etc/security/keytabs/hdfs.headless.keytab',

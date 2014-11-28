@@ -26,7 +26,7 @@ import re
 import time
 
 from resource_management import *
-from resource_management.core.shell import checked_call
+from resource_management.core.shell import call, checked_call
 from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger
 from resource_management.libraries.functions.list_ambari_managed_repos import *
@@ -97,20 +97,20 @@ class ExecuteUpgradeTasks(Script):
           unless = replace_variables(unless, host_name, version)
 
           if first:
-            code, out = checked_call(first, throw_on_failure=False)
+            code, out = call(first)
             Logger.info("Pre-condition command. Code: %s, Out: %s" % (str(code), str(out)))
             if code != 0:
               break
 
           if unless:
-            code, out = checked_call(unless, throw_on_failure=False)
+            code, out = call(unless)
             Logger.info("Unless command. Code: %s, Out: %s" % (str(code), str(out)))
             if code == 0:
               break
 
           for i in range(1, effective_times+1):
             # TODO, Execute already has a tries and try_sleep, see hdfs_namenode.py for an example
-            code, out = checked_call(command, throw_on_failure=False)
+            code, out = call(command)
             Logger.info("Command. Code: %s, Out: %s" % (str(code), str(out)))
 
             if code == 0 or code in ignore_return_codes:
@@ -121,7 +121,7 @@ class ExecuteUpgradeTasks(Script):
               try:
                 if on_failure:
                   on_failure = replace_variables(on_failure, host_name, version)
-                  code_failure_handler, out_failure_handler = checked_call(on_failure, throw_on_failure=False)
+                  code_failure_handler, out_failure_handler = call(on_failure)
                   Logger.error("Failure Handler. Code: %s, Out: %s" % (str(code_failure_handler), str(out_failure_handler)))
               except:
                 pass
