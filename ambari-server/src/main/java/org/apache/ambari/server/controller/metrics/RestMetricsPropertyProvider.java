@@ -57,7 +57,7 @@ import java.util.Set;
  * For every metric, finds a relevant JSON value and returns is as
  * a resource property.
  */
-public class RestMetricsPropertyProvider extends MetricsProvider {
+public class RestMetricsPropertyProvider extends ThreadPoolEnabledPropertyProvider {
 
   protected final static Logger LOG =
       LoggerFactory.getLogger(RestMetricsPropertyProvider.class);
@@ -76,7 +76,7 @@ public class RestMetricsPropertyProvider extends MetricsProvider {
   private final String clusterNamePropertyId;
   private final String componentNamePropertyId;
   private final String statePropertyId;
-  private MetricsHostProvider metricsHostProvider;
+  private MetricHostProvider metricHostProvider;
   private final String componentName;
 
   private static final String DEFAULT_PORT_PROPERTY = "default_port";
@@ -109,31 +109,31 @@ public class RestMetricsPropertyProvider extends MetricsProvider {
    * @param metricsProperties       the map of per-component metrics properties
    * @param componentMetrics        the map of supported metrics for component
    * @param streamProvider          the stream provider
-   * @param metricsHostProvider     metricsHostProvider instance
+   * @param metricHostProvider     metricsHostProvider instance
    * @param clusterNamePropertyId   the cluster name property id
    * @param hostNamePropertyId      the host name property id
    * @param componentNamePropertyId the component name property id
    * @param statePropertyId         the state property id
    */
   public RestMetricsPropertyProvider(
-      Injector injector,
-      Map<String, String> metricsProperties,
-      Map<String, Map<String, PropertyInfo>> componentMetrics,
-      StreamProvider streamProvider,
-      MetricsHostProvider metricsHostProvider,
-      String clusterNamePropertyId,
-      String hostNamePropertyId,
-      String componentNamePropertyId,
-      String statePropertyId,
-      String componentName){
+    Injector injector,
+    Map<String, String> metricsProperties,
+    Map<String, Map<String, PropertyInfo>> componentMetrics,
+    StreamProvider streamProvider,
+    MetricHostProvider metricHostProvider,
+    String clusterNamePropertyId,
+    String hostNamePropertyId,
+    String componentNamePropertyId,
+    String statePropertyId,
+    String componentName){
 
-    super(componentMetrics, hostNamePropertyId, metricsHostProvider);
+    super(componentMetrics, hostNamePropertyId, metricHostProvider);
     this.metricsProperties = metricsProperties;
     this.streamProvider = streamProvider;
     this.clusterNamePropertyId = clusterNamePropertyId;
     this.componentNamePropertyId = componentNamePropertyId;
     this.statePropertyId = statePropertyId;
-    this.metricsHostProvider = metricsHostProvider;
+    this.metricHostProvider = metricHostProvider;
     injector.injectMembers(this);
     this.componentName = componentName;
   }

@@ -142,7 +142,7 @@ public class PropertyHelperTest {
 
     for (Resource.Type type : Resource.Type.values()) {
 
-      Map<String, Map<String, PropertyInfo>> gids = PropertyHelper.getGangliaPropertyIds(type);
+      Map<String, Map<String, PropertyInfo>> gids = PropertyHelper.getMetricPropertyIds(type);
 
       Map<String, Map<String, PropertyInfo>> jids = PropertyHelper.getJMXPropertyIds(type);
 
@@ -204,7 +204,7 @@ public class PropertyHelperTest {
 
     for (Resource.Type type : Resource.Type.values()) {
 
-      Map<String, Map<String, PropertyInfo>> gids = PropertyHelper.getGangliaPropertyIds(type);
+      Map<String, Map<String, PropertyInfo>> gids = PropertyHelper.getMetricPropertyIds(type);
 
       Map<String, Map<String, PropertyInfo>> jids = PropertyHelper.getJMXPropertyIds(type);
 

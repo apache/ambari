@@ -134,6 +134,10 @@ if [ -d "/usr/hdp/current/tez-client" ]; then
   fi
 fi
 
+if [ -f "/usr/lib/ambari-metrics-hadoop-sink/ambari-metrics-hadoop-sink.jar" ]; then
+  export HADOOP_CLASSPATH=${HADOOP_CLASSPATH}:/usr/lib/ambari-metrics-hadoop-sink/ambari-metrics-hadoop-sink.jar
+fi
+
 # Setting path to hdfs command line
 export HADOOP_LIBEXEC_DIR={{hadoop_libexec_dir}}
 

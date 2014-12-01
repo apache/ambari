@@ -1,0 +1,71 @@
+<?xml version='1.0'?>
+<!--
+  ~ Licensed to the Apache Software Foundation (ASF) under one
+  ~ or more contributor license agreements.  See the NOTICE file
+  ~ distributed with this work for additional information
+  ~ regarding copyright ownership.  The ASF licenses this file
+  ~ to you under the Apache License, Version 2.0 (the
+  ~ "License"); you may not use this file except in compliance
+  ~ with the License.  You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<component>
+  <!-- Just the basic components that Phoenix pulls in, that is not a transitive dependency from Hadoop/HBase/Pig -->
+  <dependencySets>
+    <dependencySet>
+      <!-- Unpack all the dependencies to class files, since java doesn't support
+        jar of jars for running -->
+      <unpack>true</unpack>
+      <!-- save these dependencies to the top-level -->
+      <outputDirectory>/</outputDirectory>
+      <!-- Just include the extra things that phoenix needs -->
+      <includes>
+        <include>org.antlr:antlr*</include>
+      </includes>
+    </dependencySet>
+
+    <dependencySet>
+      <outputDirectory>/</outputDirectory>
+      <unpack>true</unpack>
+      <includes>
+        <include>org.apache.phoenix:phoenix-*</include>
+      </includes>
+      <excludes>
+        <exclude>org.apache.phoenix:phoenix-flume</exclude>
+        <exclude>org.apache.phoenix:phoenix-pig</exclude>
+      </excludes>
+    </dependencySet>
+  </dependencySets>
+
+  <fileSets>
+    <fileSet>
+      <!--Get misc project files -->
+      <directory>${project.basedir}/..</directory>
+      <outputDirectory>/</outputDirectory>
+      <includes>
+        <include>*.txt*</include>
+        <include>*.md</include>
+        <include>NOTICE*</include>
+      </includes>
+      <excludes>
+        <exclude>build.txt</exclude>
+      </excludes>
+    </fileSet>
+    <fileSet>
+      <!--Get map-red-config properties files -->
+      <directory>${project.basedir}/../config</directory>
+      <outputDirectory>/</outputDirectory>
+      <includes>
+        <include>csv-bulk-load-config.properties</include>
+      </includes>
+    </fileSet>
+  </fileSets>
+</component>

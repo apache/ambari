@@ -18,18 +18,7 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import java.net.InetAddress;
-import java.util.Collections;
-import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-
+import com.google.inject.Inject;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
@@ -39,14 +28,11 @@ import org.apache.ambari.server.controller.HostRequest;
 import org.apache.ambari.server.controller.HostResponse;
 import org.apache.ambari.server.controller.ServiceComponentHostRequest;
 import org.apache.ambari.server.controller.ServiceComponentHostResponse;
-import org.apache.ambari.server.controller.ganglia.GangliaComponentPropertyProvider;
-import org.apache.ambari.server.controller.ganglia.GangliaHostComponentPropertyProvider;
-import org.apache.ambari.server.controller.ganglia.GangliaHostPropertyProvider;
-import org.apache.ambari.server.controller.ganglia.GangliaHostProvider;
-import org.apache.ambari.server.controller.ganglia.GangliaReportPropertyProvider;
 import org.apache.ambari.server.controller.jmx.JMXHostProvider;
 import org.apache.ambari.server.controller.jmx.JMXPropertyProvider;
-import org.apache.ambari.server.controller.metrics.MetricsHostProvider;
+import org.apache.ambari.server.controller.metrics.MetricHostProvider;
+import org.apache.ambari.server.controller.metrics.MetricsPropertyProvider;
+import org.apache.ambari.server.controller.metrics.MetricsReportPropertyProvider;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -70,13 +56,26 @@ import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.State;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import java.net.InetAddress;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import static org.apache.ambari.server.controller.metrics.MetricsPropertyProvider.MetricsService;
+import static org.apache.ambari.server.controller.metrics.MetricsPropertyProvider.MetricsService.GANGLIA;
+import static org.apache.ambari.server.controller.metrics.MetricsPropertyProvider.MetricsService.TIMELINE_METRICS;
 
-import com.google.inject.Inject;
 
 /**
  * An abstract provider module implementation.
  */
-public abstract class AbstractProviderModule implements ProviderModule, ResourceProviderObserver, JMXHostProvider, GangliaHostProvider, HostInfoProvider, MetricsHostProvider {
+public abstract class AbstractProviderModule implements ProviderModule, ResourceProviderObserver, JMXHostProvider, MetricHostProvider, HostInfoProvider {
 
   private static final int PROPERTY_REQUEST_CONNECT_TIMEOUT = 5000;
   private static final int PROPERTY_REQUEST_READ_TIMEOUT    = 10000;
@@ -86,6 +85,7 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
   private static final String HOST_COMPONENT_HOST_NAME_PROPERTY_ID      = PropertyHelper.getPropertyId("HostRoles", "host_name");
   private static final String HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("HostRoles", "component_name");
   private static final String GANGLIA_SERVER                            = "GANGLIA_SERVER";
+  private static final String METRIC_SERVER                             = "METRIC_COLLECTOR";
   private static final String PROPERTIES_CATEGORY = "properties";
   private static final Map<Service.Type, String> serviceConfigVersions = new ConcurrentHashMap<Service.Type, String>();
   private static final Map<Service.Type, String> serviceConfigTypes = new EnumMap<Service.Type, String>(Service.Type.class);
@@ -102,6 +102,7 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
     serviceConfigTypes.put(Service.Type.HBASE, "hbase-site");
     serviceConfigTypes.put(Service.Type.YARN, "yarn-site");
     serviceConfigTypes.put(Service.Type.MAPREDUCE2, "mapred-site");
+    serviceConfigTypes.put(Service.Type.AMS, "ams-site");
 
     componentServiceMap.put("NAMENODE", Service.Type.HDFS);
     componentServiceMap.put("DATANODE", Service.Type.HDFS);
@@ -164,6 +165,11 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
   private Map<String, String> clusterGangliaCollectorMap;
 
   /**
+   * The host name of Metrics collector.
+   */
+  private Map<String, String> clusterMetricCollectorMap;
+
+  /**
    * JMX ports read from the configs
    */
   private final Map<String, Map<String, String>> jmxPortMap =
@@ -198,7 +204,7 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
   }
 
   @Override
-  public List<PropertyProvider> getPropertyProviders(Resource.Type type) {
+  public List<PropertyProvider>  getPropertyProviders(Resource.Type type) {
 
     if (!propertyProviders.containsKey(type)) {
       createPropertyProviders(type);
@@ -224,6 +230,59 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
   // ----- MetricsHostProvider ---------------------------------------------------
 
   @Override
+  public String getCollectorHostName(String clusterName, MetricsService service) throws SystemException {
+    checkInit();
+    if (service.equals(GANGLIA)) {
+      return clusterGangliaCollectorMap.get(clusterName);
+    } else if (service.equals(TIMELINE_METRICS)) {
+      return clusterMetricCollectorMap.get(clusterName);
+    }
+    return null;
+  }
+
+  @Override
+  public String getCollectorPortName(String clusterName, MetricsService service) throws SystemException {
+    checkInit();
+    if (service.equals(GANGLIA)) {
+      return "80"; // Not called by the provider
+    } else if (service.equals(TIMELINE_METRICS)) {
+      try {
+        String configType = serviceConfigTypes.get(Service.Type.AMS);
+        String currentConfigVersion = getDesiredConfigVersion(clusterName, configType);
+        String oldConfigVersion = serviceConfigVersions.get(Service.Type.AMS);
+
+        if (!currentConfigVersion.equals(oldConfigVersion)) {
+          serviceConfigVersions.put(Service.Type.AMS, currentConfigVersion);
+
+          Map<String, String> configProperties = getDesiredConfigMap
+            (clusterName, currentConfigVersion, configType,
+              Collections.singletonMap("METRIC_COLLECTOR",
+                new String[]{"timeline.metrics.service.webapp.address"}));
+
+          if (!configProperties.isEmpty()) {
+            return getPortString(configProperties.get("METRIC_COLLECTOR"));
+          }
+        }
+
+      } catch (NoSuchParentResourceException e) {
+        LOG.warn("Failed to retrieve collector port.", e);
+      } catch (UnsupportedPropertyException e) {
+        LOG.warn("Failed to retrieve collector port.", e);
+      }
+      return "8188";
+    }
+    return null;
+  }
+
+  @Override
+  public boolean isCollectorHostLive(String clusterName, MetricsService service) throws SystemException {
+
+    final String collectorHostName = getCollectorHostName(clusterName, service);
+
+    return isHostLive(clusterName, collectorHostName);
+  }
+
+  @Override
   public String getHostName(String clusterName, String componentName) throws SystemException {
     checkInit();
     return clusterHostComponentMap.get(clusterName).get(componentName);
@@ -240,6 +299,83 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
       LOG.warn("Exception in getting host names for jmx metrics: ", e);
     }
     return hosts;
+  }
+
+  @Override
+  public boolean isCollectorComponentLive(String clusterName, MetricsService service) throws SystemException {
+
+    final String collectorHostName = getCollectorHostName(clusterName, service);
+
+    if (service.equals(GANGLIA)) {
+      return isHostComponentLive(clusterName, collectorHostName, "GANGLIA",
+        Role.GANGLIA_SERVER.name());
+    } else if (service.equals(TIMELINE_METRICS)) {
+      return isHostComponentLive(clusterName, collectorHostName, "AMS",
+        Role.METRIC_COLLECTOR.name());
+    }
+    return false;
+  }
+
+  private boolean isHostComponentLive(String clusterName, String hostName,
+                                      String serviceName, String componentName) {
+    if (clusterName == null) {
+      return false;
+    }
+
+    ServiceComponentHostResponse componentHostResponse;
+
+    try {
+      ServiceComponentHostRequest componentRequest =
+        new ServiceComponentHostRequest(clusterName, serviceName,
+          componentName, hostName, null);
+
+      Set<ServiceComponentHostResponse> hostComponents =
+        managementController.getHostComponents(Collections.singleton(componentRequest));
+
+      componentHostResponse = hostComponents.size() == 1 ? hostComponents.iterator().next() : null;
+    } catch (AmbariException e) {
+      LOG.debug("Error checking " + componentName + " server host component state: ", e);
+      return false;
+    }
+
+    //Cluster without SCH
+    return componentHostResponse != null &&
+      componentHostResponse.getLiveState().equals(State.STARTED.name());
+  }
+
+  protected MetricsService getMetricsServiceType() {
+    try {
+      checkInit();
+    } catch (SystemException e) {
+      LOG.error("Exception during checkInit.", e);
+      return GANGLIA;
+    }
+    if (!clusterMetricCollectorMap.isEmpty()) {
+      return TIMELINE_METRICS;
+    } else {
+      return GANGLIA;
+    }
+  }
+
+  protected boolean isHostLive(String clusterName, String hostName) {
+    if (clusterName == null) {
+      return false;
+    }
+    HostResponse hostResponse;
+
+    try {
+      HostRequest hostRequest = new HostRequest(hostName, clusterName,
+        Collections.<String, String>emptyMap());
+      Set<HostResponse> hosts = HostResourceProvider.getHosts(managementController, hostRequest);
+
+      hostResponse = hosts.size() == 1 ? hosts.iterator().next() : null;
+    } catch (AmbariException e) {
+      LOG.debug("Error checking of Ganglia server host live status: ", e);
+      return false;
+    }
+    //Cluster without host
+    return hostResponse != null &&
+      !hostResponse.getHostState().equals(HostState.HEARTBEAT_LOST.name());
   }
 
   // ----- JMXHostProvider ---------------------------------------------------
@@ -371,72 +507,6 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
     }
   }
 
-  // ----- GangliaHostProvider -----------------------------------------------
-
-  @Override
-  public String getGangliaCollectorHostName(String clusterName) throws SystemException {
-    checkInit();
-    return clusterGangliaCollectorMap.get(clusterName);
-  }
-
-  @Override
-  public boolean isGangliaCollectorHostLive(String clusterName) throws SystemException {
-
-    if (clusterName == null) {
-      return false;
-    }
-
-    HostResponse gangliaCollectorHost;
-
-    try {
-
-      final String gangliaCollectorHostName = getGangliaCollectorHostName(clusterName);
-
-      HostRequest hostRequest = new HostRequest(gangliaCollectorHostName, clusterName, Collections.<String, String>emptyMap());
-      Set<HostResponse> hosts = HostResourceProvider.getHosts(managementController, hostRequest);
-
-      gangliaCollectorHost = hosts.size() == 1 ? hosts.iterator().next() : null;
-    } catch (AmbariException e) {
-      LOG.debug("Error checking of Ganglia server host live status: ", e);
-      return false;
-    }
-
-    //Cluster without Ganglia
-    return gangliaCollectorHost != null &&
-        !gangliaCollectorHost.getHostState().equals(HostState.HEARTBEAT_LOST.name());
-  }
-
-  @Override
-  public boolean isGangliaCollectorComponentLive(String clusterName) throws SystemException {
-    if (clusterName == null) {
-      return false;
-    }
-
-    ServiceComponentHostResponse gangliaCollectorHostComponent;
-
-    try {
-      final String gangliaCollectorHostName = getGangliaCollectorHostName(clusterName);
-
-      ServiceComponentHostRequest componentRequest = new ServiceComponentHostRequest(clusterName, "GANGLIA",
-          Role.GANGLIA_SERVER.name(),
-          gangliaCollectorHostName,
-          null);
-
-      Set<ServiceComponentHostResponse> hostComponents =
-          managementController.getHostComponents(Collections.singleton(componentRequest));
-
-      gangliaCollectorHostComponent = hostComponents.size() == 1 ? hostComponents.iterator().next() : null;
-    } catch (AmbariException e) {
-      LOG.debug("Error checking of Ganglia server host component state: ", e);
-      return false;
-    }
-
-    //Cluster without Ganglia
-    return gangliaCollectorHostComponent != null &&
-        gangliaCollectorHostComponent.getLiveState().equals(State.STARTED.name());
-  }
-
-
   // ----- utility methods ---------------------------------------------------
 
   protected abstract ResourceProvider createResourceProvider(Resource.Type type);
@@ -471,27 +541,27 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
     if (type.isInternalType()) {
       switch (type.getInternalType()) {
         case Cluster:
-          providers.add(createGangliaReportPropertyProvider(
-              type,
-              streamProvider,
-              ComponentSSLConfiguration.instance(),
-              this,
-              PropertyHelper.getPropertyId("Clusters", "cluster_name")));
-          providers.add(new AlertSummaryPropertyProvider(type,
-              "Clusters/cluster_name", null));
+          providers.add(createMetricsReportPropertyProvider(
+            type,
+            streamProvider,
+            ComponentSSLConfiguration.instance(),
+            this,
+            PropertyHelper.getPropertyId("Clusters", "cluster_name")));
+            providers.add(new AlertSummaryPropertyProvider(type,
+            "Clusters/cluster_name", null));
           break;
         case Service:
           providers.add(new AlertSummaryPropertyProvider(type,
               "ServiceInfo/cluster_name", "ServiceInfo/service_name"));
           break;
         case Host:
-          providers.add(createGangliaHostPropertyProvider(
-              type,
-              streamProvider,
-              ComponentSSLConfiguration.instance(),
-              this,
-              PropertyHelper.getPropertyId("Hosts", "cluster_name"),
-              PropertyHelper.getPropertyId("Hosts", "host_name")
+          providers.add(createMetricsHostPropertyProvider(
+            type,
+            streamProvider,
+            ComponentSSLConfiguration.instance(),
+            this,
+            PropertyHelper.getPropertyId("Hosts", "cluster_name"),
+            PropertyHelper.getPropertyId("Hosts", "host_name")
           ));
           providers.add(new AlertSummaryPropertyProvider(type,
               "Hosts/cluster_name", "Hosts/host_name"));
@@ -516,17 +586,16 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
                 PropertyHelper.getPropertyId("ServiceComponentInfo", "component_name"),
                 PropertyHelper.getPropertyId("ServiceComponentInfo", "service_name"));
           } else {
-            gpp = createGangliaComponentPropertyProvider(
-                type,
-                streamProvider,
-                ComponentSSLConfiguration.instance(),
-                this,
-                PropertyHelper.getPropertyId("ServiceComponentInfo", "cluster_name"),
-                PropertyHelper.getPropertyId("ServiceComponentInfo", "component_name"));
+            gpp = createMetricsComponentPropertyProvider(
+              type,
+              streamProvider,
+              ComponentSSLConfiguration.instance(),
+              this,
+              PropertyHelper.getPropertyId("ServiceComponentInfo", "cluster_name"),
+              PropertyHelper.getPropertyId("ServiceComponentInfo", "component_name"));
           }
           providers.add(new StackDefinedPropertyProvider(
               type,
-              this,
               this,
               this,
               streamProvider,
@@ -559,18 +628,17 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
                 PropertyHelper.getPropertyId("HostRoles", "component_name"),
                 PropertyHelper.getPropertyId("HostRoles", "service_name"));
           } else {
-            gpp = createGangliaHostComponentPropertyProvider(
-                type,
-                streamProvider,
-                ComponentSSLConfiguration.instance(),
-                this,
-                PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
-                PropertyHelper.getPropertyId("HostRoles", "host_name"),
-                PropertyHelper.getPropertyId("HostRoles", "component_name"));
+            gpp = createMetricsHostComponentPropertyProvider(
+              type,
+              streamProvider,
+              ComponentSSLConfiguration.instance(),
+              this,
+              PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
+              PropertyHelper.getPropertyId("HostRoles", "host_name"),
+              PropertyHelper.getPropertyId("HostRoles", "component_name"));
           }
           providers.add(new StackDefinedPropertyProvider(
               type,
-              this,
               this,
               this,
               streamProvider,
@@ -588,6 +656,8 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
     }
     putPropertyProviders(type, providers);
   }
+
+
 
   private void checkInit() throws SystemException {
     if (!initialized) {
@@ -626,6 +696,7 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
 
       clusterHostComponentMap = new HashMap<String, Map<String, String>>();
       clusterGangliaCollectorMap = new HashMap<String, String>();
+      clusterMetricCollectorMap = new HashMap<String, String>();
 
       for (Resource cluster : clusters) {
 
@@ -657,6 +728,9 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
           // record the Ganglia server for the current cluster
           if (componentName.equals(GANGLIA_SERVER)) {
             clusterGangliaCollectorMap.put(clusterName, hostName);
+          }
+          if (componentName.equals(METRIC_SERVER)) {
+            clusterMetricCollectorMap.put(clusterName, hostName);
           }
         }
       }
@@ -797,9 +871,10 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
   /**
    * Create the JMX property provider for the given type.
    */
-  private PropertyProvider createJMXPropertyProvider(Resource.Type type, StreamProvider streamProvider,
+  private PropertyProvider createJMXPropertyProvider(Resource.Type type,
+                                                     StreamProvider streamProvider,
                                                      JMXHostProvider jmxHostProvider,
-                                                     MetricsHostProvider metricsHostProvider,
+                                                     MetricHostProvider metricsHostProvider,
                                                      String clusterNamePropertyId,
                                                      String hostNamePropertyId,
                                                      String componentNamePropertyId,
@@ -813,52 +888,59 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
   /**
    * Create the Ganglia report property provider for the given type.
    */
-  private PropertyProvider createGangliaReportPropertyProvider(Resource.Type type, StreamProvider streamProvider,
+  private PropertyProvider createMetricsReportPropertyProvider(Resource.Type type, StreamProvider streamProvider,
                                                                ComponentSSLConfiguration configuration,
-                                                               GangliaHostProvider hostProvider,
+                                                               MetricHostProvider hostProvider,
                                                                String clusterNamePropertyId) {
 
-    return new GangliaReportPropertyProvider(PropertyHelper.getGangliaPropertyIds(type), streamProvider,
-        configuration, hostProvider, clusterNamePropertyId);
+    return MetricsReportPropertyProvider.createInstance(
+      getMetricsServiceType(), PropertyHelper.getMetricPropertyIds(type),
+      streamProvider, configuration, hostProvider, clusterNamePropertyId);
   }
 
   /**
    * Create the Ganglia host property provider for the given type.
    */
-  private PropertyProvider createGangliaHostPropertyProvider(Resource.Type type, StreamProvider streamProvider,
+  private PropertyProvider createMetricsHostPropertyProvider(Resource.Type type,
+                                                             StreamProvider streamProvider,
                                                              ComponentSSLConfiguration configuration,
-                                                             GangliaHostProvider hostProvider,
+                                                             MetricHostProvider hostProvider,
                                                              String clusterNamePropertyId,
                                                              String hostNamePropertyId) {
-    return new GangliaHostPropertyProvider(PropertyHelper.getGangliaPropertyIds(type), streamProvider,
-        configuration, hostProvider, clusterNamePropertyId, hostNamePropertyId);
+    return MetricsPropertyProvider.createInstance(getMetricsServiceType(), type,
+      PropertyHelper.getMetricPropertyIds(type), streamProvider, configuration,
+      hostProvider, clusterNamePropertyId, hostNamePropertyId, null);
   }
 
   /**
    * Create the Ganglia component property provider for the given type.
    */
-  private PropertyProvider createGangliaComponentPropertyProvider(Resource.Type type, StreamProvider streamProvider,
+  private PropertyProvider createMetricsComponentPropertyProvider(Resource.Type type,
+                                                                  StreamProvider streamProvider,
                                                                   ComponentSSLConfiguration configuration,
-                                                                  GangliaHostProvider hostProvider,
+                                                                  MetricHostProvider hostProvider,
                                                                   String clusterNamePropertyId,
                                                                   String componentNamePropertyId) {
-    return new GangliaComponentPropertyProvider(PropertyHelper.getGangliaPropertyIds(type),
-        streamProvider, configuration, hostProvider, clusterNamePropertyId, componentNamePropertyId);
+    return MetricsPropertyProvider.createInstance(getMetricsServiceType(), type,
+      PropertyHelper.getMetricPropertyIds(type), streamProvider, configuration,
+      hostProvider, clusterNamePropertyId, null, componentNamePropertyId);
   }
 
 
   /**
    * Create the Ganglia host component property provider for the given type.
    */
-  private PropertyProvider createGangliaHostComponentPropertyProvider(Resource.Type type, StreamProvider streamProvider,
+  private PropertyProvider createMetricsHostComponentPropertyProvider(Resource.Type type,
+                                                                      StreamProvider streamProvider,
                                                                       ComponentSSLConfiguration configuration,
-                                                                      GangliaHostProvider hostProvider,
+                                                                      MetricHostProvider hostProvider,
                                                                       String clusterNamePropertyId,
                                                                       String hostNamePropertyId,
                                                                       String componentNamePropertyId) {
 
-    return new GangliaHostComponentPropertyProvider(PropertyHelper.getGangliaPropertyIds(type), streamProvider,
-        configuration, hostProvider, clusterNamePropertyId, hostNamePropertyId, componentNamePropertyId);
+    return MetricsPropertyProvider.createInstance(getMetricsServiceType(), type,
+      PropertyHelper.getMetricPropertyIds(type), streamProvider, configuration,
+      hostProvider, clusterNamePropertyId, hostNamePropertyId, componentNamePropertyId);
   }
 
   /**

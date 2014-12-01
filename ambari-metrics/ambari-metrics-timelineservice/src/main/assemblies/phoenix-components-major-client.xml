@@ -1,0 +1,53 @@
+<?xml version='1.0'?>
+<!--
+  ~ Licensed to the Apache Software Foundation (ASF) under one
+  ~ or more contributor license agreements.  See the NOTICE file
+  ~ distributed with this work for additional information
+  ~ regarding copyright ownership.  The ASF licenses this file
+  ~ to you under the Apache License, Version 2.0 (the
+  ~ "License"); you may not use this file except in compliance
+  ~ with the License.  You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<component>
+  <!-- Components that the client needs (except for HBase) -->
+  <dependencySets>
+    <dependencySet>
+      <!-- Unpack all the dependencies to class files, since java doesn't support
+        jar of jars for running -->
+      <unpack>true</unpack>
+      <!-- save these dependencies to the top-level -->
+      <outputDirectory>/</outputDirectory>
+      <!-- Maybe a blacklist is easier? -->
+      <includes>
+        <!-- We use a newer version of guava than HBase - this might be an issue? -->
+        <include>com.google.guava:guava</include>
+        <!-- HBase also pulls in these dependencies on its own, should we include-them? -->
+        <include>com.google.protobuf:protobuf-java</include>
+        <include>org.slf4j:slf4j-api</include>
+        <include>org.slf4j:slf4j-log4j12</include>
+        <include>org.apache.zookeeper:zookeeper</include>
+        <include>log4j:log4j</include>
+        <include>org.apache.hadoop:hadoop*</include>
+        <include>commons-configuration:commons-configuration</include>
+        <include>commons-io:commons-io</include>
+        <include>commons-logging:commons-logging</include>
+        <include>commons-lang:commons-lang</include>
+        <include>commons-cli:commons-cli</include>
+        <include>org.apache.commons:commons-csv</include>
+        <include>org.codehaus.jackson:jackson-mapper-asl</include>
+        <include>org.codehaus.jackson:jackson-core-asl</include>
+        <include>org.xerial.snappy:snappy-java</include>
+        <include>commons-collections:commons-collections</include>
+      </includes>
+    </dependencySet>
+  </dependencySets>
+</component>

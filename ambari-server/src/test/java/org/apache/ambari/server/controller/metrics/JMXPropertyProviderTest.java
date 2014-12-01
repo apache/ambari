@@ -47,7 +47,7 @@ public class JMXPropertyProviderTest {
   public void testPopulateResources() throws Exception {
     TestStreamProvider  streamProvider = new TestStreamProvider();
     TestJMXHostProvider hostProvider = new TestJMXHostProvider(false);
-    TestMetricsHostProvider metricsHostProvider = new TestMetricsHostProvider();
+    TestMetricHostProvider metricsHostProvider = new TestMetricHostProvider();
 
     JMXPropertyProvider propertyProvider = new JMXPropertyProvider(
         PropertyHelper.getJMXPropertyIds(Resource.Type.HostComponent),
@@ -234,7 +234,7 @@ public class JMXPropertyProviderTest {
   public void testPopulateResources_singleProperty() throws Exception {
     TestStreamProvider  streamProvider = new TestStreamProvider();
     TestJMXHostProvider hostProvider = new TestJMXHostProvider(false);
-    TestMetricsHostProvider metricsHostProvider = new TestMetricsHostProvider();
+    TestMetricHostProvider metricsHostProvider = new TestMetricHostProvider();
 
     JMXPropertyProvider propertyProvider = new JMXPropertyProvider(
         PropertyHelper.getJMXPropertyIds(Resource.Type.HostComponent),
@@ -270,7 +270,7 @@ public class JMXPropertyProviderTest {
   public void testPopulateResources_category() throws Exception {
     TestStreamProvider  streamProvider = new TestStreamProvider();
     TestJMXHostProvider hostProvider = new TestJMXHostProvider(false);
-    TestMetricsHostProvider metricsHostProvider = new TestMetricsHostProvider();
+    TestMetricHostProvider metricsHostProvider = new TestMetricHostProvider();
 
     JMXPropertyProvider propertyProvider = new JMXPropertyProvider(
         PropertyHelper.getJMXPropertyIds(Resource.Type.HostComponent),
@@ -308,7 +308,7 @@ public class JMXPropertyProviderTest {
   public void testPopulateResourcesWithUnknownPort() throws Exception {
     TestStreamProvider  streamProvider = new TestStreamProvider();
     TestJMXHostProvider hostProvider = new TestJMXHostProvider(true);
-    TestMetricsHostProvider metricsHostProvider = new TestMetricsHostProvider();
+    TestMetricHostProvider metricsHostProvider = new TestMetricHostProvider();
 
     JMXPropertyProvider propertyProvider = new JMXPropertyProvider(
         PropertyHelper.getJMXPropertyIds(Resource.Type.HostComponent),
@@ -346,7 +346,7 @@ public class JMXPropertyProviderTest {
   public void testPopulateResourcesUnhealthyResource() throws Exception {
     TestStreamProvider  streamProvider = new TestStreamProvider();
     TestJMXHostProvider hostProvider = new TestJMXHostProvider(true);
-    TestMetricsHostProvider metricsHostProvider = new TestMetricsHostProvider();
+    TestMetricHostProvider metricsHostProvider = new TestMetricHostProvider();
 
     JMXPropertyProvider propertyProvider = new JMXPropertyProvider(
         PropertyHelper.getJMXPropertyIds(Resource.Type.HostComponent),
@@ -379,7 +379,7 @@ public class JMXPropertyProviderTest {
     // Set the provider to take 50 millis to return the JMX values
     TestStreamProvider  streamProvider = new TestStreamProvider(50L);
     TestJMXHostProvider hostProvider = new TestJMXHostProvider(true);
-    TestMetricsHostProvider metricsHostProvider = new TestMetricsHostProvider();
+    TestMetricHostProvider metricsHostProvider = new TestMetricHostProvider();
     Set<Resource> resources = new HashSet<Resource>();
 
     JMXPropertyProvider propertyProvider = new JMXPropertyProvider(
@@ -425,7 +425,7 @@ public class JMXPropertyProviderTest {
     // Set the provider to take 100 millis to return the JMX values
     TestStreamProvider  streamProvider = new TestStreamProvider(100L);
     TestJMXHostProvider hostProvider = new TestJMXHostProvider(true);
-    TestMetricsHostProvider metricsHostProvider = new TestMetricsHostProvider();
+    TestMetricHostProvider metricsHostProvider = new TestMetricHostProvider();
     Set<Resource> resources = new HashSet<Resource>();
 
     JMXPropertyProvider propertyProvider = new JMXPropertyProvider(
@@ -512,11 +512,31 @@ public class JMXPropertyProviderTest {
 
   }
 
-  public static class TestMetricsHostProvider implements MetricsHostProvider {
+  public static class TestMetricHostProvider implements MetricHostProvider {
+
+    @Override
+    public String getCollectorHostName(String clusterName, MetricsPropertyProvider.MetricsService service) throws SystemException {
+      return null;
+    }
 
     @Override
     public String getHostName(String clusterName, String componentName) {
       return null;
+    }
+
+    @Override
+    public String getCollectorPortName(String clusterName, MetricsPropertyProvider.MetricsService service) throws SystemException {
+      return null;
+    }
+
+    @Override
+    public boolean isCollectorHostLive(String clusterName, MetricsPropertyProvider.MetricsService service) throws SystemException {
+      return false;
+    }
+
+    @Override
+    public boolean isCollectorComponentLive(String clusterName, MetricsPropertyProvider.MetricsService service) throws SystemException {
+      return false;
     }
   }
 }

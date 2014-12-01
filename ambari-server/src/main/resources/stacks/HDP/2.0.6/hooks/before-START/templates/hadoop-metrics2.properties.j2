@@ -63,3 +63,21 @@ supervisor.sink.ganglia.servers={{ganglia_server_host}}:8650
 resourcemanager.sink.ganglia.tagsForPrefix.yarn=Queue
 
 {% endif %}
+
+{% if has_metric_collector %}
+
+*.period=60
+*.sink.timeline.class=org.apache.hadoop.metrics2.sink.timeline.TimelineMetricsSink
+*.sink.timeline.period=10
+datanode.sink.timeline.collector={{metric_collector_host}}:8188
+namenode.sink.timeline.collector={{metric_collector_host}}:8188
+resourcemanager.sink.timeline.collector={{metric_collector_host}}:8188
+nodemanager.sink.timeline.collector={{metric_collector_host}}:8188
+historyserver.sink.timeline.collector={{metric_collector_host}}:8188
+journalnode.sink.timeline.collector={{metric_collector_host}}:8188
+nimbus.sink.timeline.collector={{metric_collector_host}}:8188
+supervisor.sink.timeline.collector={{metric_collector_host}}:8188
+maptask.sink.timeline.collector={{metric_collector_host}}:8188
+reducetask.sink.timeline.collector={{metric_collector_host}}:8188
+
+{% endif %}

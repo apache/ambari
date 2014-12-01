@@ -79,3 +79,27 @@ hbase.sink.ganglia.period=10
 .sink.ganglia.dmax=jvm.metrics.threadsBlocked=70,jvm.metrics.memHeapUsedM=40
 
 hbase.sink.ganglia.servers={{ganglia_server_host}}:8663
+
+{% if has_metric_collector %}
+
+# HBase-specific configuration to reset long-running stats (e.g. compactions)
+# If this variable is left out, then the default is no expiration.
+hbase.extendedperiod = 3600
+
+hbase.class=org.apache.hadoop.metrics2.sink.timeline.TimelineMetricsSink
+hbase.period=10
+hbase.collector={{metric_collector_host}}:8188
+
+jvm.class=org.apache.hadoop.metrics2.sink.timeline.TimelineMetricsSink
+jvm.period=10
+jvm.collector={{metric_collector_host}}:8188
+
+rpc.class=org.apache.hadoop.metrics2.sink.timeline.TimelineMetricsSink
+rpc.period=10
+rpc.collector={{metric_collector_host}}:8188
+
+hbase.sink.timeline.class=org.apache.hadoop.metrics2.sink.timeline.TimelineMetricsSink
+hbase.sink.timeline.period=10
+hbase.sink.timeline.collector={{metric_collector_host}}:8188
+
+{% endif %}

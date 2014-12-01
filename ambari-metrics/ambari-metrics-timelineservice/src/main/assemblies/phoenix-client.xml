@@ -1,0 +1,62 @@
+<?xml version='1.0'?>
+<!--
+  ~ Licensed to the Apache Software Foundation (ASF) under one
+  ~ or more contributor license agreements.  See the NOTICE file
+  ~ distributed with this work for additional information
+  ~ regarding copyright ownership.  The ASF licenses this file
+  ~ to you under the Apache License, Version 2.0 (the
+  ~ "License"); you may not use this file except in compliance
+  ~ with the License.  You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<assembly xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.0 http://maven.apache.org/xsd/assembly-1.1.0.xsd">
+  <id>client</id>
+  <!-- All the dependencies (unpacked) necessary to run phoenix from a single, stand-alone jar -->
+  <formats>
+    <format>jar</format>
+  </formats>
+  <includeBaseDirectory>false</includeBaseDirectory>
+
+  <componentDescriptors>
+    <componentDescriptor>src/main/assemblies/phoenix-components-minimal.xml</componentDescriptor>
+    <componentDescriptor>src/main/assemblies/phoenix-components-major-client.xml</componentDescriptor>
+  </componentDescriptors>
+
+  <dependencySets>
+    <dependencySet>
+      <!-- Unpack all the dependencies to class files, since java doesn't support
+        jar of jars for running -->
+      <unpack>true</unpack>
+      <!-- save these dependencies to the top-level -->
+      <outputDirectory>/</outputDirectory>
+      <includes>
+        <include>jline:jline</include>
+        <include>sqlline:sqlline</include>
+        <include>org.apache.hbase:hbase*</include>
+        <include>org.cloudera.htrace:htrace-core</include>
+        <include>io.netty:netty</include>
+        <include>commons-codec:commons-codec</include>
+      </includes>
+    </dependencySet>
+
+    <!-- Make sure we get all the components, not just the minimal client ones (e.g.
+      phoenix-flume, phoenix-pig, etc) -->
+    <dependencySet>
+      <outputDirectory>/</outputDirectory>
+      <unpack>true</unpack>
+      <includes>
+        <include>org.apache.phoenix:phoenix-*</include>
+      </includes>
+    </dependencySet>
+  </dependencySets>
+</assembly>

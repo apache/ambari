@@ -112,7 +112,7 @@ public class PropertyHelper {
     return propertyIds;
   }
 
-  public static Map<String, Map<String, PropertyInfo>> getGangliaPropertyIds(Resource.Type resourceType) {
+  public static Map<String, Map<String, PropertyInfo>> getMetricPropertyIds(Resource.Type resourceType) {
     return GANGLIA_PROPERTY_IDS.get(resourceType.getInternalType());
   }
 

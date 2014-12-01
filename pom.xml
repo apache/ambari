@@ -254,6 +254,11 @@
 
             <!--Velocity log -->
             <exclude>**/velocity.log*</exclude>
+
+            <!-- psutil : external lib, Apache 2.0 license included as a source file -->
+            <exclude>ambari-metrics/ambari-metrics-host-monitoring/src/main/python/psutil/**</exclude>
+            <exclude>ambari-metrics/ambari-metrics-timelineservice/src/test/resources/lib/org/apache/phoenix/phoenix-core-tests/4.2.0/phoenix-core-tests-4.2.0.pom</exclude>
+            <exclude>ambari-metrics/ambari-metrics-timelineservice/src/test/resources/lib/org/apache/phoenix/phoenix-core-tests/maven-metadata-local.xml</exclude>
           </excludes>
         </configuration>
         <executions>

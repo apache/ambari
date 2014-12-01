@@ -380,11 +380,31 @@ public class RestMetricsPropertyProviderTest {
     Assert.assertNull(resource.getPropertyValue("metrics/api/cluster/summary/supervisors"));
   }
 
-  public static class TestMetricsHostProvider implements MetricsHostProvider {
+  public static class TestMetricsHostProvider implements MetricHostProvider {
+
+    @Override
+    public String getCollectorHostName(String clusterName, MetricsPropertyProvider.MetricsService service) throws SystemException {
+      return null;
+    }
 
     @Override
     public String getHostName(String clusterName, String componentName) {
       return null;
+    }
+
+    @Override
+    public String getCollectorPortName(String clusterName, MetricsPropertyProvider.MetricsService service) throws SystemException {
+      return null;
+    }
+
+    @Override
+    public boolean isCollectorHostLive(String clusterName, MetricsPropertyProvider.MetricsService service) throws SystemException {
+      return false;
+    }
+
+    @Override
+    public boolean isCollectorComponentLive(String clusterName, MetricsPropertyProvider.MetricsService service) throws SystemException {
+      return false;
     }
   }
 

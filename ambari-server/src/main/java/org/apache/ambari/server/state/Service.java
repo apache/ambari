@@ -132,6 +132,7 @@ public interface Service {
     PIG,
     FLUME,
     YARN,
-    MAPREDUCE2
+    MAPREDUCE2,
+    AMS
   }
 }

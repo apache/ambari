@@ -67,6 +67,7 @@ jtnode_host = default("/clusterHostInfo/jtnode_host", [])
 namenode_host = default("/clusterHostInfo/namenode_host", [])
 zk_hosts = default("/clusterHostInfo/zookeeper_hosts", [])
 ganglia_server_hosts = default("/clusterHostInfo/ganglia_server_host", [])
+ams_collector_hosts = default("/clusterHostInfo/metric_collector_hosts", [])
 
 has_namenode = not len(namenode_host) == 0
 has_resourcemanager = not len(rm_host) == 0
@@ -77,6 +78,7 @@ has_hive_server_host = not len(hive_server_host)  == 0
 has_hbase_masters = not len(hbase_master_hosts) == 0
 has_zk_host = not len(zk_hosts) == 0
 has_ganglia_server = not len(ganglia_server_hosts) == 0
+has_metric_collector = not len(ams_collector_hosts) == 0
 
 is_namenode_master = hostname in namenode_host
 is_jtnode_master = hostname in jtnode_host
@@ -86,6 +88,9 @@ is_hbase_master = hostname in hbase_master_hosts
 is_slave = hostname in slave_hosts
 if has_ganglia_server:
   ganglia_server_host = ganglia_server_hosts[0]
+if has_metric_collector:
+  metric_collector_host = ams_collector_hosts[0]
+
 #hadoop params
 
 if has_namenode:

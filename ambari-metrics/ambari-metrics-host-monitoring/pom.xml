@@ -1,0 +1,273 @@
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                      http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+  <parent>
+    <artifactId>ambari-metrics</artifactId>
+    <groupId>org.apache.ambari</groupId>
+    <version>0.1.0-SNAPSHOT</version>
+  </parent>
+  <modelVersion>4.0.0</modelVersion>
+  <packaging>pom</packaging>
+  <version>0.1.0-SNAPSHOT</version>
+  <artifactId>ambari-metrics-host-monitoring</artifactId>
+  <properties>
+    <resmonitor.install.dir>
+      /usr/lib/python2.6/site-packages/resource_monitoring
+    </resmonitor.install.dir>
+  </properties>
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-clean-plugin</artifactId>
+        <version>2.6</version>
+        <configuration>
+          <filesets>
+            <fileset>
+              <directory>${project.basedir}/src/main/python/psutil/build/</directory>
+              <includes>
+                <include>**/*</include>
+              </includes>
+              <followSymlinks>false</followSymlinks>
+            </fileset>
+          </filesets>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>1.8</version>
+        <executions>
+          <execution>
+            <id>parse-version</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>parse-version</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>regex-property</id>
+            <goals>
+              <goal>regex-property</goal>
+            </goals>
+            <configuration>
+              <name>ambariVersion</name>
+              <value>${project.version}</value>
+              <regex>^([0-9]+)\.([0-9]+)\.([0-9]+)(\.|-).*</regex>
+              <replacement>$1.$2.$3</replacement>
+              <failIfNoMatch>false</failIfNoMatch>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.0</version>
+      </plugin>
+      <plugin>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <configuration>
+          <tarLongFileMode>gnu</tarLongFileMode>
+          <descriptors>
+            <descriptor>${project.basedir}/../../ambari-project/src/main/assemblies/empty.xml</descriptor>
+          </descriptors>
+        </configuration>
+        <executions>
+          <execution>
+            <id>build-tarball</id>
+            <phase>none</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>rpm-maven-plugin</artifactId>
+        <version>2.0.1</version>
+        <executions>
+          <execution>
+            <!-- unbinds rpm creation from maven lifecycle -->
+            <phase>none</phase>
+            <goals>
+              <goal>rpm</goal>
+            </goals>
+          </execution>
+        </executions>
+
+        <configuration>
+          <name>ambari-metrics-monitor</name>
+          <group>Development</group>
+          <needarch>x86_64</needarch>
+          <autoRequires>false</autoRequires>
+          <requires>
+            <require>ambari-metrics-hadoop-sink</require>
+            <require>${python.ver}</require>
+            <require>gcc</require>
+            <require>python-devel</require>
+          </requires>
+          <preremoveScriptlet>
+            <scriptFile>src/main/package/rpm/preremove.sh</scriptFile>
+            <fileEncoding>utf-8</fileEncoding>
+          </preremoveScriptlet>
+          <mappings>
+            <mapping>
+              <directory>${resmonitor.install.dir}</directory>
+              <username>root</username>
+              <groupname>root</groupname>
+              <sources>
+                <source>
+                  <!--<location>-->
+                  <!--${project.build.directory}/${project.artifactId}-${project.version}/resource_monitoring/external/build/*-->
+                  <!--</location>-->
+                  <!--<location>-->
+                  <!--${project.build.directory}/${project.artifactId}-${project.version}/resource_monitoring/core-->
+                  <!--</location>-->
+                  <!--<location>-->
+                  <!--${project.build.directory}/${project.artifactId}-${project.version}/resource_monitoring/__init__.py-->
+                  <!--</location>-->
+                  <location>
+                    ${project.basedir}/src/main/python/__init__.py
+                  </location>
+                </source>
+                <source>
+                  <location>
+                    ${project.basedir}/src/main/python/main.py
+                  </location>
+                </source>
+              </sources>
+            </mapping>
+            <mapping>
+              <directory>${resmonitor.install.dir}/core</directory>
+              <sources>
+                <source>
+                  <location>
+                    ${project.basedir}/src/main/python/core
+                  </location>
+                </source>
+              </sources>
+            </mapping>
+            <mapping>
+              <directory>${resmonitor.install.dir}/psutil</directory>
+              <sources>
+                <source>
+                  <location>
+                    ${project.basedir}/src/main/python/psutil
+                  </location>
+                </source>
+              </sources>
+            </mapping>
+            <mapping>
+              <directory>/etc/ambari-metrics-monitor/conf</directory>
+              <configuration>true</configuration>
+            </mapping>
+            <mapping>
+              <directory>/var/run/ambari-metrics-monitor</directory>
+            </mapping>
+            <mapping>
+              <directory>/var/log/ambari-metrics-monitor</directory>
+            </mapping>
+            <mapping>
+              <directory>/usr/sbin</directory>
+              <filemode>755</filemode>
+              <username>root</username>
+              <groupname>root</groupname>
+              <directoryIncluded>false</directoryIncluded>
+              <sources>
+                <source>
+                  <location>conf/unix/ambari-metrics-monitor</location>
+                  <filter>true</filter>
+                </source>
+              </sources>
+            </mapping>
+          </mappings>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>1.7</version>
+        <executions>
+          <execution>
+            <id>psutils-compile</id>
+            <phase>process-classes</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target name="psutils-compile">
+                <exec dir="${basedir}/src/main/python/psutil" executable="python" failonerror="true">
+                  <arg value="setup.py" />
+                  <arg value="build" />
+                  <arg value="--build-platlib" />
+                  <arg value="${basedir}/target/psutil_build" />
+                </exec>
+              </target>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <configuration>
+              <executable>python</executable>
+              <workingDirectory>src/test/python</workingDirectory>
+              <arguments>
+                <argument>unitTests.py</argument>
+              </arguments>
+              <environmentVariables>
+                <PYTHONPATH>../../main/python:$PYTHONPATH</PYTHONPATH>
+              </environmentVariables>
+              <skip>${skipTests}</skip>
+            </configuration>
+            <id>python-test</id>
+            <phase>test</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.rat</groupId>
+        <artifactId>apache-rat-plugin</artifactId>
+        <configuration>
+          <excludes>
+            <exclude>src/main/python/psutil/**</exclude>
+            <exclude>.pydevproject</exclude>
+          </excludes>
+        </configuration>
+        <executions>
+          <execution>
+            <phase>test</phase>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>

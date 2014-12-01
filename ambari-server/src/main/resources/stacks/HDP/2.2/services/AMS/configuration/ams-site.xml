@@ -1,0 +1,221 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+/**
+ *
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+<configuration>
+  <property>
+    <name>timeline.metrics.service.operation.mode</name>
+    <value>embedded</value>
+    <description>
+      Service Operation modes:
+      1) embedded: Metrics stored on local FS, HBase in Standalone mode
+      2) distributed: HBase daemons writing to HDFS
+      3) external: External HBase storage backend
+    </description>
+  </property>
+  <property>
+    <name>timeline.metrics.aggregator.checkpoint.dir</name>
+    <value>/tmp</value>
+    <description>
+      Directory to store aggregator checkpoints. Change to a permanent
+      location so that checkpoint ar not lost.
+    </description>
+  </property>
+  <property>
+    <name>timeline.metrics.host.aggregator.hourly.interval</name>
+    <value>3600</value>
+    <description>
+      Time in seconds to sleep for the hourly resolution host based
+      aggregator. Default resolution is 1 hour.
+    </description>
+  </property>
+  <property>
+    <name>timeline.metrics.host.aggregator.minute.interval</name>
+    <value>300</value>
+    <description>
+      Time in seconds to sleep for the minute resolution host based
+      aggregator. Default resolution is 5 minutes.
+    </description>
+  </property>
+  <property>
+    <name>timeline.metrics.cluster.aggregator.hourly.interval</name>
+    <value>3600</value>
+    <description>
+      Time in seconds to sleep for the hourly resolution cluster wide
+      aggregator. Default is 1 hour.
+    </description>
+  </property>
+  <property>
+    <name>timeline.metrics.cluster.aggregator.minute.interval</name>
+    <value>120</value>
+    <description>
+      Time in seconds to sleep for the minute resolution cluster wide
+      aggregator. Default resolution is 2 minutes.
+    </description>
+  </property>
+  <property>
+    <name>timeline.metrics.host.aggregator.hourly.checkpointCutOffMultiplier</name>
+    <value>2</value>
+    <description>
+      Multiplier value * interval = Max allowed checkpoint lag. Effectively
+      if aggregator checkpoint is greater than max allowed checkpoint delay,
+      the checkpoint will be discarded by the aggregator.
+    </description>
+  </property>
+  <property>
+    <name>timeline.metrics.host.aggregator.minute.checkpointCutOffMultiplier</name>
+    <value>2</value>
+    <description>
+      Multiplier value * interval = Max allowed checkpoint lag. Effectively
+      if aggregator checkpoint is greater than max allowed checkpoint delay,
+      the checkpoint will be discarded by the aggregator.
+    </description>
+  </property>
+  <property>
+    <name>timeline.metrics.cluster.aggregator.hourly.checkpointCutOffMultiplier</name>
+    <value>2</value>
+    <description>
+      Multiplier value * interval = Max allowed checkpoint lag. Effectively
+      if aggregator checkpoint is greater than max allowed checkpoint delay,
+      the checkpoint will be discarded by the aggregator.
+    </description>
+  </property>
+  <property>
+    <name>timeline.metrics.cluster.aggregator.minute.checkpointCutOffMultiplier</name>
+    <value>2</value>
+    <description>
+      Multiplier value * interval = Max allowed checkpoint lag. Effectively
+      if aggregator checkpoint is greater than max allowed checkpoint delay,
+      the checkpoint will be discarded by the aggregator.
+    </description>
+  </property>
+  <property>
+    <name>timeline.metrics.host.aggregator.hourly.disabled</name>
+    <value>false</value>
+    <description>
+      Disable host based hourly aggregations.
+    </description>
+  </property>
+  <property>
+    <name>timeline.metrics.host.aggregator.minute.disabled</name>
+    <value>false</value>
+    <description>
+      Disable host based minute aggregations.
+    </description>
+  </property>
+  <property>
+    <name>timeline.metrics.cluster.aggregator.hourly.disabled</name>
+    <value>false</value>
+    <description>
+      Disable cluster based hourly aggregations.
+    </description>
+  </property>
+  <property>
+    <name>timeline.metrics.cluster.aggregator.minute.disabled</name>
+    <value>false</value>
+    <description>
+      Disable cluster based minute aggregations.
+    </description>
+  </property>
+  <property>
+    <name>timeline.metrics.cluster.aggregator.minute.timeslice.interval</name>
+    <value>15</value>
+    <description>
+      Lowest resolution of desired data for cluster level minute aggregates.
+    </description>
+  </property>
+  <property>
+    <name>timeline.metrics.host.aggregator.hourly.ttl</name>
+    <value>2592000</value>
+    <description>
+      Host based hourly resolution data purge interval. Default is 30 days.
+    </description>
+  </property>
+  <property>
+    <name>timeline.metrics.host.aggregator.minute.ttl</name>
+    <value>604800</value>
+    <description>
+      Host based minute resolution data purge interval. Default is 7 days.
+    </description>
+  </property>
+  <property>
+    <name>timeline.metrics.cluster.aggregator.minute.ttl</name>
+    <value>2592000</value>
+    <description>
+      Cluster wide minute resolution data purge interval. Default is 30 days.
+    </description>
+  </property>
+  <property>
+    <name>timeline.metrics.cluster.aggregator.hourly.ttl</name>
+    <value>31536000</value>
+    <description>
+      Cluster wide hourly resolution data purge interval. Default is 1 year.
+    </description>
+  </property>
+  <property>
+    <name>timeline.metrics.host.aggregator.ttl</name>
+    <value>86400</value>
+    <description>
+      1 minute resolution data purge interval. Default is 1 day.
+    </description>
+  </property>
+  <property>
+    <name>timeline.metrics.hbase.data.block.encoding</name>
+    <value>FAST_DIFF</value>
+    <description>
+      Codecs are enabled on a table by setting the DATA_BLOCK_ENCODING property.
+      Default encoding is FAST_DIFF. This can be changed only before creating
+      tables.
+    </description>
+  </property>
+  <property>
+    <name>timeline.metrics.hbase.compression.scheme</name>
+    <value>SNAPPY</value>
+    <description>
+      Compression codes need to be installed and available before setting the
+      scheme. Default compression is SNAPPY. Disable by setting to None.
+      This can be changed only before creating tables.
+    </description>
+  </property>
+  <property>
+    <name>timeline.metrics.service.default.result.limit</name>
+    <value>5760</value>
+    <description>
+      Max result limit on number of rows returned. Calculated as follows:
+      4 aggregate metrics/min * 60 * 24: Retrieve aggregate data for 1 day.
+    </description>
+  </property>
+  <property>
+    <name>timeline.metrics.service.checkpointDelay</name>
+    <value>120</value>
+    <description>
+      Time in seconds to sleep on the first run or when the checkpoint is
+      too old.
+    </description>
+  </property>
+  <property>
+    <name>timeline.metrics.service.resultset.fetchSize</name>
+    <value>2000</value>
+    <description>
+      JDBC resultset prefect size for aggregator queries.
+    </description>
+  </property>
+</configuration>

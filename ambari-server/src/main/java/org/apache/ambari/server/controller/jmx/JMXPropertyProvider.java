@@ -18,6 +18,20 @@
 
 package org.apache.ambari.server.controller.jmx;
 
+import org.apache.ambari.server.controller.internal.PropertyInfo;
+import org.apache.ambari.server.controller.metrics.MetricHostProvider;
+import org.apache.ambari.server.controller.metrics.ThreadPoolEnabledPropertyProvider;
+import org.apache.ambari.server.controller.spi.Predicate;
+import org.apache.ambari.server.controller.spi.Request;
+import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.SystemException;
+import org.apache.ambari.server.controller.utilities.StreamProvider;
+import org.codehaus.jackson.map.DeserializationConfig;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.ObjectReader;
+import org.codehaus.jackson.type.TypeReference;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
@@ -30,26 +44,10 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.ambari.server.controller.internal.PropertyInfo;
-import org.apache.ambari.server.controller.metrics.MetricsHostProvider;
-import org.apache.ambari.server.controller.metrics.MetricsProvider;
-import org.apache.ambari.server.controller.spi.Predicate;
-import org.apache.ambari.server.controller.spi.Request;
-import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.spi.SystemException;
-import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.apache.ambari.server.controller.utilities.StreamProvider;
-import org.codehaus.jackson.map.DeserializationConfig;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.ObjectReader;
-import org.codehaus.jackson.type.TypeReference;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
  * Property provider implementation for JMX sources.
  */
-public class JMXPropertyProvider extends MetricsProvider {
+public class JMXPropertyProvider extends ThreadPoolEnabledPropertyProvider {
 
   private static final String NAME_KEY = "name";
   private static final String PORT_KEY = "tag.port";
@@ -110,7 +108,7 @@ public class JMXPropertyProvider extends MetricsProvider {
    * @param componentMetrics         the map of supported metrics
    * @param streamProvider           the stream provider
    * @param jmxHostProvider          the JMX host mapping
-   * @param metricsHostProvider      the host mapping
+   * @param metricHostProvider      the host mapping
    * @param clusterNamePropertyId    the cluster name property id
    * @param hostNamePropertyId       the host name property id
    * @param componentNamePropertyId  the component name property id
@@ -119,13 +117,13 @@ public class JMXPropertyProvider extends MetricsProvider {
   public JMXPropertyProvider(Map<String, Map<String, PropertyInfo>> componentMetrics,
                              StreamProvider streamProvider,
                              JMXHostProvider jmxHostProvider,
-                             MetricsHostProvider metricsHostProvider,
+                             MetricHostProvider metricHostProvider,
                              String clusterNamePropertyId,
                              String hostNamePropertyId,
                              String componentNamePropertyId,
                              String statePropertyId) {
 
-    super(componentMetrics, hostNamePropertyId, metricsHostProvider);
+    super(componentMetrics, hostNamePropertyId, metricHostProvider);
 
     this.streamProvider           = streamProvider;
     this.jmxHostProvider          = jmxHostProvider;
@@ -148,7 +146,7 @@ public class JMXPropertyProvider extends MetricsProvider {
    * @return the populated resource; null if the resource should NOT be part of the result set for the given predicate
    */
   @Override
-  protected Resource populateResource(Resource resource, Request request, Predicate predicate, MetricsProvider.Ticket ticket)
+  protected Resource populateResource(Resource resource, Request request, Predicate predicate, Ticket ticket)
       throws SystemException {
 
     Set<String> ids = getRequestPropertyIds(request, predicate);

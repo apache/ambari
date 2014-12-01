@@ -17,25 +17,17 @@
  */
 package org.apache.ambari.server.controller.internal;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-
+import com.google.inject.Inject;
+import com.google.inject.Injector;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
-import org.apache.ambari.server.controller.ganglia.GangliaComponentPropertyProvider;
-import org.apache.ambari.server.controller.ganglia.GangliaHostComponentPropertyProvider;
-import org.apache.ambari.server.controller.ganglia.GangliaHostProvider;
-import org.apache.ambari.server.controller.ganglia.GangliaPropertyProvider;
 import org.apache.ambari.server.controller.jmx.JMXHostProvider;
 import org.apache.ambari.server.controller.jmx.JMXPropertyProvider;
-import org.apache.ambari.server.controller.metrics.MetricsHostProvider;
+import org.apache.ambari.server.controller.metrics.MetricHostProvider;
+import org.apache.ambari.server.controller.metrics.MetricsPropertyProvider;
+import org.apache.ambari.server.controller.metrics.ganglia.GangliaComponentPropertyProvider;
+import org.apache.ambari.server.controller.metrics.ganglia.GangliaHostComponentPropertyProvider;
+import org.apache.ambari.server.controller.metrics.ganglia.GangliaPropertyProvider;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.PropertyProvider;
 import org.apache.ambari.server.controller.spi.Request;
@@ -50,8 +42,17 @@ import org.apache.ambari.server.state.stack.MetricDefinition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.inject.Inject;
-import com.google.inject.Injector;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+
+import static org.apache.ambari.server.controller.metrics.MetricsPropertyProvider.MetricsService;
 
 /**
  * This class analyzes a service's metrics to determine if additional
@@ -77,11 +78,11 @@ public class StackDefinedPropertyProvider implements PropertyProvider {
   private ComponentSSLConfiguration sslConfig = null;
   private StreamProvider streamProvider = null;
   private JMXHostProvider jmxHostProvider;
-  private GangliaHostProvider gangliaHostProvider;
   private PropertyProvider defaultJmx = null;
   private PropertyProvider defaultGanglia = null;
 
-  private final MetricsHostProvider metricsHostProvider;
+  private final MetricHostProvider metricHostProvider;
+  private MetricsService metricsService = MetricsService.GANGLIA;
 
   /**
    * PropertyHelper/AbstractPropertyProvider expect map of maps,
@@ -97,19 +98,17 @@ public class StackDefinedPropertyProvider implements PropertyProvider {
   }
 
   public StackDefinedPropertyProvider(Resource.Type type,
-      JMXHostProvider jmxHostProvider,
-      GangliaHostProvider gangliaHostProvider,
-      MetricsHostProvider metricsHostProvider,
-      StreamProvider streamProvider,
-      String clusterPropertyId,
-      String hostPropertyId,
-      String componentPropertyId,
-      String resourceStatePropertyId,
-      PropertyProvider defaultJmxPropertyProvider,
-      PropertyProvider defaultGangliaPropertyProvider
-  ) {
+                                      JMXHostProvider jmxHostProvider,
+                                      MetricHostProvider metricHostProvider,
+                                      StreamProvider streamProvider,
+                                      String clusterPropertyId,
+                                      String hostPropertyId,
+                                      String componentPropertyId,
+                                      String resourceStatePropertyId,
+                                      PropertyProvider defaultJmxPropertyProvider,
+                                      PropertyProvider defaultGangliaPropertyProvider) {
 
-    this.metricsHostProvider = metricsHostProvider;
+    this.metricHostProvider = metricHostProvider;
 
     if (null == clusterPropertyId)
       throw new NullPointerException("Cluster name property id cannot be null");
@@ -123,11 +122,30 @@ public class StackDefinedPropertyProvider implements PropertyProvider {
     componentNamePropertyId = componentPropertyId;
     this.resourceStatePropertyId = resourceStatePropertyId;
     this.jmxHostProvider = jmxHostProvider;
-    this.gangliaHostProvider = gangliaHostProvider;
     sslConfig = ComponentSSLConfiguration.instance();
     this.streamProvider = streamProvider;
     defaultJmx = defaultJmxPropertyProvider;
     defaultGanglia = defaultGangliaPropertyProvider;
+  }
+
+
+  public StackDefinedPropertyProvider(Resource.Type type,
+                                      MetricsService metricsService,
+                                      JMXHostProvider jmxHostProvider,
+                                      MetricHostProvider metricHostProvider,
+                                      StreamProvider streamProvider,
+                                      String clusterPropertyId,
+                                      String hostPropertyId,
+                                      String componentPropertyId,
+                                      String jmxStatePropertyId,
+                                      PropertyProvider defaultJmxPropertyProvider,
+                                      PropertyProvider defaultGangliaPropertyProvider) {
+
+    this(type, jmxHostProvider, metricHostProvider,
+      streamProvider, clusterPropertyId, hostPropertyId, componentPropertyId,
+      jmxStatePropertyId, defaultJmxPropertyProvider, defaultGangliaPropertyProvider);
+
+    this.metricsService = metricsService;
   }
 
 
@@ -164,7 +182,7 @@ public class StackDefinedPropertyProvider implements PropertyProvider {
             jmxMap.put(componentName, getPropertyInfo(m));
           } else {
             PropertyProvider pp = getDelegate(m,
-                streamProvider, metricsHostProvider,
+                streamProvider, metricHostProvider,
                 clusterNamePropertyId, hostNamePropertyId,
                 componentNamePropertyId, resourceStatePropertyId,
                 componentName);
@@ -180,22 +198,19 @@ public class StackDefinedPropertyProvider implements PropertyProvider {
       }
 
       if (gangliaMap.size() > 0) {
-        GangliaPropertyProvider gpp = type.equals (Resource.Type.Component) ?
-          new GangliaComponentPropertyProvider(gangliaMap,
-              streamProvider, sslConfig, gangliaHostProvider,
-              clusterNamePropertyId, componentNamePropertyId) :
-          new GangliaHostComponentPropertyProvider(gangliaMap,
-              streamProvider, sslConfig, gangliaHostProvider,
-              clusterNamePropertyId, hostNamePropertyId, componentNamePropertyId);
+        MetricsPropertyProvider propertyProvider =
+          MetricsPropertyProvider.createInstance(metricsService,
+            type, gangliaMap, streamProvider, sslConfig, metricHostProvider,
+            clusterNamePropertyId, hostNamePropertyId, componentNamePropertyId);
 
-          gpp.populateResources(resources, request, predicate);
+        propertyProvider.populateResources(resources, request, predicate);
       } else {
         defaultGanglia.populateResources(resources, request, predicate);
       }
 
       if (jmxMap.size() > 0) {
         JMXPropertyProvider jpp = new JMXPropertyProvider(jmxMap, streamProvider,
-            jmxHostProvider, metricsHostProvider,
+            jmxHostProvider, metricHostProvider,
             clusterNamePropertyId, hostNamePropertyId,
             componentNamePropertyId, resourceStatePropertyId);
 
@@ -289,7 +304,7 @@ public class StackDefinedPropertyProvider implements PropertyProvider {
 
   private PropertyProvider getDelegate(MetricDefinition definition,
                                        StreamProvider streamProvider,
-                                       MetricsHostProvider metricsHostProvider,
+                                       MetricHostProvider metricsHostProvider,
                                        String clusterNamePropertyId,
                                        String hostNamePropertyId,
                                        String componentNamePropertyId,
@@ -308,7 +323,7 @@ public class StackDefinedPropertyProvider implements PropertyProvider {
          * all implementations when modifying constructor interface
          */
         Constructor<?> ct = clz.getConstructor(Injector.class, Map.class,
-            Map.class, StreamProvider.class, MetricsHostProvider.class,
+            Map.class, StreamProvider.class, MetricHostProvider.class,
             String.class, String.class, String.class, String.class, String.class);
         Object o = ct.newInstance(
             injector,

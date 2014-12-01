@@ -336,7 +336,7 @@
         "temporal":true
       },
       "metrics/rpc/RpcQueueTime_avg_time":{
-        "metric":"rpc.metrics.RpcQueueTime_avg_time",
+        "metric":"rpc.rpc.RpcQueueTimeAvgTime",
         "pointInTime":true,
         "temporal":true
       },
@@ -2010,7 +2010,7 @@
         "temporal":true
       },
       "metrics/rpc/RpcQueueTime_avg_time":{
-        "metric":"rpc.rpc.RpcQueueTime_avg_time",
+        "metric":"rpc.rpc.RpcQueueTimeAvgTime",
         "pointInTime":false,
         "temporal":true
       },
