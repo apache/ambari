@@ -55,23 +55,25 @@
           </td>
           <td>{{{alertDefinition.status}}}</td>
           <td>{{alertDefinition.service.serviceName}}</td>
-          <td>{{alertDefinition.lastTriggeredFormatted}}</td>
+          <td><time class="timeago" {{bindAttr data-original-title="alertDefinition.lastTriggeredFormatted"}}>{{alertDefinition.lastTriggeredAgoFormatted}}</time></td>
           <td class="last toggle-state-button">
             {{#if alertDefinition.enabled}}
               {{t alerts.table.state.enabled}} &nbsp;&nbsp;
               {{#isAccessible ADMIN}}
-                <a href="#" {{action "toggleState" alertDefinition target="controller"}} {{bindAttr class=":enable-disable-button alertDefinition.enabled:enabled:disabled"}}
-                  {{bindAttr data-original-title="alerts.table.state.enabled.tooltip"}}>
-                    <span class="icon-off"></span>
-                </a>
+                <span class="enable-disable-button" {{bindAttr data-original-title="view.enabledTooltip"}}>
+                  <a href="#" {{action "toggleState" alertDefinition target="controller"}} {{bindAttr class="alertDefinition.enabled:enabled:disabled"}}>
+                      <span class="icon-off"></span>
+                  </a>
+                </span>
               {{/isAccessible}}
             {{else}}
               {{t alerts.table.state.disabled}} &nbsp;
               {{#isAccessible ADMIN}}
-                <a href="#" {{action "toggleState" alertDefinition target="controller"}} {{bindAttr class=":enable-disable-button alertDefinition.enabled:enabled:disabled"}}
-                  {{bindAttr data-original-title="alerts.table.state.disabled.tooltip"}}>
-                    <span class="icon-off"></span>
-                </a>
+                <span class="enable-disable-button" {{bindAttr data-original-title="view.disabledTooltip"}}>
+                  <a href="#" {{action "toggleState" alertDefinition target="controller"}} {{bindAttr class="alertDefinition.enabled:enabled:disabled"}}>
+                      <span class="icon-off"></span>
+                  </a>
+                </span>
               {{/isAccessible}}
             {{/if}}
           </td>

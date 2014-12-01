@@ -28,6 +28,10 @@ App.MainAlertDefinitionDetailsView = App.TableView.extend({
    */
   isLoaded: false,
 
+  content: function () {
+    return this.get('controller.alerts');
+  }.property('controller.alerts.@each'),
+
   willInsertElement: function () {
     var self = this,
       updater = App.router.get('updateController');
@@ -54,7 +58,14 @@ App.MainAlertDefinitionDetailsView = App.TableView.extend({
     this.filter();
   },
 
-  content: function () {
-    return this.get('controller.alerts');
-  }.property('controller.alerts.@each')
+  /**
+   * Update tooltips when <code>pageContent</code> is changed
+   * @method tooltipsUpdater
+   */
+  tooltipsUpdater: function () {
+    Em.run.next(this, function () {
+      App.tooltip($(".timeago"));
+    });
+  }.observes('pageContent.@each')
+
 });

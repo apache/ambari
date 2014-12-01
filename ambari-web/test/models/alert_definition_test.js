@@ -108,4 +108,18 @@ describe('App.AlertDefinition', function() {
 
   });
 
+  describe('#lastTriggeredAgoFormatted', function () {
+
+    it('should be empty', function () {
+      model.set('lastTriggered', 0);
+      expect(model.get('lastTriggeredAgoFormatted')).to.equal('');
+    });
+
+    it('should not be empty', function () {
+      model.set('lastTriggered', new Date().getTime() - 61000);
+      expect(model.get('lastTriggeredAgoFormatted')).to.equal('about a minute ago');
+    });
+
+  });
+
 });

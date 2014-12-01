@@ -20,6 +20,8 @@
 
 <div id="alert-definition-details">
   <div class="row-fluid">
+
+    {{! Left column }}
     <div class="span9">
       <div class="definition-name">
         {{#if controller.editing.label.isEditing}}
@@ -89,6 +91,9 @@
         {{/if}}
       </div>
     </div>
+    {{! Left column end }}
+
+    {{! Right column }}
     <div class="span3 right-column">
       <div class="service-name">
         {{t common.service}}: <span class="label label-info">{{controller.content.service.displayName}}</span>
@@ -124,6 +129,9 @@
       </div>
     </div>
   </div>
+  {{! Right column end }}
+
+  {{! List of alerts }}
   <div class="definition-details-block">
     <span class="instances-label">
       <strong>{{t alerts.definition.details.instances}}</strong>
@@ -149,7 +157,7 @@
             <tr>
               <td class="first">{{instance.state}}</td>
               <td><a {{action goToHostAlerts instance.host target="controller"}} href="#">{{instance.host.hostName}}</a></td>
-              <td>{{instance.lastTriggered}}</td>
+              <td><time class="timeago" {{bindAttr data-original-title="instance.lastTriggered"}}>{{instance.lastTriggeredAgoFormatted}}</time></td>
               <td>10</td>
               <td class="last">Admins</td>
             </tr>
@@ -170,6 +178,8 @@
 
     </div>
   </div>
+  {{! List of alerts end }}
+
 </div>
 {{else}}
   <div class="spinner"></div>

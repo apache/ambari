@@ -47,7 +47,7 @@
           <td class="first">{{alertInstance.label}}</td>
           <td>{{{alertInstance.status}}}</td>
           <td>{{alertInstance.service.serviceName}}</td>
-          <td>{{alertInstance.lastTriggered}}</td>
+          <td><time class="timeago" {{bindAttr data-original-title="instance.lastTriggered"}}>{{instance.lastTriggeredAgoFormatted}}</time></td>
           <td>{{alertInstance.formattedNotifications}}</td>
         </tr>
       {{/each}}

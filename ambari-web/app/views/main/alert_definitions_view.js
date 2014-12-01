@@ -30,9 +30,7 @@ App.MainAlertDefinitionsView = App.TableView.extend({
   }.property('controller.content.@each'),
 
   didInsertElement: function () {
-    Em.run.later(this, function () {
-      App.tooltip($(".enable-disable-button"));
-    }, 50) ;
+    this.tooltipsUpdater();
   },
 
   /**
@@ -43,6 +41,16 @@ App.MainAlertDefinitionsView = App.TableView.extend({
   }.property('content.length'),
 
   colPropAssoc: ['', 'label', 'summary', 'service.serviceName', 'lastTriggered', 'groups', 'enabled'],
+
+  /**
+   * @type {string}
+   */
+  enabledTooltip: Em.I18n.t('alerts.table.state.enabled.tooltip'),
+
+  /**
+   * @type {string}
+   */
+  disabledTooltip: Em.I18n.t('alerts.table.state.disabled.tooltip'),
 
   sortView: sort.wrapperView,
 
@@ -367,5 +375,16 @@ App.MainAlertDefinitionsView = App.TableView.extend({
     if (this.get('paginationRightClass') === 'paginate_next') {
       this._super();
     }
-  }
+  },
+
+  /**
+   * Update tooltips when <code>pageContent</code> is changed
+   * @method tooltipsUpdater
+   */
+  tooltipsUpdater: function () {
+    Em.run.next(this, function () {
+      App.tooltip($(".enable-disable-button, .timeago"));
+    });
+  }.observes('pageContent.@each')
+
 });

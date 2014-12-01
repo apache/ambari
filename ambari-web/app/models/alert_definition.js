@@ -64,6 +64,15 @@ App.AlertDefinition = DS.Model.extend({
   }.property('lastTriggered'),
 
   /**
+   * Formatted timestamp with <code>$.timeago</code>
+   * @type {string}
+   */
+  lastTriggeredAgoFormatted: function () {
+    var lastTriggered = this.get('lastTriggered');
+    return lastTriggered ? $.timeago(new Date(lastTriggered)): '';
+  }.property('lastTriggered'),
+
+  /**
    * Status generates from child-alerts
    * Format: 1 OK / 2 WARN / 1 CRIT / 1 UNKNOWN
    * If some there are no alerts with some state, this state isn't shown
