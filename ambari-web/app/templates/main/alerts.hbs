@@ -54,7 +54,7 @@
             <a href="#" {{action "gotoAlertDetails" alertDefinition}}>{{alertDefinition.label}}</a>
           </td>
           <td>{{{alertDefinition.status}}}</td>
-          <td>{{alertDefinition.service.serviceName}}</td>
+          <td>{{alertDefinition.service.displayName}}</td>
           <td><time class="timeago" {{bindAttr data-original-title="alertDefinition.lastTriggeredFormatted"}}>{{alertDefinition.lastTriggeredAgoFormatted}}</time></td>
           <td class="last toggle-state-button">
             {{#if alertDefinition.enabled}}
