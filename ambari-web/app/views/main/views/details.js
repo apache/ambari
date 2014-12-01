@@ -68,6 +68,7 @@ App.MainViewsDetailsView = Em.View.extend({
     if (iframe != null && iframe.length > 0) {
       var childrenHeight = 0;
       var iframeElement = iframe[0];
+      var pageScrollTop = $(window).scrollTop();
       // set iframe height to 'auto' to get actual scrollHeight
       iframeElement.style.height = 'auto';
       if (iframeElement.contentWindow != null
@@ -80,6 +81,7 @@ App.MainViewsDetailsView = Em.View.extend({
       var iFrameHeight = Math.max(childrenHeight, defaultHeight);
       console.debug("IFrame final height = ", iFrameHeight);
       iframe.css('height', iFrameHeight);
+      $(window).scrollTop(pageScrollTop);
     }
   },
 
