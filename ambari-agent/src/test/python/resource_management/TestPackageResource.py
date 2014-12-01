@@ -35,14 +35,12 @@ class TestPackageResource(TestCase):
     with Environment('/') as env:
       Package("some_package",
       )
-    call_mock.assert_has_calls([call("dpkg --get-selections | grep ^some-package$ | grep -v deinstall"),
-                                call(['/usr/bin/apt-get', '-q', '-o', "Dpkg::Options::='--force-confdef'", '--allow-unauthenticated', '--assume-yes', 'install', 'some-package'], 
-                                     sudo=True, env={'DEBIAN_FRONTEND': 'noninteractive'}),
-                                call(['/usr/bin/apt-get', 'update', '-qq'], sudo=True)
-                              ])
+    call_mock.assert_has_calls([call("dpkg --get-selections | grep -v deinstall | awk '{print $1}' | grep ^some-package$"),
+                                call(['/usr/bin/apt-get', '-q', '-o', 'Dpkg::Options::=--force-confdef', '--allow-unauthenticated', '--assume-yes', 'install', 'some-package'], sudo=True, env={'DEBIAN_FRONTEND': 'noninteractive'}),
+                                call(['/usr/bin/apt-get', 'update', '-qq'], sudo=True)])
     
-    shell_mock.assert_has_calls([call(['/usr/bin/apt-get', '-q', '-o', "Dpkg::Options::='--force-confdef'", '--allow-unauthenticated', '--assume-yes', 'install',
-                                        'some-package'], sudo=True)])
+    shell_mock.assert_has_calls([call(['/usr/bin/apt-get', '-q', '-o', 'Dpkg::Options::=--force-confdef', 
+                                       '--allow-unauthenticated', '--assume-yes', 'install', 'some-package'], sudo=True)])
   
   @patch.object(shell, "call")
   @patch.object(shell, "checked_call")
@@ -52,10 +50,8 @@ class TestPackageResource(TestCase):
     with Environment('/') as env:
       Package("some_package",
       )
-    call_mock.assert_has_calls([call("dpkg --get-selections | grep ^some-package$ | grep -v deinstall"),
-                                call(['/usr/bin/apt-get', '-q', '-o', "Dpkg::Options::='--force-confdef'", '--allow-unauthenticated', '--assume-yes', 'install', 'some-package'], 
-                                     sudo=True, env={'DEBIAN_FRONTEND': 'noninteractive'})
-                              ])
+    call_mock.assert_has_calls([call("dpkg --get-selections | grep -v deinstall | awk '{print $1}' | grep ^some-package$"),
+                                call(['/usr/bin/apt-get', '-q', '-o', 'Dpkg::Options::=--force-confdef', '--allow-unauthenticated', '--assume-yes', 'install', 'some-package'], sudo=True, env={'DEBIAN_FRONTEND': 'noninteractive'})])
     
     self.assertEqual(shell_mock.call_count, 0, "shell.checked_call shouldn't be called")
 
@@ -80,7 +76,7 @@ class TestPackageResource(TestCase):
     with Environment('/') as env:
       Package("some_package",
       )
-    call_mock.assert_called_with('rpm -qa | grep ^some_package')
+    call_mock.assert_called_with('installed_pkgs=`rpm -qa some_package` ; [ ! -z "$installed_pkgs" ]')
     shell_mock.assert_called_with(['/usr/bin/zypper', '--quiet', 'install', '--auto-agree-with-licenses', '--no-confirm', 'some_package'], sudo=True)
 
   @patch.object(shell, "call", new = MagicMock(return_value=(0, None)))
