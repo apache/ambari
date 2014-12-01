@@ -20,20 +20,21 @@
 angular.module('ambariAdminConsole')
 .controller('StackVersionsEditCtrl', ['$scope', 'StackVersions', '$routeParams', function($scope, StackVersions, $routeParams) {
   function loadStackVersionInfo() {
-    return StackVersions.get($routeParams.id).then(function (stackVersion) {
-      loadStackRepositories(stackVersion);
-      $scope.stackVersion = stackVersion;
+    return StackVersions.get($routeParams.id).then(function (response) {
+      loadStackRepositories(response.data.RepositoryVersions);
+      $scope.stackVersion = response.data.RepositoryVersions;
     });
   }
 
   function loadStackRepositories(stackVersion) {
-    return StackVersions.getStackRepositories(stackVersion.stack).then(function (repositories) {
+    //todo replace "2.2" with actual version
+    return StackVersions.getStackRepositories('2.2').then(function (response) {
       var repos = [];
-      repositories.forEach(function (repo) {
+      response.data.items.forEach(function (repo) {
         var installedRepo;
-        for (var i in stackVersion.repositories) {
-          if (stackVersion.repositories[i].os === repo.os) {
-            installedRepo = stackVersion.repositories[i];
+        for (var i in stackVersion.operating_systems) {
+          if (stackVersion.operating_systems[i].OperatingSystems.os_type === repo.OperatingSystems.os_type) {
+            installedRepo = stackVersion.operating_systems[i];
             break;
           }
         }
@@ -45,7 +46,7 @@ angular.module('ambariAdminConsole')
           repos.push(repo);
         }
       });
-      $scope.stackVersion.repositories = repos;
+      $scope.stackVersion.operatingSystems = repos;
     });
   }
 

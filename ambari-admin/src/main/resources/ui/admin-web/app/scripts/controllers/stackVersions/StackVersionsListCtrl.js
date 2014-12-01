@@ -61,7 +61,9 @@ angular.module('ambariAdminConsole')
 
   $scope.getStackVersions = function () {
     return StackVersions.list($scope.filter).then(function (stacks) {
-      $scope.stacks = stacks;
+      $scope.stacks = stacks.data.items.map(function (stack) {
+        return stack.RepositoryVersions;
+      });
       $scope.tableInfo.total = stacks.length;
       $scope.tableInfo.showed = stacks.length;
     });

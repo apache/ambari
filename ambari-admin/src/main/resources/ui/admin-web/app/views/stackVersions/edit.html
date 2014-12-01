@@ -19,7 +19,7 @@
 <div class="clearfix">
   <ol class="breadcrumb pull-left">
     <li><a href="#/stackVersions">Versions</a></li>
-    <li class="active">{{stackVersion.version}}</li>
+    <li class="active">{{stackVersion.repository_version}}</li>
   </ol>
   <div class="pull-right top-margin-4" ng-switch="deleteEnabled">
     <button ng-switch-when="false" class="btn disabled btn-default" tooltip="Cannot Delete Static Instances">Deregister
@@ -43,10 +43,6 @@
       <div class="form-group">
         <div class="col-sm-3"><label class="control-label">Stack</label></div>
         <div class="col-sm-9">{{stackVersion.stack}}</div>
-      </div>
-      <div class="form-group">
-        <div class="col-sm-3"><label class="control-label">Upgrade Pack</label></div>
-        <div class="col-sm-9">{{stackVersion.upgrade_pack}}</div>
       </div>
       <div class="form-group">
         <div class="col-sm-3"><label class="control-label">Version Name</label></div>
@@ -85,18 +81,18 @@
         <div class="col-sm-3"><h5><label>Name</label></h5></div>
         <div class="col-sm-6"><h5><label>Base URL</label></h5></div>
       </div>
-      <div class="clearfix border-bottom bottom-margin" ng-repeat="repository in stackVersion.repositories">
+      <div class="clearfix border-bottom bottom-margin" ng-repeat="os in stackVersion.operatingSystems">
         <div class="col-sm-3">
           <div class="checkbox">
             <label>
-              <input type="checkbox" ng-model="repository.selected"> {{repository.os}}
+              <input type="checkbox" ng-model="os.selected"> {{os.OperatingSystems.os_type}}
             </label>
           </div>
         </div>
         <div class="col-sm-9">
-          <div class="form-group" ng-repeat="baseUrl in repository.baseurls">
-            <div class="col-sm-4"><label class="control-label">{{baseUrl.type}}</label></div>
-            <div class="col-sm-8"><input type="text" class="form-control" ng-model="baseUrl.baseurl"></div>
+          <div class="form-group" ng-repeat="repository in os.repositories">
+            <div class="col-sm-4"><label class="control-label">{{repository.Repositories.repo_id}}</label></div>
+            <div class="col-sm-8"><input type="text" class="form-control" ng-model="repository.Repositories.base_url"></div>
           </div>
         </div>
       </div>

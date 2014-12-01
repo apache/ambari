@@ -1,0 +1,52 @@
+{
+  "items": [
+    {
+      "RepositoryVersions": {
+        "id": 1,
+        "repository_version": "2.2.0.1-885",
+        "display_name": "HDP 2.2.0",
+        "upgrade_pack": "upgrade-2.2",
+        "current_hosts": ["host1", "host2"],
+        "status": "CURRENT",
+        "totalHosts": 100,
+        "cluster": "myCluster"
+      }
+    },
+    {
+      "RepositoryVersions": {
+        "id": 2,
+        "repository_version": "2.2.1.1-885",
+        "display_name": "HDP 2.2.1",
+        "upgrade_pack": "upgrade-2.2",
+        "current_hosts": ["host1", "host2"],
+        "status": "INSTALLED",
+        "totalHosts": 100,
+        "cluster": "anotherCluster"
+      }
+    },
+    {
+      "RepositoryVersions": {
+        "id": 3,
+        "repository_version": "2.2.2.1-885",
+        "display_name": "HDP 2.2.2",
+        "upgrade_pack": "upgrade-2.2",
+        "current_hosts": ["host1", "host2"],
+        "status": "IN_USE",
+        "totalHosts": 100,
+        "cluster": "myCluster"
+      }
+    },
+    {
+      "RepositoryVersions": {
+        "id": 4,
+        "repository_version": "2.2.3.1-885",
+        "display_name": "HDP 2.2.3",
+        "upgrade_pack": "upgrade-2.2",
+        "current_hosts": [],
+        "status": "INIT",
+        "totalHosts": 100,
+        "cluster": ""
+      }
+    }
+  ]
+}

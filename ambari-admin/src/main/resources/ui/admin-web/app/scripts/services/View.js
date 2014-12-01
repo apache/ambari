@@ -22,7 +22,7 @@ angular.module('ambariAdminConsole')
 
   function ViewInstance(item){
     angular.extend(this, item);
-  };
+  }
 
   ViewInstance.find = function(viewName, version, instanceName) {
     var deferred = $q.defer();
@@ -35,6 +35,7 @@ angular.module('ambariAdminConsole')
     $http({
       method: 'GET',
       url: Settings.baseUrl + '/views/'+viewName+'/versions/'+version+'/instances/'+instanceName,
+      mock: 'view/views.json',
       params:{
         'fields': fields.join(',')
       }
@@ -256,6 +257,7 @@ angular.module('ambariAdminConsole')
     $http({
       method: 'GET',
       url: Settings.baseUrl + '/views',
+      mock: 'view/views.json',
       params:{
         'fields': 'versions/instances/ViewInstanceInfo',
         'versions/ViewVersionInfo/system': false,
@@ -264,11 +266,13 @@ angular.module('ambariAdminConsole')
     }).then(function(data) {
       var instances = [];
       data.data.items.forEach(function(view) {
-        view.versions.forEach(function(version) {
-          version.instances.forEach(function(instance) {
-            instances.push(instance.ViewInstanceInfo);
+        if (Array.isArray(view.versions)) {
+          view.versions.forEach(function(version) {
+            version.instances.forEach(function(instance) {
+              instances.push(instance.ViewInstanceInfo);
+            });
           });
-        })
+        }
       });
       deferred.resolve(instances);
     });

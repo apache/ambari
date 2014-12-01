@@ -23,7 +23,7 @@ angular.module('ambariAdminConsole')
     getStatus: function() {
       var deferred = $q.defer();
 
-      $http.get(Settings.baseUrl + '/clusters?fields=Clusters/provisioning_state')
+      $http.get(Settings.baseUrl + '/clusters?fields=Clusters/provisioning_state', {mock: 'cluster/init.json'})
       .then(function(data, status, headers) {
         deferred.resolve(data.data.items[0]);
       })
@@ -39,6 +39,7 @@ angular.module('ambariAdminConsole')
       $http({
         method: 'GET',
         url: Settings.baseUrl + '/permissions',
+        mock: 'permission/permissions.json',
         params: {
           fields: 'PermissionInfo',
           'PermissionInfo/resource_name': 'CLUSTER'

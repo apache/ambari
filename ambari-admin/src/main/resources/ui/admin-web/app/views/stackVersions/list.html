@@ -40,7 +40,7 @@
         </select>
       </th>
       <th class="col-medium">
-        <label for="">Version</label>
+        <label>Version</label>
         <input type="text" class="form-control" ng-model="filter.version">
       </th>
       <th class="col-small">
@@ -55,8 +55,8 @@
     </thead>
     <tbody>
     <tr ng-repeat="stack in stacks">
-      <td class="col-small">{{stack.name}}</td>
-      <td class="col-medium"><a href="#/stackVersions/{{stack.version}}/edit">{{stack.version}}</a></td>
+      <td class="col-small">{{stack.display_name}}</td>
+      <td class="col-medium"><a href="#/stackVersions/{{stack.repository_version}}/edit">{{stack.repository_version}}</a></td>
       <td class="col-small">
         <a href ng-show="stack.cluster">
           <i class="glyphicon glyphicon-cloud"></i>
@@ -66,7 +66,7 @@
       </td>
       <td>
         <div ng-show="stack.status !== 'INIT'">
-          <span class="label" ng-class="stack.statusClass">{{stack.statusLabel}}:&nbsp;{{stack.statusHosts.length}}/{{stack.totalHosts}}</span>
+          <span class="label" ng-class="stack.statusClass">{{stack.statusLabel}}:&nbsp;{{stack.current_hosts.length}}/{{stack.totalHosts}}</span>
         </div>
       </td>
     </tr>

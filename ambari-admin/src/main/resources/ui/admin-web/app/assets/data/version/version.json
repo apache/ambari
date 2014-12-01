@@ -1,0 +1,47 @@
+{
+  "href": "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.2/repository_versions/1",
+  "RepositoryVersions": {
+    "id": 1,
+    "repository_version": "2.2.0.1-885",
+    "display_name": "HDP 2.2.0",
+    "upgrade_pack": "upgrade-2.2",
+    "stack": "HDP-2.2",
+    "operating_systems": [
+      {
+        "OperatingSystems": {
+          "os_type": "redhat5"
+        },
+        "repositories": [
+          {
+            "Repositories": {
+              "repo_id": "HDP-2.2",
+              "stack_name": "HDP",
+              "base_url": "http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos5/2.x/updates/2.2.0.0"
+            }
+          },
+          {
+            "Repositories": {
+              "repo_id": "HDP-UTILS-1.1.0.20",
+              "stack_name": "HDP-UTILS",
+              "base_url": "http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos5/2.x/updates/2.2.0.0"
+            }
+          }
+        ]
+      }
+    ],
+    "deployment_info": [
+      {
+        "cluster": "myCluster",
+        "status": "CURRENT",
+        "totalHostCount": 100,
+        "hosts": ["host1", "host2"]
+      },
+      {
+        "cluster": "anotherCluster",
+        "status": "INSTALLED",
+        "totalHostCount": 100,
+        "hosts": ["host1", "host2"]
+      }
+    ]
+  }
+}

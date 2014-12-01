@@ -25,8 +25,10 @@ angular.module('ambariAdminConsole', [
   'toggle-switch',
   'pascalprecht.translate'
 ])
-.constant('Settings',{
-	baseUrl: '/api/v1'
+.constant('Settings', {
+	baseUrl: '/api/v1',
+  testMode: (window.location.port == 8000),
+  mockDataPrefix: 'assets/data/'
 })
 .config(['RestangularProvider', '$httpProvider', '$provide', function(RestangularProvider, $httpProvider, $provide) {
   // Config Ajax-module
@@ -39,6 +41,21 @@ angular.module('ambariAdminConsole', [
   $httpProvider.defaults.headers.post['X-Requested-By'] = 'ambari';
   $httpProvider.defaults.headers.put['X-Requested-By'] = 'ambari';
   $httpProvider.defaults.headers.common['X-Requested-By'] = 'ambari';
+
+  $httpProvider.interceptors.push(['Settings', '$q', function(Settings, $q) {
+    return {
+      'request': function(config) {
+        if (Settings.testMode) {
+          if (config.method === 'GET') {
+            config.url = (config.mock) ? Settings.mockDataPrefix + config.mock : config.url;
+          } else {
+            config.method = "GET";
+          }
+        }
+        return config;
+      }
+    };
+  }]);
 
   $httpProvider.responseInterceptors.push(['$rootScope', '$q', function (scope, $q) {
     function success(response) {

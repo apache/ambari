@@ -178,6 +178,7 @@
             <exclude>src/main/resources/ui/admin-web/bower_components/**</exclude>
             <exclude>src/main/resources/ui/admin-web/dist/**</exclude>
             <exclude>src/main/resources/ui/admin-web/node/**</exclude>
+            <exclude>src/main/resources/ui/admin-web/app/assets/data/**</exclude>
             <exclude>src/main/resources/ui/admin-web/node_modules/**</exclude>
             <exclude>src/main/resources/ui/admin-web/app/bower_components/**</exclude>
             <exclude>src/main/resources/ui/admin-web/test/bower_components/**</exclude>
