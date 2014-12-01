@@ -67,7 +67,11 @@ public class StackManagerTest {
   }
 
   public static StackManager createTestStackManager() throws Exception {
-    return createTestStackManager("./src/test/resources/stacks/");
+    String stack = "./src/test/resources/stacks/";
+    if (System.getProperty("os.name").contains("Windows")) {
+      stack = ClassLoader.getSystemClassLoader().getResource("stacks").getPath();
+    }
+    return createTestStackManager(stack);
   }
 
   public static StackManager createTestStackManager(String stackRoot) throws Exception {
@@ -76,7 +80,12 @@ public class StackManagerTest {
       dao = createNiceMock(MetainfoDAO.class);
       actionMetadata = createNiceMock(ActionMetadata.class);
       Configuration config = createNiceMock(Configuration.class);
-      expect(config.getSharedResourcesDirPath()).andReturn("./src/test/resources").anyTimes();
+      if (System.getProperty("os.name").contains("Windows")) {
+        expect(config.getSharedResourcesDirPath()).andReturn(ClassLoader.getSystemClassLoader().getResource("").getPath()).anyTimes();
+      }
+      else {
+        expect(config.getSharedResourcesDirPath()).andReturn("./src/test/resources").anyTimes();
+      }
       replay(config);
       osFamily = new OsFamily(config);
 
@@ -291,7 +300,12 @@ public class StackManagerTest {
     // overridden value
     assertEquals("Apache Hadoop Stream processing framework (Extended)", stormService.getComment());
     assertEquals("New version", stormService.getVersion());
-    assertEquals("OTHER/1.0/services/STORM/package", stormService.getServicePackageFolder());
+    if (System.getProperty("os.name").contains("Windows")) {
+      assertEquals("OTHER\\1.0\\services\\STORM\\package", stormService.getServicePackageFolder());
+    }
+    else {
+      assertEquals("OTHER/1.0/services/STORM/package", stormService.getServicePackageFolder());
+    }
     // compare components
     List<ComponentInfo> stormServiceComponents = stormService.getComponents();
     List<ComponentInfo> baseStormServiceComponents = baseStormService.getComponents();
@@ -514,8 +528,12 @@ public class StackManagerTest {
     OsFamily osFamily = createNiceMock(OsFamily.class);
     replay(actionMetadata);
     try {
-    new StackManager(new File("./src/test/resources/stacks_with_cycle/"),
-        new StackContext(null, actionMetadata, osFamily));
+      String stacksCycle1 = "./src/test/resources/stacks_with_cycle/";
+      if (System.getProperty("os.name").contains("Windows")) {
+        stacksCycle1 = ClassLoader.getSystemClassLoader().getResource("stacks_with_cycle").getPath();
+      }
+      new StackManager(new File(stacksCycle1),
+              new StackContext(null, actionMetadata, osFamily));
       fail("Expected exception due to cyclic stack");
     } catch (AmbariException e) {
       // expected
@@ -523,8 +541,12 @@ public class StackManagerTest {
     }
 
     try {
-      new StackManager(new File("./src/test/resources/stacks_with_cycle2/"),
-          new StackContext(null, actionMetadata, osFamily));
+      String stacksCycle2 = "./src/test/resources/stacks_with_cycle2/";
+      if (System.getProperty("os.name").contains("Windows")) {
+        stacksCycle2 = ClassLoader.getSystemClassLoader().getResource("stacks_with_cycle2").getPath();
+      }
+      new StackManager(new File(stacksCycle2),
+              new StackContext(null, actionMetadata, osFamily));
       fail("Expected exception due to cyclic stack");
     } catch (AmbariException e) {
       // expected
@@ -584,8 +606,12 @@ public class StackManagerTest {
     // ensure that service check is added for HDFS
     actionMetadata.addServiceCheckAction("HDFS");
     replay(dao, actionMetadata, osFamily);
+    String singleStack = "./src/test/resources/single_stack";
+    if (System.getProperty("os.name").contains("Windows")) {
+      singleStack = ClassLoader.getSystemClassLoader().getResource("single_stack").getPath();
+    }
     StackManager stackManager = new StackManager(
-        new File("./src/test/resources/single_stack".replace("/", File.separator)),
+        new File(singleStack.replace("/", File.separator)),
         new StackContext(dao, actionMetadata, osFamily));
 
     Collection<StackInfo> stacks = stackManager.getStacks();

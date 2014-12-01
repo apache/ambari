@@ -59,19 +59,25 @@ public class BootStrapTest extends TestCase {
   @Test
   public void testRun() throws Exception {
     Properties properties = new Properties();
-    String bootdir =  temp.newFolder("bootdir").toString();
-    String metadetadir =  temp.newFolder("metadetadir").toString();
-    String serverVersionFilePath =  temp.newFolder("serverVersionFilePath").toString();
+    String bootdir = temp.newFolder("bootdir").toString();
+    String metadetadir = temp.newFolder("metadetadir").toString();
+    String serverVersionFilePath = temp.newFolder("serverVersionFilePath").toString();
     LOG.info("Bootdir is " + bootdir);
     LOG.info("Metadetadir is " + metadetadir);
     LOG.info("ServerVersionFilePath is " + serverVersionFilePath);
-    properties.setProperty(Configuration.BOOTSTRAP_DIR,
-       bootdir);
+
+    String sharedResourcesDir = "src/test/resources/";
+    if (System.getProperty("os.name").contains("Windows")) {
+      sharedResourcesDir = ClassLoader.getSystemClassLoader().getResource("").getPath();
+    }
+
+    properties.setProperty(Configuration.BOOTSTRAP_DIR, bootdir);
     properties.setProperty(Configuration.BOOTSTRAP_SCRIPT, "echo");
     properties.setProperty(Configuration.SRVR_KSTR_DIR_KEY, "target" + File.separator + "classes");
     properties.setProperty(Configuration.METADETA_DIR_PATH, metadetadir);
     properties.setProperty(Configuration.SERVER_VERSION_FILE, serverVersionFilePath);
-    properties.setProperty(Configuration.SHARED_RESOURCES_DIR_KEY, "src/test/resources/");
+    properties.setProperty(Configuration.SHARED_RESOURCES_DIR_KEY, sharedResourcesDir);
+
     Configuration conf = new Configuration(properties);
     AmbariMetaInfo ambariMetaInfo = new AmbariMetaInfo(conf);
     BootStrapImpl impl = new BootStrapImpl(conf, ambariMetaInfo);
@@ -91,12 +97,12 @@ public class BootStrapTest extends TestCase {
     LOG.info("Status " + status.getStatus());
     int num = 0;
     while ((status.getStatus() == BSStat.RUNNING) && (num < 500)) {
-        status = impl.getStatus(response.getRequestId());
-        Thread.sleep(100);
-        num++;
+      status = impl.getStatus(response.getRequestId());
+      Thread.sleep(100);
+      num++;
     }
     LOG.info("Status: log " + status.getLog() + " status=" + status.getStatus()
-        );
+    );
     /* Note its an echo command so it should echo host1,host2 */
     Assert.assertTrue(status.getLog().contains("host1,host2"));
     Assert.assertEquals(BSStat.SUCCESS, status.getStatus());
@@ -104,67 +110,74 @@ public class BootStrapTest extends TestCase {
     Assert.assertFalse(new File(bootdir + File.separator + "1" + File.separator + "host_pass").exists());
   }
 
-    @Test
-    public void testHostFailure() throws Exception {
-        Properties properties = new Properties();
-        String bootdir =  temp.newFolder("bootdir").toString();
-        String metadetadir =  temp.newFolder("metadetadir").toString();
-        String serverVersionFilePath =  temp.newFolder("serverVersionFilePath").toString();
-        LOG.info("Bootdir is " + bootdir);
-        LOG.info("Metadetadir is " + metadetadir);
-        LOG.info("ServerVersionFilePath is " + serverVersionFilePath);
-        properties.setProperty(Configuration.BOOTSTRAP_DIR,
-                bootdir);
-        properties.setProperty(Configuration.BOOTSTRAP_SCRIPT, "echo");
-        properties.setProperty(Configuration.SRVR_KSTR_DIR_KEY, "target" + File.separator + "classes");
-        properties.setProperty(Configuration.METADETA_DIR_PATH, metadetadir);
-        properties.setProperty(Configuration.SERVER_VERSION_FILE, serverVersionFilePath);
-      properties.setProperty(Configuration.SHARED_RESOURCES_DIR_KEY, "src/test/resources/");
-        Configuration conf = new Configuration(properties);
-        AmbariMetaInfo ambariMetaInfo = new AmbariMetaInfo(conf);
-        BootStrapImpl impl = new BootStrapImpl(conf, ambariMetaInfo);
-        impl.init();
-        SshHostInfo info = new SshHostInfo();
-        info.setSshKey("xyz");
-        ArrayList<String> hosts = new ArrayList<String>();
-        hosts.add("host1");
-        hosts.add("host2");
-        info.setHosts(hosts);
-        info.setUser("user");
-        info.setPassword("passwd");
-        BSResponse response = impl.runBootStrap(info);
-        long requestId = response.getRequestId();
-        LOG.info("Response id from bootstrap " + requestId);
-    /* create failed done file for host2 */
-        File requestDir = new File(bootdir, Long.toString(requestId));
-    /* wait while directory is created */
-        int num = 0;
-        while (!requestDir.exists() && num<500) {
-            Thread.sleep(100);
-            num++;
-        }
-        if (!requestDir.exists()) {
-            LOG.warn("RequestDir does not exists");
-        }
-        FileUtils.writeStringToFile(new File(requestDir, "host1.done"), "0");
-        FileUtils.writeStringToFile(new File(requestDir, "host2.done"), "1");
-    /* do a query */
-        BootStrapStatus status = impl.getStatus(response.getRequestId());
-        LOG.info("Status " + status.getStatus());
-        num = 0;
-        while ((status.getStatus() == BSStat.RUNNING) && (num < 500)) {
-            status = impl.getStatus(response.getRequestId());
-            Thread.sleep(100);
-            num++;
-        }
-        LOG.info("Status: log " + status.getLog() + " status=" + status.getStatus()
-        );
-    /* Note its an echo command so it should echo host1,host2 */
-        Assert.assertTrue(status.getLog().contains("host1,host2"));
-        Assert.assertEquals(BSStat.ERROR, status.getStatus());
-        Assert.assertEquals("DONE", status.getHostsStatus().get(0).getStatus());
-        Assert.assertEquals("FAILED", status.getHostsStatus().get(1).getStatus());
+  @Test
+  public void testHostFailure() throws Exception {
+    Properties properties = new Properties();
+    String bootdir = temp.newFolder("bootdir").toString();
+    String metadetadir = temp.newFolder("metadetadir").toString();
+    String serverVersionFilePath = temp.newFolder("serverVersionFilePath").toString();
+    LOG.info("Bootdir is " + bootdir);
+    LOG.info("Metadetadir is " + metadetadir);
+    LOG.info("ServerVersionFilePath is " + serverVersionFilePath);
+
+    String sharedResourcesDir = "src/test/resources/";
+    String serverKSTRDir = "target" + File.separator + "classes";
+    if (System.getProperty("os.name").contains("Windows")) {
+      sharedResourcesDir = ClassLoader.getSystemClassLoader().getResource("").getPath();
+      serverKSTRDir = new File(new File(ClassLoader.getSystemClassLoader().getResource("").getPath()).getParent(), "classes").getPath();
     }
+
+    properties.setProperty(Configuration.BOOTSTRAP_DIR, bootdir);
+    properties.setProperty(Configuration.BOOTSTRAP_SCRIPT, "echo");
+    properties.setProperty(Configuration.SRVR_KSTR_DIR_KEY, serverKSTRDir);
+    properties.setProperty(Configuration.METADETA_DIR_PATH, metadetadir);
+    properties.setProperty(Configuration.SERVER_VERSION_FILE, serverVersionFilePath);
+    properties.setProperty(Configuration.SHARED_RESOURCES_DIR_KEY, sharedResourcesDir);
+    Configuration conf = new Configuration(properties);
+    AmbariMetaInfo ambariMetaInfo = new AmbariMetaInfo(conf);
+    BootStrapImpl impl = new BootStrapImpl(conf, ambariMetaInfo);
+    impl.init();
+    SshHostInfo info = new SshHostInfo();
+    info.setSshKey("xyz");
+    ArrayList<String> hosts = new ArrayList<String>();
+    hosts.add("host1");
+    hosts.add("host2");
+    info.setHosts(hosts);
+    info.setUser("user");
+    info.setPassword("passwd");
+    BSResponse response = impl.runBootStrap(info);
+    long requestId = response.getRequestId();
+    LOG.info("Response id from bootstrap " + requestId);
+      /* create failed done file for host2 */
+    File requestDir = new File(bootdir, Long.toString(requestId));
+      /* wait while directory is created */
+    int num = 0;
+    while (!requestDir.exists() && num < 500) {
+      Thread.sleep(100);
+      num++;
+    }
+    if (!requestDir.exists()) {
+      LOG.warn("RequestDir does not exists");
+    }
+    FileUtils.writeStringToFile(new File(requestDir, "host1.done"), "0");
+    FileUtils.writeStringToFile(new File(requestDir, "host2.done"), "1");
+      /* do a query */
+    BootStrapStatus status = impl.getStatus(response.getRequestId());
+    LOG.info("Status " + status.getStatus());
+    num = 0;
+    while ((status.getStatus() == BSStat.RUNNING) && (num < 500)) {
+      status = impl.getStatus(response.getRequestId());
+      Thread.sleep(100);
+      num++;
+    }
+    LOG.info("Status: log " + status.getLog() + " status=" + status.getStatus()
+    );
+      /* Note its an echo command so it should echo host1,host2 */
+    Assert.assertTrue(status.getLog().contains("host1,host2"));
+    Assert.assertEquals(BSStat.ERROR, status.getStatus());
+    Assert.assertEquals("DONE", status.getHostsStatus().get(0).getStatus());
+    Assert.assertEquals("FAILED", status.getHostsStatus().get(1).getStatus());
+  }
 
 
   @Test
@@ -180,7 +193,7 @@ public class BootStrapTest extends TestCase {
     listHosts.add("host1");
     listHosts.add("host2");
     BSHostStatusCollector collector = new BSHostStatusCollector(tmpFolder,
-        listHosts);
+            listHosts);
     collector.run();
     List<BSHostStatus> polledHostStatus = collector.getHostStatus();
     Assert.assertTrue(polledHostStatus.size() == 2);

@@ -109,15 +109,22 @@ public class CertGenerationTest {
     //Test using actual ca.config.
     try {
       File caConfig = new File("conf/unix/ca.config");
-      File caConfigTest  =
-        new File(temp.getRoot().getAbsolutePath(), "ca.config");
+      if (System.getProperty("os.name").contains("Windows")) {
+        caConfig = new File(new File(ClassLoader.getSystemClassLoader().getResource("").getPath()).getParentFile().getParentFile(), "conf\\windows\\ca.config");
+      }
+      File caConfigTest = new File(temp.getRoot().getAbsolutePath(), "ca.config");
       File newCertsDir = new File(temp.getRoot().getAbsolutePath(), "newcerts");
       newCertsDir.mkdirs();
       File indexTxt = new File(temp.getRoot().getAbsolutePath(), "index.txt");
       indexTxt.createNewFile();
 
       String content = IOUtils.toString(new FileInputStream(caConfig));
-      content = content.replaceAll("/var/lib/ambari-server/keys/db", temp.getRoot().getAbsolutePath());
+      if (System.getProperty("os.name").contains("Windows")) {
+        content = content.replace("keystore\\\\db", temp.getRoot().getAbsolutePath().replace("\\", "\\\\"));
+      }
+      else {
+        content = content.replaceAll("/var/lib/ambari-server/keys/db", temp.getRoot().getAbsolutePath());
+      }
       IOUtils.write(content, new FileOutputStream(caConfigTest));
     } catch (IOException e) {
       e.printStackTrace();
@@ -134,25 +141,19 @@ public class CertGenerationTest {
 	
   @Test
   public void testServerCertGen() throws Exception {
-
-    File serverCrt = new File(temp.getRoot().getAbsoluteFile() +
-    						  File.separator + Configuration.SRVR_CRT_NAME_DEFAULT);
+    File serverCrt = new File(temp.getRoot().getAbsoluteFile() + File.separator + Configuration.SRVR_CRT_NAME_DEFAULT);
     Assert.assertTrue(serverCrt.exists());
   }
 
   @Test
   public void testServerKeyGen() throws Exception {
-
-    File serverKey = new File(temp.getRoot().getAbsoluteFile() +
-    						  File.separator + Configuration.SRVR_KEY_NAME_DEFAULT);
+    File serverKey = new File(temp.getRoot().getAbsoluteFile() + File.separator + Configuration.SRVR_KEY_NAME_DEFAULT);
     Assert.assertTrue(serverKey.exists());
   }
 
   @Test
   public void testServerKeystoreGen() throws Exception {
-
-    File serverKeyStrore = new File(temp.getRoot().getAbsoluteFile() +
-    						  File.separator + Configuration.KSTR_NAME_DEFAULT);
+    File serverKeyStrore = new File(temp.getRoot().getAbsoluteFile() + File.separator + Configuration.KSTR_NAME_DEFAULT);
     Assert.assertTrue(serverKeyStrore.exists());
   }
 

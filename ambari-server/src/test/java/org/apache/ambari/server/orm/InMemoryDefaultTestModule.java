@@ -23,6 +23,7 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.ControllerModule;
 import org.springframework.beans.factory.config.BeanDefinition;
 
+import java.io.File;
 import java.util.Collections;
 import java.util.Properties;
 import java.util.Set;
@@ -58,14 +59,20 @@ public class InMemoryDefaultTestModule extends AbstractModule {
 
   @Override
   protected void configure() {
+    String stacks = "src/test/resources/stacks";
+    String version = "target/version";
+    String sharedResourcesDir = "src/test/resources/";
+    if (System.getProperty("os.name").contains("Windows")) {
+      stacks = ClassLoader.getSystemClassLoader().getResource("stacks").getPath();
+      version = new File(new File(ClassLoader.getSystemClassLoader().getResource("").getPath()).getParent(), "version").getPath();
+      sharedResourcesDir = ClassLoader.getSystemClassLoader().getResource("").getPath();
+    }
+
     properties.setProperty(Configuration.SERVER_PERSISTENCE_TYPE_KEY, "in-memory");
-    properties.setProperty(Configuration.METADETA_DIR_PATH,
-        "src/test/resources/stacks");
-    properties.setProperty(Configuration.SERVER_VERSION_FILE,
-            "target/version");
-    properties.setProperty(Configuration.OS_VERSION_KEY,
-        "centos5");
-    properties.setProperty(Configuration.SHARED_RESOURCES_DIR_KEY, "src/test/resources/");
+    properties.setProperty(Configuration.METADETA_DIR_PATH, stacks);
+    properties.setProperty(Configuration.SERVER_VERSION_FILE, version);
+    properties.setProperty(Configuration.OS_VERSION_KEY, "centos5");
+    properties.setProperty(Configuration.SHARED_RESOURCES_DIR_KEY, sharedResourcesDir);
 
     try {
       install(new BeanDefinitionsCachingTestControllerModule(properties));

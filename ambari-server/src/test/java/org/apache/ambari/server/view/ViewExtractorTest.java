@@ -90,13 +90,20 @@ public class ViewExtractorTest {
     expect(configuration.getViewExtractionThreadPoolCoreSize()).andReturn(2).anyTimes();
     expect(configuration.getViewExtractionThreadPoolMaxSize()).andReturn(3).anyTimes();
     expect(configuration.getViewExtractionThreadPoolTimeout()).andReturn(10000L).anyTimes();
-
-    expect(viewArchive.getAbsolutePath()).andReturn(
-        "/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}").anyTimes();
+    if (System.getProperty("os.name").contains("Windows")) {
+      expect(viewArchive.getAbsolutePath()).andReturn("\\var\\lib\\ambari-server\\resources\\views\\work\\MY_VIEW{1.0.0}").anyTimes();
+    }
+    else {
+      expect(viewArchive.getAbsolutePath()).andReturn("/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}").anyTimes();
+    }
 
     expect(archiveDir.exists()).andReturn(false);
-    expect(archiveDir.getAbsolutePath()).andReturn(
-        "/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}").anyTimes();
+    if (System.getProperty("os.name").contains("Windows")) {
+      expect(archiveDir.getAbsolutePath()).andReturn("\\var\\lib\\ambari-server\\resources\\views\\work\\MY_VIEW{1.0.0}").anyTimes();
+    }
+    else {
+      expect(archiveDir.getAbsolutePath()).andReturn("/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}").anyTimes();
+    }
     expect(archiveDir.mkdir()).andReturn(true);
     expect(archiveDir.toURI()).andReturn(new URI("file:./"));
 
@@ -151,7 +158,12 @@ public class ViewExtractorTest {
 
     ViewExtractor viewExtractor = getViewExtractor(viewDefinition);
 
-    Assert.assertTrue(viewExtractor.ensureExtractedArchiveDirectory("/var/lib/ambari-server/resources/views/work"));
+    if (System.getProperty("os.name").contains("Windows")) {
+      Assert.assertTrue(viewExtractor.ensureExtractedArchiveDirectory("\\var\\lib\\ambari-server\\resources\\views\\work"));
+    }
+    else {
+      Assert.assertTrue(viewExtractor.ensureExtractedArchiveDirectory("/var/lib/ambari-server/resources/views/work"));
+    }
 
     verify(extractedArchiveDir, viewArchive, archiveDir, entryFile, classesDir, libDir, metaInfDir, viewJarFile,
         jarEntry, fos, configuration, viewDir, fileEntry, viewDAO);
@@ -165,7 +177,12 @@ public class ViewExtractorTest {
 
     viewExtractor = getViewExtractor(viewDefinition);
 
-    Assert.assertTrue(viewExtractor.ensureExtractedArchiveDirectory("/var/lib/ambari-server/resources/views/work"));
+    if (System.getProperty("os.name").contains("Windows")) {
+      Assert.assertTrue(viewExtractor.ensureExtractedArchiveDirectory("\\var\\lib\\ambari-server\\resources\\views\\work"));
+    }
+    else {
+      Assert.assertTrue(viewExtractor.ensureExtractedArchiveDirectory("/var/lib/ambari-server/resources/views/work"));
+    }
 
     verify(extractedArchiveDir);
 
@@ -178,8 +195,12 @@ public class ViewExtractorTest {
 
     viewExtractor = getViewExtractor(viewDefinition);
 
-    Assert.assertFalse(viewExtractor.ensureExtractedArchiveDirectory("/var/lib/ambari-server/resources/views/work"));
-
+    if (System.getProperty("os.name").contains("Windows")) {
+      Assert.assertFalse(viewExtractor.ensureExtractedArchiveDirectory("\\var\\lib\\ambari-server\\resources\\views\\work"));
+    }
+    else {
+      Assert.assertFalse(viewExtractor.ensureExtractedArchiveDirectory("/var/lib/ambari-server/resources/views/work"));
+    }
     verify(extractedArchiveDir);
   }
 
@@ -190,12 +211,22 @@ public class ViewExtractorTest {
 
     Map<String, File> files = new HashMap<String, File>();
 
-    files.put("/var/lib/ambari-server/resources/views/work", extractedArchiveDir);
-    files.put("/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}", archiveDir);
-    files.put("/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}/view.xml", entryFile);
-    files.put("/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}/WEB-INF/classes", classesDir);
-    files.put("/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}/WEB-INF/lib", libDir);
-    files.put("/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}/META-INF", metaInfDir);
+    if (System.getProperty("os.name").contains("Windows")) {
+      files.put("\\var\\lib\\ambari-server\\resources\\views\\work", extractedArchiveDir);
+      files.put("\\var\\lib\\ambari-server\\resources\\views\\work\\MY_VIEW{1.0.0}", archiveDir);
+      files.put("\\var\\lib\\ambari-server\\resources\\views\\work\\MY_VIEW{1.0.0}\\view.xml", entryFile);
+      files.put("\\var\\lib\\ambari-server\\resources\\views\\work\\MY_VIEW{1.0.0}\\WEB-INF/classes", classesDir);
+      files.put("\\var\\lib\\ambari-server\\resources\\views\\work\\MY_VIEW{1.0.0}\\WEB-INF/lib", libDir);
+      files.put("\\var\\lib\\ambari-server\\resources\\views\\work\\MY_VIEW{1.0.0}\\META-INF", metaInfDir);
+    }
+    else {
+      files.put("/var/lib/ambari-server/resources/views/work", extractedArchiveDir);
+      files.put("/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}", archiveDir);
+      files.put("/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}/view.xml", entryFile);
+      files.put("/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}/WEB-INF/classes", classesDir);
+      files.put("/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}/WEB-INF/lib", libDir);
+      files.put("/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}/META-INF", metaInfDir);
+    }
 
     Map<File, FileOutputStream> outputStreams = new HashMap<File, FileOutputStream>();
     outputStreams.put(entryFile, fos);

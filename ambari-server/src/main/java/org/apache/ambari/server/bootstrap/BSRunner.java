@@ -181,9 +181,9 @@ class BSRunner extends Thread {
       /* Running command:
        * script hostlist bsdir user sshkeyfile
        */
-      shellCommand[0] = "sh";
-      shellCommand[1] = "-c";
-      
+      shellCommand[0] = System.getProperty("os.name").contains("Windows") ? "cmd" : "sh";
+      shellCommand[1] = System.getProperty("os.name").contains("Windows") ? "/C" : "-c";
+
       commands[0] = this.bsScript;
       commands[1] = hostString;
       commands[2] = this.requestIdDir.toString();
@@ -212,16 +212,15 @@ class BSRunner extends Thread {
         commandString.append(" " + comm);
       }
 
-     
       if (LOG.isDebugEnabled()) {
         LOG.debug(commandString);
       }
-      
+
       String bootStrapOutputFile = requestIdDir + File.separator + "bootstrap.out";
       String bootStrapErrorFile = requestIdDir + File.separator + "bootstrap.err";
       commandString.append(
           " 1> " + bootStrapOutputFile + " 2>" + bootStrapErrorFile);
-      
+
       shellCommand[2] = commandString.toString();
       Process process = Runtime.getRuntime().exec(shellCommand, env);
 

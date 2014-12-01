@@ -130,7 +130,13 @@ public class AmbariMetaInfoTest {
 
   @Before
   public void before() throws Exception {
-    metaInfo = createAmbariMetaInfo(new File("src/test/resources/stacks"), new File("target/version"), true);
+    File stacks = new File("src/test/resources/stacks");
+    File version = new File("target/version");
+    if (System.getProperty("os.name").contains("Windows")) {
+      stacks = new File(ClassLoader.getSystemClassLoader().getResource("stacks").getPath());
+      version = new File(new File(ClassLoader.getSystemClassLoader().getResource("").getPath()).getParent(), "version");
+    }
+    metaInfo = createAmbariMetaInfo(stacks, version, true);
   }
 
   public class MockModule extends AbstractModule {
@@ -197,10 +203,14 @@ public class AmbariMetaInfoTest {
 
     // Deleting the json file referenced by the latestBaseUrl to simulate No
     // Internet.
-    File latestUrlFile = new File(buildDir,
-        "ambari-metaInfo/HDP/2.1.1/repos/hdp.json");
-    FileUtils.deleteQuietly(latestUrlFile);
-    assertTrue(!latestUrlFile.exists());
+    File latestUrlFile = new File(buildDir, "ambari-metaInfo/HDP/2.1.1/repos/hdp.json");
+    if (System.getProperty("os.name").contains("Windows")) {
+      latestUrlFile.deleteOnExit();
+    }
+    else {
+      FileUtils.deleteQuietly(latestUrlFile);
+      assertTrue(!latestUrlFile.exists());
+    }
     ambariMetaInfo.init();
 
     List<RepositoryInfo> redhat6Repo = ambariMetaInfo.getRepositories(
@@ -271,10 +281,14 @@ public class AmbariMetaInfoTest {
 
     // Deleting the json file referenced by the latestBaseUrl to simulate No
     // Internet.
-    File latestUrlFile = new File(buildDir,
-        "ambari-metaInfo/HDP/2.1.1/repos/hdp.json");
-    FileUtils.deleteQuietly(latestUrlFile);
-    assertTrue(!latestUrlFile.exists());
+    File latestUrlFile = new File(buildDir, "ambari-metaInfo/HDP/2.1.1/repos/hdp.json");
+    if (System.getProperty("os.name").contains("Windows")) {
+      latestUrlFile.deleteOnExit();
+    }
+    else {
+      FileUtils.deleteQuietly(latestUrlFile);
+      assertTrue(!latestUrlFile.exists());
+    }
 
     // Update baseUrl
     ambariMetaInfo.updateRepoBaseURL("HDP", "2.1.1", "redhat6", "HDP-2.1.1",
@@ -456,9 +470,14 @@ public class AmbariMetaInfoTest {
   public void testMetaInfoFileFilter() throws Exception {
     String buildDir = tmpFolder.getRoot().getAbsolutePath();
     File stackRoot = new File("src/test/resources/stacks");
+    File version = new File("target/version");
+    if (System.getProperty("os.name").contains("Windows")) {
+      stackRoot = new File(ClassLoader.getSystemClassLoader().getResource("stacks").getPath());
+      version = new File(new File(ClassLoader.getSystemClassLoader().getResource("").getPath()).getParent(), "version");
+    }
     File stackRootTmp = new File(buildDir + "/ambari-metaInfo"); stackRootTmp.mkdir();
     FileUtils.copyDirectory(stackRoot, stackRootTmp);
-    AmbariMetaInfo ambariMetaInfo = createAmbariMetaInfo(stackRootTmp, new File("target/version"), true);
+    AmbariMetaInfo ambariMetaInfo = createAmbariMetaInfo(stackRootTmp, version, true);
     //todo
     //ambariMetaInfo.injector = injector;
     File f1, f2, f3;
@@ -610,10 +629,10 @@ public class AmbariMetaInfoTest {
     Assert.assertTrue(metaInfo.isOsSupported("suse11"));
     Assert.assertTrue(metaInfo.isOsSupported("sles11"));
     Assert.assertTrue(metaInfo.isOsSupported("ubuntu12"));
-    Assert.assertFalse(metaInfo.isOsSupported("win2008server6"));
-    Assert.assertFalse(metaInfo.isOsSupported("win2008serverr26"));
-    Assert.assertFalse(metaInfo.isOsSupported("win2012server6"));
-    Assert.assertFalse(metaInfo.isOsSupported("win2012serverr26"));
+    Assert.assertTrue(metaInfo.isOsSupported("win2008server6"));
+    Assert.assertTrue(metaInfo.isOsSupported("win2008serverr26"));
+    Assert.assertTrue(metaInfo.isOsSupported("win2012server6"));
+    Assert.assertTrue(metaInfo.isOsSupported("win2012serverr26"));
   }
 
   @Test
@@ -711,10 +730,15 @@ public class AmbariMetaInfoTest {
   @Test
   public void testBadStack() throws Exception {
     File stackRoot = new File("src/test/resources/bad-stacks");
+    File version = new File("target/version");
+    if (System.getProperty("os.name").contains("Windows")) {
+      stackRoot = new File(ClassLoader.getSystemClassLoader().getResource("bad-stacks").getPath());
+      version = new File(new File(ClassLoader.getSystemClassLoader().getResource("").getPath()).getParent(), "version");
+    }
     LOG.info("Stacks file " + stackRoot.getAbsolutePath());
 
     try {
-      createAmbariMetaInfo(stackRoot, new File("target/version"), true);
+      createAmbariMetaInfo(stackRoot, version, true);
       fail("Exception expected due to bad stack");
     } catch(AmbariException e) {
       e.printStackTrace();
@@ -1131,35 +1155,45 @@ public class AmbariMetaInfoTest {
 
   @Test
   public void testHooksDirInheritance() throws Exception {
+    String hookAssertionTemplate = "HDP/%s/hooks";
+    if (System.getProperty("os.name").contains("Windows")) {
+      hookAssertionTemplate = "HDP\\%s\\hooks";
+    }
     // Test hook dir determination in parent
     StackInfo stackInfo = metaInfo.getStack(STACK_NAME_HDP, "2.0.6");
-    Assert.assertEquals("HDP/2.0.6/hooks", stackInfo.getStackHooksFolder());
+    Assert.assertEquals(String.format(hookAssertionTemplate, "2.0.6"), stackInfo.getStackHooksFolder());
     // Test hook dir inheritance
     stackInfo = metaInfo.getStack(STACK_NAME_HDP, "2.0.7");
-    Assert.assertEquals("HDP/2.0.6/hooks", stackInfo.getStackHooksFolder());
+    Assert.assertEquals(String.format(hookAssertionTemplate, "2.0.6"), stackInfo.getStackHooksFolder());
     // Test hook dir override
     stackInfo = metaInfo.getStack(STACK_NAME_HDP, "2.0.8");
-    Assert.assertEquals("HDP/2.0.8/hooks", stackInfo.getStackHooksFolder());
+    Assert.assertEquals(String.format(hookAssertionTemplate, "2.0.8"), stackInfo.getStackHooksFolder());
   }
 
 
   @Test
   public void testServicePackageDirInheritance() throws Exception {
+    String assertionTemplate07 = "HDP/2.0.7/services/%s/package";
+    String assertionTemplate08 = "HDP/2.0.8/services/%s/package";
+    if (System.getProperty("os.name").contains("Windows")) {
+      assertionTemplate07 = "HDP\\2.0.7\\services\\%s\\package";
+      assertionTemplate08 = "HDP\\2.0.8\\services\\%s\\package";
+    }
     // Test service package dir determination in parent
     ServiceInfo service = metaInfo.getService(STACK_NAME_HDP, "2.0.7", "HBASE");
-    Assert.assertEquals("HDP/2.0.7/services/HBASE/package",
+    Assert.assertEquals(String.format(assertionTemplate07, "HBASE"),
             service.getServicePackageFolder());
 
     service = metaInfo.getService(STACK_NAME_HDP, "2.0.7", "HDFS");
-    Assert.assertEquals("HDP/2.0.7/services/HDFS/package",
+    Assert.assertEquals(String.format(assertionTemplate07, "HDFS"),
             service.getServicePackageFolder());
     // Test service package dir inheritance
     service = metaInfo.getService(STACK_NAME_HDP, "2.0.8", "HBASE");
-    Assert.assertEquals("HDP/2.0.7/services/HBASE/package",
+    Assert.assertEquals(String.format(assertionTemplate07, "HBASE"),
             service.getServicePackageFolder());
     // Test service package dir override
     service = metaInfo.getService(STACK_NAME_HDP, "2.0.8", "HDFS");
-    Assert.assertEquals("HDP/2.0.8/services/HDFS/package",
+    Assert.assertEquals(String.format(assertionTemplate08, "HDFS"),
             service.getServicePackageFolder());
   }
 
@@ -1599,14 +1633,19 @@ public class AmbariMetaInfoTest {
     }
   }
 
-  private TestAmbariMetaInfo setupTempAmbariMetaInfo(String buildDir, boolean replayMocks)
-      throws Exception {
+  private TestAmbariMetaInfo setupTempAmbariMetaInfo(String buildDir, boolean replayMocks) throws Exception {
     File stackRootTmp = new File(buildDir + "/ambari-metaInfo");
     File stackRoot = new File("src/test/resources/stacks");
+    File version = new File("target/version");
+
+    if (System.getProperty("os.name").contains("Windows")) {
+      stackRoot = new File(ClassLoader.getSystemClassLoader().getResource("stacks").getPath());
+      version = new File(new File(ClassLoader.getSystemClassLoader().getResource("").getPath()).getParent(), "version");
+    }
+
     stackRootTmp.mkdir();
     FileUtils.copyDirectory(stackRoot, stackRootTmp);
-    TestAmbariMetaInfo ambariMetaInfo = createAmbariMetaInfo(stackRootTmp, new File(
-        "target/version"), replayMocks);
+    TestAmbariMetaInfo ambariMetaInfo = createAmbariMetaInfo(stackRootTmp, version, replayMocks);
 
     return ambariMetaInfo;
   }
@@ -1685,7 +1724,12 @@ public class AmbariMetaInfoTest {
 
       //OSFamily
       Configuration config = createNiceMock(Configuration.class);
-      expect(config.getSharedResourcesDirPath()).andReturn("./src/test/resources").anyTimes();
+      if (System.getProperty("os.name").contains("Windows")) {
+        expect(config.getSharedResourcesDirPath()).andReturn(ClassLoader.getSystemClassLoader().getResource("").getPath()).anyTimes();
+      }
+      else {
+        expect(config.getSharedResourcesDirPath()).andReturn("./src/test/resources").anyTimes();
+      }
       replay(config);
       osFamily = new OsFamily(config);
       f = c.getDeclaredField("os_family");

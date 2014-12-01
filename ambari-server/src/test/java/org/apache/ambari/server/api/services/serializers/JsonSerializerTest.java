@@ -72,7 +72,7 @@ public class JsonSerializerTest {
     replay(uriInfo, resource/*, resource2*/);
 
     //execute test
-    Object o = new JsonSerializer().serialize(result);
+    Object o = new JsonSerializer().serialize(result).toString().replace("\r", "");
 
     String expected = "{\n" +
         "  \"href\" : \"this is an href\",\n" +
@@ -126,7 +126,7 @@ public class JsonSerializerTest {
     replay(uriInfo, resource);
 
     //execute test
-    Object o = new JsonSerializer().serialize(result);
+    Object o = new JsonSerializer().serialize(result).toString().replace("\r", "");
 
     String expected = "{\n" +
         "  \"resources\" : [\n" +
@@ -182,7 +182,7 @@ public class JsonSerializerTest {
     replay(uriInfo, resource/*, resource2*/);
 
     //execute test
-    Object o = new JsonSerializer().serialize(result);
+    Object o = new JsonSerializer().serialize(result).toString().replace("\r", "");
     String expected = "[\n" +
     "  {\n" +
     "    \"href\" : \"this is an href\",\n" +

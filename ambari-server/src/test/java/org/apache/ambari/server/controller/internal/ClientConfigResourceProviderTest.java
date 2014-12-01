@@ -196,11 +196,16 @@ public class ClientConfigResourceProviderTest {
     String stackVersion = "V1";
 
     String stackRoot="/tmp/stacks/S1/V1";
-
     String packageFolder="PIG/package";
 
+    if (System.getProperty("os.name").contains("Windows")) {
+      stackRoot = "\\tmp\\stacks\\S1\\V1";
+      packageFolder = "PIG\\package";
+    }
+
+    File stackRootFile = new File(stackRoot);
     HashMap<String, Host> hosts = new HashMap<String, Host>();
-    hosts.put(hostName,host);
+    hosts.put(hostName, host);
     HashMap<String, Service> services = new HashMap<String, Service>();
     services.put(serviceName,service);
     HashMap<String, ServiceComponent> serviceComponentMap = new HashMap<String, ServiceComponent>();
@@ -264,7 +269,7 @@ public class ClientConfigResourceProviderTest {
             (String) anyObject(), (String) anyObject())).andReturn(componentInfo).anyTimes();
     expect(componentInfo.getCommandScript()).andReturn(commandScriptDefinition);
     expect(componentInfo.getClientConfigFiles()).andReturn(clientConfigFileDefinitionList);
-    expect(ambariMetaInfo.getStackRoot()).andReturn(new File(stackRoot));
+    expect(ambariMetaInfo.getStackRoot()).andReturn(stackRootFile);
     expect(cluster.getConfig("hive-site", null)).andReturn(clusterConfig);
     expect(cluster.getDesiredConfigs()).andReturn(desiredConfigMap);
     expect(clusters.getHostsForCluster(clusterName)).andReturn(hosts);
@@ -286,6 +291,15 @@ public class ClientConfigResourceProviderTest {
     String commandLine = "ambari-python-wrap /tmp/stacks/S1/V1/PIG/package/null generate_configs null " +
             "/tmp/stacks/S1/V1/PIG/package /var/lib/ambari-server/tmp/structured-out.json " +
             "INFO /var/lib/ambari-server/tmp";
+
+    if (System.getProperty("os.name").contains("Windows")) {
+      String absoluteStackRoot = stackRootFile.getAbsolutePath();
+      commandLine = "ambari-python-wrap " + absoluteStackRoot +
+              "\\PIG\\package\\null generate_configs null " +
+              absoluteStackRoot + "\\PIG\\package /var/lib/ambari-server/tmp\\structured-out.json " +
+              "INFO /var/lib/ambari-server/tmp";
+    }
+
     ProcessBuilder processBuilder = PowerMock.createNiceMock(ProcessBuilder.class);
     PowerMock.expectNew(ProcessBuilder.class,Arrays.asList(commandLine.split("\\s+"))).andReturn(processBuilder).once();
     expect(processBuilder.start()).andReturn(process).once();

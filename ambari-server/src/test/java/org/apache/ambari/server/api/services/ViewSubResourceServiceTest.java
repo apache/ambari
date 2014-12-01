@@ -146,7 +146,7 @@ public class ViewSubResourceServiceTest extends BaseServiceTest {
         "  }\n" +
         "}";
 
-    assertEquals(expected, o);
+    assertEquals(expected, o.toString().replace("\r", ""));
 
     verify(uriInfo, resource);
   }
