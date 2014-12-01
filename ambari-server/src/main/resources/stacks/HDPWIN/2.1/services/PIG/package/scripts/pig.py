@@ -24,14 +24,14 @@ from resource_management import *
 
 def pig():
   import params
-  File(format("{params.pig_conf_dir}/pig.properties"),
+  File(os.path.join(params.pig_conf_dir, "pig.properties"),
        mode="f",
        owner=params.pig_user,
        content=params.pig_properties
   )
 
   if (params.log4j_props != None):
-    File(format("{params.pig_conf_dir}/log4j.properties"),
+    File(os.path.join(params.pig_conf_dir, "log4j.properties"),
          mode='f',
          owner=params.pig_user,
          content=params.log4j_props
@@ -44,6 +44,6 @@ def pig_TemplateConfig(name):
     name = [name]
 
   for x in name:
-    TemplateConfig( format("{pig_conf_dir}/{x}"),
+    TemplateConfig(os.path.join(params.pig_conf_dir,x),
         owner = params.hdfs_user
     )

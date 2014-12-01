@@ -29,6 +29,7 @@ class ZookeeperClient(Script):
     # client checks env var to determine if it is installed
     if not os.environ.has_key("ZOOKEEPER_HOME"):
       self.install_packages(env)
+    self.configure(env)
 
   def configure(self, env):
     import params

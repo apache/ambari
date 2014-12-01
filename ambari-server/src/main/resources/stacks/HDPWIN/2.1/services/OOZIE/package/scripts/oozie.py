@@ -20,6 +20,7 @@ Ambari Agent
 """
 
 from resource_management import *
+import os
 
 def oozie():
   import params
@@ -31,7 +32,7 @@ def oozie():
             configuration_attributes=params.config['configuration_attributes']['oozie-site']
   )
 
-  File(format("{oozie_conf_dir}/oozie-env.cmd"),
+  File(os.path.join(params.oozie_conf_dir, "oozie-env.cmd"),
     owner=params.oozie_user,
     content=InlineTemplate(params.oozie_env_cmd_template)
   )

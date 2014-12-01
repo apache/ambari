@@ -28,7 +28,7 @@ class Nimbus(Script):
   def install(self, env):
     if not check_windows_service_exists(service_mapping.nimbus_win_service_name):
       self.install_packages(env)
-      self.configure(env)
+    self.configure(env)
 
   def start(self, env):
     self.configure(env)

@@ -18,13 +18,10 @@ limitations under the License.
 """
 
 from resource_management import *
-import sys
+import os
 
 def sqoop():
   import params
-  XmlConfig("sqoop-site.xml",
-              conf_dir=params.sqoop_conf_dir,
-              configurations=params.config['configurations']['sqoop-site'],
-              owner=params.sqoop_user,
-              mode="f"
+  File(os.path.join(params.sqoop_conf_dir, "sqoop-env.cmd"),
+       content=InlineTemplate(params.sqoop_env_cmd_template)
   )

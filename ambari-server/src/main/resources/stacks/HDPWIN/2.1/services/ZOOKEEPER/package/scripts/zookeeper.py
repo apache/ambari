@@ -35,12 +35,12 @@ def zookeeper(type = None):
             recursive=True
   )
   if (params.log4j_props != None):
-    File(format("{params.zookeeper_conf_dir}/log4j.properties"),
+    File(os.path.join(params.zookeeper_conf_dir, "log4j.properties"),
          mode="f",
          owner=params.zk_user,
          content=params.log4j_props
     )
-  elif (os.path.exists(format("{params.zookeeper_conf_dir}/log4j.properties"))):
+  elif (os.path.exists(os.path.join(params.zookeeper_conf_dir, "log4j.properties"))):
     File(format("{params.zookeeper_conf_dir}/log4j.properties"),
          mode="f",
          owner=params.zk_user
@@ -56,7 +56,7 @@ def zookeeper(type = None):
 def configFile(name, template_name=None):
   import params
 
-  File(format("{params.zookeeper_conf_dir}/{name}"),
+  File(os.path.join(params.zookeeper_conf_dir, name),
        content=Template(template_name),
        owner=params.zk_user,
        mode="f"

@@ -24,7 +24,7 @@ class FalconClient(Script):
     import params
     if params.falcon_home is None:
       self.install_packages(env)
-      self.configure(env)
+    self.configure(env)
 
   def configure(self, env):
     import params

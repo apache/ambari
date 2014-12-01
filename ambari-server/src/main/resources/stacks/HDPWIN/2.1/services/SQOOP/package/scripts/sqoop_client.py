@@ -20,14 +20,14 @@ limitations under the License.
 
 import sys
 from resource_management import *
-
-
+from sqoop import sqoop
 
 class SqoopClient(Script):
   def install(self, env):
-      import params
-      if params.sqoop_home_dir is None:
-          self.install_packages(env)
+    import params
+    if params.sqoop_home_dir is None:
+      self.install_packages(env)
+    self.configure(env)
 
   def configure(self, env):
     import params

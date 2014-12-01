@@ -20,6 +20,7 @@ Ambari Agent
 """
 
 from resource_management import *
+import os
 
 def hdfs(component=None):
   import params
@@ -50,12 +51,12 @@ def hdfs(component=None):
             mode="f",
             configuration_attributes=params.config['configuration_attributes']['hdfs-site']
   )
-  File(format("{params.hadoop_conf_dir}/hadoop-metrics2.properties"),
+  File(os.path.join(params.hadoop_conf_dir, "hadoop-metrics2.properties"),
        content=Template("hadoop-metrics2.properties.j2"),
        owner=params.hdfs_user,
        mode="f"
   )
-  File(format("{params.hbase_conf_dir}/hadoop-metrics2-hbase.properties"),
+  File(os.path.join(params.hbase_conf_dir, "hadoop-metrics2-hbase.properties"),
        content=Template("hadoop-metrics2.properties.j2"),
        owner=params.hdfs_user,
        mode="f"

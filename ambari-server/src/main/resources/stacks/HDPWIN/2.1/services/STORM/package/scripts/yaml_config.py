@@ -20,6 +20,7 @@ limitations under the License.
 
 
 from resource_management import *
+import os
 
 def escape_yaml_propetry(value):
   unquouted = False
@@ -57,10 +58,11 @@ def yaml_config(
   owner = None,
   group = None
 ):
+    import params
     config_content = source.InlineTemplate('''{% for key, value in configurations_dict.items() %}{{ key }}: {{ escape_yaml_propetry(value) }}
 {% endfor %}''', configurations_dict=configurations, extra_imports=[escape_yaml_propetry])
 
-    File (format("{conf_dir}/{filename}"),
+    File (os.path.join(params.conf_dir, filename),
       content = config_content,
       owner = owner,
       mode = "f"

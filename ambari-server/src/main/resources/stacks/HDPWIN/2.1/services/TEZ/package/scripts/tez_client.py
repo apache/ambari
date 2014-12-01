@@ -27,6 +27,7 @@ class TezClient(Script):
     import params
     if params.tez_home_dir is None:
       self.install_packages(env)
+    self.configure(env)
 
   def configure(self, env):
     import params
