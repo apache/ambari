@@ -49,15 +49,17 @@ def service(action=None, name=None, user=None, create_pid_dir=False,
       pid_file = format(
         "{hadoop_pid_dir_prefix}/{hdfs_user}/hadoop-{hdfs_user}-{name}.pid")
 
-  daemon_cmd = format("{ulimit_cmd} su -s /bin/bash - {user} -c '{cmd} {action} {name}'")
+  daemon_cmd = format("{ulimit_cmd} {cmd} {action} {name}")
 
   service_is_up = check_process if action == "start" else None
   #remove pid file from dead process
   File(pid_file,
        action="delete",
        not_if=check_process,
+       
   )
   Execute(daemon_cmd,
+          user=user,
           not_if=service_is_up
   )
   if action == "stop":

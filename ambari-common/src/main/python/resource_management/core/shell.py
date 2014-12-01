@@ -67,6 +67,16 @@ def _call(command, logoutput=False, throw_on_failure=True,
     # In case of need to create more complicated commands with sudo use as_sudo(command) function.
     err_msg = Logger.get_protected_text(("String command '%s' cannot be run as sudo. Please supply the command as a tuple of arguments") % (command))
     raise Fail(err_msg)
+  
+  
+  # append current PATH, to env['PATH'] and path
+  if 'PATH' in env:
+    env['PATH'] = os.pathsep.join([os.environ['PATH'], env['PATH']])
+  if path:
+    if not 'PATH' in env:
+      env['PATH'] = ''
+    path = os.pathsep.join(path) if isinstance(path, (list, tuple)) else path
+    env['PATH'] = os.pathsep.join([os.environ['PATH'], path])
 
   # In case we will use sudo, we have to put all the environment inside the command, 
   # since Popen environment gets reset within sudo.
@@ -78,7 +88,7 @@ def _call(command, logoutput=False, throw_on_failure=True,
   if user:
     # Outter environment gets reset within su. That's why we can't use environment passed to Popen.
     su_export_command = "export {0} ; ".format(environment_str) if environment_str else ""
-    subprocess_command = ["/usr/bin/sudo","-Hi","su", "-", user, "-s", "/bin/bash", "-c", su_export_command + bash_run_command]
+    subprocess_command = ["/usr/bin/sudo","-Hi","su", user, "-", "-s", "/bin/bash", "-c", su_export_command + bash_run_command]
   else:
     subprocess_command = ["/bin/bash","--login","-c", bash_run_command]
     

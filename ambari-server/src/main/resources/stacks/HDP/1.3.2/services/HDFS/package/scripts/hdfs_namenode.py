@@ -37,13 +37,14 @@ def namenode(action=None, do_format=True):
       create_log_dir=True
     )
 
-    namenode_safe_mode_off = format("su -s /bin/bash - {hdfs_user} -c 'hadoop dfsadmin -safemode get' | grep 'Safe mode is OFF'")
+    namenode_safe_mode_off = format("hadoop dfsadmin -safemode get | grep 'Safe mode is OFF'")
     if params.security_enabled:
       Execute(format("{kinit_path_local} -kt {hdfs_user_keytab} {hdfs_principal_name}"),
               user = params.hdfs_user)
     Execute(namenode_safe_mode_off,
             tries=40,
-            try_sleep=10
+            try_sleep=10,
+            user=params.hdfs_user
     )
     create_hdfs_directories()
 
@@ -99,11 +100,13 @@ def format_namenode(force=None):
            content=StaticFile("checkForFormat.sh"),
            mode=0755)
       Execute(format(
-        "sh {tmp_dir}/checkForFormat.sh {hdfs_user} {hadoop_conf_dir} {mark_dir} "
+        "{tmp_dir}/checkForFormat.sh {hdfs_user} {hadoop_conf_dir} {mark_dir} "
         "{dfs_name_dir}"),
               not_if=format("test -d {mark_dir}"),
               path="/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin")
-    Execute(format("mkdir -p {mark_dir}"))
+      Directory(mark_dir,
+        recursive = True
+      )
 
 
 def decommission():

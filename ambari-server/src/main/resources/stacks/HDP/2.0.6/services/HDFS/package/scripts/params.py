@@ -78,7 +78,7 @@ hadoop_conf_empty_dir = "/etc/hadoop/conf.empty"
 limits_conf_dir = "/etc/security/limits.d"
 
 execute_path = os.environ['PATH'] + os.pathsep + hadoop_bin_dir
-ulimit_cmd = "ulimit -c unlimited; "
+ulimit_cmd = "ulimit -c unlimited && "
 
 #security params
 smoke_user_keytab = config['configurations']['cluster-env']['smokeuser_keytab']

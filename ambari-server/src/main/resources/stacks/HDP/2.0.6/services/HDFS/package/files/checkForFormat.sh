@@ -38,8 +38,8 @@ export list_of_non_empty_dirs=""
 
 mark_file=/var/run/hadoop/hdfs/namenode-formatted
 if [[ -f ${mark_file} ]] ; then
-  rm -f ${mark_file}
-  mkdir -p ${mark_dir}
+  sudo rm -f ${mark_file}
+  sudo mkdir -p ${mark_dir}
 fi
 
 if [[ -d $old_mark_dir ]] ; then
@@ -58,7 +58,7 @@ if [[ ! -d $mark_dir ]] ; then
   done
 
   if [[ $EXIT_CODE == 0 ]] ; then
-    su -s /bin/bash - ${hdfs_user} -c "export PATH=$PATH:${bin_dir} ; yes Y | hdfs --config ${conf_dir} ${command}"
+    sudo su ${hdfs_user} - -s /bin/bash -c "export PATH=$PATH:${bin_dir} ; yes Y | hdfs --config ${conf_dir} ${command}"
     (( EXIT_CODE = $EXIT_CODE | $? ))
   else
     echo "ERROR: Namenode directory(s) is non empty. Will not format the namenode. List of non-empty namenode dirs ${list_of_non_empty_dirs}"

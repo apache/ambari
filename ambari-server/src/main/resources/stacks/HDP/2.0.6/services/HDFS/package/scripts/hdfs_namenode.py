@@ -57,11 +57,11 @@ def namenode(action=None, do_format=True):
               user = params.hdfs_user)
 
     if params.dfs_ha_enabled:
-      dfs_check_nn_status_cmd = format("su -s /bin/bash - {hdfs_user} -c 'export PATH=$PATH:{hadoop_bin_dir} ; hdfs --config {hadoop_conf_dir} haadmin -getServiceState {namenode_id} | grep active > /dev/null'")
+      dfs_check_nn_status_cmd = as_user(format("hdfs --config {hadoop_conf_dir} haadmin -getServiceState {namenode_id} | grep active"), params.hdfs_user, env={'PATH':params.hadoop_bin_dir})
     else:
       dfs_check_nn_status_cmd = None
 
-    namenode_safe_mode_off = format("su -s /bin/bash - {hdfs_user} -c 'export PATH=$PATH:{hadoop_bin_dir} ; hdfs --config {hadoop_conf_dir} dfsadmin -safemode get' | grep 'Safe mode is OFF'")
+    namenode_safe_mode_off = format("hadoop dfsadmin -safemode get | grep 'Safe mode is OFF'")
 
     # If HA is enabled and it is in standby, then stay in safemode, otherwise, leave safemode.
     leave_safe_mode = True
@@ -74,13 +74,18 @@ def namenode(action=None, do_format=True):
       # First check if Namenode is not in 'safemode OFF' (equivalent to safemode ON), if so, then leave it
       code, out = shell.call(namenode_safe_mode_off)
       if code != 0:
-        leave_safe_mode_cmd = format("su -s /bin/bash - {hdfs_user} -c 'export PATH=$PATH:{hadoop_bin_dir} ; hdfs --config {hadoop_conf_dir} dfsadmin -safemode leave'")
-        Execute(leave_safe_mode_cmd)
+        leave_safe_mode_cmd = format("hdfs --config {hadoop_conf_dir} dfsadmin -safemode leave")
+        Execute(leave_safe_mode_cmd,
+                user=params.hdfs_user,
+                path=[params.hadoop_bin_dir],
+        )
 
     # Verify if Namenode should be in safemode OFF
     Execute(namenode_safe_mode_off,
             tries=40,
             try_sleep=10,
+            path=[params.hadoop_bin_dir],
+            user=params.hdfs_user,
             only_if=dfs_check_nn_status_cmd #skip when HA not active
     )
     create_hdfs_directories(dfs_check_nn_status_cmd)

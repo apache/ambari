@@ -62,23 +62,19 @@ def service(action=None, name=None, user=None, create_pid_dir=False,
         # We need special handling for this case to handle the situation
         # when we configure non-root secure DN and then restart it
         # to handle new configs. Otherwise we will not be able to stop
-        # a running instance
+        # a running instance 
         user = "root"
+        
         try:
-          with open(hadoop_secure_dn_pid_file, 'r') as f:
-            pid = f.read()
-          os.kill(int(pid), 0)
-
+          check_process_status()
+          
           custom_export = {
             'HADOOP_SECURE_DN_USER': params.hdfs_user
           }
           hadoop_env_exports.update(custom_export)
-        except IOError:
-          pass  # Can not open pid file
-        except ValueError:
-          pass  # Pid file content is invalid
-        except OSError:
-          pass  # Process is not running
+          
+        except ComponentIsNotRunning:
+          pass
 
 
   hadoop_env_exports_str = ''
@@ -90,7 +86,7 @@ def service(action=None, name=None, user=None, create_pid_dir=False,
     "{hadoop_bin}/hadoop-daemon.sh")
   cmd = format("{hadoop_daemon} --config {hadoop_conf_dir}")
 
-  daemon_cmd = format("{ulimit_cmd} su -s /bin/bash - {user} -c '{cmd} {action} {name}'")
+  daemon_cmd = format("{ulimit_cmd} {cmd} {action} {name}")
 
   service_is_up = check_process if action == "start" else None
   #remove pid file from dead process
@@ -99,7 +95,8 @@ def service(action=None, name=None, user=None, create_pid_dir=False,
        not_if=check_process,
   )
   Execute(daemon_cmd,
-          not_if=service_is_up
+          not_if=service_is_up,
+          user=user
   )
 
   #After performing the desired action, perform additional tasks.

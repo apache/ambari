@@ -25,7 +25,7 @@ import itertools
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 
-ulimit_cmd = "ulimit -c unlimited; "
+ulimit_cmd = "ulimit -c unlimited && "
 
 #security params
 security_enabled = config['configurations']['cluster-env']['security_enabled']

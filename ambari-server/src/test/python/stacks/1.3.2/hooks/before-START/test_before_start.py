@@ -147,10 +147,18 @@ class TestHookBeforeStart(RMFTestCase):
     self.assertResourceCalled('Execute', '/bin/echo 0 > /selinux/enforce',
                               only_if = 'test -f /selinux/enforce',
                               )
-    self.assertResourceCalled('Execute', 'mkdir -p /usr/lib/hadoop/lib/native/Linux-i386-32; ln -sf /usr/lib/libsnappy.so /usr/lib/hadoop/lib/native/Linux-i386-32/libsnappy.so',
-                              )
-    self.assertResourceCalled('Execute', 'mkdir -p /usr/lib/hadoop/lib/native/Linux-amd64-64; ln -sf /usr/lib64/libsnappy.so /usr/lib/hadoop/lib/native/Linux-amd64-64/libsnappy.so',
-                              )
+    self.assertResourceCalled('Directory', '/usr/lib/hadoop/lib/native/Linux-i386-32',
+        recursive = True,
+    )
+    self.assertResourceCalled('Directory', '/usr/lib/hadoop/lib/native/Linux-amd64-64',
+        recursive = True,
+    )
+    self.assertResourceCalled('Link', '/usr/lib/hadoop/lib/native/Linux-i386-32/libsnappy.so',
+        to = '/usr/lib/libsnappy.so',
+    )
+    self.assertResourceCalled('Link', '/usr/lib/hadoop/lib/native/Linux-amd64-64/libsnappy.so',
+        to = '/usr/lib64/libsnappy.so',
+    )
     self.assertResourceCalled('Directory', '/var/log/hadoop',
                               owner = 'root',
                               group = 'hadoop',

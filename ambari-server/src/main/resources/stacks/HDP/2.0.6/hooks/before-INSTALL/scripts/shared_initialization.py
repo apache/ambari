@@ -30,6 +30,7 @@ def setup_java():
   jdk_curl_target = format("{artifact_dir}/{jdk_name}")
   java_dir = os.path.dirname(params.java_home)
   java_exec = format("{java_home}/bin/java")
+  tmp_java_dir = format("{tmp_dir}/jdk")
 
   if not params.jdk_name:
     return
@@ -46,12 +47,21 @@ def setup_java():
           environment = environment)
 
   if params.jdk_name.endswith(".bin"):
-    install_cmd = format("mkdir -p {java_dir} ; chmod +x {jdk_curl_target}; cd {java_dir} ; echo A | {jdk_curl_target} -noregister > /dev/null 2>&1")
+    chmod_cmd = ("chmod", "+x", jdk_curl_target)
+    install_cmd = format("mkdir -p {tmp_java_dir} && cd {tmp_java_dir} && echo A | {jdk_curl_target} -noregister && sudo cp -r {tmp_java_dir}/* {java_dir}")
   elif params.jdk_name.endswith(".gz"):
-    install_cmd = format("mkdir -p {java_dir} ; chmod a+x {java_dir} ; cd {java_dir} ; tar -xf {jdk_curl_target} > /dev/null 2>&1")
+    chmod_cmd = ("chmod","a+x", java_dir)
+    install_cmd = format("mkdir -p {tmp_java_dir} && cd {tmp_java_dir} && tar -xf {jdk_curl_target} && sudo cp -r {tmp_java_dir}/* {java_dir}")
+
+  Directory(java_dir
+  )
+  
+  Execute(chmod_cmd,
+          not_if = format("test -e {java_exec}"),
+          sudo = True    
+  )
 
   Execute(install_cmd,
-          path = ["/bin","/usr/bin/"],
           not_if = format("test -e {java_exec}")
   )
 

@@ -63,7 +63,6 @@ class NameNode(Script):
     import status_params
 
     env.set_params(status_params)
-    Execute(format("echo '{namenode_pid_file}' >> /1.txt"))
     check_process_status(status_params.namenode_pid_file)
     pass
 

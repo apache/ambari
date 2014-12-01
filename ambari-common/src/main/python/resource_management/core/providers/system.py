@@ -228,15 +228,6 @@ class ExecuteProvider(Provider):
     Logger.debug("Executing %s" % self.resource)
 
     env = self.resource.environment
-    
-    # append current PATH, to self.resource.environment['PATH'] and self.resource.path
-    if 'PATH' in env:
-      env['PATH'] = os.pathsep.join([os.environ['PATH'], env['PATH']])
-    if self.resource.path:
-      if not 'PATH' in env:
-        env['PATH'] = ''
-      path = os.pathsep.join(self.resource.path) if isinstance(self.resource.path, (list, tuple)) else self.resource.path
-      env['PATH'] = os.pathsep.join([os.environ['PATH'], path])
           
     for i in range (0, self.resource.tries):
       try:

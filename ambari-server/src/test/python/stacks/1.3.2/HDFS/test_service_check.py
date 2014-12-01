@@ -39,7 +39,7 @@ class TestServiceCheck(RMFTestCase):
                         command="service_check",
                         config_file="secured.json"
     )
-    self.assertResourceCalled('Execute', "su -s /bin/bash - ambari-qa -c '/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa'",)
+    self.assertResourceCalled('Execute', "/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa",user='ambari-qa')
     self.assert_service_check()
     self.assertNoMoreResources()
         
@@ -54,7 +54,7 @@ class TestServiceCheck(RMFTestCase):
     self.assertResourceCalled('ExecuteHadoop', 'fs -mkdir /tmp ; hadoop fs -chmod 777 /tmp',
                               conf_dir = '/etc/hadoop/conf',
                               logoutput = True,
-                              not_if = "su -s /bin/bash - ambari-qa -c 'hadoop fs -test -e /tmp'",
+                              not_if = "/usr/bin/sudo -Hi su - ambari-qa -s /bin/bash -c 'export {ENV_PLACEHOLDER} ; hadoop fs -test -e /tmp'",
                               try_sleep = 3,
                               tries = 5,
                               user = 'ambari-qa',
