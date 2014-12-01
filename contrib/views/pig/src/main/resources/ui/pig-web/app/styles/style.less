@@ -24,7 +24,7 @@
 @import './../../bower_components/bootstrap/less/bootstrap.less';
 
 .wrap {
-  padding: 15px;
+  padding: 0px;
 }
 
 .moz-padding (@selector, @pre: ~'', @padding) {
@@ -172,7 +172,7 @@
               text-align: left;
               padding: 0;
               &:hover {
-                color: darken(#fff, 30%);
+                color: #fff;
                 text-decoration: none;
               }
             }
@@ -374,6 +374,7 @@
       padding: 5px;
       background-color: #f5f5f5;
       border-bottom: 1px solid #dddddd;
+      border-radius: 4px;
       .argadd {
         font-size: 13px;
         width:10%;
@@ -486,7 +487,7 @@
       width: 140px;
     }
     th:last-child {
-      width: 110px;
+      width: 260px;
     }
     td > h4 {
       margin: 0;
@@ -504,6 +505,14 @@
       cursor: pointer;
     }
   }
+}
+
+.editor-container.CodeMirror-scroll {
+    background-color: #fff;
+}
+
+.main-content {
+    padding-left: 0px;
 }
 
 .job-container {
@@ -535,6 +544,8 @@
     .common-shadow-inset;
     height: 215px;
     border-bottom: 1px solid #dddddd;
+    cursor: not-allowed;
+    background-color: #fcfcfc;
     .CodeMirror-gutters {
       background-color: #fcfcfc;
     }

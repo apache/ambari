@@ -23,7 +23,7 @@
   <table class="table table-striped ">
     <thead> 
       <tr class="label-row">
-        <th>{{t 'common.date'}}</th>
+        <th class="first">{{t 'common.date'}}</th>
         <th>{{t 'scripts.script'}}</th>
         <th>{{t 'job.status'}}</th> 
         <th>{{t 'history.duration'}}</th>
@@ -45,10 +45,10 @@
         <td>{{#unless jobInProgress}}{{durationTime}}{{/unless}}</td>
         <td>
           {{#unless jobInProgress}}
-            <a {{action 'logsPopup' this}} href="#" title="Logs"> <i class="fa fa-file-text-o"></i></a>
-            <a {{action 'resultsPopup' this}} href="#" title="Results"> <i class="fa fa-table"></i></a>
+            <a {{action 'logsPopup' this}} href="#"> <i class="fa fa-file-text-o"></i> {{t 'job.logs'}}</a>
+            <a {{action 'resultsPopup' this}} href="#"> <i class="fa fa-table"></i> {{t 'job.results'}}</a>
           {{/unless}}
-          <a href="#" {{action 'deleteJob' this}} title="Delete"><i class="fa fa-trash-o"></i></a>
+          <a {{action 'deleteJob' this}} href="#"><i class="fa fa-trash-o"></i> {{t 'common.delete'}}</a>
         </td>
       </tr>
     {{/each}}

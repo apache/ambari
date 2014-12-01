@@ -35,7 +35,7 @@
     <!-- WebHCat Configs -->
     <parameter>
         <name>webhcat.url</name>
-        <description>WebHCat URL (example: http://webhcat.host:50111/templeton)</description>
+        <description>WebHCat URL (example: http://webhcat.host:50111/templeton/v1)</description>
         <required>true</required>
     </parameter>
 
@@ -46,7 +46,6 @@
     </parameter>
 
     <!-- General Configs -->
-
     <parameter>
         <name>dataworker.username</name>
         <description>The username (defaults to ViewContext username)</description>
@@ -55,19 +54,19 @@
 
     <parameter>
         <name>scripts.dir</name>
-        <description>HDFS directory path to store Pig scripts (example: /users/${username})</description>
+        <description>HDFS directory to store Pig scripts (example: /user/${username}/scripts)</description>
         <required>true</required>
     </parameter>
 
     <parameter>
         <name>jobs.dir</name>
-        <description>HDFS directory path to store Pig job status (example: /users/${username})</description>
+        <description>HDFS directory to store Pig job status (example: /user/${username}/jobs)</description>
         <required>true</required>
     </parameter>
 
     <parameter>
         <name>store.dir</name>
-        <description>HDFS directory to store meta information about Pig scripts and jobs (example: /users/${username})</description>
+        <description>HDFS directory to store meta information about Pig scripts and jobs (example: /user/${username}/store)</description>
         <required>false</required>
     </parameter>
 

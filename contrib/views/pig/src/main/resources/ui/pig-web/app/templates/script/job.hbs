@@ -55,7 +55,7 @@
       <div class="panel-heading">
         <h4 class="panel-title">
           <a data-toggle="collapse" href="#scriptResults">
-            <i class="toggle-icon fa fa-fw fa-chevron-right"></i>
+            <i class="toggle-icon fa fa-fw fa-chevron-right fa-rotate-90"></i>
             {{t 'job.results'}}
           </a>
           {{#if jobResults.isFulfilled }}
@@ -63,7 +63,7 @@
           {{/if}}
         </h4>
       </div>
-      {{#view "view.collapsePanel" id="scriptResults" class="panel-collapse collapse" }}
+      {{#view "view.collapsePanel" id="scriptResults" class="panel-collapse collapse in" }}
         <div class="panel-body">
         {{#if jobResults.isPending}}
           <pre><div class="spinner-sm"></div></pre>
@@ -112,12 +112,12 @@
       <div class="panel-heading">
         <h4 class="panel-title">
           <a data-toggle="collapse" href="#scriptDetails">
-            <i class="toggle-icon fa fa-fw fa-chevron-right fa-rotate-90"></i>
+            <i class="toggle-icon fa fa-fw fa-chevron-right"></i>
             {{t 'job.script_details'}}
           </a>
         </h4>
       </div>
-      {{#view "view.collapsePanel" id="scriptDetails" class="panel-collapse collapse in" }}
+      {{#view "view.collapsePanel" id="scriptDetails" class="panel-collapse collapse" }}
         <div class="panel-body body-title">
           {{t 'job.script_contents'}}:
         </div>
