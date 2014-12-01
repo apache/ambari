@@ -60,17 +60,17 @@ describe('App.MainAlertDefinitionsController', function() {
       var bodyView;
 
       beforeEach(function () {
-        controller.reopen({content: [
-          App.AlertDefinition.createRecord({summary: {CRITICAL: 1}}),
-          App.AlertDefinition.createRecord({summary: {WARNING: 1}}),
-          App.AlertDefinition.createRecord({summary: {OK: 1}}),
-          App.AlertDefinition.createRecord({summary: {UNKNOWN: 1}})
+        controller.reopen({unhealthyAlertInstances: [
+          App.AlertInstance.createRecord({state: 'CRITICAL'}),
+          App.AlertInstance.createRecord({state: 'WARNING'}),
+          App.AlertInstance.createRecord({state: 'WARNING'}),
+          App.AlertInstance.createRecord({state: 'CRITICAL'})
         ]});
         bodyView = controller.showPopup().get('bodyClass').create();
       });
 
-      it('#content', function () {
-        expect(bodyView.get('content.length')).to.equal(2);
+      it('#contents', function () {
+        expect(bodyView.get('contents.length')).to.equal(4);
       });
 
       it('#isLoaded', function () {

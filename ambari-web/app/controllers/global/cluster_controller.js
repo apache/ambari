@@ -314,6 +314,7 @@ App.ClusterController = Em.Controller.extend({
      * 10. update stale_configs of host-components (depends on App.supports.hostOverrides)
      * 11. load root service (Ambari)
      * 12. load alert definitions to model
+     * 13. load unhealthy alert instances
      */
     self.loadStackServiceComponents(function (data) {
       data.items.forEach(function (service) {
@@ -345,8 +346,11 @@ App.ClusterController = Em.Controller.extend({
             updater.updateAlertGroups(function () {
               updater.updateAlertDefinitions(function() {
                 updater.updateAlertDefinitionSummary(function () {
-                  self.updateLoadStatus('alertGroups');
-                  self.updateLoadStatus('alertDefinitions');
+                  updater.updateUnhealthyAlertInstances(function () {
+                    self.updateLoadStatus('alertGroups');
+                    self.updateLoadStatus('alertDefinitions');
+                    self.updateLoadStatus('alertInstancesUnhealthy');
+                  });
                 });
               });
             });
@@ -354,6 +358,7 @@ App.ClusterController = Em.Controller.extend({
           else {
             self.updateLoadStatus('alertGroups');
             self.updateLoadStatus('alertDefinitions');
+            self.updateLoadStatus('alertInstancesUnhealthy');
           }
         });
       });

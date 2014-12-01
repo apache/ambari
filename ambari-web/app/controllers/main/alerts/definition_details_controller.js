@@ -181,6 +181,16 @@ App.MainAlertDefinitionDetailsController = Em.Controller.extend({
   },
 
   /**
+   * Router transition to service page
+   * @param event
+   */
+  goToService: function (event) {
+    if (event && event.context) {
+      App.router.transitionTo('main.services.service', event.context);
+    }
+  },
+
+  /**
    * Router transition to host level alerts page
    * @param {object} event
    * @method goToHostAlerts

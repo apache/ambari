@@ -366,11 +366,11 @@ var urls = {
     'mock': ''
   },
   'alerts.instances.by_definition': {
-    'real': '/clusters/{clusterName}/alerts?fields=*&Alert/definition_id={definitionId}',
+    'real': '/clusters/{clusterName}/alerts?fields=*&(Alert/definition_id={definitionId}|Alert/state.in(CRITICAL,WARNING))',
     'mock': '/data/alerts/alert_instances.json'
   },
   'alerts.instances.by_host': {
-    'real': '/clusters/{clusterName}/alerts?fields=*&Alert/host_name={hostName}',
+    'real': '/clusters/{clusterName}/alerts?fields=*&(Alert/host_name={hostName}|Alert/state.in(CRITICAL,WARNING))',
     'mock': '/data/alerts/alert_instances.json'
   },
   'alerts.update_alert_definition': {

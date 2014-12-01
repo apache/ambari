@@ -132,6 +132,7 @@ App.UpdateController = Em.Controller.extend({
         App.updater.run(this, 'updateAlertGroups', 'isWorking', App.alertGroupsUpdateInterval);
         App.updater.run(this, 'updateAlertDefinitions', 'isWorking', App.alertDefinitionsUpdateInterval);
         App.updater.run(this, 'updateAlertDefinitionSummary', 'isWorking', App.alertDefinitionsUpdateInterval);
+        App.updater.run(this, 'updateUnhealthyAlertInstances', 'isWorking', App.alertInstancesUpdateInterval);
       }
     }
   }.observes('isWorking'),
@@ -456,6 +457,16 @@ App.UpdateController = Em.Controller.extend({
     var url = this.getUrl(testUrl, realUrl);
 
     App.HttpClient.get(url, App.alertDefinitionsMapper, {
+      complete: callback
+    });
+  },
+
+  updateUnhealthyAlertInstances: function (callback) {
+    var testUrl = '/data/alerts/alert_instances.json';
+    var realUrl = '/alerts?fields=*&Alert/state.in(CRITICAL,WARNING)';
+    var url = this.getUrl(testUrl, realUrl);
+
+    App.HttpClient.get(url, App.alertInstanceMapper, {
       complete: callback
     });
   },

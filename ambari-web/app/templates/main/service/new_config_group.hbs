@@ -26,11 +26,11 @@
   </div>
   <table>
     <tr>
-      <td>{{t services.service.config_groups_popup.group_name_lable }}:</td>
+      <td class="title">{{t services.service.config_groups_popup.group_name_lable }}:&nbsp;</td>
       <td>{{view Ember.TextField maxlength="255" valueBinding="configGroupName"}}</td>
     </tr>
     <tr>
-      <td>{{t services.service.config_groups_popup.group_desc_lable }}:</td>
+      <td class="title">{{t services.service.config_groups_popup.group_desc_lable }}:&nbsp;</td>
       <td class="row-fluid">
         {{view Ember.TextArea classNames="span12" valueBinding="configGroupDesc" rows="4"}}
       </td>

@@ -84,22 +84,6 @@ App.MainAlertDefinitionsController = Em.ArrayController.extend({
   },
 
   /**
-   * Alerts number to show up on top-nav bar: number of critical/warning alerts
-   * @type {number}
-   */
-  allAlertsCount: function () {
-    return this.get('content').filterProperty('isCriticalOrWarning').get('length');
-  }.property('content.@each.isCriticalOrWarning'),
-
-  /**
-   * If critical alerts exist, if true, the alert badge should be red.
-   * @type {boolean}
-   */
-  isCriticalAlerts: function () {
-    return this.get('content').someProperty('isCritical');
-  }.property('content.@each.isCritical'),
-
-  /**
    * Calculate critical/warning count for each service, to show up the label on services menu
    * @method getCriticalAlertsCountForService
    * @return {number}
@@ -108,6 +92,32 @@ App.MainAlertDefinitionsController = Em.ArrayController.extend({
     var alertsForService = this.get('content').filterProperty('service', service);
     return alertsForService.filterProperty('isCriticalOrWarning').get('length');
   },
+
+
+  /**
+   *  ========================== alerts popup dialog =========================
+   */
+
+  /**
+   * Alerts number to show up on top-nav bar: number of critical/warning alerts
+   * @type {number}
+   */
+  allAlertsCount: function () {
+    return this.get('unhealthyAlertInstances').get('length');
+  }.property('unhealthyAlertInstances.length'),
+
+  unhealthyAlertInstances: function() {
+    return App.AlertInstance.find().toArray().filterProperty('state', 'CRITICAL').concat(
+      App.AlertInstance.find().toArray().filterProperty('state', 'WARNING')
+    );
+  }.property('mapperTimestamp'),
+
+  /**
+   * if critical alerts exist, if true, the alert badge should be red.
+   */
+  isCriticalAlerts: function () {
+    return this.get('unhealthyAlertInstances').someProperty('state', 'CRITICAL');
+  }.property('unhealthyAlertInstances.@each.state'),
 
   /**
    * Onclick handler for alerts number located right to bg ops number (see application.hbs)
@@ -134,36 +144,60 @@ App.MainAlertDefinitionsController = Em.ArrayController.extend({
 
         controller: self,
 
-        content: function () {
-          // show crit/warn alerts only.
-          return this.get('controller.content').filterProperty('isCriticalOrWarning');
-        }.property('controller.content.@each.isCriticalOrWarning'),
+        contents: function () {
+          return this.get('controller.unhealthyAlertInstances');
+        }.property('controller.unhealthyAlertInstances.length', 'controller.unhealthyAlertInstances.@each.state'),
 
         isLoaded: function () {
-          return !!this.get('controller.content.length');
-        }.property('controller.content.length'),
+          return !!this.get('controller.unhealthyAlertInstances');
+        }.property('controller.unhealthyAlertInstances'),
 
         isAlertEmptyList: function () {
-          return !this.get('content.length');
-        }.property('content.length'),
+          return !this.get('contents.length');
+        }.property('contents.length'),
 
+        /**
+         * Router transition to alert definition details page
+         * @param event
+         */
         gotoAlertDetails: function (event) {
-          this.get('parentView').hide();
-          App.router.transitionTo('main.alerts.alertDetails', event.context);
+          if (event && event.context) {
+            this.get('parentView').hide();
+            var definition = this.get('controller.content').findProperty('id', event.context.get('definitionId'));
+            App.router.transitionTo('main.alerts.alertDetails', definition);
+          }
         },
 
+        /**
+         * Router transition to service summary page
+         * @param event
+         */
         gotoService: function (event) {
-          this.get('parentView').hide();
-          App.router.transitionTo('main.services.service', event.context);
+          if (event && event.context) {
+            this.get('parentView').hide();
+            App.router.transitionTo('main.services.service', event.context);
+          }
         },
 
+        /**
+         * Router transition to host level alerts page
+         * @param event
+         */
+        goToHostAlerts: function (event) {
+          if (event && event.context) {
+            this.get('parentView').hide();
+            App.router.transitionTo('main.hosts.hostDetails.alerts', event.context);
+          }
+        },
+
+        /**
+         * Router transition to alert summary page
+         */
         showMore: function () {
           this.get('parentView').hide();
           App.router.transitionTo('main.alerts.index');
         }
-
       })
     })
   }
-
 });

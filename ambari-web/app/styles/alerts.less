@@ -157,8 +157,10 @@
     text-decoration: none;
   }
 
-  .service-name {
+  .status {
     margin-bottom: 30px;
+    text-align: center;
+    font-size: 20px;
   }
 
   .right-column {
@@ -180,11 +182,21 @@
     font-weight: bold;
   }
 
-  .definition-name input {
-    width: 99%;
-    margin-bottom: 0px;
-    margin-top: -4px;
-    margin-left: -5px;
+  .definition-name {
+    .name-text-field{
+      margin-left: 2px;
+      margin-bottom: 0px;
+      input {
+        width: 99%;
+        margin-bottom: 0px;
+        margin-top: -4px;
+        margin-left: -5px;
+      }
+    }
+    .edit-buttons {
+      margin-bottom: 0px;
+      margin-top: -4px;
+    }
   }
 
   .edit-buttons {
@@ -293,6 +305,34 @@
   }
 }
 
+/*****start styles for manage alerts popup*****/
+.sixty-percent-width-modal.manage-alert-group-popup {
+  .modal{
+    max-height: 650px;
+  }
+  .modal-body {
+    max-height: 500px;
+  }
+  .group-select {
+    width: 100%;
+    height: 250px;
+  }
+  .btn-toolbar {
+    margin-top: 0px;
+  }
+  .manage-configuration-group-content {
+    margin-bottom: 0px;
+  }
+  .notification-editable-list {
+    .title {
+      font-weight: bold;
+    }
+  }
+}
+
+
+/*****end styles for manage alerts popup*****/
+
 /*****start styles for alerts popup*****/
 .alerts-popup {
   .modal-body, .modal-footer, .modal-header {
@@ -313,31 +353,23 @@
     padding: 0 0 20px 0;
     height: 20px;
     .status-top {
-      width: 10%;
+      width: 5%;
       padding-left: 20px;
     }
     .name-top {
-      width: 40%;
+      width: 30%;
       padding-left: 110px;
     }
     .service-top {
-      width: 15%;
+      width: 30%;
       padding-left: 5px;
     }
     .last-triggered-top {
-      width: 20%;
       padding-left: 5px;
     }
     .status-top,.name-top,.service-top,.last-triggered-top {
       float: left;
       text-align: left;
-    }
-    .select-wrap {
-      float: right;
-      margin-top: -8px;
-      select {
-        width: 140px;
-      }
     }
   }
   #alert-info{
@@ -355,18 +387,21 @@
       .status-icon {
         padding-left: 5px;
         float: left;
-        width: 10%;
-        min-width: 30px;
+        width: 5%;
+        min-width: 20px;
       }
       .name-text {
         padding-left: 10px;
-        width: 40%;
+        width: 35%;
         float: left;
       }
       .service-text {
         padding-left: 5px;
-        width: 15%;
+        width: 30%;
         float: left;
+        .na-text {
+          color: #808080;
+        }
       }
       .last-triggered-text {
         padding-left: 5px;

@@ -22,24 +22,26 @@
       <div class="top-wrap">
         <div class="status-top"></div>
         <div class="name-top">{{t alerts.fastAccess.popup.body.name}}</div>
-        <div class="service-top">{{t common.service}}</div>
+        <div class="service-top">{{t alerts.definition.details.serviceHost}}</div>
         <div class="last-triggered-top">{{t alerts.table.header.lastTriggered}}</div>
       </div>
-      <div id="alert-info">
-        {{#if view.isAlertEmptyList}}
-          <div class="alert-list-wrap">{{t alerts.fastAccess.popup.body.noalerts}}</div>
-        {{else}}
-          {{#each alertDefinition in view.content}}
-            <div class="alert-list-wrap">
-              <div class="alert-list-line-cursor">
-                <div class="status-icon">{{{alertDefinition.status}}}</div>
-                <div class="name-text">
-                  <a href="#" {{action "gotoAlertDetails" alertDefinition target="view"}}>{{alertDefinition.label}}</a>
-                </div>
-                <div class="service-text">
-                  <a href="#" {{action "gotoService" alertDefinition.service target="view"}}>{{alertDefinition.service.displayName}}</a>
-                </div>
-                <div class="last-triggered-text">{{alertDefinition.lastTriggeredFormatted}}</div>
+        <div id="alert-info">
+          {{#if view.isAlertEmptyList}}
+            <div class="alert-list-wrap">{{t alerts.fastAccess.popup.body.noalerts}}</div>
+          {{else}}
+            {{#each alertInstance in view.contents}}
+              <div class="alert-list-wrap">
+                <div class="alert-list-line-cursor">
+                  <div class="status-icon">{{{alertInstance.status}}}</div>
+                  <div class="name-text"><a href="#" {{action "gotoAlertDetails" alertInstance target="view"}}>{{alertInstance.label}}</a></div>
+                  <div class="service-text"><a href="#" {{action "gotoService" alertInstance.service target="view"}}>{{alertInstance.service.displayName}}</a>:&nbsp;
+                    {{#if alertInstance.host}}
+                      <a {{action "goToHostAlerts" alertInstance.host target="view"}} href="#">{{alertInstance.host.hostName}}</a>
+                    {{else}}
+                      <span class="na-text">{{t common.na}}</span>
+                    {{/if}}
+                  </div>
+                  <div class="last-triggered-text">{{alertInstance.lastTriggered}}</div>
               </div>
             </div>
           {{/each}}

@@ -16,18 +16,18 @@
 * limitations under the License.
 }}
 
-<div class="new-config-group-div">
-    <div class="text-warning">
-      {{#if view.parentView.warningMessage}}
-        {{view.parentView.warningMessage}}
-      {{else}}
-          &nbsp;
-      {{/if}}
-    </div>
-    <table>
-        <tr>
-            <td>{{t services.service.config_groups_popup.group_name_lable }}:</td>
-            <td>{{view Ember.TextField maxlength="255" valueBinding="alertGroupName"}}</td>
-        </tr>
-    </table>
+<div class="new-config-group-div" id="create-new-alert-group">
+  <div class="text-warning">
+    {{#if view.parentView.warningMessage}}
+      {{view.parentView.warningMessage}}
+    {{else}}
+        &nbsp;
+    {{/if}}
+  </div>
+  <table>
+    <tr>
+       <td class="title">{{t common.name}}: &nbsp;</td>
+       <td>{{view Ember.TextField maxlength="255" valueBinding="alertGroupName"}}</td>
+    </tr>
+  </table>
 </div>

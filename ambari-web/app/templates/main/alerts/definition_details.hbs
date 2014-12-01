@@ -23,19 +23,21 @@
 
     {{! Left column }}
     <div class="span9">
-      <div class="definition-name">
+      <div class="definition-name row-fluid">
         {{#if controller.editing.label.isEditing}}
-          <div {{bindAttr class="controller.editing.label.isError:error :control-group"}}>
+          <div {{bindAttr class="controller.editing.label.isError:error :span8 :name-text-field :control-group"}}>
             {{view Em.TextField valueBinding="controller.editing.label.value"}}
           </div>
-          <div class="edit-buttons">
+          <div class="edit-buttons span3">
             <button {{action cancelEdit controller.editing.label target="controller"}} class="btn">{{t common.cancel}}</button>
             <button {{bindAttr disabled="controller.editing.label.isError"}} {{action saveEdit controller.editing.label target="controller"}}
                 class="btn btn-primary">{{t common.save}}
             </button>
           </div>
         {{else}}
-          {{{controller.content.status}}} {{controller.content.label}}
+          <span>
+            {{controller.content.label}}
+          </span>
         {{/if}}
         {{#unless controller.editing.label.isEditing}}
           {{#isAccessible ADMIN}}
@@ -95,8 +97,8 @@
 
     {{! Right column }}
     <div class="span3 right-column">
-      <div class="service-name">
-        {{t common.service}}: <span class="label label-info">{{controller.content.service.displayName}}</span>
+      <div class="status">
+        {{{controller.content.status}}}
       </div>
       <div>
         {{#isAccessible ADMIN}}
@@ -112,9 +114,16 @@
         {{/isAccessible}}
       </div>
       <div class="properties-list">
-        <span>{{t common.type}}: {{controller.content.type}}</span>
         <table>
           <tbody>
+          <tr>
+            <td>{{t common.service}}:</td>
+            <td><span class="label label-info">{{controller.content.service.displayName}}</span></td>
+          </tr>
+          <tr>
+            <td>{{t common.type}}:</td>
+            <td>{{controller.content.type}}</td>
+          </tr>
           <tr>
             <td>{{t alerts.definition.details.groups}}:</td>
             <td>HDFS Default (Admins)</td>
@@ -145,7 +154,7 @@
         <thead>
         <tr>
           <th class="first">{{t common.status}}</th>
-          <th>{{t common.host}}</th>
+          <th>{{t alerts.definition.details.serviceHost}}</th>
           <th>{{t alerts.table.header.lastTriggered}}</th>
           <th>{{t alerts.definition.details.24-hour}}</th>
           <th>{{t alerts.definition.details.notification}}</th>
@@ -155,8 +164,15 @@
         {{#if view.pageContent}}
           {{#each instance in view.pageContent}}
             <tr>
-              <td class="first">{{instance.state}}</td>
-              <td><a {{action goToHostAlerts instance.host target="controller"}} href="#">{{instance.host.hostName}}</a></td>
+              <td class="first">{{{instance.status}}}</td>
+              <td>
+                <a {{action goToService instance.service target="controller"}} href="#">{{instance.service.displayName}}</a>:&nbsp;
+                {{#if instance.host}}
+                  <a {{action goToHostAlerts instance.host target="controller"}} href="#">{{instance.host.hostName}}</a>
+                {{else}}
+                  {{t common.na}}
+                {{/if}}
+              </td>
               <td><time class="timeago" {{bindAttr data-original-title="instance.lastTriggered"}}>{{instance.lastTriggeredAgoFormatted}}</time></td>
               <td>10</td>
               <td class="last">Admins</td>

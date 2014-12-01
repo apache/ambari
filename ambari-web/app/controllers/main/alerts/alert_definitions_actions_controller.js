@@ -85,8 +85,7 @@ App.MainAlertDefinitionActionsController = Em.ArrayController.extend({
         controllerBinding: 'App.router.manageAlertGroupsController'
       }),
 
-      classNames: ['sixty-percent-width-modal', 'manage-configuration-group-popup'],
-
+      classNames: ['sixty-percent-width-modal', 'manage-alert-group-popup'],
       primary: Em.I18n.t('common.save'),
 
       onPrimary: function () {
