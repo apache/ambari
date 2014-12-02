@@ -1937,7 +1937,7 @@ describe('App.WizardStep3Controller', function () {
 
     it('should do proper request to the ambari-server', function() {
 
-      var bootHosts = [{name: 'n1'}, {name: 'n2'}],
+      var bootHosts = [{name: 'n1', bootStatus: 'REGISTERED'}, {name: 'n2', bootStatus: 'REGISTERED'}],
         javaHome = '/java',
         jdkLocation = '/jdk';
       c.reopen({
