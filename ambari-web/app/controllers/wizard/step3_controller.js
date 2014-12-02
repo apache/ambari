@@ -715,7 +715,7 @@ App.WizardStep3Controller = Em.Controller.extend({
   },
 
   doCheckJDK: function () {
-    var hostsNames = this.get('bootHosts').getEach('name').join(",");
+    var hostsNames = this.get('bootHosts').filterProperty('bootStatus', 'REGISTERED').getEach('name').join(",");
     var javaHome = this.get('javaHome');
     var jdkLocation = this.get('jdkLocation');
     App.ajax.send({
@@ -826,7 +826,7 @@ App.WizardStep3Controller = Em.Controller.extend({
   },
 
   getHostNameResolution: function () {
-    var hosts = this.get('bootHosts').getEach('name').join(",");
+    var hosts = this.get('bootHosts').filterProperty('bootStatus', 'REGISTERED').getEach('name').join(",");
     var jdk_location = App.router.get('clusterController.ambariProperties.jdk_location');
     var RequestInfo = {
       "action": "check_host",
