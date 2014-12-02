@@ -18,9 +18,11 @@
 
 package org.apache.ambari.server.api.resources;
 
+import org.apache.ambari.server.controller.spi.Resource;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.Iterator;
 import java.util.Set;
 
 /**
@@ -35,15 +37,16 @@ public class RepositoryVersionResourceDefinitionTest {
 
   @Test
   public void testGetSingularName() throws Exception {
-    RepositoryVersionResourceDefinition resourceDefinition = new RepositoryVersionResourceDefinition();
+    final RepositoryVersionResourceDefinition resourceDefinition = new RepositoryVersionResourceDefinition();
     Assert.assertEquals("repository_version", resourceDefinition.getSingularName());
   }
 
   @Test
   public void testGetSubResourceDefinitions() throws Exception {
-    RepositoryVersionResourceDefinition resourceDefinition = new RepositoryVersionResourceDefinition();
-    Set<SubResourceDefinition> subResourceDefinitions = resourceDefinition.getSubResourceDefinitions ();
-
-    Assert.assertEquals(0, subResourceDefinitions.size());
+    final RepositoryVersionResourceDefinition resourceDefinition = new RepositoryVersionResourceDefinition();
+    final Set<SubResourceDefinition> subResourceDefinitions = resourceDefinition.getSubResourceDefinitions ();
+    final Iterator<SubResourceDefinition> iterator = subResourceDefinitions.iterator();
+    Assert.assertEquals(Resource.Type.OperatingSystem, iterator.next().getType());
+    Assert.assertEquals(1, subResourceDefinitions.size());
   }
 }

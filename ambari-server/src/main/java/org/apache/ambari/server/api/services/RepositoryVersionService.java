@@ -17,6 +17,9 @@
  */
 package org.apache.ambari.server.api.services;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -32,13 +35,25 @@ import javax.ws.rs.core.UriInfo;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.controller.spi.Resource;
 
-import java.util.Collections;
-
 /**
  * Service responsible for repository versions requests.
  */
-@Path("/repository_versions/")
 public class RepositoryVersionService extends BaseService {
+
+  /**
+   * Extra properties to be inserted into created resource.
+   */
+  private Map<Resource.Type, String> parentKeyProperties;
+
+  /**
+   * Constructor.
+   *
+   * @param parentKeyProperties extra properties to be inserted into created resource
+   */
+  public RepositoryVersionService(Map<Resource.Type, String> parentKeyProperties) {
+    this.parentKeyProperties = parentKeyProperties;
+  }
+
   /**
    * Gets all repository versions.
    * Handles: GET /repository_versions requests.
@@ -84,7 +99,7 @@ public class RepositoryVersionService extends BaseService {
   }
 
   /**
-   * Deletes a repository version. Handles: DELETE /repository_version/{repositoryVersionId} requests.
+   * Deletes a repository version. Handles: DELETE /repository_versions/{repositoryVersionId} requests.
    *
    * @param headers               http headers
    * @param ui                    uri info
@@ -100,7 +115,7 @@ public class RepositoryVersionService extends BaseService {
   }
 
   /**
-   * Updates a specific repository version. Handles: PUT /repository_version/{repositoryVersionId} requests.
+   * Updates a specific repository version. Handles: PUT /repository_versions/{repositoryVersionId} requests.
    *
    * @param headers               http headers
    * @param ui                    uri info
@@ -116,6 +131,20 @@ public class RepositoryVersionService extends BaseService {
   }
 
   /**
+   * Handles ANY /{repositoryVersionId}/operating_systems requests.
+   *
+   * @param repositoryVersionId the repository version id
+   * @return operating systems service
+   */
+  @Path("{repositoryVersionId}/operating_systems")
+  public OperatingSystemService getOperatingSystemsHandler(@PathParam("repositoryVersionId") String repositoryVersionId) {
+    final Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
+    mapIds.putAll(parentKeyProperties);
+    mapIds.put(Resource.Type.RepositoryVersion, repositoryVersionId);
+    return new OperatingSystemService(mapIds);
+  }
+
+  /**
    * Create a repository version resource instance.
    *
    * @param repositoryVersionId repository version id
@@ -123,7 +152,9 @@ public class RepositoryVersionService extends BaseService {
    * @return a repository resource instance
    */
   private ResourceInstance createResource(String repositoryVersionId) {
-    return createResource(Resource.Type.RepositoryVersion,
-        Collections.singletonMap(Resource.Type.RepositoryVersion, repositoryVersionId));
+    final Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
+    mapIds.putAll(parentKeyProperties);
+    mapIds.put(Resource.Type.RepositoryVersion, repositoryVersionId);
+    return createResource(Resource.Type.RepositoryVersion, mapIds);
   }
 }

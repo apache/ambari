@@ -41,33 +41,21 @@ import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
 public class StackVersionResourceProvider extends ReadOnlyResourceProvider {
 
+  public static final String STACK_VERSION_PROPERTY_ID     = PropertyHelper.getPropertyId("Versions", "stack_version");
+  public static final String STACK_NAME_PROPERTY_ID        = PropertyHelper.getPropertyId("Versions", "stack_name");
+  public static final String STACK_MIN_VERSION_PROPERTY_ID = PropertyHelper.getPropertyId("Versions", "min_upgrade_version");
+  public static final String STACK_ACTIVE_PROPERTY_ID      = PropertyHelper.getPropertyId("Versions", "active");
+  public static final String STACK_CONFIG_TYPES            = PropertyHelper.getPropertyId("Versions", "config_types");
+  public static final String STACK_PARENT_PROPERTY_ID      = PropertyHelper.getPropertyId("Versions", "parent_stack_version");
+
+  private static Set<String> pkPropertyIds = new HashSet<String>(
+      Arrays.asList(new String[] { STACK_NAME_PROPERTY_ID, STACK_VERSION_PROPERTY_ID }));
+
   protected StackVersionResourceProvider(Set<String> propertyIds,
       Map<Type, String> keyPropertyIds,
       AmbariManagementController managementController) {
     super(propertyIds, keyPropertyIds, managementController);
   }
-
-  public static final String STACK_VERSION_PROPERTY_ID = PropertyHelper
-      .getPropertyId("Versions", "stack_version");
-
-  private static final String STACK_NAME_PROPERTY_ID = PropertyHelper
-      .getPropertyId("Versions", "stack_name");
-
-  private static final String STACK_MIN_VERSION_PROPERTY_ID = PropertyHelper
-      .getPropertyId("Versions", "min_upgrade_version");
-
-  private static final String STACK_ACTIVE_PROPERTY_ID = PropertyHelper
-      .getPropertyId("Versions", "active");
-
-  private static final String STACK_CONFIG_TYPES = PropertyHelper
-      .getPropertyId("Versions", "config_types");
-
-  private static Set<String> pkPropertyIds = new HashSet<String>(
-      Arrays.asList(new String[] { STACK_NAME_PROPERTY_ID,
-          STACK_VERSION_PROPERTY_ID }));
-
-  private static final String STACK_PARENT_PROPERTY_ID = PropertyHelper
-    .getPropertyId("Versions", "parent_stack_version");
 
   @Override
   public Set<Resource> getResources(Request request, Predicate predicate)

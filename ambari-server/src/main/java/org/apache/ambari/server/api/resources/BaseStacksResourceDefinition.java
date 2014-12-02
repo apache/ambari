@@ -44,13 +44,13 @@ public abstract class BaseStacksResourceDefinition extends BaseResourceDefinitio
   private class StacksHrefProcessor extends BaseHrefPostProcessor {
     @Override
     /**
-     * If processing a /stacks endpoint, replace the endpoint names.
+     * If processing a /stacks or /stack_versions endpoint, replace the endpoint names.
      */
     public void process(Request request, TreeNode<Resource> resultNode, String href) {
       super.process(request, resultNode, href);
 
       String nodeHref = resultNode.getProperty("href");
-      if (nodeHref != null && nodeHref.contains("/stacks/")) {
+      if (nodeHref != null && (nodeHref.contains("/stacks/") || nodeHref.contains("/stack_versions/"))) {
         nodeHref = nodeHref.replace("stackServices", "services");
         nodeHref = nodeHref.replace("serviceComponents", "components");
         nodeHref = nodeHref.replace("operatingSystems", "operating_systems");

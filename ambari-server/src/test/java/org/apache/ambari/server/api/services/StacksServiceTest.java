@@ -21,14 +21,12 @@ package org.apache.ambari.server.api.services;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.services.parsers.RequestBodyParser;
 import org.apache.ambari.server.api.services.serializers.ResultSerializer;
-import org.easymock.EasyMock;
-
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.UriInfo;
+
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
-
 
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.notNull;
@@ -67,27 +65,6 @@ public class StacksServiceTest extends BaseServiceTest {
     m = service.getClass().getMethod("getStackVersions", String.class, HttpHeaders.class, UriInfo.class, String.class);
     args = new Object[] {null, getHttpHeaders(), getUriInfo(), "stackName"};
     listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m, args, null));
-
-    // getRepository
-    service = new TestStacksService("stackName", "stackVersion");
-    m = service.getClass().getMethod("getRepository", String.class, HttpHeaders.class, UriInfo.class, String.class,
-        String.class, String.class, String.class);
-    args = new Object[] {null, getHttpHeaders(), getUriInfo(), "stackName", "stackVersion", "os", "repo-id"};
-    listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m, args, null));
-
-    // getRepositories
-    service = new TestStacksService("stackName", "stackVersion");
-    m = service.getClass().getMethod("getRepositories", String.class, HttpHeaders.class, UriInfo.class, String.class,
-        String.class, String.class);
-    args = new Object[] {null, getHttpHeaders(), getUriInfo(), "stackName", "stackVersion", "os"};
-    listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m, args, null));
-
-    // updateRepository
-    service = new TestStacksService("stackName", "stackVersion");
-    m = service.getClass().getMethod("updateRepository", String.class, HttpHeaders.class, UriInfo.class, String.class,
-        String.class, String.class, String.class);
-    args = new Object[] {"body", getHttpHeaders(), getUriInfo(), "stackName", "stackVersion", "os", "repo-id"};
-    listInvocations.add(new ServiceTestInvocation(Request.Type.PUT, service, m, args, "body"));
 
     // getStackService
     service = new TestStacksService("stackName", null);
@@ -130,20 +107,6 @@ public class StacksServiceTest extends BaseServiceTest {
     args = new Object[] {null, getHttpHeaders(), getUriInfo(), "stackName", "stackVersion", "service-name"};
     listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m, args, null));
 
-    // getOperationSystem
-    service = new TestStacksService("stackName", "stackVersion");
-    m = service.getClass().getMethod("getOperatingSystem", String.class, HttpHeaders.class, UriInfo.class,
-        String.class, String.class, String.class);
-    args = new Object[] {null, getHttpHeaders(), getUriInfo(), "stackName", "stackVersion", "os-type"};
-    listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m, args, null));
-
-    // getOperationSystems
-    service = new TestStacksService("stackName", "stackVersion");
-    m = service.getClass().getMethod("getOperatingSystems", String.class, HttpHeaders.class, UriInfo.class,
-        String.class, String.class);
-    args = new Object[] {null, getHttpHeaders(), getUriInfo(), "stackName", "stackVersion"};
-    listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m, args, null));
-
     return listInvocations;
   }
 
@@ -172,7 +135,8 @@ public class StacksServiceTest extends BaseServiceTest {
 
     @Override
     ResourceInstance createRepositoryResource(String stackName,
-        String stackVersion, String osType, String repoId) {
+        String stackVersion, String repositoryVersion, String osType,
+        String repoId) {
       return getTestResource();
     }
 

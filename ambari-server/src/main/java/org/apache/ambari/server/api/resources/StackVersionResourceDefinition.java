@@ -48,10 +48,11 @@ public class StackVersionResourceDefinition extends BaseStacksResourceDefinition
   public Set<SubResourceDefinition> getSubResourceDefinitions() {
 
     Set<SubResourceDefinition> setChildren = new HashSet<SubResourceDefinition>();
-    
+
     setChildren.add(new SubResourceDefinition(Resource.Type.OperatingSystem));
     setChildren.add(new SubResourceDefinition(Resource.Type.StackService));
     setChildren.add(new SubResourceDefinition(Resource.Type.StackLevelConfiguration));
+    setChildren.add(new SubResourceDefinition(Resource.Type.RepositoryVersion));
 
     return setChildren;
 

@@ -43,6 +43,6 @@ public class ComponentStackVersionResourceDefinitionTest {
   public void testGetSubResourceDefinitions() throws Exception {
     final ComponentStackVersionResourceDefinition resourceDefinition = new ComponentStackVersionResourceDefinition(null);
     final Set<SubResourceDefinition> subResourceDefinitions = resourceDefinition.getSubResourceDefinitions ();
-    Assert.assertEquals(0, subResourceDefinitions.size());
+    Assert.assertEquals(1, subResourceDefinitions.size());
   }
 }

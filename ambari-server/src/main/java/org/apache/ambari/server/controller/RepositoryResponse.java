@@ -29,8 +29,8 @@ public class RepositoryResponse {
   private String mirrorsList;
   private String defaultBaseUrl;
   private String latestBaseUrl;
-  
-  
+  private Long repositoryVersionId;
+
   public RepositoryResponse(String baseUrl, String osType, String repoId,
       String repoName, String mirrorsList, String defaultBaseUrl, String latestBaseUrl) {
     setBaseUrl(baseUrl);
@@ -103,23 +103,29 @@ public class RepositoryResponse {
   public void setMirrorsList(String mirrorsList) {
     this.mirrorsList = mirrorsList;
   }
-  
+
   public String getDefaultBaseUrl() {
     return defaultBaseUrl;
   }
-  
+
   public void setDefaultBaseUrl(String url) {
     this.defaultBaseUrl = url;
   }
-  
+
   public String getLatestBaseUrl() {
     return latestBaseUrl;
   }
-  
+
   public void setLatestBaseUrl(String url) {
     latestBaseUrl = url;
   }
 
+  public Long getRepositoryVersionId() {
+    return repositoryVersionId;
+  }
 
+  public void setRepositoryVersionId(Long repositoryVersionId) {
+    this.repositoryVersionId = repositoryVersionId;
+  }
 
 }

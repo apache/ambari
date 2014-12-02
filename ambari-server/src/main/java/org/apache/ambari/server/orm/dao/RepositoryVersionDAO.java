@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.server.orm.dao;
 
+import java.util.List;
+
 import javax.persistence.TypedQuery;
 
 import org.apache.ambari.server.orm.RequiresSession;
@@ -51,7 +53,7 @@ public class RepositoryVersionDAO extends CrudDAO<RepositoryVersionEntity, Long>
   }
 
   /**
-   * Retrieves repository version by stack and version.
+   * Retrieves repository version by stack.
    *
    * @param stack stack
    * @param version version
@@ -63,5 +65,18 @@ public class RepositoryVersionDAO extends CrudDAO<RepositoryVersionEntity, Long>
     query.setParameter("stack", stack);
     query.setParameter("version", version);
     return daoUtils.selectSingle(query);
+  }
+
+  /**
+   * Retrieves repository version by stack.
+   *
+   * @param stack stack with major version (like HDP-2.2)
+   * @return null if there is no suitable repository version
+   */
+  @RequiresSession
+  public List<RepositoryVersionEntity> findByStack(String stack) {
+    final TypedQuery<RepositoryVersionEntity> query = entityManagerProvider.get().createNamedQuery("repositoryVersionByStack", RepositoryVersionEntity.class);
+    query.setParameter("stack", stack);
+    return daoUtils.selectList(query);
   }
 }

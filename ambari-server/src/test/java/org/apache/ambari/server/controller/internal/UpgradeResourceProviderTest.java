@@ -77,7 +77,7 @@ public class UpgradeResourceProviderTest {
 
     RepositoryVersionEntity repoVersionEntity = new RepositoryVersionEntity();
     repoVersionEntity.setDisplayName("My New Version");
-    repoVersionEntity.setRepositories("");
+    repoVersionEntity.setOperatingSystems("");
     repoVersionEntity.setStack("HDP-2.1.1");
     repoVersionEntity.setUpgradePackage("upgrade_test");
     repoVersionEntity.setVersion("2.2.2.2");

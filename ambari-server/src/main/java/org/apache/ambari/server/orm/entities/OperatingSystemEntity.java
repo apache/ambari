@@ -15,18 +15,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.apache.ambari.server.orm.entities;
 
-package org.apache.ambari.server.controller;
+import java.util.ArrayList;
+import java.util.List;
 
-public class OperatingSystemRequest extends StackVersionRequest {
+/**
+ * Emulates entity to provide a quick way to change it to real entity in future.
+ */
+public class OperatingSystemEntity {
 
   private String osType;
-  private Long repositoryVersionId;
-
-  public OperatingSystemRequest(String stackName, String stackVersion, String osType) {
-    super(stackName, stackVersion);
-    setOsType(osType);
-  }
+  private List<RepositoryEntity> repositories = new ArrayList<RepositoryEntity>();
 
   public String getOsType() {
     return osType;
@@ -36,12 +36,30 @@ public class OperatingSystemRequest extends StackVersionRequest {
     this.osType = osType;
   }
 
-  public Long getRepositoryVersionId() {
-    return repositoryVersionId;
+  public List<RepositoryEntity> getRepositories() {
+    return repositories;
   }
 
-  public void setRepositoryVersionId(Long repositoryVersionId) {
-    this.repositoryVersionId = repositoryVersionId;
+  public void setRepositories(List<RepositoryEntity> repositories) {
+    this.repositories = repositories;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    OperatingSystemEntity that = (OperatingSystemEntity) o;
+
+    if (osType != null ? !osType.equals(that.osType) : that.osType != null) return false;
+
+    return true;
+  }
+
+  @Override
+  public int hashCode() {
+    int result = osType != null ? osType.hashCode() : 0;
+    return result;
   }
 
 }

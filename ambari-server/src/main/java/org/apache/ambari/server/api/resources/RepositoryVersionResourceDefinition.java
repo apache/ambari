@@ -17,9 +17,12 @@
  */
 package org.apache.ambari.server.api.resources;
 
+import java.util.Collections;
+import java.util.Set;
+
 import org.apache.ambari.server.controller.spi.Resource;
 
-public class RepositoryVersionResourceDefinition extends BaseResourceDefinition {
+public class RepositoryVersionResourceDefinition extends BaseStacksResourceDefinition {
 
   public RepositoryVersionResourceDefinition() {
     super(Resource.Type.RepositoryVersion);
@@ -33,6 +36,11 @@ public class RepositoryVersionResourceDefinition extends BaseResourceDefinition 
   @Override
   public String getSingularName() {
     return "repository_version";
+  }
+
+  @Override
+  public Set<SubResourceDefinition> getSubResourceDefinitions() {
+    return Collections.singleton(new SubResourceDefinition(Resource.Type.OperatingSystem));
   }
 
 }

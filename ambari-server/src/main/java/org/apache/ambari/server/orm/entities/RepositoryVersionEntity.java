@@ -17,6 +17,9 @@
  */
 package org.apache.ambari.server.orm.entities;
 
+import java.util.Collections;
+import java.util.List;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -27,6 +30,11 @@ import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 import javax.persistence.UniqueConstraint;
+
+import org.apache.ambari.server.controller.internal.RepositoryVersionResourceProvider;
+import org.apache.ambari.server.state.StackId;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Entity
 @Table(name = "repo_version", uniqueConstraints = {
@@ -43,9 +51,12 @@ import javax.persistence.UniqueConstraint;
     )
 @NamedQueries({
   @NamedQuery(name = "repositoryVersionByDisplayName", query = "SELECT repoversion FROM RepositoryVersionEntity repoversion WHERE repoversion.displayName=:displayname"),
-  @NamedQuery(name = "repositoryVersionByStackVersion", query = "SELECT repoversion FROM RepositoryVersionEntity repoversion WHERE repoversion.stack=:stack AND repoversion.version=:version")
+  @NamedQuery(name = "repositoryVersionByStackVersion", query = "SELECT repoversion FROM RepositoryVersionEntity repoversion WHERE repoversion.stack=:stack AND repoversion.version=:version"),
+  @NamedQuery(name = "repositoryVersionByStack", query = "SELECT repoversion FROM RepositoryVersionEntity repoversion WHERE repoversion.stack=:stack")
 })
 public class RepositoryVersionEntity {
+
+  private static Logger LOG = LoggerFactory.getLogger(RepositoryVersionEntity.class);
 
   @Id
   @Column(name = "repo_version_id")
@@ -65,7 +76,7 @@ public class RepositoryVersionEntity {
   private String upgradePackage;
 
   @Column(name = "repositories")
-  private String repositories;
+  private String operatingSystems;
 
   // ----- RepositoryVersionEntity -------------------------------------------------------
 
@@ -109,12 +120,30 @@ public class RepositoryVersionEntity {
     this.upgradePackage = upgradePackage;
   }
 
-  public String getRepositories() {
-    return repositories;
+  public String getOperatingSystemsJson() {
+    return operatingSystems;
   }
 
-  public void setRepositories(String repositories) {
-    this.repositories = repositories;
+  public void setOperatingSystems(String repositories) {
+    this.operatingSystems = repositories;
+  }
+
+  public List<OperatingSystemEntity> getOperatingSystems() {
+    try {
+      return RepositoryVersionResourceProvider.parseRepositories(operatingSystems);
+    } catch (Exception ex) {
+      // Should never happen as we validate json before storing it to DB
+      LOG.error("Could not parse operating systems json stored in database:" + operatingSystems, ex);
+      return Collections.emptyList();
+    }
+  }
+
+  public String getStackName() {
+    return new StackId(stack).getStackName();
+  }
+
+  public String getStackVersion() {
+    return new StackId(stack).getStackVersion();
   }
 
   @Override
@@ -129,7 +158,7 @@ public class RepositoryVersionEntity {
     if (version != null ? !version.equals(that.version) : that.version != null) return false;
     if (displayName != null ? !displayName.equals(that.displayName) : that.displayName != null) return false;
     if (upgradePackage != null ? !upgradePackage.equals(that.upgradePackage) : that.upgradePackage != null) return false;
-    if (repositories != null ? !repositories.equals(that.repositories) : that.repositories != null) return false;
+    if (operatingSystems != null ? !operatingSystems.equals(that.operatingSystems) : that.operatingSystems != null) return false;
 
     return true;
   }
@@ -141,7 +170,8 @@ public class RepositoryVersionEntity {
     result = 31 * result + (version != null ? version.hashCode() : 0);
     result = 31 * result + (displayName != null ? displayName.hashCode() : 0);
     result = 31 * result + (upgradePackage != null ? upgradePackage.hashCode() : 0);
-    result = 31 * result + (repositories != null ? repositories.hashCode() : 0);
+    result = 31 * result + (operatingSystems != null ? operatingSystems.hashCode() : 0);
     return result;
   }
+
 }

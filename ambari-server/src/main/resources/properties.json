@@ -205,25 +205,6 @@
         "Versions/config_types",
         "_"
     ],
-    "OperatingSystem":[
-        "OperatingSystems/stack_name",
-        "OperatingSystems/stack_version",
-        "OperatingSystems/os_type",
-        "_"
-    ],
-    "Repository":[
-        "Repositories/stack_name",
-        "Repositories/stack_version",
-        "Repositories/os_type",
-        "Repositories/base_url",
-        "Repositories/repo_id",
-        "Repositories/repo_name",
-        "Repositories/mirrors_list",
-        "Repositories/default_base_url",
-        "Repositories/verify_base_url",
-        "Repositories/latest_base_url",
-        "_"
-    ],
     "StackService":[
         "StackServices/stack_name",
         "StackServices/stack_version",

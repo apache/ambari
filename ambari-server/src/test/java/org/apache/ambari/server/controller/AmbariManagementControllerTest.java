@@ -7086,12 +7086,12 @@ public class AmbariManagementControllerTest {
   @Test
   public void testGetStackOperatingSystems() throws Exception {
     OperatingSystemRequest request = new OperatingSystemRequest(STACK_NAME, STACK_VERSION, null);
-    Set<OperatingSystemResponse> responses = controller.getStackOperatingSystems(Collections.singleton(request));
+    Set<OperatingSystemResponse> responses = controller.getOperatingSystems(Collections.singleton(request));
     Assert.assertEquals(OS_CNT, responses.size());
 
 
     OperatingSystemRequest requestWithParams = new OperatingSystemRequest(STACK_NAME, STACK_VERSION, OS_TYPE);
-    Set<OperatingSystemResponse> responsesWithParams = controller.getStackOperatingSystems(Collections.singleton(requestWithParams));
+    Set<OperatingSystemResponse> responsesWithParams = controller.getOperatingSystems(Collections.singleton(requestWithParams));
     Assert.assertEquals(1, responsesWithParams.size());
     for (OperatingSystemResponse responseWithParams: responsesWithParams) {
       Assert.assertEquals(responseWithParams.getOsType(), OS_TYPE);
@@ -7100,7 +7100,7 @@ public class AmbariManagementControllerTest {
 
     OperatingSystemRequest invalidRequest = new OperatingSystemRequest(STACK_NAME, STACK_VERSION, NON_EXT_VALUE);
     try {
-      controller.getStackOperatingSystems(Collections.singleton(invalidRequest));
+      controller.getOperatingSystems(Collections.singleton(invalidRequest));
     } catch (StackAccessException e) {
       // do nothing
     }

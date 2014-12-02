@@ -20,9 +20,9 @@ package org.apache.ambari.server.state;
 
 /**
  * There must be exactly one repository version that is in a CURRENT state for a particular cluster or host.
- * There may be 0 or more repository versions in an INSTALLED state.
- * A repository version state transitions from UPGRADING -> CURRENT | UPGRADE_FAILED
- * The operation to transition a repository version state into CURRENT must be atomic and change the existing
+ * There may be 0 or more repository versions in an INSTALLED or INSTALLING state.
+ * A repository version state transitions from UPGRADING -> UPGRADED | UPGRADE_FAILED
+ * The operation to transition a repository version state from UPGRADED into CURRENT must be atomic and change the existing
  * relation between repository version and cluster or host from CURRENT to INSTALLED.
  *
  * <pre>
@@ -52,19 +52,30 @@ package org.apache.ambari.server.state;
  * Version 2: INSTALLED
  *
  * *********************************************
- * Start states: CURRENT, UPGRADING
+ * Start states: CURRENT, UPGRADING, INSTALLING
  * Allowed Transitions:
- * UPGRADING -> CURRENT | UPGRADE_FAILED
+ * UPGRADING -> UPGRADED | UPGRADE_FAILED
  * UPGRADE_FAILED -> UPGRADING
+ * UPGRADED -> CURRENT
+ * INSTALLING -> INSTALLED | INSTALL_FAILED
+ * INSTALL_FAILED -> INSTALLING
  * CURRENT -> INSTALLED
  * INSTALLED -> UPGRADING
  * </pre>
  */
 public enum RepositoryVersionState {
   /**
+   * Repository version that is in the process of being installed.
+   */
+  INSTALLING,
+  /**
    * Repository version that is installed and supported but not the active version.
    */
   INSTALLED,
+  /**
+   * Repository version that during the install process failed to install some components.
+   */
+  INSTALL_FAILED,
   /**
    * Repository version that is installed and supported and is the active version.
    */
@@ -77,5 +88,9 @@ public enum RepositoryVersionState {
   /**
    * Repository version that during the upgrade process failed to become the active version and must be remedied.
    */
-  UPGRADE_FAILED;
+  UPGRADE_FAILED,
+  /**
+   * Repository version that finished upgrading and should be finalized to become CURRENT.
+   */
+  UPGRADED
 }

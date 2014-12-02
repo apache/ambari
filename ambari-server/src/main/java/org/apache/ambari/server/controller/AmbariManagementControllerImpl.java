@@ -82,6 +82,10 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.customactions.ActionDefinition;
 import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
+import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
+import org.apache.ambari.server.orm.entities.OperatingSystemEntity;
+import org.apache.ambari.server.orm.entities.RepositoryEntity;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.scheduler.ExecutionScheduleManager;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.security.authorization.Group;
@@ -198,6 +202,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   private ExecutionScheduleManager executionScheduleManager;
   @Inject
   private AmbariLdapDataPopulator ldapDataPopulator;
+  @Inject
+  private RepositoryVersionDAO repositoryVersionDAO;
 
   private MaintenanceStateHelper maintenanceStateHelper;
 
@@ -2301,8 +2307,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         State slaveState = componentHost.getState();
         //Delete hostcomponents
         entry.getKey().deleteServiceComponentHosts(componentHost.getHostName());
-        // If deleted hostcomponents support decomission and were decommited and stopped 
-        if (AmbariCustomCommandExecutionHelper.masterToSlaveMappingForDecom.containsValue(slave_component_name) 
+        // If deleted hostcomponents support decomission and were decommited and stopped
+        if (AmbariCustomCommandExecutionHelper.masterToSlaveMappingForDecom.containsValue(slave_component_name)
                 && desiredAdminState.equals(HostComponentAdminState.DECOMMISSIONED)
                 && slaveState.equals(State.INSTALLED)) {
 
@@ -2314,7 +2320,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           //Clear exclud file or draining list except HBASE
           if (!serviceName.equals(Service.Type.HBASE.toString())) {
             HashMap<String, String> requestProperties = new HashMap<String, String>();
-            requestProperties.put("context", "Remove host " + 
+            requestProperties.put("context", "Remove host " +
                     included_hostname + " from exclude file");
             requestProperties.put("exclusive", "true");
             HashMap<String, String> params = new HashMap<String, String>();
@@ -2332,7 +2338,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
             //Send request
             createAction(actionRequest, requestProperties);
           }
-         
+
           //Mark master component as needed to restart for remove host info from components UI
           Cluster cluster = clusters.getCluster(entry.getKey().getClusterName());
           Service service = cluster.getService(serviceName);
@@ -2865,8 +2871,12 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         Set<RepositoryResponse> repositories = getRepositories(request);
 
         for (RepositoryResponse repositoryResponse : repositories) {
-          repositoryResponse.setStackName(stackName);
-          repositoryResponse.setStackVersion(stackVersion);
+          if (repositoryResponse.getStackName() == null) {
+            repositoryResponse.setStackName(stackName);
+          }
+          if (repositoryResponse.getStackVersion() == null) {
+            repositoryResponse.setStackVersion(stackVersion);
+          }
         }
         response.addAll(repositories);
       } catch (StackAccessException e) {
@@ -2886,23 +2896,41 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     String stackVersion = request.getStackVersion();
     String osType = request.getOsType();
     String repoId = request.getRepoId();
+    Long repositoryVersionId = request.getRepositoryVersionId();
 
-    Set<RepositoryResponse> response;
+    Set<RepositoryResponse> responses = new HashSet<RepositoryResponse>();
 
-    if (repoId == null) {
-      List<RepositoryInfo> repositories = ambariMetaInfo.getRepositories(stackName, stackVersion, osType);
-      response = new HashSet<RepositoryResponse>();
-
-      for (RepositoryInfo repository: repositories) {
-        response.add(repository.convertToResponse());
+    if (repositoryVersionId != null) {
+      final RepositoryVersionEntity repositoryVersion = repositoryVersionDAO.findByPK(repositoryVersionId);
+      if (repositoryVersion != null) {
+        for (OperatingSystemEntity operatingSystem: repositoryVersion.getOperatingSystems()) {
+          if (operatingSystem.getOsType().equals(osType)) {
+            for (RepositoryEntity repository: operatingSystem.getRepositories()) {
+              final RepositoryResponse response = new RepositoryResponse(repository.getBaseUrl(), osType, repository.getRepositoryId(), repository.getName(), "", "", "");
+              response.setRepositoryVersionId(repositoryVersionId);
+              response.setStackName(repositoryVersion.getStackName());
+              response.setStackVersion(repositoryVersion.getStackVersion());
+              responses.add(response);
+            }
+            break;
+          }
+        }
       }
-
     } else {
-      RepositoryInfo repository = ambariMetaInfo.getRepository(stackName, stackVersion, osType, repoId);
-      response = Collections.singleton(repository.convertToResponse());
+      if (repoId == null) {
+        List<RepositoryInfo> repositories = ambariMetaInfo.getRepositories(stackName, stackVersion, osType);
+
+        for (RepositoryInfo repository: repositories) {
+          responses.add(repository.convertToResponse());
+        }
+
+      } else {
+        RepositoryInfo repository = ambariMetaInfo.getRepository(stackName, stackVersion, osType, repoId);
+        responses = Collections.singleton(repository.convertToResponse());
+      }
     }
 
-    return response;
+    return responses;
   }
 
   @Override
@@ -2926,6 +2954,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
       if (null != rr.getBaseUrl()) {
         if (!rr.isVerifyBaseUrl()) {
+          if (rr.getRepositoryVersionId() != null) {
+            throw new AmbariException("Can't directly update repositories in repository_version, update the repository_version instead");
+          }
           ambariMetaInfo.updateRepoBaseURL(rr.getStackName(),
               rr.getStackVersion(), rr.getOsType(), rr.getRepoId(),
               rr.getBaseUrl());
@@ -3227,7 +3258,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   }
 
   @Override
-  public Set<OperatingSystemResponse> getStackOperatingSystems(
+  public Set<OperatingSystemResponse> getOperatingSystems(
       Set<OperatingSystemRequest> requests) throws AmbariException {
     Set<OperatingSystemResponse> response = new HashSet<OperatingSystemResponse>();
     for (OperatingSystemRequest request : requests) {
@@ -3235,11 +3266,15 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         String stackName    = request.getStackName();
         String stackVersion = request.getStackVersion();
 
-        Set<OperatingSystemResponse> stackOperatingSystems = getStackOperatingSystems(request);
+        Set<OperatingSystemResponse> stackOperatingSystems = getOperatingSystems(request);
 
         for (OperatingSystemResponse operatingSystemResponse : stackOperatingSystems) {
-          operatingSystemResponse.setStackName(stackName);
-          operatingSystemResponse.setStackVersion(stackVersion);
+          if (operatingSystemResponse.getStackName() == null) {
+            operatingSystemResponse.setStackName(stackName);
+          }
+          if (operatingSystemResponse.getStackVersion() == null) {
+            operatingSystemResponse.setStackVersion(stackVersion);
+          }
         }
         response.addAll(stackOperatingSystems);
       } catch (StackAccessException e) {
@@ -3253,27 +3288,40 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     return response;
   }
 
-  private Set<OperatingSystemResponse> getStackOperatingSystems(
+  private Set<OperatingSystemResponse> getOperatingSystems(
       OperatingSystemRequest request) throws AmbariException {
 
-    Set<OperatingSystemResponse> response;
+    Set<OperatingSystemResponse> responses = new HashSet<OperatingSystemResponse>();;
 
     String stackName = request.getStackName();
     String stackVersion = request.getStackVersion();
     String osType = request.getOsType();
+    Long repositoryVersionId = request.getRepositoryVersionId();
 
-    if (osType != null) {
-      OperatingSystemInfo operatingSystem = ambariMetaInfo.getOperatingSystem(stackName, stackVersion, osType);
-      response = Collections.singleton(operatingSystem.convertToResponse());
+    if (repositoryVersionId != null) {
+      final RepositoryVersionEntity repositoryVersion = repositoryVersionDAO.findByPK(repositoryVersionId);
+      if (repositoryVersion != null) {
+        for (OperatingSystemEntity operatingSystem: repositoryVersion.getOperatingSystems()) {
+          final OperatingSystemResponse response = new OperatingSystemResponse(operatingSystem.getOsType());
+          response.setRepositoryVersionId(repositoryVersionId);
+          response.setStackName(repositoryVersion.getStackName());
+          response.setStackVersion(repositoryVersion.getStackVersion());
+          responses.add(response);
+        }
+      }
     } else {
-      Set<OperatingSystemInfo> operatingSystems = ambariMetaInfo.getOperatingSystems(stackName, stackVersion);
-      response = new HashSet<OperatingSystemResponse>();
-      for (OperatingSystemInfo operatingSystem : operatingSystems) {
-        response.add(operatingSystem.convertToResponse());
+      if (osType != null) {
+        OperatingSystemInfo operatingSystem = ambariMetaInfo.getOperatingSystem(stackName, stackVersion, osType);
+        responses = Collections.singleton(operatingSystem.convertToResponse());
+      } else {
+        Set<OperatingSystemInfo> operatingSystems = ambariMetaInfo.getOperatingSystems(stackName, stackVersion);
+        for (OperatingSystemInfo operatingSystem : operatingSystems) {
+          responses.add(operatingSystem.convertToResponse());
+        }
       }
     }
 
-    return response;
+    return responses;
   }
 
   @Override

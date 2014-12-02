@@ -37,10 +37,7 @@ import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.spi.Resource.Type;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
-import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
-
 import com.google.inject.Inject;
 
 /**
@@ -63,6 +60,8 @@ public class HostStackVersionResourceProvider extends AbstractResourceProvider {
     {
       add(HOST_STACK_VERSION_HOST_NAME_PROPERTY_ID);
       add(HOST_STACK_VERSION_ID_PROPERTY_ID);
+      add(HOST_STACK_VERSION_STACK_PROPERTY_ID);
+      add(HOST_STACK_VERSION_VERSION_PROPERTY_ID);
     }
   };
 
@@ -83,14 +82,13 @@ public class HostStackVersionResourceProvider extends AbstractResourceProvider {
     {
       put(Resource.Type.Host, HOST_STACK_VERSION_HOST_NAME_PROPERTY_ID);
       put(Resource.Type.HostStackVersion, HOST_STACK_VERSION_ID_PROPERTY_ID);
+      put(Resource.Type.Stack, HOST_STACK_VERSION_STACK_PROPERTY_ID);
+      put(Resource.Type.StackVersion, HOST_STACK_VERSION_VERSION_PROPERTY_ID);
     }
   };
 
   @Inject
   private static HostVersionDAO hostVersionDAO;
-
-  @Inject
-  private static RepositoryVersionDAO repositoryVersionDAO;
 
   /**
    * Constructor.
@@ -129,20 +127,14 @@ public class HostStackVersionResourceProvider extends AbstractResourceProvider {
 
     for (HostVersionEntity entity: requestedEntities) {
       final Resource resource = new ResourceImpl(Resource.Type.HostStackVersion);
-      final RepositoryVersionEntity repositoryVersionEntity = repositoryVersionDAO.findByStackAndVersion(entity.getStack(), entity.getVersion());
 
       setResourceProperty(resource, HOST_STACK_VERSION_HOST_NAME_PROPERTY_ID, entity.getHostName(), requestedIds);
       setResourceProperty(resource, HOST_STACK_VERSION_ID_PROPERTY_ID, entity.getId(), requestedIds);
       setResourceProperty(resource, HOST_STACK_VERSION_STACK_PROPERTY_ID, entity.getStack(), requestedIds);
       setResourceProperty(resource, HOST_STACK_VERSION_VERSION_PROPERTY_ID, entity.getVersion(), requestedIds);
-      if (repositoryVersionEntity != null) {
-        setResourceProperty(resource, HOST_STACK_VERSION_REPOSITORIES_PROPERTY_ID, repositoryVersionEntity.getRepositories(), requestedIds);
-      }
       setResourceProperty(resource, HOST_STACK_VERSION_STATE_PROPERTY_ID, entity.getState().name(), requestedIds);
 
-      if (predicate == null || predicate.evaluate(resource)) {
-        resources.add(resource);
-      }
+      resources.add(resource);
     }
     return resources;
   }

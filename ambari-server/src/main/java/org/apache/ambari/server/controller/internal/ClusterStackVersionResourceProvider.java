@@ -38,10 +38,8 @@ import org.apache.ambari.server.controller.spi.Resource.Type;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
-import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.RepositoryVersionState;
 
 import com.google.inject.Inject;
@@ -54,20 +52,20 @@ public class ClusterStackVersionResourceProvider extends AbstractResourceProvide
 
   // ----- Property ID constants ---------------------------------------------
 
-  protected static final String CLUSTER_STACK_VERSION_ID_PROPERTY_ID              = PropertyHelper.getPropertyId("ClusterStackVersions", "id");
-  protected static final String CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID    = PropertyHelper.getPropertyId("ClusterStackVersions", "cluster_name");
-  protected static final String CLUSTER_STACK_VERSION_STACK_PROPERTY_ID           = PropertyHelper.getPropertyId("ClusterStackVersions", "stack");
-  protected static final String CLUSTER_STACK_VERSION_VERSION_PROPERTY_ID         = PropertyHelper.getPropertyId("ClusterStackVersions", "version");
-  protected static final String CLUSTER_STACK_VERSION_STATE_PROPERTY_ID           = PropertyHelper.getPropertyId("ClusterStackVersions", "state");
-  protected static final String CLUSTER_STACK_VERSION_INSTALLED_HOSTS_PROPERTY_ID = PropertyHelper.getPropertyId("ClusterStackVersions", "installed_hosts");
-  protected static final String CLUSTER_STACK_VERSION_CURRENT_HOSTS_PROPERTY_ID   = PropertyHelper.getPropertyId("ClusterStackVersions", "current_hosts");
-  protected static final String CLUSTER_STACK_VERSION_REPOSITORIES_PROPERTY_ID    = PropertyHelper.getPropertyId("ClusterStackVersions", "repositories");
+  protected static final String CLUSTER_STACK_VERSION_ID_PROPERTY_ID                   = PropertyHelper.getPropertyId("ClusterStackVersions", "id");
+  protected static final String CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID         = PropertyHelper.getPropertyId("ClusterStackVersions", "cluster_name");
+  protected static final String CLUSTER_STACK_VERSION_STACK_PROPERTY_ID                = PropertyHelper.getPropertyId("ClusterStackVersions", "stack");
+  protected static final String CLUSTER_STACK_VERSION_VERSION_PROPERTY_ID              = PropertyHelper.getPropertyId("ClusterStackVersions", "version");
+  protected static final String CLUSTER_STACK_VERSION_STATE_PROPERTY_ID                = PropertyHelper.getPropertyId("ClusterStackVersions", "state");
+  protected static final String CLUSTER_STACK_VERSION_HOST_STATES_PROPERTY_ID          = PropertyHelper.getPropertyId("ClusterStackVersions", "host_states");
 
   @SuppressWarnings("serial")
   private static Set<String> pkPropertyIds = new HashSet<String>() {
     {
       add(CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID);
       add(CLUSTER_STACK_VERSION_ID_PROPERTY_ID);
+      add(CLUSTER_STACK_VERSION_STACK_PROPERTY_ID);
+      add(CLUSTER_STACK_VERSION_VERSION_PROPERTY_ID);
     }
   };
 
@@ -79,9 +77,7 @@ public class ClusterStackVersionResourceProvider extends AbstractResourceProvide
       add(CLUSTER_STACK_VERSION_STACK_PROPERTY_ID);
       add(CLUSTER_STACK_VERSION_VERSION_PROPERTY_ID);
       add(CLUSTER_STACK_VERSION_STATE_PROPERTY_ID);
-      add(CLUSTER_STACK_VERSION_INSTALLED_HOSTS_PROPERTY_ID);
-      add(CLUSTER_STACK_VERSION_CURRENT_HOSTS_PROPERTY_ID);
-      add(CLUSTER_STACK_VERSION_REPOSITORIES_PROPERTY_ID);
+      add(CLUSTER_STACK_VERSION_HOST_STATES_PROPERTY_ID);
     }
   };
 
@@ -90,6 +86,8 @@ public class ClusterStackVersionResourceProvider extends AbstractResourceProvide
     {
       put(Resource.Type.Cluster, CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID);
       put(Resource.Type.ClusterStackVersion, CLUSTER_STACK_VERSION_ID_PROPERTY_ID);
+      put(Resource.Type.Stack, CLUSTER_STACK_VERSION_STACK_PROPERTY_ID);
+      put(Resource.Type.StackVersion, CLUSTER_STACK_VERSION_VERSION_PROPERTY_ID);
     }
   };
 
@@ -98,9 +96,6 @@ public class ClusterStackVersionResourceProvider extends AbstractResourceProvide
 
   @Inject
   private static HostVersionDAO hostVersionDAO;
-
-  @Inject
-  private static RepositoryVersionDAO repositoryVersionDAO;
 
   /**
    * Constructor.
@@ -139,24 +134,18 @@ public class ClusterStackVersionResourceProvider extends AbstractResourceProvide
 
     for (ClusterVersionEntity entity: requestedEntities) {
       final Resource resource = new ResourceImpl(Resource.Type.ClusterStackVersion);
-      final RepositoryVersionEntity repositoryVersionEntity = repositoryVersionDAO.findByStackAndVersion(entity.getStack(), entity.getVersion());
 
-      final Map<RepositoryVersionState, List<String>> hosts = new HashMap<RepositoryVersionState, List<String>>();
+      final Map<String, List<String>> hostStates = new HashMap<String, List<String>>();
       for (RepositoryVersionState state: RepositoryVersionState.values()) {
-        hosts.put(state, new ArrayList<String>());
+        hostStates.put(state.name(), new ArrayList<String>());
       }
       for (HostVersionEntity hostVersionEntity: hostVersionDAO.findByClusterStackAndVersion(entity.getClusterEntity().getClusterName(), entity.getStack(), entity.getVersion())) {
-        hosts.get(hostVersionEntity.getState()).add(hostVersionEntity.getHostName());
+        hostStates.get(hostVersionEntity.getState().name()).add(hostVersionEntity.getHostName());
       }
 
       setResourceProperty(resource, CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID, entity.getClusterEntity().getClusterName(), requestedIds);
-
-      setResourceProperty(resource, CLUSTER_STACK_VERSION_CURRENT_HOSTS_PROPERTY_ID, hosts.get(RepositoryVersionState.CURRENT), requestedIds);
+      setResourceProperty(resource, CLUSTER_STACK_VERSION_HOST_STATES_PROPERTY_ID, hostStates, requestedIds);
       setResourceProperty(resource, CLUSTER_STACK_VERSION_ID_PROPERTY_ID, entity.getId(), requestedIds);
-      setResourceProperty(resource, CLUSTER_STACK_VERSION_INSTALLED_HOSTS_PROPERTY_ID, hosts.get(RepositoryVersionState.INSTALLED), requestedIds);
-      if (repositoryVersionEntity != null) {
-        setResourceProperty(resource, CLUSTER_STACK_VERSION_REPOSITORIES_PROPERTY_ID, repositoryVersionEntity.getRepositories(), requestedIds);
-      }
       setResourceProperty(resource, CLUSTER_STACK_VERSION_STACK_PROPERTY_ID, entity.getStack(), requestedIds);
       setResourceProperty(resource, CLUSTER_STACK_VERSION_STATE_PROPERTY_ID, entity.getState().name(), requestedIds);
       setResourceProperty(resource, CLUSTER_STACK_VERSION_VERSION_PROPERTY_ID, entity.getVersion(), requestedIds);

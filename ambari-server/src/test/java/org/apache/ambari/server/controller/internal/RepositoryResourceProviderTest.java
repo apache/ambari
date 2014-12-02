@@ -42,7 +42,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 public class RepositoryResourceProviderTest {
-  
+
   private static final String VAL_STACK_NAME = "HDP";
   private static final String VAL_STACK_VERSION = "0.2";
   private static final String VAL_OS = "centos6";
@@ -52,8 +52,6 @@ public class RepositoryResourceProviderTest {
 
   @Test
   public void testGetResources() throws Exception{
-    Resource.Type type = Resource.Type.Repository;
-
     AmbariManagementController managementController = EasyMock.createMock(AmbariManagementController.class);
 
     RepositoryResponse rr = new RepositoryResponse(VAL_BASE_URL, VAL_OS,
@@ -62,32 +60,28 @@ public class RepositoryResourceProviderTest {
     rr.setStackVersion(VAL_STACK_VERSION);
     Set<RepositoryResponse> allResponse = new HashSet<RepositoryResponse>();
     allResponse.add(rr);
-    
+
     // set expectations
     expect(managementController.getRepositories(EasyMock.<Set<RepositoryRequest>>anyObject())).andReturn(allResponse).times(1);
 
     // replay
     replay(managementController);
 
-    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
-        type,
-        PropertyHelper.getPropertyIds(type),
-        PropertyHelper.getKeyPropertyIds(type),
-        managementController);
+    ResourceProvider provider = new RepositoryResourceProvider(managementController);
 
     Set<String> propertyIds = new HashSet<String>();
-    propertyIds.add(RepositoryResourceProvider.STACK_NAME_PROPERTY_ID);
-    propertyIds.add(RepositoryResourceProvider.STACK_VERSION_PROPERTY_ID);
-    propertyIds.add(RepositoryResourceProvider.REPOSITORY_NAME_PROPERTY_ID);
+    propertyIds.add(RepositoryResourceProvider.REPOSITORY_STACK_NAME_PROPERTY_ID);
+    propertyIds.add(RepositoryResourceProvider.REPOSITORY_STACK_VERSION_PROPERTY_ID);
+    propertyIds.add(RepositoryResourceProvider.REPOSITORY_REPO_NAME_PROPERTY_ID);
     propertyIds.add(RepositoryResourceProvider.REPOSITORY_BASE_URL_PROPERTY_ID);
     propertyIds.add(RepositoryResourceProvider.REPOSITORY_OS_TYPE_PROPERTY_ID);
-    propertyIds.add(RepositoryResourceProvider.REPO_ID_PROPERTY_ID);
+    propertyIds.add(RepositoryResourceProvider.REPOSITORY_REPO_ID_PROPERTY_ID);
 
     Predicate predicate =
-        new PredicateBuilder().property(RepositoryResourceProvider.STACK_NAME_PROPERTY_ID).equals(VAL_STACK_NAME)
-          .and().property(RepositoryResourceProvider.STACK_VERSION_PROPERTY_ID).equals(VAL_STACK_VERSION)
+        new PredicateBuilder().property(RepositoryResourceProvider.REPOSITORY_STACK_NAME_PROPERTY_ID).equals(VAL_STACK_NAME)
+          .and().property(RepositoryResourceProvider.REPOSITORY_STACK_VERSION_PROPERTY_ID).equals(VAL_STACK_VERSION)
           .toPredicate();
-    
+
     // create the request
     Request request = PropertyHelper.getReadRequest(propertyIds);
 
@@ -95,24 +89,24 @@ public class RepositoryResourceProviderTest {
     Set<Resource> resources = provider.getResources(request, predicate);
 
     Assert.assertEquals(allResponse.size(), resources.size());
-    
+
     for (Resource resource : resources) {
-      Object o = resource.getPropertyValue(RepositoryResourceProvider.STACK_NAME_PROPERTY_ID);
+      Object o = resource.getPropertyValue(RepositoryResourceProvider.REPOSITORY_STACK_NAME_PROPERTY_ID);
       Assert.assertEquals(VAL_STACK_NAME, o);
-      
-      o = resource.getPropertyValue(RepositoryResourceProvider.STACK_VERSION_PROPERTY_ID);
+
+      o = resource.getPropertyValue(RepositoryResourceProvider.REPOSITORY_STACK_VERSION_PROPERTY_ID);
       Assert.assertEquals(VAL_STACK_VERSION, o);
-      
-      o = resource.getPropertyValue(RepositoryResourceProvider.REPOSITORY_NAME_PROPERTY_ID);
+
+      o = resource.getPropertyValue(RepositoryResourceProvider.REPOSITORY_REPO_NAME_PROPERTY_ID);
       Assert.assertEquals(o, VAL_REPO_NAME);
-      
+
       o = resource.getPropertyValue(RepositoryResourceProvider.REPOSITORY_BASE_URL_PROPERTY_ID);
       Assert.assertEquals(o, VAL_BASE_URL);
-      
+
       o = resource.getPropertyValue(RepositoryResourceProvider.REPOSITORY_OS_TYPE_PROPERTY_ID);
       Assert.assertEquals(o, VAL_OS);
-      
-      o = resource.getPropertyValue(RepositoryResourceProvider.REPO_ID_PROPERTY_ID);
+
+      o = resource.getPropertyValue(RepositoryResourceProvider.REPOSITORY_REPO_ID_PROPERTY_ID);
       Assert.assertEquals(o, VAL_REPO_ID);
 
     }
@@ -120,7 +114,7 @@ public class RepositoryResourceProviderTest {
     // verify
     verify(managementController);
   }
-  
+
   @Test
   public void testUpdateResources() throws Exception {
     Resource.Type type = Resource.Type.Repository;
@@ -130,20 +124,16 @@ public class RepositoryResourceProviderTest {
     RepositoryResponse rr = new RepositoryResponse(VAL_BASE_URL, VAL_OS,
         VAL_REPO_ID, VAL_REPO_NAME, null, null ,null);
     Set<RepositoryResponse> allResponse = new HashSet<RepositoryResponse>();
-    allResponse.add(rr);    
-    
+    allResponse.add(rr);
+
     // set expectations
     expect(managementController.getRepositories(EasyMock.<Set<RepositoryRequest>>anyObject())).andReturn(allResponse).times(1);
     managementController.updateRespositories(EasyMock.<Set<RepositoryRequest>>anyObject());
 
     // replay
     replay(managementController);
-    
-    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
-        type,
-        PropertyHelper.getPropertyIds(type),
-        PropertyHelper.getKeyPropertyIds(type),
-        managementController);
+
+    ResourceProvider provider = new RepositoryResourceProvider(managementController);
 
     // add the property map to a set for the request.
     Map<String, Object> properties = new LinkedHashMap<String, Object>();
@@ -151,14 +141,14 @@ public class RepositoryResourceProviderTest {
 
     // create the request
     Request request = PropertyHelper.getUpdateRequest(properties, null);
-    
+
     Predicate predicate =
-        new PredicateBuilder().property(RepositoryResourceProvider.STACK_NAME_PROPERTY_ID).equals(VAL_STACK_NAME)
-          .and().property(RepositoryResourceProvider.STACK_VERSION_PROPERTY_ID).equals(VAL_STACK_VERSION)
+        new PredicateBuilder().property(RepositoryResourceProvider.REPOSITORY_STACK_NAME_PROPERTY_ID).equals(VAL_STACK_NAME)
+          .and().property(RepositoryResourceProvider.REPOSITORY_STACK_VERSION_PROPERTY_ID).equals(VAL_STACK_VERSION)
           .toPredicate();
-    
-    provider.updateResources(request, predicate);    
-    
+
+    provider.updateResources(request, predicate);
+
     // verify
     verify(managementController);
   }

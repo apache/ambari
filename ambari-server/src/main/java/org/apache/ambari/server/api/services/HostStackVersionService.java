@@ -71,16 +71,30 @@ public class HostStackVersionService extends BaseService {
    *
    * @param headers        http headers
    * @param ui             uri info
-   * @param stackversionid host stack version id
+   * @param stackVersionId host stack version id
    *
    * @return information regarding the specific host stack version
    */
   @GET
-  @Path("{stackversionid}")
+  @Path("{stackVersionId}")
   @Produces("text/plain")
   public Response getHostStackVersion(@Context HttpHeaders headers, @Context UriInfo ui,
-      @PathParam("stackversionid") String stackVersionId) {
+      @PathParam("stackVersionId") String stackVersionId) {
     return handleRequest(headers, null, ui, Request.Type.GET, createResource(hostName, stackVersionId));
+  }
+
+  /**
+   * Handles ANY /{stackVersionId}/repository_versions requests.
+   *
+   * @param stackVersionId host stack version id
+   * @return repository version service
+   */
+  @Path("{stackVersionId}/repository_versions")
+  public RepositoryVersionService getRepositoryVersionHanlder(@PathParam("stackVersionId") String stackVersionId) {
+    final Map<Resource.Type, String> stackVersionProperties = new HashMap<Resource.Type, String>();
+    stackVersionProperties.put(Resource.Type.Host, hostName);
+    stackVersionProperties.put(Resource.Type.HostStackVersion, stackVersionId);
+    return new RepositoryVersionService(stackVersionProperties);
   }
 
   /**

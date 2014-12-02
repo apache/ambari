@@ -17,12 +17,15 @@
  */
 package org.apache.ambari.server.api.resources;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.apache.ambari.server.controller.spi.Resource;
 
 /**
  * Stack Version Resource Definition for hosts and clusters.
  */
-public class ComponentStackVersionResourceDefinition extends BaseResourceDefinition {
+public class ComponentStackVersionResourceDefinition extends BaseStacksResourceDefinition {
   public ComponentStackVersionResourceDefinition(Resource.Type type) {
     super(type);
   }
@@ -35,5 +38,12 @@ public class ComponentStackVersionResourceDefinition extends BaseResourceDefinit
   @Override
   public String getSingularName() {
     return "stack_version";
+  }
+
+  @Override
+  public Set<SubResourceDefinition> getSubResourceDefinitions() {
+    final Set<SubResourceDefinition> subResourceDefintions = new HashSet<SubResourceDefinition>();
+    subResourceDefintions.add(new SubResourceDefinition(Resource.Type.RepositoryVersion));
+    return subResourceDefintions;
   }
 }

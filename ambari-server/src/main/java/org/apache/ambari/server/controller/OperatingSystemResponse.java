@@ -23,6 +23,7 @@ public class OperatingSystemResponse {
   private String stackName;
   private String stackVersion;
   private String osType;
+  private Long repositoryVersionId;
 
   public OperatingSystemResponse(String osType) {
     setOsType(osType);
@@ -50,5 +51,13 @@ public class OperatingSystemResponse {
 
   public void setOsType(String osType) {
     this.osType = osType;
+  }
+
+  public Long getRepositoryVersionId() {
+    return repositoryVersionId;
+  }
+
+  public void setRepositoryVersionId(Long repositoryVersionId) {
+    this.repositoryVersionId = repositoryVersionId;
   }
 }

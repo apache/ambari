@@ -59,17 +59,6 @@
     "Stack": "Versions/stack_name",
     "StackVersion": "Versions/stack_version"
   },
-  "OperatingSystem": {
-    "Stack": "OperatingSystems/stack_name",
-    "StackVersion": "OperatingSystems/stack_version",
-    "OperatingSystem": "OperatingSystems/os_type"
-  },
-  "Repository": {
-    "Stack": "Repositories/stack_name",
-    "StackVersion": "Repositories/stack_version",
-    "OperatingSystem": "Repositories/os_type",
-    "Repository": "Repositories/repo_id"
-  },
   "StackService": {
     "Stack": "StackServices/stack_name",
     "StackVersion": "StackServices/stack_version",

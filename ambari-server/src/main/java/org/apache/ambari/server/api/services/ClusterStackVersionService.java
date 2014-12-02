@@ -51,7 +51,7 @@ public class ClusterStackVersionService extends BaseService {
   }
 
   /**
-   * Gets all cluster stack version.
+   * Gets all cluster stack versions.
    * Handles: GET /clusters/{clustername}/stack_versions requests.
    *
    * @param headers http headers
@@ -62,12 +62,12 @@ public class ClusterStackVersionService extends BaseService {
   @GET
   @Produces("text/plain")
   public Response getClusterStackVersions(@Context HttpHeaders headers, @Context UriInfo ui) {
-    return handleRequest(headers, null, ui, Request.Type.GET, createResource(clusterName, null));
+    return handleRequest(headers, null, ui, Request.Type.GET, createResource(null));
   }
 
   /**
    * Gets a single cluster stack version.
-   * Handles: GET /clusters/{clustername}/stack_versions/{stackversionid} requests.
+   * Handles: GET /clusters/{clustername}/stack_versions/{stackVersionId} requests.
    *
    * @param headers        http headers
    * @param ui             uri info
@@ -76,22 +76,35 @@ public class ClusterStackVersionService extends BaseService {
    * @return information regarding the specific cluster stack version
    */
   @GET
-  @Path("{stackversionid}")
+  @Path("{stackVersionId}")
   @Produces("text/plain")
   public Response getClusterStackVersion(@Context HttpHeaders headers, @Context UriInfo ui,
-      @PathParam("stackversionid") String stackVersionId) {
-    return handleRequest(headers, null, ui, Request.Type.GET, createResource(clusterName, stackVersionId));
+      @PathParam("stackVersionId") String stackVersionId) {
+    return handleRequest(headers, null, ui, Request.Type.GET, createResource(stackVersionId));
+  }
+
+  /**
+   * Handles ANY /{stackVersionId}/repository_versions requests.
+   *
+   * @param stackVersionId cluster stack version id
+   * @return repository version service
+   */
+  @Path("{stackVersionId}/repository_versions")
+  public RepositoryVersionService getRepositoryVersionHanlder(@PathParam("stackVersionId") String stackVersionId) {
+    final Map<Resource.Type, String> stackVersionProperties = new HashMap<Resource.Type, String>();
+    stackVersionProperties.put(Resource.Type.Cluster, clusterName);
+    stackVersionProperties.put(Resource.Type.ClusterStackVersion, stackVersionId);
+    return new RepositoryVersionService(stackVersionProperties);
   }
 
   /**
    * Create a cluster stack version resource instance.
    *
-   * @param clusterName    cluster name
    * @param stackVersionId cluster stack version id
    *
    * @return a cluster stack version resource instance
    */
-  private ResourceInstance createResource(String clusterName, String stackVersionId) {
+  private ResourceInstance createResource(String stackVersionId) {
     final Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
     mapIds.put(Resource.Type.Cluster, clusterName);
     mapIds.put(Resource.Type.ClusterStackVersion, stackVersionId);

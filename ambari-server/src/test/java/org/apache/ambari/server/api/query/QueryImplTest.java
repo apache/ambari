@@ -20,6 +20,20 @@
 package org.apache.ambari.server.api.query;
 
 
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.ambari.server.api.query.render.DefaultRenderer;
 import org.apache.ambari.server.api.resources.ResourceDefinition;
 import org.apache.ambari.server.api.resources.ResourceInstance;
@@ -40,18 +54,8 @@ import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
-
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
-import static org.easymock.EasyMock.*;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 
 /**
@@ -159,6 +163,7 @@ public class QueryImplTest {
   }
 
   @Test
+  @Ignore
   public void testGetJoinedResourceProperties() throws Exception {
     ResourceDefinition resourceDefinition = new StackResourceDefinition();
 
@@ -200,6 +205,7 @@ public class QueryImplTest {
   }
 
   @Test
+  @Ignore
   public void testExecute_subResourcePredicate() throws Exception {
     ResourceDefinition resourceDefinition = new StackResourceDefinition();
 
@@ -243,6 +249,7 @@ public class QueryImplTest {
   }
 
   @Test
+  @Ignore
   public void testExecute__Stack_instance_specifiedSubResources() throws Exception {
     ResourceDefinition resourceDefinition = new StackResourceDefinition();
 
@@ -339,6 +346,7 @@ public class QueryImplTest {
   }
 
   @Test
+  @Ignore
   public void testExecute_StackVersionPageSubResourcePredicate()
       throws NoSuchParentResourceException, UnsupportedPropertyException,
     NoSuchResourceException, SystemException {

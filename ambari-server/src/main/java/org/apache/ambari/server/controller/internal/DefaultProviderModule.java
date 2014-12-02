@@ -108,6 +108,10 @@ public class DefaultProviderModule extends AbstractProviderModule {
         return new HostStackVersionResourceProvider();
       case Stage:
         return new StageResourceProvider();
+      case OperatingSystem:
+        return new OperatingSystemResourceProvider(managementController);
+      case Repository:
+        return new RepositoryResourceProvider(managementController);
 
       default:
         return AbstractControllerResourceProvider.getResourceProvider(type, propertyIds,

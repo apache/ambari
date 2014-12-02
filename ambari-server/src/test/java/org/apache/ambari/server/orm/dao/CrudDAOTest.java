@@ -51,7 +51,7 @@ public class CrudDAOTest {
   private void createSingleRecord() {
     final RepositoryVersionEntity entity = new RepositoryVersionEntity();
     entity.setDisplayName("display name" + uniqueCounter);
-    entity.setRepositories("repositories");
+    entity.setOperatingSystems("repositories");
     entity.setStack("stack" + uniqueCounter);
     entity.setUpgradePackage("upgrade package");
     entity.setVersion("version");

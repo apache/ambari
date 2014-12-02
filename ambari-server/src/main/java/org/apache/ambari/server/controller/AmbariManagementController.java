@@ -421,7 +421,7 @@ public interface AmbariManagementController {
    *
    * @throws  AmbariException if the resources cannot be read
    */
-  public Set<OperatingSystemResponse> getStackOperatingSystems(Set<OperatingSystemRequest> requests) throws AmbariException;
+  public Set<OperatingSystemResponse> getOperatingSystems(Set<OperatingSystemRequest> requests) throws AmbariException;
 
   /**
    * Get all top-level services of Ambari, not related to certain cluster.

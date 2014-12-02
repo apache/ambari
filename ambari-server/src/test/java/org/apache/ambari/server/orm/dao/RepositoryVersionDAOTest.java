@@ -48,7 +48,7 @@ public class RepositoryVersionDAOTest {
   private void createSingleRecord() {
     final RepositoryVersionEntity entity = new RepositoryVersionEntity();
     entity.setDisplayName("display name");
-    entity.setRepositories("repositories");
+    entity.setOperatingSystems("repositories");
     entity.setStack("stack");
     entity.setUpgradePackage("upgrade package");
     entity.setVersion("version");
@@ -67,6 +67,13 @@ public class RepositoryVersionDAOTest {
     createSingleRecord();
     Assert.assertNull(repositoryVersionDAO.findByStackAndVersion("non existing", "non existing"));
     Assert.assertNotNull(repositoryVersionDAO.findByStackAndVersion("stack", "version"));
+  }
+
+  @Test
+  public void testFindByStack() {
+    createSingleRecord();
+    Assert.assertEquals(0, repositoryVersionDAO.findByStack("non existing").size());
+    Assert.assertEquals(1, repositoryVersionDAO.findByStack("stack").size());
   }
 
   @After

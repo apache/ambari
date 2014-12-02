@@ -28,7 +28,6 @@ import java.util.List;
 import java.util.Map;
 
 import javax.ws.rs.GET;
-import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -93,46 +92,6 @@ public class StacksService extends BaseService {
   }
 
   @GET
-  @Path("{stackName}/versions/{stackVersion}/operating_systems/{osType}/repositories")
-  @Produces("text/plain")
-  public Response getRepositories(String body,
-                                  @Context HttpHeaders headers,
-                                  @Context UriInfo ui, @PathParam("stackName") String stackName,
-                                  @PathParam("stackVersion") String stackVersion,
-                                  @PathParam("osType") String osType) {
-
-    return handleRequest(headers, body, new StackUriInfo(ui), Request.Type.GET,
-        createRepositoryResource(stackName, stackVersion, osType, null));
-  }
-
-  @GET
-  @Path("{stackName}/versions/{stackVersion}/operating_systems/{osType}/repositories/{repoId}")
-  @Produces("text/plain")
-  public Response getRepository(String body,
-                                @Context HttpHeaders headers,
-                                @Context UriInfo ui, @PathParam("stackName") String stackName,
-                                @PathParam("stackVersion") String stackVersion,
-                                @PathParam("osType") String osType,
-                                @PathParam("repoId") String repoId) {
-
-    return handleRequest(headers, body, new StackUriInfo(ui), Request.Type.GET,
-        createRepositoryResource(stackName, stackVersion, osType, repoId));
-  }
-
-  @PUT
-  @Path("{stackName}/versions/{stackVersion}/operating_systems/{osType}/repositories/{repoId}")
-  @Produces("text/plain")
-  public Response updateRepository(String body, @Context HttpHeaders headers,
-                                   @Context UriInfo ui, @PathParam("stackName") String stackName,
-                                   @PathParam("stackVersion") String stackVersion,
-                                   @PathParam("osType") String osType,
-                                   @PathParam("repoId") String repoId) {
-
-    return handleRequest(headers, body, new StackUriInfo(ui), Request.Type.PUT,
-        createRepositoryResource(stackName, stackVersion, osType, repoId));
-  }
-  
-  @GET
   @Path("{stackName}/versions/{stackVersion}/configurations")
   @Produces("text/plain")
   public Response getStackLevelConfigurations(String body, @Context HttpHeaders headers,
@@ -142,7 +101,7 @@ public class StacksService extends BaseService {
     return handleRequest(headers, body, new StackUriInfo(ui), Request.Type.GET,
         createStackLevelConfigurationsResource(stackName, stackVersion, null));
   }
-  
+
   @GET
   @Path("{stackName}/versions/{stackVersion}/configurations/{propertyName}")
   @Produces("text/plain")
@@ -248,8 +207,6 @@ public class StacksService extends BaseService {
         createStackServiceComponentDependencyResource(stackName, stackVersion, serviceName, componentName, dependencyName));
   }
 
-
-
   @GET
   @Path("{stackName}/versions/{stackVersion}/services/{serviceName}/components/{componentName}")
   @Produces("text/plain")
@@ -263,38 +220,72 @@ public class StacksService extends BaseService {
         createStackServiceComponentResource(stackName, stackVersion, serviceName, componentName));
   }
 
-
-  @GET
+  /**
+   * Handles ANY /{stackName}/versions/{stackVersion}/operating_systems.
+   *
+   * @param stackName stack name
+   * @param stackVersion stack version
+   * @return operating system service
+   */
   @Path("{stackName}/versions/{stackVersion}/operating_systems")
-  @Produces("text/plain")
-  public Response getOperatingSystems(String body, @Context HttpHeaders headers,
-                                      @Context UriInfo ui, @PathParam("stackName") String stackName,
-                                      @PathParam("stackVersion") String stackVersion) {
+  public OperatingSystemService getOperatingSystemsHandler(@PathParam("stackName") String stackName, @PathParam("stackVersion") String stackVersion) {
+    final Map<Resource.Type, String> stackProperties = new HashMap<Resource.Type, String>();
+    stackProperties.put(Resource.Type.Stack, stackName);
+    stackProperties.put(Resource.Type.StackVersion, stackVersion);
+    return new OperatingSystemService(stackProperties);
+  }
 
-    return handleRequest(headers, body, new StackUriInfo(ui), Request.Type.GET,
-        createOperatingSystemResource(stackName, stackVersion, null));
+  /**
+   * Handles ANY /{stackName}/versions/{stackVersion}/repository_versions.
+   *
+   * @param stackName stack name
+   * @param stackVersion stack version
+   * @return repository version service
+   */
+  @Path("{stackName}/versions/{stackVersion}/repository_versions")
+  public RepositoryVersionService getRepositoryVersionHanlder(@PathParam("stackName") String stackName, @PathParam("stackVersion") String stackVersion) {
+    final Map<Resource.Type, String> stackProperties = new HashMap<Resource.Type, String>();
+    stackProperties.put(Resource.Type.Stack, stackName);
+    stackProperties.put(Resource.Type.StackVersion, stackVersion);
+    return new RepositoryVersionService(stackProperties);
   }
 
   @GET
-  @Path("{stackName}/versions/{stackVersion}/operating_systems/{osType}")
+  @Path("{stackName}/versions/{stackVersion}/repository_versions/{repositoryVersionId}/operating_systems/{osType}/repositories")
   @Produces("text/plain")
-  public Response getOperatingSystem(String body, @Context HttpHeaders headers,
-                                     @Context UriInfo ui, @PathParam("stackName") String stackName,
-                                     @PathParam("stackVersion") String stackVersion,
-                                     @PathParam("osType") String osType) {
+  public Response getRepositories(String body, @Context HttpHeaders headers, @Context UriInfo ui, @PathParam("stackName") String stackName,
+      @PathParam("stackVersion") String stackVersion, @PathParam("repositoryVersionId") String repositoryVersionId, @PathParam("osType") String osType) {
 
-    return handleRequest(headers, body, new StackUriInfo(ui), Request.Type.GET,
-        createOperatingSystemResource(stackName, stackVersion, osType));
+    return handleRequest(headers, body, new StackUriInfo(ui), Request.Type.GET, createRepositoryResource(stackName, stackVersion, repositoryVersionId, osType, null));
   }
 
+  @GET
+  @Path("{stackName}/versions/{stackVersion}/repository_versions/{repositoryVersionId}/operating_systems/{osType}/repositories/{repoId}")
+  @Produces("text/plain")
+  public Response getRepository(String body, @Context HttpHeaders headers, @Context UriInfo ui, @PathParam("stackName") String stackName,
+      @PathParam("stackVersion") String stackVersion, @PathParam("repositoryVersionId") String repositoryVersionId, @PathParam("osType") String osType, @PathParam("repoId") String repoId) {
 
-  ResourceInstance createOperatingSystemResource(String stackName,
-                                                 String stackVersion, String osType) {
+    return handleRequest(headers, body, new StackUriInfo(ui), Request.Type.GET, createRepositoryResource(stackName, stackVersion, repositoryVersionId, osType, repoId));
+  }
 
-    Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
+  ResourceInstance createRepositoryVersionResource(String stackName, String stackVersion,
+                                                   String repositoryVersionId) {
+    final Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
+
+    mapIds.put(Resource.Type.Stack, stackName);
+    mapIds.put(Resource.Type.StackVersion, stackVersion);
+    mapIds.put(Resource.Type.RepositoryVersion, repositoryVersionId);
+
+    return createResource(Resource.Type.RepositoryVersion, mapIds);
+  }
+
+  ResourceInstance createOperatingSystemResource(String stackName, String stackVersion, String repositoryVersion, String osType) {
+    final Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
+
     mapIds.put(Resource.Type.Stack, stackName);
     mapIds.put(Resource.Type.StackVersion, stackVersion);
     mapIds.put(Resource.Type.OperatingSystem, osType);
+    mapIds.put(Resource.Type.RepositoryVersion, repositoryVersion);
 
     return createResource(Resource.Type.OperatingSystem, mapIds);
   }
@@ -346,15 +337,13 @@ public class StacksService extends BaseService {
     return createResource(Resource.Type.StackService, mapIds);
   }
 
-  ResourceInstance createRepositoryResource(String stackName,
-                                            String stackVersion, String osType, String repoId) {
-
-    Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
+  ResourceInstance createRepositoryResource(String stackName, String stackVersion, String repositoryVersion, String osType, String repoId) {
+    final Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
     mapIds.put(Resource.Type.Stack, stackName);
     mapIds.put(Resource.Type.StackVersion, stackVersion);
     mapIds.put(Resource.Type.OperatingSystem, osType);
     mapIds.put(Resource.Type.Repository, repoId);
-
+    mapIds.put(Resource.Type.RepositoryVersion, repositoryVersion);
     return createResource(Resource.Type.Repository, mapIds);
   }
 
@@ -366,7 +355,7 @@ public class StacksService extends BaseService {
 
     return createResource(Resource.Type.StackVersion, mapIds);
   }
-  
+
   ResourceInstance createStackLevelConfigurationsResource(String stackName,
       String stackVersion, String propertyName) {
     Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
