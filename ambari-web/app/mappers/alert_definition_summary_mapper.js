@@ -41,5 +41,13 @@ App.alertDefinitionSummaryMapper = App.QuickDataMapper.create({
         });
       }
     });
+
+    // clear summary for disabled alert definitions
+    alertDefinitions.forEach(function (definition) {
+      if (!definition.get('enabled')) {
+        definition.set('summary', {});
+      }
+    });
+
   }
 });

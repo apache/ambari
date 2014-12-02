@@ -24,11 +24,12 @@ describe('App.alertDefinitionSummaryMapper', function () {
   describe('#map', function() {
 
     var testModels = [
-        App.PortAlertDefinition.createRecord({id: 1, type: 'PORT'}),
-        App.MetricsAlertDefinition.createRecord({id: 2, type: 'METRICS'}),
-        App.WebAlertDefinition.createRecord({id: 3, type: 'WEB'}),
-        App.AggregateAlertDefinition.createRecord({id: 4, type: 'AGGREGATE'}),
-        App.ScriptAlertDefinition.createRecord({id: 5, type: 'SCRIPT'})
+        App.PortAlertDefinition.createRecord({id: 1, enabled: true, type: 'PORT'}),
+        App.MetricsAlertDefinition.createRecord({id: 2, enabled: true, type: 'METRICS'}),
+        App.WebAlertDefinition.createRecord({id: 3, enabled: true, type: 'WEB'}),
+        App.AggregateAlertDefinition.createRecord({id: 4, enabled: true, type: 'AGGREGATE'}),
+        App.ScriptAlertDefinition.createRecord({id: 5, enabled: true, type: 'SCRIPT'}),
+        App.ScriptAlertDefinition.createRecord({id: 6, enabled: false, type: 'SCRIPT', summary: {OK: 1}})
       ],
       dataToMap = {
         alerts_summary_grouped: [
@@ -117,6 +118,13 @@ describe('App.alertDefinitionSummaryMapper', function () {
 
       expect(App.ScriptAlertDefinition.find().findProperty('id', 5).get('lastTriggered')).to.equal(4);
       expect(App.ScriptAlertDefinition.find().findProperty('id', 5).get('summary')).to.eql({OK: 1, WARNING: 1, CRITICAL: 1, UNKNOWN: 1});
+
+    });
+
+    it('should clear summary for disabled definitions', function () {
+
+      App.alertDefinitionSummaryMapper.map(dataToMap);
+      expect(App.ScriptAlertDefinition.find().findProperty('id', 6).get('summary')).to.eql({});
 
     });
 
