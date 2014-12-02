@@ -434,6 +434,18 @@ describe('App.WizardStep3Controller', function () {
 
   describe('#retryHosts', function () {
     var s;
+    var agentUserCases = [
+      {
+        customizeAgentUserAccount: true,
+        userRunAs: 'user',
+        title: 'Ambari Agent user account customize enabled'
+      },
+      {
+        customizeAgentUserAccount: false,
+        userRunAs: 'root',
+        title: 'Ambari Agent user account customize disabled'
+      }
+    ];
     var installer = {launchBootstrap: Em.K};
 
     beforeEach(function () {
@@ -473,21 +485,25 @@ describe('App.WizardStep3Controller', function () {
       c.retryHosts(Em.A([]));
       expect(installer.launchBootstrap.calledOnce).to.be.true;
     });
-    it('bootstrap data passed correctly', function () {
-      var controller = App.WizardStep2Controller.create({
-        sshKey: 'key',
-        hostNameArr: ['host0', 'host1'],
-        sshUser: 'root',
-        agentUser: 'user'
+    agentUserCases.forEach(function (item) {
+      it(item.title, function () {
+        var controller = App.WizardStep2Controller.create({
+          sshKey: 'key',
+          hostNameArr: ['host0', 'host1'],
+          sshUser: 'root',
+          agentUser: 'user'
+        });
+        sinon.stub(App, 'get').withArgs('supports.customizeAgentUserAccount').returns(item.customizeAgentUserAccount);
+        controller.setupBootStrap();
+        expect(installer.launchBootstrap.firstCall.args[0]).to.equal(JSON.stringify({
+          verbose: true,
+          sshKey: 'key',
+          hosts: ['host0', 'host1'],
+          user: 'root',
+          userRunAs: item.userRunAs
+        }));
+        App.get.restore();
       });
-      controller.setupBootStrap();
-      expect(installer.launchBootstrap.firstCall.args[0]).to.equal(JSON.stringify({
-        verbose: true,
-        sshKey: 'key',
-        hosts: ['host0', 'host1'],
-        user: 'root',
-        userRunAs: 'user'
-      }));
     });
   });
 

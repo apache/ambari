@@ -51,6 +51,7 @@ App.WizardStep2View = Em.View.extend({
 
   didInsertElement: function () {
     App.popover($("[rel=popover]"), {'placement': 'right', 'trigger': 'hover'});
+    App.tooltip($("[rel=tooltip]"), {'placement': 'top', 'trigger': 'hover'});
     //todo: move them to conroller
     this.set('controller.hostsError', null);
     this.set('controller.sshKeyError', null);

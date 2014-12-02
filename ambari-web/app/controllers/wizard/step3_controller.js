@@ -350,8 +350,8 @@ App.WizardStep3Controller = Em.Controller.extend({
         'sshKey': this.get('content.installOptions.sshKey'),
         'hosts': hosts.mapProperty('name'),
         'user': this.get('content.installOptions.sshUser'),
-        'userRunAs': this.get('content.installOptions.agentUser')}
-    );
+        'userRunAs': App.get('supports.customizeAgentUserAccount') ? this.get('content.installOptions.agentUser') : 'root'
+      });
     this.set('numPolls', 0);
     this.set('registrationStartedAt', null);
     if (this.get('content.installOptions.manualInstall')) {

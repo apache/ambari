@@ -152,7 +152,7 @@ App.WizardStep2Controller = Em.Controller.extend({
    * @type {string|null}
    */
   agentUserError: function () {
-    if (this.get('manualInstall') === false && Em.isEmpty(this.get('agentUser').trim())) {
+    if (App.get('supports.customizeAgentUserAccount') && this.get('manualInstall') === false && Em.isEmpty(this.get('agentUser').trim())) {
       return Em.I18n.t('installer.step2.sshUser.required');
     }
     return null;
@@ -385,7 +385,7 @@ App.WizardStep2Controller = Em.Controller.extend({
       'sshKey': this.get('sshKey'),
       'hosts': this.get('hostNameArr'),
       'user': this.get('sshUser'),
-      'userRunAs': this.get('agentUser')
+      'userRunAs': App.get('supports.customizeAgentUserAccount') ? this.get('agentUser') : 'root'
     });
     App.router.get(this.get('content.controllerName')).launchBootstrap(bootStrapData, function (requestId) {
       if (requestId == '0') {

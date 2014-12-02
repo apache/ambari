@@ -287,15 +287,28 @@ describe('App.WizardStep2Controller', function () {
 
   describe('#agentUserError', function () {
 
+    afterEach(function () {
+      App.get.restore();
+    });
+
     userErrorTests.forEach(function(test) {
-      it('', function() {
+      it('Ambari Agent user account customize enabled', function() {
+        sinon.stub(App, 'get').withArgs('supports.customizeAgentUserAccount').returns(true);
         var controller = App.WizardStep2Controller.create({content: {installOptions: {manualInstall: test.manualInstall, agentUser: test.user}}});
         if(Em.isNone(test.e)) {
-          expect(controller.get('agentUserError')).to.equal(null);
+          expect(controller.get('agentUserError')).to.be.null;
         }
         else {
           expect(controller.get('agentUserError').length).to.be.above(2);
         }
+      });
+    });
+
+    userErrorTests.forEach(function(test) {
+      it('Ambari Agent user account customize disabled', function() {
+        sinon.stub(App, 'get').withArgs('supports.customizeAgentUserAccount').returns(false);
+        var controller = App.WizardStep2Controller.create({content: {installOptions: {manualInstall: test.manualInstall, agentUser: test.user}}});
+        expect(controller.get('agentUserError')).to.be.null;
       });
     });
 
@@ -676,27 +689,49 @@ describe('App.WizardStep2Controller', function () {
 
   describe('#setupBootStrap', function () {
 
-    var controller = App.WizardStep2Controller.create({
-      sshKey: 'key',
-      hostNameArr: ['host0', 'host1'],
-      sshUser: 'root',
-      agentUser: 'user',
-      content: {
-        controllerName: 'installerController'
-      }
+    var cases = [
+        {
+          customizeAgentUserAccount: true,
+          userRunAs: 'user',
+          title: 'Ambari Agent user account customize enabled'
+        },
+        {
+          customizeAgentUserAccount: false,
+          userRunAs: 'root',
+          title: 'Ambari Agent user account customize disabled'
+        }
+      ],
+      controller = App.WizardStep2Controller.create({
+        sshKey: 'key',
+        hostNameArr: ['host0', 'host1'],
+        sshUser: 'root',
+        agentUser: 'user',
+        content: {
+          controllerName: 'installerController'
+        }
+      });
+
+    beforeEach(function () {
+      sinon.spy(App.router.get('installerController'), 'launchBootstrap');
     });
 
-    it('bootstrap data passed correctly', function () {
-      sinon.spy(App.router.get('installerController'), 'launchBootstrap');
-      controller.setupBootStrap();
-      expect(App.router.get('installerController.launchBootstrap').firstCall.args[0]).to.equal(JSON.stringify({
-        verbose: true,
-        sshKey: 'key',
-        hosts: ['host0', 'host1'],
-        user: 'root',
-        userRunAs: 'user'
-      }));
+    afterEach(function () {
       App.router.get('installerController.launchBootstrap').restore();
+      App.get.restore();
+    });
+
+    cases.forEach(function (item) {
+      it(item.title, function () {
+        sinon.stub(App, 'get').withArgs('supports.customizeAgentUserAccount').returns(item.customizeAgentUserAccount);
+        controller.setupBootStrap();
+        expect(App.router.get('installerController.launchBootstrap').firstCall.args[0]).to.equal(JSON.stringify({
+          verbose: true,
+          sshKey: 'key',
+          hosts: ['host0', 'host1'],
+          user: 'root',
+          userRunAs: item.userRunAs
+        }));
+      });
     });
 
   });
