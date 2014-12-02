@@ -346,6 +346,13 @@ describe('App.config', function () {
       },
       {
         config: {
+          displayType: 'datanodedirs',
+          value: '/a,/b, /c\n/d,\n/e  /f'
+        },
+        e: '/a,/b,/c,/d,/e,/f'
+      },
+      {
+        config: {
           displayType: 'host',
           value: ' localhost '
         },

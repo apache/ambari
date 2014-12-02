@@ -1365,7 +1365,7 @@ App.config = Em.Object.create({
       case 'directories':
       case 'directory':
       case 'datanodedirs':
-        rez = value.trim().split(/\s+/g).join(',');
+        rez = value.replace(/,/g,' ').trim().split(/\s+/g).join(',');
         break;
       case 'host':
         rez = value.trim();
