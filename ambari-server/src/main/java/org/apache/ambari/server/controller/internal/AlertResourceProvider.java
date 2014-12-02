@@ -103,8 +103,6 @@ public class AlertResourceProvider extends ReadOnlyResourceProvider {
 
     // keys
     KEY_PROPERTY_IDS.put(Resource.Type.Cluster, ALERT_CLUSTER_NAME);
-    KEY_PROPERTY_IDS.put(Resource.Type.Service, ALERT_SERVICE);
-    KEY_PROPERTY_IDS.put(Resource.Type.Host, ALERT_HOST);
     KEY_PROPERTY_IDS.put(Resource.Type.Alert, ALERT_ID);
   }
 

@@ -20,18 +20,22 @@ package org.apache.ambari.server.upgrade;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;
+import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertNull;
 import static junit.framework.Assert.assertTrue;
 import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.createMockBuilder;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.createStrictMock;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.reset;
 import static org.easymock.EasyMock.verify;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
@@ -43,6 +47,19 @@ import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.dao.ClusterServiceDAO;
+import org.apache.ambari.server.orm.dao.HostComponentDesiredStateDAO;
+import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
+import org.apache.ambari.server.orm.dao.ServiceComponentDesiredStateDAO;
+import org.apache.ambari.server.orm.entities.ClusterEntity;
+import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
+import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
+import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntityPK;
+import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
+import org.apache.ambari.server.orm.entities.HostComponentStateEntityPK;
+import org.apache.ambari.server.orm.entities.HostEntity;
+import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
+import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntityPK;
 import org.apache.ambari.server.state.SecurityState;
 import org.easymock.Capture;
 import org.junit.After;
@@ -61,10 +78,14 @@ import com.google.inject.persist.PersistService;
  * {@link UpgradeCatalog200} unit tests.
  */
 public class UpgradeCatalog200Test {
+  private final String CLUSTER_NAME = "c1";
+  private final String HOST_NAME = "h1";
+  private final String DESIRED_STACK_VERSION = "{\"stackName\":\"HDP\",\"stackVersion\":\"2.0.6\"}";
 
   private Injector injector;
   private Provider<EntityManager> entityManagerProvider = createStrictMock(Provider.class);
   private EntityManager entityManager = createNiceMock(EntityManager.class);
+  private UpgradeCatalogHelper upgradeCatalogHelper;
 
   @Before
   public void init() {
@@ -73,6 +94,8 @@ public class UpgradeCatalog200Test {
     replay(entityManagerProvider);
     injector = Guice.createInjector(new InMemoryDefaultTestModule());
     injector.getInstance(GuiceJpaInitializer.class);
+
+    upgradeCatalogHelper = injector.getInstance(UpgradeCatalogHelper.class);
   }
 
   @After
@@ -194,8 +217,86 @@ public class UpgradeCatalog200Test {
     assertEquals(7, upgradeItemCapture.getValue().size());
   }
 
+  /**
+   * Tests that each DML method is invoked.
+   *
+   * @throws Exception
+   */
   @Test
   public void testExecuteDMLUpdates() throws Exception {
+    Method removeNagiosService = UpgradeCatalog200.class.getDeclaredMethod("removeNagiosService");
+
+    UpgradeCatalog200 upgradeCatalog = createMockBuilder(
+        UpgradeCatalog200.class).addMockedMethod(removeNagiosService).createMock();
+
+    upgradeCatalog.removeNagiosService();
+    expectLastCall().once();
+
+    replay(upgradeCatalog);
+
+    upgradeCatalog.executeDMLUpdates();
+
+    verify(upgradeCatalog);
+  }
+
+  /**
+   * Tests that Nagios is correctly removed.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testDeleteNagiosService() throws Exception {
+    final ClusterEntity clusterEntity = upgradeCatalogHelper.createCluster(
+        injector, CLUSTER_NAME, DESIRED_STACK_VERSION);
+
+    final ClusterServiceEntity clusterServiceEntityNagios = upgradeCatalogHelper.addService(
+        injector, clusterEntity, "NAGIOS", DESIRED_STACK_VERSION);
+
+    final HostEntity hostEntity = upgradeCatalogHelper.createHost(injector,
+        clusterEntity, HOST_NAME);
+
+    upgradeCatalogHelper.addComponent(injector, clusterEntity,
+        clusterServiceEntityNagios, hostEntity, "NAGIOS_SERVER",
+        DESIRED_STACK_VERSION);
+
+    UpgradeCatalog200 upgradeCatalog200 = injector.getInstance(UpgradeCatalog200.class);
+
+    ServiceComponentDesiredStateDAO serviceComponentDesiredStateDAO = injector.getInstance(ServiceComponentDesiredStateDAO.class);
+    ServiceComponentDesiredStateEntityPK pkNagiosServer = new ServiceComponentDesiredStateEntityPK();
+    pkNagiosServer.setComponentName("NAGIOS_SERVER");
+    pkNagiosServer.setClusterId(clusterEntity.getClusterId());
+    pkNagiosServer.setServiceName("NAGIOS");
+    ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity = serviceComponentDesiredStateDAO.findByPK(pkNagiosServer);
+    assertNotNull(serviceComponentDesiredStateEntity);
+
+    HostComponentDesiredStateDAO hostComponentDesiredStateDAO = injector.getInstance(HostComponentDesiredStateDAO.class);
+    HostComponentDesiredStateEntityPK hcDesiredStateEntityPk = new HostComponentDesiredStateEntityPK();
+    hcDesiredStateEntityPk.setServiceName("NAGIOS");
+    hcDesiredStateEntityPk.setClusterId(clusterEntity.getClusterId());
+    hcDesiredStateEntityPk.setComponentName("NAGIOS_SERVER");
+    hcDesiredStateEntityPk.setHostName(HOST_NAME);
+    HostComponentDesiredStateEntity hcDesiredStateEntity = hostComponentDesiredStateDAO.findByPK(hcDesiredStateEntityPk);
+    assertNotNull(hcDesiredStateEntity);
+
+    HostComponentStateDAO hostComponentStateDAO = injector.getInstance(HostComponentStateDAO.class);
+    HostComponentStateEntityPK hcStateEntityPk = new HostComponentStateEntityPK();
+    hcStateEntityPk.setServiceName("NAGIOS");
+    hcStateEntityPk.setClusterId(clusterEntity.getClusterId());
+    hcStateEntityPk.setComponentName("NAGIOS_SERVER");
+    hcStateEntityPk.setHostName(HOST_NAME);
+    HostComponentStateEntity hcStateEntity = hostComponentStateDAO.findByPK(hcStateEntityPk);
+    assertNotNull(hcStateEntity);
+
+    ClusterServiceDAO clusterServiceDao = injector.getInstance(ClusterServiceDAO.class);
+    ClusterServiceEntity clusterService = clusterServiceDao.findByClusterAndServiceNames(
+        CLUSTER_NAME, "NAGIOS");
+
+    upgradeCatalog200.removeNagiosService();
+
+    clusterService = clusterServiceDao.findByClusterAndServiceNames(
+        CLUSTER_NAME, "NAGIOS");
+
+    assertNull(clusterService);
   }
 
   /**

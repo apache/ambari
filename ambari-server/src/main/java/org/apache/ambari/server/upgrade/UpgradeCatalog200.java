@@ -20,11 +20,26 @@ package org.apache.ambari.server.upgrade;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
+import org.apache.ambari.server.orm.dao.ClusterDAO;
+import org.apache.ambari.server.orm.dao.ClusterServiceDAO;
+import org.apache.ambari.server.orm.dao.HostComponentDesiredStateDAO;
+import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
+import org.apache.ambari.server.orm.dao.ServiceComponentDesiredStateDAO;
+import org.apache.ambari.server.orm.dao.ServiceDesiredStateDAO;
+import org.apache.ambari.server.orm.entities.ClusterEntity;
+import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
+import org.apache.ambari.server.orm.entities.ClusterServiceEntityPK;
+import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
+import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
+import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
+import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntityPK;
+import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntity;
 import org.apache.ambari.server.state.SecurityState;
 import org.apache.ambari.server.state.UpgradeState;
 import org.slf4j.Logger;
@@ -174,8 +189,6 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
     dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, sequence_value) VALUES('cluster_version_id_seq', 0)", false);
     dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, sequence_value) VALUES('host_version_id_seq', 0)", false);
 
-
-
     // upgrade tables
     columns = new ArrayList<DBColumnInfo>();
     columns.add(new DBAccessor.DBColumnInfo("upgrade_id", Long.class, null, null, false));
@@ -208,8 +221,6 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
     dbAccessor.createTable("upgrade_item", columns, "upgrade_item_id");
     dbAccessor.addFKConstraint("upgrade_item", "fk_upgrade_item_upgrade_group_id", "upgrade_group_id", "upgrade_group", "upgrade_group_id", false);
     dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, sequence_value) VALUES('upgrade_item_id_seq', 0)", false);
-
-
   }
 
   // ----- UpgradeCatalog ----------------------------------------------------
@@ -219,6 +230,84 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
    */
   @Override
   protected void executeDMLUpdates() throws AmbariException, SQLException {
+    // remove NAGIOS to make way for the new embedded alert framework
+    removeNagiosService();
+  }
 
+  /**
+   * Removes Nagios and all associated components and states.
+   */
+  protected void removeNagiosService() {
+    executeInTransaction(new RemoveNagiosRunnable());
+  }
+
+  /**
+   * The RemoveNagiosRunnable is used to remove Nagios from the cluster. This
+   * runnable is exepected to run inside of a transation so that if any of the
+   * removals fails, Nagios is returned to a valid service state.
+   */
+  protected final class RemoveNagiosRunnable implements Runnable {
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void run() {
+      ClusterDAO clusterDao = injector.getInstance(ClusterDAO.class);
+      ClusterServiceDAO clusterServiceDao = injector.getInstance(ClusterServiceDAO.class);
+      ServiceComponentDesiredStateDAO componentDesiredStateDao = injector.getInstance(ServiceComponentDesiredStateDAO.class);
+      ServiceDesiredStateDAO desiredStateDao = injector.getInstance(ServiceDesiredStateDAO.class);
+      HostComponentDesiredStateDAO hostComponentDesiredStateDao = injector.getInstance(HostComponentDesiredStateDAO.class);
+      HostComponentStateDAO hostComponentStateDao = injector.getInstance(HostComponentStateDAO.class);
+
+      List<ClusterEntity> clusters = clusterDao.findAll();
+      if (null == clusters) {
+        return;
+      }
+
+      for (ClusterEntity cluster : clusters) {
+        ClusterServiceEntity nagios = clusterServiceDao.findByClusterAndServiceNames(
+            cluster.getClusterName(), "NAGIOS");
+
+        if (null == nagios) {
+          continue;
+        }
+
+        Collection<ServiceComponentDesiredStateEntity> serviceComponentDesiredStates = nagios.getServiceComponentDesiredStateEntities();
+        ServiceDesiredStateEntity serviceDesiredState = nagios.getServiceDesiredStateEntity();
+
+        // remove all component states
+        for (ServiceComponentDesiredStateEntity componentDesiredState : serviceComponentDesiredStates) {
+          Collection<HostComponentStateEntity> hostComponentStateEntities = componentDesiredState.getHostComponentStateEntities();
+          Collection<HostComponentDesiredStateEntity> hostComponentDesiredStateEntities = componentDesiredState.getHostComponentDesiredStateEntities();
+
+          // remove host states
+          for (HostComponentStateEntity hostComponentState : hostComponentStateEntities) {
+            hostComponentStateDao.remove(hostComponentState);
+          }
+
+          // remove host desired states
+          for (HostComponentDesiredStateEntity hostComponentDesiredState : hostComponentDesiredStateEntities) {
+            hostComponentDesiredStateDao.remove(hostComponentDesiredState);
+          }
+
+          // remove component state
+          ServiceComponentDesiredStateEntityPK primaryKey = new ServiceComponentDesiredStateEntityPK();
+          primaryKey.setClusterId(nagios.getClusterId());
+          primaryKey.setComponentName(componentDesiredState.getComponentName());
+          primaryKey.setServiceName(componentDesiredState.getServiceName());
+          componentDesiredStateDao.removeByPK(primaryKey);
+        }
+
+        // remove service state
+        desiredStateDao.remove(serviceDesiredState);
+
+        // remove service
+        ClusterServiceEntityPK primaryKey = new ClusterServiceEntityPK();
+        primaryKey.setClusterId(nagios.getClusterId());
+        primaryKey.setServiceName(nagios.getServiceName());
+        clusterServiceDao.removeByPK(primaryKey);
+      }
+    }
   }
 }
