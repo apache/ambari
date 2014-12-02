@@ -547,7 +547,7 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
             ComponentSSLConfiguration.instance(),
             this,
             PropertyHelper.getPropertyId("Clusters", "cluster_name")));
-            providers.add(new AlertSummaryPropertyProvider(type,
+          providers.add(new AlertSummaryPropertyProvider(type,
             "Clusters/cluster_name", null));
           break;
         case Service:
