@@ -372,7 +372,7 @@ App.ManageAlertGroupsController = Em.Controller.extend({
   },
 
   /**
-   * observes if any group changed including: group name, newly created group, deleted group, group with definitions changed
+   * observes if any group changed including: group name, newly created group, deleted group, group with definitions/notifications changed
    */
   defsModifiedAlertGroups: function () {
     if (!this.get('isLoaded')) {
@@ -383,26 +383,25 @@ App.ManageAlertGroupsController = Em.Controller.extend({
     var groupsToCreate = [];
     var groups = this.get('alertGroups'); //current alert groups
     var originalGroups = this.get('originalAlertGroups'); // original alert groups
-    // remove default group
-    originalGroups = originalGroups.filterProperty('default', false);
     var originalGroupsIds = originalGroups.mapProperty('id');
     groups.forEach(function (group) {
-      if (!group.get('default')) {
-        var originalGroup = originalGroups.findProperty('id', group.get('id'));
-        if (originalGroup) {
-          if (!(JSON.stringify(group.get('definitions').slice().sort()) === JSON.stringify(originalGroup.get('definitions').slice().sort()))
-           || !(JSON.stringify(group.get('notifications').slice().sort()) === JSON.stringify(originalGroup.get('notifications').slice().sort()))) {
-            groupsToSet.push(group.set('id', originalGroup.get('id')));
-          } else if (group.get('name') !== originalGroup.get('name') ) {
-            // should update name
-            groupsToSet.push(group.set('id', originalGroup.get('id')));
-          }
-          originalGroupsIds = originalGroupsIds.without(group.get('id'));
-        } else {
-          groupsToCreate.push(group);
+      var originalGroup = originalGroups.findProperty('id', group.get('id'));
+      if (originalGroup) {
+        // should update definitions or nitifications
+        if (!(JSON.stringify(group.get('definitions').slice().sort()) === JSON.stringify(originalGroup.get('definitions').slice().sort()))
+         || !(JSON.stringify(group.get('notifications').slice().sort()) === JSON.stringify(originalGroup.get('notifications').slice().sort()))) {
+          groupsToSet.push(group.set('id', originalGroup.get('id')));
+        } else if (group.get('name') !== originalGroup.get('name') ) {
+          // should update name
+          groupsToSet.push(group.set('id', originalGroup.get('id')));
         }
+        originalGroupsIds = originalGroupsIds.without(group.get('id'));
+      } else {
+        // should add new group
+        groupsToCreate.push(group);
       }
     });
+    // should delete groups
     originalGroupsIds.forEach(function (id) {
       groupsToDelete.push(originalGroups.findProperty('id', id));
     }, this);
