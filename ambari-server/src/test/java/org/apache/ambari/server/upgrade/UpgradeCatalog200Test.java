@@ -113,6 +113,7 @@ public class UpgradeCatalog200Test {
 
     Capture<DBAccessor.DBColumnInfo> alertDefinitionIgnoreColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
     Capture<DBAccessor.DBColumnInfo> alertDefinitionDescriptionColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
+    Capture<DBAccessor.DBColumnInfo> alertTargetGlobalColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
     Capture<DBAccessor.DBColumnInfo> hostComponentStateColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
     Capture<DBAccessor.DBColumnInfo> hostComponentStateSecurityStateColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
     Capture<DBAccessor.DBColumnInfo> hostComponentDesiredStateSecurityStateColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
@@ -136,6 +137,10 @@ public class UpgradeCatalog200Test {
 
     dbAccessor.createTable(eq("alert_target_states"),
         capture(alertTargetStatesCapture), eq("target_id"));
+
+    // alert target
+    dbAccessor.addColumn(eq("alert_target"),
+        capture(alertTargetGlobalColumnCapture));
 
     // Host Component State
     dbAccessor.addColumn(eq("hostcomponentstate"),
@@ -188,6 +193,9 @@ public class UpgradeCatalog200Test {
     // verify columns for alert_definition
     verifyAlertDefinitionIgnoreColumn(alertDefinitionIgnoreColumnCapture);
     verifyAlertDefinitionDescriptionColumn(alertDefinitionDescriptionColumnCapture);
+
+    // verify alert target column for is_global
+    verifyAlertTargetGlobal(alertTargetGlobalColumnCapture);
 
     // verify new table for alert target states
     verifyAlertTargetStatesTable(alertTargetStatesCapture);
@@ -345,11 +353,24 @@ public class UpgradeCatalog200Test {
   /**
    * Verifies alert_target_states table.
    *
-   * @param alertTargetStatesColumnCapture
+   * @param alertTargetStatesCapture
    */
   private void verifyAlertTargetStatesTable(
       Capture<List<DBAccessor.DBColumnInfo>> alertTargetStatesCapture) {
     Assert.assertEquals(2, alertTargetStatesCapture.getValue().size());
+  }
+
+  /**
+   * Verifies is_global added to alert target table.
+   *
+   * @param alertTargetGlobalCapture
+   */
+  private void verifyAlertTargetGlobal(
+      Capture<DBAccessor.DBColumnInfo> alertTargetGlobalCapture) {
+    DBColumnInfo column = alertTargetGlobalCapture.getValue();
+    Assert.assertEquals(0, column.getDefaultValue());
+    Assert.assertEquals(Short.class, column.getType());
+    Assert.assertEquals("is_global", column.getName());
   }
 
   /**

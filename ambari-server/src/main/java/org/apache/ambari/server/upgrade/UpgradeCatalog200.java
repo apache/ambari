@@ -100,10 +100,7 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
   @Override
   protected void executeDDLUpdates() throws AmbariException, SQLException {
     prepareRollingUpgradesDDL();
-
-    // add ignore_host column to alert_definition
-    dbAccessor.addColumn(ALERT_DEFINITION_TABLE, new DBColumnInfo(
-        "ignore_host", Short.class, 1, 0, false));
+    executeAlertDDLUpdates();
 
     // add security_state to various tables
     dbAccessor.addColumn("hostcomponentdesiredstate", new DBColumnInfo(
@@ -113,8 +110,33 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
     dbAccessor.addColumn("servicedesiredstate", new DBColumnInfo(
         "security_state", String.class, 32, SecurityState.UNSECURED.toString(), false));
 
+    // Alter column : make viewinstanceproperty.value & viewinstancedata.value
+    // nullable
+    dbAccessor.alterColumn("viewinstanceproperty", new DBColumnInfo("value",
+        String.class, 2000, null, true));
+    dbAccessor.alterColumn("viewinstancedata", new DBColumnInfo("value",
+        String.class, 2000, null, true));
+
+    ddlUpdateRepositoryVersion();
+  }
+
+  /**
+   * Execute all of the alert DDL updates.
+   *
+   * @throws AmbariException
+   * @throws SQLException
+   */
+  private void executeAlertDDLUpdates() throws AmbariException, SQLException {
+    // add ignore_host column to alert_definition
+    dbAccessor.addColumn(ALERT_DEFINITION_TABLE, new DBColumnInfo(
+        "ignore_host", Short.class, 1, 0, false));
+
     dbAccessor.addColumn(ALERT_DEFINITION_TABLE, new DBColumnInfo(
         "description", char[].class, 32672, null, true));
+
+    // update alert target
+    dbAccessor.addColumn(ALERT_TARGET_TABLE, new DBColumnInfo("is_global",
+        Short.class, 1, 0, false));
 
     // create alert_target_states table
     ArrayList<DBColumnInfo> columns = new ArrayList<DBColumnInfo>();
@@ -124,12 +146,6 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
     dbAccessor.addFKConstraint(ALERT_TARGET_STATES_TABLE,
         "fk_alert_target_states_target_id", "target_id", ALERT_TARGET_TABLE,
         "target_id", false);
-
-    // Alter column : make viewinstanceproperty.value & viewinstancedata.value nullable
-    dbAccessor.alterColumn("viewinstanceproperty", new DBColumnInfo("value", String.class, 2000, null, true));
-    dbAccessor.alterColumn("viewinstancedata", new DBColumnInfo("value", String.class, 2000, null, true));
-
-    ddlUpdateRepositoryVersion();
   }
 
   /**

@@ -45,7 +45,6 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.NotificationState;
 import org.apache.ambari.server.state.Service;
-import org.apache.ambari.server.state.alert.AlertGroup;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -257,8 +256,21 @@ public class AlertDispatchDAO {
   }
 
   /**
-   * Gets all of the {@link AlertGroup} instances that include the specified
-   * alert definition. Service default groups will also be returned.
+   * Gets all global alert targets stored in the database.
+   *
+   * @return all global alert targets or empty list if none exist (never
+   *         {@code null}).
+   */
+  public List<AlertTargetEntity> findAllGlobalTargets() {
+    TypedQuery<AlertTargetEntity> query = entityManagerProvider.get().createNamedQuery(
+        "AlertTargetEntity.findAllGlobal", AlertTargetEntity.class);
+
+    return daoUtils.selectList(query);
+  }
+
+  /**
+   * Gets all of the {@link AlertGroupEntity} instances that include the
+   * specified alert definition. Service default groups will also be returned.
    *
    * @param definitionEntity
    *          the definition that the group must include (not {@code null}).
@@ -381,12 +393,21 @@ public class AlertDispatchDAO {
   /**
    * Persists a new alert group.
    *
-   * @param alertGroup
+   * @param group
    *          the group to persist (not {@code null}).
    */
   @Transactional
-  public void create(AlertGroupEntity alertGroup) {
-    entityManagerProvider.get().persist(alertGroup);
+  public void create(AlertGroupEntity group) {
+    entityManagerProvider.get().persist(group);
+
+    // associate the group with all alert targets
+    List<AlertTargetEntity> targets = findAllGlobalTargets();
+    if (!targets.isEmpty()) {
+      for (AlertTargetEntity target : targets) {
+        group.addAlertTarget(target);
+      }
+      entityManagerProvider.get().merge(group);
+    }
   }
 
   /**
@@ -507,6 +528,14 @@ public class AlertDispatchDAO {
   @Transactional
   public void create(AlertTargetEntity alertTarget) {
     entityManagerProvider.get().persist(alertTarget);
+
+    if (alertTarget.isGlobal()) {
+      List<AlertGroupEntity> groups = findAllGroups();
+      for (AlertGroupEntity group : groups) {
+        group.addAlertTarget(alertTarget);
+        merge(group);
+      }
+    }
   }
 
   /**

@@ -176,6 +176,23 @@ public class AlertDispatchDAOTest {
    *
    */
   @Test
+  public void testFindAllGlobalTargets() throws Exception {
+    List<AlertTargetEntity> targets = m_dao.findAllGlobalTargets();
+    assertNotNull(targets);
+    assertEquals(0, targets.size());
+
+    m_helper.createGlobalAlertTarget();
+    m_helper.createGlobalAlertTarget();
+    m_helper.createGlobalAlertTarget();
+
+    targets = m_dao.findAllGlobalTargets();
+    assertEquals(3, targets.size());
+  }
+
+  /**
+   *
+   */
+  @Test
   public void testFindTargetByName() throws Exception {
     List<AlertTargetEntity> targets = m_dao.findAllTargets();
     assertNotNull(targets);
@@ -281,6 +298,7 @@ public class AlertDispatchDAOTest {
 
     AlertGroupEntity group = m_helper.createAlertGroup(
         m_cluster.getClusterId(), targets);
+
     AlertTargetEntity actual = m_dao.findTargetById(target.getTargetId());
     assertNotNull(actual);
 
@@ -288,6 +306,7 @@ public class AlertDispatchDAOTest {
     assertEquals(target.getDescription(), actual.getDescription());
     assertEquals(target.getNotificationType(), actual.getNotificationType());
     assertEquals(target.getProperties(), actual.getProperties());
+    assertEquals(false, actual.isGlobal());
 
     assertNotNull(actual.getAlertGroups());
     Iterator<AlertGroupEntity> iterator = actual.getAlertGroups().iterator();
@@ -296,6 +315,74 @@ public class AlertDispatchDAOTest {
     assertEquals(group, actualGroup);
 
     assertEquals(targetCount + 1, m_dao.findAllTargets().size());
+  }
+
+  /**
+   *
+   */
+  @Test
+  public void testCreateGlobalTarget() throws Exception {
+    AlertTargetEntity target = m_helper.createGlobalAlertTarget();
+    assertTrue( target.isGlobal() );
+
+    target = m_dao.findTargetByName(target.getTargetName());
+    assertTrue( target.isGlobal() );
+  }
+
+  /**
+   *
+   */
+  @Test
+  public void testGlobalTargetAssociations() throws Exception {
+    AlertGroupEntity group = m_helper.createAlertGroup(
+        m_cluster.getClusterId(), null);
+
+    group = m_dao.findGroupById(group.getGroupId());
+    assertNotNull(group);
+    assertEquals(0, group.getAlertTargets().size());
+
+    AlertTargetEntity target = m_helper.createGlobalAlertTarget();
+    assertTrue(target.isGlobal());
+
+    group = m_dao.findGroupById(group.getGroupId());
+    assertNotNull(group);
+    assertEquals(1, group.getAlertTargets().size());
+
+    List<AlertGroupEntity> groups = m_dao.findAllGroups();
+    target = m_dao.findTargetById(target.getTargetId());
+    assertEquals(groups.size(), target.getAlertGroups().size());
+
+    m_dao.remove(target);
+
+    group = m_dao.findGroupById(group.getGroupId());
+    assertNotNull(group);
+    assertEquals(0, group.getAlertTargets().size());
+  }
+
+  /**
+   * Tests that a newly created group is correctly associated with all global
+   * targets.
+   */
+  @Test
+  public void testGlobalTargetAssociatedWithNewGroup() throws Exception {
+    AlertTargetEntity target1 = m_helper.createGlobalAlertTarget();
+    AlertTargetEntity target2 = m_helper.createGlobalAlertTarget();
+    assertTrue(target1.isGlobal());
+    assertTrue(target2.isGlobal());
+
+    AlertGroupEntity group = m_helper.createAlertGroup(
+        m_cluster.getClusterId(), null);
+
+    group = m_dao.findGroupById(group.getGroupId());
+    assertNotNull(group);
+    assertEquals(2, group.getAlertTargets().size());
+
+    Iterator<AlertTargetEntity> iterator = group.getAlertTargets().iterator();
+    AlertTargetEntity groupTarget1 = iterator.next();
+    AlertTargetEntity groupTarget2 = iterator.next();
+
+    assertTrue(groupTarget1.isGlobal());
+    assertTrue(groupTarget2.isGlobal());
   }
 
   /**

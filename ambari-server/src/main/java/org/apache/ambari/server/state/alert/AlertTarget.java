@@ -34,6 +34,7 @@ public class AlertTarget {
   private String m_description;
   private String m_notificationType;
   private Map<String, String> m_properties;
+  private boolean m_isGlobal;
 
   /**
    * @return the id
@@ -116,6 +117,26 @@ public class AlertTarget {
   }
 
   /**
+   * Gets whether the alert target is global.
+   *
+   * @return {@code true} if global.
+   */
+  @JsonProperty("global")
+  public boolean isGlobal() {
+    return m_isGlobal;
+  }
+
+  /**
+   * Sets whether the alert target is global.
+   *
+   * @param isGlobal
+   *          {@code true} if the alert target is global.
+   */
+  public void setGlobal(boolean isGlobal) {
+    m_isGlobal = isGlobal;
+  }
+
+  /**
    * @param entity
    * @return
    */
@@ -125,6 +146,7 @@ public class AlertTarget {
     target.setDescription(entity.getDescription());
     target.setName(entity.getTargetName());
     target.setNotificationType(entity.getNotificationType());
+    target.setGlobal(entity.isGlobal());
     return target;
   }
 }

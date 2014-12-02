@@ -127,6 +127,7 @@ public class AlertTargetResourceProviderTest {
 
     assertNull(properties);
     assertNull(alertStates);
+    assertNull(resource.getPropertyValue(AlertTargetResourceProvider.ALERT_TARGET_GLOBAL));
 
     verify(m_dao);
   }
@@ -142,7 +143,8 @@ public class AlertTargetResourceProviderTest {
         AlertTargetResourceProvider.ALERT_TARGET_ID,
         AlertTargetResourceProvider.ALERT_TARGET_NAME,
         AlertTargetResourceProvider.ALERT_TARGET_NOTIFICATION_TYPE,
-        AlertTargetResourceProvider.ALERT_TARGET_STATES);
+        AlertTargetResourceProvider.ALERT_TARGET_STATES,
+        AlertTargetResourceProvider.ALERT_TARGET_GLOBAL);
 
     Predicate predicate = new PredicateBuilder().property(
         AlertTargetResourceProvider.ALERT_TARGET_ID).equals(
@@ -176,6 +178,10 @@ public class AlertTargetResourceProviderTest {
         AlertTargetResourceProvider.ALERT_TARGET_PROPERTIES);
 
     assertNull(properties);
+
+    assertEquals(
+        Boolean.FALSE,
+        resource.getPropertyValue(AlertTargetResourceProvider.ALERT_TARGET_GLOBAL));
 
     // ask for all fields
     request = PropertyHelper.getReadRequest();
@@ -219,6 +225,48 @@ public class AlertTargetResourceProviderTest {
     assertEquals(ALERT_TARGET_DESC, entity.getDescription());
     assertEquals(ALERT_TARGET_TYPE, entity.getNotificationType());
     assertEquals(ALERT_TARGET_PROPS, entity.getProperties());
+    assertEquals(false, entity.isGlobal());
+
+    // no alert states were set explicitely in the request, so all should be set
+    // by the backend
+    assertNotNull(entity.getAlertStates());
+    assertEquals(EnumSet.allOf(AlertState.class), entity.getAlertStates());
+
+    verify(m_amc, m_dao);
+  }
+
+  /**
+   * @throws Exception
+   */
+  @Test
+  public void testCreateGlobalTarget() throws Exception {
+    Capture<List<AlertTargetEntity>> listCapture = new Capture<List<AlertTargetEntity>>();
+
+    m_dao.createTargets(capture(listCapture));
+    expectLastCall();
+
+    replay(m_amc, m_dao);
+
+    AlertTargetResourceProvider provider = createProvider(m_amc);
+    Map<String, Object> requestProps = getCreationProperties();
+
+    // make this alert target global
+    requestProps.put(AlertTargetResourceProvider.ALERT_TARGET_GLOBAL, "true");
+
+    Request request = PropertyHelper.getCreateRequest(
+        Collections.singleton(requestProps), null);
+
+    provider.createResources(request);
+
+    Assert.assertTrue(listCapture.hasCaptured());
+    AlertTargetEntity entity = listCapture.getValue().get(0);
+    Assert.assertNotNull(entity);
+
+    assertEquals(ALERT_TARGET_NAME, entity.getTargetName());
+    assertEquals(ALERT_TARGET_DESC, entity.getDescription());
+    assertEquals(ALERT_TARGET_TYPE, entity.getNotificationType());
+    assertEquals(ALERT_TARGET_PROPS, entity.getProperties());
+    assertEquals(true, entity.isGlobal());
 
     // no alert states were set explicitely in the request, so all should be set
     // by the backend

@@ -46,7 +46,6 @@ import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.AlertGroupEntity;
 import org.apache.ambari.server.orm.entities.AlertTargetEntity;
 import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.alert.AlertGroup;
 import org.apache.ambari.server.state.alert.AlertTarget;
 import org.apache.commons.lang.StringUtils;
 
@@ -54,7 +53,7 @@ import com.google.inject.Inject;
 
 /**
  * The {@link AlertGroupResourceProvider} class deals with managing the CRUD
- * operations for {@link AlertGroup}, including property coercion to and from
+ * operations alert groups, including property coercion to and from
  * {@link AlertGroupEntity}.
  */
 @StaticallyInject
@@ -154,7 +153,7 @@ public class AlertGroupResourceProvider extends
       if (null != id) {
         AlertGroupEntity entity = s_dao.findGroupById(Long.parseLong(id));
         if (null != entity) {
-          results.add(toResource(false, clusterName, entity, requestPropertyIds));
+          results.add(toResource(clusterName, entity, requestPropertyIds));
         }
       } else {
         Cluster cluster = null;
@@ -168,7 +167,7 @@ public class AlertGroupResourceProvider extends
         List<AlertGroupEntity> entities = s_dao.findAllGroups(cluster.getClusterId());
 
         for (AlertGroupEntity entity : entities) {
-          results.add(toResource(true, clusterName, entity, requestPropertyIds));
+          results.add(toResource(clusterName, entity, requestPropertyIds));
         }
       }
     }
@@ -374,16 +373,13 @@ public class AlertGroupResourceProvider extends
   /**
    * Convert the given {@link AlertGroupEntity} to a {@link Resource}.
    *
-   * @param isCollection
-   *          {@code true} if the resource is part of a collection.
    * @param entity
    *          the entity to convert.
    * @param requestedIds
    *          the properties that were requested or {@code null} for all.
    * @return the resource representation of the entity (never {@code null}).
    */
-  private Resource toResource(boolean isCollection, String clusterName,
-      AlertGroupEntity entity,
+  private Resource toResource(String clusterName, AlertGroupEntity entity,
       Set<String> requestedIds) {
 
     Resource resource = new ResourceImpl(Resource.Type.AlertGroup);
@@ -408,7 +404,7 @@ public class AlertGroupResourceProvider extends
       resource.setProperty(ALERT_GROUP_DEFINITIONS, definitionList);
     }
 
-    if( !isCollection ){
+    if (BaseProvider.isPropertyRequested(ALERT_GROUP_TARGETS, requestedIds)) {
       Set<AlertTargetEntity> targetEntities = entity.getAlertTargets();
 
       List<AlertTarget> targets = new ArrayList<AlertTarget>(

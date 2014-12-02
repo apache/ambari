@@ -652,6 +652,7 @@ CREATE TABLE alert_target (
   notification_type VARCHAR(64) NOT NULL,
   properties TEXT,
   description VARCHAR(1024),
+  is_global SMALLINT NOT NULL DEFAULT 0,
   PRIMARY KEY (target_id)
 );
 

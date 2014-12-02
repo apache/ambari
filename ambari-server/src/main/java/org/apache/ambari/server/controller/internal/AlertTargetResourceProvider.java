@@ -42,8 +42,10 @@ import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.AlertDispatchDAO;
+import org.apache.ambari.server.orm.entities.AlertGroupEntity;
 import org.apache.ambari.server.orm.entities.AlertTargetEntity;
 import org.apache.ambari.server.state.AlertState;
+import org.apache.ambari.server.state.alert.AlertGroup;
 import org.apache.ambari.server.state.alert.AlertTarget;
 import org.apache.commons.lang.StringUtils;
 
@@ -67,6 +69,7 @@ public class AlertTargetResourceProvider extends
   protected static final String ALERT_TARGET_PROPERTIES = "AlertTarget/properties";
   protected static final String ALERT_TARGET_GROUPS = "AlertTarget/groups";
   protected static final String ALERT_TARGET_STATES = "AlertTarget/alert_states";
+  protected static final String ALERT_TARGET_GLOBAL = "AlertTarget/global";
 
   private static final Set<String> PK_PROPERTY_IDS = new HashSet<String>(
       Arrays.asList(ALERT_TARGET_ID, ALERT_TARGET_NAME));
@@ -90,6 +93,7 @@ public class AlertTargetResourceProvider extends
     PROPERTY_IDS.add(ALERT_TARGET_PROPERTIES);
     PROPERTY_IDS.add(ALERT_TARGET_GROUPS);
     PROPERTY_IDS.add(ALERT_TARGET_STATES);
+    PROPERTY_IDS.add(ALERT_TARGET_GLOBAL);
 
     // keys
     KEY_PROPERTY_IDS.put(Resource.Type.AlertTarget, ALERT_TARGET_ID);
@@ -142,7 +146,7 @@ public class AlertTargetResourceProvider extends
     if( null == predicate ){
       List<AlertTargetEntity> entities = s_dao.findAllTargets();
       for (AlertTargetEntity entity : entities) {
-        results.add(toResource(true, entity, requestPropertyIds));
+        results.add(toResource(entity, requestPropertyIds));
       }
     } else {
       for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
@@ -153,7 +157,7 @@ public class AlertTargetResourceProvider extends
 
         AlertTargetEntity entity = s_dao.findTargetById(Long.parseLong(id));
         if (null != entity) {
-          results.add(toResource(false, entity, requestPropertyIds));
+          results.add(toResource(entity, requestPropertyIds));
         }
       }
     }
@@ -234,6 +238,7 @@ public class AlertTargetResourceProvider extends
       String description = (String) requestMap.get(ALERT_TARGET_DESCRIPTION);
       String notificationType = (String) requestMap.get(ALERT_TARGET_NOTIFICATION_TYPE);
       Collection<String> alertStates = (Collection<String>) requestMap.get(ALERT_TARGET_STATES);
+      String globalProperty = (String) requestMap.get(ALERT_TARGET_GLOBAL);
 
       if (StringUtils.isEmpty(name)) {
         throw new IllegalArgumentException(
@@ -249,6 +254,12 @@ public class AlertTargetResourceProvider extends
       if (StringUtils.isEmpty(properties)) {
         throw new IllegalArgumentException(
             "Alert targets must be created with their connection properties");
+      }
+
+      // global not required
+      boolean isGlobal = false;
+      if (null != globalProperty) {
+        isGlobal = Boolean.parseBoolean(globalProperty);
       }
 
       // set the states that this alert target cares about
@@ -267,6 +278,7 @@ public class AlertTargetResourceProvider extends
       entity.setProperties(properties);
       entity.setTargetName(name);
       entity.setAlertStates(alertStateSet);
+      entity.setGlobal(isGlobal);
 
       entities.add(entity);
     }
@@ -349,18 +361,13 @@ public class AlertTargetResourceProvider extends
   /**
    * Convert the given {@link AlertTargetEntity} to a {@link Resource}.
    *
-   * @param isCollection
-   *          {@code true} if the resource is part of a collection. Some
-   *          properties are not returned when a collection of targets is
-   *          requested.
    * @param entity
    *          the entity to convert.
    * @param requestedIds
    *          the properties that were requested or {@code null} for all.
    * @return the resource representation of the entity (never {@code null}).
    */
-  private Resource toResource(boolean isCollection, AlertTargetEntity entity,
-      Set<String> requestedIds) {
+  private Resource toResource(AlertTargetEntity entity, Set<String> requestedIds) {
 
     Resource resource = new ResourceImpl(Resource.Type.AlertTarget);
     resource.setProperty(ALERT_TARGET_ID, entity.getTargetId());
@@ -382,6 +389,26 @@ public class AlertTargetResourceProvider extends
 
     setResourceProperty(resource, ALERT_TARGET_STATES, entity.getAlertStates(),
         requestedIds);
+
+    setResourceProperty(resource, ALERT_TARGET_GLOBAL, entity.isGlobal(),
+        requestedIds);
+
+    if (BaseProvider.isPropertyRequested(ALERT_TARGET_GROUPS, requestedIds)) {
+      Set<AlertGroupEntity> groupEntities = entity.getAlertGroups();
+      List<AlertGroup> groups = new ArrayList<AlertGroup>(
+          groupEntities.size());
+
+      for (AlertGroupEntity groupEntity : groupEntities) {
+        AlertGroup group = new AlertGroup();
+        group.setId(groupEntity.getGroupId());
+        group.setName(groupEntity.getGroupName());
+        group.setClusterName(groupEntity.getClusterId());
+        group.setDefault(groupEntity.isDefault());
+        groups.add(group);
+      }
+
+      resource.setProperty(ALERT_TARGET_GROUPS, groups);
+    }
 
     return resource;
   }

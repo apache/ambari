@@ -17,25 +17,23 @@
  */
 package org.apache.ambari.server.state.alert;
 
-import java.util.List;
+import org.codehaus.jackson.annotate.JsonProperty;
 
 /**
- * The {@link AlertGroup} class represents a grouping of {@link AlertDefinition}
- * instances as well as the targets that will be invoked when an alert is
- * triggered.
+ * The {@link AlertGroup} class is used to represent a grouping of alert
+ * definitions when returning alert targets.
  */
 public class AlertGroup {
-  private String m_id;
+  private long m_id;
   private String m_name;
-  private String m_clusterName;
+  private long m_clusterId;
   private boolean m_isDefault;
-  private List<AlertDefinition> m_definitions;
-  private List<AlertTarget> m_targets;
 
   /**
    * @return the id
    */
-  public String getId() {
+  @JsonProperty("id")
+  public long getId() {
     return m_id;
   }
 
@@ -43,13 +41,14 @@ public class AlertGroup {
    * @param id
    *          the id to set
    */
-  public void setId(String id) {
+  public void setId(long id) {
     m_id = id;
   }
 
   /**
    * @return the name
    */
+  @JsonProperty("name")
   public String getName() {
     return m_name;
   }
@@ -63,23 +62,25 @@ public class AlertGroup {
   }
 
   /**
-   * @return the clusterName
+   * @return the cluster ID
    */
-  public String getClusterName() {
-    return m_clusterName;
+  @JsonProperty("cluster_id")
+  public long getClusterId() {
+    return m_clusterId;
   }
 
   /**
-   * @param clusterName
-   *          the clusterName to set
+   * @param clusterId
+   *          the cluster id to set
    */
-  public void setClusterName(String clusterName) {
-    m_clusterName = clusterName;
+  public void setClusterName(long clusterId) {
+    m_clusterId = clusterId;
   }
 
   /**
    * @return the isDefault
    */
+  @JsonProperty("default")
   public boolean isDefault() {
     return m_isDefault;
   }
@@ -90,35 +91,5 @@ public class AlertGroup {
    */
   public void setDefault(boolean isDefault) {
     m_isDefault = isDefault;
-  }
-
-  /**
-   * @return the definitions
-   */
-  public List<AlertDefinition> getDefinitions() {
-    return m_definitions;
-  }
-
-  /**
-   * @param definitions
-   *          the definitions to set
-   */
-  public void setDefinitions(List<AlertDefinition> definitions) {
-    m_definitions = definitions;
-  }
-
-  /**
-   * @return the targets
-   */
-  public List<AlertTarget> getTargets() {
-    return m_targets;
-  }
-
-  /**
-   * @param targets
-   *          the targets to set
-   */
-  public void setTargets(List<AlertTarget> targets) {
-    m_targets = targets;
   }
 }

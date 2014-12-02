@@ -433,7 +433,6 @@ public class OrmTestHelper {
    *
    * @return
    */
-  @Transactional
   public AlertTargetEntity createAlertTarget() throws Exception {
     AlertTargetEntity target = new AlertTargetEntity();
     target.setDescription("Target Description");
@@ -446,13 +445,29 @@ public class OrmTestHelper {
   }
 
   /**
+   * Creates a global alert target.
+   *
+   * @return
+   */
+  public AlertTargetEntity createGlobalAlertTarget() throws Exception {
+    AlertTargetEntity target = new AlertTargetEntity();
+    target.setDescription("Target Description");
+    target.setNotificationType("EMAIL");
+    target.setProperties("Target Properties");
+    target.setTargetName("Target Name " + System.currentTimeMillis());
+    target.setGlobal(true);
+
+    alertDispatchDAO.create(target);
+    return alertDispatchDAO.findTargetById(target.getTargetId());
+  }
+
+  /**
    * Creates an alert definition.
    *
    * @param clusterId
    * @return
    * @throws Exception
    */
-  @Transactional
   public AlertDefinitionEntity createAlertDefinition(long clusterId)
       throws Exception {
     AlertDefinitionEntity definition = new AlertDefinitionEntity();
@@ -479,7 +494,6 @@ public class OrmTestHelper {
    * @return
    * @throws Exception
    */
-  @Transactional
   public AlertGroupEntity createAlertGroup(long clusterId,
       Set<AlertTargetEntity> targets) throws Exception {
     AlertGroupEntity group = new AlertGroupEntity();
@@ -499,7 +513,6 @@ public class OrmTestHelper {
    * @return
    * @throws Exception
    */
-  @Transactional
   public List<AlertGroupEntity> createDefaultAlertGroups(long clusterId)
       throws Exception {
     AlertGroupEntity hdfsGroup = new AlertGroupEntity();

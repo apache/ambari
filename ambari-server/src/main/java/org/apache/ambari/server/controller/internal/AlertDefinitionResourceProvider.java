@@ -233,7 +233,7 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
       if (null != id) {
         AlertDefinitionEntity entity = alertDefinitionDAO.findById(Long.parseLong(id));
         if (null != entity) {
-          results.add(toResource(false, clusterName, entity, requestPropertyIds));
+          results.add(toResource(clusterName, entity, requestPropertyIds));
         }
       } else {
         Cluster cluster = null;
@@ -247,7 +247,7 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
             cluster.getClusterId());
 
         for (AlertDefinitionEntity entity : entities) {
-          results.add(toResource(true, clusterName, entity, requestPropertyIds));
+          results.add(toResource(clusterName, entity, requestPropertyIds));
         }
       }
     }
@@ -615,7 +615,7 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
     return categoryJson;
   }
 
-  private Resource toResource(boolean isCollection, String clusterName,
+  private Resource toResource(String clusterName,
       AlertDefinitionEntity entity, Set<String> requestedIds) {
     Resource resource = new ResourceImpl(Resource.Type.AlertDefinition);
     resource.setProperty(ALERT_DEF_ID, entity.getDefinitionId());

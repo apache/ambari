@@ -34,7 +34,6 @@ import javax.ws.rs.core.UriInfo;
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.state.alert.AlertGroup;
 
 /**
  * The {@link AlertGroupService} handles CRUD operations for a cluster's alert
@@ -100,8 +99,8 @@ public class AlertGroupService extends BaseService {
   }
 
   /**
-   * Create a request capturing the group ID and resource type for an
-   * {@link AlertGroup}.
+   * Create a request capturing the group ID and resource type for an alert
+   * group.
    *
    * @param groupId
    *          the unique ID of the group to create the query for (not

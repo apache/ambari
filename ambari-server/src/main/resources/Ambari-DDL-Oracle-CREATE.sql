@@ -642,6 +642,7 @@ CREATE TABLE alert_target (
   notification_type VARCHAR2(64) NOT NULL,
   properties CLOB,
   description VARCHAR2(1024),
+  is_global NUMBER(1) DEFAULT 0 NOT NULL,
   PRIMARY KEY (target_id)
 );
 

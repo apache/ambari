@@ -44,6 +44,8 @@ import javax.persistence.TableGenerator;
 
 import org.apache.ambari.server.state.AlertState;
 
+import com.google.common.collect.ImmutableSet;
+
 /**
  * The {@link AlertTargetEntity} class represents audience that will receive
  * dispatches when an alert is triggered.
@@ -53,6 +55,7 @@ import org.apache.ambari.server.state.AlertState;
 @TableGenerator(name = "alert_target_id_generator", table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value", pkColumnValue = "alert_target_id_seq", initialValue = 0, allocationSize = 1)
 @NamedQueries({
     @NamedQuery(name = "AlertTargetEntity.findAll", query = "SELECT alertTarget FROM AlertTargetEntity alertTarget"),
+    @NamedQuery(name = "AlertTargetEntity.findAllGlobal", query = "SELECT alertTarget FROM AlertTargetEntity alertTarget WHERE alertTarget.isGlobal = 1"),
     @NamedQuery(name = "AlertTargetEntity.findByName", query = "SELECT alertTarget FROM AlertTargetEntity alertTarget WHERE alertTarget.targetName = :targetName"),
     @NamedQuery(name = "AlertTargetEntity.findByIds", query = "SELECT alertTarget FROM AlertTargetEntity alertTarget WHERE alertTarget.targetId IN :targetIds") })
 public class AlertTargetEntity {
@@ -75,6 +78,9 @@ public class AlertTargetEntity {
 
   @Column(name = "target_name", unique = true, nullable = false, length = 255)
   private String targetName;
+
+  @Column(name = "is_global", nullable = false, length = 1)
+  private Integer isGlobal = Integer.valueOf(0);
 
   /**
    * Bi-directional many-to-many association to {@link AlertGroupEntity}
@@ -171,6 +177,27 @@ public class AlertTargetEntity {
   }
 
   /**
+   * Gets whether the alert target is a global target and will receive
+   * notifications triggered for any alert group.
+   *
+   * @return the isGlobal {@code} if the target is global.
+   */
+  public boolean isGlobal() {
+    return isGlobal == 0 ? false : true;
+  }
+
+  /**
+   * Sets whether the alert target is a global target and will receive
+   * notifications triggered for any alert group.
+   *
+   * @param isGlobal
+   *          {@code} if the target is global.
+   */
+  public void setGlobal(boolean isGlobal) {
+    this.isGlobal = isGlobal ? 1 : 0;
+  }
+
+  /**
    * Gets the alert states that will cause a triggered alert to be sent to this
    * target. A target may be associated with a group where an alert has changed
    * state, but if that new state is not of interest to the target, it will not
@@ -217,7 +244,7 @@ public class AlertTargetEntity {
       return Collections.emptySet();
     }
 
-    return Collections.unmodifiableSet(alertGroups);
+    return ImmutableSet.copyOf(alertGroups);
   }
 
   /**
@@ -254,7 +281,7 @@ public class AlertTargetEntity {
   @PreRemove
   public void preRemove() {
     Set<AlertGroupEntity> groups = getAlertGroups();
-    if (null == groups || groups.size() == 0) {
+    if (groups.isEmpty()) {
       return;
     }
 

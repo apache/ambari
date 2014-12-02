@@ -26,97 +26,147 @@
 #set( $services = $summary.getServices() )
 <html>
   <style type="text/css">
-    .ok{
-      color: green;
+    html {
+      font-family:sans-serif;
+      -webkit-text-size-adjust:100%;
+      -ms-text-size-adjust:100%;
     }
-    .warning{
-      color: ffff00;
+    body {
+      margin:10px;
     }
-    .critical{
-      color: red;
-    }
-    .unknown{
-      color: brown;
-    }
-    .section{
-      background-color: #eee;
-      padding: 20px;
-      margin-top: 10px;
-      margin-left: 20px;
-      margin-right: 20px;
-      text-align: left;
-      border-radius: 10px;
-      font-family: Arial, Helvetica, sans-serif;
-    }
-    .footer{
-      margin-top: 10px;
-      margin-left: 20px;
-      margin-right: 20px;
-      font-family: Arial, Helvetica, sans-serif;
-      font-size: 12px;
-    }
-    .alert{    
-      margin: 5px;
-      font-weight: normal;
-      font-size: 14px;   
-    }
-    .alertText{
-      font-size: 12px;
-    }
-    h1{
-      margin: 0 0 0.5em 0;
-      color: #343434;
-      font-weight: normal;
-      font-size: 20px;
+    footer,header {
+      display:block;
     }
     table {
-      width: 100%;
+      border-spacing:0;
+      border-collapse:collapse;
     }
-    tr{
-      margin-botton: 5px;
-    }    
-    td{
-      text-align: left;
-      vertical-align: top;
+    td,th {
+      padding:10px;
+    }
+    .panel {
+      margin-bottom:20px;
+      background-color:#fff;
+      border:1px solid transparent;
+      border-radius:4px;
+      -webkit-box-shadow:0 1px 1px rgba(0,0,0,.05);
+      box-shadow:0 1px 1px rgba(0,0,0,.05);
+    }
+    .panel-body {
+      padding:15px;
+    }
+    .panel-heading {
+      padding:10px 15px;
+      border-bottom:1px solid transparent;
+      border-top-left-radius:3px;
+      border-top-right-radius:3px;
+    }
+    .panel-title {
+      margin-top:0;
+      margin-bottom:0;
+      font-size:16px;
+      color:inherit;
+    }
+    .panel-default {
+      border-color:#ddd;
+    }
+    .panel-default > .panel-heading {
+      color:#333;
+      background-color:#f5f5f5;
+      border-color:#ddd;
+    }
+    .panel-primary {
+      border-color: #337ab7;
+    }
+    .panel-primary > .panel-heading {
+      color: #fff;
+      background-color: #337ab7;
+      border-color: #337ab7;
+    }
+    .label {
+      display:inline;
+      padding:.3em 1em;
+      font-size:75%;
+      font-weight:bold;
+      line-height:1;
+      color:#fff;
+      text-align:center;
+      white-space:nowrap;
+      vertical-align:baseline;
+      border-radius:.25em;
+    }
+    .label-unknown {
+      background-color:#777;
+    }
+    .label-primary {
+      background-color:#337ab7;
+    }
+    .label-ok {
+      background-color:#5cb85c;
+    }
+    .label-warning {
+      background-color:#f0ad4e;
+    }
+    .label-critical {
+      background-color:#d9534f;
+    }
+    .label-small {
+      font-size:12px;
+    }
+    .ambari-footer{
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 12px;    
     }
   </style>
-  <div class="section">
-    <h1>Services Reporting Alerts</h1>  
-      #foreach( $alertState in $alertStates )
-        #if( $summary.getServicesByAlertState($alertState)  )
-          <div class="alert">
-            <span class="$alertState">$alertState</span> $summary.getServicesByAlertState($alertState)
-          </div>
+  <div class="panel panel-primary">
+    <div class="panel-heading">
+      <h3 class="panel-title">Services Reporting Alerts</h3>
+    </div>
+    <div class="panel-body">
+      <table>
+        #foreach( $alertState in $alertStates )
+          #if( $summary.getServicesByAlertState($alertState)  )
+            <tr>
+              <td>
+                <span class="label label-$alertState">$alertState</span>
+              </td>
+              <td>
+                $summary.getServicesByAlertState($alertState)
+              </td>
+            </tr>
+          #end
         #end
-      #end
+      </table> 
+    </div>
   </div>
 
   #foreach( $service in $services )
-    <div class="section">
-      <h1>$service</h1>
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <h3 class="panel-title">$service</h3>
+    </div>
+    <div class="panel-body">
       <table>
         #foreach( $alertState in $alertStates )
             #foreach( $alert in $summary.getAlerts($service,$alertState) )
-              <tr class="alert">
-                <td width="100px">
-                  <div class="$alertState">
-                    $alertState
-                  </div>
+              <tr>
+                <td>
+                  <span class="label label-$alertState">$alertState</span>
                 </td>
                 <td>
                   $alert.getAlertDefinition().getLabel()
-                  <br/>
-                  <span class="alertText">
+                  <div class="label-small">
                     $alert.getAlertText()
-                  <span>
+                  </div>
                 </td>
               </tr>
             #end
         #end
       </table>
     </div>
+  </div>
   #end
-  <div class="footer">
+  <div class="ambari-footer">
     This notification was sent to $dispatch.getTargetName()
     <br/>
     Apache Ambari $ambari.getServerVersion()

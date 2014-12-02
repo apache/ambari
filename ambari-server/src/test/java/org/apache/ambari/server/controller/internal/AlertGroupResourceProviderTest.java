@@ -173,6 +173,9 @@ public class AlertGroupResourceProviderTest {
     // verify definitions do not come back when not requested
     assertNull(r.getPropertyValue(AlertGroupResourceProvider.ALERT_GROUP_DEFINITIONS));
 
+    // verify alerts do not come back when not requested
+    assertNull(r.getPropertyValue(AlertGroupResourceProvider.ALERT_GROUP_TARGETS));
+
     verify(m_amc, m_clusters, m_cluster, m_dao);
   }
 
@@ -208,13 +211,16 @@ public class AlertGroupResourceProviderTest {
         r.getPropertyValue(AlertGroupResourceProvider.ALERT_GROUP_CLUSTER_NAME));
 
 
-    // verify definitions do not come back when not requested
+    // verify definitions and targets come back when requested
     List<AlertDefinitionResponse> definitions = (List<AlertDefinitionResponse>) r.getPropertyValue(AlertGroupResourceProvider.ALERT_GROUP_DEFINITIONS);
+    List<AlertTarget> targets = (List<AlertTarget>) r.getPropertyValue(AlertGroupResourceProvider.ALERT_GROUP_TARGETS);
 
     assertNotNull(definitions);
     assertEquals(1, definitions.size());
     assertEquals(ALERT_DEF_NAME, definitions.get(0).getName());
     assertEquals(SourceType.METRIC, definitions.get(0).getSourceType());
+    assertNotNull(targets);
+    assertEquals(1, targets.size());
 
     verify(m_amc, m_clusters, m_cluster, m_dao);
   }
