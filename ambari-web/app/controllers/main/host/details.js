@@ -265,7 +265,7 @@ App.MainHostDetailsController = Em.Controller.extend({
     } else if (component.get('isClient')) {
       count = App.ClientComponent.find(component.get('componentName')).get('totalCount');
     } else {
-      count = App.HostComponent.find().filterProperty('componentName', component.get('componentName')).get('length')
+      count = App.HostComponent.find().filterProperty('componentName', component.get('componentName')).get('length');
     }
     return count || 0;
   },
@@ -311,6 +311,7 @@ App.MainHostDetailsController = Em.Controller.extend({
    */
   _doDeleteHostComponentSuccessCallback: function (response, request, data) {
     this.set('_deletedHostComponentResult', null);
+    this.removeHostComponentModel(data.componentName, data.hostName);
     if (data.componentName == 'ZOOKEEPER_SERVER') {
       this.set('fromDeleteZkServer', true);
       this.loadConfigs();
@@ -331,6 +332,17 @@ App.MainHostDetailsController = Em.Controller.extend({
     this.set('_deletedHostComponentResult', {xhr: xhr, url: data.url, method: 'DELETE'});
   },
 
+  /**
+   * Remove host component data from App.HostComponent model.
+   * 
+   * @param {String} componentName
+   * @param {String} hostName
+   */
+  removeHostComponentModel: function(componentName, hostName) {
+    var component = App.HostComponent.find().filterProperty('componentName', componentName).findProperty('hostName', hostName);
+    App.serviceMapper.deleteRecord(component);
+  },
+  
   /**
    * Send command to server to upgrade selected host component
    * @param {object} event
@@ -1065,7 +1077,7 @@ App.MainHostDetailsController = Em.Controller.extend({
           }
         }
       });
-      id++
+      id++;
     }
     batches.push({
         "order_id": id,
@@ -1385,7 +1397,7 @@ App.MainHostDetailsController = Em.Controller.extend({
    * @method updateHost
    */
   updateHostComponent: function (data, opt, params) {
-    params.component.set('passiveState', params.passive_state)
+    params.component.set('passiveState', params.passive_state);
     batchUtils.infoPassiveState(params.passive_state);
   },
 
@@ -1545,7 +1557,7 @@ App.MainHostDetailsController = Em.Controller.extend({
         templateName: require('templates/main/host/details/raiseDeleteComponentErrorPopup')
       }),
       secondary: null
-    })
+    });
   },
 
   /**
@@ -1593,7 +1605,7 @@ App.MainHostDetailsController = Em.Controller.extend({
         };
         self.doDeleteHost(completeCallback);
       }
-    })
+    });
   },
 
   /**
@@ -1634,7 +1646,7 @@ App.MainHostDetailsController = Em.Controller.extend({
           callback: completeCallback,
           success: 'deleteHostSuccessCallback',
           error: 'deleteHostErrorCallback'
-        })
+        });
       }
       else {
         completeCallback();
@@ -1644,7 +1656,7 @@ App.MainHostDetailsController = Em.Controller.extend({
     });
   },
   deleteHostSuccessCallback: function (data) {
-    var self = this
+    var self = this;
     App.router.get('updateController').updateHost(function () {
       self.loadConfigs();
       App.router.transitionTo('hosts.index');

@@ -344,7 +344,7 @@ describe('App.MainHostDetailsController', function () {
       clock = sinon.useFakeTimers();
     });
     afterEach(function () {
-      clock.restore()
+      clock.restore();
     });
 
     it('change status of object', function () {
@@ -1923,6 +1923,14 @@ describe('App.MainHostDetailsController', function () {
   });
 
   describe('#_doDeleteHostComponentSuccessCallback()', function () {
+    beforeEach(function() {
+      sinon.stub(controller, 'removeHostComponentModel', Em.K);      
+    });
+    
+    afterEach(function() {
+      controller.removeHostComponentModel.restore();      
+    });
+    
     it('ZOOKEEPER_SERVER component', function () {
       var data = {
         componentName: 'ZOOKEEPER_SERVER'
@@ -1942,6 +1950,14 @@ describe('App.MainHostDetailsController', function () {
       controller._doDeleteHostComponentSuccessCallback({}, {}, data);
       expect(controller.get('_deletedHostComponentResult')).to.be.null;
       expect(controller.get('fromDeleteZkServer')).to.be.false;
+    });
+    it('should call `removeHostComponentModel` with correct params', function() {
+      var data = {
+        componentName: 'COMPONENT',
+        hostName: 'h1'
+      };
+      controller._doDeleteHostComponentSuccessCallback({}, {}, data);
+      expect(controller.removeHostComponentModel.calledWith('COMPONENT', 'h1')).to.be.true;
     });
   });
 
