@@ -80,8 +80,6 @@ class TestZkfc(RMFTestCase):
         not_if = 'ls /var/run/hadoop/hdfs/hadoop-hdfs-zkfc.pid >/dev/null 2>&1 && ps -p `cat /var/run/hadoop/hdfs/hadoop-hdfs-zkfc.pid` >/dev/null 2>&1',
         user = 'hdfs',
     )
-    self.assertResourceCalled('Execute', "hdfs dfsadmin -report -live",
-                              user="hdfs")
     self.assertNoMoreResources()
 
 
@@ -169,8 +167,6 @@ class TestZkfc(RMFTestCase):
         not_if = 'ls /var/run/hadoop/hdfs/hadoop-hdfs-zkfc.pid >/dev/null 2>&1 && ps -p `cat /var/run/hadoop/hdfs/hadoop-hdfs-zkfc.pid` >/dev/null 2>&1',
         user = 'hdfs',
     )
-    self.assertResourceCalled('Execute', "hdfs dfsadmin -report -live",
-                              user="hdfs")
     self.assertNoMoreResources()
 
   def test_stop_secured(self):

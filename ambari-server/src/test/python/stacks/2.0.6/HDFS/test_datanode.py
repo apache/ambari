@@ -61,10 +61,6 @@ class TestDatanode(RMFTestCase):
         not_if = 'ls /var/run/hadoop/hdfs/hadoop-hdfs-datanode.pid >/dev/null 2>&1 && ps -p `cat /var/run/hadoop/hdfs/hadoop-hdfs-datanode.pid` >/dev/null 2>&1',
         user = 'hdfs',
     )
-    self.assertResourceCalled('Execute',
-                              'hdfs dfsadmin -report -live',
-                              user='hdfs'
-                              )
     self.assertNoMoreResources()
 
   @patch("os.path.exists", new = MagicMock(return_value=False))
@@ -137,10 +133,6 @@ class TestDatanode(RMFTestCase):
         not_if = 'ls /var/run/hadoop/hdfs/hadoop-hdfs-datanode.pid >/dev/null 2>&1 && ps -p `cat /var/run/hadoop/hdfs/hadoop-hdfs-datanode.pid` >/dev/null 2>&1',
         user = 'root',
     )
-    self.assertResourceCalled('Execute',
-                              'hdfs dfsadmin -report -live',
-                              user='hdfs'
-                              )
     self.assertNoMoreResources()
 
   def test_start_secured_HDP22_root(self):
@@ -177,10 +169,6 @@ class TestDatanode(RMFTestCase):
         not_if = 'ls /var/run/hadoop/hdfs/hadoop-hdfs-datanode.pid >/dev/null 2>&1 && ps -p `cat /var/run/hadoop/hdfs/hadoop-hdfs-datanode.pid` >/dev/null 2>&1',
         user = 'root',
     )
-    self.assertResourceCalled('Execute',
-                              'hdfs dfsadmin -report -live',
-                              user='hdfs'
-                              )
     self.assertNoMoreResources()
 
   def test_start_secured_HDP22_non_root_https_only(self):
@@ -220,10 +208,6 @@ class TestDatanode(RMFTestCase):
         not_if = 'ls /var/run/hadoop/hdfs/hadoop-hdfs-datanode.pid >/dev/null 2>&1 && ps -p `cat /var/run/hadoop/hdfs/hadoop-hdfs-datanode.pid` >/dev/null 2>&1',
         user = 'hdfs',
     )
-    self.assertResourceCalled('Execute',
-                              'hdfs dfsadmin -report -live',
-                              user='hdfs'
-                              )
     self.assertNoMoreResources()
 
   @patch("os.path.exists", new = MagicMock(return_value=False))

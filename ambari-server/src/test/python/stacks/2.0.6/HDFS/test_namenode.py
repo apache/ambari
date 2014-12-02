@@ -82,9 +82,6 @@ class TestNamenode(RMFTestCase):
         not_if = 'ls /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid >/dev/null 2>&1 && ps -p `cat /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid` >/dev/null 2>&1',
         user = 'hdfs',
     )
-    self.assertResourceCalled('Execute', 'hdfs dfsadmin -report -live',
-                              user='hdfs'
-                              )
     self.assertResourceCalled('Execute', 'hdfs --config /etc/hadoop/conf dfsadmin -safemode leave',
         path = ['/usr/bin'],
         user = 'hdfs',
@@ -202,9 +199,6 @@ class TestNamenode(RMFTestCase):
         not_if = 'ls /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid >/dev/null 2>&1 && ps -p `cat /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid` >/dev/null 2>&1',
         user = 'hdfs',
     )
-    self.assertResourceCalled('Execute', 'hdfs dfsadmin -report -live',
-                              user='hdfs'
-                              )
     self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/hdfs.headless.keytab hdfs',
                               user='hdfs',
                               )
@@ -305,9 +299,6 @@ class TestNamenode(RMFTestCase):
         not_if = 'ls /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid >/dev/null 2>&1 && ps -p `cat /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid` >/dev/null 2>&1',
         user = 'hdfs',
     )
-    self.assertResourceCalled('Execute', 'hdfs dfsadmin -report -live',
-                              user='hdfs'
-                              )
     self.assertResourceCalled('Execute', "hadoop dfsadmin -safemode get | grep 'Safe mode is OFF'",
                               path = ['/usr/bin'],
                               tries = 40,
@@ -382,9 +373,6 @@ class TestNamenode(RMFTestCase):
         not_if = 'ls /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid >/dev/null 2>&1 && ps -p `cat /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid` >/dev/null 2>&1',
         user = 'hdfs',
     )
-    self.assertResourceCalled('Execute', 'hdfs dfsadmin -report -live',
-                              user='hdfs',
-                              )
     self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/hdfs.headless.keytab hdfs',
         user = 'hdfs',
     )

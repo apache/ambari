@@ -100,10 +100,13 @@ def service(action=None, name=None, user=None, create_pid_dir=False,
   )
 
   #After performing the desired action, perform additional tasks.
+  # Only needed during Rolling Upgrade
+  '''
   if action == "start":
     Execute("hdfs dfsadmin -report -live",
             user=params.hdfs_principal_name if params.security_enabled else params.hdfs_user
     )
+  '''
 
   if action == "stop":
     File(pid_file,
