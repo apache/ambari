@@ -149,12 +149,14 @@ var wrapperView = Em.View.extend({
         break;
       case 'number':
         func = function (a, b) {
-          var a = parseFloat(a.get(property.get('name')));
-          var b = parseFloat(b.get(property.get('name')));
+          var a_p = a.get(property.get('name'));
+          var b_p = b.get(property.get('name'));
+          a_p = Em.isNone(a_p) ? -Infinity : parseFloat(a_p);
+          b_p = Em.isNone(b_p) ? -Infinity : parseFloat(b_p);
           if (order) {
-            return b - a;
+            return b_p - a_p;
           } else {
-            return a - b;
+            return a_p - b_p;
           }
         };
         break;
@@ -192,19 +194,11 @@ var wrapperView = Em.View.extend({
         break;
       default:
         func = function (a, b) {
-          if (order) {
-            if (a.get(property.get('name')) > b.get(property.get('name')))
-              return -1;
-            if (a.get(property.get('name')) < b.get(property.get('name')))
-              return 1;
-            return 0;
-          } else {
-            if (a.get(property.get('name')) < b.get(property.get('name')))
-              return -1;
-            if (a.get(property.get('name')) > b.get(property.get('name')))
-              return 1;
-            return 0;
-          }
+          var a_p = a.get(property.get('name'));
+          var b_p = b.get(property.get('name'));
+          a_p = Em.isNone(a_p) ? '' : a_p;
+          b_p = Em.isNone(b_p) ? '' : b_p;
+          return order ? a_p.localeCompare(b_p) : b_p.localeCompare(a_p)
         };
     }
     return func;

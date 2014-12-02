@@ -63,6 +63,88 @@ describe('#wrapperView', function () {
 
     });
 
+    describe('number', function () {
+
+      var property = Em.Object.create({type: 'number', name: 'lastTriggered'});
+
+      Em.A([
+          {
+            a: Em.Object.create({lastTriggered: 1}),
+            b: Em.Object.create({lastTriggered: 0}),
+            order: true,
+            e: -1
+          },
+          {
+            a: Em.Object.create({lastTriggered: 1}),
+            b: Em.Object.create({lastTriggered: 0}),
+            order: false,
+            e: 1
+          },
+          {
+            a: Em.Object.create({lastTriggered: null}),
+            b: Em.Object.create({lastTriggered: 1}),
+            order: true,
+            e: Infinity
+          },
+          {
+            a: Em.Object.create({lastTriggered: null}),
+            b: Em.Object.create({lastTriggered: 1}),
+            order: false,
+            e: -Infinity
+          }
+        ]).forEach(function (test, i) {
+          it('test #' + (i + 1), function () {
+            var func = sort.wrapperView.create().getSortFunc(property, test.order);
+            expect(func(test.a, test.b)).to.equal(test.e);
+          });
+      });
+
+    });
+
+    describe('default', function () {
+
+      var property = Em.Object.create({type: 'string', name: 'serviceName'});
+
+      Em.A([
+          {
+            a: Em.Object.create({serviceName: 's1'}),
+            b: Em.Object.create({serviceName: 's2'}),
+            order: true,
+            e: -1
+          },
+          {
+            a: Em.Object.create({serviceName: 's1'}),
+            b: Em.Object.create({serviceName: 's2'}),
+            order: false,
+            e: 1
+          },
+          {
+            a: Em.Object.create({serviceName: 's1'}),
+            b: Em.Object.create({serviceName: 's1'}),
+            order: true,
+            e: 0
+          },
+          {
+            a: Em.Object.create({serviceName: null}),
+            b: Em.Object.create({serviceName: 's2'}),
+            order: true,
+            e: -1
+          },
+          {
+            a: Em.Object.create({serviceName: null}),
+            b: Em.Object.create({serviceName: 's2'}),
+            order: false,
+            e: 1
+          }
+        ]).forEach(function (test, i) {
+          it('test #' + (i + 1), function () {
+            var func = sort.wrapperView.create().getSortFunc(property, test.order);
+            expect(func(test.a, test.b)).to.equal(test.e);
+          });
+      });
+
+    });
+
   });
 
 });

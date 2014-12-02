@@ -1218,6 +1218,26 @@
           "type" : "AGGREGATE"
         }
       }
+    },
+    {
+      "href" : "http://host:8080/api/v1/clusters/c1/alert_definitions/37",
+      "AlertDefinition" : {
+        "cluster_name" : "c1",
+        "component_name" : "AMBARI_AGENT",
+        "description" : null,
+        "enabled" : true,
+        "id" : 37,
+        "ignore_host" : false,
+        "interval" : 1,
+        "label" : "Ambari Agent Disk Usage",
+        "name" : "ambari_agent_disk_usage",
+        "scope" : "HOST",
+        "service_name" : "AMBARI",
+        "source" : {
+          "path" : "alert_disk_space.py",
+          "type" : "SCRIPT"
+        }
+      }
     }
   ]
 }
