@@ -54,7 +54,7 @@ class TestServiceCheck(RMFTestCase):
     self.assertResourceCalled('ExecuteHadoop', 'fs -mkdir /tmp ; hadoop fs -chmod 777 /tmp',
                               conf_dir = '/etc/hadoop/conf',
                               logoutput = True,
-                              not_if = "/usr/bin/sudo -Hi su - ambari-qa -s /bin/bash -c 'export {ENV_PLACEHOLDER} ; hadoop fs -test -e /tmp'",
+                              not_if = "/usr/bin/sudo su ambari-qa -l -s /bin/bash -c 'export {ENV_PLACEHOLDER} > /dev/null ; hadoop fs -test -e /tmp'",
                               try_sleep = 3,
                               tries = 5,
                               user = 'ambari-qa',

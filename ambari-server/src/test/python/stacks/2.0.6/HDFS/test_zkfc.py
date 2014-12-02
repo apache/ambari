@@ -76,9 +76,9 @@ class TestZkfc(RMFTestCase):
                               action = ['delete'],
                               not_if = 'ls /var/run/hadoop/hdfs/hadoop-hdfs-zkfc.pid >/dev/null 2>&1 && ps -p `cat /var/run/hadoop/hdfs/hadoop-hdfs-zkfc.pid` >/dev/null 2>&1',
                               )
-    self.assertResourceCalled('Execute', 'ulimit -c unlimited &&  export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf start zkfc',
+    self.assertResourceCalled('Execute', "/usr/bin/sudo su hdfs -l -s /bin/bash -c 'export {ENV_PLACEHOLDER} > /dev/null ; ulimit -c unlimited &&  /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf start zkfc'",
+        environment = {'HADOOP_LIBEXEC_DIR': '/usr/lib/hadoop/libexec'},
         not_if = 'ls /var/run/hadoop/hdfs/hadoop-hdfs-zkfc.pid >/dev/null 2>&1 && ps -p `cat /var/run/hadoop/hdfs/hadoop-hdfs-zkfc.pid` >/dev/null 2>&1',
-        user = 'hdfs',
     )
     self.assertNoMoreResources()
 
@@ -101,9 +101,9 @@ class TestZkfc(RMFTestCase):
                               action = ['delete'],
                               not_if='ls /var/run/hadoop/hdfs/hadoop-hdfs-zkfc.pid >/dev/null 2>&1 && ps -p `cat /var/run/hadoop/hdfs/hadoop-hdfs-zkfc.pid` >/dev/null 2>&1',
                               )
-    self.assertResourceCalled('Execute', 'ulimit -c unlimited &&  export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf stop zkfc',
+    self.assertResourceCalled('Execute', "/usr/bin/sudo su hdfs -l -s /bin/bash -c 'export {ENV_PLACEHOLDER} > /dev/null ; ulimit -c unlimited &&  /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf stop zkfc'",
+        environment = {'HADOOP_LIBEXEC_DIR': '/usr/lib/hadoop/libexec'},
         not_if = None,
-        user = 'hdfs',
     )
     self.assertResourceCalled('File', '/var/run/hadoop/hdfs/hadoop-hdfs-zkfc.pid',
                               action = ['delete'],
@@ -163,9 +163,9 @@ class TestZkfc(RMFTestCase):
                               action = ['delete'],
                               not_if = 'ls /var/run/hadoop/hdfs/hadoop-hdfs-zkfc.pid >/dev/null 2>&1 && ps -p `cat /var/run/hadoop/hdfs/hadoop-hdfs-zkfc.pid` >/dev/null 2>&1',
                               )
-    self.assertResourceCalled('Execute', 'ulimit -c unlimited &&  export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf start zkfc',
+    self.assertResourceCalled('Execute', "/usr/bin/sudo su hdfs -l -s /bin/bash -c 'export {ENV_PLACEHOLDER} > /dev/null ; ulimit -c unlimited &&  /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf start zkfc'",
+        environment = {'HADOOP_LIBEXEC_DIR': '/usr/lib/hadoop/libexec'},
         not_if = 'ls /var/run/hadoop/hdfs/hadoop-hdfs-zkfc.pid >/dev/null 2>&1 && ps -p `cat /var/run/hadoop/hdfs/hadoop-hdfs-zkfc.pid` >/dev/null 2>&1',
-        user = 'hdfs',
     )
     self.assertNoMoreResources()
 
@@ -187,9 +187,9 @@ class TestZkfc(RMFTestCase):
                               action = ['delete'],
                               not_if='ls /var/run/hadoop/hdfs/hadoop-hdfs-zkfc.pid >/dev/null 2>&1 && ps -p `cat /var/run/hadoop/hdfs/hadoop-hdfs-zkfc.pid` >/dev/null 2>&1',
                               )
-    self.assertResourceCalled('Execute', 'ulimit -c unlimited &&  export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf stop zkfc',
+    self.assertResourceCalled('Execute', "/usr/bin/sudo su hdfs -l -s /bin/bash -c 'export {ENV_PLACEHOLDER} > /dev/null ; ulimit -c unlimited &&  /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf stop zkfc'",
+        environment = {'HADOOP_LIBEXEC_DIR': '/usr/lib/hadoop/libexec'},
         not_if = None,
-        user = 'hdfs',
     )
     self.assertResourceCalled('File', '/var/run/hadoop/hdfs/hadoop-hdfs-zkfc.pid',
                               action = ['delete'],

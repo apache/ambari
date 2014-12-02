@@ -30,10 +30,8 @@ def service(action=None, name=None, user=None, create_pid_dir=False,
   check_process = format(
     "ls {pid_file} >/dev/null 2>&1 &&"
     " ps -p `cat {pid_file}` >/dev/null 2>&1")
-  hadoop_daemon = format(
-    "export HADOOP_LIBEXEC_DIR={hadoop_libexec_dir} && "
-    "{hadoop_bin}/hadoop-daemon.sh")
-  cmd = format("{hadoop_daemon} --config {hadoop_conf_dir}")
+  hadoop_daemon = format("{hadoop_bin}/hadoop-daemon.sh")
+  hadoop_env_exports = {'HADOOP_LIBEXEC_DIR': params.hadoop_libexec_dir}
 
   if create_pid_dir:
     Directory(pid_dir,
@@ -49,7 +47,12 @@ def service(action=None, name=None, user=None, create_pid_dir=False,
       pid_file = format(
         "{hadoop_pid_dir_prefix}/{hdfs_user}/hadoop-{hdfs_user}-{name}.pid")
 
-  daemon_cmd = format("{ulimit_cmd} {cmd} {action} {name}")
+  if user == "root":
+    cmd = [hadoop_daemon, "--config", params.hadoop_conf_dir]
+    daemon_cmd = as_sudo(cmd + [action, name])
+  else:
+    cmd = format("{hadoop_daemon} --config {hadoop_conf_dir}")
+    daemon_cmd = as_user(format("{ulimit_cmd} {cmd} {action} {name}"), user)
 
   service_is_up = check_process if action == "start" else None
   #remove pid file from dead process
@@ -59,8 +62,8 @@ def service(action=None, name=None, user=None, create_pid_dir=False,
        
   )
   Execute(daemon_cmd,
-          user=user,
-          not_if=service_is_up
+          not_if=service_is_up,
+          environment=hadoop_env_exports,
   )
   if action == "stop":
     File(pid_file,

@@ -38,7 +38,7 @@ class TestCopyFromLocal(TestCase):
       call_arg_list = execute_hadoop_mock.call_args_list
       self.assertEqual('fs -copyFromLocal /user/testdir/*.files /apps/test/',
                        call_arg_list[0][0][0].command)
-      self.assertEquals({'not_if': "/usr/bin/sudo -Hi su - user1 -s /bin/bash -c 'export  PATH=/usr/bin ; {kinnit_if_needed} ; hadoop fs -ls {dest_path}'", 'user': 'user1', 'bin_dir': '/usr/bin', 'conf_dir': '/etc/hadoop/conf'},
+      self.assertEquals({'not_if': "/usr/bin/sudo su user1 -l -s /bin/bash -c 'export  PATH=/usr/bin > /dev/null ; {kinnit_if_needed} ; hadoop fs -ls {dest_path}'", 'user': 'user1', 'bin_dir': '/usr/bin', 'conf_dir': '/etc/hadoop/conf'},
                         call_arg_list[0][0][0].arguments)
       self.assertEquals('fs -chown user1 /apps/test//*.files', call_arg_list[1][0][0].command)
       self.assertEquals({'user': 'hdfs', 'bin_dir': '/usr/bin', 'conf_dir': '/etc/hadoop/conf'}, call_arg_list[1][0][0].arguments)
@@ -59,7 +59,7 @@ class TestCopyFromLocal(TestCase):
       call_arg_list = execute_hadoop_mock.call_args_list
       self.assertEqual('fs -copyFromLocal /user/testdir/*.files /apps/test/',
                        call_arg_list[0][0][0].command)
-      self.assertEquals({'not_if': "/usr/bin/sudo -Hi su - user1 -s /bin/bash -c 'export  PATH=/usr/bin ; {kinnit_if_needed} ; hadoop fs -ls {dest_path}'", 'user': 'user1', 'bin_dir': '/usr/bin', 'conf_dir': '/etc/hadoop/conf'},
+      self.assertEquals({'not_if': "/usr/bin/sudo su user1 -l -s /bin/bash -c 'export  PATH=/usr/bin > /dev/null ; {kinnit_if_needed} ; hadoop fs -ls {dest_path}'", 'user': 'user1', 'bin_dir': '/usr/bin', 'conf_dir': '/etc/hadoop/conf'},
                         call_arg_list[0][0][0].arguments)
       self.assertEquals('fs -chown user1:hdfs /apps/test//*.files', call_arg_list[1][0][0].command)
       self.assertEquals({'user': 'hdfs', 'bin_dir': '/usr/bin', 'conf_dir': '/etc/hadoop/conf'}, call_arg_list[1][0][0].arguments)

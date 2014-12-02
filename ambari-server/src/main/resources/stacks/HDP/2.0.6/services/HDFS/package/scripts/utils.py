@@ -77,26 +77,24 @@ def service(action=None, name=None, user=None, create_pid_dir=False,
           pass
 
 
-  hadoop_env_exports_str = ''
-  for exp in hadoop_env_exports.items():
-    hadoop_env_exports_str += "export {0}={1} && ".format(exp[0], exp[1])
+  hadoop_daemon = format("{hadoop_bin}/hadoop-daemon.sh")
 
-  hadoop_daemon = format(
-    "{hadoop_env_exports_str}"
-    "{hadoop_bin}/hadoop-daemon.sh")
-  cmd = format("{hadoop_daemon} --config {hadoop_conf_dir}")
-
-  daemon_cmd = format("{ulimit_cmd} {cmd} {action} {name}")
-
+  if user == "root":
+    cmd = [hadoop_daemon, "--config", params.hadoop_conf_dir]
+    daemon_cmd = as_sudo(cmd + [action, name])
+  else:
+    cmd = format("{hadoop_daemon} --config {hadoop_conf_dir}")
+    daemon_cmd = as_user(format("{ulimit_cmd} {cmd} {action} {name}"), user)
+     
   service_is_up = check_process if action == "start" else None
   #remove pid file from dead process
   File(pid_file,
        action="delete",
-       not_if=check_process,
+       not_if=check_process
   )
   Execute(daemon_cmd,
           not_if=service_is_up,
-          user=user
+          environment=hadoop_env_exports
   )
 
   #After performing the desired action, perform additional tasks.

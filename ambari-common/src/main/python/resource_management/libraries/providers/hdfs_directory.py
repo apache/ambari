@@ -104,7 +104,7 @@ class HdfsDirectoryProvider(Provider):
                    chown_cmd=' && '.join(chown_commands)),
             user=hdp_hdfs_user,
             path=bin_dir,
-            not_if=as_user("hadoop --config {hdp_conf_dir} fs -ls {dir_list_str}", hdp_hdfs_user)
+            not_if=as_user(format("hadoop --config {hdp_conf_dir} fs -ls {dir_list_str}"), hdp_hdfs_user)
     )
 
     directories_list[:] = []

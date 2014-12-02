@@ -53,23 +53,8 @@ def _call(command, logoutput=False, throw_on_failure=True,
   
   @return: retrun_code, stdout
   """
-  # convert to string and escape
-  if isinstance(command, (list, tuple)):
-    command = string_cmd_from_args_list(command)
-  elif sudo:
-    # Since ambari user sudoer privileges may be restricted,
-    # without having /bin/bash permission.
-    # Running interpreted shell commands in scope of 'sudo' is not possible.
-    #   
-    # In that case while passing string,
-    # any bash symbols eventually added to command like && || ; < > | << >> would cause problems.
-    #
-    # In case of need to create more complicated commands with sudo use as_sudo(command) function.
-    err_msg = Logger.get_protected_text(("String command '%s' cannot be run as sudo. Please supply the command as a tuple of arguments") % (command))
-    raise Fail(err_msg)
   
-  
-  # append current PATH, to env['PATH'] and path
+  # Append current PATH to env['PATH'] and path
   if 'PATH' in env:
     env['PATH'] = os.pathsep.join([os.environ['PATH'], env['PATH']])
   if path:
@@ -77,21 +62,20 @@ def _call(command, logoutput=False, throw_on_failure=True,
       env['PATH'] = ''
     path = os.pathsep.join(path) if isinstance(path, (list, tuple)) else path
     env['PATH'] = os.pathsep.join([os.environ['PATH'], path])
-
-  # In case we will use sudo, we have to put all the environment inside the command, 
-  # since Popen environment gets reset within sudo.
-  environment_str = reduce(lambda str,x: '{0} {1}={2}'.format(str,x,quote_bash_args(env[x])), env,'')
-  command = command.replace(SUDO_ENVIRONMENT_PLACEHOLDER, environment_str, 1) # replace placeholder from as_sudo / as_user if present
-   
-  bash_run_command = command if not sudo else "/usr/bin/sudo {0} -Hi {1}".format(environment_str, command)
-  
-  if user:
-    # Outter environment gets reset within su. That's why we can't use environment passed to Popen.
-    su_export_command = "export {0} ; ".format(environment_str) if environment_str else ""
-    subprocess_command = ["/usr/bin/sudo","-Hi","su", user, "-", "-s", "/bin/bash", "-c", su_export_command + bash_run_command]
-  else:
-    subprocess_command = ["/bin/bash","--login","-c", bash_run_command]
     
+  # prepare command cmd
+  if sudo:
+    command = as_sudo(command, env=env)
+  elif user:
+    command = as_user(command, user, env=env)
+    
+  # convert to string and escape
+  if isinstance(command, (list, tuple)):
+    command = string_cmd_from_args_list(command)
+  # replace placeholder from as_sudo / as_user if present
+  command = command.replace(SUDO_ENVIRONMENT_PLACEHOLDER, get_environment_str(env), 1)
+  
+  subprocess_command = ["/bin/bash","--login","-c", command]
   proc = subprocess.Popen(subprocess_command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                           cwd=cwd, env=env, shell=False,
                           preexec_fn=preexec_fn)
@@ -139,25 +123,23 @@ def as_sudo(command, env=SUDO_ENVIRONMENT_PLACEHOLDER):
     #   
     # In that case while passing string,
     # any bash symbols eventually added to command like && || ; < > | << >> would cause problems.
-    err_msg = Logger.get_protected_text(("String command '%s' cannot be run as sudo. Please supply the command as a tuple/list of arguments") % (command))
+    err_msg = Logger.get_protected_text(("String command '%s' cannot be run as sudo. Please supply the command as a tuple of arguments") % (command))
     raise Fail(err_msg)
   
-  if env != SUDO_ENVIRONMENT_PLACEHOLDER:
-    env = reduce(lambda str,x: '{0} {1}={2}'.format(str,x,quote_bash_args(env[x])), env, '')
-  
-  return "/usr/bin/sudo {0} -Hi {1}".format(env, command)
+  env = get_environment_str(env) if env != SUDO_ENVIRONMENT_PLACEHOLDER else SUDO_ENVIRONMENT_PLACEHOLDER
+  return "/usr/bin/sudo {0} -H {1}".format(env, command)
 
 def as_user(command, user , env=SUDO_ENVIRONMENT_PLACEHOLDER):
   if isinstance(command, (list, tuple)):
     command = string_cmd_from_args_list(command)
     
-  if env != SUDO_ENVIRONMENT_PLACEHOLDER:
-    env = reduce(lambda str,x: '{0} {1}={2}'.format(str,x,quote_bash_args(env[x])), env, '')
-    
-  export_command = "export {0} ; ".format(env)
+  env = get_environment_str(env) if env != SUDO_ENVIRONMENT_PLACEHOLDER else SUDO_ENVIRONMENT_PLACEHOLDER
+  export_command = "export {0} > /dev/null ; ".format(env)
   
-  result_command = "/usr/bin/sudo -Hi su - {0} -s /bin/bash -c {1}".format(user, quote_bash_args(export_command + command))
-  return result_command
+  return "/usr/bin/sudo su {0} -l -s /bin/bash -c {1}".format(user, quote_bash_args(export_command + command))
+
+def get_environment_str(env):
+  return reduce(lambda str,x: '{0} {1}={2}'.format(str,x,quote_bash_args(env[x])), env, '')
 
 def string_cmd_from_args_list(command):
   return ' '.join(quote_bash_args(x) for x in command)

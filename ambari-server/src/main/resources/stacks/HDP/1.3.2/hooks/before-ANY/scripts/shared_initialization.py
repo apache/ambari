@@ -50,11 +50,16 @@ def setup_jce():
   
   if params.security_enabled:
     security_dir = format("{java_home}/jre/lib/security")
-    extract_cmd = format("rm -f local_policy.jar; rm -f US_export_policy.jar; unzip -o -j -q {jce_curl_target}")
+    
+    File([format("{security_dir}/US_export_policy.jar"), format("{security_dir}/local_policy.jar")],
+         action = "delete",
+    )
+    
+    extract_cmd = ("unzip", "-o", "-j", "-q", jce_curl_target, "-d", security_dir) 
     Execute(extract_cmd,
             only_if = format("test -e {security_dir} && test -f {jce_curl_target}"),
-            cwd  = security_dir,
-            path = ['/bin/','/usr/bin']
+            path = ['/bin/','/usr/bin'],
+            sudo = True
     )
     
 

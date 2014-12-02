@@ -39,6 +39,7 @@ PATH_TO_STACK_TESTS = "test/python/stacks/"
 
 PATH_TO_CUSTOM_ACTIONS = "main/resources/custom_actions"
 PATH_TO_CUSTOM_ACTION_TESTS = "test/python/custom_actions"
+MAX_SHOWN_DICT_LEN = 10
 
 
 class RMFTestCase(TestCase):
@@ -134,7 +135,7 @@ class RMFTestCase(TestCase):
     return method
   
   def _ppformat(self, val):
-    if isinstance(val, dict):
+    if isinstance(val, dict) and len(val) > MAX_SHOWN_DICT_LEN:
       return "self.getConfig()['configurations']['?']"
     
     val = pprint.pformat(val)
