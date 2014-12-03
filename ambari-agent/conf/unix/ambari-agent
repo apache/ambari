@@ -54,6 +54,7 @@ sudo chown -R $current_user "/var/lib/ambari-agent/ambari-env.sh"
 sudo chown -R $current_user "/var/run/ambari-agent"
 sudo chown -R $current_user "/var/log/ambari-agent"
 sudo chown -R $current_user "/var/lib/ambari-agent/data"
+sudo chown -R $current_user "/var/lib/ambari-agent/cache"
 
 if [ -a /usr/bin/python2.7 ] && [ -z "$PYTHON" ]; then
   PYTHON=/usr/bin/python2.7
