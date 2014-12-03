@@ -158,6 +158,7 @@
     margin-top: 30px;
     .multiline-text {
       padding-top: 4px;
+      height: 60px;
     }
   }
   hr {
@@ -185,10 +186,11 @@
     .properties-list {
       margin-top: 50px;
       text-align: left;
+      ul {
+        list-style: none;
+        margin: 0;
+      }
     }
-  }
-  .instances-label {
-    color: #0088cc;
   }
   .definition-name, .definition-name input {
     font-size: 20px;
@@ -227,6 +229,12 @@
 
   .edit-link {
     cursor: pointer;
+  }
+
+  .buttons-block {
+    button {
+      font-size: 1.1em;
+    }
   }
 }
 

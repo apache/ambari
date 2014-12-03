@@ -22,7 +22,7 @@ App.MainAlertDefinitionDetailsController = Em.Controller.extend({
 
   alerts: function () {
     return App.AlertInstance.find().toArray()
-      .filterProperty('definitionId', this.get('content.id'));
+        .filterProperty('definitionId', this.get('content.id'));
   }.property('App.router.mainAlertInstancesController.isLoaded'),
 
   // stores object with editing form data (label, description, thresholds)
@@ -46,6 +46,20 @@ App.MainAlertDefinitionDetailsController = Em.Controller.extend({
   }),
 
   /**
+   * Host to count of alerts on this host during last day map
+   * @type {Object}
+   */
+  lastDayAlertsCount: null,
+
+  /**
+   * List of all group names related to alert definition
+   * @type {Array}
+   */
+  groupsList: function () {
+    return this.get('content.groups').mapProperty('displayName');
+  }.property('content.groups.@each'),
+
+  /**
    * Validation function to define if label field populated correctly
    * @method labelValidation
    */
@@ -66,9 +80,43 @@ App.MainAlertDefinitionDetailsController = Em.Controller.extend({
    * Start updating loaded data
    * @method loadAlertInstances
    */
-  loadAlertInstances: function() {
+  loadAlertInstances: function () {
     App.router.get('mainAlertInstancesController').loadAlertInstancesByAlertDefinition(this.get('content.id'));
     App.router.set('mainAlertInstancesController.isUpdating', true);
+    this.loadAlertInstancesHistory();
+  },
+
+  /**
+   * Load alert instances history data
+   * used to count instances number of the last 24 hour
+   * @method loadAlertInstancesHistory
+   */
+  loadAlertInstancesHistory: function () {
+    this.set('lastDayAlertsCount', null);
+    return App.ajax.send({
+      name: 'alerts.get_instances_history',
+      sender: this,
+      data: {
+        definitionName: this.get('content.name'),
+        timestamp: App.dateTime() - 86400000 // timestamp for time 24-hours ago
+      },
+      success: 'loadAlertInstancesHistorySuccess'
+    });
+  },
+
+  /**
+   * Success-callback for <code>loadAlertInstancesHistory</code>
+   */
+  loadAlertInstancesHistorySuccess: function (data) {
+    var lastDayAlertsCount = {};
+    data.items.forEach(function (alert) {
+      if (!lastDayAlertsCount[alert.AlertHistory.host_name]) {
+        lastDayAlertsCount[alert.AlertHistory.host_name] = 1;
+      } else {
+        lastDayAlertsCount[alert.AlertHistory.host_name] += 1;
+      }
+    });
+    this.set('lastDayAlertsCount', lastDayAlertsCount);
   },
 
   /**
@@ -108,7 +156,7 @@ App.MainAlertDefinitionDetailsController = Em.Controller.extend({
 
     var data = Em.Object.create({});
     var property_name = "AlertDefinition/" + element.get('name');
-    data.set(property_name,  element.get('value'));
+    data.set(property_name, element.get('value'));
     var alertDefinition_id = this.get('content.id');
     return App.ajax.send({
       name: 'alerts.update_alert_definition',
@@ -125,20 +173,20 @@ App.MainAlertDefinitionDetailsController = Em.Controller.extend({
    * @param {object} event
    * @method deleteAlertDefinition
    */
-  deleteAlertDefinition: function(event) {
+  deleteAlertDefinition: function (event) {
     var alertDefinition = this.get('content');
     var self = this;
-    App.showConfirmationPopup(function() {
+    App.showConfirmationPopup(function () {
       App.ajax.send({
-        name : 'alerts.delete_alert_definition',
-        sender : self,
-        success : 'deleteAlertDefinitionSuccess',
-        error : 'deleteAlertDefinitionError',
-        data : {
-          id : alertDefinition.get('id')
+        name: 'alerts.delete_alert_definition',
+        sender: self,
+        success: 'deleteAlertDefinitionSuccess',
+        error: 'deleteAlertDefinitionError',
+        data: {
+          id: alertDefinition.get('id')
         }
       });
-    }, null, function() {
+    }, null, function () {
     });
   },
 
@@ -146,7 +194,7 @@ App.MainAlertDefinitionDetailsController = Em.Controller.extend({
    * Success-callback for <code>deleteAlertDefinition</code>
    * @method deleteAlertDefinitionSuccess
    */
-  deleteAlertDefinitionSuccess : function() {
+  deleteAlertDefinitionSuccess: function () {
     App.router.transitionTo('main.alerts.index');
   },
 
@@ -154,7 +202,7 @@ App.MainAlertDefinitionDetailsController = Em.Controller.extend({
    * Error-callback for <code>deleteAlertDefinition</code>
    * @method deleteAlertDefinitionError
    */
-  deleteAlertDefinitionError : function(xhr, textStatus, errorThrown, opt) {
+  deleteAlertDefinitionError: function (xhr, textStatus, errorThrown, opt) {
     console.log(textStatus);
     console.log(errorThrown);
     xhr.responseText = "{\"message\": \"" + xhr.statusText + "\"}";
@@ -166,7 +214,7 @@ App.MainAlertDefinitionDetailsController = Em.Controller.extend({
    * @returns {$.ajax}
    * @method toggleState
    */
-  toggleState: function() {
+  toggleState: function () {
     var alertDefinition = this.get('content');
     return App.ajax.send({
       name: 'alerts.update_alert_definition',

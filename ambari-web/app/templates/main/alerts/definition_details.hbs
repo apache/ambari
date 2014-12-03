@@ -73,7 +73,7 @@
         {{/if}}
       </div>
       <div class="definition-details-block">
-        <strong>{{t alerts.thresholds}}</strong>
+        <strong>{{t common.configuration}}</strong>
           {{#isAccessible ADMIN}}
             {{#unless App.router.mainAlertDefinitionConfigsController.canEdit}}
               <a {{action editConfigs target="App.router.mainAlertDefinitionConfigsController"}} class="pull-right edit-link">
@@ -100,7 +100,7 @@
       <div class="status">
         {{{controller.content.status}}}
       </div>
-      <div>
+      <div class="buttons-block">
         {{#isAccessible ADMIN}}
           {{#if controller.content.enabled}}
             <button {{action toggleState target="controller"}} class="btn btn-danger"><i
@@ -109,42 +109,46 @@
             <button {{action toggleState target="controller"}} class="btn btn-success"><i
                class="icon-power-off"></i>&nbsp;{{t alerts.definition.details.enable}}</button>
           {{/if}}
-          <button {{action deleteAlertDefinition target="controller"}} class="btn btn-primary"><i
+          <button {{action deleteAlertDefinition target="controller"}} class="btn"><i
               class="icon-trash"></i>&nbsp;{{t common.delete}}</button>
         {{/isAccessible}}
       </div>
       <div class="properties-list">
-        <table>
-          <tbody>
-          <tr>
-            <td>{{t common.service}}:</td>
-            <td><span class="label label-info">{{controller.content.service.displayName}}</span></td>
-          </tr>
-          <tr>
-            <td>{{t common.type}}:</td>
-            <td>{{controller.content.type}}</td>
-          </tr>
-          <tr>
-            <td>{{t alerts.definition.details.groups}}:</td>
-            <td>HDFS Default (Admins)</td>
-          </tr>
-          <tr>
-            <td></td>
-            <td><strong>Group2 (Infra)</strong></td>
-          </tr>
-          </tbody>
-        </table>
-        <span>{{t alerts.table.header.lastTriggered}} : {{controller.content.lastTriggeredFormatted}}</span>
+        <div class="row-fluid">
+          <div class="span4">{{t common.service}}:</div>
+          <div class="span8"><span class="label label-info">{{controller.content.service.displayName}}</span></div>
+      </div>
+        <div class="row-fluid">
+          <div class="span4">{{t common.component}}:</div>
+          <div class="span8">{{controller.content.componentNameFormatted}}</div>
+      </div>
+        <div class="row-fluid">
+          <div class="span4">{{t common.type}}:</div>
+          <div class="span8"> {{controller.content.type}}</div>
+      </div>
+      {{#if controller.groupsList.length}}
+        <div class="row-fluid">
+          <div class="span4">{{t alerts.definition.details.groups}}:</div>
+          <div class="span8">
+            <ul>
+              {{#each groupName in controller.groupsList}}
+                <li>{{groupName}}</li>
+              {{/each}}
+            </ul>
+          </div>
+        </div>
+      {{/if}}
+        <div class="row-fluid">
+          <div class="span4">{{t alerts.table.header.lastTriggered}}:</div>
+          <div class="span8">{{controller.content.lastTriggeredFormatted}}</div>
+        </div>
       </div>
     </div>
   </div>
-  {{! Right column end }}
-
-  {{! List of alerts }}
   <div class="definition-details-block">
-    <span class="instances-label">
-      <strong>{{t alerts.definition.details.instances}}</strong>
-    </span>
+  <span>
+    <strong>{{t alerts.definition.details.instances}}</strong>
+  </span>
     <hr>
     <div>
 
@@ -174,7 +178,7 @@
                 {{/if}}
               </td>
               <td><time class="timeago" {{bindAttr data-original-title="instance.lastTriggered"}}>{{instance.lastTriggeredAgoFormatted}}</time></td>
-              <td>10</td>
+              <td>{{view view.lastDayCount hostBinding="instance.host"}}</td>
               <td class="last">Admins</td>
             </tr>
           {{/each}}

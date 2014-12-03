@@ -66,6 +66,17 @@ App.MainAlertDefinitionDetailsView = App.TableView.extend({
     Em.run.next(this, function () {
       App.tooltip($(".timeago"));
     });
-  }.observes('pageContent.@each')
+  }.observes('pageContent.@each'),
+
+  /**
+   * View calculates and represents count of alerts on appropriate host during last day
+   */
+  lastDayCount: Em.View.extend({
+    template: Ember.Handlebars.compile('<span>{{view.count}}</span>'),
+    count: function () {
+      var lastDayAlertsCount = this.get('parentView.controller.lastDayAlertsCount');
+      return lastDayAlertsCount ? lastDayAlertsCount[this.get('host.hostName')] || 0 : Em.I18n.t('app.loadingPlaceholder');
+    }.property('parentView.controller.lastDayAlertsCount', 'host')
+  })
 
 });

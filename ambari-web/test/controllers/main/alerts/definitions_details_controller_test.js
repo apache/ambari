@@ -56,7 +56,7 @@ describe('App.MainAlertDefinitionDetailsController', function () {
       controller.set('editing.label.originalValue', 'test');
       controller.set('editing.label.isEditing', false);
 
-      controller.edit({context:controller.get('editing.label')});
+      controller.edit({context: controller.get('editing.label')});
 
       expect(controller.get('editing.label.value')).to.equal('label');
       expect(controller.get('editing.label.originalValue')).to.equal('label');
@@ -71,7 +71,7 @@ describe('App.MainAlertDefinitionDetailsController', function () {
       controller.set('editing.label.value', 'test');
       controller.set('editing.label.isEditing', true);
 
-      controller.saveEdit({context:controller.get('editing.label')});
+      controller.saveEdit({context: controller.get('editing.label')});
 
       expect(controller.get('content.label')).to.equal('test');
       expect(controller.get('editing.label.isEditing')).to.be.false;
@@ -93,38 +93,98 @@ describe('App.MainAlertDefinitionDetailsController', function () {
     });
 
   });
-  
-  describe("#goToHostAlerts()", function() {
-    beforeEach(function() {
+
+  describe("#goToHostAlerts()", function () {
+    beforeEach(function () {
       sinon.stub(App.get('router'), 'transitionTo', Em.K);
     });
-    afterEach(function() {
-     App.get('router').transitionTo.restore();
+    afterEach(function () {
+      App.get('router').transitionTo.restore();
     });
-    it("not route to host - no event", function() {
+    it("not route to host - no event", function () {
       controller.goToHostAlerts(null);
       expect(App.get('router').transitionTo.notCalled).to.be.true;
     });
-    it("not route to host - no event context", function() {
+    it("not route to host - no event context", function () {
       controller.goToHostAlerts({});
       expect(App.get('router').transitionTo.notCalled).to.be.true;
     });
-    it("routes to host", function() {
+    it("routes to host", function () {
       controller.goToHostAlerts({"context": "hostname"});
       expect(App.get('router').transitionTo.calledOnce).to.be.true;
     });
   });
-  
-  describe("#deleteAlertDefinition()", function() {
-    beforeEach(function() {
+
+  describe("#deleteAlertDefinition()", function () {
+    beforeEach(function () {
       sinon.stub(App.get('router'), 'transitionTo', Em.K);
     });
-    afterEach(function() {
-     App.get('router').transitionTo.restore();
+    afterEach(function () {
+      App.get('router').transitionTo.restore();
     });
-    it("deleteAlertDefinitionSuccess", function() {
+    it("deleteAlertDefinitionSuccess", function () {
       controller.deleteAlertDefinitionSuccess();
       expect(App.get('router').transitionTo.calledWith('main.alerts.index')).to.be.true;
+    });
+  });
+
+  describe("#loadAlertInstancesHistory()", function () {
+
+    beforeEach(function () {
+      sinon.stub(App.ajax, 'send', Em.K);
+    });
+
+    afterEach(function () {
+      App.ajax.send.restore();
+    });
+
+    it("should load alert instances history", function () {
+
+      controller.set('lastDayAlertsCount', 'test');
+
+      controller.loadAlertInstancesHistory();
+
+      expect(App.ajax.send.calledOnce).to.be.true;
+      expect(controller.get('lastDayAlertsCount')).to.equal(null);
+    });
+  });
+
+  describe("#loadAlertInstancesHistorySuccess()", function () {
+
+    it("should calculate alerts count in different hosts", function () {
+
+      controller.set('lastDayAlertsCount', null);
+
+      controller.loadAlertInstancesHistorySuccess({
+        items: [
+          {
+            AlertHistory: {
+              host_name: 'host1'
+            }
+          },
+          {
+            AlertHistory: {
+              host_name: 'host2'
+            }
+          },
+          {
+            AlertHistory: {
+              host_name: 'host1'
+            }
+          },
+          {
+            AlertHistory: {
+              host_name: 'host3'
+            }
+          }
+        ]
+      });
+
+      expect(controller.get('lastDayAlertsCount')).to.eql({
+        host1: 2,
+        host2: 1,
+        host3: 1
+      });
     });
   });
 

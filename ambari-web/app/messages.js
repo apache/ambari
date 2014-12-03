@@ -235,6 +235,7 @@ Em.I18n.translations = {
   'common.property.undefined': "Undefined",
   'common.summary': "Summary",
   'common.configs': "Configs",
+  'common.configuration': "Configuration",
   'common.unknown': "Unknown",
   'common.install': "Install",
   'common.alertDefinition': "Alert Definition",
@@ -868,7 +869,6 @@ Em.I18n.translations = {
   'alerts.table.state.disabled.confirm.btn': 'Confirm Enable',
   'alerts.filters.filteredAlertsInfo': '{0} of {1} definitions showing',
 
-  'alerts.thresholds': 'Thresholds',
   'alerts.definition.details.enable': 'Enable',
   'alerts.definition.details.disable': 'Disable',
   'alerts.definition.details.enableDisable': 'Enable / Disable',
