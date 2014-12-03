@@ -36,17 +36,27 @@ describe('App.AlertDefinition', function() {
       {
         summary: {OK: 1, UNKNOWN: 1, WARNING: 2},
         m: 'No CRITICAL',
-        e: '1 <span class="icon-ok-sign alert-state-OK"></span> / ' +
-          '2 <span class="icon-warning-sign alert-state-WARNING"></span> / ' +
-          '1 <span class="icon-question-sign alert-state-UNKNOWN"></span>'
+        e: '<span class="label alert-state-OK">OK ( 1 )</span> ' +
+          '<span class="label alert-state-WARNING">WARN ( 2 )</span> ' +
+          '<span class="label alert-state-UNKNOWN">UNKN ( 1 )</span>'
       },
       {
         summary: {WARNING: 2, CRITICAL: 3, UNKNOWN: 1, OK: 1},
         m: 'All states exists',
-        e: '1 <span class="icon-ok-sign alert-state-OK"></span> / ' +
-          '2 <span class="icon-warning-sign alert-state-WARNING"></span> / ' +
-          '3 <span class="icon-remove alert-state-CRITICAL"></span> / ' +
-          '1 <span class="icon-question-sign alert-state-UNKNOWN"></span>'
+        e: '<span class="label alert-state-OK">OK ( 1 )</span> ' +
+          '<span class="label alert-state-WARNING">WARN ( 2 )</span> ' +
+          '<span class="label alert-state-CRITICAL">CRIT ( 3 )</span> ' +
+          '<span class="label alert-state-UNKNOWN">UNKN ( 1 )</span>'
+      },
+      {
+        summary: {OK: 1},
+        m: 'Single host',
+        e: '<span class="alert-state-single-host label alert-state-OK">OK</span>'
+      },
+      {
+        summary: {},
+        m: 'Pending',
+        e: '<span class="alert-state-single-host label alert-state-PENDING">PENDING</span>'
       }
     ]).forEach(function(test) {
         it(test.m, function() {

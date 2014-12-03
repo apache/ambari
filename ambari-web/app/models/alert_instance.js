@@ -45,9 +45,8 @@ App.AlertInstance = DS.Model.extend({
    * @type {App.AlertDefinition[]}
    */
   status: function () {
-    var typeIcons = this.get('typeIcons');
     var state = this.get('state');
-    return '<span class="' + typeIcons[state] + ' alert-state-' + state + '"></span>';
+    return '<span class="label alert-state-single-host alert-state-' + state + '">' + state + '</span>';
   }.property('state'),
 
   /**
@@ -72,11 +71,7 @@ App.AlertInstance = DS.Model.extend({
    * @type {object}
    */
   typeIcons: {
-    'OK': 'icon-ok-sign',
-    'WARNING': 'icon-warning-sign',
-    'CRITICAL': 'icon-remove',
-    'DISABLED': 'icon-off',
-    'UNKNOWN': 'icon-question-sign'
+    'DISABLED': 'icon-off'
   }
 });
 

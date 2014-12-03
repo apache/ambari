@@ -74,21 +74,38 @@ App.AlertDefinition = DS.Model.extend({
 
   /**
    * Status generates from child-alerts
-   * Format: 1 OK / 2 WARN / 1 CRIT / 1 UNKNOWN
+   * Format: OK(1)  WARN(2)  CRIT(1)  UNKN(1)
+   * If single host: show: OK/WARNING/CRITICAL/UNKNOWN
    * If some there are no alerts with some state, this state isn't shown
+   * If no OK/WARN/CRIT/UNKN state, then show PENDING
    * Order is equal to example
    * @type {string}
    */
   status: function () {
-    var typeIcons = this.get('typeIcons'),
-        order = this.get('order'),
-        summary = this.get('summary');
-    return order.map(function (state) {
-      if (summary[state]) {
-        return summary[state] + ' <span class="' + typeIcons[state] + ' alert-state-' + state + '"></span>';
-      }
-      return null;
-    }).compact().join(' / ');
+    var order = this.get('order'),
+        summary = this.get('summary'),
+        hostCnt = 0;
+    order.forEach(function(state) {
+      var cnt = summary[state] ? summary[state] : 0;
+      hostCnt += cnt;
+    });
+    if (hostCnt > 1) {
+      // multiple hosts
+      return order.map(function (state) {
+        var shortState = state.substring(0, 4);
+        return summary[state] ? '<span class="label alert-state-' + state + '">' + shortState + ' ( ' + summary[state] + ' )</span>' : null;
+      }).compact().join(' ');
+    } else if (hostCnt == 1) {
+      // single host, single status
+      return order.map(function (state) {
+        return summary[state] ? '<span class="alert-state-single-host label alert-state-'+ state + '">' + state + '</span>' : null;
+      }).compact().join(' ');
+    } else if (hostCnt == 0) {
+      // penging
+      var state = 'PENDING';
+      return '<span class="alert-state-single-host label alert-state-'+ state + '">' + state + '</span>';
+    }
+    return null;
   }.property('summary'),
 
   /**
@@ -124,11 +141,7 @@ App.AlertDefinition = DS.Model.extend({
    * @type {object}
    */
   typeIcons: {
-    'OK': 'icon-ok-sign',
-    'WARNING': 'icon-warning-sign',
-    'CRITICAL': 'icon-remove',
-    'DISABLED': 'icon-off',
-    'UNKNOWN': 'icon-question-sign'
+    'DISABLED': 'icon-off'
   },
 
   /**

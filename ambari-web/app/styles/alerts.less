@@ -18,15 +18,15 @@
 @import 'common.less';
 
 .alert-state-OK {
-  color: @health-status-green;
+  background-color: @health-status-green;
 }
 
 .alert-state-WARNING {
-  color: @health-status-red;
+  background-color: @health-status-orange;
 }
 
 .alert-state-CRITICAL {
-  color: @health-status-red;
+  background-color: @health-status-red;
 }
 
 .alert-state-DISABLED {
@@ -34,7 +34,17 @@
 }
 
 .alert-state-UNKNOWN {
-  color: @health-status-yellow;
+  background-color: @health-status-yellow;
+}
+
+.alert-state-PENDING {
+  background-color: #999;
+}
+
+.alert-state-single-host {
+  display: inline-block;
+  width: 70px;
+  text-align: center;
 }
 
 .groups-filter {
@@ -160,7 +170,10 @@
   .status {
     margin-bottom: 30px;
     text-align: center;
-    font-size: 20px;
+    .label {
+      font-size: 14px;
+      padding: 5px 8px;
+    }
   }
 
   .right-column {
@@ -387,7 +400,7 @@
       .status-icon {
         padding-left: 5px;
         float: left;
-        width: 5%;
+        width: 10%;
         min-width: 20px;
       }
       .name-text {
