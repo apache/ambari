@@ -112,7 +112,7 @@ public class HostStackVersionService extends BaseService {
    * @return repository version service
    */
   @Path("{stackVersionId}/repository_versions")
-  public RepositoryVersionService getRepositoryVersionHanlder(@PathParam("stackVersionId") String stackVersionId) {
+  public RepositoryVersionService getRepositoryVersionHandler(@PathParam("stackVersionId") String stackVersionId) {
     final Map<Resource.Type, String> stackVersionProperties = new HashMap<Resource.Type, String>();
     stackVersionProperties.put(Resource.Type.Host, hostName);
     stackVersionProperties.put(Resource.Type.HostStackVersion, stackVersionId);

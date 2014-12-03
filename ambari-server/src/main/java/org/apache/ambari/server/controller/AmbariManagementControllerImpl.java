@@ -356,9 +356,18 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       StackId newStackId = new StackId(request.getStackVersion());
       c.setDesiredStackVersion(newStackId);
       clusters.setCurrentStackVersion(request.getClusterName(), newStackId);
-      // TODO Alejandro, this needs to use the repo version, e.g., 2.2.0.0.-994
-      // For the sake of having the end-to-end workflow work, use as is.
-      c.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), getAuthName(), RepositoryVersionState.CURRENT);
+      
+      try {
+        // Because Ambari may eventually support multiple clusters, it may be possible that a previously installed cluster
+        // already inserted the Repository Version for this stack and version.
+        RepositoryVersionEntity existingRepositoryVersion = repositoryVersionDAO.findByStackAndVersion(newStackId.getStackId(),  newStackId.getStackVersion());
+        if (existingRepositoryVersion == null) {
+          repositoryVersionDAO.create(newStackId.getStackId(), newStackId.getStackVersion(), newStackId.getStackId(), "", "");
+        }
+        c.createClusterVersion(stackId.getStackId(), stackId.getStackVersion(), getAuthName(), RepositoryVersionState.CURRENT);
+      } catch (Exception e) {
+        throw new AmbariException("Unable to create Repository Version and/or Cluster Version for Stack " + stackId.toString() + ". Error: " + e.getMessage());
+      }
     }
 
     if (request.getHostNames() != null) {

@@ -21,6 +21,7 @@ import java.util.List;
 
 import javax.persistence.TypedQuery;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 
@@ -79,4 +80,36 @@ public class RepositoryVersionDAO extends CrudDAO<RepositoryVersionEntity, Long>
     query.setParameter("stack", stack);
     return daoUtils.selectList(query);
   }
+
+  /**
+   * Validates and creates an object.
+   * @param stack Stack name, e.g., HDP or HDP-2.2
+   * @param version Stack version, e.g., 2.2 or 2.2.0.1-885
+   * @param displayName Unique display name
+   * @param upgradePack Optional upgrade pack, e.g, upgrade-2.2
+   * @param operatingSystems JSON structure of repository URLs for each OS
+   * @return Returns the object created if successful, and throws an exception otherwise.
+   * @throws AmbariException
+   */
+  public RepositoryVersionEntity create(String stack, String version, String displayName, String upgradePack, String operatingSystems) throws AmbariException {
+    if (stack == null || stack.isEmpty() || version == null || version.isEmpty() || displayName == null || displayName.isEmpty()) {
+      throw new AmbariException("At least one of the required properties is null or empty");
+    }
+
+    RepositoryVersionEntity existingByDisplayName = this.findByDisplayName(displayName);
+
+    if (existingByDisplayName != null) {
+      throw new AmbariException("Repository version with display name '" + displayName + "' already exists");
+    }
+
+    RepositoryVersionEntity existingByStackAndVersion = this.findByStackAndVersion(stack, version);
+    if (existingByStackAndVersion != null) {
+      throw new AmbariException("Repository version for stack " + stack + " and version " + version + " already exists");
+    }
+
+    RepositoryVersionEntity newEntity = new RepositoryVersionEntity(stack, version, displayName, upgradePack, operatingSystems);
+    this.create(newEntity);
+    return newEntity;
+  }
+
 }

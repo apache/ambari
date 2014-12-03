@@ -80,6 +80,18 @@ public class RepositoryVersionEntity {
 
   // ----- RepositoryVersionEntity -------------------------------------------------------
 
+  public RepositoryVersionEntity() {
+
+  }
+
+  public RepositoryVersionEntity(String stack, String version, String displayName, String upgradePackage, String operatingSystems) {
+    this.stack = stack;
+    this.version = version;
+    this.displayName = displayName;
+    this.upgradePackage = upgradePackage;
+    this.operatingSystems = operatingSystems;
+  }
+
   public Long getId() {
     return id;
   }

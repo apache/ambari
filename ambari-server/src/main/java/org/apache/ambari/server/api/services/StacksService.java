@@ -243,7 +243,7 @@ public class StacksService extends BaseService {
    * @return repository version service
    */
   @Path("{stackName}/versions/{stackVersion}/repository_versions")
-  public RepositoryVersionService getRepositoryVersionHanlder(@PathParam("stackName") String stackName, @PathParam("stackVersion") String stackVersion) {
+  public RepositoryVersionService getRepositoryVersionHandler(@PathParam("stackName") String stackName, @PathParam("stackVersion") String stackVersion) {
     final Map<Resource.Type, String> stackProperties = new HashMap<Resource.Type, String>();
     stackProperties.put(Resource.Type.Stack, stackName);
     stackProperties.put(Resource.Type.StackVersion, stackVersion);
