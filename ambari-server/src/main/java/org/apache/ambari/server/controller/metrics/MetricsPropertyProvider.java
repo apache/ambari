@@ -20,12 +20,6 @@ package org.apache.ambari.server.controller.metrics;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.controller.internal.AbstractPropertyProvider;
 import org.apache.ambari.server.controller.internal.PropertyInfo;
-import org.apache.ambari.server.controller.metrics.ganglia.GangliaComponentPropertyProvider;
-import org.apache.ambari.server.controller.metrics.ganglia.GangliaHostComponentPropertyProvider;
-import org.apache.ambari.server.controller.metrics.ganglia.GangliaHostPropertyProvider;
-import org.apache.ambari.server.controller.metrics.timeline.AMSComponentPropertyProvider;
-import org.apache.ambari.server.controller.metrics.timeline.AMSHostComponentPropertyProvider;
-import org.apache.ambari.server.controller.metrics.timeline.AMSHostPropertyProvider;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
@@ -33,12 +27,9 @@ import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.utilities.StreamProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
-
-import static org.apache.ambari.server.controller.metrics.MetricsPropertyProvider.MetricsService.TIMELINE_METRICS;
 
 public abstract class MetricsPropertyProvider extends AbstractPropertyProvider {
   protected final static Logger LOG =
@@ -58,15 +49,8 @@ public abstract class MetricsPropertyProvider extends AbstractPropertyProvider {
 
   protected final ComponentSSLConfiguration configuration;
 
-  /**
-   * Enumeration to distinguish metrics service installed for a cluster
-   */
-  public enum MetricsService {
-    GANGLIA,
-    TIMELINE_METRICS
-  }
-
-  public MetricsPropertyProvider(Map<String, Map<String, PropertyInfo>> componentPropertyInfoMap,
+  protected MetricsPropertyProvider(Map<String, Map<String,
+    PropertyInfo>> componentPropertyInfoMap,
                                  StreamProvider streamProvider,
                                  ComponentSSLConfiguration configuration,
                                  MetricHostProvider hostProvider,
@@ -84,77 +68,29 @@ public abstract class MetricsPropertyProvider extends AbstractPropertyProvider {
     this.componentNamePropertyId  = componentNamePropertyId;
   }
 
-  public static MetricsPropertyProvider createInstance(
-        MetricsService metricsService,
+  public static MetricsPropertyProviderProxy createInstance(
         Resource.Type type,
         Map<String, Map<String, PropertyInfo>> componentPropertyInfoMap,
         StreamProvider streamProvider,
         ComponentSSLConfiguration configuration,
         MetricHostProvider hostProvider,
+        MetricsServiceProvider serviceProvider,
         String clusterNamePropertyId,
         String hostNamePropertyId,
         String componentNamePropertyId) {
 
     if (type.isInternalType()) {
-      switch (type.getInternalType()) {
-        case Host:
-          if (metricsService.equals(TIMELINE_METRICS)) {
-            return new AMSHostPropertyProvider(componentPropertyInfoMap,
-              streamProvider,
-              configuration,
-              hostProvider,
-              clusterNamePropertyId,
-              hostNamePropertyId);
-          } else {
-            return new GangliaHostPropertyProvider(
-              componentPropertyInfoMap,
-              streamProvider,
-              configuration,
-              hostProvider,
-              clusterNamePropertyId,
-              hostNamePropertyId);
-          }
-        case HostComponent:
-          if (metricsService.equals(TIMELINE_METRICS)) {
-            return new AMSHostComponentPropertyProvider(
-              componentPropertyInfoMap,
-              streamProvider,
-              configuration,
-              hostProvider,
-              clusterNamePropertyId,
-              hostNamePropertyId,
-              componentNamePropertyId);
-          } else {
-            return new GangliaHostComponentPropertyProvider(
-              componentPropertyInfoMap,
-              streamProvider,
-              configuration,
-              hostProvider,
-              clusterNamePropertyId,
-              hostNamePropertyId,
-              componentNamePropertyId);
-          }
-        case Component:
-          if (metricsService.equals(TIMELINE_METRICS)) {
-            return new AMSComponentPropertyProvider(
-              componentPropertyInfoMap,
-              streamProvider,
-              configuration,
-              hostProvider,
-              clusterNamePropertyId,
-              componentNamePropertyId);
-          } else {
-            return new GangliaComponentPropertyProvider(
-              componentPropertyInfoMap,
-              streamProvider,
-              configuration,
-              hostProvider,
-              clusterNamePropertyId,
-              componentNamePropertyId);
-          }
-        default:
-          break;
-      }
+      return new MetricsPropertyProviderProxy(
+        type.getInternalType(),
+        componentPropertyInfoMap,
+        streamProvider,
+        configuration,
+        hostProvider,
+        serviceProvider,
+        clusterNamePropertyId,
+        hostNamePropertyId,
+        componentNamePropertyId
+      );
     }
 
     return null;
@@ -177,6 +113,30 @@ public abstract class MetricsPropertyProvider extends AbstractPropertyProvider {
    * @return the component name
    */
   protected abstract String getComponentName(Resource resource);
+
+  @Override
+  public Set<Resource> populateResources(Set<Resource> resources,
+                Request request, Predicate predicate) throws SystemException {
+
+    Set<String> ids = getRequestPropertyIds(request, predicate);
+    if (ids.isEmpty()) {
+      return resources;
+    }
+
+    return populateResourcesWithProperties(resources, request, ids);
+  }
+
+  /**
+   * Delegate implementation of populating resources to concrete providers.
+   *
+   * @param resources @Resource
+   * @param request @Request
+   * @param propertyIds Set of ids
+   * @return @Set of resources
+   * @throws SystemException
+   */
+  protected abstract Set<Resource> populateResourcesWithProperties(Set<Resource> resources,
+      Request request, Set<String> propertyIds) throws SystemException;
 
   /**
    * Get a comma delimited string from the given set of strings or

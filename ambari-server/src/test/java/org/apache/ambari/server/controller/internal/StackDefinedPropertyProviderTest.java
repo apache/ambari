@@ -34,9 +34,9 @@ import org.apache.ambari.server.controller.utilities.StreamProvider;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.Metric;
 import org.junit.After;
@@ -53,6 +53,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import static org.apache.ambari.server.controller.metrics.ganglia.GangliaPropertyProviderTest.TestGangliaServiceProvider;
 
 /**
  * Tests the stack defined property provider.
@@ -103,10 +105,13 @@ public class StackDefinedPropertyProviderTest {
     JMXPropertyProviderTest.TestJMXHostProvider tj = new JMXPropertyProviderTest.TestJMXHostProvider(true);
     TestGangliaHostProvider tg = new TestGangliaHostProvider();
     JMXPropertyProviderTest.TestMetricHostProvider tm = new JMXPropertyProviderTest.TestMetricHostProvider();
+    TestGangliaServiceProvider serviceProvider = new TestGangliaServiceProvider();
 
     StackDefinedPropertyProvider sdpp = new StackDefinedPropertyProvider(
-        Resource.Type.HostComponent, tj, tm, new CombinedStreamProvider(),
-        "HostRoles/cluster_name", "HostRoles/host_name", "HostRoles/component_name", "HostRoles/state", null, null);
+        Resource.Type.HostComponent, tj, tm, serviceProvider,
+        new CombinedStreamProvider(), "HostRoles/cluster_name",
+        "HostRoles/host_name", "HostRoles/component_name", "HostRoles/state",
+        null, null);
 
     Resource resource = new ResourceImpl(Resource.Type.HostComponent);
 
@@ -290,11 +295,13 @@ public class StackDefinedPropertyProviderTest {
     JMXPropertyProviderTest.TestJMXHostProvider hostProvider = new JMXPropertyProviderTest.TestJMXHostProvider(true);
     TestGangliaHostProvider gangliaHostProvider = new TestGangliaHostProvider();
     JMXPropertyProviderTest.TestMetricHostProvider metricsHostProvider = new JMXPropertyProviderTest.TestMetricHostProvider();
+    TestGangliaServiceProvider serviceProvider = new TestGangliaServiceProvider();
 
     StackDefinedPropertyProvider propertyProvider = new StackDefinedPropertyProvider(
         Resource.Type.HostComponent,
         hostProvider,
         metricsHostProvider,
+        serviceProvider,
         streamProvider,
         PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
         PropertyHelper.getPropertyId("HostRoles", "host_name"),
@@ -351,11 +358,13 @@ public class StackDefinedPropertyProviderTest {
     JMXPropertyProviderTest.TestJMXHostProvider hostProvider = new JMXPropertyProviderTest.TestJMXHostProvider(false);
     TestGangliaHostProvider gangliaHostProvider = new TestGangliaHostProvider();
     JMXPropertyProviderTest.TestMetricHostProvider metricsHostProvider = new JMXPropertyProviderTest.TestMetricHostProvider();
+    TestGangliaServiceProvider serviceProvider = new TestGangliaServiceProvider();
 
     StackDefinedPropertyProvider propertyProvider = new StackDefinedPropertyProvider(
         Resource.Type.HostComponent,
         hostProvider,
         metricsHostProvider,
+        serviceProvider,
         streamProvider,
         PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
         PropertyHelper.getPropertyId("HostRoles", "host_name"),
@@ -403,11 +412,13 @@ public class StackDefinedPropertyProviderTest {
     JMXPropertyProviderTest.TestJMXHostProvider hostProvider = new JMXPropertyProviderTest.TestJMXHostProvider(false);
     TestGangliaHostProvider gangliaHostProvider = new TestGangliaHostProvider();
     JMXPropertyProviderTest.TestMetricHostProvider metricsHostProvider = new JMXPropertyProviderTest.TestMetricHostProvider();
+    TestGangliaServiceProvider serviceProvider = new TestGangliaServiceProvider();
 
     StackDefinedPropertyProvider propertyProvider = new StackDefinedPropertyProvider(
         Resource.Type.HostComponent,
         hostProvider,
         metricsHostProvider,
+        serviceProvider,
         streamProvider,
         PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
         PropertyHelper.getPropertyId("HostRoles", "host_name"),
@@ -440,12 +451,13 @@ public class StackDefinedPropertyProviderTest {
     JMXPropertyProviderTest.TestJMXHostProvider hostProvider = new JMXPropertyProviderTest.TestJMXHostProvider(false);
     TestGangliaHostProvider gangliaHostProvider = new TestGangliaHostProvider();
     JMXPropertyProviderTest.TestMetricHostProvider metricsHostProvider = new JMXPropertyProviderTest.TestMetricHostProvider();
+    TestGangliaServiceProvider serviceProvider = new TestGangliaServiceProvider();
 
     StackDefinedPropertyProvider propertyProvider = new StackDefinedPropertyProvider(
         Resource.Type.HostComponent,
         hostProvider,
-
         metricsHostProvider,
+        serviceProvider,
         streamProvider,
         PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
         PropertyHelper.getPropertyId("HostRoles", "host_name"),
@@ -493,12 +505,13 @@ public class StackDefinedPropertyProviderTest {
     JMXPropertyProviderTest.TestJMXHostProvider hostProvider = new JMXPropertyProviderTest.TestJMXHostProvider(false);
     TestGangliaHostProvider gangliaHostProvider = new TestGangliaHostProvider();
     JMXPropertyProviderTest.TestMetricHostProvider metricsHostProvider = new JMXPropertyProviderTest.TestMetricHostProvider();
+    TestGangliaServiceProvider serviceProvider = new TestGangliaServiceProvider();
 
     StackDefinedPropertyProvider propertyProvider = new StackDefinedPropertyProvider(
         Resource.Type.HostComponent,
         hostProvider,
-
         metricsHostProvider,
+        serviceProvider,
         streamProvider,
         PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
         PropertyHelper.getPropertyId("HostRoles", "host_name"),
@@ -552,12 +565,13 @@ public class StackDefinedPropertyProviderTest {
     JMXPropertyProviderTest.TestJMXHostProvider hostProvider = new JMXPropertyProviderTest.TestJMXHostProvider(false);
     TestGangliaHostProvider gangliaHostProvider = new TestGangliaHostProvider();
     JMXPropertyProviderTest.TestMetricHostProvider metricsHostProvider = new JMXPropertyProviderTest.TestMetricHostProvider();
+    TestGangliaServiceProvider serviceProvider = new TestGangliaServiceProvider();
 
     StackDefinedPropertyProvider propertyProvider = new StackDefinedPropertyProvider(
         Resource.Type.HostComponent,
         hostProvider,
-
         metricsHostProvider,
+        serviceProvider,
         streamProvider,
         PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
         PropertyHelper.getPropertyId("HostRoles", "host_name"),
@@ -678,11 +692,13 @@ public class StackDefinedPropertyProviderTest {
     JMXPropertyProviderTest.TestJMXHostProvider hostProvider = new JMXPropertyProviderTest.TestJMXHostProvider(false);
     TestGangliaHostProvider gangliaHostProvider = new TestGangliaHostProvider();
     JMXPropertyProviderTest.TestMetricHostProvider metricsHostProvider = new JMXPropertyProviderTest.TestMetricHostProvider();
+    TestGangliaServiceProvider serviceProvider = new TestGangliaServiceProvider();
 
     StackDefinedPropertyProvider propertyProvider = new StackDefinedPropertyProvider(
         Resource.Type.HostComponent,
         hostProvider,
         gangliaHostProvider,
+        serviceProvider,
         streamProvider,
         PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
         PropertyHelper.getPropertyId("HostRoles", "host_name"),
@@ -720,12 +736,13 @@ public class StackDefinedPropertyProviderTest {
     JMXPropertyProviderTest.TestJMXHostProvider hostProvider = new JMXPropertyProviderTest.TestJMXHostProvider(false);
     TestGangliaHostProvider gangliaHostProvider = new TestGangliaHostProvider();
     JMXPropertyProviderTest.TestMetricHostProvider metricsHostProvider = new JMXPropertyProviderTest.TestMetricHostProvider();
+    TestGangliaServiceProvider serviceProvider = new TestGangliaServiceProvider();
 
     StackDefinedPropertyProvider propertyProvider = new StackDefinedPropertyProvider(
         Resource.Type.HostComponent,
         hostProvider,
-
         metricsHostProvider,
+        serviceProvider,
         streamProvider,
         PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
         null,
@@ -757,11 +774,13 @@ public class StackDefinedPropertyProviderTest {
     JMXPropertyProviderTest.TestJMXHostProvider hostProvider = new JMXPropertyProviderTest.TestJMXHostProvider(false);
     TestGangliaHostProvider gangliaHostProvider = new TestGangliaHostProvider();
     JMXPropertyProviderTest.TestMetricHostProvider metricsHostProvider = new JMXPropertyProviderTest.TestMetricHostProvider();
+    TestGangliaServiceProvider serviceProvider = new TestGangliaServiceProvider();
 
     StackDefinedPropertyProvider propertyProvider = new StackDefinedPropertyProvider(
         Resource.Type.HostComponent,
         hostProvider,
         metricsHostProvider,
+        serviceProvider,
         streamProvider,
         PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
         PropertyHelper.getPropertyId("HostRoles", "host_name"),
@@ -799,11 +818,13 @@ public class StackDefinedPropertyProviderTest {
 
     JMXPropertyProviderTest.TestJMXHostProvider jmxHostProvider = new JMXPropertyProviderTest.TestJMXHostProvider(true);
     TestGangliaHostProvider hostProvider = new TestGangliaHostProvider();
+    TestGangliaServiceProvider serviceProvider = new TestGangliaServiceProvider();
 
     StackDefinedPropertyProvider propertyProvider = new StackDefinedPropertyProvider(
         Resource.Type.HostComponent,
         jmxHostProvider,
         hostProvider,
+        serviceProvider,
         streamProvider,
         PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
         PropertyHelper.getPropertyId("HostRoles", "host_name"),
@@ -845,11 +866,13 @@ public class StackDefinedPropertyProviderTest {
 
     JMXPropertyProviderTest.TestJMXHostProvider jmxHostProvider = new JMXPropertyProviderTest.TestJMXHostProvider(true);
     TestGangliaHostProvider hostProvider = new TestGangliaHostProvider();
+    TestGangliaServiceProvider serviceProvider = new TestGangliaServiceProvider();
 
     StackDefinedPropertyProvider propertyProvider = new StackDefinedPropertyProvider(
         Resource.Type.HostComponent,
         jmxHostProvider,
         hostProvider,
+        serviceProvider,
         streamProvider,
         PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
         PropertyHelper.getPropertyId("HostRoles", "host_name"),
@@ -968,11 +991,13 @@ public class StackDefinedPropertyProviderTest {
     JMXPropertyProviderTest.TestJMXHostProvider jmxHostProvider = new JMXPropertyProviderTest.TestJMXHostProvider(true);
     JMXPropertyProviderTest.TestMetricHostProvider metricsHostProvider = new JMXPropertyProviderTest.TestMetricHostProvider();
     TestGangliaHostProvider hostProvider = new TestGangliaHostProvider();
+    TestGangliaServiceProvider serviceProvider = new TestGangliaServiceProvider();
 
     StackDefinedPropertyProvider propertyProvider = new StackDefinedPropertyProvider(
         Resource.Type.HostComponent,
         jmxHostProvider,
         hostProvider,
+        serviceProvider,
         streamProvider,
         PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
         PropertyHelper.getPropertyId("HostRoles", "host_name"),

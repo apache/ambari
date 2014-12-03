@@ -25,9 +25,7 @@ import org.apache.ambari.server.controller.jmx.JMXHostProvider;
 import org.apache.ambari.server.controller.jmx.JMXPropertyProvider;
 import org.apache.ambari.server.controller.metrics.MetricHostProvider;
 import org.apache.ambari.server.controller.metrics.MetricsPropertyProvider;
-import org.apache.ambari.server.controller.metrics.ganglia.GangliaComponentPropertyProvider;
-import org.apache.ambari.server.controller.metrics.ganglia.GangliaHostComponentPropertyProvider;
-import org.apache.ambari.server.controller.metrics.ganglia.GangliaPropertyProvider;
+import org.apache.ambari.server.controller.metrics.MetricsServiceProvider;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.PropertyProvider;
 import org.apache.ambari.server.controller.spi.Request;
@@ -41,7 +39,6 @@ import org.apache.ambari.server.state.stack.Metric;
 import org.apache.ambari.server.state.stack.MetricDefinition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -52,7 +49,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import static org.apache.ambari.server.controller.metrics.MetricsPropertyProvider.MetricsService;
+import static org.apache.ambari.server.controller.metrics.MetricsServiceProvider.MetricsService;
 
 /**
  * This class analyzes a service's metrics to determine if additional
@@ -82,6 +79,7 @@ public class StackDefinedPropertyProvider implements PropertyProvider {
   private PropertyProvider defaultGanglia = null;
 
   private final MetricHostProvider metricHostProvider;
+  private final MetricsServiceProvider metricsServiceProvider;
   private MetricsService metricsService = MetricsService.GANGLIA;
 
   /**
@@ -100,6 +98,7 @@ public class StackDefinedPropertyProvider implements PropertyProvider {
   public StackDefinedPropertyProvider(Resource.Type type,
                                       JMXHostProvider jmxHostProvider,
                                       MetricHostProvider metricHostProvider,
+                                      MetricsServiceProvider serviceProvider,
                                       StreamProvider streamProvider,
                                       String clusterPropertyId,
                                       String hostPropertyId,
@@ -109,6 +108,7 @@ public class StackDefinedPropertyProvider implements PropertyProvider {
                                       PropertyProvider defaultGangliaPropertyProvider) {
 
     this.metricHostProvider = metricHostProvider;
+    this.metricsServiceProvider = serviceProvider;
 
     if (null == clusterPropertyId)
       throw new NullPointerException("Cluster name property id cannot be null");
@@ -133,6 +133,7 @@ public class StackDefinedPropertyProvider implements PropertyProvider {
                                       MetricsService metricsService,
                                       JMXHostProvider jmxHostProvider,
                                       MetricHostProvider metricHostProvider,
+                                      MetricsServiceProvider serviceProvider,
                                       StreamProvider streamProvider,
                                       String clusterPropertyId,
                                       String hostPropertyId,
@@ -141,7 +142,7 @@ public class StackDefinedPropertyProvider implements PropertyProvider {
                                       PropertyProvider defaultJmxPropertyProvider,
                                       PropertyProvider defaultGangliaPropertyProvider) {
 
-    this(type, jmxHostProvider, metricHostProvider,
+    this(type, jmxHostProvider, metricHostProvider, serviceProvider,
       streamProvider, clusterPropertyId, hostPropertyId, componentPropertyId,
       jmxStatePropertyId, defaultJmxPropertyProvider, defaultGangliaPropertyProvider);
 
@@ -198,10 +199,11 @@ public class StackDefinedPropertyProvider implements PropertyProvider {
       }
 
       if (gangliaMap.size() > 0) {
-        MetricsPropertyProvider propertyProvider =
-          MetricsPropertyProvider.createInstance(metricsService,
-            type, gangliaMap, streamProvider, sslConfig, metricHostProvider,
-            clusterNamePropertyId, hostNamePropertyId, componentNamePropertyId);
+        PropertyProvider propertyProvider =
+          MetricsPropertyProvider.createInstance(type, gangliaMap,
+            streamProvider, sslConfig, metricHostProvider,
+            metricsServiceProvider, clusterNamePropertyId,
+            hostNamePropertyId, componentNamePropertyId);
 
         propertyProvider.populateResources(resources, request, predicate);
       } else {

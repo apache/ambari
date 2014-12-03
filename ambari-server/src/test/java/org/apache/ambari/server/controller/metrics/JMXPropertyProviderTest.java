@@ -29,9 +29,12 @@ import org.apache.ambari.server.controller.spi.TemporalInfo;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.junit.Assert;
 import org.junit.Test;
-
-import java.util.*;
-
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import static org.apache.ambari.server.controller.metrics.MetricsServiceProvider.MetricsService;
 
 /**
  * JMX property provider tests.
@@ -515,7 +518,7 @@ public class JMXPropertyProviderTest {
   public static class TestMetricHostProvider implements MetricHostProvider {
 
     @Override
-    public String getCollectorHostName(String clusterName, MetricsPropertyProvider.MetricsService service) throws SystemException {
+    public String getCollectorHostName(String clusterName, MetricsService service) throws SystemException {
       return null;
     }
 
@@ -525,17 +528,17 @@ public class JMXPropertyProviderTest {
     }
 
     @Override
-    public String getCollectorPortName(String clusterName, MetricsPropertyProvider.MetricsService service) throws SystemException {
+    public String getCollectorPortName(String clusterName, MetricsService service) throws SystemException {
       return null;
     }
 
     @Override
-    public boolean isCollectorHostLive(String clusterName, MetricsPropertyProvider.MetricsService service) throws SystemException {
+    public boolean isCollectorHostLive(String clusterName, MetricsService service) throws SystemException {
       return false;
     }
 
     @Override
-    public boolean isCollectorComponentLive(String clusterName, MetricsPropertyProvider.MetricsService service) throws SystemException {
+    public boolean isCollectorComponentLive(String clusterName, MetricsService service) throws SystemException {
       return false;
     }
   }

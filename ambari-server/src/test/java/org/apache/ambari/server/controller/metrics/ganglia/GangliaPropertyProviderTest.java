@@ -23,6 +23,7 @@ import org.apache.ambari.server.controller.internal.PropertyInfo;
 import org.apache.ambari.server.controller.internal.ResourceImpl;
 import org.apache.ambari.server.controller.internal.TemporalInfoImpl;
 import org.apache.ambari.server.controller.metrics.MetricHostProvider;
+import org.apache.ambari.server.controller.metrics.MetricsServiceProvider;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.SystemException;
@@ -38,7 +39,6 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.powermock.api.easymock.PowerMock;
 import org.powermock.core.classloader.annotations.PrepareForTest;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -48,9 +48,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import static org.apache.ambari.server.controller.metrics.MetricsPropertyProvider.MetricsService;
-import static org.apache.ambari.server.controller.metrics.MetricsPropertyProvider.MetricsService.GANGLIA;
+import static org.apache.ambari.server.controller.metrics.MetricsServiceProvider.MetricsService;
+import static org.apache.ambari.server.controller.metrics.MetricsServiceProvider.MetricsService.GANGLIA;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
@@ -839,6 +838,14 @@ public class GangliaPropertyProviderTest {
       }
     }
     return metricsBuilder.toString();
+  }
+
+  public static class TestGangliaServiceProvider implements MetricsServiceProvider {
+
+    @Override
+    public MetricsService getMetricsServiceType() {
+      return MetricsService.GANGLIA;
+    }
   }
 
   public static class TestGangliaHostProvider implements MetricHostProvider {

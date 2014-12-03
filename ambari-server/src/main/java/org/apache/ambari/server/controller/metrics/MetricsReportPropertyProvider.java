@@ -20,15 +20,10 @@ package org.apache.ambari.server.controller.metrics;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.controller.internal.AbstractPropertyProvider;
 import org.apache.ambari.server.controller.internal.PropertyInfo;
-import org.apache.ambari.server.controller.metrics.ganglia.GangliaReportPropertyProvider;
-import org.apache.ambari.server.controller.metrics.timeline.AMSReportPropertyProvider;
 import org.apache.ambari.server.controller.utilities.StreamProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.util.Map;
-
-import static org.apache.ambari.server.controller.metrics.MetricsPropertyProvider.MetricsService;
 
 public abstract class MetricsReportPropertyProvider extends AbstractPropertyProvider {
 
@@ -62,27 +57,19 @@ public abstract class MetricsReportPropertyProvider extends AbstractPropertyProv
     this.configuration = configuration;
   }
 
-  public static MetricsReportPropertyProvider createInstance(
-          MetricsService metricsService,
+  public static MetricsReportPropertyProviderProxy createInstance(
           Map<String, Map<String, PropertyInfo>> componentPropertyInfoMap,
           StreamProvider streamProvider,
           ComponentSSLConfiguration configuration,
           MetricHostProvider hostProvider,
+          MetricsServiceProvider serviceProvider,
           String clusterNamePropertyId) {
-    if (metricsService.equals(MetricsService.GANGLIA)) {
-      return new GangliaReportPropertyProvider(
-        componentPropertyInfoMap,
-        streamProvider,
-        configuration,
-        hostProvider,
-        clusterNamePropertyId);
-    } else {
-      return new AMSReportPropertyProvider(
-        componentPropertyInfoMap,
-        streamProvider,
-        configuration,
-        hostProvider,
-        clusterNamePropertyId);
-    }
+
+    return new MetricsReportPropertyProviderProxy(componentPropertyInfoMap,
+                                                  streamProvider,
+                                                  configuration,
+                                                  hostProvider,
+                                                  serviceProvider,
+                                                  clusterNamePropertyId);
   }
 }

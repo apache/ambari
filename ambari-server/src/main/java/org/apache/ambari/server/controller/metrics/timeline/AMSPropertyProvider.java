@@ -21,25 +21,18 @@ import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.controller.internal.PropertyInfo;
 import org.apache.ambari.server.controller.metrics.MetricHostProvider;
 import org.apache.ambari.server.controller.metrics.MetricsPropertyProvider;
-import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.TemporalInfo;
 import org.apache.ambari.server.controller.utilities.StreamProvider;
-import org.apache.commons.httpclient.DefaultHttpMethodRetryHandler;
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.methods.GetMethod;
-import org.apache.commons.httpclient.params.HttpMethodParams;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
-import org.apache.http.HttpStatus;
 import org.apache.http.client.utils.URIBuilder;
 import org.codehaus.jackson.map.AnnotationIntrospector;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.ObjectReader;
 import org.codehaus.jackson.xc.JaxbAnnotationIntrospector;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -54,8 +47,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import static org.apache.ambari.server.controller.metrics.MetricsPropertyProvider.MetricsService.TIMELINE_METRICS;
+import static org.apache.ambari.server.controller.metrics.MetricsServiceProvider.MetricsService.TIMELINE_METRICS;
 import static org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 
 public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
@@ -329,16 +321,11 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
   }
 
   @Override
-  public Set<Resource> populateResources(Set<Resource> resources,
-              Request request, Predicate predicate) throws SystemException {
-
-    Set<String> ids = getRequestPropertyIds(request, predicate);
-    if (ids.isEmpty()) {
-      return resources;
-    }
+  public Set<Resource> populateResourcesWithProperties(Set<Resource> resources,
+               Request request, Set<String> propertyIds) throws SystemException {
 
     Map<String, Map<TemporalInfo, MetricsRequest>> requestMap =
-      getMetricsRequests(resources, request, ids);
+      getMetricsRequests(resources, request, propertyIds);
 
     // For each cluster
     for (Map.Entry<String, Map<TemporalInfo, MetricsRequest>> clusterEntry : requestMap.entrySet()) {

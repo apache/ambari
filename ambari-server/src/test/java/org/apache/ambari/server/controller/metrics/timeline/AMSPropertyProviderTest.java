@@ -17,27 +17,42 @@
  */
 package org.apache.ambari.server.controller.metrics.timeline;
 
+import com.google.inject.Injector;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
+import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.MaintenanceStateHelper;
+import org.apache.ambari.server.controller.internal.AbstractProviderModule;
+import org.apache.ambari.server.controller.internal.ClusterResourceProvider;
+import org.apache.ambari.server.controller.internal.ConfigurationResourceProvider;
+import org.apache.ambari.server.controller.internal.HostComponentResourceProvider;
 import org.apache.ambari.server.controller.internal.PropertyInfo;
 import org.apache.ambari.server.controller.internal.ResourceImpl;
+import org.apache.ambari.server.controller.internal.ServiceResourceProvider;
 import org.apache.ambari.server.controller.internal.TemporalInfoImpl;
 import org.apache.ambari.server.controller.metrics.MetricHostProvider;
-import org.apache.ambari.server.controller.metrics.MetricsPropertyProvider;
 import org.apache.ambari.server.controller.metrics.ganglia.TestStreamProvider;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.TemporalInfo;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.state.Clusters;
 import org.apache.http.client.utils.URIBuilder;
 import org.junit.Assert;
 import org.junit.Test;
+
 import java.io.File;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+
+import static org.apache.ambari.server.controller.metrics.MetricsServiceProvider.MetricsService;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
 import static org.mockito.Mockito.mock;
 
 public class AMSPropertyProviderTest {
@@ -179,7 +194,8 @@ public class AMSPropertyProviderTest {
   public class TestMetricHostProvider implements MetricHostProvider {
 
     @Override
-    public String getCollectorHostName(String clusterName, MetricsPropertyProvider.MetricsService service) throws SystemException {
+    public String getCollectorHostName(String clusterName, MetricsService service)
+      throws SystemException {
       return "localhost";
     }
 
@@ -189,17 +205,17 @@ public class AMSPropertyProviderTest {
     }
 
     @Override
-    public String getCollectorPortName(String clusterName, MetricsPropertyProvider.MetricsService service) throws SystemException {
+    public String getCollectorPortName(String clusterName, MetricsService service) throws SystemException {
       return "8188";
     }
 
     @Override
-    public boolean isCollectorHostLive(String clusterName, MetricsPropertyProvider.MetricsService service) throws SystemException {
+    public boolean isCollectorHostLive(String clusterName, MetricsService service) throws SystemException {
       return true;
     }
 
     @Override
-    public boolean isCollectorComponentLive(String clusterName, MetricsPropertyProvider.MetricsService service) throws SystemException {
+    public boolean isCollectorComponentLive(String clusterName, MetricsService service) throws SystemException {
       return true;
     }
   }

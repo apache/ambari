@@ -18,25 +18,34 @@
 
 package org.apache.ambari.server.controller.metrics.ganglia;
 
-import org.apache.ambari.server.controller.internal.AbstractPropertyProvider;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.controller.internal.PropertyInfo;
 import org.apache.ambari.server.controller.metrics.MetricHostProvider;
 import org.apache.ambari.server.controller.metrics.MetricsPropertyProvider;
-import org.apache.ambari.server.controller.spi.*;
+import org.apache.ambari.server.controller.spi.Request;
+import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.SystemException;
+import org.apache.ambari.server.controller.spi.TemporalInfo;
 import org.apache.ambari.server.controller.utilities.StreamProvider;
 import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import static org.apache.ambari.server.controller.metrics.MetricsPropertyProvider.MetricsService.*;
+import static org.apache.ambari.server.controller.metrics.MetricsServiceProvider.MetricsService.GANGLIA;
 
 /**
  * Abstract property provider implementation for a Ganglia source.
@@ -87,15 +96,10 @@ public abstract class GangliaPropertyProvider extends MetricsPropertyProvider {
   // ----- PropertyProvider --------------------------------------------------
 
   @Override
-  public Set<Resource> populateResources(Set<Resource> resources, Request request, Predicate predicate)
-      throws SystemException {
+  public Set<Resource> populateResourcesWithProperties(Set<Resource> resources,
+            Request request, Set<String> propertyIds) throws SystemException {
 
-    Set<String> ids = getRequestPropertyIds(request, predicate);
-    if (ids.isEmpty()) {
-      return resources;
-    }
-
-    Map<String, Map<TemporalInfo, RRDRequest>> requestMap = getRRDRequests(resources, request, ids);
+    Map<String, Map<TemporalInfo, RRDRequest>> requestMap = getRRDRequests(resources, request, propertyIds);
 
     // For each cluster...
     for (Map.Entry<String, Map<TemporalInfo, RRDRequest>> clusterEntry : requestMap.entrySet()) {
