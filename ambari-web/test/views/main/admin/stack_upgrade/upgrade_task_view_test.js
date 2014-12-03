@@ -22,7 +22,9 @@ require('views/main/admin/stack_upgrade/upgrade_task_view');
 
 describe('App.upgradeTaskView', function () {
   var view = App.upgradeTaskView.create({
-    content: Em.Object.create()
+    content: Em.Object.create({
+      UpgradeGroup: {}
+    })
   });
 
   describe("#iconClass", function () {
@@ -30,7 +32,7 @@ describe('App.upgradeTaskView', function () {
       view.set('statusIconMap', {
         'S1': 'icon1'
       });
-      view.set('content.status', 'S1');
+      view.set('content.UpgradeGroup.state', 'S1');
       view.propertyDidChange('iconClass');
       expect(view.get('iconClass')).to.equal('icon1');
     });
@@ -38,7 +40,7 @@ describe('App.upgradeTaskView', function () {
       view.set('statusIconMap', {
         'S1': 'icon1'
       });
-      view.set('content.status', 'S2');
+      view.set('content.UpgradeGroup.state', 'S2');
       view.propertyDidChange('iconClass');
       expect(view.get('iconClass')).to.equal('icon-question-sign');
     });
@@ -46,12 +48,12 @@ describe('App.upgradeTaskView', function () {
 
   describe("#isFailed", function () {
     it("task is not failed", function () {
-      view.set('content.status', 'COMPLETED');
+      view.set('content.UpgradeGroup.state', 'COMPLETED');
       view.propertyDidChange('isFailed');
       expect(view.get('isFailed')).to.be.false;
     });
     it("task is not failed", function () {
-      view.set('content.status', 'FAILED');
+      view.set('content.UpgradeGroup.state', 'FAILED');
       view.propertyDidChange('isFailed');
       expect(view.get('isFailed')).to.be.true;
     });

@@ -1292,8 +1292,8 @@ var urls = {
     'real': '/clusters/{cluster}/requests/{requestId}?fields=tasks/*',
     'mock': '/data/wizard/{mock}'
   },
-  'admin.upgrade.tasks': {
-    'real': '/clusters/{clusterName}/upgrades/{id}/upgrade_items',
+  'admin.upgrade.data': {
+    'real': '/clusters/{clusterName}/upgrades/{id}?fields=upgrade_groups/UpgradeGroup,upgrade_groups/upgrade_items',
     'mock': '/data/stack_versions/upgrade.json'
   },
   'admin.stack_versions.all': {

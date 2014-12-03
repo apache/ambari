@@ -23,41 +23,86 @@ App.upgradeTaskView = Em.View.extend({
   templateName: require('templates/main/admin/stack_upgrade/upgrade_task'),
 
   /**
-   * @type {object|null}
+   * relation map between status and icon class
+   * @type {Object}
    */
-  task: null,
-
   statusIconMap: {
     'COMPLETED': 'icon-ok',
     'WARNING': 'icon-warning-sign',
     'FAILED': 'icon-warning-sign',
-    'PENDING': 'icon-cog'
+    'PENDING': 'icon-cog',
+    'IN_PROGRESS': 'icon-cogs'
   },
 
   /**
-   * @type {boolean}
+   * @type {Boolean}
    */
   isManualDone: false,
+
+  /**
+   * @type {Boolean}
+   */
+  isManualProceedDisabled: function () {
+    return !this.get('isManualDone');
+  }.property('isManualDone'),
 
   /**
    * @type {string}
    */
   iconClass: function () {
-    return this.get('statusIconMap')[this.get('content.status')] || 'icon-question-sign';
-  }.property('content.status'),
+    return this.get('statusIconMap')[this.get('content.UpgradeGroup.state')] || 'icon-question-sign';
+  }.property('content.UpgradeGroup.state'),
 
   /**
-   * @type {boolean}
+   * @type {Boolean}
    */
   isFailed: function () {
-    return this.get('content.status') === 'FAILED';
-  }.property('content.status'),
+    return this.get('content.UpgradeGroup.state') === 'FAILED';
+  }.property('content.UpgradeGroup.state'),
 
   /**
-   * @type {boolean}
+   * @type {Boolean}
+   */
+  showProgressBar: function () {
+    return ['IN_PROGRESS', 'FAILED'].contains(this.get('content.UpgradeGroup.state')) && this.get('content.UpgradeGroup.type') !== 'manual';
+  }.property('content.UpgradeGroup.state'),
+
+  /**
+   * @type {Boolean}
+   */
+  isInProgress: function () {
+    return this.get('content.UpgradeGroup.state') === 'IN_PROGRESS' && this.get('content.UpgradeGroup.type') !== 'manual';
+  }.property('content.UpgradeGroup.state'),
+
+  /**
+   * width style of progress bar
+   * @type {String}
+   */
+  progressWidth: function () {
+    return "width:" + this.get('content.UpgradeGroup.progress') + '%;';
+  }.property('content.UpgradeGroup.progress'),
+
+  /**
+   * if upgrade group is in progress it should have currently running item
+   * @type {Object|null}
+   */
+  runningItem: function () {
+    return this.get('content.upgrade_items').findProperty('UpgradeItem.state', 'IN_PROGRESS');
+  }.property('content.upgrade_items.@each.UpgradeItem.state'),
+
+  /**
+   * if upgrade group is failed it should have failed item
+   * @type {Object|null}
+   */
+  failedItem: function () {
+    return this.get('content.upgrade_items').findProperty('UpgradeItem.state', 'FAILED');
+  }.property('content.upgrade_items.@each.UpgradeItem.state'),
+
+  /**
+   * @type {Boolean}
    */
   isManualOpened: function () {
     //TODO modify logic according to actual API
-    return this.get('content.status') === 'IN_PROGRESS' && this.get('content.type') === 'manual'
-  }.property('content.status', 'content.type')
+    return this.get('content.UpgradeGroup.state') === 'IN_PROGRESS' && this.get('content.UpgradeGroup.type') === 'manual'
+  }.property('content.UpgradeGroup.state', 'content.UpgradeGroup.type')
 });

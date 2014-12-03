@@ -55,7 +55,7 @@
           <button class="btn" {{bindAttr disabled="view.disableThird"}} {{action onThird target="view"}}>{{view.third}}</button>
         {{/if}}
         {{#if view.secondary}}
-          <button class="btn" {{bindAttr disabled="view.disableSecondary"}} {{action onSecondary target="view"}}>{{view.secondary}}</button>
+          <button {{bindAttr disabled="view.disableSecondary" class=":btn view.secondaryClass"}} {{action onSecondary target="view"}}>{{view.secondary}}</button>
         {{/if}}
         {{#if view.primary}}
           <button {{bindAttr disabled="view.disablePrimary" class=":btn view.primaryClass"}} {{action onPrimary target="view"}}>{{view.primary}}</button>

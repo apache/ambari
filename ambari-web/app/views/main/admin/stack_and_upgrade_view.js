@@ -22,19 +22,42 @@ var stringUtils = require('utils/string_utils');
 App.MainAdminStackAndUpgradeView = Em.View.extend({
   templateName: require('templates/main/admin/stack_and_upgrade'),
 
+  /**
+   * label with number of HEALTHY hosts
+   * @type {String}
+   */
   hostsOnlineLabel: function () {
     var hostsCountMap = App.router.get('mainHostController.hostsCountMap');
     return Em.I18n.t('admin.stackUpgrade.hostsOnline').format(hostsCountMap.HEALTHY, hostsCountMap.TOTAL);
   }.property('App.router.mainHostController.hostsCountMap'),
 
+  /**
+   * label that depict current upgrade process state
+   * @type {String}
+   */
   upgradeStateLabel: function () {
-    return "";
-  }.property(),
+    switch (App.get('upgradeState')) {
+      case 'INIT':
+        return (this.get('controller.targetVersions.length') > 0) ? Em.I18n.t('admin.stackUpgrade.state.available') : "";
+      case 'IN_PROGRESS':
+        return Em.I18n.t('admin.stackUpgrade.state.inProgress');
+      case 'STOPPED':
+        return Em.I18n.t('admin.stackUpgrade.state.stopped');
+      case 'COMPLETED':
+        return Em.I18n.t('admin.stackUpgrade.state.completed');
+      default:
+        return "";
+    }
+  }.property('App.upgradeState', 'controller.targetVersions'),
 
   willInsertElement: function () {
     if (App.get('supports.stackUpgrade')) this.get('controller').loadVersionsInfo();
   },
 
+  /**
+   * box that display info about current version
+   * @type {Em.View}
+   */
   sourceVersionView: App.UpgradeVersionBoxView.extend({
     version: function () {
       return this.get('controller.currentVersion');
@@ -50,6 +73,11 @@ App.MainAdminStackAndUpgradeView = Em.View.extend({
       return this.get('version.current_hosts.length');
     }.property('version.current_hosts.length')
   }),
+
+  /**
+   * box that display info about target versions
+   * @type {Em.View}
+   */
   targetVersionView: App.UpgradeVersionBoxView.extend({
     versions: function () {
       return this.get('controller.targetVersions');
@@ -71,19 +99,42 @@ App.MainAdminStackAndUpgradeView = Em.View.extend({
         }
       });
     }.property('versions.length'),
+
+    /**
+     * button properties:
+     * - method of controller which will be called on click <code>method</code>
+     * - label <code>label</code>
+     * @type {Object}
+     */
     action: function () {
-      var methodName = null,
-          labelName = null,
+      var method = null,
+          label = "",
           versions = this.get('versions');
-      if (versions.length > 0) {
-        labelName = Em.I18n.t('common.upgrade');
-        methodName = 'upgrade';
+      switch (App.get('upgradeState')) {
+        case 'INIT':
+          if (this.get('versions.length') > 0) {
+            label = Em.I18n.t('common.upgrade');
+            method = 'upgrade';
+          }
+          break;
+        case 'IN_PROGRESS':
+          label = Em.I18n.t('admin.stackUpgrade.state.upgrading');
+          method = 'openUpgradeDialog';
+          break;
+        case 'STOPPED':
+          label = Em.I18n.t('admin.stackUpgrade.state.resume');
+          method = 'resumeUpgrade';
+          break;
+        case 'COMPLETED':
+          label = Em.I18n.t('common.finalize');
+          method = 'finalize';
+          break;
       }
       return {
-        method: methodName,
-        label: labelName
+        method: method,
+        label: label
       };
-    }.property('versions.length')
+    }.property('versions.length', 'App.upgradeState')
   })
 });
 

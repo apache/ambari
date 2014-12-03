@@ -1,70 +1,119 @@
 {
-  "items": [
+  "Upgrade" : {
+    "cluster_name" : "c1",
+    "id" : 1
+  },
+  "upgrade_groups" : [
     {
-      "UpgradeItem": {
-        "upgrade_item_id": 1,
-        "step_index": 1,
-        "status": "COMPLETED",
-        "stage_id": 124321,
-        "command": "Restart Zookeeper Server on host1",
-        "type": "auto",
-        "description": ""
-      }
+      "UpgradeGroup" : {
+        "group_id" : 1,
+        "name" : "ZOOKEEPER",
+        "state" : "COMPLETED",
+        "title" : "Upgrade Zookeepers",
+        "upgrade_id" : 1,
+        "progress": 100
+      },
+      "upgrade_items" : [
+        {
+          "UpgradeItem" : {
+            "group_id" : 1,
+            "id" : 1,
+            "upgrade_id" : 1,
+            "state": "COMPLETED"
+          }
+        },
+        {
+          "UpgradeItem" : {
+            "group_id" : 1,
+            "id" : 2,
+            "upgrade_id" : 1,
+            "state": "COMPLETED"
+          }
+        }
+      ]
     },
     {
-      "UpgradeItem": {
-        "upgrade_item_id": 2,
-        "step_index": 2,
-        "status": "WARNING",
-        "stage_id": 124321,
-        "command": "Restart Zookeeper Server on host2",
-        "type": "auto",
-        "description": ""
-      }
+      "UpgradeGroup" : {
+        "group_id" : 2,
+        "name" : "CM",
+        "state" : "IN_PROGRESS",
+        "title" : "Upgrade Core Master",
+        "upgrade_id" : 1,
+        "progress": 4
+      },
+      "upgrade_items" : [
+        {
+          "UpgradeItem" : {
+            "group_id" : 2,
+            "id" : 1,
+            "upgrade_id" : 1,
+            "state": "IN_PROGRESS",
+            "name": "Upgrade DATANODE"
+          }
+        }
+      ]
     },
     {
-      "UpgradeItem": {
-        "upgrade_item_id": 3,
-        "step_index": 3,
-        "status": "IN_PROGRESS",
-        "stage_id": 124321,
-        "command": "Run manual steps",
-        "type": "manual",
-        "description": "List of manual steps"
-      }
+      "UpgradeGroup" : {
+        "group_id" : 3,
+        "name" : "CL",
+        "state" : "FAILED",
+        "title" : "Upgrade Core Slaves",
+        "upgrade_id" : 1,
+        "progress": 1
+      },
+      "upgrade_items" : [
+        {
+          "UpgradeItem" : {
+            "group_id" : 3,
+            "id" : 1,
+            "upgrade_id" : 1,
+            "state": "FAILED",
+            "name": "Upgrade DATANODE"
+          }
+        }
+      ]
     },
     {
-      "UpgradeItem": {
-        "upgrade_item_id": 4,
-        "step_index": 4,
-        "status": "PENDING",
-        "stage_id": 124321,
-        "command": "Restart Datanode on 2 hosts",
-        "type": "auto",
-        "description": ""
-      }
+      "UpgradeGroup" : {
+        "group_id" : 4,
+        "name" : "MS",
+        "state" : "IN_PROGRESS",
+        "title" : "Manual Step",
+        "upgrade_id" : 1,
+        "progress": 0,
+        "type": "manual"
+      },
+      "upgrade_items" : [
+        {
+          "UpgradeItem" : {
+            "group_id" : 4,
+            "id" : 1,
+            "upgrade_id" : 1,
+            "state": "IN_PROGRESS"
+          }
+        }
+      ]
     },
     {
-      "UpgradeItem": {
-        "upgrade_item_id": 5,
-        "step_index": 5,
-        "status": "PENDING",
-        "stage_id": 124321,
-        "command": "Restart Datanode on 2 hosts",
-        "type": "auto",
-        "description": ""
-      }
-    },
-    {
-      "UpgradeItem": {
-        "upgrade_item_id": 6,
-        "step_index": 6,
-        "status": "FAILED",
-        "stage_id": 124321,
-        "command": "Restart Zookeeper Server on host3",
-        "type": "auto",
-        "description": ""
-      }
+      "UpgradeGroup" : {
+        "group_id" : 5,
+        "name" : "UH",
+        "state" : "PENDING",
+        "title" : "Upgrade Hive",
+        "upgrade_id" : 1,
+        "progress": 0
+      },
+      "upgrade_items" : [
+        {
+          "UpgradeItem" : {
+            "group_id" : 5,
+            "id" : 1,
+            "upgrade_id" : 1,
+            "state": "PENDING"
+          }
+        }
+      ]
     }
   ]
 }

@@ -16,33 +16,49 @@
 * limitations under the License.
 }}
 
-<i {{bindAttr class="view.iconClass"}}></i><span>{{view.content.command}}</span>
+
+<div class="row-fluid">
+  <div class="span6"><i {{bindAttr class="view.iconClass"}}></i><a>{{view.content.UpgradeGroup.title}}</a></div>
+  <div class="span4">
+    {{#if view.showProgressBar}}
+      <div class="progress progress-striped active">
+        <div class="bar" {{bindAttr style="view.progressWidth"}}></div>
+      </div>
+    {{/if}}
+  </div>
+  <div class="offset2"></div>
+</div>
+{{#if view.isInProgress}}
+  <div class="box task-details">
+    <div>
+      {{t admin.stackUpgrade.dialog.inProgress}}&nbsp;
+      <a href>{{view.runningItem.UpgradeItem.name}}</a>
+    </div>
+  </div>
+{{/if}}
 {{#if view.isFailed}}
   <div class="box task-details">
     <div>
-      {{t admin.stackUpgrade.dialog.operationFailed}}&nbsp;
-      <a href>{{t admin.stackUpgrade.dialog.errorLink}}</a>
+      {{t admin.stackUpgrade.dialog.failed}}&nbsp;
+      <a href>{{view.failedItem.UpgradeItem.name}}</a>
     </div>
     <div class="button-row">
-      <button class="btn">{{t admin.stackUpgrade.dialog.continue}}</button>
       <button class="btn btn-danger">{{t admin.stackUpgrade.dialog.stop}}</button>
-      <button class="btn btn-primary">{{t common.retry}}</button>
+      <button class="btn btn-warning">{{t admin.stackUpgrade.dialog.continue}}</button>
+      <button class="btn">{{t common.retry}}</button>
     </div>
   </div>
 {{/if}}
 {{#if view.isManualOpened}}
-  <div class="task-details">
-    <div class="alert alert-info">
-      {{view.content.description}}
+  <div class="box task-details">
+    <p><strong>{{t admin.stackUpgrade.dialog.manual}}</strong></p>
+    <div class="message">
+      {{view Em.Checkbox checkedBinding="view.isManualDone"}}
+      {{t admin.stackUpgrade.dialog.manualDone}}
     </div>
-    <div class="row-fluid">
-      <div class="span10 message">
-        {{view Em.Checkbox valueBinding="view.isManualDone"}}
-        {{t admin.stackUpgrade.dialog.manualDone}}
-      </div>
-      <div class="span2">
-        <button class="btn btn-success pull-right">{{t common.proceed}}</button>
-      </div>
+    <div class="button-row">
+      <button class="btn btn-danger">{{t admin.stackUpgrade.dialog.stop}}</button>
+      <button class="btn btn-success" {{bindAttr disabled="view.isManualProceedDisabled"}}>{{t common.proceed}}</button>
     </div>
   </div>
 {{/if}}

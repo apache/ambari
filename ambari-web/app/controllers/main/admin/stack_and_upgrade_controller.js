@@ -17,22 +17,42 @@
  */
 
 var App = require('app');
+var stringUtils = require('utils/string_utils');
 
 App.MainAdminStackAndUpgradeController = Em.Controller.extend({
   name: 'mainAdminStackAndUpgradeController',
 
+  /**
+   * @type {Object|null}
+   */
   serviceToInstall: null,
-  upgradeTasks: [],
+
+  /**
+   * @type {Array}
+   */
+  upgradeGroups: [],
+
+  /**
+   * TODO should have actual value from call that start upgrade
+   * @type {Number|null}
+   */
+  upgradeId: 1,
 
   /**
    * version that currently applied to server
+   * @type {Object|null}
    */
   currentVersion: null,
+
   /**
    * versions to which cluster could be upgraded
+   * @type {Array}
    */
   targetVersions: [],
 
+  /**
+   * @type {Array}
+   */
   services: function() {
     return App.StackService.find().map(function(s) {
       s.set('isInstalled', App.Service.find().someProperty('serviceName', s.get('serviceName')));
@@ -70,28 +90,33 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend({
    */
   loadVersionsInfoSuccessCallback: function (data) {
     var current = data.items.findProperty('ClusterStackVersions.state', 'CURRENT');
-    var target = data.items.without(current);
+    var currentVersion = current.repository_versions[0].RepositoryVersions.repository_version;
+    var targetVersions = data.items.without(current)
+      .filter(function (version) {
+        var repositoryVersion = version.repository_versions[0].RepositoryVersions.repository_version;
+        //Only higher versions that have already been installed to all the hosts are shown
+        return (version.ClusterStackVersions.state === 'INSTALLED' &&
+               stringUtils.compareVersions(repositoryVersion, currentVersion) === 1);
+      }).map(function (version) {
+        return version.ClusterStackVersions;
+      });
 
     this.set('currentVersion', current.ClusterStackVersions);
-    this.set('targetVersions', target.map(function (ver) {
-      return ver.ClusterStackVersions;
-    }));
+    this.set('targetVersions', targetVersions);
   },
 
   /**
    * load upgrade tasks by upgrade id
    * @return {$.ajax}
    */
-  loadUpgradeTasks: function () {
-    //TODO should make call with actual upgrade id
-    var upgradeId = 1;
+  loadUpgradeData: function () {
     return App.ajax.send({
-      name: 'admin.upgrade.tasks',
+      name: 'admin.upgrade.data',
       sender: this,
       data: {
-        id: upgradeId
+        id: this.get('upgradeId')
       },
-      success: 'loadUpgradeTasksSuccessCallback'
+      success: 'loadUpgradeDataSuccessCallback'
     });
   },
 
@@ -99,37 +124,45 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend({
    * parse and push upgrade tasks to controller
    * @param data
    */
-  loadUpgradeTasksSuccessCallback: function (data) {
-    this.set("upgradeTasks", data.items.map(function (item) {
-      return item.UpgradeItem;
-    }));
+  loadUpgradeDataSuccessCallback: function (data) {
+    this.set("upgradeGroups", data.upgrade_groups);
   },
 
   /**
-   * start cluster downgrade
+   * make call to start downgrade process
    */
   downgrade: function () {
-    //TODO start actual downgrade
+    //TODO start downgrade
   },
+
   /**
-   * start cluster upgrade
+   * make call to start upgrade process and show popup with current progress
    */
   upgrade: function () {
-    //TODO start actual upgrade
-    this.loadUpgradeTasks();
+    //TODO start upgrade
+    this.loadUpgradeData();
     this.openUpgradeDialog();
   },
+
   /**
-   * resume upgrade process
+   * make call to resume upgrade process and show popup with current progress
    */
   resumeUpgrade: function () {
     //TODO resume upgrade
   },
+
   /**
-   * finish upgrade process
+   * make call to stop upgrade process
+   */
+  stopUpgrade: function () {
+    //TODO stop upgrade
+  },
+
+  /**
+   * make call to finish upgrade process
    */
   finalize: function () {
-    //TODO start actual finalize
+    //TODO start finalize
   },
 
   /**
@@ -137,19 +170,6 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend({
    * @return {App.ModalPopup}
    */
   openUpgradeDialog: function () {
-    var upgradeVersion = 'HDP-2.2.1';
-
-    return App.ModalPopup.show({
-      header: Em.I18n.t('admin.stackUpgrade.dialog.header').format(upgradeVersion),
-      bodyClass: Em.View.extend({
-        controller: this,
-        templateName: require('templates/main/admin/stack_upgrade/stack_upgrade_dialog'),
-        tasks: function () {
-          return this.get('controller.upgradeTasks');
-        }.property('controller.upgradeTasks')
-      }),
-      primary: null,
-      secondary: null
-    });
+    App.router.transitionTo('admin.stackUpgrade');
   }
 });

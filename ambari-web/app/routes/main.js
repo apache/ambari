@@ -520,6 +520,8 @@ module.exports = Em.Route.extend({
         router.get('mainAdminController').connectOutlet('mainAdminStackAndUpgrade');
       }
     }),
+    stackUpgrade: require('routes/stack_upgrade_routes'),
+
     adminStackVersions: Em.Route.extend({
       route: '/versions',
       index: Em.Route.extend({

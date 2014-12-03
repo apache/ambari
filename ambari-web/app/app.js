@@ -34,11 +34,18 @@ module.exports = Em.Application.create({
   }),
   isAdmin: false,
   isOperator: false,
+
   /**
-   * indicate whether stack upgrade is running or not
-   * @type {boolean}
+   * state of stack upgrade process
+   * states:
+   *  - INIT
+   *  - IN_PROGRESS
+   *  - STOPPED
+   *  - COMPLETED
+   * @type {String}
    */
-  isUpgrading: false,
+  upgradeState: 'INIT',
+
   /**
    * compute user access rights by permission type
    * types:
@@ -51,7 +58,7 @@ module.exports = Em.Application.create({
    * @return {boolean}
    */
   isAccessible: function (type) {
-    if (this.get('isUpgrading') && !type.contains('upgrade_')) {
+    if (this.get('upgradeState') !== 'INIT' && !type.contains('upgrade_')) {
       return false;
     }
 

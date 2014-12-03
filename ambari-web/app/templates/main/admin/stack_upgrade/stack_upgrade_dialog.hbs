@@ -31,8 +31,8 @@
   </div>
 
   <div class="task-list">
-    {{#each task in view.tasks}}
-      {{view App.upgradeTaskView contentBinding="task"}}
+    {{#each group in view.groups}}
+      {{view App.upgradeTaskView contentBinding="group"}}
     {{/each}}
   </div>
 </div>
