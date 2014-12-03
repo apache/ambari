@@ -60,31 +60,31 @@ describe('App.MainAlertDefinitionConfigsController', function () {
     });
 
     it('should call renderPortConfigs method', function () {
-      controller.set('content.type', 'PORT');
+      controller.set('alertDefinitionType', 'PORT');
       controller.renderConfigs();
       expect(controller.renderPortConfigs.calledOnce).to.be.true;
     });
 
     it('should call renderMetricConfigs method', function () {
-      controller.set('content.type', 'METRIC');
+      controller.set('alertDefinitionType', 'METRIC');
       controller.renderConfigs();
       expect(controller.renderMetricConfigs.calledOnce).to.be.true;
     });
 
     it('should call renderWebConfigs method', function () {
-      controller.set('content.type', 'WEB');
+      controller.set('alertDefinitionType', 'WEB');
       controller.renderConfigs();
       expect(controller.renderWebConfigs.calledOnce).to.be.true;
     });
 
     it('should call renderScriptConfigs method', function () {
-      controller.set('content.type', 'SCRIPT');
+      controller.set('alertDefinitionType', 'SCRIPT');
       controller.renderConfigs();
       expect(controller.renderScriptConfigs.calledOnce).to.be.true;
     });
 
     it('should call renderAggregateConfigs method', function () {
-      controller.set('content.type', 'AGGREGATE');
+      controller.set('alertDefinitionType', 'AGGREGATE');
       controller.renderConfigs();
       expect(controller.renderAggregateConfigs.calledOnce).to.be.true;
     });
@@ -120,14 +120,15 @@ describe('App.MainAlertDefinitionConfigsController', function () {
         defaultPort: '777'
       }));
 
+      controller.set('isWizard', true);
       var result = controller.renderPortConfigs();
 
-      expect(result.length).to.equal(9);
-      expect(result.someProperty('value', 'alertDefinitionName')).to.be.true;
-      expect(result.someProperty('value', 'alertDefinitionService')).to.be.true;
-      expect(result.someProperty('value', 'Component1')).to.be.true;
-      expect(result.someProperty('value', 'Host')).to.be.true;
-      expect(result.someProperty('value', 'alertDefinitionDescription')).to.be.true;
+      expect(result.length).to.equal(11);
+
+      controller.set('isWizard', false);
+      result = controller.renderPortConfigs();
+
+      expect(result.length).to.equal(4);
       expect(result.someProperty('value', 60)).to.be.true;
       expect(result.someProperty('value', '10-20')).to.be.true;
       expect(result.someProperty('value', 'alertDefinitionUri')).to.be.true;
@@ -178,14 +179,15 @@ describe('App.MainAlertDefinitionConfigsController', function () {
         }
       }));
 
+      controller.set('isWizard', true);
       var result = controller.renderMetricConfigs();
 
-      expect(result.length).to.equal(10);
-      expect(result.someProperty('value', 'alertDefinitionName')).to.be.true;
-      expect(result.someProperty('value', 'alertDefinitionService')).to.be.true;
-      expect(result.someProperty('value', 'Component1')).to.be.true;
-      expect(result.someProperty('value', 'Host')).to.be.true;
-      expect(result.someProperty('value', 'alertDefinitionDescription')).to.be.true;
+      expect(result.length).to.equal(12);
+
+      controller.set('isWizard', false);
+      result = controller.renderMetricConfigs();
+
+      expect(result.length).to.equal(5);
       expect(result.someProperty('value', 60)).to.be.true;
       expect(result.someProperty('value', '10-20')).to.be.true;
       expect(result.someProperty('value', '{\"http\":\"{{mapred-site/mapreduce.jobhistory.webapp.address}}\",\"https\":\"{{mapred-site/mapreduce.jobhistory.webapp.https.address}}\"}')).to.be.true;
@@ -229,14 +231,15 @@ describe('App.MainAlertDefinitionConfigsController', function () {
         }
       }));
 
+      controller.set('isWizard', true);
       var result = controller.renderWebConfigs();
 
-      expect(result.length).to.equal(8);
-      expect(result.someProperty('value', 'alertDefinitionName')).to.be.true;
-      expect(result.someProperty('value', 'alertDefinitionService')).to.be.true;
-      expect(result.someProperty('value', 'Component1')).to.be.true;
-      expect(result.someProperty('value', 'Host')).to.be.true;
-      expect(result.someProperty('value', 'alertDefinitionDescription')).to.be.true;
+      expect(result.length).to.equal(10);
+
+      controller.set('isWizard', false);
+      result = controller.renderWebConfigs();
+
+      expect(result.length).to.equal(3);
       expect(result.someProperty('value', 60)).to.be.true;
       expect(result.someProperty('value', '10-20')).to.be.true;
       expect(result.someProperty('value', '{\"http\":\"{{mapred-site/mapreduce.jobhistory.webapp.address}}\",\"https\":\"{{mapred-site/mapreduce.jobhistory.webapp.https.address}}\"}')).to.be.true;
@@ -272,14 +275,15 @@ describe('App.MainAlertDefinitionConfigsController', function () {
         location: 'path to script'
       }));
 
+      controller.set('isWizard', true);
       var result = controller.renderScriptConfigs();
 
-      expect(result.length).to.equal(8);
-      expect(result.someProperty('value', 'alertDefinitionName')).to.be.true;
-      expect(result.someProperty('value', 'alertDefinitionService')).to.be.true;
-      expect(result.someProperty('value', 'Component1')).to.be.true;
-      expect(result.someProperty('value', 'Host')).to.be.true;
-      expect(result.someProperty('value', 'alertDefinitionDescription')).to.be.true;
+      expect(result.length).to.equal(10);
+
+      controller.set('isWizard', false);
+      result = controller.renderScriptConfigs();
+
+      expect(result.length).to.equal(3);
       expect(result.someProperty('value', 60)).to.be.true;
       expect(result.someProperty('value', '10-20')).to.be.true;
       expect(result.someProperty('value', 'path to script')).to.be.true;
@@ -470,5 +474,74 @@ describe('App.MainAlertDefinitionConfigsController', function () {
     });
   });
 
-})
-;
+  describe('#changeType()', function () {
+
+    it('should disable and enable appropriate configs', function () {
+
+      controller.set('allServices', ['service1', 'service2']);
+      controller.set('allScopes', ['scope1', 'scope2']);
+
+      controller.set('configs', [
+        Em.Object.create({name: 'service', isDisabled: false}),
+        Em.Object.create({name: 'component', isDisabled: false}),
+        Em.Object.create({name: 'scope', isDisabled: false})
+      ]);
+
+      controller.changeType('Host Alert Definition');
+
+      expect(controller.get('configs').everyProperty('isDisabled', true)).to.be.true;
+      expect(controller.get('configs').findProperty('name', 'service').get('options')).to.eql(['Ambari']);
+      expect(controller.get('configs').findProperty('name', 'service').get('value')).to.equal('Ambari');
+      expect(controller.get('configs').findProperty('name', 'component').get('value')).to.equal('Ambari Agent');
+      expect(controller.get('configs').findProperty('name', 'scope').get('options')).to.eql(['Host']);
+      expect(controller.get('configs').findProperty('name', 'scope').get('value')).to.equal('Host');
+
+      controller.changeType('alert_type_service');
+
+      expect(controller.get('configs').everyProperty('isDisabled', false)).to.be.true;
+      expect(controller.get('configs').findProperty('name', 'service').get('options')).to.eql(['service1', 'service2']);
+      expect(controller.get('configs').findProperty('name', 'service').get('value')).to.equal('service1');
+      expect(controller.get('configs').findProperty('name', 'component').get('value')).to.equal('No component');
+      expect(controller.get('configs').findProperty('name', 'scope').get('options')).to.eql(['scope1', 'scope2']);
+      expect(controller.get('configs').findProperty('name', 'scope').get('value')).to.equal('scope1');
+
+    });
+
+  });
+
+  describe('#renderCommonWizardConfigs()', function () {
+
+    it('should return correct number of configs', function () {
+
+      var result = controller.renderCommonWizardConfigs();
+
+      expect(result.length).to.equal(7);
+
+    });
+
+  });
+
+  describe('#getConfigsValues()', function () {
+
+    it('should create key-value map from configs', function () {
+
+      controller.set('configs', [
+        Em.Object.create({name: 'name1', value: 'value1'}),
+        Em.Object.create({name: 'name2', value: 'value2'}),
+        Em.Object.create({name: 'name3', value: 'value3'})
+      ]);
+
+      var result = controller.getConfigsValues();
+
+      expect(result).to.eql([
+        {name: 'name1', value: 'value1'},
+        {name: 'name2', value: 'value2'},
+        {name: 'name3', value: 'value3'}
+      ]);
+
+    });
+
+  });
+
+
+});

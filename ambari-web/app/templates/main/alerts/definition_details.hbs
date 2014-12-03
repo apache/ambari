@@ -82,7 +82,7 @@
             {{/unless}}
           {{/isAccessible}}
         <hr>
-        {{view App.AlertDefinitionConfigsView contentBinding="view.controller.content" canEdit=false}}
+        {{view App.AlertDefinitionConfigsView contentBinding="view.controller.content" alertDefinitionTypeBinding="view.controller.content.type" canEdit=false}}
         {{#if App.router.mainAlertDefinitionConfigsController.canEdit}}
           <div class="edit-buttons">
             <button {{action cancelEditConfigs target="App.router.mainAlertDefinitionConfigsController"}} class="btn">{{t common.cancel}}</button>

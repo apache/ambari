@@ -34,6 +34,19 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
   canEdit: true,
 
   /**
+   * Define configs view mode (Wizard or Definition Details page)
+   * @type {Boolean}
+   */
+  isWizard: false,
+
+  /**
+   * Alert Definition type
+   * binding is set in template
+   * @type {String}
+   */
+  alertDefinitionType: '',
+
+  /**
    * Array of displayNames of all services
    * is used for "Service" config options
    * @type {Array}
@@ -41,6 +54,12 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
   allServices: function () {
     return App.Service.find().mapProperty('displayName');
   }.property(),
+
+  /**
+   * All possible values for scope propery
+   * @type {Array}
+   */
+  allScopes: ['Any', 'Host', 'Service'],
 
   /**
    * Array of all aggregate-alerts names
@@ -81,21 +100,37 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
    * @method onServiceSelect
    */
   onServiceSelect: function () {
-    var serviceProperty = this.get('configs').findProperty('label', 'Service');
-    if (serviceProperty) {
-      var componentsProperty = this.get('configs').findProperty('label', 'Component');
+    var serviceProperty = this.get('configs').findProperty('name', 'service');
+    if (serviceProperty && serviceProperty.get('value') !== 'Ambari') {
+      var componentsProperty = this.get('configs').findProperty('name', 'component');
       componentsProperty.set('options', ['No component'].concat(App.HostComponent.find().filterProperty('service.displayName', serviceProperty.get('value')).mapProperty('displayName').uniq()));
     }
   }.observes('configs.@each.value'),
+
+  /**
+   * OnSelect handler for <code>select_type</code> property
+   * disable fields related to definition type and set options to select lists
+   */
+  changeType: function (selectedType) {
+    if (selectedType === 'alert_type_service') {
+      this.get('configs').findProperty('name', 'service').set('isDisabled', false).set('options', this.get('allServices')).set('value', this.get('allServices')[0]);
+      this.get('configs').findProperty('name', 'component').set('isDisabled', false).set('value', 'No component');
+      this.get('configs').findProperty('name', 'scope').set('isDisabled', false).set('options', this.get('allScopes')).set('value', this.get('allScopes')[0]);
+    } else {
+      this.get('configs').findProperty('name', 'service').set('isDisabled', true).set('options', ['Ambari']).set('value', 'Ambari');
+      this.get('configs').findProperty('name', 'component').set('isDisabled', true).set('options', ['Ambari Agent']).set('value', 'Ambari Agent');
+      this.get('configs').findProperty('name', 'scope').set('isDisabled', true).set('options', ['Host']).set('value', 'Host');
+    }
+  },
 
   /**
    * Render array of configs for appropriate alert definition type
    * @method renderConfigs
    */
   renderConfigs: function () {
-    var alertDefinition = this.get('content');
+    var alertDefinitionType = this.get('alertDefinitionType');
     var configs = [];
-    switch (alertDefinition.get('type')) {
+    switch (alertDefinitionType) {
       case 'PORT':
         configs = this.renderPortConfigs();
         break;
@@ -112,7 +147,7 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
         configs = this.renderAggregateConfigs();
         break;
       default:
-        console.error('Incorrect Alert Definition Type: ', alertDefinition.get('type'));
+        console.error('Incorrect Alert Definition Type: ', alertDefinitionType);
     }
 
     configs.setEach('isDisabled', !this.get('canEdit'));
@@ -126,40 +161,32 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
    * @returns {Array}
    */
   renderPortConfigs: function () {
+    var result = [];
     var alertDefinition = this.get('content');
-    return [
-      App.AlertConfigProperties.AlertName.create({
-        value: alertDefinition.get('name')
-      }),
-      App.AlertConfigProperties.Service.create({
-        options: this.get('allServices'),
-        value: alertDefinition.get('service.displayName')
-      }),
-      App.AlertConfigProperties.Component.create({
-        options: this.get('allComponents'),
-        value: alertDefinition.get('componentName') ? App.format.role(alertDefinition.get('componentName')) : 'No component'
-      }),
-      App.AlertConfigProperties.Scope.create({
-        value: alertDefinition.get('scope').toLowerCase().capitalize()
-      }),
-      App.AlertConfigProperties.Description.create({
-        value: alertDefinition.get('description')
-      }),
+    var isWizard = this.get('isWizard');
+
+    if (this.get('isWizard')) {
+      result = result.concat(this.renderCommonWizardConfigs());
+    }
+
+    result = result.concat([
       App.AlertConfigProperties.Interval.create({
-        value: alertDefinition.get('interval')
+        value: isWizard ? '' : alertDefinition.get('interval')
       }),
       App.AlertConfigProperties.Thresholds.create({
-        value: this.get('thresholdsFrom') + '-' + this.get('thresholdsTo'),
-        from: this.get('thresholdsFrom'),
-        to: this.get('thresholdsTo')
+        value: isWizard ? '' : this.get('thresholdsFrom') + '-' + this.get('thresholdsTo'),
+        from: isWizard ? '' : this.get('thresholdsFrom'),
+        to: isWizard ? '' : this.get('thresholdsTo')
       }),
       App.AlertConfigProperties.URI.create({
-        value: alertDefinition.get('uri')
+        value: isWizard ? '' : alertDefinition.get('uri')
       }),
       App.AlertConfigProperties.DefaultPort.create({
-        value: alertDefinition.get('defaultPort')
+        value: isWizard ? '' : alertDefinition.get('defaultPort')
       })
-    ];
+    ]);
+
+    return result;
   },
 
   /**
@@ -168,35 +195,25 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
    * @returns {Array}
    */
   renderMetricConfigs: function () {
+    var result = [];
     var alertDefinition = this.get('content');
-    return [
-      App.AlertConfigProperties.AlertName.create({
-        value: alertDefinition.get('name')
-      }),
-      App.AlertConfigProperties.Service.create({
-        options: this.get('allServices'),
-        value: alertDefinition.get('service.displayName')
-      }),
-      App.AlertConfigProperties.Component.create({
-        options: this.get('allComponents'),
-        value: alertDefinition.get('componentName') ? App.format.role(alertDefinition.get('componentName')) : 'No component'
-      }),
-      App.AlertConfigProperties.Scope.create({
-        value: alertDefinition.get('scope').toLowerCase().capitalize()
-      }),
-      App.AlertConfigProperties.Description.create({
-        value: alertDefinition.get('description')
-      }),
+    var isWizard = this.get('isWizard');
+
+    if (this.get('isWizard')) {
+      result = result.concat(this.renderCommonWizardConfigs());
+    }
+
+    result = result.concat([
       App.AlertConfigProperties.Interval.create({
-        value: alertDefinition.get('interval')
+        value: isWizard ? '' : alertDefinition.get('interval')
       }),
       App.AlertConfigProperties.Thresholds.create({
-        value: this.get('thresholdsFrom') + '-' + this.get('thresholdsTo'),
-        from: this.get('thresholdsFrom'),
-        to: this.get('thresholdsTo')
+        value: isWizard ? '' : this.get('thresholdsFrom') + '-' + this.get('thresholdsTo'),
+        from: isWizard ? '' : this.get('thresholdsFrom'),
+        to: isWizard ? '' : this.get('thresholdsTo')
       }),
       App.AlertConfigProperties.URIExtended.create({
-        value: JSON.stringify({
+        value: isWizard ? '' : JSON.stringify({
           http: alertDefinition.get('uri.http'),
           https: alertDefinition.get('uri.https'),
           https_property: alertDefinition.get('uri.httpsProperty'),
@@ -204,14 +221,16 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
         })
       }),
       App.AlertConfigProperties.Metrics.create({
-        value: alertDefinition.get('jmx.propertyList') ? alertDefinition.get('jmx.propertyList').join(',\n') : alertDefinition.get('ganglia.propertyList').join(',\n'),
-        isJMXMetric: !!alertDefinition.get('jmx.propertyList')
+        value: isWizard ? '' : alertDefinition.get('jmx.propertyList') ? alertDefinition.get('jmx.propertyList').join(',\n') : alertDefinition.get('ganglia.propertyList').join(',\n'),
+        isJMXMetric: isWizard ? false : !!alertDefinition.get('jmx.propertyList')
       }),
       App.AlertConfigProperties.FormatString.create({
-        value: alertDefinition.get('jmx.value') ? alertDefinition.get('jmx.value') : alertDefinition.get('ganglia.value'),
-        isJMXMetric: !!alertDefinition.get('jmx.value')
+        value: isWizard ? '' : alertDefinition.get('jmx.value') ? alertDefinition.get('jmx.value') : alertDefinition.get('ganglia.value'),
+        isJMXMetric: isWizard ? false : !!alertDefinition.get('jmx.value')
       })
-    ];
+    ]);
+
+    return result;
   },
 
   /**
@@ -220,42 +239,34 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
    * @returns {Array}
    */
   renderWebConfigs: function () {
+    var result = [];
     var alertDefinition = this.get('content');
-    return [
-      App.AlertConfigProperties.AlertName.create({
-        value: alertDefinition.get('name')
-      }),
-      App.AlertConfigProperties.Service.create({
-        options: this.get('allServices'),
-        value: alertDefinition.get('service.displayName')
-      }),
-      App.AlertConfigProperties.Component.create({
-        options: this.get('allComponents'),
-        value: alertDefinition.get('componentName') ? App.format.role(alertDefinition.get('componentName')) : 'No component'
-      }),
-      App.AlertConfigProperties.Scope.create({
-        value: alertDefinition.get('scope').toLowerCase().capitalize()
-      }),
-      App.AlertConfigProperties.Description.create({
-        value: alertDefinition.get('description')
-      }),
+    var isWizard = this.get('isWizard');
+
+    if (this.get('isWizard')) {
+      result = result.concat(this.renderCommonWizardConfigs());
+    }
+
+    result = result.concat([
       App.AlertConfigProperties.Interval.create({
-        value: alertDefinition.get('interval')
+        value: isWizard ? '' : alertDefinition.get('interval')
       }),
       App.AlertConfigProperties.Thresholds.create({
-        value: this.get('thresholdsFrom') + '-' + this.get('thresholdsTo'),
-        from: this.get('thresholdsFrom'),
-        to: this.get('thresholdsTo')
+        value: isWizard ? '' : this.get('thresholdsFrom') + '-' + this.get('thresholdsTo'),
+        from: isWizard ? '' : this.get('thresholdsFrom'),
+        to: isWizard ? '' : this.get('thresholdsTo')
       }),
       App.AlertConfigProperties.URIExtended.create({
-        value: JSON.stringify({
+        value: isWizard ? '' : JSON.stringify({
           http: alertDefinition.get('uri.http'),
           https: alertDefinition.get('uri.https'),
           https_property: alertDefinition.get('uri.httpsProperty'),
           https_property_value: alertDefinition.get('uri.httpsPropertyValue')
         })
       })
-    ];
+    ]);
+
+    return result;
   },
 
   /**
@@ -264,37 +275,29 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
    * @returns {Array}
    */
   renderScriptConfigs: function () {
+    var result = [];
     var alertDefinition = this.get('content');
-    return [
-      App.AlertConfigProperties.AlertName.create({
-        value: alertDefinition.get('name')
-      }),
-      App.AlertConfigProperties.Service.create({
-        options: this.get('allServices'),
-        value: alertDefinition.get('service.displayName')
-      }),
-      App.AlertConfigProperties.Component.create({
-        options: this.get('allComponents'),
-        value: alertDefinition.get('componentName') ? App.format.role(alertDefinition.get('componentName')) : 'No component'
-      }),
-      App.AlertConfigProperties.Scope.create({
-        value: alertDefinition.get('scope').toLowerCase().capitalize()
-      }),
-      App.AlertConfigProperties.Description.create({
-        value: alertDefinition.get('description')
-      }),
+    var isWizard = this.get('isWizard');
+
+    if (this.get('isWizard')) {
+      result = result.concat(this.renderCommonWizardConfigs());
+    }
+
+    result = result.concat([
       App.AlertConfigProperties.Interval.create({
-        value: alertDefinition.get('interval')
+        value: isWizard ? '' : alertDefinition.get('interval')
       }),
       App.AlertConfigProperties.Thresholds.create({
-        value: this.get('thresholdsFrom') + '-' + this.get('thresholdsTo'),
-        from: this.get('thresholdsFrom'),
-        to: this.get('thresholdsTo')
+        value: isWizard ? '' : this.get('thresholdsFrom') + '-' + this.get('thresholdsTo'),
+        from: isWizard ? '' : this.get('thresholdsFrom'),
+        to: isWizard ? '' : this.get('thresholdsTo')
       }),
       App.AlertConfigProperties.Path.create({
-        value: alertDefinition.get('location')
+        value: isWizard ? '' : alertDefinition.get('location')
       })
-    ];
+    ]);
+
+    return result;
   },
 
   /**
@@ -303,14 +306,50 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
    * @returns {Array}
    */
   renderAggregateConfigs: function () {
+    var isWizard = this.get('isWizard');
     var alertDefinition = this.get('content');
     return [
       App.AlertConfigProperties.AlertNameSelected.create({
-        value: alertDefinition.get('name'),
+        value: isWizard ? this.get('aggregateAlertNames')[0] : alertDefinition.get('name'),
         options: this.get('aggregateAlertNames')
       }),
       App.AlertConfigProperties.Description.create({
-        value: alertDefinition.get('description')
+        value: isWizard ? '' : alertDefinition.get('description')
+      })
+    ];
+  },
+
+  /**
+   * Render common list of configs used in almost all alert types in wizard
+   * @returns {Array}
+   */
+  renderCommonWizardConfigs: function () {
+    return [
+      App.AlertConfigProperties.AlertName.create({
+        value: ''
+      }),
+      App.AlertConfigProperties.ServiceAlertType.create({
+        value: true
+      }),
+      App.AlertConfigProperties.Service.create({
+        options: this.get('allServices'),
+        value: this.get('allServices')[0],
+        isShifted: true
+      }),
+      App.AlertConfigProperties.Component.create({
+        options: this.get('allComponents'),
+        value: 'No component',
+        isShifted: true
+      }),
+      App.AlertConfigProperties.Scope.create({
+        options: this.get('allScopes'),
+        isShifted: true
+      }),
+      App.AlertConfigProperties.HostAlertType.create({
+        value: false
+      }),
+      App.AlertConfigProperties.Description.create({
+        value: ''
       })
     ];
   },
@@ -395,6 +434,20 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
     }, this);
 
     return propertiesToUpdate;
+  },
+
+  /**
+   * Return array of all config values
+   * used to save configs to local db in wizard
+   * @returns {Array}
+   */
+  getConfigsValues: function () {
+    return this.get('configs').map(function (property) {
+      return {
+        name: property.get('name'),
+        value: property.get('value')
+      }
+    });
   }
 
 });

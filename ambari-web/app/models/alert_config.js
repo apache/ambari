@@ -70,6 +70,12 @@ App.AlertConfigProperty = Ember.Object.extend({
   classNames: '',
 
   /**
+   * define whether row with property should be shifted right
+   * @type {Boolean}
+   */
+  isShifted: false,
+
+  /**
    * name or names of properties related to config
    * may be either string for one property or array of strings for multiple properties
    * if this property is array, then <code>apiFormattedValue</code> should also be an array
@@ -83,6 +89,17 @@ App.AlertConfigProperty = Ember.Object.extend({
    * depending on what property is related to (JMX or Ganglia)
    */
   isJMXMetric: null,
+
+  /**
+   * define place to show label
+   * if true - label is shown before input
+   * if false - label is shown after input
+   * @type {Boolean}
+   */
+  isPreLabeled: function () {
+    var afterLabeledTypes = ['radioButton'];
+    return !afterLabeledTypes.contains(this.get('displayType'));
+  }.property('displayType'),
 
   /**
    * value converted to appropriate format for sending to server
@@ -117,6 +134,8 @@ App.AlertConfigProperty = Ember.Object.extend({
         return App.AlertConfigSelectView;
       case 'threshold':
         return App.AlertConfigThresholdView;
+      case 'radioButton':
+        return App.AlertConfigRadioButtonView;
       default:
         console.error('Unable to find viewClass for displayType ', displayType);
     }
@@ -127,17 +146,32 @@ App.AlertConfigProperty = Ember.Object.extend({
 App.AlertConfigProperties = {
 
   AlertName: App.AlertConfigProperty.extend({
+    name: 'alert_name',
     label: 'Alert Name',
     displayType: 'textField',
     classNames: 'alert-text-input',
     apiProperty: 'name'
   }),
   AlertNameSelected: App.AlertConfigProperty.extend({
+    name: 'alert_name',
     label: 'Alert Name',
     displayType: 'select',
     apiProperty: 'name'
   }),
+  ServiceAlertType: App.AlertConfigProperty.extend({
+    name: 'alert_type_service',
+    label: 'Service Alert Definition',
+    displayType: 'radioButton',
+    group: 'alert_type'
+  }),
+  HostAlertType: App.AlertConfigProperty.extend({
+    name: 'alert_type_host',
+    label: 'Host Alert Definition',
+    displayType: 'radioButton',
+    group: 'alert_type'
+  }),
   Service: App.AlertConfigProperty.extend({
+    name: 'service',
     label: 'Service',
     displayType: 'select',
     apiProperty: 'service_name',
@@ -146,6 +180,7 @@ App.AlertConfigProperties = {
     }.property('value')
   }),
   Component: App.AlertConfigProperty.extend({
+    name: 'component',
     label: 'Component',
     displayType: 'select',
     apiProperty: 'component_name',
@@ -154,8 +189,8 @@ App.AlertConfigProperties = {
     }.property('value')
   }),
   Scope: App.AlertConfigProperty.extend({
+    name: 'scope',
     label: 'Scope',
-    options: ['Any', 'Host', 'Service'],
     displayType: 'select',
     apiProperty: 'scope',
     apiFormattedValue: function () {
@@ -163,6 +198,7 @@ App.AlertConfigProperties = {
     }.property('value')
   }),
   Description: App.AlertConfigProperty.extend({
+    name: 'description',
     label: 'Description',
     displayType: 'textArea',
     classNames: 'alert-config-text-area',
@@ -170,6 +206,7 @@ App.AlertConfigProperties = {
     apiProperty: 'description'
   }),
   Interval: App.AlertConfigProperty.extend({
+    name: 'interval',
     label: 'Interval',
     displayType: 'textField',
     unit: 'Second',
@@ -177,6 +214,7 @@ App.AlertConfigProperties = {
     apiProperty: 'interval'
   }),
   Thresholds: App.AlertConfigProperty.extend({
+    name: 'thresholds',
     label: 'Thresholds',
     displayType: 'threshold',
     classNames: 'alert-thresholds-input',
@@ -212,12 +250,14 @@ App.AlertConfigProperties = {
     }.property('from', 'to')
   }),
   URI: App.AlertConfigProperty.extend({
+    name: 'uri',
     label: 'URI',
     displayType: 'textField',
     classNames: 'alert-text-input',
     apiProperty: 'source.uri'
   }),
   URIExtended: App.AlertConfigProperty.extend({
+    name: 'uri',
     label: 'URI',
     displayType: 'textArea',
     classNames: 'alert-config-text-area',
@@ -233,18 +273,21 @@ App.AlertConfigProperties = {
     }.property('value')
   }),
   DefaultPort: App.AlertConfigProperty.extend({
+    name: 'default_port',
     label: 'Default Port',
     displayType: 'textField',
     classNames: 'alert-port-input',
     apiProperty: 'source.default_port'
   }),
   Path: App.AlertConfigProperty.extend({
+    name: 'path',
     label: 'Path',
     displayType: 'textField',
     classNames: 'alert-text-input',
     apiProperty: 'source.path'
   }),
   Metrics: App.AlertConfigProperty.extend({
+    name: 'metrics',
     label: 'JMX/Ganglia Metrics',
     displayType: 'textArea',
     classNames: 'alert-config-text-area',
@@ -256,6 +299,7 @@ App.AlertConfigProperties = {
     }.property('value')
   }),
   FormatString: App.AlertConfigProperty.extend({
+    name: 'metrics_string',
     label: 'Format String',
     displayType: 'textArea',
     classNames: 'alert-config-text-area',

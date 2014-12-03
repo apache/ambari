@@ -39,6 +39,8 @@ App.AlertDefinitionConfigsView = Em.View.extend({
 
   init: function () {
     this.set('controller.canEdit', this.get('canEdit'));
+    this.set('controller.isWizard', this.get('isWizard'));
+    this.set('controller.alertDefinitionType', this.get('alertDefinitionType'));
     this.set('controller.content', this.get('content'));
     this.get('controller').renderConfigs();
     this._super();
@@ -68,4 +70,19 @@ App.AlertConfigSelectView = Em.Select.extend({
 App.AlertConfigThresholdView = Em.View.extend({
   templateName: require('templates/main/alerts/configs/alert_config_threshold'),
   classNameBindings: ['property.classNames', 'parentView.basicClass']
+});
+
+App.AlertConfigRadioButtonView = Em.Checkbox.extend({
+  attributeBindings: ['type', 'name', 'value', 'checked', 'disabled'],
+  type: 'radio',
+  nameBinding: 'property.group',
+  checkedBinding: 'property.value',
+
+  change: function () {
+    this.set('property.value', true);
+    this.get('parentView.controller.configs').filterProperty('group', this.get('name')).without(this.get('property')).setEach('value', false);
+    this.get('parentView.controller').changeType(this.get('property.name'));
+  },
+
+  classNameBindings: ['property.classNames']
 });

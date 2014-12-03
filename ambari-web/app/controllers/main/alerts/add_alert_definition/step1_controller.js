@@ -28,7 +28,7 @@ App.AddAlertDefinitionStep1Controller = Em.Controller.extend({
    */
   alertDefinitionsTypes: [
     Em.Object.create({value: 'PORT', isActive: false, icon: 'icon-signal'}),
-    Em.Object.create({value: 'METRICS', isActive: false, icon: 'icon-bolt'}),
+    Em.Object.create({value: 'METRIC', isActive: false, icon: 'icon-bolt'}),
     Em.Object.create({value: 'WEB', isActive: false, icon: 'icon-globe'}),
     Em.Object.create({value: 'AGGREGATE', isActive: false, icon: 'icon-plus-sign-alt'}),
     Em.Object.create({value: 'SCRIPT', isActive: false, icon: 'icon-code'})

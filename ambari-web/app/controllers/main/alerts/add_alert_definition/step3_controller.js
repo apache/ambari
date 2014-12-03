@@ -20,6 +20,6 @@ var App = require('app');
 
 App.AddAlertDefinitionStep3Controller = Em.Controller.extend({
 
-  name: 'addAlertDefinitionStep3'
+  name: 'addAlertDefinitionStep3Controller'
 
 });

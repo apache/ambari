@@ -18,7 +18,7 @@
 
 <h2>{{t alerts.add.step2.header}}</h2>
 
-{{controller.content.selectedType}}
+{{view App.AlertDefinitionConfigsView canEdit=true isWizard=true alertDefinitionTypeBinding="controller.content.selectedType"}}
 
 <div class="btn-area">
   <a class="btn" {{bindAttr disabled="isBackBtnDisabled"}} {{action back}}>&larr; {{t common.back}}</a>

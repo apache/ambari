@@ -95,6 +95,8 @@ module.exports = App.WizardRoute.extend({
 
     next: function (router) {
       var controller = router.get('addAlertDefinitionController');
+      controller.set('content.configs', App.router.get('mainAlertDefinitionConfigsController').getConfigsValues());
+      controller.setDBProperty('content', controller.get('content'));
       router.transitionTo('step3');
     }
 
