@@ -117,6 +117,11 @@ public class UpgradeCatalog200Test {
     Capture<DBAccessor.DBColumnInfo> hostComponentStateColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
     Capture<DBAccessor.DBColumnInfo> hostComponentStateSecurityStateColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
     Capture<DBAccessor.DBColumnInfo> hostComponentDesiredStateSecurityStateColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
+
+    Capture<DBAccessor.DBColumnInfo> viewparameterLabelColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
+    Capture<DBAccessor.DBColumnInfo> viewparameterPlaceholderColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
+    Capture<DBAccessor.DBColumnInfo> viewparameterDefaultValueColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
+
     Capture<DBAccessor.DBColumnInfo> serviceDesiredStateSecurityStateColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
     Capture<List<DBAccessor.DBColumnInfo>> clusterVersionCapture = new Capture<List<DBAccessor.DBColumnInfo>>();
     Capture<List<DBAccessor.DBColumnInfo>> hostVersionCapture = new Capture<List<DBAccessor.DBColumnInfo>>();
@@ -153,6 +158,10 @@ public class UpgradeCatalog200Test {
     // Host Component Desired State: security State
     dbAccessor.addColumn(eq("hostcomponentdesiredstate"),
         capture(hostComponentDesiredStateSecurityStateColumnCapture));
+
+    dbAccessor.addColumn(eq("viewparameter"), capture(viewparameterLabelColumnCapture));
+    dbAccessor.addColumn(eq("viewparameter"), capture(viewparameterPlaceholderColumnCapture));
+    dbAccessor.addColumn(eq("viewparameter"), capture(viewparameterDefaultValueColumnCapture));
 
     // Service Desired State: security State
     dbAccessor.addColumn(eq("servicedesiredstate"),
@@ -212,6 +221,9 @@ public class UpgradeCatalog200Test {
     verifyComponentSecurityStateColumn(hostComponentStateSecurityStateColumnCapture);
     verifyComponentSecurityStateColumn(hostComponentDesiredStateSecurityStateColumnCapture);
     verifyServiceSecurityStateColumn(serviceDesiredStateSecurityStateColumnCapture);
+
+    verifyViewParameterColumns(viewparameterLabelColumnCapture, viewparameterPlaceholderColumnCapture,
+        viewparameterDefaultValueColumnCapture);
 
     // Verify capture group sizes
     assertEquals(8, clusterVersionCapture.getValue().size());
@@ -340,7 +352,7 @@ public class UpgradeCatalog200Test {
   /**
    * Verifies new description column for alert definition.
    *
-   * @param alertDefinitionIgnoreColumnCapture
+   * @param alertDefinitionDescriptionColumnCapture
    */
   private void verifyAlertDefinitionDescriptionColumn(
       Capture<DBAccessor.DBColumnInfo> alertDefinitionDescriptionColumnCapture) {
@@ -399,6 +411,31 @@ public class UpgradeCatalog200Test {
     Assert.assertEquals(Integer.valueOf(32), column.getLength());
     Assert.assertEquals(String.class, column.getType());
     Assert.assertEquals("security_state", column.getName());
+  }
+
+  private void verifyViewParameterColumns(
+      Capture<DBAccessor.DBColumnInfo> labelColumnCapture,
+      Capture<DBAccessor.DBColumnInfo> placeholderColumnCapture,
+      Capture<DBAccessor.DBColumnInfo> defaultValueColumnCapture) {
+
+
+    DBColumnInfo column = labelColumnCapture.getValue();
+    assertNull(column.getDefaultValue());
+    Assert.assertEquals(Integer.valueOf(255), column.getLength());
+    Assert.assertEquals(String.class, column.getType());
+    Assert.assertEquals("label", column.getName());
+
+    column = placeholderColumnCapture.getValue();
+    assertNull(column.getDefaultValue());
+    Assert.assertEquals(Integer.valueOf(255), column.getLength());
+    Assert.assertEquals(String.class, column.getType());
+    Assert.assertEquals("placeholder", column.getName());
+
+    column = defaultValueColumnCapture.getValue();
+    assertNull(column.getDefaultValue());
+    Assert.assertEquals(Integer.valueOf(2000), column.getLength());
+    Assert.assertEquals(String.class, column.getType());
+    Assert.assertEquals("default_value", column.getName());
   }
 
   @Test

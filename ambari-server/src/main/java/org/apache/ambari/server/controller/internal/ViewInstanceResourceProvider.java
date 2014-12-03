@@ -33,8 +33,6 @@ import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.entities.ViewEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceDataEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
-import org.apache.ambari.server.orm.entities.ViewInstancePropertyEntity;
-import org.apache.ambari.server.orm.entities.ViewParameterEntity;
 import org.apache.ambari.server.view.ViewRegistry;
 import org.apache.ambari.server.view.validation.InstanceValidationResultImpl;
 import org.apache.ambari.server.view.validation.ValidationResultImpl;
@@ -232,19 +230,8 @@ public class ViewInstanceResourceProvider extends AbstractResourceProvider {
 
     // only allow an admin to access the view properties
     if (ViewRegistry.getInstance().checkAdmin()) {
-
-      Map<String, String> properties = new HashMap<String, String>();
-
-      for (ViewInstancePropertyEntity viewInstancePropertyEntity : viewInstanceEntity.getProperties()) {
-        properties.put(viewInstancePropertyEntity.getName(), viewInstancePropertyEntity.getValue());
-      }
-      for (ViewParameterEntity viewParameterEntity : viewEntity.getParameters()) {
-        if (!properties.containsKey(viewParameterEntity.getName())) {
-          properties.put(viewParameterEntity.getName(), null);
-        }
-      }
       setResourceProperty(resource, PROPERTIES_PROPERTY_ID,
-          properties, requestedIds);
+          viewInstanceEntity.getPropertyMap(), requestedIds);
     }
 
     Map<String, String> applicationData = new HashMap<String, String>();

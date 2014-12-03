@@ -58,11 +58,14 @@ public class ViewConfigTest {
       "    <parameter>\n" +
       "        <name>p1</name>\n" +
       "        <description>Parameter 1.</description>\n" +
+      "        <label>Label 1.</label>\n" +
+      "        <placeholder>Placeholder 1.</placeholder>\n" +
       "        <required>true</required>\n" +
       "    </parameter>\n" +
       "    <parameter>\n" +
       "        <name>p2</name>\n" +
       "        <description>Parameter 2.</description>\n" +
+      "        <default-value>Default value 1.</default-value>\n" +
       "        <required>false</required>\n" +
       "        <masked>true</masked>" +
       "    </parameter>\n" +

@@ -20,6 +20,7 @@ package org.apache.ambari.server.view.configuration;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
 
 /**
  * View parameter configuration.
@@ -35,6 +36,22 @@ public class ParameterConfig {
    * The parameter description.
    */
   private String description;
+
+  /**
+   * The parameter label.
+   */
+  private String label;
+
+  /**
+   * The parameter placeholder.
+   */
+  private String placeholder;
+
+  /**
+   * The parameter default value.
+   */
+  @XmlElement(name="default-value")
+  private String defaultValue;
 
   /**
    * Indicates whether or not the parameter is required.
@@ -62,6 +79,33 @@ public class ParameterConfig {
    */
   public String getDescription() {
     return description;
+  }
+
+  /**
+   * Get the parameter label.
+   *
+   * @return the label
+   */
+  public String getLabel() {
+    return label;
+  }
+
+  /**
+   * Get the parameter placeholder.
+   *
+   * @return the placeholder
+   */
+  public String getPlaceholder() {
+    return placeholder;
+  }
+
+  /**
+   * Get the parameter default value.
+   *
+   * @return the default value
+   */
+  public String getDefaultValue() {
+    return defaultValue;
   }
 
   /**

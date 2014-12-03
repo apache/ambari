@@ -138,6 +138,11 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
     dbAccessor.addColumn(ALERT_TARGET_TABLE, new DBColumnInfo("is_global",
         Short.class, 1, 0, false));
 
+    // add viewparameter columns
+    dbAccessor.addColumn("viewparameter", new DBColumnInfo("label", String.class, 255, null, true));
+    dbAccessor.addColumn("viewparameter", new DBColumnInfo("placeholder", String.class, 255, null, true));
+    dbAccessor.addColumn("viewparameter", new DBColumnInfo("default_value", String.class, 2000, null, true));
+
     // create alert_target_states table
     ArrayList<DBColumnInfo> columns = new ArrayList<DBColumnInfo>();
     columns.add(new DBColumnInfo("target_id", Long.class, null, null, false));

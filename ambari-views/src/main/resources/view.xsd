@@ -33,6 +33,21 @@
           <xs:documentation>The description of the configuration parameter.</xs:documentation>
         </xs:annotation>
       </xs:element>
+      <xs:element type="xs:string" name="label" minOccurs="0" maxOccurs="1">
+        <xs:annotation>
+          <xs:documentation>The label for the configuration parameter.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element type="xs:string" name="placeholder" minOccurs="0" maxOccurs="1">
+        <xs:annotation>
+          <xs:documentation>The placeholder for the configuration parameter.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element type="xs:string" name="default-value" minOccurs="0" maxOccurs="1">
+        <xs:annotation>
+          <xs:documentation>The default value of the configuration parameter.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
       <xs:element type="xs:boolean" name="required" minOccurs="0" maxOccurs="1" default="false">
         <xs:annotation>
           <xs:documentation>If true, the configuration parameter is required in order to create a view instance.  The default is false (not required).</xs:documentation>

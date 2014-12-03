@@ -438,6 +438,9 @@ CREATE TABLE viewparameter (
   view_name VARCHAR(255) NOT NULL,
   name VARCHAR(255) NOT NULL,
   description VARCHAR(2048),
+  label VARCHAR(255),
+  placeholder VARCHAR(255),
+  default_value VARCHAR(2000),
   required CHAR(1),
   masked CHAR(1),
   PRIMARY KEY(view_name, name));

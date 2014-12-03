@@ -829,6 +829,9 @@ public class ViewRegistry {
       viewParameterEntity.setViewName(viewName);
       viewParameterEntity.setName(parameterConfiguration.getName());
       viewParameterEntity.setDescription(parameterConfiguration.getDescription());
+      viewParameterEntity.setLabel(parameterConfiguration.getLabel());
+      viewParameterEntity.setPlaceholder(parameterConfiguration.getPlaceholder());
+      viewParameterEntity.setDefaultValue(parameterConfiguration.getDefaultValue());
       viewParameterEntity.setRequired(parameterConfiguration.isRequired());
       viewParameterEntity.setMasked(parameterConfiguration.isMasked());
       viewParameterEntity.setViewEntity(viewDefinition);

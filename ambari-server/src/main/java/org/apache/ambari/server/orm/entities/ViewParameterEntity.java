@@ -47,9 +47,26 @@ public class ViewParameterEntity {
   /**
    * The parameter description.
    */
-  @Column
-  @Basic
+  @Column(name = "description")
   private String description;
+
+  /**
+   * The parameter label.
+   */
+  @Column(name = "label")
+  private String label;
+
+  /**
+   * The placeholder.
+   */
+  @Column(name = "placeholder")
+  private String placeholder;
+
+  /**
+   * The default value.
+   */
+  @Column(name = "default_value")
+  private String defaultValue;
 
   /**
    * Indicates whether or not the parameter is required.
@@ -177,5 +194,59 @@ public class ViewParameterEntity {
    */
   public void setViewEntity(ViewEntity view) {
     this.view = view;
+  }
+
+  /**
+   * Get the parameter label.
+   *
+   * @return the label
+   */
+  public String getLabel() {
+    return label;
+  }
+
+  /**
+   * Set the parameter label.
+   *
+   * @param label  the label
+   */
+  public void setLabel(String label) {
+    this.label = label;
+  }
+
+  /**
+   * Get the parameter placeholder.
+   *
+   * @return the placeholder
+   */
+  public String getPlaceholder() {
+    return placeholder;
+  }
+
+  /**
+   * Set the parameter placeholder.
+   *
+   * @param placeholder  the placeholder
+   */
+  public void setPlaceholder(String placeholder) {
+    this.placeholder = placeholder;
+  }
+
+  /**
+   * Get the parameter default value.
+   *
+   * @return the default value
+   */
+  public String getDefaultValue() {
+    return defaultValue;
+  }
+
+  /**
+   * Set the parameter default value.
+   *
+   * @param defaultValue  the parameter default value
+   */
+  public void setDefaultValue(String defaultValue) {
+    this.defaultValue = defaultValue;
   }
 }

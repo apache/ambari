@@ -26,8 +26,6 @@ import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.entities.ViewEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceDataEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
-import org.apache.ambari.server.orm.entities.ViewInstancePropertyEntity;
-import org.apache.ambari.server.orm.entities.ViewParameterEntity;
 import org.apache.ambari.server.view.ViewRegistry;
 import org.apache.ambari.server.view.configuration.ViewConfig;
 import org.apache.ambari.view.ViewDefinition;
@@ -36,7 +34,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -69,26 +66,19 @@ public class ViewInstanceResourceProviderTest {
     ViewEntity viewEntity = createNiceMock(ViewEntity.class);
     expect(viewInstanceEntity.getViewEntity()).andReturn(viewEntity).anyTimes();
 
-    ViewInstancePropertyEntity propertyEntity1 = createNiceMock(ViewInstancePropertyEntity.class);
-    expect(propertyEntity1.getName()).andReturn("par1").anyTimes();
-    expect(propertyEntity1.getValue()).andReturn("val1").anyTimes();
-    ViewInstancePropertyEntity propertyEntity3 = createNiceMock(ViewInstancePropertyEntity.class);
-    expect(propertyEntity3.getName()).andReturn("par3").anyTimes();
-    expect(propertyEntity3.getValue()).andReturn("val3").anyTimes();
-    expect(viewInstanceEntity.getProperties()).andReturn(Arrays.asList(propertyEntity1, propertyEntity3));
+    Map<String, String> propertyMap = new HashMap<String, String>();
 
-    ViewParameterEntity parameter1 = createNiceMock(ViewParameterEntity.class);
-    expect(parameter1.getName()).andReturn("par1").anyTimes();
-    ViewParameterEntity parameter2 = createNiceMock(ViewParameterEntity.class);
-    expect(parameter2.getName()).andReturn("par2").anyTimes();
-    expect(viewEntity.getParameters()).andReturn(Arrays.asList(parameter1, parameter2));
+    propertyMap.put("par1", "val1");
+    propertyMap.put("par2", "val2");
+
+    expect(viewInstanceEntity.getPropertyMap()).andReturn(propertyMap);
 
     expect(viewInstanceEntity.getData()).andReturn(Collections.<ViewInstanceDataEntity>emptyList()).anyTimes();
 
     expect(singleton.checkAdmin()).andReturn(true);
     expect(singleton.checkAdmin()).andReturn(false);
 
-    replay(singleton, viewEntity, viewInstanceEntity, parameter1, parameter2, propertyEntity1, propertyEntity3);
+    replay(singleton, viewEntity, viewInstanceEntity);
 
     // as admin
     Resource resource = provider.toResource(viewInstanceEntity, propertyIds);
@@ -96,10 +86,9 @@ public class ViewInstanceResourceProviderTest {
     assertEquals(1, properties.size());
     Map<String, Object> props = properties.get("ViewInstanceInfo/properties");
     assertNotNull(props);
-    assertEquals(3, props.size());
+    assertEquals(2, props.size());
     assertEquals("val1", props.get("par1"));
-    assertEquals("val3", props.get("par3"));
-    assertNull(props.get("par2"));
+    assertEquals("val2", props.get("par2"));
 
     // as non-admin
     resource = provider.toResource(viewInstanceEntity, propertyIds);
@@ -107,7 +96,7 @@ public class ViewInstanceResourceProviderTest {
     props = properties.get("ViewInstanceInfo/properties");
     assertNull(props);
 
-    verify(singleton);
+    verify(singleton, viewEntity, viewInstanceEntity);
   }
 
   @Test
@@ -293,16 +282,6 @@ public class ViewInstanceResourceProviderTest {
   @Test
   public void testDeleteResources_viewNotLoaded() throws Exception {
     ViewInstanceResourceProvider provider = new ViewInstanceResourceProvider();
-
-    Set<Map<String, Object>> properties = new HashSet<Map<String, Object>>();
-
-    Map<String, Object> propertyMap = new HashMap<String, Object>();
-
-    propertyMap.put(ViewInstanceResourceProvider.VIEW_NAME_PROPERTY_ID, "V1");
-    propertyMap.put(ViewInstanceResourceProvider.VIEW_VERSION_PROPERTY_ID, "1.0.0");
-    propertyMap.put(ViewInstanceResourceProvider.INSTANCE_NAME_PROPERTY_ID, "I1");
-
-    properties.add(propertyMap);
 
     PredicateBuilder predicateBuilder = new PredicateBuilder();
     Predicate predicate =

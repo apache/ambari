@@ -272,8 +272,14 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
   public Map<String, String> getPropertyMap() {
     Map<String, String> propertyMap = new HashMap<String, String>();
 
-    for (ViewInstancePropertyEntity viewInstancePropertyEntity : properties) {
+    for (ViewInstancePropertyEntity viewInstancePropertyEntity : getProperties()) {
       propertyMap.put(viewInstancePropertyEntity.getName(), viewInstancePropertyEntity.getValue());
+    }
+    for (ViewParameterEntity viewParameterEntity : view.getParameters()) {
+      String parameterName = viewParameterEntity.getName();
+      if (!propertyMap.containsKey(parameterName)) {
+        propertyMap.put(parameterName, viewParameterEntity.getDefaultValue());
+      }
     }
     return propertyMap;
   }
@@ -751,9 +757,11 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
           requiredParameterNames.add(parameter.getName());
         }
       }
-      Collection<ViewInstancePropertyEntity> propertyEntities = getProperties();
-      for (ViewInstancePropertyEntity property : propertyEntities) {
-        requiredParameterNames.remove(property.getName());
+      Map<String, String> propertyMap = getPropertyMap();
+      for (Map.Entry<String, String> entry : propertyMap.entrySet()) {
+        if (entry.getValue() != null) {
+          requiredParameterNames.remove(entry.getKey());
+        }
       }
       // required but missing instance properties...
       for (String requiredParameterName : requiredParameterNames) {

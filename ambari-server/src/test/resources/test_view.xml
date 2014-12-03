@@ -27,6 +27,9 @@
   <parameter>
     <name>parameter1</name>
     <description>str1234</description>
+    <label>str1234</label>
+    <placeholder>str1234</placeholder>
+    <default-value>str1234</default-value>
     <required>true</required>
     <masked>true</masked>
   </parameter>

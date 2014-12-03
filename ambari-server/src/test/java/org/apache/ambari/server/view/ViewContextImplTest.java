@@ -22,6 +22,7 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.orm.entities.ViewEntity;
 import org.apache.ambari.server.orm.entities.ViewEntityTest;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
+import org.apache.ambari.server.orm.entities.ViewParameterEntity;
 import org.apache.ambari.server.view.configuration.InstanceConfig;
 import org.apache.ambari.server.view.configuration.InstanceConfigTest;
 import org.apache.ambari.server.view.configuration.ViewConfigTest;
@@ -29,6 +30,7 @@ import org.apache.ambari.view.ResourceProvider;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.Arrays;
 import java.util.Map;
 
 import static org.easymock.EasyMock.createMockBuilder;
@@ -93,7 +95,14 @@ public class ViewContextImplTest {
     expect(viewDefinition.getCommonName()).andReturn("View").times(2);
     expect(viewDefinition.getClassLoader()).andReturn(ViewContextImplTest.class.getClassLoader()).anyTimes();
     expect(viewDefinition.getConfiguration()).andReturn(ViewConfigTest.getConfig()).anyTimes();
-    replay(viewDefinition);
+
+    ViewParameterEntity parameter1 = createNiceMock(ViewParameterEntity.class);
+    expect(parameter1.getName()).andReturn("p1").anyTimes();
+    ViewParameterEntity parameter2 = createNiceMock(ViewParameterEntity.class);
+    expect(parameter2.getName()).andReturn("p2").anyTimes();
+    expect(viewDefinition.getParameters()).andReturn(Arrays.asList(parameter1, parameter2)).anyTimes();
+
+    replay(viewDefinition, parameter1, parameter2);
     ViewInstanceEntity viewInstanceDefinition = createMockBuilder(ViewInstanceEntity.class)
         .addMockedMethod("getUsername")
         .addMockedMethod("getName")

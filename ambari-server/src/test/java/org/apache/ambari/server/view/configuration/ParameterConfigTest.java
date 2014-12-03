@@ -47,6 +47,33 @@ public class ParameterConfigTest {
   }
 
   @Test
+  public void testGetLabel() throws Exception {
+    List<ParameterConfig> parameters = getParameterConfigs();
+
+    Assert.assertEquals(2, parameters.size());
+    Assert.assertEquals("Label 1.", parameters.get(0).getLabel());
+    Assert.assertNull(parameters.get(1).getLabel());
+  }
+
+  @Test
+  public void testGetPlaceholder() throws Exception {
+    List<ParameterConfig> parameters = getParameterConfigs();
+
+    Assert.assertEquals(2, parameters.size());
+    Assert.assertEquals("Placeholder 1.", parameters.get(0).getPlaceholder());
+    Assert.assertNull(parameters.get(1).getPlaceholder());
+  }
+
+  @Test
+  public void testGetDefaultValue() throws Exception {
+    List<ParameterConfig> parameters = getParameterConfigs();
+
+    Assert.assertEquals(2, parameters.size());
+    Assert.assertNull(parameters.get(0).getDefaultValue());
+    Assert.assertEquals("Default value 1.", parameters.get(1).getDefaultValue());
+  }
+
+  @Test
   public void testIsRequired() throws Exception {
     List<ParameterConfig> parameters = getParameterConfigs();
 
