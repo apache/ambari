@@ -17,7 +17,6 @@
  */
 package org.apache.ambari.server.state.stack;
 
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,6 +30,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
 import org.apache.ambari.server.state.stack.upgrade.Batch;
+import org.apache.ambari.server.state.stack.upgrade.Grouping;
 import org.apache.ambari.server.state.stack.upgrade.Task;
 
 /**
@@ -45,8 +45,8 @@ public class UpgradePack {
 
 
   @XmlElementWrapper(name="order")
-  @XmlElement(name="service")
-  private List<OrderService> services;
+  @XmlElement(name="group")
+  private List<Grouping> groups;
 
   @XmlElementWrapper(name="processing")
   @XmlElement(name="service")
@@ -64,21 +64,8 @@ public class UpgradePack {
     return target;
   }
 
-  /**
-   * Gets the order by which services and components should be upgraded.
-   * @return a map of service_name -> list of component_name.
-   */
-  public Map<String, List<String>> getOrder() {
-
-    if (null == m_orders) {
-      m_orders = new LinkedHashMap<String, List<String>>();
-
-      for (OrderService order : services) {
-        m_orders.put(order.name, order.components);
-      }
-    }
-
-    return m_orders;
+  public List<Grouping> getGroups() {
+    return groups;
   }
 
   /**
@@ -106,14 +93,13 @@ public class UpgradePack {
     return m_process;
   }
 
-
   /**
    * A service definition that holds a list of componenents in the 'order' element.
    */
   public static class OrderService {
 
-    @XmlAttribute
-    public String name;
+    @XmlAttribute(name="name")
+    public String serviceName;
 
     @XmlElement(name="component")
     public List<String> components;
@@ -130,6 +116,8 @@ public class UpgradePack {
     @XmlElement(name="component")
     public List<ProcessingComponent> components;
   }
+
+
 
   /**
    * A component definition in the 'processing/service' path.

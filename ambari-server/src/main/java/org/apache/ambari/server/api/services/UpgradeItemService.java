@@ -50,10 +50,10 @@ public class UpgradeItemService extends BaseService {
 
   @GET
   @Produces("text/plain")
-  public Response getUpgrades(String body,
+  public Response getUpgrades(
       @Context HttpHeaders headers,
       @Context UriInfo ui) {
-    return handleRequest(headers, body, ui, Request.Type.GET,
+    return handleRequest(headers, null, ui, Request.Type.GET,
         createResourceInstance(null));
   }
 

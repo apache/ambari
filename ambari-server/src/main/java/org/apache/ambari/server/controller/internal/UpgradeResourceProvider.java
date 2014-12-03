@@ -26,9 +26,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
-import java.util.regex.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StaticallyInject;
@@ -60,20 +60,18 @@ import org.apache.ambari.server.orm.entities.UpgradeGroupEntity;
 import org.apache.ambari.server.orm.entities.UpgradeItemEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ConfigHelper;
-import org.apache.ambari.server.state.Service;
-import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.UpgradeHelper;
+import org.apache.ambari.server.state.UpgradeHelper.UpgradeGroupHolder;
 import org.apache.ambari.server.state.stack.UpgradePack;
-import org.apache.ambari.server.state.stack.UpgradePack.ProcessingComponent;
-import org.apache.ambari.server.state.stack.upgrade.Task;
+import org.apache.ambari.server.state.stack.upgrade.StageWrapper;
+import org.apache.ambari.server.state.stack.upgrade.TaskWrapper;
 import org.apache.ambari.server.utils.StageUtils;
-
-import com.google.gson.Gson;
-import com.google.inject.Inject;
-import com.google.inject.Provider;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.inject.Inject;
+import com.google.inject.Provider;
 
 /**
  * Manages the ability to start and get status of upgrades.
@@ -143,21 +141,23 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       throw new SystemException("Can only initiate one upgrade per request.");
     }
 
-    for (final Map<String, Object> requestMap : requestMaps) {
-      createResources(new Command<Void>() {
+    // !!! above check ensures only one
+    final Map<String, Object> requestMap = requestMaps.iterator().next();
+
+    UpgradeEntity entity = createResources(new Command<UpgradeEntity>() {
         @Override
-        public Void invoke() throws AmbariException {
+        public UpgradeEntity invoke() throws AmbariException {
           UpgradePack up = validateRequest(requestMap);
 
-          createUpgrade(up, requestMap);
-
-          return null;
+          return createUpgrade(up, requestMap);
         };
       });
-    }
 
     notifyCreate(Resource.Type.Upgrade, request);
-    return getRequestStatus(null);
+
+    Resource res = new ResourceImpl(Resource.Type.Upgrade);
+    res.setProperty(UPGRADE_ID, entity.getId());
+    return new RequestStatusImpl(null, Collections.singleton(res));
   }
 
   @Override
@@ -182,7 +182,17 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         throw new NoSuchResourceException(String.format("Cluster %s could not be loaded", clusterName));
       }
 
-      List<UpgradeEntity> upgrades = m_upgradeDAO.findUpgrades(cluster.getClusterId());
+      List<UpgradeEntity> upgrades = new ArrayList<UpgradeEntity>();
+
+      String upgradeIdStr = (String) propertyMap.get(UPGRADE_ID);
+      if (null != upgradeIdStr) {
+        UpgradeEntity upgrade = m_upgradeDAO.findUpgrade(Long.parseLong(upgradeIdStr));
+        if (null != upgrade) {
+          upgrades.add(upgrade);
+        }
+      } else {
+        upgrades = m_upgradeDAO.findUpgrades(cluster.getClusterId());
+      }
 
       for (UpgradeEntity entity : upgrades) {
         results.add(toResource(entity, clusterName, requestPropertyIds));
@@ -328,105 +338,42 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
     Cluster cluster = getManagementController().getClusters().getCluster(clusterName);
     ConfigHelper configHelper = getManagementController().getConfigHelper();
-    Map<String, Service> clusterServices = cluster.getServices();
 
-    Map<String, Map<String, ProcessingComponent>> tasks = pack.getTasks();
-
-    List<StageHolder> preUpgrades = new ArrayList<StageHolder>();
-    List<StageHolder> restart = new ArrayList<StageHolder>();
-    List<StageHolder> postUpgrades = new ArrayList<StageHolder>();
-
-    for (Entry<String, List<String>> entry : pack.getOrder().entrySet()) {
-      String serviceName = entry.getKey();
-      List<String> componentNames = entry.getValue();
-
-      // !!! if the upgrade pack doesn't define any tasks, skip
-      if (!tasks.containsKey(serviceName)) {
-        continue;
-      }
-
-      // !!! if the service isn't installed, skip
-      if (!clusterServices.containsKey(serviceName)) {
-        continue;
-      }
-
-      Service service = clusterServices.get(serviceName);
-      Map<String, ServiceComponent> components = service.getServiceComponents();
-
-      for (String componentName : componentNames) {
-        // !!! if the upgrade pack has no tasks for component, skip
-        if (!tasks.get(serviceName).containsKey(componentName)) {
-          continue;
-        }
-
-        // !!! if the component is not installed with the cluster, skip
-        if (!components.containsKey(componentName)) {
-          continue;
-        }
-
-        ProcessingComponent pc = tasks.get(serviceName).get(componentName);
-
-        List<Set<String>> groupings = computeHostGroupings(pc,
-            components.get(componentName).getServiceComponentHosts().keySet());
-
-        preUpgrades.addAll(buildUpgradeStages(pc, true, groupings));
-        restart.addAll(buildRollingRestart(serviceName, pc, groupings));
-        postUpgrades.addAll(buildUpgradeStages(pc, false, groupings));
-      }
-    }
-
-    Gson gson = new Gson();
-
-    UpgradeEntity entity = new UpgradeEntity();
-
-    List<UpgradeItemEntity> items = new ArrayList<UpgradeItemEntity>();
-    for (StageHolder holder : preUpgrades) {
-      holder.upgradeItemEntity.setHosts(gson.toJson(holder.hosts));
-      holder.upgradeItemEntity.setTasks(gson.toJson(holder.taskHolder.tasks));
-      items.add(holder.upgradeItemEntity);
-    }
-
-    for (StageHolder holder : restart) {
-      holder.upgradeItemEntity.setHosts(gson.toJson(holder.hosts));
-      items.add(holder.upgradeItemEntity);
-    }
-
-    // This should be the last thing just before finalizing
-    for (StageHolder holder : postUpgrades) {
-      holder.upgradeItemEntity.setHosts(gson.toJson(holder.hosts));
-      holder.upgradeItemEntity.setTasks(gson.toJson(holder.taskHolder.tasks));
-      items.add(holder.upgradeItemEntity);
-    }
-
-    items = injectVariables(configHelper, cluster, items);
-
-    entity.setClusterId(Long.valueOf(cluster.getClusterId()));
-
-    // !!! a separate task will create proper groups.  for now, just one.
-    UpgradeGroupEntity group = new UpgradeGroupEntity();
-    group.setName("CLUSTER_UPGRADE");
-    group.setTitle("Cluster Upgrade");
-    group.setItems(items);
-
-    entity.setUpgradeGroups(Collections.singletonList(group));
+    UpgradeHelper helper = new UpgradeHelper();
+    List<UpgradeGroupHolder> groups = helper.createUpgrade(cluster, pack);
+    List<UpgradeGroupEntity> groupEntities = new ArrayList<UpgradeGroupEntity>();
 
     RequestStageContainer req = createRequest((String) requestMap.get(UPGRADE_VERSION));
 
-    // All of the Pre-Upgrades occur first, potentially in several stages.
-    // Should include things like entering safe mode, backing up data, changing the version using hdp-select, etc.
-    for (StageHolder holder : preUpgrades) {
-      createUpgradeTaskStage(cluster, req, holder);
+    for (UpgradeGroupHolder group : groups) {
+      UpgradeGroupEntity groupEntity = new UpgradeGroupEntity();
+      groupEntity.setName(group.name);
+      groupEntity.setTitle(group.title);
+
+      List<UpgradeItemEntity> itemEntities = new ArrayList<UpgradeItemEntity>();
+
+      for (StageWrapper wrapper : group.items) {
+        UpgradeItemEntity itemEntity = new UpgradeItemEntity();
+        itemEntity.setText(wrapper.getText());
+        itemEntity.setTasks(wrapper.getHostsJson());
+        itemEntity.setHosts(wrapper.getTasksJson());
+        itemEntities.add(itemEntity);
+
+        // upgrade items match a stage
+        createStage(cluster, req, itemEntity, wrapper);
+      }
+
+      itemEntities = injectVariables(configHelper, cluster, itemEntities);
+
+      groupEntity.setItems(itemEntities);
+
+      groupEntities.add(groupEntity);
+
     }
 
-    // The restart occurs after all of the Pre-Upgrades are done, and is meant to change the pointers and configs.
-    for (StageHolder holder : restart) {
-      createRestartStage(cluster, req, holder);
-    }
-
-    // Post-Upgrades require the user to click on the "Finalize" button.
-    for (StageHolder holder : postUpgrades) {
-      createUpgradeTaskStage(cluster, req, holder);
-    }
+    UpgradeEntity entity = new UpgradeEntity();
+    entity.setUpgradeGroups(groupEntities);
+    entity.setClusterId(Long.valueOf(cluster.getClusterId()));
 
     req.getRequestStatusResponse();
 
@@ -439,120 +386,6 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     return entity;
   }
 
-  private List<StageHolder> buildUpgradeStages(ProcessingComponent pc,
-      boolean preUpgrade, List<Set<String>> hostGroups) {
-
-    List<TaskHolder> taskHolders = buildStageStrategy(
-        preUpgrade ? pc.preTasks : pc.postTasks);
-
-    List<StageHolder> stages = new ArrayList<StageHolder>();
-
-    StringBuilder sb = new StringBuilder(preUpgrade ? "Preparing " : "Finalizing ");
-    sb.append("%s on %d host(s).  Phase %s/%s");
-    String textFormat = sb.toString();
-
-    for (TaskHolder taskHolder : taskHolders) {
-      int i = 1;
-      for (Set<String> hostGroup : hostGroups) {
-        StageHolder stage = new StageHolder();
-        stage.hosts = hostGroup;
-        stage.taskHolder = taskHolder;
-        stage.upgradeItemEntity = new UpgradeItemEntity();
-        stage.upgradeItemEntity.setText(String.format(textFormat,
-            pc.name,
-            Integer.valueOf(hostGroup.size()),
-            Integer.valueOf(i++),
-            Integer.valueOf(hostGroups.size())));
-        stages.add(stage);
-      }
-    }
-
-    return stages;
-  }
-
-  /**
-   * Builds the stages for the rolling restart portion
-   * @param pc the information from the upgrade pack
-   * @param hostGroups a list of the host groupings
-   * @return the list of stages that need to be created
-   */
-  private List<StageHolder> buildRollingRestart(String serviceName, ProcessingComponent pc,
-      List<Set<String>> hostGroups) {
-    List<StageHolder> stages = new ArrayList<StageHolder>();
-
-    String textFormat = "Restarting %s on %d host(s), Phase %d/%d";
-
-    int i = 1;
-    for (Set<String> hostGroup : hostGroups) {
-      // !!! each of these is its own stage
-      StageHolder stage = new StageHolder();
-      stage.service = serviceName;
-      stage.component = pc.name;
-      stage.hosts = hostGroup;
-      stage.upgradeItemEntity = new UpgradeItemEntity();
-      stage.upgradeItemEntity.setText(String.format(textFormat, pc.name,
-          Integer.valueOf(hostGroup.size()),
-          Integer.valueOf(i++),
-          Integer.valueOf(hostGroups.size())));
-      stages.add(stage);
-    }
-
-    return stages;
-  }
-
-
-  /**
-   * Calculates how the hosts will be executing their upgrades.
-   */
-  private List<Set<String>> computeHostGroupings(ProcessingComponent taskBuckets, Set<String> allHosts) {
-    if (null == taskBuckets.batch) {
-      return Collections.singletonList(allHosts);
-    } else {
-      return taskBuckets.batch.getHostGroupings(allHosts);
-    }
-  }
-
-  /**
-   * For all the tasks for a component, separate out the manual from the
-   * automated steps into the stages they should executed.
-   *
-   * @param tasks a list of tasks
-   * @return the list of stages
-   */
-  private List<TaskHolder> buildStageStrategy(List<Task> tasks) {
-    if (null == tasks)
-      return Collections.emptyList();
-
-    List<TaskHolder> holders = new ArrayList<TaskHolder>();
-    TaskHolder holder = new TaskHolder();
-
-    holders.add(holder);
-    int i = 0;
-    for (Task t : tasks) {
-      // !!! TODO should every manual task get its own stage?
-      if (i > 0 && t.getType().isManual() != tasks.get(i-1).getType().isManual()) {
-        holder = new TaskHolder();
-        holders.add(holder);
-      }
-
-      holder.tasks.add(t);
-      i++;
-    }
-
-    return holders;
-  }
-
-  private static class TaskHolder {
-    private List<Task> tasks = new ArrayList<Task>();
-  }
-
-  private static class StageHolder {
-    private String service;
-    private String component;
-    private TaskHolder taskHolder;
-    private UpgradeItemEntity upgradeItemEntity;
-    private Set<String> hosts;
-  }
 
   private RequestStageContainer createRequest(String version) {
     ActionManager actionManager = getManagementController().getActionManager();
@@ -564,15 +397,19 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     return requestStages;
   }
 
-  /**
-   * Creates a stage and appends it to the request.
-   * @param cluster the cluster
-   * @param request the request container
-   * @param holder the holder
-   * @throws AmbariException
-   */
-  private void createUpgradeTaskStage(Cluster cluster, RequestStageContainer request,
-      StageHolder holder) throws AmbariException {
+  private void createStage(Cluster cluster, RequestStageContainer request,
+      UpgradeItemEntity entity, StageWrapper wrapper) throws AmbariException {
+
+    if (wrapper.hasCommand()) {
+      makeRestartStage(cluster, request, entity, wrapper);
+    } else {
+      makeActionStage(cluster, request, entity, wrapper);
+    }
+
+  }
+
+  private void makeActionStage(Cluster cluster, RequestStageContainer request,
+      UpgradeItemEntity entity, StageWrapper wrapper) throws AmbariException {
 
     Map<String, String> hostLevelParams = new HashMap<String, String>();
     hostLevelParams.put(JDK_LOCATION, getManagementController().getJdkResourceUrl());
@@ -581,7 +418,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         "/tmp/ambari",
         cluster.getClusterName(),
         cluster.getClusterId(),
-        holder.upgradeItemEntity.getText(),
+        entity.getText(),
         "{}", "{}",
         StageUtils.getGson().toJson(hostLevelParams));
 
@@ -590,15 +427,15 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       stageId = 1L;
     }
     stage.setStageId(stageId);
-    holder.upgradeItemEntity.setStageId(Long.valueOf(stageId));
+    entity.setStageId(Long.valueOf(stageId));
 
     // add each host to this stage
     RequestResourceFilter filter = new RequestResourceFilter("", "",
-        new ArrayList<String>(holder.hosts));
+        new ArrayList<String>(wrapper.getHosts()));
 
     // !!! TODO when the custom action is underway, change this
     Map<String, String> params = new HashMap<String, String>();
-    params.put("tasks", holder.upgradeItemEntity.getTasks());
+    params.put("tasks", entity.getTasks());
 
     ActionExecutionContext actionContext = new ActionExecutionContext(
         cluster.getClusterName(), "ru_execute_tasks",
@@ -613,23 +450,27 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     // need to set meaningful text on the command
     for (Map<String, HostRoleCommand> map : stage.getHostRoleCommands().values()) {
       for (HostRoleCommand hrc : map.values()) {
-        hrc.setCommandDetail(holder.upgradeItemEntity.getText());
+        hrc.setCommandDetail(entity.getText());
       }
     }
 
     request.addStages(Collections.singletonList(stage));
   }
 
-  private void createRestartStage(Cluster cluster, RequestStageContainer request,
-      StageHolder holder) throws AmbariException {
+  private void makeRestartStage(Cluster cluster, RequestStageContainer request,
+      UpgradeItemEntity entity, StageWrapper wrapper) throws AmbariException {
 
-    // add each host to this stage
-    RequestResourceFilter filter = new RequestResourceFilter(holder.service, holder.component,
-        new ArrayList<String>(holder.hosts));
+    List<RequestResourceFilter> filters = new ArrayList<RequestResourceFilter>();
+
+    for (TaskWrapper tw : wrapper.getTasks()) {
+      // add each host to this stage
+      filters.add(new RequestResourceFilter(tw.getService(), tw.getComponent(),
+          new ArrayList<String>(tw.getHosts())));
+    }
 
     ActionExecutionContext actionContext = new ActionExecutionContext(
         cluster.getClusterName(), "RESTART",
-        Collections.singletonList(filter),
+        filters,
         Collections.<String, String>emptyMap());
     actionContext.setTimeout(Short.valueOf((short)-1));
 
@@ -640,7 +481,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         "/tmp/ambari",
         cluster.getClusterName(),
         cluster.getClusterId(),
-        holder.upgradeItemEntity.getText(),
+        entity.getText(),
         jsons.getClusterHostInfo(),
         jsons.getCommandParamsForStage(),
         jsons.getHostParamsForStage());
@@ -650,7 +491,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       stageId = 1L;
     }
     stage.setStageId(stageId);
-    holder.upgradeItemEntity.setStageId(Long.valueOf(stageId));
+    entity.setStageId(Long.valueOf(stageId));
 
     // !!! TODO verify the action is valid
 
@@ -661,5 +502,6 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
     request.addStages(Collections.singletonList(stage));
   }
+
 
 }

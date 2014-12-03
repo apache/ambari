@@ -138,7 +138,7 @@ public class UpgradeResourceProviderTest {
     requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.2.2.2");
 
     Request request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), null);
-    provider.createResources(request);
+    org.apache.ambari.server.controller.spi.RequestStatus status = provider.createResources(request);
 
 
     upgrades = upgradeDao.findUpgrades(cluster.getClusterId());
@@ -147,7 +147,7 @@ public class UpgradeResourceProviderTest {
     UpgradeEntity entity = upgrades.get(0);
     assertEquals(cluster.getClusterId(), entity.getClusterId().longValue());
 
-    assertEquals(1, entity.getUpgradeGroups().size());
+    assertEquals(3, entity.getUpgradeGroups().size());
 
     UpgradeGroupEntity group = entity.getUpgradeGroups().get(0);
 
@@ -155,7 +155,7 @@ public class UpgradeResourceProviderTest {
 
     assertTrue(group.getItems().get(0).getText().contains("Preparing"));
     assertTrue(group.getItems().get(1).getText().contains("Restarting"));
-    assertTrue(group.getItems().get(2).getText().contains("Finalizing"));
+    assertTrue(group.getItems().get(2).getText().contains("Completing"));
 
     ActionManager am = injector.getInstance(ActionManager.class);
     List<Long> requests = am.getRequestsByStatus(RequestStatus.IN_PROGRESS, 100, true);

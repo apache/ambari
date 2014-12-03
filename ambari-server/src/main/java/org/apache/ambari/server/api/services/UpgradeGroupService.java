@@ -65,12 +65,9 @@ public class UpgradeGroupService extends BaseService {
         createResourceInstance(id));
   }
 
-  @GET
   @Path("{upgradeGroupId}/upgrade_items")
-  @Produces("text/plain")
-  public UpgradeItemService getUpgradeItems(String body,
+  public UpgradeItemService getUpgradeItems(
       @Context HttpHeaders headers,
-      @Context UriInfo ui,
       @PathParam("upgradeGroupId") Long groupId) {
     return new UpgradeItemService(m_clusterName, m_upgradeId, groupId.toString());
   }

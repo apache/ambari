@@ -68,8 +68,6 @@ public class UpgradeItemResourceProvider extends AbstractControllerResourceProvi
 
   @Inject
   private static UpgradeDAO m_dao = null;
-  @Inject
-  private static Provider<AmbariMetaInfo> m_metaProvider = null;
 
   static {
     // properties

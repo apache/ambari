@@ -17,44 +17,17 @@
  */
 package org.apache.ambari.server.state.stack.upgrade;
 
-import java.util.List;
-import java.util.Set;
-
-import javax.xml.bind.annotation.XmlSeeAlso;
-import javax.xml.bind.annotation.XmlType;
+import javax.xml.bind.annotation.XmlElement;
 
 /**
- * Base class to identify how a component should be upgraded (optional)
+ *  Identifies how a component should be upgraded (optional)
  */
-@XmlSeeAlso(value={CountBatch.class, PercentBatch.class, ConditionalBatch.class})
-public abstract class Batch {
+public class Batch {
 
-  /**
-   * @return the batch type
-   */
-  public abstract Type getType();
+  @XmlElement(name="percent")
+  public int percent;
 
-  /**
-   * Identifies the type of batch
-   */
-  public enum Type {
-    /**
-     * Batch by <i>n</i> instance at a time
-     */
-    COUNT,
-    /**
-     * Batch by <i>x</i>% at a time
-     */
-    PERCENT,
-    /**
-     * Batch by an inital <i>x</i>%, then after confirmation batch <i>y</i>% at a time.
-     */
-    CONDITIONAL
-  }
+  @XmlElement(name="message")
+  public String message;
 
-  /**
-   * @param hosts all the hosts
-   * @return a list of host sets defined by the specific batching
-   */
-  public abstract List<Set<String>> getHostGroupings(Set<String> hosts);
 }

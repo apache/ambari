@@ -18,42 +18,60 @@
 <upgrade xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <target>2.2.*</target>
   <order>
-    <service name="ZOOKEEPER">
-      <component>ZOOKEEPER_SERVER</component>
-      <component>ZOOKEEPER_CLIENT</component>
-    </service>
-    <service name="HDFS">
-      <component>JOURNALNODE</component>
-      <component>NAMENODE</component>
-      <component>DATANODE</component>
-    </service>
+    <group name="ZOOKEEPER" title="Zookeeper">
+      <service name="ZOOKEEPER">
+        <component>ZOOKEEPER_SERVER</component>
+        <component>ZOOKEEPER_CLIENT</component>
+      </service>
+    </group>
+    <group name="CORE_MASTER" title="Core Masters">
+      <service name="HDFS">
+        <component>JOURNALNODE</component>
+        <component>NAMENODE</component>
+      </service>
+      <service name="YARN">
+        <component>RESOURCEMANAGER</component>
+      </service>
+    </group>
+    <group name="CORE_SLAVES" title="Core Slaves" xsi:type="colocated">
+      <service name="HDFS">
+        <component>DATANODE</component>
+      </service>
+      <service name="HBASE">
+        <component>REGIONSERVER</component>
+      </service>
+      <service name="YARN">
+        <component>NODEMANAGER</component>
+      </service>
+      
+      <batch>
+        <percent>20</percent>
+        <message>Please run additional tests</message>
+      </batch>
+    </group>
   </order>
+
   <processing>
     <service name="ZOOKEEPER">
       <component name="ZOOKEEPER_SERVER">
-        <batch xsi:type="count">
-          <count>2</count>
-        </batch>
         <pre-upgrade>
           <task xsi:type="manual">
             <message>this is pre</message>
           </task>
         </pre-upgrade>
         <upgrade>
-          <task xsi:type="execute">
-            <command>ls -l</command>
-          </task>
+          <task xsi:type="restart" />
         </upgrade>
         <post-upgrade>
-          <task xsi:type="manual">
-            <message>this is post</message>
+          <task xsi:type="execute">
+            <command>ls</command>
           </task>
         </post-upgrade>
       </component>
     </service>
     <service name="HDFS">
       <component name="NAMENODE">
-        <upgrade>
+        <pre-upgrade>
           <task xsi:type="execute">
             <command>su - {hdfs-user} -c 'dosomething'</command>
           </task>
@@ -65,18 +83,36 @@
           <task xsi:type="manual">
             <message>Update your database</message>
           </task>
-        </upgrade>
-      </component>
-      <component name="DATANODE">
-        <batch xsi:type="conditional">
-          <initial>15</initial>
-          <remaining>50</remaining>
-        </batch>
+        </pre-upgrade>
         <upgrade>
+          <task xsi:type="restart" />
+        </upgrade>
+        <post-upgrade>
           <task xsi:type="execute">
             <command>ls</command>
           </task>
+        </post-upgrade>
+      </component>
+      <component name="DATANODE">
+        <upgrade>
+          <task xsi:type="restart" />
         </upgrade>
+      </component>
+    </service>
+    <service name="YARN">
+      <component name="RESOURCEMANAGER">
+        <pre-upgrade>
+          <task xsi:type="execute">
+            <command>ls</command>
+          </task>
+        </pre-upgrade>
+      </component>
+      <component name="NODEMANAGER">
+        <pre-upgrade>
+          <task xsi:type="execute">
+            <command>ls</command>
+          </task>
+        </pre-upgrade>
       </component>
     </service>
   </processing>

@@ -32,22 +32,42 @@
 <upgrade xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <target>2.2.*.*</target>
   <order>
-    <service name="ZOOKEEPER">
-      <component>ZOOKEEPER_SERVER</component>
-      <component>ZOOKEEPER_CLIENT</component>
-    </service>
-    <service name="HDFS">
-      <component>NAMENODE</component>
-      <component>DATANODE</component>
-      <component>JOURNALNODE</component>
-    </service>
+    <group name="ZOOKEEPER" title="Zookeeper">
+      <service name="ZOOKEEPER">
+        <component>ZOOKEEPER_SERVER</component>
+        <component>ZOOKEEPER_CLIENT</component>
+      </service>
+    </group>
+    <group name="CORE_MASTER" title="Core Masters">
+      <service name="HDFS">
+        <component>JOURNALNODE</component>
+        <component>NAMENODE</component>
+      </service>
+      <service name="YARN">
+        <component>RESOURCEMANAGER</component>
+      </service>
+    </group>
+    <group name="CORE_SLAVES" title="Core Slaves" xsi:type="colocated">
+      <service name="HDFS">
+        <component>DATANODE</component>
+      </service>
+      <service name="HBASE">
+        <component>REGIONSERVER</component>
+      </service>
+      <service name="YARN">
+        <component>NODEMANAGER</component>
+      </service>
+      
+      <batch>
+        <percent>20</percent>
+        <message>Please run additional tests</message>
+      </batch>
+    </group>
   </order>
+  
   <processing>
     <service name="ZOOKEEPER">
       <component name="ZOOKEEPER_SERVER">
-        <batch xsi:type="count">
-          <count>1</count>
-        </batch>
         <!-- TODO, optimization
         <pre-upgrade>
           Find the leader by running
@@ -70,6 +90,9 @@
 
         $ quit
         -->
+        <upgrade>
+          <task xsi:type="restart" />
+        </upgrade>
       </component>
     </service>
     <service name="HDFS">
@@ -126,6 +149,10 @@
             <every>1</every>
           </task>
         </pre-upgrade>
+        
+        <upgrade>
+          <task xsi:type="restart" />
+        </upgrade>        
 
         <!-- This step should be done once the user clicks on the "Finalize" button. So the name post-upgrade is misleading. -->
         <post-upgrade>
@@ -139,9 +166,6 @@
       </component>
 
       <component name="DATANODE">
-        <batch xsi:type="percent">
-          <percent>20</percent>
-        </batch>
         <pre-upgrade>
           <!-- Shutdown the datanode,
 
@@ -176,21 +200,24 @@
             <command>su {{hadoop-env/hdfs_user}} -c 'hdfs dfsadmin -getDatanodeInfo {{hdfs-site/dfs.datanode.ipc.address}}'</command>
             <ignore>255</ignore>
           </task>
+          
 
           <!-- TODO, move this to HDFS Datanode restart. -->
           <task xsi:type="execute">
             <command>hdp-select set hadoop-hdfs-datanode {{version}}</command>
           </task>
+          
         </pre-upgrade>
+        <upgrade>
+          <task xsi:type="restart" />
+        </upgrade>
+
       </component>
 
       <component name="JOURNALNODE">
         <!-- Recommended after the Namenode, and only needed when HA is enabled. -->
-        <batch xsi:type="count">
-          <count>1</count>
-        </batch>
         <upgrade>
-          <!-- TODO -->
+          <task xsi:type="restart" />
         </upgrade>
       </component>
 

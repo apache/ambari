@@ -23,13 +23,18 @@ import javax.xml.bind.annotation.XmlSeeAlso;
 /**
  * Base class to identify the items that could possibly occur during an upgrade
  */
-@XmlSeeAlso(value={ExecuteTask.class, ConfigureTask.class, ManualTask.class})
+@XmlSeeAlso(value={ExecuteTask.class, ConfigureTask.class, ManualTask.class, RestartTask.class})
 public abstract class Task {
 
   /**
    * @return the type of the task
    */
   public abstract Type getType();
+
+  @Override
+  public String toString() {
+    return getType().toString();
+  }
 
   /**
    * Identifies the type of task.
@@ -46,7 +51,11 @@ public abstract class Task {
     /**
      * Task that displays a message and must be confirmed before continuing
      */
-    MANUAL;
+    MANUAL,
+    /**
+     * Task that is a restart command.
+     */
+    RESTART;
 
     /**
      * @return {@code true} if the task is manual or automated.
@@ -54,5 +63,15 @@ public abstract class Task {
     public boolean isManual() {
       return this == MANUAL;
     }
+
+    /**
+     * @return {@code true} if the task is a command type (as opposed to an action)
+     */
+    public boolean isCommand() {
+      return this == RESTART;
+    }
+
+
+
   }
 }
