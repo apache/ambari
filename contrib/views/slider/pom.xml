@@ -449,14 +449,14 @@
 						</goals>
 						<configuration>
 							<target name="slider-ui-clean">
-                                <exec dir="${ui.directory}" executable="${executable.rmdir}">
-                                    <arg value="${args.rm.clean}"/>
-                                    <arg value="public"/>
-                                    <arg value="node_modules"/>
-                                </exec>
-                                <exec dir="${ui.directory}" executable="${executable.mkdir}">
-                                    <arg value="${args.mkdir.clean}"/>
-                                </exec>
+                <exec dir="${ui.directory}" executable="${executable.rmdir}">
+                  <arg value="${args.rm.clean}"/>
+                  <arg value="public"/>
+                  <arg value="node_modules"/>
+                </exec>
+                <exec dir="${ui.directory}" executable="${executable.mkdir}">
+                  <arg value="${args.mkdir.clean}"/>
+                </exec>
 							</target>
 						</configuration>
 					</execution>
@@ -468,18 +468,12 @@
 						</goals>
 						<configuration>
 							<target name="slider-ui-compile">
-                                <exec dir="${ui.directory}" executable="${executable.npm}" failonerror="true">
-                                    <arg value="${args.npm.install}"/>
-                                </exec>
-                                <exec dir="${ui.directory}" executable="${executable.brunch}" failonerror="true">
-                                    <arg value="${args.brunch.build}"/>
-                                </exec>
-                                <exec dir="${ui.directory}" executable="${executable.gzip}" failonerror="false">
-                                    <arg value="-f"/>
-                                    <arg value="public/javascripts/app.js"/>
-                                    <arg value="public/javascripts/vendor.js"/>
-                                    <arg value="public/stylesheets/app.css"/>
-                                </exec>
+                <exec dir="${ui.directory}" executable="${executable.npm}" failonerror="true">
+                  <arg value="${args.npm.install}"/>
+                </exec>
+                <exec dir="${ui.directory}" executable="${executable.brunch}" failonerror="true">
+                  <arg value="${args.brunch.build}"/>
+                </exec>
 							</target>
 						</configuration>
 					</execution>
@@ -499,13 +493,20 @@
 						</configuration>
 					</execution>
 					<execution>
-						<id>package</id>
-						<phase>package</phase>
+						<id>prepare-package</id>
+						<phase>prepare-package</phase>
 						<goals>
 							<goal>run</goal>
 						</goals>
 						<configuration>
-							<target name="slider-ui-package">
+							<target name="slider-ui-prepare-package">
+                <exec dir="${ui.directory}" executable="${executable.gzip}" failonerror="false">
+                  <arg value="-f"/>
+                  <arg value="public/javascripts/app.js"/>
+                  <arg value="public/javascripts/vendor.js"/>
+                  <arg value="public/stylesheets/app.css"/>
+                </exec>
+
 								<!-- <copy toDir="${project.build.directory}/ambari-server-${project.version}-dist/ambari-server-${project.version}/web/">
 									<fileset dir="${ui.directory}/../ambari-web/public"/> </copy> -->
 							</target>
