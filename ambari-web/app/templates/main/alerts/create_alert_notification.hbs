@@ -70,5 +70,18 @@
       </div>
     </div>
 
+    {{#each customProperty in controller.inputFields.customProperties}}
+      <div class="control-group">
+        <label class="control-label" for="inputGroups">{{customProperty.name}}</label>
+
+        <div class="controls">
+          {{view Em.TextField valueBinding="customProperty.value" class="input-xlarge"}}
+          <a href="#" {{action "removeCustomPropertyHandler" customProperty target="controller"}} class="btn btn-small"><span class="icon-minus-sign"></span></a>
+        </div>
+      </div>
+    {{/each}}
+
+    <a href="#" {{action addCustomPropertyHandler target="controller"}}>{{t installer.step7.config.addProperty}} ...</a>
+
   </form>
 </div>

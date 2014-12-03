@@ -18,6 +18,8 @@
 
 var App = require('app');
 var controller;
+var helpers = require('test/helpers');
+
 describe('App.ManageAlertNotificationsController', function () {
 
   beforeEach(function () {
@@ -162,7 +164,7 @@ describe('App.ManageAlertNotificationsController', function () {
 
   describe('#fillEditCreateInputs()', function () {
 
-    it("should map properties from selectedAlertNotification to inputFields", function () {
+    it("should map properties from selectedAlertNotification to inputFields (ambari.dispatch.recipients ignored)", function () {
 
       controller.set('selectedAlertNotification', Em.Object.create({
         name: 'test_name',
@@ -173,7 +175,8 @@ describe('App.ManageAlertNotificationsController', function () {
           'ambari.dispatch.recipients': [
             'test1@test.test',
             'test2@test.test'
-          ]
+          ],
+          'customName': 'customValue'
         }
       }));
 
@@ -195,7 +198,11 @@ describe('App.ManageAlertNotificationsController', function () {
         },
         description: {
           value: ''
-        }
+        },
+        customProperties: [
+          {name: 'customName', value: 'customValue1', defaultValue: 'customValue1'},
+          {name: 'customName2', value: 'customValue1', defaultValue: 'customValue1'}
+        ]
       }));
 
       controller.fillEditCreateInputs();
@@ -218,7 +225,10 @@ describe('App.ManageAlertNotificationsController', function () {
         },
         description: {
           value: 'test_description'
-        }
+        },
+        customProperties: [
+          {name: 'customName', value: 'customValue', defaultValue: 'customValue'}
+        ]
       }));
 
     });
@@ -271,7 +281,11 @@ describe('App.ManageAlertNotificationsController', function () {
         },
         description: {
           value: 'test_description'
-        }
+        },
+        customProperties: [
+          {name: 'n1', value: 'v1'},
+          {name: 'n2', value: 'v2'}
+        ]
       }));
 
       var result = controller.formatNotificationAPIObject();
@@ -288,7 +302,9 @@ describe('App.ManageAlertNotificationsController', function () {
               'test2@test.test',
               'test3@test.test',
               'test4@test.test'
-            ]
+            ],
+            'n1': 'v1',
+            'n2': 'v2'
           }
         }
       });
@@ -387,7 +403,6 @@ describe('App.ManageAlertNotificationsController', function () {
 
   });
 
-
   describe('#deleteAlertNotificationSuccessCallback()', function () {
 
     it("should call loadAlertNotifications, selectedAlertNotification.deleteRecord and set null to selectedAlertNotification", function () {
@@ -429,6 +444,105 @@ describe('App.ManageAlertNotificationsController', function () {
 
       expect(controller.fillEditCreateInputs.calledWith(true)).to.be.true;
       expect(controller.showCreateEditPopup.calledOnce).to.be.true;
+    });
+
+  });
+
+  describe('#addCustomProperty', function () {
+
+    beforeEach(function () {
+      controller.set('inputFields.customProperties', []);
+    });
+
+    it('should add custom Property to customProperties', function () {
+
+      controller.set('newCustomProperty', {name: 'n1', value: 'v1'});
+      controller.addCustomProperty();
+      helpers.nestedExpect([{name: 'n1', value: 'v1', defaultValue: 'v1'}], controller.get('inputFields.customProperties'));
+
+    });
+
+  });
+
+  describe('#removeCustomPropertyHandler', function () {
+
+    var c = {name: 'n2', value: 'v2', defaultValue: 'v2'};
+
+    beforeEach(function () {
+      controller.set('inputFields.customProperties', [
+        {name: 'n1', value: 'v1', defaultValue: 'v1'},
+        c,
+        {name: 'n3', value: 'v3', defaultValue: 'v3'}
+      ]);
+    });
+
+    it('should remove selected custom property', function () {
+
+      controller.removeCustomPropertyHandler({context: c});
+      helpers.nestedExpect(
+        [
+          {name: 'n1', value: 'v1', defaultValue: 'v1'},
+          {name: 'n3', value: 'v3', defaultValue: 'v3'}
+        ],
+        controller.get('inputFields.customProperties')
+      );
+
+    });
+
+  });
+
+  describe('#addCustomPropertyHandler', function () {
+
+    it('should clean up newCustomProperty on primary click', function () {
+
+      controller.set('newCustomProperty', {name: 'n1', value: 'v1'});
+      controller.addCustomPropertyHandler().onPrimary();
+      expect(controller.get('newCustomProperty')).to.eql({name: '', value: ''});
+
+    });
+
+    describe('#bodyClass', function () {
+
+      var view;
+
+      beforeEach(function () {
+        view = controller.addCustomPropertyHandler().get('bodyClass').create({
+          parentView: Em.View.create(),
+          controller: Em.Object.create({
+            inputFields: Em.Object.create({
+              customProperties: [
+                {name: 'n1', value: 'v1', defaultValue: 'v1'}
+              ]
+            }),
+            newCustomProperty: {name: '', value: ''}
+          })
+        });
+      });
+
+      describe('#errorHandler', function () {
+
+        it('should fire invalid name', function () {
+
+          view.set('controller.newCustomProperty.name', '!!');
+          view.errorsHandler();
+          expect(view.get('isError')).to.be.true;
+          expect(view.get('parentView.disablePrimary')).to.be.true;
+          expect(view.get('errorMessage.length') > 0).to.be.true;
+
+        });
+
+        it('should fire existing property name', function () {
+
+          view.set('controller.newCustomProperty.name', 'n1');
+          view.errorsHandler();
+          expect(view.get('isError')).to.be.true;
+          expect(view.get('parentView.disablePrimary')).to.be.true;
+          expect(view.get('errorMessage.length') > 0).to.be.true;
+
+        });
+
+      });
+
     });
 
   });

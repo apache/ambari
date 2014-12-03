@@ -878,6 +878,10 @@ Em.I18n.translations = {
   'alerts.definition.details.notification': 'Notification',
   'alerts.definition.details.noAlerts': 'No alert instances to show',
 
+  'alerts.notifications.addCustomPropertyPopup.header': 'Add Custom Property',
+  'alerts.notifications.addCustomPropertyPopup.error.propertyExists': 'Custom Property with current name already exists',
+  'alerts.notifications.addCustomPropertyPopup.error.invalidPropertyName': 'Custom Property name is invalid',
+
 
   'wizard.progressPage.notice.completed':'Please proceed to the next step.',
   'wizard.progressPage.notice.failed':'You can click on the Retry button to retry failed tasks.',

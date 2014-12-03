@@ -363,7 +363,7 @@ var urls = {
   },
   'alerts.notifications': {
     'real': '/alert_targets?fields=*',
-    'mock': ''
+    'mock': '/data/alerts/alertNotifications.json'
   },
   'alerts.instances.by_definition': {
     'real': '/clusters/{clusterName}/alerts?fields=*&(Alert/definition_id={definitionId}|Alert/state.in(CRITICAL,WARNING))',
@@ -2021,7 +2021,7 @@ var urls = {
         action: 'check_host',
         parameters: { }
       };
-      $.extend(true, requestInfo, data.requestInfo)
+      $.extend(true, requestInfo, data.requestInfo);
       return {
         type: 'POST',
         data: JSON.stringify({

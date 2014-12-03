@@ -17,11 +17,16 @@
  */
 
 var App = require('app');
+var validator = require('utils/validator');
 
 App.ManageAlertNotificationsController = Em.Controller.extend({
 
   name: 'manageAlertNotificationsController',
 
+  /**
+   * Are alert notifications loaded
+   * @type {boolean}
+   */
   isLoaded: false,
 
   /**
@@ -65,7 +70,8 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
       label: Em.I18n.t('common.description'),
       value: '',
       defaultValue: ''
-    }
+    },
+    customProperties: Em.A([])
   }),
 
   /**
@@ -80,10 +86,7 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
    * @type {App.AlertNotification[]}
    */
   alertNotifications: function () {
-    if (this.get('isLoaded')) {
-      return App.AlertNotification.find().toArray();
-    }
-    return [];
+    return this.get('isLoaded') ? App.AlertNotification.find().toArray() : [];
   }.property('isLoaded'),
 
   /**
@@ -91,6 +94,18 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
    * @type {App.AlertNotification}
    */
   selectedAlertNotification: null,
+
+  /**
+   * Addable to <code>selectedAlertNotification.properties</code> custom property
+   * @type {{name: string, value: string}}
+   */
+  newCustomProperty: {name: '', value: ''},
+
+  /**
+   * List custom property names that shouldn't be displayed on Edit page
+   * @type {string[]}
+   */
+  ignoredCustomProperties: ['ambari.dispatch.recipients'],
 
   /**
    * Load all Alert Notifications from server
@@ -127,6 +142,7 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
 
   /**
    * Add Notification button handler
+   * @method addAlertNotification
    */
   addAlertNotification: function () {
     var inputFields = this.get('inputFields');
@@ -138,6 +154,7 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
 
   /**
    * Edit Notification button handler
+   * @method editAlertNotification
    */
   editAlertNotification: function () {
     this.fillEditCreateInputs();
@@ -147,6 +164,7 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
   /**
    * Fill inputs of Create/Edit popup form
    * @param addCopyToName define whether add 'Copy of ' to name
+   * @method fillEditCreateInputs
    */
   fillEditCreateInputs: function (addCopyToName) {
     var inputFields = this.get('inputFields');
@@ -162,12 +180,24 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
     ]);
     inputFields.set('description.value', selectedAlertNotification.get('description'));
     inputFields.set('method.value', selectedAlertNotification.get('type'));
+    inputFields.get('customProperties').clear();
+    var properties = selectedAlertNotification.get('properties');
+    var ignoredCustomProperties = this.get('ignoredCustomProperties');
+    Em.keys(properties).forEach(function (k) {
+      if (ignoredCustomProperties.contains(k)) return;
+      inputFields.get('customProperties').pushObject({
+        name: k,
+        value: properties[k],
+        defaultValue: properties[k]
+      });
+    });
   },
 
   /**
    * Show Edit or Create Notification popup
-   * @param isEdit
+   * @param {boolean} isEdit true - edit, false - create
    * @returns {App.ModalPopup}
+   * @method showCreateEditPopup
    */
   showCreateEditPopup: function (isEdit) {
     var self = this;
@@ -198,31 +228,35 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
   /**
    * Create API-formatted object from data populate by user
    * @returns {Object}
+   * @method formatNotificationAPIObject
    */
   formatNotificationAPIObject: function () {
     var inputFields = this.get('inputFields');
     var alertStates = [];
     var properties = {};
-    if (inputFields.severityFilter.value[0]) {
+    if (inputFields.get('severityFilter.value')[0]) {
       alertStates.push('OK');
     }
-    if (inputFields.severityFilter.value[1]) {
+    if (inputFields.get('severityFilter.value')[1]) {
       alertStates.push('WARNING');
     }
-    if (inputFields.severityFilter.value[2]) {
+    if (inputFields.get('severityFilter.value')[2]) {
       alertStates.push('CRITICAL');
     }
-    if (inputFields.severityFilter.value[3]) {
+    if (inputFields.get('severityFilter.value')[3]) {
       alertStates.push('UNKNOWN');
     }
-    if (inputFields.method.value === 'EMAIL') {
-      properties['ambari.dispatch.recipients'] = inputFields.email.value.replace(/\s/g, '').split(',');
+    if (inputFields.get('method.value') === 'EMAIL') {
+      properties['ambari.dispatch.recipients'] = inputFields.get('email.value').replace(/\s/g, '').split(',');
     }
+    inputFields.get('customProperties').forEach(function (customProperty) {
+      properties[customProperty.name] = customProperty.value;
+    });
     return {
       AlertTarget: {
-        name: inputFields.name.value,
-        description: inputFields.description.value,
-        notification_type: inputFields.method.value,
+        name: inputFields.get('name.value'),
+        description: inputFields.get('description.value'),
+        notification_type: inputFields.get('method.value'),
         alert_states: alertStates,
         properties: properties
       }
@@ -231,8 +265,9 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
 
   /**
    * Send request to server to create Alert Notification
-   * @param apiObject
+   * @param {object} apiObject (@see formatNotificationAPIObject)
    * @returns {$.ajax}
+   * @method createAlertNotification
    */
   createAlertNotification: function (apiObject) {
     return App.ajax.send({
@@ -247,6 +282,7 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
 
   /**
    * Success callback for <code>createAlertNotification</code>
+   * @method createAlertNotificationSuccessCallback
    */
   createAlertNotificationSuccessCallback: function () {
     this.loadAlertNotifications();
@@ -258,8 +294,9 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
 
   /**
    * Send request to server to update Alert Notification
-   * @param apiObject
+   * @param {object} apiObject (@see formatNotificationAPIObject)
    * @returns {$.ajax}
+   * @method updateAlertNotification
    */
   updateAlertNotification: function (apiObject) {
     return App.ajax.send({
@@ -275,6 +312,7 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
 
   /**
    * Success callback for <code>updateAlertNotification</code>
+   * @method updateAlertNotificationSuccessCallback
    */
   updateAlertNotificationSuccessCallback: function () {
     this.loadAlertNotifications();
@@ -286,6 +324,8 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
 
   /**
    * Delete Notification button handler
+   * @return {App.ModalPopup}
+   * @method deleteAlertNotification
    */
   deleteAlertNotification: function () {
     var self = this;
@@ -303,6 +343,7 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
 
   /**
    * Success callback for <code>deleteAlertNotification</code>
+   * @method deleteAlertNotificationSuccessCallback
    */
   deleteAlertNotificationSuccessCallback: function () {
     this.loadAlertNotifications();
@@ -313,10 +354,98 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
 
   /**
    * Duplicate Notification button handler
+   * @method duplicateAlertNotification
    */
   duplicateAlertNotification: function () {
     this.fillEditCreateInputs(true);
     this.showCreateEditPopup();
+  },
+
+  /**
+   * Show popup with form for new custom property
+   * @method addCustomPropertyHandler
+   * @return {App.ModalPopup}
+   */
+  addCustomPropertyHandler: function () {
+    var self = this;
+
+    return App.ModalPopup.show({
+
+      header: Em.I18n.t('alerts.notifications.addCustomPropertyPopup.header'),
+
+      primary: Em.I18n.t('common.add'),
+
+      bodyClass: Em.View.extend({
+
+        /**
+         * If some error with new custom property
+         * @type {boolean}
+         */
+        isError: false,
+
+        controller: this,
+
+        /**
+         * Error message for new custom property (invalid name, existed name etc)
+         * @type {string}
+         */
+        errorMessage: '',
+
+        /**
+         * Check new custom property for errors with its name
+         * @method errorHandler
+         */
+        errorsHandler: function () {
+          var name = this.get('controller.newCustomProperty.name');
+          var flag = validator.isValidConfigKey(name);
+          if (flag) {
+            if (this.get('controller.inputFields.customProperties').mapProperty('name').contains(name) ||
+              this.get('controller.ignoredCustomProperties').contains(name)) {
+              this.set('errorMessage', Em.I18n.t('alerts.notifications.addCustomPropertyPopup.error.propertyExists'));
+              flag = false;
+            }
+          }
+          else {
+            this.set('errorMessage', Em.I18n.t('alerts.notifications.addCustomPropertyPopup.error.invalidPropertyName'));
+          }
+          this.set('isError', !flag);
+          this.set('parentView.disablePrimary', !flag);
+        }.observes('controller.newCustomProperty.name'),
+
+        templateName: require('templates/main/alerts/add_custom_config_to_alert_notification_popup')
+      }),
+
+      onPrimary: function () {
+        self.addCustomProperty();
+        self.set('newCustomProperty', {name: '', value: ''}); // cleanup
+        this.hide();
+      }
+
+    });
+  },
+
+  /**
+   * Add Custom Property to <code>selectedAlertNotification</code> (push it to <code>properties</code>-field)
+   * @method addCustomProperty
+   */
+  addCustomProperty: function () {
+    var newCustomProperty = this.get('newCustomProperty');
+    this.get('inputFields.customProperties').pushObject({
+      name: newCustomProperty.name,
+      value: newCustomProperty.value,
+      defaultValue: newCustomProperty.value
+    });
+  },
+
+  /**
+   * "Remove"-button click handler
+   * Delete customProperty from <code>inputFields.customProperties</code>
+   * @param {object} e
+   * @method removeCustomProperty
+   */
+  removeCustomPropertyHandler: function (e) {
+    var customProperties = this.get('inputFields.customProperties');
+    this.set('inputFields.customProperties', customProperties.without(e.context));
   }
 
 });
