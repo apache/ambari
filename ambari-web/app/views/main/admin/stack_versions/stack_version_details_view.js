@@ -22,44 +22,37 @@ App.MainStackVersionsDetailsView = Em.View.extend({
 
   templateName: require('templates/main/admin/stack_versions/stack_version_details'),
 
-  /**
-   * installation status of stack version on hosts
-   * {String}
-   */
-  status: function() {
-    if (this.get('controller.installInProgress'))  {
-      return 'INSTALLING'
-    } else if (this.get('controller.allInstalled')) {
-      return 'ALL_INSTALLED';
-    } else {
-      return 'INSTALL';
-    }
-  }.property('controller.installInProgress', 'controller.allInstalled'),
-
+  content: function() {
+    return this.get('controller.content')
+  }.property('controller.content'),
   /**
    * text on install buttons
    * {String}
    */
   stackTextStatus: function() {
-    switch(this.get('status')) {
+    var self = this;
+    switch(this.get('content.state')) {
+      case 'UPGRADING':
       case 'INSTALLING':
-        return Em.I18n.t('admin.stackVersions.datails.hosts.btn.installing');
+        return self.get('content.state').toCapital().concat("...");
         break;
-      case 'ALL_INSTALLED':
+      case 'INSTALLED':
         return Em.I18n.t('admin.stackVersions.datails.hosts.btn.nothing');
         break;
-      case 'INSTALL':
-        return Em.I18n.t('admin.stackVersions.datails.hosts.btn.install').format(this.get('controller.content.notInstalledHostStacks.length'));
+      case 'INIT':
+        return Em.I18n.t('admin.stackVersions.datails.hosts.btn.install').format(self.get('totalHostCount') - self.get('content.installedHosts.length'));
         break;
+      default:
+        return self.get('content.state') && self.get('content.state').toCapital();
     }
-  }.property('status', 'controller.content.notInstalledHostStacks.length'),
+  }.property('content.state', 'content.notInstalledHostStacks.length'),
 
   /**
    * class on install buttons
    * {String}
    */
   statusClass: function() {
-    switch (this.get('status')) {
+    switch (this.get('content.state')) {
       case 'INSTALL':
         return 'btn-success';
         break;
@@ -69,6 +62,17 @@ App.MainStackVersionsDetailsView = Em.View.extend({
       default:
         return 'disabled';
     }
-  }.property('status')
+  }.property('content.state'),
 
+  didInsertElement: function() {
+    App.get('router.mainStackVersionsController').set('isPolling', true);
+    App.get('router.mainStackVersionsController').load();
+    App.get('router.mainStackVersionsController').doPolling();
+  },
+
+
+  willDestroyElement: function () {
+    App.get('router.mainStackVersionsController').set('isPolling', false);
+    clearTimeout(App.get('router.mainStackVersionsController.timeoutRef'));
+  }
 });

@@ -17,7 +17,7 @@
 }}
 
 <div id="stack-version-details">
-  <a class="breadcrumbs" href="#/main/admin/versions">{{t common.versions}}</a><span>&nbsp; > &nbsp;{{content.name}}</span>
+  <a class="breadcrumbs" href="#/main/admin/versions">{{t common.versions}}</a><span>&nbsp; > &nbsp;{{content.repositoryVersion.displayName}}</span>
 
   <div class="box">
     <div class="box-header">
@@ -30,7 +30,7 @@
       </div>
       <div class="row-fluid">
         <div class="span3">{{t admin.stackVersions.datails.versionName}}</div>
-        <div class="span6">{{content.version}}</div>
+        <div class="span6">{{content.repositoryVersion.displayName}}</div>
       </div>
     </div>
   </div>
@@ -43,28 +43,38 @@
       <div class="row-fluid">
         <div class="span8">
           <div class="row-fluid">
+            <div class="span3">{{t admin.stackVersions.datails.not.installed.on}}</div>
+            <div {{bindAttr class="noInitHosts:not-active-link :span6"}}>
+              <a href="#" title='current' class="not-installed-hosts-count"
+                {{action showHosts content.repositoryVersion.displayName content.notInstalledHosts target="App.router.mainStackVersionsController"}}>
+                {{notInstalledHostsCount}}/{{totalHostCount}}
+              </a>
+            </div>
+          </div>
+          <div class="row-fluid">
             <div class="span3">{{t admin.stackVersions.datails.installed.on}}</div>
-            <div class="span6">
-              <a href="#" title='installed' {{bindAttr class="controller.content.noInstalledHosts:not-active-link :installed-hosts-count"}}
-                {{action showHosts controller.content.version controller.content.installedHosts target="App.router.mainStackVersionsController"}}>
-                <span>{{content.installedHosts.length}}/{{totalHostCount}}</span>
+            <div {{bindAttr class="content.noInstalledHosts:not-active-link :span6"}}>
+              <a href="#" title='installed' class="installed-hosts-count"
+                {{action showHosts content.repositoryVersion.displayName content.installedHosts target="App.router.mainStackVersionsController"}}>
+                {{content.installedHosts.length}}/{{totalHostCount}}
               </a>
             </div>
           </div>
           <div class="row-fluid">
             <div class="span3">{{t admin.stackVersions.datails.current.on}}</div>
-            <div class="span6">
-              <a href="#" title='current' {{bindAttr class="controller.content.noCurrentHosts:not-active-link :current-hosts-count"}}
-                {{action showHosts controller.content.version controller.content.currentHosts target="App.router.mainStackVersionsController"}}>
-                <span>{{content.currentHosts.length}}/{{totalHostCount}}</span>
+            <div {{bindAttr class="content.noCurrentHosts:not-active-link :span6"}}>
+              <a href="#" title='current' class="current-hosts-count"
+                {{action showHosts content.repositoryVersion.displayName content.currentHosts target="App.router.mainStackVersionsController"}}>
+                {{content.currentHosts.length}}/{{totalHostCount}}
               </a>
             </div>
           </div>
         </div>
-        <div class="span4">
+        <div class="span4 align-center">
           <a id="repo-version-action-button" {{bindAttr class="view.statusClass :btn :stack-status-button"}} {{action installStackVersion content target="controller"}}>
             <i {{bindAttr class="installInProgress:icon-cog"}}>&nbsp;</i>{{view.stackTextStatus}}
           </a>
+          <a href="#/main/admin/stack" {{bindAttr class="installedNotUpgraded::hidden"}} >{{t admin.stackVersions.datails.hosts.btn.goto.upgrade}}</a>
         </div>
       </div>
     </div>
@@ -90,17 +100,17 @@
         </tr>
         </thead>
         <tbody>
-        {{#each os in content.operatingSystems}}
+        {{#each os in content.repositoryVersion.operatingSystems}}
           {{#each repo in os.repositories}}
             <tr>
               <td>
-                {{os.name}}
+                {{os.osType}}
               </td>
               <td>
-                {{repo.type}}
+                {{repo.repoId}}
               </td>
               <td>
-                {{view Ember.TextField valueBinding="repo.baseurl" disabled="disabled"}}
+                {{view Ember.TextField valueBinding="repo.baseUrl" disabled="disabled"}}
               </td>
             </tr>
           {{/each}}

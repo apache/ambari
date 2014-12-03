@@ -1249,11 +1249,13 @@ Em.I18n.translations = {
   'admin.stackVersions.datails.versionName': "Version Name",
   'admin.stackVersions.datails.installed.on': "Installed On",
   'admin.stackVersions.datails.current.on': "Current On",
+  'admin.stackVersions.datails.not.installed.on': "Not installed on",
   'admin.stackVersions.datails.base.url': "Base Url",
 
   'admin.stackVersions.datails.hosts.btn.install': "Install to {0} hosts",
   'admin.stackVersions.datails.hosts.btn.installing': "Installing...",
-  'admin.stackVersions.datails.hosts.btn.nothing': "Nothing to Install",
+  'admin.stackVersions.datails.hosts.btn.nothing': "Installed on all hosts",
+  'admin.stackVersions.datails.hosts.btn.goto.upgrade': "Proceed to upgrade",
   'admin.stackVersions.datails.hosts.btn.na': "Status not available",
   'admin.stackVersions.datails.install.hosts.popup.title': "Install {0} version",
 

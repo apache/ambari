@@ -18,15 +18,19 @@
 
 var App = require('app');
 
-App.OS = DS.Model.extend({
+App.RepositoryVersion = DS.Model.extend({
   id: DS.attr('string'),
-  osType : DS.attr('string'),
-  stackName : DS.attr('string'),
-  stackVersion : DS.attr('string'),
-  repositoryVersion: DS.belongsTo('App.RepositoryVersion'),
-  repositories: DS.hasMany('App.Repository')
+  displayName : DS.attr('string'),
+  repositoryVersion : DS.attr('string'),
+  upgradePack : DS.attr('string'),
+  stackVersionType : DS.attr('string'),
+  stackVersionNumber : DS.attr('string'),
+  operatingSystems: DS.hasMany('App.OS'),
+  stackVersion: DS.belongsTo('App.StackVersion'),
+  stack: function() {
+    return this.get('stackVersionType') + " " + this.get('stackVersionNumber');
+  }.property('stackVersionType', 'stackVersionNumber')
 });
 
-App.OS.FIXTURES = [];
-
+App.RepositoryVersion.FIXTURES = [];
 

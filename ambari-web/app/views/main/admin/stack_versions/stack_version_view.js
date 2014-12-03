@@ -42,10 +42,10 @@ App.MainStackVersionsView = App.TableView.extend({
   colPropAssoc: function () {
     var associations = [];
     associations[1] = 'name';
-    associations[2] = 'version';
-    associations[3] = 'operatingSystems';
-    associations[4] = 'installedHostsCount';
-    associations[5] = 'currentHostsCount';
+    associations[2] = 'repositoryVersion.displayName';
+    associations[3] = 'repositoryVersion.operatingSystems';
+    associations[4] = 'installedHosts.length';
+    associations[5] = 'currentHosts.length';
     return associations;
   }.property(),
 
@@ -59,24 +59,24 @@ App.MainStackVersionsView = App.TableView.extend({
   }),
   stackVersionSort: sort.fieldView.extend({
     column: 2,
-    name: 'version',
+    name: 'repositoryVersion.displayName',
     displayName: Em.I18n.t('admin.stackVersions.table.header.version'),
     type: 'version'
   }),
   osSort: sort.fieldView.extend({
     column: 3,
-    name: 'installedHostsCount',
+    name: 'repositoryVersionoperatingSystems',
     displayName: Em.I18n.t('admin.stackVersions.table.header.os')
   }),
-  istalledSort: sort.fieldView.extend({
+  installedSort: sort.fieldView.extend({
     column: 4,
-    name: 'currentHostsCount',
+    name: 'installedHosts.length',
     displayName: Em.I18n.t('admin.stackVersions.table.header.installed'),
     type: "number"
   }),
   currentSort: sort.fieldView.extend({
     column: 5,
-    name: 'currentHostsCount',
+    name: 'currentHosts.length',
     displayName: Em.I18n.t('admin.stackVersions.table.header.current'),
     type: "number"
   }),
@@ -85,15 +85,16 @@ App.MainStackVersionsView = App.TableView.extend({
     column: 1,
     fieldType: 'filter-input-width',
     content: function () {
+      var names = this.get('parentView.content').mapProperty('name').uniq();
       return [
         {
           value: '',
           label: Em.I18n.t('common.all')
         }
-      ].concat(App.StackVersion.find().map(function (service) {
+      ].concat(names.map(function (name) {
         return {
-          value: service.get('name'),
-          label: service.get('name')
+          value: name,
+          label: name
         }
       }));
     }.property('App.router.mainStackVersionsController.dataIsLoaded'),
@@ -118,7 +119,7 @@ App.MainStackVersionsView = App.TableView.extend({
     }
   }),
 
-  currentFilterView: filters.createTextView({
+  installedFilterView: filters.createTextView({
     column: 4,
     fieldType: 'filter-input-width',
     onChangeValue: function () {
@@ -126,13 +127,25 @@ App.MainStackVersionsView = App.TableView.extend({
     }
   }),
 
-  installedFilterView: filters.createTextView({
+  currentFilterView: filters.createTextView({
     column: 5,
     fieldType: 'filter-input-width',
     onChangeValue: function () {
       this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'string');
     }
   }),
+
+  didInsertElement: function() {
+    this.set('controller.isPolling', true);
+    this.get('controller').load();
+    this.get('controller').doPolling();
+  },
+
+
+  willDestroyElement: function () {
+    this.set('controller.isPolling', false);
+    clearTimeout(this.get('controller.timeoutRef'));
+  },
 
   StackVersionView: Em.View.extend({
     tagName: 'tr',
@@ -147,8 +160,9 @@ App.MainStackVersionsView = App.TableView.extend({
     },
 
     labels: function() {
-      return this.get('content.operatingSystems').getEach('name').join("<br />");
-    }.property('content.operatingSystems.length')
+      return this.get('content.repositoryVersion.operatingSystems') &&
+        this.get('content.repositoryVersion.operatingSystems').getEach('osType').join("<br/>");
+    }.property('content.repositoryVersion.operatingSystems.length')
   })
 
 });

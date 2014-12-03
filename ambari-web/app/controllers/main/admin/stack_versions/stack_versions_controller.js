@@ -22,11 +22,32 @@ App.MainStackVersionsController = Em.ArrayController.extend({
   name: 'mainStackVersionsController',
 
   content: App.StackVersion.find(),
+  timeoutRef: null,
+  isPolling: false,
+  dataIsLoaded: false,
   mockUrl: '/data/stack_versions/stack_version_all.json',
   realUrl: function () {
-    return App.apiPrefix + '/clusters/' + App.get('clusterName') + '/stack_versions&minimal_response=true';
+    return App.apiPrefix + '/clusters/' + App.get('clusterName') + '/stack_versions?fields=*,repository_versions/*,repository_versions/operatingSystems/repositories/*';
+  }.property('App.clusterName'),
+  realUpdateUrl: function () {
+    return App.apiPrefix + '/clusters/' + App.get('clusterName') + '/stack_versions?fields=*,repository_versions/*,repository_versions/operatingSystems/repositories/*';
+    //TODO return App.apiPrefix + '/clusters/' + App.get('clusterName') + '/stack_versions?fields=ClusterStackVersions/state,ClusterStackVersions/host_states&minimal_response=true';
   }.property('App.clusterName'),
 
+  /**
+   * request latest data from server and update content
+   */
+  doPolling: function () {
+    var self = this;
+
+    this.set('timeoutRef', setTimeout(function () {
+      if (self.get('isPolling')) {
+        self.loadStackVersionsToModel(self.get('dataIsLoaded')).done(function () {
+          self.doPolling();
+        })
+      }
+    }, App.componentsUpdateInterval));
+  },
   /**
    * load all data components required by stack version table
    * @return {*}
@@ -45,10 +66,10 @@ App.MainStackVersionsController = Em.ArrayController.extend({
    * get stack versions from server and push it to model
    * @return {*}
    */
-  loadStackVersionsToModel: function () {
+  loadStackVersionsToModel: function (isUpdate) {
     var dfd = $.Deferred();
 
-    App.HttpClient.get(this.getUrl(), App.stackVersionMapper, {
+    App.HttpClient.get(this.getUrl(isUpdate), App.stackVersionMapper, {
       complete: function () {
         dfd.resolve();
       }
@@ -56,8 +77,9 @@ App.MainStackVersionsController = Em.ArrayController.extend({
     return dfd.promise();
   },
 
-  getUrl: function () {
-    return App.get('testMode') ? this.get('mockUrl') : this.get('realUrl');
+  getUrl: function (isUpdate) {
+    return App.get('testMode') ? this.get('mockUrl') :
+      isUpdate ? this.get('realUpdateUrl') : this.get('realUrl');
   },
 
   filterHostsByStack: function (version, state) {

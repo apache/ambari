@@ -27,21 +27,47 @@ App.MainStackVersionsDetailsController = Em.Controller.extend({
     return App.get('allHostNames.length');
   }.property('App.allHostNames.length'),
 
+
+  notInstalledHostsCount: function() {
+    return this.get('content.state') == 'INIT' ? this.get('totalHostCount.length') : 0;
+  }.property('content.state', 'totalHostCount.length'),
+
+  noInitHosts: function() {
+    return this.get('notInstalledHostsCount.length') == 0;
+  }.property('notInstalledHostsCount.length'),
   /**
-   * true if install stack version is in progress at least on 1 host
+   * true if stack version install is in progress
    * {Boolean}
    */
   installInProgress: function() {
-    return this.get('content.upgradingHostStacks.length');
-  }.property('content.upgradingHostStacks.length'),
+    return this.get('content.state') == "INSTALLING";
+  }.property('content.state'),
 
   /**
-   * true if repo version is installed on all hosts
+   * true if stack version upgrade is in progress
    * {Boolean}
    */
+  upgradeInProgress: function() {
+    return this.get('content.state') == "UPGRADING";
+  }.property('content.state'),
+
+  /**
+   * true if repo version is installed on all hosts but not upgraded
+   * {Boolean}
+   */
+  installedNotUpgraded: function() {
+    return this.get("allInstalled") && !this.get("allUpgraded") ;
+  }.property("allInstalled", "allUpgraded"),
+
   allInstalled: function() {
-    return this.get('content.notInstalledHostStacks.length') == 0;
-  }.property('content.notInstalledHostStacks.length'),
+    return this.get('content.installedHosts.length') == this.get('totalHostCount') ||
+      this.get('content.currentHosts.length') == this.get('totalHostCount');
+  }.property('content.installedHosts.length', 'content.currentHosts.length'),
+
+  allUpgraded: function() {
+    return this.get('content.upgradedHosts.length') == this.get('totalHostCount') ||
+      this.get('content.currentHosts.length') == this.get('totalHostCount');
+  }.property('content.upgradedHosts.length', 'content.currentHosts.length'),
 
   /**
    * depending on state run or install repo request
@@ -62,7 +88,7 @@ App.MainStackVersionsDetailsController = Em.Controller.extend({
    * @method showProgressPopup
    */
   showProgressPopup: function() {
-    var popupTitle = Em.I18n.t('admin.stackVersions.datails.install.hosts.popup.title').format(this.get('content.version'));
+    var popupTitle = Em.I18n.t('admin.stackVersions.datails.install.hosts.popup.title').format(this.get('content.repositoryVersion.displayName'));
     var requestIds = App.get('testMode') ? [1] : App.db.get('stackUpgrade', 'id');
     var hostProgressPopupController = App.router.get('highAvailabilityProgressPopupController');
     hostProgressPopupController.initPopup(popupTitle, requestIds, this, true);
@@ -75,59 +101,13 @@ App.MainStackVersionsDetailsController = Em.Controller.extend({
    * @method doInstallStackVersion
    */
   doInstallStackVersion: function(stackVersion) {
-    var services = App.Service.find();
-    var data = this.generateDataForInstall(stackVersion, services);
-    return App.ajax.send({
+    //TODO add correct request
+    return null;
+    /*return App.ajax.send({
       name: 'admin.stack_version.install.repo_version',
       data: data,
       success: 'installStackVersionSuccess'
-    })
-  },
-
-  /**
-   * generates the request data for installing repoversions
-   * @param {Ember.object} stackVersion
-   * @param {Array} services - array of service objects
-   * @returns {JSON}
-   * {
-   *  RequestInfo:
-   *   {
-   *     context: string,
-   *     action: string,
-   *     parameters:
-   *       {
-   *         name: string,
-   *         name_list: string,
-   *         base_url_list: string,
-   *         packages: string
-   *       }
-   *    },
-   *  Requests/resource_filters: [{hosts:string}]
-   * }
-   */
-  generateDataForInstall: function(stackVersion, services) {
-    var hostNames = stackVersion.get('hostStackVersions').mapProperty('host.hostName');
-    var base_urls = stackVersion.get('operatingSystems').map(function(os) {
-      return os.get('repositories').mapProperty('baseurl').join(",");
-    });
-    var serviceNames = services.mapProperty('serviceName');
-    return {
-      "RequestInfo": {
-        "context":"Install Repo Version" + stackVersion.get('version'),
-        "action":"ru_install_repo",
-        "parameters": {
-          "name": stackVersion.get('version'),
-          "name_list": stackVersion.get('name'),
-          "base_url_list": base_urls.join(","),
-          "packages": serviceNames.join(",")
-        }
-      },
-      "Requests/resource_filters": [
-        {
-          "hosts": hostNames.join(",")
-        }
-      ]
-    };
+    })*/
   },
 
   installStackVersionSuccess: function(data) {

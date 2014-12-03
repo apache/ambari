@@ -522,11 +522,6 @@ module.exports = Em.Route.extend({
     }),
     adminStackVersions: Em.Route.extend({
       route: '/versions',
-      connectOutlets: function (router) {
-        if (App.get('supports.stackUpgrade')) {
-          router.get('mainStackVersionsController').load();
-        }
-      },
       index: Em.Route.extend({
         route: '/',
         connectOutlets: function (router) {

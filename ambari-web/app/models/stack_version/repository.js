@@ -18,13 +18,20 @@
 
 var App = require('app');
 
-App.Repositories = DS.Model.extend({
+App.Repository = DS.Model.extend({
   id: DS.attr('string'),
-  type: DS.attr('string'),
-  baseurl: DS.attr('string'),
-  os: DS.belongsTo('App.OS')
+  baseUrl : DS.attr('string'),
+  defaultBaseUrl : DS.attr('string'),
+  latestBaseUrl : DS.attr('string'),
+  mirrorsList : DS.attr('array'),
+  osType : DS.attr('string'),
+  repoId : DS.attr('string'),
+  repoName : DS.attr('string'),
+  stackName : DS.attr('string'),
+  stackVersion : DS.attr('string'),
+  operatingSystem: DS.belongsTo('App.OS')
 });
 
-App.Repositories.FIXTURES = [];
+App.Repository.FIXTURES = [];
 
 

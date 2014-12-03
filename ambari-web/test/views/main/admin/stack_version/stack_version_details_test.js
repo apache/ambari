@@ -30,20 +30,20 @@ describe('App.MainStackVersionsDetailsView', function () {
   describe('#statusClass', function () {
     var tests = [
       {
-        status: "ALL_INSTALLED",
+        state: "ANY",
         buttonClass: 'disabled'
       },
       {
-        status: "INSTALL",
+        state: "INSTALL",
         buttonClass: 'btn-success'
       },
       {
-        status: "INSTALLING",
+        state: "INSTALLING",
         buttonClass: 'btn-primary'
       }
     ].forEach(function(t) {
       it("status is " + t.status + " class is " + t.buttonClass, function() {
-        mainStackVersionsDetailsView.reopen({'status': t.status});
+        mainStackVersionsDetailsView.reopen({ content: {'state': t.state}});
         expect(mainStackVersionsDetailsView.get('statusClass')).to.equal(t.buttonClass);
       });
     });
