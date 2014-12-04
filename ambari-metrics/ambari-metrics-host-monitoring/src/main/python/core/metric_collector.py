@@ -65,12 +65,16 @@ class MetricsCollector():
     elif 'mem' in event.get_group_name():
       metrics = self.host_info.get_mem_info()
 
+    elif 'process' in event.get_group_name():
+      metrics = self.host_info.get_process_info()
+
     elif 'all' in event.get_group_name():
       metrics = {}
       metrics.update(self.host_info.get_cpu_times())
       metrics.update(self.host_info.get_combined_disk_usage())
       metrics.update(self.host_info.get_network_info())
       metrics.update(self.host_info.get_mem_info())
+      metrics.update(self.host_info.get_process_info())
 
     else:
       logger.warn('Unknown metric group.')

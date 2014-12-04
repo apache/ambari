@@ -82,6 +82,35 @@ class TestHostInfo(TestCase):
     self.assertEqual(cpu['mem_cached'], 'cached')
     self.assertEqual(cpu['swap_free'], 'free')
 
+
+  @patch("psutil.process_iter")
+  def testProcessInfo(self, process_iter_mock):
+
+    def side_effect_running():
+      return 'running'
+
+    class Proc:
+      def status(self):
+        return 'some_status'
+
+    p1 = Proc()
+    p1.status = side_effect_running
+    p2 = Proc()
+    p2.status = side_effect_running
+    p3 = Proc()
+    p4 = Proc()
+
+    processes = [p1, p2, p3, p4]
+
+    process_iter_mock.return_value = processes
+
+    hostinfo = HostInfo()
+
+    procs = hostinfo.get_process_info()
+
+    self.assertEqual(procs['proc_run'], 2)
+    self.assertEqual(procs['proc_total'], len(processes))
+
   @patch("psutil.disk_usage")
   @patch("psutil.disk_partitions")
   def testCombinedDiskUsage(self, dp_mock, du_mock):

@@ -297,8 +297,10 @@ public class PhoenixTransactSQL {
     }
 
     LOG.debug("SQL => " + sb.toString() + ", condition => " + condition);
-    PreparedStatement stmt = connection.prepareStatement(sb.toString());
-    int pos = 1;
+    String query = String.format(sb.toString(),
+      PhoenixTransactSQL.getNaiveTimeRangeHint(condition.getStartTime(),
+        NATIVE_TIME_RANGE_DELTA));
+    PreparedStatement stmt = connection.prepareStatement(query);    int pos = 1;
     if (condition.getMetricNames() != null) {
       for (; pos <= condition.getMetricNames().size(); pos++) {
         stmt.setString(pos, condition.getMetricNames().get(pos - 1));

@@ -58,6 +58,29 @@ class HostInfo():
     }
   pass
 
+  def get_process_info(self):
+    """
+    Return processes statistics at current time
+    """
+
+    STATUS_RUNNING = "running"
+
+    proc_stats = psutil.process_iter()
+
+    proc_run = 0
+    proc_total = 0
+    for proc in proc_stats:
+      proc_total += 1
+      if STATUS_RUNNING == proc.status():
+        proc_run += 1
+    pass
+
+    return {
+      'proc_run': proc_run,
+      'proc_total': proc_total
+    }
+  pass
+
   def get_mem_info(self):
     """
     Return memory statistics at current time
