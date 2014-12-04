@@ -487,10 +487,14 @@ describe('App.WizardStep3Controller', function () {
     });
     agentUserCases.forEach(function (item) {
       it(item.title, function () {
-        var controller = App.WizardStep2Controller.create({
-          sshKey: 'key',
-          hostNameArr: ['host0', 'host1'],
-          sshUser: 'root',
+        var controller = App.WizardStep3Controller.create({
+          content: {
+            installOptions: {
+              sshKey: 'key',
+              sshUser: 'root'
+            },
+            hosts: { "host0": { "name": "host0" }, "host1": { "name": "host1" } }
+          },
           agentUser: 'user'
         });
         sinon.stub(App, 'get').withArgs('supports.customizeAgentUserAccount').returns(item.customizeAgentUserAccount);
@@ -1522,38 +1526,38 @@ describe('App.WizardStep3Controller', function () {
 
   describe('#navigateStep', function() {
     beforeEach(function(){
-      sinon.stub(c, 'startBootstrap', Em.K);
+      sinon.stub(c, 'setupBootStrap', Em.K);
     });
     afterEach(function(){
-      c.startBootstrap.restore();
+      c.setupBootStrap.restore();
     });
     Em.A([
         {
           isLoaded: true,
           manualInstall: false,
           bootStatus: false,
-          m: 'should call startBootstrap',
+          m: 'should call setupBootStrap',
           e: true
         },
         {
           isLoaded: true,
           manualInstall: false,
           bootStatus: true,
-          m: 'shouldn\'t call startBootstrap (1)',
+          m: 'shouldn\'t call setupBootStrap (1)',
           e: false
         },
         {
           isLoaded: false,
           manualInstall: false,
           bootStatus: false,
-          m: 'shouldn\'t call startBootstrap (2)',
+          m: 'shouldn\'t call setupBootStrap (2)',
           e: false
         },
         {
           isLoaded: false,
           manualInstall: true,
           bootStatus: false,
-          m: 'shouldn\'t call startBootstrap (3)',
+          m: 'shouldn\'t call setupBootStrap (3)',
           e: false
         }
       ]).forEach(function(test) {
@@ -1574,10 +1578,10 @@ describe('App.WizardStep3Controller', function () {
           });
           c.navigateStep();
           if(test.e) {
-            expect(c.startBootstrap.calledOnce).to.equal(true);
+            expect(c.setupBootStrap.calledOnce).to.equal(true);
           }
           else {
-            expect(c.startBootstrap.called).to.equal(false);
+            expect(c.setupBootStrap.called).to.equal(false);
           }
         });
       });
@@ -1630,6 +1634,59 @@ describe('App.WizardStep3Controller', function () {
       expect(c.get('bootHosts.length')).to.equal(c.get('hosts.length'));
       expect(c.get('registrationStartedAt')).to.be.null;
       c.startRegistration.restore();
+    });
+
+  });
+
+  describe('#setupBootStrap', function () {
+
+    var cases = [
+        {
+          customizeAgentUserAccount: true,
+          userRunAs: 'user',
+          title: 'Ambari Agent user account customize enabled'
+        },
+        {
+          customizeAgentUserAccount: false,
+          userRunAs: 'root',
+          title: 'Ambari Agent user account customize disabled'
+        }
+      ],
+
+
+    controller = App.WizardStep3Controller.create({
+      content: {
+        installOptions: {
+          sshKey: 'key',
+          sshUser: 'root'
+        },
+        hosts: { "host0": { "name": "host0" }, "host1": { "name": "host1" } },
+        controllerName: 'installerController'
+      },
+      agentUser: 'user'
+    });
+
+    beforeEach(function () {
+      sinon.spy(App.router.get('installerController'), 'launchBootstrap');
+    });
+
+    afterEach(function () {
+      App.router.get('installerController.launchBootstrap').restore();
+      App.get.restore();
+    });
+
+    cases.forEach(function (item) {
+      it(item.title, function () {
+        sinon.stub(App, 'get').withArgs('supports.customizeAgentUserAccount').returns(item.customizeAgentUserAccount);
+        controller.setupBootStrap();
+        expect(App.router.get('installerController.launchBootstrap').firstCall.args[0]).to.equal(JSON.stringify({
+          verbose: true,
+          sshKey: 'key',
+          hosts: ['host0', 'host1'],
+          user: 'root',
+          userRunAs: item.userRunAs
+        }));
+      });
     });
 
   });

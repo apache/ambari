@@ -171,7 +171,7 @@ App.WizardStep3Controller = Em.Controller.extend({
     if (this.get('isLoaded')) {
       if (!this.get('content.installOptions.manualInstall')) {
         if (!this.get('wizardController').getDBProperty('bootStatus')) {
-          this.startBootstrap();
+          this.setupBootStrap();
         }
       } else {
         this.set('bootHosts', this.get('hosts'));
@@ -203,6 +203,30 @@ App.WizardStep3Controller = Em.Controller.extend({
     this.set('isLoaded', false);
     this.set('isSubmitDisabled', true);
     this.set('isRetryDisabled', true);
+  },
+
+  /**
+   * setup bootstrap data and completion callback for bootstrap call
+   * @method setupBootStrap
+   */
+  setupBootStrap: function () {
+    var self = this;
+    var bootStrapData = JSON.stringify({
+        'verbose': true,
+        'sshKey': this.get('content.installOptions.sshKey'),
+        'hosts': Em.keys(this.get('content.hosts')),
+        'user': this.get('content.installOptions.sshUser'),
+        'userRunAs': App.get('supports.customizeAgentUserAccount') ? this.get('agentUser') : 'root'
+    });
+    App.router.get(this.get('content.controllerName')).launchBootstrap(bootStrapData, function (requestId) {
+      if (requestId == '0') {
+        var controller = App.router.get(App.clusterStatus.wizardControllerName);
+        controller.registerErrPopup(Em.I18n.t('common.information'), Em.I18n.t('installer.step2.evaluateStep.hostRegInProgress'));
+      } else if (requestId) {
+        self.set('content.installOptions.bootRequestId', requestId);
+        self.startBootstrap();
+      }
+    });
   },
 
   /**
@@ -355,10 +379,8 @@ App.WizardStep3Controller = Em.Controller.extend({
     this.set('numPolls', 0);
     this.set('registrationStartedAt', null);
     if (this.get('content.installOptions.manualInstall')) {
-      this.get('bootHosts').setEach('bootStatus', 'DONE');
       this.startRegistration();
-    }
-    else {
+    } else {
       App.router.get(this.get('content.controllerName')).launchBootstrap(bootStrapData, function (requestId) {
         self.set('content.installOptions.bootRequestId', requestId);
         self.doBootstrap();
@@ -375,7 +397,7 @@ App.WizardStep3Controller = Em.Controller.extend({
       this.set('isRetryDisabled', true);
       var selectedHosts = this.get('bootHosts').filterProperty('bootStatus', 'FAILED');
       selectedHosts.forEach(function (_host) {
-        _host.set('bootStatus', 'RUNNING');
+        _host.set('bootStatus', 'DONE');
         _host.set('bootLog', 'Retrying ...');
       }, this);
       this.retryHosts(selectedHosts);
@@ -595,7 +617,7 @@ App.WizardStep3Controller = Em.Controller.extend({
           stopPolling = false;
           break;
         case 'REGISTERING':
-          if (jsonData.items.someProperty('Hosts.host_name', _host.name)) {
+          if (jsonData.items.someProperty('Hosts.host_name', _host.name) && !jsonData.items.filterProperty('Hosts.host_name', _host.name).someProperty('Hosts.host_status', 'UNKNOWN')) {
             _host.set('bootStatus', 'REGISTERED');
             _host.set('bootLog', (_host.get('bootLog') != null ? _host.get('bootLog') : '') + Em.I18n.t('installer.step3.hosts.bootLog.registering'));
           } else {
@@ -715,7 +737,7 @@ App.WizardStep3Controller = Em.Controller.extend({
   },
 
   doCheckJDK: function () {
-    var hostsNames = this.get('bootHosts').filterProperty('bootStatus', 'REGISTERED').getEach('name').join(",");
+    var hostsNames = (!this.get('content.installOptions.manualInstall')) ? this.get('bootHosts').filterProperty('bootStatus', 'REGISTERED').getEach('name').join(",") : this.get('bootHosts').getEach('name').join(",");
     var javaHome = this.get('javaHome');
     var jdkLocation = this.get('jdkLocation');
     App.ajax.send({
@@ -826,16 +848,15 @@ App.WizardStep3Controller = Em.Controller.extend({
   },
 
   getHostNameResolution: function () {
-    var hosts = this.get('bootHosts').filterProperty('bootStatus', 'REGISTERED').getEach('name').join(",");
+    var hosts = (!this.get('content.installOptions.manualInstall')) ? this.get('bootHosts').filterProperty('bootStatus', 'REGISTERED').getEach('name').join(",") : this.get('bootHosts').getEach('name').join(",");
     var jdk_location = App.router.get('clusterController.ambariProperties.jdk_location');
     var RequestInfo = {
       "action": "check_host",
       "context": "Check host",
       "parameters": {
-        "check_execute_list": "host_resolution_check",
+        "check_execute_list": "last_agent_env_check",
         "jdk_location" : jdk_location,
-        "threshold": "20",
-        "hosts": hosts
+        "threshold": "20"
       }
     };
     var resource_filters = {
@@ -908,14 +929,14 @@ App.WizardStep3Controller = Em.Controller.extend({
     data.tasks.forEach(function (task) {
       var name = Em.I18n.t('installer.step3.hostWarningsPopup.resolution.validation.error');
       var hostInfo = this.get("hostCheckWarnings").findProperty('name', name);
-      if (task.Tasks.status == "FAILED" || task.Tasks.status == "COMPLETED" || task.Tasks.status == "TIMEDOUT") {
+      if (["FAILED", "COMPLETED", "TIMEDOUT"].contains(task.Tasks.status)) {
         if (task.Tasks.status == "COMPLETED") {
-          if (Em.get(task, "Tasks.structured_out.host_resolution_check.failed_count") == 0) {
+          if (Em.get(task, "Tasks.structured_out.last_agent_env_check.failed_count") == 0) {
             return;
           }
         }
         var targetHostName = Em.get(task, "Tasks.host_name");
-        var relatedHostNames = Em.get(task, "Tasks.structured_out.host_resolution_check.failures") ? Em.get(task, "Tasks.structured_out.host_resolution_check.failures").mapProperty('host') : [];
+        var relatedHostNames = Em.get(task, "Tasks.structured_out.last_agent_env_check.failures") ? Em.get(task, "Tasks.structured_out.last_agent_env_check.failures").mapProperty('host') : [];
         var contextMessage = Em.I18n.t('installer.step3.hostWarningsPopup.resolution.validation.context').format(targetHostName, relatedHostNames.join(', '));
         if (!hostInfo) {
           hostInfo = {

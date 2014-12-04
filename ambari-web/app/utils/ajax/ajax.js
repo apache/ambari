@@ -1567,7 +1567,7 @@ var urls = {
     'mock': '/data/wizard/bootstrap/poll_{numPolls}.json'
   },
   'wizard.step3.is_hosts_registered': {
-    'real': '/hosts',
+    'real': '/hosts?fields=Hosts/host_status',
     'mock': '/data/wizard/bootstrap/single_host_registration.json'
   },
   'wizard.stacks': {

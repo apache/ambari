@@ -365,38 +365,9 @@ App.WizardStep2Controller = Em.Controller.extend({
       return false;
     }
 
-    if (App.get('skipBootstrap')) {
-      this.saveHosts();
-      App.router.send('next');
-      return true;
-    }
-    this.setupBootStrap();
+    this.saveHosts();
+    App.router.send('next');
     return true;
-  },
-
-  /**
-   * setup bootstrap data and completion callback for bootstrap call
-   * @method setupBootStrap
-   */
-  setupBootStrap: function () {
-    var self = this;
-    var bootStrapData = JSON.stringify({
-      'verbose': true,
-      'sshKey': this.get('sshKey'),
-      'hosts': this.get('hostNameArr'),
-      'user': this.get('sshUser'),
-      'userRunAs': App.get('supports.customizeAgentUserAccount') ? this.get('agentUser') : 'root'
-    });
-    App.router.get(this.get('content.controllerName')).launchBootstrap(bootStrapData, function (requestId) {
-      if (requestId == '0') {
-        var controller = App.router.get(App.clusterStatus.wizardControllerName);
-        controller.registerErrPopup(Em.I18n.t('common.information'), Em.I18n.t('installer.step2.evaluateStep.hostRegInProgress'));
-      } else if (requestId) {
-        self.set('content.installOptions.bootRequestId', requestId);
-        self.saveHosts();
-        App.router.send('next');
-      }
-    });
   },
 
   /**

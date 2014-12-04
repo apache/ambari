@@ -452,16 +452,11 @@ describe('App.WizardStep2Controller', function () {
       expect(c.manualInstallPopup.calledOnce).to.equal(true);
     });
 
-    it ('should save hosts and proceed next if skipBootstrap is true', function() {
-      sinon.stub(App, 'get', function(k) {
-        if ('skipBootstrap' === k) {
-          return true;
-        }
-        return Em.get(App, k);
-      });
+    it ('should save hosts and proceed next if manualInstall is false', function() {
       sinon.stub(App.router, 'send', Em.K);
       c.reopen({
         hostNameArr: ['h1'],
+        manualInstall: false,
         isAllHostNamesValid: function() {return true;},
         content: {
           installOptions: {},
@@ -472,31 +467,7 @@ describe('App.WizardStep2Controller', function () {
       expect(r).to.equal(true);
       expect(Em.keys(c.get('content.hosts'))).to.eql(['h1']);
       expect(App.router.send.calledWith('next')).to.equal(true);
-      App.get.restore();
       App.router.send.restore();
-    });
-
-    it('should call setupBootStrap', function() {
-      sinon.stub(App, 'get', function(k) {
-        if ('skipBootstrap' === k) {
-          return false;
-        }
-        return Em.get(App, k);
-      });
-      c.reopen({
-        hostNameArr: ['h1'],
-        isAllHostNamesValid: function() {return true;},
-        content: {
-          installOptions: {},
-          hosts: null
-        }
-      });
-      sinon.stub(c, 'setupBootStrap', Em.K);
-      var r = c.proceedNext();
-      expect(r).to.equal(true);
-      expect(c.setupBootStrap.calledOnce).to.eql(true);
-      App.get.restore();
-      c.setupBootStrap.restore();
     });
 
   });
@@ -685,55 +656,6 @@ describe('App.WizardStep2Controller', function () {
       c.saveHosts();
       expect(Em.keys(c.get('content.hosts'))).to.eql(['h1']);
     });
-  });
-
-  describe('#setupBootStrap', function () {
-
-    var cases = [
-        {
-          customizeAgentUserAccount: true,
-          userRunAs: 'user',
-          title: 'Ambari Agent user account customize enabled'
-        },
-        {
-          customizeAgentUserAccount: false,
-          userRunAs: 'root',
-          title: 'Ambari Agent user account customize disabled'
-        }
-      ],
-      controller = App.WizardStep2Controller.create({
-        sshKey: 'key',
-        hostNameArr: ['host0', 'host1'],
-        sshUser: 'root',
-        agentUser: 'user',
-        content: {
-          controllerName: 'installerController'
-        }
-      });
-
-    beforeEach(function () {
-      sinon.spy(App.router.get('installerController'), 'launchBootstrap');
-    });
-
-    afterEach(function () {
-      App.router.get('installerController.launchBootstrap').restore();
-      App.get.restore();
-    });
-
-    cases.forEach(function (item) {
-      it(item.title, function () {
-        sinon.stub(App, 'get').withArgs('supports.customizeAgentUserAccount').returns(item.customizeAgentUserAccount);
-        controller.setupBootStrap();
-        expect(App.router.get('installerController.launchBootstrap').firstCall.args[0]).to.equal(JSON.stringify({
-          verbose: true,
-          sshKey: 'key',
-          hosts: ['host0', 'host1'],
-          user: 'root',
-          userRunAs: item.userRunAs
-        }));
-      });
-    });
-
   });
 
 });
