@@ -433,7 +433,7 @@
     max-height: 340px;
     width: 100%;
     .alert-list-wrap {
-      padding: 10px 10px 10px 20px;
+      padding: 10px 5px;
       border-top: 1px solid #CCC;
       border-bottom: 1px solid #CCC;
     }
@@ -443,17 +443,17 @@
       .status-icon {
         padding-left: 5px;
         float: left;
-        width: 10%;
+        width: 12%;
         min-width: 20px;
       }
       .name-text {
-        padding-left: 10px;
-        width: 35%;
+        padding-left: 5px;
         float: left;
+        width: 33%;
       }
       .service-text {
         padding-left: 5px;
-        width: 30%;
+        width: 33%;
         float: left;
         .na-text {
           color: #808080;
@@ -461,9 +461,19 @@
       }
       .last-triggered-text {
         padding-left: 5px;
+        float: left;
+        width: 18%;
         color: #808080;
         font-size: 12px;
       }
+    }
+    .alert-list-line-cursor:before,.alert-list-line-cursor:after {
+      display: table;
+      line-height: 0;
+      content: "";
+    }
+    .alert-list-line-cursor:after {
+      clear: both;
     }
     .show-more {
       width: 98.8%;
