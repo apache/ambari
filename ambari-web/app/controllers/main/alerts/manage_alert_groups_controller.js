@@ -95,6 +95,7 @@ App.ManageAlertGroupsController = Em.Controller.extend({
             name: target.AlertTarget.name,
             type: target.AlertTarget.notification_type,
             description: target.AlertTarget.description,
+            global: target.AlertTarget.global,
             id: target.AlertTarget.id
           }));
         }

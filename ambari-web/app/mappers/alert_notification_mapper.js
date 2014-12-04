@@ -23,7 +23,8 @@ App.alertNotificationMapper = App.QuickDataMapper.create({
     id: 'AlertTarget.id',
     name: 'AlertTarget.name',
     type: 'AlertTarget.notification_type',
-    description: 'AlertTarget.description'
+    description: 'AlertTarget.description',
+    global: 'AlertTarget.global'
   },
 
   map: function (json) {

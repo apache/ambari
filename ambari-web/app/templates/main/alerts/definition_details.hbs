@@ -175,7 +175,7 @@
               <td class="first">{{{instance.status}}}</td>
               <td>
                 <a {{action goToService instance.service target="controller"}} href="#">{{instance.service.displayName}}</a>
-                {{#if instance.host}}
+                {{#if instance.host.hostName}}
                   {{#if instance.service.displayName}}
                     &nbsp;/&nbsp;
                   {{/if}}

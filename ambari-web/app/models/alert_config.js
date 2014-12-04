@@ -209,7 +209,7 @@ App.AlertConfigProperties = {
     name: 'interval',
     label: 'Interval',
     displayType: 'textField',
-    unit: 'Second',
+    unit: 'Minute',
     classNames: 'alert-interval-input',
     apiProperty: 'interval'
   }),

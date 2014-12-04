@@ -168,6 +168,7 @@ describe('App.ManageAlertNotificationsController', function () {
 
       controller.set('selectedAlertNotification', Em.Object.create({
         name: 'test_name',
+        global: true,
         description: 'test_description',
         type: 'EMAIL',
         alertStates: ['OK', 'UNKNOWN'],
@@ -186,6 +187,9 @@ describe('App.ManageAlertNotificationsController', function () {
         },
         groups: {
           value: ''
+        },
+        global: {
+          value: false
         },
         method: {
           value: ''
@@ -213,6 +217,9 @@ describe('App.ManageAlertNotificationsController', function () {
         },
         groups: {
           value: ''
+        },
+        global: {
+          value: true
         },
         method: {
           value: 'EMAIL'
@@ -270,6 +277,9 @@ describe('App.ManageAlertNotificationsController', function () {
         groups: {
           value: ''
         },
+        global: {
+          value: false
+        },
         method: {
           value: 'EMAIL'
         },
@@ -293,6 +303,7 @@ describe('App.ManageAlertNotificationsController', function () {
       expect(result).to.eql({
         AlertTarget: {
           name: 'test_name',
+          global: false,
           description: 'test_description',
           notification_type: 'EMAIL',
           alert_states: ['OK', 'CRITICAL'],

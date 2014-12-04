@@ -51,6 +51,12 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
       value: '',
       defaultValue: ''
     },
+    global: {
+      label: Em.I18n.t('alerts.actions.manage_alert_notifications_popup.global'),
+      value: false,
+      defaultValue: false,
+      disabled: false
+    },
     method: {
       label: Em.I18n.t('alerts.actions.manage_alert_notifications_popup.method'),
       value: '',
@@ -146,6 +152,7 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
    */
   addAlertNotification: function () {
     var inputFields = this.get('inputFields');
+    inputFields.set('global.disabled', false);
     Em.keys(inputFields).forEach(function (key) {
       inputFields.set(key + '.value', inputFields.get(key + '.defaultValue'));
     });
@@ -178,6 +185,9 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
       selectedAlertNotification.get('alertStates').contains('CRITICAL'),
       selectedAlertNotification.get('alertStates').contains('UNKNOWN')
     ]);
+    inputFields.set('global.value', selectedAlertNotification.get('global'));
+    // not allow to edit global field
+    inputFields.set('global.disabled', true);
     inputFields.set('description.value', selectedAlertNotification.get('description'));
     inputFields.set('method.value', selectedAlertNotification.get('type'));
     inputFields.get('customProperties').clear();
@@ -256,6 +266,7 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
       AlertTarget: {
         name: inputFields.get('name.value'),
         description: inputFields.get('description.value'),
+        global: inputFields.get('global.value'),
         notification_type: inputFields.get('method.value'),
         alert_states: alertStates,
         properties: properties

@@ -1861,6 +1861,7 @@ Em.I18n.translations = {
   'alerts.actions.manage_alert_notifications_popup.duplicateButton':'Duplicate Alert Notification',
   'alerts.actions.manage_alert_notifications_popup.method':'Method',
   'alerts.actions.manage_alert_notifications_popup.email':'Email',
+  'alerts.actions.manage_alert_notifications_popup.global':'Global',
   'alerts.actions.manage_alert_notifications_popup.severityFilter':'Severity Filter',
 
   'hosts.host.add':'Add New Hosts',

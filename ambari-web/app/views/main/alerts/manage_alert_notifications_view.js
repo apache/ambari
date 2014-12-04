@@ -28,7 +28,7 @@ App.ManageAlertNotificationsView = Em.View.extend({
   selectedAlertNotification: null,
 
   selectedAlertNotificationGroups: function () {
-    return this.get('controller.selectedAlertNotification.groups').toArray().mapProperty('name').join(', ');
+    return this.get('controller.selectedAlertNotification.groups').toArray().mapProperty('displayName').join(', ');
   }.property('controller.selectedAlertNotification'),
 
   isEditButtonDisabled: true,

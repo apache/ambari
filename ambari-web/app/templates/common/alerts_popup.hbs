@@ -35,7 +35,7 @@
                   <div class="status-icon">{{{alertInstance.status}}}</div>
                   <div class="name-text"><a href="#" {{action "gotoAlertDetails" alertInstance target="view"}}>{{alertInstance.label}}</a></div>
                   <div class="service-text"><a href="#" {{action "gotoService" alertInstance.service target="view"}}>{{alertInstance.service.displayName}}</a>
-                    {{#if alertInstance.host}}
+                    {{#if alertInstance.host.hostName}}
                       {{#if alertInstance.service.displayName}}
                         &nbsp;/&nbsp;
                       {{/if}}

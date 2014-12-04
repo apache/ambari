@@ -32,7 +32,15 @@
       <label class="control-label" for="inputGroups">{{controller.inputFields.groups.label}}</label>
 
       <div class="controls">
-        {{view Em.TextField valueBinding="controller.inputFields.groups.value" id="inputGroups" class="input-xlarge"}}
+        {{view Em.TextField valueBinding="controller.inputFields.groups.value" id="inputGroups" class="input-xlarge" disabledBinding="controller.inputFields.global.value"}}
+      </div>
+    </div>
+
+    <div class="control-group">
+      <label class="control-label" for="inputGlobal">{{controller.inputFields.global.label}}</label>
+
+      <div class="controls">
+        {{view Em.Checkbox checkedBinding="controller.inputFields.global.value" disabledBinding="controller.inputFields.global.disabled" id="inputGlobal" class="input-xlarge"}}
       </div>
     </div>
 

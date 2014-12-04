@@ -24,6 +24,7 @@ App.AlertNotification = DS.Model.extend({
   type: DS.attr('string'),
   description: DS.attr('string'),
   groups: DS.hasMany('App.AlertGroup'),
+  global: DS.attr('boolean'),
 
   properties: {},
   alertStates: []
