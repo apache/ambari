@@ -17,34 +17,30 @@
 <view>
     <name>CAPACITY-SCHEDULER</name>
     <label>Capacity Scheduler</label>
-    <version>0.1.0</version>
+    <version>0.2.0</version>
 
     <parameter>
         <name>ambari.server.url</name>
-        <description>Ambari Server REST API cluster URL (for example: http://ambari.server:8080/api/v1/clusters/c1)</description>
+        <description>Ambari REST API Cluster URL (for example: http://ambari.server:8080/api/v1/clusters/c1)</description>
         <required>true</required>
     </parameter>
 
     <parameter>
         <name>ambari.server.username</name>
-        <description>Ambari administrator username (for example: admin)</description>
+        <description>Ambari Cluster Operator username (for example: admin)</description>
         <required>true</required>
     </parameter>
 
     <parameter>
         <name>ambari.server.password</name>
-        <description>Ambari administrator password (for example: admin)</description>
+        <description>Ambari Cluster Operator password (for example: password)</description>
         <required>true</required>
-        <!-- <hidden>true</hidden> -->
+        <masked>true</masked>
     </parameter>
 
     <resource>
       <name>scheduler</name>
       <service-class>org.apache.ambari.view.capacityscheduler.CapacitySchedulerService</service-class>
     </resource>
-
-    <instance>
-        <name>Scheduler</name>
-    </instance>
 
 </view>

@@ -108,35 +108,6 @@ App.QueueAdapter = DS.Adapter.extend({
 
   },
      
-  /**
-   * Finds the cluster name.
-   *
-   */
-  findClusterName: function() {
-    var uri = _getClusterNameUri();
-        
-    return this.ajax(uri).then(function(data) {
-      var clusterName = data.ViewInstanceInfo.properties.clusterName;
-      console.log("found cluster name: "+clusterName);
-      App.Adapter.clusterName = clusterName;
-      return clusterName;
-    });
-  },
-
-  /**
-   * Finds the capacity scheduler tag.
-   */
-  findTag: function(clusterName) {
-    var uri = _getTagVersionUri(clusterName);
-    
-    return this.ajax(uri).then(function(data) {
-      var tag = data.Clusters.desired_configs["capacity-scheduler"].tag;
-      console.log("found tag version: "+tag);
-      App.Adapter.tag = tag;
-      return  tag;
-    })
-  },
-  
   ajax: function(url, type, hash) {
     var adapter = this;
 
@@ -167,7 +138,7 @@ App.QueueAdapter = DS.Adapter.extend({
       hash.data = JSON.stringify(hash.data);
     }
     hash.beforeSend = function (xhr) {
-      xhr.setRequestHeader('X-Requested-By', 'ambari');
+      xhr.setRequestHeader('X-Requested-By', 'view-capacity-scheduler');
     };
     return hash;
   },
@@ -419,9 +390,6 @@ function _recurseQueues(parentQueue, queueName, depth, props, queues, store) {
  * @return  cluster name URI
  */
 function _getCapacitySchedulerUri() {
-  if (App.testMode)
-    return  "/data/scheduler-configuration.json"
-
   var parts = window.location.pathname.match(/\/[^\/]*/g);
   var view = parts[1];
   var version = '/versions' + parts[2];
@@ -432,82 +400,3 @@ function _getCapacitySchedulerUri() {
   }
   return '/api/v1/views' + view + version + '/instances' + instance+'/resources/scheduler/configuration';
 }
-
-/**
- * Gets the cluster name URI based on test mode
- *
- * @return  cluster name URI
- */
-function _getClusterNameUri() {
-  if (App.testMode)
-    return  "/data/view-instance.json"
-
-  var parts = window.location.pathname.match(/\/[^\/]*/g);
-  var view = parts[1];
-  var version = '/versions' + parts[2];
-  var instance = parts[3];
-  if (parts.length == 4) { // version is not present
-    instance = parts[2];
-    version = '';
-  }
-  return '/api/v1/views' + view + version + '/instances' + instance;
-}
-
-/**
- * Gets the capacity scheduler URI based on test mode.
- *
- * @param   clusterName     the cluster name
- * @param   tagVersion      the tag version
- * @return  the capacity scheduler URI
- */
-function _getCapacitySchedulerUri_old(clusterName, tagVersion) {
-  console.log("_getCapacitySchedulerUri.clusterName = "+clusterName);
-  console.log("_getCapacitySchedulerUri.tagVersion = "+tagVersion);
-  if (App.testMode)
-    return  "/data/capacity-scheduler.json"
-    
-  return "/api/v1/clusters/" + clusterName + "/configurations?type=capacity-scheduler&tag="+tagVersion;
-}
-
-/**
- * Gets the tag version URI based on test mode.
- *
- * @param   clusterName     the cluster name
- * @return  the capacity scheduler tag URI
- */
-function _getTagVersionUri(clusterName) {
-  if (App.testMode)
-    return  "/data/cs-tag.json"
-    
-  return "/api/v1/clusters/" + clusterName + "?fields=Clusters/desired_configs/capacity-scheduler";
-}
-
-/**
- * Setup claster name and version tag for adapter
- */
-
-/*App.deferReadiness();
-
-(function () {
-
-  var clusterNameUri = _getClusterNameUri();
-    
-  return Em.$.ajax({url: clusterNameUri, dataType: "json"}).then(function(data) {
-    var clusterName = data.ViewInstanceInfo.properties.clusterName;
-    console.log("found cluster name: "+clusterName);
-
-    App.QueueAdapter.reopen({clusterName:clusterName});
-
-    var tagVersionUri = _getTagVersionUri(clusterName);
-  
-    return Em.$.ajax({url: tagVersionUri, dataType: "json"}).then(function(data) {
-      var tag = data.Clusters.desired_configs["capacity-scheduler"].tag;
-      console.log("found tag version: "+tag);
-
-      App.QueueAdapter.reopen({tag:tag});
-
-      App.advanceReadiness();
-
-    });
-  });
-})();*/

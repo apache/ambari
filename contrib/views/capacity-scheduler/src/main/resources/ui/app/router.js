@@ -77,13 +77,7 @@ App.QueueRoute = Ember.Route.extend({
   },
   
   actions: {
-    refreshQueue: function() {
-    var x = "{ \"RequestInfo\" : { \"command\" : \"REFRESHQUEUES\", \"context\" : \"Refresh YARN Capacity Scheduler\",\"parameters/forceRefreshConfigTags\":\"capacity-scheduler\" }, "
-    x = x + "\"Requests/resource_filters\":[{\"service_name\":\"YARN\",\"component_name\":\"RESOURCEMANAGER\",\"hosts\":\"c6403.ambari.apache.org\"}]}";
-    
-      App.Adapter.ajaxPost("/api/v1/clusters/MyCluster/requests", x);
-    },
-    willTransition:function (tr) {
+    willTransition: function (tr) {
       if (this.get('controller.isRenaming')) {
         tr.abort();
       };
