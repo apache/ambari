@@ -171,7 +171,35 @@ public class HdfsApi {
       }
     });
   }
+ 
+   /**
+    * Trash directory path.
+    *
+    * @return trash directory path
+    * @throws Exception
+    */
+  public String getTrashDirPath() throws Exception {
+    Path trashDir = getTrashDir();
+    
+    return  trashDir.toUri().getRawPath();
+  }
 
+   /**
+    * Trash directory path.
+    *
+    * @param    filePath        the path to the file
+    * @return trash directory path for the file
+    * @throws Exception
+    */
+  public String getTrashDirPath(String filePath) throws Exception {
+      String trashDirPath = getTrashDirPath();
+
+      Path path = new Path(filePath);
+      trashDirPath = trashDirPath+"/"+path.getName();
+      
+    return  trashDirPath;
+  }
+      
   /**
    * Empty trash
    * @return

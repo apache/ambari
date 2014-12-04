@@ -206,9 +206,13 @@ public class FileOperationService extends HdfsService {
   public Response moveToTrash(RemoveRequest request) {
     try {
       HdfsApi api = getApi(context);
+      
+      String trashDir = api.getTrashDirPath(request.path);
+      
       ResponseBuilder result;
-      if (api.moveToTrash(request.path)){
-        result = Response.ok(new BoolResult(true)).status(204);
+      if (api.rename(request.path, trashDir)) {
+        result = Response.ok(getApi(context).fileStatusToJSON(api
+            .getFileStatus(trashDir)));
       } else {
         result = Response.ok(new BoolResult(false)).status(422);
       }
