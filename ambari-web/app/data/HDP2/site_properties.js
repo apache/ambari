@@ -3318,7 +3318,7 @@ module.exports =
       "defaultValue": "",
       "description": "The host that has been assigned to run Hive Metastore",
       "displayType": "masterHost",
-      "isOverridable": false,
+      "isOverridable": true,
       "isRequiredByAgent": false,
       "isVisible": true,
       "serviceName": "HIVE",

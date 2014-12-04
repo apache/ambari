@@ -22,12 +22,11 @@
 
 mysqldservice=$1
 mysqldbuser=$2
-mysqldbpasswd=$3
-userhost=$4
+userhost=$3
+myhostname=$(hostname -f)
 
 service $mysqldservice start
-echo "Adding user $mysqldbuser@$userhost and $mysqldbuser@localhost"
-mysql -u root -e "CREATE USER '$mysqldbuser'@'$userhost' IDENTIFIED BY '$mysqldbpasswd';"
-mysql -u root -e "GRANT ALL PRIVILEGES ON *.* TO '$mysqldbuser'@'$userhost';"
+echo "Removing user $mysqldbuser@$userhost"
+mysql -u root -e "DROP USER '$mysqldbuser'@'$userhost';"
 mysql -u root -e "flush privileges;"
 service $mysqldservice stop

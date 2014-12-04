@@ -1034,6 +1034,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
    */
   createConfigProperty: function (_serviceConfigProperty, defaultGroupSelected, serviceConfigsData) {
     if (!_serviceConfigProperty) return null;
+    
     var overrides = _serviceConfigProperty.overrides;
     // we will populate the override properties below
     Em.set(_serviceConfigProperty, 'overrides', null);

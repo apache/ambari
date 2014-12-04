@@ -294,6 +294,7 @@ require('views/wizard/step4_view');
 require('views/wizard/step5_view');
 require('views/wizard/step6_view');
 require('views/wizard/step7_view');
+require('views/main/service/reassign/step7_view');
 require('views/wizard/step8_view');
 require('views/wizard/step9_view');
 require('views/wizard/step9/hostLogPopupBody_view');

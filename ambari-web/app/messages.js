@@ -1653,6 +1653,32 @@ Em.I18n.translations = {
   'services.reassign.step3.sourceHost':'Source Host:',
   'services.reassign.step3.component':'Component name:',
   'services.reassign.step4.header':'Configure Component',
+
+  'services.reassign.step4.tasks.stopServices.title':'Stop Required Services',
+  'services.reassign.step4.tasks.createHostComponents.title':'Create {0}',
+  'services.reassign.step4.tasks.putHostComponentsInMaintenanceMode.title':'Disable {0}',
+  'services.reassign.step4.tasks.reconfigure.title':'Reconfigure {0}',
+  'services.reassign.step4.tasks.save.configuration.note':'This configuration is created by Move {0} wizard',
+  'services.reassign.step4.tasks.installHostComponents.title':'Install {0}',
+  'services.reassign.step4.tasks.startZooKeeperServers.title':'Start ZooKeeper Servers',
+  'services.reassign.step4.tasks.startNameNode.title':'Start NameNode',
+  'services.reassign.step4.tasks.deleteHostComponents.title':'Delete disabled {0}',
+  'services.reassign.step4.tasks.startServices.title':'Start Required Services',
+  'services.reassign.step4.tasks.cleanMySqlServer.title':'Clean MYSQL Server',
+  'services.reassign.step4.tasks.testHiveMysqlConnection.title':'Test MYSQL Connection',
+  'services.reassign.step4.tasks.configureMySqlServer.title':'Configure MYSQL Server',
+  'services.reassign.step4.tasks.startMySqlServer.title':'Start MYSQL Server',
+  'services.reassign.step4.tasks.testDBConnection.title':'Test DB Connection',
+  'services.reassign.step4.tasks.testDBConnection.tooltip':'Database Host: {0}\n' +
+  'Database Type: {1}\n' +
+  'Database Name: {2}\n' +
+  'Username: {3}\n' +
+  'Password: {4}\n' +
+  'JDBC Driver Class: {5}\n' +
+  'Database URL: {6}',
+  'services.reassign.rollback.confirm':'Are you sure?',
+
+
   'services.reassign.step4.task0.title':'Stop Required Services',
   'services.reassign.step4.task1.title':'Create {0}',
   'services.reassign.step4.task2.title':'Disable {0}',
@@ -1705,6 +1731,19 @@ Em.I18n.translations = {
       '<div class="code-snippet">chown -R {3}:{5} {6}</div></li>' +
       '</ol>' +
       '</div>',
+  'services.reassign.step5.body.oozie_server':
+    '<div class="alert alert-info">' +
+    'Copy the contents of <b>/hadoop/oozie/data/oozie-db</b> on the source host <b>{1}</b> to <b>/hadoop/oozie/data/oozie-db</b> on the target host <b>{2}</b>.' +
+    '</div>',
+  'services.reassign.step5.body.mysql_server':
+    '<div class="alert alert-info">' +
+    '<ol>' +
+    '<li>On <b>{1}</b> using a terminal you can export your Metastore DB (MYSQL) using:' +
+    '<div class="code-snippet">mysqldump db_name > backup-file.sql</div></li>' +
+    '<li>Copy the file to the target host <b>{2}</b> hosting the MySQL DB and import' +
+    '<div class="code-snippet">mysql db_name < backup-file.sql</div></li>' +
+    '</ol>' +
+    '</div>',
   'services.reassign.step5.body.securityNotice': '<div class="alert alert-info"> <div class="alert alert-warn"> <strong>Note: </strong> Secure cluster' +
     ' requires generating necessary principals for reassigned component and creating keytab files with the principal on ' +
     'the target host. The keytab file should be accessible to the service user.</div> {0} </div>',
@@ -1717,6 +1756,10 @@ Em.I18n.translations = {
   'services.reassign.step6.status.success': 'Successfully moved <b>{0}</b> from <b>{1}</b> host to <b>{2}</b> host.',
   'services.reassign.step6.status.failed': 'Failed to move <b>{0}</b> from <b>{1}</b> host to <b>{2}</b> host.',
   'services.reassign.step6.status.info': 'Reassigning {0}. \nPlease wait for all tasks to be completed.',
+  'services.reassign.step7.header': 'Rollback',
+  'services.reassign.step7.info': 'Rollback in progress',
+  'services.reassign.step7.failed': 'Rollback failed',
+  'services.reassign.step7.success': 'Rollback successfully completed',
 
   /** services page constants **/
 

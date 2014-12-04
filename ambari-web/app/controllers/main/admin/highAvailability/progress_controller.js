@@ -100,4 +100,3 @@ App.HighAvailabilityProgressPageController = App.HighAvailabilityWizardControlle
     });
   }
 });
-

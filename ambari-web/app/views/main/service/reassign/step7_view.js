@@ -16,21 +16,28 @@
  * limitations under the License.
  */
 
+
 var App = require('app');
-require('models/cluster');
-require('controllers/wizard');
-require('controllers/main/service/reassign_controller');
 
-describe('App.ReassignMasterController', function () {
+App.ReassignMasterWizardStep7View = App.HighAvailabilityProgressPageView.extend({
 
-  var reassignMasterController = App.ReassignMasterController.create({});
+  headerTitle: Em.I18n.t('services.reassign.step7.header'),
 
-  describe('#totalSteps', function () {
-    it('check', function () {
-      expect(reassignMasterController.get('totalSteps')).to.equal(7);
-    });
-  });
+  noticeInProgress: function () {
+    return Em.I18n.t('services.reassign.step7.info');
+  }.property(),
 
-  reassignMasterController.set('content.reassign', {service_id:null});
+  noticeFailed: function () {
+    return Em.I18n.t('services.reassign.step7.failed');
+  }.property(),
 
+  noticeCompleted: function () {
+    return Em.I18n.t('services.reassign.step7.success');
+  }.property(),
+
+  submitButtonText: function () {
+    return Em.I18n.t('common.complete') + ' &rarr;';
+  }.property(),
+
+  templateName: require('templates/main/service/reassign/step7')
 });

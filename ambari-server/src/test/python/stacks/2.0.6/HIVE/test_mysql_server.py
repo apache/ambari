@@ -96,13 +96,25 @@ class TestMySqlServer(RMFTestCase):
                               )
     self.assertNoMoreResources()
 
+  def test_clean_default(self):
+    self.executeScript("2.0.6/services/HIVE/package/scripts/mysql_server.py",
+                       classname = "MysqlServer",
+                       command = "clean",
+                       config_file="default.json"
+    )
+    self.assert_clean_default()
+    self.assertNoMoreResources()
+
+  def test_clean_secured(self):
+    self.executeScript("2.0.6/services/HIVE/package/scripts/mysql_server.py",
+                       classname = "MysqlServer",
+                       command = "clean",
+                       config_file="secured.json"
+    )
+    self.assert_clean_secured()
+    self.assertNoMoreResources()
+
   def assert_configure_default(self):
-    self.assertResourceCalled('Execute', "sed -i 's|^bind-address[ \t]*=.*|bind-address = 0.0.0.0|' /etc/my.cnf",
-    )
-    self.assertResourceCalled('Execute', 'service mysql start',
-      logoutput = True,
-      not_if = 'service mysql status | grep running'
-    )
     self.assertResourceCalled('File', '/tmp/addMysqlUser.sh',
       content = StaticFile('addMysqlUser.sh'),
       mode = 0755,
@@ -114,12 +126,6 @@ class TestMySqlServer(RMFTestCase):
     )
 
   def assert_configure_secured(self):
-    self.assertResourceCalled('Execute', "sed -i 's|^bind-address[ \t]*=.*|bind-address = 0.0.0.0|' /etc/my.cnf",
-    )
-    self.assertResourceCalled('Execute', 'service mysql start',
-      logoutput = True,
-      not_if = 'service mysql status | grep running'
-    )
     self.assertResourceCalled('File', '/tmp/addMysqlUser.sh',
       content = StaticFile('addMysqlUser.sh'),
       mode = 0755,
@@ -129,3 +135,25 @@ class TestMySqlServer(RMFTestCase):
       tries = 3,
       try_sleep = 5,
     )
+
+  def assert_clean_default(self):
+    self.assertResourceCalled('File', '/tmp/removeMysqlUser.sh',
+                              content = StaticFile('removeMysqlUser.sh'),
+                              mode = 0755,
+                              )
+    self.assertResourceCalled('Execute', 'bash -x /tmp/removeMysqlUser.sh mysql hive c6402.ambari.apache.org',
+                              path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
+                              tries = 3,
+                              try_sleep = 5,
+                              )
+
+  def assert_clean_secured(self):
+    self.assertResourceCalled('File', '/tmp/removeMysqlUser.sh',
+                              content = StaticFile('removeMysqlUser.sh'),
+                              mode = 0755,
+                              )
+    self.assertResourceCalled('Execute', 'bash -x /tmp/removeMysqlUser.sh mysql hive c6402.ambari.apache.org',
+                              path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
+                              tries = 3,
+                              try_sleep = 5,
+                              )

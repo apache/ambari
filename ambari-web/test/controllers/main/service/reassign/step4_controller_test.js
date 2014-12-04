@@ -158,18 +158,23 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
       sinon.stub(App, 'get', function () {
         return isHaEnabled;
       });
+
       controller.set('tasks', [
-        {id: 1},
-        {id: 2},
-        {id: 3},
-        {id: 4},
-        {id: 5},
-        {id: 6},
-        {id: 7},
-        {id: 8},
-        {id: 9}
+        {id: 1, command: 'stopServices'},
+        {id: 2, command: 'cleanMySqlServer'},
+        {id: 3, command: 'createHostComponents'},
+        {id: 4, command: 'putHostComponentsInMaintenanceMode'},
+        {id: 5, command: 'reconfigure'},
+        {id: 6, command: 'installHostComponents'},
+        {id: 7, command: 'startZooKeeperServers'},
+        {id: 8, command: 'startNameNode'},
+        {id: 9, command: 'deleteHostComponents'},
+        {id: 10, command: 'configureMySqlServer'},
+        {id: 11, command: 'startMySqlServer'},
+        {id: 12, command: 'startServices'}
       ]);
     });
+
     afterEach(function () {
       App.get.restore();
     });
@@ -178,39 +183,67 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
       controller.set('content.hasManualSteps', false);
 
       controller.removeUnneededTasks();
-      expect(controller.get('tasks').mapProperty('id')).to.eql([1, 2, 3, 4, 5, 8, 9]);
+      expect(controller.get('tasks').mapProperty('id')).to.eql([1,3,4,5,6,9,12]);
     });
+
     it('reassign component is not NameNode and HA disabled', function () {
       controller.set('content.hasManualSteps', true);
       controller.set('content.reassign.component_name', 'COMP1');
       isHaEnabled = false;
 
+      console.log(controller.get('tasks').mapProperty('id'))
       controller.removeUnneededTasks();
-      expect(controller.get('tasks').mapProperty('id')).to.eql([1, 2, 3, 4, 5]);
+      console.log(controller.get('tasks').mapProperty('id'))
+      expect(controller.get('tasks').mapProperty('id')).to.eql([1, 3, 4, 5, 6]);
     });
+
     it('reassign component is not NameNode and HA enabled', function () {
       controller.set('content.hasManualSteps', true);
       controller.set('content.reassign.component_name', 'COMP1');
       isHaEnabled = true;
 
       controller.removeUnneededTasks();
-      expect(controller.get('tasks').mapProperty('id')).to.eql([1, 2, 3, 4, 5]);
+      expect(controller.get('tasks').mapProperty('id')).to.eql([1, 3, 4, 5, 6]);
     });
+
     it('reassign component is NameNode and HA disabled', function () {
       controller.set('content.hasManualSteps', true);
       controller.set('content.reassign.component_name', 'NAMENODE');
       isHaEnabled = false;
 
       controller.removeUnneededTasks();
-      expect(controller.get('tasks').mapProperty('id')).to.eql([1, 2, 3, 4, 5]);
+      expect(controller.get('tasks').mapProperty('id')).to.eql([1, 3, 4, 5, 6]);
     });
+
     it('reassign component is NameNode and HA enabled', function () {
       controller.set('content.hasManualSteps', true);
       controller.set('content.reassign.component_name', 'NAMENODE');
       isHaEnabled = true;
 
       controller.removeUnneededTasks();
-      expect(controller.get('tasks').mapProperty('id')).to.eql([1, 2, 3, 4, 5, 6, 7]);
+      expect(controller.get('tasks').mapProperty('id')).to.eql([1, 3, 4, 5, 6, 7, 8]);
+    });
+
+    it('reassign component is HiveServer and db type is mysql', function () {
+      controller.set('content.hasManualSteps', false);
+      controller.set('content.databaseType', 'mysql');
+      controller.set('content.reassign.component_name', 'HIVE_SERVER');
+      isHaEnabled = false;
+
+      controller.removeUnneededTasks();
+      console.log(controller.get('tasks').mapProperty('id'))
+      expect(controller.get('tasks').mapProperty('id')).to.eql([1, 2, 3, 4, 5, 6, 9, 10, 11, 12]);
+    });
+
+    it('reassign component is HiveServer and db type is not mysql', function () {
+      controller.set('content.hasManualSteps', false);
+      controller.set('content.databaseType', 'derby');
+      controller.set('content.reassign.component_name', 'HIVE_SERVER');
+      isHaEnabled = false;
+
+      controller.removeUnneededTasks();
+      console.log(controller.get('tasks').mapProperty('id'))
+      expect(controller.get('tasks').mapProperty('id')).to.eql([1, 3, 4, 5, 6, 9, 12]);
     });
   });
 
@@ -226,12 +259,14 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
     });
     it('No commands', function () {
       controller.set('commands', []);
+      controller.set('commandsForDB', []);
       controller.initializeTasks();
 
       expect(controller.get('tasks')).to.be.empty;
     });
     it('One command', function () {
       controller.set('commands', ['COMMAND1']);
+      controller.set('commandsForDB', ['COMMAND1']);
       controller.initializeTasks();
 
       expect(controller.get('tasks')[0].get('id')).to.equal(0);
@@ -1188,6 +1223,33 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
       };
       controller.set('content.reassign.component_name', 'COMP1');
       expect(JSON.parse(controller.getServiceConfigData(configs)[0]).Clusters.desired_config.length).to.equal(1);
+    });
+  });
+
+  describe('#testsMySqlServer()', function () {
+    beforeEach(function() {
+      sinon.stub(App.HostComponent, 'find', function() {
+        return Em.A([
+          Em.Object.create({
+            'componentName': 'MYSQL_SERVER',
+            'hostName': 'c6401.ambari.apache.org'
+          })
+        ]);
+      });
+    });
+
+    afterEach(function() {
+      App.HostComponent.find.restore();
+    });
+
+    it('Cleans MySql Server', function () {
+      controller.cleanMySqlServer();
+      expect(App.ajax.send.calledOnce).to.be.true;
+    });
+
+    it('Configures MySql Server', function () {
+      controller.configureMySqlServer();
+      expect(App.ajax.send.calledOnce).to.be.true;
     });
 
   });

@@ -77,7 +77,7 @@ App.StackServiceComponent = DS.Model.extend({
 
   /** @property {Boolean} isReassignable - component supports reassign action **/
   isReassignable: function() {
-    return ['NAMENODE', 'SECONDARY_NAMENODE', 'JOBTRACKER', 'RESOURCEMANAGER', 'APP_TIMELINE_SERVER', 'OOZIE_SERVER', 'WEBHCAT_SERVER'].contains(this.get('componentName'));
+    return ['NAMENODE', 'SECONDARY_NAMENODE', 'JOBTRACKER', 'RESOURCEMANAGER', 'APP_TIMELINE_SERVER', 'OOZIE_SERVER', 'WEBHCAT_SERVER', 'HIVE_SERVER', 'HIVE_METASTORE', 'MYSQL_SERVER'].contains(this.get('componentName'));
   }.property('componentName'),
 
   /** @property {Boolean} isRollinRestartAllowed - component supports rolling restart action **/
@@ -147,7 +147,7 @@ App.StackServiceComponent = DS.Model.extend({
     return this.get('isMaster') && this.get('isMultipleAllowed') && this.get('maxToInstall') > 2;
   }.property('componentName'),
 
- 
+
   /** @property {Boolean} isClientBehavior - Some non client components can be assigned as clients.
    *
    * Used for ignoring such components as Ganglia Monitor on Installer "Review" step.
@@ -206,4 +206,3 @@ App.StackServiceComponent.coHost = {
   'HIVE_METASTORE': 'HIVE_SERVER',
   'WEBHCAT_SERVER': 'HIVE_SERVER'
 };
-

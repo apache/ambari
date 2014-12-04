@@ -23,7 +23,7 @@ App.ReassignMasterController = App.WizardController.extend({
 
   name: 'reassignMasterController',
 
-  totalSteps: 6,
+  totalSteps: 7,
 
   /**
    * Used for hiding back button in wizard
@@ -55,8 +55,10 @@ App.ReassignMasterController = App.WizardController.extend({
     hdfsUser: "hdfs",
     group: "hadoop",
     reassign: null,
-    componentsWithManualCommands: ['NAMENODE', 'SECONDARY_NAMENODE'],
+    componentsWithManualCommands: ['NAMENODE', 'SECONDARY_NAMENODE', 'OOZIE_SERVER', 'MYSQL_SERVER'],
     hasManualSteps: false,
+    hasCheckDBStep: false,
+    componentsWithCheckDBStep: ['HIVE_METASTORE', 'HIVE_SERVER', 'OOZIE_SERVER'],
     securityEnabled: false
   }),
 
@@ -81,6 +83,10 @@ App.ReassignMasterController = App.WizardController.extend({
   addManualSteps: function () {
     this.set('content.hasManualSteps', this.get('content.componentsWithManualCommands').contains(this.get('content.reassign.component_name')) || this.get('content.securityEnabled'));
   }.observes('content.reassign.component_name', 'content.securityEnabled'),
+
+  addCheckDBStep: function () {
+    this.set('content.hasCheckDBStep', this.get('content.componentsWithCheckDBStep').contains(this.get('content.reassign.component_name')));
+  }.observes('content.reassign.component_name'),
 
   getSecurityStatus: function () {
     if (App.get('testMode')) {
@@ -263,17 +269,39 @@ App.ReassignMasterController = App.WizardController.extend({
     this.set('content.secureConfigs', secureConfigs);
   },
 
+  saveServiceProperties: function (properties) {
+    this.setDBProperty('serviceProperties', properties);
+    this.set('content.serviceProperties', properties);
+  },
+
+  loadServiceProperties: function () {
+    var serviceProperties = this.getDBProperty('serviceProperties');
+    this.set('content.serviceProperties', serviceProperties);
+  },
+
+  saveDatabaseType: function (type) {
+    this.setDBProperty('databaseType', type);
+    this.set('content.databaseType', type);
+  },
+
+  loadDatabaseType: function () {
+    var databaseType = this.getDBProperty('databaseType');
+    this.set('content.databaseType', databaseType);
+  },
+
   /**
    * Load data for all steps until <code>current step</code>
    */
   loadAllPriorSteps: function () {
     var step = this.get('currentStep');
     switch (step) {
+      case '7':
       case '6':
       case '5':
         this.loadSecureConfigs();
         this.loadComponentDir();
       case '4':
+        this.loadServiceProperties();
         this.loadTasksStatuses();
         this.loadTasksRequestIds();
         this.loadRequestIds();
@@ -285,6 +313,7 @@ App.ReassignMasterController = App.WizardController.extend({
         this.loadConfirmedHosts();
       case '1':
         this.loadComponentToReassign();
+        this.loadDatabaseType();
         this.load('cluster');
     }
   },

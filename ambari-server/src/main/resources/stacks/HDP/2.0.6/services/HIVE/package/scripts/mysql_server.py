@@ -23,48 +23,38 @@ from resource_management import *
 
 from mysql_service import mysql_service
 
-class MysqlServer(Script):
 
+class MysqlServer(Script):
   def install(self, env):
     import params
-    
     self.install_packages(env, exclude_packages=params.hive_exclude_packages)
     self.configure(env)
 
-  def configure(self, env):
-    import params
+  def clean(self, env):
+    import params, mysql_users
     env.set_params(params)
+    mysql_users.mysql_deluser(params)
 
-    mysql_service(daemon_name=params.daemon_name, action='start')
-
-    File(params.mysql_adduser_path,
-         mode=0755,
-         content=StaticFile('addMysqlUser.sh')
-    )
-
-    cmd = format("bash -x {mysql_adduser_path} {daemon_name} {hive_metastore_user_name} {hive_metastore_user_passwd!p} {mysql_host[0]}")
-
-    Execute(cmd,
-            tries=3,
-            try_sleep=5,
-            path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'
-    )
+  def configure(self, env):
+    import params, mysql_users
+    env.set_params(params)
+    mysql_users.mysql_adduser(params)
 
   def start(self, env):
     import params
     env.set_params(params)
-
-    mysql_service(daemon_name=params.daemon_name, action = 'start')
+    mysql_service(daemon_name=params.daemon_name, action='start')
 
   def stop(self, env):
     import params
     env.set_params(params)
-
-    mysql_service(daemon_name=params.daemon_name, action = 'stop')
+    mysql_service(daemon_name=params.daemon_name, action='stop')
 
   def status(self, env):
     import status_params
-    mysql_service(daemon_name=status_params.daemon_name, action = 'status')
+
+    mysql_service(daemon_name=status_params.daemon_name, action='status')
+
 
 if __name__ == "__main__":
   MysqlServer().execute()

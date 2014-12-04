@@ -15,18 +15,4 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
-
-<h2>{{t services.reassign.step1.header}}</h2>
-<div class="alert alert-info">
-  {{#each message in view.message}}
-    {{{message}}}
-  {{/each}}
-</div>
-{{#if view.jdbcSetupMessage}}
-  <div class="alert alert-warning">
-    {{{view.jdbcSetupMessage}}}
-  </div>
-{{/if}}
-<div class="btn-area">
-  <a class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}} {{action next}}>{{t common.next}} &rarr;</a>
-</div>
+{{template "templates/main/admin/highAvailability/progress"}}

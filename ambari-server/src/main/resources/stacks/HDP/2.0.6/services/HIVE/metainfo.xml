@@ -155,6 +155,16 @@
             <script>scripts/mysql_server.py</script>
             <scriptType>PYTHON</scriptType>
           </commandScript>
+          <customCommands>
+            <customCommand>
+              <name>CLEAN</name>
+                <commandScript>
+                  <script>scripts/mysql_server.py</script>
+                  <scriptType>PYTHON</scriptType>
+                  <timeout>600</timeout>
+            </commandScript>
+                </customCommand>
+          </customCommands>
         </component>
 
         <component>
@@ -186,7 +196,7 @@
               <type>env</type>
               <fileName>hive-exec-log4j.properties</fileName>
               <dictionaryName>hive-exec-log4j</dictionaryName>
-            </configFile>                         
+            </configFile>
           </configFiles>
           <configuration-dependencies>
             <config-type>hive-site</config-type>
@@ -265,7 +275,7 @@
         <scriptType>PYTHON</scriptType>
         <timeout>300</timeout>
       </commandScript>
-      
+
       <requiredServices>
         <service>ZOOKEEPER</service>
         <service>YARN</service>

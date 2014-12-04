@@ -27,7 +27,7 @@ App.ReassignMasterWizardStep5View = Em.View.extend({
     if (!this.get('controller.content.componentsWithManualCommands').contains(this.get('controller.content.reassign.component_name'))) {
       return '';
     }
-    var componentDir = this.get('controller.content.componentDir');
+    var componentDir = this.get('controller.content.componentDir') || '';
     var componentDirCmd = componentDir.replace(/,/g, ' ');
     var sourceHost = this.get('controller.content.reassignHosts.source');
     var targetHost = this.get('controller.content.reassignHosts.target');

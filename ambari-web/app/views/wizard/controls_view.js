@@ -60,25 +60,10 @@ App.ServiceConfigPopoverSupport = Ember.Mixin.create({
 });
 
 /**
- * if config value contains &amp;|&lt;|&gt;|&quot;|&apos;
- * input field converts it to &|<|>|"|'
- * this mixin helps to aviod such convertation and show values as is.
- */
-App.SkipXmlEscapingSupport = Ember.Mixin.create({
-  didInsertElement: function() {
-    this._super();
-    if (this.get('serviceConfig.value').match(/(&amp;|&lt;|&gt;|&quot;|&apos;)/g)) {
-      this.set('value', this.get('serviceConfig.value').replace('&','&amp;'));
-      this.set('value', this.get('value').replace('&amp;','&'));
-    }
-  }
-});
-
-/**
  * Default input control
  * @type {*}
  */
-App.ServiceConfigTextField = Ember.TextField.extend(App.ServiceConfigPopoverSupport, App.SkipXmlEscapingSupport, {
+App.ServiceConfigTextField = Ember.TextField.extend(App.ServiceConfigPopoverSupport, {
 
   valueBinding: 'serviceConfig.value',
   classNameBindings: 'textFieldClassName',
@@ -171,7 +156,7 @@ App.ServiceConfigPasswordField = Ember.TextField.extend({
  * Textarea control
  * @type {*}
  */
-App.ServiceConfigTextArea = Ember.TextArea.extend(App.ServiceConfigPopoverSupport, App.SkipXmlEscapingSupport, {
+App.ServiceConfigTextArea = Ember.TextArea.extend(App.ServiceConfigPopoverSupport, {
 
   valueBinding: 'serviceConfig.value',
   rows: 4,
@@ -182,7 +167,7 @@ App.ServiceConfigTextArea = Ember.TextArea.extend(App.ServiceConfigPopoverSuppor
  * Textarea control for content type
  * @type {*}
  */
-App.ServiceConfigTextAreaContent = Ember.TextArea.extend(App.ServiceConfigPopoverSupport, App.SkipXmlEscapingSupport, {
+App.ServiceConfigTextAreaContent = Ember.TextArea.extend(App.ServiceConfigPopoverSupport, {
 
   valueBinding: 'serviceConfig.value',
   rows: 20,
@@ -246,7 +231,6 @@ App.ServiceConfigRadioButtons = Ember.View.extend({
               connectionUrl.set('value', "jdbc:mysql://" + this.get('hostName') + "/" + this.get('databaseName') + "?createDatabaseIfNotExist=true");
               dbClass.set('value', "com.mysql.jdbc.Driver");
               break;
-            case 'New PostgreSQL Database':
             case Em.I18n.t('services.service.config.hive.oozie.postgresql'):
               connectionUrl.set('value', "jdbc:postgresql://" + this.get('hostName') + ":5432/" + this.get('databaseName'));
               dbClass.set('value', "org.postgresql.Driver");
@@ -358,7 +342,6 @@ App.ServiceConfigRadioButtons = Ember.View.extend({
     if (this.get('serviceConfig.serviceName') === 'HIVE') {
       switch (value) {
         case 'New MySQL Database':
-        case 'New PostgreSQL Database':
           hostname = this.get('categoryConfigsAll').findProperty('name', 'hive_ambari_host');
           break;
         case 'Existing MySQL Database':
@@ -454,7 +437,7 @@ App.ServiceConfigRadioButtons = Ember.View.extend({
    *
    * @method handleDBConnectionProperty
    **/
-  handleDBConnectionProperty: function () {
+  handleDBConnectionProperty: function() {
     if (!['addServiceController', 'installerController'].contains(App.clusterStatus.wizardControllerName)) return;
     var handledProperties = ['oozie_database', 'hive_database', 'sink_database'];
     var currentValue = this.get('serviceConfig.value');
@@ -464,16 +447,16 @@ App.ServiceConfigRadioButtons = Ember.View.extend({
     var currentDBType = currentValue.match(databasesTypes)[0];
     var existingDatabase = /existing/gi.test(currentValue);
     // db connection check button show up if existed db selected
-
-    var propertyAppendTo1 = this.get('categoryConfigsAll').findProperty('displayName', 'Database URL');
-    if (currentDB && existingDatabase) {
-      if (handledProperties.contains(this.get('serviceConfig.name'))) {
-        if (propertyAppendTo1) propertyAppendTo1.set('additionalView', App.CheckDBConnectionView.extend({databaseName: currentDB}));
+    if (App.supports.databaseConnection) {
+      var propertyAppendTo1 = this.get('categoryConfigsAll').findProperty('displayName', 'Database URL');
+      if (currentDB && existingDatabase) {
+        if (handledProperties.contains(this.get('serviceConfig.name'))) {
+          if (propertyAppendTo1) propertyAppendTo1.set('additionalView', App.CheckDBConnectionView.extend({databaseName: currentDB}));
+        }
+      } else {
+        propertyAppendTo1.set('additionalView', null);
       }
-    } else {
-      propertyAppendTo1.set('additionalView', null);
     }
-
     // warning msg under database type radio buttons, to warn the user to setup jdbc driver if existed db selected
     var propertyHive = this.get('categoryConfigsAll').findProperty('displayName', 'Hive Database');
     var propertyOozie = this.get('categoryConfigsAll').findProperty('displayName', 'Oozie Database');

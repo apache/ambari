@@ -22,13 +22,17 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
 
   isReassign: true,
 
-  commands: ['stopServices', 'createHostComponents', 'putHostComponentsInMaintenanceMode', 'reconfigure', 'installHostComponents', 'startZooKeeperServers', 'startNameNode', 'deleteHostComponents', 'startServices'],
+  commands: ['stopServices', 'cleanMySqlServer', 'createHostComponents', 'putHostComponentsInMaintenanceMode', 'reconfigure', 'installHostComponents', 'startZooKeeperServers', 'startNameNode', 'deleteHostComponents', 'configureMySqlServer', 'startMySqlServer', 'startServices'],
+  // custom commands for Components with DB Configuration and Check
+  commandsForDB: ['createHostComponents', 'installHostComponents', 'configureMySqlServer', 'startMySqlServer', 'testDBConnection', 'stopServices', 'cleanMySqlServer', 'putHostComponentsInMaintenanceMode', 'reconfigure', 'deleteHostComponents', 'configureMySqlServer', 'startServices'],
 
   clusterDeployState: 'REASSIGN_MASTER_INSTALLING',
 
   multiTaskCounter: 0,
 
   hostComponents: [],
+
+  hiveSiteConfig: null,
 
   /**
    * Map with lists of unrelated services.
@@ -39,7 +43,10 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
     'RESOURCEMANAGER': ['HDFS', 'ZOOKEEPER', 'HBASE', 'FLUME', 'SQOOP', 'STORM'],
     'APP_TIMELINE_SERVER': ['HDFS', 'ZOOKEEPER', 'HBASE', 'FLUME', 'SQOOP', 'STORM'],
     'OOZIE_SERVER': ['HDFS', 'ZOOKEEPER', 'HBASE', 'FLUME', 'SQOOP', 'STORM', 'HIVE'],
-    'WEBHCAT_SERVER': ['HDFS', 'ZOOKEEPER', 'HBASE', 'FLUME', 'SQOOP', 'STORM']
+    'WEBHCAT_SERVER': ['HDFS', 'ZOOKEEPER', 'HBASE', 'FLUME', 'SQOOP', 'STORM'],
+    'HIVE_SERVER': ['HDFS', 'ZOOKEEPER', 'HBASE', 'FLUME', 'SQOOP', 'STORM'],
+    'HIVE_METASTORE': ['HDFS', 'ZOOKEEPER', 'HBASE', 'FLUME', 'SQOOP', 'STORM'],
+    'MYSQL_SERVER': ['HDFS', 'ZOOKEEPER', 'HBASE', 'FLUME', 'SQOOP', 'STORM'],
   },
 
   /**
@@ -117,7 +124,21 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
       componentName: 'OOZIE_SERVER',
         configs: {
           'oozie-site': {
-          'oozie.base.url': '<replace-value>:11000/oozie'
+            'oozie.base.url': '<replace-value>:11000/oozie'
+          }
+        }
+    },
+    {
+      componentName: 'HIVE_METASTORE',
+      configs: {
+        'hive-site': {}
+      }
+    },
+    {
+      componentName: 'MYSQL_SERVER',
+      configs: {
+        'hive-site': {
+          'javax.jdo.option.ConnectionURL': 'jdbc:mysql://<replace-value>/hive?createDatabaseIfNotExist=true'
         }
       }
     }
@@ -240,16 +261,53 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
    * remove unneeded tasks
    */
   removeUnneededTasks: function () {
+    if(this.isComponentWithDB()) {
+      var db_type = this.get('content.databaseType');
+
+      if (db_type !== 'mysql') {
+        this.removeTasks(['configureMySqlServer', 'startMySqlServer', 'cleanMySqlServer', 'configureMySqlServer']);
+      }
+
+      if (db_type === 'derby') {
+        this.removeTasks(['testDBConnection']);
+      }
+    }
+
+    if ( this.get('content.reassign.component_name') !== 'MYSQL_SERVER' && !this.isComponentWithDB()) {
+      this.removeTasks(['configureMySqlServer', 'startMySqlServer', 'cleanMySqlServer', 'configureMySqlServer']);
+    }
+
     if (this.get('content.hasManualSteps')) {
       if (this.get('content.reassign.component_name') === 'NAMENODE' && App.get('isHaEnabled')) {
         // Only for reassign NameNode with HA enabled
-        this.get('tasks').splice(7, 2);
+        this.removeTasks(['deleteHostComponents', 'startServices']);
       } else {
-        this.get('tasks').splice(5, 4);
+        this.removeTasks(['startZooKeeperServers', 'startNameNode', 'deleteHostComponents', 'startServices']);
       }
     } else {
-      this.get('tasks').splice(5, 2);
+      this.removeTasks(['startZooKeeperServers', 'startNameNode']);
     }
+  },
+
+  /**
+   * remove tasks by command name
+   */
+  removeTasks: function(commands) {
+    var tasks = this.get('tasks'),
+        index = null
+        cmd = null;
+
+    commands.forEach(function(command) {
+      cmd = tasks.filterProperty('command', command);
+
+      if (cmd.length === 0) {
+        return false;
+      } else {
+        index = tasks.indexOf( cmd[0] );
+      }
+
+      tasks.splice( index, 1 );
+    });
   },
 
   /**
@@ -260,9 +318,13 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
     var currentStep = App.router.get('reassignMasterController.currentStep');
     var hostComponentsNames = this.getHostComponentsNames();
 
+    if (this.isComponentWithDB()) {
+      commands = this.get('commandsForDB');
+    }
+
     for (var i = 0; i < commands.length; i++) {
       var TaskLabel = i === 3 ? this.get('serviceName') : hostComponentsNames; //For Reconfigure task, show serviceName
-      var title = Em.I18n.t('services.reassign.step4.task' + i + '.title').format(TaskLabel);
+      var title = Em.I18n.t('services.reassign.step4.tasks.' + commands[i] + '.title').format(TaskLabel);
       this.get('tasks').pushObject(Ember.Object.create({
         title: title,
         status: 'PENDING',
@@ -421,6 +483,14 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
         break;
       case 'WEBHCAT_SERVER':
         urlParams.push('(type=webhcat-site&tag=' + data.Clusters.desired_configs['webhcat-site'].tag + ')');
+      case 'HIVE_SERVER':
+        urlParams.push('(type=hive-site&tag=' + data.Clusters.desired_configs['hive-site'].tag + ')');
+        break;
+      case 'HIVE_METASTORE':
+        urlParams.push('(type=hive-site&tag=' + data.Clusters.desired_configs['hive-site'].tag + ')');
+        break;
+      case 'MYSQL_SERVER':
+        urlParams.push('(type=hive-site&tag=' + data.Clusters.desired_configs['hive-site'].tag + ')');
         break;
     }
     return urlParams;
@@ -710,6 +780,277 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
       } else {
         App.router.send('complete');
       }
+    }
+  },
+
+  /**
+   * make server call to clean MYSQL
+   */
+  cleanMySqlServer: function () {
+    App.ajax.send({
+      name: 'service.mysql.clean',
+      sender: this,
+      data: {
+        host: App.HostComponent.find().filterProperty('componentName', 'MYSQL_SERVER').get('firstObject.hostName')
+      },
+      success: 'startPolling',
+      error: 'onTaskError'
+    });
+  },
+
+  /**
+   * make server call to configure MYSQL
+   */
+  configureMySqlServer : function () {
+    App.ajax.send({
+      name: 'service.mysql.configure',
+      sender: this,
+      data: {
+        host: App.HostComponent.find().filterProperty('componentName', 'MYSQL_SERVER').get('firstObject.hostName')
+      },
+      success: 'startPolling',
+      error: 'onTaskError'
+    });
+  },
+
+  startMySqlServer: function() {
+    App.ajax.send({
+      name: 'common.host.host_component.update',
+      sender: this,
+      data: {
+        context: "Start MySQL Server",
+        hostName: App.HostComponent.find().filterProperty('componentName', 'MYSQL_SERVER').get('firstObject.hostName'),
+        serviceName: "HIVE",
+        componentName: "MYSQL_SERVER",
+        HostRoles: {
+          state: "STARTED"
+        }
+      },
+      success: 'startPolling',
+      error: 'onTaskError'
+    });
+  },
+
+  testDBConnection: function() {
+    this.loadServiceConfigsTags();
+    //this.onTaskCompleted();
+  },
+
+  isComponentWithDB: function() {
+    return ['HIVE_SERVER', 'HIVE_METASTORE', 'OOZIE_SERVER'].contains(this.get('content.reassign.component_name'));
+  },
+
+  loadServiceConfigsTags: function() {
+    App.ajax.send({
+      name: 'config.tags',
+      sender: this,
+      success: 'onLoadServiceConfigsTags',
+      error: 'onTaskError'
+    });
+  },
+
+  onLoadServiceConfigsTags: function(data) {
+    var urlParams = this.getConfigUrlParams(this.get('content.reassign.component_name'), data);
+
+    App.ajax.send({
+      name: 'reassign.load_configs',
+      sender: this,
+      data: {
+        urlParams: urlParams.join('|')
+      },
+      success: 'onLoadServiceConfigs',
+      error: 'onTaskError'
+    });
+  },
+
+  dbProperty: function() {
+    var componentName = this.get('content.reassign.component_name');
+
+    var property = null;
+    switch(componentName) {
+      case 'HIVE_SERVER':
+      case 'HIVE_METASTORE':
+        property = 'javax.jdo.option.ConnectionDriverName';
+        break;
+      case 'OOZIE_SERVER':
+        property = 'oozie.service.JPAService.jdbc.url';
+        break;
+    }
+
+    return property;
+  }.property(),
+
+  /** @property {Object} propertiesPattern - check pattern according to type of connection properties **/
+  propertiesPattern: function() {
+    return {
+      user_name: /(username|dblogin)$/ig,
+      user_passwd: /(dbpassword|password)$/ig,
+      db_connection_url: /jdbc\.url|connectionurl/ig,
+      driver_class: /ConnectionDriverName|jdbc\.driver/ig,
+      schema_name: /db\.schema\.name/ig
+    }
+  }.property(),
+
+  /** @property {Object} connectionProperties - service specific config values mapped for custom action request **/
+  connectionProperties: function() {
+    var propObj = {};
+    for (var key in this.get('propertiesPattern')) {
+      propObj[key] = this.getConnectionProperty(this.get('propertiesPattern')[key]);
+    }
+    return propObj;
+  }.property('propertiesPattern'),
+
+  getConnectionProperty: function(regexp) {
+    var propertyName = this.get('requiredProperties').filter(function(item) {
+      return regexp.test(item);
+    })[0];
+    return this.get('content.serviceProperties')[propertyName];
+  },
+  /**
+   * Properties that stores in local storage used for handling
+   * last success connection.
+   *
+   * @property {Object} preparedDBProperties
+   **/
+  preparedDBProperties: function() {
+    var propObj = {};
+    for (var key in this.get('propertiesPattern')) {
+      var propValue = this.getConnectionProperty(this.get('propertiesPattern')[key]);
+      propObj[key] = propValue;
+    }
+    return propObj;
+  }.property(),
+
+  /** @property {object} requiredProperties - properties that necessary for database connection **/
+  requiredProperties: function() {
+    var propertiesMap = {
+      HDFS: ['sink.db.schema.name','sink.dblogin','sink.dbpassword','sink.jdbc.driver','sink.jdbc.url'],
+      OOZIE: ['oozie.db.schema.name','oozie.service.JPAService.jdbc.username','oozie.service.JPAService.jdbc.password','oozie.service.JPAService.jdbc.driver','oozie.service.JPAService.jdbc.url'],
+      HIVE: ['ambari.hive.db.schema.name','javax.jdo.option.ConnectionUserName','javax.jdo.option.ConnectionPassword','javax.jdo.option.ConnectionDriverName','javax.jdo.option.ConnectionURL']
+    };
+    return propertiesMap[this.get('content.reassign.service_id')];
+  }.property(),
+
+  dbType: function() {
+    var databaseTypes = /MySQL|PostgreS|Oracle|Derby|MSSQL/gi;
+    var databaseProp = this.get('content.serviceProperties')[this.get('dbProperty')];
+
+    return databaseProp.match(databaseTypes)[0];
+  }.property('dbProperty'),
+
+  onLoadServiceConfigs: function(data) {
+    var properties = data.items.get('firstObject.properties');
+    this.saveServiceProperties(properties);
+
+    var params = this.get('preparedDBProperties');
+    params['db_name'] = this.get('dbType');
+
+    var ambariProperties = App.router.get('clusterController.ambariProperties');
+
+    params['jdk_location'] = ambariProperties['jdk_location'];
+    params['jdk_name'] = ambariProperties['jdk.name'];
+    params['java_home'] = ambariProperties['java.home'];
+
+    params['threshold'] = 60;
+    params['ambari_server_host'] = location.hostname;
+    params['check_execute_list'] = "db_connection_check";
+
+    App.ajax.send({
+      name: 'custom_action.create',
+      sender: this,
+      data: {
+        requestInfo: {
+          "context": "Check host",
+          "action": "check_host",
+          "parameters": params
+        },
+        filteredHosts: [App.HostComponent.find().filterProperty('componentName', 'MYSQL_SERVER').get('firstObject.hostName')]
+      },
+      success: 'onCreateActionSuccess',
+      error: 'onTaskError'
+    });
+  },
+
+  onCreateActionSuccess: function(data) {
+    this.set('checkDBRequestId', data.Requests.id);
+    App.ajax.send({
+      name: 'custom_action.request',
+      sender: this,
+      data: {
+        requestId: this.get('checkDBRequestId')
+      },
+      success: 'setCheckDBTaskId'
+    });
+  },
+
+  setCheckDBTaskId: function(data) {
+    this.set('checkDBTaskId', data.items[0].Tasks.id);
+    this.startDBCheckPolling();
+  },
+
+  startDBCheckPolling: function() {
+      this.getTaskInfo();
+  },
+
+  getTaskInfo: function() {
+    this.setTaskStatus(this.get('currentTaskId'), 'IN_PROGRESS');
+    this.get('tasks').findProperty('id', this.get('currentTaskId')).set('progress', 100);
+
+    this.set('logs', []);
+    App.ajax.send({
+      name: 'custom_action.request',
+      sender: this,
+      data: {
+        requestId: this.get('checkDBRequestId'),
+        taskId: this.get('checkDBTaskId')
+      },
+      success: 'getTaskInfoSuccess'
+    });
+  },
+
+  getTaskInfoSuccess: function(data) {
+    var task = data.Tasks;
+    if (task.status === 'COMPLETED') {
+      var structuredOut = task.structured_out.db_connection_check;
+      if (structuredOut.exit_code != 0) {
+        this.showConnectionErrorPopup(structuredOut.message);
+        this.onTaskError();
+      } else {
+        this.onTaskCompleted();
+      }
+    }
+
+    if (task.status === 'FAILED') {
+      this.onTaskError();
+    }
+
+    if (/PENDING|QUEUED|IN_PROGRESS/.test(task.status)) {
+      Em.run.later(this, function() {
+        this.startDBCheckPolling();
+      }, 3000);
+    }
+  },
+
+  showConnectionErrorPopup: function(error) {
+    var popup = App.showAlertPopup('Database Connection Error');
+    popup.set('body', error);
+  },
+
+  testDBRetryTooltip: function() {
+    var db_host = App.HostComponent.find().filterProperty('componentName', 'MYSQL_SERVER').get('firstObject.hostName');
+    var db_type = this.get('dbType');
+    var db_props = this.get('preparedDBProperties');
+
+    return Em.I18n.t('services.reassign.step4.tasks.testDBConnection.tooltip').format(
+      db_host, db_type, db_props['schema_name'], db_props['user_name'],
+      db_props['user_passwd'], db_props['driver_class'], db_props['db_connection_url']
+    );
+  }.property('dbProperties'),
+
+  saveServiceProperties: function(properties) {
+    if(properties) {
+      this.set('content.serviceProperties', properties);
+      App.router.get(this.get('content.controllerName')).saveServiceProperties(properties);
     }
   }
 });

@@ -156,3 +156,4 @@ require('controllers/wizard/stack_upgrade/step3_controller');
 require('controllers/global/cluster_controller');
 require('controllers/global/update_controller');
 require('controllers/global/configuration_controller');
+require('controllers/main/service/reassign/step7_controller');

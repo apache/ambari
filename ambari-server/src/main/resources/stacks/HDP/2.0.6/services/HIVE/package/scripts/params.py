@@ -100,6 +100,7 @@ check_db_connection_jar_name = "DBConnectionVerification.jar"
 check_db_connection_jar = format("/usr/lib/ambari-agent/{check_db_connection_jar_name}")
 
 #common
+hive_metastore_host = config['clusterHostInfo']['hive_metastore_host'][0]
 hive_metastore_port = get_port_from_url(config['configurations']['hive-site']['hive.metastore.uris']) #"9083"
 hive_var_lib = '/var/lib/hive'
 ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
@@ -167,6 +168,7 @@ mysql_group = 'mysql'
 mysql_host = config['clusterHostInfo']['hive_mysql_host']
 
 mysql_adduser_path = format("{tmp_dir}/addMysqlUser.sh")
+mysql_deluser_path = format("{tmp_dir}/removeMysqlUser.sh")
 
 ######## Metastore Schema
 if hdp_stack_version != "" and compare_versions(hdp_stack_version, "2.1.0.0") < 0:

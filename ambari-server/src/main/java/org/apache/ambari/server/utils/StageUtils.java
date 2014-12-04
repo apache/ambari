@@ -116,6 +116,7 @@ public class StageUtils {
     componentToClusterInfoKeyMap.put("HBASE_MASTER", "hbase_master_hosts");
     componentToClusterInfoKeyMap.put("HBASE_REGIONSERVER", "hbase_rs_hosts");
     componentToClusterInfoKeyMap.put("HIVE_SERVER", "hive_server_host");
+    componentToClusterInfoKeyMap.put("HIVE_METASTORE", "hive_metastore_host");
     componentToClusterInfoKeyMap.put("OOZIE_SERVER", "oozie_server");
     componentToClusterInfoKeyMap.put("WEBHCAT_SERVER", "webhcat_server_host");
     componentToClusterInfoKeyMap.put("MYSQL_SERVER", "hive_mysql_host");

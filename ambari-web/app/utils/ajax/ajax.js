@@ -2141,6 +2141,74 @@ var urls = {
         data: JSON.stringify(data.data)
       }
     }
+  },
+
+  'service.mysql.clean': {
+    'real': '/clusters/{clusterName}/requests',
+    'mock': '',
+    'format': function (data) {
+      return {
+        type: 'POST',
+        data: JSON.stringify({
+          "RequestInfo": {
+            "command" : "CLEAN", "context" : "Clean MYSQL Server"
+          },
+          "Requests/resource_filters": [{
+              "service_name" : "HIVE",
+              "component_name" : "MYSQL_SERVER",
+              "hosts": data.host
+          }]
+        })
+      }
+    }
+  },
+
+  'service.mysql.configure': {
+    'real': '/clusters/{clusterName}/requests',
+    'mock': '',
+    'format': function (data) {
+      return {
+        type: 'POST',
+        data: JSON.stringify({
+          "RequestInfo": {
+            "command" : "CONFIGURE", "context" : "Configure MYSQL Server"
+          },
+          "Requests/resource_filters": [{
+              "service_name" : "HIVE",
+              "component_name" : "MYSQL_SERVER",
+              "hosts": data.host
+          }]
+        })
+      }
+    }
+  },
+
+  'service.mysql.testHiveConnection': {
+    'real': '/requests',
+    'mock': '',
+    'format': function (data) {
+      return {
+        type: 'POST',
+        data: JSON.stringify({
+          "RequestInfo": {
+            "context": "Check host",
+            "action": "check_host",
+            "parameters":{
+              "db_name": data.db_name,
+              "user_name": data.db_user,
+              "user_passwd": data.db_pass,
+              "db_connection_url": data.db_connection_url,
+              "jdk_location": data.jdk_location,
+              "threshold":"60",
+              "ambari_server_host": "c6403.ambari.apache.org",
+              "check_execute_list":"db_connection_check",
+              "java_home": data.java_home,
+              "jdk_name": data.jdk_name
+            }
+          },
+          "Requests/resource_filters": [{"hosts": data.hosts}]})
+      }
+    }
   }
 };
 /**

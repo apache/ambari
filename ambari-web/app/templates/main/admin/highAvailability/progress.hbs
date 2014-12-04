@@ -32,11 +32,12 @@
             <div class="bar" {{bindAttr style="view.barWidth"}}></div>
           </div>
         </div>
-        <div class="span1">{{task.progress}}&#37;</div>
+        <div {{bindAttr class=":span1 view.hidePercent:noDisplay"}}>{{task.progress}}&#37;</div>
       </div>
       <div>
       {{#if task.showRetry}}
-        <a {{action retryTask target="controller"}} class="btn btn-primary retry">
+        <a {{action retryTask target="controller"}} class="btn btn-primary retry"
+           rel="tooltip" data-trigger="click" {{bindAttr title="view.showDBTooltip:testDBRetryTooltip"}}>
           <i class="icon-repeat icon-white"></i>
           {{t common.retry}}
         </a>
