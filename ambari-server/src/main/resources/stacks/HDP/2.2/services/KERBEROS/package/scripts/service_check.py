@@ -58,6 +58,8 @@ class KerberosServiceCheck(KerberosScript):
         print "Test executed successfully."
       else:
         print "Test failed with error code %d: %s." % (code, out)
+    else:
+      print "Test not performed - no test principal was available"
 
 if __name__ == "__main__":
   KerberosServiceCheck().execute()

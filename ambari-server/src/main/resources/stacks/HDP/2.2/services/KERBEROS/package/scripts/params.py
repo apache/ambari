@@ -70,8 +70,8 @@ if config is not None:
     cluster_env = get_property_value(configurations, 'cluster-env')
 
     if cluster_env is not None:
-      smoke_test_principal = get_property_value(cluster_env, 'smokeuser')
-      smoke_test_keytab_file = get_property_value(cluster_env, 'smokeuser_keytab')
+      smoke_test_principal = get_property_value(cluster_env, 'smokeuser', None, True, None)
+      smoke_test_keytab_file = get_property_value(cluster_env, 'smokeuser_keytab', None, True, None)
 
       default_group = get_property_value(cluster_env, 'user_group')
 
@@ -145,28 +145,18 @@ if config is not None:
     kdc_host = get_property_value(krb5_conf_data, 'kdc_host', kdc_host)
     admin_server_host = get_property_value(krb5_conf_data, 'admin_server_host', admin_server_host)
 
-    admin_principal = get_property_value(krb5_conf_data, 'admin_principal', admin_principal)
-    admin_password = get_property_value(krb5_conf_data, 'admin_password', admin_password)
-    admin_keytab = get_property_value(krb5_conf_data, 'admin_keytab', admin_keytab)
+    admin_principal = get_property_value(krb5_conf_data, 'admin_principal', admin_principal, True,
+                                         None)
+    admin_password = get_property_value(krb5_conf_data, 'admin_password', admin_password, True,
+                                        None)
+    admin_keytab = get_property_value(krb5_conf_data, 'admin_keytab', admin_keytab, True, None)
 
-    # If the admin keytab is just white space, set it to None
-    if admin_keytab is not None:
-      admin_keytab = admin_keytab.strip()
-
-      if len(admin_keytab) == 0:
-        admin_keytab = None
-
-    test_principal = get_property_value(krb5_conf_data, 'test_principal', test_principal)
-    test_password = get_property_value(krb5_conf_data, 'test_password', test_password)
-    test_keytab = get_property_value(krb5_conf_data, 'test_keytab', test_keytab)
-    test_keytab_file = get_property_value(krb5_conf_data, 'test_keytab_file', test_keytab_file)
-
-    # If the test keytab is just white space, set it to None
-    if test_keytab is not None:
-      test_keytab = test_keytab.strip()
-
-      if len(test_keytab) == 0:
-        test_keytab = None
+    test_principal = get_property_value(krb5_conf_data, 'test_principal', test_principal, True,
+                                        None)
+    test_password = get_property_value(krb5_conf_data, 'test_password', test_password, True, None)
+    test_keytab = get_property_value(krb5_conf_data, 'test_keytab', test_keytab, True, None)
+    test_keytab_file = get_property_value(krb5_conf_data, 'test_keytab_file', test_keytab_file,
+                                          True, None)
 
     krb5_conf_template = get_property_value(krb5_conf_data, 'content', krb5_conf_template)
     krb5_conf_dir = get_property_value(krb5_conf_data, 'conf_dir', krb5_conf_dir)

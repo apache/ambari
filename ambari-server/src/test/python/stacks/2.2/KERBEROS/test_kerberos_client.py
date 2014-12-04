@@ -19,6 +19,9 @@ limitations under the License.
 
 import os
 import use_cases
+from utils import get_property_value, get_unstructured_data
+
+
 
 from stacks.utils.RMFTestCase import *
 
@@ -115,3 +118,50 @@ class TestKerberosClient(RMFTestCase):
                               group='root',
                               mode=0644)
 
+
+  def test_get_property(self):
+    d = {
+      'non_empty' : "Nonempty value",
+      'unicode_non_empty' : u"Nonempty value",
+      'number' : 33,
+      'number_string' : "33",
+      'empty' : "",
+      'unicode_empty' : u"",
+      'whitespace' : "    ",
+      'unicode_whitespace' : u"    ",
+      'none' : None,
+      }
+
+    self.assertEqual('Nonempty value', get_property_value(d, 'non_empty'))
+    self.assertEqual('Nonempty value', get_property_value(d, 'non_empty', None, True, None))
+
+    self.assertEqual('Nonempty value', get_property_value(d, 'unicode_non_empty'))
+    self.assertEqual('Nonempty value', get_property_value(d, 'unicode_non_empty', None, True, None))
+
+    self.assertEqual('33', get_property_value(d, 'number_string'))
+    self.assertEqual('33', get_property_value(d, 'number_string', None, True, None))
+
+    self.assertEqual(33, get_property_value(d, 'number'))
+    self.assertEqual(33, get_property_value(d, 'number', None, True, None))
+
+    self.assertEqual('', get_property_value(d, 'empty'))
+    self.assertEqual("I'm empty", get_property_value(d, 'empty', None, True, "I'm empty"))
+    self.assertEqual('', get_property_value(d, 'empty', None, False, "I'm empty"))
+
+    self.assertEqual('', get_property_value(d, 'unicode_empty'))
+    self.assertEqual("I'm empty", get_property_value(d, 'unicode_empty', None, True, "I'm empty"))
+    self.assertEqual('', get_property_value(d, 'unicode_empty', None, False, "I'm empty"))
+
+    self.assertEqual("    ", get_property_value(d, 'whitespace'))
+    self.assertEqual("I'm empty", get_property_value(d, 'whitespace', None, True, "I'm empty"))
+    self.assertEqual('    ', get_property_value(d, 'whitespace', None, False, "I'm empty"))
+
+    self.assertEqual("    ", get_property_value(d, 'unicode_whitespace'))
+    self.assertEqual("I'm empty", get_property_value(d, 'unicode_whitespace', None, True, "I'm empty"))
+    self.assertEqual('    ', get_property_value(d, 'unicode_whitespace', None, False, "I'm empty"))
+
+    self.assertEqual(None, get_property_value(d, 'none'))
+    self.assertEqual("I'm empty", get_property_value(d, 'none', None, True, "I'm empty"))
+    self.assertEqual(None, get_property_value(d, 'none', None, False, "I'm empty"))
+    self.assertEqual("I'm empty", get_property_value(d, 'none', '', True, "I'm empty"))
+    self.assertEqual("", get_property_value(d, 'none', '', False, "I'm empty"))
