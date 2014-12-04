@@ -70,6 +70,8 @@ module.exports = Em.Application.create({
     switch (type) {
       case 'ADMIN':
         return this.get('isAdmin');
+      case 'NON_ADMIN':
+        return !this.get('isAdmin');
       case 'MANAGER':
         return this.get('isAdmin') || this.get('isOperator');
       case 'OPERATOR':

@@ -54,17 +54,17 @@ App.AlertInstance = DS.Model.extend({
    * @type {string}
    */
   lastTriggered: function() {
-    return dateUtils.dateFormat(this.get('latestTimestamp'));
-  }.property('latestTimestamp'),
+    return dateUtils.dateFormat(this.get('originalTimestamp'));
+  }.property('originalTimestamp'),
 
   /**
    * Formatted timestamp with <code>$.timeago</code>
    * @type {string}
    */
   lastTriggeredAgoFormatted: function () {
-    var lastTriggered = this.get('latestTimestamp');
+    var lastTriggered = this.get('originalTimestamp');
     return lastTriggered ? $.timeago(new Date(lastTriggered)): '';
-  }.property('latestTimestamp'),
+  }.property('originalTimestamp'),
 
   /**
    * List of css-classes for alert instance status

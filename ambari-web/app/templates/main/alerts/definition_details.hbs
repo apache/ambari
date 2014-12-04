@@ -25,10 +25,10 @@
     <div class="span9">
       <div class="definition-name row-fluid">
         {{#if controller.editing.label.isEditing}}
-          <div {{bindAttr class="controller.editing.label.isError:error :span8 :name-text-field :control-group"}}>
+          <div {{bindAttr class="controller.editing.label.isError:error :span5 :name-text-field :control-group"}}>
             {{view Em.TextField valueBinding="controller.editing.label.value"}}
           </div>
-          <div class="edit-buttons span3">
+          <div class="edit-buttons">
             <button {{action cancelEdit controller.editing.label target="controller"}} class="btn">{{t common.cancel}}</button>
             <button {{bindAttr disabled="controller.editing.label.isError"}} {{action saveEdit controller.editing.label target="controller"}}
                 class="btn btn-primary">{{t common.save}}
@@ -114,21 +114,25 @@
         {{/isAccessible}}
       </div>
       <div class="properties-list">
+        {{#if controller.content.service.displayName}}
         <div class="row-fluid">
-          <div class="span4">{{t common.service}}:</div>
-          <div class="span8"><span class="label label-info">{{controller.content.service.displayName}}</span></div>
-      </div>
+          <div class="span4 property-name">{{t common.service}}:</div>
+          <div class="span8"><span>{{controller.content.service.displayName}}</span></div>
+        </div>
+        {{/if}}
+        {{#if controller.content.componentNameFormatted}}
         <div class="row-fluid">
-          <div class="span4">{{t common.component}}:</div>
+          <div class="span4 property-name">{{t common.component}}:</div>
           <div class="span8">{{controller.content.componentNameFormatted}}</div>
-      </div>
+        </div>
+        {{/if}}
         <div class="row-fluid">
-          <div class="span4">{{t common.type}}:</div>
+          <div class="span4 property-name">{{t common.type}}:</div>
           <div class="span8"> {{controller.content.type}}</div>
-      </div>
+        </div>
       {{#if controller.groupsList.length}}
         <div class="row-fluid">
-          <div class="span4">{{t alerts.definition.details.groups}}:</div>
+          <div class="span4 property-name">{{t alerts.definition.details.groups}}:</div>
           <div class="span8">
             <ul>
               {{#each groupName in controller.groupsList}}
@@ -139,7 +143,7 @@
         </div>
       {{/if}}
         <div class="row-fluid">
-          <div class="span4">{{t alerts.table.header.lastTriggered}}:</div>
+          <div class="span4 property-name">{{t alerts.table.header.lastTrigger}}:</div>
           <div class="span8">{{controller.content.lastTriggeredFormatted}}</div>
         </div>
       </div>
@@ -170,11 +174,12 @@
             <tr>
               <td class="first">{{{instance.status}}}</td>
               <td>
-                <a {{action goToService instance.service target="controller"}} href="#">{{instance.service.displayName}}</a>:&nbsp;
+                <a {{action goToService instance.service target="controller"}} href="#">{{instance.service.displayName}}</a>
                 {{#if instance.host}}
+                  {{#if instance.service.displayName}}
+                    &nbsp;/&nbsp;
+                  {{/if}}
                   <a {{action goToHostAlerts instance.host target="controller"}} href="#">{{instance.host.hostName}}</a>
-                {{else}}
-                  {{t common.na}}
                 {{/if}}
               </td>
               <td><time class="timeago" {{bindAttr data-original-title="instance.lastTriggered"}}>{{instance.lastTriggeredAgoFormatted}}</time></td>

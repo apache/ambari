@@ -103,7 +103,7 @@ App.MainAlertDefinitionsView = App.TableView.extend({
    * @type {Em.View}
    */
   enabledSort: sort.fieldView.extend({
-    template:Em.Handlebars.compile('<span {{bindAttr class="view.status :column-name"}}><span class="icon-off"></span></span>'),
+    template:Em.Handlebars.compile('<span {{bindAttr class="view.status :column-name"}}>{{t alerts.table.state}}</span>'),
     column: 6,
     name: 'enabled'
   }),

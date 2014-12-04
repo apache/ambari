@@ -53,6 +53,14 @@
   }
 }
 
+.alert-definition-enable {
+  color: @health-status-green;
+}
+
+.alert-definition-disable {
+  color: gray;
+}
+
 .alerts-table {
 
   margin-top: 10px;
@@ -169,6 +177,9 @@
   hr {
     margin: 10px 0 0 0;
   }
+  .edit-description-button {
+    font-size: 14px;
+  }
   .edit-description-button:hover {
     text-decoration: none;
   }
@@ -191,6 +202,9 @@
     .properties-list {
       margin-top: 50px;
       text-align: left;
+      .property-name {
+        font-weight: bold;
+      }
       ul {
         list-style: none;
         margin: 0;
@@ -216,6 +230,8 @@
     .edit-buttons {
       margin-bottom: 0px;
       margin-top: -4px;
+      float: left;
+      margin-left: 7px;
     }
   }
 
@@ -389,22 +405,23 @@
     border-bottom: 1px solid #CCC;
     text-align: center;
     font-size: 15px;
-    padding: 0 0 20px 0;
+    padding: 0px 0px 20px 0px;
     height: 20px;
     .status-top {
-      width: 5%;
-      padding-left: 20px;
+      width: 12%;
+      padding-left: 5px;
+      min-width: 20px;
     }
     .name-top {
-      width: 30%;
-      padding-left: 110px;
+      width: 33%;
+      padding-left: 10px;
     }
     .service-top {
-      width: 30%;
-      padding-left: 5px;
+      width: 28%;
+      padding-left: 10px;
     }
     .last-triggered-top {
-      padding-left: 5px;
+      padding-left: 10px;
     }
     .status-top,.name-top,.service-top,.last-triggered-top {
       float: left;

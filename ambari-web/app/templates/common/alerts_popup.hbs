@@ -20,7 +20,7 @@
   {{#if view.isLoaded}}
     <div class="alert-list-main-warp">
       <div class="top-wrap">
-        <div class="status-top"></div>
+        <div class="status-top">&nbsp;</div>
         <div class="name-top">{{t alerts.fastAccess.popup.body.name}}</div>
         <div class="service-top">{{t alerts.definition.details.serviceHost}}</div>
         <div class="last-triggered-top">{{t alerts.table.header.lastTriggered}}</div>
@@ -34,11 +34,12 @@
                 <div class="alert-list-line-cursor">
                   <div class="status-icon">{{{alertInstance.status}}}</div>
                   <div class="name-text"><a href="#" {{action "gotoAlertDetails" alertInstance target="view"}}>{{alertInstance.label}}</a></div>
-                  <div class="service-text"><a href="#" {{action "gotoService" alertInstance.service target="view"}}>{{alertInstance.service.displayName}}</a>:&nbsp;
+                  <div class="service-text"><a href="#" {{action "gotoService" alertInstance.service target="view"}}>{{alertInstance.service.displayName}}</a>
                     {{#if alertInstance.host}}
+                      {{#if alertInstance.service.displayName}}
+                        &nbsp;/&nbsp;
+                      {{/if}}
                       <a {{action "goToHostAlerts" alertInstance.host target="view"}} href="#">{{alertInstance.host.hostName}}</a>
-                    {{else}}
-                      <span class="na-text">{{t common.na}}</span>
                     {{/if}}
                   </div>
                   <div class="last-triggered-text">{{alertInstance.lastTriggered}}</div>
