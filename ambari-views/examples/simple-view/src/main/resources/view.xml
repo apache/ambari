@@ -18,11 +18,17 @@
   <name>SIMPLE</name>
   <label>Simple</label>
   <version>0.1.0</version>
+
   <parameter>
     <name>what.is.the.value</name>
     <description>Provide a configuration value</description>
     <required>true</required>
   </parameter>
+
+  <resource>
+    <name>simple</name>
+    <service-class>org.apache.ambari.view.simple.SimpleService</service-class>
+  </resource>
 
   <permission>
     <name>READ_PERM</name>
@@ -33,9 +39,5 @@
     <name>SAVE_PERM</name>
     <description>The save permission</description>
   </permission>
-  
-  <resource>
-    <name>simple</name>
-    <service-class>org.apache.ambari.view.simple.SimpleService</service-class>
-  </resource>
+
 </view>
