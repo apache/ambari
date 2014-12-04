@@ -42,7 +42,7 @@ App.AlertInstance = DS.Model.extend({
 
   /**
    * Status icon markup
-   * @type {App.AlertDefinition[]}
+   * @type {string}
    */
   status: function () {
     var state = this.get('state');
