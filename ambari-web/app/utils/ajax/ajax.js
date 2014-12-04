@@ -383,6 +383,16 @@ var urls = {
       }
     }
   },
+  'alerts.create_alert_definition': {
+    'real': '/clusters/{clusterName}/alert_definitions/',
+    'mock': '',
+    'format': function (data) {
+      return {
+        type: 'POST',
+        data: JSON.stringify(data.data)
+      }
+    }
+  },
   'alerts.delete_alert_definition': {
     'real': '/clusters/{clusterName}/alert_definitions/{id}',
     'mock': '',

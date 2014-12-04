@@ -392,19 +392,21 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
       sender: this,
       data: {
         id: this.get('content.id'),
-        data: this.getPropertiesToUpdate()
+        data: this.getPropertiesToUpdate(true)
       }
     });
   },
 
   /**
    * Create object with new values to put it on server
+   * @param {boolean} onlyChanged
    * @method getPropertiesToUpdate
    * @returns {Object}
    */
-  getPropertiesToUpdate: function () {
+  getPropertiesToUpdate: function (onlyChanged) {
     var propertiesToUpdate = {};
-    this.get('configs').filterProperty('wasChanged').forEach(function (property) {
+    var configs = onlyChanged ? this.get('configs').filterProperty('wasChanged') : this.get('configs');
+    configs.forEach(function (property) {
       var apiProperties = property.get('apiProperty');
       var apiFormattedValues = property.get('apiFormattedValue');
       if (!Em.isArray(property.get('apiProperty'))) {
@@ -414,21 +416,35 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
       apiProperties.forEach(function (apiProperty, i) {
         if (apiProperty.contains('source.')) {
           if (!propertiesToUpdate['AlertDefinition/source']) {
-            propertiesToUpdate['AlertDefinition/source'] = this.get('content.rawSourceData');
+            if (this.get('content.rawSourceData')) {
+              propertiesToUpdate['AlertDefinition/source'] = this.get('content.rawSourceData');
+            }
           }
 
-          var sourcePath = propertiesToUpdate['AlertDefinition/source'];
-          apiProperty.replace('source.', '').split('.').forEach(function (path, index, array) {
-            // check if it is last path
-            if (array.length - index === 1) {
-              sourcePath[path] = apiFormattedValues[i];
-            } else {
-              sourcePath = sourcePath[path];
+          if (this.get('content.rawSourceData')) {
+            // use rawSourceData to populate propertiesToUpdate
+            var sourcePath = propertiesToUpdate['AlertDefinition/source'];
+            apiProperty.replace('source.', '').split('.').forEach(function (path, index, array) {
+              // check if it is last path
+              if (array.length - index === 1) {
+                sourcePath[path] = apiFormattedValues[i];
+              } else {
+                sourcePath = sourcePath[path];
+              }
+            });
+          }
+          else {
+            if (!propertiesToUpdate['AlertDefinition/source']) {
+              propertiesToUpdate['AlertDefinition/source'] = {};
             }
-          });
+            Ember.setFullPath(propertiesToUpdate['AlertDefinition/source'], apiProperty.replace('source.', ''), apiFormattedValues[i]);
+          }
 
-        } else {
-          propertiesToUpdate['AlertDefinition/' + apiProperty] = apiFormattedValues[i];
+        }
+        else {
+          if (apiProperty) {
+            propertiesToUpdate['AlertDefinition/' + apiProperty] = apiFormattedValues[i];
+          }
         }
       }, this);
     }, this);
@@ -439,6 +455,7 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
   /**
    * Return array of all config values
    * used to save configs to local db in wizard
+   * @method getConfigsValues
    * @returns {Array}
    */
   getConfigsValues: function () {

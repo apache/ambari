@@ -25,7 +25,7 @@ App.AlertDefinitionConfigsView = Em.View.extend({
   templateName: require('templates/main/alerts/configs'),
 
   /**
-   * Define whether configs are aditable
+   * Define whether configs are editable
    * is set in template
    * @type {Boolean}
    */

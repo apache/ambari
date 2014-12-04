@@ -28,6 +28,21 @@ App.AddAlertDefinitionController = App.WizardController.extend({
     selectedType: null
   },
 
+  /**
+   * Do request to create new alert definition
+   * @param {object} newDefinitionData
+   * @returns {$.ajax}
+   */
+  createNewAlertDefinition: function (newDefinitionData) {
+    return App.ajax.send({
+      name: 'alerts.create_alert_definition',
+      sender: this,
+      data: {
+        data: newDefinitionData
+      }
+    });
+  },
+
   finish: function() {
     this.clear();
     this.setCurrentStep('1');

@@ -844,6 +844,7 @@ Em.I18n.translations = {
   'alerts.add.step1.header': 'Choose Type',
   'alerts.add.step2.header': 'Configure',
   'alerts.add.step3.header': 'Review',
+  'alerts.add.step3.selectedType': 'Selected Type',
 
   'alerts.fastAccess.popup.header': '{0} Critical or Warning Alerts',
   'alerts.fastAccess.popup.body.name': 'Alert Name',

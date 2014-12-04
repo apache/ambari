@@ -18,7 +18,14 @@
 
 <h2>{{t alerts.add.step3.header}}</h2>
 
-{{controller.content.selectedType}}
+<div>
+  {{t alerts.add.step3.selectedType}}: <strong>{{controller.content.selectedType}}</strong>
+</div>
+<div class="control-group">
+  <div class="controls">
+    <pre class="alert-definition-review">{{view.alertDefinitionToDisplay}}</pre>
+  </div>
+</div>
 
 <div class="btn-area">
   <a class="btn" {{bindAttr disabled="isBackBtnDisabled"}} {{action back}}>&larr; {{t common.back}}</a>

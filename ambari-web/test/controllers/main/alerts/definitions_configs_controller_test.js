@@ -467,7 +467,7 @@ describe('App.MainAlertDefinitionConfigsController', function () {
       it(testCase.m, function () {
 
         controller.set('configs', testCase.configs);
-        var result = controller.getPropertiesToUpdate();
+        var result = controller.getPropertiesToUpdate(true);
 
         expect(result).to.eql(testCase.result);
       });

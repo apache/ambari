@@ -20,6 +20,15 @@ var App = require('app');
 
 App.AddAlertDefinitionStep3View = Em.View.extend({
 
+  /**
+   * @type {string}
+   */
+  alertDefinitionToDisplay: '',
+
+  willInsertElement: function () {
+    this.set('alertDefinitionToDisplay', JSON.stringify(this.get('controller.content.formattedToRequestConfigs'),  null, 4));
+  },
+
   templateName: require('templates/main/alerts/add_alert_definition/step3')
 
 });

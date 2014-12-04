@@ -95,7 +95,12 @@ module.exports = App.WizardRoute.extend({
 
     next: function (router) {
       var controller = router.get('addAlertDefinitionController');
-      controller.set('content.configs', App.router.get('mainAlertDefinitionConfigsController').getConfigsValues());
+      controller.set('content.configs', App.router.get('mainAlertDefinitionConfigsController.configs'));
+      var newDefinitionData = App.router.get('mainAlertDefinitionConfigsController').getPropertiesToUpdate(false);
+      newDefinitionData['AlertDefinition/source'].type = controller.get('content.selectedType');
+      newDefinitionData['AlertDefinition/label'] = newDefinitionData['AlertDefinition/name'];
+      newDefinitionData['AlertDefinition/name'] = newDefinitionData['AlertDefinition/name'].toLowerCase().replace(/\s+/g, '_');
+      controller.set('content.formattedToRequestConfigs', newDefinitionData);
       controller.setDBProperty('content', controller.get('content'));
       router.transitionTo('step3');
     }
@@ -109,6 +114,7 @@ module.exports = App.WizardRoute.extend({
     connectOutlets: function (router) {
       var controller = router.get('addAlertDefinitionController');
       controller.setCurrentStep('3');
+      controller.set('content', controller.getDBProperty('content'));
       controller.connectOutlet('addAlertDefinitionStep3', controller.get('content'));
     },
 
@@ -116,21 +122,23 @@ module.exports = App.WizardRoute.extend({
 
     done: function (router) {
       var controller = router.get('addAlertDefinitionController');
-      controller.get('popup').hide();
-      controller.setDBProperty('content', {});
-      controller.finish();
-      App.clusterStatus.setClusterStatus({
-          clusterName: controller.get('content.cluster.name'),
-          clusterState: 'DEFAULT',
-          localdb: App.db.data
-        },
-        {
-          alwaysCallback: function () {
-            controller.get('popup').hide();
-            router.transitionTo('main.alerts');
-            location.reload();
-          }
-        });
+      controller.createNewAlertDefinition(Em.get(controller.getDBProperty('content'), 'formattedToRequestConfigs')).done(function () {
+        controller.get('popup').hide();
+        controller.setDBProperty('content', {});
+        controller.finish();
+        App.clusterStatus.setClusterStatus({
+            clusterName: controller.get('content.cluster.name'),
+            clusterState: 'DEFAULT',
+            localdb: App.db.data
+          },
+          {
+            alwaysCallback: function () {
+              controller.get('popup').hide();
+              router.transitionTo('main.alerts');
+              location.reload();
+            }
+          });
+      });
     }
   })
 

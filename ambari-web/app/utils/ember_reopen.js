@@ -130,6 +130,36 @@ Ember.RadioButton = Ember.Checkbox.extend({
   }.property('value','selection')
 });
 
+/**
+ * Set value to obj by path
+ * Create nested objects if needed
+ * Example:
+ * <code>
+ *   var a = {b: {}};
+ *   var path = 'b.c.d';
+ *   var value = 1;
+ *   Em.setFullPath(a, path, value); // a = {b: {c: {d: 1}}
+ * </code>
+ *
+ * @param {object} obj
+ * @param {string} path
+ * @param {*} value
+ */
+Ember.setFullPath = function (obj, path, value) {
+  var parts = path.split('.'),
+    sub_path = '';
+  parts.forEach(function(_path, _index) {
+    Em.assert('path parts can\'t be empty', _path.length);
+    sub_path += '.' + _path;
+    if (_index === parts.length - 1) {
+      Em.set(obj, sub_path, value);
+      return;
+    }
+    if (Em.isNone(Em.get(obj, sub_path))) {
+      Em.set(obj, sub_path, {});
+    }
+  });
+};
 
 Em.View.reopen({
   /**
