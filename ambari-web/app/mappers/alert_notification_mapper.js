@@ -31,9 +31,15 @@ App.alertNotificationMapper = App.QuickDataMapper.create({
       var result = [];
       var notificationsProperties = {};
       var notificationsAlertStates = {};
+      var groupsMap = App.cache['alertNotificationsGroupsMap'];
 
       json.items.forEach(function (item) {
-        result.push(this.parseIt(item, this.config));
+        var notification = this.parseIt(item, this.config);
+        var groups = groupsMap && groupsMap[notification.id];
+        if (groups) {
+          notification.groups = groups;
+        }
+        result.push(notification);
         notificationsProperties[item.AlertTarget.id] = item.AlertTarget.properties;
         notificationsAlertStates[item.AlertTarget.id] = item.AlertTarget.alert_states;
       }, this);

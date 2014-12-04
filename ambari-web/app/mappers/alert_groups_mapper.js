@@ -67,7 +67,8 @@ App.alertGroupsMapper = App.QuickDataMapper.create({
          * </code>
          * @type {object}
          */
-        alertDefinitionsGroupsMap = {};
+        alertDefinitionsGroupsMap = {},
+        alertNotificationsGroupsMap = {};
 
       json.items.forEach(function(item) {
         var group = self.parseIt(item, self.get('config'));
@@ -87,6 +88,14 @@ App.alertGroupsMapper = App.QuickDataMapper.create({
             alertDefinitionsGroupsMap[definition.id].push(group.id);
           });
         }
+        if (item.AlertGroup.targets) {
+          item.AlertGroup.targets.forEach(function(target) {
+            if (Em.isNone(alertNotificationsGroupsMap[target.id])) {
+              alertNotificationsGroupsMap[target.id] = [];
+            }
+            alertNotificationsGroupsMap[target.id].push(group.id);
+          });
+        }
         alertGroups.push(group);
       }, this);
 
@@ -95,6 +104,7 @@ App.alertGroupsMapper = App.QuickDataMapper.create({
       });
 
       App.cache['previousAlertGroupsMap'] = alertDefinitionsGroupsMap;
+      App.cache['alertNotificationsGroupsMap'] = alertNotificationsGroupsMap;
       App.store.loadMany(this.get('model'), alertGroups);
       App.store.commit();
     }
