@@ -31,6 +31,7 @@ import org.apache.ambari.server.controller.utilities.StreamProvider;
 import java.util.Map;
 import java.util.Set;
 
+import static org.apache.ambari.server.controller.metrics.MetricsServiceProvider.MetricsService;
 import static org.apache.ambari.server.controller.metrics.MetricsServiceProvider.MetricsService.GANGLIA;
 import static org.apache.ambari.server.controller.metrics.MetricsServiceProvider.MetricsService.TIMELINE_METRICS;
 
@@ -83,11 +84,16 @@ public class MetricsReportPropertyProviderProxy extends AbstractPropertyProvider
   public Set<Resource> populateResources(Set<Resource> resources, Request request,
                                          Predicate predicate) throws SystemException {
 
-    if (metricsServiceProvider.getMetricsServiceType().equals(GANGLIA)) {
-      return gangliaMetricsReportProvider.populateResources(resources, request, predicate);
-    } else if (metricsServiceProvider.getMetricsServiceType().equals(TIMELINE_METRICS)) {
-      return amsMetricsReportProvider.populateResources(resources, request, predicate);
+    MetricsService metricsService = metricsServiceProvider.getMetricsServiceType();
+
+    if (metricsService != null) {
+      if (metricsService.equals(GANGLIA)) {
+        return gangliaMetricsReportProvider.populateResources(resources, request, predicate);
+      } else if (metricsService.equals(TIMELINE_METRICS)) {
+        return amsMetricsReportProvider.populateResources(resources, request, predicate);
+      }
     }
-    return null;
+
+    return resources;
   }
 }
