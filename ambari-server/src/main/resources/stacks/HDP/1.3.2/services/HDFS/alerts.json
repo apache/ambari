@@ -4,6 +4,7 @@
       {
         "name": "datanode_process_percent",
         "label": "Percent DataNodes Available",
+        "description": "This alert is triggered if the number of down DataNodes in the cluster is greater than the configured critical threshold. It aggregates the results of DataNode process checks.",
         "interval": 1,
         "scope": "SERVICE",
         "enabled": true,
@@ -28,6 +29,7 @@
       {
         "name": "datanode_storage_percent",
         "label": "Percent DataNodes With Available Space",
+        "description": "This service-level alert is triggered if the storage on a certain percentage of DataNodes exceeds either the warning or critical threshold values.",
         "interval": 1,
         "scope": "SERVICE",
         "enabled": true,
@@ -52,6 +54,7 @@
       {
         "name": "journalnode_process_percent",
         "label": "Percent JournalNodes Available",
+        "description": "This alert is triggered if the number of down JournalNodes in the cluster is greater than the configured critical threshold. It aggregates the results of JournalNode process checks.",
         "interval": 1,
         "scope": "SERVICE",
         "enabled": true,
@@ -78,6 +81,7 @@
       {
         "name": "namenode_webui",
         "label": "NameNode Web UI",
+        "description": "This host-level alert is triggered if the NameNode Web UI is unreachable.",
         "interval": 1,
         "scope": "ANY",
         "enabled": true,
@@ -105,6 +109,7 @@
       {
         "name": "namenode_cpu",
         "label": "NameNode Host CPU Utilization",
+        "description": "This host-level alert is triggered if CPU utilization of the NameNode exceeds certain warning and critical thresholds. It checks the NameNode JMX Servlet for the SystemCPULoad property.",
         "interval": 5,
         "scope": "ANY",
         "enabled": true,
@@ -141,6 +146,7 @@
       {
         "name": "namenode_hdfs_blocks_health",
         "label": "NameNode Blocks Health",
+        "description": "This service-level alert is triggered if the number of corrupt or missing blocks exceeds the configured critical threshold.",
         "interval": 2,
         "scope": "ANY",
         "enabled": true,
@@ -177,6 +183,7 @@
       {
         "name": "namenode_hdfs_capacity_utilization",
         "label": "HDFS Capacity Utilization",
+        "description": "This service-level alert is triggered if the HDFS capacity utilization exceeds the configured warning and critical thresholds. It checks the NameNode JMX Servlet for the CapacityUsed and CapacityRemaining properties.",
         "interval": 2,
         "scope": "ANY",
         "enabled": true,
@@ -213,6 +220,7 @@
       {
         "name": "namenode_rpc_latency",
         "label": "NameNode RPC Latency",
+        "description": "This host-level alert is triggered if the NameNode RPC latency exceeds the configured critical threshold. Typically an increase in the RPC processing time increases the RPC queue length, causing the average queue wait time to increase for NameNode operations.",
         "interval": 2,
         "scope": "ANY",
         "enabled": true,
@@ -249,6 +257,7 @@
       {
         "name": "namenode_directory_status",
         "label": "NameNode Directory Status",
+        "description": "This host-level alert is triggered if any of the the NameNode's NameDirStatuses metric reports a failed directory.",
         "interval": 1,
         "scope": "ANY",
         "enabled": true,
@@ -284,6 +293,7 @@
       {
         "name": "namenode_process",
         "label": "NameNode Process",
+        "description": "This host-level alert is triggered if the NameNode process cannot be confirmed to be up and listening on the network.",
         "interval": 1,
         "scope": "ANY",
         "enabled": true,
@@ -306,6 +316,7 @@
       {
         "name": "secondary_namenode_process",
         "label": "Secondary NameNode Process",
+        "description": "This host-level alert is triggered if the Secondary NameNode process cannot be confirmed to be up and listening on the network.",
         "interval": 1,
         "scope": "ANY",
         "enabled": true,
@@ -328,6 +339,7 @@
       {
         "name": "journalnode_process",
         "label": "JournalNode Process",
+        "description": "This host-level alert is triggered if the JournalNode process cannot be confirmed to be up and listening on the network.",
         "interval": 1,
         "scope": "HOST",
         "enabled": true,
@@ -350,6 +362,7 @@
       {
         "name": "datanode_process",
         "label": "DataNode Process",
+        "description": "This host-level alert is triggered if the individual DataNode processes cannot be established to be up and listening on the network.",
         "interval": 1,
         "scope": "HOST",
         "enabled": true,
@@ -370,6 +383,7 @@
       {
         "name": "datanode_webui",
         "label": "DataNode Web UI",
+        "description": "This host-level alert is triggered if the DataNode Web UI is unreachable.",
         "interval": 1,
         "scope": "HOST",
         "enabled": true,
@@ -397,6 +411,7 @@
       {
         "name": "datanode_storage",
         "label": "DataNode Storage",
+        "description": "This host-level alert is triggered if storage capacity if full on the DataNode. It checks the DataNode JMX Servlet for the Capacity and Remaining properties.",
         "interval": 2,
         "scope": "HOST",
         "enabled": true,

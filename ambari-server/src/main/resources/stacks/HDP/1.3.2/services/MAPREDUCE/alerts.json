@@ -4,6 +4,7 @@
       {
         "name": "mapreduce_tasktracker_process_percent",
         "label": "Percent TaskTrackers Available",
+        "description": "This alert is triggered if the number of down TaskTrackers in the cluster is greater than the configured critical threshold. It aggregates the results of TaskTrackers process checks.",
         "interval": 1,
         "scope": "SERVICE",
         "enabled": true,
@@ -30,6 +31,7 @@
       {
         "name": "mapreduce_jobtracker_webui",
         "label": "JobTracker Web UI",
+        "description": "This host-level alert is triggered if the JobTracker Web UI is unreachable.",
         "interval": 1,
         "scope": "ANY",
         "enabled": true,
@@ -54,6 +56,7 @@
       {
         "name": "mapreduce_jobtracker_cpu",
         "label": "JobTracker Host CPU Utilization",
+        "description": "This host-level alert is triggered if the percent of CPU utilization on the JobTracker exceeds the configured critical threshold.",
         "interval": 5,
         "scope": "ANY",
         "enabled": true,
@@ -87,6 +90,7 @@
       {
         "name": "mapreduce_jobtracker_rpc_latency",
         "label": "JobTracker RPC Latency",
+        "description": "This host-level alert is triggered if the JobTracker operations RPC latency exceeds the configured critical threshold. Typically an increase in the RPC processing time increases the RPC queue length, causing the average queue wait time to increase for operations.",
         "interval": 2,
         "scope": "ANY",
         "enabled": true,
@@ -120,6 +124,7 @@
       {
         "name": "mapreduce_jobtracker_process",
         "label": "JobTracker Process",
+        "description": "This host-level alert is triggered if the JobTracker process cannot be established to be up and listening on the network.",
         "interval": 1,
         "scope": "ANY",
         "enabled": true,
@@ -142,6 +147,7 @@
       {
         "name": "mapreduce_tasktracker_process",
         "label": "TaskTracker Process",
+        "description": "This host-level alert is triggered if the TaskTracker process cannot be established to be up and listening on the network.",
         "interval": 1,
         "scope": "HOST",
         "enabled": true,
@@ -162,6 +168,7 @@
       {
         "name": "mapreduce_local_directory_space",
         "label": "MapReduce Local Directory Space",
+        "description": "This host-level alert is triggered if the task tracker is reporting low disk space.",
         "interval": 1,
         "scope": "ANY",
         "enabled": true,
@@ -175,6 +182,7 @@
       {
         "name": "mapreduce_historyserver_webui",
         "label": "History Server Web UI",
+        "description": "This host-level alert is triggered if the History Server Web UI is unreachable.",
         "interval": 1,
         "scope": "ANY",
         "enabled": true,

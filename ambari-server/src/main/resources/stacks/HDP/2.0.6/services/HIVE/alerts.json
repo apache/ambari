@@ -5,6 +5,7 @@
       {
         "name": "hive_metastore_process",
         "label": "Hive Metastore Process",
+        "description": "This host-level alert is triggered if the Hive Metastore process cannot be determined to be up and listening on the network.",
         "interval": 1,
         "scope": "ANY",
         "source": {
@@ -26,6 +27,7 @@
       {
         "name": "hive_server_process",
         "label": "HiveServer2 Process",
+        "description": "This host-level alert is triggered if the HiveServer cannot be determined to be up and responding to client requests.",
         "interval": 1,
         "scope": "ANY",
         "enabled": true,
@@ -39,6 +41,7 @@
       {
         "name": "hive_webhcat_server_status",
         "label": "WebHCat Server Status",
+        "description": "This host-level alert is triggered if the templeton server status is not healthy.",
         "interval": 1,
         "scope": "ANY",
         "enabled": true,

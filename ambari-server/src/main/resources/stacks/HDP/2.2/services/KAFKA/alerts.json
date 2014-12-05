@@ -5,6 +5,7 @@
       {
         "name": "kafka_broker_process",
         "label": "Kafka Broker Process",
+        "description": "This host-level alert is triggered if the Kafka Broker cannot be determined to be up.",
         "interval": 1,
         "scope": "HOST",
         "source": {

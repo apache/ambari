@@ -5,6 +5,7 @@
       {
         "name": "oozie_server_webui",
         "label": "Oozie Server Web UI",
+        "description": "This host-level alert is triggered if the Oozie server Web UI is unreachable.",
         "interval": 1,
         "scope": "ANY",
         "source": {
@@ -28,6 +29,7 @@
       {
         "name": "oozie_server_status",
         "label": "Oozie Server Status",
+        "description": "This host-level alert is triggered if the Oozie server cannot be determined to be up and responding to client requests.",
         "interval": 1,
         "scope": "ANY",
         "source": {

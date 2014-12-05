@@ -5,6 +5,7 @@
       {
         "name": "ganglia_server_process",
         "label": "Ganglia Server Process",
+        "description": "This host-level alert is triggered if the Ganglia server process cannot be established to be up and listening on the network.",
         "interval": 1,
         "scope": "ANY",
         "enabled": true,
@@ -25,6 +26,7 @@
       {
         "name": "ganglia_monitor_hdfs_namenode",
         "label": "Ganglia NameNode Process Monitor",
+        "description": "This host-level alert is triggered if the Ganglia gmond process which handles receiving metrics for HDFS NameNode is not up and listening.",
         "interval": 1,
         "scope": "ANY",
         "enabled": true,
@@ -45,6 +47,7 @@
       {
         "name": "ganglia_monitor_hbase_master",
         "label": "Ganglia HBase Master Process Monitor",
+        "description": "This host-level alert is triggered if the Ganglia gmond process which handles receiving metrics for the HBase Master process is not up and listening.",
         "interval": 1,
         "scope": "ANY",
         "enabled": true,
@@ -65,6 +68,7 @@
       {
         "name": "ganglia_monitor_mapreduce_jobtracker",
         "label": "Ganglia JobTracker Process Monitor",
+        "description": "This host-level alert is triggered if the Ganglia gmond process which handles receiving metrics for the YARN ResourceManager process is not up and listening.",
         "interval": 1,
         "scope": "ANY",
         "enabled": true,
@@ -85,6 +89,7 @@
       {
         "name": "ganglia_monitor_mapreduce_history_server",
         "label": "Ganglia History Server Process Monitor",
+        "description": "This host-level alert is triggered if the Ganglia gmond process which handles receiving metrics for the MapReduce History Server process is not up and listening.",
         "interval": 1,
         "scope": "ANY",
         "enabled": true,

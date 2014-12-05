@@ -4,6 +4,7 @@
       {
         "name": "zookeeper_server_process_percent",
         "label": "Percent ZooKeeper Servers Available",
+        "description": "This service-level alert is triggered if the configured percentage of ZooKeeper processes cannot be determined to be up and listening on the network.",
         "interval": 1,
         "scope": "SERVICE",
         "enabled": true,
@@ -30,6 +31,7 @@
       {
         "name": "zookeeper_server_process",
         "label": "ZooKeeper Server Process",
+        "description": "This host-level alert is triggered if the ZooKeeper server process cannot be determined to be up and listening on the network.",
         "interval": 1,
         "scope": "ANY",
         "source": {

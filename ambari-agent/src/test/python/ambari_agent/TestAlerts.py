@@ -74,10 +74,10 @@ class TestAlerts(TestCase):
         "default_port": 50070,
         "reporting": {
           "ok": {
-            "text": "TCP OK - {0:.4f} response time on port {1}"
+            "text": "(Unit Tests) TCP OK - {0:.4f} response time on port {1}"
           },
           "critical": {
-            "text": "Could not load process info: {0}"
+            "text": "(Unit Tests) Could not load process info: {0}"
           }
         }
       }
@@ -107,10 +107,10 @@ class TestAlerts(TestCase):
         "default_port": 50070,
         "reporting": {
           "ok": {
-            "text": "TCP OK - {0:.4f} response time on port {1}"
+            "text": "(Unit Tests) TCP OK - {0:.4f} response time on port {1}"
           },
           "critical": {
-            "text": "Could not load process info: {0}"
+            "text": "(Unit Tests) Could not load process info: {0}"
           }
         }
       }
@@ -131,6 +131,7 @@ class TestAlerts(TestCase):
     self.assertEquals(0, len(collector.alerts()))
     
     self.assertEquals('OK', alerts[0]['state'])
+    self.assertTrue('(Unit Tests)' in alerts[0]['text'])
     self.assertTrue('response time on port 2181' in alerts[0]['text'])
 
 
@@ -149,10 +150,10 @@ class TestAlerts(TestCase):
         "default_port": 50070,
         "reporting": {
           "ok": {
-            "text": "TCP OK - {0:.4f} response time on port {1}"
+            "text": "(Unit Tests) TCP OK - {0:.4f} response time on port {1}"
           },
           "critical": {
-            "text": "Could not load process info: {0}"
+            "text": "(Unit Tests) Could not load process info: {0}"
           }
         }
       }
@@ -226,14 +227,14 @@ class TestAlerts(TestCase):
         },
         "reporting": {
           "ok": {
-            "text": "ok_arr: {0} {1} {2}",
+            "text": "(Unit Tests) ok_arr: {0} {1} {2}",
           },
           "warning": {
             "text": "",
             "value": 13
           },
           "critical": {
-            "text": "crit_arr: {0} {1} {2}",
+            "text": "(Unit Tests) crit_arr: {0} {1} {2}",
             "value": 72
           }
         }
@@ -251,7 +252,7 @@ class TestAlerts(TestCase):
     self.assertEquals(0, len(collector.alerts()))
     
     self.assertEquals('CRITICAL', alerts[0]['state'])
-    self.assertEquals('crit_arr: 1 3 223', alerts[0]['text'])
+    self.assertEquals('(Unit Tests) crit_arr: 1 3 223', alerts[0]['text'])
 
     del json['source']['jmx']['value']
     collector = AlertCollector()
@@ -263,7 +264,7 @@ class TestAlerts(TestCase):
     self.assertEquals(0, len(collector.alerts()))
 
     self.assertEquals('OK', alerts[0]['state'])
-    self.assertEquals('ok_arr: 1 3 None', alerts[0]['text'])
+    self.assertEquals('(Unit Tests) ok_arr: 1 3 None', alerts[0]['text'])
 
 
   @patch.object(MetricAlert, "_load_jmx")
@@ -294,14 +295,14 @@ class TestAlerts(TestCase):
         },
         "reporting": {
           "ok": {
-            "text": "ok_arr: {0} {1} {2}",
+            "text": "(Unit Tests) ok_arr: {0} {1} {2}",
           },
           "warning": {
             "text": "",
             "value": 10
           },
           "critical": {
-            "text": "crit_arr: {0} {1} {2}",
+            "text": "(Unit Tests) crit_arr: {0} {1} {2}",
             "value": 20
           }
         }
@@ -377,13 +378,13 @@ class TestAlerts(TestCase):
         },
         "reporting": {
           "ok": {
-            "text": "ok: {0}",
+            "text": "(Unit Tests) ok: {0}",
           },
           "warning": {
-            "text": "warning: {0}",
+            "text": "(Unit Tests) warning: {0}",
           },
           "critical": {
-            "text": "critical: {1}",
+            "text": "(Unit Tests) critical: {1}",
           }
         }
       }
@@ -402,7 +403,7 @@ class TestAlerts(TestCase):
     self.assertEquals(0, len(collector.alerts()))
 
     self.assertEquals('OK', alerts[0]['state'])
-    self.assertEquals('ok: 200', alerts[0]['text'])
+    self.assertEquals('(Unit Tests) ok: 200', alerts[0]['text'])
 
     # run the alert and check HTTP 500
     wa_make_web_request_mock.return_value = WebResponse(500,1.234)
@@ -415,7 +416,7 @@ class TestAlerts(TestCase):
     self.assertEquals(0, len(collector.alerts()))
     
     self.assertEquals('WARNING', alerts[0]['state'])
-    self.assertEquals('warning: 500', alerts[0]['text'])
+    self.assertEquals('(Unit Tests) warning: 500', alerts[0]['text'])
 
     # run the alert and check critical
     wa_make_web_request_mock.return_value = WebResponse(0,0)
@@ -430,7 +431,7 @@ class TestAlerts(TestCase):
     
     # http assertion indicating that we properly determined non-SSL
     self.assertEquals('CRITICAL', alerts[0]['state'])
-    self.assertEquals('critical: http://1.2.3.4:80', alerts[0]['text'])
+    self.assertEquals('(Unit Tests) critical: http://1.2.3.4:80', alerts[0]['text'])
      
     collector = AlertCollector()
     alert = WebAlert(json, json['source'])
@@ -446,7 +447,7 @@ class TestAlerts(TestCase):
     
     # SSL assertion
     self.assertEquals('CRITICAL', alerts[0]['state'])
-    self.assertEquals('critical: https://1.2.3.4:8443', alerts[0]['text'])
+    self.assertEquals('(Unit Tests) critical: https://1.2.3.4:8443', alerts[0]['text'])
 
   def test_reschedule(self):
     test_file_path = os.path.join('ambari_agent', 'dummy_files')
@@ -476,10 +477,10 @@ class TestAlerts(TestCase):
         "default_port": 50070,
         "reporting": {
           "ok": {
-            "text": "TCP OK - {0:.4f} response time on port {1}"
+            "text": "(Unit Tests) TCP OK - {0:.4f} response time on port {1}"
           },
           "critical": {
-            "text": "Could not load process info: {0}"
+            "text": "(Unit Tests) Could not load process info: {0}"
           }
         }
       }
@@ -527,10 +528,10 @@ class TestAlerts(TestCase):
         "default_port": 50070,
         "reporting": {
           "ok": {
-            "text": "TCP OK - {0:.4f} response time on port {1}"
+            "text": "(Unit Tests) TCP OK - {0:.4f} response time on port {1}"
           },
           "critical": {
-            "text": "Could not load process info: {0}"
+            "text": "(Unit Tests) Could not load process info: {0}"
           }
         }
       }
@@ -584,10 +585,10 @@ class TestAlerts(TestCase):
             "default_port": 50070,
             "reporting": {
               "ok": {
-                "text": "TCP OK - {0:.4f} response time on port {1}"
+                "text": "(Unit Tests) TCP OK - {0:.4f} response time on port {1}"
               },
               "critical": {
-                "text": "Could not load process info: {0}"
+                "text": "(Unit Tests) Could not load process info: {0}"
               }
             }
           }
@@ -631,3 +632,43 @@ class TestAlerts(TestCase):
 
     # ensure that it was skipped
     self.assertEquals(0,len(collector.alerts()))
+
+
+  def test_default_reporting_text(self):
+    json = {
+      "name": "namenode_process",
+      "service": "HDFS",
+      "component": "NAMENODE",
+      "label": "NameNode process",
+      "interval": 6,
+      "scope": "host",
+      "enabled": True,
+      "uuid": "c1f73191-4481-4435-8dae-fd380e4c0be1",
+      "source": {
+        "type": "SCRIPT",
+        "path": "test_script.py",
+      }
+    }
+
+    alert = ScriptAlert(json, json['source'])
+    self.assertEquals(alert._get_reporting_text(alert.RESULT_OK), '{0}')
+    self.assertEquals(alert._get_reporting_text(alert.RESULT_WARNING), '{0}')
+    self.assertEquals(alert._get_reporting_text(alert.RESULT_CRITICAL), '{0}')
+
+    json['source']['type'] = 'PORT'
+    alert = PortAlert(json, json['source'])
+    self.assertEquals(alert._get_reporting_text(alert.RESULT_OK), 'TCP OK - {0:.4f} response on port {1}')
+    self.assertEquals(alert._get_reporting_text(alert.RESULT_WARNING), 'Connection failed: {0} to {1}:{2}')
+    self.assertEquals(alert._get_reporting_text(alert.RESULT_CRITICAL), 'Connection failed: {0} to {1}:{2}')
+
+    json['source']['type'] = 'WEB'
+    alert = WebAlert(json, json['source'])
+    self.assertEquals(alert._get_reporting_text(alert.RESULT_OK), 'HTTP {0} response in {2:.4f} seconds')
+    self.assertEquals(alert._get_reporting_text(alert.RESULT_WARNING), 'HTTP {0} response in {2:.4f} seconds')
+    self.assertEquals(alert._get_reporting_text(alert.RESULT_CRITICAL), 'Connection failed to {1}')
+
+    json['source']['type'] = 'METRIC'
+    alert = MetricAlert(json, json['source'])
+    self.assertEquals(alert._get_reporting_text(alert.RESULT_OK), '{0}')
+    self.assertEquals(alert._get_reporting_text(alert.RESULT_WARNING), '{0}')
+    self.assertEquals(alert._get_reporting_text(alert.RESULT_CRITICAL), '{0}')

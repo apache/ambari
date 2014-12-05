@@ -91,3 +91,15 @@ class PortAlert(BaseAlert):
         except:
           # no need to log a close failure
           pass
+
+  def _get_reporting_text(self, state):
+    '''
+    Gets the default reporting text to use when the alert definition does not
+    contain any.
+    :param state: the state of the alert in uppercase (such as OK, WARNING, etc)
+    :return:  the parameterized text
+    '''
+    if state == self.RESULT_OK:
+      return 'TCP OK - {0:.4f} response on port {1}'
+
+    return 'Connection failed: {0} to {1}:{2}'

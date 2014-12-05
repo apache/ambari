@@ -159,6 +159,17 @@ class MetricAlert(BaseAlert):
         
     return value_list
 
+  def _get_reporting_text(self, state):
+    '''
+    Always returns {0} since the result of the script alert is a rendered string.
+    This will ensure that the base class takes the result string and just uses
+    it directly.
+
+    :param state: the state of the alert in uppercase (such as OK, WARNING, etc)
+    :return:  the parameterized text
+    '''
+    return '{0}'
+
     
 class JmxMetric:
   def __init__(self, jmx_info):
@@ -184,8 +195,3 @@ class JmxMetric:
     if self.custom_module is not None:
       return self.custom_module.f(args)
     return None
-    
-      
-    
-  
-    

@@ -117,5 +117,16 @@ class WebAlert(BaseAlert):
       return WebResponse(status_code=0, time_millis=0)
     
     return WebResponse(status_code=response.getcode(), time_millis=time_millis) 
-  
-  
+
+
+  def _get_reporting_text(self, state):
+    '''
+    Gets the default reporting text to use when the alert definition does not
+    contain any.
+    :param state: the state of the alert in uppercase (such as OK, WARNING, etc)
+    :return:  the parameterized text
+    '''
+    if state == self.RESULT_CRITICAL:
+      return 'Connection failed to {1}'
+
+    return 'HTTP {0} response in {2:.4f} seconds'

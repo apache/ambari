@@ -4,6 +4,7 @@
       {
         "name": "hbase_regionserver_process_percent",
         "label": "Percent RegionServers Available",
+        "description": "This service-level alert is triggered if the configured percentage of RegionServer processes cannot be determined to be up and listening on the network for the configured warning and critical thresholds. It aggregates the results of RegionServer process down checks.",
         "interval": 1,
         "scope": "SERVICE",
         "enabled": true,
@@ -30,6 +31,7 @@
       {
         "name": "hbase_master_process",
         "label": "HBase Master Process",
+        "description": "This alert is triggered if the HBase master processes cannot be confirmed to be up and listening on the network for the configured critical threshold, given in seconds.",
         "interval": 1,
         "scope": "ANY",
         "source": {
@@ -49,6 +51,7 @@
       {
         "name": "hbase_master_cpu",
         "label": "HBase Maser CPU Utilization",
+        "description": "This host-level alert is triggered if CPU utilization of the HBase Master exceeds certain warning and critical thresholds. It checks the HBase Master JMX Servlet for the SystemCPULoad property.",
         "interval": 5,
         "scope": "ANY",
         "enabled": true,
@@ -88,6 +91,7 @@
       {
         "name": "hbase_regionserver_process",
         "label": "HBase RegionServer Process",
+        "description": "This host-level alert is triggered if the RegionServer processes cannot be confirmed to be up and listening on the network for the configured critical threshold, given in seconds.",
         "interval": 1,
         "scope": "HOST",
         "source": {

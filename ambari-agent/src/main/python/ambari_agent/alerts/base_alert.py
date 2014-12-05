@@ -86,7 +86,7 @@ class BaseAlert(object):
     """ method used for collection.  defers to _collect() """
     
     res = (BaseAlert.RESULT_UNKNOWN, [])
-    res_base_text = "{0}"
+    res_base_text = None
     
     try:
       res = self._collect()
@@ -102,9 +102,15 @@ class BaseAlert(object):
 
         return
 
+      # it's possible that the alert definition doesn't have reporting; safely
+      # check for it and fallback to default text if it doesn't exist
+      if ('reporting' in self.alert_source_meta) and \
+          (reporting_state in self.alert_source_meta['reporting']) and \
+          ('text' in self.alert_source_meta['reporting'][reporting_state]):
+          res_base_text = self.alert_source_meta['reporting'][reporting_state]['text']
 
-      if reporting_state in self.alert_source_meta['reporting']:
-        res_base_text = self.alert_source_meta['reporting'][reporting_state]['text']
+      if res_base_text is None:
+        res_base_text = self._get_reporting_text(result_state)
 
     except Exception as e:
       message = "Unable to run alert {0}".format(str(self.alert_meta['name']))
@@ -304,6 +310,16 @@ class BaseAlert(object):
     """  
     raise NotImplementedError
 
+
+  def _get_reporting_text(self, state):
+    '''
+    Gets the default reporting text to use when the alert definition does not
+    contain any. Subclasses can override this to return specific text.
+    :param state: the state of the alert in uppercase (such as OK, WARNING, etc)
+    :return:  the parameterized text
+    '''
+    return '{0}'
+
   """
   See RFC3986, Appendix B
   Tested on the following cases:
@@ -312,7 +328,7 @@ class BaseAlert(object):
     "hdfs://192.168.54.3/foo/bar"
     "ftp://192.168.54.4:7842/foo/bar"
 
-    Returns None if only a port is passsed in
+    Returns None if only a port is passed in
   """
   @staticmethod
   def get_host_from_url(uri):
