@@ -17,7 +17,9 @@
  */
 package org.apache.ambari.server.controller.internal;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -25,7 +27,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.StaticallyInject;
-import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
@@ -41,7 +42,7 @@ import org.apache.ambari.server.orm.dao.UpgradeDAO;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.orm.entities.UpgradeGroupEntity;
 import org.apache.ambari.server.orm.entities.UpgradeItemEntity;
-import org.apache.ambari.server.state.UpgradeState;
+import org.apache.ambari.server.state.UpgradeHelper;
 
 import com.google.inject.Inject;
 
@@ -51,14 +52,16 @@ import com.google.inject.Inject;
 @StaticallyInject
 public class UpgradeGroupResourceProvider extends AbstractControllerResourceProvider {
 
-  protected static final String UPGRADE_ID = "UpgradeGroup/upgrade_id";
+  protected static final String UPGRADE_REQUEST_ID = "UpgradeGroup/request_id";
   protected static final String UPGRADE_GROUP_ID = "UpgradeGroup/group_id";
+  protected static final String UPGRADE_CLUSTER_NAME = "UpgradeGroup/cluster_name";
   protected static final String UPGRADE_GROUP_NAME = "UpgradeGroup/name";
   protected static final String UPGRADE_GROUP_TITLE = "UpgradeGroup/title";
-  protected static final String UPGRADE_GROUP_STATE = "UpgradeGroup/state";
+  protected static final String UPGRADE_GROUP_PROGRESS_PERCENT = "UpgradeGroup/progress_percent";
+  protected static final String UPGRADE_GROUP_STATUS = "UpgradeGroup/status";
 
   private static final Set<String> PK_PROPERTY_IDS = new HashSet<String>(
-      Arrays.asList(UPGRADE_ID, UPGRADE_GROUP_ID));
+      Arrays.asList(UPGRADE_REQUEST_ID, UPGRADE_GROUP_ID));
   private static final Set<String> PROPERTY_IDS = new HashSet<String>();
 
   private static final Map<Resource.Type, String> KEY_PROPERTY_IDS = new HashMap<Resource.Type, String>();
@@ -68,14 +71,16 @@ public class UpgradeGroupResourceProvider extends AbstractControllerResourceProv
 
   static {
     // properties
-    PROPERTY_IDS.add(UPGRADE_ID);
+    PROPERTY_IDS.add(UPGRADE_REQUEST_ID);
     PROPERTY_IDS.add(UPGRADE_GROUP_ID);
     PROPERTY_IDS.add(UPGRADE_GROUP_NAME);
     PROPERTY_IDS.add(UPGRADE_GROUP_TITLE);
+    PROPERTY_IDS.add(UPGRADE_GROUP_PROGRESS_PERCENT);
+    PROPERTY_IDS.add(UPGRADE_GROUP_STATUS);
 
     // keys
     KEY_PROPERTY_IDS.put(Resource.Type.UpgradeGroup, UPGRADE_GROUP_ID);
-    KEY_PROPERTY_IDS.put(Resource.Type.Upgrade, UPGRADE_ID);
+    KEY_PROPERTY_IDS.put(Resource.Type.Upgrade, UPGRADE_REQUEST_ID);
   }
 
   /**
@@ -104,19 +109,33 @@ public class UpgradeGroupResourceProvider extends AbstractControllerResourceProv
     Set<String> requestPropertyIds = getRequestPropertyIds(request, predicate);
 
     for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
-      String upgradeIdStr = (String) propertyMap.get(UPGRADE_ID);
+      String upgradeIdStr = (String) propertyMap.get(UPGRADE_REQUEST_ID);
+      String clusterName = (String) propertyMap.get(UPGRADE_CLUSTER_NAME);
 
       if (null == upgradeIdStr || upgradeIdStr.isEmpty()) {
         throw new IllegalArgumentException("The upgrade id is required when querying for upgrades");
       }
 
-      long upgradeId = Long.parseLong(upgradeIdStr);
-      UpgradeEntity upgrade = m_dao.findUpgrade(upgradeId);
+      Long upgradeId = Long.valueOf(upgradeIdStr);
+      UpgradeEntity upgrade = m_dao.findUpgradeByRequestId(upgradeId);
 
       List<UpgradeGroupEntity> groups = upgrade.getUpgradeGroups();
       if (null != groups) {
+        UpgradeHelper helper = new UpgradeHelper();
+
         for (UpgradeGroupEntity group : upgrade.getUpgradeGroups()) {
-          results.add(toResource(upgrade, group, requestPropertyIds));
+          Resource r = toResource(upgrade, group, requestPropertyIds);
+
+          List<Long> stageIds = new ArrayList<Long>();
+          for (UpgradeItemEntity itemEntity : group.getItems()) {
+            stageIds.add(itemEntity.getStageId());
+          }
+
+          Set<Resource> stages = helper.getStageResources(clusterName, upgrade.getRequestId(), stageIds);
+
+          aggregate(r, stages, requestPropertyIds);
+
+          results.add(r);
         }
       }
 
@@ -149,13 +168,55 @@ public class UpgradeGroupResourceProvider extends AbstractControllerResourceProv
   private Resource toResource(UpgradeEntity upgrade, UpgradeGroupEntity group, Set<String> requestedIds) {
     ResourceImpl resource = new ResourceImpl(Resource.Type.UpgradeGroup);
 
-    setResourceProperty(resource, UPGRADE_ID, upgrade.getId(), requestedIds);
+    setResourceProperty(resource, UPGRADE_REQUEST_ID, upgrade.getRequestId(), requestedIds);
     setResourceProperty(resource, UPGRADE_GROUP_ID, group.getId(), requestedIds);
     setResourceProperty(resource, UPGRADE_GROUP_NAME, group.getName(), requestedIds);
     setResourceProperty(resource, UPGRADE_GROUP_TITLE, group.getTitle(), requestedIds);
-    setResourceProperty(resource, UPGRADE_GROUP_STATE, "NONE", requestedIds);
 
     return resource;
+  }
+
+
+  /**
+   * Aggregates status and percent complete for stages and puts the results on the upgrade group
+   *
+   * @param upgradeGroup the resource representing an upgrade group
+   * @param stages the collection of resources representing stages
+   * @param requestedIds the ids for the request
+   */
+  private void aggregate(Resource upgradeGroup, Collection<Resource> stages, Set<String> requestedIds) {
+
+    Double total = new Double(0d);
+    Integer count = new Integer(0);
+
+    Map<HostRoleStatus, Integer> counters = new HashMap<HostRoleStatus, Integer>();
+    for (HostRoleStatus hostRoleStatus : HostRoleStatus.values()) {
+      counters.put(hostRoleStatus, new Integer(0));
+    }
+
+
+    for (Resource stage : stages) {
+      String status = (String) stage.getPropertyValue(StageResourceProvider.STAGE_STATUS);
+      Double percent = (Double) stage.getPropertyValue(StageResourceProvider.STAGE_PROGRESS_PERCENT);
+
+      if (null != percent) {
+        total += percent;
+        count++;
+      }
+
+      if (null != status) {
+        HostRoleStatus hrs = HostRoleStatus.valueOf(status);
+        counters.put(hrs, counters.get(hrs) + 1);
+      }
+    }
+
+    if (count > 0) {
+      setResourceProperty(upgradeGroup, UPGRADE_GROUP_PROGRESS_PERCENT, total/count, requestedIds);
+    }
+
+    HostRoleStatus summary = RequestResourceProvider.calculateSummaryStatus(counters, counters.size());
+    setResourceProperty(upgradeGroup, UPGRADE_GROUP_STATUS, summary, requestedIds);
+
   }
 
 }

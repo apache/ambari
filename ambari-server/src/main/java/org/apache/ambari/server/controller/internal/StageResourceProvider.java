@@ -85,7 +85,7 @@ public class StageResourceProvider extends AbstractResourceProvider implements E
   /**
    * The property ids for a stage resource.
    */
-  private static final Set<String> PROPERTY_IDS = new HashSet<String>();
+  static final Set<String> PROPERTY_IDS = new HashSet<String>();
 
   /**
    * The key property ids for a stage resource.
@@ -123,7 +123,6 @@ public class StageResourceProvider extends AbstractResourceProvider implements E
   StageResourceProvider() {
     super(PROPERTY_IDS, KEY_PROPERTY_IDS);
   }
-
 
   // ----- AbstractResourceProvider ------------------------------------------
 

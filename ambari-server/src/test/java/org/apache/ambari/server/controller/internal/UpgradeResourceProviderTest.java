@@ -19,18 +19,27 @@ package org.apache.ambari.server.controller.internal;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertNotNull;
 
+import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.RequestStatus;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.AmbariServer;
+import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
+import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.ResourceProvider;
+import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
@@ -48,6 +57,7 @@ import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.UpgradeState;
+import org.apache.ambari.server.view.ViewRegistry;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -65,6 +75,8 @@ public class UpgradeResourceProviderTest {
   private RepositoryVersionDAO repoVersionDao = null;
   private Injector injector;
   private Clusters clusters;
+//  private UpgradeResourceProvider upgradeResourceProvider;
+  AmbariManagementController amc;
 
   @Before
   public void before() throws Exception {
@@ -72,8 +84,19 @@ public class UpgradeResourceProviderTest {
     injector = Guice.createInjector(new InMemoryDefaultTestModule());
     injector.getInstance(GuiceJpaInitializer.class);
 
+
+    amc = injector.getInstance(AmbariManagementController.class);
+//    upgradeResourceProvider = createProvider(amc);
+
+    Field field = AmbariServer.class.getDeclaredField("clusterController");
+    field.setAccessible(true);
+    field.set(null, amc);
+
     upgradeDao = injector.getInstance(UpgradeDAO.class);
     repoVersionDao = injector.getInstance(RepositoryVersionDAO.class);
+
+    ViewRegistry.initInstance(new ViewRegistry());
+    System.out.println(AmbariServer.getController());
 
     RepositoryVersionEntity repoVersionEntity = new RepositoryVersionEntity();
     repoVersionEntity.setDisplayName("My New Version");
@@ -118,28 +141,21 @@ public class UpgradeResourceProviderTest {
     injector = null;
   }
 
-  /**
-   * @throws Exception
-   */
-  @Test
-  public void testCreateResources() throws Exception {
+  public org.apache.ambari.server.controller.spi.RequestStatus testCreateResources() throws Exception {
 
     Cluster cluster = clusters.getCluster("c1");
 
     List<UpgradeEntity> upgrades = upgradeDao.findUpgrades(cluster.getClusterId());
     assertEquals(0, upgrades.size());
 
-    AmbariManagementController amc = injector.getInstance(AmbariManagementController.class);
-
-    UpgradeResourceProvider provider = createProvider(amc);
-
     Map<String, Object> requestProps = new HashMap<String, Object>();
     requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
     requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.2.2.2");
 
-    Request request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), null);
-    org.apache.ambari.server.controller.spi.RequestStatus status = provider.createResources(request);
+    ResourceProvider upgradeResourceProvider = createProvider(amc);
 
+    Request request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), null);
+    org.apache.ambari.server.controller.spi.RequestStatus status = upgradeResourceProvider.createResources(request);
 
     upgrades = upgradeDao.findUpgrades(cluster.getClusterId());
     assertEquals(1, upgrades.size());
@@ -176,7 +192,79 @@ public class UpgradeResourceProviderTest {
 
     List<HostRoleCommand> tasks = am.getRequestTasks(requests.get(0).longValue());
     assertEquals(3, tasks.size());
+
+    return status;
   }
+
+  @Test
+  public void testGetResources() throws Exception {
+    org.apache.ambari.server.controller.spi.RequestStatus status = testCreateResources();
+
+    Set<Resource> createdResources = status.getAssociatedResources();
+    assertEquals(1, createdResources.size());
+    Resource res = createdResources.iterator().next();
+    Long id = (Long) res.getPropertyValue("Upgrade/request_id");
+    assertNotNull(id);
+    assertEquals(Long.valueOf(1), id);
+
+    // upgrade
+    Set<String> propertyIds = new HashSet<String>();
+    propertyIds.add("Upgrade");
+
+    Predicate predicate = new PredicateBuilder()
+      .property(UpgradeResourceProvider.UPGRADE_REQUEST_ID).equals("1").and()
+      .property(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME).equals("c1")
+      .toPredicate();
+    Request request = PropertyHelper.getReadRequest(propertyIds);
+
+    ResourceProvider upgradeResourceProvider = createProvider(amc);
+    Set<Resource> resources = upgradeResourceProvider.getResources(request, predicate);
+
+    assertEquals(1, resources.size());
+    res = resources.iterator().next();
+    assertNotNull(res.getPropertyValue("Upgrade/progress_percent"));
+
+
+    // upgrade groups
+    propertyIds.clear();
+    propertyIds.add("UpgradeGroup");
+
+    predicate = new PredicateBuilder()
+      .property(UpgradeGroupResourceProvider.UPGRADE_REQUEST_ID).equals("1").and()
+      .property(UpgradeGroupResourceProvider.UPGRADE_CLUSTER_NAME).equals("c1")
+      .toPredicate();
+    request = PropertyHelper.getReadRequest(propertyIds);
+
+    ResourceProvider upgradeGroupResourceProvider = new UpgradeGroupResourceProvider(amc);
+    resources = upgradeGroupResourceProvider.getResources(request, predicate);
+
+    assertEquals(3, resources.size());
+    res = resources.iterator().next();
+    assertNotNull(res.getPropertyValue("UpgradeGroup/status"));
+    assertNotNull(res.getPropertyValue("UpgradeGroup/group_id"));
+
+    // upgrade items
+    propertyIds.clear();
+    propertyIds.add("UpgradeItem");
+
+    predicate = new PredicateBuilder()
+      .property(UpgradeItemResourceProvider.UPGRADE_GROUP_ID).equals("1").and()
+      .property(UpgradeItemResourceProvider.UPGRADE_REQUEST_ID).equals("1").and()
+      .property(UpgradeItemResourceProvider.UPGRADE_CLUSTER_NAME).equals("c1")
+      .toPredicate();
+    request = PropertyHelper.getReadRequest(propertyIds);
+
+    ResourceProvider upgradeItemResourceProvider = new UpgradeItemResourceProvider(amc);
+    resources = upgradeItemResourceProvider.getResources(request, predicate);
+
+    assertEquals(3, resources.size());
+    res = resources.iterator().next();
+    assertNotNull(res.getPropertyValue("UpgradeItem/status"));
+
+  }
+
+
+
 
 
   /**

@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -79,13 +80,12 @@ import com.google.inject.Provider;
 @StaticallyInject
 public class UpgradeResourceProvider extends AbstractControllerResourceProvider {
 
-  protected static final String UPGRADE_ID = "Upgrade/id";
   protected static final String UPGRADE_CLUSTER_NAME = "Upgrade/cluster_name";
   protected static final String UPGRADE_VERSION = "Upgrade/repository_version";
   protected static final String UPGRADE_REQUEST_ID = "Upgrade/request_id";
 
   private static final Set<String> PK_PROPERTY_IDS = new HashSet<String>(
-      Arrays.asList(UPGRADE_ID, UPGRADE_CLUSTER_NAME));
+      Arrays.asList(UPGRADE_REQUEST_ID, UPGRADE_CLUSTER_NAME));
   private static final Set<String> PROPERTY_IDS = new HashSet<String>();
 
   private static final Map<Resource.Type, String> KEY_PROPERTY_IDS = new HashMap<Resource.Type, String>();
@@ -105,15 +105,22 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   @Inject
   private static Provider<AmbariCustomCommandExecutionHelper> commandExecutionHelper;
 
+  private static Map<String, String> REQUEST_PROPERTY_MAP = new HashMap<String, String>();
+
   static {
     // properties
-    PROPERTY_IDS.add(UPGRADE_ID);
     PROPERTY_IDS.add(UPGRADE_CLUSTER_NAME);
     PROPERTY_IDS.add(UPGRADE_VERSION);
     PROPERTY_IDS.add(UPGRADE_REQUEST_ID);
 
+    // !!! boo
+    for (String requestPropertyId : RequestResourceProvider.PROPERTY_IDS) {
+      REQUEST_PROPERTY_MAP.put(requestPropertyId, requestPropertyId.replace("Requests/", "Upgrade/"));
+    }
+    PROPERTY_IDS.addAll(REQUEST_PROPERTY_MAP.values());
+
     // keys
-    KEY_PROPERTY_IDS.put(Resource.Type.Upgrade, UPGRADE_ID);
+    KEY_PROPERTY_IDS.put(Resource.Type.Upgrade, UPGRADE_REQUEST_ID);
     KEY_PROPERTY_IDS.put(Resource.Type.Cluster, UPGRADE_CLUSTER_NAME);
   }
 
@@ -156,7 +163,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     notifyCreate(Resource.Type.Upgrade, request);
 
     Resource res = new ResourceImpl(Resource.Type.Upgrade);
-    res.setProperty(UPGRADE_ID, entity.getId());
+    res.setProperty(UPGRADE_REQUEST_ID, entity.getRequestId());
     return new RequestStatusImpl(null, Collections.singleton(res));
   }
 
@@ -184,9 +191,10 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
       List<UpgradeEntity> upgrades = new ArrayList<UpgradeEntity>();
 
-      String upgradeIdStr = (String) propertyMap.get(UPGRADE_ID);
+      String upgradeIdStr = (String) propertyMap.get(UPGRADE_REQUEST_ID);
       if (null != upgradeIdStr) {
-        UpgradeEntity upgrade = m_upgradeDAO.findUpgrade(Long.parseLong(upgradeIdStr));
+        UpgradeEntity upgrade = m_upgradeDAO.findUpgradeByRequestId(Long.valueOf(upgradeIdStr));
+
         if (null != upgrade) {
           upgrades.add(upgrade);
         }
@@ -194,8 +202,19 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         upgrades = m_upgradeDAO.findUpgrades(cluster.getClusterId());
       }
 
+      UpgradeHelper helper = new UpgradeHelper();
       for (UpgradeEntity entity : upgrades) {
-        results.add(toResource(entity, clusterName, requestPropertyIds));
+        Resource r = toResource(entity, clusterName, requestPropertyIds);
+        results.add(r);
+
+        // !!! not terribly efficient, but that's ok in this case.  The handful-per-year
+        // an upgrade is done won't kill performance.
+        Resource r1 = helper.getRequestResource(clusterName, entity.getRequestId());
+        for (Entry<String, String> entry : REQUEST_PROPERTY_MAP.entrySet()) {
+          Object o = r1.getPropertyValue(entry.getKey());
+
+          setResourceProperty(r, entry.getValue(), o, requestPropertyIds);
+        }
       }
     }
 
@@ -236,7 +255,6 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       Set<String> requestedIds) {
     ResourceImpl resource = new ResourceImpl(Resource.Type.Upgrade);
 
-    setResourceProperty(resource, UPGRADE_ID, entity.getId(), requestedIds);
     setResourceProperty(resource, UPGRADE_CLUSTER_NAME, clusterName, requestedIds);
     setResourceProperty(resource, UPGRADE_REQUEST_ID, entity.getRequestId(), requestedIds);
 

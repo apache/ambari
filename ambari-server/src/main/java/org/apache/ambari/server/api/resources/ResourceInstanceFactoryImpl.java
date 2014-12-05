@@ -331,7 +331,7 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
 
       case UpgradeItem:
         resourceDefinition = new SimpleResourceDefinition(
-            Resource.Type.UpgradeItem, "upgrade_item", "upgrade_items");
+            Resource.Type.UpgradeItem, "upgrade_item", "upgrade_items", Resource.Type.Task);
         break;
 
       case Stage:

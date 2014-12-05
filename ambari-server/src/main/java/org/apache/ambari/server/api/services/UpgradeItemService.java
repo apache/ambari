@@ -67,14 +67,12 @@ public class UpgradeItemService extends BaseService {
         createResourceInstance(id));
   }
 
-  @PUT
-  @Path("{upgradeItemId}")
-  @Produces("text/plain")
-  public Response updateUpgradeItem(String body,
+  @Path("{upgradeItemId}/tasks")
+  public TaskService getTasks(
       @Context HttpHeaders headers,
-      @Context UriInfo ui, @PathParam("upgradeItemId") Long id) {
-    return handleRequest(headers, body, ui, Request.Type.PUT,
-        createResourceInstance(id));
+      @Context UriInfo ui,
+      @PathParam("upgradeItemId") Long id) {
+    return new TaskService(m_clusterName, m_upgradeId, m_upgradeId.toString());
   }
 
   /**
@@ -86,6 +84,7 @@ public class UpgradeItemService extends BaseService {
     mapIds.put(Resource.Type.Cluster, m_clusterName);
     mapIds.put(Resource.Type.Upgrade, m_upgradeId);
     mapIds.put(Resource.Type.UpgradeGroup, m_upgradeGroupId);
+    mapIds.put(Resource.Type.Request, m_upgradeId);
 
     if (null != upgradeItemId) {
       mapIds.put(Resource.Type.UpgradeItem, upgradeItemId.toString());

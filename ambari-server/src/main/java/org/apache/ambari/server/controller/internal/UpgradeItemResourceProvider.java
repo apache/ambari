@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.controller.internal;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -24,63 +25,65 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StaticallyInject;
-import org.apache.ambari.server.actionmanager.HostRoleCommand;
-import org.apache.ambari.server.actionmanager.HostRoleStatus;
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
-import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.orm.dao.UpgradeDAO;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.orm.entities.UpgradeGroupEntity;
 import org.apache.ambari.server.orm.entities.UpgradeItemEntity;
-import org.apache.ambari.server.state.UpgradeState;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.UpgradeHelper;
 
 import com.google.inject.Inject;
-import com.google.inject.Provider;
 
 /**
- * Manages the ability to start and get status of upgrades.
+ * Manages the ability to get the status of upgrades.
  */
 @StaticallyInject
-public class UpgradeItemResourceProvider extends AbstractControllerResourceProvider {
+public class UpgradeItemResourceProvider extends ReadOnlyResourceProvider {
 
-  protected static final String UPGRADE_ID = "UpgradeItem/upgrade_id";
+  protected static final String UPGRADE_CLUSTER_NAME = "UpgradeItem/cluster_name";
+  protected static final String UPGRADE_REQUEST_ID = "UpgradeItem/request_id";
   protected static final String UPGRADE_GROUP_ID = "UpgradeItem/group_id";
-  protected static final String UPGRADE_ITEM_ID = "UpgradeItem/id";
-  protected static final String UPGRADE_ITEM_STATE = "UpgradeItem/state";
-  protected static final String UPGRADE_ITEM_TEXT = "UpgradeItem/text";
-  protected static final String UPGRADE_ITEM_STAGE_ID= "UpgradeItem/stage_id";
+  protected static final String UPGRADE_ITEM_STAGE_ID = "UpgradeItem/stage_id";
 
   private static final Set<String> PK_PROPERTY_IDS = new HashSet<String>(
-      Arrays.asList(UPGRADE_ID, UPGRADE_ITEM_ID));
+      Arrays.asList(UPGRADE_REQUEST_ID, UPGRADE_ITEM_STAGE_ID));
   private static final Set<String> PROPERTY_IDS = new HashSet<String>();
 
   private static final Map<Resource.Type, String> KEY_PROPERTY_IDS = new HashMap<Resource.Type, String>();
+  private static Map<String, String> STAGE_MAPPED_IDS = new HashMap<String, String>();
 
   @Inject
   private static UpgradeDAO m_dao = null;
 
+
   static {
     // properties
-    PROPERTY_IDS.add(UPGRADE_ID);
+    PROPERTY_IDS.add(UPGRADE_ITEM_STAGE_ID);
     PROPERTY_IDS.add(UPGRADE_GROUP_ID);
-    PROPERTY_IDS.add(UPGRADE_ITEM_ID);
-    PROPERTY_IDS.add(UPGRADE_ITEM_STATE);
-    PROPERTY_IDS.add(UPGRADE_ITEM_TEXT);
+    PROPERTY_IDS.add(UPGRADE_REQUEST_ID);
+
+    // !!! boo
+    for (String p : StageResourceProvider.PROPERTY_IDS) {
+      STAGE_MAPPED_IDS.put(p, p.replace("Stage/", "UpgradeItem/"));
+    }
+    PROPERTY_IDS.addAll(STAGE_MAPPED_IDS.values());
 
     // keys
-    KEY_PROPERTY_IDS.put(Resource.Type.UpgradeItem, UPGRADE_ITEM_ID);
+    KEY_PROPERTY_IDS.put(Resource.Type.UpgradeItem, UPGRADE_ITEM_STAGE_ID);
     KEY_PROPERTY_IDS.put(Resource.Type.UpgradeGroup, UPGRADE_GROUP_ID);
-    KEY_PROPERTY_IDS.put(Resource.Type.Upgrade, UPGRADE_ID);
+    KEY_PROPERTY_IDS.put(Resource.Type.Upgrade, UPGRADE_REQUEST_ID);
+    KEY_PROPERTY_IDS.put(Resource.Type.Cluster, UPGRADE_CLUSTER_NAME);
   }
 
   /**
@@ -93,14 +96,6 @@ public class UpgradeItemResourceProvider extends AbstractControllerResourceProvi
   }
 
   @Override
-  public RequestStatus createResources(final Request request)
-      throws SystemException,
-      UnsupportedPropertyException, ResourceAlreadyExistsException,
-      NoSuchParentResourceException {
-    throw new SystemException("Upgrade Items can only be created with an upgrade");
-  }
-
-  @Override
   public Set<Resource> getResources(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException,
       NoSuchResourceException, NoSuchParentResourceException {
@@ -109,127 +104,103 @@ public class UpgradeItemResourceProvider extends AbstractControllerResourceProvi
     Set<String> requestPropertyIds = getRequestPropertyIds(request, predicate);
 
     for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
-      String upgradeIdStr = (String) propertyMap.get(UPGRADE_ID);
+      String clusterName = (String) propertyMap.get(UPGRADE_CLUSTER_NAME);
+      String requestIdStr = (String) propertyMap.get(UPGRADE_REQUEST_ID);
       String groupIdStr = (String) propertyMap.get(UPGRADE_GROUP_ID);
+      String stageIdStr = (String) propertyMap.get(UPGRADE_ITEM_STAGE_ID);
 
-      if (null == upgradeIdStr || upgradeIdStr.isEmpty()) {
+      if (null == requestIdStr || requestIdStr.isEmpty()) {
         throw new IllegalArgumentException("The upgrade id is required when querying for upgrades");
       }
 
       if (null == groupIdStr || groupIdStr.isEmpty()) {
-        throw new IllegalArgumentException("The upgrade id is required when querying for upgrades");
+        throw new IllegalArgumentException("The upgrade group id is required when querying for upgrades");
       }
 
-
-      long upgradeId = Long.parseLong(upgradeIdStr);
-      long groupId = Long.parseLong(groupIdStr);
-      UpgradeGroupEntity group = m_dao.findUpgradeGroup(groupId);
-
-      if (null == group || null == group.getItems()) {
-        throw new NoSuchResourceException(String.format("Cannot load upgrade for %s", upgradeIdStr));
+      Long requestId = Long.valueOf(requestIdStr);
+      Long groupId = Long.valueOf(groupIdStr);
+      Long stageId = null;
+      if (null != stageIdStr) {
+        stageId = Long.valueOf(stageIdStr);
       }
 
-      for (UpgradeItemEntity entity : group.getItems()) {
-        results.add(toResource(group.getUpgradeEntity(), entity, requestPropertyIds));
+      List<UpgradeItemEntity> entities = new ArrayList<UpgradeItemEntity>();
+      if (null == stageId) {
+        UpgradeGroupEntity group = m_dao.findUpgradeGroup(groupId);
+
+        if (null == group || null == group.getItems()) {
+          throw new NoSuchResourceException(String.format("Cannot load upgrade for %s", requestIdStr));
+        }
+
+        entities = group.getItems();
+
+      } else {
+        UpgradeItemEntity entity = m_dao.findUpgradeItemByRequestAndStage(requestId, stageId);
+        if (null != entity) {
+          entities.add(entity);
+        }
       }
+
+      // !!! need to do some lookup for stages, so use a stageid -> resource for
+      // when that happens
+      Map<Long, Resource> resultMap = new HashMap<Long, Resource>();
+
+      for (UpgradeItemEntity entity : entities) {
+        Resource r = toResource(entity, requestPropertyIds);
+        resultMap.put(entity.getStageId(), r);
+      }
+
+      if (null != clusterName) {
+        UpgradeHelper helper = new UpgradeHelper();
+
+        Set<Resource> stages = helper.getStageResources(clusterName, requestId,
+            new ArrayList<Long>(resultMap.keySet()));
+
+        for (Resource stage : stages) {
+          Long l = (Long) stage.getPropertyValue(StageResourceProvider.STAGE_STAGE_ID);
+
+          Resource r = resultMap.get(l);
+          if (null != r) {
+            for (String propertyId : StageResourceProvider.PROPERTY_IDS) {
+              setResourceProperty(r, STAGE_MAPPED_IDS.get(propertyId),
+                stage.getPropertyValue(propertyId), requestPropertyIds);
+            }
+          }
+        }
+      }
+
+      results.addAll(resultMap.values());
+
     }
-
     return results;
   }
 
-  @Override
-  public RequestStatus updateResources(final Request request,
-      Predicate predicate)
-      throws SystemException, UnsupportedPropertyException,
-      NoSuchResourceException, NoSuchParentResourceException {
-
-    throw new SystemException("Upgrade Items cannot be modified at this time");
+  private Cluster getCluster(Long clusterId) throws SystemException {
+    Clusters clusters = getManagementController().getClusters();
+    try {
+      return clusters.getClusterById(clusterId.longValue());
+    } catch (AmbariException e) {
+      throw new SystemException("Cannot load cluster for upgrade items");
+    }
   }
 
-  @Override
-  public RequestStatus deleteResources(Predicate predicate)
-      throws SystemException, UnsupportedPropertyException,
-      NoSuchResourceException, NoSuchParentResourceException {
-    throw new SystemException("Cannot delete upgrade items");
-  }
 
   @Override
   protected Set<String> getPKPropertyIds() {
     return PK_PROPERTY_IDS;
   }
 
-  private Resource toResource(UpgradeEntity upgrade, UpgradeItemEntity item, Set<String> requestedIds) {
+  private Resource toResource(UpgradeItemEntity item, Set<String> requestedIds) {
     ResourceImpl resource = new ResourceImpl(Resource.Type.UpgradeItem);
 
-    setResourceProperty(resource, UPGRADE_ID, upgrade.getId(), requestedIds);
-    setResourceProperty(resource, UPGRADE_GROUP_ID, item.getGroupEntity().getId(), requestedIds);
-    setResourceProperty(resource, UPGRADE_ITEM_ID, item.getId(), requestedIds);
-    if (isPropertyRequested(UPGRADE_ITEM_STATE, requestedIds)) {
-      UpgradeState state = calculateState(upgrade, item);
-      setResourceProperty(resource, UPGRADE_ITEM_STATE, state, requestedIds);
-    }
-    setResourceProperty(resource, UPGRADE_ITEM_TEXT, item.getText(), requestedIds);
+    UpgradeGroupEntity group = item.getGroupEntity();
+    UpgradeEntity upgrade = group.getUpgradeEntity();
+
+    setResourceProperty(resource, UPGRADE_REQUEST_ID, upgrade.getRequestId(), requestedIds);
+    setResourceProperty(resource, UPGRADE_GROUP_ID, group.getId(), requestedIds);
+    setResourceProperty(resource, UPGRADE_ITEM_STAGE_ID, item.getStageId(), requestedIds);
 
     return resource;
   }
-
-  private UpgradeState calculateState(UpgradeEntity upgrade, UpgradeItemEntity item) {
-    long requestId = upgrade.getRequestId().longValue();
-    long stageId = item.getStageId().longValue();
-
-    List<HostRoleCommand> commands = getManagementController().getActionManager().getRequestTasks(requestId);
-
-    int pending = 0;
-    int complete = 0;
-    int in_progress = 0;
-    int failed = 0;
-
-    for (HostRoleCommand command : commands) {
-      if (stageId != command.getStageId()) {
-        continue;
-      }
-
-      HostRoleStatus status = command.getStatus();
-      if (status.isFailedState()) {
-        failed++;
-      } else {
-        switch (status) {
-          case COMPLETED:
-            complete++;
-            break;
-          case IN_PROGRESS:
-            in_progress++;
-            break;
-          case PENDING:
-            pending++;
-            break;
-          case QUEUED:
-            in_progress++;
-            break;
-          case FAILED:
-          case ABORTED:
-          case TIMEDOUT:
-            failed++;
-            break;
-          default:
-            break;
-        }
-      }
-    }
-
-    if (failed > 0) {
-      return UpgradeState.FAILED;
-    } else if (in_progress > 0) {
-      return UpgradeState.IN_PROGRESS;
-    } else if (pending > 0) {
-      return UpgradeState.PENDING;
-    } else if (complete > 0) {
-      return UpgradeState.COMPLETE;
-    }
-
-    return UpgradeState.NONE;
-  }
-
-
 
 }

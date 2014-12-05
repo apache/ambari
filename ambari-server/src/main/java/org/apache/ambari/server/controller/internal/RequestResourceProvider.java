@@ -55,8 +55,8 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
 
   // ----- Property ID constants ---------------------------------------------
   // Requests
-  protected static final String REQUEST_CLUSTER_NAME_PROPERTY_ID = "Requests/cluster_name";
-  protected static final String REQUEST_ID_PROPERTY_ID = "Requests/id";
+  public static final String REQUEST_CLUSTER_NAME_PROPERTY_ID = "Requests/cluster_name";
+  public static final String REQUEST_ID_PROPERTY_ID = "Requests/id";
   protected static final String REQUEST_STATUS_PROPERTY_ID = "Requests/request_status";
   protected static final String REQUEST_ABORT_REASON_PROPERTY_ID = "Requests/abort_reason";
   protected static final String REQUEST_CONTEXT_ID = "Requests/request_context";
@@ -89,6 +89,32 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
       new HashSet<String>(Arrays.asList(new String[]{
           REQUEST_ID_PROPERTY_ID}));
 
+  static Set<String> PROPERTY_IDS = new HashSet<String>();
+
+  static {
+    PROPERTY_IDS.add(REQUEST_CLUSTER_NAME_PROPERTY_ID);
+    PROPERTY_IDS.add(REQUEST_STATUS_PROPERTY_ID);
+    PROPERTY_IDS.add(REQUEST_ABORT_REASON_PROPERTY_ID);
+    PROPERTY_IDS.add(REQUEST_CONTEXT_ID);
+    PROPERTY_IDS.add(REQUEST_SOURCE_SCHEDULE);
+    PROPERTY_IDS.add(REQUEST_SOURCE_SCHEDULE_ID);
+    PROPERTY_IDS.add(REQUEST_SOURCE_SCHEDULE_HREF);
+    PROPERTY_IDS.add(REQUEST_TYPE_ID);
+    PROPERTY_IDS.add(REQUEST_INPUTS_ID);
+    PROPERTY_IDS.add(REQUEST_RESOURCE_FILTER_ID);
+    PROPERTY_IDS.add(REQUEST_OPERATION_LEVEL_ID);
+    PROPERTY_IDS.add(REQUEST_CREATE_TIME_ID);
+    PROPERTY_IDS.add(REQUEST_START_TIME_ID);
+    PROPERTY_IDS.add(REQUEST_END_TIME_ID);
+    PROPERTY_IDS.add(REQUEST_EXCLUSIVE_ID);
+    PROPERTY_IDS.add(REQUEST_TASK_CNT_ID);
+    PROPERTY_IDS.add(REQUEST_FAILED_TASK_CNT_ID);
+    PROPERTY_IDS.add(REQUEST_ABORTED_TASK_CNT_ID);
+    PROPERTY_IDS.add(REQUEST_TIMED_OUT_TASK_CNT_ID);
+    PROPERTY_IDS.add(REQUEST_COMPLETED_TASK_CNT_ID);
+    PROPERTY_IDS.add(REQUEST_QUEUED_TASK_CNT_ID);
+    PROPERTY_IDS.add(REQUEST_PROGRESS_PERCENT_ID);
+  }
 
   // ----- Constructors ----------------------------------------------------
 
@@ -137,29 +163,29 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
     Boolean ascOrder = (ascOrderRaw == null ? null : Boolean.parseBoolean(ascOrderRaw));
 
     Set<Map<String, Object>> propertyMaps = new HashSet<Map<String,Object>>();
-    
+
     if (null == predicate) {
       resources.addAll(
           getRequestResources(null, null, null, maxResults, ascOrder, requestedIds));
     } else {
       for (Map<String, Object> properties : getPropertyMaps(predicate)) {
         String clusterName = (String) properties.get(REQUEST_CLUSTER_NAME_PROPERTY_ID);
-  
+
         Long requestId = null;
         if (properties.get(REQUEST_ID_PROPERTY_ID) != null) {
           requestId = Long.valueOf((String) properties.get(REQUEST_ID_PROPERTY_ID));
         }
-  
+
         String requestStatus = null;
         if (properties.get(REQUEST_STATUS_PROPERTY_ID) != null) {
           requestStatus = (String) properties.get(REQUEST_STATUS_PROPERTY_ID);
         }
-  
+
         resources.addAll(getRequestResources(clusterName, requestId, requestStatus, maxResults,
             ascOrder, requestedIds));
       }
     }
-    
+
     return resources;
   }
 
@@ -445,7 +471,7 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
     double progressPercent =
             ((hostRoleStatusCounters.get(HostRoleStatus.QUEUED) * 0.09 +
                     hostRoleStatusCounters.get(HostRoleStatus.IN_PROGRESS) * 0.35 +
-                    hostRoleStatusCounters.get(HostRoleStatus.COMPLETED)) / (double) taskCount) * 100.0;
+                    hostRoleStatusCounters.get(HostRoleStatus.COMPLETED)) / taskCount) * 100.0;
 
     setResourceProperty(resource, REQUEST_STATUS_PROPERTY_ID, requestStatus.toString(), requestedPropertyIds);
     setResourceProperty(resource, REQUEST_TASK_CNT_ID, taskCount, requestedPropertyIds);
@@ -500,7 +526,7 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
    * @return summary request status based on statuses of tasks in different
    * states.
    */
-  private HostRoleStatus calculateSummaryStatus(Map<HostRoleStatus, Integer> counters, int totalTasks) {
+  static HostRoleStatus calculateSummaryStatus(Map<HostRoleStatus, Integer> counters, int totalTasks) {
     return counters.get(HostRoleStatus.FAILED) > 0 ? HostRoleStatus.FAILED :
             // TODO (dlysnichenko): maybe change order of FAILED and ABORTED?
             counters.get(HostRoleStatus.ABORTED) > 0 ? HostRoleStatus.ABORTED :
