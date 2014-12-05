@@ -143,6 +143,14 @@ describe('#wrapperView', function () {
           });
       });
 
+      it('test non-string values', function () {
+        property = Em.Object.create({type: 'string', name: 'enabled'});
+        var func = sort.wrapperView.create().getSortFunc(property, true),
+        a = Em.Object.create({enabled: false}),
+        b = Em.Object.create({enabled: true});
+        expect(func(a, b)).to.equal(-1);
+      });
+
     });
 
   });

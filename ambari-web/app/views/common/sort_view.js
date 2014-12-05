@@ -171,12 +171,12 @@ var wrapperView = Em.View.extend({
         };
         break;
       case 'alert_status':
-        func = function(a, b) {
+        func = function (a, b) {
           var a_summary = a.get('summary'),
             b_summary = b.get('summary'),
             st_order = a.get('severityOrder'),
             ret = 0;
-          for(var i = 0; i < st_order.length; i++) {
+          for (var i = 0; i < st_order.length; i++) {
             var a_v = Em.isNone(a_summary[st_order[i]]) ? 0 : a_summary[st_order[i]],
               b_v = Em.isNone(b_summary[st_order[i]]) ? 0 : b_summary[st_order[i]];
             ret = b_v - a_v;
@@ -196,8 +196,8 @@ var wrapperView = Em.View.extend({
         func = function (a, b) {
           var a_p = a.get(property.get('name'));
           var b_p = b.get(property.get('name'));
-          a_p = Em.isNone(a_p) ? '' : a_p;
-          b_p = Em.isNone(b_p) ? '' : b_p;
+          a_p = Em.isNone(a_p) ? '' : '' + a_p;
+          b_p = Em.isNone(b_p) ? '' : '' + b_p;
           return order ? a_p.localeCompare(b_p) : b_p.localeCompare(a_p)
         };
     }
