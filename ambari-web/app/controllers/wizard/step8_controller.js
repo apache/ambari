@@ -461,12 +461,13 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
     var dependentConfig = $.extend(true, [], configMapping.filterProperty('foreignKey'));
     dependentConfig.forEach(function (_config) {
       App.config.setConfigValue(uiConfig, this.get('content.serviceConfigProperties'), _config);
-      uiConfig.pushObject({
-        "id": "site property",
-        "name": _config._name || _config.name,
-        "value": _config.value,
-        "filename": _config.filename
-      });
+      if(!_config.noMatchSoSkipThisConfig)
+        uiConfig.pushObject({
+          "id": "site property",
+          "name": _config._name || _config.name,
+          "value": _config.value,
+          "filename": _config.filename
+        });
     }, this);
     return uiConfig;
   },

@@ -1193,6 +1193,8 @@ App.config = Em.Object.create({
             globalValue = allConfigs.findProperty('name', config.foreignKey[index]).value;
           }
           config._name = config.name.replace(_fkName, globalValue);
+        }else{
+          config.noMatchSoSkipThisConfig = true;
         }
       }, this);
     }
