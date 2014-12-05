@@ -59,6 +59,9 @@
             <package>
               <name>hadoop-mapreduce</name>
             </package>
+            <package>
+              <name>hadoop-hdfs</name>
+            </package>
           </packages>
         </osSpecific>
       </osSpecifics>

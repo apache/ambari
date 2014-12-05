@@ -40,6 +40,9 @@
             <package>
               <name>hadoop_2_2_*-mapreduce</name>
             </package>
+            <package>
+              <name>hadoop_2_2_*-hdfs</name>
+            </package>
           </packages>
         </osSpecific>
         <osSpecific>

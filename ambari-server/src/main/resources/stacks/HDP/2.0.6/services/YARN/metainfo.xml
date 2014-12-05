@@ -119,6 +119,9 @@
               <name>hadoop-yarn</name>
             </package>
             <package>
+              <name>hadoop-hdfs</name>
+            </package>
+            <package>
               <name>hadoop-mapreduce</name>
             </package>
           </packages>
