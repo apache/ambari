@@ -37,7 +37,7 @@
 {% if has_ganglia_server %}
 *.period=60
 
-*.sink.timeline.class=org.apache.hadoop.metrics2.sink.timeline.TimelineMetricsSink
+*.sink.timeline.class=org.apache.hadoop.metrics2.sink.timeline.HadoopTimelineMetricsSink
 *.sink.timeline.period=10
 
 

@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.hadoop.metrics2.sink.timeline;
+package org.apache.hadoop.metrics2.sink.timeline.cache;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -32,12 +32,12 @@ public class TimelineMetricsCache {
 
   private final TimelineMetricHolder timelineMetricCache = new TimelineMetricHolder();
   private static final Log LOG = LogFactory.getLog(TimelineMetric.class);
-  static final int MAX_RECS_PER_NAME_DEFAULT = 10000;
-  static final int MAX_EVICTION_TIME_MILLIS = 59000; // ~ 1 min
+  public static final int MAX_RECS_PER_NAME_DEFAULT = 10000;
+  public static final int MAX_EVICTION_TIME_MILLIS = 59000; // ~ 1 min
   private final int maxRecsPerName;
   private final int maxEvictionTimeInMillis;
 
-  TimelineMetricsCache(int maxRecsPerName, int maxEvictionTimeInMillis) {
+  public TimelineMetricsCache(int maxRecsPerName, int maxEvictionTimeInMillis) {
     this.maxRecsPerName = maxRecsPerName;
     this.maxEvictionTimeInMillis = maxEvictionTimeInMillis;
   }

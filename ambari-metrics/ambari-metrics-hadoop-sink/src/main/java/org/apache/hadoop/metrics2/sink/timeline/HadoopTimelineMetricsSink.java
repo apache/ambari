@@ -18,58 +18,60 @@
 package org.apache.hadoop.metrics2.sink.timeline;
 
 import org.apache.commons.configuration.SubsetConfiguration;
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.methods.PostMethod;
-import org.apache.commons.httpclient.methods.StringRequestEntity;
 import org.apache.commons.lang.ClassUtils;
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
-import org.apache.hadoop.metrics2.AbstractMetric;
-import org.apache.hadoop.metrics2.MetricsException;
-import org.apache.hadoop.metrics2.MetricsRecord;
-import org.apache.hadoop.metrics2.MetricsTag;
+import org.apache.hadoop.metrics2.*;
 import org.apache.hadoop.metrics2.impl.MsInfo;
-import org.apache.hadoop.metrics2.sink.timeline.AbstractTimelineMetricsSink;
-import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
-import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
-import org.apache.hadoop.metrics2.sink.timeline.TimelineMetricsCache;
-import org.codehaus.jackson.map.AnnotationIntrospector;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.annotate.JsonSerialize;
-import org.codehaus.jackson.xc.JaxbAnnotationIntrospector;
+import org.apache.hadoop.metrics2.sink.timeline.base.AbstractTimelineMetricsSink;
+import org.apache.hadoop.metrics2.sink.timeline.cache.TimelineMetricsCache;
+import org.apache.hadoop.metrics2.util.Servers;
+import org.apache.hadoop.net.DNS;
+
 import java.io.IOException;
 import java.net.SocketAddress;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.net.UnknownHostException;
+import java.util.*;
 
 @InterfaceAudience.Public
 @InterfaceStability.Evolving
-public class TimelineMetricsSink extends AbstractTimelineMetricsSink {
-  private static ObjectMapper mapper;
+public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink implements MetricsSink {
   private Map<String, Set<String>> useTagsMap = new HashMap<String, Set<String>>();
-  private static final String TAGS_FOR_PREFIX_PROPERTY_PREFIX = "tagsForPrefix.";
-  private static final String MAX_METRIC_ROW_CACHE_SIZE = "maxRowCacheSize";
-  private static final String METRICS_SEND_INTERVAL = "sendInterval";
-  protected HttpClient httpClient = new HttpClient();
   private TimelineMetricsCache metricsCache;
-
-  static {
-    mapper = new ObjectMapper();
-    AnnotationIntrospector introspector = new JaxbAnnotationIntrospector();
-    mapper.setAnnotationIntrospector(introspector);
-    mapper.getSerializationConfig()
-      .setSerializationInclusion(JsonSerialize.Inclusion.NON_NULL);
-  }
+  private String hostName = "UNKNOWN.example.com";
+  private String serviceName = "";
+  private List<? extends SocketAddress> metricsServers;
+  private String collectorUri;
 
   @Override
   public void init(SubsetConfiguration conf) {
-    super.init(conf);
+    LOG.info("Initializing Timeline metrics sink.");
+
+    // Take the hostname from the DNS class.
+    if (conf.getString("slave.host.name") != null) {
+      hostName = conf.getString("slave.host.name");
+    } else {
+      try {
+        hostName = DNS.getDefaultHost(
+            conf.getString("dfs.datanode.dns.interface", "default"),
+            conf.getString("dfs.datanode.dns.nameserver", "default"));
+      } catch (UnknownHostException uhe) {
+        LOG.error(uhe);
+        hostName = "UNKNOWN.example.com";
+      }
+    }
+
+    serviceName = getFirstConfigPrefix(conf);
+
+    // Load collector configs
+    metricsServers = Servers.parse(conf.getString(COLLECTOR_HOST_PROPERTY), 8188);
+
+    if (metricsServers == null || metricsServers.isEmpty()) {
+      LOG.error("No Metric collector configured.");
+    } else {
+      collectorUri = "http://" + conf.getString(COLLECTOR_HOST_PROPERTY).trim()
+          + "/ws/v1/timeline/metrics";
+    }
 
     int maxRowCacheSize = conf.getInt(MAX_METRIC_ROW_CACHE_SIZE,
       TimelineMetricsCache.MAX_RECS_PER_NAME_DEFAULT);
@@ -104,6 +106,25 @@ public class TimelineMetricsSink extends AbstractTimelineMetricsSink {
     }
   }
 
+  private String getFirstConfigPrefix(SubsetConfiguration conf) {
+    while (conf.getParent() instanceof SubsetConfiguration) {
+      conf = (SubsetConfiguration) conf.getParent();
+    }
+    return conf.getPrefix();
+  }
+
+  protected SocketAddress getServerSocketAddress() {
+    if (metricsServers != null && !metricsServers.isEmpty()) {
+      return metricsServers.get(0);
+    }
+    return null;
+  }
+
+  @Override
+  protected String getCollectorUri() {
+    return collectorUri;
+  }
+
   @Override
   public void putMetrics(MetricsRecord record) {
     try {
@@ -129,8 +150,8 @@ public class TimelineMetricsSink extends AbstractTimelineMetricsSink {
         String name = sb.toString();
         TimelineMetric timelineMetric = new TimelineMetric();
         timelineMetric.setMetricName(name);
-        timelineMetric.setHostName(getHostName());
-        timelineMetric.setAppId(getServiceName());
+        timelineMetric.setHostName(hostName);
+        timelineMetric.setAppId(serviceName);
         timelineMetric.setStartTime(record.timestamp());
         timelineMetric.setType(ClassUtils.getShortCanonicalName(
           metric.value(), "Number"));
@@ -155,28 +176,8 @@ public class TimelineMetricsSink extends AbstractTimelineMetricsSink {
       if (!metricList.isEmpty()) {
         emitMetrics(timelineMetrics);
       }
-
-
     } catch (IOException io) {
       throw new MetricsException("Failed to putMetrics", io);
-    }
-  }
-
-  private void emitMetrics(TimelineMetrics metrics) throws IOException {
-    String jsonData = mapper.writeValueAsString(metrics);
-
-    SocketAddress socketAddress = getServerSocketAddress();
-
-    if (socketAddress != null) {
-      StringRequestEntity requestEntity = new StringRequestEntity(
-        jsonData, "application/json", "UTF-8");
-
-      PostMethod postMethod = new PostMethod(getCollectorUri());
-      postMethod.setRequestEntity(requestEntity);
-      int statusCode = httpClient.executeMethod(postMethod);
-      if (statusCode != 200) {
-        LOG.info("Unable to POST metrics to collector, " + getCollectorUri());
-      }
     }
   }
 
@@ -207,5 +208,4 @@ public class TimelineMetricsSink extends AbstractTimelineMetricsSink {
   public void flush() {
     // TODO: Buffering implementation
   }
-
 }
