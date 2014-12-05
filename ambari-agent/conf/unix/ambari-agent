@@ -48,6 +48,12 @@ AMBARI_AGENT_PY_SCRIPT=/usr/lib/python2.6/site-packages/ambari_agent/AmbariAgent
 OK=1
 NOTOK=0
 
+sudo -v
+if [ "$?" != "0" ]; then
+ echo "You can't perform this operation as non-sudoer user. Please, re-login as one"
+ exit 0
+fi
+
 current_user=`awk -v val=$EUID -F ":" '$3==val{print $1}' /etc/passwd`
 # setup necessary ownership
 sudo chown -R $current_user "/var/lib/ambari-agent/ambari-env.sh"
@@ -112,12 +118,6 @@ check_python_version ()
 }
 
 retcode=0
-
-sudo -v
-if [ "$?" != "0" ]; then
- echo "You can't perform this operation as non-sudoer user. Please, re-login as one"
- exit 0
-fi
 
 case "$1" in
   start)
