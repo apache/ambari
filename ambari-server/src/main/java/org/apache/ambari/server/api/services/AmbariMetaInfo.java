@@ -712,7 +712,7 @@ public class AmbariMetaInfo {
    * @param field the field name
    * @return the key for any repo value override
    */
-  public String generateRepoMetaKey(String stackName, String stackVersion,
+  public static String generateRepoMetaKey(String stackName, String stackVersion,
       String osType, String repoId, String field) {
 
     StringBuilder sb = new StringBuilder("repo:/");

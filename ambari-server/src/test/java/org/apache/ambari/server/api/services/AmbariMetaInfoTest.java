@@ -102,6 +102,9 @@ public class AmbariMetaInfoTest {
   private static String SERVICE_NAME_MAPRED2 = "MAPREDUCE2";
   private static String SERVICE_COMPONENT_NAME = "NAMENODE";
   private static final String OS_TYPE = "centos5";
+  private static final String HDP_REPO_NAME = "HDP";
+  private static final String HDP_REPO_ID = "HDP-2.1.1";
+  private static final String HDP_UTILS_REPO_NAME = "HDP-UTILS";
   private static final String REPO_ID = "HDP-UTILS-1.1.0.15";
   private static final String PROPERTY_NAME = "hbase.regionserver.msginterval";
   private static final String SHARED_PROPERTY_NAME = "content";
@@ -236,9 +239,9 @@ public class AmbariMetaInfoTest {
     // Updating the baseUrl
     String newBaseUrl = "http://myprivate-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.0";
     ambariMetaInfo.updateRepoBaseURL(STACK_NAME_HDP, "2.1.1", "redhat6",
-        STACK_NAME_HDP + "-2.1.1", newBaseUrl);
+            HDP_REPO_ID, newBaseUrl);
     RepositoryInfo repoInfo = ambariMetaInfo.getRepository(STACK_NAME_HDP, "2.1.1", "redhat6",
-        STACK_NAME_HDP + "-2.1.1");
+            HDP_REPO_ID);
     assertEquals(newBaseUrl, repoInfo.getBaseUrl());
     String prevBaseUrl = repoInfo.getDefaultBaseUrl();
 
@@ -258,7 +261,7 @@ public class AmbariMetaInfoTest {
         STACK_NAME_HDP, "2.1.1", "redhat6");
     assertNotNull(redhat6Repo);
     for (RepositoryInfo ri : redhat6Repo) {
-      if (STACK_NAME_HDP.equals(ri.getRepoName())) {
+      if (HDP_REPO_NAME.equals(ri.getRepoName())) {
         assertEquals(newBaseUrl, ri.getBaseUrl());
         // defaultBaseUrl and baseUrl should not be same, since it is updated.
         assertFalse(ri.getBaseUrl().equals(ri.getDefaultBaseUrl()));
@@ -267,7 +270,50 @@ public class AmbariMetaInfoTest {
 
     // Reset the database with the original baseUrl
     ambariMetaInfo.updateRepoBaseURL(STACK_NAME_HDP, "2.1.1", "redhat6",
-        STACK_NAME_HDP + "-2.1.1", prevBaseUrl);
+            HDP_REPO_ID, prevBaseUrl);
+  }
+
+  @Test
+  public void testGetRepositoryUpdatedUtilsBaseUrl() throws Exception {
+    // Scenario: user has internet and but calls to set repos via api
+    // use whatever they set
+    String stackVersion = "0.2";
+    String buildDir = tmpFolder.getRoot().getAbsolutePath();
+    TestAmbariMetaInfo ambariMetaInfo = setupTempAmbariMetaInfo(buildDir, true);
+
+    // Updating the baseUrl
+    String newBaseUrl = "http://myprivate-repo-1.hortonworks.com/HDP-Utils/centos6/2.x/updates/2.0.6.0";
+    ambariMetaInfo.updateRepoBaseURL(STACK_NAME_HDP, stackVersion, "redhat6",
+            REPO_ID, newBaseUrl);
+    RepositoryInfo repoInfo = ambariMetaInfo.getRepository(STACK_NAME_HDP, stackVersion, "redhat6",
+            REPO_ID);
+    assertEquals(newBaseUrl, repoInfo.getBaseUrl());
+    String prevBaseUrl = repoInfo.getDefaultBaseUrl();
+
+    // mock expectations
+    MetainfoDAO metainfoDAO = ambariMetaInfo.metaInfoDAO;
+    reset(metainfoDAO);
+    MetainfoEntity entity = createNiceMock(MetainfoEntity.class);
+    expect(metainfoDAO.findByKey("repo:/HDP/0.2/redhat6/HDP-UTILS-1.1.0.15:baseurl")).andReturn(entity).atLeastOnce();
+    expect(entity.getMetainfoValue()).andReturn(newBaseUrl).atLeastOnce();
+    replay(metainfoDAO, entity);
+
+    ambariMetaInfo.init();
+
+    List<RepositoryInfo> redhat6Repo = ambariMetaInfo.getRepositories(
+            STACK_NAME_HDP, stackVersion, "redhat6");
+    assertNotNull(redhat6Repo);
+    for (RepositoryInfo ri : redhat6Repo) {
+      if (HDP_UTILS_REPO_NAME.equals(ri.getRepoName())) {
+        assertEquals(newBaseUrl, ri.getBaseUrl());
+        // defaultBaseUrl and baseUrl should not be same, since it is updated.
+        assertFalse(ri.getBaseUrl().equals(ri.getDefaultBaseUrl()));
+      }
+    }
+
+    // Reset the database with the original baseUrl
+    ambariMetaInfo.updateRepoBaseURL(STACK_NAME_HDP, stackVersion, "redhat6",
+            REPO_ID, prevBaseUrl);
   }
 
   @Test

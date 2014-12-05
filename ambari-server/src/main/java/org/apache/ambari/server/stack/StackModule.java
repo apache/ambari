@@ -482,7 +482,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> {
     ri.setLatestBaseUrl(r.getBaseUrl());
 
     LOG.debug("Checking for override for base_url");
-    String updatedUrl = stackContext.getUpdatedRepoUrl(r.getRepoName(), stackInfo.getVersion(),
+    String updatedUrl = stackContext.getUpdatedRepoUrl(stackInfo.getName(), stackInfo.getVersion(),
         osFamily, r.getRepoId());
 
     if (null != updatedUrl) {

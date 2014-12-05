@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.stack;
 
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.orm.dao.MetainfoDAO;
 import org.apache.ambari.server.orm.entities.MetainfoEntity;
@@ -88,22 +89,17 @@ public class StackContext {
    * Obtain an updated url for the repo.
    * This will check the database for a user update of the repo url.
    *
-   * @param repoName      repository name
+   * @param stackName     stack name
    * @param stackVersion  stack version
    * @param osType        OS type
    * @param repoId        repo id
    *
    * @return  an update url or null if the url has not been updated
    */
-  public String getUpdatedRepoUrl(String repoName, String stackVersion, String osType, String repoId) {
-    StringBuilder sb = new StringBuilder("repo:/");
-    sb.append(repoName).append('/');
-    sb.append(stackVersion).append('/');
-    sb.append(osType).append('/');
-    sb.append(repoId);
-    sb.append(':').append(REPOSITORY_XML_PROPERTY_BASEURL);
-
-    MetainfoEntity entity = metaInfoDAO.findByKey(sb.toString());
+  public String getUpdatedRepoUrl(String stackName, String stackVersion, String osType, String repoId) {
+    String key = AmbariMetaInfo.generateRepoMetaKey(stackName, stackVersion,
+            osType, repoId, REPOSITORY_XML_PROPERTY_BASEURL);
+    MetainfoEntity entity = metaInfoDAO.findByKey(key);
     return entity != null ? entity.getMetainfoValue() : null;
   }
 
