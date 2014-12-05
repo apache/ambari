@@ -35,6 +35,7 @@
         {{view view.parentView.nameSort class="first"}}
         {{view view.parentView.statusSort}}
         {{view view.parentView.serviceSort}}
+        {{view view.parentView.typeSort}}
         {{view view.parentView.lastTriggeredSort}}
         {{view view.parentView.enabledSort}}
       {{/view}}
@@ -42,6 +43,7 @@
       <th class="first">{{view view.nameFilterView}}</th>
       <th>{{view view.stateFilterView}}</th>
       <th>{{view view.serviceFilterView}}</th>
+      <th>{{view view.typeFilterView}}</th>
       <th>{{view view.triggeredFilterView}}</th>
       <th>{{view view.enabledFilterView}}</th>
     </tr>
@@ -51,10 +53,14 @@
       {{#each alertDefinition in view.pageContent}}
         <tr>
           <td class="first">
+            <span {{bindAttr class=":place-for-host-icon alertDefinition.isHostAlertDefinition:icon-desktop"}}></span>
             <a href="#" {{action "gotoAlertDetails" alertDefinition}}>{{alertDefinition.label}}</a>
           </td>
           <td>{{{alertDefinition.status}}}</td>
           <td>{{alertDefinition.service.displayName}}</td>
+          <td>
+            <span {{bindAttr class=":type-icon  alertDefinition.typeIconClass"}}></span>{{alertDefinition.type}}
+          </td>
           <td><time class="timeago" {{bindAttr data-original-title="alertDefinition.lastTriggeredFormatted"}}>{{alertDefinition.lastTriggeredAgoFormatted}}</time></td>
           <td class="last toggle-state-button">
             {{#if alertDefinition.enabled}}

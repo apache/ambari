@@ -857,8 +857,9 @@ Em.I18n.translations = {
   'alerts.actions.manageNotifications.info': 'You can manage notification methods and recipients.',
 
   'alerts.table.noAlerts': 'No Alerts to display',
-  'alerts.table.header.lastTriggered': 'Last Triggered',
+  'alerts.table.header.lastTriggered': 'Last Status Changed',
   'alerts.table.header.lastTrigger': 'Last Trigger',
+  'alerts.table.header.triggeredOn': 'Triggered On',
   'alerts.table.header.definitionName': 'Definition Name',
   'alerts.table.header.notification': 'Notification',
   'alerts.table.state': 'State',

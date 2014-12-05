@@ -40,7 +40,7 @@ App.MainAlertDefinitionsView = App.TableView.extend({
     return this.get('content.length');
   }.property('content.length'),
 
-  colPropAssoc: ['', 'label', 'summary', 'service.serviceName', 'lastTriggered', 'groups', 'enabled'],
+  colPropAssoc: ['', 'label', 'summary', 'service.serviceName', 'type', 'lastTriggered', 'enabled', 'groups'],
 
   /**
    * @type {string}
@@ -88,11 +88,22 @@ App.MainAlertDefinitionsView = App.TableView.extend({
   }),
 
   /**
+   * Sorting header for <label>alertDefinition.type</label>
+   * @type {Em.View}
+   */
+  typeSort: sort.fieldView.extend({
+    column: 4,
+    name: 'type',
+    displayName: Em.I18n.t('common.type'),
+    type: 'string'
+  }),
+
+  /**
    * Sorting header for <label>alertDefinition.lastTriggeredSort</label>
    * @type {Em.View}
    */
   lastTriggeredSort: sort.fieldView.extend({
-    column: 4,
+    column: 5,
     name: 'lastTriggered',
     displayName: Em.I18n.t('alerts.table.header.lastTriggered'),
     type: 'number'
@@ -184,11 +195,49 @@ App.MainAlertDefinitionsView = App.TableView.extend({
   }),
 
   /**
+   * Filtering header for <label>alertDefinition.type</label>
+   * @type {Em.View}
+   */
+  typeFilterView: filters.createSelectView({
+    column: 4,
+    fieldType: 'filter-input-width',
+    content: [
+      {
+        value: '',
+        label: Em.I18n.t('common.all')
+      },
+      {
+        value: 'SCRIPT',
+        label: 'SCRIPT'
+      },
+      {
+        value: 'WEB',
+        label: 'WEB'
+      },
+      {
+        value: 'PORT',
+        label: 'PORT'
+      },
+      {
+        value: 'METRIC',
+        label: 'METRIC'
+      },
+      {
+        value: 'AGGREGATE',
+        label: 'AGGREGATE'
+      }
+    ],
+    onChangeValue: function(){
+      this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'select');
+    }
+  }),
+
+  /**
    * Filtering header for <label>alertDefinition.lastTriggered</label>
    * @type {Em.View}
    */
   triggeredFilterView: filters.createSelectView({
-    column: 4,
+    column: 5,
     appliedEmptyValue: ["", ""],
     fieldType: 'filter-input-width,modified-filter',
     content: [
@@ -258,7 +307,7 @@ App.MainAlertDefinitionsView = App.TableView.extend({
    * @type {Em.View}
    */
   alertGroupFilterView: filters.createSelectView({
-    column: 5,
+    column: 7,
     fieldType: 'filter-input-width',
     template: Ember.Handlebars.compile(
       '<div class="btn-group display-inline-block">' +

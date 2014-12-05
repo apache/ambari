@@ -128,6 +128,9 @@ describe('App.ManageAlertNotificationsController', function () {
         severityFilter: {
           value: [],
           defaultValue: [true, true, true, true]
+        },
+        global: {
+          value: false
         }
       }));
       controller.addAlertNotification();
@@ -219,7 +222,8 @@ describe('App.ManageAlertNotificationsController', function () {
           value: ''
         },
         global: {
-          value: true
+          value: true,
+          disabled: true
         },
         method: {
           value: 'EMAIL'

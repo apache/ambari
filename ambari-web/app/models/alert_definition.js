@@ -116,6 +116,18 @@ App.AlertDefinition = DS.Model.extend({
     return null;
   }.property('summary'),
 
+  isHostAlertDefinition: function () {
+    var serviceID = (this.get('service')._id === "AMBARI"),
+        component = (this.get('componentName') === "AMBARI_AGENT");
+    return serviceID && component;
+  }.property('service', 'componentName'),
+
+  typeIconClass: function () {
+    var typeIcons = this.get('typeIcons'),
+        type = this.get('type');
+    return typeIcons[type];
+  }.property('type'),
+
   /**
    * if this definition is in state: CRIT / WARNING, if true, will show up in alerts fast access popup
    * @type {boolean}
@@ -149,7 +161,11 @@ App.AlertDefinition = DS.Model.extend({
    * @type {object}
    */
   typeIcons: {
-    'DISABLED': 'icon-off'
+    'METRIC': 'icon-bolt',
+    'SCRIPT': 'icon-file-text',
+    'WEB': 'icon-globe',
+    'PORT': 'icon-signin',
+    'AGGREGATE': 'icon-plus'
   },
 
   /**
