@@ -123,16 +123,12 @@ describe('App.MainAlertDefinitionConfigsController', function () {
       controller.set('isWizard', true);
       var result = controller.renderPortConfigs();
 
-      expect(result.length).to.equal(11);
+      expect(result.length).to.equal(10);
 
       controller.set('isWizard', false);
       result = controller.renderPortConfigs();
 
       expect(result.length).to.equal(4);
-      expect(result.someProperty('value', 60)).to.be.true;
-      expect(result.someProperty('value', '10-20')).to.be.true;
-      expect(result.someProperty('value', 'alertDefinitionUri')).to.be.true;
-      expect(result.someProperty('value', '777')).to.be.true;
     });
 
   });
@@ -182,17 +178,12 @@ describe('App.MainAlertDefinitionConfigsController', function () {
       controller.set('isWizard', true);
       var result = controller.renderMetricConfigs();
 
-      expect(result.length).to.equal(12);
+      expect(result.length).to.equal(11);
 
       controller.set('isWizard', false);
       result = controller.renderMetricConfigs();
 
       expect(result.length).to.equal(5);
-      expect(result.someProperty('value', 60)).to.be.true;
-      expect(result.someProperty('value', '10-20')).to.be.true;
-      expect(result.someProperty('value', '{\"http\":\"{{mapred-site/mapreduce.jobhistory.webapp.address}}\",\"https\":\"{{mapred-site/mapreduce.jobhistory.webapp.https.address}}\"}')).to.be.true;
-      expect(result.someProperty('value', 'property1,\nproperty2')).to.be.true;
-      expect(result.someProperty('value', 'jmxValue')).to.be.true;
     });
 
   });
@@ -234,15 +225,12 @@ describe('App.MainAlertDefinitionConfigsController', function () {
       controller.set('isWizard', true);
       var result = controller.renderWebConfigs();
 
-      expect(result.length).to.equal(10);
+      expect(result.length).to.equal(11);
 
       controller.set('isWizard', false);
       result = controller.renderWebConfigs();
 
-      expect(result.length).to.equal(3);
-      expect(result.someProperty('value', 60)).to.be.true;
-      expect(result.someProperty('value', '10-20')).to.be.true;
-      expect(result.someProperty('value', '{\"http\":\"{{mapred-site/mapreduce.jobhistory.webapp.address}}\",\"https\":\"{{mapred-site/mapreduce.jobhistory.webapp.https.address}}\"}')).to.be.true;
+      expect(result.length).to.equal(5);
     });
 
   });
@@ -278,15 +266,12 @@ describe('App.MainAlertDefinitionConfigsController', function () {
       controller.set('isWizard', true);
       var result = controller.renderScriptConfigs();
 
-      expect(result.length).to.equal(10);
+      expect(result.length).to.equal(11);
 
       controller.set('isWizard', false);
       result = controller.renderScriptConfigs();
 
-      expect(result.length).to.equal(3);
-      expect(result.someProperty('value', 60)).to.be.true;
-      expect(result.someProperty('value', '10-20')).to.be.true;
-      expect(result.someProperty('value', 'path to script')).to.be.true;
+      expect(result.length).to.equal(5);
     });
 
   });
@@ -297,14 +282,26 @@ describe('App.MainAlertDefinitionConfigsController', function () {
 
       controller.set('content', Em.Object.create({
         name: 'alertDefinitionName',
-        description: 'alertDefinitionDescription'
+        description: 'alertDefinitionDescription',
+        reporting: [
+          Em.Object.create({
+            type: 'warning',
+            value: 10
+          }),
+          Em.Object.create({
+            type: 'critical',
+            value: 20
+          }),
+          Em.Object.create({
+            type: 'ok',
+            value: 30
+          })
+        ]
       }));
 
       var result = controller.renderAggregateConfigs();
 
-      expect(result.length).to.equal(2);
-      expect(result.someProperty('value', 'alertDefinitionName')).to.be.true;
-      expect(result.someProperty('value', 'alertDefinitionDescription')).to.be.true;
+      expect(result.length).to.equal(4);
     });
 
   });
@@ -515,7 +512,7 @@ describe('App.MainAlertDefinitionConfigsController', function () {
 
       var result = controller.renderCommonWizardConfigs();
 
-      expect(result.length).to.equal(7);
+      expect(result.length).to.equal(6);
 
     });
 
@@ -542,6 +539,5 @@ describe('App.MainAlertDefinitionConfigsController', function () {
     });
 
   });
-
 
 });

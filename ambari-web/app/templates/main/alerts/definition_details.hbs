@@ -23,6 +23,7 @@
 
     {{! Left column }}
     <div class="span9">
+      {{! Alert Definition Name }}
       <div class="definition-name row-fluid">
         {{#if controller.editing.label.isEditing}}
           <div {{bindAttr class="controller.editing.label.isError:error :span5 :name-text-field :control-group"}}>
@@ -45,33 +46,11 @@
           {{/isAccessible}}
         {{/unless}}
       </div>
+      {{! Alert Definition Name end }}
+
       <div><a href="javascript:void(null)" data-toggle="modal" {{action back}}><i class="icon-arrow-left"></i>&nbsp;{{t common.back}}</a></div>
-      <div class="definition-details-block">
-        <strong>{{t common.description}}</strong>
-        {{#unless controller.editing.description.isEditing}}
-          {{#isAccessible ADMIN}}
-            <a {{action edit controller.editing.description target="controller"}} class="pull-right edit-link">
-              <strong>{{t common.edit}}</strong>
-            </a>
-          {{/isAccessible}}
-        {{/unless}}
-        <hr>
-        {{#if controller.editing.description.isEditing}}
-          <div {{bindAttr class="controller.editing.description.isError:error :control-group :text-area-edit"}}>
-            {{view Em.TextArea valueBinding="controller.editing.description.value"}}
-          </div>
-          <div class="edit-buttons">
-            <button {{action cancelEdit controller.editing.description target="controller"}} class="btn">{{t common.cancel}}</button>
-            <button {{bindAttr disabled="controller.editing.description.isError"}} {{action saveEdit controller.editing.description target="controller"}}
-                class="btn btn-primary">{{t common.save}}
-            </button>
-          </div>
-        {{else}}
-          <div class="multiline-text">
-            {{controller.content.description}}
-          </div>
-        {{/if}}
-      </div>
+
+      {{! Alert Definition Configs }}
       <div class="definition-details-block">
         <strong>{{t common.configuration}}</strong>
           {{#isAccessible ADMIN}}
@@ -92,6 +71,8 @@
           </div>
         {{/if}}
       </div>
+      {{! Alert Definition Configs end }}
+
     </div>
     {{! Left column end }}
 

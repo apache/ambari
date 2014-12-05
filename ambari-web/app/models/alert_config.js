@@ -213,42 +213,97 @@ App.AlertConfigProperties = {
     classNames: 'alert-interval-input',
     apiProperty: 'interval'
   }),
-  Thresholds: App.AlertConfigProperty.extend({
-    name: 'thresholds',
-    label: 'Thresholds',
-    displayType: 'threshold',
-    classNames: 'alert-thresholds-input',
-    from: '',
-    to: '',
+
+  /**
+   * Implements threshold
+   * Main difference from other alertConfigProperties:
+   * it has two editable parts - <code>value</code> and <code>text</code>
+   * User may configure it to edit only one of them (use flags <code>showInputForValue</code> and <code>showInputForText</code>)
+   * This flags also determines update value and text in the API-request or not (see <code>App.AlertConfigProperties.Thresholds</code> for more examples)
+   *
+   * @type {App.AlertConfigProperty.Threshold}
+   */
+  Threshold: App.AlertConfigProperty.extend({
+
+    name: 'threshold',
+
+    /**
+     * Property text cache to realise undo function
+     * @type {*}
+     */
+    previousText: null,
+
+    label: '',
+
+    /**
+     * OK|WARNING|CRITICAL
+     * @type {string}
+     */
+    badge: '',
+
+    /**
+     * threshold-value
+     * @type {string}
+     */
     value: '',
 
-    setFromTo: function () {
-      this.set('doNotChangeValue', true);
-      this.set('from', this.get('value').split('-')[0]);
-      this.set('to', this.get('value').split('-')[1]);
-      this.set('doNotChangeValue', false);
-    }.observes('value'),
+    /**
+     * threshold-text
+     * @type {string}
+     */
+    text: '',
 
-    setValue: function () {
-      if (!this.get('doNotChangeValue')) {
-        this.set('value', this.get('from') + '-' + this.get('to'));
-      }
-    }.observes('from', 'to'),
+    displayType: 'threshold',
 
-    // flag for providing correct from, to and value recomputing
-    doNotChangeValue: false,
+    classNames: 'alert-thresholds-input',
 
-    apiProperty: [
-      'source.reporting.warning.value',
-      'source.reporting.critical.value'
-    ],
+    apiProperty: [],
+
+    /**
+     * @type {string[]}
+     */
     apiFormattedValue: function () {
-      return [
-          +this.get('from'),
-          +this.get('to')
-      ]
-    }.property('from', 'to')
+      var ret = [];
+      if (this.get('showInputForValue')) {
+        ret.push(this.get('value'));
+      }
+      if (this.get('showInputForText')) {
+        ret.push(this.get('text'));
+      }
+      return ret;
+    }.property('value', 'text', 'showInputForValue', 'showInputForText'),
+
+    /**
+     * Determines if <code>value</code> should be visible and editable (if not - won't update API-value)
+     * @type {bool}
+     */
+    showInputForValue: true,
+
+    /**
+     * Determines if <code>text</code> should be visible and editable (if not - won't update API-text)
+     * @type {bool}
+     */
+    showInputForText: true,
+
+    /**
+     * Custom css-class for different badges
+     * type {string}
+     */
+    badgeCssClass: function () {
+      return 'alert-state-' + this.get('badge');
+    }.property('badge'),
+
+    /**
+     * Determines if <code>value</code> or <code>text</code> were changed
+     * @type {bool}
+     */
+    wasChanged: function () {
+      return (this.get('previousValue') !== null && this.get('value') !== this.get('previousValue')) ||
+        (this.get('previousText') !== null && this.get('text') !== this.get('previousText'));
+    }.property('value', 'text', 'previousValue', 'previousText')
+
   }),
+
   URI: App.AlertConfigProperty.extend({
     name: 'uri',
     label: 'URI',
@@ -306,6 +361,55 @@ App.AlertConfigProperties = {
     apiProperty: function () {
       return this.get('isJMXMetric') ? 'source.jmx.value' : 'source.ganglia.value'
     }.property('isJMXMetric')
+  })
+
+};
+
+App.AlertConfigProperties.Thresholds = {
+
+  OkThreshold: App.AlertConfigProperties.Threshold.extend({
+    badge: 'OK',
+    name: 'ok_threshold',
+    apiProperty: function () {
+      var ret = [];
+      if (this.get('showInputForValue')) {
+        ret.push('source.reporting.ok.value');
+      }
+      if (this.get('showInputForText')) {
+        ret.push('source.reporting.ok.text');
+      }
+      return ret;
+    }.property('showInputForValue', 'showInputForText')
+  }),
+
+  WarningThreshold: App.AlertConfigProperties.Threshold.extend({
+    badge: 'WARNING',
+    name: 'warning_threshold',
+    apiProperty: function () {
+      var ret = [];
+      if (this.get('showInputForValue')) {
+        ret.push('source.reporting.warning.value');
+      }
+      if (this.get('showInputForText')) {
+        ret.push('source.reporting.warning.text');
+      }
+      return ret;
+    }.property('showInputForValue', 'showInputForText')
+  }),
+
+  CriticalThreshold: App.AlertConfigProperties.Threshold.extend({
+    badge: 'CRITICAL',
+    name: 'critical_threshold',
+    apiProperty: function () {
+      var ret = [];
+      if (this.get('showInputForValue')) {
+        ret.push('source.reporting.critical.value');
+      }
+      if (this.get('showInputForText')) {
+        ret.push('source.reporting.critical.text');
+      }
+      return ret;
+    }.property('showInputForValue', 'showInputForText')
   })
 
 };

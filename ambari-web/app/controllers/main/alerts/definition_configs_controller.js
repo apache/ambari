@@ -70,32 +70,6 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
   }.property(),
 
   /**
-   * Compute thresholds from value using <code>content.reporting</code>
-   * @type {Number|Null}
-   */
-  thresholdsFrom: function () {
-    var warning = this.get('content.reporting').findProperty('type', 'warning');
-    if (warning && warning.get('value')) {
-      return warning.get('value');
-    } else {
-      return null;
-    }
-  }.property('content.reporting.@each.value'),
-
-  /**
-   * Compute thresholds to value using <code>content.reporting</code>
-   * @type {Number|Null}
-   */
-  thresholdsTo: function () {
-    var critical = this.get('content.reporting').findProperty('type', 'critical');
-    if (critical && critical.get('value')) {
-      return critical.get('value');
-    } else {
-      return null;
-    }
-  }.property('content.reporting.@each.value'),
-
-  /**
    * Change options of "Component", after changing value of "Service" config
    * @method onServiceSelect
    */
@@ -120,6 +94,19 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
       this.get('configs').findProperty('name', 'service').set('isDisabled', true).set('options', ['Ambari']).set('value', 'Ambari');
       this.get('configs').findProperty('name', 'component').set('isDisabled', true).set('options', ['Ambari Agent']).set('value', 'Ambari Agent');
       this.get('configs').findProperty('name', 'scope').set('isDisabled', true).set('options', ['Host']).set('value', 'Host');
+    }
+  },
+
+  /**
+   * @return {string|Null}
+   * @method getThresholdsProperty
+   */
+  getThresholdsProperty: function (type, property) {
+    var warning = this.get('content.reporting').findProperty('type', type);
+    if (warning && warning.get(property)) {
+      return warning.get(property);
+    } else {
+      return null;
     }
   },
 
@@ -158,7 +145,7 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
   /**
    * Render config properties for port-type alert definition
    * @method renderPortConfigs
-   * @returns {Array}
+   * @returns {App.AlertConfigProperty[]}
    */
   renderPortConfigs: function () {
     var result = [];
@@ -170,19 +157,20 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
     }
 
     result = result.concat([
+      App.AlertConfigProperties.Description.create({
+        value: isWizard ? '' : alertDefinition.get('description')
+      }),
       App.AlertConfigProperties.Interval.create({
         value: isWizard ? '' : alertDefinition.get('interval')
       }),
-      App.AlertConfigProperties.Thresholds.create({
-        value: isWizard ? '' : this.get('thresholdsFrom') + '-' + this.get('thresholdsTo'),
-        from: isWizard ? '' : this.get('thresholdsFrom'),
-        to: isWizard ? '' : this.get('thresholdsTo')
+      App.AlertConfigProperties.Thresholds.OkThreshold.create({
+        label: 'Thresholds',
+        text: isWizard ? '' : this.getThresholdsProperty('ok', 'text'),
+        value: isWizard ? '' : this.getThresholdsProperty('ok', 'value')
       }),
-      App.AlertConfigProperties.URI.create({
-        value: isWizard ? '' : alertDefinition.get('uri')
-      }),
-      App.AlertConfigProperties.DefaultPort.create({
-        value: isWizard ? '' : alertDefinition.get('defaultPort')
+      App.AlertConfigProperties.Thresholds.CriticalThreshold.create({
+        text: isWizard ? '' : this.getThresholdsProperty('critical', 'text'),
+        value: isWizard ? '' : this.getThresholdsProperty('critical', 'value')
       })
     ]);
 
@@ -192,7 +180,7 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
   /**
    * Render config properties for metric-type alert definition
    * @method renderMetricConfigs
-   * @returns {Array}
+   * @returns {App.AlertConfigProperty[]}
    */
   renderMetricConfigs: function () {
     var result = [];
@@ -204,29 +192,25 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
     }
 
     result = result.concat([
+      App.AlertConfigProperties.Description.create({
+        value: isWizard ? '' : alertDefinition.get('description')
+      }),
       App.AlertConfigProperties.Interval.create({
         value: isWizard ? '' : alertDefinition.get('interval')
       }),
-      App.AlertConfigProperties.Thresholds.create({
-        value: isWizard ? '' : this.get('thresholdsFrom') + '-' + this.get('thresholdsTo'),
-        from: isWizard ? '' : this.get('thresholdsFrom'),
-        to: isWizard ? '' : this.get('thresholdsTo')
+      App.AlertConfigProperties.Thresholds.OkThreshold.create({
+        label: 'Thresholds',
+        showInputForValue: false,
+        text: isWizard ? '' : this.getThresholdsProperty('ok', 'text'),
+        value: isWizard ? '' : this.getThresholdsProperty('ok', 'value')
       }),
-      App.AlertConfigProperties.URIExtended.create({
-        value: isWizard ? '' : JSON.stringify({
-          http: alertDefinition.get('uri.http'),
-          https: alertDefinition.get('uri.https'),
-          https_property: alertDefinition.get('uri.httpsProperty'),
-          https_property_value: alertDefinition.get('uri.httpsPropertyValue')
-        })
+      App.AlertConfigProperties.Thresholds.WarningThreshold.create({
+        text: isWizard ? '' : this.getThresholdsProperty('warning', 'text'),
+        value: isWizard ? '' : this.getThresholdsProperty('warning', 'value')
       }),
-      App.AlertConfigProperties.Metrics.create({
-        value: isWizard ? '' : alertDefinition.get('jmx.propertyList') ? alertDefinition.get('jmx.propertyList').join(',\n') : alertDefinition.get('ganglia.propertyList').join(',\n'),
-        isJMXMetric: isWizard ? false : !!alertDefinition.get('jmx.propertyList')
-      }),
-      App.AlertConfigProperties.FormatString.create({
-        value: isWizard ? '' : alertDefinition.get('jmx.value') ? alertDefinition.get('jmx.value') : alertDefinition.get('ganglia.value'),
-        isJMXMetric: isWizard ? false : !!alertDefinition.get('jmx.value')
+      App.AlertConfigProperties.Thresholds.CriticalThreshold.create({
+        text: isWizard ? '' : this.getThresholdsProperty('critical', 'text'),
+        value: isWizard ? '' : this.getThresholdsProperty('critical', 'value')
       })
     ]);
 
@@ -236,7 +220,7 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
   /**
    * Render config properties for web-type alert definition
    * @method renderWebConfigs
-   * @returns {Array}
+   * @returns {App.AlertConfigProperty[]}
    */
   renderWebConfigs: function () {
     var result = [];
@@ -248,21 +232,27 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
     }
 
     result = result.concat([
+      App.AlertConfigProperties.Description.create({
+        value: isWizard ? '' : alertDefinition.get('description')
+      }),
       App.AlertConfigProperties.Interval.create({
         value: isWizard ? '' : alertDefinition.get('interval')
       }),
-      App.AlertConfigProperties.Thresholds.create({
-        value: isWizard ? '' : this.get('thresholdsFrom') + '-' + this.get('thresholdsTo'),
-        from: isWizard ? '' : this.get('thresholdsFrom'),
-        to: isWizard ? '' : this.get('thresholdsTo')
+      App.AlertConfigProperties.Thresholds.OkThreshold.create({
+        label: 'Thresholds',
+        showInputForValue: false,
+        text: isWizard ? '' : this.getThresholdsProperty('ok', 'text'),
+        value: isWizard ? '' : this.getThresholdsProperty('ok', 'value')
       }),
-      App.AlertConfigProperties.URIExtended.create({
-        value: isWizard ? '' : JSON.stringify({
-          http: alertDefinition.get('uri.http'),
-          https: alertDefinition.get('uri.https'),
-          https_property: alertDefinition.get('uri.httpsProperty'),
-          https_property_value: alertDefinition.get('uri.httpsPropertyValue')
-        })
+      App.AlertConfigProperties.Thresholds.WarningThreshold.create({
+        showInputForValue: false,
+        text: isWizard ? '' : this.getThresholdsProperty('warning', 'text'),
+        value: isWizard ? '' : this.getThresholdsProperty('warning', 'value')
+      }),
+      App.AlertConfigProperties.Thresholds.CriticalThreshold.create({
+        showInputForValue: false,
+        text: isWizard ? '' : this.getThresholdsProperty('critical', 'text'),
+        value: isWizard ? '' : this.getThresholdsProperty('critical', 'value')
       })
     ]);
 
@@ -272,7 +262,7 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
   /**
    * Render config properties for script-type alert definition
    * @method renderScriptConfigs
-   * @returns {Array}
+   * @returns {App.AlertConfigProperty[]}
    */
   renderScriptConfigs: function () {
     var result = [];
@@ -284,16 +274,24 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
     }
 
     result = result.concat([
+      App.AlertConfigProperties.Description.create({
+        value: isWizard ? '' : alertDefinition.get('description')
+      }),
       App.AlertConfigProperties.Interval.create({
         value: isWizard ? '' : alertDefinition.get('interval')
       }),
-      App.AlertConfigProperties.Thresholds.create({
-        value: isWizard ? '' : this.get('thresholdsFrom') + '-' + this.get('thresholdsTo'),
-        from: isWizard ? '' : this.get('thresholdsFrom'),
-        to: isWizard ? '' : this.get('thresholdsTo')
+      App.AlertConfigProperties.Thresholds.OkThreshold.create({
+        label: 'Thresholds',
+        text: isWizard ? '' : this.getThresholdsProperty('ok', 'text'),
+        value: isWizard ? '' : this.getThresholdsProperty('ok', 'value')
       }),
-      App.AlertConfigProperties.Path.create({
-        value: isWizard ? '' : alertDefinition.get('location')
+      App.AlertConfigProperties.Thresholds.WarningThreshold.create({
+        text: isWizard ? '' : this.getThresholdsProperty('warning', 'text'),
+        value: isWizard ? '' : this.getThresholdsProperty('warning', 'value')
+      }),
+      App.AlertConfigProperties.Thresholds.CriticalThreshold.create({
+        text: isWizard ? '' : this.getThresholdsProperty('critical', 'text'),
+        value: isWizard ? '' : this.getThresholdsProperty('critical', 'value')
       })
     ]);
 
@@ -303,25 +301,35 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
   /**
    * Render config properties for aggregate-type alert definition
    * @method renderAggregateConfigs
-   * @returns {Array}
+   * @returns {App.AlertConfigProperty[]}
    */
   renderAggregateConfigs: function () {
     var isWizard = this.get('isWizard');
     var alertDefinition = this.get('content');
     return [
-      App.AlertConfigProperties.AlertNameSelected.create({
-        value: isWizard ? this.get('aggregateAlertNames')[0] : alertDefinition.get('name'),
-        options: this.get('aggregateAlertNames')
-      }),
       App.AlertConfigProperties.Description.create({
         value: isWizard ? '' : alertDefinition.get('description')
+      }),
+      App.AlertConfigProperties.Thresholds.OkThreshold.create({
+        label: 'Thresholds',
+        showInputForValue: false,
+        text: isWizard ? '' : this.getThresholdsProperty('ok', 'text'),
+        value: isWizard ? '' : this.getThresholdsProperty('ok', 'value')
+      }),
+      App.AlertConfigProperties.Thresholds.WarningThreshold.create({
+        text: isWizard ? '' : this.getThresholdsProperty('warning', 'text'),
+        value: isWizard ? '' : this.getThresholdsProperty('warning', 'value')
+      }),
+      App.AlertConfigProperties.Thresholds.CriticalThreshold.create({
+        text: isWizard ? '' : this.getThresholdsProperty('critical', 'text'),
+        value: isWizard ? '' : this.getThresholdsProperty('critical', 'value')
       })
     ];
   },
 
   /**
    * Render common list of configs used in almost all alert types in wizard
-   * @returns {Array}
+   * @returns {App.AlertConfigProperty[]}
    */
   renderCommonWizardConfigs: function () {
     return [
@@ -347,9 +355,6 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
       }),
       App.AlertConfigProperties.HostAlertType.create({
         value: false
-      }),
-      App.AlertConfigProperties.Description.create({
-        value: ''
       })
     ];
   },
@@ -361,6 +366,7 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
   editConfigs: function () {
     this.get('configs').forEach(function (property) {
       property.set('previousValue', property.get('value'));
+      property.set('previousText', property.get('text'));
     });
     this.get('configs').setEach('isDisabled', false);
     this.set('canEdit', true);
@@ -373,6 +379,7 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
   cancelEditConfigs: function () {
     this.get('configs').forEach(function (property) {
       property.set('value', property.get('previousValue'));
+      property.set('text', property.get('previousText'));
     });
     this.get('configs').setEach('isDisabled', true);
     this.set('canEdit', false);
@@ -393,8 +400,17 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
       data: {
         id: this.get('content.id'),
         data: this.getPropertiesToUpdate(true)
-      }
+      },
+      success: 'saveConfigsSuccessCallback'
     });
+  },
+
+  /**
+   * Success-callback for saveConfigs-request
+   * @method saveConfigsSuccessCallback
+   */
+  saveConfigsSuccessCallback: function () {
+    App.router.get('updateController').updateAlertDefinitions(Em.K);
   },
 
   /**

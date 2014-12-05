@@ -17,13 +17,17 @@
 }}
 
 <div class="control-group">
- <span class="alert-state-single-host label alert-state-WARNING">WARNING</span>&nbsp;
- {{view Em.TextField valueBinding="view.property.from" disabledBinding="view.property.isDisabled" class="span2"}}
-</div>
-
-<div>
- <span class="alert-state-single-host label alert-state-CRITICAL">CRITICAL</span>&nbsp;
- {{view Em.TextField valueBinding="view.property.to" disabledBinding="view.property.isDisabled" class="span2"}}
+  <div class="span3"><span {{bindAttr class="view.property.badgeCssClass :alert-state-single-host :label"}}>{{view.property.badge}}</span>&nbsp;</div>
+  <div class="span2">
+    {{#if view.property.showInputForValue}}
+      {{view Em.TextField valueBinding="view.property.value" disabledBinding="view.property.isDisabled" class="span11"}}
+    {{/if}}
+  </div>
+  <div class="span7">
+    {{#if view.property.showInputForText}}
+      {{view Em.TextField valueBinding="view.property.text" disabledBinding="view.property.isDisabled"}}
+    {{/if}}
+  </div>
 </div>
 
 

@@ -123,6 +123,7 @@
       "AlertDefinition" : {
         "cluster_name" : "tdk",
         "component_name" : null,
+        "description" : null,
         "enabled" : true,
         "id" : 4,
         "ignore_host" : false,
