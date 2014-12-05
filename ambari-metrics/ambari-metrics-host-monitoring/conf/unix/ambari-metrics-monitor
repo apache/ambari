@@ -67,6 +67,7 @@ function write_pidfile
     fi
 }
 
+#TODO decide if rebuild on each start (pretty quickly) to tolerate major node changes (like kernel update)
 #build psutil
 if [ ! "$(ls -A ${RESOURCE_MONITORING_DIR}/psutil/build)" ]; then
   echo "Building psutil..."

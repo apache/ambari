@@ -361,6 +361,12 @@
       </modules>
     </profile>
     <profile>
+      <id>ambari-metrics</id>
+      <modules>
+        <module>ambari-metrics</module>
+      </modules>
+    </profile>
+    <profile>
       <id>windows</id>
       <activation>
         <os>

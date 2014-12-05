@@ -120,6 +120,7 @@
           <autoRequires>false</autoRequires>
           <requires>
             <require>ambari-metrics-hadoop-sink</require>
+            <require>ambari-metrics-flume-sink</require>
             <require>${python.ver}</require>
             <require>gcc</require>
             <require>python-devel</require>
@@ -172,6 +173,10 @@
                   <location>
                     ${project.basedir}/src/main/python/psutil
                   </location>
+                  <excludes>
+                    <exclude>build/**</exclude>
+                    <exclude>build/*</exclude>
+                  </excludes>
                 </source>
               </sources>
             </mapping>
@@ -208,7 +213,7 @@
         <executions>
           <execution>
             <id>psutils-compile</id>
-            <phase>process-classes</phase>
+            <phase>process-test-classes</phase>
             <goals>
               <goal>run</goal>
             </goals>

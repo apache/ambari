@@ -32,15 +32,31 @@ limitations under the License.
     <plugins>
       <plugin>
         <artifactId>maven-assembly-plugin</artifactId>
-        <configuration>
-          <descriptors>
-            <descriptor>src/main/assemblies/sink.xml</descriptor>
-          </descriptors>
-          <tarLongFileMode>gnu</tarLongFileMode>
-        </configuration>
         <executions>
           <execution>
+            <configuration>
+              <descriptors>
+                <descriptor>src/main/assemblies/sink.xml</descriptor>
+              </descriptors>
+              <tarLongFileMode>gnu</tarLongFileMode>
+            </configuration>
             <id>build-tarball</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+          </execution>
+
+          <execution>
+            <configuration>
+              <descriptors>
+                <descriptor>src/main/assemblies/sink-jar.xml</descriptor>
+              </descriptors>
+              <tarLongFileMode>gnu</tarLongFileMode>
+              <appendAssemblyId>false</appendAssemblyId>
+              <finalName>${project.artifactId}-with-common-${project.version}</finalName>
+            </configuration>
+            <id>build-jar</id>
             <phase>package</phase>
             <goals>
               <goal>single</goal>
@@ -115,11 +131,11 @@ limitations under the License.
               <groupname>root</groupname>
               <sources>
                 <source>
-                  <location>target/${project.artifactId}-${project.version}.jar</location>
+                  <location>target/${project.artifactId}-with-common-${project.version}.jar</location>
                 </source>
                 <softlinkSource>
                   <destination>ambari-metrics-hadoop-sink.jar</destination>
-                  <location>/usr/lib/ambari-metrics-hadoop-sink/${project.artifactId}-${project.version}.jar</location>
+                  <location>/usr/lib/ambari-metrics-hadoop-sink/${project.artifactId}-with-common-${project.version}.jar</location>
                 </softlinkSource>
               </sources>
 
@@ -135,7 +151,7 @@ limitations under the License.
     <dependency>
       <groupId>org.apache.ambari</groupId>
       <artifactId>ambari-metrics-common</artifactId>
-        <version>0.1.0-SNAPSHOT</version>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.hadoop</groupId>
@@ -179,9 +195,16 @@ limitations under the License.
       <scope>compile</scope>
     </dependency>
     <dependency>
-      <groupId>org.codehaus.jackson</groupId>
-      <artifactId>jackson-core-asl</artifactId>
-      <version>1.8.0</version>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>test</scope>
+      <version>4.10</version>
+    </dependency>
+    <dependency>
+      <groupId>org.easymock</groupId>
+      <artifactId>easymock</artifactId>
+      <version>3.2</version>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 

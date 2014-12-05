@@ -85,19 +85,19 @@ hbase.sink.ganglia.servers={{ganglia_server_host}}:8656
 # If this variable is left out, then the default is no expiration.
 hbase.extendedperiod = 3600
 
-hbase.class=org.apache.hadoop.metrics2.sink.timeline.TimelineMetricsSink
+hbase.class=org.apache.hadoop.metrics2.sink.timeline.HadoopTimelineMetricsSink
 hbase.period=10
 hbase.collector={{metric_collector_host}}:8188
 
-jvm.class=org.apache.hadoop.metrics2.sink.timeline.TimelineMetricsSink
+jvm.class=org.apache.hadoop.metrics2.sink.timeline.HadoopTimelineMetricsSink
 jvm.period=10
 jvm.collector={{metric_collector_host}}:8188
 
-rpc.class=org.apache.hadoop.metrics2.sink.timeline.TimelineMetricsSink
+rpc.class=org.apache.hadoop.metrics2.sink.timeline.HadoopTimelineMetricsSink
 rpc.period=10
 rpc.collector={{metric_collector_host}}:8188
 
-hbase.sink.timeline.class=org.apache.hadoop.metrics2.sink.timeline.TimelineMetricsSink
+hbase.sink.timeline.class=org.apache.hadoop.metrics2.sink.timeline.HadoopTimelineMetricsSink
 hbase.sink.timeline.period=10
 hbase.sink.timeline.collector={{metric_collector_host}}:8188
 
