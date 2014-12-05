@@ -177,8 +177,8 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create({
 
   /**
    * check whether component installed on specified hosts
-   * @param componentName
-   * @param hostNames
+   * @param {string} componentName
+   * @param {string[]} hostNames
    * @return {$.ajax}
    */
   checkInstalledComponents: function (componentName, hostNames) {
@@ -188,49 +188,73 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create({
       data: {
         componentName: componentName,
         hostNames: hostNames.join(',')
-      },
-      success: 'checkInstalledComponentsSuccessCallback'
+      }
     });
   },
 
-  checkInstalledComponentsSuccessCallback: function (data, opt, params) {
-    installedComponents = data.items;
-  },
-
+  
+  /**
+   * Create component on single or multiple hosts.
+   *
+   * @method createComponent
+   * @param {string} componentName - name of the component
+   * @param {(string|string[])} hostName - host/hosts where components should be installed
+   * @param {string} serviceName - name of the services
+   */
   createComponent: function (componentName, hostName, serviceName) {
     var hostNames = (Array.isArray(hostName)) ? hostName : [hostName];
     var self = this;
 
-    this.checkInstalledComponents(componentName, hostNames).complete(function () {
-      var result = [];
-
-      hostNames.forEach(function (hostName) {
-        result.push({
+    this.checkInstalledComponents(componentName, hostNames).then(function (data) {
+      var hostsWithComponents = data.items.mapProperty('HostRoles.host_name');
+      var result = hostNames.map(function(item) {
+        return {
           componentName: componentName,
-          hostName: hostName,
-          hasComponent: installedComponents.someProperty('HostRoles.host_name', hostName)
-        });
+          hostName: item,
+          hasComponent: hostsWithComponents.contains(item)
+        };
       });
-
-      result.forEach(function (host, index, array) {
-        if (!host.hasComponent) {
-          App.ajax.send({
-            name: 'admin.high_availability.create_component',
-            sender: this,
-            data: {
-              hostName: host.hostName,
-              componentName: host.componentName,
-              serviceName: serviceName,
-              taskNum: array.length
-            },
-            success: 'onCreateComponent',
-            error: 'onCreateComponentError'
-          });
-        } else {
-          // Simulates format returned from ajax.send
-          this.onCreateComponent(null, null, {hostName: host.hostName, componentName: host.componentName, taskNum: array.length});
+      var hostsWithoutComponents = result.filterProperty('hasComponent', false).mapProperty('hostName');
+      var taskNum = 1;
+      var requestData = {
+        "RequestInfo": {
+          "query": hostsWithoutComponents.map(function(item) {
+            return 'Hosts/host_name=' + item;
+          }).join('|')
+        },
+        "Body": {
+          "host_components": [
+            {
+              "HostRoles": {
+                "component_name": componentName
+              }
+            }
+          ]
         }
-      }, self)
+      };
+      if (!!hostsWithoutComponents.length) {
+        App.ajax.send({
+          name: 'wizard.step8.register_host_to_component',
+          sender: self,
+          data: {
+            data: JSON.stringify(requestData),
+            hostName: result.mapProperty('hostName'),
+            componentName: componentName,
+            serviceName: serviceName,
+            taskNum: taskNum,
+            cluster: App.get('clusterName')
+          },
+          success: 'onCreateComponent',
+          error: 'onCreateComponent'
+        });        
+      } else {
+        self.onCreateComponent(null, null, {
+          hostName: result.mapProperty('hostName'),
+          componentName: componentName,
+          serviceName: serviceName,
+          taskNum: taskNum
+        }, self);
+      }
     });
   },
 
@@ -250,29 +274,38 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create({
     }
   },
 
+  /**
+   * Update component status on selected hosts.
+   * 
+   * @param {string} componentName
+   * @param {(string|string[])} hostName
+   * @param {string} serviceName
+   * @param {string} context
+   * @param {number} taskNum
+   * @returns {$.ajax}
+   */
   updateComponent: function (componentName, hostName, serviceName, context, taskNum) {
     if (!(hostName instanceof Array)) {
       hostName = [hostName];
     }
     var state = context.toLowerCase() == "start" ? "STARTED" : "INSTALLED";
-    for (var i = 0; i < hostName.length; i++) {
-      App.ajax.send({
-        name: 'common.host.host_component.update',
-        sender: this,
-        data: {
-          context: context + " " + App.format.role(componentName),
-          hostName: hostName[i],
-          serviceName: serviceName,
-          componentName: componentName,
-          taskNum: taskNum || hostName.length,
-          HostRoles: {
-            state: state
-          }
+    return App.ajax.send({
+      name: 'common.host_components.update',
+      sender: this,
+      data: {
+        HostRoles: {
+          state: state
         },
-        success: 'startPolling',
-        error: 'onTaskError'
-      });
-    }
+        query: 'HostRoles/component_name=' + componentName + '&HostRoles/host_name.in(' + hostName.join(',') + ')&HostRoles/maintenance_state=OFF',
+        context: context + " " + App.format.role(componentName),
+        hostName: hostName,
+        taskNum: taskNum || 1,
+        componentName: componentName,
+        serviceName: serviceName
+      },
+      success: 'startPolling',
+      error: 'onTaskError'
+    });
   },
 
   startPolling: function (data) {
@@ -332,7 +365,7 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create({
         var progress = Math.ceil(((queuedActions * 0.09) + (inProgressActions * 0.35) + completedActions ) / actionsPerHost * 100);
         this.get('tasks').findProperty('id', currentTaskId).set('progress', progress);
         window.setTimeout(function () {
-          self.doPolling()
+          self.doPolling();
         }, self.POLL_INTERVAL);
       }
     }
