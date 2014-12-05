@@ -24,7 +24,7 @@ describe('App.ManageAlertNotificationsController', function () {
 
   beforeEach(function () {
     controller = App.ManageAlertNotificationsController.create({});
-    sinon.spy(App.ajax, 'send');
+    sinon.stub(App.ajax, 'send');
   });
 
   afterEach(function () {
@@ -103,7 +103,7 @@ describe('App.ManageAlertNotificationsController', function () {
   describe('#addAlertNotification()', function () {
 
     beforeEach(function () {
-      sinon.spy(controller, 'showCreateEditPopup');
+      sinon.stub(controller, 'showCreateEditPopup');
     });
 
     afterEach(function () {
@@ -127,7 +127,7 @@ describe('App.ManageAlertNotificationsController', function () {
         },
         severityFilter: {
           value: [],
-          defaultValue: [true, true, true, true]
+          defaultValue: ['OK', 'WARNING', 'CRITICAL', 'UNKNOWN']
         },
         global: {
           value: false
@@ -173,6 +173,7 @@ describe('App.ManageAlertNotificationsController', function () {
         name: 'test_name',
         global: true,
         description: 'test_description',
+        groups: ['test1', 'test2'],
         type: 'EMAIL',
         alertStates: ['OK', 'UNKNOWN'],
         properties: {
@@ -189,7 +190,7 @@ describe('App.ManageAlertNotificationsController', function () {
           value: ''
         },
         groups: {
-          value: ''
+          value: []
         },
         global: {
           value: false
@@ -219,7 +220,7 @@ describe('App.ManageAlertNotificationsController', function () {
           value: 'test_name'
         },
         groups: {
-          value: ''
+          value: ['test1', 'test2']
         },
         global: {
           value: true,
@@ -232,7 +233,7 @@ describe('App.ManageAlertNotificationsController', function () {
           value: 'test1@test.test, test2@test.test'
         },
         severityFilter: {
-          value: [true, false, false, true]
+          value: ['OK', 'UNKNOWN']
         },
         description: {
           value: 'test_description'
@@ -272,6 +273,22 @@ describe('App.ManageAlertNotificationsController', function () {
 
   describe("#formatNotificationAPIObject()", function () {
 
+    beforeEach(function(){
+      sinon.stub(App.Cluster, 'find', function () {
+        return {
+          objectAt: function () {
+            return Em.Object.create({
+              id: 1
+            })
+          }
+        }
+      });
+    });
+
+    afterEach(function() {
+      App.Cluster.find.restore();
+    });
+
     it("should create object with properties from inputFields values", function () {
 
       controller.set('inputFields', Em.Object.create({
@@ -279,7 +296,7 @@ describe('App.ManageAlertNotificationsController', function () {
           value: 'test_name'
         },
         groups: {
-          value: ''
+          value: []
         },
         global: {
           value: false
@@ -291,7 +308,7 @@ describe('App.ManageAlertNotificationsController', function () {
           value: 'test1@test.test, test2@test.test,test3@test.test , test4@test.test'
         },
         severityFilter: {
-          value: [true, false, true, false]
+          value: ['OK', 'CRITICAL']
         },
         description: {
           value: 'test_description'
@@ -307,8 +324,9 @@ describe('App.ManageAlertNotificationsController', function () {
       expect(result).to.eql({
         AlertTarget: {
           name: 'test_name',
-          global: false,
           description: 'test_description',
+          global: false,
+          groups: [],
           notification_type: 'EMAIL',
           alert_states: ['OK', 'CRITICAL'],
           properties: {

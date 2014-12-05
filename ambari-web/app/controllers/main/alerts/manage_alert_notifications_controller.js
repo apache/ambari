@@ -48,8 +48,8 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
     },
     groups: {
       label: Em.I18n.t('common.groups'),
-      value: '',
-      defaultValue: ''
+      value: [],
+      defaultValue: []
     },
     global: {
       label: Em.I18n.t('alerts.actions.manage_alert_notifications_popup.global'),
@@ -69,8 +69,8 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
     },
     severityFilter: {
       label: Em.I18n.t('alerts.actions.manage_alert_notifications_popup.severityFilter'),
-      value: [true, true, true, true],
-      defaultValue: [true, true, true, true]
+      value: [],
+      defaultValue: []
     },
     description: {
       label: Em.I18n.t('common.description'),
@@ -88,11 +88,26 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
   methods: ['EMAIL', 'SNMP'],
 
   /**
+   * List of available value for Severity Filter
+   * used in Severity Filter combobox
+   * @type {Array}
+   */
+  severities: ['OK', 'WARNING', 'CRITICAL', 'UNKNOWN'],
+
+  /**
    * List of all Alert Notifications
    * @type {App.AlertNotification[]}
    */
   alertNotifications: function () {
     return this.get('isLoaded') ? App.AlertNotification.find().toArray() : [];
+  }.property('isLoaded'),
+
+  /**
+   * List of all Alert Groups
+   * @type {App.AlertGroup[]}
+   */
+  allAlertGroups: function () {
+    return this.get('isLoaded') ? App.AlertGroup.find().toArray() : [];
   }.property('isLoaded'),
 
   /**
@@ -177,14 +192,10 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
     var inputFields = this.get('inputFields');
     var selectedAlertNotification = this.get('selectedAlertNotification');
     inputFields.set('name.value', (addCopyToName ? 'Copy of ' : '') + selectedAlertNotification.get('name'));
+    inputFields.set('groups.value', selectedAlertNotification.get('groups').toArray());
     inputFields.set('email.value', selectedAlertNotification.get('properties')['ambari.dispatch.recipients'] ?
         selectedAlertNotification.get('properties')['ambari.dispatch.recipients'].join(', ') : '');
-    inputFields.set('severityFilter.value', [
-      selectedAlertNotification.get('alertStates').contains('OK'),
-      selectedAlertNotification.get('alertStates').contains('WARNING'),
-      selectedAlertNotification.get('alertStates').contains('CRITICAL'),
-      selectedAlertNotification.get('alertStates').contains('UNKNOWN')
-    ]);
+    inputFields.set('severityFilter.value', selectedAlertNotification.get('alertStates'));
     inputFields.set('global.value', selectedAlertNotification.get('global'));
     // not allow to edit global field
     inputFields.set('global.disabled', true);
@@ -216,13 +227,66 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
       bodyClass: Em.View.extend({
         controller: this,
         templateName: require('templates/main/alerts/create_alert_notification'),
+
+        didInsertElement: function () {
+          this.nameValidation();
+        },
+
         isEmailMethodSelected: function () {
           return this.get('controller.inputFields.method.value') === 'EMAIL';
-        }.property('controller.inputFields.method.value')
+        }.property('controller.inputFields.method.value'),
+
+        nameValidation: function () {
+          this.set('parentView.hasErrors', !this.get('controller.inputFields.name.value').trim());
+        }.observes('controller.inputFields.name.value'),
+
+        groupsSelectView: Em.Select.extend({
+          init: function () {
+            this._super();
+            this.set('parentView.groupSelect', this);
+          }
+        }),
+
+        groupSelect: null,
+
+        selectAllGroups: function () {
+          this.set('groupSelect.selection', this.get('groupSelect.content').slice());
+        },
+
+        clearAllGroups: function () {
+          this.set('groupSelect.selection', []);
+        },
+
+        severitySelectView: Em.Select.extend({
+          init: function () {
+            this._super();
+            this.set('parentView.severitySelect', this);
+          }
+        }),
+
+        severitySelect: null,
+
+        selectAllSeverity: function () {
+          this.set('severitySelect.selection', this.get('severitySelect.content').slice());
+        },
+
+        clearAllSeverity: function () {
+          this.set('severitySelect.selection', []);
+        }
       }),
+
+      isSaving: false,
+
+      hasErrors: false,
+
       primary: Em.I18n.t('common.save'),
+
+      disablePrimary: function () {
+        return this.get('isSaving') || this.get('hasErrors');
+      }.property('isSaving', 'hasErrors'),
+
       onPrimary: function () {
-        this.set('disablePrimary', true);
+        this.set('isSaving', true);
         var apiObject = self.formatNotificationAPIObject();
         if (isEdit) {
           self.updateAlertNotification(apiObject);
@@ -242,20 +306,8 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
    */
   formatNotificationAPIObject: function () {
     var inputFields = this.get('inputFields');
-    var alertStates = [];
     var properties = {};
-    if (inputFields.get('severityFilter.value')[0]) {
-      alertStates.push('OK');
-    }
-    if (inputFields.get('severityFilter.value')[1]) {
-      alertStates.push('WARNING');
-    }
-    if (inputFields.get('severityFilter.value')[2]) {
-      alertStates.push('CRITICAL');
-    }
-    if (inputFields.get('severityFilter.value')[3]) {
-      alertStates.push('UNKNOWN');
-    }
+    var clusterId = App.Cluster.find().objectAt(0).get('id');
     if (inputFields.get('method.value') === 'EMAIL') {
       properties['ambari.dispatch.recipients'] = inputFields.get('email.value').replace(/\s/g, '').split(',');
     }
@@ -267,8 +319,16 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
         name: inputFields.get('name.value'),
         description: inputFields.get('description.value'),
         global: inputFields.get('global.value'),
+        groups: inputFields.get('groups.value').map(function (group) {
+          return {
+            name: group.get('name'),
+            id: group.get('id'),
+            default: group.get('default'),
+            cluster_id: clusterId
+          };
+        }),
         notification_type: inputFields.get('method.value'),
-        alert_states: alertStates,
+        alert_states: inputFields.get('severityFilter.value'),
         properties: properties
       }
     };
@@ -287,7 +347,8 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
       data: {
         data: apiObject
       },
-      success: 'createAlertNotificationSuccessCallback'
+      success: 'createAlertNotificationSuccessCallback',
+      error: 'saveErrorCallback'
     });
   },
 
@@ -317,7 +378,8 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
         data: apiObject,
         id: this.get('selectedAlertNotification.id')
       },
-      success: 'updateAlertNotificationSuccessCallback'
+      success: 'updateAlertNotificationSuccessCallback',
+      error: 'saveErrorCallback'
     });
   },
 
@@ -334,6 +396,14 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
   },
 
   /**
+   * Error callback for <code>createAlertNotification</code> and <code>updateAlertNotification</code>
+   * @method saveErrorCallback
+   */
+  saveErrorCallback: function () {
+    this.set('createEditPopup.isSaving', false);
+  },
+
+  /**
    * Delete Notification button handler
    * @return {App.ModalPopup}
    * @method deleteAlertNotification
@@ -341,15 +411,16 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
   deleteAlertNotification: function () {
     var self = this;
     return App.showConfirmationPopup(function () {
-      App.ajax.send({
-        name: 'alerts.delete_alert_notification',
-        sender: self,
-        data: {
-          id: self.get('selectedAlertNotification.id')
-        },
-        success: 'deleteAlertNotificationSuccessCallback'
-      });
-    });
+          App.ajax.send({
+            name: 'alerts.delete_alert_notification',
+            sender: self,
+            data: {
+              id: self.get('selectedAlertNotification.id')
+            },
+            success: 'deleteAlertNotificationSuccessCallback'
+          });
+        }, Em.I18n.t('alerts.actions.manage_alert_notifications_popup.confirmDeleteBody').format(this.get('selectedAlertNotification.name')),
+        null, Em.I18n.t('alerts.actions.manage_alert_notifications_popup.confirmDeleteHeader'), Em.I18n.t('common.delete'));
   },
 
   /**
@@ -411,7 +482,7 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
           var flag = validator.isValidConfigKey(name);
           if (flag) {
             if (this.get('controller.inputFields.customProperties').mapProperty('name').contains(name) ||
-              this.get('controller.ignoredCustomProperties').contains(name)) {
+                this.get('controller.ignoredCustomProperties').contains(name)) {
               this.set('errorMessage', Em.I18n.t('alerts.notifications.addCustomPropertyPopup.error.propertyExists'));
               flag = false;
             }
@@ -425,6 +496,8 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
 
         templateName: require('templates/main/alerts/add_custom_config_to_alert_notification_popup')
       }),
+
+      disablePrimary: true,
 
       onPrimary: function () {
         self.addCustomProperty();

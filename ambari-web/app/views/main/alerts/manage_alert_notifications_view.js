@@ -53,6 +53,14 @@ App.ManageAlertNotificationsView = Em.View.extend({
     return this.get('controller.selectedAlertNotification.type') === 'SNMP';
   }.property('controller.selectedAlertNotification.type'),
 
+  email: function () {
+    return this.get('controller.selectedAlertNotification.properties')['ambari.dispatch.recipients'];
+  }.property('controller.selectedAlertNotification'),
+
+  severities: function () {
+    return this.get('controller.selectedAlertNotification.alertStates').join(', ');
+  }.property('controller.selectedAlertNotification'),
+
   /**
    * Enable/disable "edit"/"remove"/"duplicate" buttons basing on <code>controller.selectedAlertNotification</code>
    * @method buttonObserver

@@ -17,17 +17,17 @@
 }}
 <div class="alert alert-info margin-bottom-5">{{t alerts.actions.manageNotifications.info}}</div>
 {{#if controller.isLoaded}}
-  <div class="row-fluid  manage-configuration-group-content" id="manage-alert-notification-content">
+  <div class="row-fluid manage-configuration-group-content" id="manage-alert-notification-content">
     <div class="span12">
       <div class="row-fluid">
         <div class="span4 notification-list">
           <span>&nbsp;</span>
           {{view Em.Select
-          contentBinding="alertNotifications"
-          optionLabelPath="content.name"
-          multiple="multiple"
-          class="group-select"
-          selectionBinding="view.selectedAlertNotification"
+            contentBinding="alertNotifications"
+            optionLabelPath="content.name"
+            multiple="multiple"
+            class="group-select"
+            selectionBinding="view.selectedAlertNotification"
           }}
           <div class="btn-toolbar pull-right">
             <button rel="button-info" class="btn"
@@ -62,33 +62,37 @@
           <div class="row-fluid">
             <div class="span12 pull-right">
               {{#if selectedAlertNotification}}
-              <div class="row-fluid">
-                <div class="span3">{{t common.name}}</div>
-                <div class="span9">{{selectedAlertNotification.name}}</div>
-              </div>
-              <div class="row-fluid">
-                <div class="span3">{{t common.groups}}</div>
-                <div class="span9">{{view.selectedAlertNotificationGroups}}</div>
-              </div>
-              <div class="row-fluid global-info">
-                <div class="span3">{{t alerts.actions.manage_alert_notifications_popup.global}}</div>
-                <div class="span9">{{view Em.Checkbox checkedBinding="selectedAlertNotification.global" disabled="disabled" class="global-checkbox"}}</div>
-              </div>
-              <div class="row-fluid">
-                <div class="span3">{{t alerts.actions.manage_alert_notifications_popup.method}}</div>
-                <div class="span9">{{selectedAlertNotification.type}}</div>
-              </div>
-              {{#if view.showEmailDetails}}
                 <div class="row-fluid">
-                  <div class="span3">{{t alerts.actions.manage_alert_notifications_popup.email}}</div>
-                  <div class="span9">{{selectedAlertNotification.properties.email}}</div>
+                  <div class="span3">{{t common.name}}</div>
+                  <div class="span9">{{selectedAlertNotification.name}}</div>
                 </div>
-              {{/if}}
-              {{#if view.showSNMPDetails}}
-              {{/if}}
+                <div class="row-fluid">
+                  <div class="span3">{{t common.groups}}</div>
+                  <div class="span9">{{view.selectedAlertNotificationGroups}}</div>
+                </div>
+                <div class="row-fluid">
+                  <div class="span3">{{t common.severity}}</div>
+                  <div class="span9">{{view.severities}}</div>
+                </div>
+                <div class="row-fluid global-info">
+                  <div class="span3">{{t alerts.actions.manage_alert_notifications_popup.global}}</div>
+                  <div class="span9">{{view Em.Checkbox checkedBinding="selectedAlertNotification.global" disabled="disabled" class="global-checkbox"}}</div>
+                </div>
+                <div class="row-fluid">
+                  <div class="span3">{{t alerts.actions.manage_alert_notifications_popup.method}}</div>
+                  <div class="span9">{{selectedAlertNotification.type}}</div>
+                </div>
+                {{#if view.showEmailDetails}}
+                  <div class="row-fluid">
+                    <div class="span3">{{t alerts.actions.manage_alert_notifications_popup.email}}</div>
+                    <div class="span9">{{view.email}}</div>
+                  </div>
+                {{/if}}
+                {{#if view.showSNMPDetails}}
+                {{/if}}
                 <div class="row-fluid">
                   <div class="span3">{{t common.description}}</div>
-                  <div class="span9">{{selectedAlertNotification.description}}</div>
+                  <div class="span9 notification-description">{{selectedAlertNotification.description}}</div>
                 </div>
               {{/if}}
             </div>

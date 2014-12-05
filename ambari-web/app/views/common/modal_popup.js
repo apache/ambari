@@ -132,15 +132,18 @@ App.showReloadPopup = function () {
  * @param {Function} primary - "OK" button click handler
  * @param {String} body - additional text constant. Will be placed in the popup-body
  * @param {Function} secondary
+ * @param {String} header
+ * @param {String} primaryText
  * @return {*}
  */
-App.showConfirmationPopup = function (primary, body, secondary) {
+App.showConfirmationPopup = function (primary, body, secondary, header, primaryText) {
   if (!primary) {
     return false;
   }
   return App.ModalPopup.show({
     encodeBody: false,
-    header: Em.I18n.t('popup.confirmation.commonHeader'),
+    primary: primaryText || Em.I18n.t('ok'),
+    header: header || Em.I18n.t('popup.confirmation.commonHeader'),
     body: body || Em.I18n.t('question.sure'),
     onPrimary: function () {
       this.hide();

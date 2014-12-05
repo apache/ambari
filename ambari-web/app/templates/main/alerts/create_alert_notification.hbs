@@ -32,7 +32,13 @@
       <label class="control-label" for="inputGroups">{{controller.inputFields.groups.label}}</label>
 
       <div class="controls">
-        {{view Em.TextField valueBinding="controller.inputFields.groups.value" id="inputGroups" class="input-xlarge" disabledBinding="controller.inputFields.global.value"}}
+        {{view view.groupsSelectView multiple="true" id="inputGroups" class="input-large"
+          selectionBinding="controller.inputFields.groups.value"
+          contentBinding="controller.allAlertGroups"
+          optionLabelPath="content.name"
+        }}
+        <a href="#" {{action selectAllGroups target="view"}}>{{t alerts.actions.manage_alert_notifications_popup.selectAll}}</a> |
+        <a href="#" {{action clearAllGroups target="view"}}>{{t alerts.actions.manage_alert_notifications_popup.clearAll}}</a>
       </div>
     </div>
 
@@ -41,6 +47,27 @@
 
       <div class="controls">
         {{view Em.Checkbox checkedBinding="controller.inputFields.global.value" disabledBinding="controller.inputFields.global.disabled" id="inputGlobal" class="input-xlarge"}}
+      </div>
+    </div>
+
+    <div class="control-group">
+      <label class="control-label">{{controller.inputFields.severityFilter.label}}</label>
+
+      <div class="controls">
+        {{view view.severitySelectView multiple="true" id="inputSeverity" class="input-large"
+        selectionBinding="controller.inputFields.severityFilter.value"
+        contentBinding="controller.severities"
+        }}
+        <a href="#" {{action selectAllSeverity target="view"}}>{{t alerts.actions.manage_alert_notifications_popup.selectAll}}</a> |
+        <a href="#" {{action clearAllSeverity target="view"}}>{{t alerts.actions.manage_alert_notifications_popup.clearAll}}</a>
+      </div>
+    </div>
+
+    <div class="control-group">
+      <label class="control-label" for="inputDescription">{{controller.inputFields.description.label}}</label>
+
+      <div class="controls">
+        {{view Em.TextArea valueBinding="controller.inputFields.description.value" id="inputDescription" rows="4" class="input-xlarge"}}
       </div>
     </div>
 
@@ -61,22 +88,6 @@
         </div>
       </div>
     {{/if}}
-
-    <div class="control-group">
-      <label class="control-label">{{controller.inputFields.severityFilter.label}}</label>
-
-      <div class="controls">
-        {{view App.AlertSeverityFilterView selectionBinding="controller.inputFields.severityFilter.value"}}
-      </div>
-    </div>
-
-    <div class="control-group">
-      <label class="control-label" for="inputDescription">{{controller.inputFields.description.label}}</label>
-
-      <div class="controls">
-        {{view Em.TextArea valueBinding="controller.inputFields.description.value" id="inputDescription" rows="4" class="input-xlarge"}}
-      </div>
-    </div>
 
     {{#each customProperty in controller.inputFields.customProperties}}
       <div class="control-group">

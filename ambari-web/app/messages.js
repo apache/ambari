@@ -241,6 +241,7 @@ Em.I18n.translations = {
   'common.alertDefinition': "Alert Definition",
   'common.prerequisites': 'Prerequisites',
   'common.finalize': "Finalize",
+  'common.severity': "Severity",
 
   'passiveState.turnOn':'Turn On Maintenance Mode',
   'passiveState.turnOff':'Turn Off Maintenance Mode',
@@ -1864,6 +1865,10 @@ Em.I18n.translations = {
   'alerts.actions.manage_alert_notifications_popup.email':'Email',
   'alerts.actions.manage_alert_notifications_popup.global':'Global',
   'alerts.actions.manage_alert_notifications_popup.severityFilter':'Severity Filter',
+  'alerts.actions.manage_alert_notifications_popup.clearAll':'Clear All',
+  'alerts.actions.manage_alert_notifications_popup.selectAll':'Select All',
+  'alerts.actions.manage_alert_notifications_popup.confirmDeleteHeader':'Confirm Delete',
+  'alerts.actions.manage_alert_notifications_popup.confirmDeleteBody':'Are you sure you want to delete {0} group?',
 
   'hosts.host.add':'Add New Hosts',
   'hosts.table.noHosts':'No hosts to display',
