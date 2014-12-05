@@ -53,7 +53,7 @@ class TestStormDrpcServer(TestStormBase):
     self.assertResourceCalled('Execute', "/usr/jdk64/jdk1.7.0_45/bin/jps -l  | grep storm.daemon.drpc$ && /usr/jdk64/jdk1.7.0_45/bin/jps -l  | grep storm.daemon.drpc$ | awk {'print $1'} > /var/run/storm/drpc.pid",
         logoutput = True,
         path = ['/usr/bin'],
-        tries = 6,
+        tries = 12,
         user = 'storm',
         try_sleep = 10,
     )
@@ -103,7 +103,7 @@ class TestStormDrpcServer(TestStormBase):
     self.assertResourceCalled('Execute', "/usr/jdk64/jdk1.7.0_45/bin/jps -l  | grep storm.daemon.drpc$ && /usr/jdk64/jdk1.7.0_45/bin/jps -l  | grep storm.daemon.drpc$ | awk {'print $1'} > /var/run/storm/drpc.pid",
         logoutput = True,
         path = ['/usr/bin'],
-        tries = 6,
+        tries = 12,
         user = 'storm',
         try_sleep = 10,
     )

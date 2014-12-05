@@ -32,7 +32,7 @@ def service(
   pid_file = status_params.pid_files[name]
   no_op_test = format("ls {pid_file} >/dev/null 2>&1 && ps -p `cat {pid_file}` >/dev/null 2>&1")
 
-  if name == "logviewer":
+  if name == "logviewer" or name == "drpc":
     tries_count = 12
   else:
     tries_count = 6
