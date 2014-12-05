@@ -87,6 +87,56 @@
           {{view Em.TextField valueBinding="controller.inputFields.email.value" id="inputEmail" class="input-xlarge"}}
         </div>
       </div>
+      <div class="control-group">
+        <label class="control-label">{{controller.inputFields.SMTPServer.label}}</label>
+
+        <div class="controls">
+          {{view Em.TextField valueBinding="controller.inputFields.SMTPServer.value" class="input-xlarge"}}
+        </div>
+      </div>
+      <div class="control-group">
+        <label class="control-label">{{controller.inputFields.SMTPPort.label}}</label>
+
+        <div class="controls">
+          {{view Em.TextField valueBinding="controller.inputFields.SMTPPort.value" class="input-xlarge"}}
+        </div>
+      </div>
+      <div class="control-group">
+        <label class="control-label">{{controller.inputFields.emailFrom.label}}</label>
+
+        <div class="controls">
+          {{view Em.TextField valueBinding="controller.inputFields.emailFrom.value" class="input-xlarge"}}
+        </div>
+      </div>
+    {{else}}
+      <div class="control-group">
+        <label class="control-label">{{controller.inputFields.version.label}}</label>
+
+        <div class="controls">
+          {{view Em.Select selectionBinding="controller.inputFields.version.value" contentBinding="controller.SNMPVersions" class="input-xlarge"}}
+        </div>
+      </div>
+      <div class="control-group">
+        <label class="control-label">{{controller.inputFields.OIDs.label}}</label>
+
+        <div class="controls">
+          {{view Em.TextField valueBinding="controller.inputFields.OIDs.value" class="input-xlarge"}}
+        </div>
+      </div>
+      <div class="control-group">
+        <label class="control-label">{{controller.inputFields.community.label}}</label>
+
+        <div class="controls">
+          {{view Em.TextField valueBinding="controller.inputFields.community.value" class="input-xlarge"}}
+        </div>
+      </div>
+      <div class="control-group">
+        <label class="control-label">{{controller.inputFields.port.label}}</label>
+
+        <div class="controls">
+          {{view Em.TextField valueBinding="controller.inputFields.port.value" class="input-xlarge"}}
+        </div>
+      </div>
     {{/if}}
 
     {{#each customProperty in controller.inputFields.customProperties}}

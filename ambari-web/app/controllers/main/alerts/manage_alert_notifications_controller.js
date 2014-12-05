@@ -67,6 +67,41 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
       value: '',
       defaultValue: ''
     },
+    SMTPServer: {
+      label: Em.I18n.t('alerts.actions.manage_alert_notifications_popup.SMTPServer'),
+      value: '',
+      defaultValue: ''
+    },
+    SMTPPort: {
+      label: Em.I18n.t('alerts.actions.manage_alert_notifications_popup.SMTPPort'),
+      value: '',
+      defaultValue: ''
+    },
+    emailFrom: {
+      label: Em.I18n.t('alerts.actions.manage_alert_notifications_popup.emailFrom'),
+      value: '',
+      defaultValue: ''
+    },
+    version: {
+      label: Em.I18n.t('alerts.actions.manage_alert_notifications_popup.version'),
+      value: '',
+      defaultValue: ''
+    },
+    OIDs: {
+      label: Em.I18n.t('alerts.actions.manage_alert_notifications_popup.OIDs'),
+      value: '',
+      defaultValue: ''
+    },
+    community: {
+      label: Em.I18n.t('alerts.actions.manage_alert_notifications_popup.community'),
+      value: '',
+      defaultValue: ''
+    },
+    port: {
+      label: Em.I18n.t('alerts.actions.manage_alert_notifications_popup.port'),
+      value: '',
+      defaultValue: ''
+    },
     severityFilter: {
       label: Em.I18n.t('alerts.actions.manage_alert_notifications_popup.severityFilter'),
       value: [],
@@ -93,6 +128,12 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
    * @type {Array}
    */
   severities: ['OK', 'WARNING', 'CRITICAL', 'UNKNOWN'],
+
+  /**
+   * List of available SNMP versions
+   * @type {Array}
+   */
+  SNMPVersions: ['SNMPv1', 'SNMPv2c', 'SNMPv3'],
 
   /**
    * List of all Alert Notifications
@@ -126,7 +167,8 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
    * List custom property names that shouldn't be displayed on Edit page
    * @type {string[]}
    */
-  ignoredCustomProperties: ['ambari.dispatch.recipients'],
+  ignoredCustomProperties: ['ambari.dispatch.recipients', 'mail.smtp.host', 'mail.smtp.port', 'mail.smtp.from', 'ambari.dispatch.snmp.version',
+    'ambari.dispatch.snmp.oids.trap', 'ambari.dispatch.snmp.community', 'ambari.dispatch.snmp.port'],
 
   /**
    * Load all Alert Notifications from server
@@ -195,6 +237,13 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
     inputFields.set('groups.value', selectedAlertNotification.get('groups').toArray());
     inputFields.set('email.value', selectedAlertNotification.get('properties')['ambari.dispatch.recipients'] ?
         selectedAlertNotification.get('properties')['ambari.dispatch.recipients'].join(', ') : '');
+    inputFields.set('SMTPServer.value', selectedAlertNotification.get('properties')['mail.smtp.host']);
+    inputFields.set('SMTPPort.value', selectedAlertNotification.get('properties')['mail.smtp.port']);
+    inputFields.set('emailFrom.value', selectedAlertNotification.get('properties')['mail.smtp.from']);
+    inputFields.set('version.value', selectedAlertNotification.get('properties')['ambari.dispatch.snmp.version']);
+    inputFields.set('OIDs.value', selectedAlertNotification.get('properties')['ambari.dispatch.snmp.oids.trap']);
+    inputFields.set('community.value', selectedAlertNotification.get('properties')['ambari.dispatch.snmp.community']);
+    inputFields.set('port.value', selectedAlertNotification.get('properties')['ambari.dispatch.snmp.port']);
     inputFields.set('severityFilter.value', selectedAlertNotification.get('alertStates'));
     inputFields.set('global.value', selectedAlertNotification.get('global'));
     // not allow to edit global field
@@ -310,6 +359,14 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
     var clusterId = App.Cluster.find().objectAt(0).get('id');
     if (inputFields.get('method.value') === 'EMAIL') {
       properties['ambari.dispatch.recipients'] = inputFields.get('email.value').replace(/\s/g, '').split(',');
+      properties['mail.smtp.host'] = inputFields.get('SMTPServer.value');
+      properties['mail.smtp.port'] = inputFields.get('SMTPPort.value');
+      properties['mail.smtp.from'] = inputFields.get('emailFrom.value');
+    } else {
+      properties['ambari.dispatch.snmp.version'] = inputFields.get('version.value');
+      properties['ambari.dispatch.snmp.oids.trap'] = inputFields.get('OIDs.value');
+      properties['ambari.dispatch.snmp.community'] = inputFields.get('community.value');
+      properties['ambari.dispatch.snmp.port'] = inputFields.get('port.value');
     }
     inputFields.get('customProperties').forEach(function (customProperty) {
       properties[customProperty.name] = customProperty.value;

@@ -207,6 +207,27 @@ describe('App.ManageAlertNotificationsController', function () {
         description: {
           value: ''
         },
+        SMTPServer: {
+          value: ''
+        },
+        SMTPPort: {
+          value: ''
+        },
+        emailFrom: {
+          value: ''
+        },
+        version: {
+          value: ''
+        },
+        OIDs: {
+          value: ''
+        },
+        community: {
+          value: ''
+        },
+        port: {
+          value: ''
+        },
         customProperties: [
           {name: 'customName', value: 'customValue1', defaultValue: 'customValue1'},
           {name: 'customName2', value: 'customValue1', defaultValue: 'customValue1'}
@@ -238,6 +259,13 @@ describe('App.ManageAlertNotificationsController', function () {
         description: {
           value: 'test_description'
         },
+        SMTPServer: {},
+        SMTPPort: {},
+        emailFrom: {},
+        version: {},
+        OIDs: {},
+        community: {},
+        port: {},
         customProperties: [
           {name: 'customName', value: 'customValue', defaultValue: 'customValue'}
         ]
@@ -321,7 +349,7 @@ describe('App.ManageAlertNotificationsController', function () {
 
       var result = controller.formatNotificationAPIObject();
 
-      expect(result).to.eql({
+      expect(JSON.stringify(result)).to.eql(JSON.stringify({
         AlertTarget: {
           name: 'test_name',
           description: 'test_description',
@@ -340,7 +368,7 @@ describe('App.ManageAlertNotificationsController', function () {
             'n2': 'v2'
           }
         }
-      });
+      }));
     });
 
   });
