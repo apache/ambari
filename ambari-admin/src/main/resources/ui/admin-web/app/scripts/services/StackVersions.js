@@ -50,13 +50,68 @@ angular.module('ambariAdminConsole')
   }
 
   return {
-    list: function (filter) {
-      return $http.get(Settings.baseUrl + '/stacks?fields=versions/RepositoryVersions', {mock: 'version/versions.json'});
+    list: function (filter, pagination) {
+      var stackFilter = filter.stack.current.value;
+      var versionFilter = filter.version;
+      var clusterFilter = filter.cluster.current.value;
+      var url = '/stacks/HDP/versions?fields=repository_versions/RepositoryVersions'; // TODO should not hard code HDP
+      if (stackFilter) {
+        url += '&repository_versions/RepositoryVersions/stack_version.matches(.*' + stackFilter + '.*)';
+      }
+      if (versionFilter) {
+        url += '&repository_versions/RepositoryVersions/repository_version.matches(.*' + versionFilter + '.*)';
+      }
+      if (clusterFilter) {
+        url += '';
+      }
+      url += '&from='+ (pagination.currentPage - 1) * pagination.itemsPerPage;
+      url += '&page_size=' + pagination.itemsPerPage;
+      var deferred = $q.defer();
+      $http.get(Settings.baseUrl + url, {mock: 'version/versions.json'})
+      .success(function (data) {
+        deferred.resolve(data)
+      })
+      .error(function (data) {
+        deferred.reject(data);
+      });
+      return deferred.promise;
     },
+
+    add: function (stack, version, osList) {
+      var url = '/stacks/HDP/versions/2.2/repository_versions/';
+      var payload = {};
+      payload.repository_version = stack + '.' + version;
+      payload.display_name = 'HDP-' + payload.repository_version;
+      payload.upgrade_pack = "upgrade-2.2"; // TODO get this value from backend
+      payload.operating_systems = [];
+      angular.forEach(osList, function (osItem) {
+        if (osItem.selected)
+        {
+          payload.operating_systems.push({
+            "OperatingSystems" : {
+              "os_type" : osItem.os
+            },
+            "repositories" : osItem.packages.map(function (pack) {
+              return {
+                "Repositories" : {
+                  "repo_id": (pack.label + '-' + payload.repository_version),
+                  "repo_name": pack.label,
+                  "base_url": pack.value? pack.value : ''
+                }
+              };
+            })
+          });
+        }
+      });
+      var payloadWrap = { RepositoryVersions : payload };
+      return $http.post(Settings.baseUrl + url, payloadWrap);
+    },
+
     get: function (version) {
       var url = Settings.baseUrl + '/stacks?versions/RepositoryVersions/repository_version=' + version +'&fields=versions/RepositoryVersions';
       return $http.get(url, {mock: 'version/version.json'});
     },
+
     getStackRepositories: function (version) {
       var url = Settings.baseUrl + '/stacks/HDP/versions/' + version + '/operating_systems?fields=*';
       return $http.get(url, {mock: 'stack/stack.json'});

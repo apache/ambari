@@ -18,15 +18,17 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-  .controller('StackVersionsListCtrl', ['$scope', 'StackVersions', '$routeParams', function ($scope, StackVersions, $routeParams) {
+  .controller('StackVersionsListCtrl', ['$scope', 'Cluster', 'StackVersions', '$routeParams', function ($scope, Cluster, StackVersions, $routeParams) {
   $scope.clusterName = $routeParams.clusterName;
+
+  // TODO retrieve a list of stacks having "upgrade_pack" from backend
   $scope.filter = {
     stack: {
       options: [
         {label: 'All', value: ''},
-        {label: 'HDP 2.2', value: 'hdp2.2'},
-        {label: 'HDP 2.3', value: 'hdp2.3'},
-        {label: 'HDP 2.4', value: 'hdp2.4'}
+        {label: 'HDP 2.2', value: '2.2'},
+        {label: 'HDP 2.3', value: '2.3'},
+        {label: 'HDP 2.4', value: '2.4'}
       ],
       current: null
     },
@@ -51,6 +53,11 @@ angular.module('ambariAdminConsole')
     currentPage: 1
   };
 
+  $scope.resetPagination = function () {
+    $scope.pagination.currentPage = 1;
+    $scope.getStackVersions();
+  };
+
   $scope.tableInfo = {
     total: 0,
     showed: 0,
@@ -58,10 +65,38 @@ angular.module('ambariAdminConsole')
   };
 
   $scope.stacks = [];
+  $scope.clusters = [{
+    Clusters: {
+      cluster_name: 'Install on...'
+    }
+  }];
+  $scope.selectedCluster = $scope.clusters[0];
+
+  $scope.clearFilters = function () {
+    $scope.filter.version = '';
+    $scope.filter.stack.current = $scope.filter.stack.options[0];
+    $scope.filter.cluster.current = $scope.filter.cluster.options[0];
+    $scope.resetPagination();
+  };
+
+  $scope.getAllClusters = function () {
+    return Cluster.getAllClusters().then(function (clusters) {
+      $scope.clusters = $scope.clusters.concat(clusters);
+    });
+  };
+  $scope.getAllClusters();
 
   $scope.getStackVersions = function () {
-    return StackVersions.list($scope.filter).then(function (stacks) {
-      $scope.stacks = stacks.data.items.map(function (stack) {
+    return StackVersions.list($scope.filter, $scope.pagination).then(function (stacks) {
+      $scope.pagination.totalStacks = stacks.items.length;
+      $scope.stacks = [];
+      angular.forEach(stacks.items, function(stack) {
+        var repoVersions = stack.repository_versions;
+        if (repoVersions.length > 0) {
+          $scope.stacks = $scope.stacks.concat(repoVersions);
+        }
+      });
+      $scope.stacks = $scope.stacks.map(function (stack) {
         return stack.RepositoryVersions;
       });
       $scope.tableInfo.total = stacks.length;

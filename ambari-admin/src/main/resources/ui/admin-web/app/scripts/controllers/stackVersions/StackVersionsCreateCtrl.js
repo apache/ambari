@@ -18,35 +18,23 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('StackVersionsCreateCtrl', ['$scope', 'StackVersions', '$routeParams', function($scope, StackVersions, $routeParams) {
+.controller('StackVersionsCreateCtrl', ['$scope', 'StackVersions', '$routeParams', '$location', function($scope, StackVersions, $routeParams, $location) {
   $scope.clusterName = $routeParams.clusterName;
-  $scope.upgradePack = {
-    value: null,
-    options: [
-      'Pack 1',
-      'Pack 2',
-      'Pack 3',
-      'Pack 4'
-    ]
-  };
-  $scope.upgradePack.value = $scope.upgradePack.options[0];
-
   $scope.upgradeStack = {
     value: null,
     options: [
-      'HDP-2.2',
-      'HDP-2.3',
-      'HDP-2.4'
+      '2.2'
     ]
   };
   $scope.upgradeStack.value = $scope.upgradeStack.options[0];
 
+  // TODO retrieve operating systems and repo names from stack definition
   $scope.repositories = [
     {
       os: 'redhat5',
       packages: [
         {label:'HDP', value: null},
-        {label:'HDP-UTILS', value: null},
+        {label:'HDP-UTILS', value: null}
       ],
       selected: false
     },
@@ -54,7 +42,7 @@ angular.module('ambariAdminConsole')
       os: 'redhat6',
       packages: [
         {label:'HDP', value: null},
-        {label:'HDP-UTILS', value: null},
+        {label:'HDP-UTILS', value: null}
       ],
       selected: false
     },
@@ -62,7 +50,7 @@ angular.module('ambariAdminConsole')
       os: 'sles11',
       packages: [
         {label:'HDP', value: null},
-        {label:'HDP-UTILS', value: null},
+        {label:'HDP-UTILS', value: null}
       ],
       selected: false
     },
@@ -70,10 +58,16 @@ angular.module('ambariAdminConsole')
       os: 'ubuntu12',
       packages: [
         {label:'HDP', value: null},
-        {label:'HDP-UTILS', value: null},
+        {label:'HDP-UTILS', value: null}
       ],
       selected: false
     }
   ];
-  
+
+  $scope.create = function () {
+    StackVersions.add($scope.upgradeStack.value, $scope.versionName, $scope.repositories)
+    .success(function () {
+      $location.path('/stackVersions');
+    });
+  };
 }]);

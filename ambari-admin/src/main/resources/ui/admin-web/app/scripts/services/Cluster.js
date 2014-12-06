@@ -20,6 +20,18 @@
 angular.module('ambariAdminConsole')
 .factory('Cluster', ['$http', '$q', 'Settings', function($http, $q, Settings) {
   return {
+    getAllClusters: function() {
+      var deferred = $q.defer();
+      $http.get(Settings.baseUrl + '/clusters', {mock: 'cluster/clusters.json'})
+      .then(function(data, status, headers) {
+        deferred.resolve(data.data.items);
+      })
+      .catch(function(data) {
+        deferred.reject(data);
+      });
+
+      return deferred.promise;
+    },
     getStatus: function() {
       var deferred = $q.defer();
 

@@ -35,17 +35,19 @@
       <th class="col-small">
         <label>Stack</label>
         <select class="form-control"
+                ng-change="resetPagination()"
                 ng-model="filter.stack.current"
                 ng-options="item.label for item in filter.stack.options">
         </select>
       </th>
       <th class="col-medium">
         <label>Version</label>
-        <input type="text" class="form-control" ng-model="filter.version">
+        <input type="text" class="form-control" ng-change="resetPagination()" ng-model="filter.version">
       </th>
       <th class="col-small">
         <label>Cluster</label>
         <select class="form-control"
+                ng-change="resetPagination()"
                 ng-model="filter.cluster.current"
                 ng-options="item.label for item in filter.cluster.options"
           ></select>
@@ -62,20 +64,23 @@
           <i class="glyphicon glyphicon-cloud"></i>
           {{stack.cluster}}
         </a>
-        <span ng-show="!stack.cluster">None</span>
-      </td>
-      <td>
-        <div ng-show="stack.status !== 'INIT'">
-          <span class="label" ng-class="stack.statusClass">{{stack.statusLabel}}:&nbsp;{{stack.current_hosts.length}}/{{stack.totalHosts}}</span>
-        </div>
-      </td>
+    <select ng-show="!stack.cluster"
+            ng-model="selectedCluster"
+            ng-options="cluster.Clusters.cluster_name for cluster in clusters">
+    </select>
+    </td>
+    <td>
+      <div ng-show="stack.status !== 'INIT'">
+        <span class="label" ng-class="stack.statusClass">{{stack.statusLabel}}:&nbsp;{{stack.current_hosts.length}}/{{stack.totalHosts}}</span>
+      </div>
+    </td>
     </tr>
     </tbody>
   </table>
   <div class="col-sm-12 table-bar">
     <div class="pull-left filtered-info">
       <span>{{tableInfo.showed}} of {{tableInfo.total}} versions showing - </span>
-      <a href>clear filters</a>
+      <a href ng-click="clearFilters()">clear filters</a>
     </div>
     <div class="pull-right left-margin">
       <pagination class="paginator"
@@ -83,12 +88,14 @@
                   max-size="pagination.maxVisiblePages"
                   items-per-page="pagination.itemsPerPage"
                   ng-model="pagination.currentPage"
+                  ng-change="getStackVersions()"
       ></pagination>
     </div>
     <div class="pull-right">
       <select class="form-control"
               ng-model="pagination.itemsPerPage"
               ng-options="item for item in [10, 25, 50, 100]"
+              ng-change="resetPagination()"
         ></select>
     </div>
   </div>

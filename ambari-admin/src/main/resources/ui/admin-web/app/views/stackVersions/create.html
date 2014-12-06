@@ -37,17 +37,8 @@
         </div>
       </div>
       <div class="form-group">
-        <div class="col-sm-3"><label class="control-label">Upgrade Pack</label></div>
-        <div class="col-sm-3">
-          <select class="form-control"
-            ng-model="upgradePack.value"
-            ng-options="o as o for o in upgradePack.options"
-          ></select>
-        </div>
-      </div>
-      <div class="form-group">
         <div class="col-sm-3"><label for="" class="control-label">Version Name</label></div>
-        <div class="col-sm-3"><input type="text" class="form-control" placeholder="Version Name"></div>
+        <div class="col-sm-3"><input type="text" ng-model="versionName" class="form-control" placeholder="Version Name"></div>
       </div>
     </div>
   </div>
@@ -91,7 +82,7 @@
     </div>
   </div>
   <div class="col-sm-12">
-    <button class="btn btn-primary pull-right left-margin">Save</button>
+    <button class="btn btn-primary pull-right left-margin" ng-click="create()">Save</button>
     <button class="btn btn-default pull-right">Cancel</button>
   </div>
 </form>
