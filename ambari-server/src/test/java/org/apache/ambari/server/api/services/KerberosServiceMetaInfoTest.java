@@ -152,7 +152,6 @@ public class KerberosServiceMetaInfoTest {
   public void test220Cardinality() throws Exception {
     testCardinality(new HashMap<String, String>() {
       {
-        put("KDC_SERVER", "0-1");
         put("KERBEROS_CLIENT", "ALL");
       }
     });
@@ -162,7 +161,6 @@ public class KerberosServiceMetaInfoTest {
   public void test220AutoDeploy() throws Exception {
     testAutoDeploy(new HashMap<String, AutoDeployInfo>() {
       {
-        put("KDC_SERVER", null);
         put("KERBEROS_CLIENT", new AutoDeployInfo() {{
           setEnabled(true);
           setCoLocate(null);
@@ -175,19 +173,6 @@ public class KerberosServiceMetaInfoTest {
   public void test220Dependencies() throws Exception {
     testDependencies(new HashMap<String, Map<String, DependencyInfo>>() {
       {
-        put("KDC_SERVER", new HashMap<String, DependencyInfo>() {{
-              put("KERBEROS_CLIENT",
-                  new DependencyInfo() {{
-                    setName("KERBEROS/KERBEROS_CLIENT");
-                    setAutoDeploy(new AutoDeployInfo() {{
-                      setEnabled(true);
-                      setCoLocate(null);
-                    }});
-                    setScope("cluster");
-                  }});
-            }}
-        );
-
         put("KERBEROS_CLIENT", new HashMap<String, DependencyInfo>());
       }
     });

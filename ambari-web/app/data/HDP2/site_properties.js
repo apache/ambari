@@ -2194,7 +2194,7 @@ module.exports =
       "serviceName": "KERBEROS",
       "filename": "krb5-conf.xml",
       "category": "KDC",
-      "index": 0
+      "index": 1
     },
     {
       "id": "puppet var",
@@ -2206,7 +2206,7 @@ module.exports =
       "serviceName": "KERBEROS",
       "filename": "krb5-conf.xml",
       "category": "KDC",
-      "index": 1
+      "index": 2
     },
     {
       "id": "puppet var",
@@ -2218,7 +2218,7 @@ module.exports =
       "serviceName": "KERBEROS",
       "filename": "krb5-conf.xml",
       "category": "KDC",
-      "index": 2
+      "index": 3
     },
     {
       "id": "puppet var",
@@ -2231,7 +2231,7 @@ module.exports =
       "serviceName": "KERBEROS",
       "filename": "krb5-conf.xml",
       "category": "KDC",
-      "index": 3
+      "index": 4
     },
     {
       "id": "puppet var",
@@ -2244,7 +2244,7 @@ module.exports =
       "serviceName": "KERBEROS",
       "filename": "krb5-conf.xml",
       "category": "KDC",
-      "index": 4
+      "index": 5
     },
     {
       "id": "puppet var",
@@ -2257,7 +2257,7 @@ module.exports =
       "serviceName": "KERBEROS",
       "filename": "krb5-conf.xml",
       "category": "KDC",
-      "index": 5
+      "index": 6
     },
     {
       "id": "puppet var",
@@ -2270,7 +2270,7 @@ module.exports =
       "serviceName": "KERBEROS",
       "filename": "krb5-conf.xml",
       "category": "KDC",
-      "index": 5
+      "index": 7
     },
     {
       "id": "puppet var",

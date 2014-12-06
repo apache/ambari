@@ -19,7 +19,38 @@
 App.KerberosWizardStep6Controller = App.KerberosProgressPageController.extend({
   name: 'kerberosWizardStep6Controller',
   clusterDeployState: 'KERBEROS_DEPLOY',
-  commands: ['stopServices','startServices']
+  commands: ['stopServices','startServices'],
+
+  stopServices: function () {
+    App.ajax.send({
+      name: 'common.services.update',
+      data: {
+        context: "Stop services",
+        "ServiceInfo": {
+          "state": "INSTALLED"
+        }
+      },
+      sender: this,
+      success: 'startPolling',
+      error: 'onTaskError'
+    });
+  },
+
+  startServices: function () {
+    App.ajax.send({
+      name: 'common.services.update',
+      sender: this,
+      data: {
+        "context": "Start services",
+        "ServiceInfo": {
+          "state": "STARTED"
+        },
+        urlParams: "params/run_smoke_test=true"
+      },
+      success: 'startPolling',
+      error: 'onTaskError'
+    });
+  }
 });
 
 

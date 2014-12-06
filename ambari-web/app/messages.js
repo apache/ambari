@@ -249,7 +249,9 @@ Em.I18n.translations = {
   'passiveState.turnOffFor':'Turn Off Maintenance Mode for {0}',
 
   'requestInfo.installComponents':'Install Components',
+  'requestInfo.installKerbeorosComponents':'Install Kerberos Components',
   'requestInfo.installServices':'Install Services',
+  'requestInfo.kerberosService': 'Install Kerberos Service',
   'requestInfo.startServices':'Start Services',
   'requestInfo.startAddedServices':'Start Added Services',
   'requestInfo.stopAllServices':'Stop All Services',
@@ -267,6 +269,7 @@ Em.I18n.translations = {
   'requestInfo.stop':'Stop {0}',
   'requestInfo.start':'Start {0}',
   'requestInfo.unspecified':'Request name not specified',
+  'requestInfo.kerberizeCluster': 'Kerberize Cluster',
 
   'hostPopup.noServicesToShow':'No services to show',
   'hostPopup.noHostsToShow':'No hosts to show',
@@ -891,6 +894,7 @@ Em.I18n.translations = {
 
   'wizard.progressPage.notice.completed':'Please proceed to the next step.',
   'wizard.progressPage.notice.failed':'You can click on the Retry button to retry failed tasks.',
+  'wizard.singleRequest.progressPage.notice.failed': 'Please click on the Retry link to retry the failed request.',
 
   'admin.advanced.caution':'This section is for advanced user only.<br/>Proceed with caution.',
   'admin.advanced.button.uninstallIncludingData':'Uninstall cluster including all data.',
@@ -946,11 +950,16 @@ Em.I18n.translations = {
   'admin.kerberos.wizard.step2.info.body': 'Please configure kerberos related properties.',
   'admin.kerberos.wizard.step3.task0.title': 'Install Kerberos',
   'admin.kerberos.wizard.step3.task1.title': 'Test Kerberos',
-  'admin.kerberos.wizard.step3.notice.inProgress': 'Please wait while kerberos service is being installed and tested.',
+  'admin.kerberos.wizard.step3.notice.inProgress': 'Please wait while kerberos is being installed and tested.',
   'admin.kerberos.wizard.step3.notice.completed': 'Kerberos service has been installed and tested successfully.',
   'admin.kerberos.wizard.progressPage.notice.inProgress': 'Please wait while cluster is being kerberized',
   'admin.kerberos.wizard.step4.info.body': 'Configure principal name and keytab location for service users and hadoop service components.',
-  'admin.kerberos.wizard.step6.notice.completed': 'Cluster has been successfully kerberized.',
+  'admin.kerberos.wizard.step5.notice.inProgress': 'Please wait while cluster is being kerberized.',
+  'admin.kerberos.wizard.step5.notice.completed': 'Cluster has been successfully kerberized.',
+  'admin.kerberos.wizard.step6.notice.inProgress': 'Please wait while services are being restarted and tested.',
+  'admin.kerberos.wizard.step6.notice.completed': 'Services have been successfully tested with kerberos environment.',
+  'admin.kerberos.wizard.step6.task0.title' : 'Stop Services',
+  'admin.kerberos.wizard.step6.task1.title' : 'Start Services',
 
   'admin.highAvailability':' High Availability',
   'admin.highAvailability.button.enable':'Enable NameNode HA',

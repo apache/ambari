@@ -21,4 +21,4 @@
 // load templates here
 
 require('templates/main/service/info/summary/base');
-require('templates/main/admin/highAvailability/progress');
+require('templates/common/progress');

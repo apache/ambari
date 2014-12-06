@@ -30,44 +30,6 @@
 
       <components>
         <component>
-          <name>KDC_SERVER</name>
-          <displayName>Kerberos KDC</displayName>
-          <category>MASTER</category>
-          <cardinality>0-1</cardinality>
-          <dependencies>
-            <dependency>
-              <name>KERBEROS/KERBEROS_CLIENT</name>
-              <scope>cluster</scope>
-              <auto-deploy>
-                <enabled>true</enabled>
-              </auto-deploy>
-            </dependency>
-          </dependencies>
-          <commandScript>
-            <script>scripts/kerberos_server.py</script>
-            <scriptType>PYTHON</scriptType>
-            <timeout>900</timeout>
-          </commandScript>
-          <configFiles>
-            <configFile>
-              <type>env</type>
-              <fileName>krb5.conf</fileName>
-              <dictionaryName>krb5-conf</dictionaryName>
-            </configFile>
-            <configFile>
-              <type>env</type>
-              <fileName>kdc.conf</fileName>
-              <dictionaryName>kdc-conf</dictionaryName>
-            </configFile>
-            <configFile>
-              <type>env</type>
-              <fileName>kadm5.acl</fileName>
-              <dictionaryName>kadm5-acl</dictionaryName>
-            </configFile>
-          </configFiles>
-        </component>
-
-        <component>
           <name>KERBEROS_CLIENT</name>
           <displayName>Kerberos Client</displayName>
           <category>CLIENT</category>

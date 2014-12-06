@@ -25,21 +25,38 @@ App.KerberosWizardStep3Controller = App.KerberosProgressPageController.extend({
   commands: ['installKerberos', 'testKerberos'],
 
   installKerberos: function() {
-    App.ajax.send({
-      name: 'common.create_component',
-      sender: this,
-      data: {
-        serviceName: this.serviceName,
-        componentName: this.componentName
-      },
-      success: 'onKerberosCreate',
-      error: 'onKerberosCreate'
+    var self = this;
+    this.getKerberosClientState().done(function(data) {
+      if (data.ServiceComponentInfo.state === 'INIT') {
+        App.ajax.send({
+          name: 'common.services.update',
+          sender: self,
+          data: {
+            context: Em.I18n.t('requestInfo.kerberosService'),
+            ServiceInfo: {"state": "INSTALLED"},
+            urlParams: "ServiceInfo/state=INSTALLED&ServiceInfo/service_name=KERBEROS"
+          },
+          success: 'startPolling',
+          error: 'onTaskError'
+        });
+      } else {
+        var hostNames = self.get('content.hosts');
+        self.updateComponent('KERBEROS_CLIENT', hostNames, "KERBEROS", "Install");
+      }
     });
   },
 
-  onKerberosCreate: function() {
-    var hostNames = this.get('content.hosts');
-    this.createComponent(this.componentName, hostNames, this.serviceName);
+
+  getKerberosClientState: function() {
+    return App.ajax.send({
+      name: 'common.service_component.info',
+      sender: this,
+      data: {
+        serviceName: this.serviceName,
+        componentName: this.componentName,
+        urlParams: "fields=ServiceComponentInfo/state"
+      }
+    });
   },
 
   testKerberos: function() {

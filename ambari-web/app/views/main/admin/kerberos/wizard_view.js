@@ -22,10 +22,6 @@ App.KerberosWizardView = Em.View.extend(App.WizardMenuMixin, {
 
   templateName: require('templates/main/admin/kerberos/wizard'),
 
-  isStep5Disabled: true,
-
-  isStep6Disabled: true,
-
   isLoaded: false,
 
   willInsertElement: function () {

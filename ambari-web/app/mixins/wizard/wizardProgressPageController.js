@@ -35,40 +35,169 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create({
   POLL_INTERVAL: 4000,
   isSubmitDisabled: true,
   isBackButtonDisabled: true,
+  stages: [],
+  currentPageRequestId: null,
+  isSingleRequestPage: false,
+  isCommandLevelRetry: function () {
+    return !this.get('isSingleRequestPage');
+  }.property('isSingleRequestPage'),
+  showRetry: false,
+
+  k: Em.K,
   /**
    *  tasksMessagesPrefix should be overloaded by any controller including the mixin
    */
   tasksMessagesPrefix: '',
 
   loadStep: function () {
+    var self = this;
+    if (!self.isSingleRequestPage) {
+      this.initStep();
+    } else {
+      var runningOperations = App.router.get('backgroundOperationsController.services').filterProperty('isRunning');
+      var currentOperation = runningOperations.findProperty('name', this.request.ajaxData.context);
+      if (!currentOperation) {
+        this.submitRequest().done(function (data) {
+          if (data) {
+            self.set('currentPageRequestId', data.Requests.id);
+            self.doPollingForPageRequest();
+          } else {
+            //Step has been successfully completed
+          }
+        });
+      } else {
+        self.set('currentPageRequestId',currentOperation.get('id'));
+        self.doPollingForPageRequest();
+      }
+    }
+  },
+
+  initStep: function () {
     this.clearStep();
     this.initializeTasks();
-    this.loadTasks();
+    if (!this.isSingleRequestPage) {
+      this.loadTasks();
+    }
     this.addObserver('tasks.@each.status', this, 'onTaskStatusChange');
-    this.onTaskStatusChange();
+    if (this.isSingleRequestPage) {
+      var dfd = $.Deferred();
+      var dfdObject = {
+        deferred: dfd,
+        isJqueryPromise: true
+      };
+      this.onTaskStatusChange(dfdObject);
+      return dfd.promise();
+    } else {
+      this.onTaskStatusChange();
+    }
   },
 
   clearStep: function () {
+    this.removeObserver('tasks.@each.status', this, 'onTaskStatusChange');
     this.set('isSubmitDisabled', true);
     this.set('isBackButtonDisabled', true);
     this.set('tasks', []);
     this.set('currentRequestIds', []);
   },
 
+  retry: function () {
+    this.set('showRetry', false);
+    this.get('tasks').setEach('status','PENDING');
+    this.loadStep();
+  },
+
+  submitRequest: function () {
+    var dfd;
+    var self = this;
+    dfd = App.ajax.send({
+      name: self.request.ajaxName,
+      data: self.request.ajaxData,
+      sender: this
+    });
+    return dfd.promise();
+  },
+
+  doPollingForPageRequest: function () {
+    App.ajax.send({
+      name: 'admin.poll.kerberize.cluster.request',
+      sender: this,
+      data: {
+        requestId: this.get('currentPageRequestId')
+      },
+      success: 'initializeStages'
+    });
+  },
+
+  initializeStages: function (data) {
+    var self = this;
+    var stages = [];
+    this.set('logs', []);
+    data.stages.forEach(function (_stage) {
+      stages.pushObject(Em.Object.create(_stage.Stage));
+    }, this);
+    if (!this.get('stages').length) {
+      this.get('stages').pushObjects(stages);
+      this.initStep().done(function(){
+        self.updatePageWithPolledData(data);
+      });
+    } else {
+      this.updatePageWithPolledData(data);
+    }
+  },
+
+  updatePageWithPolledData: function(data) {
+    var self = this;
+    var tasks = [];
+    var currentPageRequestId = this.get('currentPageRequestId');
+    var currentTaskId = this.get('currentTaskId');
+    var currentTask = this.get('tasks').findProperty('id', currentTaskId);
+    var currentStage =  data.stages.findProperty('Stage.stage_id', currentTask.get('stageId'));
+    var tasksInCurrentStage =  currentStage.tasks;
+    this.set('logs',tasksInCurrentStage);
+
+    this.setRequestIds(this.get('currentTaskId'), [this.get('currentPageRequestId')]);
+
+    if (!tasksInCurrentStage.someProperty('Tasks.status', 'PENDING') && !tasksInCurrentStage.someProperty('Tasks.status', 'QUEUED') && !tasksInCurrentStage.someProperty('Tasks.status', 'IN_PROGRESS')) {
+      this.set('currentRequestIds', []);
+      if (tasksInCurrentStage.someProperty('Tasks.status', 'FAILED') || tasksInCurrentStage.someProperty('Tasks.status', 'TIMEDOUT') || tasksInCurrentStage.someProperty('Tasks.status', 'ABORTED')) {
+        this.setTaskStatus(currentTaskId, 'FAILED');
+      } else {
+        this.setTaskStatus(currentTaskId, 'COMPLETED');
+      }
+    } else {
+      var completedActions = tasksInCurrentStage.filterProperty('Tasks.status', 'COMPLETED').length
+        + tasksInCurrentStage.filterProperty('Tasks.status', 'FAILED').length
+        + tasksInCurrentStage.filterProperty('Tasks.status', 'ABORTED').length
+        + tasksInCurrentStage.filterProperty('Tasks.status', 'TIMEDOUT').length;
+      var queuedActions = tasksInCurrentStage.filterProperty('Tasks.status', 'QUEUED').length;
+      var inProgressActions = tasksInCurrentStage.filterProperty('Tasks.status', 'IN_PROGRESS').length;
+      var progress = Math.ceil(((queuedActions * 0.09) + (inProgressActions * 0.35) + completedActions ) / tasksInCurrentStage.length * 100);
+      this.get('tasks').findProperty('id', currentTaskId).set('progress', progress);
+    }
+
+    if (!(this.get('status') === 'COMPLETED')) {
+      window.setTimeout(function () {
+        self.doPollingForPageRequest();
+      }, self.POLL_INTERVAL);
+    }
+  },
+
   initializeTasks: function () {
-    var commands = this.get('commands');
+    var self = this;
+    var commands = this.isSingleRequestPage ? this.get('stages') : this.get('commands');
     var currentStep = App.router.get(this.get('content.controllerName') + '.currentStep');
     var tasksMessagesPrefix = this.get('tasksMessagesPrefix');
     for (var i = 0; i < commands.length; i++) {
       this.get('tasks').pushObject(Ember.Object.create({
-        title: Em.I18n.t(tasksMessagesPrefix + currentStep + '.task' + i + '.title'),
+        title: self.isSingleRequestPage ? commands[i].get('context') : Em.I18n.t(tasksMessagesPrefix + currentStep + '.task' + i + '.title'),
         status: 'PENDING',
         id: i,
-        command: commands[i],
+        stageId: self.isSingleRequestPage ? commands[i].get('stage_id') : null,
+        command: self.isSingleRequestPage ? 'k' : commands[i],
         showRetry: false,
         showRollback: false,
-        name: Em.I18n.t(tasksMessagesPrefix + currentStep + '.task' + i + '.title'),
-        displayName: Em.I18n.t(tasksMessagesPrefix + currentStep + '.task' + i + '.title'),
+        name: self.isSingleRequestPage ? commands[i].get('context') : Em.I18n.t(tasksMessagesPrefix + currentStep + '.task' + i + '.title'),
+        displayName: self.isSingleRequestPage ? commands[i].get('context') : Em.I18n.t(tasksMessagesPrefix + currentStep + '.task' + i + '.title'),
         progress: 0,
         isRunning: false,
         requestIds: []
@@ -113,7 +242,7 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create({
     task.set('status', 'PENDING');
   },
 
-  onTaskStatusChange: function () {
+  onTaskStatusChange: function (dfdObject) {
     var statuses = this.get('tasks').mapProperty('status');
     var tasksRequestIds = this.get('tasks').mapProperty('requestIds');
     var requestIds = this.get('currentRequestIds');
@@ -123,24 +252,29 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create({
     App.router.get(this.get('content.controllerName')).saveRequestIds(requestIds);
     // call saving of cluster status asynchronous
     // synchronous executing cause problems in Firefox
+    var successCallbackData;
+    if (dfdObject && dfdObject.isJqueryPromise) {
+      successCallbackData =  {deferred: dfdObject.deferred};
+    }
     App.clusterStatus.setClusterStatus({
       clusterName: App.router.getClusterName(),
       clusterState: this.get('clusterDeployState'),
       wizardControllerName: this.get('content.controllerName'),
       localdb: App.db.data
-    }, {successCallback: this.statusChangeCallback, sender: this});
+    }, {successCallback: this.statusChangeCallback, sender: this, successCallbackData: successCallbackData});
   },
 
   /**
    * Method that called after saving persist data to server.
    * Switch task according its status.
    */
-  statusChangeCallback: function () {
+  statusChangeCallback: function (data) {
     if (!this.get('tasks').someProperty('status', 'IN_PROGRESS') && !this.get('tasks').someProperty('status', 'QUEUED') && !this.get('tasks').someProperty('status', 'FAILED')) {
       var nextTask = this.get('tasks').findProperty('status', 'PENDING');
       if (nextTask) {
         this.set('status', 'IN_PROGRESS');
-        this.setTaskStatus(nextTask.get('id'), 'QUEUED');
+        var taskStatus = this.isSingleRequestPage ? 'IN_PROGRESS' : 'QUEUED';
+        this.setTaskStatus(nextTask.get('id'), taskStatus);
         this.set('currentTaskId', nextTask.get('id'));
         this.runTask(nextTask.get('id'));
       } else {
@@ -151,13 +285,21 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create({
     } else if (this.get('tasks').someProperty('status', 'FAILED')) {
       this.set('status', 'FAILED');
       this.set('isBackButtonDisabled', false);
-      this.get('tasks').findProperty('status', 'FAILED').set('showRetry', true);
+      if (this.get('isCommandLevelRetry')) {
+        this.get('tasks').findProperty('status', 'FAILED').set('showRetry', true);
+      } else {
+        this.set('showRetry', true);
+      }
       if (App.supports.autoRollbackHA) {
         this.get('tasks').findProperty('status', 'FAILED').set('showRollback', true);
       }
     }
     this.get('tasks').filterProperty('status', 'COMPLETED').setEach('showRetry', false);
     this.get('tasks').filterProperty('status', 'COMPLETED').setEach('showRollback', false);
+
+    if (data && data.deferred) {
+      data.deferred.resolve();
+    }
   },
 
   /**

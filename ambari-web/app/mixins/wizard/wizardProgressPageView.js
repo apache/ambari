@@ -43,7 +43,9 @@ App.wizardProgressPageViewMixin = Em.Mixin.create({
 
   noticeCompleted: Em.I18n.t('wizard.progressPage.notice.completed'),
 
-  noticeFailed: Em.I18n.t('wizard.progressPage.notice.failed'),
+  noticeFailed: function() {
+    return (this.get('controller.isSingleRequestPage') ? Em.I18n.t('wizard.singleRequest.progressPage.notice.failed') : Em.I18n.t('wizard.progressPage.notice.failed'))
+  }.property('controller.isSingleRequestPage'),
 
   /**
    * @noticeInProgress: Following computed property needs to be overridden to show the label text while the commands
@@ -109,7 +111,7 @@ App.wizardProgressPageViewMixin = Em.Mixin.create({
         this.set('iconColor', '');
         this.set('linkClass', 'not-active-link');
       }
-    }.observes('content.status', 'content.hosts.length'),
+    }.observes('content.status', 'content.hosts.length','content.requestIds'),
 
     showProgressBar: function () {
       return this.get('content.status') === "IN_PROGRESS";

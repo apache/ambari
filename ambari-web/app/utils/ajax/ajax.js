@@ -76,6 +76,11 @@ var urls = {
     }
   },
 
+  'common.service_component.info' : {
+    'real': '/clusters/{clusterName}/services/{serviceName}/components/{componentName}?{urlParams}',
+    'mock': '/data/wizard/deploy/poll_1.json'
+  },
+
   'common.host_component.update': {
     'real': '/clusters/{clusterName}/host_components',
     'mock': '',
@@ -249,7 +254,7 @@ var urls = {
     'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{componentName}',
     'mock': '',
     'type': 'PUT',
-    'format': function(data) {
+    'format': function (data) {
       return {
         data: JSON.stringify({
           RequestInfo: {
@@ -466,49 +471,49 @@ var urls = {
         data: JSON.stringify({
           "RequestInfo": {
             "context": data.displayName + " Service Check",
-            "command" : data.actionName
+            "command": data.actionName
           },
-          "Requests/resource_filters": [{"service_name" : data.serviceName}]
+          "Requests/resource_filters": [{"service_name": data.serviceName}]
         })
       };
     }
   },
-  'service.item.rebalanceHdfsNodes' : {
-    'real' : '/clusters/{clusterName}/requests',
-    'mock' : '',
-    'format' : function(data) {
+  'service.item.rebalanceHdfsNodes': {
+    'real': '/clusters/{clusterName}/requests',
+    'mock': '',
+    'format': function (data) {
       return {
-        type : 'POST',
-        data : JSON.stringify({
-          RequestInfo : {
-            'context' : Em.I18n.t('services.service.actions.run.rebalanceHdfsNodes.context'),
-            'command' : 'REBALANCEHDFS',
-            'namenode' : JSON.stringify({threshold: data.threshold})
+        type: 'POST',
+        data: JSON.stringify({
+          RequestInfo: {
+            'context': Em.I18n.t('services.service.actions.run.rebalanceHdfsNodes.context'),
+            'command': 'REBALANCEHDFS',
+            'namenode': JSON.stringify({threshold: data.threshold})
           },
-          "Requests/resource_filters" : [ {
-            'service_name' : 'HDFS',
-            'component_name' : 'NAMENODE',
-            'hosts' : data.hosts
-          } ]
+          "Requests/resource_filters": [{
+            'service_name': 'HDFS',
+            'component_name': 'NAMENODE',
+            'hosts': data.hosts
+          }]
         })
       }
     }
   },
 
-  'cancel.background.operation' : {
-    'real' : '/clusters/{clusterName}/requests/{requestId}',
-    'mock' : '',
-    'format' : function(data) {
+  'cancel.background.operation': {
+    'real': '/clusters/{clusterName}/requests/{requestId}',
+    'mock': '',
+    'format': function (data) {
       return {
-        type : 'PUT',
-        data : JSON.stringify({
-          RequestInfo : {
-            'context' : 'Cancel operation',
-            "parameters" : {
-              "cancel_policy"   : "SIGKILL"
+        type: 'PUT',
+        data: JSON.stringify({
+          RequestInfo: {
+            'context': 'Cancel operation',
+            "parameters": {
+              "cancel_policy": "SIGKILL"
             }
           },
-          "Requests/request_status":'ABORTED',
+          "Requests/request_status": 'ABORTED',
           "Requests/abort_reason": "Cancel background operation"
         })
       }
@@ -516,53 +521,65 @@ var urls = {
   },
 
 
-  'service.item.refreshQueueYarnRequest':{
+  'service.item.refreshQueueYarnRequest': {
     'real': '/clusters/{clusterName}/requests',
     'mock': '',
-    'format' : function(data) {
-        return {
-          type : 'POST',
-          data : JSON.stringify({
-            RequestInfo: {
-              'context': data.context,
-              'command': data.command,
-              'parameters/forceRefreshConfigTags' : data.forceRefreshConfigTags
-            },
-            "Requests/resource_filters": [{"service_name" : data.serviceName, "component_name" : data.componentName, 'hosts': data.hosts}]
-          })
-        }
-      }
-  },
-
-  'service.item.startStopLdapKnox':{
-    'real': '/clusters/{clusterName}/requests',
-    'mock': '',
-    'format' : function(data) {
+    'format': function (data) {
       return {
-        type : 'POST',
-        data : JSON.stringify({
+        type: 'POST',
+        data: JSON.stringify({
           RequestInfo: {
             'context': data.context,
-            'command': data.command
+            'command': data.command,
+            'parameters/forceRefreshConfigTags': data.forceRefreshConfigTags
           },
-          "Requests/resource_filters": [{"service_name" : data.serviceName, "component_name" : data.componentName, 'hosts': data.host}]
+          "Requests/resource_filters": [{
+            "service_name": data.serviceName,
+            "component_name": data.componentName,
+            'hosts': data.hosts
+          }]
         })
       }
     }
   },
 
-  'service.item.executeCustomCommand':{
+  'service.item.startStopLdapKnox': {
     'real': '/clusters/{clusterName}/requests',
     'mock': '',
-    'format' : function(data) {
+    'format': function (data) {
       return {
-        type : 'POST',
-        data : JSON.stringify({
+        type: 'POST',
+        data: JSON.stringify({
           RequestInfo: {
             'context': data.context,
             'command': data.command
           },
-          "Requests/resource_filters": [{"service_name" : data.serviceName, "component_name" : data.componentName, 'hosts': data.hosts}]
+          "Requests/resource_filters": [{
+            "service_name": data.serviceName,
+            "component_name": data.componentName,
+            'hosts': data.host
+          }]
+        })
+      }
+    }
+  },
+
+  'service.item.executeCustomCommand': {
+    'real': '/clusters/{clusterName}/requests',
+    'mock': '',
+    'format': function (data) {
+      return {
+        type: 'POST',
+        data: JSON.stringify({
+          RequestInfo: {
+            'context': data.context,
+            'command': data.command
+          },
+          "Requests/resource_filters": [{
+            "service_name": data.serviceName,
+            "component_name": data.componentName,
+            'hosts': data.hosts
+          }]
         })
       }
     }
@@ -664,7 +681,7 @@ var urls = {
   'host.host_component.add_new_component': {
     'real': '/clusters/{clusterName}/hosts?Hosts/host_name={hostName}',
     'mock': '/data/wizard/deploy/poll_1.json',
-    'format': function(data) {
+    'format': function (data) {
       return {
         type: 'POST',
         data: data.data
@@ -693,12 +710,12 @@ var urls = {
     'mock': ''
   },
   'host.host_component.decommission_slave': {
-    'real' : '/clusters/{clusterName}/requests',
-    'mock' : '',
-    'format' : function(data) {
+    'real': '/clusters/{clusterName}/requests',
+    'mock': '',
+    'format': function (data) {
       return {
-        type : 'POST',
-        data : JSON.stringify({
+        type: 'POST',
+        data: JSON.stringify({
           RequestInfo: {
             'context': data.context,
             'command': data.command,
@@ -713,7 +730,7 @@ var urls = {
               service_name: data.serviceName
             }
           },
-          "Requests/resource_filters": [{"service_name" : data.serviceName, "component_name" : data.componentName}]
+          "Requests/resource_filters": [{"service_name": data.serviceName, "component_name": data.componentName}]
         })
       }
     }
@@ -721,32 +738,32 @@ var urls = {
   'host.host_component.recommission_and_restart': {
     'real': '/clusters/{clusterName}/request_schedules',
     'mock': '',
-    'format' : function(data) {
+    'format': function (data) {
       return {
-        type : 'POST',
-        data : JSON.stringify([ {
-          "RequestSchedule" : {
-            "batch" : [ {
-              "requests" : data.batches
+        type: 'POST',
+        data: JSON.stringify([{
+          "RequestSchedule": {
+            "batch": [{
+              "requests": data.batches
             }, {
-              "batch_settings" : {
-                "batch_separation_in_seconds" : data.intervalTimeSeconds,
-                "task_failure_tolerance" : data.tolerateSize
+              "batch_settings": {
+                "batch_separation_in_seconds": data.intervalTimeSeconds,
+                "task_failure_tolerance": data.tolerateSize
               }
-            } ]
+            }]
           }
-        } ])
+        }])
       }
     }
   },
 
   'host.host_component.refresh_configs': {
-    'real':'/clusters/{clusterName}/requests',
-    'mock':'',
-    'format': function(data) {
+    'real': '/clusters/{clusterName}/requests',
+    'mock': '',
+    'format': function (data) {
       return {
-        type : 'POST',
-        data : JSON.stringify({
+        type: 'POST',
+        data: JSON.stringify({
           "RequestInfo": {
             "command": "CONFIGURE",
             "context": data.context
@@ -993,27 +1010,27 @@ var urls = {
     'mock': '',
     'testInProduction': true
   },
-  'service.metrics.kafka.broker.topic' : {
+  'service.metrics.kafka.broker.topic': {
     'real': '/clusters/{clusterName}/services/KAFKA/components/KAFKA_BROKER?fields=metrics/kafka/server/BrokerTopicMetrics/AllTopicsBytesInPerSec/1MinuteRate[{fromSeconds},{toSeconds},{stepSeconds}],metrics/kafka/server/BrokerTopicMetrics/AllTopicsBytesOutPerSec/1MinuteRate[{fromSeconds},{toSeconds},{stepSeconds}],metrics/kafka/server/BrokerTopicMetrics/AllTopicsMessagesInPerSec/1MinuteRate[{fromSeconds},{toSeconds},{stepSeconds}]',
     'mock': ''
   },
-  'service.metrics.kafka.controller.KafkaController' : {
+  'service.metrics.kafka.controller.KafkaController': {
     'real': '/clusters/{clusterName}/services/KAFKA/components/KAFKA_BROKER?fields=metrics/kafka/controller/KafkaController/ActiveControllerCount[{fromSeconds},{toSeconds},{stepSeconds}]',
     'mock': ''
   },
-  'service.metrics.kafka.controller.ControllerStats' : {
+  'service.metrics.kafka.controller.ControllerStats': {
     'real': '/clusters/{clusterName}/services/KAFKA/components/KAFKA_BROKER?fields=metrics/kafka/controller/ControllerStats/LeaderElectionRateAndTimeMs/1MinuteRate[{fromSeconds},{toSeconds},{stepSeconds}],metrics/kafka/controller/ControllerStats/UncleanLeaderElectionsPerSec/1MinuteRate[{fromSeconds},{toSeconds},{stepSeconds}]',
     'mock': ''
   },
-  'service.metrics.kafka.log.LogFlushStats' : {
+  'service.metrics.kafka.log.LogFlushStats': {
     'real': '/clusters/{clusterName}/services/KAFKA/components/KAFKA_BROKER?fields=metrics/kafka/log/LogFlushStats/LogFlushRateAndTimeMs/1MinuteRate[{fromSeconds},{toSeconds},{stepSeconds}]',
     'mock': ''
   },
-  'service.metrics.kafka.server.ReplicaManager' : {
+  'service.metrics.kafka.server.ReplicaManager': {
     'real': '/clusters/{clusterName}/services/KAFKA/components/KAFKA_BROKER?fields=metrics/kafka/server/ReplicaManager/PartitionCount[{fromSeconds},{toSeconds},{stepSeconds}],metrics/kafka/server/ReplicaManager/UnderReplicatedPartitions[{fromSeconds},{toSeconds},{stepSeconds}],metrics/kafka/server/BrokerTopicMetrics/ReplicaManager/LeaderCount[{fromSeconds},{toSeconds},{stepSeconds}]',
     'mock': ''
   },
-  'service.metrics.kafka.server.ReplicaFetcherManager' : {
+  'service.metrics.kafka.server.ReplicaFetcherManager': {
     'real': '/clusters/{clusterName}/services/KAFKA/components/KAFKA_BROKER?fields=metrics/kafka/server/ReplicaFetcherManager/Replica-MaxLag[{fromSeconds},{toSeconds},{stepSeconds}]',
     'mock': ''
   },
@@ -1074,7 +1091,7 @@ var urls = {
   'admin.security_status': {
     'real': '/clusters/{clusterName}?fields=Clusters/desired_configs',
     'mock': '',
-    'format': function() {
+    'format': function () {
       return {
         timeout: 10000
       };
@@ -1167,7 +1184,7 @@ var urls = {
     'real': '/clusters/{clusterName}/services?ServiceInfo/service_name=HDFS',
     'mock': '',
     'type': 'POST',
-    'format': function() {
+    'format': function () {
       return {
         data: JSON.stringify({
           "components": [
@@ -1185,7 +1202,7 @@ var urls = {
     'real': '/clusters/{clusterName}/services?ServiceInfo/service_name={serviceName}',
     'mock': '',
     'type': 'POST',
-    'format': function(data) {
+    'format': function (data) {
       return {
         data: JSON.stringify({
           "components": [
@@ -1203,7 +1220,7 @@ var urls = {
     'real': '/clusters/{clusterName}/services?ServiceInfo/service_name=HDFS',
     'mock': '',
     'type': 'POST',
-    'format': function() {
+    'format': function () {
       return {
         data: JSON.stringify({
           "components": [
@@ -1246,7 +1263,7 @@ var urls = {
   'admin.security.cluster_configs': {
     'real': '/clusters/{clusterName}',
     'mock': '',
-    'format': function() {
+    'format': function () {
       return {
         timeout: 10000
       };
@@ -1255,7 +1272,7 @@ var urls = {
   'admin.get.all_configurations': {
     'real': '/clusters/{clusterName}/configurations?{urlParams}',
     'mock': '',
-    'format': function() {
+    'format': function () {
       return {
         timeout: 10000
       };
@@ -1264,11 +1281,25 @@ var urls = {
   'admin.security.add.cluster_configs': {
     'real': '/clusters/{clusterName}' + '?fields=Clusters/desired_configs',
     'mock': '',
-    'format': function() {
+    'format': function () {
       return {
         timeout: 10000
       };
     }
+  },
+  'admin.kerberize.cluster': {
+    'type': 'POST',
+    'real': '/clusters/{clusterName}',
+    'mock': '/data/wizard/kerberos/kerberize_cluster.json',
+    'format' : function () {
+      return {
+        data: '{"RequestInfo": {"context" :"' + Em.I18n.t('requestInfo.kerberizeCluster') + '"}'
+      }
+    }
+  },
+  'admin.poll.kerberize.cluster.request': {
+    'real': '/clusters/{clusterName}/requests/{requestId}?fields=stages/Stage/context,stages/Stage/status,stages/Stage/progress_percent,stages/tasks/*,Requests/*',
+    'mock': '/data/wizard/kerberos/kerberize_cluster.json'
   },
   'admin.stack_upgrade.run_upgrade': {
     'real': '/clusters/{clusterName}',
@@ -1283,7 +1314,7 @@ var urls = {
   'admin.user.create': {
     'real': '/users/{user}',
     'mock': '/data/users/users.json',
-    'format': function(data) {
+    'format': function (data) {
       return {
         type: 'POST',
         data: JSON.stringify(data.data)
@@ -1293,8 +1324,8 @@ var urls = {
 
   'admin.user.edit': {
     'real': '/users/{user}',
-    'mock':'/data/users/users.json',
-    'format': function(data) {
+    'mock': '/data/users/users.json',
+    'format': function (data) {
       return {
         type: 'PUT',
         data: data.data
@@ -1317,7 +1348,7 @@ var urls = {
   'admin.stack_version.install.repo_version': {
     'type': 'POST',
     'real': 'clusters/{clusterName}/requests',
-    'format': function(data) {
+    'format': function (data) {
       return {
         type: 'POST',
         dataType: 'text',
@@ -1341,7 +1372,7 @@ var urls = {
   'wizard.service_components': {
     'real': '{stackUrl}/services?fields=StackServices/*,serviceComponents/*,serviceComponents/dependencies/Dependencies/scope',
     'mock': '/data/stacks/HDP-2.1/service_components.json',
-    'format': function(data) {
+    'format': function (data) {
       return {
         timeout: 10000
       };
@@ -1367,9 +1398,9 @@ var urls = {
   },
 
   'wizard.step8.create_cluster': {
-    'real':'/clusters/{cluster}',
-    'mock':'',
-    'format': function(data) {
+    'real': '/clusters/{cluster}',
+    'mock': '',
+    'format': function (data) {
       return {
         type: 'POST',
         dataType: 'text',
@@ -1380,9 +1411,9 @@ var urls = {
 
   'wizard.step8.create_selected_services': {
     'type': 'POST',
-    'real':'/clusters/{cluster}/services',
-    'mock':'/data/stacks/HDP-2.1/recommendations.json',
-    'format': function(data) {
+    'real': '/clusters/{cluster}/services',
+    'mock': '/data/stacks/HDP-2.1/recommendations.json',
+    'format': function (data) {
       return {
         dataType: 'text',
         data: data.data
@@ -1391,9 +1422,9 @@ var urls = {
   },
 
   'wizard.step8.create_components': {
-    'real':'/clusters/{cluster}/services?ServiceInfo/service_name={serviceName}',
-    'mock':'',
-    'format': function(data) {
+    'real': '/clusters/{cluster}/services?ServiceInfo/service_name={serviceName}',
+    'mock': '',
+    'format': function (data) {
       return {
         type: 'POST',
         dataType: 'text',
@@ -1403,9 +1434,9 @@ var urls = {
   },
 
   'wizard.step8.register_host_to_cluster': {
-    'real':'/clusters/{cluster}/hosts',
-    'mock':'',
-    'format': function(data) {
+    'real': '/clusters/{cluster}/hosts',
+    'mock': '',
+    'format': function (data) {
       return {
         type: 'POST',
         dataType: 'text',
@@ -1415,9 +1446,9 @@ var urls = {
   },
 
   'wizard.step8.register_host_to_component': {
-    'real':'/clusters/{cluster}/hosts',
-    'mock':'',
-    'format': function(data) {
+    'real': '/clusters/{cluster}/hosts',
+    'mock': '',
+    'format': function (data) {
       return {
         type: 'POST',
         dataType: 'text',
@@ -1427,9 +1458,9 @@ var urls = {
   },
 
   'wizard.step8.apply_configuration_groups': {
-    'real':'/clusters/{cluster}/config_groups',
-    'mock':'',
-    'format': function(data) {
+    'real': '/clusters/{cluster}/config_groups',
+    'mock': '',
+    'format': function (data) {
       return {
         type: 'POST',
         dataType: 'text',
@@ -1439,9 +1470,9 @@ var urls = {
   },
 
   'wizard.step8.set_local_repos': {
-    'real':'{stackVersionURL}/operating_systems/{osType}/repositories/{repoId}',
-    'mock':'',
-    'format': function(data) {
+    'real': '{stackVersionURL}/operating_systems/{osType}/repositories/{repoId}',
+    'mock': '',
+    'format': function (data) {
       return {
         type: 'PUT',
         dataType: 'text',
@@ -1459,11 +1490,11 @@ var urls = {
           "RequestInfo": {
             "context": "Check hosts",
             "action": "check_host",
-            "parameters" : {
-              "threshold" : "60",
-              "java_home" : data.java_home,
+            "parameters": {
+              "threshold": "60",
+              "java_home": data.java_home,
               "jdk_location": data.jdk_location,
-              "check_execute_list" : "java_home_check"
+              "check_execute_list": "java_home_check"
             }
           },
           "Requests/resource_filters": [{
@@ -1480,7 +1511,7 @@ var urls = {
   'wizard.step3.host_info': {
     'real': '/hosts?fields=Hosts/total_mem,Hosts/cpu_count,Hosts/disk_info,Hosts/last_agent_env,Hosts/host_name,Hosts/os_type,Hosts/os_arch,Hosts/ip',
     'mock': '/data/wizard/bootstrap/two_hosts_information.json',
-    'format': function() {
+    'format': function () {
       return {
         contentType: 'application/json'
       };
@@ -1533,11 +1564,11 @@ var urls = {
     'type': 'POST',
     'format': function (data) {
       return {
-          data: JSON.stringify({
-            hosts: data.hosts,
-            services: data.services,
-            validate: data.validate,
-            recommendations: data.recommendations
+        data: JSON.stringify({
+          hosts: data.hosts,
+          services: data.services,
+          validate: data.validate,
+          recommendations: data.recommendations
         })
       }
     }
@@ -1545,12 +1576,12 @@ var urls = {
 
 
   'preinstalled.checks': {
-    'real':'/requests',
-    'mock':'',
-    'format': function(data) {
+    'real': '/requests',
+    'mock': '',
+    'format': function (data) {
       return {
-        type : 'POST',
-        data : JSON.stringify({
+        type: 'POST',
+        data: JSON.stringify({
           "RequestInfo": data.RequestInfo,
           "Requests/resource_filters": [data.resource_filters]
         })
@@ -1559,14 +1590,14 @@ var urls = {
   },
 
   'preinstalled.checks.tasks': {
-    'real':'/requests/{requestId}?fields=tasks/Tasks',
-    'mock':'/data/requests/host_check/1.json'
+    'real': '/requests/{requestId}?fields=tasks/Tasks',
+    'mock': '/data/requests/host_check/1.json'
   },
 
   'wizard.step3.rerun_checks': {
     'real': '/hosts?fields=Hosts/last_agent_env',
     'mock': '/data/wizard/bootstrap/two_hosts_information.json',
-    'format': function() {
+    'format': function () {
       return {
         contentType: 'application/json'
       };
@@ -1681,21 +1712,21 @@ var urls = {
   'rolling_restart.post': {
     'real': '/clusters/{clusterName}/request_schedules',
     'mock': '',
-    'format' : function(data) {
+    'format': function (data) {
       return {
-        type : 'POST',
-        data : JSON.stringify([ {
-          "RequestSchedule" : {
-            "batch" : [ {
-              "requests" : data.batches
+        type: 'POST',
+        data: JSON.stringify([{
+          "RequestSchedule": {
+            "batch": [{
+              "requests": data.batches
             }, {
-              "batch_settings" : {
-                "batch_separation_in_seconds" : data.intervalTimeSeconds,
-                "task_failure_tolerance" : data.tolerateSize
+              "batch_settings": {
+                "batch_separation_in_seconds": data.intervalTimeSeconds,
+                "task_failure_tolerance": data.tolerateSize
               }
-            } ]
+            }]
           }
-        } ])
+        }])
       }
     }
   },
@@ -1704,12 +1735,12 @@ var urls = {
     'mock': ''
   },
   'restart.hostComponents': {
-    'real':'/clusters/{clusterName}/requests',
-    'mock':'',
-    'format': function(data) {
+    'real': '/clusters/{clusterName}/requests',
+    'mock': '',
+    'format': function (data) {
       return {
-        type : 'POST',
-        data : JSON.stringify({
+        type: 'POST',
+        data: JSON.stringify({
           "RequestInfo": {
             "command": "RESTART",
             "context": data.context,
@@ -1872,9 +1903,9 @@ var urls = {
   },
 
   'bulk_request.decommission': {
-    'real' : '/clusters/{clusterName}/requests',
-    'mock' : '',
-    'format': function(data) {
+    'real': '/clusters/{clusterName}/requests',
+    'mock': '',
+    'format': function (data) {
       return {
         type: 'POST',
         data: JSON.stringify({
@@ -1887,7 +1918,7 @@ var urls = {
               'cluster_name': data.clusterName
             }
           },
-          "Requests/resource_filters": [{"service_name" : data.serviceName, "component_name" : data.componentName}]
+          "Requests/resource_filters": [{"service_name": data.serviceName, "component_name": data.componentName}]
         })
       }
     }
@@ -1896,7 +1927,7 @@ var urls = {
   'bulk_request.hosts.passive_state': {
     'real': '/clusters/{clusterName}/hosts',
     'mock': '',
-    'format': function(data) {
+    'format': function (data) {
       return {
         type: 'PUT',
         data: JSON.stringify({
@@ -1917,7 +1948,7 @@ var urls = {
   'bulk_request.hosts.all_components.passive_state': {
     'real': '/clusters/{clusterName}/host_components',
     'mock': '',
-    'format': function(data) {
+    'format': function (data) {
       return {
         type: 'PUT',
         data: JSON.stringify({
@@ -1961,14 +1992,14 @@ var urls = {
   'host.host_components.filtered': {
     'real': '/clusters/{clusterName}/hosts?{fields}',
     'mock': '',
-    format: function(data) {
+    format: function (data) {
       return {
         headers: {
           'X-Http-Method-Override': 'GET'
         },
         type: 'POST',
         data: JSON.stringify({
-          "RequestInfo": {"query" : data.parameters}
+          "RequestInfo": {"query": data.parameters}
         })
       };
     }
@@ -2029,11 +2060,11 @@ var urls = {
   'custom_action.create': {
     'real': '/requests',
     'mock': '',
-    'format': function(data) {
+    'format': function (data) {
       var requestInfo = {
         context: 'Check host',
         action: 'check_host',
-        parameters: { }
+        parameters: {}
       };
       $.extend(true, requestInfo, data.requestInfo);
       return {
@@ -2050,7 +2081,7 @@ var urls = {
   'custom_action.request': {
     'real': '/requests/{requestId}/tasks/{taskId}',
     'mock': '',
-    'format': function(data) {
+    'format': function (data) {
       return {
         requestId: data.requestId,
         taskId: data.taskId || ''
@@ -2084,7 +2115,7 @@ var urls = {
   'hosts.host_components.pre_load': {
     real: '',
     mock: '/data/hosts/HDP2/hosts.json',
-    format: function(data) {
+    format: function (data) {
       return {
         url: data.url
       }
@@ -2092,17 +2123,17 @@ var urls = {
   },
   'hosts.bulk.operations': {
     real: '/clusters/{clusterName}/hosts?fields=Hosts/host_name,Hosts/maintenance_state,' +
-      'host_components/HostRoles/state,host_components/HostRoles/maintenance_state,' +
-      'host_components/HostRoles/stale_configs&minimal_response=true',
+    'host_components/HostRoles/state,host_components/HostRoles/maintenance_state,' +
+    'host_components/HostRoles/stale_configs&minimal_response=true',
     mock: '',
-    format: function(data) {
+    format: function (data) {
       return {
         headers: {
           'X-Http-Method-Override': 'GET'
         },
         type: 'POST',
         data: JSON.stringify({
-          "RequestInfo": {"query" : data.parameters }
+          "RequestInfo": {"query": data.parameters}
         })
       }
     }
@@ -2126,7 +2157,7 @@ var urls = {
   'service.serviceConfigVersions.get.multiple': {
     real: '/clusters/{clusterName}/configurations/service_config_versions?service_name={serviceName}&service_config_version.in({serviceConfigVersions})',
     mock: '/data/configurations/service_version.json',
-    format: function(data) {
+    format: function (data) {
       return {
         serviceConfigVersions: data.serviceConfigVersions.join(',')
       }
@@ -2394,7 +2425,7 @@ if ($.mocho) {
      * Don't use it anywhere except tests!
      * @returns {Array}
      */
-    fakeGetUrlNames: function() {
+    fakeGetUrlNames: function () {
       return Em.keys(urls);
     },
 
@@ -2403,7 +2434,7 @@ if ($.mocho) {
      * @param name
      * @returns {*}
      */
-    fakeGetUrl: function(name) {
+    fakeGetUrl: function (name) {
       return urls[name];
     },
 
@@ -2413,7 +2444,7 @@ if ($.mocho) {
      * @param data
      * @returns {String}
      */
-    fakeFormatUrl: function(url, data) {
+    fakeFormatUrl: function (url, data) {
       return formatUrl(url, data);
     },
 
@@ -2423,7 +2454,7 @@ if ($.mocho) {
      * @param data
      * @returns {Object}
      */
-    fakeFormatRequest: function(urlObj, data) {
+    fakeFormatRequest: function (urlObj, data) {
       return formatRequest.call(urlObj, data);
     }
   });

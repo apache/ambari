@@ -182,8 +182,11 @@ App.clusterStatus = Em.Object.create(App.UserPref, {
    * @param {object} newValue
    * @param {object} opt - Can have additional params for ajax callBacks and sender
    *                 opt.successCallback
+   *                 opt.successCallbackData
    *                 opt.errorCallback
+   *                 opt.errorCallbackData
    *                 opt.alwaysCallback
+   *                 opt.alwaysCallbackData
    *                 opt.sender
    * @method setClusterStatus
    * @return {*}
@@ -232,13 +235,13 @@ App.clusterStatus = Em.Object.create(App.UserPref, {
       }
       this.postUserPref(this.get('key'), val)
           .done(function () {
-            !!opt && Em.typeOf(opt.successCallback) === 'function' && opt.successCallback.call(opt.sender || this);
+            !!opt && Em.typeOf(opt.successCallback) === 'function' && opt.successCallback.call(opt.sender || this, opt.successCallbackData);
           })
           .fail(function () {
-            !!opt && Em.typeOf(opt.errorCallback) === 'function' && opt.errorCallback.call(opt.sender || this);
+            !!opt && Em.typeOf(opt.errorCallback) === 'function' && opt.errorCallback.call(opt.sender || this, opt.errorCallbackData);
           })
           .always(function () {
-            !!opt && Em.typeOf(opt.alwaysCallback) === 'function' && opt.alwaysCallback.call(opt.sender || this);
+            !!opt && Em.typeOf(opt.alwaysCallback) === 'function' && opt.alwaysCallback.call(opt.sender || this, opt.alwaysCallbackData);
           });
       return newValue;
     }

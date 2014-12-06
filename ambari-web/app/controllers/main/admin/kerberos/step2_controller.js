@@ -27,13 +27,15 @@ App.KerberosWizardStep2Controller = App.WizardStep7Controller.extend({
 
   allSelectedServiceNames: ['KERBEROS'],
 
+  componentName: 'KERBEROS_CLIENT',
+
   installedServiceNames: [],
 
   servicesInstalled: false,
 
   addMiscTabToPage: false,
 
-  hostNames: function() {
+  hostNames: function () {
     return this.get('content.hosts');
   }.property('content.hosts'),
 
@@ -81,9 +83,13 @@ App.KerberosWizardStep2Controller = App.WizardStep7Controller.extend({
 
   createKerberosResources: function () {
     var self = this;
-    this.createKerberosService().done(function() {
-      self.createConfigurations().done(function() {
-        App.router.send('next');
+    this.createKerberosService().done(function () {
+      self.createKerberosComponent().done(function () {
+        self.createKerberosHostComponents().done(function () {
+          self.createConfigurations().done(function () {
+            App.router.send('next');
+          });
+        });
       });
     });
   },
@@ -109,6 +115,51 @@ App.KerberosWizardStep2Controller = App.WizardStep7Controller.extend({
       data: {
         data: '{"ServiceInfo": { "service_name": "KERBEROS"}}',
         cluster: App.get('clusterName') || App.clusterStatus.get('clusterName')
+      }
+    });
+  },
+
+  createKerberosComponent: function () {
+    return App.ajax.send({
+      name: 'common.create_component',
+      sender: this,
+      data: {
+        serviceName: this.selectedServiceNames[0],
+        componentName: this.componentName
+      }
+    });
+  },
+
+  createKerberosHostComponents: function() {
+    var hostNames = this.get('content.hosts');
+    var queryStr = '';
+    hostNames.forEach(function (hostName) {
+      queryStr += 'Hosts/host_name=' + hostName + '|';
+    });
+    //slice off last symbol '|'
+    queryStr = queryStr.slice(0, -1);
+
+    var data = {
+      "RequestInfo": {
+        "query": queryStr
+      },
+      "Body": {
+        "host_components": [
+          {
+            "HostRoles": {
+              "component_name": this.componentName
+            }
+          }
+        ]
+      }
+    };
+
+    return App.ajax.send({
+      name: 'wizard.step8.register_host_to_component',
+      sender: this,
+      data: {
+        cluster: App.router.getClusterName(),
+        data: JSON.stringify(data)
       }
     });
   },
