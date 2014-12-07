@@ -36,10 +36,6 @@ App.AlertInstance = DS.Model.extend({
   text: DS.attr('string'),
   notification: DS.hasMany('App.AlertNotification'),
 
-  formattedNotifications: function () {
-    return this.get('notification').mapProperty('name').join(', ');
-  }.property('notification'),
-
   /**
    * Status icon markup
    * @type {string}
@@ -53,7 +49,7 @@ App.AlertInstance = DS.Model.extend({
    * Formatted timestamp for latest instance triggering
    * @type {string}
    */
-  lastTriggered: function() {
+  lastTriggeredFormatted: function() {
     return dateUtils.dateFormat(this.get('originalTimestamp'));
   }.property('originalTimestamp'),
 

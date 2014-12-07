@@ -55,7 +55,7 @@ module.exports = [
   },
   {
     value: Em.I18n.t('hosts.host.alerts.label'),
-    hostProperty: 'criticalAlertsCount',
+    hostProperty: 'criticalWarningAlertsCount',
     class: 'icon-exclamation-sign',
     isHealthStatus: false,
     healthClass: 'health-status-WITH-ALERTS',

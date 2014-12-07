@@ -26,8 +26,8 @@ App.MainHostAlertsController = Em.ArrayController.extend({
   }.property('App.router.mainHostDetailsController.content'),
 
   /**
-   * List of all <code>App.AlertDefinition</code> by Host
-   * @type {App.AlertDefinition[]}
+   * List of all <code>App.AlertInstance</code> by Host
+   * @type {App.AlertInstance[]}
    */
   content: function() {
     return App.AlertInstance.find().toArray().filterProperty('host', this.get('selectedHost'));

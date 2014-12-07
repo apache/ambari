@@ -33,7 +33,8 @@ App.hostsMapper = App.QuickDataMapper.create({
     host_components: {
       item: 'id'
     },
-    critical_alerts_count: 'critical_alerts_count',
+    alerts_summary: 'alerts_summary',
+    critical_warning_alerts_count: 'critical_warning_alerts_count',
     cpu: 'Hosts.cpu_count',
     cpu_physical: 'Hosts.ph_cpu_count',
     memory: 'Hosts.total_mem',
@@ -113,7 +114,8 @@ App.hostsMapper = App.QuickDataMapper.create({
           }, this);
         }
 
-        item.critical_alerts_count = (item.legacy_alerts) ? item.legacy_alerts.summary.CRITICAL + item.legacy_alerts.summary.WARNING : 0;
+        var alertsSummary = item.alerts_summary;
+        item.critical_warning_alerts_count = alertsSummary ? (alertsSummary.CRITICAL || 0) + (alertsSummary.WARNING || 0) : 0;
         item.cluster_id = App.get('clusterName');
         item.index = index;
 

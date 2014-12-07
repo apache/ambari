@@ -105,8 +105,12 @@
             <span class="trim_hostname">
               <a title="{{unbound host.hostName}}" href="#" {{action "showDetails" host}}>{{unbound host.hostName}}</a>
             </span>
-            {{#if host.criticalAlertsCount}}
-              <span class="label label-important alerts-count" {{action "showAlertsPopup" host target="controller"}}>{{host.criticalAlertsCount}}</span>
+            {{#if host.criticalWarningAlertsCount}}
+              {{#if host.alertsSummary.CRITICAL}}
+                <span class="label alerts-count label-important" {{action "goToHostAlerts" host target="controller"}}>{{host.criticalWarningAlertsCount}}</span>
+              {{else}}
+                <span class="label alerts-count label-warning" {{action "goToHostAlerts" host target="controller"}}>{{host.criticalWarningAlertsCount}}</span>
+              {{/if}}
             {{/if}}
           </td>
           <td class="restart">

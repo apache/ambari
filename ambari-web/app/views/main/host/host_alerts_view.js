@@ -44,7 +44,7 @@ App.MainHostAlertsView = App.TableView.extend({
     return this.get('content.length');
   }.property('content.length'),
 
-  colPropAssoc: ['', 'label', 'state', 'service.serviceName', 'lastTriggered', 'notifications'],
+  colPropAssoc: ['', 'label', 'state', 'service.serviceName', 'originalTimestamp', 'notifications'],
 
   sortView: sort.wrapperView,
 

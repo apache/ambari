@@ -21,6 +21,7 @@ var App = require('app');
 App.MainHostMenuView = Em.CollectionView.extend({
   tagName: 'ul',
   classNames: ["nav", "nav-tabs"],
+  host: null,
   content: function () {
     var array = [
       {
@@ -42,7 +43,9 @@ App.MainHostMenuView = Em.CollectionView.extend({
     if (App.get('supports.alerts')) {
       array.push({
         label: 'Alerts',
-        routing: 'alerts'
+        routing: 'alerts',
+        badgeText: '0',
+        badgeClasses: 'label '
       });
     }
     return array;
@@ -55,6 +58,7 @@ App.MainHostMenuView = Em.CollectionView.extend({
     $.each(this._childViews, function () {
       this.set('active', (this.get('content.routing') == defaultRoute ? "active" : ""));
     });
+    this.hostAlertsObserver();
   },
 
   deactivateChildViews: function() {
@@ -63,9 +67,36 @@ App.MainHostMenuView = Em.CollectionView.extend({
     });
   },
 
+  hostAlertsObserver : function() {
+    var criticalWarningCount = this.get('host.criticalWarningAlertsCount');
+    var criticalCount = this.get('host.alertsSummary.CRITICAL');
+    var warningCount = this.get('host.alertsSummary.WARNING');
+    var badgeText = "" + criticalWarningCount;
+    var badgeClasses = "label ";
+    if (criticalCount > 0) {
+      badgeClasses += "label-important";
+    } else if (warningCount > 0){
+      badgeClasses += "label-warning ";
+    }
+    // Update content
+    var content = this.get('content');
+    if (content) {
+      content.forEach(function(item) {
+        if (item.label == 'Alerts' && (item.badgeText !== badgeText || item.badgeClasses != badgeClasses)) {
+          Ember.set(item, 'badgeText', badgeText);
+          Ember.set(item, 'badgeClasses', badgeClasses);
+        }
+      });
+    }
+  }.observes('host.alertsSummary.CRITICAL', 'host.alertsSummary.WARNING', 'host.criticalWarningAlertsCount'),
+
   itemViewClass: Em.View.extend({
     classNameBindings: ["active"],
     active: "",
-    template: Ember.Handlebars.compile('<a {{action hostNavigate view.content.routing }} href="#"> {{unbound view.content.label}}</a>')
+    template: Ember.Handlebars.compile('<a {{action hostNavigate view.content.routing }} href="#"> {{unbound view.content.label}} ' +
+        '{{#if view.content.badgeText}} '+
+          '<span {{bindAttr class="view.content.badgeClasses"}}> '+
+            '{{view.content.badgeText}}'+
+          '</span>  {{/if}}</a>')
   })
 });

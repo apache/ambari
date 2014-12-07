@@ -103,8 +103,8 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
       type: 'EQUAL'
     },
     {
-      name: 'criticalAlertsCount',
-      key: 'legacy_alerts/summary/CRITICAL{0}|legacy_alerts/summary/WARNING{1}',
+      name: 'criticalWarningAlertsCount',
+      key: 'alerts_summary/CRITICAL{0}|alerts_summary/WARNING{1}',
       type: 'CUSTOM'
     },
     {
@@ -301,7 +301,7 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
       'UNHEALTHY': data.Clusters.health_report['Host/host_status/UNHEALTHY'],
       'ALERT': data.Clusters.health_report['Host/host_status/ALERT'],
       'UNKNOWN': data.Clusters.health_report['Host/host_status/UNKNOWN'],
-      'health-status-WITH-ALERTS': (data.legacy_alerts) ? data.legacy_alerts.summary.CRITICAL + data.legacy_alerts.summary.WARNING : 0,
+      'health-status-WITH-ALERTS': (data.alerts_summary) ? data.alerts_summary.CRITICAL + data.alerts_summary.WARNING : 0,
       'health-status-RESTART': data.Clusters.health_report['Host/stale_config'],
       'health-status-PASSIVE_STATE': data.Clusters.health_report['Host/maintenance_state'],
       'TOTAL': data.Clusters.total_hosts
@@ -486,7 +486,11 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
     App.db.setFilterConditions(this.get('name'), [filterForStack]);
   },
 
-  showAlertsPopup: function (event) {
+  goToHostAlerts: function (event) {
+    var host = event && event.context;
+    if (host) {
+      App.router.transitionTo('main.hosts.hostDetails.alerts', host);
+    }
   },
 
   /**
@@ -918,7 +922,7 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
     associations[4] = 'memoryFormatted';
     associations[5] = 'loadAvg';
     associations[6] = 'hostComponents';
-    associations[7] = 'criticalAlertsCount';
+    associations[7] = 'criticalWarningAlertsCount';
     associations[8] = 'componentsWithStaleConfigsCount';
     associations[9] = 'componentsInPassiveStateCount';
     associations[10] = 'selected';
