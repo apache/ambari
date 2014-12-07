@@ -24,6 +24,7 @@ App.AlertDefinition = DS.Model.extend({
   name: DS.attr('string'),
   label: DS.attr('string'),
   service: DS.belongsTo('App.Service'),
+  serviceName: DS.attr('string'),
   componentName: DS.attr('string'),
   enabled: DS.attr('boolean'),
   scope: DS.attr('string'),
@@ -155,6 +156,23 @@ App.AlertDefinition = DS.Model.extend({
     var state = 'WARNING';
     return !!summary[state];
   }.property('summary'),
+
+  /**
+   * For alerts we will have processes which are not typical
+   * cluster services - like Ambari-Server. This method unifies
+   * cluster services and other services into a common display-name.
+   * @see App.AlertInstance#serviceDisplayName()
+   */
+  serviceDisplayName : function() {
+    var serviceName = this.get('service.displayName');
+    if (!serviceName) {
+      serviceName = this.get('serviceName');
+      if (serviceName) {
+        serviceName = serviceName.toCapital();
+      }
+    }
+    return serviceName;
+  }.property('serviceName', 'service.displayName'),
 
   /**
    * List of css-classes for alert types

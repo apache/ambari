@@ -132,6 +132,15 @@ describe('App.AlertDefinition', function () {
 
   });
 
+  describe('#serviceDisplayName', function () {
+
+    it('should get name for non-existing service', function () {
+      model.set('serviceName', 'FOOBAR');
+      expect(model.get('serviceDisplayName')).to.equal('Foobar');
+    });
+
+  });
+
   describe('#componentNameFormatted', function () {
 
     beforeEach(function () {

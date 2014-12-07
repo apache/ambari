@@ -27,6 +27,7 @@ App.alertInstanceMapper = App.QuickDataMapper.create({
     definition_name: 'Alert.definition_name',
     definition_id: 'Alert.definition_id',
     service_id: 'Alert.service_name',
+    service_name: 'Alert.service_name',
     component_name: 'Alert.component_name',
     host_id: 'Alert.host_name',
     scope: 'Alert.scope',

@@ -37,6 +37,7 @@ App.alertDefinitionsMapper = App.QuickDataMapper.create({
     name: 'AlertDefinition.name',
     label: 'AlertDefinition.label',
     service_id: 'AlertDefinition.service_name',
+    service_name: 'AlertDefinition.service_name',
     component_name: 'AlertDefinition.component_name',
     enabled: 'AlertDefinition.enabled',
     scope: 'AlertDefinition.scope',

@@ -44,7 +44,7 @@ App.MainHostAlertsView = App.TableView.extend({
     return this.get('content.length');
   }.property('content.length'),
 
-  colPropAssoc: ['', 'label', 'state', 'service.serviceName', 'originalTimestamp', 'notifications'],
+  colPropAssoc: ['', 'label', 'state', 'serviceName', 'originalTimestamp', 'notifications'],
 
   sortView: sort.wrapperView,
 
@@ -167,7 +167,10 @@ App.MainHostAlertsView = App.TableView.extend({
               value: service.get('serviceName'),
               label: service.get('displayName')
             }
-          }));
+          })).concat({
+            value: 'AMBARI',
+            label: Em.I18n.t('app.name')
+          });
     }.property('App.router.clusterController.isLoaded'),
     onChangeValue: function () {
       this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'select');

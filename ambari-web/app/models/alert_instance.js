@@ -25,6 +25,7 @@ App.AlertInstance = DS.Model.extend({
   definitionName: DS.attr('string'),
   definitionId: DS.attr('number'),
   service: DS.belongsTo('App.Service'),
+  serviceName: DS.attr('string'),
   componentName: DS.attr('string'),
   host: DS.belongsTo('App.Host'),
   scope: DS.attr('string'),
@@ -44,6 +45,23 @@ App.AlertInstance = DS.Model.extend({
     var state = this.get('state');
     return '<span class="label alert-state-single-host alert-state-' + state + '">' + state + '</span>';
   }.property('state'),
+
+  /**
+   * For alerts we will have processes which are not typical
+   * cluster services - like Ambari-Server. This method unifies
+   * cluster services and other services into a common display-name.
+   * @see App.AlertDefinition#serviceDisplayName()
+   */
+  serviceDisplayName : function() {
+    var serviceName = this.get('service.displayName');
+    if (!serviceName) {
+      serviceName = this.get('serviceName');
+      if (serviceName) {
+        serviceName = serviceName.toCapital();
+      }
+    }
+    return serviceName;
+  }.property('serviceName', 'service.displayName'),
 
   /**
    * Formatted timestamp for latest instance triggering

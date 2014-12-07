@@ -57,7 +57,7 @@
             <a href="#" {{action "gotoAlertDetails" alertDefinition}}>{{alertDefinition.label}}</a>
           </td>
           <td>{{{alertDefinition.status}}}</td>
-          <td>{{alertDefinition.service.displayName}}</td>
+          <td>{{alertDefinition.serviceDisplayName}}</td>
           <td>
             <span {{bindAttr class=":type-icon  alertDefinition.typeIconClass"}}></span>{{alertDefinition.type}}
           </td>
