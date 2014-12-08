@@ -61,7 +61,7 @@ App.MainServiceInfoFlumeGraphsView = App.MainServiceInfoSummaryMetricGraphsView.
     graphRows.push([]);
     var graphs = graphRows[0];
     for (var metricName in metricNames) {
-      if (graphs.length > 3) {
+      if (graphs.length > 1) {
         graphRows.push([]);
         graphs = graphRows[graphRows.length - 1];
       }

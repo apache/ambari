@@ -47,8 +47,9 @@
 <div class="row-fluid service-block">
   <div class="span6">
     <div class="box">
-      <div class="box-header">
+      <div class="box-header summary-box-header">
         <h4>{{controller.content.label}} {{t services.service.info.menu.summary}}</h4>
+        <span {{action "showServiceAlertsPopup" controller.content target="controller"}}{{bindAttr class=":pull-right view.alertsCount:alerts-count-label:no-alerts-label :label"}}>{{view.alertsCountLabel}}</span>
       </div>
       <div class="service-content">
         <table id="summary-info" class="table no-borders table-condensed">
@@ -62,8 +63,43 @@
     </div>
   </div>
 
-  <div class="span6">
-  </div>
+  {{#if view.isServiceMetricLoaded}}
+    {{#if view.serviceMetricGraphs.length}}
+      <div class="span6 service-metrics-block">
+        <div class="box">
+          <div class="box-header">
+            <h4>{{t services.service.metrics}}</h4>
+            <div class="btn-group pull-right">
+              <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                {{t graphs.timeRangeControl.label}} {{view.currentTimeRange.name}}
+                  <span class="caret"></span>
+              </button>
+              <ul class="dropdown-menu">
+                {{#each option in view.timeRangeOptions}}
+                    <li><a href="#" {{action setTimeRange option target="view"}}>{{option.name}}</a></li>
+                {{/each}}
+              </ul>
+            </div>
+          </div>
+          <div class="">
+            <table class="graphs">
+              {{#each graphs in view.serviceMetricGraphs}}
+                <tr>
+                  {{#each graph in graphs}}
+                    <td>
+                        <div class="">
+                          {{view graph}}
+                        </div>
+                    </td>
+                  {{/each}}
+                </tr>
+              {{/each}}
+            </table>
+          </div>
+        </div>
+      </div>
+    {{/if}}
+  {{/if}}
 
 </div>
 
@@ -99,42 +135,7 @@
   </div>
 {{/if}}
 
-{{!todo: Enable service metrics check once MetricsSink is deployed as a service}}
-{{!#unless view.isNoServiceMetricsService}}
-  {{#if view.serviceMetricGraphs.length}}
-  <div class="row-fluid">
-    <div class="span12">
-      <div class="box">
-        <div class="box-header">
-          <h4>{{controller.content.displayName}} {{t services.service.metrics}}</h4>
-          {{#if controller.isGangliaInstalled}}
-            <div class="btn-group">
-              {{#if App.router.clusterController.isGangliaUrlLoaded}}
-                <a class="btn" target="_blank" rel="tooltip"
-                   title="Go to Ganglia" {{bindAttr href="view.gangliaUrl"}}><i class="icon-link"></i></a>
-              {{else}}
-                <div class="spinner"></div>
-              {{/if}}
-            </div>
-          {{/if}}
-        </div>
-        <div class="">
-          <table class="graphs">
-            {{#each graphs in view.serviceMetricGraphs}}
-              <tr>
-                {{#each graph in graphs}}
-                  <td>
-                    <div class="">
-                      {{view graph}}
-                    </div>
-                  </td>
-                {{/each}}
-              </tr>
-            {{/each}}
-          </table>
-        </div>
-      </div>
-      </div>
-    </div>
-  {{/if}}
-{{!/unless}}
+
+
+
+

@@ -20,21 +20,7 @@ var batchUtils = require('utils/batch_scheduled_requests');
 require('views/main/service/service');
 require('data/service_graph_config');
 
-App.AlertItemView = Em.View.extend({
-  tagName:"li",
-  templateName: require('templates/main/service/info/summary_alert'),
-  classNameBindings: ["status"],
-  status: function () {
-    return "status-" + this.get("content.status");
-  }.property('content'),
-  didInsertElement: function () {
-    // Tooltips for alerts need to be enabled.
-    App.tooltip($("div[rel=tooltip]"));
-    $(".tooltip").remove();
-  }
-});
-
-App.MainServiceInfoSummaryView = Em.View.extend({
+App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, {
   templateName: require('templates/main/service/info/summary'),
   attributes:null,
 
@@ -258,6 +244,18 @@ App.MainServiceInfoSummaryView = Em.View.extend({
   componentsCount: null,
   hostsCount: null,
 
+  /*
+   * alerts label on summary box header. no alerts/ {cnt} alerts
+   */
+  alertsCountLabel: function () {
+    var cnt = this.get('controller.content.criticalAlertsCount');
+    return cnt? Em.I18n.t('services.service.summary.alerts.alertsExist').format(cnt) :
+      Em.I18n.t('services.service.summary.alerts.noAlerts');
+  }.property('controller.content.criticalAlertsCount'),
+  alertsCount: function () {
+    return !!this.get('controller.content.criticalAlertsCount');
+  }.property('controller.content.criticalAlertsCount'),
+
   restartRequiredHostsAndComponents:function () {
     return this.get('controller.content.restartRequiredHostsAndComponents');
   }.property('controller.content.restartRequiredHostsAndComponents'),
@@ -315,40 +313,105 @@ App.MainServiceInfoSummaryView = Em.View.extend({
 
    /*
    * Find the graph class associated with the graph name, and split
-   * the array into sections of 4 for displaying on the page
-   * (will only display rows with 4 items)
+   * the array into sections of 2 for displaying on the page
+   * (will only display rows with 2 items)
    */
   constructGraphObjects: function(graphNames) {
-    var result = [], graphObjects = [], chunkSize = 4;
+    var result = [], graphObjects = [], chunkSize = 2;
+    var self = this;
 
     if (!graphNames) {
-      return [];
+      self.set('serviceMetricGraphs', []);
+      self.set('isServiceMetricLoaded', true);
+      return;
     }
+    // load time range for current service from server
+    self.getUserPref(self.get('persistKey')).complete(function () {
+      var index = self.get('currentTimeRangeIndex');
+      graphNames.forEach(function(graphName) {
+        graphObjects.push(App["ChartServiceMetrics" + graphName].extend({
+          currentTimeIndex : index
+        }));
+      });
 
-    graphNames.forEach(function(graphName) {
-      graphObjects.push(App["ChartServiceMetrics" + graphName].extend());
+      while(graphObjects.length) {
+        result.push(graphObjects.splice(0, chunkSize));
+      }
+      self.set('serviceMetricGraphs', result);
+      self.set('isServiceMetricLoaded', true);
     });
-
-    while(graphObjects.length) {
-      result.push(graphObjects.splice(0, chunkSize));
-    }
-
-    return result;
   },
 
   /**
    * Contains graphs for this particular service
    */
-  serviceMetricGraphs:function() {
-    var svcName = this.get('service.serviceName');
-    var graphs = [];
+  serviceMetricGraphs: [],
+  isServiceMetricLoaded: false,
 
-    if (svcName) {
-      graphs = this.constructGraphObjects(App.service_graph_config[svcName.toLowerCase()]);
+  /**
+   * Key-name to store time range in Persist
+   * @type {string}
+   */
+  persistKey: function () {
+    return 'time-range-service-' + this.get('service.serviceName');
+  }.property(),
+
+  getUserPrefSuccessCallback: function (response, request, data) {
+    if (response) {
+      console.log('Got persist value from server with key ' + data.key + '. Value is: ' + response);
+      this.set('currentTimeRangeIndex', response);
     }
+  },
 
-    return graphs;
-  }.property(''),
+  getUserPrefErrorCallback: function (request) {
+    if (request.status == 404) {
+      console.log('Persist did NOT find the key');
+    }
+  },
+
+  /**
+   * time range options for service metrics, a dropdown will list all options
+   */
+  timeRangeOptions: [
+    {index: 0, name: Em.I18n.t('graphs.timeRange.hour'), seconds: 3600},
+    {index: 1, name: Em.I18n.t('graphs.timeRange.twoHours'), seconds: 7200},
+    {index: 2, name: Em.I18n.t('graphs.timeRange.fourHours'), seconds: 14400},
+    {index: 3, name: Em.I18n.t('graphs.timeRange.twelveHours'), seconds: 43200},
+    {index: 4, name: Em.I18n.t('graphs.timeRange.day'), seconds: 86400},
+    {index: 5, name: Em.I18n.t('graphs.timeRange.week'), seconds: 604800},
+    {index: 6, name: Em.I18n.t('graphs.timeRange.month'), seconds: 2592000},
+    {index: 7, name: Em.I18n.t('graphs.timeRange.year'), seconds: 31104000}
+  ],
+
+  currentTimeRangeIndex: 0,
+  currentTimeRange: function() {
+    return this.get('timeRangeOptions').objectAt(this.get('currentTimeRangeIndex'));
+  }.property('currentTimeRangeIndex'),
+
+  /**
+   * onclick handler for a time range option
+   */
+  setTimeRange: function (event) {
+    var self = this;
+    if (event && event.context) {
+      self.postUserPref(self.get('persistKey'), event.context.index);
+      self.set('currentTimeRangeIndex', event.context.index);
+      var svcName = self.get('service.serviceName');
+      if (svcName) {
+        var result = [], graphObjects = [], chunkSize = 2;
+        App.service_graph_config[svcName.toLowerCase()].forEach(function(graphName) {
+          graphObjects.push(App["ChartServiceMetrics" + graphName].extend({
+            currentTimeIndex : event.context.index
+          }));
+        });
+        while(graphObjects.length) {
+          result.push(graphObjects.splice(0, chunkSize));
+        }
+        self.set('serviceMetricGraphs', result);
+        self.set('isServiceMetricLoaded', true);
+      }
+    }
+  },
 
   loadServiceSummary: function () {
     var serviceName = this.get('serviceName');
@@ -409,6 +472,10 @@ App.MainServiceInfoSummaryView = Em.View.extend({
   }.property('App.router.clusterController.gangliaUrl', 'service.serviceName'),
 
   didInsertElement:function () {
+    var svcName = this.get('service.serviceName');
+    if (svcName) {
+      this.constructGraphObjects(App.service_graph_config[svcName.toLowerCase()]);
+    }
     // adjust the summary table height
     var summaryTable = document.getElementById('summary-info');
     if (summaryTable) {

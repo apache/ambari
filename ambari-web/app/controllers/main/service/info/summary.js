@@ -102,7 +102,36 @@ App.MainServiceInfoSummaryController = Em.Controller.extend({
     return App.router.get('clusterController.isNagiosInstalled');
   }.property('App.router.clusterController.isNagiosInstalled'),
 
-  isGangliaInstalled: function(){
-    return App.router.get('clusterController.isGangliaInstalled');
-  }.property('App.router.clusterController.isGangliaInstalled')
+  showServiceAlertsPopup: function (event) {
+    var service = event.context;
+    return App.ModalPopup.show({
+      header: Em.I18n.t('services.service.summary.alerts.popup.header').format(service.get('displayName')),
+      bodyClass: Em.View.extend({
+        templateName: require('templates/main/service/info/service_alert_popup'),
+        controllerBinding: 'App.router.mainAlertDefinitionsController',
+        didInsertElement: function () {
+          Em.run.next(this, function () {
+            App.tooltip($(".timeago"));
+          });
+        },
+        alerts: function () {
+          var serviceDefinitions = this.get('controller.content').filterProperty('service', service);
+          return serviceDefinitions.filterProperty('isCriticalOrWarning');
+        }.property('controller.content'),
+        gotoAlertDetails: function (event) {
+          if (event && event.context) {
+            this.get('parentView').hide();
+            App.router.transitionTo('main.alerts.alertDetails', event.context);
+          }
+        },
+        closePopup: function () {
+          this.get('parentView').hide();
+        }
+      }),
+      isHideBodyScroll: true,
+      primary: Em.I18n.t('common.close'),
+      secondary: null
+    });
+  }
+
 });

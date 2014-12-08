@@ -104,25 +104,4 @@ describe('App.MainServiceInfoSummaryView', function() {
 
   });
 
-  describe("#constructGraphObjects", function() {
-    it("should return a single array with the items in the fom of '<name>.extend()' when the number of items is less than 4", function() {
-      var graphs = ['HDFS_SpaceUtilization'];
-
-      expect(view.constructGraphObjects(graphs).length).to.equal(1);
-      expect(view.constructGraphObjects(graphs)[0].length).to.equal(1);
-    });
-
-    it("should return an array with arrays that are grouped into sizes of 4 or less when number of items is greater than 4", function() {
-      var graphs = ['HDFS_SpaceUtilization', 'YARN_AllocatedMemory', 'MapReduce_JobsStatus', 
-      'HBASE_ClusterRequests', 'Flume_ChannelSizeMMA'];
-
-      expect(view.constructGraphObjects(graphs).length).to.equal(2);
-      expect(view.constructGraphObjects(graphs)[0].length).to.equal(4);
-      expect(view.constructGraphObjects(graphs)[1].length).to.equal(1);
-    });
-
-    it("should return an empty array if the graphs array provided is empty", function() {
-      expect(view.constructGraphObjects([])).to.be.empty;
-    });
-  });
 });

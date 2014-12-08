@@ -422,6 +422,31 @@
   }
 }
 
+.service-block .summary-box-header {
+  .alerts-count-label,.no-alerts-label {
+    padding: 2px 4px;
+    margin-right: 5px;
+    margin-top: 5px;
+    cursor: pointer;
+  }
+  .alerts-count-label {
+    background: #953B39;
+  }
+  .no-alerts-label {
+    background: #006400;
+  }
+}
+
+#summary-alerts-popup {
+  .alert-list-wrap {
+    padding: 10px 5px;
+    .status-icon {
+      padding-right: 5px;
+      min-width: 20px;
+    }
+  }
+}
+
 /*****start styles for manage alerts popup*****/
 .sixty-percent-width-modal.manage-alert-group-popup {
   .modal{
@@ -461,7 +486,7 @@
     min-width: 600px;
   }
   #alert-info {
-    .log-list-wrap:hover {
+    .alert-list-wrap:hover {
       background-color: #e6e6e6;
     }
   }
@@ -474,11 +499,6 @@
     font-size: 15px;
     padding: 0px 0px 20px 0px;
     height: 20px;
-    .status-top {
-      width: 12%;
-      padding-left: 5px;
-      min-width: 20px;
-    }
     .name-top {
       width: 32%;
       padding-left: 10px;
@@ -507,11 +527,6 @@
     .alert-list-line-cursor{
       width: 100%;
       min-height: 20px;
-      .status {
-        padding-left: 5px;
-        float: left;
-        width: 12%;
-      }
       .status-icon {
         padding-right: 5px;
         min-width: 20px;

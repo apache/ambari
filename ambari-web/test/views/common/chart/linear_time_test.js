@@ -140,7 +140,6 @@ describe('App.ChartLinearTimeView', function () {
       sinon.stub(App.YARNService, 'find', function(){return services.yarnService});
       sinon.stub(App.MapReduceService, 'find', function(){return services.mapreduceService});
       sinon.stub(App, 'dateTime').returns(1000);
-      chartLinearTimeView.set('timeUnitSeconds', 1);
       chartLinearTimeView.set('content', null);
     });
     afterEach(function(){
@@ -156,7 +155,7 @@ describe('App.ChartLinearTimeView', function () {
       }));
       expect(chartLinearTimeView.getDataForAjaxRequest()).to.be.eql({
         toSeconds: 1,
-        fromSeconds: 0,
+        fromSeconds: -3599,
         stepSeconds: 15,
         hostName: 'host1',
         nameNodeName: '',
@@ -172,7 +171,7 @@ describe('App.ChartLinearTimeView', function () {
       ];
       expect(chartLinearTimeView.getDataForAjaxRequest()).to.be.eql({
         toSeconds: 1,
-        fromSeconds: 0,
+        fromSeconds: -3599,
         stepSeconds: 15,
         hostName: '',
         nameNodeName: 'host1',
@@ -189,7 +188,7 @@ describe('App.ChartLinearTimeView', function () {
       ];
       expect(chartLinearTimeView.getDataForAjaxRequest()).to.be.eql({
         toSeconds: 1,
-        fromSeconds: 0,
+        fromSeconds: -3599,
         stepSeconds: 15,
         hostName: '',
         nameNodeName: 'host1',
@@ -206,7 +205,7 @@ describe('App.ChartLinearTimeView', function () {
       ];
       expect(chartLinearTimeView.getDataForAjaxRequest()).to.be.eql({
         toSeconds: 1,
-        fromSeconds: 0,
+        fromSeconds: -3599,
         stepSeconds: 15,
         hostName: '',
         nameNodeName: '',
@@ -223,7 +222,7 @@ describe('App.ChartLinearTimeView', function () {
       ];
       expect(chartLinearTimeView.getDataForAjaxRequest()).to.be.eql({
         toSeconds: 1,
-        fromSeconds: 0,
+        fromSeconds: -3599,
         stepSeconds: 15,
         hostName: '',
         nameNodeName: '',

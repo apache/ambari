@@ -244,6 +244,7 @@ Em.I18n.translations = {
   'common.severity': "Severity",
 
   'models.alert_instance.tiggered.verbose': "Occured on {0} <br> Checked on {1}",
+  'models.alert_definition.triggered.verbose': "Occured on {0}",
 
   'passiveState.turnOn':'Turn On Maintenance Mode',
   'passiveState.turnOff':'Turn Off Maintenance Mode',
@@ -326,6 +327,7 @@ Em.I18n.translations = {
   'graphs.timeRange.week': 'Last 1 week',
   'graphs.timeRange.month': 'Last 1 month',
   'graphs.timeRange.year': 'Last 1 year',
+  'graphs.timeRangeControl.label': 'Time range: ',
 
   'users.userName.validationFail': 'Only lowercase letters and numbers are recommended; must start with a letter',
   'host.spacesValidation': 'Cannot contain whitespace',
@@ -1310,7 +1312,7 @@ Em.I18n.translations = {
 
   'services.service.start':'Start',
   'services.service.stop':'Stop',
-  'services.service.metrics':'Service Metrics',
+  'services.service.metrics':'Metrics',
   'services.nothingToAdd':'Nothing to add',
   'services.service.summary.version':'Version',
   'services.service.summary.viewHost':'View Host',
@@ -1407,6 +1409,10 @@ Em.I18n.translations = {
   'services.service.summary.flume.stop.context': 'Stop Flume {0}',
   'services.service.summary.flume.start.context': 'Start Flume {0}',
   'services.service.summary.flume.noAgents': 'No Flume to display',
+
+  'services.service.summary.alerts.noAlerts': 'No alerts',
+  'services.service.summary.alerts.alertsExist': '{0} alerts',
+  'services.service.summary.alerts.popup.header': 'Critical or Warning Alerts for {0}',
 
   'services.service.info.metrics.flume.channelFillPercent':'Channel Fill Percentage',
   'services.service.info.metrics.flume.channelSize':'Channel Size',

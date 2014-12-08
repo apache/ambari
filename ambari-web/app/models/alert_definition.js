@@ -73,6 +73,27 @@ App.AlertDefinition = DS.Model.extend({
     return lastTriggered ? $.timeago(new Date(lastTriggered)): '';
   }.property('lastTriggered'),
 
+  lastTriggeredVerboseDisplay : function() {
+    var lastTriggered = this.get('lastTriggered');
+    return Em.I18n.t('models.alert_definition.triggered.verbose').format(dateUtils.dateFormat(lastTriggered));
+  }.property('lastTriggered'),
+
+  /**
+   * Formatted timestamp in format: for 4 days
+   * @type {string}
+   */
+  lastTriggeredForFormatted: function () {
+    var lastTriggered = this.get('lastTriggered');
+    var previousSuffixAgo = $.timeago.settings.strings.suffixAgo;
+    var previousPrefixAgo = $.timeago.settings.strings.prefixAgo;
+    $.timeago.settings.strings.suffixAgo = null;
+    $.timeago.settings.strings.prefixAgo = 'for';
+    var triggeredFor = lastTriggered ? $.timeago(new Date(lastTriggered)): '';
+    $.timeago.settings.strings.suffixAgo = previousSuffixAgo;
+    $.timeago.settings.strings.prefixAgo = previousPrefixAgo;
+    return triggeredFor;
+  }.property('lastTriggered'),
+
   /**
    * Formatted displayName for <code>componentName</code>
    * @type {String}

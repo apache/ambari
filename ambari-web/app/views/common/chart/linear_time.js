@@ -739,7 +739,6 @@ App.ChartLinearTimeView = Ember.View.extend({
       onPrimary: function() {
         this.hide();
         self.set('isPopup', false);
-        self.set('timeUnitSeconds', 3600);
       },
       onClose: function() {
         this.onPrimary();
@@ -771,22 +770,12 @@ App.ChartLinearTimeView = Ember.View.extend({
        */
       reloadGraphByTime: function(index) {
         this.set('currentTimeIndex', index);
-        self.set('timeUnitSeconds', this.get('timeStates')[index].seconds);
+        self.set('currentTimeIndex', index);
         self.loadData();
       },
-      timeStates: [
-        {name: Em.I18n.t('graphs.timeRange.hour'), seconds: 3600},
-        {name: Em.I18n.t('graphs.timeRange.twoHours'), seconds: 7200},
-        {name: Em.I18n.t('graphs.timeRange.fourHours'), seconds: 14400},
-        {name: Em.I18n.t('graphs.timeRange.twelveHours'), seconds: 43200},
-        {name: Em.I18n.t('graphs.timeRange.day'), seconds: 86400},
-        {name: Em.I18n.t('graphs.timeRange.week'), seconds: 604800},
-        {name: Em.I18n.t('graphs.timeRange.month'), seconds: 2592000},
-        {name: Em.I18n.t('graphs.timeRange.year'), seconds: 31104000}
-      ],
-      currentTimeIndex: 0,
+      currentTimeIndex: self.get('currentTimeIndex'),
       currentTimeState: function() {
-        return this.get('timeStates').objectAt(this.get('currentTimeIndex'));
+        return self.get('timeStates').objectAt(this.get('currentTimeIndex'));
       }.property('currentTimeIndex')
     });
     Ember.run.next(function() {
@@ -794,8 +783,21 @@ App.ChartLinearTimeView = Ember.View.extend({
       self.set('isPopupReady', false);
     });
   },
-  //60 minute interval on X axis.
-  timeUnitSeconds: 3600
+  timeStates: [
+    {name: Em.I18n.t('graphs.timeRange.hour'), seconds: 3600},
+    {name: Em.I18n.t('graphs.timeRange.twoHours'), seconds: 7200},
+    {name: Em.I18n.t('graphs.timeRange.fourHours'), seconds: 14400},
+    {name: Em.I18n.t('graphs.timeRange.twelveHours'), seconds: 43200},
+    {name: Em.I18n.t('graphs.timeRange.day'), seconds: 86400},
+    {name: Em.I18n.t('graphs.timeRange.week'), seconds: 604800},
+    {name: Em.I18n.t('graphs.timeRange.month'), seconds: 2592000},
+    {name: Em.I18n.t('graphs.timeRange.year'), seconds: 31104000}
+  ],
+  // should be set by time range control dropdown list when create current graph
+  currentTimeIndex: 0,
+  timeUnitSeconds: function() {
+    return this.get('timeStates').objectAt(this.get('currentTimeIndex')).seconds;
+  }.property('currentTimeIndex')
 });
 
 /**
