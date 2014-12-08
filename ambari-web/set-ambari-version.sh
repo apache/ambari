@@ -21,6 +21,6 @@
 if [ "$1" != '${ambariVersion}' ]
 then
   echo "Setting Ambari version to $1"
-  sed "s/App.version.*=.*;/App.version = '$1';/" public/javascripts/app.js > public/javascripts/tmp.js; mv public/javascripts/tmp.js public/javascripts/app.js
+  find app -type f -name "*.js" -exec sed -i "s/App.version.*=.*;/App.version = '$1';/" {} \;
 fi
 

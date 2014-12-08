@@ -117,12 +117,6 @@
             </goals>
             <configuration>
               <target name="ambari-web-compile">
-                <exec dir="${basedir}" executable="${executable.npm}" failonerror="true">
-                  <arg value="${args.npm.install}"/>
-                </exec>
-                <exec dir="${basedir}" executable="${executable.brunch}" failonerror="true">
-                  <arg value="${args.brunch.build}"/>
-                </exec>
                 <!-- sets Ambari version to make it accessible from code -->
                 <exec dir="${basedir}" executable="${executable.shell}" failonerror="true">
                   <arg value="${basedir}${dirsep}set-ambari-version.${fileextension.shell}"/>
@@ -137,6 +131,12 @@
                 <exec dir="${basedir}" executable="${executable.shell}" failonerror="true">
                   <arg value="${basedir}${dirsep}toggle-experimental.${fileextension.shell}"/>
                   <arg value="${enableExperimental}"/>
+                </exec>
+                <exec dir="${basedir}" executable="${executable.npm}" failonerror="true">
+                  <arg value="${args.npm.install}"/>
+                </exec>
+                <exec dir="${basedir}" executable="${executable.brunch}" failonerror="true">
+                  <arg value="${args.brunch.build}"/>
                 </exec>
               </target>
             </configuration>
