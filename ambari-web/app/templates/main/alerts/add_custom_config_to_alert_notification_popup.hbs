@@ -18,7 +18,7 @@
 
 <form class="form-horizontal alert-configs">
   <div {{bindAttr class="view.isError:error :control-group"}}>
-    <label class="control-label">{{t common.name}}: </label>
+    <label class="control-label">{{t common.name}} </label>
 
     <div class="controls">
       {{view Em.TextField valueBinding="controller.newCustomProperty.name"}}
@@ -26,7 +26,7 @@
   </div>
 
   <div class="control-group">
-    <label class="control-label">{{t common.value}}: </label>
+    <label class="control-label">{{t common.value}} </label>
 
     <div class="controls">
       {{view Em.TextField valueBinding="controller.newCustomProperty.value"}}

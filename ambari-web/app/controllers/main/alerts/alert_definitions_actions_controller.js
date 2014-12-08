@@ -183,7 +183,7 @@ App.MainAlertDefinitionActionsController = Em.ArrayController.extend({
 
       primary: Em.I18n.t('common.close'),
 
-      didInsertElement: Em.K
+      autoHeight: false
 
     });
   }

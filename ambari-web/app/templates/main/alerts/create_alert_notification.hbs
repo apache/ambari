@@ -35,7 +35,7 @@
         {{view view.groupsSelectView multiple="true" id="inputGroups" class="input-large"
           selectionBinding="controller.inputFields.groups.value"
           contentBinding="controller.allAlertGroups"
-          optionLabelPath="content.name"
+          optionLabelPath="content.displayName"
         }}
         <a href="#" {{action selectAllGroups target="view"}}>{{t alerts.actions.manage_alert_notifications_popup.selectAll}}</a> |
         <a href="#" {{action clearAllGroups target="view"}}>{{t alerts.actions.manage_alert_notifications_popup.clearAll}}</a>
@@ -150,7 +150,7 @@
       </div>
     {{/each}}
 
-    <a href="#" {{action addCustomPropertyHandler target="controller"}}>{{t installer.step7.config.addProperty}} ...</a>
+    <a href="#" class="add-custom-property" {{action addCustomPropertyHandler target="controller"}}>{{t installer.step7.config.addProperty}} ...</a>
 
   </form>
 </div>

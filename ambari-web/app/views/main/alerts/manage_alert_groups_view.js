@@ -28,33 +28,6 @@ App.MainAlertsManageAlertGroupView = Em.View.extend({
   selectedAlertGroup: null,
 
   /**
-   * @type {boolean}
-   */
-  isRemoveButtonDisabled: true,
-
-  /**
-   * @type {boolean}
-   */
-  isRenameButtonDisabled: true,
-
-  /**
-   * @type {boolean}
-   */
-  isDuplicateButtonDisabled: true,
-
-  /**
-   * Enable/disable "Remove"/"Rename"/"Duplicate" buttons basing on <code>controller.selectedAlertGroup</code>
-   * @method buttonObserver
-   */
-  buttonObserver: function () {
-    var selectedAlertGroup = this.get('controller.selectedAlertGroup');
-    var flag = selectedAlertGroup && selectedAlertGroup.default;
-    this.set('isRemoveButtonDisabled', flag);
-    this.set('isRenameButtonDisabled', flag);
-    this.set('isDuplicateButtonDisabled', false);
-  }.observes('controller.selectedAlertGroup'),
-
-  /**
    * Observer to prevent user select more than 1 alert group
    * @method onGroupSelect
    */
@@ -71,14 +44,22 @@ App.MainAlertsManageAlertGroupView = Em.View.extend({
   }.observes('selectedAlertGroup'),
 
   /**
+   * Observer to provide two-way binding for group selection
+   */
+  setGroupInController: function () {
+    if (!this.get('controller.isLoaded')) return;
+    this.set('selectedAlertGroup', [this.get('controller.selectedAlertGroup')]);
+  }.observes('controller.selectedAlertGroup'),
+
+  /**
    * Select first alert group when all groups are loaded
    * @method onLoad
    */
   onLoad: function () {
     if (this.get('controller.isLoaded')) {
-      this.set('selectedAlertGroup', this.get('controller.alertGroups')[0]);
+      this.setTooltips();
     }
-  }.observes('controller.isLoaded', 'controller.alertGroups'),
+  }.observes('controller.isLoaded'),
 
   /**
    * Load alert groups, definitions and notification to have all new data
@@ -97,8 +78,16 @@ App.MainAlertsManageAlertGroupView = Em.View.extend({
    */
   didInsertElement: function () {
     this.onLoad();
-    App.tooltip($("[rel='button-info']"));
-    App.tooltip($("[rel='button-info-dropdown']"), {placement: 'left'});
+  },
+
+  /**
+   * Setup tooltips for view elements
+   */
+  setTooltips: function () {
+    Em.run.next(function(){
+      App.tooltip($("[rel='button-info']"));
+      App.tooltip($("[rel='button-info-dropdown']"), {placement: 'left'});
+    });
   },
 
   /**
@@ -111,7 +100,10 @@ App.MainAlertsManageAlertGroupView = Em.View.extend({
    * Tooltip for "Remove group"-button
    * @type {string}
    */
-  removeButtonTooltip: Em.I18n.t('alerts.actions.manage_alert_groups_popup.removeButton'),
+  removeButtonTooltip: function () {
+    return this.get('controller.isRemoveButtonDisabled') ? Em.I18n.t('alerts.actions.manage_alert_groups_popup.removeButtonDisabled') :
+        Em.I18n.t('alerts.actions.manage_alert_groups_popup.removeButton');
+  }.property('controller.isRemoveButtonDisabled'),
 
   /**
    * Tooltip for "Rename"-button
@@ -146,6 +138,9 @@ App.MainAlertsManageAlertGroupView = Em.View.extend({
    * Tooltip for "Remove definition from group"-button
    * @type {string}
    */
-  removeDefinitionTooltip: Em.I18n.t('alerts.actions.manage_alert_groups_popup.removeDefinition')
+  removeDefinitionTooltip: function () {
+    return this.get('controller.isDeleteDefinitionsDisabled') ? Em.I18n.t('alerts.actions.manage_alert_groups_popup.removeDefinitionDisabled') :
+        Em.I18n.t('alerts.actions.manage_alert_groups_popup.removeDefinition');
+  }.property('controller.isDeleteDefinitionsDisabled')
 
 });

@@ -110,8 +110,8 @@ App.ManageAlertGroupsController = Em.Controller.extend({
 
   loadAlertGroups: function () {
     this.set('isLoaded', false);
-    this.set('alertGroups.length', 0);
-    this.set('originalAlertGroups.length', 0);
+    this.set('alertGroups', []);
+    this.set('originalAlertGroups', []);
     App.ajax.send({
       name: 'alerts.load_alert_groups',
       sender: this,
@@ -141,7 +141,7 @@ App.ManageAlertGroupsController = Em.Controller.extend({
   onLoadAlertGroupSuccess: function (data) {
     var alertGroups = this.get('alertGroups');
     if (data && data.AlertGroup) {
-      alertGroups.pushObject ( App.AlertGroupComplex.create({
+      alertGroups.pushObject (App.AlertGroupComplex.create({
         name: data.AlertGroup.name,
         default: data.AlertGroup.default,
         id: data.AlertGroup.id,
@@ -152,6 +152,7 @@ App.ManageAlertGroupsController = Em.Controller.extend({
     if (this.get('alertGroupsCount') == alertGroups.length) {
       this.set('isLoaded', true);
       this.set('originalAlertGroups', this.copyAlertGroups(alertGroups));
+      this.set('selectedAlertGroup', alertGroups[0])
     }
   },
 
@@ -163,6 +164,33 @@ App.ManageAlertGroupsController = Em.Controller.extend({
     console.error('Unable to load an alert group.');
   },
 
+  /**
+   * @type {boolean}
+   */
+  isRemoveButtonDisabled: true,
+
+  /**
+   * @type {boolean}
+   */
+  isRenameButtonDisabled: true,
+
+  /**
+   * @type {boolean}
+   */
+  isDuplicateButtonDisabled: true,
+
+  /**
+   * Enable/disable "Remove"/"Rename"/"Duplicate" buttons basing on <code>controller.selectedAlertGroup</code>
+   * @method buttonObserver
+   */
+  buttonObserver: function () {
+    var selectedAlertGroup = this.get('selectedAlertGroup');
+    var flag = selectedAlertGroup && selectedAlertGroup.get('default');
+    this.set('isRemoveButtonDisabled', flag);
+    this.set('isRenameButtonDisabled', flag);
+    this.set('isDuplicateButtonDisabled', false);
+  }.observes('selectedAlertGroup'),
+
   resortAlertGroup: function() {
     var alertGroups = Ember.copy(this.get('alertGroups'));
     if(alertGroups.length < 2){
@@ -172,7 +200,7 @@ App.ManageAlertGroupsController = Em.Controller.extend({
     defaultGroups.forEach( function(defaultGroup) {
       alertGroups.removeObject(defaultGroup);
     });
-    var sorted = defaultGroups.concat(alertGroups.sortProperty('name'));
+    var sorted = defaultGroups.sortProperty('name').concat(alertGroups.sortProperty('name'));
    // var sorted = alertGroups.sortProperty('name');
 
     this.removeObserver('alertGroups.@each.name', this, 'resortAlertGroup');
@@ -542,6 +570,7 @@ App.ManageAlertGroupsController = Em.Controller.extend({
    * confirm delete alert group
    */
   confirmDelete : function () {
+    if (this.get('isRemoveButtonDisabled')) return;
     var self = this;
     App.showConfirmationPopup(function() {
       self.deleteAlertGroup();
@@ -640,6 +669,7 @@ App.ManageAlertGroupsController = Em.Controller.extend({
           notifications: []
         });
         self.get('alertGroups').pushObject(newAlertGroup);
+        self.set('selectedAlertGroup', newAlertGroup);
         this.hide();
       }
     });

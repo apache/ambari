@@ -893,9 +893,9 @@ Em.I18n.translations = {
   'alerts.definition.details.notification': 'Notification',
   'alerts.definition.details.noAlerts': 'No alert instances to show',
 
-  'alerts.notifications.addCustomPropertyPopup.header': 'Add Custom Property',
+  'alerts.notifications.addCustomPropertyPopup.header': 'Add Property',
   'alerts.notifications.addCustomPropertyPopup.error.propertyExists': 'Custom Property with current name already exists',
-  'alerts.notifications.addCustomPropertyPopup.error.invalidPropertyName': 'Custom Property name is invalid',
+  'alerts.notifications.addCustomPropertyPopup.error.invalidPropertyName': 'Property name can only contain letters, numbers or . -_* characters',
 
 
   'wizard.progressPage.notice.completed':'Please proceed to the next step.',
@@ -1857,12 +1857,14 @@ Em.I18n.translations = {
   'alerts.actions.manage_alert_groups_popup.addButton':'Create Alert Group',
   'alerts.actions.manage_alert_groups_popup.addGroup.exist': 'Alert Group with given name already exists',
   'alerts.actions.manage_alert_groups_popup.removeButton':'Delete Alert Group',
+  'alerts.actions.manage_alert_groups_popup.removeButtonDisabled':'Cannot delete default alert group',
   'alerts.actions.manage_alert_groups_popup.renameButton':'Rename Alert Group',
   'alerts.actions.manage_alert_groups_popup.duplicateButton':'Duplicate Alert Group',
   'alerts.actions.manage_alert_groups_popup.addDefinition':'Add alert definitions to selected Alert Group',
   'alerts.actions.manage_alert_groups_popup.addDefinitionDisabled':'There are no available alert definitions to add',
   'alerts.actions.manage_alert_groups_popup.addDefinitionToDefault': 'You cannot add alert definition to a default group',
   'alerts.actions.manage_alert_groups_popup.removeDefinition':'Remove alert definitions from selected Alert Group',
+  'alerts.actions.manage_alert_groups_popup.removeDefinitionDisabled':'Cannot modify default alert group',
   'alerts.actions.manage_alert_groups_popup.selectDefsDialog.title': 'Select Alert Group Definitions',
   'alerts.actions.manage_alert_groups_popup.selectDefsDialog.message': 'Select alert definitions to be added to this "{0}" Alert Group.',
   'alerts.actions.manage_alert_groups_popup.selectDefsDialog.filter.placeHolder': 'All',
