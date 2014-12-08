@@ -134,8 +134,12 @@ App.MainAlertDefinitionActionsController = Em.ArrayController.extend({
             if (errors.length > 0) {
               console.log(errors);
               self.get('subViewController').set('errorMessage', errors.join(". "));
-            } else {
+            }
+            else {
               self.hide();
+              App.router.get('updateController').updateAlertGroups(function () {
+                App.router.get('updateController').updateAlertNotifications(Em.K);
+              });
             }
           } else {
             runNextQuery();

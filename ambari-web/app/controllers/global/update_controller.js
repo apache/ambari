@@ -489,6 +489,12 @@ App.UpdateController = Em.Controller.extend({
     App.HttpClient.get(url, App.alertGroupsMapper, {
       complete: callback
     });
+  },
+
+  updateAlertNotifications: function (callback) {
+    App.HttpClient.get(App.get('apiPrefix') + '/alert_targets?fields=*', App.alertNotificationMapper, {
+      complete: callback
+    });
   }
 
 });

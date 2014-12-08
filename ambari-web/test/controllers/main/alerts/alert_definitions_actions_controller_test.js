@@ -53,4 +53,21 @@ describe('App.MainAlertDefinitionActionsController', function () {
 
   });
 
+  describe('#manageAlertGroups', function () {
+
+    beforeEach(function () {
+      sinon.stub(App.ModalPopup, 'show', Em.K);
+    });
+
+    afterEach(function () {
+      App.ModalPopup.show.restore();
+    });
+
+    it('should show modal popup', function () {
+      controller.manageAlertGroups();
+      expect(App.ModalPopup.show.calledOnce).to.be.true;
+    });
+
+  });
+
 });
