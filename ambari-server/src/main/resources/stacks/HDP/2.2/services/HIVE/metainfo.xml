@@ -21,6 +21,27 @@
     <service>
       <name>HIVE</name>
       <version>0.14.0.2.2.0.0</version>
+      <components>
+        <component>
+            <name>HIVE_METASTORE</name>
+            <displayName>Hive Metastore</displayName>
+            <category>MASTER</category>
+            <cardinality>1+</cardinality>
+            <clientsToUpdateConfigs></clientsToUpdateConfigs>
+            <auto-deploy>
+                <enabled>true</enabled>
+                <co-locate>HIVE/HIVE_SERVER</co-locate>
+            </auto-deploy>
+            <commandScript>
+                <script>scripts/hive_metastore.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>600</timeout>
+            </commandScript>
+            <configuration-dependencies>
+                <config-type>hive-site</config-type>
+            </configuration-dependencies>
+        </component>
+      </components>
       <osSpecifics>
         <osSpecific>
           <osFamily>any</osFamily>
