@@ -228,6 +228,24 @@ public class AlertDispatchDAOTest {
   }
 
   /**
+   * @throws Exception
+   */
+  @Test
+  public void testFindGroupsByIds() throws Exception {
+    List<AlertGroupEntity> groups = m_dao.findAllGroups();
+    assertNotNull(groups);
+    assertEquals(10, groups.size());
+
+    List<Long> ids = new ArrayList<Long>();
+    ids.add(groups.get(0).getGroupId());
+    ids.add(groups.get(1).getGroupId());
+    ids.add(99999L);
+
+    groups = m_dao.findGroupsById(ids);
+    assertEquals(2, groups.size());
+  }
+
+  /**
    *
    */
   @Test

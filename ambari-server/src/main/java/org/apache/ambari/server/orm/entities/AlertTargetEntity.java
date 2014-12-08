@@ -248,6 +248,27 @@ public class AlertTargetEntity {
   }
 
   /**
+   * Sets all of the groups that are associated with this target.
+   *
+   * @param alertGroups
+   *          the groups, or {@code null} if there are none.
+   */
+  public void setAlertGroups(Set<AlertGroupEntity> alertGroups) {
+    Set<AlertGroupEntity> groups = getAlertGroups();
+    for (AlertGroupEntity group : groups) {
+      group.removeAlertTarget(this);
+    }
+
+    this.alertGroups = alertGroups;
+
+    if (null != alertGroups) {
+      for (AlertGroupEntity group : alertGroups) {
+        group.addAlertTarget(this);
+      }
+    }
+  }
+
+  /**
    * Adds the specified alert group to the groups that this target is associated
    * with. This is used to complement the JPA bidirectional association.
    *

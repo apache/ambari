@@ -94,6 +94,22 @@ public class AlertDispatchDAO {
   }
 
   /**
+   * Gets all of the alert groups for the list of IDs given.
+   *
+   * @param groupIds
+   *          the IDs of the groups to retrieve.
+   * @return the groups or an empty list (never {@code null}).
+   */
+  public List<AlertGroupEntity> findGroupsById(List<Long> groupIds) {
+    TypedQuery<AlertGroupEntity> query = entityManagerProvider.get().createNamedQuery(
+        "AlertGroupEntity.findByIds", AlertGroupEntity.class);
+
+    query.setParameter("groupIds", groupIds);
+
+    return daoUtils.selectList(query);
+  }
+
+  /**
    * Gets an alert target with the specified ID.
    *
    * @param targetId

@@ -50,6 +50,7 @@ import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.AlertDispatchDAO;
+import org.apache.ambari.server.orm.entities.AlertGroupEntity;
 import org.apache.ambari.server.orm.entities.AlertTargetEntity;
 import org.apache.ambari.server.state.AlertState;
 import org.apache.ambari.server.state.Cluster;
@@ -239,6 +240,57 @@ public class AlertTargetResourceProviderTest {
    * @throws Exception
    */
   @Test
+  public void testCreateResourcesWithGroups() throws Exception {
+    Capture<List<AlertTargetEntity>> listCapture = new Capture<List<AlertTargetEntity>>();
+
+    List<Long> groupIds = Arrays.asList(1L, 2L, 3L);
+    List<AlertGroupEntity> groups = new ArrayList<AlertGroupEntity>();
+    AlertGroupEntity group1 = new AlertGroupEntity();
+    AlertGroupEntity group2 = new AlertGroupEntity();
+    AlertGroupEntity group3 = new AlertGroupEntity();
+    group1.setGroupId(1L);
+    group2.setGroupId(2L);
+    group3.setGroupId(3L);
+    groups.addAll(Arrays.asList(group1, group2, group3));
+    expect(m_dao.findGroupsById(groupIds)).andReturn(groups).once();
+
+    m_dao.createTargets(capture(listCapture));
+    expectLastCall();
+
+    replay(m_amc, m_dao);
+
+    AlertTargetResourceProvider provider = createProvider(m_amc);
+    Map<String, Object> requestProps = getCreationProperties();
+
+    // add the group IDs to the request so that we're associating groups
+    requestProps.put(AlertTargetResourceProvider.ALERT_TARGET_GROUPS, groupIds);
+
+    Request request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), null);
+    provider.createResources(request);
+
+    Assert.assertTrue(listCapture.hasCaptured());
+    AlertTargetEntity entity = listCapture.getValue().get(0);
+    Assert.assertNotNull(entity);
+
+    assertEquals(ALERT_TARGET_NAME, entity.getTargetName());
+    assertEquals(ALERT_TARGET_DESC, entity.getDescription());
+    assertEquals(ALERT_TARGET_TYPE, entity.getNotificationType());
+    assertEquals(ALERT_TARGET_PROPS, entity.getProperties());
+    assertEquals(false, entity.isGlobal());
+    assertEquals(3, entity.getAlertGroups().size());
+
+    // no alert states were set explicitely in the request, so all should be set
+    // by the backend
+    assertNotNull(entity.getAlertStates());
+    assertEquals(EnumSet.allOf(AlertState.class), entity.getAlertStates());
+
+    verify(m_amc, m_dao);
+  }
+
+  /**
+   * @throws Exception
+   */
+  @Test
   public void testCreateGlobalTarget() throws Exception {
     Capture<List<AlertTargetEntity>> listCapture = new Capture<List<AlertTargetEntity>>();
 
@@ -293,6 +345,7 @@ public class AlertTargetResourceProviderTest {
 
     Request request = PropertyHelper.getCreateRequest(
         Collections.singleton(requestProps), null);
+
     provider.createResources(request);
 
     Assert.assertTrue(listCapture.hasCaptured());
@@ -405,6 +458,64 @@ public class AlertTargetResourceProviderTest {
     AlertTargetEntity entity = entityCapture.getValue();
     assertEquals(newName, entity.getTargetName());
     assertEquals(ALERT_TARGET_PROPS2, entity.getProperties());
+    verify(m_amc, m_dao);
+  }
+
+  /**
+   * @throws Exception
+   */
+  @Test
+  @SuppressWarnings("unchecked")
+  public void testUpdateResourcesWithGroups() throws Exception {
+    Capture<AlertTargetEntity> entityCapture = new Capture<AlertTargetEntity>();
+
+    m_dao.createTargets(EasyMock.anyObject(List.class));
+    expectLastCall().times(1);
+
+    AlertTargetEntity target = new AlertTargetEntity();
+    expect(m_dao.findTargetById(ALERT_TARGET_ID)).andReturn(target).times(1);
+
+    List<Long> groupIds = Arrays.asList(1L, 2L, 3L);
+    List<AlertGroupEntity> groups = new ArrayList<AlertGroupEntity>();
+    AlertGroupEntity group1 = new AlertGroupEntity();
+    AlertGroupEntity group2 = new AlertGroupEntity();
+    AlertGroupEntity group3 = new AlertGroupEntity();
+    group1.setGroupId(1L);
+    group2.setGroupId(2L);
+    group3.setGroupId(3L);
+    groups.addAll(Arrays.asList(group1, group2, group3));
+    expect(m_dao.findGroupsById(EasyMock.eq(groupIds))).andReturn(groups).once();
+
+    expect(m_dao.merge(capture(entityCapture))).andReturn(target).once();
+
+    replay(m_amc, m_dao);
+
+    AlertTargetResourceProvider provider = createProvider(m_amc);
+    Map<String, Object> requestProps = getCreationProperties();
+    Request request = PropertyHelper.getCreateRequest(
+        Collections.singleton(requestProps), null);
+    provider.createResources(request);
+
+    // create new properties, and include the ID since we're not going through
+    // a service layer which would add it for us automatically
+    requestProps = new HashMap<String, Object>();
+    requestProps.put(AlertTargetResourceProvider.ALERT_TARGET_ID,
+        ALERT_TARGET_ID.toString());
+
+    // add the group IDs to the request so that we're associating groups
+    requestProps.put(AlertTargetResourceProvider.ALERT_TARGET_GROUPS, groupIds);
+
+    Predicate predicate = new PredicateBuilder().property(
+        AlertTargetResourceProvider.ALERT_TARGET_ID).equals(
+        ALERT_TARGET_ID.toString()).toPredicate();
+
+    request = PropertyHelper.getUpdateRequest(requestProps, null);
+    provider.updateResources(request, predicate);
+
+    assertTrue(entityCapture.hasCaptured());
+
+    AlertTargetEntity entity = entityCapture.getValue();
+    assertEquals(3, entity.getAlertGroups().size());
     verify(m_amc, m_dao);
   }
 

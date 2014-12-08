@@ -273,6 +273,14 @@ public class AlertTargetResourceProvider extends
         alertStateSet = EnumSet.allOf(AlertState.class);
       }
 
+      // groups are not required on creation
+      if (requestMap.containsKey(ALERT_TARGET_GROUPS)) {
+        List<Long> groupIds = (List<Long>) requestMap.get(ALERT_TARGET_GROUPS);
+        Set<AlertGroupEntity> groups = new HashSet<AlertGroupEntity>();
+        groups.addAll(s_dao.findGroupsById(groupIds));
+        entity.setAlertGroups(groups);
+      }
+
       entity.setDescription(description);
       entity.setNotificationType(notificationType);
       entity.setProperties(properties);
@@ -319,6 +327,7 @@ public class AlertTargetResourceProvider extends
       String description = (String) requestMap.get(ALERT_TARGET_DESCRIPTION);
       String notificationType = (String) requestMap.get(ALERT_TARGET_NOTIFICATION_TYPE);
       Collection<String> alertStates = (Collection<String>) requestMap.get(ALERT_TARGET_STATES);
+      Collection<Long> groupIds = (Collection<Long>) requestMap.get(ALERT_TARGET_GROUPS);
 
       if (!StringUtils.isBlank(name)) {
         entity.setTargetName(name);
@@ -352,6 +361,19 @@ public class AlertTargetResourceProvider extends
         }
 
         entity.setAlertStates(alertStateSet);
+      }
+
+      // if groups were supplied, replace existing
+      if (null != groupIds) {
+        Set<AlertGroupEntity> groups = new HashSet<AlertGroupEntity>();
+
+        List<Long> ids = new ArrayList<Long>(groupIds);
+
+        if (ids.size() > 0) {
+          groups.addAll(s_dao.findGroupsById(ids));
+        }
+
+        entity.setAlertGroups(groups);
       }
 
       s_dao.merge(entity);
