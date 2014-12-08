@@ -102,6 +102,7 @@ App.ManageAlertGroupsController = Em.Controller.extend({
       });
     }
     this.set('alertNotifications', alertNotifications);
+    this.set('alertGlobalNotifications', alertNotifications.filterProperty('global'));
   },
 
   onLoadAlertNotificationsError: function () {
@@ -666,7 +667,7 @@ App.ManageAlertGroupsController = Em.Controller.extend({
         var newAlertGroup = App.AlertGroupComplex.create({
           name: this.get('alertGroupName').trim(),
           definitions: [],
-          notifications: []
+          notifications: self.get('alertGlobalNotifications')
         });
         self.get('alertGroups').pushObject(newAlertGroup);
         self.set('selectedAlertGroup', newAlertGroup);
