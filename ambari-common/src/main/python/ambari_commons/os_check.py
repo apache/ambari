@@ -20,7 +20,6 @@ limitations under the License.
 
 import os
 import sys
-import json
 import platform
 
 # path to resources dir
@@ -84,7 +83,7 @@ class OS_CONST_TYPE(type):
     try:
       fpath = os.path.join(RESOURCES_DIR, OSFAMILY_JSON_RESOURCE)
       f = open(fpath)
-      json_data = json.load(f)
+      json_data = eval(f.read())
       f.close()
       for family in json_data:
         cls.FAMILY_COLLECTION += [family]

@@ -75,7 +75,7 @@ def configureAgent(server_hostname, user_run_as):
 
 def runAgent(passPhrase, expected_hostname, user_run_as):
   os.environ[AMBARI_PASSPHRASE_VAR] = passPhrase
-  agent_retcode = subprocess.call("su - {0} -c '/usr/sbin/ambari-agent restart --expected-hostname={1}'".format(user_run_as, expected_hostname)
+  agent_retcode = subprocess.call("su - %1s -c '/usr/sbin/ambari-agent restart --expected-hostname=%2s'" % (user_run_as, expected_hostname)
                                   , shell=True)
   for i in range(3):
     time.sleep(1)
