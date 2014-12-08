@@ -74,16 +74,6 @@
             <script>scripts/hbase_regionserver.py</script>
             <scriptType>PYTHON</scriptType>
           </commandScript>
-          <customCommands>
-            <customCommand>
-              <name>DECOMMISSION</name>
-              <commandScript>
-                <script>scripts/hbase_regionserver.py</script>
-                <scriptType>PYTHON</scriptType>
-                <timeout>600</timeout>
-              </commandScript>
-            </customCommand>
-          </customCommands>
         </component>
 
         <component>

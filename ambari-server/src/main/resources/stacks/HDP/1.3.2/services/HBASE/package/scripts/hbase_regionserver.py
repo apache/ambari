@@ -57,10 +57,6 @@ class HbaseRegionServer(Script):
     env.set_params(status_params)
     pid_file = format("{pid_dir}/hbase-{hbase_user}-regionserver.pid")
     check_process_status(pid_file)
-    
-  def decommission(self, env):
-    print "Decommission not yet implemented!"
-    
 
 if __name__ == "__main__":
   HbaseRegionServer().execute()
