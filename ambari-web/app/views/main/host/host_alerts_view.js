@@ -44,7 +44,7 @@ App.MainHostAlertsView = App.TableView.extend({
     return this.get('content.length');
   }.property('content.length'),
 
-  colPropAssoc: ['', 'label', 'state', 'serviceName', 'originalTimestamp', 'notifications'],
+  colPropAssoc: ['', 'serviceName', 'label', 'latestTimestamp', 'state', 'text'],
 
   sortView: sort.wrapperView,
 
@@ -53,7 +53,7 @@ App.MainHostAlertsView = App.TableView.extend({
    * @type {Em.View}
    */
   nameSort: sort.fieldView.extend({
-    column: 1,
+    column: 2,
     name: 'label',
     displayName: Em.I18n.t('common.name')
   }),
@@ -63,7 +63,7 @@ App.MainHostAlertsView = App.TableView.extend({
    * @type {Em.View}
    */
   statusSort: sort.fieldView.extend({
-    column: 2,
+    column: 4,
     name: 'state',
     displayName: Em.I18n.t('common.status'),
     type: 'select'
@@ -74,8 +74,8 @@ App.MainHostAlertsView = App.TableView.extend({
    * @type {Em.View}
    */
   serviceSort: sort.fieldView.extend({
-    column: 3,
-    name: 'service.serviceName',
+    column: 1,
+    name: 'serviceName',
     displayName: Em.I18n.t('common.service'),
     type: 'string'
   }),
@@ -84,31 +84,30 @@ App.MainHostAlertsView = App.TableView.extend({
    * Sorting header for <label>alertDefinition.lastTriggeredSort</label>
    * @type {Em.View}
    */
-  lastTriggeredSort: sort.fieldView.extend({
-    column: 4,
-    name: 'lastTriggered',
-    displayName: Em.I18n.t('alerts.table.header.lastTriggered'),
+  lastCheckedSort: sort.fieldView.extend({
+    column: 3,
+    name: 'latestTimestamp',
+    displayName: Em.I18n.t('alerts.table.header.lastChecked'),
     type: 'number'
   }),
 
-
   /**
-   * Sorting header for <label>alertInstance.formattedNotifications</label>
+   * Sorting header for <label>alertDefinition.label</label>
    * @type {Em.View}
    */
-  formattedNotificationsSort: sort.fieldView.extend({
+  textSort: sort.fieldView.extend({
     column: 5,
-    name: 'formattedNotifications',
-    displayName: Em.I18n.t('alerts.table.header.notification'),
-    type: 'string'
+    name: 'text',
+    displayName: Em.I18n.t('alerts.table.header.text')
   }),
+
 
   /**
    * Filtering header for <label>alertDefinition.label</label>
    * @type {Em.View}
    */
   nameFilterView: filters.createTextView({
-    column: 1,
+    column: 2,
     fieldType: 'filter-input-width',
     onChangeValue: function(){
       this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'string');
@@ -120,7 +119,7 @@ App.MainHostAlertsView = App.TableView.extend({
    * @type {Em.View}
    */
   stateFilterView: filters.createSelectView({
-    column: 2,
+    column: 4,
     fieldType: 'filter-input-width',
     content: [
       {
@@ -154,7 +153,7 @@ App.MainHostAlertsView = App.TableView.extend({
    * @type {Em.View}
    */
   serviceFilterView: filters.createSelectView({
-    column: 3,
+    column: 1,
     fieldType: 'filter-input-width',
     content: function () {
       return [
@@ -181,8 +180,8 @@ App.MainHostAlertsView = App.TableView.extend({
    * Filtering header for <label>alertDefinition.lastTriggered</label>
    * @type {Em.View}
    */
-  triggeredFilterView: filters.createSelectView({
-    column: 4,
+  checkedFilterView: filters.createSelectView({
+    column: 3,
     appliedEmptyValue: ["", ""],
     fieldType: 'filter-input-width,modified-filter',
     content: [
@@ -226,10 +225,11 @@ App.MainHostAlertsView = App.TableView.extend({
    * Filtering header for <label>alertDefinition.service.serviceName</label>
    * @type {Em.View}
    */
-  formattedNotificationsView: filters.createTextView({
+  textView: filters.createTextView({
     column: 5,
     fieldType: 'filter-input-width',
     onChangeValue: function () {
+      this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'string');
     }
   }),
 
@@ -289,7 +289,7 @@ App.MainHostAlertsView = App.TableView.extend({
    */
   tooltipsUpdater: function () {
     Em.run.next(this, function () {
-      App.tooltip($(".enable-disable-button, .timeago"));
+      App.tooltip($(".enable-disable-button, .timeago, .alert-text"));
     });
   }.observes('pageContent.@each')
 

@@ -95,6 +95,20 @@
         {{/isAccessible}}
       </div>
       <div class="properties-list">
+        <div class="row-fluid">
+          <div class="span4 property-name">{{t alerts.table.state}}:</div>
+          <div class="span8">
+            {{#if controller.content.enabled}}
+              <span {{bindAttr class="controller.content.enabled:alert-definition-enable:alert-definition-disable"}}>
+                <span class="icon-off"></span> {{t alerts.table.state.enabled}}
+              </span>
+            {{else}}
+              <span {{bindAttr class="controller.content.enabled:alert-definition-enable:alert-definition-disable"}}>
+                <span class="icon-off"></span> {{t alerts.table.state.disabled}}
+              </span>
+            {{/if}}
+          </div>
+        </div>
         {{#if controller.content.serviceDisplayName}}
         <div class="row-fluid">
           <div class="span4 property-name">{{t common.service}}:</div>
@@ -109,7 +123,7 @@
         {{/if}}
         <div class="row-fluid">
           <div class="span4 property-name">{{t common.type}}:</div>
-          <div class="span8"> {{controller.content.type}}</div>
+          <div class="span8"><span {{bindAttr class=":type-icon  controller.content.typeIconClass"}}></span> {{controller.content.type}}</div>
         </div>
       {{#if controller.groupsList.length}}
         <div class="row-fluid">
@@ -145,19 +159,18 @@
       <table class="table table-bordered table-striped alerts-table" id="alert-instances-table">
         <thead>
         <tr>
-          <th class="first">{{t common.status}}</th>
-          <th>{{t alerts.definition.details.serviceHost}}</th>
+          <th class="first">{{t alerts.definition.details.serviceHost}}</th>
           <th>{{t alerts.table.header.lastTriggered}}</th>
+          <th>{{t common.status}}</th>
           <th>{{t alerts.definition.details.24-hour}}</th>
-          <th>{{t alerts.definition.details.notification}}</th>
+          <th>{{t alerts.table.header.text}}</th>
         </tr>
         </thead>
         <tbody>
         {{#if view.pageContent}}
           {{#each instance in view.pageContent}}
             <tr>
-              <td class="first">{{{instance.status}}}</td>
-              <td>
+              <td class="first">
                 <a {{action goToService instance.service target="controller"}} href="#">{{instance.service.displayName}}</a>
                 {{#if instance.host.hostName}}
                   {{#if instance.service.displayName}}
@@ -166,9 +179,10 @@
                   <a {{action goToHostAlerts instance.host target="controller"}} href="#">{{instance.host.hostName}}</a>
                 {{/if}}
               </td>
-              <td><time class="timeago" {{bindAttr data-original-title="instance.lastTriggered"}}>{{instance.lastTriggeredAgoFormatted}}</time></td>
+              <td>{{instance.lastTriggeredFormatted}}</td>
+              <td>{{{instance.status}}}  <time class="timeago" {{bindAttr data-original-title="instance.lastTriggeredFormatted"}}>{{instance.lastTriggeredForFormatted}}</time></td>
               <td>{{view view.lastDayCount hostBinding="instance.host"}}</td>
-              <td class="last">Admins</td>
+              <td><span class="alert-text" {{bindAttr data-original-title="instance.text"}} class="alert-text">{{instance.text}}</span></td>
             </tr>
           {{/each}}
         {{else}}

@@ -67,6 +67,14 @@ App.AlertInstance = DS.Model.extend({
    * Formatted timestamp for latest instance triggering
    * @type {string}
    */
+  lastCheckedFormatted: function() {
+    return dateUtils.dateFormat(this.get('latestTimestamp'));
+  }.property('latestTimestamp'),
+
+  /**
+   * Formatted timestamp for latest instance triggering
+   * @type {string}
+   */
   lastTriggeredFormatted: function() {
     return dateUtils.dateFormat(this.get('originalTimestamp'));
   }.property('originalTimestamp'),
@@ -78,6 +86,30 @@ App.AlertInstance = DS.Model.extend({
   lastTriggeredAgoFormatted: function () {
     var lastTriggered = this.get('originalTimestamp');
     return lastTriggered ? $.timeago(new Date(lastTriggered)): '';
+  }.property('originalTimestamp'),
+
+  lastTriggeredVerboseDisplay : function() {
+    var originalTimestamp = this.get('originalTimestamp');
+    var latestTimestamp = this.get('latestTimestamp');
+    return Em.I18n.t('models.alert_instance.tiggered.verbose').format(
+        dateUtils.dateFormat(originalTimestamp),
+        dateUtils.dateFormat(latestTimestamp));
+  }.property('originalTimestamp', 'latestTimestamp'),
+
+  /**
+   * Formatted timestamp with <code>$.timeago</code>
+   * @type {string}
+   */
+  lastTriggeredForFormatted: function () {
+    var lastTriggered = this.get('originalTimestamp');
+    var previousSuffixAgo = $.timeago.settings.strings.suffixAgo;
+    var previousPrefixAgo = $.timeago.settings.strings.prefixAgo;
+    $.timeago.settings.strings.suffixAgo = null;
+    $.timeago.settings.strings.prefixAgo = 'for';
+    var triggeredFor = lastTriggered ? $.timeago(new Date(lastTriggered)): '';
+    $.timeago.settings.strings.suffixAgo = previousSuffixAgo;
+    $.timeago.settings.strings.prefixAgo = previousPrefixAgo;
+    return triggeredFor;
   }.property('originalTimestamp'),
 
   /**

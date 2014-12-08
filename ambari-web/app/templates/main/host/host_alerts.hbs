@@ -25,30 +25,29 @@
   <table class="table advanced-header-table table-bordered table-striped alerts-table" id="host-alerts-table">
     <thead>
       {{#view view.sortView classNames="label-row" contentBinding="view.filteredContent"}}
-        {{view view.parentView.nameSort class="first"}}
+        {{view view.parentView.serviceSort class="first"}}
+        {{view view.parentView.nameSort}}
+        {{view view.parentView.lastCheckedSort}}
         {{view view.parentView.statusSort}}
-        {{view view.parentView.serviceSort}}
-        {{view view.parentView.lastTriggeredSort}}
-        {{view view.parentView.formattedNotificationsSort}}
+        {{view view.parentView.textSort}}
       {{/view}}
     <tr class="filter-row">
-      <th class="first">{{view view.nameFilterView}}</th>
+      <th class="first">{{view view.serviceFilterView}}</th>
+      <th>{{view view.nameFilterView}}</th>
+      <th>{{view view.checkedFilterView}}</th>
       <th>{{view view.stateFilterView}}</th>
-      <th>{{view view.serviceFilterView}}</th>
-      <th>{{view view.triggeredFilterView}}</th>
-      <th>{{view view.formattedNotificationsView}}</th>
-      <th></th>
+      <th>{{view view.textView}}</th>
     </tr>
     </thead>
     <tbody>
     {{#if view.pageContent}}
       {{#each alertInstance in view.pageContent}}
         <tr>
-          <td class="first">{{alertInstance.label}}</td>
-          <td>{{{alertInstance.status}}}</td>
-          <td>{{alertInstance.serviceDisplayName}}</td>
-          <td><time class="timeago" {{bindAttr data-original-title="alertInstance.lastTriggeredFormatted"}}>{{alertInstance.lastTriggeredAgoFormatted}}</time></td>
-          <td>{{alertInstance.formattedNotifications}}</td>
+          <td class="first">{{alertInstance.serviceDisplayName}}</td>
+          <td>{{alertInstance.label}}</td>
+          <td>{{alertInstance.lastCheckedFormatted}}</td>
+          <td>{{{alertInstance.status}}} <time class="timeago" {{bindAttr data-original-title="alertInstance.lastTriggeredFormatted"}}>{{alertInstance.lastTriggeredForFormatted}}</time></td>
+          <td><span class="alert-text" {{bindAttr data-original-title="alertInstance.text"}} class="alert-text">{{alertInstance.text}}</span></td>
         </tr>
       {{/each}}
     {{else}}

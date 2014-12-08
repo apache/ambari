@@ -25,12 +25,12 @@ App.MainAlertDefinitionActionsController = Em.ArrayController.extend({
    * @type {{title: string, icon: string, action: string, showDivider: boolean}[]}
    */
   content: [
-    {
+    /*{
       title: Em.I18n.t('alerts.actions.create'),
       icon: 'icon-plus',
       action: 'createNewAlertDefinition',
       showDivider: true
-    },
+    },*/
     {
       title: Em.I18n.t('alerts.actions.manageGroups'),
       icon: 'icon-th-large',

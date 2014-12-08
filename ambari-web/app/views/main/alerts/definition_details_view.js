@@ -56,6 +56,7 @@ App.MainAlertDefinitionDetailsView = App.TableView.extend({
 
   didInsertElement: function () {
     this.filter();
+    this.tooltipsUpdater();
   },
 
   /**
@@ -63,8 +64,8 @@ App.MainAlertDefinitionDetailsView = App.TableView.extend({
    * @method tooltipsUpdater
    */
   tooltipsUpdater: function () {
-    Em.run.next(this, function () {
-      App.tooltip($(".timeago"));
+    Em.run.next(function () {
+      App.tooltip($(".timeago, .alert-text"));
     });
   }.observes('pageContent.@each'),
 

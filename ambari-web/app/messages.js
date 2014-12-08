@@ -243,6 +243,8 @@ Em.I18n.translations = {
   'common.finalize': "Finalize",
   'common.severity': "Severity",
 
+  'models.alert_instance.tiggered.verbose': "Occured on {0} <br> Checked on {1}",
+
   'passiveState.turnOn':'Turn On Maintenance Mode',
   'passiveState.turnOff':'Turn Off Maintenance Mode',
   'passiveState.turnOnFor':'Turn On Maintenance Mode for {0}',
@@ -308,6 +310,8 @@ Em.I18n.translations = {
   'login.error.bad.credentials':'Unable to sign in. Invalid username/password combination.',
   'login.error.disabled':'Unable to sign in. Invalid username/password combination.',
   'login.error.bad.connection':'Unable to connect to Ambari Server. Confirm Ambari Server is running and you can reach Ambari Server from this machine.',
+
+  'titlebar.alerts.noAlerts': 'No Alerts',
 
   'graphs.noData.title': 'No Data',
   'graphs.noData.message': 'There was no data available. Possible reasons include inaccessible/unsupported metrics service.',
@@ -851,7 +855,7 @@ Em.I18n.translations = {
   'alerts.add.step3.selectedType': 'Selected Type',
 
   'alerts.fastAccess.popup.header': '{0} Critical or Warning Alerts',
-  'alerts.fastAccess.popup.body.name': 'Alert Name',
+  'alerts.fastAccess.popup.body.name': 'Alert Definition Name',
   'alerts.fastAccess.popup.body.showmore': 'Go to Alerts Definitions',
   'alerts.fastAccess.popup.body.noalerts': 'No critical or warning alerts to display',
 
@@ -862,9 +866,11 @@ Em.I18n.translations = {
 
   'alerts.table.noAlerts': 'No Alerts to display',
   'alerts.table.header.lastTriggered': 'Last Status Changed',
-  'alerts.table.header.lastTrigger': 'Last Trigger',
+  'alerts.table.header.lastChecked': 'Last Checked',
+  'alerts.table.header.lastTrigger': 'Last Changed',
+  'alerts.table.header.text': 'Text',
   'alerts.table.header.triggeredOn': 'Triggered On',
-  'alerts.table.header.definitionName': 'Definition Name',
+  'alerts.table.header.definitionName': 'Alert Definition Name',
   'alerts.table.header.notification': 'Notification',
   'alerts.table.state': 'State',
   'alerts.table.state.enabled': 'Enabled',

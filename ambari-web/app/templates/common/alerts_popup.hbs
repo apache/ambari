@@ -20,9 +20,8 @@
   {{#if view.isLoaded}}
     <div class="alert-list-main-warp">
       <div class="top-wrap">
-        <div class="status-top">&nbsp;</div>
-        <div class="name-top">{{t alerts.fastAccess.popup.body.name}}</div>
         <div class="service-top">{{t alerts.definition.details.serviceHost}}</div>
+        <div class="name-top">{{t alerts.fastAccess.popup.body.name}}</div>
         <div class="last-triggered-top">{{t alerts.table.header.triggeredOn}}</div>
       </div>
         <div id="alert-info">
@@ -32,8 +31,6 @@
             {{#each alertInstance in view.contents}}
               <div class="alert-list-wrap">
                 <div class="alert-list-line-cursor">
-                  <div class="status-icon">{{{alertInstance.status}}}</div>
-                  <div class="name-text"><a href="#" {{action "gotoAlertDetails" alertInstance target="view"}}>{{alertInstance.label}}</a></div>
                   <div class="service-text"><a href="#" {{action "gotoService" alertInstance.service target="view"}}>{{alertInstance.service.displayName}}</a>
                     {{#if alertInstance.host.hostName}}
                       {{#if alertInstance.service.displayName}}
@@ -42,7 +39,13 @@
                       <a {{action "goToHostAlerts" alertInstance.host target="view"}} href="#">{{alertInstance.host.hostName}}</a>
                     {{/if}}
                   </div>
-                  <div class="last-triggered-text">{{alertInstance.lastTriggered}}</div>
+                  <div class="name-text"><a href="#" {{action "gotoAlertDetails" alertInstance target="view"}}>{{alertInstance.label}}</a></div>
+                  <div class="status-col" rel="alert-status-tooltip" {{bindAttr title="alertInstance.lastTriggered"}}>
+                    <span class="timeago" {{bindAttr data-original-title="alertInstance.lastTriggeredVerboseDisplay"}}>
+                      <span class="status-icon">{{{alertInstance.status}}}</span>
+                      <time>{{alertInstance.lastTriggeredForFormatted}}</time>
+                    </span>
+                  </div>
               </div>
             </div>
           {{/each}}

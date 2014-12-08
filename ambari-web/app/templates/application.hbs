@@ -40,7 +40,7 @@
                   <span {{bindAttr class=":label isCriticalAlerts:alert-crit-count:alert-warn-count"}} {{action "showPopup" target="App.router.mainAlertDefinitionsController"}}>
                   {{allAlertsCount}} {{pluralize allAlertsCount singular="alert" plural="alerts"}}</span>
                 {{else}}
-                  <span class="label" {{action "showPopup" target="App.router.mainAlertDefinitionsController"}}>
+                  <span rel="tooltip" {{translateAttr title="titlebar.alerts.noAlerts"}} class="label alerts-none-count" {{action "showPopup" target="App.router.mainAlertDefinitionsController"}}>
                   {{allAlertsCount}} {{pluralize allAlertsCount singular="alert" plural="alerts"}}</span>
                 {{/if}}
               {{/with}}

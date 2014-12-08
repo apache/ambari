@@ -190,6 +190,12 @@ App.MainAlertDefinitionsController = Em.ArrayController.extend({
           }
         },
 
+        didInsertElement: function () {
+          Em.run.next(this, function () {
+            App.tooltip($(".timeago"));
+          });
+        },
+
         /**
          * Router transition to alert summary page
          */
