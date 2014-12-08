@@ -21,6 +21,7 @@ import os
 import subprocess
 from mock.mock import MagicMock, call, patch
 from resource_management.core import shell
+from resource_management.libraries.functions import hive_check
 from stacks.utils.RMFTestCase import *
 
 import socket
@@ -115,11 +116,16 @@ class TestHiveServer(RMFTestCase):
     self.assertResourceCalled('Execute', '/usr/jdk64/jdk1.7.0_45/bin/java -cp /usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/share/java/mysql-connector-java.jar org.apache.ambari.server.DBConnectionVerification \'jdbc:mysql://c6402.ambari.apache.org/hive?createDatabaseIfNotExist=true\' hive \'!`"\'"\'"\' 1\' com.mysql.jdbc.Driver',
                               path=['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'], tries=5, try_sleep=10
     )
-
+    self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa; ',
+                              user = 'ambari-qa',
+                              )
+    self.assertResourceCalled('Execute', "! beeline -u 'jdbc:hive2://c6402.ambari.apache.org:10000/;principal=hive/_HOST@EXAMPLE.COM' -e '' 2>&1| awk '{print}'|grep -i -e 'Connection refused' -e 'Invalid URL'",
+                              path = ['/bin/', '/usr/bin/', '/usr/lib/hive/bin/', '/usr/sbin/'],
+                              user = 'ambari-qa',
+                              timeout = 30,
+                              )
     self.assertNoMoreResources()
     self.assertTrue(check_fs_root_mock.called)
-    self.assertTrue(socket_mock.called)
-    self.assertTrue(s.close.called)
 
   @patch("socket.socket")
   def test_stop_secured(self, socket_mock):

@@ -74,14 +74,20 @@ def hive_service(
 
       is_service_socket_valid = False
       print "Waiting for the Hive server to start..."
+      if params.security_enabled:
+        kinitcmd=format("{kinit_path_local} -kt {smoke_user_keytab} {smokeuser}; ")
+      else:
+        kinitcmd=None
       while time.time() < end_time:
-        if check_thrift_port_sasl(address, port, 2, security_enabled=params.security_enabled):
+        try:
+          check_thrift_port_sasl(address, port, params.hive_server2_authentication,
+                                 params.hive_server_principal, kinitcmd, params.smokeuser)
           is_service_socket_valid = True
           break
-        else:
-          time.sleep(2)
+        except Exception, e:
+          time.sleep(5)
 
-      elapsed_time = time.time() - start_time    
+      elapsed_time = time.time() - start_time
       
       if is_service_socket_valid == False: 
         raise Fail("Connection to Hive server %s on port %s failed after %d seconds" % (address, port, elapsed_time))

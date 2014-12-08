@@ -80,6 +80,14 @@ class TestServiceCheck(RMFTestCase):
                         command="service_check",
                         config_file="secured.json"
     )
+    self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa; ',
+                              user = 'ambari-qa',
+                              )
+    self.assertResourceCalled('Execute', "! beeline -u 'jdbc:hive2://c6402.ambari.apache.org:10000/;principal=hive/_HOST@EXAMPLE.COM' -e '' 2>&1| awk '{print}'|grep -i -e 'Connection refused' -e 'Invalid URL'",
+                              path = ['/bin/', '/usr/bin/', '/usr/lib/hive/bin/', '/usr/sbin/'],
+                              user = 'ambari-qa',
+                              timeout = 30,
+                              )
     self.assertResourceCalled('File', '/tmp/hcatSmoke.sh',
                         content = StaticFile('hcatSmoke.sh'),
                         mode = 0755,
@@ -118,4 +126,3 @@ class TestServiceCheck(RMFTestCase):
                               try_sleep = 5,
                               )
     self.assertNoMoreResources()
-    self.assertTrue(socket_mock.called)

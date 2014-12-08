@@ -50,7 +50,7 @@ class TestHiveServer(RMFTestCase):
   @patch("socket.socket")
   def test_start_default(self, socket_mock):
     s = socket_mock.return_value
-    
+
     self.executeScript("1.3.2/services/HIVE/package/scripts/hive_server.py",
                          classname = "HiveServer",
                          command = "start",
@@ -123,10 +123,8 @@ class TestHiveServer(RMFTestCase):
     )
     self.assertNoMoreResources()
 
-  @patch("socket.socket")
-  def test_start_secured(self, socket_mock):
-    s = socket_mock.return_value
-    
+  def test_start_secured(self):
+
     self.executeScript("1.3.2/services/HIVE/package/scripts/hive_server.py",
                        classname = "HiveServer",
                        command = "start",
@@ -156,10 +154,15 @@ class TestHiveServer(RMFTestCase):
     self.assertResourceCalled('Execute', '/usr/jdk64/jdk1.7.0_45/bin/java -cp /usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/share/java/mysql-connector-java.jar org.apache.ambari.server.DBConnectionVerification \'jdbc:mysql://c6402.ambari.apache.org/hive?createDatabaseIfNotExist=true\' hive \'!`"\'"\'"\' 1\' com.mysql.jdbc.Driver',
                               path=['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'], tries=5, try_sleep=10
     )
-
+    self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa; ',
+                              user = 'ambari-qa',
+    )
+    self.assertResourceCalled('Execute', "! beeline -u 'jdbc:hive2://c6402.ambari.apache.org:10000/;principal=hive/_HOST@EXAMPLE.COM' -e '' 2>&1| awk '{print}'|grep -i -e 'Connection refused' -e 'Invalid URL'",
+                              path = ['/bin/', '/usr/bin/', '/usr/lib/hive/bin/', '/usr/sbin/'],
+                              user = 'ambari-qa',
+                              timeout = 30,
+                              )
     self.assertNoMoreResources()
-    self.assertTrue(socket_mock.called)    
-    self.assertTrue(s.close.called)
 
   @patch("socket.socket")
   def test_stop_secured(self, socket_mock):
