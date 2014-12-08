@@ -30,11 +30,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.Configuration;
@@ -619,6 +615,26 @@ public class StackManagerTest {
     assertNotNull(stacks.iterator().next().getService("HDFS"));
 
     verify(dao, actionMetadata, osFamily);
+  }
+
+  @Test
+  public void testMergeRoleCommandOrder() throws Exception {
+    StackInfo stack = stackManager.getStack("HDP", "2.1.1");
+    // merged role command order with parent stacks
+    Map<String, Object> roleCommandOrder = stack.getRoleCommandOrder().getContent();
+    assertTrue(roleCommandOrder.containsKey("optional_glusterfs"));
+    assertTrue(roleCommandOrder.containsKey("general_deps"));
+    assertTrue(roleCommandOrder.containsKey("optional_no_glusterfs"));
+    assertTrue(roleCommandOrder.containsKey("namenode_optional_ha"));
+    assertTrue(roleCommandOrder.containsKey("resourcemanager_optional_ha"));
+    Map<String, Object>  generalDeps = (Map<String, Object>) roleCommandOrder.get("general_deps");
+    assertTrue(generalDeps.containsKey("HBASE_MASTER-START"));
+    assertTrue(generalDeps.containsKey("HBASE_REGIONSERVER-START"));
+    Map<String, Object>  optionalNoGlusterfs  = (Map<String, Object>) roleCommandOrder.get("optional_no_glusterfs");
+    assertTrue(optionalNoGlusterfs.containsKey("SECONDARY_NAMENODE-START"));
+    ArrayList<String> hbaseMasterStartValues = (ArrayList<String>) generalDeps.get("HBASE_MASTER-START");
+    assertTrue(hbaseMasterStartValues.get(0).equals("ZOOKEEPER_SERVER-START, ZOOKEEPER_SERVER-START"));
+
   }
 
   //todo: component override assertions

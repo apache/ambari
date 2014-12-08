@@ -55,7 +55,6 @@ public class RoleCommandOrder {
   private final static String NAMENODE_HA_DEPS_KEY = "namenode_optional_ha";
   private final static String RESOURCEMANAGER_HA_DEPS_KEY = "resourcemanager_optional_ha";
   private final static String COMMENT_STR = "_comment";
-  private static final String ROLE_COMMAND_ORDER_FILE = "role_command_order.json";
 
   /**
    * Commands that are independent, role order matters
@@ -137,19 +136,6 @@ public class RoleCommandOrder {
     this.dependencies.get(rcp1).add(rcp2);
   }
 
-  private File getRCOFile(String stackName, String stackVersion) {
-    StackInfo stackInfo;
-    String rcoFileLocation = null;
-    try {
-      stackInfo = ambariMetaInfo.getStack(stackName, stackVersion);
-      rcoFileLocation = stackInfo.getRcoFileLocation();
-    } catch (AmbariException e) {
-      LOG.warn("Error getting stack info for :" + stackName + "-" + stackVersion);
-    }
-
-    return rcoFileLocation == null ? null : new File(rcoFileLocation);
-  }
-
   void addDependencies(Map<String, Object> jsonSection) {
     for (Object blockedObj : jsonSection.keySet()) {
       String blocked = (String) blockedObj;
@@ -203,33 +189,15 @@ public class RoleCommandOrder {
     } catch (AmbariException e) {
     }
 
-    // Read data from JSON
-    ObjectMapper mapper = new ObjectMapper();
-    StackId currentStackVersion = cluster.getCurrentStackVersion();
-    String stackName = currentStackVersion.getStackName();
-    String stackVersion = currentStackVersion.getStackVersion();
-    File rcoFile = getRCOFile(stackName, stackVersion);
-    Map<String,Object> userData;
-    
+    StackId stackId = cluster.getCurrentStackVersion();
+    StackInfo stack = null;
     try {
-      
-      TypeReference<Map<String,Object>> rcoElementTypeReference = new TypeReference<Map<String,Object>>() {};
-      
-      if (rcoFile != null) {
-        userData = mapper.readValue(rcoFile, rcoElementTypeReference);
-        LOG.info("Role command order info was loaded from file: " + rcoFile.getAbsolutePath());
-      } else {
-        InputStream rcoInputStream = ClassLoader.getSystemResourceAsStream(ROLE_COMMAND_ORDER_FILE);
-        userData = mapper.readValue(rcoInputStream, rcoElementTypeReference);
-        LOG.info("Role command order info was loaded from classpath: " +
-          ClassLoader.getSystemResource(ROLE_COMMAND_ORDER_FILE));
-      }
-
-    } catch (IOException e) {
-      LOG.error("Can not read role command order info", e);
-      return;
+      stack = ambariMetaInfo.getStack(stackId.getStackName(),
+            stackId.getStackVersion());
+    } catch (AmbariException e) {
     }
 
+    Map<String,Object> userData = stack.getRoleCommandOrder().getContent();
     Map<String,Object> generalSection =
       (Map<String, Object>) userData.get(GENERAL_DEPS_KEY);
     addDependencies(generalSection);

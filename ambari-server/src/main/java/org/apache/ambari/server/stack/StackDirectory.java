@@ -22,13 +22,18 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.state.stack.RepositoryXml;
 import org.apache.ambari.server.state.stack.StackMetainfoXml;
+import org.apache.ambari.server.state.stack.StackRoleCommandOrder;
 import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.commons.io.FilenameUtils;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.type.TypeReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.xml.bind.JAXBException;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -61,6 +66,11 @@ public class StackDirectory extends StackDefinitionDirectory {
    * repository file
    */
   private RepositoryXml repoFile;
+
+  /**
+   * role command order
+   */
+  private StackRoleCommandOrder roleCommandOrder;
 
   /**
    * repository directory
@@ -112,6 +122,11 @@ public class StackDirectory extends StackDefinitionDirectory {
    * upgrades directory name
    */
   private static final String UPGRADE_PACK_FOLDER_NAME = "upgrades";
+
+  /**
+   * role command order file name
+   */
+  private static final String ROLE_COMMAND_ORDER_FILE = "role_command_order.json";
 
   /**
    * logger instance
@@ -212,6 +227,16 @@ public class StackDirectory extends StackDefinitionDirectory {
   }
 
   /**
+   * Obtain the object representation of the stack role_command_order.json file
+   *
+   * @return object representation of the stack role_command_order.json file
+   */
+
+  public StackRoleCommandOrder getRoleCommandOrder() {
+    return roleCommandOrder;
+  }
+
+  /**
    * Parse the stack directory.
    *
    * @throws AmbariException if unable to parse the directory
@@ -236,6 +261,7 @@ public class StackDirectory extends StackDefinitionDirectory {
     parseServiceDirectories(subDirs);
     parseRepoFile(subDirs);
     parseMetaInfoFile();
+    parseRoleCommandOrder();
   }
 
   /**
@@ -360,6 +386,32 @@ public class StackDirectory extends StackDefinitionDirectory {
 
     if (! upgradeMap.isEmpty()) {
       upgradePacks = upgradeMap;
+    }
+  }
+
+  /**
+   * Parse role command order file
+   */
+
+  private void parseRoleCommandOrder() {
+    HashMap<String, Object> result = null;
+    ObjectMapper mapper = new ObjectMapper();
+    try {
+      TypeReference<Map<String, Object>> rcoElementTypeReference = new TypeReference<Map<String, Object>>() {
+      };
+      if (rcoFilePath != null) {
+        File file = new File(rcoFilePath);
+        result = mapper.readValue(file, rcoElementTypeReference);
+        LOG.info("Role command order info was loaded from file: {}", file.getAbsolutePath());
+      } else {
+        InputStream rcoInputStream = ClassLoader.getSystemResourceAsStream(ROLE_COMMAND_ORDER_FILE);
+        result = mapper.readValue(rcoInputStream, rcoElementTypeReference);
+        LOG.info("Role command order info was loaded from classpath: " +
+            ClassLoader.getSystemResource(ROLE_COMMAND_ORDER_FILE));
+      }
+      roleCommandOrder = new StackRoleCommandOrder(result);
+    } catch (IOException e) {
+      LOG.error(String.format("Can not read role command order info %s", rcoFilePath), e);
     }
   }
 }

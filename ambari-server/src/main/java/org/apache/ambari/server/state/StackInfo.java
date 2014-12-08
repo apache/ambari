@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.ambari.server.controller.StackVersionResponse;
+import org.apache.ambari.server.state.stack.StackRoleCommandOrder;
 import org.apache.ambari.server.state.stack.UpgradePack;
 
 public class StackInfo implements Comparable<StackInfo>{
@@ -41,6 +42,7 @@ public class StackInfo implements Comparable<StackInfo>{
   private List<PropertyInfo> properties;
   private Map<String, Map<String, Map<String, String>>> configTypes;
   private Map<String, UpgradePack> upgradePacks;
+  private StackRoleCommandOrder roleCommandOrder;
 
   /**
    * Meaning: stores subpath from stack root to exact hooks folder for stack. These hooks are
@@ -212,6 +214,14 @@ public class StackInfo implements Comparable<StackInfo>{
 
   public void setParentStackVersion(String parentStackVersion) {
     this.parentStackVersion = parentStackVersion;
+  }
+
+  public StackRoleCommandOrder getRoleCommandOrder() {
+    return roleCommandOrder;
+  }
+
+  public void setRoleCommandOrder(StackRoleCommandOrder roleCommandOrder) {
+    this.roleCommandOrder = roleCommandOrder;
   }
 
   public String getRcoFileLocation() {

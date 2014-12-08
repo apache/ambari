@@ -218,6 +218,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> {
 
     resolveStack(parentStack, allStacks);
     mergeConfigurations(parentStack, allStacks);
+    mergeRoleCommandOrder(parentStack);
 
     if (stackInfo.getStackHooksFolder() == null) {
       stackInfo.setStackHooksFolder(parentStack.getModuleInfo().getStackHooksFolder());
@@ -314,6 +315,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> {
       stackInfo.setRcoFileLocation(stackDirectory.getRcoFilePath());
       stackInfo.setUpgradesFolder(stackDirectory.getUpgradesDir());
       stackInfo.setUpgradePacks(stackDirectory.getUpgradePacks());
+      stackInfo.setRoleCommandOrder(stackDirectory.getRoleCommandOrder());
       populateConfigurationModules();
     }
 
@@ -494,5 +496,17 @@ public class StackModule extends BaseModule<StackModule, StackInfo> {
           + ", repoInfo=" + ri.toString());
     }
     return ri;
+  }
+
+  /**
+   * Merge role command order with the parent stack
+   *
+   * @param parentStack parent stack
+   */
+
+  private void mergeRoleCommandOrder(StackModule parentStack) {
+
+    stackInfo.getRoleCommandOrder().merge(parentStack.stackInfo.getRoleCommandOrder());
+
   }
 }

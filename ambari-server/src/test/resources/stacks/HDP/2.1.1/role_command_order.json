@@ -3,8 +3,7 @@
   "_comment" : "blockedRole-blockedCommand: [blockerRole1-blockerCommand1, blockerRole2-blockerCommand2, ...]",
   "general_deps" : {
     "_comment" : "dependencies for all cases",
-    "HBASE_MASTER-START": ["ZOOKEEPER_SERVER-START"],
-    "HBASE_REGIONSERVER-START": ["HBASE_MASTER-START"],
+    "HBASE_MASTER-START": ["ZOOKEEPER_SERVER-START, ZOOKEEPER_SERVER-START"],
     "OOZIE_SERVER-START": ["JOBTRACKER-START", "TASKTRACKER-START"],
     "WEBHCAT_SERVER-START": ["TASKTRACKER-START", "HIVE_SERVER-START"],
     "HIVE_METASTORE-START": ["MYSQL_SERVER-START"],
@@ -77,16 +76,6 @@
     "DATANODE-UPGRADE": ["SECONDARY_NAMENODE-UPGRADE"],
     "HDFS_CLIENT-UPGRADE": ["DATANODE-UPGRADE"],
     "JOBTRACKER-UPGRADE": ["HDFS_CLIENT-UPGRADE"]
-  },
-  "_comment" : "Dependencies that are used in HA NameNode cluster",
-  "namenode_optional_ha": {
-    "NAMENODE-START": ["JOURNALNODE-START", "ZOOKEEPER_SERVER-START"],
-    "ZKFC-START": ["NAMENODE-START"],
-    "HDFS_SERVICE_CHECK-SERVICE_CHECK": ["ZKFC-START"]
-  },
-  "_comment" : "Dependencies that are used in ResourceManager HA cluster",
-  "resourcemanager_optional_ha" : {
-    "RESOURCEMANAGER-START": ["ZOOKEEPER_SERVER-START"]
   }
 }
 
