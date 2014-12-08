@@ -113,7 +113,7 @@ App.InstallerController = App.WizardController.extend({
   removeHosts: function (hosts) {
     var dbHosts = this.getDBProperty('hosts');
     hosts.forEach(function (_hostInfo) {
-      var host = _hostInfo.hostName;
+      var host = _hostInfo.name;
       delete dbHosts[host];
     });
     this.setDBProperty('hosts', dbHosts);

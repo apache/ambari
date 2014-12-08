@@ -51,7 +51,7 @@ describe('App.AddHostController', function () {
         title: 'Host is passed, db is empty',
         content: {
           hosts: [
-            {hostName: 'host1'}
+            {name: 'host1'}
           ],
           dbHosts: {}
         },
@@ -61,7 +61,7 @@ describe('App.AddHostController', function () {
         title: 'Passed host different from hosts in db',
         content: {
           hosts: [
-            {hostName: 'host1'}
+            {name: 'host1'}
           ],
           dbHosts: {
             'host2': {}
@@ -75,7 +75,7 @@ describe('App.AddHostController', function () {
         title: 'Passed host match host in db',
         content: {
           hosts: [
-            {hostName: 'host1'}
+            {name: 'host1'}
           ],
           dbHosts: {
             'host1': {}
