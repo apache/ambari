@@ -387,6 +387,10 @@ public class HeartBeatHandler {
       if (hostRoleCommand.getStatus() == HostRoleStatus.ABORTED) {
         continue;
       }
+      if (hostRoleCommand.getStatus() == HostRoleStatus.QUEUED &&
+              report.getStatus().equals("IN_PROGRESS")) {
+        hostRoleCommand.setStartTime(now);
+      }
       //pass custom STAR, STOP and RESTART
       if (RoleCommand.ACTIONEXECUTE.toString().equals(report.getRoleCommand()) ||
          (RoleCommand.CUSTOM_COMMAND.toString().equals(report.getRoleCommand()) &&

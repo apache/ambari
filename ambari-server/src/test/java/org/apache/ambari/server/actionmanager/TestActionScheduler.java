@@ -17,9 +17,7 @@
  */
 package org.apache.ambari.server.actionmanager;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.anyString;
@@ -211,6 +209,10 @@ public class TestActionScheduler {
     List<Stage> stages = new ArrayList<Stage>();
     final Stage s = StageUtils.getATestStage(1, 977, hostname, CLUSTER_HOST_INFO,
       "{\"host_param\":\"param_value\"}", "{\"stage_param\":\"param_value\"}");
+    s.addHostRoleExecutionCommand(hostname, Role.SECONDARY_NAMENODE, RoleCommand.INSTALL,
+            new ServiceComponentHostInstallEvent("SECONDARY_NAMENODE", hostname, System.currentTimeMillis(), "HDP-1.2.0"),
+            "cluster1", "HDFS");
+    s.setHostRoleStatus(hostname, "SECONDARY_NAMENODE", HostRoleStatus.IN_PROGRESS);
     stages.add(s);
 
     ActionDBAccessor db = mock(ActionDBAccessor.class);
@@ -238,12 +240,22 @@ public class TestActionScheduler {
     // Start the thread
 
     int cycleCount = 0;
-    while (!stages.get(0).getHostRoleStatus(hostname, "NAMENODE")
+    scheduler.doWork();
+    //Check that in_progress command is rescheduled
+    assertEquals(HostRoleStatus.QUEUED, stages.get(0).getHostRoleStatus(hostname, "SECONDARY_NAMENODE"));
+
+    //Switch command back to IN_PROGRESS status and check that other command is not rescheduled
+    stages.get(0).setHostRoleStatus(hostname, "SECONDARY_NAMENODE", HostRoleStatus.IN_PROGRESS);
+    scheduler.doWork();
+    assertEquals(1, stages.get(0).getAttemptCount(hostname, "NAMENODE"));
+    assertEquals(2, stages.get(0).getAttemptCount(hostname, "SECONDARY_NAMENODE"));
+
+    while (!stages.get(0).getHostRoleStatus(hostname, "SECONDARY_NAMENODE")
         .equals(HostRoleStatus.TIMEDOUT) && cycleCount++ <= MAX_CYCLE_ITERATIONS) {
       scheduler.doWork();
     }
-    assertEquals(stages.get(0).getHostRoleStatus(hostname, "NAMENODE"),
-        HostRoleStatus.TIMEDOUT);
+    assertEquals(HostRoleStatus.TIMEDOUT,
+            stages.get(0).getHostRoleStatus(hostname, "SECONDARY_NAMENODE"));
 
     verify(db, times(1)).startRequest(eq(1L));
     verify(db, times(1)).abortOperation(1L);
