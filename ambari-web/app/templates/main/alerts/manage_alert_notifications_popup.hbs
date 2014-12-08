@@ -30,14 +30,14 @@
             selectionBinding="view.selectedAlertNotification"
           }}
           <div class="btn-toolbar pull-right">
-            <button rel="button-info" class="btn"
+            <button rel="button-info" class="btn add-notification-button"
               {{translateAttr data-original-title="alerts.actions.manage_alert_notifications_popup.addButton"}}
               {{action addAlertNotification target="controller"}}><i class="icon-plus"></i></button>
-            <button rel="button-info" class="btn"
+            <button rel="button-info" class="btn remove-notification-button"
               {{translateAttr data-original-title="alerts.actions.manage_alert_notifications_popup.removeButton"}}
               {{bindAttr disabled="view.isRemoveButtonDisabled"}}
               {{action deleteAlertNotification target="controller"}}><i class="icon-minus"></i></button>
-            <div class="btn-group">
+            <div class="btn-group notification-actions-button">
               <button class="btn dropdown-toggle" data-toggle="dropdown">
                 <i class="icon-cog"></i>&nbsp;<span class="caret"></span>
               </button>

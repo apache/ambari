@@ -32,18 +32,18 @@
   <table class="table advanced-header-table table-bordered table-striped alerts-table" id="alert-definitions-table">
     <thead>
       {{#view view.sortView classNames="label-row" contentBinding="view.filteredContent"}}
-        {{view view.parentView.nameSort class="first"}}
-        {{view view.parentView.statusSort}}
-        {{view view.parentView.serviceSort}}
-        {{view view.parentView.lastTriggeredSort}}
-        {{view view.parentView.enabledSort}}
+        {{view view.parentView.nameSort class="first name-sorting"}}
+        {{view view.parentView.statusSort class="status-sorting"}}
+        {{view view.parentView.serviceSort class="service-sorting"}}
+        {{view view.parentView.lastTriggeredSort class="last-triggred-sorting"}}
+        {{view view.parentView.enabledSort class="enabled-sorting"}}
       {{/view}}
     <tr class="filter-row">
-      <th class="first">{{view view.nameFilterView}}</th>
-      <th>{{view view.stateFilterView}}</th>
-      <th>{{view view.serviceFilterView}}</th>
-      <th>{{view view.triggeredFilterView}}</th>
-      <th>{{view view.enabledFilterView}}</th>
+      <th class="first">{{view view.nameFilterView class="name-filter"}}</th>
+      <th>{{view view.stateFilterView class="status-filter"}}</th>
+      <th>{{view view.serviceFilterView class="service-filter"}}</th>
+      <th>{{view view.triggeredFilterView class="last-triggered-filter"}}</th>
+      <th>{{view view.enabledFilterView class="enabled-filter"}}</th>
     </tr>
     </thead>
     <tbody>

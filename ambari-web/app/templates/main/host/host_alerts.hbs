@@ -25,18 +25,18 @@
   <table class="table advanced-header-table table-bordered table-striped alerts-table" id="host-alerts-table">
     <thead>
       {{#view view.sortView classNames="label-row" contentBinding="view.filteredContent"}}
-        {{view view.parentView.serviceSort class="first"}}
-        {{view view.parentView.nameSort}}
-        {{view view.parentView.lastCheckedSort}}
-        {{view view.parentView.statusSort}}
-        {{view view.parentView.textSort}}
+        {{view view.parentView.serviceSort class="first service-sorting"}}
+        {{view view.parentView.nameSort class="name-sorting"}}
+        {{view view.parentView.lastCheckedSort class="last-checked-sorting"}}
+        {{view view.parentView.statusSort class="status-sorting"}}
+        {{view view.parentView.textSort class="text-sorting"}}
       {{/view}}
     <tr class="filter-row">
-      <th class="first">{{view view.serviceFilterView}}</th>
-      <th>{{view view.nameFilterView}}</th>
-      <th>{{view view.checkedFilterView}}</th>
-      <th>{{view view.stateFilterView}}</th>
-      <th>{{view view.textView}}</th>
+      <th class="first">{{view view.serviceFilterView class="service-filter"}}</th>
+      <th>{{view view.nameFilterView class="name-filter"}}</th>
+      <th>{{view view.checkedFilterView class="checked-filter"}}</th>
+      <th>{{view view.stateFilterView class="status-filter"}}</th>
+      <th>{{view view.textView class="text-filter"}}</th>
     </tr>
     </thead>
     <tbody>

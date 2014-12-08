@@ -30,9 +30,9 @@
             {{view Em.TextField valueBinding="controller.editing.label.value"}}
           </div>
           <div class="edit-buttons">
-            <button {{action cancelEdit controller.editing.label target="controller"}} class="btn">{{t common.cancel}}</button>
+            <button {{action cancelEdit controller.editing.label target="controller"}} class="btn cancel-button">{{t common.cancel}}</button>
             <button {{bindAttr disabled="controller.editing.label.isError"}} {{action saveEdit controller.editing.label target="controller"}}
-                class="btn btn-primary">{{t common.save}}
+                class="btn btn-primary save-button">{{t common.save}}
             </button>
           </div>
         {{else}}
@@ -84,13 +84,13 @@
       <div class="buttons-block">
         {{#isAccessible ADMIN}}
           {{#if controller.content.enabled}}
-            <button {{action toggleState target="controller"}} class="btn btn-danger"><i
+            <button {{action toggleState target="controller"}} class="btn btn-danger disable-button"><i
                class="icon-power-off"></i>&nbsp;{{t alerts.definition.details.disable}}</button>
           {{else}}
-            <button {{action toggleState target="controller"}} class="btn btn-success"><i
+            <button {{action toggleState target="controller"}} class="btn btn-success enable-button"><i
                class="icon-power-off"></i>&nbsp;{{t alerts.definition.details.enable}}</button>
           {{/if}}
-          <button {{action deleteAlertDefinition target="controller"}} class="btn"><i
+          <button {{action deleteAlertDefinition target="controller"}} class="btn delete-button"><i
               class="icon-trash"></i>&nbsp;{{t common.delete}}</button>
         {{/isAccessible}}
       </div>
