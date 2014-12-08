@@ -85,20 +85,6 @@ public class ClusterStackVersionService extends BaseService {
   }
 
   /**
-   * Handles ANY /{stackVersionId}/repository_versions requests.
-   *
-   * @param stackVersionId cluster stack version id
-   * @return repository version service
-   */
-  @Path("{stackVersionId}/repository_versions")
-  public RepositoryVersionService getRepositoryVersionHandler(@PathParam("stackVersionId") String stackVersionId) {
-    final Map<Resource.Type, String> stackVersionProperties = new HashMap<Resource.Type, String>();
-    stackVersionProperties.put(Resource.Type.Cluster, clusterName);
-    stackVersionProperties.put(Resource.Type.ClusterStackVersion, stackVersionId);
-    return new RepositoryVersionService(stackVersionProperties);
-  }
-
-  /**
    * Handles: POST /{clustername}/stack_versions requests
    * Distribute repositories/install packages.
    *

@@ -1165,6 +1165,32 @@ public class ClusterImpl implements Cluster {
     }
   }
 
+  @Override
+  public void initHostVersions(ClusterVersionEntity currentClusterVersion) throws AmbariException {
+    if (currentClusterVersion == null) {
+      throw new AmbariException("Could not find current stack version of cluster " + this.getClusterName());
+    }
+
+    clusterGlobalLock.readLock().lock();
+    try {
+      readWriteLock.writeLock().lock();
+      try {
+        Map<String, Host> hosts = clusters.getHostsForCluster(this.getClusterName());
+        for (String hostname : hosts.keySet()) {
+          HostEntity hostEntity = hostDAO.findByName(hostname);
+          HostVersionEntity hostVersionEntity = new HostVersionEntity(hostname, currentClusterVersion.getStack(),
+                  currentClusterVersion.getVersion(), RepositoryVersionState.INSTALLED);
+          hostVersionEntity.setHostEntity(hostEntity);
+          hostVersionDAO.create(hostVersionEntity);
+        }
+      } finally {
+        readWriteLock.writeLock().unlock();
+      }
+    } finally {
+      clusterGlobalLock.readLock().unlock();
+    }
+  }
+
   /**
    * Create a cluster version for the given stack and version, whose initial state must either
    * be either {@link org.apache.ambari.server.state.RepositoryVersionState#CURRENT} (if no other cluster version exists) or
@@ -1181,15 +1207,17 @@ public class ClusterImpl implements Cluster {
     try {
       readWriteLock.writeLock().lock();
       try {
-        RepositoryVersionState allowedState;
+        Set<RepositoryVersionState> allowedStates = new HashSet<RepositoryVersionState>();
         if (this.clusterEntity.getClusterVersionEntities() == null || this.clusterEntity.getClusterVersionEntities().isEmpty()) {
-          allowedState = RepositoryVersionState.CURRENT;
+          allowedStates.add(RepositoryVersionState.CURRENT);
+          allowedStates.add(RepositoryVersionState.INSTALLED); // TODO: dlysnichenko: remove when 2-stage api refactor is ready
         } else {
-          allowedState = RepositoryVersionState.UPGRADING;
+          allowedStates.add(RepositoryVersionState.UPGRADING);
+          allowedStates.add(RepositoryVersionState.INSTALLED); // TODO: dlysnichenko: remove when 2-stage api refactor is ready
         }
 
-        if (allowedState != state) {
-          throw new AmbariException("The allowed state for a new cluster version must be " + allowedState);
+        if (! allowedStates.contains(state)) {
+          throw new AmbariException("The allowed state for a new cluster version must be within " + allowedStates);
         }
 
         ClusterVersionEntity existing = clusterVersionDAO.findByClusterAndStackAndVersion(this.getClusterName(), stack, version);

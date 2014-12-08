@@ -84,10 +84,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
   protected static final String CLUSTER_STACK_VERSION_VERSION_PROPERTY_ID              = PropertyHelper.getPropertyId("ClusterStackVersions", "version");
   protected static final String CLUSTER_STACK_VERSION_STATE_PROPERTY_ID                = PropertyHelper.getPropertyId("ClusterStackVersions", "state");
   protected static final String CLUSTER_STACK_VERSION_HOST_STATES_PROPERTY_ID          = PropertyHelper.getPropertyId("ClusterStackVersions", "host_states");
-
-  protected static final String STACK_VERSION_REPO_VERSION_PROPERTY_ID = PropertyHelper.getPropertyId("StackVersion", "repository_version");
-  protected static final String STACK_VERSION_STACK_PROPERTY_ID    = PropertyHelper.getPropertyId("StackVersion", "stack");
-  protected static final String STACK_VERSION_VERSION_PROPERTY_ID    = PropertyHelper.getPropertyId("StackVersion", "version");
+  protected static final String CLUSTER_STACK_VERSION_REPOSITORY_VERSION_PROPERTY_ID   = PropertyHelper.getPropertyId("ClusterStackVersions", "repository_version");
 
   protected static final String INSTALL_PACKAGES_ACTION = "install_packages";
   protected static final String INSTALL_PACKAGES_FULL_NAME = "Distribute repositories/install packages";
@@ -99,9 +96,8 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       add(CLUSTER_STACK_VERSION_ID_PROPERTY_ID);
       add(CLUSTER_STACK_VERSION_STACK_PROPERTY_ID);
       add(CLUSTER_STACK_VERSION_VERSION_PROPERTY_ID);
-      add(STACK_VERSION_REPO_VERSION_PROPERTY_ID);
-      add(STACK_VERSION_STACK_PROPERTY_ID);
-      add(STACK_VERSION_VERSION_PROPERTY_ID);
+      add(CLUSTER_STACK_VERSION_STATE_PROPERTY_ID);
+      add(CLUSTER_STACK_VERSION_REPOSITORY_VERSION_PROPERTY_ID);
     }
   };
 
@@ -114,19 +110,19 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       add(CLUSTER_STACK_VERSION_VERSION_PROPERTY_ID);
       add(CLUSTER_STACK_VERSION_STATE_PROPERTY_ID);
       add(CLUSTER_STACK_VERSION_HOST_STATES_PROPERTY_ID);
-      add(STACK_VERSION_REPO_VERSION_PROPERTY_ID);
-      add(STACK_VERSION_STACK_PROPERTY_ID);
-      add(STACK_VERSION_VERSION_PROPERTY_ID);
+      add(CLUSTER_STACK_VERSION_STATE_PROPERTY_ID);
+      add(CLUSTER_STACK_VERSION_REPOSITORY_VERSION_PROPERTY_ID);
     }
   };
 
   @SuppressWarnings("serial")
   private static Map<Type, String> keyPropertyIds = new HashMap<Type, String>() {
     {
-      put(Resource.Type.Cluster, CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID);
-      put(Resource.Type.ClusterStackVersion, CLUSTER_STACK_VERSION_ID_PROPERTY_ID);
-      put(Resource.Type.Stack, CLUSTER_STACK_VERSION_STACK_PROPERTY_ID);
-      put(Resource.Type.StackVersion, CLUSTER_STACK_VERSION_VERSION_PROPERTY_ID);
+      put(Type.Cluster, CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID);
+      put(Type.ClusterStackVersion, CLUSTER_STACK_VERSION_ID_PROPERTY_ID);
+      put(Type.Stack, CLUSTER_STACK_VERSION_STACK_PROPERTY_ID);
+      put(Type.StackVersion, CLUSTER_STACK_VERSION_VERSION_PROPERTY_ID);
+      put(Type.RepositoryVersion, CLUSTER_STACK_VERSION_REPOSITORY_VERSION_PROPERTY_ID);
     }
   };
 
@@ -196,13 +192,19 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       for (HostVersionEntity hostVersionEntity: hostVersionDAO.findByClusterStackAndVersion(entity.getClusterEntity().getClusterName(), entity.getStack(), entity.getVersion())) {
         hostStates.get(hostVersionEntity.getState().name()).add(hostVersionEntity.getHostName());
       }
+      StackId stackId = new StackId(entity.getStack());
+      RepositoryVersionEntity repoVerEntity = repositoryVersionDAO.findByStackAndVersion(stackId.getStackId(), entity.getVersion());
 
       setResourceProperty(resource, CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID, entity.getClusterEntity().getClusterName(), requestedIds);
       setResourceProperty(resource, CLUSTER_STACK_VERSION_HOST_STATES_PROPERTY_ID, hostStates, requestedIds);
       setResourceProperty(resource, CLUSTER_STACK_VERSION_ID_PROPERTY_ID, entity.getId(), requestedIds);
-      setResourceProperty(resource, CLUSTER_STACK_VERSION_STACK_PROPERTY_ID, entity.getStack(), requestedIds);
+      setResourceProperty(resource, CLUSTER_STACK_VERSION_STACK_PROPERTY_ID, stackId.getStackName(), requestedIds);
       setResourceProperty(resource, CLUSTER_STACK_VERSION_STATE_PROPERTY_ID, entity.getState().name(), requestedIds);
-      setResourceProperty(resource, CLUSTER_STACK_VERSION_VERSION_PROPERTY_ID, entity.getVersion(), requestedIds);
+      setResourceProperty(resource, CLUSTER_STACK_VERSION_VERSION_PROPERTY_ID, stackId.getStackVersion(), requestedIds);
+      if (repoVerEntity!=null) {
+        Long repoVersionId = repoVerEntity.getId();
+        setResourceProperty(resource, CLUSTER_STACK_VERSION_REPOSITORY_VERSION_PROPERTY_ID, repoVersionId, requestedIds);
+      }
 
       if (predicate == null || predicate.evaluate(resource)) {
         resources.add(resource);
@@ -210,6 +212,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
     }
     return resources;
   }
+
 
   @Override
   public RequestStatus createResources(Request request) throws SystemException,
@@ -226,14 +229,14 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
 
     Map<String, Object> propertyMap = iterator.next();
     if (!propertyMap.containsKey(CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID) ||
-            !propertyMap.containsKey(STACK_VERSION_REPO_VERSION_PROPERTY_ID)) {
+            !propertyMap.containsKey(CLUSTER_STACK_VERSION_REPOSITORY_VERSION_PROPERTY_ID)) {
       throw new IllegalArgumentException(
               String.format("%s or %s not defined",
                       CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID,
-                      STACK_VERSION_REPO_VERSION_PROPERTY_ID));
+                      CLUSTER_STACK_VERSION_REPOSITORY_VERSION_PROPERTY_ID));
     }
     clName = (String) propertyMap.get(CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID);
-    desiredRepoVersion = (String) propertyMap.get(STACK_VERSION_REPO_VERSION_PROPERTY_ID);
+    desiredRepoVersion = (String) propertyMap.get(CLUSTER_STACK_VERSION_REPOSITORY_VERSION_PROPERTY_ID);
 
     Cluster cluster;
     Map<String, Host> hostsForCluster;
@@ -248,10 +251,10 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
     }
 
     String stackId;
-    if (propertyMap.containsKey(STACK_VERSION_STACK_PROPERTY_ID) &&
-            propertyMap.containsKey(STACK_VERSION_VERSION_PROPERTY_ID)) {
-      stackName = (String) propertyMap.get(STACK_VERSION_STACK_PROPERTY_ID);
-      stackVersion = (String) propertyMap.get(STACK_VERSION_VERSION_PROPERTY_ID);
+    if (propertyMap.containsKey(CLUSTER_STACK_VERSION_STACK_PROPERTY_ID) &&
+            propertyMap.containsKey(CLUSTER_STACK_VERSION_VERSION_PROPERTY_ID)) {
+      stackName = (String) propertyMap.get(CLUSTER_STACK_VERSION_STACK_PROPERTY_ID);
+      stackVersion = (String) propertyMap.get(CLUSTER_STACK_VERSION_VERSION_PROPERTY_ID);
       stackId = new StackId(stackName, stackVersion).getStackId();
       if (! ami.isSupportedStack(stackName, stackVersion)) {
         throw new NoSuchParentResourceException(String.format("Stack %s is not supported",
@@ -355,8 +358,18 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
     try {
       req.persist();
 
-      //TODO: create cluster version entity
-      //clusterVersionDAO.create();
+      try {  // Create/persist cluster stack version
+        cluster.createClusterVersion(stackId, desiredRepoVersion, managementController.getAuthName(), RepositoryVersionState.INSTALLED);
+        ClusterVersionEntity newCSVer = clusterVersionDAO.findByClusterAndStackAndVersion(clName, stackId, desiredRepoVersion);
+        cluster.initHostVersions(newCSVer);
+      } catch (AmbariException e) {
+        throw new SystemException(
+                String.format(
+                        "Can not create cluster stack version %s for cluster %s",
+                        desiredRepoVersion, clName),
+                e);
+      }
+
     } catch (AmbariException e) {
       throw new SystemException("Can not persist request", e);
     }

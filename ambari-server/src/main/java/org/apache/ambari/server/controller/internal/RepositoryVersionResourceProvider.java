@@ -97,9 +97,9 @@ public class RepositoryVersionResourceProvider extends AbstractResourceProvider 
   @SuppressWarnings("serial")
   private static Map<Type, String> keyPropertyIds = new HashMap<Type, String>() {
     {
-      put(Resource.Type.Stack, REPOSITORY_VERSION_STACK_NAME_PROPERTY_ID);
-      put(Resource.Type.StackVersion, REPOSITORY_VERSION_STACK_VERSION_PROPERTY_ID);
-      put(Resource.Type.RepositoryVersion, REPOSITORY_VERSION_ID_PROPERTY_ID);
+      put(Type.Stack, REPOSITORY_VERSION_STACK_NAME_PROPERTY_ID);
+      put(Type.StackVersion, REPOSITORY_VERSION_STACK_VERSION_PROPERTY_ID);
+      put(Type.RepositoryVersion, REPOSITORY_VERSION_ID_PROPERTY_ID);
     }
   };
 

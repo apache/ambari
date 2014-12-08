@@ -123,11 +123,12 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
   @SuppressWarnings("serial")
   private static Map<Type, String> keyPropertyIds = new HashMap<Type, String>() {
     {
-      put(Resource.Type.Cluster, HOST_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID);
-      put(Resource.Type.Host, HOST_STACK_VERSION_HOST_NAME_PROPERTY_ID);
-      put(Resource.Type.HostStackVersion, HOST_STACK_VERSION_ID_PROPERTY_ID);
-      put(Resource.Type.Stack, HOST_STACK_VERSION_STACK_PROPERTY_ID);
-      put(Resource.Type.StackVersion, HOST_STACK_VERSION_VERSION_PROPERTY_ID);
+      put(Type.Cluster, HOST_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID);
+      put(Type.Host, HOST_STACK_VERSION_HOST_NAME_PROPERTY_ID);
+      put(Type.HostStackVersion, HOST_STACK_VERSION_ID_PROPERTY_ID);
+      put(Type.Stack, HOST_STACK_VERSION_STACK_PROPERTY_ID);
+      put(Type.StackVersion, HOST_STACK_VERSION_VERSION_PROPERTY_ID);
+      put(Type.RepositoryVersion, STACK_VERSION_REPO_VERSION_PROPERTY_ID);
     }
   };
 
@@ -164,10 +165,11 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
     final Set<String> requestedIds = getRequestPropertyIds(request, predicate);
     final Set<Map<String, Object>> propertyMaps = getPropertyMaps(predicate);
 
-    List<HostVersionEntity> requestedEntities = new ArrayList<HostVersionEntity>();
     for (Map<String, Object> propertyMap: propertyMaps) {
       final String hostName = propertyMap.get(HOST_STACK_VERSION_HOST_NAME_PROPERTY_ID).toString();
+      final String clusterName = propertyMap.get(HOST_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID).toString();
       final Long id;
+      List<HostVersionEntity> requestedEntities = new ArrayList<HostVersionEntity>();
       if (propertyMap.get(HOST_STACK_VERSION_ID_PROPERTY_ID) == null && propertyMaps.size() == 1) {
         requestedEntities = hostVersionDAO.findByHost(hostName);
       } else {
@@ -183,20 +185,47 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
           requestedEntities.add(entity);
         }
       }
+
+      addRequestedEntities(resources, requestedEntities, requestedIds, clusterName);
+
     }
 
+    return resources;
+  }
+
+
+  /**
+   * Adds requested entities to resources
+   * @param resources a list of resources to add to
+   * @param requestedEntities requested entities
+   * @param requestedIds
+   * @param clusterName name of cluster or null if no any
+   */
+  public void addRequestedEntities(Set<Resource> resources,
+                                   List<HostVersionEntity> requestedEntities,
+                                   Set<String> requestedIds,
+                                   String clusterName) {
     for (HostVersionEntity entity: requestedEntities) {
+      StackId stackId = new StackId(entity.getStack());
+
+      RepositoryVersionEntity repoVerEntity = repositoryVersionDAO.findByStackAndVersion(stackId.getStackId(), entity.getVersion());
+
       final Resource resource = new ResourceImpl(Resource.Type.HostStackVersion);
 
       setResourceProperty(resource, HOST_STACK_VERSION_HOST_NAME_PROPERTY_ID, entity.getHostName(), requestedIds);
+      setResourceProperty(resource, HOST_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID, clusterName, requestedIds);
       setResourceProperty(resource, HOST_STACK_VERSION_ID_PROPERTY_ID, entity.getId(), requestedIds);
-      setResourceProperty(resource, HOST_STACK_VERSION_STACK_PROPERTY_ID, entity.getStack(), requestedIds);
-      setResourceProperty(resource, HOST_STACK_VERSION_VERSION_PROPERTY_ID, entity.getVersion(), requestedIds);
+      setResourceProperty(resource, HOST_STACK_VERSION_STACK_PROPERTY_ID, stackId.getStackName(), requestedIds);
+      setResourceProperty(resource, HOST_STACK_VERSION_VERSION_PROPERTY_ID, stackId.getStackVersion(), requestedIds);
       setResourceProperty(resource, HOST_STACK_VERSION_STATE_PROPERTY_ID, entity.getState().name(), requestedIds);
+
+      if (repoVerEntity!=null) {
+        Long repoVersionId = repoVerEntity.getId();
+        setResourceProperty(resource, STACK_VERSION_REPO_VERSION_PROPERTY_ID, repoVersionId, requestedIds);
+      }
 
       resources.add(resource);
     }
-    return resources;
   }
 
 

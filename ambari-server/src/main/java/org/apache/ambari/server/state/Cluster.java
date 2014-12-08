@@ -129,6 +129,13 @@ public interface Cluster {
   public void mapHostVersions(Set<String> hostNames, ClusterVersionEntity currentClusterVersion, RepositoryVersionState desiredState) throws AmbariException;
 
   /**
+   * Create host versions for all of the hosts within a cluster with the INSTALLED state.
+   * @param currentClusterVersion cluster version to be queried for a stack name/version info
+   * @throws AmbariException
+   */
+  public void initHostVersions(ClusterVersionEntity currentClusterVersion) throws AmbariException;
+
+  /**
    * Create a cluster version for the given stack and version, whose initial state must either
    * be either {@link RepositoryVersionState#CURRENT} (if no other cluster version exists) or
    * {@link RepositoryVersionState#UPGRADING} (if at exactly one CURRENT cluster version already exists).
