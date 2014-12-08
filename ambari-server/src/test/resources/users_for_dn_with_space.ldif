@@ -46,6 +46,6 @@ userPassword:password
 
 dn: cn=Ambari Administrators,ou=the groups,dc=ambari,dc=the apache,dc=org
 objectclass:top
-objectclass:group
+objectclass:groupOfNames
 cn: Ambari Administrators
 member: uid=allowedAdmin,ou=the people,dc=ambari,dc=the apache,dc=org

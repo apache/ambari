@@ -25,16 +25,44 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.ambari.server.security.ClientSecurityType;
+import org.apache.directory.server.annotations.CreateLdapServer;
+import org.apache.directory.server.annotations.CreateTransport;
+import org.apache.directory.server.core.annotations.ApplyLdifFiles;
+import org.apache.directory.server.core.annotations.ContextEntry;
+import org.apache.directory.server.core.annotations.CreateDS;
+import org.apache.directory.server.core.annotations.CreatePartition;
+import org.apache.directory.server.core.integ.AbstractLdapTestUnit;
+import org.apache.directory.server.core.integ.FrameworkRunner;
 import org.junit.*;
+import org.junit.runner.RunWith;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.ldap.server.ApacheDSContainer;
 
 import static org.junit.Assert.*;
 
-public class AmbariLdapAuthenticationProviderForDNWithSpaceTest extends AmbariLdapAuthenticationProviderBaseTest{
-  private static ApacheDSContainer apacheDSContainer;
+@RunWith(FrameworkRunner.class)
+@CreateDS(allowAnonAccess = true,
+    name = "Test",
+    partitions = {
+        @CreatePartition(name = "Root",
+            suffix = "dc=the apache,dc=org",
+            contextEntry = @ContextEntry(
+                entryLdif =
+                    "dn: dc=the apache,dc=org\n" +
+                        "dc: the apache\n" +
+                        "objectClass: top\n" +
+                        "objectClass: domain\n\n" +
+                        "dn: dc=ambari,dc=the apache,dc=org\n" +
+                        "dc: ambari\n" +
+                        "objectClass: top\n" +
+                        "objectClass: domain\n\n"))
+    })
+@CreateLdapServer(allowAnonymousAccess = true,
+    transports = {@CreateTransport(protocol = "LDAP", port = 33389)})
+@ApplyLdifFiles("users_for_dn_with_space.ldif")
+public class AmbariLdapAuthenticationProviderForDNWithSpaceTest extends AmbariLdapAuthenticationProviderBaseTest {
+
   private static Injector injector;
 
   @Inject
@@ -43,14 +71,6 @@ public class AmbariLdapAuthenticationProviderForDNWithSpaceTest extends AmbariLd
   private UserDAO userDAO;
   @Inject
   Configuration configuration;
-
-  @BeforeClass
-  public static void beforeClass() throws Exception{
-    createCleanApacheDSContainerWorkDir();
-    apacheDSContainer = new ApacheDSContainer("dc=ambari,dc=the apache,dc=org", "classpath:/users_for_dn_with_space.ldif");
-    apacheDSContainer.setPort(33389);
-    apacheDSContainer.afterPropertiesSet();
-  }
 
   @Before
   public void setUp() {
@@ -87,10 +107,5 @@ public class AmbariLdapAuthenticationProviderForDNWithSpaceTest extends AmbariLd
     Authentication authentication = new UsernamePasswordAuthenticationToken("the allowedUser", "password");
     Authentication auth = authenticationProvider.authenticate(authentication);
     assertTrue(auth == null);
-  }
-
-  @AfterClass
-  public static void afterClass() {
-    apacheDSContainer.stop();
   }
 }

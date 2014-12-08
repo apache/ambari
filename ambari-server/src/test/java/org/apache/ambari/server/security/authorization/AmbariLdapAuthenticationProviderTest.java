@@ -27,24 +27,54 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.ambari.server.security.ClientSecurityType;
+import org.apache.directory.server.annotations.CreateLdapServer;
+import org.apache.directory.server.annotations.CreateTransport;
+import org.apache.directory.server.core.annotations.ApplyLdifFiles;
+import org.apache.directory.server.core.annotations.ContextEntry;
+import org.apache.directory.server.core.annotations.CreateDS;
+import org.apache.directory.server.core.annotations.CreatePartition;
+import org.apache.directory.server.core.api.DirectoryService;
+import org.apache.directory.server.core.integ.AbstractLdapTestUnit;
+import org.apache.directory.server.core.integ.FrameworkRunner;
+import org.apache.directory.server.kerberos.kdc.KdcServer;
+import org.apache.directory.server.ldap.LdapServer;
+import org.easymock.EasyMockSupport;
 import org.easymock.IAnswer;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.ldap.server.ApacheDSContainer;
 import static org.easymock.EasyMock.*;
 
 import static org.junit.Assert.*;
 
+@RunWith(FrameworkRunner.class)
+@CreateDS(allowAnonAccess = true,
+    name = "Test",
+    partitions = {
+        @CreatePartition(name = "Root",
+            suffix = "dc=apache,dc=org",
+            contextEntry = @ContextEntry(
+                entryLdif =
+                    "dn: dc=apache,dc=org\n" +
+                        "dc: apache\n" +
+                        "objectClass: top\n" +
+                        "objectClass: domain\n\n" +
+                        "dn: dc=ambari,dc=apache,dc=org\n" +
+                        "dc: ambari\n" +
+                        "objectClass: top\n" +
+                        "objectClass: domain\n\n"))
+    })
+@CreateLdapServer(allowAnonymousAccess = true,
+    transports = {@CreateTransport(protocol = "LDAP", port = 33389)})
+@ApplyLdifFiles("users.ldif")
 public class AmbariLdapAuthenticationProviderTest extends AmbariLdapAuthenticationProviderBaseTest {
 
-  private static ApacheDSContainer apacheDSContainer;
   private static Injector injector;
 
   @Inject
@@ -53,14 +83,6 @@ public class AmbariLdapAuthenticationProviderTest extends AmbariLdapAuthenticati
   private UserDAO userDAO;
   @Inject
   Configuration configuration;
-
-  @BeforeClass
-  public static void beforeClass() throws Exception{
-    createCleanApacheDSContainerWorkDir();
-    apacheDSContainer = new ApacheDSContainer("dc=ambari,dc=apache,dc=org", "classpath:/users.ldif");
-    apacheDSContainer.setPort(33389);
-    apacheDSContainer.afterPropertiesSet();
-  }
 
   @Before
   public void setUp() {
@@ -166,10 +188,5 @@ public class AmbariLdapAuthenticationProviderTest extends AmbariLdapAuthenticati
     Authentication authentication = new UsernamePasswordAuthenticationToken("allowedUser", "password");
     Authentication auth = authenticationProvider.authenticate(authentication);
     Assert.assertTrue(auth == null);
-  }
-
-  @AfterClass
-  public static void afterClass() {
-    apacheDSContainer.stop();
   }
 }

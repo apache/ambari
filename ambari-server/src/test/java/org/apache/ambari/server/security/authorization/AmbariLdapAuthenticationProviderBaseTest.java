@@ -18,33 +18,41 @@
 
 package org.apache.ambari.server.security.authorization;
 
-import org.apache.commons.io.FileUtils;
+import org.apache.directory.server.core.api.DirectoryService;
+import org.apache.directory.server.core.integ.AbstractLdapTestUnit;
+import org.apache.directory.server.kerberos.kdc.KdcServer;
+import org.apache.directory.server.ldap.LdapServer;
 import org.easymock.EasyMockSupport;
-
-import java.io.File;
-import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 public class AmbariLdapAuthenticationProviderBaseTest extends EasyMockSupport {
 
-  private static final Log logger = LogFactory.getLog(AmbariLdapAuthenticationProviderBaseTest.class);
+  public static DirectoryService getService() {
+    return AbstractLdapTestUnit.service;
+  }
 
-  protected static void createCleanApacheDSContainerWorkDir() throws IOException{
-    // Set ApacheDsContainer's work dir under the current folder (Jenkins' job workspace) instead of the default /tmp/apacheds-spring-security. See AMBARI-7180
-    SimpleDateFormat sdf = new SimpleDateFormat("HHmmss");
-    String timestamp = sdf.format(new Date());
-    final String workParent = new File(".").getAbsolutePath() + File.separator + "target" + File.separator + timestamp;
-    new File(workParent).mkdirs();
-    // The folder structure looks like {job-root}/target/{timestamp}/apacheds-spring-security
-    final String apacheDSWorkDir = workParent + File.separator + "apacheds-spring-security";
-    FileUtils.deleteDirectory(new File(apacheDSWorkDir));
-    System.setProperty("apacheDSWorkDir", apacheDSWorkDir );
-    logger.info("System property apacheDSWorkDir was set to " + apacheDSWorkDir);
 
+  public static void setService(DirectoryService service) {
+    AbstractLdapTestUnit.service = service;
+  }
+
+
+  public static LdapServer getLdapServer() {
+    return AbstractLdapTestUnit.ldapServer;
+  }
+
+
+  public static void setLdapServer(LdapServer ldapServer) {
+    AbstractLdapTestUnit.ldapServer = ldapServer;
+  }
+
+
+  public static KdcServer getKdcServer() {
+    return AbstractLdapTestUnit.kdcServer;
+  }
+
+
+  public static void setKdcServer(KdcServer kdcServer) {
+    AbstractLdapTestUnit.kdcServer = kdcServer;
   }
 
 }
