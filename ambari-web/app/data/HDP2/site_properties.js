@@ -1917,26 +1917,10 @@ module.exports =
     // Falcon Graph and Storage
     {
       "id": "site property",
-      "name": "*.falcon.graph.blueprints.graph",
-      "displayName": "*.falcon.graph.blueprints.graph",
-      "category": "FalconStartupSite",
-      "serviceName": "FALCON",
-      "filename": "falcon-startup.properties.xml"
-    },
-    {
-      "id": "site property",
       "name": "*.falcon.graph.storage.directory",
       "displayName": "*.falcon.graph.storage.directory",
       "defaultDirectory": "/hadoop/falcon/data/lineage/graphdb",
       "displayType": "directory",
-      "category": "FalconStartupSite",
-      "serviceName": "FALCON",
-      "filename": "falcon-startup.properties.xml"
-    },
-    {
-      "id": "site property",
-      "name": "*.falcon.graph.storage.backend",
-      "displayName": "*.falcon.graph.storage.backend",
       "category": "FalconStartupSite",
       "serviceName": "FALCON",
       "filename": "falcon-startup.properties.xml"

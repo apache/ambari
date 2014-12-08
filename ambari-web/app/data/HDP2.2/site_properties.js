@@ -87,6 +87,22 @@ hdp22properties.push(
     "serviceName": "HDFS",
     "filename": "hdfs-site.xml",
     "index": 1
+  },
+  {
+    "id": "site property",
+    "name": "*.falcon.graph.blueprints.graph",
+    "displayName": "*.falcon.graph.blueprints.graph",
+    "category": "FalconStartupSite",
+    "serviceName": "FALCON",
+    "filename": "falcon-startup.properties.xml"
+  },
+  {
+    "id": "site property",
+    "name": "*.falcon.graph.storage.backend",
+    "displayName": "*.falcon.graph.storage.backend",
+    "category": "FalconStartupSite",
+    "serviceName": "FALCON",
+    "filename": "falcon-startup.properties.xml"
   });
 
 var additionalProperties = [];

@@ -286,9 +286,14 @@ public class ServiceInfo {
    * @return unmodifiable map of config types associated with this service
    */
   public synchronized Map<String, Map<String, Map<String, String>>> getConfigTypeAttributes() {
-    return configTypes == null ?
-        Collections.<String, Map<String, Map<String, String>>>emptyMap() :
-        Collections.unmodifiableMap(configTypes);
+    Map<String, Map<String, Map<String, String>>> tmpConfigTypes = configTypes == null ?
+        new HashMap<String, Map<String, Map<String, String>>>() : configTypes;
+
+    for(String excludedtype : excludedConfigTypes){
+      tmpConfigTypes.remove(excludedtype);
+    }
+
+    return Collections.unmodifiableMap(tmpConfigTypes);
   }
 
   /**
@@ -302,10 +307,7 @@ public class ServiceInfo {
     if (this.configTypes == null) {
       configTypes = new HashMap<String, Map<String, Map<String, String>>>();
     }
-
-    if (! excludedConfigTypes.contains(type)) {
-      configTypes.put(type, typeAttributes);
-    }
+    configTypes.put(type, typeAttributes);
   }
 
   /**
@@ -336,7 +338,8 @@ public class ServiceInfo {
    * @return true if the service has the specified config type; false otherwise
    */
   public boolean hasConfigType(String type) {
-    return configTypes != null && configTypes.containsKey(type);
+    return configTypes != null && configTypes.containsKey(type)
+        && !excludedConfigTypes.contains(type);
   }
 
   /**
