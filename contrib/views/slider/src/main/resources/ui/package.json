@@ -12,7 +12,7 @@
     "node": "~0.6.10 || 0.8 || 0.9"
   },
   "scripts": {
-    "test": "node_modules/phantomjs/bin/phantomjs runner.js public/tests.html",
+    "test": "phantomjs runner.js public/tests.html",
     "start": "brunch watch --server",
     "build": "brunch build",
     "build:production": "brunch build --production",

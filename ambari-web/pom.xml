@@ -15,7 +15,8 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <parent>
     <groupId>org.apache.ambari</groupId>
     <artifactId>ambari-project</artifactId>
@@ -52,9 +53,9 @@
             </goals>
             <configuration>
               <name>ambariVersion</name>
-                <value>${project.version}</value>
-                <regex>^([0-9]+)\.([0-9]+)\.([0-9]+)(\.|-).*</regex>
-                <replacement>$1.$2.$3</replacement>
+              <value>${project.version}</value>
+              <regex>^([0-9]+)\.([0-9]+)\.([0-9]+)(\.|-).*</regex>
+              <replacement>$1.$2.$3</replacement>
               <failIfNoMatch>false</failIfNoMatch>
             </configuration>
           </execution>
@@ -218,52 +219,52 @@
   </build>
   <profiles>
     <profile>
-     <id>windows</id>
-     <activation>
-      <os>
-        <family>win</family>
-      </os>
-     </activation>
-     <properties>
-      <envClassifier>win</envClassifier>
-      <dirsep>\</dirsep>
-      <executable.brunch>cmd</executable.brunch>
-      <args.brunch.build>/C brunch build</args.brunch.build>
-      <executable.gzip>gzip</executable.gzip>
-      <executable.mkdir>cmd</executable.mkdir>
-      <args.mkdir.clean>/C mkdir public</args.mkdir.clean>
-      <executable.npm>cmd</executable.npm>
-      <args.npm.install>/C npm install</args.npm.install>
-      <args.npm.test>/C npm install</args.npm.test>
-      <executable.rmdir>cmd</executable.rmdir>
-      <args.rm.clean>/C rmdir /S /Q</args.rm.clean>
-      <executable.shell>cmd</executable.shell>
-      <fileextension.shell>cmd</fileextension.shell>
-     </properties>
+      <id>windows</id>
+      <activation>
+        <os>
+          <family>win</family>
+        </os>
+      </activation>
+      <properties>
+        <envClassifier>win</envClassifier>
+        <dirsep>\</dirsep>
+        <executable.brunch>cmd</executable.brunch>
+        <args.brunch.build>/C brunch build</args.brunch.build>
+        <executable.gzip>gzip</executable.gzip>
+        <executable.mkdir>cmd</executable.mkdir>
+        <args.mkdir.clean>/C mkdir public</args.mkdir.clean>
+        <executable.npm>cmd</executable.npm>
+        <args.npm.install>/C npm install</args.npm.install>
+        <args.npm.test>/C npm test</args.npm.test>
+        <executable.rmdir>cmd</executable.rmdir>
+        <args.rm.clean>/C rmdir /S /Q</args.rm.clean>
+        <executable.shell>cmd</executable.shell>
+        <fileextension.shell>cmd</fileextension.shell>
+      </properties>
     </profile>
     <profile>
-     <id>linux</id>
-     <activation>
-      <os>
-        <family>unix</family>
-      </os>
-     </activation>
-     <properties>
-      <envClassifier>linux</envClassifier>
-      <dirsep>/</dirsep>
-      <executable.brunch>brunch</executable.brunch>
-      <args.brunch.build>build</args.brunch.build>
-      <executable.gzip>gzip</executable.gzip>
-      <executable.mkdir>mkdir</executable.mkdir>
-      <args.mkdir.clean>public</args.mkdir.clean>
-      <executable.npm>npm</executable.npm>
-      <args.npm.install>install</args.npm.install>
-      <args.npm.test>test</args.npm.test>
-      <executable.rmdir>rm</executable.rmdir>
-      <args.rm.clean>-rf</args.rm.clean>
-      <executable.shell>sh</executable.shell>
-      <fileextension.shell>sh</fileextension.shell>
-     </properties>
+      <id>linux</id>
+      <activation>
+        <os>
+          <family>unix</family>
+        </os>
+      </activation>
+      <properties>
+        <envClassifier>linux</envClassifier>
+        <dirsep>/</dirsep>
+        <executable.brunch>brunch</executable.brunch>
+        <args.brunch.build>build</args.brunch.build>
+        <executable.gzip>gzip</executable.gzip>
+        <executable.mkdir>mkdir</executable.mkdir>
+        <args.mkdir.clean>public</args.mkdir.clean>
+        <executable.npm>npm</executable.npm>
+        <args.npm.install>install</args.npm.install>
+        <args.npm.test>test</args.npm.test>
+        <executable.rmdir>rm</executable.rmdir>
+        <args.rm.clean>-rf</args.rm.clean>
+        <executable.shell>sh</executable.shell>
+        <fileextension.shell>sh</fileextension.shell>
+      </properties>
     </profile>
   </profiles>
 </project>
