@@ -37,7 +37,7 @@ with patch("platform.linux_distribution", return_value = ('Suse','11','Final')):
   from ambari_agent.PingPortListener import PingPortListener
   from ambari_agent.Controller import Controller
   from ambari_agent.DataCleaner import DataCleaner
-
+  import ambari_agent.HeartbeatHandlers as HeartbeatHandlers
 
 class TestMain(unittest.TestCase):
 
@@ -52,7 +52,7 @@ class TestMain(unittest.TestCase):
     sys.stdout = sys.__stdout__
 
 
-  @patch("ambari_agent.HeartbeatStopHandler_linux")
+  @patch("ambari_agent.HeartbeatHandlers.HeartbeatStopHandlersLinux")
   @patch("os._exit")
   @patch("os.getpid")
   @patch.object(ProcessHelper, "stopAgent")
@@ -60,13 +60,13 @@ class TestMain(unittest.TestCase):
     # testing exit of children
     main.agentPid = 4444
     os_getpid_mock.return_value = 5555
-    main.signal_handler("signum", "frame")
+    HeartbeatHandlers.signal_handler("signum", "frame")
     heartbeat_handler_mock.set_stop.assert_called()
     os_exit_mock.reset_mock()
 
     # testing exit of main process
     os_getpid_mock.return_value = main.agentPid
-    main.signal_handler("signum", "frame")
+    HeartbeatHandlers.signal_handler("signum", "frame")
     heartbeat_handler_mock.set_stop.assert_called()
 
 
@@ -123,10 +123,10 @@ class TestMain(unittest.TestCase):
   def test_bind_signal_handlers(self, signal_mock):
     main.bind_signal_handlers(os.getpid())
     # Check if on SIGINT/SIGTERM agent is configured to terminate
-    signal_mock.assert_any_call(signal.SIGINT, main.signal_handler)
-    signal_mock.assert_any_call(signal.SIGTERM, main.signal_handler)
+    signal_mock.assert_any_call(signal.SIGINT, HeartbeatHandlers.signal_handler)
+    signal_mock.assert_any_call(signal.SIGTERM, HeartbeatHandlers.signal_handler)
     # Check if on SIGUSR1 agent is configured to fall into debug
-    signal_mock.assert_any_call(signal.SIGUSR1, main.debug)
+    signal_mock.assert_any_call(signal.SIGUSR1, HeartbeatHandlers.debug)
 
 
   @patch("os.path.exists")

@@ -20,7 +20,6 @@ limitations under the License.
 
 import os
 import logging
-import pwd
 import shell
 import subprocess
 from threading import Thread

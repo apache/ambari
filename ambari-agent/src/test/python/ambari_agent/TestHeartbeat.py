@@ -34,7 +34,7 @@ with patch("platform.linux_distribution", return_value = ('Suse','11','Final')):
   from ambari_agent.LiveStatus import LiveStatus
   from ambari_agent import AmbariConfig
   from ambari_agent.StackVersionsFileHandler import StackVersionsFileHandler
-  from ambari_agent.HostInfo import HostInfo
+  from ambari_agent.HostInfo import HostInfoLinux
 
 
 class TestHeartbeat(TestCase):
@@ -74,7 +74,7 @@ class TestHeartbeat(TestCase):
 
 
   @patch.object(ActionQueue, "result")
-  @patch.object(HostInfo, "register")
+  @patch.object(HostInfoLinux, "register")
   def test_no_mapping(self, register_mock, result_mock):
     result_mock.return_value = {
       'reports': [{'status': 'IN_PROGRESS',
@@ -194,7 +194,7 @@ class TestHeartbeat(TestCase):
     self.assertEquals(hb, expected)
 
 
-  @patch.object(HostInfo, 'register')
+  @patch.object(HostInfoLinux, 'register')
   def test_heartbeat_no_host_check_cmd_in_queue(self, register_mock):
     config = AmbariConfig.AmbariConfig().getConfig()
     config.set('agent', 'prefix', 'tmp')
@@ -219,7 +219,7 @@ class TestHeartbeat(TestCase):
     self.assertFalse(args[1])
 
 
-  @patch.object(HostInfo, 'register')
+  @patch.object(HostInfoLinux, 'register')
   def test_heartbeat_host_check_no_cmd(self, register_mock):
     config = AmbariConfig.AmbariConfig().getConfig()
     config.set('agent', 'prefix', 'tmp')

@@ -23,7 +23,7 @@ import string
 
 from os_check import *
 
-if OSCheck.is_windows_os():
+if OSCheck.is_windows_family():
   from os_windows import *
 else:
   # MacOS not supported

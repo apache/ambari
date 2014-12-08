@@ -30,12 +30,15 @@ from setupSecurity import adjust_directory_permissions, get_is_secure, store_pas
 from userInput import *
 from utils import *
 
-if OSCheck.is_windows_os():
+if OSCheck.is_windows_family():
   from serverSetup_windows import *
 else:
   # MacOS not supported
   from serverSetup_linux import *
 
+OS_VERSION = OSCheck().get_os_major_version()
+OS_TYPE = OSCheck.get_os_type()
+OS_FAMILY = OSCheck.get_os_family()
 
 JDK_INDEX = 0
 
@@ -179,7 +182,7 @@ def download_and_install_jdk(args):
       )
 
       java_bin = "java"
-      if OSCheck.is_windows_os():
+      if OSCheck.is_windows_family():
         java_bin = "java.exe"
 
       if jdk_num == str(custom_jdk_number):
@@ -326,7 +329,7 @@ def configure_os_settings():
   except (KeyError):
     print_error_msg("os_type is not set in the properties file. Setting it now.")
 
-  if OSCheck.is_windows_os():
+  if OSCheck.is_windows_family():
     master_os_type = OS_TYPE + OS_VERSION
   else:
     # MacOS not supported

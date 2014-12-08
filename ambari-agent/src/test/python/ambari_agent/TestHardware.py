@@ -26,7 +26,7 @@ import platform
 with patch("platform.linux_distribution", return_value = ('Suse','11','Final')):
   from ambari_agent import hostname
   from ambari_agent.Hardware import Hardware
-  from ambari_agent.Facter import Facter
+  from ambari_agent.Facter import Facter, FacterLinux
   from ambari_commons import OSCheck
 
 @patch.object(platform,"linux_distribution", new = ('Suse','11','Final'))
@@ -87,7 +87,7 @@ class TestHardware(TestCase):
     self.assertEquals(result, None)
 
   @patch.object(hostname,"hostname")
-  @patch.object(Facter, "getFqdn")
+  @patch.object(FacterLinux, "getFqdn")
   @patch.object(OSCheck, "get_os_type")
   @patch.object(OSCheck, "get_os_version")
   def test_fqdnDomainHostname(self, get_os_version_mock, get_os_type_mock, facter_getFqdn_mock, hostname_mock):
@@ -101,7 +101,7 @@ class TestHardware(TestCase):
     self.assertEquals(result['domain'], "apache.org")
     self.assertEquals(result['fqdn'], (result['hostname'] + '.' + result['domain']))
 
-  @patch.object(Facter, "setDataUpTimeOutput")
+  @patch.object(FacterLinux, "setDataUpTimeOutput")
   @patch.object(OSCheck, "get_os_type")
   @patch.object(OSCheck, "get_os_version")
   def test_uptimeSecondsHoursDays(self, get_os_version_mock, get_os_type_mock, facter_setDataUpTimeOutput_mock):
@@ -115,7 +115,7 @@ class TestHardware(TestCase):
     self.assertEquals(result['uptime_hours'], '73')
     self.assertEquals(result['uptime_days'], '3')
 
-  @patch.object(Facter, "setMemInfoOutput")
+  @patch.object(FacterLinux, "setMemInfoOutput")
   @patch.object(OSCheck, "get_os_type")
   @patch.object(OSCheck, "get_os_version")
   def test_facterMemInfoOutput(self, get_os_version_mock, get_os_type_mock, facter_setMemInfoOutput_mock):
@@ -141,7 +141,7 @@ SwapFree:        1598676 kB
     self.assertEquals(result['swapsize'], '2.04 GB')
     self.assertEquals(result['swapfree'], '1.52 GB')
 
-  @patch.object(Facter, "setDataIfConfigOutput")
+  @patch.object(FacterLinux, "setDataIfConfigOutput")
   @patch.object(OSCheck, "get_os_type")
   @patch.object(OSCheck, "get_os_version")
   def test_facterDataIfConfigOutput(self, get_os_version_mock, get_os_type_mock, facter_setDataIfConfigOutput_mock):

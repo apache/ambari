@@ -763,7 +763,7 @@ def check_reverse_lookup():
     host_fqdn = socket.getfqdn().lower()
     fqdn_ip = socket.gethostbyname(host_fqdn)
     return host_ip == fqdn_ip
-  except socket.herror:
+  except socket.error:
     pass
   return False
 

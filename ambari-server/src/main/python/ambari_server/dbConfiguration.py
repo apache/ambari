@@ -92,7 +92,7 @@ class DBMSConfig(object):
   # dbId = additional information, that helps distinguish between various database connections
   #   (Ambari vs. Metrics is a prime example)
   def create(options, properties, dbId = "Ambari"):
-    #if OSCheck.is_windows_os():
+    #if OSCheck.is_windows_family():
     if dbId == "Ambari":
       return SQLServerAmbariDBConfig(options, properties)
     elif dbId == "Metrics":
@@ -207,7 +207,7 @@ class DBMSConfig(object):
   def ensure_dbms_is_running(self, options, properties, scmStatus=None):
     pass
 
-if OSCheck.is_windows_os():
+if OSCheck.is_windows_family():
   from ambari_server.dbConfiguration_windows import SQLServerAmbariDBConfig, SQLServerMetricsDBConfig
 #else:
 #  from ambari_server.dbConfiguration_linux import PostgreSQLConfig #and potentially MySQLConfig, OracleConfig

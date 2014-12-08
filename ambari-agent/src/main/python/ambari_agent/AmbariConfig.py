@@ -18,35 +18,128 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-import platform
-
 import ConfigParser
 import StringIO
 import json
 from NetUtil import NetUtil
+import os
+content = """
 
-SETUP_ACTION = "setup"
-START_ACTION = "start"
-STOP_ACTION = "stop"
-RESET_ACTION = "reset"
-STATUS_ACTION = "status"
-DEBUG_ACTION = "debug"
+[server]
+hostname=localhost
+url_port=8440
+secured_url_port=8441
 
-IS_WINDOWS = platform.system() == "Windows"
+[agent]
+prefix={ps}tmp{ps}ambari-agent
+tmp_dir={ps}tmp{ps}ambari-agent{ps}tmp
+data_cleanup_interval=86400
+data_cleanup_max_age=2592000
+data_cleanup_max_size_MB = 100
+ping_port=8670
+cache_dir={ps}var{ps}lib{ps}ambari-agent{ps}cache
 
-if not IS_WINDOWS:
-  from AgentConfig_linux import *
-else:
-  from AgentConfig_windows import *
+[services]
 
-config = ConfigParser.RawConfigParser()
+[python]
+custom_actions_dir = {ps}var{ps}lib{ps}ambari-agent{ps}resources{ps}custom_actions
 
-s = StringIO.StringIO(content)
-config.readfp(s)
+[command]
+maxretries=2
+sleepBetweenRetries=1
+
+[security]
+keysdir={ps}tmp{ps}ambari-agent
+server_crt=ca.crt
+passphrase_env_var_name=AMBARI_PASSPHRASE
+
+[heartbeat]
+state_interval = 6
+dirs={ps}etc{ps}hadoop,{ps}etc{ps}hadoop{ps}conf,{ps}var{ps}run{ps}hadoop,{ps}var{ps}log{ps}hadoop
+log_lines_count=300
+
+""".format(ps=os.sep)
+
+
+servicesToPidNames = {
+  'GLUSTERFS' : 'glusterd.pid$',
+  'NAMENODE': 'hadoop-{USER}-namenode.pid$',
+  'SECONDARY_NAMENODE': 'hadoop-{USER}-secondarynamenode.pid$',
+  'DATANODE': 'hadoop-{USER}-datanode.pid$',
+  'JOBTRACKER': 'hadoop-{USER}-jobtracker.pid$',
+  'TASKTRACKER': 'hadoop-{USER}-tasktracker.pid$',
+  'RESOURCEMANAGER': 'yarn-{USER}-resourcemanager.pid$',
+  'NODEMANAGER': 'yarn-{USER}-nodemanager.pid$',
+  'HISTORYSERVER': 'mapred-{USER}-historyserver.pid$',
+  'JOURNALNODE': 'hadoop-{USER}-journalnode.pid$',
+  'ZKFC': 'hadoop-{USER}-zkfc.pid$',
+  'OOZIE_SERVER': 'oozie.pid',
+  'ZOOKEEPER_SERVER': 'zookeeper_server.pid',
+  'FLUME_SERVER': 'flume-node.pid',
+  'TEMPLETON_SERVER': 'templeton.pid',
+  'GANGLIA_SERVER': 'gmetad.pid',
+  'GANGLIA_MONITOR': 'gmond.pid',
+  'HBASE_MASTER': 'hbase-{USER}-master.pid',
+  'HBASE_REGIONSERVER': 'hbase-{USER}-regionserver.pid',
+  'HCATALOG_SERVER': 'webhcat.pid',
+  'KERBEROS_SERVER': 'kadmind.pid',
+  'HIVE_SERVER': 'hive-server.pid',
+  'HIVE_METASTORE': 'hive.pid',
+  'MYSQL_SERVER': 'mysqld.pid',
+  'HUE_SERVER': '/var/run/hue/supervisor.pid',
+  'WEBHCAT_SERVER': 'webhcat.pid',
+}
+
+#Each service, which's pid depends on user should provide user mapping
+servicesToLinuxUser = {
+  'NAMENODE': 'hdfs_user',
+  'SECONDARY_NAMENODE': 'hdfs_user',
+  'DATANODE': 'hdfs_user',
+  'JOURNALNODE': 'hdfs_user',
+  'ZKFC': 'hdfs_user',
+  'JOBTRACKER': 'mapred_user',
+  'TASKTRACKER': 'mapred_user',
+  'RESOURCEMANAGER': 'yarn_user',
+  'NODEMANAGER': 'yarn_user',
+  'HISTORYSERVER': 'mapred_user',
+  'HBASE_MASTER': 'hbase_user',
+  'HBASE_REGIONSERVER': 'hbase_user',
+}
+
+pidPathVars = [
+  {'var' : 'glusterfs_pid_dir_prefix',
+   'defaultValue' : '/var/run'},
+  {'var' : 'hadoop_pid_dir_prefix',
+   'defaultValue' : '/var/run/hadoop'},
+  {'var' : 'hadoop_pid_dir_prefix',
+   'defaultValue' : '/var/run/hadoop'},
+  {'var' : 'ganglia_runtime_dir',
+   'defaultValue' : '/var/run/ganglia/hdp'},
+  {'var' : 'hbase_pid_dir',
+   'defaultValue' : '/var/run/hbase'},
+  {'var' : 'zk_pid_dir',
+   'defaultValue' : '/var/run/zookeeper'},
+  {'var' : 'oozie_pid_dir',
+   'defaultValue' : '/var/run/oozie'},
+  {'var' : 'hcat_pid_dir',
+   'defaultValue' : '/var/run/webhcat'},
+  {'var' : 'hive_pid_dir',
+   'defaultValue' : '/var/run/hive'},
+  {'var' : 'mysqld_pid_dir',
+   'defaultValue' : '/var/run/mysqld'},
+  {'var' : 'hcat_pid_dir',
+   'defaultValue' : '/var/run/webhcat'},
+  {'var' : 'yarn_pid_dir_prefix',
+   'defaultValue' : '/var/run/hadoop-yarn'},
+  {'var' : 'mapred_pid_dir_prefix',
+   'defaultValue' : '/var/run/hadoop-mapreduce'},
+]
+
+
+
 
 class AmbariConfig:
   TWO_WAY_SSL_PROPERTY = "security.server.two_way_ssl"
-  CONFIG_FILE = "/etc/ambari-agent/conf/ambari-agent.ini"
   SERVER_CONNECTION_INFO = "{0}/connection_info"
   CONNECTION_PROTOCOL = "https"
 
@@ -73,46 +166,32 @@ class AmbariConfig:
   def add_section(self, section):
     self.config.add_section(section)
 
-  @staticmethod
-  def getConfigFile():
-    global configFile
-    return configFile
-
-  @staticmethod
-  def getLogFile():
-    global logfile
-    return logfile
-
-  @staticmethod
-  def getOutFile():
-    global outfile
-    return outfile
-
   def setConfig(self, customConfig):
     self.config = customConfig
 
   def getConfig(self):
     return self.config
 
-  def getImports(self):
-    global imports
-    return imports
+  @staticmethod
+  def getConfigFile():
+    if 'AMBARI_AGENT_CONF_DIR' in os.environ:
+      return os.path.join(os.environ['AMBARI_AGENT_CONF_DIR'], "ambari-agent.ini")
+    else:
+      return os.path.join(os.sep, "etc", "ambari-agent", "conf", "ambari-agent.ini")
 
-  def getRolesToClass(self):
-    global rolesToClass
-    return rolesToClass
+  @staticmethod
+  def getLogFile():
+    if 'AMBARI_AGENT_LOG_DIR' in os.environ:
+      return os.path.join(os.environ['AMBARI_AGENT_LOG_DIR'], "ambari-agent.log")
+    else:
+      return os.path.join(os.sep, "var", "log", "ambari-agent", "ambari-agent.log")
 
-  def getServiceStates(self):
-    global serviceStates
-    return serviceStates
-
-  def getServicesToPidNames(self):
-    global servicesToPidNames
-    return servicesToPidNames
-
-  def pidPathVars(self):
-    global pidPathVars
-    return pidPathVars
+  @staticmethod
+  def getOutFile():
+    if 'AMBARI_AGENT_OUT_DIR' in os.environ:
+      return os.path.join(os.environ['AMBARI_AGENT_OUT_DIR'], "ambari-agent.out")
+    else:
+      return os.path.join(os.sep, "var", "log", "ambari-agent", "ambari-agent.out")
 
   def has_option(self, section, option):
     return self.config.has_option(section, option)

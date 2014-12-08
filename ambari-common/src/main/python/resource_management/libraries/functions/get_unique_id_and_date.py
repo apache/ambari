@@ -25,7 +25,7 @@ import datetime
 from resource_management.core import shell
 from ambari_commons import os_check
 def get_unique_id_and_date():
-  if os_check.OSCheck.is_windows_os():
+  if os_check.OSCheck.is_windows_family():
     from ambari_commons.os_windows import run_os_command
     code, out, err = run_os_command("cmd /c vol C:")
     for line in out.splitlines():

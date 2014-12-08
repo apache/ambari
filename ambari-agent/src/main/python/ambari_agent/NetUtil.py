@@ -19,6 +19,7 @@ import logging
 import httplib
 from ssl import SSLError
 import platform
+from HeartbeatHandlers import HeartbeatStopHandlers
 
 ERROR_SSL_WRONG_VERSION = "SSLError: Failed to connect. Please check openssl library versions. \n" +\
               "Refer to: https://bugzilla.redhat.com/show_bug.cgi?id=1022468 for more details."
@@ -47,13 +48,7 @@ class NetUtil:
 
   def __init__(self, stop_callback=None):
     if stop_callback is None:
-      IS_WINDOWS = platform.system() == "Windows"
-      if IS_WINDOWS:
-        from HeartbeatHandlers_windows import HeartbeatStopHandler
-      else:
-        from HeartbeatStopHandler_linux import HeartbeatStopHandler
-      stop_callback = HeartbeatStopHandler()
-
+      stop_callback = HeartbeatStopHandlers()
     self.stopCallback = stop_callback
 
   def checkURL(self, url):

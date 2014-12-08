@@ -30,7 +30,8 @@ import subprocess
 from shell import shellRunner
 import time
 import uuid
-from ambari_commons import OSCheck
+from ambari_commons import OSCheck, OSConst
+from ambari_commons.os_family_impl import OsFamilyImpl
 
 log = logging.getLogger()
 
@@ -47,7 +48,7 @@ def run_os_command(cmd):
   return process.returncode, stdoutdata, stderrdata
 
 
-class FacterBase():
+class Facter(object):
   def __init__(self):
     pass
 
@@ -180,8 +181,8 @@ class FacterBase():
   def convertSizeMbToGb(size):
     return "%0.2f GB" % round(float(size) / (1024.0), 2)
 
-
-class FacterWindows(FacterBase):
+@OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
+class FacterWindows(Facter):
   GET_SYSTEM_INFO_CMD = "systeminfo"
   GET_MEMORY_CMD = '$mem =(Get-WMIObject Win32_OperatingSystem -ComputerName "LocalHost" ); echo "$($mem.FreePhysicalMemory) $($mem.TotalVisibleMemorySize)"'
   GET_PAGE_FILE_INFO = '$pgo=(Get-WmiObject Win32_PageFileUsage); echo "$($pgo.AllocatedBaseSize) $($pgo.AllocatedBaseSize-$pgo.CurrentUsage)"'
@@ -274,13 +275,14 @@ class FacterWindows(FacterBase):
     return 0
 
   def facterInfo(self):
-    facterInfo = FacterBase.facterInfo(self)
-    facterInfo['swapsize'] = FacterBase.convertSizeMbToGb(self.getSwapSize())
-    facterInfo['swapfree'] = FacterBase.convertSizeMbToGb(self.getSwapFree())
+    facterInfo = super(FacterWindows, self).facterInfo()
+    facterInfo['swapsize'] = Facter.convertSizeMbToGb(self.getSwapSize())
+    facterInfo['swapfree'] = Facter.convertSizeMbToGb(self.getSwapFree())
     return facterInfo
 
 
-class FacterLinux(FacterBase):
+@OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
+class FacterLinux(Facter):
   # selinux command
   GET_SE_LINUX_ST_CMD = "/usr/sbin/sestatus"
   GET_IFCONFIG_CMD = "ifconfig"
@@ -289,9 +291,9 @@ class FacterLinux(FacterBase):
 
   def __init__(self):
 
-    self.DATA_IFCONFIG_OUTPUT = Facter.setDataIfConfigOutput()
-    self.DATA_UPTIME_OUTPUT = Facter.setDataUpTimeOutput()
-    self.DATA_MEMINFO_OUTPUT = Facter.setMemInfoOutput()
+    self.DATA_IFCONFIG_OUTPUT = FacterLinux.setDataIfConfigOutput()
+    self.DATA_UPTIME_OUTPUT = FacterLinux.setDataUpTimeOutput()
+    self.DATA_MEMINFO_OUTPUT = FacterLinux.setMemInfoOutput()
 
   @staticmethod
   def setDataIfConfigOutput():
@@ -442,17 +444,11 @@ class FacterLinux(FacterBase):
       return 0
 
   def facterInfo(self):
-    facterInfo = FacterBase.facterInfo(self)
+    facterInfo = super(FacterLinux, self).facterInfo()
     facterInfo['selinux'] = self.isSeLinux()
-    facterInfo['swapsize'] = FacterBase.convertSizeKbToGb(self.getSwapSize())
-    facterInfo['swapfree'] = FacterBase.convertSizeKbToGb(self.getSwapFree())
+    facterInfo['swapsize'] = Facter.convertSizeKbToGb(self.getSwapSize())
+    facterInfo['swapfree'] = Facter.convertSizeKbToGb(self.getSwapFree())
     return facterInfo
-
-
-if platform.system() == "Windows":
-  Facter = FacterWindows
-else:
-  Facter = FacterLinux
 
 
 def main(argv=None):

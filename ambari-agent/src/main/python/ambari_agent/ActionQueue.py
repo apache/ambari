@@ -28,7 +28,6 @@ import json
 
 from AgentException import AgentException
 from LiveStatus import LiveStatus
-from shell import shellRunner
 from ActualConfigHandler import ActualConfigHandler
 from CommandStatusDict import CommandStatusDict
 from CustomServiceOrchestrator import CustomServiceOrchestrator
@@ -74,7 +73,6 @@ class ActionQueue(threading.Thread):
       self.status_update_callback)
     self.config = config
     self.controller = controller
-    self.sh = shellRunner()
     self.configTags = {}
     self._stop = threading.Event()
     self.tmpdir = config.get('agent', 'prefix')

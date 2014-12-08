@@ -33,8 +33,10 @@ import optparse
 import shlex
 import datetime
 from AmbariConfig import AmbariConfig
-from pwd import getpwnam
-from ambari_commons import OSCheck
+from ambari_commons import OSCheck, OSConst
+if OSCheck.get_os_family() != OSConst.WINSRV_FAMILY:
+  from pwd import getpwnam
+
 
 logger = logging.getLogger()
 
@@ -90,8 +92,8 @@ class HostCleanup:
   def resolve_ambari_config(self):
     try:
       config = AmbariConfig()
-      if os.path.exists(AmbariConfig.CONFIG_FILE):
-        config.read(AmbariConfig.CONFIG_FILE)
+      if os.path.exists(AmbariConfig.getConfigFile()):
+        config.read(AmbariConfig.getConfigFile())
       else:
         raise Exception("No config found, use default")
 

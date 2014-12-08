@@ -27,15 +27,17 @@ import socket
 from mock.mock import patch
 from mock.mock import MagicMock
 from mock.mock import create_autospec
+import ambari_commons
 
 with patch("platform.linux_distribution", return_value = ('redhat','11','Final')):
   from ambari_agent.HostCheckReportFileHandler import HostCheckReportFileHandler
   from ambari_agent.PackagesAnalyzer import PackagesAnalyzer
-  from ambari_agent.HostInfo import HostInfo
+  from ambari_agent.HostInfo import HostInfo, HostInfoLinux
   from ambari_agent.Hardware import Hardware
   from ambari_agent.AmbariConfig import AmbariConfig
   from resource_management.core.system import System
   from ambari_commons import OSCheck, Firewall, FirewallChecks ,OSConst
+  import ambari_commons
 
 @patch.object(System, "os_family", new = 'redhat')
 class TestHostInfo(TestCase):
@@ -74,7 +76,7 @@ class TestHostInfo(TestCase):
   def test_getReposToRemove(self):
     l1 = ["Hortonworks Data Platform Utils Version - HDP-UTILS-1.1.0.15", "Ambari 1.x", "HDP"]
     l2 = ["Ambari", "HDP-UTIL"]
-    hostInfo = HostInfo()
+    hostInfo = HostInfoLinux()
     l3 = hostInfo.getReposToRemove(l1, l2)
     self.assertTrue(1, len(l3))
     self.assertEqual(l3[0], "HDP")
@@ -208,7 +210,7 @@ class TestHostInfo(TestCase):
   @patch('os.path.exists')
   def test_checkFolders(self, path_mock):
     path_mock.return_value = True
-    hostInfo = HostInfo()
+    hostInfo = HostInfoLinux()
     results = []
     existingUsers = [{'name':'a1', 'homeDir':'/home/a1'}, {'name':'b1', 'homeDir':'/home/b1'}]
     hostInfo.checkFolders(["/etc/conf", "/var/lib", "/home/"], ["a1", "b1"], existingUsers, results)
@@ -217,15 +219,16 @@ class TestHostInfo(TestCase):
     for item in ['/etc/conf/a1', '/var/lib/a1', '/etc/conf/b1', '/var/lib/b1']:
       self.assertTrue(item in names)
 
+  @patch("ambari_commons.os_check.os_distribution", new=MagicMock(return_value=('redhat','11','Final')))
   @patch('os.path.exists')
   @patch('__builtin__.open')
   def test_checkUsers(self, builtins_open_mock, path_mock):
     builtins_open_mock.return_value = [
       "hdfs:x:493:502:Hadoop HDFS:/usr/lib/hadoop:/bin/bash",
       "zookeeper:x:492:502:ZooKeeper:/var/run/zookeeper:/bin/bash"]
-    path_mock.side_effect = [True, False]
+    path_mock.side_effect = [False, True, False]
 
-    hostInfo = HostInfo()
+    hostInfo = HostInfoLinux()
     results = []
     hostInfo.checkUsers(["zookeeper", "hdfs"], results)
     self.assertEqual(2, len(results))
@@ -236,7 +239,7 @@ class TestHostInfo(TestCase):
     self.assertTrue(newlist[1]['homeDir'], "/var/run/zookeeper")
     self.assertTrue(newlist[0]['status'], "Available")
     self.assertTrue(newlist[1]['status'], "Invalid home directory")
-
+    print(path_mock.mock_calls)
 
   @patch.object(OSCheck, "get_os_type")
   @patch('os.umask')
@@ -247,14 +250,14 @@ class TestHostInfo(TestCase):
   @patch.object(PackagesAnalyzer, 'getInstalledPkgsByNames')
   @patch.object(PackagesAnalyzer, 'getInstalledPkgsByRepo')
   @patch.object(PackagesAnalyzer, 'getInstalledRepos')
-  @patch.object(HostInfo, 'checkUsers')
-  @patch.object(HostInfo, 'checkLiveServices')
-  @patch.object(HostInfo, 'javaProcs')
-  @patch.object(HostInfo, 'checkFolders')
-  @patch.object(HostInfo, 'etcAlternativesConf')
-  @patch.object(HostInfo, 'hadoopVarRunCount')
-  @patch.object(HostInfo, 'hadoopVarLogCount')
-  @patch.object(HostInfo, 'checkIptables')
+  @patch.object(HostInfoLinux, 'checkUsers')
+  @patch.object(HostInfoLinux, 'checkLiveServices')
+  @patch.object(HostInfoLinux, 'javaProcs')
+  @patch.object(HostInfoLinux, 'checkFolders')
+  @patch.object(HostInfoLinux, 'etcAlternativesConf')
+  @patch.object(HostInfoLinux, 'hadoopVarRunCount')
+  @patch.object(HostInfoLinux, 'hadoopVarLogCount')
+  @patch.object(HostInfoLinux, 'checkIptables')
   def test_hostinfo_register_suse(self, cit_mock, hvlc_mock, hvrc_mock, eac_mock, cf_mock, jp_mock,
                              cls_mock, cu_mock, gir_mock, gipbr_mock, gipbn_mock,
                              gpd_mock, aip_mock, aap_mock, whcf_mock, os_umask_mock, get_os_type_mock):
@@ -266,7 +269,7 @@ class TestHostInfo(TestCase):
     gpd_mock.return_value = ["pkg1", "pkg2"]
     get_os_type_mock.return_value = "suse"
 
-    hostInfo = HostInfo()
+    hostInfo = HostInfoLinux()
     dict = {}
     hostInfo.register(dict, False, False)
     self.assertTrue(cit_mock.called)
@@ -290,15 +293,15 @@ class TestHostInfo(TestCase):
   @patch.object(PackagesAnalyzer, 'getInstalledPkgsByNames')
   @patch.object(PackagesAnalyzer, 'getInstalledPkgsByRepo')
   @patch.object(PackagesAnalyzer, 'getInstalledRepos')
-  @patch.object(HostInfo, 'checkUsers')
-  @patch.object(HostInfo, 'checkLiveServices')
-  @patch.object(HostInfo, 'javaProcs')
-  @patch.object(HostInfo, 'checkFolders')
-  @patch.object(HostInfo, 'etcAlternativesConf')
-  @patch.object(HostInfo, 'hadoopVarRunCount')
-  @patch.object(HostInfo, 'hadoopVarLogCount')
-  @patch.object(HostInfo, 'checkIptables')
-  @patch.object(HostInfo, 'getTransparentHugePage')
+  @patch.object(HostInfoLinux, 'checkUsers')
+  @patch.object(HostInfoLinux, 'checkLiveServices')
+  @patch.object(HostInfoLinux, 'javaProcs')
+  @patch.object(HostInfoLinux, 'checkFolders')
+  @patch.object(HostInfoLinux, 'etcAlternativesConf')
+  @patch.object(HostInfoLinux, 'hadoopVarRunCount')
+  @patch.object(HostInfoLinux, 'hadoopVarLogCount')
+  @patch.object(HostInfoLinux, 'checkIptables')
+  @patch.object(HostInfoLinux, 'getTransparentHugePage')
   def test_hostinfo_register(self, get_transparentHuge_page_mock, cit_mock, hvlc_mock, hvrc_mock, eac_mock, cf_mock, jp_mock,
                              cls_mock, cu_mock, gir_mock, gipbr_mock, gipbn_mock,
                              gpd_mock, aip_mock, aap_mock, whcf_mock, os_umask_mock, get_os_type_mock):
@@ -310,7 +313,7 @@ class TestHostInfo(TestCase):
     gpd_mock.return_value = ["pkg1", "pkg2"]
     get_os_type_mock.return_value = "redhat"
 
-    hostInfo = HostInfo()
+    hostInfo = HostInfoLinux()
     dict = {}
     hostInfo.register(dict, True, True)
     self.verifyReturnedValues(dict)
@@ -323,7 +326,7 @@ class TestHostInfo(TestCase):
     self.assertTrue(os_umask_mock.call_count == 2)
 
     cit_mock.reset_mock()
-    hostInfo = HostInfo()
+    hostInfo = HostInfoLinux()
     dict = {}
     hostInfo.register(dict, False, False)
     self.assertTrue(gir_mock.called)
@@ -339,7 +342,7 @@ class TestHostInfo(TestCase):
       self.assertTrue(existingPkg in args[1])
 
   def verifyReturnedValues(self, dict):
-    hostInfo = HostInfo()
+    hostInfo = HostInfoLinux()
     self.assertEqual(dict['alternatives'], [])
     self.assertEqual(dict['stackFoldersAndFiles'], [])
     self.assertEqual(dict['existingUsers'], [])
@@ -352,7 +355,7 @@ class TestHostInfo(TestCase):
   @patch("os.path.isdir")
   @patch("os.path.isfile")
   def test_dirType(self, os_path_isfile_mock, os_path_isdir_mock, os_path_islink_mock, os_path_exists_mock):
-    host = HostInfo()
+    host = HostInfoLinux()
 
     os_path_exists_mock.return_value = False
     result = host.dirType("/home")
@@ -387,7 +390,7 @@ class TestHostInfo(TestCase):
   @patch("os.path.exists")
   @patch("glob.glob")
   def test_hadoopVarRunCount(self, glob_glob_mock, os_path_exists_mock):
-    hostInfo = HostInfo()
+    hostInfo = HostInfoLinux()
 
     os_path_exists_mock.return_value = True
     glob_glob_mock.return_value = ['pid1','pid2','pid3']
@@ -402,7 +405,7 @@ class TestHostInfo(TestCase):
   @patch("os.path.exists")
   @patch("glob.glob")
   def test_hadoopVarLogCount(self, glob_glob_mock, os_path_exists_mock):
-    hostInfo = HostInfo()
+    hostInfo = HostInfoLinux()
 
     os_path_exists_mock.return_value = True
     glob_glob_mock.return_value = ['log1','log2']
@@ -413,12 +416,12 @@ class TestHostInfo(TestCase):
     result = hostInfo.hadoopVarLogCount()
     self.assertEquals(result, 0)
 
-
+  @patch("ambari_commons.os_check.os_distribution", new=MagicMock(return_value=('redhat','11','Final')))
   @patch("os.listdir", create=True, autospec=True)
   @patch("__builtin__.open", create=True, autospec=True)
   @patch("pwd.getpwuid", create=True, autospec=True)
   def test_javaProcs(self, pwd_getpwuid_mock, buitin_open_mock, os_listdir_mock):
-    hostInfo = HostInfo()
+    hostInfo = HostInfoLinux()
     openRead = MagicMock()
     openRead.read.return_value = '/java/;/hadoop/'
     buitin_open_mock.side_effect = [openRead, ['Uid: 22']]
@@ -438,7 +441,7 @@ class TestHostInfo(TestCase):
   @patch("subprocess.Popen")
   @patch.object(Hardware, 'extractMountInfo')
   def test_osdiskAvailableSpace(self, extract_mount_info_mock, subproc_popen_mock):
-    hostInfo = HostInfo()
+    hostInfo = HostInfoLinux()
     p = MagicMock()
     p.communicate.return_value = ['some']
     subproc_popen_mock.return_value = p
@@ -456,7 +459,7 @@ class TestHostInfo(TestCase):
   @patch.object(OSCheck, "get_os_type")
   @patch("subprocess.Popen")
   def test_checkLiveServices(self, subproc_popen, get_os_type_method):
-    hostInfo = HostInfo()
+    hostInfo = HostInfoLinux()
     p = MagicMock()
     p.returncode = 0
     p.communicate.return_value = ('', 'err')
@@ -496,13 +499,13 @@ class TestHostInfo(TestCase):
     self.assertEquals(result[0]['name'], 'service1')
     self.assertTrue(len(result[0]['desc']) > 0)
 
-
+  @patch("ambari_commons.os_check.os_distribution", new=MagicMock(return_value=('redhat','11','Final')))
   @patch("os.path.exists")
   @patch("os.listdir", create=True, autospec=True)
   @patch("os.path.islink")
   @patch("os.path.realpath")
   def test_etcAlternativesConf(self, os_path_realpath_mock, os_path_islink_mock, os_listdir_mock, os_path_exists_mock):
-    hostInfo = HostInfo()
+    hostInfo = HostInfoLinux()
     os_path_exists_mock.return_value = False
     result = hostInfo.etcAlternativesConf('',[])
 
@@ -537,7 +540,7 @@ class TestHostInfo(TestCase):
     gethostbyname_mock.side_effect = ["123.123.123.123", "123.123.123.123"]
     getfqdn_mock.return_value = "test.example.com"
 
-    hostInfo = HostInfo()
+    hostInfo = HostInfoLinux()
 
     self.assertTrue(hostInfo.checkReverseLookup())
     gethostbyname_mock.assert_any_call("test.example.com")
@@ -564,6 +567,7 @@ class TestHostInfo(TestCase):
     run_os_command_mock.return_value = 3, "", ""
     self.assertFalse(Firewall().getFirewallObject().check_iptables())
 
+  @patch("ambari_commons.os_check.os_distribution", new=MagicMock(return_value=('redhat','11','Final')))
   @patch("os.path.isfile")
   @patch('__builtin__.open')
   def test_transparent_huge_page(self, open_mock, os_path_isfile_mock):
@@ -577,7 +581,7 @@ class TestHostInfo(TestCase):
     setattr( context_manager_mock, '__enter__', enter_mock )
     setattr( context_manager_mock, '__exit__', exit_mock )
 
-    hostInfo = HostInfo()
+    hostInfo = HostInfoLinux()
 
     os_path_isfile_mock.return_value = True
     self.assertEqual("never", hostInfo.getTransparentHugePage())

@@ -36,23 +36,19 @@ from PingPortListener import PingPortListener
 import hostname
 from DataCleaner import DataCleaner
 import socket
+from ambari_commons import OSConst, OSCheck
 from ambari_agent import shell
+import HeartbeatHandlers
+from HeartbeatHandlers import bind_signal_handlers
 logger = logging.getLogger()
 
 formatstr = "%(levelname)s %(asctime)s %(filename)s:%(lineno)d - %(message)s"
 agentPid = os.getpid()
 config = AmbariConfig.AmbariConfig()
-configFile = config.CONFIG_FILE
+configFile = config.getConfigFile()
 two_way_ssl_property = config.TWO_WAY_SSL_PROPERTY
 
-IS_WINDOWS = platform.system() == "Windows"
 
-if IS_WINDOWS:
-  from HeartbeatHandlers_windows import bind_signal_handlers
-else:
-  from HeartbeatStopHandler_linux import bind_signal_handlers
-  from HeartbeatStopHandler_linux import signal_handler
-  from HeartbeatStopHandler_linux import debug
 
 def setup_logging(verbose):
   formatter = logging.Formatter(formatstr)
@@ -119,7 +115,7 @@ def perform_prestart_checks(expected_hostname):
       logger.error(msg)
       sys.exit(1)
   # Check if there is another instance running
-  if os.path.isfile(ProcessHelper.pidfile) and not IS_WINDOWS:
+  if os.path.isfile(ProcessHelper.pidfile) and not OSCheck.get_os_family() == OSConst.WINSRV_FAMILY:
     print("%s already exists, exiting" % ProcessHelper.pidfile)
     sys.exit(1)
   # check if ambari prefix exists
@@ -232,7 +228,7 @@ def main(heartbeat_stop_callback=None):
 
   perform_prestart_checks(expected_hostname)
 
-  if not IS_WINDOWS:
+  if not OSCheck.get_os_family() == OSConst.WINSRV_FAMILY:
     daemonize()
 
   # Starting ping port listener
@@ -265,7 +261,7 @@ def main(heartbeat_stop_callback=None):
     controller = Controller(config, heartbeat_stop_callback)
     controller.start()
     controller.join()
-  if not IS_WINDOWS:
+  if not OSCheck.get_os_family() == OSConst.WINSRV_FAMILY:
     stop_agent()
   logger.info("finished")
 

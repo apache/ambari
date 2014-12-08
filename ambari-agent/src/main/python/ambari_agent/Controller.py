@@ -42,25 +42,19 @@ from FileCache import FileCache
 from NetUtil import NetUtil
 from LiveStatus import LiveStatus
 from AlertSchedulerHandler import AlertSchedulerHandler
+from HeartbeatHandlers import HeartbeatStopHandlers, bind_signal_handlers
 
 logger = logging.getLogger()
 
 AGENT_AUTO_RESTART_EXIT_CODE = 77
-
-IS_WINDOWS = platform.system() == "Windows"
 
 class Controller(threading.Thread):
 
   def __init__(self, config, heartbeat_stop_callback = None, range=30):
     threading.Thread.__init__(self)
     logger.debug('Initializing Controller RPC thread.')
-
     if heartbeat_stop_callback is None:
-      if IS_WINDOWS:
-        from HeartbeatHandlers_windows import HeartbeatStopHandler
-      else:
-        from HeartbeatStopHandler_linux import HeartbeatStopHandler
-      heartbeat_stop_callback = HeartbeatStopHandler()
+      heartbeat_stop_callback = HeartbeatStopHandlers()
 
     self.lock = threading.Lock()
     self.safeMode = True
@@ -419,10 +413,6 @@ class Controller(threading.Thread):
 
 def main(argv=None):
   # Allow Ctrl-C
-  if IS_WINDOWS:
-    from HeartbeatHandlers_windows import bind_signal_handlers
-  else:
-    from HeartbeatStopHandler_linux import bind_signal_handlers
 
   logger.setLevel(logging.INFO)
   formatter = logging.Formatter("%(asctime)s %(filename)s:%(lineno)d - \

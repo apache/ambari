@@ -28,10 +28,17 @@ from ambari_commons.ambari_service import AmbariService, ENV_PYTHON_PATH
 from ambari_commons.exceptions import *
 from ambari_commons.logging_utils import *
 from ambari_commons.os_windows import WinServiceController
-from ambari_agent.AmbariConfig import AmbariConfig, SETUP_ACTION, START_ACTION, DEBUG_ACTION, STOP_ACTION, STATUS_ACTION
-from ambari_agent.HeartbeatHandlers_windows import HeartbeatStopHandler
+from ambari_agent.AmbariConfig import AmbariConfig
+from ambari_agent.HeartbeatHandlers import HeartbeatStopHandlers
 
 AMBARI_VERSION_VAR = "AMBARI_VERSION_VAR"
+
+SETUP_ACTION = "setup"
+START_ACTION = "start"
+STOP_ACTION = "stop"
+RESET_ACTION = "reset"
+STATUS_ACTION = "status"
+DEBUG_ACTION = "debug"
 
 def parse_options():
   # parse env cmd
@@ -82,7 +89,7 @@ class AmbariAgentService(AmbariService):
     # Soft dependency on the Windows Time service
     ensure_time_service_is_started()
 
-    self.heartbeat_stop_handler = HeartbeatStopHandler(self._heventSvcStop)
+    self.heartbeat_stop_handler = HeartbeatStopHandlers(self._heventSvcStop)
 
     self.ReportServiceStatus(win32service.SERVICE_RUNNING)
 
@@ -101,7 +108,7 @@ class AmbariAgentService(AmbariService):
 def ensure_time_service_is_started():
   ret = WinServiceController.EnsureServiceIsStarted("W32Time")
   if 0 != ret:
-    raise FatalException(-1, "Error starting Windows Time service: " + string(ret))
+    raise FatalException(-1, "Error starting Windows Time service: " + str(ret))
   pass
 
 

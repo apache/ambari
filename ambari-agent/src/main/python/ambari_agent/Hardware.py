@@ -24,7 +24,7 @@ import subprocess
 import platform
 from shell import shellRunner
 from Facter import Facter
-
+from ambari_commons.os_check import OSConst, OSCheck
 logger = logging.getLogger()
 
 class Hardware:
@@ -62,7 +62,7 @@ class Hardware:
 
   @staticmethod
   def osdisks():
-    if platform.system() == "Windows":
+    if OSCheck.get_os_family() == OSConst.WINSRV_FAMILY:
       return Hardware._osdisks_win()
     else:
       return Hardware._osdisks_linux()

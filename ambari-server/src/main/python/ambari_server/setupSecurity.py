@@ -42,7 +42,7 @@ GET_CRT_INFO_CMD = 'openssl x509 -dates -subject -in {0}'
 
 #keytool commands
 keytool_bin = "keytool"
-if OSCheck.is_windows_os():
+if OSCheck.is_windows_family():
   keytool_bin = "keytool.exe"
 
 KEYTOOL_IMPORT_CERT_CMD = "{0}" + os.sep + "bin" + os.sep + keytool_bin + " -import -alias '{1}' -storetype '{2}' -file '{3}' -storepass '{4}' -noprompt"
@@ -50,7 +50,7 @@ KEYTOOL_DELETE_CERT_CMD = "{0}" + os.sep + "bin" + os.sep + keytool_bin + " -del
 KEYTOOL_KEYSTORE = " -keystore '{0}'"
 
 java_bin = "java"
-if OSCheck.is_windows_os():
+if OSCheck.is_windows_family():
   java_bin = "java.exe"
 
 SECURITY_PROVIDER_GET_CMD = "{0}" + os.sep + "bin" + os.sep + java_bin + " -cp {1}" +\

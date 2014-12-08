@@ -27,7 +27,7 @@ import platform
 from threading import Thread
 import time
 from BackgroundCommandExecutionHandle import BackgroundCommandExecutionHandle
-
+from ambari_commons.os_check import OSConst, OSCheck
 from Grep import Grep
 import shell, sys
 
@@ -141,7 +141,7 @@ class PythonExecutor:
     Creates subprocess with given parameters. This functionality was moved to separate method
     to make possible unit testing
     """
-    close_fds = None if platform.system() == "Windows" else True
+    close_fds = None if OSCheck.get_os_family() == OSConst.WINSRV_FAMILY else True
     return subprocess.Popen(command,
       stdout=tmpout,
       stderr=tmperr, close_fds=close_fds)
